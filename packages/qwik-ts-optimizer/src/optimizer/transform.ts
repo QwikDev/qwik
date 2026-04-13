@@ -7,10 +7,27 @@
  * binding interface.
  */
 
-import { createRegExp, exactly, oneOrMore, anyOf, wordChar, wordBoundary, whitespace, multiline, global } from 'magic-regexp';
-import { parseSync } from "oxc-parser";
+import {
+  anyOf,
+  charIn,
+  createRegExp,
+  digit,
+  exactly,
+  global,
+  oneOrMore,
+  whitespace,
+  wordBoundary,
+  wordChar,
+} from "magic-regexp";
 import { walk, getUndeclaredIdentifiersInFunction } from "oxc-walker";
-import MagicString from "magic-string";
+import type {
+  AstEcmaScriptModule,
+  AstFunction,
+  AstNode,
+  AstProgram,
+  TSEnumDeclaration,
+} from "../ast-types.js";
+import { parseWithRawTransfer } from "../parse-utils.js";
 import { extractSegments } from "./extract.js";
 import { repairInput } from "./input-repair.js";
 import {
@@ -24,7 +41,7 @@ import {
   type NestedCallSiteInfo,
   type SegmentImportContext,
 } from "./segment-codegen.js";
-import { collectExportNames, collectImports } from "./marker-detection.js";
+import { collectImports } from "./marker-detection.js";
 import { buildQrlDeclaration } from "./rewrite-calls.js";
 import { resolveEntryField } from "./entry-strategy.js";
 import { buildQrlDevDeclaration, buildDevFilePath } from "./dev-mode.js";
@@ -55,11 +72,8 @@ import {
   generateParamPadding,
   type LoopContext,
 } from "./loop-hoisting.js";
-import { transformSync as oxcTransformSync } from "oxc-transform";
+import { transformSync as oxcTransformSync, type TransformOptions } from "oxc-transform";
 import {
-  emitC02,
-  emitC05,
-  emitPreventdefaultPassiveCheck,
   classifyDeclarationType,
   parseDisableDirectives,
   filterSuppressedDiagnostics,
@@ -70,1136 +84,23 @@ import {
   computeRelPath,
   getExtension,
 } from "./path-utils.js";
-
-const exportConstAssign = createRegExp(
-  exactly('export').and(oneOrMore(whitespace)).and('const').and(oneOrMore(whitespace))
-    .and(oneOrMore(wordChar)).and(whitespace.times.any()).and('=').and(whitespace.times.any()),
-);
-
-const exportConstLine = createRegExp(
-  exactly('export const ').and(oneOrMore(wordChar)).and(' = ').at.lineStart(),
-  [multiline],
-);
-
-const notTrueLiteral = createRegExp(exactly('!true').and(wordBoundary), [global]);
-
-const notFalseLiteral = createRegExp(exactly('!false').and(wordBoundary), [global]);
-
-const ifBracedBoolLiteral = createRegExp(
-  wordBoundary.and('if').and(whitespace.times.any()).and('(').and(whitespace.times.any())
-    .and(anyOf('true', 'false').grouped()).and(whitespace.times.any()).and(')').and(whitespace.times.any()).and('{'),
-  [global],
-);
-
-const trueAndOp = createRegExp(
-  wordBoundary.and('true').and(whitespace.times.any()).and('&&').and(whitespace.times.any()),
-  [global],
-);
-
-const falseOrOp = createRegExp(
-  wordBoundary.and('false').and(whitespace.times.any()).and('||').and(whitespace.times.any()),
-  [global],
-);
-
-const falseAndOp = createRegExp(
-  wordBoundary.and('false').and(whitespace.times.any()).and('&&').and(whitespace.times.any()),
-  [global],
-);
-
-const elseClause = createRegExp(
-  whitespace.times.any().and('else').and(whitespace.times.any()).and('{').at.lineStart(),
-);
-
-const nsImportPattern = createRegExp(
-  exactly('*').and(oneOrMore(whitespace)).and('as').and(oneOrMore(whitespace)).and(oneOrMore(wordChar).grouped()),
-);
-
-const dceGuard = createRegExp(
-  wordBoundary.and(anyOf(
-    exactly('if').and(whitespace.times.any()).and('(').and(whitespace.times.any())
-      .and(anyOf('true', 'false', '!true', '!false')).and(wordBoundary),
-    exactly('true').and(whitespace.times.any()).and('&&'),
-    exactly('false').and(whitespace.times.any()).and('||'),
-    exactly('false').and(whitespace.times.any()).and('&&'),
-  )),
-);
-
-/**
- * Qwik import sources that can provide isServer/isBrowser/isDev constants.
- */
-const CONST_IMPORT_SOURCES = [
-  "@qwik.dev/core",
-  "@qwik.dev/core/build",
-  "@builder.io/qwik",
-  "@builder.io/qwik/build",
-  "@builder.io/qwik-city/build",
-];
-
-/**
- * Apply isServer/isBrowser const replacement to segment code.
- *
- * Parses the segment code to find imports of isServer/isBrowser from Qwik
- * packages, then replaces all references with boolean literals.
- */
-function applySegmentConstReplacement(
-  code: string,
-  filename: string,
-  isServer?: boolean,
-): string {
-  if (isServer === undefined) return code;
-
-  let parsed;
-  try {
-    parsed = parseSync(filename, code, {
-      experimentalRawTransfer: true,
-    } as any);
-  } catch {
-    return code;
-  }
-
-  const program = parsed.program;
-
-  // Find const imports: isServer, isBrowser, isDev from Qwik sources
-  // Map: localName -> replacement value
-  const replacements = new Map<string, string>();
-  const importLocalNames = new Set<string>();
-
-  for (const node of program.body) {
-    if (node.type !== "ImportDeclaration") continue;
-    const source = node.source?.value ?? "";
-    if (!CONST_IMPORT_SOURCES.includes(source)) continue;
-
-    for (const spec of node.specifiers || []) {
-      if (spec.type !== "ImportSpecifier") continue;
-      const importedName =
-        (spec.imported?.type === "Identifier"
-          ? spec.imported.name
-          : spec.imported?.value) ?? spec.local?.name;
-      const localName = spec.local?.name;
-      if (!localName) continue;
-
-      importLocalNames.add(localName);
-
-      if (importedName === "isServer") {
-        replacements.set(localName, String(isServer));
-      } else if (importedName === "isBrowser") {
-        replacements.set(localName, String(!isServer));
-      }
-    }
-  }
-
-  if (replacements.size === 0) return code;
-
-  // Apply replacements using MagicString for precise text surgery
-  const s = new MagicString(code);
-
-  // Walk AST to replace identifier references
-  const importRanges = new Set<string>();
-  for (const node of program.body) {
-    if (node.type === "ImportDeclaration") {
-      for (const spec of node.specifiers || []) {
-        importRanges.add(`${spec.local.start}:${spec.local.end}`);
-      }
-    }
-  }
-
-  walk(program, {
-    enter(node: any, parent: any) {
-      if (node.type !== "Identifier") return;
-      const replacement = replacements.get(node.name);
-      if (replacement === undefined) return;
-
-      // Skip import declaration identifiers
-      if (importRanges.has(`${node.start}:${node.end}`)) return;
-      // Skip property access (obj.isServer)
-      if (
-        parent?.type === "MemberExpression" &&
-        parent.property === node &&
-        !parent.computed
-      )
-        return;
-      // Skip variable declarator id
-      if (parent?.type === "VariableDeclarator" && parent.id === node) return;
-      // Skip import specifier imported name
-      if (parent?.type === "ImportSpecifier" && parent.imported === node)
-        return;
-
-      s.overwrite(node.start, node.end, replacement);
-    },
-  });
-
-  return s.toString();
-}
-
-/**
- * Apply dead code elimination to segment code.
- *
- * Handles:
- * - `if (false) { ... }` -> removed entirely
- * - `if (false) { ... } else { ... }` -> keeps else body
- * - `if (true) { ... }` -> keeps body, drops condition
- * - `if (true) { ... } else { ... }` -> keeps if body, drops else
- * - Nested braces handled correctly via brace depth tracking
- */
-/**
- * Inject _useHmr() call into a component segment's function body for dev mode HMR support.
- *
- * Adds `_useHmr("filePath");` as the first statement in the exported function body,
- * and adds the corresponding import statement.
- */
-function injectUseHmr(segmentCode: string, devFile: string): string {
-  // Find the export const ... = pattern and locate the function body opening brace
-  const exportMatch = segmentCode.match(exportConstAssign);
-  if (!exportMatch) return segmentCode;
-
-  const afterExport = exportMatch.index! + exportMatch[0]!.length;
-  // Find the arrow function's block body: skip past params and => to find {
-  const rest = segmentCode.slice(afterExport);
-  const arrowIdx = rest.indexOf("=>");
-  if (arrowIdx === -1) return segmentCode;
-
-  // Find the opening { of the block body after =>
-  const afterArrow = rest.slice(arrowIdx + 2);
-  const braceIdx = afterArrow.indexOf("{");
-  if (braceIdx === -1) return segmentCode;
-
-  // Calculate absolute position of the opening {
-  const absPos = afterExport + arrowIdx + 2 + braceIdx + 1;
-
-  // Detect indentation: find the next non-whitespace line after the brace
-  const afterBrace = segmentCode.slice(absPos);
-  const indentMatch = afterBrace.match(/\n(\s+)/);
-  const indent = indentMatch ? indentMatch[1] : "    ";
-
-  // Insert the _useHmr call right after the opening brace
-  const hmrCall = `\n${indent}_useHmr("${devFile}");`;
-  let result =
-    segmentCode.slice(0, absPos) + hmrCall + segmentCode.slice(absPos);
-
-  // Add the _useHmr import if not already present
-  if (!result.includes("import { _useHmr }")) {
-    // Find the // separator after imports
-    const sepIdx = result.indexOf("\n//\n");
-    if (sepIdx >= 0) {
-      result =
-        result.slice(0, sepIdx) +
-        `\nimport { _useHmr } from "@qwik.dev/core";` +
-        result.slice(sepIdx);
-    } else {
-      // No separator, prepend the import
-      result = `import { _useHmr } from "@qwik.dev/core";\n//\n` + result;
-    }
-  }
-
-  return result;
-}
-
-function applySegmentDCE(code: string): string {
-  // Process if(false) and if(true) patterns iteratively until no more changes
-  let result = code;
-  let changed = true;
-  let iterations = 0;
-
-  // Pre-pass: simplify boolean negation expressions
-  // !true -> false, !false -> true (outside strings)
-  result = result.replace(notTrueLiteral, (match, offset) => {
-    if (isInsideString(result, offset)) return match;
-    return "false";
-  });
-  result = result.replace(notFalseLiteral, (match, offset) => {
-    if (isInsideString(result, offset)) return match;
-    return "true";
-  });
-
-  while (changed && iterations < 10) {
-    changed = false;
-    iterations++;
-
-    const replacements: Array<{
-      start: number;
-      end: number;
-      replacement: string;
-    }> = [];
-
-    // Match if(false) or if(true) with braced body
-    ifBracedBoolLiteral.lastIndex = 0;
-    const ifBracedPattern = ifBracedBoolLiteral;
-    let match;
-
-    while ((match = ifBracedPattern.exec(result)) !== null) {
-      const condValue = match[1] === "true";
-      const braceStart = match.index + match[0].length - 1; // position of opening {
-
-      // Find matching closing brace
-      const closeIdx = findMatchingBrace(result, braceStart);
-      if (closeIdx === -1) continue;
-
-      const ifBody = result.slice(braceStart + 1, closeIdx);
-
-      // Check for else clause
-      let elseBody: string | null = null;
-      let totalEnd = closeIdx + 1;
-      const afterClose = result.slice(closeIdx + 1).match(elseClause);
-      if (afterClose) {
-        const elseBraceStart = closeIdx + 1 + afterClose[0]!.length - 1;
-        const elseCloseIdx = findMatchingBrace(result, elseBraceStart);
-        if (elseCloseIdx !== -1) {
-          elseBody = result.slice(elseBraceStart + 1, elseCloseIdx);
-          totalEnd = elseCloseIdx + 1;
-        }
-      }
-
-      let replacement: string;
-      if (condValue) {
-        // if (true) { body } -> body
-        // if (true) { body } else { ... } -> body
-        replacement = ifBody;
-      } else {
-        // if (false) { ... } -> removed
-        // if (false) { ... } else { body } -> body
-        replacement = elseBody ?? "";
-      }
-
-      replacements.push({
-        start: match.index,
-        end: totalEnd,
-        replacement: replacement.trim(),
-      });
-    }
-
-    // Match if(false) or if(true) with braceless body (single statement)
-    // e.g., if (false) return; or if (false) throw new Error();
-    const ifBracelessPattern = /\bif\s*\(\s*(true|false)\s*\)\s+(?!\{)/g;
-    while ((match = ifBracelessPattern.exec(result)) !== null) {
-      // Skip if this overlaps with an already-found braced match
-      const matchStart = match.index;
-      if (replacements.some((r) => matchStart >= r.start && matchStart < r.end))
-        continue;
-
-      const condValue = match[1] === "true";
-      const stmtStart = match.index + match[0].length;
-
-      // Find end of statement (semicolon)
-      const semiIdx = result.indexOf(";", stmtStart);
-      if (semiIdx === -1) continue;
-
-      const stmt = result.slice(stmtStart, semiIdx + 1).trim();
-      const totalEnd = semiIdx + 1;
-
-      // Remove trailing newline if present
-      let adjustedEnd = totalEnd;
-      if (result[adjustedEnd] === "\n") adjustedEnd++;
-
-      if (condValue) {
-        // if (true) statement; -> statement;
-        replacements.push({
-          start: match.index,
-          end: adjustedEnd,
-          replacement: stmt,
-        });
-      } else {
-        // if (false) statement; -> removed
-        replacements.push({
-          start: match.index,
-          end: adjustedEnd,
-          replacement: "",
-        });
-      }
-    }
-
-    // Apply replacements in reverse order to preserve positions
-    replacements.sort((a, b) => b.start - a.start);
-    for (const r of replacements) {
-      result = result.slice(0, r.start) + r.replacement + result.slice(r.end);
-      changed = true;
-    }
-  }
-
-  // Simplify logical AND/OR expressions with boolean literals
-  // `true && expr` -> `expr`
-  // `false && expr` -> `false`
-  // `true || expr` -> `true`
-  // `false || expr` -> `expr`
-  // Only replace when NOT inside a string literal (check that the match position
-  // is not within quotes by counting unescaped quotes before the match)
-  result = result.replace(trueAndOp, (match, offset) => {
-    if (isInsideString(result, offset)) return match;
-    return "";
-  });
-  result = result.replace(falseOrOp, (match, offset) => {
-    if (isInsideString(result, offset)) return match;
-    return "";
-  });
-
-  // `false && expr` needs to replace the whole expression with `false`
-  // This is trickier because we need to find the end of the expression.
-  // For JSX contexts like `{false && <p>...</p>}`, use brace tracking.
-  result = simplifyFalseAndExpressions(result);
-
-  // Clean up blank lines left by DCE
-  result = result.replace(/\n\s*\n\s*\n/g, "\n\n");
-
-  return result;
-}
-
-/**
- * Check if a position in source text is inside a string literal.
- * Handles escaped quotes (including double-escaped \\") and template expressions.
- */
-function isInsideString(text: string, offset: number): boolean {
-  let inSingle = false;
-  let inDouble = false;
-  let inTemplate = false;
-  let templateDepth = 0; // track ${...} nesting inside template literals
-  for (let i = 0; i < offset; i++) {
-    const ch = text[i];
-    // Count consecutive backslashes before this char to handle \\, \\\\, etc.
-    if (
-      ch === "\\" &&
-      (inSingle || inDouble || (inTemplate && templateDepth === 0))
-    ) {
-      i++; // skip the next character (it's escaped)
-      continue;
-    }
-    if (inTemplate && templateDepth > 0) {
-      // Inside a ${...} expression — track brace nesting
-      if (ch === "{") templateDepth++;
-      else if (ch === "}") templateDepth--;
-      continue;
-    }
-    if (inTemplate && ch === "$" && text[i + 1] === "{") {
-      templateDepth = 1;
-      i++; // skip the '{'
-      continue;
-    }
-    if (ch === "'" && !inDouble && !inTemplate) inSingle = !inSingle;
-    else if (ch === '"' && !inSingle && !inTemplate) inDouble = !inDouble;
-    else if (ch === "`" && !inSingle && !inDouble) inTemplate = !inTemplate;
-  }
-  return inSingle || inDouble || (inTemplate && templateDepth === 0);
-}
-
-/**
- * Find the matching closing brace for an opening brace, handling nesting.
- */
-function findMatchingBrace(text: string, openPos: number): number {
-  let depth = 1;
-  let inString: string | null = null;
-  let i = openPos + 1;
-
-  while (i < text.length && depth > 0) {
-    const ch = text[i];
-
-    // Track string literals
-    if (inString) {
-      if (ch === inString && text[i - 1] !== "\\") {
-        inString = null;
-      }
-      i++;
-      continue;
-    }
-    if (ch === '"' || ch === "'" || ch === "`") {
-      inString = ch;
-      i++;
-      continue;
-    }
-
-    if (ch === "{") depth++;
-    else if (ch === "}") depth--;
-
-    if (depth === 0) return i;
-    i++;
-  }
-  return -1;
-}
-
-/**
- * Simplify `false && expr` patterns in code.
- *
- * In JSX contexts like `{false && <p>...</p>}`, replaces the entire
- * expression with just `false`. Uses brace/angle tracking for JSX.
- */
-function simplifyFalseAndExpressions(code: string): string {
-  falseAndOp.lastIndex = 0;
-  const pattern = falseAndOp;
-  let match;
-  const replacements: Array<{
-    start: number;
-    end: number;
-    replacement: string;
-  }> = [];
-
-  while ((match = pattern.exec(code)) !== null) {
-    const exprStart = match.index + match[0].length;
-    // Find the end of the right-hand expression
-    const exprEnd = findExpressionEnd(code, exprStart);
-    if (exprEnd > exprStart) {
-      replacements.push({
-        start: match.index,
-        end: exprEnd,
-        replacement: "false",
-      });
-    }
-  }
-
-  if (replacements.length === 0) return code;
-
-  let result = code;
-  for (let i = replacements.length - 1; i >= 0; i--) {
-    const r = replacements[i];
-    result = result.slice(0, r.start) + r.replacement + result.slice(r.end);
-  }
-  return result;
-}
-
-/**
- * Find the end of a JSX/JS expression starting at the given position.
- * Handles JSX tags, parentheses, function calls, etc.
- */
-function findExpressionEnd(code: string, start: number): number {
-  let i = start;
-  let inString: string | null = null;
-  let angleBraceDepth = 0;
-  let parenDepth = 0;
-  let curlyDepth = 0;
-
-  while (i < code.length) {
-    const ch = code[i];
-
-    if (inString) {
-      if (ch === inString && code[i - 1] !== "\\") inString = null;
-      i++;
-      continue;
-    }
-    if (ch === '"' || ch === "'" || ch === "`") {
-      inString = ch;
-      i++;
-      continue;
-    }
-
-    if (ch === "(") {
-      parenDepth++;
-      i++;
-      continue;
-    }
-    if (ch === ")") {
-      if (parenDepth === 0) return i;
-      parenDepth--;
-      i++;
-      continue;
-    }
-    if (ch === "{") {
-      curlyDepth++;
-      i++;
-      continue;
-    }
-    if (ch === "}") {
-      if (curlyDepth === 0) return i;
-      curlyDepth--;
-      i++;
-      continue;
-    }
-    if (ch === "<") {
-      // Check for JSX closing tag or self-closing
-      if (code[i + 1] === "/") {
-        // Closing tag: find matching >
-        const closeEnd = code.indexOf(">", i);
-        if (closeEnd >= 0 && angleBraceDepth > 0) {
-          angleBraceDepth--;
-          i = closeEnd + 1;
-          if (angleBraceDepth === 0 && parenDepth === 0 && curlyDepth === 0)
-            return i;
-          continue;
-        }
-      }
-      // Opening tag
-      angleBraceDepth++;
-      // Scan to end of opening tag
-      let j = i + 1;
-      let tagCurly = 0;
-      while (j < code.length) {
-        if (code[j] === "{") tagCurly++;
-        else if (code[j] === "}") tagCurly--;
-        else if (code[j] === ">" && tagCurly === 0) {
-          // Check for self-closing />
-          if (code[j - 1] === "/") {
-            angleBraceDepth--;
-            i = j + 1;
-            if (angleBraceDepth === 0 && parenDepth === 0 && curlyDepth === 0)
-              return i;
-          } else {
-            i = j + 1;
-          }
-          break;
-        }
-        j++;
-      }
-      if (j >= code.length) return code.length;
-      continue;
-    }
-
-    // At top level (no nesting), stop at expression-ending characters
-    if (angleBraceDepth === 0 && parenDepth === 0 && curlyDepth === 0) {
-      if (ch === "\n" || ch === ";" || ch === ",") return i;
-    }
-
-    i++;
-  }
-  return i;
-}
-
-/**
- * Apply side-effect simplification to segment code.
- *
- * Transforms unused variable declarations in segment bodies:
- * - `const x = expr.prop;` -> `expr.prop;` (member expression, x unused)
- * - `const x = a + b;` -> `a, b;` (binary expression, x unused -- extract operand refs)
- * - `const x = fn();` -> `fn();` (call expression, x unused)
- *
- * Only applied to the export body section, not to imports or QRL declarations.
- */
-function applySegmentSideEffectSimplification(
-  code: string,
-  filename: string,
-): string {
-  // Find the export line to only process the body
-  const exportMatch = code.match(exportConstLine);
-  if (!exportMatch) return code;
-
-  const exportStart = code.indexOf(exportMatch[0]!);
-  const beforeExport = code.slice(0, exportStart);
-  const exportSection = code.slice(exportStart);
-
-  // Parse the body to find unused variable declarations
-  let parsed;
-  try {
-    parsed = parseSync(filename, exportSection, {
-      experimentalRawTransfer: true,
-    } as any);
-  } catch {
-    return code;
-  }
-
-  // Collect all identifier references in the body
-  const allRefs = new Map<string, number>();
-  const varDecls: Array<{
-    name: string;
-    initStart: number;
-    initEnd: number;
-    declStart: number;
-    declEnd: number;
-    initType: string;
-    initText: string;
-  }> = [];
-
-  walk(parsed.program, {
-    enter(node: any, parent: any) {
-      if (node.type === "Identifier" && node.name) {
-        // Skip if this is a variable declarator id
-        if (parent?.type === "VariableDeclarator" && parent.id === node) return;
-        // Skip import specifiers
-        if (parent?.type === "ImportSpecifier") return;
-
-        allRefs.set(node.name, (allRefs.get(node.name) ?? 0) + 1);
-      }
-
-      // Collect const variable declarations
-      if (node.type === "VariableDeclaration" && node.kind === "const") {
-        for (const declarator of node.declarations) {
-          if (declarator.id?.type === "Identifier" && declarator.init) {
-            // Get the containing statement
-            const stmtNode = node;
-            if (node.declarations?.length > 1) continue; // skip multi-declarator
-
-            varDecls.push({
-              name: declarator.id.name,
-              initStart: declarator.init.start,
-              initEnd: declarator.init.end,
-              declStart: stmtNode.start,
-              declEnd: stmtNode.end,
-              initType: declarator.init.type,
-              initText: exportSection.slice(
-                declarator.init.start,
-                declarator.init.end,
-              ),
-            });
-          }
-        }
-      }
-    },
-  });
-
-  // Find truly unused variable declarations (name referenced 0 times outside its declaration)
-  const replacements: Array<{
-    start: number;
-    end: number;
-    replacement: string;
-  }> = [];
-
-  for (const decl of varDecls) {
-    const refCount = allRefs.get(decl.name) ?? 0;
-    if (refCount > 0) continue; // Variable is referenced somewhere
-
-    // Skip class declarations and function declarations
-    if (
-      decl.initType === "ClassExpression" ||
-      decl.initType === "FunctionExpression" ||
-      decl.initType === "ArrowFunctionExpression"
-    )
-      continue;
-
-    // Skip the export const symbolName declaration itself
-    if (exportSection.includes(`export const ${decl.name} =`)) continue;
-
-    let replacement: string;
-
-    if (
-      decl.initType === "MemberExpression" ||
-      decl.initType === "CallExpression" ||
-      decl.initType === "Identifier"
-    ) {
-      // Simple expression: drop const, keep as expression statement
-      replacement = decl.initText + ";";
-    } else if (decl.initType === "BinaryExpression") {
-      // Binary expression: extract unique identifier operands as comma expression
-      const operandIds = extractBinaryOperandIdentifiers(decl.initText);
-      if (operandIds.length > 0) {
-        replacement = operandIds.join(", ") + ";";
-      } else {
-        replacement = decl.initText + ";";
-      }
-    } else {
-      continue; // Don't simplify other types
-    }
-
-    replacements.push({
-      start: decl.declStart,
-      end: decl.declEnd,
-      replacement,
-    });
-  }
-
-  if (replacements.length === 0) return code;
-
-  // Apply replacements in reverse order
-  let result = exportSection;
-  replacements.sort((a, b) => b.start - a.start);
-  for (const r of replacements) {
-    result = result.slice(0, r.start) + r.replacement + result.slice(r.end);
-  }
-
-  return beforeExport + result;
-}
-
-/**
- * Extract unique top-level identifier references from a binary expression text.
- * e.g., "ident1 + ident3" -> ["ident1", "ident3"]
- */
-function extractBinaryOperandIdentifiers(text: string): string[] {
-  const ids: string[] = [];
-  const seen = new Set<string>();
-  const idRegex = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\b/g;
-  let match;
-  while ((match = idRegex.exec(text)) !== null) {
-    const name = match[1];
-    // Skip keywords
-    if (
-      [
-        "const",
-        "let",
-        "var",
-        "new",
-        "typeof",
-        "void",
-        "delete",
-        "true",
-        "false",
-        "null",
-        "undefined",
-      ].includes(name)
-    )
-      continue;
-    if (!seen.has(name)) {
-      seen.add(name);
-      ids.push(name);
-    }
-  }
-  return ids;
-}
-
-/**
- * Qwik package prefixes whose imports should never be removed.
- * These may have been added by the rewriter and are always needed.
- */
-const QWIK_IMPORT_PREFIXES = ["@qwik.dev/", "@builder.io/qwik"];
-
-/**
- * Remove unused non-Qwik imports from a rewritten parent module.
- *
- * After extraction moves closures into segments, some imports in the parent
- * module may no longer be referenced. This function re-parses the rewritten
- * code, identifies which import specifiers are unreferenced in the remaining
- * body, and removes them.
- *
- * Safety rules:
- * - Never removes Qwik imports (they may have been added by the rewriter)
- * - Never removes side-effect imports (`import 'module'` with no specifiers)
- * - Never removes namespace imports (`import * as ns from '...'`)
- * - Only removes named specifiers whose local name has zero references outside imports
- *
- * @param code - The rewritten parent module source code
- * @param filename - Filename for parser (determines language)
- * @returns Cleaned code with unused imports removed
- */
-function removeUnusedImports(
-  code: string,
-  filename: string,
-  transpileJsx?: boolean,
-): string {
-  // Fast path: extract all import local names and check if they all appear
-  // in the non-import section of the code. If so, no imports need removal.
-  const sepIdx = code.indexOf("\n//\n");
-  if (sepIdx >= 0) {
-    const importSection = code.slice(0, sepIdx);
-    const bodySection = code.slice(sepIdx);
-    let allReferenced = true;
-    // Collect all local names from import specifiers
-    const localNames: string[] = [];
-    for (const line of importSection.split("\n")) {
-      if (!line.startsWith("import ")) continue;
-      const braceStart = line.indexOf("{");
-      const braceEnd = line.indexOf("}");
-      if (braceStart >= 0 && braceEnd > braceStart) {
-        const specList = line.slice(braceStart + 1, braceEnd);
-        // Extract local names: "foo" from "foo", "bar as baz" -> "baz"
-        for (const spec of specList.split(",")) {
-          const trimmed = spec.trim();
-          if (!trimmed) continue;
-          const asIdx = trimmed.indexOf(" as ");
-          const localName =
-            asIdx >= 0 ? trimmed.slice(asIdx + 4).trim() : trimmed;
-          if (localName) localNames.push(localName);
-        }
-      }
-      // Default import: import Foo from "..."
-      const defaultMatch = line.match(
-        /^import\s+([A-Za-z_$]\w*)\s*(?:,|\s+from)/,
-      );
-      if (defaultMatch) localNames.push(defaultMatch[1]);
-      // Namespace import: import * as ns from "..."
-      const nsMatch = line.match(nsImportPattern);
-      if (nsMatch) localNames.push(nsMatch[1]!);
-    }
-    if (localNames.length > 0) {
-      for (const name of localNames) {
-        if (!bodySection.includes(name)) {
-          allReferenced = false;
-          break;
-        }
-      }
-      if (allReferenced) return code;
-    }
-  }
-
-  let parsed;
-  try {
-    parsed = parseSync(filename, code, {
-      experimentalRawTransfer: true,
-    } as any);
-  } catch {
-    // If parsing fails, return code unchanged
-    return code;
-  }
-
-  const program = parsed.program;
-
-  // 1. Collect all import declarations and their specifiers
-  interface ImportSpec {
-    localName: string;
-    node: any; // The ImportDeclaration node
-    specIndex: number;
-    specNode: any;
-  }
-
-  const importSpecs: ImportSpec[] = [];
-  const importNodes: any[] = [];
-
-  for (const node of program.body) {
-    if (node.type !== "ImportDeclaration") continue;
-
-    // Skip side-effect imports (no specifiers)
-    if (!node.specifiers || node.specifiers.length === 0) continue;
-
-    // Note: We intentionally do NOT skip Qwik imports entirely. After rewriting,
-    // unreferenced non-marker specifiers (e.g., onRender) should still be removed.
-    // But we DO skip $-suffixed specifiers in Qwik imports (they may have been
-    // preserved intentionally in the surviving user import to match Rust behavior).
-
-    importNodes.push(node);
-
-    for (let i = 0; i < node.specifiers.length; i++) {
-      const spec = node.specifiers[i];
-
-      const localName = spec.local?.name;
-      if (localName) {
-        importSpecs.push({ localName, node, specIndex: i, specNode: spec });
-      }
-    }
-  }
-
-  if (importSpecs.length === 0) return code;
-
-  // 2. Collect all Identifier references in the non-import part of the AST
-  const referencedNames = new Set<string>();
-  walk(program, {
-    enter(node: any, parent: any) {
-      // Skip import declaration subtrees (use this.skip() to prevent walking children)
-      if (node.type === "ImportDeclaration") {
-        this.skip();
-        return;
-      }
-
-      if (
-        (node.type === "Identifier" || node.type === "JSXIdentifier") &&
-        node.name
-      ) {
-        // Skip property keys in non-shorthand object properties
-        if (
-          parent?.type === "Property" &&
-          parent.key === node &&
-          !parent.shorthand &&
-          !parent.computed
-        ) {
-          return;
-        }
-        // Skip member expression property names (obj.prop -- skip prop)
-        if (
-          parent?.type === "MemberExpression" &&
-          parent.property === node &&
-          !parent.computed
-        ) {
-          return;
-        }
-        referencedNames.add(node.name);
-      }
-    },
-  });
-
-  // 3. Find unreferenced import specifiers
-  // For surviving user Qwik imports (single-quoted, from original source):
-  // - If ALL specifiers are unreferenced: preserve the entire import (Rust behavior)
-  // - If SOME specifiers are referenced: normal cleanup (remove unreferenced)
-  const unreferencedSpecs = importSpecs.filter((spec) => {
-    if (referencedNames.has(spec.localName)) return false;
-
-    // Check if this is a single-quoted Qwik import (surviving user import)
-    const importSource = spec.node.source?.value ?? "";
-    const isQwikImport = QWIK_IMPORT_PREFIXES.some((p) =>
-      importSource.startsWith(p),
-    );
-    if (isQwikImport && !transpileJsx) {
-      const quoteChar = code[spec.node.source.start];
-      if (quoteChar === "'") {
-        // When transpileJsx is OFF (default), the Rust optimizer preserves
-        // single-quoted Qwik imports that have non-$-suffixed specifiers
-        // even when all specifiers are unreferenced in the parent body.
-        // When transpileJsx is ON, the optimizer removes them.
-        const siblings = importSpecs.filter((s) => s.node === spec.node);
-        const allUnreferenced = siblings.every(
-          (s) => !referencedNames.has(s.localName),
-        );
-        const hasNonDollarSpec = (spec.node.specifiers ?? []).some((s: any) => {
-          if (s.type !== "ImportSpecifier") return true;
-          const importedName = s.imported?.name ?? s.local?.name ?? "";
-          return !importedName.endsWith("$");
-        });
-        if (allUnreferenced && hasNonDollarSpec) {
-          return false; // preserve entire import when it has non-$ specifiers
-        }
-      }
-    }
-
-    return true;
-  });
-
-  if (unreferencedSpecs.length === 0) return code;
-
-  // 4. Remove unreferenced imports using magic-string
-  const ms = new MagicString(code);
-
-  // Group unreferenced specs by their parent import node
-  const specsByNode = new Map<any, ImportSpec[]>();
-  for (const spec of unreferencedSpecs) {
-    const existing = specsByNode.get(spec.node) ?? [];
-    existing.push(spec);
-    specsByNode.set(spec.node, existing);
-  }
-
-  for (const [node, specs] of specsByNode) {
-    const totalSpecs = node.specifiers?.length ?? 0;
-    const unreferencedCount = specs.length;
-
-    if (unreferencedCount >= totalSpecs) {
-      // All specifiers are unreferenced: remove entire import declaration
-      let end = node.end;
-      if (end < code.length && code[end] === "\n") end++;
-      ms.overwrite(node.start, end, "");
-    } else {
-      // Only some specifiers are unreferenced: rebuild the import
-      const unreferencedNames = new Set(specs.map((s) => s.localName));
-      const keptParts: string[] = [];
-      let defaultPart = "";
-      let nsPart = "";
-
-      for (const spec of node.specifiers ?? []) {
-        const localName = spec.local?.name;
-        if (unreferencedNames.has(localName)) continue;
-
-        if (spec.type === "ImportDefaultSpecifier") {
-          defaultPart = localName;
-        } else if (spec.type === "ImportNamespaceSpecifier") {
-          nsPart = `* as ${localName}`;
-        } else {
-          const importedName = spec.imported?.name ?? localName;
-          if (importedName !== localName) {
-            keptParts.push(`${importedName} as ${localName}`);
-          } else {
-            keptParts.push(localName);
-          }
-        }
-      }
-
-      let importParts = "";
-      if (nsPart) {
-        importParts = defaultPart ? `${defaultPart}, ${nsPart}` : nsPart;
-      } else if (keptParts.length > 0) {
-        importParts = defaultPart
-          ? `${defaultPart}, { ${keptParts.join(", ")} }`
-          : `{ ${keptParts.join(", ")} }`;
-      } else if (defaultPart) {
-        importParts = defaultPart;
-      }
-
-      const sourceValue = node.source?.value ?? "";
-      const quote = code[node.source.start] === "'" ? "'" : '"';
-      const newImport = `import ${importParts} from ${quote}${sourceValue}${quote};`;
-      let end = node.end;
-      if (end < code.length && code[end] === "\n") end++;
-      ms.overwrite(node.start, end, newImport + "\n");
-    }
-  }
-
-  return ms.toString();
-}
-
-/**
- * Build a passthrough TransformModule for files with no $() markers and no JSX to transpile.
- * Preserves source as-is with a `//` separator between imports and body, and strips
- * unused variable bindings wrapping inlinedQrl(null, ...) calls.
- */
-function buildPassthroughModule(
-  repairedCode: string,
-  relPath: string,
-  origPath: string,
-  cachedProgram: any | undefined,
-): TransformModule {
-  const program =
-    cachedProgram ??
-    parseSync(relPath, repairedCode, { experimentalRawTransfer: true } as any)
-      .program;
-  const s = new MagicString(repairedCode);
-
-  // Find the end of the last import declaration
-  let lastImportEnd = -1;
-  for (const node of program.body) {
-    if (node.type === "ImportDeclaration") {
-      let end = node.end;
-      if (end < repairedCode.length && repairedCode[end] === "\n") end++;
-      lastImportEnd = end;
-    }
-  }
-
-  // Strip unused variable bindings wrapping inlinedQrl(null, ...) calls
-  const bodyReferencedNames = new Set<string>();
-  for (const stmt of program.body) {
-    if (stmt.type === "ImportDeclaration") continue;
-    if (stmt.type !== "VariableDeclaration") {
-      walk(stmt, {
-        enter(node: any) {
-          if (node.type === "Identifier" && node.name) {
-            bodyReferencedNames.add(node.name);
-          }
-        },
-      });
-    }
-  }
-
-  for (const stmt of program.body) {
-    if (stmt.type !== "VariableDeclaration") continue;
-    if (stmt.declarations?.length !== 1) continue;
-    const declarator = stmt.declarations[0];
-    if (!declarator.init) continue;
-    const init = declarator.init;
-    if (init.type !== "CallExpression") continue;
-    const callee = init.callee;
-    if (callee?.type !== "Identifier" || callee.name !== "inlinedQrl") continue;
-    const varName =
-      declarator.id?.type === "Identifier" ? declarator.id.name : null;
-    if (varName && !bodyReferencedNames.has(varName)) {
-      s.remove(stmt.start, init.start);
-    }
-  }
-
-  // Insert // separator between imports and body
-  if (lastImportEnd >= 0) {
-    let bodyStart = lastImportEnd;
-    while (
-      bodyStart < repairedCode.length &&
-      repairedCode[bodyStart] === "\n"
-    ) {
-      bodyStart++;
-    }
-    if (bodyStart > lastImportEnd) {
-      s.overwrite(lastImportEnd, bodyStart, "//\n");
-    } else {
-      s.appendRight(lastImportEnd, "//\n");
-    }
-  } else {
-    s.prepend("//\n");
-  }
-
-  return {
-    path: relPath,
-    isEntry: false,
-    code: s.toString(),
-    map: null,
-    segment: null,
-    origPath: origPath,
-  };
-}
-
-/**
- * For each extraction, find the tightest enclosing extraction (by source range containment).
- * Returns a map from symbolName to enclosing extraction. O(N^2), done once per file.
- */
-function buildEnclosingExtractionMap(extractions: any[]): Map<string, any> {
-  const map = new Map<string, any>();
-  for (const ext of extractions) {
-    let best: any | null = null;
-    for (const other of extractions) {
-      if (other.symbolName === ext.symbolName) continue;
-      if (ext.callStart >= other.argStart && ext.callEnd <= other.argEnd) {
-        if (
-          !best ||
-          (other.argStart >= best.argStart && other.argEnd <= best.argEnd)
-        )
-          best = other;
-      }
-    }
-    if (best) map.set(ext.symbolName, best);
-  }
-  return map;
-}
+import { addBindingNamesFromPatternToSet } from './utils/binding-pattern.js';
+import { isSimpleIdentifierName } from './utils/identifier-name.js';
+import { collectSameFileSymbolInfo } from './utils/module-symbols.js';
+import {
+  applySegmentConstReplacement,
+  applySegmentSideEffectSimplification,
+  buildEnclosingExtractionMap,
+  buildPassthroughModule,
+  injectUseHmr,
+  removeUnusedImports,
+} from './transform/module-cleanup.js';
+import { applySegmentDCE, hasSegmentDcePatterns } from './transform/dce.js';
+import {
+  detectC02Diagnostics,
+  detectC05Diagnostics,
+  detectPassivePreventdefaultConflicts,
+} from './transform/diagnostic-detection.js';
 
 interface SegmentPostProcessOptions {
   symbolName: string;
@@ -1212,6 +113,119 @@ interface SegmentPostProcessOptions {
   isServer?: boolean;
   emitMode: string;
   devFile?: string;
+}
+
+function getManualEntryMap(
+  strategy: Exclude<NonNullable<TransformModulesOptions['entryStrategy']>, { type: 'inline' } | { type: 'hoist' }>,
+): Record<string, string> | undefined {
+  return strategy.manual;
+}
+
+const tsTypeAnnotationProbe = createRegExp(
+  exactly(":")
+    .and(whitespace.times.any())
+    .and(charIn("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_${[(")),
+);
+
+const tsAngleAssertionProbe = createRegExp(
+  exactly("<")
+    .and(oneOrMore(wordChar))
+    .and(">")
+    .notBefore(whitespace.times.any(), anyOf(")", ",", ";")),
+);
+
+const tsGenericTypeListProbe = createRegExp(
+  exactly("<").and(oneOrMore(wordChar)).and(","),
+);
+
+const tsAsCastProbe = createRegExp(
+  wordBoundary.and("as").and(oneOrMore(whitespace)).and(wordChar),
+);
+
+const tsDeclarationProbe = createRegExp(
+  wordBoundary
+    .and(anyOf("interface", "type", "enum"))
+    .and(oneOrMore(whitespace))
+    .and(wordChar),
+);
+
+const tsNonNullPropertyProbe = createRegExp(
+  oneOrMore(wordChar).and(whitespace.times.any()).and(anyOf("!.", "![")),
+);
+
+const tsGenericCallProbe = createRegExp(
+  exactly("<")
+    .and(charIn("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+    .and(wordChar.times.any())
+    .and(
+      whitespace
+        .times.any()
+        .and(",")
+        .and(whitespace.times.any())
+        .and(oneOrMore(wordChar))
+        .times.any(),
+    )
+    .and(whitespace.times.any())
+    .and(">")
+    .and(whitespace.times.any())
+    .and("("),
+);
+
+const pureAnnotationComment = createRegExp(exactly("/* @__PURE__ */"), [global]);
+
+const leadingSquareBracket = createRegExp(exactly("[").at.lineStart());
+
+const trailingSquareBracket = createRegExp(exactly("]").at.lineEnd());
+
+const leadingDot = createRegExp(exactly(".").at.lineStart());
+
+const numberedPaddingParam = createRegExp(
+  exactly("_").and(oneOrMore(digit)).at.lineStart().at.lineEnd(),
+);
+
+const paddingParam = createRegExp(
+  exactly("_").and(digit.times.any()).at.lineStart().at.lineEnd(),
+);
+
+const wholeWordPatternCache = new Map<string, RegExp>();
+
+function getWholeWordPattern(name: string): RegExp {
+  const cached = wholeWordPatternCache.get(name);
+  if (cached) {
+    return cached;
+  }
+
+  const pattern = createRegExp(
+    wordBoundary.and(exactly(name)).and(wordBoundary),
+  );
+  wholeWordPatternCache.set(name, pattern);
+  return pattern;
+}
+
+function hasCapturePayload(
+  captureInfo: SegmentCaptureInfo,
+  includeConstLiterals: boolean,
+): boolean {
+  if (captureInfo.captureNames.length > 0) return true;
+  if (captureInfo.autoImports.length > 0) return true;
+  if (captureInfo.movedDeclarations.length > 0) return true;
+  return includeConstLiterals && captureInfo.constLiterals !== undefined;
+}
+
+function getEffectiveCaptureInfo(
+  captureInfo: SegmentCaptureInfo,
+  isInlinedQrl: boolean,
+): SegmentCaptureInfo | undefined {
+  const includeConstLiterals = !isInlinedQrl;
+  if (!hasCapturePayload(captureInfo, includeConstLiterals)) {
+    return undefined;
+  }
+
+  if (isInlinedQrl) {
+    return { ...captureInfo, skipCaptureInjection: true };
+  }
+
+  return captureInfo;
 }
 
 /**
@@ -1228,11 +242,15 @@ function postProcessSegmentCode(
   // Strip TS types when transpileTs is enabled
   if (opts.shouldTranspileTs) {
     const hasTsSyntax =
-      /(?::\s*[A-Z_$\w{[(]|<\w+>(?!\s*[),;])|<\w+,|\bas\s+\w|interface\s+\w|type\s+\w|enum\s+\w|\w+\s*!\.|\w+\s*!\[|<[A-Z]\w*(?:\s*,\s*\w+)*\s*>\s*\()/.test(
-        result,
-      );
+      tsTypeAnnotationProbe.test(result) ||
+      tsAngleAssertionProbe.test(result) ||
+      tsGenericTypeListProbe.test(result) ||
+      tsAsCastProbe.test(result) ||
+      tsDeclarationProbe.test(result) ||
+      tsNonNullPropertyProbe.test(result) ||
+      tsGenericCallProbe.test(result);
     if (hasTsSyntax) {
-      const tsStripOptions: Record<string, any> = {
+      const tsStripOptions: TransformOptions = {
         typescript: { onlyRemoveTypeImports: false },
       };
       if (!opts.shouldTranspileJsx) {
@@ -1247,7 +265,7 @@ function postProcessSegmentCode(
       );
       if (tsStripped.code) {
         result = tsStripped.code;
-        result = result.replace(/\/\* @__PURE__ \*\//g, "/*#__PURE__*/");
+        result = result.replace(pureAnnotationComment, "/*#__PURE__*/");
       }
     }
   }
@@ -1261,7 +279,7 @@ function postProcessSegmentCode(
   }
 
   // Dead code elimination
-  if (dceGuard.test(result)) {
+  if (hasSegmentDcePatterns(result)) {
     result = applySegmentDCE(result);
   }
 
@@ -1347,9 +365,10 @@ export function transformModule(
     }
 
     // Phase 2: Collect imports and analyze captures
-    const parseResult = repairResult.program
-      ? { program: repairResult.program, module: repairResult.module }
-      : parseSync(relPath, repairedCode, { experimentalRawTransfer: true } as any);
+    const parseResult: { program: AstProgram; module: AstEcmaScriptModule | undefined } =
+      repairResult.program
+        ? { program: repairResult.program, module: repairResult.module }
+        : parseWithRawTransfer(relPath, repairedCode);
     const program = parseResult.program;
     const parserModule = parseResult.module;
     const originalImports = collectImports(program, parserModule);
@@ -1366,16 +385,14 @@ export function transformModule(
 
     // Pre-parse each extraction's body to get closure AST nodes, and collect
     // scope identifiers from each body (needed for nested capture analysis)
-    const closureNodes = new Map<string, any>(); // symbolName -> closureNode
+    const closureNodes = new Map<string, AstFunction>(); // symbolName -> closureNode
     const bodyScopeIds = new Map<string, Set<string>>(); // symbolName -> scope ids from body
-    const bodyPrograms = new Map<string, any>(); // symbolName -> parsed program (for reuse)
+    const bodyPrograms = new Map<string, AstProgram>(); // symbolName -> parsed program (for reuse)
 
     for (const extraction of extractions) {
       try {
         const wrappedBody = `(${extraction.bodyText})`;
-        const bodyParse = parseSync("segment.tsx", wrappedBody, {
-          experimentalRawTransfer: true,
-        } as any);
+        const bodyParse = parseWithRawTransfer("segment.tsx", wrappedBody);
         bodyPrograms.set(extraction.symbolName, bodyParse.program);
         const exprStmt = bodyParse.program.body[0];
         let closureNode =
@@ -1431,15 +448,15 @@ export function transformModule(
       if (extraction.isInlinedQrl) {
         if (extraction.explicitCaptures) {
           const items = extraction.explicitCaptures
-            .replace(/^\[/, "")
-            .replace(/\]$/, "")
+            .replace(leadingSquareBracket, "")
+            .replace(trailingSquareBracket, "")
             .split(",")
             .map((s) => s.trim())
             .filter((s) => s.length > 0);
           // Only identifiers become captureNames (not literals like true, false, null, numbers)
           const identCaptures = items.filter(
             (s) =>
-              /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(s) &&
+              isSimpleIdentifierName(s) &&
               s !== "true" &&
               s !== "false" &&
               s !== "null" &&
@@ -1520,7 +537,7 @@ export function transformModule(
       const loopStack: LoopContext[] = [];
 
       walk(program, {
-        enter(node: any, _parent: any, _ctx: any) {
+        enter(node: AstNode) {
           const loopCtx = detectLoopContext(node, repairedCode);
           if (loopCtx) {
             loopStack.push(loopCtx);
@@ -1546,7 +563,7 @@ export function transformModule(
             }
           }
         },
-        leave(node: any, _parent: any, _ctx: any) {
+        leave(node: AstNode) {
           const loopCtx = detectLoopContext(node, repairedCode);
           if (loopCtx) {
             loopStack.pop();
@@ -1566,7 +583,7 @@ export function transformModule(
       const allScopeEntries: ScopeEntry[] = [];
 
       walk(program, {
-        enter(node: any) {
+        enter(node: AstNode) {
           if (
             (node.type === "ArrowFunctionExpression" ||
               node.type === "FunctionExpression" ||
@@ -1577,7 +594,7 @@ export function transformModule(
             const bindings: Array<{ name: string; pos: number }> = [];
             for (const param of node.params ?? []) {
               const names = new Set<string>();
-              collectBindingNamesFromNode(param, names);
+              addBindingNamesFromPatternToSet(param, names);
               for (const n of names) {
                 bindings.push({ name: n, pos: param.start ?? 0 });
               }
@@ -1588,7 +605,7 @@ export function transformModule(
                   for (const decl of stmt.declarations ?? []) {
                     if (decl.id) {
                       const names = new Set<string>();
-                      collectBindingNamesFromNode(decl.id, names);
+                      addBindingNamesFromPatternToSet(decl.id, names);
                       for (const n of names) {
                         bindings.push({
                           name: n,
@@ -1614,13 +631,13 @@ export function transformModule(
             node.start !== undefined &&
             node.end !== undefined
           ) {
-            const left = node.left ?? node.init;
+            const left = node.type === "ForStatement" ? node.init : node.left;
             if (left?.type === "VariableDeclaration") {
               const bindings: Array<{ name: string; pos: number }> = [];
               for (const decl of left.declarations ?? []) {
                 if (decl.id) {
                   const names = new Set<string>();
-                  collectBindingNamesFromNode(decl.id, names);
+                  addBindingNamesFromPatternToSet(decl.id, names);
                   for (const n of names) {
                     bindings.push({
                       name: n,
@@ -1682,12 +699,7 @@ export function transformModule(
               // Add explicit iterVars that oxc-walker missed
               for (const iterVar of loop.iterVars) {
                 if (!undeclaredSet.has(iterVar)) {
-                  const re = new RegExp(
-                    "\\b" +
-                      iterVar.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
-                      "\\b",
-                  );
-                  if (re.test(bodyText)) {
+                  if (getWholeWordPattern(iterVar).test(bodyText)) {
                     undeclaredIds.push(iterVar);
                     undeclaredSet.add(iterVar);
                   }
@@ -1704,7 +716,7 @@ export function transformModule(
                 // Walk AST to find function declarations/expressions containing the loop
                 // and collect their body-level let/var declarations
                 walk(program, {
-                  enter(node: any) {
+                  enter(node: AstNode) {
                     if (
                       (node.type === "ArrowFunctionExpression" ||
                         node.type === "FunctionExpression" ||
@@ -1729,15 +741,7 @@ export function transformModule(
                                 !undeclaredSet.has(decl.id.name)
                               ) {
                                 const varName = decl.id.name;
-                                const re = new RegExp(
-                                  "\\b" +
-                                    varName.replace(
-                                      /[.*+?^${}()|[\]\\]/g,
-                                      "\\$&",
-                                    ) +
-                                    "\\b",
-                                );
-                                if (re.test(bodyText)) {
+                                if (getWholeWordPattern(varName).test(bodyText)) {
                                   undeclaredIds.push(varName);
                                   undeclaredSet.add(varName);
                                 }
@@ -1860,7 +864,7 @@ export function transformModule(
 
           // 2. Block-scoped declarations inside the immediate loop body
           walk(program, {
-            enter(node: any) {
+            enter(node: AstNode) {
               if (
                 node.type === "VariableDeclaration" &&
                 node.start !== undefined &&
@@ -1889,7 +893,7 @@ export function transformModule(
           ) {
             const handlerBody = extraction.bodyText;
             walk(program, {
-              enter(node: any) {
+              enter(node: AstNode) {
                 if (
                   (node.type === "FunctionDeclaration" ||
                     node.type === "FunctionExpression" ||
@@ -1912,12 +916,7 @@ export function transformModule(
                       for (const decl of stmt.declarations ?? []) {
                         if (decl.id?.type === "Identifier") {
                           const varName = decl.id.name;
-                          const re = new RegExp(
-                            "\\b" +
-                              varName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
-                              "\\b",
-                          );
-                          if (re.test(handlerBody)) {
+                          if (getWholeWordPattern(varName).test(handlerBody)) {
                             loopLocalSet.add(varName);
                           }
                         }
@@ -2100,7 +1099,7 @@ export function transformModule(
           for (const h of group) {
             for (let i = 2; i < h.paramNames.length; i++) {
               const p = h.paramNames[i];
-              if (/^_\d+$/.test(p) || p === "_") continue;
+              if (numberedPaddingParam.test(p) || p === "_") continue;
               if (!seen.has(p)) {
                 seen.add(p);
                 allVars.push(p);
@@ -2189,7 +1188,7 @@ export function transformModule(
       // Add actual capture var names (not padding) to parent's usage
       for (let i = 2; i < ext.paramNames.length; i++) {
         const p = ext.paramNames[i];
-        if (/^_\d*$/.test(p)) continue; // skip padding (_2, _3, etc.)
+        if (paddingParam.test(p)) continue; // skip padding (_2, _3, etc.)
         parentUsage.add(p);
       }
     }
@@ -2197,12 +1196,12 @@ export function transformModule(
     // When transpileTs is enabled, TS enum values are inlined into segment bodies
     // (e.g., Thing.A becomes 0). The enum name is no longer needed by segments,
     // so remove it from segmentUsage to prevent unnecessary auto-exports/migration.
-    if (options.transpileTs === true) {
-      const enumNames = new Set<string>();
-      for (const node of program.body) {
-        let enumDecl: any = null;
-        if (node.type === "TSEnumDeclaration") {
-          enumDecl = node;
+	    if (options.transpileTs === true) {
+	      const enumNames = new Set<string>();
+	      for (const node of program.body) {
+	        let enumDecl: TSEnumDeclaration | null = null;
+	        if (node.type === "TSEnumDeclaration") {
+	          enumDecl = node;
         } else if (
           node.type === "ExportNamedDeclaration" &&
           node.declaration?.type === "TSEnumDeclaration"
@@ -2407,76 +1406,14 @@ export function transformModule(
     // For stripped segments, emit null exports with loc [0,0].
 
     // Collect same-file exported/declared names for self-referential segment imports
-    const sameFileExportNames = new Set<string>();
-    const defaultExportedNames = new Set<string>();
-    const renamedExports = new Map<string, string>();
-    for (const node of program.body) {
-      if (node.type === "ExportNamedDeclaration") {
-        if (node.declaration) {
-          if (
-            node.declaration.type === "FunctionDeclaration" &&
-            node.declaration.id?.name
-          ) {
-            sameFileExportNames.add(node.declaration.id.name);
-          } else if (node.declaration.type === "VariableDeclaration") {
-            for (const decl of node.declaration.declarations) {
-              collectBindingNamesFromNode(decl.id, sameFileExportNames);
-            }
-          } else if (
-            node.declaration.type === "ClassDeclaration" &&
-            node.declaration.id?.name
-          ) {
-            sameFileExportNames.add(node.declaration.id.name);
-          } else if (
-            node.declaration.type === "TSEnumDeclaration" &&
-            node.declaration.id?.name
-          ) {
-            sameFileExportNames.add(node.declaration.id.name);
-          }
-        }
-        if (node.specifiers) {
-          for (const spec of node.specifiers) {
-            const exportedName =
-              spec.exported?.type === "Identifier"
-                ? spec.exported.name
-                : spec.exported?.value;
-            if (exportedName) sameFileExportNames.add(exportedName);
-            // Also add the local name so segments can import it
-            const localName =
-              spec.local?.type === "Identifier"
-                ? spec.local.name
-                : spec.local?.value;
-            if (localName && localName !== exportedName) {
-              sameFileExportNames.add(localName);
-              renamedExports.set(localName, exportedName);
-            }
-          }
-        }
-      } else if (node.type === "ExportDefaultDeclaration") {
-        // export default function Foo() {} or export default class Bar {}
-        const decl = node.declaration as any;
-        if (decl?.id?.name) {
-          sameFileExportNames.add(decl.id.name);
-          defaultExportedNames.add(decl.id.name);
-        }
-      } else if (node.type === "FunctionDeclaration" && node.id?.name) {
-        sameFileExportNames.add(node.id.name);
-      } else if (node.type === "ClassDeclaration" && node.id?.name) {
-        sameFileExportNames.add(node.id.name);
-      } else if (node.type === "VariableDeclaration") {
-        for (const decl of node.declarations) {
-          collectBindingNamesFromNode(decl.id, sameFileExportNames);
-        }
-      } else if (node.type === "TSEnumDeclaration" && node.id?.name) {
-        sameFileExportNames.add(node.id.name);
-      }
-    }
+    const { sameFileExports, defaultExportedNames, renamedExports } =
+      collectSameFileSymbolInfo(program);
 
     // Collect import attributes from AST (e.g., with { type: "json" })
-    const importAttributesMap = new Map<string, Record<string, string>>();
-    for (const node of program.body) {
-      if (node.type !== "ImportDeclaration") continue;
-      const attrs = node.attributes || (node as any).assertions;
+	    const importAttributesMap = new Map<string, Record<string, string>>();
+	    for (const node of program.body) {
+	      if (node.type !== "ImportDeclaration") continue;
+	      const attrs = node.attributes;
       if (attrs && attrs.length > 0) {
         const attrObj: Record<string, string> = {};
         for (const attr of attrs) {
@@ -2553,12 +1490,12 @@ export function transformModule(
     // Collect TS enum declarations for value inlining in segment bodies
     // When transpileTs is enabled, enum member references (Thing.A) are resolved
     // to their literal values (0) in segment bodies
-    const enumValueMap = new Map<string, Map<string, string>>();
-    if (shouldTranspileTs) {
-      for (const node of program.body) {
-        let enumDecl: any = null;
-        if (node.type === "TSEnumDeclaration") {
-          enumDecl = node;
+	    const enumValueMap = new Map<string, Map<string, string>>();
+	    if (shouldTranspileTs) {
+	      for (const node of program.body) {
+	        let enumDecl: TSEnumDeclaration | null = null;
+	        if (node.type === "TSEnumDeclaration") {
+	          enumDecl = node;
         } else if (
           node.type === "ExportNamedDeclaration" &&
           node.declaration?.type === "TSEnumDeclaration"
@@ -2569,18 +1506,23 @@ export function transformModule(
           const members = new Map<string, string>();
           let autoValue = 0;
           for (const member of enumDecl.body.members) {
-            const memberName = member.id?.name ?? member.id?.value;
+            const memberName =
+              member.id.type === "Identifier"
+                ? member.id.name
+                : member.id.type === "Literal" && typeof member.id.value === "string"
+                  ? member.id.value
+                  : null;
             if (!memberName) continue;
             if (member.initializer) {
               // Explicit initializer -- extract literal value
-              if (
-                member.initializer.type === "NumericLiteral" ||
-                member.initializer.type === "Literal"
-              ) {
+              if (member.initializer.type === "Literal" && typeof member.initializer.value === "number") {
                 const val = String(member.initializer.value);
                 members.set(memberName, val);
                 autoValue = Number(member.initializer.value) + 1;
-              } else if (member.initializer.type === "StringLiteral") {
+              } else if (
+                member.initializer.type === "Literal" &&
+                typeof member.initializer.value === "string"
+              ) {
                 members.set(
                   memberName,
                   JSON.stringify(member.initializer.value),
@@ -2717,11 +1659,7 @@ export function transformModule(
           ext.symbolName,
           ext.ctxName,
           null,
-          "manual" in entryStrategy
-            ? ((entryStrategy as any).manual as
-                | Record<string, string>
-                | undefined)
-            : undefined,
+          undefined,
         );
 
         const segmentAnalysis: SegmentMetadataInternal = {
@@ -2731,7 +1669,7 @@ export function transformModule(
           displayName: ext.displayName,
           hash: ext.hash,
           canonicalFilename: ext.canonicalFilename,
-          extension: ext.extension.replace(/^\./, ""),
+          extension: ext.extension.replace(leadingDot, ""),
           parent: ext.parent,
           ctxKind: ext.ctxKind,
           ctxName: ext.ctxName,
@@ -2904,7 +1842,7 @@ export function transformModule(
               // Walk the AST nodes within the declaration range to find referenced identifiers
               const declIdentifiers = new Set<string>();
               walk(program, {
-                enter(node: any) {
+                enter(node: AstNode) {
                   if (
                     node.type === "Identifier" &&
                     node.start >= decl.declStart &&
@@ -3040,7 +1978,7 @@ export function transformModule(
             for (let pi = 2; pi < child.paramNames.length; pi++) {
               const p = child.paramNames[pi];
               // Skip padding placeholders (_2, _3, etc.)
-              if (/^_\d+$/.test(p)) continue;
+              if (numberedPaddingParam.test(p)) continue;
               loopLocalParams.push(p);
             }
           }
@@ -3087,23 +2025,15 @@ export function transformModule(
       // _captures unpacking injection. But we still need captureNames for import filtering
       // (captured variables should not be imported -- they're delivered via _captures).
       // Set skipCaptureInjection flag so segment-codegen knows not to inject unpacking.
-      const effectiveCaptureInfo = ext.isInlinedQrl
-        ? captureInfo.captureNames.length > 0 ||
-          captureInfo.autoImports.length > 0 ||
-          captureInfo.movedDeclarations.length > 0
-          ? { ...captureInfo, skipCaptureInjection: true }
-          : undefined
-        : captureInfo.captureNames.length > 0 ||
-            captureInfo.autoImports.length > 0 ||
-            captureInfo.movedDeclarations.length > 0 ||
-            captureInfo.constLiterals
-          ? captureInfo
-          : undefined;
+      const effectiveCaptureInfo = getEffectiveCaptureInfo(
+        captureInfo,
+        ext.isInlinedQrl,
+      );
 
       // Build import context for post-transform import re-collection
       const importContext: SegmentImportContext = {
         moduleImports: moduleImportsForContext,
-        sameFileExports: sameFileExportNames,
+        sameFileExports,
         defaultExportedNames:
           defaultExportedNames.size > 0 ? defaultExportedNames : undefined,
         renamedExports: renamedExports.size > 0 ? renamedExports : undefined,
@@ -3186,11 +2116,7 @@ export function transformModule(
         ext.symbolName,
         ext.ctxName,
         parentComponentSymbol,
-        "manual" in entryStrategy
-          ? ((entryStrategy as any).manual as
-              | Record<string, string>
-              | undefined)
-          : undefined,
+        getManualEntryMap(entryStrategy),
       );
 
       const segmentAnalysis: SegmentMetadataInternal = {
@@ -3200,7 +2126,7 @@ export function transformModule(
         displayName: ext.displayName,
         hash: ext.hash,
         canonicalFilename: ext.canonicalFilename,
-        extension: ext.extension.replace(/^\./, ""),
+        extension: ext.extension.replace(leadingDot, ""),
         parent: ext.parent,
         ctxKind: ext.ctxKind,
         ctxName: ext.ctxName,
@@ -3240,301 +2166,4 @@ export function transformModule(
     isTypeScript,
     isJsx,
   };
-}
-
-/**
- * Detect C02 diagnostics: function/class references crossing $() boundary.
- * These are non-serializable declarations referenced inside closures.
- */
-function detectC02Diagnostics(
-  extractions: any[],
-  closureNodes: Map<string, any>,
-  enclosingExtMap: Map<string, any>,
-  bodyPrograms: Map<string, any>,
-  importedNames: Set<string>,
-  program: any,
-  source: string,
-  file: string,
-  diagnostics: import("./types.js").Diagnostic[],
-): void {
-  for (const extraction of extractions) {
-    const closureNode = closureNodes.get(extraction.symbolName);
-    if (!closureNode) continue;
-
-    let undeclaredIds: string[];
-    try {
-      undeclaredIds = getUndeclaredIdentifiersInFunction(closureNode);
-    } catch {
-      continue;
-    }
-    if (undeclaredIds.length === 0) continue;
-
-    const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
-
-    for (const refName of undeclaredIds) {
-      if (importedNames.has(refName)) continue;
-
-      let declType: "var" | "fn" | "class";
-      if (enclosingExt) {
-        try {
-          let encProgram = bodyPrograms.get(enclosingExt.symbolName);
-          if (!encProgram) {
-            const wrappedBody = `(${enclosingExt.bodyText})`;
-            encProgram = parseSync("segment.tsx", wrappedBody, {
-              experimentalRawTransfer: true,
-            } as any).program;
-            bodyPrograms.set(enclosingExt.symbolName, encProgram);
-          }
-          declType = classifyDeclarationType(encProgram, refName);
-        } catch {
-          declType = "var";
-        }
-      } else {
-        declType = classifyDeclarationType(program, refName);
-      }
-
-      if (declType === "fn" || declType === "class") {
-        const site = findIdentifierReferenceSite(closureNode, refName);
-        if (!site) {
-          diagnostics.push(emitC02(refName, file, declType === "class"));
-          continue;
-        }
-
-        const [startLine, startCol] = computeLineColFromOffset(source, site.start);
-        const [endLine, endCol] = computeLineColFromOffset(source, site.end);
-        diagnostics.push(
-          emitC02(refName, file, declType === "class", {
-            lo: site.start,
-            hi: site.end,
-            startLine,
-            startCol,
-            endLine,
-            endCol,
-          }),
-        );
-      }
-    }
-  }
-}
-
-/**
- * Detect C05 diagnostics: custom $-suffixed exports missing a corresponding Qrl counterpart.
- */
-function detectC05Diagnostics(
-  program: any,
-  moduleInfo: any,
-  originalImports: Map<
-    string,
-    {
-      localName: string;
-      importedName: string;
-      source: string;
-      isQwikCore?: boolean;
-    }
-  >,
-  source: string,
-  file: string,
-  diagnostics: import("./types.js").Diagnostic[],
-): void {
-  const moduleExportNames = collectExportNames(program, moduleInfo);
-
-  for (const exportName of moduleExportNames) {
-    if (!exportName.endsWith("$")) continue;
-    const importInfo = originalImports.get(exportName);
-    if (importInfo?.isQwikCore) continue;
-    const qrlName = exportName.slice(0, -1) + "Qrl";
-    if (moduleExportNames.has(qrlName)) continue;
-
-    const callSites = findCallSites(program, exportName);
-    for (const site of callSites) {
-      const [startLine, startCol] = computeLineColFromOffset(
-        source,
-        site.start,
-      );
-      const [endLine, endCol] = computeLineColFromOffset(source, site.end);
-      diagnostics.push(
-        emitC05(exportName, qrlName, file, {
-          lo: site.start,
-          hi: site.end,
-          startLine,
-          startCol,
-          endLine,
-          endCol,
-        }),
-      );
-    }
-  }
-}
-
-/**
- * Find all call sites of a named function in an AST.
- * Returns array of { start, end } positions for the callee identifier.
- */
-function findCallSites(
-  program: any,
-  funcName: string,
-): Array<{ start: number; end: number }> {
-  const sites: Array<{ start: number; end: number }> = [];
-  walk(program, {
-    enter(node: any) {
-      if (
-        node.type === "CallExpression" &&
-        node.callee?.type === "Identifier" &&
-        node.callee.name === funcName
-      ) {
-        sites.push({ start: node.callee.start, end: node.callee.end });
-      }
-    },
-  });
-  return sites;
-}
-
-/**
- * Compute 1-based line and column from a character offset in source text.
- */
-function computeLineColFromOffset(
-  source: string,
-  offset: number,
-): [number, number] {
-  let line = 1;
-  let col = 1;
-  for (let i = 0; i < offset && i < source.length; i++) {
-    if (source[i] === "\n") {
-      line++;
-      col = 1;
-    } else {
-      col++;
-    }
-  }
-  return [line, col];
-}
-
-function findIdentifierReferenceSite(
-  closureNode: any,
-  identName: string,
-): { start: number; end: number } | null {
-  let site: { start: number; end: number } | null = null;
-
-  walk(closureNode, {
-    enter(node: any, parent: any) {
-      if (site || node.type !== 'Identifier' || node.name !== identName) return;
-
-      if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
-      if (parent?.type === 'FunctionDeclaration' && parent.id === node) return;
-      if (parent?.type === 'FunctionExpression' && parent.id === node) return;
-      if (parent?.type === 'ClassDeclaration' && parent.id === node) return;
-      if (parent?.type === 'ClassExpression' && parent.id === node) return;
-      if (parent?.type === 'MemberExpression' && parent.property === node && !parent.computed) return;
-      if (parent?.type === 'StaticMemberExpression' && parent.property === node) return;
-      if ((parent?.type === 'Property' || parent?.type === 'ObjectProperty') && parent.key === node) return;
-
-      site = { start: node.start, end: node.end };
-    },
-  });
-
-  return site;
-}
-
-/**
- * Detect preventdefault + passive conflicts on JSX elements.
- * Walks the AST looking for JSXOpeningElement nodes that have both
- * passive:EVENT and preventdefault:EVENT attributes.
- */
-function detectPassivePreventdefaultConflicts(
-  program: any,
-  file: string,
-  source: string,
-  diagnostics: import("./types.js").Diagnostic[],
-): void {
-  walk(program, {
-    enter(node: any) {
-      if (node.type !== "JSXOpeningElement") return;
-
-      const attrs = node.attributes ?? [];
-      const passiveEvents = new Set<string>();
-      const preventdefaultEvents = new Set<string>();
-
-      for (const attr of attrs) {
-        if (attr.type !== "JSXAttribute") continue;
-
-        let name: string | null = null;
-        if (attr.name?.type === "JSXIdentifier") {
-          name = attr.name.name;
-        } else if (attr.name?.type === "JSXNamespacedName") {
-          name = `${attr.name.namespace.name}:${attr.name.name.name}`;
-        }
-        if (!name) continue;
-
-        if (name.startsWith("passive:")) {
-          passiveEvents.add(name.slice("passive:".length));
-        } else if (name.startsWith("preventdefault:")) {
-          preventdefaultEvents.add(name.slice("preventdefault:".length));
-        }
-      }
-
-      // Check for conflicts
-      for (const eventName of passiveEvents) {
-        if (preventdefaultEvents.has(eventName)) {
-          const [startLine, startCol] = computeLineColFromOffset(
-            source,
-            node.start,
-          );
-          const elementEnd = node.end;
-          const [endLine, endCol] = computeLineColFromOffset(
-            source,
-            elementEnd,
-          );
-
-          diagnostics.push(
-            emitPreventdefaultPassiveCheck(eventName, file, {
-              lo: node.start,
-              hi: elementEnd,
-              startLine,
-              startCol,
-              endLine,
-              endCol,
-            }),
-          );
-        }
-      }
-    },
-  });
-}
-
-/**
- * Collect binding names from an AST pattern node into a Set.
- * Handles Identifier, ObjectPattern, ArrayPattern, RestElement, AssignmentPattern.
- */
-function collectBindingNamesFromNode(node: any, names: Set<string>): void {
-  if (!node) return;
-  switch (node.type) {
-    case "Identifier":
-      names.add(node.name);
-      break;
-    case "ObjectPattern":
-      for (const prop of node.properties ?? []) {
-        if (prop.type === "RestElement") {
-          collectBindingNamesFromNode(prop.argument, names);
-        } else {
-          collectBindingNamesFromNode(prop.value, names);
-        }
-      }
-      break;
-    case "ArrayPattern":
-      for (const elem of node.elements ?? []) {
-        collectBindingNamesFromNode(elem, names);
-      }
-      break;
-    case "RestElement":
-      collectBindingNamesFromNode(node.argument, names);
-      break;
-    case "AssignmentPattern":
-      collectBindingNamesFromNode(node.left, names);
-      break;
-    default:
-      if (node.parameter) {
-        collectBindingNamesFromNode(node.parameter, names);
-      }
-      break;
-  }
 }

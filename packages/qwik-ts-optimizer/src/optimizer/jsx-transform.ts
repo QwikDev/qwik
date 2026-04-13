@@ -46,6 +46,52 @@ export interface JsxTransformOutput {
   keyCounterValue: number;
 }
 
+function isConstBindingName(
+  name: string | null,
+  importedNames: Set<string>,
+  constIdents?: Set<string>,
+): boolean {
+  if (!name) {
+    return false;
+  }
+  return importedNames.has(name) || (constIdents?.has(name) ?? false);
+}
+
+function formatAdditionalSpreadEntry(spread: string, spreadArg: string): string {
+  if (spread === spreadArg) {
+    return `..._getVarProps(${spread})`;
+  }
+  return `...${spread}`;
+}
+
+function buildAdditionalSpreadsPart(
+  additionalSpreads: string[],
+  spreadArg: string,
+): string {
+  if (additionalSpreads.length === 0) {
+    return '';
+  }
+
+  const spreadEntries = additionalSpreads.map((spread) =>
+    formatAdditionalSpreadEntry(spread, spreadArg),
+  );
+  return `, ${spreadEntries.join(', ')}`;
+}
+
+function buildConstPropsPart(
+  constEntries: string[],
+  spreadArg: string,
+  hasDuplicateSpreads: boolean,
+): string {
+  if (constEntries.length > 0) {
+    return `{ ${constEntries.join(', ')} }`;
+  }
+  if (hasDuplicateSpreads) {
+    return `_getConstProps(${spreadArg})`;
+  }
+  return 'null';
+}
+
 /**
  * A const binding is "static" when its initializer is absent, or is a call
  * to a $-suffixed / Qrl-suffixed / use-prefixed function. Static bindings
@@ -885,8 +931,8 @@ function processProps(
       if (signalResult.type === 'wrapProp') {
         const formattedName = formatPropName(propName);
         if (signalResult.isStoreField && tagIsHtml) {
-          const objName = signalResult.code.match(/_wrapProp\((\w+)/)?.[1];
-          const isConst = objName ? (importedNames.has(objName) || (constIdents?.has(objName) ?? false)) : false;
+          const objName = signalResult.code.match(/_wrapProp\((\w+)/)?.[1] ?? null;
+          const isConst = isConstBindingName(objName, importedNames, constIdents);
           (isConst ? constEntries : varEntries).push(`${formattedName}: ${signalResult.code}`);
         } else {
           constEntries.push(`${formattedName}: ${signalResult.code}`);
@@ -1091,9 +1137,7 @@ function buildJsxSplitCall(
 
   const beforePart = beforeSpreadEntries.length > 0 ? `${beforeSpreadEntries.join(', ')}, ` : '';
   const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
-  const additionalSpreadsPart = additionalSpreads.length > 0
-    ? `, ${additionalSpreads.map((s: string) => s === spreadArg ? `..._getVarProps(${s})` : `...${s}`).join(', ')}`
-    : '';
+  const additionalSpreadsPart = buildAdditionalSpreadsPart(additionalSpreads, spreadArg);
 
   let varPropsPart: string;
   let constPropsPart: string;
@@ -1118,9 +1162,11 @@ function buildJsxSplitCall(
     if (shouldMergeConst) {
       varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
       const hasDuplicateSpreads = additionalSpreads.some(s => s === spreadArg);
-      constPropsPart = constEntries.length > 0
-        ? `{ ${constEntries.join(', ')} }`
-        : hasDuplicateSpreads ? `_getConstProps(${spreadArg})` : 'null';
+      constPropsPart = buildConstPropsPart(
+        constEntries,
+        spreadArg,
+        hasDuplicateSpreads,
+      );
     } else {
       varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
       constPropsPart = constEntries.length > 0

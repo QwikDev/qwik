@@ -6,10 +6,23 @@
  * positional parameter padding.
  */
 
+import type {
+  AstFunction,
+  AstNode,
+  CallExpression,
+  ForInStatement,
+  ForOfStatement,
+  ForStatement,
+  VariableDeclarator,
+  VariableDeclaration,
+  WhileStatement,
+  DoWhileStatement,
+} from '../ast-types.js';
+
 export interface LoopContext {
   type: 'map' | 'for-i' | 'for-of' | 'for-in' | 'while' | 'do-while';
   iterVars: string[];
-  loopNode: any;
+  loopNode: AstNode;
   loopBodyStart: number;
   loopBodyEnd: number;
 }
@@ -33,7 +46,7 @@ export interface LoopHoistResult {
  * Detect if an AST node represents a loop construct.
  */
 export function detectLoopContext(
-  node: any,
+  node: AstNode,
   _source: string,
 ): LoopContext | null {
   switch (node.type) {
@@ -60,7 +73,7 @@ export function detectLoopContext(
   }
 }
 
-function detectMapCall(node: any): LoopContext | null {
+function detectMapCall(node: CallExpression): LoopContext | null {
   const callee = node.callee;
   if (
     callee?.type !== 'MemberExpression' ||
@@ -72,6 +85,13 @@ function detectMapCall(node: any): LoopContext | null {
 
   const callback = node.arguments?.[0];
   if (!callback) return null;
+  if (
+    callback.type !== 'ArrowFunctionExpression' &&
+    callback.type !== 'FunctionExpression' &&
+    callback.type !== 'FunctionDeclaration'
+  ) {
+    return null;
+  }
 
   const iterVars = extractCallbackParams(callback);
   const bodyRange = getCallbackBodyRange(callback);
@@ -88,7 +108,12 @@ function detectMapCall(node: any): LoopContext | null {
 function buildLoopContext(
   type: LoopContext['type'],
   iterVars: string[],
-  node: any,
+  node:
+    | ForStatement
+    | ForOfStatement
+    | ForInStatement
+    | WhileStatement
+    | DoWhileStatement,
 ): LoopContext {
   const body = node.body;
   return {
@@ -125,8 +150,8 @@ export function hoistEventCaptures(
  * Returns null if not inside a loop.
  */
 export function findEnclosingLoop(
-  node: any,
-  ancestors: any[],
+  node: AstNode,
+  ancestors: AstNode[],
 ): LoopContext | null {
   for (let i = ancestors.length - 1; i >= 0; i--) {
     const ancestor = ancestors[i];
@@ -193,7 +218,7 @@ export function analyzeLoopHandler(
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-function extractCallbackParams(callback: any): string[] {
+function extractCallbackParams(callback: AstFunction): string[] {
   const params = callback.params ?? [];
   const names: string[] = [];
   for (const param of params) {
@@ -206,13 +231,13 @@ function extractCallbackParams(callback: any): string[] {
   return names;
 }
 
-function getCallbackBodyRange(callback: any): { start: number; end: number } {
+function getCallbackBodyRange(callback: AstFunction): { start: number; end: number } {
   const body = callback.body;
   if (!body) return { start: callback.start, end: callback.end };
   return { start: body.start, end: body.end };
 }
 
-function extractForInitVars(init: any): string[] {
+function extractForInitVars(init: ForStatement['init']): string[] {
   if (!init) return [];
   if (init.type === 'VariableDeclaration') {
     return extractDeclaratorNames(init.declarations ?? []);
@@ -220,7 +245,7 @@ function extractForInitVars(init: any): string[] {
   return [];
 }
 
-function extractForLeftVars(left: any): string[] {
+function extractForLeftVars(left: ForOfStatement['left'] | ForInStatement['left']): string[] {
   if (!left) return [];
   if (left.type === 'VariableDeclaration') {
     return extractDeclaratorNames(left.declarations ?? []);
@@ -231,7 +256,7 @@ function extractForLeftVars(left: any): string[] {
   return [];
 }
 
-function extractDeclaratorNames(declarators: any[]): string[] {
+function extractDeclaratorNames(declarators: VariableDeclarator[]): string[] {
   const names: string[] = [];
   for (const decl of declarators) {
     if (decl.id?.type === 'Identifier') {

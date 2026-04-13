@@ -27,6 +27,7 @@ import {
   buildSyncTransform,
   needsPureAnnotation,
   getQrlImportSource,
+  getQrlCalleeName,
 } from './rewrite-calls.js';
 import { buildQrlDevDeclaration, buildDevFilePath } from './dev-mode.js';
 import {
@@ -47,6 +48,9 @@ import { stripExportDeclarations } from './strip-exports.js';
 import { replaceConstants } from './const-replacement.js';
 import { isRelativePathInsideBase } from './path-utils.js';
 import type { EmitMode } from './types.js';
+import { collectBindingNamesFromPattern } from './utils/binding-pattern.js';
+import { buildPropertyAccessor } from './utils/identifier-name.js';
+import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
 
 export interface InlineStrategyOptions {
   /** Whether to use inline/hoist strategy (_noopQrl + .s()) */
@@ -83,6 +87,26 @@ function parseArrayItems(arrayText: string): string[] {
   return inner.split(',').map(s => s.trim()).filter(s => s.length > 0);
 }
 
+function getObjectPropertyKeyName(key: any): string | null {
+  if (key?.type === 'Identifier') {
+    return key.name;
+  }
+  if (key?.type === 'StringLiteral' || key?.type === 'Literal') {
+    return key.value == null ? null : String(key.value);
+  }
+  return null;
+}
+
+function getAssignedIdentifierName(value: any): string | null {
+  if (value?.type === 'Identifier') {
+    return value.name;
+  }
+  if (value?.type === 'AssignmentPattern' && value.left?.type === 'Identifier') {
+    return value.left.name;
+  }
+  return null;
+}
+
 function isMarkerSpecifier(
   importedName: string,
   extractedCalleeNames: Set<string>,
@@ -108,34 +132,6 @@ function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolea
     if (ext.calleeName === name + '$') return true;
   }
   return false;
-}
-
-/** Collect all binding names from a pattern node (Identifier, ObjectPattern, ArrayPattern). */
-function collectBindingNames(pattern: any): string[] {
-  if (!pattern) return [];
-  if (pattern.type === 'Identifier') return [pattern.name];
-  if (pattern.type === 'ObjectPattern') {
-    const names: string[] = [];
-    for (const prop of pattern.properties || []) {
-      if (prop.type === 'RestElement') {
-        names.push(...collectBindingNames(prop.argument));
-      } else {
-        names.push(...collectBindingNames(prop.value));
-      }
-    }
-    return names;
-  }
-  if (pattern.type === 'ArrayPattern') {
-    const names: string[] = [];
-    for (const elem of pattern.elements || []) {
-      if (elem) names.push(...collectBindingNames(elem));
-    }
-    return names;
-  }
-  if (pattern.type === 'AssignmentPattern') {
-    return collectBindingNames(pattern.left);
-  }
-  return [];
 }
 
 /**
@@ -690,12 +686,8 @@ export function extractDestructuredFieldMap(body: string): Map<string, string> {
   for (const prop of firstParam.properties ?? []) {
     if (prop.type === 'RestElement') continue;
     if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
-      const keyName = prop.key?.type === 'Identifier' ? prop.key.name
-                    : (prop.key?.type === 'StringLiteral' || prop.key?.type === 'Literal') ? (prop.key.value ?? null)
-                    : null;
-      const valName = prop.value?.type === 'Identifier' ? prop.value.name :
-                      prop.value?.type === 'AssignmentPattern' && prop.value.left?.type === 'Identifier'
-                        ? prop.value.left.name : null;
+      const keyName = getObjectPropertyKeyName(prop.key);
+      const valName = getAssignedIdentifierName(prop.value);
       if (keyName && valName) fieldMap.set(valName, String(keyName));
     }
   }
@@ -816,12 +808,8 @@ export function applyRawPropsTransform(body: string): string {
         continue;
       }
       if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
-        const keyName = prop.key?.type === 'Identifier' ? prop.key.name
-                      : (prop.key?.type === 'StringLiteral' || prop.key?.type === 'Literal') ? (prop.key.value ?? null)
-                      : null;
-        const valName = prop.value?.type === 'Identifier' ? prop.value.name :
-                        prop.value?.type === 'AssignmentPattern' && prop.value.left?.type === 'Identifier'
-                          ? prop.value.left.name : null;
+        const keyName = getObjectPropertyKeyName(prop.key);
+        const valName = getAssignedIdentifierName(prop.value);
         if (keyName && valName) {
           bodyFields.push({ key: String(keyName), local: valName });
         }
@@ -904,9 +892,7 @@ export function applyRawPropsTransform(body: string): string {
     walkForBodyIdents(reparseResult.program);
     replacements.sort((a, b) => b.start - a.start);
     for (const r of replacements) {
-      const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
-        ? `${paramName}.${r.key}`
-        : `${paramName}["${r.key}"]`;
+      const accessor = buildPropertyAccessor(paramName, r.key);
       if (r.isShorthand) {
         result = result.slice(0, r.start) + r.key + ': ' + accessor + result.slice(r.end);
       } else {
@@ -1021,9 +1007,7 @@ export function applyRawPropsTransform(body: string): string {
     walkForIdents(reparseResult2.program);
     replacements.sort((a, b) => b.start - a.start);
     for (const r of replacements) {
-      const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
-        ? '_rawProps.' + r.key
-        : `_rawProps["${r.key}"]`;
+      const accessor = buildPropertyAccessor('_rawProps', r.key);
       if (r.isShorthand) {
         result = result.slice(0, r.start) + r.key + ': ' + accessor + result.slice(r.end);
       } else {
@@ -1125,9 +1109,7 @@ export function applyRawPropsTransform(body: string): string {
   replacements.sort((a, b) => b.start - a.start);
   for (const r of replacements) {
     // Use bracket notation for keys that aren't valid JS identifiers (e.g., "bind:value")
-    let accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
-      ? '_rawProps.' + r.key
-      : `_rawProps["${r.key}"]`;
+    let accessor = buildPropertyAccessor('_rawProps', r.key);
     // If the destructured field had a default value, use ?? to preserve it
     // e.g., ({description = ''}) -> (_rawProps.description ?? '')
     // Parenthesize to avoid precedence issues with surrounding operators
@@ -1151,74 +1133,11 @@ export function applyRawPropsTransform(body: string): string {
  * For child segments whose captures were consolidated into a single _rawProps capture.
  */
 function replacePropsFieldReferencesInBody(body: string, fieldMap: Map<string, string>): string {
-  const wrapperPrefix = 'const __rpfb__ = ';
-  const wrappedSource = wrapperPrefix + body;
-  let parseResult;
-  try {
-    parseResult = parseSync('__rpfb__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
-  } catch {
-    return body;
-  }
-  if (!parseResult.program || parseResult.errors?.length) return body;
-
-  const offset = wrapperPrefix.length;
-  const replacements: Array<{ start: number; end: number; accessor: string; isShorthand?: boolean }> = [];
-
-  function walkNode(node: any, parentKey?: string, parentNode?: any): void {
-    if (!node || typeof node !== 'object') return;
-
-    if (node.type === 'Identifier' && fieldMap.has(node.name)) {
-      const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
-      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed;
-      const isParam = parentKey === 'params';
-      // Skip the declaration in _captures unpacking: `const color = _captures[0]` -> skip `color`
-      const isDeclId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
-      const isShorthandValue = parentKey === 'value' &&
-        (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
-        parentNode?.shorthand === true;
-
-      const key = fieldMap.get(node.name)!;
-      const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)
-        ? '_rawProps.' + key
-        : `_rawProps["${key}"]`;
-
-      if (isShorthandValue) {
-        replacements.push({ start: node.start - offset, end: node.end - offset, accessor, isShorthand: true });
-      } else if (!isPropertyKey && !isMemberProp && !isParam && !isDeclId) {
-        replacements.push({ start: node.start - offset, end: node.end - offset, accessor });
-      }
-    }
-
-    for (const k of Object.keys(node)) {
-      if (k === 'type' || k === 'start' || k === 'end' || k === 'loc' || k === 'range') continue;
-      const val = node[k];
-      if (val && typeof val === 'object') {
-        if (Array.isArray(val)) {
-          for (const item of val) {
-            if (item && typeof item.type === 'string') walkNode(item, k, node);
-          }
-        } else if (typeof val.type === 'string') {
-          walkNode(val, k, node);
-        }
-      }
-    }
-  }
-
-  walkNode(parseResult.program);
-
-  if (replacements.length === 0) return body;
-
-  replacements.sort((a, b) => b.start - a.start);
-  let result = body;
-  for (const r of replacements) {
-    if (r.isShorthand) {
-      const key = fieldMap.get(result.slice(r.start, r.end))!;
-      result = result.slice(0, r.start) + key + ': ' + r.accessor + result.slice(r.end);
-    } else {
-      result = result.slice(0, r.start) + r.accessor + result.slice(r.end);
-    }
-  }
-  return result;
+  return rewritePropsFieldReferences(body, fieldMap, {
+    parseFilename: '__rpfb__.tsx',
+    wrapperPrefix: 'const __rpfb__ = ',
+    memberPropertyMode: 'nonComputed',
+  });
 }
 
 function transformSCallBody(
@@ -1823,7 +1742,12 @@ function applyModeTransforms(ctx: RewriteContext): void {
   if (ctx.stripExports && ctx.stripExports.length > 0) {
     stripExportDeclarations(ctx.source, ctx.s, ctx.program, ctx.stripExports, ctx.originalImports);
   }
-  const isDev = (ctx.mode === 'dev' || ctx.mode === 'hmr') ? true : ctx.mode === 'prod' ? false : undefined;
+  let isDev: boolean | undefined;
+  if (ctx.mode === 'dev' || ctx.mode === 'hmr') {
+    isDev = true;
+  } else if (ctx.mode === 'prod') {
+    isDev = false;
+  }
   if (ctx.isServer !== undefined || isDev !== undefined) {
     replaceConstants(ctx.source, ctx.s, ctx.program, ctx.originalImports, ctx.isServer, isDev);
   }
@@ -1984,7 +1908,7 @@ function rewriteNoArgMarkers(ctx: RewriteContext): void {
         if (importInfo && importInfo.importedName.endsWith('$') &&
             importInfo.importedName !== '$' && importInfo.importedName !== 'sync$') {
           if (!node.arguments || node.arguments.length === 0) {
-            const qrlCallee = importInfo.importedName.slice(0, -1) + 'Qrl';
+            const qrlCallee = getQrlCalleeName(importInfo.importedName);
             s.overwrite(node.callee.start, node.callee.end, qrlCallee);
             if (needsPureAnnotation(qrlCallee)) {
               s.prependRight(node.start, '/*#__PURE__*/ ');
@@ -2083,7 +2007,7 @@ function removeDuplicateExports(ctx: RewriteContext): void {
     const declarator = innerDecl.declarations[0];
     if (!declarator.init) continue;
 
-    const exportedNames = collectBindingNames(declarator.id);
+    const exportedNames = collectBindingNamesFromPattern(declarator.id);
     if (exportedNames.length === 0) continue;
 
     const hasDuplicate = exportedNames.some(n => seenExportNames.has(n));

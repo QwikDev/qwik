@@ -1,12 +1,18 @@
+import type { AstCompatMaybeNode, AstCompatNode, AstNode } from './ast-types.js';
+
 const DEFAULT_META_KEYS = new Set(["type", "start", "end", "loc", "range"]);
 
-export function isAstNode(value: any): value is { type: string } {
-  return !!value && typeof value === "object" && typeof value.type === "string";
+export function isAstNode(value: unknown): value is AstCompatNode {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as { type?: unknown };
+  return typeof candidate.type === "string";
 }
 
 export function forEachAstChild(
-  node: any,
-  visitor: (child: any, key: string, parent: any) => void,
+  node: AstCompatMaybeNode,
+  visitor: (child: AstCompatNode, key: string, parent: AstCompatNode) => void,
   skipKeys: ReadonlySet<string> = DEFAULT_META_KEYS,
 ): void {
   if (!node || typeof node !== "object") return;

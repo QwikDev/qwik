@@ -7,6 +7,7 @@
  */
 
 import type MagicString from 'magic-string';
+import type { AstProgram, ImportSpecifier, ModuleExportName } from '../ast-types.js';
 import type { ImportInfo } from './marker-detection.js';
 
 const STRIP_THROW_MSG =
@@ -22,7 +23,7 @@ export interface StripExportsResult {
 export function stripExportDeclarations(
   source: string,
   s: MagicString,
-  program: any,
+  program: AstProgram,
   stripExports: string[],
   importMap: Map<string, ImportInfo>,
 ): StripExportsResult {
@@ -80,7 +81,7 @@ export function stripExportDeclarations(
 function removeUnusedImports(
   source: string,
   s: MagicString,
-  program: any,
+  program: AstProgram,
   strippedRanges: Array<{ start: number; end: number }>,
   importMap: Map<string, ImportInfo>,
 ): void {
@@ -154,7 +155,7 @@ function removeUnusedImports(
         defaultPart = `* as ${spec.local.name}`;
       } else {
         const localName = spec.local.name;
-        const importedName = spec.imported?.name ?? localName;
+        const importedName = getImportSpecifierName(spec) ?? localName;
         namedParts.push(
           importedName !== localName ? `${importedName} as ${localName}` : localName,
         );
@@ -175,6 +176,17 @@ function removeUnusedImports(
     if (end < source.length && source[end] === '\n') end++;
     s.overwrite(node.start, end, newImport + '\n');
   }
+}
+
+function getImportSpecifierName(spec: ImportSpecifier): string | undefined {
+  if (spec.imported.type === 'Identifier') {
+    return spec.imported.name;
+  }
+  return getModuleExportNameValue(spec.imported);
+}
+
+function getModuleExportNameValue(specifier: ModuleExportName): string | undefined {
+  return specifier.type === 'Literal' ? specifier.value : undefined;
 }
 
 function escapeRegex(str: string): string {

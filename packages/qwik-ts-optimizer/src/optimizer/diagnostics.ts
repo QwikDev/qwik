@@ -6,6 +6,7 @@
  */
 
 import { createRegExp, exactly, maybe, whitespace } from 'magic-regexp';
+import type { AstNode, AstProgram } from '../ast-types.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from './types.js';
 
 /** C02: captured function/class reference across a $() boundary. */
@@ -132,11 +133,11 @@ export function filterSuppressedDiagnostics(
 type DeclKind = 'var' | 'fn' | 'class';
 
 /** Classify whether an identifier was declared as a function, class, or variable. */
-export function classifyDeclarationType(program: any, identName: string): DeclKind {
+export function classifyDeclarationType(program: AstProgram, identName: string): DeclKind {
   return classifyInStatements(program.body, identName);
 }
 
-function classifyInStatements(stmts: any[], identName: string): DeclKind {
+function classifyInStatements(stmts: ReadonlyArray<AstNode>, identName: string): DeclKind {
   for (const stmt of stmts) {
     if (stmt.type === 'FunctionDeclaration' && stmt.id?.name === identName) return 'fn';
     if (stmt.type === 'ClassDeclaration' && stmt.id?.name === identName) return 'class';
@@ -165,7 +166,7 @@ function classifyInStatements(stmts: any[], identName: string): DeclKind {
   return 'var';
 }
 
-function classifyInExpression(node: any, identName: string): DeclKind {
+function classifyInExpression(node: AstNode | null | undefined, identName: string): DeclKind {
   if (!node) return 'var';
 
   if (node.type === 'ParenthesizedExpression') {

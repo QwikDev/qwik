@@ -7,14 +7,21 @@
 
 import { createRegExp, exactly, oneOrMore, maybe, anyOf, wordChar, wordBoundary, whitespace, charNotIn, global } from 'magic-regexp';
 import MagicString from 'magic-string';
-import { parseSync } from 'oxc-parser';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
-import { forEachAstChild } from '../ast-utils.js';
+import type {
+  AstFunction,
+  AstNode,
+  AstParseResult,
+  AstProgram,
+} from '../ast-types.js';
+import { isAstNode } from '../ast-utils.js';
+import { parseWithRawTransfer } from '../parse-utils.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { getQrlImportSource, buildSyncTransform, needsPureAnnotation } from './rewrite-calls.js';
 import { applyRawPropsTransform, consolidateRawPropsInWCalls, inlineConstCaptures } from './rewrite-parent.js';
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx, collectConstIdents } from './jsx-transform.js';
+import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
 
 const qwikDisableDirective = createRegExp(
   exactly('/*').and(whitespace.times.any()).and('@qwik-disable-next-line')
@@ -106,6 +113,13 @@ interface SegmentImportSpec {
   importedName: string; // 'default', '*', or the original exported name
 }
 
+function getNestedCallSiteStart(site: NestedCallSiteInfo): number {
+  if (!site.isJsxAttr) {
+    return site.callStart;
+  }
+  return site.attrStart ?? site.callStart;
+}
+
 // ── Shared helper: insert an import before the first '//' separator ──
 
 function insertImportBeforeSeparator(parts: string[], importStmt: string): void {
@@ -133,65 +147,12 @@ function partsHaveImport(parts: string[], symbol: string): boolean {
  * member expression properties, or other non-reference positions.
  */
 function replacePropsFieldReferences(bodyText: string, fieldMap: Map<string, string>): string {
-  const wrappedSource = `(${bodyText})`;
-  let parseResult;
-  try {
-    parseResult = parseSync('__rpf__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
-  } catch {
-    return bodyText;
-  }
-  if (!parseResult.program || parseResult.errors?.length) return bodyText;
-
-  const replacements: Array<{ start: number; end: number; key: string; isShorthand?: boolean }> = [];
-  const offset = 1; // account for leading `(`
-
-  function walkNode(node: any, parentKey?: string, parentNode?: any): void {
-    if (!node || typeof node !== 'object') return;
-
-    if (node.type === 'Identifier' && fieldMap.has(node.name)) {
-      const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
-      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
-      const isParam = parentKey === 'params';
-      const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
-      const isShorthandValue = parentKey === 'value' &&
-        (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
-        parentNode?.shorthand === true;
-
-      if (isShorthandValue) {
-        replacements.push({
-          start: node.start - offset, end: node.end - offset,
-          key: fieldMap.get(node.name)!, isShorthand: true,
-        });
-      } else if (!isPropertyKey && !isMemberProp && !isParam && !isDeclaratorId) {
-        replacements.push({
-          start: node.start - offset, end: node.end - offset,
-          key: fieldMap.get(node.name)!,
-        });
-      }
-    }
-
-    forEachAstChild(node, (child, key, parent) => {
-      walkNode(child, key, parent);
-    });
-  }
-
-  walkNode(parseResult.program);
-  if (replacements.length === 0) return bodyText;
-
-  replacements.sort((a, b) => b.start - a.start);
-  let result = bodyText;
-  for (const r of replacements) {
-    const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
-      ? '_rawProps.' + r.key
-      : `_rawProps["${r.key}"]`;
-    if (r.isShorthand) {
-      result = result.slice(0, r.start) + r.key + ': ' + accessor + result.slice(r.end);
-    } else {
-      result = result.slice(0, r.start) + accessor + result.slice(r.end);
-    }
-  }
-
-  return result;
+  return rewritePropsFieldReferences(bodyText, fieldMap, {
+    parseFilename: '__rpf__.tsx',
+    wrapperPrefix: '(',
+    wrapperSuffix: ')',
+    memberPropertyMode: 'all',
+  });
 }
 
 // ── Captures unpacking ──
@@ -333,11 +294,11 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
   const ids = new Set<string>();
   try {
     const wrapped = `(${bodyText})`;
-    const parsed = parseSync('segment.tsx', wrapped, { experimentalRawTransfer: true } as any);
+    const parsed = parseWithRawTransfer('segment.tsx', wrapped);
 
-    let funcNode: any = null;
+    let funcNode: AstFunction | null = null;
     walk(parsed.program, {
-      enter(node: any) {
+      enter(node: AstNode) {
         if (!funcNode && (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression')) {
           funcNode = node;
         }
@@ -352,7 +313,7 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
       for (const name of undeclared) ids.add(name);
     } else {
       walk(parsed.program, {
-        enter(node: any) {
+        enter(node: AstNode) {
           if (node.type === 'Identifier' && node.name) ids.add(node.name);
         }
       });
@@ -534,9 +495,7 @@ function rewriteNestedCallSitesInline(
   bodyOffset: number,
 ): string {
   const sorted = [...nestedCallSites].sort((a, b) => {
-    const aStart = a.isJsxAttr ? (a.attrStart ?? a.callStart) : a.callStart;
-    const bStart = b.isJsxAttr ? (b.attrStart ?? b.callStart) : b.callStart;
-    return bStart - aStart;
+    return getNestedCallSiteStart(b) - getNestedCallSiteStart(a);
   });
 
   let componentScopeWDecls: string[] | undefined;
@@ -742,7 +701,7 @@ function transformSegmentJsx(
 
   try {
     const wrappedBody = `(${bodyText})`;
-    const bodyParse = parseSync('segment.tsx', wrappedBody, { experimentalRawTransfer: true } as any);
+    const bodyParse = parseWithRawTransfer('segment.tsx', wrappedBody);
     const bodyS = new MagicString(wrappedBody);
 
     const qrlsWithCaptures = buildQrlsWithCapturesSet(nestedCallSites);
@@ -795,7 +754,7 @@ function buildQrlsWithCapturesSet(nestedCallSites: NestedCallSiteInfo[] | undefi
 
 function buildQpOverrides(
   nestedCallSites: NestedCallSiteInfo[] | undefined,
-  program: any,
+  program: AstProgram,
 ): Map<number, string[]> | undefined {
   if (!nestedCallSites || !nestedCallSites.some(s => s.loopLocalParamNames && s.loopLocalParamNames.length > 0)) {
     return undefined;
@@ -809,9 +768,8 @@ function buildQpOverrides(
     if (site.hoistedSymbolName) qrlParamMap.set(site.hoistedSymbolName, site.loopLocalParamNames);
   }
 
-  function walkAst(node: any): void {
+  function walkAst(node: AstNode | null | undefined): void {
     if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { node.forEach(walkAst); return; }
     if (node.type === 'JSXElement' && node.openingElement) {
       const attrs = node.openingElement.attributes || [];
       const elementParams: string[] = [];
@@ -845,7 +803,23 @@ function buildQpOverrides(
       }
       if (elementParams.length > 0) qpOverrides.set(node.start, elementParams);
     }
-    forEachAstChild(node, (child) => walkAst(child));
+
+    const record = node as unknown as Record<string, unknown>;
+    for (const key of Object.keys(record)) {
+      const value = record[key];
+      if (!value || typeof value !== 'object') continue;
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (isAstNode(item)) {
+            walkAst(item as AstNode);
+          }
+        }
+        continue;
+      }
+      if (isAstNode(value)) {
+        walkAst(value as AstNode);
+      }
+    }
   }
 
   walkAst(program);
@@ -1166,19 +1140,20 @@ export function generateSegmentCode(
  */
 export function removeDeadConstLiterals(bodyText: string): string {
   const wrapper = `const __dce__ = ${bodyText}`;
-  let parsed: any;
+  let parsed: AstParseResult;
   try {
-    parsed = parseSync('__dce__.tsx', wrapper, { experimentalRawTransfer: true } as any);
+    parsed = parseWithRawTransfer('__dce__.tsx', wrapper);
   } catch {
     return bodyText;
   }
   if (!parsed?.program?.body?.[0]) return bodyText;
 
   const decl = parsed.program.body[0];
+  if (decl.type !== 'VariableDeclaration') return bodyText;
   const init = decl.declarations?.[0]?.init;
   if (!init) return bodyText;
 
-  let fnBody: any;
+  let fnBody: AstNode | null = null;
   if (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') {
     fnBody = init.body;
   }
@@ -1202,11 +1177,9 @@ export function removeDeadConstLiterals(bodyText: string): string {
     if (d.id?.type !== 'Identifier') continue;
     const initNode = d.init;
     if (!initNode) continue;
-    const isLiteral = initNode.type === 'StringLiteral' ||
-      initNode.type === 'NumericLiteral' ||
-      initNode.type === 'BooleanLiteral' ||
-      initNode.type === 'NullLiteral' ||
-      (initNode.type === 'Literal' && typeof initNode.value !== 'object');
+    const isLiteral =
+      initNode.type === 'Literal' &&
+      (initNode.value === null || typeof initNode.value !== 'object');
     if (!isLiteral) continue;
 
     candidates.push({ name: d.id.name, stmtStart: stmt.start - offset, stmtEnd: stmt.end - offset });

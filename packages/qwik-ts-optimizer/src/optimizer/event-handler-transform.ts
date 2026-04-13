@@ -103,6 +103,35 @@ function getEventScopeData(
   return null;
 }
 
+type PassiveDirectiveAttributeName =
+  | {
+      type: string;
+      name?: unknown;
+      namespace?: { name: string };
+    };
+
+type PassiveDirectiveAttribute = {
+  type: string;
+  name?: PassiveDirectiveAttributeName;
+};
+
+function getJsxAttributeName(attr: PassiveDirectiveAttribute): string | null {
+  if (attr.name?.type === 'JSXIdentifier' && typeof attr.name.name === 'string') {
+    return attr.name.name;
+  }
+  if (
+    attr.name?.type === 'JSXNamespacedName' &&
+    attr.name.namespace &&
+    typeof attr.name.name === 'object' &&
+    attr.name.name !== null &&
+    'name' in attr.name.name &&
+    typeof attr.name.name.name === 'string'
+  ) {
+    return `${attr.name.namespace.name}:${attr.name.name.name}`;
+  }
+  return null;
+}
+
 /**
  * Transform an event prop name to Qwik's serialized format.
  *
@@ -148,18 +177,15 @@ export function jsxEventToEventName(jsxEvent: string): string | null {
  * Scan JSX attributes for passive:* directives and collect normalized event names.
  * Matches Rust's `collect_passive_event_names_from_jsx_attrs`.
  */
-export function collectPassiveDirectives(attributes: any[]): Set<string> {
+export function collectPassiveDirectives(
+  attributes: PassiveDirectiveAttribute[],
+): Set<string> {
   const passiveEvents = new Set<string>();
 
   for (const attr of attributes) {
     if (attr.type !== 'JSXAttribute') continue;
 
-    const name =
-      attr.name?.type === 'JSXIdentifier'
-        ? attr.name.name
-        : attr.name?.type === 'JSXNamespacedName'
-          ? `${attr.name.namespace.name}:${attr.name.name.name}`
-          : null;
+    const name = getJsxAttributeName(attr);
 
     if (!name || !isPassiveDirective(name)) continue;
 

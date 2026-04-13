@@ -10,6 +10,8 @@
 
 import { createRegExp, exactly, oneOrMore, whitespace, wordChar, charIn, charNotIn, global } from 'magic-regexp';
 import { rewriteImportSource } from './rewrite-imports.js';
+import { isQwikPackageSource } from './utils/qwik-packages.js';
+import { getQrlCalleeName } from './utils/qrl-naming.js';
 
 // Keep this as a raw RegExp because the lazy quantifier is the clearest way
 // to preserve the current non-greedy block comment stripping behavior.
@@ -38,11 +40,7 @@ const singleArrowParam = createRegExp(
  * - "component$" -> "componentQrl"
  * - "useTask$" -> "useTaskQrl"
  */
-export function getQrlCalleeName(markerName: string): string {
-  if (markerName === '$') return '';
-  if (markerName === 'sync$') return '_qrlSync';
-  return markerName.slice(0, -1) + 'Qrl';
-}
+export { getQrlCalleeName } from './utils/qrl-naming.js';
 
 /**
  * Build a QRL const declaration string.
@@ -100,21 +98,6 @@ export function needsPureAnnotation(qrlCalleeName: string): boolean {
   return PURE_CALLEES.has(qrlCalleeName);
 }
 
-const QWIK_PACKAGES = [
-  '@qwik.dev/core',
-  '@qwik.dev/react',
-  '@qwik.dev/router',
-  '@builder.io/qwik-react',
-  '@builder.io/qwik-city',
-  '@builder.io/qwik',
-];
-
-function isQwikPackage(source: string): boolean {
-  return QWIK_PACKAGES.some(
-    (pkg) => source === pkg || source.startsWith(pkg + '/'),
-  );
-}
-
 /**
  * Get the import source for a Qrl callee.
  *
@@ -122,7 +105,7 @@ function isQwikPackage(source: string): boolean {
  * Qwik sub-packages preserve their source (with legacy rewriting).
  */
 export function getQrlImportSource(qrlCalleeName: string, originalSource?: string): string {
-  if (originalSource && !isQwikPackage(originalSource)) {
+  if (originalSource && !isQwikPackageSource(originalSource)) {
     return originalSource;
   }
 
@@ -130,7 +113,7 @@ export function getQrlImportSource(qrlCalleeName: string, originalSource?: strin
     originalSource &&
     originalSource !== '@qwik.dev/core' &&
     originalSource !== '@builder.io/qwik' &&
-    isQwikPackage(originalSource)
+    isQwikPackageSource(originalSource)
   ) {
     return rewriteImportSource(originalSource);
   }

@@ -7,9 +7,17 @@
  * and rewrite the parent module.
  */
 
-import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
+import type {
+  AstNode,
+  AstParentNode,
+  AstParseResult,
+  AstProgram,
+  JSXAttributeItem,
+  JSXElementName,
+} from '../ast-types.js';
 import { qwikHash } from '../hashing/siphash.js';
+import { parseWithRawTransfer } from '../parse-utils.js';
 import { ContextStack } from './context-stack.js';
 import {
   collectImports,
@@ -24,6 +32,8 @@ import {
 } from './marker-detection.js';
 import { isEventProp, transformEventPropName, collectPassiveDirectives } from './event-handler-transform.js';
 import { getBasename, getDirectory, getExtension, getFileStem } from './path-utils.js';
+import { getQrlCalleeName } from './utils/qrl-naming.js';
+import { computeLineColFromOffset } from './utils/source-loc.js';
 
 export interface ExtractionResult {
   // Identity
@@ -88,10 +98,10 @@ export interface ExtractionResult {
  * Determine the file extension for a segment based on whether its body
  * contains JSX nodes.
  */
-function determineExtension(argNode: any, sourceExt: string): string {
+function determineExtension(argNode: AstNode, sourceExt: string): string {
   let hasJsx = false;
   walk(argNode, {
-    enter(node: any) {
+    enter(node: AstNode) {
       if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
         hasJsx = true;
       }
@@ -116,13 +126,13 @@ function resolveCanonicalCalleeName(
  * e.g., component($(() => {})) -> "..._component".
  */
 function getDirectWrapperContextName(
-  node: any,
-  parent: any,
+  node: AstNode,
+  parent: AstParentNode,
   imports: Map<string, ImportInfo>,
   customInlined: Map<string, CustomInlinedInfo>,
 ): string | null {
   if (parent?.type !== 'CallExpression') return null;
-  if (!Array.isArray(parent.arguments) || !parent.arguments.some((arg: any) => arg === node)) {
+  if (!parent.arguments.some((arg) => arg === node)) {
     return null;
   }
   if (isMarkerCall(parent, imports, customInlined)) return null;
@@ -133,31 +143,10 @@ function getDirectWrapperContextName(
   return resolveCanonicalCalleeName(wrapperCallee, imports);
 }
 
-/** Map marker callee to its Qrl form: "$" -> "", "sync$" -> "_qrlSync", "component$" -> "componentQrl". */
-function computeQrlCallee(calleeName: string): string {
-  if (calleeName === '$') return '';
-  if (calleeName === 'sync$') return '_qrlSync';
-  return calleeName.slice(0, -1) + 'Qrl';
-}
-
-function computeLineCol(source: string, offset: number): [number, number] {
-  let line = 1;
-  let col = 1;
-  for (let i = 0; i < offset && i < source.length; i++) {
-    if (source[i] === '\n') {
-      line++;
-      col = 1;
-    } else {
-      col++;
-    }
-  }
-  return [line, col];
-}
-
-function collectIdentifiers(node: any): Set<string> {
+function collectIdentifiers(node: AstNode): Set<string> {
   const ids = new Set<string>();
   walk(node, {
-    enter(n: any) {
+    enter(n: AstNode) {
       if (n.type === 'Identifier') {
         ids.add(n.name);
       }
@@ -167,7 +156,7 @@ function collectIdentifiers(node: any): Set<string> {
 }
 
 /** Return the subset of file-level imports referenced by identifiers in `bodyNode`. */
-function collectSegmentImports(bodyNode: any, imports: Map<string, ImportInfo>): ImportInfo[] {
+function collectSegmentImports(bodyNode: AstNode, imports: Map<string, ImportInfo>): ImportInfo[] {
   const bodyIds = collectIdentifiers(bodyNode);
   const result: ImportInfo[] = [];
   for (const [localName, info] of imports) {
@@ -179,7 +168,7 @@ function collectSegmentImports(bodyNode: any, imports: Map<string, ImportInfo>):
 }
 
 /** Check whether a JSX tag name represents a component (starts with uppercase). */
-function isComponentTag(tagNode: any): boolean {
+function isComponentTag(tagNode: JSXElementName | null | undefined): boolean {
   if (tagNode?.type === 'JSXIdentifier') {
     const ch = tagNode.name[0];
     return ch === ch.toUpperCase() && ch !== ch.toLowerCase();
@@ -200,11 +189,11 @@ export function extractSegments(
   relPath: string,
   scope?: string,
   transpileJsx?: boolean,
-  preParsedProgram?: any,
+  preParsedProgram?: AstProgram,
 ): ExtractionResult[] {
-  const parseResult = preParsedProgram
+  const parseResult: AstParseResult | null = preParsedProgram
     ? null
-    : parseSync(relPath, source, { experimentalRawTransfer: true } as any);
+    : parseWithRawTransfer(relPath, source);
   const program = preParsedProgram ?? parseResult!.program;
 
   const imports = collectImports(program, parseResult?.module);
@@ -220,14 +209,14 @@ export function extractSegments(
 
   const results: ExtractionResult[] = [];
 
-  const pushedNodes = new Map<any, number>();
-  const parentMap = new Map<any, any>();
+  const pushedNodes = new Map<AstNode, number>();
+  const parentMap = new Map<AstNode, AstParentNode>();
 
   // Suppress JSX $-suffixed attribute extraction when a non-Qwik @jsxImportSource is set
   const hasNonQwikJsxImportSource = /\/\*\s*@jsxImportSource\s+(?!@qwik|@builder\.io\/qwik)\S+/.test(source);
 
   walk(program, {
-    enter(node: any, parent: any) {
+    enter(node: AstNode, parent: AstParentNode) {
       if (parent) parentMap.set(node, parent);
 
       let pushCount = 0;
@@ -302,7 +291,7 @@ export function extractSegments(
               ctx.push(rawAttrName.slice(0, -1));
             } else {
               const jsxOpening = parent?.type === 'JSXOpeningElement' ? parent : null;
-              const siblingAttrs = jsxOpening?.attributes ?? [];
+              const siblingAttrs: JSXAttributeItem[] = jsxOpening?.attributes ?? [];
               const passiveEvents = collectPassiveDirectives(siblingAttrs);
               const transformed = transformEventPropName(rawAttrName, passiveEvents);
               if (transformed) {
@@ -345,16 +334,11 @@ export function extractSegments(
         const arg1 = node.arguments[1];
         const arg2 = node.arguments[2];
 
-        const nameValue = arg1?.type === 'StringLiteral'
-          ? arg1.value
-          : (arg1?.type === 'Literal' && typeof arg1.value === 'string')
+        const nameValue = arg1?.type === 'Literal' && typeof arg1.value === 'string'
             ? arg1.value
             : null;
 
-        const isNullBody = arg0 && (
-          arg0.type === 'NullLiteral' ||
-          (arg0.type === 'Literal' && arg0.value === null)
-        );
+        const isNullBody = arg0?.type === 'Literal' && arg0.value === null;
 
         if (arg0 && nameValue && !isNullBody) {
           const bodyText = source.slice(arg0.start, arg0.end);
@@ -382,7 +366,7 @@ export function extractSegments(
 
           let explicitCapturesText: string | null = null;
           const inlinedCaptureNames: string[] = [];
-          if (arg2 && (arg2.type === 'ArrayExpression' || arg2.type === 'ArrayPattern')) {
+          if (arg2?.type === 'ArrayExpression') {
             explicitCapturesText = source.slice(arg2.start, arg2.end);
             for (const elem of arg2.elements ?? []) {
               if (elem?.type === 'Identifier') {
@@ -477,7 +461,7 @@ export function extractSegments(
         const bodyText = source.slice(arg.start, arg.end);
         const isBare = canonicalCallee === '$';
         const isSync = isSyncMarker(canonicalCallee);
-        const qrlCallee = computeQrlCallee(canonicalCallee);
+        const qrlCallee = getQrlCalleeName(canonicalCallee);
 
         // Detect if this $() call is inside a JSX attribute (CallExpr -> JSXExprContainer -> JSXAttr)
         let isEventAttr = false;
@@ -524,7 +508,7 @@ export function extractSegments(
         const hash = lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName;
 
         const extension = determineExtension(arg, sourceExt);
-        const [line, col] = computeLineCol(source, arg.start);
+        const [line, col] = computeLineColFromOffset(source, arg.start);
 
         results.push({
           symbolName,
@@ -576,7 +560,13 @@ export function extractSegments(
           }
         }
       }
-      if (jsxAttrName !== null && !hasNonQwikJsxImportSource) {
+      if (
+        jsxAttrName !== null &&
+        !hasNonQwikJsxImportSource &&
+        node.type === 'JSXAttribute' &&
+        node.value?.type === 'JSXExpressionContainer' &&
+        node.value.expression
+      ) {
         const attrName = jsxAttrName;
         const expr = node.value.expression;
 
@@ -607,7 +597,7 @@ export function extractSegments(
           const hash = lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName;
 
           const extension = determineExtension(expr, sourceExt);
-          const [line, col] = computeLineCol(source, expr.start);
+          const [line, col] = computeLineColFromOffset(source, expr.start);
 
           results.push({
             symbolName,
@@ -647,7 +637,7 @@ export function extractSegments(
       if (pushCount > 0) pushedNodes.set(node, pushCount);
     },
 
-    leave(node: any) {
+    leave(node: AstNode) {
       const count = pushedNodes.get(node);
       if (count !== undefined) {
         for (let i = 0; i < count; i++) {

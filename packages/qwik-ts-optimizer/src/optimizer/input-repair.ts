@@ -9,7 +9,8 @@
  * with errors. Well-formed inputs pass through unchanged.
  */
 
-import { parseSync } from 'oxc-parser';
+import type { AstEcmaScriptModule, AstProgram } from '../ast-types.js';
+import { parseWithRawTransfer } from '../parse-utils.js';
 
 /**
  * Attempt to repair source code that oxc-parser cannot parse.
@@ -20,8 +21,8 @@ import { parseSync } from 'oxc-parser';
 export function repairInput(
   source: string,
   filename: string,
-): { source: string; program?: any; module?: any } {
-  const initial = parseSync(filename, source, { experimentalRawTransfer: true } as any);
+): { source: string; program?: AstProgram; module?: AstEcmaScriptModule } {
+  const initial = parseWithRawTransfer(filename, source);
 
   if (initial.program.body.length > 0) {
     return { source, program: initial.program, module: initial.module };
@@ -66,7 +67,7 @@ function tryRemoveUnmatchedParens(source: string, filename: string): string | nu
   for (let i = closePositions.length - 1; i >= 0; i--) {
     const pos = closePositions[i];
     const candidate = source.slice(0, pos) + source.slice(pos + 1);
-    const result = parseSync(filename, candidate, { experimentalRawTransfer: true } as any);
+    const result = parseWithRawTransfer(filename, candidate);
     if (result.program.body.length > 0) {
       return candidate;
     }
@@ -92,7 +93,7 @@ function tryWrapJsxTextArrows(source: string, filename: string): string | null {
     repaired = repaired.slice(0, start) + '{"' + escaped + '"}' + repaired.slice(end);
   }
 
-  const result = parseSync(filename, repaired, { experimentalRawTransfer: true } as any);
+  const result = parseWithRawTransfer(filename, repaired);
   if (result.program.body.length > 0) return repaired;
 
   return null;

@@ -57,9 +57,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
     }
     return `Code(Q${code}): ${text}`;
   } else {
-    const msg = `Code(Q${code}) ${baseUrl}${code}`;
-    console.error(msg, ...parts);
-    return msg;
+    return `Code(Q${code}) ${baseUrl}${code}`;
   }
 };
 

@@ -5,31 +5,30 @@
  * the existing optimizer behavior and keep path handling deterministic across
  * platforms.
  */
+import { basename, dirname, extname, normalize, normalizeString, relative } from 'pathe';
 
 /** Determine file extension from a path string. */
 export function getExtension(filePath: string): string {
-  const dotIdx = filePath.lastIndexOf('.');
-  if (dotIdx >= 0) return filePath.slice(dotIdx);
-  return '';
+  return extname(normalizePath(filePath));
 }
 
 /** Strip file extension from a path string. */
 export function stripExtension(filePath: string): string {
-  const dotIdx = filePath.lastIndexOf('.');
-  if (dotIdx >= 0) return filePath.slice(0, dotIdx);
-  return filePath;
+  const normalized = normalizePath(filePath);
+  const extension = extname(normalized);
+  if (!extension) return normalized;
+  return normalized.slice(0, -extension.length);
 }
 
 /** Get the basename component from a slash-delimited path string. */
 export function getBasename(filePath: string): string {
-  const slashIdx = filePath.lastIndexOf('/');
-  return slashIdx >= 0 ? filePath.slice(slashIdx + 1) : filePath;
+  return basename(normalizePath(filePath));
 }
 
 /** Get the directory component from a slash-delimited path string. */
 export function getDirectory(filePath: string): string {
-  const slashIdx = filePath.lastIndexOf('/');
-  return slashIdx >= 0 ? filePath.slice(0, slashIdx) : '';
+  const dir = dirname(normalizePath(filePath));
+  return dir === '.' ? '' : dir;
 }
 
 /** Get the basename without its extension. */
@@ -39,7 +38,7 @@ export function getFileStem(filePath: string): string {
 
 /** Normalize a path string to use forward slashes. */
 export function normalizePath(filePath: string): string {
-  return filePath.split('\\').join('/');
+  return normalize(filePath);
 }
 
 /**
@@ -54,12 +53,26 @@ export function computeRelPath(inputPath: string, srcDir: string): string {
     return normInput;
   }
 
-  const prefix = normSrc.endsWith('/') ? normSrc : normSrc + '/';
-  if (normInput.startsWith(prefix)) {
-    return normInput.slice(prefix.length);
+  const rel = relative(normSrc, normInput);
+  if (rel !== '' && rel !== '.' && rel !== '..' && !rel.startsWith('../')) {
+    return rel;
   }
 
   return normInput;
+}
+
+/**
+ * Check whether a relative import path stays within the srcDir-relative tree
+ * when resolved from a file's relative path.
+ */
+export function isRelativePathInsideBase(relativePath: string, importerPath: string): boolean {
+  if (!relativePath.startsWith('.')) return false;
+
+  const importerDir = getDirectory(normalizePath(importerPath));
+  const combined = importerDir ? `${importerDir}/${relativePath}` : relativePath;
+  const normalized = normalizeString(normalizePath(combined), true);
+
+  return normalized !== '..' && !normalized.startsWith('../');
 }
 
 /**

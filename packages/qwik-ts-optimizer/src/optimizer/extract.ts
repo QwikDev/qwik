@@ -202,9 +202,12 @@ export function extractSegments(
   transpileJsx?: boolean,
   preParsedProgram?: any,
 ): ExtractionResult[] {
-  const program = preParsedProgram ?? parseSync(relPath, source, { experimentalRawTransfer: true } as any).program;
+  const parseResult = preParsedProgram
+    ? null
+    : parseSync(relPath, source, { experimentalRawTransfer: true } as any);
+  const program = preParsedProgram ?? parseResult!.program;
 
-  const imports = collectImports(program);
+  const imports = collectImports(program, parseResult?.module);
   const customInlined = collectCustomInlined(program);
 
   const relDir = getDirectory(relPath);

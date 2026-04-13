@@ -24,7 +24,7 @@ import {
   type NestedCallSiteInfo,
   type SegmentImportContext,
 } from "./segment-codegen.js";
-import { collectImports } from "./marker-detection.js";
+import { collectExportNames, collectImports } from "./marker-detection.js";
 import { buildQrlDeclaration } from "./rewrite-calls.js";
 import { resolveEntryField } from "./entry-strategy.js";
 import { buildQrlDevDeclaration, buildDevFilePath } from "./dev-mode.js";
@@ -1347,11 +1347,12 @@ export function transformModule(
     }
 
     // Phase 2: Collect imports and analyze captures
-    const program =
-      repairResult.program ??
-      parseSync(relPath, repairedCode, { experimentalRawTransfer: true } as any)
-        .program;
-    const originalImports = collectImports(program);
+    const parseResult = repairResult.program
+      ? { program: repairResult.program, module: repairResult.module }
+      : parseSync(relPath, repairedCode, { experimentalRawTransfer: true } as any);
+    const program = parseResult.program;
+    const parserModule = parseResult.module;
+    const originalImports = collectImports(program, parserModule);
     const importedNames = new Set<string>(originalImports.keys());
 
     const enclosingExtMap = buildEnclosingExtractionMap(extractions);
@@ -2352,6 +2353,7 @@ export function transformModule(
 
     detectC05Diagnostics(
       program,
+      parserModule,
       originalImports,
       repairedCode,
       relPath,
@@ -3320,6 +3322,7 @@ function detectC02Diagnostics(
  */
 function detectC05Diagnostics(
   program: any,
+  moduleInfo: any,
   originalImports: Map<
     string,
     {
@@ -3333,38 +3336,7 @@ function detectC05Diagnostics(
   file: string,
   diagnostics: import("./types.js").Diagnostic[],
 ): void {
-  const moduleExportNames = new Set<string>();
-  for (const stmt of program.body) {
-    if (stmt.type === "ExportNamedDeclaration") {
-      if (stmt.declaration?.type === "VariableDeclaration") {
-        for (const decl of stmt.declaration.declarations ?? []) {
-          if (decl.id?.type === "Identifier") {
-            moduleExportNames.add(decl.id.name);
-          }
-        }
-      }
-      if (
-        stmt.declaration?.type === "FunctionDeclaration" &&
-        stmt.declaration.id
-      ) {
-        moduleExportNames.add(stmt.declaration.id.name);
-      }
-      if (
-        stmt.declaration?.type === "ClassDeclaration" &&
-        stmt.declaration.id
-      ) {
-        moduleExportNames.add(stmt.declaration.id.name);
-      }
-      for (const spec of stmt.specifiers ?? []) {
-        const exported = spec.exported;
-        const exportedName =
-          exported?.type === "Identifier"
-            ? exported.name
-            : (exported as any)?.value;
-        if (exportedName) moduleExportNames.add(exportedName);
-      }
-    }
-  }
+  const moduleExportNames = collectExportNames(program, moduleInfo);
 
   for (const exportName of moduleExportNames) {
     if (!exportName.endsWith("$")) continue;

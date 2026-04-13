@@ -9,6 +9,7 @@
 import { createRegExp, exactly, oneOrMore, anyOf, digit, whitespace, charNotIn } from 'magic-regexp';
 import type MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
+import { forEachAstChild } from '../ast-utils.js';
 import { analyzeSignalExpression, SignalHoister } from './signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective, collectPassiveDirectives } from './event-handler-transform.js';
 import { isBindProp, transformBindProp, mergeEventHandlers } from './bind-transform.js';
@@ -81,15 +82,7 @@ export function collectConstIdents(program: any): Set<string> {
       }
     }
 
-    for (const key of Object.keys(node)) {
-      if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-      const val = node[key];
-      if (Array.isArray(val)) {
-        for (const item of val) visitNode(item);
-      } else if (val && typeof val === 'object' && val.type) {
-        visitNode(val);
-      }
-    }
+    forEachAstChild(node, (child) => visitNode(child));
   }
 
   function collectFromDeclarator(decl: any): void {
@@ -188,15 +181,7 @@ export function collectAllLocalNames(program: any): Set<string> {
       }
     }
 
-    for (const key of Object.keys(node)) {
-      if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-      const val = node[key];
-      if (Array.isArray(val)) {
-        for (const item of val) visit(item);
-      } else if (val && typeof val === 'object' && val.type) {
-        visit(val);
-      }
-    }
+    forEachAstChild(node, (child) => visit(child));
   }
 
   visit(program);

@@ -17,6 +17,7 @@
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { transformSync as oxcTransformSync } from 'oxc-transform';
+import { forEachAstChild } from '../ast-utils.js';
 import type { ExtractionResult } from './extract.js';
 import type { ImportInfo } from './marker-detection.js';
 import type { MigrationDecision, ModuleLevelDecl } from './variable-migration.js';
@@ -44,6 +45,7 @@ import { transformAllJsx, type JsxTransformOutput } from './jsx-transform.js';
 import { SignalHoister } from './signal-analysis.js';
 import { stripExportDeclarations } from './strip-exports.js';
 import { replaceConstants } from './const-replacement.js';
+import { isRelativePathInsideBase } from './path-utils.js';
 import type { EmitMode } from './types.js';
 
 export interface InlineStrategyOptions {
@@ -175,19 +177,7 @@ export function resolveConstLiterals(parentBody: string, captureNames: string[])
       }
     }
 
-    for (const key of Object.keys(node)) {
-      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-      const val = node[key];
-      if (val && typeof val === 'object') {
-        if (Array.isArray(val)) {
-          for (const item of val) {
-            if (item && typeof item.type === 'string') walkNode(item);
-          }
-        } else if (typeof val.type === 'string') {
-          walkNode(val);
-        }
-      }
-    }
+    forEachAstChild(node, (child) => walkNode(child));
   }
 
   walkNode(parseResult.program);
@@ -225,19 +215,9 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
       }
     }
 
-    for (const key of Object.keys(node)) {
-      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-      const val = node[key];
-      if (val && typeof val === 'object') {
-        if (Array.isArray(val)) {
-          for (const item of val) {
-            if (item && typeof item.type === 'string') walkNode(item, key, node);
-          }
-        } else if (typeof val.type === 'string') {
-          walkNode(val, key, node);
-        }
-      }
-    }
+    forEachAstChild(node, (child, key, parent) => {
+      walkNode(child, key, parent);
+    });
   }
 
   walkNode(parseResult.program);
@@ -296,19 +276,7 @@ export function propagateConstLiteralsInBody(body: string): string {
         }
       }
 
-      for (const key of Object.keys(node)) {
-        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-        const val = node[key];
-        if (val && typeof val === 'object') {
-          if (Array.isArray(val)) {
-            for (const item of val) {
-              if (item && typeof item.type === 'string') findConstDecls(item);
-            }
-          } else if (typeof val.type === 'string') {
-            findConstDecls(val);
-          }
-        }
-      }
+      forEachAstChild(node, (child) => findConstDecls(child));
     }
 
     findConstDecls(parseResult.program);
@@ -333,19 +301,9 @@ export function propagateConstLiteralsInBody(body: string): string {
         }
       }
 
-      for (const key of Object.keys(node)) {
-        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-        const val = node[key];
-        if (val && typeof val === 'object') {
-          if (Array.isArray(val)) {
-            for (const item of val) {
-              if (item && typeof item.type === 'string') countRefs(item, key, node);
-            }
-          } else if (typeof val.type === 'string') {
-            countRefs(val, key, node);
-          }
-        }
-      }
+      forEachAstChild(node, (child, key, parent) => {
+        countRefs(child, key, parent);
+      });
     }
 
     countRefs(parseResult.program);
@@ -435,19 +393,7 @@ function propagateSingleUseNonLiterals(body: string): string {
           if (decl.id?.type === 'Identifier') mutableVars.add(decl.id.name);
         }
       }
-      for (const key of Object.keys(node)) {
-        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-        const val = node[key];
-        if (val && typeof val === 'object') {
-          if (Array.isArray(val)) {
-            for (const item of val) {
-              if (item && typeof item.type === 'string') collectMutableVars(item);
-            }
-          } else if (typeof val.type === 'string') {
-            collectMutableVars(val);
-          }
-        }
-      }
+      forEachAstChild(node, (child) => collectMutableVars(child));
     }
     collectMutableVars(parseResult.program);
 
@@ -2563,20 +2509,10 @@ function filterUnusedImports(ctx: RewriteContext): void {
       // For inline strategy with stripping: relative imports within srcDir become side-effect imports
       const src = info.source;
       const hasStripping = !!(inlineOptions?.stripCtxName?.length || inlineOptions?.stripEventHandlers);
-      if (isInline && hasStripping && src.startsWith('.')) {
-        const segments = src.split('/');
-        let upLevels = 0;
-        for (const seg of segments) {
-          if (seg === '..') upLevels++;
-          else break;
-        }
-        const fileDir = relPath.replace(/[^/]+$/, '');
-        const fileDirDepth = fileDir.split('/').filter(Boolean).length;
-        if (upLevels <= fileDirDepth) {
-          survivingUserImports[idx] = `import ${info.quote}${src}${info.quote};`;
-          survivingImportInfos[idx] = { ...info, namedParts: [], defaultPart: '', isSideEffect: true };
-          continue;
-        }
+      if (isInline && hasStripping && isRelativePathInsideBase(src, relPath)) {
+        survivingUserImports[idx] = `import ${info.quote}${src}${info.quote};`;
+        survivingImportInfos[idx] = { ...info, namedParts: [], defaultPart: '', isSideEffect: true };
+        continue;
       }
       survivingUserImports.splice(idx, 1);
       survivingImportInfos.splice(idx, 1);

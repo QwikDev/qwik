@@ -17,11 +17,14 @@ import { parseSync } from 'oxc-parser';
  * Returns the original source unchanged if it parses successfully or
  * no repair strategy succeeds.
  */
-export function repairInput(source: string, filename: string): { source: string; program?: any } {
+export function repairInput(
+  source: string,
+  filename: string,
+): { source: string; program?: any; module?: any } {
   const initial = parseSync(filename, source, { experimentalRawTransfer: true } as any);
 
   if (initial.program.body.length > 0) {
-    return { source, program: initial.program };
+    return { source, program: initial.program, module: initial.module };
   }
 
   if (!initial.errors || initial.errors.length === 0) {

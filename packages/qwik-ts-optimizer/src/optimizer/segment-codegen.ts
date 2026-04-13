@@ -9,6 +9,7 @@ import { createRegExp, exactly, oneOrMore, maybe, anyOf, wordChar, wordBoundary,
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
+import { forEachAstChild } from '../ast-utils.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { getQrlImportSource, buildSyncTransform, needsPureAnnotation } from './rewrite-calls.js';
 import { applyRawPropsTransform, consolidateRawPropsInWCalls, inlineConstCaptures } from './rewrite-parent.js';
@@ -169,19 +170,9 @@ function replacePropsFieldReferences(bodyText: string, fieldMap: Map<string, str
       }
     }
 
-    for (const key of Object.keys(node)) {
-      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-      const val = node[key];
-      if (val && typeof val === 'object') {
-        if (Array.isArray(val)) {
-          for (const item of val) {
-            if (item && typeof item.type === 'string') walkNode(item, key, node);
-          }
-        } else if (typeof val.type === 'string') {
-          walkNode(val, key, node);
-        }
-      }
-    }
+    forEachAstChild(node, (child, key, parent) => {
+      walkNode(child, key, parent);
+    });
   }
 
   walkNode(parseResult.program);
@@ -854,10 +845,7 @@ function buildQpOverrides(
       }
       if (elementParams.length > 0) qpOverrides.set(node.start, elementParams);
     }
-    for (const key of Object.keys(node)) {
-      if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-      walkAst(node[key]);
-    }
+    forEachAstChild(node, (child) => walkAst(child));
   }
 
   walkAst(program);

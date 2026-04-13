@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import {
+  collectExportNames,
   collectImports,
   collectCustomInlined,
   isMarkerCall,
@@ -74,6 +75,33 @@ describe('marker-detection', () => {
       const imp = imports.get('something$');
       expect(imp).toBeDefined();
       expect(imp!.isQwikCore).toBe(false);
+    });
+
+    it('can read imports from parser module metadata', () => {
+      const result = parseSync('test.tsx', `
+        import foo, { component$ as Component } from '@qwik.dev/core';
+        import * as ns from './local';
+      `);
+      const imports = collectImports(result.program, result.module);
+
+      expect(imports.get('foo')?.importedName).toBe('default');
+      expect(imports.get('Component')?.importedName).toBe('component$');
+      expect(imports.get('ns')?.importedName).toBe('*');
+      expect(imports.get('Component')?.isQwikCore).toBe(true);
+      expect(imports.get('ns')?.isQwikCore).toBe(false);
+    });
+  });
+
+  describe('collectExportNames', () => {
+    it('can read export names from parser module metadata', () => {
+      const result = parseSync('test.tsx', `
+        export const useMemo$ = wrap(useMemoQrl);
+        export { localThing as localThing$ };
+      `);
+      const names = collectExportNames(result.program, result.module);
+
+      expect(names.has('useMemo$')).toBe(true);
+      expect(names.has('localThing$')).toBe(true);
     });
   });
 

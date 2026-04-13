@@ -18,6 +18,21 @@ export interface CustomInlinedInfo {
   qrlName: string;
 }
 
+type ParserModuleInfo = {
+  staticImports?: Array<{
+    moduleRequest: { value: string };
+    entries: Array<{
+      importName: { kind: string; name: string | null };
+      localName: { value: string };
+    }>;
+  }>;
+  staticExports?: Array<{
+    entries: Array<{
+      exportName: { kind: string; name: string | null };
+    }>;
+  }>;
+};
+
 const QWIK_CORE_PREFIXES = [
   '@qwik.dev/core',
   '@qwik.dev/react',
@@ -34,8 +49,37 @@ function isQwikCoreSource(source: string): boolean {
 }
 
 /** Collect all import declarations, returning a map keyed by local binding name. */
-export function collectImports(program: any): Map<string, ImportInfo> {
+export function collectImports(program: any, moduleInfo?: ParserModuleInfo): Map<string, ImportInfo> {
   const imports = new Map<string, ImportInfo>();
+
+  if (moduleInfo?.staticImports) {
+    for (const entry of moduleInfo.staticImports) {
+      const source = entry.moduleRequest.value;
+      const isQwik = isQwikCoreSource(source);
+
+      for (const spec of entry.entries ?? []) {
+        const localName = spec.localName.value;
+        let importedName = localName;
+
+        if (spec.importName.kind === 'Default') {
+          importedName = 'default';
+        } else if (spec.importName.kind === 'NamespaceObject') {
+          importedName = '*';
+        } else if (spec.importName.name) {
+          importedName = spec.importName.name;
+        }
+
+        imports.set(localName, {
+          localName,
+          importedName,
+          source,
+          isQwikCore: isQwik,
+        });
+      }
+    }
+
+    return imports;
+  }
 
   for (const node of program.body) {
     if (node.type !== 'ImportDeclaration') continue;
@@ -72,6 +116,54 @@ export function collectImports(program: any): Map<string, ImportInfo> {
   }
 
   return imports;
+}
+
+/** Collect exported binding names from parser module metadata or AST. */
+export function collectExportNames(program: any, moduleInfo?: ParserModuleInfo): Set<string> {
+  const exports = new Set<string>();
+
+  if (moduleInfo?.staticExports) {
+    for (const entry of moduleInfo.staticExports) {
+      for (const spec of entry.entries ?? []) {
+        const exportedName = spec.exportName.name;
+        if (exportedName && spec.exportName.kind !== 'Default') {
+          exports.add(exportedName);
+        }
+      }
+    }
+    return exports;
+  }
+
+  for (const stmt of program.body) {
+    if (stmt.type !== 'ExportNamedDeclaration') continue;
+
+    if (stmt.declaration?.type === 'VariableDeclaration') {
+      for (const decl of stmt.declaration.declarations ?? []) {
+        if (decl.id?.type === 'Identifier') {
+          exports.add(decl.id.name);
+        }
+      }
+    }
+
+    if (stmt.declaration?.type === 'FunctionDeclaration' && stmt.declaration.id) {
+      exports.add(stmt.declaration.id.name);
+    }
+
+    if (stmt.declaration?.type === 'ClassDeclaration' && stmt.declaration.id) {
+      exports.add(stmt.declaration.id.name);
+    }
+
+    for (const spec of stmt.specifiers ?? []) {
+      const exported = spec.exported;
+      const exportedName =
+        exported?.type === 'Identifier'
+          ? exported.name
+          : (exported as any)?.value;
+      if (exportedName) exports.add(exportedName);
+    }
+  }
+
+  return exports;
 }
 
 /** Scan for `export const X$ = wrap(XQrl)` custom inlined function patterns. */

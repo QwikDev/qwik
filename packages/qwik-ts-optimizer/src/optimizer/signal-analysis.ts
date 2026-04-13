@@ -6,6 +6,7 @@
  */
 
 import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
+import { forEachAstChild } from '../ast-utils.js';
 
 const trailingComma = createRegExp(
   exactly(',').and(anyOf('}', ']', ')').grouped()),
@@ -19,27 +20,12 @@ export type SignalExprResult =
 
 // --- AST traversal helpers ---------------------------------------------------
 
-/** Position-metadata keys to skip when recursing into AST children. */
-const POSITION_KEYS = new Set(['type', 'start', 'end', 'loc']);
-
 /**
  * Walk all AST child nodes of `node`, calling `visitor` on each.
  * Skips position/type metadata keys automatically.
  */
 function forEachChildNode(node: any, visitor: (child: any, key: string, parent: any) => void): void {
-  for (const key of Object.keys(node)) {
-    if (POSITION_KEYS.has(key)) continue;
-    const val = node[key];
-    if (val && typeof val === 'object') {
-      if (Array.isArray(val)) {
-        for (const item of val) {
-          if (item && typeof item.type === 'string') visitor(item, key, node);
-        }
-      } else if (typeof val.type === 'string') {
-        visitor(val, key, node);
-      }
-    }
-  }
+  forEachAstChild(node, visitor);
 }
 
 // --- Node type detection -----------------------------------------------------
@@ -114,10 +100,11 @@ function containsJsx(node: any): boolean {
   if (node == null || typeof node !== 'object') return false;
   if (Array.isArray(node)) return node.some(containsJsx);
   if (node.type === 'JSXElement' || node.type === 'JSXFragment') return true;
-  for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
-    if (containsJsx(node[key])) return true;
-  }
+  let found = false;
+  forEachAstChild(node, (child) => {
+    if (!found && containsJsx(child)) found = true;
+  }, new Set(['type']));
+  if (found) return true;
   return false;
 }
 
@@ -308,22 +295,18 @@ function collectAllDeps(
       return;
     }
 
-    for (const key of Object.keys(n)) {
-      if (POSITION_KEYS.has(key)) continue;
+    forEachAstChild(n, (child, key, parent) => {
       // Object literal keys and non-computed member property names aren't deps
-      if (key === 'key' && (n.type === 'Property' || n.type === 'ObjectProperty')) continue;
-      if (key === 'property' && (n.type === 'MemberExpression' || n.type === 'StaticMemberExpression') && !n.computed) continue;
-      const val = n[key];
-      if (val && typeof val === 'object') {
-        if (Array.isArray(val)) {
-          for (const item of val) {
-            if (item && typeof item.type === 'string') walk(item);
-          }
-        } else if (typeof val.type === 'string') {
-          walk(val);
-        }
+      if (key === 'key' && (parent.type === 'Property' || parent.type === 'ObjectProperty')) return;
+      if (
+        key === 'property' &&
+        (parent.type === 'MemberExpression' || parent.type === 'StaticMemberExpression') &&
+        !parent.computed
+      ) {
+        return;
       }
-    }
+      walk(child);
+    });
   }
 
   walk(node);

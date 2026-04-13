@@ -705,6 +705,8 @@ describe('shared-serialization', () => {
         ),
         { timeout: 5000 }
       );
+      const undefinedSignal = createAsyncSignal(inlinedQrl(() => {}, 'undefinedSignal'));
+      undefinedSignal.untrackedLoading;
 
       await retryOnPromise(() => {
         // note that this won't subscribe because we're not setting up the context
@@ -713,11 +715,20 @@ describe('shared-serialization', () => {
         expect(always.value).toBe(2);
       });
 
-      const objs = await serialize(dirty, clean, never, always, polling, concurrent, timeout);
+      const objs = await serialize(
+        dirty,
+        clean,
+        never,
+        always,
+        polling,
+        concurrent,
+        timeout,
+        undefinedSignal
+      );
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 AsyncSignal [
-          QRL "8#9#7"
+          QRL "9#10#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -725,7 +736,7 @@ describe('shared-serialization', () => {
           {number} 1
         ]
         1 AsyncSignal [
-          QRL "8#10#7"
+          QRL "9#11#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -734,10 +745,10 @@ describe('shared-serialization', () => {
           {number} 2
         ]
         2 AsyncSignal [
-          QRL "8#11#7"
+          QRL "9#12#8"
         ]
         3 AsyncSignal [
-          QRL "8#12#7"
+          QRL "9#13#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -746,7 +757,7 @@ describe('shared-serialization', () => {
           {number} 2
         ]
         4 AsyncSignal [
-          QRL "8#13#7"
+          QRL "9#14#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -756,7 +767,7 @@ describe('shared-serialization', () => {
           {number} 100
         ]
         5 AsyncSignal [
-          QRL "8#14#7"
+          QRL "9#15#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -767,7 +778,7 @@ describe('shared-serialization', () => {
           {number} 23
         ]
         6 AsyncSignal [
-          QRL "8#15#7"
+          QRL "9#16#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -778,7 +789,16 @@ describe('shared-serialization', () => {
           Constant undefined
           {number} 5000
         ]
-        7 Signal [
+        7 AsyncSignal [
+          QRL "9#17"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+        ]
+        8 Signal [
           {number} 1
           EffectSubscription [
             RootRef 1
@@ -796,15 +816,16 @@ describe('shared-serialization', () => {
             Constant null
           ]
         ]
-        8 {string} "mock-chunk"
-        9 {string} "dirty"
-        10 {string} "clean"
-        11 {string} "never"
-        12 {string} "always"
-        13 {string} "polling"
-        14 {string} "concurrent"
-        15 {string} "timeout"
-        (443 chars)"
+        9 {string} "mock-chunk"
+        10 {string} "dirty"
+        11 {string} "clean"
+        12 {string} "never"
+        13 {string} "always"
+        14 {string} "polling"
+        15 {string} "concurrent"
+        16 {string} "timeout"
+        17 {string} "undefinedSignal"
+        (502 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {

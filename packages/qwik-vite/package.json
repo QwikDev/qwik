@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/qwik-vite",
-  "private": true,
   "devDependencies": {
     "image-size": "1.2.1"
-  }
+  },
+  "private": true
 }

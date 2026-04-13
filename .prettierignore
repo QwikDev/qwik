@@ -19,6 +19,9 @@ e2e/**/dist
 e2e/**/server
 node_modules
 
+# E2E snapshot
+e2e/**/*.ssg.html
+
 tsconfig.tsbuildinfo
 
 # REPL files
@@ -29,7 +32,6 @@ packages/*/lib
 packages/*/dist
 packages/*/server
 packages/*/bindings
-e2e/*/server
 
 # API output files
 packages/docs/src/routes/api

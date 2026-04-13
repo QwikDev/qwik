@@ -1,0 +1,5 @@
+{
+  "description": "Qwik Router SSG snapshot fixture",
+  "private": true,
+  "type": "module"
+}

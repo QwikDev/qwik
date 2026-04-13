@@ -1,96 +1,24 @@
 {
-  "version": 1,
-  "generatedAt": "2026-04-13T08:31:31.018Z",
-  "sampleCount": 3,
-  "countPerScenario": 10000,
-  "scenarios": {
-    "function": {
-      "totalBytes": 1129176,
-      "bytesPerInstance": 112.9176
-    },
-    "qrl": {
-      "totalBytes": 2906816,
-      "bytesPerInstance": 290.6816
-    },
-    "qrl-copy": {
-      "totalBytes": 2021976,
-      "bytesPerInstance": 202.1976
-    },
-    "lazy-ref": {
-      "totalBytes": 974448,
-      "bytesPerInstance": 97.4448
-    },
-    "qrl-class": {
-      "totalBytes": 653640,
-      "bytesPerInstance": 65.364
-    },
-    "signal": {
-      "totalBytes": 663024,
-      "bytesPerInstance": 66.3024
-    },
-    "ComputedSignal": {
-      "totalBytes": 904944,
-      "bytesPerInstance": 90.4944
-    },
-    "wrapped-signal": {
-      "totalBytes": 1464232,
-      "bytesPerInstance": 146.4232
-    },
-    "async-signal-default": {
-      "totalBytes": 1153496,
-      "bytesPerInstance": 115.3496
-    },
-    "async-signal-concurrency-4": {
-      "totalBytes": 1636048,
-      "bytesPerInstance": 163.6048
-    },
-    "virtual-vnode": {
-      "totalBytes": 1379720,
-      "bytesPerInstance": 137.972
-    },
-    "element-vnode": {
-      "totalBytes": 7293640,
-      "bytesPerInstance": 729.364
-    },
-    "text-vnode": {
-      "totalBytes": 2546200,
-      "bytesPerInstance": 254.62
-    },
-    "jsx-node": {
-      "totalBytes": 2818360,
-      "bytesPerInstance": 281.836
-    },
-    "context-id": {
-      "totalBytes": 739896,
-      "bytesPerInstance": 73.9896
-    },
-    "subscription-data": {
-      "totalBytes": 933240,
-      "bytesPerInstance": 93.324
-    },
-    "effect-subscription": {
-      "totalBytes": 4834024,
-      "bytesPerInstance": 483.4024
-    },
-    "delete-operation": {
-      "totalBytes": 1667624,
-      "bytesPerInstance": 166.7624
-    },
-    "set-text-operation": {
-      "totalBytes": 1740600,
-      "bytesPerInstance": 174.06
-    },
-    "insert-or-move-operation": {
-      "totalBytes": 6326248,
-      "bytesPerInstance": 632.6248
-    },
-    "set-attribute-operation": {
-      "totalBytes": 6725520,
-      "bytesPerInstance": 672.552
-    },
-    "remove-all-children-operation": {
-      "totalBytes": 6162912,
-      "bytesPerInstance": 616.2912
-    }
-  }
+  "function": 113,
+  "qrl": 291,
+  "qrl-copy": 202,
+  "lazy-ref": 97,
+  "qrl-class": 65,
+  "signal": 66,
+  "ComputedSignal": 90,
+  "wrapped-signal": 146,
+  "async-signal-default": 115,
+  "async-signal-concurrency-4": 164,
+  "virtual-vnode": 138,
+  "element-vnode": 729,
+  "text-vnode": 255,
+  "jsx-node": 282,
+  "context-id": 74,
+  "subscription-data": 93,
+  "effect-subscription": 483,
+  "delete-operation": 167,
+  "set-text-operation": 174,
+  "insert-or-move-operation": 633,
+  "set-attribute-operation": 673,
+  "remove-all-children-operation": 616
 }

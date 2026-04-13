@@ -13,6 +13,8 @@
  * Implements: CALL-01, CALL-02, CALL-03, CALL-04, CALL-05
  */
 
+import { rewriteImportSource } from './rewrite-imports.js';
+
 // ---------------------------------------------------------------------------
 // Callee name transformation
 // ---------------------------------------------------------------------------
@@ -163,11 +165,11 @@ export function getQrlImportSource(qrlCalleeName: string, originalSource?: strin
   if (originalSource && !isQwikPackage(originalSource)) {
     return originalSource;
   }
-  // Qwik sub-packages (not @qwik.dev/core): preserve the original source.
-  // If server$ was imported from @qwik.dev/router, serverQrl should come from there too.
+  // Qwik sub-packages (not @qwik.dev/core): preserve the original source,
+  // but rewrite legacy @builder.io/* to @qwik.dev/* first.
   if (originalSource && originalSource !== '@qwik.dev/core' &&
       originalSource !== '@builder.io/qwik' && isQwikPackage(originalSource)) {
-    return originalSource;
+    return rewriteImportSource(originalSource);
   }
   if (qrlCalleeName === 'qwikifyQrl') return '@qwik.dev/react';
   const ROUTER_QRLS = new Set([

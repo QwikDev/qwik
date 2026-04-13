@@ -1,5 +1,6 @@
 import {
   _fnSignal,
+  createAsyncQrl,
   createComputedQrl,
   createContextId,
   createSignal,
@@ -142,6 +143,32 @@ memoryScenarios.push({
     const signals = new Array<unknown>(INSTANCE_COUNT);
     for (let i = 0; i < INSTANCE_COUNT; i++) {
       signals[i] = _fnSignal(noopFN, []);
+    }
+    return signals;
+  },
+});
+
+memoryScenarios.push({
+  id: 'async-signal-default',
+  title: 'AsyncSignal instances with default options',
+  count: INSTANCE_COUNT,
+  allocate: () => {
+    const signals = new Array<unknown>(INSTANCE_COUNT);
+    for (let i = 0; i < INSTANCE_COUNT; i++) {
+      signals[i] = createAsyncQrl(qrl);
+    }
+    return signals;
+  },
+});
+
+memoryScenarios.push({
+  id: 'async-signal-concurrency-4',
+  title: 'AsyncSignal instances with concurrency 4',
+  count: INSTANCE_COUNT,
+  allocate: () => {
+    const signals = new Array<unknown>(INSTANCE_COUNT);
+    for (let i = 0; i < INSTANCE_COUNT; i++) {
+      signals[i] = createAsyncQrl(qrl, { concurrency: 4 });
     }
     return signals;
   },

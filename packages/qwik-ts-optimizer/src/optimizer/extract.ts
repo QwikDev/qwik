@@ -261,7 +261,11 @@ export function extractSegments(
 
   const { stem: fileStem, isIndex: isIndexFile } = getFileStem(relPath);
   const sourceExt = getSourceExtension(relPath);
-  const ctx = new ContextStack(fileStem, relPath, scope);
+  // fileName is the actual file basename with extension (e.g., "index.tsx")
+  // Used for display names per SWC behavior (path_data.file_name)
+  const slashIdx = relPath.lastIndexOf('/');
+  const fileName = slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
+  const ctx = new ContextStack(fileStem, relPath, scope, fileName);
 
   const results: ExtractionResult[] = [];
 
@@ -410,9 +414,10 @@ export function extractSegments(
         const hasName =
           (decl?.type === 'FunctionDeclaration' && decl.id) ||
           (decl?.type === 'ClassDeclaration' && decl.id);
-        if (!hasName && !isIndexFile) {
-          // For index files, the fileStem is already the directory name
-          // which serves as the display name prefix -- no extra push needed
+        if (!hasName) {
+          // For default exports without a name, push the file stem as context.
+          // For index files, this pushes the directory name (e.g., "mongo").
+          // For regular files, this pushes the file stem (e.g., "test").
           ctx.pushDefaultExport();
           pushCount++;
         }
@@ -763,9 +768,16 @@ export function extractSegments(
             parentOpeningTag[0] === parentOpeningTag[0].toUpperCase() &&
             parentOpeningTag[0] !== parentOpeningTag[0].toLowerCase();
 
-          // All $-suffixed JSX attribute extractions (direct function expressions)
-          // are treated as eventHandler. This matches SWC snap output behavior.
-          const ctxKind: 'function' | 'eventHandler' | 'jSXProp' = 'eventHandler';
+          // SWC rules for direct function expressions in JSX $-suffixed attrs:
+          // - HTML elements: ALL $-suffixed attrs → eventHandler
+          // - Component elements: on* attrs → eventHandler, non-on* attrs → jSXProp
+          let ctxKind: 'function' | 'eventHandler' | 'jSXProp' = 'eventHandler';
+          if (isComponentEvent) {
+            const isOnEvent = attrName.startsWith('on') || attrName.startsWith('document:on') || attrName.startsWith('window:on');
+            if (!isOnEvent) {
+              ctxKind = 'jSXProp';
+            }
+          }
           const ctxName = attrName; // e.g., onClick$, custom$, onInput$
 
           const displayName = ctx.getDisplayName();

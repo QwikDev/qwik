@@ -40,11 +40,13 @@ function extractFileStem(fileName: string): string {
 export class ContextStack {
   private stack: string[] = [];
   private fileStem: string;
+  private fileName: string;
   private relPath: string;
   private scope: string | undefined;
 
-  constructor(fileStem: string, relPath: string, scope?: string) {
+  constructor(fileStem: string, relPath: string, scope?: string, fileName?: string) {
     this.fileStem = fileStem;
+    this.fileName = fileName ?? fileStem;
     this.relPath = relPath;
     this.scope = scope;
   }
@@ -80,7 +82,7 @@ export class ContextStack {
 
   /** Get the display name from the current context stack. */
   getDisplayName(): string {
-    return buildDisplayName(this.fileStem, this.stack);
+    return buildDisplayName(this.fileName, this.stack);
   }
 
   /** Get the symbol name (contextPortion + hash) from the current context. */

@@ -807,10 +807,6 @@ jobs:
       - name: Memory Benchmarks
         run: pnpm run test.bench.memory
 
-      - name: Docs Size Benchmarks
-        if: needs.build-docs.result == 'success'
-        run: pnpm run test.bench.docs-size
-
   save-bench-cache:
     name: Save Benchmark Cache
     runs-on: ubuntu-latest

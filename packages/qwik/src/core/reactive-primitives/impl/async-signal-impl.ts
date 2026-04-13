@@ -1,6 +1,7 @@
 import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../shared/error/assert';
+import { QError, qError } from '../../shared/error/error';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { Container } from '../../shared/types';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
@@ -192,11 +193,7 @@ export class AsyncSignalImpl<T>
       this.$flags$ & AsyncSignalFlags.CLIENT_ONLY &&
       this.$untrackedValue$ === NEEDS_COMPUTATION
     ) {
-      throw new Error(
-        isDev
-          ? 'During SSR, cannot read .value from clientOnly async signal without an initial value. Use .loading or provide an initial value.'
-          : 'Cannot read .value from clientOnly'
-      );
+      throw qError(QError.asyncClientOnlyValueDuringSSR);
     }
     return this.$untrackedValue$;
   }

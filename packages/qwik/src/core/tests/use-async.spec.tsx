@@ -595,7 +595,7 @@ describe.each([
         }
 
         expect(threwError).toBe(true);
-        expect(errorMessage).toContain('cannot read .value from clientOnly async signal');
+        expect(errorMessage).toContain('Cannot read .value of a clientOnly async signal');
       } else {
         // During client render, clientOnly signals compute eagerly, so it should work
         // (or at least not throw with the "cannot read" error)

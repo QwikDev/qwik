@@ -226,7 +226,7 @@ The error that occurred while computing the signal, if any. This will be cleared
 </td></tr>
 <tr><td>
 
-interval
+expires
 
 </td><td>
 
@@ -236,9 +236,22 @@ number
 
 </td><td>
 
-Staleness/poll interval in ms. Writable and immediately effective.
+Expiration time in ms. Writable and immediately effective.
 
-- \*\*Positive\*\*: Poll — re-compute after this many ms when subscribers exist. - \*\*Negative\*\*: Stale-only — mark stale after `|interval|` ms, no auto-recompute. - \*\*`0`\*\*: No staleness tracking or polling.
+When set, the signal is invalidated after this many ms. Whether it auto-recomputes depends on the `poll` property. `0` means no expiration.
+
+</td></tr>
+<tr><td>
+
+interval
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
 
 </td></tr>
 <tr><td>
@@ -264,6 +277,23 @@ signal.loading ? (
   <Component value={signal.value} />
 );
 ```
+
+</td></tr>
+<tr><td>
+
+poll
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+Whether to automatically re-run the function when the value expires. Writable and immediately effective. Only relevant when `expires` is set.
+
+Defaults to `true`.
 
 </td></tr>
 <tr><td>
@@ -383,9 +413,9 @@ _(Optional)_ When true (default), the previous value is kept while the signal re
 
 When false, invalidation clears the value so reads throw the computation promise (like the initial load), which is useful for navigations where showing old data would be confusing.
 
-Note that `interval` invalidations are not affected by this option and will keep the old value while the new value is loading, to avoid flashing loaders during polling.
+Note that polling invalidations (`expires` with `poll: true`) are not affected by this option and will keep the old value while the new value is loading, to avoid flashing loaders.
 
-This option only affects manual invalidations via `invalidate()`, and `interval` invalidations where no new value will be loaded (`interval` is negative, or there are no subscribers).
+This option only affects manual invalidations via `invalidate()`, and non-polling expirations (`poll: false`, or there are no subscribers).
 
 Defaults to `true`.
 
@@ -443,6 +473,25 @@ Defaults to `false`, meaning cleanup happens only when inputs change.
 </td></tr>
 <tr><td>
 
+expires?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Time in milliseconds after which the value expires.
+
+When the value expires and subscribers exist, the signal is invalidated. If `poll` is `true` (default), the function is re-run automatically. If `poll` is `false`, the value is marked stale and recomputation happens when reading `.value` or `.loading`.
+
+`0` (default) means no expiration.
+
+</td></tr>
+<tr><td>
+
 initial?
 
 </td><td>
@@ -468,9 +517,24 @@ number
 
 </td><td>
 
-_(Optional)_ Controls staleness and polling behavior.
+_(Optional)_
 
-- \*\*Positive\*\*: Re-run the function after `interval` ms if subscribers exist (polling). - \*\*Negative\*\*: Mark the value as stale after `|interval|` ms, but do NOT auto-recompute. Recomputation happens when reading `.value` or `.loading`. - \*\*`0`\*\* (default): No staleness tracking or polling.
+</td></tr>
+<tr><td>
+
+poll?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Whether to automatically re-run the function when the value expires. Only relevant when `expires` is set.
+
+Defaults to `true`.
 
 </td></tr>
 <tr><td>

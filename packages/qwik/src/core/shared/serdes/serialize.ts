@@ -455,7 +455,7 @@ export class Serializer {
         const isInvalid = value.$flags$ & SignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
         const isAsync = value instanceof AsyncSignalImpl;
-        const interval = isAsync && value.$interval$ !== 0 ? value.$interval$ : undefined;
+        const expires = isAsync && value.$expires$ !== 0 ? value.$expires$ : undefined;
         const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
         const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
 
@@ -481,7 +481,7 @@ export class Serializer {
 
         if (
           v !== NEEDS_COMPUTATION ||
-          interval !== undefined ||
+          expires !== undefined ||
           concurrency !== undefined ||
           timeout !== undefined
         ) {
@@ -493,7 +493,7 @@ export class Serializer {
           out.push(v === undefined ? explicitUndefined : v);
         }
         if (isAsync) {
-          out.push(interval);
+          out.push(expires);
           out.push(concurrency);
           out.push(timeout);
         }

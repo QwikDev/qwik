@@ -402,7 +402,8 @@ function useAsync$<T>(
   }) => Promise<T>,
   options?: {
     initial?: T; // initial stale value
-    interval?: number; // polling interval in ms
+    expires?: number; // expiration time in ms
+    poll?: boolean; // whether to automatically re-run the async function when `expires` milliseconds have passed and there are listeners
     concurrency?: number; // concurrency level, default is 1
     timeout?: number; // max time in ms to run the async function
     clientOnly?: boolean; // do not run during SSR
@@ -425,7 +426,8 @@ The callback passed to `useAsync$()` runs as soon as it is read. That means that
 Options:
 
 - `initial`: the initial stale value of the async signal before the async function resolves. This is useful to show some initial data while the async function is still loading. If not provided, reading the value before it's resolved will throw a `Promise`, which is Qwik's way of ensuring the current function will re-run when the value is available.
-- `interval`: if provided, the async function will be re-run every `interval` milliseconds, as long as the async signal is used somewhere. This is useful to keep data fresh. If the interval is negative, the value will be marked as stale after `|interval|` milliseconds, but the async function will not be automatically re-run. Instead, it will be re-run when `.value` or `.loading` is read.
+- `expires`: if provided, the async function will be re-run every `expires` milliseconds, as long as the async signal is used somewhere. This is useful to keep data fresh. If `poll` is `false`, the value will be marked as stale after `expires` milliseconds, but the async function will not be automatically re-run. Instead, it will be re-run when `.value` or `.loading` is read.
+- `poll`: whether to automatically re-run the async function when `expires` milliseconds have passed and there are listeners. Defaults to `true`.
 - `concurrency`: controls what happens when the async function is still running and it needs to be re-run:
   - The default is `concurrency: 1`, which means that the currently running async function and its cleanups have to complete before a new one starts.
   - If set to a number, there can be be up to that number currently in flight before new calls need to wait for one of them to complete. `0` means no limit.
@@ -445,7 +447,8 @@ interface AsyncSignal<T> {
   untrackedLoading: boolean;
   error: Error | undefined;
   untrackedError: Error | undefined;
-  interval: number;
+  expires: number;
+  poll: boolean;
   promise(): Promise<void>;
   abort(reason?: any): void;
 }
@@ -456,7 +459,9 @@ interface AsyncSignal<T> {
 - `untrackedLoading: boolean`: same as `loading`, but does not trigger reactivity when it changes
 - `error: Error | undefined`: the error if the async function failed
 - `untrackedError: Error | undefined`: same as `error`, but does not trigger reactivity when it changes
-- `interval: number`: the current polling interval in milliseconds. This can be updated to change the polling interval or to stop polling by setting it to `0`.
+- `expires: number`: the current expiration time in milliseconds. This can be updated to change the expiration time or to stop polling by setting it to `0`.
+- `poll: boolean`: whether to automatically re-run the async function when `expires` milliseconds have passed and there are listeners. Defaults to `true`.
+
 - `promise(): Promise<void>`: a function that can be called to start the async function. It returns a promise that resolves when the async function completes, but not its result. That needs to be read from `value` or `error`.
 - `abort(reason?: any): void`: a function that can be called to abort the currently running async function and run cleanups if needed. The reason is passed to the abortSignal.
 

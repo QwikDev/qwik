@@ -374,23 +374,24 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
   const ids = new Set<string>();
   try {
     const wrapped = `(${bodyText})`;
-    const parsed = parseSync('segment.tsx', wrapped);
+    const parsed = parseSync('segment.tsx', wrapped, { experimentalRawTransfer: true } as any);
 
-    // Find the function node (ArrowFunctionExpression or FunctionExpression)
-    // wrapped in an ExpressionStatement inside the program
+    // Single walk: collect undeclared identifiers and uppercase JSX identifiers
+    // Combined into one pass instead of three separate walks for performance.
     let funcNode: any = null;
     walk(parsed.program, {
       enter(node: any) {
         if (!funcNode && (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression')) {
           funcNode = node;
         }
+        // Collect uppercase JSXIdentifier names (component references, not HTML tags)
+        if (node.type === 'JSXIdentifier' && node.name && node.name[0] >= 'A' && node.name[0] <= 'Z') {
+          ids.add(node.name);
+        }
       }
     });
 
     if (funcNode) {
-      // Use scope-aware undeclared identifier detection.
-      // This correctly handles block-scoped shadowing (catch, switch, labeled, do-while)
-      // so locally-declared variables are NOT included.
       const undeclared = getUndeclaredIdentifiersInFunction(funcNode);
       for (const name of undeclared) {
         ids.add(name);
@@ -405,21 +406,8 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
         }
       });
     }
-
-    // Also collect JSXIdentifier names (components) which may not be in undeclared list
-    walk(parsed.program, {
-      enter(node: any) {
-        if (node.type === 'JSXIdentifier' && node.name) {
-          // Only add uppercase names (component references, not HTML tags)
-          if (node.name[0] >= 'A' && node.name[0] <= 'Z') {
-            ids.add(node.name);
-          }
-        }
-      }
-    });
   } catch {
-    // Fallback: regex-based identifier extraction for capital-letter identifiers
-    // (components, namespaces) and known runtime functions
+    // Fallback: regex-based identifier extraction
     const identRegex = /\b([A-Z_$][a-zA-Z0-9_$]*)\b/g;
     let match;
     while ((match = identRegex.exec(bodyText)) !== null) {
@@ -977,11 +965,13 @@ export function generateSegmentCode(
   }
 
   // JSX transformation in segment body (Phase 4)
-  if (jsxOptions?.enableJsx && (bodyText.includes('<') || bodyText.includes('JSX'))) {
+  // Fast check: only parse if there's an actual JSX tag (< followed by letter or _, or </>)
+  // This avoids parseSync for segments that only have comparison operators like `a < b`
+  if (jsxOptions?.enableJsx && (/(?:<[A-Z_a-z\/]|JSX)/.test(bodyText))) {
     try {
       // Wrap body in expression context for parsing
       const wrappedBody = `(${bodyText})`;
-      const bodyParse = parseSync('segment.tsx', wrappedBody);
+      const bodyParse = parseSync('segment.tsx', wrappedBody, { experimentalRawTransfer: true } as any);
       const bodyS = new MagicString(wrappedBody);
 
       // Build set of QRL variable names that have loop-local captures (must be before qpOverrides)

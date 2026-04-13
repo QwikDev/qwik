@@ -381,6 +381,89 @@ export function collectLocalDeclarations(program: any, start: number, end: numbe
 }
 
 /**
+ * Collect local declarations for ALL extractions in a single AST walk.
+ * This replaces calling collectLocalDeclarations once per extraction,
+ * which walked the entire AST N times (O(N*AST_size)).
+ *
+ * Returns a Map from symbolName -> Set<string> of locally-declared names.
+ */
+export function collectAllLocalDeclarations(
+  program: any,
+  extractions: Array<{ symbolName: string; argStart: number; argEnd: number }>,
+): Map<string, Set<string>> {
+  const result = new Map<string, Set<string>>();
+  for (const ext of extractions) {
+    result.set(ext.symbolName, new Set());
+  }
+
+  if (extractions.length === 0) return result;
+
+  walk(program, {
+    enter(node: any) {
+      // Only process declaration-bearing node types
+      const type = node.type;
+      if (
+        type !== 'ArrowFunctionExpression' &&
+        type !== 'FunctionExpression' &&
+        type !== 'FunctionDeclaration' &&
+        type !== 'VariableDeclaration' &&
+        type !== 'ClassDeclaration' &&
+        type !== 'CatchClause'
+      ) return;
+
+      const nodeStart = node.start;
+      const nodeEnd = node.end;
+
+      // Find which extractions this node falls within
+      for (const ext of extractions) {
+        if (nodeStart < ext.argStart || nodeEnd > ext.argEnd) continue;
+
+        const locals = result.get(ext.symbolName)!;
+
+        if (type === 'ArrowFunctionExpression' && node.params) {
+          for (const param of node.params) {
+            const names: string[] = [];
+            collectBindingNames(param, names);
+            for (const n of names) locals.add(n);
+          }
+        }
+
+        if (type === 'FunctionExpression' || type === 'FunctionDeclaration') {
+          if (node.id?.name) locals.add(node.id.name);
+          for (const param of node.params ?? []) {
+            const names: string[] = [];
+            collectBindingNames(param, names);
+            for (const n of names) locals.add(n);
+          }
+        }
+
+        if (type === 'VariableDeclaration') {
+          for (const decl of node.declarations ?? []) {
+            if (decl.id) {
+              const names: string[] = [];
+              collectBindingNames(decl.id, names);
+              for (const n of names) locals.add(n);
+            }
+          }
+        }
+
+        if (type === 'ClassDeclaration' && node.id?.name) {
+          locals.add(node.id.name);
+        }
+
+        if (type === 'CatchClause' && node.param) {
+          const names: string[] = [];
+          collectBindingNames(node.param, names);
+          for (const n of names) locals.add(n);
+        }
+      }
+    },
+  });
+
+  return result;
+}
+
+/**
  * Collect the set of identifier positions that are declaration-site bindings
  * at the top level of the module. SWC's `build_main_module_usage_set` explicitly
  * skips `Stmt::Decl` items — identifiers that are the binding name of a
@@ -481,11 +564,8 @@ export function computeSegmentUsage(
     segmentUsage.set(ext.symbolName, new Set());
   }
 
-  // Pre-compute local declarations for each extraction range
-  const extractionLocals = new Map<string, Set<string>>();
-  for (const ext of extractions) {
-    extractionLocals.set(ext.symbolName, collectLocalDeclarations(program, ext.argStart, ext.argEnd));
-  }
+  // Pre-compute local declarations for ALL extractions in a single AST walk
+  const extractionLocals = collectAllLocalDeclarations(program, extractions);
 
   // Pre-compute declaration-site positions at root level
   const rootDeclPositions = collectRootDeclPositions(program);

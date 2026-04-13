@@ -779,6 +779,51 @@ const QWIK_IMPORT_PREFIXES = [
  * @returns Cleaned code with unused imports removed
  */
 function removeUnusedImports(code: string, filename: string, transpileJsx?: boolean): string {
+  // Fast path: extract all import local names and check if they all appear
+  // in the non-import section of the code. If so, no imports need removal.
+  const sepIdx = code.indexOf('\n//\n');
+  if (sepIdx >= 0) {
+    const importSection = code.slice(0, sepIdx);
+    const bodySection = code.slice(sepIdx);
+    // Extract local names from import statements using a regex
+    const importNameRegex = /\bimport\s+(?:(\w+)|(?:\{[^}]*\})|(?:\*\s+as\s+(\w+)))/g;
+    const specRegex = /\b(\w+)\b/g;
+    let allReferenced = true;
+    // Collect all local names from import specifiers
+    const localNames: string[] = [];
+    for (const line of importSection.split('\n')) {
+      if (!line.startsWith('import ')) continue;
+      const braceStart = line.indexOf('{');
+      const braceEnd = line.indexOf('}');
+      if (braceStart >= 0 && braceEnd > braceStart) {
+        const specList = line.slice(braceStart + 1, braceEnd);
+        // Extract local names: "foo" from "foo", "bar as baz" -> "baz"
+        for (const spec of specList.split(',')) {
+          const trimmed = spec.trim();
+          if (!trimmed) continue;
+          const asIdx = trimmed.indexOf(' as ');
+          const localName = asIdx >= 0 ? trimmed.slice(asIdx + 4).trim() : trimmed;
+          if (localName) localNames.push(localName);
+        }
+      }
+      // Default import: import Foo from "..."
+      const defaultMatch = line.match(/^import\s+([A-Za-z_$]\w*)\s*(?:,|\s+from)/);
+      if (defaultMatch) localNames.push(defaultMatch[1]);
+      // Namespace import: import * as ns from "..."
+      const nsMatch = line.match(/\*\s+as\s+(\w+)/);
+      if (nsMatch) localNames.push(nsMatch[1]);
+    }
+    if (localNames.length > 0) {
+      for (const name of localNames) {
+        if (!bodySection.includes(name)) {
+          allReferenced = false;
+          break;
+        }
+      }
+      if (allReferenced) return code;
+    }
+  }
+
   let parsed;
   try {
     parsed = parseSync(filename, code, { experimentalRawTransfer: true } as any);
@@ -990,11 +1035,12 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     if (ext === '.tsx' || ext === '.jsx') isJsx = true;
 
     // 0. Repair input if oxc-parser cannot parse it (SWC-recoverable errors)
-    const repairedCode = repairInput(input.code, relPath);
+    const repairResult = repairInput(input.code, relPath);
+    const repairedCode = repairResult.source;
 
-    // 1. Extract segments
+    // 1. Extract segments (reuse program from repair when available to avoid re-parsing)
     const willTranspileJsx = options.transpileJsx !== false && (ext === '.tsx' || ext === '.jsx');
-    const extractions = extractSegments(repairedCode, relPath, options.scope, willTranspileJsx);
+    const extractions = extractSegments(repairedCode, relPath, options.scope, willTranspileJsx, repairResult.program);
 
     // 1a. No-extraction passthrough: if no $() markers found AND no JSX transpilation
     // needed, preserve source as-is with only a `//` separator between imports and body.
@@ -1003,7 +1049,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const earlyTranspileJsx = options.transpileJsx !== false;
     const needsJsxTransform = earlyTranspileJsx && (ext === '.tsx' || ext === '.jsx');
     if (extractions.length === 0 && !needsJsxTransform) {
-      const { program: passProgram } = parseSync(relPath, repairedCode, { experimentalRawTransfer: true } as any);
+      const passProgram = repairResult.program ?? parseSync(relPath, repairedCode, { experimentalRawTransfer: true } as any).program;
       const passS = new MagicString(repairedCode);
 
       // Find the end of the last import declaration
@@ -1082,14 +1128,28 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       continue;
     }
 
-    // 2. Collect imports for parent rewriting (need to re-parse for the import map)
-    const { program } = parseSync(relPath, repairedCode, { experimentalRawTransfer: true } as any);
+    // 2. Collect imports for parent rewriting (reuse pre-parsed program when available)
+    const program = repairResult.program ?? parseSync(relPath, repairedCode, { experimentalRawTransfer: true } as any).program;
     const originalImports = collectImports(program);
 
     // Build importedNames set for capture analysis (excludes from captures)
     const importedNames = new Set<string>();
     for (const [localName] of originalImports) {
       importedNames.add(localName);
+    }
+
+    // Pre-compute the tightest enclosing extraction for each extraction (O(N²) done once).
+    // This replaces 6+ inline O(N²) loops that each searched for the enclosing extraction.
+    const enclosingExtMap = new Map<string, typeof extractions[0]>();
+    for (const ext of extractions) {
+      let best: typeof extractions[0] | null = null;
+      for (const other of extractions) {
+        if (other.symbolName === ext.symbolName) continue;
+        if (ext.callStart >= other.argStart && ext.callEnd <= other.argEnd) {
+          if (!best || (other.argStart >= best.argStart && other.argEnd <= best.argEnd)) best = other;
+        }
+      }
+      if (best) enclosingExtMap.set(ext.symbolName, best);
     }
 
     // 2a. Run capture analysis for each extraction
@@ -1100,11 +1160,13 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // scope identifiers from each body (needed for nested capture analysis)
     const closureNodes = new Map<string, any>(); // symbolName -> closureNode
     const bodyScopeIds = new Map<string, Set<string>>(); // symbolName -> scope ids from body
+    const bodyPrograms = new Map<string, any>(); // symbolName -> parsed program (for reuse)
 
     for (const extraction of extractions) {
       try {
         const wrappedBody = `(${extraction.bodyText})`;
-        const bodyParse = parseSync('segment.tsx', wrappedBody);
+        const bodyParse = parseSync('segment.tsx', wrappedBody, { experimentalRawTransfer: true } as any);
+        bodyPrograms.set(extraction.symbolName, bodyParse.program);
         const exprStmt = bodyParse.program.body[0];
         let closureNode =
           exprStmt?.type === 'ExpressionStatement' ? exprStmt.expression : null;
@@ -1132,17 +1194,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       const closureNode = closureNodes.get(extraction.symbolName);
       if (!closureNode) continue;
 
-      // Find enclosing extraction (if nested) using range containment
-      let enclosingExt: typeof extractions[0] | null = null;
-      for (const other of extractions) {
-        if (other.symbolName === extraction.symbolName) continue;
-        if (extraction.callStart >= other.argStart && extraction.callEnd <= other.argEnd) {
-          // Pick the tightest enclosing extraction
-          if (!enclosingExt || (other.argStart >= enclosingExt.argStart && other.argEnd <= enclosingExt.argEnd)) {
-            enclosingExt = other;
-          }
-        }
-      }
+      // Find enclosing extraction (if nested) using pre-computed map
+      const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
 
       // Build parent scope identifiers
       let parentScopeIds: Set<string>;
@@ -1182,13 +1235,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // These identifiers are not serializable and must not appear in captureNames.
       if (extraction.captureNames.length > 0) {
         const classifyScope = enclosingExt
-          ? (() => {
-              try {
-                const wrapped = `(${enclosingExt.bodyText})`;
-                const parsed = parseSync('segment.tsx', wrapped);
-                return parsed.program;
-              } catch { return program; }
-            })()
+          ? (bodyPrograms.get(enclosingExt.symbolName) ?? program)
           : program;
         extraction.captureNames = extraction.captureNames.filter((name) => {
           const declType = classifyDeclarationType(classifyScope, name);
@@ -1217,16 +1264,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     for (const extraction of extractions) {
       if (extraction.ctxKind !== 'eventHandler') continue;
       if (extraction.isInlinedQrl || extraction.captureNames.length === 0) continue;
-      // Find enclosing extraction using position containment
-      let enclosingExt: typeof extractions[0] | null = null;
-      for (const other of extractions) {
-        if (other.symbolName === extraction.symbolName) continue;
-        if (extraction.callStart >= other.argStart && extraction.callEnd <= other.argEnd) {
-          if (!enclosingExt || (other.argStart >= enclosingExt.argStart && other.argEnd <= enclosingExt.argEnd)) {
-            enclosingExt = other;
-          }
-        }
-      }
+      // Find enclosing extraction using pre-computed map
+      const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
       if (!enclosingExt) continue;
       const constValues = resolveConstLiterals(enclosingExt.bodyText, extraction.captureNames);
       if (constValues.size > 0) {
@@ -1278,6 +1317,69 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             loopStack.pop();
           }
         },
+      });
+
+      // Pre-collect all function scope entries and for-loop scope entries from a SINGLE AST walk.
+      // Each entry records the node's range and its param/body-decl bindings with positions.
+      // Per-extraction filtering then uses these cached entries instead of re-walking the AST.
+      interface ScopeEntry {
+        type: 'function' | 'for-loop';
+        start: number;
+        end: number;
+        bindings: Array<{ name: string; pos: number }>;
+      }
+      const allScopeEntries: ScopeEntry[] = [];
+
+      walk(program, {
+        enter(node: any) {
+          if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') &&
+              node.start !== undefined && node.end !== undefined) {
+            const bindings: Array<{ name: string; pos: number }> = [];
+            for (const param of node.params ?? []) {
+              const names = new Set<string>();
+              collectBindingNamesFromNode(param, names);
+              for (const n of names) {
+                bindings.push({ name: n, pos: param.start ?? 0 });
+              }
+            }
+            if (node.body?.type === 'BlockStatement') {
+              for (const stmt of node.body.body ?? []) {
+                if (stmt.type === 'VariableDeclaration') {
+                  for (const decl of stmt.declarations ?? []) {
+                    if (decl.id) {
+                      const names = new Set<string>();
+                      collectBindingNamesFromNode(decl.id, names);
+                      for (const n of names) {
+                        bindings.push({ name: n, pos: decl.start ?? stmt.start ?? 0 });
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            allScopeEntries.push({ type: 'function', start: node.start, end: node.end, bindings });
+          }
+          if ((node.type === 'ForOfStatement' || node.type === 'ForInStatement' || node.type === 'ForStatement') &&
+              node.start !== undefined && node.end !== undefined) {
+            const left = node.left ?? node.init;
+            if (left?.type === 'VariableDeclaration') {
+              const bindings: Array<{ name: string; pos: number }> = [];
+              for (const decl of left.declarations ?? []) {
+                if (decl.id) {
+                  const names = new Set<string>();
+                  collectBindingNamesFromNode(decl.id, names);
+                  for (const n of names) {
+                    bindings.push({ name: n, pos: decl.start ?? left.start ?? 0 });
+                  }
+                }
+              }
+              if (bindings.length > 0) {
+                allScopeEntries.push({ type: 'for-loop', start: node.start, end: node.end, bindings });
+              }
+            }
+          }
+        },
+        leave() {},
       });
 
       for (const extraction of extractions) {
@@ -1387,16 +1489,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         // intermediate function scopes (like .map() callbacks).
         const allScopeIds = new Set<string>();
 
-        // Add enclosing extraction's body scope
-        let enclosingExt: typeof extractions[0] | null = null;
-        for (const other of extractions) {
-          if (other.symbolName === extraction.symbolName) continue;
-          if (extraction.callStart >= other.argStart && extraction.callEnd <= other.argEnd) {
-            if (!enclosingExt || (other.argStart >= enclosingExt.argStart && other.argEnd <= enclosingExt.argEnd)) {
-              enclosingExt = other;
-            }
-          }
-        }
+        // Add enclosing extraction's body scope (using pre-computed map)
+        const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
 
         if (enclosingExt) {
           const parentIds = bodyScopeIds.get(enclosingExt.symbolName);
@@ -1407,69 +1501,20 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           for (const id of moduleScopeIds) allScopeIds.add(id);
         }
 
-        // Also collect identifiers from intermediate scopes between the
-        // enclosing extraction and this extraction. Walk the AST to find
-        // function scopes that contain the extraction.
-        // Track declaration positions for ordering captures by source position.
+        // Collect identifiers from intermediate scopes using pre-collected scope entries.
+        // Filter entries that are within the enclosing range and contain the extraction.
         const declPositions = new Map<string, number>();
         const enclosingStart = enclosingExt ? enclosingExt.argStart : 0;
         const enclosingEnd = enclosingExt ? enclosingExt.argEnd : repairedCode.length;
-        walk(program, {
-          enter(node: any) {
-            if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') &&
-                node.start !== undefined && node.end !== undefined &&
-                node.start >= enclosingStart && node.end <= enclosingEnd &&
-                node.start < extraction.callStart && node.end > extraction.callEnd) {
-              // This function contains our extraction -- collect its params and body declarations
-              for (const param of node.params ?? []) {
-                const names = new Set<string>();
-                collectBindingNamesFromNode(param, names);
-                for (const n of names) {
-                  allScopeIds.add(n);
-                  if (!declPositions.has(n)) declPositions.set(n, param.start ?? 0);
-                }
-              }
-              if (node.body?.type === 'BlockStatement') {
-                for (const stmt of node.body.body ?? []) {
-                  if (stmt.type === 'VariableDeclaration') {
-                    for (const decl of stmt.declarations ?? []) {
-                      if (decl.id) {
-                        const names = new Set<string>();
-                        collectBindingNamesFromNode(decl.id, names);
-                        for (const n of names) {
-                          allScopeIds.add(n);
-                          if (!declPositions.has(n)) declPositions.set(n, decl.start ?? stmt.start ?? 0);
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+        for (const entry of allScopeEntries) {
+          if (entry.start >= enclosingStart && entry.end <= enclosingEnd &&
+              entry.start < extraction.callStart && entry.end > extraction.callEnd) {
+            for (const b of entry.bindings) {
+              allScopeIds.add(b.name);
+              if (!declPositions.has(b.name)) declPositions.set(b.name, b.pos);
             }
-            // Also collect for-of/for-in/for loop iterator variables
-            // that contain the extraction (these are block-scoped to the loop)
-            if ((node.type === 'ForOfStatement' || node.type === 'ForInStatement' || node.type === 'ForStatement') &&
-                node.start !== undefined && node.end !== undefined &&
-                node.start >= enclosingStart && node.end <= enclosingEnd &&
-                node.start < extraction.callStart && node.end > extraction.callEnd) {
-              // For for-of/for-in: the iterator variable is in node.left
-              const left = node.left ?? node.init;
-              if (left?.type === 'VariableDeclaration') {
-                for (const decl of left.declarations ?? []) {
-                  if (decl.id) {
-                    const names = new Set<string>();
-                    collectBindingNamesFromNode(decl.id, names);
-                    for (const n of names) {
-                      allScopeIds.add(n);
-                      if (!declPositions.has(n)) declPositions.set(n, decl.start ?? left.start ?? 0);
-                    }
-                  }
-                }
-              }
-            }
-          },
-          leave() {},
-        });
+          }
+        }
 
         // Copy declaration positions to global map for shared slot allocation
         for (const [name, pos] of declPositions) {
@@ -1597,17 +1642,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       for (const ext of extractions) {
         if (ext.ctxKind !== 'eventHandler') continue;
         if (ext.paramNames.length < 2 || ext.paramNames[0] !== '_' || ext.paramNames[1] !== '_1') continue;
-        // Find the parent extraction
-        let parentName: string | null = null;
-        for (const other of extractions) {
-          if (other.symbolName === ext.symbolName) continue;
-          if (ext.callStart >= other.argStart && ext.callEnd <= other.argEnd) {
-            if (!parentName || (other.argStart >= (extractions.find(e => e.symbolName === parentName)?.argStart ?? 0))) {
-              parentName = other.symbolName;
-            }
-          }
-        }
-        if (!parentName) continue;
+        // Find the parent extraction using pre-computed map
+        const parentExt = enclosingExtMap.get(ext.symbolName);
+        if (!parentExt) continue;
+        const parentName = parentExt.symbolName;
         if (!handlersByParent.has(parentName)) handlersByParent.set(parentName, []);
         handlersByParent.get(parentName)!.push(ext);
       }
@@ -1705,16 +1743,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       for (const ext of extractions) {
         if (ext.ctxKind !== 'eventHandler') continue;
         if (ext.paramNames.length < 2 || ext.paramNames[0] !== '_' || ext.paramNames[1] !== '_1') continue;
-        let parentName: string | null = null;
-        for (const other of extractions) {
-          if (other.symbolName === ext.symbolName) continue;
-          if (ext.callStart >= other.argStart && ext.callEnd <= other.argEnd) {
-            if (!parentName || (other.argStart >= (extractions.find(e => e.symbolName === parentName)?.argStart ?? 0))) {
-              parentName = other.symbolName;
-            }
-          }
-        }
-        if (!parentName) continue;
+        // Find the parent extraction using pre-computed map
+        const parentExt2 = enclosingExtMap.get(ext.symbolName);
+        if (!parentExt2) continue;
+        const parentName = parentExt2.symbolName;
         if (!handlersByParent2.has(parentName)) handlersByParent2.set(parentName, []);
         handlersByParent2.get(parentName)!.push(ext);
       }
@@ -1764,36 +1796,23 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // can't be serialized, so they don't appear in captureNames).
     // We parse each extraction's body independently and get undeclared identifiers,
     // then classify each against the enclosing scope.
+    // Pre-parse enclosing bodies for C02 diagnostic (reuse closureNodes from earlier pre-parse)
+    // Cache: wrappedBody programs keyed by symbolName to avoid re-parsing (reuse bodyPrograms from above)
     for (const extraction of extractions) {
-      // Parse this extraction's body to get undeclared identifiers
+      // Reuse the pre-parsed closureNode from the capture analysis pre-parse loop
+      const closureNode = closureNodes.get(extraction.symbolName);
+      if (!closureNode) continue;
+
       let undeclaredIds: string[];
       try {
-        const wrappedBody = `(${extraction.bodyText})`;
-        const bodyParse = parseSync('segment.tsx', wrappedBody);
-        const exprStmt = bodyParse.program.body[0];
-        let closureNode = exprStmt?.type === 'ExpressionStatement' ? exprStmt.expression : null;
-        while (closureNode?.type === 'ParenthesizedExpression') {
-          closureNode = closureNode.expression;
-        }
-        if (!closureNode || (closureNode.type !== 'ArrowFunctionExpression' && closureNode.type !== 'FunctionExpression')) {
-          continue;
-        }
         undeclaredIds = getUndeclaredIdentifiersInFunction(closureNode);
       } catch {
         continue;
       }
       if (undeclaredIds.length === 0) continue;
 
-      // Find enclosing extraction using range containment (not symbolName)
-      let enclosingExt: typeof extractions[0] | null = null;
-      for (const other of extractions) {
-        if (other === extraction) continue;
-        if (extraction.callStart >= other.argStart && extraction.callEnd <= other.argEnd) {
-          if (!enclosingExt || (other.argStart >= enclosingExt.argStart && other.argEnd <= enclosingExt.argEnd)) {
-            enclosingExt = other;
-          }
-        }
-      }
+      // Find enclosing extraction using pre-computed map
+      const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
 
       // Classify each undeclared identifier against enclosing scope
       // Skip imports and known globals
@@ -1804,9 +1823,14 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         let declType: 'var' | 'fn' | 'class';
         if (enclosingExt) {
           try {
-            const wrappedBody = `(${enclosingExt.bodyText})`;
-            const bodyParse = parseSync('segment.tsx', wrappedBody);
-            declType = classifyDeclarationType(bodyParse.program, refName);
+            // Reuse cached program for enclosing body to avoid re-parsing
+            let encProgram = bodyPrograms.get(enclosingExt.symbolName);
+            if (!encProgram) {
+              const wrappedBody = `(${enclosingExt.bodyText})`;
+              encProgram = parseSync('segment.tsx', wrappedBody, { experimentalRawTransfer: true } as any).program;
+              bodyPrograms.set(enclosingExt.symbolName, encProgram);
+            }
+            declType = classifyDeclarationType(encProgram, refName);
           } catch {
             declType = 'var';
           }
@@ -1823,6 +1847,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // 2b. Run variable migration analysis
     // Exclude inlinedQrl extractions from migration -- their captures are explicit
     const moduleLevelDecls = collectModuleLevelDecls(program, repairedCode);
+    const moduleLevelDeclsByName = new Map<string, typeof moduleLevelDecls[0]>();
+    for (const d of moduleLevelDecls) {
+      moduleLevelDeclsByName.set(d.name, d);
+    }
     const nonInlinedExtractions = extractions.filter((e) => !e.isInlinedQrl);
     const { segmentUsage, rootUsage } = computeSegmentUsage(program, nonInlinedExtractions);
 
@@ -1847,16 +1875,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     for (const ext of extractions) {
       if (ext.ctxKind !== 'eventHandler') continue;
       if (ext.paramNames.length < 3 || ext.paramNames[0] !== '_' || ext.paramNames[1] !== '_1') continue;
-      // Find parent extraction
-      let parentExt: typeof ext | null = null;
-      for (const other of extractions) {
-        if (other.symbolName === ext.symbolName) continue;
-        if (ext.callStart >= other.argStart && ext.callEnd <= other.argEnd) {
-          if (!parentExt || other.argStart >= parentExt.argStart) {
-            parentExt = other;
-          }
-        }
-      }
+      // Find parent extraction using pre-computed map
+      const parentExt = enclosingExtMap.get(ext.symbolName) ?? null;
       if (!parentExt) continue;
       const parentUsage = segmentUsage.get(parentExt.symbolName);
       if (!parentUsage) continue;
@@ -1962,6 +1982,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       }
     }
 
+
     const parentResult = rewriteParentModule(
       repairedCode,
       relPath,
@@ -1985,6 +2006,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       options.transpileTs,
       options.minify,
       qrlOutputExt,
+      program,
     );
 
     // 3b. Apply DCE to parent module (after const replacement turned isServer/isBrowser to true/false)
@@ -2073,6 +2095,12 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // Updated extractions have parent info from rewriteParentModule
     const updatedExtractions = parentResult.extractions;
 
+    // Build O(1) lookup map for extractions by symbolName (avoids O(n) .find() in hot loops)
+    const extBySymbol = new Map<string, typeof updatedExtractions[0]>();
+    for (const ext of updatedExtractions) {
+      extBySymbol.set(ext.symbolName, ext);
+    }
+
     // Sort extractions so children are processed before parents (depth-first, leaves first).
     // This matches SWC's behavior where child segment JSX keys come before parent segment keys.
     // The sort is stable: among siblings at the same depth, original order is preserved.
@@ -2082,7 +2110,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       let current = ext.parent;
       while (current) {
         depth++;
-        const parentExt = updatedExtractions.find((e) => e.symbolName === current);
+        const parentExt = extBySymbol.get(current);
         current = parentExt?.parent ?? null;
       }
       extractionDepth.set(ext.symbolName, depth);
@@ -2252,6 +2280,18 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       }
     }
 
+    // Caches for per-parent-body operations to avoid redundant parseSync calls.
+    // Multiple child segments may share the same parent, so cache results by symbolName.
+    const fieldMapCache = new Map<string, Map<string, string>>();
+    function cachedFieldMap(parentExt: { symbolName: string; bodyText: string }): Map<string, string> {
+      let cached = fieldMapCache.get(parentExt.symbolName);
+      if (cached === undefined) {
+        cached = extractDestructuredFieldMap(parentExt.bodyText);
+        fieldMapCache.set(parentExt.symbolName, cached);
+      }
+      return cached;
+    }
+
     // Pre-pass: resolve const literal captures for child segments (default strategy only).
     // Inline strategy handles this in rewrite-parent.ts via transformSCallBody.
     // This must happen before the main loop so that parent segments see updated
@@ -2266,7 +2306,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           // captureNames were already filtered in the early resolution
         }
         if (ext.captureNames.length === 0) continue;
-        const parentExt = updatedExtractions.find(e => e.symbolName === ext.parent);
+        const parentExt = extBySymbol.get(ext.parent!);
         if (!parentExt) continue;
         const constValues = resolveConstLiterals(parentExt.bodyText, ext.captureNames);
         if (constValues.size > 0) {
@@ -2303,9 +2343,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // For inline strategy: also apply _rawProps consolidation for metadata
       // (the actual body rewriting happens in rewriteParentModule via transformSCallBody)
       if (isInlineStrategy && ext.parent !== null && ext.captureNames.length > 0) {
-        const parentExt = updatedExtractions.find(e => e.symbolName === ext.parent);
+        const parentExt = extBySymbol.get(ext.parent!);
         if (parentExt) {
-          const fieldMap = extractDestructuredFieldMap(parentExt.bodyText);
+          const fieldMap = cachedFieldMap(parentExt);
           if (fieldMap.size > 0) {
             const nonPropsCaptures: string[] = [];
             let hasPropsFields = false;
@@ -2434,9 +2474,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // This matches SWC behavior: inner closures capture _rawProps (whole object)
       // instead of individual destructured fields.
       if (ext.parent !== null && ext.captureNames.length > 0) {
-        const parentExt = updatedExtractions.find(e => e.symbolName === ext.parent);
+        const parentExt = extBySymbol.get(ext.parent!);
         if (parentExt) {
-          const fieldMap = extractDestructuredFieldMap(parentExt.bodyText);
+          const fieldMap = cachedFieldMap(parentExt);
           if (fieldMap.size > 0) {
             // Check which captures are destructured prop fields
             const propsFieldCaptures = new Map<string, string>();
@@ -2484,7 +2524,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         if (segUsage) {
           for (const decision of migrationDecisions) {
             if (decision.action === 'reexport' && segUsage.has(decision.varName)) {
-              const decl = moduleLevelDecls.find(d => d.name === decision.varName);
+              const decl = moduleLevelDeclsByName.get(decision.varName);
               if (decl?.isExported) {
                 // Already exported -- segment will import it directly via importContext path
                 // Don't add to autoImports (which would add _auto_ prefix)
@@ -2501,7 +2541,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         // Moved declarations: from migration decisions where action is "move" and targetSegment matches
         for (const decision of migrationDecisions) {
           if (decision.action === 'move' && decision.targetSegment === migrationKey) {
-            const decl = moduleLevelDecls.find((d) => d.name === decision.varName);
+            const decl = moduleLevelDeclsByName.get(decision.varName);
             if (decl) {
               // Compute import dependencies: find all identifiers in the declaration
               // text that match imports from originalImports
@@ -2671,7 +2711,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         renamedExports: renamedExports.size > 0 ? renamedExports : undefined,
         parentModulePath,
         migrationDecisions: migrationDecisions.map(d => {
-          const decl = moduleLevelDecls.find(ml => ml.name === d.varName);
+          const decl = moduleLevelDeclsByName.get(d.varName);
           return { varName: d.varName, action: d.action, isExported: decl?.isExported ?? false };
         }),
       };
@@ -2694,6 +2734,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             enumValueMap.size > 0 ? enumValueMap : undefined,
           );
       let segmentCode = segmentResult.code;
+
       // Advance the running key counter for subsequent segments
       if (segmentResult.keyCounterValue !== undefined) {
         segmentKeyCounter = segmentResult.keyCounterValue;
@@ -2703,46 +2744,65 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // Use the source extension (.ts/.tsx) so oxc knows the code contains TypeScript,
       // even though the output extension has already been downgraded to .js
       if (!stripped && shouldTranspileTs) {
-        const tsStripOptions: Record<string, any> = { typescript: { onlyRemoveTypeImports: false } };
-        if (!shouldTranspileJsx) {
-          tsStripOptions.jsx = 'preserve';
+        // Fast check: skip oxcTransformSync if segment has no TS-specific syntax.
+        // Many segment bodies extracted from .tsx files are pure JS after extraction.
+        // This avoids a native NAPI call per segment (~0.1ms each, adds up with 191 segments).
+        const hasTsSyntax = /(?::\s*[A-Z_$\w{[(]|<\w+>(?!\s*[),;])|<\w+,|\bas\s+\w|interface\s+\w|type\s+\w|enum\s+\w|\w+\s*!\.|\w+\s*!\[|<[A-Z]\w*(?:\s*,\s*\w+)*\s*>\s*\()/.test(segmentCode);
+        if (hasTsSyntax) {
+          const tsStripOptions: Record<string, any> = { typescript: { onlyRemoveTypeImports: false } };
+          if (!shouldTranspileJsx) {
+            tsStripOptions.jsx = 'preserve';
+          }
+          const sourceExt = sourceExtensions.get(ext.symbolName) ?? ext.extension;
+          const tsStripped = oxcTransformSync(ext.canonicalFilename + sourceExt, segmentCode, tsStripOptions);
+          if (tsStripped.code) {
+            segmentCode = tsStripped.code;
+            // oxc-transform normalizes /*#__PURE__*/ to /* @__PURE__ */ but the Rust optimizer
+            // uses the compact form. Convert back to match SWC output.
+            segmentCode = segmentCode.replace(/\/\* @__PURE__ \*\//g, '/*#__PURE__*/');
+          }
         }
-        const sourceExt = sourceExtensions.get(ext.symbolName) ?? ext.extension;
-        const tsStripped = oxcTransformSync(ext.canonicalFilename + sourceExt, segmentCode, tsStripOptions);
-        if (tsStripped.code) {
-          segmentCode = tsStripped.code;
-          // oxc-transform normalizes /*#__PURE__*/ to /* @__PURE__ */ but the Rust optimizer
-          // uses the compact form. Convert back to match SWC output.
-          segmentCode = segmentCode.replace(/\/\* @__PURE__ \*\//g, '/*#__PURE__*/');
-        }
+
       }
 
       // Apply isServer/isBrowser const replacement to segment bodies
-      if (!stripped && options.isServer !== undefined) {
+      // Fast check: only invoke the expensive parseSync+walk when the segment
+      // actually imports from a Qwik package that provides isServer/isBrowser.
+      if (!stripped && options.isServer !== undefined &&
+          (segmentCode.includes('@qwik.dev/core') || segmentCode.includes('@builder.io/qwik'))) {
+
         segmentCode = applySegmentConstReplacement(segmentCode, ext.canonicalFilename + ext.extension, options.isServer);
+
       }
 
       // Apply dead code elimination (handles if(false), if(true), nested braces)
-      if (!stripped) {
+      // Fast check: skip when there are no if(true/false) or boolean-logic patterns
+      if (!stripped && /\b(?:if\s*\(\s*(?:true|false|!true|!false)\b|true\s*&&|false\s*\|\||false\s*&&)/.test(segmentCode)) {
+
         segmentCode = applySegmentDCE(segmentCode);
       }
 
       // Apply side-effect simplification (unused variable bindings)
+      // Fast check: only parse if there are non-export const declarations in the body.
       if (!stripped) {
-        segmentCode = applySegmentSideEffectSimplification(segmentCode, ext.canonicalFilename + ext.extension);
+        const exportIdx = segmentCode.indexOf('export const ');
+        const afterExportLine = exportIdx >= 0 ? segmentCode.indexOf('\n', exportIdx) : -1;
+        const hasInnerConst = afterExportLine >= 0 && segmentCode.indexOf('const ', afterExportLine) >= 0;
+        if (hasInnerConst) {
+  
+          segmentCode = applySegmentSideEffectSimplification(segmentCode, ext.canonicalFilename + ext.extension);
+        }
       }
 
       // Inject _useHmr() call for component$ segments in HMR mode.
-      // SWC injects _useHmr("filePath") at the start of component segment bodies
-      // only in EmitMode::Hmr (not Dev). This enables hot module replacement.
       if (!stripped && emitMode === 'hmr' && devFile &&
           (ext.ctxName === 'component$' || ext.ctxName === 'componentQrl' || ext.ctxName === 'component')) {
         segmentCode = injectUseHmr(segmentCode, devFile);
       }
 
-      // Clean up unused imports in segment code (after dead code elimination and
-      // body rewriting may have removed references to original identifiers)
-      if (!stripped) {
+      // Clean up unused imports in segment code
+      if (!stripped && segmentCode.includes('\nimport ')) {
+
         segmentCode = removeUnusedImports(segmentCode, ext.canonicalFilename + ext.extension);
       }
 
@@ -2753,7 +2813,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         // Walk up parent chain to find nearest component extraction
         let current = ext.parent;
         while (current) {
-          const parentExt = updatedExtractions.find((e) => e.symbolName === current);
+          const parentExt = extBySymbol.get(current!);
           if (parentExt && parentExt.ctxName === 'component') {
             parentComponentSymbol = parentExt.symbolName;
             break;

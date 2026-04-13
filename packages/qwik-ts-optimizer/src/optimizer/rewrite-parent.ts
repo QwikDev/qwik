@@ -1740,9 +1740,10 @@ export function rewriteParentModule(
   transpileTs?: boolean,
   minify?: string,
   outputExtension?: string,
+  existingProgram?: any,
 ): ParentRewriteResult {
   const s = new MagicString(source);
-  const { program } = parseSync(relPath, source, { experimentalRawTransfer: true } as any);
+  const program = existingProgram ?? parseSync(relPath, source, { experimentalRawTransfer: true } as any).program;
 
   // Collect all callee names that were extracted (for removing $ imports)
   const extractedCalleeNames = new Set<string>();

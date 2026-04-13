@@ -25,30 +25,30 @@ import { parseSync } from 'oxc-parser';
  * @param filename - Filename for parser (determines language mode)
  * @returns Repaired source or original source unchanged
  */
-export function repairInput(source: string, filename: string): string {
+export function repairInput(source: string, filename: string): { source: string; program?: any } {
   const initial = parseSync(filename, source, { experimentalRawTransfer: true } as any);
   if (initial.program.body.length > 0) {
-    // Parses fine -- no repair needed
-    return source;
+    // Parses fine -- no repair needed; return the parsed program to avoid re-parsing
+    return { source, program: initial.program };
   }
 
   if (!initial.errors || initial.errors.length === 0) {
     // Empty body but no errors -- unusual, return unchanged
-    return source;
+    return { source };
   }
 
   // Try repair strategies in order. Stop at first success.
 
   // Strategy A: Remove unmatched closing parens
   const repairedA = tryRemoveUnmatchedParens(source, filename);
-  if (repairedA !== null) return repairedA;
+  if (repairedA !== null) return { source: repairedA };
 
   // Strategy B: Wrap JSX text containing arrow syntax in expression containers
   const repairedB = tryWrapJsxTextArrows(source, filename);
-  if (repairedB !== null) return repairedB;
+  if (repairedB !== null) return { source: repairedB };
 
   // No repair worked -- return original
-  return source;
+  return { source };
 }
 
 /**

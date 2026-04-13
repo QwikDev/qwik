@@ -1524,6 +1524,88 @@ function transformSCallBody(
         bodyImportedNames.add(varName);
       }
 
+      // Build qpOverrides and qrlsWithCaptures from nested event handler extractions
+      // that have promoted captures (paramNames with _, _1 padding).
+      // This enables q:p/q:ps injection on JSX elements with event handler QRLs.
+      let bodyQpOverrides: Map<number, string[]> | undefined;
+      let bodyQrlsWithCaptures: Set<string> | undefined;
+      {
+        // Build a map from QRL variable name -> promoted capture param names
+        const qrlParamMap = new Map<string, string[]>();
+        for (const child of nested) {
+          if (child.ctxKind !== 'eventHandler') continue;
+          if (child.paramNames.length < 2 || child.paramNames[0] !== '_' || child.paramNames[1] !== '_1') continue;
+          // Extract actual capture params (skip _, _1 padding and _N gap placeholders)
+          const captureParams: string[] = [];
+          for (let pi = 2; pi < child.paramNames.length; pi++) {
+            const p = child.paramNames[pi];
+            if (/^_\d+$/.test(p) || p === '_') continue;
+            captureParams.push(p);
+          }
+          if (captureParams.length === 0) continue;
+          const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
+          qrlParamMap.set(childVarName, captureParams);
+          // Also map the symbol name itself (used when .w() hoisting creates a const)
+          qrlParamMap.set(child.symbolName, captureParams);
+        }
+
+        if (qrlParamMap.size > 0) {
+          bodyQpOverrides = new Map();
+          bodyQrlsWithCaptures = new Set();
+          // Walk the parsed body AST to find JSX elements with event handler attributes
+          function walkAstForQp(node: any): void {
+            if (!node || typeof node !== 'object') return;
+            if (Array.isArray(node)) { node.forEach(walkAstForQp); return; }
+            if (node.type === 'JSXElement' && node.openingElement) {
+              const attrs = node.openingElement.attributes || [];
+              const elementParams: string[] = [];
+              const seen = new Set<string>();
+              for (const attr of attrs) {
+                if (attr.type === 'JSXAttribute') {
+                  let attrName: string | null = null;
+                  if (attr.name?.type === 'JSXIdentifier') {
+                    attrName = attr.name.name;
+                  } else if (attr.name?.type === 'JSXNamespacedName') {
+                    attrName = `${attr.name.namespace?.name}:${attr.name.name?.name}`;
+                  }
+                  const isEventAttr = attrName && (
+                    attrName.endsWith('$') ||
+                    attrName.startsWith('q-e:') || attrName.startsWith('q-ep:') ||
+                    attrName.startsWith('q-dp:') || attrName.startsWith('q-wp:') ||
+                    attrName.startsWith('q-d:') || attrName.startsWith('q-w:')
+                  );
+                  if (isEventAttr) {
+                    if (attr.value?.type === 'JSXExpressionContainer' && attr.value.expression?.type === 'Identifier') {
+                      const qrlName = attr.value.expression.name;
+                      const params = qrlParamMap.get(qrlName);
+                      if (params) {
+                        bodyQrlsWithCaptures!.add(qrlName);
+                        for (const p of params) {
+                          if (!seen.has(p)) { seen.add(p); elementParams.push(p); }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              if (elementParams.length > 0) {
+                bodyQpOverrides!.set(node.start, elementParams);
+              }
+            }
+            for (const key of Object.keys(node)) {
+              if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+              walkAstForQp(node[key]);
+            }
+          }
+          walkAstForQp(parseResult.program);
+          // If no overrides were found, clear the maps
+          if (bodyQpOverrides.size === 0) {
+            bodyQpOverrides = undefined;
+            bodyQrlsWithCaptures = undefined;
+          }
+        }
+      }
+
       // Run JSX transform on the wrapped body
       const bodyJsxResult = transformAllJsx(
         wrappedSource,
@@ -1534,8 +1616,8 @@ function transformSCallBody(
         jsxBodyOptions.devOptions,
         jsxBodyOptions.keyCounterStart,
         true, // enableSignals
-        undefined, // qpOverrides
-        undefined, // qrlsWithCaptures
+        bodyQpOverrides, // qpOverrides for q:p/q:ps injection
+        bodyQrlsWithCaptures, // qrlsWithCaptures for var/const prop classification
         undefined, // paramNames
         jsxBodyOptions.relPath, // for key prefix derivation
         sharedSignalHoister, // shared hoister for _hf counter continuity

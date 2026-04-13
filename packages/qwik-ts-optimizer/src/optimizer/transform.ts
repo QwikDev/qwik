@@ -1297,6 +1297,73 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           continue;
         }
 
+        // Workaround: oxc-walker's getUndeclaredIdentifiersInFunction does not report
+        // for-statement init variables (e.g., `i` in `for(let i=0;...)`) or for-in
+        // left variables (e.g., `key` in `for(const key in obj)`) as undeclared,
+        // even though they're not declared within the handler function itself.
+        // For-of variables ARE reported. To handle the missing cases, check if any
+        // enclosing loop's iterVars are referenced in the handler body text and add
+        // them to undeclaredIds if missing.
+        //
+        // For while/do-while loops (which have empty iterVars), also scan for
+        // variables declared in intermediate function scopes that contain both
+        // the loop and the extraction. These variables (e.g., `let i = 0` before
+        // `while(i < n)`) need to be treated as loop-local for q:p delivery.
+        {
+          const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
+          if (enclosingLoops && enclosingLoops.length > 0) {
+            const bodyText = extraction.bodyText;
+            const undeclaredSet = new Set(undeclaredIds);
+            for (const loop of enclosingLoops) {
+              // Add explicit iterVars that oxc-walker missed
+              for (const iterVar of loop.iterVars) {
+                if (!undeclaredSet.has(iterVar)) {
+                  const re = new RegExp('\\b' + iterVar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+                  if (re.test(bodyText)) {
+                    undeclaredIds.push(iterVar);
+                    undeclaredSet.add(iterVar);
+                  }
+                }
+              }
+              // For while/do-while with empty iterVars: scan intermediate function
+              // scopes for let/var declarations that are referenced in the handler body.
+              // These are potential loop counter variables that oxc-walker considers
+              // "declared" (in the parent function scope) but need q:p delivery.
+              if ((loop.type === 'while' || loop.type === 'do-while') && loop.iterVars.length === 0) {
+                // Walk AST to find function declarations/expressions containing the loop
+                // and collect their body-level let/var declarations
+                walk(program, {
+                  enter(node: any) {
+                    if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') &&
+                        node.start !== undefined && node.end !== undefined &&
+                        node.start < loop.loopNode.start && node.end > loop.loopNode.end &&
+                        node.start < extraction.callStart && node.end > extraction.callEnd) {
+                      // This function contains both the loop and the handler
+                      if (node.body?.type === 'BlockStatement') {
+                        for (const stmt of node.body.body ?? []) {
+                          if (stmt.type === 'VariableDeclaration' && (stmt.kind === 'let' || stmt.kind === 'var')) {
+                            for (const decl of stmt.declarations ?? []) {
+                              if (decl.id?.type === 'Identifier' && !undeclaredSet.has(decl.id.name)) {
+                                const varName = decl.id.name;
+                                const re = new RegExp('\\b' + varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+                                if (re.test(bodyText)) {
+                                  undeclaredIds.push(varName);
+                                  undeclaredSet.add(varName);
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  leave() {},
+                });
+              }
+            }
+          }
+        }
+
         // Even with no captures, event handlers in a loop context need (_, _1) padding
         // for the q:p delivery mechanism. Check loop context before skipping.
         // Exception: component event handlers (onClick$ on <MyComponent/>) are just props,
@@ -1348,7 +1415,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         const enclosingEnd = enclosingExt ? enclosingExt.argEnd : repairedCode.length;
         walk(program, {
           enter(node: any) {
-            if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression') &&
+            if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') &&
                 node.start !== undefined && node.end !== undefined &&
                 node.start >= enclosingStart && node.end <= enclosingEnd &&
                 node.start < extraction.callStart && node.end > extraction.callEnd) {
@@ -1464,6 +1531,40 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             },
             leave() {},
           });
+
+          // 3. For while/do-while loops: also include let/var declarations from
+          //    the containing function body that precede the loop. These are
+          //    potential loop counter variables (e.g., `let i = 0` before `while(i < n)`).
+          //    Only include variables that are referenced in the handler body text.
+          if ((immediateLoop.type === 'while' || immediateLoop.type === 'do-while') &&
+              immediateLoop.iterVars.length === 0) {
+            const handlerBody = extraction.bodyText;
+            walk(program, {
+              enter(node: any) {
+                if ((node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') &&
+                    node.start !== undefined && node.end !== undefined &&
+                    node.start < immediateLoop.loopNode.start && node.end > immediateLoop.loopNode.end &&
+                    node.start < extraction.callStart && node.end > extraction.callEnd &&
+                    node.body?.type === 'BlockStatement') {
+                  for (const stmt of node.body.body ?? []) {
+                    if (stmt.type === 'VariableDeclaration' && (stmt.kind === 'let' || stmt.kind === 'var') &&
+                        stmt.start !== undefined && stmt.start < immediateLoop.loopNode.start) {
+                      for (const decl of stmt.declarations ?? []) {
+                        if (decl.id?.type === 'Identifier') {
+                          const varName = decl.id.name;
+                          const re = new RegExp('\\b' + varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+                          if (re.test(handlerBody)) {
+                            loopLocalSet.add(varName);
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              leave() {},
+            });
+          }
 
           // Partition captures
           const loopLocalVars: string[] = [];

@@ -81,7 +81,7 @@ When adding new parameters to signal constructors:
       options?.container || null,
       qrl as AsyncQRL<T>,
       getComputedSignalFlags(options?.serializationStrategy || 'never'),
-      (options as any)?.interval || 0  // Extract custom option here
+      (options as any)?.expires || 0  // Extract custom option here
     );
   };
   ```
@@ -111,11 +111,11 @@ When modifying AsyncSignalImpl:
 - **Pattern**: Always store configuration on instance, only execute browser-specific code when needed
 
   ```typescript
-  // Store poll interval always (for SSR hydration)
-  this.interval = interval;
+  // Store poll expiration always (for SSR hydration)
+  this.expires = expires;
 
   // But only schedule timeouts on browser
-  if (isBrowser && this.$interval$ > 0 && this.$effects$?.size) {
+  if (isBrowser && this.$expires$ > 0 && this.$effects$?.size) {
     this.$pollTimeoutId$ = setTimeout(...);
   }
   ```
@@ -131,7 +131,7 @@ const signal = await retryOnPromise(() =>
     $<() => Promise<number>>(async () => {
       return 42;
     }),
-    { interval: 50 } as any
+    { expires: 50 } as any
   )
 );
 ```
@@ -152,7 +152,7 @@ it('description', async () => {
         $<() => Promise<number>>(async () => {
           return 42;
         }),
-        { interval: 50 } as any
+        { expires: 50 } as any
       )
     );
 
@@ -162,7 +162,7 @@ it('description', async () => {
     });
 
     // Verify internal state (use as any for private members)
-    expect((signal as any).$interval$).toBe(50);
+    expect((signal as any).$expires$).toBe(50);
   });
 });
 ```
@@ -199,22 +199,22 @@ if (isFirstComputation) {
 
 ```typescript
 // Only poll when there are active subscribers
-if (isBrowser && this.$interval$ > 0 && this.$effects$?.size) {
+if (isBrowser && this.$expires$ > 0 && this.$effects$?.size) {
   // Schedule poll
 }
 ```
 
 **Implication**: Polling automatically stops when subscribers drop to zero—no explicit cleanup needed for that case.
 
-### Lesson 2b: Use the `interval` Accessor for Poll Updates
+### Lesson 2b: Use the `expires` Accessor for Poll Updates
 
-**Context**: `AsyncSignalImpl` exposes a public `interval` property that clears/reset polling and re-schedules immediately when there are consumers.
+**Context**: `AsyncSignalImpl` exposes a public `expires` property that clears/reset polling and re-schedules immediately when there are consumers.
 
 **Pattern**:
 
 ```typescript
 // Clears any existing timeout, updates value, and schedules only if there are effects
-signal.interval = 100;
+signal.expires = 100;
 ```
 
 **Implication**: Use the setter during hydration (`inflate`) or construction to ensure polling starts as soon as consumers are present.
@@ -360,7 +360,7 @@ const promise = untrackedValue
   });
 ```
 
-**Implication**: Errors don't stop polling—polls continue on the configured interval.
+**Implication**: Errors don't stop polling—polls continue on the configured expiration.
 
 ### Lesson 6: Signal Props Naming Convention
 
@@ -548,7 +548,7 @@ expect(ref.cleanupCalls).toBe(1);
 const eagerCleanup = value instanceof AsyncSignalImpl && value.$eagerCleanup$ ? true : undefined;
 // ...
 if (isAsync) {
-  out.push(interval);     // position 7
+  out.push(expires);     // position 7
   out.push(concurrency);  // position 8
   out.push(timeout);      // position 9
   out.push(eagerCleanup); // position 10
@@ -563,7 +563,7 @@ const d = data as [
   Array<...>,
   Error,
   unknown?,  // value
-  number?,   // position 7 - interval
+  number?,   // position 7 - expires
   number?,   // position 8 - concurrency
   number?,   // position 9 - timeout
   boolean?,  // position 10 - eagerCleanup

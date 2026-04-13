@@ -40,8 +40,7 @@ export const Child = component$(() => {
 		</div>
 	);
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -52,9 +51,6 @@ const q_Parent_component_0TaiDayHrlo = /* @__PURE__ */ qrl(() => import("./test.
 export const Parent = /* @__PURE__ */ componentQrl(q_Parent_component_0TaiDayHrlo);
 export const Child = /* @__PURE__ */ componentQrl(q_Child_component_9GyF01GDKqw);
 
-
-
-Some("")
 ============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js (ENTRY POINT)==
 
 import mongo from "mongodb";
@@ -67,59 +63,10 @@ export const Parent_component_useTask_gDH1EtUWqBU = async () => {
 	redis.set(state.text);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Parent_component_useTask_gDH1EtUWqBU",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_useTask",
-  "hash": "gDH1EtUWqBU",
-  "canonicalFilename": "test.tsx_Parent_component_useTask_gDH1EtUWqBU",
-  "path": "",
-  "extension": ".js",
-  "parent": "Parent_component_0TaiDayHrlo",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": true,
-  "loc": [
-    13,
-    11
-  ],
-  "captureNames": [
-    "state"
-  ]
-}
-*/
 ============================= test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA.js (ENTRY POINT)==
 
 export const Parent_component_div_q_e_click_zM9okM0TYrA = () => console.log("parent");
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Parent_component_div_q_e_click_zM9okM0TYrA",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_div_q_e_click",
-  "hash": "zM9okM0TYrA",
-  "canonicalFilename": "test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA",
-  "path": "",
-  "extension": ".js",
-  "parent": "Parent_component_0TaiDayHrlo",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    19,
-    18
-  ]
-}
-*/
 ============================= test.tsx_Child_component_useTask_Oh4n7ZeqJkU.js (ENTRY POINT)==
 
 import mongo from "mongodb";
@@ -130,60 +77,11 @@ export const Child_component_useTask_Oh4n7ZeqJkU = async () => {
 	state.text = await mongo.users();
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Child_component_useTask_Oh4n7ZeqJkU",
-  "entry": null,
-  "displayName": "test.tsx_Child_component_useTask",
-  "hash": "Oh4n7ZeqJkU",
-  "canonicalFilename": "test.tsx_Child_component_useTask_Oh4n7ZeqJkU",
-  "path": "",
-  "extension": ".js",
-  "parent": "Child_component_9GyF01GDKqw",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": true,
-  "loc": [
-    31,
-    11
-  ],
-  "captureNames": [
-    "state"
-  ]
-}
-*/
 ============================= test.tsx_Child_component_div_q_e_click_cROa4sult1s.js (ENTRY POINT)==
 
 export const Child_component_div_q_e_click_cROa4sult1s = () => console.log("child");
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Child_component_div_q_e_click_cROa4sult1s",
-  "entry": null,
-  "displayName": "test.tsx_Child_component_div_q_e_click",
-  "hash": "cROa4sult1s",
-  "canonicalFilename": "test.tsx_Child_component_div_q_e_click_cROa4sult1s",
-  "path": "",
-  "extension": ".js",
-  "parent": "Child_component_9GyF01GDKqw",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    36,
-    18
-  ]
-}
-*/
-============================= test.tsx_Parent_component_0TaiDayHrlo.ts (ENTRY POINT)==
+============================= test.tsx_Parent_component_0TaiDayHrlo.js (ENTRY POINT)==
 
 import { useStore } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
@@ -201,30 +99,7 @@ export const Parent_component_0TaiDayHrlo = () => {
 	return /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": q_Parent_component_div_q_e_click_zM9okM0TYrA }, _wrapProp(state, "text"), 3, "u6_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Parent_component_0TaiDayHrlo",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component",
-  "hash": "0TaiDayHrlo",
-  "canonicalFilename": "test.tsx_Parent_component_0TaiDayHrlo",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    7,
-    34
-  ]
-}
-*/
-============================= test.tsx_Child_component_9GyF01GDKqw.ts (ENTRY POINT)==
+============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
 
 import { useStore } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
@@ -242,29 +117,6 @@ export const Child_component_9GyF01GDKqw = () => {
 	return /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": q_Child_component_div_q_e_click_cROa4sult1s }, _wrapProp(state, "text"), 3, "u6_1");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Child_component_9GyF01GDKqw",
-  "entry": null,
-  "displayName": "test.tsx_Child_component",
-  "hash": "9GyF01GDKqw",
-  "canonicalFilename": "test.tsx_Child_component_9GyF01GDKqw",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    25,
-    33
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

@@ -13,8 +13,7 @@
             />
           );
 		};
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
@@ -32,43 +31,12 @@ export default (props) => {
 	} }, null, 3, "u6_0");
 };
 
-
-
-Some("")
 ============================= test.tsx_test_div_q_e_click_pFqTss400MA.js (ENTRY POINT)==
 
 export const test_div_q_e_click_pFqTss400MA = (_, _1, data) => {
 	data.selectedOutputDetail = "options";
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_div_q_e_click_pFqTss400MA",
-  "entry": null,
-  "displayName": "test.tsx_test_div_q_e_click",
-  "hash": "pFqTss400MA",
-  "canonicalFilename": "test.tsx_test_div_q_e_click_pFqTss400MA",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    8,
-    25
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "data"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

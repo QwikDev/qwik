@@ -42,13 +42,13 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
 		<div class={count}>{count}</div>
 	);
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
+import { _restProps } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
@@ -66,10 +66,10 @@ const q_NoWorks3_component_useTask_3cQGU0s1VwU = /* @__PURE__ */ _noopQrl("NoWor
 const q_Works_component_t45qL4vNGv0 = /* @__PURE__ */ _noopQrl("Works_component_t45qL4vNGv0");
 const q_Works_component_useTask_pjo5U5Ikll0 = /* @__PURE__ */ _noopQrl("Works_component_useTask_pjo5U5Ikll0");
 //
-const Works_component_useTask_pjo5U5Ikll0 = (_rawProps) => {
-	const count = _captures[0], hey = _captures[1], hey2 = _captures[2], rest = _captures[3], some = _captures[4];
-	_rawProps.track(() => count);
-	console.log(count, rest, hey, some, hey2);
+const Works_component_useTask_pjo5U5Ikll0 = ({ track }) => {
+	const _rawProps = _captures[0], rest = _captures[1];
+	track(() => _rawProps.count);
+	console.log(_rawProps.count, rest, _rawProps.stuff, _rawProps.some, _rawProps.stuffDefault);
 };
 q_Works_component_useTask_pjo5U5Ikll0.s(Works_component_useTask_pjo5U5Ikll0);
 const Works_component_t45qL4vNGv0 = (_rawProps) => {
@@ -81,13 +81,7 @@ const Works_component_t45qL4vNGv0 = (_rawProps) => {
 		"stuffDefault"
 	]);
 	console.log(_rawProps.stuff, _rawProps.some);
-	useTaskQrl(q_Works_component_useTask_pjo5U5Ikll0.w([
-		_rawProps.count,
-		_rawProps.stuff,
-		_rawProps.stuffDefault,
-		rest,
-		_rawProps.some
-	]));
+	useTaskQrl(q_Works_component_useTask_pjo5U5Ikll0.w([_rawProps, rest]));
 	return /* @__PURE__ */ _jsxSplit("div", {
 		..._getVarProps(rest),
 		..._getConstProps(rest),
@@ -98,224 +92,51 @@ const Works_component_t45qL4vNGv0 = (_rawProps) => {
 };
 q_Works_component_t45qL4vNGv0.s(Works_component_t45qL4vNGv0);
 export const Works = /* @__PURE__ */ componentQrl(q_Works_component_t45qL4vNGv0);
-const NoWorks2_component_useTask_lXiqwbxxjq0 = (_rawProps) => {
-	const count = _captures[0];
-	_rawProps.track(() => count);
-	console.log(count);
+const NoWorks2_component_useTask_lXiqwbxxjq0 = ({ track }) => {
+	const _rawProps = _captures[0];
+	track(() => _rawProps.count);
+	console.log(_rawProps.count);
 };
 q_NoWorks2_component_useTask_lXiqwbxxjq0.s(NoWorks2_component_useTask_lXiqwbxxjq0);
 const NoWorks2_component_JPD9t2HyEKg = (_rawProps) => {
 	console.log(hey);
-	useTaskQrl(q_NoWorks2_component_useTask_lXiqwbxxjq0.w([_rawProps.count]));
+	useTaskQrl(q_NoWorks2_component_useTask_lXiqwbxxjq0.w([_rawProps]));
 	return /* @__PURE__ */ _jsxSorted("div", { class: _wrapProp(_rawProps, "count") }, null, _wrapProp(_rawProps, "count"), 1, "u6_1");
 };
 q_NoWorks2_component_JPD9t2HyEKg.s(NoWorks2_component_JPD9t2HyEKg);
 export const NoWorks2 = /* @__PURE__ */ componentQrl(q_NoWorks2_component_JPD9t2HyEKg);
-const NoWorks3_component_useTask_3cQGU0s1VwU = (_rawProps) => {
-	const count = _captures[0];
-	_rawProps.track(() => count);
-	console.log(count);
+const NoWorks3_component_useTask_3cQGU0s1VwU = ({ track }) => {
+	const _rawProps = _captures[0];
+	track(() => _rawProps.count);
+	console.log(_rawProps.count);
 };
 q_NoWorks3_component_useTask_3cQGU0s1VwU.s(NoWorks3_component_useTask_3cQGU0s1VwU);
 const NoWorks3_component_fc13h5yYn14 = (_rawProps) => {
 	console.log(_rawProps.stuff);
-	useTaskQrl(q_NoWorks3_component_useTask_3cQGU0s1VwU.w([_rawProps.count]));
+	useTaskQrl(q_NoWorks3_component_useTask_3cQGU0s1VwU.w([_rawProps]));
 	return /* @__PURE__ */ _jsxSorted("div", { class: _wrapProp(_rawProps, "count") }, null, _wrapProp(_rawProps, "count"), 1, "u6_2");
 };
 q_NoWorks3_component_fc13h5yYn14.s(NoWorks3_component_fc13h5yYn14);
 export const NoWorks3 = /* @__PURE__ */ componentQrl(q_NoWorks3_component_fc13h5yYn14);
 
-
-
-Some("")
 ============================= test.tsx_Works_component_useTask_pjo5U5Ikll0.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Works_component_useTask_pjo5U5Ikll0",
-  "entry": null,
-  "displayName": "test.tsx_Works_component_useTask",
-  "hash": "pjo5U5Ikll0",
-  "canonicalFilename": "test.tsx_Works_component_useTask_pjo5U5Ikll0",
-  "path": "",
-  "extension": ".js",
-  "parent": "Works_component_t45qL4vNGv0",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": true,
-  "loc": [
-    13,
-    11
-  ],
-  "paramNames": [
-    "track"
-  ],
-  "captureNames": [
-    "count",
-    "hey",
-    "hey2",
-    "rest",
-    "some"
-  ]
-}
-*/
 ============================= test.tsx_NoWorks2_component_useTask_lXiqwbxxjq0.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "NoWorks2_component_useTask_lXiqwbxxjq0",
-  "entry": null,
-  "displayName": "test.tsx_NoWorks2_component_useTask",
-  "hash": "lXiqwbxxjq0",
-  "canonicalFilename": "test.tsx_NoWorks2_component_useTask_lXiqwbxxjq0",
-  "path": "",
-  "extension": ".js",
-  "parent": "NoWorks2_component_JPD9t2HyEKg",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": true,
-  "loc": [
-    24,
-    11
-  ],
-  "paramNames": [
-    "track"
-  ],
-  "captureNames": [
-    "count"
-  ]
-}
-*/
 ============================= test.tsx_NoWorks3_component_useTask_3cQGU0s1VwU.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "NoWorks3_component_useTask_3cQGU0s1VwU",
-  "entry": null,
-  "displayName": "test.tsx_NoWorks3_component_useTask",
-  "hash": "3cQGU0s1VwU",
-  "canonicalFilename": "test.tsx_NoWorks3_component_useTask_3cQGU0s1VwU",
-  "path": "",
-  "extension": ".js",
-  "parent": "NoWorks3_component_fc13h5yYn14",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": true,
-  "loc": [
-    35,
-    11
-  ],
-  "paramNames": [
-    "track"
-  ],
-  "captureNames": [
-    "count"
-  ]
-}
-*/
-============================= test.tsx_Works_component_t45qL4vNGv0.ts (ENTRY POINT)==
+============================= test.tsx_Works_component_t45qL4vNGv0.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Works_component_t45qL4vNGv0",
-  "entry": null,
-  "displayName": "test.tsx_Works_component",
-  "hash": "t45qL4vNGv0",
-  "canonicalFilename": "test.tsx_Works_component_t45qL4vNGv0",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    33
-  ],
-  "paramNames": [
-    "count",
-    "some",
-    "hello",
-    "hey",
-    "hey2",
-    "rest"
-  ]
-}
-*/
-============================= test.tsx_NoWorks2_component_JPD9t2HyEKg.ts (ENTRY POINT)==
+============================= test.tsx_NoWorks2_component_JPD9t2HyEKg.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "NoWorks2_component_JPD9t2HyEKg",
-  "entry": null,
-  "displayName": "test.tsx_NoWorks2_component",
-  "hash": "JPD9t2HyEKg",
-  "canonicalFilename": "test.tsx_NoWorks2_component_JPD9t2HyEKg",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    22,
-    36
-  ],
-  "paramNames": [
-    "count",
-    "hey"
-  ]
-}
-*/
-============================= test.tsx_NoWorks3_component_fc13h5yYn14.ts (ENTRY POINT)==
+============================= test.tsx_NoWorks3_component_fc13h5yYn14.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "NoWorks3_component_fc13h5yYn14",
-  "entry": null,
-  "displayName": "test.tsx_NoWorks3_component",
-  "hash": "fc13h5yYn14",
-  "canonicalFilename": "test.tsx_NoWorks3_component_fc13h5yYn14",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    33,
-    36
-  ],
-  "paramNames": [
-    "count",
-    "stuff"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

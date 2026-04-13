@@ -16,8 +16,7 @@
 				</div>
 			);
 		});
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -26,10 +25,7 @@ const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /* @__PURE__ */ qrl(() => i
 //
 /* @__PURE__ */ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
 
-
-
-Some("")
-============================= test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw.ts (ENTRY POINT)==
+============================= test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 //
@@ -37,29 +33,6 @@ export const PassiveOnlyComponent_component_LuEXQIZuHLw = () => {
 	return /* @__PURE__ */ _jsxSorted("div", null, null, [/* @__PURE__ */ _jsxSorted("button", null, null, "click", 3, null), /* @__PURE__ */ _jsxSorted("button", null, null, "scroll", 3, null)], 3, "u6_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "PassiveOnlyComponent_component_LuEXQIZuHLw",
-  "entry": null,
-  "displayName": "test.tsx_PassiveOnlyComponent_component",
-  "hash": "LuEXQIZuHLw",
-  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    43
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

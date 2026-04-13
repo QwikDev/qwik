@@ -11,8 +11,7 @@ const Foo = component$(() => {
   })
   return <Inner data={data} />
 })
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -21,42 +20,11 @@ const q_Foo_component_HTDRsvUbLiE = /* @__PURE__ */ qrl(() => import("./test.tsx
 //
 /* @__PURE__ */ componentQrl(q_Foo_component_HTDRsvUbLiE);
 
-
-
-Some("")
 ============================= test.tsx_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY.js (ENTRY POINT)==
 
 export const Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY = (_, _1, item) => console.log(item.value.id);
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_Inner_component_div_p_q_e_click",
-  "hash": "7oFgEhSmgvY",
-  "canonicalFilename": "test.tsx_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY",
-  "path": "",
-  "extension": ".js",
-  "parent": "Foo_component_Inner_component_AuJ9mTBx5YA",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    8,
-    54
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "item"
-  ]
-}
-*/
-============================= test.tsx_Foo_component_Inner_component_AuJ9mTBx5YA.ts (ENTRY POINT)==
+============================= test.tsx_Foo_component_Inner_component_AuJ9mTBx5YA.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
@@ -75,33 +43,7 @@ export const Foo_component_Inner_component_AuJ9mTBx5YA = (props) => {
 	}, null, _fnSignal(_hf0, [item], _hf0_str), 4, "u6_0")), 1, "u6_1");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_Inner_component_AuJ9mTBx5YA",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_Inner_component",
-  "hash": "AuJ9mTBx5YA",
-  "canonicalFilename": "test.tsx_Foo_component_Inner_component_AuJ9mTBx5YA",
-  "path": "",
-  "extension": ".ts",
-  "parent": "Foo_component_HTDRsvUbLiE",
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    6,
-    28
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
-============================= test.tsx_Foo_component_HTDRsvUbLiE.ts (ENTRY POINT)==
+============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
 
 import { useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
@@ -116,29 +58,6 @@ export const Foo_component_HTDRsvUbLiE = () => {
 	return /* @__PURE__ */ _jsxSorted(Inner, null, { data }, null, 3, "u6_2");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_HTDRsvUbLiE",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component",
-  "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    4,
-    24
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

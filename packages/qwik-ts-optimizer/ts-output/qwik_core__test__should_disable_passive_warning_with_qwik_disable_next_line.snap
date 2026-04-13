@@ -20,8 +20,7 @@
 				</div>
 			);
 		});
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -30,37 +29,11 @@ const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /* @__PURE__ */ qrl(() => i
 //
 /* @__PURE__ */ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
 
-
-
-Some("")
 ============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA.js (ENTRY POINT)==
 
 export const PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = () => {};
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA",
-  "entry": null,
-  "displayName": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click",
-  "hash": "w9du90RdaGA",
-  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA",
-  "path": "",
-  "extension": ".js",
-  "parent": "PassiveOnlyComponent_component_LuEXQIZuHLw",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    15,
-    59
-  ]
-}
-*/
-============================= test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw.ts (ENTRY POINT)==
+============================= test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -75,29 +48,6 @@ export const PassiveOnlyComponent_component_LuEXQIZuHLw = () => {
 	}, "event=>{event.preventDefault();}") }, null, "click", 2, null), /* @__PURE__ */ _jsxSorted("button", null, { "q-ep:click": q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA }, "click", 3, null)], 1, "u6_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "PassiveOnlyComponent_component_LuEXQIZuHLw",
-  "entry": null,
-  "displayName": "test.tsx_PassiveOnlyComponent_component",
-  "hash": "LuEXQIZuHLw",
-  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    43
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

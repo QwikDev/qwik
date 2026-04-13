@@ -19,8 +19,7 @@ export const Greeter = component$(() => {
 
 	)
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -54,34 +53,9 @@ const s_n7HuG2hhU0Q = () => {
 q_s_n7HuG2hhU0Q.s(s_n7HuG2hhU0Q);
 export const Greeter = /* @__PURE__ */ componentQrl(q_s_n7HuG2hhU0Q);
 
+============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
 
 
-Some("")
-============================= test.tsx_Greeter_component_n7HuG2hhU0Q.ts (ENTRY POINT)==
-
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_n7HuG2hhU0Q",
-  "entry": null,
-  "displayName": "test.tsx_Greeter_component",
-  "hash": "n7HuG2hhU0Q",
-  "canonicalFilename": "test.tsx_Greeter_component_n7HuG2hhU0Q",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    35
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

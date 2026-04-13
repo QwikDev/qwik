@@ -14,16 +14,12 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 	try{}catch(decl18){}
 	try{}catch({decl19}){}
 });
-
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
 //
 
 /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WjUaUQN7Oxg"), "Header_WjUaUQN7Oxg");
-
-
-Some("")
 ============================= test.tsx_Header_WjUaUQN7Oxg.js (ENTRY POINT)==
 
 export const Header_WjUaUQN7Oxg = (decl1, {decl2}, [decl3]) => {
@@ -37,34 +33,6 @@ export const Header_WjUaUQN7Oxg = (decl1, {decl2}, [decl3]) => {
 	try{}catch(decl18){}
 	try{}catch({decl19}){}
 };
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Header_WjUaUQN7Oxg",
-  "entry": null,
-  "displayName": "test.tsx_Header",
-  "hash": "WjUaUQN7Oxg",
-  "canonicalFilename": "test.tsx_Header_WjUaUQN7Oxg",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    4,
-    18
-  ],
-  "paramNames": [
-    "decl1",
-    "decl2",
-    "decl3"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

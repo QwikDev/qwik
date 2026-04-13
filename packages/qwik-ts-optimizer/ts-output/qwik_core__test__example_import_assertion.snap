@@ -8,8 +8,7 @@ import json from "./foo.json" assert { type: "json" };
 export const Greeter = component$(() => {
 	return json;
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -18,9 +17,6 @@ const q_Greeter_component_n7HuG2hhU0Q = /* @__PURE__ */ qrl(() => import("./test
 //
 export const Greeter = /* @__PURE__ */ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
 
-
-
-Some("")
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
 
 import json from "./foo.json" with { type: "json" };
@@ -29,29 +25,6 @@ export const Greeter_component_n7HuG2hhU0Q = () => {
 	return json;
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Greeter_component_n7HuG2hhU0Q",
-  "entry": null,
-  "displayName": "test.tsx_Greeter_component",
-  "hash": "n7HuG2hhU0Q",
-  "canonicalFilename": "test.tsx_Greeter_component_n7HuG2hhU0Q",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    6,
-    35
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

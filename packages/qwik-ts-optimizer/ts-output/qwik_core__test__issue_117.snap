@@ -3,16 +3,12 @@
 
 
 export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
-
 ============================= project/test.tsx ==
 
 //
 
 
 export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
-
-
-Some("")
 == DIAGNOSTICS ==
 
 []

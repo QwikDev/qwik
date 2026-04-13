@@ -4,7 +4,6 @@
 
 import { $, component$ } from '@qwik.dev/core';
 export const sym1 = $((ctx) => console.log("1"));
-
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -13,38 +12,9 @@ const q_sym1_aXUrPXX5Lak = /*#__PURE__*/ qrl(()=>import("./test.tsx_sym1_aXUrPXX
 //
 
 export const sym1 = q_sym1_aXUrPXX5Lak;
-
-
-Some("")
 ============================= test.tsx_sym1_aXUrPXX5Lak.js (ENTRY POINT)==
 
 export const sym1_aXUrPXX5Lak = (ctx) => console.log("1");
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "sym1_aXUrPXX5Lak",
-  "entry": null,
-  "displayName": "test.tsx_sym1",
-  "hash": "aXUrPXX5Lak",
-  "canonicalFilename": "test.tsx_sym1_aXUrPXX5Lak",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    4,
-    23
-  ],
-  "paramNames": [
-    "ctx"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

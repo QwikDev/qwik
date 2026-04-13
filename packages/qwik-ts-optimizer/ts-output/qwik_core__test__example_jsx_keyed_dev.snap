@@ -15,8 +15,7 @@ export const App = component$((props: Stuff) => {
 		</>
 	);
 });
-
-============================= project/index.tsx ==
+============================= project/index.js ==
 
 import { qrlDEV } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -30,10 +29,7 @@ const q_project_App_component_JYvqZCweysc = /* @__PURE__ */ qrlDEV(() => import(
 //
 export const App = /* @__PURE__ */ componentQrl(q_project_App_component_JYvqZCweysc);
 
-
-
-Some("")
-============================= project_App_component_JYvqZCweysc.ts (ENTRY POINT)==
+============================= project_App_component_JYvqZCweysc.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -72,32 +68,6 @@ export const project_App_component_JYvqZCweysc = (props) => {
 	});
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "project/index.tsx",
-  "name": "project_App_component_JYvqZCweysc",
-  "entry": null,
-  "displayName": "project_App_component",
-  "hash": "JYvqZCweysc",
-  "canonicalFilename": "project_App_component_JYvqZCweysc",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    31
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

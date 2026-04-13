@@ -18,8 +18,7 @@ export const App = component$(({count}) => {
 		)
 	});
 })
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -37,10 +36,7 @@ export { I6 as _auto_I6 };
 export { I7 as _auto_I7 };
 export { I8 as _auto_I8 };
 
-
-
-Some("")
-============================= test.tsx_App_component_1_w0t0o3QMovU.ts (ENTRY POINT)==
+============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { I10 } from "./test";
@@ -49,30 +45,7 @@ export const App_component_1_w0t0o3QMovU = () => {
 	return /* @__PURE__ */ _jsxSorted(I10, null, null, null, 3, "u6_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_1_w0t0o3QMovU",
-  "entry": null,
-  "displayName": "test.tsx_App_component_1",
-  "hash": "w0t0o3QMovU",
-  "canonicalFilename": "test.tsx_App_component_1_w0t0o3QMovU",
-  "path": "",
-  "extension": ".ts",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    13,
-    11
-  ]
-}
-*/
-============================= test.tsx_App_component_ckEPmXZlub0.ts (ENTRY POINT)==
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { _auto_I2 as I2 } from "./test";
 import { _auto_I3 as I3 } from "./test";
@@ -93,42 +66,6 @@ export const App_component_ckEPmXZlub0 = (_rawProps) => {
 	return q_App_component_1_w0t0o3QMovU;
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
-  "entry": null,
-  "displayName": "test.tsx_App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    10,
-    31
-  ],
-  "paramNames": [
-    "count"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
-[
-  {
-    "category": "error",
-    "code": "C02",
-    "file": "test.tsx",
-    "message": "Reference to identifier 'I9' can not be used inside a Qrl($) scope because it's a function",
-    "highlights": null,
-    "suggestions": null,
-    "scope": "optimizer"
-  }
-]
+[{"category":"error","code":"C02","file":"test.tsx","message":"Reference to identifier 'I9' can not be used inside a Qrl($) scope because it's a function","highlights":null,"suggestions":null,"scope":"optimizer"}]

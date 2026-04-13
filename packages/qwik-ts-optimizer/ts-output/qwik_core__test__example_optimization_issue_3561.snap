@@ -22,14 +22,12 @@ export const Issue3561 = component$(() => {
 
 	return <p></p>;
 	});
-
-============================= test.tsx ==
+============================= test.jsx ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
 const q_Issue3561_component_hHTw654BZB8 = /* @__PURE__ */ _noopQrl("Issue3561_component_hHTw654BZB8");
-//
 q_Issue3561_component_hHTw654BZB8.s(() => {
 	const props = useStore({ product: { currentVariant: {
 		variantImage: "image",
@@ -42,34 +40,9 @@ q_Issue3561_component_hHTw654BZB8.s(() => {
 });
 export const Issue3561 = /* @__PURE__ */ componentQrl(q_Issue3561_component_hHTw654BZB8);
 
+============================= test.tsx_Issue3561_component_hHTw654BZB8.jsx (ENTRY POINT)==
 
 
-Some("")
-============================= test.tsx_Issue3561_component_hHTw654BZB8.tsx (ENTRY POINT)==
-
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Issue3561_component_hHTw654BZB8",
-  "entry": null,
-  "displayName": "test.tsx_Issue3561_component",
-  "hash": "hHTw654BZB8",
-  "canonicalFilename": "test.tsx_Issue3561_component_hHTw654BZB8",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    37
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

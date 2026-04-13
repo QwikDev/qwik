@@ -12,8 +12,7 @@ export const action = formAction$((data) => {
   } while (i < 3);
   return {};
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { formActionQrl } from "forms";
@@ -23,9 +22,6 @@ const q_action_formAction_dIQV5vh1He4 = /* @__PURE__ */ qrl(() => import("./test
 const x = "module-level";
 export const action = formActionQrl(q_action_formAction_dIQV5vh1He4);
 
-
-
-Some("")
 ============================= test.tsx_action_formAction_dIQV5vh1He4.js (ENTRY POINT)==
 
 export const action_formAction_dIQV5vh1He4 = (data) => {
@@ -37,32 +33,6 @@ export const action_formAction_dIQV5vh1He4 = (data) => {
 	return {};
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "action_formAction_dIQV5vh1He4",
-  "entry": null,
-  "displayName": "test.tsx_action_formAction",
-  "hash": "dIQV5vh1He4",
-  "canonicalFilename": "test.tsx_action_formAction_dIQV5vh1He4",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "formAction$",
-  "captures": false,
-  "loc": [
-    5,
-    35
-  ],
-  "paramNames": [
-    "data"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

@@ -10,7 +10,6 @@ export default component$(() => {
 		</div>
 	);
 });
-
 ============================= src/components/mongo/index.tsx ==
 
 import { _noopQrl } from "@qwik.dev/core";
@@ -18,7 +17,7 @@ import { componentQrl } from "@qwik.dev/core";
 //
 const q_mongo_component_div_q_e_click_jncbxvZVtWY = /*#__PURE__*/ _noopQrl("mongo_component_div_q_e_click_jncbxvZVtWY");
 const q_mongo_component_ouWLj4jA2oI = /*#__PURE__*/ _noopQrl("mongo_component_ouWLj4jA2oI");
-//
+
 q_mongo_component_div_q_e_click_jncbxvZVtWY.s(() => console.log(mongodb));
 q_mongo_component_ouWLj4jA2oI.s(() => {
 	return (
@@ -26,61 +25,13 @@ q_mongo_component_ouWLj4jA2oI.s(() => {
 		</div>
 	);
 });
-
 export default /*#__PURE__*/ componentQrl(q_mongo_component_ouWLj4jA2oI);
-
-
-Some("")
 ============================= mongo_component_div_q_e_click_jncbxvZVtWY.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "src/components/mongo/index.tsx",
-  "name": "mongo_component_div_q_e_click_jncbxvZVtWY",
-  "entry": null,
-  "displayName": "mongo_component_div_q_e_click",
-  "hash": "jncbxvZVtWY",
-  "canonicalFilename": "mongo_component_div_q_e_click_jncbxvZVtWY",
-  "path": "",
-  "extension": ".js",
-  "parent": "mongo_component_ouWLj4jA2oI",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    7,
-    18
-  ]
-}
-*/
 ============================= mongo_component_ouWLj4jA2oI.tsx (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "src/components/mongo/index.tsx",
-  "name": "mongo_component_ouWLj4jA2oI",
-  "entry": null,
-  "displayName": "mongo_component",
-  "hash": "ouWLj4jA2oI",
-  "canonicalFilename": "mongo_component_ouWLj4jA2oI",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    27
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

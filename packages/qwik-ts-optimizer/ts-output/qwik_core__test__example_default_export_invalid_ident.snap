@@ -10,7 +10,6 @@ export default component$(() => {
 		</div>
 	);
 });
-
 ============================= src/components/mongo/404.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -20,35 +19,9 @@ const q__404_component_zRvoWc98eqo = /*#__PURE__*/ qrl(()=>import("./404.tsx__40
 //
 
 export default /*#__PURE__*/ componentQrl(q__404_component_zRvoWc98eqo);
-
-
-Some("")
 ============================= 404.tsx__404_component_div_q_e_click_aMLnLWtkRhc.js (ENTRY POINT)==
 
 export const _404_component_div_q_e_click_aMLnLWtkRhc = () => console.log(mongodb);
-
-
-Some("")
-/*
-{
-  "origin": "src/components/mongo/404.tsx",
-  "name": "_404_component_div_q_e_click_aMLnLWtkRhc",
-  "entry": null,
-  "displayName": "404.tsx__404_component_div_q_e_click",
-  "hash": "aMLnLWtkRhc",
-  "canonicalFilename": "404.tsx__404_component_div_q_e_click_aMLnLWtkRhc",
-  "path": "",
-  "extension": ".js",
-  "parent": "_404_component_zRvoWc98eqo",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    7,
-    18
-  ]
-}
-*/
 ============================= 404.tsx__404_component_zRvoWc98eqo.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
@@ -61,29 +34,6 @@ export const _404_component_zRvoWc98eqo = () => {
 		</div>
 	);
 };
-
-
-Some("")
-/*
-{
-  "origin": "src/components/mongo/404.tsx",
-  "name": "_404_component_zRvoWc98eqo",
-  "entry": null,
-  "displayName": "404.tsx__404_component",
-  "hash": "zRvoWc98eqo",
-  "canonicalFilename": "404.tsx__404_component_zRvoWc98eqo",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    27
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

@@ -26,7 +26,6 @@ export const ButtonArrow = ({text, color}) => {
 		<button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
 	);
 }
-
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -52,9 +51,6 @@ export const ButtonArrow = ({text, color}) => {
 		<button onColor$={color} q-e:click={q_ButtonArrow_button_q_e_click_rEE0GCaea7M}>{text}</button>
 	);
 }
-
-
-Some("")
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
 
 import { ButtonArrow } from "./test";
@@ -68,90 +64,12 @@ export const Foo_component_HTDRsvUbLiE = (props) => {
 		</div>
 	);
 };
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_HTDRsvUbLiE",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component",
-  "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    31
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
 ============================= test.tsx_Button_button_q_e_click_6YaNiKLqRnQ.js (ENTRY POINT)==
 
 export const Button_button_q_e_click_6YaNiKLqRnQ = ()=>console.log(text, color);
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Button_button_q_e_click_6YaNiKLqRnQ",
-  "entry": null,
-  "displayName": "test.tsx_Button_button_q_e_click",
-  "hash": "6YaNiKLqRnQ",
-  "canonicalFilename": "test.tsx_Button_button_q_e_click_6YaNiKLqRnQ",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    18,
-    38
-  ]
-}
-*/
 ============================= test.tsx_ButtonArrow_button_q_e_click_rEE0GCaea7M.js (ENTRY POINT)==
 
 export const ButtonArrow_button_q_e_click_rEE0GCaea7M = (_, _1, color, text)=>console.log(text, color);
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "ButtonArrow_button_q_e_click_rEE0GCaea7M",
-  "entry": null,
-  "displayName": "test.tsx_ButtonArrow_button_q_e_click",
-  "hash": "rEE0GCaea7M",
-  "canonicalFilename": "test.tsx_ButtonArrow_button_q_e_click_rEE0GCaea7M",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    24,
-    38
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "color",
-    "text"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

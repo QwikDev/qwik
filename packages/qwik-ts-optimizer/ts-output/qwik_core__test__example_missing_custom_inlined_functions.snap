@@ -18,9 +18,9 @@ export const App = component$((props) => {
 		<div>{state.count}</div>
 	));
 });
+============================= test.js ==
 
-============================= test.tsx ==
-
+import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useStore, useEffect } from "@qwik.dev/core";
 //
@@ -32,31 +32,9 @@ export const App = component$((props) => {
 	useMemo$(() => {
 		console.log(state.count);
 	});
-	return $(() => /* @__PURE__ */ _jsxSorted("div", null, null, state.count, 1, "u6_0"));
+	return $(() => /* @__PURE__ */ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0"));
 });
 
-
-
-Some("")
 == DIAGNOSTICS ==
 
-[
-  {
-    "category": "error",
-    "code": "C05",
-    "file": "test.tsx",
-    "message": "Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly",
-    "highlights": [
-      {
-        "lo": 241,
-        "hi": 249,
-        "startLine": 12,
-        "startCol": 2,
-        "endLine": 12,
-        "endCol": 10
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  }
-]
+[{"category":"error","code":"C05","file":"test.tsx","message":"Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly","highlights":[{"lo":241,"hi":249,"startLine":12,"startCol":2,"endLine":12,"endCol":10}],"suggestions":null,"scope":"optimizer"}]

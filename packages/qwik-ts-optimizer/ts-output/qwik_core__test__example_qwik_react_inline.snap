@@ -92,8 +92,7 @@ async function renderToString(rootNode, opts) {
 }
 
 export { qwikify$, qwikifyQrl, renderToString };
-
-============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs ==
+============================= ../node_modules/@qwik.dev/react/index.qwik.mjs ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
@@ -103,7 +102,35 @@ import { isBrowser, isServer } from '@qwik.dev/core';
 //
 const q_qwikifyQrl_component_useWatch_x04JC5xeP1U = /*#__PURE__*/ _noopQrl("qwikifyQrl_component_useWatch_x04JC5xeP1U");
 const q_qwikifyQrl_component_zH94hIe0Ick = /*#__PURE__*/ _noopQrl("qwikifyQrl_component_zH94hIe0Ick");
-//
+
+function qwikifyQrl(reactCmpQrl) {
+	return /*#__PURE__*/ componentQrl(q_qwikifyQrl_component_zH94hIe0Ick.w([
+    reactCmpQrl
+]), {
+		tagName: 'qwik-wrap'
+	});
+}
+const filterProps = (props)=>{
+	const obj = {};
+	Object.keys(props).forEach((key)=>{
+		if (!key.startsWith('client:')) obj[key] = props[key];
+	});
+	return obj;
+};
+const qwikify$ = implicit$FirstArg(qwikifyQrl);
+
+async function renderToString(rootNode, opts) {
+	const mod = await import('./server-9ac6caad.js');
+	const result = await mod.renderToString(rootNode, opts);
+	const styles = mod.getGlobalStyleTag(result.html);
+	const finalHtml = styles + result.html;
+	return {
+		...result,
+		html: finalHtml
+	};
+}
+
+export { qwikify$, qwikifyQrl, renderToString };
 q_qwikifyQrl_component_useWatch_x04JC5xeP1U.s(async (track)=>{
 const hostElement = _captures[0], props = _captures[1], reactCmpQrl = _captures[2], store = _captures[3];
 			const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
@@ -166,97 +193,12 @@ const reactCmpQrl = _captures[0];
 			children: /*#__PURE__*/ jsx(SkipRerender, {})
 		});
 	});
-
-function qwikifyQrl(reactCmpQrl) {
-	return /*#__PURE__*/ componentQrl(q_qwikifyQrl_component_zH94hIe0Ick.w([
-    reactCmpQrl
-]), {
-		tagName: 'qwik-wrap'
-	});
-}
-const filterProps = (props)=>{
-	const obj = {};
-	Object.keys(props).forEach((key)=>{
-		if (!key.startsWith('client:')) obj[key] = props[key];
-	});
-	return obj;
-};
-const qwikify$ = implicit$FirstArg(qwikifyQrl);
-
-async function renderToString(rootNode, opts) {
-	const mod = await import('./server-9ac6caad.js');
-	const result = await mod.renderToString(rootNode, opts);
-	const styles = mod.getGlobalStyleTag(result.html);
-	const finalHtml = styles + result.html;
-	return {
-		...result,
-		html: finalHtml
-	};
-}
-
-export { qwikify$, qwikifyQrl, renderToString };
-
-
-Some("")
 ============================= index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U.mjs (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "../node_modules/@qwik.dev/react/index.qwik.mjs",
-  "name": "qwikifyQrl_component_useWatch_x04JC5xeP1U",
-  "entry": null,
-  "displayName": "index.qwik.mjs_qwikifyQrl_component_useWatch",
-  "hash": "x04JC5xeP1U",
-  "canonicalFilename": "index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U",
-  "path": "",
-  "extension": ".mjs",
-  "parent": "qwikifyQrl_component_zH94hIe0Ick",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": true,
-  "loc": [
-    636,
-    1365
-  ],
-  "captureNames": [
-    "hostElement",
-    "props",
-    "reactCmpQrl",
-    "store"
-  ]
-}
-*/
 ============================= index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick.mjs (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "../node_modules/@qwik.dev/react/index.qwik.mjs",
-  "name": "qwikifyQrl_component_zH94hIe0Ick",
-  "entry": null,
-  "displayName": "index.qwik.mjs_qwikifyQrl_component",
-  "hash": "zH94hIe0Ick",
-  "canonicalFilename": "index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick",
-  "path": "",
-  "extension": ".mjs",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": true,
-  "loc": [
-    358,
-    2020
-  ],
-  "captureNames": [
-    "reactCmpQrl"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

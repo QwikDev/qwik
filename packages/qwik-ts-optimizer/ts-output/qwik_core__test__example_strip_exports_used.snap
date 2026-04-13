@@ -20,7 +20,6 @@ export default component$(()=> {
 	})
 	return <div>cmp</div>
 });
-
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -34,9 +33,6 @@ export const onGet = ()=>{
 };
 
 export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
-
-
-Some("")
 ============================= test.tsx_test_component_useResource_4a8wVY7wh38.js (ENTRY POINT)==
 
 import { onGet } from "./test";
@@ -44,29 +40,6 @@ import { onGet } from "./test";
 export const test_component_useResource_4a8wVY7wh38 = () => {
 		return onGet();
 	};
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_useResource_4a8wVY7wh38",
-  "entry": null,
-  "displayName": "test.tsx_test_component_useResource",
-  "hash": "4a8wVY7wh38",
-  "canonicalFilename": "test.tsx_test_component_useResource_4a8wVY7wh38",
-  "path": "",
-  "extension": ".js",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "function",
-  "ctxName": "useResource$",
-  "captures": false,
-  "loc": [
-    16,
-    15
-  ]
-}
-*/
 ============================= test.tsx_test_component_LUXeXe0DQrg.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
@@ -78,29 +51,6 @@ export const test_component_LUXeXe0DQrg = ()=> {
 	useResourceQrl(q_test_component_useResource_4a8wVY7wh38)
 	return <div>cmp</div>
 };
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
-  "entry": null,
-  "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    15,
-    27
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

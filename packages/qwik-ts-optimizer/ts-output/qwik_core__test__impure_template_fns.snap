@@ -22,8 +22,7 @@
 				</>
 			);
 		});
-
-============================= test.tsx ==
+============================= test.ts ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -32,40 +31,9 @@ const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_te
 //
 
 		export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
-
-
-Some("")
 ============================= test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw.js (ENTRY POINT)==
 
 export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = (_, _1, count) => count.value++;
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_Fragment_button_q_e_click_7MTd2pAiliw",
-  "entry": null,
-  "displayName": "test.tsx_test_component_Fragment_button_q_e_click",
-  "hash": "7MTd2pAiliw",
-  "canonicalFilename": "test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw",
-  "path": "",
-  "extension": ".js",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    19,
-    24
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "count"
-  ]
-}
-*/
 ============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
 
 import { useSignal } from "@qwik.dev/core";
@@ -89,29 +57,6 @@ export const test_component_LUXeXe0DQrg = () => {
 				/*#__PURE__*/ _jsxSorted(_Fragment, null, null, [/*#__PURE__*/ _jsxSorted("p", null, null, foo("test"), 1, null), /*#__PURE__*/ _jsxSorted("p", null, null, foo`test`, 1, null), /*#__PURE__*/ _jsxSorted("button", { "q:p": count }, { "q-e:click": q_test_component_Fragment_button_q_e_click_7MTd2pAiliw }, "Count up", 7, null)], 1, "u6_0")
 			);
 		};
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
-  "entry": null,
-  "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    12,
-    29
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

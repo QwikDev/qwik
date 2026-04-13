@@ -11,8 +11,7 @@ export const App = Component((props) => {
 		<div>{state.thing}</div>
 	));
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -21,10 +20,7 @@ const q_App_Component_NuXFTHRjvXE = /* @__PURE__ */ qrl(() => import("./test.tsx
 //
 export const App = /* @__PURE__ */ componentQrl(q_App_Component_NuXFTHRjvXE);
 
-
-
-Some("")
-============================= test.tsx_App_Component_onRender_ANt4My8h6BE.ts (ENTRY POINT)==
+============================= test.tsx_App_Component_onRender_ANt4My8h6BE.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
@@ -35,33 +31,7 @@ export const App_Component_onRender_ANt4My8h6BE = () => {
 	return /* @__PURE__ */ _jsxSorted("div", null, null, _wrapProp(state, "thing"), 3, "u6_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_Component_onRender_ANt4My8h6BE",
-  "entry": null,
-  "displayName": "test.tsx_App_Component_onRender",
-  "hash": "ANt4My8h6BE",
-  "canonicalFilename": "test.tsx_App_Component_onRender_ANt4My8h6BE",
-  "path": "",
-  "extension": ".ts",
-  "parent": "App_Component_NuXFTHRjvXE",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": true,
-  "loc": [
-    8,
-    18
-  ],
-  "captureNames": [
-    "state"
-  ]
-}
-*/
-============================= test.tsx_App_Component_NuXFTHRjvXE.ts (ENTRY POINT)==
+============================= test.tsx_App_Component_NuXFTHRjvXE.js (ENTRY POINT)==
 
 import { useStore } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
@@ -73,32 +43,6 @@ export const App_Component_NuXFTHRjvXE = (props) => {
 	return q_App_Component_onRender_ANt4My8h6BE.w([state]);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_Component_NuXFTHRjvXE",
-  "entry": null,
-  "displayName": "test.tsx_App_Component",
-  "hash": "NuXFTHRjvXE",
-  "canonicalFilename": "test.tsx_App_Component_NuXFTHRjvXE",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    30
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

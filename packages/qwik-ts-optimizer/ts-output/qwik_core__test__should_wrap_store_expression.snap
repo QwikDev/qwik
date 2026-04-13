@@ -23,8 +23,7 @@
 			);
 		});
 		export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -39,10 +38,7 @@ export const PANELS = [
 	"Console"
 ];
 
-
-
-Some("")
-============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { useStore } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
@@ -51,47 +47,19 @@ import { PANELS } from "./test";
 //
 const _hf0 = (p0) => p0.active ? "yes" : "no";
 const _hf0_str = "p0.active?\"yes\":\"no\"";
-const _hf1 = (p0) => ({
-	"too-long-to-wrap": true,
-	"examples-panel-input": p0.active === "Input",
-	"examples-panel-output": p0.active === "Output",
-	"examples-panel-console": p0.active === "Console"
-});
-const _hf1_str = "{\"too-long-to-wrap\":true,\"examples-panel-input\":p0.active===\"Input\",\"examples-panel-output\":p0.active===\"Output\",\"examples-panel-console\":p0.active===\"Console\"}";
 export const test_component_LUXeXe0DQrg = () => {
 	const panelStore = useStore(() => ({
 		active: "Input",
 		list: PANELS
 	}));
-	return /* @__PURE__ */ _jsxSorted("div", null, {
-		stuff: _fnSignal(_hf0, [panelStore], _hf0_str),
-		class: _fnSignal(_hf1, [panelStore], _hf1_str)
-	}, null, 3, "u6_0");
+	return /* @__PURE__ */ _jsxSorted("div", { class: {
+		"too-long-to-wrap": true,
+		"examples-panel-input": panelStore.active === "Input",
+		"examples-panel-output": panelStore.active === "Output",
+		"examples-panel-console": panelStore.active === "Console"
+	} }, { stuff: _fnSignal(_hf0, [panelStore], _hf0_str) }, null, 3, "u6_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
-  "entry": null,
-  "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    29
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

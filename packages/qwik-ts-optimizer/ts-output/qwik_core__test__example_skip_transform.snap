@@ -12,8 +12,7 @@ export const App = component$((props) => {
 		<div>{state.thing}</div>
 	));
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { _jsxSorted } from "@qwik.dev/core";
 //
@@ -23,9 +22,6 @@ export const App = component$((props) => {
 	return $(() => /* @__PURE__ */ _jsxSorted("div", null, null, state.thing, 1, "u6_0"));
 });
 
-
-
-Some("")
 == DIAGNOSTICS ==
 
 []

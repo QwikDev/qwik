@@ -17,7 +17,6 @@ export const onGet = () => {
 export default component$(()=> {
 	return <div>cmp</div>
 });
-
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -31,37 +30,11 @@ export const onGet = ()=>{
 };
 
 export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
-
-
-Some("")
 ============================= test.tsx_test_component_LUXeXe0DQrg.tsx (ENTRY POINT)==
 
 export const test_component_LUXeXe0DQrg = ()=> {
 	return <div>cmp</div>
 };
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
-  "entry": null,
-  "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    15,
-    27
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

@@ -58,15 +58,18 @@
 					const { vNode, getStyles, document } = await render(<StyledComponent />, { debug });
 				})
 			})
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useStylesScopedQrl } from "@qwik.dev/core";
+import { _fnSignal } from "@qwik.dev/core";
 import { inlinedQrl, jsx } from "@qwik.dev/core";
+//
+const _hf0 = (p0) => ["container", `count-${p0.count}`];
+const _hf0_str = "[\"container\",`count-${p0.count}`]";
 //
 const q_Field_children_onInput_14q1XwJfjq0 = /* @__PURE__ */ _noopQrl("Field_children_onInput_14q1XwJfjq0");
 const q_Field_children_ref_ovkykQxrYgM = /* @__PURE__ */ _noopQrl("Field_children_ref_ovkykQxrYgM");
@@ -120,7 +123,10 @@ const StyledComponent_component_Wg7SquUqgAE = () => {
 	const STYLE_RED = _captures[0];
 	const stylesScopedData = useStylesScopedQrl(q_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0);
 	const store = useStore({ count: 10 });
-	return /* @__PURE__ */ _jsxSorted("button", { class: ["container", `count-${store.count}`] }, { "q-e:click": q_StyledComponent_component_button_q_e_click_TSmqO2JiBqI }, "Hello world", 3, "u6_1");
+	return /* @__PURE__ */ _jsxSorted("button", null, {
+		class: _fnSignal(_hf0, [store], _hf0_str),
+		"q-e:click": q_StyledComponent_component_button_q_e_click_TSmqO2JiBqI
+	}, "Hello world", 3, "u6_1");
 };
 q_StyledComponent_component_Wg7SquUqgAE.s(StyledComponent_component_Wg7SquUqgAE);
 describe.each([])("$render.name: useStylesScoped", ({ render }) => {
@@ -130,170 +136,24 @@ describe.each([])("$render.name: useStylesScoped", ({ render }) => {
 	});
 });
 
-
-
-Some("")
 ============================= test.tsx_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0",
-  "entry": null,
-  "displayName": "test.tsx_StyledComponent_component_stylesScopedData_useStylesScoped",
-  "hash": "zPcFvTS0nh0",
-  "canonicalFilename": "test.tsx_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0",
-  "path": "",
-  "extension": ".js",
-  "parent": "StyledComponent_component_Wg7SquUqgAE",
-  "ctxKind": "function",
-  "ctxName": "useStylesScoped$",
-  "captures": false,
-  "loc": [
-    44,
-    49
-  ]
-}
-*/
 ============================= test.tsx_StyledComponent_component_button_q_e_click_TSmqO2JiBqI.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "StyledComponent_component_button_q_e_click_TSmqO2JiBqI",
-  "entry": null,
-  "displayName": "test.tsx_StyledComponent_component_button_q_e_click",
-  "hash": "TSmqO2JiBqI",
-  "canonicalFilename": "test.tsx_StyledComponent_component_button_q_e_click_TSmqO2JiBqI",
-  "path": "",
-  "extension": ".js",
-  "parent": "StyledComponent_component_Wg7SquUqgAE",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    50,
-    72
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "store"
-  ]
-}
-*/
 ============================= test.tsx_Lifecycle_component_r7jPBpjrWLc.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Lifecycle_component_r7jPBpjrWLc",
-  "entry": null,
-  "displayName": "test.tsx_Lifecycle_component",
-  "hash": "r7jPBpjrWLc",
-  "canonicalFilename": "test.tsx_Lifecycle_component_r7jPBpjrWLc",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    12,
-    23
-  ]
-}
-*/
 ============================= test.tsx_Field_children_ref_ovkykQxrYgM.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Field_children_ref_ovkykQxrYgM",
-  "entry": null,
-  "displayName": "test.tsx_Field_children_ref",
-  "hash": "ovkykQxrYgM",
-  "canonicalFilename": "test.tsx_Field_children_ref_ovkykQxrYgM",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    31,
-    14
-  ],
-  "paramNames": [
-    "element"
-  ]
-}
-*/
 ============================= test.tsx_Field_children_onInput_14q1XwJfjq0.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Field_children_onInput_14q1XwJfjq0",
-  "entry": null,
-  "displayName": "test.tsx_Field_children_onInput",
-  "hash": "14q1XwJfjq0",
-  "canonicalFilename": "test.tsx_Field_children_onInput_14q1XwJfjq0",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    34,
-    19
-  ]
-}
-*/
-============================= test.tsx_StyledComponent_component_Wg7SquUqgAE.ts (ENTRY POINT)==
+============================= test.tsx_StyledComponent_component_Wg7SquUqgAE.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "StyledComponent_component_Wg7SquUqgAE",
-  "entry": null,
-  "displayName": "test.tsx_StyledComponent_component",
-  "hash": "Wg7SquUqgAE",
-  "canonicalFilename": "test.tsx_StyledComponent_component_Wg7SquUqgAE",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": true,
-  "loc": [
-    43,
-    41
-  ],
-  "captureNames": [
-    "STYLE_RED"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

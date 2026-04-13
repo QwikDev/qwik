@@ -16,14 +16,12 @@ export const Works = component$((props) => {
 		<div ciao={ciao} >{foo}</div>
 	);
 });
-
-============================= test.tsx ==
+============================= test.jsx ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
 const q_Works_component_t45qL4vNGv0 = /* @__PURE__ */ _noopQrl("Works_component_t45qL4vNGv0");
-//
 q_Works_component_t45qL4vNGv0.s((props) => {
 	const { countNested } = useStore({ value: { count: 0 } }).value;
 	const countNested2 = countNested;
@@ -34,37 +32,9 @@ q_Works_component_t45qL4vNGv0.s((props) => {
 });
 export const Works = /* @__PURE__ */ componentQrl(q_Works_component_t45qL4vNGv0);
 
+============================= test.tsx_Works_component_t45qL4vNGv0.jsx (ENTRY POINT)==
 
 
-Some("")
-============================= test.tsx_Works_component_t45qL4vNGv0.tsx (ENTRY POINT)==
-
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Works_component_t45qL4vNGv0",
-  "entry": null,
-  "displayName": "test.tsx_Works_component",
-  "hash": "t45qL4vNGv0",
-  "canonicalFilename": "test.tsx_Works_component_t45qL4vNGv0",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    33
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

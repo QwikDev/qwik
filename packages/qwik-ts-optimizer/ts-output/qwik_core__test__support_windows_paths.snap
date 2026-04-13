@@ -4,8 +4,7 @@
 
 import { component$ } from '@qwik.dev/core';
 export const Greeter = component$(() => <div/>)
-
-============================= components/apps/apps.tsx ==
+============================= components/apps/apps.ts ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -14,37 +13,11 @@ const q_Greeter_component_0jjOvx068y0 = /*#__PURE__*/ qrl(()=>import("./apps.tsx
 //
 
 export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_0jjOvx068y0)
-
-
-Some("")
 ============================= apps.tsx_Greeter_component_0jjOvx068y0.ts (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 //
 export const Greeter_component_0jjOvx068y0 = () => /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "KD_0");
-
-
-Some("")
-/*
-{
-  "origin": "components/apps/apps.tsx",
-  "name": "Greeter_component_0jjOvx068y0",
-  "entry": null,
-  "displayName": "apps.tsx_Greeter_component",
-  "hash": "0jjOvx068y0",
-  "canonicalFilename": "apps.tsx_Greeter_component_0jjOvx068y0",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    4,
-    35
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

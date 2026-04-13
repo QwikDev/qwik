@@ -13,7 +13,6 @@ export const task = inlinedQrl(() => {
 	const right = _captures[2];
 	return middle ? left : right;
 }, 'task', [left, true, right]);
-
 ============================= test.tsx ==
 
 import { qrlDEV } from "@qwik.dev/core";
@@ -34,9 +33,6 @@ export const task = q_task.w([
     true,
     right
 ]);
-
-
-Some("")
 ============================= test.tsx_task_task.tsx (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -47,33 +43,6 @@ export const task = () => {
 	const right = _captures[2];
 	return middle ? left : right;
 };
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "task",
-  "entry": null,
-  "displayName": "test.tsx_task",
-  "hash": "task",
-  "canonicalFilename": "test.tsx_task_task",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "task",
-  "captures": true,
-  "loc": [
-    124,
-    251
-  ],
-  "captureNames": [
-    "left",
-    "right"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

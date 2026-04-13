@@ -17,8 +17,7 @@ export const Issue3742 = component$(({description = '', other}: any) => {
 		</div>
 	)
 	});
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -41,68 +40,12 @@ const Issue3742_component_svSy0PlWTAw = (_rawProps) => {
 q_Issue3742_component_svSy0PlWTAw.s(Issue3742_component_svSy0PlWTAw);
 export const Issue3742 = /* @__PURE__ */ componentQrl(q_Issue3742_component_svSy0PlWTAw);
 
-
-
-Some("")
 ============================= test.tsx_Issue3742_component_div_button_q_e_click_95Hlm8WgsYY.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Issue3742_component_div_button_q_e_click_95Hlm8WgsYY",
-  "entry": null,
-  "displayName": "test.tsx_Issue3742_component_div_button_q_e_click",
-  "hash": "95Hlm8WgsYY",
-  "canonicalFilename": "test.tsx_Issue3742_component_div_button_q_e_click_95Hlm8WgsYY",
-  "path": "",
-  "extension": ".js",
-  "parent": "Issue3742_component_svSy0PlWTAw",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    12,
-    21
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "counter"
-  ]
-}
-*/
-============================= test.tsx_Issue3742_component_svSy0PlWTAw.ts (ENTRY POINT)==
+============================= test.tsx_Issue3742_component_svSy0PlWTAw.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Issue3742_component_svSy0PlWTAw",
-  "entry": null,
-  "displayName": "test.tsx_Issue3742_component",
-  "hash": "svSy0PlWTAw",
-  "canonicalFilename": "test.tsx_Issue3742_component_svSy0PlWTAw",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    37
-  ],
-  "paramNames": [
-    "description",
-    "other"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

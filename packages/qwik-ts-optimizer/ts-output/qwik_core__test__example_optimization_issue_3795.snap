@@ -13,8 +13,7 @@ export const Issue3795 = component$(() => {
 		<div id='issue-3795-result'>{firstAssignment} {secondAssignment}</div>
 	)
 	});
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -36,34 +35,9 @@ const Issue3795_component_wsE8beycatI = () => {
 q_Issue3795_component_wsE8beycatI.s(Issue3795_component_wsE8beycatI);
 export const Issue3795 = /* @__PURE__ */ componentQrl(q_Issue3795_component_wsE8beycatI);
 
+============================= test.tsx_Issue3795_component_wsE8beycatI.js (ENTRY POINT)==
 
 
-Some("")
-============================= test.tsx_Issue3795_component_wsE8beycatI.ts (ENTRY POINT)==
-
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Issue3795_component_wsE8beycatI",
-  "entry": null,
-  "displayName": "test.tsx_Issue3795_component",
-  "hash": "wsE8beycatI",
-  "canonicalFilename": "test.tsx_Issue3795_component_wsE8beycatI",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    37
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

@@ -15,7 +15,6 @@ export const Foo = component$(({foo}) => {
 		<div />
 	);
 })
-
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -25,9 +24,6 @@ const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo
 //
 
 export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE)
-
-
-Some("")
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
 
 //
@@ -39,32 +35,6 @@ export const Foo_component_HTDRsvUbLiE = (_rawProps) => {
 		<div />
 	);
 };
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_HTDRsvUbLiE",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component",
-  "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    6,
-    31
-  ],
-  "paramNames": [
-    "foo"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

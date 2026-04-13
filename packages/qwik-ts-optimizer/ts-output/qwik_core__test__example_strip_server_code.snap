@@ -43,8 +43,7 @@ export const Parent = component$(() => {
 		</div>
 	);
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -53,215 +52,47 @@ const q_s_0TaiDayHrlo = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_comp
 //
 export const Parent = /* @__PURE__ */ componentQrl(q_s_0TaiDayHrlo);
 
-
-
-Some("")
 ============================= test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc.js (ENTRY POINT)==
 
 export const s_2ca3HLDC7yc = () => {
 	// from $(), should not be removed
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_2ca3HLDC7yc",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_serverStuff_a",
-  "hash": "2ca3HLDC7yc",
-  "canonicalFilename": "test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc",
-  "path": "",
-  "extension": ".js",
-  "parent": "s_r1qAHX7Opp0",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    23,
-    15
-  ]
-}
-*/
 ============================= test.tsx_Parent_component_serverStuff_b_client_v9qawr2Inkk.js (ENTRY POINT)==
 
 export const s_v9qawr2Inkk = () => {
 	// from clien$(), should not be removed
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_v9qawr2Inkk",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_serverStuff_b_client",
-  "hash": "v9qawr2Inkk",
-  "canonicalFilename": "test.tsx_Parent_component_serverStuff_b_client_v9qawr2Inkk",
-  "path": "",
-  "extension": ".js",
-  "parent": "s_r1qAHX7Opp0",
-  "ctxKind": "function",
-  "ctxName": "client$",
-  "captures": false,
-  "loc": [
-    26,
-    21
-  ]
-}
-*/
 ============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js (ENTRY POINT)==
 
-import { _captures, isServer } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import mongo from "mongodb";
 import redis from "redis";
 //
 export const s_gDH1EtUWqBU = async () => {
 	const state = _captures[0];
-	if (!isServer) return;
-	state.text = await mongo.users();
+		state.text = await mongo.users();
 	redis.set(state.text);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_gDH1EtUWqBU",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_useTask",
-  "hash": "gDH1EtUWqBU",
-  "canonicalFilename": "test.tsx_Parent_component_useTask_gDH1EtUWqBU",
-  "path": "",
-  "extension": ".js",
-  "parent": "s_0TaiDayHrlo",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": true,
-  "loc": [
-    15,
-    11
-  ],
-  "captureNames": [
-    "state"
-  ]
-}
-*/
 ============================= test.tsx_Parent_component_serverStuff_r1qAHX7Opp0.js (ENTRY POINT)==
 
 export const s_r1qAHX7Opp0 = null;
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_r1qAHX7Opp0",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_serverStuff",
-  "hash": "r1qAHX7Opp0",
-  "canonicalFilename": "test.tsx_Parent_component_serverStuff_r1qAHX7Opp0",
-  "path": "",
-  "extension": ".js",
-  "parent": "s_0TaiDayHrlo",
-  "ctxKind": "function",
-  "ctxName": "serverStuff$",
-  "captures": false,
-  "loc": [
-    0,
-    0
-  ]
-}
-*/
 ============================= test.tsx_Parent_component_serverLoader_k1L0DiPQV1I.js (ENTRY POINT)==
 
 export const s_k1L0DiPQV1I = null;
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_k1L0DiPQV1I",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_serverLoader",
-  "hash": "k1L0DiPQV1I",
-  "canonicalFilename": "test.tsx_Parent_component_serverLoader_k1L0DiPQV1I",
-  "path": "",
-  "extension": ".js",
-  "parent": "s_0TaiDayHrlo",
-  "ctxKind": "function",
-  "ctxName": "serverLoader$",
-  "captures": false,
-  "loc": [
-    0,
-    0
-  ]
-}
-*/
 ============================= test.tsx_Parent_component_useTask_1_P8oRQhHsurk.js (ENTRY POINT)==
 
 export const s_P8oRQhHsurk = () => {
 	// Code
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_P8oRQhHsurk",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_useTask_1",
-  "hash": "P8oRQhHsurk",
-  "canonicalFilename": "test.tsx_Parent_component_useTask_1_P8oRQhHsurk",
-  "path": "",
-  "extension": ".js",
-  "parent": "s_0TaiDayHrlo",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": false,
-  "loc": [
-    34,
-    11
-  ]
-}
-*/
 ============================= test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA.js (ENTRY POINT)==
 
 export const s_zM9okM0TYrA = () => console.log("parent");
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_zM9okM0TYrA",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_div_q_e_click",
-  "hash": "zM9okM0TYrA",
-  "canonicalFilename": "test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA",
-  "path": "",
-  "extension": ".js",
-  "parent": "s_0TaiDayHrlo",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    39,
-    18
-  ]
-}
-*/
-============================= test.tsx_Parent_component_0TaiDayHrlo.ts (ENTRY POINT)==
+============================= test.tsx_Parent_component_0TaiDayHrlo.js (ENTRY POINT)==
 
 import { useStore } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
@@ -287,29 +118,6 @@ export const s_0TaiDayHrlo = () => {
 	return /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": q_s_zM9okM0TYrA }, _wrapProp(state, "text"), 3, "u6_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_0TaiDayHrlo",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component",
-  "hash": "0TaiDayHrlo",
-  "canonicalFilename": "test.tsx_Parent_component_0TaiDayHrlo",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    9,
-    34
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

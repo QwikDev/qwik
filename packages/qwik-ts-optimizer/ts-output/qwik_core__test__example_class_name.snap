@@ -21,8 +21,7 @@ export const App2 = component$(() => {
 		</>
 	);
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -31,10 +30,7 @@ const q_App2_component_3yveMqbQ3Fs = /* @__PURE__ */ qrl(() => import("./test.ts
 //
 export const App2 = /* @__PURE__ */ componentQrl(q_App2_component_3yveMqbQ3Fs);
 
-
-
-Some("")
-============================= test.tsx_App2_component_3yveMqbQ3Fs.ts (ENTRY POINT)==
+============================= test.tsx_App2_component_3yveMqbQ3Fs.js (ENTRY POINT)==
 
 import { _wrapProp } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
@@ -55,29 +51,6 @@ export const App2_component_3yveMqbQ3Fs = () => {
 	], 1, "u6_4");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App2_component_3yveMqbQ3Fs",
-  "entry": null,
-  "displayName": "test.tsx_App2_component",
-  "hash": "3yveMqbQ3Fs",
-  "canonicalFilename": "test.tsx_App2_component_3yveMqbQ3Fs",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    32
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

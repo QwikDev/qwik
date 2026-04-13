@@ -12,7 +12,6 @@ export const App = () => {
 	});
 	return Header;
 });
-
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -25,38 +24,9 @@ export const App = () => {
 	const Header = /*#__PURE__*/ componentQrl(q_App_Header_component_B9F3YeqcO1w);
 	return Header;
 };
-
-
-Some("")
 ============================= test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ.js (ENTRY POINT)==
 
 export const App_Header_component_div_onClick_aO7uI7Iw6oQ = (ctx) => console.log(ctx);
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_Header_component_div_onClick_aO7uI7Iw6oQ",
-  "entry": null,
-  "displayName": "test.tsx_App_Header_component_div_onClick",
-  "hash": "aO7uI7Iw6oQ",
-  "canonicalFilename": "test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ",
-  "path": "",
-  "extension": ".js",
-  "parent": "App_Header_component_B9F3YeqcO1w",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    8,
-    20
-  ],
-  "paramNames": [
-    "ctx"
-  ]
-}
-*/
 ============================= test.tsx_App_Header_component_B9F3YeqcO1w.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
@@ -69,29 +39,6 @@ export const App_Header_component_B9F3YeqcO1w = () => {
 			<div onClick={q_App_Header_component_div_onClick_aO7uI7Iw6oQ}/>
 		);
 	};
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_Header_component_B9F3YeqcO1w",
-  "entry": null,
-  "displayName": "test.tsx_App_Header_component",
-  "hash": "B9F3YeqcO1w",
-  "canonicalFilename": "test.tsx_App_Header_component_B9F3YeqcO1w",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    28
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

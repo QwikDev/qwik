@@ -16,7 +16,6 @@ export const Greeter = component$(() => {
 		</div>
 	)
 });
-
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -26,61 +25,12 @@ const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx
 //
 
 export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
-
-
-Some("")
 ============================= test.tsx_Greeter_component_div_CustomComponent_onClick_6xTF8kMcS9w.js (ENTRY POINT)==
 
 export const Greeter_component_div_CustomComponent_onClick_6xTF8kMcS9w = () => {};
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Greeter_component_div_CustomComponent_onClick_6xTF8kMcS9w",
-  "entry": null,
-  "displayName": "test.tsx_Greeter_component_div_CustomComponent_onClick",
-  "hash": "6xTF8kMcS9w",
-  "canonicalFilename": "test.tsx_Greeter_component_div_CustomComponent_onClick_6xTF8kMcS9w",
-  "path": "",
-  "extension": ".js",
-  "parent": "Greeter_component_n7HuG2hhU0Q",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    10,
-    31
-  ]
-}
-*/
 ============================= test.tsx_Greeter_component_div_AnotherComponent_onClick_9BwXJW3s0yA.js (ENTRY POINT)==
 
 export const Greeter_component_div_AnotherComponent_onClick_9BwXJW3s0yA = () => {};
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Greeter_component_div_AnotherComponent_onClick_9BwXJW3s0yA",
-  "entry": null,
-  "displayName": "test.tsx_Greeter_component_div_AnotherComponent_onClick",
-  "hash": "9BwXJW3s0yA",
-  "canonicalFilename": "test.tsx_Greeter_component_div_AnotherComponent_onClick_9BwXJW3s0yA",
-  "path": "",
-  "extension": ".js",
-  "parent": "Greeter_component_n7HuG2hhU0Q",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    12,
-    33
-  ]
-}
-*/
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
@@ -100,29 +50,6 @@ export const Greeter_component_n7HuG2hhU0Q = () => {
 		</div>
 	)
 };
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Greeter_component_n7HuG2hhU0Q",
-  "entry": null,
-  "displayName": "test.tsx_Greeter_component",
-  "hash": "n7HuG2hhU0Q",
-  "canonicalFilename": "test.tsx_Greeter_component_n7HuG2hhU0Q",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    7,
-    35
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

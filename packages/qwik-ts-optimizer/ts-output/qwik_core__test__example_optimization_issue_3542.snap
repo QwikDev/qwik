@@ -16,15 +16,13 @@ export const AtomStatus = component$(({ctx,atom})=>{
 		</span>
 	);
 })
-
-============================= test.tsx ==
+============================= test.jsx ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
 const q_AtomStatus_component_hdwpoUtydSA = /* @__PURE__ */ _noopQrl("AtomStatus_component_hdwpoUtydSA");
 const q_AtomStatus_component_span_q_e_click_0yqKAycyBF0 = /* @__PURE__ */ _noopQrl("AtomStatus_component_span_q_e_click_0yqKAycyBF0");
-//
 q_AtomStatus_component_span_q_e_click_0yqKAycyBF0.s((ev) => atomStatusClick(ctx, ev, [atom]));
 q_AtomStatus_component_hdwpoUtydSA.s((_rawProps) => {
 	let status = _rawProps.atom.status;
@@ -42,69 +40,12 @@ q_AtomStatus_component_hdwpoUtydSA.s((_rawProps) => {
 });
 export const AtomStatus = /* @__PURE__ */ componentQrl(q_AtomStatus_component_hdwpoUtydSA);
 
-
-
-Some("")
 ============================= test.tsx_AtomStatus_component_span_q_e_click_0yqKAycyBF0.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "AtomStatus_component_span_q_e_click_0yqKAycyBF0",
-  "entry": null,
-  "displayName": "test.tsx_AtomStatus_component_span_q_e_click",
-  "hash": "0yqKAycyBF0",
-  "canonicalFilename": "test.tsx_AtomStatus_component_span_q_e_click_0yqKAycyBF0",
-  "path": "",
-  "extension": ".js",
-  "parent": "AtomStatus_component_hdwpoUtydSA",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    13,
-    35
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "atom",
-    "ctx"
-  ]
-}
-*/
-============================= test.tsx_AtomStatus_component_hdwpoUtydSA.tsx (ENTRY POINT)==
+============================= test.tsx_AtomStatus_component_hdwpoUtydSA.jsx (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "AtomStatus_component_hdwpoUtydSA",
-  "entry": null,
-  "displayName": "test.tsx_AtomStatus_component",
-  "hash": "hdwpoUtydSA",
-  "canonicalFilename": "test.tsx_AtomStatus_component_hdwpoUtydSA",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    38
-  ],
-  "paramNames": [
-    "ctx",
-    "atom"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

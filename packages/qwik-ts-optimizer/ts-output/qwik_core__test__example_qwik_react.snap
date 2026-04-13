@@ -92,8 +92,7 @@ async function renderToString(rootNode, opts) {
 }
 
 export { qwikify$, qwikifyQrl, renderToString };
-
-============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs ==
+============================= ../node_modules/@qwik.dev/react/index.qwik.mjs ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from '@qwik.dev/core';
@@ -129,9 +128,6 @@ async function renderToString(rootNode, opts) {
 }
 
 export { qwikify$, qwikifyQrl, renderToString };
-
-
-Some("")
 ============================= index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U.mjs (ENTRY POINT)==
 
 import { useLexicalScope, noSerialize, isBrowser } from "@qwik.dev/core";
@@ -162,35 +158,6 @@ export const qwikifyQrl_component_useWatch_x04JC5xeP1U = async (track)=>{
 				}
 			}
 		};
-
-
-Some("")
-/*
-{
-  "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",
-  "name": "qwikifyQrl_component_useWatch_x04JC5xeP1U",
-  "entry": null,
-  "displayName": "index.qwik.mjs_qwikifyQrl_component_useWatch",
-  "hash": "x04JC5xeP1U",
-  "canonicalFilename": "index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U",
-  "path": "",
-  "extension": ".mjs",
-  "parent": "qwikifyQrl_component_zH94hIe0Ick",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": true,
-  "loc": [
-    636,
-    1365
-  ],
-  "captureNames": [
-    "hostElement",
-    "props",
-    "reactCmpQrl",
-    "store"
-  ]
-}
-*/
 ============================= index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick.mjs (ENTRY POINT)==
 
 import { useLexicalScope, useHostElement, useStore, useTaskQrl, SkipRerender, isServer } from "@qwik.dev/core";
@@ -236,32 +203,6 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
 			children: /*#__PURE__*/ jsx(SkipRerender, {})
 		});
 	};
-
-
-Some("")
-/*
-{
-  "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",
-  "name": "qwikifyQrl_component_zH94hIe0Ick",
-  "entry": null,
-  "displayName": "index.qwik.mjs_qwikifyQrl_component",
-  "hash": "zH94hIe0Ick",
-  "canonicalFilename": "index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick",
-  "path": "",
-  "extension": ".mjs",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": true,
-  "loc": [
-    358,
-    2020
-  ],
-  "captureNames": [
-    "reactCmpQrl"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

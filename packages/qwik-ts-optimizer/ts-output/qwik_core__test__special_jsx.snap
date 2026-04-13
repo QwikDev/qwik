@@ -9,7 +9,6 @@ export const App = () => {
     const props = {}
     return jsx('div', props, 'Hello Qwik');
 }
-
 ============================= test.tsx ==
 
 
@@ -21,9 +20,6 @@ export const App = () => {
     const props = {}
     return jsx('div', props, 'Hello Qwik');
 }
-
-
-Some("")
 == DIAGNOSTICS ==
 
 []

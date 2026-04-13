@@ -24,8 +24,7 @@ export function useHook() {
   });
   return fn;
 }
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { isServer } from "@qwik.dev/core";
@@ -48,9 +47,6 @@ export function useHook() {
 }
 export { state as _auto_state };
 
-
-
-Some("")
 ============================= test.tsx_useHook_fn_kScGJcREaTg.js (ENTRY POINT)==
 
 import { _auto_state as state } from "./test";
@@ -60,29 +56,6 @@ export const useHook_fn_kScGJcREaTg = () => {
 	console.log(state.id);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "useHook_fn_kScGJcREaTg",
-  "entry": null,
-  "displayName": "test.tsx_useHook_fn",
-  "hash": "kScGJcREaTg",
-  "canonicalFilename": "test.tsx_useHook_fn_kScGJcREaTg",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    19,
-    16
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

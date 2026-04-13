@@ -99,8 +99,7 @@ export const App = component$(() => {
         </div>
       );
     });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -109,9 +108,6 @@ const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx
 //
 export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
 
-
-
-Some("")
 ============================= test.tsx_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -121,37 +117,6 @@ export const App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = (_, _1, item
 	cart.push(item);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_loopArrowFn_span_q_e_click_Wau7C836nf0",
-  "entry": null,
-  "displayName": "test.tsx_App_component_loopArrowFn_span_q_e_click",
-  "hash": "Wau7C836nf0",
-  "canonicalFilename": "test.tsx_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0",
-  "path": "",
-  "extension": ".js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    10,
-    23
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "item"
-  ],
-  "captureNames": [
-    "cart"
-  ]
-}
-*/
 ============================= test.tsx_App_component_loopForI_span_q_e_click_PbCYbPM6etI.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -161,33 +126,6 @@ export const App_component_loopForI_span_q_e_click_PbCYbPM6etI = () => {
 	cart.push(results[i]);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_loopForI_span_q_e_click_PbCYbPM6etI",
-  "entry": null,
-  "displayName": "test.tsx_App_component_loopForI_span_q_e_click",
-  "hash": "PbCYbPM6etI",
-  "canonicalFilename": "test.tsx_App_component_loopForI_span_q_e_click_PbCYbPM6etI",
-  "path": "",
-  "extension": ".js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    23,
-    25
-  ],
-  "captureNames": [
-    "cart",
-    "results"
-  ]
-}
-*/
 ============================= test.tsx_App_component_loopForOf_span_q_e_click_zlNGHYu926I.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -197,37 +135,6 @@ export const App_component_loopForOf_span_q_e_click_zlNGHYu926I = (_, _1, item) 
 	cart.push(item);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_loopForOf_span_q_e_click_zlNGHYu926I",
-  "entry": null,
-  "displayName": "test.tsx_App_component_loopForOf_span_q_e_click",
-  "hash": "zlNGHYu926I",
-  "canonicalFilename": "test.tsx_App_component_loopForOf_span_q_e_click_zlNGHYu926I",
-  "path": "",
-  "extension": ".js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    38,
-    25
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "item"
-  ],
-  "captureNames": [
-    "cart"
-  ]
-}
-*/
 ============================= test.tsx_App_component_loopForIn_span_q_e_click_adzBGickx1U.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -237,33 +144,6 @@ export const App_component_loopForIn_span_q_e_click_adzBGickx1U = () => {
 	cart.push(results[key]);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_loopForIn_span_q_e_click_adzBGickx1U",
-  "entry": null,
-  "displayName": "test.tsx_App_component_loopForIn_span_q_e_click",
-  "hash": "adzBGickx1U",
-  "canonicalFilename": "test.tsx_App_component_loopForIn_span_q_e_click_adzBGickx1U",
-  "path": "",
-  "extension": ".js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    53,
-    25
-  ],
-  "captureNames": [
-    "cart",
-    "results"
-  ]
-}
-*/
 ============================= test.tsx_App_component_loopWhile_span_q_e_click_05kCMrZVn5E.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -273,33 +153,6 @@ export const App_component_loopWhile_span_q_e_click_05kCMrZVn5E = () => {
 	cart.push(results[i]);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_loopWhile_span_q_e_click_05kCMrZVn5E",
-  "entry": null,
-  "displayName": "test.tsx_App_component_loopWhile_span_q_e_click",
-  "hash": "05kCMrZVn5E",
-  "canonicalFilename": "test.tsx_App_component_loopWhile_span_q_e_click_05kCMrZVn5E",
-  "path": "",
-  "extension": ".js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    69,
-    25
-  ],
-  "captureNames": [
-    "cart",
-    "results"
-  ]
-}
-*/
 ============================= test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -309,38 +162,7 @@ export const App_component_div_button_q_e_click_UB6Fs5a3bd8 = (_, _1, item) => {
 	cart.push(item);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_div_button_q_e_click_UB6Fs5a3bd8",
-  "entry": null,
-  "displayName": "test.tsx_App_component_div_button_q_e_click",
-  "hash": "UB6Fs5a3bd8",
-  "canonicalFilename": "test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8",
-  "path": "",
-  "extension": ".js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    85,
-    25
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "item"
-  ],
-  "captureNames": [
-    "cart"
-  ]
-}
-*/
-============================= test.tsx_App_component_ckEPmXZlub0.ts (ENTRY POINT)==
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { useStore, useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
@@ -411,29 +233,6 @@ export const App_component_ckEPmXZlub0 = () => {
 	], 1, "u6_6");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
-  "entry": null,
-  "displayName": "test.tsx_App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    4,
-    31
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

@@ -16,8 +16,7 @@ export default component$(() => {
     </div>
   );
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -26,43 +25,11 @@ const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.ts
 //
 export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
 
-
-
-Some("")
 ============================= test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps.js (ENTRY POINT)==
 
 export const test_component_div_div_q_e_click_Mc600uqO6ps = (_, _1, index, value) => console.log(value, index);
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_div_div_q_e_click_Mc600uqO6ps",
-  "entry": null,
-  "displayName": "test.tsx_test_component_div_div_q_e_click",
-  "hash": "Mc600uqO6ps",
-  "canonicalFilename": "test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps",
-  "path": "",
-  "extension": ".js",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    12,
-    31
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "index",
-    "value"
-  ]
-}
-*/
-============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
@@ -82,29 +49,6 @@ export const test_component_LUXeXe0DQrg = () => {
 	}), 1, "u6_1");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
-  "entry": null,
-  "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    27
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

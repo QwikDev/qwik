@@ -26,7 +26,6 @@ export const Foo = component$((props) => {
 		</div>
 	);
 });
-
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -37,91 +36,30 @@ const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo
 
 // Component-level self-referential component
 export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
-
-
-Some("")
 ============================= test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
 //
-export const Foo_component_sig_useAsync_f0BGwWm4eeY = async (_rawProps) => {
+export const Foo_component_sig_useAsync_f0BGwWm4eeY = async ({cleanup}) => {
 const sig = _captures[0];
 		const timer = setInterval(() => {
 			sig.value++;
 		}, 1000);
-		_rawProps.cleanup(() => clearInterval(timer));
+		cleanup(() => clearInterval(timer));
 		return 0;
 	};
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_sig_useAsync_f0BGwWm4eeY",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_sig_useAsync",
-  "hash": "f0BGwWm4eeY",
-  "canonicalFilename": "test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY",
-  "path": "",
-  "extension": ".js",
-  "parent": "Foo_component_HTDRsvUbLiE",
-  "ctxKind": "function",
-  "ctxName": "useAsync$",
-  "captures": true,
-  "loc": [
-    7,
-    24
-  ],
-  "paramNames": [
-    "cleanup"
-  ],
-  "captureNames": [
-    "sig"
-  ]
-}
-*/
 ============================= test.tsx_Foo_component_other_useAsync_fsHooibmyyE.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
 //
-export const Foo_component_other_useAsync_fsHooibmyyE = async (_rawProps) => {
+export const Foo_component_other_useAsync_fsHooibmyyE = async ({cleanup}) => {
 const other = _captures[0];
 		const timer = setInterval(() => {
 			other.value++;
 		}, 900);
-		_rawProps.cleanup(() => clearInterval(timer));
+		cleanup(() => clearInterval(timer));
 		return 0;
 	};
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_other_useAsync_fsHooibmyyE",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_other_useAsync",
-  "hash": "fsHooibmyyE",
-  "canonicalFilename": "test.tsx_Foo_component_other_useAsync_fsHooibmyyE",
-  "path": "",
-  "extension": ".js",
-  "parent": "Foo_component_HTDRsvUbLiE",
-  "ctxKind": "function",
-  "ctxName": "useAsync$",
-  "captures": true,
-  "loc": [
-    14,
-    26
-  ],
-  "paramNames": [
-    "cleanup"
-  ],
-  "captureNames": [
-    "other"
-  ]
-}
-*/
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
@@ -143,32 +81,6 @@ export const Foo_component_HTDRsvUbLiE = (props) => {
 		</div>
 	);
 };
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_HTDRsvUbLiE",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component",
-  "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    6,
-    31
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

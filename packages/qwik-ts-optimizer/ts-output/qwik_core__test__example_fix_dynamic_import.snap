@@ -17,7 +17,6 @@ export const Header = component$(() => {
 		</div>
 	);
 });
-
 ============================= project/folder/test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -31,9 +30,6 @@ export function foo() {
 }
 
 export const Header = /*#__PURE__*/ componentQrl(q_Header_component_RGgm7Ks9QWI);
-
-
-Some("")
 ============================= test.tsx_Header_component_RGgm7Ks9QWI.tsx (ENTRY POINT)==
 
 import thing from "../state";
@@ -46,29 +42,6 @@ export const Header_component_RGgm7Ks9QWI = () => {
 		</div>
 	);
 };
-
-
-Some("")
-/*
-{
-  "origin": "project/folder/test.tsx",
-  "name": "Header_component_RGgm7Ks9QWI",
-  "entry": "entry_hooks",
-  "displayName": "test.tsx_Header_component",
-  "hash": "RGgm7Ks9QWI",
-  "canonicalFilename": "test.tsx_Header_component_RGgm7Ks9QWI",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    10,
-    34
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

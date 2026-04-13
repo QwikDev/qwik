@@ -11,8 +11,7 @@
 			ref.$index$ = idx;
 			return idx;
 		};
-
-============================= test.tsx ==
+============================= test.js ==
 
 //
 export const $promoteToRoot$ = (ref) => {
@@ -25,9 +24,6 @@ export const $promoteToRoot$ = (ref) => {
 	return idx;
 };
 
-
-
-Some("")
 == DIAGNOSTICS ==
 
 []

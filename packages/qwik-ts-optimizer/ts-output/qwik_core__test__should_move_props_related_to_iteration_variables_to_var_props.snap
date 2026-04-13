@@ -28,8 +28,7 @@ export const Child = component$(() => {
     </div>
   );
 })
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -38,10 +37,7 @@ const q_Child_component_9GyF01GDKqw = /* @__PURE__ */ qrl(() => import("./test.t
 //
 export const Child = /* @__PURE__ */ componentQrl(q_Child_component_9GyF01GDKqw);
 
-
-
-Some("")
-============================= test.tsx_Child_component_9GyF01GDKqw.ts (ENTRY POINT)==
+============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
 
 import { useSignal } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
@@ -59,29 +55,6 @@ export const Child_component_9GyF01GDKqw = () => {
 	}), 1, "u6_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Child_component_9GyF01GDKqw",
-  "entry": null,
-  "displayName": "test.tsx_Child_component",
-  "hash": "9GyF01GDKqw",
-  "canonicalFilename": "test.tsx_Child_component_9GyF01GDKqw",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    6,
-    33
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

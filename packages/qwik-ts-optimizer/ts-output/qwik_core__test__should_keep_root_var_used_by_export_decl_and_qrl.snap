@@ -13,8 +13,7 @@ export const exportedValue = shared.id;
 export const handler = $(() => {
   console.log(shared.id);
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 //
@@ -25,9 +24,6 @@ export const exportedValue = shared.id;
 export const handler = q_handler_T7IDIUVU4lI;
 export { shared as _auto_shared };
 
-
-
-Some("")
 ============================= test.tsx_handler_T7IDIUVU4lI.js (ENTRY POINT)==
 
 import { _auto_shared as shared } from "./test";
@@ -36,29 +32,6 @@ export const handler_T7IDIUVU4lI = () => {
 	console.log(shared.id);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "handler_T7IDIUVU4lI",
-  "entry": null,
-  "displayName": "test.tsx_handler",
-  "hash": "T7IDIUVU4lI",
-  "canonicalFilename": "test.tsx_handler_T7IDIUVU4lI",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    11,
-    26
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

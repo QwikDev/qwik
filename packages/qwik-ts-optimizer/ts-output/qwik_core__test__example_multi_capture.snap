@@ -25,8 +25,7 @@ export const Bar = component$(({bar}) => {
 		)
 	});
 })
-
-============================= test.tsx ==
+============================= test.jsx ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -37,86 +36,30 @@ const q_Foo_component_HTDRsvUbLiE = /* @__PURE__ */ qrl(() => import("./test.tsx
 export const Foo = /* @__PURE__ */ componentQrl(q_Foo_component_HTDRsvUbLiE);
 export const Bar = /* @__PURE__ */ componentQrl(q_Bar_component_L80pS8Hxf1Y);
 
-
-
-Some("")
-============================= test.tsx_Foo_component_1_DvU6FitWglY.tsx (ENTRY POINT)==
+============================= test.tsx_Foo_component_1_DvU6FitWglY.jsx (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
 //
 export const Foo_component_1_DvU6FitWglY = () => {
-	const arg0 = _captures[0], foo = _captures[1];
+	const _rawProps = _captures[0], arg0 = _captures[1];
 	const fn = ({ aaa }) => aaa;
 	return <div>
-				{foo}{fn()}{arg0}
+				{_rawProps.foo}{fn()}{arg0}
 			</div>;
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_1_DvU6FitWglY",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_1",
-  "hash": "DvU6FitWglY",
-  "canonicalFilename": "test.tsx_Foo_component_1_DvU6FitWglY",
-  "path": "",
-  "extension": ".tsx",
-  "parent": "Foo_component_HTDRsvUbLiE",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": true,
-  "loc": [
-    7,
-    11
-  ],
-  "captureNames": [
-    "arg0",
-    "foo"
-  ]
-}
-*/
-============================= test.tsx_Bar_component_1_0xSyNSnVu3k.tsx (ENTRY POINT)==
+============================= test.tsx_Bar_component_1_0xSyNSnVu3k.jsx (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
 //
 export const Bar_component_1_0xSyNSnVu3k = () => {
-	const bar = _captures[0];
+	const _rawProps = _captures[0];
 	return <div>
-				{bar}
+				{_rawProps.bar}
 			</div>;
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Bar_component_1_0xSyNSnVu3k",
-  "entry": null,
-  "displayName": "test.tsx_Bar_component_1",
-  "hash": "0xSyNSnVu3k",
-  "canonicalFilename": "test.tsx_Bar_component_1_0xSyNSnVu3k",
-  "path": "",
-  "extension": ".tsx",
-  "parent": "Bar_component_L80pS8Hxf1Y",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": true,
-  "loc": [
-    18,
-    11
-  ],
-  "captureNames": [
-    "bar"
-  ]
-}
-*/
-============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
+============================= test.tsx_Foo_component_HTDRsvUbLiE.jsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 //
@@ -124,71 +67,19 @@ const q_Foo_component_1_DvU6FitWglY = /* @__PURE__ */ qrl(() => import("./test.t
 //
 export const Foo_component_HTDRsvUbLiE = (_rawProps) => {
 	const arg0 = 20;
-	return q_Foo_component_1_DvU6FitWglY.w([arg0, _rawProps.foo]);
+	return q_Foo_component_1_DvU6FitWglY.w([_rawProps, arg0]);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_HTDRsvUbLiE",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component",
-  "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    31
-  ],
-  "paramNames": [
-    "foo"
-  ]
-}
-*/
-============================= test.tsx_Bar_component_L80pS8Hxf1Y.tsx (ENTRY POINT)==
+============================= test.tsx_Bar_component_L80pS8Hxf1Y.jsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 //
 const q_Bar_component_1_0xSyNSnVu3k = /* @__PURE__ */ qrl(() => import("./test.tsx_Bar_component_1_0xSyNSnVu3k"), "Bar_component_1_0xSyNSnVu3k");
 //
 export const Bar_component_L80pS8Hxf1Y = (_rawProps) => {
-	return q_Bar_component_1_0xSyNSnVu3k.w([_rawProps.bar]);
+	return q_Bar_component_1_0xSyNSnVu3k.w([_rawProps]);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Bar_component_L80pS8Hxf1Y",
-  "entry": null,
-  "displayName": "test.tsx_Bar_component",
-  "hash": "L80pS8Hxf1Y",
-  "canonicalFilename": "test.tsx_Bar_component_L80pS8Hxf1Y",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    17,
-    31
-  ],
-  "paramNames": [
-    "bar"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

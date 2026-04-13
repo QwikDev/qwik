@@ -11,8 +11,7 @@ export default component$(() => {
 		</div>
 	);
 });
-
-============================= src/routes/_repl/[id]/[[...slug]].tsx ==
+============================= src/routes/_repl/[id]/[[...slug]].js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -21,39 +20,13 @@ const q_slug_component_0AM8HPnkNs4 = /* @__PURE__ */ qrl(() => import("./[[...sl
 //
 export default /* @__PURE__ */ componentQrl(q_slug_component_0AM8HPnkNs4);
 
-
-
-Some("")
 ============================= [[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js (ENTRY POINT)==
 
 import { sibling } from "./sibling";
 //
 export const slug_component_div_q_e_click_bCwVPYSTQ0w = () => console.log(mongodb, sibling);
 
-
-
-Some("")
-/*
-{
-  "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
-  "name": "slug_component_div_q_e_click_bCwVPYSTQ0w",
-  "entry": null,
-  "displayName": "[[...slug]].tsx_slug_component_div_q_e_click",
-  "hash": "bCwVPYSTQ0w",
-  "canonicalFilename": "[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w",
-  "path": "",
-  "extension": ".js",
-  "parent": "slug_component_0AM8HPnkNs4",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    8,
-    18
-  ]
-}
-*/
-============================= [[...slug]].tsx_slug_component_0AM8HPnkNs4.ts (ENTRY POINT)==
+============================= [[...slug]].tsx_slug_component_0AM8HPnkNs4.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -64,29 +37,6 @@ export const slug_component_0AM8HPnkNs4 = () => {
 	return /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": q_slug_component_div_q_e_click_bCwVPYSTQ0w }, null, 3, "W4_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
-  "name": "slug_component_0AM8HPnkNs4",
-  "entry": null,
-  "displayName": "[[...slug]].tsx_slug_component",
-  "hash": "0AM8HPnkNs4",
-  "canonicalFilename": "[[...slug]].tsx_slug_component_0AM8HPnkNs4",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    6,
-    27
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

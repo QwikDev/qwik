@@ -17,7 +17,6 @@ export const Root = () => {
 		</html>
 	);
 };
-
 ============================= test.tsx ==
 
 
@@ -37,9 +36,6 @@ export const Root = () => {
 		</html>
 	);
 };
-
-
-Some("")
 == DIAGNOSTICS ==
 
 []

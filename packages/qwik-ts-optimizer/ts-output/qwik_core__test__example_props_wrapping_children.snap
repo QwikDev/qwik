@@ -16,8 +16,7 @@ export const Works = component$(({fromProps}) => {
 		</div>
 	);
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -52,37 +51,9 @@ const Works_component_t45qL4vNGv0 = (_rawProps) => {
 q_Works_component_t45qL4vNGv0.s(Works_component_t45qL4vNGv0);
 export const Works = /* @__PURE__ */ componentQrl(q_Works_component_t45qL4vNGv0);
 
+============================= test.tsx_Works_component_t45qL4vNGv0.js (ENTRY POINT)==
 
 
-Some("")
-============================= test.tsx_Works_component_t45qL4vNGv0.ts (ENTRY POINT)==
-
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Works_component_t45qL4vNGv0",
-  "entry": null,
-  "displayName": "test.tsx_Works_component",
-  "hash": "t45qL4vNGv0",
-  "canonicalFilename": "test.tsx_Works_component_t45qL4vNGv0",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    4,
-    33
-  ],
-  "paramNames": [
-    "fromProps"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

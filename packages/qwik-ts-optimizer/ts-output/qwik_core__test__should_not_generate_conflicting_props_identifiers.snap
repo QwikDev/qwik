@@ -13,22 +13,22 @@
 
 		return 'hi'
 		})
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 import { useComputedQrl } from "@qwik.dev/core";
+import { _restProps } from "@qwik.dev/core";
 //
 const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ _noopQrl("test_component_LUXeXe0DQrg");
 const q_test_component_useComputed_PYU291PvidQ = /* @__PURE__ */ _noopQrl("test_component_useComputed_PYU291PvidQ");
 const q_test_component_useTask_jewzFYh3XmQ = /* @__PURE__ */ _noopQrl("test_component_useTask_jewzFYh3XmQ");
 //
 const test_component_useComputed_PYU291PvidQ = () => {
-	const color = _captures[0];
-	return color;
+	const _rawProps = _captures[0];
+	return _rawProps.color;
 };
 q_test_component_useComputed_PYU291PvidQ.s(test_component_useComputed_PYU291PvidQ);
 const test_component_useTask_jewzFYh3XmQ = () => {
@@ -38,101 +38,22 @@ const test_component_useTask_jewzFYh3XmQ = () => {
 q_test_component_useTask_jewzFYh3XmQ.s(test_component_useTask_jewzFYh3XmQ);
 const test_component_LUXeXe0DQrg = (_rawProps) => {
 	const props = _restProps(_rawProps, ["color"]);
-	useComputedQrl(q_test_component_useComputed_PYU291PvidQ.w([_rawProps.color]));
+	useComputedQrl(q_test_component_useComputed_PYU291PvidQ.w([_rawProps]));
 	useTaskQrl(q_test_component_useTask_jewzFYh3XmQ.w([props]));
 	return "hi";
 };
 q_test_component_LUXeXe0DQrg.s(test_component_LUXeXe0DQrg);
 export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
 
-
-
-Some("")
 ============================= test.tsx_test_component_useComputed_PYU291PvidQ.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_useComputed_PYU291PvidQ",
-  "entry": null,
-  "displayName": "test.tsx_test_component_useComputed",
-  "hash": "PYU291PvidQ",
-  "canonicalFilename": "test.tsx_test_component_useComputed_PYU291PvidQ",
-  "path": "",
-  "extension": ".js",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "function",
-  "ctxName": "useComputed$",
-  "captures": true,
-  "loc": [
-    6,
-    16
-  ],
-  "captureNames": [
-    "color"
-  ]
-}
-*/
 ============================= test.tsx_test_component_useTask_jewzFYh3XmQ.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_useTask_jewzFYh3XmQ",
-  "entry": null,
-  "displayName": "test.tsx_test_component_useTask",
-  "hash": "jewzFYh3XmQ",
-  "canonicalFilename": "test.tsx_test_component_useTask_jewzFYh3XmQ",
-  "path": "",
-  "extension": ".js",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": true,
-  "loc": [
-    8,
-    12
-  ],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
-  "entry": null,
-  "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    29
-  ],
-  "paramNames": [
-    "color",
-    "props"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

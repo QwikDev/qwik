@@ -30,8 +30,7 @@ export default component$(() => {
     </div>
   );
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -40,9 +39,6 @@ const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.ts
 //
 export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
 
-
-
-Some("")
 ============================= test.tsx_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -52,33 +48,7 @@ export const test_component_div_div_div_button_q_e_click_7fyCCEiYKFo = () => {
 	return console.log(planeId);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_div_div_div_button_q_e_click_7fyCCEiYKFo",
-  "entry": null,
-  "displayName": "test.tsx_test_component_div_div_div_button_q_e_click",
-  "hash": "7fyCCEiYKFo",
-  "canonicalFilename": "test.tsx_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo",
-  "path": "",
-  "extension": ".js",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    19,
-    46
-  ],
-  "captureNames": [
-    "planeId"
-  ]
-}
-*/
-============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
@@ -97,29 +67,6 @@ export const test_component_LUXeXe0DQrg = () => {
 	}), 1, "u6_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
-  "entry": null,
-  "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    27
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

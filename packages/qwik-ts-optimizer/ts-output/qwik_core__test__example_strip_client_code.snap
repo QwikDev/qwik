@@ -38,8 +38,7 @@ export const Parent = component$(() => {
 		</div>
 	);
 });
-
-============================= components/component.tsx ==
+============================= components/component.js ==
 
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -77,207 +76,27 @@ const Parent_component_t6Wy3C0Q0XM = () => {
 q_Parent_component_t6Wy3C0Q0XM.s(Parent_component_t6Wy3C0Q0XM);
 export const Parent = /* @__PURE__ */ componentQrl(q_Parent_component_t6Wy3C0Q0XM);
 
-
-
-Some("")
 ============================= component.tsx_Parent_component_useClientMount_Yn2kIDABoYw.js (ENTRY POINT)==
 
 export const Parent_component_useClientMount_Yn2kIDABoYw = null;
-
-
-Some("")
-/*
-{
-  "origin": "components/component.tsx",
-  "name": "Parent_component_useClientMount_Yn2kIDABoYw",
-  "entry": null,
-  "displayName": "component.tsx_Parent_component_useClientMount",
-  "hash": "Yn2kIDABoYw",
-  "canonicalFilename": "component.tsx_Parent_component_useClientMount_Yn2kIDABoYw",
-  "path": "",
-  "extension": ".js",
-  "parent": "Parent_component_t6Wy3C0Q0XM",
-  "ctxKind": "function",
-  "ctxName": "useClientMount$",
-  "captures": true,
-  "loc": [
-    0,
-    0
-  ],
-  "captureNames": [
-    "state"
-  ]
-}
-*/
 ============================= component.tsx_Parent_component_useTask_ngmvcygWux8.js (ENTRY POINT)==
 
 
-
-Some("")
-/*
-{
-  "origin": "components/component.tsx",
-  "name": "Parent_component_useTask_ngmvcygWux8",
-  "entry": null,
-  "displayName": "component.tsx_Parent_component_useTask",
-  "hash": "ngmvcygWux8",
-  "canonicalFilename": "component.tsx_Parent_component_useTask_ngmvcygWux8",
-  "path": "",
-  "extension": ".js",
-  "parent": "Parent_component_t6Wy3C0Q0XM",
-  "ctxKind": "function",
-  "ctxName": "useTask$",
-  "captures": false,
-  "loc": [
-    22,
-    11
-  ]
-}
-*/
 ============================= component.tsx_Parent_component_div_shouldRemove_EBj69wTX1do.js (ENTRY POINT)==
 
 export const Parent_component_div_shouldRemove_EBj69wTX1do = null;
-
-
-Some("")
-/*
-{
-  "origin": "components/component.tsx",
-  "name": "Parent_component_div_shouldRemove_EBj69wTX1do",
-  "entry": null,
-  "displayName": "component.tsx_Parent_component_div_shouldRemove",
-  "hash": "EBj69wTX1do",
-  "canonicalFilename": "component.tsx_Parent_component_div_shouldRemove_EBj69wTX1do",
-  "path": "",
-  "extension": ".js",
-  "parent": "Parent_component_t6Wy3C0Q0XM",
-  "ctxKind": "eventHandler",
-  "ctxName": "shouldRemove$",
-  "captures": false,
-  "loc": [
-    0,
-    0
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "state"
-  ]
-}
-*/
 ============================= component.tsx_Parent_component_div_q_e_click_oqNnfO6ubjU.js (ENTRY POINT)==
 
 export const Parent_component_div_q_e_click_oqNnfO6ubjU = null;
-
-
-Some("")
-/*
-{
-  "origin": "components/component.tsx",
-  "name": "Parent_component_div_q_e_click_oqNnfO6ubjU",
-  "entry": null,
-  "displayName": "component.tsx_Parent_component_div_q_e_click",
-  "hash": "oqNnfO6ubjU",
-  "canonicalFilename": "component.tsx_Parent_component_div_q_e_click_oqNnfO6ubjU",
-  "path": "",
-  "extension": ".js",
-  "parent": "Parent_component_t6Wy3C0Q0XM",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    0,
-    0
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "state"
-  ]
-}
-*/
 ============================= component.tsx_Parent_component_div_Div_onClick_kgowuto5dR0.js (ENTRY POINT)==
 
 export const Parent_component_div_Div_onClick_kgowuto5dR0 = null;
-
-
-Some("")
-/*
-{
-  "origin": "components/component.tsx",
-  "name": "Parent_component_div_Div_onClick_kgowuto5dR0",
-  "entry": null,
-  "displayName": "component.tsx_Parent_component_div_Div_onClick",
-  "hash": "kgowuto5dR0",
-  "canonicalFilename": "component.tsx_Parent_component_div_Div_onClick_kgowuto5dR0",
-  "path": "",
-  "extension": ".js",
-  "parent": "Parent_component_t6Wy3C0Q0XM",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    0,
-    0
-  ]
-}
-*/
 ============================= component.tsx_Parent_component_div_Div_render_CkMybN6xzQk.js (ENTRY POINT)==
 
 export const Parent_component_div_Div_render_CkMybN6xzQk = null;
+============================= component.tsx_Parent_component_t6Wy3C0Q0XM.js (ENTRY POINT)==
 
 
-Some("")
-/*
-{
-  "origin": "components/component.tsx",
-  "name": "Parent_component_div_Div_render_CkMybN6xzQk",
-  "entry": null,
-  "displayName": "component.tsx_Parent_component_div_Div_render",
-  "hash": "CkMybN6xzQk",
-  "canonicalFilename": "component.tsx_Parent_component_div_Div_render_CkMybN6xzQk",
-  "path": "",
-  "extension": ".js",
-  "parent": "Parent_component_t6Wy3C0Q0XM",
-  "ctxKind": "eventHandler",
-  "ctxName": "render$",
-  "captures": false,
-  "loc": [
-    0,
-    0
-  ],
-  "paramNames": [
-    "_",
-    "_1",
-    "state"
-  ]
-}
-*/
-============================= component.tsx_Parent_component_t6Wy3C0Q0XM.ts (ENTRY POINT)==
-
-
-
-Some("")
-/*
-{
-  "origin": "components/component.tsx",
-  "name": "Parent_component_t6Wy3C0Q0XM",
-  "entry": null,
-  "displayName": "component.tsx_Parent_component",
-  "hash": "t6Wy3C0Q0XM",
-  "canonicalFilename": "component.tsx_Parent_component_t6Wy3C0Q0XM",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    11,
-    34
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

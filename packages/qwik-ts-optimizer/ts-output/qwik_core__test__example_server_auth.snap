@@ -40,8 +40,7 @@ export const { onRequest, logout, getSession, signup } = auth$({
 	})
 	]
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { serverAuthQrl } from "@auth/qwik";
@@ -54,9 +53,6 @@ const q_serverAuth_qVqpX2a0p9Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_server
 export const { onRequest, logout, getSession, signup } = serverAuthQrl(q_serverAuth_qVqpX2a0p9Y);
 
 export const { onRequest, logout, getSession, signup } = authQrl(q_auth_GU0aY5QCETY);
-
-
-Some("")
 ============================= test.tsx_serverAuth_qVqpX2a0p9Y.js (ENTRY POINT)==
 
 import GitHub from "@auth/core/providers/github";
@@ -78,29 +74,6 @@ export const serverAuth_qVqpX2a0p9Y = { providers: [
 	})
 ] };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "serverAuth_qVqpX2a0p9Y",
-  "entry": null,
-  "displayName": "test.tsx_serverAuth",
-  "hash": "qVqpX2a0p9Y",
-  "canonicalFilename": "test.tsx_serverAuth_qVqpX2a0p9Y",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "serverAuth$",
-  "captures": false,
-  "loc": [
-    8,
-    70
-  ]
-}
-*/
 ============================= test.tsx_auth_GU0aY5QCETY.js (ENTRY POINT)==
 
 import GitHub from "@auth/core/providers/github";
@@ -122,29 +95,6 @@ export const auth_GU0aY5QCETY = { providers: [
 	})
 ] };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "auth_GU0aY5QCETY",
-  "entry": null,
-  "displayName": "test.tsx_auth",
-  "hash": "GU0aY5QCETY",
-  "canonicalFilename": "test.tsx_auth_GU0aY5QCETY",
-  "path": "",
-  "extension": ".js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "auth$",
-  "captures": false,
-  "loc": [
-    25,
-    64
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

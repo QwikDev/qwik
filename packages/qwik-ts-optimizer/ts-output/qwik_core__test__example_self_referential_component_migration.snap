@@ -48,8 +48,7 @@ const ComponentB = component$(() => {
 export const MutualExample = component$(() => {
 	return <ComponentA />;
 });
-
-============================= test.tsx ==
+============================= test.ts ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -71,10 +70,7 @@ const ComponentA = /* @__PURE__ */ componentQrl(q_ComponentA_component_100sEyGkG
 const ComponentB = /* @__PURE__ */ componentQrl(q_ComponentB_component_WfCOFVxlmq4);
 export const MutualExample = /* @__PURE__ */ componentQrl(q_MutualExample_component_LXt10RL0k44);
 
-
-
-Some("")
-============================= test.tsx_Nested_component_8cqIQQSPqhE.ts (ENTRY POINT)==
+============================= test.tsx_Nested_component_8cqIQQSPqhE.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { Nested } from "./test";
@@ -83,30 +79,7 @@ export const Nested_component_8cqIQQSPqhE = () => {
 	return /* @__PURE__ */ _jsxSorted("div", null, null, /* @__PURE__ */ _jsxSorted(Nested, null, null, null, 3, "u6_0"), 1, "u6_1");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Nested_component_8cqIQQSPqhE",
-  "entry": null,
-  "displayName": "test.tsx_Nested_component",
-  "hash": "8cqIQQSPqhE",
-  "canonicalFilename": "test.tsx_Nested_component_8cqIQQSPqhE",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    8,
-    34
-  ]
-}
-*/
-============================= test.tsx_RecursiveList_component_ignTe6QguYQ.ts (ENTRY POINT)==
+============================= test.tsx_RecursiveList_component_ignTe6QguYQ.js (ENTRY POINT)==
 
 import { _fnSignal } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
@@ -124,33 +97,7 @@ export const RecursiveList_component_ignTe6QguYQ = (props) => {
 	], 1, "u6_4");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "RecursiveList_component_ignTe6QguYQ",
-  "entry": null,
-  "displayName": "test.tsx_RecursiveList_component",
-  "hash": "ignTe6QguYQ",
-  "canonicalFilename": "test.tsx_RecursiveList_component_ignTe6QguYQ",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    17,
-    41
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
-============================= test.tsx_ComponentA_component_100sEyGkGuA.ts (ENTRY POINT)==
+============================= test.tsx_ComponentA_component_100sEyGkGuA.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { ComponentB } from "./test";
@@ -159,30 +106,7 @@ export const ComponentA_component_100sEyGkGuA = () => {
 	return /* @__PURE__ */ _jsxSorted("div", null, null, ["A", /* @__PURE__ */ _jsxSorted(ComponentB, null, null, null, 3, "u6_5")], 1, "u6_6");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "ComponentA_component_100sEyGkGuA",
-  "entry": null,
-  "displayName": "test.tsx_ComponentA_component",
-  "hash": "100sEyGkGuA",
-  "canonicalFilename": "test.tsx_ComponentA_component_100sEyGkGuA",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    28,
-    31
-  ]
-}
-*/
-============================= test.tsx_ComponentB_component_WfCOFVxlmq4.ts (ENTRY POINT)==
+============================= test.tsx_ComponentB_component_WfCOFVxlmq4.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { ComponentA } from "./test";
@@ -191,30 +115,7 @@ export const ComponentB_component_WfCOFVxlmq4 = () => {
 	return /* @__PURE__ */ _jsxSorted("div", null, null, ["B", /* @__PURE__ */ _jsxSorted(ComponentA, null, null, null, 3, "u6_7")], 1, "u6_8");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "ComponentB_component_WfCOFVxlmq4",
-  "entry": null,
-  "displayName": "test.tsx_ComponentB_component",
-  "hash": "WfCOFVxlmq4",
-  "canonicalFilename": "test.tsx_ComponentB_component_WfCOFVxlmq4",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    37,
-    31
-  ]
-}
-*/
-============================= test.tsx_MutualExample_component_LXt10RL0k44.ts (ENTRY POINT)==
+============================= test.tsx_MutualExample_component_LXt10RL0k44.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { ComponentA } from "./test";
@@ -223,29 +124,6 @@ export const MutualExample_component_LXt10RL0k44 = () => {
 	return /* @__PURE__ */ _jsxSorted(ComponentA, null, null, null, 3, "u6_9");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "MutualExample_component_LXt10RL0k44",
-  "entry": null,
-  "displayName": "test.tsx_MutualExample_component",
-  "hash": "LXt10RL0k44",
-  "canonicalFilename": "test.tsx_MutualExample_component_LXt10RL0k44",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    46,
-    41
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

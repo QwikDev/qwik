@@ -9,8 +9,7 @@
 				<div test="test" {...props}></div>
 			);
 		});
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -19,10 +18,7 @@ const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.ts
 //
 export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
 
-
-
-Some("")
-============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { _getVarProps } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
@@ -35,32 +31,6 @@ export const test_component_LUXeXe0DQrg = (props) => {
 	}, _getConstProps(props), null, 0, "u6_0");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
-  "entry": null,
-  "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    5,
-    29
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

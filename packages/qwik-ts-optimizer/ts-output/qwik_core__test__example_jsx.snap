@@ -41,8 +41,7 @@ export const Foo = component$((props) => {
 }, {
 	tagName: "my-foo",
 });
-
-============================= test.tsx ==
+============================= test.js ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -59,10 +58,7 @@ export const Lightweight = (props) => {
 };
 export const Foo = /* @__PURE__ */ componentQrl(q_Foo_component_HTDRsvUbLiE, { tagName: "my-foo" });
 
-
-
-Some("")
-============================= test.tsx_Foo_component_1_DvU6FitWglY.ts (ENTRY POINT)==
+============================= test.tsx_Foo_component_1_DvU6FitWglY.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -90,33 +86,7 @@ export const Foo_component_1_DvU6FitWglY = () => {
 	], 1, "u6_4");
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_1_DvU6FitWglY",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_1",
-  "hash": "DvU6FitWglY",
-  "canonicalFilename": "test.tsx_Foo_component_1_DvU6FitWglY",
-  "path": "",
-  "extension": ".ts",
-  "parent": "Foo_component_HTDRsvUbLiE",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": true,
-  "loc": [
-    17,
-    11
-  ],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= test.tsx_Foo_component_HTDRsvUbLiE.ts (ENTRY POINT)==
+============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 //
@@ -126,32 +96,6 @@ export const Foo_component_HTDRsvUbLiE = (props) => {
 	return q_Foo_component_1_DvU6FitWglY.w([props]);
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_HTDRsvUbLiE",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component",
-  "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
-  "path": "",
-  "extension": ".ts",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    16,
-    31
-  ],
-  "paramNames": [
-    "props"
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

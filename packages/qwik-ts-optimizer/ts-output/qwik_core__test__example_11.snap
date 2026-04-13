@@ -20,7 +20,6 @@ export const App = component$(() => {
 		<Header>{foo()}</Header>
 	);
 });
-
 ============================= project/test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
@@ -33,40 +32,11 @@ const q_Header_component_UVBJuFYfvDo = /*#__PURE__*/ qrl(()=>import("./test.tsx_
 export const Header = /*#__PURE__*/ componentQrl(q_Header_component_UVBJuFYfvDo);
 
 export const App = /*#__PURE__*/ componentQrl(q_App_component_wGkRHWXaqjs);
-
-
-Some("")
 ============================= test.tsx_Header_component_Header_onClick_KjD9TCNkNxY.js (ENTRY POINT)==
 
 import dep3 from "dep3/something";
 //
 export const Header_component_Header_onClick_KjD9TCNkNxY = (ev) => dep3(ev);
-
-
-Some("")
-/*
-{
-  "origin": "project/test.tsx",
-  "name": "Header_component_Header_onClick_KjD9TCNkNxY",
-  "entry": "entry_hooks",
-  "displayName": "test.tsx_Header_component_Header_onClick",
-  "hash": "KjD9TCNkNxY",
-  "canonicalFilename": "test.tsx_Header_component_Header_onClick_KjD9TCNkNxY",
-  "path": "",
-  "extension": ".js",
-  "parent": "Header_component_UVBJuFYfvDo",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    10,
-    22
-  ],
-  "paramNames": [
-    "ev"
-  ]
-}
-*/
 ============================= test.tsx_Header_component_UVBJuFYfvDo.tsx (ENTRY POINT)==
 
 import { bar as bbar } from "../state";
@@ -83,29 +53,6 @@ export const Header_component_UVBJuFYfvDo = () => {
 		</Header>
 	);
 };
-
-
-Some("")
-/*
-{
-  "origin": "project/test.tsx",
-  "name": "Header_component_UVBJuFYfvDo",
-  "entry": "entry_hooks",
-  "displayName": "test.tsx_Header_component",
-  "hash": "UVBJuFYfvDo",
-  "canonicalFilename": "test.tsx_Header_component_UVBJuFYfvDo",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    8,
-    34
-  ]
-}
-*/
 ============================= test.tsx_App_component_wGkRHWXaqjs.tsx (ENTRY POINT)==
 
 import { foo } from "../state";
@@ -116,29 +63,6 @@ export const App_component_wGkRHWXaqjs = () => {
 		<Header>{foo()}</Header>
 	);
 };
-
-
-Some("")
-/*
-{
-  "origin": "project/test.tsx",
-  "name": "App_component_wGkRHWXaqjs",
-  "entry": "entry_hooks",
-  "displayName": "test.tsx_App_component",
-  "hash": "wGkRHWXaqjs",
-  "canonicalFilename": "test.tsx_App_component_wGkRHWXaqjs",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    16,
-    31
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
 []

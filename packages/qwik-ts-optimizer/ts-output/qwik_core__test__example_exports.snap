@@ -25,8 +25,7 @@ export const Header = component$(() => {
 });
 
 export const Footer = component$();
-
-============================= project/test.tsx ==
+============================= project/test.jsx ==
 
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -43,10 +42,7 @@ export default function DefaultFn() {}
 export const Header = /* @__PURE__ */ componentQrl(q_Header_component_UVBJuFYfvDo);
 export const Footer = /* @__PURE__ */ componentQrl();
 
-
-
-Some("")
-============================= test.tsx_Header_component_1_uWM1kg0IGO0.tsx (ENTRY POINT)==
+============================= test.tsx_Header_component_1_uWM1kg0IGO0.jsx (ENTRY POINT)==
 
 import { Footer } from "./test";
 import { default as DefaultFn } from "./test";
@@ -66,30 +62,7 @@ export const Header_component_1_uWM1kg0IGO0 = () => <Footer>
 			<div>{v1}{v2}{v3}{obj}</div>
 		</Footer>;
 
-
-
-Some("")
-/*
-{
-  "origin": "project/test.tsx",
-  "name": "Header_component_1_uWM1kg0IGO0",
-  "entry": null,
-  "displayName": "test.tsx_Header_component_1",
-  "hash": "uWM1kg0IGO0",
-  "canonicalFilename": "test.tsx_Header_component_1_uWM1kg0IGO0",
-  "path": "",
-  "extension": ".tsx",
-  "parent": "Header_component_UVBJuFYfvDo",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    17,
-    11
-  ]
-}
-*/
-============================= test.tsx_Header_component_UVBJuFYfvDo.tsx (ENTRY POINT)==
+============================= test.tsx_Header_component_UVBJuFYfvDo.jsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 //
@@ -99,48 +72,6 @@ export const Header_component_UVBJuFYfvDo = () => {
 	return q_Header_component_1_uWM1kg0IGO0;
 };
 
-
-
-Some("")
-/*
-{
-  "origin": "project/test.tsx",
-  "name": "Header_component_UVBJuFYfvDo",
-  "entry": null,
-  "displayName": "test.tsx_Header_component",
-  "hash": "UVBJuFYfvDo",
-  "canonicalFilename": "test.tsx_Header_component_UVBJuFYfvDo",
-  "path": "",
-  "extension": ".tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    16,
-    34
-  ]
-}
-*/
 == DIAGNOSTICS ==
 
-[
-  {
-    "category": "error",
-    "code": "C02",
-    "file": "project/test.tsx",
-    "message": "Reference to identifier 'foo' can not be used inside a Qrl($) scope because it's a function",
-    "highlights": null,
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C02",
-    "file": "project/test.tsx",
-    "message": "Reference to identifier 'bar' can not be used inside a Qrl($) scope because it's a function",
-    "highlights": null,
-    "suggestions": null,
-    "scope": "optimizer"
-  }
-]
+[{"category":"error","code":"C02","file":"project/test.tsx","message":"Reference to identifier 'foo' can not be used inside a Qrl($) scope because it's a function","highlights":null,"suggestions":null,"scope":"optimizer"},{"category":"error","code":"C02","file":"project/test.tsx","message":"Reference to identifier 'bar' can not be used inside a Qrl($) scope because it's a function","highlights":null,"suggestions":null,"scope":"optimizer"}]

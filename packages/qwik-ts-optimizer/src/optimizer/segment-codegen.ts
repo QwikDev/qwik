@@ -315,6 +315,15 @@ function findEnclosingArrowBodyForCapture(text: string, pos: number, capturedVar
         if (params.includes(capturedVarName)) {
           return i + 1; // Position right after `(` or `{`
         }
+        // Also check if the captured variable is declared as a local variable
+        // inside this arrow body (e.g., `const rowIndex = i + 1;`).
+        // The variable is "owned" by this scope if it has a const/let/var declaration.
+        const bodyStart = i + 1;
+        const bodySlice = text.slice(bodyStart, pos);
+        const localDeclPattern = new RegExp(`\\b(?:const|let|var)\\s+${capturedVarName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+        if (localDeclPattern.test(bodySlice)) {
+          return bodyStart; // Position right after `(` or `{`
+        }
       }
     }
     i--;

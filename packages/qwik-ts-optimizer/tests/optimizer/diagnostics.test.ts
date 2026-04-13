@@ -15,7 +15,7 @@ import {
   parseDisableDirectives,
   filterSuppressedDiagnostics,
 } from '../../src/optimizer/diagnostics.js';
-import { transformModule } from '../../src/optimizer/transform.js';
+import { transformModule } from '../../src/optimizer/transform/index.js';
 import type { Diagnostic } from '../../src/optimizer/types.js';
 
 describe('emitC02', () => {

@@ -1,6 +1,6 @@
 import type { AstNode } from '../../ast-types.js';
-import { isAstNode } from '../../ast-utils.js';
-import { parseWithRawTransfer } from '../../parse-utils.js';
+import { isAstNode } from '../../utils/ast.js';
+import { parseWithRawTransfer } from '../../utils/parse.js';
 import { buildPropertyAccessor } from './identifier-name.js';
 
 interface RewritePropsFieldReferencesOptions {

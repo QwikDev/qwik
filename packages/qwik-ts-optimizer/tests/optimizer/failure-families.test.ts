@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { parseSync } from 'oxc-parser';
 import equal from 'fast-deep-equal';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
-import { transformModule } from '../../src/optimizer/transform.js';
+import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

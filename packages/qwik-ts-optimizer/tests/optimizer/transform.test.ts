@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { transformModule } from '../../src/optimizer/transform.js';
+import { transformModule } from '../../src/optimizer/transform/index.js';
 
 describe('transformModule', () => {
   it('transforms a single component$ into parent + segment', () => {

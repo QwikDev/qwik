@@ -17,7 +17,7 @@ import type {
   JSXElementName,
 } from '../ast-types.js';
 import { qwikHash } from '../hashing/siphash.js';
-import { parseWithRawTransfer } from '../parse-utils.js';
+import { parseWithRawTransfer } from '../utils/parse.js';
 import { ContextStack } from './context-stack.js';
 import {
   collectImports,
@@ -30,7 +30,7 @@ import {
   type CustomInlinedInfo,
   type ImportInfo,
 } from './marker-detection.js';
-import { isEventProp, transformEventPropName, collectPassiveDirectives } from './event-handler-transform.js';
+import { isEventProp, transformEventPropName, collectPassiveDirectives } from './transform/event-handlers.js';
 import { getBasename, getDirectory, getExtension, getFileStem } from './path-utils.js';
 import { getQrlCalleeName } from './utils/qrl-naming.js';
 import { computeLineColFromOffset } from './utils/source-loc.js';

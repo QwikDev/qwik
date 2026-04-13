@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { rewriteParentModule } from '../../src/optimizer/rewrite-parent.js';
+import { rewriteParentModule } from '../../src/optimizer/rewrite/index.js';
 import { extractSegments } from '../../src/optimizer/extract.js';
 import { collectImports } from '../../src/optimizer/marker-detection.js';
 import { parseSync } from 'oxc-parser';

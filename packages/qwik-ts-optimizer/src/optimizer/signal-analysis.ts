@@ -7,7 +7,7 @@
 
 import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
 import type { AstNode } from '../ast-types.js';
-import { isAstNode } from '../ast-utils.js';
+import { isAstNode } from '../utils/ast.js';
 
 const trailingComma = createRegExp(
   exactly(',').and(anyOf('}', ']', ')').grouped()),

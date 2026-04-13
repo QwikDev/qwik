@@ -8,7 +8,7 @@ import type {
   CallExpression,
   JSXOpeningElement,
 } from '../../ast-types.js';
-import { parseWithRawTransfer } from '../../parse-utils.js';
+import { parseWithRawTransfer } from '../../utils/parse.js';
 import type { ExtractionResult } from '../extract.js';
 import {
   classifyDeclarationType,

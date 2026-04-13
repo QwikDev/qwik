@@ -7,6 +7,7 @@
  */
 
 import type MagicString from 'magic-string';
+import { createRegExp, exactly, wordBoundary } from 'magic-regexp';
 import type { AstProgram, ImportSpecifier, ModuleExportName } from '../ast-types.js';
 import type { ImportInfo } from './marker-detection.js';
 
@@ -111,7 +112,7 @@ function removeUnusedImports(
   }
 
   for (const [localName] of importMap) {
-    const pattern = new RegExp(`\\b${escapeRegex(localName)}\\b`);
+    const pattern = createRegExp(wordBoundary, exactly(localName), wordBoundary);
     if (pattern.test(liveCode)) {
       usedNames.add(localName);
     }
@@ -189,6 +190,3 @@ function getModuleExportNameValue(specifier: ModuleExportName): string | undefin
   return specifier.type === 'Literal' ? specifier.value : undefined;
 }
 
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}

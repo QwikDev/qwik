@@ -1,4 +1,4 @@
-import type { AstCompatMaybeNode, AstCompatNode, AstNode } from './ast-types.js';
+import type { AstCompatMaybeNode, AstCompatNode, AstNode } from '../ast-types.js';
 
 const DEFAULT_META_KEYS = new Set(["type", "start", "end", "loc", "range"]);
 

@@ -1791,7 +1791,7 @@ import { eventQrl } from "@qwik.dev/core";
 import { useStylesQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 import { jsx } from '@qwik.dev/core/jsx-runtime';
-import { createContextId, useContext, noSerialize, useServerData, useSignal, untrack, isDev, withLocale, isServer, useStore, useContextProvider } from '@qwik.dev/core';
+import { createContextId, useContext, implicit$FirstArg, noSerialize, useServerData, useSignal, untrack, isDev, withLocale, isServer, useStore, useContextProvider, jsx as jsx$1 } from '@qwik.dev/core';
 import { a as isSamePath, c as createLoaderSignal, t as toUrl, D as DEFAULT_LOADERS_SERIALIZATION_STRATEGY, h as QACTION_KEY } from './chunks/routing.qwik.mjs';
 import { _getContextContainer, SerializerSymbol, _UNINITIALIZED, _getContextHostElement, _resolveContextWithoutSequentialScope } from '@qwik.dev/core/internal';
 import * as v from 'valibot';

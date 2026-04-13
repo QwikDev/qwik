@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$, useTask$ } from '@qwik.dev/core';
 
 		export const useMemo$ = (qrl) => {
@@ -13,42 +12,36 @@
 			useMemo$(() => <button passive:click preventdefault:click onClick$={() => {}}>click</button>);
 			return <div />;
 		});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
-const q_useMemo_useTask_505mjFKN4to = /* @__PURE__ */ qrl(() => import("./test.tsx_useMemo_useTask_505mjFKN4to"), "useMemo_useTask_505mjFKN4to");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_useMemo_useTask_505mjFKN4to = /*#__PURE__*/ qrl(() => import("./test.tsx_useMemo_useTask_505mjFKN4to"), "useMemo_useTask_505mjFKN4to");
 //
 export const useMemo$ = (qrl) => {
 	useTaskQrl(q_useMemo_useTask_505mjFKN4to);
 };
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_useMemo_button_q_ep_click_vCuIdygdt3k.js (ENTRY POINT)==
-
 export const App_component_useMemo_button_q_ep_click_vCuIdygdt3k = () => {};
-
 ============================= test.tsx_useMemo_useTask_505mjFKN4to.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
 export const useMemo_useTask_505mjFKN4to = qrl;
-
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useMemo$ } from "./test";
 //
-const q_App_component_useMemo_button_q_ep_click_vCuIdygdt3k = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_useMemo_button_q_ep_click_vCuIdygdt3k"), "App_component_useMemo_button_q_ep_click_vCuIdygdt3k");
+const q_App_component_useMemo_button_q_ep_click_vCuIdygdt3k = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_useMemo_button_q_ep_click_vCuIdygdt3k"), "App_component_useMemo_button_q_ep_click_vCuIdygdt3k");
 //
 export const App_component_ckEPmXZlub0 = () => {
 	/* @qwik-disable-next-line C05, preventdefault-passive-check */
-	useMemo$(() => /* @__PURE__ */ _jsxSorted("button", null, { "q-ep:click": q_App_component_useMemo_button_q_ep_click_vCuIdygdt3k }, "click", 3, "u6_0"));
-	return /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_1");
+	useMemo$(() => /*#__PURE__*/ _jsxSorted("button", null, { "q-ep:click": q_App_component_useMemo_button_q_ep_click_vCuIdygdt3k }, "click", 3, "u6_0"));
+	return /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_1");
 };
 
 == DIAGNOSTICS ==

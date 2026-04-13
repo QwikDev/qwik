@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$, useSignal } from "@qwik.dev/core";
 		export default component$((props) => {
 			const { test, ...rest } = props;
@@ -12,31 +11,29 @@
 				</>
 			);
 		});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { useSignal } from "@qwik.dev/core";
 import { _restProps } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _fnSignal } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 //
+const _hf0 = (p0) => p0.test.value;
+const _hf0_str = "p0.test.value";
 export const test_component_LUXeXe0DQrg = (props) => {
-const rest = _restProps(props, [
-    "test"
-]);
-			const props.test = useSignal(rest['bind:value']);
-			return (
-				<>
-				{props.test.value}
-				</>
-			);
-		};
+	const rest = _restProps(props, ["test"]);
+	useSignal(rest["bind:value"]);
+	return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, _fnSignal(_hf0, [props], _hf0_str), 1, "u6_0");
+};
+
 == DIAGNOSTICS ==
 
 []

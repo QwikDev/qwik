@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { $, component$ } from "@builder.io/qwik";
 		import { isDev } from "@builder.io/qwik/build";
 		import { stuff } from "@builder.io/qwik-city";
@@ -22,8 +21,7 @@
 			}
 			return "hi";
 		});
-============================= test.ts ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { qwikifyQrl } from "@qwik.dev/react";
 import { componentQrl } from "@qwik.dev/core";
@@ -39,13 +37,10 @@ const q_Foo_qwikify_0Yoy9qA0SC0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_q
 
 		export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 ============================= test.tsx_Foo_qwikify_0Yoy9qA0SC0.js (ENTRY POINT)==
-
 export const Foo_qwikify_0Yoy9qA0SC0 = MyReactComponent;
 ============================= test.tsx_Bar_GXXnVUtURSw.js (ENTRY POINT)==
-
 export const Bar_GXXnVUtURSw = "a thing";
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { isDev } from "@qwik.dev/core/build";
 import { stuff } from "@qwik.dev/router";
 import { moreStuff } from "@qwik.dev/router/more/here";

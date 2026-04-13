@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$, useStyles } from '@qwik.dev/core';
 import { qrl } from '@qwik.dev/core/what';
 
@@ -33,68 +32,59 @@ export const Root = component$(() => {
 }, {
 	tagName: "my-foo",
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core/what";
 //
-const q_Foo_component_HTDRsvUbLiE = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
-const q_Root_component_royhjYaCbYE = /* @__PURE__ */ qrl(() => import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE");
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+const q_Root_component_royhjYaCbYE = /*#__PURE__*/ qrl(() => import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE");
 //
 export const hW = 12;
 export const handleWatch = 42;
 const componentQrl = () => console.log("not this", qrl());
 componentQrl();
-export const Foo = /* @__PURE__ */ componentQrl(q_Foo_component_HTDRsvUbLiE, { tagName: "my-foo" });
-export const Root = /* @__PURE__ */ componentQrl(q_Root_component_royhjYaCbYE, { tagName: "my-foo" });
+export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE, { tagName: "my-foo" });
+export const Root = /*#__PURE__*/ componentQrl(q_Root_component_royhjYaCbYE, { tagName: "my-foo" });
 
 ============================= test.tsx_Foo_component_div_q_e_click_YEa2A5ADUOg.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core/what";
 //
-export const Foo_component_div_q_e_click_YEa2A5ADUOg = () => console.log(qrl);
-
+export const Foo_component_div_q_e_click_YEa2A5ADUOg = ()=> console.log(qrl);
 ============================= test.tsx_Root_component_useStyles_u5DkUxGrGnU.js (ENTRY POINT)==
-
-export const Root_component_useStyles_u5DkUxGrGnU = "thing";
-
+export const Root_component_useStyles_u5DkUxGrGnU = 'thing';
 ============================= test.tsx_Root_component_1_cBpQNYDUHI4.js (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
 //
 export const Root_component_1_cBpQNYDUHI4 = () => {
-	return /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_0");
-};
-
+		return (
+			/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_0")
+		)
+	};
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core/what";
 import { _jsxSorted } from "@qwik.dev/core";
 import { hW } from "./test";
 import { handleWatch } from "./test";
 //
-const q_Foo_component_div_q_e_click_YEa2A5ADUOg = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_q_e_click_YEa2A5ADUOg"), "Foo_component_div_q_e_click_YEa2A5ADUOg");
+const q_Foo_component_div_q_e_click_YEa2A5ADUOg = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_q_e_click_YEa2A5ADUOg"), "Foo_component_div_q_e_click_YEa2A5ADUOg");
 //
 export const Foo_component_HTDRsvUbLiE = () => {
 	useStyles$("thing");
 	const qwik = hW + handleWatch;
 	console.log(qwik);
-	const qrl = 23;
-	return /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": q_Foo_component_div_q_e_click_YEa2A5ADUOg }, null, 3, "u6_1");
+	return /*#__PURE__*/ _jsxSorted("div", null, { "q-e:click": q_Foo_component_div_q_e_click_YEa2A5ADUOg }, null, 3, "u6_1");
 };
 
 ============================= test.tsx_Root_component_royhjYaCbYE.js (ENTRY POINT)==
-
 import { useStyles } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const q_Root_component_1_cBpQNYDUHI4 = /* @__PURE__ */ qrl(() => import("./test.tsx_Root_component_1_cBpQNYDUHI4"), "Root_component_1_cBpQNYDUHI4");
-const q_Root_component_useStyles_u5DkUxGrGnU = /* @__PURE__ */ qrl(() => import("./test.tsx_Root_component_useStyles_u5DkUxGrGnU"), "Root_component_useStyles_u5DkUxGrGnU");
+const q_Root_component_1_cBpQNYDUHI4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_1_cBpQNYDUHI4"), "Root_component_1_cBpQNYDUHI4");
+const q_Root_component_useStyles_u5DkUxGrGnU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_useStyles_u5DkUxGrGnU"), "Root_component_useStyles_u5DkUxGrGnU");
 //
 export const Root_component_royhjYaCbYE = () => {
 	useStyles(q_Root_component_useStyles_u5DkUxGrGnU);
 	return q_Root_component_1_cBpQNYDUHI4;
 };
-
 == DIAGNOSTICS ==
 
 []

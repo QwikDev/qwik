@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -11,30 +10,26 @@ export const App = component$(() => {
 		</Cmp>
 	);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrlDEV } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrlDEV(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0", {
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrlDEV(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0", {
 	file: "/user/qwik/src/test.tsx",
 	lo: 5,
 	hi: 31,
 	displayName: "test.tsx_App_component"
 });
 //
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.js (ENTRY POINT)==
-
-export const App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = () => console.log("warn");
-
+export const App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = () => console.log('warn');
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { qrlDEV } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /* @__PURE__ */ qrlDEV(() => import("./test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4"), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
+const q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /*#__PURE__*/ qrlDEV(() => import("./test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4"), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
 	file: "/user/qwik/src/test.tsx",
 	lo: 8,
 	hi: 31,
@@ -42,7 +37,7 @@ const q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /* @__PURE__ */ qrlDEV(() =>
 });
 //
 export const App_component_ckEPmXZlub0 = () => {
-	return /* @__PURE__ */ _jsxSorted(Cmp, null, null, /* @__PURE__ */ _jsxSorted("p", null, {
+	return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
 		class: "stuff",
 		"q-e:click": q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4
 	}, "Hello Qwik", 3, null, {

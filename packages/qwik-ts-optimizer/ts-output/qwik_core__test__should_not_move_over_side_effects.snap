@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		export const $promoteToRoot$ = (ref: SeenRef) => {
 			const path = $getObjectPath$(ref) as string;
 			// should stay before the push
@@ -11,8 +10,7 @@
 			ref.$index$ = idx;
 			return idx;
 		};
-============================= test.js ==
-
+============================= test.tsx ==
 //
 export const $promoteToRoot$ = (ref) => {
 	const path = $getObjectPath$(ref);

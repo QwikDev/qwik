@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { _captures, inlinedQrl } from '@qwik.dev/core';
 
 const left = 1;
@@ -14,7 +13,7 @@ export const task = inlinedQrl(() => {
 	return middle ? left : right;
 }, 'task', [left, true, right]);
 ============================= test.tsx ==
-
+import { qrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
 //
 const q_task = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_task_task"), "task", {
@@ -34,7 +33,6 @@ export const task = q_task.w([
     right
 ]);
 ============================= test.tsx_task_task.tsx (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const task = () => {

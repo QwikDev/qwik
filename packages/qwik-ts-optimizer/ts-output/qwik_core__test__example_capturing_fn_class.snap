@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -19,40 +18,57 @@ export const App = component$(() => {
 		)
 	});
 })
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
 //
 export const App_component_1_w0t0o3QMovU = () => {
-	hola();
-	new Thing();
-	return /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_0");
-};
-
+		hola();
+		new Thing();
+		return (
+			/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_0")
+		)
+	};
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
-const q_App_component_1_w0t0o3QMovU = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+const q_App_component_1_w0t0o3QMovU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
 //
 export const App_component_ckEPmXZlub0 = () => {
 	function hola() {
-		console.log("hola");
+		console.log('hola');
 	}
 	class Thing {}
 	class Other {}
+
 	return q_App_component_1_w0t0o3QMovU;
 };
-
 == DIAGNOSTICS ==
 
-[{"category":"error","code":"C02","file":"test.tsx","message":"Reference to identifier 'hola' can not be used inside a Qrl($) scope because it's a function","highlights":null,"suggestions":null,"scope":"optimizer"},{"category":"error","code":"C02","file":"test.tsx","message":"Reference to identifier 'Thing' can not be used inside a Qrl($) scope because it's a function","highlights":null,"suggestions":null,"scope":"optimizer"}]
+[
+  {
+    "category": "error",
+    "code": "C02",
+    "file": "test.tsx",
+    "message": "Reference to identifier 'hola' can not be used inside a Qrl($) scope because it's a function",
+    "highlights": null,
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "C02",
+    "file": "test.tsx",
+    "message": "Reference to identifier 'Thing' can not be used inside a Qrl($) scope because it's a function",
+    "highlights": null,
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

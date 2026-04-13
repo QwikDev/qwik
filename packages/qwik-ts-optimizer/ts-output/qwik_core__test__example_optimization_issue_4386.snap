@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 
 export const FOO_MAPPING = {
@@ -16,26 +15,22 @@ export const FOO_MAPPING = {
 
 	return <>{value}</>;
 	});
-============================= test.jsx ==
-
+============================= test.tsx ==
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ _noopQrl("test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ _noopQrl("test_component_LUXeXe0DQrg");
 export const FOO_MAPPING = {
 	A: 1,
 	B: 2,
 	C: 3
 };
 q_test_component_LUXeXe0DQrg.s(() => {
-	const key = "A";
-	const value = FOO_MAPPING[key];
-	return <>{value}</>;
+	return <>{FOO_MAPPING["A"]}</>;
 });
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_LUXeXe0DQrg.jsx (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

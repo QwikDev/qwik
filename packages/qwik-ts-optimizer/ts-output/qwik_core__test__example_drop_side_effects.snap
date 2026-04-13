@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 import { server$ } from '@qwik.dev/router';
 import { clientSupabase } from 'supabase';
@@ -30,24 +29,23 @@ export default component$(() => {
 		<button onClick$={() => await api()}></button>
 	)
 	});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrlDEV } from "@qwik.dev/core";
 import { _noopQrlDEV } from "@qwik.dev/core";
-import { serverQrl } from "@qwik.dev/core";
+import { serverQrl } from "@qwik.dev/router";
 import { componentQrl } from "@qwik.dev/core";
 import { clientSupabase } from "supabase";
 import { Client } from "openai";
 import { secret } from "./secret";
 import { sideEffect } from "./secret";
 //
-const q_qrl_4294901760 = /* @__PURE__ */ _noopQrlDEV("api_server_JonPp043gH0", {
+const q_qrl_4294901760 = /*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0", {
 	file: "/user/qwik/src/test.tsx",
 	lo: 0,
 	hi: 0,
 	displayName: "test.tsx_api_server"
 });
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrlDEV(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrlDEV(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
 	file: "/user/qwik/src/test.tsx",
 	lo: 26,
 	hi: 27,
@@ -64,25 +62,21 @@ const dfd = new Client(secret);
 })();
 sideEffect();
 export const api = serverQrl(q_qrl_4294901760);
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 export { supabase as _auto_supabase };
 export { dfd as _auto_dfd };
 
 ============================= test.tsx_test_component_button_q_e_click_qwSL5gM03T4.js (ENTRY POINT)==
-
 import { api } from "./test";
 //
 export const test_component_button_q_e_click_qwSL5gM03T4 = () => await api();
-
 ============================= test.tsx_api_server_JonPp043gH0.js (ENTRY POINT)==
-
 export const api_server_JonPp043gH0 = null;
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { qrlDEV } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_test_component_button_q_e_click_qwSL5gM03T4 = /* @__PURE__ */ qrlDEV(() => import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4", {
+const q_test_component_button_q_e_click_qwSL5gM03T4 = /*#__PURE__*/ qrlDEV(() => import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4", {
 	file: "/user/qwik/src/test.tsx",
 	lo: 28,
 	hi: 21,
@@ -90,7 +84,7 @@ const q_test_component_button_q_e_click_qwSL5gM03T4 = /* @__PURE__ */ qrlDEV(() 
 });
 //
 export const test_component_LUXeXe0DQrg = () => {
-	return /* @__PURE__ */ _jsxSorted("button", null, { "q-e:click": q_test_component_button_q_e_click_qwSL5gM03T4 }, null, 3, "u6_0", {
+	return /*#__PURE__*/ _jsxSorted("button", null, { "q-e:click": q_test_component_button_q_e_click_qwSL5gM03T4 }, null, 3, "u6_0", {
 		fileName: "test.tsx",
 		lineNumber: 3,
 		columnNumber: 3

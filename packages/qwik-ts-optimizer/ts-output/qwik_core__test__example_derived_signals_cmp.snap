@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
@@ -42,8 +41,7 @@ export const App = component$(() => {
 		/>
 	);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
@@ -60,12 +58,12 @@ const _hf1_str = "p0.address.city.name";
 const _hf2 = (p0) => p0.address.city.name ? "true" : "false";
 const _hf2_str = "p0.address.city.name?\"true\":\"false\"";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ _noopQrl("App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ _noopQrl("App_component_ckEPmXZlub0");
 //
 const App_component_ckEPmXZlub0 = () => {
 	const signal = useSignal(0);
 	const store = useStore({});
-	return /* @__PURE__ */ _jsxSorted(Cmp, {
+	return /*#__PURE__*/ _jsxSorted(Cmp, {
 		global: globalThing,
 		globalAccess: globalThing.thing,
 		globalComputed: globalThing.thing + "stuff",
@@ -91,10 +89,9 @@ const App_component_ckEPmXZlub0 = () => {
 	}, null, 3, "u6_0");
 };
 q_App_component_ckEPmXZlub0.s(App_component_ckEPmXZlub0);
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

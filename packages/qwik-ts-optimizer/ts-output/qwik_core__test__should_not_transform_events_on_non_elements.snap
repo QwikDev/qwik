@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, $ } from '@qwik.dev/core';
 import { CustomComponent } from './custom-component';
 import { AnotherComponent } from './another-component';
@@ -17,7 +16,6 @@ export const Greeter = component$(() => {
 	)
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -26,13 +24,10 @@ const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx
 
 export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
 ============================= test.tsx_Greeter_component_div_CustomComponent_onClick_6xTF8kMcS9w.js (ENTRY POINT)==
-
 export const Greeter_component_div_CustomComponent_onClick_6xTF8kMcS9w = () => {};
 ============================= test.tsx_Greeter_component_div_AnotherComponent_onClick_9BwXJW3s0yA.js (ENTRY POINT)==
-
 export const Greeter_component_div_AnotherComponent_onClick_9BwXJW3s0yA = () => {};
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.tsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { CustomComponent } from "./custom-component";
 import { AnotherComponent } from "./another-component";

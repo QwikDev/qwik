@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$, useStyles$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
@@ -13,7 +12,6 @@ export const Foo = component$(() => {
 	tagName: "my-foo",
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -24,10 +22,8 @@ export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE, {
 	tagName: "my-foo",
 });
 ============================= test.tsx_Foo_component_useStyles_pV9TSCBIhw8.js (ENTRY POINT)==
-
 export const Foo_component_useStyles_pV9TSCBIhw8 = '.class {}';
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { useStylesQrl } from "@qwik.dev/core";
 //

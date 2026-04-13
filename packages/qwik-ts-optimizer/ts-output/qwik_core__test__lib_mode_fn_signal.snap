@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$ } from '@qwik.dev/core';
 		export const Counter = component$(() => {
 			const count = useSignal(0);
@@ -15,8 +14,7 @@
 				</div>
 			);
 		});
-============================= test.ts ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -25,10 +23,8 @@ const q_Counter_component_zTmRHlL09Gg = /*#__PURE__*/ qrl(()=>import("./test.tsx
 
 				export const Counter = /*#__PURE__*/ componentQrl(q_Counter_component_zTmRHlL09Gg);
 ============================= test.tsx_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI.js (ENTRY POINT)==
-
 export const Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI = (_, _1, count) => count.value++;
 ============================= test.tsx_Counter_component_zTmRHlL09Gg.ts (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";

@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $ } from '@qwik.dev/core';
 
 const [a, b] = [1, 2];
@@ -11,11 +10,10 @@ console.log('root', b);
 export const handler = $(() => {
   console.log('qrl', a);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 //
-const q_handler_T7IDIUVU4lI = /* @__PURE__ */ qrl(() => import("./test.tsx_handler_T7IDIUVU4lI"), "handler_T7IDIUVU4lI");
+const q_handler_T7IDIUVU4lI = /*#__PURE__*/ qrl(() => import("./test.tsx_handler_T7IDIUVU4lI"), "handler_T7IDIUVU4lI");
 //
 const [a, b] = [1, 2];
 console.log("root", b);
@@ -23,7 +21,6 @@ export const handler = q_handler_T7IDIUVU4lI;
 export { a as _auto_a };
 
 ============================= test.tsx_handler_T7IDIUVU4lI.js (ENTRY POINT)==
-
 import { _auto_a as a } from "./test";
 //
 export const handler_T7IDIUVU4lI = () => {

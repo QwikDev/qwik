@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
@@ -15,7 +14,6 @@ export const Foo = component$(() => {
 	tagName: "my-foo",
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -26,7 +24,6 @@ export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE, {
 	tagName: "my-foo",
 });
 ============================= test.tsx_Foo_component_1_DvU6FitWglY.tsx (ENTRY POINT)==
-
 export const Foo_component_1_DvU6FitWglY = () => {
 		return (
 			<div>
@@ -34,7 +31,6 @@ export const Foo_component_1_DvU6FitWglY = () => {
 		)
 	};
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
 const q_Foo_component_1_DvU6FitWglY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY");

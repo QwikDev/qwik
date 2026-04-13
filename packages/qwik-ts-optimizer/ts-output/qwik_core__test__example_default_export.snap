@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 import { sibling } from './sibling';
 
@@ -11,30 +10,26 @@ export default component$(() => {
 		</div>
 	);
 });
-============================= src/routes/_repl/[id]/[[...slug]].js ==
-
+============================= src/routes/_repl/[id]/[[...slug]].tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_slug_component_0AM8HPnkNs4 = /* @__PURE__ */ qrl(() => import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js"), "slug_component_0AM8HPnkNs4");
+const q_slug_component_0AM8HPnkNs4 = /*#__PURE__*/ qrl(() => import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js"), "slug_component_0AM8HPnkNs4");
 //
-export default /* @__PURE__ */ componentQrl(q_slug_component_0AM8HPnkNs4);
+export default /*#__PURE__*/ componentQrl(q_slug_component_0AM8HPnkNs4);
 
 ============================= [[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js (ENTRY POINT)==
-
 import { sibling } from "./sibling";
 //
 export const slug_component_div_q_e_click_bCwVPYSTQ0w = () => console.log(mongodb, sibling);
-
 ============================= [[...slug]].tsx_slug_component_0AM8HPnkNs4.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_slug_component_div_q_e_click_bCwVPYSTQ0w = /* @__PURE__ */ qrl(() => import("./[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js"), "slug_component_div_q_e_click_bCwVPYSTQ0w");
+const q_slug_component_div_q_e_click_bCwVPYSTQ0w = /*#__PURE__*/ qrl(() => import("./[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js"), "slug_component_div_q_e_click_bCwVPYSTQ0w");
 //
 export const slug_component_0AM8HPnkNs4 = () => {
-	return /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": q_slug_component_div_q_e_click_bCwVPYSTQ0w }, null, 3, "W4_0");
+	return /*#__PURE__*/ _jsxSorted("div", null, { "q-e:click": q_slug_component_div_q_e_click_bCwVPYSTQ0w }, null, 3, "W4_0");
 };
 
 == DIAGNOSTICS ==

@@ -1,40 +1,35 @@
 ==INPUT==
 
 
-
 		import { component$ } from '@qwik.dev/core';
 
 		export default component$((props: any) => {
 			return <button {...props} onClick$={() => props.onClick$()}></button>;
 		});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_button_q_e_click_qwSL5gM03T4.js (ENTRY POINT)==
-
 export const test_component_button_q_e_click_qwSL5gM03T4 = (_, _1, props) => props.onClick$();
-
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { _getVarProps } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
 //
-const q_test_component_button_q_e_click_qwSL5gM03T4 = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4");
+const q_test_component_button_q_e_click_qwSL5gM03T4 = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4");
 //
 export const test_component_LUXeXe0DQrg = (props) => {
-	return /* @__PURE__ */ _jsxSplit("button", {
+	return /*#__PURE__*/ _jsxSplit("button", {
 		..._getVarProps(props),
-		..._getConstProps(props),
+		"q-e:click": q_test_component_button_q_e_click_qwSL5gM03T4,
 		"q:p": props
-	}, { "q-e:click": q_test_component_button_q_e_click_qwSL5gM03T4 }, null, 0, "u6_0");
+	}, _getConstProps(props), null, 4, "u6_0");
 };
 
 == DIAGNOSTICS ==

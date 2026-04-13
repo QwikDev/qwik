@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 
 const App = component$(() => {
@@ -21,35 +20,34 @@ const Other = 12;
 export { Other as App };
 
 export default App;
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
-const q_Root_component_royhjYaCbYE = /* @__PURE__ */ qrl(() => import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_Root_component_royhjYaCbYE = /*#__PURE__*/ qrl(() => import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE");
 //
-const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
-export const Root = /* @__PURE__ */ componentQrl(q_Root_component_royhjYaCbYE);
+const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+export const Root = /*#__PURE__*/ componentQrl(q_Root_component_royhjYaCbYE);
 const Other = 12;
 export { Other as App };
 export default App;
+export { App as _auto_App };
 
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
 //
 export const App_component_ckEPmXZlub0 = () => {
-	return /* @__PURE__ */ _jsxSorted("div", null, null, "hola", 3, "u6_0");
+	return (
+		/*#__PURE__*/ _jsxSorted("div", null, null, "hola", 3, "u6_0")
+	);
 };
-
 ============================= test.tsx_Root_component_royhjYaCbYE.js (ENTRY POINT)==
-
+import { _auto_App as App } from "./test";
 import { _jsxSorted } from "@qwik.dev/core";
-import { App } from "./test";
 //
 export const Root_component_royhjYaCbYE = (props) => {
-	return /* @__PURE__ */ _jsxSorted(App, null, null, null, 3, "u6_1");
+	return /*#__PURE__*/ _jsxSorted(App, null, null, null, 3, "u6_1");
 };
 
 == DIAGNOSTICS ==

@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$ } from "@qwik.dev/core";
 		const Cmp = component$(() => {
 			const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
@@ -24,44 +23,41 @@
 				</div>
 			);
 		});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Cmp_component_4ryKJTOKjWE = /* @__PURE__ */ qrl(() => import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(() => import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
 //
-/* @__PURE__ */ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+/*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
 
 ============================= test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8.js (ENTRY POINT)==
-
 export const Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 = (_, _1, htmlSignal) => htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>";
 
 ============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 //
-const q_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 = /* @__PURE__ */ qrl(() => import("./test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8"), "Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8");
+const q_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 = /*#__PURE__*/ qrl(() => import("./test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8"), "Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8");
 //
 export const Cmp_component_4ryKJTOKjWE = () => {
 	const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
-	return /* @__PURE__ */ _jsxSorted("div", null, null, [
-		/* @__PURE__ */ _jsxSorted("div", null, null, /* @__PURE__ */ _jsxSorted("span", null, {
+	return /*#__PURE__*/ _jsxSorted("div", null, null, [
+		/*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted("span", null, {
 			id: "first",
 			dangerouslySetInnerHTML: "vanilla HTML here"
 		}, null, 3, null), 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, /* @__PURE__ */ _jsxSorted("span", null, {
+		/*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted("span", null, {
 			id: "second",
 			dangerouslySetInnerHTML: "<h1>I'm an h1!</h1>",
 			class: "after"
 		}, null, 3, null), 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, [/* @__PURE__ */ _jsxSorted("span", null, {
+		/*#__PURE__*/ _jsxSorted("div", null, null, [/*#__PURE__*/ _jsxSorted("span", null, {
 			id: "third",
 			dangerouslySetInnerHTML: _wrapProp(htmlSignal),
 			class: "after"
-		}, null, 3, null), /* @__PURE__ */ _jsxSorted("button", { "q:p": htmlSignal }, { "q-e:click": q_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 }, null, 7, null)], 1, null)
+		}, null, 3, null), /*#__PURE__*/ _jsxSorted("button", { "q:p": htmlSignal }, { "q-e:click": q_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 }, null, 7, null)], 1, null)
 	], 1, "u6_0");
 };
 

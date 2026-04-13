@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@builder.io/qwik';
 export default component$((props) => {
   return (<p 
@@ -14,45 +13,37 @@ export default component$((props) => {
 		asd={"1"}
 	/>);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_p_q_e_hi_ttOKZbY46GA.js (ENTRY POINT)==
-
-export const test_component_p_q_e_hi_ttOKZbY46GA = () => "hi";
-
+export const test_component_p_q_e_hi_ttOKZbY46GA = () => 'hi';
 ============================= test.tsx_test_component_p_q_e_const_e6TYnIxnPLY.js (ENTRY POINT)==
-
-export const test_component_p_q_e_const_e6TYnIxnPLY = () => "const";
-
+export const test_component_p_q_e_const_e6TYnIxnPLY = () => 'const';
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { _getVarProps } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
 //
-const q_test_component_p_q_e_const_e6TYnIxnPLY = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_p_q_e_const_e6TYnIxnPLY"), "test_component_p_q_e_const_e6TYnIxnPLY");
-const q_test_component_p_q_e_hi_ttOKZbY46GA = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_p_q_e_hi_ttOKZbY46GA"), "test_component_p_q_e_hi_ttOKZbY46GA");
+const q_test_component_p_q_e_const_e6TYnIxnPLY = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_p_q_e_const_e6TYnIxnPLY"), "test_component_p_q_e_const_e6TYnIxnPLY");
+const q_test_component_p_q_e_hi_ttOKZbY46GA = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_p_q_e_hi_ttOKZbY46GA"), "test_component_p_q_e_hi_ttOKZbY46GA");
 //
 export const test_component_LUXeXe0DQrg = (props) => {
-	return /* @__PURE__ */ _jsxSplit("p", {
+	return /*#__PURE__*/ _jsxSplit("p", {
 		..._getVarProps(props.foo),
 		..._getConstProps(props.foo),
 		"q-e:hello": props.helloHandler$,
 		"q-e:var": props.onVarHandler$,
-		...props.rest
-	}, {
-		asd: "1",
 		"q-e:hi": q_test_component_p_q_e_hi_ttOKZbY46GA,
-		"q-e:const": q_test_component_p_q_e_const_e6TYnIxnPLY
-	}, null, 0, "u6_0");
+		"q-e:const": q_test_component_p_q_e_const_e6TYnIxnPLY,
+		...props.rest
+	}, { asd: "1" }, null, 0, "u6_0");
 };
 
 == DIAGNOSTICS ==

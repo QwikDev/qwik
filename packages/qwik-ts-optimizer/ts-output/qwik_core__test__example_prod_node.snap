@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
@@ -14,7 +13,6 @@ export const Foo = component$(() => {
 	);
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -23,16 +21,12 @@ const q_s_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_H
 
 export const Foo = /*#__PURE__*/ componentQrl(q_s_HTDRsvUbLiE);
 ============================= test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM.js (ENTRY POINT)==
-
 export const s_vKrX4PmH2aM = () => console.log('first');
 ============================= test.tsx_Foo_component_div_div_q_e_click_1_VSoqbTjzr4w.js (ENTRY POINT)==
-
 export const s_VSoqbTjzr4w = () => console.log('second');
 ============================= test.tsx_Foo_component_div_div_q_e_click_2_n19LdlqL6To.js (ENTRY POINT)==
-
 export const s_n19LdlqL6To = () => console.log('third');
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
 const q_s_n19LdlqL6To = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_click_2_n19LdlqL6To"), "s_n19LdlqL6To");

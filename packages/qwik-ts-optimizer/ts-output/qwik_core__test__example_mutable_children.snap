@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useStore, Slot, Fragment } from '@qwik.dev/core';
 import Image from './image.jpg?jsx';
 
@@ -96,8 +95,7 @@ export const AppStatic = component$((props: Stuff) => {
 		</>
 	);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -106,89 +104,84 @@ import { _wrapProp } from "@qwik.dev/core";
 import { Slot, Fragment } from "@qwik.dev/core";
 import Image from "./image.jpg?jsx";
 //
-const q_AppDynamic1_component_R00UJ05gbes = /* @__PURE__ */ _noopQrl("AppDynamic1_component_R00UJ05gbes");
-const q_AppDynamic2_component_3EY2zm0v00A = /* @__PURE__ */ _noopQrl("AppDynamic2_component_3EY2zm0v00A");
-const q_AppDynamic3_component_FVq83NlbTDQ = /* @__PURE__ */ _noopQrl("AppDynamic3_component_FVq83NlbTDQ");
-const q_AppDynamic4_component_IO0yr8UvWEI = /* @__PURE__ */ _noopQrl("AppDynamic4_component_IO0yr8UvWEI");
-const q_AppStatic_component_gYRXqF3G5nE = /* @__PURE__ */ _noopQrl("AppStatic_component_gYRXqF3G5nE");
+const q_AppDynamic1_component_R00UJ05gbes = /*#__PURE__*/ _noopQrl("AppDynamic1_component_R00UJ05gbes");
+const q_AppDynamic2_component_3EY2zm0v00A = /*#__PURE__*/ _noopQrl("AppDynamic2_component_3EY2zm0v00A");
+const q_AppDynamic3_component_FVq83NlbTDQ = /*#__PURE__*/ _noopQrl("AppDynamic3_component_FVq83NlbTDQ");
+const q_AppDynamic4_component_IO0yr8UvWEI = /*#__PURE__*/ _noopQrl("AppDynamic4_component_IO0yr8UvWEI");
+const q_AppStatic_component_gYRXqF3G5nE = /*#__PURE__*/ _noopQrl("AppStatic_component_gYRXqF3G5nE");
 //
 export function Fn1(props) {
-	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, /* @__PURE__ */ _jsxSorted("div", null, null, prop < 2 ? /* @__PURE__ */ _jsxSorted("p", null, null, "1", 3, "u6_0") : /* @__PURE__ */ _jsxSorted(Stuff, null, null, "2", 3, "u6_1"), 1, null), 1, "u6_2");
+	return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxSorted("p", null, null, "1", 3, "u6_0") : /*#__PURE__*/ _jsxSorted(Stuff, null, null, "2", 3, "u6_1"), 1, null), 1, "u6_2");
 }
 export function Fn2(props) {
-	return /* @__PURE__ */ _jsxSorted("div", null, null, [prop.value && /* @__PURE__ */ _jsxSorted(Stuff, null, null, null, 3, "u6_3"), /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, null)], 1, "u6_4");
+	return /*#__PURE__*/ _jsxSorted("div", null, null, [prop.value && /*#__PURE__*/ _jsxSorted(Stuff, null, null, null, 3, "u6_3"), /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null)], 1, "u6_4");
 }
 export function Fn3(props) {
 	if (prop.value) {
-		return /* @__PURE__ */ _jsxSorted(Stuff, null, null, null, 3, "u6_5");
+		return /*#__PURE__*/ _jsxSorted(Stuff, null, null, null, 3, "u6_5");
 	}
-	return /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_6");
+	return /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_6");
 }
 export function Fn4(props) {
 	if (prop.value) {
-		return /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_7");
+		return /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_7");
 	}
-	return /* @__PURE__ */ _jsxSorted(Stuff, null, null, null, 3, "u6_8");
+	return /*#__PURE__*/ _jsxSorted(Stuff, null, null, null, 3, "u6_8");
 }
-export const Arrow = (props) => /* @__PURE__ */ _jsxSorted("div", null, null, prop < 2 ? /* @__PURE__ */ _jsxSorted("p", null, null, "1", 3, "u6_9") : /* @__PURE__ */ _jsxSorted(Stuff, null, null, "2", 3, "u6_10"), 1, "u6_11");
+export const Arrow = (props) => /*#__PURE__*/ _jsxSorted("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxSorted("p", null, null, "1", 3, "u6_9") : /*#__PURE__*/ _jsxSorted(Stuff, null, null, "2", 3, "u6_10"), 1, "u6_11");
 const AppDynamic1_component_R00UJ05gbes = (props) => {
-	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, /* @__PURE__ */ _jsxSorted("div", null, null, prop < 2 ? /* @__PURE__ */ _jsxSorted("p", null, null, "1", 3, "u6_12") : /* @__PURE__ */ _jsxSorted(Stuff, null, null, "2", 3, "u6_13"), 1, null), 1, "u6_14");
+	return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxSorted("p", null, null, "1", 3, "u6_12") : /*#__PURE__*/ _jsxSorted(Stuff, null, null, "2", 3, "u6_13"), 1, null), 1, "u6_14");
 };
 q_AppDynamic1_component_R00UJ05gbes.s(AppDynamic1_component_R00UJ05gbes);
-export const AppDynamic1 = /* @__PURE__ */ componentQrl(q_AppDynamic1_component_R00UJ05gbes);
+export const AppDynamic1 = /*#__PURE__*/ componentQrl(q_AppDynamic1_component_R00UJ05gbes);
 const AppDynamic2_component_3EY2zm0v00A = (props) => {
-	return /* @__PURE__ */ _jsxSorted("div", null, null, [prop.value && /* @__PURE__ */ _jsxSorted(Stuff, null, null, null, 3, "u6_15"), /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, null)], 1, "u6_16");
+	return /*#__PURE__*/ _jsxSorted("div", null, null, [prop.value && /*#__PURE__*/ _jsxSorted(Stuff, null, null, null, 3, "u6_15"), /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null)], 1, "u6_16");
 };
 q_AppDynamic2_component_3EY2zm0v00A.s(AppDynamic2_component_3EY2zm0v00A);
-export const AppDynamic2 = /* @__PURE__ */ componentQrl(q_AppDynamic2_component_3EY2zm0v00A);
+export const AppDynamic2 = /*#__PURE__*/ componentQrl(q_AppDynamic2_component_3EY2zm0v00A);
 const AppDynamic3_component_FVq83NlbTDQ = (props) => {
 	if (prop.value) {
-		return /* @__PURE__ */ _jsxSorted(Stuff, null, null, null, 3, "u6_17");
+		return /*#__PURE__*/ _jsxSorted(Stuff, null, null, null, 3, "u6_17");
 	}
-	return /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_18");
+	return /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_18");
 };
 q_AppDynamic3_component_FVq83NlbTDQ.s(AppDynamic3_component_FVq83NlbTDQ);
-export const AppDynamic3 = /* @__PURE__ */ componentQrl(q_AppDynamic3_component_FVq83NlbTDQ);
+export const AppDynamic3 = /*#__PURE__*/ componentQrl(q_AppDynamic3_component_FVq83NlbTDQ);
 const AppDynamic4_component_IO0yr8UvWEI = (props) => {
 	if (prop.value) {
-		return /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_19");
+		return /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_19");
 	}
-	return /* @__PURE__ */ _jsxSorted(Stuff, null, null, null, 3, "u6_20");
+	return /*#__PURE__*/ _jsxSorted(Stuff, null, null, null, 3, "u6_20");
 };
 q_AppDynamic4_component_IO0yr8UvWEI.s(AppDynamic4_component_IO0yr8UvWEI);
-export const AppDynamic4 = /* @__PURE__ */ componentQrl(q_AppDynamic4_component_IO0yr8UvWEI);
+export const AppDynamic4 = /*#__PURE__*/ componentQrl(q_AppDynamic4_component_IO0yr8UvWEI);
 const AppStatic_component_gYRXqF3G5nE = (props) => {
-	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, [
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["Static ", f ? 1 : 3], 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, prop < 2 ? /* @__PURE__ */ _jsxSorted("p", null, null, "1", 3, "u6_21") : /* @__PURE__ */ _jsxSorted("p", null, null, "2", 3, "u6_22"), 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, prop.value && /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_23"), 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, prop.value && /* @__PURE__ */ _jsxSorted(Fragment, null, null, /* @__PURE__ */ _jsxSorted(Slot, null, null, null, 3, "u6_24"), 1, "u6_25"), 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, prop.value && /* @__PURE__ */ _jsxSorted(_Fragment, null, null, /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, null), 3, "u6_26"), 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, prop.value && /* @__PURE__ */ _jsxSorted(Image, null, null, null, 3, "u6_27"), 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["Static ", f ? 1 : 3], 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, "Static", 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["Static ", _wrapProp(props)], 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["Static ", stuff()], 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["Static ", stuff()], 1, null)
+	return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["Static ", f ? 1 : 3], 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxSorted("p", null, null, "1", 3, "u6_21") : /*#__PURE__*/ _jsxSorted("p", null, null, "2", 3, "u6_22"), 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_23"), 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted(Fragment, null, null, /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 3, "u6_24"), 1, "u6_25"), 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null), 3, "u6_26"), 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted(Image, null, null, null, 3, "u6_27"), 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["Static ", f ? 1 : 3], 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, "Static", 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["Static ", _wrapProp(props)], 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["Static ", stuff()], 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["Static ", stuff()], 1, null)
 	], 1, "u6_28");
 };
 q_AppStatic_component_gYRXqF3G5nE.s(AppStatic_component_gYRXqF3G5nE);
-export const AppStatic = /* @__PURE__ */ componentQrl(q_AppStatic_component_gYRXqF3G5nE);
+export const AppStatic = /*#__PURE__*/ componentQrl(q_AppStatic_component_gYRXqF3G5nE);
 
 ============================= test.tsx_AppDynamic1_component_R00UJ05gbes.js (ENTRY POINT)==
 
-
 ============================= test.tsx_AppDynamic2_component_3EY2zm0v00A.js (ENTRY POINT)==
-
 
 ============================= test.tsx_AppDynamic3_component_FVq83NlbTDQ.js (ENTRY POINT)==
 
-
 ============================= test.tsx_AppDynamic4_component_IO0yr8UvWEI.js (ENTRY POINT)==
 
-
 ============================= test.tsx_AppStatic_component_gYRXqF3G5nE.js (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

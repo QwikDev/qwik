@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -13,29 +12,23 @@ export default component$(() => {
     </div>
   );
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { useSignal } from "@qwik.dev/core";
-import { inlinedQrl } from "@qwik.dev/core";
-import { _val } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
 export const test_component_LUXeXe0DQrg = () => {
 	const Cmp = Math.random() >= .5 ? "button" : "input";
 	const sig = useSignal(0);
-	return /* @__PURE__ */ _jsxSorted("div", null, null, /* @__PURE__ */ _jsxSorted(Cmp, null, {
-		"value": sig,
-		"q-e:input": inlinedQrl(_val, "_val", [sig])
-	}, null, 3, "u6_0"), 1, "u6_1");
+	return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSplit(Cmp, null, { "bind:value": sig }, null, 3, "u6_0"), 1, "u6_1");
 };
 
 == DIAGNOSTICS ==

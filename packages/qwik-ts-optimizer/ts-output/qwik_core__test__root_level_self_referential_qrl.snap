@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 
 // Root-level self-referential component
@@ -16,7 +15,6 @@ export const Tree = component$((props) => {
 	);
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -28,7 +26,6 @@ const q_Tree_component_T0k10EAlawU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Tr
 // or should use two-phase emission to avoid forward reference
 export const Tree = /*#__PURE__*/ componentQrl(q_Tree_component_T0k10EAlawU);
 ============================= test.tsx_Tree_component_T0k10EAlawU.tsx (ENTRY POINT)==
-
 import { Tree } from "./test";
 //
 export const Tree_component_T0k10EAlawU = (props) => {

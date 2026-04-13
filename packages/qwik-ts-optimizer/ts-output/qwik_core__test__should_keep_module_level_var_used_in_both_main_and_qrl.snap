@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, isServer } from '@qwik.dev/core';
 
 const state = {
@@ -24,12 +23,11 @@ export function useHook() {
   });
   return fn;
 }
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { isServer } from "@qwik.dev/core";
 //
-const q_useHook_fn_kScGJcREaTg = /* @__PURE__ */ qrl(() => import("./test.tsx_useHook_fn_kScGJcREaTg"), "useHook_fn_kScGJcREaTg");
+const q_useHook_fn_kScGJcREaTg = /*#__PURE__*/ qrl(() => import("./test.tsx_useHook_fn_kScGJcREaTg"), "useHook_fn_kScGJcREaTg");
 //
 const state = {
 	counter: 0,
@@ -48,7 +46,6 @@ export function useHook() {
 export { state as _auto_state };
 
 ============================= test.tsx_useHook_fn_kScGJcREaTg.js (ENTRY POINT)==
-
 import { _auto_state as state } from "./test";
 //
 export const useHook_fn_kScGJcREaTg = () => {

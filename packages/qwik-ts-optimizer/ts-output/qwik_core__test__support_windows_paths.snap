@@ -1,11 +1,9 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 export const Greeter = component$(() => <div/>)
-============================= components/apps/apps.ts ==
-
+============================= components/apps/apps.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -14,7 +12,6 @@ const q_Greeter_component_0jjOvx068y0 = /*#__PURE__*/ qrl(()=>import("./apps.tsx
 
 export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_0jjOvx068y0)
 ============================= apps.tsx_Greeter_component_0jjOvx068y0.ts (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
 //
 export const Greeter_component_0jjOvx068y0 = () => /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "KD_0");

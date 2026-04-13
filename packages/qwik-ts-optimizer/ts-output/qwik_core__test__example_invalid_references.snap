@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 
 const I1 = 12;
@@ -18,16 +17,14 @@ export const App = component$(({count}) => {
 		)
 	});
 })
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
 const [I2, { I3, v1: [I4], I5 = v2, ...I6 }, I7 = v3, ...I8] = obj;
-class I10 {}
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 export { I2 as _auto_I2 };
 export { I3 as _auto_I3 };
 export { I4 as _auto_I4 };
@@ -37,16 +34,14 @@ export { I7 as _auto_I7 };
 export { I8 as _auto_I8 };
 
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
-import { I10 } from "./test";
 //
 export const App_component_1_w0t0o3QMovU = () => {
-	return /* @__PURE__ */ _jsxSorted(I10, null, null, null, 3, "u6_0");
-};
-
+		return (
+			/*#__PURE__*/ _jsxSorted(I10, null, null, null, 3, "u6_0")
+		)
+	};
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { _auto_I2 as I2 } from "./test";
 import { _auto_I3 as I3 } from "./test";
 import { _auto_I4 as I4 } from "./test";
@@ -56,7 +51,7 @@ import { _auto_I7 as I7 } from "./test";
 import { _auto_I8 as I8 } from "./test";
 import { qrl } from "@qwik.dev/core";
 //
-const q_App_component_1_w0t0o3QMovU = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+const q_App_component_1_w0t0o3QMovU = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
 //
 const I1 = 12;
 function I9() {}
@@ -68,4 +63,14 @@ export const App_component_ckEPmXZlub0 = (_rawProps) => {
 
 == DIAGNOSTICS ==
 
-[{"category":"error","code":"C02","file":"test.tsx","message":"Reference to identifier 'I9' can not be used inside a Qrl($) scope because it's a function","highlights":null,"suggestions":null,"scope":"optimizer"}]
+[
+  {
+    "category": "error",
+    "code": "C02",
+    "file": "test.tsx",
+    "message": "Reference to identifier 'I9' can not be used inside a Qrl($) scope because it's a function",
+    "highlights": null,
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

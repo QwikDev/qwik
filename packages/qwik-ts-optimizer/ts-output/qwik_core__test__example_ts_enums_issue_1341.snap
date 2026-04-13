@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useStore } from '@qwik.dev/core';
 
 enum Thing {
@@ -17,28 +16,26 @@ export const App = component$(() => {
 		</>
 	);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
-var Thing = /* @__PURE__ */ function(Thing) {
+var Thing = /*#__PURE__*/ function(Thing) {
 	Thing[Thing["A"] = 0] = "A";
 	Thing[Thing["B"] = 1] = "B";
 	return Thing;
 }(Thing || {});
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
 //
 export const App_component_ckEPmXZlub0 = () => {
 	console.log(0);
-	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, /* @__PURE__ */ _jsxSorted("p", null, { class: "stuff" }, "Hello Qwik", 3, null), 3, "u6_0");
+	return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("p", null, { class: "stuff" }, "Hello Qwik", 3, null), 3, "u6_0");
 };
 
 == DIAGNOSTICS ==

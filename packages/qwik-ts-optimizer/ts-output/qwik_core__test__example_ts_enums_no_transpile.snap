@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useStore } from '@qwik.dev/core';
 
 export enum Thing {
@@ -18,7 +17,6 @@ export const App = component$(() => {
 	);
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -32,7 +30,6 @@ export enum Thing {
 
 export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 ============================= test.tsx_App_component_ckEPmXZlub0.tsx (ENTRY POINT)==
-
 import { Thing } from "./test";
 //
 export const App_component_ckEPmXZlub0 = () => {

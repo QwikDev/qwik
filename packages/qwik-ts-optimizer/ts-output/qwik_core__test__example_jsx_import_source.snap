@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 /* @jsxImportSource react */
 
 import { qwikify$ } from './qwikfy';
@@ -13,23 +12,21 @@ export const App = () => (
 export const App2 = qwikify$(() => (
 	<div onClick$={()=>console.log('App2')}></div>
 ));
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { qwikifyQrl } from "./qwikfy";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_App2_qwikify_RKJW7oCMdS4 = /* @__PURE__ */ qrl(() => import("./test.tsx_App2_qwikify_RKJW7oCMdS4.js"), "App2_qwikify_RKJW7oCMdS4");
+const q_App2_qwikify_RKJW7oCMdS4 = /*#__PURE__*/ qrl(() => import("./test.tsx_App2_qwikify_RKJW7oCMdS4.js"), "App2_qwikify_RKJW7oCMdS4");
 //
 /* @jsxImportSource react */
-export const App = () => /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": () => console.log("App") }, null, 3, "u6_0");
+export const App = () => /*#__PURE__*/ _jsxSorted("div", null, { "q-e:click": () => console.log("App") }, null, 3, "u6_0");
 export const App2 = qwikifyQrl(q_App2_qwikify_RKJW7oCMdS4);
 
 ============================= test.tsx_App2_qwikify_RKJW7oCMdS4.js (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
 //
-export const App2_qwikify_RKJW7oCMdS4 = () => /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": () => console.log("App2") }, null, 3, "u6_1");
+export const App2_qwikify_RKJW7oCMdS4 = () => /*#__PURE__*/ _jsxSorted("div", null, { "q-e:click": () => console.log("App2") }, null, 3, "u6_1");
 
 == DIAGNOSTICS ==
 

@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$ } from '@qwik.dev/core';
 		import { Foo } from './foo';
 
@@ -10,24 +9,22 @@
 				<Foo s={Math.random()} {...props} hello {...globalThis.nothing} />
 			);
 		});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { _getVarProps } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { Foo } from "./foo";
 //
 export const test_component_LUXeXe0DQrg = (props) => {
-	return /* @__PURE__ */ _jsxSplit(Foo, {
+	return /*#__PURE__*/ _jsxSplit(Foo, {
 		s: Math.random(),
 		..._getVarProps(props),
 		..._getConstProps(props),

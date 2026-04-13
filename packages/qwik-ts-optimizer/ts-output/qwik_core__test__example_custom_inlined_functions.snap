@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, $, useStore, wrap, useEffect } from '@qwik.dev/core';
 
 export const useMemoQrl = (qrt) => {
@@ -25,52 +24,48 @@ export const Lightweight = (props) => {
 		console.log(state.count);
 	});
 };
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { wrap, useEffect } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
-const q_Lightweight_useMemo_UIcxVTQF1a8 = /* @__PURE__ */ qrl(() => import("./test.tsx_Lightweight_useMemo_UIcxVTQF1a8"), "Lightweight_useMemo_UIcxVTQF1a8");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_Lightweight_useMemo_UIcxVTQF1a8 = /*#__PURE__*/ qrl(() => import("./test.tsx_Lightweight_useMemo_UIcxVTQF1a8"), "Lightweight_useMemo_UIcxVTQF1a8");
 //
 export const useMemoQrl = (qrt) => {
 	useEffect(qrt);
 };
 export const useMemo$ = wrap(useMemoQrl);
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 export const Lightweight = (props) => {
 	useMemoQrl(q_Lightweight_useMemo_UIcxVTQF1a8);
 };
 
 ============================= test.tsx_App_component_useMemo_6Sc9KVki3Y0.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const App_component_useMemo_6Sc9KVki3Y0 = () => {
-	const state = _captures[0];
-	console.log(state.count);
-};
-
+const state = _captures[0];
+		console.log(state.count);
+	};
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
 export const App_component_1_w0t0o3QMovU = () => {
-	const state = _captures[0];
-	return /* @__PURE__ */ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
+const state = _captures[0];
+return (
+		/*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0")
+	);
 };
-
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { useStore } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useMemoQrl } from "./test";
 //
-const q_App_component_1_w0t0o3QMovU = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
-const q_App_component_useMemo_6Sc9KVki3Y0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_useMemo_6Sc9KVki3Y0"), "App_component_useMemo_6Sc9KVki3Y0");
+const q_App_component_1_w0t0o3QMovU = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+const q_App_component_useMemo_6Sc9KVki3Y0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_useMemo_6Sc9KVki3Y0"), "App_component_useMemo_6Sc9KVki3Y0");
 //
 export const App_component_ckEPmXZlub0 = (props) => {
 	const state = useStore({ count: 0 });
@@ -79,11 +74,9 @@ export const App_component_ckEPmXZlub0 = (props) => {
 };
 
 ============================= test.tsx_Lightweight_useMemo_UIcxVTQF1a8.js (ENTRY POINT)==
-
 export const Lightweight_useMemo_UIcxVTQF1a8 = () => {
-	console.log(state.count);
-};
-
+		console.log(state.count);
+	};
 == DIAGNOSTICS ==
 
 []

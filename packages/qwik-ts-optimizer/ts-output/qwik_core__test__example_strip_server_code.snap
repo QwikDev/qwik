@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@qwik.dev/core';
 import { isServer } from '@qwik.dev/core';
 import mongo from 'mongodb';
@@ -43,79 +42,66 @@ export const Parent = component$(() => {
 		</div>
 	);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_s_0TaiDayHrlo = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "s_0TaiDayHrlo");
+const q_s_0TaiDayHrlo = /*#__PURE__*/ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "s_0TaiDayHrlo");
 //
-export const Parent = /* @__PURE__ */ componentQrl(q_s_0TaiDayHrlo);
+export const Parent = /*#__PURE__*/ componentQrl(q_s_0TaiDayHrlo);
 
 ============================= test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc.js (ENTRY POINT)==
-
 export const s_2ca3HLDC7yc = () => {
-	// from $(), should not be removed
-};
-
+			// from $(), should not be removed
+		};
 ============================= test.tsx_Parent_component_serverStuff_b_client_v9qawr2Inkk.js (ENTRY POINT)==
-
 export const s_v9qawr2Inkk = () => {
-	// from clien$(), should not be removed
-};
-
+			// from clien$(), should not be removed
+		};
 ============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 import mongo from "mongodb";
 import redis from "redis";
 //
 export const s_gDH1EtUWqBU = async () => {
-	const state = _captures[0];
-		state.text = await mongo.users();
-	redis.set(state.text);
-};
-
+const state = _captures[0];
+				state.text = await mongo.users();
+		redis.set(state.text);
+	};
 ============================= test.tsx_Parent_component_serverStuff_r1qAHX7Opp0.js (ENTRY POINT)==
-
 export const s_r1qAHX7Opp0 = null;
 ============================= test.tsx_Parent_component_serverLoader_k1L0DiPQV1I.js (ENTRY POINT)==
-
 export const s_k1L0DiPQV1I = null;
 ============================= test.tsx_Parent_component_useTask_1_P8oRQhHsurk.js (ENTRY POINT)==
-
 export const s_P8oRQhHsurk = () => {
-	// Code
-};
-
+		// Code
+	};
 ============================= test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA.js (ENTRY POINT)==
-
-export const s_zM9okM0TYrA = () => console.log("parent");
-
+export const s_zM9okM0TYrA = () => console.log('parent');
 ============================= test.tsx_Parent_component_0TaiDayHrlo.js (ENTRY POINT)==
-
 import { useStore } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 import { serverStuffQrl } from "@qwik.dev/core";
 import { serverLoaderQrl } from "@qwik.dev/core";
 //
-const q_s_gDH1EtUWqBU = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU"), "s_gDH1EtUWqBU");
-const q_s_k1L0DiPQV1I = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_serverLoader_k1L0DiPQV1I"), "s_k1L0DiPQV1I");
-const q_s_P8oRQhHsurk = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_useTask_1_P8oRQhHsurk"), "s_P8oRQhHsurk");
-const q_s_r1qAHX7Opp0 = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_serverStuff_r1qAHX7Opp0"), "s_r1qAHX7Opp0");
-const q_s_zM9okM0TYrA = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA"), "s_zM9okM0TYrA");
+const q_qrl_4294901760 = /*#__PURE__*/ _noopQrl("s_r1qAHX7Opp0");
+const q_qrl_4294901762 = /*#__PURE__*/ _noopQrl("s_k1L0DiPQV1I");
+const q_s_gDH1EtUWqBU = /*#__PURE__*/ qrl(() => import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU"), "s_gDH1EtUWqBU");
+const q_s_P8oRQhHsurk = /*#__PURE__*/ qrl(() => import("./test.tsx_Parent_component_useTask_1_P8oRQhHsurk"), "s_P8oRQhHsurk");
+const q_s_zM9okM0TYrA = /*#__PURE__*/ qrl(() => import("./test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA"), "s_zM9okM0TYrA");
 //
 export const s_0TaiDayHrlo = () => {
 	const state = useStore({ text: "" });
 	// Double count watch
 	useTaskQrl(q_s_gDH1EtUWqBU.w([state]));
-	serverStuffQrl(q_s_r1qAHX7Opp0);
-	serverLoaderQrl(q_s_k1L0DiPQV1I);
+	serverStuffQrl(q_qrl_4294901760);
+	serverLoaderQrl(q_qrl_4294901762);
 	useTaskQrl(q_s_P8oRQhHsurk);
-	return /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": q_s_zM9okM0TYrA }, _wrapProp(state, "text"), 3, "u6_0");
+	return /*#__PURE__*/ _jsxSorted("div", null, { "q-e:click": q_s_zM9okM0TYrA }, _wrapProp(state, "text"), 3, "u6_0");
 };
 
 == DIAGNOSTICS ==

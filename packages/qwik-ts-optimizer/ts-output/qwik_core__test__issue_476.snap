@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { Counter } from "./counter.tsx";
 
 export const Root = () => {
@@ -18,7 +17,6 @@ export const Root = () => {
 	);
 };
 ============================= test.tsx ==
-
 
 
 import { Counter } from "./counter.tsx";

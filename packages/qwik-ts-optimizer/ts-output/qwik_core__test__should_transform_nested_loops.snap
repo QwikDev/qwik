@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useSignal, Signal } from '@qwik.dev/core';
 const Foo = component$(function() {
   const data = useSignal<Signal<any>[]>([]);
@@ -16,30 +15,24 @@ const Foo = component$(function() {
 	))}
   </div>;
 })
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Foo_component_HTDRsvUbLiE = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
 //
-/* @__PURE__ */ componentQrl(q_Foo_component_HTDRsvUbLiE);
+/*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
 
 ============================= test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM.js (ENTRY POINT)==
-
 export const Foo_component_div_div_q_e_click_vKrX4PmH2aM = (_, _1, row) => console.log(row.value.id);
-
 ============================= test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = (_, _1, item) => {
-	const row = _captures[0];
-	return console.log(row.value.id, item.value.id);
+const row = _captures[0];
+return console.log(row.value.id, item.value.id);
 };
-
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
-
 import { useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
@@ -48,18 +41,18 @@ import { _jsxSorted } from "@qwik.dev/core";
 const _hf0 = (p0) => p0.value.id;
 const _hf0_str = "p0.value.id";
 //
-const q_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk"), "Foo_component_div_div_p_q_e_click_PjMbeUzoAMk");
-const q_Foo_component_div_div_q_e_click_vKrX4PmH2aM = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM"), "Foo_component_div_div_q_e_click_vKrX4PmH2aM");
+const q_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk"), "Foo_component_div_div_p_q_e_click_PjMbeUzoAMk");
+const q_Foo_component_div_div_q_e_click_vKrX4PmH2aM = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM"), "Foo_component_div_div_q_e_click_vKrX4PmH2aM");
 //
 export const Foo_component_HTDRsvUbLiE = function() {
 	const data = useSignal([]);
 	const data2 = useSignal([]);
-	return /* @__PURE__ */ _jsxSorted("div", null, null, data.value.map((row) => {
+	return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row) => {
 		const Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = q_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk.w([row]);
-		return /* @__PURE__ */ _jsxSorted("div", {
+		return /*#__PURE__*/ _jsxSorted("div", {
 			"q-e:click": q_Foo_component_div_div_q_e_click_vKrX4PmH2aM,
 			"q:p": row
-		}, null, data2.value.map((item) => /* @__PURE__ */ _jsxSorted("p", {
+		}, null, data2.value.map((item) => /*#__PURE__*/ _jsxSorted("p", {
 			"q-e:click": Foo_component_div_div_p_q_e_click_PjMbeUzoAMk,
 			"q:p": item
 		}, null, [

@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$, useStore } from '@qwik.dev/core';
 
 		export default component$(() => {
@@ -23,14 +22,13 @@
 			);
 		});
 		export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 export const PANELS = [
 	"Examples",
 	"Input",
@@ -39,7 +37,6 @@ export const PANELS = [
 ];
 
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { useStore } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -52,7 +49,7 @@ export const test_component_LUXeXe0DQrg = () => {
 		active: "Input",
 		list: PANELS
 	}));
-	return /* @__PURE__ */ _jsxSorted("div", { class: {
+	return /*#__PURE__*/ _jsxSorted("div", { class: {
 		"too-long-to-wrap": true,
 		"examples-panel-input": panelStore.active === "Input",
 		"examples-panel-output": panelStore.active === "Output",

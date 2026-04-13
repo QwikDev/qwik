@@ -1,6 +1,5 @@
 ==INPUT==
 
-
 import { jsx, Fragment, jsxs } from '@qwik.dev/core/jsx-runtime';
 import {
   component$,
@@ -1785,7 +1784,6 @@ export {
   zodQrl,
 };
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { useVisibleTaskQrl } from "@qwik.dev/core";
@@ -2461,7 +2459,6 @@ export { startViewTransition as _auto_startViewTransition };
 export { preventNav as _auto_preventNav };
 export { internalState as _auto_internalState };
 ============================= index.qwik.mjs_ErrorBoundary_component_useOnWindow_GYhPAutMLGk.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const ErrorBoundary_component_useOnWindow_GYhPAutMLGk = (e) => {
@@ -2469,7 +2466,6 @@ const store = _captures[0];
       store.error = e.detail.error;
     };
 ============================= index.qwik.mjs_Link_component_handlePrefetch_Evus9ZlzXpQ.js (ENTRY POINT)==
-
 import { p as preloadRouteBundles, l as loadClientData } from "./chunks/routing.qwik.mjs";
 //
 export const Link_component_handlePrefetch_Evus9ZlzXpQ = (_, elm) => {
@@ -2488,7 +2484,6 @@ export const Link_component_handlePrefetch_Evus9ZlzXpQ = (_, elm) => {
         }
       };
 ============================= index.qwik.mjs_Link_component_handleClientSideNavigation_rMfmL7bFMLU.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const Link_component_handleClientSideNavigation_rMfmL7bFMLU = (event, elm) => {
@@ -2503,7 +2498,6 @@ const nav = _captures[0], reload = _captures[1], replaceState = _captures[2], sc
         }
       };
 ============================= index.qwik.mjs_Link_component_handlePreload_MhXmSxzp4GE.js (ENTRY POINT)==
-
 import { p as preloadRouteBundles } from "./chunks/routing.qwik.mjs";
 //
 export const Link_component_handlePreload_MhXmSxzp4GE = (_, elm) => {
@@ -2511,7 +2505,6 @@ export const Link_component_handlePreload_MhXmSxzp4GE = (_, elm) => {
     preloadRouteBundles(url.pathname, 1);
   };
 ============================= index.qwik.mjs_Link_component_useVisibleTask_6K6z063D0C4.js (ENTRY POINT)==
-
 import { _captures, isDev } from "@qwik.dev/core";
 //
 export const Link_component_useVisibleTask_6K6z063D0C4 = ({ track }) => {
@@ -2531,7 +2524,6 @@ const anchorRef = _captures[0], handlePrefetch = _captures[1], linkProps = _capt
     }
   };
 ============================= index.qwik.mjs_GetForm_component_onSubmit_Plg5eRyZta0.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const GetForm_component_onSubmit_Plg5eRyZta0 = async (_evt, form) => {
@@ -2546,7 +2538,6 @@ const nav = _captures[0];
         await nav('?' + params.toString(), { type: 'form', forceReload: true });
       };
 ============================= index.qwik.mjs_GetForm_component_onSubmit_1_BfQSb66j3Ow.js (ENTRY POINT)==
-
 export const GetForm_component_onSubmit_1_BfQSb66j3Ow = (_evt, form) => {
         if (form.getAttribute('data-spa-reset') === 'true') {
           form.reset();
@@ -2563,9 +2554,8 @@ export const GetForm_component_onSubmit_1_BfQSb66j3Ow = (_evt, form) => {
         );
       };
 ============================= index.qwik.mjs_ErrorBoundary_component_yTCHi5s1o00.js (ENTRY POINT)==
-
 import { jsx, Fragment } from "@qwik.dev/core/jsx-runtime";
-import { useErrorBoundary, useOnWindow, Slot } from "@qwik.dev/core";
+import { useErrorBoundary, useOnWindow, $, Slot } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
 const q_ErrorBoundary_component_useOnWindow_GYhPAutMLGk = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_ErrorBoundary_component_useOnWindow_GYhPAutMLGk.mjs"), "ErrorBoundary_component_useOnWindow_GYhPAutMLGk");
@@ -2584,10 +2574,8 @@ export const ErrorBoundary_component_yTCHi5s1o00 = (props) => {
   return /* @__PURE__ */ jsx(Slot, {});
 };
 ============================= index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_no0bm2fybZo.js (ENTRY POINT)==
-
 export const usePreventNavigateQrl_useVisibleTask_no0bm2fybZo = () => registerPreventNav(fn);
 ============================= index.qwik.mjs_Link_component_nhj84CU1784.js (ENTRY POINT)==
-
 import { jsx } from "@qwik.dev/core/jsx-runtime";
 import { Slot, useSignal, untrack } from "@qwik.dev/core";
 import { g as getClientNavPath } from "./chunks/routing.qwik.mjs";
@@ -2666,7 +2654,6 @@ export const Link_component_nhj84CU1784 = (props) => {
   });
 };
 ============================= index.qwik.mjs_spaInit_event_Js1cotabL5I.js (ENTRY POINT)==
-
 import { isDev } from "@qwik.dev/core";
 //
 export const spaInit_event_Js1cotabL5I = (_, el) => {
@@ -2815,12 +2802,10 @@ export const spaInit_event_Js1cotabL5I = (_, el) => {
   }
 };
 ============================= index.qwik.mjs_useQwikRouter_useStyles_XNocHv0sxCQ.js (ENTRY POINT)==
-
 const transitionCss =
   '@layer qwik{@supports selector(html:active-view-transition-type(type)){html:active-view-transition-type(qwik-navigation){:root{view-transition-name:none}}}@supports not selector(html:active-view-transition-type(type)){:root{view-transition-name:none}}}';
 export const useQwikRouter_useStyles_XNocHv0sxCQ = transitionCss;
 ============================= index.qwik.mjs_useQwikRouter_registerPreventNav_W0LIs8PUJoA.js (ENTRY POINT)==
-
 import { isBrowser } from "@qwik.dev/core";
 import { _auto_preventNav as preventNav } from "./index.qwik.mjs";
 import { _auto_internalState as internalState } from "./index.qwik.mjs";
@@ -2856,7 +2841,6 @@ export const useQwikRouter_registerPreventNav_W0LIs8PUJoA = (fn$) => {
     };
   };
 ============================= index.qwik.mjs_useQwikRouter_goto_OSnb99dm7Ow.js (ENTRY POINT)==
-
 import { isDev, isBrowser } from "@qwik.dev/core";
 import { l as loadClientData, a as isSamePath, t as toUrl, b as isSameOrigin, d as loadRoute } from "./chunks/routing.qwik.mjs";
 import * as qwikRouterConfig from "@qwik-router-config";
@@ -2959,7 +2943,6 @@ export const useQwikRouter_goto_OSnb99dm7Ow = async (path, opt) => {
     });
   };
 ============================= index.qwik.mjs_useQwikRouter_useTask_omhKiQfdzZU.js (ENTRY POINT)==
-
 import { noSerialize, isDev, isServer, isBrowser, getLocale } from "@qwik.dev/core";
 import { l as loadClientData, a as isSamePath, c as createLoaderSignal, b as isSameOrigin, d as loadRoute, D as DEFAULT_LOADERS_SERIALIZATION_STRATEGY, C as CLIENT_DATA_CACHE, Q as Q_ROUTE, e as clientNavigate } from "./chunks/routing.qwik.mjs";
 import * as qwikRouterConfig from "@qwik-router-config";
@@ -3348,7 +3331,6 @@ export const useQwikRouter_useTask_omhKiQfdzZU = ({ track }) => {
     }
   };
 ============================= index.qwik.mjs_QwikRouterProvider_component_lCQXGdS0iZM.js (ENTRY POINT)==
-
 import { jsx } from "@qwik.dev/core/jsx-runtime";
 import { Slot } from "@qwik.dev/core";
 import { useQwikRouter } from "./index.qwik.mjs";
@@ -3358,12 +3340,10 @@ export const QwikRouterProvider_component_lCQXGdS0iZM = (props) => {
   return /* @__PURE__ */ jsx(Slot, {});
 };
 ============================= index.qwik.mjs_useQwikMockRouter_goto_ojVznvSDqoM.js (ENTRY POINT)==
-
 export const useQwikMockRouter_goto_ojVznvSDqoM = async () => {
       console.warn('QwikRouterMockProvider: goto not provided');
     };
 ============================= index.qwik.mjs_useQwikMockRouter_useTask_oml2hW1aK6I.js (ENTRY POINT)==
-
 export const useQwikMockRouter_useTask_oml2hW1aK6I = async ({ track }) => {
     const action = track(actionState);
     if (!action?.resolve) {
@@ -3376,7 +3356,6 @@ export const useQwikMockRouter_useTask_oml2hW1aK6I = async ({ track }) => {
     }
   };
 ============================= index.qwik.mjs_QwikRouterMockProvider_component_kN7AQXV0aXo.js (ENTRY POINT)==
-
 import { jsx } from "@qwik.dev/core/jsx-runtime";
 import { Slot } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
@@ -3445,7 +3424,6 @@ export const QwikRouterMockProvider_component_kN7AQXV0aXo = (props) => {
   return /* @__PURE__ */ jsx(Slot, {});
 };
 ============================= index.qwik.mjs_RouterOutlet_component_hKWOEO9aIDM.js (ENTRY POINT)==
-
 import { jsx, Fragment, jsxs } from "@qwik.dev/core/jsx-runtime";
 import { useContext, useServerData, jsx as jsx$1, SkipRender } from "@qwik.dev/core";
 import { _auto_ContentInternalContext as ContentInternalContext } from "./index.qwik.mjs";
@@ -3494,7 +3472,6 @@ export const RouterOutlet_component_hKWOEO9aIDM = () => {
   return SkipRender;
 };
 ============================= index.qwik.mjs_routeActionQrl_action_submit_JY3C42B1B08.js (ENTRY POINT)==
-
 import { noSerialize, isServer } from "@qwik.dev/core";
 //
 export const routeActionQrl_action_submit_JY3C42B1B08 = (input = {}) => {
@@ -3556,7 +3533,6 @@ Action.run() can only be called on the browser, for example when a user clicks a
       });
     };
 ============================= index.qwik.mjs_serverQrl_RA3PmZ4Oyak.js (ENTRY POINT)==
-
 import { isServer } from "@qwik.dev/core";
 import { f as QFN_KEY, j as QDATA_KEY } from "./chunks/routing.qwik.mjs";
 import { _getContextEvent, _serialize, _deserialize } from "@qwik.dev/core/internal";
@@ -3678,16 +3654,14 @@ export const serverQrl_RA3PmZ4Oyak = async function (...args) {
     }
   };
 ============================= index.qwik.mjs_Form_onSubmit_h346MhOy3MU.js (ENTRY POINT)==
-
 export const Form_onSubmit_h346MhOy3MU = (evt) => {
                   if (!action.submitted) {
                     return action.submit(evt);
                   }
                 };
 ============================= index.qwik.mjs_GetForm_component_OIWHwJ5eKxg.js (ENTRY POINT)==
-
 import { jsx } from "@qwik.dev/core/jsx-runtime";
-import { Slot } from "@qwik.dev/core";
+import { $, Slot } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _restProps } from "@qwik.dev/core";
 import { useNavigate } from "./index.qwik.mjs";
@@ -3720,7 +3694,6 @@ const rest = _restProps(_rawProps, [
   });
 };
 ============================= index.qwik.mjs_DocumentHeadTags_component_LaCcLS5Bz4c.js (ENTRY POINT)==
-
 import { jsx, Fragment, jsxs } from "@qwik.dev/core/jsx-runtime";
 import { createElement } from "@qwik.dev/core";
 import { useDocumentHead } from "./index.qwik.mjs";
@@ -3756,4 +3729,23 @@ export const DocumentHeadTags_component_LaCcLS5Bz4c = (props) => {
 };
 == DIAGNOSTICS ==
 
-[{"category":"error","code":"C02","file":"../node_modules/@qwik.dev/router/index.qwik.mjs","message":"Reference to identifier 'callRestoreScrollOnDocument' can not be used inside a Qrl($) scope because it's a function","highlights":null,"suggestions":null,"scope":"optimizer"},{"category":"error","code":"C02","file":"../node_modules/@qwik.dev/router/index.qwik.mjs","message":"Reference to identifier 'action' can not be used inside a Qrl($) scope because it's a function","highlights":null,"suggestions":null,"scope":"optimizer"}]
+[
+  {
+    "category": "error",
+    "code": "C02",
+    "file": "../node_modules/@qwik.dev/router/index.qwik.mjs",
+    "message": "Reference to identifier 'callRestoreScrollOnDocument' can not be used inside a Qrl($) scope because it's a function",
+    "highlights": null,
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "C02",
+    "file": "../node_modules/@qwik.dev/router/index.qwik.mjs",
+    "message": "Reference to identifier 'action' can not be used inside a Qrl($) scope because it's a function",
+    "highlights": null,
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

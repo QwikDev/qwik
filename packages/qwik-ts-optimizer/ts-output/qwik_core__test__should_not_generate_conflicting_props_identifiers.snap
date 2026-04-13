@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$, useComputed$, useTask$ } from '@qwik.dev/core'
 
 		export default component$(({ color, ...props }) => {
@@ -13,8 +12,7 @@
 
 		return 'hi'
 		})
-============================= test.js ==
-
+============================= test.tsx ==
 import { _noopQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -22,9 +20,9 @@ import { useTaskQrl } from "@qwik.dev/core";
 import { useComputedQrl } from "@qwik.dev/core";
 import { _restProps } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ _noopQrl("test_component_LUXeXe0DQrg");
-const q_test_component_useComputed_PYU291PvidQ = /* @__PURE__ */ _noopQrl("test_component_useComputed_PYU291PvidQ");
-const q_test_component_useTask_jewzFYh3XmQ = /* @__PURE__ */ _noopQrl("test_component_useTask_jewzFYh3XmQ");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ _noopQrl("test_component_LUXeXe0DQrg");
+const q_test_component_useComputed_PYU291PvidQ = /*#__PURE__*/ _noopQrl("test_component_useComputed_PYU291PvidQ");
+const q_test_component_useTask_jewzFYh3XmQ = /*#__PURE__*/ _noopQrl("test_component_useTask_jewzFYh3XmQ");
 //
 const test_component_useComputed_PYU291PvidQ = () => {
 	const _rawProps = _captures[0];
@@ -43,16 +41,13 @@ const test_component_LUXeXe0DQrg = (_rawProps) => {
 	return "hi";
 };
 q_test_component_LUXeXe0DQrg.s(test_component_LUXeXe0DQrg);
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_useComputed_PYU291PvidQ.js (ENTRY POINT)==
 
-
 ============================= test.tsx_test_component_useTask_jewzFYh3XmQ.js (ENTRY POINT)==
 
-
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

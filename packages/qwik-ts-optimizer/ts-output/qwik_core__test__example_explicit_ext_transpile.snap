@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, $, useStyles$ } from '@qwik.dev/core';
 
 export const App = component$((props) => {
@@ -10,38 +9,33 @@ export const App = component$((props) => {
 		<div></div>
 	));
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0.js"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0.js"), "App_component_ckEPmXZlub0");
 //
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_useStyles_t35nSa5UV7U.js (ENTRY POINT)==
-
-export const App_component_useStyles_t35nSa5UV7U = "hola";
-
+export const App_component_useStyles_t35nSa5UV7U = 'hola';
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
 //
-export const App_component_1_w0t0o3QMovU = () => /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_0");
-
+export const App_component_1_w0t0o3QMovU = () => (
+		/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_0")
+	);
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { useStylesQrl } from "@qwik.dev/core";
 //
-const q_App_component_1_w0t0o3QMovU = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_1_w0t0o3QMovU.js"), "App_component_1_w0t0o3QMovU");
-const q_App_component_useStyles_t35nSa5UV7U = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_useStyles_t35nSa5UV7U.js"), "App_component_useStyles_t35nSa5UV7U");
+const q_App_component_1_w0t0o3QMovU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU.js"), "App_component_1_w0t0o3QMovU");
+const q_App_component_useStyles_t35nSa5UV7U = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U.js"), "App_component_useStyles_t35nSa5UV7U");
 //
 export const App_component_ckEPmXZlub0 = (props) => {
 	useStylesQrl(q_App_component_useStyles_t35nSa5UV7U);
 	return q_App_component_1_w0t0o3QMovU;
 };
-
 == DIAGNOSTICS ==
 
 []

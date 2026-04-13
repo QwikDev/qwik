@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ as Component, $ as onRender, useStore } from '@qwik.dev/core';
 
 export const App = Component((props) => {
@@ -11,36 +10,34 @@ export const App = Component((props) => {
 		<div>{state.thing}</div>
 	));
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_Component_NuXFTHRjvXE = /* @__PURE__ */ qrl(() => import("./test.tsx_App_Component_NuXFTHRjvXE"), "App_Component_NuXFTHRjvXE");
+const q_App_Component_NuXFTHRjvXE = /*#__PURE__*/ qrl(() => import("./test.tsx_App_Component_NuXFTHRjvXE"), "App_Component_NuXFTHRjvXE");
 //
-export const App = /* @__PURE__ */ componentQrl(q_App_Component_NuXFTHRjvXE);
+export const App = /*#__PURE__*/ componentQrl(q_App_Component_NuXFTHRjvXE);
 
-============================= test.tsx_App_Component_onRender_ANt4My8h6BE.js (ENTRY POINT)==
-
+============================= test.tsx_App_Component_1_A08tXHb9pEk.js (ENTRY POINT)==
 import { _captures } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-export const App_Component_onRender_ANt4My8h6BE = () => {
-	const state = _captures[0];
-	return /* @__PURE__ */ _jsxSorted("div", null, null, _wrapProp(state, "thing"), 3, "u6_0");
+export const App_Component_1_A08tXHb9pEk = () => {
+const state = _captures[0];
+return (
+		/*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "thing"), 3, "u6_0")
+	);
 };
-
 ============================= test.tsx_App_Component_NuXFTHRjvXE.js (ENTRY POINT)==
-
 import { useStore } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const q_App_Component_onRender_ANt4My8h6BE = /* @__PURE__ */ qrl(() => import("./test.tsx_App_Component_onRender_ANt4My8h6BE"), "App_Component_onRender_ANt4My8h6BE");
+const q_App_Component_1_A08tXHb9pEk = /*#__PURE__*/ qrl(() => import("./test.tsx_App_Component_1_A08tXHb9pEk"), "App_Component_1_A08tXHb9pEk");
 //
 export const App_Component_NuXFTHRjvXE = (props) => {
 	const state = useStore({ thing: 0 });
-	return q_App_Component_onRender_ANt4My8h6BE.w([state]);
+	return q_App_Component_1_A08tXHb9pEk.w([state]);
 };
 
 == DIAGNOSTICS ==

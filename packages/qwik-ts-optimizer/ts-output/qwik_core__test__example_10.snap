@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 const Header = $((decl1, {decl2}, [decl3]) => {
 
@@ -22,13 +21,11 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 	)
 });
 ============================= project/test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 //
 
 /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WlR3xnI6u38"), "Header_WlR3xnI6u38");
 ============================= test.tsx_Header_WlR3xnI6u38.tsx (ENTRY POINT)==
-
 export const Header_WlR3xnI6u38 = (decl1, {decl2}, [decl3]) => {
 
 	ident1.no;

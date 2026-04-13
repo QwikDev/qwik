@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$ } from '@qwik.dev/core';
 
 		function Hola(props: any) {
@@ -14,28 +13,23 @@
 			<div>2</div>
 		</Hola>;
 		});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
-import { _jsxSplit } from "@qwik.dev/core";
-import { _getVarProps } from "@qwik.dev/core";
-import { _getConstProps } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-function Hola(props) {
-	return /* @__PURE__ */ _jsxSplit("div", { ..._getVarProps(props) }, _getConstProps(props), null, 0, "u6_0");
-}
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
-import { Hola } from "./test";
+import { jsx as _jsx } from "react/jsx-runtime";
 //
+function Hola(props) {
+	return /*#__PURE__*/ _jsx("div", { ...props });
+}
 export const test_component_LUXeXe0DQrg = () => {
-	return /* @__PURE__ */ _jsxSorted(Hola, null, null, [/* @__PURE__ */ _jsxSorted("div", null, null, "1", 3, null), /* @__PURE__ */ _jsxSorted("div", null, null, "2", 3, null)], 3, "u6_1");
+	return /*#__PURE__*/ _jsxSorted(Hola, null, null, [/*#__PURE__*/ _jsxSorted("div", null, null, "1", 3, null), /*#__PURE__*/ _jsxSorted("div", null, null, "2", 3, null)], 3, "u6_1");
 };
 
 == DIAGNOSTICS ==

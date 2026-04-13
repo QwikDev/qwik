@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 export const Header = component$(() => {
 	console.log("mount");
@@ -10,7 +9,6 @@ export const Header = component$(() => {
 	);
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -19,10 +17,8 @@ const q_Header_component_J4uyIhaBNR4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_
 
 export const Header = /*#__PURE__*/ componentQrl(q_Header_component_J4uyIhaBNR4);
 ============================= test.tsx_Header_component_div_onClick_i7ekvWH3674.js (ENTRY POINT)==
-
 export const Header_component_div_onClick_i7ekvWH3674 = (ctx) => console.log(ctx);
 ============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
 const q_Header_component_div_onClick_i7ekvWH3674 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_div_onClick_i7ekvWH3674"), "Header_component_div_onClick_i7ekvWH3674");

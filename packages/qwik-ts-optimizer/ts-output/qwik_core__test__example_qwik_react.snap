@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';
 import { jsx, Fragment } from '@qwik.dev/core/jsx-runtime';
 import { isBrowser, isServer } from '@qwik.dev/core';
@@ -92,8 +91,7 @@ async function renderToString(rootNode, opts) {
 }
 
 export { qwikify$, qwikifyQrl, renderToString };
-============================= ../node_modules/@qwik.dev/react/index.qwik.mjs ==
-
+============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from '@qwik.dev/core';
 //
@@ -129,7 +127,6 @@ async function renderToString(rootNode, opts) {
 
 export { qwikify$, qwikifyQrl, renderToString };
 ============================= index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U.mjs (ENTRY POINT)==
-
 import { useLexicalScope, noSerialize, isBrowser } from "@qwik.dev/core";
 import { filterProps } from "./index.qwik.mjs";
 import { reactCmpQrl } from "@qwik.dev/core";
@@ -159,7 +156,6 @@ export const qwikifyQrl_component_useWatch_x04JC5xeP1U = async (track)=>{
 			}
 		};
 ============================= index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick.mjs (ENTRY POINT)==
-
 import { useLexicalScope, useHostElement, useStore, useTaskQrl, SkipRerender, isServer } from "@qwik.dev/core";
 import { jsx, Fragment } from "@qwik.dev/core/jsx-runtime";
 import { qrl } from "@qwik.dev/core";

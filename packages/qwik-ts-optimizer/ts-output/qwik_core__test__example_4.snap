@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 export function App() {
 	const Header = component$(() => {
@@ -13,7 +12,6 @@ export function App() {
 	return Header;
 }
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -25,10 +23,8 @@ export function App() {
 	return Header;
 }
 ============================= test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ.js (ENTRY POINT)==
-
 export const App_Header_component_div_onClick_aO7uI7Iw6oQ = (ctx) => console.log(ctx);
 ============================= test.tsx_App_Header_component_B9F3YeqcO1w.tsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
 const q_App_Header_component_div_onClick_aO7uI7Iw6oQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ"), "App_Header_component_div_onClick_aO7uI7Iw6oQ");

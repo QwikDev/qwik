@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -11,7 +10,6 @@ export default component$(() => {
 	);
 });
 ============================= src/components/mongo/404.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -20,10 +18,8 @@ const q__404_component_zRvoWc98eqo = /*#__PURE__*/ qrl(()=>import("./404.tsx__40
 
 export default /*#__PURE__*/ componentQrl(q__404_component_zRvoWc98eqo);
 ============================= 404.tsx__404_component_div_q_e_click_aMLnLWtkRhc.js (ENTRY POINT)==
-
 export const _404_component_div_q_e_click_aMLnLWtkRhc = () => console.log(mongodb);
 ============================= 404.tsx__404_component_zRvoWc98eqo.tsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
 const q__404_component_div_q_e_click_aMLnLWtkRhc = /*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_div_q_e_click_aMLnLWtkRhc"), "_404_component_div_q_e_click_aMLnLWtkRhc");

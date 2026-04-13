@@ -9,17 +9,40 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { compareAst } from '../../src/testing/ast-compare.js';
 import { transformModule } from '../../src/optimizer/transform.js';
+import type { TransformOutput } from '../../src/optimizer/types.js';
 import { getSnapshotFiles } from '../../src/testing/batch-runner.js';
-import { SNAPSHOT_OPTIONS, getSnapshotTransformOptions } from './snapshot-options.js';
+import { getSnapshotTransformOptions } from './snapshot-options.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAP_DIR = join(__dirname, '../../match-these-snaps');
+const TS_OUTPUT_DIR = join(__dirname, '../../ts-output');
+
+// Ensure ts-output directory exists
+mkdirSync(TS_OUTPUT_DIR, { recursive: true });
+
+/** Format a transform result as a snapshot file for ts-output/ */
+function formatSnapshot(input: string, result: TransformOutput): string {
+  const lines: string[] = ['==INPUT==\n', input];
+
+  for (const mod of result.modules) {
+    const isEntry = mod.segment != null;
+    const header = isEntry
+      ? `\n============================= ${mod.path} (ENTRY POINT)==\n`
+      : `\n============================= ${mod.path} ==\n`;
+    lines.push(header);
+    lines.push(mod.code);
+  }
+
+  const diag = JSON.stringify(result.diagnostics, null, 2);
+  lines.push(`\n== DIAGNOSTICS ==\n\n${diag}\n`);
+  return lines.join('');
+}
 
 /**
  * Extract the test name from a snapshot filename.
@@ -72,6 +95,9 @@ describe('convergence: all 209 snapshots', () => {
         results.error++;
         throw new Error(`transformModule() threw for ${testName}: ${err}`);
       }
+
+      // Write current output to ts-output/ so it stays in sync automatically
+      writeFileSync(join(TS_OUTPUT_DIR, snapFile), formatSnapshot(parsed.input, result));
 
       let parentMatches = true;
       let segmentsMatch = true;

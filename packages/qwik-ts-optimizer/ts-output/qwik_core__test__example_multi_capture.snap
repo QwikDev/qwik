@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(({foo}) => {
@@ -25,31 +24,28 @@ export const Bar = component$(({bar}) => {
 		)
 	});
 })
-============================= test.jsx ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Bar_component_L80pS8Hxf1Y = /* @__PURE__ */ qrl(() => import("./test.tsx_Bar_component_L80pS8Hxf1Y"), "Bar_component_L80pS8Hxf1Y");
-const q_Foo_component_HTDRsvUbLiE = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+const q_Bar_component_L80pS8Hxf1Y = /*#__PURE__*/ qrl(() => import("./test.tsx_Bar_component_L80pS8Hxf1Y"), "Bar_component_L80pS8Hxf1Y");
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
 //
-export const Foo = /* @__PURE__ */ componentQrl(q_Foo_component_HTDRsvUbLiE);
-export const Bar = /* @__PURE__ */ componentQrl(q_Bar_component_L80pS8Hxf1Y);
+export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
+export const Bar = /*#__PURE__*/ componentQrl(q_Bar_component_L80pS8Hxf1Y);
 
 ============================= test.tsx_Foo_component_1_DvU6FitWglY.jsx (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const Foo_component_1_DvU6FitWglY = () => {
-	const _rawProps = _captures[0], arg0 = _captures[1];
+	const _rawProps = _captures[0];
 	const fn = ({ aaa }) => aaa;
 	return <div>
-				{_rawProps.foo}{fn()}{arg0}
+				{_rawProps.foo}{fn()}{20}
 			</div>;
 };
 
 ============================= test.tsx_Bar_component_1_0xSyNSnVu3k.jsx (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const Bar_component_1_0xSyNSnVu3k = () => {
@@ -60,26 +56,25 @@ export const Bar_component_1_0xSyNSnVu3k = () => {
 };
 
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.jsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
-const q_Foo_component_1_DvU6FitWglY = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY");
+const q_Foo_component_1_DvU6FitWglY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY");
 //
 export const Foo_component_HTDRsvUbLiE = (_rawProps) => {
-	const arg0 = 20;
-	return q_Foo_component_1_DvU6FitWglY.w([_rawProps, arg0]);
+	return q_Foo_component_1_DvU6FitWglY.w([
+        _rawProps
+    ]);
 };
-
 ============================= test.tsx_Bar_component_L80pS8Hxf1Y.jsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
-const q_Bar_component_1_0xSyNSnVu3k = /* @__PURE__ */ qrl(() => import("./test.tsx_Bar_component_1_0xSyNSnVu3k"), "Bar_component_1_0xSyNSnVu3k");
+const q_Bar_component_1_0xSyNSnVu3k = /*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_1_0xSyNSnVu3k"), "Bar_component_1_0xSyNSnVu3k");
 //
 export const Bar_component_L80pS8Hxf1Y = (_rawProps) => {
-	return q_Bar_component_1_0xSyNSnVu3k.w([_rawProps]);
+	return q_Bar_component_1_0xSyNSnVu3k.w([
+        _rawProps
+    ]);
 };
-
 == DIAGNOSTICS ==
 
 []

@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -21,41 +20,35 @@ export default component$(() => {
     </div>
   );
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_div_div_button_q_e_click_hCFE1Zqizzw.js (ENTRY POINT)==
-
 export const test_component_div_div_button_q_e_click_hCFE1Zqizzw = (_, _1, index) => console.log(index);
-
 ============================= test.tsx_test_component_div_div_span_q_e_keydown_JMCQrlWndWA.js (ENTRY POINT)==
-
 export const test_component_div_div_span_q_e_keydown_JMCQrlWndWA = (_, _1, label) => console.log(label);
-
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_test_component_div_div_button_q_e_click_hCFE1Zqizzw = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_div_div_button_q_e_click_hCFE1Zqizzw"), "test_component_div_div_button_q_e_click_hCFE1Zqizzw");
-const q_test_component_div_div_span_q_e_keydown_JMCQrlWndWA = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_div_div_span_q_e_keydown_JMCQrlWndWA"), "test_component_div_div_span_q_e_keydown_JMCQrlWndWA");
+const q_test_component_div_div_button_q_e_click_hCFE1Zqizzw = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_div_div_button_q_e_click_hCFE1Zqizzw"), "test_component_div_div_button_q_e_click_hCFE1Zqizzw");
+const q_test_component_div_div_span_q_e_keydown_JMCQrlWndWA = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_div_div_span_q_e_keydown_JMCQrlWndWA"), "test_component_div_div_span_q_e_keydown_JMCQrlWndWA");
 //
 export const test_component_LUXeXe0DQrg = () => {
 	const arr = useSignal(["a", "b"]);
-	return /* @__PURE__ */ _jsxSorted("div", null, null, arr.value.map((val, i) => {
+	return /*#__PURE__*/ _jsxSorted("div", null, null, arr.value.map((val, i) => {
 		const index = i + 1;
 		const label = val.toUpperCase();
-		return /* @__PURE__ */ _jsxSorted("div", null, null, [/* @__PURE__ */ _jsxSorted("button", {
+		return /*#__PURE__*/ _jsxSorted("div", null, null, [/*#__PURE__*/ _jsxSorted("button", {
 			"q-e:click": q_test_component_div_div_button_q_e_click_hCFE1Zqizzw,
 			"q:p": index
-		}, null, val, 4, null), /* @__PURE__ */ _jsxSorted("span", {
+		}, null, val, 4, null), /*#__PURE__*/ _jsxSorted("span", {
 			"q-e:keydown": q_test_component_div_div_span_q_e_keydown_JMCQrlWndWA,
 			"q:p": label
 		}, null, label, 4, null)], 1, "u6_0");

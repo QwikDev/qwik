@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component, onRender } from '@qwik.dev/core';
 
 export const renderHeader1 = $(() => {
@@ -14,7 +13,6 @@ const renderHeader2 = component($(() => {
 	return render;
 }));
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { component } from '@qwik.dev/core';
 //
@@ -25,10 +23,8 @@ const q_renderHeader2_component_Ay6ibkfFYsw = /*#__PURE__*/ qrl(()=>import("./te
 export const renderHeader1 = q_renderHeader1_jMxQsjbyDss;
 component(q_renderHeader2_component_Ay6ibkfFYsw);
 ============================= test.tsx_renderHeader1_div_onClick_USi8k1jUb40.js (ENTRY POINT)==
-
 export const renderHeader1_div_onClick_USi8k1jUb40 = (ctx) => console.log(ctx);
 ============================= test.tsx_renderHeader1_jMxQsjbyDss.tsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
 const q_renderHeader1_div_onClick_USi8k1jUb40 = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_div_onClick_USi8k1jUb40"), "renderHeader1_div_onClick_USi8k1jUb40");
@@ -39,7 +35,6 @@ export const renderHeader1_jMxQsjbyDss = () => {
 	);
 };
 ============================= test.tsx_renderHeader2_component_Ay6ibkfFYsw.js (ENTRY POINT)==
-
 export const renderHeader2_component_Ay6ibkfFYsw = () => {
 	console.log("mount");
 	return render;

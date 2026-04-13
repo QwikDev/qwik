@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props) => {
@@ -12,7 +11,6 @@ export const App = component$((props) => {
 	);
 });
 ============================= test.tsx ==
-
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -29,9 +27,7 @@ q_App_component_ckEPmXZlub0.s((props) => {
 export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 ============================= test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.js (ENTRY POINT)==
 
-
 ============================= test.tsx_App_component_ckEPmXZlub0.ts (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

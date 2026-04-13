@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$ } from '@qwik.dev/core';
 
 		const PassiveOnlyComponent = component$(() => {
@@ -16,23 +15,22 @@
 				</div>
 			);
 		});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /* @__PURE__ */ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
+const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /*#__PURE__*/ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
 //
-/* @__PURE__ */ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
+/*#__PURE__*/ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
 
 ============================= test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw.js (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
 //
 export const PassiveOnlyComponent_component_LuEXQIZuHLw = () => {
-	return /* @__PURE__ */ _jsxSorted("div", null, null, [/* @__PURE__ */ _jsxSorted("button", null, null, "click", 3, null), /* @__PURE__ */ _jsxSorted("button", null, null, "scroll", 3, null)], 3, "u6_0");
-};
-
+			return (
+				/*#__PURE__*/ _jsxSorted("div", null, null, [/*#__PURE__*/ _jsxSorted("button", null, null, "click", 3, null), /*#__PURE__*/ _jsxSorted("button", null, null, "scroll", 3, null)], 3, "u6_0")
+			);
+		};
 == DIAGNOSTICS ==
 
 []

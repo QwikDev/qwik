@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 import mongodb from 'mongodb';
 
@@ -18,7 +17,6 @@ export default component$(()=> {
 	return <div>cmp</div>
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -31,7 +29,6 @@ export const onGet = ()=>{
 
 export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 ============================= test.tsx_test_component_LUXeXe0DQrg.tsx (ENTRY POINT)==
-
 export const test_component_LUXeXe0DQrg = ()=> {
 	return <div>cmp</div>
 };

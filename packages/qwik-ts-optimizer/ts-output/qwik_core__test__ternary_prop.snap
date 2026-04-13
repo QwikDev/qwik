@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$, $, useSignal } from '@qwik.dev/core';
 		export const Cmp = component$(() => {
 			const toggleSig = useSignal(false);
@@ -16,8 +15,7 @@
 				</button>
 			);
 		});
-============================= test.ts ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -26,7 +24,6 @@ const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp
 
 				export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
 ============================= test.tsx_Cmp_component_handleClick_WawHV3HwS1A.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const Cmp_component_handleClick_WawHV3HwS1A = () => {
@@ -34,8 +31,7 @@ const toggleSig = _captures[0];
 				toggleSig.value = !toggleSig.value;
 			};
 ============================= test.tsx_Cmp_component_4ryKJTOKjWE.ts (ENTRY POINT)==
-
-import { useSignal } from "@qwik.dev/core";
+import { $, useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";

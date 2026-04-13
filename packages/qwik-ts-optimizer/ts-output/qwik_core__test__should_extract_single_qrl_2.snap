@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 	  import { component$, useStore, useSignal } from '@qwik.dev/core';
       const Parent = component$(() => {
       const cart = useStore<Cart>([]);
@@ -31,52 +30,46 @@
         </div>
       );
     });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Parent_component_0TaiDayHrlo = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo");
+const q_Parent_component_0TaiDayHrlo = /*#__PURE__*/ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo");
 //
-/* @__PURE__ */ componentQrl(q_Parent_component_0TaiDayHrlo);
+/*#__PURE__*/ componentQrl(q_Parent_component_0TaiDayHrlo);
 
 ============================= test.tsx_Parent_component_div_button_q_e_click_5khsVRINUws.js (ENTRY POINT)==
-
-export const Parent_component_div_button_q_e_click_5khsVRINUws = (_, _1, results) => results.value = ["item1", "item2"];
-
+export const Parent_component_div_button_q_e_click_5khsVRINUws = (_, _1, results) => (results.value = ['item1', 'item2']);
 ============================= test.tsx_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const Parent_component_div_button_q_e_click_1_rAeuW6OvuXM = (_, _1, item) => {
-	const cart = _captures[0];
-	cart.push(item);
-};
-
+const cart = _captures[0];
+                cart.push(item);
+              };
 ============================= test.tsx_Parent_component_0TaiDayHrlo.js (ENTRY POINT)==
-
 import { useStore, useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM"), "Parent_component_div_button_q_e_click_1_rAeuW6OvuXM");
-const q_Parent_component_div_button_q_e_click_5khsVRINUws = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_div_button_q_e_click_5khsVRINUws"), "Parent_component_div_button_q_e_click_5khsVRINUws");
+const q_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM = /*#__PURE__*/ qrl(() => import("./test.tsx_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM"), "Parent_component_div_button_q_e_click_1_rAeuW6OvuXM");
+const q_Parent_component_div_button_q_e_click_5khsVRINUws = /*#__PURE__*/ qrl(() => import("./test.tsx_Parent_component_div_button_q_e_click_5khsVRINUws"), "Parent_component_div_button_q_e_click_5khsVRINUws");
 //
 export const Parent_component_0TaiDayHrlo = () => {
 	const cart = useStore([]);
 	const results = useSignal(["foo", "bar"]);
 	const Parent_component_div_button_q_e_click_1_rAeuW6OvuXM = q_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM.w([cart]);
-	return /* @__PURE__ */ _jsxSorted("div", null, null, [
-		/* @__PURE__ */ _jsxSorted("button", { "q:p": results }, {
+	return /*#__PURE__*/ _jsxSorted("div", null, null, [
+		/*#__PURE__*/ _jsxSorted("button", { "q:p": results }, {
 			id: "first",
 			"q-e:click": q_Parent_component_div_button_q_e_click_5khsVRINUws
 		}, null, 7, null),
-		results.value.map((item, key) => /* @__PURE__ */ _jsxSorted("button", {
+		results.value.map((item, key) => /*#__PURE__*/ _jsxSorted("button", {
 			id: "second-" + key,
 			"q-e:click": Parent_component_div_button_q_e_click_1_rAeuW6OvuXM,
 			"q:p": item
 		}, null, item, 4, "u6_0")),
-		/* @__PURE__ */ _jsxSorted("ul", null, null, cart.map((item) => /* @__PURE__ */ _jsxSorted("li", null, null, /* @__PURE__ */ _jsxSorted("span", null, null, item, 1, null), 1, "u6_1")), 1, null)
+		/*#__PURE__*/ _jsxSorted("ul", null, null, cart.map((item) => /*#__PURE__*/ _jsxSorted("li", null, null, /*#__PURE__*/ _jsxSorted("span", null, null, item, 1, null), 1, "u6_1")), 1, null)
 	], 1, "u6_2");
 };
 

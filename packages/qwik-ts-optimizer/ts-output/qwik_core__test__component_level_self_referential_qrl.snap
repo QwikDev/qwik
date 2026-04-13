@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useAsync$ } from '@qwik.dev/core';
 		
 // Component-level self-referential component
@@ -27,7 +26,6 @@ export const Foo = component$((props) => {
 	);
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -37,7 +35,6 @@ const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo
 // Component-level self-referential component
 export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
 ============================= test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const Foo_component_sig_useAsync_f0BGwWm4eeY = async ({cleanup}) => {
@@ -49,7 +46,6 @@ const sig = _captures[0];
 		return 0;
 	};
 ============================= test.tsx_Foo_component_other_useAsync_fsHooibmyyE.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const Foo_component_other_useAsync_fsHooibmyyE = async ({cleanup}) => {
@@ -61,7 +57,6 @@ const other = _captures[0];
 		return 0;
 	};
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { useAsyncQrl } from "@qwik.dev/core";
 //

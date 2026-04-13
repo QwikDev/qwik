@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$, useSignal, Signal } from '@qwik.dev/core';
 export const App = component$(() => {
 	const data = useSignal<Signal<any>[]>([]);
@@ -48,41 +47,38 @@ export const App = component$(() => {
         </div>
       );
     });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg = (_, _1, row, idx) => {
-	const clickedIndex = _captures[0], selectedItem = _captures[1];
-	if (selectedItem.value) {
-		selectedItem.value.selected.value = false;
-	}
-	selectedItem.value = row.value;
-	row.value.selected.value = true;
-	clickedIndex.value = idx;
-};
-
+const clickedIndex = _captures[0], selectedItem = _captures[1];
+                      if (selectedItem.value) {
+                        selectedItem.value.selected.value = false;
+                      }
+                      selectedItem.value = row.value;
+                      row.value.selected.value = true;
+					  clickedIndex.value = idx;
+                    };
 ============================= test.tsx_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48 = (_, _1, row) => {
-	const data = _captures[0];
-	const dataValue = untrack(() => data.value);
-	data.value = dataValue.toSpliced(dataValue.findIndex((d) => d.value.id === row.value.id), 1);
-};
-
+const data = _captures[0];
+                      const dataValue = untrack(() => data.value);
+                      data.value = dataValue.toSpliced(
+                        dataValue.findIndex((d) => d.value.id === row.value.id),
+                        1,
+                      );
+                    };
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
@@ -95,8 +91,8 @@ const _hf1_str = "p0.value.id";
 const _hf2 = (p0) => p0.value.label.value;
 const _hf2_str = "p0.value.label.value";
 //
-const q_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48"), "App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48");
-const q_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg"), "App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg");
+const q_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48"), "App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48");
+const q_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg"), "App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg");
 //
 export const App_component_ckEPmXZlub0 = () => {
 	const data = useSignal([]);
@@ -104,17 +100,17 @@ export const App_component_ckEPmXZlub0 = () => {
 	const clickedIndex = useSignal(null);
 	const App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48 = q_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48.w([data]);
 	const App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg = q_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg.w([clickedIndex, selectedItem]);
-	return /* @__PURE__ */ _jsxSorted("div", null, null, data.value.map((row, idx) => /* @__PURE__ */ _jsxSorted("tr", { class: _fnSignal(_hf0, [row], _hf0_str) }, null, [
-		/* @__PURE__ */ _jsxSorted("td", null, { class: "col-md-1" }, _fnSignal(_hf1, [row], _hf1_str), 1, null),
-		/* @__PURE__ */ _jsxSorted("td", null, { class: "col-md-4" }, /* @__PURE__ */ _jsxSorted("a", {
+	return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row, idx) => /*#__PURE__*/ _jsxSorted("tr", { class: _fnSignal(_hf0, [row], _hf0_str) }, null, [
+		/*#__PURE__*/ _jsxSorted("td", null, { class: "col-md-1" }, _fnSignal(_hf1, [row], _hf1_str), 1, null),
+		/*#__PURE__*/ _jsxSorted("td", null, { class: "col-md-4" }, /*#__PURE__*/ _jsxSorted("a", {
 			"q-e:click": App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg,
 			"q:ps": [row, idx]
 		}, null, _fnSignal(_hf2, [row], _hf2_str), 4, null), 1, null),
-		/* @__PURE__ */ _jsxSorted("td", null, { class: "col-md-1" }, /* @__PURE__ */ _jsxSorted("a", {
+		/*#__PURE__*/ _jsxSorted("td", null, { class: "col-md-1" }, /*#__PURE__*/ _jsxSorted("a", {
 			"q-e:click": App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48,
 			"q:p": row
-		}, null, /* @__PURE__ */ _jsxSorted("span", null, { "aria-hidden": "true" }, "x", 3, null), 6, null), 1, null),
-		/* @__PURE__ */ _jsxSorted("td", null, { class: "col-md-6" }, null, 3, null)
+		}, null, /*#__PURE__*/ _jsxSorted("span", null, { "aria-hidden": "true" }, "x", 3, null), 6, null), 1, null),
+		/*#__PURE__*/ _jsxSorted("td", null, { class: "col-md-6" }, null, 3, null)
 	], 1, untrack(() => row.value.id))), 1, "u6_0");
 };
 

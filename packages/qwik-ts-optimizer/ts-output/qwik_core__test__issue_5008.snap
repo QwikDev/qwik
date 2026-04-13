@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$, useStore } from "@qwik.dev/core";
 
 		export default component$(() => {
@@ -18,37 +17,33 @@
 			</>
 		);
 		});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw.js (ENTRY POINT)==
-
 export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = (_, _1, store) => store[0].value++;
-
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { useStore } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 //
-const q_test_component_Fragment_button_q_e_click_7MTd2pAiliw = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw"), "test_component_Fragment_button_q_e_click_7MTd2pAiliw");
+const q_test_component_Fragment_button_q_e_click_7MTd2pAiliw = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw"), "test_component_Fragment_button_q_e_click_7MTd2pAiliw");
 //
 export const test_component_LUXeXe0DQrg = () => {
 	const store = useStore([{ value: 0 }]);
-	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, [
-		/* @__PURE__ */ _jsxSorted("button", { "q:p": store }, { "q-e:click": q_test_component_Fragment_button_q_e_click_7MTd2pAiliw }, "+1", 7, null),
+	return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+		/*#__PURE__*/ _jsxSorted("button", { "q:p": store }, { "q-e:click": q_test_component_Fragment_button_q_e_click_7MTd2pAiliw }, "+1", 7, null),
 		store.map(function(v, idx) {
-			return /* @__PURE__ */ _jsxSorted("div", null, null, ["Function: ", _wrapProp(v)], 1, "fn_" + idx);
+			return /*#__PURE__*/ _jsxSorted("div", null, null, ["Function: ", _wrapProp(v)], 1, "fn_" + idx);
 		}),
-		store.map((v, idx) => /* @__PURE__ */ _jsxSorted("div", null, null, ["Arrow: ", _wrapProp(v)], 1, "arrow_" + idx))
+		store.map((v, idx) => /*#__PURE__*/ _jsxSorted("div", null, null, ["Arrow: ", _wrapProp(v)], 1, "arrow_" + idx))
 	], 1, "u6_0");
 };
 

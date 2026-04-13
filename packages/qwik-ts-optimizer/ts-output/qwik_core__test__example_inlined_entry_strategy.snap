@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@qwik.dev/core';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
@@ -24,7 +23,6 @@ export const Child = component$(() => {
 	);
 });
 ============================= test.tsx ==
-
 import { _noopQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -65,15 +63,11 @@ q_Child_component_9GyF01GDKqw.s(() => {
 export const Child = /*#__PURE__*/ componentQrl(q_Child_component_9GyF01GDKqw);
 ============================= test.tsx_Child_component_useStyles_qBZTuFM0160.js (ENTRY POINT)==
 
-
 ============================= test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.js (ENTRY POINT)==
-
 
 ============================= test.tsx_Child_component_div_q_e_click_cROa4sult1s.js (ENTRY POINT)==
 
-
 ============================= test.tsx_Child_component_9GyF01GDKqw.tsx (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

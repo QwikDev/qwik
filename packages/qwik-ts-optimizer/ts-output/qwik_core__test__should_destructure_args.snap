@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$ } from "@qwik.dev/core";
 
 		// the count results in _fnSignal because of the rename
@@ -20,19 +19,17 @@
 			);
 		}
 		);
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
 // the count results in _fnSignal because of the rename
 // would be nice to consider it a prop too
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { _getVarProps } from "@qwik.dev/core";
@@ -49,11 +46,11 @@ export const test_component_LUXeXe0DQrg = (_rawProps) => {
 	const renders = useStore({ renders: 0 }, { reactive: false });
 	renders.renders++;
 	const rerenders = renders.renders + 0;
-	return /* @__PURE__ */ _jsxSorted("div", { id: _wrapProp(_rawProps, "id") }, null, [/* @__PURE__ */ _jsxSplit("span", { ..._getVarProps(rest) }, _getConstProps(rest), [
+	return /*#__PURE__*/ _jsxSorted("div", { id: _wrapProp(_rawProps, "id") }, null, [/*#__PURE__*/ _jsxSplit("span", { ..._getVarProps(rest) }, _getConstProps(rest), [
 		_wrapProp(_rawProps, "message"),
 		" ",
 		_wrapProp(_rawProps, "count")
-	], 0, null), /* @__PURE__ */ _jsxSorted("div", null, { class: "renders" }, rerenders, 1, null)], 1, "u6_0");
+	], 0, null), /*#__PURE__*/ _jsxSorted("div", null, { class: "renders" }, rerenders, 1, null)], 1, "u6_0");
 };
 
 == DIAGNOSTICS ==

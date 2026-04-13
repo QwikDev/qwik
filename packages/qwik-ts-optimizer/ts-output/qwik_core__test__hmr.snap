@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$, component$, $ } from "@qwik.dev/core";
 
 		export const TestGetsHmr = component$(() => {
@@ -10,31 +9,48 @@
 		export const TestNoHmr = componentQrl($(() => {
 			return <div>Test</div>;
 		}));
-============================= test.js ==
-
-import { qrl } from "@qwik.dev/core";
+============================= test.tsx ==
+import { qrlDEV } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_TestGetsHmr_component_jBUoou0sxX4 = /* @__PURE__ */ qrl(() => import("./test.tsx_TestGetsHmr_component_jBUoou0sxX4"), "TestGetsHmr_component_jBUoou0sxX4");
-const q_TestNoHmr_componentQrl_Uqk3jGTNmYs = /* @__PURE__ */ qrl(() => import("./test.tsx_TestNoHmr_componentQrl_Uqk3jGTNmYs"), "TestNoHmr_componentQrl_Uqk3jGTNmYs");
+const q_TestGetsHmr_component_jBUoou0sxX4 = /*#__PURE__*/ qrlDEV(() => import("./test.tsx_TestGetsHmr_component_jBUoou0sxX4"), "TestGetsHmr_component_jBUoou0sxX4", {
+	file: "/user/qwik/src/test.tsx",
+	lo: 5,
+	hi: 41,
+	displayName: "test.tsx_TestGetsHmr_component"
+});
+const q_TestNoHmr_componentQrl_Uqk3jGTNmYs = /*#__PURE__*/ qrlDEV(() => import("./test.tsx_TestNoHmr_componentQrl_Uqk3jGTNmYs"), "TestNoHmr_componentQrl_Uqk3jGTNmYs", {
+	file: "/user/qwik/src/test.tsx",
+	lo: 8,
+	hi: 43,
+	displayName: "test.tsx_TestNoHmr_componentQrl"
+});
 //
-export const TestGetsHmr = /* @__PURE__ */ componentQrl(q_TestGetsHmr_component_jBUoou0sxX4);
+export const TestGetsHmr = /*#__PURE__*/ componentQrl(q_TestGetsHmr_component_jBUoou0sxX4);
 export const TestNoHmr = componentQrl(q_TestNoHmr_componentQrl_Uqk3jGTNmYs);
 
 ============================= test.tsx_TestGetsHmr_component_jBUoou0sxX4.js (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
+import { _useHmr } from "@qwik.dev/core";
 //
 export const TestGetsHmr_component_jBUoou0sxX4 = () => {
-	return /* @__PURE__ */ _jsxSorted("div", null, null, "Test", 3, "u6_0");
+	_useHmr("/user/qwik/src/test.tsx");
+	return /*#__PURE__*/ _jsxSorted("div", null, null, "Test", 3, "u6_0", {
+		fileName: "test.tsx",
+		lineNumber: 2,
+		columnNumber: 11
+	});
 };
 
 ============================= test.tsx_TestNoHmr_componentQrl_Uqk3jGTNmYs.js (ENTRY POINT)==
-
 import { _jsxSorted } from "@qwik.dev/core";
 //
 export const TestNoHmr_componentQrl_Uqk3jGTNmYs = () => {
-	return /* @__PURE__ */ _jsxSorted("div", null, null, "Test", 3, "u6_1");
+	return /*#__PURE__*/ _jsxSorted("div", null, null, "Test", 3, "u6_1", {
+		fileName: "test.tsx",
+		lineNumber: 2,
+		columnNumber: 11
+	});
 };
 
 == DIAGNOSTICS ==

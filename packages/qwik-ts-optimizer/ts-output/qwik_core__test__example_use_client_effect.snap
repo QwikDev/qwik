@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@qwik.dev/core';
 
 export const Child = component$(() => {
@@ -25,44 +24,40 @@ export const Child = component$(() => {
 	</div>
 	);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Child_component_9GyF01GDKqw = /* @__PURE__ */ qrl(() => import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
+const q_Child_component_9GyF01GDKqw = /*#__PURE__*/ qrl(() => import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
 //
-export const Child = /* @__PURE__ */ componentQrl(q_Child_component_9GyF01GDKqw);
+export const Child = /*#__PURE__*/ componentQrl(q_Child_component_9GyF01GDKqw);
 
 ============================= test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const Child_component_useBrowserVisibleTask_0IGFPOyJmQA = () => {
-	const state = _captures[0];
-	const timer = setInterval(() => {
+const state = _captures[0];
+		const timer = setInterval(() => {
 		state.count++;
-	}, 1e3);
-	return () => {
+		}, 1000);
+		return () => {
 		clearInterval(timer);
+		}
 	};
-};
-
 ============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
-
 import { useStore } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useBrowserVisibleTaskQrl } from "@qwik.dev/core";
 //
-const q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA = /* @__PURE__ */ qrl(() => import("./test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA");
+const q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA = /*#__PURE__*/ qrl(() => import("./test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA");
 //
 export const Child_component_9GyF01GDKqw = () => {
 	const state = useStore({ count: 0 });
 	// Double count watch
 	useBrowserVisibleTaskQrl(q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.w([state]));
-	return /* @__PURE__ */ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
+	return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
 };
 
 == DIAGNOSTICS ==

@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { wrapperFn, getEnv } from 'utils';
 		import { formAction$, valiForm$ } from 'forms';
 
@@ -13,32 +12,29 @@
 				status: 'success',
 			};
 		}, valiForm$(FeatureSchema));
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { formActionQrl } from "forms";
 import { valiFormQrl } from "forms";
 import { wrapperFn, getEnv } from "utils";
 //
-const q_featureAction_formAction_cZgh2PzV1cc = /* @__PURE__ */ qrl(() => import("./test.tsx_featureAction_formAction_cZgh2PzV1cc"), "featureAction_formAction_cZgh2PzV1cc");
-const q_featureAction_formAction_valiForm_3yxd03SSzJ8 = /* @__PURE__ */ qrl(() => import("./test.tsx_featureAction_formAction_valiForm_3yxd03SSzJ8"), "featureAction_formAction_valiForm_3yxd03SSzJ8");
+const q_featureAction_formAction_cZgh2PzV1cc = /*#__PURE__*/ qrl(() => import("./test.tsx_featureAction_formAction_cZgh2PzV1cc"), "featureAction_formAction_cZgh2PzV1cc");
+const q_featureAction_formAction_valiForm_3yxd03SSzJ8 = /*#__PURE__*/ qrl(() => import("./test.tsx_featureAction_formAction_valiForm_3yxd03SSzJ8"), "featureAction_formAction_valiForm_3yxd03SSzJ8");
 //
 const flagEnabled = getEnv().PUBLIC_FEATURE;
 export const FeatureSchema = wrapperFn(flagEnabled);
 export const featureAction = formActionQrl(q_featureAction_formAction_cZgh2PzV1cc, valiFormQrl(q_featureAction_formAction_valiForm_3yxd03SSzJ8));
 
 ============================= test.tsx_featureAction_formAction_cZgh2PzV1cc.js (ENTRY POINT)==
-
 export const featureAction_formAction_cZgh2PzV1cc = async (requestEvent) => {
-	return { status: "success" };
-};
-
+			return {
+				status: 'success',
+			};
+		};
 ============================= test.tsx_featureAction_formAction_valiForm_3yxd03SSzJ8.js (ENTRY POINT)==
-
 import { FeatureSchema } from "./test";
 //
 export const featureAction_formAction_valiForm_3yxd03SSzJ8 = FeatureSchema;
-
 == DIAGNOSTICS ==
 
 []

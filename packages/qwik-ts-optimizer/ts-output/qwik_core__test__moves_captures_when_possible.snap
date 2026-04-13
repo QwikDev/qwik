@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$, useSignal, $ } from "@qwik.dev/core";
 
 		export const Test = component$(() => {
@@ -10,42 +9,34 @@
 			const bar = useSignal('bar');
 			return <button onClick$={() => sig.value++} onDblClick$={() => foo.value+=sig.value} onHover$={() => sig.value+=bar.value}>{sig}</button>;
 		});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Test_component_qJXYteHpGTQ = /* @__PURE__ */ qrl(() => import("./test.tsx_Test_component_qJXYteHpGTQ"), "Test_component_qJXYteHpGTQ");
+const q_Test_component_qJXYteHpGTQ = /*#__PURE__*/ qrl(() => import("./test.tsx_Test_component_qJXYteHpGTQ"), "Test_component_qJXYteHpGTQ");
 //
-export const Test = /* @__PURE__ */ componentQrl(q_Test_component_qJXYteHpGTQ);
+export const Test = /*#__PURE__*/ componentQrl(q_Test_component_qJXYteHpGTQ);
 
 ============================= test.tsx_Test_component_button_q_e_click_SvzH9HBZLMQ.js (ENTRY POINT)==
-
 export const Test_component_button_q_e_click_SvzH9HBZLMQ = (_, _1, _2, _3, sig) => sig.value++;
-
 ============================= test.tsx_Test_component_button_q_e_dblclick_dxOdkqiOleU.js (ENTRY POINT)==
-
-export const Test_component_button_q_e_dblclick_dxOdkqiOleU = (_, _1, _2, foo, sig) => foo.value += sig.value;
-
+export const Test_component_button_q_e_dblclick_dxOdkqiOleU = (_, _1, _2, foo, sig) => foo.value+=sig.value;
 ============================= test.tsx_Test_component_button_q_e_hover_IVVGOMV4FJ4.js (ENTRY POINT)==
-
-export const Test_component_button_q_e_hover_IVVGOMV4FJ4 = (_, _1, bar, _3, sig) => sig.value += bar.value;
-
+export const Test_component_button_q_e_hover_IVVGOMV4FJ4 = (_, _1, bar, _3, sig) => sig.value+=bar.value;
 ============================= test.tsx_Test_component_qJXYteHpGTQ.js (ENTRY POINT)==
-
 import { useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_Test_component_button_q_e_click_SvzH9HBZLMQ = /* @__PURE__ */ qrl(() => import("./test.tsx_Test_component_button_q_e_click_SvzH9HBZLMQ"), "Test_component_button_q_e_click_SvzH9HBZLMQ");
-const q_Test_component_button_q_e_dblclick_dxOdkqiOleU = /* @__PURE__ */ qrl(() => import("./test.tsx_Test_component_button_q_e_dblclick_dxOdkqiOleU"), "Test_component_button_q_e_dblclick_dxOdkqiOleU");
-const q_Test_component_button_q_e_hover_IVVGOMV4FJ4 = /* @__PURE__ */ qrl(() => import("./test.tsx_Test_component_button_q_e_hover_IVVGOMV4FJ4"), "Test_component_button_q_e_hover_IVVGOMV4FJ4");
+const q_Test_component_button_q_e_click_SvzH9HBZLMQ = /*#__PURE__*/ qrl(() => import("./test.tsx_Test_component_button_q_e_click_SvzH9HBZLMQ"), "Test_component_button_q_e_click_SvzH9HBZLMQ");
+const q_Test_component_button_q_e_dblclick_dxOdkqiOleU = /*#__PURE__*/ qrl(() => import("./test.tsx_Test_component_button_q_e_dblclick_dxOdkqiOleU"), "Test_component_button_q_e_dblclick_dxOdkqiOleU");
+const q_Test_component_button_q_e_hover_IVVGOMV4FJ4 = /*#__PURE__*/ qrl(() => import("./test.tsx_Test_component_button_q_e_hover_IVVGOMV4FJ4"), "Test_component_button_q_e_hover_IVVGOMV4FJ4");
 //
 export const Test_component_qJXYteHpGTQ = () => {
 	const sig = useSignal(0);
 	const foo = useSignal("foo");
 	const bar = useSignal("bar");
-	return /* @__PURE__ */ _jsxSorted("button", { "q:ps": [
+	return /*#__PURE__*/ _jsxSorted("button", { "q:ps": [
 		bar,
 		foo,
 		sig

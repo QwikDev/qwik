@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -23,32 +22,28 @@ export default component$(() => {
     </div>
   );
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o.js (ENTRY POINT)==
-
 export const test_component_div_div_span_button_q_e_click_oBFNw2cK30o = (_, _1, cellKey) => console.log(cellKey);
-
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
 import { useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_test_component_div_div_span_button_q_e_click_oBFNw2cK30o = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o"), "test_component_div_div_span_button_q_e_click_oBFNw2cK30o");
+const q_test_component_div_div_span_button_q_e_click_oBFNw2cK30o = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o"), "test_component_div_div_span_button_q_e_click_oBFNw2cK30o");
 //
 export const test_component_LUXeXe0DQrg = () => {
 	const matrix = useSignal([["a", "b"], ["c", "d"]]);
-	return /* @__PURE__ */ _jsxSorted("div", null, null, matrix.value.map((row, i) => /* @__PURE__ */ _jsxSorted("div", null, null, row.map((cell, j) => {
+	return /*#__PURE__*/ _jsxSorted("div", null, null, matrix.value.map((row, i) => /*#__PURE__*/ _jsxSorted("div", null, null, row.map((cell, j) => {
 		const cellKey = cell + "-" + j;
-		return /* @__PURE__ */ _jsxSorted("span", null, null, /* @__PURE__ */ _jsxSorted("button", {
+		return /*#__PURE__*/ _jsxSorted("span", null, null, /*#__PURE__*/ _jsxSorted("button", {
 			"q-e:click": q_test_component_div_div_span_button_q_e_click_oBFNw2cK30o,
 			"q:p": cellKey
 		}, null, cell, 4, null), 1, j);

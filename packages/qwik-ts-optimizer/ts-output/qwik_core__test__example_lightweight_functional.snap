@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$((props) => {
@@ -27,7 +26,6 @@ export const ButtonArrow = ({text, color}) => {
 	);
 }
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -52,7 +50,6 @@ export const ButtonArrow = ({text, color}) => {
 	);
 }
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
-
 import { ButtonArrow } from "./test";
 import { Button } from "./test";
 //
@@ -65,10 +62,8 @@ export const Foo_component_HTDRsvUbLiE = (props) => {
 	);
 };
 ============================= test.tsx_Button_button_q_e_click_6YaNiKLqRnQ.js (ENTRY POINT)==
-
-export const Button_button_q_e_click_6YaNiKLqRnQ = ()=>console.log(text, color);
+export const Button_button_q_e_click_6YaNiKLqRnQ = (_, _1, color, text)=>console.log(text, color);
 ============================= test.tsx_ButtonArrow_button_q_e_click_rEE0GCaea7M.js (ENTRY POINT)==
-
 export const ButtonArrow_button_q_e_click_rEE0GCaea7M = (_, _1, color, text)=>console.log(text, color);
 == DIAGNOSTICS ==
 

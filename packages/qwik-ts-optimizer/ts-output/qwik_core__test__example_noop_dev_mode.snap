@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useStore, serverStuff$, $ } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -25,72 +24,66 @@ export const App = component$(() => {
 		</Cmp>
 	);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrlDEV } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrlDEV(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0", {
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrlDEV(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0", {
 	file: "/hello/from/dev/test.tsx",
 	lo: 5,
 	hi: 31,
 	displayName: "test.tsx_App_component"
 });
 //
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_serverStuff_ebyHaP15ytQ.js (ENTRY POINT)==
-
 export const App_component_serverStuff_ebyHaP15ytQ = null;
 ============================= test.tsx_App_component_serverStuff_1_PQCqO0ANabY.js (ENTRY POINT)==
-
 export const App_component_serverStuff_1_PQCqO0ANabY = null;
 ============================= test.tsx_App_component_Cmp_p_shouldRemove_uU0MG0jvQD4.js (ENTRY POINT)==
-
 export const App_component_Cmp_p_shouldRemove_uU0MG0jvQD4 = null;
 ============================= test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.js (ENTRY POINT)==
-
 export const App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = null;
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { useStore } from "@qwik.dev/core";
-import { qrlDEV } from "@qwik.dev/core";
+import { _noopQrlDEV } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { serverStuffQrl } from "@qwik.dev/core";
 //
-const q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /* @__PURE__ */ qrlDEV(() => import("./test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4"), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
-	file: "/hello/from/dev/test.tsx",
-	lo: 0,
-	hi: 0,
-	displayName: "test.tsx_App_component_Cmp_p_q_e_click"
-});
-const q_App_component_Cmp_p_shouldRemove_uU0MG0jvQD4 = /* @__PURE__ */ qrlDEV(() => import("./test.tsx_App_component_Cmp_p_shouldRemove_uU0MG0jvQD4"), "App_component_Cmp_p_shouldRemove_uU0MG0jvQD4", {
-	file: "/hello/from/dev/test.tsx",
-	lo: 0,
-	hi: 0,
-	displayName: "test.tsx_App_component_Cmp_p_shouldRemove"
-});
-const q_App_component_serverStuff_1_PQCqO0ANabY = /* @__PURE__ */ qrlDEV(() => import("./test.tsx_App_component_serverStuff_1_PQCqO0ANabY"), "App_component_serverStuff_1_PQCqO0ANabY", {
-	file: "/hello/from/dev/test.tsx",
-	lo: 0,
-	hi: 0,
-	displayName: "test.tsx_App_component_serverStuff_1"
-});
-const q_App_component_serverStuff_ebyHaP15ytQ = /* @__PURE__ */ qrlDEV(() => import("./test.tsx_App_component_serverStuff_ebyHaP15ytQ"), "App_component_serverStuff_ebyHaP15ytQ", {
+const q_qrl_4294901760 = /*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_ebyHaP15ytQ", {
 	file: "/hello/from/dev/test.tsx",
 	lo: 0,
 	hi: 0,
 	displayName: "test.tsx_App_component_serverStuff"
 });
+const q_qrl_4294901762 = /*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_1_PQCqO0ANabY", {
+	file: "/hello/from/dev/test.tsx",
+	lo: 0,
+	hi: 0,
+	displayName: "test.tsx_App_component_serverStuff_1"
+});
+const q_qrl_4294901764 = /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_shouldRemove_uU0MG0jvQD4", {
+	file: "/hello/from/dev/test.tsx",
+	lo: 0,
+	hi: 0,
+	displayName: "test.tsx_App_component_Cmp_p_shouldRemove"
+});
+const q_qrl_4294901766 = /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
+	file: "/hello/from/dev/test.tsx",
+	lo: 0,
+	hi: 0,
+	displayName: "test.tsx_App_component_Cmp_p_q_e_click"
+});
 //
 export const App_component_ckEPmXZlub0 = () => {
 	const stuff = useStore();
-	serverStuffQrl(q_App_component_serverStuff_ebyHaP15ytQ.w([stuff]));
-	serverStuffQrl(q_App_component_serverStuff_1_PQCqO0ANabY);
-	return /* @__PURE__ */ _jsxSorted(Cmp, null, null, /* @__PURE__ */ _jsxSorted("p", { "q:p": stuff }, {
+	serverStuffQrl(q_qrl_4294901760.w([stuff]));
+	serverStuffQrl(q_qrl_4294901762);
+	return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", { "q:p": stuff }, {
 		class: "stuff",
-		shouldRemove$: q_App_component_Cmp_p_shouldRemove_uU0MG0jvQD4,
-		"q-e:click": q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4
+		shouldRemove$: q_qrl_4294901764,
+		"q-e:click": q_qrl_4294901766
 	}, "Hello Qwik", 7, null, {
 		fileName: "test.tsx",
 		lineNumber: 10,

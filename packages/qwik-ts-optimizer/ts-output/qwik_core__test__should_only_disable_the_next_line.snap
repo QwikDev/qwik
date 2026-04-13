@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 		import { component$ } from '@qwik.dev/core';
 
 		const PassiveOnlyComponent = component$(() => {
@@ -17,35 +16,48 @@
 				</div>
 			);
 		});
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /* @__PURE__ */ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
+const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /*#__PURE__*/ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
 //
-/* @__PURE__ */ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
+/*#__PURE__*/ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
 
 ============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA.js (ENTRY POINT)==
-
 export const PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = () => {};
-
 ============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM.js (ENTRY POINT)==
-
 export const PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM = () => {};
-
 ============================= test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM = /* @__PURE__ */ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM"), "PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM");
-const q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = /* @__PURE__ */ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA"), "PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA");
+const q_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM = /*#__PURE__*/ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM"), "PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM");
+const q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = /*#__PURE__*/ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA"), "PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA");
 //
 export const PassiveOnlyComponent_component_LuEXQIZuHLw = () => {
-	return /* @__PURE__ */ _jsxSorted("div", null, null, [/* @__PURE__ */ _jsxSorted("button", null, { "q-ep:click": q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA }, "click", 3, null), /* @__PURE__ */ _jsxSorted("button", null, { "q-ep:click": q_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM }, "click", 3, null)], 3, "u6_0");
+	return /*#__PURE__*/ _jsxSorted("div", null, null, [/*#__PURE__*/ _jsxSorted("button", null, { "q-ep:click": q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA }, "click", 3, null), /*#__PURE__*/ _jsxSorted("button", null, { "q-ep:click": q_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM }, "click", 3, null)], 3, "u6_0");
 };
 
 == DIAGNOSTICS ==
 
-[{"category":"warning","code":"preventdefault-passive-check","file":"test.tsx","message":"preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()","highlights":[{"lo":289,"hi":352,"startLine":12,"startCol":6,"endLine":12,"endCol":69}],"suggestions":null,"scope":"optimizer"}]
+[
+  {
+    "category": "warning",
+    "code": "preventdefault-passive-check",
+    "file": "test.tsx",
+    "message": "preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()",
+    "highlights": [
+      {
+        "lo": 289,
+        "hi": 352,
+        "startLine": 12,
+        "startCol": 6,
+        "endLine": 12,
+        "endCol": 69
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

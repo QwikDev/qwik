@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
@@ -35,8 +34,7 @@ export const App = component$(() => {
 		</>
 	);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -53,40 +51,39 @@ const _hf1_str = "p0.address.city.name";
 const _hf2 = (p0) => p0.address.city.name ? "true" : "false";
 const _hf2_str = "p0.address.city.name?\"true\":\"false\"";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ _noopQrl("App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ _noopQrl("App_component_ckEPmXZlub0");
 //
 const App_component_ckEPmXZlub0 = () => {
 	const signal = useSignal(0);
 	const store = useStore({});
-	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, [
-		/* @__PURE__ */ _jsxSorted("div", null, null, "First text", 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", `text`], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", 1], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", true], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", `text${12}`], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", typeof `text${12}` === "string" ? 12 : 43], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", signal], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", _wrapProp(signal)], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", _fnSignal(_hf0, [signal], _hf0_str)], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", _fnSignal(_hf1, [store], _hf1_str)], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", _fnSignal(_hf2, [store], _hf2_str)], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", dep], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", dep.thing], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", dep.thing + "stuff"], 3, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", globalThing], 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", globalThing.thing], 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", globalThing.thing + "stuff"], 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", signal.value()], 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", signal.value + unknown()], 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", mutable(signal)], 1, null),
-		/* @__PURE__ */ _jsxSorted("div", null, null, ["First ", signal.value + dep], 1, null)
+	return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+		/*#__PURE__*/ _jsxSorted("div", null, null, "First text", 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", `text`], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", 1], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", true], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", `text${12}`], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", typeof `text${12}` === "string" ? 12 : 43], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", signal], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", _wrapProp(signal)], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", _fnSignal(_hf0, [signal], _hf0_str)], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", _fnSignal(_hf1, [store], _hf1_str)], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", _fnSignal(_hf2, [store], _hf2_str)], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", dep], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", dep.thing], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", dep.thing + "stuff"], 3, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", globalThing], 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", globalThing.thing], 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", globalThing.thing + "stuff"], 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", signal.value()], 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", signal.value + unknown()], 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", mutable(signal)], 1, null),
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["First ", signal.value + dep], 1, null)
 	], 1, "u6_0");
 };
 q_App_component_ckEPmXZlub0.s(App_component_ckEPmXZlub0);
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

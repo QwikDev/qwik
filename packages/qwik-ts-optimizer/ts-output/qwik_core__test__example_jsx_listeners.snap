@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
@@ -33,79 +32,58 @@ export const Foo = component$(() => {
 }, {
 	tagName: "my-foo",
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Foo_component_HTDRsvUbLiE = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
 //
-export const Foo = /* @__PURE__ */ componentQrl(q_Foo_component_HTDRsvUbLiE, { tagName: "my-foo" });
+export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE, { tagName: "my-foo" });
 
 ============================= test.tsx_Foo_component_handler_H10xZtD0e7w.js (ENTRY POINT)==
-
-export const Foo_component_handler_H10xZtD0e7w = () => console.log("reused");
-
+export const Foo_component_handler_H10xZtD0e7w = () => console.log('reused');
 ============================= test.tsx_Foo_component_div_q_e_click_YEa2A5ADUOg.js (ENTRY POINT)==
-
-export const Foo_component_div_q_e_click_YEa2A5ADUOg = () => console.log("onClick$");
-
+export const Foo_component_div_q_e_click_YEa2A5ADUOg = ()=>console.log('onClick$');
 ============================= test.tsx_Foo_component_div_q_e_documentscroll_0FSbGzUROso.js (ENTRY POINT)==
-
-export const Foo_component_div_q_e_documentscroll_0FSbGzUROso = () => console.log("onDocumentScroll");
-
+export const Foo_component_div_q_e_documentscroll_0FSbGzUROso = ()=>console.log('onDocumentScroll');
 ============================= test.tsx_Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0.js (ENTRY POINT)==
-
-export const Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0 = () => console.log("onWindowScroll");
-
+export const Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0 = ()=>console.log('onWindowScroll');
 ============================= test.tsx_Foo_component_div_q_e_c_lick_kX5SiYdz650.js (ENTRY POINT)==
-
-export const Foo_component_div_q_e_c_lick_kX5SiYdz650 = () => console.log("on-cLick$");
-
+export const Foo_component_div_q_e_c_lick_kX5SiYdz650 = ()=>console.log('on-cLick$');
 ============================= test.tsx_Foo_component_div_q_e_document_scroll_6qyBttefepU.js (ENTRY POINT)==
-
-export const Foo_component_div_q_e_document_scroll_6qyBttefepU = () => console.log("onDocument-sCroll");
-
+export const Foo_component_div_q_e_document_scroll_6qyBttefepU = ()=>console.log('onDocument-sCroll');
 ============================= test.tsx_Foo_component_div_q_e_document_scroll_1_wphyTkeintI.js (ENTRY POINT)==
-
-export const Foo_component_div_q_e_document_scroll_1_wphyTkeintI = () => console.log("onDocument-scroLL");
-
+export const Foo_component_div_q_e_document_scroll_1_wphyTkeintI = ()=>console.log('onDocument-scroLL');
 ============================= test.tsx_Foo_component_div_host_onClick_cPEH970JbEY.js (ENTRY POINT)==
-
 export const Foo_component_div_host_onClick_cPEH970JbEY = () => console.log("host:onClick$");
 
 ============================= test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY.js (ENTRY POINT)==
-
 export const Foo_component_div_host_onDocumentScroll_Zip7mifsjRY = () => console.log("host:onDocument:scroll");
 
 ============================= test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg.js (ENTRY POINT)==
-
 export const Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg = () => console.log("host:onWindow:scroll");
 
 ============================= test.tsx_Foo_component_div_custom_pyHnxab17ms.js (ENTRY POINT)==
-
-export const Foo_component_div_custom_pyHnxab17ms = () => console.log("custom");
-
+export const Foo_component_div_custom_pyHnxab17ms = ()=>console.log('custom');
 ============================= test.tsx_Foo_component_1_DvU6FitWglY.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_Foo_component_div_custom_pyHnxab17ms = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_custom_pyHnxab17ms"), "Foo_component_div_custom_pyHnxab17ms");
-const q_Foo_component_div_host_onClick_cPEH970JbEY = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_host_onClick_cPEH970JbEY"), "Foo_component_div_host_onClick_cPEH970JbEY");
-const q_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"), "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg");
-const q_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"), "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY");
-const q_Foo_component_div_q_e_c_lick_kX5SiYdz650 = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_q_e_c_lick_kX5SiYdz650"), "Foo_component_div_q_e_c_lick_kX5SiYdz650");
-const q_Foo_component_div_q_e_click_YEa2A5ADUOg = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_q_e_click_YEa2A5ADUOg"), "Foo_component_div_q_e_click_YEa2A5ADUOg");
-const q_Foo_component_div_q_e_document_scroll_1_wphyTkeintI = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_q_e_document_scroll_1_wphyTkeintI"), "Foo_component_div_q_e_document_scroll_1_wphyTkeintI");
-const q_Foo_component_div_q_e_document_scroll_6qyBttefepU = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_q_e_document_scroll_6qyBttefepU"), "Foo_component_div_q_e_document_scroll_6qyBttefepU");
-const q_Foo_component_div_q_e_documentscroll_0FSbGzUROso = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_q_e_documentscroll_0FSbGzUROso"), "Foo_component_div_q_e_documentscroll_0FSbGzUROso");
-const q_Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0 = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0"), "Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0");
-const q_Foo_component_handler_H10xZtD0e7w = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_handler_H10xZtD0e7w"), "Foo_component_handler_H10xZtD0e7w");
+const q_Foo_component_div_custom_pyHnxab17ms = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_custom_pyHnxab17ms"), "Foo_component_div_custom_pyHnxab17ms");
+const q_Foo_component_div_host_onClick_cPEH970JbEY = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_host_onClick_cPEH970JbEY"), "Foo_component_div_host_onClick_cPEH970JbEY");
+const q_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"), "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg");
+const q_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"), "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY");
+const q_Foo_component_div_q_e_c_lick_kX5SiYdz650 = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_q_e_c_lick_kX5SiYdz650"), "Foo_component_div_q_e_c_lick_kX5SiYdz650");
+const q_Foo_component_div_q_e_click_YEa2A5ADUOg = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_q_e_click_YEa2A5ADUOg"), "Foo_component_div_q_e_click_YEa2A5ADUOg");
+const q_Foo_component_div_q_e_document_scroll_1_wphyTkeintI = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_q_e_document_scroll_1_wphyTkeintI"), "Foo_component_div_q_e_document_scroll_1_wphyTkeintI");
+const q_Foo_component_div_q_e_document_scroll_6qyBttefepU = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_q_e_document_scroll_6qyBttefepU"), "Foo_component_div_q_e_document_scroll_6qyBttefepU");
+const q_Foo_component_div_q_e_documentscroll_0FSbGzUROso = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_q_e_documentscroll_0FSbGzUROso"), "Foo_component_div_q_e_documentscroll_0FSbGzUROso");
+const q_Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0 = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0"), "Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0");
+const q_Foo_component_handler_H10xZtD0e7w = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_handler_H10xZtD0e7w"), "Foo_component_handler_H10xZtD0e7w");
 //
 export const Foo_component_1_DvU6FitWglY = () => {
 	const handler = q_Foo_component_handler_H10xZtD0e7w;
-	return /* @__PURE__ */ _jsxSorted("div", null, {
+	return /*#__PURE__*/ _jsxSorted("div", null, {
 		"host:onClick$": q_Foo_component_div_host_onClick_cPEH970JbEY,
 		"host:onDocumentScroll$": q_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY,
 		"host:onDocumentScroll$": q_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg,
@@ -121,15 +99,14 @@ export const Foo_component_1_DvU6FitWglY = () => {
 };
 
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
-const q_Foo_component_1_DvU6FitWglY = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY");
+const q_Foo_component_1_DvU6FitWglY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY");
 //
 export const Foo_component_HTDRsvUbLiE = () => {
+
 	return q_Foo_component_1_DvU6FitWglY;
 };
-
 == DIAGNOSTICS ==
 
 []

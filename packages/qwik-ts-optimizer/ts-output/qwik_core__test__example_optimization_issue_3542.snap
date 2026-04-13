@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 
 export const AtomStatus = component$(({ctx,atom})=>{
@@ -16,14 +15,13 @@ export const AtomStatus = component$(({ctx,atom})=>{
 		</span>
 	);
 })
-============================= test.jsx ==
-
+============================= test.tsx ==
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_AtomStatus_component_hdwpoUtydSA = /* @__PURE__ */ _noopQrl("AtomStatus_component_hdwpoUtydSA");
-const q_AtomStatus_component_span_q_e_click_0yqKAycyBF0 = /* @__PURE__ */ _noopQrl("AtomStatus_component_span_q_e_click_0yqKAycyBF0");
-q_AtomStatus_component_span_q_e_click_0yqKAycyBF0.s((ev) => atomStatusClick(ctx, ev, [atom]));
+const q_AtomStatus_component_hdwpoUtydSA = /*#__PURE__*/ _noopQrl("AtomStatus_component_hdwpoUtydSA");
+const q_AtomStatus_component_span_q_e_click_0yqKAycyBF0 = /*#__PURE__*/ _noopQrl("AtomStatus_component_span_q_e_click_0yqKAycyBF0");
+q_AtomStatus_component_span_q_e_click_0yqKAycyBF0.s((_, _1, atom, ctx) => atomStatusClick(ctx, ev, [atom]));
 q_AtomStatus_component_hdwpoUtydSA.s((_rawProps) => {
 	let status = _rawProps.atom.status;
 	if (!_rawProps.atom.real) {
@@ -38,13 +36,11 @@ q_AtomStatus_component_hdwpoUtydSA.s((_rawProps) => {
 	]}>
 		</span>;
 });
-export const AtomStatus = /* @__PURE__ */ componentQrl(q_AtomStatus_component_hdwpoUtydSA);
+export const AtomStatus = /*#__PURE__*/ componentQrl(q_AtomStatus_component_hdwpoUtydSA);
 
 ============================= test.tsx_AtomStatus_component_span_q_e_click_0yqKAycyBF0.js (ENTRY POINT)==
 
-
 ============================= test.tsx_AtomStatus_component_hdwpoUtydSA.jsx (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

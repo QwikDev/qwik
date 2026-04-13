@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $ } from '@qwik.dev/core';
 
 const shared = {
@@ -15,11 +14,10 @@ export function readShared() {
 export const handler = $(() => {
   console.log(shared.id);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 //
-const q_handler_T7IDIUVU4lI = /* @__PURE__ */ qrl(() => import("./test.tsx_handler_T7IDIUVU4lI"), "handler_T7IDIUVU4lI");
+const q_handler_T7IDIUVU4lI = /*#__PURE__*/ qrl(() => import("./test.tsx_handler_T7IDIUVU4lI"), "handler_T7IDIUVU4lI");
 //
 const shared = { id: "abc" };
 export function readShared() {
@@ -29,7 +27,6 @@ export const handler = q_handler_T7IDIUVU4lI;
 export { shared as _auto_shared };
 
 ============================= test.tsx_handler_T7IDIUVU4lI.js (ENTRY POINT)==
-
 import { _auto_shared as shared } from "./test";
 //
 export const handler_T7IDIUVU4lI = () => {

@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
 export const Works = component$((props) => {
@@ -16,24 +15,20 @@ export const Works = component$((props) => {
 		<div ciao={ciao} >{foo}</div>
 	);
 });
-============================= test.jsx ==
-
+============================= test.tsx ==
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Works_component_t45qL4vNGv0 = /* @__PURE__ */ _noopQrl("Works_component_t45qL4vNGv0");
+const q_Works_component_t45qL4vNGv0 = /*#__PURE__*/ _noopQrl("Works_component_t45qL4vNGv0");
 q_Works_component_t45qL4vNGv0.s((props) => {
 	const { countNested } = useStore({ value: { count: 0 } }).value;
-	const countNested2 = countNested;
-	const { hello } = countNested2;
-	const bye = hello.bye;
-	const { ciao } = bye.italian;
+	const { hello } = countNested;
+	const { ciao } = hello.bye.italian;
 	return <div ciao={ciao}>{foo}</div>;
 });
-export const Works = /* @__PURE__ */ componentQrl(q_Works_component_t45qL4vNGv0);
+export const Works = /*#__PURE__*/ componentQrl(q_Works_component_t45qL4vNGv0);
 
 ============================= test.tsx_Works_component_t45qL4vNGv0.jsx (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

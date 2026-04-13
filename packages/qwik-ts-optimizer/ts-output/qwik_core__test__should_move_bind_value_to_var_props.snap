@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$, useSignal } from "@qwik.dev/core";
 import { destructureBindings } from "./destructure-bindings";
 
@@ -21,35 +20,31 @@ export const FieldInput = component$(
     );
   }
 );
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_FieldInput_component_V4XAtJSTRKg = /* @__PURE__ */ qrl(() => import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
+const q_FieldInput_component_V4XAtJSTRKg = /*#__PURE__*/ qrl(() => import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
 //
-export const FieldInput = /* @__PURE__ */ componentQrl(q_FieldInput_component_V4XAtJSTRKg);
+export const FieldInput = /*#__PURE__*/ componentQrl(q_FieldInput_component_V4XAtJSTRKg);
 
 ============================= test.tsx_FieldInput_component_input_q_e_click_fZgZHYZXt60.js (ENTRY POINT)==
-
 export const FieldInput_component_input_q_e_click_fZgZHYZXt60 = () => {
-	console.log("clicked");
-};
-
+			console.log('clicked');
+		};
 ============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
-
 import { destructureBindings } from "./destructure-bindings";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { _getVarProps } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
 //
-const q_FieldInput_component_input_q_e_click_fZgZHYZXt60 = /* @__PURE__ */ qrl(() => import("./test.tsx_FieldInput_component_input_q_e_click_fZgZHYZXt60"), "FieldInput_component_input_q_e_click_fZgZHYZXt60");
+const q_FieldInput_component_input_q_e_click_fZgZHYZXt60 = /*#__PURE__*/ qrl(() => import("./test.tsx_FieldInput_component_input_q_e_click_fZgZHYZXt60"), "FieldInput_component_input_q_e_click_fZgZHYZXt60");
 //
 export const FieldInput_component_V4XAtJSTRKg = (props) => {
 	const initialValues = { value: undefined };
 	const rest = destructureBindings(props, initialValues);
-	return /* @__PURE__ */ _jsxSplit("input", {
+	return /*#__PURE__*/ _jsxSplit("input", {
 		..._getVarProps(rest),
 		..._getConstProps(rest),
 		"bind:value": finalValue

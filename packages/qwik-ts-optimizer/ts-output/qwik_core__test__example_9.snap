@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 const Header = $((decl1, {decl2}, [decl3]) => {
 	const {decl4, key: decl5} = this;
@@ -15,13 +14,11 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 	try{}catch({decl19}){}
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 //
 
 /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WjUaUQN7Oxg"), "Header_WjUaUQN7Oxg");
 ============================= test.tsx_Header_WjUaUQN7Oxg.js (ENTRY POINT)==
-
 export const Header_WjUaUQN7Oxg = (decl1, {decl2}, [decl3]) => {
 	const {decl4, key: decl5} = this;
 	let [decl6, ...decl7] = stuff;

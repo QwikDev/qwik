@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$ } from '@qwik.dev/core';
 import thing from "../state";
 
@@ -18,7 +17,6 @@ export const Header = component$(() => {
 	);
 });
 ============================= project/folder/test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -31,7 +29,6 @@ export function foo() {
 
 export const Header = /*#__PURE__*/ componentQrl(q_Header_component_RGgm7Ks9QWI);
 ============================= test.tsx_Header_component_RGgm7Ks9QWI.tsx (ENTRY POINT)==
-
 import thing from "../state";
 //
 export const Header_component_RGgm7Ks9QWI = () => {

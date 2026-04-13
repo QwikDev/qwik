@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$, useStyles$ } from '@qwik.dev/core';
 import css1 from './global.css';
 import css2 from './style.css';
@@ -16,43 +15,38 @@ export const App = component$(() => {
 	};
 	return $(render);
 })
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_useStyles_t35nSa5UV7U.js (ENTRY POINT)==
-
 export const App_component_useStyles_t35nSa5UV7U = style;
-
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
-
 export const App_component_1_w0t0o3QMovU = render;
-
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import css1 from "./global.css";
 import css2 from "./style.css";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useStylesQrl } from "@qwik.dev/core";
 //
-const q_App_component_1_w0t0o3QMovU = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
-const q_App_component_useStyles_t35nSa5UV7U = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_useStyles_t35nSa5UV7U"), "App_component_useStyles_t35nSa5UV7U");
+const q_App_component_1_w0t0o3QMovU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+const q_App_component_useStyles_t35nSa5UV7U = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U"), "App_component_useStyles_t35nSa5UV7U");
 //
 export const App_component_ckEPmXZlub0 = () => {
 	const style = `${css1}${css2}`;
 	useStylesQrl(q_App_component_useStyles_t35nSa5UV7U);
 	const render = () => {
-		return /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_0");
+		return (
+			/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_0")
+		)
 	};
 	return q_App_component_1_w0t0o3QMovU;
 };
-
 == DIAGNOSTICS ==
 
 []

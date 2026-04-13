@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@qwik.dev/core';
 
 export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
@@ -36,7 +35,6 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 
 export const STYLES = ".red { color: red; }";
 ============================= test.tsx ==
-
 import { _noopQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { componentQrl, useStore, jsxs, jsx, useLexicalScope } from '@qwik.dev/core';
@@ -84,15 +82,11 @@ export const App = /*#__PURE__*/ componentQrl(q_App_component_Fh88JClhbC0);
 export const STYLES = ".red { color: red; }";
 ============================= test.tsx_STYLES_odz7dfdfdM.tsx (ENTRY POINT)==
 
-
 ============================= test.tsx_STYLES_1_0LZzXaQcgw8.tsx (ENTRY POINT)==
-
 
 ============================= test.tsx_App_component_div_p_button_onClick_odz7eidI4GM.tsx (ENTRY POINT)==
 
-
 ============================= test.tsx_App_component_Fh88JClhbC0.tsx (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

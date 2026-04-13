@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 
 export const Greeter = component$(() => {
@@ -15,7 +14,6 @@ export const Greeter = component$(() => {
 	)
 });
 ============================= test.tsx ==
-
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -24,16 +22,12 @@ const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx
 
 export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
 ============================= test.tsx_Greeter_component_div_div_q_ep_click_TfPSP48mcOk.js (ENTRY POINT)==
-
 export const Greeter_component_div_div_q_ep_click_TfPSP48mcOk = () => {};
 ============================= test.tsx_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo.js (ENTRY POINT)==
-
 export const Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo = () => {};
 ============================= test.tsx_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY.js (ENTRY POINT)==
-
 export const Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY = () => {};
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.tsx (ENTRY POINT)==
-
 import { qrl } from "@qwik.dev/core";
 //
 const q_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY"), "Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY");

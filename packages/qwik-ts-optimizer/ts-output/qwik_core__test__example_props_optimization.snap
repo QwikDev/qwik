@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
 export const Works = component$(({
@@ -42,8 +41,7 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
 		<div class={count}>{count}</div>
 	);
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { _noopQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
@@ -59,12 +57,12 @@ import { _jsxSorted } from "@qwik.dev/core";
 const _hf0 = (p0) => ({ some: p0.some });
 const _hf0_str = "{some:p0.some}";
 //
-const q_NoWorks2_component_JPD9t2HyEKg = /* @__PURE__ */ _noopQrl("NoWorks2_component_JPD9t2HyEKg");
-const q_NoWorks2_component_useTask_lXiqwbxxjq0 = /* @__PURE__ */ _noopQrl("NoWorks2_component_useTask_lXiqwbxxjq0");
-const q_NoWorks3_component_fc13h5yYn14 = /* @__PURE__ */ _noopQrl("NoWorks3_component_fc13h5yYn14");
-const q_NoWorks3_component_useTask_3cQGU0s1VwU = /* @__PURE__ */ _noopQrl("NoWorks3_component_useTask_3cQGU0s1VwU");
-const q_Works_component_t45qL4vNGv0 = /* @__PURE__ */ _noopQrl("Works_component_t45qL4vNGv0");
-const q_Works_component_useTask_pjo5U5Ikll0 = /* @__PURE__ */ _noopQrl("Works_component_useTask_pjo5U5Ikll0");
+const q_NoWorks2_component_JPD9t2HyEKg = /*#__PURE__*/ _noopQrl("NoWorks2_component_JPD9t2HyEKg");
+const q_NoWorks2_component_useTask_lXiqwbxxjq0 = /*#__PURE__*/ _noopQrl("NoWorks2_component_useTask_lXiqwbxxjq0");
+const q_NoWorks3_component_fc13h5yYn14 = /*#__PURE__*/ _noopQrl("NoWorks3_component_fc13h5yYn14");
+const q_NoWorks3_component_useTask_3cQGU0s1VwU = /*#__PURE__*/ _noopQrl("NoWorks3_component_useTask_3cQGU0s1VwU");
+const q_Works_component_t45qL4vNGv0 = /*#__PURE__*/ _noopQrl("Works_component_t45qL4vNGv0");
+const q_Works_component_useTask_pjo5U5Ikll0 = /*#__PURE__*/ _noopQrl("Works_component_useTask_pjo5U5Ikll0");
 //
 const Works_component_useTask_pjo5U5Ikll0 = ({ track }) => {
 	const _rawProps = _captures[0], rest = _captures[1];
@@ -82,7 +80,7 @@ const Works_component_t45qL4vNGv0 = (_rawProps) => {
 	]);
 	console.log(_rawProps.stuff, _rawProps.some);
 	useTaskQrl(q_Works_component_useTask_pjo5U5Ikll0.w([_rawProps, rest]));
-	return /* @__PURE__ */ _jsxSplit("div", {
+	return /*#__PURE__*/ _jsxSplit("div", {
 		..._getVarProps(rest),
 		..._getConstProps(rest),
 		some: _wrapProp(_rawProps, "some"),
@@ -91,7 +89,7 @@ const Works_component_t45qL4vNGv0 = (_rawProps) => {
 	}, { override: true }, _wrapProp(_rawProps, "count"), 0, "u6_0");
 };
 q_Works_component_t45qL4vNGv0.s(Works_component_t45qL4vNGv0);
-export const Works = /* @__PURE__ */ componentQrl(q_Works_component_t45qL4vNGv0);
+export const Works = /*#__PURE__*/ componentQrl(q_Works_component_t45qL4vNGv0);
 const NoWorks2_component_useTask_lXiqwbxxjq0 = ({ track }) => {
 	const _rawProps = _captures[0];
 	track(() => _rawProps.count);
@@ -101,10 +99,10 @@ q_NoWorks2_component_useTask_lXiqwbxxjq0.s(NoWorks2_component_useTask_lXiqwbxxjq
 const NoWorks2_component_JPD9t2HyEKg = (_rawProps) => {
 	console.log(hey);
 	useTaskQrl(q_NoWorks2_component_useTask_lXiqwbxxjq0.w([_rawProps]));
-	return /* @__PURE__ */ _jsxSorted("div", { class: _wrapProp(_rawProps, "count") }, null, _wrapProp(_rawProps, "count"), 1, "u6_1");
+	return /*#__PURE__*/ _jsxSorted("div", { class: _wrapProp(_rawProps, "count") }, null, _wrapProp(_rawProps, "count"), 1, "u6_1");
 };
 q_NoWorks2_component_JPD9t2HyEKg.s(NoWorks2_component_JPD9t2HyEKg);
-export const NoWorks2 = /* @__PURE__ */ componentQrl(q_NoWorks2_component_JPD9t2HyEKg);
+export const NoWorks2 = /*#__PURE__*/ componentQrl(q_NoWorks2_component_JPD9t2HyEKg);
 const NoWorks3_component_useTask_3cQGU0s1VwU = ({ track }) => {
 	const _rawProps = _captures[0];
 	track(() => _rawProps.count);
@@ -112,30 +110,24 @@ const NoWorks3_component_useTask_3cQGU0s1VwU = ({ track }) => {
 };
 q_NoWorks3_component_useTask_3cQGU0s1VwU.s(NoWorks3_component_useTask_3cQGU0s1VwU);
 const NoWorks3_component_fc13h5yYn14 = (_rawProps) => {
-	console.log(_rawProps.stuff);
+	console.log(_rawProps.stuff ?? hola());
 	useTaskQrl(q_NoWorks3_component_useTask_3cQGU0s1VwU.w([_rawProps]));
-	return /* @__PURE__ */ _jsxSorted("div", { class: _wrapProp(_rawProps, "count") }, null, _wrapProp(_rawProps, "count"), 1, "u6_2");
+	return /*#__PURE__*/ _jsxSorted("div", { class: _wrapProp(_rawProps, "count") }, null, _wrapProp(_rawProps, "count"), 1, "u6_2");
 };
 q_NoWorks3_component_fc13h5yYn14.s(NoWorks3_component_fc13h5yYn14);
-export const NoWorks3 = /* @__PURE__ */ componentQrl(q_NoWorks3_component_fc13h5yYn14);
+export const NoWorks3 = /*#__PURE__*/ componentQrl(q_NoWorks3_component_fc13h5yYn14);
 
 ============================= test.tsx_Works_component_useTask_pjo5U5Ikll0.js (ENTRY POINT)==
 
-
 ============================= test.tsx_NoWorks2_component_useTask_lXiqwbxxjq0.js (ENTRY POINT)==
-
 
 ============================= test.tsx_NoWorks3_component_useTask_3cQGU0s1VwU.js (ENTRY POINT)==
 
-
 ============================= test.tsx_Works_component_t45qL4vNGv0.js (ENTRY POINT)==
-
 
 ============================= test.tsx_NoWorks2_component_JPD9t2HyEKg.js (ENTRY POINT)==
 
-
 ============================= test.tsx_NoWorks3_component_fc13h5yYn14.js (ENTRY POINT)==
-
 
 == DIAGNOSTICS ==
 

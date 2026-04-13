@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { $, component$, useStore, useSignal } from '@qwik.dev/core';
 export const App = component$(() => {
       const cart = useStore<string[]>([]);
@@ -99,90 +98,79 @@ export const App = component$(() => {
         </div>
       );
     });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
-export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = (_, _1, item) => {
-	const cart = _captures[0];
-	cart.push(item);
-};
-
+const cart = _captures[0];
+              cart.push(item);
+            };
 ============================= test.tsx_App_component_loopForI_span_q_e_click_PbCYbPM6etI.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
-export const App_component_loopForI_span_q_e_click_PbCYbPM6etI = () => {
-	const cart = _captures[0], results = _captures[1];
-	cart.push(results[i]);
-};
-
+export const App_component_loopForI_span_q_e_click_PbCYbPM6etI = (_, _1, i) => {
+const cart = _captures[0], results = _captures[1];
+                cart.push(results[i]);
+              };
 ============================= test.tsx_App_component_loopForOf_span_q_e_click_zlNGHYu926I.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const App_component_loopForOf_span_q_e_click_zlNGHYu926I = (_, _1, item) => {
-	const cart = _captures[0];
-	cart.push(item);
-};
-
+const cart = _captures[0];
+                cart.push(item);
+              };
 ============================= test.tsx_App_component_loopForIn_span_q_e_click_adzBGickx1U.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
-export const App_component_loopForIn_span_q_e_click_adzBGickx1U = () => {
-	const cart = _captures[0], results = _captures[1];
-	cart.push(results[key]);
-};
-
+export const App_component_loopForIn_span_q_e_click_adzBGickx1U = (_, _1, key) => {
+const cart = _captures[0], results = _captures[1];
+                cart.push(results[key]);
+              };
 ============================= test.tsx_App_component_loopWhile_span_q_e_click_05kCMrZVn5E.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
-export const App_component_loopWhile_span_q_e_click_05kCMrZVn5E = () => {
-	const cart = _captures[0], results = _captures[1];
-	cart.push(results[i]);
-};
-
+export const App_component_loopWhile_span_q_e_click_05kCMrZVn5E = (_, _1, i) => {
+const cart = _captures[0], results = _captures[1];
+                cart.push(results[i]);
+              };
 ============================= test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8.js (ENTRY POINT)==
-
 import { _captures } from "@qwik.dev/core";
 //
 export const App_component_div_button_q_e_click_UB6Fs5a3bd8 = (_, _1, item) => {
-	const cart = _captures[0];
-	cart.push(item);
-};
-
+const cart = _captures[0];
+                cart.push(item);
+              };
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
-
 import { useStore, useSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_App_component_div_button_q_e_click_UB6Fs5a3bd8 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8"), "App_component_div_button_q_e_click_UB6Fs5a3bd8");
-const q_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0"), "App_component_loopArrowFn_span_q_e_click_Wau7C836nf0");
-const q_App_component_loopForI_span_q_e_click_PbCYbPM6etI = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_loopForI_span_q_e_click_PbCYbPM6etI"), "App_component_loopForI_span_q_e_click_PbCYbPM6etI");
-const q_App_component_loopForIn_span_q_e_click_adzBGickx1U = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_loopForIn_span_q_e_click_adzBGickx1U"), "App_component_loopForIn_span_q_e_click_adzBGickx1U");
-const q_App_component_loopForOf_span_q_e_click_zlNGHYu926I = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_loopForOf_span_q_e_click_zlNGHYu926I"), "App_component_loopForOf_span_q_e_click_zlNGHYu926I");
-const q_App_component_loopWhile_span_q_e_click_05kCMrZVn5E = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_loopWhile_span_q_e_click_05kCMrZVn5E"), "App_component_loopWhile_span_q_e_click_05kCMrZVn5E");
+const q_App_component_div_button_q_e_click_UB6Fs5a3bd8 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8"), "App_component_div_button_q_e_click_UB6Fs5a3bd8");
+const q_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0"), "App_component_loopArrowFn_span_q_e_click_Wau7C836nf0");
+const q_App_component_loopForI_span_q_e_click_PbCYbPM6etI = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_loopForI_span_q_e_click_PbCYbPM6etI"), "App_component_loopForI_span_q_e_click_PbCYbPM6etI");
+const q_App_component_loopForIn_span_q_e_click_adzBGickx1U = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_loopForIn_span_q_e_click_adzBGickx1U"), "App_component_loopForIn_span_q_e_click_adzBGickx1U");
+const q_App_component_loopForOf_span_q_e_click_zlNGHYu926I = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_loopForOf_span_q_e_click_zlNGHYu926I"), "App_component_loopForOf_span_q_e_click_zlNGHYu926I");
+const q_App_component_loopWhile_span_q_e_click_05kCMrZVn5E = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_loopWhile_span_q_e_click_05kCMrZVn5E"), "App_component_loopWhile_span_q_e_click_05kCMrZVn5E");
 //
 export const App_component_ckEPmXZlub0 = () => {
 	const cart = useStore([]);
 	const results = useSignal(["foo"]);
 	function loopArrowFn(results) {
 		const App_component_div_button_q_e_click_UB6Fs5a3bd8 = q_App_component_div_button_q_e_click_UB6Fs5a3bd8.w([cart]);
+		const App_component_loopWhile_span_q_e_click_05kCMrZVn5E = q_App_component_loopWhile_span_q_e_click_05kCMrZVn5E.w([cart, results]);
+		const App_component_loopForIn_span_q_e_click_adzBGickx1U = q_App_component_loopForIn_span_q_e_click_adzBGickx1U.w([cart, results]);
 		const App_component_loopForOf_span_q_e_click_zlNGHYu926I = q_App_component_loopForOf_span_q_e_click_zlNGHYu926I.w([cart]);
+		const App_component_loopForI_span_q_e_click_PbCYbPM6etI = q_App_component_loopForI_span_q_e_click_PbCYbPM6etI.w([cart, results]);
 		const App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = q_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0.w([cart]);
-		return results.map((item) => /* @__PURE__ */ _jsxSorted("span", {
+		return results.map((item) => /*#__PURE__*/ _jsxSorted("span", {
 			"q-e:click": App_component_loopArrowFn_span_q_e_click_Wau7C836nf0,
 			"q:p": item
 		}, null, item, 6, "u6_0"));
@@ -190,14 +178,17 @@ export const App_component_ckEPmXZlub0 = () => {
 	function loopForI(results) {
 		const items = [];
 		for (let i = 0; i < results.length; i++) {
-			items.push(/* @__PURE__ */ _jsxSorted("span", null, { "q-e:click": q_App_component_loopForI_span_q_e_click_PbCYbPM6etI }, results[i], 1, "u6_1"));
+			items.push(/*#__PURE__*/ _jsxSorted("span", {
+				"q-e:click": App_component_loopForI_span_q_e_click_PbCYbPM6etI,
+				"q:p": i
+			}, null, results[i], 4, "u6_1"));
 		}
 		return items;
 	}
 	function loopForOf(results) {
 		const items = [];
 		for (const item of results) {
-			items.push(/* @__PURE__ */ _jsxSorted("span", {
+			items.push(/*#__PURE__*/ _jsxSorted("span", {
 				"q-e:click": App_component_loopForOf_span_q_e_click_zlNGHYu926I,
 				"q:p": item
 			}, null, item, 6, "u6_2"));
@@ -207,7 +198,10 @@ export const App_component_ckEPmXZlub0 = () => {
 	function loopForIn(results) {
 		const items = [];
 		for (const key in results) {
-			items.push(/* @__PURE__ */ _jsxSorted("span", null, { "q-e:click": q_App_component_loopForIn_span_q_e_click_adzBGickx1U }, results[key], 1, "u6_3"));
+			items.push(/*#__PURE__*/ _jsxSorted("span", {
+				"q-e:click": App_component_loopForIn_span_q_e_click_adzBGickx1U,
+				"q:p": key
+			}, null, results[key], 4, "u6_3"));
 		}
 		return items;
 	}
@@ -215,13 +209,16 @@ export const App_component_ckEPmXZlub0 = () => {
 		const items = [];
 		let i = 0;
 		while (i < results.length) {
-			items.push(/* @__PURE__ */ _jsxSorted("span", null, { "q-e:click": q_App_component_loopWhile_span_q_e_click_05kCMrZVn5E }, results[i], 1, "u6_4"));
+			items.push(/*#__PURE__*/ _jsxSorted("span", {
+				"q:p": i,
+				"q-e:click": App_component_loopWhile_span_q_e_click_05kCMrZVn5E
+			}, null, results[i], 4, "u6_4"));
 			i++;
 		}
 		return items;
 	}
-	return /* @__PURE__ */ _jsxSorted("div", null, null, [
-		results.value.map((item) => /* @__PURE__ */ _jsxSorted("button", {
+	return /*#__PURE__*/ _jsxSorted("div", null, null, [
+		results.value.map((item) => /*#__PURE__*/ _jsxSorted("button", {
 			"q-e:click": App_component_div_button_q_e_click_UB6Fs5a3bd8,
 			"q:p": item
 		}, { id: "second" }, item, 6, "u6_5")),

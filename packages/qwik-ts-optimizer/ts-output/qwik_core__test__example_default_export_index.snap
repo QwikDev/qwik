@@ -1,7 +1,6 @@
 ==INPUT==
 
 
-
 import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -11,7 +10,6 @@ export default component$(() => {
 	);
 });
 ============================= src/components/mongo/index.tsx ==
-
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
@@ -26,11 +24,9 @@ q_mongo_component_ouWLj4jA2oI.s(() => {
 	);
 });
 export default /*#__PURE__*/ componentQrl(q_mongo_component_ouWLj4jA2oI);
-============================= mongo_component_div_q_e_click_jncbxvZVtWY.js (ENTRY POINT)==
+============================= index.tsx_mongo_component_div_q_e_click_jncbxvZVtWY.js (ENTRY POINT)==
 
-
-============================= mongo_component_ouWLj4jA2oI.tsx (ENTRY POINT)==
-
+============================= index.tsx_mongo_component_ouWLj4jA2oI.tsx (ENTRY POINT)==
 
 == DIAGNOSTICS ==
 

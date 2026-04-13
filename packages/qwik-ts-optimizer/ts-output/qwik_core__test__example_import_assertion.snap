@@ -1,30 +1,28 @@
 ==INPUT==
 
 
-
 import { component$, $ } from '@qwik.dev/core';
 import json from "./foo.json" assert { type: "json" };
 
 export const Greeter = component$(() => {
 	return json;
 });
-============================= test.js ==
-
+============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Greeter_component_n7HuG2hhU0Q = /* @__PURE__ */ qrl(() => import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q");
+const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(() => import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q");
 //
-export const Greeter = /* @__PURE__ */ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
+export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
 
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
-
-import json from "./foo.json" with { type: "json" };
+import json from "./foo.json" with {
+    type: "json"
+};
 //
 export const Greeter_component_n7HuG2hhU0Q = () => {
 	return json;
 };
-
 == DIAGNOSTICS ==
 
 []

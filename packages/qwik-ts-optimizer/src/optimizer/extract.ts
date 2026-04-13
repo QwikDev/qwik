@@ -83,6 +83,11 @@ export interface ExtractionResult {
   // Props field capture consolidation: maps original local name -> prop key name.
   // Set when captures from a parent component's destructured props are consolidated into _rawProps.
   propsFieldCaptures?: Map<string, string>;
+
+  // Const literal values resolved from parent scope.
+  // Maps captured variable name -> literal source text (e.g., "text" -> "'hola'").
+  // These are inlined into the segment body and removed from captureNames.
+  constLiterals?: Map<string, string>;
 }
 
 // ---------------------------------------------------------------------------

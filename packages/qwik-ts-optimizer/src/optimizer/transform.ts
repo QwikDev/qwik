@@ -1208,6 +1208,33 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       }
     }
 
+    // 2a-const. Early const literal resolution for EVENT HANDLERS before promotion.
+    // Event handler captures get promoted to params (losing them from captureNames).
+    // We must resolve const literals first so they can be inlined instead of promoted.
+    // Only applies to event handlers since other extractions keep their captureNames.
+    // Parent field isn't set yet, so use position-based containment to find parent.
+    for (const extraction of extractions) {
+      if (extraction.ctxKind !== 'eventHandler') continue;
+      if (extraction.isInlinedQrl || extraction.captureNames.length === 0) continue;
+      // Find enclosing extraction using position containment
+      let enclosingExt: typeof extractions[0] | null = null;
+      for (const other of extractions) {
+        if (other.symbolName === extraction.symbolName) continue;
+        if (extraction.callStart >= other.argStart && extraction.callEnd <= other.argEnd) {
+          if (!enclosingExt || (other.argStart >= enclosingExt.argStart && other.argEnd <= enclosingExt.argEnd)) {
+            enclosingExt = other;
+          }
+        }
+      }
+      if (!enclosingExt) continue;
+      const constValues = resolveConstLiterals(enclosingExt.bodyText, extraction.captureNames);
+      if (constValues.size > 0) {
+        extraction.constLiterals = constValues;
+        extraction.captureNames = extraction.captureNames.filter(n => !constValues.has(n));
+        extraction.captures = extraction.captureNames.length > 0;
+      }
+    }
+
     // 2a-loop. Event handler capture-to-param promotion.
     // The Rust optimizer delivers event handler captured variables via q:p positional
     // parameters instead of _captures. For event handlers NOT in a loop, ALL captured
@@ -2131,12 +2158,23 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     if (!isInlineStrategy) {
       for (const ext of updatedExtractions) {
         if (ext.isSync || ext.parent === null) continue;
+        // Check for early-resolved const literals (from event handler pre-promotion resolution)
+        if (ext.constLiterals && ext.constLiterals.size > 0) {
+          constLiteralsMap.set(ext.symbolName, ext.constLiterals);
+          // captureNames were already filtered in the early resolution
+        }
         if (ext.captureNames.length === 0) continue;
         const parentExt = updatedExtractions.find(e => e.symbolName === ext.parent);
         if (!parentExt) continue;
         const constValues = resolveConstLiterals(parentExt.bodyText, ext.captureNames);
         if (constValues.size > 0) {
-          constLiteralsMap.set(ext.symbolName, constValues);
+          // Merge with any early-resolved values
+          const existing = constLiteralsMap.get(ext.symbolName);
+          if (existing) {
+            for (const [k, v] of constValues) existing.set(k, v);
+          } else {
+            constLiteralsMap.set(ext.symbolName, constValues);
+          }
           // Update captureNames and metadata so parent .w() lists are correct
           ext.captureNames = ext.captureNames.filter(n => !constValues.has(n));
           ext.captures = ext.captureNames.length > 0;

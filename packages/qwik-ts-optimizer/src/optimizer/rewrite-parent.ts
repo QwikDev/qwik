@@ -228,11 +228,12 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
     if (!node || typeof node !== 'object') return;
 
     if (node.type === 'Identifier' && constValues.has(node.name)) {
-      // Skip property keys and member expression property names
+      // Skip declaration ids (const X = ...), property keys, and non-computed member props
+      const isDeclId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
       const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
-      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed;
 
-      if (!isPropertyKey && !isMemberProp) {
+      if (!isDeclId && !isPropertyKey && !isMemberProp) {
         replacements.push({
           start: node.start - offset,
           end: node.end - offset,
@@ -263,6 +264,199 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
   let result = body;
   for (const r of replacements) {
     result = result.slice(0, r.start) + r.value + result.slice(r.end);
+  }
+  return result;
+}
+
+/**
+ * Perform intra-body const literal propagation on a function body text.
+ * Finds `const X = <literal>` declarations, replaces all references to X
+ * with the literal value, and removes the dead declaration.
+ * Iterates until no more propagation is possible (for cascading).
+ *
+ * This matches SWC's behavior of inlining compile-time constant values
+ * within a single closure body.
+ */
+export function propagateConstLiteralsInBody(body: string): string {
+  const MAX_ITERATIONS = 5;
+  let result = body;
+
+  for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
+    const wrapperPrefix = 'const __pb__ = ';
+    const wrappedSource = wrapperPrefix + result;
+    const parseResult = parseSync('__pb__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
+    if (!parseResult.program || parseResult.errors?.length) break;
+
+    const offset = wrapperPrefix.length;
+
+    // Phase 1: Find all const declarations with simple identifiers (single declarator only)
+    // Two categories:
+    // - Literal inits (string, number, boolean, null): always inline, any number of refs
+    // - Non-literal inits: only inline if exactly 1 reference (single-use propagation)
+    const constDecls = new Map<string, { value: string; isLiteral: boolean; stmtStart: number; stmtEnd: number }>();
+
+    function findConstDecls(node: any): void {
+      if (!node || typeof node !== 'object') return;
+
+      if (node.type === 'VariableDeclaration' && node.kind === 'const' &&
+          node.declarations?.length === 1) {
+        const decl = node.declarations[0];
+        if (decl.id?.type === 'Identifier' && decl.init) {
+          const init = decl.init;
+          const isLiteral = init.type === 'StringLiteral' || init.type === 'Literal' ||
+              init.type === 'NumericLiteral' || init.type === 'BooleanLiteral' ||
+              init.type === 'NullLiteral';
+          if (isLiteral) {
+            const initStart = init.start - offset;
+            const initEnd = init.end - offset;
+            const stmtStart = node.start - offset;
+            const stmtEnd = node.end - offset;
+            if (initStart >= 0 && initEnd <= result.length) {
+              constDecls.set(decl.id.name, {
+                value: result.slice(initStart, initEnd),
+                isLiteral: true,
+                stmtStart,
+                stmtEnd,
+              });
+            }
+          }
+        }
+      }
+
+      for (const key of Object.keys(node)) {
+        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+        const val = node[key];
+        if (val && typeof val === 'object') {
+          if (Array.isArray(val)) {
+            for (const item of val) {
+              if (item && typeof item.type === 'string') findConstDecls(item);
+            }
+          } else if (typeof val.type === 'string') {
+            findConstDecls(val);
+          }
+        }
+      }
+    }
+
+    findConstDecls(parseResult.program);
+    if (constDecls.size === 0) break;
+
+    // Phase 2: Count references to each const (excluding the declaration's own id)
+    const refCounts = new Map<string, number>();
+    for (const name of constDecls.keys()) refCounts.set(name, 0);
+
+    function countRefs(node: any, parentKey?: string, parentNode?: any): void {
+      if (!node || typeof node !== 'object') return;
+
+      if (node.type === 'Identifier' && constDecls.has(node.name)) {
+        if (parentKey === 'id' && parentNode?.type === 'VariableDeclarator') {
+          // declaration id — skip
+        } else {
+          const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
+          const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed;
+          if (!isPropertyKey && !isMemberProp) {
+            refCounts.set(node.name, (refCounts.get(node.name) ?? 0) + 1);
+          }
+        }
+      }
+
+      for (const key of Object.keys(node)) {
+        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+        const val = node[key];
+        if (val && typeof val === 'object') {
+          if (Array.isArray(val)) {
+            for (const item of val) {
+              if (item && typeof item.type === 'string') countRefs(item, key, node);
+            }
+          } else if (typeof val.type === 'string') {
+            countRefs(val, key, node);
+          }
+        }
+      }
+    }
+
+    countRefs(parseResult.program);
+
+    // Phase 3: Inline literals first, then single-use expressions.
+    // Literals must be inlined first so that expression inits can pick up the inlined values.
+    const toInline = new Map<string, string>();
+    const toRemove = new Set<string>();
+
+    for (const [name, info] of constDecls) {
+      const refs = refCounts.get(name) ?? 0;
+      if (refs > 0) {
+        toInline.set(name, info.value);
+        toRemove.add(name);
+      } else {
+        toRemove.add(name);
+      }
+    }
+
+    if (toInline.size === 0 && toRemove.size === 0) break;
+
+    if (toInline.size > 0) {
+      result = inlineConstCaptures(result, toInline);
+    }
+    if (toRemove.size > 0) {
+      result = removeConstDeclarations(result, toRemove);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Remove const declarations for the given variable names from a body text.
+ * Handles surrounding whitespace/newline cleanup.
+ */
+function removeConstDeclarations(body: string, varNames: Set<string>): string {
+  const wrapperPrefix = 'const __rd__ = ';
+  const wrappedSource = wrapperPrefix + body;
+  const parseResult = parseSync('__rd__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
+  if (!parseResult.program || parseResult.errors?.length) return body;
+
+  const offset = wrapperPrefix.length;
+  const removals: Array<{ start: number; end: number }> = [];
+
+  function findDecls(node: any): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type === 'VariableDeclaration' && node.kind === 'const' &&
+        node.declarations?.length === 1) {
+      const decl = node.declarations[0];
+      if (decl.id?.type === 'Identifier' && varNames.has(decl.id.name)) {
+        let start = node.start - offset;
+        let end = node.end - offset;
+        // Consume trailing semicolon and whitespace/newline
+        while (end < body.length && (body[end] === ';' || body[end] === ' ' || body[end] === '\t')) end++;
+        if (end < body.length && body[end] === '\n') end++;
+        // Consume leading whitespace
+        while (start > 0 && (body[start - 1] === ' ' || body[start - 1] === '\t')) start--;
+        removals.push({ start, end });
+      }
+    }
+
+    for (const key of Object.keys(node)) {
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+      const val = node[key];
+      if (val && typeof val === 'object') {
+        if (Array.isArray(val)) {
+          for (const item of val) {
+            if (item && typeof item.type === 'string') findDecls(item);
+          }
+        } else if (typeof val.type === 'string') {
+          findDecls(val);
+        }
+      }
+    }
+  }
+
+  findDecls(parseResult.program);
+
+  removals.sort((a, b) => b.start - a.start);
+  let result = body;
+  for (const r of removals) {
+    result = result.slice(0, r.start) + result.slice(r.end);
   }
   return result;
 }
@@ -569,7 +763,7 @@ export function applyRawPropsTransform(body: string): string {
       if (!node || typeof node !== 'object') return;
       if (node.type === 'Identifier' && fieldLocalToKey.has(node.name)) {
         const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
-        const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+        const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed;
         const isParam = parentKey === 'params';
         const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
         const isShorthandValue = parentKey === 'value' &&
@@ -674,7 +868,7 @@ export function applyRawPropsTransform(body: string): string {
       if (!node || typeof node !== 'object') return;
       if (node.type === 'Identifier' && fieldLocalToKey.has(node.name)) {
         const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
-        const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+        const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed;
         const isParam = parentKey === 'params';
         const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
         const isShorthandValue = parentKey === 'value' &&
@@ -751,7 +945,7 @@ export function applyRawPropsTransform(body: string): string {
       // Skip if this is the parameter itself (in the _rawProps position)
       // Skip if this is a property name in a member expression (x.field -- skip 'field')
       const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
-      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed;
       const isParam = parentKey === 'params';
       const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
 
@@ -853,7 +1047,7 @@ function replacePropsFieldReferencesInBody(body: string, fieldMap: Map<string, s
 
     if (node.type === 'Identifier' && fieldMap.has(node.name)) {
       const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
-      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed;
       const isParam = parentKey === 'params';
       // Skip the declaration in _captures unpacking: `const color = _captures[0]` -> skip `color`
       const isDeclId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
@@ -1006,20 +1200,35 @@ function transformSCallBody(
     }
   }
 
-  // 3. Inject _captures unpacking if this extraction has captures
-  //    For regCtxName-matched extractions, inline const literal values instead
-  //    of using _captures (matching Rust optimizer behavior).
+  // 3. Inline pre-resolved const literals into the body text.
+  //    These were resolved early in transform.ts (before event handler promotion)
+  //    and stored on the extraction. Apply them to the body text here.
+  if (ext.constLiterals && ext.constLiterals.size > 0) {
+    body = inlineConstCaptures(body, ext.constLiterals);
+  }
+
+  // 3a. Resolve const literals from parent for any remaining captures.
+  //     This handles non-event-handler extractions that weren't processed by early resolution.
   const isRegCtx = matchesRegCtxName(ext, regCtxName);
-  if (isRegCtx && ext.captureNames.length > 0) {
-    // Find parent extraction to resolve const values
+  if (ext.captureNames.length > 0 && ext.parent !== null) {
     const parentExt = allExtractions.find(e => e.symbolName === ext.parent);
     if (parentExt) {
       const constValues = resolveConstLiterals(parentExt.bodyText, ext.captureNames);
       if (constValues.size > 0) {
-        // Replace captured identifiers with their literal values in the body
         body = inlineConstCaptures(body, constValues);
+        // Remove inlined names from captureNames
+        ext.captureNames = ext.captureNames.filter(n => !constValues.has(n));
+        ext.captures = ext.captureNames.length > 0;
+        // Store for later use (e.g., parent DCE)
+        if (!ext.constLiterals) ext.constLiterals = constValues;
+        else for (const [k, v] of constValues) ext.constLiterals.set(k, v);
       }
     }
+  }
+
+  // 3b. Inject _captures unpacking if this extraction has remaining captures.
+  //     For regCtxName-matched extractions, don't inject _captures (they don't use it).
+  if (isRegCtx) {
     // Don't inject _captures for regCtxName extractions
   } else if (ext.captureNames.length > 0) {
     body = injectCapturesUnpacking(body, ext.captureNames);
@@ -1051,6 +1260,11 @@ function transformSCallBody(
   if (ext.propsFieldCaptures && ext.propsFieldCaptures.size > 0) {
     body = replacePropsFieldReferencesInBody(body, ext.propsFieldCaptures);
   }
+
+  // 3d. Intra-body const literal propagation.
+  //     Inline `const X = <literal>` within the body and remove dead declarations.
+  //     Only handles literal consts (string, number, boolean, null) for safety.
+  body = propagateConstLiteralsInBody(body);
 
   // 4. JSX transpilation within the body text
   let finalKeyCounterValue: number | undefined;

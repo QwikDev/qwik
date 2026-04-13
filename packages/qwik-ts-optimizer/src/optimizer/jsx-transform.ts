@@ -993,6 +993,14 @@ function processProps(
     }
 
     // --- (b) Bind desugaring ---
+    // For non-HTML tags (dynamic components), bind props are NOT desugared.
+    // SWC keeps bind:value as-is in constProps and uses _jsxSplit, because
+    // at compile time we don't know if the dynamic tag is HTML or component.
+    if (isBindProp(propName) && !tagIsHtml) {
+      constEntries.push(`"${propName}": ${valueText}`);
+      continue;
+    }
+
     if (isBindProp(propName) && !hasSpreadAttr) {
       const bindResult = transformBindProp(propName, valueText);
       // Bind-desugared prop names are always quoted (matching Rust optimizer)
@@ -1585,6 +1593,25 @@ export function transformJsxElement(
       tag,
       varProps: varPropsPart,
       constProps: constPropsPart,
+      children: childrenText,
+      flags,
+      key: keyStr,
+      callString,
+      neededImports,
+    };
+  }
+
+  // Dynamic component tags with bind: props use _jsxSplit (not _jsxSorted)
+  // because at runtime the tag could be either HTML or component.
+  // SWC keeps bind:value as-is in constProps with _jsxSplit.
+  const hasBindInConst = !tagIsHtml && constEntries.some(e => e.startsWith('"bind:'));
+  if (hasBindInConst) {
+    neededImports.add('_jsxSplit');
+    const callString = `_jsxSplit(${tag}, ${varProps ?? 'null'}, ${constProps ?? 'null'}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
+    return {
+      tag,
+      varProps,
+      constProps,
       children: childrenText,
       flags,
       key: keyStr,

@@ -148,6 +148,40 @@ function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolea
 }
 
 // ---------------------------------------------------------------------------
+// Binding name collection (for duplicate export detection)
+// ---------------------------------------------------------------------------
+
+/**
+ * Collect all binding names from a pattern node (Identifier, ObjectPattern, ArrayPattern).
+ */
+function collectBindingNames(pattern: any): string[] {
+  if (!pattern) return [];
+  if (pattern.type === 'Identifier') return [pattern.name];
+  if (pattern.type === 'ObjectPattern') {
+    const names: string[] = [];
+    for (const prop of pattern.properties || []) {
+      if (prop.type === 'RestElement') {
+        names.push(...collectBindingNames(prop.argument));
+      } else {
+        names.push(...collectBindingNames(prop.value));
+      }
+    }
+    return names;
+  }
+  if (pattern.type === 'ArrayPattern') {
+    const names: string[] = [];
+    for (const elem of pattern.elements || []) {
+      if (elem) names.push(...collectBindingNames(elem));
+    }
+    return names;
+  }
+  if (pattern.type === 'AssignmentPattern') {
+    return collectBindingNames(pattern.left);
+  }
+  return [];
+}
+
+// ---------------------------------------------------------------------------
 // Const literal resolution for regCtxName capture inlining
 // ---------------------------------------------------------------------------
 
@@ -2165,6 +2199,42 @@ export function rewriteParentModule(
     s.overwrite(ext.callStart, ext.callEnd, inlineQrl);
   }
 
+  // Step 4a-3: Remove duplicate export declarations
+  // When the same export names appear in multiple `export const { ... } = ...` statements
+  // (e.g., two calls that both export { onRequest, ... }), only the first is valid JS.
+  // The SWC optimizer drops subsequent duplicates, converting them to bare expression statements.
+  if (minify !== 'none') {
+    const seenExportNames = new Set<string>();
+    for (const stmt of program.body) {
+      if (stmt.type !== 'ExportNamedDeclaration') continue;
+      const innerDecl = stmt.declaration;
+      if (!innerDecl || innerDecl.type !== 'VariableDeclaration') continue;
+      if (!innerDecl.declarations || innerDecl.declarations.length !== 1) continue;
+
+      const declarator = innerDecl.declarations[0];
+      if (!declarator.init) continue;
+
+      // Extract exported names from the binding pattern
+      const exportedNames = collectBindingNames(declarator.id);
+      if (exportedNames.length === 0) continue;
+
+      // Check if any of these names were already exported
+      const hasDuplicate = exportedNames.some(n => seenExportNames.has(n));
+
+      if (hasDuplicate) {
+        // Remove the entire duplicate export statement.
+        // The QRL const declaration still exists for this extraction,
+        // and the normalizer will strip it if unused.
+        s.remove(stmt.start, stmt.end);
+      } else {
+        // Track these names as exported
+        for (const name of exportedNames) {
+          seenExportNames.add(name);
+        }
+      }
+    }
+  }
+
   // -----------------------------------------------------------------------
   // Step 4b: .w() wrapping for captures (CAPT-03)
   // -----------------------------------------------------------------------
@@ -2393,7 +2463,9 @@ export function rewriteParentModule(
   if (isInline) {
     // Inline/hoist strategy: _noopQrl declarations for ALL non-sync extractions
     for (const ext of allNonSync) {
-      const stripped = inlineOptions && isStrippedSegment(
+      // regCtxName-matched extractions are never stripped (they get _regSymbol wrapping)
+      const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
+      const stripped = !isRegCtx && inlineOptions && isStrippedSegment(
         ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
       );
 
@@ -2535,7 +2607,10 @@ export function rewriteParentModule(
     const topComponent: ExtractionResult[] = [];
 
     for (const ext of allNonSync) {
-      const isStrippedExt = inlineOptions && isStrippedSegment(
+      // regCtxName-matched extractions are never stripped -- they get .s(_regSymbol(...))
+      // even when stripEventHandlers is true.
+      const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
+      const isStrippedExt = !isRegCtx && inlineOptions && isStrippedSegment(
         ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
       );
       if (isStrippedExt) continue; // Stripped segments: no .s() call
@@ -2713,8 +2788,34 @@ export function rewriteParentModule(
         }
       }
 
-      // If nothing is used, remove entirely
+      // If nothing is used, either convert to side-effect import or remove
       if (!defaultUsed && usedNamed.length === 0 && !info.nsPart) {
+        // SWC behavior for inline strategy: relative imports that resolve within
+        // srcDir are kept as bare side-effect imports (the segment bodies are still
+        // in the same module, so imports' side effects matter).
+        // For segment strategy: all unused imports are removed (segments are in
+        // separate files and will have their own imports).
+        const src = info.source;
+        const hasStripping = !!(inlineOptions?.stripCtxName?.length || inlineOptions?.stripEventHandlers);
+        if (isInline && hasStripping && src.startsWith('.')) {
+          // Count how many levels up the import goes
+          const segments = src.split('/');
+          let upLevels = 0;
+          for (const seg of segments) {
+            if (seg === '..') upLevels++;
+            else break;
+          }
+          // Count file's directory depth within srcDir
+          const fileDir = relPath.replace(/[^/]+$/, ''); // strip filename
+          const fileDirDepth = fileDir.split('/').filter(Boolean).length;
+          if (upLevels <= fileDirDepth) {
+            // Resolves within srcDir: convert to side-effect import
+            survivingUserImports[idx] = `import ${info.quote}${src}${info.quote};`;
+            survivingImportInfos[idx] = { ...info, namedParts: [], defaultPart: undefined, isSideEffect: true };
+            continue;
+          }
+        }
+        // External, escapes srcDir, or segment strategy: remove entirely
         survivingUserImports.splice(idx, 1);
         survivingImportInfos.splice(idx, 1);
         continue;

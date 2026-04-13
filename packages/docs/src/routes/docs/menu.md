@@ -154,6 +154,7 @@
 ## Reference
 
 - [API Reference](/api/)
+- [Error Codes](/docs/errors/index.mdx)
 - [Deprecated Features](</docs/(qwik)/deprecated-features/index.mdx>)
 
 ## Experimental 🧪

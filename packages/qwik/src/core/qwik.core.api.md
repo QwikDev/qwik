@@ -29,13 +29,13 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     invalidate(info?: unknown): void;
     loading: boolean;
     promise(): Promise<void>;
+    untrackedError: Error | undefined;
+    untrackedLoading: boolean;
 }
 
 // @public (undocumented)
 export interface AsyncSignalOptions<T> extends ComputedOptions {
     allowStale?: boolean;
-    // @deprecated
-    awaitPrevious?: boolean;
     clientOnly?: boolean;
     concurrency?: number;
     eagerCleanup?: boolean;

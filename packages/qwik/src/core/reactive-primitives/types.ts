@@ -42,7 +42,7 @@ export type AsyncCtx<T = unknown> = {
   /** The result of the previous computation, if any */
   readonly previous: T | undefined;
   /** Extra info passed to `invalidate(info)` for this computation, if any. */
-  readonly info: unknown;
+  readonly info?: unknown;
 };
 export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-04-13T06:03:24.373Z",
+  "generatedAt": "2026-04-13T08:31:31.018Z",
   "sampleCount": 3,
   "countPerScenario": 10000,
   "scenarios": {
@@ -9,8 +9,8 @@
       "bytesPerInstance": 112.9176
     },
     "qrl": {
-      "totalBytes": 2906792,
-      "bytesPerInstance": 290.6792
+      "totalBytes": 2906816,
+      "bytesPerInstance": 290.6816
     },
     "qrl-copy": {
       "totalBytes": 2021976,
@@ -37,20 +37,20 @@
       "bytesPerInstance": 146.4232
     },
     "async-signal-default": {
-      "totalBytes": 1554272,
-      "bytesPerInstance": 155.4272
+      "totalBytes": 1153496,
+      "bytesPerInstance": 115.3496
     },
     "async-signal-concurrency-4": {
-      "totalBytes": 1636280,
-      "bytesPerInstance": 163.628
+      "totalBytes": 1636048,
+      "bytesPerInstance": 163.6048
     },
     "virtual-vnode": {
-      "totalBytes": 1379816,
-      "bytesPerInstance": 137.9816
+      "totalBytes": 1379720,
+      "bytesPerInstance": 137.972
     },
     "element-vnode": {
-      "totalBytes": 7293544,
-      "bytesPerInstance": 729.3544
+      "totalBytes": 7293640,
+      "bytesPerInstance": 729.364
     },
     "text-vnode": {
       "totalBytes": 2546200,
@@ -69,16 +69,16 @@
       "bytesPerInstance": 93.324
     },
     "effect-subscription": {
-      "totalBytes": 4829768,
-      "bytesPerInstance": 482.9768
+      "totalBytes": 4834024,
+      "bytesPerInstance": 483.4024
     },
     "delete-operation": {
-      "totalBytes": 1675480,
-      "bytesPerInstance": 167.548
+      "totalBytes": 1667624,
+      "bytesPerInstance": 166.7624
     },
     "set-text-operation": {
-      "totalBytes": 1748680,
-      "bytesPerInstance": 174.868
+      "totalBytes": 1740600,
+      "bytesPerInstance": 174.06
     },
     "insert-or-move-operation": {
       "totalBytes": 6326248,

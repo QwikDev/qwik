@@ -1400,8 +1400,9 @@ function transformSCallBody(
         if (child.isBare) {
           // Bare $() -> just the QRL variable name
           body = body.slice(0, relCallStart) + childVarName + body.slice(relCallEnd);
-        } else if (child.ctxKind === 'eventHandler' && !child.qrlCallee) {
-          // Direct JSX event handler attribute: onClick$={() => ...) -> q-e:click={q_varName}
+        } else if ((child.ctxKind === 'eventHandler' || child.ctxKind === 'jSXProp') && !child.qrlCallee) {
+          // Direct JSX event/QRL-prop attribute: onClick$={() => ...) -> q-e:click={q_varName}
+          // Also handles jSXProp (render$, custom$, etc.) which behave identically
           // The callStart..callEnd range covers the full attribute text: onClick$={() => ...}
           // NOTE: Named markers inside JSX attrs (onClick$={server$(...)}) have qrlCallee set
           // and their callStart..callEnd only covers the call expression, so they use the
@@ -2032,8 +2033,9 @@ export function rewriteParentModule(
     } else if (ext.isBare) {
       // Bare $(): replace entire call with QRL variable name
       s.overwrite(ext.callStart, ext.callEnd, getQrlVarName(ext.symbolName));
-    } else if (ext.ctxKind === 'eventHandler' && !ext.qrlCallee) {
-      // Direct JSX event handler attribute: onClick$={fn} -> q-e:click={q_var} (or onClick$={q_var} for components)
+    } else if ((ext.ctxKind === 'eventHandler' || ext.ctxKind === 'jSXProp') && !ext.qrlCallee) {
+      // Direct JSX event/QRL-prop attribute: onClick$={fn} -> q-e:click={q_var} (or onClick$={q_var} for components)
+      // Also handles jSXProp (render$, custom$, etc.) which behave identically
       // Named markers inside JSX attrs (onClick$={server$(...)}) have qrlCallee set and
       // their callStart..callEnd only covers the call expression, so they use the named marker path.
       let propName: string;

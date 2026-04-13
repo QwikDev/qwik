@@ -306,19 +306,17 @@ export function propagateConstLiteralsInBody(body: string): string {
           const isLiteral = init.type === 'StringLiteral' || init.type === 'Literal' ||
               init.type === 'NumericLiteral' || init.type === 'BooleanLiteral' ||
               init.type === 'NullLiteral';
-          if (isLiteral) {
-            const initStart = init.start - offset;
-            const initEnd = init.end - offset;
-            const stmtStart = node.start - offset;
-            const stmtEnd = node.end - offset;
-            if (initStart >= 0 && initEnd <= result.length) {
-              constDecls.set(decl.id.name, {
-                value: result.slice(initStart, initEnd),
-                isLiteral: true,
-                stmtStart,
-                stmtEnd,
-              });
-            }
+          const initStart = init.start - offset;
+          const initEnd = init.end - offset;
+          const stmtStart = node.start - offset;
+          const stmtEnd = node.end - offset;
+          if (initStart >= 0 && initEnd <= result.length) {
+            constDecls.set(decl.id.name, {
+              value: result.slice(initStart, initEnd),
+              isLiteral,
+              stmtStart,
+              stmtEnd,
+            });
           }
         }
       }
@@ -377,17 +375,230 @@ export function propagateConstLiteralsInBody(body: string): string {
 
     countRefs(parseResult.program);
 
-    // Phase 3: Inline literals first, then single-use expressions.
-    // Literals must be inlined first so that expression inits can pick up the inlined values.
+    // Phase 3: Inline literal consts and remove their declarations.
     const toInline = new Map<string, string>();
     const toRemove = new Set<string>();
 
     for (const [name, info] of constDecls) {
+      if (!info.isLiteral) continue;
       const refs = refCounts.get(name) ?? 0;
       if (refs > 0) {
         toInline.set(name, info.value);
+      }
+      toRemove.add(name);
+    }
+
+    if (toInline.size === 0 && toRemove.size === 0) break;
+
+    if (toInline.size > 0) {
+      result = inlineConstCaptures(result, toInline);
+    }
+    if (toRemove.size > 0) {
+      result = removeConstDeclarations(result, toRemove);
+    }
+  }
+
+  // Post-loop: single-use non-literal propagation.
+  // After all literal propagation is done, inline single-use const declarations
+  // whose init is a side-effect-free expression (member access chains, identifiers).
+  // This matches SWC's behavior: e.g., `const value = FOO[key]` after key was
+  // already inlined becomes `const value = FOO['A']`, then value is single-use
+  // and gets inlined into the return expression.
+  // Skip generated variables (_captures, _rawProps, etc.) to avoid breaking
+  // transformed code patterns.
+  result = propagateSingleUseNonLiterals(result);
+
+  return result;
+}
+
+/**
+ * Check if an AST init expression is side-effect-free (safe to inline).
+ * Only allows simple member access chains and identifiers.
+ */
+function isSimpleSideEffectFree(node: any): boolean {
+  if (!node || typeof node !== 'object') return false;
+  switch (node.type) {
+    case 'Identifier':
+      // Skip generated identifiers
+      return !node.name.startsWith('_');
+    case 'StringLiteral':
+    case 'Literal':
+    case 'NumericLiteral':
+    case 'BooleanLiteral':
+    case 'NullLiteral':
+      return true;
+    case 'MemberExpression':
+    case 'StaticMemberExpression':
+      return isSimpleSideEffectFree(node.object);
+    case 'ComputedMemberExpression':
+      return isSimpleSideEffectFree(node.object) && isSimpleSideEffectFree(node.property);
+    default:
+      return false;
+  }
+}
+
+/**
+ * Inline single-use const declarations with side-effect-free init expressions.
+ * This is a post-literal-propagation pass that handles patterns like:
+ *   const value = FOO_MAPPING['A']; return <>{value}</>
+ * -> return <>{FOO_MAPPING['A']}</>
+ */
+function propagateSingleUseNonLiterals(body: string): string {
+  const MAX_ITERATIONS = 3;
+  let result = body;
+
+  for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
+    const wrapperPrefix = 'const __su__ = ';
+    const wrappedSource = wrapperPrefix + result;
+    const parseResult = parseSync('__su__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
+    if (!parseResult.program || parseResult.errors?.length) break;
+
+    const offset = wrapperPrefix.length;
+
+    // Collect all mutable (let/var) variable names -- these must not be referenced
+    // by inlining candidates since their values can change between declaration and use.
+    const mutableVars = new Set<string>();
+
+    function collectMutableVars(node: any): void {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'VariableDeclaration' && (node.kind === 'let' || node.kind === 'var')) {
+        for (const decl of node.declarations ?? []) {
+          if (decl.id?.type === 'Identifier') mutableVars.add(decl.id.name);
+        }
+      }
+      for (const key of Object.keys(node)) {
+        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+        const val = node[key];
+        if (val && typeof val === 'object') {
+          if (Array.isArray(val)) {
+            for (const item of val) {
+              if (item && typeof item.type === 'string') collectMutableVars(item);
+            }
+          } else if (typeof val.type === 'string') {
+            collectMutableVars(val);
+          }
+        }
+      }
+    }
+    collectMutableVars(parseResult.program);
+
+    // Collect identifiers referenced in an init expression
+    function collectInitIdentifiers(node: any): Set<string> {
+      const ids = new Set<string>();
+      function walk(n: any): void {
+        if (!n || typeof n !== 'object') return;
+        if (n.type === 'Identifier') { ids.add(n.name); return; }
+        for (const key of Object.keys(n)) {
+          if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+          const val = n[key];
+          if (val && typeof val === 'object') {
+            if (Array.isArray(val)) {
+              for (const item of val) { if (item && typeof item.type === 'string') walk(item); }
+            } else if (typeof val.type === 'string') {
+              walk(val);
+            }
+          }
+        }
+      }
+      walk(node);
+      return ids;
+    }
+
+    // Find single-declarator const declarations with non-literal, side-effect-free inits
+    // that don't reference any mutable variables
+    const candidates = new Map<string, { value: string }>();
+
+    function findCandidates(node: any): void {
+      if (!node || typeof node !== 'object') return;
+
+      if (node.type === 'VariableDeclaration' && node.kind === 'const' &&
+          node.declarations?.length === 1) {
+        const decl = node.declarations[0];
+        if (decl.id?.type === 'Identifier' && decl.init) {
+          const init = decl.init;
+          const isLiteral = init.type === 'StringLiteral' || init.type === 'Literal' ||
+              init.type === 'NumericLiteral' || init.type === 'BooleanLiteral' ||
+              init.type === 'NullLiteral';
+          if (!isLiteral && isSimpleSideEffectFree(init)) {
+            // Check that no identifier in the init is a mutable variable
+            const initIds = collectInitIdentifiers(init);
+            const referencesMutable = [...initIds].some(id => mutableVars.has(id));
+            if (!referencesMutable) {
+              const initStart = init.start - offset;
+              const initEnd = init.end - offset;
+              if (initStart >= 0 && initEnd <= result.length) {
+                candidates.set(decl.id.name, {
+                  value: result.slice(initStart, initEnd),
+                });
+              }
+            }
+          }
+        }
+      }
+
+      for (const key of Object.keys(node)) {
+        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+        const val = node[key];
+        if (val && typeof val === 'object') {
+          if (Array.isArray(val)) {
+            for (const item of val) {
+              if (item && typeof item.type === 'string') findCandidates(item);
+            }
+          } else if (typeof val.type === 'string') {
+            findCandidates(val);
+          }
+        }
+      }
+    }
+
+    findCandidates(parseResult.program);
+    if (candidates.size === 0) break;
+
+    // Count references
+    const refCounts = new Map<string, number>();
+    for (const name of candidates.keys()) refCounts.set(name, 0);
+
+    function countRefs(node: any, parentKey?: string, parentNode?: any): void {
+      if (!node || typeof node !== 'object') return;
+
+      if (node.type === 'Identifier' && candidates.has(node.name)) {
+        if (parentKey === 'id' && parentNode?.type === 'VariableDeclarator') {
+          // skip declaration id
+        } else {
+          const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
+          const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed;
+          if (!isPropertyKey && !isMemberProp) {
+            refCounts.set(node.name, (refCounts.get(node.name) ?? 0) + 1);
+          }
+        }
+      }
+
+      for (const key of Object.keys(node)) {
+        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+        const val = node[key];
+        if (val && typeof val === 'object') {
+          if (Array.isArray(val)) {
+            for (const item of val) {
+              if (item && typeof item.type === 'string') countRefs(item, key, node);
+            }
+          } else if (typeof val.type === 'string') {
+            countRefs(val, key, node);
+          }
+        }
+      }
+    }
+
+    countRefs(parseResult.program);
+
+    const toInline = new Map<string, string>();
+    const toRemove = new Set<string>();
+
+    for (const [name, info] of candidates) {
+      const refs = refCounts.get(name) ?? 0;
+      if (refs === 1) {
+        toInline.set(name, info.value);
         toRemove.add(name);
-      } else {
+      } else if (refs === 0) {
         toRemove.add(name);
       }
     }

@@ -18,6 +18,7 @@ import { isSerializerObj } from '../../reactive-primitives/utils';
 const getKeyVal = <T>(value: T, key: keyof T) => value[key];
 
 export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet()): boolean => {
+  const hasTemporal = typeof Temporal !== 'undefined';
   if (
     value == null ||
     typeof value === 'string' ||
@@ -71,21 +72,21 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
       return true;
     } else if (value instanceof Date) {
       return true;
-    } else if (typeof Temporal !== 'undefined' && value instanceof Temporal.Duration) {
+    } else if (hasTemporal && value instanceof Temporal.Duration) {
       return true;
-    } else if (typeof Temporal !== 'undefined' && value instanceof Temporal.Instant) {
+    } else if (hasTemporal && value instanceof Temporal.Instant) {
       return true;
-    } else if (typeof Temporal !== 'undefined' && value instanceof Temporal.PlainDate) {
+    } else if (hasTemporal && value instanceof Temporal.PlainDate) {
       return true;
-    } else if (typeof Temporal !== 'undefined' && value instanceof Temporal.PlainDateTime) {
+    } else if (hasTemporal && value instanceof Temporal.PlainDateTime) {
       return true;
-    } else if (typeof Temporal !== 'undefined' && value instanceof Temporal.PlainMonthDay) {
+    } else if (hasTemporal && value instanceof Temporal.PlainMonthDay) {
       return true;
-    } else if (typeof Temporal !== 'undefined' && value instanceof Temporal.PlainTime) {
+    } else if (hasTemporal && value instanceof Temporal.PlainTime) {
       return true;
-    } else if (typeof Temporal !== 'undefined' && value instanceof Temporal.PlainYearMonth) {
+    } else if (hasTemporal && value instanceof Temporal.PlainYearMonth) {
       return true;
-    } else if (typeof Temporal !== 'undefined' && value instanceof Temporal.ZonedDateTime) {
+    } else if (hasTemporal && value instanceof Temporal.ZonedDateTime) {
       return true;
     } else if (value instanceof RegExp) {
       return true;

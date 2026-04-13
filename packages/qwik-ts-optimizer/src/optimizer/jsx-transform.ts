@@ -4,87 +4,41 @@
  * Converts JSX syntax to _jsxSorted/_jsxSplit function calls with
  * correct prop classification (varProps/constProps), flags computation,
  * key generation, spread handling, and fragment support.
- *
- * Implements: JSX-01, JSX-02, JSX-03, JSX-04, JSX-05, JSX-06
  */
 
 import type MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
-import { analyzeSignalExpression, SignalHoister, type SignalExprResult } from './signal-analysis.js';
+import { analyzeSignalExpression, SignalHoister } from './signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective, collectPassiveDirectives } from './event-handler-transform.js';
 import { isBindProp, transformBindProp, mergeEventHandlers } from './bind-transform.js';
 import { detectLoopContext, buildQpProp, type LoopContext } from './loop-hoisting.js';
 import { computeKeyPrefix } from './key-prefix.js';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 export interface JsxTransformResult {
-  /** Tag representation: string literal for HTML, identifier for components */
   tag: string;
-  /** Mutable props object literal string, or null */
   varProps: string | null;
-  /** Immutable props object literal string, or null */
   constProps: string | null;
-  /** Children representation, or null */
   children: string | null;
-  /** Flags bitmask */
   flags: number;
-  /** Key value (string literal, expression, or null) */
   key: string | null;
-  /** Full replacement call string */
   callString: string;
-  /** Needed imports (e.g., _jsxSorted, _Fragment) */
   neededImports: Set<string>;
 }
 
 export interface JsxTransformOutput {
-  /** Imports needed (_jsxSorted, _Fragment, _jsxSplit, etc.) */
   neededImports: Set<string>;
-  /** Whether _Fragment is needed from jsx-runtime */
   needsFragment: boolean;
-  /** Hoisted signal function declarations (const _hf0 = ...; const _hf0_str = ...;) */
   hoistedDeclarations: string[];
-  /** Final key counter value (for continuation in subsequent transforms) */
   keyCounterValue: number;
 }
 
-// ---------------------------------------------------------------------------
-// Global identifiers that indicate mutable context
-// ---------------------------------------------------------------------------
-
-const GLOBAL_OBJECTS = new Set([
-  'window',
-  'document',
-  'globalThis',
-  'navigator',
-  'location',
-  'history',
-  'screen',
-  'localStorage',
-  'sessionStorage',
-  'console',
-]);
-
-// ---------------------------------------------------------------------------
-// collectConstIdents — pre-pass to identify const-bound identifiers
-// ---------------------------------------------------------------------------
-
 /**
- * Check if a const declaration's initializer is "static" per SWC rules.
- *
- * A const binding is considered static (its reference won't change) when:
- * - No initializer (declaration only)
- * - Initializer is a call to a function whose name:
- *   - Ends with '$' (e.g., $(), component$())
- *   - Ends with 'Qrl' (e.g., componentQrl())
- *   - Starts with 'use' (e.g., useStore(), useSignal())
- *
- * Reference: swc-reference-only/transform.rs `is_return_static`
+ * A const binding is "static" when its initializer is absent, or is a call
+ * to a $-suffixed / Qrl-suffixed / use-prefixed function. Static bindings
+ * are treated as immutable for prop classification.
  */
 function isReturnStatic(init: any): boolean {
-  if (!init) return true; // no initializer → static
+  if (!init) return true;
   if (init.type === 'CallExpression' && init.callee) {
     const callee = init.callee;
     let calleeName: string | undefined;
@@ -99,13 +53,8 @@ function isReturnStatic(init: any): boolean {
 }
 
 /**
- * Walk an AST and collect names of const-bound identifiers with "static"
- * initializers (per SWC's `is_return_static` + `collect_static_identifiers`).
- *
- * These identifiers are treated as immutable references for prop classification,
- * matching SWC's `IdentType::Var(true)` in the `const_idents` set.
- *
- * Reference: swc-reference-only/transform.rs lines 3483-3496, 5146-5236
+ * Collect names of const-bound identifiers with "static" initializers.
+ * These are treated as immutable references for prop classification.
  */
 export function collectConstIdents(program: any): Set<string> {
   const constIdents = new Set<string>();
@@ -119,9 +68,6 @@ export function collectConstIdents(program: any): Set<string> {
       }
     }
 
-    // Recurse into child nodes (but not into nested function bodies —
-    // SWC's decl_stack is scope-aware, but for our purposes we collect
-    // from all scopes since we're operating on a single scope level at a time)
     for (const key of Object.keys(node)) {
       if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
       const val = node[key];
@@ -137,7 +83,6 @@ export function collectConstIdents(program: any): Set<string> {
     if (!decl) return;
     const id = decl.id || decl.name;
     const init = decl.init;
-
     if (!id) return;
 
     if (id.type === 'Identifier') {
@@ -145,14 +90,12 @@ export function collectConstIdents(program: any): Set<string> {
         constIdents.add(id.name);
       }
     } else if (id.type === 'ArrayPattern') {
-      // const [a, b] = expr — each element gets the parent init's static check
       for (const elem of id.elements || []) {
         if (elem && elem.type === 'Identifier' && isReturnStatic(init)) {
           constIdents.add(elem.name);
         }
       }
     } else if (id.type === 'ObjectPattern') {
-      // const {a, b} = expr — each property gets the parent init's static check
       for (const prop of id.properties || []) {
         if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
           const val = prop.value || prop.key;
@@ -169,12 +112,8 @@ export function collectConstIdents(program: any): Set<string> {
 }
 
 /**
- * Collect ALL locally declared identifier names from an AST program.
- * Includes: const/let/var bindings, function params, function declarations,
- * class declarations, catch clause params, etc.
- *
- * This represents SWC's full `decl_stack` (all scopes), used to distinguish
- * known locals from unknown globals for signal analysis.
+ * Collect all locally declared identifier names from an AST program.
+ * Used to distinguish known locals from unknown globals for signal analysis.
  */
 export function collectAllLocalNames(program: any): Set<string> {
   const names = new Set<string>();
@@ -203,24 +142,20 @@ export function collectAllLocalNames(program: any): Set<string> {
   function visit(node: any): void {
     if (!node || typeof node !== 'object') return;
 
-    // Variable declarations (const, let, var)
     if (node.type === 'VariableDeclaration') {
       for (const decl of node.declarations || []) {
         addIdent(decl.id || decl.name);
       }
     }
 
-    // Function declarations
     if (node.type === 'FunctionDeclaration' && node.id) {
       addIdent(node.id);
     }
 
-    // Class declarations
     if (node.type === 'ClassDeclaration' && node.id) {
       addIdent(node.id);
     }
 
-    // Function/arrow params
     if ((node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' ||
          node.type === 'ArrowFunctionExpression') && node.params) {
       for (const param of node.params) {
@@ -228,12 +163,10 @@ export function collectAllLocalNames(program: any): Set<string> {
       }
     }
 
-    // Catch clause param
     if (node.type === 'CatchClause' && node.param) {
       addIdent(node.param);
     }
 
-    // For-in/for-of loop variable
     if ((node.type === 'ForInStatement' || node.type === 'ForOfStatement') && node.left) {
       if (node.left.type === 'VariableDeclaration') {
         for (const decl of node.left.declarations || []) {
@@ -242,7 +175,6 @@ export function collectAllLocalNames(program: any): Set<string> {
       }
     }
 
-    // Recurse
     for (const key of Object.keys(node)) {
       if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
       const val = node[key];
@@ -258,24 +190,9 @@ export function collectAllLocalNames(program: any): Set<string> {
   return names;
 }
 
-// ---------------------------------------------------------------------------
-// classifyProp
-// ---------------------------------------------------------------------------
-
 /**
- * Analyze an expression AST node to determine if it is immutable (const)
- * or mutable (var).
- *
- * Mirrors SWC's `is_const_expr` (swc-reference-only/is_const.rs):
- * - CONST: literals, imported identifiers, exported identifiers,
- *   identifiers in const_idents (Var(true)), arrow/function expressions,
- *   template literals / binary / ternary / array / object with all-const parts
- * - VAR: call expressions, member expressions, identifiers not in any const set
- *
- * @param exprNode - AST expression node
- * @param importedNames - Set of imported identifier names
- * @param constIdents - Optional set of const-bound identifier names (Var(true))
- * @returns 'const' or 'var'
+ * Determine if an expression is immutable (const) or mutable (var).
+ * Mirrors SWC's `is_const_expr`.
  */
 export function classifyProp(
   exprNode: any,
@@ -285,184 +202,108 @@ export function classifyProp(
   if (!exprNode) return 'const';
 
   switch (exprNode.type) {
-    // --- Literals: always const ---
     case 'StringLiteral':
     case 'Literal':
-      return 'const';
-
     case 'NumericLiteral':
-      return 'const';
-
     case 'BooleanLiteral':
-      return 'const';
-
     case 'NullLiteral':
       return 'const';
 
-    // --- Template literals ---
-    case 'TemplateLiteral':
-      if (!exprNode.expressions || exprNode.expressions.length === 0) {
-        return 'const';
-      }
-      // All expressions must be const
+    case 'TemplateLiteral': {
+      if (!exprNode.expressions || exprNode.expressions.length === 0) return 'const';
       for (const expr of exprNode.expressions) {
-        if (classifyProp(expr, importedNames, constIdents) === 'var') {
-          return 'var';
-        }
+        if (classifyProp(expr, importedNames, constIdents) === 'var') return 'var';
       }
       return 'const';
+    }
 
-    // --- Identifiers ---
     case 'Identifier': {
       const name = exprNode.name;
-      // undefined is const
       if (name === 'undefined') return 'const';
-      // Imported names are const (SWC: global.imports.contains_key)
       if (importedNames.has(name)) return 'const';
-      // Const-bound identifiers are const (SWC: const_idents with Var(true))
       if (constIdents?.has(name)) return 'const';
-      // Everything else (local vars, globals) is var
       return 'var';
     }
 
-    // --- Member expressions ---
-    // SWC classifies member expressions on module-level imports as const.
-    // For example, `dep.thing` or `styles.foo` where `dep`/`styles` are imports
-    // go to constProps. But member access on const-declared locals like `store.count`
-    // remains var because local state can be reactive.
+    // Member access on imports is const; on locals is var (locals can be reactive)
     case 'MemberExpression':
     case 'StaticMemberExpression':
     case 'ComputedMemberExpression': {
       const obj = exprNode.object;
-      if (obj && obj.type === 'Identifier' && importedNames.has(obj.name)) {
-        return 'const';
-      }
+      if (obj && obj.type === 'Identifier' && importedNames.has(obj.name)) return 'const';
       return 'var';
     }
 
-    // --- Call expressions: always var (SWC is_const.rs: visit_call_expr -> false) ---
     case 'CallExpression':
       return 'var';
 
-    // --- Unary expressions ---
     case 'UnaryExpression':
       return classifyProp(exprNode.argument, importedNames, constIdents);
 
-    // --- Binary expressions ---
     case 'BinaryExpression':
     case 'LogicalExpression': {
       const leftClass = classifyProp(exprNode.left, importedNames, constIdents);
-      const rightClass = classifyProp(
-        exprNode.right,
-        importedNames,
-        constIdents,
-      );
+      const rightClass = classifyProp(exprNode.right, importedNames, constIdents);
       return leftClass === 'var' || rightClass === 'var' ? 'var' : 'const';
     }
 
-    // --- Conditional (ternary) ---
     case 'ConditionalExpression': {
       const testClass = classifyProp(exprNode.test, importedNames, constIdents);
-      const consClass = classifyProp(
-        exprNode.consequent,
-        importedNames,
-        constIdents,
-      );
-      const altClass = classifyProp(
-        exprNode.alternate,
-        importedNames,
-        constIdents,
-      );
-      return testClass === 'var' || consClass === 'var' || altClass === 'var'
-        ? 'var'
-        : 'const';
+      const consClass = classifyProp(exprNode.consequent, importedNames, constIdents);
+      const altClass = classifyProp(exprNode.alternate, importedNames, constIdents);
+      return testClass === 'var' || consClass === 'var' || altClass === 'var' ? 'var' : 'const';
     }
 
-    // --- Object expression ---
     case 'ObjectExpression': {
       if (!exprNode.properties) return 'const';
       for (const prop of exprNode.properties) {
         if (prop.type === 'SpreadElement') {
-          if (classifyProp(prop.argument, importedNames, constIdents) === 'var')
-            return 'var';
+          if (classifyProp(prop.argument, importedNames, constIdents) === 'var') return 'var';
         } else if (prop.value) {
-          if (classifyProp(prop.value, importedNames, constIdents) === 'var')
-            return 'var';
+          if (classifyProp(prop.value, importedNames, constIdents) === 'var') return 'var';
         }
       }
       return 'const';
     }
 
-    // --- Array expression ---
     case 'ArrayExpression': {
       if (!exprNode.elements) return 'const';
       for (const el of exprNode.elements) {
-        if (el === null) continue; // holes are const
+        if (el === null) continue;
         if (el.type === 'SpreadElement') {
-          if (classifyProp(el.argument, importedNames, constIdents) === 'var')
-            return 'var';
+          if (classifyProp(el.argument, importedNames, constIdents) === 'var') return 'var';
         } else {
-          if (classifyProp(el, importedNames, constIdents) === 'var')
-            return 'var';
+          if (classifyProp(el, importedNames, constIdents) === 'var') return 'var';
         }
       }
       return 'const';
     }
 
-    // --- Arrow/function expressions: const (they are values) ---
     case 'ArrowFunctionExpression':
     case 'FunctionExpression':
       return 'const';
 
-    // --- Parenthesized ---
     case 'ParenthesizedExpression':
       return classifyProp(exprNode.expression, importedNames, constIdents);
 
-    // --- Sequence expression (comma) ---
     case 'SequenceExpression': {
-      // Last expression determines the type, but if any is var, it's var
       for (const expr of exprNode.expressions) {
-        if (classifyProp(expr, importedNames, constIdents) === 'var')
-          return 'var';
+        if (classifyProp(expr, importedNames, constIdents) === 'var') return 'var';
       }
       return 'const';
     }
 
     default:
-      // Unknown node type -> assume var for safety
       return 'var';
   }
 }
 
-// ---------------------------------------------------------------------------
-// computeFlags
-// ---------------------------------------------------------------------------
-
 /**
  * Compute the flags bitmask for a JSX element.
  *
- * SWC semantics (swc-reference-only/transform.rs lines 2644-2653):
- * - Bit 0 (1): static_listeners -- set when all QRL/event-handler props are const
- * - Bit 1 (2): static_subtree -- set when children are static or none
- * - Bit 2 (4): moved_captures -- set when in loop context (q:p/q:ps)
- *
- * Note: In SWC, static_listeners only tracks event handler (QRL) props, NOT all
- * props. Non-event var props don't clear static_listeners. Since we don't yet
- * separately track event handler constness, we use `!inLoop || !hasVarProps`
- * which is more permissive and matches SWC output for the common case where
- * event handlers are arrow/function expressions (always const).
- *
- * Common values:
- * - 3 (0b011): no var props + static/no children
- * - 1 (0b001): no var props + dynamic children
- * - 2 (0b010): has var props + static/no children (in loop)
- * - 0 (0b000): spread or has var props + dynamic children (in loop)
- * - 7 (0b111): no var props + static children + loop context
- *
- * @param hasVarProps - Whether the element has any mutable props
- * @param childrenType - 'none' | 'static' | 'dynamic'
- * @param inLoop - Whether the element is inside a loop context
- * @returns Flags bitmask integer
+ * Bit 0 (1): static_listeners -- all event handler props are const
+ * Bit 1 (2): static_subtree -- children are static or none
+ * Bit 2 (4): moved_captures -- loop context (q:p/q:ps)
  */
 export function computeFlags(
   hasVarProps: boolean,
@@ -471,33 +312,22 @@ export function computeFlags(
   hasVarEventHandler: boolean = false,
 ): number {
   let flags = 0;
-  // Bit 0 (value 1): static_listeners -- all event handler props are const.
-  // SWC sets this when there are no event handlers, or ALL event handlers
-  // are const. A var event handler (e.g. _qrlSync() call) clears this bit.
-  // In loop context, var props also clear this bit since loop iteration
-  // vars make event handler captures non-const.
   if (!hasVarEventHandler && (!inLoop || !hasVarProps)) {
     flags |= 1;
   }
-  // Bit 1 (value 2): static_subtree -- children are static/none
   if (childrenType !== 'dynamic') {
     flags |= 2;
   }
-  // Bit 2 (value 4): moved_captures -- loop context (q:p/q:ps)
   if (inLoop) {
     flags |= 4;
   }
   return flags;
 }
 
-// ---------------------------------------------------------------------------
-// JsxKeyCounter
-// ---------------------------------------------------------------------------
-
 /**
  * Per-module counter for generating deterministic JSX element keys.
  * Keys follow the pattern "{prefix}_{N}" where prefix is derived from
- * the file path hash (e.g., "u6" for test.tsx, "KD" for components/apps/apps.tsx).
+ * the file path hash.
  */
 export class JsxKeyCounter {
   private count: number;
@@ -508,42 +338,24 @@ export class JsxKeyCounter {
     this.prefix = prefix;
   }
 
-  /**
-   * Generate the next key value.
-   * @returns Key string like "u6_0", "KD_1", etc.
-   */
   next(): string {
     return `${this.prefix}_${this.count++}`;
   }
 
-  /** Get the current counter value (for continuation). */
   current(): number {
     return this.count;
   }
 
-  /** Reset the counter (e.g., for a new module). */
   reset(): void {
     this.count = 0;
   }
 }
 
-// ---------------------------------------------------------------------------
-// JSX tag processing
-// ---------------------------------------------------------------------------
-
-/**
- * Check if a tag name represents an HTML element (lowercase).
- */
 export function isHtmlElement(tagName: string): boolean {
   return tagName.length > 0 && tagName[0] === tagName[0].toLowerCase();
 }
 
-/**
- * Text-only HTML elements whose children should NOT be signal-wrapped.
- *
- * SWC skips convert_children() for these tags (transform.rs `is_text_only`),
- * instead marking the element as mutable and leaving children as-is.
- */
+/** Text-only HTML elements whose children should NOT be signal-wrapped. */
 const TEXT_ONLY_TAGS = new Set([
   'text', 'textarea', 'title', 'option', 'script', 'style', 'noscript',
 ]);
@@ -555,10 +367,10 @@ export function isTextOnlyElement(tagName: string): boolean {
 /**
  * Extract tag representation from a JSX opening element name node.
  *
- * - JSXIdentifier with lowercase name -> `"div"` (string literal)
- * - JSXIdentifier with uppercase name -> `Div` (identifier reference)
- * - JSXMemberExpression -> `Foo.Bar` (dotted path)
- * - JSXNamespacedName -> `"ns:name"` (string literal)
+ * - JSXIdentifier with lowercase -> `"div"` (string literal)
+ * - JSXIdentifier with uppercase -> `Div` (identifier)
+ * - JSXMemberExpression -> `Foo.Bar`
+ * - JSXNamespacedName -> `"ns:name"`
  */
 export function processJsxTag(nameNode: any): string {
   if (!nameNode) return '"div"';
@@ -566,10 +378,7 @@ export function processJsxTag(nameNode: any): string {
   switch (nameNode.type) {
     case 'JSXIdentifier': {
       const name = nameNode.name;
-      if (isHtmlElement(name)) {
-        return `"${name}"`;
-      }
-      return name;
+      return isHtmlElement(name) ? `"${name}"` : name;
     }
     case 'JSXMemberExpression': {
       const parts: string[] = [];
@@ -590,17 +399,123 @@ export function processJsxTag(nameNode: any): string {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Children processing
-// ---------------------------------------------------------------------------
+/** True for value nodes that are always const (literals, arrows, identifiers). */
+function isConstValueNode(valueNode: any): boolean {
+  if (!valueNode) return true;
+  switch (valueNode.type) {
+    case 'ArrowFunctionExpression':
+    case 'FunctionExpression':
+    case 'Identifier':
+    case 'Literal':
+    case 'StringLiteral':
+    case 'NumericLiteral':
+    case 'BooleanLiteral':
+    case 'NullLiteral':
+      return true;
+    default:
+      return false;
+  }
+}
+
+/** True for pre-rewritten event handler prop prefixes (q-e:, q-d:, q-w:, etc.). */
+function isRewrittenEventProp(propName: string): boolean {
+  return propName.startsWith('q-e:') || propName.startsWith('q-d:') ||
+    propName.startsWith('q-w:') || propName.startsWith('q-ep:') ||
+    propName.startsWith('q-dp:') || propName.startsWith('q-wp:');
+}
+
+/** True if entry string starts with a rewritten event handler prefix. */
+function isRewrittenEventEntry(entry: string): boolean {
+  return entry.startsWith('"q-e:') || entry.startsWith('"q-d:') ||
+    entry.startsWith('"q-w:') || entry.startsWith('"q-ep:') ||
+    entry.startsWith('"q-dp:') || entry.startsWith('"q-wp:');
+}
+
+/** Sort var entries alphabetically by prop key (SWC sorts var_props when no spread). */
+function sortVarEntries(entries: string[]): void {
+  if (entries.length > 1) {
+    entries.sort((a, b) => {
+      const keyA = a.split(':')[0].replace(/"/g, '').trim();
+      const keyB = b.split(':')[0].replace(/"/g, '').trim();
+      return keyA.localeCompare(keyB);
+    });
+  }
+}
+
+function needsQuoting(name: string): boolean {
+  return /[^a-zA-Z0-9_$]/.test(name);
+}
+
+function formatPropName(name: string): string {
+  return needsQuoting(name) ? `"${name}"` : name;
+}
+
+/**
+ * Normalize JSXText nodes following standard JSX whitespace rules.
+ * Returns only meaningful children (non-empty text and non-text nodes).
+ */
+function normalizeJsxChildren(children: any[]): any[] {
+  const meaningful: any[] = [];
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    if (child.type !== 'JSXText') {
+      meaningful.push(child);
+      continue;
+    }
+
+    const raw = child.value ?? '';
+    const hasNewline = raw.includes('\n');
+    let normalized: string;
+
+    if (hasNewline) {
+      const lines = raw.split('\n');
+      const trimmedLines = lines.map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+      normalized = trimmedLines.join(' ');
+    } else {
+      // Preserve leading whitespace after expression containers
+      const prevChild = i > 0 ? children[i - 1] : null;
+      if (prevChild && prevChild.type === 'JSXExpressionContainer') {
+        normalized = raw;
+      } else {
+        normalized = raw.replace(/^\s+/, '');
+      }
+      // Trim trailing if this is the last meaningful child
+      const nextNonWhitespace = children.slice(i + 1).find(
+        (c: any) => c.type !== 'JSXText' || (c.value?.trim()),
+      );
+      if (!nextNonWhitespace) {
+        normalized = normalized.trimEnd();
+      }
+    }
+
+    if (normalized) {
+      meaningful.push({ ...child, _trimmedText: normalized });
+      continue;
+    }
+
+    // Whitespace-only text: preserve as " " only when between two expression
+    // containers on the same line. Multi-line whitespace is stripped.
+    if (!hasNewline) {
+      const prevSibling = meaningful.length > 0 ? meaningful[meaningful.length - 1] : null;
+      const nextSibling = children.slice(i + 1).find(
+        (c: any) => c.type !== 'JSXText' || c.value?.trim(),
+      );
+      if (
+        prevSibling && nextSibling &&
+        prevSibling.type === 'JSXExpressionContainer' &&
+        nextSibling.type === 'JSXExpressionContainer'
+      ) {
+        meaningful.push({ ...child, _trimmedText: ' ' });
+      }
+    }
+  }
+
+  return meaningful;
+}
 
 /**
  * Process JSX children nodes and return a children string representation.
- *
- * - No children -> null
- * - Single text child -> quoted string
- * - Single expression child -> expression text
- * - Multiple children -> array
  */
 function processChildren(
   children: any[],
@@ -616,81 +531,16 @@ function processChildren(
     return { text: null, type: 'none' };
   }
 
-  // Filter and normalize JSXText nodes following the standard JSX whitespace rules:
-  // 1. Lines that are entirely whitespace are removed
-  // 2. Leading/trailing whitespace on each line is trimmed
-  // 3. Newlines between text are collapsed to a single space
-  // 4. But inline trailing/leading spaces (no newline) are preserved
-  //    e.g., `Count: ` stays `"Count: "` when followed by an expression
-  // 5. Whitespace-only between expression containers: preserve as " "
-  const meaningful: any[] = [];
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i];
-    if (child.type === 'JSXText') {
-      const raw = child.value ?? '';
-      // Apply JSX whitespace normalization:
-      // Split into lines, trim each line, remove empty lines,
-      // then join with single space. But preserve if single-line.
-      const hasNewline = raw.includes('\n');
-      let normalized: string;
-      if (hasNewline) {
-        const lines = raw.split('\n');
-        const trimmedLines = lines.map((l: string) => l.trim()).filter((l: string) => l.length > 0);
-        normalized = trimmedLines.join(' ');
-      } else {
-        // Single-line: preserve leading whitespace when previous sibling is an
-        // expression container (e.g., `{key} - {value}` should keep the space
-        // before `-`). Otherwise trim leading whitespace.
-        const prevChild = i > 0 ? children[i - 1] : null;
-        if (prevChild && prevChild.type === 'JSXExpressionContainer') {
-          // Preserve leading whitespace — it's semantically meaningful
-          normalized = raw;
-        } else {
-          normalized = raw.replace(/^\s+/, '');
-        }
-        // Trim trailing if this is the LAST meaningful child
-        const nextNonWhitespace = children.slice(i + 1).find(
-          (c: any) => c.type !== 'JSXText' || (c.value?.trim()),
-        );
-        if (!nextNonWhitespace) {
-          normalized = normalized.trimEnd();
-        }
-      }
-      if (normalized) {
-        meaningful.push({ ...child, _trimmedText: normalized });
-      } else {
-        // Whitespace-only text: preserve as " " only when on the same line
-        // (no newlines) between two expression containers. Multi-line
-        // whitespace between expressions is stripped by SWC.
-        if (!hasNewline) {
-          const prevSibling = meaningful.length > 0 ? meaningful[meaningful.length - 1] : null;
-          const nextSibling = children.slice(i + 1).find(
-            (c: any) => c.type !== 'JSXText' || c.value?.trim(),
-          );
-          if (
-            prevSibling && nextSibling &&
-            prevSibling.type === 'JSXExpressionContainer' &&
-            nextSibling.type === 'JSXExpressionContainer'
-          ) {
-            meaningful.push({ ...child, _trimmedText: ' ' });
-          }
-        }
-      }
-    } else {
-      meaningful.push(child);
-    }
-  }
+  const meaningful = normalizeJsxChildren(children);
 
   if (meaningful.length === 0) {
     return { text: null, type: 'none' };
   }
 
   if (meaningful.length === 1) {
-    const child = meaningful[0];
-    return processOneChild(child, source, s, importedNames, signalHoister, neededImports, constIdents, allDeclaredNames);
+    return processOneChild(meaningful[0], source, s, importedNames, signalHoister, neededImports, constIdents, allDeclaredNames);
   }
 
-  // Multiple children -> array
   const parts: string[] = [];
   let isDynamic = false;
   for (const child of meaningful) {
@@ -708,8 +558,41 @@ function processChildren(
 }
 
 /**
- * Process a single child node and return its text representation.
+ * Check if a transformed JSX call's flag indicates a dynamic subtree.
+ * Parses the trailing ", N, key)" pattern from _jsxSorted output.
  */
+function hasStaticSubtreeFlag(transformedText: string): boolean {
+  const flagMatch = transformedText.match(/,\s*(\d+),\s*(?:"[^"]*"|null)\s*\)$/);
+  if (!flagMatch) return true;
+  const flag = parseInt(flagMatch[1], 10);
+  return (flag & 2) !== 0;
+}
+
+/**
+ * Classify a nested JSX element/fragment child as static or dynamic.
+ * SWC propagates dynamic status upward through the JSX tree.
+ */
+function classifyNestedJsxChild(
+  child: any,
+  childText: string,
+): 'static' | 'dynamic' {
+  if (child.type === 'JSXFragment') {
+    return hasStaticSubtreeFlag(childText) ? 'static' : 'dynamic';
+  }
+
+  // Component tags (uppercase) are always dynamic
+  const tagName = child.openingElement?.name;
+  const tagStr = tagName?.type === 'JSXIdentifier' ? tagName.name : '';
+  const isComponent = tagStr.length > 0 && tagStr[0] === tagStr[0].toUpperCase() && tagStr[0] !== tagStr[0].toLowerCase();
+  if (isComponent) return 'dynamic';
+
+  // HTML elements: dynamic if they have varProps or a dynamic subtree flag
+  const varPropsMatch = childText.match(/_jsxSorted\([^,]+,\s*(\{|null)/);
+  if (varPropsMatch && varPropsMatch[1] === '{') return 'dynamic';
+
+  return hasStaticSubtreeFlag(childText) ? 'static' : 'dynamic';
+}
+
 function processOneChild(
   child: any,
   source: string,
@@ -731,135 +614,87 @@ function processOneChild(
   }
 
   if (child.type === 'JSXExpressionContainer') {
-    const expr = child.expression;
-    if (!expr || expr.type === 'JSXEmptyExpression') {
-      return { text: null, type: 'none' };
-    }
-    // Use MagicString buffer if available (picks up inner JSX transforms)
-    const exprText = s ? s.slice(expr.start, expr.end) : source.slice(expr.start, expr.end);
-    // Check if expression is a literal
-    if (
-      expr.type === 'StringLiteral' ||
-      expr.type === 'NumericLiteral' ||
-      expr.type === 'BooleanLiteral' ||
-      (expr.type === 'Literal' &&
-        (typeof expr.value === 'string' ||
-          typeof expr.value === 'number' ||
-          typeof expr.value === 'boolean'))
-    ) {
-      return { text: exprText, type: 'static' };
-    }
-
-    // Signal analysis for children expressions
-    if (importedNames && signalHoister) {
-      const signalResult = analyzeSignalExpression(expr, source, importedNames, allDeclaredNames);
-      if (signalResult.type === 'wrapProp') {
-        neededImports?.add('_wrapProp');
-        // SWC treats _wrapProp children as static for flag purposes ONLY when
-        // the signal/store target is const-bound (Var(true)). Function params
-        // like .map() callback vars are Var(false) -> dynamic.
-        let wrapIsConst = true;
-        if (expr.type === 'MemberExpression' && expr.object?.type === 'Identifier') {
-          const objName = expr.object.name;
-          if (!importedNames.has(objName) && !(constIdents?.has(objName))) {
-            wrapIsConst = false;
-          }
-        }
-        return { text: signalResult.code, type: wrapIsConst ? 'static' : 'dynamic' };
-      }
-      if (signalResult.type === 'fnSignal') {
-        const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, expr.start ?? 0);
-        const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
-        neededImports?.add('_fnSignal');
-        // fnSignal children are static only when all deps are const-bound
-        const depsConst = signalResult.deps.every(dep =>
-          importedNames.has(dep) || (constIdents?.has(dep) ?? false)
-        );
-        return { text: fnSignalCall, type: depsConst ? 'static' : 'dynamic' };
-      }
-    }
-
-    // Use classifyProp to determine if the expression is const for flag purposes.
-    // SWC treats children expressions as static (for static_subtree flag) unless they
-    // involve function calls, unknown globals, or reactive member accesses on locals.
-    if (importedNames) {
-      const propClass = classifyProp(expr, importedNames, constIdents);
-      if (propClass === 'const') {
-        return { text: exprText, type: 'static' };
-      }
-    }
-
-    return { text: exprText, type: 'dynamic' };
+    return processExpressionChild(child, source, s, importedNames, signalHoister, neededImports, constIdents, allDeclaredNames);
   }
 
   if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
-    // Nested JSX — use MagicString buffer to get already-transformed text
-    // (bottom-up walk transforms inner elements first).
     const childText = s ? s.slice(child.start, child.end) : source.slice(child.start, child.end);
-    // Classify as static or dynamic based on tag type and varProps:
-    // - Component elements (uppercase tag like Slot, Cmp): always dynamic
-    // - Fragments: always static
-    // - HTML elements: static if no varProps, dynamic if they have varProps
-    // After bottom-up transformation, _jsxSorted("tag", {varProps}, ...) indicates varProps.
-    // In SWC, jsx_mutable propagates upward: if ANY descendant element
-    // has dynamic children (flag without bit 1 set), the parent also
-    // becomes dynamic. Check the child element's own flag in the
-    // transformed text to detect this propagation.
-    //
-    // Also check: component tags are always dynamic, and varProps make
-    // an element dynamic.
-    if (child.type === 'JSXFragment') {
-      // Check if the fragment's transformed flag indicates dynamic subtree
-      // Match the flag from the END of the text: ..., N, key)
-      const fragFlagMatch = childText.match(/,\s*(\d+),\s*(?:"[^"]*"|null)\s*\)$/);
-      if (fragFlagMatch) {
-        const fragFlag = parseInt(fragFlagMatch[1], 10);
-        // If bit 1 (static_subtree) is NOT set, this fragment has dynamic children -> propagate
-        if ((fragFlag & 2) === 0) {
-          return { text: childText, type: 'dynamic' };
-        }
-      }
-      return { text: childText, type: 'static' };
-    }
-    const tagName = child.openingElement?.name;
-    const tagStr = tagName?.type === 'JSXIdentifier' ? tagName.name : '';
-    const isComponentTag = tagStr.length > 0 && tagStr[0] === tagStr[0].toUpperCase() && tagStr[0] !== tagStr[0].toLowerCase();
-    if (isComponentTag) {
-      return { text: childText, type: 'dynamic' };
-    }
-    // For HTML elements: check the transformed text for dynamic indicators:
-    // 1. varProps (non-null 2nd arg of _jsxSorted)
-    // 2. Flag without bit 1 set (dynamic subtree in child)
-    const varPropsMatch = childText.match(/_jsxSorted\([^,]+,\s*(\{|null)/);
-    const hasChildVarProps = varPropsMatch ? varPropsMatch[1] === '{' : false;
-    if (hasChildVarProps) {
-      return { text: childText, type: 'dynamic' };
-    }
-    // Check child's own flag for dynamic subtree propagation
-    // Match the LAST _jsxSorted call's flag (the outermost one for this child)
-    // Pattern: ..., N, key) at the end of the child text
-    const childFlagMatch = childText.match(/,\s*(\d+),\s*(?:"[^"]*"|null)\s*\)$/);
-    if (childFlagMatch) {
-      const childFlag = parseInt(childFlagMatch[1], 10);
-      // If bit 1 (static_subtree) is NOT set, child has dynamic children -> propagate
-      if ((childFlag & 2) === 0) {
-        return { text: childText, type: 'dynamic' };
-      }
-    }
-    return { text: childText, type: 'static' };
+    const type = classifyNestedJsxChild(child, childText);
+    return { text: childText, type };
   }
 
   return { text: null, type: 'none' };
 }
 
-// ---------------------------------------------------------------------------
-// Props processing
-// ---------------------------------------------------------------------------
+/** Process a JSX expression container child ({expr}). */
+function processExpressionChild(
+  child: any,
+  source: string,
+  s?: import('magic-string').default,
+  importedNames?: Set<string>,
+  signalHoister?: SignalHoister,
+  neededImports?: Set<string>,
+  constIdents?: Set<string>,
+  allDeclaredNames?: Set<string>,
+): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
+  const expr = child.expression;
+  if (!expr || expr.type === 'JSXEmptyExpression') {
+    return { text: null, type: 'none' };
+  }
+
+  const exprText = s ? s.slice(expr.start, expr.end) : source.slice(expr.start, expr.end);
+
+  if (
+    expr.type === 'StringLiteral' ||
+    expr.type === 'NumericLiteral' ||
+    expr.type === 'BooleanLiteral' ||
+    (expr.type === 'Literal' &&
+      (typeof expr.value === 'string' ||
+        typeof expr.value === 'number' ||
+        typeof expr.value === 'boolean'))
+  ) {
+    return { text: exprText, type: 'static' };
+  }
+
+  if (importedNames && signalHoister) {
+    const signalResult = analyzeSignalExpression(expr, source, importedNames, allDeclaredNames);
+
+    if (signalResult.type === 'wrapProp') {
+      neededImports?.add('_wrapProp');
+      // _wrapProp children are static only when the signal/store target is const-bound
+      let wrapIsConst = true;
+      if (expr.type === 'MemberExpression' && expr.object?.type === 'Identifier') {
+        const objName = expr.object.name;
+        if (!importedNames.has(objName) && !(constIdents?.has(objName))) {
+          wrapIsConst = false;
+        }
+      }
+      return { text: signalResult.code, type: wrapIsConst ? 'static' : 'dynamic' };
+    }
+
+    if (signalResult.type === 'fnSignal') {
+      const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, expr.start ?? 0);
+      const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
+      neededImports?.add('_fnSignal');
+      const depsConst = signalResult.deps.every(dep =>
+        importedNames.has(dep) || (constIdents?.has(dep) ?? false)
+      );
+      return { text: fnSignalCall, type: depsConst ? 'static' : 'dynamic' };
+    }
+  }
+
+  if (importedNames) {
+    const propClass = classifyProp(expr, importedNames, constIdents);
+    if (propClass === 'const') {
+      return { text: exprText, type: 'static' };
+    }
+  }
+
+  return { text: exprText, type: 'dynamic' };
+}
 
 /**
  * Process JSX attributes and classify them into varProps and constProps.
- * Integrates signal analysis, event handler naming, and bind desugaring.
- * Returns the key prop value if found.
  */
 function processProps(
   attributes: any[],
@@ -870,7 +705,7 @@ function processProps(
   signalHoister: SignalHoister,
   inLoop?: boolean,
   qrlsWithCaptures?: Set<string>,
-  paramNames?: Set<string>,
+  _paramNames?: Set<string>,
   constIdents?: Set<string>,
   allDeclaredNames?: Set<string>,
   skipSignalAnalysis?: boolean,
@@ -887,39 +722,31 @@ function processProps(
 } {
   const varEntries: string[] = [];
   const constEntries: string[] = [];
-  const beforeSpreadEntries: string[] = []; // Props before spread go here
+  const beforeSpreadEntries: string[] = [];
   const neededImports = new Set<string>();
   let key: string | null = null;
   let hasSpread = false;
   let hasVarEventHandler = false;
-
-  // Track bind handlers for merging (event name -> handler code)
   const bindHandlers = new Map<string, string>();
 
   if (!attributes || attributes.length === 0) {
     return { varEntries, constEntries, beforeSpreadEntries, key, hasVarProps: false, hasVarEventHandler: false, hasSpread, additionalSpreads: [], neededImports };
   }
 
-  // Pre-scan for spreads so bind gate works regardless of attribute order
   const hasSpreadAttr = attributes.some(a => a.type === 'JSXSpreadAttribute');
-  // Track index of the spread attribute for ordering classification
   const spreadIndex = attributes.findIndex(a => a.type === 'JSXSpreadAttribute');
-  // Track additional spread expressions beyond the first one (e.g., {...globalThis.nothing})
   const additionalSpreads: string[] = [];
   let spreadCount = 0;
 
   for (let attrIdx = 0; attrIdx < attributes.length; attrIdx++) {
     const attr = attributes[attrIdx];
-    // In spread mode, non-event/non-signal props that appear BEFORE the spread
-    // go to varEntries (they must precede _getVarProps in evaluation order)
     const beforeSpread = hasSpreadAttr && attrIdx < spreadIndex;
+
     if (attr.type === 'JSXSpreadAttribute') {
       hasSpread = true;
       spreadCount++;
       if (spreadCount > 1) {
-        // Additional spreads beyond the first get tracked for inclusion in varProps
-        const spreadExpr = source.slice(attr.argument.start, attr.argument.end);
-        additionalSpreads.push(spreadExpr);
+        additionalSpreads.push(source.slice(attr.argument.start, attr.argument.end));
       }
       continue;
     }
@@ -932,42 +759,27 @@ function processProps(
     } else {
       propName = attr.name?.name;
     }
-
     if (!propName) continue;
 
-    // className -> class conversion for HTML elements (matching Rust optimizer behavior)
-    // Component elements keep className as-is
     if (propName === 'className' && tagIsHtml) {
       propName = 'class';
     }
 
-    // Extract key prop
     if (propName === 'key') {
       if (attr.value) {
         if (attr.value.type === 'JSXExpressionContainer') {
-          key = source.slice(
-            attr.value.expression.start,
-            attr.value.expression.end,
-          );
-        } else if (
-          attr.value.type === 'StringLiteral' ||
-          attr.value.type === 'Literal'
-        ) {
+          key = source.slice(attr.value.expression.start, attr.value.expression.end);
+        } else if (attr.value.type === 'StringLiteral' || attr.value.type === 'Literal') {
           key = `"${attr.value.value}"`;
         }
       }
-      continue; // key is not included in props
+      continue;
     }
 
-    // --- (a) Strip passive: and preventdefault: directives ---
-    if (isPassiveDirective(propName)) {
-      continue; // consumed by collectPassiveDirectives, not in output
-    }
+    if (isPassiveDirective(propName)) continue;
+
     if (propName.startsWith('preventdefault:')) {
-      // Rust optimizer emits preventdefault:event as a const prop with value true,
-      // BUT only when there is no matching passive:EVENT on the same element.
-      // When passive:EVENT is present, the preventdefault is dropped because
-      // passive listeners cannot call preventDefault().
+      // Only emit when no matching passive:EVENT on the same element
       const eventName = propName.slice('preventdefault:'.length);
       if (!passiveEvents.has(eventName)) {
         constEntries.push(`"${propName}": true`);
@@ -975,27 +787,21 @@ function processProps(
       continue;
     }
 
-    // Get value expression
     let valueText: string;
     let valueNode: any;
 
     if (attr.value === null || attr.value === undefined) {
-      // Boolean shorthand: <div disabled/> -> disabled: true
       valueText = 'true';
       valueNode = null;
     } else if (attr.value.type === 'JSXExpressionContainer') {
       valueNode = attr.value.expression;
       valueText = source.slice(valueNode.start, valueNode.end);
     } else {
-      // String literal value
       valueNode = attr.value;
       valueText = source.slice(attr.value.start, attr.value.end);
     }
 
-    // --- (b) Bind desugaring ---
-    // For non-HTML tags (dynamic components), bind props are NOT desugared.
-    // SWC keeps bind:value as-is in constProps and uses _jsxSplit, because
-    // at compile time we don't know if the dynamic tag is HTML or component.
+    // Bind desugaring: component tags keep bind: as-is for _jsxSplit
     if (isBindProp(propName) && !tagIsHtml) {
       constEntries.push(`"${propName}": ${valueText}`);
       continue;
@@ -1003,20 +809,11 @@ function processProps(
 
     if (isBindProp(propName) && !hasSpreadAttr) {
       const bindResult = transformBindProp(propName, valueText);
-      // Bind-desugared prop names are always quoted (matching Rust optimizer)
-      const formattedBindName = `"${bindResult.propName}"`;
-      constEntries.push(`${formattedBindName}: ${bindResult.propValue}`);
+      constEntries.push(`"${bindResult.propName}": ${bindResult.propValue}`);
       if (bindResult.handler) {
-        // Track bind handler for merging.
-        // When an explicit event handler (QRL) already exists, bind handler
-        // comes AFTER it: [explicitQrl, inlinedQrl(...)]. Otherwise just store.
         const existing = bindHandlers.get(bindResult.handler.name);
         if (existing) {
-          // Explicit handler first, bind handler second
-          bindHandlers.set(
-            bindResult.handler.name,
-            `[${existing}, ${bindResult.handler.code}]`,
-          );
+          bindHandlers.set(bindResult.handler.name, `[${existing}, ${bindResult.handler.code}]`);
         } else {
           bindHandlers.set(bindResult.handler.name, bindResult.handler.code);
         }
@@ -1027,34 +824,16 @@ function processProps(
       continue;
     }
 
-    // In spread/split mode, bind props pass through un-desugared into varEntries
     if (isBindProp(propName) && hasSpreadAttr) {
       varEntries.push(`"${propName}": ${valueText}`);
       continue;
     }
 
-    // --- (c) Event prop renaming (HTML elements only) ---
     if (isEventProp(propName) && tagIsHtml) {
       const renamedProp = transformEventPropName(propName, passiveEvents);
       if (renamedProp !== null) {
-        const formattedName = needsQuoting(renamedProp)
-          ? `"${renamedProp}"`
-          : renamedProp;
-        // Event handler value classification:
-        // - Arrow/function expressions are always const
-        // - Identifiers are const (QRL refs, const-bound locals)
-        // - Literals are const
-        // - Everything else (call exprs, ternaries, member exprs) is var
-        const isConstEvent = !valueNode ||
-          valueNode.type === 'ArrowFunctionExpression' ||
-          valueNode.type === 'FunctionExpression' ||
-          valueNode.type === 'Identifier' ||
-          valueNode.type === 'Literal' ||
-          valueNode.type === 'StringLiteral' ||
-          valueNode.type === 'NumericLiteral' ||
-          valueNode.type === 'BooleanLiteral' ||
-          valueNode.type === 'NullLiteral';
-        if (isConstEvent) {
+        const formattedName = formatPropName(renamedProp);
+        if (isConstValueNode(valueNode)) {
           constEntries.push(`${formattedName}: ${valueText}`);
         } else {
           varEntries.push(`${formattedName}: ${valueText}`);
@@ -1064,26 +843,10 @@ function processProps(
       }
     }
 
-    // --- (c2) QRL prop passthrough (host:onClick$, custom$, shouldRemove$, etc.) ---
-    // Props ending with '$' that weren't transformed by the event handler renaming above
-    // are QRL references. SWC's convert_qrl_word treats any $-suffix prop as a QRL.
-    // For host: prefixed events, transformEventPropName returns null (passthrough).
-    // For non-event $ props (custom$, etc.), isEventProp returns false.
-    // These should be classified based on their value's constness, like event handlers.
-    if (propName.endsWith('$') && !propName.startsWith('q-e:') && !propName.startsWith('q-d:') && !propName.startsWith('q-w:')) {
-      const formattedName = needsQuoting(propName)
-        ? `"${propName}"`
-        : propName;
-      const isConstQrl = !valueNode ||
-        valueNode.type === 'ArrowFunctionExpression' ||
-        valueNode.type === 'FunctionExpression' ||
-        valueNode.type === 'Identifier' ||
-        valueNode.type === 'Literal' ||
-        valueNode.type === 'StringLiteral' ||
-        valueNode.type === 'NumericLiteral' ||
-        valueNode.type === 'BooleanLiteral' ||
-        valueNode.type === 'NullLiteral';
-      if (isConstQrl) {
+    // QRL prop passthrough ($-suffixed props not already handled as events)
+    if (propName.endsWith('$') && !isRewrittenEventProp(propName)) {
+      const formattedName = formatPropName(propName);
+      if (isConstValueNode(valueNode)) {
         constEntries.push(`${formattedName}: ${valueText}`);
       } else {
         varEntries.push(`${formattedName}: ${valueText}`);
@@ -1091,14 +854,11 @@ function processProps(
       continue;
     }
 
-    // Pre-rewritten event props (q-e:* from transformSCallBody / extraction rewriting).
-    // These are already-renamed event handler props pointing to QRL variables.
-    if (propName.startsWith('q-e:') || propName.startsWith('q-d:') || propName.startsWith('q-w:') || propName.startsWith('q-ep:') || propName.startsWith('q-dp:') || propName.startsWith('q-wp:')) {
+    // Pre-rewritten event props from extraction rewriting
+    if (isRewrittenEventProp(propName)) {
       const formattedName = `"${propName}"`;
       if (inLoop) {
         if (qrlsWithCaptures) {
-          // Per-QRL classification: event handlers whose QRL has loop-local captures
-          // go to varEntries (they need q:p delivery). Others go to constEntries.
           const qrlName = valueText.trim();
           if (qrlsWithCaptures.has(qrlName)) {
             varEntries.push(`${formattedName}: ${valueText}`);
@@ -1109,76 +869,45 @@ function processProps(
           varEntries.push(`${formattedName}: ${valueText}`);
         }
       } else {
-        // Outside loop: track for merging with bind handlers.
-        // Pre-rewritten QRL refs go to the event handler merge map so they can
-        // be combined with bind-generated handlers into arrays.
-        const eventKey = propName;  // e.g., "q-e:input"
-        const existing = bindHandlers.get(eventKey);
+        // Outside loop: track for merging with bind handlers
+        const existing = bindHandlers.get(propName);
         if (existing) {
-          // Bind handler was already registered -- merge preserving attribute order:
-          // bind came first, QRL second -> [bind, qrl]
-          bindHandlers.set(eventKey, `[${existing}, ${valueText}]`);
+          bindHandlers.set(propName, `[${existing}, ${valueText}]`);
         } else {
-          // Store QRL for potential merge with later bind handler
-          bindHandlers.set(eventKey, valueText);
+          bindHandlers.set(propName, valueText);
         }
       }
       continue;
     }
 
-    // --- (d) Signal analysis ---
-    // Skip signal analysis for _createElement path (spread + explicit key).
-    // SWC's _createElement is a raw passthrough -- props are not signal-wrapped.
+    // Signal analysis (skipped for _createElement path)
     if (valueNode && !skipSignalAnalysis) {
-      // SWC performs signal analysis on all expressions including those that
-      // reference function params (like 'props'). The is_const classification
-      // (which determines var vs const bucket) uses props separately, but the
-      // signal wrapping itself applies to params too.
       const signalResult = analyzeSignalExpression(valueNode, source, importedNames, allDeclaredNames);
+
       if (signalResult.type === 'wrapProp') {
-        const formattedName = needsQuoting(propName)
-          ? `"${propName}"`
-          : propName;
-        // _wrapProp placement:
-        // - Component elements: always constEntries (regardless of object binding)
-        // - HTML elements with const-bound object: constEntries
-        // - HTML elements with non-const object (params, loop vars): varEntries
-        // - Signal _wrapProp (1-arg, no isStoreField): always constEntries
+        const formattedName = formatPropName(propName);
         if (signalResult.isStoreField && tagIsHtml) {
-          // 2-arg _wrapProp on HTML: check if the object is const-bound
           const objName = signalResult.code.match(/_wrapProp\((\w+)/)?.[1];
           const isConst = objName ? (importedNames.has(objName) || (constIdents?.has(objName) ?? false)) : false;
-          if (isConst) {
-            constEntries.push(`${formattedName}: ${signalResult.code}`);
-          } else {
-            varEntries.push(`${formattedName}: ${signalResult.code}`);
-          }
+          (isConst ? constEntries : varEntries).push(`${formattedName}: ${signalResult.code}`);
         } else {
           constEntries.push(`${formattedName}: ${signalResult.code}`);
         }
         neededImports.add('_wrapProp');
         continue;
       }
+
       if (signalResult.type === 'fnSignal') {
-        // SWC does NOT wrap object expressions in _fnSignal for `class`/`className` props.
-        // Those go to varProps as raw object literals. Other object props DO get wrapped.
+        // SWC skips _fnSignal for object expressions on class/className props
         if (signalResult.isObjectExpr && (propName === 'class' || propName === 'className')) {
-          // Fall through to normal classifyProp handling
+          // Fall through to classifyProp
         } else {
           const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, valueNode.start ?? 0);
           const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
-          const formattedName = needsQuoting(propName)
-            ? `"${propName}"`
-            : propName;
-          // _fnSignal placement depends on whether deps are all const-bound.
-          // If all deps are const (imports, const-declared locals), it goes to constEntries.
-          // If any dep is var (function params like _rawProps), it goes to varEntries.
-          // This matches SWC's is_const check on the synthetic prop's deps.
-          const depsAllConst = signalResult.deps.every(dep => {
-            if (importedNames.has(dep)) return true;
-            if (constIdents?.has(dep)) return true;
-            return false;
-          });
+          const formattedName = formatPropName(propName);
+          const depsAllConst = signalResult.deps.every(dep =>
+            importedNames.has(dep) || (constIdents?.has(dep) ?? false)
+          );
           if (depsAllConst && !inLoop) {
             constEntries.push(`${formattedName}: ${fnSignalCall}`);
           } else {
@@ -1190,20 +919,14 @@ function processProps(
       }
     }
 
-    // --- (e) Existing classifyProp fallback ---
+    // Default: classify by expression constness
     const classification = valueNode
       ? classifyProp(valueNode, importedNames, constIdents)
-      : 'const'; // boolean shorthand (true) is const
+      : 'const';
 
-    // Format the property name (quote if needed)
-    const formattedName = needsQuoting(propName)
-      ? `"${propName}"`
-      : propName;
-
-    const entry = `${formattedName}: ${valueText}`;
+    const entry = `${formatPropName(propName)}: ${valueText}`;
 
     if (beforeSpread) {
-      // Props before a spread go to beforeSpreadEntries (placed before _getVarProps)
       beforeSpreadEntries.push(entry);
     } else if (classification === 'var') {
       varEntries.push(entry);
@@ -1212,31 +935,19 @@ function processProps(
     }
   }
 
-  // SWC sorts var_props alphabetically when no spread (should_runtime_sort = false)
-  // Source: swc-reference-only/transform.rs lines 2654-2678
-  if (!hasSpread && varEntries.length > 1) {
-    varEntries.sort((a, b) => {
-      const keyA = a.split(':')[0].replace(/"/g, '').trim();
-      const keyB = b.split(':')[0].replace(/"/g, '').trim();
-      return keyA.localeCompare(keyB);
-    });
+  if (!hasSpread) {
+    sortVarEntries(varEntries);
   }
 
-  // --- After loop: merge bind handlers ---
-  // For HTML elements with spread and NO bind props, SWC places event handlers in
-  // varProps (varEntries) so they participate in the spread merge. When bind props
-  // are present, event handlers stay in constEntries because bind takes the var slot.
-  // Without spread, they always go to constEntries.
+  // Merge bind handlers into their target bucket
   const hasBindEntries = varEntries.some(e => e.startsWith('"bind:'));
   const eventTarget = (hasSpread && tagIsHtml && !hasBindEntries) ? varEntries : constEntries;
   for (const [eventName, handlerCode] of bindHandlers) {
-    // Check if there's an existing handler entry for this event in constEntries
     const quotedEventName = `"${eventName}"`;
     const existingIdx = constEntries.findIndex((e) => e.startsWith(`${quotedEventName}: `));
     if (existingIdx >= 0) {
-      // Merge: existing handler + bind handler
       const existingEntry = constEntries[existingIdx];
-      const existingValue = existingEntry.slice(quotedEventName.length + 2); // skip `"q-e:input": `
+      const existingValue = existingEntry.slice(quotedEventName.length + 2);
       constEntries[existingIdx] = `${quotedEventName}: ${mergeEventHandlers(existingValue, handlerCode)}`;
     } else {
       eventTarget.push(`${quotedEventName}: ${handlerCode}`);
@@ -1257,26 +968,185 @@ function processProps(
 }
 
 /**
- * Check if a property name needs quoting in an object literal.
+ * Inject q:p/q:ps prop for capture context on HTML elements.
+ * Mutates varEntries in place.
  */
-function needsQuoting(name: string): boolean {
-  // Names with special characters (hyphens, colons) need quoting
-  return /[^a-zA-Z0-9_$]/.test(name);
+function injectQpProp(
+  node: any,
+  tagIsHtml: boolean,
+  inLoop: boolean,
+  loopCtx: LoopContext | null | undefined,
+  qpOverrides: Map<number, string[]> | undefined,
+  varEntries: string[],
+  constEntries: string[],
+): void {
+  if (!tagIsHtml) return;
+
+  const overrideParams = qpOverrides?.get(node.start);
+  if (overrideParams && overrideParams.length > 0) {
+    const qpResult = buildQpProp(overrideParams, true);
+    if (qpResult) {
+      varEntries.push(`${formatPropName(qpResult.propName)}: ${qpResult.propValue}`);
+    }
+    return;
+  }
+
+  if (!inLoop || qpOverrides) return;
+
+  // Fall back to iterVars-based q:p for elements with event handlers in loops
+  const hasEventHandlers = varEntries.some(e => isRewrittenEventEntry(e) || e.startsWith('"host:'))
+    || constEntries.some(e => isRewrittenEventEntry(e) || e.startsWith('"host:'));
+  if (!hasEventHandlers) return;
+
+  const qpResult = buildQpProp(loopCtx!.iterVars);
+  if (qpResult) {
+    varEntries.push(`${formatPropName(qpResult.propName)}: ${qpResult.propValue}`);
+  }
 }
 
-// ---------------------------------------------------------------------------
-// transformJsxElement
-// ---------------------------------------------------------------------------
+/**
+ * Move event handlers from constEntries to varEntries when q:ps captures
+ * include non-static-const vars. Mutates both arrays in place.
+ */
+function moveEventHandlersForNonConstCaptures(
+  node: any,
+  tagIsHtml: boolean,
+  inLoop: boolean,
+  qpOverrides: Map<number, string[]> | undefined,
+  constIdents: Set<string> | undefined,
+  importedNames: Set<string>,
+  varEntries: string[],
+  constEntries: string[],
+  hasSpread: boolean,
+): boolean {
+  if (!tagIsHtml || inLoop) return false;
+
+  const overrideParams = qpOverrides?.get(node.start);
+  if (!overrideParams || overrideParams.length === 0) return false;
+
+  const hasNonConstParam = overrideParams.some(p => !constIdents?.has(p) && !importedNames.has(p));
+  if (!hasNonConstParam) return false;
+
+  let movedAny = false;
+  for (let i = constEntries.length - 1; i >= 0; i--) {
+    if (isRewrittenEventEntry(constEntries[i])) {
+      varEntries.push(constEntries[i]);
+      constEntries.splice(i, 1);
+      movedAny = true;
+    }
+  }
+
+  if (movedAny && !hasSpread) {
+    sortVarEntries(varEntries);
+  }
+
+  return movedAny;
+}
+
+/** Build a _createElement call for spread + explicit key. */
+function buildCreateElementCall(
+  tag: string,
+  spreadArg: string,
+  beforeSpreadEntries: string[],
+  varEntries: string[],
+  constEntries: string[],
+  explicitKey: string,
+  childrenText: string | null,
+  neededImports: Set<string>,
+): JsxTransformResult {
+  neededImports.add('createElement as _createElement');
+
+  const allPropEntries = [...beforeSpreadEntries, ...varEntries, ...constEntries];
+  allPropEntries.push(`key: ${explicitKey}`);
+  const propsObj = `{ ...${spreadArg}, ${allPropEntries.join(', ')} }`;
+  const callString = `_createElement(${tag}, ${propsObj})`;
+
+  return {
+    tag,
+    varProps: null,
+    constProps: null,
+    children: childrenText,
+    flags: 0,
+    key: explicitKey,
+    callString,
+    neededImports,
+  };
+}
+
+/** Build a _jsxSplit call for spread without explicit key. */
+function buildJsxSplitCall(
+  tag: string,
+  tagIsHtml: boolean,
+  spreadArg: string,
+  beforeSpreadEntries: string[],
+  varEntries: string[],
+  constEntries: string[],
+  additionalSpreads: string[],
+  childrenText: string | null,
+  flags: number,
+  keyStr: string | null,
+  neededImports: Set<string>,
+): JsxTransformResult {
+  neededImports.add('_jsxSplit');
+  neededImports.add('_getVarProps');
+  neededImports.add('_getConstProps');
+
+  const beforePart = beforeSpreadEntries.length > 0 ? `${beforeSpreadEntries.join(', ')}, ` : '';
+  const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
+  const additionalSpreadsPart = additionalSpreads.length > 0
+    ? `, ${additionalSpreads.map((s: string) => s === spreadArg ? `..._getVarProps(${s})` : `...${s}`).join(', ')}`
+    : '';
+
+  let varPropsPart: string;
+  let constPropsPart: string;
+
+  // Component elements with extras merge everything into varProps
+  const componentHasExtras = !tagIsHtml && (
+    constEntries.length > 0 || varEntries.length > 0 ||
+    beforeSpreadEntries.length > 0 || additionalSpreads.length > 0
+  );
+
+  if (componentHasExtras) {
+    const constPart = constEntries.length > 0 ? `, ${constEntries.join(', ')}` : '';
+    varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${constPart}${additionalSpreadsPart} }`;
+    constPropsPart = 'null';
+  } else {
+    // HTML elements keep _getConstProps in constProps unless merge is needed
+    const hasNonBindNonEventVarEntries = varEntries.some(e =>
+      !e.startsWith('"bind:') && !isRewrittenEventEntry(e) &&
+      !e.startsWith('"q:p') && !e.startsWith('"q:ps'));
+    const shouldMergeConst = (varEntries.length > 0 && constEntries.length > 0) || hasNonBindNonEventVarEntries;
+
+    if (shouldMergeConst) {
+      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
+      const hasDuplicateSpreads = additionalSpreads.some(s => s === spreadArg);
+      constPropsPart = constEntries.length > 0
+        ? `{ ${constEntries.join(', ')} }`
+        : hasDuplicateSpreads ? `_getConstProps(${spreadArg})` : 'null';
+    } else {
+      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
+      constPropsPart = constEntries.length > 0
+        ? `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`
+        : `_getConstProps(${spreadArg})`;
+    }
+  }
+
+  const callString = `_jsxSplit(${tag}, ${varPropsPart}, ${constPropsPart}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
+
+  return {
+    tag,
+    varProps: varPropsPart,
+    constProps: constPropsPart,
+    children: childrenText,
+    flags,
+    key: keyStr,
+    callString,
+    neededImports,
+  };
+}
 
 /**
- * Transform a single JSX element node to a _jsxSorted/_jsxSplit call.
- *
- * @param node - JSXElement AST node
- * @param source - Original source text
- * @param s - MagicString instance for replacements
- * @param importedNames - Set of imported identifier names
- * @param keyCounter - JsxKeyCounter for auto-key generation
- * @returns JsxTransformResult or null if not a JSX node
+ * Transform a single JSX element node to a _jsxSorted/_jsxSplit/_createElement call.
  */
 export function transformJsxElement(
   node: any,
@@ -1299,32 +1169,16 @@ export function transformJsxElement(
 
   const neededImports = new Set<string>();
   const openingElement = node.openingElement;
-
-  // --- Tag ---
   const tag = processJsxTag(openingElement.name);
-
-  // Determine if tag is an HTML element (lowercase first char)
-  // tag is either `"div"` (string literal for HTML) or `Div` (identifier for component)
   const tagIsHtml = tag.startsWith('"') && tag.length > 2 &&
     tag[1] === tag[1].toLowerCase() && tag[1] >= 'a' && tag[1] <= 'z';
-
-  // Text-only elements (title, textarea, etc.) skip signal wrapping for children.
-  // SWC marks these as mutable and preserves children as-is (transform.rs `is_text_only`).
   const rawTagName = tagIsHtml ? tag.slice(1, -1) : '';
   const textOnly = tagIsHtml && isTextOnlyElement(rawTagName);
-
-  // Collect passive directives for this element
-  const elementPassiveEvents = passiveEvents ??
-    collectPassiveDirectives(openingElement.attributes);
-
-  // Use provided signalHoister or create a local one
+  const elementPassiveEvents = passiveEvents ?? collectPassiveDirectives(openingElement.attributes);
   const hoister = signalHoister ?? new SignalHoister();
-
-  // Determine if in loop context (needed for prop classification and q:p placement)
   const inLoop = !!loopCtx && loopCtx.iterVars.length > 0;
 
-  // Pre-detect _createElement path (spread + explicit key).
-  // SWC skips signal analysis for _createElement props since they're passed through as-is.
+  // Pre-detect _createElement path (spread + explicit key skips signal analysis)
   const preHasSpread = openingElement.attributes?.some(
     (a: any) => a.type === 'JSXSpreadAttribute',
   ) ?? false;
@@ -1335,7 +1189,6 @@ export function transformJsxElement(
   ) ?? false;
   const willUseCreateElement = preHasSpread && preHasKey;
 
-  // --- Props ---
   const {
     varEntries,
     constEntries,
@@ -1349,88 +1202,22 @@ export function transformJsxElement(
   } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames, constIdents, allDeclaredNames, willUseCreateElement);
   let hasVarEventHandler = initialHasVarEventHandler;
 
-  // Merge prop imports
   for (const imp of propImports) {
     neededImports.add(imp);
   }
 
-  // --- Capture context: inject q:p/q:ps prop ---
-  // q:p/q:ps is added to HTML elements that have event handlers with captures.
-  // This applies both in loop contexts AND non-loop contexts (SWC Rule 5).
-  // The qpOverrides map (from capture analysis) determines which elements get q:p/q:ps
-  // and with what values. Elements without event handlers don't get q:p/q:ps.
-  if (tagIsHtml) {
-    // Check for qpOverrides first (from capture analysis via nestedCallSites)
-    const overrideParams = qpOverrides?.get(node.start);
-    if (overrideParams && overrideParams.length > 0) {
-      const qpResult = buildQpProp(overrideParams, true);
-      if (qpResult) {
-        const formattedQpName = needsQuoting(qpResult.propName)
-          ? `"${qpResult.propName}"`
-          : qpResult.propName;
-        // q:ps/q:p goes into varProps (second arg of _jsxSorted) per SWC behavior
-        // These contain runtime variable references, making them "mutable" props
-        varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
-      }
-    } else if (inLoop && !qpOverrides) {
-      // No override system active (parent rewriting context, not segment body).
-      // Fall back to iterVars-based q:p for elements in loop WITH event handler props.
-      // SWC only adds q:p when there are q-e:*/host:* event handlers that need captures.
-      const hasEventHandlers = varEntries.some(e => e.startsWith('"q-e:') || e.startsWith('"q-d:') || e.startsWith('"q-w:') || e.startsWith('"q-ep:') || e.startsWith('"q-dp:') || e.startsWith('"q-wp:') || e.startsWith('"host:'))
-        || constEntries.some(e => e.startsWith('"q-e:') || e.startsWith('"q-d:') || e.startsWith('"q-w:') || e.startsWith('"q-ep:') || e.startsWith('"q-dp:') || e.startsWith('"q-wp:') || e.startsWith('"host:'));
-      if (hasEventHandlers) {
-        const qpResult = buildQpProp(loopCtx!.iterVars);
-        if (qpResult) {
-          const formattedQpName = needsQuoting(qpResult.propName)
-            ? `"${qpResult.propName}"`
-            : qpResult.propName;
-          // q:ps/q:p goes into varProps (second arg of _jsxSorted)
-          varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
-        }
-      }
-    }
-    // When qpOverrides is present but no override for this element: element has no
-    // event handlers with captures, so no q:p/q:ps is needed.
+  // Inject q:p/q:ps for capture context
+  injectQpProp(node, tagIsHtml, inLoop, loopCtx, qpOverrides, varEntries, constEntries);
+
+  // Move event handlers to varProps when captures include non-const vars
+  if (moveEventHandlersForNonConstCaptures(
+    node, tagIsHtml, inLoop, qpOverrides, constIdents, importedNames,
+    varEntries, constEntries, hasSpread,
+  )) {
+    hasVarEventHandler = true;
   }
 
-  // --- Move event handlers to varProps when q:ps captures include non-static-const vars ---
-  // SWC behavior: when a handler's captured idents include variables whose initializer
-  // is not "static" (not a use*/Qrl/$() call), the handler is non-const and goes to
-  // varProps. We check if the q:ps override params include any var NOT in constIdents.
-  // Reference: swc-reference-only/transform.rs is_return_static + compute_scoped_idents
-  if (tagIsHtml && !inLoop) {
-    const overrideParams = qpOverrides?.get(node.start);
-    if (overrideParams && overrideParams.length > 0) {
-      const hasNonConstParam = overrideParams.some(p => !constIdents?.has(p) && !importedNames.has(p));
-      if (hasNonConstParam) {
-        // Move event handler entries from constEntries to varEntries
-        for (let i = constEntries.length - 1; i >= 0; i--) {
-          const entry = constEntries[i];
-          if (entry.startsWith('"q-e:') || entry.startsWith('"q-d:') || entry.startsWith('"q-w:') || entry.startsWith('"q-ep:') || entry.startsWith('"q-dp:') || entry.startsWith('"q-wp:')) {
-            varEntries.push(entry);
-            constEntries.splice(i, 1);
-            hasVarEventHandler = true;
-          }
-        }
-        // Re-sort varEntries alphabetically after moving entries (SWC sorts var_props)
-        if (!hasSpread && varEntries.length > 1) {
-          varEntries.sort((a, b) => {
-            const keyA = a.split(':')[0].replace(/"/g, '').trim();
-            const keyB = b.split(':')[0].replace(/"/g, '').trim();
-            return keyA.localeCompare(keyB);
-          });
-        }
-      }
-    }
-  }
-
-  // --- Children ---
-  // When child signals are disabled (no extractions / skip-transform mode), don't pass
-  // importedNames or signalHoister to children processing so _wrapProp/_fnSignal
-  // wrapping is skipped. This matches the Rust optimizer's behavior for lib mode
-  // files where $() calls are preserved without segment extraction.
-  // Text-only elements (title, textarea, etc.) also skip signal wrapping for children,
-  // matching SWC's is_text_only behavior which preserves children as-is.
+  // Children: text-only elements and disabled signals skip _wrapProp/_fnSignal
   const childSignalsEnabled = enableChildSignals && !textOnly;
   const { text: childrenText, type: childrenType } = processChildren(
     node.children,
@@ -1443,59 +1230,37 @@ export function transformJsxElement(
     allDeclaredNames,
   );
 
-  // --- Flags ---
-  // Loop context flag (bit 2) is only set for HTML elements with q:p/q:ps (event handler captures).
-  // Component elements in loops don't get the loop flag -- they use varEntries placement instead.
+  // Compute flags
   const hasQpProp = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'))
     || constEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'));
   const effectiveLoopCtx = tagIsHtml && (qpOverrides ? hasQpProp : (!!loopCtx && hasQpProp));
-  // Use actual varEntries state (may have been modified by q:ps injection after processProps)
   const effectiveHasVarProps = varEntries.length > 0 || beforeSpreadEntries.length > 0;
-  // For non-loop capture context (q:ps without real loop), compute base flags as non-loop
-  // then OR in the capture bit. This matches SWC behavior where non-loop captures
-  // get flags like 7 (normal 3 + capture 4) instead of loop flags like 4.
   const isRealLoop = !!loopCtx && loopCtx.iterVars.length > 0;
   const isCaptureOnly = effectiveLoopCtx && !isRealLoop;
+
   let flags: number;
   if (hasSpread) {
-    // Spread elements default to flags=0, but set the moved_captures bit (4)
-    // when q:p or q:ps entries are present (captures delivered via props).
     const hasQpEntry = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:p":') || e.startsWith('"q:ps"') || e.startsWith('"q:ps":'));
     flags = hasQpEntry ? 4 : 0;
   } else if (isCaptureOnly) {
-    // Non-loop capture: base flags (no loop influence) + capture bit
+    // Non-loop capture: base flags + capture bit
     flags = computeFlags(hasVarProps, childrenType, false, hasVarEventHandler) | 4;
   } else {
     flags = computeFlags(effectiveHasVarProps, childrenType, effectiveLoopCtx, hasVarEventHandler);
   }
 
-  // --- Key ---
-  // Key assignment logic:
-  // - If explicit key prop, use it
-  // - If this element is the sole child of a parent JSX element, key is null
-  // - Otherwise generate u6_N key
+  // Key: explicit > null for child HTML elements > generated
   let keyStr: string | null;
   if (explicitKey !== null) {
     keyStr = explicitKey;
   } else if (isSoleChild && tagIsHtml) {
-    // HTML element that is a child of a parent JSX element/fragment: key is null.
-    // Components (uppercase) always get generated keys even as children.
-    // This matches Rust optimizer behavior.
     keyStr = null;
   } else {
-    // Default: generate a key
     keyStr = `"${keyCounter.next()}"`;
   }
 
-  // --- Build prop strings ---
-  const varProps =
-    varEntries.length > 0 ? `{ ${varEntries.join(', ')} }` : null;
-  const constProps =
-    constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : null;
-
-  // --- Build call ---
+  // Build the final call
   if (hasSpread) {
-    // Find the spread argument (shared by both branches)
     const spreadAttr = openingElement.attributes.find(
       (a: any) => a.type === 'JSXSpreadAttribute',
     );
@@ -1504,124 +1269,25 @@ export function transformJsxElement(
       : 'props';
 
     if (explicitKey !== null) {
-      // Spread + explicit key -> use _createElement (SWC behavior)
-      // Source: example_spread_jsx snapshot evidence
-      neededImports.add('createElement as _createElement');
-
-      // Collect all non-key props (beforeSpread, var, const) as object entries
-      const allPropEntries: string[] = [];
-      for (const entry of [...beforeSpreadEntries, ...varEntries, ...constEntries]) {
-        allPropEntries.push(entry);
-      }
-      allPropEntries.push(`key: ${explicitKey}`);
-
-      // Build: _createElement(tag, {...spread, prop1: val1, key: keyExpr})
-      const propsObj = `{ ...${spreadArg}, ${allPropEntries.join(', ')} }`;
-      const callString = `_createElement(${tag}, ${propsObj})`;
-
-      return {
-        tag,
-        varProps: null,
-        constProps: null,
-        children: childrenText,
-        flags: 0,
-        key: explicitKey,
-        callString,
-        neededImports,
-      };
+      return buildCreateElementCall(
+        tag, spreadArg, beforeSpreadEntries, varEntries, constEntries,
+        explicitKey, childrenText, neededImports,
+      );
     }
 
-    // Spread without explicit key -> use _jsxSplit (existing behavior)
-    neededImports.add('_jsxSplit');
-    neededImports.add('_getVarProps');
-    neededImports.add('_getConstProps');
-
-    // Build varPropsPart and constPropsPart for _jsxSplit.
-    // SWC behavior differs for component vs HTML elements:
-    // - Component elements: merge EVERYTHING into varProps, constProps = null
-    // - HTML elements: event handlers go to varProps, _getConstProps stays in constProps
-    const beforePart = beforeSpreadEntries.length > 0 ? `${beforeSpreadEntries.join(', ')}, ` : '';
-    const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
-    // Build additional spreads suffix (for multiple spread attributes like {...props} ... {...other})
-    // When an additional spread is the SAME source as the primary spread, it goes through
-    // _getVarProps(). When it's a different source, it stays raw.
-    const additionalSpreadsPart = additionalSpreads.length > 0
-      ? `, ${additionalSpreads.map((s: string) => s === spreadArg ? `..._getVarProps(${s})` : `...${s}`).join(', ')}`
-      : '';
-    let varPropsPart: string;
-    let constPropsPart: string;
-    // For component elements with extra props/spreads beyond the bare spread,
-    // SWC merges everything (including _getConstProps and const entries) into varProps.
-    // A bare component spread (no extra entries) keeps normal separation.
-    const componentHasExtras = !tagIsHtml && (
-      constEntries.length > 0 || varEntries.length > 0 ||
-      beforeSpreadEntries.length > 0 || additionalSpreads.length > 0
+    return buildJsxSplitCall(
+      tag, tagIsHtml, spreadArg, beforeSpreadEntries, varEntries, constEntries,
+      additionalSpreads, childrenText, flags, keyStr, neededImports,
     );
-    if (componentHasExtras) {
-      // Component elements with extras: merge _getConstProps + const entries + additional spreads into varProps
-      const constPart = constEntries.length > 0 ? `, ${constEntries.join(', ')}` : '';
-      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${constPart}${additionalSpreadsPart} }`;
-      constPropsPart = 'null';
-    } else {
-      // HTML elements: keep _getConstProps in constProps, event handlers in varProps
-      // Only merge _getConstProps into varProps when there are non-bind, non-event var entries
-      // (e.g., signal-wrapped props, dynamic class values). Event handlers alone don't trigger merge.
-      const hasNonBindNonEventVarEntries = varEntries.some(e =>
-        !e.startsWith('"bind:') && !e.startsWith('"q-e:') && !e.startsWith('"q-d:') &&
-        !e.startsWith('"q-w:') && !e.startsWith('"q-ep:') && !e.startsWith('"q-dp:') &&
-        !e.startsWith('"q-wp:') && !e.startsWith('"q:p') && !e.startsWith('"q:ps'));
-      const shouldMergeConst = (varEntries.length > 0 && constEntries.length > 0) || hasNonBindNonEventVarEntries;
-      if (shouldMergeConst) {
-        varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
-        // When additional spreads duplicate the primary source, keep _getConstProps in constProps
-        // (the runtime needs both sides for the split). Otherwise constProps is null.
-        const hasDuplicateSpreads = additionalSpreads.some(s => s === spreadArg);
-        constPropsPart = constEntries.length > 0
-          ? `{ ${constEntries.join(', ')} }`
-          : hasDuplicateSpreads ? `_getConstProps(${spreadArg})` : 'null';
-      } else {
-        varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
-        constPropsPart = constEntries.length > 0
-          ? `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`
-          : `_getConstProps(${spreadArg})`;
-      }
-    }
-
-    const callString = `_jsxSplit(${tag}, ${varPropsPart}, ${constPropsPart}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
-
-    return {
-      tag,
-      varProps: varPropsPart,
-      constProps: constPropsPart,
-      children: childrenText,
-      flags,
-      key: keyStr,
-      callString,
-      neededImports,
-    };
   }
 
-  // Dynamic component tags with bind: props use _jsxSplit (not _jsxSorted)
-  // because at runtime the tag could be either HTML or component.
-  // SWC keeps bind:value as-is in constProps with _jsxSplit.
+  // Dynamic component tags with bind: props use _jsxSplit
   const hasBindInConst = !tagIsHtml && constEntries.some(e => e.startsWith('"bind:'));
-  if (hasBindInConst) {
-    neededImports.add('_jsxSplit');
-    const callString = `_jsxSplit(${tag}, ${varProps ?? 'null'}, ${constProps ?? 'null'}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
-    return {
-      tag,
-      varProps,
-      constProps,
-      children: childrenText,
-      flags,
-      key: keyStr,
-      callString,
-      neededImports,
-    };
-  }
-
-  neededImports.add('_jsxSorted');
-  const callString = `_jsxSorted(${tag}, ${varProps ?? 'null'}, ${constProps ?? 'null'}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
+  const varProps = varEntries.length > 0 ? `{ ${varEntries.join(', ')} }` : null;
+  const constProps = constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : null;
+  const jsxFn = hasBindInConst ? '_jsxSplit' : '_jsxSorted';
+  neededImports.add(jsxFn);
+  const callString = `${jsxFn}(${tag}, ${varProps ?? 'null'}, ${constProps ?? 'null'}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
 
   return {
     tag,
@@ -1635,16 +1301,13 @@ export function transformJsxElement(
   };
 }
 
-/**
- * Transform a JSX fragment node to a _jsxSorted(_Fragment, ...) call.
- */
 export function transformJsxFragment(
   node: any,
   source: string,
   s: MagicString,
   importedNames: Set<string>,
   keyCounter: JsxKeyCounter,
-  isSoleChild?: boolean,
+  _isSoleChild?: boolean,
   constIdents?: Set<string>,
   signalHoister?: SignalHoister,
   allDeclaredNames?: Set<string>,
@@ -1654,8 +1317,6 @@ export function transformJsxFragment(
   const neededImports = new Set<string>();
   neededImports.add('_jsxSorted');
 
-  // Process children -- pass signalHoister so signal analysis (_wrapProp/_fnSignal)
-  // runs on fragment children (e.g., <>{_rawProps["bind:value"]}</>)
   const { text: childrenText, type: childrenType } = processChildren(
     node.children,
     source,
@@ -1668,10 +1329,8 @@ export function transformJsxFragment(
   );
 
   const flags = computeFlags(false, childrenType);
-  // Fragments always get generated keys (even as children), matching Rust optimizer.
-  // Only HTML elements get null keys when they are children of parent JSX.
+  // Fragments always get generated keys (even as children)
   const keyStr = `"${keyCounter.next()}"`;
-
   const callString = `_jsxSorted(_Fragment, null, null, ${childrenText ?? 'null'}, ${flags}, ${keyStr})`;
 
   return {
@@ -1686,33 +1345,58 @@ export function transformJsxFragment(
   };
 }
 
-// ---------------------------------------------------------------------------
-// transformAllJsx (main entry point)
-// ---------------------------------------------------------------------------
-
-/**
- * Walk the AST bottom-up and transform all JSX nodes.
- *
- * Uses leave callback to ensure inner JSX is transformed before outer JSX.
- * Returns the set of needed imports.
- */
-/**
- * Check if a node falls within any of the skip ranges.
- * Skip ranges represent already-rewritten regions (e.g., extracted $() calls).
- */
 function isInSkipRange(
   nodeStart: number,
   nodeEnd: number,
   skipRanges: Array<{ start: number; end: number }>,
 ): boolean {
   for (const range of skipRanges) {
-    if (nodeStart >= range.start && nodeEnd <= range.end) {
-      return true;
-    }
+    if (nodeStart >= range.start && nodeEnd <= range.end) return true;
   }
   return false;
 }
 
+/**
+ * Apply two-phase rename (old -> temp -> new) to avoid collisions when
+ * renumbering _hf variables to match SWC's top-down source order.
+ */
+function applySignalHoistRenames(
+  s: MagicString,
+  renameMap: Map<string, string>,
+): void {
+  const content = s.toString();
+  let renamed = content;
+
+  // Phase 1: old names -> temporary placeholders
+  const tempMap = new Map<string, string>();
+  for (const [oldName, newName] of renameMap) {
+    const temp = `__hf_temp_${oldName.slice(3)}__`;
+    tempMap.set(temp, newName);
+    renamed = renamed.split(`${oldName}_str`).join(`${temp}_str`);
+    renamed = renamed.split(oldName).join(temp);
+  }
+
+  // Phase 2: temporary placeholders -> new names
+  for (const [temp, newName] of tempMap) {
+    renamed = renamed.split(`${temp}_str`).join(`${newName}_str`);
+    renamed = renamed.split(temp).join(newName);
+  }
+
+  if (renamed !== content) {
+    s.overwrite(0, s.original.length, renamed);
+  }
+}
+
+/** Append dev source location info to a JSX call string. */
+function appendDevSuffix(callString: string, devSuffix: string): string {
+  if (!devSuffix) return callString;
+  return callString.slice(0, -1) + devSuffix + ')';
+}
+
+/**
+ * Walk the AST bottom-up and transform all JSX nodes.
+ * Uses leave callback to ensure inner JSX is transformed before outer JSX.
+ */
 export function transformAllJsx(
   source: string,
   s: MagicString,
@@ -1722,24 +1406,14 @@ export function transformAllJsx(
   devOptions?: { relPath: string },
   keyCounterStart?: number,
   enableSignals: boolean = true,
-  /** Override q:p/q:ps values for specific elements. Key is element tag start position in source. */
   qpOverrides?: Map<number, string[]>,
-  /** Set of QRL variable names that have loop-local captures (for var/const prop classification) */
   qrlsWithCaptures?: Set<string>,
-  /** Function parameter names -- excluded from signal analysis but classified as var in props */
   paramNames?: Set<string>,
-  /** Relative file path for computing key prefix (defaults to "test.tsx") */
   relPath?: string,
-  /** Shared SignalHoister for counter continuity across multiple body transforms */
   sharedSignalHoister?: SignalHoister,
-  /** Const-bound identifiers for prop classification (SWC const_idents) */
   constIdents?: Set<string>,
 ): JsxTransformOutput {
-  // If no constIdents provided, collect from the AST
   const resolvedConstIdents = constIdents ?? collectConstIdents(program);
-  // Collect ALL declared names (const/let/var/function/params) for signal analysis.
-  // This lets us distinguish locally declared variables from unknown globals.
-  // SWC uses its scope-aware decl_collect for this.
   const allDeclaredNames = collectAllLocalNames(program);
   const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0, prefix);
@@ -1748,8 +1422,7 @@ export function transformAllJsx(
   let needsFragment = false;
   const ranges = skipRanges ?? [];
 
-  // Dev mode: build source info suffix for JSX calls
-  // Precompute line starts for efficient offset->line/col lookup
+  // Precompute line starts for dev mode offset->line/col lookup
   let lineStarts: number[] | null = null;
   if (devOptions) {
     lineStarts = [0];
@@ -1760,23 +1433,18 @@ export function transformAllJsx(
 
   function getDevSourceSuffix(nodeStart: number): string {
     if (!devOptions || !lineStarts) return '';
-    // Binary search for line number
     let lo = 0, hi = lineStarts.length - 1;
     while (lo < hi) {
       const mid = (lo + hi + 1) >> 1;
       if (lineStarts[mid] <= nodeStart) lo = mid;
       else hi = mid - 1;
     }
-    const lineNumber = lo + 1; // 1-indexed
-    const columnNumber = nodeStart - lineStarts[lo] + 1; // 1-indexed
+    const lineNumber = lo + 1;
+    const columnNumber = nodeStart - lineStarts[lo] + 1;
     return `, {\n    fileName: "${devOptions.relPath}",\n    lineNumber: ${lineNumber},\n    columnNumber: ${columnNumber}\n}`;
   }
 
-  // Loop context tracking: stack of active loop contexts
   const loopStack: LoopContext[] = [];
-
-  // Track which JSX nodes are children of a parent JSX element/fragment.
-  // Child JSX elements get key=null instead of a generated key (only root elements get keys).
   const childJsxNodes = new WeakSet<object>();
 
   walk(program, {
@@ -1786,11 +1454,8 @@ export function transformAllJsx(
         loopStack.push(loopCtx);
       }
 
-      // Mark all JSX element/fragment children of JSX elements/fragments.
-      // These get key=null since only root-level JSX gets generated keys.
       if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
-        const children = node.children ?? [];
-        for (const child of children) {
+        for (const child of node.children ?? []) {
           if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
             childJsxNodes.add(child);
           }
@@ -1798,123 +1463,51 @@ export function transformAllJsx(
       }
     },
     leave(node: any) {
-      // Check if leaving a loop node — pop from stack
       if (loopStack.length > 0 && loopStack[loopStack.length - 1].loopNode === node) {
         loopStack.pop();
       }
 
-      // Skip JSX nodes that fall within already-rewritten extraction ranges
-      if (ranges.length > 0 && isInSkipRange(node.start, node.end, ranges)) {
-        return;
-      }
+      if (ranges.length > 0 && isInSkipRange(node.start, node.end, ranges)) return;
 
-      // Current loop context (top of stack, or null)
       const currentLoop = loopStack.length > 0 ? loopStack[loopStack.length - 1] : null;
 
       if (node.type === 'JSXElement') {
-        // Collect passive directives for this element
-        const passiveEvents = collectPassiveDirectives(
-          node.openingElement?.attributes ?? [],
-        );
-
-        // Check if this element is a child of a parent JSX element/fragment
+        const passiveEvents = collectPassiveDirectives(node.openingElement?.attributes ?? []);
         const isSoleChild = childJsxNodes.has(node);
 
         const result = transformJsxElement(
-          node,
-          source,
-          s,
-          importedNames,
-          keyCounter,
-          passiveEvents,
-          signalHoister,
-          currentLoop,
-          isSoleChild,
-          enableSignals,
-          qpOverrides,
-          qrlsWithCaptures,
-          paramNames,
-          resolvedConstIdents,
-          allDeclaredNames,
+          node, source, s, importedNames, keyCounter,
+          passiveEvents, signalHoister, currentLoop, isSoleChild,
+          enableSignals, qpOverrides, qrlsWithCaptures, paramNames,
+          resolvedConstIdents, allDeclaredNames,
         );
         if (result) {
-          const devSuffix = getDevSourceSuffix(node.start);
-          // Insert dev source info before closing paren of callString
-          const callStr = devSuffix
-            ? result.callString.slice(0, -1) + devSuffix + ')'
-            : result.callString;
-          s.overwrite(
-            node.start,
-            node.end,
-            `/*#__PURE__*/ ${callStr}`,
-          );
-          for (const imp of result.neededImports) {
-            neededImports.add(imp);
-          }
+          const callStr = appendDevSuffix(result.callString, getDevSourceSuffix(node.start));
+          s.overwrite(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
+          for (const imp of result.neededImports) neededImports.add(imp);
         }
       } else if (node.type === 'JSXFragment') {
         const isChildFragment = childJsxNodes.has(node);
         const result = transformJsxFragment(
-          node,
-          source,
-          s,
-          importedNames,
-          keyCounter,
-          isChildFragment,
-          resolvedConstIdents,
-          signalHoister,
-          allDeclaredNames,
+          node, source, s, importedNames, keyCounter,
+          isChildFragment, resolvedConstIdents, signalHoister, allDeclaredNames,
         );
         if (result) {
-          const devSuffix = getDevSourceSuffix(node.start);
-          const callStr = devSuffix
-            ? result.callString.slice(0, -1) + devSuffix + ')'
-            : result.callString;
-          s.overwrite(
-            node.start,
-            node.end,
-            `/*#__PURE__*/ ${callStr}`,
-          );
-          for (const imp of result.neededImports) {
-            neededImports.add(imp);
-          }
+          const callStr = appendDevSuffix(result.callString, getDevSourceSuffix(node.start));
+          s.overwrite(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
+          for (const imp of result.neededImports) neededImports.add(imp);
           needsFragment = true;
         }
       }
     },
   });
 
-  // Renumber _hf variables to match SWC's top-down source order.
-  // Our bottom-up walk processes inner elements first, but SWC processes
-  // outer element props before recursing into children.
+  // Renumber _hf variables to match SWC's top-down source order
   const renameMap = signalHoister.buildRenameMap();
   if (renameMap && renameMap.size > 0) {
-    // Apply renames to the MagicString output.
-    // Use a two-phase rename (old -> temp -> new) to avoid collisions.
-    const content = s.toString();
-    let renamed = content;
-    // Phase 1: old names -> temporary placeholders
-    const tempMap = new Map<string, string>();
-    for (const [oldName, newName] of renameMap) {
-      const temp = `__hf_temp_${oldName.slice(3)}__`;
-      tempMap.set(temp, newName);
-      // Replace both _hfN and _hfN_str
-      renamed = renamed.split(`${oldName}_str`).join(`${temp}_str`);
-      renamed = renamed.split(oldName).join(temp);
-    }
-    // Phase 2: temporary placeholders -> new names
-    for (const [temp, newName] of tempMap) {
-      renamed = renamed.split(`${temp}_str`).join(`${newName}_str`);
-      renamed = renamed.split(temp).join(newName);
-    }
-    // Overwrite the entire MagicString content
-    if (renamed !== content) {
-      s.overwrite(0, s.original.length, renamed);
-    }
+    applySignalHoistRenames(s, renameMap);
   }
 
-  // Get hoisted signal declarations (already renumbered by buildRenameMap)
   const hoistedDeclarations = signalHoister.getDeclarations();
-
   return { neededImports, needsFragment, hoistedDeclarations, keyCounterValue: keyCounter.current() };
 }

@@ -1,9 +1,8 @@
 /**
  * Parent module rewriting engine for the Qwik optimizer.
  *
- * Uses magic-string to surgically edit the original source text at
- * AST-provided positions, replacing $() calls with QRL references,
- * managing imports, and assembling the final parent module output.
+ * Surgically edits source text via magic-string, replacing $() calls with QRL
+ * references, managing imports, and assembling the final parent module.
  *
  * Output structure:
  *   [optimizer-added imports]
@@ -13,8 +12,6 @@
  *   //
  *   [rewritten module body]
  *   [_auto_ exports if any]
- *
- * Implements: EXTRACT-03, EXTRACT-05, EXTRACT-06, IMP-04, IMP-06, CAPT-03
  */
 
 import MagicString from 'magic-string';
@@ -49,10 +46,6 @@ import { stripExportDeclarations } from './strip-exports.js';
 import { replaceConstants } from './const-replacement.js';
 import type { EmitMode } from './types.js';
 
-// ---------------------------------------------------------------------------
-// Inline strategy options
-// ---------------------------------------------------------------------------
-
 export interface InlineStrategyOptions {
   /** Whether to use inline/hoist strategy (_noopQrl + .s()) */
   inline: boolean;
@@ -66,10 +59,6 @@ export interface InlineStrategyOptions {
   regCtxName?: string[];
 }
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 export interface ParentRewriteResult {
   /** Rewritten parent module source code. */
   code: string;
@@ -79,13 +68,8 @@ export interface ParentRewriteResult {
   jsxKeyCounterValue?: number;
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 /**
  * Parse array literal items from source text like "[left, true, right]".
- * Returns an array of trimmed item strings.
  */
 function parseArrayItems(arrayText: string): string[] {
   // Strip surrounding brackets
@@ -97,10 +81,6 @@ function parseArrayItems(arrayText: string): string[] {
   return inner.split(',').map(s => s.trim()).filter(s => s.length > 0);
 }
 
-/**
- * Determine which import specifiers in an import declaration are markers
- * that should be removed (they're replaced by Qrl variants).
- */
 function isMarkerSpecifier(
   importedName: string,
   extractedCalleeNames: Set<string>,
@@ -108,37 +88,18 @@ function isMarkerSpecifier(
   return extractedCalleeNames.has(importedName);
 }
 
-/**
- * Check if an extraction is for a custom inlined function (not imported from qwik core).
- * Custom inlined functions have their Qrl variant defined locally, so we don't add an import.
- */
+/** Custom inlined functions have their Qrl variant defined locally -- no import needed. */
 function isCustomInlined(
   ext: ExtractionResult,
   originalImports: Map<string, ImportInfo>,
 ): boolean {
-  // ext.calleeName is the canonical (imported) name, but originalImports is keyed by local name.
-  // Search by importedName to handle aliases (e.g., `import { component$ as c$ }`).
   for (const [, info] of originalImports) {
-    if (info.importedName === ext.calleeName) {
-      // Found in imports -- it's imported, not custom inlined.
-      // The Qrl variant import is needed (from the same source package).
-      return false;
-    }
+    if (info.importedName === ext.calleeName) return false;
   }
-  // Not found in imports at all — must be custom inlined (locally defined via wrap pattern)
   return true;
 }
 
-// ---------------------------------------------------------------------------
-// regCtxName matching
-// ---------------------------------------------------------------------------
-
-/**
- * Check if an extraction matches a regCtxName entry.
- *
- * Match rule: extraction's callee name (e.g., "server$") starts with the
- * regCtxName value (e.g., "server") followed by "$".
- */
+/** Extraction's callee name (e.g. "server$") matches regCtxName "server" + "$". */
 function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolean {
   if (!regCtxName || regCtxName.length === 0) return false;
   for (const name of regCtxName) {
@@ -147,13 +108,7 @@ function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolea
   return false;
 }
 
-// ---------------------------------------------------------------------------
-// Binding name collection (for duplicate export detection)
-// ---------------------------------------------------------------------------
-
-/**
- * Collect all binding names from a pattern node (Identifier, ObjectPattern, ArrayPattern).
- */
+/** Collect all binding names from a pattern node (Identifier, ObjectPattern, ArrayPattern). */
 function collectBindingNames(pattern: any): string[] {
   if (!pattern) return [];
   if (pattern.type === 'Identifier') return [pattern.name];
@@ -181,15 +136,9 @@ function collectBindingNames(pattern: any): string[] {
   return [];
 }
 
-// ---------------------------------------------------------------------------
-// Const literal resolution for regCtxName capture inlining
-// ---------------------------------------------------------------------------
-
 /**
  * Parse a parent extraction body and find const declarations with literal values
- * for the given capture names.
- *
- * Returns a map of variable name -> literal source text (e.g., "'hola'").
+ * for the given capture names. Returns a map of name -> literal source text.
  */
 export function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<string, string> {
   const result = new Map<string, string>();
@@ -303,13 +252,8 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
 }
 
 /**
- * Perform intra-body const literal propagation on a function body text.
- * Finds `const X = <literal>` declarations, replaces all references to X
- * with the literal value, and removes the dead declaration.
+ * Inline `const X = <literal>` within a body and remove dead declarations.
  * Iterates until no more propagation is possible (for cascading).
- *
- * This matches SWC's behavior of inlining compile-time constant values
- * within a single closure body.
  */
 export function propagateConstLiteralsInBody(body: string): string {
   const MAX_ITERATIONS = 5;
@@ -323,10 +267,7 @@ export function propagateConstLiteralsInBody(body: string): string {
 
     const offset = wrapperPrefix.length;
 
-    // Phase 1: Find all const declarations with simple identifiers (single declarator only)
-    // Two categories:
-    // - Literal inits (string, number, boolean, null): always inline, any number of refs
-    // - Non-literal inits: only inline if exactly 1 reference (single-use propagation)
+    // Literal inits: always inline. Non-literal inits: only if single-use.
     const constDecls = new Map<string, { value: string; isLiteral: boolean; stmtStart: number; stmtEnd: number }>();
 
     function findConstDecls(node: any): void {
@@ -432,14 +373,8 @@ export function propagateConstLiteralsInBody(body: string): string {
     }
   }
 
-  // Post-loop: single-use non-literal propagation.
-  // After all literal propagation is done, inline single-use const declarations
-  // whose init is a side-effect-free expression (member access chains, identifiers).
-  // This matches SWC's behavior: e.g., `const value = FOO[key]` after key was
-  // already inlined becomes `const value = FOO['A']`, then value is single-use
-  // and gets inlined into the return expression.
-  // Skip generated variables (_captures, _rawProps, etc.) to avoid breaking
-  // transformed code patterns.
+  // After literal propagation, inline single-use non-literal consts
+  // (e.g., `const value = FOO['A']` used once becomes inline)
   result = propagateSingleUseNonLiterals(result);
 
   return result;
@@ -706,10 +641,6 @@ function removeConstDeclarations(body: string, varNames: Set<string>): string {
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// .s() body transformation for inline/hoist strategy
-// ---------------------------------------------------------------------------
-
 /**
  * Options for JSX transpilation within inline .s() body text.
  */
@@ -767,18 +698,8 @@ function injectLineAfterBodyOpen(bodyText: string, line: string): string {
 }
 
 /**
- * Apply _rawProps destructuring optimization to a component body.
- *
- * When a component's arrow function has destructured parameters like ({field1, field2}),
- * and the Rust optimizer would rewrite them as:
- * 1. Parameter: ({field1, field2}) -> (_rawProps)
- * 2. All bare references to field1, field2 in the body -> _rawProps.field1, _rawProps.field2
- *
- * After this rewrite, the signal analysis naturally detects _rawProps.field as a
- * store field access, generating _wrapProp(_rawProps, "field") or _fnSignal with _rawProps dep.
- */
-/**
- * Result from applyRawPropsTransform including info about which fields were transformed.
+ * Rewrite ({field1, field2}) => ... to (_rawProps) => ... _rawProps.field1 ...
+ * so signal analysis detects store field accesses.
  */
 export interface RawPropsTransformResult {
   /** The transformed body text */
@@ -1280,23 +1201,8 @@ export function applyRawPropsTransform(body: string): string {
 }
 
 /**
- * Transform an extraction's body text for use in an inline .s() call.
- *
- * For parent extractions (those with nested children), the body is transformed:
- * 1. Nested $() call sites rewritten to QRL variable references
- * 2. $-suffixed callee names renamed to Qrl-suffixed
- * 3. .w([captures]) appended for children with captures
- * 4. _captures[N] unpacking injected for this extraction's own captures
- * 5. JSX transpilation (if enabled) -- converts raw JSX to _jsxSorted calls
- *
- * For leaf extractions (no nested children, no own captures), the body is returned as-is.
- */
-
-/**
  * Replace original field name references with _rawProps.field in a body string.
- * Used for child segments whose captures were consolidated from individual prop fields
- * into a single _rawProps capture. AST-based to avoid replacing property keys,
- * member property names, or declaration names.
+ * For child segments whose captures were consolidated into a single _rawProps capture.
  */
 function replacePropsFieldReferencesInBody(body: string, fieldMap: Map<string, string>): string {
   const wrapperPrefix = 'const __rpfb__ = ';
@@ -1694,34 +1600,82 @@ function transformSCallBody(
   return { transformedBody: body, additionalImports, hoistedDeclarations, keyCounterValue: finalKeyCounterValue };
 }
 
-// ---------------------------------------------------------------------------
-// Main function
-// ---------------------------------------------------------------------------
+export interface JsxRewriteOptions {
+  enableJsx: boolean;
+  importedNames: Set<string>;
+  enableSignals?: boolean;
+}
+
+interface SurvivingImportInfo {
+  defaultPart: string;
+  nsPart: string;
+  namedParts: { local: string; imported: string }[];
+  quote: string;
+  source: string;
+  isSideEffect: boolean;
+  preservedAll: boolean;
+}
 
 /**
- * Options for JSX transformation during parent rewriting.
+ * Shared state threaded through all rewrite phases.
+ * Avoids passing 20+ parameters between extracted helpers.
  */
-export interface JsxRewriteOptions {
-  /** Whether to run JSX transform (true for .tsx/.jsx files) */
-  enableJsx: boolean;
-  /** Set of imported identifier names (for prop classification) */
-  importedNames: Set<string>;
-  /** Whether to enable signal analysis (_wrapProp/_fnSignal) in JSX children.
-   *  Should be false when no segments are extracted (skip-transform / lib mode). */
-  enableSignals?: boolean;
+interface RewriteContext {
+  source: string;
+  relPath: string;
+  s: MagicString;
+  program: any;
+  extractions: ExtractionResult[];
+  originalImports: Map<string, ImportInfo>;
+  migrationDecisions?: MigrationDecision[];
+  moduleLevelDecls?: ModuleLevelDecl[];
+  jsxOptions?: JsxRewriteOptions;
+  mode?: EmitMode;
+  devFilePath?: string;
+  inlineOptions?: InlineStrategyOptions;
+  stripExports?: string[];
+  isServer?: boolean;
+  explicitExtensions?: boolean;
+  transpileTs?: boolean;
+  minify?: string;
+  outputExtension?: string;
+
+  // Accumulated state across phases
+  extractedCalleeNames: Set<string>;
+  alreadyImported: Set<string>;
+  survivingUserImports: string[];
+  survivingImportInfos: SurvivingImportInfo[];
+  topLevel: ExtractionResult[];
+  earlyQrlVarNames: Map<string, string>;
+  neededImports: Map<string, string>;
+  qrlVarNames: Map<string, string>;
+  qrlDecls: string[];
+  sCalls: string[];
+  inlineHoistedDeclarations: string[];
+  inlinedQrlSymbols: Set<string>;
+  eventHandlerExtraImports: Array<{ sym: string; src: string }>;
+  noArgQrlCallees: Array<{ callee: string; source: string }>;
+  jsxResult: JsxTransformOutput | null;
+  jsxKeyCounterValue: number;
+  isDevMode: boolean;
+  isInline: boolean;
 }
 
 /**
  * Rewrite a parent module source using magic-string.
  *
- * @param source - Original source code text
- * @param relPath - Relative file path
- * @param extractions - Extraction results from extractSegments()
- * @param originalImports - Import map from collectImports()
- * @param migrationDecisions - Optional migration decisions from analyzeMigration()
- * @param moduleLevelDecls - Optional module-level declarations for removal of moved vars
- * @param jsxOptions - Optional JSX transform options
- * @returns Rewritten parent module code and updated extractions
+ * Pipeline:
+ *   1. processImports       - remove/filter import declarations, track survivors
+ *   2. applyModeTransforms  - strip exports, replace constants
+ *   3. resolveNesting       - determine parent-child extraction relationships
+ *   4. rewriteCallSites     - replace $() calls with QRL references
+ *   5. addCaptureWrapping   - append .w([captures]) to QRL references
+ *   6. runJsxTransform      - convert JSX to _jsxSorted calls
+ *   7. collectNeededImports - gather all optimizer-added imports
+ *   8. buildQrlDeclarations - generate QRL const declarations
+ *   9. buildInlineSCalls    - generate .s() calls for inline/hoist strategy
+ *  10. filterUnusedImports  - remove specifiers only used in segments
+ *  11. assembleOutput       - prepend preamble, insert .s() calls, strip TS
  */
 export function rewriteParentModule(
   source: string,
@@ -1745,49 +1699,81 @@ export function rewriteParentModule(
   const s = new MagicString(source);
   const program = existingProgram ?? parseSync(relPath, source, { experimentalRawTransfer: true } as any).program;
 
-  // Collect all callee names that were extracted (for removing $ imports)
-  const extractedCalleeNames = new Set<string>();
-  for (const ext of extractions) {
-    extractedCalleeNames.add(ext.calleeName);
-    // For inlinedQrl, also mark _captures as a marker specifier to remove from parent
+  const ctx: RewriteContext = {
+    source, relPath, s, program, extractions, originalImports,
+    migrationDecisions, moduleLevelDecls, jsxOptions, mode, devFilePath,
+    inlineOptions, stripExports, isServer, explicitExtensions, transpileTs,
+    minify, outputExtension,
+    // Accumulated state
+    extractedCalleeNames: new Set<string>(),
+    alreadyImported: new Set<string>(),
+    survivingUserImports: [],
+    survivingImportInfos: [],
+    topLevel: [],
+    earlyQrlVarNames: new Map(),
+    neededImports: new Map(),
+    qrlVarNames: new Map(),
+    qrlDecls: [],
+    sCalls: [],
+    inlineHoistedDeclarations: [],
+    inlinedQrlSymbols: new Set(),
+    eventHandlerExtraImports: [],
+    noArgQrlCallees: [],
+    jsxResult: null,
+    jsxKeyCounterValue: 0,
+    isDevMode: mode === 'dev' || mode === 'hmr',
+    isInline: inlineOptions?.inline === true,
+  };
+
+  collectExtractedCalleeNames(ctx);
+  processImports(ctx);
+  applyModeTransforms(ctx);
+  resolveNesting(ctx);
+  preConsolidateRawPropsCaptures(ctx);
+  ctx.topLevel = extractions.filter((e) => e.parent === null);
+  preComputeQrlVarNames(ctx);
+  rewriteCallSites(ctx);
+  rewriteNoArgMarkers(ctx);
+  removeUnusedBindings(ctx);
+  removeDuplicateExports(ctx);
+  addCaptureWrapping(ctx);
+  runJsxTransform(ctx);
+  collectNeededImports(ctx);
+  buildQrlDeclarations(ctx);
+  buildInlineSCalls(ctx);
+  filterUnusedImports(ctx);
+  const finalCode = assembleOutput(ctx);
+
+  return {
+    code: finalCode,
+    extractions,
+    jsxKeyCounterValue: ctx.jsxKeyCounterValue || undefined,
+  };
+}
+
+function collectExtractedCalleeNames(ctx: RewriteContext): void {
+  for (const ext of ctx.extractions) {
+    ctx.extractedCalleeNames.add(ext.calleeName);
     if (ext.isInlinedQrl) {
-      extractedCalleeNames.add('_captures');
-      extractedCalleeNames.add('_inlinedQrl');
+      ctx.extractedCalleeNames.add('_captures');
+      ctx.extractedCalleeNames.add('_inlinedQrl');
     }
   }
-
-  // Always mark the bare `$` import as a marker to strip from parent.
-  // Even when `$` is not directly called (e.g., only `component$`, `server$` are called),
-  // the `$` import is a Qwik marker function that gets consumed by the optimizer.
-  // SWC strips it unconditionally when any extraction occurs.
-  if (extractions.length > 0) {
-    extractedCalleeNames.add('$');
+  // SWC strips the bare `$` import unconditionally when any extraction occurs
+  if (ctx.extractions.length > 0) {
+    ctx.extractedCalleeNames.add('$');
   }
-
-  // Track which symbols are already imported (for dedup - IMP-06)
-  const alreadyImported = new Set<string>();
-  for (const [localName] of originalImports) {
-    alreadyImported.add(localName);
+  for (const [localName] of ctx.originalImports) {
+    ctx.alreadyImported.add(localName);
   }
+}
 
-  // -----------------------------------------------------------------------
-  // Step 1+2: Remove import declarations from body, track surviving user imports
-  // -----------------------------------------------------------------------
-  // Instead of editing imports in-place, we REMOVE all import declarations from
-  // the body and reassemble them in the preamble (Step 6). This ensures optimizer
-  // imports appear first, then surviving user imports, matching Rust output ordering.
-  const survivingUserImports: string[] = [];
-  // Track structured info for each surviving import so we can filter unused specifiers later
-  interface SurvivingImportInfo {
-    defaultPart: string;
-    nsPart: string;
-    namedParts: { local: string; imported: string }[];
-    quote: string;
-    source: string;
-    isSideEffect: boolean;
-    preservedAll: boolean;
-  }
-  const survivingImportInfos: SurvivingImportInfo[] = [];
+/**
+ * Remove all import declarations from body and track surviving user imports.
+ * Imports are reassembled in the preamble so optimizer imports appear first.
+ */
+function processImports(ctx: RewriteContext): void {
+  const { s, program, source, extractedCalleeNames, minify } = ctx;
 
   for (const node of program.body) {
     if (node.type !== 'ImportDeclaration') continue;
@@ -1796,11 +1782,10 @@ export function rewriteParentModule(
     const sourceNode = node.source;
     const rewrittenSource = rewriteImportSource(sourceNode.value);
 
-    // Detect quote style from original source (node.source.raw starts with ' or ")
     const rawSource = (sourceNode as any).raw ?? sourceNode.value;
     const quoteChar = rawSource.startsWith("'") ? "'" : '"';
 
-    // Side-effect imports (no specifiers): keep in original position, just rewrite source
+    // Side-effect imports: keep in place, just rewrite source
     if (!specifiers || specifiers.length === 0) {
       if (rewrittenSource !== sourceNode.value) {
         s.overwrite(sourceNode.start + 1, sourceNode.end - 1, rewrittenSource);
@@ -1808,7 +1793,6 @@ export function rewriteParentModule(
       continue;
     }
 
-    // Find which specifiers are markers to remove
     const toRemove: number[] = [];
     for (let i = 0; i < specifiers.length; i++) {
       const spec = specifiers[i];
@@ -1819,34 +1803,27 @@ export function rewriteParentModule(
       }
     }
 
-    // Remove the import declaration from the body
     let end = node.end;
     if (end < source.length && source[end] === '\n') end++;
     s.remove(node.start, end);
 
-    if (toRemove.length === specifiers.length) {
-      // All specifiers are markers: import is fully consumed, no surviving user import
-      continue;
-    }
+    if (toRemove.length === specifiers.length) continue;
 
-    // For single-quoted Qwik core imports (user-written): if the surviving
-    // (non-marker) specifiers include a non-$-suffixed identifier (like useStore),
-    // preserve ALL original specifiers including markers. This matches Rust optimizer
-    // behavior where the original user import is kept intact when minify is 'none'.
+    // For single-quoted Qwik core imports with non-$ survivors, preserve all
+    // specifiers when minify is 'none' (matches Rust behavior)
     const isQwikSource = rewrittenSource.startsWith('@qwik.dev/') ||
       rewrittenSource.startsWith('@builder.io/qwik');
     let preserveAll = false;
     if (isQwikSource && quoteChar === "'" && minify === 'none') {
       const hasNonDollarSurvivor = specifiers.some((spec: any, i: number) => {
         if (toRemove.includes(i)) return false;
-        if (spec.type !== 'ImportSpecifier') return true; // default/namespace always non-$
+        if (spec.type !== 'ImportSpecifier') return true;
         const importedName = spec.imported?.name ?? spec.local.name;
         return !importedName.endsWith('$');
       });
       if (hasNonDollarSurvivor) preserveAll = true;
     }
 
-    // Build surviving user import, preserving original quote style
     let defaultPart = '';
     let nsPart = '';
     const namedParts: string[] = [];
@@ -1882,8 +1859,8 @@ export function rewriteParentModule(
     }
 
     if (importParts) {
-      survivingUserImports.push(`import ${importParts} from ${quoteChar}${rewrittenSource}${quoteChar};`);
-      survivingImportInfos.push({
+      ctx.survivingUserImports.push(`import ${importParts} from ${quoteChar}${rewrittenSource}${quoteChar};`);
+      ctx.survivingImportInfos.push({
         defaultPart,
         nsPart,
         namedParts: namedPartsStructured,
@@ -1894,39 +1871,30 @@ export function rewriteParentModule(
       });
     }
   }
+}
 
-  // -----------------------------------------------------------------------
-  // Step 2b: Strip exports (MODE-06)
-  // -----------------------------------------------------------------------
-  if (stripExports && stripExports.length > 0) {
-    stripExportDeclarations(source, s, program, stripExports, originalImports);
+function applyModeTransforms(ctx: RewriteContext): void {
+  if (ctx.stripExports && ctx.stripExports.length > 0) {
+    stripExportDeclarations(ctx.source, ctx.s, ctx.program, ctx.stripExports, ctx.originalImports);
   }
-
-  // -----------------------------------------------------------------------
-  // Step 2c: Const replacement (MODE-07)
-  // -----------------------------------------------------------------------
-  const isDev = (mode === 'dev' || mode === 'hmr') ? true : mode === 'prod' ? false : undefined;
-  if (isServer !== undefined || isDev !== undefined) {
-    replaceConstants(source, s, program, originalImports, isServer, isDev);
+  const isDev = (ctx.mode === 'dev' || ctx.mode === 'hmr') ? true : ctx.mode === 'prod' ? false : undefined;
+  if (ctx.isServer !== undefined || isDev !== undefined) {
+    replaceConstants(ctx.source, ctx.s, ctx.program, ctx.originalImports, ctx.isServer, isDev);
   }
+}
 
-  // -----------------------------------------------------------------------
-  // Step 3: Determine nesting (parent-child relationships)
-  // -----------------------------------------------------------------------
-  // Sort by callStart ascending to detect containment
-  const sorted = [...extractions].sort((a, b) => a.callStart - b.callStart);
+/**
+ * Assign parent-child relationships between extractions.
+ * Picks the innermost (smallest range) containing parent for multi-level nesting.
+ */
+function resolveNesting(ctx: RewriteContext): void {
+  const sorted = [...ctx.extractions].sort((a, b) => a.callStart - b.callStart);
 
-  // Mark nested extractions: an extraction is nested if its call range
-  // is fully contained within another extraction's argument range.
-  // Also set the parent field for nested extractions.
-  // We pick the INNERMOST (closest/smallest) containing parent to handle
-  // multi-level nesting correctly (e.g., component$ > component$ > onClick$).
   for (let i = 0; i < sorted.length; i++) {
     let bestParent: typeof sorted[0] | null = null;
     let bestRange = Infinity;
     for (let j = 0; j < sorted.length; j++) {
       if (i === j) continue;
-      // Check if sorted[i] is inside sorted[j]'s argument
       if (
         sorted[i].callStart >= sorted[j].argStart &&
         sorted[i].callEnd <= sorted[j].argEnd
@@ -1943,308 +1911,251 @@ export function rewriteParentModule(
     }
   }
 
-  // Update the extractions array with parent info
   for (const ext of sorted) {
-    const orig = extractions.find((e) => e.symbolName === ext.symbolName);
+    const orig = ctx.extractions.find((e) => e.symbolName === ext.symbolName);
     if (orig) orig.parent = ext.parent;
   }
+}
 
-  // -----------------------------------------------------------------------
-  // Step 3a-rawProps: Pre-consolidate _rawProps captures for child segments
-  // -----------------------------------------------------------------------
-  // For child segments inside component$ that capture destructured prop fields,
-  // consolidate them into a single _rawProps capture. This must happen BEFORE
-  // body generation (transformSCallBody) so field references can be replaced.
-  if (inlineOptions?.inline) {
-    for (const ext of extractions) {
-      if (ext.parent !== null && ext.captureNames.length > 0) {
-        const parentExt = extractions.find(e => e.symbolName === ext.parent);
-        if (parentExt) {
-          const fieldMap = extractDestructuredFieldMap(parentExt.bodyText);
-          if (fieldMap.size > 0) {
-            const nonPropsCaptures: string[] = [];
-            let hasPropsFields = false;
-            const propsFieldCaptures = new Map<string, string>();
-            for (const name of ext.captureNames) {
-              if (fieldMap.has(name)) {
-                hasPropsFields = true;
-                propsFieldCaptures.set(name, fieldMap.get(name)!);
-              } else {
-                nonPropsCaptures.push(name);
-              }
-            }
-            if (hasPropsFields) {
-              ext.propsFieldCaptures = propsFieldCaptures;
-              ext.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
-              ext.captures = ext.captureNames.length > 0;
-            }
-          }
-        }
-      }
-    }
-  }
+/**
+ * For child segments inside component$ that capture destructured prop fields,
+ * consolidate them into a single _rawProps capture. Must run before body generation.
+ */
+function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
+  if (!ctx.inlineOptions?.inline) return;
 
-  // Top-level extractions: those with no parent
-  const topLevel = extractions.filter((e) => e.parent === null);
+  for (const ext of ctx.extractions) {
+    if (ext.parent === null || ext.captureNames.length === 0) continue;
 
-  // -----------------------------------------------------------------------
-  // Step 3b: Pre-compute QRL variable names for stripped segments
-  // -----------------------------------------------------------------------
-  // When strip options are active, stripped segments use sentinel-named variables
-  // (q_qrl_{counter}) instead of q_{symbolName}. We compute this map early so
-  // call site rewriting uses the correct variable names.
-  const earlyQrlVarNames = new Map<string, string>();
-  let earlyStrippedCounter = 0;
-  if (inlineOptions) {
-    // For inline/hoist, compute QRL var names for ALL non-sync extractions (including nested)
-    for (const ext of extractions) {
-      if (ext.isSync) continue;
-      const stripped = isStrippedSegment(
-        ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-      );
-      if (stripped) {
-        const idx = earlyStrippedCounter++;
-        const counter = 0xffff0000 + idx * 2;
-        earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+    const parentExt = ctx.extractions.find(e => e.symbolName === ext.parent);
+    if (!parentExt) continue;
+
+    const fieldMap = extractDestructuredFieldMap(parentExt.bodyText);
+    if (fieldMap.size === 0) continue;
+
+    const nonPropsCaptures: string[] = [];
+    let hasPropsFields = false;
+    const propsFieldCaptures = new Map<string, string>();
+    for (const name of ext.captureNames) {
+      if (fieldMap.has(name)) {
+        hasPropsFields = true;
+        propsFieldCaptures.set(name, fieldMap.get(name)!);
       } else {
-        earlyQrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
+        nonPropsCaptures.push(name);
       }
     }
+    if (hasPropsFields) {
+      ext.propsFieldCaptures = propsFieldCaptures;
+      ext.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
+      ext.captures = ext.captureNames.length > 0;
+    }
   }
+}
 
-  /**
-   * Get the QRL variable name for a symbol, accounting for stripped segments.
-   */
-  function getQrlVarName(symbolName: string): string {
-    return earlyQrlVarNames.get(symbolName) ?? `q_${symbolName}`;
+/**
+ * When strip options are active, stripped segments use sentinel-named variables
+ * (q_qrl_{counter}) instead of q_{symbolName}. Pre-compute so call site
+ * rewriting uses the correct names.
+ */
+function preComputeQrlVarNames(ctx: RewriteContext): void {
+  if (!ctx.inlineOptions) return;
+
+  let earlyStrippedCounter = 0;
+  for (const ext of ctx.extractions) {
+    if (ext.isSync) continue;
+    const stripped = isStrippedSegment(
+      ext.ctxName, ext.ctxKind, ctx.inlineOptions.stripCtxName, ctx.inlineOptions.stripEventHandlers,
+    );
+    if (stripped) {
+      const idx = earlyStrippedCounter++;
+      const counter = 0xffff0000 + idx * 2;
+      ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+    } else {
+      ctx.earlyQrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
+    }
   }
+}
 
-  // -----------------------------------------------------------------------
-  // Step 4: Rewrite call sites (only top-level extractions)
-  // -----------------------------------------------------------------------
-  const eventHandlerExtraImports: Array<{ sym: string; src: string }> = [];
+function getQrlVarName(ctx: RewriteContext, symbolName: string): string {
+  return ctx.earlyQrlVarNames.get(symbolName) ?? `q_${symbolName}`;
+}
+
+/** Replace top-level $() call sites with QRL variable references. */
+function rewriteCallSites(ctx: RewriteContext): void {
+  const { s, topLevel, inlineOptions } = ctx;
+
   for (const ext of topLevel) {
     if (ext.isSync) {
-      // sync$: replace entire call with _qrlSync(original, "minified")
       s.overwrite(ext.callStart, ext.callEnd, buildSyncTransform(ext.bodyText));
     } else if (ext.isInlinedQrl) {
-      // inlinedQrl(body, name, [captures]): replace entire call with QRL variable name.
-      // The .w([captures]) wrapping is handled in Step 4b-inlinedQrl below.
-      s.overwrite(ext.callStart, ext.callEnd, getQrlVarName(ext.symbolName));
+      s.overwrite(ext.callStart, ext.callEnd, getQrlVarName(ctx, ext.symbolName));
     } else if (ext.isBare) {
-      // Bare $(): replace entire call with QRL variable name
-      s.overwrite(ext.callStart, ext.callEnd, getQrlVarName(ext.symbolName));
+      s.overwrite(ext.callStart, ext.callEnd, getQrlVarName(ctx, ext.symbolName));
     } else if ((ext.ctxKind === 'eventHandler' || ext.ctxKind === 'jSXProp') && !ext.qrlCallee) {
-      // Direct JSX event/QRL-prop attribute: onClick$={fn} -> q-e:click={q_var} (or onClick$={q_var} for components)
-      // Also handles jSXProp (render$, custom$, etc.) which behave identically
-      // Named markers inside JSX attrs (onClick$={server$(...)}) have qrlCallee set and
-      // their callStart..callEnd only covers the call expression, so they use the named marker path.
+      // Direct JSX event/QRL-prop attribute
       let propName: string;
       if (ext.isComponentEvent) {
         propName = ext.ctxName;
       } else {
-        const transformedPropName = transformEventPropName(ext.ctxName, new Set());
-        propName = transformedPropName ?? ext.ctxName;
+        propName = transformEventPropName(ext.ctxName, new Set()) ?? ext.ctxName;
       }
 
-      // For regCtxName-matched extractions, wrap the QRL var in serverQrl()
       const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
-      let qrlRef = isRegCtx ? `serverQrl(${getQrlVarName(ext.symbolName)})` : getQrlVarName(ext.symbolName);
+      let qrlRef = isRegCtx ? `serverQrl(${getQrlVarName(ctx, ext.symbolName)})` : getQrlVarName(ctx, ext.symbolName);
       if (isRegCtx) {
-        // Preserve the original import source package for serverQrl
         const serverQrlSource = ext.importSource || '@qwik.dev/core';
-        eventHandlerExtraImports.push({ sym: 'serverQrl', src: serverQrlSource });
+        ctx.eventHandlerExtraImports.push({ sym: 'serverQrl', src: serverQrlSource });
       }
 
-      // Add .w([captures]) for captured variables
       if (!isRegCtx && ext.captureNames.length > 0) {
         qrlRef += '.w([\n        ' + ext.captureNames.join(',\n        ') + '\n    ])';
       }
 
-      const replacement = `${propName}={${qrlRef}}`;
-      s.overwrite(ext.callStart, ext.callEnd, replacement);
+      s.overwrite(ext.callStart, ext.callEnd, `${propName}={${qrlRef}}`);
     } else {
       // Named marker (component$, useTask$, etc.)
-      // Replace callee
       s.overwrite(ext.calleeStart, ext.calleeEnd, ext.qrlCallee);
-      // Replace argument with QRL variable name
-      s.overwrite(ext.argStart, ext.argEnd, getQrlVarName(ext.symbolName));
-      // Add PURE annotation for componentQrl calls.
-      // Use prependRight so the annotation survives if Step 4a removes
-      // the preceding `const varName = ` for unused bindings.
+      s.overwrite(ext.argStart, ext.argEnd, getQrlVarName(ctx, ext.symbolName));
       if (needsPureAnnotation(ext.qrlCallee)) {
         s.prependRight(ext.callStart, '/*#__PURE__*/ ');
       }
     }
   }
+}
 
-  // -----------------------------------------------------------------------
-  // Step 4-noarg: Rewrite marker calls with no arguments
-  // -----------------------------------------------------------------------
-  // Marker calls like `component$()` with no arguments don't create an extraction
-  // (no body to extract), but the callee still needs to be renamed to its Qrl form.
-  // Walk the AST to find such calls and rewrite them.
-  const noArgQrlCallees: Array<{ callee: string; source: string }> = [];
-  {
-    const extractedCallStarts = new Set(extractions.map(e => e.callStart));
-    function walkNoArgMarkers(node: any): void {
-      if (!node || typeof node !== 'object') return;
-      if (Array.isArray(node)) { for (const item of node) walkNoArgMarkers(item); return; }
-      if (node.type === 'CallExpression' && !extractedCallStarts.has(node.start)) {
-        const calleeName = node.callee?.type === 'Identifier' ? node.callee.name : null;
-        if (calleeName) {
-          const importInfo = originalImports.get(calleeName);
-          if (importInfo && importInfo.importedName.endsWith('$') &&
-              importInfo.importedName !== '$' && importInfo.importedName !== 'sync$') {
-            // Only handle calls with truly 0 arguments
-            if (!node.arguments || node.arguments.length === 0) {
-              const qrlCallee = importInfo.importedName.slice(0, -1) + 'Qrl';
-              s.overwrite(node.callee.start, node.callee.end, qrlCallee);
-              if (needsPureAnnotation(qrlCallee)) {
-                s.prependRight(node.start, '/*#__PURE__*/ ');
-              }
-              extractedCalleeNames.add(importInfo.importedName);
-              // Store for later import generation
-              noArgQrlCallees.push({ callee: qrlCallee, source: importInfo.source });
-              if (!alreadyImported.has(qrlCallee)) {
-                alreadyImported.add(qrlCallee);
-              }
+/** Rename marker calls with no arguments (e.g. `component$()`) to Qrl form. */
+function rewriteNoArgMarkers(ctx: RewriteContext): void {
+  const { s, program, originalImports, extractedCalleeNames, alreadyImported } = ctx;
+  const extractedCallStarts = new Set(ctx.extractions.map(e => e.callStart));
+
+  function walk(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) walk(item); return; }
+    if (node.type === 'CallExpression' && !extractedCallStarts.has(node.start)) {
+      const calleeName = node.callee?.type === 'Identifier' ? node.callee.name : null;
+      if (calleeName) {
+        const importInfo = originalImports.get(calleeName);
+        if (importInfo && importInfo.importedName.endsWith('$') &&
+            importInfo.importedName !== '$' && importInfo.importedName !== 'sync$') {
+          if (!node.arguments || node.arguments.length === 0) {
+            const qrlCallee = importInfo.importedName.slice(0, -1) + 'Qrl';
+            s.overwrite(node.callee.start, node.callee.end, qrlCallee);
+            if (needsPureAnnotation(qrlCallee)) {
+              s.prependRight(node.start, '/*#__PURE__*/ ');
+            }
+            extractedCalleeNames.add(importInfo.importedName);
+            ctx.noArgQrlCallees.push({ callee: qrlCallee, source: importInfo.source });
+            if (!alreadyImported.has(qrlCallee)) {
+              alreadyImported.add(qrlCallee);
             }
           }
         }
       }
-      for (const key of Object.keys(node)) {
-        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-        walkNoArgMarkers(node[key]);
-      }
     }
-    walkNoArgMarkers(program.body);
+    for (const key of Object.keys(node)) {
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+      walk(node[key]);
+    }
   }
+  walk(program.body);
+}
 
-  // -----------------------------------------------------------------------
-  // Step 4a: Remove unused variable bindings wrapping QRL call sites
-  // -----------------------------------------------------------------------
-  // When a variable declaration like `const foo = component$(...)` is:
-  // 1. NOT exported
-  // 2. NOT referenced elsewhere in the module body
-  // Then the Rust optimizer strips `const foo = `, leaving just the call expression.
-  // For bare $() calls on unused bindings, SWC also skips the separate QRL const
-  // declaration and inlines the qrl() call directly.
-  // Only active when minify is not 'none' (Rust optimizer's simplify mode).
-  const inlinedQrlSymbols = new Set<string>(); // symbols that should NOT get separate QRL const decls
-  if (minify !== 'none') {
-    for (const stmt of program.body) {
-      // Skip exported declarations
-      if (stmt.type === 'ExportNamedDeclaration') continue;
-      if (stmt.type !== 'VariableDeclaration') continue;
+/**
+ * Strip `const foo = ` from unused variable bindings wrapping QRL call sites.
+ * For bare $() on unused bindings, mark them for inline QRL (no separate const).
+ * Also replaces inlined QRL symbols with full qrl() expressions.
+ */
+function removeUnusedBindings(ctx: RewriteContext): void {
+  if (ctx.minify === 'none') return;
 
-      const decl = stmt;
-      if (!decl.declarations || decl.declarations.length !== 1) continue;
+  const { s, source, program, topLevel, explicitExtensions, outputExtension } = ctx;
 
-      const declarator = decl.declarations[0];
-      if (!declarator.init) continue;
+  for (const stmt of program.body) {
+    if (stmt.type === 'ExportNamedDeclaration') continue;
+    if (stmt.type !== 'VariableDeclaration') continue;
 
-      // Check if ANY top-level extraction's call site is within or IS this declarator's init.
-      const initStart = declarator.init.start;
-      const initEnd = declarator.init.end;
-      const matchingExtractions = topLevel.filter(
-        (ext) => !ext.isSync &&
-          ext.callStart >= initStart && ext.callEnd <= initEnd,
-      );
+    const decl = stmt;
+    if (!decl.declarations || decl.declarations.length !== 1) continue;
 
-      // Also check if init is a pre-existing inlinedQrl(null, ...) call.
-      const isInlinedQrlCall = declarator.init.type === 'CallExpression' &&
-        declarator.init.callee?.type === 'Identifier' &&
-        declarator.init.callee.name === 'inlinedQrl';
+    const declarator = decl.declarations[0];
+    if (!declarator.init) continue;
 
-      if (matchingExtractions.length === 0 && !isInlinedQrlCall) continue;
+    const initStart = declarator.init.start;
+    const initEnd = declarator.init.end;
+    const matchingExtractions = topLevel.filter(
+      (ext) => !ext.isSync &&
+        ext.callStart >= initStart && ext.callEnd <= initEnd,
+    );
 
-      // The variable name
-      const varName = declarator.id?.type === 'Identifier' ? declarator.id.name : null;
-      if (!varName) continue;
+    const isInlinedQrlCall = declarator.init.type === 'CallExpression' &&
+      declarator.init.callee?.type === 'Identifier' &&
+      declarator.init.callee.name === 'inlinedQrl';
 
-      // Check if varName is referenced elsewhere in the module body
-      // (excluding the declaration itself and import sections).
-      const wordBoundaryRegex = new RegExp(`\\b${varName}\\b`);
-      let bodyText = '';
-      for (const bodyStmt of program.body) {
-        if (bodyStmt.type === 'ImportDeclaration') continue;
-        if (bodyStmt === decl) continue;
-        bodyText += source.slice(bodyStmt.start, bodyStmt.end) + '\n';
-      }
+    if (matchingExtractions.length === 0 && !isInlinedQrlCall) continue;
 
-      if (!wordBoundaryRegex.test(bodyText)) {
-        // Variable is not used elsewhere: strip `const/let/var varName = ` prefix
-        // Remove from declaration start to the init start
-        s.remove(decl.start, initStart);
+    const varName = declarator.id?.type === 'Identifier' ? declarator.id.name : null;
+    if (!varName) continue;
 
-        // For bare $() extractions on unused bindings, mark them for inline QRL
-        // (skip separate QRL const declaration, inline the qrl() call directly)
-        // BUT only if the $() call IS the entire init expression -- when it's wrapped
-        // in another call like component($(...)), the QRL should still be hoisted.
-        for (const ext of matchingExtractions) {
-          if (ext.isBare && ext.callStart === initStart && ext.callEnd === initEnd) {
-            inlinedQrlSymbols.add(ext.symbolName);
-          }
+    const wordBoundaryRegex = new RegExp(`\\b${varName}\\b`);
+    let bodyText = '';
+    for (const bodyStmt of program.body) {
+      if (bodyStmt.type === 'ImportDeclaration') continue;
+      if (bodyStmt === decl) continue;
+      bodyText += source.slice(bodyStmt.start, bodyStmt.end) + '\n';
+    }
+
+    if (!wordBoundaryRegex.test(bodyText)) {
+      s.remove(decl.start, initStart);
+      for (const ext of matchingExtractions) {
+        if (ext.isBare && ext.callStart === initStart && ext.callEnd === initEnd) {
+          ctx.inlinedQrlSymbols.add(ext.symbolName);
         }
       }
     }
   }
 
-  // Step 4a-2: For inlined QRL symbols, replace the call site with the full qrl() expression
-  // instead of a reference to a QRL const (which won't exist).
+  // Replace inlined QRL symbols with full qrl() expressions
   for (const ext of topLevel) {
-    if (!inlinedQrlSymbols.has(ext.symbolName)) continue;
-    // The call site was already replaced with `q_symbolName` in Step 4.
-    // Now overwrite it with the inline qrl() expression.
+    if (!ctx.inlinedQrlSymbols.has(ext.symbolName)) continue;
     const inlineExt = explicitExtensions ? (outputExtension ?? '.js') : '';
     const inlineQrl = `/*#__PURE__*/ qrl(()=>import("./${ext.canonicalFilename}${inlineExt}"), "${ext.symbolName}")`;
     s.overwrite(ext.callStart, ext.callEnd, inlineQrl);
   }
+}
 
-  // Step 4a-3: Remove duplicate export declarations
-  // When the same export names appear in multiple `export const { ... } = ...` statements
-  // (e.g., two calls that both export { onRequest, ... }), only the first is valid JS.
-  // The SWC optimizer drops subsequent duplicates, converting them to bare expression statements.
-  if (minify !== 'none') {
-    const seenExportNames = new Set<string>();
-    for (const stmt of program.body) {
-      if (stmt.type !== 'ExportNamedDeclaration') continue;
-      const innerDecl = stmt.declaration;
-      if (!innerDecl || innerDecl.type !== 'VariableDeclaration') continue;
-      if (!innerDecl.declarations || innerDecl.declarations.length !== 1) continue;
+/** Remove duplicate `export const { ... }` declarations (keep first occurrence). */
+function removeDuplicateExports(ctx: RewriteContext): void {
+  if (ctx.minify === 'none') return;
 
-      const declarator = innerDecl.declarations[0];
-      if (!declarator.init) continue;
+  const seenExportNames = new Set<string>();
+  for (const stmt of ctx.program.body) {
+    if (stmt.type !== 'ExportNamedDeclaration') continue;
+    const innerDecl = stmt.declaration;
+    if (!innerDecl || innerDecl.type !== 'VariableDeclaration') continue;
+    if (!innerDecl.declarations || innerDecl.declarations.length !== 1) continue;
 
-      // Extract exported names from the binding pattern
-      const exportedNames = collectBindingNames(declarator.id);
-      if (exportedNames.length === 0) continue;
+    const declarator = innerDecl.declarations[0];
+    if (!declarator.init) continue;
 
-      // Check if any of these names were already exported
-      const hasDuplicate = exportedNames.some(n => seenExportNames.has(n));
+    const exportedNames = collectBindingNames(declarator.id);
+    if (exportedNames.length === 0) continue;
 
-      if (hasDuplicate) {
-        // Remove the entire duplicate export statement.
-        // The QRL const declaration still exists for this extraction,
-        // and the normalizer will strip it if unused.
-        s.remove(stmt.start, stmt.end);
-      } else {
-        // Track these names as exported
-        for (const name of exportedNames) {
-          seenExportNames.add(name);
-        }
+    const hasDuplicate = exportedNames.some(n => seenExportNames.has(n));
+    if (hasDuplicate) {
+      ctx.s.remove(stmt.start, stmt.end);
+    } else {
+      for (const name of exportedNames) {
+        seenExportNames.add(name);
       }
     }
   }
+}
 
-  // -----------------------------------------------------------------------
-  // Step 4b: .w() wrapping for captures (CAPT-03)
-  // -----------------------------------------------------------------------
-  // Build a Set of migrated variable names (reexported as _auto_ OR moved into segment)
-  // to suppress from .w() capture wrapping. Reexported vars are exposed via
-  // `export { x as _auto_x }`, and moved vars are physically inlined into the segment.
-  // Neither needs redundant .w() wrapping.
+/** Append .w([captures]) to QRL references for captured variables. */
+function addCaptureWrapping(ctx: RewriteContext): void {
+  const { s, topLevel, migrationDecisions } = ctx;
+
+  // Migrated variables don't need .w() wrapping
   const migratedNames = new Set(
     (migrationDecisions ?? [])
       .filter(d => d.action === 'reexport' || d.action === 'move')
@@ -2255,92 +2166,67 @@ export function rewriteParentModule(
     if (ext.isSync) continue;
 
     if (ext.isInlinedQrl) {
-      // inlinedQrl: use explicit capture array (includes non-identifier values like true)
       if (!ext.explicitCaptures) continue;
-      // Parse the capture array items from the source text
       const captureItems = parseArrayItems(ext.explicitCaptures);
       if (captureItems.length === 0) continue;
       const wrapVars = captureItems.join(',\n    ');
-      const wText = `.w([\n    ${wrapVars}\n])`;
-      // inlinedQrl: entire call was replaced with QRL var name at callStart..callEnd
-      s.appendLeft(ext.callEnd, wText);
+      s.appendLeft(ext.callEnd, `.w([\n    ${wrapVars}\n])`);
       continue;
     }
 
     if (ext.captureNames.length === 0) continue;
 
-    // JSX event/prop extractions already have .w() baked into the replacement (Step 4)
+    // JSX event/prop extractions already have .w() baked into the replacement
     if ((ext.ctxKind === 'eventHandler' || ext.ctxKind === 'jSXProp') && !ext.qrlCallee) continue;
 
-    // Filter out migrated (_auto_) variables from captures
     const effectiveCaptures = ext.captureNames.filter(name => !migratedNames.has(name));
-    if (effectiveCaptures.length === 0) continue; // skip .w() entirely
+    if (effectiveCaptures.length === 0) continue;
 
-    // Build the .w() call: .w([\n        var1,\n        var2\n    ])
     const wrapVars = effectiveCaptures.join(',\n        ');
     const wText = `.w([\n        ${wrapVars}\n    ])`;
 
     if (ext.isBare) {
-      // Bare $(): entire call was replaced with QRL var name at callStart..callEnd
       s.appendLeft(ext.callEnd, wText);
     } else {
-      // Named marker: arg was replaced with QRL var name at argStart..argEnd
       s.appendLeft(ext.argEnd, wText);
     }
   }
+}
 
-  // -----------------------------------------------------------------------
-  // Step 4c: JSX transformation (Phase 4)
-  // -----------------------------------------------------------------------
-  const isDevMode = mode === 'dev' || mode === 'hmr';
-  let jsxResult: JsxTransformOutput | null = null;
-  let jsxKeyCounterValue = 0; // Track the JSX key counter across module + body transforms
-  if (jsxOptions?.enableJsx) {
-    // Build skip ranges from extraction argument ranges.
-    // These regions have already been rewritten (e.g., $() argument replaced with q_symbolName)
-    // so the JSX transform must not try to overwrite nodes within them.
-    const skipRanges = topLevel.map((ext) => ({
-      start: ext.argStart,
-      end: ext.argEnd,
-    }));
-    // Run JSX transform on the same magic-string instance.
-    // This converts JSX elements/fragments to _jsxSorted/_jsxSplit calls.
-    // Must run AFTER call site rewriting (so $() calls are replaced)
-    // but BEFORE import assembly (so we can add JSX imports).
-    jsxResult = transformAllJsx(
-      source, s, program, jsxOptions.importedNames, skipRanges,
-      isDevMode ? { relPath } : undefined,
-      undefined, // keyCounterStart
-      jsxOptions.enableSignals !== false, // disable signal analysis when no extractions
-      undefined, // qpOverrides
-      undefined, // qrlsWithCaptures
-      undefined, // paramNames
-      relPath,   // for key prefix derivation
-    );
-    jsxKeyCounterValue = jsxResult.keyCounterValue;
-  }
+function runJsxTransform(ctx: RewriteContext): void {
+  if (!ctx.jsxOptions?.enableJsx) return;
 
-  // -----------------------------------------------------------------------
-  // Step 5: Build optimizer-added imports (IMP-04)
-  // -----------------------------------------------------------------------
-  const neededImports = new Map<string, string>(); // symbol -> source
-  const isInline = inlineOptions?.inline === true;
+  const skipRanges = ctx.topLevel.map((ext) => ({
+    start: ext.argStart,
+    end: ext.argEnd,
+  }));
 
-  // For inline/hoist: ALL non-sync extractions (including nested) contribute imports.
-  // For other strategies: only top-level extractions contribute imports to the parent module.
+  ctx.jsxResult = transformAllJsx(
+    ctx.source, ctx.s, ctx.program, ctx.jsxOptions.importedNames, skipRanges,
+    ctx.isDevMode ? { relPath: ctx.relPath } : undefined,
+    undefined,
+    ctx.jsxOptions.enableSignals !== false,
+    undefined, undefined, undefined,
+    ctx.relPath,
+  );
+  ctx.jsxKeyCounterValue = ctx.jsxResult.keyCounterValue;
+}
+
+/** Gather all optimizer-added imports from extractions, JSX, and event handlers. */
+function collectNeededImports(ctx: RewriteContext): void {
+  const { neededImports, alreadyImported, topLevel, extractions,
+    inlineOptions, isDevMode, isInline, inlinedQrlSymbols,
+    noArgQrlCallees, eventHandlerExtraImports, jsxResult, originalImports } = ctx;
   const hasTopLevelNonSync = topLevel.some((e) => !e.isSync);
   const hasAnyNonSync = extractions.some((e) => !e.isSync);
 
   if (isInline) {
-    // Inline strategy: import _noopQrl or _noopQrlDEV instead of qrl/qrlDEV
     if (hasAnyNonSync) {
       const noopSymbol = isDevMode ? '_noopQrlDEV' : '_noopQrl';
       if (!alreadyImported.has(noopSymbol)) {
         neededImports.set(noopSymbol, '@qwik.dev/core');
       }
     }
-    // _captures import needed if any non-stripped extraction has captures
-    // (checked across ALL extractions, not just top-level)
     const needsCapturesImport = extractions.some(
       (e) => !e.isSync && e.captureNames.length > 0 && !(inlineOptions && isStrippedSegment(
         e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
@@ -2350,9 +2236,7 @@ export function rewriteParentModule(
       neededImports.set('_captures', '@qwik.dev/core');
     }
   } else if (inlineOptions && !inlineOptions.inline) {
-    // Non-inline with strip: still use qrl/qrlDEV for non-stripped, _noopQrl for stripped
     if (hasTopLevelNonSync) {
-      // Check if there are non-stripped segments that need qrl
       const hasNonStripped = topLevel.some(
         (e) => !e.isSync && !isStrippedSegment(
           e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
@@ -2365,27 +2249,19 @@ export function rewriteParentModule(
       );
       if (hasNonStripped) {
         const qrlSymbol = isDevMode ? 'qrlDEV' : 'qrl';
-        if (!alreadyImported.has(qrlSymbol)) {
-          neededImports.set(qrlSymbol, '@qwik.dev/core');
-        }
+        if (!alreadyImported.has(qrlSymbol)) neededImports.set(qrlSymbol, '@qwik.dev/core');
       }
       if (hasStripped) {
         const noopSymbol = isDevMode ? '_noopQrlDEV' : '_noopQrl';
-        if (!alreadyImported.has(noopSymbol)) {
-          neededImports.set(noopSymbol, '@qwik.dev/core');
-        }
+        if (!alreadyImported.has(noopSymbol)) neededImports.set(noopSymbol, '@qwik.dev/core');
       }
     }
   } else {
-    // Default: no inline, no strip
     if (hasTopLevelNonSync) {
       const qrlSymbol = isDevMode ? 'qrlDEV' : 'qrl';
-      if (!alreadyImported.has(qrlSymbol)) {
-        neededImports.set(qrlSymbol, '@qwik.dev/core');
-      }
-      // inlinedQrl in lib mode for local files uses qrlDEV even when not in dev mode
+      if (!alreadyImported.has(qrlSymbol)) neededImports.set(qrlSymbol, '@qwik.dev/core');
       const hasInlinedQrlLocal = topLevel.some(
-        (e) => e.isInlinedQrl && !relPath.includes('node_modules'),
+        (e) => e.isInlinedQrl && !ctx.relPath.includes('node_modules'),
       );
       if (hasInlinedQrlLocal && !isDevMode && !alreadyImported.has('qrlDEV')) {
         neededImports.set('qrlDEV', '@qwik.dev/core');
@@ -2393,17 +2269,12 @@ export function rewriteParentModule(
     }
   }
 
-  // Each unique qrlCallee from top-level extractions needs an import
   for (const ext of topLevel) {
     if (ext.isSync) {
-      // _qrlSync import
-      if (!alreadyImported.has('_qrlSync')) {
-        neededImports.set('_qrlSync', '@qwik.dev/core');
-      }
+      if (!alreadyImported.has('_qrlSync')) neededImports.set('_qrlSync', '@qwik.dev/core');
       continue;
     }
     if (ext.isBare) {
-      // bare $ doesn't need a Qrl wrapper import, but inlined bare QRLs need `qrl` import
       if (inlinedQrlSymbols.has(ext.symbolName) && !alreadyImported.has('qrl')) {
         neededImports.set('qrl', '@qwik.dev/core');
       }
@@ -2412,64 +2283,43 @@ export function rewriteParentModule(
 
     const qrlCallee = ext.qrlCallee;
     if (qrlCallee && !alreadyImported.has(qrlCallee)) {
-      // Only add import if not custom inlined (custom inlined are locally defined)
       if (!isCustomInlined(ext, originalImports)) {
         neededImports.set(qrlCallee, getQrlImportSource(qrlCallee, ext.importSource));
       }
     }
   }
 
-  // Add imports for no-arg marker call rewrites (Step 4-noarg)
   for (const { callee, source } of noArgQrlCallees) {
     if (!neededImports.has(callee)) {
       neededImports.set(callee, getQrlImportSource(callee, source));
     }
   }
-
-  // Add imports for top-level event handler rewrites (Step 4 event handlers)
   for (const { sym, src } of eventHandlerExtraImports) {
     if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
       neededImports.set(sym, src);
     }
   }
 
-  // Add JSX transform imports (Phase 4)
   if (jsxResult) {
     for (const sym of jsxResult.neededImports) {
-      if (!alreadyImported.has(sym)) {
-        neededImports.set(sym, '@qwik.dev/core');
-      }
+      if (!alreadyImported.has(sym)) neededImports.set(sym, '@qwik.dev/core');
     }
     if (jsxResult.needsFragment && !alreadyImported.has('_Fragment')) {
       neededImports.set('Fragment as _Fragment', '@qwik.dev/core/jsx-runtime');
     }
-    // Hoisted signal declarations (_hf0, _hf0_str, etc.) need to be added
-    // They will be prepended after imports in the preamble assembly step
   }
+}
 
-  // NOTE: Import statement generation is deferred until after Step 5c,
-  // because transformSCallBody() in Step 5c may add additional imports
-  // (e.g., Qrl-suffixed callee imports like useStylesQrl, useBrowserVisibleTaskQrl).
-
-  // -----------------------------------------------------------------------
-  // Step 5b: Build QRL declarations
-  // -----------------------------------------------------------------------
-  // For inline/hoist strategy: ALL non-sync extractions (including nested) get QRL declarations.
-  // For other strategies: only top-level (non-nested) non-sync extractions.
+function buildQrlDeclarations(ctx: RewriteContext): void {
+  const { extractions, inlineOptions, isDevMode, devFilePath, isInline,
+    inlinedQrlSymbols, explicitExtensions, outputExtension, relPath } = ctx;
   const topLevelNonSync = extractions.filter((e) => !e.isSync && e.parent === null && !inlinedQrlSymbols.has(e.symbolName));
   const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));
 
-  // Track stripped segment counter for sentinel naming
   let strippedCounter = 0;
-  // Map symbolName -> QRL variable name (for .s() calls and call site references)
-  const qrlVarNames = new Map<string, string>();
-
-  const qrlDecls: string[] = [];
 
   if (isInline) {
-    // Inline/hoist strategy: _noopQrl declarations for ALL non-sync extractions
     for (const ext of allNonSync) {
-      // regCtxName-matched extractions are never stripped (they get _regSymbol wrapping)
       const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
       const stripped = !isRegCtx && inlineOptions && isStrippedSegment(
         ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
@@ -2478,34 +2328,26 @@ export function rewriteParentModule(
       if (stripped) {
         const idx = strippedCounter++;
         if (isDevMode && devFilePath) {
-          qrlDecls.push(buildStrippedNoopQrlDev(ext.symbolName, idx, {
-            file: devFilePath,
-            lo: 0,
-            hi: 0,
-            displayName: ext.displayName,
+          ctx.qrlDecls.push(buildStrippedNoopQrlDev(ext.symbolName, idx, {
+            file: devFilePath, lo: 0, hi: 0, displayName: ext.displayName,
           }));
         } else {
-          qrlDecls.push(buildStrippedNoopQrl(ext.symbolName, idx));
+          ctx.qrlDecls.push(buildStrippedNoopQrl(ext.symbolName, idx));
         }
-        // Sentinel variable name for stripped segments
         const counter = 0xffff0000 + idx * 2;
-        qrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+        ctx.qrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
       } else {
         if (isDevMode && devFilePath) {
-          qrlDecls.push(buildNoopQrlDevDeclaration(ext.symbolName, {
-            file: devFilePath,
-            lo: ext.argStart,
-            hi: ext.argEnd,
-            displayName: ext.displayName,
+          ctx.qrlDecls.push(buildNoopQrlDevDeclaration(ext.symbolName, {
+            file: devFilePath, lo: ext.argStart, hi: ext.argEnd, displayName: ext.displayName,
           }));
         } else {
-          qrlDecls.push(buildNoopQrlDeclaration(ext.symbolName));
+          ctx.qrlDecls.push(buildNoopQrlDeclaration(ext.symbolName));
         }
-        qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
+        ctx.qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
       }
     }
   } else if (inlineOptions && !inlineOptions.inline) {
-    // Non-inline with strip: stripped segments get _noopQrl, others get qrl
     for (const ext of topLevelNonSync) {
       const stripped = isStrippedSegment(
         ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
@@ -2514,365 +2356,272 @@ export function rewriteParentModule(
       if (stripped) {
         const idx = strippedCounter++;
         if (isDevMode && devFilePath) {
-          qrlDecls.push(buildStrippedNoopQrlDev(ext.symbolName, idx, {
-            file: devFilePath,
-            lo: 0,
-            hi: 0,
-            displayName: ext.displayName,
+          ctx.qrlDecls.push(buildStrippedNoopQrlDev(ext.symbolName, idx, {
+            file: devFilePath, lo: 0, hi: 0, displayName: ext.displayName,
           }));
         } else {
-          qrlDecls.push(buildStrippedNoopQrl(ext.symbolName, idx));
+          ctx.qrlDecls.push(buildStrippedNoopQrl(ext.symbolName, idx));
         }
         const counter = 0xffff0000 + idx * 2;
-        qrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+        ctx.qrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
       } else {
         if (isDevMode && devFilePath) {
           const devExt = explicitExtensions ? (outputExtension ?? '.js') : undefined;
-          qrlDecls.push(buildQrlDevDeclaration(
-            ext.symbolName,
-            ext.canonicalFilename,
-            devFilePath,
-            ext.loc[0],
-            ext.loc[1],
-            ext.displayName,
-            devExt,
+          ctx.qrlDecls.push(buildQrlDevDeclaration(
+            ext.symbolName, ext.canonicalFilename, devFilePath,
+            ext.loc[0], ext.loc[1], ext.displayName, devExt,
           ));
         } else {
-          qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension, outputExtension));
+          ctx.qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension, outputExtension));
         }
-        qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
+        ctx.qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
       }
     }
   } else {
-    // Default: standard qrl declarations
     const devExt = explicitExtensions ? (outputExtension ?? '.js') : undefined;
     for (const ext of topLevelNonSync) {
       if (isDevMode && devFilePath) {
-        qrlDecls.push(buildQrlDevDeclaration(
-          ext.symbolName,
-          ext.canonicalFilename,
-          devFilePath,
-          ext.loc[0],
-          ext.loc[1],
-          ext.displayName,
-          devExt,
+        ctx.qrlDecls.push(buildQrlDevDeclaration(
+          ext.symbolName, ext.canonicalFilename, devFilePath,
+          ext.loc[0], ext.loc[1], ext.displayName, devExt,
         ));
       } else if (ext.isInlinedQrl && !relPath.includes('node_modules')) {
-        // inlinedQrl in lib/test mode for local files: use qrlDEV with byte-offset loc
-        // The Rust optimizer always uses qrlDEV for inlinedQrl in Test mode
-        // when the file is not in node_modules
         const inlinedDevFile = devFilePath ?? buildDevFilePath(relPath, '', undefined);
-        qrlDecls.push(buildQrlDevDeclaration(
-          ext.symbolName,
-          ext.canonicalFilename,
-          inlinedDevFile,
-          ext.loc[0],
-          ext.loc[1],
-          ext.displayName,
-          devExt,
+        ctx.qrlDecls.push(buildQrlDevDeclaration(
+          ext.symbolName, ext.canonicalFilename, inlinedDevFile,
+          ext.loc[0], ext.loc[1], ext.displayName, devExt,
         ));
       } else {
-        qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension, outputExtension));
+        ctx.qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension, outputExtension));
       }
-      qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
+      ctx.qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
     }
   }
 
-  // Sort QRL declarations for deterministic output
-  qrlDecls.sort();
+  ctx.qrlDecls.sort();
+}
 
-  // -----------------------------------------------------------------------
-  // Step 5c: Build .s() calls for inline/hoist strategy
-  // -----------------------------------------------------------------------
-  const sCalls: string[] = [];
-  const inlineHoistedDeclarations: string[] = [];
-  // Use hoist-to-const pattern when:
-  // 1. entryType is explicitly 'hoist', OR
-  // 2. entryType is 'inline' but both transpileTs and transpileJsx are enabled
-  //    AND mode is NOT 'dev' (dev mode always uses inline .s() format)
+function buildInlineSCalls(ctx: RewriteContext): void {
+  if (!ctx.isInline) return;
+
+  const { extractions, inlineOptions, jsxOptions, isDevMode, relPath,
+    s, program, neededImports, alreadyImported, qrlVarNames, inlinedQrlSymbols, mode, transpileTs } = ctx;
+  const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));
+
+  // Use hoist-to-const when entryType is 'hoist', or 'inline' with both transpileTs
+  // and JSX enabled (except dev mode which always uses inline .s())
   const isHoist = inlineOptions?.entryType === 'hoist' ||
     (inlineOptions?.entryType === 'inline' && !!transpileTs && !!jsxOptions?.enableJsx && mode !== 'dev');
-  if (isInline) {
-    // Build JSX options for inline body transformation (if JSX is enabled)
-    // For hoist strategy, pass the current key counter so body keys continue
-    // from the module-level counter (ensuring sequential u6_N numbering).
-    let sCallJsxOptions: SCallBodyJsxOptions | undefined = jsxOptions?.enableJsx
-      ? {
-          enableJsx: true,
-          importedNames: jsxOptions.importedNames,
-          devOptions: isDevMode ? { relPath } : undefined,
-          keyCounterStart: isHoist ? jsxKeyCounterValue : undefined,
-          relPath,
-        }
-      : undefined;
 
-    // Shared signal hoister for all inline/hoist body JSX transforms.
-    // Ensures _hf counter is sequential across components (no duplicate _hf0).
-    const sharedHoister = jsxOptions?.enableJsx ? new SignalHoister() : undefined;
-
-    // ALL non-sync, non-stripped extractions get .s() calls (including nested).
-    // Order: nested extractions first (in extraction order per parent group),
-    // then top-level non-component, then top-level component.
-    const nestedExts: ExtractionResult[] = [];
-    const topNonComponent: ExtractionResult[] = [];
-    const topComponent: ExtractionResult[] = [];
-
-    for (const ext of allNonSync) {
-      // regCtxName-matched extractions are never stripped -- they get .s(_regSymbol(...))
-      // even when stripEventHandlers is true.
-      const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
-      const isStrippedExt = !isRegCtx && inlineOptions && isStrippedSegment(
-        ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-      );
-      if (isStrippedExt) continue; // Stripped segments: no .s() call
-
-      if (ext.parent !== null) {
-        nestedExts.push(ext);
-      } else if (ext.ctxName === 'component') {
-        topComponent.push(ext);
-      } else {
-        topNonComponent.push(ext);
+  let sCallJsxOptions: SCallBodyJsxOptions | undefined = jsxOptions?.enableJsx
+    ? {
+        enableJsx: true,
+        importedNames: jsxOptions.importedNames,
+        devOptions: isDevMode ? { relPath } : undefined,
+        keyCounterStart: isHoist ? ctx.jsxKeyCounterValue : undefined,
+        relPath,
       }
-    }
+    : undefined;
 
-    // For hoist strategy: find the containing statement for each extraction
-    // so we can insert const + .s() before it in the body.
-    // Map symbolName -> statement start position in original source
-    const extContainingStmtStart = new Map<string, number>();
-    if (isHoist) {
-      for (const ext of allNonSync) {
-        // Find the program.body statement that contains this extraction's callStart
-        for (const stmt of program.body) {
-          if (stmt.type === 'ImportDeclaration') continue;
-          if (ext.callStart >= stmt.start && ext.callStart < stmt.end) {
-            extContainingStmtStart.set(ext.symbolName, stmt.start);
-            break;
-          }
-        }
-      }
-    }
+  const sharedHoister = jsxOptions?.enableJsx ? new SignalHoister() : undefined;
 
-    /**
-     * Process a single extraction: build the .s() call (inline) or
-     * const + .s(varName) (hoist), collecting imports and hoisted decls.
-     */
-    const processExtraction = (ext: ExtractionResult) => {
-      const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-      const { transformedBody: rawBody, additionalImports, hoistedDeclarations, keyCounterValue } = transformSCallBody(
-        ext, extractions, qrlVarNames, sCallJsxOptions, inlineOptions?.regCtxName, sharedHoister,
-      );
+  // Partition: nested first, then top-level non-component, then component
+  const nestedExts: ExtractionResult[] = [];
+  const topNonComponent: ExtractionResult[] = [];
+  const topComponent: ExtractionResult[] = [];
 
-      // Rewrite function signature for event handlers with paramNames (positional params).
-      // This applies to inline/hoist strategy where segment-codegen's rewrite is not used.
-      // SWC delivers captured vars as positional params: (_, _1, capturedVar) => body
-      let sigRewrittenBody = rawBody;
-      if (ext.paramNames.length >= 2 &&
-          ext.paramNames[0] === '_' && ext.paramNames[1] === '_1') {
-        sigRewrittenBody = rewriteFunctionSignature(rawBody, ext.paramNames);
-      }
+  for (const ext of allNonSync) {
+    const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
+    const isStrippedExt = !isRegCtx && inlineOptions && isStrippedSegment(
+      ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
+    );
+    if (isStrippedExt) continue;
 
-      // Wrap body with _regSymbol for regCtxName-matched extractions
-      const isRegCtxMatch = matchesRegCtxName(ext, inlineOptions?.regCtxName);
-      let transformedBody = sigRewrittenBody;
-      if (isRegCtxMatch) {
-        // Wrap: _regSymbol(() => body, "hash")
-        // with /*#__PURE__*/ annotation
-        transformedBody = `/*#__PURE__*/ _regSymbol(${rawBody}, "${ext.hash}")`;
-        neededImports.set('_regSymbol', '@qwik.dev/core');
-      }
-      // For hoist strategy, advance the key counter after each body transform
-      if (isHoist && keyCounterValue !== undefined && sCallJsxOptions) {
-        jsxKeyCounterValue = keyCounterValue;
-        sCallJsxOptions = { ...sCallJsxOptions, keyCounterStart: jsxKeyCounterValue };
-      }
-      inlineHoistedDeclarations.push(...hoistedDeclarations);
-      for (const [sym, src] of additionalImports) {
-        if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
-          neededImports.set(sym, src);
-        }
-      }
-
-      // regCtxName-matched extractions use inline .s(_regSymbol(...)) pattern
-      // when the entry type is 'inline' (even if auto-promoted to hoist).
-      // When explicitly 'hoist', they use the normal hoist const + .s() pattern.
-      const forceInlineForRegCtx = isRegCtxMatch && inlineOptions?.entryType === 'inline';
-      if (isHoist && !forceInlineForRegCtx) {
-        // Hoist strategy: insert const declaration + .s(varName) before
-        // the containing statement in the body via magic-string.
-        // Strip TypeScript type annotations from the body text since hoist
-        // output is emitted as .js (TS types would cause parse errors).
-        let hoistBody = transformedBody;
-        try {
-          const stripped = oxcTransformSync('__body__.tsx', hoistBody);
-          if (stripped.code && !stripped.errors?.length) {
-            hoistBody = stripped.code;
-            // Strip trailing semicolon added by transform
-            if (hoistBody.endsWith(';\n')) hoistBody = hoistBody.slice(0, -2);
-            else if (hoistBody.endsWith(';')) hoistBody = hoistBody.slice(0, -1);
-          }
-        } catch {
-          // If TS stripping fails, use original body
-        }
-        const constDecl = buildHoistConstDecl(ext.symbolName, hoistBody);
-        const sCall = buildHoistSCall(varName, ext.symbolName);
-        const stmtStart = extContainingStmtStart.get(ext.symbolName);
-        if (stmtStart !== undefined) {
-          s.appendLeft(stmtStart, constDecl + '\n' + sCall + '\n');
-        } else {
-          // Fallback: put in preamble if no containing statement found
-          sCalls.push(constDecl);
-          sCalls.push(sCall);
-        }
-      } else {
-        // Inline strategy: put body inside .s() call in preamble
-        sCalls.push(buildSCall(varName, transformedBody));
-      }
-    };
-
-    // Emit nested .s() calls first
-    for (const ext of nestedExts) {
-      processExtraction(ext);
-    }
-
-    // Then top-level non-component .s() calls
-    for (const ext of topNonComponent) {
-      processExtraction(ext);
-    }
-
-    // Component .s() calls last
-    for (const ext of topComponent) {
-      processExtraction(ext);
-    }
-
-    // For shared hoister: replace per-body _hf declarations with deduplicated set
-    if (sharedHoister) {
-      inlineHoistedDeclarations.length = 0;
-      inlineHoistedDeclarations.push(...sharedHoister.getDeclarations());
+    if (ext.parent !== null) {
+      nestedExts.push(ext);
+    } else if (ext.ctxName === 'component') {
+      topComponent.push(ext);
+    } else {
+      topNonComponent.push(ext);
     }
   }
 
-  // -----------------------------------------------------------------------
-  // Step 5d: Build import statements (deferred from Step 5 to include
-  // additional imports discovered during Step 5c body transformation)
-  // NOTE: Import order follows Map insertion order (discovery order),
-  // matching SWC's Vec<(Id, Import)> insertion ordering.
-  // -----------------------------------------------------------------------
-  const sortedImports = Array.from(neededImports.entries());
+  // For hoist: map each extraction to its containing statement
+  const extContainingStmtStart = new Map<string, number>();
+  if (isHoist) {
+    for (const ext of allNonSync) {
+      for (const stmt of program.body) {
+        if (stmt.type === 'ImportDeclaration') continue;
+        if (ext.callStart >= stmt.start && ext.callStart < stmt.end) {
+          extContainingStmtStart.set(ext.symbolName, stmt.start);
+          break;
+        }
+      }
+    }
+  }
 
-  const importStatements = sortedImports.map(
+  const processExtraction = (ext: ExtractionResult) => {
+    const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
+    const { transformedBody: rawBody, additionalImports, hoistedDeclarations, keyCounterValue } = transformSCallBody(
+      ext, extractions, qrlVarNames, sCallJsxOptions, inlineOptions?.regCtxName, sharedHoister,
+    );
+
+    // Rewrite function signature for event handlers with positional params
+    let sigRewrittenBody = rawBody;
+    if (ext.paramNames.length >= 2 &&
+        ext.paramNames[0] === '_' && ext.paramNames[1] === '_1') {
+      sigRewrittenBody = rewriteFunctionSignature(rawBody, ext.paramNames);
+    }
+
+    const isRegCtxMatch = matchesRegCtxName(ext, inlineOptions?.regCtxName);
+    let transformedBody = sigRewrittenBody;
+    if (isRegCtxMatch) {
+      transformedBody = `/*#__PURE__*/ _regSymbol(${rawBody}, "${ext.hash}")`;
+      neededImports.set('_regSymbol', '@qwik.dev/core');
+    }
+
+    if (isHoist && keyCounterValue !== undefined && sCallJsxOptions) {
+      ctx.jsxKeyCounterValue = keyCounterValue;
+      sCallJsxOptions = { ...sCallJsxOptions, keyCounterStart: ctx.jsxKeyCounterValue };
+    }
+    ctx.inlineHoistedDeclarations.push(...hoistedDeclarations);
+    for (const [sym, src] of additionalImports) {
+      if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
+        neededImports.set(sym, src);
+      }
+    }
+
+    const forceInlineForRegCtx = isRegCtxMatch && inlineOptions?.entryType === 'inline';
+    if (isHoist && !forceInlineForRegCtx) {
+      // Strip TS types since hoist output is emitted as .js
+      let hoistBody = transformedBody;
+      try {
+        const stripped = oxcTransformSync('__body__.tsx', hoistBody);
+        if (stripped.code && !stripped.errors?.length) {
+          hoistBody = stripped.code;
+          if (hoistBody.endsWith(';\n')) hoistBody = hoistBody.slice(0, -2);
+          else if (hoistBody.endsWith(';')) hoistBody = hoistBody.slice(0, -1);
+        }
+      } catch {
+        // TS stripping failed, use original
+      }
+      const constDecl = buildHoistConstDecl(ext.symbolName, hoistBody);
+      const sCall = buildHoistSCall(varName, ext.symbolName);
+      const stmtStart = extContainingStmtStart.get(ext.symbolName);
+      if (stmtStart !== undefined) {
+        s.appendLeft(stmtStart, constDecl + '\n' + sCall + '\n');
+      } else {
+        ctx.sCalls.push(constDecl);
+        ctx.sCalls.push(sCall);
+      }
+    } else {
+      ctx.sCalls.push(buildSCall(varName, transformedBody));
+    }
+  };
+
+  for (const ext of nestedExts) processExtraction(ext);
+  for (const ext of topNonComponent) processExtraction(ext);
+  for (const ext of topComponent) processExtraction(ext);
+
+  if (sharedHoister) {
+    ctx.inlineHoistedDeclarations.length = 0;
+    ctx.inlineHoistedDeclarations.push(...sharedHoister.getDeclarations());
+  }
+}
+
+/**
+ * Remove specifiers from surviving user imports that are only used inside
+ * segment bodies (no longer referenced in the parent module).
+ */
+function filterUnusedImports(ctx: RewriteContext): void {
+  const { survivingUserImports, survivingImportInfos, s, qrlDecls, sCalls,
+    inlineHoistedDeclarations, isInline, inlineOptions, relPath } = ctx;
+
+  if (survivingUserImports.length === 0 || survivingImportInfos.length === 0) return;
+
+  const bodyText = s.toString();
+  const allPreambleText = [...qrlDecls, ...sCalls, ...inlineHoistedDeclarations].join('\n');
+  const fullRefText = bodyText + '\n' + allPreambleText;
+
+  for (let idx = survivingUserImports.length - 1; idx >= 0; idx--) {
+    const info = survivingImportInfos[idx];
+    if (info.isSideEffect || info.nsPart || info.preservedAll) continue;
+
+    let defaultUsed = false;
+    if (info.defaultPart) {
+      defaultUsed = new RegExp(`\\b${info.defaultPart}\\b`).test(fullRefText);
+    }
+
+    const usedNamed: { local: string; imported: string }[] = [];
+    for (const np of info.namedParts) {
+      if (new RegExp(`\\b${np.local}\\b`).test(fullRefText)) {
+        usedNamed.push(np);
+      }
+    }
+
+    if (!defaultUsed && usedNamed.length === 0 && !info.nsPart) {
+      // For inline strategy with stripping: relative imports within srcDir become side-effect imports
+      const src = info.source;
+      const hasStripping = !!(inlineOptions?.stripCtxName?.length || inlineOptions?.stripEventHandlers);
+      if (isInline && hasStripping && src.startsWith('.')) {
+        const segments = src.split('/');
+        let upLevels = 0;
+        for (const seg of segments) {
+          if (seg === '..') upLevels++;
+          else break;
+        }
+        const fileDir = relPath.replace(/[^/]+$/, '');
+        const fileDirDepth = fileDir.split('/').filter(Boolean).length;
+        if (upLevels <= fileDirDepth) {
+          survivingUserImports[idx] = `import ${info.quote}${src}${info.quote};`;
+          survivingImportInfos[idx] = { ...info, namedParts: [], defaultPart: '', isSideEffect: true };
+          continue;
+        }
+      }
+      survivingUserImports.splice(idx, 1);
+      survivingImportInfos.splice(idx, 1);
+      continue;
+    }
+
+    if (usedNamed.length < info.namedParts.length) {
+      const namedStrs = usedNamed.map(np =>
+        np.imported !== np.local ? `${np.imported} as ${np.local}` : np.local
+      );
+      let importParts = '';
+      const dp = defaultUsed ? info.defaultPart : '';
+      if (namedStrs.length > 0) {
+        importParts = dp
+          ? `${dp}, { ${namedStrs.join(', ')} }`
+          : `{ ${namedStrs.join(', ')} }`;
+      } else if (dp) {
+        importParts = dp;
+      }
+      if (importParts) {
+        survivingUserImports[idx] = `import ${importParts} from ${info.quote}${info.source}${info.quote};`;
+        survivingImportInfos[idx] = { ...info, namedParts: usedNamed, defaultPart: dp };
+      } else {
+        survivingUserImports.splice(idx, 1);
+        survivingImportInfos.splice(idx, 1);
+      }
+    }
+  }
+}
+
+/** Build preamble, insert .s() calls, apply migrations, strip TS types. */
+function assembleOutput(ctx: RewriteContext): string {
+  const { s, source, neededImports, survivingUserImports, jsxResult,
+    inlineHoistedDeclarations, qrlDecls, sCalls, migrationDecisions,
+    moduleLevelDecls, jsxOptions, transpileTs } = ctx;
+
+  const importStatements = Array.from(neededImports.entries()).map(
     ([symbol, src]) => `import { ${symbol} } from "${src}";`,
   );
 
-  // -----------------------------------------------------------------------
-  // Step 5e: Filter surviving user imports to remove unused specifiers.
-  // After extraction, some imported identifiers are only used inside segment
-  // bodies and are no longer referenced in the parent module body.
-  // The SWC optimizer strips these; we must do the same.
-  // -----------------------------------------------------------------------
-  if (survivingUserImports.length > 0 && survivingImportInfos.length > 0) {
-    // Get the current body text (after all magic-string edits)
-    const bodyText = s.toString();
-    // Also include QRL declarations and .s() calls in the reference check,
-    // since they may reference identifiers from surviving imports
-    const allPreambleText = [...qrlDecls, ...sCalls, ...inlineHoistedDeclarations].join('\n');
-    const fullRefText = bodyText + '\n' + allPreambleText;
-
-    for (let idx = survivingUserImports.length - 1; idx >= 0; idx--) {
-      const info = survivingImportInfos[idx];
-      // Never filter side-effect imports, namespace imports, or preserveAll imports
-      // (preserveAll imports are kept intact per minify:'none' behavior)
-      if (info.isSideEffect || info.nsPart || info.preservedAll) continue;
-
-      // Check default import
-      let defaultUsed = false;
-      if (info.defaultPart) {
-        const re = new RegExp(`\\b${info.defaultPart}\\b`);
-        defaultUsed = re.test(fullRefText);
-      }
-
-      // Check each named specifier
-      const usedNamed: { local: string; imported: string }[] = [];
-      for (const np of info.namedParts) {
-        const re = new RegExp(`\\b${np.local}\\b`);
-        if (re.test(fullRefText)) {
-          usedNamed.push(np);
-        }
-      }
-
-      // If nothing is used, either convert to side-effect import or remove
-      if (!defaultUsed && usedNamed.length === 0 && !info.nsPart) {
-        // SWC behavior for inline strategy: relative imports that resolve within
-        // srcDir are kept as bare side-effect imports (the segment bodies are still
-        // in the same module, so imports' side effects matter).
-        // For segment strategy: all unused imports are removed (segments are in
-        // separate files and will have their own imports).
-        const src = info.source;
-        const hasStripping = !!(inlineOptions?.stripCtxName?.length || inlineOptions?.stripEventHandlers);
-        if (isInline && hasStripping && src.startsWith('.')) {
-          // Count how many levels up the import goes
-          const segments = src.split('/');
-          let upLevels = 0;
-          for (const seg of segments) {
-            if (seg === '..') upLevels++;
-            else break;
-          }
-          // Count file's directory depth within srcDir
-          const fileDir = relPath.replace(/[^/]+$/, ''); // strip filename
-          const fileDirDepth = fileDir.split('/').filter(Boolean).length;
-          if (upLevels <= fileDirDepth) {
-            // Resolves within srcDir: convert to side-effect import
-            survivingUserImports[idx] = `import ${info.quote}${src}${info.quote};`;
-            survivingImportInfos[idx] = { ...info, namedParts: [], defaultPart: '', isSideEffect: true };
-            continue;
-          }
-        }
-        // External, escapes srcDir, or segment strategy: remove entirely
-        survivingUserImports.splice(idx, 1);
-        survivingImportInfos.splice(idx, 1);
-        continue;
-      }
-
-      // If some named specifiers were dropped, rebuild the import
-      if (usedNamed.length < info.namedParts.length) {
-        const namedStrs = usedNamed.map(np =>
-          np.imported !== np.local ? `${np.imported} as ${np.local}` : np.local
-        );
-        let importParts = '';
-        const dp = defaultUsed ? info.defaultPart : '';
-        if (namedStrs.length > 0) {
-          importParts = dp
-            ? `${dp}, { ${namedStrs.join(', ')} }`
-            : `{ ${namedStrs.join(', ')} }`;
-        } else if (dp) {
-          importParts = dp;
-        }
-        if (importParts) {
-          survivingUserImports[idx] = `import ${importParts} from ${info.quote}${info.source}${info.quote};`;
-          survivingImportInfos[idx] = { ...info, namedParts: usedNamed, defaultPart: dp };
-        } else {
-          survivingUserImports.splice(idx, 1);
-          survivingImportInfos.splice(idx, 1);
-        }
-      }
-    }
-  }
-
-  // -----------------------------------------------------------------------
-  // Step 6: Assemble final output
-  // -----------------------------------------------------------------------
-  // The modified body (with import rewrites and call rewrites) already comes from s.toString()
-  // We need to prepend: imports + // + QRL decls + // + .s() calls (if inline)
-
   const preamble: string[] = [];
-  if (importStatements.length > 0) {
-    preamble.push(...importStatements);
-  }
-  // Add surviving user imports after optimizer imports (matching Rust ordering)
-  if (survivingUserImports.length > 0) {
-    preamble.push(...survivingUserImports);
-  }
-  // Add hoisted signal declarations (_hf0, _hf0_str, etc.) BEFORE QRL declarations.
-  // Rust optimizer places signal hoists between first // separator and QRL declarations.
+  if (importStatements.length > 0) preamble.push(...importStatements);
+  if (survivingUserImports.length > 0) preamble.push(...survivingUserImports);
+
+  // Signal hoists go between first // separator and QRL declarations
   const allHoistedDecls: string[] = [];
   if (jsxResult && jsxResult.hoistedDeclarations.length > 0) {
     allHoistedDecls.push(...jsxResult.hoistedDeclarations);
@@ -2888,29 +2637,16 @@ export function rewriteParentModule(
     preamble.push('//');
     preamble.push(...qrlDecls);
   }
-  // For inline strategy, .s() calls go AFTER the body declarations but BEFORE exports.
-  // SWC interleaves .s() calls with the body -- placing them after declarations they
-  // reference (like FOO_MAPPING) but before the component export.
-  // We approximate this by appending .s() calls after the body text rather than
-  // prepending them with the preamble.
   if (sCalls.length === 0) {
     preamble.push('//');
   }
 
   s.prepend(preamble.join('\n') + '\n');
 
-  // .s() calls are injected into finalCode below (Step 6f) after all MagicString
-  // operations complete, because they need to be placed between body declarations
-  // and the final exports (matching SWC ordering).
-
-  // -----------------------------------------------------------------------
-  // Step 6b: _auto_ exports (module-level migration)
-  // -----------------------------------------------------------------------
+  // _auto_ exports for module-level migration
   if (migrationDecisions) {
     for (const decision of migrationDecisions) {
       if (decision.action === 'reexport') {
-        // Skip _auto_ re-export for variables that are already exported --
-        // they can be imported directly by their original name from the parent module
         const decl = moduleLevelDecls?.find(d => d.name === decision.varName);
         if (decl?.isExported) continue;
         s.append(`\nexport { ${decision.varName} as _auto_${decision.varName} };`);
@@ -2918,12 +2654,8 @@ export function rewriteParentModule(
     }
   }
 
-  // -----------------------------------------------------------------------
-  // Step 6c: Remove migrated (moved) declarations from parent
-  // -----------------------------------------------------------------------
+  // Remove migrated (moved) declarations from parent
   if (migrationDecisions && moduleLevelDecls) {
-    // Track which ranges we've already removed to avoid double-removal
-    // (multiple bindings from the same declaration)
     const removedRanges = new Set<string>();
     for (const decision of migrationDecisions) {
       if (decision.action !== 'move') continue;
@@ -2932,29 +2664,20 @@ export function rewriteParentModule(
       const rangeKey = `${decl.declStart}:${decl.declEnd}`;
       if (removedRanges.has(rangeKey)) continue;
       removedRanges.add(rangeKey);
-      // Remove the declaration text including trailing newline
       let end = decl.declEnd;
       if (end < source.length && source[end] === '\n') end++;
       s.remove(decl.declStart, end);
     }
   }
 
-  // -----------------------------------------------------------------------
-  // Step 6f: Insert .s() calls for inline strategy
-  // SWC places .s() calls after body declarations but before exports.
-  // We insert them just before the first export line in the body text.
-  // -----------------------------------------------------------------------
+  // Insert .s() calls just before the final QRL export
   let finalCode = s.toString();
   if (sCalls.length > 0) {
     const lines = finalCode.split('\n');
-    // Find the last export line that contains a componentQrl/serverQrl/routeQrl reference
-    // or is an 'export default'. This is the "component export" line.
-    // SWC places .s() calls just before this final export.
     let insertIdx = -1;
     for (let i = lines.length - 1; i >= 0; i--) {
       const trimmed = lines[i].trimStart();
       if (trimmed.startsWith('export default ') || trimmed.startsWith('export const ') || trimmed.startsWith('export {')) {
-        // Check if this is a component/QRL export (contains componentQrl, serverQrl, etc.)
         if (trimmed.includes('Qrl(') || trimmed.includes('export default ')) {
           insertIdx = i;
           break;
@@ -2964,18 +2687,13 @@ export function rewriteParentModule(
     if (insertIdx >= 0) {
       lines.splice(insertIdx, 0, ...sCalls);
     } else {
-      // No component export found -- append at end
       lines.push(...sCalls);
     }
     finalCode = lines.join('\n');
   }
 
-  // -----------------------------------------------------------------------
-  // Step 7: TS type stripping (final step, after all magic-string ops)
-  // -----------------------------------------------------------------------
+  // TS type stripping
   if (transpileTs) {
-    // When transpileJsx is false (jsxOptions is undefined), use jsx:'preserve'
-    // so oxc-transform strips TypeScript types but leaves JSX syntax intact.
     const tsStripOptions: Record<string, any> = { typescript: { onlyRemoveTypeImports: false } };
     if (!jsxOptions?.enableJsx) {
       tsStripOptions.jsx = 'preserve';
@@ -2983,12 +2701,7 @@ export function rewriteParentModule(
     const stripped = oxcTransformSync('output.tsx', finalCode, tsStripOptions);
     if (stripped.code) {
       finalCode = stripped.code;
-      // oxc-transform normalizes /*#__PURE__*/ to /* @__PURE__ */ but the Rust optimizer
-      // uses the compact form. Convert back to match SWC output.
       finalCode = finalCode.replace(/\/\* @__PURE__ \*\//g, '/*#__PURE__*/');
-      // oxc-transform produces `let` for exported enum IIFEs, but Rust optimizer uses `var`.
-      // Post-process: `let Thing = function(Thing)` -> `var Thing = function(Thing)`
-      // Also handles: `export let Thing = ...` -> `export var Thing = ...`
       finalCode = finalCode.replace(
         /\b((?:export\s+)?)let\s+(\w+)\s*=\s*(\/\*[^*]*\*\/\s*)?function\s*\(\2\)/g,
         '$1var $2 = $3function($2)',
@@ -2996,9 +2709,5 @@ export function rewriteParentModule(
     }
   }
 
-  return {
-    code: finalCode,
-    extractions,
-    jsxKeyCounterValue: jsxKeyCounterValue || undefined,
-  };
+  return finalCode;
 }

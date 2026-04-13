@@ -3,7 +3,6 @@ import { parseSync } from 'oxc-parser';
 import {
   collectImports,
   collectCustomInlined,
-  getCalleeName,
   isMarkerCall,
   isBare$,
   isSyncMarker,

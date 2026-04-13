@@ -1,35 +1,14 @@
 /**
  * Diagnostic emission and suppression for the Qwik optimizer.
  *
- * Provides functions to create diagnostic objects (C02, C03, C05,
- * preventdefault-passive-check) and to parse/apply @qwik-disable-next-line
- * suppression directives.
- *
- * Diagnostics use the snapshot format: category (not severity), scope,
- * suggestions, and flat highlight spans.
- *
- * Implements: DIAG-01, DIAG-02, DIAG-03, DIAG-04
+ * Provides functions to create diagnostic objects and to parse/apply
+ * @qwik-disable-next-line suppression directives.
  */
 
 import type { Diagnostic, DiagnosticHighlightFlat } from './types.js';
 
-// ---------------------------------------------------------------------------
-// C02: FunctionReference
-// ---------------------------------------------------------------------------
-
-/**
- * Emit a C02 FunctionReference diagnostic.
- *
- * Produced when a function or class declaration is captured across a $()
- * boundary. The snapshot format uses "it's a function" for both functions
- * and classes (verified from snapshot corpus).
- *
- * @param identName - The captured identifier name
- * @param file - The source file path
- * @param isClass - Whether the declaration is a class (message still says "function" per snapshots)
- * @returns Diagnostic object in snapshot format
- */
-export function emitC02(identName: string, file: string, isClass: boolean): Diagnostic {
+/** C02: captured function/class reference across a $() boundary. */
+export function emitC02(identName: string, file: string, _isClass: boolean): Diagnostic {
   return {
     category: 'error',
     code: 'C02',
@@ -41,21 +20,7 @@ export function emitC02(identName: string, file: string, isClass: boolean): Diag
   };
 }
 
-// ---------------------------------------------------------------------------
-// C03: CanNotCapture
-// ---------------------------------------------------------------------------
-
-/**
- * Emit a C03 CanNotCapture diagnostic.
- *
- * Produced when a $() argument is not a function expression (arrow or
- * function) but captures local identifiers.
- *
- * @param identNames - The captured local identifier names
- * @param file - The source file path
- * @param highlightSpan - Optional source span for highlighting
- * @returns Diagnostic object in snapshot format
- */
+/** C03: $() argument is not a function but captures local identifiers. */
 export function emitC03(
   identNames: string[],
   file: string,
@@ -72,21 +37,7 @@ export function emitC03(
   };
 }
 
-// ---------------------------------------------------------------------------
-// C05: MissingQrlImplementation
-// ---------------------------------------------------------------------------
-
-/**
- * Emit a C05 MissingQrlImplementation diagnostic.
- *
- * Produced when foo$ is called but fooQrl is not exported in the same file.
- *
- * @param calleeName - The $-suffixed function name (e.g., "useMemo$")
- * @param qrlName - The expected Qrl export name (e.g., "useMemoQrl")
- * @param file - The source file path
- * @param highlightSpan - Optional source span for highlighting
- * @returns Diagnostic object in snapshot format
- */
+/** C05: foo$ called but fooQrl not exported in the same file. */
 export function emitC05(
   calleeName: string,
   qrlName: string,
@@ -104,21 +55,7 @@ export function emitC05(
   };
 }
 
-// ---------------------------------------------------------------------------
-// preventdefault-passive-check
-// ---------------------------------------------------------------------------
-
-/**
- * Emit a preventdefault-passive-check warning diagnostic.
- *
- * Produced when both passive:event and preventdefault:event exist on
- * the same JSX element.
- *
- * @param eventName - The event name (e.g., "click", "scroll")
- * @param file - The source file path
- * @param highlightSpan - Optional source span for highlighting
- * @returns Diagnostic object in snapshot format
- */
+/** Warning: preventdefault:event has no effect when passive:event is also set. */
 export function emitPreventdefaultPassiveCheck(
   eventName: string,
   file: string,
@@ -135,75 +72,39 @@ export function emitPreventdefaultPassiveCheck(
   };
 }
 
-// ---------------------------------------------------------------------------
-// @qwik-disable-next-line directive parsing
-// ---------------------------------------------------------------------------
+const DIRECTIVE_MARKER = '@qwik-disable-next-line';
+const TRAILING_COMMENT_CLOSER = /\*\/\s*\}?\s*$/;
 
 /**
  * Parse @qwik-disable-next-line directives from source code.
- *
- * Scans each line for comments containing `@qwik-disable-next-line` followed
- * by comma-separated diagnostic codes. Returns a map where keys are line
- * numbers (1-based) of the NEXT line (the line being suppressed) and values
- * are sets of suppressed codes.
- *
- * Handles both standard JS comments and JSX comment forms:
- * - `/* @qwik-disable-next-line C05 * /`
- * - `{/* @qwik-disable-next-line C05 * /}`
- *
- * @param sourceCode - The full source code text
- * @returns Map of lineNumber -> Set of suppressed codes
+ * Returns a map of 1-based line numbers to sets of suppressed diagnostic codes.
  */
 export function parseDisableDirectives(sourceCode: string): Map<number, Set<string>> {
   const directives = new Map<number, Set<string>>();
   const lines = sourceCode.split('\n');
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const idx = line.indexOf('@qwik-disable-next-line');
+    const idx = lines[i].indexOf(DIRECTIVE_MARKER);
     if (idx === -1) continue;
 
-    // Extract everything after the directive marker
-    const afterMarker = line.slice(idx + '@qwik-disable-next-line'.length).trim();
-
-    // Strip trailing comment closers: */ or */}
-    const cleaned = afterMarker
-      .replace(/\*\/\s*\}?\s*$/, '')
-      .trim();
-
+    const afterMarker = lines[i].slice(idx + DIRECTIVE_MARKER.length).trim();
+    const cleaned = afterMarker.replace(TRAILING_COMMENT_CLOSER, '').trim();
     if (!cleaned) continue;
 
-    // Parse comma-separated codes
     const codes = cleaned.split(',').map((c) => c.trim()).filter(Boolean);
     if (codes.length === 0) continue;
 
-    // Directive on line i (0-based) suppresses line i+1 (0-based) = line i+2 (1-based)
-    const suppressedLine = i + 2; // 1-based line number of the NEXT line
+    // Line i (0-based) suppresses line i+2 (1-based)
+    const suppressedLine = i + 2;
     const existing = directives.get(suppressedLine) ?? new Set<string>();
-    for (const code of codes) {
-      existing.add(code);
-    }
+    for (const code of codes) existing.add(code);
     directives.set(suppressedLine, existing);
   }
 
   return directives;
 }
 
-// ---------------------------------------------------------------------------
-// Diagnostic suppression filtering
-// ---------------------------------------------------------------------------
-
-/**
- * Filter out diagnostics that are suppressed by @qwik-disable-next-line directives.
- *
- * A diagnostic is suppressed if:
- * 1. It has highlights with a startLine value
- * 2. The directive map has a matching code for that line
- *
- * @param diagnostics - Array of diagnostics to filter
- * @param directives - Map from parseDisableDirectives
- * @returns Filtered array with suppressed diagnostics removed
- */
+/** Filter out diagnostics suppressed by @qwik-disable-next-line directives. */
 export function filterSuppressedDiagnostics(
   diagnostics: Diagnostic[],
   directives: Map<number, Set<string>>,
@@ -211,87 +112,56 @@ export function filterSuppressedDiagnostics(
   if (directives.size === 0) return diagnostics;
 
   return diagnostics.filter((diag) => {
-    // Get the line number from highlights
-    if (!diag.highlights || diag.highlights.length === 0) {
-      return true; // No line info, cannot suppress
-    }
+    if (!diag.highlights || diag.highlights.length === 0) return true;
 
-    const startLine = diag.highlights[0].startLine;
-    const suppressedCodes = directives.get(startLine);
-    if (!suppressedCodes) return true;
-
-    return !suppressedCodes.has(diag.code);
+    const suppressedCodes = directives.get(diag.highlights[0].startLine);
+    return !suppressedCodes?.has(diag.code);
   });
 }
 
-// ---------------------------------------------------------------------------
-// Declaration type classification (for C02 detection)
-// ---------------------------------------------------------------------------
+type DeclKind = 'var' | 'fn' | 'class';
 
-/**
- * Classify whether an identifier was declared as a function, class, or variable.
- *
- * Walks the program AST to find the declaration node for the given identifier
- * name and classifies it.
- *
- * @param program - The parsed AST Program node
- * @param identName - The identifier name to classify
- * @returns 'fn' for FunctionDeclaration, 'class' for ClassDeclaration, 'var' for everything else
- */
-export function classifyDeclarationType(
-  program: any,
-  identName: string,
-): 'var' | 'fn' | 'class' {
-  // Walk top-level and nested function body statements
+/** Classify whether an identifier was declared as a function, class, or variable. */
+export function classifyDeclarationType(program: any, identName: string): DeclKind {
   return classifyInStatements(program.body, identName);
 }
 
-function classifyInStatements(stmts: any[], identName: string): 'var' | 'fn' | 'class' {
+function classifyInStatements(stmts: any[], identName: string): DeclKind {
   for (const stmt of stmts) {
-    if (stmt.type === 'FunctionDeclaration' && stmt.id?.name === identName) {
-      return 'fn';
-    }
-    if (stmt.type === 'ClassDeclaration' && stmt.id?.name === identName) {
-      return 'class';
-    }
-    // Check inside function/arrow bodies (for closures like component$(() => { ... }))
+    if (stmt.type === 'FunctionDeclaration' && stmt.id?.name === identName) return 'fn';
+    if (stmt.type === 'ClassDeclaration' && stmt.id?.name === identName) return 'class';
+
+    let result: DeclKind = 'var';
+
     if (stmt.type === 'ExpressionStatement' && stmt.expression) {
-      const result = classifyInExpression(stmt.expression, identName);
-      if (result !== 'var') return result;
-    }
-    if (stmt.type === 'ReturnStatement' && stmt.argument) {
-      const result = classifyInExpression(stmt.argument, identName);
-      if (result !== 'var') return result;
-    }
-    if (stmt.type === 'VariableDeclaration') {
+      result = classifyInExpression(stmt.expression, identName);
+    } else if (stmt.type === 'ReturnStatement' && stmt.argument) {
+      result = classifyInExpression(stmt.argument, identName);
+    } else if (stmt.type === 'VariableDeclaration') {
       for (const decl of stmt.declarations ?? []) {
         if (decl.init) {
-          const result = classifyInExpression(decl.init, identName);
-          if (result !== 'var') return result;
+          result = classifyInExpression(decl.init, identName);
+          if (result !== 'var') break;
         }
       }
+    } else if (stmt.type === 'ExportNamedDeclaration' && stmt.declaration) {
+      result = classifyInStatements([stmt.declaration], identName);
+    } else if (stmt.type === 'ExportDefaultDeclaration' && stmt.declaration) {
+      result = classifyInExpression(stmt.declaration, identName);
     }
-    if (stmt.type === 'ExportNamedDeclaration' && stmt.declaration) {
-      const result = classifyInStatements([stmt.declaration], identName);
-      if (result !== 'var') return result;
-    }
-    if (stmt.type === 'ExportDefaultDeclaration' && stmt.declaration) {
-      const result = classifyInExpression(stmt.declaration, identName);
-      if (result !== 'var') return result;
-    }
+
+    if (result !== 'var') return result;
   }
   return 'var';
 }
 
-function classifyInExpression(node: any, identName: string): 'var' | 'fn' | 'class' {
+function classifyInExpression(node: any, identName: string): DeclKind {
   if (!node) return 'var';
 
-  // Unwrap parenthesized expressions
   if (node.type === 'ParenthesizedExpression') {
     return classifyInExpression(node.expression, identName);
   }
 
-  // Arrow function or function expression body
   if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression') {
     if (node.body?.type === 'BlockStatement') {
       return classifyInStatements(node.body.body ?? [], identName);
@@ -299,7 +169,6 @@ function classifyInExpression(node: any, identName: string): 'var' | 'fn' | 'cla
     return classifyInExpression(node.body, identName);
   }
 
-  // Call expression -- recurse into arguments
   if (node.type === 'CallExpression') {
     for (const arg of node.arguments ?? []) {
       const result = classifyInExpression(arg, identName);

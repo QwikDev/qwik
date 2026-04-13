@@ -1,28 +1,50 @@
 /**
- * Signal analysis module for the Qwik optimizer.
+ * Signal analysis for the Qwik optimizer.
  *
  * Detects signal/store expressions in JSX props and generates appropriate
  * wrapping (_wrapProp) or hoisted function signal (_fnSignal) representations.
- *
- * Implements: SIG-01, SIG-02, SIG-03, SIG-04, SIG-05
  */
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 export type SignalExprResult =
   | { type: 'none' }
   | { type: 'wrapProp'; code: string; isStoreField?: boolean }
   | { type: 'fnSignal'; deps: string[]; hoistedFn: string; hoistedStr: string; isObjectExpr?: boolean };
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+// --- AST traversal helpers ---------------------------------------------------
+
+/** Position-metadata keys to skip when recursing into AST children. */
+const POSITION_KEYS = new Set(['type', 'start', 'end', 'loc']);
 
 /**
- * Detect `x.value` MemberExpression pattern (signal value access).
+ * Walk all AST child nodes of `node`, calling `visitor` on each.
+ * Skips position/type metadata keys automatically.
  */
+function forEachChildNode(node: any, visitor: (child: any, key: string, parent: any) => void): void {
+  for (const key of Object.keys(node)) {
+    if (POSITION_KEYS.has(key)) continue;
+    const val = node[key];
+    if (val && typeof val === 'object') {
+      if (Array.isArray(val)) {
+        for (const item of val) {
+          if (item && typeof item.type === 'string') visitor(item, key, node);
+        }
+      } else if (typeof val.type === 'string') {
+        visitor(val, key, node);
+      }
+    }
+  }
+}
+
+// --- Node type detection -----------------------------------------------------
+
+const GLOBAL_NAMES = new Set([
+  'window', 'document', 'globalThis', 'navigator', 'location', 'history',
+  'screen', 'localStorage', 'sessionStorage', 'console', 'Math', 'JSON',
+  'Date', 'Array', 'Object', 'String', 'Number', 'Boolean', 'undefined',
+  'NaN', 'Infinity',
+]);
+
+/** Detect `x.value` MemberExpression pattern (signal value access). */
 export function isSignalValueAccess(node: any): boolean {
   return (
     node != null &&
@@ -34,10 +56,8 @@ export function isSignalValueAccess(node: any): boolean {
 }
 
 /**
- * Detect `props.field` or `store.field` patterns where the object is a local
- * variable (not imported). Only matches single-level member access.
- *
- * Excludes `.value` access (that's signal, not store field).
+ * Detect `props.field` or `store.field` where the object is a local variable.
+ * Only matches single-level member access. Excludes `.value` (that's signal).
  */
 export function isStoreFieldAccess(
   node: any,
@@ -45,35 +65,24 @@ export function isStoreFieldAccess(
   localNames?: Set<string>,
 ): boolean {
   if (node == null || node.type !== 'MemberExpression') return false;
-
-  // Must be a direct Identifier object (single-level: props.x, not props.a.b)
   if (node.object?.type !== 'Identifier') return false;
 
   const objName = node.object.name;
-
-  // Must not be an imported name
   if (importedNames.has(objName)) return false;
-
-  // Must not be a well-known global
   if (GLOBAL_NAMES.has(objName)) return false;
 
-  // Must be a known local identifier when localNames is provided.
-  // Unknown globals (not imported, not in GLOBAL_NAMES, not in localNames) should
-  // NOT be treated as store fields — SWC skips signal analysis for them.
+  // Unknown globals (not imported, not in GLOBAL_NAMES, not local) are skipped
+  // to match SWC behavior of only analyzing known-scope identifiers
   if (localNames && !localNames.has(objName)) return false;
 
-  // Get property name
   const propName = getPropertyName(node);
-  if (propName == null) return false;
-
-  // Exclude .value access (that's signal, not store field)
-  if (propName === 'value') return false;
+  if (propName == null || propName === 'value') return false;
 
   return true;
 }
 
 /**
- * Extract property name from a MemberExpression node.
+ * Extract property name from a MemberExpression.
  * Handles both dot access (x.foo) and computed string access (x['foo']).
  */
 function getPropertyName(node: any): string | null {
@@ -91,44 +100,9 @@ function getPropertyName(node: any): string | null {
   return null;
 }
 
-/** Well-known global names that indicate mutable runtime context. */
-const GLOBAL_NAMES = new Set([
-  'window',
-  'document',
-  'globalThis',
-  'navigator',
-  'location',
-  'history',
-  'screen',
-  'localStorage',
-  'sessionStorage',
-  'console',
-  'Math',
-  'JSON',
-  'Date',
-  'Array',
-  'Object',
-  'String',
-  'Number',
-  'Boolean',
-  'undefined',
-  'NaN',
-  'Infinity',
-]);
+// --- Expression analysis -----------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Expression analysis utilities
-// ---------------------------------------------------------------------------
-
-/**
- * Check if an expression contains a function call whose callee is NOT
- * an imported name (i.e., an "unknown" call).
- */
-/**
- * Check if a node tree contains JSX elements or fragments.
- * Expressions containing JSX cannot be wrapped in _fnSignal because
- * the hoisted function body would contain JSX which can't be serialized.
- */
+/** Check if the expression tree contains JSX elements or fragments. */
 function containsJsx(node: any): boolean {
   if (node == null || typeof node !== 'object') return false;
   if (Array.isArray(node)) return node.some(containsJsx);
@@ -140,159 +114,81 @@ function containsJsx(node: any): boolean {
   return false;
 }
 
+/**
+ * Check if an expression contains a standalone function call whose callee is
+ * NOT an imported name. Method calls (obj.method()) are allowed in signal
+ * expressions -- only standalone fn() calls block wrapping.
+ */
 function containsUnknownCall(node: any, importedNames: Set<string>): boolean {
   if (node == null) return false;
 
   if (node.type === 'CallExpression') {
-    // Method calls (obj.method()) are allowed in signal expressions -- SWC
-    // preserves them inside _fnSignal wrappers (e.g., signal.formData?.get('x')).
-    // Only standalone function calls (fn()) are "unknown calls" that prevent wrapping.
     if (node.callee?.type !== 'MemberExpression' && node.callee?.type !== 'ChainExpression') {
       const calleeName = getCalleeIdentifierName(node.callee);
-      // If callee is not an imported name, it's an unknown call
       if (calleeName == null || !importedNames.has(calleeName)) {
         return true;
       }
     }
   }
 
-  // Tagged template expressions are effectively function calls (e.g., $localize`text`)
-  // SWC treats them as unknown calls and skips signal wrapping.
-  if (node.type === 'TaggedTemplateExpression') {
-    return true;
-  }
+  // Tagged template expressions are effectively function calls
+  if (node.type === 'TaggedTemplateExpression') return true;
 
-  // Recurse into child nodes
-  for (const key of Object.keys(node)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'loc')
-      continue;
-    const val = node[key];
-    if (val && typeof val === 'object') {
-      if (Array.isArray(val)) {
-        for (const item of val) {
-          if (item && typeof item.type === 'string') {
-            if (containsUnknownCall(item, importedNames)) return true;
-          }
-        }
-      } else if (typeof val.type === 'string') {
-        if (containsUnknownCall(val, importedNames)) return true;
-      }
-    }
-  }
-
-  return false;
+  let found = false;
+  forEachChildNode(node, (child) => {
+    if (!found && containsUnknownCall(child, importedNames)) found = true;
+  });
+  return found;
 }
 
-/**
- * Get the identifier name of a callee expression.
- * Returns the name for simple Identifier callees, null otherwise.
- */
 function getCalleeIdentifierName(callee: any): string | null {
   if (callee?.type === 'Identifier') return callee.name;
   return null;
 }
 
-/**
- * Check if the expression references any imported name directly
- * (not through member access).
- */
-function containsImportedReference(
-  node: any,
-  importedNames: Set<string>,
-): boolean {
+/** Check if expression references any imported name directly (not through member access). */
+function containsImportedReference(node: any, importedNames: Set<string>): boolean {
   if (node == null) return false;
   if (node.type === 'Identifier' && importedNames.has(node.name)) return true;
 
-  for (const key of Object.keys(node)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'loc')
-      continue;
-    const val = node[key];
-    if (val && typeof val === 'object') {
-      if (Array.isArray(val)) {
-        for (const item of val) {
-          if (item && typeof item.type === 'string') {
-            if (containsImportedReference(item, importedNames)) return true;
-          }
-        }
-      } else if (typeof val.type === 'string') {
-        if (containsImportedReference(val, importedNames)) return true;
-      }
-    }
-  }
-  return false;
+  let found = false;
+  forEachChildNode(node, (child) => {
+    if (!found && containsImportedReference(child, importedNames)) found = true;
+  });
+  return found;
 }
 
-/**
- * Count all signal.value accesses in an expression tree.
- */
-function countSignalValueAccesses(node: any): number {
-  if (node == null) return 0;
-  let count = 0;
-  if (isSignalValueAccess(node)) count++;
+// --- Reactive root detection -------------------------------------------------
 
-  for (const key of Object.keys(node)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'loc')
-      continue;
-    const val = node[key];
-    if (val && typeof val === 'object') {
-      if (Array.isArray(val)) {
-        for (const item of val) {
-          if (item && typeof item.type === 'string') {
-            count += countSignalValueAccesses(item);
-          }
-        }
-      } else if (typeof val.type === 'string') {
-        count += countSignalValueAccesses(val);
-      }
-    }
-  }
-  return count;
-}
-
-// ---------------------------------------------------------------------------
-// Reactive root detection
-// ---------------------------------------------------------------------------
-
-/**
- * Get the root identifier of a member expression chain.
- * For `store.address.city.name`, returns `store`.
- */
+/** Get the root identifier name of a member expression chain. */
 function getMemberChainRoot(node: any): string | null {
   if (node.type === 'Identifier') return node.name;
   if (node.type === 'MemberExpression') return getMemberChainRoot(node.object);
   return null;
 }
 
-/**
- * Get the depth of a member expression chain.
- * `store.field` = 1, `store.address.city` = 2, `store.address.city.name` = 3
- */
+/** Get the depth of a member chain. `store.field` = 1, `store.a.b` = 2. */
 function getMemberChainDepth(node: any): number {
   if (node.type !== 'MemberExpression') return 0;
   return 1 + getMemberChainDepth(node.object);
 }
 
-/**
- * Check if a MemberExpression is a deep store access (depth >= 2)
- * on a local (non-imported, non-global) identifier.
- */
+/** Check if a MemberExpression is a deep store access (depth >= 2) on a local identifier. */
 function isDeepStoreAccess(node: any, importedNames: Set<string>, localNames?: Set<string>): boolean {
   if (node.type !== 'MemberExpression') return false;
-  const depth = getMemberChainDepth(node);
-  if (depth < 2) return false;
+  if (getMemberChainDepth(node) < 2) return false;
+
   const root = getMemberChainRoot(node);
   if (root == null) return false;
   if (importedNames.has(root)) return false;
   if (GLOBAL_NAMES.has(root)) return false;
-  // Must be a known local when localNames is provided
   if (localNames && !localNames.has(root)) return false;
   return true;
 }
 
 /**
  * Collect all non-imported identifier names from an expression.
- * Used when a `.value` access has a complex object like `(a || b).value`
- * to find all signal references within the expression.
+ * Used for complex `.value` objects like `(a || b).value`.
  */
 function collectIdentifiersFromExpr(
   node: any,
@@ -308,19 +204,9 @@ function collectIdentifiersFromExpr(
     }
     return;
   }
-  for (const key of Object.keys(node)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'loc') continue;
-    const val = node[key];
-    if (val && typeof val === 'object') {
-      if (Array.isArray(val)) {
-        for (const item of val) {
-          if (item && typeof item.type === 'string') collectIdentifiersFromExpr(item, importedNames, seen, roots);
-        }
-      } else if (typeof val.type === 'string') {
-        collectIdentifiersFromExpr(val, importedNames, seen, roots);
-      }
-    }
-  }
+  forEachChildNode(node, (child) => {
+    collectIdentifiersFromExpr(child, importedNames, seen, roots);
+  });
 }
 
 /**
@@ -342,57 +228,30 @@ function collectReactiveRoots(
   function walk(n: any): void {
     if (n == null) return;
 
-    // signal.value access -> root is the object name
     if (isSignalValueAccess(n)) {
       const root = getMemberChainRoot(n.object);
       if (root != null) {
-        if (!seen.has(root)) {
-          seen.add(root);
-          roots.push(root);
-        }
-        return; // Don't recurse further into this node
+        if (!seen.has(root)) { seen.add(root); roots.push(root); }
+        return;
       }
-      // Complex expression like (a || b).value -- collect all non-imported
-      // identifiers from the object as reactive roots
+      // Complex expression like (a || b).value -- collect all identifiers
       collectIdentifiersFromExpr(n.object, importedNames, seen, roots);
       return;
     }
 
-    // Deep store access -> root is the chain root
     if (isDeepStoreAccess(n, importedNames, localNames)) {
       const root = getMemberChainRoot(n);
-      if (root != null && !seen.has(root)) {
-        seen.add(root);
-        roots.push(root);
-      }
-      return; // Don't recurse further
+      if (root != null && !seen.has(root)) { seen.add(root); roots.push(root); }
+      return;
     }
 
-    // Single-level store field access (props.field, store.field) -> root is object
     if (isStoreFieldAccess(n, importedNames, localNames)) {
       const root = getMemberChainRoot(n.object);
-      if (root != null && !seen.has(root)) {
-        seen.add(root);
-        roots.push(root);
-      }
-      return; // Don't recurse further
+      if (root != null && !seen.has(root)) { seen.add(root); roots.push(root); }
+      return;
     }
 
-    // Recurse into child nodes
-    for (const key of Object.keys(n)) {
-      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc')
-        continue;
-      const val = n[key];
-      if (val && typeof val === 'object') {
-        if (Array.isArray(val)) {
-          for (const item of val) {
-            if (item && typeof item.type === 'string') walk(item);
-          }
-        } else if (typeof val.type === 'string') {
-          walk(val);
-        }
-      }
-    }
+    forEachChildNode(n, (child) => walk(child));
   }
 
   walk(node);
@@ -403,18 +262,15 @@ function collectReactiveRoots(
  * Collect ALL dependency identifiers from an expression: reactive roots
  * (signal.value, store accesses) PLUS bare local identifiers.
  *
- * This is used after we've confirmed there are reactive roots -- bare
- * identifiers that are non-imported local variables also become deps
- * since _fnSignal needs to track all mutable values for re-evaluation.
+ * Used after confirming reactive roots exist -- bare local identifiers also
+ * become deps since _fnSignal needs to track all mutable values for re-evaluation.
  *
- * Returns unique dep names in order of first appearance.
+ * Returns unique dep names sorted alphabetically (matching SWC's compute_scoped_idents).
  */
 function collectAllDeps(
   node: any,
   importedNames: Set<string>,
 ): string[] {
-  // Collect reactive roots and bare identifiers separately.
-  // Reactive roots go first in the dep list (matching Rust optimizer ordering).
   const reactiveRoots: string[] = [];
   const bareIdents: string[] = [];
   const seen = new Set<string>();
@@ -422,51 +278,33 @@ function collectAllDeps(
   function walk(n: any): void {
     if (n == null) return;
 
-    // signal.value access -> reactive root
     if (isSignalValueAccess(n)) {
       const root = getMemberChainRoot(n.object);
-      if (root != null && !seen.has(root)) {
-        seen.add(root);
-        reactiveRoots.push(root);
-      }
+      if (root != null && !seen.has(root)) { seen.add(root); reactiveRoots.push(root); }
       return;
     }
 
-    // Deep store access -> reactive root
     if (isDeepStoreAccess(n, importedNames)) {
       const root = getMemberChainRoot(n);
-      if (root != null && !seen.has(root)) {
-        seen.add(root);
-        reactiveRoots.push(root);
-      }
+      if (root != null && !seen.has(root)) { seen.add(root); reactiveRoots.push(root); }
       return;
     }
 
-    // Single-level store field access -> reactive root
     if (isStoreFieldAccess(n, importedNames)) {
       const root = getMemberChainRoot(n.object);
-      if (root != null && !seen.has(root)) {
-        seen.add(root);
-        reactiveRoots.push(root);
-      }
+      if (root != null && !seen.has(root)) { seen.add(root); reactiveRoots.push(root); }
       return;
     }
 
-    // Bare local identifier (non-imported, non-global)
     if (n.type === 'Identifier' && !importedNames.has(n.name) && !GLOBAL_NAMES.has(n.name)) {
-      if (!seen.has(n.name)) {
-        seen.add(n.name);
-        bareIdents.push(n.name);
-      }
+      if (!seen.has(n.name)) { seen.add(n.name); bareIdents.push(n.name); }
       return;
     }
 
-    // Recurse into child nodes, but skip property keys in objects
     for (const key of Object.keys(n)) {
-      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc') continue;
-      // Skip the 'key' child of Property nodes (object literal keys aren't deps)
+      if (POSITION_KEYS.has(key)) continue;
+      // Object literal keys and non-computed member property names aren't deps
       if (key === 'key' && (n.type === 'Property' || n.type === 'ObjectProperty')) continue;
-      // Skip the 'property' child of MemberExpression (property names aren't deps)
       if (key === 'property' && (n.type === 'MemberExpression' || n.type === 'StaticMemberExpression') && !n.computed) continue;
       const val = n[key];
       if (val && typeof val === 'object') {
@@ -482,23 +320,17 @@ function collectAllDeps(
   }
 
   walk(node);
-  // SWC sorts scoped_idents alphabetically (compute_scoped_idents in transform.rs line 5071)
-  // Merge all deps and sort to match SWC behavior.
   const allDeps = [...reactiveRoots, ...bareIdents];
   allDeps.sort((a, b) => a.localeCompare(b));
   return allDeps;
 }
 
-// ---------------------------------------------------------------------------
-// fnSignal generation
-// ---------------------------------------------------------------------------
+// --- fnSignal generation -----------------------------------------------------
 
 /**
- * Generate the hoisted function body by replacing reactive root names
- * with pN parameters. Also generates the minimal-whitespace string.
- *
- * The function body preserves the original expression structure but
- * replaces root object names.
+ * Generate hoisted function body by replacing reactive root names with pN parameters.
+ * Returns both the full function (preserving original spacing) and a minimal-whitespace
+ * string representation (matching SWC's AST-reprinted output).
  */
 function generateFnSignal(
   exprNode: any,
@@ -510,18 +342,15 @@ function generateFnSignal(
     rootToParam.set(roots[i], `p${i}`);
   }
 
-  // Extract the expression source text
   const exprText = source.slice(exprNode.start, exprNode.end);
   const exprStart = exprNode.start;
 
-  // Collect all positions where root identifiers need to be replaced.
-  // We need to find root identifiers that are the base of reactive accesses.
   const replacements: Array<{ start: number; end: number; replacement: string }> = [];
 
-  function findRootReplacements(n: any, parentKey?: string, parentNode?: any): void {
+  function collectReplacements(n: any, parentKey?: string, parentNode?: any): void {
     if (n == null) return;
 
-    // For signal.value or deep store access, find the root identifier
+    // For signal.value or deep store access, replace the root identifier
     if (isSignalValueAccess(n) || isDeepStoreAccess(n, new Set())) {
       const rootId = findRootIdentifier(n);
       if (rootId && rootToParam.has(rootId.name)) {
@@ -532,10 +361,9 @@ function generateFnSignal(
         });
         return;
       }
-      // Complex object expression (e.g., (a || b).value) -- recurse into the object
-      // to find all identifier references that need parameterization
+      // Complex object expression (e.g., (a || b).value) -- recurse to find identifiers
       if (isSignalValueAccess(n) && !rootId) {
-        findRootReplacements(n.object);
+        collectReplacements(n.object);
         return;
       }
       return;
@@ -556,9 +384,7 @@ function generateFnSignal(
 
     // Bare identifier that is a dep -- replace with pN
     if (n.type === 'Identifier' && rootToParam.has(n.name)) {
-      // Skip property keys in object literals
       const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
-      // Skip property names in non-computed member expressions
       const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode.computed;
       if (!isPropertyKey && !isMemberProp) {
         replacements.push({
@@ -570,27 +396,13 @@ function generateFnSignal(
       return;
     }
 
-    for (const key of Object.keys(n)) {
-      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc')
-        continue;
-      const val = n[key];
-      if (val && typeof val === 'object') {
-        if (Array.isArray(val)) {
-          for (const item of val) {
-            if (item && typeof item.type === 'string') findRootReplacements(item, key, n);
-          }
-        } else if (typeof val.type === 'string') {
-          findRootReplacements(val, key, n);
-        }
-      }
-    }
+    forEachChildNode(n, (child, key, parent) => collectReplacements(child, key, parent));
   }
 
-  findRootReplacements(exprNode);
+  collectReplacements(exprNode);
 
-  // Sort replacements by position (ascending) and apply
+  // Apply replacements in source order
   replacements.sort((a, b) => a.start - b.start);
-
   let fnBody = '';
   let pos = 0;
   for (const r of replacements) {
@@ -600,70 +412,47 @@ function generateFnSignal(
   }
   fnBody += exprText.slice(pos);
 
-  // Generate params string
   const params = roots.map((_, i) => `p${i}`).join(',');
 
-  // Hoisted function: preserves original spacing in body
-  // Wrap object expressions in parens so arrow function returns object, not block
+  // Object expressions need wrapping parens so the arrow returns an object, not a block
   const needsParens = exprNode.type === 'ObjectExpression';
   const hoistedFn = needsParens
     ? `(${params})=>(${fnBody})`
     : `(${params})=>${fnBody}`;
 
-  // String representation: minimal whitespace, with string literals normalized
-  // to double quotes (matching Rust SWC optimizer behavior which re-serializes
-  // the AST, producing double-quoted strings).
+  // String representation: minimal whitespace, double-quoted strings (matching SWC)
   let strBody = stripTrailingCommas(normalizeStringQuotes(removeWhitespace(fnBody)));
-
-  // Strip balanced outer parentheses from strBody.
-  // SWC generates the str from AST reprinting which naturally omits unnecessary
-  // parenthesization. Our source-text approach preserves them, so strip here.
   strBody = stripOuterParens(strBody);
-
-  // Strip redundant parens around ternary condition: (cond)?cons:alt -> cond?cons:alt
-  // SWC's AST reprinting omits grouping parens that don't affect precedence.
   strBody = stripTernaryConditionParens(strBody);
 
-  // Determine quote style for string representation
-  // If the string body contains double quotes, use single quotes for wrapping
-  const hasDoubleQuotes = strBody.includes('"');
-  const hoistedStr = hasDoubleQuotes
+  const hoistedStr = strBody.includes('"')
     ? `'${strBody}'`
     : `"${strBody}"`;
 
   return { hoistedFn, hoistedStr };
 }
 
-/**
- * Find the root Identifier node at the base of a member chain.
- */
+/** Find the root Identifier node at the base of a member chain. */
 function findRootIdentifier(node: any): any | null {
   if (node.type === 'Identifier') return node;
   if (node.type === 'MemberExpression') return findRootIdentifier(node.object);
   return null;
 }
 
+// --- String normalization for hoisted string representation ------------------
+
 /**
  * Remove whitespace around operators for the minimal string representation.
- * Preserves whitespace inside string literals.
+ * Preserves whitespace inside string literals. Inserts a space only where
+ * adjacent tokens would merge (e.g., keyword boundaries like `in`, `instanceof`).
  */
 function removeWhitespace(text: string): string {
-  // Tokenize roughly: we need to preserve spaces around JS keywords like `in`,
-  // `instanceof`, `typeof`, `void`, `new`, `delete` etc. that would otherwise
-  // merge with adjacent identifiers. SWC re-prints from AST so keywords get
-  // proper spacing; we must match that behavior.
-  //
-  // Strategy: collect non-whitespace "tokens" (strings, template literals, and
-  // runs of non-whitespace chars), then join them -- inserting a single space
-  // only when two adjacent tokens would merge into an invalid sequence.
-
   const tokens: string[] = [];
   let i = 0;
 
   while (i < text.length) {
     const ch = text[i];
 
-    // Skip whitespace
     if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') {
       i++;
       continue;
@@ -677,7 +466,7 @@ function removeWhitespace(text: string): string {
         if (text[i] === '\\') { tok += text[i]; i++; }
         if (i < text.length) { tok += text[i]; i++; }
       }
-      if (i < text.length) { tok += text[i]; i++; } // closing quote
+      if (i < text.length) { tok += text[i]; i++; }
       tokens.push(tok);
       continue;
     }
@@ -707,13 +496,12 @@ function removeWhitespace(text: string): string {
     if (tok) tokens.push(tok);
   }
 
-  // Join tokens, inserting space only where needed (identifier-like chars on both sides)
+  // Join tokens, inserting space only where two word-like chars would merge
   let result = '';
   for (let t = 0; t < tokens.length; t++) {
     if (t > 0) {
       const prevLast = result[result.length - 1];
       const curFirst = tokens[t][0];
-      // If both sides are word-like characters, we need a space
       if (isWordChar(prevLast) && isWordChar(curFirst)) {
         result += ' ';
       }
@@ -728,73 +516,79 @@ function isWordChar(ch: string): boolean {
   return /[a-zA-Z0-9_$]/.test(ch);
 }
 
-/**
- * Strip trailing commas before closing braces/brackets/parens.
- * SWC re-serializes from AST so trailing commas are dropped.
- * E.g. `{foo:"bar",baz:true,}` -> `{foo:"bar",baz:true}`
- */
+/** Strip trailing commas before closing delimiters. SWC re-serializes from AST so these drop. */
 function stripTrailingCommas(text: string): string {
   return text.replace(/,(\}|\]|\))/g, '$1');
 }
 
 /**
- * Strip balanced outer parentheses from a string.
+ * Skip past a string or template literal starting at position `i`.
+ * Returns the index of the character after the closing delimiter.
+ */
+function skipStringLiteral(text: string, i: number): number {
+  const ch = text[i];
+  if (ch === '"' || ch === "'") {
+    const q = ch;
+    i++;
+    while (i < text.length && text[i] !== q) {
+      if (text[i] === '\\') i++;
+      i++;
+    }
+    return i; // on closing quote; caller's for-loop will advance past it
+  }
+  if (ch === '`') {
+    i++;
+    while (i < text.length && text[i] !== '`') {
+      if (text[i] === '\\') { i++; }
+      else if (text[i] === '$' && i + 1 < text.length && text[i + 1] === '{') {
+        i += 2;
+        let depth = 1;
+        while (i < text.length && depth > 0) {
+          if (text[i] === '{') depth++;
+          else if (text[i] === '}') depth--;
+          i++;
+        }
+        i--; // will be incremented by caller
+      }
+      i++;
+    }
+    return i;
+  }
+  return i;
+}
+
+/**
+ * Find the matching close-paren for an open paren at position 0.
+ * Skips string/template literals. Returns -1 if not found.
+ */
+function findMatchingParen(text: string): number {
+  let depth = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') {
+      depth--;
+      if (depth === 0) return i;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') {
+      i = skipStringLiteral(text, i);
+    }
+  }
+  return -1;
+}
+
+/**
+ * Strip balanced outer parentheses that wrap the entire expression.
  * SWC generates the str from AST reprinting which omits unnecessary parens.
- * E.g. `(p0.x??"")&&"y"in p0.z` stays as-is, but
- * `((p0.x??"")&&"y"in p0.z)?...` becomes `(p0.x??"")&&"y"in p0.z?...`
  */
 function stripOuterParens(text: string): string {
   while (text.length >= 2 && text[0] === '(') {
-    // Find the matching close paren
-    let depth = 0;
-    let matchPos = -1;
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i];
-      if (ch === '(') depth++;
-      else if (ch === ')') {
-        depth--;
-        if (depth === 0) {
-          matchPos = i;
-          break;
-        }
-      }
-      // Skip string/template literals
-      if (ch === '"' || ch === "'") {
-        const q = ch;
-        i++;
-        while (i < text.length && text[i] !== q) {
-          if (text[i] === '\\') i++;
-          i++;
-        }
-      } else if (ch === '`') {
-        i++;
-        while (i < text.length && text[i] !== '`') {
-          if (text[i] === '\\') i++;
-          else if (text[i] === '$' && i + 1 < text.length && text[i + 1] === '{') {
-            // Skip template expression
-            i += 2;
-            let td = 1;
-            while (i < text.length && td > 0) {
-              if (text[i] === '{') td++;
-              else if (text[i] === '}') td--;
-              i++;
-            }
-            i--; // Will be incremented by the for loop
-          }
-          i++;
-        }
-      }
-    }
-    // Only strip if the matching close paren is NOT at the end of the string
-    // (if it IS at the end, the parens wrap the whole expression, which is meaningful
-    // only for grouping -- SWC also strips these)
+    const matchPos = findMatchingParen(text);
     if (matchPos === text.length - 1) {
       // Parens wrap entire expression -- strip them
       text = text.slice(1, -1);
-    } else if (matchPos >= 0 && matchPos < text.length - 1) {
-      // Parens wrap a sub-expression at the start -- don't strip
-      break;
     } else {
+      // Parens wrap a sub-expression at the start -- don't strip
       break;
     }
   }
@@ -803,55 +597,15 @@ function stripOuterParens(text: string): string {
 
 /**
  * Strip redundant parentheses around a ternary condition.
- * Transforms `(cond)?cons:alt` into `cond?cons:alt`.
- * SWC's AST reprinting omits grouping parens that don't affect the ternary's
- * operator precedence. Our source-text approach preserves them.
+ * `(cond)?cons:alt` -> `cond?cons:alt`
+ * SWC's AST reprinting omits grouping parens that don't affect ternary precedence.
  */
 function stripTernaryConditionParens(text: string): string {
   if (text.length < 4 || text[0] !== '(') return text;
 
-  // Find the matching close paren for the opening paren
-  let depth = 0;
-  let matchPos = -1;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (ch === '(') depth++;
-    else if (ch === ')') {
-      depth--;
-      if (depth === 0) {
-        matchPos = i;
-        break;
-      }
-    }
-    // Skip string/template literals
-    if (ch === '"' || ch === "'") {
-      const q = ch;
-      i++;
-      while (i < text.length && text[i] !== q) {
-        if (text[i] === '\\') i++;
-        i++;
-      }
-    } else if (ch === '`') {
-      i++;
-      while (i < text.length && text[i] !== '`') {
-        if (text[i] === '\\') i++;
-        else if (text[i] === '$' && i + 1 < text.length && text[i + 1] === '{') {
-          i += 2;
-          let td = 1;
-          while (i < text.length && td > 0) {
-            if (text[i] === '{') td++;
-            else if (text[i] === '}') td--;
-            i++;
-          }
-          i--;
-        }
-        i++;
-      }
-    }
-  }
+  const matchPos = findMatchingParen(text);
 
-  // Check if the matched close paren is immediately followed by '?'
-  // which means (cond)?consequent:alternate — the parens are redundant
+  // If the matched close paren is immediately followed by '?', the parens are redundant
   if (matchPos > 0 && matchPos < text.length - 1 && text[matchPos + 1] === '?') {
     return text.slice(1, matchPos) + text.slice(matchPos + 1);
   }
@@ -860,23 +614,20 @@ function stripTernaryConditionParens(text: string): string {
 }
 
 /**
- * Normalize string literals from single quotes to double quotes.
- * Matches Rust SWC optimizer behavior: re-serialized AST uses double quotes.
- * `'yes'` -> `"yes"`, already-double-quoted strings are left alone.
+ * Normalize single-quoted string literals to double quotes.
+ * Matches SWC behavior: re-serialized AST uses double quotes.
  */
 function normalizeStringQuotes(text: string): string {
   let result = '';
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     if (ch === "'") {
-      // Find closing single quote (handle escapes)
       let j = i + 1;
       let content = '';
       while (j < text.length && text[j] !== "'") {
         if (text[j] === '\\') {
-          // Handle escape sequences
           if (text[j + 1] === "'") {
-            // Escaped single quote -> just the quote char in double-quote context
+            // Escaped single quote -> unescaped in double-quote context
             content += "'";
             j += 2;
           } else {
@@ -884,7 +635,6 @@ function normalizeStringQuotes(text: string): string {
             j += 2;
           }
         } else {
-          // If the content contains an unescaped double quote, escape it
           if (text[j] === '"') {
             content += '\\"';
           } else {
@@ -894,9 +644,8 @@ function normalizeStringQuotes(text: string): string {
         }
       }
       result += '"' + content + '"';
-      i = j; // skip past closing quote
+      i = j;
     } else if (ch === '"') {
-      // Already double-quoted, pass through as-is
       result += ch;
       i++;
       while (i < text.length && text[i] !== '"') {
@@ -908,7 +657,7 @@ function normalizeStringQuotes(text: string): string {
           i++;
         }
       }
-      if (i < text.length) result += text[i]; // closing "
+      if (i < text.length) result += text[i];
     } else {
       result += ch;
     }
@@ -916,24 +665,16 @@ function normalizeStringQuotes(text: string): string {
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// Main analysis function
-// ---------------------------------------------------------------------------
+// --- Main analysis function --------------------------------------------------
 
 /**
  * Analyze a JSX prop expression to determine if it should be wrapped
  * with _wrapProp, converted to _fnSignal, or left as-is.
- *
- * @param exprNode - The AST expression node
- * @param source - The full source text (for extracting substrings)
- * @param importedNames - Set of identifiers that come from imports
- * @returns SignalExprResult indicating wrap type
  */
 export function analyzeSignalExpression(
   exprNode: any,
   source: string,
   importedNames: Set<string>,
-  /** All locally declared names (for distinguishing known locals from unknown globals) */
   localNames?: Set<string>,
 ): SignalExprResult {
   if (exprNode == null) return { type: 'none' };
@@ -949,15 +690,11 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
-  // Bare identifier
   if (exprNode.type === 'Identifier') {
-    // Imported names are static, not wrapped
-    if (importedNames.has(exprNode.name)) return { type: 'none' };
-    // Bare signal reference (no .value) is const, not wrapped
     return { type: 'none' };
   }
 
-  // Template literals without expressions are not wrapped
+  // Template literals without expressions are static
   if (
     exprNode.type === 'TemplateLiteral' &&
     (!exprNode.expressions || exprNode.expressions.length === 0)
@@ -965,209 +702,164 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
-  // ChainExpression: unwrap and analyze the inner expression, but generate
-  // the _fnSignal from the whole chain (preserving `?.` syntax).
+  // ChainExpression: analyze the whole chain (preserving `?.` syntax)
   if (exprNode.type === 'ChainExpression') {
-    // Check if the inner expression has reactive roots
-    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
-    if (roots.length > 0) {
-      // Check for unknown calls (standalone function calls, not method calls)
-      if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
-      if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
-      if (containsJsx(exprNode)) return { type: 'none' };
-      const allDeps = collectAllDeps(exprNode, importedNames);
-      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
-      return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
-    }
-    return { type: 'none' };
+    return tryBuildFnSignal(exprNode, source, importedNames, localNames);
   }
 
-  // CallExpression: method calls on signal/store roots produce _fnSignal,
-  // standalone function calls and `mutable()` do not.
   if (exprNode.type === 'CallExpression') {
-    const calleeName = getCalleeIdentifierName(exprNode.callee);
-    if (calleeName === 'mutable') return { type: 'none' };
-    // signal.value() -> NOT wrapped (call on .value)
-    if (isSignalValueAccess(exprNode.callee)) return { type: 'none' };
-
-    // Method calls on signal/store roots: e.g., store.items.filter(...)
-    // Check if the callee chain roots at a reactive local variable
-    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
-    if (roots.length > 0) {
-      if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
-      if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
-      if (containsJsx(exprNode)) return { type: 'none' };
-      const allDeps = collectAllDeps(exprNode, importedNames);
-      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
-      return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
-    }
-
-    // Other call expressions are not wrapped
-    return { type: 'none' };
+    return analyzeCallExpression(exprNode, source, importedNames, localNames);
   }
 
-  // MemberExpression
   if (exprNode.type === 'MemberExpression') {
-    // Skip signal analysis for member expressions on unknown globals.
-    // SWC only applies _wrapProp/_fnSignal when the object is a known local
-    // (in decl_stack) or a global (import/export). Unknown identifiers that
-    // aren't in scope get no signal treatment.
-    // Unwrap TS type assertions and parenthesized expressions to find the underlying identifier
-    let unwrapped = exprNode.object;
-    while (unwrapped) {
-      if (unwrapped.type === 'TSAsExpression' || unwrapped.type === 'TSNonNullExpression' ||
-          unwrapped.type === 'TSTypeAssertion' || unwrapped.type === 'TSInstantiationExpression' ||
-          unwrapped.type === 'TSSatisfiesExpression' || unwrapped.type === 'ParenthesizedExpression') {
-        unwrapped = unwrapped.expression;
-      } else {
-        break;
-      }
-    }
-    const objIdent = unwrapped?.type === 'Identifier' ? unwrapped.name : null;
-    const isKnownIdent = objIdent === null || // non-ident object (e.g., call result) is fine
-      importedNames.has(objIdent) ||
-      GLOBAL_NAMES.has(objIdent) ||
-      (localNames?.has(objIdent) ?? true); // if no localNames provided, assume known (backwards compat)
-
-    // signal.value -> _wrapProp(signal) for simple identifiers,
-    // _fnSignal for complex expressions like (a || b).value
-    if (isSignalValueAccess(exprNode) && isKnownIdent) {
-      if (objIdent !== null) {
-        // Simple identifier (possibly wrapped in TS assertion): signal.value -> _wrapProp(signal)
-        return { type: 'wrapProp', code: `_wrapProp(${objIdent})` };
-      } else {
-        // Complex expression: (a || b).value -> _fnSignal
-        const roots = collectReactiveRoots(exprNode, importedNames, localNames);
-        if (roots.length > 0) {
-          const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
-          return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
-        }
-        // If no reactive roots found, fallback to _wrapProp
-        const objText = source.slice(exprNode.object.start, exprNode.object.end);
-        return { type: 'wrapProp', code: `_wrapProp(${objText})` };
-      }
-    }
-
-    // Deep store access (store.address.city.name) -> fnSignal
-    if (isKnownIdent && isDeepStoreAccess(exprNode, importedNames, localNames)) {
-      const roots = collectReactiveRoots(exprNode, importedNames, localNames);
-      if (roots.length > 0) {
-        const { hoistedFn, hoistedStr } = generateFnSignal(
-          exprNode,
-          source,
-          roots,
-        );
-        return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
-      }
-    }
-
-    // store.field / props['field'] (single-level, local obj)
-    if (isKnownIdent && isStoreFieldAccess(exprNode, importedNames, localNames)) {
-      const objText = source.slice(exprNode.object.start, exprNode.object.end);
-      const propName = getPropertyName(exprNode)!;
-      return {
-        type: 'wrapProp',
-        code: `_wrapProp(${objText}, "${propName}")`,
-        isStoreField: true,
-      };
-    }
-
-    // Other member expressions (e.g., dep.thing, globalThing.thing) -> not wrapped
-    return { type: 'none' };
+    return analyzeMemberExpression(exprNode, source, importedNames, localNames);
   }
 
-  // ObjectExpression values: SWC wraps objects in _fnSignal when their values
-  // contain reactive roots, EXCEPT for the `class` prop which goes to varProps as-is.
-  // The caller is responsible for filtering by prop name.
+  // Object/array expressions with reactive values get wrapped in _fnSignal
   if (exprNode.type === 'ObjectExpression') {
     const roots = collectReactiveRoots(exprNode, importedNames, localNames);
-    if (roots.length > 0) {
-      // Collect all deps including bare local identifiers (matching SWC behavior)
-      const allDeps = collectAllDeps(exprNode, importedNames);
-      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
-      return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr, isObjectExpr: true };
-    }
-    return { type: 'none' };
+    if (roots.length === 0) return { type: 'none' };
+    const allDeps = collectAllDeps(exprNode, importedNames);
+    const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+    return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr, isObjectExpr: true };
   }
 
-  // ArrayExpression: wrap in _fnSignal when containing reactive roots
   if (exprNode.type === 'ArrayExpression') {
     const roots = collectReactiveRoots(exprNode, importedNames, localNames);
-    if (roots.length > 0) {
-      // Collect all deps including bare local identifiers (matching SWC behavior)
-      const allDeps = collectAllDeps(exprNode, importedNames);
-      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
-      return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
-    }
-    return { type: 'none' };
+    if (roots.length === 0) return { type: 'none' };
+    const allDeps = collectAllDeps(exprNode, importedNames);
+    const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+    return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
   }
 
-  // BinaryExpression or other compound expressions
-  // Check for reactive roots (signal.value, store access)
+  // Compound expressions (binary, conditional, logical, template)
   if (
     exprNode.type === 'BinaryExpression' ||
     exprNode.type === 'ConditionalExpression' ||
     exprNode.type === 'LogicalExpression' ||
     exprNode.type === 'TemplateLiteral'
   ) {
-    // SIG-05: mixed with unknown call -> NOT wrapped
-    if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
-
-    // SIG-05: mixed with imported reference -> NOT wrapped (goes to varProps)
-    if (containsImportedReference(exprNode, importedNames))
-      return { type: 'none' };
-
-    // Expressions containing JSX elements cannot be wrapped in _fnSignal —
-    // JSX can't be serialized into the hoisted function string representation.
-    // SWC leaves these as-is in the output.
-    if (containsJsx(exprNode)) return { type: 'none' };
-
-    // Collect reactive roots (signal.value + store accesses)
-    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
-    if (roots.length === 0) return { type: 'none' };
-
-    // Also collect bare local identifiers as additional deps.
-    // When there's a reactive root (signal.value, store.field), all local
-    // variable references in the expression become dependencies too,
-    // since _fnSignal needs to track all mutable values for re-evaluation.
-    const allDeps = collectAllDeps(exprNode, importedNames);
-
-    // Generate fnSignal
-    const { hoistedFn, hoistedStr } = generateFnSignal(
-      exprNode,
-      source,
-      allDeps,
-    );
-    return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
+    return tryBuildFnSignal(exprNode, source, importedNames, localNames);
   }
 
   return { type: 'none' };
 }
 
-// ---------------------------------------------------------------------------
-// SignalHoister (placeholder for Task 2)
-// ---------------------------------------------------------------------------
-
 /**
- * Manages hoisted signal functions (_hf0, _hf1, etc.) for a module.
+ * Try to build an _fnSignal for an expression that may contain reactive roots.
+ * Returns 'none' if the expression has blockers (unknown calls, imported refs, JSX)
+ * or no reactive roots.
  */
+function tryBuildFnSignal(
+  exprNode: any,
+  source: string,
+  importedNames: Set<string>,
+  localNames?: Set<string>,
+): SignalExprResult {
+  const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+  if (roots.length === 0) return { type: 'none' };
+
+  if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
+  if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
+  if (containsJsx(exprNode)) return { type: 'none' };
+
+  const allDeps = collectAllDeps(exprNode, importedNames);
+  const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+  return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
+}
+
+function analyzeCallExpression(
+  exprNode: any,
+  source: string,
+  importedNames: Set<string>,
+  localNames?: Set<string>,
+): SignalExprResult {
+  const calleeName = getCalleeIdentifierName(exprNode.callee);
+  if (calleeName === 'mutable') return { type: 'none' };
+  if (isSignalValueAccess(exprNode.callee)) return { type: 'none' };
+
+  return tryBuildFnSignal(exprNode, source, importedNames, localNames);
+}
+
+function analyzeMemberExpression(
+  exprNode: any,
+  source: string,
+  importedNames: Set<string>,
+  localNames?: Set<string>,
+): SignalExprResult {
+  // Unwrap TS type assertions to find the underlying identifier
+  let unwrapped = exprNode.object;
+  while (unwrapped) {
+    if (unwrapped.type === 'TSAsExpression' || unwrapped.type === 'TSNonNullExpression' ||
+        unwrapped.type === 'TSTypeAssertion' || unwrapped.type === 'TSInstantiationExpression' ||
+        unwrapped.type === 'TSSatisfiesExpression' || unwrapped.type === 'ParenthesizedExpression') {
+      unwrapped = unwrapped.expression;
+    } else {
+      break;
+    }
+  }
+
+  const objIdent = unwrapped?.type === 'Identifier' ? unwrapped.name : null;
+
+  // SWC only applies signal treatment to identifiers it can resolve in scope
+  const isKnownIdent = objIdent === null ||
+    importedNames.has(objIdent) ||
+    GLOBAL_NAMES.has(objIdent) ||
+    (localNames?.has(objIdent) ?? true);
+
+  // signal.value -> _wrapProp for simple identifiers, _fnSignal for complex ones
+  if (isSignalValueAccess(exprNode) && isKnownIdent) {
+    if (objIdent !== null) {
+      return { type: 'wrapProp', code: `_wrapProp(${objIdent})` };
+    }
+    // Complex expression: (a || b).value -> _fnSignal
+    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+    if (roots.length > 0) {
+      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
+      return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+    }
+    const objText = source.slice(exprNode.object.start, exprNode.object.end);
+    return { type: 'wrapProp', code: `_wrapProp(${objText})` };
+  }
+
+  // Deep store access (store.address.city.name) -> fnSignal
+  if (isKnownIdent && isDeepStoreAccess(exprNode, importedNames, localNames)) {
+    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+    if (roots.length > 0) {
+      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
+      return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+    }
+  }
+
+  // store.field / props['field'] (single-level, local obj)
+  if (isKnownIdent && isStoreFieldAccess(exprNode, importedNames, localNames)) {
+    const objText = source.slice(exprNode.object.start, exprNode.object.end);
+    const propName = getPropertyName(exprNode)!;
+    return {
+      type: 'wrapProp',
+      code: `_wrapProp(${objText}, "${propName}")`,
+      isStoreField: true,
+    };
+  }
+
+  return { type: 'none' };
+}
+
+// --- SignalHoister -----------------------------------------------------------
+
+/** Manages hoisted signal functions (_hf0, _hf1, etc.) for a module. */
 export class SignalHoister {
   counter = 0;
   hoistedFunctions: Array<{ name: string; fn: string; str: string; sourcePos: number }> = [];
-  /** Deduplication map: function body text -> existing _hf variable name */
   private dedupMap = new Map<string, string>();
 
   /**
    * Add a hoisted function, returns the _hfN name.
-   * Deduplicates: if an identical function body already exists, reuses its name.
-   * @param sourcePos - Position in original source where signal expression occurs (for ordering)
+   * Deduplicates: identical function bodies reuse their existing name.
    */
   hoist(fn: string, str: string, sourcePos: number = 0): string {
-    // Check for existing identical function body
     const existing = this.dedupMap.get(fn);
-    if (existing) {
-      return existing;
-    }
+    if (existing) return existing;
 
     const name = `_hf${this.counter}`;
     this.hoistedFunctions.push({ name, fn, str, sourcePos });
@@ -1176,9 +868,7 @@ export class SignalHoister {
     return name;
   }
 
-  /**
-   * Get all hoisted declarations as source text lines.
-   */
+  /** Get all hoisted declarations as source text lines. */
   getDeclarations(): string[] {
     const lines: string[] = [];
     for (const h of this.hoistedFunctions) {
@@ -1190,18 +880,15 @@ export class SignalHoister {
 
   /**
    * Build a renaming map that renumbers _hf variables by source position order.
-   * SWC processes elements top-down (props before children recursion),
-   * but our walk processes bottom-up (leave callback). This method creates
-   * a map to renumber from walk order to source position order.
-   * Returns null if no renumbering is needed (already in order).
+   * SWC processes elements top-down (props before children) but our walk is
+   * bottom-up (leave callback). This renumbers from walk order to source order.
+   * Returns null if already in order.
    */
   buildRenameMap(): Map<string, string> | null {
     if (this.hoistedFunctions.length <= 1) return null;
 
-    // Sort by source position to get SWC order
     const sorted = [...this.hoistedFunctions].sort((a, b) => a.sourcePos - b.sourcePos);
 
-    // Check if already in order
     let needsRename = false;
     for (let i = 0; i < sorted.length; i++) {
       if (sorted[i].name !== `_hf${i}`) {
@@ -1211,7 +898,6 @@ export class SignalHoister {
     }
     if (!needsRename) return null;
 
-    // Build rename map: old name -> new name
     const renameMap = new Map<string, string>();
     for (let i = 0; i < sorted.length; i++) {
       const oldName = sorted[i].name;
@@ -1221,7 +907,6 @@ export class SignalHoister {
       }
     }
 
-    // Also update the hoistedFunctions array to be in the new order
     this.hoistedFunctions = sorted.map((h, i) => ({
       ...h,
       name: `_hf${i}`,

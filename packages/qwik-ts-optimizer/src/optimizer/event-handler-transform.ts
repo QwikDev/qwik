@@ -8,21 +8,7 @@
  * - host:onClick$ -> null (passthrough, no transformation)
  * - on-customName$ -> "q-e:custom-name" (kebab-case custom events)
  * - passive events use q-ep:/q-wp:/q-dp: prefixes
- *
- * Algorithm matched to Rust optimizer:
- * - get_event_scope_data_from_jsx_event -> scope prefix + index
- * - normalize_jsx_event_name -> lowercase (or strip dash for custom), then create_event_name
- * - create_event_name -> for each char: uppercase/dash -> push '-' + lowercase
- *
- * Verified against snapshot corpus:
- * - should_convert_jsx_events.snap
- * - example_jsx_listeners.snap
- * - should_convert_passive_jsx_events.snap
  */
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 export interface EventTransformResult {
   outputPropName: string;
@@ -30,61 +16,43 @@ export interface EventTransformResult {
   stripPassive: string[];
 }
 
-// ---------------------------------------------------------------------------
-// Detection helpers
-// ---------------------------------------------------------------------------
-
 /**
- * Check if a JSX prop name is an event handler prop that will be transformed.
+ * Check if a JSX prop name is an event handler that will be transformed.
  *
- * Returns true for props that start with `on` (with optional `document:`/`window:`/`host:` prefix)
- * and end with `$`. Does NOT match non-event `$` props like `custom$` or `transparent$`.
+ * Returns true for props starting with `on` (with optional scope prefix)
+ * and ending with `$`. Does NOT match non-event `$` props like `custom$`.
  */
 export function isEventProp(propName: string): boolean {
   if (!propName.endsWith('$')) return false;
 
-  // Check for scope prefixes
   if (propName.startsWith('document:on')) return true;
   if (propName.startsWith('window:on')) return true;
   if (propName.startsWith('host:on')) return true;
 
-  // Check for on* or on-* pattern (on followed by uppercase or dash)
   if (propName.startsWith('on') && propName.length > 3) {
-    const afterOn = propName[2];
-    if (afterOn === '-' || (afterOn >= 'A' && afterOn <= 'Z')) {
-      return true;
-    }
+    const charAfterOn = propName[2];
+    return charAfterOn === '-' || (charAfterOn >= 'A' && charAfterOn <= 'Z');
   }
 
   return false;
 }
 
-/**
- * Check if a prop name is a passive event directive (passive:*).
- */
 export function isPassiveDirective(propName: string): boolean {
   return propName.startsWith('passive:');
 }
 
-// ---------------------------------------------------------------------------
-// Core naming functions (matching Rust optimizer exactly)
-// ---------------------------------------------------------------------------
-
 /**
  * Convert a processed event name by replacing uppercase chars and dashes
  * with dash + lowercased char. Matches Rust's `create_event_name`.
- *
- * For each char: if uppercase or `-`, push `-` then push lowercased char.
- * This means existing dashes become double dashes in the output.
  */
 function createEventName(name: string): string {
   let result = '';
-  for (const c of name) {
-    if ((c >= 'A' && c <= 'Z') || c === '-') {
+  for (const ch of name) {
+    if ((ch >= 'A' && ch <= 'Z') || ch === '-') {
       result += '-';
-      result += c.toLowerCase();
+      result += ch.toLowerCase();
     } else {
-      result += c;
+      result += ch;
     }
   }
   return result;
@@ -93,30 +61,21 @@ function createEventName(name: string): string {
 /**
  * Normalize a JSX event name segment (after scope prefix and `on` are stripped).
  * Matches Rust's `normalize_jsx_event_name`.
- *
- * - If starts with `-` (custom event marker): strip the dash, keep casing, then createEventName
- * - Otherwise: lowercase everything first, then createEventName
  */
 function normalizeJsxEventName(name: string): string {
   if (name === 'DOMContentLoaded') {
     return '-d-o-m-content-loaded';
   }
 
-  let processedName: string;
-  if (name.startsWith('-')) {
-    // Custom event: strip leading dash, preserve case
-    processedName = name.slice(1);
-  } else {
-    // Standard event: lowercase everything first
-    processedName = name.toLowerCase();
-  }
+  const processedName = name.startsWith('-')
+    ? name.slice(1)        // Custom event: strip leading dash, preserve case
+    : name.toLowerCase();  // Standard event: lowercase everything first
 
   return createEventName(processedName);
 }
 
 /**
  * Convert camelCase string to kebab-case.
- * Public helper for external use.
  */
 export function camelToKebab(str: string): string {
   return str.replace(/[A-Z]/g, (match, offset) => {
@@ -124,20 +83,14 @@ export function camelToKebab(str: string): string {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Main transformation
-// ---------------------------------------------------------------------------
-
 /**
  * Get the scope prefix and strip-index from a JSX event prop name.
  * Matches Rust's `get_event_scope_data_from_jsx_event`.
- *
- * Returns [prefix, stripIndex] or null if not an event prop.
  */
 function getEventScopeData(
   propName: string,
-  isPassive: boolean
-): [string, number] | null {
+  isPassive: boolean,
+): [prefix: string, stripIndex: number] | null {
   if (propName.startsWith('window:on')) {
     return [isPassive ? 'q-wp:' : 'q-w:', 9];
   }
@@ -155,63 +108,45 @@ function getEventScopeData(
  *
  * Returns the transformed prop name string, or null if the prop should
  * pass through unchanged (host: prefix, non-event $ props, etc.).
- *
  * Matches Rust's `jsx_event_to_html_attribute`.
  */
 export function transformEventPropName(
   propName: string,
-  passiveEvents: Set<string>
+  passiveEvents: Set<string>,
 ): string | null {
   if (!propName.endsWith('$')) return null;
-
-  // host: prefix -> passthrough
   if (propName.startsWith('host:')) return null;
 
-  // Check if this is a recognized event pattern
-  // First determine if it's passive (by checking the event name against passiveEvents)
-  const nonPassiveData = getEventScopeData(propName, false);
-  if (!nonPassiveData) return null;
+  const scopeData = getEventScopeData(propName, false);
+  if (!scopeData) return null;
 
-  const [, stripIdx] = nonPassiveData;
-  // Extract the name between the scope prefix and the trailing $
-  const eventNameRaw = propName.slice(stripIdx, propName.length - 1);
+  const [, stripIndex] = scopeData;
+  const eventNameRaw = propName.slice(stripIndex, propName.length - 1);
   const normalizedName = normalizeJsxEventName(eventNameRaw);
 
-  // Determine the "plain" event name for passive lookup
-  // (the normalized name without any prefix modifications)
-  // For passive lookup, we need the event name as it appears in passive:xxx directives
-  // which is already in lowercase form (e.g., "click", "scroll", "touchstart")
   const isPassive = passiveEvents.has(normalizedName);
-
   const [prefix] = getEventScopeData(propName, isPassive)!;
 
   return prefix + normalizedName;
 }
 
 /**
- * Convert a JSX event name to its plain event name for use in matching.
- * Used for display name generation and event name extraction.
+ * Convert a JSX event name to its plain event name for matching/display.
  * Matches Rust's `jsx_event_to_event_name`.
  */
 export function jsxEventToEventName(jsxEvent: string): string | null {
   if (!jsxEvent.endsWith('$')) return null;
 
-  const data = getEventScopeData(jsxEvent, false);
-  if (!data) return null;
+  const scopeData = getEventScopeData(jsxEvent, false);
+  if (!scopeData) return null;
 
-  const [, stripIdx] = data;
-  return normalizeJsxEventName(jsxEvent.slice(stripIdx, jsxEvent.length - 1));
+  const [, stripIndex] = scopeData;
+  return normalizeJsxEventName(jsxEvent.slice(stripIndex, jsxEvent.length - 1));
 }
-
-// ---------------------------------------------------------------------------
-// Passive directive collection
-// ---------------------------------------------------------------------------
 
 /**
  * Scan JSX attributes for passive:* directives and collect normalized event names.
- *
- * The passive event names go through the same normalization as regular event names.
- * Matches Rust's `collect_passive_event_names_from_jsx_attrs` + `passive_attr_to_event_name`.
+ * Matches Rust's `collect_passive_event_names_from_jsx_attrs`.
  */
 export function collectPassiveDirectives(attributes: any[]): Set<string> {
   const passiveEvents = new Set<string>();
@@ -226,11 +161,10 @@ export function collectPassiveDirectives(attributes: any[]): Set<string> {
           ? `${attr.name.namespace.name}:${attr.name.name.name}`
           : null;
 
-    if (name && isPassiveDirective(name)) {
-      const rawEventName = name.slice('passive:'.length);
-      // Passive event names go through normalization too
-      passiveEvents.add(normalizeJsxEventName(rawEventName));
-    }
+    if (!name || !isPassiveDirective(name)) continue;
+
+    const rawEventName = name.slice('passive:'.length);
+    passiveEvents.add(normalizeJsxEventName(rawEventName));
   }
 
   return passiveEvents;

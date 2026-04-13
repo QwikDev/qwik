@@ -5,8 +5,6 @@
  * info (body text, positions, metadata), and returns an array of ExtractionResult
  * objects. Each result contains everything needed to generate a segment module
  * and rewrite the parent module.
- *
- * Implements: EXTRACT-02, EXTRACT-04, EXTRACT-07, IMP-05
  */
 
 import { parseSync } from 'oxc-parser';
@@ -18,7 +16,6 @@ import {
   collectCustomInlined,
   getCalleeName,
   isMarkerCall,
-  isBare$,
   isSyncMarker,
   getCtxKind,
   getCtxName,
@@ -26,10 +23,6 @@ import {
   type ImportInfo,
 } from './marker-detection.js';
 import { isEventProp, transformEventPropName, collectPassiveDirectives } from './event-handler-transform.js';
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 export interface ExtractionResult {
   // Identity
@@ -90,10 +83,6 @@ export interface ExtractionResult {
   constLiterals?: Map<string, string>;
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 /**
  * Determine the file extension for a segment based on whether its body
  * contains JSX nodes.
@@ -112,9 +101,6 @@ function determineExtension(argNode: any, sourceExt: string): string {
   return '.js';
 }
 
-/**
- * Get the source file extension from a relative path.
- */
 function getSourceExtension(relPath: string): string {
   const dotIdx = relPath.lastIndexOf('.');
   if (dotIdx >= 0) return relPath.slice(dotIdx);
@@ -122,26 +108,17 @@ function getSourceExtension(relPath: string): string {
 }
 
 /**
- * Get the file stem (basename) from a relative path.
- * e.g., "src/components/test.tsx" -> "test.tsx"
- *
- * When the filename is "index.*", derives the stem from the parent directory
- * name to match Rust optimizer behavior. For example:
- * "src/components/mongo/index.tsx" -> "mongo" (not "index.tsx")
- *
- * Returns { stem, isIndex } where isIndex indicates the filename was index.*
- * (used to skip default export push since directory name already serves as prefix).
+ * For "index.*" files, derives the stem from the parent directory name
+ * to match Rust optimizer behavior (e.g., "src/mongo/index.tsx" -> "mongo").
  */
 function getFileStem(relPath: string): { stem: string; isIndex: boolean } {
   const slashIdx = relPath.lastIndexOf('/');
   const basename = slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
 
-  // Check if the filename is "index.*"
   const dotIdx = basename.lastIndexOf('.');
   const nameWithoutExt = dotIdx >= 0 ? basename.slice(0, dotIdx) : basename;
 
   if (nameWithoutExt === 'index' && slashIdx >= 0) {
-    // Use parent directory name instead (without extension)
     const dirPath = relPath.slice(0, slashIdx);
     const parentSlashIdx = dirPath.lastIndexOf('/');
     const dirName = parentSlashIdx >= 0 ? dirPath.slice(parentSlashIdx + 1) : dirPath;
@@ -151,10 +128,7 @@ function getFileStem(relPath: string): { stem: string; isIndex: boolean } {
   return { stem: basename, isIndex: false };
 }
 
-/**
- * Resolve the canonical (imported) name for an identifier callee.
- * e.g., `import { component$ as c$ }` -> "component$"
- */
+/** Resolve aliased import back to its original name (e.g., `c$` -> `component$`). */
 function resolveCanonicalCalleeName(
   calleeName: string,
   imports: Map<string, ImportInfo>,
@@ -164,11 +138,8 @@ function resolveCanonicalCalleeName(
 }
 
 /**
- * Bare $() segments inherit the direct wrapper call name as naming context.
- * Examples:
- * - component($(() => {})) -> "..._component"
- * - useStyles($('thing')) -> "..._useStyles"
- * - componentQrl($(() => {})) -> "..._componentQrl"
+ * Bare $() segments inherit the wrapper call name as naming context,
+ * e.g., component($(() => {})) -> "..._component".
  */
 function getDirectWrapperContextName(
   node: any,
@@ -188,20 +159,13 @@ function getDirectWrapperContextName(
   return resolveCanonicalCalleeName(wrapperCallee, imports);
 }
 
-/**
- * Compute the Qrl callee name from a marker callee name.
- * "$" -> "", "sync$" -> "_qrlSync", "component$" -> "componentQrl"
- */
+/** Map marker callee to its Qrl form: "$" -> "", "sync$" -> "_qrlSync", "component$" -> "componentQrl". */
 function computeQrlCallee(calleeName: string): string {
   if (calleeName === '$') return '';
   if (calleeName === 'sync$') return '_qrlSync';
   return calleeName.slice(0, -1) + 'Qrl';
 }
 
-/**
- * Compute line and column from a character offset in source text.
- * Lines and columns are 1-based.
- */
 function computeLineCol(source: string, offset: number): [number, number] {
   let line = 1;
   let col = 1;
@@ -216,10 +180,6 @@ function computeLineCol(source: string, offset: number): [number, number] {
   return [line, col];
 }
 
-/**
- * Collect all identifier names referenced in an AST subtree.
- * Used to determine which imports a segment body needs.
- */
 function collectIdentifiers(node: any): Set<string> {
   const ids = new Set<string>();
   walk(node, {
@@ -232,9 +192,27 @@ function collectIdentifiers(node: any): Set<string> {
   return ids;
 }
 
-// ---------------------------------------------------------------------------
-// Main extraction function
-// ---------------------------------------------------------------------------
+/** Return the subset of file-level imports referenced by identifiers in `bodyNode`. */
+function collectSegmentImports(bodyNode: any, imports: Map<string, ImportInfo>): ImportInfo[] {
+  const bodyIds = collectIdentifiers(bodyNode);
+  const result: ImportInfo[] = [];
+  for (const [localName, info] of imports) {
+    if (bodyIds.has(localName)) {
+      result.push(info);
+    }
+  }
+  return result;
+}
+
+/** Check whether a JSX tag name represents a component (starts with uppercase). */
+function isComponentTag(tagNode: any): boolean {
+  if (tagNode?.type === 'JSXIdentifier') {
+    const ch = tagNode.name[0];
+    return ch === ch.toUpperCase() && ch !== ch.toLowerCase();
+  }
+  // Member expressions like Foo.Bar are always components
+  return tagNode?.type === 'JSXMemberExpression';
+}
 
 /**
  * Extract all segments from a Qwik source file.
@@ -242,11 +220,6 @@ function collectIdentifiers(node: any): Set<string> {
  * Parses the source, walks the AST to find marker calls, and returns
  * an ExtractionResult for each one containing all info needed for
  * segment codegen and parent module rewriting.
- *
- * @param source - The source code text
- * @param relPath - Relative file path (e.g., "test.tsx")
- * @param scope - Optional scope prefix for hashing
- * @returns Array of ExtractionResult objects
  */
 export function extractSegments(
   source: string,
@@ -260,67 +233,47 @@ export function extractSegments(
   const imports = collectImports(program);
   const customInlined = collectCustomInlined(program);
 
-  const { stem: fileStem, isIndex: isIndexFile } = getFileStem(relPath);
+  const { stem: fileStem } = getFileStem(relPath);
   const sourceExt = getSourceExtension(relPath);
-  // fileName is the actual file basename with extension (e.g., "index.tsx")
-  // Used for display names per SWC behavior (path_data.file_name)
   const slashIdx = relPath.lastIndexOf('/');
   const fileName = slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
   const ctx = new ContextStack(fileStem, relPath, scope, fileName);
 
   const results: ExtractionResult[] = [];
 
-  // Track which nodes we pushed context for, to pop on leave
-  // Value is how many pushes were done for this node
   const pushedNodes = new Map<any, number>();
-
-  // Track parent relationships for JSX attribute detection
   const parentMap = new Map<any, any>();
 
-  // Track marker call depth for JSX extraction scoping.
-  // JSX $-suffixed attributes are only extracted when inside a marker call scope.
-  let markerCallDepth = 0;
-  const markerCallNodes = new Set<any>();
-
-  // Detect @jsxImportSource pragma. When set to a non-Qwik package (e.g., "react"),
-  // JSX $-suffixed attribute extraction is suppressed entirely because the JSX
-  // uses a foreign runtime that doesn't understand Qwik's event handler extraction.
+  // Suppress JSX $-suffixed attribute extraction when a non-Qwik @jsxImportSource is set
   const hasNonQwikJsxImportSource = /\/\*\s*@jsxImportSource\s+(?!@qwik|@builder\.io\/qwik)\S+/.test(source);
 
   walk(program, {
     enter(node: any, parent: any) {
-      // Record parent relationship for later lookup
       if (parent) parentMap.set(node, parent);
 
-      // --- Context stack pushes for naming ---
       let pushCount = 0;
 
-      // VariableDeclarator with Identifier id
       if (node.type === 'VariableDeclarator' && node.id?.type === 'Identifier') {
         ctx.push(node.id.name);
         pushCount++;
       }
 
-      // FunctionDeclaration with id
       if (node.type === 'FunctionDeclaration' && node.id) {
         ctx.push(node.id.name);
         pushCount++;
       }
 
-      // Property key (object literal)
       if (node.type === 'Property' && node.key?.type === 'Identifier') {
         ctx.push(node.key.name);
         pushCount++;
       }
 
-      // MethodDefinition key
       if (node.type === 'MethodDefinition' && node.key?.type === 'Identifier') {
         ctx.push(node.key.name);
         pushCount++;
       }
 
-      // Custom $-suffixed calls (e.g., useMemo$()): push callee name to context stack
-      // for display name generation. This is ONLY for naming -- it does NOT trigger extraction.
+      // Non-marker $-suffixed calls still contribute to naming (e.g., useMemo$() -> "useMemo")
       if (node.type === 'CallExpression' && node.callee?.type === 'Identifier') {
         const calleeName = node.callee.name;
         if (calleeName.endsWith('$') && !isMarkerCall(node, imports, customInlined)) {
@@ -348,45 +301,27 @@ export function extractSegments(
         }
       }
 
-      // JSXFragment (<>...</>): push "Fragment" onto context stack ONLY when
-      // transpileJsx is true. In Rust SWC, when transpileJsx is enabled, the
-      // jsx plugin converts <> to jsx(Fragment, ...) BEFORE the optimizer fold.
-      // The optimizer's handle_jsx then pushes "Fragment" (as an Ident) to
-      // stack_ctxt. When transpileJsx is false, JSXFragment has no fold_jsx_fragment
-      // handler, so nothing is pushed.
+      // SWC's jsx plugin converts <> to jsx(Fragment, ...) before the optimizer,
+      // so Fragment only enters naming context when transpileJsx is active.
       if (node.type === 'JSXFragment' && transpileJsx) {
         ctx.push('Fragment');
         pushCount++;
       }
 
-      // JSXAttribute: push attribute name for naming context.
-      // For event handler attrs like onClick$, push the transformed name
-      // (e.g., "q_e_click") to match Rust optimizer naming.
-      // For non-event attrs, push the raw name (e.g., "onClick" for onClick={$()}).
       if (node.type === 'JSXAttribute') {
         let rawAttrName: string | null = null;
         if (node.name?.type === 'JSXIdentifier') {
           rawAttrName = node.name.name;
         } else if (node.name?.type === 'JSXNamespacedName') {
-          // e.g., host:onClick$ -> "host:onClick$"
           rawAttrName = `${node.name.namespace?.name ?? ''}:${node.name.name?.name ?? ''}`;
         }
 
         if (rawAttrName) {
           if (rawAttrName.endsWith('$') && isEventProp(rawAttrName)) {
-            // For HTML elements (lowercase tag), transform onClick$ -> q-e:click -> q_e_click.
-            // For component elements (uppercase tag), keep original name without $ suffix
-            // (e.g., onClick$ -> onClick). This matches Rust optimizer naming.
-            const parentTag = parent?.type === 'JSXOpeningElement'
-              ? (parent.name?.type === 'JSXIdentifier' ? parent.name.name : '')
-              : '';
-            const isComponentElement = parentTag.length > 0 && parentTag[0] === parentTag[0].toUpperCase() && parentTag[0] !== parentTag[0].toLowerCase();
+            const isComponentElement = parent?.type === 'JSXOpeningElement' && isComponentTag(parent.name);
             if (isComponentElement) {
-              // Component element: push raw name without $ suffix
-              ctx.push(rawAttrName.slice(0, -1)); // "onClick$" -> "onClick"
+              ctx.push(rawAttrName.slice(0, -1));
             } else {
-              // HTML element: transform to q-e:event_name format
-              // Collect passive directives from sibling attributes on the same element
               const jsxOpening = parent?.type === 'JSXOpeningElement' ? parent : null;
               const siblingAttrs = jsxOpening?.attributes ?? [];
               const passiveEvents = collectPassiveDirectives(siblingAttrs);
@@ -398,9 +333,7 @@ export function extractSegments(
               }
             }
           } else if (rawAttrName.endsWith('$') && rawAttrName.startsWith('host:')) {
-            // host: prefix events: push "host_" + stripped name for naming
-            // e.g., host:onClick$ -> "host_onClick"
-            const stripped = rawAttrName.slice(5, -1); // remove "host:" and "$"
+            const stripped = rawAttrName.slice(5, -1);
             ctx.push('host_' + stripped);
           } else {
             ctx.push(rawAttrName);
@@ -409,24 +342,18 @@ export function extractSegments(
         }
       }
 
-      // ExportDefaultDeclaration: push file stem if the declaration isn't a named function/class
       if (node.type === 'ExportDefaultDeclaration') {
         const decl = node.declaration;
         const hasName =
           (decl?.type === 'FunctionDeclaration' && decl.id) ||
           (decl?.type === 'ClassDeclaration' && decl.id);
         if (!hasName) {
-          // For default exports without a name, push the file stem as context.
-          // For index files, this pushes the directory name (e.g., "mongo").
-          // For regular files, this pushes the file stem (e.g., "test").
           ctx.pushDefaultExport();
           pushCount++;
         }
       }
 
-      // --- inlinedQrl detection ---
-      // inlinedQrl(body, nameString, [captures]) is a pre-processed QRL call.
-      // Detect it BEFORE regular marker detection since inlinedQrl is NOT a $-suffixed marker.
+      // inlinedQrl is a pre-processed QRL — must be detected before regular marker calls
       if (
         node.type === 'CallExpression' &&
         node.callee?.type === 'Identifier' &&
@@ -435,18 +362,16 @@ export function extractSegments(
         node.arguments?.length >= 2
       ) {
         const calleeName = node.callee.name;
-        const arg0 = node.arguments[0]; // body (function/arrow)
-        const arg1 = node.arguments[1]; // symbol name (string literal)
-        const arg2 = node.arguments[2]; // captures array (optional)
+        const arg0 = node.arguments[0];
+        const arg1 = node.arguments[1];
+        const arg2 = node.arguments[2];
 
-        // arg1 must be a string literal
         const nameValue = arg1?.type === 'StringLiteral'
           ? arg1.value
           : (arg1?.type === 'Literal' && typeof arg1.value === 'string')
             ? arg1.value
             : null;
 
-        // Skip extraction when the body is null — inlinedQrl(null, ...) is a no-op passthrough
         const isNullBody = arg0 && (
           arg0.type === 'NullLiteral' ||
           (arg0.type === 'Literal' && arg0.value === null)
@@ -455,15 +380,12 @@ export function extractSegments(
         if (arg0 && nameValue && !isNullBody) {
           const bodyText = source.slice(arg0.start, arg0.end);
 
-          // Parse symbol name: split into displayName part and hash part
-          // "task" -> symbolName="task", hash="task", displayName="fileStem_task"
-          // "qwikifyQrl_component_zH94hIe0Ick" -> hash="zH94hIe0Ick", displayName="fileStem_qwikifyQrl_component"
+          // Split symbol name into display portion and hash portion
           const lastUnder = nameValue.lastIndexOf('_');
           let inlinedHash: string;
           let displayNameSuffix: string;
           if (lastUnder > 0) {
             const lastPart = nameValue.slice(lastUnder + 1);
-            // Heuristic: if last segment is alphanumeric and >= 8 chars, treat as hash
             if (lastPart.length >= 8 && /^[a-zA-Z0-9]+$/.test(lastPart)) {
               inlinedHash = lastPart;
               displayNameSuffix = nameValue.slice(0, lastUnder);
@@ -479,31 +401,23 @@ export function extractSegments(
           const inlinedDisplayName = fileStem + '_' + displayNameSuffix;
           const inlinedCanonicalFilename = inlinedDisplayName + '_' + inlinedHash;
 
-          // Parse captures from arg2 (array expression)
           let explicitCapturesText: string | null = null;
           const inlinedCaptureNames: string[] = [];
           if (arg2 && (arg2.type === 'ArrayExpression' || arg2.type === 'ArrayPattern')) {
             explicitCapturesText = source.slice(arg2.start, arg2.end);
-            // Extract identifier names, filter non-identifiers (true, false, numbers, strings)
             for (const elem of arg2.elements ?? []) {
               if (elem?.type === 'Identifier') {
                 inlinedCaptureNames.push(elem.name);
               }
-              // Non-identifier elements (true, false, numbers, strings) are filtered out
             }
           }
 
-          // Determine ctxName: for inlinedQrl, check parent call expression
-          // e.g., componentQrl(inlinedQrl(...)) -> ctxName = "component$"
-          // e.g., useTaskQrl(inlinedQrl(...)) -> ctxName = "useTask$"
-          // If no parent wrapper, use the symbol name (e.g., "task")
+          // Derive ctxName from wrapping Qrl call (e.g., componentQrl(...) -> "component$")
           let inlinedCtxName = nameValue;
           if (parent?.type === 'CallExpression') {
             const parentCallee = getCalleeName(parent);
             if (parentCallee) {
-              // Resolve canonical name
               const canonicalParentCallee = resolveCanonicalCalleeName(parentCallee, imports);
-              // Convert Qrl suffix back to $ for ctxName
               if (canonicalParentCallee.endsWith('Qrl')) {
                 inlinedCtxName = canonicalParentCallee.slice(0, -3) + '$';
               } else {
@@ -512,18 +426,7 @@ export function extractSegments(
             }
           }
 
-          // For inlinedQrl, use source file extension (not body-based detection)
           const extension = sourceExt;
-          const [line, col] = computeLineCol(source, arg0.start);
-
-          // Collect imports referenced in segment body
-          const bodyIds = collectIdentifiers(arg0);
-          const segImports: ImportInfo[] = [];
-          for (const [localName, info] of imports) {
-            if (bodyIds.has(localName)) {
-              segImports.push(info);
-            }
-          }
 
           results.push({
             symbolName: nameValue,
@@ -551,7 +454,7 @@ export function extractSegments(
             captures: inlinedCaptureNames.length > 0,
             captureNames: inlinedCaptureNames,
             paramNames: [],
-            segmentImports: segImports,
+            segmentImports: collectSegmentImports(arg0, imports),
             isInlinedQrl: true,
             explicitCaptures: explicitCapturesText,
             inlinedQrlNameArg: nameValue,
@@ -563,9 +466,6 @@ export function extractSegments(
         return;
       }
 
-      // --- Marker call detection ---
-      // When entering a marker call, push the callee name onto context
-      // so it's part of the display name (e.g., "component$" -> "component")
       if (node.type === 'CallExpression' && isMarkerCall(node, imports, customInlined)) {
         const calleeName = getCalleeName(node);
         if (!calleeName) {
@@ -573,12 +473,8 @@ export function extractSegments(
           return;
         }
 
-        // Resolve the canonical (imported) name for aliased imports
-        // e.g., `import { component$ as c$ }` → calleeName is "c$" but canonical is "component$"
         const canonicalCallee = resolveCanonicalCalleeName(calleeName, imports);
 
-        // Bare $() segments inherit the immediate wrapper call name for hashing.
-        // This matches Rust naming for cases like component($(...)) and useStyles($(...)).
         const wrapperContext = canonicalCallee === '$'
           ? getDirectWrapperContextName(node, parent, imports, customInlined)
           : null;
@@ -587,10 +483,7 @@ export function extractSegments(
           pushCount++;
         }
 
-        // Push the callee name for naming context.
-        // For bare $() calls (including aliases like `$ as onRender`), SWC does NOT push
-        // the callee name -- it only uses the wrapper context + counter. For other markers
-        // (component$, useTask$, etc.), push the *local* alias name.
+        // SWC skips pushing the callee for bare $() — only wrapper context + counter matter
         if (canonicalCallee !== '$') {
           ctx.push(calleeName);
           pushCount++;
@@ -607,16 +500,12 @@ export function extractSegments(
         const isSync = isSyncMarker(canonicalCallee);
         const qrlCallee = computeQrlCallee(canonicalCallee);
 
-        // Check if this $() call is inside a JSX attribute value.
-        // Walk up the parent chain to find a JSXAttribute ancestor.
-        // We use parentMap (built during walk) to check.
+        // Detect if this $() call is inside a JSX attribute (CallExpr -> JSXExprContainer -> JSXAttr)
         let isEventAttr = false;
         let isJsxNonEventAttr = false;
         let attrCtx: string | undefined;
 
-        // Check immediate parent chain: CallExpression -> JSXExpressionContainer -> JSXAttribute
         if (parent?.type === 'JSXExpressionContainer') {
-          // The parent of JSXExpressionContainer should be a JSXAttribute
           const jsxAttrParent = parentMap.get(parent);
           if (jsxAttrParent?.type === 'JSXAttribute') {
             let jsxAttrName: string | null = null;
@@ -626,30 +515,18 @@ export function extractSegments(
               jsxAttrName = `${jsxAttrParent.name.namespace?.name ?? ''}:${jsxAttrParent.name.name?.name ?? ''}`;
             }
             if (jsxAttrName?.endsWith('$')) {
-              // The stack top is the current marker call; the previous entry is the JSX attr.
               attrCtx = ctx.peek(1) ?? jsxAttrName;
 
-              // SWC: component elements (is_fn=true) use SegmentKind::JSXProp for ALL $-suffixed attrs,
-              // including onClick$. Only HTML elements use SegmentKind::EventHandler.
-              // Check if the enclosing JSX element is a component (tag starts with uppercase).
+              // Component elements use jSXProp for ALL $-suffixed attrs;
+              // HTML elements use eventHandler for on* attrs.
               const jsxOpeningElement = parentMap.get(jsxAttrParent);
-              let isComponentElement = false;
-              if (jsxOpeningElement?.type === 'JSXOpeningElement') {
-                const tagName = jsxOpeningElement.name;
-                if (tagName?.type === 'JSXIdentifier') {
-                  // Component if first char is uppercase
-                  isComponentElement = tagName.name[0] === tagName.name[0].toUpperCase();
-                } else if (tagName?.type === 'JSXMemberExpression') {
-                  isComponentElement = true; // member expressions like Foo.Bar are always components
-                }
-              }
+              const isComponentElement = jsxOpeningElement?.type === 'JSXOpeningElement'
+                && isComponentTag(jsxOpeningElement.name);
 
               if (isComponentElement) {
-                // All $-suffixed props on components are jSXProp (SWC behavior)
                 isEventAttr = false;
                 isJsxNonEventAttr = true;
               } else {
-                // HTML elements: on* -> eventHandler, others -> jSXProp
                 isEventAttr = jsxAttrName.startsWith('on') || jsxAttrName.startsWith('document:on') || jsxAttrName.startsWith('window:on');
                 isJsxNonEventAttr = !isEventAttr;
               }
@@ -658,28 +535,17 @@ export function extractSegments(
         }
 
         const ctxKind = getCtxKind(canonicalCallee, isEventAttr, isJsxNonEventAttr);
-        // For both eventHandler and jSXProp, use the attribute name as ctxName
         const isJsxAttrContext = isEventAttr || isJsxNonEventAttr;
         const ctxName = getCtxName(canonicalCallee, isJsxAttrContext, isJsxAttrContext ? attrCtx : undefined);
 
         const displayName = ctx.getDisplayName();
         const symbolName = ctx.getSymbolName();
 
-        // Extract hash from symbolName (last segment after final underscore)
         const lastUnder = symbolName.lastIndexOf('_');
         const hash = lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName;
 
         const extension = determineExtension(arg, sourceExt);
         const [line, col] = computeLineCol(source, arg.start);
-
-        // Determine which imports the segment body references
-        const bodyIds = collectIdentifiers(arg);
-        const segmentImports: ImportInfo[] = [];
-        for (const [localName, info] of imports) {
-          if (bodyIds.has(localName)) {
-            segmentImports.push(info);
-          }
-        }
 
         results.push({
           symbolName,
@@ -703,11 +569,11 @@ export function extractSegments(
           origin: relPath,
           extension,
           loc: [line, col],
-          parent: null, // Plan 04 handles nesting
-          captures: false, // Phase 3: populated by transform.ts
-          captureNames: [], // Phase 3: populated by transform.ts
-          paramNames: [], // Phase 3: populated by transform.ts
-          segmentImports,
+          parent: null,
+          captures: false,
+          captureNames: [],
+          paramNames: [],
+          segmentImports: collectSegmentImports(arg, imports),
           isInlinedQrl: false,
           explicitCaptures: null,
           inlinedQrlNameArg: null,
@@ -715,17 +581,7 @@ export function extractSegments(
         });
       }
 
-      // Track marker call depth for JSX extraction scoping
-      if (node.type === 'CallExpression' && isMarkerCall(node, imports, customInlined)) {
-        markerCallDepth++;
-        markerCallNodes.add(node);
-      }
-
-      // --- JSX $-suffixed attribute extraction ---
-      // When we see onClick$={expr}, extract expr as a segment.
-      // The attribute name (e.g., onClick$) determines the ctxName/ctxKind.
-      // The value (inside JSXExpressionContainer) is the segment body.
-      // Determine $-suffixed JSX attribute name for extraction
+      // JSX $-suffixed attribute extraction (e.g., onClick$={expr})
       let jsxAttrName: string | null = null;
       if (
         node.type === 'JSXAttribute' &&
@@ -745,33 +601,17 @@ export function extractSegments(
         const attrName = jsxAttrName;
         const expr = node.value.expression;
 
-        // Skip if expression is itself a $() call -- that's handled by marker call detection
         if (expr.type === 'CallExpression' && isMarkerCall(expr, imports, customInlined)) {
-          // Already handled by marker call detection above
+          // Handled by marker call detection above
         } else if (
           expr.type === 'ArrowFunctionExpression' ||
           expr.type === 'FunctionExpression'
         ) {
-          // This is a direct function expression in a $-suffixed JSX prop:
-          // onClick$={() => ...} or onInput$={function() {...}}
-          // Extract it as a segment.
-
-          // Push the attribute name to name context (already done above for JSXAttribute)
-          // The attrName is already in the context stack from the JSXAttribute push above.
-
           const bodyText = source.slice(expr.start, expr.end);
 
-          // Detect if this event handler is on a component element (uppercase tag)
-          const parentOpeningTag = parent?.type === 'JSXOpeningElement'
-            ? (parent.name?.type === 'JSXIdentifier' ? parent.name.name : '')
-            : '';
-          const isComponentEvent = parentOpeningTag.length > 0 &&
-            parentOpeningTag[0] === parentOpeningTag[0].toUpperCase() &&
-            parentOpeningTag[0] !== parentOpeningTag[0].toLowerCase();
+          const isComponentEvent = parent?.type === 'JSXOpeningElement' && isComponentTag(parent.name);
 
-          // SWC rules for direct function expressions in JSX $-suffixed attrs:
-          // - HTML elements: ALL $-suffixed attrs → eventHandler
-          // - Component elements: on* attrs → eventHandler, non-on* attrs → jSXProp
+          // HTML elements: all $-attrs -> eventHandler; components: on* -> eventHandler, rest -> jSXProp
           let ctxKind: 'function' | 'eventHandler' | 'jSXProp' = 'eventHandler';
           if (isComponentEvent) {
             const isOnEvent = attrName.startsWith('on') || attrName.startsWith('document:on') || attrName.startsWith('window:on');
@@ -779,7 +619,7 @@ export function extractSegments(
               ctxKind = 'jSXProp';
             }
           }
-          const ctxName = attrName; // e.g., onClick$, custom$, onInput$
+          const ctxName = attrName;
 
           const displayName = ctx.getDisplayName();
           const symbolName = ctx.getSymbolName();
@@ -790,20 +630,12 @@ export function extractSegments(
           const extension = determineExtension(expr, sourceExt);
           const [line, col] = computeLineCol(source, expr.start);
 
-          const bodyIds = collectIdentifiers(expr);
-          const segImports: ImportInfo[] = [];
-          for (const [localName, info] of imports) {
-            if (bodyIds.has(localName)) {
-              segImports.push(info);
-            }
-          }
-
           results.push({
             symbolName,
             displayName,
             hash,
             canonicalFilename: displayName + '_' + hash,
-            callStart: node.start, // The JSXAttribute node
+            callStart: node.start,
             callEnd: node.end,
             calleeStart: node.name.start,
             calleeEnd: node.name.end,
@@ -813,7 +645,7 @@ export function extractSegments(
             calleeName: attrName,
             isBare: false,
             isSync: false,
-            qrlCallee: '', // JSX event attrs use qrl() directly
+            qrlCallee: '',
             importSource: '',
             ctxKind,
             ctxName,
@@ -824,7 +656,7 @@ export function extractSegments(
             captures: false,
             captureNames: [],
             paramNames: [],
-            segmentImports: segImports,
+            segmentImports: collectSegmentImports(expr, imports),
             isInlinedQrl: false,
             explicitCaptures: null,
             inlinedQrlNameArg: null,
@@ -837,12 +669,6 @@ export function extractSegments(
     },
 
     leave(node: any) {
-      // Decrement marker call depth when leaving a marker call
-      if (markerCallNodes.has(node)) {
-        markerCallDepth--;
-        markerCallNodes.delete(node);
-      }
-
       const count = pushedNodes.get(node);
       if (count !== undefined) {
         for (let i = 0; i < count; i++) {
@@ -858,21 +684,9 @@ export function extractSegments(
   return results;
 }
 
-// ---------------------------------------------------------------------------
-// Disambiguation
-// ---------------------------------------------------------------------------
-
 /**
- * Disambiguate extractions that share the same display name by appending
- * _1, _2, etc. suffixes. The first occurrence keeps its original name
- * (index 0), subsequent duplicates get _1, _2, etc.
- *
- * This matches Rust optimizer's `register_context_name` behavior.
- * After appending the suffix, the hash is recomputed since the hash input
- * includes the context portion.
- *
- * Must be called BEFORE parent module rewriting so QRL declarations
- * reference the disambiguated names.
+ * Append _1, _2, etc. suffixes to extractions that share a display name,
+ * recomputing hashes accordingly. Mirrors Rust's `register_context_name`.
  */
 function disambiguateExtractions(
   extractions: ExtractionResult[],
@@ -884,17 +698,14 @@ function disambiguateExtractions(
   const prefix = fileStem + '_';
 
   for (const ext of extractions) {
-    // Extract context portion from displayName
     const contextPortion = ext.displayName.startsWith(prefix)
       ? ext.displayName.slice(prefix.length)
       : ext.displayName;
 
     const existing = nameCounters.get(contextPortion);
     if (existing === undefined) {
-      // First occurrence: index 0, no suffix
       nameCounters.set(contextPortion, 0);
     } else {
-      // Duplicate: increment counter, append suffix
       const newIndex = existing + 1;
       nameCounters.set(contextPortion, newIndex);
 

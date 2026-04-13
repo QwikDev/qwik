@@ -6,30 +6,18 @@
  * (or @builder.io/qwik) or defined as custom inlined functions.
  */
 
-/** Information about an imported binding. */
 export interface ImportInfo {
-  /** The local binding name (after `as` rename, if any). */
   localName: string;
-  /** The original exported name from the source module. */
   importedName: string;
-  /** The module source (e.g., "@qwik.dev/core"). */
   source: string;
-  /** Whether source is @qwik.dev/core or @builder.io/qwik (or sub-paths). */
   isQwikCore: boolean;
 }
 
-/** Information about a custom inlined $-suffixed function. */
 export interface CustomInlinedInfo {
-  /** The dollar-suffixed name, e.g., "useMemo$". */
   dollarName: string;
-  /** The Qrl variant name, e.g., "useMemoQrl". */
   qrlName: string;
 }
 
-/**
- * Known Qwik package prefixes that may export $-suffixed marker functions.
- * Includes core, react, and router packages in both old and new naming.
- */
 const QWIK_CORE_PREFIXES = [
   '@qwik.dev/core',
   '@qwik.dev/react',
@@ -39,20 +27,13 @@ const QWIK_CORE_PREFIXES = [
   '@builder.io/qwik',
 ];
 
-/** Check if a module source is a Qwik core package (or sub-path). */
 function isQwikCoreSource(source: string): boolean {
-  for (const prefix of QWIK_CORE_PREFIXES) {
-    if (source === prefix || source.startsWith(prefix + '/')) {
-      return true;
-    }
-  }
-  return false;
+  return QWIK_CORE_PREFIXES.some(
+    (prefix) => source === prefix || source.startsWith(prefix + '/'),
+  );
 }
 
-/**
- * Collect all import declarations from a parsed AST Program node.
- * Returns a map keyed by local binding name.
- */
+/** Collect all import declarations, returning a map keyed by local binding name. */
 export function collectImports(program: any): Map<string, ImportInfo> {
   const imports = new Map<string, ImportInfo>();
 
@@ -93,10 +74,7 @@ export function collectImports(program: any): Map<string, ImportInfo> {
   return imports;
 }
 
-/**
- * Scan module body for `export const X$ = wrap(XQrl)` patterns.
- * These define custom inlined $-suffixed functions.
- */
+/** Scan for `export const X$ = wrap(XQrl)` custom inlined function patterns. */
 export function collectCustomInlined(program: any): Map<string, CustomInlinedInfo> {
   const custom = new Map<string, CustomInlinedInfo>();
 
@@ -106,52 +84,35 @@ export function collectCustomInlined(program: any): Map<string, CustomInlinedInf
 
     for (const decl of node.declaration.declarations) {
       if (decl.id?.type !== 'Identifier') continue;
-      const name = decl.id.name;
 
-      // Must end with $
+      const name = decl.id.name;
       if (!name.endsWith('$')) continue;
 
-      // init must be a CallExpression (the wrap() call)
       const init = decl.init;
       if (!init || init.type !== 'CallExpression') continue;
-
-      // The first argument should be an Identifier ending with Qrl
       if (init.arguments.length < 1) continue;
-      const arg = init.arguments[0];
-      if (arg.type !== 'Identifier') continue;
-      if (!arg.name.endsWith('Qrl')) continue;
 
-      custom.set(name, {
-        dollarName: name,
-        qrlName: arg.name,
-      });
+      const firstArg = init.arguments[0];
+      if (firstArg.type !== 'Identifier' || !firstArg.name.endsWith('Qrl')) continue;
+
+      custom.set(name, { dollarName: name, qrlName: firstArg.name });
     }
   }
 
   return custom;
 }
 
-/**
- * Get the callee name from a CallExpression node.
- * Currently handles Identifier callees only.
- * Returns null if callee is not a simple Identifier.
- */
+/** Extract callee name from a CallExpression (Identifier callees only). */
 export function getCalleeName(callExpr: any): string | null {
-  if (callExpr.callee?.type === 'Identifier') {
-    return callExpr.callee.name;
-  }
-  return null;
+  return callExpr.callee?.type === 'Identifier' ? callExpr.callee.name : null;
 }
 
 /**
  * Check if a CallExpression is a marker call that should trigger extraction.
  *
- * A marker call is one where the callee is an imported binding whose
- * *original* (imported) name ends with `$`, OR it's in the customInlined map.
- * This handles:
- * - Qwik core imports: component$, useTask$, $
- * - Non-Qwik package imports: formAction$ from 'forms', serverAuth$ from '@auth/qwik'
- * - Renamed imports: import { component$ as Component } (importedName ends with $)
+ * A marker call has a callee whose *original* (imported) name ends with `$`,
+ * or is in the customInlined map. Handles renamed imports like
+ * `import { component$ as Component }`.
  */
 export function isMarkerCall(
   callExpr: any,
@@ -161,40 +122,24 @@ export function isMarkerCall(
   const name = getCalleeName(callExpr);
   if (!name) return false;
 
-  // Check if it's an imported binding whose original name ends with $
   const importInfo = imports.get(name);
   if (importInfo && importInfo.importedName.endsWith('$')) return true;
-
-  // Check if it's a custom inlined function (must have local name ending with $)
   if (name.endsWith('$') && customInlined.has(name)) return true;
 
   return false;
 }
 
-/**
- * Check if a CallExpression is a bare `$()` call (as opposed to `component$()`, etc.).
- */
 export function isBare$(callExpr: any): boolean {
-  const name = getCalleeName(callExpr);
-  return name === '$';
+  return getCalleeName(callExpr) === '$';
 }
 
-/**
- * Check if a callee name is the sync$ marker.
- * sync$ is special: it IS a marker but does NOT extract a segment.
- */
+/** sync$ is a marker but does NOT extract a segment. */
 export function isSyncMarker(calleeName: string): boolean {
   return calleeName === 'sync$';
 }
 
-/**
- * Determine ctxKind for a marker call.
- * "eventHandler" for JSX event attributes (onClick$, onChange$, etc.),
- * "jSXProp" for non-event $-suffixed JSX attribute props (e.g., transparent$),
- * "function" for everything else.
- */
 export function getCtxKind(
-  calleeName: string,
+  _calleeName: string,
   isJsxEventAttr: boolean,
   isJsxNonEventAttr: boolean = false,
 ): 'function' | 'eventHandler' | 'jSXProp' {
@@ -203,18 +148,10 @@ export function getCtxKind(
   return 'function';
 }
 
-/**
- * Determine ctxName for a marker call.
- * For regular calls, it's the callee name itself.
- * For JSX event attributes, it's the attribute name (e.g., "onClick$").
- */
 export function getCtxName(
   calleeName: string,
   isJsxEventAttr: boolean,
   jsxAttrName?: string
 ): string {
-  if (isJsxEventAttr && jsxAttrName) {
-    return jsxAttrName;
-  }
-  return calleeName;
+  return (isJsxEventAttr && jsxAttrName) ? jsxAttrName : calleeName;
 }

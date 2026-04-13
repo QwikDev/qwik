@@ -1,0 +1,224 @@
+---
+title: Error Codes | Reference
+description: Reference for all Qwik internal error codes with descriptions and troubleshooting guidance.
+---
+
+# Qwik Error Codes
+
+In production, Qwik logs compact error codes like `Code(Q8)` with a link to this page. Below is a description of every code, what triggers it, and how to fix it.
+
+## Q0
+
+**Error while serializing class or style attributes**
+
+Qwik could not convert a `class` or `style` value to a string. Ensure you pass a string, an object, or an array — not a function or symbol.
+
+## Q1
+
+**Scheduler not found**
+
+Internal error: the Qwik scheduler was not available when an effect tried to run. This usually means the container was destroyed or never initialized. If you see this in application code, please file a bug.
+
+## Q2
+
+**track() received object, without prop to track**
+
+You called `track(obj)` without specifying which property to track. Use `track(() => obj.prop)` or `track(signal)` instead.
+
+## Q3
+
+**Only primitive and object literals can be serialized**
+
+You stored a value (class instance, function, DOM node, etc.) in state that Qwik needs to serialize. Move it behind a QRL (`$()`) or keep it in a non-serialized location. See [Serialization](</docs/(qwik)/concepts/resumable/#serialization>).
+
+## Q4
+
+**You can render over an existing q:container. Skipping render()**
+
+`render()` was called on an element that already hosts a Qwik container. Remove the existing container first, or render into a different element.
+
+## Q5
+
+**QRL is not a function**
+
+A QRL resolved to something other than a function. Make sure the `$`-suffixed expression exports a function, and that the optimizer is running.
+
+## Q6
+
+**Dynamic import not found**
+
+The chunk file referenced by a QRL could not be loaded. This usually means a build artifact is missing or the base path is misconfigured. Rebuild your project and verify that all chunks are deployed.
+
+## Q7
+
+**Unknown type argument**
+
+Internal error: an unknown type was passed to a core utility. If you see this in application code, please file a bug.
+
+## Q8
+
+**Actual value for useContext() can not be found**
+
+You called `useContext(id)` but no ancestor called `useContextProvider(id, value)`. Make sure the provider is above the consumer in the component tree, and that the context was used during SSR so its state was serialized.
+
+## Q9
+
+**Invoking 'use\*()' method outside of invocation context**
+
+A `use*()` hook was called outside of a component or task scope. Hooks can only be called synchronously inside `component$`, `useTask$`, `useComputed$`, or similar Qwik entry points.
+
+## Q10
+
+**Calling a 'use\*()' method outside 'component$(() => \{ HERE \})' is not allowed**
+
+Similar to Q9 but more specific: you called a hook in a place that is not inside a `component$` body or another `use*` hook. Move the call into the component function. See [Use Method Rules](/docs/core/tasks/#use-method-rules).
+
+## Q11
+
+**The provided Context reference is not a valid context created by createContextId()**
+
+The value you passed to `useContext()` or `useContextProvider()` was not created with `createContextId()`. Make sure you are importing and passing the correct context object.
+
+## Q12
+
+**SsrError(tag)**
+
+An error occurred during SSR while processing a specific JSX tag. Check the accompanying message for details about which element failed and why.
+
+## Q13
+
+**QRLs can not be resolved because it does not have an attached container**
+
+A QRL tried to resolve but has no container context. This happens when a QRL is used outside of a rendered Qwik tree. Ensure QRLs are created and used inside a Qwik container.
+
+## Q14
+
+**QRLs can not be dynamically resolved, because it does not have a chunk path**
+
+A QRL has no chunk information. This typically means the optimizer did not process the file. Ensure the Qwik Vite plugin is configured correctly.
+
+## Q15
+
+**The JSX ref attribute must be a Signal**
+
+You passed a non-Signal value to the `ref` prop. Use `useSignal()` to create a ref: `const myRef = useSignal<Element>()`, then pass `ref={myRef}`.
+
+## Q16
+
+**Deserialization of data type is not implemented**
+
+Internal serialization error: an unknown type ID was encountered during deserialization. This may indicate a version mismatch between SSR and client code. Rebuild and redeploy.
+
+## Q17
+
+**Expected vnode for ref prop**
+
+Internal serialization error: a `ref` prop pointed to something other than a VNode during serialization. If you see this in application code, please file a bug.
+
+## Q18
+
+**Cannot allocate data type**
+
+Internal serialization error: an unknown type ID was encountered during allocation. This may indicate corrupted serialized state or a version mismatch. Rebuild and redeploy.
+
+## Q19
+
+**Missing root id**
+
+Internal serialization error: a root object has no assigned ID during serialization. If you see this in application code, please file a bug.
+
+## Q20
+
+**Serialization of data type is not implemented**
+
+An object of an unsupported type was encountered during serialization. Only primitives, plain objects, arrays, Signals, Dates, URLs, RegExps, Maps, Sets, and explicitly serializable types can be serialized. See Q3 for guidance.
+
+## Q21
+
+**Serialization Error: Unvisited**
+
+Internal error: an object that should have been visited during the serialization walk was missed. If you see this in application code, please file a bug.
+
+## Q22
+
+**Missing QRL chunk**
+
+A QRL's chunk information was not available during serialization. This usually means the optimizer did not process the code correctly. Rebuild your project.
+
+## Q23
+
+**The value of the textarea must be a string**
+
+You passed a non-string value to a `<textarea>`. Convert the value to a string, or use a signal that holds a string.
+
+## Q24
+
+**Unable to find q:container**
+
+Qwik could not locate a `q:container` element. This happens when trying to resume or interact with a container that was not rendered or was removed from the DOM.
+
+## Q25
+
+**Element must have 'q:container' attribute**
+
+An element was expected to have a `q:container` attribute but did not. This is an internal error — if you see it, please file a bug.
+
+## Q26
+
+**Unknown vnode type**
+
+Internal error: the VNode system encountered a node of an unknown type. If you see this in application code, please file a bug.
+
+## Q27
+
+**Materialize error: missing element**
+
+Internal error: the VNode system could not find an expected DOM element during materialization. This can happen if the DOM was modified externally (e.g., by a browser extension) between SSR and resumption.
+
+## Q28
+
+**Cannot coerce a Signal, use `.value` instead**
+
+You used a Signal where a primitive was expected (e.g., string concatenation, comparison). Access the underlying value with `.value`: `mySignal.value` instead of `mySignal`.
+
+## Q29
+
+**useComputed$ QRL cannot return a Promise**
+
+The function inside `useComputed$` must be synchronous. If you need async computation, use `useAsync$` instead.
+
+## Q30
+
+**Qwik version already imported**
+
+Two different copies of Qwik were loaded. This causes shared internal structures to diverge and leads to subtle bugs. Ensure only one version is installed by checking your `resolve.noExternal[]` and `optimizeDeps.exclude` settings in Vite config.
+
+## Q31
+
+**WrappedSignal is read-only**
+
+You tried to set `.value` on a signal that is derived (e.g., from a computed expression or a binding). Derived signals cannot be written to — write to the source signal instead.
+
+## Q32
+
+**Attribute value is unsafe for SSR**
+
+An attribute value contained characters that are unsafe for server-side rendering (e.g., unescaped HTML). Sanitize the value before passing it as an attribute.
+
+## Q33
+
+**SerializerSymbol function returned rejected promise**
+
+A custom serializer (using `SerializerSymbol`) returned a rejected promise. Ensure your serializer's `serialize` function resolves successfully.
+
+## Q34
+
+**Cannot serialize function**
+
+A plain function (not wrapped in `$()`) was found in serializable state. Wrap it with `$()` to create a QRL, or move it out of serialized state and use a QRL reference instead.
+
+## Q35
+
+**Cannot read .value of a clientOnly async signal during SSR**
+
+You accessed `.value` on an async signal with `clientOnly: true` during server-side rendering. Since `clientOnly` signals skip computation on the server, there is no value available. Use `.loading` to show a loading state, or provide an `initial` value in the options.

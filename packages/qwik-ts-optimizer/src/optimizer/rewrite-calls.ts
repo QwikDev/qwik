@@ -163,6 +163,12 @@ export function getQrlImportSource(qrlCalleeName: string, originalSource?: strin
   if (originalSource && !isQwikPackage(originalSource)) {
     return originalSource;
   }
+  // Qwik sub-packages (not @qwik.dev/core): preserve the original source.
+  // If server$ was imported from @qwik.dev/router, serverQrl should come from there too.
+  if (originalSource && originalSource !== '@qwik.dev/core' &&
+      originalSource !== '@builder.io/qwik' && isQwikPackage(originalSource)) {
+    return originalSource;
+  }
   if (qrlCalleeName === 'qwikifyQrl') return '@qwik.dev/react';
   const ROUTER_QRLS = new Set([
     'globalActionQrl', 'routeActionQrl', 'routeLoaderQrl',

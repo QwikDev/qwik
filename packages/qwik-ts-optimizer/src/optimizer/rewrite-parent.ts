@@ -1388,7 +1388,10 @@ function transformSCallBody(
           const isRegCtx = matchesRegCtxName(child, regCtxName);
           let qrlRef = isRegCtx ? `serverQrl(${childVarName})` : childVarName;
           if (isRegCtx) {
-            additionalImports.set('serverQrl', '@qwik.dev/core');
+            // Preserve the original import source package for serverQrl
+            // (e.g., server$ from @qwik.dev/router should emit serverQrl from @qwik.dev/router)
+            const serverQrlSource = child.importSource || '@qwik.dev/core';
+            additionalImports.set('serverQrl', serverQrlSource);
           }
 
           // Cross-scope loop captures: generate standalone .w() hoisting
@@ -1929,7 +1932,9 @@ export function rewriteParentModule(
       const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
       let qrlRef = isRegCtx ? `serverQrl(${getQrlVarName(ext.symbolName)})` : getQrlVarName(ext.symbolName);
       if (isRegCtx) {
-        eventHandlerExtraImports.push({ sym: 'serverQrl', src: '@qwik.dev/core' });
+        // Preserve the original import source package for serverQrl
+        const serverQrlSource = ext.importSource || '@qwik.dev/core';
+        eventHandlerExtraImports.push({ sym: 'serverQrl', src: serverQrlSource });
       }
 
       // Add .w([captures]) for captured variables

@@ -46,7 +46,7 @@ class AsyncJob<T> implements AsyncCtx<T> {
   constructor(
     readonly $signal$: AsyncSignalImpl<T>,
     readonly info: unknown,
-    readonly $infoVersion$: number
+    readonly $infoVersion$: number | undefined
   ) {}
 
   get track(): AsyncCtx<T>['track'] {
@@ -95,18 +95,19 @@ export class AsyncSignalImpl<T>
   $untrackedLoading$: boolean = false;
   $untrackedError$: Error | undefined = undefined;
 
-  $loadingEffects$: undefined | Set<EffectSubscription> = undefined;
-  $errorEffects$: undefined | Set<EffectSubscription> = undefined;
   $current$: AsyncJob<T> | null = null;
   // TODO only create the array if concurrency > 1
   $jobs$: AsyncJob<T>[] = [];
-  $concurrency$: number = 1;
-  $interval$: number = 0;
-  $timeoutMs$: number | undefined;
-  $info$: unknown = undefined;
-  $infoVersion$: number = 0;
+  // Only declare these less common properties, to save some memory
+  declare $concurrency$: number | undefined;
+  declare $interval$: number | undefined;
+  declare $timeoutMs$: number | undefined;
+  declare $loadingEffects$: undefined | Set<EffectSubscription>;
+  declare $errorEffects$: undefined | Set<EffectSubscription>;
   declare $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined;
   declare $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
+  declare $info$: unknown | undefined;
+  declare $infoVersion$: number | undefined;
 
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
@@ -118,31 +119,33 @@ export class AsyncSignalImpl<T>
     options?: AsyncSignalOptions<T>
   ) {
     super(container, fn, flags);
-    const interval = options?.interval;
-    const concurrency = options?.concurrency ?? 1;
-    const initial = options?.initial;
-    const timeout = options?.timeout;
-    const eagerCleanup = options?.eagerCleanup;
-    const clientOnly = options?.clientOnly;
+    if (!options) {
+      return;
+    }
 
     // Handle initial value - eagerly evaluate if function, set $untrackedValue$ and $promiseValue$
     // Do NOT call setValue() which would clear the INVALID flag and prevent async computation
+    const initial = options.initial;
     if (initial !== undefined) {
       const initialValue = typeof initial === 'function' ? (initial as () => T)() : initial;
       this.$untrackedValue$ = initialValue;
     }
 
-    this.$concurrency$ = concurrency;
+    const concurrency = options.concurrency;
+    if (concurrency !== undefined && concurrency >= 0 && concurrency !== 1) {
+      this.$concurrency$ = concurrency;
+    }
+    const timeout = options.timeout;
     if (timeout) {
       this.$timeoutMs$ = timeout;
     }
-    if (eagerCleanup) {
+    if (options.eagerCleanup) {
       this.$flags$ |= AsyncSignalFlags.EAGER_CLEANUP;
     }
-    if (clientOnly) {
+    if (options.clientOnly) {
       this.$flags$ |= AsyncSignalFlags.CLIENT_ONLY;
     }
-    if (options?.allowStale === false) {
+    if (options.allowStale === false) {
       if (isDev && initial !== undefined) {
         throw new Error(
           'allowStale: false and initial cannot be used together. ' +
@@ -151,6 +154,7 @@ export class AsyncSignalImpl<T>
       }
       this.$flags$ |= AsyncSignalFlags.CLEAR_ON_INVALIDATE;
     }
+    const interval = options.interval;
     if (interval) {
       this.interval = interval;
     }
@@ -299,13 +303,13 @@ export class AsyncSignalImpl<T>
   }
 
   get interval() {
-    return this.$interval$;
+    return this.$interval$ || 0;
   }
 
   set interval(value: number) {
     this.$clearNextPoll$();
     this.$interval$ = value;
-    if (this.$interval$ !== 0 && this.$hasSubscribers$()) {
+    if (this.$interval$ && this.$hasSubscribers$()) {
       this.$scheduleNextPoll$();
     }
   }
@@ -314,7 +318,7 @@ export class AsyncSignalImpl<T>
   override async invalidate(info?: unknown) {
     if (arguments.length > 0) {
       this.$info$ = info;
-      this.$infoVersion$++;
+      this.$infoVersion$ = this.$infoVersion$ === undefined ? 1 : this.$infoVersion$ + 1;
     }
     this.$setInvalid$(true, this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE);
   }
@@ -386,7 +390,7 @@ export class AsyncSignalImpl<T>
       this.$requestCleanups$(this.$current$);
     }
 
-    const limit = this.$concurrency$ === 0 ? Number.POSITIVE_INFINITY : this.$concurrency$;
+    const limit = this.$concurrency$ === 0 ? Number.POSITIVE_INFINITY : (this.$concurrency$ ?? 1);
     if (this.$jobs$.length >= limit) {
       DEBUG && log(`Concurrency limit ${limit} reached, not starting new computation`);
       // We requested cleanups for all the previous jobs, once one finishes it will be removed from the jobs array and trigger computeIfNeeded
@@ -504,20 +508,20 @@ export class AsyncSignalImpl<T>
   }
 
   private $scheduleNextPoll$() {
-    if (!(import.meta.env.TEST ? !isServerPlatform() : isBrowser) || this.$interval$ === 0) {
+    if ((import.meta.env.TEST ? isServerPlatform() : isServer) || !this.$interval$) {
       return;
     }
 
     this.$clearNextPoll$();
 
-    this.$pollTimeoutId$ = setTimeout(() => {
-      const allowRecalc = this.$interval$ > 0;
-      // Even when clear on invalidate, we don't clear if we're merely re-running due to interval
-      // We expect to get the new value soon, so we can avoid showing a loading state
-      const mustClear = this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE && !allowRecalc;
-
-      this.$setInvalid$(allowRecalc, mustClear);
-    }, Math.abs(this.$interval$));
+    const allowRecalc = this.$interval$ > 0;
+    // Even when clear on invalidate, we don't clear if we're merely re-running due to interval
+    // We expect to get the new value soon, so we can avoid showing a loading state
+    const mustClear = this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE && !allowRecalc;
+    this.$pollTimeoutId$ = setTimeout(
+      () => this.$setInvalid$(allowRecalc, mustClear),
+      Math.abs(this.$interval$)
+    );
 
     this.$pollTimeoutId$?.unref?.();
   }

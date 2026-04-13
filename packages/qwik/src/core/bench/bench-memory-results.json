@@ -1,16 +1,16 @@
 {
   "version": 1,
-  "generatedAt": "2026-04-13T05:32:30.740Z",
+  "generatedAt": "2026-04-13T06:03:24.373Z",
   "sampleCount": 3,
   "countPerScenario": 10000,
   "scenarios": {
     "function": {
-      "totalBytes": 1131464,
-      "bytesPerInstance": 113.1464
+      "totalBytes": 1129176,
+      "bytesPerInstance": 112.9176
     },
     "qrl": {
-      "totalBytes": 2912152,
-      "bytesPerInstance": 291.2152
+      "totalBytes": 2906792,
+      "bytesPerInstance": 290.6792
     },
     "qrl-copy": {
       "totalBytes": 2021976,
@@ -25,8 +25,8 @@
       "bytesPerInstance": 65.364
     },
     "signal": {
-      "totalBytes": 664024,
-      "bytesPerInstance": 66.4024
+      "totalBytes": 663024,
+      "bytesPerInstance": 66.3024
     },
     "ComputedSignal": {
       "totalBytes": 904944,
@@ -37,24 +37,24 @@
       "bytesPerInstance": 146.4232
     },
     "async-signal-default": {
-      "totalBytes": 2117944,
-      "bytesPerInstance": 211.7944
+      "totalBytes": 1554272,
+      "bytesPerInstance": 155.4272
     },
     "async-signal-concurrency-4": {
-      "totalBytes": 2119320,
-      "bytesPerInstance": 211.932
+      "totalBytes": 1636280,
+      "bytesPerInstance": 163.628
     },
     "virtual-vnode": {
-      "totalBytes": 1379720,
-      "bytesPerInstance": 137.972
+      "totalBytes": 1379816,
+      "bytesPerInstance": 137.9816
     },
     "element-vnode": {
       "totalBytes": 7293544,
       "bytesPerInstance": 729.3544
     },
     "text-vnode": {
-      "totalBytes": 2546440,
-      "bytesPerInstance": 254.644
+      "totalBytes": 2546200,
+      "bytesPerInstance": 254.62
     },
     "jsx-node": {
       "totalBytes": 2818360,
@@ -69,16 +69,16 @@
       "bytesPerInstance": 93.324
     },
     "effect-subscription": {
-      "totalBytes": 4827976,
-      "bytesPerInstance": 482.7976
+      "totalBytes": 4829768,
+      "bytesPerInstance": 482.9768
     },
     "delete-operation": {
       "totalBytes": 1675480,
       "bytesPerInstance": 167.548
     },
     "set-text-operation": {
-      "totalBytes": 1748728,
-      "bytesPerInstance": 174.8728
+      "totalBytes": 1748680,
+      "bytesPerInstance": 174.868
     },
     "insert-or-move-operation": {
       "totalBytes": 6326248,

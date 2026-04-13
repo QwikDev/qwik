@@ -332,7 +332,7 @@ function maybeAddPollingAsyncSignalToEagerResume(
     const interval = unwrappedSignal.$interval$;
     // Don't check for $effects$ here - effects are added later during tracking.
     // The AsyncSignal's polling mechanism will check for effects before scheduling.
-    if (interval > 0) {
+    if (interval! > 0) {
       serializationCtx.$addRoot$(unwrappedSignal);
       serializationCtx.$eagerResume$.add(unwrappedSignal);
     }

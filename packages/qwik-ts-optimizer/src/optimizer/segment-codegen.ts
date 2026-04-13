@@ -803,6 +803,22 @@ export function generateSegmentCode(
 
     // Inject .w() hoisting declarations by converting arrow expression bodies to block bodies
     if (hoistDeclarations.length > 0) {
+      // SWC groups all .w() declarations in the same scope together, placing them
+      // after the last variable declaration any of them depends on. Normalize:
+      // find the max position among hoists in similar scope regions and align them.
+      if (hoistDeclarations.length > 1) {
+        // Group hoists whose positions are "close" (within same arrow body).
+        // A simple heuristic: if positions differ by < 200 chars, they're likely
+        // in the same scope. Use the max position for all in the group.
+        const maxPos = Math.max(...hoistDeclarations.map(h => h.position));
+        const minPos = Math.min(...hoistDeclarations.map(h => h.position));
+        // Check if all are reasonably close (same arrow body)
+        if (maxPos - minPos < 500) {
+          for (const h of hoistDeclarations) {
+            h.position = maxPos;
+          }
+        }
+      }
       hoistDeclarations.sort((a, b) => b.position - a.position);
       for (const hoist of hoistDeclarations) {
         const pos = hoist.position;

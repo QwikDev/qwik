@@ -2268,6 +2268,9 @@ export function rewriteParentModule(
 
     if (ext.captureNames.length === 0) continue;
 
+    // JSX event/prop extractions already have .w() baked into the replacement (Step 4)
+    if ((ext.ctxKind === 'eventHandler' || ext.ctxKind === 'jSXProp') && !ext.qrlCallee) continue;
+
     // Filter out migrated (_auto_) variables from captures
     const effectiveCaptures = ext.captureNames.filter(name => !migratedNames.has(name));
     if (effectiveCaptures.length === 0) continue; // skip .w() entirely

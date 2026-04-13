@@ -8,13 +8,12 @@
 
 import { createRegExp, exactly, oneOrMore, char } from 'magic-regexp';
 import { buildDisplayName, buildSymbolName } from '../hashing/naming.js';
+import { getFileStem } from './path-utils.js';
 
-// original: /^\[\[\.\.\.(.+)\]\]$/
 const catchAllRouteParam = createRegExp(
   exactly('[[...').and(oneOrMore(char).grouped()).and(']]').at.lineStart().at.lineEnd(),
 );
 
-// original: /^\[(.+)\]$/
 const dynamicRouteParam = createRegExp(
   exactly('[').and(oneOrMore(char).grouped()).and(']').at.lineStart().at.lineEnd(),
 );
@@ -29,9 +28,7 @@ const dynamicRouteParam = createRegExp(
  * - "[id].tsx" -> "id"
  */
 function extractFileStem(fileName: string): string {
-  // Remove extension
-  const dotIdx = fileName.lastIndexOf('.');
-  let stem = dotIdx >= 0 ? fileName.slice(0, dotIdx) : fileName;
+  let stem = getFileStem(fileName);
 
   // Handle [[...name]] pattern (catch-all route)
   const catchAllMatch = stem.match(catchAllRouteParam);

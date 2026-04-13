@@ -1,0 +1,1 @@
+{"version":3,"file":"rewrite-imports.d.ts","sourceRoot":"","sources":["../../../src/optimizer/rewrite-imports.ts"],"names":[],"mappings":"AAAA;;;;;;;;GAQG;AAQH;;;;;GAKG;AACH,wBAAgB,mBAAmB,CAAC,MAAM,EAAE,MAAM,GAAG,MAAM,CAO1D;AAED;;GAEG;AACH,wBAAgB,eAAe,CAAC,QAAQ,EAAE,MAAM,GAAG,MAAM,CAQxD"}

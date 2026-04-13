@@ -64,61 +64,56 @@ import {
   parseDisableDirectives,
   filterSuppressedDiagnostics,
 } from "./diagnostics.js";
+import {
+  computeOutputExtension,
+  computeParentModulePath,
+  computeRelPath,
+  getExtension,
+} from "./path-utils.js";
 
-// original: /export\s+const\s+\w+\s*=\s*/
 const exportConstAssign = createRegExp(
   exactly('export').and(oneOrMore(whitespace)).and('const').and(oneOrMore(whitespace))
     .and(oneOrMore(wordChar)).and(whitespace.times.any()).and('=').and(whitespace.times.any()),
 );
 
-// original: /^export const \w+ = /m
 const exportConstLine = createRegExp(
   exactly('export const ').and(oneOrMore(wordChar)).and(' = ').at.lineStart(),
   [multiline],
 );
 
-// original: /!true\b/g
 const notTrueLiteral = createRegExp(exactly('!true').and(wordBoundary), [global]);
 
-// original: /!false\b/g
 const notFalseLiteral = createRegExp(exactly('!false').and(wordBoundary), [global]);
 
-// original: /\bif\s*\(\s*(true|false)\s*\)\s*\{/g
 const ifBracedBoolLiteral = createRegExp(
   wordBoundary.and('if').and(whitespace.times.any()).and('(').and(whitespace.times.any())
     .and(anyOf('true', 'false').grouped()).and(whitespace.times.any()).and(')').and(whitespace.times.any()).and('{'),
   [global],
 );
 
-// original: /\btrue\s*&&\s*/g
 const trueAndOp = createRegExp(
   wordBoundary.and('true').and(whitespace.times.any()).and('&&').and(whitespace.times.any()),
   [global],
 );
 
-// original: /\bfalse\s*\|\|\s*/g
 const falseOrOp = createRegExp(
   wordBoundary.and('false').and(whitespace.times.any()).and('||').and(whitespace.times.any()),
   [global],
 );
 
-// original: /\bfalse\s*&&\s*/g
 const falseAndOp = createRegExp(
   wordBoundary.and('false').and(whitespace.times.any()).and('&&').and(whitespace.times.any()),
   [global],
 );
 
-// original: /^\s*else\s*\{/
 const elseClause = createRegExp(
   whitespace.times.any().and('else').and(whitespace.times.any()).and('{').at.lineStart(),
 );
 
-// original: /\*\s+as\s+(\w+)/
 const nsImportPattern = createRegExp(
   exactly('*').and(oneOrMore(whitespace)).and('as').and(oneOrMore(whitespace)).and(oneOrMore(wordChar).grouped()),
 );
 
-// original: /\b(?:if\s*\(\s*(?:true|false|!true|!false)\b|true\s*&&|false\s*\|\||false\s*&&)/
 const dceGuard = createRegExp(
   wordBoundary.and(anyOf(
     exactly('if').and(whitespace.times.any()).and('(').and(whitespace.times.any())
@@ -128,91 +123,6 @@ const dceGuard = createRegExp(
     exactly('false').and(whitespace.times.any()).and('&&'),
   )),
 );
-
-/**
- * Determine file extension from a path string.
- */
-function getExtension(filePath: string): string {
-  const dotIdx = filePath.lastIndexOf(".");
-  if (dotIdx >= 0) return filePath.slice(dotIdx);
-  return "";
-}
-
-/**
- * Normalize a path to use forward slashes.
- */
-function normalizePath(p: string): string {
-  return p.replace(/\\/g, "/");
-}
-
-/**
- * Compute relative path from srcDir. If path doesn't start with srcDir,
- * returns the path as-is (normalized).
- */
-function computeRelPath(inputPath: string, srcDir: string): string {
-  const normInput = normalizePath(inputPath);
-  const normSrc = normalizePath(srcDir);
-
-  // If srcDir is "." or empty, just use the input path directly
-  if (normSrc === "." || normSrc === "" || normSrc === "./") {
-    return normInput;
-  }
-
-  // Strip leading srcDir prefix
-  const prefix = normSrc.endsWith("/") ? normSrc : normSrc + "/";
-  if (normInput.startsWith(prefix)) {
-    return normInput.slice(prefix.length);
-  }
-
-  return normInput;
-}
-
-/**
- * Strip file extension from a path.
- * e.g., "./test.tsx" -> "./test"
- */
-function stripExtension(filePath: string): string {
-  const dotIdx = filePath.lastIndexOf(".");
-  if (dotIdx >= 0) return filePath.slice(0, dotIdx);
-  return filePath;
-}
-
-/**
- * Compute the parent module path for segment imports back to the parent module.
- * Segments are always emitted in the same directory as the parent file,
- * so we use only the basename (no directory component), prefixed with "./".
- * e.g., "project/test.tsx" -> "./test", "test.tsx" -> "./test"
- */
-function computeParentModulePath(
-  relPath: string,
-  explicitExtensions?: boolean,
-): string {
-  // Extract basename: take everything after the last "/"
-  const slashIdx = relPath.lastIndexOf("/");
-  const basename = slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
-  if (explicitExtensions) {
-    // When preserveFilenames/explicitExtensions is enabled, keep the original extension
-    return "./" + basename;
-  }
-  const stripped = stripExtension(basename);
-  return "./" + stripped;
-}
-
-/**
- * Compute the output file extension for QRL imports based on transpilation settings.
- * - transpileTs (with or without transpileJsx): .js (TypeScript fully stripped)
- * - transpileJsx only (no transpileTs): .ts (JSX gone, TS remains)
- * - neither: use source extension (.tsx, .ts, etc.)
- */
-function computeOutputExtension(
-  sourceExt: string,
-  transpileTs?: boolean,
-  transpileJsx?: boolean,
-): string {
-  if (transpileTs) return ".js";
-  if (transpileJsx) return ".ts";
-  return sourceExt; // e.g., '.tsx', '.ts'
-}
 
 /**
  * Qwik import sources that can provide isServer/isBrowser/isDev constants.
@@ -2224,6 +2134,7 @@ export function transformModule(
       bodyPrograms,
       importedNames,
       program,
+      repairedCode,
       relPath,
       diagnostics,
     );
@@ -3340,6 +3251,7 @@ function detectC02Diagnostics(
   bodyPrograms: Map<string, any>,
   importedNames: Set<string>,
   program: any,
+  source: string,
   file: string,
   diagnostics: import("./types.js").Diagnostic[],
 ): void {
@@ -3380,7 +3292,24 @@ function detectC02Diagnostics(
       }
 
       if (declType === "fn" || declType === "class") {
-        diagnostics.push(emitC02(refName, file, declType === "class"));
+        const site = findIdentifierReferenceSite(closureNode, refName);
+        if (!site) {
+          diagnostics.push(emitC02(refName, file, declType === "class"));
+          continue;
+        }
+
+        const [startLine, startCol] = computeLineColFromOffset(source, site.start);
+        const [endLine, endCol] = computeLineColFromOffset(source, site.end);
+        diagnostics.push(
+          emitC02(refName, file, declType === "class", {
+            lo: site.start,
+            hi: site.end,
+            startLine,
+            startCol,
+            endLine,
+            endCol,
+          }),
+        );
       }
     }
   }
@@ -3506,6 +3435,32 @@ function computeLineColFromOffset(
     }
   }
   return [line, col];
+}
+
+function findIdentifierReferenceSite(
+  closureNode: any,
+  identName: string,
+): { start: number; end: number } | null {
+  let site: { start: number; end: number } | null = null;
+
+  walk(closureNode, {
+    enter(node: any, parent: any) {
+      if (site || node.type !== 'Identifier' || node.name !== identName) return;
+
+      if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
+      if (parent?.type === 'FunctionDeclaration' && parent.id === node) return;
+      if (parent?.type === 'FunctionExpression' && parent.id === node) return;
+      if (parent?.type === 'ClassDeclaration' && parent.id === node) return;
+      if (parent?.type === 'ClassExpression' && parent.id === node) return;
+      if (parent?.type === 'MemberExpression' && parent.property === node && !parent.computed) return;
+      if (parent?.type === 'StaticMemberExpression' && parent.property === node) return;
+      if ((parent?.type === 'Property' || parent?.type === 'ObjectProperty') && parent.key === node) return;
+
+      site = { start: node.start, end: node.end };
+    },
+  });
+
+  return site;
 }
 
 /**

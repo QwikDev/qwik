@@ -52,7 +52,7 @@ export const PassiveOnlyComponent_component_LuEXQIZuHLw = () => {
     "category": "warning",
     "code": "preventdefault-passive-check",
     "file": "test.tsx",
-    "message": "preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()",
+    "message": "This JSX element has both passive:click and preventdefault:click. On the same element, passive events cannot use preventDefault(), so preventdefault:click will be ignored.",
     "highlights": [
       {
         "lo": 127,
@@ -70,7 +70,7 @@ export const PassiveOnlyComponent_component_LuEXQIZuHLw = () => {
     "category": "warning",
     "code": "preventdefault-passive-check",
     "file": "test.tsx",
-    "message": "preventdefault:scroll has no effect when passive:scroll is also set; passive event listeners cannot call preventDefault()",
+    "message": "This JSX element has both passive:scroll and preventdefault:scroll. On the same element, passive events cannot use preventDefault(), so preventdefault:scroll will be ignored.",
     "highlights": [
       {
         "lo": 223,

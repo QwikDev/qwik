@@ -15,7 +15,6 @@ import { applyRawPropsTransform, consolidateRawPropsInWCalls, inlineConstCapture
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx, collectConstIdents } from './jsx-transform.js';
 
-// original: /\/\*\s*@qwik-disable-next-line\s+\w+\s*\*\/\s*\n?/g
 const qwikDisableDirective = createRegExp(
   exactly('/*').and(whitespace.times.any()).and('@qwik-disable-next-line')
     .and(oneOrMore(whitespace)).and(oneOrMore(wordChar))
@@ -23,18 +22,15 @@ const qwikDisableDirective = createRegExp(
   [global],
 );
 
-// original: /const\s+(q_\S+)/
 const qrlConstName = createRegExp(
   exactly('const').and(oneOrMore(whitespace)).and(exactly('q_').and(oneOrMore(charNotIn(' \t\n\r'))).grouped()),
 );
 
-// original: /\b(\w+Qrl)\b/g
 const qrlSuffixPattern = createRegExp(
   wordBoundary.and(oneOrMore(wordChar).and('Qrl').grouped()).and(wordBoundary),
   [global],
 );
 
-// original: /^(\s*function\s*\w*\s*)\(([^)]*)\)/
 const funcSignaturePattern = createRegExp(
   whitespace.times.any().and('function').and(whitespace.times.any()).and(wordChar.times.any()).and(whitespace.times.any()).grouped()
     .and('(').and(charNotIn(')').times.any().grouped()).and(')').at.lineStart(),
@@ -113,11 +109,11 @@ interface SegmentImportSpec {
 
 function insertImportBeforeSeparator(parts: string[], importStmt: string): void {
   const sepIdx = parts.indexOf('//');
-  if (sepIdx >= 0) {
-    parts.splice(sepIdx, 0, importStmt);
-  } else {
+  if (sepIdx < 0) {
     parts.unshift(importStmt);
+    return;
   }
+  parts.splice(sepIdx, 0, importStmt);
 }
 
 function partsHaveImport(parts: string[], symbol: string): boolean {
@@ -994,18 +990,20 @@ function addSameFileImport(parts: string[], id: string, importContext: SegmentIm
   const migrationDecision = importContext.migrationDecisions.find(d => d.varName === id);
   if (migrationDecision && migrationDecision.action === 'move') return;
 
-  let importStmt: string;
   if (migrationDecision && migrationDecision.action === 'reexport' && !migrationDecision.isExported) {
-    importStmt = `import { _auto_${id} as ${id} } from "${importContext.parentModulePath}";`;
-  } else if (importContext.defaultExportedNames?.has(id)) {
-    importStmt = `import { default as ${id} } from "${importContext.parentModulePath}";`;
-  } else if (importContext.renamedExports?.has(id)) {
-    const exportedAs = importContext.renamedExports.get(id)!;
-    importStmt = `import { ${exportedAs} as ${id} } from "${importContext.parentModulePath}";`;
-  } else {
-    importStmt = `import { ${id} } from "${importContext.parentModulePath}";`;
+    insertImportBeforeSeparator(parts, `import { _auto_${id} as ${id} } from "${importContext.parentModulePath}";`);
+    return;
   }
-  insertImportBeforeSeparator(parts, importStmt);
+  if (importContext.defaultExportedNames?.has(id)) {
+    insertImportBeforeSeparator(parts, `import { default as ${id} } from "${importContext.parentModulePath}";`);
+    return;
+  }
+  if (importContext.renamedExports?.has(id)) {
+    const exportedAs = importContext.renamedExports.get(id)!;
+    insertImportBeforeSeparator(parts, `import { ${exportedAs} as ${id} } from "${importContext.parentModulePath}";`);
+    return;
+  }
+  insertImportBeforeSeparator(parts, `import { ${id} } from "${importContext.parentModulePath}";`);
 }
 
 function addQrlCalleeImports(
@@ -1014,16 +1012,7 @@ function addQrlCalleeImports(
   nestedCallSites: NestedCallSiteInfo[] | undefined,
   _importContext: SegmentImportContext,
 ): void {
-  if (nestedCallSites) {
-    const addedQrlCallees = new Set<string>();
-    for (const site of nestedCallSites) {
-      if (!site.qrlCallee || addedQrlCallees.has(site.qrlCallee)) continue;
-      addedQrlCallees.add(site.qrlCallee);
-      if (parts.some(p => p.includes(site.qrlCallee!))) continue;
-      const importSource = getQrlImportSource(site.qrlCallee!, site.importSource);
-      insertImportBeforeSeparator(parts, `import { ${site.qrlCallee} } from "${importSource}";`);
-    }
-  } else {
+  if (!nestedCallSites) {
     qrlSuffixPattern.lastIndex = 0;
     const qrlSuffixRegex = qrlSuffixPattern;
     let qrlMatch;
@@ -1034,6 +1023,16 @@ function addQrlCalleeImports(
         insertImportBeforeSeparator(parts, `import { ${qrlName} } from "@qwik.dev/core";`);
       }
     }
+    return;
+  }
+
+    const addedQrlCallees = new Set<string>();
+  for (const site of nestedCallSites) {
+    if (!site.qrlCallee || addedQrlCallees.has(site.qrlCallee)) continue;
+    addedQrlCallees.add(site.qrlCallee);
+    if (parts.some(p => p.includes(site.qrlCallee!))) continue;
+    const importSource = getQrlImportSource(site.qrlCallee!, site.importSource);
+    insertImportBeforeSeparator(parts, `import { ${site.qrlCallee} } from "${importSource}";`);
   }
 }
 

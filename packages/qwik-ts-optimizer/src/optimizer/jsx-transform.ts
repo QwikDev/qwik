@@ -15,7 +15,6 @@ import { isBindProp, transformBindProp, mergeEventHandlers } from './bind-transf
 import { detectLoopContext, buildQpProp, type LoopContext } from './loop-hoisting.js';
 import { computeKeyPrefix } from './key-prefix.js';
 
-// original: /,\s*(\d+),\s*(?:"[^"]*"|null)\s*\)$/
 const jsxFlagTail = createRegExp(
   exactly(',').and(whitespace.times.any()).and(oneOrMore(digit).grouped())
     .and(',').and(whitespace.times.any())
@@ -23,7 +22,6 @@ const jsxFlagTail = createRegExp(
     .and(whitespace.times.any()).and(')').at.lineEnd(),
 );
 
-// original: /_jsxSorted\([^,]+,\s*(\{|null)/
 const jsxSortedVarProps = createRegExp(
   exactly('_jsxSorted(').and(oneOrMore(charNotIn(','))).and(',').and(whitespace.times.any())
     .and(anyOf('{', 'null').grouped()),

@@ -68,8 +68,17 @@ export const App_component_ckEPmXZlub0 = (_rawProps) => {
     "category": "error",
     "code": "C02",
     "file": "test.tsx",
-    "message": "Reference to identifier 'I9' can not be used inside a Qrl($) scope because it's a function",
-    "highlights": null,
+    "message": "'I9' is a local function, and local function/class declarations can't be referenced from this callback. Move 'I9' into the callback, or rewrite it as a captured value.",
+    "highlights": [
+      {
+        "lo": 61,
+        "hi": 63,
+        "startLine": 5,
+        "startCol": 11,
+        "endLine": 5,
+        "endCol": 13
+      }
+    ],
     "suggestions": null,
     "scope": "optimizer"
   }

@@ -74,8 +74,17 @@ export const Header_component_UVBJuFYfvDo = () => {
     "category": "error",
     "code": "C02",
     "file": "project/test.tsx",
-    "message": "Reference to identifier 'foo' can not be used inside a Qrl($) scope because it's a function",
-    "highlights": null,
+    "message": "'foo' is a local function, and local function/class declarations can't be referenced from this callback. Move 'foo' into the callback, or rewrite it as a captured value.",
+    "highlights": [
+      {
+        "lo": 81,
+        "hi": 84,
+        "startLine": 5,
+        "startCol": 31,
+        "endLine": 5,
+        "endCol": 34
+      }
+    ],
     "suggestions": null,
     "scope": "optimizer"
   },
@@ -83,8 +92,17 @@ export const Header_component_UVBJuFYfvDo = () => {
     "category": "error",
     "code": "C02",
     "file": "project/test.tsx",
-    "message": "Reference to identifier 'bar' can not be used inside a Qrl($) scope because it's a function",
-    "highlights": null,
+    "message": "'bar' is a local class, and local function/class declarations can't be referenced from this callback. Move 'bar' into the callback, or rewrite it as a captured value.",
+    "highlights": [
+      {
+        "lo": 86,
+        "hi": 89,
+        "startLine": 5,
+        "startCol": 36,
+        "endLine": 5,
+        "endCol": 39
+      }
+    ],
     "suggestions": null,
     "scope": "optimizer"
   }

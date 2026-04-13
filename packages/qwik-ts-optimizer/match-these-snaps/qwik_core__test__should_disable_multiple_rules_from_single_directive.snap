@@ -132,7 +132,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "category": "error",
     "code": "C03",
     "file": "test.tsx",
-    "message": "Qrl($) scope is not a function, but it's capturing local identifiers: qrl",
+    "message": "This argument uses local values (qrl), but this API needs a function in that position. Pass a function instead of the value directly.",
     "highlights": [
       {
         "lo": 109,

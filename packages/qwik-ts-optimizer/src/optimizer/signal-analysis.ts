@@ -7,7 +7,6 @@
 
 import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
 
-// original: /,(\}|\]|\))/g
 const trailingComma = createRegExp(
   exactly(',').and(anyOf('}', ']', ')').grouped()),
   [global],

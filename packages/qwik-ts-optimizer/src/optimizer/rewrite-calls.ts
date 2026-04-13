@@ -11,10 +11,14 @@
 import { createRegExp, exactly, oneOrMore, whitespace, wordChar, charIn, charNotIn, global } from 'magic-regexp';
 import { rewriteImportSource } from './rewrite-imports.js';
 
-// original: /\/\/[^\n]*/g
+// Keep this as a raw RegExp because the lazy quantifier is the clearest way
+// to preserve the current non-greedy block comment stripping behavior.
+const blockComment = /\/\*[\s\S]*?\*\//g;
+
 const lineComment = createRegExp(exactly('//').and(charNotIn('\n').times.any()), [global]);
 
-// original: /\s*([{}(),:;=<>+\-*/%&|!?.])\s*/g
+const collapsedWhitespace = createRegExp(oneOrMore(whitespace), [global]);
+
 const spacesAroundOperators = createRegExp(
   whitespace.times.any()
     .and(charIn('{}(),:;=<>+\\-*/%&|!?.').grouped())
@@ -22,7 +26,6 @@ const spacesAroundOperators = createRegExp(
   [global],
 );
 
-// original: /^\((\w+)\)=>/
 const singleArrowParam = createRegExp(
   exactly('(').and(oneOrMore(wordChar).grouped()).and(')=>').at.lineStart(),
 );
@@ -64,11 +67,11 @@ function minifyFunctionText(text: string): string {
   let result = text;
 
   // Remove block comments
-  result = result.replace(/\/\*[\s\S]*?\*\//g, '');
+  result = result.replace(blockComment, '');
   // Remove line comments
   result = result.replace(lineComment, '');
   // Collapse whitespace
-  result = result.replace(/\s+/g, ' ');
+  result = result.replace(collapsedWhitespace, ' ');
   // Remove spaces around operators and delimiters
   result = result.replace(spacesAroundOperators, '$1');
   result = result.trim();

@@ -133,7 +133,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "category": "warning",
     "code": "preventdefault-passive-check",
     "file": "test.tsx",
-    "message": "preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()",
+    "message": "This JSX element has both passive:click and preventdefault:click. On the same element, passive events cannot use preventDefault(), so preventdefault:click will be ignored.",
     "highlights": [
       {
         "lo": 289,

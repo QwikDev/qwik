@@ -23,6 +23,7 @@ import {
   type ImportInfo,
 } from './marker-detection.js';
 import { isEventProp, transformEventPropName, collectPassiveDirectives } from './event-handler-transform.js';
+import { getBasename, getDirectory, getExtension, getFileStem } from './path-utils.js';
 
 export interface ExtractionResult {
   // Identity
@@ -99,33 +100,6 @@ function determineExtension(argNode: any, sourceExt: string): string {
   if (hasJsx) return '.tsx';
   if (sourceExt === '.ts') return '.ts';
   return '.js';
-}
-
-function getSourceExtension(relPath: string): string {
-  const dotIdx = relPath.lastIndexOf('.');
-  if (dotIdx >= 0) return relPath.slice(dotIdx);
-  return '.js';
-}
-
-/**
- * For "index.*" files, derives the stem from the parent directory name
- * to match Rust optimizer behavior (e.g., "src/mongo/index.tsx" -> "mongo").
- */
-function getFileStem(relPath: string): { stem: string; isIndex: boolean } {
-  const slashIdx = relPath.lastIndexOf('/');
-  const basename = slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
-
-  const dotIdx = basename.lastIndexOf('.');
-  const nameWithoutExt = dotIdx >= 0 ? basename.slice(0, dotIdx) : basename;
-
-  if (nameWithoutExt === 'index' && slashIdx >= 0) {
-    const dirPath = relPath.slice(0, slashIdx);
-    const parentSlashIdx = dirPath.lastIndexOf('/');
-    const dirName = parentSlashIdx >= 0 ? dirPath.slice(parentSlashIdx + 1) : dirPath;
-    return { stem: dirName, isIndex: true };
-  }
-
-  return { stem: basename, isIndex: false };
 }
 
 /** Resolve aliased import back to its original name (e.g., `c$` -> `component$`). */
@@ -233,10 +207,12 @@ export function extractSegments(
   const imports = collectImports(program);
   const customInlined = collectCustomInlined(program);
 
-  const { stem: fileStem } = getFileStem(relPath);
-  const sourceExt = getSourceExtension(relPath);
-  const slashIdx = relPath.lastIndexOf('/');
-  const fileName = slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
+  const relDir = getDirectory(relPath);
+  const fileStem = getFileStem(relPath) === 'index' && relDir
+    ? getBasename(relDir)
+    : getBasename(relPath);
+  const sourceExt = getExtension(relPath) || '.js';
+  const fileName = getBasename(relPath);
   const ctx = new ContextStack(fileStem, relPath, scope, fileName);
 
   const results: ExtractionResult[] = [];

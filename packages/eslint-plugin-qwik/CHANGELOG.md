@@ -1,5 +1,7 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.32
+
 ## 2.0.0-beta.31
 
 ## 2.0.0-beta.30

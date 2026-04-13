@@ -67,7 +67,8 @@ export class Serializer {
   private $parent$: SeenRef | undefined;
   private $qrlMap$ = new Map<string, QRLInternal>();
   private $writer$: StreamWriter;
-  private $temporalDefined$: boolean = typeof Temporal !== 'undefined';
+  /** We need to determine this at runtime because polyfills may not be loaded a module load time */
+  private $hasTemporal$ = typeof Temporal !== 'undefined';
 
   constructor(public $serializationContext$: SerializationContext) {
     this.$writer$ = $serializationContext$.$writer$;
@@ -511,21 +512,21 @@ export class Serializer {
       this.output(TypeIds.URL, value.href);
     } else if (value instanceof Date) {
       this.output(TypeIds.Date, Number.isNaN(value.valueOf()) ? '' : value.valueOf());
-    } else if (this.$temporalDefined$ && value instanceof Temporal.Duration) {
+    } else if (this.$hasTemporal$ && value instanceof Temporal.Duration) {
       this.output(TypeIds.TemporalDuration, value.toJSON());
-    } else if (this.$temporalDefined$ && value instanceof Temporal.Instant) {
+    } else if (this.$hasTemporal$ && value instanceof Temporal.Instant) {
       this.output(TypeIds.TemporalInstant, value.toJSON());
-    } else if (this.$temporalDefined$ && value instanceof Temporal.PlainDate) {
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDate) {
       this.output(TypeIds.TemporalPlainDate, value.toJSON());
-    } else if (this.$temporalDefined$ && value instanceof Temporal.PlainDateTime) {
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDateTime) {
       this.output(TypeIds.TemporalPlainDateTime, value.toJSON());
-    } else if (this.$temporalDefined$ && value instanceof Temporal.PlainMonthDay) {
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainMonthDay) {
       this.output(TypeIds.TemporalPlainMonthDay, value.toJSON());
-    } else if (this.$temporalDefined$ && value instanceof Temporal.PlainTime) {
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainTime) {
       this.output(TypeIds.TemporalPlainTime, value.toJSON());
-    } else if (this.$temporalDefined$ && value instanceof Temporal.PlainYearMonth) {
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainYearMonth) {
       this.output(TypeIds.TemporalPlainYearMonth, value.toJSON());
-    } else if (this.$temporalDefined$ && value instanceof Temporal.ZonedDateTime) {
+    } else if (this.$hasTemporal$ && value instanceof Temporal.ZonedDateTime) {
       this.output(TypeIds.TemporalZonedDateTime, value.toJSON());
     } else if (value instanceof RegExp) {
       this.output(TypeIds.Regex, value.toString());

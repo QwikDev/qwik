@@ -14,7 +14,7 @@ import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import MagicString from 'magic-string';
 import { extractSegments } from './extract.js';
 import { repairInput } from './input-repair.js';
-import { rewriteParentModule, extractDestructuredFieldMap } from './rewrite-parent.js';
+import { rewriteParentModule, extractDestructuredFieldMap, resolveConstLiterals } from './rewrite-parent.js';
 import { generateSegmentCode, type SegmentCaptureInfo, type NestedCallSiteInfo, type SegmentImportContext } from './segment-codegen.js';
 import { collectImports, type ImportInfo } from './marker-detection.js';
 import { buildQrlDeclaration } from './rewrite-calls.js';
@@ -2123,6 +2123,27 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       }
     }
 
+    // Pre-pass: resolve const literal captures for child segments (default strategy only).
+    // Inline strategy handles this in rewrite-parent.ts via transformSCallBody.
+    // This must happen before the main loop so that parent segments see updated
+    // captureNames when building .w() lists for their children.
+    const constLiteralsMap = new Map<string, Map<string, string>>();
+    if (!isInlineStrategy) {
+      for (const ext of updatedExtractions) {
+        if (ext.isSync || ext.parent === null) continue;
+        if (ext.captureNames.length === 0) continue;
+        const parentExt = updatedExtractions.find(e => e.symbolName === ext.parent);
+        if (!parentExt) continue;
+        const constValues = resolveConstLiterals(parentExt.bodyText, ext.captureNames);
+        if (constValues.size > 0) {
+          constLiteralsMap.set(ext.symbolName, constValues);
+          // Update captureNames and metadata so parent .w() lists are correct
+          ext.captureNames = ext.captureNames.filter(n => !constValues.has(n));
+          ext.captures = ext.captureNames.length > 0;
+        }
+      }
+    }
+
     for (const ext of updatedExtractions) {
       if (ext.isSync) continue; // sync$ is inlined, no separate segment module
 
@@ -2271,6 +2292,16 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             }
           }
         }
+      }
+
+      // 2c-constLiterals. Wire pre-computed const literal inlining info for child segments.
+      // The pre-pass already updated ext.captureNames; here we attach the map to captureInfo
+      // so generateSegmentCode can inline the literal values in the body text.
+      const preComputedConsts = constLiteralsMap.get(ext.symbolName);
+      if (preComputedConsts) {
+        captureInfo.constLiterals = preComputedConsts;
+        // captureNames were already filtered in the pre-pass
+        captureInfo.captureNames = ext.captureNames;
       }
 
       // For top-level segments (no parent): wire migration info
@@ -2461,7 +2492,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         ? (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0
             ? { ...captureInfo, skipCaptureInjection: true }
             : undefined)
-        : (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0)
+        : (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0 || captureInfo.constLiterals)
           ? captureInfo
           : undefined;
 

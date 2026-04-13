@@ -157,7 +157,7 @@ function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolea
  *
  * Returns a map of variable name -> literal source text (e.g., "'hola'").
  */
-function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<string, string> {
+export function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<string, string> {
   const result = new Map<string, string>();
   if (captureNames.length === 0) return result;
 
@@ -178,14 +178,10 @@ function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<s
         if (decl.id?.type === 'Identifier' && captureSet.has(decl.id.name) && decl.init) {
           // Check if init is a simple literal
           const init = decl.init;
-          if (init.type === 'StringLiteral' || init.type === 'Literal') {
+          if (init.type === 'StringLiteral' || init.type === 'Literal' ||
+              init.type === 'NumericLiteral' || init.type === 'BooleanLiteral' ||
+              init.type === 'NullLiteral') {
             // Get the literal source text from the parent body
-            const literalStart = init.start - offset;
-            const literalEnd = init.end - offset;
-            if (literalStart >= 0 && literalEnd <= parentBody.length) {
-              result.set(decl.id.name, parentBody.slice(literalStart, literalEnd));
-            }
-          } else if (init.type === 'NumericLiteral') {
             const literalStart = init.start - offset;
             const literalEnd = init.end - offset;
             if (literalStart >= 0 && literalEnd <= parentBody.length) {
@@ -219,7 +215,7 @@ function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<s
  * Replace captured identifier references in a body text with their inlined
  * literal values. Uses AST-based replacement to avoid replacing property names.
  */
-function inlineConstCaptures(body: string, constValues: Map<string, string>): string {
+export function inlineConstCaptures(body: string, constValues: Map<string, string>): string {
   const wrapperPrefix = 'const __ic__ = ';
   const wrappedSource = wrapperPrefix + body;
   const parseResult = parseSync('__ic__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);

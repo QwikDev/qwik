@@ -12,7 +12,7 @@ import { parseSync } from 'oxc-parser';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { getQrlImportSource, buildSyncTransform, needsPureAnnotation } from './rewrite-calls.js';
-import { applyRawPropsTransform, consolidateRawPropsInWCalls } from './rewrite-parent.js';
+import { applyRawPropsTransform, consolidateRawPropsInWCalls, inlineConstCaptures } from './rewrite-parent.js';
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx, collectConstIdents } from './jsx-transform.js';
 
@@ -39,6 +39,13 @@ export interface SegmentCaptureInfo {
    * e.g., { "foo": "foo", "bindValue": "bind:value" }
    */
   propsFieldCaptures?: Map<string, string>;
+  /**
+   * Map from captured variable name to its literal source text.
+   * When set, these const literal captures are inlined into the segment body
+   * and removed from captureNames (matching SWC behavior).
+   * e.g., { "STEP_2": "2", "key": "\"A\"" }
+   */
+  constLiterals?: Map<string, string>;
 }
 
 /**
@@ -888,6 +895,18 @@ export function generateSegmentCode(
   // prop fields are consolidated into a single _rawProps capture.
   if (captureInfo?.propsFieldCaptures && captureInfo.propsFieldCaptures.size > 0) {
     bodyText = replacePropsFieldReferences(bodyText, captureInfo.propsFieldCaptures);
+  }
+
+  // Inline const literal captures: replace references to const variables with their
+  // literal values and remove them from captureNames (matching SWC behavior).
+  // e.g., `const STEP_2 = 2` in parent -> inline `2` in child segment body.
+  if (captureInfo?.constLiterals && captureInfo.constLiterals.size > 0) {
+    bodyText = inlineConstCaptures(bodyText, captureInfo.constLiterals);
+    // Filter out inlined names from captureNames
+    captureInfo = {
+      ...captureInfo,
+      captureNames: captureInfo.captureNames.filter(n => !captureInfo!.constLiterals!.has(n)),
+    };
   }
 
   if (captureInfo && captureInfo.captureNames.length > 0 && !captureInfo.skipCaptureInjection) {

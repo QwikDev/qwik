@@ -1018,7 +1018,7 @@ export function applyRawPropsTransform(body: string): string {
   if (firstParam.type !== 'ObjectPattern') return body;
 
   // Collect destructured field names and their local aliases, and detect rest element
-  const fields: Array<{ key: string; local: string }> = [];
+  const fields: Array<{ key: string; local: string; defaultValue?: string }> = [];
   let restElementName: string | null = null;
   for (const prop of firstParam.properties ?? []) {
     if (prop.type === 'RestElement') {
@@ -1033,11 +1033,23 @@ export function applyRawPropsTransform(body: string): string {
       const keyName = prop.key?.type === 'Identifier' ? prop.key.name
                     : (prop.key?.type === 'StringLiteral' || prop.key?.type === 'Literal') ? (prop.key.value ?? null)
                     : null;
-      const valName = prop.value?.type === 'Identifier' ? prop.value.name :
-                      prop.value?.type === 'AssignmentPattern' && prop.value.left?.type === 'Identifier'
-                        ? prop.value.left.name : null;
+      let valName: string | null = null;
+      let defaultValue: string | undefined;
+      if (prop.value?.type === 'Identifier') {
+        valName = prop.value.name;
+      } else if (prop.value?.type === 'AssignmentPattern' && prop.value.left?.type === 'Identifier') {
+        valName = prop.value.left.name;
+        // Extract default value source text for ?? replacement
+        if (prop.value.right) {
+          const defStart = prop.value.right.start - offset;
+          const defEnd = prop.value.right.end - offset;
+          if (defStart >= 0 && defEnd <= body.length) {
+            defaultValue = body.slice(defStart, defEnd);
+          }
+        }
+      }
       if (keyName && valName) {
-        fields.push({ key: String(keyName), local: valName });
+        fields.push({ key: String(keyName), local: valName, defaultValue });
       }
     }
   }
@@ -1136,8 +1148,12 @@ export function applyRawPropsTransform(body: string): string {
   // Identifier nodes that match field local names, and replace them
   // with _rawProps.keyName (using the original key, not the alias).
   const fieldLocalToKey = new Map<string, string>();
+  const fieldLocalToDefault = new Map<string, string>();
   for (const f of fields) {
     fieldLocalToKey.set(f.local, f.key);
+    if (f.defaultValue !== undefined) {
+      fieldLocalToDefault.set(f.local, f.defaultValue);
+    }
   }
 
   // Re-parse to find identifier positions in the updated body
@@ -1146,7 +1162,7 @@ export function applyRawPropsTransform(body: string): string {
   if (!reparseResult.program || reparseResult.errors?.length) return result;
 
   // Collect all identifier positions that need replacement (descending order for safe replacement)
-  const replacements: Array<{ start: number; end: number; key: string; isShorthand?: boolean }> = [];
+  const replacements: Array<{ start: number; end: number; key: string; local: string; isShorthand?: boolean }> = [];
 
   function walkForIdentifiers(node: any, parentKey?: string, parentNode?: any): void {
     if (!node || typeof node !== 'object') return;
@@ -1172,6 +1188,7 @@ export function applyRawPropsTransform(body: string): string {
           start: node.start - offset,
           end: node.end - offset,
           key: fieldLocalToKey.get(node.name)!,
+          local: node.name,
           isShorthand: true,
         });
       } else if (!isPropertyKey && !isMemberProp && !isParam && !isDeclaratorId) {
@@ -1179,6 +1196,7 @@ export function applyRawPropsTransform(body: string): string {
           start: node.start - offset,
           end: node.end - offset,
           key: fieldLocalToKey.get(node.name)!,
+          local: node.name,
         });
       }
     }
@@ -1206,9 +1224,16 @@ export function applyRawPropsTransform(body: string): string {
   replacements.sort((a, b) => b.start - a.start);
   for (const r of replacements) {
     // Use bracket notation for keys that aren't valid JS identifiers (e.g., "bind:value")
-    const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
+    let accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
       ? '_rawProps.' + r.key
       : `_rawProps["${r.key}"]`;
+    // If the destructured field had a default value, use ?? to preserve it
+    // e.g., ({description = ''}) -> (_rawProps.description ?? '')
+    // Parenthesize to avoid precedence issues with surrounding operators
+    const defaultVal = fieldLocalToDefault.get(r.local);
+    if (defaultVal !== undefined) {
+      accessor = `(${accessor} ?? ${defaultVal})`;
+    }
     if (r.isShorthand) {
       // Shorthand property: { some } -> { some: _rawProps.some }
       result = result.slice(0, r.start) + r.key + ': ' + accessor + result.slice(r.end);

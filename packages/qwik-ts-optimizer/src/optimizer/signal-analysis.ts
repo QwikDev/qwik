@@ -613,7 +613,12 @@ function generateFnSignal(
   // String representation: minimal whitespace, with string literals normalized
   // to double quotes (matching Rust SWC optimizer behavior which re-serializes
   // the AST, producing double-quoted strings).
-  const strBody = stripTrailingCommas(normalizeStringQuotes(removeWhitespace(fnBody)));
+  let strBody = stripTrailingCommas(normalizeStringQuotes(removeWhitespace(fnBody)));
+
+  // Strip balanced outer parentheses from strBody.
+  // SWC generates the str from AST reprinting which naturally omits unnecessary
+  // parenthesization. Our source-text approach preserves them, so strip here.
+  strBody = stripOuterParens(strBody);
 
   // Determine quote style for string representation
   // If the string body contains double quotes, use single quotes for wrapping
@@ -726,6 +731,70 @@ function isWordChar(ch: string): boolean {
  */
 function stripTrailingCommas(text: string): string {
   return text.replace(/,(\}|\]|\))/g, '$1');
+}
+
+/**
+ * Strip balanced outer parentheses from a string.
+ * SWC generates the str from AST reprinting which omits unnecessary parens.
+ * E.g. `(p0.x??"")&&"y"in p0.z` stays as-is, but
+ * `((p0.x??"")&&"y"in p0.z)?...` becomes `(p0.x??"")&&"y"in p0.z?...`
+ */
+function stripOuterParens(text: string): string {
+  while (text.length >= 2 && text[0] === '(') {
+    // Find the matching close paren
+    let depth = 0;
+    let matchPos = -1;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (ch === '(') depth++;
+      else if (ch === ')') {
+        depth--;
+        if (depth === 0) {
+          matchPos = i;
+          break;
+        }
+      }
+      // Skip string/template literals
+      if (ch === '"' || ch === "'") {
+        const q = ch;
+        i++;
+        while (i < text.length && text[i] !== q) {
+          if (text[i] === '\\') i++;
+          i++;
+        }
+      } else if (ch === '`') {
+        i++;
+        while (i < text.length && text[i] !== '`') {
+          if (text[i] === '\\') i++;
+          else if (text[i] === '$' && i + 1 < text.length && text[i + 1] === '{') {
+            // Skip template expression
+            i += 2;
+            let td = 1;
+            while (i < text.length && td > 0) {
+              if (text[i] === '{') td++;
+              else if (text[i] === '}') td--;
+              i++;
+            }
+            i--; // Will be incremented by the for loop
+          }
+          i++;
+        }
+      }
+    }
+    // Only strip if the matching close paren is NOT at the end of the string
+    // (if it IS at the end, the parens wrap the whole expression, which is meaningful
+    // only for grouping -- SWC also strips these)
+    if (matchPos === text.length - 1) {
+      // Parens wrap entire expression -- strip them
+      text = text.slice(1, -1);
+    } else if (matchPos >= 0 && matchPos < text.length - 1) {
+      // Parens wrap a sub-expression at the start -- don't strip
+      break;
+    } else {
+      break;
+    }
+  }
+  return text;
 }
 
 /**

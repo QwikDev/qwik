@@ -620,6 +620,10 @@ function generateFnSignal(
   // parenthesization. Our source-text approach preserves them, so strip here.
   strBody = stripOuterParens(strBody);
 
+  // Strip redundant parens around ternary condition: (cond)?cons:alt -> cond?cons:alt
+  // SWC's AST reprinting omits grouping parens that don't affect precedence.
+  strBody = stripTernaryConditionParens(strBody);
+
   // Determine quote style for string representation
   // If the string body contains double quotes, use single quotes for wrapping
   const hasDoubleQuotes = strBody.includes('"');
@@ -794,6 +798,64 @@ function stripOuterParens(text: string): string {
       break;
     }
   }
+  return text;
+}
+
+/**
+ * Strip redundant parentheses around a ternary condition.
+ * Transforms `(cond)?cons:alt` into `cond?cons:alt`.
+ * SWC's AST reprinting omits grouping parens that don't affect the ternary's
+ * operator precedence. Our source-text approach preserves them.
+ */
+function stripTernaryConditionParens(text: string): string {
+  if (text.length < 4 || text[0] !== '(') return text;
+
+  // Find the matching close paren for the opening paren
+  let depth = 0;
+  let matchPos = -1;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') {
+      depth--;
+      if (depth === 0) {
+        matchPos = i;
+        break;
+      }
+    }
+    // Skip string/template literals
+    if (ch === '"' || ch === "'") {
+      const q = ch;
+      i++;
+      while (i < text.length && text[i] !== q) {
+        if (text[i] === '\\') i++;
+        i++;
+      }
+    } else if (ch === '`') {
+      i++;
+      while (i < text.length && text[i] !== '`') {
+        if (text[i] === '\\') i++;
+        else if (text[i] === '$' && i + 1 < text.length && text[i + 1] === '{') {
+          i += 2;
+          let td = 1;
+          while (i < text.length && td > 0) {
+            if (text[i] === '{') td++;
+            else if (text[i] === '}') td--;
+            i++;
+          }
+          i--;
+        }
+        i++;
+      }
+    }
+  }
+
+  // Check if the matched close paren is immediately followed by '?'
+  // which means (cond)?consequent:alternate — the parens are redundant
+  if (matchPos > 0 && matchPos < text.length - 1 && text[matchPos + 1] === '?') {
+    return text.slice(1, matchPos) + text.slice(matchPos + 1);
+  }
+
   return text;
 }
 

@@ -164,7 +164,7 @@ function resolveLoaders(
   node: RouteData,
   gatheredLayouts: ModuleLoader[]
 ): ModuleLoader[] | undefined {
-  if (node._G) {
+  if (node._G != null) {
     // Rewrite: re-walk from root using _G's keys
     const keys = (node._G as string).split('/').filter((p) => p.length > 0);
     const target = walkTrieKeys(root, keys);
@@ -176,7 +176,7 @@ function resolveLoaders(
 
     // If the target node doesn't have _I directly, check group children
     // (e.g., root index inside (common) group, or routes inside pathless groups)
-    if (!targetNode._I && !targetNode._G) {
+    if (!targetNode._I && targetNode._G == null) {
       const indexResult = findIndexNode(targetNode);
       if (indexResult) {
         for (const g of indexResult.groups) {
@@ -350,7 +350,7 @@ function tryWildcardMatch(
  * node and the groups entered to reach it.
  */
 function findIndexNode(node: RouteData): { target: RouteData; groups: RouteData[] } | undefined {
-  if (node._I || node._G) {
+  if (node._I || node._G != null) {
     return { target: node, groups: [] };
   }
   if (node._M) {
@@ -502,7 +502,7 @@ function matchRouteTree(
     // Check if _I is in a group child (e.g. (common)/index.tsx is the root "/" route)
     // This must come before _A checks so that an index route takes priority over
     // a rest wildcard with empty value.
-    if (!node._I && !node._G) {
+    if (!node._I && node._G == null) {
       const indexResult = findIndexNode(node);
       if (indexResult) {
         collectNodeMeta(
@@ -518,7 +518,7 @@ function matchRouteTree(
     }
 
     // Check for _A (rest wildcard with empty value) on the node itself
-    if (!node._I && !node._G && node._A) {
+    if (!node._I && node._G == null && node._A) {
       const next = node._A as RouteData;
       const paramName = next._P!;
       params[paramName as string] = '';
@@ -533,7 +533,7 @@ function matchRouteTree(
     }
 
     // Also check _M groups for _A with empty value
-    if (!node._I && !node._G) {
+    if (!node._I && node._G == null) {
       const restInfo = findRestNode(node);
       if (restInfo) {
         const next = restInfo.next;

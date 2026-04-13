@@ -198,7 +198,7 @@ function serializeBuildTrie(
   }
 
   // _G rewrite target
-  if (node._G) {
+  if (node._G != null) {
     lines.push(`${nextIndent}_G: ${JSON.stringify(node._G)},`);
   }
 

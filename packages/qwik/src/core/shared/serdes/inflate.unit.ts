@@ -335,7 +335,7 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
     expect(target.regular).toBe('value');
   });
 
-  it('should skip non-string keys', () => {
+  it('should allow numeric keys and skip other non-string keys', () => {
     const container = {} as any;
     const target: Record<string, unknown> = {};
     const sym = Symbol('k');
@@ -347,8 +347,8 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
 
     inflate(container, target, TypeIds.Object, data);
 
+    expect(target[1]).toBe('one');
     expect(target.valid).toBe(2);
-    expect(Object.prototype.hasOwnProperty.call(target, '1')).toBe(false);
     expect((target as any)[sym]).toBeUndefined();
   });
 });

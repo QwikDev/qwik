@@ -146,6 +146,27 @@ describe('shared-serialization', () => {
       `);
       expect(objs).toHaveLength(8);
     });
+    it('should serialize short integer-like plain object keys as numbers', async () => {
+      expect(await dump({ 123: 'a', '-45': 'b', '012': 'c', 1234567: 'd', 12345678: 'f', 0: 'e' }))
+        .toMatchInlineSnapshot(`
+        "
+        0 Object [
+          {string} "0"
+          {string} "e"
+          {number} 123
+          {string} "a"
+          {number} 1234567
+          {string} "d"
+          {string} "12345678"
+          {string} "f"
+          {number} -45
+          {string} "b"
+          {string} "012"
+          {string} "c"
+        ]
+        (90 chars)"
+      `);
+    });
     it(title(TypeIds.URL), async () => {
       expect(await dump(new URL('http://example.com:80/'))).toMatchInlineSnapshot(`
         "
@@ -1854,6 +1875,27 @@ describe('serializer - internal', () => {
     const ser = await _serialize({ a: 1 });
     const des = _deserialize(ser);
     expect(des).toEqual({ a: 1 });
+  });
+  it('_serialize should emit short integer-like plain object keys as numbers', async () => {
+    const ser = await _serialize({
+      123: 'a',
+      '-45': 'b',
+      '012': 'c',
+      1234567: 'd',
+      12345678: 'f',
+      0: 'e',
+    });
+    expect(ser).toBe(
+      '[5,[0,"0",0,"e",0,123,0,"a",0,1234567,0,"d",0,"12345678",0,"f",0,-45,0,"b",0,"012",0,"c"]]'
+    );
+    expect(_deserialize(ser)).toEqual({
+      123: 'a',
+      '-45': 'b',
+      '012': 'c',
+      1234567: 'd',
+      12345678: 'f',
+      0: 'e',
+    });
   });
 });
 

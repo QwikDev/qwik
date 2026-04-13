@@ -52,7 +52,10 @@ const dangerousObjectKeys = new Set([
   'toJSON',
   'then',
 ]);
-const isSafeObjectKV = (key: unknown, value: unknown) => {
+const isSafeObjectKV = (key: unknown, value: unknown): key is string | number => {
+  if (typeof key === 'number') {
+    return true;
+  }
   return (
     typeof key === 'string' &&
     key !== '__proto__' &&
@@ -85,7 +88,7 @@ export const inflate = (
         break;
       }
       for (let i = 0; i < (data as any[]).length; i += 2) {
-        const key = (data as string[])[i];
+        const key = (data as unknown[])[i];
         const value = (data as unknown[])[i + 1];
         if (!isSafeObjectKV(key, value)) {
           continue;

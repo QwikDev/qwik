@@ -116,6 +116,34 @@ export class Serializer {
     return false;
   }
 
+  private maybeNumericObjectKey$(key: string): string | number {
+    if (key.length === 0 || key.length >= 8) {
+      return key;
+    }
+
+    let i = 0;
+    if (key.charCodeAt(0) === 45) {
+      if (key.length === 1) {
+        return key;
+      }
+      i = 1;
+    }
+
+    const first = key.charCodeAt(i);
+    if (first < 49 || first > 57) {
+      return key;
+    }
+
+    for (i++; i < key.length; i++) {
+      const c = key.charCodeAt(i);
+      if (c < 48 || c > 57) {
+        return key;
+      }
+    }
+
+    return Number(key);
+  }
+
   /** Output a type,value pair. If the value is an array, it calls writeValue on each item. */
   private output(type: number, value: number | string | any[], keepUndefined?: boolean) {
     if (typeof value === 'number') {
@@ -378,7 +406,7 @@ export class Serializer {
           if (Object.prototype.hasOwnProperty.call(value, key)) {
             const subVal = (value as any)[key];
             if (!fastSkipSerialize(subVal)) {
-              out.push(key, subVal);
+              out.push(this.maybeNumericObjectKey$(key), subVal);
             }
           }
         }

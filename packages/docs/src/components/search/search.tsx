@@ -295,7 +295,7 @@ const SearchResultLink = component$<SearchResultLinkProps>(({ item }) => {
           <span class="text-foreground-base text-label-base">{item.title}</span>
           {item.excerpt && (
             <span
-              class="search-result-excerpt text-foreground-muted text-body-xs"
+              class="search-result-excerpt text-foreground-base text-body-xs"
               dangerouslySetInnerHTML={item.excerpt}
             />
           )}

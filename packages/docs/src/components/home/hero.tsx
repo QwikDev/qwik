@@ -92,7 +92,7 @@ export const Decor = component$(() => {
     <>
       {/* blue gradient — centered on section, shifted left */}
       <div
-        class="absolute -z-2 left-1/2 top-1/2 -translate-x-[90%] -translate-y-[55%]
+        class="absolute -z-2 left-1/2 top-1/2 -translate-x-[90%] -translate-y-[80%]
           w-[250vw] h-[200vw] bg-hero-gradient-blue
           2xl:w-[1600px] 2xl:h-[1200px] 2xl:-translate-x-[110%]"
       />

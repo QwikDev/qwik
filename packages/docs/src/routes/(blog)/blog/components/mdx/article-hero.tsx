@@ -20,11 +20,7 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
   return (
     <>
       <div class="pt-4">
-        <Link
-          class="text-[color:var(--text-color)] flex items-center space-x-1 pl-2"
-          rel="noopener"
-          href="/blog"
-        >
+        <Link class="flex items-center space-x-1 pl-2" rel="noopener" href="/blog">
           <svg
             aria-hidden="true"
             height="16"
@@ -39,29 +35,22 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
           <span class="text-xl">Back to blog</span>
         </Link>
       </div>
-      <div class="max-w-[1000px] pb-8 mx-auto">
+      <div class="max-w-[1280px] pb-8 mx-auto">
         <div class="flex flex-col justify-center">
-          <h4 class="text-xl text-[color:var(--qwik-blue)] font-semibold uppercase text-center pt-6 tracking-wide">
+          <h4 class="text-xl font-semibold uppercase text-center pt-6 tracking-wide">
             {frontmatter.tags.map((tag: string) => (
               <span class="pr-2">{tag}</span>
             ))}
           </h4>
-          <h1 class="text-[48px] text-[color:var(--text-color)] font-bold text-center tracking-wide pt-6">
-            {title}
-          </h1>
-          <div class="flex justify-center pt-8 pb-10 text-[color:var(--text-color)] text-xl">
+          <h1 class="text-[48px] font-bold text-center tracking-wide pt-6">{title}</h1>
+          <div class="flex justify-center pt-8 pb-10 text-xl">
             <h4 class="font-semibold uppercase text-center">{frontmatter.date}</h4>
-            <div class="border border-[color:var(--text-color)] mx-4"></div>
+            <div class="border mx-4"></div>
             <div class="font-semibold uppercase text-center">
               {frontmatter.authors.length > 1 && 'Co-'}Written by{' '}
               {frontmatter.authors.map((author: string, index: number) => (
                 <span key={author}>
-                  <a
-                    class="text-[color:var(--qwik-blue)]"
-                    target="_blank"
-                    rel="noopener"
-                    href={authorLinks[index]}
-                  >
+                  <a target="_blank" rel="noopener" href={authorLinks[index]}>
                     {author}
                   </a>
                   {index < frontmatter.authors.length - 1 &&
@@ -72,8 +61,8 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
           </div>
         </div>
       </div>
-      <div class="relative max-w-[1200px] bg-[color:var(--text-color)]">
-        <Image alt={title} src={image} layout="fullWidth" class="max-w-[1200px]" />
+      <div class="relative max-w-[1280px] pb-4">
+        <Image alt={title} src={image} layout="fullWidth" />
       </div>
     </>
   );

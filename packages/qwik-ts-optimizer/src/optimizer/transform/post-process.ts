@@ -139,7 +139,7 @@ function hasCapturePayload(
   return includeConstLiterals && captureInfo.constLiterals !== undefined;
 }
 
-export function getEffectiveCaptureInfo(
+export function resolveCaptureInfo(
   captureInfo: SegmentCaptureInfo,
   isInlinedQrl: boolean,
 ): SegmentCaptureInfo | undefined {

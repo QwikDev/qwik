@@ -537,7 +537,7 @@ export function buildPassthroughModule(
   };
 }
 
-export function buildEnclosingExtractionMap(
+export function buildParentExtractionMap(
   extractions: ExtractionResult[],
 ): Map<string, ExtractionResult> {
   const map = new Map<string, ExtractionResult>();

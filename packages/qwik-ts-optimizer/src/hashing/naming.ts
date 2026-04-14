@@ -17,7 +17,7 @@ import { getBasename } from '../optimizer/path-utils.js';
  * - Trailing non-alnum characters are dropped (no trailing underscore)
  * - Consecutive non-alnum characters produce a single underscore
  */
-export function escapeSym(str: string): string {
+export function escapeSymbol(str: string): string {
   let result = '';
   let pendingUnderscore = false;
   let hasContent = false;
@@ -49,7 +49,7 @@ export function escapeSym(str: string): string {
  * HASH-04: The display name is "{fileStem}_{escapedContext}".
  * - Joins contextStack with "_"
  * - If stack is empty, uses "s_"
- * - Runs escapeSym on the joined string
+ * - Runs escapeSymbol on the joined string
  * - Prepends "_" if result starts with a digit
  * - Prepends fileStem + "_"
  *
@@ -60,14 +60,14 @@ export function escapeSym(str: string): string {
 export function buildDisplayName(fileStem: string, contextStack: string[]): string {
   const joined = contextStack.length === 0 ? 's_' : contextStack.join('_');
 
-  let escaped = escapeSym(joined);
+  let escaped = escapeSymbol(joined);
 
   // If result starts with a digit, prepend underscore
   if (escaped.length > 0 && escaped[0] >= '0' && escaped[0] <= '9') {
     escaped = '_' + escaped;
   }
 
-  // For empty stack, escapeSym("s_") produces "s" but we want "s_"
+  // For empty stack, escapeSymbol("s_") produces "s" but we want "s_"
   if (contextStack.length === 0) {
     return fileStem + '_s_';
   }

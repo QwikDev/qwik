@@ -57,7 +57,7 @@ export {
   applyRawPropsTransform,
   type RawPropsTransformResult,
 } from './raw-props.js';
-export { transformSCallBody } from './inline-body.js';
+export { transformInlineSegmentBody } from './inline-body.js';
 
 // Re-export context type for output-assembly
 export type { RewriteContext } from './rewrite-context.js';

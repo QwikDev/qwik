@@ -24,7 +24,7 @@ import {
   applyRawPropsTransform,
   consolidateRawPropsInWCalls,
   replacePropsFieldReferencesInBody,
-  type SCallBodyJsxOptions,
+  type InlineSegmentJsxOptions,
 } from './raw-props.js';
 
 function getJsxAttrName(attr: any): string | null {
@@ -114,11 +114,11 @@ function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolea
   return false;
 }
 
-export function transformSCallBody(
+export function transformInlineSegmentBody(
   ext: ExtractionResult,
   allExtractions: ExtractionResult[],
   qrlVarNames: Map<string, string>,
-  jsxBodyOptions?: SCallBodyJsxOptions,
+  jsxBodyOptions?: InlineSegmentJsxOptions,
   regCtxName?: string[],
   sharedSignalHoister?: SignalHoister,
 ): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {

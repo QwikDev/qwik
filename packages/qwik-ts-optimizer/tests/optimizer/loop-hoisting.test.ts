@@ -11,7 +11,7 @@ import { walk } from 'oxc-walker';
 import {
   detectLoopContext,
   generateParamPadding,
-  buildQpProp,
+  buildCaptureProp,
 } from '../../src/optimizer/loop-hoisting.js';
 
 // ---------------------------------------------------------------------------
@@ -136,31 +136,31 @@ describe('generateParamPadding', () => {
 });
 
 // ---------------------------------------------------------------------------
-// buildQpProp
+// buildCaptureProp
 // ---------------------------------------------------------------------------
 
-describe('buildQpProp', () => {
+describe('buildCaptureProp', () => {
   it('returns null for empty loop vars', () => {
-    const result = buildQpProp([]);
+    const result = buildCaptureProp([]);
     expect(result).toBeNull();
   });
 
   it('returns q:p for single loop var', () => {
-    const result = buildQpProp(['item']);
+    const result = buildCaptureProp(['item']);
     expect(result).not.toBeNull();
     expect(result!.propName).toBe('q:p');
     expect(result!.propValue).toBe('item');
   });
 
   it('returns q:ps for multiple loop vars sorted alphabetically', () => {
-    const result = buildQpProp(['index', 'item']);
+    const result = buildCaptureProp(['index', 'item']);
     expect(result).not.toBeNull();
     expect(result!.propName).toBe('q:ps');
     expect(result!.propValue).toBe('[index, item]');
   });
 
   it('sorts loop vars alphabetically for q:ps', () => {
-    const result = buildQpProp(['z', 'a', 'm']);
+    const result = buildCaptureProp(['z', 'a', 'm']);
     expect(result).not.toBeNull();
     expect(result!.propName).toBe('q:ps');
     expect(result!.propValue).toBe('[a, m, z]');
@@ -178,7 +178,7 @@ describe('snapshot pattern matching', () => {
     const params = generateParamPadding(['item']);
     expect(params).toEqual(['_', '_1', 'item']);
 
-    const qp = buildQpProp(['item']);
+    const qp = buildCaptureProp(['item']);
     expect(qp!.propName).toBe('q:p');
     expect(qp!.propValue).toBe('item');
   });
@@ -189,7 +189,7 @@ describe('snapshot pattern matching', () => {
     const params = generateParamPadding(['j', 'cellKey']);
     expect(params).toEqual(['_', '_1', 'j', 'cellKey']);
 
-    const qp = buildQpProp(['j', 'cellKey']);
+    const qp = buildCaptureProp(['j', 'cellKey']);
     expect(qp!.propName).toBe('q:ps');
     expect(qp!.propValue).toBe('[cellKey, j]');
   });
@@ -205,7 +205,7 @@ describe('snapshot pattern matching', () => {
     const params = generateParamPadding(['key']);
     expect(params).toEqual(['_', '_1', 'key']);
 
-    const qp = buildQpProp(['key']);
+    const qp = buildCaptureProp(['key']);
     expect(qp!.propName).toBe('q:p');
     expect(qp!.propValue).toBe('key');
   });

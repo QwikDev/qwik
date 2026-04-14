@@ -28,8 +28,8 @@ import { isStrippedSegment } from '../strip-ctx.js';
 import { rewriteFunctionSignature } from '../segment-codegen.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { isRelativePathInsideBase } from '../path-utils.js';
-import { transformSCallBody } from './inline-body.js';
-import type { SCallBodyJsxOptions } from './raw-props.js';
+import { transformInlineSegmentBody } from './inline-body.js';
+import type { InlineSegmentJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
 
 function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolean {
@@ -248,7 +248,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
   const isHoist = inlineOptions?.entryType === 'hoist' ||
     (inlineOptions?.entryType === 'inline' && !!transpileTs && !!jsxOptions?.enableJsx && mode !== 'dev');
 
-  let sCallJsxOptions: SCallBodyJsxOptions | undefined = jsxOptions?.enableJsx
+  let inlineSegmentJsxOptions: InlineSegmentJsxOptions | undefined = jsxOptions?.enableJsx
     ? {
         enableJsx: true,
         importedNames: jsxOptions.importedNames,
@@ -295,8 +295,8 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
 
   const processExtraction = (ext: ExtractionResult) => {
     const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-    const { transformedBody: rawBody, additionalImports, hoistedDeclarations, keyCounterValue } = transformSCallBody(
-      ext, extractions, qrlVarNames, sCallJsxOptions, inlineOptions?.regCtxName, sharedHoister,
+    const { transformedBody: rawBody, additionalImports, hoistedDeclarations, keyCounterValue } = transformInlineSegmentBody(
+      ext, extractions, qrlVarNames, inlineSegmentJsxOptions, inlineOptions?.regCtxName, sharedHoister,
     );
 
     let sigRewrittenBody = rawBody;
@@ -312,9 +312,9 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       neededImports.set('_regSymbol', '@qwik.dev/core');
     }
 
-    if (isHoist && keyCounterValue !== undefined && sCallJsxOptions) {
+    if (isHoist && keyCounterValue !== undefined && inlineSegmentJsxOptions) {
       ctx.jsxKeyCounterValue = keyCounterValue;
-      sCallJsxOptions = { ...sCallJsxOptions, keyCounterStart: ctx.jsxKeyCounterValue };
+      inlineSegmentJsxOptions = { ...inlineSegmentJsxOptions, keyCounterStart: ctx.jsxKeyCounterValue };
     }
     ctx.inlineHoistedDeclarations.push(...hoistedDeclarations);
     for (const [sym, src] of additionalImports) {

@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 import {
   emitC02,
   emitC05,
-  emitPreventdefaultPassiveCheck,
+  emitPassiveConflictWarning,
   parseDisableDirectives,
   filterSuppressedDiagnostics,
 } from '../../src/optimizer/diagnostics.js';
@@ -157,9 +157,9 @@ describe('emitC05', () => {
   });
 });
 
-describe('emitPreventdefaultPassiveCheck', () => {
+describe('emitPassiveConflictWarning', () => {
   it('produces warning for passive + preventdefault conflict', () => {
-    const diag = emitPreventdefaultPassiveCheck('click', 'test.tsx');
+    const diag = emitPassiveConflictWarning('click', 'test.tsx');
     expect(diag.category).toBe('warning');
     expect(diag.code).toBe('preventdefault-passive-check');
     expect(diag.message).toBe(

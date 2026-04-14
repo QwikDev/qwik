@@ -6,8 +6,8 @@ import {
   collectCustomInlined,
   isMarkerCall,
   isSyncMarker,
-  getCtxKind,
-  getCtxName,
+  getExtractionKind,
+  getExtractionName,
   type ImportInfo,
   type CustomInlinedInfo,
 } from '../../src/optimizer/marker-detection.js';
@@ -222,22 +222,22 @@ describe('marker-detection', () => {
     });
   });
 
-  describe('getCtxKind', () => {
+  describe('getExtractionKind', () => {
     it('returns "eventHandler" when isJsxEventAttr=true, "function" otherwise', () => {
-      expect(getCtxKind('component$', false)).toBe('function');
-      expect(getCtxKind('$', false)).toBe('function');
-      expect(getCtxKind('onClick$', true)).toBe('eventHandler');
-      expect(getCtxKind('onChange$', true)).toBe('eventHandler');
+      expect(getExtractionKind('component$', false)).toBe('function');
+      expect(getExtractionKind('$', false)).toBe('function');
+      expect(getExtractionKind('onClick$', true)).toBe('eventHandler');
+      expect(getExtractionKind('onChange$', true)).toBe('eventHandler');
     });
   });
 
-  describe('getCtxName', () => {
+  describe('getExtractionName', () => {
     it('returns the marker name', () => {
-      expect(getCtxName('$', false)).toBe('$');
-      expect(getCtxName('component$', false)).toBe('component$');
-      expect(getCtxName('useTask$', false)).toBe('useTask$');
+      expect(getExtractionName('$', false)).toBe('$');
+      expect(getExtractionName('component$', false)).toBe('component$');
+      expect(getExtractionName('useTask$', false)).toBe('useTask$');
       // For JSX event attrs, the ctxName comes from the attribute name
-      expect(getCtxName('$', true, 'onClick$')).toBe('onClick$');
+      expect(getExtractionName('$', true, 'onClick$')).toBe('onClick$');
     });
   });
 });

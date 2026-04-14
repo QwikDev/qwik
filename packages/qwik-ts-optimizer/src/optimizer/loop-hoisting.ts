@@ -122,7 +122,7 @@ export function generateParamPadding(loopVarNames: string[]): string[] {
  *
  * Single var uses q:p; multiple vars use q:ps with alphabetical sorting.
  */
-export function buildQpProp(
+export function buildCaptureProp(
   loopVars: string[],
   preserveOrder: boolean = false,
 ): { propName: string; propValue: string } | null {

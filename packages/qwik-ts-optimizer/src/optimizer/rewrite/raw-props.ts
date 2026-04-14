@@ -63,7 +63,7 @@ function isWCallWithArrayArg(
 /**
  * Options for JSX transpilation within inline .s() body text.
  */
-export interface SCallBodyJsxOptions {
+export interface InlineSegmentJsxOptions {
   /** Whether to apply JSX transpilation */
   enableJsx: boolean;
   /** Set of imported identifier names (for prop classification) */

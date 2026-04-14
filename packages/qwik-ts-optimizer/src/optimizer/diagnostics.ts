@@ -47,7 +47,7 @@ export function emitC05(
 }
 
 /** Warning: preventdefault:event does nothing when passive:event is also set. */
-export function emitPreventdefaultPassiveCheck(
+export function emitPassiveConflictWarning(
   eventName: string,
   file: string,
   highlightSpan?: DiagnosticHighlightFlat,

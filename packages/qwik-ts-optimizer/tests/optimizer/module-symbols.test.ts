@@ -18,14 +18,14 @@ describe('module-symbols', () => {
 
     const info = collectSameFileSymbolInfo(program);
 
-    expect(info.sameFileExports.has('aliasedThing')).toBe(true);
-    expect(info.sameFileExports.has('localThing')).toBe(true);
-    expect(info.sameFileExports.has('DefaultThing')).toBe(true);
-    expect(info.sameFileExports.has('localFn')).toBe(true);
-    expect(info.sameFileExports.has('LocalClass')).toBe(true);
-    expect(info.sameFileExports.has('alpha')).toBe(true);
-    expect(info.sameFileExports.has('bravo')).toBe(true);
-    expect(info.sameFileExports.has('LocalEnum')).toBe(true);
+    expect(info.sameFileSymbols.has('aliasedThing')).toBe(true);
+    expect(info.sameFileSymbols.has('localThing')).toBe(true);
+    expect(info.sameFileSymbols.has('DefaultThing')).toBe(true);
+    expect(info.sameFileSymbols.has('localFn')).toBe(true);
+    expect(info.sameFileSymbols.has('LocalClass')).toBe(true);
+    expect(info.sameFileSymbols.has('alpha')).toBe(true);
+    expect(info.sameFileSymbols.has('bravo')).toBe(true);
+    expect(info.sameFileSymbols.has('LocalEnum')).toBe(true);
 
     expect(info.defaultExportedNames.has('DefaultThing')).toBe(true);
     expect(info.renamedExports.get('localThing')).toBe('aliasedThing');

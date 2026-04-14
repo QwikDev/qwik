@@ -14,7 +14,7 @@ import {
   classifyDeclarationType,
   emitC02,
   emitC05,
-  emitPreventdefaultPassiveCheck,
+  emitPassiveConflictWarning,
 } from '../diagnostics.js';
 import { collectExportNames } from '../marker-detection.js';
 import type { Diagnostic } from '../types.js';
@@ -170,7 +170,7 @@ export function detectPassivePreventdefaultConflicts(
           const [endLine, endCol] = computeLineColFromOffset(source, node.end);
 
           diagnostics.push(
-            emitPreventdefaultPassiveCheck(eventName, file, {
+            emitPassiveConflictWarning(eventName, file, {
               lo: node.start,
               hi: node.end,
               startLine,

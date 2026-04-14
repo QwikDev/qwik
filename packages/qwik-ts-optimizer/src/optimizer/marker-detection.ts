@@ -223,7 +223,7 @@ export function isSyncMarker(calleeName: string): boolean {
   return calleeName === 'sync$';
 }
 
-export function getCtxKind(
+export function getExtractionKind(
   _calleeName: string,
   isJsxEventAttr: boolean,
   isJsxNonEventAttr: boolean = false,
@@ -233,7 +233,7 @@ export function getCtxKind(
   return 'function';
 }
 
-export function getCtxName(
+export function getExtractionName(
   calleeName: string,
   isJsxEventAttr: boolean,
   jsxAttrName?: string

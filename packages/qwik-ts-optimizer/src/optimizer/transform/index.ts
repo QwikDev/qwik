@@ -50,7 +50,7 @@ import {
   getExtension,
 } from "../path-utils.js";
 import {
-  buildEnclosingExtractionMap,
+  buildParentExtractionMap,
   buildPassthroughModule,
   removeUnusedImports,
 } from './module-cleanup.js';
@@ -70,7 +70,7 @@ import {
   collectAllScopeEntries,
   promoteEventHandlerCaptures,
   unifyParameterSlots,
-  buildElementQpParamsMap,
+  buildElementCaptureMap,
 } from './event-capture-promotion.js';
 import {
   generateAllSegmentModules,
@@ -142,7 +142,7 @@ export function transformModule(
     const originalImports = collectImports(program, parserModule);
     const importedNames = new Set<string>(originalImports.keys());
 
-    const enclosingExtMap = buildEnclosingExtractionMap(extractions);
+    const enclosingExtMap = buildParentExtractionMap(extractions);
 
     // Capture analysis: determine which variables each extraction captures
     const moduleScopeIds = collectScopeIdentifiers(
@@ -307,7 +307,7 @@ export function transformModule(
     );
 
     // Build elementQpParams map
-    const elementQpParamsMap = buildElementQpParamsMap(
+    const elementQpParamsMap = buildElementCaptureMap(
       extractions,
       enclosingExtMap,
       extractionLoopMap,

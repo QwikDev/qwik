@@ -24,7 +24,7 @@ import {
   generateSegmentCode,
   type SegmentCaptureInfo,
   type NestedCallSiteInfo,
-  type SegmentImportContext,
+  type SegmentImportData,
 } from "../segment-codegen.js";
 import { resolveEntryField } from "../entry-strategy.js";
 import { buildQrlDeclaration } from "../rewrite-calls.js";
@@ -47,7 +47,7 @@ import {
   leadingDot,
   numberedPaddingParam,
   paddingParam,
-  getEffectiveCaptureInfo,
+  resolveCaptureInfo,
   postProcessSegmentCode,
 } from "./post-process.js";
 import type { LoopContext } from "../loop-hoisting.js";
@@ -142,15 +142,15 @@ export function collectImportAttributes(
   return importAttributesMap;
 }
 
-/** Build moduleImports array for SegmentImportContext. */
-export function buildModuleImportsForContext(
+/** Build the segment import list used during import resolution. */
+export function buildSegmentImportList(
   originalImports: Map<string, ImportInfo>,
   importAttributesMap: Map<string, Record<string, string>>,
-): SegmentImportContext["moduleImports"] {
-  const moduleImportsForContext: SegmentImportContext["moduleImports"] = [];
+): SegmentImportData["moduleImports"] {
+  const segmentImportList: SegmentImportData["moduleImports"] = [];
   const addedModuleImports = new Set<string>();
   for (const [, imp] of originalImports) {
-    moduleImportsForContext.push({
+    segmentImportList.push({
       localName: imp.localName,
       importedName: imp.importedName,
       source: imp.source,
@@ -193,7 +193,7 @@ export function buildModuleImportsForContext(
   ];
   for (const name of runtimeImports) {
     if (!addedModuleImports.has(name)) {
-      moduleImportsForContext.push({
+      segmentImportList.push({
         localName: name,
         importedName: name,
         source: "@qwik.dev/core",
@@ -201,7 +201,7 @@ export function buildModuleImportsForContext(
     }
   }
 
-  return moduleImportsForContext;
+  return segmentImportList;
 }
 
 export interface SegmentGenerationContext {
@@ -283,12 +283,12 @@ export function generateAllSegmentModules(
   let segmentKeyCounter = ctx.parentJsxKeyCounterValue;
 
   // Collect same-file exported/declared names for self-referential segment imports
-  const { sameFileExports, defaultExportedNames, renamedExports } =
+  const { sameFileSymbols, defaultExportedNames, renamedExports } =
     collectSameFileSymbolInfo(program);
 
   // Collect import attributes and build module imports context
   const importAttributesMap = collectImportAttributes(program);
-  const moduleImportsForContext = buildModuleImportsForContext(
+  const segmentImportList = buildSegmentImportList(
     originalImports, importAttributesMap,
   );
 
@@ -675,15 +675,15 @@ export function generateAllSegmentModules(
       }
     }
 
-    const effectiveCaptureInfo = getEffectiveCaptureInfo(
+    const effectiveCaptureInfo = resolveCaptureInfo(
       captureInfo,
       ext.isInlinedQrl,
     );
 
     // Build import context
-    const importContext: SegmentImportContext = {
-      moduleImports: moduleImportsForContext,
-      sameFileExports,
+    const importContext: SegmentImportData = {
+      moduleImports: segmentImportList,
+      sameFileSymbols,
       defaultExportedNames:
         defaultExportedNames.size > 0 ? defaultExportedNames : undefined,
       renamedExports: renamedExports.size > 0 ? renamedExports : undefined,

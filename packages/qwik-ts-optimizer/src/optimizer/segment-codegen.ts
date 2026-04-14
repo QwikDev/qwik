@@ -12,7 +12,7 @@ import { parseWithRawTransfer } from './utils/parse.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { inlineConstCaptures } from './rewrite/index.js';
 import type { ExtractionResult } from './extract.js';
-import { transformAllJsx, collectConstIdents } from './transform/jsx.js';
+import { transformAllJsx, collectConstBindings } from './transform/jsx.js';
 import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
 import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
 
@@ -69,9 +69,9 @@ export interface SegmentCaptureInfo {
 /**
  * Additional import context from transform.ts for post-transform import re-collection.
  */
-export interface SegmentImportContext {
+export interface SegmentImportData {
   moduleImports: Array<{ localName: string; importedName: string; source: string; importAttributes?: Record<string, string> }>;
-  sameFileExports: Set<string>;
+  sameFileSymbols: Set<string>;
   defaultExportedNames?: Set<string>;
   /** Map from local variable name to its exported name when they differ */
   renamedExports?: Map<string, string>;
@@ -130,7 +130,7 @@ function replacePropsFieldReferences(bodyText: string, fieldMap: Map<string, str
 function buildSegmentImports(
   extraction: ExtractionResult,
   capturedNames: Set<string>,
-  importContext: SegmentImportContext | undefined,
+  importContext: SegmentImportData | undefined,
 ): { parts: string[]; importsBySource: Map<string, SegmentImportSpec[]> } {
   const parts: string[] = [];
   const importsBySource = new Map<string, SegmentImportSpec[]>();
@@ -292,7 +292,7 @@ function transformSegmentJsx(
     const qrlsWithCaptures = buildQrlsWithCapturesSet(nestedCallSites);
     const qpOverrides = buildQpOverrides(nestedCallSites, bodyParse.program);
 
-    const segConstIdents = collectConstIdents(bodyParse.program);
+    const segConstIdents = collectConstBindings(bodyParse.program);
     if (captureInfo?.captureNames) {
       for (const name of captureInfo.captureNames) segConstIdents.add(name);
     }
@@ -445,7 +445,7 @@ export function generateSegmentCode(
   captureInfo?: SegmentCaptureInfo,
   jsxOptions?: SegmentJsxOptions,
   nestedCallSites?: NestedCallSiteInfo[],
-  importContext?: SegmentImportContext,
+  importContext?: SegmentImportData,
   enumValueMap?: Map<string, Map<string, string>>,
 ): { code: string; keyCounterValue?: number } {
   const capturedNames = new Set<string>(captureInfo ? captureInfo.captureNames : []);

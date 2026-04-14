@@ -10,7 +10,7 @@ import type MagicString from 'magic-string';
 import type { JSXAttributeItem, JSXElement, JSXFragment } from '../../ast-types.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { collectPassiveDirectives } from './event-handlers.js';
-import { buildQpProp, type LoopContext } from '../loop-hoisting.js';
+import { buildCaptureProp, type LoopContext } from '../loop-hoisting.js';
 import {
   processProps,
   formatPropName,
@@ -22,7 +22,7 @@ import {
   type JsxTransformResult,
   processJsxTag,
   isTextOnlyElement,
-  computeFlags,
+  computeJsxFlags,
   type JsxKeyCounter,
 } from './jsx.js';
 
@@ -74,7 +74,7 @@ function injectQpProp(
 
   const overrideParams = qpOverrides?.get(node.start);
   if (overrideParams && overrideParams.length > 0) {
-    const qpResult = buildQpProp(overrideParams, true);
+    const qpResult = buildCaptureProp(overrideParams, true);
     if (qpResult) {
       varEntries.push(`${formatPropName(qpResult.propName)}: ${qpResult.propValue}`);
     }
@@ -88,7 +88,7 @@ function injectQpProp(
     || constEntries.some(e => isRewrittenEventEntry(e) || e.startsWith('"host:'));
   if (!hasEventHandlers) return;
 
-  const qpResult = buildQpProp(loopCtx!.iterVars);
+  const qpResult = buildCaptureProp(loopCtx!.iterVars);
   if (qpResult) {
     varEntries.push(`${formatPropName(qpResult.propName)}: ${qpResult.propValue}`);
   }
@@ -327,9 +327,9 @@ export function transformJsxElement(
     const hasQpEntry = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:p":') || e.startsWith('"q:ps"') || e.startsWith('"q:ps":'));
     flags = hasQpEntry ? 4 : 0;
   } else if (isCaptureOnly) {
-    flags = computeFlags(hasVarProps, childrenType, false, hasVarEventHandler) | 4;
+    flags = computeJsxFlags(hasVarProps, childrenType, false, hasVarEventHandler) | 4;
   } else {
-    flags = computeFlags(effectiveHasVarProps, childrenType, effectiveLoopCtx, hasVarEventHandler);
+    flags = computeJsxFlags(effectiveHasVarProps, childrenType, effectiveLoopCtx, hasVarEventHandler);
   }
 
   let keyStr: string | null;
@@ -411,7 +411,7 @@ export function transformJsxFragment(
     allDeclaredNames,
   );
 
-  const flags = computeFlags(false, childrenType);
+  const flags = computeJsxFlags(false, childrenType);
   const keyStr = `"${keyCounter.next()}"`;
   const callString = `_jsxSorted(_Fragment, null, null, ${childrenText ?? 'null'}, ${flags}, ${keyStr})`;
 

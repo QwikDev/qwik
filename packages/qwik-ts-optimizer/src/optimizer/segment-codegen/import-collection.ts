@@ -12,7 +12,7 @@ import type { AstFunction, AstNode } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../utils/parse.js';
 import { rewriteImportSource } from '../rewrite-imports.js';
 import { getQrlImportSource } from '../rewrite-calls.js';
-import type { NestedCallSiteInfo, SegmentImportContext } from '../segment-codegen.js';
+import type { NestedCallSiteInfo, SegmentImportData } from '../segment-codegen.js';
 import { insertImportBeforeSeparator } from './body-transforms.js';
 
 interface SegmentImportSpec {
@@ -75,7 +75,7 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
 export function recollectPostTransformImports(
   bodyText: string,
   parts: string[],
-  importContext: SegmentImportContext,
+  importContext: SegmentImportData,
   importsBySource: Map<string, SegmentImportSpec[]>,
   capturedNames: Set<string>,
   nestedCallSites: NestedCallSiteInfo[] | undefined,
@@ -103,7 +103,7 @@ export function recollectPostTransformImports(
       continue;
     }
 
-    if (importContext.sameFileExports.has(id)) {
+    if (importContext.sameFileSymbols.has(id)) {
       addSameFileImport(parts, id, importContext);
     }
   }
@@ -127,7 +127,7 @@ function buildModuleImportStatement(imp: { localName: string; importedName: stri
   return `import { ${imp.localName} } from "${rewrittenSource}";`;
 }
 
-function addSameFileImport(parts: string[], id: string, importContext: SegmentImportContext): void {
+function addSameFileImport(parts: string[], id: string, importContext: SegmentImportData): void {
   const migrationDecision = importContext.migrationDecisions.find(d => d.varName === id);
   if (migrationDecision && migrationDecision.action === 'move') return;
 
@@ -151,7 +151,7 @@ function addQrlCalleeImports(
   parts: string[],
   bodyText: string,
   nestedCallSites: NestedCallSiteInfo[] | undefined,
-  _importContext: SegmentImportContext,
+  _importContext: SegmentImportData,
 ): void {
   if (!nestedCallSites) {
     qrlSuffixPattern.lastIndex = 0;

@@ -10,7 +10,7 @@ import type { AstMaybeNode, JSXAttributeItem } from '../../ast-types.js';
 import { analyzeSignalExpression, type SignalHoister } from '../signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective } from './event-handlers.js';
 import { isBindProp, transformBindProp, mergeEventHandlers } from './bind.js';
-import { classifyProp, isConstBindingName } from './jsx.js';
+import { classifyConstness, isConstBindingName } from './jsx.js';
 
 /** True for value nodes that are always const (literals, arrows, identifiers). */
 function isConstValueNode(valueNode: AstMaybeNode): boolean {
@@ -260,7 +260,7 @@ export function processProps(
       if (signalResult.type === 'fnSignal') {
         // SWC skips _fnSignal for object expressions on class/className
         if (signalResult.isObjectExpr && (propName === 'class' || propName === 'className')) {
-          // fall through to classifyProp
+          // fall through to classifyConstness
         } else {
           const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, valueNode.start ?? 0);
           const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
@@ -280,7 +280,7 @@ export function processProps(
     }
 
     const classification = valueNode
-      ? classifyProp(valueNode, importedNames, constIdents)
+      ? classifyConstness(valueNode, importedNames, constIdents)
       : 'const';
 
     const entry = `${formatPropName(propName)}: ${valueText}`;

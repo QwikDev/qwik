@@ -1,14 +1,14 @@
 /**
  * Unit tests for JSX transformation module.
  *
- * Tests classifyProp, computeFlags, JsxKeyCounter, and transformJsxElement.
+ * Tests classifyConstness, computeJsxFlags, JsxKeyCounter, and transformJsxElement.
  */
 
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import {
-  classifyProp,
-  computeFlags,
+  classifyConstness,
+  computeJsxFlags,
   JsxKeyCounter,
   transformJsxElement,
   transformJsxFragment,
@@ -43,140 +43,140 @@ function parseJsx(code: string): any {
 }
 
 // ---------------------------------------------------------------------------
-// classifyProp
+// classifyConstness
 // ---------------------------------------------------------------------------
 
-describe('classifyProp', () => {
+describe('classifyConstness', () => {
   const importedNames = new Set(['dep', 'importedValue', 'styles']);
 
   it('returns const for string literals', () => {
     const node = parseExpr('"hello"');
-    expect(classifyProp(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames)).toBe('const');
   });
 
   it('returns const for number literals', () => {
     const node = parseExpr('42');
-    expect(classifyProp(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames)).toBe('const');
   });
 
   it('returns const for boolean literals', () => {
     const node = parseExpr('true');
-    expect(classifyProp(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames)).toBe('const');
   });
 
   it('returns const for null literal', () => {
     const node = parseExpr('null');
-    expect(classifyProp(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames)).toBe('const');
   });
 
   it('returns const for imported identifiers', () => {
     const node = parseExpr('dep');
-    expect(classifyProp(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames)).toBe('const');
   });
 
   it('returns var for member expression on imported value (styles.foo)', () => {
     const node = parseExpr('styles.foo');
     // SWC is_const.rs treats ALL member expressions as var regardless of import status
-    expect(classifyProp(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames)).toBe('var');
   });
 
   it('returns var for signal.value access', () => {
     const node = parseExpr('signal.value');
     // signal is not in importedNames, so it's var
-    expect(classifyProp(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames)).toBe('var');
   });
 
   it('returns var for global variable reference', () => {
     const node = parseExpr('globalThing');
-    expect(classifyProp(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames)).toBe('var');
   });
 
   it('returns var for function calls', () => {
     const node = parseExpr('doSomething()');
-    expect(classifyProp(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames)).toBe('var');
   });
 
   it('returns var for window.document', () => {
     const node = parseExpr('window.document');
-    expect(classifyProp(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames)).toBe('var');
   });
 
   it('returns const for template literal without expressions', () => {
     const node = parseExpr('`hello world`');
-    expect(classifyProp(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames)).toBe('const');
   });
 
   it('returns var for template literal with runtime expressions', () => {
     const node = parseExpr('`hello ${globalThing}`');
-    expect(classifyProp(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames)).toBe('var');
   });
 
   it('returns const for ternary with all-const operands', () => {
     const node = parseExpr('importedValue ? true : false');
-    expect(classifyProp(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames)).toBe('const');
   });
 
   it('returns const for object literal with all-const values', () => {
     const node = parseExpr("{ foo: 'bar', baz: importedValue ? true : false }");
-    expect(classifyProp(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames)).toBe('const');
   });
 
   it('returns var for object literal with mutable values', () => {
     const node = parseExpr("{ foo: 'bar', baz: count % 2 === 0 }");
-    expect(classifyProp(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames)).toBe('var');
   });
 
   it('returns const for array with all-const values', () => {
     const node = parseExpr('[1, 2, importedValue, null, {}]');
-    expect(classifyProp(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames)).toBe('const');
   });
 
   it('returns var for array with mutable values', () => {
     const node = parseExpr('[1, 2, state, null, {}]');
-    expect(classifyProp(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames)).toBe('var');
   });
 });
 
 // ---------------------------------------------------------------------------
-// computeFlags
+// computeJsxFlags
 // ---------------------------------------------------------------------------
 
-describe('computeFlags', () => {
+describe('computeJsxFlags', () => {
   it('returns 3 for no varProps + static children (fully immutable)', () => {
-    expect(computeFlags(false, 'static')).toBe(3);
+    expect(computeJsxFlags(false, 'static')).toBe(3);
   });
 
   it('returns 1 for no varProps + dynamic children', () => {
-    expect(computeFlags(false, 'dynamic')).toBe(1);
+    expect(computeJsxFlags(false, 'dynamic')).toBe(1);
   });
 
   it('returns 3 for varProps + static children (bit 0 always set outside loop)', () => {
     // Outside loop context, bit 0 is always set regardless of varProps
-    expect(computeFlags(true, 'static')).toBe(3);
+    expect(computeJsxFlags(true, 'static')).toBe(3);
   });
 
   it('returns 1 for varProps + dynamic children (bit 0 always set outside loop)', () => {
     // Outside loop context, bit 0 is always set regardless of varProps
-    expect(computeFlags(true, 'dynamic')).toBe(1);
+    expect(computeJsxFlags(true, 'dynamic')).toBe(1);
   });
 
   it('returns 3 for no varProps + no children', () => {
-    expect(computeFlags(false, 'none')).toBe(3);
+    expect(computeJsxFlags(false, 'none')).toBe(3);
   });
 
   it('returns 3 for varProps + no children (bit 0 always set outside loop)', () => {
     // Outside loop context, bit 0 is always set regardless of varProps
-    expect(computeFlags(true, 'none')).toBe(3);
+    expect(computeJsxFlags(true, 'none')).toBe(3);
   });
 
   it('returns 4 for varProps + dynamic children in loop context', () => {
     // In loop context with varProps: bit 2 set, bit 0 NOT set
-    expect(computeFlags(true, 'dynamic', true)).toBe(4);
+    expect(computeJsxFlags(true, 'dynamic', true)).toBe(4);
   });
 
   it('returns 7 for no varProps + static children in loop context', () => {
     // In loop context without varProps: all three bits set
-    expect(computeFlags(false, 'static', true)).toBe(7);
+    expect(computeJsxFlags(false, 'static', true)).toBe(7);
   });
 });
 

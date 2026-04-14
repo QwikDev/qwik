@@ -593,10 +593,10 @@ export function unifyParameterSlots(
 }
 
 /**
- * Build the elementQpParams map: for each event handler, store the unified q:ps params
+ * Build the element capture map: for each event handler, store the unified q:ps params
  * for its containing element.
  */
-export function buildElementQpParamsMap(
+export function buildElementCaptureMap(
   extractions: ExtractionResult[],
   enclosingExtMap: Map<string, ExtractionResult>,
   extractionLoopMap: Map<string, LoopContext[]>,

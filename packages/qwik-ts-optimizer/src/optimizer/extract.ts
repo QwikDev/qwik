@@ -25,8 +25,8 @@ import {
   getCalleeName,
   isMarkerCall,
   isSyncMarker,
-  getCtxKind,
-  getCtxName,
+  getExtractionKind,
+  getExtractionName,
   type CustomInlinedInfo,
   type ImportInfo,
 } from './marker-detection.js';
@@ -497,9 +497,9 @@ export function extractSegments(
           }
         }
 
-        const ctxKind = getCtxKind(canonicalCallee, isEventAttr, isJsxNonEventAttr);
+        const ctxKind = getExtractionKind(canonicalCallee, isEventAttr, isJsxNonEventAttr);
         const isJsxAttrContext = isEventAttr || isJsxNonEventAttr;
-        const ctxName = getCtxName(canonicalCallee, isJsxAttrContext, isJsxAttrContext ? attrCtx : undefined);
+        const ctxName = getExtractionName(canonicalCallee, isJsxAttrContext, isJsxAttrContext ? attrCtx : undefined);
 
         const displayName = ctx.getDisplayName();
         const symbolName = ctx.getSymbolName();

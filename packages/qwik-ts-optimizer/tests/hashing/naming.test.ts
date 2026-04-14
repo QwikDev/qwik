@@ -1,34 +1,34 @@
 import { describe, it, expect } from 'vitest';
-import { escapeSym, buildDisplayName, buildSymbolName } from '../../src/hashing/naming.js';
+import { escapeSymbol, buildDisplayName, buildSymbolName } from '../../src/hashing/naming.js';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const SNAP_DIR = join(import.meta.dirname, '../../match-these-snaps');
 
-describe('escapeSym', () => {
+describe('escapeSymbol', () => {
   it('strips trailing $ from component names', () => {
-    expect(escapeSym('Foo_component$')).toBe('Foo_component');
+    expect(escapeSymbol('Foo_component$')).toBe('Foo_component');
   });
 
   it('returns empty string for all non-alnum', () => {
-    expect(escapeSym('$')).toBe('');
+    expect(escapeSymbol('$')).toBe('');
   });
 
   it('trims leading/trailing non-alnum and squashes consecutive separators', () => {
-    expect(escapeSym('___abc___def___')).toBe('abc_def');
+    expect(escapeSymbol('___abc___def___')).toBe('abc_def');
   });
 
   it('strips $ from event handler names', () => {
-    expect(escapeSym('onClick$')).toBe('onClick');
+    expect(escapeSymbol('onClick$')).toBe('onClick');
   });
 
   it('converts dots to underscores', () => {
-    expect(escapeSym('a.b.c')).toBe('a_b_c');
+    expect(escapeSymbol('a.b.c')).toBe('a_b_c');
   });
 
   it('preserves leading digits (digits are alnum)', () => {
-    expect(escapeSym('123abc')).toBe('123abc');
+    expect(escapeSymbol('123abc')).toBe('123abc');
   });
 });
 

@@ -7,7 +7,7 @@
 
 import { createRegExp, exactly, oneOrMore, anyOf, digit, whitespace, charNotIn } from 'magic-regexp';
 import { analyzeSignalExpression, type SignalHoister } from '../signal-analysis.js';
-import { classifyProp } from './jsx.js';
+import { classifyConstness } from './jsx.js';
 import type { JSXChild } from '../../ast-types.js';
 
 const jsxFlagTail = createRegExp(
@@ -249,7 +249,7 @@ function processExpressionChild(
   }
 
   if (importedNames) {
-    const propClass = classifyProp(expr, importedNames, constIdents);
+    const propClass = classifyConstness(expr, importedNames, constIdents);
     if (propClass === 'const') {
       return { text: exprText, type: 'static' };
     }

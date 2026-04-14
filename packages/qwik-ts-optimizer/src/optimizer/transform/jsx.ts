@@ -72,8 +72,8 @@ function isReturnStatic(init: any): boolean {
  * Collect names of const-bound identifiers with "static" initializers.
  * These are treated as immutable references for prop classification.
  */
-export function collectConstIdents(program: AstProgram): Set<string> {
-  const constIdents = new Set<string>();
+export function collectConstBindings(program: AstProgram): Set<string> {
+  const constBindings = new Set<string>();
 
   function visitNode(node: any): void {
     if (!node || typeof node !== 'object') return;
@@ -95,12 +95,12 @@ export function collectConstIdents(program: AstProgram): Set<string> {
 
     if (id.type === 'Identifier') {
       if (isReturnStatic(init)) {
-        constIdents.add(id.name);
+          constBindings.add(id.name);
       }
     } else if (id.type === 'ArrayPattern') {
       for (const elem of id.elements || []) {
         if (elem && elem.type === 'Identifier' && isReturnStatic(init)) {
-          constIdents.add(elem.name);
+          constBindings.add(elem.name);
         }
       }
     } else if (id.type === 'ObjectPattern') {
@@ -108,7 +108,7 @@ export function collectConstIdents(program: AstProgram): Set<string> {
         if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
           const val = prop.value || prop.key;
           if (val && val.type === 'Identifier' && isReturnStatic(init)) {
-            constIdents.add(val.name);
+            constBindings.add(val.name);
           }
         }
       }
@@ -116,7 +116,7 @@ export function collectConstIdents(program: AstProgram): Set<string> {
   }
 
   visitNode(program);
-  return constIdents;
+  return constBindings;
 }
 
 /**
@@ -194,7 +194,7 @@ function collectAllLocalNames(program: AstProgram): Set<string> {
  * Determine if an expression is immutable (const) or mutable (var).
  * Mirrors SWC's `is_const_expr`.
  */
-export function classifyProp(
+export function classifyConstness(
   exprNode: any,
   importedNames: Set<string>,
   constIdents?: Set<string>,
@@ -212,7 +212,7 @@ export function classifyProp(
     case 'TemplateLiteral': {
       if (!exprNode.expressions || exprNode.expressions.length === 0) return 'const';
       for (const expr of exprNode.expressions) {
-        if (classifyProp(expr, importedNames, constIdents) === 'var') return 'var';
+        if (classifyConstness(expr, importedNames, constIdents) === 'var') return 'var';
       }
       return 'const';
     }
@@ -237,19 +237,19 @@ export function classifyProp(
       return 'var';
 
     case 'UnaryExpression':
-      return classifyProp(exprNode.argument, importedNames, constIdents);
+      return classifyConstness(exprNode.argument, importedNames, constIdents);
 
     case 'BinaryExpression':
     case 'LogicalExpression': {
-      const leftClass = classifyProp(exprNode.left, importedNames, constIdents);
-      const rightClass = classifyProp(exprNode.right, importedNames, constIdents);
+      const leftClass = classifyConstness(exprNode.left, importedNames, constIdents);
+      const rightClass = classifyConstness(exprNode.right, importedNames, constIdents);
       return leftClass === 'var' || rightClass === 'var' ? 'var' : 'const';
     }
 
     case 'ConditionalExpression': {
-      const testClass = classifyProp(exprNode.test, importedNames, constIdents);
-      const consClass = classifyProp(exprNode.consequent, importedNames, constIdents);
-      const altClass = classifyProp(exprNode.alternate, importedNames, constIdents);
+      const testClass = classifyConstness(exprNode.test, importedNames, constIdents);
+      const consClass = classifyConstness(exprNode.consequent, importedNames, constIdents);
+      const altClass = classifyConstness(exprNode.alternate, importedNames, constIdents);
       return testClass === 'var' || consClass === 'var' || altClass === 'var' ? 'var' : 'const';
     }
 
@@ -257,9 +257,9 @@ export function classifyProp(
       if (!exprNode.properties) return 'const';
       for (const prop of exprNode.properties) {
         if (prop.type === 'SpreadElement') {
-          if (classifyProp(prop.argument, importedNames, constIdents) === 'var') return 'var';
+          if (classifyConstness(prop.argument, importedNames, constIdents) === 'var') return 'var';
         } else if (prop.value) {
-          if (classifyProp(prop.value, importedNames, constIdents) === 'var') return 'var';
+          if (classifyConstness(prop.value, importedNames, constIdents) === 'var') return 'var';
         }
       }
       return 'const';
@@ -270,9 +270,9 @@ export function classifyProp(
       for (const el of exprNode.elements) {
         if (el === null) continue;
         if (el.type === 'SpreadElement') {
-          if (classifyProp(el.argument, importedNames, constIdents) === 'var') return 'var';
+          if (classifyConstness(el.argument, importedNames, constIdents) === 'var') return 'var';
         } else {
-          if (classifyProp(el, importedNames, constIdents) === 'var') return 'var';
+          if (classifyConstness(el, importedNames, constIdents) === 'var') return 'var';
         }
       }
       return 'const';
@@ -283,11 +283,11 @@ export function classifyProp(
       return 'const';
 
     case 'ParenthesizedExpression':
-      return classifyProp(exprNode.expression, importedNames, constIdents);
+      return classifyConstness(exprNode.expression, importedNames, constIdents);
 
     case 'SequenceExpression': {
       for (const expr of exprNode.expressions) {
-        if (classifyProp(expr, importedNames, constIdents) === 'var') return 'var';
+        if (classifyConstness(expr, importedNames, constIdents) === 'var') return 'var';
       }
       return 'const';
     }
@@ -304,7 +304,7 @@ export function classifyProp(
  * Bit 1 (2): static_subtree -- children are static or none
  * Bit 2 (4): moved_captures -- loop context (q:p/q:ps)
  */
-export function computeFlags(
+export function computeJsxFlags(
   hasVarProps: boolean,
   childrenType: 'none' | 'static' | 'dynamic',
   inLoop: boolean = false,
@@ -460,7 +460,7 @@ export function transformAllJsx(
   sharedSignalHoister?: SignalHoister,
   constIdents?: Set<string>,
 ): JsxTransformOutput {
-  const resolvedConstIdents = constIdents ?? collectConstIdents(program);
+  const resolvedConstIdents = constIdents ?? collectConstBindings(program);
   const allDeclaredNames = collectAllLocalNames(program);
   const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0, prefix);

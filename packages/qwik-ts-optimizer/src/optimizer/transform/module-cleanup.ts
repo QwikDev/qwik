@@ -3,6 +3,7 @@ import MagicString from 'magic-string';
 import { transformSync as oxcTransformSync } from 'oxc-transform';
 import { walk } from 'oxc-walker';
 import type {
+  AstFunction,
   AstNode,
   AstParentNode,
   AstParseResult,
@@ -115,25 +116,41 @@ export function applySegmentConstReplacement(
 }
 
 export function injectUseHmr(segmentCode: string, devFile: string): string {
-  const exportMatch = segmentCode.match(exportConstAssign);
-  if (!exportMatch) return segmentCode;
+  let parsed: AstParseResult;
+  try {
+    parsed = parseWithRawTransfer('__segment_hmr__.tsx', segmentCode);
+  } catch {
+    return segmentCode;
+  }
 
-  const afterExport = exportMatch.index! + exportMatch[0]!.length;
-  const rest = segmentCode.slice(afterExport);
-  const arrowIdx = rest.indexOf('=>');
-  if (arrowIdx === -1) return segmentCode;
+  let targetFn: AstFunction | null = null;
+  for (const stmt of parsed.program.body) {
+    if (stmt.type !== 'ExportNamedDeclaration' || stmt.declaration?.type !== 'VariableDeclaration') continue;
+    const init = stmt.declaration.declarations?.[0]?.init;
+    if (!init) continue;
+    if ((init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') && init.body) {
+      targetFn = init;
+      break;
+    }
+  }
+  if (!targetFn || !targetFn.body) return segmentCode;
 
-  const afterArrow = rest.slice(arrowIdx + 2);
-  const braceIdx = afterArrow.indexOf('{');
-  if (braceIdx === -1) return segmentCode;
+  const s = new MagicString(segmentCode);
+  const indent = inferBlockIndent(segmentCode, targetFn.body.start + 1);
+  const hmrLine = `${indent}_useHmr("${devFile}");`;
 
-  const absPos = afterExport + arrowIdx + 2 + braceIdx + 1;
-  const afterBrace = segmentCode.slice(absPos);
-  const indentMatch = afterBrace.match(/\n(\s+)/);
-  const indent = indentMatch ? indentMatch[1] : '    ';
+  if (targetFn.body.type === 'BlockStatement') {
+    s.appendLeft(targetFn.body.start + 1, `\n${hmrLine}`);
+  } else {
+    const expressionText = segmentCode.slice(targetFn.body.start, targetFn.body.end);
+    s.overwrite(
+      targetFn.body.start,
+      targetFn.body.end,
+      `{\n${hmrLine}\n${indent}return ${expressionText};\n}`,
+    );
+  }
 
-  const hmrCall = `\n${indent}_useHmr("${devFile}");`;
-  let result = segmentCode.slice(0, absPos) + hmrCall + segmentCode.slice(absPos);
+  let result = s.toString();
 
   if (!result.includes('import { _useHmr }')) {
     const sepIdx = result.indexOf('\n//\n');
@@ -148,6 +165,12 @@ export function injectUseHmr(segmentCode: string, devFile: string): string {
   }
 
   return result;
+}
+
+function inferBlockIndent(code: string, start: number): string {
+  const afterBrace = code.slice(start);
+  const indentMatch = afterBrace.match(/\n(\s+)/);
+  return indentMatch ? indentMatch[1] : '    ';
 }
 
 export function applySegmentSideEffectSimplification(

@@ -9,6 +9,7 @@ import {
   buildQrlDevDeclaration,
   buildDevFilePath,
 } from '../../src/optimizer/dev-mode.js';
+import { injectUseHmr } from '../../src/optimizer/transform/module-cleanup.js';
 
 describe('buildQrlDevDeclaration', () => {
   // MODE-01: Dev mode emits qrlDEV with file/lo/hi/displayName
@@ -66,3 +67,26 @@ describe('buildDevFilePath', () => {
   });
 });
 
+describe('injectUseHmr', () => {
+  it('injects _useHmr into exported segment bodies without arrow scanning', () => {
+    const segment =
+      'import { qrl } from "@qwik.dev/core";\n//\nexport const s_abc = () => {\n    return 1;\n};';
+
+    const result = injectUseHmr(segment, '/src/app.tsx');
+
+    expect(result).toContain('import { _useHmr } from "@qwik.dev/core";');
+    expect(result).toContain('_useHmr("/src/app.tsx");');
+    expect(result).toContain('return 1;');
+  });
+
+  it('converts expression bodies to block bodies when injecting _useHmr', () => {
+    const segment = 'export const s_expr = () => 1;';
+
+    const result = injectUseHmr(segment, '/src/app.tsx');
+
+    expect(result).toContain('import { _useHmr } from "@qwik.dev/core";');
+    expect(result).toContain('export const s_expr = () => {');
+    expect(result).toContain('_useHmr("/src/app.tsx");');
+    expect(result).toContain('return 1;');
+  });
+});

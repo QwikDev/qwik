@@ -4,3 +4,4 @@ rust-impl/target/
 .tmpbuild/
 .pnpm-store/
 isolate-*.log
+.logs/subtask2.log

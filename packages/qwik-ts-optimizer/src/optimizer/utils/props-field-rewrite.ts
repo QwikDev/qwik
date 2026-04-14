@@ -1,7 +1,7 @@
 import type { AstMaybeNode, AstNode, AstParentNode } from '../../ast-types.js';
 import { isAstNode } from './ast.js';
-import { parseWithRawTransfer } from './parse.js';
 import { buildPropertyAccessor } from './identifier-name.js';
+import { createTransformSession } from './transform-session.js';
 
 interface RewritePropsFieldReferencesOptions {
   parseFilename: string;
@@ -21,20 +21,19 @@ export function rewritePropsFieldReferences(
 ): string {
   if (fieldMap.size === 0) return bodyText;
 
-  const wrapperPrefix = options.wrapperPrefix ?? '';
-  const wrapperSuffix = options.wrapperSuffix ?? '';
-  const wrappedSource = wrapperPrefix + bodyText + wrapperSuffix;
-
-  let parseResult;
+  let session;
   try {
-    parseResult = parseWithRawTransfer(options.parseFilename, wrappedSource);
+    session = createTransformSession(options.parseFilename, bodyText, {
+      wrapperPrefix: options.wrapperPrefix,
+      wrapperSuffix: options.wrapperSuffix,
+    });
   } catch {
     return bodyText;
   }
 
-  if (!parseResult.program || parseResult.errors?.length) return bodyText;
+  if (!session) return bodyText;
 
-  const offset = wrapperPrefix.length;
+  const { offset, program } = session;
   const replacements: Array<{
     start: number;
     end: number;
@@ -100,7 +99,7 @@ export function rewritePropsFieldReferences(
     }
   }
 
-  walkNode(parseResult.program);
+  walkNode(program);
   if (replacements.length === 0) return bodyText;
 
   replacements.sort((a, b) => b.start - a.start);

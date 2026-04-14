@@ -1,6 +1,7 @@
 import type { EcmaScriptModule, ParseResult, ParserOptions } from 'oxc-parser';
 
 export type {
+  ArrayExpression,
   ArrayPattern,
   ArrowFunctionExpression,
   AssignmentPattern,

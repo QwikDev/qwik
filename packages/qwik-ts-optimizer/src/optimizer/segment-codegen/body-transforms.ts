@@ -6,13 +6,18 @@
  * dead code elimination, and function signature rewriting.
  */
 
-import { createRegExp, exactly, oneOrMore, maybe, anyOf, wordChar, wordBoundary, whitespace, charNotIn, global } from 'magic-regexp';
+import { createRegExp, exactly, oneOrMore, maybe, anyOf, wordChar, wordBoundary, whitespace, global } from 'magic-regexp';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import type {
   AstNode,
   AstParseResult,
 } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../utils/parse.js';
+import {
+  createFunctionTransformSession,
+  insertFunctionBodyPrologue,
+  replaceFunctionParams,
+} from '../utils/transform-session.js';
 import { buildSyncTransform, needsPureAnnotation } from '../rewrite-calls.js';
 import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
 import type { ExtractionResult } from '../extract.js';
@@ -20,7 +25,6 @@ import type { NestedCallSiteInfo } from '../segment-codegen.js';
 import {
   findArrowIndex,
   scanMatchingParenForward,
-  scanMatchingParenBackward,
 } from '../utils/text-scanning.js';
 
 const qwikDisableDirective = createRegExp(
@@ -28,11 +32,6 @@ const qwikDisableDirective = createRegExp(
     .and(oneOrMore(whitespace)).and(oneOrMore(wordChar))
     .and(whitespace.times.any()).and('*/').and(whitespace.times.any()).and(maybe(exactly('\n'))),
   [global],
-);
-
-const funcSignaturePattern = createRegExp(
-  whitespace.times.any().and('function').and(whitespace.times.any()).and(wordChar.times.any()).and(whitespace.times.any()).grouped()
-    .and('(').and(charNotIn(')').times.any().grouped()).and(')').at.lineStart(),
 );
 
 function getNestedCallSiteStart(site: NestedCallSiteInfo): number {
@@ -438,30 +437,12 @@ export function removeDeadConstLiterals(bodyText: string): string {
  * Rewrite a function's parameter list to use the given paramNames.
  */
 export function rewriteFunctionSignature(bodyText: string, paramNames: string[]): string {
-  const paramList = paramNames.join(', ');
-
-  const arrowIdx = findArrowIndex(bodyText);
-  if (arrowIdx !== -1) {
-    let parenEnd = arrowIdx - 1;
-    while (parenEnd >= 0 && /\s/.test(bodyText[parenEnd])) parenEnd--;
-
-    if (bodyText[parenEnd] === ')') {
-      const parenStart = scanMatchingParenBackward(bodyText, parenEnd - 1);
-      return bodyText.slice(0, parenStart + 1) + paramList + bodyText.slice(parenEnd);
-    }
-
-    // Single param without parens
-    let identStart = parenEnd;
-    while (identStart > 0 && /\w/.test(bodyText[identStart - 1])) identStart--;
-    return bodyText.slice(0, identStart) + '(' + paramList + ')' + bodyText.slice(parenEnd + 1);
-  }
-
-  const funcMatch = bodyText.match(funcSignaturePattern);
-  if (funcMatch) {
-    return funcMatch[1]! + '(' + paramList + ')' + bodyText.slice(funcMatch[0]!.length);
-  }
-
-  return bodyText;
+  const session = createFunctionTransformSession('__sig__.tsx', bodyText, {
+    wrapperPrefix: 'const __sig__ = ',
+  });
+  if (!session) return bodyText;
+  if (!replaceFunctionParams(session, session.fn, paramNames)) return bodyText;
+  return session.toSource();
 }
 
 /**
@@ -473,31 +454,16 @@ export function injectCapturesUnpacking(bodyText: string, captureNames: string[]
   const unpackParts = captureNames.map((name, i) => `${name} = _captures[${i}]`);
   const unpackLine = `const ${unpackParts.join(', ')};`;
 
-  const arrowIdx = findArrowIndex(bodyText);
-  if (arrowIdx === -1) return injectIntoBlockBody(bodyText, unpackLine);
+  const session = createFunctionTransformSession('__captures__.tsx', bodyText, {
+    wrapperPrefix: 'const __captures__ = ',
+  });
+  if (!session) return bodyText;
 
-  let afterArrow = arrowIdx + 2;
-  while (afterArrow < bodyText.length && /\s/.test(bodyText[afterArrow])) {
-    afterArrow++;
-  }
-
-  if (bodyText[afterArrow] === '{') {
-    return bodyText.slice(0, afterArrow + 1) + '\n' + unpackLine + bodyText.slice(afterArrow + 1);
-  }
-
-  // Expression body: convert to block body with return
-  const expr = bodyText.slice(afterArrow);
-  const prefix = bodyText.slice(0, arrowIdx + 2);
-  return prefix + ' {\n' + unpackLine + '\nreturn ' + expr + ';\n}';
+  insertFunctionBodyPrologue(session, session.fn, unpackLine);
+  return session.toSource();
 }
 
 export { findArrowIndex };
-
-function injectIntoBlockBody(bodyText: string, line: string): string {
-  const braceIdx = bodyText.indexOf('{');
-  if (braceIdx === -1) return bodyText;
-  return bodyText.slice(0, braceIdx + 1) + '\n' + line + bodyText.slice(braceIdx + 1);
-}
 
 export function insertImportBeforeSeparator(parts: string[], importStmt: string): void {
   const sepIdx = parts.indexOf('//');

@@ -60,43 +60,43 @@ const _hf1_str = "p0.address.city.name";
 const _hf2 = (p0) => p0.address.city.name ? "true" : "false";
 const _hf2_str = "p0.address.city.name?\"true\":\"false\"";
 //
-const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ _noopQrl("App_component_ckEPmXZlub0");
-const q_TextContent_component_puSwpKXO7Kg = /*#__PURE__*/ _noopQrl("TextContent_component_puSwpKXO7Kg");
+const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ _noopQrl("App_component_ckEPmXZlub0");
+const q_TextContent_component_puSwpKXO7Kg = /* @__PURE__ */ _noopQrl("TextContent_component_puSwpKXO7Kg");
 //
 const TextContent_component_puSwpKXO7Kg = (props) => {
-	return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [/*#__PURE__*/ _jsxSorted("div", null, null, ["data-nu: ", _wrapProp(props, "data-nu")], 1, null), /*#__PURE__*/ _jsxSorted("div", null, null, ["class: ", _wrapProp(props, "class")], 1, null)], 1, "u6_0");
+	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, [/* @__PURE__ */ _jsxSorted("div", null, null, ["data-nu: ", _wrapProp(props, "data-nu")], 1, null), /* @__PURE__ */ _jsxSorted("div", null, null, ["class: ", _wrapProp(props, "class")], 1, null)], 1, "u6_0");
 };
 q_TextContent_component_puSwpKXO7Kg.s(TextContent_component_puSwpKXO7Kg);
-export const TextContent = /*#__PURE__*/ componentQrl(q_TextContent_component_puSwpKXO7Kg);
+export const TextContent = /* @__PURE__ */ componentQrl(q_TextContent_component_puSwpKXO7Kg);
 const App_component_ckEPmXZlub0 = () => {
 	const signal = useSignal(0);
 	const store = useStore({});
-	return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
-		/*#__PURE__*/ _jsxSorted("div", null, null, "text", 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, `text`, 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, 1, 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, true, 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, `text${12}`, 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, typeof `text${12}` === "string" ? 12 : 43, 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, signal, 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(signal), 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal(_hf0, [signal], _hf0_str), 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal(_hf1, [store], _hf1_str), 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal(_hf2, [store], _hf2_str), 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, dep, 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, dep.thing, 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, dep.thing + "stuff", 3, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, globalThing, 1, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, globalThing.thing, 1, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, globalThing.thing + "stuff", 1, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, signal.value(), 1, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, signal.value + unknown(), 1, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, mutable(signal), 1, null),
-		/*#__PURE__*/ _jsxSorted("div", null, null, signal.value + dep, 1, null)
+	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, [
+		/* @__PURE__ */ _jsxSorted("div", null, null, "text", 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, `text`, 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, 1, 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, true, 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, `text${12}`, 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, typeof `text${12}` === "string" ? 12 : 43, 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, signal, 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, _wrapProp(signal), 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, _fnSignal(_hf0, [signal], _hf0_str), 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, _fnSignal(_hf1, [store], _hf1_str), 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, _fnSignal(_hf2, [store], _hf2_str), 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, dep, 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, dep.thing, 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, dep.thing + "stuff", 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, globalThing, 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, globalThing.thing, 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, globalThing.thing + "stuff", 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, signal.value(), 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, signal.value + unknown(), 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, mutable(signal), 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, signal.value + dep, 1, null)
 	], 1, "u6_1");
 };
 q_App_component_ckEPmXZlub0.s(App_component_ckEPmXZlub0);
-export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_TextContent_component_puSwpKXO7Kg.js (ENTRY POINT)==
 

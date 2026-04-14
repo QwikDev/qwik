@@ -6,6 +6,7 @@
  */
 
 import { qwikHash } from './siphash.js';
+import { getBasename } from '../optimizer/path-utils.js';
 
 /**
  * Escape a string to contain only alphanumeric characters and underscores.
@@ -57,12 +58,7 @@ export function escapeSym(str: string): string {
  * @returns Full display name (e.g., "test.tsx_renderHeader1_div_onClick")
  */
 export function buildDisplayName(fileStem: string, contextStack: string[]): string {
-  let joined: string;
-  if (contextStack.length === 0) {
-    joined = 's_';
-  } else {
-    joined = contextStack.join('_');
-  }
+  const joined = contextStack.length === 0 ? 's_' : contextStack.join('_');
 
   let escaped = escapeSym(joined);
 
@@ -97,17 +93,11 @@ export function buildSymbolName(
   relPath: string
 ): string {
   // Extract the file stem from the relPath to find the context portion
-  const lastSlash = relPath.lastIndexOf('/');
-  const basename = lastSlash >= 0 ? relPath.slice(lastSlash + 1) : relPath;
+  const basename = getBasename(relPath);
   const prefix = basename + '_';
-
-  let contextPortion: string;
-  if (displayName.startsWith(prefix)) {
-    contextPortion = displayName.slice(prefix.length);
-  } else {
-    // Fallback: use the full displayName as context
-    contextPortion = displayName;
-  }
+  const contextPortion = displayName.startsWith(prefix)
+    ? displayName.slice(prefix.length)
+    : displayName;
 
   const hash = qwikHash(scope, relPath, contextPortion);
   return contextPortion + '_' + hash;

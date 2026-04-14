@@ -14,9 +14,9 @@ export default component$(() => {
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_slug_component_0AM8HPnkNs4 = /*#__PURE__*/ qrl(() => import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js"), "slug_component_0AM8HPnkNs4");
+const q_slug_component_0AM8HPnkNs4 = /* @__PURE__ */ qrl(() => import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js"), "slug_component_0AM8HPnkNs4");
 //
-export default /*#__PURE__*/ componentQrl(q_slug_component_0AM8HPnkNs4);
+export default /* @__PURE__ */ componentQrl(q_slug_component_0AM8HPnkNs4);
 
 ============================= [[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js (ENTRY POINT)==
 import { sibling } from "./sibling";

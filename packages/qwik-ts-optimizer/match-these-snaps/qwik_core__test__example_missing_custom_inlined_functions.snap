@@ -51,7 +51,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "category": "error",
     "code": "C05",
     "file": "test.tsx",
-    "message": "Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly",
+    "message": "The Qwik optimizer rewrites 'useMemo$' to use 'useMemoQrl', but this file does not export 'useMemoQrl'. Export 'useMemoQrl' from the same file, or stop calling 'useMemo$' directly.",
     "highlights": [
       {
         "lo": 241,

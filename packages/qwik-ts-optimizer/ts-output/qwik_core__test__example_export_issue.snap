@@ -24,11 +24,11 @@ export default App;
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
-const q_Root_component_royhjYaCbYE = /*#__PURE__*/ qrl(() => import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE");
+const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_Root_component_royhjYaCbYE = /* @__PURE__ */ qrl(() => import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE");
 //
-const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
-export const Root = /*#__PURE__*/ componentQrl(q_Root_component_royhjYaCbYE);
+const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const Root = /* @__PURE__ */ componentQrl(q_Root_component_royhjYaCbYE);
 const Other = 12;
 export { Other as App };
 export default App;

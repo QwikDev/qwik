@@ -14,7 +14,7 @@ import {
   isPassiveDirective,
   camelToKebab,
   collectPassiveDirectives,
-} from '../../src/optimizer/event-handler-transform.js';
+} from '../../src/optimizer/transform/event-handlers.js';
 
 describe('event-handler-transform', () => {
   describe('isEventProp', () => {

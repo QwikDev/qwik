@@ -14,9 +14,9 @@ export const App = Component((props) => {
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_Component_NuXFTHRjvXE = /*#__PURE__*/ qrl(() => import("./test.tsx_App_Component_NuXFTHRjvXE"), "App_Component_NuXFTHRjvXE");
+const q_App_Component_NuXFTHRjvXE = /* @__PURE__ */ qrl(() => import("./test.tsx_App_Component_NuXFTHRjvXE"), "App_Component_NuXFTHRjvXE");
 //
-export const App = /*#__PURE__*/ componentQrl(q_App_Component_NuXFTHRjvXE);
+export const App = /* @__PURE__ */ componentQrl(q_App_Component_NuXFTHRjvXE);
 
 ============================= test.tsx_App_Component_1_A08tXHb9pEk.js (ENTRY POINT)==
 import { _captures } from "@qwik.dev/core";

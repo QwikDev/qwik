@@ -13,7 +13,7 @@ import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { compareAst } from '../../src/testing/ast-compare.js';
 import { compareMetadata } from '../../src/testing/metadata-compare.js';
 import type { SegmentMetadata } from '../../src/testing/snapshot-parser.js';
-import { transformModule } from '../../src/optimizer/transform.js';
+import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotFiles } from '../../src/testing/batch-runner.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
 

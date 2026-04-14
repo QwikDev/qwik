@@ -21,6 +21,9 @@ importers:
         specifier: ^1.1.0
         version: 1.2.0
     devDependencies:
+      '@oxc-project/types':
+        specifier: 0.124.0
+        version: 0.124.0
       '@types/node':
         specifier: ^25.6.0
         version: 25.6.0

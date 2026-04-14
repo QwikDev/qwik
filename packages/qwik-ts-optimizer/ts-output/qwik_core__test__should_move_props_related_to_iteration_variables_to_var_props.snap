@@ -31,9 +31,9 @@ export const Child = component$(() => {
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Child_component_9GyF01GDKqw = /*#__PURE__*/ qrl(() => import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
+const q_Child_component_9GyF01GDKqw = /* @__PURE__ */ qrl(() => import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
 //
-export const Child = /*#__PURE__*/ componentQrl(q_Child_component_9GyF01GDKqw);
+export const Child = /* @__PURE__ */ componentQrl(q_Child_component_9GyF01GDKqw);
 
 ============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
 import { useSignal } from "@qwik.dev/core";

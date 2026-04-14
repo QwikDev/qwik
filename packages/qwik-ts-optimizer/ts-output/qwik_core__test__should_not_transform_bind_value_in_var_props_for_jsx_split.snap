@@ -25,9 +25,9 @@ export const FieldInput = component$((props) => {
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_FieldInput_component_V4XAtJSTRKg = /*#__PURE__*/ qrl(() => import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
+const q_FieldInput_component_V4XAtJSTRKg = /* @__PURE__ */ qrl(() => import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
 //
-export const FieldInput = /*#__PURE__*/ componentQrl(q_FieldInput_component_V4XAtJSTRKg);
+export const FieldInput = /* @__PURE__ */ componentQrl(q_FieldInput_component_V4XAtJSTRKg);
 
 ============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
 import { useSignal } from "@qwik.dev/core";

@@ -19,9 +19,9 @@
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /*#__PURE__*/ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
+const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /* @__PURE__ */ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
 //
-/*#__PURE__*/ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
+/* @__PURE__ */ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
 
 ============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA.js (ENTRY POINT)==
 export const PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = () => {};
@@ -52,7 +52,7 @@ export const PassiveOnlyComponent_component_LuEXQIZuHLw = () => {
     "category": "warning",
     "code": "preventdefault-passive-check",
     "file": "test.tsx",
-    "message": "preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()",
+    "message": "This JSX element has both passive:click and preventdefault:click. On the same element, passive events cannot use preventDefault(), so preventdefault:click will be ignored.",
     "highlights": [
       {
         "lo": 127,
@@ -70,7 +70,7 @@ export const PassiveOnlyComponent_component_LuEXQIZuHLw = () => {
     "category": "warning",
     "code": "preventdefault-passive-check",
     "file": "test.tsx",
-    "message": "preventdefault:scroll has no effect when passive:scroll is also set; passive event listeners cannot call preventDefault()",
+    "message": "This JSX element has both passive:scroll and preventdefault:scroll. On the same element, passive events cannot use preventDefault(), so preventdefault:scroll will be ignored.",
     "highlights": [
       {
         "lo": 223,

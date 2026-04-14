@@ -18,7 +18,7 @@ import { qrl } from "@qwik.dev/core";
 import { formActionQrl } from "forms";
 import { translate } from "i18n";
 //
-const q_action_formAction_dIQV5vh1He4 = /*#__PURE__*/ qrl(() => import("./test.tsx_action_formAction_dIQV5vh1He4"), "action_formAction_dIQV5vh1He4");
+const q_action_formAction_dIQV5vh1He4 = /* @__PURE__ */ qrl(() => import("./test.tsx_action_formAction_dIQV5vh1He4"), "action_formAction_dIQV5vh1He4");
 //
 const t = translate();
 export const action = formActionQrl(q_action_formAction_dIQV5vh1He4);

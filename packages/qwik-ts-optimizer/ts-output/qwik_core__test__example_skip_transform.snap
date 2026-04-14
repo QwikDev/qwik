@@ -17,7 +17,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 export const handler = $(() => console.log("hola"));
 export const App = component$((props) => {
 	useStyles$("hola");
-	return $(() => /*#__PURE__*/ _jsxSorted("div", null, null, state.thing, 1, "u6_0"));
+	return $(() => /* @__PURE__ */ _jsxSorted("div", null, null, state.thing, 1, "u6_0"));
 });
 
 == DIAGNOSTICS ==

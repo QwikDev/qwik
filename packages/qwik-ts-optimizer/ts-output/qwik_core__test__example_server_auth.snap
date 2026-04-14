@@ -43,8 +43,8 @@ export const { onRequest, logout, getSession, signup } = auth$({
 import { qrl } from "@qwik.dev/core";
 import { serverAuthQrl } from "@auth/qwik";
 //
-const q_auth_GU0aY5QCETY = /*#__PURE__*/ qrl(() => import("./test.tsx_auth_GU0aY5QCETY"), "auth_GU0aY5QCETY");
-const q_serverAuth_qVqpX2a0p9Y = /*#__PURE__*/ qrl(() => import("./test.tsx_serverAuth_qVqpX2a0p9Y"), "serverAuth_qVqpX2a0p9Y");
+const q_auth_GU0aY5QCETY = /* @__PURE__ */ qrl(() => import("./test.tsx_auth_GU0aY5QCETY"), "auth_GU0aY5QCETY");
+const q_serverAuth_qVqpX2a0p9Y = /* @__PURE__ */ qrl(() => import("./test.tsx_serverAuth_qVqpX2a0p9Y"), "serverAuth_qVqpX2a0p9Y");
 //
 export const { onRequest, logout, getSession, signup } = serverAuthQrl(q_serverAuth_qVqpX2a0p9Y);
 

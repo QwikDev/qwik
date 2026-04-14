@@ -15,7 +15,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { compareAst } from '../../src/testing/ast-compare.js';
-import { transformModule } from '../../src/optimizer/transform.js';
+import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotFiles } from '../../src/testing/batch-runner.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

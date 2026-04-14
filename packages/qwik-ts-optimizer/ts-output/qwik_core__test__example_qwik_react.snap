@@ -93,7 +93,7 @@ async function renderToString(rootNode, opts) {
 export { qwikify$, qwikifyQrl, renderToString };
 ============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs ==
 import { qrl } from "@qwik.dev/core";
-import { componentQrl } from '@qwik.dev/core';
+import { componentQrl, implicit$FirstArg } from '@qwik.dev/core';
 //
 const q_qwikifyQrl_component_zH94hIe0Ick = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick.mjs"), "qwikifyQrl_component_zH94hIe0Ick");
 //

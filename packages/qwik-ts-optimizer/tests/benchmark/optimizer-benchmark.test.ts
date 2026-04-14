@@ -22,7 +22,7 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { relative } from 'node:path';
-import { transformModule } from '../../src/optimizer/transform.js';
+import { transformModule } from '../../src/optimizer/transform/index.js';
 import type { TransformModuleInput } from '../../src/optimizer/types.js';
 
 // ---------------------------------------------------------------------------

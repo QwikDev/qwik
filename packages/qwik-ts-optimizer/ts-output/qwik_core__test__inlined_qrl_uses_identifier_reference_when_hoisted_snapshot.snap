@@ -11,13 +11,13 @@ import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ _noopQrl("App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ _noopQrl("App_component_ckEPmXZlub0");
 //
 const App_component_ckEPmXZlub0 = () => {
-	return /*#__PURE__*/ _jsxSorted("div", null, null, "Hello", 3, "u6_0");
+	return /* @__PURE__ */ _jsxSorted("div", null, null, "Hello", 3, "u6_0");
 };
 q_App_component_ckEPmXZlub0.s(App_component_ckEPmXZlub0);
-export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 

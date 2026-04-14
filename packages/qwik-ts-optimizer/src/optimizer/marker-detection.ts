@@ -5,6 +5,13 @@
  * extraction: calls ending with `$` that are imported from @qwik.dev/core
  * (or @builder.io/qwik) or defined as custom inlined functions.
  */
+import type {
+  AstEcmaScriptModule,
+  AstProgram,
+  CallExpression,
+  ModuleExportName,
+} from '../ast-types.js';
+import { isQwikPackageSource } from './utils/qwik-packages.js';
 
 export interface ImportInfo {
   localName: string;
@@ -18,35 +25,68 @@ export interface CustomInlinedInfo {
   qrlName: string;
 }
 
-const QWIK_CORE_PREFIXES = [
-  '@qwik.dev/core',
-  '@qwik.dev/react',
-  '@qwik.dev/router',
-  '@builder.io/qwik-react',
-  '@builder.io/qwik-city',
-  '@builder.io/qwik',
-];
+function getExportedSpecifierName(
+  specifier: ModuleExportName | null | undefined,
+): string | undefined {
+  if (specifier?.type === 'Identifier') {
+    return specifier.name;
+  }
+  return specifier?.value;
+}
 
-function isQwikCoreSource(source: string): boolean {
-  return QWIK_CORE_PREFIXES.some(
-    (prefix) => source === prefix || source.startsWith(prefix + '/'),
-  );
+function getImportSpecifierName(specifier: ModuleExportName): string | undefined {
+  if (specifier.type === 'Identifier') {
+    return specifier.name;
+  }
+  return specifier.value;
 }
 
 /** Collect all import declarations, returning a map keyed by local binding name. */
-export function collectImports(program: any): Map<string, ImportInfo> {
+export function collectImports(
+  program: AstProgram,
+  moduleInfo?: AstEcmaScriptModule,
+): Map<string, ImportInfo> {
   const imports = new Map<string, ImportInfo>();
+
+  if (moduleInfo?.staticImports) {
+    for (const entry of moduleInfo.staticImports) {
+      const source = entry.moduleRequest.value;
+      const isQwik = isQwikPackageSource(source);
+
+      for (const spec of entry.entries ?? []) {
+        const localName = spec.localName.value;
+        let importedName = localName;
+
+        if (spec.importName.kind === 'Default') {
+          importedName = 'default';
+        } else if (spec.importName.kind === 'NamespaceObject') {
+          importedName = '*';
+        } else if (spec.importName.name) {
+          importedName = spec.importName.name;
+        }
+
+        imports.set(localName, {
+          localName,
+          importedName,
+          source,
+          isQwikCore: isQwik,
+        });
+      }
+    }
+
+    return imports;
+  }
 
   for (const node of program.body) {
     if (node.type !== 'ImportDeclaration') continue;
 
     const source = node.source.value;
-    const isQwik = isQwikCoreSource(source);
+    const isQwik = isQwikPackageSource(source);
 
     for (const spec of node.specifiers) {
       if (spec.type === 'ImportSpecifier') {
         const localName = spec.local.name;
-        const importedName = spec.imported?.name ?? localName;
+        const importedName = getImportSpecifierName(spec.imported) ?? localName;
         imports.set(localName, {
           localName,
           importedName,
@@ -74,8 +114,57 @@ export function collectImports(program: any): Map<string, ImportInfo> {
   return imports;
 }
 
+/** Collect exported binding names from parser module metadata or AST. */
+export function collectExportNames(
+  program: AstProgram,
+  moduleInfo?: AstEcmaScriptModule,
+): Set<string> {
+  const exports = new Set<string>();
+
+  if (moduleInfo?.staticExports) {
+    for (const entry of moduleInfo.staticExports) {
+      for (const spec of entry.entries ?? []) {
+        const exportedName = spec.exportName.name;
+        if (exportedName && spec.exportName.kind !== 'Default') {
+          exports.add(exportedName);
+        }
+      }
+    }
+    return exports;
+  }
+
+  for (const stmt of program.body) {
+    if (stmt.type !== 'ExportNamedDeclaration') continue;
+
+    if (stmt.declaration?.type === 'VariableDeclaration') {
+      for (const decl of stmt.declaration.declarations ?? []) {
+        if (decl.id?.type === 'Identifier') {
+          exports.add(decl.id.name);
+        }
+      }
+    }
+
+    if (stmt.declaration?.type === 'FunctionDeclaration' && stmt.declaration.id) {
+      exports.add(stmt.declaration.id.name);
+    }
+
+    if (stmt.declaration?.type === 'ClassDeclaration' && stmt.declaration.id) {
+      exports.add(stmt.declaration.id.name);
+    }
+
+    for (const spec of stmt.specifiers ?? []) {
+      const exportedName = getExportedSpecifierName(spec.exported);
+      if (exportedName) exports.add(exportedName);
+    }
+  }
+
+  return exports;
+}
+
 /** Scan for `export const X$ = wrap(XQrl)` custom inlined function patterns. */
-export function collectCustomInlined(program: any): Map<string, CustomInlinedInfo> {
+export function collectCustomInlined(
+  program: AstProgram,
+): Map<string, CustomInlinedInfo> {
   const custom = new Map<string, CustomInlinedInfo>();
 
   for (const node of program.body) {
@@ -103,7 +192,7 @@ export function collectCustomInlined(program: any): Map<string, CustomInlinedInf
 }
 
 /** Extract callee name from a CallExpression (Identifier callees only). */
-export function getCalleeName(callExpr: any): string | null {
+export function getCalleeName(callExpr: CallExpression): string | null {
   return callExpr.callee?.type === 'Identifier' ? callExpr.callee.name : null;
 }
 
@@ -115,7 +204,7 @@ export function getCalleeName(callExpr: any): string | null {
  * `import { component$ as Component }`.
  */
 export function isMarkerCall(
-  callExpr: any,
+  callExpr: CallExpression,
   imports: Map<string, ImportInfo>,
   customInlined: Map<string, CustomInlinedInfo>
 ): boolean {
@@ -129,7 +218,7 @@ export function isMarkerCall(
   return false;
 }
 
-export function isBare$(callExpr: any): boolean {
+export function isBare$(callExpr: CallExpression): boolean {
   return getCalleeName(callExpr) === '$';
 }
 

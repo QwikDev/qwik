@@ -17,21 +17,21 @@ import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_Issue3795_component_wsE8beycatI = /*#__PURE__*/ _noopQrl("Issue3795_component_wsE8beycatI");
+const q_Issue3795_component_wsE8beycatI = /* @__PURE__ */ _noopQrl("Issue3795_component_wsE8beycatI");
 //
 const Issue3795_component_wsE8beycatI = () => {
 	let base = "foo";
 	const firstAssignment = base;
 	base += "bar";
 	const secondAssignment = base;
-	return /*#__PURE__*/ _jsxSorted("div", null, { id: "issue-3795-result" }, [
+	return /* @__PURE__ */ _jsxSorted("div", null, { id: "issue-3795-result" }, [
 		firstAssignment,
 		" ",
 		secondAssignment
 	], 1, "u6_0");
 };
 q_Issue3795_component_wsE8beycatI.s(Issue3795_component_wsE8beycatI);
-export const Issue3795 = /*#__PURE__*/ componentQrl(q_Issue3795_component_wsE8beycatI);
+export const Issue3795 = /* @__PURE__ */ componentQrl(q_Issue3795_component_wsE8beycatI);
 
 ============================= test.tsx_Issue3795_component_wsE8beycatI.js (ENTRY POINT)==
 

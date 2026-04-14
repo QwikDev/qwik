@@ -39,13 +39,13 @@ import { Client } from "openai";
 import { secret } from "./secret";
 import { sideEffect } from "./secret";
 //
-const q_qrl_4294901760 = /*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0", {
+const q_qrl_4294901760 = /* @__PURE__ */ _noopQrlDEV("api_server_JonPp043gH0", {
 	file: "/user/qwik/src/test.tsx",
 	lo: 0,
 	hi: 0,
 	displayName: "test.tsx_api_server"
 });
-const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrlDEV(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
+const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrlDEV(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
 	file: "/user/qwik/src/test.tsx",
 	lo: 26,
 	hi: 27,
@@ -62,7 +62,7 @@ const dfd = new Client(secret);
 })();
 sideEffect();
 export const api = serverQrl(q_qrl_4294901760);
-export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
 export { supabase as _auto_supabase };
 export { dfd as _auto_dfd };
 

@@ -17,9 +17,9 @@ export const foo = () => console.log('foo');
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0.js"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0.js"), "App_component_ckEPmXZlub0");
 //
-export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
 export const foo = () => console.log("foo");
 
 ============================= test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.js (ENTRY POINT)==

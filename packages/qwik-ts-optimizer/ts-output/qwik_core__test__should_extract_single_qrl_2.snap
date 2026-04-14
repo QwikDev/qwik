@@ -34,9 +34,9 @@
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Parent_component_0TaiDayHrlo = /*#__PURE__*/ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo");
+const q_Parent_component_0TaiDayHrlo = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo");
 //
-/*#__PURE__*/ componentQrl(q_Parent_component_0TaiDayHrlo);
+/* @__PURE__ */ componentQrl(q_Parent_component_0TaiDayHrlo);
 
 ============================= test.tsx_Parent_component_div_button_q_e_click_5khsVRINUws.js (ENTRY POINT)==
 export const Parent_component_div_button_q_e_click_5khsVRINUws = (_, _1, results) => (results.value = ['item1', 'item2']);

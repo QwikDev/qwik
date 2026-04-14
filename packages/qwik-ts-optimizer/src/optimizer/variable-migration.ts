@@ -8,6 +8,11 @@
  */
 
 import { walk } from 'oxc-walker';
+import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
+import {
+  addBindingNamesFromPatternToSet,
+  collectBindingNamesFromPattern,
+} from './utils/binding-pattern.js';
 
 export interface MigrationDecision {
   action: 'move' | 'reexport' | 'keep';
@@ -31,17 +36,11 @@ export interface ModuleLevelDecl {
  * Conservative purity check: returns true only for expressions that
  * provably have no side effects (literals, functions, simple compositions).
  */
-function isInitializerSafe(node: any): boolean {
+function isInitializerSafe(node: AstNode | null | undefined): boolean {
   if (!node) return true;
 
   switch (node.type) {
     case 'Literal':
-    case 'StringLiteral':
-    case 'NumericLiteral':
-    case 'BooleanLiteral':
-    case 'NullLiteral':
-    case 'BigIntLiteral':
-    case 'RegExpLiteral':
       return true;
 
     case 'ArrowFunctionExpression':
@@ -53,7 +52,7 @@ function isInitializerSafe(node: any): boolean {
       return true;
 
     case 'TemplateLiteral':
-      return (node.expressions ?? []).every((expr: any) => isInitializerSafe(expr));
+      return (node.expressions ?? []).every((expr) => isInitializerSafe(expr));
 
     case 'ObjectExpression':
       for (const prop of node.properties ?? []) {
@@ -95,60 +94,19 @@ function isInitializerSafe(node: any): boolean {
   }
 }
 
-function collectBindingNames(node: any, names: string[]): void {
-  if (!node) return;
-
-  switch (node.type) {
-    case 'Identifier':
-      names.push(node.name);
-      break;
-
-    case 'ObjectPattern':
-      for (const prop of node.properties ?? []) {
-        if (prop.type === 'RestElement') {
-          collectBindingNames(prop.argument, names);
-        } else {
-          collectBindingNames(prop.value, names);
-        }
-      }
-      break;
-
-    case 'ArrayPattern':
-      for (const elem of node.elements ?? []) {
-        collectBindingNames(elem, names);
-      }
-      break;
-
-    case 'RestElement':
-      collectBindingNames(node.argument, names);
-      break;
-
-    case 'AssignmentPattern':
-      collectBindingNames(node.left, names);
-      break;
-
-    default:
-      break;
-  }
-}
-
 /** Add all binding names from a pattern into a Set. */
-function addBindingNamesToSet(pattern: any, target: Set<string>): void {
-  const names: string[] = [];
-  collectBindingNames(pattern, names);
-  for (const n of names) target.add(n);
+function addBindingNamesToSet(pattern: AstMaybeNode, target: Set<string>): void {
+  addBindingNamesFromPatternToSet(pattern, target);
 }
 
-function countBindings(node: any): number {
-  const names: string[] = [];
-  collectBindingNames(node, names);
-  return names.length;
+function countBindings(node: AstMaybeNode): number {
+  return collectBindingNamesFromPattern(node).length;
 }
 
 /**
  * Unwrap export wrappers to get the inner declaration and export status.
  */
-function unwrapExport(stmt: any): { declaration: any; isExported: boolean } {
+function unwrapExport(stmt: AstProgram['body'][number]): { declaration: AstNode; isExported: boolean } {
   if (
     (stmt.type === 'ExportNamedDeclaration' || stmt.type === 'ExportDefaultDeclaration') &&
     stmt.declaration
@@ -159,7 +117,7 @@ function unwrapExport(stmt: any): { declaration: any; isExported: boolean } {
 }
 
 export function collectModuleLevelDecls(
-  program: any,
+  program: AstProgram,
   source: string,
 ): ModuleLevelDecl[] {
   const decls: ModuleLevelDecl[] = [];
@@ -180,8 +138,7 @@ export function collectModuleLevelDecls(
         const isDestructuring = id.type === 'ObjectPattern' || id.type === 'ArrayPattern';
         const isShared = isDestructuring && countBindings(id) > 1;
 
-        const names: string[] = [];
-        collectBindingNames(id, names);
+        const names = collectBindingNamesFromPattern(id);
 
         for (const name of names) {
           decls.push({
@@ -243,11 +200,11 @@ export function collectModuleLevelDecls(
  * Collect all locally-declared names within a given AST range.
  * These shadow outer-scope names and should not count as segment dependencies.
  */
-export function collectLocalDeclarations(program: any, start: number, end: number): Set<string> {
+export function collectLocalDeclarations(program: AstProgram, start: number, end: number): Set<string> {
   const locals = new Set<string>();
 
   walk(program, {
-    enter(node: any) {
+    enter(node: AstNode) {
       if (node.start < start || node.end > end) return;
       addDeclaredNamesFromNode(node, locals);
     },
@@ -260,7 +217,7 @@ export function collectLocalDeclarations(program: any, start: number, end: numbe
  * Extract declared names (params, variable bindings, class/function names,
  * catch params) from a single AST node into the target set.
  */
-function addDeclaredNamesFromNode(node: any, target: Set<string>): void {
+function addDeclaredNamesFromNode(node: AstNode, target: Set<string>): void {
   const type = node.type;
 
   if (type === 'ArrowFunctionExpression' && node.params) {
@@ -305,7 +262,7 @@ const DECLARATION_TYPES = new Set([
  * extractions in a single AST walk instead of O(N) separate walks.
  */
 export function collectAllLocalDeclarations(
-  program: any,
+  program: AstProgram,
   extractions: Array<{ symbolName: string; argStart: number; argEnd: number }>,
 ): Map<string, Set<string>> {
   const result = new Map<string, Set<string>>();
@@ -316,7 +273,7 @@ export function collectAllLocalDeclarations(
   if (extractions.length === 0) return result;
 
   walk(program, {
-    enter(node: any) {
+    enter(node: AstNode) {
       if (!DECLARATION_TYPES.has(node.type)) return;
 
       const nodeStart = node.start;
@@ -336,7 +293,7 @@ export function collectAllLocalDeclarations(
  * Positions of top-level declaration-site identifiers. SWC's
  * `build_main_module_usage_set` skips these so they don't count as root usage.
  */
-function collectRootDeclPositions(program: any): Set<number> {
+function collectRootDeclPositions(program: AstProgram): Set<number> {
   const positions = new Set<number>();
 
   for (const stmt of program.body ?? []) {
@@ -356,7 +313,7 @@ function collectRootDeclPositions(program: any): Set<number> {
   return positions;
 }
 
-function collectBindingPositions(node: any, positions: Set<number>): void {
+function collectBindingPositions(node: AstMaybeNode, positions: Set<number>): void {
   if (!node) return;
 
   switch (node.type) {
@@ -399,7 +356,7 @@ function collectBindingPositions(node: any, positions: Set<number>): void {
  * identifiers at root level.
  */
 export function computeSegmentUsage(
-  program: any,
+  program: AstProgram,
   extractions: Array<{ symbolName: string; argStart: number; argEnd: number }>,
 ): { segmentUsage: Map<string, Set<string>>; rootUsage: Set<string> } {
   const segmentUsage = new Map<string, Set<string>>();
@@ -413,7 +370,7 @@ export function computeSegmentUsage(
   const rootDeclPositions = collectRootDeclPositions(program);
 
   walk(program, {
-    enter(node: any) {
+    enter(node: AstNode) {
       // JSXIdentifier matters too: <Component> references module-level bindings
       if (node.type !== 'Identifier' && node.type !== 'JSXIdentifier') return;
 

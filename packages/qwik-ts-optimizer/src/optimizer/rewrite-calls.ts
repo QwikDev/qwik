@@ -8,7 +8,29 @@
  * - sync$ -> _qrlSync
  */
 
+import { createRegExp, exactly, oneOrMore, whitespace, wordChar, charIn, charNotIn, global } from 'magic-regexp';
 import { rewriteImportSource } from './rewrite-imports.js';
+import { isQwikPackageSource } from './utils/qwik-packages.js';
+import { getQrlCalleeName } from './utils/qrl-naming.js';
+
+// Keep this as a raw RegExp because the lazy quantifier is the clearest way
+// to preserve the current non-greedy block comment stripping behavior.
+const blockComment = /\/\*[\s\S]*?\*\//g;
+
+const lineComment = createRegExp(exactly('//').and(charNotIn('\n').times.any()), [global]);
+
+const collapsedWhitespace = createRegExp(oneOrMore(whitespace), [global]);
+
+const spacesAroundOperators = createRegExp(
+  whitespace.times.any()
+    .and(charIn('{}(),:;=<>+\\-*/%&|!?.').grouped())
+    .and(whitespace.times.any()),
+  [global],
+);
+
+const singleArrowParam = createRegExp(
+  exactly('(').and(oneOrMore(wordChar).grouped()).and(')=>').at.lineStart(),
+);
 
 /**
  * Get the Qrl callee name from a marker name.
@@ -18,11 +40,7 @@ import { rewriteImportSource } from './rewrite-imports.js';
  * - "component$" -> "componentQrl"
  * - "useTask$" -> "useTaskQrl"
  */
-export function getQrlCalleeName(markerName: string): string {
-  if (markerName === '$') return '';
-  if (markerName === 'sync$') return '_qrlSync';
-  return markerName.slice(0, -1) + 'Qrl';
-}
+export { getQrlCalleeName } from './utils/qrl-naming.js';
 
 /**
  * Build a QRL const declaration string.
@@ -47,16 +65,16 @@ function minifyFunctionText(text: string): string {
   let result = text;
 
   // Remove block comments
-  result = result.replace(/\/\*[\s\S]*?\*\//g, '');
+  result = result.replace(blockComment, '');
   // Remove line comments
-  result = result.replace(/\/\/[^\n]*/g, '');
+  result = result.replace(lineComment, '');
   // Collapse whitespace
-  result = result.replace(/\s+/g, ' ');
+  result = result.replace(collapsedWhitespace, ' ');
   // Remove spaces around operators and delimiters
-  result = result.replace(/\s*([{}(),:;=<>+\-*/%&|!?.])\s*/g, '$1');
+  result = result.replace(spacesAroundOperators, '$1');
   result = result.trim();
   // Strip parentheses around single arrow function parameter: (x)=> -> x=>
-  result = result.replace(/^\((\w+)\)=>/, '$1=>');
+  result = result.replace(singleArrowParam, '$1=>');
 
   return result;
 }
@@ -80,21 +98,6 @@ export function needsPureAnnotation(qrlCalleeName: string): boolean {
   return PURE_CALLEES.has(qrlCalleeName);
 }
 
-const QWIK_PACKAGES = [
-  '@qwik.dev/core',
-  '@qwik.dev/react',
-  '@qwik.dev/router',
-  '@builder.io/qwik-react',
-  '@builder.io/qwik-city',
-  '@builder.io/qwik',
-];
-
-function isQwikPackage(source: string): boolean {
-  return QWIK_PACKAGES.some(
-    (pkg) => source === pkg || source.startsWith(pkg + '/'),
-  );
-}
-
 /**
  * Get the import source for a Qrl callee.
  *
@@ -102,7 +105,7 @@ function isQwikPackage(source: string): boolean {
  * Qwik sub-packages preserve their source (with legacy rewriting).
  */
 export function getQrlImportSource(qrlCalleeName: string, originalSource?: string): string {
-  if (originalSource && !isQwikPackage(originalSource)) {
+  if (originalSource && !isQwikPackageSource(originalSource)) {
     return originalSource;
   }
 
@@ -110,7 +113,7 @@ export function getQrlImportSource(qrlCalleeName: string, originalSource?: strin
     originalSource &&
     originalSource !== '@qwik.dev/core' &&
     originalSource !== '@builder.io/qwik' &&
-    isQwikPackage(originalSource)
+    isQwikPackageSource(originalSource)
   ) {
     return rewriteImportSource(originalSource);
   }

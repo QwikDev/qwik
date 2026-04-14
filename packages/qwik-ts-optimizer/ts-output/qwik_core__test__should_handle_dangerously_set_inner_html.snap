@@ -27,9 +27,9 @@
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(() => import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+const q_Cmp_component_4ryKJTOKjWE = /* @__PURE__ */ qrl(() => import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
 //
-/*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+/* @__PURE__ */ componentQrl(q_Cmp_component_4ryKJTOKjWE);
 
 ============================= test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8.js (ENTRY POINT)==
 export const Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 = (_, _1, htmlSignal) => htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>";

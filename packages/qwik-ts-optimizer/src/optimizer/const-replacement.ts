@@ -7,6 +7,12 @@
 
 import type MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
+import type {
+  AstNode,
+  AstParentNode,
+  AstProgram,
+  ImportSpecifier,
+} from '../ast-types.js';
 import type { ImportInfo } from './marker-detection.js';
 
 const CONST_SOURCES = [
@@ -33,7 +39,7 @@ export interface ConstReplacementResult {
 export function replaceConstants(
   source: string,
   s: MagicString,
-  program: any,
+  program: AstProgram,
   importMap: Map<string, ImportInfo>,
   isServer?: boolean,
   isDev?: boolean,
@@ -73,7 +79,7 @@ export function replaceConstants(
   }
 
   walk(program, {
-    enter(node: any, parent: any) {
+    enter(node: AstNode, parent: AstParentNode) {
       if (node.type !== 'Identifier') return;
 
       const replacement = replacements.get(node.name);
@@ -101,7 +107,7 @@ export function replaceConstants(
 function removeReplacedImports(
   source: string,
   s: MagicString,
-  program: any,
+  program: AstProgram,
   replacedNames: Set<string>,
 ): void {
   for (const node of program.body) {
@@ -139,7 +145,7 @@ function removeReplacedImports(
         defaultPart = `* as ${spec.local.name}`;
       } else {
         const localName = spec.local.name;
-        const importedName = spec.imported?.name ?? localName;
+        const importedName = getImportSpecifierName(spec) ?? localName;
         namedParts.push(
           importedName !== localName ? `${importedName} as ${localName}` : localName,
         );
@@ -155,4 +161,11 @@ function removeReplacedImports(
     const sourceSlice = source.slice(node.source.start, node.source.end);
     s.overwrite(node.start, end, `import ${importParts} from ${sourceSlice};\n`);
   }
+}
+
+function getImportSpecifierName(spec: ImportSpecifier): string | undefined {
+  if (spec.imported.type === 'Identifier') {
+    return spec.imported.name;
+  }
+  return spec.imported.value;
 }

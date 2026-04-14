@@ -16,9 +16,9 @@ import { _jsxSorted } from "@qwik.dev/core";
 const _hf0 = (p0) => p0.selectedOutputDetail === "options";
 const _hf0_str = "p0.selectedOutputDetail===\"options\"";
 //
-const q_test_div_q_e_click_pFqTss400MA = /*#__PURE__*/ qrl(() => import("./test.tsx_test_div_q_e_click_pFqTss400MA"), "test_div_q_e_click_pFqTss400MA");
+const q_test_div_q_e_click_pFqTss400MA = /* @__PURE__ */ qrl(() => import("./test.tsx_test_div_q_e_click_pFqTss400MA"), "test_div_q_e_click_pFqTss400MA");
 //
-export default ({ data }) => /*#__PURE__*/ _jsxSorted("div", { "data-is-active": _fnSignal(_hf0, [data], _hf0_str) }, { "q-e:click": () => {
+export default ({ data }) => /* @__PURE__ */ _jsxSorted("div", { "data-is-active": _fnSignal(_hf0, [data], _hf0_str) }, { "q-e:click": () => {
 	data.selectedOutputDetail = "options";
 } }, null, 3, "u6_0");
 

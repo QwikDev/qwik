@@ -49,13 +49,13 @@ import { useStore } from "@qwik.dev/core";
 import "./keep";
 import "../keep2";
 //
-const q_Parent_component_div_Div_render_CkMybN6xzQk = /*#__PURE__*/ _noopQrl("Parent_component_div_Div_render_CkMybN6xzQk");
-const q_Parent_component_t6Wy3C0Q0XM = /*#__PURE__*/ _noopQrl("Parent_component_t6Wy3C0Q0XM");
-const q_Parent_component_useTask_ngmvcygWux8 = /*#__PURE__*/ _noopQrl("Parent_component_useTask_ngmvcygWux8");
-const q_qrl_4294901760 = /*#__PURE__*/ _noopQrl("Parent_component_useClientMount_Yn2kIDABoYw");
-const q_qrl_4294901762 = /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do");
-const q_qrl_4294901764 = /*#__PURE__*/ _noopQrl("Parent_component_div_q_e_click_oqNnfO6ubjU");
-const q_qrl_4294901766 = /*#__PURE__*/ _noopQrl("Parent_component_div_Div_onClick_kgowuto5dR0");
+const q_Parent_component_div_Div_render_CkMybN6xzQk = /* @__PURE__ */ _noopQrl("Parent_component_div_Div_render_CkMybN6xzQk");
+const q_Parent_component_t6Wy3C0Q0XM = /* @__PURE__ */ _noopQrl("Parent_component_t6Wy3C0Q0XM");
+const q_Parent_component_useTask_ngmvcygWux8 = /* @__PURE__ */ _noopQrl("Parent_component_useTask_ngmvcygWux8");
+const q_qrl_4294901760 = /* @__PURE__ */ _noopQrl("Parent_component_useClientMount_Yn2kIDABoYw");
+const q_qrl_4294901762 = /* @__PURE__ */ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do");
+const q_qrl_4294901764 = /* @__PURE__ */ _noopQrl("Parent_component_div_q_e_click_oqNnfO6ubjU");
+const q_qrl_4294901766 = /* @__PURE__ */ _noopQrl("Parent_component_div_Div_onClick_kgowuto5dR0");
 //
 const Parent_component_useTask_ngmvcygWux8 = () => {
 	// Code
@@ -71,13 +71,13 @@ const Parent_component_t6Wy3C0Q0XM = () => {
 	// Double count watch
 	useClientMountQrl(q_qrl_4294901760.w([state]));
 	useTaskQrl(q_Parent_component_useTask_ngmvcygWux8);
-	return /*#__PURE__*/ _jsxSorted("div", { "q:p": state }, {
+	return /* @__PURE__ */ _jsxSorted("div", { "q:p": state }, {
 		shouldRemove$: q_qrl_4294901762,
 		"q-e:click": q_qrl_4294901764
-	}, [/*#__PURE__*/ _jsxSorted(Div, { render$: q_Parent_component_div_Div_render_CkMybN6xzQk.w([state]) }, { onClick$: q_qrl_4294901766 }, null, 3, "7R_0"), _wrapProp(state, "text")], 5, "7R_1");
+	}, [/* @__PURE__ */ _jsxSorted(Div, { render$: q_Parent_component_div_Div_render_CkMybN6xzQk.w([state]) }, { onClick$: q_qrl_4294901766 }, null, 3, "7R_0"), _wrapProp(state, "text")], 5, "7R_1");
 };
 q_Parent_component_t6Wy3C0Q0XM.s(Parent_component_t6Wy3C0Q0XM);
-export const Parent = /*#__PURE__*/ componentQrl(q_Parent_component_t6Wy3C0Q0XM);
+export const Parent = /* @__PURE__ */ componentQrl(q_Parent_component_t6Wy3C0Q0XM);
 
 ============================= component.tsx_Parent_component_useClientMount_Yn2kIDABoYw.js (ENTRY POINT)==
 export const Parent_component_useClientMount_Yn2kIDABoYw = null;

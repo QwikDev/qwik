@@ -106,8 +106,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "category": "error",
     "code": "C02",
     "file": "test.tsx",
-    "message": "Reference to identifier 'Thing' can not be used inside a Qrl($) scope because it's a function",
-    "highlights": null,
+    "message": "'Thing' is a local class, and local function/class declarations can't be referenced from this callback. Move 'Thing' into the callback, or rewrite it as a captured value.",
+    "highlights": [
+      {
+        "lo": 25,
+        "hi": 30,
+        "startLine": 3,
+        "startCol": 24,
+        "endLine": 3,
+        "endCol": 29
+      }
+    ],
     "suggestions": null,
     "scope": "optimizer"
   },
@@ -115,8 +124,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "category": "error",
     "code": "C02",
     "file": "test.tsx",
-    "message": "Reference to identifier 'hola' can not be used inside a Qrl($) scope because it's a function",
-    "highlights": null,
+    "message": "'hola' is a local function, and local function/class declarations can't be referenced from this callback. Move 'hola' into the callback, or rewrite it as a captured value.",
+    "highlights": [
+      {
+        "lo": 11,
+        "hi": 15,
+        "startLine": 3,
+        "startCol": 10,
+        "endLine": 3,
+        "endCol": 14
+      }
+    ],
     "suggestions": null,
     "scope": "optimizer"
   }

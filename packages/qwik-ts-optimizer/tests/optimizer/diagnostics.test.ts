@@ -15,7 +15,7 @@ import {
   parseDisableDirectives,
   filterSuppressedDiagnostics,
 } from '../../src/optimizer/diagnostics.js';
-import { transformModule } from '../../src/optimizer/transform.js';
+import { transformModule } from '../../src/optimizer/transform/index.js';
 import type { Diagnostic } from '../../src/optimizer/types.js';
 
 describe('emitC02', () => {
@@ -25,7 +25,7 @@ describe('emitC02', () => {
     expect(diag.code).toBe('C02');
     expect(diag.file).toBe('test.tsx');
     expect(diag.message).toBe(
-      "Reference to identifier 'hola' can not be used inside a Qrl($) scope because it's a function"
+      "'hola' is a local function, and local function/class declarations can't be referenced from this callback. Move 'hola' into the callback, or rewrite it as a captured value."
     );
     expect(diag.highlights).toBeNull();
     expect(diag.suggestions).toBeNull();
@@ -37,7 +37,7 @@ describe('emitC02', () => {
     expect(diag.category).toBe('error');
     expect(diag.code).toBe('C02');
     expect(diag.message).toBe(
-      "Reference to identifier 'Thing' can not be used inside a Qrl($) scope because it's a function"
+      "'Thing' is a local class, and local function/class declarations can't be referenced from this callback. Move 'Thing' into the callback, or rewrite it as a captured value."
     );
     expect(diag.highlights).toBeNull();
     expect(diag.scope).toBe('optimizer');
@@ -63,7 +63,7 @@ describe('emitC03', () => {
     expect(diag.category).toBe('error');
     expect(diag.code).toBe('C03');
     expect(diag.message).toBe(
-      "Qrl($) scope is not a function, but it's capturing local identifiers: qrl"
+      "This argument uses local values (qrl), but this API needs a function in that position. Pass a function instead of the value directly."
     );
     expect(diag.highlights).toEqual([
       { lo: 109, hi: 112, startLine: 5, startCol: 22, endLine: 5, endCol: 24 },
@@ -75,7 +75,7 @@ describe('emitC03', () => {
   it('comma-separates multiple captured identifiers', () => {
     const diag = emitC03(['a', 'b', 'c'], 'test.tsx');
     expect(diag.message).toBe(
-      "Qrl($) scope is not a function, but it's capturing local identifiers: a, b, c"
+      "This argument uses local values (a, b, c), but this API needs a function in that position. Pass a function instead of the value directly."
     );
   });
 
@@ -184,7 +184,7 @@ describe('emitC05', () => {
     expect(diag.category).toBe('error');
     expect(diag.code).toBe('C05');
     expect(diag.message).toBe(
-      "Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly"
+      "The Qwik optimizer rewrites 'useMemo$' to use 'useMemoQrl', but this file does not export 'useMemoQrl'. Export 'useMemoQrl' from the same file, or stop calling 'useMemo$' directly."
     );
     expect(diag.highlights).toEqual([
       { lo: 241, hi: 249, startLine: 11, startCol: 5, endLine: 11, endCol: 12 },
@@ -199,7 +199,7 @@ describe('emitPreventdefaultPassiveCheck', () => {
     expect(diag.category).toBe('warning');
     expect(diag.code).toBe('preventdefault-passive-check');
     expect(diag.message).toBe(
-      'preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()'
+      'This JSX element has both passive:click and preventdefault:click. On the same element, passive events cannot use preventDefault(), so preventdefault:click will be ignored.'
     );
     expect(diag.scope).toBe('optimizer');
   });
@@ -245,10 +245,10 @@ export const App = component$(() => {
 
     const messages = c02Diags.map((d) => d.message);
     expect(messages).toContainEqual(
-      "Reference to identifier 'hola' can not be used inside a Qrl($) scope because it's a function"
+      "'hola' is a local function, and local function/class declarations can't be referenced from this callback. Move 'hola' into the callback, or rewrite it as a captured value."
     );
     expect(messages).toContainEqual(
-      "Reference to identifier 'Thing' can not be used inside a Qrl($) scope because it's a function"
+      "'Thing' is a local class, and local function/class declarations can't be referenced from this callback. Move 'Thing' into the callback, or rewrite it as a captured value."
     );
   });
 
@@ -282,7 +282,7 @@ export const App = component$((props) => {
     // Should emit C05 for useMemo$ without useMemoQrl
     const c05Diags = result.diagnostics.filter((d) => d.code === 'C05');
     expect(c05Diags.length).toBe(1);
-    expect(c05Diags[0].message).toContain("Found 'useMemo$'");
+    expect(c05Diags[0].message).toContain("rewrites 'useMemo$' to use 'useMemoQrl'");
     expect(c05Diags[0].message).toContain("'useMemoQrl'");
   });
 

@@ -5,16 +5,24 @@
  * @qwik-disable-next-line suppression directives.
  */
 
+import { createRegExp, exactly, maybe, whitespace } from 'magic-regexp';
+import type { AstNode, AstProgram } from '../ast-types.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from './types.js';
 
 /** C02: captured function/class reference across a $() boundary. */
-export function emitC02(identName: string, file: string, _isClass: boolean): Diagnostic {
+export function emitC02(
+  identName: string,
+  file: string,
+  isClass: boolean,
+  highlightSpan?: DiagnosticHighlightFlat,
+): Diagnostic {
+  const kind = isClass ? 'class' : 'function';
   return {
     category: 'error',
     code: 'C02',
     file,
-    message: `Reference to identifier '${identName}' can not be used inside a Qrl($) scope because it's a function`,
-    highlights: null,
+    message: `'${identName}' is a local ${kind}, and local function/class declarations can't be referenced from this callback. Move '${identName}' into the callback, or rewrite it as a captured value.`,
+    highlights: highlightSpan ? [highlightSpan] : null,
     suggestions: null,
     scope: 'optimizer',
   };
@@ -30,7 +38,7 @@ export function emitC03(
     category: 'error',
     code: 'C03',
     file,
-    message: `Qrl($) scope is not a function, but it's capturing local identifiers: ${identNames.join(', ')}`,
+    message: `This argument uses local values (${identNames.join(', ')}), but this API needs a function in that position. Pass a function instead of the value directly.`,
     highlights: highlightSpan ? [highlightSpan] : null,
     suggestions: null,
     scope: 'optimizer',
@@ -48,14 +56,14 @@ export function emitC05(
     category: 'error',
     code: 'C05',
     file,
-    message: `Found '${calleeName}' but did not find the corresponding '${qrlName}' exported in the same file. Please check that it is exported and spelled correctly`,
+    message: `The Qwik optimizer rewrites '${calleeName}' to use '${qrlName}', but this file does not export '${qrlName}'. Export '${qrlName}' from the same file, or stop calling '${calleeName}' directly.`,
     highlights: highlightSpan ? [highlightSpan] : null,
     suggestions: null,
     scope: 'optimizer',
   };
 }
 
-/** Warning: preventdefault:event has no effect when passive:event is also set. */
+/** Warning: preventdefault:event does nothing when passive:event is also set. */
 export function emitPreventdefaultPassiveCheck(
   eventName: string,
   file: string,
@@ -65,7 +73,7 @@ export function emitPreventdefaultPassiveCheck(
     category: 'warning',
     code: 'preventdefault-passive-check',
     file,
-    message: `preventdefault:${eventName} has no effect when passive:${eventName} is also set; passive event listeners cannot call preventDefault()`,
+    message: `This JSX element has both passive:${eventName} and preventdefault:${eventName}. On the same element, passive events cannot use preventDefault(), so preventdefault:${eventName} will be ignored.`,
     highlights: highlightSpan ? [highlightSpan] : null,
     suggestions: null,
     scope: 'optimizer',
@@ -73,7 +81,10 @@ export function emitPreventdefaultPassiveCheck(
 }
 
 const DIRECTIVE_MARKER = '@qwik-disable-next-line';
-const TRAILING_COMMENT_CLOSER = /\*\/\s*\}?\s*$/;
+
+const TRAILING_COMMENT_CLOSER = createRegExp(
+  exactly('*/').and(whitespace.times.any()).and(maybe(exactly('}'))).and(whitespace.times.any()).at.lineEnd(),
+);
 
 /**
  * Parse @qwik-disable-next-line directives from source code.
@@ -122,11 +133,11 @@ export function filterSuppressedDiagnostics(
 type DeclKind = 'var' | 'fn' | 'class';
 
 /** Classify whether an identifier was declared as a function, class, or variable. */
-export function classifyDeclarationType(program: any, identName: string): DeclKind {
+export function classifyDeclarationType(program: AstProgram, identName: string): DeclKind {
   return classifyInStatements(program.body, identName);
 }
 
-function classifyInStatements(stmts: any[], identName: string): DeclKind {
+function classifyInStatements(stmts: ReadonlyArray<AstNode>, identName: string): DeclKind {
   for (const stmt of stmts) {
     if (stmt.type === 'FunctionDeclaration' && stmt.id?.name === identName) return 'fn';
     if (stmt.type === 'ClassDeclaration' && stmt.id?.name === identName) return 'class';
@@ -155,7 +166,7 @@ function classifyInStatements(stmts: any[], identName: string): DeclKind {
   return 'var';
 }
 
-function classifyInExpression(node: any, identName: string): DeclKind {
+function classifyInExpression(node: AstNode | null | undefined, identName: string): DeclKind {
   if (!node) return 'var';
 
   if (node.type === 'ParenthesizedExpression') {

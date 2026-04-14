@@ -15,7 +15,7 @@ import {
   isHtmlElement,
   processJsxTag,
   transformAllJsx,
-} from '../../src/optimizer/jsx-transform.js';
+} from '../../src/optimizer/transform/jsx.js';
 import MagicString from 'magic-string';
 
 // ---------------------------------------------------------------------------

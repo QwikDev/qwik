@@ -6,7 +6,17 @@
  * naming utilities to produce displayName and symbolName on demand.
  */
 
+import { createRegExp, exactly, oneOrMore, char } from 'magic-regexp';
 import { buildDisplayName, buildSymbolName } from '../hashing/naming.js';
+import { getFileStem } from './path-utils.js';
+
+const catchAllRouteParam = createRegExp(
+  exactly('[[...').and(oneOrMore(char).grouped()).and(']]').at.lineStart().at.lineEnd(),
+);
+
+const dynamicRouteParam = createRegExp(
+  exactly('[').and(oneOrMore(char).grouped()).and(']').at.lineStart().at.lineEnd(),
+);
 
 /**
  * Extract a clean file stem from a file name for default export naming.
@@ -18,20 +28,18 @@ import { buildDisplayName, buildSymbolName } from '../hashing/naming.js';
  * - "[id].tsx" -> "id"
  */
 function extractFileStem(fileName: string): string {
-  // Remove extension
-  const dotIdx = fileName.lastIndexOf('.');
-  let stem = dotIdx >= 0 ? fileName.slice(0, dotIdx) : fileName;
+  let stem = getFileStem(fileName);
 
   // Handle [[...name]] pattern (catch-all route)
-  const catchAllMatch = stem.match(/^\[\[\.\.\.(.+)\]\]$/);
+  const catchAllMatch = stem.match(catchAllRouteParam);
   if (catchAllMatch) {
-    return catchAllMatch[1];
+    return catchAllMatch[1]!;
   }
 
   // Handle [name] pattern (dynamic route)
-  const dynamicMatch = stem.match(/^\[(.+)\]$/);
+  const dynamicMatch = stem.match(dynamicRouteParam);
   if (dynamicMatch) {
-    return dynamicMatch[1];
+    return dynamicMatch[1]!;
   }
 
   return stem;

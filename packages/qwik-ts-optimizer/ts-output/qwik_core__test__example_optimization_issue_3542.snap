@@ -19,8 +19,8 @@ export const AtomStatus = component$(({ctx,atom})=>{
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_AtomStatus_component_hdwpoUtydSA = /*#__PURE__*/ _noopQrl("AtomStatus_component_hdwpoUtydSA");
-const q_AtomStatus_component_span_q_e_click_0yqKAycyBF0 = /*#__PURE__*/ _noopQrl("AtomStatus_component_span_q_e_click_0yqKAycyBF0");
+const q_AtomStatus_component_hdwpoUtydSA = /* @__PURE__ */ _noopQrl("AtomStatus_component_hdwpoUtydSA");
+const q_AtomStatus_component_span_q_e_click_0yqKAycyBF0 = /* @__PURE__ */ _noopQrl("AtomStatus_component_span_q_e_click_0yqKAycyBF0");
 q_AtomStatus_component_span_q_e_click_0yqKAycyBF0.s((_, _1, atom, ctx) => atomStatusClick(ctx, ev, [atom]));
 q_AtomStatus_component_hdwpoUtydSA.s((_rawProps) => {
 	let status = _rawProps.atom.status;
@@ -36,7 +36,7 @@ q_AtomStatus_component_hdwpoUtydSA.s((_rawProps) => {
 	]}>
 		</span>;
 });
-export const AtomStatus = /*#__PURE__*/ componentQrl(q_AtomStatus_component_hdwpoUtydSA);
+export const AtomStatus = /* @__PURE__ */ componentQrl(q_AtomStatus_component_hdwpoUtydSA);
 
 ============================= test.tsx_AtomStatus_component_span_q_e_click_0yqKAycyBF0.js (ENTRY POINT)==
 

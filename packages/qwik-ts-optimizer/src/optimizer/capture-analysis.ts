@@ -7,6 +7,21 @@
  */
 
 import { getUndeclaredIdentifiersInFunction } from 'oxc-walker';
+import type {
+  AstBindingPattern,
+  AstFunction,
+  AstMaybeNode,
+  AstParamPattern,
+  AstProgram,
+  BlockStatement,
+  FunctionBody,
+  Statement,
+  VariableDeclaration,
+} from '../ast-types.js';
+import {
+  addBindingNamesFromPatternToSet,
+  appendBindingNamesFromPattern,
+} from './utils/binding-pattern.js';
 
 export interface CaptureAnalysisResult {
   captureNames: string[];
@@ -19,7 +34,7 @@ export interface CaptureAnalysisResult {
  * serialization boundary. Excludes globals and import bindings.
  */
 export function analyzeCaptures(
-  closureNode: any,
+  closureNode: AstFunction,
   parentScopeIdentifiers: Set<string>,
   importedNames: Set<string>,
 ): CaptureAnalysisResult {
@@ -40,56 +55,19 @@ export function analyzeCaptures(
 }
 
 /** Extract all binding names from function parameter AST nodes. */
-export function collectParamNames(params: any[]): string[] {
+export function collectParamNames(params: AstParamPattern[]): string[] {
   const names: string[] = [];
   for (const param of params) {
-    collectBindingNamesFromPattern(param, names);
+    appendBindingNamesFromPattern(param, names);
   }
   return names;
-}
-
-function collectBindingNamesFromPattern(node: any, names: string[]): void {
-  if (!node) return;
-
-  switch (node.type) {
-    case 'Identifier':
-      names.push(node.name);
-      break;
-
-    case 'ObjectPattern':
-      for (const prop of node.properties ?? []) {
-        const target = prop.type === 'RestElement' ? prop.argument : prop.value;
-        collectBindingNamesFromPattern(target, names);
-      }
-      break;
-
-    case 'ArrayPattern':
-      for (const elem of node.elements ?? []) {
-        collectBindingNamesFromPattern(elem, names);
-      }
-      break;
-
-    case 'RestElement':
-      collectBindingNamesFromPattern(node.argument, names);
-      break;
-
-    case 'AssignmentPattern':
-      collectBindingNamesFromPattern(node.left, names);
-      break;
-
-    default:
-      if (node.parameter) {
-        collectBindingNamesFromPattern(node.parameter, names);
-      }
-      break;
-  }
 }
 
 /**
  * Collect all identifiers declared in a container scope (function body or program).
  */
 export function collectScopeIdentifiers(
-  containerNode: any,
+  containerNode: AstProgram | BlockStatement | FunctionBody | AstFunction,
   _source: string,
   _relPath: string,
 ): Set<string> {
@@ -98,12 +76,16 @@ export function collectScopeIdentifiers(
   return ids;
 }
 
-function collectDeclarationsFromNode(node: any, ids: Set<string>): void {
+function collectDeclarationsFromNode(
+  node: AstMaybeNode | Statement | FunctionBody | AstFunction,
+  ids: Set<string>,
+): void {
   if (!node) return;
 
   if (node.type === 'VariableDeclaration') {
-    for (const decl of node.declarations ?? []) {
-      if (decl.id) collectBindingNamesFromPatternToSet(decl.id, ids);
+    const declarationNode = node as VariableDeclaration;
+    for (const decl of declarationNode.declarations ?? []) {
+      if (decl.id) addBindingNamesFromPatternToSet(decl.id, ids);
     }
     return;
   }
@@ -127,46 +109,8 @@ function collectDeclarationsFromNode(node: any, ids: Set<string>): void {
 
   if (isFunctionNode) {
     for (const param of node.params ?? []) {
-      collectBindingNamesFromPatternToSet(param, ids);
+      addBindingNamesFromPatternToSet(param, ids);
     }
     if (node.body) collectDeclarationsFromNode(node.body, ids);
-  }
-}
-
-/** Same as collectBindingNamesFromPattern but collects into a Set. */
-function collectBindingNamesFromPatternToSet(node: any, names: Set<string>): void {
-  if (!node) return;
-
-  switch (node.type) {
-    case 'Identifier':
-      names.add(node.name);
-      break;
-
-    case 'ObjectPattern':
-      for (const prop of node.properties ?? []) {
-        const target = prop.type === 'RestElement' ? prop.argument : prop.value;
-        collectBindingNamesFromPatternToSet(target, names);
-      }
-      break;
-
-    case 'ArrayPattern':
-      for (const elem of node.elements ?? []) {
-        collectBindingNamesFromPatternToSet(elem, names);
-      }
-      break;
-
-    case 'RestElement':
-      collectBindingNamesFromPatternToSet(node.argument, names);
-      break;
-
-    case 'AssignmentPattern':
-      collectBindingNamesFromPatternToSet(node.left, names);
-      break;
-
-    default:
-      if (node.parameter) {
-        collectBindingNamesFromPatternToSet(node.parameter, names);
-      }
-      break;
   }
 }

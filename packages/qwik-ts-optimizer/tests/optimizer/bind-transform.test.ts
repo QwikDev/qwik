@@ -12,7 +12,7 @@ import {
   transformBindProp,
   isBindProp,
   mergeEventHandlers,
-} from '../../src/optimizer/bind-transform.js';
+} from '../../src/optimizer/transform/bind.js';
 
 describe('bind-transform', () => {
   describe('isBindProp', () => {

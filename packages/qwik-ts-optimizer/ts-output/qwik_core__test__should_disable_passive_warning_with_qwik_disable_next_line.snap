@@ -23,9 +23,9 @@
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /*#__PURE__*/ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
+const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /* @__PURE__ */ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
 //
-/*#__PURE__*/ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
+/* @__PURE__ */ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
 
 ============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA.js (ENTRY POINT)==
 export const PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = () => {};

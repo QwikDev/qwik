@@ -14,15 +14,15 @@ export const App = component$((props: Stuff) => {
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /*#__PURE__*/ _noopQrl("App_component_Cmp_p_q_e_click_Yl4ybrJWrt4");
-const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ _noopQrl("App_component_ckEPmXZlub0");
+const q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /* @__PURE__ */ _noopQrl("App_component_Cmp_p_q_e_click_Yl4ybrJWrt4");
+const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ _noopQrl("App_component_ckEPmXZlub0");
 q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.s(() => console.log("warn"));
 q_App_component_ckEPmXZlub0.s((props) => {
 	return <Cmp>
 			<p class="stuff" q-e:click={q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4}>Hello Qwik</p>
 		</Cmp>;
 });
-export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
 
 ============================= test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.js (ENTRY POINT)==
 

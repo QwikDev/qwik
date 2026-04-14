@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
-import { transformModule } from '../../src/optimizer/transform.js';
+import { transformModule } from '../../src/optimizer/transform/index.js';
 
 const QWIK_PACKAGES_DIR = '/Users/jackshelton/dev/open-source/qwik/packages';
 const WORST_CASE = QWIK_PACKAGES_DIR + '/qwik/src/core/tests/component.spec.tsx';

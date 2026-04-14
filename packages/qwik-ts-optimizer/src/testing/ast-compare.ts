@@ -877,10 +877,13 @@ function normalizeEnumIIFE(program: any): void {
   for (let i = 0; i < program.body.length; i++) {
     const stmt = program.body[i];
 
-    // Pattern: var X = /*@__PURE__*/ function(X) { ...; return X; }(X || {})
-    if (stmt.type === 'VariableDeclaration' &&
-        stmt.declarations?.length === 1) {
-      const decl = stmt.declarations[0];
+    // Unwrap `export var/let X = ...` to get the inner VariableDeclaration
+    const varDecl = stmt.type === 'ExportNamedDeclaration' && stmt.declaration?.type === 'VariableDeclaration'
+      ? stmt.declaration
+      : stmt.type === 'VariableDeclaration' ? stmt : null;
+
+    if (varDecl && varDecl.declarations?.length === 1) {
+      const decl = varDecl.declarations[0];
       const init = decl.init;
       if (!init) continue;
 

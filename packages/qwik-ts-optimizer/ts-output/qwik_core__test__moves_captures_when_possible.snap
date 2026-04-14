@@ -13,9 +13,9 @@
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Test_component_qJXYteHpGTQ = /*#__PURE__*/ qrl(() => import("./test.tsx_Test_component_qJXYteHpGTQ"), "Test_component_qJXYteHpGTQ");
+const q_Test_component_qJXYteHpGTQ = /* @__PURE__ */ qrl(() => import("./test.tsx_Test_component_qJXYteHpGTQ"), "Test_component_qJXYteHpGTQ");
 //
-export const Test = /*#__PURE__*/ componentQrl(q_Test_component_qJXYteHpGTQ);
+export const Test = /* @__PURE__ */ componentQrl(q_Test_component_qJXYteHpGTQ);
 
 ============================= test.tsx_Test_component_button_q_e_click_SvzH9HBZLMQ.js (ENTRY POINT)==
 export const Test_component_button_q_e_click_SvzH9HBZLMQ = (_, _1, _2, _3, sig) => sig.value++;

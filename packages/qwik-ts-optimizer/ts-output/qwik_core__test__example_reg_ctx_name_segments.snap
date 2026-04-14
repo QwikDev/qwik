@@ -21,15 +21,15 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import "./foo";
 //
-const q_Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA = /*#__PURE__*/ _noopQrl("Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA");
-const q_Works_component_t45qL4vNGv0 = /*#__PURE__*/ _noopQrl("Works_component_t45qL4vNGv0");
-const q_qrl_4294901760 = /*#__PURE__*/ _noopQrl("Works_component_Fragment_div_q_e_click_0UiSo8yqgZw");
+const q_Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA = /* @__PURE__ */ _noopQrl("Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA");
+const q_Works_component_t45qL4vNGv0 = /* @__PURE__ */ _noopQrl("Works_component_t45qL4vNGv0");
+const q_qrl_4294901760 = /* @__PURE__ */ _noopQrl("Works_component_Fragment_div_q_e_click_0UiSo8yqgZw");
 const Works_component_t45qL4vNGv0 = (props) => {
-	return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [/*#__PURE__*/ _jsxSorted("div", { "q-e:click": serverQrl(q_Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA) }, null, null, 2, null), /*#__PURE__*/ _jsxSorted("div", null, { "q-e:click": q_qrl_4294901760 }, null, 3, null)], 1, "u6_0");
+	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, [/* @__PURE__ */ _jsxSorted("div", { "q-e:click": serverQrl(q_Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA) }, null, null, 2, null), /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": q_qrl_4294901760 }, null, 3, null)], 1, "u6_0");
 };
 q_Works_component_t45qL4vNGv0.s(Works_component_t45qL4vNGv0);
-q_Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA.s(/*#__PURE__*/ _regSymbol(() => console.log("in server", "hola"), "YY85RDCwwvA"));
-export const Works = /*#__PURE__*/ componentQrl(q_Works_component_t45qL4vNGv0);
+q_Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA.s(/* @__PURE__ */ _regSymbol(() => console.log("in server", "hola"), "YY85RDCwwvA"));
+export const Works = /* @__PURE__ */ componentQrl(q_Works_component_t45qL4vNGv0);
 
 ============================= test.tsx_Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA.js (ENTRY POINT)==
 export const Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA = null;

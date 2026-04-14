@@ -22,9 +22,9 @@
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_PassiveEventsComponent_component_lvDVJ8RMyh4 = /*#__PURE__*/ qrl(() => import("./test.tsx_PassiveEventsComponent_component_lvDVJ8RMyh4"), "PassiveEventsComponent_component_lvDVJ8RMyh4");
+const q_PassiveEventsComponent_component_lvDVJ8RMyh4 = /* @__PURE__ */ qrl(() => import("./test.tsx_PassiveEventsComponent_component_lvDVJ8RMyh4"), "PassiveEventsComponent_component_lvDVJ8RMyh4");
 //
-/*#__PURE__*/ componentQrl(q_PassiveEventsComponent_component_lvDVJ8RMyh4);
+/* @__PURE__ */ componentQrl(q_PassiveEventsComponent_component_lvDVJ8RMyh4);
 
 ============================= test.tsx_PassiveEventsComponent_component_div_button_q_ep_click_GIcY22LJ0us.js (ENTRY POINT)==
 export const PassiveEventsComponent_component_div_button_q_ep_click_GIcY22LJ0us = () => {};

@@ -51,11 +51,11 @@
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Input_component_9metqqaxlN8 = /*#__PURE__*/ qrl(() => import("./test.tsx_Input_component_9metqqaxlN8"), "Input_component_9metqqaxlN8");
-const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_Input_component_9metqqaxlN8 = /* @__PURE__ */ qrl(() => import("./test.tsx_Input_component_9metqqaxlN8"), "Input_component_9metqqaxlN8");
+const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export const Input = /*#__PURE__*/ componentQrl(q_Input_component_9metqqaxlN8);
-export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+export const Input = /* @__PURE__ */ componentQrl(q_Input_component_9metqqaxlN8);
+export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
 
 ============================= test.tsx_Input_component_useTask_Sbgs9Wtfkt0.js (ENTRY POINT)==
 import { _captures } from "@qwik.dev/core";

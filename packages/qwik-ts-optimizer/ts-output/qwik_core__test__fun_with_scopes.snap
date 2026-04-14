@@ -69,12 +69,12 @@ import { inlinedQrl, jsx } from "@qwik.dev/core";
 const _hf0 = (p0) => ["container", `count-${p0.count}`];
 const _hf0_str = "[\"container\",`count-${p0.count}`]";
 //
-const q_Field_children_onInput_14q1XwJfjq0 = /*#__PURE__*/ _noopQrl("Field_children_onInput_14q1XwJfjq0");
-const q_Field_children_ref_ovkykQxrYgM = /*#__PURE__*/ _noopQrl("Field_children_ref_ovkykQxrYgM");
-const q_Lifecycle_component_r7jPBpjrWLc = /*#__PURE__*/ _noopQrl("Lifecycle_component_r7jPBpjrWLc");
-const q_StyledComponent_component_Wg7SquUqgAE = /*#__PURE__*/ _noopQrl("StyledComponent_component_Wg7SquUqgAE");
-const q_StyledComponent_component_button_q_e_click_TSmqO2JiBqI = /*#__PURE__*/ _noopQrl("StyledComponent_component_button_q_e_click_TSmqO2JiBqI");
-const q_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0 = /*#__PURE__*/ _noopQrl("StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0");
+const q_Field_children_onInput_14q1XwJfjq0 = /* @__PURE__ */ _noopQrl("Field_children_onInput_14q1XwJfjq0");
+const q_Field_children_ref_ovkykQxrYgM = /* @__PURE__ */ _noopQrl("Field_children_ref_ovkykQxrYgM");
+const q_Lifecycle_component_r7jPBpjrWLc = /* @__PURE__ */ _noopQrl("Lifecycle_component_r7jPBpjrWLc");
+const q_StyledComponent_component_Wg7SquUqgAE = /* @__PURE__ */ _noopQrl("StyledComponent_component_Wg7SquUqgAE");
+const q_StyledComponent_component_button_q_e_click_TSmqO2JiBqI = /* @__PURE__ */ _noopQrl("StyledComponent_component_button_q_e_click_TSmqO2JiBqI");
+const q_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0 = /* @__PURE__ */ _noopQrl("StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0");
 //
 export default () => {
 	const serverFnHash = globalThis.foo();
@@ -83,11 +83,11 @@ export default () => {
 	console.log(qrl);
 };
 const Lifecycle_component_r7jPBpjrWLc = () => {
-	return /*#__PURE__*/ jsx(Slot, {});
+	return /* @__PURE__ */ jsx(Slot, {});
 };
 q_Lifecycle_component_r7jPBpjrWLc.s(Lifecycle_component_r7jPBpjrWLc);
 function Lifecycle(props, key, flags) {
-	return /*#__PURE__*/ componentQrl(q_Lifecycle_component_r7jPBpjrWLc)(props, key, flags);
+	return /* @__PURE__ */ componentQrl(q_Lifecycle_component_r7jPBpjrWLc)(props, key, flags);
 }
 export const rawFn = (event, element) => {
 	handleFieldEvent(form, field, name, event, element, ["touched", "input"], getElementInput(element, field, type));
@@ -101,7 +101,7 @@ q_Field_children_onInput_14q1XwJfjq0.s(Field_children_onInput_14q1XwJfjq0);
 export function Field({ children, name, type, ...props }) {
 	const { of: form } = props;
 	const field = getFieldStore(form, name);
-	return /*#__PURE__*/ jsx(Lifecycle, {
+	return /* @__PURE__ */ jsx(Lifecycle, {
 		store: field,
 		...props,
 		children: children(field, {
@@ -121,7 +121,7 @@ const StyledComponent_component_Wg7SquUqgAE = () => {
 	const STYLE_RED = _captures[0];
 	const stylesScopedData = useStylesScopedQrl(q_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0);
 	const store = useStore({ count: 10 });
-	return /*#__PURE__*/ _jsxSorted("button", { "q:p": store }, {
+	return /* @__PURE__ */ _jsxSorted("button", { "q:p": store }, {
 		class: _fnSignal(_hf0, [store], _hf0_str),
 		"q-e:click": q_StyledComponent_component_button_q_e_click_TSmqO2JiBqI
 	}, "Hello world", 7, "u6_1");
@@ -129,8 +129,8 @@ const StyledComponent_component_Wg7SquUqgAE = () => {
 q_StyledComponent_component_Wg7SquUqgAE.s(StyledComponent_component_Wg7SquUqgAE);
 describe.each([])("$render.name: useStylesScoped", ({ render }) => {
 	it("should render object style", async () => {
-		const StyledComponent = /*#__PURE__*/ componentQrl(q_StyledComponent_component_Wg7SquUqgAE.w([STYLE_RED]));
-		const { vNode, getStyles, document } = await render(/*#__PURE__*/ _jsxSorted(StyledComponent, null, null, null, 3, "u6_0"), { debug });
+		const StyledComponent = /* @__PURE__ */ componentQrl(q_StyledComponent_component_Wg7SquUqgAE.w([STYLE_RED]));
+		const { vNode, getStyles, document } = await render(/* @__PURE__ */ _jsxSorted(StyledComponent, null, null, null, 3, "u6_0"), { debug });
 	});
 });
 

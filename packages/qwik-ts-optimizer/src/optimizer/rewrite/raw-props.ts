@@ -12,10 +12,10 @@ import { buildPropertyAccessor } from '../utils/identifier-name.js';
 import { rewritePropsFieldReferences } from '../utils/props-field-rewrite.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 
-// ---------------------------------------------------------------------------
-// Shared helpers (used by raw-props and inline-body)
-// ---------------------------------------------------------------------------
+// ── Shared helpers ──
 
+// Uses `any` because OXC runtime key nodes (StringLiteral, Identifier) have
+// .name/.value properties not present in the PropertyKey type union.
 export function getObjectPropertyKeyName(key: any): string | null {
   if (key?.type === 'Identifier') {
     return key.name;
@@ -26,6 +26,8 @@ export function getObjectPropertyKeyName(key: any): string | null {
   return null;
 }
 
+// Uses `any` because runtime OXC value nodes include AssignmentPattern
+// with .left/.name properties not fully typed in the Node union.
 export function getAssignedIdentifierName(value: any): string | null {
   if (value?.type === 'Identifier') {
     return value.name;
@@ -35,10 +37,6 @@ export function getAssignedIdentifierName(value: any): string | null {
   }
   return null;
 }
-
-// ---------------------------------------------------------------------------
-// SCallBodyJsxOptions
-// ---------------------------------------------------------------------------
 
 /**
  * Options for JSX transpilation within inline .s() body text.
@@ -55,10 +53,6 @@ export interface SCallBodyJsxOptions {
   /** Relative file path for key prefix derivation */
   relPath?: string;
 }
-
-// ---------------------------------------------------------------------------
-// injectLineAfterBodyOpen
-// ---------------------------------------------------------------------------
 
 /**
  * Inject a line right after the opening brace or arrow of a function body.
@@ -99,10 +93,6 @@ export function injectLineAfterBodyOpen(bodyText: string, line: string): string 
   const prefix = bodyText.slice(0, arrowIdx + 2);
   return prefix + ' {\n' + line + '\nreturn ' + expr + ';\n}';
 }
-
-// ---------------------------------------------------------------------------
-// RawPropsTransform
-// ---------------------------------------------------------------------------
 
 /**
  * Rewrite ({field1, field2}) => ... to (_rawProps) => ... _rawProps.field1 ...
@@ -206,7 +196,6 @@ export function consolidateRawPropsInWCalls(body: string): string {
 }
 
 export function applyRawPropsTransform(body: string): string {
-  // Parse the body to get the AST and find destructured params
   const wrapperPrefix = 'const __rp__ = ';
   const wrappedSource = wrapperPrefix + body;
 
@@ -233,18 +222,13 @@ export function applyRawPropsTransform(body: string): string {
   // Calculate positions relative to the body string (subtract wrapperPrefix length)
   const offset = wrapperPrefix.length;
 
-  // Handle body-level destructure from a named parameter:
-  // (props) => { const { 'bind:value': bindValue } = props; ... }
-  // Transform to: (props) => { ... props["bind:value"] ... }
-  // Keep the original param name (not _rawProps) so that signal analysis produces
-  // _wrapProp(props, "bind:value") matching SWC's output exactly.
+  // Body-level destructure: keep original param name so signal analysis
+  // produces _wrapProp(props, "bind:value") matching SWC output.
   if (firstParam.type === 'Identifier') {
     const paramName = firstParam.name;
-    // Look for variable declarations that destructure from this param in the function body
     const funcBody = (init as any).body;
     if (!funcBody || funcBody.type !== 'BlockStatement') return body;
 
-    // Find `const { ... } = paramName;` in the body
     let destructureDecl: any = null;
     let destructureDeclIdx = -1;
     for (let i = 0; i < (funcBody.body?.length ?? 0); i++) {
@@ -283,25 +267,20 @@ export function applyRawPropsTransform(body: string): string {
 
     if (bodyFields.length === 0 && !bodyRestElementName) return body;
 
-    // Step 1: Keep the param as-is (no rename). Remove the destructure statement.
     let result = body;
 
-    // Remove the `const { ... } = props;` statement (including leading whitespace and trailing newline)
     const stmtNode = funcBody.body[destructureDeclIdx];
     const stmtStart = stmtNode.start - offset;
     const stmtEnd = stmtNode.end - offset;
-    // Walk backwards from statement start to find the beginning of the line (including leading whitespace)
     let lineStart = stmtStart;
     while (lineStart > 0 && (result[lineStart - 1] === ' ' || result[lineStart - 1] === '\t')) {
       lineStart--;
     }
-    // Remove the statement and any trailing newline
     let afterStmt = result.slice(stmtEnd);
     if (afterStmt.startsWith('\n')) afterStmt = afterStmt.slice(1);
     else if (afterStmt.startsWith('\r\n')) afterStmt = afterStmt.slice(2);
     result = result.slice(0, lineStart) + afterStmt;
 
-    // If there's a rest element, inject _restProps assignment
     if (bodyRestElementName) {
       if (bodyFields.length > 0) {
         const excludedKeys = bodyFields.map(f => `"${f.key}"`).join(',\n    ');
@@ -313,7 +292,6 @@ export function applyRawPropsTransform(body: string): string {
       }
     }
 
-    // Step 2: Replace references to destructured locals with paramName.key
     const fieldLocalToKey = new Map<string, string>();
     for (const f of bodyFields) {
       fieldLocalToKey.set(f.local, f.key);
@@ -369,16 +347,12 @@ export function applyRawPropsTransform(body: string): string {
 
   if (firstParam.type !== 'ObjectPattern') return body;
 
-  // Collect destructured field names and their local aliases, and detect rest element
   const fields: Array<{ key: string; local: string; defaultValue?: string }> = [];
   let restElementName: string | null = null;
   for (const prop of firstParam.properties ?? []) {
     if (prop.type === 'RestElement') {
-      // Rest element ({...rest}) -- collect the rest variable name
       const restId = prop.argument?.type === 'Identifier' ? prop.argument.name : null;
-      if (restId) {
-        restElementName = restId;
-      }
+      if (restId) restElementName = restId;
       continue;
     }
     if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
@@ -391,7 +365,6 @@ export function applyRawPropsTransform(body: string): string {
         valName = prop.value.name;
       } else if (prop.value?.type === 'AssignmentPattern' && prop.value.left?.type === 'Identifier') {
         valName = prop.value.left.name;
-        // Extract default value source text for ?? replacement
         if (prop.value.right) {
           const defStart = prop.value.right.start - offset;
           const defEnd = prop.value.right.end - offset;
@@ -407,28 +380,23 @@ export function applyRawPropsTransform(body: string): string {
   }
 
 
-  // Pure rest props ({...rest}) with no named fields
   if (restElementName && fields.length === 0) {
     const paramStartPos = firstParam.start - offset;
     const paramEndPos = firstParam.end - offset;
     let result = body.slice(0, paramStartPos) + '_rawProps' + body.slice(paramEndPos);
-    // Prepend _restProps assignment after the arrow/function body opening
     const restLine = `const ${restElementName} = _restProps(_rawProps);`;
     result = injectLineAfterBodyOpen(result, restLine);
     return result;
   }
 
-  // Mixed rest props ({message, id, ...rest}) -- handle both fields AND rest element
   if (restElementName && fields.length > 0) {
     const paramStartPos = firstParam.start - offset;
     const paramEndPos = firstParam.end - offset;
     let result = body.slice(0, paramStartPos) + '_rawProps' + body.slice(paramEndPos);
-    // Prepend _restProps assignment with excluded keys
     const excludedKeys = fields.map(f => `"${f.key}"`).join(',\n    ');
     const restLine = `const ${restElementName} = _restProps(_rawProps, [\n    ${excludedKeys}\n]);`;
     result = injectLineAfterBodyOpen(result, restLine);
 
-    // Replace field references with _rawProps.fieldName (same logic as non-rest case)
     const fieldLocalToKey = new Map<string, string>();
     for (const f of fields) {
       fieldLocalToKey.set(f.local, f.key);
@@ -487,16 +455,8 @@ export function applyRawPropsTransform(body: string): string {
   const paramStart = firstParam.start - offset;
   const paramEnd = firstParam.end - offset;
 
-  // Step 1: Replace the destructuring pattern with _rawProps
   let result = body.slice(0, paramStart) + '_rawProps' + body.slice(paramEnd);
 
-  // Step 2: Replace all bare identifier references to destructured fields
-  // with _rawProps.fieldName. We need to be careful to only replace bare
-  // identifiers, not property names in object literals or member expressions.
-  //
-  // Strategy: re-parse after param replacement, walk the AST to find
-  // Identifier nodes that match field local names, and replace them
-  // with _rawProps.keyName (using the original key, not the alias).
   const fieldLocalToKey = new Map<string, string>();
   const fieldLocalToDefault = new Map<string, string>();
   for (const f of fields) {
@@ -506,34 +466,27 @@ export function applyRawPropsTransform(body: string): string {
     }
   }
 
-  // Re-parse to find identifier positions in the updated body
   const reparseSource = wrapperPrefix + result;
   const reparseResult = parseSync('__rp2__.tsx', reparseSource, RAW_TRANSFER_PARSER_OPTIONS);
   if (!reparseResult.program || reparseResult.errors?.length) return result;
 
-  // Collect all identifier positions that need replacement (descending order for safe replacement)
   const replacements: Array<{ start: number; end: number; key: string; local: string; isShorthand?: boolean }> = [];
 
   function walkForIdentifiers(node: any, parentKey?: string, parentNode?: any): void {
     if (!node || typeof node !== 'object') return;
 
     if (node.type === 'Identifier' && fieldLocalToKey.has(node.name)) {
-      // Skip if this identifier is a property key in an object literal (shorthand or not)
-      // Skip if this is the parameter itself (in the _rawProps position)
-      // Skip if this is a property name in a member expression (x.field -- skip 'field')
       const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
       const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed;
       const isParam = parentKey === 'params';
       const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
 
-      // For shorthand properties ({ some }), the value IS the same identifier as the key.
-      // We need to handle this specially: replace the whole property with `key: _rawProps.key`.
+      // Shorthand properties ({ some }) need expansion to `key: _rawProps.key`
       const isShorthandValue = parentKey === 'value' &&
         (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
         parentNode?.shorthand === true;
 
       if (isShorthandValue) {
-        // Replace the shorthand property identifier, but mark it so we prepend "key: "
         replacements.push({
           start: node.start - offset,
           end: node.end - offset,
@@ -570,20 +523,15 @@ export function applyRawPropsTransform(body: string): string {
 
   walkForIdentifiers(reparseResult.program);
 
-  // Sort descending by start position and apply replacements
   replacements.sort((a, b) => b.start - a.start);
   for (const r of replacements) {
-    // Use bracket notation for keys that aren't valid JS identifiers (e.g., "bind:value")
     let accessor = buildPropertyAccessor('_rawProps', r.key);
-    // If the destructured field had a default value, use ?? to preserve it
-    // e.g., ({description = ''}) -> (_rawProps.description ?? '')
-    // Parenthesize to avoid precedence issues with surrounding operators
+    // Parenthesized ?? preserves default values from destructuring
     const defaultVal = fieldLocalToDefault.get(r.local);
     if (defaultVal !== undefined) {
       accessor = `(${accessor} ?? ${defaultVal})`;
     }
     if (r.isShorthand) {
-      // Shorthand property: { some } -> { some: _rawProps.some }
       result = result.slice(0, r.start) + r.key + ': ' + accessor + result.slice(r.end);
     } else {
       result = result.slice(0, r.start) + accessor + result.slice(r.end);

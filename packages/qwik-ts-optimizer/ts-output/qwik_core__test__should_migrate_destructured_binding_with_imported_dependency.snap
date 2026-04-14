@@ -12,7 +12,7 @@ export const handler = $(() => {
 ============================= test.tsx ==
 import { qrl } from "@qwik.dev/core";
 //
-const q_handler_T7IDIUVU4lI = /*#__PURE__*/ qrl(() => import("./test.tsx_handler_T7IDIUVU4lI"), "handler_T7IDIUVU4lI");
+const q_handler_T7IDIUVU4lI = /* @__PURE__ */ qrl(() => import("./test.tsx_handler_T7IDIUVU4lI"), "handler_T7IDIUVU4lI");
 //
 export const handler = q_handler_T7IDIUVU4lI;
 

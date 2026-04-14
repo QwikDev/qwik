@@ -25,7 +25,7 @@ export const Issue3561 = component$(() => {
 import { _noopQrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Issue3561_component_hHTw654BZB8 = /*#__PURE__*/ _noopQrl("Issue3561_component_hHTw654BZB8");
+const q_Issue3561_component_hHTw654BZB8 = /* @__PURE__ */ _noopQrl("Issue3561_component_hHTw654BZB8");
 q_Issue3561_component_hHTw654BZB8.s(() => {
 	const props = useStore({ product: { currentVariant: {
 		variantImage: "image",
@@ -36,7 +36,7 @@ q_Issue3561_component_hHTw654BZB8.s(() => {
 	console.log(variantImage, variantNumber, setContents);
 	return <p></p>;
 });
-export const Issue3561 = /*#__PURE__*/ componentQrl(q_Issue3561_component_hHTw654BZB8);
+export const Issue3561 = /* @__PURE__ */ componentQrl(q_Issue3561_component_hHTw654BZB8);
 
 ============================= test.tsx_Issue3561_component_hHTw654BZB8.jsx (ENTRY POINT)==
 

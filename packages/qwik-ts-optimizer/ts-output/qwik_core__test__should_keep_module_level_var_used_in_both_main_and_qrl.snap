@@ -27,7 +27,7 @@ export function useHook() {
 import { qrl } from "@qwik.dev/core";
 import { isServer } from "@qwik.dev/core";
 //
-const q_useHook_fn_kScGJcREaTg = /*#__PURE__*/ qrl(() => import("./test.tsx_useHook_fn_kScGJcREaTg"), "useHook_fn_kScGJcREaTg");
+const q_useHook_fn_kScGJcREaTg = /* @__PURE__ */ qrl(() => import("./test.tsx_useHook_fn_kScGJcREaTg"), "useHook_fn_kScGJcREaTg");
 //
 const state = {
 	counter: 0,

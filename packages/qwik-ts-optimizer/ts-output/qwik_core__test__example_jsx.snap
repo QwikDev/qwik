@@ -49,12 +49,12 @@ import { _getVarProps } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 //
-const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+const q_Foo_component_HTDRsvUbLiE = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
 //
 export const Lightweight = (props) => {
-	return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null), /*#__PURE__*/ _jsxSplit("button", { ..._getVarProps(props) }, _getConstProps(props), null, 0, null)], 1, "u6_0"), 1, "u6_1");
+	return /* @__PURE__ */ _jsxSorted("div", null, null, /* @__PURE__ */ _jsxSorted(_Fragment, null, null, [/* @__PURE__ */ _jsxSorted("div", null, null, null, 3, null), /* @__PURE__ */ _jsxSplit("button", { ..._getVarProps(props) }, _getConstProps(props), null, 0, null)], 1, "u6_0"), 1, "u6_1");
 };
-export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE, { tagName: "my-foo" });
+export const Foo = /* @__PURE__ */ componentQrl(q_Foo_component_HTDRsvUbLiE, { tagName: "my-foo" });
 
 ============================= test.tsx_Foo_component_1_DvU6FitWglY.js (ENTRY POINT)==
 import { _captures } from "@qwik.dev/core";

@@ -18,8 +18,8 @@ import { formActionQrl } from "forms";
 import { valiFormQrl } from "forms";
 import { wrapperFn, getEnv } from "utils";
 //
-const q_featureAction_formAction_cZgh2PzV1cc = /*#__PURE__*/ qrl(() => import("./test.tsx_featureAction_formAction_cZgh2PzV1cc"), "featureAction_formAction_cZgh2PzV1cc");
-const q_featureAction_formAction_valiForm_3yxd03SSzJ8 = /*#__PURE__*/ qrl(() => import("./test.tsx_featureAction_formAction_valiForm_3yxd03SSzJ8"), "featureAction_formAction_valiForm_3yxd03SSzJ8");
+const q_featureAction_formAction_cZgh2PzV1cc = /* @__PURE__ */ qrl(() => import("./test.tsx_featureAction_formAction_cZgh2PzV1cc"), "featureAction_formAction_cZgh2PzV1cc");
+const q_featureAction_formAction_valiForm_3yxd03SSzJ8 = /* @__PURE__ */ qrl(() => import("./test.tsx_featureAction_formAction_valiForm_3yxd03SSzJ8"), "featureAction_formAction_valiForm_3yxd03SSzJ8");
 //
 const flagEnabled = getEnv().PUBLIC_FEATURE;
 export const FeatureSchema = wrapperFn(flagEnabled);

@@ -148,7 +148,6 @@ export function processProps(
     if (isPassiveDirective(propName)) continue;
 
     if (propName.startsWith('preventdefault:')) {
-      // Only emit when no matching passive:EVENT on the same element
       const eventName = propName.slice('preventdefault:'.length);
       if (!passiveEvents.has(eventName)) {
         constEntries.push(`"${propName}": true`);
@@ -170,7 +169,6 @@ export function processProps(
       valueText = source.slice(attr.value.start, attr.value.end);
     }
 
-    // Bind desugaring: component tags keep bind: as-is for _jsxSplit
     if (isBindProp(propName) && !tagIsHtml) {
       constEntries.push(`"${propName}": ${valueText}`);
       continue;
@@ -212,7 +210,6 @@ export function processProps(
       }
     }
 
-    // QRL prop passthrough ($-suffixed props not already handled as events)
     if (propName.endsWith('$') && !isRewrittenEventProp(propName)) {
       const formattedName = formatPropName(propName);
       if (isConstValueNode(valueNode)) {
@@ -223,7 +220,6 @@ export function processProps(
       continue;
     }
 
-    // Pre-rewritten event props from extraction rewriting
     if (isRewrittenEventProp(propName)) {
       const formattedName = `"${propName}"`;
       if (inLoop) {
@@ -238,7 +234,6 @@ export function processProps(
           varEntries.push(`${formattedName}: ${valueText}`);
         }
       } else {
-        // Outside loop: track for merging with bind handlers
         const existing = bindHandlers.get(propName);
         if (existing) {
           bindHandlers.set(propName, `[${existing}, ${valueText}]`);
@@ -249,7 +244,6 @@ export function processProps(
       continue;
     }
 
-    // Signal analysis (skipped for _createElement path)
     if (valueNode && !skipSignalAnalysis) {
       const signalResult = analyzeSignalExpression(valueNode, source, importedNames, allDeclaredNames);
 
@@ -267,9 +261,9 @@ export function processProps(
       }
 
       if (signalResult.type === 'fnSignal') {
-        // SWC skips _fnSignal for object expressions on class/className props
+        // SWC skips _fnSignal for object expressions on class/className
         if (signalResult.isObjectExpr && (propName === 'class' || propName === 'className')) {
-          // Fall through to classifyProp
+          // fall through to classifyProp
         } else {
           const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, valueNode.start ?? 0);
           const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
@@ -288,7 +282,6 @@ export function processProps(
       }
     }
 
-    // Default: classify by expression constness
     const classification = valueNode
       ? classifyProp(valueNode, importedNames, constIdents)
       : 'const';

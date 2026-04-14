@@ -9,16 +9,14 @@
 import { createRegExp, exactly, oneOrMore, maybe, anyOf, wordChar, wordBoundary, whitespace, charNotIn, global } from 'magic-regexp';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import type {
-  AstFunction,
   AstNode,
   AstParseResult,
-  AstProgram,
 } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../../utils/parse.js';
-import { buildSyncTransform, needsPureAnnotation, getQrlImportSource } from '../rewrite-calls.js';
+import { buildSyncTransform, needsPureAnnotation } from '../rewrite-calls.js';
 import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
 import type { ExtractionResult } from '../extract.js';
-import type { NestedCallSiteInfo, SegmentCaptureInfo } from '../segment-codegen.js';
+import type { NestedCallSiteInfo } from '../segment-codegen.js';
 import {
   findArrowIndex,
   scanMatchingParenForward,
@@ -44,17 +42,12 @@ function getNestedCallSiteStart(site: NestedCallSiteInfo): number {
   return site.attrStart ?? site.callStart;
 }
 
-// ── Arrow-body scanning helpers (for .w() hoisting) ──
-
 /**
  * Scan backwards from `pos` to find an enclosing arrow whose parameter list
  * includes `capturedVarName`, returning the injection position inside the body.
  *
- * NOTE: Intentionally text-based. This runs on post-transform body text after
- * nested call site rewriting has already modified the source, so the original
- * AST positions are stale. Re-parsing could work but this function's backward
- * scan logic is tightly coupled to the text-replacement approach used by
- * rewriteNestedCallSitesInline.
+ * Text-based because it runs after nested call site rewriting has invalidated
+ * the original AST positions.
  */
 function findEnclosingArrowBodyForCapture(text: string, pos: number, capturedVarName: string): number {
   let i = pos - 1;
@@ -118,8 +111,6 @@ function findVarDeclarationEnd(text: string, startPos: number, varName: string):
   if (text[endPos] === '\n') endPos++;
   return endPos;
 }
-
-// ── Nested call site rewriting ──
 
 /**
  * Rewrite nested $() calls and $-suffixed JSX attrs in the body text,
@@ -300,6 +291,8 @@ export function stripDiagnosticsAndDirectives(bodyText: string): string {
   bodyText = bodyText.replace(qwikDisableDirective, '');
 
   // Strip passive:* and matching preventdefault:* PER-ELEMENT.
+  // Matches HTML opening tags: `<tagName attrs>`. Uses lazy quantifier for attrs capture.
+  // Not converted to magic-regexp: lazy quantifiers inside capture groups aren't supported.
   bodyText = bodyText.replace(/<(\w+)([^>]*?)>/g, (_match, tagName, attrsStr) => {
     const elementPassive = new Set<string>();
     for (const m of attrsStr.matchAll(/passive:(\w+)/g)) {
@@ -364,8 +357,6 @@ export function ensureCoreImports(bodyText: string, parts: string[]): void {
     parts.splice(parts.indexOf('//'), 0, `import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";`);
   }
 }
-
-// ── Dead const literal elimination ──
 
 /**
  * Remove `const X = literal;` declarations from a function body when X is
@@ -443,8 +434,6 @@ export function removeDeadConstLiterals(bodyText: string): string {
   return result;
 }
 
-// ── Function signature rewriting ──
-
 /**
  * Rewrite a function's parameter list to use the given paramNames.
  */
@@ -475,8 +464,6 @@ export function rewriteFunctionSignature(bodyText: string, paramNames: string[])
   return bodyText;
 }
 
-// ── Captures unpacking ──
-
 /**
  * Inject _captures unpacking into a function body text.
  */
@@ -504,7 +491,6 @@ export function injectCapturesUnpacking(bodyText: string, captureNames: string[]
   return prefix + ' {\n' + unpackLine + '\nreturn ' + expr + ';\n}';
 }
 
-// findArrowIndex is re-exported for external consumers (e.g., segment-codegen.ts)
 export { findArrowIndex };
 
 function injectIntoBlockBody(bodyText: string, line: string): string {
@@ -512,11 +498,6 @@ function injectIntoBlockBody(bodyText: string, line: string): string {
   if (braceIdx === -1) return bodyText;
   return bodyText.slice(0, braceIdx + 1) + '\n' + line + bodyText.slice(braceIdx + 1);
 }
-
-// scanMatchingParenForward and scanMatchingParenBackward are imported from
-// the shared text-scanning utility (see import at top of file).
-
-// ── Shared helpers ──
 
 export function insertImportBeforeSeparator(parts: string[], importStmt: string): void {
   const sepIdx = parts.indexOf('//');

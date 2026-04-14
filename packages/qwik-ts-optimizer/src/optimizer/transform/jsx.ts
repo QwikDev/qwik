@@ -60,11 +60,6 @@ export function isConstBindingName(
   return importedNames.has(name) || (constIdents?.has(name) ?? false);
 }
 
-/**
- * A const binding is "static" when its initializer is absent, or is a call
- * to a $-suffixed / Qrl-suffixed / use-prefixed function. Static bindings
- * are treated as immutable for prop classification.
- */
 function isReturnStatic(init: any): boolean {
   if (!init) return true;
   if (init.type === 'CallExpression' && init.callee) {
@@ -335,9 +330,6 @@ export function computeFlags(
   return flags;
 }
 
-/**
- * Per-module counter for generating deterministic JSX element keys.
- */
 export class JsxKeyCounter {
   private count: number;
   private prefix: string;
@@ -425,7 +417,6 @@ function applySignalHoistRenames(
   const content = s.toString();
   let renamed = content;
 
-  // Phase 1: old names -> temporary placeholders
   const tempMap = new Map<string, string>();
   for (const [oldName, newName] of renameMap) {
     const temp = `__hf_temp_${oldName.slice(3)}__`;
@@ -434,7 +425,6 @@ function applySignalHoistRenames(
     renamed = renamed.split(oldName).join(temp);
   }
 
-  // Phase 2: temporary placeholders -> new names
   for (const [temp, newName] of tempMap) {
     renamed = renamed.split(`${temp}_str`).join(`${newName}_str`);
     renamed = renamed.split(temp).join(newName);
@@ -486,7 +476,6 @@ export function transformAllJsx(
   let needsFragment = false;
   const ranges = skipRanges ?? [];
 
-  // Precompute line starts for dev mode offset->line/col lookup
   let lineStarts: number[] | null = null;
   if (devOptions) {
     lineStarts = [0];
@@ -566,7 +555,6 @@ export function transformAllJsx(
     },
   });
 
-  // Renumber _hf variables to match SWC's top-down source order
   const renameMap = signalHoister.buildRenameMap();
   if (renameMap && renameMap.size > 0) {
     applySignalHoistRenames(s, renameMap);

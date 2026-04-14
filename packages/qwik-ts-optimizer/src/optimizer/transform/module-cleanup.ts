@@ -536,6 +536,8 @@ export function buildEnclosingExtractionMap(
 function extractBinaryOperandIdentifiers(text: string): string[] {
   const ids: string[] = [];
   const seen = new Set<string>();
+  // Matches JS identifiers: starts with [a-zA-Z_$], followed by [a-zA-Z0-9_$]*.
+  // Not converted to magic-regexp: charIn() escapes hyphens, breaking character ranges.
   const idRegex = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\b/g;
   let match;
   while ((match = idRegex.exec(text)) !== null) {

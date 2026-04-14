@@ -30,7 +30,7 @@ export const App = component$((props) => {
 	useMemo$(() => {
 		console.log(state.count);
 	});
-	return $(() => /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0"));
+	return $(() => /* @__PURE__ */ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0"));
 });
 
 == DIAGNOSTICS ==

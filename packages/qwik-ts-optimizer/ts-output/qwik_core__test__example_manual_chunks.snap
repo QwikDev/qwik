@@ -43,11 +43,11 @@ export const Child = component$(() => {
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Child_component_9GyF01GDKqw = /*#__PURE__*/ qrl(() => import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
-const q_Parent_component_0TaiDayHrlo = /*#__PURE__*/ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo");
+const q_Child_component_9GyF01GDKqw = /* @__PURE__ */ qrl(() => import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
+const q_Parent_component_0TaiDayHrlo = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo");
 //
-export const Parent = /*#__PURE__*/ componentQrl(q_Parent_component_0TaiDayHrlo);
-export const Child = /*#__PURE__*/ componentQrl(q_Child_component_9GyF01GDKqw);
+export const Parent = /* @__PURE__ */ componentQrl(q_Parent_component_0TaiDayHrlo);
+export const Child = /* @__PURE__ */ componentQrl(q_Child_component_9GyF01GDKqw);
 
 ============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js (ENTRY POINT)==
 import mongo from "mongodb";

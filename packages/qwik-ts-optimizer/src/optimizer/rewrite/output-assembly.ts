@@ -12,7 +12,6 @@ import type { ExtractionResult } from '../extract.js';
 import type { ImportInfo } from '../marker-detection.js';
 import {
   buildQrlDeclaration,
-  needsPureAnnotation,
   getQrlImportSource,
 } from '../rewrite-calls.js';
 import { buildQrlDevDeclaration, buildDevFilePath } from '../dev-mode.js';
@@ -33,7 +32,6 @@ import { transformSCallBody } from './inline-body.js';
 import type { SCallBodyJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
 
-/** Extraction's callee name (e.g. "server$") matches regCtxName "server" + "$". */
 function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolean {
   if (!regCtxName || regCtxName.length === 0) return false;
   for (const name of regCtxName) {
@@ -42,7 +40,6 @@ function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolea
   return false;
 }
 
-/** Custom inlined functions have their Qrl variant defined locally -- no import needed. */
 function isCustomInlined(
   ext: ExtractionResult,
   originalImports: Map<string, ImportInfo>,
@@ -53,7 +50,6 @@ function isCustomInlined(
   return true;
 }
 
-/** Gather all optimizer-added imports from extractions, JSX, and event handlers. */
 export function collectNeededImports(ctx: RewriteContext): void {
   const { neededImports, alreadyImported, topLevel, extractions,
     inlineOptions, isDevMode, isInline, inlinedQrlSymbols,
@@ -431,7 +427,6 @@ export function filterUnusedImports(ctx: RewriteContext): void {
   }
 }
 
-/** Build preamble, insert .s() calls, apply migrations, strip TS types. */
 export function assembleOutput(ctx: RewriteContext): string {
   const { s, source, neededImports, survivingUserImports, jsxResult,
     inlineHoistedDeclarations, qrlDecls, sCalls, migrationDecisions,
@@ -520,11 +515,6 @@ export function assembleOutput(ctx: RewriteContext): string {
     const stripped = oxcTransformSync('output.tsx', finalCode, tsStripOptions);
     if (stripped.code) {
       finalCode = stripped.code;
-      finalCode = finalCode.replace(/\/\* @__PURE__ \*\//g, '/*#__PURE__*/');
-      finalCode = finalCode.replace(
-        /\b((?:export\s+)?)let\s+(\w+)\s*=\s*(\/\*[^*]*\*\/\s*)?function\s*\(\2\)/g,
-        '$1var $2 = $3function($2)',
-      );
     }
   }
 

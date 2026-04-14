@@ -36,9 +36,9 @@ export const Foo = component$(() => {
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+const q_Foo_component_HTDRsvUbLiE = /* @__PURE__ */ qrl(() => import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
 //
-export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE, { tagName: "my-foo" });
+export const Foo = /* @__PURE__ */ componentQrl(q_Foo_component_HTDRsvUbLiE, { tagName: "my-foo" });
 
 ============================= test.tsx_Foo_component_handler_H10xZtD0e7w.js (ENTRY POINT)==
 export const Foo_component_handler_H10xZtD0e7w = () => console.log('reused');

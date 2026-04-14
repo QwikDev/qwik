@@ -267,7 +267,6 @@ export function transformJsxElement(
   const hoister = signalHoister ?? new SignalHoister();
   const inLoop = !!loopCtx && loopCtx.iterVars.length > 0;
 
-  // Pre-detect _createElement path (spread + explicit key skips signal analysis)
   const preHasSpread = openingElement.attributes?.some(
     (a: JSXAttributeItem) => a.type === 'JSXSpreadAttribute',
   ) ?? false;
@@ -295,10 +294,8 @@ export function transformJsxElement(
     neededImports.add(imp);
   }
 
-  // Inject q:p/q:ps for capture context
   injectQpProp(node, tagIsHtml, inLoop, loopCtx, qpOverrides, varEntries, constEntries);
 
-  // Move event handlers to varProps when captures include non-const vars
   if (moveEventHandlersForNonConstCaptures(
     node, tagIsHtml, inLoop, qpOverrides, constIdents, importedNames,
     varEntries, constEntries, hasSpread,
@@ -306,7 +303,6 @@ export function transformJsxElement(
     hasVarEventHandler = true;
   }
 
-  // Children: text-only elements and disabled signals skip _wrapProp/_fnSignal
   const childSignalsEnabled = enableChildSignals && !textOnly;
   const { text: childrenText, type: childrenType } = processChildren(
     node.children,
@@ -319,7 +315,6 @@ export function transformJsxElement(
     allDeclaredNames,
   );
 
-  // Compute flags
   const hasQpProp = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'))
     || constEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'));
   const effectiveLoopCtx = tagIsHtml && (qpOverrides ? hasQpProp : (!!loopCtx && hasQpProp));
@@ -337,7 +332,6 @@ export function transformJsxElement(
     flags = computeFlags(effectiveHasVarProps, childrenType, effectiveLoopCtx, hasVarEventHandler);
   }
 
-  // Key: explicit > null for child HTML elements > generated
   let keyStr: string | null;
   if (explicitKey !== null) {
     keyStr = explicitKey;
@@ -347,7 +341,6 @@ export function transformJsxElement(
     keyStr = `"${keyCounter.next()}"`;
   }
 
-  // Build the final call
   if (hasSpread) {
     const spreadAttr = openingElement.attributes.find(
       (a: JSXAttributeItem) => a.type === 'JSXSpreadAttribute',
@@ -369,7 +362,6 @@ export function transformJsxElement(
     );
   }
 
-  // Dynamic component tags with bind: props use _jsxSplit
   const hasBindInConst = !tagIsHtml && constEntries.some(e => e.startsWith('"bind:'));
   const varProps = varEntries.length > 0 ? `{ ${varEntries.join(', ')} }` : null;
   const constProps = constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : null;

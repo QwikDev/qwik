@@ -24,9 +24,9 @@ export const App2 = component$(() => {
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App2_component_3yveMqbQ3Fs = /*#__PURE__*/ qrl(() => import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs");
+const q_App2_component_3yveMqbQ3Fs = /* @__PURE__ */ qrl(() => import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs");
 //
-export const App2 = /*#__PURE__*/ componentQrl(q_App2_component_3yveMqbQ3Fs);
+export const App2 = /* @__PURE__ */ componentQrl(q_App2_component_3yveMqbQ3Fs);
 
 ============================= test.tsx_App2_component_3yveMqbQ3Fs.js (ENTRY POINT)==
 import { _wrapProp } from "@qwik.dev/core";

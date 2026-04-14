@@ -33,11 +33,11 @@ const _hf2 = (p0, p1) => ({
 });
 const _hf2_str = "{props:p0.fromProps,local:p1}";
 //
-const q_Works_component_t45qL4vNGv0 = /*#__PURE__*/ _noopQrl("Works_component_t45qL4vNGv0");
+const q_Works_component_t45qL4vNGv0 = /* @__PURE__ */ _noopQrl("Works_component_t45qL4vNGv0");
 //
 const Works_component_t45qL4vNGv0 = (_rawProps) => {
 	let fromLocal = useSignal(0);
-	return /*#__PURE__*/ _jsxSorted("div", {
+	return /* @__PURE__ */ _jsxSorted("div", {
 		computed: _fnSignal(_hf0, [_rawProps, fromLocal], _hf0_str),
 		local: fromLocal,
 		props: _fnSignal(_hf2, [_rawProps, fromLocal], _hf2_str),
@@ -46,7 +46,7 @@ const Works_component_t45qL4vNGv0 = (_rawProps) => {
 	}, null, null, 3, "u6_0");
 };
 q_Works_component_t45qL4vNGv0.s(Works_component_t45qL4vNGv0);
-export const Works = /*#__PURE__*/ componentQrl(q_Works_component_t45qL4vNGv0);
+export const Works = /* @__PURE__ */ componentQrl(q_Works_component_t45qL4vNGv0);
 
 ============================= test.tsx_Works_component_t45qL4vNGv0.js (ENTRY POINT)==
 

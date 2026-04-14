@@ -21,10 +21,10 @@ export const App = component$(({count}) => {
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
 const [I2, { I3, v1: [I4], I5 = v2, ...I6 }, I7 = v3, ...I8] = obj;
-export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
 export { I2 as _auto_I2 };
 export { I3 as _auto_I3 };
 export { I4 as _auto_I4 };

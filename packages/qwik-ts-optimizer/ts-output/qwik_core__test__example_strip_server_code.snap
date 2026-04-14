@@ -46,9 +46,9 @@ export const Parent = component$(() => {
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_s_0TaiDayHrlo = /*#__PURE__*/ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "s_0TaiDayHrlo");
+const q_s_0TaiDayHrlo = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "s_0TaiDayHrlo");
 //
-export const Parent = /*#__PURE__*/ componentQrl(q_s_0TaiDayHrlo);
+export const Parent = /* @__PURE__ */ componentQrl(q_s_0TaiDayHrlo);
 
 ============================= test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc.js (ENTRY POINT)==
 export const s_2ca3HLDC7yc = () => {

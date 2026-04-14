@@ -58,6 +58,8 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
       });
     }
   } catch {
+    // Matches identifiers starting with uppercase, _ or $. Fallback when AST parse fails.
+    // Not converted to magic-regexp: charIn() escapes hyphens, breaking character ranges.
     const identRegex = /\b([A-Z_$][a-zA-Z0-9_$]*)\b/g;
     let match;
     while ((match = identRegex.exec(bodyText)) !== null) ids.add(match[1]);

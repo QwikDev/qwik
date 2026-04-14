@@ -27,7 +27,6 @@ import {
   getQrlCalleeName,
 } from '../rewrite-calls.js';
 import { isStrippedSegment } from '../strip-ctx.js';
-import { removeDeadConstLiterals } from '../segment-codegen.js';
 import { transformEventPropName } from '../transform/event-handlers.js';
 import { transformAllJsx } from '../transform/jsx.js';
 import { stripExportDeclarations } from '../strip-exports.js';
@@ -107,7 +106,6 @@ function isMarkerSpecifier(
   return extractedCalleeNames.has(importedName);
 }
 
-/** Custom inlined functions have their Qrl variant defined locally -- no import needed. */
 function isCustomInlined(
   ext: ExtractionResult,
   originalImports: Map<string, ImportInfo>,
@@ -118,7 +116,6 @@ function isCustomInlined(
   return true;
 }
 
-/** Extraction's callee name (e.g. "server$") matches regCtxName "server" + "$". */
 function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolean {
   if (!regCtxName || regCtxName.length === 0) return false;
   for (const name of regCtxName) {
@@ -239,9 +236,6 @@ function collectExtractedCalleeNames(ctx: RewriteContext): void {
   }
 }
 
-/**
- * Remove all import declarations from body and track surviving user imports.
- */
 function processImports(ctx: RewriteContext): void {
   const { s, program, source, extractedCalleeNames, minify } = ctx;
 
@@ -483,7 +477,7 @@ function rewriteNoArgMarkers(ctx: RewriteContext): void {
   const { s, program, originalImports, extractedCalleeNames, alreadyImported } = ctx;
   const extractedCallStarts = new Set(ctx.extractions.map(e => e.callStart));
 
-  function walk(node: any): void { // any: OXC AST walker with runtime-only type variants
+  function walk(node: any): void {
     if (!node || typeof node !== 'object') return;
     if (Array.isArray(node)) { for (const item of node) walk(item); return; }
     if (node.type === 'CallExpression' && !extractedCallStarts.has(node.start)) {

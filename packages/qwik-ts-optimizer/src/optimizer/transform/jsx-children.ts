@@ -45,14 +45,12 @@ export function normalizeJsxChildren(children: JSXChild[]): (JSXChild & { _trimm
       const trimmedLines = lines.map((l: string) => l.trim()).filter((l: string) => l.length > 0);
       normalized = trimmedLines.join(' ');
     } else {
-      // Preserve leading whitespace after expression containers
       const prevChild = i > 0 ? children[i - 1] : null;
       if (prevChild && prevChild.type === 'JSXExpressionContainer') {
         normalized = raw;
       } else {
         normalized = raw.replace(/^\s+/, '');
       }
-      // Trim trailing if this is the last meaningful child
       const nextNonWhitespace = children.slice(i + 1).find(
         (c: JSXChild) => c.type !== 'JSXText' || (c.type === 'JSXText' && c.value?.trim()),
       );
@@ -66,8 +64,6 @@ export function normalizeJsxChildren(children: JSXChild[]): (JSXChild & { _trimm
       continue;
     }
 
-    // Whitespace-only text: preserve as " " only when between two expression
-    // containers on the same line. Multi-line whitespace is stripped.
     if (!hasNewline) {
       const prevSibling = meaningful.length > 0 ? meaningful[meaningful.length - 1] : null;
       const nextSibling = children.slice(i + 1).find(
@@ -152,13 +148,11 @@ function classifyNestedJsxChild(
     return hasStaticSubtreeFlag(childText) ? 'static' : 'dynamic';
   }
 
-  // Component tags (uppercase) are always dynamic
   const tagName = child.openingElement?.name;
   const tagStr = tagName?.type === 'JSXIdentifier' ? tagName.name : '';
   const isComponent = tagStr.length > 0 && tagStr[0] === tagStr[0].toUpperCase() && tagStr[0] !== tagStr[0].toLowerCase();
   if (isComponent) return 'dynamic';
 
-  // HTML elements: dynamic if they have varProps or a dynamic subtree flag
   const varPropsMatch = childText.match(jsxSortedVarProps);
   if (varPropsMatch && varPropsMatch[1] === '{') return 'dynamic';
 
@@ -233,7 +227,6 @@ function processExpressionChild(
 
     if (signalResult.type === 'wrapProp') {
       neededImports?.add('_wrapProp');
-      // _wrapProp children are static only when the signal/store target is const-bound
       let wrapIsConst = true;
       if (expr.type === 'MemberExpression' && expr.object?.type === 'Identifier') {
         const objName = expr.object.name;

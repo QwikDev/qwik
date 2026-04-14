@@ -421,6 +421,7 @@
 
 @utility bg-grid-stars {
   background-image: url('./media/decor/grid-star-bg.svg');
+  background-size: contain;
 }
 
 .vanilla-icon {

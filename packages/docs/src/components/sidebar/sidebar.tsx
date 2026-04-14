@@ -67,9 +67,9 @@ export const Sidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
         aria-label="Open sidebar"
         aria-hidden={!desktopCollapsed.value}
         tabIndex={desktopCollapsed.value ? 0 : -1}
-        class="hidden xl:flex absolute top-6 left-4 items-center justify-center p-0 text-foreground-soft transition-colors hover:text-foreground-base"
+        class="hidden xl:flex absolute top-6 left-4 items-center justify-center p-0"
       >
-        <lucide.panelleftopen class="size-6 shrink-0" />
+        <lucide.panelleftopen class="vanilla-icon" />
       </button>
 
       <nav
@@ -92,9 +92,9 @@ export const Sidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
               props.mobileOpen.value = false;
             }}
             aria-label="Close sidebar"
-            class="flex items-center justify-center p-0 text-foreground-soft transition-colors hover:text-foreground-base"
+            class="flex items-center justify-center p-0"
           >
-            <lucide.panelleftclose class="size-6 shrink-0" />
+            <lucide.panelleftclose class="vanilla-icon" />
           </button>
         </div>
 
@@ -198,7 +198,7 @@ const GuidesTreeNode = component$(
                     href={item.href}
                     tabIndex={-1}
                     class={[
-                      'flex items-center gap-2 pl-6 pr-2 py-2 rounded-lg text-[16px] leading-[22px] font-semibold',
+                      'flex items-center gap-2 pl-13 pr-2 py-2 rounded-lg text-[16px] leading-[22px] font-semibold',
                       isActive
                         ? 'bg-background-emphasis text-standalone-emphasis border-[1.6px] border-transparent'
                         : 'text-foreground-muted hover:bg-background-accent hover:text-standalone-accent border-[1.6px] border-transparent',
@@ -262,54 +262,51 @@ const SubTreeNode = component$((props: { item: ContentMenu; pathname: string }) 
 });
 
 const SubTreeIcon = component$<{ name: string }>((props) => {
-  const cls = 'size-5 flex-shrink-0';
   switch (props.name) {
     case 'Concepts':
-      return <lucide.lightbulb class={cls} />;
+      return <lucide.lightbulb class="vanilla-icon" />;
     case 'Advanced':
-      return <lucide.settings class={cls} />;
+      return <lucide.settings class="vanilla-icon" />;
     default:
       return null;
   }
 });
 
 const GuideSectionIcon = component$<{ name: string }>((props) => {
-  const cls = 'size-5 flex-shrink-0';
   switch (props.name) {
     case 'Foundation':
-      return <lucide.box class={cls} />;
+      return <lucide.box class="vanilla-icon" />;
     case 'Router':
-      return <lucide.route class={cls} />;
+      return <lucide.route class="vanilla-icon" />;
     case 'Cookbook':
-      return <lucide.chefhat class={cls} />;
+      return <lucide.chefhat class="vanilla-icon" />;
     case 'Integrations':
-      return <lucide.puzzle class={cls} />;
+      return <lucide.puzzle class="vanilla-icon" />;
     case 'Deployments':
-      return <lucide.rocket class={cls} />;
+      return <lucide.rocket class="vanilla-icon" />;
     case 'Guides':
-      return <lucide.compass class={cls} />;
+      return <lucide.compass class="vanilla-icon" />;
     case 'Reference':
-      return <lucide.filetext class={cls} />;
+      return <lucide.filetext class="vanilla-icon" />;
     case 'Experimental 🧪':
-      return <lucide.testtubediagonal class={cls} />;
+      return <lucide.testtubediagonal class="vanilla-icon" />;
     default:
       return null;
   }
 });
 
 const IntroItemIcon = component$<{ text: string }>((props) => {
-  const cls = 'size-5 flex-shrink-0';
   switch (props.text) {
     case 'Overview':
-      return <lucide.filetext class={cls} />;
+      return <lucide.filetext class="vanilla-icon" />;
     case 'Getting Started':
-      return <lucide.play class={cls} />;
+      return <lucide.play class="vanilla-icon" />;
     case 'Project structure':
-      return <lucide.foldertree class={cls} />;
+      return <lucide.foldertree class="vanilla-icon" />;
     case 'FAQ':
-      return <lucide.circlequestionmark class={cls} />;
+      return <lucide.circlequestionmark class="vanilla-icon" />;
     case 'Upgrade':
-      return <lucide.sparkles class={cls} />;
+      return <lucide.sparkles class="vanilla-icon" />;
     default:
       return null;
   }

@@ -3,12 +3,13 @@ import { useLocation } from '@qwik.dev/router';
 import { Link } from '../action/action';
 import { QwikLogoOnly } from '../svgs/qwik-logo';
 import { modal, lucide } from '@qds.dev/ui';
+import { SearchModal } from '../search/search';
 
 const MobileNavLink = (props: { href: string; label: string; active?: boolean }) => (
   <a
     href={props.href}
     class={[
-      'pt-1 font-semibold text-base border-b-2 transition-colors',
+      'pt-1 font-semibold text-base border-b-2 transition-colors w-fit',
       props.active
         ? 'text-standalone-emphasis border-emphasis'
         : 'text-foreground-base border-transparent hover:text-standalone-accent',
@@ -44,23 +45,23 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
   const { url } = useLocation();
   const pathname = url.pathname;
   return (
-    <div class="2xl:hidden">
+    <div class="2xl:hidden h-16 min-h-16">
       <modal.root>
         {/* Top bar (always visible) */}
-        <div class="fixed top-0 left-0 right-0 z-99999 flex items-center justify-between px-4 py-4 bg-background-base border-b-[1.6px] border-base">
+        <div class="fixed top-0 left-0 right-0 z-99999 flex items-center justify-between px-4 py-4 bg-background-base border-b-[1.6px] border-base h-16">
           <div class="flex items-center gap-2">
             {props.mobileSidebarOpen && (
               <button
                 type="button"
                 aria-label={props.mobileSidebarOpen.value ? 'Close sidebar' : 'Open sidebar'}
                 aria-expanded={props.mobileSidebarOpen.value}
-                class="flex items-center justify-center p-0 text-foreground-soft transition-colors hover:text-foreground-base"
+                class="flex items-center justify-center p-0"
                 onClick$={() => (props.mobileSidebarOpen!.value = !props.mobileSidebarOpen!.value)}
               >
                 {props.mobileSidebarOpen.value ? (
-                  <lucide.panelleftclose class="size-6 shrink-0" />
+                  <lucide.panelleftclose class="vanilla-icon" />
                 ) : (
-                  <lucide.panelleftopen class="size-6 shrink-0" />
+                  <lucide.panelleftopen class="vanilla-icon" />
                 )}
               </button>
             )}
@@ -68,8 +69,8 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
               <QwikLogoOnly />
             </a>
           </div>
-          <modal.trigger class="text-foreground-base">
-            <lucide.menu class="size-6" />
+          <modal.trigger>
+            <lucide.menu class="vanilla-icon" />
           </modal.trigger>
         </div>
 
@@ -86,11 +87,9 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
               <QwikLogoOnly />
             </a>
             <div class="flex items-center gap-8">
-              <button class="text-foreground-base">
-                <lucide.search class="size-6" />
-              </button>
-              <modal.close class="text-foreground-base">
-                <lucide.x class="size-6" />
+              <SearchModal />
+              <modal.close>
+                <lucide.x class="vanilla-icon" />
               </modal.close>
             </div>
           </div>
@@ -140,8 +139,11 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
                   links={[
                     { href: '/blog', label: 'Blog' },
                     { href: '/docs/concepts/think-qwik', label: 'Concepts' },
-                    { href: '/playground', label: 'Sandbox' },
+                    { href: '/playground', label: 'Playground' },
                     { href: '/docs/labs', label: 'Qwik Labs' },
+                    { href: '/media/', label: 'Media' },
+                    { href: '/press/', label: 'Press' },
+                    { href: '/ecosystem/#community', label: 'Community' },
                   ]}
                 />
               </div>

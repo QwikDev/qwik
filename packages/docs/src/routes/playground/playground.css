@@ -1,28 +1,21 @@
+@reference "../../global.css";
+
 .playground {
-  --playground-page-bg: #fdfbff;
-  --playground-card-bg: #ffffff;
-  --playground-border: #45c6ff;
-  --playground-shadow: #b2e4ff;
-  --playground-text: #293749;
-  --playground-text-soft: #4f5f71;
-  --playground-accent: #006f96;
-  --playground-accent-soft: rgba(0, 111, 150, 0.32);
-  --playground-header-offset: 118px;
   --playground-page-padding: 24px;
   --playground-gap: 24px;
-  --repl-docs-panel-bg: #ffffff;
-  --repl-docs-border: #45c6ff;
-  --repl-docs-input-strip-bg: #c4eaff;
-  --repl-docs-text-soft: #4f5f71;
-  --repl-docs-accent: #006f96;
-  --repl-docs-accent-soft: rgba(0, 111, 150, 0.32);
-
-  width: 100%;
-  height: 100dvh;
-  min-height: 100dvh;
+  box-sizing: border-box;
+  padding-top: var(--header-height, 0px);
   color: var(--playground-text);
   background: var(--playground-page-bg);
+  @apply flex flex-col w-full h-dvh overflow-hidden;
+}
+
+.playground-main {
+  min-height: 0;
+  flex: 1 1 auto;
   overflow: hidden;
+  box-sizing: border-box;
+  padding: 0 var(--playground-page-padding) var(--playground-page-padding);
 }
 
 .playground .repl {
@@ -36,13 +29,8 @@
     'repl-input-panel repl-main-resizer repl-output-panel'
     'repl-input-panel repl-main-resizer repl-detail-panel';
   gap: 0;
-  width: calc(100% - (var(--playground-page-padding) * 2));
-  height: calc(
-    100dvh - var(--playground-header-offset) - var(--playground-page-padding) -
-      var(--panel-toggle-height, 0px)
-  );
-  margin: var(--playground-header-offset) var(--playground-page-padding)
-    var(--playground-page-padding);
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
   overflow: visible;
   background: transparent;
@@ -51,10 +39,7 @@
 .playground .repl-panel {
   min-width: 0;
   min-height: 0;
-  border: 1.6px solid var(--playground-border);
-  border-radius: 16px;
-  background: var(--playground-card-bg);
-  box-shadow: 6px 6px 0 0 var(--playground-shadow);
+  @apply border-[1.6px] border-border-base rounded-2xl bg-background-base;
 }
 
 .playground .repl-input-panel,
@@ -82,7 +67,7 @@
 }
 
 .playground .repl-detail-panel .repl-tab-buttons {
-  border-top: 1.6px solid var(--playground-border);
+  @apply border-t-[1.6px] border-border-base;
 }
 
 .playground .repl-main-resizer {
@@ -92,42 +77,17 @@
 }
 
 .playground .repl-main-resizer:hover .repl-main-resizer-line {
-  background: var(--playground-accent);
   box-shadow: 0 0 0 4px rgba(178, 228, 255, 0.7);
+  @apply bg-border-base;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 90rem) {
   .playground {
-    --playground-mobile-header-offset: 72px;
-    --panel-toggle-height: 52px;
-    --playground-page-padding: 16px;
+    padding-top: 0;
   }
 
-  .playground .repl {
-    width: 300vw;
-    height: calc(100dvh - var(--playground-mobile-header-offset) - var(--panel-toggle-height));
-    margin: var(--playground-mobile-header-offset) 0 0;
-    padding: 16px 0;
-    grid-template-columns: repeat(3, 100vw);
-    grid-template-rows: minmax(0, 1fr);
-    grid-template-areas: 'repl-input-panel repl-output-panel repl-detail-panel';
-    transform: translate3d(0, 0, 0);
-    transition: transform 500ms;
-    overflow: visible;
-  }
-
-  .playground .repl.repl-panel-output {
-    transform: translate3d(-100vw, 0, 0);
-  }
-
-  .playground .repl.repl-panel-console {
-    transform: translate3d(-200vw, 0, 0);
-  }
-
-  .playground .repl-panel {
-    width: calc(100vw - (var(--playground-page-padding) * 2));
-    height: 100%;
-    justify-self: center;
+  .playground-main {
+    padding: 0;
   }
 
   .playground .repl-output-panel {
@@ -146,7 +106,7 @@
     border-top: 0;
   }
 
-  .playground .repl-main-resizer {
-    display: none;
+  .playground .repl-panel {
+    @apply border-0;
   }
 }

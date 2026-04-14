@@ -16,6 +16,7 @@ export const ReplDetailPanel = ({ input, store }: ReplDetailPanelProps) => {
           onClick$={async () => {
             store.selectedOutputDetail = 'console';
           }}
+          order={2}
         />
         <ReplTabButton
           text="Options"
@@ -23,6 +24,7 @@ export const ReplDetailPanel = ({ input, store }: ReplDetailPanelProps) => {
           onClick$={async () => {
             store.selectedOutputDetail = 'options';
           }}
+          order={1}
         />
       </ReplTabButtons>
 

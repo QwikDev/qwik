@@ -35,7 +35,7 @@ export const LongNote = component$<{ title: string }>((props) => {
       bind:open={isOpen}
       class="border-[1.6px] border-accent rounded-2xl overflow-clip"
     >
-      <collapsible.trigger class="w-full cursor-pointer bg-background-accent px-4 py-3 flex items-center justify-between gap-4">
+      <collapsible.trigger class="w-full cursor-pointer bg-background-accent hover:bg-background-emphasis px-4 py-3 flex items-center justify-between gap-4">
         <span class="font-bold text-body-sm text-foreground-accent">{props.title}</span>
         <span class="flex items-center gap-2 text-standalone-accent text-body-sm shrink-0">
           {isOpen.value ? (

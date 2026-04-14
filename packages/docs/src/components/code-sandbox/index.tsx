@@ -52,9 +52,8 @@ export default component$<{
             rel="noopener"
             target="_blank"
             title="edit this snippet"
-            class="text-foreground-muted hover:text-foreground-base"
           >
-            <lucide.pencil class="size-5 text-foreground-base" />
+            <lucide.pencil class="vanilla-icon" />
           </a>
         </div>
         <div class="border-t-[1.6px] border-base">

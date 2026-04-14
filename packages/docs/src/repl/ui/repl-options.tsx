@@ -1,4 +1,6 @@
+import { lucide } from '@qds.dev/ui';
 import type { ReplAppInput } from '../types';
+import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-option-values';
 
 export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) => {
   return (
@@ -48,33 +50,33 @@ const StoreOption = (props: StoreOptionProps) => {
   return (
     <label class="repl-select-field">
       <span class="repl-select-label">{props.label}</span>
-      <select
-        class="repl-select"
-        onChange$={(ev?: any) => {
-          const select: HTMLSelectElement = ev.target;
-          (props.input as any)[props.inputProp] = select.value as any;
-        }}
-        disabled={!!props.isLoading}
-      >
-        {props.options.map((value) => (
-          <option
-            value={value}
-            selected={value === props.input[props.inputProp] ? true : undefined}
-            key={value}
-          >
-            {props.labels?.[value] || value}
-          </option>
-        ))}
-        {props.isLoading ? <option>Loading...</option> : null}
-      </select>
+      <div class="repl-select-wrapper">
+        <select
+          class="repl-select"
+          onChange$={(ev?: any) => {
+            const select: HTMLSelectElement = ev.target;
+            (props.input as any)[props.inputProp] = select.value as any;
+          }}
+          disabled={!!props.isLoading}
+        >
+          {props.options.map((value) => (
+            <option
+              value={value}
+              selected={value === props.input[props.inputProp] ? true : undefined}
+              key={value}
+            >
+              {props.labels?.[value] || value}
+            </option>
+          ))}
+          {props.isLoading ? <option>Loading...</option> : null}
+        </select>
+        <span class="repl-select-icon">
+          <lucide.chevrondown class="size-4" />
+        </span>
+      </div>
     </label>
   );
 };
-
-export const BUILD_MODE_OPTIONS = ['development', 'production'];
-
-// We don't support `inline` and `hoist` for client bundles
-export const ENTRY_STRATEGY_OPTIONS = ['component', 'segment', 'single', 'smart'];
 
 interface StoreOptionProps {
   label: string;

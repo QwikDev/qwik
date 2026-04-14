@@ -1,1 +1,0 @@
-{"version":3,"file":"strip-ctx.d.ts","sourceRoot":"","sources":["../../../src/optimizer/strip-ctx.ts"],"names":[],"mappings":"AAAA;;;;;;;;GAQG;AAMH;;;;;;;;;GASG;AACH,wBAAgB,iBAAiB,CAC/B,OAAO,EAAE,MAAM,EACf,OAAO,EAAE,MAAM,EACf,YAAY,CAAC,EAAE,MAAM,EAAE,EACvB,kBAAkB,CAAC,EAAE,OAAO,GAC3B,OAAO,CAcT;AAMD;;;;;;;GAOG;AACH,wBAAgB,2BAA2B,CAAC,UAAU,EAAE,MAAM,GAAG,MAAM,CAEtE"}

@@ -1,1 +1,0 @@
-{"version":3,"file":"ast-compare.d.ts","sourceRoot":"","sources":["../../../src/testing/ast-compare.ts"],"names":[],"mappings":"AAGA,MAAM,WAAW,gBAAgB;IAC/B,KAAK,EAAE,OAAO,CAAC;IACf,kBAAkB,EAAE,MAAM,GAAG,IAAI,CAAC;IAClC,gBAAgB,EAAE,MAAM,GAAG,IAAI,CAAC;CACjC;AAED;;;;;;;;;GASG;AACH,wBAAgB,UAAU,CACxB,QAAQ,EAAE,MAAM,EAChB,MAAM,EAAE,MAAM,EACd,QAAQ,EAAE,MAAM,GACf,gBAAgB,CA8DlB"}

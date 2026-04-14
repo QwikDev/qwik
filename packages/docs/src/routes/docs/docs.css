@@ -58,10 +58,6 @@
   }
 }
 
-.fixed-header {
-  @apply 2xl:mt-[102px];
-}
-
 .docs .docs-content {
   @apply min-w-0 w-full;
 }

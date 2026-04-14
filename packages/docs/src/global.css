@@ -478,3 +478,7 @@
   color: var(--color-standalone-emphasis);
   font-weight: var(--text-label-xs--font-weight);
 }
+
+.fixed-header {
+  @apply 2xl:pt-[102px];
+}

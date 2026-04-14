@@ -11243,7 +11243,7 @@ snapshots:
 
   '@netlify/binary-info@1.0.0': {}
 
-  '@netlify/blobs@10.7.0(supports-color@10.2.2)':
+  '@netlify/blobs@10.7.0':
     dependencies:
       '@netlify/dev-utils': 4.3.3
       '@netlify/otel': 5.1.5(supports-color@10.2.2)
@@ -11251,7 +11251,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@netlify/blobs@10.7.4':
+  '@netlify/blobs@10.7.4(supports-color@10.2.2)':
     dependencies:
       '@netlify/dev-utils': 4.4.3
       '@netlify/otel': 5.1.5(supports-color@10.2.2)
@@ -11274,7 +11274,7 @@ snapshots:
   '@netlify/build@35.11.1(@opentelemetry/api@1.8.0)(@types/node@24.10.0)(picomatch@4.0.4)(rollup@4.59.0)':
     dependencies:
       '@bugsnag/js': 8.9.0
-      '@netlify/blobs': 10.7.0(supports-color@10.2.2)
+      '@netlify/blobs': 10.7.4(supports-color@10.2.2)
       '@netlify/cache-utils': 6.0.5
       '@netlify/config': 24.4.4
       '@netlify/edge-bundler': 14.9.19
@@ -11422,7 +11422,7 @@ snapshots:
   '@netlify/dev@4.16.4(rollup@4.59.0)':
     dependencies:
       '@netlify/ai': 0.4.1
-      '@netlify/blobs': 10.7.4
+      '@netlify/blobs': 10.7.4(supports-color@10.2.2)
       '@netlify/config': 24.4.4
       '@netlify/db-dev': 0.7.0
       '@netlify/dev-utils': 4.4.3
@@ -11505,10 +11505,10 @@ snapshots:
 
   '@netlify/functions-dev@1.2.4(rollup@4.59.0)':
     dependencies:
-      '@netlify/blobs': 10.7.4
+      '@netlify/blobs': 10.7.4(supports-color@10.2.2)
       '@netlify/dev-utils': 4.4.3
       '@netlify/functions': 5.1.5
-      '@netlify/zip-it-and-ship-it': 14.5.2(rollup@4.59.0)(supports-color@10.2.2)
+      '@netlify/zip-it-and-ship-it': 14.5.3(rollup@4.59.0)(supports-color@10.2.2)
       cron-parser: 4.9.0
       decache: 4.6.2
       extract-zip: 2.0.1
@@ -11705,7 +11705,7 @@ snapshots:
 
   '@netlify/runtime@4.1.20':
     dependencies:
-      '@netlify/blobs': 10.7.4
+      '@netlify/blobs': 10.7.4(supports-color@10.2.2)
       '@netlify/cache': 3.4.4
       '@netlify/runtime-utils': 2.3.0
       '@netlify/types': 2.6.0
@@ -13017,8 +13017,8 @@ snapshots:
 
   '@typescript-eslint/project-service@8.56.1(typescript@5.9.3)':
     dependencies:
-      '@typescript-eslint/tsconfig-utils': 8.56.1(typescript@5.9.3)
-      '@typescript-eslint/types': 8.56.1
+      '@typescript-eslint/tsconfig-utils': 8.58.1(typescript@5.9.3)
+      '@typescript-eslint/types': 8.58.1
       debug: 4.4.3(supports-color@10.2.2)
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -13470,7 +13470,7 @@ snapshots:
       graceful-fs: 4.2.11
       is-stream: 2.0.1
       lazystream: 1.0.1
-      lodash: 4.17.23
+      lodash: 4.18.1
       normalize-path: 3.0.0
       readable-stream: 4.7.0
 
@@ -15761,7 +15761,7 @@ snapshots:
       cli-cursor: 3.1.0
       cli-width: 3.0.0
       figures: 3.2.0
-      lodash: 4.17.23
+      lodash: 4.18.1
       mute-stream: 0.0.8
       ora: 5.4.1
       run-async: 2.4.1
@@ -17124,7 +17124,7 @@ snapshots:
       '@fastify/static': 9.0.0
       '@netlify/ai': 0.4.1
       '@netlify/api': 14.0.18
-      '@netlify/blobs': 10.7.0(supports-color@10.2.2)
+      '@netlify/blobs': 10.7.0
       '@netlify/build': 35.11.1(@opentelemetry/api@1.8.0)(@types/node@24.10.0)(picomatch@4.0.4)(rollup@4.59.0)
       '@netlify/build-info': 10.4.0
       '@netlify/config': 24.4.4
@@ -19346,7 +19346,7 @@ snapshots:
       ofetch: 1.5.1
       ufo: 1.6.3
     optionalDependencies:
-      '@netlify/blobs': 10.7.0(supports-color@10.2.2)
+      '@netlify/blobs': 10.7.0
 
   unstorage@1.17.5(@netlify/blobs@10.7.4):
     dependencies:
@@ -19359,7 +19359,7 @@ snapshots:
       ofetch: 1.5.1
       ufo: 1.6.3
     optionalDependencies:
-      '@netlify/blobs': 10.7.4
+      '@netlify/blobs': 10.7.4(supports-color@10.2.2)
 
   untildify@4.0.0: {}
 
@@ -19749,7 +19749,7 @@ snapshots:
 
   wsl-utils@0.3.1:
     dependencies:
-      is-wsl: 3.1.0
+      is-wsl: 3.1.1
       powershell-utils: 0.1.0
 
   xdg-basedir@5.1.0: {}

@@ -25,13 +25,15 @@ const CopyButton = component$(() => {
   );
 });
 
-export const Hero = component$(() => {
-  const clouds = [
+export const Clouds = component$(() => {
+  return [
     <Cloud class="absolute sm:-top-3/4 -top-[60px] left-0" />,
     <Cloud class="absolute -left-1/3 2xl:-left-1/4 top-1/2 hidden sm:block" />,
     <Cloud class="absolute -right-1/3 2xl:-right-1/8 -top-1/8 hidden sm:block" />,
   ];
+});
 
+export const Hero = component$(() => {
   const shimmerMarkup = (
     <span
       class="absolute inset-0 bg-gradient-text-shimmer animate-shimmer opacity-75 mix-blend-screen"
@@ -55,7 +57,7 @@ export const Hero = component$(() => {
           </span>
           {shimmerMarkup}
         </h1>
-        {clouds}
+        <Clouds />
       </div>
 
       <p class="text-body-sm 2xl:text-body-md max-w-[50ch] text-center">

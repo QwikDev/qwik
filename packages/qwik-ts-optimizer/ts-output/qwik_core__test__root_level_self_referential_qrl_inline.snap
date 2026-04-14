@@ -23,29 +23,31 @@ import { _getConstProps } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const q_Tree_component_eqIvhrnmoqI = /* @__PURE__ */ _noopQrlDEV("Tree_component_eqIvhrnmoqI", {
-	file: "/user/qwik/src/node_modules/qwik-tree/index.qwik.jsx",
-	lo: 257,
-	hi: 393,
-	displayName: "index.qwik.jsx_Tree_component"
+const q_Tree_component_eqIvhrnmoqI = /*#__PURE__*/ _noopQrlDEV("Tree_component_eqIvhrnmoqI", {
+    file: "/user/qwik/src/./node_modules/qwik-tree/index.qwik.jsx",
+    lo: 257,
+    hi: 393,
+    displayName: "index.qwik.jsx_Tree_component"
 });
+
 // Root-level self-referential component
 // The QRL should NOT be hoisted before the component function is defined
 // or should use two-phase emission to avoid forward reference
 q_Tree_component_eqIvhrnmoqI.s((props) => {
-	return /* @__PURE__ */ _jsxSorted("div", null, null, [_wrapProp(props, "label"), props.children && props.children.map((child) => /* @__PURE__ */ _jsxSplit(Tree, { ..._getVarProps(child) }, _getConstProps(child), null, 0, "S+_0", {
-		fileName: "node_modules/qwik-tree/index.qwik.jsx",
-		lineNumber: 5,
-		columnNumber: 53
-	}))], 1, "S+_1", {
-		fileName: "node_modules/qwik-tree/index.qwik.jsx",
-		lineNumber: 3,
-		columnNumber: 3
-	});
+	return (
+		/*#__PURE__*/ _jsxSorted("div", null, null, [_wrapProp(props, "label"), props.children && props.children.map((child) => /*#__PURE__*/ _jsxSplit(Tree, { ..._getVarProps(child) }, _getConstProps(child), null, 0, "S+_0", {
+    fileName: "node_modules/qwik-tree/index.qwik.jsx",
+    lineNumber: 5,
+    columnNumber: 53
+}))], 1, "S+_1", {
+    fileName: "node_modules/qwik-tree/index.qwik.jsx",
+    lineNumber: 3,
+    columnNumber: 3
+})
+	);
 });
-export const Tree = /* @__PURE__ */ componentQrl(q_Tree_component_eqIvhrnmoqI);
-
-============================= index.qwik.jsx_Tree_component_eqIvhrnmoqI.js (ENTRY POINT)==
+export const Tree = /*#__PURE__*/ componentQrl(q_Tree_component_eqIvhrnmoqI);
+============================= index.qwik.jsx_Tree_component_eqIvhrnmoqI.ts (ENTRY POINT)==
 
 == DIAGNOSTICS ==
 

@@ -17,47 +17,46 @@ export const Works = component$((props) => {
 
 const STYLES = '.class {}';
 ============================= test.tsx ==
-import { _noopQrl } from "@qwik.dev/core";
-import { _captures } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
-import { serverQrl } from "@qwik.dev/core";
-import { useTaskQrl } from "@qwik.dev/core";
-import { useStyleQrl } from "@qwik.dev/core";
+//
+const q_Works_component_t45qL4vNGv0 = /* @__PURE__ */ qrl(() => import("./test.tsx_Works_component_t45qL4vNGv0"), "Works_component_t45qL4vNGv0");
+//
+export const Works = /* @__PURE__ */ componentQrl(q_Works_component_t45qL4vNGv0);
+const STYLES = ".class {}";
+export { STYLES as _auto_STYLES };
+
+============================= test.tsx_Works_component_useStyle_i40UL9JyQpg.js (ENTRY POINT)==
+import { _auto_STYLES as STYLES } from "./test";
+//
+export const Works_component_useStyle_i40UL9JyQpg = STYLES;
+
+============================= test.tsx_Works_component_useTask_pjo5U5Ikll0.js (ENTRY POINT)==
+import { _captures } from "@qwik.dev/core";
+//
+export const Works_component_useTask_pjo5U5Ikll0 = () => {
+const sig = _captures[0];
+		console.log(sig.value, 'hola');
+	};
+============================= test.tsx_Works_component_div_q_e_click_server_q39lOt7xGrI.js (ENTRY POINT)==
+export const Works_component_div_q_e_click_server_q39lOt7xGrI = (_, _1, sig, text) => console.log('in server', sig.value, 'hola');
+============================= test.tsx_Works_component_t45qL4vNGv0.js (ENTRY POINT)==
+import { server$, useSignal } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
-import { useSignal } from "@qwik.dev/core";
+import { useStyleQrl } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
 //
-const q_Works_component_div_q_e_click_server_q39lOt7xGrI = /* @__PURE__ */ _noopQrl("Works_component_div_q_e_click_server_q39lOt7xGrI");
-const q_Works_component_t45qL4vNGv0 = /* @__PURE__ */ _noopQrl("Works_component_t45qL4vNGv0");
-const q_Works_component_useStyle_i40UL9JyQpg = /* @__PURE__ */ _noopQrl("Works_component_useStyle_i40UL9JyQpg");
-const q_Works_component_useTask_pjo5U5Ikll0 = /* @__PURE__ */ _noopQrl("Works_component_useTask_pjo5U5Ikll0");
+const q_Works_component_div_q_e_click_server_q39lOt7xGrI = /*#__PURE__*/ qrl(() => import("./test.tsx_Works_component_div_q_e_click_server_q39lOt7xGrI"), "Works_component_div_q_e_click_server_q39lOt7xGrI");
+const q_Works_component_useStyle_i40UL9JyQpg = /*#__PURE__*/ qrl(() => import("./test.tsx_Works_component_useStyle_i40UL9JyQpg"), "Works_component_useStyle_i40UL9JyQpg");
+const q_Works_component_useTask_pjo5U5Ikll0 = /*#__PURE__*/ qrl(() => import("./test.tsx_Works_component_useTask_pjo5U5Ikll0"), "Works_component_useTask_pjo5U5Ikll0");
 //
-const Works_component_useStyle_i40UL9JyQpg = STYLES;
-q_Works_component_useStyle_i40UL9JyQpg.s(Works_component_useStyle_i40UL9JyQpg);
-const Works_component_useTask_pjo5U5Ikll0 = () => {
-	const sig = _captures[0];
-	console.log(sig.value, "hola");
-};
-q_Works_component_useTask_pjo5U5Ikll0.s(Works_component_useTask_pjo5U5Ikll0);
-const Works_component_div_q_e_click_server_q39lOt7xGrI = (_, _1, sig, text) => console.log("in server", sig.value, "hola");
-q_Works_component_div_q_e_click_server_q39lOt7xGrI.s(Works_component_div_q_e_click_server_q39lOt7xGrI);
-const Works_component_t45qL4vNGv0 = (props) => {
-	const STYLES = _captures[0];
+export const Works_component_t45qL4vNGv0 = (props) => {
 	useStyleQrl(q_Works_component_useStyle_i40UL9JyQpg);
 	const sig = useSignal("hola");
 	useTaskQrl(q_Works_component_useTask_pjo5U5Ikll0.w([sig]));
-	return /* @__PURE__ */ _jsxSorted("div", { "q-e:click": serverQrl(q_Works_component_div_q_e_click_server_q39lOt7xGrI) }, null, null, 2, "u6_0");
+	return /*#__PURE__*/ _jsxSorted("div", { "q-e:click": server$ = { q_Works_component_div_q_e_click_server_q39lOt7xGrI } }, null, null, 2, "u6_0");
 };
-q_Works_component_t45qL4vNGv0.s(Works_component_t45qL4vNGv0);
-export const Works = /* @__PURE__ */ componentQrl(q_Works_component_t45qL4vNGv0.w([STYLES]));
-const STYLES = ".class {}";
-
-============================= test.tsx_Works_component_useStyle_i40UL9JyQpg.js (ENTRY POINT)==
-
-============================= test.tsx_Works_component_useTask_pjo5U5Ikll0.js (ENTRY POINT)==
-
-============================= test.tsx_Works_component_div_q_e_click_server_q39lOt7xGrI.js (ENTRY POINT)==
-
-============================= test.tsx_Works_component_t45qL4vNGv0.js (ENTRY POINT)==
 
 == DIAGNOSTICS ==
 

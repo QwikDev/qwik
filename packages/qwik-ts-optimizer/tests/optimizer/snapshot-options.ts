@@ -151,12 +151,12 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'segment' },
   },
   example_qwik_react: {
-    filename: '../node_modules/@builder.io/qwik-react/index.qwik.mjs',
+    filename: '../node_modules/@qwik.dev/react/index.qwik.mjs',
     entryStrategy: { type: 'segment' },
     explicitExtensions: true,
   },
   example_qwik_react_inline: {
-    filename: '../node_modules/@builder.io/qwik-react/index.qwik.mjs',
+    filename: '../node_modules/@qwik.dev/react/index.qwik.mjs',
     entryStrategy: { type: 'inline' },
     explicitExtensions: true,
   },
@@ -551,17 +551,22 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   transform_qrl_in_regular_prop: { transpileJsx: true },
 
   // --- Inline entry strategy, transpileTs + transpileJsx (inlinedQrl in output, no ENTRY POINT segments) ---
-  fun_with_scopes: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },
-  example_lib_mode: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },
+  fun_with_scopes: {
+    transpileTs: true,
+    transpileJsx: true,
+    isServer: true,
+    entryStrategy: { type: 'hoist' },
+  },
+  example_lib_mode: { transpileTs: true, transpileJsx: true, mode: 'lib' },
   should_ignore_null_inlined_qrl: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },
   should_not_generate_conflicting_props_identifiers: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },
   should_not_move_over_side_effects: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },
 
   // --- Inline entry strategy with transpileTs + transpileJsx + hoist-like patterns ---
   root_level_self_referential_qrl_inline: {
-    filename: 'node_modules/qwik-tree/index.qwik.jsx',
-    transpileTs: true,
+    filename: './node_modules/qwik-tree/index.qwik.jsx',
     transpileJsx: true,
+    isServer: true,
     entryStrategy: { type: 'inline' },
     mode: 'dev',
   },
@@ -572,15 +577,14 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   example_props_wrapping_children: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'hoist' } },
   example_props_wrapping_children2: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'hoist' } },
 
-  // --- Smart entry strategy ---
+  // --- Segment entry strategy with explicit extensions ---
   example_qwik_router_client: {
     filename: '../node_modules/@qwik.dev/router/index.qwik.mjs',
-    entryStrategy: { type: 'smart' },
     explicitExtensions: true,
   },
 
   // --- Self-referential component migration (output has multiple segments with JSX) ---
-  example_self_referential_component_migration: { transpileTs: true, transpileJsx: true },
+  example_self_referential_component_migration: { transpileJsx: true },
 
   // --- HMR test ---
   // hmr already listed above with transpileTs + transpileJsx

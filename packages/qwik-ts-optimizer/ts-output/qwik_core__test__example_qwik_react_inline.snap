@@ -91,7 +91,7 @@ async function renderToString(rootNode, opts) {
 }
 
 export { qwikify$, qwikifyQrl, renderToString };
-============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs ==
+============================= ../node_modules/@qwik.dev/react/index.qwik.mjs ==
 import { _noopQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { componentQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';

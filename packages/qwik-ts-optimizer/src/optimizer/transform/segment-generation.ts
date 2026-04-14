@@ -545,7 +545,28 @@ export function generateAllSegmentModules(
                   importedName: imp.importedName,
                   source: imp.source,
                 });
+                continue;
               }
+
+              if (!sameFileSymbols.has(idName) || idName === decision.varName) {
+                continue;
+              }
+
+              if (defaultExportedNames.has(idName)) {
+                importDeps.push({
+                  localName: idName,
+                  importedName: 'default',
+                  source: parentModulePath,
+                });
+                continue;
+              }
+
+              const exportedAs = renamedExports.get(idName);
+              importDeps.push({
+                localName: idName,
+                importedName: exportedAs ?? idName,
+                source: parentModulePath,
+              });
             }
             captureInfo.movedDeclarations.push({
               text: decl.declText,

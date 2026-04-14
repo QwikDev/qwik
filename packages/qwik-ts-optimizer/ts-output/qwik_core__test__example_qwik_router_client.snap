@@ -2952,7 +2952,9 @@ import { _auto_getScrollHistory as getScrollHistory } from "./index.qwik.mjs";
 import { _auto_spaInit as spaInit } from "./index.qwik.mjs";
 import { _auto_startViewTransition as startViewTransition } from "./index.qwik.mjs";
 import { withLocale } from "@qwik.dev/core";
+import { createDocumentHead } from "./index.qwik.mjs";
 import { i as isPromise } from "./chunks/routing.qwik.mjs";
+import { resolveDocumentHead } from "./index.qwik.mjs";
 import { QWIK_ROUTER_SCROLLER } from "./index.qwik.mjs";
 //
 const resolveHead = (endpoint, routeLocation, contentModules, locale, defaults) =>
@@ -3360,8 +3362,16 @@ import { jsx } from "@qwik.dev/core/jsx-runtime";
 import { Slot } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 import { $ } from "@qwik.dev/core";
+import { createDocumentHead } from "./index.qwik.mjs";
 import { useSignal } from "@qwik.dev/core";
 import { useContextProvider } from "@qwik.dev/core";
+import { ContentContext } from "./index.qwik.mjs";
+import { ContentInternalContext } from "./index.qwik.mjs";
+import { DocumentHeadContext } from "./index.qwik.mjs";
+import { RouteLocationContext } from "./index.qwik.mjs";
+import { RouteNavigateContext } from "./index.qwik.mjs";
+import { RouteStateContext } from "./index.qwik.mjs";
+import { RouteActionContext } from "./index.qwik.mjs";
 import { useTask$ } from "@qwik.dev/core";
 //
 const useQwikMockRouter = (props) => {

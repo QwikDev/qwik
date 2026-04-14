@@ -5,92 +5,92 @@ use serde_json::to_string_pretty;
 use swc_atoms::Atom;
 
 macro_rules! snapshot_res {
-	($res: expr, $prefix: expr) => {
-		match $res {
-			Ok(v) => {
-				let mut output: String = $prefix;
+    ($res: expr, $prefix: expr) => {
+        match $res {
+            Ok(v) => {
+                let mut output: String = $prefix;
 
-				for module in &v.modules {
-					let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
-					output += format!(
-						"\n============================= {} {}==\n\n{}\n\n{:?}",
-						module.path, is_entry, module.code, module.map
-					)
-					.as_str();
-					if let Some(segment) = &module.segment {
-						let segment = to_string_pretty(&segment).unwrap();
-						output += &format!("\n/*\n{}\n*/", segment);
-					}
-				}
-				output += format!(
-					"\n== DIAGNOSTICS ==\n\n{}",
-					to_string_pretty(&v.diagnostics).unwrap()
-				)
-				.as_str();
-				insta::assert_snapshot!(output);
-			}
-			Err(err) => {
-				insta::assert_snapshot!(err);
-			}
-		}
-	};
+                for module in &v.modules {
+                    let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
+                    output += format!(
+                        "\n============================= {} {}==\n\n{}\n\n{:?}",
+                        module.path, is_entry, module.code, module.map
+                    )
+                    .as_str();
+                    if let Some(segment) = &module.segment {
+                        let segment = to_string_pretty(&segment).unwrap();
+                        output += &format!("\n/*\n{}\n*/", segment);
+                    }
+                }
+                output += format!(
+                    "\n== DIAGNOSTICS ==\n\n{}",
+                    to_string_pretty(&v.diagnostics).unwrap()
+                )
+                .as_str();
+                insta::assert_snapshot!(output);
+            }
+            Err(err) => {
+                insta::assert_snapshot!(err);
+            }
+        }
+    };
 }
 
 macro_rules! test_input {
-	($input: expr) => {{
-		let input = $input;
-		let code = input.code.to_string();
-		let snapshot = input.snapshot;
-		let res = test_input_fn(input);
-		if snapshot {
-			snapshot_res!(&res, format!("==INPUT==\n\n{}", code.to_string()));
-		}
-		res
-	}};
+    ($input: expr) => {{
+        let input = $input;
+        let code = input.code.to_string();
+        let snapshot = input.snapshot;
+        let res = test_input_fn(input);
+        if snapshot {
+            snapshot_res!(&res, format!("==INPUT==\n\n{}", code.to_string()));
+        }
+        res
+    }};
 }
 
 fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
-	let strip_exports: Option<Vec<Atom>> = input
-		.strip_exports
-		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
-	let reg_ctx_name: Option<Vec<Atom>> = input
-		.reg_ctx_name
-		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
-	let strip_ctx_name: Option<Vec<Atom>> = input
-		.strip_ctx_name
-		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+    let strip_exports: Option<Vec<Atom>> = input
+        .strip_exports
+        .map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+    let reg_ctx_name: Option<Vec<Atom>> = input
+        .reg_ctx_name
+        .map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+    let strip_ctx_name: Option<Vec<Atom>> = input
+        .strip_ctx_name
+        .map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
 
-	transform_modules(TransformModulesOptions {
-		src_dir: input.src_dir,
-		root_dir: input.root_dir,
-		input: vec![TransformModuleInput {
-			code: input.code.clone(),
-			path: input.filename,
-			dev_path: input.dev_path,
-		}],
-		source_maps: true,
-		minify: input.minify,
-		transpile_ts: input.transpile_ts,
-		transpile_jsx: input.transpile_jsx,
-		preserve_filenames: input.preserve_filenames,
-		explicit_extensions: input.explicit_extensions,
-		entry_strategy: input.entry_strategy,
-		mode: input.mode,
-		scope: input.scope,
-		core_module: input.core_module,
-		strip_exports,
-		strip_ctx_name,
-		reg_ctx_name,
-		strip_event_handlers: input.strip_event_handlers,
-		is_server: input.is_server,
-		// filler to maintain line offsets
-	})
+    transform_modules(TransformModulesOptions {
+        src_dir: input.src_dir,
+        root_dir: input.root_dir,
+        input: vec![TransformModuleInput {
+            code: input.code.clone(),
+            path: input.filename,
+            dev_path: input.dev_path,
+        }],
+        source_maps: true,
+        minify: input.minify,
+        transpile_ts: input.transpile_ts,
+        transpile_jsx: input.transpile_jsx,
+        preserve_filenames: input.preserve_filenames,
+        explicit_extensions: input.explicit_extensions,
+        entry_strategy: input.entry_strategy,
+        mode: input.mode,
+        scope: input.scope,
+        core_module: input.core_module,
+        strip_exports,
+        strip_ctx_name,
+        reg_ctx_name,
+        strip_event_handlers: input.strip_event_handlers,
+        is_server: input.is_server,
+        // filler to maintain line offsets
+    })
 }
 
 #[test]
 fn example_1() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component, onRender } from '@qwik.dev/core';
 
 export const renderHeader1 = $(() => {
@@ -103,15 +103,15 @@ const renderHeader2 = component($(() => {
 	return render;
 }));
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_2() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 export const Header = component$(() => {
 	console.log("mount");
@@ -120,15 +120,15 @@ export const Header = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_3() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 export const App = () => {
 	const Header = component$(() => {
@@ -140,15 +140,15 @@ export const App = () => {
 	return Header;
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_4() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 export function App() {
 	const Header = component$(() => {
@@ -160,15 +160,15 @@ export function App() {
 	return Header;
 }
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_5() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 export const Header = component$(() => {
 	return (
@@ -179,27 +179,27 @@ export const Header = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_6() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 export const sym1 = $((ctx) => console.log("1"));
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_7() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 
 export const Header = component$(() => {
@@ -215,15 +215,15 @@ const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_8() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 
 export const Header = component$(() => {
@@ -237,15 +237,15 @@ export const Header = component$(() => {
 	});
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_9() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 const Header = $((decl1, {decl2}, [decl3]) => {
 	const {decl4, key: decl5} = this;
@@ -259,16 +259,16 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 	try{}catch({decl19}){}
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_10() {
-	test_input!(TestInput {
-		filename: "project/test.tsx".to_string(),
-		code: r#"
+    test_input!(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 const Header = $((decl1, {decl2}, [decl3]) => {
 
@@ -289,16 +289,16 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 	)
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_11() {
-	test_input!(TestInput {
-		filename: "project/test.tsx".to_string(),
-		code: r#"
+    test_input!(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
@@ -318,16 +318,16 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Single,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Single,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_functional_component() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useStore } from '@qwik.dev/core';
 const Header = component$(() => {
 	const thing = useStore();
@@ -338,16 +338,16 @@ const Header = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		minify: MinifyMode::None,
-		..TestInput::default()
-	});
+        .to_string(),
+        minify: MinifyMode::None,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_functional_component_2() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useStore } from '@qwik.dev/core';
 export const useCounter = () => {
 	return useStore({count: 0});
@@ -377,17 +377,17 @@ export const App = component$((props) => {
 	);
 })
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_functional_component_capture_props() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
@@ -404,17 +404,17 @@ export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
 	});
 })
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_multi_capture() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(({foo}) => {
@@ -439,16 +439,16 @@ export const Bar = component$(({bar}) => {
 	});
 })
 "#
-		.to_string(),
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_dead_code() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 import { deps } from 'deps';
 
@@ -463,16 +463,16 @@ export const Foo = component$(({foo}) => {
 	);
 })
 "#
-		.to_string(),
-		minify: MinifyMode::Simplify,
-		..TestInput::default()
-	});
+        .to_string(),
+        minify: MinifyMode::Simplify,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_with_tagname() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
@@ -486,15 +486,15 @@ export const Foo = component$(() => {
 	tagName: "my-foo",
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_with_style() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useStyles$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
@@ -506,15 +506,15 @@ export const Foo = component$(() => {
 	tagName: "my-foo",
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_props_optimization() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
 export const Works = component$(({
@@ -556,18 +556,18 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_props_wrapping() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useSignal } from '@qwik.dev/core';
 export const Works = component$(({fromProps}) => {
 	let fromLocal = useSignal(0);
@@ -583,18 +583,18 @@ export const Works = component$(({fromProps}) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_props_wrapping2() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useSignal } from '@qwik.dev/core';
 export const Works = component$((props: { fromProps: number }) => {
 	let fromLocal = useSignal(0);
@@ -610,18 +610,18 @@ export const Works = component$((props: { fromProps: number }) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_props_wrapping_children() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useSignal } from '@qwik.dev/core';
 export const Works = component$(({fromProps}) => {
 	let fromLocal = useSignal(0);
@@ -637,18 +637,18 @@ export const Works = component$(({fromProps}) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_props_wrapping_children2() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useSignal } from '@qwik.dev/core';
 export const Works = component$((props) => {
 	let fromLocal = useSignal(0);
@@ -666,18 +666,18 @@ export const Works = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_use_optimization() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
 export const Works = component$((props) => {
@@ -693,19 +693,19 @@ export const Works = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: false,
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		is_server: Some(false),
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_optimization_issue_3561() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const Issue3561 = component$(() => {
@@ -727,19 +727,19 @@ export const Issue3561 = component$(() => {
 	return <p></p>;
 	});
 "#
-		.to_string(),
-		transpile_jsx: false,
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		is_server: Some(false),
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_optimization_issue_4386() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const FOO_MAPPING = {
@@ -755,18 +755,18 @@ export const FOO_MAPPING = {
 	return <>{value}</>;
 	});
 "#
-		.to_string(),
-		transpile_jsx: false,
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		is_server: Some(false),
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_optimization_issue_3542() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
 
@@ -794,8 +794,8 @@ export const AtomStatus = component$(({ctx,atom})=>{
 
 #[test]
 fn example_optimization_issue_3795() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const Issue3795 = component$(() => {
@@ -808,19 +808,19 @@ export const Issue3795 = component$(() => {
 	)
 	});
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		transpile_jsx: true,
-		is_server: Some(false),
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_drop_side_effects() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 import { server$ } from '@qwik.dev/router';
 import { clientSupabase } from 'supabase';
@@ -850,21 +850,21 @@ export default component$(() => {
 	)
 	});
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Segment,
-		strip_ctx_name: Some(vec!["server".into()]),
-		transpile_ts: true,
-		transpile_jsx: true,
-		is_server: Some(false),
-		mode: EmitMode::Dev,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Segment,
+        strip_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        is_server: Some(false),
+        mode: EmitMode::Dev,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_reg_ctx_name_segments() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, server$ } from '@qwik.dev/core';
 import { foo } from './foo';
 export const Works = component$((props) => {
@@ -877,20 +877,20 @@ export const Works = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Inline,
-		reg_ctx_name: Some(vec!["server".into()]),
-		strip_event_handlers: true,
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        reg_ctx_name: Some(vec!["server".into()]),
+        strip_event_handlers: true,
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_reg_ctx_name_segments_inlined() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, server$ } from '@qwik.dev/core';
 export const Works = component$((props) => {
 	const text = 'hola';
@@ -899,19 +899,19 @@ export const Works = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Inline,
-		reg_ctx_name: Some(vec!["server".into()]),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_reg_ctx_name_segments_hoisted() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, server$, useStyle$ } from '@qwik.dev/core';
 
 export const Works = component$((props) => {
@@ -924,18 +924,18 @@ export const Works = component$((props) => {
 
 const STYLES = '.class {}';
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Hoist,
-		reg_ctx_name: Some(vec!["server".into()]),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        reg_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 #[test]
 fn example_lightweight_functional() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$((props) => {
@@ -961,15 +961,15 @@ export const ButtonArrow = ({text, color}) => {
 	);
 }
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_invalid_references() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 
 const I1 = 12;
@@ -987,17 +987,17 @@ export const App = component$(({count}) => {
 	});
 })
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_invalid_segment_expr1() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useStyles$ } from '@qwik.dev/core';
 import css1 from './global.css';
 import css2 from './style.css';
@@ -1013,17 +1013,17 @@ export const App = component$(() => {
 	return $(render);
 })
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_capture_imports() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStyles$ } from '@qwik.dev/core';
 import css1 from './global.css';
 import css2 from './style.css';
@@ -1034,17 +1034,17 @@ export const App = component$(() => {
 	useStyles$(css3);
 })
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_capturing_fn_class() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -1063,17 +1063,17 @@ export const App = component$(() => {
 	});
 })
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_renamed_exports() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ as Component, $ as onRender, useStore } from '@qwik.dev/core';
 
 export const App = Component((props) => {
@@ -1084,18 +1084,18 @@ export const App = Component((props) => {
 	));
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_exports() {
-	test_input!(TestInput {
-		filename: "project/test.tsx".to_string(),
-		code: r#"
+    test_input!(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 
 export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
@@ -1120,29 +1120,29 @@ export const Header = component$(() => {
 
 export const Footer = component$();
 "#
-		.to_string(),
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn issue_117() {
-	test_input!(TestInput {
-		filename: "project/test.tsx".to_string(),
-		code: r#"
+    test_input!(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Single,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Single,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_jsx() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, h, Fragment } from '@qwik.dev/core';
 
 export const Lightweight = (props) => {
@@ -1183,17 +1183,17 @@ export const Foo = component$((props) => {
 	tagName: "my-foo",
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_jsx_listeners() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
@@ -1226,17 +1226,17 @@ export const Foo = component$(() => {
 	tagName: "my-foo",
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_qwik_conflict() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useStyles } from '@qwik.dev/core';
 import { qrl } from '@qwik.dev/core/what';
 
@@ -1269,18 +1269,18 @@ export const Root = component$(() => {
 	tagName: "my-foo",
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_fix_dynamic_import() {
-	test_input!(TestInput {
-		filename: "project/folder/test.tsx".to_string(),
-		code: r#"
+    test_input!(TestInput {
+        filename: "project/folder/test.tsx".to_string(),
+        code: r#"
 import { $, component$ } from '@qwik.dev/core';
 import thing from "../state";
 
@@ -1297,16 +1297,16 @@ export const Header = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Single,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Single,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_custom_inlined_functions() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, $, useStore, wrap, useEffect } from '@qwik.dev/core';
 
 export const useMemoQrl = (qrt) => {
@@ -1331,17 +1331,17 @@ export const Lightweight = (props) => {
 	});
 };
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_missing_custom_inlined_functions() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ as Component, $ as onRender, useStore, wrap, useEffect } from '@qwik.dev/core';
 
 
@@ -1359,17 +1359,17 @@ export const App = component$((props) => {
 	));
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_skip_transform() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ as Component, $ as onRender } from '@qwik.dev/core';
 
 export const handler = $(()=>console.log('hola'));
@@ -1381,17 +1381,17 @@ export const App = component$((props) => {
 	));
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_explicit_ext_transpile() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, $, useStyles$ } from '@qwik.dev/core';
 
 export const App = component$((props) => {
@@ -1401,18 +1401,18 @@ export const App = component$((props) => {
 	));
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_explicit_ext_no_transpile() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, $, useStyles$ } from '@qwik.dev/core';
 
 export const App = component$((props) => {
@@ -1422,17 +1422,17 @@ export const App = component$((props) => {
 	));
 });
 "#
-		.to_string(),
-		explicit_extensions: true,
-		entry_strategy: EntryStrategy::Single,
-		..TestInput::default()
-	});
+        .to_string(),
+        explicit_extensions: true,
+        entry_strategy: EntryStrategy::Single,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_jsx_import_source() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 /* @jsxImportSource react */
 
 import { qwikify$ } from './qwikfy';
@@ -1445,18 +1445,18 @@ export const App2 = qwikify$(() => (
 	<div onClick$={()=>console.log('App2')}></div>
 ));
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_prod_node() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
@@ -1469,16 +1469,16 @@ export const Foo = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		mode: EmitMode::Prod,
-		..TestInput::default()
-	});
+        .to_string(),
+        mode: EmitMode::Prod,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_use_client_effect() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@qwik.dev/core';
 
 export const Child = component$(() => {
@@ -1504,17 +1504,17 @@ export const Child = component$(() => {
 });
 
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_inlined_entry_strategy() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@qwik.dev/core';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
@@ -1538,16 +1538,16 @@ export const Child = component$(() => {
 });
 
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Inline,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_default_export() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 import { sibling } from './sibling';
 
@@ -1559,20 +1559,20 @@ export default component$(() => {
 });
 
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		filename: "src/routes/_repl/[id]/[[...slug]].tsx".into(),
-		entry_strategy: EntryStrategy::Smart,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        filename: "src/routes/_repl/[id]/[[...slug]].tsx".into(),
+        entry_strategy: EntryStrategy::Smart,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_default_export_index() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -1583,17 +1583,17 @@ export default component$(() => {
 });
 
 "#
-		.to_string(),
-		filename: "src/components/mongo/index.tsx".into(),
-		entry_strategy: EntryStrategy::Inline,
-		..TestInput::default()
-	});
+        .to_string(),
+        filename: "src/components/mongo/index.tsx".into(),
+        entry_strategy: EntryStrategy::Inline,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_default_export_invalid_ident() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -1604,16 +1604,16 @@ export default component$(() => {
 });
 
 "#
-		.to_string(),
-		filename: "src/components/mongo/404.tsx".into(),
-		..TestInput::default()
-	});
+        .to_string(),
+        filename: "src/components/mongo/404.tsx".into(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_parsed_inlined_qrls() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@qwik.dev/core';
 
 export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
@@ -1649,18 +1649,18 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 export const STYLES = ".red { color: red; }";
 
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Inline,
-		mode: EmitMode::Prod,
-		transpile_ts: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        mode: EmitMode::Prod,
+        transpile_ts: false,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_use_server_mount() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useTask$, useStore, useStyles$ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
@@ -1700,18 +1700,18 @@ export const Child = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Smart,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Smart,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_manual_chunks() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useTask$, useStore, useStyles$ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
@@ -1751,22 +1751,22 @@ export const Child = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		// filler to maintain line offsets
-		// this is a test for manual chunks
-		// which are no longer used in the optimizer
-		//
-		transpile_ts: true,
-		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Smart,
-		..TestInput::default()
-	});
+        .to_string(),
+        // filler to maintain line offsets
+        // this is a test for manual chunks
+        // which are no longer used in the optimizer
+        //
+        transpile_ts: true,
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Smart,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_strip_exports_unused() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 import mongodb from 'mongodb';
 
@@ -1783,16 +1783,16 @@ export default component$(()=> {
 	return <div>cmp</div>
 });
 "#
-		.to_string(),
-		strip_exports: Some(vec!["onGet".into()]),
-		..TestInput::default()
-	});
+        .to_string(),
+        strip_exports: Some(vec!["onGet".into()]),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_strip_exports_used() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useResource$ } from '@qwik.dev/core';
 import mongodb from 'mongodb';
 
@@ -1812,15 +1812,15 @@ export default component$(()=> {
 	return <div>cmp</div>
 });
 "#
-		.to_string(),
-		strip_exports: Some(vec!["onGet".into()]),
-		..TestInput::default()
-	});
+        .to_string(),
+        strip_exports: Some(vec!["onGet".into()]),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_strip_server_code() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@qwik.dev/core';
 import { isServer } from '@qwik.dev/core';
@@ -1876,8 +1876,8 @@ export const Parent = component$(() => {
 
 #[test]
 fn example_server_auth() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import GitHub from '@auth/core/providers/github'
 import Facebook from 'next-auth/providers/facebook'
 import Google from 'next-auth/providers/google'
@@ -1917,18 +1917,18 @@ export const { onRequest, logout, getSession, signup } = auth$({
 	]
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Segment,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Segment,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_strip_client_code() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useClientMount$, useStore, useTask$ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
@@ -1966,21 +1966,21 @@ export const Parent = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		filename: "components/component.tsx".into(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Inline,
-		strip_ctx_name: Some(vec!["useClientMount$".into()]),
-		strip_event_handlers: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        filename: "components/component.tsx".into(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        strip_ctx_name: Some(vec!["useClientMount$".into()]),
+        strip_event_handlers: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn issue_150() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, $ } from '@qwik.dev/core';
 import { hola } from 'sdfds';
 
@@ -2001,17 +2001,17 @@ export const Greeter = component$(() => {
 
 const d = $(()=>console.log('thing'));
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_input_bind() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, $ } from '@qwik.dev/core';
 
 export const Greeter = component$(() => {
@@ -2030,19 +2030,19 @@ export const Greeter = component$(() => {
 	)
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		transpile_jsx: true,
-		mode: EmitMode::Prod,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: true,
+        mode: EmitMode::Prod,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_import_assertion() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, $ } from '@qwik.dev/core';
 import json from "./foo.json" assert { type: "json" };
 
@@ -2050,33 +2050,33 @@ export const Greeter = component$(() => {
 	return json;
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn support_windows_paths() {
-	let res = test_input!(TestInput {
-		filename: r"components\apps\apps.tsx".to_string(),
-		src_dir: r"C:\users\apps".to_string(),
-		code: r#"
+    let res = test_input!(TestInput {
+        filename: r"components\apps\apps.tsx".to_string(),
+        src_dir: r"C:\users\apps".to_string(),
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 export const Greeter = component$(() => <div/>)
 "#
-		.to_string(),
-		transpile_jsx: true,
-		is_server: Some(false),
-		entry_strategy: EntryStrategy::Segment,
-		..TestInput::default()
-	})
-	.unwrap();
-	// verify that none of the modules have a path that contains backslashes
-	for module in res.modules {
-		assert!(!module.path.contains('\\'));
-	}
+        .to_string(),
+        transpile_jsx: true,
+        is_server: Some(false),
+        entry_strategy: EntryStrategy::Segment,
+        ..TestInput::default()
+    })
+    .unwrap();
+    // verify that none of the modules have a path that contains backslashes
+    for module in res.modules {
+        assert!(!module.path.contains('\\'));
+    }
 }
 // filler to retain assertion line numbers
 //
@@ -2087,8 +2087,8 @@ export const Greeter = component$(() => <div/>)
 
 #[test]
 fn issue_476() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { Counter } from "./counter.tsx";
 
 export const Root = () => {
@@ -2105,17 +2105,17 @@ export const Root = () => {
 	);
 };
 "#
-		.to_string(),
-		transpile_ts: false,
-		transpile_jsx: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: false,
+        transpile_jsx: false,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn issue_964() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -2126,17 +2126,17 @@ export const App = component$(() => {
 	return <p>Hello Qwik</p>;
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_immutable_analysis() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore, $ } from '@qwik.dev/core';
 import importedValue from 'v';
 import styles from './styles.module.css';
@@ -2187,17 +2187,17 @@ export const App = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_ts_enums_issue_1341() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 enum Thing {
@@ -2214,17 +2214,17 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_ts_enums_no_transpile() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export enum Thing {
@@ -2241,18 +2241,18 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: false,
-		transpile_jsx: false,
+        .to_string(),
+        transpile_ts: false,
+        transpile_jsx: false,
 
-		..TestInput::default()
-	});
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_ts_enums() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export enum Thing {
@@ -2269,17 +2269,17 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn special_jsx() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 // don't transpile jsx with non-plain-object props
 import { jsx } from '@qwik.dev/core';
 
@@ -2288,17 +2288,17 @@ export const App = () => {
     return jsx('div', props, 'Hello Qwik');
 }
 "#
-		.to_string(),
-		transpile_ts: false,
-		transpile_jsx: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: false,
+        transpile_jsx: false,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_dev_mode() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -2309,18 +2309,18 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		mode: EmitMode::Dev,
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        mode: EmitMode::Dev,
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_dev_mode_inlined() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -2331,19 +2331,19 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		mode: EmitMode::Dev,
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        mode: EmitMode::Dev,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_transpile_jsx_only() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props) => {
@@ -2354,18 +2354,18 @@ export const App = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: false,
-		transpile_jsx: true,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: false,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_spread_jsx() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 import { useDocumentHead, useLocation } from '@qwik.dev/router';
 
@@ -2398,17 +2398,17 @@ export const RouterHead = component$(() => {
 	</>
 	);
 });"#
-			.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+            .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_export_issue() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 const App = component$(() => {
@@ -2429,17 +2429,17 @@ export { Other as App };
 
 export default App;
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_jsx_keyed() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
@@ -2454,18 +2454,18 @@ export const App = component$((props: Stuff) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_jsx_keyed_dev() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
@@ -2480,21 +2480,21 @@ export const App = component$((props: Stuff) => {
 	);
 });
 "#
-		.to_string(),
-		filename: "project/index.tsx".into(),
-		src_dir: "/src/project".into(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		mode: EmitMode::Dev,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        filename: "project/index.tsx".into(),
+        src_dir: "/src/project".into(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        mode: EmitMode::Dev,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_mutable_children() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore, Slot, Fragment } from '@qwik.dev/core';
 import Image from './image.jpg?jsx';
 
@@ -2590,19 +2590,19 @@ export const AppStatic = component$((props: Stuff) => {
 	);
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Hoist,
-		transpile_ts: true,
-		transpile_jsx: true,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_immutable_function_components() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore, Slot } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
@@ -2613,18 +2613,18 @@ export const App = component$((props: Stuff) => {
 	);
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Hoist,
-		transpile_ts: true,
-		transpile_jsx: true,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 #[test]
 fn example_transpile_ts_only() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
@@ -2635,19 +2635,19 @@ export const App = component$((props: Stuff) => {
 	);
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		transpile_jsx: false,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: false,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_class_name() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const App2 = component$(() => {
@@ -2668,18 +2668,18 @@ export const App2 = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_preserve_filenames() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props) => {
@@ -2690,20 +2690,20 @@ export const App = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: false,
-		transpile_jsx: true,
-		preserve_filenames: true,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: false,
+        transpile_jsx: true,
+        preserve_filenames: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_preserve_filenames_segments() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
@@ -2717,20 +2717,20 @@ export const App = component$((props: Stuff) => {
 
 export const foo = () => console.log('foo');
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Segment,
-		transpile_ts: true,
-		transpile_jsx: true,
-		preserve_filenames: true,
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Segment,
+        transpile_ts: true,
+        transpile_jsx: true,
+        preserve_filenames: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_build_server() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore, isDev, isServer as isServer2 } from '@qwik.dev/core';
 import { isServer, isBrowser as isb } from '@qwik.dev/core/build';
 import { mongodb } from 'mondodb';
@@ -2763,17 +2763,17 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		is_server: Some(true),
-		mode: EmitMode::Prod,
-		..TestInput::default()
-	});
+        .to_string(),
+        is_server: Some(true),
+        mode: EmitMode::Prod,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_derived_signals_div() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
@@ -2826,18 +2826,18 @@ export const App = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		entry_strategy: EntryStrategy::Hoist,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_issue_4438() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -2850,18 +2850,18 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		entry_strategy: EntryStrategy::Hoist,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_derived_signals_children() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
@@ -2905,18 +2905,18 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		entry_strategy: EntryStrategy::Hoist,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_derived_signals_multiple_children() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
@@ -2951,18 +2951,18 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		entry_strategy: EntryStrategy::Hoist,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_derived_signals_complext_children() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
@@ -2983,18 +2983,18 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		entry_strategy: EntryStrategy::Hoist,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_derived_signals_cmp() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
@@ -3036,17 +3036,17 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		entry_strategy: EntryStrategy::Hoist,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_issue_33443() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
@@ -3073,8 +3073,8 @@ export const Issue3742 = component$(({description = '', other}: any) => {
 }
 #[test]
 fn example_getter_generation() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -3108,16 +3108,16 @@ export const Cmp = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_qwik_react() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';
 import { jsx, Fragment } from '@qwik.dev/core/jsx-runtime';
@@ -3220,7 +3220,7 @@ export { qwikify$, qwikifyQrl, renderToString };
 
 #[test]
 fn example_qwik_react_inline() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';
 import { jsx, Fragment } from '@qwik.dev/core/jsx-runtime';
@@ -3323,17 +3323,17 @@ export { qwikify$, qwikifyQrl, renderToString };
 
 #[test]
 fn example_qwik_router_client() {
-	test_input!(TestInput {
-		code: include_str!("fixtures/index.qwik.mjs").to_string(),
-		filename: "../node_modules/@qwik.dev/router/index.qwik.mjs".to_string(),
-		explicit_extensions: true,
-		..TestInput::default()
-	});
+    test_input!(TestInput {
+        code: include_str!("fixtures/index.qwik.mjs").to_string(),
+        filename: "../node_modules/@qwik.dev/router/index.qwik.mjs".to_string(),
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn relative_paths() {
-	let dep = r#"
+    let dep = r#"
 import { componentQrl, inlinedQrl, useStore, useLexicalScope } from "@qwik.dev/core";
 import { jsx, jsxs } from "@qwik.dev/core/jsx-runtime";
 import { state } from './sibling';
@@ -3370,7 +3370,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 }, "App_component_AkbU84a8zes"));
 
 "#;
-	let code = r#"
+    let code = r#"
 import { component$, $ } from '@qwik.dev/core';
 import { state } from './sibling';
 
@@ -3380,43 +3380,43 @@ export const Local = component$(() => {
 	)
 });
 "#;
-	let res = transform_modules(TransformModulesOptions {
-		src_dir: "/path/to/app/src/thing".into(),
-		root_dir: Some("/path/to/app/".into()),
-		input: vec![
-			TransformModuleInput {
-				code: dep.into(),
-				path: "../../node_modules/dep/dist/lib.mjs".into(),
-				dev_path: None,
-			},
-			TransformModuleInput {
-				code: code.into(),
-				path: "components/main.tsx".into(),
-				dev_path: None,
-			},
-		],
-		source_maps: true,
-		minify: MinifyMode::Simplify,
-		explicit_extensions: true,
-		mode: EmitMode::Test,
-		// filler to maintain line offsets
-		entry_strategy: EntryStrategy::Segment,
-		transpile_ts: true,
-		transpile_jsx: true,
-		preserve_filenames: false,
-		core_module: None,
-		scope: None,
-		strip_exports: None,
-		strip_ctx_name: None,
-		strip_event_handlers: false,
-		reg_ctx_name: None,
-		is_server: None,
-	});
-	snapshot_res!(&res, "".into());
+    let res = transform_modules(TransformModulesOptions {
+        src_dir: "/path/to/app/src/thing".into(),
+        root_dir: Some("/path/to/app/".into()),
+        input: vec![
+            TransformModuleInput {
+                code: dep.into(),
+                path: "../../node_modules/dep/dist/lib.mjs".into(),
+                dev_path: None,
+            },
+            TransformModuleInput {
+                code: code.into(),
+                path: "components/main.tsx".into(),
+                dev_path: None,
+            },
+        ],
+        source_maps: true,
+        minify: MinifyMode::Simplify,
+        explicit_extensions: true,
+        mode: EmitMode::Test,
+        // filler to maintain line offsets
+        entry_strategy: EntryStrategy::Segment,
+        transpile_ts: true,
+        transpile_jsx: true,
+        preserve_filenames: false,
+        core_module: None,
+        scope: None,
+        strip_exports: None,
+        strip_ctx_name: None,
+        strip_event_handlers: false,
+        reg_ctx_name: None,
+        is_server: None,
+    });
+    snapshot_res!(&res, "".into());
 }
 #[test]
 fn consistent_hashes() {
-	let code = r#"
+    let code = r#"
 import { component$, $ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 
@@ -3435,134 +3435,134 @@ export const Greeter = component$(() => {
 });
 
 "#;
-	let options = vec![
-		(EmitMode::Test, EntryStrategy::Segment, true),
-		(EmitMode::Test, EntryStrategy::Single, true),
-		(EmitMode::Test, EntryStrategy::Component, true),
-		// (EmitMode::Test, EntryStrategy::Inline, true),
-		(EmitMode::Prod, EntryStrategy::Segment, true),
-		(EmitMode::Prod, EntryStrategy::Single, true),
-		(EmitMode::Prod, EntryStrategy::Component, true),
-		// (EmitMode::Prod, EntryStrategy::Inline, true),
-		(EmitMode::Dev, EntryStrategy::Segment, true),
-		(EmitMode::Dev, EntryStrategy::Single, true),
-		(EmitMode::Dev, EntryStrategy::Component, true),
-		// (EmitMode::Dev, EntryStrategy::Inline, true),
-		(EmitMode::Test, EntryStrategy::Segment, false),
-		(EmitMode::Test, EntryStrategy::Single, false),
-		(EmitMode::Test, EntryStrategy::Component, false),
-		// (EmitMode::Test, EntryStrategy::Inline, false),
-		(EmitMode::Prod, EntryStrategy::Segment, false),
-		(EmitMode::Prod, EntryStrategy::Single, false),
-		(EmitMode::Prod, EntryStrategy::Component, false),
-		// (EmitMode::Prod, EntryStrategy::Inline, false),
-		(EmitMode::Dev, EntryStrategy::Segment, false),
-		(EmitMode::Dev, EntryStrategy::Single, false),
-		(EmitMode::Dev, EntryStrategy::Component, false),
-		// (EmitMode::Dev, EntryStrategy::Inline, false),
-	];
+    let options = vec![
+        (EmitMode::Test, EntryStrategy::Segment, true),
+        (EmitMode::Test, EntryStrategy::Single, true),
+        (EmitMode::Test, EntryStrategy::Component, true),
+        // (EmitMode::Test, EntryStrategy::Inline, true),
+        (EmitMode::Prod, EntryStrategy::Segment, true),
+        (EmitMode::Prod, EntryStrategy::Single, true),
+        (EmitMode::Prod, EntryStrategy::Component, true),
+        // (EmitMode::Prod, EntryStrategy::Inline, true),
+        (EmitMode::Dev, EntryStrategy::Segment, true),
+        (EmitMode::Dev, EntryStrategy::Single, true),
+        (EmitMode::Dev, EntryStrategy::Component, true),
+        // (EmitMode::Dev, EntryStrategy::Inline, true),
+        (EmitMode::Test, EntryStrategy::Segment, false),
+        (EmitMode::Test, EntryStrategy::Single, false),
+        (EmitMode::Test, EntryStrategy::Component, false),
+        // (EmitMode::Test, EntryStrategy::Inline, false),
+        (EmitMode::Prod, EntryStrategy::Segment, false),
+        (EmitMode::Prod, EntryStrategy::Single, false),
+        (EmitMode::Prod, EntryStrategy::Component, false),
+        // (EmitMode::Prod, EntryStrategy::Inline, false),
+        (EmitMode::Dev, EntryStrategy::Segment, false),
+        (EmitMode::Dev, EntryStrategy::Single, false),
+        (EmitMode::Dev, EntryStrategy::Component, false),
+        // (EmitMode::Dev, EntryStrategy::Inline, false),
+    ];
 
-	let res = transform_modules(TransformModulesOptions {
-		src_dir: "./thing".into(),
-		input: vec![
-			TransformModuleInput {
-				code: code.into(),
-				path: "main.tsx".into(),
-				dev_path: None,
-			},
-			TransformModuleInput {
-				code: code.into(),
-				path: "components/main.tsx".into(),
-				dev_path: None,
-			},
-		],
-		source_maps: true,
-		minify: MinifyMode::Simplify,
-		root_dir: None,
-		explicit_extensions: true,
-		mode: EmitMode::Test,
-		// filler to maintain line offsets
-		entry_strategy: EntryStrategy::Segment,
-		transpile_ts: true,
-		transpile_jsx: true,
-		preserve_filenames: false,
-		scope: None,
-		core_module: None,
-		reg_ctx_name: None,
-		strip_exports: None,
-		strip_ctx_name: None,
-		strip_event_handlers: false,
-		is_server: None,
-	});
-	let ref_segments: Vec<_> = res
-		.unwrap()
-		.modules
-		.into_iter()
-		.flat_map(|module| module.segment)
-		.collect();
+    let res = transform_modules(TransformModulesOptions {
+        src_dir: "./thing".into(),
+        input: vec![
+            TransformModuleInput {
+                code: code.into(),
+                path: "main.tsx".into(),
+                dev_path: None,
+            },
+            TransformModuleInput {
+                code: code.into(),
+                path: "components/main.tsx".into(),
+                dev_path: None,
+            },
+        ],
+        source_maps: true,
+        minify: MinifyMode::Simplify,
+        root_dir: None,
+        explicit_extensions: true,
+        mode: EmitMode::Test,
+        // filler to maintain line offsets
+        entry_strategy: EntryStrategy::Segment,
+        transpile_ts: true,
+        transpile_jsx: true,
+        preserve_filenames: false,
+        scope: None,
+        core_module: None,
+        reg_ctx_name: None,
+        strip_exports: None,
+        strip_ctx_name: None,
+        strip_event_handlers: false,
+        is_server: None,
+    });
+    let ref_segments: Vec<_> = res
+        .unwrap()
+        .modules
+        .into_iter()
+        .flat_map(|module| module.segment)
+        .collect();
 
-	for (i, option) in options.into_iter().enumerate() {
-		let res = transform_modules(TransformModulesOptions {
-			src_dir: "./thing".into(),
-			input: vec![
-				TransformModuleInput {
-					code: code.into(),
-					path: "main.tsx".into(),
-					dev_path: None,
-				},
-				TransformModuleInput {
-					code: code.into(),
-					path: "components/main.tsx".into(),
-					dev_path: None,
-				},
-			],
-			root_dir: None,
-			source_maps: false,
-			minify: MinifyMode::Simplify,
-			explicit_extensions: true,
-			mode: option.0,
-			// filler to maintain line offsets
-			entry_strategy: option.1,
-			transpile_ts: option.2,
-			transpile_jsx: option.2,
-			preserve_filenames: false,
-			scope: None,
-			core_module: None,
-			strip_exports: None,
-			strip_ctx_name: None,
-			strip_event_handlers: false,
-			reg_ctx_name: None,
-			is_server: None,
-		});
+    for (i, option) in options.into_iter().enumerate() {
+        let res = transform_modules(TransformModulesOptions {
+            src_dir: "./thing".into(),
+            input: vec![
+                TransformModuleInput {
+                    code: code.into(),
+                    path: "main.tsx".into(),
+                    dev_path: None,
+                },
+                TransformModuleInput {
+                    code: code.into(),
+                    path: "components/main.tsx".into(),
+                    dev_path: None,
+                },
+            ],
+            root_dir: None,
+            source_maps: false,
+            minify: MinifyMode::Simplify,
+            explicit_extensions: true,
+            mode: option.0,
+            // filler to maintain line offsets
+            entry_strategy: option.1,
+            transpile_ts: option.2,
+            transpile_jsx: option.2,
+            preserve_filenames: false,
+            scope: None,
+            core_module: None,
+            strip_exports: None,
+            strip_ctx_name: None,
+            strip_event_handlers: false,
+            reg_ctx_name: None,
+            is_server: None,
+        });
 
-		let segments: Vec<_> = res
-			.unwrap()
-			.modules
-			.into_iter()
-			.flat_map(|module| module.segment)
-			.collect();
+        let segments: Vec<_> = res
+            .unwrap()
+            .modules
+            .into_iter()
+            .flat_map(|module| module.segment)
+            .collect();
 
-		assert_eq!(segments.len(), ref_segments.len());
+        assert_eq!(segments.len(), ref_segments.len());
 
-		for (a, b) in segments.iter().zip(ref_segments.iter()) {
-			assert_eq!(
-				get_hash(a.name.as_ref()),
-				get_hash(b.name.as_ref()),
-				"INDEX: {}\n\n{:#?}\n\n{:#?}\n\n{:#?}\n\n{:#?}",
-				i,
-				a,
-				b,
-				segments,
-				ref_segments
-			);
-		}
-	}
+        for (a, b) in segments.iter().zip(ref_segments.iter()) {
+            assert_eq!(
+                get_hash(a.name.as_ref()),
+                get_hash(b.name.as_ref()),
+                "INDEX: {}\n\n{:#?}\n\n{:#?}\n\n{:#?}\n\n{:#?}",
+                i,
+                a,
+                b,
+                segments,
+                ref_segments
+            );
+        }
+    }
 }
 
 #[test]
 fn issue_5008() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useStore } from "@qwik.dev/core";
 
 		export default component$(() => {
@@ -3580,17 +3580,17 @@ fn issue_5008() {
 		);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_of_synchronous_qrl() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { sync$, component$ } from "@qwik.dev/core";
 
 		export default component$(() => {
@@ -3608,17 +3608,17 @@ fn example_of_synchronous_qrl() {
 		);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_destructure_args() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from "@qwik.dev/core";
 
 		// the count results in _fnSignal because of the rename
@@ -3638,17 +3638,17 @@ fn should_destructure_args() {
 		}
 		);
 	"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn destructure_args_inline_cmp_block_stmt() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		export default ({ data }: { data: any }) => {
           return (
             <div
@@ -3660,17 +3660,17 @@ fn destructure_args_inline_cmp_block_stmt() {
           );
 		};
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn destructure_args_inline_cmp_block_stmt2() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		export default (props: { data: any }) => {
 		  const { data } = props;
           return (
@@ -3683,17 +3683,17 @@ fn destructure_args_inline_cmp_block_stmt2() {
           );
 		};
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn destructure_args_inline_cmp_expr_stmt() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		export default ({ data }: { data: any }) =>
             <div
               data-is-active={data.selectedOutputDetail === 'options'}
@@ -3702,17 +3702,17 @@ fn destructure_args_inline_cmp_expr_stmt() {
               }}
             />;
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn destructure_args_colon_props() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from "@qwik.dev/core";
 		export default component$((props) => {
 			const { 'bind:value': bindValue } = props;
@@ -3723,17 +3723,17 @@ fn destructure_args_colon_props() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn destructure_args_colon_props2() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useSignal } from "@qwik.dev/core";
 		export default component$((props) => {
 			const { 'bind:value': bindValue } = props;
@@ -3745,17 +3745,17 @@ fn destructure_args_colon_props2() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn destructure_args_colon_props3() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useSignal } from "@qwik.dev/core";
 		export default component$((props) => {
 			const { test, ...rest } = props;
@@ -3767,17 +3767,17 @@ fn destructure_args_colon_props3() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_handle_dangerously_set_inner_html() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from "@qwik.dev/core";
 		const Cmp = component$(() => {
 			const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
@@ -3801,17 +3801,17 @@ fn should_handle_dangerously_set_inner_html() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_noop_dev_mode() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useStore, serverStuff$, $ } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -3836,21 +3836,21 @@ export const App = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		mode: EmitMode::Dev,
-		dev_path: Some("/hello/from/dev/test.tsx".into()),
-		transpile_ts: true,
-		transpile_jsx: true,
-		strip_event_handlers: true,
-		strip_ctx_name: Some(vec!["server".into()]),
-		..TestInput::default()
-	});
+        .to_string(),
+        mode: EmitMode::Dev,
+        dev_path: Some("/hello/from/dev/test.tsx".into()),
+        transpile_ts: true,
+        transpile_jsx: true,
+        strip_event_handlers: true,
+        strip_ctx_name: Some(vec!["server".into()]),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn lib_mode_fn_signal() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 		export const Counter = component$(() => {
 			const count = useSignal(0);
@@ -3865,16 +3865,16 @@ fn lib_mode_fn_signal() {
 			);
 		});
 "#
-		.to_string(),
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn ternary_prop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, $, useSignal } from '@qwik.dev/core';
 		export const Cmp = component$(() => {
 			const toggleSig = useSignal(false);
@@ -3890,31 +3890,31 @@ fn ternary_prop() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn transform_qrl_in_regular_prop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, $ } from '@qwik.dev/core';
 		export const Cmp = component$(() =>
 			<Cmp foo={$(() => console.log('hi there'))}>Hello Qwik</Cmp>);
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn impure_template_fns() {
-	// Should not mark the template function as static
-	test_input!(TestInput {
-		code: r#"
+    // Should not mark the template function as static
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useSignal } from '@qwik.dev/core';
 		const useFoo = (count) => {
 			const tag = (s) => {
@@ -3936,16 +3936,16 @@ fn impure_template_fns() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn rename_builder_io() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { $, component$ } from "@builder.io/qwik";
 		import { isDev } from "@builder.io/qwik/build";
 		import { stuff } from "@builder.io/qwik-city";
@@ -3967,16 +3967,16 @@ fn rename_builder_io() {
 			return "hi";
 		});
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_component_with_event_listeners_inside_loop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useStore, useSignal } from '@qwik.dev/core';
 export const App = component$(() => {
       const cart = useStore<string[]>([]);
@@ -4075,17 +4075,17 @@ export const App = component$(() => {
       );
     });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_wrap_inner_inline_component_prop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useStore, useSignal } from '@qwik.dev/core';
 export default component$((props: { id: number }) => {
       const renders = useStore(
@@ -4105,17 +4105,17 @@ export default component$((props: { id: number }) => {
       );
     });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_wrap_prop_from_destructured_array() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useStore, useTask$ } from '@qwik.dev/core';
 		import { useForm, useForm2 } from './some-file.ts';
 
@@ -4163,17 +4163,17 @@ fn should_wrap_prop_from_destructured_array() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_wrap_object_with_fn_signal() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 export default component$((props) => {
 	// not destructure it so it is a var prop
@@ -4185,17 +4185,17 @@ export default component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_mark_props_as_var_props_for_inner_cmp() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useResource$, Resource } from "@qwik.dev/core";
 import { type ModelProps } from "./modelMenu";
 import { serverImg } from "~/routes/(authenticated)/layout";
@@ -4232,17 +4232,17 @@ export const ModelImg = component$<ModelProps>((props) => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_wrap_fn() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from "@qwik.dev/core";
 import { A } from "./componentA";
 
@@ -4262,17 +4262,17 @@ export const Cmp = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn issue_7216_add_test() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@builder.io/qwik';
 export default component$((props) => {
   return (<p 
@@ -4286,17 +4286,17 @@ export default component$((props) => {
 	/>);
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_wrap_store_expression() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useStore } from '@qwik.dev/core';
 
 		export default component$(() => {
@@ -4319,17 +4319,17 @@ fn should_wrap_store_expression() {
 		});
 		export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_wrap_var_template_string() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useComputed$ } from '@qwik.dev/core';
 		import { inlineTranslate } from 'translate-lib';
 
@@ -4347,17 +4347,17 @@ fn should_not_wrap_var_template_string() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_wrap_type_asserted_variables_in_template() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useSignal } from '@qwik.dev/core';
 
 		export default component$(() => {
@@ -4369,17 +4369,17 @@ fn should_wrap_type_asserted_variables_in_template() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_wrap_logical_expression_in_template() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useSignal } from '@qwik.dev/core';
 
 		export default component$(() => {
@@ -4392,17 +4392,17 @@ fn should_wrap_logical_expression_in_template() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_wrap_ternary_function_operator_with_fn() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useSignal } from '@qwik.dev/core';
 
 
@@ -4421,17 +4421,17 @@ fn should_not_wrap_ternary_function_operator_with_fn() {
 		);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_split_spread_props() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		export default component$((props) => {
@@ -4440,17 +4440,17 @@ fn should_split_spread_props() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_split_spread_props_with_additional_prop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		export default component$((props) => {
@@ -4459,17 +4459,17 @@ fn should_split_spread_props_with_additional_prop() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_split_spread_props_with_additional_prop2() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		export default component$((props) => {
@@ -4478,17 +4478,17 @@ fn should_split_spread_props_with_additional_prop2() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_split_spread_props_with_additional_prop3() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 		import { Foo } from './foo';
 
@@ -4498,34 +4498,34 @@ fn should_split_spread_props_with_additional_prop3() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_split_spread_props_with_additional_prop4() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		export default component$((props: any) => {
 			return <button {...props} onClick$={() => props.onClick$()}></button>;
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_split_spread_props_with_additional_prop5() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		function Hola(props: any) {
@@ -4539,17 +4539,17 @@ fn should_split_spread_props_with_additional_prop5() {
 		</Hola>;
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_generate_conflicting_props_identifiers() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useComputed$, useTask$ } from '@qwik.dev/core'
 
 		export default component$(({ color, ...props }) => {
@@ -4562,20 +4562,20 @@ fn should_not_generate_conflicting_props_identifiers() {
 		return 'hi'
 		})
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		// important to use hoist entry strategy to test this case
-		// only in hoist mode there was an issue with conflicting props identifiers
-		entry_strategy: EntryStrategy::Hoist,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        // important to use hoist entry strategy to test this case
+        // only in hoist mode there was an issue with conflicting props identifiers
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_convert_rest_props() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useTask$ } from '@qwik.dev/core'
 
 		export default component$<any>(({ ...props }) => {
@@ -4586,51 +4586,51 @@ fn should_convert_rest_props() {
 		return 'hi'
 		})
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_merge_attributes_with_spread_props() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		export default component$((props) => {
 			return <div {...props} class={[props.class, 'component']} />;
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_merge_attributes_with_spread_props_before_and_after() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		export default component$((props) => {
 			return <div {...props} class={[props.class, 'component']} {...props} />;
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_move_over_side_effects() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		export const $promoteToRoot$ = (ref: SeenRef) => {
 			const path = $getObjectPath$(ref) as string;
 			// should stay before the push
@@ -4641,32 +4641,32 @@ fn should_not_move_over_side_effects() {
 			return idx;
 		};
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_ignore_null_inlined_qrl() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { inlinedQrl } from '@qwik.dev/core';
 
 		const foo = inlinedQrl(null, 'some_hash');
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn hoisted_fn_signal_in_loop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -4692,17 +4692,17 @@ export const App = component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_convert_jsx_events() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		const ManyEventsComponent = component$(() => {
@@ -4727,16 +4727,16 @@ fn should_convert_jsx_events() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_convert_passive_jsx_events() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 		import { component$ } from '@qwik.dev/core';
 
@@ -4765,8 +4765,8 @@ fn should_convert_passive_jsx_events() {
 
 #[test]
 fn should_ignore_passive_jsx_events_without_handlers() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		const PassiveOnlyComponent = component$(() => {
@@ -4782,16 +4782,16 @@ fn should_ignore_passive_jsx_events_without_handlers() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_ignore_preventdefault_with_passive() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 		import { component$ } from '@qwik.dev/core';
 
@@ -4817,8 +4817,8 @@ fn should_ignore_preventdefault_with_passive() {
 
 #[test]
 fn should_disable_passive_warning_with_qwik_disable_next_line() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, sync$ } from '@qwik.dev/core';
 
 		const PassiveOnlyComponent = component$(() => {
@@ -4838,17 +4838,17 @@ fn should_disable_passive_warning_with_qwik_disable_next_line() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_only_disable_the_next_line() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		const PassiveOnlyComponent = component$(() => {
@@ -4865,17 +4865,17 @@ fn should_only_disable_the_next_line() {
 			);
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_disable_multiple_rules_from_single_directive() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, useTask$ } from '@qwik.dev/core';
 
 		export const useMemo$ = (qrl) => {
@@ -4888,17 +4888,17 @@ fn should_disable_multiple_rules_from_single_directive() {
 			return <div />;
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_event_names_without_jsx_transpile() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, $ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 
@@ -4917,17 +4917,17 @@ export const Greeter = component$(() => {
 });
 
 "#
-		.to_string(),
-		transpile_ts: false,
-		transpile_jsx: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: false,
+        transpile_jsx: false,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_passive_event_names_without_jsx_transpile() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const Greeter = component$(() => {
@@ -4942,17 +4942,17 @@ export const Greeter = component$(() => {
 });
 
 "#
-		.to_string(),
-		transpile_ts: false,
-		transpile_jsx: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: false,
+        transpile_jsx: false,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_transform_events_on_non_elements() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, $ } from '@qwik.dev/core';
 import { CustomComponent } from './custom-component';
 import { AnotherComponent } from './another-component';
@@ -4969,17 +4969,17 @@ export const Greeter = component$(() => {
 });
 
 "#
-		.to_string(),
-		transpile_ts: false,
-		transpile_jsx: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: false,
+        transpile_jsx: false,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_merge_bind_value_and_on_input() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from "@qwik.dev/core";
 
 export const FieldInput = component$(() => {
@@ -4995,17 +4995,17 @@ export const FieldInput = component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_merge_bind_checked_and_on_input() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from "@qwik.dev/core";
 
 export const FieldInput = component$(() => {
@@ -5021,17 +5021,17 @@ export const FieldInput = component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_extract_single_qrl() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useSignal, Signal } from '@qwik.dev/core';
 export const App = component$(() => {
 	const data = useSignal<Signal<any>[]>([]);
@@ -5077,17 +5077,17 @@ export const App = component$(() => {
       );
     });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_extract_single_qrl_2() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 	  import { component$, useStore, useSignal } from '@qwik.dev/core';
       const Parent = component$(() => {
       const cart = useStore<Cart>([]);
@@ -5118,17 +5118,17 @@ fn should_extract_single_qrl_2() {
       );
     });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_extract_single_qrl_with_index() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useSignal, Signal } from '@qwik.dev/core';
 export const App = component$(() => {
 	const data = useSignal<Signal<any>[]>([]);
@@ -5176,16 +5176,16 @@ export const App = component$(() => {
       );
     });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_extract_multiple_qrls_with_item_and_index() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
 
@@ -5209,7 +5209,7 @@ export default component$(() => {
 
 #[test]
 fn should_extract_multiple_qrls_with_item_and_index_and_capture_ref() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
@@ -5236,7 +5236,7 @@ export default component$(() => {
 
 #[test]
 fn should_extract_single_qrl_with_nested_components() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { $, component$, useSignal, Signal } from '@qwik.dev/core';
 const Foo = component$(() => {
@@ -5257,7 +5257,7 @@ const Foo = component$(() => {
 
 #[test]
 fn should_transform_component_with_normal_function() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { $, component$, useSignal, Signal } from '@qwik.dev/core';
 const Foo = component$(function() {
@@ -5278,8 +5278,8 @@ const Foo = component$(function() {
 
 #[test]
 fn should_transform_nested_loops() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal, Signal } from '@qwik.dev/core';
 const Foo = component$(function() {
   const data = useSignal<Signal<any>[]>([]);
@@ -5295,16 +5295,16 @@ const Foo = component$(function() {
   </div>;
 })
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_multiple_event_handlers() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { component$, useSignal, Signal } from '@qwik.dev/core';
 const Foo = component$(function() {
@@ -5327,7 +5327,7 @@ const Foo = component$(function() {
 
 #[test]
 fn should_transform_multiple_event_handlers_case2() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 import { component$, useSignal, Signal } from '@qwik.dev/core';
 const Foo = component$(function() {
@@ -5350,8 +5350,8 @@ const Foo = component$(function() {
 
 #[test]
 fn should_merge_on_input_and_bind_value() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from "@qwik.dev/core";
 
 export const FieldInput = component$(() => {
@@ -5367,17 +5367,17 @@ export const FieldInput = component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_merge_on_input_and_bind_checked() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from "@qwik.dev/core";
 
 export const FieldInput = component$(() => {
@@ -5393,17 +5393,17 @@ export const FieldInput = component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_qrls_in_ternary_expression() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useSignal } from "@qwik.dev/core";
 
 export const FieldInput = component$(() => {
@@ -5427,17 +5427,17 @@ export const FieldInput = component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_transform_bind_value_in_var_props_for_jsx_split() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useSignal } from "@qwik.dev/core";
 
 export const FieldInput = component$((props) => {
@@ -5459,17 +5459,17 @@ export const FieldInput = component$((props) => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_transform_bind_checked_in_var_props_for_jsx_split() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useSignal } from "@qwik.dev/core";
 
 export const FieldInput = component$((props) => {
@@ -5491,17 +5491,17 @@ export const FieldInput = component$((props) => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_move_bind_value_to_var_props() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, useSignal } from "@qwik.dev/core";
 import { destructureBindings } from "./destructure-bindings";
 
@@ -5522,17 +5522,17 @@ export const FieldInput = component$(
   }
 );
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_move_props_related_to_iteration_variables_to_var_props() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from "@qwik.dev/core";
 import { TestComponent } from "./testComponent";
 
@@ -5560,17 +5560,17 @@ export const Child = component$(() => {
   );
 })
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_make_component_jsx_split_with_bind() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5583,17 +5583,17 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_block_scoped_variables_in_loop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5608,17 +5608,17 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_multiple_block_scoped_variables_in_loop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5634,17 +5634,17 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_block_scoped_variables_and_item_index_in_loop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5659,17 +5659,17 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_multiple_block_scoped_variables_and_item_index_in_loop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5685,17 +5685,17 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_two_handlers_capturing_different_block_scope_in_loop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5716,17 +5716,17 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_handlers_capturing_cross_scope_in_nested_loops() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5754,17 +5754,17 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_same_element_one_handler_with_captures_one_without() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5786,17 +5786,17 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_nested_loops_handler_captures_only_inner_scope() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5819,17 +5819,17 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_three_nested_loops_handler_captures_outer_only() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5859,17 +5859,17 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_handler_in_for_of_loop() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5883,17 +5883,17 @@ export default component$(() => {
   return <div>{items}</div>;
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_transform_loop_multiple_handler_with_different_captures() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -5917,80 +5917,80 @@ export default component$(() => {
   );
 });
 "#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 fn get_hash(name: &str) -> String {
-	name.split('_').last().unwrap().into()
+    name.split('_').last().unwrap().into()
 }
 
 fn get_segment_hash_by_ctx_name(output: &TransformOutput, ctx_name: &str) -> String {
-	let hashes: Vec<_> = output
-		.modules
-		.iter()
-		.filter_map(|module| module.segment.as_ref())
-		.filter(|segment| segment.ctx_name.as_ref() == ctx_name)
-		.map(|segment| get_hash(segment.name.as_ref()))
-		.collect();
-	assert_eq!(
-		hashes.len(),
-		1,
-		"Expected exactly one segment for {}, got {:?}",
-		ctx_name,
-		hashes
-	);
-	hashes[0].clone()
+    let hashes: Vec<_> = output
+        .modules
+        .iter()
+        .filter_map(|module| module.segment.as_ref())
+        .filter(|segment| segment.ctx_name.as_ref() == ctx_name)
+        .map(|segment| get_hash(segment.name.as_ref()))
+        .collect();
+    assert_eq!(
+        hashes.len(),
+        1,
+        "Expected exactly one segment for {}, got {:?}",
+        ctx_name,
+        hashes
+    );
+    hashes[0].clone()
 }
 
 fn get_segment_name_by_ctx_name(output: &TransformOutput, ctx_name: &str) -> String {
-	let names: Vec<_> = output
-		.modules
-		.iter()
-		.filter_map(|module| module.segment.as_ref())
-		.filter(|segment| segment.ctx_name.as_ref() == ctx_name)
-		.map(|segment| segment.name.to_string())
-		.collect();
-	assert_eq!(
-		names.len(),
-		1,
-		"Expected exactly one segment for {}, got {:?}",
-		ctx_name,
-		names
-	);
-	names[0].clone()
+    let names: Vec<_> = output
+        .modules
+        .iter()
+        .filter_map(|module| module.segment.as_ref())
+        .filter(|segment| segment.ctx_name.as_ref() == ctx_name)
+        .map(|segment| segment.name.to_string())
+        .collect();
+    assert_eq!(
+        names.len(),
+        1,
+        "Expected exactly one segment for {}, got {:?}",
+        ctx_name,
+        names
+    );
+    names[0].clone()
 }
 
 struct TestInput {
-	pub code: String,
-	pub filename: String,
-	pub dev_path: Option<String>,
-	pub src_dir: String,
-	pub root_dir: Option<String>,
-	pub entry_strategy: EntryStrategy,
-	pub minify: MinifyMode,
-	pub transpile_ts: bool,
-	pub transpile_jsx: bool,
-	pub preserve_filenames: bool,
-	pub explicit_extensions: bool,
-	pub snapshot: bool,
-	pub mode: EmitMode,
-	pub core_module: Option<String>,
-	pub scope: Option<String>,
-	pub strip_exports: Option<Vec<String>>,
-	pub reg_ctx_name: Option<Vec<String>>,
-	pub strip_ctx_name: Option<Vec<String>>,
-	pub strip_event_handlers: bool,
-	pub is_server: Option<bool>,
+    pub code: String,
+    pub filename: String,
+    pub dev_path: Option<String>,
+    pub src_dir: String,
+    pub root_dir: Option<String>,
+    pub entry_strategy: EntryStrategy,
+    pub minify: MinifyMode,
+    pub transpile_ts: bool,
+    pub transpile_jsx: bool,
+    pub preserve_filenames: bool,
+    pub explicit_extensions: bool,
+    pub snapshot: bool,
+    pub mode: EmitMode,
+    pub core_module: Option<String>,
+    pub scope: Option<String>,
+    pub strip_exports: Option<Vec<String>>,
+    pub reg_ctx_name: Option<Vec<String>>,
+    pub strip_ctx_name: Option<Vec<String>>,
+    pub strip_event_handlers: bool,
+    pub is_server: Option<bool>,
 }
 
 #[test]
 fn example_segment_variable_migration() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 // This helper is only used by App component, so it should be migrated to its segment
@@ -6014,16 +6014,83 @@ export const Other = component$(() => {
 	return <div>{SHARED_CONFIG.value}</div>;
 });
 "#
-		.to_string(),
-		snapshot: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        snapshot: true,
+        ..TestInput::default()
+    });
+}
+
+/// Regression test: when a root variable is pulled in as a transitive dependency
+/// for migration to segment A, but is also directly used by segment B, it must NOT
+/// be migrated. Otherwise segment B loses access to it (the export is removed).
+/// This reproduces the qwik-router bug where `currentScrollState` and `saveScrollHistory`
+/// were migrated to the useTask segment but also needed by the goto segment.
+#[test]
+fn variable_migration_transitive_dep_used_by_other_segment() {
+    let res = test_input!(TestInput {
+        code: r#"
+import { component$, $ } from '@qwik.dev/core';
+
+// scrollState is used by both segments - must NOT be migrated
+const scrollState = (el) => ({ x: el.scrollLeft, y: el.scrollTop });
+
+// saveScroll is used by both segments - must NOT be migrated
+const saveScroll = (s) => history.replaceState(s, '');
+
+// bigHelper depends on scrollState and saveScroll, used only by App
+const bigHelper = (el) => {
+  const s = scrollState(el);
+  saveScroll(s);
+  return s;
+};
+
+export const App = component$(() => {
+  // Uses bigHelper (which transitively uses scrollState and saveScroll)
+  const s = bigHelper(document.body);
+  return <div>{s.x}</div>;
+});
+
+export const Other = component$(() => {
+  // Directly uses scrollState and saveScroll
+  const s = scrollState(document.body);
+  saveScroll(s);
+  return <div>{s.y}</div>;
+});
+"#
+        .to_string(),
+        snapshot: true,
+        ..TestInput::default()
+    });
+
+    // Verify the fix: scrollState and saveScroll must be importable by both segments
+    let output = res.unwrap();
+    let other_segment = output
+        .modules
+        .iter()
+        .find(|m| m.path.contains("Other_component"))
+        .expect("Other_component segment should exist");
+
+    // scrollState must be imported (not missing) in the Other segment
+    assert!(
+        other_segment.code.contains("scrollState")
+            && (other_segment.code.contains("import")
+                || other_segment.code.contains("const scrollState")),
+        "scrollState must be available in Other segment (imported or inlined), got:\n{}",
+        other_segment.code
+    );
+    assert!(
+        other_segment.code.contains("saveScroll")
+            && (other_segment.code.contains("import")
+                || other_segment.code.contains("const saveScroll")),
+        "saveScroll must be available in Other segment (imported or inlined), got:\n{}",
+        other_segment.code
+    );
 }
 
 #[test]
 fn root_level_self_referential_qrl() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 // Root-level self-referential component
@@ -6038,15 +6105,15 @@ export const Tree = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn root_level_self_referential_qrl_inline() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 // Root-level self-referential component
@@ -6061,20 +6128,20 @@ export const Tree = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		filename: "./node_modules/qwik-tree/index.qwik.jsx".to_string(),
-		transpile_jsx: true,
-		is_server: Some(true),
-		entry_strategy: EntryStrategy::Inline,
-		mode: EmitMode::Dev,
-		..TestInput::default()
-	});
+        .to_string(),
+        filename: "./node_modules/qwik-tree/index.qwik.jsx".to_string(),
+        transpile_jsx: true,
+        is_server: Some(true),
+        entry_strategy: EntryStrategy::Inline,
+        mode: EmitMode::Dev,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn component_level_self_referential_qrl() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$, useAsync$ } from '@qwik.dev/core';
 		
 // Component-level self-referential component
@@ -6100,15 +6167,15 @@ export const Foo = component$((props) => {
 	);
 });
 "#
-		.to_string(),
-		..TestInput::default()
-	});
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_self_referential_component_migration() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 // Self-referential component: the Nested component references itself in its JSX
@@ -6156,53 +6223,53 @@ export const MutualExample = component$(() => {
 	return <ComponentA />;
 });
 "#
-		.to_string(),
-		snapshot: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        snapshot: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 // Non-snapshot tests for robust import resolution
 #[test]
 fn import_collision_with_renaming() {
-	// Test that imports are correctly resolved from global context without fallback
-	// This verifies the fix for SyntaxContext mismatch issues
-	let res = test_input!(TestInput {
-		code: r#"
+    // Test that imports are correctly resolved from global context without fallback
+    // This verifies the fix for SyntaxContext mismatch issues
+    let res = test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const Test = component$(() => {
 	return <div>Test</div>;
 });
 "#
-		.to_string(),
-		snapshot: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        snapshot: false,
+        ..TestInput::default()
+    });
 
-	assert!(
-		res.is_ok(),
-		"Transform should succeed without fallback errors"
-	);
-	let output = res.unwrap();
+    assert!(
+        res.is_ok(),
+        "Transform should succeed without fallback errors"
+    );
+    let output = res.unwrap();
 
-	// Verify the entry module was created
-	let entry = output.modules.iter().find(|m| m.is_entry);
-	assert!(entry.is_some(), "Should have entry module");
+    // Verify the entry module was created
+    let entry = output.modules.iter().find(|m| m.is_entry);
+    assert!(entry.is_some(), "Should have entry module");
 
-	// Verify output modules contain generated code
-	assert!(
-		!output.modules.is_empty(),
-		"Should generate at least one module"
-	);
+    // Verify output modules contain generated code
+    assert!(
+        !output.modules.is_empty(),
+        "Should generate at least one module"
+    );
 }
 
 #[test]
 fn explicit_imports_for_dev_qrls() {
-	// Test that dev mode transform succeeds with explicit imports for hoisted items
-	let res = test_input!(TestInput {
-		code: r#"
+    // Test that dev mode transform succeeds with explicit imports for hoisted items
+    let res = test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const Test = component$(() => {
@@ -6214,321 +6281,321 @@ export const Test = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		mode: EmitMode::Dev,
-		snapshot: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        mode: EmitMode::Dev,
+        snapshot: false,
+        ..TestInput::default()
+    });
 
-	assert!(res.is_ok(), "Transform should succeed in dev mode");
-	let output = res.unwrap();
+    assert!(res.is_ok(), "Transform should succeed in dev mode");
+    let output = res.unwrap();
 
-	// Verify all modules have valid import structure
-	for module in &output.modules {
-		// Each module's code should be valid (contain component or segment code)
-		assert!(
-			!module.code.is_empty(),
-			"Module {} should have code",
-			module.path
-		);
-	}
+    // Verify all modules have valid import structure
+    for module in &output.modules {
+        // Each module's code should be valid (contain component or segment code)
+        assert!(
+            !module.code.is_empty(),
+            "Module {} should have code",
+            module.path
+        );
+    }
 }
 
 #[test]
 fn import_backed_qrl_hash_matches_across_relative_import_paths() {
-	let code = r#"
+    let code = r#"
 import { $ } from '@qwik.dev/core';
 import { name } from './utils/value';
 
 export const value = $(name);
 "#;
 
-	let first = test_input!(TestInput {
-		code: code.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
-	let second = test_input!(TestInput {
-		code: code.replace("./utils/value", "../shared/../utils/value"),
-		filename: "src/routes/nested/b.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
+    let first = test_input!(TestInput {
+        code: code.to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
+    let second = test_input!(TestInput {
+        code: code.replace("./utils/value", "../shared/../utils/value"),
+        filename: "src/routes/nested/b.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
 
-	assert_eq!(
-		get_segment_hash_by_ctx_name(&first, "$"),
-		get_segment_hash_by_ctx_name(&second, "$")
-	);
+    assert_eq!(
+        get_segment_hash_by_ctx_name(&first, "$"),
+        get_segment_hash_by_ctx_name(&second, "$")
+    );
 }
 
 #[test]
 fn import_backed_qrl_hash_matches_namespace_member() {
-	let named = test_input!(TestInput {
-		code: r#"
+    let named = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import { name } from './utils/value';
 
 export const value = $(name);
 "#
-		.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
+        .to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
 
-	let namespace = test_input!(TestInput {
-		code: r#"
+    let namespace = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import * as ns from './utils/value';
 
 export const value = $(ns.name);
 "#
-		.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
+        .to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
 
-	assert_eq!(
-		get_segment_hash_by_ctx_name(&named, "$"),
-		get_segment_hash_by_ctx_name(&namespace, "$")
-	);
+    assert_eq!(
+        get_segment_hash_by_ctx_name(&named, "$"),
+        get_segment_hash_by_ctx_name(&namespace, "$")
+    );
 }
 
 #[test]
 fn import_backed_qrl_hash_normalizes_backslashes_and_non_relative_paths() {
-	let relative = test_input!(TestInput {
-		code: r#"
+    let relative = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import { name } from '.\\utils\\value';
 
 export const value = $(name);
 "#
-		.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
-	let relative_normalized = test_input!(TestInput {
-		code: r#"
+        .to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
+    let relative_normalized = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import { name } from './utils/value';
 
 export const value = $(name);
 "#
-		.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
-	let package_import = test_input!(TestInput {
-		code: r#"
+        .to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
+    let package_import = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import { name } from '@pkg/utils/value';
 
 export const value = $(name);
 "#
-		.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
+        .to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
 
-	assert_eq!(
-		get_segment_hash_by_ctx_name(&relative, "$"),
-		get_segment_hash_by_ctx_name(&relative_normalized, "$")
-	);
-	assert_ne!(
-		get_segment_hash_by_ctx_name(&relative_normalized, "$"),
-		get_segment_hash_by_ctx_name(&package_import, "$")
-	);
+    assert_eq!(
+        get_segment_hash_by_ctx_name(&relative, "$"),
+        get_segment_hash_by_ctx_name(&relative_normalized, "$")
+    );
+    assert_ne!(
+        get_segment_hash_by_ctx_name(&relative_normalized, "$"),
+        get_segment_hash_by_ctx_name(&package_import, "$")
+    );
 }
 
 #[test]
 fn import_backed_qrl_default_import_uses_import_based_prefix() {
-	let output = test_input!(TestInput {
-		code: r#"
+    let output = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import css from './style.css';
 
 export const value = $(css);
 "#
-		.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
+        .to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
 
-	let name = get_segment_name_by_ctx_name(&output, "$");
-	assert!(
-		name.starts_with("style_css_"),
-		"Expected import-based prefix, got {}",
-		name
-	);
+    let name = get_segment_name_by_ctx_name(&output, "$");
+    assert!(
+        name.starts_with("style_css_"),
+        "Expected import-based prefix, got {}",
+        name
+    );
 }
 
 #[test]
 fn import_backed_qrl_hash_falls_back_for_unsupported_paths() {
-	let base = test_input!(TestInput {
-		code: r#"
+    let base = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import * as ns from './utils/value';
 
 export const value = $(ns.name);
 "#
-		.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
-	let nested_member = test_input!(TestInput {
-		code: r#"
+        .to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
+    let nested_member = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import * as ns from './utils/value';
 
 export const value = $(ns.name.deep);
 "#
-		.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
-	let computed_member = test_input!(TestInput {
-		code: r#"
+        .to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
+    let computed_member = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import * as ns from './utils/value';
 
 const key = 'name';
 export const value = $(ns[key]);
 "#
-		.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
-	let too_many_dotdots = test_input!(TestInput {
-		code: r#"
+        .to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
+    let too_many_dotdots = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import { name } from '../../../value';
 
 export const value = $(name);
 "#
-		.to_string(),
-		filename: "src/routes/a.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
-	let too_many_dotdots_other_file = test_input!(TestInput {
-		code: r#"
+        .to_string(),
+        filename: "src/routes/a.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
+    let too_many_dotdots_other_file = test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import { name } from '../../../value';
 
 export const value = $(name);
 "#
-		.to_string(),
-		filename: "src/routes/b.tsx".into(),
-		snapshot: false,
-		..TestInput::default()
-	})
-	.unwrap();
+        .to_string(),
+        filename: "src/routes/b.tsx".into(),
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
 
-	assert_ne!(
-		get_segment_hash_by_ctx_name(&base, "$"),
-		get_segment_hash_by_ctx_name(&nested_member, "$")
-	);
-	assert_ne!(
-		get_segment_hash_by_ctx_name(&base, "$"),
-		get_segment_hash_by_ctx_name(&computed_member, "$")
-	);
-	assert_ne!(
-		get_segment_hash_by_ctx_name(&too_many_dotdots, "$"),
-		get_segment_hash_by_ctx_name(&too_many_dotdots_other_file, "$")
-	);
+    assert_ne!(
+        get_segment_hash_by_ctx_name(&base, "$"),
+        get_segment_hash_by_ctx_name(&nested_member, "$")
+    );
+    assert_ne!(
+        get_segment_hash_by_ctx_name(&base, "$"),
+        get_segment_hash_by_ctx_name(&computed_member, "$")
+    );
+    assert_ne!(
+        get_segment_hash_by_ctx_name(&too_many_dotdots, "$"),
+        get_segment_hash_by_ctx_name(&too_many_dotdots_other_file, "$")
+    );
 }
 
 #[test]
 fn inlined_qrl_uses_identifier_reference_when_hoisted() {
-	let res = test_input!(TestInput {
-		code: r#"
+    let res = test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
 	return <div>Hello</div>;
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Hoist,
-		transpile_ts: true,
-		transpile_jsx: true,
-		snapshot: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        snapshot: false,
+        ..TestInput::default()
+    });
 
-	assert!(res.is_ok(), "Transform should succeed");
-	let output = res.unwrap();
+    assert!(res.is_ok(), "Transform should succeed");
+    let output = res.unwrap();
 
-	let combined_code = output
-		.modules
-		.iter()
-		.map(|module| module.code.as_str())
-		.collect::<Vec<_>>()
-		.join("\n");
-	let compact_code: String = combined_code
-		.chars()
-		.filter(|c| !c.is_whitespace())
-		.collect();
+    let combined_code = output
+        .modules
+        .iter()
+        .map(|module| module.code.as_str())
+        .collect::<Vec<_>>()
+        .join("\n");
+    let compact_code: String = combined_code
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
 
-	assert!(
-		compact_code.contains("_noopQrl(\"App_component_"),
-		"Expected _noopQrl with symbol name.\nGenerated code:\n{}",
-		combined_code
-	);
-	assert!(
-		compact_code.contains(".s(App_component_")
-			|| compact_code.contains(".s(TestComponent_component_"),
-		"Expected s (setRef) call with hoisted identifier.\nGenerated code:\n{}",
-		combined_code
-	);
+    assert!(
+        compact_code.contains("_noopQrl(\"App_component_"),
+        "Expected _noopQrl with symbol name.\nGenerated code:\n{}",
+        combined_code
+    );
+    assert!(
+        compact_code.contains(".s(App_component_")
+            || compact_code.contains(".s(TestComponent_component_"),
+        "Expected s (setRef) call with hoisted identifier.\nGenerated code:\n{}",
+        combined_code
+    );
 }
 
 #[test]
 fn inlined_qrl_uses_identifier_reference_when_hoisted_snapshot() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
 	return <div>Hello</div>;
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Hoist,
-		transpile_ts: true,
-		transpile_jsx: true,
-		snapshot: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        snapshot: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn inlined_qrl_after_ref_identifiers_forward_ref() {
-	// Test that inlinedQrl items are moved to come AFTER their referenced identifiers
-	// even in cases where they might initially appear before them (e.g., third-party libs)
-	let res = test_input!(TestInput {
-		code: r#"
+    // Test that inlinedQrl items are moved to come AFTER their referenced identifiers
+    // even in cases where they might initially appear before them (e.g., third-party libs)
+    let res = test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 import { useAsyncQrl } from '@qwik.dev/core';
 
@@ -6540,49 +6607,49 @@ export const TestComponent = component$(() => {
 	return <div>{asyncSig}</div>;
 });
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Hoist,
-		transpile_ts: true,
-		transpile_jsx: true,
-		snapshot: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        snapshot: false,
+        ..TestInput::default()
+    });
 
-	assert!(res.is_ok(), "Transform should succeed");
-	let output = res.unwrap();
+    assert!(res.is_ok(), "Transform should succeed");
+    let output = res.unwrap();
 
-	let combined_code = output
-		.modules
-		.iter()
-		.map(|module| module.code.as_str())
-		.collect::<Vec<_>>()
-		.join("\n");
+    let combined_code = output
+        .modules
+        .iter()
+        .map(|module| module.code.as_str())
+        .collect::<Vec<_>>()
+        .join("\n");
 
-	// Verify that inlinedQrl uses an identifier reference
-	let compact_code: String = combined_code
-		.chars()
-		.filter(|c| !c.is_whitespace())
-		.collect();
+    // Verify that inlinedQrl uses an identifier reference
+    let compact_code: String = combined_code
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
 
-	assert!(
-		compact_code.contains("_noopQrl(\"TestComponent_component_"),
-		"Expected _noopQrl with symbol name.\nGenerated code:\n{}",
-		combined_code
-	);
-	assert!(
-		compact_code.contains(".s(App_component_")
-			|| compact_code.contains(".s(TestComponent_component_"),
-		"Expected s (setRef) call with hoisted identifier.\nGenerated code:\n{}",
-		combined_code
-	);
+    assert!(
+        compact_code.contains("_noopQrl(\"TestComponent_component_"),
+        "Expected _noopQrl with symbol name.\nGenerated code:\n{}",
+        combined_code
+    );
+    assert!(
+        compact_code.contains(".s(App_component_")
+            || compact_code.contains(".s(TestComponent_component_"),
+        "Expected s (setRef) call with hoisted identifier.\nGenerated code:\n{}",
+        combined_code
+    );
 }
 
 // Non-snapshot tests for generalized q:p/q:ps
 #[test]
 fn loop_iteration_vars_with_params() {
-	// Test that loop iteration variables with event handlers work correctly
-	let res = test_input!(TestInput {
-		code: r#"
+    // Test that loop iteration variables with event handlers work correctly
+    let res = test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const Test = component$(() => {
@@ -6597,30 +6664,30 @@ export const Test = component$(() => {
 	);
 });
 "#
-		.to_string(),
-		snapshot: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        snapshot: false,
+        ..TestInput::default()
+    });
 
-	assert!(
-		res.is_ok(),
-		"Transform should succeed for loop with handlers"
-	);
-	let output = res.unwrap();
+    assert!(
+        res.is_ok(),
+        "Transform should succeed for loop with handlers"
+    );
+    let output = res.unwrap();
 
-	// Verify modules were generated
-	assert!(!output.modules.is_empty(), "Should have generated modules");
+    // Verify modules were generated
+    assert!(!output.modules.is_empty(), "Should have generated modules");
 
-	// The transform should produce valid output without errors
-	let entry_module = output.modules.iter().find(|m| m.is_entry);
-	assert!(entry_module.is_some(), "Should have entry module");
+    // The transform should produce valid output without errors
+    let entry_module = output.modules.iter().find(|m| m.is_entry);
+    assert!(entry_module.is_some(), "Should have entry module");
 }
 
 #[test]
 fn import_resolution_without_fallback() {
-	// Test that imports are resolved correctly from explicit_imports without symbol-only fallbacks
-	let res = test_input!(TestInput {
-		code: r#"
+    // Test that imports are resolved correctly from explicit_imports without symbol-only fallbacks
+    let res = test_input!(TestInput {
+        code: r#"
 import { signal, component$ } from '@qwik.dev/core';
 
 export const Test = component$(() => {
@@ -6628,32 +6695,32 @@ export const Test = component$(() => {
 	return <div>{sig}</div>;
 });
 "#
-		.to_string(),
-		snapshot: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        snapshot: false,
+        ..TestInput::default()
+    });
 
-	assert!(
-		res.is_ok(),
-		"Transform should succeed with proper import resolution"
-	);
-	let output = res.unwrap();
+    assert!(
+        res.is_ok(),
+        "Transform should succeed with proper import resolution"
+    );
+    let output = res.unwrap();
 
-	// Verify all generated modules are valid
-	for module in &output.modules {
-		assert!(
-			!module.code.is_empty(),
-			"Module {} should have code",
-			module.path
-		);
-		// Should not have symbol-only import mismatches that cause no-op fallbacks
-	}
+    // Verify all generated modules are valid
+    for module in &output.modules {
+        assert!(
+            !module.code.is_empty(),
+            "Module {} should have code",
+            module.path
+        );
+        // Should not have symbol-only import mismatches that cause no-op fallbacks
+    }
 }
 
 #[test]
 fn should_work() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$ } from "@qwik.dev/core";
 		import { globalAction$ } from "@qwik.dev/router";
 
@@ -6666,16 +6733,16 @@ fn should_work() {
 			return <div>{action.value}</div>
 		});
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn moves_captures_when_possible() {
-	test_input!(TestInput {
+    test_input!(TestInput {
 		code: r#"
 		import { component$, useSignal, $ } from "@qwik.dev/core";
 
@@ -6695,8 +6762,8 @@ fn moves_captures_when_possible() {
 
 #[test]
 fn fun_with_scopes() {
-	let res = test_input!(TestInput {
-		code: r#"
+    let res = test_input!(TestInput {
+        code: r#"
 		import { inlinedQrl,$,component$,jsx,useStylesScoped$ } from '@qwik.dev/core';
 			export default () => {
 				const serverFnHash = globalThis.foo();
@@ -6755,21 +6822,21 @@ fn fun_with_scopes() {
 			})
 
 			"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		is_server: Some(true),
-		entry_strategy: EntryStrategy::Hoist,
-		..TestInput::default()
-	});
-	// segments are drained and inlined for Hoist strategy
-	assert!(res.is_ok());
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        is_server: Some(true),
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+    // segments are drained and inlined for Hoist strategy
+    assert!(res.is_ok());
 }
 
 #[test]
 fn hmr() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { component$, component$, $ } from "@qwik.dev/core";
 
 		export const TestGetsHmr = component$(() => {
@@ -6779,18 +6846,18 @@ fn hmr() {
 			return <div>Test</div>;
 		}));
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		mode: EmitMode::Hmr,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        mode: EmitMode::Hmr,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_lib_mode() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $, component$, server$, useStyle$, useTask$, useSignal } from '@qwik.dev/core';
 
 export const Works = component$((props) => {
@@ -6807,67 +6874,67 @@ export const Works = component$((props) => {
 
 const STYLES = '.class {}';
 "#
-		.to_string(),
-		mode: EmitMode::Lib,
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        mode: EmitMode::Lib,
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn lib_mode_inline_expressions() {
-	let res = test_input!(TestInput {
-		code: r#"
+    let res = test_input!(TestInput {
+        code: r#"
 import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
 	return <div>Hello</div>;
 });
 "#
-		.to_string(),
-		mode: EmitMode::Lib,
-		entry_strategy: EntryStrategy::Hoist,
-		transpile_ts: true,
-		transpile_jsx: true,
-		snapshot: false,
-		..TestInput::default()
-	});
+        .to_string(),
+        mode: EmitMode::Lib,
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        snapshot: false,
+        ..TestInput::default()
+    });
 
-	assert!(res.is_ok(), "Transform should succeed");
-	let output = res.unwrap();
+    assert!(res.is_ok(), "Transform should succeed");
+    let output = res.unwrap();
 
-	let combined_code = output
-		.modules
-		.iter()
-		.map(|module| module.code.as_str())
-		.collect::<Vec<_>>()
-		.join("\n");
-	let compact_code: String = combined_code
-		.chars()
-		.filter(|c| !c.is_whitespace())
-		.collect();
+    let combined_code = output
+        .modules
+        .iter()
+        .map(|module| module.code.as_str())
+        .collect::<Vec<_>>()
+        .join("\n");
+    let compact_code: String = combined_code
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
 
-	// In lib mode, inlinedQrl should have inline expressions, not extracted identifiers
-	assert!(
+    // In lib mode, inlinedQrl should have inline expressions, not extracted identifiers
+    assert!(
 		compact_code.contains("inlinedQrl(("),
 		"Expected inlinedQrl first arg to be an inline function expression in lib mode.\nGenerated code:\n{}",
 		combined_code
 	);
-	// No _captures should be used
-	assert!(
-		!compact_code.contains("_captures"),
-		"Expected no _captures in lib mode output.\nGenerated code:\n{}",
-		combined_code
-	);
+    // No _captures should be used
+    assert!(
+        !compact_code.contains("_captures"),
+        "Expected no _captures in lib mode output.\nGenerated code:\n{}",
+        combined_code
+    );
 }
 
 #[test]
 fn inlined_qrl_preserves_captures() {
-	// Simulates lib-preprocessed code being processed by the app optimizer.
-	// The inner inlinedQrl has 5 captures, including variables defined via
-	// the outer function's _captures destructuring.
-	let res = test_input!(TestInput {
+    // Simulates lib-preprocessed code being processed by the app optimizer.
+    // The inner inlinedQrl has 5 captures, including variables defined via
+    // the outer function's _captures destructuring.
+    let res = test_input!(TestInput {
 		code: r#"
 import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _captures } from '@qwik.dev/core';
 
@@ -6896,68 +6963,68 @@ export function qwikifyQrl(reactCmp$, opts) {
 		..TestInput::default()
 	});
 
-	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
-	let output = res.unwrap();
+    assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+    let output = res.unwrap();
 
-	let combined_code = output
-		.modules
-		.iter()
-		.map(|module| module.code.as_str())
-		.collect::<Vec<_>>()
-		.join("\n");
+    let combined_code = output
+        .modules
+        .iter()
+        .map(|module| module.code.as_str())
+        .collect::<Vec<_>>()
+        .join("\n");
 
-	// The inner inlinedQrl must preserve all 5 captures
-	// Find the inner QRL call with captures (format: q_s_inner123.w([captures])
-	// or inlinedQrl(ref, "s_inner123", [captures]))
-	let search = combined_code
-		.find("q_s_inner123.w(")
-		.or_else(|| combined_code.find("\"s_inner123\""))
-		.expect(&format!(
-			"Should find s_inner123 call in output.\nGenerated code:\n{}",
-			combined_code
-		));
+    // The inner inlinedQrl must preserve all 5 captures
+    // Find the inner QRL call with captures (format: q_s_inner123.w([captures])
+    // or inlinedQrl(ref, "s_inner123", [captures]))
+    let search = combined_code
+        .find("q_s_inner123.w(")
+        .or_else(|| combined_code.find("\"s_inner123\""))
+        .expect(&format!(
+            "Should find s_inner123 call in output.\nGenerated code:\n{}",
+            combined_code
+        ));
 
-	// Find the captures array (the [...] argument)
-	let after_hash = &combined_code[search..];
-	let bracket_start = after_hash.find('[').expect(&format!(
-		"Should find captures array for s_inner123.\nGenerated code:\n{}",
-		combined_code
-	));
-	let bracket_end = after_hash[bracket_start..]
-		.find(']')
-		.expect("Should find end of captures array");
-	let captures_str = &after_hash[bracket_start + 1..bracket_start + bracket_end];
+    // Find the captures array (the [...] argument)
+    let after_hash = &combined_code[search..];
+    let bracket_start = after_hash.find('[').expect(&format!(
+        "Should find captures array for s_inner123.\nGenerated code:\n{}",
+        combined_code
+    ));
+    let bracket_end = after_hash[bracket_start..]
+        .find(']')
+        .expect("Should find end of captures array");
+    let captures_str = &after_hash[bracket_start + 1..bracket_start + bracket_end];
 
-	// Count commas to get number of captures (N commas = N+1 elements)
-	let capture_count = if captures_str.trim().is_empty() {
-		0
-	} else {
-		captures_str.split(',').count()
-	};
+    // Count commas to get number of captures (N commas = N+1 elements)
+    let capture_count = if captures_str.trim().is_empty() {
+        0
+    } else {
+        captures_str.split(',').count()
+    };
 
-	assert_eq!(
+    assert_eq!(
 		capture_count, 5,
 		"Inner inlinedQrl should have exactly 5 captures, but found {}.\nCaptures: '{}'\nFull code:\n{}",
 		capture_count, captures_str, combined_code
 	);
 
-	// Verify specific capture names are present
-	for name in &["hostRef", "reactCmp$2", "opts2", "signal", "text"] {
-		assert!(
+    // Verify specific capture names are present
+    for name in &["hostRef", "reactCmp$2", "opts2", "signal", "text"] {
+        assert!(
 			captures_str.contains(name),
 			"Capture '{}' should be present in inner captures array.\nCaptures: '{}'\nFull code:\n{}",
 			name, captures_str, combined_code
 		);
-	}
+    }
 }
 
 #[test]
 fn inlined_qrl_preserves_destructured_captures() {
-	// Simulates a library .qwik.mjs file being processed by the app optimizer in SSR dev mode.
-	// The library has destructured useCustomSignal() return value, and inner inlinedQrl captures
-	// reference the destructured bindings. transform_props_destructuring must not collapse
-	// the destructuring because it would break the explicit captures.
-	let res = test_input!(TestInput {
+    // Simulates a library .qwik.mjs file being processed by the app optimizer in SSR dev mode.
+    // The library has destructured useCustomSignal() return value, and inner inlinedQrl captures
+    // reference the destructured bindings. transform_props_destructuring must not collapse
+    // the destructuring because it would break the explicit captures.
+    let res = test_input!(TestInput {
 		code: r#"
 import { componentQrl, inlinedQrl, useComputedQrl, useSignal, useTaskQrl, _captures, _jsxSorted } from '@qwik.dev/core';
 import { useCustomSignal } from './use-custom-signal.qwik.mjs';
@@ -6990,54 +7057,54 @@ export { MyComponent };
 		..TestInput::default()
 	});
 
-	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
-	let output = res.unwrap();
+    assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+    let output = res.unwrap();
 
-	let combined_code = output
-		.modules
-		.iter()
-		.map(|module| module.code.as_str())
-		.collect::<Vec<_>>()
-		.join("\n");
+    let combined_code = output
+        .modules
+        .iter()
+        .map(|module| module.code.as_str())
+        .collect::<Vec<_>>()
+        .join("\n");
 
-	// Verify isOpen survives transform_props_destructuring
-	assert!(
+    // Verify isOpen survives transform_props_destructuring
+    assert!(
 		combined_code.contains("isOpen"),
 		"isOpen should be present — transform_props_destructuring must not collapse destructured bindings in inlinedQrl function bodies.\nGenerated code:\n{}",
 		combined_code
 	);
 
-	// Verify computed captures include both count and isOpen
-	let computed_captures = combined_code
-		.find("q_MyComponent_component_label_useComputed_ABC123.w(")
-		.expect(&format!(
-			"Should find computed QRL .w() call.\nGenerated code:\n{}",
-			combined_code
-		));
-	let after = &combined_code[computed_captures..];
-	let bracket_end = after.find("])").expect("Should find end of captures array");
-	let captures_str = &after[..bracket_end + 1];
-	assert!(
-		captures_str.contains("count") && captures_str.contains("isOpen"),
-		"Computed captures should include both count and isOpen.\nCaptures: '{}'\nFull code:\n{}",
-		captures_str,
-		combined_code
-	);
+    // Verify computed captures include both count and isOpen
+    let computed_captures = combined_code
+        .find("q_MyComponent_component_label_useComputed_ABC123.w(")
+        .expect(&format!(
+            "Should find computed QRL .w() call.\nGenerated code:\n{}",
+            combined_code
+        ));
+    let after = &combined_code[computed_captures..];
+    let bracket_end = after.find("])").expect("Should find end of captures array");
+    let captures_str = &after[..bracket_end + 1];
+    assert!(
+        captures_str.contains("count") && captures_str.contains("isOpen"),
+        "Computed captures should include both count and isOpen.\nCaptures: '{}'\nFull code:\n{}",
+        captures_str,
+        combined_code
+    );
 
-	// Verify task captures include isOpen
-	assert!(
-		combined_code.contains("q_MyComponent_component_useTask_DEF456.w("),
-		"Task QRL should have .w() captures with isOpen.\nGenerated code:\n{}",
-		combined_code
-	);
+    // Verify task captures include isOpen
+    assert!(
+        combined_code.contains("q_MyComponent_component_useTask_DEF456.w("),
+        "Task QRL should have .w() captures with isOpen.\nGenerated code:\n{}",
+        combined_code
+    );
 }
 
 #[test]
 fn lib_full_names_shortened_in_prod() {
-	// Lib builds emit full symbol names (e.g. "Works_component_useTask_hash").
-	// When a prod build consumes this lib, names should be shortened to "s_hash".
-	let res = test_input!(TestInput {
-		code: r#"
+    // Lib builds emit full symbol names (e.g. "Works_component_useTask_hash").
+    // When a prod build consumes this lib, names should be shortened to "s_hash".
+    let res = test_input!(TestInput {
+        code: r#"
 import { componentQrl, inlinedQrl, useTaskQrl, _captures } from '@qwik.dev/core';
 
 export const Works = componentQrl(inlinedQrl((props) => {
@@ -7048,49 +7115,49 @@ export const Works = componentQrl(inlinedQrl((props) => {
 	}, "Works_component_useTask_pjo5U5Ikll0", [text]));
 }, "Works_component_t45qL4vNGv0"));
 "#
-		.to_string(),
-		entry_strategy: EntryStrategy::Hoist,
-		minify: MinifyMode::Simplify,
-		transpile_ts: false,
-		transpile_jsx: false,
-		snapshot: false,
-		mode: EmitMode::Prod,
-		..TestInput::default()
-	});
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        minify: MinifyMode::Simplify,
+        transpile_ts: false,
+        transpile_jsx: false,
+        snapshot: false,
+        mode: EmitMode::Prod,
+        ..TestInput::default()
+    });
 
-	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
-	let output = res.unwrap();
+    assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+    let output = res.unwrap();
 
-	let combined_code = output
-		.modules
-		.iter()
-		.map(|module| module.code.as_str())
-		.collect::<Vec<_>>()
-		.join("\n");
+    let combined_code = output
+        .modules
+        .iter()
+        .map(|module| module.code.as_str())
+        .collect::<Vec<_>>()
+        .join("\n");
 
-	// Prod should shorten to s_hash format
-	assert!(
-		combined_code.contains("s_pjo5U5Ikll0"),
-		"Prod build should shorten inner QRL name to s_hash.\nGenerated code:\n{}",
-		combined_code
-	);
-	assert!(
-		combined_code.contains("s_t45qL4vNGv0"),
-		"Prod build should shorten outer QRL name to s_hash.\nGenerated code:\n{}",
-		combined_code
-	);
-	// Full names should NOT appear in prod output
-	assert!(
-		!combined_code.contains("Works_component"),
-		"Prod build should not contain full symbol names.\nGenerated code:\n{}",
-		combined_code
-	);
+    // Prod should shorten to s_hash format
+    assert!(
+        combined_code.contains("s_pjo5U5Ikll0"),
+        "Prod build should shorten inner QRL name to s_hash.\nGenerated code:\n{}",
+        combined_code
+    );
+    assert!(
+        combined_code.contains("s_t45qL4vNGv0"),
+        "Prod build should shorten outer QRL name to s_hash.\nGenerated code:\n{}",
+        combined_code
+    );
+    // Full names should NOT appear in prod output
+    assert!(
+        !combined_code.contains("Works_component"),
+        "Prod build should not contain full symbol names.\nGenerated code:\n{}",
+        combined_code
+    );
 }
 
 #[test]
 fn should_not_inline_exported_var_into_segment() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 		import { wrapperFn, getEnv } from 'utils';
 		import { formAction$, valiForm$ } from 'forms';
 
@@ -7103,17 +7170,17 @@ fn should_not_inline_exported_var_into_segment() {
 			};
 		}, valiForm$(FeatureSchema));
 		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_auto_export_var_shadowed_in_catch() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { formAction$ } from 'forms';
 import { translate } from 'i18n';
 
@@ -7127,17 +7194,17 @@ export const action = formAction$((data) => {
   }
 });
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_auto_export_var_shadowed_in_do_while() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { formAction$ } from 'forms';
 const x = 'module-level';
 export const action = formAction$((data) => {
@@ -7149,17 +7216,17 @@ export const action = formAction$((data) => {
   return {};
 });
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_auto_export_var_shadowed_in_switch() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { formAction$ } from 'forms';
 const x = 'module-level';
 export const action = formAction$((data) => {
@@ -7176,17 +7243,17 @@ export const action = formAction$((data) => {
   return x;
 });
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_not_auto_export_var_shadowed_in_labeled_block() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { formAction$ } from 'forms';
 const x = 'module-level';
 export const action = formAction$((data) => {
@@ -7197,20 +7264,20 @@ export const action = formAction$((data) => {
   return {};
 });
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_keep_module_level_var_used_in_both_main_and_qrl() {
-	// Minimal repro: module-level variable used both in main module scope
-	// AND inside a $() closure. The optimizer must keep (or re-export) the
-	// variable in the main module — moving it only to the chunk is a bug.
-	test_input!(TestInput {
-		code: r#"
+    // Minimal repro: module-level variable used both in main module scope
+    // AND inside a $() closure. The optimizer must keep (or re-export) the
+    // variable in the main module — moving it only to the chunk is a bug.
+    test_input!(TestInput {
+        code: r#"
 import { $, isServer } from '@qwik.dev/core';
 
 const state = {
@@ -7235,17 +7302,17 @@ export function useHook() {
 }
 
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_keep_non_migrated_binding_from_shared_destructuring_declarator() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 
 const { a, b } = {
@@ -7260,17 +7327,17 @@ export const handler = $(() => {
 });
 
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_keep_root_var_used_by_export_decl_and_qrl() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 
 const shared = {
@@ -7284,17 +7351,17 @@ export const handler = $(() => {
 });
 
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_migrate_destructured_binding_with_imported_dependency() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 import { source } from 'lib';
 
@@ -7305,17 +7372,17 @@ export const handler = $(() => {
 });
 
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_keep_non_migrated_binding_from_shared_array_destructuring_declarator() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 
 const [a, b] = [1, 2];
@@ -7327,17 +7394,17 @@ export const handler = $(() => {
 });
 
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_keep_non_migrated_binding_from_shared_destructuring_with_default() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 
 const { a = 1, b } = { b: 2 };
@@ -7349,17 +7416,17 @@ export const handler = $(() => {
 });
 
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_keep_non_migrated_binding_from_shared_destructuring_with_rest() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 
 const { a, ...rest } = { a: 1, b: 2, c: 3 };
@@ -7371,17 +7438,17 @@ export const handler = $(() => {
 });
 
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn should_keep_root_var_used_by_exported_function_and_qrl() {
-	test_input!(TestInput {
-		code: r#"
+    test_input!(TestInput {
+        code: r#"
 import { $ } from '@qwik.dev/core';
 
 const shared = {
@@ -7397,44 +7464,44 @@ export const handler = $(() => {
 });
 
 		"#
-		.to_string(),
-		transpile_jsx: true,
-		transpile_ts: true,
-		..TestInput::default()
-	});
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
 }
 
 impl TestInput {
-	pub fn default() -> Self {
-		Self {
-			filename: "test.tsx".to_string(),
-			dev_path: None,
-			src_dir: "/user/qwik/src/".to_string(),
-			root_dir: None,
-			code: "/user/qwik/src/".to_string(),
-			entry_strategy: EntryStrategy::Segment,
-			minify: MinifyMode::Simplify,
-			transpile_ts: false,
-			transpile_jsx: false,
-			preserve_filenames: false,
-			explicit_extensions: false,
-			snapshot: true,
-			mode: EmitMode::Test,
-			scope: None,
-			core_module: None,
-			reg_ctx_name: None,
-			strip_exports: None,
-			strip_ctx_name: None,
-			strip_event_handlers: false,
-			is_server: None,
-		}
-	}
+    pub fn default() -> Self {
+        Self {
+            filename: "test.tsx".to_string(),
+            dev_path: None,
+            src_dir: "/user/qwik/src/".to_string(),
+            root_dir: None,
+            code: "/user/qwik/src/".to_string(),
+            entry_strategy: EntryStrategy::Segment,
+            minify: MinifyMode::Simplify,
+            transpile_ts: false,
+            transpile_jsx: false,
+            preserve_filenames: false,
+            explicit_extensions: false,
+            snapshot: true,
+            mode: EmitMode::Test,
+            scope: None,
+            core_module: None,
+            reg_ctx_name: None,
+            strip_exports: None,
+            strip_ctx_name: None,
+            strip_event_handlers: false,
+            is_server: None,
+        }
+    }
 }
 
 #[test]
 fn should_preserve_non_ident_explicit_captures() {
-	let res = test_input!(TestInput {
-		code: r#"
+    let res = test_input!(TestInput {
+        code: r#"
 import { _captures, inlinedQrl } from '@qwik.dev/core';
 
 const left = 1;
@@ -7447,27 +7514,27 @@ export const task = inlinedQrl(() => {
 	return middle ? left : right;
 }, 'task', [left, true, right]);
 "#
-		.to_string(),
-		mode: EmitMode::Dev,
-		..TestInput::default()
-	});
+        .to_string(),
+        mode: EmitMode::Dev,
+        ..TestInput::default()
+    });
 
-	// check to make sure no snapshot regression in captures
-	let output = res.unwrap();
-	let entry_module = output
-		.modules
-		.iter()
-		.find(|m| m.segment.is_none())
-		.expect("entry module not found");
-	let compact_code: String = entry_module
-		.code
-		.chars()
-		.filter(|c| !c.is_whitespace())
-		.collect();
+    // check to make sure no snapshot regression in captures
+    let output = res.unwrap();
+    let entry_module = output
+        .modules
+        .iter()
+        .find(|m| m.segment.is_none())
+        .expect("entry module not found");
+    let compact_code: String = entry_module
+        .code
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
 
-	assert!(
-		compact_code.contains(".w([left,true,right])"),
-		"expected transformed capture array [left, true, right] to be preserved, got:\n{}",
-		entry_module.code
-	);
+    assert!(
+        compact_code.contains(".w([left,true,right])"),
+        "expected transformed capture array [left, true, right] to be preserved, got:\n{}",
+        entry_module.code
+    );
 }

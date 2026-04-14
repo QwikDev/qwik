@@ -1,0 +1,78 @@
+==INPUT==
+
+
+import { component$, $ } from '@qwik.dev/core';
+
+// scrollState is used by both segments - must NOT be migrated
+const scrollState = (el) => ({ x: el.scrollLeft, y: el.scrollTop });
+
+// saveScroll is used by both segments - must NOT be migrated
+const saveScroll = (s) => history.replaceState(s, '');
+
+// bigHelper depends on scrollState and saveScroll, used only by App
+const bigHelper = (el) => {
+  const s = scrollState(el);
+  saveScroll(s);
+  return s;
+};
+
+export const App = component$(() => {
+  // Uses bigHelper (which transitively uses scrollState and saveScroll)
+  const s = bigHelper(document.body);
+  return <div>{s.x}</div>;
+});
+
+export const Other = component$(() => {
+  // Directly uses scrollState and saveScroll
+  const s = scrollState(document.body);
+  saveScroll(s);
+  return <div>{s.y}</div>;
+});
+============================= test.tsx ==
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_Other_component_C1my3EIdP1k = /*#__PURE__*/ qrl(()=>import("./test.tsx_Other_component_C1my3EIdP1k"), "Other_component_C1my3EIdP1k");
+//
+
+// scrollState is used by both segments - must NOT be migrated
+const scrollState = (el) => ({ x: el.scrollLeft, y: el.scrollTop });
+
+// saveScroll is used by both segments - must NOT be migrated
+const saveScroll = (s) => history.replaceState(s, '');
+
+// bigHelper depends on scrollState and saveScroll, used only by App
+
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+
+export const Other = /*#__PURE__*/ componentQrl(q_Other_component_C1my3EIdP1k);
+export { scrollState as _auto_scrollState };
+export { saveScroll as _auto_saveScroll };
+============================= test.tsx_App_component_ckEPmXZlub0.tsx (ENTRY POINT)==
+import { saveScroll } from "./test";
+import { scrollState } from "./test";
+//
+const bigHelper = (el) => {
+  const s = scrollState(el);
+  saveScroll(s);
+  return s;
+};
+export const App_component_ckEPmXZlub0 = () => {
+  // Uses bigHelper (which transitively uses scrollState and saveScroll)
+  const s = bigHelper(document.body);
+  return <div>{s.x}</div>;
+};
+============================= test.tsx_Other_component_C1my3EIdP1k.tsx (ENTRY POINT)==
+import { _auto_scrollState as scrollState } from "./test";
+import { _auto_saveScroll as saveScroll } from "./test";
+//
+export const Other_component_C1my3EIdP1k = () => {
+  // Directly uses scrollState and saveScroll
+  const s = scrollState(document.body);
+  saveScroll(s);
+  return <div>{s.y}</div>;
+};
+== DIAGNOSTICS ==
+
+[]

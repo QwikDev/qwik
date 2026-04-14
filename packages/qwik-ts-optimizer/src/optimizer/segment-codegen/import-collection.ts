@@ -11,6 +11,7 @@ import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import type { AstFunction, AstNode } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../utils/parse.js';
 import { rewriteImportSource } from '../rewrite-imports.js';
+import { getQrlCalleeName } from '../utils/qrl-naming.js';
 import { getQrlImportSource } from '../rewrite-calls.js';
 import type { NestedCallSiteInfo, SegmentImportData } from '../segment-codegen.js';
 import { insertImportBeforeSeparator } from './body-transforms.js';
@@ -156,14 +157,16 @@ function addQrlCalleeImports(
   if (!nestedCallSites) {
     qrlSuffixPattern.lastIndex = 0;
     const qrlSuffixRegex = qrlSuffixPattern;
-    let qrlMatch;
-    while ((qrlMatch = qrlSuffixRegex.exec(bodyText)) !== null) {
-      const qrlName = qrlMatch[1];
-      if (parts.some(p => p.includes(qrlName))) continue;
-      if (qrlName.startsWith('use') || qrlName[0] === qrlName[0].toLowerCase()) {
-        insertImportBeforeSeparator(parts, `import { ${qrlName} } from "@qwik.dev/core";`);
+      let qrlMatch;
+      while ((qrlMatch = qrlSuffixRegex.exec(bodyText)) !== null) {
+        const qrlName = qrlMatch[1];
+        if (parts.some(p => p.includes(qrlName))) continue;
+        const markerName = `${qrlName.slice(0, -3)}$`;
+        if (getQrlCalleeName(markerName) === qrlName) {
+          const importSource = getQrlImportSource(qrlName);
+          insertImportBeforeSeparator(parts, `import { ${qrlName} } from "${importSource}";`);
+        }
       }
-    }
     return;
   }
 

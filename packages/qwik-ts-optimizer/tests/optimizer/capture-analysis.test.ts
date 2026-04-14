@@ -11,7 +11,6 @@ import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import {
   analyzeCaptures,
-  collectParamNames,
   collectScopeIdentifiers,
   type CaptureAnalysisResult,
 } from '../../src/optimizer/capture-analysis.js';
@@ -344,60 +343,3 @@ describe('analyzeCaptures', () => {
   });
 });
 
-describe('collectParamNames', () => {
-  it('extracts simple identifier params', () => {
-    const source = `const fn = (a, b, c) => {};`;
-    const { program } = parseSync('test.ts', source);
-    let params: any[] = [];
-    walk(program as any, {
-      enter(node: any) {
-        if (node.type === 'ArrowFunctionExpression') {
-          params = node.params;
-        }
-      },
-    });
-    expect(collectParamNames(params)).toEqual(['a', 'b', 'c']);
-  });
-
-  it('extracts destructured object params', () => {
-    const source = `const fn = ({a, b}) => {};`;
-    const { program } = parseSync('test.ts', source);
-    let params: any[] = [];
-    walk(program as any, {
-      enter(node: any) {
-        if (node.type === 'ArrowFunctionExpression') {
-          params = node.params;
-        }
-      },
-    });
-    expect(collectParamNames(params)).toEqual(['a', 'b']);
-  });
-
-  it('extracts rest params', () => {
-    const source = `const fn = (a, ...rest) => {};`;
-    const { program } = parseSync('test.ts', source);
-    let params: any[] = [];
-    walk(program as any, {
-      enter(node: any) {
-        if (node.type === 'ArrowFunctionExpression') {
-          params = node.params;
-        }
-      },
-    });
-    expect(collectParamNames(params)).toEqual(['a', 'rest']);
-  });
-
-  it('extracts params with defaults', () => {
-    const source = `const fn = (a = 1, {b} = {}) => {};`;
-    const { program } = parseSync('test.ts', source);
-    let params: any[] = [];
-    walk(program as any, {
-      enter(node: any) {
-        if (node.type === 'ArrowFunctionExpression') {
-          params = node.params;
-        }
-      },
-    });
-    expect(collectParamNames(params)).toEqual(['a', 'b']);
-  });
-});

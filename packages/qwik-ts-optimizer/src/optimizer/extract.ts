@@ -17,7 +17,7 @@ import type {
   JSXElementName,
 } from '../ast-types.js';
 import { qwikHash } from '../hashing/siphash.js';
-import { parseWithRawTransfer } from '../utils/parse.js';
+import { parseWithRawTransfer } from './utils/parse.js';
 import { ContextStack } from './context-stack.js';
 import {
   collectImports,

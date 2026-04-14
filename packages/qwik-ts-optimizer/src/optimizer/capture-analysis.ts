@@ -8,7 +8,6 @@
 
 import { getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import type {
-  AstBindingPattern,
   AstFunction,
   AstMaybeNode,
   AstParamPattern,
@@ -55,7 +54,7 @@ export function analyzeCaptures(
 }
 
 /** Extract all binding names from function parameter AST nodes. */
-export function collectParamNames(params: AstParamPattern[]): string[] {
+function collectParamNames(params: AstParamPattern[]): string[] {
   const names: string[] = [];
   for (const param of params) {
     appendBindingNamesFromPattern(param, names);

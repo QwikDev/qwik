@@ -10,12 +10,6 @@
  * - passive events use q-ep:/q-wp:/q-dp: prefixes
  */
 
-export interface EventTransformResult {
-  outputPropName: string;
-  isHtmlOnly: boolean;
-  stripPassive: string[];
-}
-
 /**
  * Check if a JSX prop name is an event handler that will be transformed.
  *
@@ -72,15 +66,6 @@ function normalizeJsxEventName(name: string): string {
     : name.toLowerCase();  // Standard event: lowercase everything first
 
   return createEventName(processedName);
-}
-
-/**
- * Convert camelCase string to kebab-case.
- */
-export function camelToKebab(str: string): string {
-  return str.replace(/[A-Z]/g, (match, offset) => {
-    return (offset > 0 ? '-' : '') + match.toLowerCase();
-  });
 }
 
 /**
@@ -157,20 +142,6 @@ export function transformEventPropName(
   const [prefix] = getEventScopeData(propName, isPassive)!;
 
   return prefix + normalizedName;
-}
-
-/**
- * Convert a JSX event name to its plain event name for matching/display.
- * Matches Rust's `jsx_event_to_event_name`.
- */
-export function jsxEventToEventName(jsxEvent: string): string | null {
-  if (!jsxEvent.endsWith('$')) return null;
-
-  const scopeData = getEventScopeData(jsxEvent, false);
-  if (!scopeData) return null;
-
-  const [, stripIndex] = scopeData;
-  return normalizeJsxEventName(jsxEvent.slice(stripIndex, jsxEvent.length - 1));
 }
 
 /**

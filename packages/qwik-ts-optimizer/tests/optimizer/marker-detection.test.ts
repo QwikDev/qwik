@@ -5,7 +5,6 @@ import {
   collectImports,
   collectCustomInlined,
   isMarkerCall,
-  isBare$,
   isSyncMarker,
   getCtxKind,
   getCtxName,
@@ -197,18 +196,6 @@ describe('marker-detection', () => {
       const call = findFirstCall(program);
       expect(call).not.toBeNull();
       expect(isMarkerCall(call, imports, customInlined)).toBe(true);
-    });
-  });
-
-  describe('isBare$', () => {
-    it('returns true for callee name "$", false for "component$"', () => {
-      const program1 = parse(`$(() => {});`);
-      const call1 = findFirstCall(program1);
-      expect(isBare$(call1)).toBe(true);
-
-      const program2 = parse(`component$(() => {});`);
-      const call2 = findFirstCall(program2);
-      expect(isBare$(call2)).toBe(false);
     });
   });
 

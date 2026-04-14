@@ -1,5 +1,5 @@
 import { parseSync, type ParseResult } from 'oxc-parser';
-import { RAW_TRANSFER_PARSER_OPTIONS } from '../ast-types.js';
+import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 
 export function parseWithRawTransfer(
   filename: string,

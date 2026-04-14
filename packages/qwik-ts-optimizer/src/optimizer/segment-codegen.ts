@@ -7,14 +7,14 @@
 
 import { createRegExp, exactly, oneOrMore, whitespace, charNotIn } from 'magic-regexp';
 import MagicString from 'magic-string';
-import { isAstNode } from '../utils/ast.js';
-import { parseWithRawTransfer } from '../utils/parse.js';
+import { isAstNode } from './utils/ast.js';
+import { parseWithRawTransfer } from './utils/parse.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { inlineConstCaptures } from './rewrite/index.js';
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx, collectConstIdents } from './transform/jsx.js';
 import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
-import type { AstNode, AstProgram } from '../ast-types.js';
+import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
 
 // Re-export from body-transforms for backward compatibility
 export {
@@ -36,7 +36,6 @@ import {
   removeDeadConstLiterals,
   rewriteFunctionSignature,
   injectCapturesUnpacking,
-  findArrowIndex,
   insertImportBeforeSeparator,
   partsHaveImport,
 } from './segment-codegen/body-transforms.js';
@@ -351,7 +350,7 @@ function buildQpOverrides(
     if (site.hoistedSymbolName) qrlParamMap.set(site.hoistedSymbolName, site.loopLocalParamNames);
   }
 
-  function walkAst(node: AstNode | null | undefined): void {
+  function walkAst(node: AstMaybeNode): void {
     if (!node || typeof node !== 'object') return;
     if (node.type === 'JSXElement' && node.openingElement) {
       const attrs = node.openingElement.attributes || [];

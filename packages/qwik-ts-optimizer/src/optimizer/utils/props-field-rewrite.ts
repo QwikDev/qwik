@@ -1,6 +1,6 @@
-import type { AstNode } from '../../ast-types.js';
-import { isAstNode } from '../../utils/ast.js';
-import { parseWithRawTransfer } from '../../utils/parse.js';
+import type { AstMaybeNode, AstNode, AstParentNode } from '../../ast-types.js';
+import { isAstNode } from './ast.js';
+import { parseWithRawTransfer } from './parse.js';
 import { buildPropertyAccessor } from './identifier-name.js';
 
 interface RewritePropsFieldReferencesOptions {
@@ -43,9 +43,9 @@ export function rewritePropsFieldReferences(
   }> = [];
 
   function walkNode(
-    node: AstNode | null | undefined,
+    node: AstMaybeNode,
     parentKey?: string,
-    parentNode?: AstNode | null,
+    parentNode?: AstParentNode,
   ): void {
     if (!node || typeof node !== 'object') return;
 

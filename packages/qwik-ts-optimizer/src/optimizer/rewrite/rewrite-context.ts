@@ -13,7 +13,7 @@ import type { EmitMode } from '../types.js';
 import type { AstProgram } from '../../ast-types.js';
 import type { InlineStrategyOptions, JsxRewriteOptions } from './index.js';
 
-export interface SurvivingImportInfo {
+interface SurvivingImportInfo {
   defaultPart: string;
   nsPart: string;
   namedParts: { local: string; imported: string }[];

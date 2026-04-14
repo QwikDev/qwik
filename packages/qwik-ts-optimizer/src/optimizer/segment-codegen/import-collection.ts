@@ -9,7 +9,7 @@
 import { createRegExp, oneOrMore, wordChar, wordBoundary, global } from 'magic-regexp';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import type { AstFunction, AstNode } from '../../ast-types.js';
-import { parseWithRawTransfer } from '../../utils/parse.js';
+import { parseWithRawTransfer } from '../utils/parse.js';
 import { rewriteImportSource } from '../rewrite-imports.js';
 import { getQrlImportSource } from '../rewrite-calls.js';
 import type { NestedCallSiteInfo, SegmentImportContext } from '../segment-codegen.js';

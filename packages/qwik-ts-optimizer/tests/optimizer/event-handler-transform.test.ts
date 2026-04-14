@@ -12,7 +12,6 @@ import {
   transformEventPropName,
   isEventProp,
   isPassiveDirective,
-  camelToKebab,
   collectPassiveDirectives,
 } from '../../src/optimizer/transform/event-handlers.js';
 
@@ -80,29 +79,6 @@ describe('event-handler-transform', () => {
 
     it('returns false for class', () => {
       expect(isPassiveDirective('class')).toBe(false);
-    });
-  });
-
-  describe('camelToKebab', () => {
-    it('converts anotherCustom to another-custom', () => {
-      expect(camelToKebab('anotherCustom')).toBe('another-custom');
-    });
-
-    it('converts cLick to c-lick', () => {
-      expect(camelToKebab('cLick')).toBe('c-lick');
-    });
-
-    it('converts sCroll to s-croll', () => {
-      // onDocument-sCroll$ => strip on, has dash -> "Document-sCroll" -> kebab
-      expect(camelToKebab('sCroll')).toBe('s-croll');
-    });
-
-    it('keeps lowercase strings unchanged', () => {
-      expect(camelToKebab('click')).toBe('click');
-    });
-
-    it('converts DblClick to dbl-click', () => {
-      expect(camelToKebab('DblClick')).toBe('dbl-click');
     });
   });
 

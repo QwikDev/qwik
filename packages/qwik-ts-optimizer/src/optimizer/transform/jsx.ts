@@ -8,19 +8,12 @@
 
 import type MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
-import { forEachAstChild } from '../../utils/ast.js';
+import { forEachAstChild } from '../utils/ast.js';
 import type { AstProgram, JSXElementName } from '../../ast-types.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { collectPassiveDirectives } from './event-handlers.js';
-import { buildQpProp, detectLoopContext, type LoopContext } from '../loop-hoisting.js';
+import { detectLoopContext, type LoopContext } from '../loop-hoisting.js';
 import { computeKeyPrefix } from '../key-prefix.js';
-import {
-  processProps,
-  formatPropName,
-  isRewrittenEventEntry,
-  sortVarEntries,
-} from './jsx-props.js';
-import { processChildren } from './jsx-children.js';
 
 // Re-export for consumers
 export { processChildren } from './jsx-children.js';
@@ -130,7 +123,7 @@ export function collectConstIdents(program: AstProgram): Set<string> {
  * Collect all locally declared identifier names from an AST program.
  * Used to distinguish known locals from unknown globals for signal analysis.
  */
-export function collectAllLocalNames(program: AstProgram): Set<string> {
+function collectAllLocalNames(program: AstProgram): Set<string> {
   const names = new Set<string>();
 
   function addIdent(node: any): void {

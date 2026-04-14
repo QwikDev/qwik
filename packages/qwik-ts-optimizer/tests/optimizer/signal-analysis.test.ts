@@ -9,8 +9,6 @@ import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import {
   analyzeSignalExpression,
-  isSignalValueAccess,
-  isStoreFieldAccess,
   SignalHoister,
 } from '../../src/optimizer/signal-analysis.js';
 
@@ -96,47 +94,6 @@ describe('signal-analysis', () => {
       const { node, source } = parseExpr('signal');
       const result = analyzeSignalExpression(node, source, importedNames);
       expect(result).toEqual({ type: 'none' });
-    });
-  });
-
-  describe('isSignalValueAccess', () => {
-    it('returns true for x.value', () => {
-      const { node } = parseExpr('signal.value');
-      expect(isSignalValueAccess(node)).toBe(true);
-    });
-
-    it('returns false for x.other', () => {
-      const { node } = parseExpr('signal.other');
-      expect(isSignalValueAccess(node)).toBe(false);
-    });
-
-    it('returns false for non-MemberExpression', () => {
-      const { node } = parseExpr('"hello"');
-      expect(isSignalValueAccess(node)).toBe(false);
-    });
-  });
-
-  describe('isStoreFieldAccess', () => {
-    const importedNames = new Set(['dep']);
-
-    it('returns true for props.class (local obj, non-.value field)', () => {
-      const { node } = parseExpr('props.class');
-      expect(isStoreFieldAccess(node, importedNames)).toBe(true);
-    });
-
-    it('returns false for dep.thing (imported obj)', () => {
-      const { node } = parseExpr('dep.thing');
-      expect(isStoreFieldAccess(node, importedNames)).toBe(false);
-    });
-
-    it('returns false for signal.value (signal access, not store field)', () => {
-      const { node } = parseExpr('signal.value');
-      expect(isStoreFieldAccess(node, importedNames)).toBe(false);
-    });
-
-    it('returns false for non-MemberExpression', () => {
-      const { node } = parseExpr('42');
-      expect(isStoreFieldAccess(node, importedNames)).toBe(false);
     });
   });
 

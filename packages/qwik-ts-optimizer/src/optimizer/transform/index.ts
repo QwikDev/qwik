@@ -13,7 +13,7 @@ import type {
   AstEcmaScriptModule,
   TSEnumDeclaration,
 } from "../../ast-types.js";
-import { parseWithRawTransfer } from "../../utils/parse.js";
+import { parseWithRawTransfer } from "../utils/parse.js";
 import { extractSegments } from "../extract.js";
 import { repairInput } from "../input-repair.js";
 import {

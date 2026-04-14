@@ -9,7 +9,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   emitC02,
-  emitC03,
   emitC05,
   emitPreventdefaultPassiveCheck,
   parseDisableDirectives,
@@ -50,41 +49,6 @@ describe('emitC02', () => {
   });
 });
 
-describe('emitC03', () => {
-  it('produces error with code C03 listing captured identifiers', () => {
-    const diag = emitC03(['qrl'], 'test.tsx', {
-      lo: 109,
-      hi: 112,
-      startLine: 5,
-      startCol: 22,
-      endLine: 5,
-      endCol: 24,
-    });
-    expect(diag.category).toBe('error');
-    expect(diag.code).toBe('C03');
-    expect(diag.message).toBe(
-      "This argument uses local values (qrl), but this API needs a function in that position. Pass a function instead of the value directly."
-    );
-    expect(diag.highlights).toEqual([
-      { lo: 109, hi: 112, startLine: 5, startCol: 22, endLine: 5, endCol: 24 },
-    ]);
-    expect(diag.suggestions).toBeNull();
-    expect(diag.scope).toBe('optimizer');
-  });
-
-  it('comma-separates multiple captured identifiers', () => {
-    const diag = emitC03(['a', 'b', 'c'], 'test.tsx');
-    expect(diag.message).toBe(
-      "This argument uses local values (a, b, c), but this API needs a function in that position. Pass a function instead of the value directly."
-    );
-  });
-
-  it('has null highlights when no span provided', () => {
-    const diag = emitC03(['x'], 'test.tsx');
-    expect(diag.highlights).toBeNull();
-  });
-});
-
 describe('parseDisableDirectives', () => {
   it('parses single code directive', () => {
     const source = `// line 1
@@ -122,7 +86,7 @@ someLine();`;
 describe('filterSuppressedDiagnostics', () => {
   it('removes diagnostics matching directive codes', () => {
     const diags: Diagnostic[] = [
-      emitC03(['qrl'], 'test.tsx', { lo: 0, hi: 10, startLine: 3, startCol: 1, endLine: 3, endCol: 10 }),
+      { category: 'error', code: 'C03', file: 'test.tsx', message: 'test', highlights: [{ lo: 0, hi: 10, startLine: 3, startCol: 1, endLine: 3, endCol: 10 }], suggestions: null, scope: 'optimizer' },
     ];
     const directives = new Map<number, Set<string>>();
     directives.set(3, new Set(['C03']));
@@ -144,9 +108,9 @@ describe('filterSuppressedDiagnostics', () => {
     // Directive on line 2 suppresses line 3 only
     const diags: Diagnostic[] = [
       // Diagnostic on line 3 -- should be suppressed
-      emitC03(['a'], 'test.tsx', { lo: 20, hi: 30, startLine: 3, startCol: 1, endLine: 3, endCol: 10 }),
+      { category: 'error', code: 'C03', file: 'test.tsx', message: 'uses local values (a)', highlights: [{ lo: 20, hi: 30, startLine: 3, startCol: 1, endLine: 3, endCol: 10 }], suggestions: null, scope: 'optimizer' },
       // Diagnostic on line 4 -- should NOT be suppressed
-      emitC03(['b'], 'test.tsx', { lo: 40, hi: 50, startLine: 4, startCol: 1, endLine: 4, endCol: 10 }),
+      { category: 'error', code: 'C03', file: 'test.tsx', message: 'uses local values (b)', highlights: [{ lo: 40, hi: 50, startLine: 4, startCol: 1, endLine: 4, endCol: 10 }], suggestions: null, scope: 'optimizer' },
     ];
     const directives = new Map<number, Set<string>>();
     directives.set(3, new Set(['C03'])); // Only line 3 is suppressed

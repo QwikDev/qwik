@@ -6,23 +6,20 @@
  * signal analysis for prop values.
  */
 
+import type { AstMaybeNode, JSXAttributeItem } from '../../ast-types.js';
 import { analyzeSignalExpression, type SignalHoister } from '../signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective } from './event-handlers.js';
 import { isBindProp, transformBindProp, mergeEventHandlers } from './bind.js';
 import { classifyProp, isConstBindingName } from './jsx.js';
 
 /** True for value nodes that are always const (literals, arrows, identifiers). */
-function isConstValueNode(valueNode: any): boolean {
+function isConstValueNode(valueNode: AstMaybeNode): boolean {
   if (!valueNode) return true;
   switch (valueNode.type) {
     case 'ArrowFunctionExpression':
     case 'FunctionExpression':
     case 'Identifier':
     case 'Literal':
-    case 'StringLiteral':
-    case 'NumericLiteral':
-    case 'BooleanLiteral':
-    case 'NullLiteral':
       return true;
     default:
       return false;
@@ -66,7 +63,7 @@ export function formatPropName(name: string): string {
  * Process JSX attributes and classify them into varProps and constProps.
  */
 export function processProps(
-  attributes: any[],
+  attributes: JSXAttributeItem[],
   source: string,
   importedNames: Set<string>,
   tagIsHtml: boolean,
@@ -138,7 +135,7 @@ export function processProps(
       if (attr.value) {
         if (attr.value.type === 'JSXExpressionContainer') {
           key = source.slice(attr.value.expression.start, attr.value.expression.end);
-        } else if (attr.value.type === 'StringLiteral' || attr.value.type === 'Literal') {
+        } else if (attr.value.type === 'Literal') {
           key = `"${attr.value.value}"`;
         }
       }
@@ -156,7 +153,7 @@ export function processProps(
     }
 
     let valueText: string;
-    let valueNode: any;
+    let valueNode: AstMaybeNode;
 
     if (attr.value === null || attr.value === undefined) {
       valueText = 'true';

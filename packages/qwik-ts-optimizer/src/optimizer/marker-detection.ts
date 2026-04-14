@@ -218,10 +218,6 @@ export function isMarkerCall(
   return false;
 }
 
-export function isBare$(callExpr: CallExpression): boolean {
-  return getCalleeName(callExpr) === '$';
-}
-
 /** sync$ is a marker but does NOT extract a segment. */
 export function isSyncMarker(calleeName: string): boolean {
   return calleeName === 'sync$';

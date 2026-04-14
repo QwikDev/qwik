@@ -28,16 +28,3 @@ export function rewriteImportSource(source: string): string {
   }
   return source;
 }
-
-/**
- * Rewrite legacy @builder.io package names within a full file path.
- */
-export function rewriteFilePath(filePath: string): string {
-  for (const [from, to] of IMPORT_REWRITES) {
-    const idx = filePath.indexOf(from);
-    if (idx >= 0) {
-      return filePath.slice(0, idx) + to + filePath.slice(idx + from.length);
-    }
-  }
-  return filePath;
-}

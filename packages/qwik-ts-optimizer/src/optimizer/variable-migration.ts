@@ -36,7 +36,7 @@ export interface ModuleLevelDecl {
  * Conservative purity check: returns true only for expressions that
  * provably have no side effects (literals, functions, simple compositions).
  */
-function isInitializerSafe(node: AstNode | null | undefined): boolean {
+function isInitializerSafe(node: AstMaybeNode): boolean {
   if (!node) return true;
 
   switch (node.type) {
@@ -197,23 +197,6 @@ export function collectModuleLevelDecls(
 }
 
 /**
- * Collect all locally-declared names within a given AST range.
- * These shadow outer-scope names and should not count as segment dependencies.
- */
-export function collectLocalDeclarations(program: AstProgram, start: number, end: number): Set<string> {
-  const locals = new Set<string>();
-
-  walk(program, {
-    enter(node: AstNode) {
-      if (node.start < start || node.end > end) return;
-      addDeclaredNamesFromNode(node, locals);
-    },
-  });
-
-  return locals;
-}
-
-/**
  * Extract declared names (params, variable bindings, class/function names,
  * catch params) from a single AST node into the target set.
  */
@@ -261,7 +244,7 @@ const DECLARATION_TYPES = new Set([
  * Batch version of collectLocalDeclarations: collects locals for all
  * extractions in a single AST walk instead of O(N) separate walks.
  */
-export function collectAllLocalDeclarations(
+function collectAllLocalDeclarations(
   program: AstProgram,
   extractions: Array<{ symbolName: string; argStart: number; argEnd: number }>,
 ): Map<string, Set<string>> {

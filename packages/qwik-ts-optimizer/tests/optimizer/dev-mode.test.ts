@@ -8,8 +8,6 @@ import { describe, it, expect } from 'vitest';
 import {
   buildQrlDevDeclaration,
   buildDevFilePath,
-  buildJsxSourceInfo,
-  buildUseHmrCall,
 } from '../../src/optimizer/dev-mode.js';
 
 describe('buildQrlDevDeclaration', () => {
@@ -68,19 +66,3 @@ describe('buildDevFilePath', () => {
   });
 });
 
-describe('buildJsxSourceInfo', () => {
-  // MODE-02: Dev mode JSX has trailing source info argument
-  it('generates correct source info object literal', () => {
-    const result = buildJsxSourceInfo('project/index.tsx', 7, 4);
-    expect(result).toBe('{\n    fileName: "project/index.tsx",\n    lineNumber: 7,\n    columnNumber: 4\n}');
-  });
-});
-
-describe('buildUseHmrCall', () => {
-  // MODE-03: Component segments in dev mode have _useHmr call
-  it('generates _useHmr call with file path', () => {
-    const result = buildUseHmrCall('/user/qwik/src/test.tsx');
-    expect(result).toContain('_useHmr(');
-    expect(result).toContain('/user/qwik/src/test.tsx');
-  });
-});

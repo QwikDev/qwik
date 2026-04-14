@@ -11,7 +11,7 @@
  */
 
 import { parseSync } from 'oxc-parser';
-import { forEachAstChild } from '../../utils/ast.js';
+import { forEachAstChild } from '../utils/ast.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 
 // Walker functions traverse arbitrary OXC AST node shapes (including runtime-only

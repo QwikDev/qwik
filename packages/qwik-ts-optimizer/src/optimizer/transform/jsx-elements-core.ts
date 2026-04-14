@@ -7,7 +7,7 @@
  */
 
 import type MagicString from 'magic-string';
-import type { JSXAttributeItem } from '../../ast-types.js';
+import type { JSXAttributeItem, JSXElement, JSXFragment } from '../../ast-types.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { collectPassiveDirectives } from './event-handlers.js';
 import { buildQpProp, type LoopContext } from '../loop-hoisting.js';
@@ -62,7 +62,7 @@ function buildConstPropsPart(
  * Mutates varEntries in place.
  */
 function injectQpProp(
-  node: any,
+  node: JSXElement,
   tagIsHtml: boolean,
   inLoop: boolean,
   loopCtx: LoopContext | null | undefined,
@@ -99,7 +99,7 @@ function injectQpProp(
  * include non-static-const vars. Mutates both arrays in place.
  */
 function moveEventHandlersForNonConstCaptures(
-  node: any,
+  node: JSXElement,
   tagIsHtml: boolean,
   inLoop: boolean,
   qpOverrides: Map<number, string[]> | undefined,
@@ -238,7 +238,7 @@ function buildJsxSplitCall(
  * Transform a single JSX element node to a _jsxSorted/_jsxSplit/_createElement call.
  */
 export function transformJsxElement(
-  node: any,
+  node: JSXElement,
   source: string,
   s: MagicString,
   importedNames: Set<string>,
@@ -385,7 +385,7 @@ export function transformJsxElement(
  * Transform a JSX fragment node to a _jsxSorted call.
  */
 export function transformJsxFragment(
-  node: any,
+  node: JSXFragment,
   source: string,
   s: MagicString,
   importedNames: Set<string>,

@@ -27,7 +27,7 @@ function isConstSource(source: string): boolean {
   return CONST_SOURCES.includes(source);
 }
 
-export interface ConstReplacementResult {
+interface ConstReplacementResult {
   replacedCount: number;
 }
 

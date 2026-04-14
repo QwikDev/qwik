@@ -6,7 +6,7 @@
  */
 
 import { createRegExp, exactly, maybe, whitespace } from 'magic-regexp';
-import type { AstNode, AstProgram } from '../ast-types.js';
+import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from './types.js';
 
 /** C02: captured function/class reference across a $() boundary. */
@@ -22,23 +22,6 @@ export function emitC02(
     code: 'C02',
     file,
     message: `'${identName}' is a local ${kind}, and local function/class declarations can't be referenced from this callback. Move '${identName}' into the callback, or rewrite it as a captured value.`,
-    highlights: highlightSpan ? [highlightSpan] : null,
-    suggestions: null,
-    scope: 'optimizer',
-  };
-}
-
-/** C03: $() argument is not a function but captures local identifiers. */
-export function emitC03(
-  identNames: string[],
-  file: string,
-  highlightSpan?: DiagnosticHighlightFlat,
-): Diagnostic {
-  return {
-    category: 'error',
-    code: 'C03',
-    file,
-    message: `This argument uses local values (${identNames.join(', ')}), but this API needs a function in that position. Pass a function instead of the value directly.`,
     highlights: highlightSpan ? [highlightSpan] : null,
     suggestions: null,
     scope: 'optimizer',
@@ -166,7 +149,7 @@ function classifyInStatements(stmts: ReadonlyArray<AstNode>, identName: string):
   return 'var';
 }
 
-function classifyInExpression(node: AstNode | null | undefined, identName: string): DeclKind {
+function classifyInExpression(node: AstMaybeNode, identName: string): DeclKind {
   if (!node) return 'var';
 
   if (node.type === 'ParenthesizedExpression') {

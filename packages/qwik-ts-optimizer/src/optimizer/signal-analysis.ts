@@ -6,8 +6,8 @@
  */
 
 import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
-import type { AstNode } from '../ast-types.js';
-import { isAstNode } from '../utils/ast.js';
+import type { AstMaybeNode, AstNode, AstParentNode } from '../ast-types.js';
+import { isAstNode } from './utils/ast.js';
 
 const trailingComma = createRegExp(
   exactly(',').and(anyOf('}', ']', ')').grouped()),
@@ -21,7 +21,7 @@ export type SignalExprResult =
 
 type IdentifierNode = Extract<AstNode, { type: 'Identifier' }>;
 type MemberExpressionNode = Extract<AstNode, { type: 'MemberExpression' }>;
-type AstNodeList = ReadonlyArray<AstNode | null | undefined>;
+type AstNodeList = ReadonlyArray<AstMaybeNode>;
 
 // --- AST traversal helpers ---------------------------------------------------
 
@@ -30,7 +30,7 @@ type AstNodeList = ReadonlyArray<AstNode | null | undefined>;
  * Skips position/type metadata keys automatically.
  */
 function forEachChildNode(
-  node: AstNode | null | undefined,
+  node: AstMaybeNode,
   visitor: (child: AstNode, key: string, parent: AstNode) => void,
 ): void {
   if (!node) return;
@@ -69,8 +69,8 @@ const GLOBAL_NAMES = new Set([
 ]);
 
 /** Detect `x.value` MemberExpression pattern (signal value access). */
-export function isSignalValueAccess(
-  node: AstNode | null | undefined,
+function isSignalValueAccess(
+  node: AstMaybeNode,
 ): node is MemberExpressionNode {
   return (
     node != null &&
@@ -85,8 +85,8 @@ export function isSignalValueAccess(
  * Detect `props.field` or `store.field` where the object is a local variable.
  * Only matches single-level member access. Excludes `.value` (that's signal).
  */
-export function isStoreFieldAccess(
-  node: AstNode | null | undefined,
+function isStoreFieldAccess(
+  node: AstMaybeNode,
   importedNames: Set<string>,
   localNames?: Set<string>,
 ): node is MemberExpressionNode {
@@ -146,7 +146,7 @@ function containsJsx(node: AstNode | AstNodeList | null | undefined): boolean {
  * NOT an imported name. Method calls (obj.method()) are allowed in signal
  * expressions -- only standalone fn() calls block wrapping.
  */
-function containsUnknownCall(node: AstNode | null | undefined, importedNames: Set<string>): boolean {
+function containsUnknownCall(node: AstMaybeNode, importedNames: Set<string>): boolean {
   if (node == null) return false;
 
   if (node.type === 'CallExpression') {
@@ -168,13 +168,13 @@ function containsUnknownCall(node: AstNode | null | undefined, importedNames: Se
   return found;
 }
 
-function getCalleeIdentifierName(callee: AstNode | null | undefined): string | null {
+function getCalleeIdentifierName(callee: AstMaybeNode): string | null {
   if (callee?.type === 'Identifier') return callee.name;
   return null;
 }
 
 /** Check if expression references any imported name directly (not through member access). */
-function containsImportedReference(node: AstNode | null | undefined, importedNames: Set<string>): boolean {
+function containsImportedReference(node: AstMaybeNode, importedNames: Set<string>): boolean {
   if (node == null) return false;
   if (node.type === 'Identifier' && importedNames.has(node.name)) return true;
 
@@ -222,7 +222,7 @@ function isDeepStoreAccess(
  * Used for complex `.value` objects like `(a || b).value`.
  */
 function collectIdentifiersFromExpr(
-  node: AstNode | null | undefined,
+  node: AstMaybeNode,
   importedNames: Set<string>,
   seen: Set<string>,
   roots: string[],
@@ -256,7 +256,7 @@ function collectReactiveRoots(
   const roots: string[] = [];
   const seen = new Set<string>();
 
-  function walk(n: AstNode | null | undefined): void {
+  function walk(n: AstMaybeNode): void {
     if (n == null) return;
 
     if (isSignalValueAccess(n)) {
@@ -307,7 +307,7 @@ function collectAllDeps(
   const bareIdents: string[] = [];
   const seen = new Set<string>();
 
-  function walk(n: AstNode | null | undefined): void {
+  function walk(n: AstMaybeNode): void {
     if (n == null) return;
 
     if (isSignalValueAccess(n)) {
@@ -377,9 +377,9 @@ function generateFnSignal(
   const replacements: Array<{ start: number; end: number; replacement: string }> = [];
 
   function collectReplacements(
-    n: AstNode | null | undefined,
+    n: AstMaybeNode,
     parentKey?: string,
-    parentNode?: AstNode | null,
+    parentNode?: AstParentNode,
   ): void {
     if (n == null) return;
 
@@ -470,7 +470,7 @@ function generateFnSignal(
 }
 
 /** Find the root Identifier node at the base of a member chain. */
-function findRootIdentifier(node: AstNode | null | undefined): IdentifierNode | null {
+function findRootIdentifier(node: AstMaybeNode): IdentifierNode | null {
   if (!node) return null;
   if (node.type === 'Identifier') return node;
   if (node.type === 'MemberExpression') return findRootIdentifier(node.object);
@@ -721,7 +721,7 @@ function normalizeStringQuotes(text: string): string {
  * with _wrapProp, converted to _fnSignal, or left as-is.
  */
 export function analyzeSignalExpression(
-  exprNode: AstNode | null | undefined,
+  exprNode: AstMaybeNode,
   source: string,
   importedNames: Set<string>,
   localNames?: Set<string>,

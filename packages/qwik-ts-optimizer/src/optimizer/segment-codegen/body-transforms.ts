@@ -12,7 +12,7 @@ import type {
   AstNode,
   AstParseResult,
 } from '../../ast-types.js';
-import { parseWithRawTransfer } from '../../utils/parse.js';
+import { parseWithRawTransfer } from '../utils/parse.js';
 import { buildSyncTransform, needsPureAnnotation } from '../rewrite-calls.js';
 import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
 import type { ExtractionResult } from '../extract.js';

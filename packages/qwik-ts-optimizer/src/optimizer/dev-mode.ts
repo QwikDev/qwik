@@ -45,27 +45,3 @@ export function buildDevFilePath(
   return `${normalizedSrcDir}/${inputPath}`;
 }
 
-/**
- * Build a JSX dev source info object literal string.
- * lineNumber and columnNumber are 1-indexed.
- */
-export function buildJsxSourceInfo(
-  fileName: string,
-  lineNumber: number,
-  columnNumber: number,
-): string {
-  return (
-    `{\n` +
-    `    fileName: "${fileName}",\n` +
-    `    lineNumber: ${lineNumber},\n` +
-    `    columnNumber: ${columnNumber}\n` +
-    `}`
-  );
-}
-
-/**
- * Build _useHmr() call string for component segment injection in dev mode.
- */
-export function buildUseHmrCall(filePath: string): string {
-  return `_useHmr("${filePath}");`;
-}

@@ -1,7 +1,7 @@
 import type { AstProgram, ModuleExportName } from '../../ast-types.js';
 import { addBindingNamesFromPatternToSet } from './binding-pattern.js';
 
-export interface SameFileSymbolInfo {
+interface SameFileSymbolInfo {
   sameFileExports: Set<string>;
   defaultExportedNames: Set<string>;
   renamedExports: Map<string, string>;

@@ -48,39 +48,39 @@ export function getManualEntryMap(
   return strategy.manual;
 }
 
-export const tsTypeAnnotationProbe = createRegExp(
+const tsTypeAnnotationProbe = createRegExp(
   exactly(":")
     .and(whitespace.times.any())
     .and(charIn("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_${[(")),
 );
 
-export const tsAngleAssertionProbe = createRegExp(
+const tsAngleAssertionProbe = createRegExp(
   exactly("<")
     .and(oneOrMore(wordChar))
     .and(">")
     .notBefore(whitespace.times.any(), anyOf(")", ",", ";")),
 );
 
-export const tsGenericTypeListProbe = createRegExp(
+const tsGenericTypeListProbe = createRegExp(
   exactly("<").and(oneOrMore(wordChar)).and(","),
 );
 
-export const tsAsCastProbe = createRegExp(
+const tsAsCastProbe = createRegExp(
   wordBoundary.and("as").and(oneOrMore(whitespace)).and(wordChar),
 );
 
-export const tsDeclarationProbe = createRegExp(
+const tsDeclarationProbe = createRegExp(
   wordBoundary
     .and(anyOf("interface", "type", "enum"))
     .and(oneOrMore(whitespace))
     .and(wordChar),
 );
 
-export const tsNonNullPropertyProbe = createRegExp(
+const tsNonNullPropertyProbe = createRegExp(
   oneOrMore(wordChar).and(whitespace.times.any()).and(anyOf("!.", "![")),
 );
 
-export const tsGenericCallProbe = createRegExp(
+const tsGenericCallProbe = createRegExp(
   exactly("<")
     .and(charIn("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
     .and(wordChar.times.any())
@@ -98,7 +98,7 @@ export const tsGenericCallProbe = createRegExp(
     .and("("),
 );
 
-export const pureAnnotationComment = createRegExp(exactly("/* @__PURE__ */"), [global]);
+const pureAnnotationComment = createRegExp(exactly("/* @__PURE__ */"), [global]);
 
 export const leadingSquareBracket = createRegExp(exactly("[").at.lineStart());
 
@@ -129,7 +129,7 @@ export function getWholeWordPattern(name: string): RegExp {
   return pattern;
 }
 
-export function hasCapturePayload(
+function hasCapturePayload(
   captureInfo: SegmentCaptureInfo,
   includeConstLiterals: boolean,
 ): boolean {

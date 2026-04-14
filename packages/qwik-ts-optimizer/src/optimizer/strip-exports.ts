@@ -14,7 +14,7 @@ import type { ImportInfo } from './marker-detection.js';
 const STRIP_THROW_MSG =
   'Symbol removed by Qwik Optimizer, it can not be called from current platform';
 
-export interface StripExportsResult {
+interface StripExportsResult {
   strippedNames: string[];
 }
 

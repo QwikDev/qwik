@@ -10,7 +10,7 @@
  */
 
 import type { AstEcmaScriptModule, AstProgram } from '../ast-types.js';
-import { parseWithRawTransfer } from '../utils/parse.js';
+import { parseWithRawTransfer } from './utils/parse.js';
 
 /**
  * Attempt to repair source code that oxc-parser cannot parse.

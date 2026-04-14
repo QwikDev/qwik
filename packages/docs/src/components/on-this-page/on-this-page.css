@@ -1,13 +1,11 @@
 @reference "../../global.css";
 
 .on-this-page {
-  @apply w-[300px] pb-10 pr-6 text-base sticky top-0 h-screen;
-  padding-top: 160px;
+  @apply w-[300px] overflow-y-auto pb-10 text-base;
 }
 
 .on-this-page h6 {
-  @apply font-bold text-left text-base leading-[22px];
-  color: var(--color-foreground-base);
+  @apply font-bold text-left text-base leading-[22px] text-foreground-base;
 }
 
 .on-this-page ul {
@@ -19,14 +17,16 @@
 }
 
 .on-this-page-item {
-  @apply block font-semibold text-base leading-[1.8] py-2.5 px-3 no-underline;
-  color: var(--color-foreground-base);
+  @apply block font-semibold text-base leading-[1.8] py-2.5 px-3 no-underline text-foreground-base;
+}
+
+.on-this-page-item:hover {
+  @apply text-standalone-accent;
 }
 
 .on-this-page-item-active {
-  @apply block font-semibold text-base leading-[1.8] py-2.5 px-3 underline underline-offset-8;
-  color: var(--color-standalone-emphasis);
-  text-decoration-color: var(--color-border-base);
+  @apply block font-semibold text-base leading-[1.8] py-2.5 px-3 underline underline-offset-8 text-standalone-emphasis;
+  text-decoration-color: var(--color-border-emphasis);
 }
 
 .more-section {
@@ -34,11 +34,13 @@
 }
 
 .on-this-page-more-heading {
-  @apply font-bold text-left text-base leading-[22px];
-  color: var(--color-foreground-base);
+  @apply font-bold text-left text-base leading-[22px] text-foreground-base;
 }
 
 .more-item {
-  @apply flex gap-2 items-center font-semibold text-sm leading-5;
-  color: var(--color-secondary-foreground-base);
+  @apply flex gap-2 items-center font-semibold text-sm leading-5 text-secondary-foreground-base;
+}
+
+.more-item:hover {
+  @apply underline;
 }

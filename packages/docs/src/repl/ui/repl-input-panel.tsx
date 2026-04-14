@@ -18,7 +18,7 @@ export const ReplInputPanel = ({
   return (
     <div class="repl-panel repl-input-panel" translate="no">
       <ReplTabButtons>
-        {input.files.map((f) =>
+        {input.files.map((f, index) =>
           f.hidden ? null : (
             <ReplTabButton
               key={f.path}
@@ -34,6 +34,7 @@ export const ReplInputPanel = ({
                 }
               }}
               enableInputDelete={enableInputDelete}
+              order={input.files.length - index}
             />
           )
         )}

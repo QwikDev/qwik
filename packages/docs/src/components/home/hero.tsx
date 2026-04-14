@@ -25,13 +25,15 @@ const CopyButton = component$(() => {
   );
 });
 
-export const Hero = component$(() => {
-  const clouds = [
+export const Clouds = component$(() => {
+  return [
     <Cloud class="absolute sm:-top-3/4 -top-[60px] left-0" />,
     <Cloud class="absolute -left-1/3 2xl:-left-1/4 top-1/2 hidden sm:block" />,
     <Cloud class="absolute -right-1/3 2xl:-right-1/8 -top-1/8 hidden sm:block" />,
   ];
+});
 
+export const Hero = component$(() => {
   const shimmerMarkup = (
     <span
       class="absolute inset-0 bg-gradient-text-shimmer animate-shimmer opacity-75 mix-blend-screen"
@@ -45,7 +47,7 @@ export const Hero = component$(() => {
     <section class="relative space-y-10 flex flex-col items-center overflow-x-clip mx-auto px-4">
       <Decor />
       {/* Design spacer. TODO: adjust as needed for responsiveness */}
-      <Spacer class="2xl:h-63.5 h-[128px]" />
+      <Spacer class="2xl:h-[254px] h-[64px]" />
 
       <div class="relative">
         <h1 class="uppercase font-display 2xl:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">
@@ -55,7 +57,7 @@ export const Hero = component$(() => {
           </span>
           {shimmerMarkup}
         </h1>
-        {clouds}
+        <Clouds />
       </div>
 
       <p class="text-body-sm 2xl:text-body-md max-w-[50ch] text-center">
@@ -92,7 +94,7 @@ export const Decor = component$(() => {
     <>
       {/* blue gradient — centered on section, shifted left */}
       <div
-        class="absolute -z-2 left-1/2 top-1/2 -translate-x-[90%] -translate-y-[55%]
+        class="absolute -z-2 left-1/2 top-1/2 -translate-x-[90%] -translate-y-[80%]
           w-[250vw] h-[200vw] bg-hero-gradient-blue
           2xl:w-[1600px] 2xl:h-[1200px] 2xl:-translate-x-[110%]"
       />

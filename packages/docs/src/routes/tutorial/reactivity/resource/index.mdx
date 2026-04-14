@@ -17,30 +17,30 @@ created_at: '2022-08-02T12:07:45Z'
 
 For this tutorial, we would like to fetch the list of repositories for a given GitHub organization. To aid you, we have added the `getRepositories()` function to the bottom of the file. Your task is to use the `getRepositories()` function to fetch the list of repositories whenever the user updates the `org` input.
 
-Qwik provides [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) to help you fetch and display data from the server. When fetching data the application can be in one of three states:
+Qwik provides [useAsync$()](/docs/(qwik)/core/state/index.mdx) to help you fetch and display data from the server. When fetching data the application can be in one of three states:
 
 - `pending`: the data is being fetched from the server => Render `loading...` indicator.
 - `rejected`: the data could not be fetched from the server due to an error => Render the error.
 - `resolved`: the data has successfully been fetched from the server => Render the data.
 
-Use [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function to set up how the data is fetched from the server.
+Use [useAsync$()](/docs/(qwik)/core/state/index.mdx) function to set up how the data is fetched from the server.
 
 ## Fetching data
 
-Use [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) to set up how the data is fetched from the server.
+Use [useAsync$()](/docs/(qwik)/core/state/index.mdx) to set up how the data is fetched from the server.
 ```jsx
-  const reposResource = useAsync$<string[]>(({ track, abortSignal }) => {
-    // We need a way to re-run fetching data whenever the `github.org` changes.
-    // Use `track` to trigger re-running of this data fetching function.
-    const org = track(githubOrg);
-  
-    // The abortSignal is automatically (lazily) provided and will be aborted when this
-    // function re-runs, allowing you to cancel pending operations.
-    return getRepositories(org, abortSignal);
-  });
+const reposResource = useAsync$<string[]>(({ track, abortSignal }) => {
+  // We need a way to re-run fetching data whenever the `github.org` changes.
+  // Use `track` to trigger re-running of this data fetching function.
+  const org = track(githubOrg);
+
+  // The abortSignal is automatically (lazily) provided and will be aborted when this
+  // function re-runs, allowing you to cancel pending operations.
+  return getRepositories(org, abortSignal);
+});
 ```
 
-The [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function returns an `AsyncSignal`, which is reactive state that can be serialized by Qwik. The [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function allows you to `track` store properties so that the [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function can be reactive on store changes. The `abortSignal` allows you to cancel pending operations when the function re-runs. Finally, the [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function returns a promise that will resolve to the value.
+The [useAsync$()](/docs/(qwik)/core/state/index.mdx) function returns an `AsyncSignal`, which is reactive state that can be serialized by Qwik. The [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function allows you to `track` store properties so that the [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function can be reactive on store changes. The `abortSignal` allows you to cancel pending operations when the function re-runs. Finally, the [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function returns a promise that will resolve to the value.
   
 ## Rendering data
 

@@ -1,4 +1,5 @@
 import { $, component$, createSignal, useSignal } from '@qwik.dev/core';
+import { lucide } from '@qds.dev/ui';
 import { CodeBlock } from '../../components/code-block/code-block';
 import type { ReplModuleOutput } from '../types';
 import { ReplOutputSplit } from './repl-output-split';
@@ -65,10 +66,21 @@ export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutput
                   />
                   {o.shorten && (
                     <button
+                      type="button"
                       class="file-toggle-button"
                       onClick$={() => (o.shorten!.value = !o.shorten!.value)}
+                      aria-expanded={!o.shorten!.value}
                     >
-                      {o.shorten!.value ? 'Truncated - show more' : 'Show less'}
+                      <span>{o.shorten!.value ? 'Truncated - show more' : 'Show less'}</span>
+                      <span
+                        class={{
+                          'file-toggle-button-icon ml-3': true,
+                          'rotate-180': !o.shorten!.value,
+                        }}
+                        aria-hidden="true"
+                      >
+                        <lucide.chevrondown class="size-4" />
+                      </span>
                     </button>
                   )}
                 </div>

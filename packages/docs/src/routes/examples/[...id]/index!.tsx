@@ -104,6 +104,7 @@ export default component$(() => {
     >
       <Header />
 
+      <PanelToggle panelStore={panelStore} />
       <div
         class={{
           'examples-menu-container': true,
@@ -163,7 +164,6 @@ export default component$(() => {
           </div>
         </main>
       </div>
-      <PanelToggle panelStore={panelStore} />
     </div>
   );
 });

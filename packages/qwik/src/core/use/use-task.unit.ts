@@ -5,7 +5,7 @@ import type { Container, HostElement } from '../shared/types';
 import { useResource$ } from './use-resource-dollar';
 import { useSignal } from './use-signal';
 import { useStore } from './use-store.public';
-import { Task, TaskFlags, runTask } from './use-task';
+import { Task, TaskFlags, runTask, scheduleTask } from './use-task';
 import { useTask$ } from './use-task-dollar';
 import { useVisibleTask$ } from './use-visible-task-dollar';
 
@@ -167,5 +167,75 @@ describe('runTask', () => {
 
     expect(run).toBe(2);
     expect(cleanupCalls).toBe(1);
+  });
+});
+
+describe('scheduleTask', () => {
+  it('does not throw when task.$el$ is undefined', () => {
+    // Simulate a task with undefined $el$ (e.g., container destroyed during async dispatch)
+    const task = new Task(
+      TaskFlags.TASK,
+      0,
+      undefined as unknown as HostElement,
+      {} as QRLInternal<unknown>,
+      undefined,
+      null
+    );
+
+    // Mock _captures to return our task
+    vi.mock('../shared/qrl/qrl-class', async () => {
+      const actual =
+        await vi.importActual<typeof import('../shared/qrl/qrl-class')>('../shared/qrl/qrl-class');
+      return {
+        ...actual,
+        _captures: [task],
+        deserializeCaptures: vi.fn(),
+        setCaptures: vi.fn(),
+      };
+    });
+
+    vi.mock('../client/dom-container', () => ({
+      getDomContainer: vi.fn(() => ({})),
+    }));
+
+    vi.mock('../shared/vnode/vnode-dirty', () => ({
+      markVNodeDirty: vi.fn(),
+    }));
+
+    const mockElement = {} as Element;
+    const mockEvent = new Event('qinit');
+
+    // Should not throw
+    expect(() => {
+      scheduleTask.call('', mockEvent, mockElement);
+    }).not.toThrow();
+  });
+
+  it('does not throw when _captures[0] is undefined', () => {
+    vi.mock('../shared/qrl/qrl-class', async () => {
+      const actual =
+        await vi.importActual<typeof import('../shared/qrl/qrl-class')>('../shared/qrl/qrl-class');
+      return {
+        ...actual,
+        _captures: [undefined],
+        deserializeCaptures: vi.fn(),
+        setCaptures: vi.fn(),
+      };
+    });
+
+    vi.mock('../client/dom-container', () => ({
+      getDomContainer: vi.fn(() => ({})),
+    }));
+
+    vi.mock('../shared/vnode/vnode-dirty', () => ({
+      markVNodeDirty: vi.fn(),
+    }));
+
+    const mockElement = {} as Element;
+    const mockEvent = new Event('qinit');
+
+    expect(() => {
+      scheduleTask.call('', mockEvent, mockElement);
+    }).not.toThrow();
   });
 });

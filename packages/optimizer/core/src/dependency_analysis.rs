@@ -21,6 +21,9 @@ pub struct RootVarDependency {
 	pub is_imported: bool,   // true if this is from global.imports
 	pub is_exported: bool,   // true if this is in global.exports
 	pub depends_on: Vec<Id>, // Other identifiers this var depends on
+	/// Original declaration kind for `Decl::Var` entries (`let`/`var`/`const`).
+	/// `None` for function/class/enum declarations or synthesized entries.
+	pub var_kind: Option<ast::VarDeclKind>,
 }
 
 /// Analyzes dependencies between root-level variables and imports.
@@ -139,6 +142,7 @@ pub fn analyze_root_dependencies(
 										is_imported: false,
 										is_exported: user_exported.contains(&var_id),
 										depends_on: Vec::new(),
+										var_kind: Some(var_decl.kind),
 									},
 								);
 							}
@@ -154,6 +158,7 @@ pub fn analyze_root_dependencies(
 							is_imported: false,
 							is_exported: user_exported.contains(&var_id),
 							depends_on: Vec::new(),
+							var_kind: None,
 						});
 				}
 				ast::Decl::Class(class) => {
@@ -165,6 +170,7 @@ pub fn analyze_root_dependencies(
 							is_imported: false,
 							is_exported: user_exported.contains(&var_id),
 							depends_on: Vec::new(),
+							var_kind: None,
 						});
 				}
 				ast::Decl::TsEnum(enu) => {
@@ -176,6 +182,7 @@ pub fn analyze_root_dependencies(
 							is_imported: false,
 							is_exported: user_exported.contains(&var_id),
 							depends_on: Vec::new(),
+							var_kind: None,
 						});
 				}
 				_ => {}
@@ -197,6 +204,7 @@ pub fn analyze_root_dependencies(
 					init: None,
 					definite: false,
 				}),
+				var_kind: None,
 				is_imported: false,
 				is_exported: user_exported.contains(var_id),
 				depends_on: Vec::new(),

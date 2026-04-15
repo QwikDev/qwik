@@ -12,6 +12,7 @@ import { useMethodUsage } from './src/useMethodUsage';
 import { validLexicalScope } from './src/validLexicalScope';
 import { serializerSignalUsage } from './src/serializerSignalUsage';
 import { noAsyncPreventDefault } from './src/noAsyncPreventDefault';
+import { noAwaitNavigateInUseTask } from './src/noAwaitNavigateInUseTask';
 import pkg from './package.json';
 import { scopeUseTask } from './src/scope-use-task';
 import { asyncComputedTop } from './src/useAsyncTop';
@@ -34,6 +35,7 @@ const rules = {
   'scope-use-task': scopeUseTask,
   'use-async-top': asyncComputedTop,
   'no-async-prevent-default': noAsyncPreventDefault,
+  'no-await-navigate-in-use-task': noAwaitNavigateInUseTask,
 } satisfies Rules;
 
 const recommendedRulesLevels = {
@@ -52,6 +54,7 @@ const recommendedRulesLevels = {
   'qwik/scope-use-task': 'error',
   'qwik/use-async-top': 'warn',
   'qwik/no-async-prevent-default': 'warn',
+  'qwik/no-await-navigate-in-use-task': 'warn',
 } satisfies TSESLint.FlatConfig.Rules;
 
 const strictRulesLevels = {
@@ -70,6 +73,7 @@ const strictRulesLevels = {
   'qwik/scope-use-task': 'error',
   'qwik/use-async-top': 'warn',
   'qwik/no-async-prevent-default': 'warn',
+  'qwik/no-await-navigate-in-use-task': 'warn',
 } satisfies TSESLint.FlatConfig.Rules;
 
 const configs = {

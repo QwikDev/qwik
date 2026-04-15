@@ -95,6 +95,10 @@ export const scheduleEffects = (
       const property = effectSubscription.property;
       isDev && assertDefined(container, 'Container must be defined.');
       if (isTask(consumer)) {
+        if (!consumer.$el$) {
+          // Host element not available (container may have been destroyed)
+          return;
+        }
         consumer.$flags$ |= TaskFlags.DIRTY;
         markVNodeDirty(container!, consumer.$el$, ChoreBits.TASKS);
       } else if (consumer instanceof SignalImpl) {

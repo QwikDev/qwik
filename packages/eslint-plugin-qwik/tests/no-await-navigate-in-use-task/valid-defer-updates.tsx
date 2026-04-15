@@ -7,7 +7,7 @@ export default component$(() => {
     async () => {
       await nav('/');
     },
-    { deferUpdates: false },
+    { deferUpdates: false }
   );
   return <div />;
 });

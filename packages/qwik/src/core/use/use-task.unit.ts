@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
+import { describe, expect, expectTypeOf, it, test, vi, afterEach } from 'vitest';
 import { component$ } from '../shared/component.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { Container, HostElement } from '../shared/types';
@@ -170,9 +170,32 @@ describe('runTask', () => {
   });
 });
 
+// Module-level mocks — hoisted before imports by Vitest
+vi.mock('../client/dom-container', () => ({
+  getDomContainer: vi.fn(() => ({})),
+}));
+
+vi.mock('../shared/vnode/vnode-dirty', () => ({
+  markVNodeDirty: vi.fn(),
+}));
+
+vi.mock('../shared/qrl/qrl-class', async () => {
+  const actual =
+    await vi.importActual<typeof import('../shared/qrl/qrl-class')>('../shared/qrl/qrl-class');
+  return {
+    ...actual,
+    _captures: [undefined],
+    deserializeCaptures: vi.fn(),
+    setCaptures: vi.fn(),
+  };
+});
+
 describe('scheduleTask', () => {
-  it('does not throw when task.$el$ is undefined', () => {
-    // Simulate a task with undefined $el$ (e.g., container destroyed during async dispatch)
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('does not throw when task.$el$ is undefined', async () => {
     const task = new Task(
       TaskFlags.TASK,
       0,
@@ -182,54 +205,21 @@ describe('scheduleTask', () => {
       null
     );
 
-    // Mock _captures to return our task
-    vi.mock('../shared/qrl/qrl-class', async () => {
-      const actual =
-        await vi.importActual<typeof import('../shared/qrl/qrl-class')>('../shared/qrl/qrl-class');
-      return {
-        ...actual,
-        _captures: [task],
-        deserializeCaptures: vi.fn(),
-        setCaptures: vi.fn(),
-      };
-    });
-
-    vi.mock('../client/dom-container', () => ({
-      getDomContainer: vi.fn(() => ({})),
-    }));
-
-    vi.mock('../shared/vnode/vnode-dirty', () => ({
-      markVNodeDirty: vi.fn(),
-    }));
+    // Set _captures per-test via the mocked module
+    const qrlMod = await import('../shared/qrl/qrl-class');
+    Object.defineProperty(qrlMod, '_captures', { value: [task], writable: true });
 
     const mockElement = {} as Element;
     const mockEvent = new Event('qinit');
 
-    // Should not throw
     expect(() => {
       scheduleTask.call('', mockEvent, mockElement);
     }).not.toThrow();
   });
 
-  it('does not throw when _captures[0] is undefined', () => {
-    vi.mock('../shared/qrl/qrl-class', async () => {
-      const actual =
-        await vi.importActual<typeof import('../shared/qrl/qrl-class')>('../shared/qrl/qrl-class');
-      return {
-        ...actual,
-        _captures: [undefined],
-        deserializeCaptures: vi.fn(),
-        setCaptures: vi.fn(),
-      };
-    });
-
-    vi.mock('../client/dom-container', () => ({
-      getDomContainer: vi.fn(() => ({})),
-    }));
-
-    vi.mock('../shared/vnode/vnode-dirty', () => ({
-      markVNodeDirty: vi.fn(),
-    }));
+  it('does not throw when _captures[0] is undefined', async () => {
+    const qrlMod = await import('../shared/qrl/qrl-class');
+    Object.defineProperty(qrlMod, '_captures', { value: [undefined], writable: true });
 
     const mockElement = {} as Element;
     const mockEvent = new Event('qinit');
@@ -237,5 +227,29 @@ describe('scheduleTask', () => {
     expect(() => {
       scheduleTask.call('', mockEvent, mockElement);
     }).not.toThrow();
+  });
+
+  it('calls markVNodeDirty when task.$el$ is defined', async () => {
+    const host = {} as HostElement;
+    const task = new Task(
+      TaskFlags.TASK,
+      0,
+      host,
+      {} as QRLInternal<unknown>,
+      undefined,
+      null
+    );
+
+    const qrlMod = await import('../shared/qrl/qrl-class');
+    Object.defineProperty(qrlMod, '_captures', { value: [task], writable: true });
+
+    const { markVNodeDirty } = await import('../shared/vnode/vnode-dirty');
+
+    const mockElement = {} as Element;
+    const mockEvent = new Event('qinit');
+
+    scheduleTask.call('', mockEvent, mockElement);
+
+    expect(markVNodeDirty).toHaveBeenCalled();
   });
 });

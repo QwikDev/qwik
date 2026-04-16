@@ -1,9 +1,6 @@
-//@ts-ignore
-import type { ClientContainer } from '@qwik.dev/core';
 import { implicit$FirstArg } from '../core/shared/qrl/implicit_dollar';
 import { $, type QRL } from '../core/shared/qrl/qrl.public';
 import { _serialize } from '../core/shared/serdes/index';
-import { _getContextContainer, _getContextHostElement } from '../core/use/use-core';
 import workerUrl from './worker.js?worker&url';
 
 export interface ServerFunction {
@@ -35,23 +32,11 @@ const getWorker = (qrl: QRL) => {
   return worker;
 };
 
-/**
- * @internal
- * @experimental
- */
+/** @internal */
 export const workerQrl: WorkerConstructorQRL = (qrl) => {
-  if (!__EXPERIMENTAL__.webWorker) {
-    throw new Error(
-      'worker$ is experimental and must be enabled with `experimental: ["webWorker"]` in the `qwikVite` plugin.'
-    );
-  }
   return $(async (...args: any[]) => {
-    const containerEl =
-      (_getContextContainer() as ClientContainer | undefined)?.element ?? document.documentElement;
     const worker = getWorker(qrl);
     const requestId = getWorkerRequest();
-    const qbase = containerEl.getAttribute('q:base') ?? '/';
-    const baseURI = document.baseURI;
     const filtered = args.map((arg) => {
       if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
         return new FormData(arg.target);
@@ -76,13 +61,9 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
         }
       };
       worker.addEventListener('message', handler);
-      worker.postMessage([requestId, baseURI, qbase, data]);
+      worker.postMessage([requestId, data]);
     });
   }) as any;
 };
 
-/**
- * @beta
- * @experimental
- */
 export const worker$ = implicit$FirstArg(workerQrl);

@@ -76,8 +76,6 @@ export enum ExperimentalFeatures {
   noSPA = 'noSPA',
   /** Enable request.rewrite() */
   enableRequestRewrite = 'enableRequestRewrite',
-  /** Enable worker$ */
-  webWorker = 'webWorker',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
   insights = 'insights',
 }

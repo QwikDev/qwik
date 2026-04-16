@@ -1,4 +1,4 @@
-import { _deserialize } from '@qwik.dev/core';
+import { _deserialize } from '@qwik.dev/core/internal';
 
 globalThis.document = {
   nodeType: 9,

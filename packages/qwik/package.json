@@ -110,6 +110,10 @@
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.mjs"
     },
+    "./worker": {
+      "types": "./dist/worker/index.d.ts",
+      "import": "./dist/worker/index.qwik.mjs"
+    },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
     "./backpatch-executor.js": "./dist/backpatch-executor.js",
@@ -131,6 +135,7 @@
     "public.d.ts",
     "server.d.ts",
     "testing.d.ts",
+    "worker.d.ts",
     "qwik-cli.mjs"
   ],
   "homepage": "https://qwik.dev/",

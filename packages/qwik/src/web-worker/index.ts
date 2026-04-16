@@ -1,11 +1,15 @@
-import { implicit$FirstArg } from '../core/shared/qrl/implicit_dollar';
-import { $, type QRL } from '../core/shared/qrl/qrl.public';
-import { _serialize } from '../core/shared/serdes/index';
+/** @packageDocumentation */
+
+import { $, implicit$FirstArg, type QRL } from '@qwik.dev/core';
+import { _serialize } from '@qwik.dev/core/internal';
 import workerUrl from './worker.js?worker&url';
 
+/** @public */
 export interface ServerFunction {
   (...args: any[]): any;
 }
+
+/** @public */
 export interface WorkerConstructorQRL {
   <T extends ServerFunction>(fnQrl: QRL<T>): QRL<T>;
 }
@@ -33,7 +37,7 @@ const getWorker = (qrl: QRL) => {
 };
 
 /** @internal */
-export const workerQrl: WorkerConstructorQRL = (qrl) => {
+export const _workerQrl: WorkerConstructorQRL = (qrl) => {
   return $(async (...args: any[]) => {
     const worker = getWorker(qrl);
     const requestId = getWorkerRequest();
@@ -66,4 +70,5 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
   }) as any;
 };
 
-export const worker$ = implicit$FirstArg(workerQrl);
+/** @public */
+export const worker$ = implicit$FirstArg(_workerQrl);

@@ -15,22 +15,8 @@ globalThis.document = {
 
 globalThis.onmessage = async ({ data }) => {
   const requestId = data[0];
-  const baseURI = data[1];
-  const qBase = data[2];
-  const containerEl = {
-    nodeType: 1,
-    ownerDocument: {
-      baseURI,
-    },
-    closest() {
-      return containerEl;
-    },
-    getAttribute(name) {
-      return name === 'q:base' ? qBase : undefined;
-    },
-  };
   try {
-    const [qrl, ...args] = _deserialize(data[3]);
+    const [qrl, ...args] = _deserialize(data[1]);
     const output = await qrl.apply(undefined, args);
     self.postMessage([requestId, true, output]);
   } catch (err) {

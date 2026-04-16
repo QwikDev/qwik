@@ -170,66 +170,101 @@ describe('runTask', () => {
   });
 });
 
-// Module-level mocks — hoisted before imports by Vitest
+/**
+ * scheduleTask tests — simulate the real scenario where a container is destroyed
+ * during async qwikloader dispatch.
+ *
+ * Real-world flow:
+ *   1. qwikloader dispatches an event asynchronously (dispatch is now async)
+ *   2. During the await, a navigation/SPA transition destroys the container
+ *      via DomContainer.$destroy$(), which:
+ *        - truncates $rawStateData$ and $stateData$ to length 0
+ *        - replaces $getObjectById$ with () => undefined
+ *   3. The queued scheduleTask handler fires AFTER destruction
+ *   4. deserializeCaptures() calls container.$getObjectById$(id) → returns undefined
+ *   5. _captures[0] is undefined → crash on `task.$flags$ |= TaskFlags.DIRTY`
+ *
+ * The guard `if (!task?.$el$)` prevents this crash, matching the existing pattern
+ * in WrappedSignalImpl.invalidate() which checks `if (this.$container$ && this.$hostElement$)`.
+ */
+
+// Mock getDomContainer to return our controlled container
 vi.mock('../client/dom-container', () => ({
-  getDomContainer: vi.fn(() => ({})),
+  getDomContainer: vi.fn(),
 }));
 
 vi.mock('../shared/vnode/vnode-dirty', () => ({
   markVNodeDirty: vi.fn(),
 }));
 
-vi.mock('../shared/qrl/qrl-class', async () => {
-  const actual =
-    await vi.importActual<typeof import('../shared/qrl/qrl-class')>('../shared/qrl/qrl-class');
-  return {
-    ...actual,
-    _captures: [undefined],
-    deserializeCaptures: vi.fn(),
-    setCaptures: vi.fn(),
-  };
-});
-
 describe('scheduleTask', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('does not throw when task.$el$ is undefined', async () => {
+  it('does not throw when container was destroyed during async dispatch (_captures[0] is undefined)', async () => {
+    // Simulate DomContainer.$destroy$() — $getObjectById$ returns undefined for all IDs,
+    // exactly as the real $destroy$() method does:
+    //   this.$getObjectById$ = () => undefined;
+    //   this.$rawStateData$.length = 0;
+    //   this.$stateData$.length = 0;
+    const destroyedContainer = {
+      $getObjectById$: () => undefined,
+    };
+
+    const { getDomContainer } = await import('../client/dom-container');
+    vi.mocked(getDomContainer).mockReturnValue(destroyedContainer as any);
+
+    const mockElement = {} as Element;
+    const mockEvent = new Event('qinit');
+
+    // scheduleTask is called by qwikloader with `this` = serialized captures string (e.g. "42").
+    // Inside, it calls deserializeCaptures(container, "42") which does:
+    //   container.$getObjectById$("42") → undefined (container destroyed)
+    // So _captures becomes [undefined] and _captures[0] is undefined.
+    // Without the guard, this crashes:
+    //   TypeError: Cannot read properties of undefined (reading '$flags$')
+    expect(() => {
+      scheduleTask.call('42', mockEvent, mockElement);
+    }).not.toThrow();
+  });
+
+  it('does not throw when task.$el$ is undefined due to truncated $stateData$', async () => {
+    // Simulate a partially-destroyed container where the Task object itself was deserialized
+    // but its $el$ (host VNode) resolved to undefined.
+    //
+    // This happens during inflate.ts Task deserialization:
+    //   task.$el$ = v[3] as HostElement;
+    // where v[3] comes from $stateData$[someId]. After $destroy$() truncates $stateData$
+    // to length 0, any pending lazy deserialization of the VNode reference yields undefined.
     const task = new Task(
       TaskFlags.TASK,
       0,
-      undefined as unknown as HostElement,
+      undefined as unknown as HostElement, // $el$ is undefined — VNode ref was cleared
       {} as QRLInternal<unknown>,
       undefined,
       null
     );
 
-    // Set _captures per-test via the mocked module
-    const qrlMod = await import('../shared/qrl/qrl-class');
-    Object.defineProperty(qrlMod, '_captures', { value: [task], writable: true });
+    const partialContainer = {
+      $getObjectById$: () => task,
+    };
+
+    const { getDomContainer } = await import('../client/dom-container');
+    vi.mocked(getDomContainer).mockReturnValue(partialContainer as any);
 
     const mockElement = {} as Element;
     const mockEvent = new Event('qinit');
 
+    // The Task was deserialized but task.$el$ is undefined.
+    // Without the guard, markVNodeDirty receives undefined vNode → crash:
+    //   TypeError: Cannot read properties of undefined (reading 'dirty')
     expect(() => {
-      scheduleTask.call('', mockEvent, mockElement);
+      scheduleTask.call('42', mockEvent, mockElement);
     }).not.toThrow();
   });
 
-  it('does not throw when _captures[0] is undefined', async () => {
-    const qrlMod = await import('../shared/qrl/qrl-class');
-    Object.defineProperty(qrlMod, '_captures', { value: [undefined], writable: true });
-
-    const mockElement = {} as Element;
-    const mockEvent = new Event('qinit');
-
-    expect(() => {
-      scheduleTask.call('', mockEvent, mockElement);
-    }).not.toThrow();
-  });
-
-  it('calls markVNodeDirty when task.$el$ is defined', async () => {
+  it('calls markVNodeDirty when container is alive and task.$el$ is defined', async () => {
     const host = {} as HostElement;
     const task = new Task(
       TaskFlags.TASK,
@@ -240,16 +275,21 @@ describe('scheduleTask', () => {
       null
     );
 
-    const qrlMod = await import('../shared/qrl/qrl-class');
-    Object.defineProperty(qrlMod, '_captures', { value: [task], writable: true });
+    const liveContainer = {
+      $getObjectById$: () => task,
+    };
+
+    const { getDomContainer } = await import('../client/dom-container');
+    vi.mocked(getDomContainer).mockReturnValue(liveContainer as any);
 
     const { markVNodeDirty } = await import('../shared/vnode/vnode-dirty');
 
     const mockElement = {} as Element;
     const mockEvent = new Event('qinit');
 
-    scheduleTask.call('', mockEvent, mockElement);
+    scheduleTask.call('42', mockEvent, mockElement);
 
-    expect(markVNodeDirty).toHaveBeenCalled();
+    expect(markVNodeDirty).toHaveBeenCalledWith(liveContainer, host, expect.any(Number));
+    expect(task.$flags$ & TaskFlags.DIRTY).toBeTruthy();
   });
 });

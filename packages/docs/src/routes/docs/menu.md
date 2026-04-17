@@ -39,6 +39,7 @@
 - [Modules Prefetching](</docs/(qwik)/advanced/modules-prefetching/index.mdx>)
 - [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
 - [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
+- [Synchronous Events with State](</docs/(qwik)/advanced/sync-events/index.mdx>)
 - [Advanced Routing](</docs/(qwikrouter)/advanced/routing/index.mdx>)
 - [Qwik Plugins](</docs/(qwikrouter)/advanced/plugins/index.mdx>)
 - [Request Handling](</docs/(qwikrouter)/advanced/request-handling/index.mdx>)
@@ -82,7 +83,6 @@
 - [Node Docker deploy](/docs/cookbook/node-docker-deploy/index.mdx)
 - [Portals](/docs/cookbook/portals/index.mdx)
 - [Streaming loaders](/docs/cookbook/streaming-deferred-loaders/index.mdx)
-- [Sync events w state](/docs/cookbook/sync-events/index.mdx)
 - [Theme Management](/docs/cookbook/theme-management/index.mdx)
 - [Drag & Drop](/docs/cookbook/drag&drop/index.mdx)
 - [View Transition](/docs/cookbook/view-transition/index.mdx)
@@ -154,6 +154,7 @@
 ## Reference
 
 - [API Reference](/api/)
+- [Error Codes](/docs/errors/index.mdx)
 - [Deprecated Features](</docs/(qwik)/deprecated-features/index.mdx>)
 
 ## Experimental 🧪

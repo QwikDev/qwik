@@ -117,7 +117,6 @@ export default defineConfig(({ mode }) => {
           entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
           exclude: [
             '@modular-forms/qwik',
-            '@qwik-ui/headless',
             'qwik-image',
             // optimizing breaks the wasm import
             '@rolldown/browser',
@@ -143,7 +142,6 @@ export default defineConfig(({ mode }) => {
             'algoliasearch/dist/algoliasearch-lite.esm.browser',
             'qwik-image',
             '@modular-forms/qwik',
-            '@qwik-ui/headless',
             '@qds.dev/ui',
             '@qds.dev/tools',
           ],
@@ -218,6 +216,7 @@ export default defineConfig(({ mode }) => {
       qwikVite({
         debug: false,
         experimental: ['each', 'preventNavigate', 'insights'],
+        devTools: { hmr: false },
       }),
       partytownVite({
         dest: resolve('dist', '~partytown'),

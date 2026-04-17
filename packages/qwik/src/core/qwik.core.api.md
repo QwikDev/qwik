@@ -25,22 +25,28 @@ export type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     abort(reason?: any): void;
     error: Error | undefined;
+    expires: number;
+    // @deprecated (undocumented)
     interval: number;
     invalidate(info?: unknown): void;
     loading: boolean;
+    poll: boolean;
     promise(): Promise<void>;
+    untrackedError: Error | undefined;
+    untrackedLoading: boolean;
 }
 
 // @public (undocumented)
 export interface AsyncSignalOptions<T> extends ComputedOptions {
     allowStale?: boolean;
-    // @deprecated
-    awaitPrevious?: boolean;
     clientOnly?: boolean;
     concurrency?: number;
     eagerCleanup?: boolean;
+    expires?: number;
     initial?: T | (() => T);
+    // @deprecated (undocumented)
     interval?: number;
+    poll?: boolean;
     timeout?: number;
 }
 

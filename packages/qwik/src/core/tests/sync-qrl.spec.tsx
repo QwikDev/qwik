@@ -36,4 +36,33 @@ describe.each([
     await trigger(document.body, input, 'click');
     expect(input?.getAttribute('prevented')).toBe('true');
   });
+
+  it('should run parent sync qrls when a child async click bubbles', async () => {
+    const Cmp = component$(() => {
+      return (
+        <div
+          onClick$={[
+            sync$((_event: Event, target: Element) => {
+              target.setAttribute('parent-sync', 'true');
+            }),
+          ]}
+        >
+          <button
+            onClick$={async (_event: Event, target: Element) => {
+              target.setAttribute('child-async', 'true');
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    const button = document.querySelector('button');
+    const parent = document.querySelector('div');
+
+    await trigger(document.body, button, 'click');
+
+    expect(button?.getAttribute('child-async')).toBe('true');
+    expect(parent?.getAttribute('parent-sync')).toBe('true');
+  });
 });

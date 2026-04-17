@@ -98,17 +98,39 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
    */
   loading: boolean;
   /**
+   * Lets you read the loading state without subscribing to `.loading` updates. It also triggers
+   * lazy loading of the signal.
+   *
+   * Setting it will trigger listeners for `.loading`.
+   */
+  untrackedLoading: boolean;
+  /**
    * The error that occurred while computing the signal, if any. This will be cleared when the
-   * signal is successfully computed.
+   * signal is successfully computed. It does not trigger lazy loading of the signal.
    */
   error: Error | undefined;
   /**
-   * Staleness/poll interval in ms. Writable and immediately effective.
+   * Lets you read the error state without subscribing to `.error` updates. It does not trigger lazy
+   * loading of the signal.
    *
-   * - **Positive**: Poll — re-compute after this many ms when subscribers exist.
-   * - **Negative**: Stale-only — mark stale after `|interval|` ms, no auto-recompute.
-   * - **`0`**: No staleness tracking or polling.
+   * Setting it will trigger listeners for `.error`.
    */
+  untrackedError: Error | undefined;
+  /**
+   * Expiration time in ms. Writable and immediately effective.
+   *
+   * When set, the signal is invalidated after this many ms. Whether it auto-recomputes depends on
+   * the `poll` property. `0` means no expiration.
+   */
+  expires: number;
+  /**
+   * Whether to automatically re-run the function when the value expires. Writable and immediately
+   * effective. Only relevant when `expires` is set.
+   *
+   * Defaults to `true`.
+   */
+  poll: boolean;
+  /** @deprecated Use `expires` and `poll` instead. Will be removed before v2 */
   interval: number;
   /** A promise that resolves when the value is computed or rejected. */
   promise(): Promise<void>;

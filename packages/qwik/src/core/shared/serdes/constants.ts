@@ -5,6 +5,9 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { Slot } from '../jsx/slot.public';
 import { Fragment } from '../jsx/jsx-runtime';
 
+/** Used to represent an undefined value that must be serialized */
+export const explicitUndefined = Symbol('undefined');
+
 export const enum Constants {
   Undefined,
   Null,
@@ -89,6 +92,14 @@ export const enum TypeIds {
   BigInt,
   URLSearchParams,
   ForwardRefs,
+  TemporalDuration,
+  TemporalInstant,
+  TemporalPlainDate,
+  TemporalPlainDateTime,
+  TemporalPlainMonthDay,
+  TemporalPlainTime,
+  TemporalPlainYearMonth,
+  TemporalZonedDateTime,
   /// All types below will be inflate()d
   Error,
   Promise,
@@ -127,6 +138,14 @@ export const _typeIdNames = [
   'BigInt',
   'URLSearchParams',
   'ForwardRefs',
+  'TemporalDuration',
+  'TemporalInstant',
+  'TemporalPlainDate',
+  'TemporalPlainDateTime',
+  'TemporalPlainMonthDay',
+  'TemporalPlainTime',
+  'TemporalPlainYearMonth',
+  'TemporalZonedDateTime',
   'Error',
   'Promise',
   'Set',

@@ -52,7 +52,10 @@ const dangerousObjectKeys = new Set([
   'toJSON',
   'then',
 ]);
-const isSafeObjectKV = (key: unknown, value: unknown) => {
+const isSafeObjectKV = (key: unknown, value: unknown): key is string | number => {
+  if (typeof key === 'number') {
+    return true;
+  }
   return (
     typeof key === 'string' &&
     key !== '__proto__' &&
@@ -85,7 +88,7 @@ export const inflate = (
         break;
       }
       for (let i = 0; i < (data as any[]).length; i += 2) {
-        const key = (data as string[])[i];
+        const key = (data as unknown[])[i];
         const value = (data as unknown[])[i + 1];
         if (!isSafeObjectKV(key, value)) {
           continue;
@@ -153,7 +156,7 @@ export const inflate = (
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
-        Error,
+        Error | undefined,
         number?,
         unknown?,
         number?,
@@ -161,10 +164,18 @@ export const inflate = (
         number?,
       ];
       asyncSignal.$computeQrl$ = d[0] as AsyncQRL<unknown>;
-      asyncSignal.$effects$ = new Set(d[1] as EffectSubscription[]);
-      asyncSignal.$loadingEffects$ = new Set(d[2] as EffectSubscription[]);
-      asyncSignal.$errorEffects$ = new Set(d[3] as EffectSubscription[]);
-      asyncSignal.$untrackedError$ = d[4] as Error;
+      if (d[1]) {
+        asyncSignal.$effects$ = new Set(d[1] as EffectSubscription[]);
+      }
+      if (d[2]) {
+        asyncSignal.$loadingEffects$ = new Set(d[2] as EffectSubscription[]);
+      }
+      if (d[3]) {
+        asyncSignal.$errorEffects$ = new Set(d[3] as EffectSubscription[]);
+      }
+      if (d[4]) {
+        asyncSignal.$untrackedError$ = d[4];
+      }
 
       asyncSignal.$flags$ = (d[5] as number) ?? 0;
 
@@ -182,10 +193,17 @@ export const inflate = (
         asyncSignal.$flags$ |= SignalFlags.INVALID;
       }
 
-      // Note, we use the setter so that it schedules polling if needed
-      asyncSignal.interval = (d[7] ?? 0) as number;
+      // Handle old format (negative = no poll) and new format (always positive, flag in d[5])
+      const rawExpires = (d[7] ?? 0) as number;
+      asyncSignal.expires = Math.abs(rawExpires);
+      if (rawExpires < 0) {
+        asyncSignal.$flags$ |= AsyncSignalFlags.NO_POLL;
+      }
 
-      asyncSignal.$concurrency$ = (d[8] ?? 1) as number;
+      if (d[8] !== undefined && d[8] !== 1) {
+        asyncSignal.$concurrency$ = (d[8] ?? 1) as number;
+        asyncSignal.$jobs$ = [];
+      }
       asyncSignal.$timeoutMs$ = (d[9] ?? 0) as number;
       restoreEffectBackRefForEffects(asyncSignal.$effects$, asyncSignal);
       restoreEffectBackRefForEffects(asyncSignal.$loadingEffects$, asyncSignal);

@@ -10,7 +10,6 @@ const RESULTS_PATH = 'packages/qwik/src/core/bench/bench-memory-results.json';
 const SCENARIOS_ENTRY = 'packages/qwik/src/core/bench/memory-scenarios.ts';
 const SAMPLE_COUNT = 3;
 const COUNT_PER_SCENARIO = 10_000;
-const VERSION = 1;
 const RELATIVE_TOLERANCE = 0.01;
 const GC_ROUNDS = 4;
 const execFileAsync = promisify(execFile);
@@ -37,18 +36,7 @@ const CHILD_MEASURE_SOURCE = [
   'process.exit(0);',
 ].join('\n');
 
-type StoredScenarioResult = {
-  totalBytes: number;
-  bytesPerInstance: number;
-};
-
-type StoredResults = {
-  version: number;
-  generatedAt: string;
-  sampleCount: number;
-  countPerScenario: number;
-  scenarios: Record<string, StoredScenarioResult>;
-};
+type StoredResults = Record<string, number>;
 
 type MeasurementResult = {
   id: string;
@@ -208,26 +196,12 @@ function buildStoredResults(
   scenarios: MemoryScenario[],
   measuredResults: Record<string, MeasurementResult>
 ): StoredResults {
-  const storedScenarios = Object.fromEntries(
+  return Object.fromEntries(
     scenarios.map((scenario) => {
       const measured = measuredResults[scenario.id];
-      return [
-        scenario.id,
-        {
-          totalBytes: measured.totalBytes,
-          bytesPerInstance: measured.totalBytes / measured.count,
-        },
-      ];
+      return [scenario.id, Math.round(measured.totalBytes / measured.count)];
     })
   );
-
-  return {
-    version: VERSION,
-    generatedAt: new Date().toISOString(),
-    sampleCount: SAMPLE_COUNT,
-    countPerScenario: COUNT_PER_SCENARIO,
-    scenarios: storedScenarios,
-  };
 }
 
 async function readStoredResults(storedPath: string): Promise<StoredResults> {
@@ -246,33 +220,22 @@ function validateResults(
   stored: StoredResults,
   measuredResults: Record<string, MeasurementResult>
 ) {
-  if (stored.countPerScenario !== COUNT_PER_SCENARIO) {
-    throw new Error(
-      `Stored countPerScenario ${stored.countPerScenario} does not match expected ${COUNT_PER_SCENARIO}`
-    );
-  }
-  assertExactKeySet(
-    'stored memory scenarios',
-    Object.keys(stored.scenarios),
-    Object.keys(measuredResults)
-  );
+  assertExactKeySet('stored memory scenarios', Object.keys(stored), Object.keys(measuredResults));
 
   const failures: string[] = [];
   for (const scenario of scenarios) {
-    const storedScenario = stored.scenarios[scenario.id];
+    const storedBytesPerInstance = stored[scenario.id];
     const measuredScenario = measuredResults[scenario.id];
-    const allowedMax = Math.round(storedScenario.totalBytes * (1 + RELATIVE_TOLERANCE));
-    const ok = measuredScenario.totalBytes <= allowedMax;
-    const great =
-      measuredScenario.totalBytes < storedScenario.totalBytes * (1 - RELATIVE_TOLERANCE);
-    const measuredPerInstance = measuredScenario.totalBytes / measuredScenario.count;
-    const allowedMaxPerInstance = allowedMax / measuredScenario.count;
+    const measuredPerInstance = Math.round(measuredScenario.totalBytes / measuredScenario.count);
+    const allowedMaxPerInstance = Math.round(storedBytesPerInstance * (1 + RELATIVE_TOLERANCE));
+    const ok = measuredPerInstance <= allowedMaxPerInstance;
+    const great = measuredPerInstance < storedBytesPerInstance * (1 - RELATIVE_TOLERANCE);
 
     console.log(
       [
         `${scenario.id}:`,
         formatBytes(measuredPerInstance),
-        `delta ${formatBytes(measuredPerInstance - storedScenario.bytesPerInstance)}`,
+        `delta ${formatBytes(measuredPerInstance - storedBytesPerInstance)}`,
         ok ? 'OK' : 'FAIL',
         great ? '--- GREAT!!!' : '',
       ].join(' ')

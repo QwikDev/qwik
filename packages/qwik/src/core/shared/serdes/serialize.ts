@@ -40,7 +40,7 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS } from '../utils/markers';
 import { isObjectEmpty } from '../utils/objects';
 import { isPromise, maybeThen } from '../utils/promises';
-import { Constants, TypeIds } from './constants';
+import { Constants, explicitUndefined, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
 import {
   SerializationBackRef,
@@ -67,6 +67,8 @@ export class Serializer {
   private $parent$: SeenRef | undefined;
   private $qrlMap$ = new Map<string, QRLInternal>();
   private $writer$: StreamWriter;
+  /** We need to determine this at runtime because polyfills may not be loaded a module load time */
+  private $hasTemporal$ = typeof Temporal !== 'undefined';
 
   constructor(public $serializationContext$: SerializationContext) {
     this.$writer$ = $serializationContext$.$writer$;
@@ -114,6 +116,34 @@ export class Serializer {
       }
     }
     return false;
+  }
+
+  private maybeNumericObjectKey$(key: string): string | number {
+    if (key.length === 0 || key.length >= 8) {
+      return key;
+    }
+
+    let i = 0;
+    if (key.charCodeAt(0) === 45) {
+      if (key.length === 1) {
+        return key;
+      }
+      i = 1;
+    }
+
+    const first = key.charCodeAt(i);
+    if (first < 49 || first > 57) {
+      return key;
+    }
+
+    for (i++; i < key.length; i++) {
+      const c = key.charCodeAt(i);
+      if (c < 48 || c > 57) {
+        return key;
+      }
+    }
+
+    return Number(key);
   }
 
   /** Output a type,value pair. If the value is an array, it calls writeValue on each item. */
@@ -244,6 +274,8 @@ export class Serializer {
             this.output(TypeIds.Constant, Constants.STORE_ALL_PROPS);
           } else if (value === _UNINITIALIZED) {
             this.output(TypeIds.Constant, Constants.UNINITIALIZED);
+          } else if (value === explicitUndefined) {
+            this.output(TypeIds.Constant, Constants.Undefined);
           }
           break;
         case 'function':
@@ -323,11 +355,13 @@ export class Serializer {
         value[_PROPS_HANDLER].$effects$,
       ]);
     } else if (value instanceof SubscriptionData) {
+      // TODO make everything optional or use two types
       this.output(TypeIds.SubscriptionData, [
         value.data.$scopedStyleIdPrefix$,
         value.data.$isConst$,
       ]);
     } else if (value instanceof EffectSubscription) {
+      // TODO no data if [null, true]
       this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
     } else if (isStore(value)) {
       const storeHandler = getStoreHandler(value)!;
@@ -378,7 +412,7 @@ export class Serializer {
           if (Object.prototype.hasOwnProperty.call(value, key)) {
             const subVal = (value as any)[key];
             if (!fastSkipSerialize(subVal)) {
-              out.push(key, subVal);
+              out.push(this.maybeNumericObjectKey$(key), subVal);
             }
           }
         }
@@ -423,7 +457,7 @@ export class Serializer {
         const isInvalid = value.$flags$ & SignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
         const isAsync = value instanceof AsyncSignalImpl;
-        const interval = isAsync && value.$interval$ !== 0 ? value.$interval$ : undefined;
+        const expires = isAsync && value.$expires$ !== 0 ? value.$expires$ : undefined;
         const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
         const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
 
@@ -447,44 +481,53 @@ export class Serializer {
           out.push(asyncFlags || undefined);
         }
 
-        let keepUndefined = false;
-
         if (
           v !== NEEDS_COMPUTATION ||
-          interval !== undefined ||
+          expires !== undefined ||
           concurrency !== undefined ||
           timeout !== undefined
         ) {
-          out.push(v);
-
-          if (v === undefined) {
-            /**
-             * If value is undefined, we need to keep it in the output. If we don't do that, later
-             * during resuming, the value will be set to symbol(invalid) with flag invalid, and
-             * thats is incorrect.
-             */
-            keepUndefined = true;
-          }
+          /**
+           * If value is undefined, we need to keep it in the output. If we don't do that, later
+           * during resuming, the value will be set to symbol(invalid) with flag invalid, and thats
+           * is incorrect.
+           */
+          out.push(v === undefined ? explicitUndefined : v);
         }
         if (isAsync) {
-          out.push(interval);
+          out.push(expires);
           out.push(concurrency);
           out.push(timeout);
         }
-        this.output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out, keepUndefined);
+        this.output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out);
       } else {
         const v = value.$untrackedValue$;
-        const keepUndefined = v === undefined;
-        const out = [v];
+        const out = [v === undefined ? explicitUndefined : v];
         if (value.$effects$) {
           out.push(...value.$effects$);
         }
-        this.output(TypeIds.Signal, out, keepUndefined);
+        this.output(TypeIds.Signal, out);
       }
     } else if (value instanceof URL) {
       this.output(TypeIds.URL, value.href);
     } else if (value instanceof Date) {
       this.output(TypeIds.Date, Number.isNaN(value.valueOf()) ? '' : value.valueOf());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.Duration) {
+      this.output(TypeIds.TemporalDuration, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.Instant) {
+      this.output(TypeIds.TemporalInstant, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDate) {
+      this.output(TypeIds.TemporalPlainDate, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDateTime) {
+      this.output(TypeIds.TemporalPlainDateTime, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainMonthDay) {
+      this.output(TypeIds.TemporalPlainMonthDay, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainTime) {
+      this.output(TypeIds.TemporalPlainTime, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainYearMonth) {
+      this.output(TypeIds.TemporalPlainYearMonth, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.ZonedDateTime) {
+      this.output(TypeIds.TemporalZonedDateTime, value.toJSON());
     } else if (value instanceof RegExp) {
       this.output(TypeIds.Regex, value.toString());
     } else if (value instanceof Error) {

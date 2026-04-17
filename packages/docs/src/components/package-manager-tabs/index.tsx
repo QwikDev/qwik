@@ -39,12 +39,7 @@ export default component$(() => {
           <tabs.trigger
             key={pkg}
             value={pkg}
-            class={[
-              'flex shrink-0 items-center gap-1 px-[10px] pt-2 pb-4 rounded-t-lg border-[1.6px] border-base -mr-2 cursor-pointer sm:gap-2 sm:px-4 sm:pb-5',
-              'text-body-xs sm:text-body-sm font-semibold',
-              'bg-background-base text-standalone-base',
-              'ui-selected:bg-background-emphasis ui-selected:border-border-emphasis ui-selected:text-standalone-emphasis ui-selected:font-bold',
-            ]}
+            class={['attached-tab', 'ui-selected:attached-tab-selected']}
             style={{ zIndex: pkgManagers.length - i }}
           >
             {pkg === 'pnpm' && <devicon.pnpm class="size-5 sm:size-6" />}
@@ -86,14 +81,14 @@ const CopyButton = component$(() => {
   return (
     <button
       onClick$={copyToClipboard$}
-      class="absolute right-4 top-4 cursor-pointer text-standalone-base opacity-50 transition duration-300 ease hover:opacity-100"
+      class="absolute right-4 top-4 cursor-pointer"
       aria-label={isClickedSig.value ? 'Copied to clipboard' : 'Copy to clipboard'}
       title={isClickedSig.value ? 'Copied!' : 'Copy to clipboard'}
     >
       {isClickedSig.value ? (
-        <lucide.check class="size-5" aria-hidden="true" />
+        <lucide.check class="vanilla-icon" aria-hidden="true" />
       ) : (
-        <lucide.copy class="size-5" aria-hidden="true" />
+        <lucide.copy class="vanilla-icon" aria-hidden="true" />
       )}
     </button>
   );

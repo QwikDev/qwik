@@ -45,34 +45,37 @@ describe('async signal', () => {
     container = null!;
   });
 
-  describe('poll', () => {
-    it('should store poll ms on instance', async () => {
+  describe('expires and poll', () => {
+    it('should store expires ms on instance', async () => {
       await withContainer(async () => {
-        const interval = 50;
-        const signal = createAsync$(async () => 42, { interval }) as AsyncSignalImpl<number>;
+        const signal = createAsync$(async () => 42, { expires: 50 }) as AsyncSignalImpl<number>;
 
-        expect(signal.interval).toBe(interval);
-        expect(signal.$interval$).toBe(interval);
+        expect(signal.expires).toBe(50);
+        expect(signal.$expires$).toBe(50);
+        expect(signal.poll).toBe(true);
         expect(signal.$pollTimeoutId$).toBeUndefined();
       });
     });
 
-    it('should store negative interval without scheduling before consumers', async () => {
+    it('should store expires with poll: false without scheduling before consumers', async () => {
       await withContainer(async () => {
-        const interval = -50;
-        const signal = createAsync$(async () => 42, { interval }) as AsyncSignalImpl<number>;
+        const signal = createAsync$(async () => 42, {
+          expires: 50,
+          poll: false,
+        }) as AsyncSignalImpl<number>;
 
-        expect(signal.interval).toBe(interval);
-        expect(signal.$interval$).toBe(interval);
+        expect(signal.expires).toBe(50);
+        expect(signal.$expires$).toBe(50);
+        expect(signal.poll).toBe(false);
         expect(signal.$pollTimeoutId$).toBeUndefined();
       });
     });
 
-    it('should update interval and reschedule with consumers', async () => {
+    it('should update expires and reschedule with consumers', async () => {
       await withContainer(async () => {
-        const signal = createAsync$(async () => 42, { interval: 0 }) as AsyncSignalImpl<number>;
+        const signal = createAsync$(async () => 42, { expires: 0 }) as AsyncSignalImpl<number>;
 
-        signal.interval = 1;
+        signal.expires = 1;
         expect(signal.$pollTimeoutId$).toBeUndefined();
 
         await retryOnPromise(async () => {
@@ -81,12 +84,12 @@ describe('async signal', () => {
 
         expect(signal.$pollTimeoutId$).toBeDefined();
 
-        signal.interval = 0;
+        signal.expires = 0;
         expect(signal.$pollTimeoutId$).toBeUndefined();
       });
     });
 
-    it('should mark negative interval signals stale without recomputing', async () => {
+    it('should mark poll: false signals stale without recomputing', async () => {
       await withContainer(async () => {
         const ref = { computeCalls: 0 };
         const signal = createAsync$(
@@ -94,7 +97,7 @@ describe('async signal', () => {
             ref.computeCalls++;
             return ref.computeCalls;
           },
-          { interval: -10 }
+          { expires: 10, poll: false }
         ) as AsyncSignalImpl<number>;
 
         await retryOnPromise(async () => {
@@ -117,8 +120,7 @@ describe('async signal', () => {
 
     it('should clear poll timeout on invalidate', async () => {
       await withContainer(async () => {
-        const interval = 1;
-        const signal = createAsync$(async () => 42, { interval }) as AsyncSignalImpl<number>;
+        const signal = createAsync$(async () => 42, { expires: 1 }) as AsyncSignalImpl<number>;
 
         await retryOnPromise(async () => {
           effect$(() => signal.value);
@@ -132,10 +134,9 @@ describe('async signal', () => {
 
     it('should poll', async () => {
       await withContainer(async () => {
-        const interval = 1;
         const ref = { count: 42 };
         const signal = createAsync$(async () => ref.count++, {
-          interval,
+          expires: 1,
         }) as AsyncSignalImpl<number>;
 
         await retryOnPromise(async () => {
@@ -146,44 +147,107 @@ describe('async signal', () => {
       });
     });
 
-    it('should preserve poll setting for SSR hydration', async () => {
+    it('should preserve expires setting for SSR hydration', async () => {
       await withContainer(async () => {
-        const interval = 75;
-        const signal = createAsync$(async () => 99, { interval }) as AsyncSignalImpl<number>;
+        const signal = createAsync$(async () => 99, { expires: 75 }) as AsyncSignalImpl<number>;
 
-        expect(signal.$interval$).toBe(interval);
+        expect(signal.$expires$).toBe(75);
       });
     });
 
-    it('should switch from polling to stale-only when interval becomes negative', async () => {
+    it('should switch from polling to stale-only via poll setter', async () => {
       await withContainer(async () => {
-        const ref = { computeCalls: 0 };
-        const signal = createAsync$(
-          async () => {
-            ref.computeCalls++;
-            return ref.computeCalls;
-          },
-          { interval: 50 }
-        ) as AsyncSignalImpl<number>;
+        const signal = createAsync$(async () => 1, { expires: 10 }) as AsyncSignalImpl<number>;
+        signal.untrackedValue = 1;
+        signal.$flags$ &= ~SignalFlags.INVALID;
+        signal.poll = false;
+        (signal as any).$scheduleNextPoll$();
 
-        await retryOnPromise(async () => {
-          effect$(() => signal.value);
-        });
-        await signal.promise();
+        await delay(20);
 
-        expect(ref.computeCalls).toBe(1);
-        expect(signal.$pollTimeoutId$).toBeDefined();
+        expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
+        expect(signal.$untrackedValue$).toBe(1);
+        expect(signal.$pollTimeoutId$).toBeUndefined();
+      });
+    });
 
-        signal.interval = -10;
+    it('should keep the current value while polling reruns with allowStale false', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 84, {
+          expires: 10,
+          allowStale: false,
+        }) as AsyncSignalImpl<number>;
+        signal.untrackedValue = 42;
+        signal.$flags$ &= ~SignalFlags.INVALID;
+        (signal as any).$scheduleNextPoll$();
 
         expect(signal.$pollTimeoutId$).toBeDefined();
 
         await delay(20);
 
-        expect(ref.computeCalls).toBe(1);
         expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
-        expect(signal.$untrackedValue$).toBe(1);
+        expect(signal.$untrackedValue$).toBe(42);
         expect(signal.$pollTimeoutId$).toBeUndefined();
+      });
+    });
+
+    it('should clear the current value when poll: false invalidates with allowStale false', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 84, {
+          expires: 10,
+          poll: false,
+          allowStale: false,
+        }) as AsyncSignalImpl<number>;
+        signal.untrackedValue = 42;
+        signal.$flags$ &= ~SignalFlags.INVALID;
+        (signal as any).$scheduleNextPoll$();
+
+        expect(signal.$pollTimeoutId$).toBeDefined();
+
+        await delay(20);
+
+        expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
+        expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
+        expect(signal.$pollTimeoutId$).toBeUndefined();
+      });
+    });
+
+    it('should support deprecated negative interval for backward compat', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 42, {
+          interval: -50,
+        }) as AsyncSignalImpl<number>;
+
+        expect(signal.expires).toBe(50);
+        expect(signal.poll).toBe(false);
+        // Deprecated interval getter returns negative for compat
+        expect(signal.interval).toBe(-50);
+      });
+    });
+
+    it('should support deprecated positive interval for backward compat', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 42, {
+          interval: 50,
+        }) as AsyncSignalImpl<number>;
+
+        expect(signal.expires).toBe(50);
+        expect(signal.poll).toBe(true);
+        expect(signal.interval).toBe(50);
+      });
+    });
+
+    it('should support deprecated interval setter for backward compat', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 42, {}) as AsyncSignalImpl<number>;
+
+        signal.interval = -10;
+        expect(signal.expires).toBe(10);
+        expect(signal.poll).toBe(false);
+
+        signal.interval = 20;
+        expect(signal.expires).toBe(20);
+        expect(signal.poll).toBe(true);
       });
     });
   });
@@ -651,6 +715,64 @@ describe('async signal', () => {
       });
     });
 
+    it('should ignore AbortError from a superseded computation', async () => {
+      await withContainer(async () => {
+        const ref = {
+          started: 0,
+          resolveCurrent: undefined as ((value: number) => void) | undefined,
+        };
+
+        const signal = createAsync$(
+          async ({ abortSignal }) => {
+            ref.started++;
+
+            return new Promise<number>((resolve, reject) => {
+              const onAbort = () => {
+                const err = new Error('aborted');
+                err.name = 'AbortError';
+                reject(err);
+              };
+              abortSignal.addEventListener('abort', onAbort, { once: true });
+
+              ref.resolveCurrent = (value: number) => {
+                abortSignal.removeEventListener('abort', onAbort);
+                resolve(value);
+              };
+            });
+          },
+          { initial: 0 }
+        ) as AsyncSignalImpl<number>;
+
+        effect$(() => signal.value);
+
+        await retryOnPromise(() => {
+          if (ref.started !== 1 || !ref.resolveCurrent) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+
+        await signal.invalidate();
+
+        await retryOnPromise(() => {
+          if (ref.started !== 2 || !ref.resolveCurrent) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+
+        expect(signal.error).toBeUndefined();
+        expect(signal.value).toBe(0);
+
+        ref.resolveCurrent!(7);
+        await signal.promise();
+
+        expect(signal.value).toBe(7);
+        expect(signal.error).toBeUndefined();
+        expect(signal.$untrackedValue$).toBe(7);
+      });
+    });
+
     it('should throw the retried promise instead of returning a stale value after an error', async () => {
       await withContainer(async () => {
         const ref = {
@@ -775,15 +897,14 @@ describe('async signal', () => {
 
     it('initial and interval should work together', async () => {
       await withContainer(async () => {
-        const interval = 1;
         const signal = createAsync$(async () => 42, {
           initial: 10,
-          interval,
+          expires: 1,
         }) as AsyncSignalImpl<number>;
 
         expect(signal.value).toBe(10);
-        expect(signal.interval).toBe(interval);
-        expect(signal.$interval$).toBe(interval);
+        expect(signal.expires).toBe(1);
+        expect(signal.$expires$).toBe(1);
       });
     });
 

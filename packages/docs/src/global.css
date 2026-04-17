@@ -8,6 +8,16 @@
   inherits: false;
 }
 
+:root {
+  --header-height: 64px;
+}
+
+@media (min-width: 90rem) {
+  :root {
+    --header-height: 118px;
+  }
+}
+
 @layer base {
   body {
     font-family: var(--font-body);
@@ -120,6 +130,10 @@
   --text-label-xs: 14px;
   --text-label-xs--line-height: 142.857%;
   --text-label-xs--font-weight: 700;
+
+  --text-label-base: 16px;
+  --text-label-base--line-height: 137.5%;
+  --text-label-base--font-weight: 700;
 
   /*
      * Spacing — uses Tailwind 4 defaults (4px base).
@@ -264,7 +278,7 @@
   --color-alert-standalone-emphasis: var(--color-rose-75);
 
   --color-background-base: var(--color-white);
-  --color-background-accent: var(--color-sky-10);
+  --color-background-accent: var(--color-sky-5);
   --color-background-emphasis: var(--color-sky-15);
   --color-background-disabled: var(--color-slate-5);
   --color-foreground-muted: var(--color-slate-65);
@@ -407,4 +421,65 @@
 
 @utility bg-grid-stars {
   background-image: url('./media/decor/grid-star-bg.svg');
+  background-size: contain;
+}
+
+.vanilla-icon {
+  @apply text-foreground-base size-6;
+}
+
+.vanilla-icon:hover {
+  @apply transition ease-in-out duration-300 scale-[1.025];
+}
+
+.vanilla-icon:disabled {
+  @apply text-foreground-disabled;
+}
+
+@utility attached-tab {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: calc(var(--spacing) * 1);
+  margin-right: calc(var(--spacing) * -2);
+  padding-inline: 10px;
+  padding-top: calc(var(--spacing) * 2);
+  padding-bottom: calc(var(--spacing) * 4);
+  border-style: solid;
+  border-width: 1.6px;
+  border-color: var(--color-border-base);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  cursor: pointer;
+  font-size: var(--text-body-xs);
+  line-height: var(--text-body-xs--line-height);
+  font-weight: var(--text-body-xs--font-weight);
+  background-color: var(--color-background-base);
+  color: var(--color-standalone-base);
+
+  @variant sm {
+    gap: calc(var(--spacing) * 2);
+    padding-inline: calc(var(--spacing) * 4);
+    padding-bottom: calc(var(--spacing) * 5);
+    font-size: var(--text-body-sm);
+    line-height: var(--text-body-sm--line-height);
+    font-weight: var(--text-body-sm--font-weight);
+  }
+
+  @variant hover {
+    background-color: var(--color-background-accent);
+    border-color: var(--color-border-accent);
+    color: var(--color-standalone-accent);
+  }
+}
+
+@utility attached-tab-selected {
+  background-color: var(--color-background-emphasis);
+  border-color: var(--color-border-emphasis);
+  color: var(--color-standalone-emphasis);
+  font-weight: var(--text-label-xs--font-weight);
+}
+
+.fixed-header {
+  @apply 2xl:pt-[102px];
 }

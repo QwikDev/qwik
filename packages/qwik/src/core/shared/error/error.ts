@@ -2,9 +2,11 @@ import { logErrorAndStop } from '../utils/log';
 import { qDev } from '../utils/qdev';
 import { isObject } from '../utils/types';
 
+const baseUrl = 'https://qwikdev-build-v2.qwik-8nx.pages.dev/docs/errors/#Q';
 export const codeToText = (code: number, ...parts: any[]): string => {
   if (qDev) {
     // Keep one error, one line to make it easier to search for the error message.
+    // Keep in sync with packages/docs/src/routes/docs/errors/index.mdx
     const MAP = [
       'Error while serializing class or style attributes', // 0
       'Scheduler not found', // 1
@@ -41,6 +43,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Attribute value is unsafe for SSR {{0}}', // 32
       'SerializerSymbol function returned rejected promise', // 33
       'Serialization Error: Cannot serialize function: {{0}}', // 34
+      'Cannot read .value of a clientOnly async signal during SSR. Use .loading to check state, or provide an initial value.', // 35
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -54,9 +57,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
     }
     return `Code(Q${code}): ${text}`;
   } else {
-    // cute little hack to give roughly the correct line number. Update the line number if it shifts.
-    // TODO change the URL after merging into main
-    return `Code(Q${code}) https://github.com/QwikDev/qwik/blob/build/v2/packages/qwik/src/core/shared/error/error.ts#${parts.join()}L${9 + code}`;
+    return `Code(Q${code}) ${baseUrl}${code}`;
   }
 };
 
@@ -96,6 +97,7 @@ export const enum QError {
   unsafeAttr = 32,
   serializerSymbolRejectedPromise = 33,
   serializeErrorCannotSerializeFunction = 34,
+  asyncClientOnlyValueDuringSSR = 35,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

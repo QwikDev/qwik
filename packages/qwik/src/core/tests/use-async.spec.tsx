@@ -595,7 +595,7 @@ describe.each([
         }
 
         expect(threwError).toBe(true);
-        expect(errorMessage).toContain('cannot read .value from clientOnly async signal');
+        expect(errorMessage).toContain('Cannot read .value of a clientOnly async signal');
       } else {
         // During client render, clientOnly signals compute eagerly, so it should work
         // (or at least not throw with the "cannot read" error)
@@ -674,13 +674,13 @@ describe.each([
       // and a d:qidle event is added to resume polling on document idle
       const Counter = component$(() => {
         const start = useConstant(Date.now);
-        const elapsed = useAsync$(async () => Date.now() - start, { interval: 50 });
+        const elapsed = useAsync$(async () => Date.now() - start, { expires: 50 });
         return (
           <div>
             <div id="elapsed">{elapsed.value}</div>
             <button
               onClick$={() => {
-                elapsed.interval = elapsed.interval ? 0 : 50;
+                elapsed.expires = elapsed.expires ? 0 : 50;
               }}
             >
               Toggle updates

@@ -97,7 +97,8 @@ function getListeners(target: ReturnType<typeof createEventTarget>, eventName: s
 function createMockElement(
   parentElement: any,
   attrs: Record<string, string | boolean>,
-  handler?: (ev: any, element: any) => unknown
+  handler?: (ev: any, element: any) => unknown,
+  scopedKebabName = 'e:click'
 ) {
   const attributeMap = new Map<string, string>();
   for (const [name, value] of Object.entries(attrs)) {
@@ -114,20 +115,35 @@ function createMockElement(
     isConnected: true,
     getAttribute: (name: string) => attributeMap.get(name) ?? null,
     hasAttribute: (name: string) => attributeMap.has(name),
+    closest: (selector: string) => {
+      let current = element as any;
+      while (current) {
+        if (
+          selector === '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])' &&
+          current.hasAttribute('q:container') &&
+          current.getAttribute('q:container') !== 'html' &&
+          current.getAttribute('q:container') !== 'text'
+        ) {
+          return current;
+        }
+        current = current.parentElement;
+      }
+      return null;
+    },
   };
 
   if (handler) {
     element._qDispatch = {
-      'e:click': handler,
+      [scopedKebabName]: handler,
     };
   }
 
   return element;
 }
 
-function createMockEvent(target: any, overrides: Partial<any> = {}) {
+function createMockEvent(target: any, type = 'click', overrides: Partial<any> = {}) {
   return {
-    type: 'click',
+    type,
     target,
     bubbles: true,
     cancelBubble: false,
@@ -255,5 +271,76 @@ describe('qwikloader behavior', () => {
     await getSingleListener(doc, 'click').handler(createMockEvent(child));
 
     expect(logs).toEqual(['child bubble']);
+  });
+
+  test('applies parent preventdefault synchronously before async child bubbling completes', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    let resolveChild!: () => void;
+    const anchor = createMockElement(
+      null,
+      {
+        'preventdefault:click': true,
+      },
+      () => logs.push('parent'),
+      'e:click'
+    );
+    const button = createMockElement(
+      anchor,
+      {},
+      async () => {
+        logs.push('child');
+        await new Promise<void>((resolve) => {
+          resolveChild = resolve;
+        });
+      },
+      'e:click'
+    );
+
+    const event = createMockEvent(button);
+    const result = getSingleListener(doc, 'click').handler(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(logs).toEqual(['child', 'parent']);
+
+    resolveChild();
+    await result;
+  });
+
+  test('runs ancestor sync qrls synchronously even after a child async handler', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    let resolveChild!: () => void;
+    (doc as any).qFuncs_sync = [
+      () => {
+        logs.push('parent sync');
+      },
+    ];
+    const container = createMockElement(null, {
+      'q:container': '',
+      'q:base': './',
+      'q:instance': 'sync',
+    });
+    const anchor = createMockElement(container, {
+      'q-e:click': '#0#',
+    });
+    const button = createMockElement(
+      anchor,
+      {},
+      async () => {
+        logs.push('child async');
+        await new Promise<void>((resolve) => {
+          resolveChild = resolve;
+        });
+      },
+      'e:click'
+    );
+
+    const result = getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+    expect(logs).toEqual(['child async', 'parent sync']);
+
+    resolveChild();
+    await result;
   });
 });

@@ -227,6 +227,13 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Core Concepts',
+      'Synchronous Events with State',
+      '/docs/advanced/sync-events/',
+      'Advanced `sync$()` patterns for synchronous DOM event work that still coordinates with reactive state.',
+      toSourcePath('docs', '(qwik)', 'advanced', 'sync-events', 'index.mdx')
+    ),
+    docEntry(
+      'Core Concepts',
       'Tasks and Lifecycle',
       '/docs/core/tasks/',
       'Lifecycle and task model including `useTask$`, `useVisibleTask$`, and tracked reactive work.',

@@ -2,7 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import { _run } from '../client/run-qrl';
 import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import { EffectProperty } from '../reactive-primitives/types';
+import { AsyncSignalFlags, EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
 import { Fragment } from '../shared/jsx/jsx-runtime';
@@ -329,10 +329,11 @@ function maybeAddPollingAsyncSignalToEagerResume(
   const unwrappedSignal = signal instanceof WrappedSignalImpl ? signal.$unwrapIfSignal$() : signal;
 
   if (unwrappedSignal instanceof AsyncSignalImpl) {
-    const interval = unwrappedSignal.$interval$;
+    const expires = unwrappedSignal.$expires$;
     // Don't check for $effects$ here - effects are added later during tracking.
     // The AsyncSignal's polling mechanism will check for effects before scheduling.
-    if (interval > 0) {
+    // Only eager-resume for polling signals, not stale-only ones.
+    if (expires && !(unwrappedSignal.$flags$ & AsyncSignalFlags.NO_POLL)) {
       serializationCtx.$addRoot$(unwrappedSignal);
       serializationCtx.$eagerResume$.add(unwrappedSignal);
     }

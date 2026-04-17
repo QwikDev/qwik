@@ -689,7 +689,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // isn't a JS/TS file. For those, emit their JS importers instead, since
           // the component that needs to re-render is the importer.
           const files = new Set<string>();
-          const isSourceUrl = (url: string) => /\.[mc]?[jt]sx?$/.test(url.split('?')[0]);
+          const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
           for (const m of ctx.modules) {
             const url = m.url.split('?')[0];
             if (m.type === 'js' && isSourceUrl(m.url)) {

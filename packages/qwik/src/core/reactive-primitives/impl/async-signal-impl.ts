@@ -462,10 +462,11 @@ export class AsyncSignalImpl<T>
   async $runComputation$(running: AsyncJob<T>): Promise<void> {
     const isCurrent = () => running === this.$current$;
 
-    this.untrackedLoading = true;
-
     let fn = this.$computeQrl$.resolved;
     if (!fn) {
+      // QRL resolution is async — we have to publish loading=true before awaiting so
+      // subscribers know the value isn't ready yet.
+      this.untrackedLoading = true;
       fn = await this.$computeQrl$.resolve();
       if (running.$abortController$?.signal.aborted) {
         DEBUG && log('Computation aborted before it started');
@@ -483,9 +484,19 @@ export class AsyncSignalImpl<T>
         }, this.$timeoutMs$);
       }
 
-      // Try to stay sync if possible
+      // Try to stay sync if possible. Only publish loading=true to subscribers when
+      // the compute is actually asynchronous — a synchronous resolve (e.g. pre-loaded
+      // values injected via _injectAsyncSignalValue) should never transition through a
+      // visible loading state, which on SSR would fire the loading-effect subscribers
+      // (tasks) while the value is still "loading" from their perspective.
       const valuePromise = retryOnPromise(fn.bind(null, running));
-      const value = isPromise(valuePromise) ? await valuePromise : valuePromise;
+      let value: T;
+      if (isPromise(valuePromise)) {
+        this.untrackedLoading = true;
+        value = await valuePromise;
+      } else {
+        value = valuePromise;
+      }
 
       running.$promise$ = null;
 

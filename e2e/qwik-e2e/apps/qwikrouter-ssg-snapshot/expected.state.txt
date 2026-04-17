@@ -40,7 +40,7 @@
       {string} "frontmatter"
       Object 0
       {string} "manifestHash"
-    {string} "[manifest]"
+    {string} "MANIFEST_HASH"
     ]
     {number} 1
     Map [

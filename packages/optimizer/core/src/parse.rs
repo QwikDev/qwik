@@ -1043,9 +1043,10 @@ fn apply_variable_migration(
 							if let Some(items) = create_cyclic_var_items(decl) {
 								unique_module_items.extend(items);
 							} else {
+								let kind = dep_info.var_kind.unwrap_or(ast::VarDeclKind::Const);
 								let var_decl = ast::VarDecl {
 									span: swc_common::DUMMY_SP,
-									kind: ast::VarDeclKind::Const,
+									kind,
 									decls: vec![decl.clone()],
 									declare: false,
 									ctxt: swc_common::SyntaxContext::empty(),
@@ -1056,9 +1057,10 @@ fn apply_variable_migration(
 							}
 						}
 						RootVarDecl::Var(decl) => {
+							let kind = dep_info.var_kind.unwrap_or(ast::VarDeclKind::Const);
 							let var_decl = ast::VarDecl {
 								span: swc_common::DUMMY_SP,
-								kind: ast::VarDeclKind::Const,
+								kind,
 								decls: vec![decl.clone()],
 								declare: false,
 								ctxt: swc_common::SyntaxContext::empty(),
@@ -1738,6 +1740,7 @@ mod migration_cleanup_tests {
 				decl: mk_decl("a"),
 				is_imported: false,
 				is_exported: false,
+				var_kind: None,
 				depends_on: vec![id_a.clone()],
 			},
 		);
@@ -1747,6 +1750,7 @@ mod migration_cleanup_tests {
 				decl: mk_decl("b"),
 				is_imported: false,
 				is_exported: false,
+				var_kind: None,
 				depends_on: vec![id_c.clone()],
 			},
 		);
@@ -1756,6 +1760,7 @@ mod migration_cleanup_tests {
 				decl: mk_decl("c"),
 				is_imported: false,
 				is_exported: false,
+				var_kind: None,
 				depends_on: vec![id_b.clone()],
 			},
 		);

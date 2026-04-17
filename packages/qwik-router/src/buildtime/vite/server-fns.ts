@@ -3,7 +3,7 @@ import type { RoutingContext } from '../types';
 
 type ServerFnModuleInfo = Pick<
   Rollup.ModuleInfo,
-  'code' | 'dynamicallyImportedIdResolutions' | 'id' | 'importedIdResolutions'
+  'code' | 'dynamicallyImportedIds' | 'id' | 'importedIds'
 >;
 
 export async function collectServerFnModuleIds(
@@ -47,13 +47,11 @@ export async function collectServerFnModuleIds(
       serverFnModules.add(moduleInfo.id);
     }
 
-    const resolvedImports = moduleInfo.importedIdResolutions.concat(
-      moduleInfo.dynamicallyImportedIdResolutions
-    );
+    const resolvedImports = moduleInfo.importedIds.concat(moduleInfo.dynamicallyImportedIds);
     for (let i = 0; i < resolvedImports.length; i++) {
       const resolvedImport = resolvedImports[i];
-      if (!resolvedImport.external && !seenModuleIds.has(resolvedImport.id)) {
-        queuedModuleIds.add(resolvedImport.id);
+      if (!resolvedImport && !seenModuleIds.has(resolvedImport)) {
+        queuedModuleIds.add(resolvedImport);
       }
     }
   }

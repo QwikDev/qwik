@@ -817,6 +817,11 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           .catch((err) => {
             // If the view transition fails, navigate to the page anyway
             navigate();
+            if (err instanceof DOMException && err.name === 'TimeoutError') {
+              throw new Error(
+                'View transition timed out. This can happen if you have "disableCache" in your browser devtools enabled.'
+              );
+            }
             // Re-throw the error on console
             throw err;
           })

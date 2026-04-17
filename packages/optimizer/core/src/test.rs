@@ -7310,6 +7310,56 @@ export function useHook() {
 }
 
 #[test]
+fn should_auto_export_shared_let_kept_in_parent() {
+	// A module-scope `let` that is referenced by a segment AND still needed in the
+	// main module stays in the parent and is auto-exported as a normal binding.
+	// Segments become separate ES modules, so mutations from a segment won't be
+	// visible in the parent — that's the developer's responsibility.
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+let counter = 0;
+
+export function bumpFromRoot() {
+  counter++;
+}
+
+export const readFromSegment = $(() => {
+  console.log(counter);
+});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_preserve_let_when_migrated_into_segment() {
+	// A module-scope `let` that is exclusive to a single segment is moved into that
+	// segment; its declaration kind must be preserved so mutation inside the
+	// segment still works.
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+let counter = 0;
+
+export const bump = $(() => {
+  counter++;
+  return counter;
+});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_keep_non_migrated_binding_from_shared_destructuring_declarator() {
 	test_input!(TestInput {
 		code: r#"

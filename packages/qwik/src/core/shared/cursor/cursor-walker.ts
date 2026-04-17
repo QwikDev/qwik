@@ -33,7 +33,7 @@ import type { ValueOrPromise } from '../utils/types';
 import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
-import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -56,27 +56,24 @@ function scheduleYield(): void {
   }
 }
 
-/** Options for walking a cursor. */
-export interface WalkOptions {
-  /** Time budget in milliseconds (for DOM time-slicing). If exceeded, walk pauses. */
-  timeBudget: number;
-}
-
 /**
  * Processes the cursor queue, walking each cursor in turn.
  *
  * @param options - Walk options (time budget, etc.)
  */
-export function processCursorQueue(
-  options: WalkOptions = {
-    timeBudget: 1000 / 60, // 60fps
-  }
-): void {
+export function processCursorQueue(): void {
   isNextTickScheduled = false;
+  const startTime = performance.now();
+  const yieldTime = startTime + 15; // 16 ms = 60 FPS, use 15 to yield slightly before next frame
 
   let cursor: Cursor | null = null;
   while ((cursor = getHighestPriorityCursor())) {
-    walkCursor(cursor, options);
+    if (walkCursor(cursor, yieldTime)) {
+      // Cursor overran time budget, yield to browser
+      // Note that each tick we process at least one thing
+      scheduleYield();
+      return;
+    }
   }
 }
 
@@ -96,13 +93,12 @@ export function processCursorQueue(
  * Note that there is only one walker for all containers in the app with the same Qwik version.
  *
  * @param cursor - The cursor to walk
- * @param options - Walk options (time budget, etc.)
- * @returns Walk result indicating completion status
+ * @param until - Time budget (timestamp to yield by)
+ * @returns `true` if the walk was paused due to time budget (do not process more cursors in this
+ *   tick)
  */
-export function walkCursor(cursor: Cursor, options: WalkOptions): void {
-  const { timeBudget } = options;
+export function walkCursor(cursor: Cursor, until: number): boolean | void {
   const isRunningOnServer = import.meta.env.TEST ? isServerPlatform() : isServer;
-  const startTime = performance.now();
 
   const cursorData = getCursorData(cursor)!;
 
@@ -213,13 +209,8 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     }
 
     // Check time budget (only for DOM, not SSR)
-    if (isBrowser) {
-      const elapsed = performance.now() - startTime;
-      if (elapsed >= timeBudget) {
-        // Schedule continuation as macrotask to actually yield to browser
-        scheduleYield();
-        return;
-      }
+    if (performance.now() >= until) {
+      return true;
     }
   }
   isDev &&

@@ -28,9 +28,11 @@ test.describe('router ssg snapshot', () => {
     const state = extractState(html);
     expect(state).not.toBeNull();
 
-    const normalizedHtml = normalizeHtml(html);
+    const manifestHash = extractManifestHash(html);
+    const normalizedHtml = normalizeHtml(html, manifestHash);
     const normalizedState = normalizeStateDump(
-      _dumpState(JSON.parse(state!) as unknown[], false, '', null)
+      _dumpState(JSON.parse(state!) as unknown[], false, '', null),
+      manifestHash
     );
 
     if (process.env.UPDATE_SSG_SNAPSHOT === '1') {
@@ -38,12 +40,14 @@ test.describe('router ssg snapshot', () => {
       await writeFile(expectedStatePath, normalizedState, 'utf-8');
     }
 
-    expect(normalizedHtml).toEqual(
-      (await readFile(expectedHtmlPath, 'utf-8')).replace(/\r\n/g, '\n')
-    );
-    expect(normalizedState).toEqual(
-      (await readFile(expectedStatePath, 'utf-8')).replace(/\r\n/g, '\n')
-    );
+    const expectedHtml = (await readFile(expectedHtmlPath, 'utf-8')).replace(/\r\n/g, '\n');
+    const expectedState = (await readFile(expectedStatePath, 'utf-8')).replace(/\r\n/g, '\n');
+
+    warnIfSizeChanged('readable state dump', expectedState, normalizedState);
+    warnIfSizeChanged('HTML', expectedHtml, normalizedHtml);
+
+    expect(normalizedState).toEqual(expectedState);
+    expect(normalizedHtml).toEqual(expectedHtml);
   });
 });
 
@@ -104,17 +108,26 @@ async function buildFixtureApp() {
   );
 }
 
-function normalizeHtml(html: string) {
-  return html
+function extractManifestHash(html: string): string | null {
+  const match = html.match(/q:manifest-hash="([^"]*)"/);
+  return match ? match[1] : null;
+}
+
+function normalizeHtml(html: string, manifestHash: string | null) {
+  let result = html;
+  if (manifestHash) {
+    result = result.replaceAll(manifestHash, 'MANIFEST_HASH');
+  }
+  result = result
     .replace(/\r\n/g, '\n')
     .replace(/ q:version="[^"]*"/g, '')
     .replace(/ q:instance="[^"]*"/g, ' q:instance="[instance]"')
-    .replace(/ q:manifest-hash="[^"]*"/g, ' q:manifest-hash="[manifest]"')
     .replace(/\/assets\/[A-Za-z0-9_-]+-bundle-graph\.json/g, '/assets/xxxxxxxx-bundle-graph.json')
     .replace(/q-[A-Za-z0-9_-]+\.(js|css)/g, 'q-xxxxxxxx.$1')
     .replace(/qFuncs_[A-Za-z0-9_-]+/g, 'qFuncs_xxxxxx')
     .replace(/<script type="qwik\/state"[^>]*>[\s\S]*?<\/script>/, '[state omitted]\n')
     .replace(/<script type="qwik\/vnode"[^>]*>[\s\S]*?<\/script>/, '[vnode map omitted]\n');
+  return result;
 }
 
 function extractState(html: string) {
@@ -122,13 +135,32 @@ function extractState(html: string) {
   return match ? match[1] : null;
 }
 
-function normalizeStateDump(stateDump: string) {
-  return stateDump
+function normalizeStateDump(stateDump: string, manifestHash: string | null) {
+  let result = stateDump
     .replace(/\r\n/g, '\n')
-    .replace(/manifestHash"\n\s+\{string\} "[^"]+"/g, 'manifestHash"\n    {string} "[manifest]"')
+    .replace(/manifestHash"\n\s+\{string\} "[^"]+"/g, 'manifestHash"\n    {string} "MANIFEST_HASH"')
     .replace(/qFuncs_[A-Za-z0-9_-]+/g, 'qFuncs_xxxxxx')
     .replace(/q-[A-Za-z0-9_-]+\.(js|css)/g, 'q-xxxxxxxx.$1')
     .replaceAll(/RootRef .*/g, 'RootRef [omitted]')
     .replaceAll(/QRL ".*"/g, 'QRL "[omitted]"')
     .replace(/^\(\d+ chars\)$/m, '');
+  if (manifestHash) {
+    result = result.replaceAll(manifestHash, 'MANIFEST_HASH');
+  }
+  return result;
+}
+
+function warnIfSizeChanged(label: string, expected: string, actual: string) {
+  const expectedLen = expected.length;
+  const actualLen = actual.length;
+  if (expectedLen === 0) {
+    return;
+  }
+  const pct = Math.abs(actualLen - expectedLen) / expectedLen;
+  if (pct > 0.01) {
+    console.error(
+      `\n\n[ssg-snapshot] ${label} size changed by ${(pct * 100).toFixed(1)}%: ` +
+        `${expectedLen} → ${actualLen} chars`
+    );
+  }
 }

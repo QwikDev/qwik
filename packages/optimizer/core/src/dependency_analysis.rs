@@ -115,7 +115,14 @@ pub fn analyze_root_dependencies(
 
 	// First pass: collect ALL root declarations from the module body
 	for item in &module.body {
-		if let ast::ModuleItem::Stmt(ast::Stmt::Decl(decl)) = item {
+		let decl = match item {
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(decl)) => Some(decl),
+			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(export_decl)) => {
+				Some(&export_decl.decl)
+			}
+			_ => None,
+		};
+		if let Some(decl) = decl {
 			match decl {
 				ast::Decl::Var(var_decl) => {
 					for decl in &var_decl.decls {
@@ -213,7 +220,14 @@ pub fn analyze_root_dependencies(
 
 	// Second pass: extract variable declarations and analyze dependencies
 	for item in &module.body {
-		if let ast::ModuleItem::Stmt(ast::Stmt::Decl(decl)) = item {
+		let decl = match item {
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(decl)) => Some(decl),
+			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(export_decl)) => {
+				Some(&export_decl.decl)
+			}
+			_ => None,
+		};
+		if let Some(decl) = decl {
 			match decl {
 				ast::Decl::Var(var_decl) => {
 					for decl in &var_decl.decls {
@@ -599,5 +613,57 @@ fn collect_decl_idents_from_decl(decl: &ast::Decl, idents: &mut Vec<Id>) {
 			idents.push((enu.id.sym.clone(), enu.id.ctxt));
 		}
 		_ => {}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::collector::global_collect;
+	use swc_atoms::atom;
+	use swc_common::{SyntaxContext, DUMMY_SP};
+
+	#[test]
+	fn analyze_root_dependencies_tracks_export_decl_var_kind() {
+		let id = ast::Ident::new(atom!("counter"), DUMMY_SP, SyntaxContext::empty());
+		let module = ast::Module {
+			span: DUMMY_SP,
+			shebang: None,
+			body: vec![ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(
+				ast::ExportDecl {
+					span: DUMMY_SP,
+					decl: ast::Decl::Var(Box::new(ast::VarDecl {
+						span: DUMMY_SP,
+						ctxt: SyntaxContext::empty(),
+						kind: ast::VarDeclKind::Let,
+						declare: false,
+						decls: vec![ast::VarDeclarator {
+							span: DUMMY_SP,
+							name: ast::Pat::Ident(ast::BindingIdent { id, type_ann: None }),
+							init: Some(Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
+								span: DUMMY_SP,
+								value: 0.0,
+								raw: None,
+							})))),
+							definite: false,
+						}],
+					})),
+				},
+			))],
+		};
+
+		let collect = global_collect(&ast::Program::Module(module.clone()));
+		let deps = analyze_root_dependencies(&module, &collect);
+		let dep = deps
+			.get(&(atom!("counter"), SyntaxContext::empty()))
+			.expect("counter dependency should exist");
+
+		assert_eq!(dep.var_kind, Some(ast::VarDeclKind::Let));
+		match &dep.decl {
+			RootVarDecl::Var(decl) => {
+				assert!(decl.init.is_some());
+			}
+			_ => panic!("expected var declarator"),
+		}
 	}
 }

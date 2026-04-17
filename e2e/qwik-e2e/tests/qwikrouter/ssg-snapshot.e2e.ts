@@ -35,16 +35,24 @@ test.describe('router ssg snapshot', () => {
       manifestHash
     );
 
-    if (process.env.UPDATE_SSG_SNAPSHOT === '1') {
-      await writeFile(expectedHtmlPath, normalizedHtml, 'utf-8');
-      await writeFile(expectedStatePath, normalizedState, 'utf-8');
-    }
-
-    const expectedHtml = (await readFile(expectedHtmlPath, 'utf-8')).replace(/\r\n/g, '\n');
-    const expectedState = (await readFile(expectedStatePath, 'utf-8')).replace(/\r\n/g, '\n');
+    let expectedHtml = (await readFile(expectedHtmlPath, 'utf-8').catch(() => '')).replace(
+      /\r\n/g,
+      '\n'
+    );
+    let expectedState = (await readFile(expectedStatePath, 'utf-8').catch(() => '')).replace(
+      /\r\n/g,
+      '\n'
+    );
 
     warnIfSizeChanged('readable state dump', expectedState, normalizedState);
     warnIfSizeChanged('HTML', expectedHtml, normalizedHtml);
+
+    if (process.env.UPDATE_SSG_SNAPSHOT === '1') {
+      await writeFile(expectedHtmlPath, normalizedHtml, 'utf-8');
+      await writeFile(expectedStatePath, normalizedState, 'utf-8');
+      expectedHtml = normalizedHtml;
+      expectedState = normalizedState;
+    }
 
     expect(normalizedState).toEqual(expectedState);
     expect(normalizedHtml).toEqual(expectedHtml);

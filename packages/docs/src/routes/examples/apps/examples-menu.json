@@ -34,6 +34,12 @@
         "icon": "⏲"
       },
       {
+        "id": "suspense",
+        "title": "Suspense",
+        "description": "Use <Suspense> to show loading states for async content.",
+        "icon": "⏳"
+      },
+      {
         "id": "auto-complete",
         "title": "Auto-complete",
         "description": "Auto-complete searching for Star Wars characters using the SWAPI API",

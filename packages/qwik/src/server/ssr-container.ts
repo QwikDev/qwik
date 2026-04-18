@@ -323,6 +323,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     await this.renderJSX(jsx, {
       currentStyleScoped: null,
       parentComponentFrame: this.getComponentFrame(),
+      currentSuspensePriority: 0,
     });
     await this.closeContainer();
   }
@@ -332,6 +333,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     options: {
       currentStyleScoped: string | null;
       parentComponentFrame: ISsrComponentFrame | null;
+      currentSuspensePriority: number;
     }
   ) {
     await _walkJSX(this, jsx, options);
@@ -642,6 +644,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       await this.renderJSX(children, {
         currentStyleScoped: scopedStyleId,
         parentComponentFrame: componentFrame.projectionComponentFrame,
+        currentSuspensePriority: 0,
       });
       this.closeFragment();
     }

@@ -295,6 +295,7 @@ describe('tryDescendDirtyChildren', () => {
       extraPromises: null,
       afterFlushTasks: null,
       priority: 0,
+      $suspense$: null,
     };
     setCursorData(cursor, cursorData);
     return cursorData;

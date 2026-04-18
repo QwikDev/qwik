@@ -150,6 +150,7 @@ import {
   QIgnoreEnd,
   QScopedStyle,
   QSlot,
+  QSuspenseS,
   QStyle,
   QTargetElement,
 } from '../shared/utils/markers';
@@ -2138,6 +2139,13 @@ function materializeFromVNodeData(
       // Custom attribute: |key|value
       const key = decodeVNodeDataString(consumeValue());
       const value = decodeVNodeDataString(consumeValue());
+      if (key === QSuspenseS && !(vParent.flags & VNodeFlags.SuspenseBoundary)) {
+        vParent.flags |= VNodeFlags.SuspenseBoundary;
+        if (!container) {
+          container = getDomContainer(element);
+        }
+        container.$suspenseCount$++;
+      }
       vnode_setProp(vParent, key, value);
     } else if (peek() === VNodeDataChar.CLOSE) {
       consume();

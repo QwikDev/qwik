@@ -2242,6 +2242,34 @@
       "mdFile": "core.ssrstreamwriter.md"
     },
     {
+      "name": "Suspense",
+      "id": "suspense",
+      "hierarchy": [
+        {
+          "name": "Suspense",
+          "id": "suspense"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Suspense boundary.\n\nHandled as a renderer primitive by vnode diff and SSR, similar to `Slot`<!-- -->.\n\n\n```typescript\nSuspense: Component<SuspenseProps>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/suspense.public.tsx",
+      "mdFile": "core.suspense.md"
+    },
+    {
+      "name": "SuspenseProps",
+      "id": "suspenseprops",
+      "hierarchy": [
+        {
+          "name": "SuspenseProps",
+          "id": "suspenseprops"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SuspenseProps = {\n    fallback?: JSXOutput;\n    timeout?: number;\n    children?: JSXChildren;\n};\n```\n**References:** [JSXOutput](#jsxoutput)<!-- -->, [JSXChildren](#jsxchildren)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/suspense.public.tsx",
+      "mdFile": "core.suspenseprops.md"
+    },
+    {
       "name": "SVGAttributes",
       "id": "svgattributes",
       "hierarchy": [

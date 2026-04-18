@@ -109,7 +109,8 @@ export function markVNodeDirty(
   container: Container,
   vNode: VNode | ISsrNode,
   bits: ChoreBits,
-  cursorRoot: VNode | null = null
+  cursorRoot: VNode | null = null,
+  priority: number = 0
 ): void {
   const prevDirty = vNode.dirty;
   vNode.dirty |= bits;
@@ -170,7 +171,7 @@ export function markVNodeDirty(
     // If so, merge with it instead of creating a new cursor (single-pass find + propagate)
     if (!findAndPropagateToBlockingCursor(vNode)) {
       // No blocking cursor found, create a new one
-      addCursor(container, vNode, 0);
+      addCursor(container, vNode, priority);
     }
   }
 }

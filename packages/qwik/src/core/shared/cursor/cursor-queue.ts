@@ -109,3 +109,23 @@ export function removeCursorFromQueue(
     container.$pendingCount$--;
   }
 }
+
+export function disposeCursor(cursor: Cursor, container: Container): void {
+  cursor.flags &= ~VNodeFlags.Cursor;
+
+  const pausedIndex = pausedCursorQueue.indexOf(cursor);
+  if (pausedIndex !== -1) {
+    const lastIndex = pausedCursorQueue.length - 1;
+    if (pausedIndex !== lastIndex) {
+      pausedCursorQueue[pausedIndex] = pausedCursorQueue[lastIndex];
+    }
+    pausedCursorQueue.pop();
+    container.$pendingCount$--;
+  }
+
+  const queueIndex = globalCursorQueue.indexOf(cursor);
+  if (queueIndex !== -1) {
+    globalCursorQueue.splice(queueIndex, 1);
+    container.$pendingCount$--;
+  }
+}

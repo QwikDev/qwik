@@ -13,6 +13,16 @@ export const ComponentStylesPrefixContent = '⚡️';
 export const QSlot = 'q:slot';
 export const QSlotParent = 'q:sparent';
 export const QSlotS = 'q:s';
+
+/**
+ * Suspense boundary markers. Stored as vNode props on a Suspense Virtual vnode so that all Suspense
+ * state lives on the vnode itself (no closures or hooks on CursorData).
+ */
+export const QSuspenseS = 'q:sus';
+export const QSuspenseTimeout = 'q:sus-t';
+export const QSuspenseState = 'q:sus-st';
+export const QSuspensePending = 'q:sus-p';
+export const QSuspenseTimer = 'q:sus-tm';
 export const QStyle = 'q:style';
 export const QStyleSelector = 'style[q\\:style]';
 export const QStyleSSelector = 'style[q\\:sstyle]';

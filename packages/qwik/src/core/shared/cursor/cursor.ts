@@ -1,7 +1,7 @@
 import { VNodeFlags } from '../../client/types';
 import type { Container } from '../types';
 import type { VNode } from '../vnode/vnode';
-import { type CursorData, setCursorData } from './cursor-props';
+import { type CursorData, findEnclosingSuspense, setCursorData } from './cursor-props';
 import { addCursorToQueue } from './cursor-queue';
 import { triggerCursors } from './cursor-walker';
 
@@ -21,7 +21,13 @@ export type Cursor = VNode;
  * @param priority - Priority level (lower = higher priority, 0 is default)
  * @returns The vNode itself, now acting as a cursor
  */
-export function addCursor(container: Container, root: VNode, priority: number): Cursor {
+export function addCursor(
+  container: Container,
+  root: VNode,
+  priority: number,
+  suspense: VNode | null = null,
+  suspenseBootstrap: boolean = false
+): Cursor {
   const cursorData: CursorData = {
     afterFlushTasks: null,
     extraPromises: null,
@@ -30,7 +36,16 @@ export function addCursor(container: Container, root: VNode, priority: number): 
     position: root,
     priority: priority,
     promise: null,
+    $suspenseBootstrap$: suspenseBootstrap,
+    $suspense$: suspense,
   };
+
+  // If no explicit Suspense was passed (not the Suspense's own deferred-children cursor),
+  // walk up once to find the nearest enclosing Suspense boundary. Zero overhead when no
+  // Suspense exists in this container.
+  if (!suspense && container.$suspenseCount$ > 0) {
+    cursorData.$suspense$ = findEnclosingSuspense(root.slotParent || root.parent);
+  }
 
   setCursorData(root, cursorData);
 

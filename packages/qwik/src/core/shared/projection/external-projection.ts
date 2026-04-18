@@ -13,6 +13,7 @@ import type { Container } from '../types';
 import { ELEMENT_PROPS, OnRenderProp, QSlot, QTargetElement } from '../utils/markers';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
+import type { VNode } from '../vnode/vnode';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
 
 /**
@@ -30,6 +31,9 @@ import { markVNodeDirty } from '../vnode/vnode-dirty';
  *
  * @param priority - Cursor priority (lower numbers = higher priority). Defaults to `1` (below
  *   normal component priority `0`) so portal-like projections yield to the main render.
+ * @param suspense - If provided, the new cursor's `$suspense$` pointer is set directly (no ancestor
+ *   walk). Pass the Suspense boundary vnode when creating its own children's deferred subtree so
+ *   the cursor joins the boundary's lifecycle immediately.
  * @internal
  */
 export function _createDeferredSubtree(
@@ -38,7 +42,8 @@ export function _createDeferredSubtree(
   componentQRL: QRL<any>,
   props: Record<string, unknown>,
   slotName: string,
-  priority: number = 1
+  priority: number = 1,
+  suspense: VNode | null = null
 ): VirtualVNode {
   const vnode = vnode_newVirtual();
   vnode_setProp(vnode, QSlot, slotName);
@@ -47,7 +52,7 @@ export function _createDeferredSubtree(
   vnode_setProp(vnode, OnRenderProp, componentQRL);
   vnode_setProp(vnode, ELEMENT_PROPS, props);
   vnode.dirty = ChoreBits.COMPONENT;
-  addCursor(container, vnode, priority);
+  addCursor(container, vnode, priority, suspense);
   return vnode;
 }
 

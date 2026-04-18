@@ -108,6 +108,7 @@ export interface SSRContainer extends Container {
     options: {
       currentStyleScoped: string | null;
       parentComponentFrame: ISsrComponentFrame | null;
+      currentSuspensePriority: number;
     }
   ): Promise<void>;
 

@@ -27,6 +27,7 @@ import {
   resumeCursor,
 } from './cursor-queue';
 import { executeFlushPhase } from './cursor-flush';
+import { onSuspensePause, onSuspenseResume } from '../jsx/suspense-internal';
 import { createMicroTask, createMacroTask } from '../platform/next-tick';
 import { isPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
@@ -195,6 +196,11 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
       cursorData.promise = result;
       pauseCursor(cursor, container);
 
+      const suspense = cursorData.$suspense$;
+      if (suspense && !isRunningOnServer) {
+        onSuspensePause(suspense, container);
+      }
+
       const host = currentVNode;
       result
         .catch((error) => {
@@ -202,6 +208,9 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
         })
         .finally(() => {
           cursorData.promise = null;
+          if (suspense && !isRunningOnServer) {
+            onSuspenseResume(suspense, container);
+          }
           resumeCursor(cursor, container);
           triggerCursors();
         });
@@ -230,6 +239,11 @@ function finishWalk(
   if (!(cursor.dirty & ChoreBits.DIRTY_MASK)) {
     removeCursorFromQueue(cursor, container);
     DEBUG && console.warn('walkCursor: cursor done', cursor.toString());
+    const suspense = cursorData.$suspense$;
+    if (suspense && !isServer && cursorData.$suspenseBootstrap$) {
+      cursorData.$suspenseBootstrap$ = false;
+      onSuspenseResume(suspense, container);
+    }
     if (!isServer) {
       executeFlushPhase(cursor, container);
     }

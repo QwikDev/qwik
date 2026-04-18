@@ -25,6 +25,7 @@ export abstract class _SharedContainer implements Container {
   $renderPromise$: Promise<void> | null = null;
   $resolveRenderPromise$: (() => void) | null = null;
   $pendingCount$: number = 0;
+  $suspenseCount$: number = 0;
 
   constructor(serverData: Record<string, any>, locale: string) {
     this.$serverData$ = serverData;

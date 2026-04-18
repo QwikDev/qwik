@@ -1,3 +1,4 @@
+import { VNodeFlags } from '../../client/types';
 import type { VNode } from '../vnode/vnode';
 import { isCursor, type Cursor } from './cursor';
 import { removeCursorFromQueue } from './cursor-queue';
@@ -21,6 +22,15 @@ export interface CursorData {
   position: VNode | null;
   priority: number;
   promise: Promise<void> | null;
+  $suspenseBootstrap$?: boolean;
+  /**
+   * Nearest enclosing Suspense boundary vnode (the one with `VNodeFlags.SuspenseBoundary`), or null
+   * if the cursor is not inside a Suspense. Set exactly once at `addCursor` time via a single
+   * ancestor walk (or passed in directly by `_createDeferredSubtree` for the Suspense's own
+   * deferred-children cursor). All Suspense state lives on that vnode's props; the walker only
+   * dereferences this pointer to call `onSuspensePause` / `onSuspenseResume`.
+   */
+  $suspense$: VNode | null;
 }
 
 /**
@@ -80,6 +90,9 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
       newCursorData.journal = oldJournal;
     }
   }
+  if (oldCursorData.$suspenseBootstrap$) {
+    newCursorData.$suspenseBootstrap$ = true;
+  }
 }
 
 /**
@@ -100,4 +113,20 @@ export function getCursorData(vNode: VNode): CursorData | null {
  */
 export function setCursorData(vNode: VNode, cursorData: CursorData): void {
   cursorDatas.set(vNode as Cursor, cursorData!);
+}
+
+/**
+ * Walk up the `slotParent || parent` chain looking for the nearest Suspense boundary vnode
+ * (carrying `VNodeFlags.SuspenseBoundary`). Returns null if none. Cheap bit-check per ancestor; no
+ * WeakMap lookups.
+ */
+export function findEnclosingSuspense(vnode: VNode | null): VNode | null {
+  let cur: VNode | null = vnode;
+  while (cur) {
+    if (cur.flags & VNodeFlags.SuspenseBoundary) {
+      return cur;
+    }
+    cur = cur.slotParent || cur.parent;
+  }
+  return null;
 }

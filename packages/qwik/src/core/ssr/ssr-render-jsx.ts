@@ -5,9 +5,11 @@ import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-im
 import { AsyncSignalFlags, EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
+import { JSXNodeImpl } from '../shared/jsx/jsx-node';
 import { Fragment } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
+import { Suspense } from '../shared/jsx/suspense.public';
 import { JSXNodeFlags, type JSXNodeInternal, type JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import {
@@ -23,11 +25,15 @@ import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
+  ELEMENT_PROPS,
   ELEMENT_KEY,
   QDefaultSlot,
   QScopedStyle,
   QSlot,
   QSlotParent,
+  QSuspenseS,
+  QSuspenseState,
+  QSuspenseTimeout,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
@@ -39,6 +45,7 @@ import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-compo
 import type { ISsrComponentFrame, ISsrNode, SSRContainer } from './ssr-types';
 
 class MaybeAsyncSignal {}
+const SUSPENSE_VISIBLE_STYLE = 'display:contents';
 
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = ValueOrPromise<
@@ -51,13 +58,19 @@ type StackValue = ValueOrPromise<
 >;
 
 function setParentOptions(
-  mutable: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null },
+  mutable: {
+    currentStyleScoped: string | null;
+    parentComponentFrame: ISsrComponentFrame | null;
+    currentSuspensePriority: number;
+  },
   styleScoped: string | null,
-  parentComponentFrame: ISsrComponentFrame | null
+  parentComponentFrame: ISsrComponentFrame | null,
+  currentSuspensePriority: number
 ): StackFn {
   return () => {
     mutable.currentStyleScoped = styleScoped;
     mutable.parentComponentFrame = parentComponentFrame;
+    mutable.currentSuspensePriority = currentSuspensePriority;
   };
 }
 
@@ -68,6 +81,7 @@ export async function _walkJSX(
   options: {
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
+    currentSuspensePriority: number;
   }
 ): Promise<void> {
   const stack: StackValue[] = [value];
@@ -106,7 +120,11 @@ function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
   value: JSXOutput,
-  options: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null }
+  options: {
+    currentStyleScoped: string | null;
+    parentComponentFrame: ISsrComponentFrame | null;
+    currentSuspensePriority: number;
+  }
 ) {
   // console.log('processJSXNode', value);
   if (value == null) {
@@ -144,6 +162,7 @@ function processJSXNode(
           await _walkJSX(ssr, chunk as JSXOutput, {
             currentStyleScoped: options.currentStyleScoped,
             parentComponentFrame: options.parentComponentFrame,
+            currentSuspensePriority: options.currentSuspensePriority,
           });
           await ssr.streamHandler.flush();
         }
@@ -218,7 +237,12 @@ function processJSXNode(
             projectionAttrs[QSlot] = slotName;
 
             enqueue(
-              setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
+              setParentOptions(
+                options,
+                options.currentStyleScoped,
+                options.parentComponentFrame,
+                options.currentSuspensePriority
+              )
             );
             enqueue(ssr.closeProjection);
             const slotDefaultChildren: JSXChildren | null = jsx.children || null;
@@ -232,7 +256,8 @@ function processJSXNode(
               setParentOptions(
                 options,
                 componentFrame.projectionScopedStyle,
-                componentFrame.projectionComponentFrame
+                componentFrame.projectionComponentFrame,
+                options.currentSuspensePriority
               )
             );
           } else {
@@ -244,6 +269,45 @@ function processJSXNode(
             ssr.openFragment(projectionAttrs);
             ssr.closeFragment();
           }
+        } else if (type === Suspense) {
+          const suspenseAttrs: Record<string, string | null> = isDev
+            ? { [DEBUG_TYPE]: VirtualType.Suspense }
+            : {};
+          ssr.openFragment(suspenseAttrs);
+          const host = ssr.getOrCreateLastNode();
+          const suspensePriority = options.currentSuspensePriority - 1;
+          host.setProp(ELEMENT_PROPS, jsx.props);
+          host.setProp(QSuspenseS, '');
+          host.setProp(QSuspenseTimeout, String(directGetPropsProxyProp(jsx, 'timeout') ?? 200));
+          host.setProp(QSuspenseState, 'ready');
+          ssr.addRoot(host);
+          enqueue(ssr.closeFragment);
+          enqueue(
+            setParentOptions(
+              options,
+              options.currentStyleScoped,
+              options.parentComponentFrame,
+              options.currentSuspensePriority
+            )
+          );
+          enqueue(
+            new JSXNodeImpl(
+              'q-sus',
+              { style: SUSPENSE_VISIBLE_STYLE },
+              null,
+              jsx.children as JSXOutput,
+              0,
+              null
+            )
+          );
+          enqueue(
+            setParentOptions(
+              options,
+              options.currentStyleScoped,
+              options.parentComponentFrame,
+              suspensePriority
+            )
+          );
         } else if (type === SSRComment) {
           ssr.commentNode(directGetPropsProxyProp(jsx, 'data') || '');
         } else if (type === SSRStream) {
@@ -256,6 +320,7 @@ function processJSXNode(
                 await _walkJSX(ssr, chunk, {
                   currentStyleScoped: options.currentStyleScoped,
                   parentComponentFrame: options.parentComponentFrame,
+                  currentSuspensePriority: options.currentSuspensePriority,
                 });
                 await ssr.streamHandler.flush();
               },
@@ -289,7 +354,12 @@ function processJSXNode(
 
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
           enqueue(
-            setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
+            setParentOptions(
+              options,
+              options.currentStyleScoped,
+              options.parentComponentFrame,
+              options.currentSuspensePriority
+            )
           );
           enqueue(ssr.closeComponent);
           if (isPromise(jsxOutput)) {
@@ -299,12 +369,26 @@ function processJSXNode(
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 
               enqueue(resolvedOutput);
-              enqueue(setParentOptions(options, compStyleComponentId, componentFrame));
+              enqueue(
+                setParentOptions(
+                  options,
+                  compStyleComponentId,
+                  componentFrame,
+                  options.currentSuspensePriority
+                )
+              );
             });
           } else {
             enqueue(jsxOutput);
             const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
-            enqueue(setParentOptions(options, compStyleComponentId, componentFrame));
+            enqueue(
+              setParentOptions(
+                options,
+                compStyleComponentId,
+                componentFrame,
+                options.currentSuspensePriority
+              )
+            );
           }
         } else {
           const inlineComponentProps: Record<string, string | null> = { [ELEMENT_KEY]: jsx.key };

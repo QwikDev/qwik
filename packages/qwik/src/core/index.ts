@@ -71,6 +71,8 @@ export type {
   SSRStreamChildren,
   SSRStreamWriter,
 } from './shared/jsx/utils.public';
+export { Suspense } from './shared/jsx/suspense.public';
+export type { SuspenseProps } from './shared/jsx/suspense.public';
 export { Slot } from './shared/jsx/slot.public';
 export {
   Fragment,

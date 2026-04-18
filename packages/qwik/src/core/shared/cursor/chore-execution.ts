@@ -4,7 +4,8 @@ import {
   vnode_insertElementBefore,
   vnode_isElementVNode,
 } from '../../client/vnode-utils';
-import { vnode_diff } from '../../client/vnode-diff';
+import { diffSuspenseBoundaryNode } from '../../client/suspense-diff';
+import { suspenseDiffFns, vnode_diff } from '../../client/vnode-diff';
 import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';
 import { executeComponent } from '../component-execution';
 import type { OnRenderFn } from '../component.public';
@@ -170,6 +171,17 @@ export function executeNodeDiff(
   cursor: Cursor
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.NODE_DIFF;
+
+  if (vNode.flags & VNodeFlags.SuspenseBoundary) {
+    return diffSuspenseBoundaryNode(
+      container as ClientContainer,
+      journal,
+      vNode as VirtualVNode,
+      cursor,
+      null,
+      suspenseDiffFns
+    );
+  }
 
   const domVNode = vNode as ElementVNode;
   let jsx = getNodeDiffPayload(vNode);

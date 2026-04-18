@@ -13,9 +13,6 @@ import { ResolvedManifest } from '@qwik.dev/core/optimizer';
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
-// @internal
-export function _addProjection(container: _Container, parentVNode: _VirtualVNode, componentQRL: QRL<any>, props: Record<string, unknown>, slotName: string): _VirtualVNode;
-
 // Warning: (ae-forgotten-export) The symbol "AsyncCtx" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -154,6 +151,7 @@ export interface _Container {
     //
     // (undocumented)
     readonly $storeProxyMap$: ObjToProxyMap;
+    $suspenseCount$: number;
     // (undocumented)
     readonly $version$: string;
     ensureProjectionResolved(host: HostElement): void;
@@ -236,6 +234,9 @@ export const createComputedQrl: <T>(qrl: QRL<() => T>, options?: ComputedOptions
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
+
+// @internal
+export function _createDeferredSubtree(container: _Container, parentVNode: _VirtualVNode, componentQRL: QRL<any>, props: Record<string, unknown>, slotName: string, priority?: number, suspense?: _VNode | null): _VirtualVNode;
 
 // @internal
 export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: Readonly<unknown[]> | string | null, container?: _Container) => _QRLInternal<TYPE>;
@@ -1053,6 +1054,8 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     readonly $storeProxyMap$: ObjToProxyMap;
     // (undocumented)
+    $suspenseCount$: number;
+    // (undocumented)
     readonly $version$: string;
     constructor(serverData: Record<string, any>, locale: string);
     // (undocumented)
@@ -1212,6 +1215,16 @@ export class _SubscriptionData {
     // (undocumented)
     data: NodePropData;
 }
+
+// @public
+export const Suspense: Component<SuspenseProps>;
+
+// @public (undocumented)
+export type SuspenseProps = {
+    fallback?: JSXOutput;
+    timeout?: number;
+    children?: JSXChildren;
+};
 
 // Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point index.d.ts
 //
@@ -2063,9 +2076,11 @@ export const enum _VNodeFlags {
     // (undocumented)
     Resolved = 16,// http://www.w3.org/1999/xhtml
     // (undocumented)
-    Text = 4,// http://www.w3.org/2000/svg
+    SuspenseBoundary = 4096,// http://www.w3.org/2000/svg
     // (undocumented)
-    TYPE_MASK = 7,// http://www.w3.org/1998/Math/MathML
+    Text = 4,// http://www.w3.org/1998/Math/MathML
+    // (undocumented)
+    TYPE_MASK = 7,
     // (undocumented)
     Virtual = 2
 }
@@ -2077,6 +2092,7 @@ export const _waitUntilRendered: (container: _Container) => Promise<void>;
 export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
+    currentSuspensePriority: number;
 }): Promise<void>;
 
 // @public

@@ -28,6 +28,11 @@ export interface Container {
   $resolveRenderPromise$: (() => void) | null;
   $pendingCount$: number;
   $checkPendingCount$(): void;
+  /**
+   * Number of active Suspense boundaries in this container. When zero, `addCursor` skips the
+   * ancestor-walk that looks up the enclosing Suspense vnode.
+   */
+  $suspenseCount$: number;
 
   handleError(err: any, $host$: HostElement | null): void;
   getParentHost(host: HostElement): HostElement | null;
@@ -99,6 +104,7 @@ export const enum VirtualType {
   Component = 'C',
   InlineComponent = 'I',
   Projection = 'P',
+  Suspense = 'U',
 }
 
 export const VirtualTypeName: Record<string, string> = {
@@ -109,6 +115,7 @@ export const VirtualTypeName: Record<string, string> = {
   [VirtualType.Component]: /* ******* */ 'Component', //
   [VirtualType.InlineComponent]: /* * */ 'InlineComponent', //
   [VirtualType.Projection]: /* ****** */ 'Projection', //
+  [VirtualType.Suspense]: /* ******** */ 'Suspense', //
 };
 
 export const enum QContainerValue {

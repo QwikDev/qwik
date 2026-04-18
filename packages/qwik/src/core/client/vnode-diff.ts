@@ -11,7 +11,9 @@ import { EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
-import type { Cursor } from '../shared/cursor/cursor';
+import { isCursor, type Cursor } from '../shared/cursor/cursor';
+import { getCursorData } from '../shared/cursor/cursor-props';
+import { disposeCursor } from '../shared/cursor/cursor-queue';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
@@ -23,6 +25,15 @@ import {
   type PropsProxyHandler,
 } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
+import { Suspense } from '../shared/jsx/suspense.public';
+import {
+  ensureSuspenseBoundaryAttached,
+  isSuspenseBoundaryVNode,
+  resetSuspenseState,
+  suspenseContentChanged,
+  syncSuspenseBoundary,
+  type SuspenseDiffFns,
+} from './suspense-diff';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
@@ -44,6 +55,9 @@ import {
   QContainerAttr,
   QDefaultSlot,
   QSlot,
+  QSuspenseS,
+  QSuspenseTimeout,
+  QSuspenseTimer,
   QTemplate,
   dangerouslySetInnerHTML,
   debugStyleScopeIdPrefixAttr,
@@ -169,6 +183,19 @@ function peekNextSiblingWithinBoundary(
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
 
+function createSuspenseHost(diffContext: DiffContext, key: string | null): VirtualVNode {
+  vnode_insertVirtualBefore(
+    diffContext.$journal$,
+    diffContext.$vParent$ as VirtualVNode,
+    (diffContext.$vNewNode$ = vnode_newVirtual()),
+    getInsertBefore(diffContext)
+  );
+  const host = diffContext.$vNewNode$ as VirtualVNode;
+  host.key = key;
+  isDev && vnode_setProp(host, DEBUG_TYPE, VirtualType.Suspense);
+  return host;
+}
+
 /** Helper to set an attribute on a vnode. Extracted to module scope to avoid closure allocation. */
 function setAttribute(
   journal: VNodeJournal,
@@ -234,6 +261,13 @@ export function createDiffContext(
     },
   };
 }
+
+export const suspenseDiffFns: SuspenseDiffFns = {
+  createDiffContext,
+  diff,
+  drainAsyncQueue,
+  cleanupDiffContext,
+};
 
 function prepareDiffContext(
   diffContext: DiffContext,
@@ -398,6 +432,9 @@ function diff(
                   // nothing to project, so try to render the Slot default content.
                   descend(diffContext, diffContext.$jsxValue$.children, true);
                 }
+              } else if (type === Suspense) {
+                expectNoTextNode(diffContext);
+                expectSuspense(diffContext);
               } else if (type === Projection) {
                 expectProjection(diffContext);
                 descend(
@@ -1552,6 +1589,69 @@ function expectVirtual(diffContext: DiffContext, type: VirtualType, jsxKey: stri
   }
 }
 
+function expectSuspense(diffContext: DiffContext) {
+  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
+  const jsxProps = jsxNode.props as PropsProxy;
+  const jsxKey = jsxNode.key;
+
+  let host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode | null;
+  const currentKey = getKey(host);
+  const currentIsSuspense = isSuspenseBoundaryVNode(host);
+  const isSameNode = currentIsSuspense && currentKey === jsxKey;
+
+  if (isSameNode) {
+    deleteFromSideBuffer(diffContext, null, currentKey);
+  } else if (jsxKey === null || diffContext.$isCreationMode$) {
+    host = createSuspenseHost(diffContext, jsxKey);
+  } else {
+    if (
+      moveOrCreateKeyedNode(
+        diffContext,
+        null,
+        jsxKey,
+        getSideBufferKey(null, jsxKey),
+        diffContext.$vParent$ as VirtualVNode,
+        true
+      )
+    ) {
+      host = createSuspenseHost(diffContext, jsxKey);
+    } else {
+      host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode | null;
+      if (!isSuspenseBoundaryVNode(host)) {
+        host = createSuspenseHost(diffContext, jsxKey);
+      }
+    }
+  }
+
+  const wasExistingSuspense = isSuspenseBoundaryVNode(host);
+  host = ensureSuspenseBoundaryAttached(diffContext.$container$, host!);
+
+  const oldProps = wasExistingSuspense
+    ? vnode_getProp<PropsProxy | null>(host, ELEMENT_PROPS, diffContext.$container$.$getObjectById$)
+    : null;
+  const suspensePriority = (getCursorData(diffContext.$cursor$)?.priority ?? 0) - 1;
+  const shouldRenderContent = !wasExistingSuspense || suspenseContentChanged(oldProps, jsxProps);
+
+  vnode_setProp(host, ELEMENT_PROPS, jsxProps);
+  vnode_setProp(host, QSuspenseS, '');
+  vnode_setProp(host, QSuspenseTimeout, directGetPropsProxyProp(jsxNode, 'timeout') ?? 200);
+
+  if (!wasExistingSuspense) {
+    resetSuspenseState(host);
+  } else if (shouldRenderContent) {
+    resetSuspenseState(host);
+  }
+
+  syncSuspenseBoundary(
+    diffContext,
+    host,
+    jsxProps,
+    shouldRenderContent,
+    suspensePriority,
+    suspenseDiffFns
+  );
+}
+
 function expectComponent(diffContext: DiffContext, component: Function) {
   const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
   let host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode | null;
@@ -1930,6 +2030,20 @@ export function cleanup(
   do {
     const type = vCursor.flags;
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
+      if (isCursor(vCursor)) {
+        disposeCursor(vCursor, container);
+      }
+      if (type & VNodeFlags.SuspenseBoundary) {
+        const timer = vnode_getProp<ReturnType<typeof setTimeout>>(vCursor, QSuspenseTimer, null);
+        if (timer) {
+          clearTimeout(timer);
+          vnode_setProp(vCursor, QSuspenseTimer, null);
+        }
+        if (container.$suspenseCount$ > 0) {
+          container.$suspenseCount$--;
+        }
+        vCursor.flags &= ~VNodeFlags.SuspenseBoundary;
+      }
       clearAllEffects(container, vCursor);
       markVNodeAsDeleted(vCursor);
 

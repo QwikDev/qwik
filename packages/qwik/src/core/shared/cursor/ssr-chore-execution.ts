@@ -156,5 +156,6 @@ export async function executeReconcileChore(
   await container.renderJSX(children, {
     currentStyleScoped: null,
     parentComponentFrame: container.getComponentFrame(0),
+    currentSuspensePriority: 0,
   });
 }

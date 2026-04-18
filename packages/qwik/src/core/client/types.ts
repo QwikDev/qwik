@@ -96,12 +96,15 @@ export const enum VNodeFlags {
   NS_svg /* ******************* */ = 0b001_000000000, // http://www.w3.org/2000/svg
   NS_math /* ****************** */ = 0b010_000000000, // http://www.w3.org/1998/Math/MathML
   /// Marks if the vnode has a target element for external projection rendering.
-  HasTargetElement /* ********* */ = 0b100_000000000,
+  HasTargetElement /* ********* */ = 0b0_100_000000000,
+  /// Marks a Suspense boundary Virtual vnode (fast ancestor scan). Set by `expectSuspense()`
+  /// when the boundary is allocated, cleared on teardown.
+  SuspenseBoundary /* ********* */ = 0b1_000_000000000,
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************** */ = 0b111_111111111,
-  shift /* ************* */ = 12,
+  mask /* ************** */ = 0b1_111_111111111,
+  shift /* ************* */ = 13,
 }
 
 export const enum VNodeProps {

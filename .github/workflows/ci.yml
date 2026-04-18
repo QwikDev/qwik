@@ -767,18 +767,13 @@ jobs:
     needs:
       - changes
       - build-other-packages
-      - build-docs
 
     steps:
       - name: Verify prerequisites
         if: |
           !(
             needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success' &&
-            (
-              needs.build-docs.result == 'success' ||
-              needs.build-docs.result == 'skipped'
-            )
+            needs.build-other-packages.result == 'success'
           )
         run: exit 1
 

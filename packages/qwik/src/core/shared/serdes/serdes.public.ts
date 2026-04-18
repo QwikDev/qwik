@@ -54,6 +54,8 @@ export function getObjectById(id: number | string, stateData: unknown[]): unknow
   isDev && assertTrue(id < stateData.length, `Invalid reference ${id} >= ${stateData.length}`);
   return stateData[id];
 }
+
+/** @internal */
 export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer {
   // eslint-disable-next-line prefer-const
   let state: unknown[];

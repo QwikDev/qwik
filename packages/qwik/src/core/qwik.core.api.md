@@ -142,6 +142,8 @@ export interface _Container {
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
+    readonly $instanceHash$: string | null;
+    // (undocumented)
     readonly $locale$: string;
     // (undocumented)
     $pendingCount$: number;
@@ -237,6 +239,11 @@ export const createComputedQrl: <T>(qrl: QRL<() => T>, options?: ComputedOptions
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
+
+// Warning: (ae-forgotten-export) The symbol "DeserializeContainer" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer;
 
 // @internal
 export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: Readonly<unknown[]> | string | null, container?: _Container) => _QRLInternal<TYPE>;
@@ -500,6 +507,11 @@ export const inlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeC
 // @internal (undocumented)
 export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
+// Warning: (ae-forgotten-export) The symbol "InvokeContext" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export function _invokeApply<FN extends (this: THIS, ...args: any[]) => any, THIS>(this: THIS, context: InvokeContext | undefined, fn: FN, args?: Parameters<FN>): ReturnType<FN>;
+
 export { isBrowser }
 
 export { isDev }
@@ -667,6 +679,12 @@ export type NativeUIEvent = UIEvent;
 // @public @deprecated (undocumented)
 export type NativeWheelEvent = WheelEvent;
 
+// Warning: (ae-forgotten-export) The symbol "PossibleEvents" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "RenderEvent" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export function _newInvokeContext(locale?: string, hostElement?: HostElement, event?: Exclude<PossibleEvents, typeof RenderEvent>): InvokeContext;
+
 // @internal (undocumented)
 export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
@@ -710,8 +728,6 @@ export const PrefetchServiceWorker: (opts: {
     nonce?: string;
 }) => JSXOutput;
 
-// Warning: (ae-forgotten-export) The symbol "DeserializeContainer" needs to be exported by the entry point index.d.ts
-//
 // @internal
 export function _preprocessState(data: unknown[], container: DeserializeContainer): void;
 

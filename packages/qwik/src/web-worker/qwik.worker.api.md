@@ -7,21 +7,21 @@
 import { QRL } from '@qwik.dev/core';
 
 // @public (undocumented)
-export interface ServerFunction {
+export const worker$: <T extends WorkerFunction>(qrl: T) => QRL<T>;
+
+// @public (undocumented)
+export interface WorkerConstructorQRL {
+    // (undocumented)
+    <T extends WorkerFunction>(fnQrl: QRL<T>): QRL<T>;
+}
+
+// @public (undocumented)
+export interface WorkerFunction {
     // (undocumented)
     (...args: any[]): any;
 }
 
 // @public (undocumented)
-export const worker$: <T extends ServerFunction>(qrl: T) => QRL<T>;
-
-// @public (undocumented)
-export interface WorkerConstructorQRL {
-    // (undocumented)
-    <T extends ServerFunction>(fnQrl: QRL<T>): QRL<T>;
-}
-
-// @internal (undocumented)
-export const _workerQrl: WorkerConstructorQRL;
+export const workerQrl: WorkerConstructorQRL;
 
 ```

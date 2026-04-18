@@ -31,29 +31,35 @@ export async function submoduleWorker(config: BuildConfig) {
         fileName: () => 'index.qwik.mjs',
       },
       rollupOptions: {
-        external: (id) => /^@qwik\.dev\/core(?:\/|$)/.test(id) || id === './worker.js?worker&url',
+        external: (id) =>
+          /^@qwik\.dev\/core(?:\/|$)/.test(id) ||
+          id === './worker.js?worker&url' ||
+          id === './worker.node.js?worker&url' ||
+          id === 'node:worker_threads',
       },
     },
-    plugins: [preserveWorkerUrlImport(), qwikVite({ srcDir: 'src/web-worker' })],
+    plugins: [preserveWorkerImports(), qwikVite({ srcDir: 'src/web-worker' })],
   });
 
   rmSync(join(distDir, 'assets'), { recursive: true, force: true });
   rmSync(join(distDir, 'q-manifest.json'), { force: true });
   await copyFile(join(srcDir, 'worker.js'), join(distDir, 'worker.js'));
+  await copyFile(join(srcDir, 'worker.node.js'), join(distDir, 'worker.node.js'));
+  await copyFile(join(srcDir, 'worker.shared.js'), join(distDir, 'worker.shared.js'));
   await writeSubmodulePackageJson(distDir, '@qwik.dev/core/worker', config.distVersion, {
     main: 'index.qwik.mjs',
     qwik: 'index.qwik.mjs',
   });
 
-  console.log('đź§ľ', submodule);
+  console.log('🧵', submodule);
 }
 
-function preserveWorkerUrlImport(): Plugin {
+function preserveWorkerImports(): Plugin {
   return {
-    name: 'preserve-worker-url-import',
+    name: 'preserve-worker-imports',
     enforce: 'pre',
     resolveId(id) {
-      if (id === './worker.js?worker&url') {
+      if (id === './worker.js?worker&url' || id === './worker.node.js?worker&url') {
         return {
           id,
           external: true,

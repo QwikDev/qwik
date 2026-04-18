@@ -97,7 +97,11 @@ export function invoke<FN extends (...args: any[]) => any>(
   return invokeApply.call(this, context, fn, args);
 }
 
-/** Call a function with the given InvokeContext and array of arguments. */
+/**
+ * Call a function with the given InvokeContext and array of arguments.
+ *
+ * @internal
+ */
 export function invokeApply<FN extends (this: THIS, ...args: any[]) => any, THIS>(
   this: THIS,
   context: InvokeContext | undefined,
@@ -141,6 +145,7 @@ export function newRenderInvokeContext(
 }
 
 // TODO how about putting url and locale (and event/custom?) in to a "static" object
+/** @internal */
 export function newInvokeContext(
   locale?: string,
   hostElement?: HostElement,

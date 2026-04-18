@@ -68,6 +68,8 @@ export {
   _getContextHostElement,
   _jsxBranch,
   _waitUntilRendered,
+  newInvokeContext as _newInvokeContext,
+  invokeApply as _invokeApply,
 } from './use/use-core';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { isTask as _isTask, scheduleTask as _task } from './use/use-task';
@@ -82,6 +84,7 @@ export {
   _updateProjectionProps,
   _removeProjection,
 } from './shared/projection/external-projection';
+export { _createDeserializeContainer } from './shared/serdes/serdes.public';
 
 /** TESTING */
 export {

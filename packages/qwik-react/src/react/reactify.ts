@@ -1,7 +1,7 @@
 import { Component, createElement, createRef } from 'react';
 import { implicit$FirstArg, type QRL } from '@qwik.dev/core';
 import {
-  _addProjection,
+  _createDeferredSubtree,
   _setProjectionTarget,
   _updateProjectionProps,
   _removeProjection,
@@ -25,7 +25,7 @@ let slotCounter = 0;
  *
  * During SSR, a marker is emitted so that server-render.tsx can render the Qwik component inline
  * inside `q:container-island` comments. On the client, Qwik resumes the SSR content naturally
- * (events, signals, state are all serialized). For pure CSR, `_addProjection` renders from
+ * (events, signals, state are all serialized). For pure CSR, `_createDeferredSubtree` renders from
  * scratch.
  *
  * @param qwikCompQrl - A QRL wrapping a Qwik component (created with `component$`)
@@ -64,7 +64,7 @@ export function reactifyQrl(qwikCompQrl: QRL<any>): any {
         return;
       }
 
-      // Pure CSR: empty div, render the Qwik component from scratch via _addProjection.
+      // Pure CSR: empty div, render the Qwik component from scratch via _createDeferredSubtree.
       qwikCompQrl.resolve().then((QwikComp: any) => {
         if (!this.mounted) {
           return;
@@ -77,7 +77,13 @@ export function reactifyQrl(qwikCompQrl: QRL<any>): any {
         const { parentVNode, container } = projectionState;
         // Use pendingProps if React updated props before the QRL resolved
         const reactProps = getReactProps(this.pendingProps || this.props);
-        this.vnode = _addProjection(container, parentVNode, qwikCompQrl, reactProps, this.slotName);
+        this.vnode = _createDeferredSubtree(
+          container,
+          parentVNode,
+          qwikCompQrl,
+          reactProps,
+          this.slotName
+        );
         // Clear the marker comment right before _setProjectionTarget so the div is empty
         // when Qwik's cursor walker processes it on the next microtask.
         div.replaceChildren();
@@ -128,7 +134,7 @@ export function reactifyQrl(qwikCompQrl: QRL<any>): any {
       // CSR path: render a div that Qwik will render into.
       // Use the same marker as SSR so suppressHydrationWarning preserves SSR content
       // during hydration (like q-slotc does for slots). For pure CSR, the div starts
-      // empty and _addProjection renders the component in componentDidMount.
+      // empty and _createDeferredSubtree renders the component in componentDidMount.
       return createElement('div', {
         ref: this.divRef,
         suppressHydrationWarning: true,

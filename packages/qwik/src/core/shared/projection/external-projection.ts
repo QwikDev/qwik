@@ -1,4 +1,5 @@
 import { type ClientContainer, VNodeFlags } from '../../client/types';
+import { cleanup } from '../../client/vnode-diff';
 import {
   vnode_applyJournal,
   vnode_getProp,
@@ -6,32 +7,38 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from '../../client/vnode-utils';
-import { cleanup } from '../../client/vnode-diff';
-import type { VirtualVNode } from '../vnode/virtual-vnode';
-import { ChoreBits } from '../vnode/enums/chore-bits.enum';
-import { markVNodeDirty } from '../vnode/vnode-dirty';
 import { addCursor } from '../cursor/cursor';
-import { OnRenderProp, ELEMENT_PROPS, QSlot, QTargetElement } from '../utils/markers';
-import type { Container } from '../types';
 import type { QRL } from '../qrl/qrl.public';
+import type { Container } from '../types';
+import { ELEMENT_PROPS, OnRenderProp, QSlot, QTargetElement } from '../utils/markers';
+import { ChoreBits } from '../vnode/enums/chore-bits.enum';
+import type { VirtualVNode } from '../vnode/virtual-vnode';
+import { markVNodeDirty } from '../vnode/vnode-dirty';
 
 /**
- * Register an external projection on a parent component VNode.
+ * Create a deferred subtree: a new Virtual vnode that renders a component on its own cursor.
  *
- * Creates a new VirtualVNode that will render the given component QRL with the given props. The
- * VNode is stored as a projection on the parent, and a low-priority cursor is added so the cursor
- * walker will process it.
+ * Unified helper for reactify$-style portals and Suspense boundaries.
+ *
+ * A deferred subtree is a VNode tree that renders on its own cursor, separate from the parent. It
+ * is attached to the parent via a mechanism like `slotName` but its cursor walks independently, so
+ * nothing from the subtree flushes to the DOM until its cursor completes.
+ *
+ * Used for cross-framework projection (e.g. reactify$) and Suspense boundaries.
  *
  * Use `_setProjectionTarget` to set the DOM target element before the cursor fires.
  *
+ * @param priority - Cursor priority (lower numbers = higher priority). Defaults to `1` (below
+ *   normal component priority `0`) so portal-like projections yield to the main render.
  * @internal
  */
-export function _addProjection(
+export function _createDeferredSubtree(
   container: Container,
   parentVNode: VirtualVNode,
   componentQRL: QRL<any>,
   props: Record<string, unknown>,
-  slotName: string
+  slotName: string,
+  priority: number = 1
 ): VirtualVNode {
   const vnode = vnode_newVirtual();
   vnode_setProp(vnode, QSlot, slotName);
@@ -40,12 +47,12 @@ export function _addProjection(
   vnode_setProp(vnode, OnRenderProp, componentQRL);
   vnode_setProp(vnode, ELEMENT_PROPS, props);
   vnode.dirty = ChoreBits.COMPONENT;
-  addCursor(container, vnode, 1); // low priority
+  addCursor(container, vnode, priority);
   return vnode;
 }
 
 /**
- * Set the DOM target element for an external projection VNode.
+ * Set the DOM target element for a deferred subtree's VNode.
  *
  * When the cursor walker processes this VNode, DOM operations will target this element instead of
  * walking the parent chain.
@@ -58,7 +65,7 @@ export function _setProjectionTarget(vnode: VirtualVNode, targetElement: Element
 }
 
 /**
- * Update the props on an external projection VNode and trigger re-rendering.
+ * Update the props on a deferred subtree's VNode and trigger re-rendering.
  *
  * @internal
  */
@@ -72,7 +79,7 @@ export function _updateProjectionProps(
 }
 
 /**
- * Remove an external projection from its parent and clean up.
+ * Remove a deferred subtree from its parent and clean up.
  *
  * @internal
  */
@@ -82,7 +89,7 @@ export function _removeProjection(
   vnode: VirtualVNode,
   slotName: string
 ): void {
-  // Remove from parent's projections
+  // Detach the subtree from the parent
   vnode_setProp(parentVNode, slotName, null);
 
   // Clean up effects, subscriptions, and child vnodes

@@ -2,7 +2,7 @@ import { $, component$, useTask$ } from '@qwik.dev/core';
 import { domRender } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import {
-  _addProjection,
+  _createDeferredSubtree,
   _setProjectionTarget,
   _updateProjectionProps,
   _removeProjection,
@@ -35,7 +35,7 @@ describe('external-projection (CSR)', () => {
     document.body.appendChild(targetEl);
 
     // Add the projection
-    const projectionVNode = _addProjection(
+    const projectionVNode = _createDeferredSubtree(
       container,
       parentVNode as any,
       childQrl,
@@ -71,7 +71,7 @@ describe('external-projection (CSR)', () => {
     const targetEl = document.createElement('div');
     document.body.appendChild(targetEl);
 
-    const projectionVNode = _addProjection(
+    const projectionVNode = _createDeferredSubtree(
       container,
       parentVNode as any,
       childQrl,
@@ -108,7 +108,7 @@ describe('external-projection (CSR)', () => {
     document.body.appendChild(targetEl);
 
     const slotName = '_rq:remove-test';
-    const projectionVNode = _addProjection(
+    const projectionVNode = _createDeferredSubtree(
       container,
       parentVNode as any,
       childQrl,
@@ -153,7 +153,7 @@ describe('external-projection (CSR)', () => {
     document.body.appendChild(targetEl);
 
     const slotName = '_rq:cleanup-test';
-    const projectionVNode = _addProjection(
+    const projectionVNode = _createDeferredSubtree(
       container,
       parentVNode as any,
       childQrl,

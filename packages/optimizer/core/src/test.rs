@@ -7521,6 +7521,38 @@ export const handler = $(() => {
 	});
 }
 
+#[test]
+fn worker_qrl_segment_dev_snapshot() {
+	test_input!(TestInput {
+		code: r#"
+import { worker$ } from '@qwik.dev/core';
+
+export const runInWorker = worker$(() => 'hello');
+"#
+		.to_string(),
+		filename: "src/routes/index.tsx".into(),
+		mode: EmitMode::Dev,
+		snapshot: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn worker_qrl_segment_prod_snapshot() {
+	test_input!(TestInput {
+		code: r#"
+import { worker$ } from '@qwik.dev/core';
+
+export const runInWorker = worker$(() => 'hello');
+"#
+		.to_string(),
+		filename: "src/routes/index.tsx".into(),
+		mode: EmitMode::Prod,
+		snapshot: true,
+		..TestInput::default()
+	});
+}
+
 impl TestInput {
 	pub fn default() -> Self {
 		Self {

@@ -84,6 +84,29 @@ export const _noopQrlDEV = <T>(
 };
 
 /** @internal */
+export const _qrlWithChunk = <T = any>(
+  chunk: string,
+  importer: () => Promise<any>,
+  symbol: string,
+  lexicalScopeCapture?: Readonly<unknown[]>
+): QRL<T> => {
+  return createQRL<T>(chunk, symbol, null, importer, lexicalScopeCapture);
+};
+
+/** @internal */
+export const _qrlWithChunkDEV = <T = any>(
+  chunk: string,
+  importer: () => Promise<any>,
+  symbol: string,
+  opts: QRLDev,
+  lexicalScopeCapture?: Readonly<unknown[]>
+): QRL<T> => {
+  const newQrl = _qrlWithChunk(chunk, importer, symbol, lexicalScopeCapture) as QRLInternal<T>;
+  newQrl.$setDev$(opts);
+  return newQrl;
+};
+
+/** @internal */
 export const qrlDEV = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,

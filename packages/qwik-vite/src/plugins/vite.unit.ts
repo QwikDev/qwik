@@ -4,6 +4,13 @@ import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
 import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
+import {
+  createBuildWorkerQrlChunkResolver,
+  createDevWorkerQrlChunkResolver,
+  deriveBasePathnameFromDevPath,
+  QWIK_WORKER_QRL_SENTINEL,
+  rewriteWorkerQrlChunkPlaceholders,
+} from './worker-qrl-chunks';
 
 const cwd = process.cwd();
 
@@ -766,5 +773,103 @@ describe('configEnvironment', () => {
     // In development, we don't set conditions to avoid overriding adapter-provided conditions
     // (e.g. ['webworker', 'worker'] for edge adapters). Empty object is the correct result.
     assert.deepEqual(result, {});
+  });
+});
+
+describe('worker qrl chunk rewrites', () => {
+  const workerPlaceholderCode = (importPath: string) =>
+    `const chunk = "${QWIK_WORKER_QRL_SENTINEL}${importPath}";`;
+
+  test('derives base pathnames from dev urls and root-relative ids', () => {
+    assert.equal(
+      deriveBasePathnameFromDevPath(
+        '/e2e/src/components/worker/worker.tsx',
+        normalizePath(resolve(cwd, 'e2e/qwik-e2e/apps/e2e')),
+        normalizePath(resolve(cwd, 'e2e/qwik-e2e/apps/e2e/src/components/worker/worker.tsx'))
+      ),
+      '/e2e/'
+    );
+  });
+
+  test('rewrites worker chunk placeholders to dev served urls', () => {
+    const resolver = createDevWorkerQrlChunkResolver('/app/', undefined);
+
+    const code = workerPlaceholderCode('./index_worker_abcd.js');
+    const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
+
+    assert.equal(rewritten, 'const chunk = "/app/build/index_worker_abcd.js";');
+  });
+
+  test('rewrites worker chunk placeholders to dev served urls with assetsDir', () => {
+    const resolver = createDevWorkerQrlChunkResolver('/app/', 'public-assets');
+
+    const code = workerPlaceholderCode('./index_worker_abcd.js');
+    const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
+
+    assert.equal(rewritten, 'const chunk = "/app/public-assets/build/index_worker_abcd.js";');
+  });
+
+  test('rewrites worker chunk placeholders to final bundle files', () => {
+    const resolver = createBuildWorkerQrlChunkResolver(
+      {
+        manifestHash: 'hash',
+        version: '1',
+        mapping: {
+          workerSymbol: 'q-worker.js',
+        },
+        symbols: {
+          workerSymbol: {
+            canonicalFilename: 'index_worker_abcd',
+            origin: 'src/routes/index.tsx',
+            displayName: 'workerSymbol',
+            hash: 'workerSymbol',
+            ctxKind: 'function',
+            ctxName: 'worker$',
+            captures: false,
+            parent: null,
+            loc: [0, 0],
+          },
+        },
+        bundles: {},
+      },
+      '/app/'
+    );
+
+    const code = workerPlaceholderCode('./index_worker_abcd.js');
+    const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
+
+    assert.equal(rewritten, 'const chunk = "/app/build/q-worker.js";');
+  });
+
+  test('rewrites worker chunk placeholders to final bundle files with paths relative to build', () => {
+    const resolver = createBuildWorkerQrlChunkResolver(
+      {
+        manifestHash: 'hash',
+        version: '1',
+        mapping: {
+          workerSymbol: '../assets/build/q-worker.js',
+        },
+        symbols: {
+          workerSymbol: {
+            canonicalFilename: 'index_worker_abcd',
+            origin: 'src/routes/index.tsx',
+            displayName: 'workerSymbol',
+            hash: 'workerSymbol',
+            ctxKind: 'function',
+            ctxName: 'worker$',
+            captures: false,
+            parent: null,
+            loc: [0, 0],
+          },
+        },
+        bundles: {},
+      },
+      '/app/'
+    );
+
+    const code = workerPlaceholderCode('./index_worker_abcd.js');
+    const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
+
+    assert.equal(rewritten, 'const chunk = "/app/assets/build/q-worker.js";');
   });
 });

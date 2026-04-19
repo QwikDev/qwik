@@ -21,6 +21,11 @@ import { convertManifestToBundleGraph, type BundleGraphAdder } from './bundle-gr
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import { isVirtualId, isWin, parseId } from './vite-utils';
 import MagicString from 'magic-string';
+import {
+  createDevWorkerQrlChunkResolver,
+  deriveBasePathnameFromDevPath,
+  rewriteWorkerQrlChunkPlaceholders,
+} from './worker-qrl-chunks';
 
 const REG_CTX_NAME = ['server'];
 
@@ -825,9 +830,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
-      if (devServer) {
-        const moduleGraph =
-          (ctx.environment as DevEnvironment | undefined)?.moduleGraph ?? devServer.moduleGraph;
+      const moduleGraph =
+        (ctx.environment as DevEnvironment | undefined)?.moduleGraph ?? devServer?.moduleGraph;
+      if (moduleGraph) {
         devPath = moduleGraph.getModuleById(pathId)?.url;
         // Fallback: if the module isn't in the graph yet (first transform),
         // compute a root-relative URL path that matches what hotUpdate sends.
@@ -873,6 +878,19 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const now = Date.now();
       const newOutput = await optimizer.transformModules(transformOpts);
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
+      if (devPath) {
+        const devBasePathname = deriveBasePathnameFromDevPath(devPath, opts.rootDir, pathId);
+        const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(
+          devBasePathname,
+          opts.assetsDir
+        );
+        for (const outputModule of newOutput.modules) {
+          outputModule.code = rewriteWorkerQrlChunkPlaceholders(
+            outputModule.code,
+            resolveWorkerChunkPath
+          );
+        }
+      }
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
 
       // uncomment to show transform results
@@ -1212,6 +1230,8 @@ export const isDev = ${JSON.stringify(isDev)};
     if (typeof opts.transformedModuleOutput === 'function') {
       await opts.transformedModuleOutput(getTransformedOutputs());
     }
+
+    return manifest;
   }
 
   return {

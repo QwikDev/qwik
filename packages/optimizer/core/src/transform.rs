@@ -46,6 +46,8 @@ macro_rules! id_eq {
 	};
 }
 
+const WORKER_QRL_CHUNK_SENTINEL: &str = "__QWIK_WORKER_QRL__:";
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum SegmentKind {
@@ -1931,7 +1933,7 @@ impl<'a> QwikTransform<'a> {
 						spread: None,
 						expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 							span: DUMMY_SP,
-							value: path,
+							value: path.clone(),
 							raw: None,
 						}))),
 					}],
@@ -1942,14 +1944,21 @@ impl<'a> QwikTransform<'a> {
 		});
 
 		// The qrl() call is always hoisted to module scope, so we can inline the import arrow.
-		let mut args = vec![
-			import_fn,
-			ast::Expr::Lit(ast::Lit::Str(ast::Str {
+		let mut args = Vec::new();
+		let is_worker_qrl = segment_data.ctx_name == *QWORKER;
+		if is_worker_qrl {
+			args.push(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 				span: DUMMY_SP,
-				value: symbol.into(),
+				value: format!("{}{}", WORKER_QRL_CHUNK_SENTINEL, path).into(),
 				raw: None,
-			})),
-		];
+			})));
+		}
+		args.push(import_fn);
+		args.push(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+			span: DUMMY_SP,
+			value: symbol.into(),
+			raw: None,
+		})));
 		let fn_callee = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Hmr) {
 			args.push(get_qrl_dev_obj(
 				Atom::from(
@@ -1960,9 +1969,17 @@ impl<'a> QwikTransform<'a> {
 				segment_data,
 				span,
 			));
-			_QRL_DEV.clone()
+			if is_worker_qrl {
+				_QRL_WITH_CHUNK_DEV.clone()
+			} else {
+				_QRL_DEV.clone()
+			}
 		} else {
-			_QRL.clone()
+			if is_worker_qrl {
+				_QRL_WITH_CHUNK.clone()
+			} else {
+				_QRL.clone()
+			}
 		};
 
 		self.emit_captures(&segment_data.captures, &mut args);

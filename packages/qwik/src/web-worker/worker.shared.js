@@ -6,7 +6,7 @@ const getSymbolHash = (symbolName) => {
   return index > -1 ? symbolName.slice(index + 1) : symbolName;
 };
 
-const createNodeWorkerPlatform = (qrlBaseUrl) => {
+const createWorkerPlatform = (qrlBaseUrl) => {
   return {
     isServer: true,
     async importSymbol(_containerEl, url, symbolName) {
@@ -32,6 +32,18 @@ const createNodeWorkerPlatform = (qrlBaseUrl) => {
       return [symbolName, chunk ?? '_'];
     },
   };
+};
+
+export const createBrowserWorkerPlatform = (qrlBaseUrl) => {
+  return createWorkerPlatform(qrlBaseUrl);
+};
+
+export const createNodeWorkerPlatform = (qrlBaseUrl) => {
+  return createWorkerPlatform(qrlBaseUrl);
+};
+
+export const setBrowserWorkerPlatform = (qrlBaseUrl) => {
+  setPlatform(createBrowserWorkerPlatform(qrlBaseUrl));
 };
 
 export const setNodeWorkerPlatform = (qrlBaseUrl) => {

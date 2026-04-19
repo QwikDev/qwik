@@ -37,6 +37,10 @@ import {
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { isVirtualId } from './vite-utils';
+import {
+  createBuildWorkerQrlChunkResolver,
+  rewriteWorkerQrlChunkPlaceholders,
+} from './worker-qrl-chunks';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -551,10 +555,22 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             }
           }
 
-          await qwikPlugin.generateManifest(this, rollupBundle, bundleGraphAdders, {
-            injections,
-            platform: { vite: '' },
-          });
+          const manifest = await qwikPlugin.generateManifest(
+            this,
+            rollupBundle,
+            bundleGraphAdders,
+            {
+              injections,
+              platform: { vite: '' },
+            }
+          );
+
+          const resolveChunkPath = createBuildWorkerQrlChunkResolver(manifest, basePathname);
+          for (const output of Object.values(rollupBundle)) {
+            if (output.type === 'chunk') {
+              output.code = rewriteWorkerQrlChunkPlaceholders(output.code, resolveChunkPath);
+            }
+          }
         }
       },
     },

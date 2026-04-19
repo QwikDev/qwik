@@ -23,6 +23,7 @@ import { vnode_getProp, vnode_setProp } from '../../client/vnode-utils';
 import type { Props } from './jsx-runtime';
 
 export type SuspenseState = 'pending' | 'fallback' | 'ready';
+const QSuspenseResolved = ':suspenseResolved';
 
 const toNumber = (value: unknown): number | null => {
   if (typeof value === 'number') {
@@ -43,6 +44,17 @@ function markSuspenseDirty(suspense: VNode, container?: Container): void {
   markVNodeDirty(resolvedContainer, suspense, ChoreBits.NODE_DIFF);
 }
 
+export function hasResolvedSuspenseContent(suspense: VNode): boolean {
+  return (
+    vnode_getProp<boolean>(suspense, QSuspenseResolved, null) === true ||
+    (vnode_getProp<SuspenseState>(suspense, QSuspenseState, null) ?? 'pending') === 'ready'
+  );
+}
+
+export function setResolvedSuspenseContent(suspense: VNode, resolved: boolean): void {
+  vnode_setProp(suspense, QSuspenseResolved, resolved);
+}
+
 export function getSuspenseTimeout(suspense: VNode): number | null {
   const explicit = toNumber(vnode_getProp<number | string>(suspense, QSuspenseTimeout, null));
   if (explicit !== null) {
@@ -59,6 +71,7 @@ export function onSuspensePause(suspense: VNode, container?: Container): void {
 
   const state = vnode_getProp<SuspenseState>(suspense, QSuspenseState, null) ?? 'pending';
   if (state === 'ready') {
+    setResolvedSuspenseContent(suspense, true);
     vnode_setProp(suspense, QSuspenseState, 'pending' as SuspenseState);
   }
   if (state === 'fallback') {
@@ -104,6 +117,7 @@ export function onSuspenseResume(suspense: VNode, container?: Container): void {
     clearTimeout(timer);
     vnode_setProp(suspense, QSuspenseTimer, null);
   }
+  setResolvedSuspenseContent(suspense, true);
   vnode_setProp(suspense, QSuspenseState, 'ready' as SuspenseState);
   markSuspenseDirty(suspense, container);
 }

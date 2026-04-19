@@ -12,4 +12,14 @@ On SSR, the `children` are always rendered, as if `<Suspense />` were not presen
   </Suspense>
 ```
 
-This is currently marked experimental and you have to enable it by passing `experimental: ['suspense']` to the qwikVite plugin.
+`showStale` can be used on client updates to keep the last resolved children visible while also
+showing the fallback:
+
+```tsx
+  <Suspense fallback={<div>Refreshing…</div>} timeout={50} showStale>
+    <NestedComponent />
+  </Suspense>
+```
+
+This is currently marked experimental and you have to enable it by passing
+`experimental: ['suspense']` to the qwikVite plugin.

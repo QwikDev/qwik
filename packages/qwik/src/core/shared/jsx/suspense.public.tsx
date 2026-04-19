@@ -10,6 +10,11 @@ export type SuspenseProps = {
   /** Content shown while the children cursor has been paused longer than `timeout` ms. */
   fallback?: JSXOutput;
   /**
+   * Client-only: when `true`, keep the last resolved children visible during later pending updates
+   * while also showing the `fallback`.
+   */
+  showStale?: boolean;
+  /**
    * Client-only: ms to wait while the children cursor is paused on a Promise before switching to
    * `fallback`. If omitted, the fallback is never shown.
    */

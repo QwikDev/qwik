@@ -1222,6 +1222,7 @@ export const Suspense: Component<SuspenseProps>;
 // @public (undocumented)
 export type SuspenseProps = {
     fallback?: JSXOutput;
+    showStale?: boolean;
     timeout?: number;
     children?: JSXChildren;
 };

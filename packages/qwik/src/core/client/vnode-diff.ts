@@ -1637,7 +1637,7 @@ function expectSuspense(diffContext: DiffContext) {
   vnode_setProp(host, QSuspenseTimeout, directGetPropsProxyProp(jsxNode, 'timeout') ?? 200);
 
   if (!wasExistingSuspense) {
-    resetSuspenseState(host);
+    resetSuspenseState(host, true);
   } else if (shouldRenderContent) {
     resetSuspenseState(host);
   }

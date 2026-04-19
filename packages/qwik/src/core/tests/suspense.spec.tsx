@@ -428,6 +428,60 @@ describe('domRender: Suspense client-side pause timeout', () => {
     delete (globalThis as any).__susResolve;
   });
 
+  it('should keep stale content visible while showing fallback during updates when showStale is enabled', async () => {
+    (globalThis as any).__showStaleToggle = null as any;
+    (globalThis as any).__showStaleResolve = null as any;
+
+    const Child = component$(() => {
+      const toggle = useSignal(0);
+      (globalThis as any).__showStaleToggle = toggle;
+      useTask$(({ track }) => {
+        const t = track(() => toggle.value);
+        if (t === 0) {
+          return;
+        }
+        return new Promise<void>((resolve) => {
+          (globalThis as any).__showStaleResolve = resolve;
+        });
+      });
+      return <p>value={toggle.value}</p>;
+    });
+
+    const { document } = await domRender(
+      <div>
+        <Suspense fallback={<span>Loading...</span>} timeout={10} showStale>
+          <Child />
+        </Suspense>
+      </div>,
+      { debug }
+    );
+
+    let html = document.querySelector('div')!.innerHTML;
+    expect(html).toContain('value=0');
+    expect(html).not.toContain('Loading...');
+
+    const toggle = (globalThis as any).__showStaleToggle as { value: number };
+    toggle.value = 1;
+    await new Promise((r) => setTimeout(r, 40));
+
+    html = document.querySelector('div')!.innerHTML;
+    expect(html).toContain('value=0');
+    expect(html).toContain('Loading...');
+    expect(html.indexOf('value=0')).toBeLessThan(html.indexOf('Loading...'));
+
+    const resolveFn = (globalThis as any).__showStaleResolve as () => void;
+    expect(resolveFn).toBeDefined();
+    resolveFn();
+    await new Promise((r) => setTimeout(r, 10));
+
+    html = document.querySelector('div')!.innerHTML;
+    expect(html).toContain('value=1');
+    expect(html).not.toContain('Loading...');
+
+    delete (globalThis as any).__showStaleToggle;
+    delete (globalThis as any).__showStaleResolve;
+  });
+
   it('should show fallback when a child component rerenders to a promise child', async () => {
     (globalThis as any).__slowChildResolve = null as any;
 
@@ -540,5 +594,56 @@ describe('ssrRenderToDom: Suspense resumed updates', () => {
     expect(html).not.toContain('Loading...');
 
     delete (globalThis as any).__ssrSusResolve;
+  });
+
+  it('should keep SSR-rendered content visible while showing fallback after resume when showStale is enabled', async () => {
+    (globalThis as any).__ssrShowStaleResolve = null as any;
+
+    const Child = component$(() => {
+      const value = useSignal(0);
+      useTask$(({ track }) => {
+        const current = track(() => value.value);
+        if (current === 0) {
+          return;
+        }
+        return new Promise<void>((resolve) => {
+          (globalThis as any).__ssrShowStaleResolve = resolve;
+        });
+      });
+      return (
+        <>
+          <button onClick$={() => (value.value = 1)}>toggle</button>
+          <p>value={value.value}</p>
+        </>
+      );
+    });
+
+    const { container, document } = await ssrRenderToDom(
+      <div>
+        <Suspense fallback={<span>Loading...</span>} timeout={10} showStale>
+          <Child />
+        </Suspense>
+      </div>,
+      { debug }
+    );
+
+    await trigger(document.body, 'button', 'click', {}, { waitForIdle: false });
+    await new Promise((r) => setTimeout(r, 40));
+
+    let html = document.querySelector('div')!.innerHTML;
+    expect(html).toContain('value=0');
+    expect(html).toContain('Loading...');
+    expect(html.indexOf('value=0')).toBeLessThan(html.indexOf('Loading...'));
+
+    const resolve = (globalThis as any).__ssrShowStaleResolve as (() => void) | null;
+    expect(resolve).toBeTruthy();
+    resolve!();
+    await waitForDrain(container);
+
+    html = document.querySelector('div')!.innerHTML;
+    expect(html).toContain('value=1');
+    expect(html).not.toContain('Loading...');
+
+    delete (globalThis as any).__ssrShowStaleResolve;
   });
 });

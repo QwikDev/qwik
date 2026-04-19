@@ -2,13 +2,18 @@
 
 import { addCursor, isCursor, type Cursor } from '../shared/cursor/cursor';
 import { getCursorData, NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
-import { onSuspensePause, type SuspenseState } from '../shared/jsx/suspense-internal';
 import type { PropsProxy } from '../shared/jsx/props-proxy';
+import {
+  hasResolvedSuspenseContent,
+  onSuspensePause,
+  setResolvedSuspenseContent,
+  type SuspenseState,
+} from '../shared/jsx/suspense-internal';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import {
   ELEMENT_PROPS,
-  QSuspenseS,
   QSuspensePending,
+  QSuspenseS,
   QSuspenseState,
   QSuspenseTimer,
 } from '../shared/utils/markers';
@@ -18,15 +23,14 @@ import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
-import type { DiffContext } from './vnode-diff';
 import { VNodeFlags, type ClientContainer } from './types';
+import type { DiffContext } from './vnode-diff';
 import {
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getProp,
   vnode_insertElementBefore,
   vnode_isElementVNode,
-  vnode_isVirtualVNode,
   vnode_newElement,
   vnode_setAttr,
   vnode_setProp,
@@ -76,13 +80,14 @@ export function ensureSuspenseBoundaryAttached(
   return host;
 }
 
-export function resetSuspenseState(host: VirtualVNode) {
+export function resetSuspenseState(host: VirtualVNode, clearResolved = false) {
   const timer = vnode_getProp<ReturnType<typeof setTimeout>>(host, QSuspenseTimer, null);
   if (timer) {
     clearTimeout(timer);
   }
   vnode_setProp(host, QSuspenseTimer, null);
   vnode_setProp(host, QSuspensePending, 0);
+  setResolvedSuspenseContent(host, clearResolved ? false : hasResolvedSuspenseContent(host));
   vnode_setProp(host, QSuspenseState, 'pending' as SuspenseState);
 }
 
@@ -191,8 +196,10 @@ export function syncSuspenseBoundary(
 ) {
   const contentRoot = ensureSuspenseContentRoot(diffContext, host);
   const state = vnode_getProp<SuspenseState>(host, QSuspenseState, null) ?? 'pending';
+  const showStale =
+    state === 'fallback' && props.showStale === true && hasResolvedSuspenseContent(host);
 
-  updateSuspenseContentRootStyle(diffContext, contentRoot, state === 'fallback');
+  updateSuspenseContentRootStyle(diffContext, contentRoot, state === 'fallback' && !showStale);
 
   diffSuspenseFallbackRange(
     diffContext,

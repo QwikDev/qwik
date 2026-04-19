@@ -1,8 +1,7 @@
 import type { Render } from '@qwik.dev/core/server';
 import { loadRoute } from '../../runtime/src/routing';
 import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
-export { _asyncRequestStore } from './async-request-store';
-import { _asyncRequestStore } from './async-request-store';
+export { _getAsyncRequestStore } from './async-request-store';
 import { getRouteMatchPathname } from './request-path';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';

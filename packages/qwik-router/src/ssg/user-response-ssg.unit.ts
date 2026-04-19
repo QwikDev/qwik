@@ -10,9 +10,7 @@ vi.mock('./request-event-ssg', () => ({
 }));
 
 vi.mock('@qwik-router-ssg-worker/middleware/request-handler/async-request-store', () => ({
-  get _asyncRequestStore() {
-    return mocks.currentAsyncRequestStore;
-  },
+  _getAsyncRequestStore: () => mocks.currentAsyncRequestStore,
 }));
 
 vi.mock('@qwik-router-ssg-worker/middleware/request-handler/error-handler', () => ({

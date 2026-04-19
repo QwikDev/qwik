@@ -3,7 +3,7 @@ import { type RequestEventInternal } from '../middleware/request-handler/request
 import { createRequestEvent } from './request-event-ssg';
 import { type QwikRouterRun } from '../middleware/request-handler/user-response-runner';
 import type { ServerRequestEvent } from '../middleware/request-handler/types';
-import { _asyncRequestStore } from '@qwik-router-ssg-worker/middleware/request-handler/async-request-store';
+import { _getAsyncRequestStore } from '@qwik-router-ssg-worker/middleware/request-handler/async-request-store';
 import { getErrorHtml } from '@qwik-router-ssg-worker/middleware/request-handler/error-handler';
 import { encoder } from '@qwik-router-ssg-worker/middleware/request-handler/request-utils';
 import {
@@ -32,7 +32,7 @@ export function runQwikRouter<T>(
       RedirectMessage,
       RewriteMessage,
       ServerError,
-      asyncRequestStore: _asyncRequestStore,
+      asyncRequestStore: _getAsyncRequestStore(),
       createRequestEvent,
       encoder,
       getErrorHtml,

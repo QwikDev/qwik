@@ -23,11 +23,6 @@ import type { ValueOrPromise } from '@qwik.dev/core';
 export class AbortMessage {
 }
 
-// Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
-//
-// @internal (undocumented)
-export let _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefined;
-
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -84,6 +79,11 @@ export interface EnvGetter {
     // (undocumented)
     get(key: string): string | undefined;
 }
+
+// Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export const _getAsyncRequestStore: () => AsyncLocalStorage<RequestEventInternal> | undefined;
 
 // @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;

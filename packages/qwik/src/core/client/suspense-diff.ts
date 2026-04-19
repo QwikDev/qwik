@@ -7,7 +7,7 @@ import {
   hasResolvedSuspenseContent,
   onSuspensePause,
   setResolvedSuspenseContent,
-  type SuspenseState,
+  SuspenseState,
 } from '../shared/jsx/suspense-internal';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import {
@@ -88,7 +88,7 @@ export function resetSuspenseState(host: VirtualVNode, clearResolved = false) {
   vnode_setProp(host, QSuspenseTimer, null);
   vnode_setProp(host, QSuspensePending, 0);
   setResolvedSuspenseContent(host, clearResolved ? false : hasResolvedSuspenseContent(host));
-  vnode_setProp(host, QSuspenseState, 'pending' as SuspenseState);
+  vnode_setProp(host, QSuspenseState, SuspenseState.Pending);
 }
 
 export function suspenseContentChanged(oldProps: PropsProxy | null, newProps: PropsProxy): boolean {
@@ -124,7 +124,7 @@ function updateSuspenseContentRootStyle(
 }
 
 function getSuspenseFallback(state: SuspenseState, props: PropsProxy): JSXChildren {
-  if (state === 'fallback') {
+  if (state === SuspenseState.Fallback) {
     return props.fallback as JSXChildren;
   }
   return null;
@@ -195,11 +195,17 @@ export function syncSuspenseBoundary(
   diffFns: SuspenseDiffFns
 ) {
   const contentRoot = ensureSuspenseContentRoot(diffContext, host);
-  const state = vnode_getProp<SuspenseState>(host, QSuspenseState, null) ?? 'pending';
+  const state = vnode_getProp<SuspenseState>(host, QSuspenseState, null) ?? SuspenseState.Pending;
   const showStale =
-    state === 'fallback' && props.showStale === true && hasResolvedSuspenseContent(host);
+    state === SuspenseState.Fallback &&
+    props.showStale === true &&
+    hasResolvedSuspenseContent(host);
 
-  updateSuspenseContentRootStyle(diffContext, contentRoot, state === 'fallback' && !showStale);
+  updateSuspenseContentRootStyle(
+    diffContext,
+    contentRoot,
+    state === SuspenseState.Fallback && !showStale
+  );
 
   diffSuspenseFallbackRange(
     diffContext,

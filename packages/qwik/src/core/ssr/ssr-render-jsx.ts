@@ -9,6 +9,7 @@ import { JSXNodeImpl } from '../shared/jsx/jsx-node';
 import { Fragment } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
+import { SuspenseState } from '../shared/jsx/suspense-internal';
 import { Suspense } from '../shared/jsx/suspense.public';
 import { JSXNodeFlags, type JSXNodeInternal, type JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
@@ -279,7 +280,7 @@ function processJSXNode(
           host.setProp(ELEMENT_PROPS, jsx.props);
           host.setProp(QSuspenseS, '');
           host.setProp(QSuspenseTimeout, String(directGetPropsProxyProp(jsx, 'timeout') ?? 200));
-          host.setProp(QSuspenseState, 'ready');
+          host.setProp(QSuspenseState, SuspenseState.Ready);
           ssr.addRoot(host);
           enqueue(ssr.closeFragment);
           enqueue(

@@ -22,7 +22,11 @@ import {
 import { vnode_getProp, vnode_setProp } from '../../client/vnode-utils';
 import type { Props } from './jsx-runtime';
 
-export type SuspenseState = 'pending' | 'fallback' | 'ready';
+export const enum SuspenseState {
+  Pending,
+  Fallback,
+  Ready,
+}
 const QSuspenseResolved = ':suspenseResolved';
 
 const toNumber = (value: unknown): number | null => {
@@ -47,7 +51,8 @@ function markSuspenseDirty(suspense: VNode, container?: Container): void {
 export function hasResolvedSuspenseContent(suspense: VNode): boolean {
   return (
     vnode_getProp<boolean>(suspense, QSuspenseResolved, null) === true ||
-    (vnode_getProp<SuspenseState>(suspense, QSuspenseState, null) ?? 'pending') === 'ready'
+    (vnode_getProp<SuspenseState>(suspense, QSuspenseState, null) ?? SuspenseState.Pending) ===
+      SuspenseState.Ready
   );
 }
 
@@ -69,12 +74,13 @@ export function onSuspensePause(suspense: VNode, container?: Container): void {
   const pending = (vnode_getProp<number>(suspense, QSuspensePending, null) ?? 0) + 1;
   vnode_setProp(suspense, QSuspensePending, pending);
 
-  const state = vnode_getProp<SuspenseState>(suspense, QSuspenseState, null) ?? 'pending';
-  if (state === 'ready') {
+  const state =
+    vnode_getProp<SuspenseState>(suspense, QSuspenseState, null) ?? SuspenseState.Pending;
+  if (state === SuspenseState.Ready) {
     setResolvedSuspenseContent(suspense, true);
-    vnode_setProp(suspense, QSuspenseState, 'pending' as SuspenseState);
+    vnode_setProp(suspense, QSuspenseState, SuspenseState.Pending);
   }
-  if (state === 'fallback') {
+  if (state === SuspenseState.Fallback) {
     return; // fallback already showing; nothing to arm
   }
   const existingTimer = vnode_getProp<ReturnType<typeof setTimeout>>(
@@ -95,11 +101,12 @@ export function onSuspensePause(suspense: VNode, container?: Container): void {
   }
   const timer = setTimeout(() => {
     vnode_setProp(suspense, QSuspenseTimer, null);
-    const curState = vnode_getProp<SuspenseState>(suspense, QSuspenseState, null) ?? 'pending';
-    if (curState === 'ready') {
+    const curState =
+      vnode_getProp<SuspenseState>(suspense, QSuspenseState, null) ?? SuspenseState.Pending;
+    if (curState === SuspenseState.Ready) {
       return;
     }
-    vnode_setProp(suspense, QSuspenseState, 'fallback' as SuspenseState);
+    vnode_setProp(suspense, QSuspenseState, SuspenseState.Fallback);
     markVNodeDirty(resolvedContainer, suspense, ChoreBits.NODE_DIFF);
   }, timeout);
   vnode_setProp(suspense, QSuspenseTimer, timer);
@@ -118,6 +125,6 @@ export function onSuspenseResume(suspense: VNode, container?: Container): void {
     vnode_setProp(suspense, QSuspenseTimer, null);
   }
   setResolvedSuspenseContent(suspense, true);
-  vnode_setProp(suspense, QSuspenseState, 'ready' as SuspenseState);
+  vnode_setProp(suspense, QSuspenseState, SuspenseState.Ready);
   markSuspenseDirty(suspense, container);
 }

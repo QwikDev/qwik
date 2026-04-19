@@ -3,5 +3,5 @@ import { adapterPlaywrightConfig, createAdapterWebServerConfig } from './playwri
 
 export default defineConfig({
   ...adapterPlaywrightConfig,
-  webServer: createAdapterWebServerConfig('npm run express'),
+  webServer: createAdapterWebServerConfig('npm run bun'),
 });

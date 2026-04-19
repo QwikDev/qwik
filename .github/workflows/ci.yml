@@ -40,6 +40,7 @@ on:
 env:
   # Disable incremental build, speeds up CI
   CARGO_INCREMENTAL: 0
+  CI_NODE_VERSION: 22.18.0
 
 permissions:
   contents: read
@@ -234,7 +235,7 @@ jobs:
         if: needs.changes.outputs.build-qwik == 'true'
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -311,7 +312,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -437,7 +438,7 @@ jobs:
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -552,7 +553,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -599,7 +600,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -656,7 +657,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -719,7 +720,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -790,7 +791,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -881,7 +882,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -912,7 +913,7 @@ jobs:
         if: failure()
 
   test-cli-e2e:
-    name: E2E CLI Tests
+    name: E2E CLI Tests (${{ matrix.settings.runtime }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }})
     if: always() && needs.changes.outputs.build-cli-e2e == 'true'
 
     needs:
@@ -925,10 +926,34 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
+            runtime: node
+            integration-script: test.e2e.integrations.chromium
+            run-cli: true
+            run-qwik-react: true
+          - host: ubuntu-latest
+            browser: chromium
+            runtime: bun
+            integration-script: test.e2e.integrations.bun.chromium
+            run-cli: false
+            run-qwik-react: false
+          - host: ubuntu-latest
+            browser: chromium
+            runtime: deno
+            integration-script: test.e2e.integrations.deno.chromium
+            run-cli: false
+            run-qwik-react: false
           - host: macos-latest
             browser: webkit
+            runtime: node
+            integration-script: test.e2e.integrations.webkit
+            run-cli: true
+            run-qwik-react: true
           - host: windows-latest
             browser: chromium
+            runtime: node
+            integration-script: test.e2e.integrations.chromium
+            run-cli: true
+            run-qwik-react: true
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -952,7 +977,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -964,15 +989,29 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Setup Bun
+        if: matrix.settings.runtime == 'bun'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Deno
+        if: matrix.settings.runtime == 'deno'
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
       - name: Install Playwright
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Integration Tests
-        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }}
+        run: pnpm run ${{ matrix.settings.integration-script }}
 
       - name: Playwright E2E Qwik React Tests
+        if: matrix.settings.run-qwik-react
         run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }}
       - name: CLI E2E Tests
+        if: matrix.settings.run-cli
         run: pnpm run test.e2e.cli.${{ matrix.settings.browser }}
 
   save-e2e-tests-cache:
@@ -1039,7 +1078,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -1117,7 +1156,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 

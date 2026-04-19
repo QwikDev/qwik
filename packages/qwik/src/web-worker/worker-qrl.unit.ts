@@ -66,6 +66,7 @@ describe('workerQrl', () => {
     });
 
     vi.stubGlobal('Worker', BrowserWorker);
+    vi.stubGlobal('document', {});
     vi.stubGlobal('process', undefined);
 
     const browserWorkerFn = workerQrl(
@@ -102,6 +103,46 @@ describe('workerQrl', () => {
     expect(workerInstance.removeEventListener).toHaveBeenCalledWith('error', expect.any(Function));
   });
 
+  it('falls back to direct invocation in Bun runtimes', async () => {
+    const BunWorker = vi.fn();
+
+    vi.stubGlobal('Worker', BunWorker);
+    vi.stubGlobal('document', undefined);
+    vi.stubGlobal('process', {
+      versions: {
+        bun: '1.2.0',
+        node: '22.18.0',
+      },
+    });
+
+    const echo = workerQrl(sync$((value: string) => value));
+
+    await expect(echo('hello from bun')).resolves.toBe('hello from bun');
+    expect(BunWorker).not.toHaveBeenCalled();
+  });
+
+  it('falls back to direct invocation in Deno runtimes', async () => {
+    const DenoWorker = vi.fn();
+
+    vi.stubGlobal('Worker', DenoWorker);
+    vi.stubGlobal('document', undefined);
+    vi.stubGlobal('Deno', {
+      version: {
+        deno: '2.3.0',
+      },
+    });
+    vi.stubGlobal('process', {
+      versions: {
+        node: '22.18.0',
+      },
+    });
+
+    const echo = workerQrl(sync$((value: string) => value));
+
+    await expect(echo('hello from deno')).resolves.toBe('hello from deno');
+    expect(DenoWorker).not.toHaveBeenCalled();
+  });
+
   it('does not require DOM worker globals on the server fallback', async () => {
     vi.stubGlobal('Worker', undefined);
     vi.stubGlobal('process', undefined);
@@ -126,7 +167,6 @@ describe('workerQrl', () => {
       options: {
         execArgv?: string[];
         name: string;
-        type: string;
         workerData?: { qrlBaseUrl: string };
       }
     ) {

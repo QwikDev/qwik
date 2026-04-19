@@ -269,7 +269,7 @@ function processJSXNode(
             ssr.openFragment(projectionAttrs);
             ssr.closeFragment();
           }
-        } else if (type === Suspense) {
+        } else if (__EXPERIMENTAL__.suspense && type === Suspense) {
           const suspenseAttrs: Record<string, string | null> = isDev
             ? { [DEBUG_TYPE]: VirtualType.Suspense }
             : {};

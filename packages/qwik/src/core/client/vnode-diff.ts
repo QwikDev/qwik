@@ -432,7 +432,7 @@ function diff(
                   // nothing to project, so try to render the Slot default content.
                   descend(diffContext, diffContext.$jsxValue$.children, true);
                 }
-              } else if (type === Suspense) {
+              } else if (__EXPERIMENTAL__.suspense && type === Suspense) {
                 expectNoTextNode(diffContext);
                 expectSuspense(diffContext);
               } else if (type === Projection) {

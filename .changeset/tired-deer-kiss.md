@@ -11,3 +11,5 @@ On SSR, the `children` are always rendered, as if `<Suspense />` were not presen
     <NestedComponent />
   </Suspense>
 ```
+
+This is currently marked experimental and you have to enable it by passing `experimental: ['suspense']` to the qwikVite plugin.

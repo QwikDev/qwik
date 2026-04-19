@@ -178,6 +178,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         target: 'client',
         buildMode,
         debug,
+        experimental: ['suspense'],
         srcInputs,
         entryStrategy,
         manifestOutput: (m: any) => {
@@ -223,6 +224,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         target: 'ssr',
         buildMode,
         debug,
+        experimental: ['suspense'],
         srcInputs,
         entryStrategy,
       }),

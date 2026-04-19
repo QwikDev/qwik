@@ -1,7 +1,7 @@
 import { VNodeFlags } from '../../client/types';
 import type { Container } from '../types';
 import type { VNode } from '../vnode/vnode';
-import { type CursorData, findEnclosingSuspense, setCursorData } from './cursor-props';
+import { type CursorData, setCursorData } from './cursor-props';
 import { addCursorToQueue } from './cursor-queue';
 import { triggerCursors } from './cursor-walker';
 
@@ -44,7 +44,14 @@ export function addCursor(
   // walk up once to find the nearest enclosing Suspense boundary. Zero overhead when no
   // Suspense exists in this container.
   if (!suspense && container.$suspenseCount$ > 0) {
-    cursorData.$suspense$ = findEnclosingSuspense(root.slotParent || root.parent);
+    let cur: VNode | null = root;
+    while (cur) {
+      if (cur.flags & VNodeFlags.SuspenseBoundary) {
+        break;
+      }
+      cur = cur.slotParent || cur.parent;
+    }
+    cursorData.$suspense$ = cur;
   }
 
   setCursorData(root, cursorData);

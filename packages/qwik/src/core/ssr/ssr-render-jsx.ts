@@ -1,15 +1,14 @@
 import { isDev } from '@qwik.dev/core/build';
-import { _run } from '../client/run-qrl';
+import { _jsxSorted } from '../internal';
 import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { AsyncSignalFlags, EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
-import { JSXNodeImpl } from '../shared/jsx/jsx-node';
 import { Fragment } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
-import { SuspenseState } from '../shared/jsx/suspense-internal';
+import { normalizeSuspenseTimeout, SuspenseState } from '../shared/jsx/suspense-internal';
 import { Suspense } from '../shared/jsx/suspense.public';
 import { JSXNodeFlags, type JSXNodeInternal, type JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
@@ -26,8 +25,8 @@ import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
-  ELEMENT_PROPS,
   ELEMENT_KEY,
+  ELEMENT_PROPS,
   QDefaultSlot,
   QScopedStyle,
   QSlot,
@@ -279,7 +278,10 @@ function processJSXNode(
           const suspensePriority = options.currentSuspensePriority - 1;
           host.setProp(ELEMENT_PROPS, jsx.props);
           host.setProp(QSuspenseS, '');
-          host.setProp(QSuspenseTimeout, String(directGetPropsProxyProp(jsx, 'timeout') ?? 200));
+          host.setProp(
+            QSuspenseTimeout,
+            normalizeSuspenseTimeout(directGetPropsProxyProp(jsx, 'timeout')) ?? 200
+          );
           host.setProp(QSuspenseState, SuspenseState.Ready);
           ssr.addRoot(host);
           enqueue(ssr.closeFragment);
@@ -292,7 +294,7 @@ function processJSXNode(
             )
           );
           enqueue(
-            new JSXNodeImpl(
+            _jsxSorted(
               'q-sus',
               { style: SUSPENSE_VISIBLE_STYLE },
               null,

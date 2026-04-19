@@ -183,18 +183,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   handleError(err: any, host: VNode | null): void {
-    if (host) {
-      if (err && err instanceof Error) {
-        if (!('hostElement' in err)) {
-          (err as any)['hostElement'] = String(host);
-        }
-      }
-    }
-
     if (qDev && host) {
       if (typeof document !== 'undefined') {
         setErrorPayload(host, err);
         markVNodeDirty(this, host, ChoreBits.ERROR_WRAP);
+      }
+
+      if (err && err instanceof Error) {
+        if (!('hostElement' in err)) {
+          (err as any)['hostElement'] = String(host);
+        }
       }
 
       if (!isRecoverable(err)) {

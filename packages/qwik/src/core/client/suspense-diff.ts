@@ -1,7 +1,9 @@
 /** @file Suspense boundary DOM-sync helpers. */
 
+import type { JSXOutput } from '../../server/qwik-types';
+import { setNodeDiffPayload } from '../shared/cursor/chore-execution';
 import { addCursor, isCursor, type Cursor } from '../shared/cursor/cursor';
-import { getCursorData, NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
+import { getCursorData } from '../shared/cursor/cursor-props';
 import type { PropsProxy } from '../shared/jsx/props-proxy';
 import {
   hasResolvedSuspenseContent,
@@ -18,13 +20,18 @@ import {
   QSuspenseTimer,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
-import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { VNodeFlags, type ClientContainer } from './types';
-import type { DiffContext } from './vnode-diff';
+import {
+  cleanupDiffContext,
+  createDiffContext,
+  diff,
+  drainAsyncQueue,
+  type DiffContext,
+} from './vnode-diff';
 import {
   vnode_getElementName,
   vnode_getFirstChild,
@@ -41,27 +48,8 @@ const SUSPENSE_TAG = 'q-sus';
 const SUSPENSE_VISIBLE_STYLE = 'display:contents';
 const SUSPENSE_HIDDEN_STYLE = 'display:none';
 
-export interface SuspenseDiffFns {
-  createDiffContext: (
-    container: ClientContainer,
-    journal: VNodeJournal,
-    cursor: Cursor,
-    scopedStyleIdPrefix: string | null
-  ) => DiffContext;
-  diff: (
-    diffContext: DiffContext,
-    jsxNode: JSXChildren,
-    vStartNode: VNode,
-    vCurrent?: VNode | null,
-    vEnd?: VNode | null,
-    forceCreationMode?: boolean
-  ) => void;
-  drainAsyncQueue: (diffContext: DiffContext) => ValueOrPromise<void>;
-  cleanupDiffContext: (diffContext: DiffContext) => void;
-}
-
 export function isSuspenseBoundaryVNode(vNode: VNode | null): vNode is VirtualVNode {
-  return !!vNode && vnode_isVirtualVNode(vNode) && !!(vNode.flags & VNodeFlags.SuspenseBoundary);
+  return !!vNode && !!(vNode.flags & VNodeFlags.SuspenseBoundary);
 }
 
 function isSuspenseContentRoot(vNode: VNode | null): vNode is ElementVNode {
@@ -106,6 +94,12 @@ function ensureSuspenseContentRoot(diffContext: DiffContext, host: VirtualVNode)
   return contentRoot;
 }
 
+/**
+ * If the content already exists, we don't want to remove it from the DOM when the Suspense boundary
+ * is in fallback state. Instead, we hide it with `display:none` and show it again when the content
+ * is ready. This way we can preserve the state of any interactive components inside the content
+ * while the user is seeing the fallback UI.
+ */
 function updateSuspenseContentRootStyle(
   diffContext: DiffContext,
   contentRoot: ElementVNode,
@@ -130,60 +124,29 @@ function getSuspenseFallback(state: SuspenseState, props: PropsProxy): JSXChildr
   return null;
 }
 
-function scheduleSuspenseContentRender(
-  diffContext: DiffContext,
-  host: VirtualVNode,
-  contentRoot: ElementVNode,
-  children: JSXChildren,
-  suspensePriority: number,
-  bootstrap: boolean
-) {
-  vnode_setProp(contentRoot, NODE_DIFF_DATA_KEY, children);
-  contentRoot.dirty |= ChoreBits.NODE_DIFF;
-  if (bootstrap) {
-    onSuspensePause(host, diffContext.$container$);
-  }
-  if (!isCursor(contentRoot)) {
-    addCursor(diffContext.$container$, contentRoot, suspensePriority, host, bootstrap);
-  } else if (bootstrap) {
-    const cursorData = getCursorData(contentRoot);
-    if (cursorData) {
-      cursorData.$suspenseBootstrap$ = true;
-    }
-  }
-}
-
 function diffSuspenseFallbackRange(
   diffContext: DiffContext,
   host: VirtualVNode,
   contentRoot: ElementVNode,
-  fallback: JSXChildren,
-  diffFns: SuspenseDiffFns
+  fallback: JSXChildren
 ) {
-  const fallbackDiffContext = diffFns.createDiffContext(
+  const fallbackDiffContext = createDiffContext(
     diffContext.$container$,
     diffContext.$journal$,
     diffContext.$cursor$,
     diffContext.$scopedStyleIdPrefix$
   );
-  diffFns.diff(
-    fallbackDiffContext,
-    fallback,
-    host,
-    contentRoot.nextSibling as VNode | null,
-    null,
-    false
-  );
-  const result = diffFns.drainAsyncQueue(fallbackDiffContext);
+  diff(fallbackDiffContext, fallback, host, contentRoot.nextSibling as VNode | null, null, false);
+  const result = drainAsyncQueue(fallbackDiffContext);
   if (isPromise(result)) {
     diffContext.$asyncAttributePromises$.push(
       result.finally(() => {
-        diffFns.cleanupDiffContext(fallbackDiffContext);
+        cleanupDiffContext(fallbackDiffContext);
       }) as Promise<void>
     );
     return;
   }
-  diffFns.cleanupDiffContext(fallbackDiffContext);
+  cleanupDiffContext(fallbackDiffContext);
 }
 
 export function syncSuspenseBoundary(
@@ -191,8 +154,7 @@ export function syncSuspenseBoundary(
   host: VirtualVNode,
   props: PropsProxy,
   queueContentRender: boolean,
-  suspensePriority: number,
-  diffFns: SuspenseDiffFns
+  suspensePriority: number
 ) {
   const contentRoot = ensureSuspenseContentRoot(diffContext, host);
   const state = vnode_getProp<SuspenseState>(host, QSuspenseState, null) ?? SuspenseState.Pending;
@@ -207,23 +169,20 @@ export function syncSuspenseBoundary(
     state === SuspenseState.Fallback && !showStale
   );
 
-  diffSuspenseFallbackRange(
-    diffContext,
-    host,
-    contentRoot,
-    getSuspenseFallback(state, props),
-    diffFns
-  );
+  diffSuspenseFallbackRange(diffContext, host, contentRoot, getSuspenseFallback(state, props));
 
   if (queueContentRender) {
-    scheduleSuspenseContentRender(
-      diffContext,
-      host,
-      contentRoot,
-      props.children as JSXChildren,
-      suspensePriority,
-      true
-    );
+    setNodeDiffPayload(contentRoot, props.children as JSXOutput);
+    contentRoot.dirty |= ChoreBits.NODE_DIFF;
+    onSuspensePause(host, diffContext.$container$);
+    if (!isCursor(contentRoot)) {
+      addCursor(diffContext.$container$, contentRoot, suspensePriority, host, true);
+    } else {
+      const cursorData = getCursorData(contentRoot);
+      if (cursorData) {
+        cursorData.$suspenseBootstrap$ = true;
+      }
+    }
   }
 }
 
@@ -237,21 +196,20 @@ export function diffSuspenseBoundaryNode(
   journal: VNodeJournal,
   host: VirtualVNode,
   cursor: Cursor,
-  scopedStyleIdPrefix: string | null,
-  diffFns: SuspenseDiffFns
+  scopedStyleIdPrefix: string | null
 ) {
-  const diffContext = diffFns.createDiffContext(container, journal, cursor, scopedStyleIdPrefix);
+  const diffContext = createDiffContext(container, journal, cursor, scopedStyleIdPrefix);
   const props = vnode_getProp<PropsProxy | null>(host, ELEMENT_PROPS, container.$getObjectById$);
   if (!props) {
-    diffFns.cleanupDiffContext(diffContext);
+    cleanupDiffContext(diffContext);
     return;
   }
-  syncSuspenseBoundary(diffContext, host, props, false, 0, diffFns);
-  const result = diffFns.drainAsyncQueue(diffContext);
+  syncSuspenseBoundary(diffContext, host, props, false, 0);
+  const result = drainAsyncQueue(diffContext);
   if (isPromise(result)) {
     return result.finally(() => {
-      diffFns.cleanupDiffContext(diffContext);
+      cleanupDiffContext(diffContext);
     });
   }
-  diffFns.cleanupDiffContext(diffContext);
+  cleanupDiffContext(diffContext);
 }

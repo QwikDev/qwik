@@ -1,10 +1,9 @@
-import { VNodeFlags } from '../../client/types';
+import type { VNodeJournal } from '../../client/vnode-utils';
+import type { Task } from '../../use/use-task';
+import type { Container } from '../types';
 import type { VNode } from '../vnode/vnode';
 import { isCursor, type Cursor } from './cursor';
 import { removeCursorFromQueue } from './cursor-queue';
-import type { Container } from '../types';
-import type { VNodeJournal } from '../../client/vnode-utils';
-import type { Task } from '../../use/use-task';
 
 export const cursorDatas = new WeakMap<Cursor, CursorData>();
 
@@ -113,20 +112,4 @@ export function getCursorData(vNode: VNode): CursorData | null {
  */
 export function setCursorData(vNode: VNode, cursorData: CursorData): void {
   cursorDatas.set(vNode as Cursor, cursorData!);
-}
-
-/**
- * Walk up the `slotParent || parent` chain looking for the nearest Suspense boundary vnode
- * (carrying `VNodeFlags.SuspenseBoundary`). Returns null if none. Cheap bit-check per ancestor; no
- * WeakMap lookups.
- */
-export function findEnclosingSuspense(vnode: VNode | null): VNode | null {
-  let cur: VNode | null = vnode;
-  while (cur) {
-    if (cur.flags & VNodeFlags.SuspenseBoundary) {
-      return cur;
-    }
-    cur = cur.slotParent || cur.parent;
-  }
-  return null;
 }

@@ -5,7 +5,7 @@ import {
   vnode_isElementVNode,
 } from '../../client/vnode-utils';
 import { diffSuspenseBoundaryNode } from '../../client/suspense-diff';
-import { suspenseDiffFns, vnode_diff } from '../../client/vnode-diff';
+import { vnode_diff } from '../../client/vnode-diff';
 import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';
 import { executeComponent } from '../component-execution';
 import type { OnRenderFn } from '../component.public';
@@ -178,8 +178,7 @@ export function executeNodeDiff(
       journal,
       vNode as VirtualVNode,
       cursor,
-      null,
-      suspenseDiffFns
+      null
     );
   }
 

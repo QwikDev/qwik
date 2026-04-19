@@ -25,6 +25,7 @@ import {
   type PropsProxyHandler,
 } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
+import { cleanupSuspenseBoundary, normalizeSuspenseTimeout } from '../shared/jsx/suspense-internal';
 import { Suspense } from '../shared/jsx/suspense.public';
 import {
   ensureSuspenseBoundaryAttached,
@@ -32,7 +33,6 @@ import {
   resetSuspenseState,
   suspenseContentChanged,
   syncSuspenseBoundary,
-  type SuspenseDiffFns,
 } from './suspense-diff';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
@@ -57,7 +57,6 @@ import {
   QSlot,
   QSuspenseS,
   QSuspenseTimeout,
-  QSuspenseTimer,
   QTemplate,
   dangerouslySetInnerHTML,
   debugStyleScopeIdPrefixAttr,
@@ -262,13 +261,6 @@ export function createDiffContext(
   };
 }
 
-export const suspenseDiffFns: SuspenseDiffFns = {
-  createDiffContext,
-  diff,
-  drainAsyncQueue,
-  cleanupDiffContext,
-};
-
 function prepareDiffContext(
   diffContext: DiffContext,
   container: ClientContainer,
@@ -363,7 +355,7 @@ function runDiff(
   }
 }
 
-function diff(
+export function diff(
   diffContext: DiffContext,
   jsxNode: JSXChildren,
   vStartNode: VNode,
@@ -865,7 +857,7 @@ function cleanupSideBuffer(diffContext: DiffContext) {
   diffContext.$vCurrent$ = null;
 }
 
-function drainAsyncQueue(diffContext: DiffContext): ValueOrPromise<void> {
+export function drainAsyncQueue(diffContext: DiffContext): ValueOrPromise<void> {
   while (diffContext.$asyncQueue$.length) {
     const jsxNode = diffContext.$asyncQueue$.shift() as ValueOrPromise<JSXChildren>;
     const vHostNode = diffContext.$asyncQueue$.shift() as VNode;
@@ -894,7 +886,7 @@ function drainAsyncQueue(diffContext: DiffContext): ValueOrPromise<void> {
   }
 }
 
-function cleanupDiffContext(diffContext: DiffContext): void {
+export function cleanupDiffContext(diffContext: DiffContext): void {
   diffContext.$journal$ = null!;
   diffContext.$cursor$ = null!;
 }
@@ -1634,22 +1626,17 @@ function expectSuspense(diffContext: DiffContext) {
 
   vnode_setProp(host, ELEMENT_PROPS, jsxProps);
   vnode_setProp(host, QSuspenseS, '');
-  vnode_setProp(host, QSuspenseTimeout, directGetPropsProxyProp(jsxNode, 'timeout') ?? 200);
+  vnode_setProp(
+    host,
+    QSuspenseTimeout,
+    normalizeSuspenseTimeout(directGetPropsProxyProp(jsxNode, 'timeout')) ?? 200
+  );
 
-  if (!wasExistingSuspense) {
-    resetSuspenseState(host, true);
-  } else if (shouldRenderContent) {
-    resetSuspenseState(host);
+  if (shouldRenderContent) {
+    resetSuspenseState(host, !wasExistingSuspense);
   }
 
-  syncSuspenseBoundary(
-    diffContext,
-    host,
-    jsxProps,
-    shouldRenderContent,
-    suspensePriority,
-    suspenseDiffFns
-  );
+  syncSuspenseBoundary(diffContext, host, jsxProps, shouldRenderContent, suspensePriority);
 }
 
 function expectComponent(diffContext: DiffContext, component: Function) {
@@ -2034,15 +2021,7 @@ export function cleanup(
         disposeCursor(vCursor, container);
       }
       if (type & VNodeFlags.SuspenseBoundary) {
-        const timer = vnode_getProp<ReturnType<typeof setTimeout>>(vCursor, QSuspenseTimer, null);
-        if (timer) {
-          clearTimeout(timer);
-          vnode_setProp(vCursor, QSuspenseTimer, null);
-        }
-        if (container.$suspenseCount$ > 0) {
-          container.$suspenseCount$--;
-        }
-        vCursor.flags &= ~VNodeFlags.SuspenseBoundary;
+        cleanupSuspenseBoundary(vCursor, container);
       }
       clearAllEffects(container, vCursor);
       markVNodeAsDeleted(vCursor);

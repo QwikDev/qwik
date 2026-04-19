@@ -19,6 +19,7 @@ import {
   QSuspenseTimeout,
   QSuspenseTimer,
 } from '../utils/markers';
+import { VNodeFlags } from '../../client/types';
 import { vnode_getProp, vnode_setProp } from '../../client/vnode-utils';
 import type { Props } from './jsx-runtime';
 
@@ -29,24 +30,28 @@ export const enum SuspenseState {
 }
 const QSuspenseResolved = ':suspenseResolved';
 
-const toNumber = (value: unknown): number | null => {
-  if (typeof value === 'number') {
-    return value;
+export const normalizeSuspenseTimeout = (value: unknown): number | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return null;
   }
+  return value >= 0 ? value : 0;
+};
+
+// VNode props resume as strings
+const readSuspenseTimeout = (value: unknown): number | null => {
+  const normalized = normalizeSuspenseTimeout(value);
+  if (normalized !== null) {
+    return normalized;
+  }
+  // Custom vnode-data props still materialize as strings after resume.
   if (typeof value === 'string' && value !== '') {
-    const parsed = parseInt(value, 10);
-    return Number.isNaN(parsed) ? null : parsed;
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed >= 0 ? parsed : 0;
+    }
   }
   return null;
 };
-
-function markSuspenseDirty(suspense: VNode, container?: Container): void {
-  const resolvedContainer = container || getCursorData(suspense)?.container;
-  if (!resolvedContainer) {
-    return;
-  }
-  markVNodeDirty(resolvedContainer, suspense, ChoreBits.NODE_DIFF);
-}
 
 export function hasResolvedSuspenseContent(suspense: VNode): boolean {
   return (
@@ -61,12 +66,26 @@ export function setResolvedSuspenseContent(suspense: VNode, resolved: boolean): 
 }
 
 export function getSuspenseTimeout(suspense: VNode): number | null {
-  const explicit = toNumber(vnode_getProp<number | string>(suspense, QSuspenseTimeout, null));
+  const explicit = readSuspenseTimeout(
+    vnode_getProp<number | string>(suspense, QSuspenseTimeout, null)
+  );
   if (explicit !== null) {
     return explicit;
   }
   const props = vnode_getProp<Props | null>(suspense, ELEMENT_PROPS, null);
-  return toNumber(props?.timeout) ?? null;
+  return normalizeSuspenseTimeout(props?.timeout) ?? null;
+}
+
+export function cleanupSuspenseBoundary(suspense: VNode, container: Container): void {
+  const timer = vnode_getProp<ReturnType<typeof setTimeout>>(suspense, QSuspenseTimer, null);
+  if (timer) {
+    clearTimeout(timer);
+    vnode_setProp(suspense, QSuspenseTimer, null);
+  }
+  if (container.$suspenseCount$ > 0) {
+    container.$suspenseCount$--;
+  }
+  suspense.flags &= ~VNodeFlags.SuspenseBoundary;
 }
 
 /** Call when a cursor transitions to `paused` (blocking promise). */
@@ -113,7 +132,7 @@ export function onSuspensePause(suspense: VNode, container?: Container): void {
 }
 
 /** Call when a cursor completes (its blocking promise resolved, or finishWalk fires). */
-export function onSuspenseResume(suspense: VNode, container?: Container): void {
+export function onSuspenseResume(suspense: VNode, container: Container): void {
   const pending = (vnode_getProp<number>(suspense, QSuspensePending, null) ?? 0) - 1;
   vnode_setProp(suspense, QSuspensePending, pending);
   if (pending > 0) {
@@ -126,5 +145,6 @@ export function onSuspenseResume(suspense: VNode, container?: Container): void {
   }
   setResolvedSuspenseContent(suspense, true);
   vnode_setProp(suspense, QSuspenseState, SuspenseState.Ready);
-  markSuspenseDirty(suspense, container);
+
+  markVNodeDirty(container, suspense, ChoreBits.NODE_DIFF);
 }

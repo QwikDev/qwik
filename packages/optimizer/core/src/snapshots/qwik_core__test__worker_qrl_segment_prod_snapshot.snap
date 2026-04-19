@@ -1,0 +1,51 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { worker$ } from '@qwik.dev/core';
+
+export const runInWorker = worker$(() => 'hello');
+
+============================= src/routes/index.tsx ==
+
+import { workerQrl } from "@qwik.dev/core";
+import { _qrlWithChunk } from "@qwik.dev/core";
+//
+const q_qrl_4294901760 = /*#__PURE__*/ _qrlWithChunk("__QWIK_WORKER_QRL__:./index.tsx_runInWorker_worker_ne8wm4paCLs", ()=>import("./index.tsx_runInWorker_worker_ne8wm4paCLs"), "s_ne8wm4paCLs");
+//
+export const runInWorker = workerQrl(q_qrl_4294901760);
+
+
+Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,cAAc,4BAAuB\"}")
+============================= src/routes/index.tsx_runInWorker_worker_ne8wm4paCLs.tsx (ENTRY POINT)==
+
+export const s_ne8wm4paCLs = ()=>'hello';
+
+
+Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\"6BAGmC,IAAM\"}")
+/*
+{
+  "origin": "src/routes/index.tsx",
+  "name": "s_ne8wm4paCLs",
+  "entry": null,
+  "displayName": "index.tsx_runInWorker_worker",
+  "hash": "ne8wm4paCLs",
+  "canonicalFilename": "index.tsx_runInWorker_worker_ne8wm4paCLs",
+  "path": "src/routes",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "worker$",
+  "captures": false,
+  "loc": [
+    80,
+    93
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

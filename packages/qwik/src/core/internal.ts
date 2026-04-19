@@ -1,4 +1,10 @@
-export { _noopQrl, _noopQrlDEV, _regSymbol } from './shared/qrl/qrl';
+export {
+  _noopQrl,
+  _noopQrlDEV,
+  _qrlWithChunk,
+  _qrlWithChunkDEV,
+  _regSymbol,
+} from './shared/qrl/qrl';
 export type { QRLInternal as _QRLInternal } from './shared/qrl/qrl-class';
 export { createQRL as _createQRL } from './shared/qrl/qrl-class';
 export { qrlToString as _qrlToString } from './shared/serdes/qrl-to-string';

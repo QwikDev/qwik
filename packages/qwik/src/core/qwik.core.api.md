@@ -795,6 +795,12 @@ export function _qrlToString(serializationContext: SerializationContext, qrl: _Q
 // @internal (undocumented)
 export function _qrlToString(serializationContext: SerializationContext, qrl: _QRLInternal | SyncQRLInternal, raw: true): [string, string, string | null];
 
+// @internal (undocumented)
+export const _qrlWithChunk: <T = any>(chunk: string, importer: () => Promise<any>, symbol: string, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
+
+// @internal (undocumented)
+export const _qrlWithChunkDEV: <T = any>(chunk: string, importer: () => Promise<any>, symbol: string, opts: QRLDev, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
+
 // @public @deprecated (undocumented)
 export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 

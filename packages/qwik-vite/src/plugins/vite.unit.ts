@@ -7,7 +7,6 @@ import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vit
 import {
   createBuildWorkerQrlChunkResolver,
   createDevWorkerQrlChunkResolver,
-  deriveBasePathnameFromDevPath,
   QWIK_WORKER_QRL_SENTINEL,
   rewriteWorkerQrlChunkPlaceholders,
 } from './worker-qrl-chunks';
@@ -780,33 +779,28 @@ describe('worker qrl chunk rewrites', () => {
   const workerPlaceholderCode = (importPath: string) =>
     `const chunk = "${QWIK_WORKER_QRL_SENTINEL}${importPath}";`;
 
-  test('derives base pathnames from dev urls and root-relative ids', () => {
+  test('rewrites worker chunk placeholders to dev served qrl urls', () => {
+    const resolver = createDevWorkerQrlChunkResolver('/e2e/src/routes/worker/index.tsx');
+
+    const code = workerPlaceholderCode('./index.tsx_incrementInWorker_worker_abcd.js');
+    const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
+
     assert.equal(
-      deriveBasePathnameFromDevPath(
-        '/e2e/src/components/worker/worker.tsx',
-        normalizePath(resolve(cwd, 'e2e/qwik-e2e/apps/e2e')),
-        normalizePath(resolve(cwd, 'e2e/qwik-e2e/apps/e2e/src/components/worker/worker.tsx'))
-      ),
-      '/e2e/'
+      rewritten,
+      'const chunk = "/e2e/src/routes/worker/index.tsx_incrementInWorker_worker_abcd.js?worker_file&type=module";'
     );
   });
 
-  test('rewrites worker chunk placeholders to dev served urls', () => {
-    const resolver = createDevWorkerQrlChunkResolver('/app/', undefined);
+  test('rewrites worker chunk placeholders to dev served qrl urls with query suffixes', () => {
+    const resolver = createDevWorkerQrlChunkResolver('/e2e/src/routes/worker/index.tsx');
 
-    const code = workerPlaceholderCode('./index_worker_abcd.js');
+    const code = workerPlaceholderCode('./index.tsx_incrementInWorker_worker_abcd.js?v=123');
     const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
 
-    assert.equal(rewritten, 'const chunk = "/app/build/index_worker_abcd.js";');
-  });
-
-  test('rewrites worker chunk placeholders to dev served urls with assetsDir', () => {
-    const resolver = createDevWorkerQrlChunkResolver('/app/', 'public-assets');
-
-    const code = workerPlaceholderCode('./index_worker_abcd.js');
-    const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
-
-    assert.equal(rewritten, 'const chunk = "/app/public-assets/build/index_worker_abcd.js";');
+    assert.equal(
+      rewritten,
+      'const chunk = "/e2e/src/routes/worker/index.tsx_incrementInWorker_worker_abcd.js?worker_file&type=module&v=123";'
+    );
   });
 
   test('rewrites worker chunk placeholders to final bundle files', () => {

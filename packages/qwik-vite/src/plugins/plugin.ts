@@ -23,7 +23,6 @@ import { isVirtualId, isWin, parseId } from './vite-utils';
 import MagicString from 'magic-string';
 import {
   createDevWorkerQrlChunkResolver,
-  deriveBasePathnameFromDevPath,
   rewriteWorkerQrlChunkPlaceholders,
 } from './worker-qrl-chunks';
 
@@ -744,12 +743,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // When the parent file changes, Vite invalidates and re-serves the segment.
       // The custom event will ensure the re-rendering of mounted components, when non-segment files are changed.
       // This is needed to propagate changes from imports that are not QRL parents, for example styles.
-      if (devServer?.hot && parentId && opts.devTools.hmr) {
+      if (devServer?.hot && parentId && opts.devTools.hmr && segment?.ctxName !== 'worker$') {
         const parentUrl = parentId.startsWith(opts.rootDir!)
           ? parentId.slice(opts.rootDir!.length)
           : parentId;
         code +=
-          `\nif (import.meta.hot) {import.meta.hot.accept(()=>{` +
+          `\nif (import.meta.hot && typeof document !== 'undefined') {import.meta.hot.accept(()=>{` +
           `document.dispatchEvent(new CustomEvent('qHmr', {detail: {files:[${JSON.stringify(parentUrl)}], t: document.__hmrT}}));` +
           `});}`;
       }
@@ -879,11 +878,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const newOutput = await optimizer.transformModules(transformOpts);
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       if (devPath) {
-        const devBasePathname = deriveBasePathnameFromDevPath(devPath, opts.rootDir, pathId);
-        const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(
-          devBasePathname,
-          opts.assetsDir
-        );
+        const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(devPath);
         for (const outputModule of newOutput.modules) {
           outputModule.code = rewriteWorkerQrlChunkPlaceholders(
             outputModule.code,
@@ -1054,6 +1049,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   function getQwikBuildModule(isServer: boolean, _target: QwikBuildTarget) {
     const isDev = opts.buildMode === 'development';
+    if (isDev) {
+      return `// @qwik.dev/core/build
+export const isBrowser = /*#__PURE__*/ (() =>
+  typeof window !== 'undefined' &&
+  typeof HTMLElement !== 'undefined' &&
+  !!window.document &&
+  String(HTMLElement).includes('[native code]'))();
+export const isServer = !isBrowser;
+export const isDev = true;
+`;
+    }
+
     return `// @qwik.dev/core/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};

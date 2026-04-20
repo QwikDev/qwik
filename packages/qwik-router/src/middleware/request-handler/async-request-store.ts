@@ -9,7 +9,9 @@ if (isServer) {
   // TODO when we drop cjs support, await this
   import('node:async_hooks')
     .then((module) => {
-      _asyncRequestStore = new module.AsyncLocalStorage();
+      if (module.AsyncLocalStorage) {
+        _asyncRequestStore = new module.AsyncLocalStorage();
+      }
     })
     .catch((err) => {
       console.warn(

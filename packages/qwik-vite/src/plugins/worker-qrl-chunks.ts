@@ -1,20 +1,10 @@
 import type { QwikManifest } from '../types';
+import path from 'node:path';
 
 const QWIK_WORKER_QRL_SENTINEL_NAME = '__QWIK_WORKER_QRL__';
 export const QWIK_WORKER_QRL_SENTINEL = `${QWIK_WORKER_QRL_SENTINEL_NAME}:`;
 
 const QWIK_WORKER_QRL_RE = new RegExp(`${QWIK_WORKER_QRL_SENTINEL}([^"'\\\`\\s]+)`, 'g');
-
-const normalizeChunkPathPrefix = (prefix: string) => {
-  if (!prefix) {
-    return '';
-  }
-  return `${prefix.replace(/\/+$/, '')}/`;
-};
-
-export const getChunkPathPrefix = (prefix: string) => {
-  return `${normalizeChunkPathPrefix(prefix)}build/`;
-};
 
 const joinPublicPath = (basePathname: string, fileName: string) => {
   const base = basePathname.endsWith('/') ? basePathname : `${basePathname}/`;
@@ -63,41 +53,22 @@ export const createBuildWorkerQrlChunkResolver = (manifest: QwikManifest, basePa
   };
 };
 
-export const createDevWorkerQrlChunkResolver = (
-  basePathname: string,
-  assetsDir: string | undefined
-) => {
-  const chunkPathPrefix = getChunkPathPrefix(assetsDir ?? '');
+export const createDevWorkerQrlChunkResolver = (devPath: string) => {
+  const normalizedDevPath = devPath.replace(/\\/g, '/');
+  const parentDir = path.posix.dirname(normalizedDevPath);
 
   return (importPath: string) => {
     const [, relativeFilePath = '', suffix = ''] = /^([^?#]*)(.*)$/.exec(importPath) ?? [];
     const canonicalFilename = relativeFilePath
       .replace(/^\.\//, '')
       .replace(/\.[^./?]+(?:\?.*)?$/, '');
-    return `${joinPublicPath(basePathname, `${chunkPathPrefix}${canonicalFilename}.js`)}${suffix}`;
+    const basePath = joinPublicPath(parentDir, `${canonicalFilename}.js`);
+    if (suffix.startsWith('?')) {
+      return `${basePath}?worker_file&type=module&${suffix.slice(1)}`;
+    }
+    if (suffix.startsWith('#')) {
+      return `${basePath}?worker_file&type=module${suffix}`;
+    }
+    return `${basePath}?worker_file&type=module`;
   };
-};
-
-export const deriveBasePathnameFromDevPath = (
-  devPath: string | undefined,
-  rootDir: string | undefined,
-  pathId: string
-) => {
-  if (!devPath || !rootDir) {
-    return '/';
-  }
-
-  const normalizedRootDir = rootDir.replace(/\\/g, '/');
-  const normalizedPathId = pathId.replace(/\\/g, '/');
-  if (!normalizedPathId.startsWith(normalizedRootDir)) {
-    return '/';
-  }
-
-  const relativePath = normalizedPathId.slice(normalizedRootDir.length).replace(/^\/+/, '');
-  if (!relativePath || !devPath.endsWith(relativePath)) {
-    return '/';
-  }
-
-  const basePathname = devPath.slice(0, devPath.length - relativePath.length) || '/';
-  return basePathname.endsWith('/') ? basePathname : `${basePathname}/`;
 };

@@ -9,7 +9,9 @@ let localAsyncStore: AsyncLocalStorage<string> | undefined;
 if (isServer) {
   import('node:async_hooks')
     .then((module) => {
-      localAsyncStore = new module.AsyncLocalStorage();
+      if (module.AsyncLocalStorage) {
+        localAsyncStore = new module.AsyncLocalStorage();
+      }
     })
     .catch(() => {
       // ignore if AsyncLocalStorage is not available

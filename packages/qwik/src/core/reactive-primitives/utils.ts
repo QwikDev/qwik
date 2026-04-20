@@ -26,7 +26,7 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-execution';
 import type { VNode } from '../shared/vnode/vnode';
 import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
-import { isDev, isServer } from '@qwik.dev/core/build';
+import { isBrowser, isDev } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -88,7 +88,7 @@ export const scheduleEffects = (
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | undefined
 ) => {
-  const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
+  const isRunningOnBrowser = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
   if (effects) {
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription.consumer;
@@ -102,7 +102,7 @@ export const scheduleEffects = (
       } else if (property === EffectProperty.COMPONENT) {
         markVNodeDirty(container!, consumer, ChoreBits.COMPONENT);
       } else if (property === EffectProperty.VNODE) {
-        if (isBrowser) {
+        if (isRunningOnBrowser) {
           setNodeDiffPayload(consumer as VNode, signal as Signal);
           markVNodeDirty(container!, consumer, ChoreBits.NODE_DIFF);
         }
@@ -115,7 +115,7 @@ export const scheduleEffects = (
             scopedStyleIdPrefix: data.$scopedStyleIdPrefix$,
             value: signal as SignalImpl,
           };
-          if (isBrowser) {
+          if (isRunningOnBrowser) {
             setNodePropData(consumer as VNode, property, payload);
           } else {
             const node = consumer as ISsrNode;

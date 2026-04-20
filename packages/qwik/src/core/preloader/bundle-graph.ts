@@ -1,3 +1,4 @@
+import { isServerPlatform } from '../shared/platform/platform';
 import { createMacroTask } from '../shared/platform/next-tick';
 import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
 import { adjustProbabilities, bundles, shouldResetFactor, nextTriggerMacroTask } from './queue';
@@ -6,6 +7,7 @@ import { BundleImportState_None, BundleImportState_Alias } from './types';
 
 export let base: string | undefined;
 export let graph: BundleGraph;
+const isRunningOnBrowser = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
 
 const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {
@@ -77,7 +79,7 @@ export const loadBundleGraph = (
       config.$maxIdlePreloads$ = opts['P'] as number;
     }
   }
-  if (!isBrowser || basePath == null) {
+  if (!isRunningOnBrowser || basePath == null) {
     return;
   }
   base = basePath;

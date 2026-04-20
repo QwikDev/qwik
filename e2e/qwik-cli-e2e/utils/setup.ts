@@ -8,6 +8,10 @@ const packageCfg = {
     packagePath: 'packages/qwik',
     distPath: 'packages/qwik/dist',
   },
+  '@qwik.dev/optimizer': {
+    packagePath: 'packages/optimizer',
+    distPath: 'packages/optimizer/dist',
+  },
   '@qwik.dev/router': {
     packagePath: 'packages/qwik-router',
     distPath: 'packages/qwik-router/lib',

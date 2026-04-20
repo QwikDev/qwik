@@ -5,7 +5,6 @@ import { assert, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import {
   assertHostUnused,
   DEFAULT_TIMEOUT,
-  getPageHtml,
   killAllRegisteredProcesses,
   log,
   promisifiedTreeKill,

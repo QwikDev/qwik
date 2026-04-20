@@ -25,8 +25,8 @@ const runtimeImportMeta = import.meta as RuntimeImportMetaLike;
 const nodeWorkerThreadsModuleId = 'node:worker_threads';
 const nodeFsModuleId = 'node:fs';
 
-let resolvedNodeWorkerUrl: URL | null | undefined;
-let resolvedNodeDistUrl: URL | null | undefined;
+let resolvedNodeWorkerUrl: URL | null | undefined = undefined;
+let resolvedNodeDistUrl: URL | null | undefined = undefined;
 
 const getNodeWorkerConstructor = () => {
   const workerThreadsModule = runtimeGlobals.process?.getBuiltinModule?.(

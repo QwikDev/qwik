@@ -1,11 +1,11 @@
-import { isServer } from '@qwik.dev/core/build';
+import { isBrowser } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import { isServerPlatform } from '../shared/platform/platform';
 
-export const isBrowser = qTest ? !isServerPlatform() : !isServer;
+export const isRunningOnBrowser = qTest ? !isServerPlatform() : isBrowser;
 
 // Browser-specific setup
-export const doc = isBrowser ? document : undefined!;
+export const doc = isRunningOnBrowser ? document : undefined!;
 
 export const config = {
   $DEBUG$: false,
@@ -14,7 +14,7 @@ export const config = {
 
 // Determine which rel attribute to use based on browser support
 export const rel =
-  isBrowser && doc.createElement('link').relList?.supports?.('modulepreload')
+  isRunningOnBrowser && doc.createElement('link').relList?.supports?.('modulepreload')
     ? 'modulePreload'
     : 'preload';
 

@@ -1,0 +1,96 @@
+---
+title: Qwik Testing Library | Integrations
+keywords: 'testing, unit test, jest'
+contributors:
+  - ianlet
+updated_at: '2024-09-29T12:27:45Z'
+created_at: '2024-09-29T12:27:45Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# Qwik Testing Library
+
+⚡ Simple and complete Qwik DOM testing utilities that encourage good testing practices.
+
+[Qwik Testing Library][qwik-testing-library] is a lightweight library for testing Qwik
+components. It provides functions on top of [Qwik][qwik] and
+[DOM Testing Library][dom-testing-library] so you can mount Qwik components and query their
+rendered output in the DOM. Its primary guiding principle is:
+
+> [The more your tests resemble the way your software is used, the more
+> confidence they can give you.][guiding-principle]
+
+Note that because [Vite](https://vitejs.dev/) is used by default for Qwik projects, the Qwik Testing Library
+integration was configured to run tests with [Vitest][vitest].
+
+[qwik]: https://qwik.dev
+[dom-testing-library]: https://github.com/testing-library/dom-testing-library
+[qwik-testing-library]: https://github.com/ianlet/qwik-testing-library
+[guiding-principle]: https://twitter.com/kentcdodds/status/977018512689455106
+[vite]: https://vitejs.dev
+[vitest]: https://vitest.dev
+
+## Usage
+
+You can add Qwik Testing Library easily by using the following Qwik starter script:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add testing-library
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add testing-library
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add testing-library
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add testing-library
+```
+</span>
+</PackageManagerTabs>
+
+After running the command, qwik-testing-library will be installed, configured, and a new component will be added to
+your project.
+
+The component will be added to the `src/components/example` directory along with a new unit test
+named `example. spec.tsx`.
+
+```tsx title="example.spec.tsx"
+// import qwik-testing methods
+import { screen, render, waitFor } from "@noma.to/qwik-testing-library";
+// import the userEvent methods to interact with the DOM
+import { userEvent } from "@testing-library/user-event";
+// import the component to be tested
+import { ExampleTest } from "./example";
+
+// describe the test suite
+describe("<ExampleTest />", () => {
+  // describe the test case
+  it("should increment the counter", async () => {
+    // setup user event
+    const user = userEvent.setup();
+    // render the component into the DOM
+    await render(<ExampleTest />);
+
+    // retrieve the 'increment count' button
+    const incrementBtn = screen.getByRole("button", {
+      name: /increment counter/i,
+    });
+    // click the button twice
+    await user.click(incrementBtn);
+    await user.click(incrementBtn);
+
+    // assert that the counter is now 2
+    expect(await screen.findByText(/count:2/i)).toBeInTheDocument();
+  });
+});
+```

@@ -12,11 +12,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/app/routes/index.tsx',
           code: 'export default component$(() => null);',
-          importedIdResolutions: [
-            { id: '/app/shared.ts', external: false },
-            { id: '/node_modules/@qwik.dev/core/index.mjs', external: false },
-          ],
-          dynamicallyImportedIdResolutions: [{ id: '/app/lazy.ts', external: false }],
+          importedIds: ['/app/shared.ts', '/node_modules/@qwik.dev/core/index.mjs'],
+          dynamicallyImportedIds: ['/app/lazy.ts'],
         },
       ],
       [
@@ -24,8 +21,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/app/layout.tsx',
           code: 'export default component$(() => null);',
-          importedIdResolutions: [{ id: '/app/shared.ts', external: false }],
-          dynamicallyImportedIdResolutions: [],
+          importedIds: ['/app/shared.ts'],
+          dynamicallyImportedIds: [],
         },
       ],
       [
@@ -33,11 +30,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/app/shared.ts',
           code: 'export const shared = true;',
-          importedIdResolutions: [
-            { id: resolvedVirtualId, external: false },
-            { id: 'node:fs', external: true },
-          ],
-          dynamicallyImportedIdResolutions: [],
+          importedIds: [resolvedVirtualId],
+          dynamicallyImportedIds: [],
         },
       ],
       [
@@ -45,8 +39,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/app/lazy.ts',
           code: 'export const fn = serverQrl(() => null);',
-          importedIdResolutions: [],
-          dynamicallyImportedIdResolutions: [],
+          importedIds: [],
+          dynamicallyImportedIds: [],
         },
       ],
       [
@@ -54,8 +48,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/node_modules/@qwik.dev/core/index.mjs',
           code: 'export {};',
-          importedIdResolutions: [],
-          dynamicallyImportedIdResolutions: [],
+          importedIds: [],
+          dynamicallyImportedIds: [],
         },
       ],
       [
@@ -63,8 +57,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/app/plugin.ts',
           code: 'export const pluginFn = serverQrl(() => null);',
-          importedIdResolutions: [],
-          dynamicallyImportedIdResolutions: [],
+          importedIds: [],
+          dynamicallyImportedIds: [],
         },
       ],
     ]);

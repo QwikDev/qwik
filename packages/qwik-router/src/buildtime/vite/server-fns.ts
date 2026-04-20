@@ -50,7 +50,7 @@ export async function collectServerFnModuleIds(
     const resolvedImports = moduleInfo.importedIds.concat(moduleInfo.dynamicallyImportedIds);
     for (let i = 0; i < resolvedImports.length; i++) {
       const resolvedImport = resolvedImports[i];
-      if (!resolvedImport && !seenModuleIds.has(resolvedImport)) {
+      if (!seenModuleIds.has(resolvedImport)) {
         queuedModuleIds.add(resolvedImport);
       }
     }

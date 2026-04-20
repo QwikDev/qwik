@@ -26,7 +26,6 @@
     "unist-util-visit": "^5.0.0",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
-    "vite": "8.0.9",
     "vite-imagetools": "10.0.0",
     "yaml": "^2.8.2",
     "zod": "^3.25.48"
@@ -40,7 +39,8 @@
     "@types/set-cookie-parser": "2.4.10",
     "tsm": "2.3.0",
     "typescript": "5.9.3",
-    "uvu": "0.5.6"
+    "uvu": "0.5.6",
+    "vite": "8.0.9"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -169,7 +169,7 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "@qwik.dev/core": "workspace:^",
-    "vite": ">=6 <9"
+    "vite": ">=6"
   },
   "publishConfig": {
     "access": "public"

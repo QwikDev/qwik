@@ -11,7 +11,7 @@
     "syncpack": {
       "versionGroups": [
         {
-          "label": "Only accept vite 5 or higher",
+          "label": "Only accept vite 6 or higher",
           "dependencyTypes": [
             "prod",
             "peer"
@@ -19,7 +19,7 @@
           "dependencies": [
             "vite"
           ],
-          "pinVersion": ">=6 <9"
+          "pinVersion": ">=6"
         },
         {
           "label": "optimizer needs exact workspace version",
@@ -169,7 +169,7 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.56.1",
     "vfile": "6.0.3",
-    "vite": "8.0.6",
+    "vite": "8.0.9",
     "vite-imagetools": "10.0.0",
     "vite-plugin-dts": "4.5.4",
     "vite-tsconfig-paths": "6.0.4",

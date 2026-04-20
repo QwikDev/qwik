@@ -10,7 +10,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "typescript": "5.9.3",
-    "vite": "8.0.6"
+    "vite": "8.0.9"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -38,7 +38,7 @@
     "@types/react-dom": "^18",
     "react": "^18",
     "react-dom": "^18",
-    "vite": ">=6 <9"
+    "vite": ">=6"
   },
   "publishConfig": {
     "access": "public"

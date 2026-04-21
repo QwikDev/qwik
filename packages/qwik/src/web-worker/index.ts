@@ -1,3 +1,3 @@
 /** @packageDocumentation */
 
-export * from './worker-qrl';
+export { worker$, workerQrl, type WorkerConstructorQRL, type WorkerFunction } from './worker-qrl';

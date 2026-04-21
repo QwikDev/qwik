@@ -3,7 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { rmSync } from 'node:fs';
 import { build, type Plugin } from 'vite';
 import { writeSubmodulePackageJson } from './package-json.ts';
-import { copyFile, emptyDir, type BuildConfig } from './util.ts';
+import { copyFile, emptyDir, type BuildConfig, writeFile } from './util.ts';
 
 /** Builds @qwik.dev/core/worker */
 export async function submoduleWorker(config: BuildConfig) {
@@ -28,7 +28,7 @@ export async function submoduleWorker(config: BuildConfig) {
       lib: {
         entry: join(srcDir, 'index.ts'),
         formats: ['es'],
-        fileName: () => 'index.qwik.mjs',
+        fileName: () => 'index.mjs',
       },
       rollupOptions: {
         external: (id) =>
@@ -46,12 +46,33 @@ export async function submoduleWorker(config: BuildConfig) {
   await copyFile(join(srcDir, 'worker.js'), join(distDir, 'worker.js'));
   await copyFile(join(srcDir, 'worker.node.js'), join(distDir, 'worker.node.js'));
   await copyFile(join(srcDir, 'worker.shared.js'), join(distDir, 'worker.shared.js'));
+  await writeWorkerTypes(distDir);
   await writeSubmodulePackageJson(distDir, '@qwik.dev/core/worker', config.distVersion, {
-    main: 'index.qwik.mjs',
-    qwik: 'index.qwik.mjs',
+    main: 'index.mjs',
+    types: 'index.d.mts',
+    qwik: 'index.mjs',
   });
 
   console.log('🧵', submodule);
+}
+
+async function writeWorkerTypes(distDir: string) {
+  await writeFile(
+    join(distDir, 'index.d.mts'),
+    `import type { QRL } from '@qwik.dev/core';
+
+export interface WorkerFunction {
+  (...args: any[]): any;
+}
+
+export interface WorkerConstructorQRL {
+  <T extends WorkerFunction>(fnQrl: QRL<T>): QRL<T>;
+}
+
+export declare const workerQrl: WorkerConstructorQRL;
+export declare const worker$: <T extends WorkerFunction>(qrl: T) => QRL<T>;
+`
+  );
 }
 
 function preserveWorkerImports(): Plugin {

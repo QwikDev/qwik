@@ -1,5 +1,4 @@
 import type { QwikManifest } from '../types';
-import path from 'node:path';
 
 const QWIK_WORKER_QRL_SENTINEL_NAME = '__QWIK_WORKER_QRL__';
 export const QWIK_WORKER_QRL_SENTINEL = `${QWIK_WORKER_QRL_SENTINEL_NAME}:`;
@@ -9,6 +8,18 @@ const QWIK_WORKER_QRL_RE = new RegExp(`${QWIK_WORKER_QRL_SENTINEL}([^"'\\\`\\s]+
 const joinPublicPath = (basePathname: string, fileName: string) => {
   const base = basePathname.endsWith('/') ? basePathname : `${basePathname}/`;
   return `${base}${fileName}`.replace(/\/{2,}/g, '/');
+};
+
+const posixDirname = (path: string) => {
+  const normalized = path.replace(/\/+$/, '');
+  const slashIndex = normalized.lastIndexOf('/');
+  if (slashIndex === -1) {
+    return '.';
+  }
+  if (slashIndex === 0) {
+    return '/';
+  }
+  return normalized.slice(0, slashIndex);
 };
 
 const resolveBuildChunkPublicPath = (basePathname: string, fileName: string) => {
@@ -55,7 +66,7 @@ export const createBuildWorkerQrlChunkResolver = (manifest: QwikManifest, basePa
 
 export const createDevWorkerQrlChunkResolver = (devPath: string) => {
   const normalizedDevPath = devPath.replace(/\\/g, '/');
-  const parentDir = path.posix.dirname(normalizedDevPath);
+  const parentDir = posixDirname(normalizedDevPath);
 
   return (importPath: string) => {
     const [, relativeFilePath = '', suffix = ''] = /^([^?#]*)(.*)$/.exec(importPath) ?? [];

@@ -111,8 +111,8 @@
       "import": "./dist/testing/index.mjs"
     },
     "./worker": {
-      "types": "./dist/worker/index.d.ts",
-      "import": "./dist/worker/index.qwik.mjs"
+      "types": "./worker.d.ts",
+      "import": "./dist/worker/index.mjs"
     },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",

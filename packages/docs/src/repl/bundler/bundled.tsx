@@ -8,6 +8,10 @@ import qCoreMjs from '../../../node_modules/@qwik.dev/core/dist/core.mjs?raw-sou
 import qViteMjs from '../../../node_modules/@qwik.dev/core/dist/optimizer.mjs?raw-source';
 import qPreloaderMjs from '../../../node_modules/@qwik.dev/core/dist/preloader.mjs?raw-source';
 import qHandlersMjs from '../../../node_modules/@qwik.dev/core/handlers.mjs?raw-source';
+import qWorkerMjs from '../../../node_modules/@qwik.dev/core/dist/worker/index.mjs?raw-source';
+import qWorkerJs from '../../../node_modules/@qwik.dev/core/dist/worker/worker.js?raw-source';
+import qWorkerNodeJs from '../../../node_modules/@qwik.dev/core/dist/worker/worker.node.js?raw-source';
+import qWorkerSharedJs from '../../../node_modules/@qwik.dev/core/dist/worker/worker.shared.js?raw-source';
 // we use the debug version for the repl so it's understandable
 import qQwikLoaderJs from '../../../node_modules/@qwik.dev/core/dist/qwikloader.debug.js?raw-source';
 import qServerMjs from '../../../node_modules/@qwik.dev/core/dist/server.mjs?raw-source';
@@ -67,6 +71,10 @@ const qwikUrls: PkgUrls[string] = {
   '/dist/server.mjs': qServerMjs,
   '/dist/server.d.ts': qServerDts,
   '/dist/preloader.mjs': qPreloaderMjs,
+  '/dist/worker/index.mjs': qWorkerMjs,
+  '/dist/worker/worker.js': qWorkerJs,
+  '/dist/worker/worker.node.js': qWorkerNodeJs,
+  '/dist/worker/worker.shared.js': qWorkerSharedJs,
   '/dist/qwikloader.js': qQwikLoaderJs,
   '/bindings/qwik.wasm.mjs': qWasmMjs,
   '/bindings/qwik_wasm_bg.wasm': qWasmBinUrl,
@@ -102,6 +110,10 @@ export const getDeps = (qwikVersion: string) => {
       `/bindings/qwik_wasm_bg.wasm`,
       `/dist/qwikloader.js`,
       `/dist/preloader.mjs`,
+      `/dist/worker/index.mjs`,
+      `/dist/worker/worker.js`,
+      `/dist/worker/worker.node.js`,
+      `/dist/worker/worker.shared.js`,
       '/handlers.mjs',
     ]) {
       out[QWIK_PKG_NAME_V1][p] = getNpmCdnUrl(

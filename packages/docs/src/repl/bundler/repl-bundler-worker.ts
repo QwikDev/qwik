@@ -188,7 +188,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
           result.transformedModules = t;
         },
       }),
-      replResolver(deps, { srcInputs, buildMode }, 'client'),
+      replResolver(deps, { srcInputs, buildMode, replId }, 'client'),
       replMinify(buildMode),
     ],
     onwarn,
@@ -228,7 +228,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         entryStrategy,
         experimental: ['suspense'],
       }),
-      replResolver(deps, { srcInputs, buildMode }, 'ssr'),
+      replResolver(deps, { srcInputs, buildMode, replId }, 'ssr'),
       replMinify(buildMode),
     ],
     onwarn,

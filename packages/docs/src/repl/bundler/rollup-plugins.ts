@@ -27,7 +27,7 @@ export const definesPlugin = (defines: Record<string, string>): Plugin => {
 
 export const replResolver = (
   deps: PkgUrls,
-  options: Pick<ReplInputOptions, 'srcInputs' | 'buildMode'>,
+  options: Pick<ReplInputOptions, 'srcInputs' | 'buildMode' | 'replId'>,
   target: 'client' | 'ssr'
 ): Plugin => {
   const srcInputs = options.srcInputs;
@@ -63,6 +63,16 @@ export const replResolver = (
       if (id.startsWith('/qwik/')) {
         return id;
       }
+      if (id.startsWith(QWIK_WORKER_URL_PREFIX)) {
+        return id;
+      }
+      if (id.endsWith('?worker&url')) {
+        const workerId = id.slice(0, -'?worker&url'.length);
+        const resolved = resolveRelativeFileId(workerId, importer);
+        if (resolved?.startsWith('/qwik/')) {
+          return `${QWIK_WORKER_URL_PREFIX}${resolved}`;
+        }
+      }
       // Replace node: with modules that throw on import
       if (id.startsWith('node:')) {
         return id;
@@ -88,6 +98,9 @@ export const replResolver = (
         if (pkgName === '/server') {
           return resolveQwik('/dist/server.mjs');
         }
+        if (pkgName === '/worker') {
+          return resolveQwik('/dist/worker/index.mjs');
+        }
         if (pkgName.includes('/preloader')) {
           return resolveQwik('/dist/preloader.mjs');
         }
@@ -100,12 +113,10 @@ export const replResolver = (
       }
       // Simple relative file resolution
       if (/^[./]/.test(id)) {
-        const fileId =
-          id.startsWith('.') && importer
-            ? (importer.replace(/\/[^/]+$/, '') + '/' + id)
-                .replace(/\/\.\//g, '/')
-                .replace(/\/[^/]+\/\.\.\//g, '/')
-            : id;
+        const fileId = resolveRelativeFileId(id, importer) ?? id;
+        if (fileId.startsWith('/qwik/')) {
+          return fileId;
+        }
         const extensions = ['', '.tsx', '.ts', '.jsx', '.js'];
         for (const ext of extensions) {
           const path = getSrcPath(fileId + ext);
@@ -123,6 +134,19 @@ export const replResolver = (
       }
       if (id.startsWith('node:')) {
         return `throw new Error('Module "${id}" is not available in the REPL environment.');`;
+      }
+      if (id.startsWith(QWIK_WORKER_URL_PREFIX)) {
+        if (target === 'ssr') {
+          return `export default '';`;
+        }
+        const workerId = id.slice(QWIK_WORKER_URL_PREFIX.length);
+        const fileName = workerId.split('/').pop()!;
+        const referenceId = this.emitFile({
+          type: 'chunk',
+          id: workerId,
+          fileName,
+        });
+        return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
       }
       if (id.startsWith('/qwik/')) {
         const path = id.slice('/qwik'.length);
@@ -152,6 +176,17 @@ export const replResolver = (
     },
   };
   return plugin;
+};
+
+const QWIK_WORKER_URL_PREFIX = '\0repl-qwik-worker-url:';
+
+const resolveRelativeFileId = (id: string, importer?: string) => {
+  if (!id.startsWith('.') || !importer) {
+    return id;
+  }
+  return (importer.replace(/\/[^/]+$/, '') + '/' + id)
+    .replace(/\/\.\//g, '/')
+    .replace(/\/[^/]+\/\.\.\//g, '/');
 };
 
 export const replCss = (options: Pick<ReplInputOptions, 'srcInputs'>): Plugin => {

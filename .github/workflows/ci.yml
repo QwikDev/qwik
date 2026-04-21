@@ -1168,6 +1168,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Validate optimizer release metadata
+        if: github.event_name == 'pull_request'
+        run: pnpm release.guard-optimizer
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # Do this before other release steps to avoid
       # publishing temporary files
       - name: Create Release Pull Request or Publish to npm

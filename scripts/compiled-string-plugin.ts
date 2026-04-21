@@ -9,7 +9,6 @@ const isCompiledStringId = (id: string) => /[?&]compiled-string/.test(id);
  */
 export function compiledStringPlugin(): Plugin {
   let devServer: any;
-  const originals = new Map<string, string>();
 
   return {
     name: 'compiled-string-plugin',
@@ -26,25 +25,6 @@ export function compiledStringPlugin(): Plugin {
           const cleanId = id.replace(/([?&])compiled-string/, '$1').replace(/[?&]$/, '');
           const resolved = await this.resolve(cleanId, importer, { skipSelf: true });
           if (resolved) {
-            /**
-             * Note: we load the code here instead of in the load hook to prevent a bug in Vite when
-             * `rollupOptions.maxParallelFileOps=1`. See
-             * https://github.com/vitejs/vite/issues/20775
-             */
-            let code: string | null;
-            if (devServer) {
-              // in dev mode, you need to use the dev server to transform the request
-              const transformResult = await devServer.transformRequest(resolved.id);
-              code = transformResult?.code;
-              this.addWatchFile(resolved.id);
-            } else {
-              const loaded = await this.load({ id: resolved.id });
-              code = loaded.code;
-            }
-            if (!code) {
-              throw new Error(`compiled-string: Unable to load code for ${resolved.id}`);
-            }
-            originals.set(resolved.id, code);
             return `virtual:compiled-string:${resolved.id}`;
           }
         } else if (id.startsWith('virtual:compiled-string:')) {
@@ -59,9 +39,18 @@ export function compiledStringPlugin(): Plugin {
       async handler(id) {
         if (id.startsWith('virtual:compiled-string:')) {
           const originalId = id.slice('virtual:compiled-string:'.length);
-          const code = originals.get(originalId);
+          let code: string | null | undefined;
+          if (devServer) {
+            // in dev mode, you need to use the dev server to transform the request
+            const transformResult = await devServer.transformRequest(originalId);
+            code = transformResult?.code;
+            this.addWatchFile(originalId);
+          } else {
+            const loaded = await this.load({ id: originalId, moduleSideEffects: true });
+            code = loaded.code;
+          }
           if (!code) {
-            throw new Error(`compiled-string: Unable to retrieve loaded code for ${originalId}`);
+            throw new Error(`compiled-string: Unable to load code for ${originalId}`);
           }
           const minified = await minify(code);
           if (!minified.code) {

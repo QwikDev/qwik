@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe.only('worker$', () => {
+test.describe('worker$', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/worker');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));

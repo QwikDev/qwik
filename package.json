@@ -235,7 +235,7 @@
     "lint.syncpack": "syncpack list-mismatches",
     "preinstall": "npx only-allow pnpm",
     "prepare": "simple-git-hooks",
-    "pack.local-qwik-core": "node --require ./scripts/runBefore.ts scripts/pack-local-qwik-core.ts",
+    "pack.core": "node --require ./scripts/runBefore.ts scripts/pack-local-qwik-core.ts",
     "prettier.fix": "prettier --cache --write .",
     "qwik-push-build-repos": "node --require ./scripts/runBefore.ts ./scripts/qwik-push-build-repos.ts",
     "release": "changeset publish",

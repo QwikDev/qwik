@@ -1,22 +1,19 @@
 import type { Rollup } from 'vite';
 import type { RoutingContext } from '../types';
 
-type ServerFnModuleInfo = Pick<
-  Rollup.ModuleInfo,
-  'code' | 'dynamicallyImportedIds' | 'id' | 'importedIds'
->;
-
+export type ServerFnPluginContext = Pick<Rollup.PluginContext, 'resolve' | 'load'>;
+export type ServerFnRoutingContext = Pick<RoutingContext, 'layouts' | 'routes' | 'serverPlugins'>;
 export async function collectServerFnModuleIds(
-  ctx: Pick<RoutingContext, 'layouts' | 'routes' | 'serverPlugins'>,
+  routingContext: ServerFnRoutingContext,
   resolvedVirtualId: string,
-  loadModule: (id: string) => Promise<ServerFnModuleInfo>
+  pluginContext: ServerFnPluginContext
 ) {
   const serverFnModules = new Set<string>();
   const queuedModuleIds = new Set<string>();
   const seenModuleIds = new Set<string>();
-  const routes = ctx.routes;
-  const layouts = ctx.layouts;
-  const serverPlugins = ctx.serverPlugins;
+  const routes = routingContext.routes;
+  const layouts = routingContext.layouts;
+  const serverPlugins = routingContext.serverPlugins;
 
   for (let i = 0; i < routes.length; i++) {
     const route = routes[i];
@@ -42,15 +39,24 @@ export async function collectServerFnModuleIds(
     }
     seenModuleIds.add(id);
 
-    const moduleInfo = await loadModule(id);
-    if (moduleInfo.code?.includes('serverQrl(')) {
+    const resolved = await pluginContext.resolve(id, undefined, { skipSelf: true });
+    if (!resolved || resolved.external) {
+      continue;
+    }
+
+    const moduleInfo = await pluginContext.load({ id: resolved.id });
+    if (moduleInfo.code == null) {
+      continue;
+    }
+
+    if (moduleInfo.code.includes('serverQrl(')) {
       serverFnModules.add(moduleInfo.id);
     }
 
     const resolvedImports = moduleInfo.importedIds.concat(moduleInfo.dynamicallyImportedIds);
     for (let i = 0; i < resolvedImports.length; i++) {
       const resolvedImport = resolvedImports[i];
-      if (!seenModuleIds.has(resolvedImport)) {
+      if (resolvedImport && !seenModuleIds.has(resolvedImport)) {
         queuedModuleIds.add(resolvedImport);
       }
     }

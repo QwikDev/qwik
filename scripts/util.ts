@@ -16,7 +16,7 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Plugin as RollupPlugin } from 'rollup';
+import type { Plugin as RolldownPlugin } from 'rolldown';
 import { minify, type MinifyOptions } from 'terser';
 import { promisify } from 'util';
 import { readPackageJson } from './package-json.ts';
@@ -160,7 +160,7 @@ export function loadConfig(args: string[] = []): BuildConfig {
   };
 }
 
-export function terser(opts: MinifyOptions): RollupPlugin {
+export function terser(opts: MinifyOptions): RolldownPlugin {
   return {
     name: 'terser',
     async generateBundle(_, bundle) {

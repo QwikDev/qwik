@@ -4,7 +4,7 @@ import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
 import { ExperimentalFeatures, createQwikPlugin } from './plugin';
 import { qwikVite } from './vite';
-import type { ResolvedId } from 'rollup';
+import type { ResolvedId } from 'rolldown';
 
 const cwd = process.cwd();
 

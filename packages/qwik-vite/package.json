@@ -4,7 +4,7 @@
     "image-size": "1.2.1",
     "rolldown": "1.0.0-rc.16",
     "rollup": "4.60.2",
-    "vite": "8.0.3"
+    "vite": "8.0.9"
   },
   "private": true
 }

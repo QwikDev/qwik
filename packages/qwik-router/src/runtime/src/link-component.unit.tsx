@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { component$ } from '@qwik.dev/core';
 import { QwikRouterMockProvider } from '@qwik.dev/router';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { Link, type LinkProps } from './link-component';
+import { Link, type PrefetchStrategy } from './link-component';
 
 const { loadClientDataMock, preloadRouteBundlesMock, getClientNavPathMock } = vi.hoisted(() => ({
   loadClientDataMock: vi.fn(),
@@ -29,311 +29,135 @@ vi.mock('./utils.ts', async (importOriginal) => {
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
-const originalWindow = (globalThis as any).window;
-const originalMatchMedia = (globalThis as any).matchMedia;
-const createMatchMedia = () => (query: string) => ({
-  matches: false,
-  media: query,
-  onchange: null,
-  addListener: () => {},
-  removeListener: () => {},
-  addEventListener: () => {},
-  removeEventListener: () => {},
-  dispatchEvent: () => false,
-});
-
-const setPointerType = (isCoarsePointer: boolean) => {
-  const baseMatchMedia = createMatchMedia();
-  const matchMedia = (query: string) => ({
-    ...baseMatchMedia(query),
-    matches: query === '(pointer: coarse)' ? isCoarsePointer : false,
-  });
-
-  (globalThis as any).window = {
-    ...(originalWindow || {}),
-    matchMedia,
-  };
-  (globalThis as any).matchMedia = matchMedia;
+type LinkPrefetchProps = {
+  prefetch?: boolean | 'js';
+  prefetchBundle?: PrefetchStrategy;
+  prefetchData?: PrefetchStrategy;
 };
 
-describe('link prefetch behavior', () => {
-  afterEach(() => {
-    delete (globalThis as any).__LINK_DATA_PREFETCH_STRATEGY__;
-  });
-
-  it('falls back to the default strategies when no global options are configured', async () => {
-    vi.resetModules();
-    const { getLinkDataPrefetchStrategy } = await import('./link-component');
-
-    expect(getLinkDataPrefetchStrategy(true)).toEqual(['viewport']);
-    expect(getLinkDataPrefetchStrategy(false)).toEqual(['hover']);
-  });
-
-  it('resolves coarse pointer strategies from the configured global options', async () => {
-    globalThis.__LINK_DATA_PREFETCH_STRATEGY__ = {
-      coarsePointer: ['pointerdown', 'focus'],
-      finePointer: ['hover'],
-    };
-
-    vi.resetModules();
-    const { getLinkDataPrefetchStrategy } = await import('./link-component');
-    const strategy = getLinkDataPrefetchStrategy(true);
-
-    expect(strategy).toEqual(['pointerdown', 'focus']);
-  });
-
-  it('resolves fine pointer strategies from the configured global options', async () => {
-    globalThis.__LINK_DATA_PREFETCH_STRATEGY__ = {
-      coarsePointer: ['viewport'],
-      finePointer: ['hover', 'pointerdown', 'focus'],
-    };
-
-    vi.resetModules();
-    const { getLinkDataPrefetchStrategy } = await import('./link-component');
-    const strategy = getLinkDataPrefetchStrategy(false);
-
-    expect(strategy).toEqual(['hover', 'pointerdown', 'focus']);
-  });
-
-  it('prefers the coarse pointer strategy provided on the link', async () => {
-    globalThis.__LINK_DATA_PREFETCH_STRATEGY__ = {
-      coarsePointer: ['viewport'],
-      finePointer: ['hover'],
-    };
-
-    vi.resetModules();
-    const { getLinkDataPrefetchStrategy } = await import('./link-component');
-    const strategy = getLinkDataPrefetchStrategy(true, {
-      coarsePointer: ['pointerdown', 'focus'],
-      finePointer: ['hover'],
-    });
-
-    expect(strategy).toEqual(['pointerdown', 'focus']);
-  });
-
-  it('prefers the fine pointer strategy provided on the link', async () => {
-    globalThis.__LINK_DATA_PREFETCH_STRATEGY__ = {
-      coarsePointer: ['viewport'],
-      finePointer: ['pointerdown'],
-    };
-
-    vi.resetModules();
-    const { getLinkDataPrefetchStrategy } = await import('./link-component');
-    const strategy = getLinkDataPrefetchStrategy(false, {
-      coarsePointer: ['focus'],
-      finePointer: ['hover', 'focus'],
-    });
-
-    expect(strategy).toEqual(['hover', 'focus']);
-  });
-
-  it('falls back to the configured global strategy when a link overrides only the other pointer type', async () => {
-    globalThis.__LINK_DATA_PREFETCH_STRATEGY__ = {
-      coarsePointer: ['viewport', 'focus'],
-      finePointer: ['hover', 'pointerdown'],
-    };
-
-    vi.resetModules();
-    const { getLinkDataPrefetchStrategy } = await import('./link-component');
-
-    expect(
-      getLinkDataPrefetchStrategy(true, {
-        finePointer: ['hover', 'focus'],
-      })
-    ).toEqual(['viewport', 'focus']);
-    expect(
-      getLinkDataPrefetchStrategy(false, {
-        coarsePointer: ['pointerdown'],
-      })
-    ).toEqual(['hover', 'pointerdown']);
-  });
+const Root = component$((props: LinkPrefetchProps) => {
+  return (
+    <QwikRouterMockProvider>
+      <Link
+        href="/test"
+        prefetch={props.prefetch}
+        prefetchBundle={props.prefetchBundle}
+        prefetchData={props.prefetchData}
+      >
+        Test Link
+      </Link>
+    </QwikRouterMockProvider>
+  );
 });
+
+const renderLink = async (
+  render: typeof ssrRenderToDom | typeof domRender,
+  props: LinkPrefetchProps = {}
+) => {
+  const { document } = await render(<Root {...props} />, {
+    debug,
+  });
+  if (render === ssrRenderToDom) {
+    await trigger(document.body, 'a', 'qvisible');
+  }
+  const anchor = document.querySelector('a');
+  expect(anchor).not.toBeNull();
+  return { document, anchor: anchor! };
+};
 
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: link component', ({ render }) => {
   beforeEach(() => {
-    setPointerType(false);
+    getClientNavPathMock.mockClear();
+    getClientNavPathMock.mockReturnValue('http://localhost/test');
     loadClientDataMock.mockClear();
     preloadRouteBundlesMock.mockClear();
   });
 
-  afterEach(() => {
-    if (typeof originalWindow === 'undefined') {
-      delete (globalThis as any).window;
-    } else {
-      (globalThis as any).window = originalWindow;
-    }
-    if (typeof originalMatchMedia === 'undefined') {
-      delete (globalThis as any).matchMedia;
-    } else {
-      (globalThis as any).matchMedia = originalMatchMedia;
-    }
-  });
-
   it('show render Link component with default prefetch strategy', async () => {
-    const Root = component$(() => {
-      return (
-        <QwikRouterMockProvider>
-          <Link href="/test">Test Link</Link>
-        </QwikRouterMockProvider>
-      );
-    });
-    const { document } = await render(<Root />, {
-      debug,
-    });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'a', 'qvisible');
-    }
-    const anchor = document.querySelector('a');
+    const { anchor } = await renderLink(render);
 
-    expect(anchor).toBeDefined();
     expect(anchor?.getAttribute('href')).toBe('http://localhost/test');
+    expect(loadClientDataMock).not.toHaveBeenCalled();
+    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
   });
 
-  it('prefetches route data on hover for fine pointers by default', async () => {
-    const Root = component$(() => {
-      return (
-        <QwikRouterMockProvider>
-          <Link href="/test">Test Link</Link>
-        </QwikRouterMockProvider>
-      );
-    });
-    const { document } = await render(<Root />, {
-      debug,
-    });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'a', 'qvisible');
-    }
-    const anchor = document.querySelector('a');
+  it('prefetches route data on intent', async () => {
+    const { document, anchor } = await renderLink(render, { prefetchData: 'intent' });
 
-    await trigger(document.body, anchor, 'focus');
     await trigger(document.body, anchor, 'pointerdown');
+    await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
     expect(loadClientDataMock).not.toHaveBeenCalled();
 
-    await trigger(document.body, anchor, 'mouseover');
+    await trigger(document.body, anchor, 'pointerenter');
+    await trigger(document.body, anchor, 'focus');
 
-    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
+    expect(loadClientDataMock).toHaveBeenCalledTimes(2);
     expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
       preloadRouteBundles: false,
       isPrefetch: true,
     });
     expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+    expect(loadClientDataMock.mock.calls[1][0].pathname).toBe('/test');
   });
 
-  it('prefetches route data on focus when configured for fine pointers', async () => {
-    const prefetchDataStrategy: LinkProps['prefetchDataStrategy'] = {
-      finePointer: ['focus'],
-    };
-    const Root = component$(() => {
-      return (
-        <QwikRouterMockProvider>
-          <Link href="/test" prefetchDataStrategy={prefetchDataStrategy}>
-            Test Link
-          </Link>
-        </QwikRouterMockProvider>
-      );
-    });
-    const { document } = await render(<Root />, {
-      debug,
-    });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'a', 'qvisible');
-    }
-    const anchor = document.querySelector('a');
+  it('prefetches route data on commit', async () => {
+    const { document, anchor } = await renderLink(render, { prefetchData: 'commit' });
 
-    await trigger(document.body, anchor, 'mouseover');
-    await trigger(document.body, anchor, 'pointerdown');
-    expect(loadClientDataMock).not.toHaveBeenCalled();
-
+    await trigger(document.body, anchor, 'pointerenter');
     await trigger(document.body, anchor, 'focus');
-
-    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
-  });
-
-  it('prefetches route data on pointerdown and focus when configured for coarse pointers', async () => {
-    setPointerType(true);
-    const prefetchDataStrategy: LinkProps['prefetchDataStrategy'] = {
-      coarsePointer: ['pointerdown', 'focus'],
-      finePointer: ['hover'],
-    };
-    const Root = component$(() => {
-      return (
-        <QwikRouterMockProvider>
-          <Link href="/test" prefetchDataStrategy={prefetchDataStrategy}>
-            Test Link
-          </Link>
-        </QwikRouterMockProvider>
-      );
-    });
-    const { document } = await render(<Root />, {
-      debug,
-    });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'a', 'qvisible');
-    }
-    const anchor = document.querySelector('a');
-
-    await trigger(document.body, anchor, 'mouseover');
+    await trigger(document.body, anchor, 'keydown', { key: 'Space' });
     expect(loadClientDataMock).not.toHaveBeenCalled();
 
     await trigger(document.body, anchor, 'pointerdown');
-    await trigger(document.body, anchor, 'focus');
+    await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
 
     expect(loadClientDataMock).toHaveBeenCalledTimes(2);
     expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
     expect(loadClientDataMock.mock.calls[1][0].pathname).toBe('/test');
   });
 
-  it('keeps bundle preloading on hover when route data prefetch waits for focus', async () => {
-    const prefetchDataStrategy: LinkProps['prefetchDataStrategy'] = {
-      finePointer: ['focus'],
-    };
-    const Root = component$(() => {
-      return (
-        <QwikRouterMockProvider>
-          <Link href="/test" prefetchDataStrategy={prefetchDataStrategy}>
-            Test Link
-          </Link>
-        </QwikRouterMockProvider>
-      );
-    });
-    const { document } = await render(<Root />, {
-      debug,
-    });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'a', 'qvisible');
-    }
-    const anchor = document.querySelector('a');
+  it('prefetches route data when visible strategy is enabled', async () => {
+    await renderLink(render, { prefetchData: 'visible' });
 
-    await trigger(document.body, anchor, 'mouseover');
+    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
+    expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
+      preloadRouteBundles: false,
+      isPrefetch: true,
+    });
+    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
+  });
+
+  it('prefetches bundles when visible strategy is enabled', async () => {
+    await renderLink(render, { prefetchBundle: 'visible' });
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
     expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
     expect(loadClientDataMock).not.toHaveBeenCalled();
   });
 
-  it('prefetches bundles and route data on render when viewport strategy is enabled', async () => {
-    const prefetchDataStrategy: LinkProps['prefetchDataStrategy'] = {
-      finePointer: ['viewport'],
-    };
-    const Root = component$(() => {
-      return (
-        <QwikRouterMockProvider>
-          <Link href="/test" prefetchDataStrategy={prefetchDataStrategy}>
-            Test Link
-          </Link>
-        </QwikRouterMockProvider>
-      );
-    });
-    const { document } = await render(<Root />, {
-      debug,
-    });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'a', 'qvisible');
-    }
+  it('prefetches bundles and route data when visible strategy is enabled for both', async () => {
+    await renderLink(render, { prefetchBundle: 'visible', prefetchData: 'visible' });
+
+    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
+    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
+    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+  });
+
+  it('prefetches bundles when deprecated prefetch is js', async () => {
+    await renderLink(render, { prefetch: 'js' });
+
+    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
+    expect(loadClientDataMock).not.toHaveBeenCalled();
+  });
+
+  it('prefetches bundles and route data when deprecated prefetch is true', async () => {
+    await renderLink(render, { prefetch: true });
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
     expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
@@ -343,5 +167,59 @@ describe.each([
       isPrefetch: true,
     });
     expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+  });
+
+  it('does not prefetch route data when data prefetching is off', async () => {
+    const { document, anchor } = await renderLink(render, { prefetchData: 'off' });
+
+    await trigger(document.body, anchor, 'pointerenter');
+    await trigger(document.body, anchor, 'focus');
+    await trigger(document.body, anchor, 'pointerdown');
+    await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
+
+    expect(loadClientDataMock).not.toHaveBeenCalled();
+  });
+
+  it('does not prefetch route data or bundles when deprecated prefetch is false', async () => {
+    const DeprecatedRoot = component$(() => {
+      return (
+        <QwikRouterMockProvider>
+          <Link href="/test" prefetch={false} prefetchBundle="visible" prefetchData="visible">
+            Test Link
+          </Link>
+        </QwikRouterMockProvider>
+      );
+    });
+    const { document } = await render(<DeprecatedRoot />, {
+      debug,
+    });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'a', 'qvisible');
+    }
+
+    expect(loadClientDataMock).not.toHaveBeenCalled();
+    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
+  });
+
+  it('preloads route bundles on click before navigation', async () => {
+    const ClickRoot = component$(() => {
+      return (
+        <QwikRouterMockProvider>
+          <Link href="/test">Test Link</Link>
+        </QwikRouterMockProvider>
+      );
+    });
+    const { document } = await render(<ClickRoot />, {
+      debug,
+    });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'a', 'qvisible');
+    }
+    const anchor = document.querySelector('a');
+
+    await trigger(document.body, anchor, 'click');
+
+    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test', 1);
   });
 });

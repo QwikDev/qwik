@@ -260,28 +260,18 @@ export type JSONValue = string | number | boolean | {
 // @public (undocumented)
 export const Link: Component<LinkProps>;
 
-// Warning: (ae-forgotten-export) The symbol "LinkDataBasicPrefetchStrategy" needs to be exported by the entry point index.d.ts
-//
-// @public
-export type LinkDataCoarsePrefetchStrategy = LinkDataBasicPrefetchStrategy;
-
-// @public
-export type LinkDataFinePrefetchStrategy = LinkDataBasicPrefetchStrategy | 'hover';
-
-// @public
-export interface LinkDataPrefetchOptions {
-    // (undocumented)
-    coarsePointer?: LinkDataCoarsePrefetchStrategy[];
-    // (undocumented)
-    finePointer?: LinkDataFinePrefetchStrategy[];
-}
-
 // Warning: (ae-forgotten-export) The symbol "AnchorAttributes" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export interface LinkProps extends AnchorAttributes {
+    // @deprecated
     prefetch?: boolean | 'js';
-    prefetchDataStrategy?: LinkDataPrefetchOptions;
+    // Warning: (ae-forgotten-export) The symbol "PrefetchStrategy" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    prefetchBundle?: PrefetchStrategy;
+    // (undocumented)
+    prefetchData?: PrefetchStrategy;
     // (undocumented)
     reload?: boolean;
     // (undocumented)

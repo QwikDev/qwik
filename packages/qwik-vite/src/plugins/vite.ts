@@ -227,7 +227,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
 
       const opts = await qwikPlugin.normalizeOptions(pluginOpts);
-      input ||= opts.input;
+      input = opts.input;
 
       // Cache pluginOpts for use in configResolved()
       cachedPluginOpts = pluginOpts;

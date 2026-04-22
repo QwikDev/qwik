@@ -378,35 +378,38 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
 
-    const out = { ...opts };
     // Make sure to know what the actual input is
     opts.input ||= updatedOpts.input as string[];
     if (opts.input && typeof opts.input === 'string') {
       opts.input = [opts.input];
     }
+    // Normalize relative input paths to absolute (consistent with rootDir/srcDir/outDir)
+    if (Array.isArray(opts.input)) {
+      opts.input = opts.input.map((inp) =>
+        inp.startsWith('@') || inp.startsWith('\0') || path.isAbsolute(inp)
+          ? inp
+          : normalizePath(path.resolve(opts.rootDir, inp))
+      );
+    }
+
+    const out = { ...opts };
     return out;
   };
 
-  let hasValidatedSource = false;
-
   const validateSource = async (resolver: (id: string) => Promise<unknown | undefined>) => {
-    if (!hasValidatedSource) {
-      hasValidatedSource = true;
-
-      const sys = getSys();
-      if (sys.env === 'node') {
-        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-        if (!fs.existsSync(opts.rootDir)) {
-          throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
-        }
-        if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
-          throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
-        }
-        for (const [_, input] of Object.entries(opts.input || {})) {
-          const resolved = await resolver(input);
-          if (!resolved) {
-            throw new Error(`Qwik input "${input}" not found.`);
-          }
+    const sys = getSys();
+    if (sys.env === 'node') {
+      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+      if (!fs.existsSync(opts.rootDir)) {
+        throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
+      }
+      if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
+        throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
+      }
+      for (const [_, input] of Object.entries(opts.input || {})) {
+        const resolved = await resolver(input);
+        if (!resolved) {
+          throw new Error(`Qwik input "${input}" not found.`);
         }
       }
     }

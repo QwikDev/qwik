@@ -28,8 +28,8 @@ export const Link = component$<LinkProps>((props) => {
     reload,
     replaceState,
     scroll,
-    prefetchBundle: prefetchBundleProp,
-    prefetchData: prefetchDataProp,
+    prefetchBundle: prefetchBundleProp = 'visible',
+    prefetchData: prefetchDataProp = prefetchProp === 'js' ? 'off' : 'visible',
     ...linkProps
   } = props;
   const clientNavPath = untrack(getClientNavPath, { ...linkProps, reload }, loc);
@@ -188,33 +188,40 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
 /** @public */
 export interface LinkProps extends AnchorAttributes {
   /**
-   * **Defaults to _true_.**
-   *
-   * Whether Qwik should prefetch and cache the target page of this **`Link`**, this includes
-   * invoking any **`routeLoader$`**, **`onGet`**, etc.
-   *
-   * This **improves UX performance** for client-side (**SPA**) navigations.
-   *
-   * This only changes when route data is fetched. It does not change how Qwik preloads the
-   * javascript needed for the next page.
-   *
-   * Route data prefetching occurs based on the active prefetch strategy.
-   *
-   * By default, fine pointers use **`hover`** and coarse pointers use **`viewport`**. Use
-   * **`prefetchDataStrategy`** to customize this per link, or the router's **`linkDataPrefetch`**
-   * option to change the app-wide defaults.
-   *
-   * Prefetching will not occur if the user has the **data saver** setting enabled.
+   * Legacy prefetch control for this **`Link`**.
    *
    * Setting this value to **`"js"`** will prefetch only javascript bundles required to render this
-   * page on the client, **`false`** will disable prefetching altogether.
+   * page on the client when the link becomes visible. Setting this value to **`true`** will
+   * prefetch both javascript bundles and route data when the link becomes visible. Setting this
+   * value to **`false`** will disable prefetching altogether.
    *
    * @deprecated Use `prefetchBundle` and `prefetchData` instead for more granular control over what
    *   is prefetched and when. This prop will be removed in a future major version.
    */
   prefetch?: boolean | 'js';
 
+  /**
+   * Controls when Qwik should prefetch the javascript bundles required to render this **`Link`**
+   * target during client-side navigation.
+   *
+   * Defaults to **`"visible"`**.
+   *
+   * Prefetching will not occur if the user has the **data saver** setting enabled.
+   */
   prefetchBundle?: PrefetchStrategy;
+
+  /**
+   * Controls when Qwik should prefetch and cache route data for this **`Link`** target, including
+   * invoking any **`routeLoader$`**, **`onGet`**, etc.
+   *
+   * Defaults to **`"visible"`**. When using the deprecated **`prefetch="js"`** prop, route data
+   * prefetching defaults to **`"off"`**.
+   *
+   * Prefetching route data can improve client-side navigation performance for pages that wait on
+   * loaders, server handlers, databases, or API calls.
+   *
+   * Prefetching will not occur if the user has the **data saver** setting enabled.
+   */
   prefetchData?: PrefetchStrategy;
   reload?: boolean;
   replaceState?: boolean;

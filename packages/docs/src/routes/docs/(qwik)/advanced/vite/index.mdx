@@ -263,52 +263,6 @@ mdx?: any;
 platform?: Record<string, unknown>;
 ```
 
-#### `linkDataPrefetch`
-
-```ts
-/**
- * Configure the default route data prefetch behavior used by `<Link />`.
- */
-linkDataPrefetch?: {
-  coarsePointer?: ('viewport' | 'focus' | 'pointerdown')[];
-  finePointer?: ('viewport' | 'hover' | 'focus' | 'pointerdown')[];
-};
-```
-
-This lets you change the application-wide defaults that `Link` uses when no `prefetchDataStrategy` prop is provided.
-
-This option only changes route data prefetching. It does not change how Qwik preloads the
-javascript needed for the next page.
-
-By default, Qwik Router uses:
-
-```ts
-{
-  coarsePointer: ['viewport'],
-  finePointer: ['hover'],
-}
-```
-
-For example, you can delay prefetching until interaction:
-
-```ts title="vite.config.ts"
-import { defineConfig } from 'vite';
-import { qwikRouter } from '@qwik.dev/router/vite';
-
-export default defineConfig(() => {
-  return {
-    plugins: [
-      qwikRouter({
-        linkDataPrefetch: {
-          coarsePointer: ['pointerdown'],
-          finePointer: ['hover', 'focus'],
-        },
-      }),
-    ],
-  };
-});
-```
-
 ## Troubleshooting
 
 Before creating an issue on the Qwik repository please check the `Troubleshooting` section of the [Vite documentation](https://vitejs.dev/guide/troubleshooting.html) and make sure you're using the recommended version.

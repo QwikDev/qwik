@@ -36,7 +36,7 @@ pnpm i
 
 Use `pnpm build.full` only if you modified Rust/optimizer code.
 
-Prefer `pnpm build build.core.dev` to build qwik and qwik-city faster.
+Prefer `pnpm build build.core.dev` to build qwik and qwik-router faster.
 
 ## Key Commands
 
@@ -213,7 +213,7 @@ This creates a `.changeset/*.md` file describing the change. The core packages (
 
 ### Branch Strategy
 
-- **Base branch for PRs:** `main`
+- **Base branch for PRs:** `build/v2`
 - **Release base branch:** `build/v2` (used by changesets)
 - Trunk-based development
 

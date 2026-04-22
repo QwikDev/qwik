@@ -1,6 +1,6 @@
 import { isBrowser } from '@qwik.dev/core/build';
-import { base, getBundle, graph } from './bundle-graph';
-import { config, doc, loadStart, rel, yieldInterval } from './constants';
+import { base, getBundle } from './bundle-graph';
+import { config, doc, rel, yieldInterval } from './constants';
 import type { BundleImport, BundleImports, ImportProbability } from './types';
 import {
   BundleImportState_Loaded,
@@ -25,67 +25,21 @@ let isAdjustmentScheduled = false;
 let isProcessingAdjustments = false;
 const shouldYieldInBrowser = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
 
-type AdjustmentContext = {
-  $depsCount$: number;
-};
-
 type AdjustmentFrame = {
   $bundle$: BundleImport;
   $inverseProbability$: number;
   $seen$?: Set<BundleImport>;
-  $context$: AdjustmentContext;
   $deps$?: ImportProbability[];
   $index$?: number;
 };
 
 const adjustmentStack: AdjustmentFrame[] = [];
 
-export const log = (...args: any[]) => {
-  // eslint-disable-next-line no-console
-  console.log(
-    `Preloader ${performance.now() - loadStart}ms ${preloadCount}/${queue.length} queued>`,
-    ...args
-  );
-};
-
-export const resetQueue = () => {
-  bundles.clear();
-  queueDirty = false;
-  shouldResetFactor = true;
-  preloadCount = 0;
-  queue.length = 0;
-  adjustmentStack.length = 0;
-  isTriggerScheduled = false;
-  isAdjustmentScheduled = false;
-  isProcessingAdjustments = false;
-};
 export const sortQueue = () => {
   if (queueDirty) {
     queue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$);
     queueDirty = false;
   }
-};
-/**
- * This returns `[probability, url1, url2, probability, url3, ...]` in the way `preload()` expects.
- *
- * `probability` is a number between 0 and 10.
- *
- * The client will use this array to reconstruct the queue.
- */
-export const getQueue = () => {
-  sortQueue();
-  let probability = 0.4;
-  const result: (string | number)[] = [];
-  for (let i = 0; i < queue.length; i++) {
-    const b = queue[i];
-    const nextProbability = Math.round((1 - b.$inverseProbability$) * 10);
-    if (nextProbability !== probability) {
-      probability = nextProbability;
-      result.push(probability);
-    }
-    result.push(b.$name$);
-  }
-  return result;
 };
 
 /**
@@ -109,12 +63,8 @@ function trigger() {
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
     const probability = 1 - inverseProbability;
-    const allowedPreloads = graph
-      ? config.$maxIdlePreloads$
-      : // While the graph is not available, we limit to 5 preloads
-        5;
-    // When we're 99% sure, everything needs to be queued
-    if (probability >= 0.99 || preloadCount < allowedPreloads) {
+    // We want to preload all the transitive static (1) and dynamic (0.99) dependencies, throttled by the user defined maxIdlePreloads.
+    if (probability >= 0.99 || preloadCount < config.$maxIdlePreloads$) {
       queue.shift();
       preloadOne(bundle);
       if (performance.now() >= deadline) {
@@ -129,24 +79,11 @@ function trigger() {
     isTriggerScheduled = true;
     nextTriggerMacroTask();
   }
-  /**
-   * The low priority bundles are opportunistic, and we want to give the browser some breathing room
-   * for other resources, so we cycle between 4 and 10 outstanding modulepreloads.
-   */
-  if (config.$DEBUG$ && !queue.length) {
-    const loaded = [...bundles.values()].filter((b) => b.$state$ > BundleImportState_None);
-    const waitTime = loaded.reduce((acc, b) => acc + b.$waitedMs$, 0);
-    const loadTime = loaded.reduce((acc, b) => acc + b.$loadedMs$, 0);
-    log(
-      `>>>> done ${loaded.length}/${bundles.size} total: ${waitTime}ms waited, ${loadTime}ms loaded`
-    );
-  }
 }
 
 const enqueueAdjustment = (
   bundle: BundleImport,
   inverseProbability: number,
-  context: AdjustmentContext,
   seen?: Set<BundleImport>
 ) => {
   // Keep existing work on the stack hot and append new roots behind it.
@@ -154,7 +91,6 @@ const enqueueAdjustment = (
     $bundle$: bundle,
     $inverseProbability$: inverseProbability,
     $seen$: seen,
-    $context$: context,
   });
 };
 
@@ -179,9 +115,8 @@ const processAdjustmentFrame = () => {
 
     const probability = 1 - bundle.$inverseProbability$;
     let newInverseProbability: number;
-    if (probability === 1 || (probability >= 0.99 && frame.$context$.$depsCount$ < 100)) {
-      frame.$context$.$depsCount$++;
-      // we're loaded at max probability, so elevate dynamic imports to 99% sure
+    if (probability === 1 || probability >= 0.99) {
+      // bundle is requested at max probability, so elevate all its transitive static and dynamic deps to 99% sure
       newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
     } else {
       const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
@@ -197,7 +132,6 @@ const processAdjustmentFrame = () => {
       $bundle$: depBundle,
       $inverseProbability$: newInverseProbability,
       $seen$: frame.$seen$,
-      $context$: frame.$context$,
     });
     return true;
   }
@@ -223,8 +157,6 @@ const processAdjustmentFrame = () => {
     if (bundle.$state$ === BundleImportState_None) {
       bundle.$state$ = BundleImportState_Queued;
       queue.push(bundle);
-      config.$DEBUG$ &&
-        log(`queued ${Math.round((1 - bundle.$inverseProbability$) * 100)}%`, bundle.$name$);
     }
 
     // It's in the queue, so we need to re-sort it
@@ -283,12 +215,6 @@ const preloadOne = (bundle: BundleImport) => {
   bundle.$waitedMs$ = start - bundle.$createdTs$;
   bundle.$state$ = BundleImportState_Preload;
 
-  config.$DEBUG$ &&
-    log(
-      `<< load ${Math.round((1 - bundle.$inverseProbability$) * 100)}% after ${`${bundle.$waitedMs$}ms`}`,
-      bundle.$name$
-    );
-
   const link = doc.createElement('link');
   // Only bundles with state none are js bundles
   link.href = new URL(`${base}${bundle.$name$}`, doc.baseURI).toString();
@@ -301,7 +227,6 @@ const preloadOne = (bundle: BundleImport) => {
     const end = performance.now();
     bundle.$loadedMs$ = end - start;
     bundle.$state$ = BundleImportState_Loaded;
-    config.$DEBUG$ && log(`>> done after ${bundle.$loadedMs$}ms`, bundle.$name$);
     // Keep the <head> clean
     link.remove();
     // More bundles may be ready to preload
@@ -325,7 +250,7 @@ export const adjustProbabilities = (
   newInverseProbability: number,
   seen?: Set<BundleImport>
 ) => {
-  enqueueAdjustment(bundle, newInverseProbability, { $depsCount$: 0 }, seen);
+  enqueueAdjustment(bundle, newInverseProbability, seen);
   if (shouldYieldInBrowser) {
     nextAdjustmentMacroTask();
   } else {
@@ -333,40 +258,26 @@ export const adjustProbabilities = (
   }
 };
 
-export const handleBundle = (
-  name: string,
-  inverseProbability: number,
-  context?: AdjustmentContext
-) => {
+export const handleBundle = (name: string, inverseProbability: number) => {
   const bundle = getBundle(name);
-  if (bundle && bundle.$inverseProbability$ > inverseProbability) {
-    if (context) {
-      enqueueAdjustment(bundle, inverseProbability, context);
-    } else {
-      adjustProbabilities(bundle, inverseProbability);
-    }
+  if (bundle) {
+    enqueueAdjustment(bundle, inverseProbability);
   }
 };
 
-export const preload = (name: string | (number | string)[], probability?: number) => {
-  if (!name?.length) {
+export const preload = (item: string | string[], probability?: number) => {
+  if (!item?.length) {
     return;
   }
-
-  let inverseProbability = probability ? 1 - probability : 0.4;
-  const context = { $depsCount$: 0 };
-  if (Array.isArray(name)) {
+  const inverseProbability = probability ? 1 - probability : 0.4;
+  if (Array.isArray(item)) {
     // We must process in reverse order to ensure first bundles are handled first
-    for (let i = name.length - 1; i >= 0; i--) {
-      const item = name[i];
-      if (typeof item === 'number') {
-        inverseProbability = 1 - item / 10;
-      } else {
-        handleBundle(item, inverseProbability, context);
-      }
+    for (let i = item.length - 1; i >= 0; i--) {
+      const bundle = item[i];
+      handleBundle(bundle, inverseProbability);
     }
   } else {
-    handleBundle(name, inverseProbability, context);
+    handleBundle(item, inverseProbability);
   }
   if (shouldYieldInBrowser) {
     nextAdjustmentMacroTask();

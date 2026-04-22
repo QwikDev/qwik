@@ -47,20 +47,6 @@ export interface InOrderDisabled {
 // @public (undocumented)
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
-// @public @deprecated (undocumented)
-export interface PrefetchImplementation {
-    // @deprecated (undocumented)
-    linkFetchPriority?: 'auto' | 'low' | 'high' | null;
-    // @deprecated (undocumented)
-    linkInsert?: 'js-append' | 'html-append' | null;
-    // @deprecated (undocumented)
-    linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
-    // @deprecated (undocumented)
-    prefetchEvent?: 'always' | null;
-    // @deprecated (undocumented)
-    workerFetchInsert?: 'always' | 'no-link-support' | null;
-}
-
 // @public (undocumented)
 export interface PrefetchResource {
     // (undocumented)
@@ -70,20 +56,8 @@ export interface PrefetchResource {
 }
 
 // @public (undocumented)
-export interface PrefetchStrategy {
-    // (undocumented)
-    implementation?: PrefetchImplementation;
-    // (undocumented)
-    symbolsToPrefetch?: SymbolsToPrefetch;
-}
-
-// @public (undocumented)
 export interface PreloaderOptions {
-    debug?: boolean;
     maxIdlePreloads?: number;
-    // @deprecated (undocumented)
-    preloadProbability?: number;
-    ssrPreloadProbability?: number;
     ssrPreloads?: number;
 }
 
@@ -103,8 +77,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
     containerAttributes?: Record<string, string>;
     containerTagName?: string;
     locale?: string | ((options: RenderOptions) => string);
-    // @deprecated (undocumented)
-    prefetchStrategy?: PrefetchStrategy | null;
     preloader?: PreloaderOptions | false;
     qwikLoader?: QwikLoaderOptions;
     serverData?: Record<string, any>;
@@ -194,11 +166,6 @@ export interface StreamingOptions {
     // (undocumented)
     inOrder?: InOrderStreaming;
 }
-
-// @public
-export type SymbolsToPrefetch = 'auto' | ((opts: {
-    manifest: ServerQwikManifest;
-}) => PrefetchResource[]);
 
 // @public (undocumented)
 export const versions: {

@@ -58,7 +58,7 @@ export {
 } from '../core/shared/utils/scoped-styles';
 export { serializeAttribute } from '../core/shared/utils/styles';
 export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
-export { getQueue, preload, resetQueue } from '../core/preloader/queue';
+export { preload } from '../core/preloader/queue';
 export { initPreloader } from '../core/preloader/bundle-graph';
 export { SsrNodeFlags } from '../core/shared/types';
 export { isPromise, retryOnPromise } from '../core/shared/utils/promises';

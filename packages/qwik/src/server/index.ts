@@ -6,8 +6,6 @@ import type { QwikManifest } from './types';
 
 export type {
   PrefetchResource,
-  PrefetchImplementation,
-  PrefetchStrategy,
   PreloaderOptions,
   RenderToStringOptions,
   RenderToStringResult,
@@ -24,7 +22,6 @@ export type {
   InOrderAuto,
   InOrderDisabled,
   InOrderStreaming,
-  SymbolsToPrefetch,
 } from './types';
 export { resolveManifest, renderToString, renderToStream } from './ssr-render';
 export { versions } from './utils';

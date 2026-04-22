@@ -19,7 +19,7 @@ export default component$(() => {
 export const routes_component_button_q_e_click_worker_XZ7SPGSnMhw = (_, _1, count)=>count.value++;
 
 
-Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\"oEAMmC,gBAAM,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\"oEAMmC,gBAAM,MAAM,KAAK\"}")
 /*
 {
   "origin": "src/routes/index.tsx",
@@ -72,7 +72,7 @@ export const routes_component_pCYUo1eiS0w = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;4CAI0B;IACxB,MAAM,QAAQ,UAAU;IACxB,qBAAO,WAAC;;;QAAO,WAAQ;OAAgC;;;;;AACzD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;4CAI0B;IACxB,MAAM,QAAQ,UAAU;IACxB,qBAAO,WAAC;;;QAAO,WAAQ;OAAgC;;;;;AACzD\"}")
 /*
 {
   "origin": "src/routes/index.tsx",
@@ -108,7 +108,7 @@ const q_routes_component_pCYUo1eiS0w = /*#__PURE__*/ qrlDEV(()=>import("./index.
 export default /*#__PURE__*/ componentQrl(q_routes_component_pCYUo1eiS0w);
 
 
-Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAIA,6BAAe,6CAGZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAIA,6BAAe,6CAGZ\"}")
 ============================= src/routes/index.tsx_routes_component_button_q_e_click_ESunfBZQQ0g.js (ENTRY POINT)==
 
 import { _qrlWithChunkDEV } from "@qwik.dev/core";
@@ -124,7 +124,7 @@ const q_qrl_4294901760 = /*#__PURE__*/ _qrlWithChunkDEV("__QWIK_WORKER_QRL__:./i
 export const routes_component_button_q_e_click_ESunfBZQQ0g = (event, element, count)=>workerQrl(q_qrl_4294901760)(event, element, count);
 
 
-Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;6DAM2B,yBAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;6DAM2B,yBAAA\"}")
 /*
 {
   "origin": "src/routes/index.tsx",

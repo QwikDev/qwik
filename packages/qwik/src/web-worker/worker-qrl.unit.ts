@@ -50,8 +50,11 @@ describe('workerQrl', () => {
       this.options = options;
       this.postMessage = vi.fn((message: [number, unknown]) => {
         queueMicrotask(() => {
-          for (const handler of browserWorkerEvents.get('message') ?? []) {
-            handler({ data: [message[0], true, 'from-browser-worker'] });
+          const handlers = browserWorkerEvents.get('message');
+          if (handlers) {
+            for (const handler of handlers) {
+              handler({ data: [message[0], true, 'from-browser-worker'] });
+            }
           }
         });
       });

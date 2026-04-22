@@ -1976,12 +1976,10 @@ impl<'a> QwikTransform<'a> {
 			} else {
 				_QRL_DEV.clone()
 			}
+		} else if is_worker_qrl {
+			_QRL_WITH_CHUNK.clone()
 		} else {
-			if is_worker_qrl {
-				_QRL_WITH_CHUNK.clone()
-			} else {
-				_QRL.clone()
-			}
+			_QRL.clone()
 		};
 
 		self.emit_captures(&segment_data.captures, &mut args);

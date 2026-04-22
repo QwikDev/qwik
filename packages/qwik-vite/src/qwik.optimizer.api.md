@@ -105,8 +105,6 @@ export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 
 // @public (undocumented)
 export interface QwikRollupPluginOptions {
-    // @internal
-    basePathname?: string;
     buildMode?: QwikBuildMode;
     // (undocumented)
     csr?: boolean;

@@ -1056,7 +1056,11 @@ export const isBrowser = /*#__PURE__*/ (() =>
   typeof HTMLElement !== 'undefined' &&
   !!window.document &&
   String(HTMLElement).includes('[native code]'))();
-export const isServer = !isBrowser;
+export const isServer = /*#__PURE__*/ (() =>
+  !isBrowser &&
+  typeof process !== 'undefined' &&
+  process.versions != null &&
+  process.versions.node != null)();
 export const isDev = true;
 `;
     }

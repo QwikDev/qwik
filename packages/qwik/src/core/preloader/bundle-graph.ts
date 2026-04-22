@@ -1,14 +1,11 @@
-import { isBrowser } from '@qwik.dev/core/build';
-import { isServerPlatform } from '../shared/platform/platform';
 import { createMacroTask } from '../shared/platform/next-tick';
-import { config, isJSRegex, yieldInterval } from './constants';
+import { config, isJSRegex, isRunningOnBrowser, yieldInterval } from './constants';
 import { adjustProbabilities, bundles, shouldResetFactor, nextTriggerMacroTask } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_None, BundleImportState_Alias } from './types';
 
 export let base: string | undefined;
 export let graph: BundleGraph;
-const isRunningOnBrowser = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
 
 const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {

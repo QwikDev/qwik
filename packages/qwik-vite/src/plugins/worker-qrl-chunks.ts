@@ -2,6 +2,7 @@ import type { QwikManifest } from '../types';
 
 const QWIK_WORKER_QRL_SENTINEL_NAME = '__QWIK_WORKER_QRL__';
 export const QWIK_WORKER_QRL_SENTINEL = `${QWIK_WORKER_QRL_SENTINEL_NAME}:`;
+export const QWIK_WORKER_CORE_SENTINEL = '__QWIK_WORKER_CORE__';
 
 const QWIK_WORKER_QRL_RE = new RegExp(`${QWIK_WORKER_QRL_SENTINEL}([^"'\\\`\\s]+)`, 'g');
 
@@ -36,6 +37,32 @@ const resolveBuildChunkPublicPath = (basePathname: string, fileName: string) => 
     .pathname;
 };
 
+const resolveBuildChunkRelativePath = (fileName: string) => {
+  return resolveBuildChunkPublicPath('/', fileName).replace(/^\//, '');
+};
+
+const createManifestWorkerQrlChunkResolver = (
+  manifest: QwikManifest,
+  resolveBundleFileName: (fileName: string) => string
+) => {
+  const bundleByCanonicalFilename = new Map<string, string>();
+  for (const [symbolName, symbol] of Object.entries(manifest.symbols)) {
+    const bundleFileName = manifest.mapping[symbolName];
+    if (bundleFileName) {
+      bundleByCanonicalFilename.set(
+        symbol.canonicalFilename,
+        resolveBundleFileName(bundleFileName)
+      );
+    }
+  }
+
+  return (importPath: string) => {
+    return bundleByCanonicalFilename.get(
+      importPath.replace(/^\.\//, '').replace(/\.[^./?]+(?:\?.*)?$/, '')
+    );
+  };
+};
+
 export const rewriteWorkerQrlChunkPlaceholders = (
   code: string,
   resolveChunkPath: (importPath: string) => string | undefined
@@ -46,22 +73,13 @@ export const rewriteWorkerQrlChunkPlaceholders = (
 };
 
 export const createBuildWorkerQrlChunkResolver = (manifest: QwikManifest, basePathname: string) => {
-  const bundleByCanonicalFilename = new Map<string, string>();
-  for (const [symbolName, symbol] of Object.entries(manifest.symbols)) {
-    const bundleFileName = manifest.mapping[symbolName];
-    if (bundleFileName) {
-      bundleByCanonicalFilename.set(
-        symbol.canonicalFilename,
-        resolveBuildChunkPublicPath(basePathname, bundleFileName)
-      );
-    }
-  }
+  return createManifestWorkerQrlChunkResolver(manifest, (fileName) =>
+    resolveBuildChunkPublicPath(basePathname, fileName)
+  );
+};
 
-  return (importPath: string) => {
-    return bundleByCanonicalFilename.get(
-      importPath.replace(/^\.\//, '').replace(/\.[^./?]+(?:\?.*)?$/, '')
-    );
-  };
+export const createRelativeBuildWorkerQrlChunkResolver = (manifest: QwikManifest) => {
+  return createManifestWorkerQrlChunkResolver(manifest, resolveBuildChunkRelativePath);
 };
 
 export const createDevWorkerQrlChunkResolver = (devPath: string) => {
@@ -82,4 +100,56 @@ export const createDevWorkerQrlChunkResolver = (devPath: string) => {
     }
     return `${basePath}?worker_file&type=module`;
   };
+};
+
+const ensureRelativeImportPath = (fileName: string) => {
+  return fileName.startsWith('.') ? fileName : `./${fileName}`;
+};
+
+const normalizePosixPathParts = (path: string) => {
+  const parts: string[] = [];
+  for (const part of path.replace(/\\/g, '/').split('/')) {
+    if (!part || part === '.') {
+      continue;
+    }
+    if (part === '..' && parts.length > 0 && parts[parts.length - 1] !== '..') {
+      parts.pop();
+    } else {
+      parts.push(part);
+    }
+  }
+  return parts;
+};
+
+const relativePosixPath = (fromDir: string, toFile: string) => {
+  const fromParts = fromDir === '.' ? [] : normalizePosixPathParts(fromDir);
+  const toParts = normalizePosixPathParts(toFile);
+  let sharedParts = 0;
+  while (
+    sharedParts < fromParts.length &&
+    sharedParts < toParts.length &&
+    fromParts[sharedParts] === toParts[sharedParts]
+  ) {
+    sharedParts++;
+  }
+
+  return [...fromParts.slice(sharedParts).map(() => '..'), ...toParts.slice(sharedParts)].join('/');
+};
+
+export const createBuildWorkerCoreChunkResolver = (workerCoreChunkFileName: string) => {
+  return (workerFileName: string) => {
+    const relativePath = relativePosixPath(posixDirname(workerFileName), workerCoreChunkFileName);
+    return ensureRelativeImportPath(relativePath);
+  };
+};
+
+export const rewriteWorkerCorePlaceholders = (
+  code: string,
+  resolveWorkerCorePath: () => string | undefined
+) => {
+  if (!code.includes(QWIK_WORKER_CORE_SENTINEL)) {
+    return code;
+  }
+  const workerCorePath = resolveWorkerCorePath();
+  return workerCorePath ? code.replaceAll(QWIK_WORKER_CORE_SENTINEL, workerCorePath) : code;
 };

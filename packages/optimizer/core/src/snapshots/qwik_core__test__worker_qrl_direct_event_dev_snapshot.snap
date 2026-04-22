@@ -1,0 +1,155 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 7558
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { worker$ } from '@qwik.dev/core/worker';
+
+export default component$(() => {
+  const count = useSignal(0);
+  return <button onClick$={worker$(() => count.value++)}>Move work to worker</button>;
+});
+
+============================= src/routes/index.tsx_routes_component_button_q_e_click_worker_XZ7SPGSnMhw.js (ENTRY POINT)==
+
+export const routes_component_button_q_e_click_worker_XZ7SPGSnMhw = (_, _1, count)=>count.value++;
+
+
+Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\"oEAMmC,gBAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "src/routes/index.tsx",
+  "name": "routes_component_button_q_e_click_worker_XZ7SPGSnMhw",
+  "entry": null,
+  "displayName": "index.tsx_routes_component_button_q_e_click_worker",
+  "hash": "XZ7SPGSnMhw",
+  "canonicalFilename": "index.tsx_routes_component_button_q_e_click_worker_XZ7SPGSnMhw",
+  "path": "src/routes",
+  "extension": "js",
+  "parent": "routes_component_button_q_e_click_ESunfBZQQ0g",
+  "ctxKind": "function",
+  "ctxName": "worker$",
+  "captures": false,
+  "loc": [
+    207,
+    226
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "count"
+  ]
+}
+*/
+============================= src/routes/index.tsx_routes_component_pCYUo1eiS0w.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+const q_routes_component_button_q_e_click_ESunfBZQQ0g = /*#__PURE__*/ qrlDEV(()=>import("./index.tsx_routes_component_button_q_e_click_ESunfBZQQ0g"), "routes_component_button_q_e_click_ESunfBZQQ0g", {
+    file: "/user/qwik/src/src/routes/index.tsx",
+    lo: 199,
+    hi: 227,
+    displayName: "index.tsx_routes_component_button_q_e_click"
+});
+//
+export const routes_component_pCYUo1eiS0w = ()=>{
+    const count = useSignal(0);
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q:p": count
+    }, {
+        "q-e:click": q_routes_component_button_q_e_click_ESunfBZQQ0g
+    }, "Move work to worker", 7, "dC_0", {
+        fileName: "src/routes/index.tsx",
+        lineNumber: 7,
+        columnNumber: 10
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;4CAI0B;IACxB,MAAM,QAAQ,UAAU;IACxB,qBAAO,WAAC;;;QAAO,WAAQ;OAAgC;;;;;AACzD\"}")
+/*
+{
+  "origin": "src/routes/index.tsx",
+  "name": "routes_component_pCYUo1eiS0w",
+  "entry": null,
+  "displayName": "index.tsx_routes_component",
+  "hash": "pCYUo1eiS0w",
+  "canonicalFilename": "index.tsx_routes_component_pCYUo1eiS0w",
+  "path": "src/routes",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    134,
+    260
+  ]
+}
+*/
+============================= src/routes/index.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
+//
+const q_routes_component_pCYUo1eiS0w = /*#__PURE__*/ qrlDEV(()=>import("./index.tsx_routes_component_pCYUo1eiS0w"), "routes_component_pCYUo1eiS0w", {
+    file: "/user/qwik/src/src/routes/index.tsx",
+    lo: 134,
+    hi: 260,
+    displayName: "index.tsx_routes_component"
+});
+//
+export default /*#__PURE__*/ componentQrl(q_routes_component_pCYUo1eiS0w);
+
+
+Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAIA,6BAAe,6CAGZ\"}")
+============================= src/routes/index.tsx_routes_component_button_q_e_click_ESunfBZQQ0g.js (ENTRY POINT)==
+
+import { _qrlWithChunkDEV } from "@qwik.dev/core";
+import { workerQrl } from "@qwik.dev/core/worker";
+//
+const q_qrl_4294901760 = /*#__PURE__*/ _qrlWithChunkDEV("__QWIK_WORKER_QRL__:./index.tsx_routes_component_button_q_e_click_worker_XZ7SPGSnMhw", ()=>import("./index.tsx_routes_component_button_q_e_click_worker_XZ7SPGSnMhw"), "routes_component_button_q_e_click_worker_XZ7SPGSnMhw", {
+    file: "/user/qwik/src/src/routes/index.tsx",
+    lo: 207,
+    hi: 226,
+    displayName: "index.tsx_routes_component_button_q_e_click_worker"
+});
+//
+export const routes_component_button_q_e_click_ESunfBZQQ0g = (event, element, count)=>workerQrl(q_qrl_4294901760)(event, element, count);
+
+
+Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;6DAM2B,yBAAA\"}")
+/*
+{
+  "origin": "src/routes/index.tsx",
+  "name": "routes_component_button_q_e_click_ESunfBZQQ0g",
+  "entry": null,
+  "displayName": "index.tsx_routes_component_button_q_e_click",
+  "hash": "ESunfBZQQ0g",
+  "canonicalFilename": "index.tsx_routes_component_button_q_e_click_ESunfBZQQ0g",
+  "path": "src/routes",
+  "extension": "js",
+  "parent": "routes_component_pCYUo1eiS0w",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    199,
+    227
+  ],
+  "paramNames": [
+    "event",
+    "element",
+    "count"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

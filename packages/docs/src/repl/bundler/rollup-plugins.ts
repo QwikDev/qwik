@@ -1,4 +1,9 @@
 import type { Plugin } from '@rolldown/browser';
+import type { QwikManifest } from '@qwik.dev/core/optimizer';
+import {
+  createRelativeBuildWorkerQrlChunkResolver,
+  rewriteWorkerQrlChunkPlaceholders,
+} from '../../../../qwik-vite/src/plugins/worker-qrl-chunks';
 import type { MinifyOptions } from 'terser';
 import { minify } from 'terser';
 import type { PkgUrls, ReplInputOptions } from '../types';
@@ -213,6 +218,28 @@ export const replCss = (options: Pick<ReplInputOptions, 'srcInputs'>): Plugin =>
         }
       }
       return null;
+    },
+  };
+};
+
+export const replWorkerQrlChunks = (getManifest: () => QwikManifest | undefined): Plugin => {
+  return {
+    name: 'repl-worker-qrl-chunks',
+
+    generateBundle(_, bundle) {
+      const manifest = getManifest();
+      if (!manifest) {
+        return;
+      }
+
+      const resolveChunkPath = createRelativeBuildWorkerQrlChunkResolver(manifest);
+      for (const output of Object.values(bundle)) {
+        if (output.type === 'chunk') {
+          output.code = rewriteWorkerQrlChunkPlaceholders(output.code, resolveChunkPath);
+        } else if (output.type === 'asset' && typeof output.source === 'string') {
+          output.source = rewriteWorkerQrlChunkPlaceholders(output.source, resolveChunkPath);
+        }
+      }
     },
   };
 };

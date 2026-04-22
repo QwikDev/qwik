@@ -16,7 +16,9 @@ export const isBrowser: boolean = /*#__PURE__*/ (() =>
  */
 export const isServer: boolean = /*#__PURE__*/ (() =>
   !isBrowser &&
-  !(typeof WorkerGlobalScope !== 'undefined' && globalThis instanceof WorkerGlobalScope))();
+  typeof process !== 'undefined' &&
+  process.versions != null &&
+  process.versions.node != null)();
 
 /**
  * True when build is in dev mode.

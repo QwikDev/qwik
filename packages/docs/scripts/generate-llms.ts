@@ -60,6 +60,9 @@ function docEntry(
 }
 
 function apiTitleFromSlug(slug: string) {
+  if (slug === 'qwik-worker') {
+    return '@qwik.dev/core/worker';
+  }
   return `@qwik.dev/${slug.replace(/^qwik-/, 'qwik-').replace(/^qwik$/, 'qwik')}`;
 }
 
@@ -79,6 +82,9 @@ function apiDescriptionFromSlug(slug: string) {
   }
   if (slug === 'qwik-testing') {
     return 'Testing helpers and utilities for unit, DOM, and integration-style Qwik tests.';
+  }
+  if (slug === 'qwik-worker') {
+    return 'Worker API reference for `worker$()` and `workerQrl()`, which run Qwik functions away from the main browser thread.';
   }
   if (slug === 'qwik-insights') {
     return 'Insights package API reference for performance tracing and analytics integration.';
@@ -213,6 +219,13 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Core Concepts',
+      'Web Workers',
+      '/docs/advanced/worker/',
+      'Explains `worker$()`, when to use browser Web Workers, and what data can be passed to worker functions.',
+      toSourcePath('docs', '(qwik)', 'advanced', 'worker', 'index.mdx')
+    ),
+    docEntry(
+      'Core Concepts',
       'State',
       '/docs/core/state/',
       'Reference for signals, stores, computed values, async state, and related reactive primitives.',
@@ -328,6 +341,7 @@ The playground focuses on rapid experimentation rather than long-form documentat
     apiEntry('qwik'),
     apiEntry('qwik-router'),
     apiEntry('qwik-server'),
+    apiEntry('qwik-worker'),
     apiEntry('qwik-optimizer'),
     apiEntry('qwik-testing'),
     apiEntry('qwik-insights', true),

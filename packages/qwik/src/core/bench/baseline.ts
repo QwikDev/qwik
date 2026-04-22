@@ -1,50 +1,94 @@
-export const BASELINE_UNITS = 400;
+export const BASELINE_UNITS = 80;
 
-const MEMORY_SLOTS = 512;
-
-type MemCell = { a: number; b: number; c: number; d: number };
+type Row = {
+  id: number;
+  label: string;
+  tags: string[];
+  nested: { score: number; kind: string };
+};
 
 /**
- * Shared workload used to normalize benchmark results across machines. It mixes branchy integer
- * arithmetic with deterministic memory churn and returns a checksum to prevent dead-code
- * elimination.
+ * Shared workload used to normalize benchmark results across machines. Mirrors the operation mix of
+ * the real scenarios (object allocation, string concatenation, Map-based bookkeeping, and tree-walk
+ * serialization) so the baseline scales proportionally on different architectures instead of
+ * becoming a pure-integer hot loop that Intel handles disproportionately well.
  */
 export const sharedBaselineWorkload = (units = BASELINE_UNITS): number => {
-  let acc = 0x9e3779b9;
-  const ring = new Uint32Array(MEMORY_SLOTS);
-  const cells: MemCell[] = new Array(MEMORY_SLOTS);
+  let checksum = 0;
 
-  for (let i = 0; i < MEMORY_SLOTS; i++) {
-    cells[i] = { a: i, b: i << 1, c: i << 2, d: i << 3 };
-  }
+  for (let u = 0; u < units; u++) {
+    // Allocate row objects with nested shape transitions (mimics JSX/VNode churn).
+    const rows: Row[] = new Array(128);
+    for (let i = 0; i < 128; i++) {
+      rows[i] = {
+        id: i,
+        label: 'row-' + u + '-' + i,
+        tags: ['tag-' + (i % 7), 'tag-' + (i % 11), 'tag-' + (i % 13)],
+        nested: { score: (i * 17) ^ u, kind: 'k-' + (i & 3) },
+      };
+    }
 
-  for (let unit = 0; unit < units; unit++) {
-    for (let i = 0; i < MEMORY_SLOTS; i++) {
-      acc = (acc ^ (i + unit * 131)) >>> 0;
-      acc = Math.imul(acc, 2654435761) >>> 0;
-      acc ^= acc >>> ((i & 7) + 1);
+    // Build an HTML-like string (mimics SSR output assembly).
+    let html = '<table class="bench-baseline"><tbody>';
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      html +=
+        '<tr><td>' +
+        r.id +
+        '</td><td>' +
+        r.label +
+        '</td><td>' +
+        r.tags[0] +
+        ',' +
+        r.tags[1] +
+        ',' +
+        r.tags[2] +
+        '</td></tr>';
+    }
+    html += '</tbody></table>';
+    checksum = (checksum + html.length) | 0;
 
-      const idx = (acc + i * 17) & (MEMORY_SLOTS - 1);
-      ring[idx] = (ring[idx] + acc + i) >>> 0;
-
-      const cell = cells[idx];
-      cell.a = (cell.a + (ring[idx] & 0xff)) >>> 0;
-      cell.b = (cell.b ^ ((ring[idx] >>> 8) & 0xff)) >>> 0;
-      cell.c = (cell.c + cell.a + unit) >>> 0;
-      cell.d = (cell.d ^ cell.c ^ acc) >>> 0;
-
-      // Keep unpredictable branches so this does not simplify into a fast path.
-      if ((cell.d & 3) === 0) {
-        acc ^= cell.b;
-      } else if ((cell.d & 3) === 1) {
-        acc = (acc + cell.c) >>> 0;
-      } else {
-        acc = Math.imul(acc ^ cell.a, 2246822519) >>> 0;
+    // Hash-map round trip (mimics VNode / serdes state bookkeeping).
+    const lookup = new Map<string, Row>();
+    for (let i = 0; i < rows.length; i++) {
+      lookup.set(rows[i].label, rows[i]);
+    }
+    for (let i = 0; i < rows.length; i++) {
+      const r = lookup.get(rows[i].label);
+      if (r) {
+        checksum = (checksum + r.id + r.nested.score) | 0;
       }
     }
+
+    // Walk the graph and produce a serialized string (mimics serialize-state-1k).
+    let serialized = '[';
+    for (let i = 0; i < rows.length; i++) {
+      if (i > 0) {
+        serialized += ',';
+      }
+      const r = rows[i];
+      serialized +=
+        '{"id":' +
+        r.id +
+        ',"label":"' +
+        r.label +
+        '","tags":["' +
+        r.tags[0] +
+        '","' +
+        r.tags[1] +
+        '","' +
+        r.tags[2] +
+        '"],"score":' +
+        r.nested.score +
+        ',"kind":"' +
+        r.nested.kind +
+        '"}';
+    }
+    serialized += ']';
+    checksum = (checksum + serialized.length) | 0;
   }
 
-  return (acc ^ ring[acc & (MEMORY_SLOTS - 1)]) >>> 0;
+  return checksum;
 };
 
 export const formatRatio = (value: number): string => {

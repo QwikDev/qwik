@@ -435,7 +435,7 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
       if (!ctx) {
         return;
       }
-      const moduleIds = await collectServerFnModuleIds(ctx, RESOLVED_ID, (id) => this.load({ id }));
+      const moduleIds = await collectServerFnModuleIds(ctx, RESOLVED_ID, this);
       for (let i = 0; i < moduleIds.length; i++) {
         serverFnModules.add(moduleIds[i]);
       }

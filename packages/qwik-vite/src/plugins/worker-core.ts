@@ -14,7 +14,7 @@ type WorkerConfig = NonNullable<UserConfig['worker']>;
 
 const QWIK_WORKER_CORE_CODE = `
 export { setPlatform } from '@qwik.dev/core';
-export { _deserialize, _invokeApply, _newInvokeContext } from '@qwik.dev/core/internal';
+export { _deserialize } from '@qwik.dev/core/internal';
 `;
 
 export const isQwikWorkerCoreId = (id: string) => {

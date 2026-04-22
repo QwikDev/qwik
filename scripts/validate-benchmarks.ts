@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 
 const BENCH_ENTRY = 'packages/qwik/src/core/bench/core.bench.ts';
 const RESULTS_PATH = 'packages/qwik/src/core/bench/bench-results.json';
+const CI_UPDATED_RESULTS_PATH = 'packages/qwik/src/core/bench/bench-results.updated.json';
 const BASELINE_BENCHMARK_ID = 'baseline.shared-workload';
 const BENCHMARK_PREFIX = 'current.';
 const SIZE_LOG_PREFIX = 'QWIK_BENCH_SIZE';
@@ -58,6 +59,14 @@ async function main() {
   }
 
   const stored = await readStoredResults(storedPath);
+
+  // compute updated results to store them as a CI artificat in case the local update factor fails in CI.
+  if (process.env.CI === 'true') {
+    const proposed = buildStoredResults(scenarioIds, measuredBenchmarks, measuredSizes);
+    const updatedPath = resolve(process.cwd(), CI_UPDATED_RESULTS_PATH);
+    await writeFile(updatedPath, JSON.stringify(proposed, null, 2) + '\n', 'utf-8');
+    console.error(`Wrote updated baselines to ${CI_UPDATED_RESULTS_PATH}`);
+  }
   validateResults(scenarioIds, stored, measuredBenchmarks, measuredSizes);
   console.log('Benchmark validation passed.');
 }

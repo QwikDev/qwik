@@ -142,7 +142,7 @@ jobs:
           lookup-only: true
           path: packages/qwik/dist
           # Note that this includes the package.json of qwik
-          key: ${{ hashfiles('.github/workflows/ci.yml', 'pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', 'packages/qwik/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
+          key: ${{ hashfiles('.github/workflows/ci.yml', 'pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', 'packages/qwik/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.bench.*', '!packages/qwik/src/core/bench/**', '!scripts/validate-bench*', '!scripts/pull-ci-updated-bench.ts', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
       - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
       - name: 'check cache: rust'
         id: cache-rust
@@ -194,7 +194,7 @@ jobs:
         with:
           lookup-only: true
           path: bench-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'packages/**/*.bench.*', 'scripts/validate-bench*', 'packages/docs/**/*') }}
+          key: ${{ hashfiles('others-key.txt', 'packages/**/*.bench.*', 'packages/qwik/src/core/bench/**', 'scripts/validate-bench*', 'packages/docs/**/*') }}
       - name: 'check cache: e2e tests'
         id: cache-e2e
         uses: actions/cache/restore@v4
@@ -802,10 +802,30 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Timing Benchmarks
+        id: timing
         run: pnpm run test.bench.timing
 
       - name: Memory Benchmarks
+        id: memory
+        if: ${{ !cancelled() && steps.timing.conclusion != 'skipped' }}
         run: pnpm run test.bench.memory
+
+      - name: Stage updated baselines for artifact
+        if: failure()
+        run: |
+          BENCH_DIR=packages/qwik/src/core/bench
+          mkdir -p /tmp/bench-updated
+          [ -f "$BENCH_DIR/bench-results.updated.json" ] && cp "$BENCH_DIR/bench-results.updated.json" /tmp/bench-updated/bench-results.json
+          [ -f "$BENCH_DIR/bench-memory-results.updated.json" ] && cp "$BENCH_DIR/bench-memory-results.updated.json" /tmp/bench-updated/bench-memory-results.json
+          ls -la /tmp/bench-updated/
+
+      - name: Upload updated baselines artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-updated
+          path: /tmp/bench-updated/
+          if-no-files-found: ignore
 
   save-bench-cache:
     name: Save Benchmark Cache

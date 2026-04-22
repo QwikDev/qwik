@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { build } from 'esbuild';
 
 const RESULTS_PATH = 'packages/qwik/src/core/bench/bench-memory-results.json';
+const CI_UPDATED_RESULTS_PATH = 'packages/qwik/src/core/bench/bench-memory-results.updated.json';
 const SCENARIOS_ENTRY = 'packages/qwik/src/core/bench/memory-scenarios.ts';
 const SAMPLE_COUNT = 3;
 const COUNT_PER_SCENARIO = 10_000;
@@ -87,6 +88,12 @@ async function main() {
     }
 
     const stored = await readStoredResults(storedPath);
+    if (process.env.CI === 'true') {
+      const proposed = buildStoredResults(scenarios, measuredResults);
+      const updatedPath = resolve(process.cwd(), CI_UPDATED_RESULTS_PATH);
+      await writeFile(updatedPath, JSON.stringify(proposed, null, 2) + '\n', 'utf-8');
+      console.error(`Wrote updated baselines to ${CI_UPDATED_RESULTS_PATH}`);
+    }
     validateResults(scenarios, stored, measuredResults);
     console.log('Memory benchmark validation passed.');
   } finally {

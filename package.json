@@ -251,6 +251,7 @@
     "test.bench.timing": "node --require ./scripts/runBefore.ts scripts/validate-benchmarks.ts",
     "test.bench.timing.update": "node --require ./scripts/runBefore.ts scripts/validate-benchmarks.ts --update",
     "test.bench.update": "pnpm test.bench.timing.update && pnpm test.bench.memory.update",
+    "test.bench.pull-updated": "node --require ./scripts/runBefore.ts scripts/pull-ci-updated-bench.ts",
     "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.webkit && test.e2e.integrations && test.e2e.qwik-react && pnpm test.e2e.cli",
     "test.e2e.chromium": "playwright test e2e/qwik-e2e/tests --browser=chromium --config e2e/qwik-e2e/playwright.config.ts",
     "test.e2e.chromium.debug": "PWDEBUG=1 playwright test e2e/qwik-e2e/tests --browser=chromium --config e2e/qwik-e2e/playwright.config.ts",

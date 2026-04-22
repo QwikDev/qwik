@@ -109,7 +109,6 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
   const ssrResult = await render({
     base: baseUrl,
     manifest,
-    prefetchStrategy: null,
     preloader: false,
   });
 

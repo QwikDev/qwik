@@ -254,112 +254,6 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-<h2 id="prefetchimplementation">PrefetchImplementation</h2>
-
-> Warning: This API is now obsolete.
->
-> Use `preloader` instead
-
-```typescript
-export interface PrefetchImplementation
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-linkFetchPriority?
-
-</td><td>
-
-</td><td>
-
-'auto' \| 'low' \| 'high' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-linkInsert?
-
-</td><td>
-
-</td><td>
-
-'js-append' \| 'html-append' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-linkRel?
-
-</td><td>
-
-</td><td>
-
-'prefetch' \| 'preload' \| 'modulepreload' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-prefetchEvent?
-
-</td><td>
-
-</td><td>
-
-'always' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-workerFetchInsert?
-
-</td><td>
-
-</td><td>
-
-'always' \| 'no-link-support' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
 <h2 id="prefetchresource">PrefetchResource</h2>
 
 ```typescript
@@ -413,63 +307,6 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
-<h2 id="prefetchstrategy">PrefetchStrategy</h2>
-
-```typescript
-export interface PrefetchStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-implementation?
-
-</td><td>
-
-</td><td>
-
-[PrefetchImplementation](#prefetchimplementation)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-symbolsToPrefetch?
-
-</td><td>
-
-</td><td>
-
-[SymbolsToPrefetch](#symbolstoprefetch)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
 <h2 id="preloaderoptions">PreloaderOptions</h2>
 
 ```typescript
@@ -495,23 +332,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-debug?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ Log preloader debug information to the console.
-
-Defaults to `false`
-
-</td></tr>
-<tr><td>
-
 maxIdlePreloads?
 
 </td><td>
@@ -527,40 +347,6 @@ _(Optional)_ Maximum number of simultaneous preload links that the preloader wil
 Bundles that reach 100% probability (static imports of other bundles) will always be preloaded immediately, no limit.
 
 Defaults to `25`
-
-</td></tr>
-<tr><td>
-
-preloadProbability?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-ssrPreloadProbability?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_ The minimum probability for a bundle to be added as a preload link during SSR.
-
-Defaults to `0.7` (70% probability)
-
-This makes sure that the most likely bundles are preloaded ahead of time.
 
 </td></tr>
 <tr><td>
@@ -694,21 +480,6 @@ string \| ((options: [RenderOptions](#renderoptions)) =&gt; string)
 </td><td>
 
 _(Optional)_ Language to use when rendering the document.
-
-</td></tr>
-<tr><td>
-
-prefetchStrategy?
-
-</td><td>
-
-</td><td>
-
-[PrefetchStrategy](#prefetchstrategy) \| null
-
-</td><td>
-
-_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -1290,20 +1061,6 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-<h2 id="symbolstoprefetch">SymbolsToPrefetch</h2>
-
-Auto: Prefetch all possible QRLs used by the document. Default
-
-```typescript
-export type SymbolsToPrefetch =
-  | "auto"
-  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
-```
-
-**References:** [PrefetchResource](#prefetchresource)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 

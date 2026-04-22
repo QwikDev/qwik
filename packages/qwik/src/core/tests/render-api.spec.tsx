@@ -724,9 +724,6 @@ describe('render api', () => {
           </>,
           {
             containerTagName: 'html',
-            prefetchStrategy: {
-              symbolsToPrefetch: 'auto',
-            },
             manifest: {
               ...defaultManifest,
               injections: [

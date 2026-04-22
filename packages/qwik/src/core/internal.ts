@@ -35,6 +35,7 @@ export {
   vnode_toString as _vnode_toString,
 } from './client/vnode-utils';
 export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
+export { getAsyncLocalStorage as _getAsyncLocalStorage } from './shared/platform/async-local-storage';
 export type { Container as _Container } from './shared/types';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';

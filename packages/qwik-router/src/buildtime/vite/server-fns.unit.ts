@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { BuiltLayout, BuiltRoute, BuiltServerPlugin, RoutingContext } from '../types';
-import { collectServerFnModuleIds } from './server-fns';
+import type { BuiltLayout, BuiltRoute, BuiltServerPlugin } from '../types';
+import { collectServerFnModuleIds, type ServerFnRoutingContext } from './server-fns';
 
 describe('collectServerFnModuleIds', () => {
   it('walks the reachable module graph and collects modules containing serverQrl', async () => {
@@ -12,11 +12,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/app/routes/index.tsx',
           code: 'export default component$(() => null);',
-          importedIdResolutions: [
-            { id: '/app/shared.ts', external: false },
-            { id: '/node_modules/@qwik.dev/core/index.mjs', external: false },
-          ],
-          dynamicallyImportedIdResolutions: [{ id: '/app/lazy.ts', external: false }],
+          importedIds: ['/app/shared.ts', '/node_modules/@qwik.dev/core/index.mjs'],
+          dynamicallyImportedIds: ['/app/lazy.ts'],
         },
       ],
       [
@@ -24,8 +21,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/app/layout.tsx',
           code: 'export default component$(() => null);',
-          importedIdResolutions: [{ id: '/app/shared.ts', external: false }],
-          dynamicallyImportedIdResolutions: [],
+          importedIds: ['/app/shared.ts'],
+          dynamicallyImportedIds: [],
         },
       ],
       [
@@ -33,11 +30,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/app/shared.ts',
           code: 'export const shared = true;',
-          importedIdResolutions: [
-            { id: resolvedVirtualId, external: false },
-            { id: 'node:fs', external: true },
-          ],
-          dynamicallyImportedIdResolutions: [],
+          importedIds: [resolvedVirtualId],
+          dynamicallyImportedIds: [],
         },
       ],
       [
@@ -45,8 +39,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/app/lazy.ts',
           code: 'export const fn = serverQrl(() => null);',
-          importedIdResolutions: [],
-          dynamicallyImportedIdResolutions: [],
+          importedIds: [],
+          dynamicallyImportedIds: [],
         },
       ],
       [
@@ -54,8 +48,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/node_modules/@qwik.dev/core/index.mjs',
           code: 'export {};',
-          importedIdResolutions: [],
-          dynamicallyImportedIdResolutions: [],
+          importedIds: [],
+          dynamicallyImportedIds: [],
         },
       ],
       [
@@ -63,8 +57,8 @@ describe('collectServerFnModuleIds', () => {
         {
           id: '/app/plugin.ts',
           code: 'export const pluginFn = serverQrl(() => null);',
-          importedIdResolutions: [],
-          dynamicallyImportedIdResolutions: [],
+          importedIds: [],
+          dynamicallyImportedIds: [],
         },
       ],
     ]);
@@ -92,20 +86,25 @@ describe('collectServerFnModuleIds', () => {
       filePath: '/app/plugin.ts',
       ext: 'ts',
     };
-    const ctx: Pick<RoutingContext, 'layouts' | 'routes' | 'serverPlugins'> = {
+    const ctx: ServerFnRoutingContext = {
       routes: [route],
       layouts: [layout],
       serverPlugins: [serverPlugin],
     };
 
-    const serverFnModules = await collectServerFnModuleIds(ctx, resolvedVirtualId, async (id) => {
-      loads.push(id);
-      const moduleInfo = modules.get(id);
-      if (!moduleInfo) {
-        throw new Error(`Unexpected module load: ${id}`);
-      }
-      return moduleInfo as any;
-    });
+    const pluginContext = {
+      resolve: async (id: string) => ({ id, external: false }) as any,
+      load: async ({ id }: { id: string }) => {
+        loads.push(id);
+        const moduleInfo = modules.get(id);
+        if (!moduleInfo) {
+          throw new Error(`Unexpected module load: ${id}`);
+        }
+        return moduleInfo as any;
+      },
+    };
+
+    const serverFnModules = await collectServerFnModuleIds(ctx, resolvedVirtualId, pluginContext);
 
     expect(serverFnModules.sort()).toEqual(['/app/lazy.ts', '/app/plugin.ts']);
     expect(loads).toEqual([

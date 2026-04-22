@@ -2,7 +2,6 @@ import { assert, test } from 'vitest';
 import type { NormalizedPluginOptions, RouteSourceFile } from '../types';
 import { resolveLayout } from './resolve-source-file';
 import { getSourceFile } from './source-file';
-import { DEFAULT_LINK_DATA_PREFETCH_STRATEGY } from '../../runtime/src/link-prefetch-strategy';
 
 test('resolveLayout', () => {
   const t = [
@@ -50,7 +49,6 @@ test('resolveLayout', () => {
       platform: {},
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
-      linkDataPrefetch: DEFAULT_LINK_DATA_PREFETCH_STRATEGY,
     };
     const sourceFile: RouteSourceFile = {
       ...getSourceFile(c.fileName)!,

@@ -465,48 +465,6 @@
       "mdFile": "router.link.md"
     },
     {
-      "name": "LinkDataCoarsePrefetchStrategy",
-      "id": "linkdatacoarseprefetchstrategy",
-      "hierarchy": [
-        {
-          "name": "LinkDataCoarsePrefetchStrategy",
-          "id": "linkdatacoarseprefetchstrategy"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "Defines the coarse pointer prefetching strategy for link data to enhance navigation performance. The strategies include:\n\n- `'viewport'`<!-- -->: Prefetch when the link becomes visible in the viewport. - `'pointerdown'`<!-- -->: Prefetch when the user presses the mouse button down on the link. - `'focus'`<!-- -->: Prefetch when the link receives focus.\n\n\n```typescript\nexport type LinkDataCoarsePrefetchStrategy = LinkDataBasicPrefetchStrategy;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
-      "mdFile": "router.linkdatacoarseprefetchstrategy.md"
-    },
-    {
-      "name": "LinkDataFinePrefetchStrategy",
-      "id": "linkdatafineprefetchstrategy",
-      "hierarchy": [
-        {
-          "name": "LinkDataFinePrefetchStrategy",
-          "id": "linkdatafineprefetchstrategy"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "Defines the fine pointer prefetching strategy for link data to enhance navigation performance. The strategies include:\n\n- `'viewport'`<!-- -->: Prefetch when the link becomes visible in the viewport. - `'hover'`<!-- -->: Prefetch when the user hovers over the link. - `'pointerdown'`<!-- -->: Prefetch when the user presses the mouse button down on the link. - `'focus'`<!-- -->: Prefetch when the link receives focus.\n\n\n```typescript\nexport type LinkDataFinePrefetchStrategy = LinkDataBasicPrefetchStrategy | 'hover';\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
-      "mdFile": "router.linkdatafineprefetchstrategy.md"
-    },
-    {
-      "name": "LinkDataPrefetchOptions",
-      "id": "linkdataprefetchoptions",
-      "hierarchy": [
-        {
-          "name": "LinkDataPrefetchOptions",
-          "id": "linkdataprefetchoptions"
-        }
-      ],
-      "kind": "Interface",
-      "content": "Specifies when link data should be prefetched to improve navigation performance.\n\n\n```typescript\nexport interface LinkDataPrefetchOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncoarsePointer?\n\n\n</td><td>\n\n\n</td><td>\n\n[LinkDataCoarsePrefetchStrategy](#linkdatacoarseprefetchstrategy)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nfinePointer?\n\n\n</td><td>\n\n\n</td><td>\n\n[LinkDataFinePrefetchStrategy](#linkdatafineprefetchstrategy)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
-      "mdFile": "router.linkdataprefetchoptions.md"
-    },
-    {
       "name": "LinkProps",
       "id": "linkprops",
       "hierarchy": [
@@ -516,7 +474,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprefetch?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean \\| 'js'\n\n\n</td><td>\n\n_(Optional)_ \\*\\*Defaults to \\_true\\_.\\*\\*\n\nWhether Qwik should prefetch and cache the target page of this \\*\\*`Link`<!-- -->\\*\\*, this includes invoking any \\*\\*`routeLoader$`<!-- -->\\*\\*, \\*\\*`onGet`<!-- -->\\*\\*, etc.\n\nThis \\*\\*improves UX performance\\*\\* for client-side (\\*\\*SPA\\*\\*) navigations.\n\nThis only changes when route data is fetched. It does not change how Qwik preloads the javascript needed for the next page.\n\nRoute data prefetching occurs based on the active prefetch strategy.\n\nBy default, fine pointers use \\*\\*`hover`<!-- -->\\*\\* and coarse pointers use \\*\\*`viewport`<!-- -->\\*\\*. Use \\*\\*`prefetchDataStrategy`<!-- -->\\*\\* to customize this per link, or the router's \\*\\*`linkDataPrefetch`<!-- -->\\*\\* option to change the app-wide defaults.\n\nPrefetching will not occur if the user has the \\*\\*data saver\\*\\* setting enabled.\n\nSetting this value to \\*\\*`\"js\"`<!-- -->\\*\\* will prefetch only javascript bundles required to render this page on the client, \\*\\*`false`<!-- -->\\*\\* will disable prefetching altogether.\n\n\n</td></tr>\n<tr><td>\n\nprefetchDataStrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[LinkDataPrefetchOptions](#linkdataprefetchoptions)\n\n\n</td><td>\n\n_(Optional)_ Specifies when route data should be prefetched to improve navigation performance.\n\nDefaults to `{ coarsePointer: ['viewport'], finePointer: ['hover'] }`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nreload?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nreplaceState?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nscroll?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprefetch?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean \\| 'js'\n\n\n</td><td>\n\n_(Optional)_ \\*\\*Defaults to \\_true\\_.\\*\\*\n\nWhether Qwik should prefetch and cache the target page of this \\*\\*`Link`<!-- -->\\*\\*, this includes invoking any \\*\\*`routeLoader$`<!-- -->\\*\\*, \\*\\*`onGet`<!-- -->\\*\\*, etc.\n\nThis \\*\\*improves UX performance\\*\\* for client-side (\\*\\*SPA\\*\\*) navigations.\n\nThis only changes when route data is fetched. It does not change how Qwik preloads the javascript needed for the next page.\n\nRoute data prefetching occurs based on the active prefetch strategy.\n\nBy default, fine pointers use \\*\\*`hover`<!-- -->\\*\\* and coarse pointers use \\*\\*`viewport`<!-- -->\\*\\*. Use \\*\\*`prefetchDataStrategy`<!-- -->\\*\\* to customize this per link, or the router's \\*\\*`linkDataPrefetch`<!-- -->\\*\\* option to change the app-wide defaults.\n\nPrefetching will not occur if the user has the \\*\\*data saver\\*\\* setting enabled.\n\nSetting this value to \\*\\*`\"js\"`<!-- -->\\*\\* will prefetch only javascript bundles required to render this page on the client, \\*\\*`false`<!-- -->\\*\\* will disable prefetching altogether.\n\n\n</td></tr>\n<tr><td>\n\nprefetchBundle?\n\n\n</td><td>\n\n\n</td><td>\n\nPrefetchStrategy\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nprefetchData?\n\n\n</td><td>\n\n\n</td><td>\n\nPrefetchStrategy\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nreload?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nreplaceState?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nscroll?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx",
       "mdFile": "router.linkprops.md"
     },

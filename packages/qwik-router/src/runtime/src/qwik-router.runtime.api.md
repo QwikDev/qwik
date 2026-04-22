@@ -266,11 +266,7 @@ export const Link: Component<LinkProps>;
 export interface LinkProps extends AnchorAttributes {
     // @deprecated
     prefetch?: boolean | 'js';
-    // Warning: (ae-forgotten-export) The symbol "PrefetchStrategy" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     prefetchBundle?: PrefetchStrategy;
-    // (undocumented)
     prefetchData?: PrefetchStrategy;
     // (undocumented)
     reload?: boolean;
@@ -311,6 +307,25 @@ export type PageModule = RouteModule & {
 
 // @public (undocumented)
 export type PathParams = Record<string, string>;
+
+// @public
+export type PrefetchStrategy =
+/**
+* Prefetch when the user commits to navigating.
+*
+* Triggered by `pointerdown` or the `Enter` key.
+*/
+'commit'
+/**
+* Prefetch when the user shows navigation intent.
+*
+* Triggered by `pointerenter`, hover, or focus.
+*/
+| 'intent'
+/** Prefetch when the link becomes visible in the viewport. */
+| 'visible'
+/** Disable link prefetching. */
+| 'off';
 
 // @public (undocumented)
 export type PreventNavigateCallback = (url?: number | URL) => ValueOrPromise<boolean>;

@@ -55,7 +55,7 @@ export type {
 } from './types';
 
 export { ErrorBoundary } from './error-boundary';
-export { Link, type LinkProps } from './link-component';
+export { Link, type LinkProps, type PrefetchStrategy } from './link-component';
 export {
   QWIK_CITY_SCROLLER,
   QWIK_ROUTER_SCROLLER,

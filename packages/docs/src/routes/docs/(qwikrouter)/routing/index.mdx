@@ -291,57 +291,57 @@ export default component$(() => {
 
 <Note>While refreshing the page, the `isNavigating` boolean from `useLocation()` will be `true` until the page is fully rendered.</Note>
 
-### `<Link prefetch>`
+### `<Link>` prefetching
 
-By default, a `Link` component will prefetch differently depending on the user's input device:
+Use `prefetchBundle` and `prefetchData` to control what a link prefetches and when it starts.
 
-- fine pointers such as a mouse use `['hover']`
-- coarse pointers such as touchscreens use `['viewport']`
+`prefetchBundle` controls the javascript bundles needed to render the target route on the client.
+`prefetchData` controls route data requests, including `routeLoader$`, `onGet`, and similar server
+work for the target route.
 
-So on desktop, route data is usually fetched when a link is hovered, while on touch devices it is fetched when the link becomes visible. If the application is done prefetching when the user activates the link, the next page can appear instantly. Although Qwik applications already excel at lazy loading javascript, this behavior can be especially helpful for content-heavy pages or SSR pages that need to wait for database or API calls.
+By default, both `prefetchBundle` and `prefetchData` use `visible`, so a link prefetches route
+bundles and route data when it enters the viewport.
 
-If this is not your desired behavior, you can set the `prefetch` prop to false.
 ```tsx
-<Link prefetch={false} href="/about">
+<Link href="/about" prefetchBundle="visible">
   About
 </Link>
 ```
 
-You can also set `prefetch="js"` to prefetch only the javascript bundles required for the route, without prefetching route data.
+For pages that wait on route data, prefetching data before activation can make SPA navigation feel
+instant when the user follows the link.
 
 ```tsx
-<Link prefetch="js" href="/about">
-  About
-</Link>
-```
-
-### `<Link prefetchDataStrategy>`
-
-Use the `prefetchDataStrategy` prop to override when a specific link should prefetch route data.
-
-```tsx
-<Link
-  href="/pricing"
-  prefetchDataStrategy={{
-    coarsePointer: ['pointerdown'],
-    finePointer: ['hover', 'focus'],
-  }}
->
+<Link href="/pricing" prefetchData="intent">
   Pricing
 </Link>
 ```
 
-This only affects `loadClientData()` prefetching. It does not change how Qwik preloads the
-javascript needed for the next page.
-
 Available strategy values are:
 
-- `viewport` to prefetch when the link becomes visible
-- `hover` to prefetch on mouse hover for fine pointers
-- `focus` to prefetch when the link receives keyboard focus
-- `pointerdown` to prefetch as soon as the user presses the link
+- `visible` to prefetch when the link becomes visible in the viewport
+- `intent` to prefetch when the user shows intent with `pointerenter`, hover, or focus
+- `commit` to prefetch when the user commits with `pointerdown` or the `Enter` key
+- `off` to disable prefetching
 
-An empty array disables prefetching for that pointer type.
+You can configure bundle and data prefetching independently:
+
+```tsx
+<Link href="/dashboard" prefetchBundle="visible" prefetchData="commit">
+  Dashboard
+</Link>
+```
+
+The older `prefetch` prop is deprecated. For compatibility, `prefetch="js"` prefetches route
+bundles when the link becomes visible and turns route data prefetching off by default,
+`prefetch={true}` prefetches route bundles and route data when the link becomes visible, and
+`prefetch={false}` disables prefetching.
+
+```tsx
+<Link href="/about" prefetch={false}>
+  About
+</Link>
+```
 
 ### Scroll Restoration
 

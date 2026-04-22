@@ -76,12 +76,18 @@ describe.each([
     preloadRouteBundlesMock.mockClear();
   });
 
-  it('show render Link component with default prefetch strategy', async () => {
+  it('prefetches bundles and route data with the default visible strategy', async () => {
     const { anchor } = await renderLink(render);
 
     expect(anchor?.getAttribute('href')).toBe('http://localhost/test');
-    expect(loadClientDataMock).not.toHaveBeenCalled();
-    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
+    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
+    expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
+      preloadRouteBundles: false,
+      isPrefetch: true,
+    });
+    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
   });
 
   it('prefetches route data on intent', async () => {
@@ -120,7 +126,7 @@ describe.each([
   });
 
   it('prefetches route data when visible strategy is enabled', async () => {
-    await renderLink(render, { prefetchData: 'visible' });
+    await renderLink(render, { prefetchBundle: 'off', prefetchData: 'visible' });
 
     expect(loadClientDataMock).toHaveBeenCalledTimes(1);
     expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
@@ -132,7 +138,7 @@ describe.each([
   });
 
   it('prefetches bundles when visible strategy is enabled', async () => {
-    await renderLink(render, { prefetchBundle: 'visible' });
+    await renderLink(render, { prefetchBundle: 'visible', prefetchData: 'off' });
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
     expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
@@ -216,6 +222,7 @@ describe.each([
       await trigger(document.body, 'a', 'qvisible');
     }
     const anchor = document.querySelector('a');
+    preloadRouteBundlesMock.mockClear();
 
     await trigger(document.body, anchor, 'click');
 

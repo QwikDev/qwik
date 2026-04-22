@@ -69,6 +69,8 @@ describe('fromNodeHttp()', () => {
     res.setHeader = vi.fn();
     res.write = vi.fn((_chunk: Uint8Array, cb?: (error?: Error | null) => void) => {
       writeCallback = cb;
+      // Returning false simulates backpressure. This adapter does not attach
+      // drain listeners because ServerResponse.write() provides a per-write callback.
       return false;
     }) as any;
     res.end = vi.fn((cb?: () => void) => {
@@ -88,6 +90,8 @@ describe('fromNodeHttp()', () => {
 
     const writePromise = writer.write(new Uint8Array([1, 2, 3]));
     await Promise.resolve();
+    // No drain listener should be attached in this path; Node calls the write
+    // callback once this chunk has flushed, even when write() returned false.
     expect(res.listenerCount('drain')).toBe(0);
     expect(writeCallback).toBeDefined();
 

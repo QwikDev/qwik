@@ -139,6 +139,14 @@ const renderToStreamAndSetPlatform = async (jsx: JSXOutput, opts: RenderToStream
   return result;
 };
 
+const createDeferred = () => {
+  let resolve!: () => void;
+  const promise = new Promise<void>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+};
+
 describe('render api', () => {
   let document: Document;
   beforeEach(() => {
@@ -856,6 +864,50 @@ describe('render api', () => {
         });
         expect(write.mock.calls.length).toBeGreaterThan(100);
       });
+      it('should wait for an async direct write before emitting the next one', async () => {
+        const firstWrite = createDeferred();
+        let writeCount = 0;
+        const stream: StreamWriter = {
+          write() {
+            writeCount++;
+            if (writeCount === 1) {
+              return firstWrite.promise;
+            }
+            return Promise.resolve();
+          },
+        };
+        const streaming: StreamingOptions = {
+          inOrder: {
+            strategy: 'direct',
+          },
+        };
+        const LargeOutput = component$(() => (
+          <div>
+            {Array.from({ length: 40 }, (_, i) => (
+              <span key={i}>{`chunk-${i}-` + 'x'.repeat(20)}</span>
+            ))}
+          </div>
+        ));
+
+        const renderPromise = renderToStreamAndSetPlatform(<LargeOutput />, {
+          containerTagName: 'div',
+          stream,
+          streaming,
+        });
+
+        await vi.waitFor(() => expect(writeCount).toBeGreaterThan(0));
+        await Promise.resolve();
+        await Promise.resolve();
+        // Direct mode should also serialize async writes. If this becomes > 1
+        // before the first promise resolves, direct streaming is still
+        // ignoring downstream backpressure.
+        expect(writeCount).toBe(1);
+
+        firstWrite.resolve();
+        await renderPromise;
+
+        expect(writeCount).toBeGreaterThan(1);
+      });
       it('should render chunk by chunk with auto streaming', async () => {
         const stream: StreamWriter = {
           write: vi.fn(),
@@ -874,6 +926,53 @@ describe('render api', () => {
         });
         // This can change when the size of the output changes
         expect(stream.write).toHaveBeenCalledTimes(4);
+      });
+
+      it('should wait for an async flush before emitting the next chunk', async () => {
+        const firstWrite = createDeferred();
+        let writeCount = 0;
+        const stream: StreamWriter = {
+          write() {
+            writeCount++;
+            if (writeCount === 1) {
+              return firstWrite.promise;
+            }
+            return Promise.resolve();
+          },
+        };
+        const streaming: StreamingOptions = {
+          inOrder: {
+            strategy: 'auto',
+            maximumInitialChunk: 50,
+            maximumChunk: 50,
+          },
+        };
+        const LargeOutput = component$(() => (
+          <div>
+            {Array.from({ length: 40 }, (_, i) => (
+              <span key={i}>{`chunk-${i}-` + 'x'.repeat(20)}</span>
+            ))}
+          </div>
+        ));
+
+        const renderPromise = renderToStreamAndSetPlatform(<LargeOutput />, {
+          containerTagName: 'div',
+          stream,
+          streaming,
+        });
+
+        await vi.waitFor(() => expect(writeCount).toBeGreaterThan(0));
+        await Promise.resolve();
+        await Promise.resolve();
+        // The first async write is still unresolved here, so starting a second
+        // write would mean the renderer ignored downstream backpressure and let
+        // multiple flushes overlap in flight.
+        expect(writeCount).toBe(1);
+
+        firstWrite.resolve();
+        await renderPromise;
+
+        expect(writeCount).toBeGreaterThan(1);
       });
     });
   });

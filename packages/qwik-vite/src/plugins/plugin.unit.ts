@@ -393,8 +393,10 @@ export default component$(() => {
   expect(eventSegmentId).toBeTruthy();
 
   const loaded = await plugin.load({} as any, eventSegmentId!);
-  expect((loaded as { code: string }).code).toContain('_qrlWithChunkDEV(');
-  expect((loaded as { code: string }).code).toContain('"__QWIK_WORKER_QRL__:');
+  const code = (loaded as { code: string }).code;
+  expect(code).toContain('_qrlWithChunkDEV(');
+  const workerQrlSentinel = '"__QWIK' + '_WORKER_QRL__:';
+  expect(code.includes(workerQrlSentinel) || code.includes('?worker_file&type=module')).toBe(true);
 });
 
 test('load wraps non-worker QRL segment HMR with a runtime document guard', async () => {

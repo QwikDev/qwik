@@ -75,8 +75,6 @@ export {
   _getContextHostElement,
   _jsxBranch,
   _waitUntilRendered,
-  newInvokeContext as _newInvokeContext,
-  invokeApply as _invokeApply,
 } from './use/use-core';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { isTask as _isTask, scheduleTask as _task } from './use/use-task';

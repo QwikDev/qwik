@@ -1,5 +1,5 @@
 import { setPlatform } from '@qwik.dev/core';
-import { _deserialize, _invokeApply, _newInvokeContext } from '@qwik.dev/core/internal';
+import { _deserialize } from '@qwik.dev/core/internal';
 
 const getSymbolHash = (symbolName) => {
   const index = symbolName.lastIndexOf('_');
@@ -54,10 +54,8 @@ export const runWorkerMessage = async (data, postMessage, invokeThis) => {
   const requestId = data[0];
   try {
     const [qrl, ...args] = _deserialize(data[1]);
-    const invokeContext = _newInvokeContext();
-    invokeContext.$container$ = qrl.$lazy$.$container$;
 
-    const output = await _invokeApply.call(invokeThis, invokeContext, qrl, args);
+    const output = await qrl.apply(null, args);
     postMessage([requestId, true, output]);
   } catch (err) {
     postMessage([requestId, false, err]);

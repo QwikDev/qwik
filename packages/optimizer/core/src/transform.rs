@@ -28,6 +28,8 @@ use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
 use swc_ecmascript::visit::{noop_fold_type, noop_visit_type, Fold, FoldWith, Visit, VisitWith};
 
 mod disable_next_line_directive;
+#[path = "transform_worker.rs"]
+mod transform_worker;
 use disable_next_line_directive::DisabledDiagnostics;
 
 macro_rules! id {
@@ -2254,11 +2256,24 @@ impl<'a> QwikTransform<'a> {
 										ast::PropName::Str(ref s) => Some(s.value.clone()),
 										_ => None,
 									};
+									let handler = if matches!(
+										*node.value,
+										ast::Expr::Arrow(_) | ast::Expr::Fn(_)
+									) {
+										Some(node.value.as_ref())
+									} else if key.as_ref().is_some_and(|key| {
+										jsx_event_to_html_attribute(key.as_ref(), false).is_some()
+									}) {
+										transform_worker::worker_qrl_event_handler(
+											&self.options.global_collect,
+											&node.value,
+										)
+									} else {
+										None
+									};
 									if key.as_ref().and_then(convert_qrl_word).is_some()
-										&& matches!(
-											*node.value,
-											ast::Expr::Arrow(_) | ast::Expr::Fn(_)
-										) {
+										&& handler.is_some()
+									{
 										for var in iter_vars {
 											if expr_uses_ident(&node.value, &id!(var)) {
 												used_syms.insert((var.sym.clone(), var.ctxt));
@@ -2286,13 +2301,28 @@ impl<'a> QwikTransform<'a> {
 									ast::PropName::Str(ref s) => Some(s.value.clone()),
 									_ => None,
 								};
-								if key.as_ref().and_then(convert_qrl_word).is_some()
-									&& matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
-								{
-									let captures = self.compute_handler_captures(&node.value);
-									for cap in captures {
-										if !all_captures.contains(&cap) {
-											all_captures.push(cap);
+								let handler = if matches!(
+									*node.value,
+									ast::Expr::Arrow(_) | ast::Expr::Fn(_)
+								) {
+									Some(node.value.as_ref())
+								} else if key.as_ref().is_some_and(|key| {
+									jsx_event_to_html_attribute(key.as_ref(), false).is_some()
+								}) {
+									transform_worker::worker_qrl_event_handler(
+										&self.options.global_collect,
+										&node.value,
+									)
+								} else {
+									None
+								};
+								if key.as_ref().and_then(convert_qrl_word).is_some() {
+									if let Some(handler) = handler {
+										let captures = self.compute_handler_captures(handler);
+										for cap in captures {
+											if !all_captures.contains(&cap) {
+												all_captures.push(cap);
+											}
 										}
 									}
 								}
@@ -2420,7 +2450,17 @@ impl<'a> QwikTransform<'a> {
 								)
 								.is_some()
 								{
+									let worker_qrl_call =
+										if !is_fn && transformed_event_key.is_some() {
+											transform_worker::worker_qrl_call(
+												&self.options.global_collect,
+												&node.value,
+											)
+										} else {
+											None
+										};
 									if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
+										|| worker_qrl_call.is_some()
 									{
 										// Use element_lifted_params for both loop iteration vars
 										// and non-loop captures (computed in pre-pass above)
@@ -2432,7 +2472,13 @@ impl<'a> QwikTransform<'a> {
 											};
 
 										// Inject lifted params as extra function params
-										let transformed_value = if !params_to_lift.is_empty() {
+										let transformed_value = if let Some(call) = worker_qrl_call
+										{
+											transform_worker::create_worker_qrl_event_wrapper(
+												call,
+												&params_to_lift,
+											)
+										} else if !params_to_lift.is_empty() {
 											transform_event_handler_with_iter_var(
 												*node.value.clone(),
 												&params_to_lift,

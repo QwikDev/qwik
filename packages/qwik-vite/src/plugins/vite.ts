@@ -41,6 +41,15 @@ import {
   createBuildWorkerQrlChunkResolver,
   rewriteWorkerQrlChunkPlaceholders,
 } from './worker-qrl-chunks';
+import {
+  emitQwikWorkerCoreChunk,
+  getQwikWorkerConfig,
+  isQwikWorkerCoreId,
+  loadQwikWorkerCore,
+  QWIK_WORKER_CORE_ID,
+  rewriteClientWorkerCorePlaceholders,
+  rewriteSsrWorkerCorePlaceholders,
+} from './worker-core';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -312,6 +321,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             // temporary fix for rolldown-vite types
           } as BuildOptions['rollupOptions'],
         },
+        worker: getQwikWorkerConfig(viteConfig.worker, target, viteCommand),
         define: {
           [qDevKey]: qDev,
           [qInspectorKey]: qInspector,
@@ -443,11 +453,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       });
 
       await qwikPlugin.buildStart(this);
+      if (viteCommand === 'build' && qwikPlugin.getOptions().target === 'client') {
+        emitQwikWorkerCoreChunk(this);
+      }
     },
 
     resolveId(id, importer, resolveIdOpts) {
       if (id.endsWith(QWIK_HMR_BRIDGE_ID)) {
         return QWIK_HMR_BRIDGE_ID;
+      }
+      if (isQwikWorkerCoreId(id)) {
+        return QWIK_WORKER_CORE_ID;
       }
       const shouldResolveFile = fileFilter(id, 'resolveId');
       if (isVirtualId(id) || !shouldResolveFile) {
@@ -459,6 +475,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     load(id, loadOpts) {
       if (id === QWIK_HMR_BRIDGE_ID) {
         return { code: QWIK_HMR_BRIDGE_CODE };
+      }
+      if (id === QWIK_WORKER_CORE_ID) {
+        return loadQwikWorkerCore();
       }
       const shouldLoadFile = fileFilter(id, 'load');
       if (isVirtualId(id) || !shouldLoadFile) {
@@ -508,6 +527,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       order: 'post',
       async handler(_, rollupBundle) {
         const isClient = this.environment.config.consumer === 'client';
+        const isSSR = this.environment.config.consumer === 'server';
 
         if (isClient) {
           // client build
@@ -571,6 +591,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               output.code = rewriteWorkerQrlChunkPlaceholders(output.code, resolveChunkPath);
             }
           }
+          rewriteClientWorkerCorePlaceholders(rollupBundle);
+        } else if (isSSR) {
+          rewriteSsrWorkerCorePlaceholders(rollupBundle, manifestInput);
         }
       },
     },

@@ -5,9 +5,13 @@ import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
 import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
 import {
+  createBuildWorkerCoreChunkResolver,
   createBuildWorkerQrlChunkResolver,
   createDevWorkerQrlChunkResolver,
+  createRelativeBuildWorkerQrlChunkResolver,
+  QWIK_WORKER_CORE_SENTINEL,
   QWIK_WORKER_QRL_SENTINEL,
+  rewriteWorkerCorePlaceholders,
   rewriteWorkerQrlChunkPlaceholders,
 } from './worker-qrl-chunks';
 
@@ -835,6 +839,35 @@ describe('worker qrl chunk rewrites', () => {
     assert.equal(rewritten, 'const chunk = "/app/build/q-worker.js";');
   });
 
+  test('rewrites worker chunk placeholders to relative final bundle files', () => {
+    const resolver = createRelativeBuildWorkerQrlChunkResolver({
+      manifestHash: 'hash',
+      version: '1',
+      mapping: {
+        workerSymbol: 'q-worker.js',
+      },
+      symbols: {
+        workerSymbol: {
+          canonicalFilename: 'index_worker_abcd',
+          origin: 'src/routes/index.tsx',
+          displayName: 'workerSymbol',
+          hash: 'workerSymbol',
+          ctxKind: 'function',
+          ctxName: 'worker$',
+          captures: false,
+          parent: null,
+          loc: [0, 0],
+        },
+      },
+      bundles: {},
+    });
+
+    const code = workerPlaceholderCode('./index_worker_abcd.js');
+    const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
+
+    assert.equal(rewritten, 'const chunk = "build/q-worker.js";');
+  });
+
   test('rewrites worker chunk placeholders to final bundle files with paths relative to build', () => {
     const resolver = createBuildWorkerQrlChunkResolver(
       {
@@ -865,5 +898,45 @@ describe('worker qrl chunk rewrites', () => {
     const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
 
     assert.equal(rewritten, 'const chunk = "/app/assets/build/q-worker.js";');
+  });
+});
+
+describe('worker core chunk rewrites', () => {
+  const workerCorePlaceholderCode = () =>
+    `import { setPlatform, _deserialize } from "${QWIK_WORKER_CORE_SENTINEL}";`;
+
+  test('rewrites worker core placeholders to relative build chunks from browser workers', () => {
+    const resolver = createBuildWorkerCoreChunkResolver('build/qwik-worker-core-abcd.js');
+    const code = workerCorePlaceholderCode();
+    const rewritten = rewriteWorkerCorePlaceholders(code, () => resolver('assets/worker-1234.js'));
+
+    assert.equal(
+      rewritten,
+      'import { setPlatform, _deserialize } from "../build/qwik-worker-core-abcd.js";'
+    );
+  });
+
+  test('rewrites worker core placeholders to relative build chunks from node workers', () => {
+    const resolver = createBuildWorkerCoreChunkResolver('build/qwik-worker-core-abcd.js');
+    const code = workerCorePlaceholderCode();
+    const rewritten = rewriteWorkerCorePlaceholders(code, () =>
+      resolver('assets/worker.node-1234.js')
+    );
+
+    assert.equal(
+      rewritten,
+      'import { setPlatform, _deserialize } from "../build/qwik-worker-core-abcd.js";'
+    );
+  });
+
+  test('rewrites worker core placeholders with same-directory relative imports', () => {
+    const resolver = createBuildWorkerCoreChunkResolver('build/qwik-worker-core-abcd.js');
+    const code = workerCorePlaceholderCode();
+    const rewritten = rewriteWorkerCorePlaceholders(code, () => resolver('build/worker-1234.js'));
+
+    assert.equal(
+      rewritten,
+      'import { setPlatform, _deserialize } from "./qwik-worker-core-abcd.js";'
+    );
   });
 });

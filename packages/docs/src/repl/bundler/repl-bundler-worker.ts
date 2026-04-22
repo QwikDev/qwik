@@ -1,6 +1,12 @@
 import { rolldown, type OutputAsset, type OutputChunk } from '@rolldown/browser';
 import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
-import { definesPlugin, replCss, replMinify, replResolver } from './rollup-plugins';
+import {
+  definesPlugin,
+  replCss,
+  replMinify,
+  replResolver,
+  replWorkerQrlChunks,
+} from './rollup-plugins';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
 // Worker message types
@@ -187,6 +193,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
           result.transformedModules = t;
         },
       }),
+      replWorkerQrlChunks(() => result.manifest),
       replResolver(deps, { srcInputs, buildMode, replId }, 'client'),
       replMinify(buildMode),
     ],

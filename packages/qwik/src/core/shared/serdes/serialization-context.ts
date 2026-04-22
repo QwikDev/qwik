@@ -251,7 +251,9 @@ export const createSerializationContext = (
   if (!writer) {
     const buffer: string[] = [];
     writer = {
-      write: (text: string) => buffer.push(text),
+      write: (text: string) => {
+        buffer.push(text);
+      },
       toString: () => buffer.join(''),
     } as StreamWriter;
   }

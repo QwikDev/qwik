@@ -1,3 +1,4 @@
+import { isPromise } from './qwik-copy';
 import type { IStreamHandler } from './qwik-types';
 import type {
   InOrderStreaming,
@@ -17,6 +18,8 @@ export class StreamHandler implements IStreamHandler {
   private streamBlockBufferSize = 0;
   private nativeStream: StreamWriter;
   private firstFlushTimer = createTimer();
+  private pendingFlush: Promise<void> | undefined;
+  private flushQueued = false;
   public stream: StreamWriter;
 
   constructor(
@@ -44,6 +47,9 @@ export class StreamHandler implements IStreamHandler {
             }
             handler.enqueue(chunk);
           },
+          waitForDrain() {
+            return handler.waitForPendingFlush();
+          },
         };
         break;
       case 'direct': {
@@ -53,7 +59,14 @@ export class StreamHandler implements IStreamHandler {
             if (chunk === undefined || chunk === null) {
               return;
             }
-            originalStream.write(chunk);
+            if (handler.pendingFlush) {
+              const queued = handler.pendingFlush.then(() => originalStream.write(chunk));
+              return handler.trackPendingFlush(queued);
+            }
+            return handler.trackPendingFlush(originalStream.write(chunk));
+          },
+          waitForDrain() {
+            return handler.waitForPendingFlush();
           },
         };
         break;
@@ -75,9 +88,12 @@ export class StreamHandler implements IStreamHandler {
               const maxBufferSize =
                 handler.networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
               if (handler.bufferSize >= maxBufferSize) {
-                handler.flush();
+                return handler.flush();
               }
             }
+          },
+          waitForDrain() {
+            return handler.waitForPendingFlush();
           },
         };
         break;
@@ -99,16 +115,59 @@ export class StreamHandler implements IStreamHandler {
     }
   }
 
-  flush() {
-    if (this.buffer) {
-      this.nativeStream.write(this.buffer);
-      this.buffer = '';
-      this.bufferSize = 0;
-      this.networkFlushes++;
-      if (this.networkFlushes === 1) {
-        this.timing.firstFlush = this.firstFlushTimer();
-      }
+  private trackPendingFlush(result: ReturnType<StreamWriter['write']>) {
+    if (!isPromise(result)) {
+      return;
     }
+
+    const pending = Promise.resolve(result).finally(() => {
+      if (this.pendingFlush === pending) {
+        this.pendingFlush = undefined;
+      }
+    });
+    this.pendingFlush = pending;
+    return pending;
+  }
+
+  private flushBuffer() {
+    const chunk = this.buffer;
+    this.buffer = '';
+    this.bufferSize = 0;
+    this.networkFlushes++;
+    if (this.networkFlushes === 1) {
+      this.timing.firstFlush = this.firstFlushTimer();
+    }
+
+    return this.trackPendingFlush(this.nativeStream.write(chunk));
+  }
+
+  flush(): Promise<void> | void {
+    if (!this.buffer) {
+      return this.waitForPendingFlush();
+    }
+
+    if (this.pendingFlush) {
+      if (!this.flushQueued) {
+        this.flushQueued = true;
+        const queued = this.pendingFlush.then(() => {
+          this.flushQueued = false;
+          this.pendingFlush = undefined;
+          return this.flush();
+        });
+        this.pendingFlush = queued.finally(() => {
+          if (this.pendingFlush === queued) {
+            this.pendingFlush = undefined;
+          }
+        });
+      }
+      return this.pendingFlush;
+    }
+
+    return this.flushBuffer();
+  }
+
+  waitForPendingFlush() {
+    return this.pendingFlush;
   }
 
   streamBlockStart() {
@@ -123,7 +182,7 @@ export class StreamHandler implements IStreamHandler {
       this.bufferSize += this.streamBlockBufferSize;
       this.streamBlockBuffer = '';
       this.streamBlockBufferSize = 0;
-      this.flush();
+      return this.flush();
     }
   }
 }

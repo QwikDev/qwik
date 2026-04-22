@@ -1,5 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
+assertion_line: 7526
 expression: output
 ---
 ==INPUT==
@@ -24,13 +25,13 @@ const q_qrl_4294901760 = /*#__PURE__*/ _qrlWithChunkDEV("__QWIK_WORKER_QRL__:./i
 export const runInWorker = workerQrl(q_qrl_4294901760);
 
 
-Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAGA,OAAO,MAAM,cAAc,4BAAuB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAGA,OAAO,MAAM,cAAc,4BAAuB\"}")
 ============================= src/routes/index.tsx_runInWorker_worker_ne8wm4paCLs.tsx (ENTRY POINT)==
 
 export const runInWorker_worker_ne8wm4paCLs = ()=>'hello';
 
 
-Some("{\"version\":3,\"sources\":[\"\\\\user\\\\qwik\\\\src\\\\src\\\\routes\\\\index.tsx\"],\"names\":[],\"mappings\":\"8CAGmC,IAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\"8CAGmC,IAAM\"}")
 /*
 {
   "origin": "src/routes/index.tsx",

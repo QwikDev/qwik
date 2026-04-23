@@ -14,11 +14,7 @@ export const isBrowser: boolean = /*#__PURE__*/ (() =>
  *
  * @public
  */
-export const isServer: boolean = /*#__PURE__*/ (() =>
-  !isBrowser &&
-  typeof process !== 'undefined' &&
-  process.versions != null &&
-  process.versions.node != null)();
+export const isServer: boolean = !isBrowser;
 
 /**
  * True when build is in dev mode.

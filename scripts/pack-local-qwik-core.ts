@@ -1,14 +1,15 @@
+import { execFileSync } from 'node:child_process';
 import { readdir, rm, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { execa } from 'execa';
 import { readPackageJson, writePackageJson } from './package-json.ts';
-import { OPTIMIZER_PACKAGE, getShortSha } from './optimizer-change-utils.ts';
 import { ensureDir } from './util.ts';
 
 const rootDir = join(import.meta.dirname, '..');
 const qwikDir = join(rootDir, 'packages', 'qwik');
 const optimizerDir = join(rootDir, 'packages', 'optimizer');
 const packDir = join(rootDir, 'dist-dev', 'local-qwik-pack');
+const OPTIMIZER_PACKAGE = '@qwik.dev/optimizer';
 
 async function main() {
   await rm(packDir, { recursive: true, force: true });
@@ -65,6 +66,14 @@ function createLocalVersion(version: string) {
       .replace(/[^0-9A-Za-z-]/g, '')
       .slice(0, 12) || 'local';
   return `${baseVersion}-local.${cleanSha}`;
+}
+
+function getShortSha() {
+  try {
+    return execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], { encoding: 'utf-8' }).trim();
+  } catch {
+    return String(Date.now());
+  }
 }
 
 function toFileDependency(filePath: string) {

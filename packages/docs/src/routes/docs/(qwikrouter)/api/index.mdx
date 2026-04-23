@@ -612,8 +612,9 @@ wait on `routeLoader$`, `onGet`, databases, or API calls.
 Use `prefetchBundle` to control when Qwik prefetches the javascript bundles required for the target
 route. Use `prefetchData` to control when Qwik prefetches and caches route data for the target route.
 
-By default, both `prefetchBundle` and `prefetchData` use `visible`, so a link prefetches route
-bundles and route data when it enters the viewport.
+By default, `prefetchBundle` uses `visible`, while `prefetchData` uses `intent`. This means route
+bundles are prefetched when the link enters the viewport, and route data is prefetched when the
+user shows navigation intent with `pointerenter`, hover, or focus.
 
 Available strategy values are:
 

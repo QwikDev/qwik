@@ -295,53 +295,12 @@ export default component$(() => {
 
 Use `prefetchBundle` and `prefetchData` to control what a link prefetches and when it starts.
 
-`prefetchBundle` controls the javascript bundles needed to render the target route on the client.
-`prefetchData` controls route data requests, including `routeLoader$`, `onGet`, and similar server
-work for the target route.
+By default, `prefetchBundle` uses `visible`, while `prefetchData` uses `intent`, so route bundles
+are prefetched when the link enters the viewport and route data is prefetched when the user shows
+navigation intent.
 
-By default, both `prefetchBundle` and `prefetchData` use `visible`, so a link prefetches route
-bundles and route data when it enters the viewport.
-
-```tsx
-<Link href="/about" prefetchBundle="visible">
-  About
-</Link>
-```
-
-For pages that wait on route data, prefetching data before activation can make SPA navigation feel
-instant when the user follows the link.
-
-```tsx
-<Link href="/pricing" prefetchData="intent">
-  Pricing
-</Link>
-```
-
-Available strategy values are:
-
-- `visible` to prefetch when the link becomes visible in the viewport
-- `intent` to prefetch when the user shows intent with `pointerenter`, hover, or focus
-- `commit` to prefetch when the user commits with `pointerdown` or the `Enter` key
-- `off` to disable prefetching
-
-You can configure bundle and data prefetching independently:
-
-```tsx
-<Link href="/dashboard" prefetchBundle="visible" prefetchData="commit">
-  Dashboard
-</Link>
-```
-
-The older `prefetch` prop is deprecated. For compatibility, `prefetch="js"` prefetches route
-bundles when the link becomes visible and turns route data prefetching off by default,
-`prefetch={true}` prefetches route bundles and route data when the link becomes visible, and
-`prefetch={false}` disables prefetching.
-
-```tsx
-<Link href="/about" prefetch={false}>
-  About
-</Link>
-```
+For the full list of strategies, examples, and deprecated `prefetch` behavior, see
+[`<Link>` prefetch in the API reference](/docs/(qwikrouter)/api/index.mdx#prefetch).
 
 ### Scroll Restoration
 

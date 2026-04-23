@@ -29,7 +29,7 @@ export const Link = component$<LinkProps>((props) => {
     replaceState,
     scroll,
     prefetchBundle: prefetchBundleProp = 'visible',
-    prefetchData: prefetchDataProp = prefetchProp === 'js' ? 'off' : 'visible',
+    prefetchData: prefetchDataProp = prefetchProp === 'js' ? 'off' : 'intent',
     ...linkProps
   } = props;
   const clientNavPath = untrack(getClientNavPath, { ...linkProps, reload }, loc);
@@ -114,7 +114,7 @@ export const Link = component$<LinkProps>((props) => {
     preloadRouteBundles(url.pathname, 1);
   });
 
-  useVisibleTask$(async ({ track }) => {
+  useVisibleTask$(({ track }) => {
     track(() => loc.url.pathname);
     // We need to trigger the onQVisible$ in the visible task for it to fire on subsequent route navigations
     const handler = linkProps.onQVisible$;
@@ -188,15 +188,15 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
 /** @public */
 export interface LinkProps extends AnchorAttributes {
   /**
-   * Legacy prefetch control for this **`Link`**.
-   *
-   * Setting this value to **`"js"`** will prefetch only javascript bundles required to render this
-   * page on the client when the link becomes visible. Setting this value to **`true`** will
-   * prefetch both javascript bundles and route data when the link becomes visible. Setting this
-   * value to **`false`** will disable prefetching altogether.
-   *
    * @deprecated Use `prefetchBundle` and `prefetchData` instead for more granular control over what
    *   is prefetched and when. This prop will be removed in a future major version.
+   *
+   *   Legacy prefetch control for this **`Link`**.
+   *
+   *   Setting this value to **`"js"`** will prefetch only javascript bundles required to render this
+   *   page on the client when the link becomes visible. Setting this value to **`true`** will
+   *   prefetch both javascript bundles and route data when the link becomes visible. Setting this
+   *   value to **`false`** will disable prefetching altogether.
    */
   prefetch?: boolean | 'js';
 
@@ -214,7 +214,7 @@ export interface LinkProps extends AnchorAttributes {
    * Controls when Qwik should prefetch and cache route data for this **`Link`** target, including
    * invoking any **`routeLoader$`**, **`onGet`**, etc.
    *
-   * Defaults to **`"visible"`**. When using the deprecated **`prefetch="js"`** prop, route data
+   * Defaults to **`"intent"`**. When using the deprecated **`prefetch="js"`** prop, route data
    * prefetching defaults to **`"off"`**.
    *
    * Prefetching route data can improve client-side navigation performance for pages that wait on

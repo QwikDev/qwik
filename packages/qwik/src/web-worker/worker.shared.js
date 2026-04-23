@@ -55,7 +55,7 @@ export const runWorkerMessage = async (data, postMessage, invokeThis) => {
   try {
     const [qrl, ...args] = _deserialize(data[1]);
 
-    const output = await qrl.apply(null, args);
+    const output = await qrl.apply(invokeThis ?? null, args);
     postMessage([requestId, true, output]);
   } catch (err) {
     postMessage([requestId, false, err]);

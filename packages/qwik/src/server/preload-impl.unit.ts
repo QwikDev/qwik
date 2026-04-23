@@ -1,28 +1,63 @@
-import { describe, expect, it } from 'vitest';
-import { includePreloader } from './preload-impl';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-describe('includePreloader', () => {
-  it('keeps absolute bundle paths intact in the injected preload script', () => {
-    let scriptContent = '';
+const createContainer = () => {
+  const elements: { tagName: string; attrs: Record<string, string> }[] = [];
+  let scriptContent = '';
 
-    const container = {
-      $buildBase$: '/',
-      resolvedManifest: {
-        manifest: {
-          preloader: 'preloader.js',
-          core: 'core.js',
+  const container = {
+    $buildBase$: '/',
+    resolvedManifest: {
+      manifest: {
+        preloader: 'preloader.js',
+        core: 'core.js',
+        bundleGraphAsset: 'assets/bundle-graph.json',
+        bundleGraph: [],
+      },
+    },
+    serializationCtx: {
+      $eventQrls$: new Set(),
+    },
+    openElement(tagName: string, _key: any, attrs: Record<string, string>) {
+      elements.push({ tagName, attrs });
+    },
+    write(content: string) {
+      scriptContent += content;
+    },
+    closeElement() {},
+  };
+
+  return {
+    container: container as any,
+    elements,
+    getScriptContent: () => scriptContent,
+  };
+};
+
+describe('preloader', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('does not emit preloader assets or scripts in dev mode', async () => {
+    vi.stubEnv('DEV', true);
+    vi.stubEnv('TEST', '');
+
+    const { container, elements, getScriptContent } = createContainer();
+    const { preloaderPost, preloaderPre } = await import('./preload-impl');
+
+    preloaderPre(container, {});
+    preloaderPost(container, { preloader: {} } as any);
+
+    expect(elements).toEqual([
+      {
+        tagName: 'link',
+        attrs: {
+          rel: 'modulepreload',
+          href: '/core.js',
         },
       },
-      openElement(_tagName: string, _key: any, _attrs: Record<string, string>) {},
-      write(content: string) {
-        scriptContent += content;
-      },
-      closeElement() {},
-    };
-
-    includePreloader(container as any, {}, ['/src/worker.js', 'build/chunk.js']);
-
-    expect(scriptContent).toContain(`e.href=l.startsWith('/')?l:"/"+l;`);
-    expect(scriptContent).not.toContain(`e.href="/"+l;`);
+    ]);
+    expect(getScriptContent()).toBe('');
   });
 });

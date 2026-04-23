@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-04-23T09:31:26.080Z",
+  "generatedAt": "2026-04-23T13:37:50.381Z",
   "benchmarks": {
     "baseline.shared-workload": {
       "mean": 1.8004805121512044,
@@ -72,7 +72,7 @@
     "dom-table-10": 0,
     "dom-table-1k": 0,
     "serialize-state-1k": 96844,
-    "ssr-table-10": 2469,
-    "ssr-table-1k": 177695
+    "ssr-table-10": 2449,
+    "ssr-table-1k": 177675
   }
 }

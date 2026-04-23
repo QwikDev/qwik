@@ -1,4 +1,5 @@
 import { getPlatform } from '@qwik.dev/core';
+import { isDev } from '@qwik.dev/core/build';
 import { initPreloader } from './qwik-copy';
 import type { QRLInternal, SSRContainer } from './qwik-types';
 import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
@@ -42,7 +43,12 @@ export const preloaderPre = (
   if (bundleGraphPath) {
     bundleGraphPath = (import.meta.env.BASE_URL || '/') + bundleGraphPath;
   }
-  if (preloaderBundle && bundleGraphPath && options !== false) {
+  if (
+    !(isDev && !import.meta.env.TEST) &&
+    preloaderBundle &&
+    bundleGraphPath &&
+    options !== false
+  ) {
     const bundleGraph = container.resolvedManifest?.manifest.bundleGraph;
     initPreloader(bundleGraph);
 
@@ -152,7 +158,7 @@ export const includePreloader = (
       `${JSON.stringify(links)}.map((l,e)=>{` +
       `e=document.createElement('link');` +
       `e.rel='modulepreload';` +
-      `e.href=l.startsWith('/')?l:${JSON.stringify(base)}+l;` +
+      `e.href=${JSON.stringify(base)}+l;` +
       `document.head.appendChild(e)` +
       `});`
     : '';
@@ -188,6 +194,9 @@ export const includePreloader = (
 };
 
 export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, nonce?: string) => {
+  if (isDev && !import.meta.env.TEST) {
+    return;
+  }
   if (opts.preloader !== false) {
     const qrls = Array.from(ssrContainer.serializationCtx.$eventQrls$) as QRLInternal[];
     const preloadBundles = getBundles(qrls);

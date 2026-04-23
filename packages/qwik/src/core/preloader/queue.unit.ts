@@ -247,25 +247,3 @@ test('defers bundle graph re-adjustment to a later task', async () => {
 
   expect(headAppend).toHaveBeenCalled();
 });
-
-test('preloads absolute bundle paths without prefixing the base twice', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  vi.spyOn(performance, 'now').mockImplementation(() => 0);
-  vi.resetModules();
-  await installTestPlatform();
-
-  const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
-
-  initPreloader(['/src/entry-a.js']);
-  preload('/src/entry-a.js', 1);
-
-  vi.runAllTimers();
-
-  const links = document.head.querySelectorAll('link');
-  expect(links).toHaveLength(1);
-  expect(links[0]?.getAttribute('href')).toBe('http://document.qwik.dev/src/entry-a.js');
-});

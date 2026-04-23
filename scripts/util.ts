@@ -27,6 +27,7 @@ const booleanOptions = [
   'cli',
   'commit',
   'dev',
+  'devtools',
   'devRelease',
   'dryRun',
   'eslint',
@@ -59,8 +60,10 @@ export type BuildConfig = { [key in (typeof stringOptions)[number]]: string } & 
   [key in (typeof booleanOptions)[number]]?: boolean;
 } & {
   distBindingsDir: string;
+  distDevtoolsPkgDir: string;
   distQwikRouterPkgDir: string;
   distQwikPkgDir: string;
+  devtoolsPkgDir: string;
   dtsDir: string;
   optimizerPkgDir: string;
   optimizerVersion: string;
@@ -92,6 +95,7 @@ export function loadConfig(args: string[] = []): BuildConfig {
   const packagesDir = join(rootDir, 'packages');
   const srcQwikDir = join(packagesDir, 'qwik', 'src');
   const optimizerPkgDir = join(packagesDir, 'optimizer');
+  const devtoolsPkgDir = join(packagesDir, 'devtools');
   const optimizerRustPkgDir = join(packagesDir, 'optimizer');
   const qwikVitePkgDir = join(packagesDir, 'qwik-vite');
   const optimizerDir = join(optimizerPkgDir, 'src');
@@ -144,6 +148,7 @@ export function loadConfig(args: string[] = []): BuildConfig {
     optimizerRustPkgDir,
     qwikViteDir,
     qwikVitePkgDir,
+    devtoolsPkgDir,
     srcQwikDir,
     tmpDir,
     srcQwikRouterDir: join(packagesDir, 'qwik-router', 'src'),
@@ -152,6 +157,7 @@ export function loadConfig(args: string[] = []): BuildConfig {
     scriptsDir: join(rootDir, 'scripts'),
     startersDir: join(rootDir, 'starters'),
     distQwikPkgDir,
+    distDevtoolsPkgDir: join(devtoolsPkgDir, 'dist'),
     distQwikRouterPkgDir: join(packagesDir, 'qwik-router', 'lib'),
     distBindingsDir: join(optimizerPkgDir, 'bindings'),
     tscDir: join(tmpDir, 'tsc-out'),

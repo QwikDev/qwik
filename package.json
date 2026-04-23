@@ -195,6 +195,7 @@
     "build.cli.prod": "node --require ./scripts/runBefore.ts scripts/index.ts --cli",
     "build.core": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --qwik --optimizer --insights --qwikrouter --api --platform-binding",
     "build.core.dev": "node --require ./scripts/runBefore.ts scripts/index.ts --qwik --optimizer --insights --qwikrouter --platform-binding --dev",
+    "build.devtools": "node --require ./scripts/runBefore.ts scripts/index.ts --devtools",
     "build.eslint": "node --require ./scripts/runBefore.ts scripts/index.ts --eslint",
     "build.full": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --tsc-docs --qwik --optimizer --insights --supabaseauthhelpers --api --eslint --qwikrouter --qwikworker --qwikreact --cli --platform-binding --wasm",
     "build.local": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --tsc-docs --qwik --optimizer --insights --supabaseauthhelpers --api --eslint --qwikrouter --qwikworker --qwikreact --cli --platform-binding-wasm-copy",

@@ -1,0 +1,48 @@
+{
+  "name": "@devtools/plugin",
+  "description": "Qwik devtools plugin",
+  "main": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "oxc-parser": "^0.120.0",
+    "rollup-plugin-visualizer": "^6.0.3"
+  },
+  "devDependencies": {
+    "@babel/types": "^7.29.0",
+    "@devtools/kit": "workspace:*",
+    "@qwik.dev/core": "2.0.0-beta.31",
+    "@types/eslint": "9.6.1",
+    "@types/node": "25.5.0",
+    "@typescript-eslint/eslint-plugin": "8.57.1",
+    "@typescript-eslint/parser": "8.57.1",
+    "birpc": "^4.0.0",
+    "cpy-cli": "^7.0.0",
+    "dree": "^5.1.5",
+    "eslint": "10.0.3",
+    "fast-glob": "^3.3.3",
+    "image-meta": "^0.2.2",
+    "np": "^11.0.2",
+    "prettier": "3.6.2",
+    "tsdown": "^0.21.10",
+    "typescript": "5.9.3",
+    "vite": "8.0.0",
+    "vite-plugin-inspect": "^11.3.3"
+  }
+}

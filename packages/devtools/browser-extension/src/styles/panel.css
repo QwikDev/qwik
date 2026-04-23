@@ -1,0 +1,41 @@
+@import '@devtools/ui/styles.css';
+
+/*
+ * Override glass/transparent colors with opaque equivalents.
+ *
+ * The overlay blends semi-transparent backgrounds over the page via
+ * backdrop-blur. The extension has nothing behind it. These values
+ * approximate the composite color of the overlay glass over a typical
+ * light page background.
+ */
+
+:root[data-theme='dark'],
+:root:not([data-theme]) {
+  --color-background: #323234 !important;
+  --color-glass-bg: #3a3a3d !important;
+  --color-glass-panel-bg: #3a3a3d !important;
+  --color-glass-border: rgba(255, 255, 255, 0.12) !important;
+  --color-glass-shadow: rgba(0, 0, 0, 0.2) !important;
+  --color-card: #424245 !important;
+  --color-card-item-bg: rgba(255, 255, 255, 0.05) !important;
+  --color-card-item-hover-bg: rgba(255, 255, 255, 0.09) !important;
+}
+
+:root[data-theme='light'] {
+  --color-background: #dbdbdb !important;
+  --color-glass-bg: #d2d2d2 !important;
+  --color-glass-panel-bg: #d2d2d2 !important;
+  --color-card: #e8e8e8 !important;
+  --color-card-item-bg: rgba(0, 0, 0, 0.03) !important;
+  --color-card-item-hover-bg: rgba(0, 0, 0, 0.06) !important;
+  --color-glass-border: #f1f1f1 !important;
+  --color-border: #f1f1f1 !important;
+}
+
+/* Disable backdrop-filter (nothing to blur in extension panel) */
+.glass-panel,
+.glass-button,
+.glass-bg {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}

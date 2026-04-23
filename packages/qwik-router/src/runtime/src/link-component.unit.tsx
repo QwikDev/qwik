@@ -76,18 +76,22 @@ describe.each([
     preloadRouteBundlesMock.mockClear();
   });
 
-  it('prefetches bundles and route data with the default visible strategy', async () => {
-    const { anchor } = await renderLink(render);
+  it('prefetches bundles by default and prefetches route data on intent by default', async () => {
+    const { document, anchor } = await renderLink(render);
 
     expect(anchor?.getAttribute('href')).toBe('http://localhost/test');
+    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
+    expect(loadClientDataMock).not.toHaveBeenCalled();
+
+    await trigger(document.body, anchor, 'pointerenter');
+
     expect(loadClientDataMock).toHaveBeenCalledTimes(1);
     expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
       preloadRouteBundles: false,
       isPrefetch: true,
     });
     expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
   });
 
   it('prefetches route data on intent', async () => {

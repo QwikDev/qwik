@@ -217,7 +217,10 @@ const preloadOne = (bundle: BundleImport) => {
 
   const link = doc.createElement('link');
   // Only bundles with state none are js bundles
-  link.href = new URL(`${base}${bundle.$name$}`, doc.baseURI).toString();
+  link.href = new URL(
+    bundle.$name$.startsWith('/') ? bundle.$name$ : `${base}${bundle.$name$}`,
+    doc.baseURI
+  ).toString();
   link.rel = rel;
   // Needed when rel is 'preload'
   link.as = 'script';

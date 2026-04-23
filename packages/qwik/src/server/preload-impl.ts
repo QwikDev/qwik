@@ -152,7 +152,7 @@ export const includePreloader = (
       `${JSON.stringify(links)}.map((l,e)=>{` +
       `e=document.createElement('link');` +
       `e.rel='modulepreload';` +
-      `e.href=${JSON.stringify(base)}+l;` +
+      `e.href=l.startsWith('/')?l:${JSON.stringify(base)}+l;` +
       `document.head.appendChild(e)` +
       `});`
     : '';

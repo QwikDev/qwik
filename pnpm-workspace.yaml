@@ -1,5 +1,6 @@
 packages:
   - packages/*
+  - packages/devtools/*
   - e2e/*
 
 autoInstallPeers: false

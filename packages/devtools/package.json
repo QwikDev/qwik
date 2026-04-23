@@ -1,0 +1,89 @@
+{
+  "name": "@qwik.dev/devtools",
+  "version": "0.2.8",
+  "license": "MIT",
+  "main": "./dist/plugin/index.mjs",
+  "types": "./dist/plugin/index.d.mts",
+  "type": "module",
+  "description": "Qwik devtools package",
+  "qwik": "./dist/ui/index.qwik.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin/index.d.mts",
+      "import": "./dist/plugin/index.mjs"
+    },
+    "./ui": {
+      "types": "./dist/ui/lib-types/ui/src/index.d.ts",
+      "import": "./dist/ui/index.qwik.mjs",
+      "style": "./dist/ui/styles.css"
+    },
+    "./ui/styles.css": {
+      "import": "./dist/ui/styles.css"
+    },
+    "./style": {
+      "import": "./dist/ui/styles.css"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "playground": "MODE=dev DEBUG=qwik:devtools:* pnpm --filter playground dev",
+    "ext:dev": "pnpm --filter @devtools/browser-extension dev",
+    "ext:dev:firefox": "pnpm --filter @devtools/browser-extension dev:firefox",
+    "ext:build": "pnpm --filter @devtools/browser-extension build",
+    "ext:build:firefox": "pnpm --filter @devtools/browser-extension build:firefox",
+    "build": "tsx scripts/build-devtools.ts",
+    "change": "changeset",
+    "release": "changeset publish",
+    "release.pkg-pr-new": "pnpm dlx pkg-pr-new publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "2.29.5",
+    "@changesets/get-github-info": "0.6.0",
+    "@changesets/types": "6.1.0",
+    "@types/debug": "4.1.13",
+    "@types/node": "24.10.0",
+    "tsx": "4.21.0",
+    "vite": "7.3.1",
+    "vitest": "4.0.18"
+  },
+  "peerDependencies": {
+    "@qwik.dev/core": "^2.0.0-beta.32",
+    "@qwik.dev/router": "^2.0.0-beta.32",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@tailwindcss/vite": "^4.2.1",
+    "tailwindcss": "^4.2.1",
+    "vite": ">=7.0.0 <9.0.0"
+  },
+  "dependencies": {
+    "birpc": "^4.0.0",
+    "debug": "4.4.3",
+    "dree": "^5.1.5",
+    "fast-glob": "^3.3.3",
+    "oxc-parser": "^0.120.0",
+    "rollup-plugin-visualizer": "^6.0.3",
+    "superjson": "^2.2.6",
+    "vite-hot-client": "^2.1.0",
+    "vite-plugin-inspect": "^11.3.3"
+  },
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "qwik",
+    "devtools",
+    "plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/devtools"
+  },
+  "bugs": {
+    "url": "https://github.com/QwikDev/devtools/issues"
+  },
+  "homepage": "https://github.com/QwikDev/devtools#readme"
+}

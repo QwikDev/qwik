@@ -1,0 +1,81 @@
+{
+  "name": "@devtools/ui",
+  "description": "Qwik devtools package",
+  "main": "./lib/index.qwik.mjs",
+  "exports": {
+    ".": {
+      "import": "./lib/index.qwik.mjs"
+    },
+    "./entry.extension": {
+      "import": "./lib/entry.extension.qwik.mjs"
+    },
+    "./styles.css": {
+      "import": "./lib/styles.css"
+    }
+  },
+  "types": "./lib-types/ui/src/index.d.ts",
+  "files": [
+    "lib",
+    "lib-types"
+  ],
+  "engines": {
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "qwik build",
+    "build.lib": "vite build --mode lib",
+    "build.types": "tsc --emitDeclarationOnly",
+    "dev:ssr": "vite --mode ssr",
+    "dev": "nodemon --watch src -e tsx,ts,css --exec 'npm run build'",
+    "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "release": "np",
+    "start": "vite --open --mode ssr",
+    "test": "echo \"No test specified\" && exit 0",
+    "qwik": "qwik"
+  },
+  "peerDependencies": {
+    "@devtools/plugin": "workspace:*",
+    "@qwik.dev/core": "2.0.0-beta.32",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@tailwindcss/vite": "^4.2.1",
+    "tailwindcss": "^4.2.1"
+  },
+  "devDependencies": {
+    "@devtools/kit": "workspace:*",
+    "@qwik.dev/core": "workspace:*",
+    "@tailwindcss/postcss": "^4.2.4",
+    "@tailwindcss/vite": "^4.2.4",
+    "@types/eslint": "9.6.1",
+    "@types/node": "25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "8.57.1",
+    "@typescript-eslint/parser": "8.57.1",
+    "autoprefixer": "^10.4.27",
+    "birpc": "^4.0.0",
+    "cpy-cli": "^7.0.0",
+    "dree": "^5.1.5",
+    "eslint": "10.0.3",
+    "eslint-plugin-qwik": "2.0.0-beta.32",
+    "nodemon": "^3.1.14",
+    "np": "^11.0.2",
+    "postcss": "^8.5.8",
+    "prettier": "3.6.2",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "react": "19.2.4",
+    "react-complex-tree": "^2.6.1",
+    "react-dom": "19.2.4",
+    "shiki": "^4.0.2",
+    "superjson": "^2.2.6",
+    "tailwindcss": "^4.2.4",
+    "typescript": "5.9.3",
+    "vite": "8.0.0",
+    "vite-hot-client": "2.1.0",
+    "vite-tsconfig-paths": "^6.1.1"
+  }
+}

@@ -1,0 +1,1 @@
+export { PackageIcon } from './PackageIcon';

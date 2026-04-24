@@ -1,6 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
 import type { SignalImpl } from 'packages/qwik/src/server/qwik-types';
 import { getDomContainer } from '../client/dom-container';
+import type { ClientContainer } from '../client/types';
 import { vnode_locate } from '../client/vnode-utils';
 import { unwrapStore } from '../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
@@ -113,8 +114,11 @@ export function invokeApply<FN extends (this: THIS, ...args: any[]) => any, THIS
   }
 }
 
-export const newInvokeContextFromDOM = (event: Event, element: Element) => {
-  const domContainer = getDomContainer(element);
+export const newInvokeContextFromDOMReady = (
+  event: Event,
+  element: Element,
+  domContainer: ClientContainer = getDomContainer(element)
+) => {
   const hostElement = vnode_locate(domContainer.rootVNode, element);
   const locale = domContainer.$locale$;
   locale && setLocale(locale);

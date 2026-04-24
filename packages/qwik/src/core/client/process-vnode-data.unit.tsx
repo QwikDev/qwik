@@ -3,16 +3,84 @@ import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
 import { VNodeDataSeparator } from '../shared/vnode-data-types';
 import { getDomContainer } from './dom-container';
-import { findVDataSectionEnd, processVNodeData } from './process-vnode-data';
-import type { ClientContainer } from './types';
+import { findVDataSectionEnd, processVNodeData, whenVNodeDataReady } from './process-vnode-data';
+import type { ClientContainer, ContainerElement, QDocument } from './types';
 import { QContainerValue } from '../shared/types';
-import { QContainerAttr } from '../shared/utils/markers';
+import { QContainerAttr, QStyle } from '../shared/utils/markers';
 import { vnode_getFirstChild } from './vnode-utils';
 import { Fragment } from '@qwik.dev/core';
 
 describe('processVnodeData', () => {
-  it('should process shadow root container', () => {
-    const [, container] = process(`
+  it('should yield over multiple chunks and preserve vnode data and refs', async () => {
+    const document = createDocument({
+      html: `
+        <html q:container="paused">
+          <head :></head>
+          <body :>
+            HelloWorld
+            <script type="qwik/vnode">${VNodeDataSeparator.ADVANCE_2_CH}${VNodeDataSeparator.REFERENCE_CH}FF</script>
+            ${'<span :></span>'.repeat(64)}
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const ready = whenVNodeDataReady(document, () => undefined);
+
+      processVNodeData(document);
+
+      expect(document.qVNodeDataStarted).toBe(true);
+      expect(document.qVNodeDataReady).not.toBe(true);
+      expect(tasks.length).toBe(1);
+
+      let chunks = 0;
+      while (!document.qVNodeDataReady) {
+        runNextTask(tasks);
+        chunks++;
+        expect(chunks).toBeLessThan(50);
+      }
+
+      await ready;
+      expect(document.qVNodeDataCallbacks).toBeUndefined();
+      expect(chunks).toBeGreaterThan(1);
+      expect(document.qVNodeData.get(document.body)).toBe('FF');
+      expect((document.documentElement as ContainerElement).qVNodeRefs?.get(2)).toBe(document.body);
+    });
+  });
+
+  it('should finish resume and hoist styles only after vnode data is ready', async () => {
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
+          <head :></head>
+          <body :>
+            <style : ${QStyle}="style-a">.a{color:red}</style>
+            <script type="qwik/vnode"></script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+    const style = document.body.querySelector('style')!;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      getDomContainer(document.documentElement);
+
+      expect(document.qVNodeDataReady).not.toBe(true);
+      expect(document.head.contains(style)).toBe(false);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
+
+      while (!document.qVNodeDataReady) {
+        runNextTask(tasks);
+      }
+
+      expect(document.head.contains(style)).toBe(true);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
+    });
+  });
+
+  it('should process shadow root container', async () => {
+    const [, container] = await process(`
       <html q:container="paused">
         <head :></head>
         <body :>
@@ -41,8 +109,8 @@ describe('processVnodeData', () => {
     );
   });
 
-  it('should parse simple case', () => {
-    const [container] = process(`
+  it('should parse simple case', async () => {
+    const [container] = await process(`
       <html q:container="paused">
         <head :></head>
         <body :>
@@ -61,8 +129,8 @@ describe('processVnodeData', () => {
       </html>
     );
   });
-  it('should ignore inner HTML', () => {
-    const [container] = process(`
+  it('should ignore inner HTML', async () => {
+    const [container] = await process(`
     <html q:container="paused">
       <head :></head>
       <body :>
@@ -87,7 +155,7 @@ describe('processVnodeData', () => {
   });
 
   it('should ignore elements without `:`', async () => {
-    const [container] = process(`
+    const [container] = await process(`
       <html q:container="paused">
         <head :></head>
         <body :>
@@ -112,8 +180,8 @@ describe('processVnodeData', () => {
     );
   });
   describe('nested containers', () => {
-    it('should parse', () => {
-      const [container1, container2] = process(`
+    it('should parse', async () => {
+      const [container1, container2] = await process(`
         <html q:container="paused">
           <head :></head>
           <body :>
@@ -149,8 +217,8 @@ describe('processVnodeData', () => {
         </div>
       );
     });
-    it('should ignore comments and comment blocks', () => {
-      const [container1] = process(`
+    it('should ignore comments and comment blocks', async () => {
+      const [container1] = await process(`
         <html q:container="paused" :>
           <head :></head>
           <body :>
@@ -177,8 +245,8 @@ describe('processVnodeData', () => {
       );
     });
   });
-  it('should not ignore island inside comment q:container', () => {
-    const [container1] = process(`
+  it('should not ignore island inside comment q:container', async () => {
+    const [container1] = await process(`
       <html q:container="paused" :>
         <head :></head>
         <body :>
@@ -263,9 +331,92 @@ describe('findVDataSectionEnd', () => {
   });
 });
 
+async function withYieldingVNodeData(
+  document: Document,
+  callback: (tasks: Array<() => void>) => Promise<void>
+) {
+  const tasks: Array<() => void> = [];
+  const originalWindow = (globalThis as any).window;
+  const originalDocument = (globalThis as any).document;
+  const originalCustomEvent = (globalThis as any).CustomEvent;
+  const originalMessageChannel = (globalThis as any).MessageChannel;
+  const originalPerformance = (globalThis as any).performance;
+  let time = 0;
+
+  class TestMessageChannel {
+    port1 = {
+      onmessage: null as null | (() => void),
+      close() {},
+    };
+    port2 = {
+      postMessage: () => {
+        tasks.push(() => this.port1.onmessage?.());
+      },
+      close() {},
+    };
+  }
+
+  try {
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: { document },
+    });
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: document,
+    });
+    Object.defineProperty(globalThis, 'CustomEvent', {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(globalThis, 'MessageChannel', {
+      configurable: true,
+      value: TestMessageChannel,
+    });
+    Object.defineProperty(globalThis, 'performance', {
+      configurable: true,
+      value: {
+        now: () => {
+          time += 20;
+          return time;
+        },
+      },
+    });
+
+    await callback(tasks);
+  } finally {
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: originalWindow,
+    });
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: originalDocument,
+    });
+    Object.defineProperty(globalThis, 'CustomEvent', {
+      configurable: true,
+      value: originalCustomEvent,
+    });
+    Object.defineProperty(globalThis, 'MessageChannel', {
+      configurable: true,
+      value: originalMessageChannel,
+    });
+    Object.defineProperty(globalThis, 'performance', {
+      configurable: true,
+      value: originalPerformance,
+    });
+  }
+}
+
+function runNextTask(tasks: Array<() => void>) {
+  const task = tasks.shift();
+  expect(task).toBeDefined();
+  task!();
+}
+
 const qContainerPaused = { [QContainerAttr]: QContainerValue.RESUMED };
 const qContainerHtml = { [QContainerAttr]: QContainerValue.HTML };
-function process(html: string): ClientContainer[] {
+async function process(html: string): Promise<ClientContainer[]> {
   html = html.trim();
   html = html.replace(/\n\s*/g, '');
   // console.log(html);
@@ -282,7 +433,9 @@ function process(html: string): ClientContainer[] {
       template.remove();
     }
   }
+  const ready = whenVNodeDataReady(document, () => undefined);
   processVNodeData(document);
+  await ready;
 
   const containers: Element[] = [];
   findContainers(document, containers);

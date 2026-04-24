@@ -493,6 +493,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
   const doc = createDocument() as _QDocument;
   doc.documentElement.setAttribute(QContainerAttr, QContainerValue.RESUMED);
   doc.qVNodeData = new WeakMap();
+  doc.qVNodeDataReady = true;
   const container: ClientContainer = _getDomContainer(doc.body);
   const vBody = vnode_newUnMaterializedElement(doc.body);
   let vParent: _ElementVNode | _VirtualVNode = vBody;

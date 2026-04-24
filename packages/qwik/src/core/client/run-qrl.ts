@@ -11,7 +11,9 @@ import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/mar
 import { retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
-import { invokeApply, newInvokeContextFromDOM, type InvokeContext } from '../use/use-core';
+import { invokeApply, newInvokeContextFromDOMReady, type InvokeContext } from '../use/use-core';
+import { getDomContainer } from './dom-container';
+import { whenVNodeDataReady } from './process-vnode-data';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
 
@@ -30,7 +32,15 @@ export function runEventHandlerQRL(
     return;
   }
   if (!ctx) {
-    ctx = newInvokeContextFromDOM(event, element);
+    const container = getDomContainer(element);
+    return whenVNodeDataReady(container.document, () =>
+      runEventHandlerQRL(
+        handler,
+        event,
+        element,
+        newInvokeContextFromDOMReady(event, element, container)
+      )
+    );
   }
   const container = ctx.$container$!;
   const hostElement = ctx.$hostElement$ as ElementVNode;
@@ -76,11 +86,14 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
     // ignore events on disconnected elements, this can happen when the event is triggered while the element is being removed
     return;
   }
-  const ctx = newInvokeContextFromDOM(event, element);
-  if (typeof this === 'string') {
-    setCaptures(deserializeCaptures(ctx.$container$!, this));
-  }
-  const qrlToRun = _captures![0] as QRLInternal<(...args: any[]) => void>;
-  isDev && assertQrl(qrlToRun);
-  return runEventHandlerQRL(qrlToRun, event, element, ctx);
+  const container = getDomContainer(element);
+  return whenVNodeDataReady(container.document, () => {
+    const ctx = newInvokeContextFromDOMReady(event, element, container);
+    if (typeof this === 'string') {
+      setCaptures(deserializeCaptures(ctx.$container$!, this));
+    }
+    const qrlToRun = _captures![0] as QRLInternal<(...args: any[]) => void>;
+    isDev && assertQrl(qrlToRun);
+    return runEventHandlerQRL(qrlToRun, event, element, ctx);
+  });
 }

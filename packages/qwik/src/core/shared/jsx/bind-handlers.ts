@@ -1,8 +1,10 @@
 import { _captures, deserializeCaptures, setCaptures } from '../../shared/qrl/qrl-class';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { getDomContainer } from '../../client/dom-container';
+import { whenVNodeDataReady } from '../../client/process-vnode-data';
 import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import { AsyncSignalFlags } from '../../reactive-primitives/types';
+import { maybeThen } from '../utils/promises';
 
 /**
  * Qwikloader provides the captures string of the QRL when calling a handler. In that case we must
@@ -12,7 +14,10 @@ import { AsyncSignalFlags } from '../../reactive-primitives/types';
 const maybeScopeFromQL = (captureIds: string | undefined, element: Element) => {
   if (typeof captureIds === 'string') {
     const container = getDomContainer(element);
-    setCaptures(deserializeCaptures(container, captureIds));
+    return whenVNodeDataReady(container.document, () => {
+      setCaptures(deserializeCaptures(container, captureIds));
+      return null;
+    });
   }
   return null;
 };
@@ -22,9 +27,10 @@ const maybeScopeFromQL = (captureIds: string | undefined, element: Element) => {
  * @internal
  */
 export function _val(this: string | undefined, _: any, element: HTMLInputElement) {
-  maybeScopeFromQL(this, element);
-  const signal = _captures![0] as Signal;
-  signal.value = element.type === 'number' ? element.valueAsNumber : element.value;
+  return maybeThen(maybeScopeFromQL(this, element), () => {
+    const signal = _captures![0] as Signal;
+    signal.value = element.type === 'number' ? element.valueAsNumber : element.value;
+  });
 }
 
 /**
@@ -33,9 +39,10 @@ export function _val(this: string | undefined, _: any, element: HTMLInputElement
  * @internal
  */
 export function _chk(this: string | undefined, _: any, element: HTMLInputElement) {
-  maybeScopeFromQL(this, element);
-  const signal = _captures![0] as Signal;
-  signal.value = element.checked;
+  return maybeThen(maybeScopeFromQL(this, element), () => {
+    const signal = _captures![0] as Signal;
+    signal.value = element.checked;
+  });
 }
 
 /**
@@ -45,15 +52,16 @@ export function _chk(this: string | undefined, _: any, element: HTMLInputElement
  * @internal
  */
 export function _res(this: string | undefined, _: any, element: Element) {
-  maybeScopeFromQL(this, element);
-  // Captures are deserialized, now trigger computation on AsyncSignals
-  if (_captures) {
-    for (let i = 0; i < _captures.length; i++) {
-      const capture = _captures[i];
-      if (capture instanceof AsyncSignalImpl && capture.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
-        capture.$computeIfNeeded$();
+  return maybeThen(maybeScopeFromQL(this, element), () => {
+    // Captures are deserialized, now trigger computation on AsyncSignals
+    if (_captures) {
+      for (let i = 0; i < _captures.length; i++) {
+        const capture = _captures[i];
+        if (capture instanceof AsyncSignalImpl && capture.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
+          capture.$computeIfNeeded$();
+        }
+        // note that polling async signals will automatically schedule themselves so no action needed
       }
-      // note that polling async signals will automatically schedule themselves so no action needed
     }
-  }
+  });
 }

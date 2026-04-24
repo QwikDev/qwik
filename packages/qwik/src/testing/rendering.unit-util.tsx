@@ -40,6 +40,7 @@ import {
   QScopedStyle,
   QStyle,
 } from '../core/shared/utils/markers';
+import { whenVNodeDataReady } from '../core/client/process-vnode-data';
 import { useContextProvider } from '@qwik.dev/core';
 import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
 import type { HostElement } from '../server/qwik-types';
@@ -67,6 +68,7 @@ export async function domRender(
   await render(document.body, jsx);
   const getStyles = getStylesFactory(document);
   const container = _getDomContainer(document.body);
+  await whenVNodeDataReady(container.document, () => undefined);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- CSR --------------------------');
@@ -152,6 +154,7 @@ export async function ssrRenderToDom(
 
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
+  await whenVNodeDataReady(container.document, () => undefined);
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');
@@ -328,6 +331,7 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
 
 export async function rerenderComponent(element: HTMLElement) {
   const container = _getDomContainer(element) as _DomContainer;
+  await whenVNodeDataReady(container.document, () => undefined);
   const vElement = container.vNodeLocate(element);
   const host = getHostVNode(vElement) as HostElement;
   markVNodeDirty(container, host, ChoreBits.COMPONENT);

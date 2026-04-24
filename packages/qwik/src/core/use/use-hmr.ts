@@ -1,4 +1,5 @@
 import { getDomContainer } from '../client/dom-container';
+import { whenVNodeDataReady } from '../client/process-vnode-data';
 import {
   _captures,
   deserializeCaptures,
@@ -35,16 +36,17 @@ export const _hmr = function (
     return;
   }
   // Deserialize captures from `this` when called via qwikloader/attribute dispatch
-  if (typeof this === 'string') {
-    const container = getDomContainer(element);
-    setCaptures(deserializeCaptures(container, this));
-  }
-  const host = _captures![0] as VNode;
   const container = getDomContainer(element);
-  markVNodeDirty(container, host, ChoreBits.COMPONENT);
-  // Mark HMR as handled
-  const doc: any = element.ownerDocument;
-  doc.__hmrDone = doc.__hmrT;
+  return whenVNodeDataReady(container.document, () => {
+    if (typeof this === 'string') {
+      setCaptures(deserializeCaptures(container, this));
+    }
+    const host = _captures![0] as VNode;
+    markVNodeDirty(container, host, ChoreBits.COMPONENT);
+    // Mark HMR as handled
+    const doc: any = element.ownerDocument;
+    doc.__hmrDone = doc.__hmrT;
+  });
 };
 
 let hmrQrl: QRL<(event: CustomEvent, element: Element) => void>;

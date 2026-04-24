@@ -1,5 +1,7 @@
 import { normalize } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { whenVNodeDataReady } from '../core/client/process-vnode-data';
+import type { ClientContainer } from '../core/client/types';
 import type { Container } from '../core/shared/types';
 
 /** @public */
@@ -103,6 +105,10 @@ export const platformGlobal: { document: Document | undefined } = (__globalThis 
  * @public
  */
 export async function waitForDrain(container: Container) {
+  const clientContainer = container as Container & Partial<ClientContainer>;
+  if (clientContainer.document) {
+    await whenVNodeDataReady(clientContainer.document, () => undefined);
+  }
   const start = Date.now();
   const waitForRenderPromise = async (timeout: number) => {
     if (container.$renderPromise$) {

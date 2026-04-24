@@ -27,6 +27,7 @@ import {
   vnode_setProp,
   vnode_toString,
 } from '../core/client/vnode-utils';
+import { whenVNodeDataReady } from '../core/client/process-vnode-data';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { _dumpState, preprocessState } from '../core/shared/serdes/index';
@@ -62,6 +63,7 @@ export async function domRender(
   await render(document.body, jsx);
   const getStyles = getStylesFactory(document);
   const container = _getDomContainer(document.body);
+  await whenVNodeDataReady(container.document, () => undefined);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- CSR --------------------------');
@@ -146,6 +148,7 @@ export async function ssrRenderToDom(
 
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
+  await whenVNodeDataReady(container.document, () => undefined);
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');
@@ -343,6 +346,7 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
 
 export async function rerenderComponent(element: HTMLElement) {
   const container = _getDomContainer(element);
+  await whenVNodeDataReady(container.document, () => undefined);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement) as HostElement;
   markVNodeDirty(container, host, ChoreBits.COMPONENT);

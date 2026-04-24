@@ -54,7 +54,7 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
 export let _captures: Readonly<unknown[]> | null;
 
 // @internal
-export function _chk(this: string | undefined, _: any, element: HTMLInputElement): void;
+export function _chk(this: string | undefined, _: any, element: HTMLInputElement): ValueOrPromise<void>;
 
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
@@ -472,7 +472,7 @@ export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => 
 export const _hmr: (this: string | undefined, event: CustomEvent<{
     files: string[];
     t: number;
-}>, element: Element) => void;
+}>, element: Element) => void | Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
@@ -730,6 +730,14 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `
 export interface _QDocument extends Document {
     // (undocumented)
     qVNodeData: WeakMap<Element, string>;
+    // (undocumented)
+    qVNodeDataCallbacks?: Array<() => void>;
+    // (undocumented)
+    qVNodeDataReady?: boolean;
+    // (undocumented)
+    qVNodeDataStarted?: boolean;
+    // (undocumented)
+    qVNodeDataState?: unknown;
 }
 
 // Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts
@@ -948,7 +956,7 @@ export interface RenderSSROptions {
 }
 
 // @internal
-export function _res(this: string | undefined, _: any, element: Element): void;
+export function _res(this: string | undefined, _: any, element: Element): ValueOrPromise<void>;
 
 // @internal (undocumented)
 export const _resolveContextWithoutSequentialScope: <STATE>(context: ContextId<STATE>) => STATE | undefined;
@@ -1756,7 +1764,7 @@ export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @internal
-export function _task(this: string, _event: Event, element: Element): void;
+export function _task(this: string, _event: Event, element: Element): void | Promise<void>;
 
 // @public (undocumented)
 export interface TaskCtx {
@@ -1948,7 +1956,7 @@ export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @internal
-export function _val(this: string | undefined, _: any, element: HTMLInputElement): void;
+export function _val(this: string | undefined, _: any, element: HTMLInputElement): ValueOrPromise<void>;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

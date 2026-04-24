@@ -1,4 +1,5 @@
 import { getDomContainer } from '../client/dom-container';
+import { whenVNodeDataReady } from '../client/process-vnode-data';
 import { BackRef } from '../reactive-primitives/backref';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
@@ -266,10 +267,12 @@ export const isTask = (value: any): value is Task => {
  */
 export function scheduleTask(this: string, _event: Event, element: Element) {
   const container = getDomContainer(element);
-  if (typeof this === 'string') {
-    setCaptures(deserializeCaptures(container, this));
-  }
-  const task = _captures![0] as Task;
-  task.$flags$ |= TaskFlags.DIRTY;
-  markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
+  return whenVNodeDataReady(container.document, () => {
+    if (typeof this === 'string') {
+      setCaptures(deserializeCaptures(container, this));
+    }
+    const task = _captures![0] as Task;
+    task.$flags$ |= TaskFlags.DIRTY;
+    markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
+  });
 }

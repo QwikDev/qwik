@@ -1,4 +1,4 @@
-import { Component } from '@devtools/kit';
+import { Component } from '@qwik.dev/devtools/kit';
 import { ServerContext } from '../types';
 import fsp from 'node:fs/promises';
 import fg from 'fast-glob';
@@ -38,7 +38,9 @@ export const getComponentsFunctions = ({ config }: ServerContext) => {
     );
 
     for (const { sourceCode, file } of componentsSourceCode) {
-      if (!sourceCode.includes('component$')) continue;
+      if (!sourceCode.includes('component$')) {
+        continue;
+      }
 
       const name = getComponentName(sourceCode);
 

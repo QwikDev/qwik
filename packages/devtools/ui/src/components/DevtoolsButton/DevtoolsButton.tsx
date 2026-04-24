@@ -19,9 +19,7 @@ export const DevtoolsButton = component$((props: DevtoolsButtonProps) => {
   const isMoved = useSignal(false);
   // Signal to flag if a drag operation just finished, to prevent click
 
-  /**
-   * Handles mouse movement during drag. Defined outside handleMouseDown$ for serialization.
-   */
+  /** Handles mouse movement during drag. Defined outside handleMouseDown$ for serialization. */
   const handleMouseMove = $((event: MouseEvent) => {
     if (!isDragging.value) {
       return;
@@ -41,9 +39,7 @@ export const DevtoolsButton = component$((props: DevtoolsButtonProps) => {
     position.value = { x: newX, y: newY };
   });
 
-  /**
-   * Handles mouse release to end drag. Defined outside handleMouseDown$ for serialization.
-   */
+  /** Handles mouse release to end drag. Defined outside handleMouseDown$ for serialization. */
   const handleMouseUp = $(() => {
     if (isDragging.value) {
       isDragging.value = false; // Stop dragging
@@ -62,9 +58,7 @@ export const DevtoolsButton = component$((props: DevtoolsButtonProps) => {
     props.state.isOpen = !props.state.isOpen;
   });
 
-  /**
-   * Handles the mouse down event to initiate dragging.
-   */
+  /** Handles the mouse down event to initiate dragging. */
   const handleMouseDown = $((event: MouseEvent) => {
     if (event.button !== 0) {
       return;

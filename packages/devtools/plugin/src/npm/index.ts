@@ -1,6 +1,6 @@
 import { ServerContext } from '../types';
 import fsp from 'node:fs/promises';
-import { NpmInfo } from '@devtools/kit';
+import { NpmInfo } from '@qwik.dev/devtools/kit';
 import { execSync } from 'child_process';
 import path from 'path';
 import createDebug from 'debug';
@@ -79,17 +79,25 @@ async function findNearestFileUp(startDir: string, fileName: string): Promise<st
   let currentDir = path.resolve(startDir);
   for (let i = 0; i < 100; i++) {
     const candidate = path.join(currentDir, fileName);
-    if (await fileExists(candidate)) return candidate;
+    if (await fileExists(candidate)) {
+      return candidate;
+    }
     const parent = path.dirname(currentDir);
-    if (parent === currentDir) break;
+    if (parent === currentDir) {
+      break;
+    }
     currentDir = parent;
   }
   return null;
 }
 
 function getProjectStartDirFromConfig(config: any): string {
-  if (config?.root) return config.root;
-  if (config?.configFile) return path.dirname(config.configFile);
+  if (config?.root) {
+    return config.root;
+  }
+  if (config?.configFile) {
+    return path.dirname(config.configFile);
+  }
   return process.cwd();
 }
 
@@ -99,7 +107,9 @@ function nodeModulesPackageJsonPath(projectRoot: string, name: string): string {
 
 function normalizeRepositoryUrl(repository: any): string | undefined {
   const url = typeof repository === 'string' ? repository : repository?.url;
-  if (!url || typeof url !== 'string') return undefined;
+  if (!url || typeof url !== 'string') {
+    return undefined;
+  }
   return url
     .replace(/^git\+/, '')
     .replace(/^ssh:\/\/git@/, 'https://')
@@ -112,8 +122,10 @@ function guessIconUrl(name: string, repositoryUrl?: string): string | null {
     return `https://avatars.githubusercontent.com/${scope}?size=64`;
   }
   if (repositoryUrl?.includes('github.com')) {
-    const match = repositoryUrl.match(/github\.com\/([^\/]+)/);
-    if (match) return `https://avatars.githubusercontent.com/${match[1]}?size=64`;
+    const match = repositoryUrl.match(/github\.com\/([^/]+)/);
+    if (match) {
+      return `https://avatars.githubusercontent.com/${match[1]}?size=64`;
+    }
   }
   return null;
 }
@@ -127,13 +139,17 @@ async function mapLimit<T, R>(
   concurrency: number,
   fn: (item: T, index: number) => Promise<R>
 ): Promise<R[]> {
-  if (items.length === 0) return [];
+  if (items.length === 0) {
+    return [];
+  }
   const results = new Array<R>(items.length);
   let cursor = 0;
   const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
     while (true) {
       const i = cursor++;
-      if (i >= items.length) return;
+      if (i >= items.length) {
+        return;
+      }
       results[i] = await fn(items[i], i);
     }
   });
@@ -142,9 +158,15 @@ async function mapLimit<T, R>(
 }
 
 export async function detectPackageManager(projectRoot: string): Promise<'npm' | 'pnpm' | 'yarn'> {
-  if (await fileExists(path.join(projectRoot, 'pnpm-lock.yaml'))) return 'pnpm';
-  if (await fileExists(path.join(projectRoot, 'yarn.lock'))) return 'yarn';
-  if (await fileExists(path.join(projectRoot, 'package-lock.json'))) return 'npm';
+  if (await fileExists(path.join(projectRoot, 'pnpm-lock.yaml'))) {
+    return 'pnpm';
+  }
+  if (await fileExists(path.join(projectRoot, 'yarn.lock'))) {
+    return 'yarn';
+  }
+  if (await fileExists(path.join(projectRoot, 'package-lock.json'))) {
+    return 'npm';
+  }
   return 'pnpm';
 }
 
@@ -178,7 +200,9 @@ async function phase1LocalIndex(
     };
 
     dependenciesStatus.loaded++;
-    if (dependenciesStatus.loaded % 50 === 0) await deferToEventLoop();
+    if (dependenciesStatus.loaded % 50 === 0) {
+      await deferToEventLoop();
+    }
 
     return info;
   });
@@ -193,8 +217,12 @@ async function phase2BackgroundEnrich(deps: DependencyInfo[]): Promise<void> {
   await mapLimit(targets, enrichConcurrency, async (p) => {
     // local enrich first
     const repo = normalizeRepositoryUrl(p.repository);
-    if (repo && repo !== p.repository) p.repository = repo;
-    if (!p.iconUrl) p.iconUrl = guessIconUrl(p.name, p.repository);
+    if (repo && repo !== p.repository) {
+      p.repository = repo;
+    }
+    if (!p.iconUrl) {
+      p.iconUrl = guessIconUrl(p.name, p.repository);
+    }
 
     // optional small registry lookup for missing description/repo
     if (!p.repository || p.description === 'No description available') {
@@ -209,11 +237,15 @@ async function phase2BackgroundEnrich(deps: DependencyInfo[]): Promise<void> {
 
         if (res.ok) {
           const data = await res.json();
-          if (!p.repository) p.repository = normalizeRepositoryUrl(data?.repository);
+          if (!p.repository) {
+            p.repository = normalizeRepositoryUrl(data?.repository);
+          }
           if (p.description === 'No description available' && data?.description) {
             p.description = data.description;
           }
-          if (!p.iconUrl) p.iconUrl = guessIconUrl(p.name, p.repository);
+          if (!p.iconUrl) {
+            p.iconUrl = guessIconUrl(p.name, p.repository);
+          }
         }
       } catch {
         // ignore
@@ -226,8 +258,12 @@ async function phase2BackgroundEnrich(deps: DependencyInfo[]): Promise<void> {
 }
 
 async function preloadDependencies(config: any): Promise<DependencyInfo[]> {
-  if (preloadedDependencies) return preloadedDependencies;
-  if (isPreloading && preloadPromise) return preloadPromise;
+  if (preloadedDependencies) {
+    return preloadedDependencies;
+  }
+  if (isPreloading && preloadPromise) {
+    return preloadPromise;
+  }
 
   isPreloading = true;
   dependenciesStatus = {
@@ -319,7 +355,9 @@ export function getNpmFunctions({ config }: ServerContext) {
     async getQwikPackages(): Promise<NpmInfo> {
       const startDir = getProjectStartDirFromConfig(config);
       const pathToPackageJson = await findNearestFileUp(startDir, 'package.json');
-      if (!pathToPackageJson) return [];
+      if (!pathToPackageJson) {
+        return [];
+      }
 
       try {
         const pkg = await readJsonFile(pathToPackageJson);
@@ -337,7 +375,9 @@ export function getNpmFunctions({ config }: ServerContext) {
       }
 
       // If preloading is in progress, NEVER wait (avoid blocking the whole dev server / UI).
-      if (isPreloading) return [];
+      if (isPreloading) {
+        return [];
+      }
 
       // If preloading hasn't started (shouldn't happen), start it now
       log('[Qwik DevTools] Warning: Preload not started, starting now...');

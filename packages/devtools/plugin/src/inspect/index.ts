@@ -8,21 +8,26 @@ const codeStringCache = new Map<string, ReturnType<typeof parseQwikCode>>();
 
 function parseCodeWithCache(code: string) {
   const hit = codeStringCache.get(code);
-  if (hit) return hit;
+  if (hit) {
+    return hit;
+  }
   const parsed = parseQwikCode(code);
   codeStringCache.set(code, parsed);
   return parsed;
 }
 
 function parseLoadedWithCache(loaded: any) {
-  if (typeof loaded === 'string') return parseCodeWithCache(loaded);
-  if (loaded && typeof (loaded as any).code === 'string')
+  if (typeof loaded === 'string') {
+    return parseCodeWithCache(loaded);
+  }
+  if (loaded && typeof (loaded as any).code === 'string') {
     return parseCodeWithCache((loaded as any).code as string);
+  }
   return null;
 }
 
 export function getModulesContent(ctx: ServerContext) {
-  let isAddRoot = (pathId: string) =>
+  const isAddRoot = (pathId: string) =>
     pathId.includes(ctx.config.root) || pathId.includes('/@fs')
       ? pathId
       : `${ctx.config.root}${pathId}`;
@@ -72,15 +77,21 @@ export function getModulesContent(ctx: ServerContext) {
         const mod = ctx.server.moduleGraph.getModuleById(rid);
 
         const tryReadOriginalFromVirtual = async (virtualId: string) => {
-          if (virtualId.includes('node_modules')) return null;
+          if (virtualId.includes('node_modules')) {
+            return null;
+          }
           const matchTsLike = virtualId.match(/^(.*?\.(?:tsx|ts|jsx|js|mjs|cjs))_/);
           const sourceId = matchTsLike?.[1] ?? null;
-          if (!sourceId) return null;
+          if (!sourceId) {
+            return null;
+          }
 
           try {
             const sourceResolved = await ctx.server.pluginContainer.resolveId(sourceId);
             let filePath = sourceResolved?.id ?? sourceId;
-            if (filePath.startsWith('/@fs/')) filePath = filePath.slice(4);
+            if (filePath.startsWith('/@fs/')) {
+              filePath = filePath.slice(4);
+            }
             filePath = filePath.replace(/\?[?#].*$/, '');
             await fs.access(filePath);
             const raw = await fs.readFile(filePath, 'utf-8');
@@ -91,17 +102,23 @@ export function getModulesContent(ctx: ServerContext) {
         };
 
         const originalFromVirtual = await tryReadOriginalFromVirtual(rid);
-        if (originalFromVirtual) return originalFromVirtual;
+        if (originalFromVirtual) {
+          return originalFromVirtual;
+        }
         const loaded = await ctx.server.pluginContainer.load(rid);
         const fromLoaded = parseLoadedWithCache(loaded);
-        if (fromLoaded) return fromLoaded;
+        if (fromLoaded) {
+          return fromLoaded;
+        }
 
         if (mod?.file) {
           try {
             await fs.access(mod.file);
             const raw = await fs.readFile(mod.file, 'utf-8');
             return parseCodeWithCache(raw);
-          } catch {}
+          } catch {
+            // Fallback to next strategy.
+          }
         }
 
         return [];

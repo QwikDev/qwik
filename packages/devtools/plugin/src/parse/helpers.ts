@@ -1,4 +1,4 @@
-import { USE_HOOK_LIST, HookType } from '@devtools/kit';
+import { USE_HOOK_LIST, HookType } from '@qwik.dev/devtools/kit';
 
 // ============================================================================
 // Constants
@@ -21,16 +21,22 @@ export function isAstNodeLike(value: unknown): value is { type: string } {
 export function getNodeStart(node: unknown): number {
   if (node && typeof node === 'object') {
     const maybeRange = (node as any).range;
-    if (Array.isArray(maybeRange)) return maybeRange[0] ?? 0;
+    if (Array.isArray(maybeRange)) {
+      return maybeRange[0] ?? 0;
+    }
     const maybeStart = (node as any).start;
-    if (typeof maybeStart === 'number') return maybeStart;
+    if (typeof maybeStart === 'number') {
+      return maybeStart;
+    }
   }
   return 0;
 }
 
 /** Extracts the name from an Identifier node */
 export function getVariableIdentifierName(id: unknown): string | null {
-  if (!isAstNodeLike(id)) return null;
+  if (!isAstNodeLike(id)) {
+    return null;
+  }
   return id.type === 'Identifier' ? ((id as any).name as string) : null;
 }
 

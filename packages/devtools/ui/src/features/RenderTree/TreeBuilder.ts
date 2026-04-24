@@ -2,29 +2,23 @@ import type { TreeNode, ElementType } from '../../components/Tree/type';
 import { isValue } from '../../utils/type';
 
 /**
- * Builder class for creating TreeNode structures from objects.
- * Handles all types of data transformation to tree format.
+ * Builder class for creating TreeNode structures from objects. Handles all types of data
+ * transformation to tree format.
  */
 export class TreeBuilder {
   private idCounter = 0;
 
-  /**
-   * Generate a unique ID for a tree node
-   */
+  /** Generate a unique ID for a tree node */
   private generateId(): string {
     return `node-${this.idCounter++}`;
   }
 
-  /**
-   * Reset the ID counter (useful for testing)
-   */
+  /** Reset the ID counter (useful for testing) */
   resetIdCounter(): void {
     this.idCounter = 0;
   }
 
-  /**
-   * Create a group node (parent node with children)
-   */
+  /** Create a group node (parent node with children) */
   createGroupNode(label: string, children: TreeNode[] = []): TreeNode {
     return {
       id: this.generateId(),
@@ -34,9 +28,7 @@ export class TreeBuilder {
     };
   }
 
-  /**
-   * Convert any object to TreeNode array
-   */
+  /** Convert any object to TreeNode array */
   objectToTree(obj: unknown, parentPath = ''): TreeNode[] {
     if (!obj || typeof obj !== 'object') {
       return [];
@@ -46,15 +38,10 @@ export class TreeBuilder {
       return this.arrayToTree(obj, parentPath);
     }
 
-    return this.objectPropertiesToTree(
-      obj as Record<string, unknown>,
-      parentPath,
-    );
+    return this.objectPropertiesToTree(obj as Record<string, unknown>, parentPath);
   }
 
-  /**
-   * Convert array to TreeNode array
-   */
+  /** Convert array to TreeNode array */
   private arrayToTree(arr: unknown[], parentPath: string): TreeNode[] {
     return arr
       .map((item, index) => {
@@ -64,13 +51,8 @@ export class TreeBuilder {
       .filter((node): node is TreeNode => node !== null);
   }
 
-  /**
-   * Convert object properties to TreeNode array
-   */
-  private objectPropertiesToTree(
-    obj: Record<string, unknown>,
-    parentPath: string,
-  ): TreeNode[] {
+  /** Convert object properties to TreeNode array */
+  private objectPropertiesToTree(obj: Record<string, unknown>, parentPath: string): TreeNode[] {
     const result: TreeNode[] = [];
 
     for (const [key, value] of Object.entries(obj)) {
@@ -84,14 +66,8 @@ export class TreeBuilder {
     return result;
   }
 
-  /**
-   * Create a single TreeNode from a value
-   */
-  private createNode(
-    value: unknown,
-    key: string,
-    path: string,
-  ): TreeNode | null {
+  /** Create a single TreeNode from a value */
+  private createNode(value: unknown, key: string, path: string): TreeNode | null {
     // Handle null/undefined
     if (value === null || value === undefined) {
       return this.createPrimitiveNode(key, value, 'null');
@@ -116,9 +92,7 @@ export class TreeBuilder {
     return null;
   }
 
-  /**
-   * Try to create a primitive node (boolean, number, string, function)
-   */
+  /** Try to create a primitive node (boolean, number, string, function) */
   private tryCreatePrimitiveNode(key: string, value: unknown): TreeNode | null {
     switch (typeof value) {
       case 'boolean':
@@ -134,14 +108,8 @@ export class TreeBuilder {
     }
   }
 
-  /**
-   * Create a node for primitive values
-   */
-  private createPrimitiveNode(
-    key: string,
-    value: unknown,
-    elementType: ElementType,
-  ): TreeNode {
+  /** Create a node for primitive values */
+  private createPrimitiveNode(key: string, value: unknown, elementType: ElementType): TreeNode {
     return {
       id: this.generateId(),
       label: `${key}: ${value}`,
@@ -150,9 +118,7 @@ export class TreeBuilder {
     };
   }
 
-  /**
-   * Create a node for function values
-   */
+  /** Create a node for function values */
   private createFunctionNode(key: string, fn: Function): TreeNode {
     const fnName = fn.name ? `ƒ ${fn.name}()` : 'ƒ()';
     return {
@@ -163,9 +129,7 @@ export class TreeBuilder {
     };
   }
 
-  /**
-   * Create a node for array values
-   */
+  /** Create a node for array values */
   private createArrayNode(key: string, arr: unknown[], path: string): TreeNode {
     const children = arr
       .map((item, index) => {
@@ -183,14 +147,8 @@ export class TreeBuilder {
     };
   }
 
-  /**
-   * Create a node for object values
-   */
-  private createObjectNode(
-    key: string,
-    obj: Record<string, unknown>,
-    path: string,
-  ): TreeNode {
+  /** Create a node for object values */
+  private createObjectNode(key: string, obj: Record<string, unknown>, path: string): TreeNode {
     const constructorName = obj.constructor?.name;
     const isPlainObject = constructorName === 'Object';
 
@@ -215,13 +173,11 @@ export class TreeBuilder {
     };
   }
 
-  /**
-   * Create a node for class instances (non-plain objects)
-   */
+  /** Create a node for class instances (non-plain objects) */
   private createClassInstanceNode(
     key: string,
     obj: Record<string, unknown>,
-    className: string,
+    className: string
   ): TreeNode {
     const node: TreeNode = {
       id: this.generateId(),
@@ -233,7 +189,7 @@ export class TreeBuilder {
     // Special handling for Signal-like objects with .value property
     if (isValue(obj)) {
       node.children = [this.createNode(obj.value, 'value', 'value')].filter(
-        (n): n is TreeNode => n !== null,
+        (n): n is TreeNode => n !== null
       );
     }
 

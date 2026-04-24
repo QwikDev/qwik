@@ -10,17 +10,11 @@ import {
 import { normalizeName } from './vnode';
 import { htmlContainer } from '../../utils/location';
 import { TreeNode, TreeNodePropValue } from './type';
-import { QPROPS, QRENDERFN, QSEQ, QTYPE } from '@devtools/kit';
+import { QPROPS, QRENDERFN, QSEQ, QTYPE } from '@qwik.dev/devtools/kit';
 import { QRLInternal } from '../../features/RenderTree/types';
 
 let index = 0;
-const ALLOWED_PROP_KEYS = new Set<string>([
-  QRENDERFN,
-  QSEQ,
-  QPROPS,
-  'q:id',
-  'q:key',
-]);
+const ALLOWED_PROP_KEYS = new Set<string>([QRENDERFN, QSEQ, QPROPS, 'q:id', 'q:key']);
 
 function initVnode({
   name = 'text',
@@ -51,10 +45,7 @@ function getContainer() {
   return _container!;
 }
 
-function buildTreeRecursive(
-  vnode: _VNode | null,
-  materialize: boolean,
-): TreeNode[] {
+function buildTreeRecursive(vnode: _VNode | null, materialize: boolean): TreeNode[] {
   // Return early if the starting node is null.
   if (!vnode) {
     return [];
@@ -68,50 +59,43 @@ function buildTreeRecursive(
     const isVirtual = _vnode_isVirtualVNode(currentVNode);
     // Determine if the node is a Fragment ('F') to be filtered out.
     const isFragment =
-      isVirtual &&
-      typeof getContainer().getHostProp(currentVNode, QRENDERFN) === 'function';
+      isVirtual && typeof getContainer().getHostProp(currentVNode, QRENDERFN) === 'function';
     if (isFragment) {
       const vnodeObject = initVnode({});
 
-      _vnode_getAttrKeys(
-        getContainer(),
-        currentVNode as _ElementVNode | _VirtualVNode,
-      ).forEach((key) => {
-        // We skip the QTYPE prop as it's for internal use.
-        if (key === QTYPE) {
-          return;
-        }
-        // Keep only the fields consumed by Devtools to avoid
-        // leaking non-serializable runtime VNode references.
-        if (!ALLOWED_PROP_KEYS.has(key)) {
-          return;
-        }
+      _vnode_getAttrKeys(getContainer(), currentVNode as _ElementVNode | _VirtualVNode).forEach(
+        (key) => {
+          // We skip the QTYPE prop as it's for internal use.
+          if (key === QTYPE) {
+            return;
+          }
+          // Keep only the fields consumed by Devtools to avoid
+          // leaking non-serializable runtime VNode references.
+          if (!ALLOWED_PROP_KEYS.has(key)) {
+            return;
+          }
 
-        const value: unknown = getContainer().getHostProp(currentVNode!, key);
-        vnodeObject.props![key] = value as TreeNodePropValue;
+          const value: unknown = getContainer().getHostProp(currentVNode!, key);
+          vnodeObject.props![key] = value as TreeNodePropValue;
 
-        // Special handling to set the label from the render function's symbol.
-        if (key === QRENDERFN && value != null) {
-          const qrl = value as QRLInternal;
-          vnodeObject.label = normalizeName(qrl.getSymbol());
-          vnodeObject.name = normalizeName(qrl.getSymbol());
+          // Special handling to set the label from the render function's symbol.
+          if (key === QRENDERFN && value != null) {
+            const qrl = value as QRLInternal;
+            vnodeObject.label = normalizeName(qrl.getSymbol());
+            vnodeObject.name = normalizeName(qrl.getSymbol());
+          }
         }
-      });
+      );
 
       // Recursively build the tree for child nodes.
       const firstChild = _vnode_getFirstChild(currentVNode);
-      const children = firstChild
-        ? buildTreeRecursive(firstChild, materialize)
-        : [];
+      const children = firstChild ? buildTreeRecursive(firstChild, materialize) : [];
       if (children.length > 0) {
         vnodeObject.children = children;
       }
 
       result.push(vnodeObject);
-    } else if (
-      _vnode_isMaterialized(currentVNode) ||
-      (isVirtual && !isFragment)
-    ) {
+    } else if (_vnode_isMaterialized(currentVNode) || (isVirtual && !isFragment)) {
       // For materialized nodes, similar to Fragments, we skip the container node
       // itself and just process its children.
       const firstChild = _vnode_getFirstChild(currentVNode);

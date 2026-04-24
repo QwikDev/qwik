@@ -24,6 +24,7 @@ import { readPackageJson } from './package-json.ts';
 const stringOptions = ['distVersion', 'platformTarget', 'setDistTag'] as const;
 const booleanOptions = [
   'api',
+  'browserExtension',
   'cli',
   'commit',
   'dev',
@@ -59,6 +60,7 @@ const booleanOptions = [
 export type BuildConfig = { [key in (typeof stringOptions)[number]]: string } & {
   [key in (typeof booleanOptions)[number]]?: boolean;
 } & {
+  browserExtensionPkgDir: string;
   distBindingsDir: string;
   distDevtoolsPkgDir: string;
   distQwikRouterPkgDir: string;
@@ -96,6 +98,7 @@ export function loadConfig(args: string[] = []): BuildConfig {
   const srcQwikDir = join(packagesDir, 'qwik', 'src');
   const optimizerPkgDir = join(packagesDir, 'optimizer');
   const devtoolsPkgDir = join(packagesDir, 'devtools');
+  const browserExtensionPkgDir = join(packagesDir, 'browser-extension');
   const optimizerRustPkgDir = join(packagesDir, 'optimizer');
   const qwikVitePkgDir = join(packagesDir, 'qwik-vite');
   const optimizerDir = join(optimizerPkgDir, 'src');
@@ -149,6 +152,7 @@ export function loadConfig(args: string[] = []): BuildConfig {
     qwikViteDir,
     qwikVitePkgDir,
     devtoolsPkgDir,
+    browserExtensionPkgDir,
     srcQwikDir,
     tmpDir,
     srcQwikRouterDir: join(packagesDir, 'qwik-router', 'src'),

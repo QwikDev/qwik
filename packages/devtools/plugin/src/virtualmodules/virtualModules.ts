@@ -1,4 +1,4 @@
-import { VIRTUAL_QWIK_DEVTOOLS_KEY, INNER_USE_HOOK } from '@devtools/kit';
+import { VIRTUAL_QWIK_DEVTOOLS_KEY, INNER_USE_HOOK } from '@qwik.dev/devtools/kit';
 import useCollectHooksSource from './useCollectHooks';
 import qwikComponentProxySource from './qwikComponentProxy';
 import vnodeBridgeSource, { VNODE_BRIDGE_KEY } from './vnodeBridge';
@@ -77,12 +77,8 @@ export function transformComponentFile(code: string, id: string): string {
 }
 
 export function transformRootFile(code: string): string {
-  const mode = process.env.MODE;
-  const importPath = mode === 'dev' ? '@devtools/ui' : '@qwik.dev/devtools/ui';
-  const styleImportPath =
-    mode === 'dev' ? '@devtools/ui/styles.css' : '@qwik.dev/devtools/ui/styles.css';
-  const devtoolsImport = `import { QwikDevtools } from '${importPath}';`;
-  const stylesImport = `import '${styleImportPath}';`;
+  const devtoolsImport = `import { QwikDevtools } from '@qwik.dev/devtools/ui';`;
+  const stylesImport = `import '@qwik.dev/devtools/ui/styles.css';`;
   const bridgeImport = `import '${VNODE_BRIDGE_KEY}';`;
 
   // Add QwikDevtools import if not present

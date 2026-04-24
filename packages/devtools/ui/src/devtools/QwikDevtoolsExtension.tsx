@@ -8,18 +8,16 @@ import { DevtoolsSidebar } from './DevtoolsSidebar';
 /**
  * Extension-only devtools layout.
  *
- * Renders the sidebar and content directly without the overlay chrome
- * (floating button, draggable panel, backdrop). Mounted inside the
- * browser extension DevTools panel via {@link entry.extension.tsx}.
+ * Renders the sidebar and content directly without the overlay chrome (floating button, draggable
+ * panel, backdrop). Mounted inside the browser extension DevTools panel via
+ * {@link entry.extension.tsx}.
  *
- * The outer `.qwik-devtools` wrapper is required because the Tailwind
- * utilities are scoped under `.qwik-devtools .{class}` in the CSS build.
- * It must be a separate element so descendant selectors match.
+ * The outer `.qwik-devtools` wrapper is required because the Tailwind utilities are scoped under
+ * `.qwik-devtools .{class}` in the CSS build. It must be a separate element so descendant selectors
+ * match.
  */
 export const QwikDevtoolsExtension = component$(() => {
-  const state = useStore<DevtoolsState>(
-    createDevtoolsState({ isExtension: true }),
-  );
+  const state = useStore<DevtoolsState>(createDevtoolsState({ isExtension: true }));
 
   useVisibleTask$(async () => {
     await loadDevtoolsData(state);

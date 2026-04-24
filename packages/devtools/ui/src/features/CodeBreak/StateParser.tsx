@@ -1,10 +1,4 @@
-import {
-  $,
-  component$,
-  useSignal,
-  useVisibleTask$,
-  useStyles$,
-} from '@qwik.dev/core';
+import { $, component$, useSignal, useVisibleTask$, useStyles$ } from '@qwik.dev/core';
 import { _dumpState, _preprocessState } from '@qwik.dev/core/internal';
 import { getHighlighter } from '../../utils/shiki';
 
@@ -38,10 +32,7 @@ export const StateParser = component$(() => {
         $scheduler$: null,
       };
       _preprocessState(stateData, container as any);
-      const dumpedState = _dumpState(stateData, false, '', null).replace(
-        /\n/,
-        '',
-      );
+      const dumpedState = _dumpState(stateData, false, '', null).replace(/\n/, '');
       parsingTime.value = performance.now() - startTime;
       stateResult.value = dumpedState;
       return;

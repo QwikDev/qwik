@@ -41,7 +41,7 @@ export function testAppSuite(
 ): TestAPI<TestAppBuildContext> {
   let buildCtx: RoutingContext;
 
-  beforeAll(async (testCtx) => {
+  beforeAll(async () => {
     const testAppRootDir = join(
       __dirname,
       '..',
@@ -64,7 +64,6 @@ export function testAppSuite(
     assert.deepEqual(ctx.diagnostics, []);
 
     buildCtx = ctx;
-    Object.assign(testCtx, ctx);
   });
 
   const assertRoute = (p: string) => {

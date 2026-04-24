@@ -9,7 +9,7 @@ import {
   type QwikSsrPreloadSnapshotRemembered,
   type QwikPreloadStatus,
   type QwikPreloadStoreRemembered,
-} from '@devtools/kit';
+} from '@qwik.dev/devtools/kit';
 
 type MutablePreloadStore = QwikPreloadStoreRemembered & {
   _id?: number;
@@ -35,13 +35,10 @@ const now = () =>
     ? performance.now()
     : Date.now();
 
-const isTerminalStatus = (status?: string): boolean =>
-  status === 'loaded' || status === 'error';
+const isTerminalStatus = (status?: string): boolean => status === 'loaded' || status === 'error';
 
-const phaseHrefKey = (
-  phase: QwikPreloadPhase | undefined,
-  normalizedHref: string,
-) => `${phase || 'csr'}:${normalizedHref}`;
+const phaseHrefKey = (phase: QwikPreloadPhase | undefined, normalizedHref: string) =>
+  `${phase || 'csr'}:${normalizedHref}`;
 
 const toAbsoluteHref = (href: string) => {
   try {
@@ -75,11 +72,7 @@ const getPathExtension = (href: string) => {
   }
 };
 
-const inferResourceType = (
-  asValue?: string,
-  href?: string,
-  initiatorType?: string,
-) => {
+const inferResourceType = (asValue?: string, href?: string, initiatorType?: string) => {
   if (asValue) {
     return asValue;
   }
@@ -121,7 +114,7 @@ const isExternalHref = (href: string) => {
 
 const inferOriginKind = (
   href?: string,
-  source?: QwikPreloadEntryRemembered['source'],
+  source?: QwikPreloadEntryRemembered['source']
 ): QwikPreloadOriginKind => {
   if (!href) {
     return source === 'qrl-correlation' ? 'generated' : 'unknown';
@@ -146,10 +139,7 @@ const inferOriginKind = (
   return 'current-project';
 };
 
-const inferPhase = (
-  detail: Record<string, any>,
-  fallback: QwikPreloadPhase = 'csr',
-) => {
+const inferPhase = (detail: Record<string, any>, fallback: QwikPreloadPhase = 'csr') => {
   const phase = detail.phase || detail.executionPhase || detail.env;
   if (phase === 'ssr' || phase === 'csr' || phase === 'unknown') {
     return phase;
@@ -164,14 +154,11 @@ const emitUpdate = (store: MutablePreloadStore) => {
         count: store.entries.length,
         updatedAt: now(),
       },
-    }),
+    })
   );
 };
 
-const syncImportDuration = (
-  entry: QwikPreloadEntryRemembered,
-  importDuration?: number,
-) => {
+const syncImportDuration = (entry: QwikPreloadEntryRemembered, importDuration?: number) => {
   if (typeof importDuration !== 'number') {
     return;
   }
@@ -179,17 +166,11 @@ const syncImportDuration = (
   entry.duration = importDuration;
 };
 
-const syncLoadDuration = (
-  entry: QwikPreloadEntryRemembered,
-  loadDuration?: number,
-) => {
+const syncLoadDuration = (entry: QwikPreloadEntryRemembered, loadDuration?: number) => {
   if (typeof loadDuration !== 'number') {
     return;
   }
-  if (
-    typeof entry.loadDuration === 'number' &&
-    entry.loadDuration >= loadDuration
-  ) {
+  if (typeof entry.loadDuration === 'number' && entry.loadDuration >= loadDuration) {
     entry.qrlToLoadDuration = entry.loadDuration;
     return;
   }
@@ -230,14 +211,11 @@ const getEntryById = (store: MutablePreloadStore, id?: number) =>
 const findMostRecentEntry = (
   store: MutablePreloadStore,
   normalizedHref: string,
-  phase?: QwikPreloadPhase,
+  phase?: QwikPreloadPhase
 ) => {
   for (let i = store.entries.length - 1; i >= 0; i--) {
     const entry = store.entries[i];
-    if (
-      entry.normalizedHref === normalizedHref &&
-      (!phase || entry.phase === phase)
-    ) {
+    if (entry.normalizedHref === normalizedHref && (!phase || entry.phase === phase)) {
       return entry;
     }
   }
@@ -247,12 +225,9 @@ const findMostRecentEntry = (
 const findActiveEntry = (
   store: MutablePreloadStore,
   normalizedHref: string,
-  phase?: QwikPreloadPhase,
+  phase?: QwikPreloadPhase
 ) => {
-  const entry = getEntryById(
-    store,
-    store._byHref?.[phaseHrefKey(phase, normalizedHref)],
-  );
+  const entry = getEntryById(store, store._byHref?.[phaseHrefKey(phase, normalizedHref)]);
   if (entry && !isTerminalStatus(entry.status)) {
     return entry;
   }
@@ -261,7 +236,7 @@ const findActiveEntry = (
 
 const mergeEntry = (
   entry: QwikPreloadEntryRemembered,
-  payload: Partial<QwikPreloadEntryRemembered>,
+  payload: Partial<QwikPreloadEntryRemembered>
 ) => {
   if (payload.href && !entry.href) {
     entry.href = payload.href;
@@ -290,10 +265,7 @@ const mergeEntry = (
   if (typeof payload.importDuration === 'number') {
     syncImportDuration(entry, payload.importDuration);
   }
-  if (
-    typeof payload.duration === 'number' &&
-    typeof payload.importDuration !== 'number'
-  ) {
+  if (typeof payload.duration === 'number' && typeof payload.importDuration !== 'number') {
     syncImportDuration(entry, payload.duration);
   }
   if (typeof payload.transferSize === 'number') {
@@ -317,10 +289,7 @@ const mergeEntry = (
   if (typeof payload.loadDuration === 'number') {
     syncLoadDuration(entry, payload.loadDuration);
   }
-  if (
-    typeof payload.qrlToLoadDuration === 'number' &&
-    typeof payload.loadDuration !== 'number'
-  ) {
+  if (typeof payload.qrlToLoadDuration === 'number' && typeof payload.loadDuration !== 'number') {
     syncLoadDuration(entry, payload.qrlToLoadDuration);
   }
   if (payload.loadMatchQuality) {
@@ -346,7 +315,7 @@ const createEntry = (
   payload: Partial<QwikPreloadEntryRemembered> & {
     href: string;
     normalizedHref: string;
-  },
+  }
 ) => {
   const entry: QwikPreloadEntryRemembered = {
     id: (store._id = (store._id || 0) + 1),
@@ -367,8 +336,7 @@ const createEntry = (
     qrlSymbol: payload.qrlSymbol,
     qrlRequestedAt: payload.qrlRequestedAt,
     qrlToLoadDuration: payload.qrlToLoadDuration,
-    originKind:
-      payload.originKind || inferOriginKind(payload.href, payload.source),
+    originKind: payload.originKind || inferOriginKind(payload.href, payload.source),
     phase: payload.phase || 'csr',
     importDuration: payload.importDuration ?? payload.duration,
     loadDuration: payload.loadDuration ?? payload.qrlToLoadDuration,
@@ -391,10 +359,9 @@ const upsertEntry = (
     href?: string;
     normalizedHref?: string;
   },
-  preferActive = true,
+  preferActive = true
 ) => {
-  const normalizedHref =
-    payload.normalizedHref || normalizeHref(payload.href || '');
+  const normalizedHref = payload.normalizedHref || normalizeHref(payload.href || '');
   if (!normalizedHref) {
     return undefined;
   }
@@ -427,27 +394,20 @@ const isScriptLikeEntry = (entry: QwikPreloadEntryRemembered) =>
   entry.rel === 'dynamic-import' ||
   entry.as === 'script';
 
-const timeDistance = (
-  entry: QwikPreloadEntryRemembered,
-  request: MutableQrlRequest,
-) => {
+const timeDistance = (entry: QwikPreloadEntryRemembered, request: MutableQrlRequest) => {
   const anchor = entry.requestedAt ?? entry.completedAt ?? entry.discoveredAt;
   return Math.abs(anchor - request.requestedAt);
 };
 
 export function findBestQrlRequestMatch(
   entries: QwikPreloadEntryRemembered[],
-  request: Pick<
-    MutableQrlRequest,
-    'normalizedHref' | 'phase' | 'requestedAt' | 'symbol'
-  >,
+  request: Pick<MutableQrlRequest, 'normalizedHref' | 'phase' | 'requestedAt' | 'symbol'>
 ): {
   entryId?: number;
   matchedBy: QwikPreloadMatchMode;
   loadMatchQuality: QwikPreloadLoadMatchQuality;
 } {
-  const phase =
-    request.phase === 'ssr' || request.phase === 'csr' ? request.phase : 'csr';
+  const phase = request.phase === 'ssr' || request.phase === 'csr' ? request.phase : 'csr';
 
   if (request.normalizedHref) {
     for (let i = entries.length - 1; i >= 0; i--) {
@@ -455,10 +415,7 @@ export function findBestQrlRequestMatch(
       if (entry.qrlRequestedAt != null && entry.qrlSymbol !== request.symbol) {
         continue;
       }
-      if (
-        entry.phase === phase &&
-        entry.normalizedHref === request.normalizedHref
-      ) {
+      if (entry.phase === phase && entry.normalizedHref === request.normalizedHref) {
         return {
           entryId: entry.id,
           matchedBy: 'normalized-href',
@@ -495,8 +452,7 @@ export function findBestQrlRequestMatch(
     }
 
     const distance = timeDistance(entry, request as MutableQrlRequest);
-    const entryCompletedAt =
-      entry.completedAt ?? entry.requestedAt ?? entry.discoveredAt;
+    const entryCompletedAt = entry.completedAt ?? entry.requestedAt ?? entry.discoveredAt;
     if (entryCompletedAt + 50 < request.requestedAt) {
       continue;
     }
@@ -522,7 +478,7 @@ export function findBestQrlRequestMatch(
 const updateLoadDurationFromRequest = (
   entry: QwikPreloadEntryRemembered,
   request: MutableQrlRequest,
-  eventCompletedAt?: number,
+  eventCompletedAt?: number
 ) => {
   const completion =
     typeof eventCompletedAt === 'number'
@@ -538,7 +494,7 @@ const applyRequestToEntry = (
   request: MutableQrlRequest,
   matchedBy: QwikPreloadMatchMode,
   loadMatchQuality: QwikPreloadLoadMatchQuality,
-  eventCompletedAt?: number,
+  eventCompletedAt?: number
 ) => {
   request.matchedEntryId = entry.id;
   entry.qrlSymbol = request.symbol;
@@ -562,7 +518,7 @@ const applyRequestToEntry = (
 const tryMatchRequest = (
   store: MutablePreloadStore,
   request: MutableQrlRequest,
-  eventCompletedAt?: number,
+  eventCompletedAt?: number
 ) => {
   const match = findBestQrlRequestMatch(store.entries, request);
   if (typeof match.entryId !== 'number') {
@@ -574,20 +530,14 @@ const tryMatchRequest = (
     return undefined;
   }
 
-  applyRequestToEntry(
-    entry,
-    request,
-    match.matchedBy,
-    match.loadMatchQuality,
-    eventCompletedAt,
-  );
+  applyRequestToEntry(entry, request, match.matchedBy, match.loadMatchQuality, eventCompletedAt);
   return entry;
 };
 
 const tryMatchPendingRequestsForEntry = (
   store: MutablePreloadStore,
   entry?: QwikPreloadEntryRemembered,
-  eventCompletedAt?: number,
+  eventCompletedAt?: number
 ) => {
   if (!entry) {
     return;
@@ -604,13 +554,7 @@ const tryMatchPendingRequestsForEntry = (
       continue;
     }
 
-    applyRequestToEntry(
-      entry,
-      request,
-      match.matchedBy,
-      match.loadMatchQuality,
-      eventCompletedAt,
-    );
+    applyRequestToEntry(entry, request, match.matchedBy, match.loadMatchQuality, eventCompletedAt);
     return;
   }
 };
@@ -619,7 +563,7 @@ const finalizeEntry = (
   store: MutablePreloadStore,
   entry: QwikPreloadEntryRemembered | undefined,
   status: QwikPreloadStatus,
-  errorMessage?: string,
+  errorMessage?: string
 ) => {
   if (!entry) {
     return;
@@ -630,17 +574,11 @@ const finalizeEntry = (
     entry.completedAt = completedAt;
   }
   if (typeof entry.duration !== 'number') {
-    const start =
-      typeof entry.requestedAt === 'number'
-        ? entry.requestedAt
-        : entry.discoveredAt;
+    const start = typeof entry.requestedAt === 'number' ? entry.requestedAt : entry.discoveredAt;
     entry.duration = Math.max(0, entry.completedAt - start);
   }
   if (typeof entry.qrlRequestedAt === 'number') {
-    syncLoadDuration(
-      entry,
-      Math.max(0, entry.completedAt - entry.qrlRequestedAt),
-    );
+    syncLoadDuration(entry, Math.max(0, entry.completedAt - entry.qrlRequestedAt));
   }
   if (errorMessage) {
     entry.error = errorMessage;
@@ -651,31 +589,23 @@ const finalizeEntry = (
 const observeLink = (
   store: MutablePreloadStore,
   observedLinks: WeakSet<HTMLLinkElement>,
-  link: HTMLLinkElement,
+  link: HTMLLinkElement
 ) => {
   if (observedLinks.has(link)) {
     return;
   }
   observedLinks.add(link);
   link.addEventListener('load', () => {
-    const normalizedHref = normalizeHref(
-      link.href || link.getAttribute('href') || '',
-    );
-    finalizeEntry(
-      store,
-      findMostRecentEntry(store, normalizedHref, 'csr'),
-      'loaded',
-    );
+    const normalizedHref = normalizeHref(link.href || link.getAttribute('href') || '');
+    finalizeEntry(store, findMostRecentEntry(store, normalizedHref, 'csr'), 'loaded');
   });
   link.addEventListener('error', () => {
-    const normalizedHref = normalizeHref(
-      link.href || link.getAttribute('href') || '',
-    );
+    const normalizedHref = normalizeHref(link.href || link.getAttribute('href') || '');
     finalizeEntry(
       store,
       findMostRecentEntry(store, normalizedHref, 'csr'),
       'error',
-      'Failed to preload resource',
+      'Failed to preload resource'
     );
   });
 };
@@ -684,7 +614,7 @@ const recordLink = (
   store: MutablePreloadStore,
   observedLinks: WeakSet<HTMLLinkElement>,
   link: HTMLLinkElement,
-  source: QwikPreloadEntryRemembered['source'],
+  source: QwikPreloadEntryRemembered['source']
 ) => {
   const rel = (link.getAttribute('rel') || '').toLowerCase();
   if (!['preload', 'modulepreload', 'prefetch'].includes(rel)) {
@@ -720,11 +650,7 @@ const recordLink = (
 
 const shouldCreateFromResourceTiming = (entry: PerformanceResourceTiming) => {
   const href = entry.name || '';
-  const resourceType = inferResourceType(
-    undefined,
-    href,
-    entry.initiatorType || undefined,
-  );
+  const resourceType = inferResourceType(undefined, href, entry.initiatorType || undefined);
   return (
     resourceType === 'script' ||
     entry.initiatorType === 'script' ||
@@ -734,10 +660,7 @@ const shouldCreateFromResourceTiming = (entry: PerformanceResourceTiming) => {
   );
 };
 
-const applyResourceTiming = (
-  store: MutablePreloadStore,
-  resourceEntry: PerformanceEntry,
-) => {
+const applyResourceTiming = (store: MutablePreloadStore, resourceEntry: PerformanceEntry) => {
   if (!('name' in resourceEntry)) {
     return;
   }
@@ -750,15 +673,11 @@ const applyResourceTiming = (
       href: toAbsoluteHref(timing.name || normalizedHref),
       normalizedHref,
       rel: timing.initiatorType === 'link' ? 'preload' : 'dynamic-import',
-      as: inferResourceType(
-        undefined,
-        timing.name || '',
-        timing.initiatorType || undefined,
-      ),
+      as: inferResourceType(undefined, timing.name || '', timing.initiatorType || undefined),
       resourceType: inferResourceType(
         undefined,
         timing.name || '',
-        timing.initiatorType || undefined,
+        timing.initiatorType || undefined
       ),
       source: 'performance',
       status: 'loaded',
@@ -778,18 +697,11 @@ const applyResourceTiming = (
     requestedAt: timing.startTime,
     completedAt,
     importDuration: Math.max(0, completedAt - timing.startTime),
-    transferSize:
-      typeof timing.transferSize === 'number' ? timing.transferSize : undefined,
+    transferSize: typeof timing.transferSize === 'number' ? timing.transferSize : undefined,
     decodedBodySize:
-      typeof timing.decodedBodySize === 'number'
-        ? timing.decodedBodySize
-        : undefined,
+      typeof timing.decodedBodySize === 'number' ? timing.decodedBodySize : undefined,
     initiatorType: timing.initiatorType || undefined,
-    resourceType: inferResourceType(
-      entry.as,
-      entry.href,
-      timing.initiatorType || undefined,
-    ),
+    resourceType: inferResourceType(entry.as, entry.href, timing.initiatorType || undefined),
     status: 'loaded',
     originKind: inferOriginKind(entry.href, 'performance'),
     phase: 'csr',
@@ -820,15 +732,12 @@ const recordQrlEvent = (
   detail: Record<string, any>,
   eventTime: number | undefined,
   status: QwikPreloadStatus,
-  errorMessage?: string,
+  errorMessage?: string
 ) => {
   const symbol = detail.symbol ? String(detail.symbol) : 'unknown';
-  const href = detail.href
-    ? toAbsoluteHref(detail.href)
-    : createSymbolHref(symbol);
+  const href = detail.href ? toAbsoluteHref(detail.href) : createSymbolHref(symbol);
   const normalizedHref = normalizeHref(href);
-  const requestedAt =
-    typeof detail.reqTime === 'number' ? detail.reqTime : now();
+  const requestedAt = typeof detail.reqTime === 'number' ? detail.reqTime : now();
   const completedAt = typeof eventTime === 'number' ? eventTime : now();
   const originKind = inferOriginKind(href, 'qrl-correlation');
   const phase = inferPhase(detail, 'csr');
@@ -861,7 +770,7 @@ const recordWindowError = (
   store: MutablePreloadStore,
   href: string,
   status: QwikPreloadStatus,
-  errorMessage: string,
+  errorMessage: string
 ) => {
   const normalizedHref = normalizeHref(href);
   const entry =
@@ -882,10 +791,7 @@ const recordWindowError = (
   finalizeEntry(store, entry, status, errorMessage);
 };
 
-const ingestSsrPreloads = (
-  store: MutablePreloadStore,
-  detail: Record<string, any>,
-) => {
+const ingestSsrPreloads = (store: MutablePreloadStore, detail: Record<string, any>) => {
   const rawEntries = Array.isArray(detail.entries)
     ? detail.entries
     : Array.isArray(detail)
@@ -898,9 +804,7 @@ const ingestSsrPreloads = (
     }
     const href = typeof raw.href === 'string' ? raw.href : '';
     const normalizedHref =
-      typeof raw.normalizedHref === 'string'
-        ? raw.normalizedHref
-        : normalizeHref(href);
+      typeof raw.normalizedHref === 'string' ? raw.normalizedHref : normalizeHref(href);
     if (!normalizedHref) {
       continue;
     }
@@ -912,16 +816,12 @@ const ingestSsrPreloads = (
         normalizedHref,
         rel: typeof raw.rel === 'string' ? raw.rel : 'dynamic-import',
         as: typeof raw.as === 'string' ? raw.as : 'script',
-        resourceType:
-          typeof raw.resourceType === 'string' ? raw.resourceType : 'script',
+        resourceType: typeof raw.resourceType === 'string' ? raw.resourceType : 'script',
         source: typeof raw.source === 'string' ? raw.source : 'qrl-correlation',
         status: typeof raw.status === 'string' ? raw.status : 'loaded',
-        discoveredAt:
-          typeof raw.discoveredAt === 'number' ? raw.discoveredAt : now(),
-        requestedAt:
-          typeof raw.requestedAt === 'number' ? raw.requestedAt : undefined,
-        completedAt:
-          typeof raw.completedAt === 'number' ? raw.completedAt : undefined,
+        discoveredAt: typeof raw.discoveredAt === 'number' ? raw.discoveredAt : now(),
+        requestedAt: typeof raw.requestedAt === 'number' ? raw.requestedAt : undefined,
+        completedAt: typeof raw.completedAt === 'number' ? raw.completedAt : undefined,
         importDuration:
           typeof raw.importDuration === 'number'
             ? raw.importDuration
@@ -935,26 +835,14 @@ const ingestSsrPreloads = (
               ? raw.qrlToLoadDuration
               : undefined,
         duration: typeof raw.duration === 'number' ? raw.duration : undefined,
-        transferSize:
-          typeof raw.transferSize === 'number' ? raw.transferSize : undefined,
-        decodedBodySize:
-          typeof raw.decodedBodySize === 'number'
-            ? raw.decodedBodySize
-            : undefined,
-        initiatorType:
-          typeof raw.initiatorType === 'string' ? raw.initiatorType : undefined,
-        qrlSymbol:
-          typeof raw.qrlSymbol === 'string' ? raw.qrlSymbol : undefined,
-        qrlRequestedAt:
-          typeof raw.qrlRequestedAt === 'number'
-            ? raw.qrlRequestedAt
-            : undefined,
+        transferSize: typeof raw.transferSize === 'number' ? raw.transferSize : undefined,
+        decodedBodySize: typeof raw.decodedBodySize === 'number' ? raw.decodedBodySize : undefined,
+        initiatorType: typeof raw.initiatorType === 'string' ? raw.initiatorType : undefined,
+        qrlSymbol: typeof raw.qrlSymbol === 'string' ? raw.qrlSymbol : undefined,
+        qrlRequestedAt: typeof raw.qrlRequestedAt === 'number' ? raw.qrlRequestedAt : undefined,
         qrlToLoadDuration:
-          typeof raw.qrlToLoadDuration === 'number'
-            ? raw.qrlToLoadDuration
-            : undefined,
-        loadMatchQuality:
-          raw.loadMatchQuality === 'best-effort' ? 'best-effort' : 'none',
+          typeof raw.qrlToLoadDuration === 'number' ? raw.qrlToLoadDuration : undefined,
+        loadMatchQuality: raw.loadMatchQuality === 'best-effort' ? 'best-effort' : 'none',
         originKind:
           typeof raw.originKind === 'string'
             ? (raw.originKind as QwikPreloadOriginKind)
@@ -963,7 +851,7 @@ const ingestSsrPreloads = (
         matchedBy: typeof raw.matchedBy === 'string' ? raw.matchedBy : 'none',
         error: typeof raw.error === 'string' ? raw.error : undefined,
       },
-      false,
+      false
     );
 
     if (entry) {
@@ -999,7 +887,7 @@ export function ensurePreloadRuntime() {
 
   document
     .querySelectorAll<HTMLLinkElement>(
-      'link[rel="preload"], link[rel="modulepreload"], link[rel="prefetch"]',
+      'link[rel="preload"], link[rel="modulepreload"], link[rel="prefetch"]'
     )
     .forEach((link) => recordLink(store, observedLinks, link, 'initial-dom'));
 
@@ -1012,10 +900,7 @@ export function ensurePreloadRuntime() {
 
   const mutationObserver = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-      if (
-        mutation.type === 'attributes' &&
-        mutation.target instanceof HTMLLinkElement
-      ) {
+      if (mutation.type === 'attributes' && mutation.target instanceof HTMLLinkElement) {
         recordLink(store, observedLinks, mutation.target, 'mutation');
       }
 
@@ -1029,16 +914,9 @@ export function ensurePreloadRuntime() {
         }
         node
           .querySelectorAll?.(
-            'link[rel="preload"], link[rel="modulepreload"], link[rel="prefetch"]',
+            'link[rel="preload"], link[rel="modulepreload"], link[rel="prefetch"]'
           )
-          .forEach((link) =>
-            recordLink(
-              store,
-              observedLinks,
-              link as HTMLLinkElement,
-              'mutation',
-            ),
-          );
+          .forEach((link) => recordLink(store, observedLinks, link as HTMLLinkElement, 'mutation'));
       });
     }
   });
@@ -1051,9 +929,7 @@ export function ensurePreloadRuntime() {
   });
 
   if (typeof performance !== 'undefined' && performance.getEntriesByType) {
-    performance
-      .getEntriesByType('resource')
-      .forEach((entry) => applyResourceTiming(store, entry));
+    performance.getEntriesByType('resource').forEach((entry) => applyResourceTiming(store, entry));
   }
 
   if (typeof PerformanceObserver !== 'undefined') {
@@ -1073,8 +949,7 @@ export function ensurePreloadRuntime() {
   }
 
   document.addEventListener('qsymbol', (event) => {
-    const detail =
-      event instanceof CustomEvent ? (event.detail as Record<string, any>) : {};
+    const detail = event instanceof CustomEvent ? (event.detail as Record<string, any>) : {};
     const href = detail.href ? toAbsoluteHref(detail.href) : undefined;
     const normalizedHref = href ? normalizeHref(href) : undefined;
     const originKind = inferOriginKind(href, 'qrl-correlation');
@@ -1106,8 +981,7 @@ export function ensurePreloadRuntime() {
   });
 
   document.addEventListener('qerror', (event) => {
-    const detail =
-      event instanceof CustomEvent ? (event.detail as Record<string, any>) : {};
+    const detail = event instanceof CustomEvent ? (event.detail as Record<string, any>) : {};
     const href = detail.href || extractHrefFromUnknownError(detail.error);
     const normalizedHref = href ? normalizeHref(href) : undefined;
     const errorMessage =
@@ -1136,40 +1010,28 @@ export function ensurePreloadRuntime() {
       existing.status = 'error';
       existing.error = errorMessage;
       if (typeof eventCompletedAt === 'number') {
-        existing.completedAt = Math.max(
-          existing.completedAt ?? eventCompletedAt,
-          eventCompletedAt,
-        );
+        existing.completedAt = Math.max(existing.completedAt ?? eventCompletedAt, eventCompletedAt);
         updateLoadDurationFromRequest(existing, request, eventCompletedAt);
       }
       emitUpdate(store);
       return;
     }
 
-    recordQrlEvent(
-      store,
-      { ...detail, href },
-      eventCompletedAt,
-      'error',
-      errorMessage,
-    );
+    recordQrlEvent(store, { ...detail, href }, eventCompletedAt, 'error', errorMessage);
     emitUpdate(store);
   });
 
   window.addEventListener('qwik:ssr-preloads', (event) => {
-    const detail =
-      event instanceof CustomEvent ? (event.detail as Record<string, any>) : {};
+    const detail = event instanceof CustomEvent ? (event.detail as Record<string, any>) : {};
     if (Array.isArray(detail.entries)) {
-      window.__QWIK_SSR_PRELOADS__ =
-        detail.entries as QwikSsrPreloadSnapshotRemembered[];
+      window.__QWIK_SSR_PRELOADS__ = detail.entries as QwikSsrPreloadSnapshotRemembered[];
     }
     ingestSsrPreloads(store, detail);
   });
 
   window.addEventListener('error', (event) => {
     const href =
-      extractHrefFromUnknownError(event.error) ||
-      extractHrefFromUnknownError(event.message);
+      extractHrefFromUnknownError(event.error) || extractHrefFromUnknownError(event.message);
     if (!href) {
       return;
     }
@@ -1179,7 +1041,7 @@ export function ensurePreloadRuntime() {
       'error',
       typeof event.message === 'string'
         ? event.message
-        : 'Failed to fetch dynamically imported module',
+        : 'Failed to fetch dynamically imported module'
     );
   });
 

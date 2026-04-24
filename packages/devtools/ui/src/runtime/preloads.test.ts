@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import type { QwikPreloadEntryRemembered } from '@devtools/kit';
+import type { QwikPreloadEntryRemembered } from '@qwik.dev/devtools/kit';
 import { findBestQrlRequestMatch } from './preloads';
 
 function entry(
   overrides: Partial<QwikPreloadEntryRemembered> &
-    Pick<QwikPreloadEntryRemembered, 'id' | 'href' | 'normalizedHref'>,
+    Pick<QwikPreloadEntryRemembered, 'id' | 'href' | 'normalizedHref'>
 ): QwikPreloadEntryRemembered {
   return {
     id: overrides.id,
@@ -52,7 +52,7 @@ describe('findBestQrlRequestMatch', () => {
         normalizedHref: 'http://localhost/build/a.js',
         requestedAt: 12,
         phase: 'csr',
-      },
+      }
     );
 
     expect(match).toEqual({
@@ -86,7 +86,7 @@ describe('findBestQrlRequestMatch', () => {
         symbol: 's_a',
         requestedAt: 105,
         phase: 'csr',
-      }),
+      })
     ).toEqual({
       entryId: 1,
       matchedBy: 'resource-name',
@@ -98,7 +98,7 @@ describe('findBestQrlRequestMatch', () => {
         symbol: 's_missing',
         requestedAt: 205,
         phase: 'csr',
-      }),
+      })
     ).toEqual({
       entryId: 2,
       matchedBy: 'chunk-hash',
@@ -122,8 +122,8 @@ describe('findBestQrlRequestMatch', () => {
           symbol: 's_missing',
           requestedAt: 5000,
           phase: 'csr',
-        },
-      ),
+        }
+      )
     ).toEqual({
       matchedBy: 'none',
       loadMatchQuality: 'none',

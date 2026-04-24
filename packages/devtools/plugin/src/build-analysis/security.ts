@@ -14,7 +14,9 @@ type RpcClientLike = {
 
 export function isRemoteBuildAnalysisEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   const rawValue = env[REMOTE_BUILD_ANALYSIS_ENV];
-  if (!rawValue) return false;
+  if (!rawValue) {
+    return false;
+  }
   return TRUTHY_ENV_VALUES.has(rawValue.trim().toLowerCase());
 }
 
@@ -60,8 +62,12 @@ function getSocketRemoteAddress(socket: unknown): string | undefined {
 }
 
 export function isLoopbackAddress(address: string | undefined): boolean {
-  if (!address) return false;
-  if (address === '127.0.0.1' || address === '::1') return true;
+  if (!address) {
+    return false;
+  }
+  if (address === '127.0.0.1' || address === '::1') {
+    return true;
+  }
   if (address.startsWith('::ffff:')) {
     return isLoopbackAddress(address.slice('::ffff:'.length));
   }

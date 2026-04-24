@@ -3,9 +3,7 @@ export const target = (
     ? window
     : typeof globalThis !== 'undefined'
       ? globalThis
-      : // eslint-disable-next-line no-restricted-globals
-        typeof global !== 'undefined'
-        ? // eslint-disable-next-line no-restricted-globals
-          global
+      : typeof global !== 'undefined'
+        ? global
         : {}
 ) as typeof globalThis;

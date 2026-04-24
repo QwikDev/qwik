@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { groupCsrBySsr } from './transformPerformanceData';
-import type { QwikPerfStoreRemembered } from '@devtools/kit';
+import type { QwikPerfStoreRemembered } from '@qwik.dev/devtools/kit';
 
 describe('groupCsrBySsr', () => {
   it('groups CSR by SSR via `_component_` prefix (hook/event style + component instance style)', () => {

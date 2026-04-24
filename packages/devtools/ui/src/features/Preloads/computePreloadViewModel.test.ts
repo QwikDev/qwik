@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { QwikPreloadStoreRemembered } from '@devtools/kit';
+import type { QwikPreloadStoreRemembered } from '@qwik.dev/devtools/kit';
 import {
   computePreloadViewModel,
   createDefaultPreloadFilters,
@@ -48,8 +48,8 @@ function makeStore(): QwikPreloadStoreRemembered {
       },
       {
         id: 3,
-        href: 'http://localhost/@devtools/ui/devtools.js',
-        normalizedHref: 'http://localhost/@devtools/ui/devtools.js',
+        href: 'http://localhost/@qwik.dev/devtools/ui/devtools.js',
+        normalizedHref: 'http://localhost/@qwik.dev/devtools/ui/devtools.js',
         rel: 'modulepreload',
         as: 'script',
         resourceType: 'script',
@@ -97,10 +97,7 @@ function makeStore(): QwikPreloadStoreRemembered {
 
 describe('computePreloadViewModel', () => {
   test('defaults to current project only and keeps source counts for the hidden rows', () => {
-    const vm = computePreloadViewModel(
-      makeStore(),
-      createDefaultPreloadFilters(),
-    );
+    const vm = computePreloadViewModel(makeStore(), createDefaultPreloadFilters());
 
     expect(vm.overview).toMatchObject({
       total: 1,
@@ -147,9 +144,7 @@ describe('computePreloadViewModel', () => {
     expect(vm.overview.total).toBe(4);
     expect(vm.rows.map((row) => row.id)).toEqual([4, 1, 3, 2]);
     expect(vm.rows.find((row) => row.id === 4)?.phase).toBe('ssr');
-    expect(vm.rows.find((row) => row.id === 1)?.loadMatchQuality).toBe(
-      'best-effort',
-    );
+    expect(vm.rows.find((row) => row.id === 1)?.loadMatchQuality).toBe('best-effort');
   });
 
   test('filters rows for correlated and unmatched items', () => {
@@ -168,11 +163,7 @@ describe('computePreloadViewModel', () => {
       },
     });
 
-    expect(
-      filterPreloadRows(vm.rows, 'qrl-correlated').map((row) => row.id),
-    ).toEqual([1]);
-    expect(
-      filterPreloadRows(vm.rows, 'unmatched').map((row) => row.id),
-    ).toEqual([4, 3, 2]);
+    expect(filterPreloadRows(vm.rows, 'qrl-correlated').map((row) => row.id)).toEqual([1]);
+    expect(filterPreloadRows(vm.rows, 'unmatched').map((row) => row.id)).toEqual([4, 3, 2]);
   });
 });

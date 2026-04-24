@@ -2,7 +2,6 @@ import {
   $,
   Resource,
   component$,
-  useComputed$,
   useResource$,
   useSignal,
   useStyles$,
@@ -10,50 +9,32 @@ import {
 } from '@qwik.dev/core';
 import { Tree } from '../../components/Tree/Tree';
 import type { TreeNode } from '../../components/Tree/type';
-import { vnode_toObject } from '../../components/Tree/filterVnode';
-import { htmlContainer } from '../../utils/location';
-import { ISDEVTOOL } from '../../components/Tree/type';
-import { removeNodeFromTree } from '../../components/Tree/vnode';
-import { isListen } from '../../utils/type';
 import debug from 'debug';
-import { getHookStore, QrlUtils, type HookType } from './formatTreeData';
-import type {
-  CodeModule,
-  HookFilterItem,
-  ParsedHookEntry,
-  QRLInternal,
-} from './types';
-import { unwrapStore } from '@qwik.dev/core/internal';
-import {
-  getViteClientRpc,
-  ParsedStructure,
-  QPROPS,
-  QRENDERFN,
-  QSEQ,
-} from '@devtools/kit';
+import type { CodeModule, HookFilterItem, HookType } from './types';
+import { getViteClientRpc } from '@qwik.dev/devtools/kit';
 import { getHighlighter } from '../../utils/shiki';
-import { getQwikState, returnQrlData } from './data';
 import { HighlightedCodeList } from './components/HighlightedCodeList';
 import { HookFiltersCard } from './components/HookFiltersCard';
-import {
-  RenderTreeTabs,
-  type RenderTreeTabId,
-} from './components/RenderTreeTabs';
+import { RenderTreeTabs, type RenderTreeTabId } from './components/RenderTreeTabs';
 import { StateTreeNodeLabel } from './components/StateTreeNodeLabel';
-import { filterHookTree } from './utils/filterHookTree';
 import { getCodeLanguage } from './utils/getCodeLanguage';
+import { getPageDataSource, type ComponentDetailEntry } from '../../devtools/page-data-source';
+import { buildDetailTree, toTreeNodes, treeIdFingerprint } from '../HookTree/hookTreeHelpers';
 
 const log = debug('qwik:devtools:renderTree');
 
-function buildVisibleHookTree(
-  hookStore: ReturnType<typeof getHookStore>,
-  hookFilters: HookFilterItem[],
-) {
-  return filterHookTree(hookStore.buildTree(), hookFilters);
+const LOAD_RETRY_DELAY_MS = 300;
+
+function applyHookFilters(tree: TreeNode[], filters: HookFilterItem[]) {
+  if (filters.length === 0) {
+    return tree;
+  }
+  return tree.filter((node) =>
+    filters.some((filter) => filter.key === (node.label || node.name) && filter.display)
+  );
 }
 
 export const RenderTree = component$(() => {
-  const hookStore = useSignal(getHookStore());
   useStyles$(`
     pre.shiki {
       overflow: auto;
@@ -62,19 +43,12 @@ export const RenderTree = component$(() => {
   `);
   const codes = useSignal<CodeModule[]>([]);
   const data = useSignal<TreeNode[]>([]);
+  const lastTreeIds = useSignal('');
 
   const stateTree = useSignal<TreeNode[]>([]);
-  const hookFilters = useSignal<{ key: HookType; display: boolean }[]>([]);
+  const fullStateTree = useSignal<TreeNode[]>([]);
+  const hookFilters = useSignal<HookFilterItem[]>([]);
   const hooksOpen = useSignal(true);
-
-  const qwikContainer = useComputed$(() => {
-    try {
-      return htmlContainer();
-    } catch (error) {
-      log('get html container failed: %O', error);
-      return null;
-    }
-  });
 
   const highlightedCodesResource = useResource$(async ({ track }) => {
     track(() => codes.value);
@@ -92,55 +66,84 @@ export const RenderTree = component$(() => {
     });
   });
 
-  useVisibleTask$(() => {
-    data.value = removeNodeFromTree(
-      vnode_toObject(qwikContainer.value!.rootVNode)!,
-      (node) => {
-        return node.name === ISDEVTOOL;
-      },
-    );
+  useVisibleTask$(({ cleanup }) => {
+    const source = getPageDataSource();
+
+    const syncTree = (tree: Awaited<ReturnType<typeof source.readVNodeTree>>) => {
+      if (!tree || tree.length === 0) {
+        return false;
+      }
+      const fp = treeIdFingerprint(tree);
+      if (fp !== lastTreeIds.value) {
+        lastTreeIds.value = fp;
+        data.value = toTreeNodes(tree);
+      }
+      return true;
+    };
+
+    const loadInitial = async (retries = 3) => {
+      const tree = await source.readVNodeTree();
+      if (!syncTree(tree) && retries > 0) {
+        window.setTimeout(() => loadInitial(retries - 1), LOAD_RETRY_DELAY_MS);
+      }
+    };
+
+    loadInitial();
+
+    const unsub = source.subscribeTreeUpdates((tree) => {
+      syncTree(tree);
+    });
+
+    cleanup(() => {
+      unsub?.();
+    });
   });
 
   const onNodeClick = $(async (node: TreeNode) => {
     log(' current node clicked: %O', node);
-    const rpc = getViteClientRpc();
-    let parsed: ParsedStructure[] = [];
+    const source = getPageDataSource();
+    const name = node.name || node.label || '';
+    const props = node.props as Record<string, unknown> | undefined;
+    const qrlChunk = props?.__qrlChunk as string | undefined;
+    const qrlPath = props?.__qrlPath as string | undefined;
 
-    // reset previous collected hook data before new node aggregation
-    hookStore.value.clear();
-
-    if (node.props?.[QRENDERFN]) {
-      hookStore.value.add('render', {
-        data: { render: node.props[QRENDERFN] },
-      });
-      const qrl = QrlUtils.getChunkName(node.props[QRENDERFN] as QRLInternal);
-      parsed = getQwikState(qrl);
+    if (!name) {
+      codes.value = [];
+      fullStateTree.value = [];
+      stateTree.value = [];
+      hookFilters.value = [];
+      return;
     }
 
-    if (Array.isArray(node.props?.[QSEQ]) && parsed.length > 0) {
-      const normalizedData = [...parsed, ...returnQrlData(node.props?.[QSEQ])];
-      normalizedData.forEach((item) => {
-        hookStore.value.add(item.hookType as HookType, item as ParsedHookEntry);
+    const [detail, vnodeProps] = await Promise.all([
+      source.readComponentDetail(name, qrlChunk),
+      source.readNodeProps(node.id),
+    ]);
+
+    const entries: ComponentDetailEntry[] = detail ? [...detail] : [];
+    if (vnodeProps && Object.keys(vnodeProps).length > 0) {
+      entries.push({
+        hookType: 'props',
+        variableName: 'props',
+        data: vnodeProps,
       });
     }
 
-    if (node.props?.[QPROPS]) {
-      const props = unwrapStore(node.props[QPROPS]);
-      Object.entries(props).forEach(([key, value]) => {
-        hookStore.value.add(isListen(key) ? 'listens' : 'props', {
-          data: { [key]: value },
-        });
-      });
-    }
+    const full = buildDetailTree(entries);
+    fullStateTree.value = full;
+    hookFilters.value = full.map((item) => ({
+      key: (item.label || item.name || '') as HookType,
+      display: true,
+    }));
+    stateTree.value = full;
 
     codes.value = [];
-
-    const res =
-      (await rpc?.getModulesByPathIds(hookStore.value.findAllQrlPaths())) ?? [];
-    log('getModulesByPathIds return: %O', res);
-    codes.value = res.filter((item: CodeModule) => item.modules);
-    stateTree.value = hookStore.value.buildTree();
-    hookFilters.value = hookStore.value.getFilterList();
+    if (qrlPath) {
+      const rpc = getViteClientRpc();
+      const res = (await rpc?.getModulesByPathIds([qrlPath])) ?? [];
+      log('getModulesByPathIds return: %O', res);
+      codes.value = res.filter((item: CodeModule) => item.modules);
+    }
   });
 
   const currentTab = useSignal<RenderTreeTabId>('state');
@@ -153,8 +156,8 @@ export const RenderTree = component$(() => {
     currentTab.value = 'code';
   });
 
-  const applyHookFilters = $(() => {
-    stateTree.value = buildVisibleHookTree(hookStore.value, hookFilters.value);
+  const refreshFilteredStateTree = $(() => {
+    stateTree.value = applyHookFilters(fullStateTree.value, hookFilters.value);
   });
 
   const handleSelectAll = $(() => {
@@ -162,7 +165,7 @@ export const RenderTree = component$(() => {
       ...item,
       display: true,
     }));
-    applyHookFilters();
+    refreshFilteredStateTree();
   });
 
   const handleClear = $(() => {
@@ -170,23 +173,20 @@ export const RenderTree = component$(() => {
       ...item,
       display: false,
     }));
-    applyHookFilters();
+    refreshFilteredStateTree();
   });
 
   const handleFilterChange = $((index: number, checked: boolean) => {
     hookFilters.value = hookFilters.value.map((item, itemIndex) =>
-      itemIndex === index ? { ...item, display: checked } : item,
+      itemIndex === index ? { ...item, display: checked } : item
     );
-    applyHookFilters();
+    refreshFilteredStateTree();
   });
 
   return (
     <div class="border-glass-border bg-card-item-bg h-full w-full flex-1 overflow-hidden rounded-2xl border">
       <div class="flex h-full w-full">
-        <div
-          class="custom-scrollbar w-1/2 overflow-hidden p-3"
-          style={{ minWidth: '360px' }}
-        >
+        <div class="custom-scrollbar w-1/2 overflow-hidden p-3" style={{ minWidth: '360px' }}>
           <Tree data={data} onNodeClick={onNodeClick}></Tree>
         </div>
         <div class="border-glass-border border-l"></div>
@@ -227,15 +227,10 @@ export const RenderTree = component$(() => {
               <Resource
                 value={highlightedCodesResource}
                 onPending={() => (
-                  <div class="text-muted-foreground p-2 text-sm">
-                    Loading code highlights…
-                  </div>
+                  <div class="text-muted-foreground p-2 text-sm">Loading code highlights…</div>
                 )}
                 onResolved={(highlighted) => (
-                  <HighlightedCodeList
-                    codes={codes.value}
-                    highlighted={highlighted}
-                  />
+                  <HighlightedCodeList codes={codes.value} highlighted={highlighted} />
                 )}
               />
             </div>

@@ -12,23 +12,13 @@ interface HookFiltersCardProps {
 }
 
 export const HookFiltersCard = component$<HookFiltersCardProps>(
-  ({
-    filters,
-    isOpen,
-    onSelectAll$,
-    onClear$,
-    onToggleOpen$,
-    onFilterChange$,
-  }) => {
+  ({ filters, isOpen, onSelectAll$, onClear$, onToggleOpen$, onFilterChange$ }) => {
     return (
       <div class="border-glass-border bg-card-item-bg rounded-xl border">
         <div class="border-glass-border flex items-center justify-between border-b px-2 py-2">
           <span class="text-muted-foreground text-xs font-medium">Hooks</span>
           <div class="flex items-center space-x-2">
-            <button
-              class="text-primary px-2 py-1 text-xs hover:underline"
-              onClick$={onSelectAll$}
-            >
+            <button class="text-primary px-2 py-1 text-xs hover:underline" onClick$={onSelectAll$}>
               Select all
             </button>
             <button
@@ -60,10 +50,7 @@ export const HookFiltersCard = component$<HookFiltersCardProps>(
           }}
         >
           {filters.map((item, index) => (
-            <label
-              key={item.key}
-              class="flex min-w-0 cursor-pointer items-center gap-2"
-            >
+            <label key={item.key} class="flex min-w-0 cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={item.display}
@@ -82,5 +69,5 @@ export const HookFiltersCard = component$<HookFiltersCardProps>(
         </div>
       </div>
     );
-  },
+  }
 );

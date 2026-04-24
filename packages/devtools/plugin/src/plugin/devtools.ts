@@ -1,6 +1,6 @@
 import { ResolvedConfig, type Plugin } from 'vite';
 import { getServerFunctions } from '../rpc';
-import { createServerRpc, setViteServerContext } from '@devtools/kit';
+import { createServerRpc, setViteServerContext } from '@qwik.dev/devtools/kit';
 import { startPreloading } from '../npm/index';
 import updateConf from '../utils/updateConf';
 import createDebug from 'debug';

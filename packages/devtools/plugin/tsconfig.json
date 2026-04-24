@@ -9,10 +9,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "types": ["vite/client"],
-    "paths": {
-      "@devtools/kit": ["../../packages/devtools-kit"]
-    }
+    "types": ["vite/client"]
   },
   "include": ["src"]
 }

@@ -13,9 +13,7 @@ import type { VNodeTreeNode } from '../../devtools/page-data-source';
 
 describe('toTreeNodes', () => {
   it('converts flat VNodeTreeNode array to TreeNode array', () => {
-    const input: VNodeTreeNode[] = [
-      { id: 'q-1', name: 'Root', props: { 'q:id': '1' } },
-    ];
+    const input: VNodeTreeNode[] = [{ id: 'q-1', name: 'Root', props: { 'q:id': '1' } }];
     const result = toTreeNodes(input);
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe('q-1');
@@ -145,8 +143,7 @@ describe('getElementType', () => {
   it('detects number', () => expect(getElementType(42)).toBe('number'));
   it('detects string', () => expect(getElementType('hello')).toBe('string'));
   it('detects object', () => expect(getElementType({})).toBe('object'));
-  it('detects function', () =>
-    expect(getElementType(() => {})).toBe('function'));
+  it('detects function', () => expect(getElementType(() => {})).toBe('function'));
 });
 
 describe('valueToTree', () => {
@@ -181,11 +178,7 @@ describe('valueToTree', () => {
   });
 
   it('handles function marker', () => {
-    const node = valueToTree(
-      'onClick',
-      { __type: 'function', __name: 'handler' },
-      0,
-    );
+    const node = valueToTree('onClick', { __type: 'function', __name: 'handler' }, 0);
     expect(node?.label).toContain('handler');
   });
 

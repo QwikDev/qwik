@@ -5,7 +5,7 @@
 
 import type { ComponentBodyRange } from './componentBodies';
 import { readIndent } from './helpers';
-import { INNER_USE_HOOK } from '@devtools/kit';
+import { INNER_USE_HOOK } from '@qwik.dev/devtools/kit';
 import type { InjectOptions, InsertTask } from './types';
 import { applySourceEdits } from './sourceEdits';
 

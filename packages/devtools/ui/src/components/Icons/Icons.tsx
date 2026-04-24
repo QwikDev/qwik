@@ -78,11 +78,7 @@ export const IconBoltOutline = component$((props: IconProps) => {
   return (
     <svg {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })}>
       {props.title ? <title>{props.title}</title> : null}
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        d="M13 2 3 14h7l-1 8 12-14h-7l1-6Z"
-      />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M13 2 3 14h7l-1 8 12-14h-7l1-6Z" />
     </svg>
   );
 });
@@ -166,16 +162,8 @@ export const IconMegaphoneMini = component$((props: IconProps) => {
         stroke-linejoin="round"
         d="M3 11.25v1.5a3 3 0 0 0 3 3h1.5l5.25 3V6.75L7.5 9.75H6a3 3 0 0 0-3 1.5Z"
       />
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        d="M18 9.75a3.75 3.75 0 0 1 0 4.5"
-      />
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        d="M20.25 8.25a6.75 6.75 0 0 1 0 7.5"
-      />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M18 9.75a3.75 3.75 0 0 1 0 4.5" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.25a6.75 6.75 0 0 1 0 7.5" />
     </svg>
   );
 });
@@ -217,11 +205,7 @@ export const IconChartBarOutline = component$((props: IconProps) => {
         d="M7.5 17.25v-7.5m4.5 7.5v-10.5m4.5 10.5v-4.5"
       />
       <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 20.25h15" />
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        d="M3.75 3.75h16.5v16.5H3.75z"
-      />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75h16.5v16.5H3.75z" />
     </svg>
   );
 });
@@ -248,11 +232,7 @@ export const IconXMark = component$((props: IconProps) => {
   return (
     <svg {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })}>
       {props.title ? <title>{props.title}</title> : null}
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        d="M6 18 18 6M6 6l12 12"
-      />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
     </svg>
   );
 });
@@ -311,35 +291,33 @@ export const IconTarget = component$((props: IconProps) => {
   );
 });
 
-export const IconExpandShrink = component$<IconProps & { expanded?: boolean }>(
-  (props) => {
-    return (
-      <svg
-        {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })}
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        {props.title ? <title>{props.title}</title> : null}
-        {props.expanded ? (
-          <>
-            <polyline points="4 14 10 14 10 20" />
-            <polyline points="20 10 14 10 14 4" />
-            <line x1="14" y1="10" x2="21" y2="3" />
-            <line x1="3" y1="21" x2="10" y2="14" />
-          </>
-        ) : (
-          <>
-            <polyline points="15 3 21 3 21 9" />
-            <polyline points="9 21 3 21 3 15" />
-            <line x1="21" y1="3" x2="14" y2="10" />
-            <line x1="3" y1="21" x2="10" y2="14" />
-          </>
-        )}
-      </svg>
-    );
-  },
-);
+export const IconExpandShrink = component$<IconProps & { expanded?: boolean }>((props) => {
+  return (
+    <svg
+      {...baseSvgProps({ ...props, viewBox: '0 0 24 24' })}
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      {props.title ? <title>{props.title}</title> : null}
+      {props.expanded ? (
+        <>
+          <polyline points="4 14 10 14 10 20" />
+          <polyline points="20 10 14 10 14 4" />
+          <line x1="14" y1="10" x2="21" y2="3" />
+          <line x1="3" y1="21" x2="10" y2="14" />
+        </>
+      ) : (
+        <>
+          <polyline points="15 3 21 3 21 9" />
+          <polyline points="9 21 3 21 3 15" />
+          <line x1="21" y1="3" x2="14" y2="10" />
+          <line x1="3" y1="21" x2="10" y2="14" />
+        </>
+      )}
+    </svg>
+  );
+});
 
 export const IconMonitor = component$((props: IconProps) => {
   return (

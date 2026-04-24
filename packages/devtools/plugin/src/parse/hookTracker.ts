@@ -18,7 +18,7 @@ import {
   trimStatementSemicolon,
   isCustomHook,
 } from './helpers';
-import { INNER_USE_HOOK } from '@devtools/kit';
+import { INNER_USE_HOOK } from '@qwik.dev/devtools/kit';
 import type { InjectionTask } from './types';
 import { applySourceEdits } from './sourceEdits';
 
@@ -35,12 +35,16 @@ export function injectHookTrackers(code: string): string {
   traverseProgram(program, {
     enter: (path) => {
       const node: any = path.node;
-      if (!node) return;
+      if (!node) {
+        return;
+      }
 
       // Handle variable declarations: const x = useSignal()
       if (node.type === 'VariableDeclarator') {
         const task = processVariableDeclarator(code, node, path);
-        if (task) tasks.push(task);
+        if (task) {
+          tasks.push(task);
+        }
       }
 
       // Handle expression statements: useTask$(() => {})
@@ -68,19 +72,27 @@ function processVariableDeclarator(
   path: { parent: any }
 ): InjectionTask | null {
   const hookInfo = extractHookInfo(node);
-  if (!hookInfo) return null;
+  if (!hookInfo) {
+    return null;
+  }
 
   const { hookName, normalizedName, variableId } = hookInfo;
-  if (hookName === INNER_USE_HOOK) return null;
+  if (hookName === INNER_USE_HOOK) {
+    return null;
+  }
 
   const range = getParentRange(path.parent);
-  if (!range) return null;
+  if (!range) {
+    return null;
+  }
 
   const { declEnd, indent } = getPositionInfo(code, range);
 
   // Custom hook
   if (isCustomHook(normalizedName)) {
-    if (hasCollecthookAfterByVariableId(code, declEnd, variableId)) return null;
+    if (hasCollecthookAfterByVariableId(code, declEnd, variableId)) {
+      return null;
+    }
     const payload = buildCollecthookPayload(
       indent,
       variableId,
@@ -92,8 +104,12 @@ function processVariableDeclarator(
   }
 
   // Known hook
-  if (!isKnownHook(normalizedName)) return null;
-  if (hasCollecthookAfterByVariableId(code, declEnd, variableId)) return null;
+  if (!isKnownHook(normalizedName)) {
+    return null;
+  }
+  if (hasCollecthookAfterByVariableId(code, declEnd, variableId)) {
+    return null;
+  }
 
   const payload = buildCollecthookPayload(
     indent,
@@ -116,13 +132,19 @@ function processExpressionStatement(
   currentIndex: number
 ): { task: InjectionTask; newIndex: number } | null {
   const hookInfo = extractExpressionHookInfo(node);
-  if (!hookInfo) return null;
+  if (!hookInfo) {
+    return null;
+  }
 
   const { hookName, normalizedName } = hookInfo;
-  if (hookName === INNER_USE_HOOK) return null;
+  if (hookName === INNER_USE_HOOK) {
+    return null;
+  }
 
   const stmtRange = node.range as number[] | undefined;
-  if (!stmtRange) return null;
+  if (!stmtRange) {
+    return null;
+  }
 
   const [stmtStart, stmtEnd] = stmtRange;
   const lineStart = findLineStart(code, stmtStart);
@@ -130,7 +152,9 @@ function processExpressionStatement(
 
   // Known hook (expression form)
   if (isKnownHook(normalizedName)) {
-    if (hasCollecthookAfterByVariableName(code, stmtEnd, normalizedName)) return null;
+    if (hasCollecthookAfterByVariableName(code, stmtEnd, normalizedName)) {
+      return null;
+    }
     const payload = buildCollecthookPayload(
       indent,
       normalizedName,
@@ -194,10 +218,14 @@ interface HookInfo {
 
 function extractHookInfo(node: any): HookInfo | null {
   const variableId = getVariableIdentifierName(node.id);
-  if (!variableId) return null;
+  if (!variableId) {
+    return null;
+  }
 
   const hookCall = extractHookCall(node.init);
-  if (!hookCall) return null;
+  if (!hookCall) {
+    return null;
+  }
 
   return { ...hookCall, variableId };
 }
@@ -207,10 +235,14 @@ function extractExpressionHookInfo(node: any): { hookName: string; normalizedNam
 }
 
 function extractHookCall(node: unknown): { hookName: string; normalizedName: string } | null {
-  if (!isAstNodeLike(node) || node.type !== 'CallExpression') return null;
+  if (!isAstNodeLike(node) || node.type !== 'CallExpression') {
+    return null;
+  }
 
   const callee = (node as any).callee;
-  if (!isAstNodeLike(callee) || callee.type !== 'Identifier') return null;
+  if (!isAstNodeLike(callee) || callee.type !== 'Identifier') {
+    return null;
+  }
 
   const hookName = normalizeHookName((callee as any).name as string);
   return {
@@ -225,7 +257,9 @@ function extractHookCall(node: unknown): { hookName: string; normalizedName: str
 
 function getParentRange(parent: any): [number, number] | null {
   const range = parent?.range as number[] | undefined;
-  if (!range) return null;
+  if (!range) {
+    return null;
+  }
   return [range[0], range[1]];
 }
 

@@ -3,10 +3,11 @@ export interface Package {
   version: string;
   description: string;
   /**
-   * npm package.json `author` can be:
-   * - string: "Jane Doe <jane@example.com> (https://example.com)"
-   * - object: { name, email?, url? }
-   * - missing / partial
+   * Npm package.json `author` can be:
+   *
+   * - String: "Jane Doe [jane@example.com](mailto:jane@example.com) (https://example.com)"
+   * - Object: { name, email?, url? }
+   * - Missing / partial
    *
    * Runtime data may not match strict typings, so keep this permissive.
    */

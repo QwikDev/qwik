@@ -17,9 +17,7 @@ export const Packages = component$(({ state }: PackagesProps) => {
         <div class="flex flex-col items-center gap-3">
           <div class="flex items-center gap-2">
             <div class="border-t-foreground/40 border-border h-5 w-5 animate-spin rounded-full border-2" />
-            <span class="text-muted-foreground text-sm">
-              Loading dependencies...
-            </span>
+            <span class="text-muted-foreground text-sm">Loading dependencies...</span>
           </div>
           <div class="text-muted-foreground text-center text-xs">
             Dependencies are being preloaded in the background...
@@ -34,9 +32,7 @@ export const Packages = component$(({ state }: PackagesProps) => {
   if (!packages || packages.length === 0) {
     return (
       <div class="py-8 text-center">
-        <div class="text-muted-foreground text-sm">
-          No dependencies found in package.json
-        </div>
+        <div class="text-muted-foreground text-sm">No dependencies found in package.json</div>
       </div>
     );
   }

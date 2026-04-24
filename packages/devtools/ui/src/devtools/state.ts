@@ -1,4 +1,4 @@
-import type { AssetInfo, Component, NpmInfo, RoutesInfo } from '@devtools/kit';
+import type { AssetInfo, Component, NpmInfo, RoutesInfo } from '@qwik.dev/devtools/kit';
 import type { NoSerialize } from '@qwik.dev/core';
 
 export type DevtoolsTabId =
@@ -38,9 +38,7 @@ export interface DevtoolsState {
   isExtension: boolean;
 }
 
-export function createDevtoolsState(opts?: {
-  isExtension?: boolean;
-}): DevtoolsState {
+export function createDevtoolsState(opts?: { isExtension?: boolean }): DevtoolsState {
   return {
     isOpen: false,
     isPanelFullscreen: false,

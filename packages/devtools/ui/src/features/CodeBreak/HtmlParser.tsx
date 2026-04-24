@@ -1,10 +1,4 @@
-import {
-  $,
-  component$,
-  useSignal,
-  useVisibleTask$,
-  useStyles$,
-} from '@qwik.dev/core';
+import { $, component$, useSignal, useVisibleTask$, useStyles$ } from '@qwik.dev/core';
 import { _getDomContainer, _vnode_toString } from '@qwik.dev/core/internal';
 import { getHighlighter } from '../../utils/shiki';
 
@@ -43,7 +37,7 @@ export const HtmlParser = component$(() => {
               '',
               true,
               false,
-              false,
+              false
             );
             output += '// VNode Tree:\n' + vdomTree + '\n\n';
           } catch (vnodeErr) {
@@ -122,10 +116,7 @@ export const HtmlParser = component$(() => {
           )}
         </div>
         <div class="h-full min-h-0 flex-1">
-          <pre
-            class="h-full overflow-auto"
-            dangerouslySetInnerHTML={highlightedHtml.value || ''}
-          />
+          <pre class="h-full overflow-auto" dangerouslySetInnerHTML={highlightedHtml.value || ''} />
         </div>
       </div>
     </div>

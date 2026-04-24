@@ -23,9 +23,8 @@ export interface ExtensionMountOptions {
 /**
  * Browser extension entry point using client-side rendering only.
  *
- * Mounts the extension-specific devtools layout (no overlay chrome)
- * directly into the document. Data is loaded via the injected
- * DataProvider and PageDataSource.
+ * Mounts the extension-specific devtools layout (no overlay chrome) directly into the document.
+ * Data is loaded via the injected DataProvider and PageDataSource.
  */
 export default async function (opts: ExtensionMountOptions) {
   if (opts.dataProvider) {

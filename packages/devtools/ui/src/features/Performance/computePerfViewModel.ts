@@ -1,4 +1,4 @@
-import type { QwikPerfStoreRemembered } from '@devtools/kit';
+import type { QwikPerfStoreRemembered } from '@qwik.dev/devtools/kit';
 import {
   groupCsrBySsr,
   parseComponentAndEventName,
@@ -45,9 +45,7 @@ function getCallsFromCsr(item: PerfGroupedCsrItem): number {
   return typeof item.renderCount === 'number' ? item.renderCount : 1;
 }
 
-export function computeEventRows(
-  csrItems: PerfGroupedCsrItem[],
-): PerfEventVm[] {
+export function computeEventRows(csrItems: PerfGroupedCsrItem[]): PerfEventVm[] {
   const byEvent = new Map<string, { time: number; calls: number }>();
   for (const item of csrItems) {
     const eventName = item.eventName || 'render';
@@ -64,7 +62,7 @@ export function computeEventRows(
 function computeComponentVmFromCsr(
   componentName: string,
   csrItems: PerfGroupedCsrItem[],
-  ssr?: PerfSsrItem,
+  ssr?: PerfSsrItem
 ): PerfComponentVm {
   let totalTime = 0;
   let calls = 0;
@@ -86,9 +84,7 @@ function groupComponentsBySsr(safe: PerfPayload): PerfComponentVm[] {
   const result: PerfComponentVm[] = [];
   for (const raw of safe.ssr) {
     const ssrItem: PerfSsrItem = { ...raw, phase: 'ssr' as const };
-    const componentName = parseComponentAndEventName(
-      ssrItem.component,
-    ).componentName;
+    const componentName = parseComponentAndEventName(ssrItem.component).componentName;
     const csrItems = grouped.get(raw as PerfSsrItem) || [];
     result.push(computeComponentVmFromCsr(componentName, csrItems, ssrItem));
   }
@@ -153,9 +149,7 @@ function computeOverview(components: PerfComponentVm[]): PerfOverviewVm {
 // Public API
 // ---------------------------------------------------------------------------
 
-export function computePerfViewModel(
-  perf: PerfPayload | undefined | null,
-): PerfViewModel {
+export function computePerfViewModel(perf: PerfPayload | undefined | null): PerfViewModel {
   const safe: PerfPayload = perf || { ssr: [], csr: [] };
 
   const components = safe.ssr?.length

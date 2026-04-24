@@ -1,15 +1,9 @@
-import { getViteClientRpc } from '@devtools/kit';
+import { getViteClientRpc } from '@qwik.dev/devtools/kit';
 import { component$, Signal } from '@qwik.dev/core';
 import { Package } from '../../types';
 
 export const InstallButton = component$(
-  ({
-    pkg,
-    installingPackage,
-  }: {
-    pkg: Package;
-    installingPackage: Signal<string | null>;
-  }) => {
+  ({ pkg, installingPackage }: { pkg: Package; installingPackage: Signal<string | null> }) => {
     return (
       <button
         onClick$={async () => {
@@ -38,5 +32,5 @@ export const InstallButton = component$(
         )}
       </button>
     );
-  },
+  }
 );

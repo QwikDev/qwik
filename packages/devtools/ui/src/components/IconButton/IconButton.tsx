@@ -7,10 +7,7 @@ interface IconButtonProps {
   class?: string;
 }
 
-/**
- * Small toolbar button with icon slot and optional text.
- * Supports active/inactive visual states.
- */
+/** Small toolbar button with icon slot and optional text. Supports active/inactive visual states. */
 export const IconButton = component$<IconButtonProps>((props) => {
   return (
     <button

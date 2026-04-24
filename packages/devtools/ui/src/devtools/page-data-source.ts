@@ -4,19 +4,18 @@ import {
   type QwikPreloadStoreRemembered,
   type QwikDevtoolsComponentSnapshot,
   type QwikDevtoolsSignalsSnapshot,
-} from '@devtools/kit';
+} from '@qwik.dev/devtools/kit';
 import { isBrowser } from '@qwik.dev/core';
 
 /**
  * Abstraction for accessing page-level data from different contexts.
  *
  * - In the overlay, data lives on the same `window` (direct access).
- * - In the browser extension panel, data must be read from the inspected
- *   page via `chrome.devtools.inspectedWindow.eval()`.
+ * - In the browser extension panel, data must be read from the inspected page via
+ *   `chrome.devtools.inspectedWindow.eval()`.
  *
- * Components use {@link getPageDataSource} to obtain the active source,
- * which returns {@link InPageDataSource} by default (overlay mode).
- * The extension entry point replaces it via
+ * Components use {@link getPageDataSource} to obtain the active source, which returns
+ * {@link InPageDataSource} by default (overlay mode). The extension entry point replaces it via
  * `window.__QWIK_DEVTOOLS_PAGE_DATA_SOURCE__`.
  */
 export interface PageDataSource {
@@ -30,9 +29,8 @@ export interface PageDataSource {
   clearPreloadStore(): Promise<void>;
 
   /**
-   * Subscribe to preload store updates.
-   * Returns an unsubscribe function, or `null` if live subscriptions
-   * are not supported (e.g. extension mode uses polling instead).
+   * Subscribe to preload store updates. Returns an unsubscribe function, or `null` if live
+   * subscriptions are not supported (e.g. extension mode uses polling instead).
    */
   subscribePreloadUpdates(cb: () => void): (() => void) | null;
 
@@ -46,17 +44,15 @@ export interface PageDataSource {
   readVNodeTree(): Promise<VNodeTreeNode[] | null>;
 
   /**
-   * Subscribe to real-time VNode tree updates pushed by the page.
-   * Returns an unsubscribe function, or `null` if not supported.
+   * Subscribe to real-time VNode tree updates pushed by the page. Returns an unsubscribe function,
+   * or `null` if not supported.
    */
-  subscribeTreeUpdates(
-    cb: (tree: VNodeTreeNode[]) => void,
-  ): (() => void) | null;
+  subscribeTreeUpdates(cb: (tree: VNodeTreeNode[]) => void): (() => void) | null;
 
   /** Read detailed hook data for a specific component (deeply serialized). */
   readComponentDetail(
     componentName: string,
-    qrlChunk?: string,
+    qrlChunk?: string
   ): Promise<ComponentDetailEntry[] | null>;
 
   /** Read VNode props for a specific tree node by ID. */
@@ -67,7 +63,7 @@ export interface PageDataSource {
     componentName: string,
     qrlChunk: string | undefined,
     variableName: string,
-    newValue: unknown,
+    newValue: unknown
   ): Promise<boolean>;
 
   /** Highlight a component's DOM element on the page using its VNode tree node ID. */
@@ -99,16 +95,8 @@ export interface ComponentDetailEntry {
 interface QwikDevtoolsHookExtended {
   getVNodeTree?(): VNodeTreeNode[] | null;
   getNodeProps?(nodeId: string): Record<string, unknown> | null;
-  getComponentDetail?(
-    name: string,
-    chunk?: string,
-  ): ComponentDetailEntry[] | null;
-  setSignalValue?(
-    name: string,
-    chunk: string | undefined,
-    varName: string,
-    val: unknown,
-  ): boolean;
+  getComponentDetail?(name: string, chunk?: string): ComponentDetailEntry[] | null;
+  setSignalValue?(name: string, chunk: string | undefined, varName: string, val: unknown): boolean;
 }
 
 /** Serializable VNode tree node (matches overlay's TreeNode shape). */
@@ -121,8 +109,8 @@ export interface VNodeTreeNode {
 }
 
 /**
- * Default implementation that reads directly from `window` globals.
- * Used when the devtools UI runs as an in-app overlay (same document).
+ * Default implementation that reads directly from `window` globals. Used when the devtools UI runs
+ * as an in-app overlay (same document).
  */
 class InPageDataSource implements PageDataSource {
   async readPerfData(): Promise<QwikPerfStoreRemembered | null> {
@@ -172,15 +160,11 @@ class InPageDataSource implements PageDataSource {
     if (!isBrowser) {
       return null;
     }
-    const hook = window.__QWIK_DEVTOOLS_HOOK__ as
-      | QwikDevtoolsHookExtended
-      | undefined;
+    const hook = window.__QWIK_DEVTOOLS_HOOK__ as QwikDevtoolsHookExtended | undefined;
     return hook?.getVNodeTree?.() ?? null;
   }
 
-  subscribeTreeUpdates(
-    cb: (tree: VNodeTreeNode[]) => void,
-  ): (() => void) | null {
+  subscribeTreeUpdates(cb: (tree: VNodeTreeNode[]) => void): (() => void) | null {
     if (!isBrowser) {
       return null;
     }
@@ -201,22 +185,18 @@ class InPageDataSource implements PageDataSource {
     if (!isBrowser) {
       return null;
     }
-    const hook = window.__QWIK_DEVTOOLS_HOOK__ as
-      | QwikDevtoolsHookExtended
-      | undefined;
+    const hook = window.__QWIK_DEVTOOLS_HOOK__ as QwikDevtoolsHookExtended | undefined;
     return hook?.getNodeProps?.(nodeId) ?? null;
   }
 
   async readComponentDetail(
     componentName: string,
-    qrlChunk?: string,
+    qrlChunk?: string
   ): Promise<ComponentDetailEntry[] | null> {
     if (!isBrowser) {
       return null;
     }
-    const hook = window.__QWIK_DEVTOOLS_HOOK__ as
-      | QwikDevtoolsHookExtended
-      | undefined;
+    const hook = window.__QWIK_DEVTOOLS_HOOK__ as QwikDevtoolsHookExtended | undefined;
     return hook?.getComponentDetail?.(componentName, qrlChunk) ?? null;
   }
 
@@ -224,18 +204,13 @@ class InPageDataSource implements PageDataSource {
     componentName: string,
     qrlChunk: string | undefined,
     variableName: string,
-    newValue: unknown,
+    newValue: unknown
   ): Promise<boolean> {
     if (!isBrowser) {
       return false;
     }
-    const hook = window.__QWIK_DEVTOOLS_HOOK__ as
-      | QwikDevtoolsHookExtended
-      | undefined;
-    return (
-      hook?.setSignalValue?.(componentName, qrlChunk, variableName, newValue) ??
-      false
-    );
+    const hook = window.__QWIK_DEVTOOLS_HOOK__ as QwikDevtoolsHookExtended | undefined;
+    return hook?.setSignalValue?.(componentName, qrlChunk, variableName, newValue) ?? false;
   }
 
   // No-ops in overlay mode (highlight is handled by the extension's eval)
@@ -247,11 +222,7 @@ class InPageDataSource implements PageDataSource {
       return null;
     }
     const handler = (e: MessageEvent) => {
-      if (
-        e.data?.source === 'qwik-devtools' &&
-        e.data?.type === 'RENDER_EVENT' &&
-        e.data?.event
-      ) {
+      if (e.data?.source === 'qwik-devtools' && e.data?.type === 'RENDER_EVENT' && e.data?.event) {
         cb(e.data.event);
       }
     };
@@ -265,9 +236,8 @@ const defaultSource = new InPageDataSource();
 /**
  * Return the active page data source.
  *
- * When `window.__QWIK_DEVTOOLS_PAGE_DATA_SOURCE__` is set (by the
- * browser extension entry point), that source is used. Otherwise the
- * default in-page source is returned.
+ * When `window.__QWIK_DEVTOOLS_PAGE_DATA_SOURCE__` is set (by the browser extension entry point),
+ * that source is used. Otherwise the default in-page source is returned.
  */
 export function getPageDataSource(): PageDataSource {
   if (isBrowser && window.__QWIK_DEVTOOLS_PAGE_DATA_SOURCE__) {
@@ -279,8 +249,8 @@ export function getPageDataSource(): PageDataSource {
 declare global {
   interface Window {
     /**
-     * When set before the UI mounts, components will use this source
-     * to read page data instead of direct `window` access.
+     * When set before the UI mounts, components will use this source to read page data instead of
+     * direct `window` access.
      */
     __QWIK_DEVTOOLS_PAGE_DATA_SOURCE__?: PageDataSource;
   }

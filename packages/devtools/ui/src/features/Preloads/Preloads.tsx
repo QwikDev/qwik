@@ -1,12 +1,5 @@
-import { type QwikPreloadStoreRemembered } from '@devtools/kit';
-import {
-  $,
-  component$,
-  useComputed$,
-  useSignal,
-  useStore,
-  useVisibleTask$,
-} from '@qwik.dev/core';
+import { type QwikPreloadStoreRemembered } from '@qwik.dev/devtools/kit';
+import { $, component$, useComputed$, useSignal, useStore, useVisibleTask$ } from '@qwik.dev/core';
 import { StatCard } from '../Performance/components/StatCard';
 import { formatMs } from '../Performance/utils/formatMs';
 import {
@@ -81,9 +74,7 @@ export const Preloads = component$(() => {
     });
   });
 
-  const rows = useComputed$(() =>
-    filterPreloadRows(vm.value.rows, activeFilter.value),
-  );
+  const rows = useComputed$(() => filterPreloadRows(vm.value.rows, activeFilter.value));
   const runtimeState = useComputed$(() => {
     version.value;
     return {
@@ -133,12 +124,7 @@ export const Preloads = component$(() => {
           />
           <StatCard
             label="Missed Preloads"
-            value={String(
-              Math.max(
-                0,
-                vm.value.overview.total - vm.value.overview.correlated,
-              ),
-            )}
+            value={String(Math.max(0, vm.value.overview.total - vm.value.overview.correlated))}
             subtitle="QRLs that were used first"
           />
         </div>
@@ -147,9 +133,8 @@ export const Preloads = component$(() => {
           <div class="border-glass-border flex flex-wrap items-start justify-between gap-4 border-b p-4">
             <div class="flex flex-col gap-3">
               <div class="text-muted-foreground text-[11px]">
-                Runtime:{' '}
-                {runtimeState.value.initialized ? 'active' : 'inactive'} • QRL
-                requests: {runtimeState.value.qrlRequests}
+                Runtime: {runtimeState.value.initialized ? 'active' : 'inactive'} • QRL requests:{' '}
+                {runtimeState.value.qrlRequests}
               </div>
               <div class="flex flex-wrap gap-2">
                 {FILTERS.map((filter) => (
@@ -175,12 +160,7 @@ export const Preloads = component$(() => {
                   Sources
                 </div>
                 <label class="border-border text-muted-foreground flex cursor-default items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium opacity-90">
-                  <input
-                    type="checkbox"
-                    checked
-                    disabled
-                    class="h-3.5 w-3.5 rounded"
-                  />
+                  <input type="checkbox" checked disabled class="h-3.5 w-3.5 rounded" />
                   Current Project ({vm.value.sourceCounts['current-project']})
                 </label>
                 <label class="border-border flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium">
@@ -193,7 +173,7 @@ export const Preloads = component$(() => {
                   />
                   {makeLabelCount(
                     'Vite Plugin Injected',
-                    vm.value.sourceCounts['vite-plugin-injected'],
+                    vm.value.sourceCounts['vite-plugin-injected']
                   )}
                 </label>
                 <label class="border-border flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium">
@@ -204,10 +184,7 @@ export const Preloads = component$(() => {
                     style={{ accentColor: 'var(--color-primary-active)' }}
                     onChange$={() => toggleSourceFilter('nodeModules')}
                   />
-                  {makeLabelCount(
-                    'Node Modules',
-                    vm.value.sourceCounts.node_modules,
-                  )}
+                  {makeLabelCount('Node Modules', vm.value.sourceCounts.node_modules)}
                 </label>
                 <label class="border-border flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium">
                   <input
@@ -217,10 +194,7 @@ export const Preloads = component$(() => {
                     style={{ accentColor: 'var(--color-primary-active)' }}
                     onChange$={() => toggleSourceFilter('virtualModule')}
                   />
-                  {makeLabelCount(
-                    'Virtual Module',
-                    vm.value.sourceCounts['virtual-module'],
-                  )}
+                  {makeLabelCount('Virtual Module', vm.value.sourceCounts['virtual-module'])}
                 </label>
                 <label class="border-border flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium">
                   <input
@@ -306,15 +280,10 @@ export const Preloads = component$(() => {
               <tbody>
                 {rows.value.length ? (
                   rows.value.map((row) => (
-                    <tr
-                      key={row.id}
-                      class="border-glass-border border-t align-top"
-                    >
+                    <tr key={row.id} class="border-glass-border border-t align-top">
                       <td class="px-4 py-3">
                         <div class="font-medium break-all">{row.shortHref}</div>
-                        <div class="text-muted-foreground mt-1 text-xs break-all">
-                          {row.href}
-                        </div>
+                        <div class="text-muted-foreground mt-1 text-xs break-all">{row.href}</div>
                         {row.qrlSymbol ? (
                           <div class="text-muted-foreground mt-1 text-xs">
                             Symbol: {row.qrlSymbol}
@@ -331,35 +300,22 @@ export const Preloads = component$(() => {
                         </div>
                       </td>
                       <td class="px-4 py-3">
-                        <div class="font-medium tracking-wide uppercase">
-                          {row.phase}
-                        </div>
+                        <div class="font-medium tracking-wide uppercase">{row.phase}</div>
                       </td>
                       <td class="px-4 py-3">
                         <div class="font-medium">{row.status}</div>
-                        <div class="text-muted-foreground mt-1 text-xs">
-                          {row.source}
-                        </div>
+                        <div class="text-muted-foreground mt-1 text-xs">{row.source}</div>
                       </td>
-                      <td class="px-4 py-3">
-                        {formatMs(row.importDuration ?? NaN)}
-                      </td>
-                      <td class="px-4 py-3">
-                        {formatMs(row.loadDuration ?? NaN)}
-                      </td>
-                      <td class="px-4 py-3">
-                        {formatRelativeMs(row.qrlRequestedAt)}
-                      </td>
+                      <td class="px-4 py-3">{formatMs(row.importDuration ?? NaN)}</td>
+                      <td class="px-4 py-3">{formatMs(row.loadDuration ?? NaN)}</td>
+                      <td class="px-4 py-3">{formatRelativeMs(row.qrlRequestedAt)}</td>
                     </tr>
                   ))
                 ) : (
                   <tr class="border-glass-border border-t">
-                    <td
-                      class="text-muted-foreground px-4 py-8 text-center text-sm"
-                      colSpan={7}
-                    >
-                      No rows match the current filters. Uncheck a filter or
-                      re-enable CSR to view data.
+                    <td class="text-muted-foreground px-4 py-8 text-center text-sm" colSpan={7}>
+                      No rows match the current filters. Uncheck a filter or re-enable CSR to view
+                      data.
                     </td>
                   </tr>
                 )}

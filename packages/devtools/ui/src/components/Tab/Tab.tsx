@@ -22,9 +22,7 @@ export const Tab = component$<TabProps>(({ state, id, title }) => {
           ? 'bg-primary/15 text-primary cursor-pointer'
           : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground cursor-pointer',
       ]}
-      style={
-        isActive ? { boxShadow: 'inset 3px 0 0 0 var(--color-primary)' } : {}
-      }
+      style={isActive ? { boxShadow: 'inset 3px 0 0 0 var(--color-primary)' } : {}}
     >
       <Slot />
     </button>

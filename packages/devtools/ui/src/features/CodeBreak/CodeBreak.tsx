@@ -31,8 +31,7 @@ export const CodeBreak = component$(() => {
             class={{
               'rounded-lg px-3 py-2 text-sm font-medium transition-colors md:px-4': true,
               'bg-accent text-white shadow': currentTab.value === 'state',
-              'text-muted-foreground hover:bg-foreground/5':
-                currentTab.value !== 'state',
+              'text-muted-foreground hover:bg-foreground/5': currentTab.value !== 'state',
             }}
           >
             State Parser
@@ -42,8 +41,7 @@ export const CodeBreak = component$(() => {
             class={{
               'rounded-lg px-3 py-2 text-sm font-medium transition-colors md:px-4': true,
               'bg-accent text-white shadow': currentTab.value === 'html',
-              'text-muted-foreground hover:bg-foreground/5':
-                currentTab.value !== 'html',
+              'text-muted-foreground hover:bg-foreground/5': currentTab.value !== 'html',
             }}
           >
             HTML Parser

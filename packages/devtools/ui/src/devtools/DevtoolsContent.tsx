@@ -1,5 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import type { AssetInfo } from '@devtools/kit';
+import type { AssetInfo } from '@qwik.dev/devtools/kit';
 import { IconMonitor } from '../components/Icons/Icons';
 import { TabContent } from '../components/TabContent/TabContent';
 import { TabTitle } from '../components/TabTitle/TabTitle';
@@ -21,8 +21,7 @@ interface DevtoolsContentProps {
 }
 
 function formatAssetSummary(assets: AssetInfo[]) {
-  const totalSizeInKb =
-    assets.reduce((totalSize, asset) => totalSize + asset.size, 0) / 1024;
+  const totalSizeInKb = assets.reduce((totalSize, asset) => totalSize + asset.size, 0) / 1024;
 
   return {
     count: assets.length,
@@ -37,14 +36,11 @@ const ViteOnlyPlaceholder = component$<{ feature: string }>(({ feature }) => {
         <IconMonitor class="h-12 w-12" />
       </div>
       <div class="text-muted-foreground text-sm">
-        <span class="font-semibold">{feature}</span> is only available in the
-        in-app overlay.
+        <span class="font-semibold">{feature}</span> is only available in the in-app overlay.
       </div>
       <div class="text-muted-foreground/50 max-w-xs text-xs leading-relaxed">
         This feature requires direct access to the Vite dev server. Add{' '}
-        <code class="bg-card-item-bg text-foreground/70 rounded px-1.5 py-0.5">
-          qwikDevtools()
-        </code>{' '}
+        <code class="bg-card-item-bg text-foreground/70 rounded px-1.5 py-0.5">qwikDevtools()</code>{' '}
         to your Vite config to use it in the overlay during development.
       </div>
     </div>
@@ -124,15 +120,8 @@ export const DevtoolsContent = component$<DevtoolsContentProps>(({ state }) => {
     case 'renderTree':
       return (
         <TabContent>
-          <TabTitle
-            title={isExtensionMode ? 'Component Tree' : 'Render Tree'}
-            q:slot="title"
-          />
-          {isExtensionMode ? (
-            <HookTree q:slot="content" />
-          ) : (
-            <RenderTree q:slot="content" />
-          )}
+          <TabTitle title={isExtensionMode ? 'Component Tree' : 'Render Tree'} q:slot="title" />
+          {isExtensionMode ? <HookTree q:slot="content" /> : <RenderTree q:slot="content" />}
         </TabContent>
       );
     case 'codeBreak':

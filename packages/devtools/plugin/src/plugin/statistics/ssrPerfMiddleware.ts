@@ -28,7 +28,9 @@ export function attachSsrPerfInjectorMiddleware(server: any) {
   server.middlewares.use(
     (req: MinimalMiddlewareReq, res: MinimalMiddlewareRes, next: MiddlewareNext) => {
       const accept = normalizeAcceptHeader(req.headers.accept);
-      if (!accept.includes('text/html')) return next();
+      if (!accept.includes('text/html')) {
+        return next();
+      }
 
       const store = getStoreForSSR() as Record<string, unknown>;
       const originalWrite = res.write.bind(res);
@@ -166,10 +168,14 @@ export function extractSsrPreloadEntriesFromHtml(html: string): SsrPreloadSnapsh
   while ((linkMatch = linkRe.exec(html)) !== null) {
     const attrs = parseAttributes(linkMatch[1] || '');
     const rel = String(attrs.rel || '').toLowerCase();
-    if (!['preload', 'modulepreload', 'prefetch'].includes(rel)) continue;
+    if (!['preload', 'modulepreload', 'prefetch'].includes(rel)) {
+      continue;
+    }
 
     const href = String(attrs.href || '').trim();
-    if (!href) continue;
+    if (!href) {
+      continue;
+    }
 
     const asValue = String(attrs.as || '').trim();
     entries.push({
@@ -289,13 +295,21 @@ function parseAttributes(raw: string): Record<string, string> {
 }
 
 function inferResourceType(rel: string, asValue: string, href: string) {
-  if (asValue) return asValue;
-  if (rel === 'modulepreload') return 'script';
+  if (asValue) {
+    return asValue;
+  }
+  if (rel === 'modulepreload') {
+    return 'script';
+  }
   const cleanHref = href.split('#')[0].split('?')[0];
   const ext = cleanHref.includes('.')
     ? cleanHref.slice(cleanHref.lastIndexOf('.') + 1).toLowerCase()
     : '';
-  if (['js', 'mjs', 'cjs'].includes(ext)) return 'script';
-  if (ext === 'css') return 'style';
+  if (['js', 'mjs', 'cjs'].includes(ext)) {
+    return 'script';
+  }
+  if (ext === 'css') {
+    return 'style';
+  }
   return 'other';
 }

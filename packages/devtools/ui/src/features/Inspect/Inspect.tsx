@@ -3,9 +3,9 @@ import { inspectorLink } from './constant';
 import { setupIframeThemeSync } from './iframe-theme';
 
 /**
- * Inspect iframe must load under app root (Vite `BASE_URL` + origin), not `location.pathname`,
- * so deep routes do not produce `.../nested/route__inspect/`.
- * SSR: no `location` — return empty until the client runs.
+ * Inspect iframe must load under app root (Vite `BASE_URL` + origin), not `location.pathname`, so
+ * deep routes do not produce `.../nested/route__inspect/`. SSR: no `location` — return empty until
+ * the client runs.
  */
 function getInspectIframeSrc(): string {
   if (!isBrowser) {

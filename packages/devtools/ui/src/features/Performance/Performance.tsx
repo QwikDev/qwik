@@ -1,20 +1,10 @@
-import {
-  $,
-  component$,
-  useComputed$,
-  useSignal,
-  useTask$,
-  useVisibleTask$,
-} from '@qwik.dev/core';
-import type { QwikPerfStoreRemembered } from '@devtools/kit';
+import { $, component$, useComputed$, useSignal, useTask$, useVisibleTask$ } from '@qwik.dev/core';
+import type { QwikPerfStoreRemembered } from '@qwik.dev/devtools/kit';
 import { computePerfViewModel } from './computePerfViewModel';
 import { ComponentCard } from './components/ComponentCard';
 import { HookDetailsPanel } from './components/HookDetailsPanel';
 import { PerformanceOverview } from './components/PerformanceOverview';
-import {
-  getPageDataSource,
-  type RenderEvent,
-} from '../../devtools/page-data-source';
+import { getPageDataSource, type RenderEvent } from '../../devtools/page-data-source';
 
 const MAX_RENDER_EVENTS = 200;
 
@@ -47,9 +37,7 @@ export const Performance = component$(() => {
     }
 
     const unsub = source.subscribeRenderEvents((event) => {
-      renderEvents.value = [...renderEvents.value, event].slice(
-        -MAX_RENDER_EVENTS,
-      );
+      renderEvents.value = [...renderEvents.value, event].slice(-MAX_RENDER_EVENTS);
     });
     if (unsub) {
       cleanup(unsub);
@@ -78,8 +66,7 @@ export const Performance = component$(() => {
     renderEvents.value = [];
   });
 
-  const hasData =
-    (perf.value?.ssr?.length ?? 0) > 0 || (perf.value?.csr?.length ?? 0) > 0;
+  const hasData = (perf.value?.ssr?.length ?? 0) > 0 || (perf.value?.csr?.length ?? 0) > 0;
   const hasRenderEvents = renderEvents.value.length > 0;
 
   if (!hasData && !hasRenderEvents) {
@@ -89,8 +76,7 @@ export const Performance = component$(() => {
           <div class="text-muted-foreground text-center text-sm">
             No performance data found.
             <div class="mt-1 text-xs">
-              Ensure instrumentation is enabled and interact with the app, then
-              reopen this tab.
+              Ensure instrumentation is enabled and interact with the app, then reopen this tab.
             </div>
           </div>
         </div>
@@ -132,10 +118,7 @@ export const Performance = component$(() => {
 
             <div class="flex w-[420px] min-w-[320px] flex-col overflow-hidden">
               {selectedVm.value ? (
-                <HookDetailsPanel
-                  component={selectedVm.value}
-                  onClose$={clearSelect}
-                />
+                <HookDetailsPanel component={selectedVm.value} onClose$={clearSelect} />
               ) : (
                 <div class="flex h-full items-center justify-center p-8">
                   <div class="text-muted-foreground text-center text-sm">
@@ -168,8 +151,7 @@ export const Performance = component$(() => {
 
           {!hasRenderEvents ? (
             <div class="text-muted-foreground py-6 text-center text-sm">
-              No renders captured yet. Interact with the app to trigger
-              component renders.
+              No renders captured yet. Interact with the app to trigger component renders.
             </div>
           ) : (
             <div class="max-h-[400px] overflow-y-auto">
@@ -187,20 +169,13 @@ export const Performance = component$(() => {
                     .slice()
                     .reverse()
                     .map((evt, i) => (
-                      <tr
-                        key={i}
-                        class="border-glass-border/50 border-b last:border-0"
-                      >
+                      <tr key={i} class="border-glass-border/50 border-b last:border-0">
                         <td class="text-muted-foreground py-1.5 pr-3 font-mono text-xs">
                           {new Date(evt.timestamp).toLocaleTimeString()}
                         </td>
-                        <td class="text-primary/80 py-1.5 pr-3 font-mono">
-                          {evt.component}
-                        </td>
+                        <td class="text-primary/80 py-1.5 pr-3 font-mono">{evt.component}</td>
                         <td class="py-1.5 pr-3 text-right font-mono">
-                          {evt.duration > 0
-                            ? `${evt.duration.toFixed(1)}ms`
-                            : '-'}
+                          {evt.duration > 0 ? `${evt.duration.toFixed(1)}ms` : '-'}
                         </td>
                         <td class="py-1.5">
                           <span

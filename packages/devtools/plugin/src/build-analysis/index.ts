@@ -2,8 +2,12 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { getServerRpcRequestContext } from '@devtools/kit';
-import type { BuildAnalysisRunResult, BuildAnalysisStatus, ServerFunctions } from '@devtools/kit';
+import { getServerRpcRequestContext } from '@qwik.dev/devtools/kit';
+import type {
+  BuildAnalysisRunResult,
+  BuildAnalysisStatus,
+  ServerFunctions,
+} from '@qwik.dev/devtools/kit';
 import { visualizer } from 'rollup-plugin-visualizer';
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import type { ServerContext } from '../types';
@@ -28,7 +32,9 @@ function findNearestPackageRoot(startDir: string): string {
     }
 
     const parent = path.dirname(currentDir);
-    if (parent === currentDir) break;
+    if (parent === currentDir) {
+      break;
+    }
     currentDir = parent;
   }
 

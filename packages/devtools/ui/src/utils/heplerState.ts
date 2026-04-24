@@ -12,9 +12,7 @@ export function getVnodeById(id: string | number) {
     return null;
   }
   const container = htmlContainer()! as DomContainer;
-  const rawStateData = (container as any).$rawStateData$ as
-    | unknown[]
-    | undefined;
+  const rawStateData = (container as any).$rawStateData$ as unknown[] | undefined;
   return rawStateData?.[VnodeId] ?? null;
 }
 
@@ -23,9 +21,7 @@ export function getIndexByObject(obj: unknown) {
     return null;
   }
   const container = htmlContainer()! as DomContainer;
-  const rawStateData = (container as any).$rawStateData$ as
-    | unknown[]
-    | undefined;
+  const rawStateData = (container as any).$rawStateData$ as unknown[] | undefined;
   const index = rawStateData?.findIndex((item: unknown) => item === obj) ?? -1;
   if (index === -1) {
     return null;

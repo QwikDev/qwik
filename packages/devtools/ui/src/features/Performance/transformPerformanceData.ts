@@ -1,7 +1,4 @@
-import type {
-  QwikPerfEntryRemembered,
-  QwikPerfStoreRemembered,
-} from '@devtools/kit';
+import type { QwikPerfEntryRemembered, QwikPerfStoreRemembered } from '@qwik.dev/devtools/kit';
 
 export type PerfPayload = QwikPerfStoreRemembered;
 // Note: runtime instrumentation attaches `ssrCount` to SSR entries (see plugin perf runtime).
@@ -18,33 +15,28 @@ export interface PerfParsedNames {
 
 export function parseComponentAndEventName(component: string): PerfParsedNames {
   const componentName = (component?.split('_component_')[0] ?? component) || '';
-  const rest = component.includes('_component_')
-    ? (component.split('_component_')[1] ?? '')
-    : '';
+  const rest = component.includes('_component_') ? (component.split('_component_')[1] ?? '') : '';
   const parts = rest.split('_').filter(Boolean);
-  const eventName = parts.find(
-    (p) => /^use[A-Z_]/.test(p) || /^on[A-Z_]/.test(p),
-  );
+  const eventName = parts.find((p) => /^use[A-Z_]/.test(p) || /^on[A-Z_]/.test(p));
   return { componentName, eventName };
 }
 
 /**
  * Groups CSR records by SSR component name (split by `_component_`).
- * - key: the SSR item object reference (WeakMap key)
- * - value: CSR list belonging to that SSR component
- * - unmatched CSR items: dropped
+ *
+ * - Key: the SSR item object reference (WeakMap key)
+ * - Value: CSR list belonging to that SSR component
+ * - Unmatched CSR items: dropped
  */
 export type PerfGroupedCsrItem = PerfCsrItem & PerfParsedNames;
 
-export function groupCsrBySsr(
-  data: PerfPayload,
-): WeakMap<PerfSsrItem, PerfGroupedCsrItem[]> {
+export function groupCsrBySsr(data: PerfPayload): WeakMap<PerfSsrItem, PerfGroupedCsrItem[]> {
   const ssrByName = new Map<string, PerfSsrItem>();
   for (const ssrItem of data.ssr) {
     // Trust runtime shape: SSR entries should have phase 'ssr'
     ssrByName.set(
       parseComponentAndEventName(ssrItem.component).componentName,
-      ssrItem as PerfSsrItem,
+      ssrItem as PerfSsrItem
     );
   }
 

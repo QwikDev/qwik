@@ -3,19 +3,13 @@ export function normalizeName(str: string) {
   const array = str.split('_');
   if (array.length > 0) {
     const componentName = array[0];
-    return (
-      componentName.charAt(0).toUpperCase() +
-      componentName.slice(1).toLowerCase()
-    );
+    return componentName.charAt(0).toUpperCase() + componentName.slice(1).toLowerCase();
   } else {
     return '';
   }
 }
 
-export function removeNodeFromTree(
-  tree: TreeNode[],
-  callback: (node: TreeNode) => boolean,
-) {
+export function removeNodeFromTree(tree: TreeNode[], callback: (node: TreeNode) => boolean) {
   return tree.filter((node) => {
     if (callback(node)) {
       return false;

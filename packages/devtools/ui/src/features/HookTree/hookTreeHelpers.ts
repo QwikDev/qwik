@@ -1,8 +1,5 @@
 import type { TreeNode, ElementType } from '../../components/Tree/type';
-import type {
-  VNodeTreeNode,
-  ComponentDetailEntry,
-} from '../../devtools/page-data-source';
+import type { VNodeTreeNode, ComponentDetailEntry } from '../../devtools/page-data-source';
 import type { HookType } from '../RenderTree/types';
 
 /** VNodeTreeNode -> TreeNode conversion */
@@ -52,7 +49,7 @@ export function findNodeById(nodes: TreeNode[], id: string): TreeNode | null {
 export function findNodeByDomAttr(
   nodes: TreeNode[],
   qId: string | null,
-  colonId: string | null,
+  colonId: string | null
 ): TreeNode | null {
   for (const node of nodes) {
     const props = node.props as Record<string, unknown> | undefined;
@@ -112,18 +109,10 @@ interface SerializedFunction {
 }
 
 function isSerializedFunction(val: unknown): val is SerializedFunction {
-  return (
-    typeof val === 'object' &&
-    val !== null &&
-    (val as any).__type === 'function'
-  );
+  return typeof val === 'object' && val !== null && (val as any).__type === 'function';
 }
 
-export function valueToTree(
-  key: string,
-  val: unknown,
-  depth: number,
-): TreeNode | null {
+export function valueToTree(key: string, val: unknown, depth: number): TreeNode | null {
   if (depth > 8) {
     return null;
   }
@@ -168,9 +157,7 @@ export function valueToTree(
   if (t === 'object') {
     const obj = val as Record<string, unknown>;
     const className = obj.__className as string | undefined;
-    const entries = Object.keys(obj).filter(
-      (k) => k !== '__className' && k !== '__display',
-    );
+    const entries = Object.keys(obj).filter((k) => k !== '__className' && k !== '__display');
     const children = entries
       .map((k) => valueToTree(k, obj[k], depth + 1))
       .filter((n): n is TreeNode => n !== null);

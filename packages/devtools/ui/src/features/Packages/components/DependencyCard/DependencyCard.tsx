@@ -4,8 +4,7 @@ import { PackageIcon } from '../PackageIcon';
 
 export const DependencyCard = component$(({ pkg }: { pkg: Package }) => {
   const author = pkg.author;
-  const authorName =
-    typeof author === 'string' ? author.trim() : (author?.name || '').trim();
+  const authorName = typeof author === 'string' ? author.trim() : (author?.name || '').trim();
   const authorDisplayName = authorName || 'Unknown';
   const authorInitials =
     authorDisplayName
@@ -70,12 +69,7 @@ export const DependencyCard = component$(({ pkg }: { pkg: Package }) => {
               {pkg.name}
             </h3>
             <span class="bg-primary/10 border-primary/20 text-primary inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-medium">
-              <svg
-                class="h-3 w-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -106,14 +100,10 @@ export const DependencyCard = component$(({ pkg }: { pkg: Package }) => {
                 onClick$={handleAuthorClick}
                 title={`Contact ${authorDisplayName}`}
               >
-                <span class="text-accent text-[10px] font-semibold">
-                  {authorInitials}
-                </span>
+                <span class="text-accent text-[10px] font-semibold">{authorInitials}</span>
               </div>
               <span class="text-muted-foreground truncate text-xs">
-                <span class="text-foreground font-medium">
-                  {authorDisplayName}
-                </span>
+                <span class="text-foreground font-medium">{authorDisplayName}</span>
               </span>
             </div>
           ) : (
@@ -128,12 +118,7 @@ export const DependencyCard = component$(({ pkg }: { pkg: Package }) => {
                 class="hover:bg-primary/10 group/btn text-muted-foreground hover:text-primary rounded-lg p-1.5 transition-all duration-200"
                 title="Homepage"
               >
-                <svg
-                  class="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"

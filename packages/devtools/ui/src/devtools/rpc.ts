@@ -4,7 +4,7 @@ import {
   setViteClientContext,
   type RoutesInfo,
   RouteType,
-} from '@devtools/kit';
+} from '@qwik.dev/devtools/kit';
 import { noSerialize } from '@qwik.dev/core';
 import debug from 'debug';
 import { tryCreateHotContext } from 'vite-hot-client';
@@ -21,9 +21,7 @@ function getClientRpcFunctions() {
 
 function toDevtoolsRoutes(routes: any): RoutesInfo[] {
   const children: RoutesInfo[] = routes?.children || [];
-  const directories: RoutesInfo[] = children.filter(
-    (child) => child.type === RouteType.DIRECTORY,
-  );
+  const directories: RoutesInfo[] = children.filter((child) => child.type === RouteType.DIRECTORY);
 
   return [
     {
@@ -51,8 +49,8 @@ async function connectRpc() {
 }
 
 /**
- * Default data provider that loads data via Vite HMR RPC.
- * Used when the devtools UI runs as an in-app overlay.
+ * Default data provider that loads data via Vite HMR RPC. Used when the devtools UI runs as an
+ * in-app overlay.
  */
 const viteDataProvider: DataProvider = {
   async loadData(state: DevtoolsState) {
@@ -78,8 +76,7 @@ const viteDataProvider: DataProvider = {
         state.isLoadingDependencies = false;
       });
 
-    const [assetsResult, componentsResult, routesResult, packagesResult] =
-      await primaryDataPromise;
+    const [assetsResult, componentsResult, routesResult, packagesResult] = await primaryDataPromise;
 
     if (assetsResult.status === 'fulfilled') {
       state.assets = assetsResult.value;
@@ -112,9 +109,8 @@ const viteDataProvider: DataProvider = {
 /**
  * Load devtools data using the active data provider.
  *
- * When `window.__QWIK_DEVTOOLS_DATA_PROVIDER__` is set (e.g. by the browser
- * extension entry point), that provider is used. Otherwise, falls back to the
- * default Vite HMR RPC provider.
+ * When `window.__QWIK_DEVTOOLS_DATA_PROVIDER__` is set (e.g. by the browser extension entry point),
+ * that provider is used. Otherwise, falls back to the default Vite HMR RPC provider.
  */
 export async function loadDevtoolsData(state: DevtoolsState) {
   const provider = window.__QWIK_DEVTOOLS_DATA_PROVIDER__ ?? viteDataProvider;

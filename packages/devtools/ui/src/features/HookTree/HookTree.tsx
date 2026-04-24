@@ -1,10 +1,7 @@
 import { $, component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 import { Tree } from '../../components/Tree/Tree';
 import type { TreeNode } from '../../components/Tree/type';
-import {
-  getPageDataSource,
-  type ComponentDetailEntry,
-} from '../../devtools/page-data-source';
+import { getPageDataSource, type ComponentDetailEntry } from '../../devtools/page-data-source';
 import {
   toTreeNodes,
   treeIdFingerprint,
@@ -14,10 +11,7 @@ import {
   resetNodeId,
   nextId,
 } from './hookTreeHelpers';
-import {
-  RenderTreeTabs,
-  type RenderTreeTabId,
-} from '../RenderTree/components/RenderTreeTabs';
+import { RenderTreeTabs, type RenderTreeTabId } from '../RenderTree/components/RenderTreeTabs';
 import { StateTreeNodeLabel } from '../RenderTree/components/StateTreeNodeLabel';
 import { HookFiltersCard } from '../RenderTree/components/HookFiltersCard';
 import type { HookFilterItem, HookType } from '../RenderTree/types';
@@ -28,11 +22,7 @@ const HIGHLIGHT_FLASH_MS = 1500;
 const LOAD_RETRY_DELAY_MS = 300;
 const PAGE_CHANGE_SETTLE_MS = 500;
 
-function valueToTree(
-  key: string,
-  val: unknown,
-  depth: number,
-): TreeNode | null {
+function valueToTree(key: string, val: unknown, depth: number): TreeNode | null {
   if (depth > 8) {
     return null;
   }
@@ -56,11 +46,7 @@ function valueToTree(
   }
 
   // Function marker from deep serializer
-  if (
-    t === 'object' &&
-    val &&
-    (val as Record<string, unknown>).__type === 'function'
-  ) {
+  if (t === 'object' && val && (val as Record<string, unknown>).__type === 'function') {
     const name = (val as Record<string, unknown>).__name || 'anonymous';
     return {
       id: nextId(),
@@ -85,7 +71,7 @@ function valueToTree(
     const obj = val as Record<string, unknown>;
     const className = obj.__className as string | undefined;
     const displayKeys = Object.keys(obj).filter(
-      (k) => k !== '__className' && k !== '__display' && k !== '__type',
+      (k) => k !== '__className' && k !== '__display' && k !== '__type'
     );
 
     const children = displayKeys
@@ -135,7 +121,7 @@ function buildDetailTree(entries: ComponentDetailEntry[]): TreeNode[] {
         const obj = data as Record<string, unknown>;
         const className = obj.__className as string | undefined;
         const displayKeys = Object.keys(obj).filter(
-          (k) => k !== '__className' && k !== '__display' && k !== '__type',
+          (k) => k !== '__className' && k !== '__display' && k !== '__type'
         );
 
         const subChildren = displayKeys
@@ -195,9 +181,7 @@ function expandAndScrollToNode(targetName: string) {
     }
 
     // First, expand all collapsed ancestors by clicking their chevrons
-    const rows = Array.from(
-      container.querySelectorAll('[class*="cursor-pointer"]'),
-    );
+    const rows = Array.from(container.querySelectorAll('[class*="cursor-pointer"]'));
     let targetRow: HTMLElement | null = null;
 
     for (const row of rows) {
@@ -270,11 +254,7 @@ export const HookTree = component$(() => {
         found = findNodeById(treeData.value, payload.treeNodeId);
       }
       if (!found) {
-        found = findNodeByDomAttr(
-          treeData.value,
-          payload.qId || null,
-          payload.colonId || null,
-        );
+        found = findNodeByDomAttr(treeData.value, payload.qId || null, payload.colonId || null);
       }
       if (found) {
         onNodeClick(found);
@@ -282,16 +262,14 @@ export const HookTree = component$(() => {
         // DOM-based expand + highlight + scroll
         expandAndScrollToNode(found!.label || found!.name || '');
       }
-    },
+    }
   );
 
   const applyFilters = $((tree: TreeNode[], filters: HookFilterItem[]) => {
     if (filters.length === 0) {
       return tree;
     }
-    return tree.filter((node) =>
-      filters.some((f) => f.key === node.label && f.display),
-    );
+    return tree.filter((node) => filters.some((f) => f.key === node.label && f.display));
   });
 
   // Re-fetch detail for the currently selected component
@@ -319,7 +297,7 @@ export const HookTree = component$(() => {
       const full = buildDetailTree(entries);
       fullStateTree.value = full;
       const existingMap = new Map<string, boolean>(
-        hookFilters.value.map((f) => [f.key, f.display]),
+        hookFilters.value.map((f) => [f.key, f.display])
       );
       hookFilters.value = full.map((n) => ({
         key: (n.label || n.name || '') as HookType,
@@ -424,8 +402,9 @@ export const HookTree = component$(() => {
       return;
     }
 
-    const qrlChunk = (node.props as Record<string, unknown> | undefined)
-      ?.__qrlChunk as string | undefined;
+    const qrlChunk = (node.props as Record<string, unknown> | undefined)?.__qrlChunk as
+      | string
+      | undefined;
     selectedNode.value = { name, nodeId: node.id, qrlChunk };
 
     // Read hooks from global state AND VNode props
@@ -475,10 +454,7 @@ export const HookTree = component$(() => {
     editingNodeId.value = node.id;
     const rawVal = match[2];
     // Strip quotes for string values
-    editValue.value =
-      rawVal.startsWith('"') && rawVal.endsWith('"')
-        ? rawVal.slice(1, -1)
-        : rawVal;
+    editValue.value = rawVal.startsWith('"') && rawVal.endsWith('"') ? rawVal.slice(1, -1) : rawVal;
   });
 
   const commitEdit = $(async () => {
@@ -528,10 +504,7 @@ export const HookTree = component$(() => {
 
   const handleSelectAll = $(async () => {
     hookFilters.value = hookFilters.value.map((f) => ({ ...f, display: true }));
-    stateTree.value = await applyFilters(
-      fullStateTree.value,
-      hookFilters.value,
-    );
+    stateTree.value = await applyFilters(fullStateTree.value, hookFilters.value);
   });
 
   const handleClear = $(async () => {
@@ -539,20 +512,14 @@ export const HookTree = component$(() => {
       ...f,
       display: false,
     }));
-    stateTree.value = await applyFilters(
-      fullStateTree.value,
-      hookFilters.value,
-    );
+    stateTree.value = await applyFilters(fullStateTree.value, hookFilters.value);
   });
 
   const handleFilterChange = $(async (index: number, checked: boolean) => {
     hookFilters.value = hookFilters.value.map((f, i) =>
-      i === index ? { ...f, display: checked } : f,
+      i === index ? { ...f, display: checked } : f
     );
-    stateTree.value = await applyFilters(
-      fullStateTree.value,
-      hookFilters.value,
-    );
+    stateTree.value = await applyFilters(fullStateTree.value, hookFilters.value);
   });
 
   const startInspect = $(() => {
@@ -580,9 +547,7 @@ export const HookTree = component$(() => {
       return;
     }
     // Find all chevron buttons (svg inside cursor-pointer rows)
-    const chevrons = Array.from(
-      container.querySelectorAll('svg[class*="shrink-0"]'),
-    );
+    const chevrons = Array.from(container.querySelectorAll('svg[class*="shrink-0"]'));
     for (const chevron of chevrons) {
       const isExpanded = chevron.classList.contains('rotate-180');
       // If we want to expand all, click collapsed ones. If collapse all, click expanded ones.
@@ -615,10 +580,7 @@ export const HookTree = component$(() => {
               onClick$={toggleTreeExpand}
               title={treeExpanded.value ? 'Collapse all' : 'Expand all'}
             >
-              <IconExpandShrink
-                class="h-3.5 w-3.5"
-                expanded={treeExpanded.value}
-              />
+              <IconExpandShrink class="h-3.5 w-3.5" expanded={treeExpanded.value} />
               {treeExpanded.value ? 'Collapse' : 'Expand'}
             </IconButton>
           </div>
@@ -629,11 +591,7 @@ export const HookTree = component$(() => {
                 Waiting for component tree...
               </div>
             ) : (
-              <Tree
-                key={treeVersion.value}
-                data={treeData}
-                onNodeClick={onNodeClick}
-              />
+              <Tree key={treeVersion.value} data={treeData} onNodeClick={onNodeClick} />
             )}
           </div>
         </div>
@@ -716,15 +674,11 @@ export const HookTree = component$(() => {
             <div class="border-glass-border bg-card-item-bg mt-4 flex min-h-0 flex-1 items-center justify-center rounded-xl border p-4">
               <div class="text-center">
                 <div class="text-muted-foreground text-sm">
-                  <span class="font-medium">Code</span> requires the Qwik
-                  DevTools Vite plugin.
+                  <span class="font-medium">Code</span> requires the Qwik DevTools Vite plugin.
                 </div>
                 <div class="text-muted-foreground/60 mt-2 text-xs">
                   Available in the in-app overlay when running{' '}
-                  <code class="bg-card-item-hover-bg rounded px-1.5 py-0.5">
-                    pnpm dev
-                  </code>{' '}
-                  with{' '}
+                  <code class="bg-card-item-hover-bg rounded px-1.5 py-0.5">pnpm dev</code> with{' '}
                   <code class="bg-card-item-hover-bg rounded px-1.5 py-0.5">
                     @qwik.dev/devtools
                   </code>

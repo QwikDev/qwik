@@ -64,7 +64,9 @@ function getComponentFunctionBody(node: any): { range?: [number, number] } | nul
 }
 
 function detectExportName(parent: any): string | undefined {
-  if (!parent) return undefined;
+  if (!parent) {
+    return undefined;
+  }
 
   if (parent.type === 'ExportDefaultDeclaration') {
     return '';

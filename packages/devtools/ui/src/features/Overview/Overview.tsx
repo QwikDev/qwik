@@ -1,9 +1,5 @@
 import { $, component$, sync$ } from '@qwik.dev/core';
-import {
-  IconCubeOutline,
-  IconFolderTree,
-  IconPhotoOutline,
-} from '../../components/Icons/Icons';
+import { IconCubeOutline, IconFolderTree, IconPhotoOutline } from '../../components/Icons/Icons';
 import { InfoBanner } from '../../components/InfoBanner/InfoBanner';
 import { State, TabName } from '../../types/state';
 
@@ -26,8 +22,7 @@ export const Overview = component$(({ state }: OverviewProps) => {
           <span class="text-foreground font-medium">Vite plugin detected</span>
           <span class="text-muted-foreground">
             {' '}
-            - the in-app overlay has additional features (routes, assets,
-            packages, code inspection)
+            - the in-app overlay has additional features (routes, assets, packages, code inspection)
           </span>
         </InfoBanner>
       )}
@@ -70,9 +65,7 @@ export const Overview = component$(({ state }: OverviewProps) => {
               <IconPhotoOutline class="text-accent h-6 w-6" />
             </div>
             <div>
-              <div class="text-3xl font-semibold">
-                {state.assets.length || 0}
-              </div>
+              <div class="text-3xl font-semibold">{state.assets.length || 0}</div>
               <div class="text-muted-foreground text-sm">assets</div>
             </div>
           </div>
@@ -81,15 +74,10 @@ export const Overview = component$(({ state }: OverviewProps) => {
 
       {state.npmPackages.length > 0 && (
         <div
-          onClick$={
-            isExtension
-              ? undefined
-              : [$(() => pageJump('packages')), stopPropagation]
-          }
+          onClick$={isExtension ? undefined : [$(() => pageJump('packages')), stopPropagation]}
           class={[
             'border-border bg-card-item-bg mt-6 space-y-4 rounded-xl border p-5 md:mt-6',
-            !isExtension &&
-              'hover:bg-card-item-hover-bg cursor-pointer hover:-translate-y-0.5',
+            !isExtension && 'hover:bg-card-item-hover-bg cursor-pointer hover:-translate-y-0.5',
           ]}
         >
           <h3 class="text-lg font-semibold">Installed Packages</h3>

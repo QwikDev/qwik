@@ -21,7 +21,7 @@ export const QwikDevtools = component$(() => {
   });
 
   return (
-    <>
+    <div class="qwik-devtools">
       <QwikThemeScript />
       <DevtoolsContainer>
         <DevtoolsButton state={state} />
@@ -35,6 +35,6 @@ export const QwikDevtools = component$(() => {
           </DevtoolsPanel>
         )}
       </DevtoolsContainer>
-    </>
+    </div>
   );
 });

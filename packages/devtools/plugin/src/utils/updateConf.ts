@@ -5,7 +5,7 @@ function updateConf(conf: ResolvedConfig) {
 
   // Ensure ssr exists
   // Some environments may have optional ssr in typed config
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
   // @ts-ignore
   conf.ssr = conf.ssr ?? ({} as typeof conf.ssr);
 

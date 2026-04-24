@@ -9,11 +9,7 @@ import {
   useVisibleTask$,
 } from '@qwik.dev/core';
 import { State } from '../../types/state';
-import {
-  IconArrowsPointingIn,
-  IconArrowsPointingOut,
-  IconXMark,
-} from '../Icons/Icons';
+import { IconArrowsPointingIn, IconArrowsPointingOut, IconXMark } from '../Icons/Icons';
 
 interface DevtoolsPanelProps {
   state: State;
@@ -43,28 +39,19 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function getWindowMargin() {
-  return window.innerWidth < 640 || window.innerHeight < 640
-    ? COMPACT_MARGIN
-    : WINDOW_MARGIN;
+  return window.innerWidth < 640 || window.innerHeight < 640 ? COMPACT_MARGIN : WINDOW_MARGIN;
 }
 
 function getMinWidth() {
   const margin = getWindowMargin();
   const preferredWidth = window.innerWidth >= 768 ? MIN_WIDTH_MD : MIN_WIDTH;
-  return Math.min(
-    preferredWidth,
-    Math.max(window.innerWidth - margin * 2, 240),
-  );
+  return Math.min(preferredWidth, Math.max(window.innerWidth - margin * 2, 240));
 }
 
 function getMinHeight() {
   const margin = getWindowMargin();
-  const preferredHeight =
-    window.innerHeight >= 768 ? MIN_HEIGHT_MD : MIN_HEIGHT;
-  return Math.min(
-    preferredHeight,
-    Math.max(window.innerHeight - margin * 2, 220),
-  );
+  const preferredHeight = window.innerHeight >= 768 ? MIN_HEIGHT_MD : MIN_HEIGHT;
+  return Math.min(preferredHeight, Math.max(window.innerHeight - margin * 2, 220));
 }
 
 function getMaxWidth() {
@@ -106,9 +93,7 @@ function createDefaultBounds() {
 }
 
 function hasValidBounds(bounds: State['panelBounds']) {
-  return (
-    bounds.width > 0 && bounds.height > 0 && bounds.x >= 0 && bounds.y >= 0
-  );
+  return bounds.width > 0 && bounds.height > 0 && bounds.x >= 0 && bounds.y >= 0;
 }
 
 function getInteractionCursor(mode: InteractionMode) {
@@ -140,7 +125,7 @@ function resetPointerStyles() {
 function updatePanelBounds(
   panelBounds: Signal<State['panelBounds']>,
   state: State,
-  bounds: State['panelBounds'],
+  bounds: State['panelBounds']
 ) {
   const nextBounds = { ...bounds };
   panelBounds.value = nextBounds;
@@ -184,7 +169,7 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
           ...startBounds.value,
           x: startBounds.value.x + deltaX,
           y: startBounds.value.y + deltaY,
-        }),
+        })
       );
       return;
     }
@@ -202,7 +187,7 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
       nextWidth = clamp(
         startBounds.value.width + deltaX,
         minWidth,
-        window.innerWidth - startBounds.value.x - margin,
+        window.innerWidth - startBounds.value.x - margin
       );
     }
 
@@ -210,7 +195,7 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
       nextHeight = clamp(
         startBounds.value.height + deltaY,
         minHeight,
-        window.innerHeight - startBounds.value.y - margin,
+        window.innerHeight - startBounds.value.y - margin
       );
     }
 
@@ -234,7 +219,7 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
         y: nextY,
         width: nextWidth,
         height: nextHeight,
-      }),
+      })
     );
   });
 
@@ -258,27 +243,25 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
     document.body.style.cursor = getInteractionCursor('drag');
   });
 
-  const handleResizeStart = $(
-    (direction: ResizeDirection, event: MouseEvent) => {
-      if (event.button !== 0 || props.state.isPanelFullscreen) {
-        return;
-      }
+  const handleResizeStart = $((direction: ResizeDirection, event: MouseEvent) => {
+    if (event.button !== 0 || props.state.isPanelFullscreen) {
+      return;
+    }
 
-      event.preventDefault();
-      event.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
 
-      const normalizedBounds = hasValidBounds(panelBounds.value)
-        ? normalizeBounds(panelBounds.value)
-        : createDefaultBounds();
+    const normalizedBounds = hasValidBounds(panelBounds.value)
+      ? normalizeBounds(panelBounds.value)
+      : createDefaultBounds();
 
-      updatePanelBounds(panelBounds, props.state, normalizedBounds);
-      interactionMode.value = direction;
-      startMousePosition.value = { x: event.clientX, y: event.clientY };
-      startBounds.value = { ...normalizedBounds };
-      document.body.style.userSelect = 'none';
-      document.body.style.cursor = getInteractionCursor(direction);
-    },
-  );
+    updatePanelBounds(panelBounds, props.state, normalizedBounds);
+    interactionMode.value = direction;
+    startMousePosition.value = { x: event.clientX, y: event.clientY };
+    startBounds.value = { ...normalizedBounds };
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = getInteractionCursor(direction);
+  });
 
   const handleToggleFullscreen = $(() => {
     if (!isBrowser) {
@@ -290,7 +273,7 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
       updatePanelBounds(
         panelBounds,
         props.state,
-        normalizeBounds(props.state.lastPanelBounds ?? createDefaultBounds()),
+        normalizeBounds(props.state.lastPanelBounds ?? createDefaultBounds())
       );
       return;
     }
@@ -359,7 +342,7 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
         props.state,
         hasValidBounds(props.state.panelBounds)
           ? normalizeBounds(props.state.panelBounds)
-          : createDefaultBounds(),
+          : createDefaultBounds()
       );
     }
 
@@ -372,7 +355,7 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
         props.state,
         hasValidBounds(panelBounds.value)
           ? normalizeBounds(panelBounds.value)
-          : createDefaultBounds(),
+          : createDefaultBounds()
       );
     };
 
@@ -414,9 +397,7 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
         class={[
           'glass-panel text-foreground fixed z-[9991] flex overflow-hidden border transition-[border-radius,width,height,left,top]',
           interactionMode.value ? 'duration-0' : 'duration-200 ease-out',
-          props.state.isPanelFullscreen
-            ? 'inset-0 rounded-none'
-            : 'rounded-2xl shadow-2xl',
+          props.state.isPanelFullscreen ? 'inset-0 rounded-none' : 'rounded-2xl shadow-2xl',
         ]}
         style={panelStyle}
         onMouseDown$={(event) => {
@@ -512,11 +493,7 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
             >
               <button
                 type="button"
-                aria-label={
-                  props.state.isPanelFullscreen
-                    ? 'Restore window'
-                    : 'Enter fullscreen'
-                }
+                aria-label={props.state.isPanelFullscreen ? 'Restore window' : 'Enter fullscreen'}
                 class="bg-card-item-bg hover:bg-card-item-hover-bg border-glass-border text-muted-foreground hover:text-foreground flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border shadow-sm backdrop-blur-md transition-all hover:scale-105 active:scale-95"
                 onClick$={handleToggleFullscreen}
               >

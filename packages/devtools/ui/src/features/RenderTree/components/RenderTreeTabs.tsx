@@ -35,5 +35,5 @@ export const RenderTreeTabs = component$<RenderTreeTabsProps>(
         ))}
       </div>
     );
-  },
+  }
 );

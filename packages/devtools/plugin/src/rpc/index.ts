@@ -1,4 +1,4 @@
-import { ServerFunctions } from '@devtools/kit';
+import { ServerFunctions } from '@qwik.dev/devtools/kit';
 import { getAssetsFunctions } from '../assets';
 import { getBuildAnalysisFunctions } from '../build-analysis';
 import { ServerContext } from '../types';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeEventRows, computePerfViewModel } from './computePerfViewModel';
-import type { QwikPerfStoreRemembered } from '@devtools/kit';
+import type { QwikPerfStoreRemembered } from '@qwik.dev/devtools/kit';
 import type { PerfGroupedCsrItem } from './transformPerformanceData';
 
 describe('computePerfViewModel', () => {
@@ -78,10 +78,7 @@ describe('computePerfViewModel', () => {
     };
 
     const vm = computePerfViewModel(data);
-    expect(vm.components.map((c) => c.componentName).sort()).toEqual([
-      'A',
-      'B',
-    ]);
+    expect(vm.components.map((c) => c.componentName).sort()).toEqual(['A', 'B']);
     const a = vm.components.find((c) => c.componentName === 'A')!;
     expect(a.totalTime).toBe(3);
     expect(a.calls).toBe(4);

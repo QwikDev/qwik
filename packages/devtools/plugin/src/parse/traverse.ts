@@ -50,15 +50,21 @@ function callVisitor(
   hook: 'enter' | 'exit',
   path: NodePath
 ): void {
-  if (!visitor) return;
+  if (!visitor) {
+    return;
+  }
 
   // Call generic enter/exit handler
   const specific = visitor[type] as VisitFn | undefined;
-  if (specific) specific(path);
+  if (specific) {
+    specific(path);
+  }
 
   // Call type-specific handler
   const handler = visitor[path.node && (path.node as any).type] as VisitFn | VisitObj | undefined;
-  if (!handler) return;
+  if (!handler) {
+    return;
+  }
 
   if (typeof handler === 'function' && hook === 'enter') {
     handler(path);
@@ -67,7 +73,9 @@ function callVisitor(
 
   if (typeof handler === 'object') {
     const fn = handler[hook];
-    if (fn) fn(path);
+    if (fn) {
+      fn(path);
+    }
   }
 }
 
@@ -81,8 +89,12 @@ export function traverseProgram(program: unknown, visitor: Visitor, state?: any)
     key: string | number | null,
     index: number | null
   ): void {
-    if (shouldStopAll) return;
-    if (!isAstNodeLike(node)) return;
+    if (shouldStopAll) {
+      return;
+    }
+    if (!isAstNodeLike(node)) {
+      return;
+    }
 
     let shouldSkipChildren = false;
 

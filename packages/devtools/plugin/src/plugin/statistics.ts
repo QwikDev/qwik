@@ -24,8 +24,12 @@ export function statisticsPlugin(): Plugin {
     enforce: 'post',
     apply: 'serve',
     transform(code, id) {
-      if (isPerfVirtualModuleId(id)) return null;
-      if (!shouldTransformStatisticsSource(id)) return null;
+      if (isPerfVirtualModuleId(id)) {
+        return null;
+      }
+      if (!shouldTransformStatisticsSource(id)) {
+        return null;
+      }
 
       let modifiedCode = code;
       let hasChanges = false;
@@ -46,7 +50,9 @@ export function statisticsPlugin(): Plugin {
         hasChanges = hasChanges || wrapped.changed;
       }
 
-      if (!hasChanges) return null;
+      if (!hasChanges) {
+        return null;
+      }
       return { code: modifiedCode, map: null };
     },
 

@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "allowJs": true,
+    "rootDir": "..",
     "target": "ES2017",
     "module": "ES2020",
     "lib": ["es2020", "DOM"],
@@ -15,10 +16,7 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "types": ["vite/client"],
-    "paths": {
-      "@devtools/kit": ["../kit/src/index.ts"]
-    }
+    "types": ["vite/client"]
   },
   "include": ["src"]
 }

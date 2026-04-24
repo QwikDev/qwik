@@ -1,27 +1,25 @@
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
-import pkg from './package.json';
-import { qwikDevtools } from '@devtools/plugin';
-import { createRequire } from 'module';
+import { qwikDevtools } from '../plugin/src/index';
 import tailwindcss from '@tailwindcss/vite';
-const { dependencies = {}, peerDependencies = {} } = pkg as any;
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const externalDependencies = [
+  '@qwik.dev/core',
+  '@qwik.dev/devtools/kit',
+  '@qwik.dev/router',
+  '@tailwindcss/postcss',
+  '@tailwindcss/vite',
+  'tailwindcss',
+  'vite',
+];
 const makeRegex = (dep: string) => new RegExp(`^${dep}(/.*)?$`);
-const excludeAll = (obj: Record<string, unknown>) =>
-  Object.keys(obj).map(makeRegex);
-const require = createRequire(import.meta.url);
-const isBuild = process.argv.includes('lib');
 
 export default defineConfig(() => {
   return {
-    resolve: {
-      alias: isBuild
-        ? undefined
-        : {
-            '@devtools/ui': require.resolve('.'),
-            '@qwik.dev/devtools/ui': require.resolve('.'),
-          },
-    },
+    root: __dirname,
     build: {
       target: 'es2020',
       lib: {
@@ -45,17 +43,9 @@ export default defineConfig(() => {
           },
         },
         // externalize deps that shouldn't be bundled into the library
-        external: [
-          'stream',
-          'util',
-          '@qwik.dev/core',
-          '@qwik.dev/router',
-          /^node:.*/,
-          ...excludeAll(peerDependencies),
-          ...excludeAll(dependencies),
-        ],
+        external: ['stream', 'util', /^node:.*/, ...externalDependencies.map(makeRegex)],
       },
     },
-    plugins: [qwikVite(), tsconfigPaths(), qwikDevtools(), tailwindcss()],
+    plugins: [qwikVite(), qwikDevtools(), tailwindcss()],
   };
 });

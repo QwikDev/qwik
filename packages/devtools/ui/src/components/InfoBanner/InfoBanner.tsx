@@ -2,8 +2,8 @@ import { component$, Slot } from '@qwik.dev/core';
 import { IconInfoCircle } from '../Icons/Icons';
 
 /**
- * Informational banner with an icon and message content.
- * Used for contextual hints (e.g. "Vite plugin detected").
+ * Informational banner with an icon and message content. Used for contextual hints (e.g. "Vite
+ * plugin detected").
  */
 export const InfoBanner = component$<{ class?: string }>((props) => {
   return (

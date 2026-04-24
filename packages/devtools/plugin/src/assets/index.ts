@@ -2,7 +2,7 @@ import fsp from 'node:fs/promises';
 import fg from 'fast-glob';
 import { resolve, relative, join } from 'node:path/posix';
 import { ServerContext } from '../types';
-import { AssetType, AssetInfo } from '@devtools/kit';
+import { AssetType, AssetInfo } from '@qwik.dev/devtools/kit';
 
 // const defaultAllowedExtensions = [
 //   'png',
@@ -101,21 +101,31 @@ export function getAssetsFunctions({ config }: ServerContext) {
 }
 
 function guessType(path: string): AssetType {
-  if (/\.(?:png|jpe?g|jxl|gif|svg|webp|avif|ico|bmp|tiff?)$/i.test(path)) return 'image';
+  if (/\.(?:png|jpe?g|jxl|gif|svg|webp|avif|ico|bmp|tiff?)$/i.test(path)) {
+    return 'image';
+  }
   if (
     /\.(?:mp4|webm|ogv|mov|avi|flv|wmv|mpg|mpeg|mkv|3gp|3g2|ts|mts|m2ts|vob|ogm|ogx|rm|rmvb|asf|amv|divx|m4v|svi|viv|f4v|f4p|f4a|f4b)$/i.test(
       path
     )
-  )
+  ) {
     return 'video';
+  }
   if (
     /\.(?:mp3|wav|ogg|flac|aac|wma|alac|ape|ac3|dts|tta|opus|amr|aiff|au|mid|midi|ra|rm|wv|weba|dss|spx|vox|tak|dsf|dff|dsd|cda)$/i.test(
       path
     )
-  )
+  ) {
     return 'audio';
-  if (/\.(?:woff2?|eot|ttf|otf|ttc|pfa|pfb|pfm|afm)/i.test(path)) return 'font';
-  if (/\.(?:json[5c]?|te?xt|[mc]?[jt]sx?|md[cx]?|markdown|ya?ml|toml)/i.test(path)) return 'text';
-  if (/\.wasm/i.test(path)) return 'wasm';
+  }
+  if (/\.(?:woff2?|eot|ttf|otf|ttc|pfa|pfb|pfm|afm)/i.test(path)) {
+    return 'font';
+  }
+  if (/\.(?:json[5c]?|te?xt|[mc]?[jt]sx?|md[cx]?|markdown|ya?ml|toml)/i.test(path)) {
+    return 'text';
+  }
+  if (/\.wasm/i.test(path)) {
+    return 'wasm';
+  }
   return 'other';
 }

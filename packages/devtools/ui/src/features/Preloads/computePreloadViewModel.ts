@@ -3,15 +3,9 @@ import type {
   QwikPreloadOriginKind,
   QwikPreloadPhase,
   QwikPreloadStoreRemembered,
-} from '@devtools/kit';
+} from '@qwik.dev/devtools/kit';
 
-export type PreloadFilter =
-  | 'all'
-  | 'loaded'
-  | 'pending'
-  | 'error'
-  | 'qrl-correlated'
-  | 'unmatched';
+export type PreloadFilter = 'all' | 'loaded' | 'pending' | 'error' | 'qrl-correlated' | 'unmatched';
 
 export interface PreloadSourceFilters {
   vitePluginInjected: boolean;
@@ -77,10 +71,7 @@ const DEFAULT_SOURCE_FILTERS: PreloadSourceFilters = {
   unknown: false,
 };
 
-const DEFAULT_PHASE_FILTERS: Record<
-  Exclude<QwikPreloadPhase, 'unknown'>,
-  boolean
-> = {
+const DEFAULT_PHASE_FILTERS: Record<Exclude<QwikPreloadPhase, 'unknown'>, boolean> = {
   csr: true,
   ssr: true,
 };
@@ -107,7 +98,7 @@ function latestTimestamp(entry: QwikPreloadEntryRemembered): number {
 
 function averageBy(
   entries: QwikPreloadEntryRemembered[],
-  field: 'importDuration' | 'loadDuration',
+  field: 'importDuration' | 'loadDuration'
 ): number {
   const timed = entries.filter((entry) => typeof entry[field] === 'number');
   if (timed.length === 0) {
@@ -139,10 +130,7 @@ function buildRow(entry: QwikPreloadEntryRemembered): PreloadRowVm {
   };
 }
 
-function matchesOrigin(
-  row: PreloadRowVm,
-  filters: PreloadSourceFilters,
-): boolean {
+function matchesOrigin(row: PreloadRowVm, filters: PreloadSourceFilters): boolean {
   if (row.originKind === 'current-project') {
     return true;
   }
@@ -164,20 +152,14 @@ function matchesOrigin(
   }
 }
 
-function matchesPhase(
-  row: PreloadRowVm,
-  filters: PreloadViewFilters['phaseFilters'],
-): boolean {
+function matchesPhase(row: PreloadRowVm, filters: PreloadViewFilters['phaseFilters']): boolean {
   if (row.phase === 'unknown') {
     return false;
   }
   return filters[row.phase];
 }
 
-export function filterPreloadRows(
-  rows: PreloadRowVm[],
-  filter: PreloadFilter,
-): PreloadRowVm[] {
+export function filterPreloadRows(rows: PreloadRowVm[], filter: PreloadFilter): PreloadRowVm[] {
   switch (filter) {
     case 'loaded':
     case 'pending':
@@ -194,7 +176,7 @@ export function filterPreloadRows(
 
 export function computePreloadViewModel(
   store: QwikPreloadStoreRemembered | null | undefined,
-  filters: PreloadViewFilters = createDefaultPreloadFilters(),
+  filters: PreloadViewFilters = createDefaultPreloadFilters()
 ): PreloadViewModel {
   const entries = store?.entries ?? [];
   const rows = entries.map(buildRow);
@@ -257,27 +239,21 @@ export function computePreloadViewModel(
   return {
     overview: {
       total: visibleEntries.length,
-      loaded: visibleEntries.filter((entry) => entry.status === 'loaded')
-        .length,
-      pending: visibleEntries.filter((entry) => entry.status === 'pending')
-        .length,
+      loaded: visibleEntries.filter((entry) => entry.status === 'loaded').length,
+      pending: visibleEntries.filter((entry) => entry.status === 'pending').length,
       error: visibleEntries.filter((entry) => entry.status === 'error').length,
-      correlated: visibleEntries.filter(
-        (entry) => typeof entry.qrlRequestedAt === 'number',
-      ).length,
+      correlated: visibleEntries.filter((entry) => typeof entry.qrlRequestedAt === 'number').length,
       ssr: visibleEntries.filter((entry) => entry.phase === 'ssr').length,
       csr: visibleEntries.filter((entry) => entry.phase === 'csr').length,
       avgImportDuration: averageBy(visibleEntries, 'importDuration'),
       maxImportDuration: visibleEntries.reduce(
-        (max, entry) =>
-          Math.max(max, entry.importDuration ?? entry.duration ?? 0),
-        0,
+        (max, entry) => Math.max(max, entry.importDuration ?? entry.duration ?? 0),
+        0
       ),
       avgLoadDuration: averageBy(visibleEntries, 'loadDuration'),
       maxLoadDuration: visibleEntries.reduce(
-        (max, entry) =>
-          Math.max(max, entry.loadDuration ?? entry.qrlToLoadDuration ?? 0),
-        0,
+        (max, entry) => Math.max(max, entry.loadDuration ?? entry.qrlToLoadDuration ?? 0),
+        0
       ),
     },
     rows: visibleRows,

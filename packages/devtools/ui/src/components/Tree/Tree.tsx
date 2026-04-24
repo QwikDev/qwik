@@ -40,8 +40,8 @@ interface TreeNodeComponentProps {
 const DISPLAY_PROPS = ['q:id', 'q:key'] as const;
 
 /**
- * Build a compact attribute string from a node's props.
- * Only displays the keys listed in `DISPLAY_PROPS`.
+ * Build a compact attribute string from a node's props. Only displays the keys listed in
+ * `DISPLAY_PROPS`.
  */
 function formatDisplayProps(props: Record<string, TreeNodePropValue>): string {
   let result = '';
@@ -94,9 +94,7 @@ const TreeNodeComponent = component$<TreeNodeComponentProps>((props) => {
       <div
         class={[
           'flex w-full cursor-pointer items-center rounded-lg px-1 py-0.5 transition-colors duration-150',
-          isActive
-            ? 'bg-primary/10 text-primary'
-            : 'hover:bg-card-item-hover-bg',
+          isActive ? 'bg-primary/10 text-primary' : 'hover:bg-card-item-hover-bg',
         ]}
         style={
           isActive
@@ -126,9 +124,7 @@ const TreeNodeComponent = component$<TreeNodeComponentProps>((props) => {
             ) : (
               <>
                 <span class="text-foreground/50">&lt;</span>
-                <span class="text-primary/80">
-                  {props.node.label || props.node.name}
-                </span>
+                <span class="text-primary/80">{props.node.label || props.node.name}</span>
                 <span class="text-muted-foreground">
                   {` ${formatDisplayProps(props.node.props ?? {})}`}&gt;
                 </span>

@@ -91,11 +91,13 @@ function buildTree(container, vnode) {
 
       // Extract QRL chunk path for state lookup (same as overlay)
       var qrlChunk = '';
+      var qrlPath = '';
       try {
         var chunk = renderFn.$chunk$ || '';
         var splitPoint = '_component';
         var idx = chunk.indexOf(splitPoint);
         qrlChunk = idx > 0 ? chunk.substring(0, idx) : chunk;
+        qrlPath = renderFn.dev && renderFn.dev.file ? renderFn.dev.file : qrlChunk;
       } catch (_) {}
 
       var children = [];
@@ -107,6 +109,7 @@ function buildTree(container, vnode) {
       var nodeProps = qId ? { 'q:id': qId } : {};
       if (colonId) nodeProps.__colonId = colonId;
       if (qrlChunk) nodeProps.__qrlChunk = qrlChunk;
+      if (qrlPath) nodeProps.__qrlPath = qrlPath;
 
       // Stable ID: use q:id when available, fall back to sequential
       var nodeId = qId ? ('q-' + qId) : ('vnode-' + (_idx++));
@@ -168,7 +171,7 @@ function setupBridge() {
       if (inspector) {
         var parts = inspector.split('/');
         var fileName = (parts[parts.length - 1] || '').split(':')[0];
-        var compName = fileName.replace(/\.(tsx|ts|jsx|js)$/, '');
+        var compName = fileName.replace(/[.](tsx|ts|jsx|js)$/, '');
         if (compName) {
           // Search _vnodeMap for a node with this name
           for (var id in _vnodeMap) {

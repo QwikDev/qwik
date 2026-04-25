@@ -90,20 +90,35 @@ describe('processVnodeData', () => {
     });
   });
 
-  it('should yield while eagerly deserializing container state before resume', async () => {
-    const serializedItems: unknown[] = [];
-    const expectedItems: number[] = [];
+  it('should yield while preprocessing container state without eager deserialization', async () => {
+    const stateItems: unknown[] = [TypeIds.VNode, '4'];
     for (let i = 0; i < 128; i++) {
-      serializedItems.push(TypeIds.Plain, i);
-      expectedItems.push(i);
+      stateItems.push(TypeIds.Plain, i);
     }
-    const stateData = JSON.stringify([TypeIds.Array, serializedItems]);
+    const stateData = JSON.stringify(stateItems);
+    const vData =
+      emitVNodeSeparators(0, 2) +
+      'G2' +
+      emitVNodeSeparators(2, 4) +
+      VNodeDataSeparator.REFERENCE_CH +
+      emitVNodeSeparators(4, 5) +
+      'FB';
     const document = createDocument({
       html: `
         <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
           <head :></head>
           <body :>
-            <script type="qwik/vnode"></script>
+            <!--q:ignore=abc-->
+              <section>
+                <div>
+                  <!--q:container-island=some-id-2-->
+                    <span :><button :>Click</button></span>
+                  <!--/q:container-island-->
+                </div>
+              </section>
+            <!--/q:ignore-->
+            <b :>After!</b>
+            <script type="qwik/vnode">${vData}</script>
             <script type="qwik/state">${stateData}</script>
           </body>
         </html>
@@ -130,7 +145,10 @@ describe('processVnodeData', () => {
 
       await ready;
       expect(chunks).toBeGreaterThan(1);
-      expect(container.$getObjectById$(0)).toEqual(expectedItems);
+      expect(container.$getObjectById$(1)).toBe(0);
+      expect((document.documentElement as ContainerElement).qVNodeRefs?.get(4)).toBe(
+        document.querySelector('button')
+      );
       expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
     });
   });

@@ -6,8 +6,9 @@ import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
-import { getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
+import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
+import { getObjectById, parseQRL } from '../shared/serdes/index';
+import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import {
   createMacroTask,
   runYieldingIterator,
@@ -227,9 +228,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      preprocessState(this.$rawStateData$, this);
-      this.$stateData$ = Array(this.$rawStateData$.length / 2);
-      yield* eagerDeserializeStateIterator(this, this.$rawStateData$, this.$stateData$);
+      yield* preprocessStateIterator(this.$rawStateData$, this);
+      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$hoistStyles$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);

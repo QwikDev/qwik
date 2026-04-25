@@ -1035,13 +1035,14 @@ describe('shared-serialization', () => {
       const restoredComputed = state[1] as ComputedSignalImpl<number>;
       const restoredSerializer = state[2] as SerializerSignalImpl<MyCustomSerializable, number>;
 
-      const restoredSignals = [restoredSignal, restoredComputed, restoredSerializer];
-      for (let i = 0; i < restoredSignals.length; i++) {
-        const restored = restoredSignals[i];
+      const signals = [restoredSignal, restoredComputed, restoredSerializer];
+      for (let i = 0; i < signals.length; i++) {
+        const restored = signals[i];
         const effect = [...restored.$effects$!][0];
         expect(effect.backRef).toBeDefined();
         expect(effect.backRef!.has(restored)).toBe(true);
       }
+
       expect(restoredComputed.$computeQrl$).toBeDefined();
       expect(restoredSerializer.$computeQrl$).toBeDefined();
     });

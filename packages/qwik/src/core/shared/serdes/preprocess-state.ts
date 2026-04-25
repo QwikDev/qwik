@@ -52,6 +52,16 @@ import { TypeIds } from './constants';
  */
 
 export function preprocessState(data: unknown[], container: DeserializeContainer) {
+  const iterator = preprocessStateIterator(data, container);
+  while (!iterator.next().done) {
+    // Run synchronously for non-browser and non-container deserialization paths.
+  }
+}
+
+export function* preprocessStateIterator(
+  data: unknown[],
+  container: DeserializeContainer
+): Generator<void, void, void> {
   const isRootDeepRef = (type: TypeIds, value: unknown) => {
     return type === TypeIds.RootRef && typeof value === 'string';
   };
@@ -99,5 +109,6 @@ export function preprocessState(data: unknown[], container: DeserializeContainer
     } else if (isForwardRefsMap(data[i] as TypeIds)) {
       container.$forwardRefs$ = data[i + 1] as number[];
     }
+    yield;
   }
 }

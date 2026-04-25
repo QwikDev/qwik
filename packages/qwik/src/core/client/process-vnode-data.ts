@@ -2,9 +2,13 @@
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import type { ContainerElement, QDocument } from './types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
-import { createMacroTask } from '../shared/platform/next-tick';
+import {
+  createMacroTask,
+  runYieldingIterator,
+  scheduleYieldingIterator,
+  type YieldingIteratorState,
+} from '../shared/platform/next-tick';
 
-const VNODE_DATA_YIELD_INTERVAL = 1000 / 60;
 const Q_CONTAINER = 'q:container';
 const Q_CONTAINER_END = '/' + Q_CONTAINER;
 const Q_PROPS_SEPARATOR = ':';
@@ -28,11 +32,8 @@ const enum NodeType {
   OTHER /* ************************** */ = 0b0000000,
 }
 
-interface ProcessVNodeDataState {
+interface ProcessVNodeDataState extends YieldingIteratorState {
   $document$: QDocument;
-  $iterator$: Generator<void, void, void>;
-  $schedule$: () => void;
-  $scheduled$: boolean;
 }
 
 /**
@@ -99,9 +100,19 @@ export function processVNodeData(document: Document): void {
     $schedule$: undefined!,
     $scheduled$: false,
   };
-  state.$schedule$ = createMacroTask(() => runProcessVNodeData(state));
+  state.$schedule$ = createMacroTask(() =>
+    runYieldingIterator(
+      state,
+      () => state.$document$.qVNodeDataState === state,
+      () => markVNodeDataReady(state.$document$),
+      () => {
+        state.$document$.qVNodeDataStarted = false;
+        state.$document$.qVNodeDataState = undefined;
+      }
+    )
+  );
   qDocument.qVNodeDataState = state;
-  scheduleProcessVNodeData(state);
+  scheduleYieldingIterator(state);
 }
 
 export const onVNodeDataReady = (document: Document, callback: () => void): void => {
@@ -131,40 +142,6 @@ export const whenVNodeDataReady = <T>(
     });
   });
 };
-
-function scheduleProcessVNodeData(state: ProcessVNodeDataState): void {
-  if (!state.$scheduled$) {
-    state.$scheduled$ = true;
-    state.$schedule$();
-  }
-}
-
-function runProcessVNodeData(state: ProcessVNodeDataState): void {
-  if (state.$document$.qVNodeDataState !== state) {
-    return;
-  }
-  state.$scheduled$ = false;
-  const deadline = performance.now() + VNODE_DATA_YIELD_INTERVAL;
-  let count = 0;
-  try {
-    while (true) {
-      const result = state.$iterator$.next();
-      if (result.done) {
-        markVNodeDataReady(state.$document$);
-        return;
-      }
-      // Sampling the clock every 32 steps keeps `performance.now()` out of the hottest path.
-      if ((++count & 31) === 0 && performance.now() >= deadline) {
-        scheduleProcessVNodeData(state);
-        return;
-      }
-    }
-  } catch (error) {
-    state.$document$.qVNodeDataStarted = false;
-    state.$document$.qVNodeDataState = undefined;
-    throw error;
-  }
-}
 
 function markVNodeDataReady(document: QDocument): void {
   if (document.qVNodeDataReady) {

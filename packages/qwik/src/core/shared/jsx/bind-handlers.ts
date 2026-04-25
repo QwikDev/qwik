@@ -1,7 +1,6 @@
 import { _captures, deserializeCaptures, setCaptures } from '../../shared/qrl/qrl-class';
 import type { Signal } from '../../reactive-primitives/signal.public';
-import { getDomContainer } from '../../client/dom-container';
-import { whenVNodeDataReady } from '../../client/process-vnode-data';
+import { getDomContainer, whenContainerDataReady } from '../../client/dom-container';
 import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import { AsyncSignalFlags } from '../../reactive-primitives/types';
 import { maybeThen } from '../utils/promises';
@@ -14,7 +13,7 @@ import { maybeThen } from '../utils/promises';
 const maybeScopeFromQL = (captureIds: string | undefined, element: Element) => {
   if (typeof captureIds === 'string') {
     const container = getDomContainer(element);
-    return whenVNodeDataReady(container.document, () => {
+    return whenContainerDataReady(container, () => {
       setCaptures(deserializeCaptures(container, captureIds));
       return null;
     });

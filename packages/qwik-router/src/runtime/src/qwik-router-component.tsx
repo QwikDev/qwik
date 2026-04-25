@@ -393,6 +393,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       historyUpdated = true;
     }
 
+    actionState.value = undefined;
+
     routeInternal.value = {
       type,
       dest,
@@ -407,7 +409,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       loadRoute(qwikRouterConfig.routes, qwikRouterConfig.cacheModules, dest.pathname);
     }
 
-    actionState.value = undefined;
     routeLocation.isNavigating = true;
 
     return new Promise<void>((resolve) => {

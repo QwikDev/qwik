@@ -154,7 +154,7 @@ export async function ssrRenderToDom(
 
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
-  await whenVNodeDataReady(container.document, () => undefined);
+  await whenContainerDataReady(container, () => undefined);
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');

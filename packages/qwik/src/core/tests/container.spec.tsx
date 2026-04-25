@@ -4,8 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ssrCreateContainer } from '../../server/ssr-container';
 import { SsrNode } from '../../server/ssr-node';
 import { createDocument } from '../../testing/document';
-import { getDomContainer } from '../client/dom-container';
-import { whenVNodeDataReady } from '../client/process-vnode-data';
+import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import type { ClientContainer } from '../client/types';
 import {
   vnode_ensureElementInflated,
@@ -590,7 +589,7 @@ async function withContainer(
   const html = ssrContainer.writer.toString();
   // console.log(html);
   const container = getDomContainer(toDOM(html));
-  await whenVNodeDataReady(container.document, () => undefined);
+  await whenContainerDataReady(container, () => undefined);
   // console.log(JSON.stringify((container as any).rawStateData, null, 2));
   return container;
 }
@@ -644,7 +643,7 @@ function toDOM(html: string): HTMLElement {
 
 async function toVNode(containerElement: HTMLElement): Promise<VNode> {
   const container = getDomContainer(containerElement);
-  await whenVNodeDataReady(container.document, () => undefined);
+  await whenContainerDataReady(container, () => undefined);
   const vNode = vnode_getFirstChild(container.rootVNode)!;
   return vNode;
 }

@@ -1,7 +1,7 @@
 import type { FunctionComponent, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isDocument, isElement } from '../shared/utils/element';
 import { QContainerValue } from '../shared/types';
-import { DomContainer, getDomContainer } from './dom-container';
+import { DomContainer, getDomContainer, whenContainerDataReady } from './dom-container';
 import { cleanup } from './vnode-diff';
 import { QContainerAttr } from '../shared/utils/markers';
 import type { RenderOptions, RenderResult } from './types';
@@ -11,7 +11,6 @@ import { vnode_setProp } from './vnode-utils';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
-import { whenVNodeDataReady } from './process-vnode-data';
 
 /**
  * Render JSX.
@@ -44,7 +43,7 @@ export const render = async (
   (parent as Element).setAttribute(QContainerAttr, QContainerValue.RESUMED);
 
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
-  await whenVNodeDataReady(container.document, () => undefined);
+  await whenContainerDataReady(container, () => undefined);
   container.$serverData$ = opts.serverData || {};
   const host = container.rootVNode;
   vnode_setProp(host, NODE_DIFF_DATA_KEY, jsxNode);

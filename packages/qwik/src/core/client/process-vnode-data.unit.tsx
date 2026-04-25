@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
 import { VNodeDataSeparator } from '../shared/vnode-data-types';
-import { getDomContainer } from './dom-container';
+import { getDomContainer, whenContainerDataReady } from './dom-container';
 import { findVDataSectionEnd, processVNodeData, whenVNodeDataReady } from './process-vnode-data';
 import type { ClientContainer, ContainerElement, QDocument } from './types';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr, QStyle } from '../shared/utils/markers';
 import { vnode_getFirstChild } from './vnode-utils';
 import { Fragment } from '@qwik.dev/core';
+import { TypeIds } from '../shared/serdes/constants';
 
 describe('processVnodeData', () => {
   it('should yield over multiple chunks and preserve vnode data and refs', async () => {
@@ -49,7 +50,7 @@ describe('processVnodeData', () => {
     });
   });
 
-  it('should finish resume and hoist styles only after vnode data is ready', async () => {
+  it('should finish resume and hoist styles only after container data is ready', async () => {
     const document = createDocument({
       html: `
         <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
@@ -64,7 +65,8 @@ describe('processVnodeData', () => {
     const style = document.body.querySelector('style')!;
 
     await withYieldingVNodeData(document, async (tasks) => {
-      getDomContainer(document.documentElement);
+      const container = getDomContainer(document.documentElement) as any;
+      const ready = whenContainerDataReady(container, () => undefined);
 
       expect(document.qVNodeDataReady).not.toBe(true);
       expect(document.head.contains(style)).toBe(false);
@@ -74,7 +76,61 @@ describe('processVnodeData', () => {
         runNextTask(tasks);
       }
 
+      expect(container.$containerDataReady$).not.toBe(true);
+      expect(document.head.contains(style)).toBe(false);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
+
+      while (!container.$containerDataReady$) {
+        runNextTask(tasks);
+      }
+
+      await ready;
       expect(document.head.contains(style)).toBe(true);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
+    });
+  });
+
+  it('should yield while eagerly deserializing container state before resume', async () => {
+    const serializedItems: unknown[] = [];
+    const expectedItems: number[] = [];
+    for (let i = 0; i < 128; i++) {
+      serializedItems.push(TypeIds.Plain, i);
+      expectedItems.push(i);
+    }
+    const stateData = JSON.stringify([TypeIds.Array, serializedItems]);
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
+          <head :></head>
+          <body :>
+            <script type="qwik/vnode"></script>
+            <script type="qwik/state">${stateData}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as any;
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      while (!document.qVNodeDataReady) {
+        runNextTask(tasks);
+      }
+
+      expect(container.$containerDataReady$).not.toBe(true);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
+
+      let chunks = 0;
+      while (!container.$containerDataReady$) {
+        runNextTask(tasks);
+        chunks++;
+        expect(chunks).toBeLessThan(50);
+      }
+
+      await ready;
+      expect(chunks).toBeGreaterThan(1);
+      expect(container.$getObjectById$(0)).toEqual(expectedItems);
       expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
     });
   });
@@ -440,7 +496,11 @@ async function process(html: string): Promise<ClientContainer[]> {
   const containers: Element[] = [];
   findContainers(document, containers);
 
-  return containers.map(getDomContainer);
+  const domContainers = containers.map(getDomContainer);
+  await Promise.all(
+    domContainers.map((container) => whenContainerDataReady(container, () => undefined))
+  );
+  return domContainers;
 }
 
 const findContainers = (element: Document | ShadowRoot, containers: Element[]) => {

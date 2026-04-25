@@ -5,7 +5,6 @@ import * as useCore from '../use/use-core';
 import * as vnodeUtils from './vnode-utils';
 import * as promises from '../shared/utils/promises';
 import * as domContainer from './dom-container';
-import * as processVNodeData from './process-vnode-data';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
 import { VNodeFlags } from './types';
 
@@ -39,15 +38,7 @@ vi.mock('./dom-container', async () => {
   return {
     ...actual,
     getDomContainer: vi.fn(),
-  };
-});
-
-vi.mock('./process-vnode-data', async () => {
-  const actual =
-    await vi.importActual<typeof import('./process-vnode-data')>('./process-vnode-data');
-  return {
-    ...actual,
-    whenVNodeDataReady: vi.fn((_document, callback) => callback()),
+    whenContainerDataReady: vi.fn((_container, callback) => callback()),
   };
 });
 
@@ -113,7 +104,7 @@ describe('_run', () => {
     // Setup default mocks
     vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
     vi.mocked(useCore.newInvokeContextFromDOMReady).mockReturnValue(mockContext);
-    vi.mocked(processVNodeData.whenVNodeDataReady).mockImplementation((_document, callback) =>
+    vi.mocked(domContainer.whenContainerDataReady).mockImplementation((_container, callback) =>
       callback()
     );
     vi.mocked(qrlClass.deserializeCaptures).mockReturnValue([mockQrl]);
@@ -253,10 +244,10 @@ describe('_run', () => {
     expect(qrlClass.setCaptures).toHaveBeenCalled();
   });
 
-  it('should wait for VNodeData readiness before creating context', async () => {
+  it('should wait for container data readiness before creating context', async () => {
     let ready!: () => void;
-    vi.mocked(processVNodeData.whenVNodeDataReady).mockImplementation(
-      (_document, callback: any) =>
+    vi.mocked(domContainer.whenContainerDataReady).mockImplementation(
+      (_container, callback: any) =>
         new Promise((resolve) => {
           ready = () => resolve(callback());
         })
@@ -301,7 +292,7 @@ describe('runEventHandlerQRL', () => {
 
     vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
     vi.mocked(useCore.newInvokeContextFromDOMReady).mockReturnValue(mockContext);
-    vi.mocked(processVNodeData.whenVNodeDataReady).mockImplementation((_document, callback) =>
+    vi.mocked(domContainer.whenContainerDataReady).mockImplementation((_container, callback) =>
       callback()
     );
     vi.mocked(useCore.invokeApply).mockReturnValue(undefined);

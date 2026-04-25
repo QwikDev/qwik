@@ -33,7 +33,7 @@ import type {
   StreamWriter,
   StreamingOptions,
 } from '../../server/types';
-import { whenVNodeDataReady } from '../client/process-vnode-data';
+import { whenContainerDataReady } from '../client/dom-container';
 import { vnode_getFirstChild } from '../client/vnode-utils';
 import { _fnSignal, type _ContainerElement } from '../internal';
 import { QContainerValue } from '../shared/types';
@@ -242,7 +242,7 @@ describe('render api', () => {
       document = createDocument({ html: result.html });
       emulateExecutionOfQwikFuncs(document);
       const container = getDomContainer(document.body.firstChild as HTMLElement);
-      await whenVNodeDataReady(container.document, () => undefined);
+      await whenContainerDataReady(container, () => undefined);
       const vNode = vnode_getFirstChild(container.rootVNode);
       expect(vNode).toMatchVDOM(
         <button>
@@ -809,7 +809,7 @@ describe('render api', () => {
         document = createDocument({ html: chunks.join('') });
         emulateExecutionOfQwikFuncs(document);
         const container = getDomContainer(document.body.firstChild as HTMLElement);
-        await whenVNodeDataReady(container.document, () => undefined);
+        await whenContainerDataReady(container, () => undefined);
         const vNode = vnode_getFirstChild(container.rootVNode);
         expect(vNode).toMatchVDOM(
           <button>

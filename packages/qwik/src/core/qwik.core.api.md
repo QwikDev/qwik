@@ -268,7 +268,7 @@ export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.
 }
 
 // @internal
-export function _deserialize<T>(rawStateData: string): T;
+export function _deserialize<T>(rawStateData: string): Promise<T>;
 
 // @public (undocumented)
 export interface DevJSX {
@@ -295,6 +295,16 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
 class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
+    // (undocumented)
+    $containerDataCallbacks$?: Array<() => void>;
+    // (undocumented)
+    $containerDataReady$: boolean;
+    // (undocumented)
+    $containerDataStarted$: boolean;
+    // Warning: (ae-forgotten-export) The symbol "ProcessContainerDataState" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $containerDataState$?: ProcessContainerDataState;
     $destroy$(): void;
     // (undocumented)
     $forwardRefs$: Array<number> | null;
@@ -303,6 +313,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $hoistStyles$(): void;
     // (undocumented)
     $instanceHash$: string;
+    // (undocumented)
+    $processContainerData$(): Generator<void, void, void>;
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
     // (undocumented)

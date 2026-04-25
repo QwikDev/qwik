@@ -542,6 +542,15 @@ const ALLOWED_CLASSES = {
   Set: true,
   Map: true,
   Uint8Array: true,
+  // Types in Temporal
+  Duration: true,
+  Instant: true,
+  PlainDate: true,
+  PlainDateTime: true,
+  PlainMonthDay: true,
+  PlainTime: true,
+  PlainYearMonth: true,
+  ZonedDateTime: true,
 };
 
 const referencesOutsideGood = `

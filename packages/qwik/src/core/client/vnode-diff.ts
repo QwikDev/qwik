@@ -31,8 +31,7 @@ import {
   ensureSuspenseBoundaryAttached,
   isSuspenseBoundaryVNode,
   resetSuspenseState,
-  suspenseContentChanged,
-  syncSuspenseBoundary,
+  diffSuspense,
 } from './suspense-diff';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
@@ -355,7 +354,7 @@ function runDiff(
   }
 }
 
-export function diff(
+function diff(
   diffContext: DiffContext,
   jsxNode: JSXChildren,
   vStartNode: VNode,
@@ -1590,12 +1589,11 @@ function expectSuspense(diffContext: DiffContext) {
   const currentKey = getKey(host);
   const currentIsSuspense = isSuspenseBoundaryVNode(host);
   const isSameNode = currentIsSuspense && currentKey === jsxKey;
+  const isSuspense = isSuspenseBoundaryVNode(host);
 
-  if (isSameNode) {
-    deleteFromSideBuffer(diffContext, null, currentKey);
-  } else if (jsxKey === null || diffContext.$isCreationMode$) {
+  if ((host && !isSuspense) || !host) {
     host = createSuspenseHost(diffContext, jsxKey);
-  } else {
+  } else if (!isSameNode) {
     if (
       moveOrCreateKeyedNode(
         diffContext,
@@ -1607,22 +1605,21 @@ function expectSuspense(diffContext: DiffContext) {
       )
     ) {
       host = createSuspenseHost(diffContext, jsxKey);
-    } else {
-      host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode | null;
-      if (!isSuspenseBoundaryVNode(host)) {
-        host = createSuspenseHost(diffContext, jsxKey);
-      }
     }
+    host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode;
+  } else {
+    // delete the key from the side buffer if it is the same component
+    deleteFromSideBuffer(diffContext, null, currentKey);
   }
 
-  const wasExistingSuspense = isSuspenseBoundaryVNode(host);
   host = ensureSuspenseBoundaryAttached(diffContext.$container$, host!);
 
-  const oldProps = wasExistingSuspense
-    ? vnode_getProp<PropsProxy | null>(host, ELEMENT_PROPS, diffContext.$container$.$getObjectById$)
-    : null;
+  // TODO
+  // const oldProps = isSuspense
+  //   ? vnode_getProp<PropsProxy | null>(host, ELEMENT_PROPS, diffContext.$container$.$getObjectById$)
+  //   : null;
   const suspensePriority = (getCursorData(diffContext.$cursor$)?.priority ?? 0) - 1;
-  const shouldRenderContent = !wasExistingSuspense || suspenseContentChanged(oldProps, jsxProps);
+  const shouldRenderContent = !isSuspense;
 
   vnode_setProp(host, ELEMENT_PROPS, jsxProps);
   vnode_setProp(host, QSuspenseS, '');
@@ -1633,10 +1630,10 @@ function expectSuspense(diffContext: DiffContext) {
   );
 
   if (shouldRenderContent) {
-    resetSuspenseState(host, !wasExistingSuspense);
+    resetSuspenseState(host, !isSuspense);
   }
 
-  syncSuspenseBoundary(diffContext, host, jsxProps, shouldRenderContent, suspensePriority);
+  diffSuspense(diffContext, host, jsxProps, shouldRenderContent, suspensePriority);
 }
 
 function expectComponent(diffContext: DiffContext, component: Function) {

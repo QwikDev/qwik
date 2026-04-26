@@ -416,8 +416,8 @@ describe.each([
       <InlineComponent>
         <InlineComponent>
           <div>
-            <InlineComponent>
-              <Fragment>
+            <InlineComponent ssr-required>
+              <Fragment ssr-required>
                 <div>
                   {'resource 1 is '}
                   {'0'}
@@ -456,8 +456,8 @@ describe.each([
       <Component>
         <Component>
           <div>
-            <InlineComponent>
-              <Fragment>
+            <InlineComponent ssr-required>
+              <Fragment ssr-required>
                 <div>
                   {'resource 1 is '}
                   {'0'}

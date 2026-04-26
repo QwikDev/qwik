@@ -6,92 +6,27 @@ import {
   useTask$,
   useErrorBoundary,
   type JSXOutput,
+  Fragment,
+  Fragment as Awaited,
+  Fragment as Component,
+  Fragment as Signal,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { VNodeFlags } from '../client/types';
-import {
-  vnode_getElementName,
-  vnode_getFirstChild,
-  vnode_isElementVNode,
-  vnode_isVirtualVNode,
-} from '../client/vnode-utils';
+import { vnode_getFirstChild, vnode_walkVNode } from '../client/vnode-utils';
 import { getCursorData } from '../shared/cursor/cursor-props';
-import type { ElementVNode } from '../shared/vnode/element-vnode';
-import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
-import type { VNode } from '../shared/vnode/vnode';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
+import { delay } from '../shared/utils/promises';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
-
-const collectSuspenseBoundaries = (
-  root: VNode | null,
-  out: VirtualVNode[] = []
-): VirtualVNode[] => {
-  let current = root;
-  while (current) {
-    if (vnode_isVirtualVNode(current) && current.flags & VNodeFlags.SuspenseBoundary) {
-      out.push(current);
-    }
-    const firstChild = vnode_getFirstChild(current);
-    if (firstChild) {
-      collectSuspenseBoundaries(firstChild, out);
-    }
-    current = current.nextSibling as VNode | null;
-  }
-  return out;
-};
-
-const getSuspenseContentRoot = (boundary: VirtualVNode): ElementVNode => {
-  const contentRoot = vnode_getFirstChild(boundary);
-  expect(contentRoot && vnode_isElementVNode(contentRoot)).toBeTruthy();
-  expect(vnode_getElementName(contentRoot as ElementVNode)).toBe('q-sus');
-  return contentRoot as ElementVNode;
-};
-
-const findFirstCursor = (root: VNode | null): VNode | null => {
-  let current = root;
-  while (current) {
-    if (getCursorData(current)) {
-      return current;
-    }
-    const firstChild = vnode_getFirstChild(current);
-    if (firstChild) {
-      const match = findFirstCursor(firstChild);
-      if (match) {
-        return match;
-      }
-    }
-    current = current.nextSibling as VNode | null;
-  }
-  return null;
-};
-
-const findFirstElementByName = (root: VNode | null, elementName: string): ElementVNode | null => {
-  let current = root;
-  while (current) {
-    if (vnode_isElementVNode(current) && vnode_getElementName(current) === elementName) {
-      return current;
-    }
-    const firstChild = vnode_getFirstChild(current);
-    if (firstChild) {
-      const match = findFirstElementByName(firstChild, elementName);
-      if (match) {
-        return match;
-      }
-    }
-    current = current.nextSibling as VNode | null;
-  }
-  return null;
-};
 
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: Suspense', ({ render }) => {
   it('should render sync children', async () => {
-    const { document } = await render(
+    const { document, vNode } = await render(
       <div>
         <Suspense fallback={<span>Loading...</span>}>
           <p>Sync content</p>
@@ -102,12 +37,23 @@ describe.each([
 
     expect(document.querySelector('div')!.innerHTML).toContain('Sync content');
     expect(document.querySelector('div')!.innerHTML).not.toContain('Loading...');
+
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents">
+            <p>Sync content</p>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
   });
 
   it('should render component children', async () => {
     const Child = component$(() => <p>Child content</p>);
 
-    const { document } = await render(
+    const { document, vNode } = await render(
       <div>
         <Suspense fallback={<span>Loading...</span>}>
           <Child />
@@ -118,6 +64,19 @@ describe.each([
 
     expect(document.querySelector('div')!.innerHTML).toContain('Child content');
     expect(document.querySelector('div')!.innerHTML).not.toContain('Loading...');
+
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component ssr-required>
+          <q-sus style="display:contents">
+            <Component>
+              <p>Child content</p>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
   });
 
   it('should render async children, never the fallback', async () => {
@@ -128,7 +87,7 @@ describe.each([
       return <>{content}</>;
     });
 
-    const { document } = await render(
+    const { document, vNode } = await render(
       <div>
         <Suspense fallback={<span>Loading...</span>}>
           <AsyncChild />
@@ -139,10 +98,26 @@ describe.each([
 
     expect(document.querySelector('div')!.innerHTML).toContain('Async content');
     expect(document.querySelector('div')!.innerHTML).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component ssr-required>
+          <q-sus style="display:contents">
+            <Component>
+              <Fragment>
+                <Awaited>
+                  <p>Async content</p>
+                </Awaited>
+              </Fragment>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
   });
 
   it('should render without a fallback', async () => {
-    const { document } = await render(
+    const { document, vNode } = await render(
       <div>
         <Suspense>
           <p>No fallback</p>
@@ -152,10 +127,20 @@ describe.each([
     );
 
     expect(document.querySelector('div')!.innerHTML).toContain('No fallback');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents">
+            <p>No fallback</p>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
   });
 
   it('should render multiple Suspense boundaries independently', async () => {
-    const { document } = await render(
+    const { document, vNode } = await render(
       <div>
         <Suspense fallback={<span>Loading 1...</span>}>
           <p>Content 1</p>
@@ -172,10 +157,26 @@ describe.each([
     expect(html).toContain('Content 2');
     expect(html).not.toContain('Loading 1...');
     expect(html).not.toContain('Loading 2...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents">
+            <p>Content 1</p>
+          </q-sus>
+          {''}
+        </Component>
+        <Component>
+          <q-sus style="display:contents">
+            <p>Content 2</p>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
   });
 
   it('should handle empty Suspense', async () => {
-    const { document } = await render(
+    const { document, vNode } = await render(
       <div>
         <Suspense fallback={<span>Loading...</span>} />
       </div>,
@@ -183,12 +184,20 @@ describe.each([
     );
 
     expect(document.querySelector('div')!.innerHTML).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents"></q-sus>
+          {''}
+        </Component>
+      </div>
+    );
   });
 
   it('should render async JSX child directly', async () => {
     const content = Promise.resolve(<p>Resolved</p>);
 
-    const { document } = await render(
+    const { document, vNode } = await render(
       <div>
         <Suspense fallback={<span>Loading...</span>}>{content}</Suspense>
       </div>,
@@ -197,6 +206,18 @@ describe.each([
 
     expect(document.querySelector('div')!.innerHTML).toContain('Resolved');
     expect(document.querySelector('div')!.innerHTML).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component ssr-required>
+          <q-sus style="display:contents">
+            <Awaited>
+              <p>Resolved</p>
+            </Awaited>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
   });
 
   it('should bubble descendant throws to the nearest regular error boundary on the client', async () => {
@@ -248,7 +269,7 @@ describe.each([
       setTimeout(() => resolve(<p>Fast</p>), 5)
     );
 
-    const { document } = await render(
+    const { document, vNode } = await render(
       <div>
         <Suspense fallback={<span>Loading...</span>} timeout={100}>
           {fastContent as any}
@@ -260,6 +281,18 @@ describe.each([
     const html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('Fast');
     expect(html).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component ssr-required>
+          <q-sus style="display:contents">
+            <Awaited>
+              <p>Fast</p>
+            </Awaited>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
   });
 
   it('should keep using the generic error path when descendant throws', async () => {
@@ -312,10 +345,18 @@ describe('domRender: Suspense client-side pause timeout', () => {
       { debug }
     );
 
-    const boundaries = collectSuspenseBoundaries(vNode);
-    expect(boundaries).toHaveLength(1);
-
-    const contentRoot = getSuspenseContentRoot(boundaries[0]);
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents">
+            <p>Priority</p>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
+    const suspenseBoundary = vnode_getFirstChild(vNode!)!;
+    const contentRoot = vnode_getFirstChild(suspenseBoundary)!;
     expect(getCursorData(contentRoot)?.priority).toBe(-1);
   });
 
@@ -331,10 +372,27 @@ describe('domRender: Suspense client-side pause timeout', () => {
       { debug }
     );
 
-    const boundaries = collectSuspenseBoundaries(vNode);
-    expect(boundaries).toHaveLength(2);
-    expect(getCursorData(getSuspenseContentRoot(boundaries[0]))?.priority).toBe(-1);
-    expect(getCursorData(getSuspenseContentRoot(boundaries[1]))?.priority).toBe(-2);
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents">
+            <Component>
+              <q-sus style="display:contents">
+                <p>Nested</p>
+              </q-sus>
+              {''}
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
+    const outerBoundary = vnode_getFirstChild(vNode!)!;
+    const outerContentRoot = vnode_getFirstChild(outerBoundary)!;
+    const innerBoundary = vnode_getFirstChild(outerContentRoot)!;
+    const innerContentRoot = vnode_getFirstChild(innerBoundary)!;
+    expect(getCursorData(outerContentRoot)?.priority).toBe(-1);
+    expect(getCursorData(innerContentRoot)?.priority).toBe(-2);
   });
 
   it('should show fallback mid-flight and swap it for children on completion', async () => {
@@ -358,11 +416,27 @@ describe('domRender: Suspense client-side pause timeout', () => {
     await new Promise((r) => setTimeout(r, 40));
 
     (globalThis as any).__slowResolve(<p>Done</p>);
-    const { document } = await renderPromise;
+    const { document, vNode } = await renderPromise;
 
     const html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('Done');
     expect(html).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents">
+            <Component>
+              <Fragment>
+                <Awaited>
+                  <p>Done</p>
+                </Awaited>
+              </Fragment>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
 
     delete (globalThis as any).__slowContent;
     delete (globalThis as any).__slowResolve;
@@ -390,7 +464,7 @@ describe('domRender: Suspense client-side pause timeout', () => {
       return <p>value={toggle.value}</p>;
     });
 
-    const { document } = await domRender(
+    const { document, vNode } = await domRender(
       <div>
         <Suspense fallback={<span>Loading...</span>} timeout={10}>
           <Child />
@@ -403,13 +477,27 @@ describe('domRender: Suspense client-side pause timeout', () => {
     let html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('value=0');
     expect(html).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents">
+            <Component>
+              <p>
+                value=<Signal>0</Signal>
+              </p>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
 
     // Trigger an update that will pause the cursor.
     const toggle = (globalThis as any).__susToggle as { value: number };
     toggle.value = 1;
 
     // Wait past the timeout so the new cursor's pause-timer fires.
-    await new Promise((r) => setTimeout(r, 40));
+    await delay(40);
 
     html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('Loading...');
@@ -423,6 +511,20 @@ describe('domRender: Suspense client-side pause timeout', () => {
     html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('value=1');
     expect(html).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents">
+            <Component>
+              <p>
+                value=<Signal>1</Signal>
+              </p>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
 
     delete (globalThis as any).__susToggle;
     delete (globalThis as any).__susResolve;
@@ -447,7 +549,7 @@ describe('domRender: Suspense client-side pause timeout', () => {
       return <p>value={toggle.value}</p>;
     });
 
-    const { document } = await domRender(
+    const { document, vNode } = await domRender(
       <div>
         <Suspense fallback={<span>Loading...</span>} timeout={10} showStale>
           <Child />
@@ -459,6 +561,20 @@ describe('domRender: Suspense client-side pause timeout', () => {
     let html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('value=0');
     expect(html).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents">
+            <Component>
+              <p>
+                value=<Signal>0</Signal>
+              </p>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
 
     const toggle = (globalThis as any).__showStaleToggle as { value: number };
     toggle.value = 1;
@@ -477,6 +593,20 @@ describe('domRender: Suspense client-side pause timeout', () => {
     html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('value=1');
     expect(html).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component>
+          <q-sus style="display:contents">
+            <Component>
+              <p>
+                value=<Signal>1</Signal>
+              </p>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
 
     delete (globalThis as any).__showStaleToggle;
     delete (globalThis as any).__showStaleResolve;
@@ -516,11 +646,33 @@ describe('domRender: Suspense client-side pause timeout', () => {
       );
     });
 
-    const { container, document } = await domRender(<App />, { debug });
+    const { container, document, vNode } = await domRender(<App />, { debug });
 
     let html = document.querySelector('main > div')!.innerHTML;
     expect(html).toContain('Count: 0');
     expect(html).not.toContain('counting...');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <p>
+            Count: <Signal>0</Signal>
+          </p>
+          <div>
+            <button>Click</button>
+            <Component>
+              <q-sus style="display:contents">
+                <Component>
+                  <div>
+                    Count: <Signal>0</Signal>
+                  </div>
+                </Component>
+              </q-sus>
+              {''}
+            </Component>
+          </div>
+        </main>
+      </Component>
+    );
 
     await trigger(document.body, 'button', 'click', {}, { waitForIdle: false });
     await new Promise((r) => setTimeout(r, 40));
@@ -536,6 +688,28 @@ describe('domRender: Suspense client-side pause timeout', () => {
     html = document.querySelector('main > div')!.innerHTML;
     expect(html).toContain('Count: 1');
     expect(html).not.toContain('counting...');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <p>
+            Count: <Signal>1</Signal>
+          </p>
+          <div>
+            <button>Click</button>
+            <Component>
+              <q-sus style="display:contents">
+                <Component>
+                  <div>
+                    Count: <Awaited>1</Awaited>
+                  </div>
+                </Component>
+              </q-sus>
+              {''}
+            </Component>
+          </div>
+        </main>
+      </Component>
+    );
 
     delete (globalThis as any).__slowChildResolve;
   });
@@ -573,14 +747,37 @@ describe('ssrRenderToDom: Suspense resumed updates', () => {
       { debug }
     );
 
-    const boundary =
-      collectSuspenseBoundaries(vNode)[0] ||
-      ((findFirstElementByName(vNode, 'q-sus')?.parent as VirtualVNode | null) ?? null);
-    expect(boundary).toBeTruthy();
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component ssr-required>
+          <q-sus style="display:contents">
+            <Component ssr-required>
+              <Fragment ssr-required>
+                <button>toggle</button>
+                <p>
+                  value=<Signal ssr-required>0</Signal>
+                </p>
+              </Fragment>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
+    const suspenseBoundary = vnode_getFirstChild(vNode!)!;
+    const contentRoot = vnode_getFirstChild(suspenseBoundary)!;
 
     await trigger(document.body, 'button', 'click', {}, { waitForIdle: false });
     await new Promise((r) => setTimeout(r, 0));
-    expect(getCursorData(findFirstCursor(getSuspenseContentRoot(boundary!))!)?.priority).toBe(0);
+    let updateCursorPriority: number | undefined;
+    vnode_walkVNode(contentRoot, (vNode) => {
+      const priority = getCursorData(vNode)?.priority;
+      if (priority === 0) {
+        updateCursorPriority = priority;
+        return true;
+      }
+    });
+    expect(updateCursorPriority).toBe(0);
     await new Promise((r) => setTimeout(r, 40));
     expect(document.querySelector('div')!.innerHTML).toContain('Loading...');
 
@@ -592,6 +789,23 @@ describe('ssrRenderToDom: Suspense resumed updates', () => {
     const html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('value=1');
     expect(html).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component ssr-required>
+          <q-sus style="display:contents">
+            <Component ssr-required>
+              <Fragment ssr-required>
+                <button>toggle</button>
+                <p>
+                  value=<Signal ssr-required>1</Signal>
+                </p>
+              </Fragment>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
 
     delete (globalThis as any).__ssrSusResolve;
   });
@@ -618,13 +832,32 @@ describe('ssrRenderToDom: Suspense resumed updates', () => {
       );
     });
 
-    const { container, document } = await ssrRenderToDom(
+    const { container, document, vNode } = await ssrRenderToDom(
       <div>
         <Suspense fallback={<span>Loading...</span>} timeout={10} showStale>
           <Child />
         </Suspense>
       </div>,
       { debug }
+    );
+
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component ssr-required>
+          <q-sus style="display:contents">
+            <Component ssr-required>
+              <Fragment ssr-required>
+                <button>toggle</button>
+                <p>
+                  value=
+                  <Signal ssr-required>0</Signal>
+                </p>
+              </Fragment>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
     );
 
     await trigger(document.body, 'button', 'click', {}, { waitForIdle: false });
@@ -643,6 +876,23 @@ describe('ssrRenderToDom: Suspense resumed updates', () => {
     html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('value=1');
     expect(html).not.toContain('Loading...');
+    expect(vNode).toMatchVDOM(
+      <div>
+        <Component ssr-required>
+          <q-sus style="display:contents">
+            <Component ssr-required>
+              <Fragment ssr-required>
+                <button>toggle</button>
+                <p>
+                  value=<Signal ssr-required>1</Signal>
+                </p>
+              </Fragment>
+            </Component>
+          </q-sus>
+          {''}
+        </Component>
+      </div>
+    );
 
     delete (globalThis as any).__ssrShowStaleResolve;
   });

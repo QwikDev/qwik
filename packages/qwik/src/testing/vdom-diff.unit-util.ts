@@ -167,7 +167,7 @@ function diffJsxVNode(
      *
      * To make sure a Virtual component exists, add `ssr-required` to the expected fragment.
      */
-    return diffJsxVNode(vnode_getFirstChild(received)!, expected, path, container, false);
+    return diffJsxVNode(vnode_getFirstChild(received)!, expected, path, container, isSsr);
   } else if (!isSsr || (isSsr && !isSkippableNode(expected))) {
     const receivedTag = vnode_isElementVNode(received)
       ? vnode_getElementName(received as _ElementVNode)

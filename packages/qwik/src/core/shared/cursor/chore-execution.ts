@@ -4,7 +4,6 @@ import {
   vnode_insertElementBefore,
   vnode_isElementVNode,
 } from '../../client/vnode-utils';
-import { diffSuspenseBoundaryNode } from '../../client/suspense-diff';
 import { vnode_diff } from '../../client/vnode-diff';
 import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';
 import { executeComponent } from '../component-execution';
@@ -42,6 +41,7 @@ import type { Cursor } from './cursor';
 import { reconcileKeyedLoopToParent } from '../../client/reconcile-keyed-loop';
 import { _getProps } from '../jsx/props-proxy';
 import type { EachProps } from '../../control-flow/each';
+import { diffSuspenseBoundaryNode } from '../../client/suspense-diff';
 
 /**
  * Executes tasks for a vNode if the TASKS dirty bit is set. Tasks are stored in the ELEMENT_SEQ

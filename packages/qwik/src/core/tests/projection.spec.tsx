@@ -157,11 +157,11 @@ describe.each([
       <Component>
         <Component>
           <div>
-            <Fragment>
+            <Fragment ssr-required>
               before
               <Component>
                 <div>
-                  <Fragment>inner</Fragment>
+                  <Fragment ssr-required>inner</Fragment>
                 </div>
               </Component>
               after
@@ -193,10 +193,10 @@ describe.each([
       <Component>
         <Component>
           <div>
-            <Projection>
+            <Projection ssr-required>
               <h1 q:slot="header">Title</h1>
             </Projection>
-            <Projection>body-content</Projection>
+            <Projection ssr-required>body-content</Projection>
           </div>
         </Component>
       </Component>
@@ -333,9 +333,9 @@ describe.each([
       <Component>
         <Component>
           <span>
-            <Fragment>
+            <Fragment ssr-required>
               <div q:slot="child">
-                <Fragment>Default parent</Fragment>
+                <Fragment ssr-required>Default parent</Fragment>
               </div>
             </Fragment>
           </span>
@@ -364,7 +364,7 @@ describe.each([
       <Fragment>
         <Fragment>
           <button>
-            <Fragment>parent-content</Fragment>
+            <Fragment ssr-required>parent-content</Fragment>
           </button>
         </Fragment>
       </Fragment>
@@ -469,7 +469,7 @@ describe.each([
         <div>
           <Component>
             <div>
-              <Projection>{''}</Projection>
+              <Projection ssr-required>{''}</Projection>
             </div>
           </Component>
           <button></button>
@@ -484,7 +484,7 @@ describe.each([
         <div>
           <Component>
             <div>
-              <Projection>
+              <Projection ssr-required>
                 <div>
                   <h1>Hello from Qwik</h1>
                 </div>
@@ -503,7 +503,7 @@ describe.each([
         <div>
           <Component>
             <div>
-              <Projection>{''}</Projection>
+              <Projection ssr-required>{''}</Projection>
             </div>
           </Component>
           <button></button>
@@ -569,7 +569,7 @@ describe.each([
         <div>
           <Component>
             <div>
-              <Projection>{''}</Projection>
+              <Projection ssr-required>{''}</Projection>
             </div>
           </Component>
           <button></button>
@@ -584,7 +584,7 @@ describe.each([
         <div>
           <Component>
             <div>
-              <Projection>
+              <Projection ssr-required>
                 <div>
                   <h1>Hello from Qwik</h1>
                 </div>
@@ -603,7 +603,7 @@ describe.each([
         <div>
           <Component>
             <div>
-              <Projection>{''}</Projection>
+              <Projection ssr-required>{''}</Projection>
             </div>
           </Component>
           <button></button>
@@ -641,7 +641,7 @@ describe.each([
       <Component>
         <InlineComponent>
           <span>
-            <Projection>{'parent-content'}</Projection>
+            <Projection ssr-required>{'parent-content'}</Projection>
             {'('}
             child-content
             {')'}
@@ -753,7 +753,7 @@ describe.each([
             <div id="btn1">
               <Component>
                 <div>
-                  <Projection></Projection>
+                  <Projection ssr-required></Projection>
                 </div>
               </Component>
             </div>
@@ -1211,8 +1211,8 @@ describe.each([
                   <Projection>
                     <Component>
                       <div>
-                        <Projection>
-                          <Projection>{'Hey'}</Projection>
+                        <Projection ssr-required>
+                          <Projection ssr-required>{'Hey'}</Projection>
                         </Projection>
                       </div>
                     </Component>
@@ -1494,8 +1494,8 @@ describe.each([
           <div class="parent">
             <Component>
               <span class="child">
-                <Projection>
-                  <WrappedSignal>child-content</WrappedSignal>
+                <Projection ssr-required>
+                  <WrappedSignal ssr-required>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1509,8 +1509,8 @@ describe.each([
           <div class="parent">
             <Component>
               <span class="child">
-                <Projection>
-                  <WrappedSignal>{''}</WrappedSignal>
+                <Projection ssr-required>
+                  <WrappedSignal ssr-required>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1528,8 +1528,8 @@ describe.each([
           <div class="parent">
             <Component>
               <span class="child">
-                <Projection>
-                  <WrappedSignal>child-content</WrappedSignal>
+                <Projection ssr-required>
+                  <WrappedSignal ssr-required>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1589,8 +1589,8 @@ describe.each([
           <div class="parent">
             <Component>
               <span class="child">
-                <Projection>
-                  <WrappedSignal>{''}</WrappedSignal>
+                <Projection ssr-required>
+                  <WrappedSignal ssr-required>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1612,8 +1612,8 @@ describe.each([
           <div class="parent">
             <Component>
               <span class="child">
-                <Projection>
-                  <WrappedSignal>child-content</WrappedSignal>
+                <Projection ssr-required>
+                  <WrappedSignal ssr-required>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1630,8 +1630,8 @@ describe.each([
           <div class="parent">
             <Component>
               <span class="child">
-                <Projection>
-                  <WrappedSignal>{''}</WrappedSignal>
+                <Projection ssr-required>
+                  <WrappedSignal ssr-required>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1645,8 +1645,8 @@ describe.each([
           <div class="parent">
             <Component>
               <span class="child">
-                <Projection>
-                  <WrappedSignal>{'child-content'}</WrappedSignal>
+                <Projection ssr-required>
+                  <WrappedSignal ssr-required>{'child-content'}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1675,8 +1675,8 @@ describe.each([
           <div class="parent">
             <Component>
               <span class="child">
-                <Projection>
-                  <WrappedSignal>child-content</WrappedSignal>
+                <Projection ssr-required>
+                  <WrappedSignal ssr-required>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -3111,9 +3111,9 @@ describe.each([
           <Component>
             <div>
               <p>Hide until visible</p>
-              <Projection>
+              <Projection ssr-required>
                 <p>Content</p>
-                <Projection>
+                <Projection ssr-required>
                   <p>index page</p>
                 </Projection>
               </Projection>

@@ -1,5 +1,3 @@
-/** @file Suspense boundary DOM-sync helpers. */
-
 import type { JSXOutput } from '../../server/qwik-types';
 import { setNodeDiffPayload } from '../shared/cursor/chore-execution';
 import { addCursor, isCursor, type Cursor } from '../shared/cursor/cursor';
@@ -19,19 +17,12 @@ import {
   QSuspenseState,
   QSuspenseTimer,
 } from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { VNodeFlags, type ClientContainer } from './types';
-import {
-  cleanupDiffContext,
-  createDiffContext,
-  diff,
-  drainAsyncQueue,
-  type DiffContext,
-} from './vnode-diff';
+import { createDiffContext, vnode_diff_range, type DiffContext } from './vnode-diff';
 import {
   vnode_getElementName,
   vnode_getFirstChild,
@@ -79,10 +70,6 @@ export function resetSuspenseState(host: VirtualVNode, clearResolved = false) {
   vnode_setProp(host, QSuspenseState, SuspenseState.Pending);
 }
 
-export function suspenseContentChanged(oldProps: PropsProxy | null, newProps: PropsProxy): boolean {
-  return !oldProps || oldProps.children !== newProps.children;
-}
-
 function ensureSuspenseContentRoot(diffContext: DiffContext, host: VirtualVNode): ElementVNode {
   const currentFirstChild = vnode_getFirstChild(host);
   if (isSuspenseContentRoot(currentFirstChild)) {
@@ -117,7 +104,7 @@ function updateSuspenseContentRootStyle(
   }
 }
 
-function getSuspenseFallback(state: SuspenseState, props: PropsProxy): JSXChildren {
+export function getSuspenseFallback(state: SuspenseState, props: PropsProxy): JSXChildren {
   if (state === SuspenseState.Fallback) {
     return props.fallback as JSXChildren;
   }
@@ -130,26 +117,20 @@ function diffSuspenseFallbackRange(
   contentRoot: ElementVNode,
   fallback: JSXChildren
 ) {
-  const fallbackDiffContext = createDiffContext(
+  vnode_diff_range(
     diffContext.$container$,
     diffContext.$journal$,
+    fallback,
+    host,
+    contentRoot.nextSibling as VNode | null,
+    null,
     diffContext.$cursor$,
-    diffContext.$scopedStyleIdPrefix$
+    diffContext.$scopedStyleIdPrefix$,
+    false
   );
-  diff(fallbackDiffContext, fallback, host, contentRoot.nextSibling as VNode | null, null, false);
-  const result = drainAsyncQueue(fallbackDiffContext);
-  if (isPromise(result)) {
-    diffContext.$asyncAttributePromises$.push(
-      result.finally(() => {
-        cleanupDiffContext(fallbackDiffContext);
-      }) as Promise<void>
-    );
-    return;
-  }
-  cleanupDiffContext(fallbackDiffContext);
 }
 
-export function syncSuspenseBoundary(
+export function diffSuspense(
   diffContext: DiffContext,
   host: VirtualVNode,
   props: PropsProxy,
@@ -198,18 +179,10 @@ export function diffSuspenseBoundaryNode(
   cursor: Cursor,
   scopedStyleIdPrefix: string | null
 ) {
-  const diffContext = createDiffContext(container, journal, cursor, scopedStyleIdPrefix);
   const props = vnode_getProp<PropsProxy | null>(host, ELEMENT_PROPS, container.$getObjectById$);
   if (!props) {
-    cleanupDiffContext(diffContext);
     return;
   }
-  syncSuspenseBoundary(diffContext, host, props, false, 0);
-  const result = drainAsyncQueue(diffContext);
-  if (isPromise(result)) {
-    return result.finally(() => {
-      cleanupDiffContext(diffContext);
-    });
-  }
-  cleanupDiffContext(diffContext);
+  const diffContext = createDiffContext(container, journal, cursor, scopedStyleIdPrefix);
+  diffSuspense(diffContext, host, props, false, 0);
 }

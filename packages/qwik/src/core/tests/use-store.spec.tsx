@@ -791,17 +791,17 @@ describe.each([
           {'3'}
           <Component>
             <div id="0">
-              <Signal>Read Qwik docs</Signal>
+              <Signal ssr-required>Read Qwik docs</Signal>
             </div>
           </Component>
           <Component>
             <div id="1">
-              <Signal>Build HelloWorld</Signal>
+              <Signal ssr-required>Build HelloWorld</Signal>
             </div>
           </Component>
           <Component>
             <div id="2">
-              <Signal>Profit</Signal>
+              <Signal ssr-required>Profit</Signal>
             </div>
           </Component>
         </div>
@@ -815,17 +815,17 @@ describe.each([
           {'2'}
           <Component>
             <div id="0">
-              <Signal>Read Qwik docs</Signal>
+              <Signal ssr-required>Read Qwik docs</Signal>
             </div>
           </Component>
           <Component>
             <div id="1">
-              <Signal>Build HelloWorld</Signal>
+              <Signal ssr-required>Build HelloWorld</Signal>
             </div>
           </Component>
           <Component>
             <div id="2">
-              <Signal>Profit</Signal>
+              <Signal ssr-required>Profit</Signal>
             </div>
           </Component>
         </div>
@@ -945,7 +945,7 @@ describe.each([
           <Component>
             <div>
               <span>
-                <Signal>Hello</Signal>
+                <Signal ssr-required>Hello</Signal>
               </span>
             </div>
           </Component>

@@ -1693,15 +1693,15 @@ describe.each([
           <section>
             <Component>
               <div>
-                <Projection>
+                <Projection ssr-required>
                   <span>0</span>
                 </Projection>
-                <Component>qwik 10</Component>
+                <Component ssr-required>qwik 10</Component>
               </div>
             </Component>
             <Component>
               <div>
-                <Projection>
+                <Projection ssr-required>
                   <span>1</span>
                 </Projection>
                 {''}
@@ -1709,10 +1709,10 @@ describe.each([
             </Component>
             <Component>
               <div>
-                <Projection>
+                <Projection ssr-required>
                   <span>2</span>
                 </Projection>
-                <Component>qwik 32</Component>
+                <Component ssr-required>qwik 32</Component>
               </div>
             </Component>
           </section>
@@ -1727,7 +1727,7 @@ describe.each([
           <section>
             <Component>
               <div>
-                <Projection>
+                <Projection ssr-required>
                   <span>0</span>
                 </Projection>
                 {''}
@@ -1735,18 +1735,18 @@ describe.each([
             </Component>
             <Component>
               <div>
-                <Projection>
+                <Projection ssr-required>
                   <span>1</span>
                 </Projection>
-                <Component>qwik 31</Component>
+                <Component ssr-required>qwik 31</Component>
               </div>
             </Component>
             <Component>
               <div>
-                <Projection>
+                <Projection ssr-required>
                   <span>2</span>
                 </Projection>
-                <Component>qwik 12</Component>
+                <Component ssr-required>qwik 12</Component>
               </div>
             </Component>
           </section>
@@ -2978,7 +2978,7 @@ describe.each([
             <div>
               <Component>
                 <a>
-                  <Projection>Navigate to home page</Projection>
+                  <Projection ssr-required>Navigate to home page</Projection>
                 </a>
               </Component>
             </div>
@@ -2996,7 +2996,7 @@ describe.each([
             <div>
               <Component>
                 <a>
-                  <Projection>Navigate to other page</Projection>
+                  <Projection ssr-required>Navigate to other page</Projection>
                 </a>
               </Component>
               <div>

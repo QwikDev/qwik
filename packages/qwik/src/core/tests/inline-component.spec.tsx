@@ -289,19 +289,19 @@ describe.each([
       <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <div>
-              <Signal>qwik</Signal>
+              <Signal ssr-required>qwik</Signal>
             </div>
           </InlineComponent>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <div>
-              <Signal>foo</Signal>
+              <Signal ssr-required>foo</Signal>
             </div>
           </InlineComponent>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <div>
-              <Signal>bar</Signal>
+              <Signal ssr-required>bar</Signal>
             </div>
           </InlineComponent>
         </footer>
@@ -314,19 +314,19 @@ describe.each([
       <Component>
         <footer>
           <button></button>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <div>
-              <Signal>bar</Signal>
+              <Signal ssr-required>bar</Signal>
             </div>
           </InlineComponent>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <div>
-              <Signal>foo</Signal>
+              <Signal ssr-required>foo</Signal>
             </div>
           </InlineComponent>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <div>
-              <Signal>qwik</Signal>
+              <Signal ssr-required>qwik</Signal>
             </div>
           </InlineComponent>
         </footer>
@@ -594,9 +594,9 @@ describe.each([
       <InlineComponent>
         <Component>
           <div>
-            <Signal>aaa</Signal>
+            <Signal ssr-required>aaa</Signal>
             {': '}
-            <Projection>
+            <Projection ssr-required>
               <div>
                 {'bar: '}
                 <div id="1">Test</div>
@@ -648,14 +648,14 @@ describe.each([
       <InlineComponent>
         <Component>
           <div>
-            <Signal>{'bar'}</Signal>
+            <Signal ssr-required>{'bar'}</Signal>
             {': '}
-            <Projection>Test</Projection>
-            <Component>
+            <Projection ssr-required>Test</Projection>
+            <Component ssr-required>
               <div>
-                <Signal>{'bbb'}</Signal>
+                <Signal ssr-required>{'bbb'}</Signal>
                 {': '}
-                <Projection>Test2</Projection>
+                <Projection ssr-required>Test2</Projection>
               </div>
             </Component>
           </div>

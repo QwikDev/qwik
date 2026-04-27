@@ -40,10 +40,13 @@ import { createPropsProxy } from '../jsx/props-proxy';
 import { _OWNER, _PROPS_HANDLER } from '../utils/constants';
 import { _constants, _typeIdNames, TypeIds } from './constants';
 import { _dumpState } from './dump-state';
-import { _createDeserializeContainer } from './serdes.public';
+import { eagerDeserializeStateIterator } from './inflate';
+import { preprocessState } from './preprocess-state';
+import { _createDeserializeContainer, getObjectById } from './serdes.public';
 import { createSerializationContext } from './serialization-context';
 import { _serializationWeakRef } from './serialize';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
+import type { DeserializeContainer } from '../types';
 
 const DEBUG = false;
 
@@ -937,6 +940,113 @@ describe('shared-serialization', () => {
     const container = _createDeserializeContainer(data);
     return container.$state$!;
   };
+
+  const eagerDeserialize = (data: unknown[]) => {
+    const state = Array(data.length / 2);
+    const container: DeserializeContainer = {
+      $getObjectById$: (id) => getObjectById(id, state),
+      getSyncFn: (_: number) => {
+        const fn = () => {};
+        return fn;
+      },
+      $storeProxyMap$: new WeakMap(),
+      element: null,
+      $forwardRefs$: null,
+    };
+    preprocessState(data, container);
+    const iterator = eagerDeserializeStateIterator(container, data, state);
+    let yields = 0;
+    while (!iterator.next().done) {
+      yields++;
+    }
+    return { state, yields };
+  };
+
+  describe('chunked eager deserialize', () => {
+    const makeEffect = () =>
+      new EffectSubscription(
+        new Task(0, 0, {} as any, inlinedQrl(0, 's_zero') as any, {} as any, null),
+        EffectProperty.COMPONENT,
+        null,
+        null
+      );
+
+    it('restores arrays, objects, maps, sets, and root refs', async () => {
+      const shared = { value: 1 };
+      const root = [
+        shared,
+        { shared },
+        new Map<unknown, unknown>([[shared, new Set([shared, 'x'])]]),
+        new Set([shared]),
+      ];
+      const sync = deserialize(await serialize(root, shared));
+      const { state, yields } = eagerDeserialize(await serialize(root, shared));
+      const restoredRoot = state[0] as any[];
+      const restoredShared = state[1] as Record<string, unknown>;
+
+      expect(yields).toBeGreaterThan(0);
+      expect(state).toEqual(sync);
+      expect(restoredRoot[0]).toBe(restoredShared);
+      expect(restoredRoot[1].shared).toBe(restoredShared);
+      expect([...restoredRoot[2].keys()][0]).toBe(restoredShared);
+      expect(restoredRoot[3].has(restoredShared)).toBe(true);
+    });
+
+    it('restores stores with cycles', async () => {
+      const target: any = { count: 1 };
+      target.self = target;
+      const store = createStore(null, target, StoreFlags.RECURSIVE);
+      const { state } = eagerDeserialize(await serialize(store));
+      const restoredStore = state[0] as typeof store;
+      const restoredTarget = unwrapStore(restoredStore) as typeof target;
+
+      expect(restoredTarget.count).toBe(1);
+      expect(restoredTarget.self).toBe(restoredTarget);
+    });
+
+    it('resolves forward refs after root allocation', () => {
+      const { state } = eagerDeserialize([
+        TypeIds.ForwardRef,
+        0,
+        TypeIds.ForwardRefs,
+        [2],
+        TypeIds.Object,
+        [TypeIds.Plain, 'answer', TypeIds.Plain, 42],
+      ]);
+
+      expect(state[0]).toBe(state[2]);
+      expect(state[0]).toEqual({ answer: 42 });
+    });
+
+    it('restores signal backrefs and computed qrls', async () => {
+      const sig = createSignal(42) as SignalImpl;
+      sig.$effects$ = new Set([makeEffect()]);
+      const computed = createComputed$(() => 1, { serializationStrategy: 'always' });
+      const computedImpl = computed as unknown as ComputedSignalImpl<number>;
+      computedImpl.$effects$ = new Set([makeEffect()]);
+      const serializer = createSerializer$({
+        deserialize: (n?: number) => new MyCustomSerializable(n ?? 3),
+        serialize: (obj) => obj.n,
+      }) as unknown as SerializerSignalImpl<MyCustomSerializable, number>;
+      serializer.$effects$ = new Set([makeEffect()]);
+
+      const { state } = eagerDeserialize(await serialize(sig, computedImpl, serializer));
+      const restoredSignal = state[0] as SignalImpl;
+      const restoredComputed = state[1] as ComputedSignalImpl<number>;
+      const restoredSerializer = state[2] as SerializerSignalImpl<MyCustomSerializable, number>;
+
+      const signals = [restoredSignal, restoredComputed, restoredSerializer];
+      for (let i = 0; i < signals.length; i++) {
+        const restored = signals[i];
+        const effect = [...restored.$effects$!][0];
+        expect(effect.backRef).toBeDefined();
+        expect(effect.backRef!.has(restored)).toBe(true);
+      }
+
+      expect(restoredComputed.$computeQrl$).toBeDefined();
+      expect(restoredSerializer.$computeQrl$).toBeDefined();
+    });
+  });
 
   describe('deserialize types', () => {
     it(title(TypeIds.Plain), async () => {
@@ -1977,7 +2087,7 @@ describe('serializer - internal', () => {
   });
   it('_deserialize', async () => {
     const ser = await _serialize({ a: 1 });
-    const des = _deserialize(ser);
+    const des = await _deserialize(ser);
     expect(des).toEqual({ a: 1 });
   });
   it('_serialize should emit short integer-like plain object keys as numbers', async () => {
@@ -1992,7 +2102,7 @@ describe('serializer - internal', () => {
     expect(ser).toBe(
       '[5,[0,"0",0,"e",0,123,0,"a",0,1234567,0,"d",0,"12345678",0,"f",0,-45,0,"b",0,"012",0,"c"]]'
     );
-    expect(_deserialize(ser)).toEqual({
+    expect(await _deserialize(ser)).toEqual({
       123: 'a',
       '-45': 'b',
       '012': 'c',

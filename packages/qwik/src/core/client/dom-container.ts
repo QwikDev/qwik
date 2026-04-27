@@ -7,7 +7,14 @@ import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
-import { getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
+import { getObjectById, parseQRL } from '../shared/serdes/index';
+import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
+import {
+  createMacroTask,
+  runYieldingIterator,
+  scheduleYieldingIterator,
+  type YieldingIteratorState,
+} from '../shared/platform/next-tick';
 import { _SharedContainer } from '../shared/shared-container';
 import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
@@ -84,6 +91,123 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
+interface ProcessContainerDataState extends YieldingIteratorState {}
+
+export const processContainerData = (container: IClientContainer): void => {
+  const domContainer = container as DomContainer;
+  if (domContainer.$containerDataStarted$ || domContainer.$containerDataReady$) {
+    return;
+  }
+  domContainer.$containerDataStarted$ = true;
+  processVNodeData(domContainer.document);
+  onVNodeDataReady(domContainer.document, () => {
+    if (
+      !domContainer.$containerDataStarted$ ||
+      domContainer.$containerDataReady$ ||
+      domContainer.element.qContainer !== domContainer
+    ) {
+      return;
+    }
+    if (
+      !domContainer.element.querySelector('script[type="qwik/state"]') &&
+      !domContainer.document.body.querySelector(QStylesAllSelector)
+    ) {
+      try {
+        runIteratorSync(domContainer.$processContainerData$());
+        markContainerDataReady(domContainer);
+      } catch (error) {
+        domContainer.$containerDataStarted$ = false;
+        domContainer.$containerDataState$ = undefined;
+        throw error;
+      }
+      return;
+    }
+    const state: ProcessContainerDataState = {
+      $iterator$: domContainer.$processContainerData$(),
+      $schedule$: undefined!,
+      $scheduled$: false,
+    };
+    const schedule = createMacroTask(() => {
+      if (
+        domContainer.$containerDataState$ !== state ||
+        domContainer.element.qContainer !== domContainer
+      ) {
+        schedule.$destroy$?.();
+        return;
+      }
+      runYieldingIterator(
+        state,
+        () => true,
+        () => {
+          schedule.$destroy$?.();
+          markContainerDataReady(domContainer);
+        },
+        () => {
+          schedule.$destroy$?.();
+          domContainer.$containerDataStarted$ = false;
+          domContainer.$containerDataState$ = undefined;
+        }
+      );
+    });
+    state.$schedule$ = schedule;
+    domContainer.$containerDataState$ = state;
+    scheduleYieldingIterator(state);
+  });
+};
+
+function runIteratorSync<T>(iterator: Generator<void, T, void>): T {
+  while (true) {
+    const result = iterator.next();
+    if (result.done) {
+      return result.value;
+    }
+  }
+}
+
+export const onContainerDataReady = (container: IClientContainer, callback: () => void): void => {
+  const domContainer = container as DomContainer;
+  if (domContainer.$containerDataReady$) {
+    callback();
+  } else {
+    processContainerData(domContainer);
+    (domContainer.$containerDataCallbacks$ ||= []).push(callback);
+  }
+};
+
+export const whenContainerDataReady = <T>(
+  container: IClientContainer,
+  callback: () => T | Promise<T>
+): T | Promise<T> => {
+  const domContainer = container as DomContainer;
+  if (domContainer.$containerDataReady$) {
+    return callback();
+  }
+  return new Promise<T>((resolve, reject) => {
+    onContainerDataReady(domContainer, () => {
+      try {
+        resolve(callback());
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+};
+
+function markContainerDataReady(container: DomContainer): void {
+  if (container.$containerDataReady$) {
+    return;
+  }
+  container.$containerDataReady$ = true;
+  container.$containerDataState$ = undefined;
+  const callbacks = container.$containerDataCallbacks$;
+  container.$containerDataCallbacks$ = undefined;
+  if (callbacks) {
+    for (let i = 0; i < callbacks.length; i++) {
+      callbacks[i]();
+    }
+  }
+}
+
 /** @internal */
 export class DomContainer extends _SharedContainer implements IClientContainer {
   public element: ContainerElement;
@@ -96,6 +220,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $instanceHash$: string;
   public $forwardRefs$: Array<number> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
+  public $containerDataStarted$ = false;
+  public $containerDataReady$ = false;
+  public $containerDataState$?: ProcessContainerDataState;
+  public $containerDataCallbacks$?: Array<() => void>;
 
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
@@ -121,10 +249,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.qContainer = this;
     (element as any).qDestroy = () => this.$destroy$();
-    onVNodeDataReady(document, () => this.$finalizeResume$());
+    processContainerData(this);
   }
 
-  private $finalizeResume$(): void {
+  *$processContainerData$(): Generator<void, void, void> {
     const element = this.element;
     if (element.qContainer !== this) {
       return;
@@ -133,7 +261,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      preprocessState(this.$rawStateData$, this);
+      yield* preprocessStateIterator(this.$rawStateData$, this);
       this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$hoistStyles$();
@@ -160,6 +288,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     document.qVNodeDataReady = false;
     document.qVNodeDataState = undefined;
     document.qVNodeDataCallbacks = undefined;
+    this.$containerDataStarted$ = false;
+    this.$containerDataReady$ = false;
+    this.$containerDataState$ = undefined;
+    this.$containerDataCallbacks$ = undefined;
   }
 
   /**

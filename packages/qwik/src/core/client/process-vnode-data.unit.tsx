@@ -2,15 +2,29 @@ import { describe, expect, it } from 'vitest';
 import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
 import { VNodeDataSeparator } from '../shared/vnode-data-types';
-import { getDomContainer } from './dom-container';
+import { getDomContainer, whenContainerDataReady } from './dom-container';
 import { findVDataSectionEnd, processVNodeData, whenVNodeDataReady } from './process-vnode-data';
 import type { ClientContainer, ContainerElement, QDocument } from './types';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr, QStyle } from '../shared/utils/markers';
 import { vnode_getFirstChild } from './vnode-utils';
 import { Fragment } from '@qwik.dev/core';
+import { TypeIds } from '../shared/serdes/constants';
 
 describe('processVnodeData', () => {
+  it('should finish empty container data without scheduling a chunk', async () => {
+    const document = createDocument() as QDocument;
+    document.body.setAttribute(QContainerAttr, QContainerValue.RESUMED);
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.body) as any;
+
+      expect(document.qVNodeDataReady).toBe(true);
+      expect(container.$containerDataReady$).toBe(true);
+      expect(tasks).toHaveLength(0);
+    });
+  });
+
   it('should yield over multiple chunks and preserve vnode data and refs', async () => {
     const document = createDocument({
       html: `
@@ -49,7 +63,7 @@ describe('processVnodeData', () => {
     });
   });
 
-  it('should finish resume and hoist styles only after vnode data is ready', async () => {
+  it('should finish resume and hoist styles only after container data is ready', async () => {
     const document = createDocument({
       html: `
         <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
@@ -64,7 +78,8 @@ describe('processVnodeData', () => {
     const style = document.body.querySelector('style')!;
 
     await withYieldingVNodeData(document, async (tasks) => {
-      getDomContainer(document.documentElement);
+      const container = getDomContainer(document.documentElement) as any;
+      const ready = whenContainerDataReady(container, () => undefined);
 
       expect(document.qVNodeDataReady).not.toBe(true);
       expect(document.head.contains(style)).toBe(false);
@@ -74,7 +89,79 @@ describe('processVnodeData', () => {
         runNextTask(tasks);
       }
 
+      expect(container.$containerDataReady$).not.toBe(true);
+      expect(document.head.contains(style)).toBe(false);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
+
+      while (!container.$containerDataReady$) {
+        runNextTask(tasks);
+      }
+
+      await ready;
       expect(document.head.contains(style)).toBe(true);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
+    });
+  });
+
+  it('should yield while preprocessing container state without eager deserialization', async () => {
+    const stateItems: unknown[] = [TypeIds.VNode, '4'];
+    for (let i = 0; i < 128; i++) {
+      stateItems.push(TypeIds.Plain, i);
+    }
+    const stateData = JSON.stringify(stateItems);
+    const vData =
+      emitVNodeSeparators(0, 2) +
+      'G2' +
+      emitVNodeSeparators(2, 4) +
+      VNodeDataSeparator.REFERENCE_CH +
+      emitVNodeSeparators(4, 5) +
+      'FB';
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
+          <head :></head>
+          <body :>
+            <!--q:ignore=abc-->
+              <section>
+                <div>
+                  <!--q:container-island=some-id-2-->
+                    <span :><button :>Click</button></span>
+                  <!--/q:container-island-->
+                </div>
+              </section>
+            <!--/q:ignore-->
+            <b :>After!</b>
+            <script type="qwik/vnode">${vData}</script>
+            <script type="qwik/state">${stateData}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as any;
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      while (!document.qVNodeDataReady) {
+        runNextTask(tasks);
+      }
+
+      expect(container.$containerDataReady$).not.toBe(true);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
+
+      let chunks = 0;
+      while (!container.$containerDataReady$) {
+        runNextTask(tasks);
+        chunks++;
+        expect(chunks).toBeLessThan(50);
+      }
+
+      await ready;
+      expect(chunks).toBeGreaterThan(1);
+      expect(container.$getObjectById$(1)).toBe(0);
+      expect((document.documentElement as ContainerElement).qVNodeRefs?.get(4)).toBe(
+        document.querySelector('button')
+      );
       expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
     });
   });
@@ -440,7 +527,11 @@ async function process(html: string): Promise<ClientContainer[]> {
   const containers: Element[] = [];
   findContainers(document, containers);
 
-  return containers.map(getDomContainer);
+  const domContainers = containers.map(getDomContainer);
+  await Promise.all(
+    domContainers.map((container) => whenContainerDataReady(container, () => undefined))
+  );
+  return domContainers;
 }
 
 const findContainers = (element: Document | ShadowRoot, containers: Element[]) => {

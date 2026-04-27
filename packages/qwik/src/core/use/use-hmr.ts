@@ -1,5 +1,4 @@
-import { getDomContainer } from '../client/dom-container';
-import { whenVNodeDataReady } from '../client/process-vnode-data';
+import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import {
   _captures,
   deserializeCaptures,
@@ -37,7 +36,7 @@ export const _hmr = function (
   }
   // Deserialize captures from `this` when called via qwikloader/attribute dispatch
   const container = getDomContainer(element);
-  return whenVNodeDataReady(container.document, () => {
+  return whenContainerDataReady(container, () => {
     if (typeof this === 'string') {
       setCaptures(deserializeCaptures(container, this));
     }

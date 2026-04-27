@@ -423,13 +423,13 @@ const parseRequest = async (
       const data = query.get(deps.QDATA_KEY);
       if (data) {
         try {
-          return _deserialize(decodeURIComponent(data)) as JSONValue;
+          return (await _deserialize(decodeURIComponent(data))) as JSONValue;
         } catch {
           //
         }
       }
     }
-    return _deserialize(await request.text()) as JSONValue;
+    return (await _deserialize(await request.text())) as JSONValue;
   }
   return undefined;
 };

@@ -2,9 +2,15 @@ import { createSerializationContext } from './index';
 import { assertTrue } from '../error/assert';
 import type { DeserializeContainer } from '../types';
 import { wrapDeserializerProxy } from './deser-proxy';
-import { deserializeData } from './inflate';
+import { eagerDeserializeStateIterator } from './inflate';
 import { preprocessState } from './preprocess-state';
 import { isDev } from '@qwik.dev/core/build';
+import {
+  createMacroTask,
+  runYieldingIterator,
+  scheduleYieldingIterator,
+  type YieldingIteratorState,
+} from '../platform/next-tick';
 
 /**
  * Serialize data to string using SerializationContext.
@@ -26,13 +32,13 @@ export async function _serialize<T>(data: T): Promise<string> {
   return serializationContext.$writer$.toString();
 }
 /**
- * Deserialize data from string to an array of objects.
+ * Deserialize data from string.
  *
  * @param rawStateData - Data to deserialize
  * @internal
  */
 
-export function _deserialize<T>(rawStateData: string): T {
+export async function _deserialize<T>(rawStateData: string): Promise<T> {
   if (rawStateData == null) {
     throw new Error('No state data to deserialize');
   }
@@ -41,9 +47,40 @@ export function _deserialize<T>(rawStateData: string): T {
     throw new Error('Invalid state data');
   }
 
-  const container = _createDeserializeContainer(stateData);
-  return deserializeData(container, stateData[0], stateData[1]);
+  const state = Array(stateData.length / 2);
+  const container = createBaseDeserializeContainer(stateData, () => state);
+  container.$state$ = state;
+  await runDeserializeIterator(eagerDeserializeStateIterator(container, stateData, state));
+  return state[0] as T;
 }
+
+const runDeserializeIterator = <T>(iterator: Generator<void, T, void>): Promise<T> => {
+  return new Promise<T>((resolve, reject) => {
+    const state: YieldingIteratorState<T> = {
+      $iterator$: iterator,
+      $schedule$: undefined!,
+      $scheduled$: false,
+    };
+    const schedule = createMacroTask(() =>
+      runYieldingIterator(
+        state,
+        () => true,
+        (value) => {
+          schedule.$destroy$?.();
+          resolve(value);
+        },
+        (error) => {
+          schedule.$destroy$?.();
+          reject(error);
+        },
+        undefined,
+        false
+      )
+    );
+    state.$schedule$ = schedule;
+    scheduleYieldingIterator(state);
+  });
+};
 
 export function getObjectById(id: number | string, stateData: unknown[]): unknown {
   if (typeof id === 'string') {
@@ -57,8 +94,18 @@ export function getObjectById(id: number | string, stateData: unknown[]): unknow
 export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer {
   // eslint-disable-next-line prefer-const
   let state: unknown[];
+  const container = createBaseDeserializeContainer(stateData, () => state);
+  state = wrapDeserializerProxy(container as any, stateData);
+  container.$state$ = state;
+  return container;
+}
+
+function createBaseDeserializeContainer(
+  stateData: unknown[],
+  getState: () => unknown[]
+): DeserializeContainer {
   const container: DeserializeContainer = {
-    $getObjectById$: (id: number | string) => getObjectById(id, state),
+    $getObjectById$: (id: number | string) => getObjectById(id, getState()),
     getSyncFn: (_: number) => {
       const fn = () => {};
       return fn;
@@ -68,7 +115,5 @@ export function _createDeserializeContainer(stateData: unknown[]): DeserializeCo
     $forwardRefs$: null,
   };
   preprocessState(stateData, container);
-  state = wrapDeserializerProxy(container as any, stateData);
-  container.$state$ = state;
   return container;
 }

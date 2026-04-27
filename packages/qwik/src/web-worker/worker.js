@@ -30,7 +30,7 @@ globalThis.onmessage = async ({ data }) => {
     },
   };
   try {
-    const [qrl, ...args] = _deserialize(data[3]);
+    const [qrl, ...args] = await _deserialize(data[3]);
     const output = await qrl.apply(undefined, args);
     self.postMessage([requestId, true, output]);
   } catch (err) {

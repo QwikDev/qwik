@@ -27,6 +27,7 @@ import {
   vnode_setProp,
   vnode_toString,
 } from '../core/client/vnode-utils';
+import { whenContainerDataReady } from '../core/client/dom-container';
 import { whenVNodeDataReady } from '../core/client/process-vnode-data';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
@@ -148,7 +149,7 @@ export async function ssrRenderToDom(
 
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
-  await whenVNodeDataReady(container.document, () => undefined);
+  await whenContainerDataReady(container, () => undefined);
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');

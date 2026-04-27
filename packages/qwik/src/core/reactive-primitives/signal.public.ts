@@ -12,6 +12,7 @@ export { isSignal } from './utils';
 /** @public Use this type when you need .value to be read-only at the TypeScript level */
 export interface ReadonlySignal<T = unknown> {
   readonly value: T;
+  readonly untrackedValue: T;
 }
 
 /**

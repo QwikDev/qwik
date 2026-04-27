@@ -9,7 +9,7 @@ import {
 import type { ComputedReturnType } from '../use/use-computed';
 export { isSignal } from './utils';
 
-/** @public @deprecated not used */
+/** @public Use this type when you need .value to be read-only at the TypeScript level */
 export interface ReadonlySignal<T = unknown> {
   readonly value: T;
 }
@@ -27,14 +27,11 @@ export interface ReadonlySignal<T = unknown> {
  * @public
  */
 export interface Signal<T = any> {
-  /** Reading from this subscribes to updates; writing to this triggers updates. */
+  /** Reading .value subscribes to updates; writing to it triggers updates. */
   value: T;
-  /** Reading from this does not subscribe to updates; writing to this does not trigger updates. */
+  /** Reading .untrackedValue does not subscribe to updates; writing to it does not trigger updates. */
   untrackedValue: T;
-  /**
-   * Use this to trigger running subscribers, for example when the value mutated but remained the
-   * same object.
-   */
+  /** Triggers running subscribers, for example when the value mutated but remained the same object. */
   trigger(): void;
 }
 

@@ -54,6 +54,7 @@ import { markVNodeDirty } from '../core/shared/vnode/vnode-dirty';
 import type { ElementVNode } from '../core/shared/vnode/element-vnode';
 import { executeBackpatch } from '../backpatch-executor-shared';
 import { getTestPlatform } from '@qwik.dev/core/testing';
+import { whenContainerDataReady } from '../core/client/dom-container';
 
 /** @public */
 export async function domRender(

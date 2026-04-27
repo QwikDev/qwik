@@ -27,10 +27,12 @@ export const createMacroTask = (fn: () => void): MacroTask => {
       }
     };
     macroTask.$destroy$ = () => {
-      active = false;
-      channel.port1.onmessage = null;
-      channel.port1.close();
-      channel.port2.close();
+      if (active) {
+        active = false;
+        channel.port1.onmessage = null;
+        channel.port1.close();
+        channel.port2.close();
+      }
     };
   } else {
     macroTask = () => setTimeout(fn);

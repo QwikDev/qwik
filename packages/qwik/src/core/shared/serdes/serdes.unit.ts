@@ -42,11 +42,12 @@ import { _constants, _typeIdNames, TypeIds } from './constants';
 import { _dumpState } from './dump-state';
 import { qrlToString } from './qrl-to-string';
 import { preprocessState } from './preprocess-state';
-import { _createDeserializeContainer } from './serdes.public';
+import { _createDeserializeContainer, getObjectById } from './serdes.public';
 import { createSerializationContext } from './serialization-context';
 import { _serializationWeakRef } from './serialize';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import type { DeserializeContainer } from '../types';
+import { eagerDeserializeStateIterator } from './inflate';
 
 const DEBUG = false;
 

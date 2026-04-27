@@ -81,19 +81,7 @@ export const inflate = (
   runDeserializeIterator(inflateIterator(container, target, typeId, data));
 };
 
-/**
- * Restores an array eagerly. If you need it lazily, use `deserializeData(container, TypeIds.Array,
- * array)` instead
- */
-export const _eagerDeserializeArray = (
-  container: DeserializeContainer,
-  data: unknown[],
-  output: unknown[] = Array(data.length / 2)
-): unknown[] => {
-  return runDeserializeIterator(eagerDeserializeArrayIterator(container, data, output));
-};
-
-export function* eagerDeserializeArrayIterator(
+function* eagerDeserializeArrayIterator(
   container: DeserializeContainer,
   data: unknown[],
   output: unknown[] = Array(data.length / 2)
@@ -112,7 +100,6 @@ export function* eagerDeserializeStateIterator(
 ): Generator<void, unknown[], void> {
   const length = data.length / 2;
   const allocated = new Uint8Array(length);
-  const inflated = new Uint8Array(length);
   const previousGetObjectById = container.$getObjectById$;
 
   const allocateRoot = (index: number): unknown => {
@@ -140,17 +127,14 @@ export function* eagerDeserializeStateIterator(
       yield;
     }
     for (let i = 0; i < length; i++) {
-      if (!inflated[i]) {
-        inflated[i] = 1;
-        const typeIndex = i * 2;
-        const typeId = data[typeIndex] as TypeIds;
-        const value = data[typeIndex + 1];
-        const propValue = output[i];
-        data[typeIndex] = TypeIds.Plain;
-        data[typeIndex + 1] = propValue;
-        if (needsInflation(typeId)) {
-          yield* inflateIterator(container, propValue, typeId, value);
-        }
+      const typeIndex = i * 2;
+      const typeId = data[typeIndex] as TypeIds;
+      const value = data[typeIndex + 1];
+      const propValue = output[i];
+      data[typeIndex] = TypeIds.Plain;
+      data[typeIndex + 1] = propValue;
+      if (needsInflation(typeId)) {
+        yield* inflateIterator(container, propValue, typeId, value);
       }
       yield;
     }
@@ -160,7 +144,7 @@ export function* eagerDeserializeStateIterator(
   return output;
 }
 
-export function* deserializeDataIterator(
+function* deserializeDataIterator(
   container: DeserializeContainer,
   typeId: number,
   value: unknown
@@ -175,7 +159,7 @@ export function* deserializeDataIterator(
   return propValue;
 }
 
-export function* inflateIterator(
+function* inflateIterator(
   container: DeserializeContainer,
   target: unknown,
   typeId: TypeIds,
@@ -441,10 +425,6 @@ export function* inflateIterator(
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
-}
-
-export function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
-  return runDeserializeIterator(deserializeDataIterator(container, typeId, value));
 }
 
 export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {

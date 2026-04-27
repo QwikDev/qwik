@@ -104,17 +104,26 @@ export function processVNodeData(document: Document): void {
     $schedule$: undefined!,
     $scheduled$: false,
   };
-  state.$schedule$ = createMacroTask(() =>
+  const schedule = createMacroTask(() => {
+    if (state.$document$.qVNodeDataState !== state) {
+      schedule.$destroy$?.();
+      return;
+    }
     runYieldingIterator(
       state,
-      () => state.$document$.qVNodeDataState === state,
-      () => markVNodeDataReady(state.$document$),
+      () => true,
       () => {
+        schedule.$destroy$?.();
+        markVNodeDataReady(state.$document$);
+      },
+      () => {
+        schedule.$destroy$?.();
         state.$document$.qVNodeDataStarted = false;
         state.$document$.qVNodeDataState = undefined;
       }
-    )
-  );
+    );
+  });
+  state.$schedule$ = schedule;
   qDocument.qVNodeDataState = state;
   scheduleYieldingIterator(state);
 }

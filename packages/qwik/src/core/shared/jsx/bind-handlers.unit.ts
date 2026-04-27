@@ -4,6 +4,8 @@ import { createSignal } from '../../reactive-primitives/signal.public';
 import { createDocument } from '@qwik.dev/core/testing';
 import { QContainerAttr } from '../../shared/utils/markers';
 import { setCaptures } from '../qrl/qrl-class';
+import { TypeIds } from '../serdes/constants';
+import { getDomContainer } from '../../client/dom-container';
 
 describe('bind handlers', () => {
   describe('_res', () => {
@@ -69,6 +71,43 @@ describe('bind handlers', () => {
   });
 
   describe('_val', () => {
+    it('should keep delayed capture scopes isolated per queued event', async () => {
+      const stateData = JSON.stringify([
+        TypeIds.Object,
+        [TypeIds.Plain, 'value', TypeIds.Plain, ''],
+        TypeIds.Object,
+        [TypeIds.Plain, 'value', TypeIds.Plain, ''],
+      ]);
+      const document = createDocument({
+        html: `
+          <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
+            <body>
+              <input id="first" />
+              <input id="second" />
+              <script type="qwik/state">${stateData}</script>
+            </body>
+          </html>
+        `,
+      });
+      const firstInput = document.getElementById('first') as HTMLInputElement;
+      const secondInput = document.getElementById('second') as HTMLInputElement;
+      firstInput.value = 'first value';
+      secondInput.value = 'second value';
+
+      await withQueuedMacroTasks(async (tasks) => {
+        const firstResult = _val.call('0', null, firstInput);
+        const secondResult = _val.call('1', null, secondInput);
+
+        expect(tasks).toHaveLength(1);
+        drainTasks(tasks);
+        await Promise.all([Promise.resolve(firstResult), Promise.resolve(secondResult)]);
+
+        const container = getDomContainer(firstInput);
+        expect((container.$getObjectById$(0) as { value: string }).value).toBe('first value');
+        expect((container.$getObjectById$(1) as { value: string }).value).toBe('second value');
+      });
+    });
+
     it('should update signal with input value', () => {
       const document = createDocument();
       document.body.setAttribute(QContainerAttr, 'paused');
@@ -109,3 +148,42 @@ describe('bind handlers', () => {
     });
   });
 });
+
+async function withQueuedMacroTasks(callback: (tasks: Array<() => void>) => Promise<void>) {
+  const tasks: Array<() => void> = [];
+  const originalMessageChannel = (globalThis as any).MessageChannel;
+
+  class TestMessageChannel {
+    port1 = {
+      onmessage: null as null | (() => void),
+      close() {},
+    };
+    port2 = {
+      postMessage: () => {
+        tasks.push(() => this.port1.onmessage?.());
+      },
+      close() {},
+    };
+  }
+
+  try {
+    Object.defineProperty(globalThis, 'MessageChannel', {
+      configurable: true,
+      value: TestMessageChannel,
+    });
+    await callback(tasks);
+  } finally {
+    Object.defineProperty(globalThis, 'MessageChannel', {
+      configurable: true,
+      value: originalMessageChannel,
+    });
+  }
+}
+
+function drainTasks(tasks: Array<() => void>) {
+  let count = 0;
+  while (tasks.length > 0) {
+    tasks.shift()!();
+    expect(++count).toBeLessThan(10);
+  }
+}

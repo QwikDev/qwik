@@ -127,19 +127,29 @@ export const processContainerData = (container: IClientContainer): void => {
       $schedule$: undefined!,
       $scheduled$: false,
     };
-    state.$schedule$ = createMacroTask(() =>
+    const schedule = createMacroTask(() => {
+      if (
+        domContainer.$containerDataState$ !== state ||
+        domContainer.element.qContainer !== domContainer
+      ) {
+        schedule.$destroy$?.();
+        return;
+      }
       runYieldingIterator(
         state,
-        () =>
-          domContainer.$containerDataState$ === state &&
-          domContainer.element.qContainer === domContainer,
-        () => markContainerDataReady(domContainer),
+        () => true,
         () => {
+          schedule.$destroy$?.();
+          markContainerDataReady(domContainer);
+        },
+        () => {
+          schedule.$destroy$?.();
           domContainer.$containerDataStarted$ = false;
           domContainer.$containerDataState$ = undefined;
         }
-      )
-    );
+      );
+    });
+    state.$schedule$ = schedule;
     domContainer.$containerDataState$ = state;
     scheduleYieldingIterator(state);
   });

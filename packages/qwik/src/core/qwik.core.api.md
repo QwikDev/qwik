@@ -54,7 +54,7 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
 export let _captures: Readonly<unknown[]> | null;
 
 // @internal
-export function _chk(this: string | undefined, _: any, element: HTMLInputElement): ValueOrPromise<void>;
+export function _chk(this: string | undefined, _: any, element: HTMLInputElement): void | Promise<void>;
 
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
@@ -968,7 +968,7 @@ export interface RenderSSROptions {
 }
 
 // @internal
-export function _res(this: string | undefined, _: any, element: Element): ValueOrPromise<void>;
+export function _res(this: string | undefined, _: any, element: Element): void | Promise<void>;
 
 // @internal (undocumented)
 export const _resolveContextWithoutSequentialScope: <STATE>(context: ContextId<STATE>) => STATE | undefined;
@@ -1968,7 +1968,7 @@ export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @internal
-export function _val(this: string | undefined, _: any, element: HTMLInputElement): ValueOrPromise<void>;
+export function _val(this: string | undefined, _: any, element: HTMLInputElement): void | Promise<void>;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

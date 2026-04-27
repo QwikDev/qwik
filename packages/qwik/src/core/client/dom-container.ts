@@ -108,6 +108,20 @@ export const processContainerData = (container: IClientContainer): void => {
     ) {
       return;
     }
+    if (
+      !domContainer.element.querySelector('script[type="qwik/state"]') &&
+      !domContainer.document.body.querySelector(QStylesAllSelector)
+    ) {
+      try {
+        runIteratorSync(domContainer.$processContainerData$());
+        markContainerDataReady(domContainer);
+      } catch (error) {
+        domContainer.$containerDataStarted$ = false;
+        domContainer.$containerDataState$ = undefined;
+        throw error;
+      }
+      return;
+    }
     const state: ProcessContainerDataState = {
       $iterator$: domContainer.$processContainerData$(),
       $schedule$: undefined!,
@@ -130,6 +144,15 @@ export const processContainerData = (container: IClientContainer): void => {
     scheduleYieldingIterator(state);
   });
 };
+
+function runIteratorSync<T>(iterator: Generator<void, T, void>): T {
+  while (true) {
+    const result = iterator.next();
+    if (result.done) {
+      return result.value;
+    }
+  }
+}
 
 export const onContainerDataReady = (container: IClientContainer, callback: () => void): void => {
   const domContainer = container as DomContainer;

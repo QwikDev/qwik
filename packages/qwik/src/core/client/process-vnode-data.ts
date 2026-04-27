@@ -94,6 +94,10 @@ export function processVNodeData(document: Document): void {
   }
   qDocument.qVNodeDataStarted = true;
   qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
+  if (!document.querySelector('script[type="qwik/vnode"], [q\\:shadowroot]')) {
+    markVNodeDataReady(qDocument);
+    return;
+  }
   const state: ProcessVNodeDataState = {
     $document$: qDocument,
     $iterator$: processVNodeDataIterator(document),

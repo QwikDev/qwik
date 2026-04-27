@@ -42,7 +42,7 @@ describe('bind handlers', () => {
       const result = _res.call(captureString, null, element);
 
       // Resolves undefined (no-op) once VNodeData processing is ready.
-      await expect(result).resolves.toBeUndefined();
+      await expect(Promise.resolve(result)).resolves.toBeUndefined();
     });
   });
 

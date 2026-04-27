@@ -12,6 +12,19 @@ import { Fragment } from '@qwik.dev/core';
 import { TypeIds } from '../shared/serdes/constants';
 
 describe('processVnodeData', () => {
+  it('should finish empty container data without scheduling a chunk', async () => {
+    const document = createDocument() as QDocument;
+    document.body.setAttribute(QContainerAttr, QContainerValue.RESUMED);
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.body) as any;
+
+      expect(document.qVNodeDataReady).toBe(true);
+      expect(container.$containerDataReady$).toBe(true);
+      expect(tasks).toHaveLength(0);
+    });
+  });
+
   it('should yield over multiple chunks and preserve vnode data and refs', async () => {
     const document = createDocument({
       html: `

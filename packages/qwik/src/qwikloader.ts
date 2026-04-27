@@ -41,6 +41,8 @@ const elementPrefix = 'e';
 const passiveElementPrefix = 'ep';
 const capturePrefix = 'capture:';
 
+const readyStateChange = 'readystatechange';
+
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
 const symbols = new Map<string, Handler>();
@@ -107,6 +109,17 @@ const resolveContainer = (containerEl: QContainerElement) => {
     }
   }
 };
+
+const waitForContainerReady = (container: QContainerElement) =>
+  container.getAttribute('q:container') === 'paused' && doc.readyState === 'loading'
+    ? new Promise<void>((resolve) => {
+        const done = () => {
+          doc.removeEventListener(readyStateChange, done);
+          resolve();
+        };
+        addEventListener(doc, readyStateChange, done);
+      })
+    : undefined;
 
 const createEvent = <T extends CustomEvent = any>(eventName: string, detail?: T['detail']) =>
   new CustomEvent(eventName, { detail }) as T;
@@ -289,6 +302,7 @@ const dispatch = (
     const qBase = container.getAttribute('q:base')!;
     const base = new URL(qBase, doc.baseURI);
     const qrls = attrValue.split('|');
+    const waitForReady = waitForContainerReady(container);
     for (let i = 0; i < qrls.length; i++) {
       const qrl = qrls[i];
       const reqTime = performance.now();
@@ -319,11 +333,23 @@ const dispatch = (
           }
         }
       };
-      const handler = resolveHandler(container, element, qBase, base, chunk, symbol, reqTime);
-      if (defer || isPromise(handler)) {
+      const resolve = () => resolveHandler(container, element, qBase, base, chunk, symbol, reqTime);
+      const handler = waitForReady && chunk === '' ? undefined : resolve();
+      if (isPromise(handler)) {
         defer = true;
         tasks.push(async () => {
-          await run(isPromise(handler) ? await handler : handler);
+          if (waitForReady) {
+            await waitForReady;
+          }
+          await run(await handler);
+        });
+      } else if (defer || waitForReady) {
+        defer = true;
+        tasks.push(async () => {
+          if (waitForReady) {
+            await waitForReady;
+          }
+          await run(handler || (await resolve()));
         });
       } else {
         const result = run(handler);
@@ -593,6 +619,6 @@ if (!_qwikEv?.roots) {
     roots,
     push: addEventOrRoot,
   };
-  addEventListener(doc, 'readystatechange', processReadyStateChange);
+  addEventListener(doc, readyStateChange, processReadyStateChange);
   processReadyStateChange();
 }

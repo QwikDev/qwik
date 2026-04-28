@@ -165,8 +165,8 @@ test('tsconfigFileNames, empty array fallback to default', async () => {
 test('input string', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ input: 'src/cmps/main.tsx' });
-  // we don't provide input so that we don't override the vite input
-  assert.deepEqual(opts.input, undefined);
+  // relative inputs are resolved to absolute so rollup can find them
+  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src/cmps/main.tsx'))]);
 });
 
 test('input array', async () => {
@@ -174,8 +174,21 @@ test('input array', async () => {
   const opts = await plugin.normalizeOptions({
     input: ['src/cmps/a.tsx', 'src/cmps/b.tsx'],
   });
-  // we don't provide input so that we don't override the vite input
-  assert.deepEqual(opts.input, undefined);
+  // relative inputs are resolved to absolute so rollup can find them
+  assert.deepEqual(opts.input, [
+    normalizePath(resolve(cwd, 'src/cmps/a.tsx')),
+    normalizePath(resolve(cwd, 'src/cmps/b.tsx')),
+  ]);
+});
+
+test.runIf(process.platform === 'win32')('input array, win32', async () => {
+  const plugin = await mockPlugin();
+  const opts = await plugin.normalizeOptions({
+    rootDir: 'C:\\proj',
+    input: ['src\\cmps\\a.tsx', 'C:\\abs\\b.tsx'],
+  });
+  // relative paths are resolved against rootDir and normalized; absolute paths pass through
+  assert.deepEqual(opts.input, ['C:/proj/src/cmps/a.tsx', 'C:\\abs\\b.tsx']);
 });
 
 test('outDir', async () => {

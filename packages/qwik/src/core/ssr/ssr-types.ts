@@ -18,7 +18,8 @@ import type { ResourceReturnInternal } from '../use/use-resource';
 
 /** @internal */
 export interface StreamWriter {
-  write(chunk: string): void;
+  write(chunk: string): ValueOrPromise<void>;
+  waitForDrain?(): ValueOrPromise<void>;
 }
 
 export interface ISsrNode {
@@ -125,9 +126,10 @@ export interface SSRContainer extends Container {
 
 /** @internal */
 export interface IStreamHandler {
-  flush(): void;
+  flush(): ValueOrPromise<void>;
+  waitForPendingFlush(): ValueOrPromise<void>;
   streamBlockStart(): void;
-  streamBlockEnd(): void;
+  streamBlockEnd(): ValueOrPromise<void>;
 }
 
 /** @public */

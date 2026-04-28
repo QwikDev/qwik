@@ -9,7 +9,6 @@ export const doc = isBrowser ? document : undefined!;
 export const config = {
   $DEBUG$: false,
   $maxIdlePreloads$: 25,
-  $invPreloadProbability$: 0.65,
 };
 
 // Determine which rel attribute to use based on browser support

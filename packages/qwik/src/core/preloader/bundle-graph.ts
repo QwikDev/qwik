@@ -2,13 +2,7 @@ import { isServer } from '@qwik.dev/core/build';
 import { isServerPlatform } from '../shared/platform/platform';
 import { createMacroTask } from '../shared/platform/next-tick';
 import { config, isJSRegex, yieldInterval } from './constants';
-import {
-  adjustProbabilities,
-  bundles,
-  log,
-  shouldResetFactor,
-  nextTriggerMacroTask,
-} from './queue';
+import { adjustProbabilities, bundles, shouldResetFactor, nextTriggerMacroTask } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_None, BundleImportState_Alias } from './types';
 
@@ -77,23 +71,13 @@ export const loadBundleGraph = (
   basePath: string,
   serializedResponse?: ReturnType<typeof fetch>,
   opts?: {
-    /** Enable logging */
-    debug?: boolean;
     /** Maximum number of simultaneous preload links */
     P?: number;
-    /** Minimum probability for a bundle to be added to the preload queue */
-    Q?: number;
   }
 ) => {
   if (opts) {
-    if ('d' in opts) {
-      config.$DEBUG$ = !!opts.d;
-    }
     if ('P' in opts) {
       config.$maxIdlePreloads$ = opts['P'] as number;
-    }
-    if ('Q' in opts) {
-      config.$invPreloadProbability$ = 1 - (opts['Q'] as number);
     }
   }
   if (!isBrowser || basePath == null) {
@@ -115,8 +99,6 @@ export const loadBundleGraph = (
             bundle.$inverseProbability$ = 1;
           }
         }
-        config.$DEBUG$ &&
-          log(`parseBundleGraph got ${graph.size} bundles, adjusting ${toAdjust.length}`);
         if (!toAdjust.length) {
           nextTriggerMacroTask();
           return;
@@ -142,21 +124,7 @@ export const loadBundleGraph = (
 };
 
 /** Used during SSR */
-export const initPreloader = (
-  serializedBundleGraph?: (string | number)[],
-  opts?: {
-    debug?: boolean;
-    preloadProbability?: number;
-  }
-) => {
-  if (opts) {
-    if ('debug' in opts) {
-      config.$DEBUG$ = !!opts.debug;
-    }
-    if (typeof opts.preloadProbability === 'number') {
-      config.$invPreloadProbability$ = 1 - opts.preloadProbability;
-    }
-  }
+export const initPreloader = (serializedBundleGraph?: (string | number)[]) => {
   if (base != null || !serializedBundleGraph) {
     return;
   }

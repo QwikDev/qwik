@@ -1196,7 +1196,9 @@ export interface SSRStreamWriter {
 // @internal (undocumented)
 export interface StreamWriter {
     // (undocumented)
-    write(chunk: string): void;
+    waitForDrain?(): ValueOrPromise<void>;
+    // (undocumented)
+    write(chunk: string): ValueOrPromise<void>;
 }
 
 // @internal (undocumented)

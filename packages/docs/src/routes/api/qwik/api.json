@@ -1775,7 +1775,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> Warning: This API is now obsolete.\n> \n> not used\n> \n\n\n```typescript\nexport interface ReadonlySignal<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `Readonly<Signal<T>>` instead.\n> \n\n\n```typescript\nexport interface ReadonlySignal<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.readonlysignal.md"
     },

@@ -1,4 +1,4 @@
-import { expandBundles, getPreloadPaths } from './preload-strategy';
+import { getPlatform } from '@qwik.dev/core';
 import { initPreloader } from './qwik-copy';
 import type { QRLInternal, SSRContainer } from './qwik-types';
 import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
@@ -43,27 +43,14 @@ export const preloaderPre = (
     bundleGraphPath = (import.meta.env.BASE_URL || '/') + bundleGraphPath;
   }
   if (preloaderBundle && bundleGraphPath && options !== false) {
-    const preloaderOpts: Parameters<typeof initPreloader>[1] =
-      typeof options === 'object'
-        ? {
-            debug: options.debug,
-            preloadProbability: options.ssrPreloadProbability,
-          }
-        : undefined;
     const bundleGraph = container.resolvedManifest?.manifest.bundleGraph;
-    initPreloader(bundleGraph, preloaderOpts);
+    initPreloader(bundleGraph);
 
     // Add the preloader script to the head
     const opts: string[] = [];
     if (options) {
-      if (options.debug) {
-        opts.push('d:1');
-      }
       if (options.maxIdlePreloads) {
         opts.push(`P:${options.maxIdlePreloads}`);
-      }
-      if (options.preloadProbability) {
-        opts.push(`Q:${options.preloadProbability}`);
       }
     }
     const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
@@ -129,43 +116,32 @@ export const includePreloader = (
   if (referencedBundles.length === 0 || options === false) {
     return null;
   }
-  const { ssrPreloads, ssrPreloadProbability } = normalizePreLoaderOptions(
+  const { ssrPreloads } = normalizePreLoaderOptions(
     typeof options === 'boolean' ? undefined : options
   );
-  let allowed = ssrPreloads;
+
+  let allowedSsrPreloads = ssrPreloads;
 
   const base = getBase(container);
 
   const links = [];
 
   const { resolvedManifest } = container;
-  if (allowed) {
+  if (allowedSsrPreloads) {
     const preloaderBundle = resolvedManifest?.manifest.preloader;
     const coreBundle = resolvedManifest?.manifest.core;
-    const expandedBundles = expandBundles(referencedBundles, resolvedManifest);
-    // Keep the same as in getQueue (but *10)
-    let probability = 4;
-    const tenXMinProbability = ssrPreloadProbability * 10;
-    for (let i = 0; i < expandedBundles.length; i++) {
-      const hrefOrProbability = expandedBundles[i];
-      if (typeof hrefOrProbability === 'string') {
-        if (probability < tenXMinProbability) {
-          break;
-        }
-        // we already preload the preloader and core bundles
-        if (hrefOrProbability === preloaderBundle || hrefOrProbability === coreBundle) {
-          continue;
-        }
-        links.push(hrefOrProbability);
-        if (--allowed === 0) {
-          break;
-        }
-      } else {
-        probability = hrefOrProbability;
+    for (let i = 0; i < referencedBundles.length; i++) {
+      const href = referencedBundles[i];
+      // we already preload the preloader and core bundles
+      if (href === preloaderBundle || href === coreBundle) {
+        continue;
+      }
+      links.push(href);
+      if (--allowedSsrPreloads === 0) {
+        break;
       }
     }
   }
-
   const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest.preloader);
   const insertLinks = links.length
     ? /**
@@ -214,12 +190,8 @@ export const includePreloader = (
 export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, nonce?: string) => {
   if (opts.preloader !== false) {
     const qrls = Array.from(ssrContainer.serializationCtx.$eventQrls$) as QRLInternal[];
-    // skip prefetch implementation if prefetchStrategy === null
-    const preloadBundles = getPreloadPaths(qrls, opts, ssrContainer.resolvedManifest);
-    // If no preloadBundles, there is no reactivity, so no need to include the preloader
-    if (preloadBundles.length > 0) {
-      includePreloader(ssrContainer, opts.preloader, preloadBundles, nonce);
-    }
+    const preloadBundles = getBundles(qrls);
+    includePreloader(ssrContainer, opts.preloader, preloadBundles, nonce);
   }
 };
 
@@ -229,10 +201,23 @@ function normalizePreLoaderOptions(
   return { ...preLoaderOptionsDefault, ...input };
 }
 
+export const getBundles = (qrls: QRLInternal[]) => {
+  const platform = getPlatform();
+  const bundles = (qrls as QRLInternal[])
+    ?.map((qrl) => {
+      const symbol = qrl.$symbol$;
+      const chunk = qrl.$chunk$;
+      const result = platform.chunkForSymbol(symbol, chunk, qrl.dev?.file);
+      if (result) {
+        return result[1];
+      }
+      return chunk;
+    })
+    .filter(Boolean) as string[];
+  return [...new Set(bundles)];
+};
+
 const preLoaderOptionsDefault: Required<PreloaderOptions> = {
   ssrPreloads: 7,
-  ssrPreloadProbability: 0.5,
-  debug: false,
   maxIdlePreloads: 25,
-  preloadProbability: 0.35, // deprecated
 };

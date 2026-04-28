@@ -74,22 +74,29 @@ export async function _walkJSX(
   const enqueue = (value: StackValue) => stack.push(value);
   const drain = async (): Promise<void> => {
     while (stack.length) {
-      const value = stack.pop();
-      // Reference equality first (no prototype walk), then typeof
-      if (value === MaybeAsyncSignal) {
-        const trackFn = stack.pop() as () => StackValue;
-        await retryOnPromise(() => stack.push(trackFn()));
-        continue;
-      }
-      if (typeof value === 'function') {
-        if (value === Promise) {
-          stack.push(await (stack.pop() as Promise<JSXOutput>));
-        } else {
-          await (value as StackFn).apply(ssr);
+      try {
+        const value = stack.pop();
+        // Reference equality first (no prototype walk), then typeof
+        if (value === MaybeAsyncSignal) {
+          const trackFn = stack.pop() as () => StackValue;
+          await retryOnPromise(() => stack.push(trackFn()));
+          continue;
         }
-        continue;
+        if (typeof value === 'function') {
+          if (value === Promise) {
+            stack.push(await (stack.pop() as Promise<JSXOutput>));
+          } else {
+            await (value as StackFn).apply(ssr);
+          }
+          continue;
+        }
+        processJSXNode(ssr, enqueue, value as JSXOutput, options);
+      } finally {
+        const pendingFlush = ssr.streamHandler.waitForPendingFlush();
+        if (isPromise(pendingFlush)) {
+          await pendingFlush;
+        }
       }
-      processJSXNode(ssr, enqueue, value as JSXOutput, options);
     }
   };
   await drain();
@@ -138,7 +145,7 @@ function processJSXNode(
             currentStyleScoped: options.currentStyleScoped,
             parentComponentFrame: options.parentComponentFrame,
           });
-          ssr.streamHandler.flush();
+          await ssr.streamHandler.flush();
         }
       });
     } else {
@@ -250,7 +257,7 @@ function processJSXNode(
                   currentStyleScoped: options.currentStyleScoped,
                   parentComponentFrame: options.parentComponentFrame,
                 });
-                ssr.streamHandler.flush();
+                await ssr.streamHandler.flush();
               },
             });
           } else {

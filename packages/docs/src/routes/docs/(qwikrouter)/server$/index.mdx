@@ -26,6 +26,31 @@ import { Note, LongNote } from '~/components/note/note';
 
 <Note>`server$` can accept any number of arguments and return any value that can be serialized by Qwik. This includes primitives, objects, arrays, bigint, JSX nodes, and even Promises, just to name a few.</Note>
 
+## Server-only modules
+
+Qwik treats files named `.server.*`, such as `db.server.ts`, and files inside
+`src/**/server/**` folders as server-only modules. These modules can be imported by SSR code,
+route loaders, route actions, endpoint handlers, and `server$` implementations, but the client
+build will fail if client code imports them.
+
+```ts title="src/db.server.ts"
+export const loadSecret = async () => {
+  return process.env.API_KEY;
+};
+```
+
+```tsx title="src/routes/index.tsx"
+import { routeLoader$ } from '@qwik.dev/router';
+import { loadSecret } from '../db.server';
+
+export const useSecret = routeLoader$(async () => {
+  return loadSecret();
+});
+```
+
+Do not import server-only modules from browser code such as components, event handlers, or visible
+tasks. If client code needs to trigger server work, expose that work through `server$`, a route
+action, or an endpoint.
 
 `AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.  
 Your new function will have the following signature:  
@@ -251,6 +276,3 @@ When using `server$`, it's important to understand how [middleware functions](/d
 To ensure that a middleware function runs for both types of requests, it should be defined in the `plugin.ts` file. This ensures that the middleware is executed consistently for all incoming requests, regardless of whether they are normal page requests or `server$` requests.
 
 By [defining middleware in the `plugin.ts`](/docs/advanced/plugins) file, developers can maintain a centralized location for shared middleware logic, ensuring consistency and reducing potential errors or oversights.
-
-
-

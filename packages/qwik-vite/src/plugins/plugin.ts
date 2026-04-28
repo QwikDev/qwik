@@ -460,6 +460,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         : opts.target === 'ssr' || opts.target === 'test';
   };
 
+  const assertClientCanImport = (pathId: string, importerId?: string | null, isServer = false) => {
+    if (!isServer && opts.target === 'client' && isServerOnlyModule(pathId, opts)) {
+      throw new Error(createServerOnlyImportError(pathId, importerId));
+    }
+  };
+
   let resolveIdCount = 0;
   let doNotEdit = false;
   /**
@@ -533,6 +539,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     let result: Rollup.ResolveIdResult;
 
     /** At this point, the request has been normalized. */
+    assertClientCanImport(pathId, importerId, isServer);
 
     if (
       /**
@@ -671,11 +678,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // This doesn't get used, but we need to return something
       return '"opening in editor"';
     }
-    if (isVirtualId(id) || id.startsWith('/@fs/')) {
+    if (isVirtualId(id)) {
       return;
     }
     const count = loadCount++;
     const isServer = getIsServer(ctx, loadOpts);
+
+    const parsedId = parseId(id);
+    const pathId = normalizePath(parsedId.pathId);
+    assertClientCanImport(pathId, undefined, isServer);
+    if (id.startsWith('/@fs/')) {
+      return;
+    }
 
     // Virtual modules
     if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
@@ -706,8 +720,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     // QRL segments
-    const parsedId = parseId(id);
-    id = normalizePath(parsedId.pathId);
+    id = pathId;
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (devServer && !outputs.has(id)) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
@@ -784,6 +797,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
 
     const { pathId } = parseId(id);
+    assertClientCanImport(normalizePath(pathId), undefined, isServer);
     const parsedPathId = path.parse(pathId);
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
@@ -1311,6 +1325,48 @@ export const SSR_OUT_DIR = 'server';
 const LIB_OUT_DIR = 'lib';
 
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
+
+const SERVER_ONLY_FILE_REGEX = /\.server\.[cm]?[jt]sx?$/;
+const SERVER_ONLY_QRL_REGEX = /\.server\.[cm]?[jt]sx?_/;
+
+const normalizeServerOnlyPath = (pathId: string) =>
+  pathId.replace(/\\/g, '/').replace(/^\/@fs\//, '');
+
+export const isServerOnlyFile = (pathId: string): boolean => {
+  const normalizedPath = normalizeServerOnlyPath(pathId);
+  return SERVER_ONLY_FILE_REGEX.test(normalizedPath) || SERVER_ONLY_QRL_REGEX.test(normalizedPath);
+};
+
+export const isInSrcServerDir = (pathId: string, srcDir?: string): boolean => {
+  if (!srcDir) {
+    return false;
+  }
+  const normalizedPath = normalizeServerOnlyPath(pathId);
+  const normalizedSrcDir = normalizeServerOnlyPath(srcDir).replace(/\/+$/, '');
+  if (!normalizedPath.startsWith(normalizedSrcDir + '/')) {
+    return false;
+  }
+  return normalizedPath
+    .slice(normalizedSrcDir.length + 1)
+    .split('/')
+    .includes('server');
+};
+
+export const isServerOnlyModule = (
+  pathId: string,
+  opts: Pick<NormalizedQwikPluginOptions, 'srcDir'>
+): boolean => isServerOnlyFile(pathId) || isInSrcServerDir(pathId, opts.srcDir);
+
+const createServerOnlyImportError = (pathId: string, importerId?: string | null): string => {
+  const importer = importerId ? `\nImporter: ${importerId}` : '';
+  return (
+    `Server-only module cannot be imported by client code.\n\n` +
+    `Server-only module: ${pathId}${importer}\n\n` +
+    `Files named \`.server.*\` or placed under \`src/**/server/**\` are excluded from ` +
+    `client bundles. Move this import behind SSR-only route loaders, actions, endpoint handlers, ` +
+    `or expose the operation through an intentional \`server$\` API.`
+  );
+};
 
 /** @public */
 export interface QwikPluginDevTools {

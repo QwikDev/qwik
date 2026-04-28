@@ -313,6 +313,97 @@ describe('resolveId', () => {
       await plugin.resolveId({} as any, '@qwik-client-manifest', '/foo/bar/core')
     ).toHaveProperty('id', '@qwik-client-manifest');
   });
+  test('rejects server-only modules from the client graph', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+    const importer = `${srcDir}/entry.client.tsx`;
+
+    await expect(plugin.resolveId({} as any, `${srcDir}/db.server.ts`, importer)).rejects.toThrow(
+      /Server-only module cannot be imported by client code/
+    );
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/db.server.ts?raw`, importer)
+    ).rejects.toThrow(/Server-only module cannot be imported by client code/);
+    await expect(plugin.resolveId({} as any, `${srcDir}/server/db.ts`, importer)).rejects.toThrow(
+      /Server-only module cannot be imported by client code/
+    );
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/routes/admin/server/session.ts`, importer)
+    ).rejects.toThrow(/Server-only module cannot be imported by client code/);
+  });
+  test('allows non-server-only paths that contain server in the filename', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/server-functions.ts`, `${srcDir}/entry.client.tsx`)
+    ).resolves.toBeFalsy();
+    await expect(
+      plugin.resolveId({} as any, '@qwik.dev/core/server', `${srcDir}/entry.client.tsx`)
+    ).resolves.toBeFalsy();
+  });
+  test('allows server-only modules from the ssr graph', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'ssr',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/db.server.ts`, `${srcDir}/entry.ssr.tsx`)
+    ).resolves.toBeFalsy();
+    await expect(plugin.load({} as any, `${srcDir}/server/db.ts`)).resolves.toBeNull();
+    await expect(
+      plugin.transform({} as any, 'export const value = 1;', `${srcDir}/db.server.ts_symbol.js`)
+    ).resolves.toBeNull();
+  });
+  test('allows server-only modules from vite server environments', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+    const serverCtx = { environment: { config: { consumer: 'server' } } } as any;
+
+    await expect(
+      plugin.resolveId(serverCtx, `${srcDir}/db.server.ts`, `${srcDir}/entry.ssr.tsx`)
+    ).resolves.toBeFalsy();
+  });
+  test('allows server-only modules during lib builds', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'lib',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+
+    await expect(
+      plugin.resolveId({} as any, `${srcDir}/db.server.ts`, `${srcDir}/entry.tsx`)
+    ).resolves.toBeFalsy();
+  });
+  test('rejects windows server-only paths from the client graph', async () => {
+    const plugin = await mockPlugin('win32');
+    await plugin.normalizeOptions({ target: 'client' });
+
+    await expect(
+      plugin.resolveId({} as any, 'C:\\project\\src\\db.server.ts', 'C:\\project\\src\\app.tsx')
+    ).rejects.toThrow('C:/project/src/db.server.ts');
+  });
 });
 
 async function mockPlugin(os = process.platform) {

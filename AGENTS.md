@@ -43,8 +43,8 @@ Prefer `pnpm build build.core.dev` to build qwik and qwik-router faster.
 - **Install** — `pnpm install`
 - **Build (no Rust)** — `pnpm build.local` — for a fresh start
 - **Build (with Rust)** — `pnpm build.full` — only for optimizer changes
-- **Build core only** — `pnpm build.core` — fast, just Qwik + Router + types
-- **Dev rebuild** — `pnpm build.core.dev` — very fast iterative rebuild
+- **Build core** — `pnpm build.core` — fast, just Qwik + Router + types
+- **Build core only** — `pnpm build.core.dev` — very fast iterative rebuild
 - **Watch mode** — `pnpm build.watch` — rebuilds on change
 - **Unit tests** — `pnpm vitest run` — Vitest, runs `packages/**/*.unit.{ts,tsx}` and `*.spec.{ts,tsx}`, or specify a single file. Add `-u` to update snapshots. **NEVER use `pnpm test.unit`**
 - **E2E tests (Chromium)** — `pnpm test.e2e.chromium` — Playwright, always run the dev rebuild first!
@@ -219,7 +219,7 @@ This creates a `.changeset/*.md` file describing the change. The core packages (
 
 ### Before Pushing a PR
 
-1. `pnpm build.core`
+1. `pnpm build.core.dev`
 2. `pnpm test.unit` (run relevant tests)
 3. `pnpm lint`
 4. `pnpm api.update` (if you changed public API)

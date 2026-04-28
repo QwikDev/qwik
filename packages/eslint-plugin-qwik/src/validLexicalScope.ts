@@ -436,10 +436,8 @@ function _isTypeCapturable(
       };
     }
 
-    const props =
-      (type.symbol.escapedName as string).endsWith('Signal') && type.getProperty('value')
-        ? [type.getProperty('value')!]
-        : type.getProperties();
+    const signalValue = getSignalValueProperty(type);
+    const props = signalValue ? [signalValue] : type.getProperties();
     for (const symbol of props) {
       const result = isSymbolCapturable(context, checker, symbol, node, opts, level + 1, seen);
       if (result) {
@@ -463,6 +461,30 @@ function isSymbolCapturable(
 ) {
   const type = checker.getTypeOfSymbolAtLocation(symbol, node);
   return _isTypeCapturable(context, checker, type, node, opts, level, seen);
+}
+
+/**
+ * Returns the `value` property symbol if `type` is Signal-shaped — i.e. its own symbol name ends
+ * with `Signal` (e.g. `Signal`, `ReadonlySignal`), or its `value` property is declared on an
+ * interface whose name ends with `Signal`. The latter covers TS utility wrappers such as
+ * `Readonly<Signal<T>>` / `Pick<Signal<T>, 'value'>` and user interfaces extending `Signal`, which
+ * produce synthetic symbol names that the simple name check would miss.
+ */
+function getSignalValueProperty(type: ts.Type): ts.Symbol | undefined {
+  const valueProp = type.getProperty('value');
+  if (!valueProp) {
+    return undefined;
+  }
+  if ((type.symbol?.escapedName as string)?.endsWith('Signal')) {
+    return valueProp;
+  }
+  for (const decl of valueProp.declarations ?? []) {
+    const parent = decl.parent;
+    if (parent && ts.isInterfaceDeclaration(parent) && parent.name.text.endsWith('Signal')) {
+      return valueProp;
+    }
+  }
+  return undefined;
 }
 
 function getElementTypeOfArrayType(type: ts.Type, checker: ts.TypeChecker): ts.Type | undefined {

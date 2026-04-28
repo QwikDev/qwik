@@ -1337,7 +1337,7 @@ export const isServerOnlyFile = (pathId: string): boolean => {
   return SERVER_ONLY_FILE_REGEX.test(normalizedPath) || SERVER_ONLY_QRL_REGEX.test(normalizedPath);
 };
 
-export const isInSrcServerDir = (pathId: string, srcDir?: string): boolean => {
+export const isInSrcServerDir = (pathId: string, srcDir?: string | null): boolean => {
   if (!srcDir) {
     return false;
   }

@@ -9,7 +9,10 @@ import {
 import type { ComputedReturnType } from '../use/use-computed';
 export { isSignal } from './utils';
 
-/** @public @deprecated not used */
+/**
+ * @deprecated Use `Readonly<Signal<T>>` instead.
+ * @public
+ */
 export interface ReadonlySignal<T = unknown> {
   readonly value: T;
 }

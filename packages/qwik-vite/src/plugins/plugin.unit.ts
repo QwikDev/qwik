@@ -181,6 +181,16 @@ test('input array', async () => {
   ]);
 });
 
+test.runIf(process.platform === 'win32')('input array, win32', async () => {
+  const plugin = await mockPlugin();
+  const opts = await plugin.normalizeOptions({
+    rootDir: 'C:\\proj',
+    input: ['src\\cmps\\a.tsx', 'C:\\abs\\b.tsx'],
+  });
+  // relative paths are resolved against rootDir and normalized; absolute paths pass through
+  assert.deepEqual(opts.input, ['C:/proj/src/cmps/a.tsx', 'C:\\abs\\b.tsx']);
+});
+
 test('outDir', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ outDir: 'out' });

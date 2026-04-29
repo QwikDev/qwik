@@ -531,9 +531,12 @@ describe('domRender: Suspense client-side pause timeout', () => {
       { debug }
     );
 
-    let html = document.querySelector('div')!.innerHTML;
+    const suspenseRoot = document.querySelector('div')!;
+    let html = suspenseRoot.innerHTML;
     expect(html).toContain('value=0');
     expect(html).not.toContain(loading);
+    expect((suspenseRoot.children[0] as HTMLElement).style.display).toBe('none');
+    expect((suspenseRoot.children[1] as HTMLElement).style.display).toBe('contents');
     expect(vNode).toMatchVDOM(
       <div>
         <Component>
@@ -559,19 +562,23 @@ describe('domRender: Suspense client-side pause timeout', () => {
     toggle.value = 1;
     await new Promise((r) => setTimeout(r, 40));
 
-    html = document.querySelector('div')!.innerHTML;
+    html = suspenseRoot.innerHTML;
     expect(html).toContain('value=0');
     expect(html).toContain(loading);
     expect(html.indexOf('value=0')).toBeGreaterThan(html.indexOf(loading));
+    expect((suspenseRoot.children[0] as HTMLElement).style.display).toBe('contents');
+    expect((suspenseRoot.children[1] as HTMLElement).style.display).toBe('contents');
 
     const resolveFn = (globalThis as any).__showStaleResolve as () => void;
     expect(resolveFn).toBeDefined();
     resolveFn();
     await new Promise((r) => setTimeout(r, 10));
 
-    html = document.querySelector('div')!.innerHTML;
+    html = suspenseRoot.innerHTML;
     expect(html).toContain('value=1');
     expect(html).not.toContain(loading);
+    expect((suspenseRoot.children[0] as HTMLElement).style.display).toBe('none');
+    expect((suspenseRoot.children[1] as HTMLElement).style.display).toBe('contents');
     expect(vNode).toMatchVDOM(
       <div>
         <Component>

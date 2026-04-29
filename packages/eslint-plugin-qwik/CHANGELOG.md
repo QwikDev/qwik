@@ -1,5 +1,13 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.33
+
+### Patch Changes
+
+- Add `no-await-navigate-in-use-task` ESLint rule to catch awaiting `useNavigate()` inside blocking `useTask$` callbacks. (by [@VedantMadane](https://github.com/VedantMadane) in [#8549](https://github.com/QwikDev/qwik/pull/8549))
+
+- fix(valid-lexical-scope): recognize `Readonly<Signal<T>>` and other Signal-derived types (by [@maiieul](https://github.com/maiieul) in [#8582](https://github.com/QwikDev/qwik/pull/8582))
+
 ## 2.0.0-beta.32
 
 ## 2.0.0-beta.31

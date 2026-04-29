@@ -1,19 +1,50 @@
 import { isServer } from '@qwik.dev/core/build';
-import type { VNodeJournal } from '../../client/vnode-utils';
+import { vnode_getProp, vnode_setProp, type VNodeJournal } from '../../client/vnode-utils';
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { addCursor, findCursor, isCursor } from '../cursor/cursor';
 import { getCursorData, type CursorData } from '../cursor/cursor-props';
 import { _executeSsrChores } from '../cursor/ssr-chore-execution';
 import { isServerPlatform } from '../platform/platform';
 import type { Container } from '../types';
+import { QCursorBoundary, QNearestCursorBoundary } from '../utils/markers';
 import { throwErrorAndStop } from '../utils/log';
 import { isPromise } from '../utils/promises';
+import type { CursorBoundary } from '../../use/use-cursor-boundary';
 import { ChoreBits } from './enums/chore-bits.enum';
 import type { VNodeOperation } from './types/dom-vnode-operation';
 import type { VNode } from './vnode';
 
 /** Reusable path array to avoid allocations */
 const reusablePath: VNode[] = [];
+
+function getOwnCursorBoundary(vNode: VNode): CursorBoundary | null {
+  return (vnode_getProp(vNode, QCursorBoundary, null) as CursorBoundary | null | undefined) || null;
+}
+
+export function getNearestCursorBoundary(vNode: VNode): CursorBoundary | null {
+  return (
+    (vnode_getProp(vNode, QNearestCursorBoundary, null) as CursorBoundary | null | undefined) ||
+    getOwnCursorBoundary(vNode)
+  );
+}
+
+function setNearestCursorBoundary(vNode: VNode, boundary: CursorBoundary | null): void {
+  vnode_setProp(vNode, QNearestCursorBoundary, boundary);
+}
+
+export function setVNodeCursorBoundary(vNode: VNode, boundary: CursorBoundary | null): void {
+  vnode_setProp(vNode, QNearestCursorBoundary, boundary);
+
+  const dirtyChildren = vNode.dirtyChildren;
+  if (!dirtyChildren || dirtyChildren.length === 0) {
+    return;
+  }
+
+  for (let i = 0; i < dirtyChildren.length; i++) {
+    const child = dirtyChildren[i];
+    setVNodeCursorBoundary(child, getOwnCursorBoundary(child) || boundary);
+  }
+}
 
 /** Propagates CHILDREN dirty bits through the collected path up to the target ancestor */
 function propagatePath(target: VNode): void {
@@ -34,14 +65,18 @@ function propagatePath(target: VNode): void {
  */
 function propagateToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
   reusablePath.push(vNode);
+  let cursorBoundary = getOwnCursorBoundary(vNode);
   let current: VNode | null = vNode.slotParent || vNode.parent;
 
   while (current) {
     const isDirty = current.dirty & ChoreBits.DIRTY_MASK;
     const currentIsCursor = isCursor(current);
+    cursorBoundary ||=
+      getOwnCursorBoundary(current) || (isDirty ? getNearestCursorBoundary(current) : null);
 
     // Stop when we reach the cursor root or a dirty ancestor
     if (current === cursorRoot || isDirty) {
+      setNearestCursorBoundary(vNode, cursorBoundary);
       propagatePath(current);
       // Update cursor position if current is a cursor
       if (currentIsCursor) {
@@ -75,12 +110,16 @@ function propagateToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
  */
 function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
   reusablePath.push(vNode);
+  let cursorBoundary = getOwnCursorBoundary(vNode);
   let current: VNode | null = vNode.slotParent || vNode.parent;
 
   while (current) {
     const currentIsCursor = isCursor(current);
+    cursorBoundary ||=
+      getOwnCursorBoundary(current) || (currentIsCursor ? getNearestCursorBoundary(current) : null);
 
     if (currentIsCursor) {
+      setNearestCursorBoundary(vNode, cursorBoundary);
       propagatePath(current);
       reusablePath.length = 0;
       return true;
@@ -89,6 +128,7 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
     reusablePath.push(current);
     current = current.slotParent || current.parent;
   }
+  setNearestCursorBoundary(vNode, cursorBoundary);
   reusablePath.length = 0;
   return false;
 }
@@ -137,6 +177,10 @@ export function markVNodeDirty(
 
   // We must attach to a cursor subtree if it exists
   if (parent && parent.dirty & ChoreBits.DIRTY_MASK) {
+    setNearestCursorBoundary(
+      vNode,
+      getOwnCursorBoundary(vNode) || getNearestCursorBoundary(parent)
+    );
     if (isRealDirty) {
       parent.dirty |= ChoreBits.CHILDREN;
     }
@@ -172,6 +216,8 @@ export function markVNodeDirty(
       // No blocking cursor found, create a new one
       addCursor(container, vNode, 0);
     }
+  } else {
+    setNearestCursorBoundary(vNode, getOwnCursorBoundary(vNode));
   }
 }
 

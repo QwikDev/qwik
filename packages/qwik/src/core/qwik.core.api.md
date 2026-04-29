@@ -1213,6 +1213,22 @@ export class _SubscriptionData {
     data: NodePropData;
 }
 
+// Warning: (ae-forgotten-export) The symbol "SuspenseProps" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _suC: (props: SuspenseProps) => JSXNodeInternal<FunctionComponent<    {
+children?: any;
+key?: string | number | null;
+}>>;
+
+// Warning: (ae-incompatible-release-tags) The symbol "Suspense" is marked as @public, but its signature references "_suC" which is marked as @internal
+//
+// @public (undocumented)
+export const Suspense: typeof _suC;
+
+// @internal (undocumented)
+export const _suT: (input: TaskCtx) => void;
+
 // Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point index.d.ts
 //
 // @public

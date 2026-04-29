@@ -1,8 +1,9 @@
-import { component$, Suspense, useSignal, useTask$ } from '@qwik.dev/core';
+import { component$, Suspense, useSignal, useTask$, type JSXOutput } from '@qwik.dev/core';
 
 interface BlockingUpdateProps {
   id: string;
   resolveName: string;
+  pendingName: string;
 }
 
 export const SuspenseRoot = component$(() => {
@@ -26,21 +27,29 @@ export const SuspenseChildren = component$(() => {
       <SingleBoundary />
       <ShowStaleBoundary />
       <NestedBoundaries />
+      <MountedAsyncBoundary />
     </>
   );
 });
 
 export const SingleBoundary = component$(() => {
+  const resolveName = '__resolveSingleSuspense';
+  const pendingName = '__pendingSingleSuspense';
+
   return (
     <div id="single-boundary">
       <Suspense fallback={<span id="single-fallback">Loading single</span>} timeout={10}>
-        <BlockingUpdate id="single" resolveName="__resolveSingleSuspense" />
+        <BlockingUpdate id="single" resolveName={resolveName} pendingName={pendingName} />
       </Suspense>
+      <ResolveUpdate id="single" resolveName={resolveName} />
     </div>
   );
 });
 
 export const ShowStaleBoundary = component$(() => {
+  const resolveName = '__resolveShowStaleSuspense';
+  const pendingName = '__pendingShowStaleSuspense';
+
   return (
     <div id="show-stale-boundary">
       <Suspense
@@ -48,38 +57,101 @@ export const ShowStaleBoundary = component$(() => {
         timeout={10}
         showStale
       >
-        <BlockingUpdate id="show-stale" resolveName="__resolveShowStaleSuspense" />
+        <BlockingUpdate id="show-stale" resolveName={resolveName} pendingName={pendingName} />
       </Suspense>
+      <ResolveUpdate id="show-stale" resolveName={resolveName} />
     </div>
   );
 });
 
 export const NestedBoundaries = component$(() => {
+  const resolveName = '__resolveInnerSuspense';
+  const pendingName = '__pendingInnerSuspense';
+
   return (
     <div id="nested-boundary">
       <Suspense fallback={<span id="outer-fallback">Loading outer</span>} timeout={10}>
         <section id="outer-content">
           <Suspense fallback={<span id="inner-fallback">Loading inner</span>} timeout={10}>
-            <BlockingUpdate id="inner" resolveName="__resolveInnerSuspense" />
+            <BlockingUpdate id="inner" resolveName={resolveName} pendingName={pendingName} />
           </Suspense>
         </section>
       </Suspense>
+      <ResolveUpdate id="inner" resolveName={resolveName} />
     </div>
   );
 });
 
+export const MountedAsyncBoundary = component$(() => {
+  const show = useSignal(false);
+  const resolveName = '__resolveMountedAsyncSuspense';
+
+  return (
+    <div id="mounted-async-boundary">
+      <button id="mounted-async-button" onClick$={() => (show.value = true)}>
+        Mount async suspense
+      </button>
+      {show.value && (
+        <>
+          <Suspense
+            fallback={<span id="mounted-async-fallback">Loading mounted async</span>}
+            timeout={10}
+          >
+            <MountedAsyncChild resolveName={resolveName} />
+          </Suspense>
+          <ResolveUpdate id="mounted-async" resolveName={resolveName} />
+        </>
+      )}
+    </div>
+  );
+});
+
+export const MountedAsyncChild = component$((props: { resolveName: string }) => {
+  const content = new Promise<JSXOutput>((resolve) => {
+    (globalThis as any)[props.resolveName] = () => {
+      delete (globalThis as any)[props.resolveName];
+      resolve(<p id="mounted-async-value">Async content</p>);
+    };
+  });
+  return <>{content}</>;
+});
+
+export const ResolveUpdate = component$((props: { id: string; resolveName: string }) => {
+  return (
+    <button
+      id={`${props.id}-resolve`}
+      onClick$={() => {
+        const resolve = (globalThis as any)[props.resolveName];
+        if (typeof resolve === 'function') {
+          resolve();
+        }
+      }}
+    >
+      Resolve {props.id}
+    </button>
+  );
+});
+
 export const BlockingUpdate = component$((props: BlockingUpdateProps) => {
+  const target = useSignal(0);
   const value = useSignal(0);
 
-  useTask$(({ track }) => {
-    const trackedValue = track(() => value.value);
-    if (trackedValue === 0) {
+  useTask$(({ track, cleanup }) => {
+    const targetValue = track(() => target.value);
+    if (targetValue === value.value) {
       return;
     }
+
+    cleanup(() => {
+      delete (globalThis as any)[props.resolveName];
+      delete (globalThis as any)[props.pendingName];
+    });
 
     return new Promise<void>((resolve) => {
       (globalThis as any)[props.resolveName] = () => {
         delete (globalThis as any)[props.resolveName];
+        delete (globalThis as any)[props.pendingName];
+        value.value = targetValue;
         resolve();
       };
     });
@@ -87,7 +159,16 @@ export const BlockingUpdate = component$((props: BlockingUpdateProps) => {
 
   return (
     <>
-      <button id={`${props.id}-button`} onClick$={() => value.value++}>
+      <button
+        id={`${props.id}-button`}
+        onClick$={() => {
+          if ((globalThis as any)[props.pendingName]) {
+            return;
+          }
+          (globalThis as any)[props.pendingName] = true;
+          target.value++;
+        }}
+      >
         Increment {props.id}
       </button>
       <p id={`${props.id}-value`}>value={value.value}</p>

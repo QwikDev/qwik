@@ -33,6 +33,23 @@ test.describe('suspense', () => {
       await expect(page.locator('#single-fallback')).toBeHidden();
     });
 
+    test('should keep stale content visible while a descendant update is blocked', async ({
+      page,
+    }) => {
+      await expect(page.locator('#show-stale-value')).toHaveText('value=0');
+      await expect(page.locator('#show-stale-value')).toBeVisible();
+      await expect(page.locator('#show-stale-fallback')).toBeHidden();
+
+      await page.locator('#show-stale-button').click();
+      await expect(page.locator('#show-stale-fallback')).toBeVisible();
+      await expect(page.locator('#show-stale-value')).toHaveText('value=0');
+      await expect(page.locator('#show-stale-value')).toBeVisible();
+
+      await resolveSuspense(page, '__resolveShowStaleSuspense');
+      await expect(page.locator('#show-stale-value')).toHaveText('value=1');
+      await expect(page.locator('#show-stale-fallback')).toBeHidden();
+    });
+
     test('should use the nearest nested fallback for blocked descendant updates', async ({
       page,
     }) => {

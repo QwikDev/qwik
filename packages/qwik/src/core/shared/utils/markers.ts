@@ -93,7 +93,7 @@ export const NON_SERIALIZABLE_MARKER_PREFIX = ':';
 export const USE_ON_LOCAL = NON_SERIALIZABLE_MARKER_PREFIX + 'on';
 export const USE_ON_LOCAL_SEQ_IDX = NON_SERIALIZABLE_MARKER_PREFIX + 'onIdx';
 export const USE_ON_LOCAL_FLAGS = NON_SERIALIZABLE_MARKER_PREFIX + 'onFlags';
-export const QCursorBoundary = NON_SERIALIZABLE_MARKER_PREFIX + 'cursorBoundary';
+export const QCursorBoundary = Q_PREFIX + 'cursorBoundary';
 export const QNearestCursorBoundary = NON_SERIALIZABLE_MARKER_PREFIX + 'nearestCursorBoundary';
 
 export const Q_PROPS_SEPARATOR = ':';

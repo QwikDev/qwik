@@ -24,6 +24,7 @@ export const SuspenseChildren = component$(() => {
   return (
     <>
       <SingleBoundary />
+      <ShowStaleBoundary />
       <NestedBoundaries />
     </>
   );
@@ -34,6 +35,20 @@ export const SingleBoundary = component$(() => {
     <div id="single-boundary">
       <Suspense fallback={<span id="single-fallback">Loading single</span>} timeout={10}>
         <BlockingUpdate id="single" resolveName="__resolveSingleSuspense" />
+      </Suspense>
+    </div>
+  );
+});
+
+export const ShowStaleBoundary = component$(() => {
+  return (
+    <div id="show-stale-boundary">
+      <Suspense
+        fallback={<span id="show-stale-fallback">Loading stale</span>}
+        timeout={10}
+        showStale
+      >
+        <BlockingUpdate id="show-stale" resolveName="__resolveShowStaleSuspense" />
       </Suspense>
     </div>
   );

@@ -27,10 +27,10 @@ const _hf0 = (p0: SuspenseProps, p1: Signal<SuspenseState>) => ({
   display: p1.value === 'fallback' && p0.fallback ? 'contents' : 'none',
 });
 const _hf0_str = '{display:p1.value==="fallback"&&!!p0.fallback?"contents":"none"}';
-const _hf1 = (p0: Signal<SuspenseState>) => ({
-  display: p0.value === 'content' ? 'contents' : 'none',
+const _hf1 = (p0: SuspenseProps, p1: Signal<SuspenseState>) => ({
+  display: p1.value === 'content' || p0.showStale ? 'contents' : 'none',
 });
-const _hf1_str = '{display:p0.value==="content"?"contents":"none"}';
+const _hf1_str = '{display:p1.value==="content"||p0.showStale?"contents":"none"}';
 
 /** @internal */
 export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
@@ -44,7 +44,9 @@ export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
     return;
   }
   const timeout = setTimeout(() => {
-    if (cursorBoundary.pending.value > 0) state.value = 'fallback';
+    if (cursorBoundary.pending.value > 0) {
+      state.value = 'fallback';
+    }
   }, props.timeout ?? 0);
   cleanup(() => clearTimeout(timeout));
 };
@@ -75,7 +77,7 @@ export const suspenseCmp = (props: SuspenseProps) => {
         'div',
         null,
         {
-          style: _fnSignal(_hf1, [state], _hf1_str),
+          style: _fnSignal(_hf1, [props, state], _hf1_str),
         },
         /*#__PURE__*/ _jsxSorted(
           Slot,

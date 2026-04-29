@@ -754,7 +754,11 @@ function expectSlot(diffContext: DiffContext) {
     diffContext.$vNewNode$ = vnode_newVirtual();
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
-    setVNodeCursorBoundary(diffContext.$vNewNode$ as VirtualVNode, cursorBoundary);
+    setVNodeCursorBoundary(
+      diffContext.$container$,
+      diffContext.$vNewNode$ as VirtualVNode,
+      cursorBoundary
+    );
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection); // Nothing to project, so render content of the slot.
@@ -773,7 +777,11 @@ function expectSlot(diffContext: DiffContext) {
     diffContext.$vNewNode$ = vProjectedNode;
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
-    setVNodeCursorBoundary(diffContext.$vNewNode$ as VirtualVNode, cursorBoundary);
+    setVNodeCursorBoundary(
+      diffContext.$container$,
+      diffContext.$vNewNode$ as VirtualVNode,
+      cursorBoundary
+    );
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);

@@ -1,22 +1,23 @@
-import { Fragment } from '@qwik.dev/core/jsx-runtime';
+import { isBrowser } from '@qwik.dev/core/build';
+import { _wrapProp } from '../reactive-primitives/internal-api';
+import type { Signal } from '../reactive-primitives/signal.public';
+import { componentQrl } from '../shared/component.public';
+import { _jsxSorted } from '../shared/jsx/jsx-internal';
+import { Fragment } from '../shared/jsx/jsx-runtime';
+import { Slot } from '../shared/jsx/slot.public';
+import type { JSXOutput } from '../shared/jsx/types/jsx-node';
+import { isServerPlatform } from '../shared/platform/platform';
+import { _fnSignal } from '../shared/qrl/inlined-fn';
+import { inlinedQrl } from '../shared/qrl/qrl';
+import { _captures } from '../shared/qrl/qrl-class';
+import { QCursorBoundary } from '../shared/utils/markers';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { useSignal } from '../use/use-signal';
 import { useTaskQrl, type TaskCtx } from '../use/use-task';
-import { _jsxSorted } from '../shared/jsx/jsx-internal';
-import { _fnSignal } from '../shared/qrl/inlined-fn';
-import { _wrapProp } from '../reactive-primitives/internal-api';
-import { Slot } from '../shared/jsx/slot.public';
-import { QCursorBoundary } from '../shared/utils/markers';
-import { _captures } from '../shared/qrl/qrl-class';
-import { isBrowser } from '@qwik.dev/core/build';
-import { inlinedQrl } from '../shared/qrl/qrl';
-import type { Signal } from '../reactive-primitives/signal.public';
-import type { JSXOutput } from '../shared/jsx/types/jsx-node';
-import { componentQrl } from '../shared/component.public';
-import { isServerPlatform } from '../shared/platform/platform';
 
 type SuspenseState = 'content' | 'fallback';
 
+/** @public @experimental */
 export type SuspenseProps = {
   fallback?: JSXOutput;
   showStale?: boolean;
@@ -24,9 +25,11 @@ export type SuspenseProps = {
 };
 
 const _hf0 = (p0: SuspenseProps, p1: Signal<SuspenseState>) => ({
-  display: p1.value === 'fallback' && p0.fallback ? 'contents' : 'none',
+  display:
+    p1.value === 'fallback' && p0.fallback != null && p0.fallback !== false ? 'contents' : 'none',
 });
-const _hf0_str = '{display:p1.value==="fallback"&&!!p0.fallback?"contents":"none"}';
+const _hf0_str =
+  '{display:p1.value==="fallback"&&p0.fallback!=null&&p0.fallback!==false?"contents":"none"}';
 const _hf1 = (p0: SuspenseProps, p1: Signal<SuspenseState>) => ({
   display: p1.value === 'content' || p0.showStale ? 'contents' : 'none',
 });

@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { vnode_newVirtual } from '../../client/vnode-utils';
+import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
-import type { Cursor } from './cursor';
+import { isCursor, type Cursor } from './cursor';
 import { getNextVNode, partitionDirtyChildren, tryDescendDirtyChildren } from './cursor-walker';
-import { setCursorData, type CursorData } from './cursor-props';
+import { getCursorData, setCursorData, type CursorData } from './cursor-props';
 import type { Container } from '../types';
+import { QCursorBoundary } from '../utils/markers';
+import { removeCursorFromQueue } from './cursor-queue';
+import type { CursorBoundary } from '../../use/use-cursor-boundary';
 
 describe('getNextVNode', () => {
   it('should return next dirty sibling in simple parent-children structure', () => {
@@ -186,6 +189,47 @@ describe('getNextVNode', () => {
     const next = getNextVNode(ProjectedContent, cursor);
 
     expect(next).toBe(AnotherContent);
+  });
+
+  it('should split a dirty cursor-boundary vnode into its own cursor', () => {
+    const Parent = vnode_newVirtual() as VirtualVNode;
+    Parent.dirty = ChoreBits.CHILDREN;
+    Parent.nextDirtyChildIndex = 0;
+
+    const BoundaryRoot = vnode_newVirtual() as VirtualVNode;
+    BoundaryRoot.parent = Parent;
+    BoundaryRoot.dirty = ChoreBits.COMPONENT;
+
+    const NextContent = vnode_newVirtual() as VirtualVNode;
+    NextContent.slotParent = Parent;
+    NextContent.dirty = ChoreBits.COMPONENT;
+
+    const boundary = {
+      pending: { value: 0 },
+      version: { value: 0 },
+    } as CursorBoundary;
+
+    vnode_setProp(BoundaryRoot, QCursorBoundary, boundary);
+
+    Parent.dirtyChildren = [BoundaryRoot, NextContent];
+
+    const cursor: Cursor = vnode_newVirtual();
+    const container = {
+      $pendingCount$: 0,
+      $renderPromise$: null,
+      $resolveRenderPromise$: null,
+      getHostProp: (host: VirtualVNode, prop: string) => host.props?.[prop] ?? null,
+    } as unknown as Container;
+
+    const next = getNextVNode(BoundaryRoot, cursor, container);
+
+    try {
+      expect(next).toBe(NextContent);
+      expect(isCursor(BoundaryRoot)).toBe(true);
+      expect(getCursorData(BoundaryRoot)?.position).toBe(BoundaryRoot);
+    } finally {
+      removeCursorFromQueue(BoundaryRoot, container);
+    }
   });
 
   it('should reset vnode cursor data when no dirty children remain', () => {

@@ -28,19 +28,27 @@ export const Link = component$<LinkProps>((props) => {
     reload,
     replaceState,
     scroll,
+    prefetchBundle: prefetchBundleProp = 'visible',
+    prefetchData: prefetchDataProp = prefetchProp === 'js' ? 'off' : 'intent',
     ...linkProps
-  } = (() => props)();
+  } = props;
   const clientNavPath = untrack(getClientNavPath, { ...linkProps, reload }, loc);
   linkProps.href = clientNavPath || originalHref;
 
-  const prefetchData =
-    (!!clientNavPath && prefetchProp !== false && prefetchProp !== 'js') || undefined;
+  const isDepratedPrefetchDisabled = prefetchProp === false;
 
-  const prefetch =
-    prefetchData ||
-    (!!clientNavPath && prefetchProp !== false && untrack(shouldPreload, clientNavPath, loc));
+  const shouldPrefetch = untrack(shouldPreload, clientNavPath, loc);
 
-  const handlePrefetch = prefetch
+  const shouldPrefetchBundle =
+    !!clientNavPath &&
+    prefetchBundleProp !== 'off' &&
+    shouldPrefetch &&
+    !isDepratedPrefetchDisabled;
+
+  const shouldPrefetchData =
+    !!clientNavPath && prefetchDataProp !== 'off' && shouldPrefetch && !isDepratedPrefetchDisabled;
+
+  const handleBundlePrefetch = shouldPrefetchBundle
     ? $((_: any, elm: HTMLAnchorElement) => {
         if ((navigator as any).connection?.saveData) {
           return;
@@ -49,16 +57,25 @@ export const Link = component$<LinkProps>((props) => {
         if (elm && elm.href) {
           const url = new URL(elm.href);
           preloadRouteBundles(url.pathname);
-
-          if (elm.hasAttribute('data-prefetch')) {
-            loadClientData(url, {
-              preloadRouteBundles: false,
-              isPrefetch: true,
-            });
-          }
         }
       })
-    : undefined;
+    : null;
+
+  const handleDataPrefetch = shouldPrefetchData
+    ? $((_: any, elm: HTMLAnchorElement) => {
+        if ((navigator as any).connection?.saveData) {
+          return;
+        }
+
+        if (elm && elm.href) {
+          const url = new URL(elm.href);
+          loadClientData(url, {
+            preloadRouteBundles: false,
+            isPrefetch: true,
+          });
+        }
+      })
+    : null;
 
   const preventDefault = clientNavPath
     ? sync$((event: MouseEvent) => {
@@ -66,7 +83,17 @@ export const Link = component$<LinkProps>((props) => {
           event.preventDefault();
         }
       })
-    : undefined;
+    : null;
+
+  const prefetchData = $(async (_: any, elm: HTMLAnchorElement) => {
+    handleDataPrefetch?.(null, elm);
+  });
+
+  const onEnterKeyDown = $((event: KeyboardEvent, element: HTMLAnchorElement) => {
+    if (event.key === 'Enter') {
+      prefetchData(null, element);
+    }
+  });
 
   const handleClientSideNavigation = clientNavPath
     ? $((event: Event, elm: HTMLAnchorElement) => {
@@ -80,7 +107,7 @@ export const Link = component$<LinkProps>((props) => {
           }
         }
       })
-    : undefined;
+    : null;
 
   const handlePreload = $((_: any, elm: HTMLAnchorElement) => {
     const url = new URL(elm.href);
@@ -105,9 +132,24 @@ export const Link = component$<LinkProps>((props) => {
       }
     }
 
-    // Don't prefetch on visible in dev mode
-    if (!isDev && anchorRef.value) {
-      handlePrefetch?.(undefined, anchorRef.value!);
+    const isProdOrTest = !isDev || import.meta.env.TEST;
+
+    if (isProdOrTest && anchorRef.value) {
+      if (
+        prefetchBundleProp === 'visible' ||
+        // deprecated prop below, remove in favor of prefetchBundle
+        prefetchProp === 'js' ||
+        prefetchProp === true
+      ) {
+        handleBundlePrefetch?.(null, anchorRef.value);
+      }
+      if (
+        prefetchDataProp === 'visible' ||
+        // deprecated prop below, remove in favor of prefetchData
+        prefetchProp === true
+      ) {
+        handleDataPrefetch?.(null, anchorRef.value);
+      }
     }
   });
 
@@ -123,9 +165,16 @@ export const Link = component$<LinkProps>((props) => {
         onClick$,
         handleClientSideNavigation,
       ]}
-      data-prefetch={prefetchData}
-      onMouseOver$={[linkProps.onMouseOver$, handlePrefetch]}
-      onFocus$={[linkProps.onFocus$, handlePrefetch]}
+      onPointerEnter$={[
+        linkProps.onMouseOver$,
+        prefetchDataProp === 'intent' ? prefetchData : null,
+      ]}
+      onFocus$={[linkProps.onFocus$, prefetchDataProp === 'intent' ? prefetchData : null]}
+      onPointerDown$={[
+        linkProps.onPointerDown$,
+        prefetchDataProp === 'commit' ? prefetchData : null,
+      ]}
+      onKeyDown$={[linkProps.onKeyDown$, prefetchDataProp === 'commit' ? onEnterKeyDown : null]}
       // We need to prevent the onQVisible$ from being called twice since it is handled in the visible task
       onQVisible$={[]}
     >
@@ -139,24 +188,65 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
 /** @public */
 export interface LinkProps extends AnchorAttributes {
   /**
-   * **Defaults to _true_.**
+   * @deprecated Use `prefetchBundle` and `prefetchData` instead for more granular control over what
+   *   is prefetched and when. This prop will be removed in a future major version.
    *
-   * Whether Qwik should prefetch and cache the target page of this **`Link`**, this includes
-   * invoking any **`routeLoader$`**, **`onGet`**, etc.
+   *   Legacy prefetch control for this **`Link`**.
    *
-   * This **improves UX performance** for client-side (**SPA**) navigations.
-   *
-   * Prefetching occurs when a the Link enters the viewport in production (**`q-e:qvisible`**), or
-   * with **`mouseover`/`focus`** during dev.
-   *
-   * Prefetching will not occur if the user has the **data saver** setting enabled.
-   *
-   * Setting this value to **`"js"`** will prefetch only javascript bundles required to render this
-   * page on the client, **`false`** will disable prefetching altogether.
+   *   Setting this value to **`"js"`** will prefetch only javascript bundles required to render this
+   *   page on the client when the link becomes visible. Setting this value to **`true`** will
+   *   prefetch both javascript bundles and route data when the link becomes visible. Setting this
+   *   value to **`false`** will disable prefetching altogether.
    */
   prefetch?: boolean | 'js';
 
+  /**
+   * Controls when Qwik should prefetch the javascript bundles required to render this **`Link`**
+   * target during client-side navigation.
+   *
+   * Defaults to **`"visible"`**.
+   *
+   * Prefetching will not occur if the user has the **data saver** setting enabled.
+   */
+  prefetchBundle?: PrefetchStrategy;
+
+  /**
+   * Controls when Qwik should prefetch and cache route data for this **`Link`** target, including
+   * invoking any **`routeLoader$`**, **`onGet`**, etc.
+   *
+   * Defaults to **`"intent"`**. When using the deprecated **`prefetch="js"`** prop, route data
+   * prefetching defaults to **`"off"`**.
+   *
+   * Prefetching route data can improve client-side navigation performance for pages that wait on
+   * loaders, server handlers, databases, or API calls.
+   *
+   * Prefetching will not occur if the user has the **data saver** setting enabled.
+   */
+  prefetchData?: PrefetchStrategy;
   reload?: boolean;
   replaceState?: boolean;
   scroll?: boolean;
 }
+
+/**
+ * Defines when link prefetching should be triggered.
+ *
+ * @public
+ */
+export type PrefetchStrategy =
+  /**
+   * Prefetch when the user commits to navigating.
+   *
+   * Triggered by `pointerdown` or the `Enter` key.
+   */
+  | 'commit'
+  /**
+   * Prefetch when the user shows navigation intent.
+   *
+   * Triggered by `pointerenter`, hover, or focus.
+   */
+  | 'intent'
+  /** Prefetch when the link becomes visible in the viewport. */
+  | 'visible'
+  /** Disable link prefetching. */
+  | 'off';

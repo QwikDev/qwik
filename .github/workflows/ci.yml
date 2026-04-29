@@ -1160,8 +1160,54 @@ jobs:
           QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
         run: pnpm run qwik-push-build-repos
 
+  ############ PKG.PR.NEW (decoupled from tests) ############
+  release-pkg-pr-new:
+    name: Release pkg.pr.new
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    needs:
+      - changes
+      - build-qwik
+      - combined-optimizer
+      - build-other-packages
+
+    # Publish previews as soon as the build is ready, regardless of test status.
+    # Accept `skipped` because build jobs are skipped on cache hits.
+    if: |
+      always() &&
+      github.repository == 'QwikDev/qwik' &&
+      github.event_name != 'workflow_dispatch' &&
+      (needs.build-qwik.result == 'success' || needs.build-qwik.result == 'skipped') &&
+      (needs.combined-optimizer.result == 'success' || needs.combined-optimizer.result == 'skipped') &&
+      (needs.build-other-packages.result == 'success' || needs.build-other-packages.result == 'skipped')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Move Distribution Artifacts
+        run: pnpm ci.restore-artifacts
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Fixup package.json files
+        run: pnpm run release.fixup-package-json
+
       - name: Publish packages for testing
-        if: github.event_name != 'workflow_dispatch'
         # TODO: bring back --compact in the package.json release.pkg-pr-new script after first npm public of V2 alpha
         run: pnpm release.pkg-pr-new
         env:

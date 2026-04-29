@@ -253,7 +253,7 @@ function finishWalk(
 }
 
 function addCursorBoundary(cursorData: CursorData, vNode: VNode): void {
-  const boundary = getNearestCursorBoundary(vNode);
+  const boundary = getNearestCursorBoundary(cursorData.container, vNode);
   if (!boundary) {
     return;
   }

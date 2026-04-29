@@ -2,9 +2,7 @@ import { cloudflarePagesAdapter } from '@qwik.dev/router/adapters/cloudflare-pag
 import { extendConfig } from '@qwik.dev/router/vite';
 import baseConfig from '../../vite.config';
 
-const extendConfigUnsafe = extendConfig as any;
-
-export default extendConfigUnsafe(baseConfig, () => {
+export default extendConfig(baseConfig, () => {
   return {
     build: {
       ssr: true,

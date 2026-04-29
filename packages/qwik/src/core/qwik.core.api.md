@@ -1213,8 +1213,6 @@ export class _SubscriptionData {
     data: NodePropData;
 }
 
-// Warning: (ae-forgotten-export) The symbol "SuspenseProps" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export const _suC: (props: SuspenseProps) => JSXNodeInternal<FunctionComponent<    {
 children?: any;
@@ -1225,6 +1223,13 @@ key?: string | number | null;
 //
 // @public (undocumented)
 export const Suspense: typeof _suC;
+
+// @public (undocumented)
+export type SuspenseProps = {
+    fallback?: JSXOutput;
+    showStale?: boolean;
+    timeout?: number;
+};
 
 // @internal (undocumented)
 export const _suT: (input: TaskCtx) => void;

@@ -17,7 +17,7 @@ import {
   executeReconcile,
   executeTasks,
 } from './chore-execution';
-import { type Cursor } from './cursor';
+import { addCursor, isCursor, type Cursor } from './cursor';
 import { setCursorPosition, getCursorData, type CursorData } from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import {
@@ -34,9 +34,10 @@ import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
 import { isDev, isServer } from '@qwik.dev/core/build';
-import { QNearestCursorBoundary } from '../utils/markers';
+import { QCursorBoundary, QNearestCursorBoundary } from '../utils/markers';
 import { vnode_setProp } from '../../client/vnode-utils';
 import { getNearestCursorBoundary } from '../vnode/vnode-dirty';
+import type { CursorBoundary } from '../../use/use-cursor-boundary';
 
 const DEBUG = false;
 
@@ -139,7 +140,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
       // Move to next node
       clearNearestCursorBoundary(currentVNode);
-      setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor));
+      setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor, container));
       continue;
     }
 
@@ -157,7 +158,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
       }
       // Clear dirty bits and move to next node
       currentVNode.dirty &= ~ChoreBits.DIRTY_MASK;
-      setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor));
+      setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor, container));
       continue;
     }
 
@@ -305,27 +306,10 @@ export function tryDescendDirtyChildren(
     return null;
   }
   partitionDirtyChildren(dirtyChildren, currentVNode);
-  // Scan dirtyChildren directly instead of going through getNextVNode.
-  // getNextVNode follows the child's parent/slotParent pointer, which for Projection nodes
-  // points to the DOM insertion location rather than currentVNode — that would scan the
-  // wrong dirtyChildren array and potentially cause infinite loops.
-  // const len = dirtyChildren.length;
-  // for (let i = 0; i < len; i++) {
-  //   const child = dirtyChildren[i];
-  //   if (child.dirty & ChoreBits.DIRTY_MASK) {
-  //     currentVNode.nextDirtyChildIndex = (i + 1) % len;
-  //     setCursorPosition(container, cursorData, child);
-  //     return child;
-  //   }
-  // }
-  // // No dirty child found — clean up
-  // currentVNode.dirty &= ~ChoreBits.CHILDREN;
-  // currentVNode.dirtyChildren = null;
   currentVNode.nextDirtyChildIndex = 0;
-  const next = getNextVNode(dirtyChildren[0], cursor)!;
+  const next = getNextVNode(dirtyChildren[0], cursor, container)!;
   setCursorPosition(container, cursorData, next);
   return next;
-  // return null;
 }
 
 /**
@@ -349,7 +333,7 @@ export function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): v
 }
 
 /** @returns Next vNode to process, or null if traversal is complete */
-export function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
+export function getNextVNode(vNode: VNode, cursor: Cursor, container?: Container): VNode | null {
   if (vNode === cursor) {
     if (cursor.dirty & ChoreBits.DIRTY_MASK) {
       return cursor;
@@ -378,6 +362,13 @@ export function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
   while (count-- > 0) {
     const nextVNode = dirtyChildren[index];
     if (nextVNode.dirty & ChoreBits.DIRTY_MASK) {
+      if (container && splitCursorBoundary(container, nextVNode)) {
+        index++;
+        if (index === len) {
+          index = 0;
+        }
+        continue;
+      }
       parent.nextDirtyChildIndex = (index + 1) % len;
       return nextVNode;
     }
@@ -391,5 +382,20 @@ export function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
   parent!.dirtyChildren = null;
   parent!.nextDirtyChildIndex = 0;
   clearNearestCursorBoundary(parent!);
-  return getNextVNode(parent!, cursor);
+  return getNextVNode(parent!, cursor, container);
+}
+
+function splitCursorBoundary(container: Container, vNode: VNode): boolean {
+  if (
+    !vNode.props ||
+    !(QCursorBoundary in vNode.props) ||
+    !container.getHostProp<CursorBoundary>(vNode as any, QCursorBoundary)
+  ) {
+    return false;
+  }
+
+  if (!isCursor(vNode)) {
+    addCursor(container, vNode, 0);
+  }
+  return true;
 }

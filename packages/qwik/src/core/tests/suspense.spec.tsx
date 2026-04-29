@@ -503,6 +503,62 @@ describe('domRender: Suspense client-side pause timeout', () => {
     delete (globalThis as any).__susResolve;
   });
 
+  it('should show a numeric zero fallback while a descendant update is blocked', async () => {
+    (globalThis as any).__zeroFallbackToggle = null as any;
+    (globalThis as any).__zeroFallbackResolve = null as any;
+
+    const Child = component$(() => {
+      const toggle = useSignal(0);
+      (globalThis as any).__zeroFallbackToggle = toggle;
+      useTask$(({ track }) => {
+        const t = track(() => toggle.value);
+        if (t === 0) {
+          return;
+        }
+        return new Promise<void>((resolve) => {
+          (globalThis as any).__zeroFallbackResolve = resolve;
+        });
+      });
+      return <p>value={toggle.value}</p>;
+    });
+
+    const { container, document } = await domRender(
+      <div>
+        <Suspense fallback={0} timeout={10}>
+          <Child />
+        </Suspense>
+      </div>,
+      { debug }
+    );
+
+    const suspenseRoot = document.querySelector('div')!;
+    const fallbackHost = suspenseRoot.children[0] as HTMLElement;
+    const contentHost = suspenseRoot.children[1] as HTMLElement;
+    expect(fallbackHost.textContent).toBe('0');
+    expect(fallbackHost.style.display).toBe('none');
+    expect(contentHost.style.display).toBe('contents');
+
+    const toggle = (globalThis as any).__zeroFallbackToggle as { value: number };
+    toggle.value = 1;
+    await delay(40);
+
+    expect(fallbackHost.textContent).toBe('0');
+    expect(fallbackHost.style.display).toBe('contents');
+    expect(contentHost.style.display).toBe('none');
+
+    const resolveFn = (globalThis as any).__zeroFallbackResolve as () => void;
+    expect(resolveFn).toBeDefined();
+    resolveFn();
+    await waitForDrain(container);
+
+    expect(fallbackHost.style.display).toBe('none');
+    expect(contentHost.style.display).toBe('contents');
+    expect(contentHost.textContent).toContain('value=1');
+
+    delete (globalThis as any).__zeroFallbackToggle;
+    delete (globalThis as any).__zeroFallbackResolve;
+  });
+
   it('should keep stale content visible while showing fallback during updates when showStale is enabled', async () => {
     (globalThis as any).__showStaleToggle = null as any;
     (globalThis as any).__showStaleResolve = null as any;

@@ -4,6 +4,8 @@ import * as qrlClass from '../shared/qrl/qrl-class';
 import * as useCore from '../use/use-core';
 import * as vnodeUtils from './vnode-utils';
 import * as promises from '../shared/utils/promises';
+import * as domContainer from './dom-container';
+import * as processVNodeData from './process-vnode-data';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
 import { VNodeFlags } from './types';
 
@@ -27,8 +29,25 @@ vi.mock('../use/use-core', async () => {
   const actual = await vi.importActual<typeof import('../use/use-core')>('../use/use-core');
   return {
     ...actual,
-    newInvokeContextFromDOM: vi.fn(),
+    newInvokeContextFromDOMReady: vi.fn(),
     invokeApply: vi.fn(),
+  };
+});
+
+vi.mock('./dom-container', async () => {
+  const actual = await vi.importActual<typeof import('./dom-container')>('./dom-container');
+  return {
+    ...actual,
+    getDomContainer: vi.fn(),
+  };
+});
+
+vi.mock('./process-vnode-data', async () => {
+  const actual =
+    await vi.importActual<typeof import('./process-vnode-data')>('./process-vnode-data');
+  return {
+    ...actual,
+    whenVNodeDataReady: vi.fn((_document, callback) => callback()),
   };
 });
 
@@ -75,6 +94,7 @@ describe('_run', () => {
 
     // Create mock container
     mockContainer = {
+      document: {},
       handleError: vi.fn(),
       $getObjectById$: vi.fn(),
     };
@@ -91,7 +111,11 @@ describe('_run', () => {
     mockQrl = vi.fn();
 
     // Setup default mocks
-    vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
+    vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
+    vi.mocked(useCore.newInvokeContextFromDOMReady).mockReturnValue(mockContext);
+    vi.mocked(processVNodeData.whenVNodeDataReady).mockImplementation((_document, callback) =>
+      callback()
+    );
     vi.mocked(qrlClass.deserializeCaptures).mockReturnValue([mockQrl]);
 
     // Mock _captures global
@@ -111,13 +135,17 @@ describe('_run', () => {
     const result = _run.call('', mockEvent, disconnectedElement);
 
     expect(result).toBeUndefined();
-    expect(useCore.newInvokeContextFromDOM).not.toHaveBeenCalled();
+    expect(useCore.newInvokeContextFromDOMReady).not.toHaveBeenCalled();
   });
 
   it('should create invoke context from DOM', () => {
     _run.call('', mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mockEvent, mockElement);
+    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+      mockEvent,
+      mockElement,
+      mockContainer
+    );
   });
 
   it('should deserialize captures when this is a string', () => {
@@ -160,7 +188,11 @@ describe('_run', () => {
 
     _run.call(capturesString, mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mockEvent, mockElement);
+    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+      mockEvent,
+      mockElement,
+      mockContainer
+    );
     expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, capturesString);
     expect(qrlClass.setCaptures).toHaveBeenCalled();
   });
@@ -171,7 +203,11 @@ describe('_run', () => {
 
     _run.call('test-captures', clickEvent, buttonElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(clickEvent, buttonElement);
+    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+      clickEvent,
+      buttonElement,
+      mockContainer
+    );
   });
 
   it('should handle element being disconnected during event', () => {
@@ -188,7 +224,11 @@ describe('_run', () => {
 
     _run.call('mouse-captures', mouseEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mouseEvent, mockElement);
+    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+      mouseEvent,
+      mockElement,
+      mockContainer
+    );
   });
 
   it('should handle keyboard events', () => {
@@ -196,7 +236,11 @@ describe('_run', () => {
 
     _run.call('keyboard-captures', keyboardEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(keyboardEvent, mockElement);
+    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+      keyboardEvent,
+      mockElement,
+      mockContainer
+    );
     expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, 'keyboard-captures');
   });
 
@@ -207,6 +251,28 @@ describe('_run', () => {
 
     expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, complexCaptures);
     expect(qrlClass.setCaptures).toHaveBeenCalled();
+  });
+
+  it('should wait for VNodeData readiness before creating context', async () => {
+    let ready!: () => void;
+    vi.mocked(processVNodeData.whenVNodeDataReady).mockImplementation(
+      (_document, callback: any) =>
+        new Promise((resolve) => {
+          ready = () => resolve(callback());
+        })
+    );
+
+    const result = _run.call('captures', mockEvent, mockElement);
+
+    expect(useCore.newInvokeContextFromDOMReady).not.toHaveBeenCalled();
+    ready();
+    await result;
+
+    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+      mockEvent,
+      mockElement,
+      mockContainer
+    );
   });
 });
 
@@ -222,6 +288,7 @@ describe('runEventHandlerQRL', () => {
     mockEvent = new Event('click');
     mockElement = createMockElement();
     mockContainer = {
+      document: {},
       handleError: vi.fn(),
       $getObjectById$: vi.fn(),
     };
@@ -232,7 +299,11 @@ describe('runEventHandlerQRL', () => {
     };
     mockQrl = vi.fn();
 
-    vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
+    vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
+    vi.mocked(useCore.newInvokeContextFromDOMReady).mockReturnValue(mockContext);
+    vi.mocked(processVNodeData.whenVNodeDataReady).mockImplementation((_document, callback) =>
+      callback()
+    );
     vi.mocked(useCore.invokeApply).mockReturnValue(undefined);
     vi.mocked(vnodeUtils.vnode_getProp).mockReturnValue(null);
     vi.mocked(promises.retryOnPromise).mockImplementation((fn) => fn());
@@ -255,13 +326,17 @@ describe('runEventHandlerQRL', () => {
   it('should create invoke context from DOM when ctx is not provided', () => {
     runEventHandlerQRL(mockQrl, mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mockEvent, mockElement);
+    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+      mockEvent,
+      mockElement,
+      mockContainer
+    );
   });
 
   it('should use provided ctx without creating a new one', () => {
     runEventHandlerQRL(mockQrl, mockEvent, mockElement, mockContext);
 
-    expect(useCore.newInvokeContextFromDOM).not.toHaveBeenCalled();
+    expect(useCore.newInvokeContextFromDOMReady).not.toHaveBeenCalled();
   });
 
   it('should call vnode_ensureElementInflated with container and hostElement', () => {

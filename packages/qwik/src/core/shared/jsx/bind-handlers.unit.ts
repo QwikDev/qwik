@@ -30,7 +30,7 @@ describe('bind handlers', () => {
       expect(() => _res.call(undefined, null, element)).not.toThrow();
     });
 
-    it('should be a true no-op (no side effects)', () => {
+    it('should be a true no-op (no side effects)', async () => {
       const document = createDocument();
       document.body.setAttribute(QContainerAttr, 'paused');
       const element = document.createElement('div');
@@ -41,8 +41,8 @@ describe('bind handlers', () => {
       // Call _res - it should do nothing visible
       const result = _res.call(captureString, null, element);
 
-      // Returns undefined (no-op)
-      expect(result).toBeUndefined();
+      // Resolves undefined (no-op) once VNodeData processing is ready.
+      await expect(result).resolves.toBeUndefined();
     });
   });
 

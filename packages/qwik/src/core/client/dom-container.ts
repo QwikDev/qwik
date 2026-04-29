@@ -45,7 +45,7 @@ import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ContextId } from '../use/use-context';
-import { processVNodeData } from './process-vnode-data';
+import { onVNodeDataReady, processVNodeData } from './process-vnode-data';
 import {
   VNodeFlags,
   type ContainerElement,
@@ -116,14 +116,19 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$rawStateData$ = [];
     this.$stateData$ = [];
     const document = this.element.ownerDocument as QDocument;
-    if (!document.qVNodeData) {
-      processVNodeData(document);
-    }
+    processVNodeData(document);
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
     this.$setServerData$();
-    element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     element.qContainer = this;
     (element as any).qDestroy = () => this.$destroy$();
+    onVNodeDataReady(document, () => this.$finalizeResume$());
+  }
+
+  private $finalizeResume$(): void {
+    const element = this.element;
+    if (element.qContainer !== this) {
+      return;
+    }
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
@@ -132,6 +137,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$hoistStyles$();
+    element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     if (!qTest && element.isConnected) {
       element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
     }
@@ -148,7 +154,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
     el.removeAttribute(QContainerAttr);
-    (el.ownerDocument as QDocument).qVNodeData = undefined!;
+    const document = el.ownerDocument as QDocument;
+    document.qVNodeData = undefined!;
+    document.qVNodeDataStarted = false;
+    document.qVNodeDataReady = false;
+    document.qVNodeDataState = undefined;
+    document.qVNodeDataCallbacks = undefined;
   }
 
   /**

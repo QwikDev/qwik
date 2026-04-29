@@ -729,18 +729,37 @@ async function checkExternals() {
   const core2 = '@qwik.dev/core';
   const core1 = '@builder.io/qwik';
   async function getInstalledDependencies(root: string): Promise<string[]> {
-    try {
-      const pkgPath = path.join(root, 'package.json');
-      const data = await fs.readFile(pkgPath, { encoding: 'utf-8' });
-      const json = JSON.parse(data);
-      return [
-        ...Object.keys(json.dependencies || {}),
-        ...Object.keys(json.devDependencies || {}),
-        ...Object.keys(json.optionalDependencies || {}),
-      ];
-    } catch {
-      return [];
+    // Walk up from `root` and union deps from every package.json we find, so
+    // monorepo setups where Vite's root points at a sub-project still pick up
+    // workspace-root deps (e.g. an Nx lib whose deps are declared at the
+    // repo root).
+    //
+    const deps = new Set<string>();
+    let dir = root;
+    while (dir) {
+      try {
+        const pkgPath = path.join(dir, 'package.json');
+        const data = await fs.readFile(pkgPath, { encoding: 'utf-8' });
+        const json = JSON.parse(data);
+        for (const name of Object.keys(json.dependencies || {})) {
+          deps.add(name);
+        }
+        for (const name of Object.keys(json.devDependencies || {})) {
+          deps.add(name);
+        }
+        for (const name of Object.keys(json.optionalDependencies || {})) {
+          deps.add(name);
+        }
+      } catch {
+        // No package.json at this level, or unreadable — keep walking.
+      }
+      const parent = path.dirname(dir);
+      if (parent === dir) {
+        break;
+      }
+      dir = parent;
     }
+    return [...deps];
   }
 
   async function isQwikDep(dep: string, dir: string) {

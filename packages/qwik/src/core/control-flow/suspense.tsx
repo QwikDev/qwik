@@ -1,0 +1,102 @@
+import { Fragment } from '@qwik.dev/core/jsx-runtime';
+import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
+import { useSignal } from '../use/use-signal';
+import { useTaskQrl, type TaskCtx } from '../use/use-task';
+import { _jsxSorted } from '../shared/jsx/jsx-internal';
+import { _fnSignal } from '../shared/qrl/inlined-fn';
+import { _wrapProp } from '../reactive-primitives/internal-api';
+import { Slot } from '../shared/jsx/slot.public';
+import { QCursorBoundary } from '../shared/utils/markers';
+import { _captures } from '../shared/qrl/qrl-class';
+import { isBrowser } from '@qwik.dev/core/build';
+import { inlinedQrl } from '../shared/qrl/qrl';
+import type { Signal } from '../reactive-primitives/signal.public';
+import type { JSXOutput } from '../shared/jsx/types/jsx-node';
+import { componentQrl } from '../shared/component.public';
+import { isServerPlatform } from '../shared/platform/platform';
+
+type SuspenseState = 'content' | 'fallback';
+
+export type SuspenseProps = {
+  fallback?: JSXOutput;
+  showStale?: boolean;
+  timeout?: number;
+};
+
+const _hf0 = (p0: SuspenseProps, p1: Signal<SuspenseState>) => ({
+  display: p1.value === 'fallback' && p0.fallback ? 'contents' : 'none',
+});
+const _hf0_str = '{display:p1.value==="fallback"&&!!p0.fallback?"contents":"none"}';
+const _hf1 = (p0: Signal<SuspenseState>) => ({
+  display: p0.value === 'content' ? 'contents' : 'none',
+});
+const _hf1_str = '{display:p0.value==="content"?"contents":"none"}';
+
+/** @internal */
+export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
+  const cursorBoundary = _captures![0] as CursorBoundary,
+    props = _captures![1] as { timeout?: number },
+    state = _captures![2] as Signal<SuspenseState>;
+  const pendingCount = track(cursorBoundary.pending);
+  const isBrowserEnv = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
+  if (!isBrowserEnv || pendingCount === 0) {
+    state.value = 'content';
+    return;
+  }
+  const timeout = setTimeout(() => {
+    if (cursorBoundary.pending.value > 0) state.value = 'fallback';
+  }, props.timeout ?? 0);
+  cleanup(() => clearTimeout(timeout));
+};
+
+/** @internal */
+export const suspenseCmp = (props: SuspenseProps) => {
+  const state = useSignal<SuspenseState>('content');
+  const cursorBoundary = useCursorBoundary();
+
+  useTaskQrl(/*#__PURE__*/ inlinedQrl(suspenseTask, '_suT', [cursorBoundary, props, state]));
+
+  return /*#__PURE__*/ _jsxSorted(
+    Fragment,
+    null,
+    null,
+    [
+      /*#__PURE__*/ _jsxSorted(
+        'div',
+        {
+          style: _fnSignal(_hf0, [props, state], _hf0_str),
+        },
+        null,
+        _wrapProp(props, 'fallback'),
+        1,
+        null
+      ),
+      /*#__PURE__*/ _jsxSorted(
+        'div',
+        null,
+        {
+          style: _fnSignal(_hf1, [state], _hf1_str),
+        },
+        /*#__PURE__*/ _jsxSorted(
+          Slot,
+          {
+            [QCursorBoundary]: cursorBoundary,
+          },
+          null,
+          null,
+          3,
+          'u6_0'
+        ),
+        1,
+        null
+      ),
+    ],
+    1,
+    'u6_1'
+  );
+};
+
+/** @public @experimental */
+export const Suspense = /*#__PURE__*/ componentQrl<SuspenseProps>(
+  /*#__PURE__*/ inlinedQrl(suspenseCmp, '_suC')
+) as typeof suspenseCmp;

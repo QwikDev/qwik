@@ -2242,6 +2242,20 @@
       "mdFile": "core.ssrstreamwriter.md"
     },
     {
+      "name": "Suspense",
+      "id": "suspense",
+      "hierarchy": [
+        {
+          "name": "Suspense",
+          "id": "suspense"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nSuspense: typeof suspenseCmp\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/suspense.tsx",
+      "mdFile": "core.suspense.md"
+    },
+    {
       "name": "SVGAttributes",
       "id": "svgattributes",
       "hierarchy": [

@@ -34,6 +34,9 @@ import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
 import { isDev, isServer } from '@qwik.dev/core/build';
+import { QNearestCursorBoundary } from '../utils/markers';
+import { vnode_setProp } from '../../client/vnode-utils';
+import { getNearestCursorBoundary } from '../vnode/vnode-dirty';
 
 const DEBUG = false;
 
@@ -135,6 +138,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
       // Move to next node
+      clearNearestCursorBoundary(currentVNode);
       setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor));
       continue;
     }
@@ -191,6 +195,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
     // Handle blocking promise
     if (result && isPromise(result)) {
       DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
+      addCursorBoundary(cursorData, currentVNode);
       // Store promise on cursor and pause
       cursorData.promise = result;
       pauseCursor(cursor, container);
@@ -234,6 +239,8 @@ function finishWalk(
       executeFlushPhase(cursor, container);
     }
 
+    resolveCursorBoundaries(cursorData);
+
     if (cursorData.extraPromises) {
       Promise.all(cursorData.extraPromises).then(() => {
         resolveCursor(container);
@@ -242,6 +249,37 @@ function finishWalk(
     }
 
     resolveCursor(container);
+  }
+}
+
+function addCursorBoundary(cursorData: CursorData, vNode: VNode): void {
+  const boundary = getNearestCursorBoundary(vNode);
+  if (!boundary) {
+    return;
+  }
+  const boundaries = (cursorData.boundaries ||= []);
+  if (!boundaries.includes(boundary)) {
+    boundaries.push(boundary);
+    boundary.pending.value++;
+  }
+}
+
+function clearNearestCursorBoundary(vNode: VNode): void {
+  if (vNode.props) {
+    vnode_setProp(vNode, QNearestCursorBoundary, null);
+  }
+}
+
+function resolveCursorBoundaries(cursorData: CursorData): void {
+  const boundaries = cursorData.boundaries;
+  if (!boundaries) {
+    return;
+  }
+  cursorData.boundaries = null;
+  for (let i = 0; i < boundaries.length; i++) {
+    const boundary = boundaries[i];
+    boundary.pending.value = Math.max(0, boundary.pending.value - 1);
+    boundary.version.value++;
   }
 }
 
@@ -263,6 +301,7 @@ export function tryDescendDirtyChildren(
   const dirtyChildren = currentVNode.dirtyChildren;
   if (!dirtyChildren || dirtyChildren.length === 0) {
     currentVNode.dirty &= ~ChoreBits.CHILDREN;
+    clearNearestCursorBoundary(currentVNode);
     return null;
   }
   partitionDirtyChildren(dirtyChildren, currentVNode);
@@ -351,5 +390,6 @@ export function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
   parent!.dirty &= ~ChoreBits.CHILDREN;
   parent!.dirtyChildren = null;
   parent!.nextDirtyChildIndex = 0;
+  clearNearestCursorBoundary(parent!);
   return getNextVNode(parent!, cursor);
 }

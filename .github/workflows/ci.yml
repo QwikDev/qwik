@@ -142,7 +142,8 @@ jobs:
           lookup-only: true
           path: packages/qwik/dist
           # Note that this includes the package.json of qwik
-          key: ${{ hashfiles('.github/workflows/ci.yml', 'pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', 'packages/qwik/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
+          # qwik-vite source is bundled into packages/qwik/dist/optimizer.mjs by scripts/submodule-optimizer.ts, so its sources must invalidate this cache.
+          key: ${{ hashfiles('.github/workflows/ci.yml', 'pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', 'packages/qwik/**/*', 'packages/qwik-vite/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
       - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
       - name: 'check cache: rust'
         id: cache-rust

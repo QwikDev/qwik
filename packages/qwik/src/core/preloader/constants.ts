@@ -1,7 +1,4 @@
-import { isServer } from '@qwik.dev/core/build';
-import { isServerPlatform } from '../shared/platform/platform';
-
-const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
+import { isBrowser } from '@qwik.dev/core/build';
 
 // Browser-specific setup
 export const doc = isBrowser ? document : undefined!;

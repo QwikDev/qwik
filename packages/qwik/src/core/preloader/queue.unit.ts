@@ -1,3 +1,7 @@
+// @vitest-environment happy-dom
+// happy-dom is needed so that `@qwik.dev/core/build`'s `isBrowser` is shipped
+// as `true` for these tests. qwikVite computes that constant from the Vite
+// environment's consumer, which only flips to "client" with a DOM env.
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createDocument } from '@qwik.dev/core/testing';
 

@@ -10,7 +10,6 @@ import {
 } from './types';
 import type { QwikSymbolEvent } from '../shared/jsx/types/jsx-qwik-events';
 import { createMacroTask } from '../shared/platform/next-tick';
-import { isServerPlatform } from '../shared/platform/platform';
 
 export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
@@ -23,7 +22,7 @@ export const nextAdjustmentMacroTask = createMacroTask(processPendingAdjustments
 let isTriggerScheduled = false;
 let isAdjustmentScheduled = false;
 let isProcessingAdjustments = false;
-const shouldYieldInBrowser = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
+const shouldYieldInBrowser = isBrowser;
 
 type AdjustmentFrame = {
   $bundle$: BundleImport;
@@ -286,7 +285,7 @@ export const preload = (item: string | string[], probability?: number) => {
   }
 };
 
-if (import.meta.env.TEST ? !isServerPlatform() : isBrowser) {
+if (isBrowser) {
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;

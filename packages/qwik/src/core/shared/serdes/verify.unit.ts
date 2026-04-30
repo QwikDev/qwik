@@ -99,6 +99,46 @@ describe('verifySerializable', () => {
     });
   });
 
+  describe('framework-internal branded values', () => {
+    it('should allow objects with __brand', () => {
+      const obj = { __brand: 'server_loader', value: 42 };
+      expect(() => verifySerializable(obj)).not.toThrow();
+    });
+
+    it('should allow objects with __brand__', () => {
+      const obj = { __brand__: 'SsrNode', value: 42 };
+      expect(() => verifySerializable(obj)).not.toThrow();
+    });
+
+    it('should allow functions with __brand (e.g. route loaders/actions)', () => {
+      // Mirrors how qwik-router stamps route loaders/actions:
+      //   loader.__brand = 'server_loader'
+      //   action.__brand = 'server_action'
+      function loader() {}
+      (loader as any).__brand = 'server_loader';
+      (loader as any).__id = 'l_abc';
+      Object.freeze(loader);
+      expect(() => verifySerializable(loader)).not.toThrow();
+    });
+
+    it('should allow functions with __brand__', () => {
+      function fn() {}
+      (fn as any).__brand__ = 'internal';
+      expect(() => verifySerializable(fn)).not.toThrow();
+    });
+
+    it('should allow branded function refs inside arrays of objects (mock loaders shape)', () => {
+      // Regression for QwikRouterMockProvider.loaders: passing
+      //   [{ loader: useFooLoader, data: ... }]
+      // as a component$ prop must not trip the verifier.
+      function useFooLoader() {}
+      (useFooLoader as any).__brand = 'server_loader';
+      (useFooLoader as any).__id = 'l_foo';
+      const loaders = [{ loader: useFooLoader, data: { foo: 1 } }];
+      expect(() => verifySerializable(loaders)).not.toThrow();
+    });
+  });
+
   describe('untrack integration', () => {
     it('should call untrack when verifying', () => {
       const untrackSpy = vi.spyOn(useCore, 'untrack');

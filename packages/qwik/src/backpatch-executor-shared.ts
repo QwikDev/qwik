@@ -3,8 +3,6 @@
  * (backpatch-executor.ts) and test utilities.
  */
 
-const BACKPATCH_DATA_SELECTOR = 'script[type="qwik/backpatch"]';
-
 /**
  * Execute backpatch operations on a document.
  *
@@ -13,12 +11,13 @@ const BACKPATCH_DATA_SELECTOR = 'script[type="qwik/backpatch"]';
  *   it)
  */
 export function executeBackpatch(doc: Document, containerElement?: Element | null) {
+  const backpatchDataSelector = 'script[type="qwik/backpatch"]';
   const container =
     containerElement ||
     doc.querySelector('[q\\:container]:not([q\\:container=html]):not([q\\:container=text])');
 
   if (container) {
-    const script = container.querySelector(BACKPATCH_DATA_SELECTOR);
+    const script = container.querySelector(backpatchDataSelector);
     if (script) {
       const data = JSON.parse(script.textContent || '[]');
       const walker = doc.createTreeWalker(container, NodeFilter.SHOW_ELEMENT);

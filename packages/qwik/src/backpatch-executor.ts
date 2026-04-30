@@ -11,12 +11,14 @@
 import { executeBackpatch } from './backpatch-executor-shared';
 
 // When executed as an inline script in the browser
-const executorScript = document.currentScript;
-if (executorScript) {
-  const container = executorScript.closest(
-    '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
-  );
-  if (container) {
-    executeBackpatch(document, container);
+(() => {
+  const executorScript = document.currentScript;
+  if (executorScript) {
+    const container = executorScript.closest(
+      '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
+    );
+    if (container) {
+      executeBackpatch(document, container);
+    }
   }
-}
+})();

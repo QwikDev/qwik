@@ -1,3 +1,5 @@
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   createContextId,
   useContext,
@@ -8,6 +10,7 @@ import {
   Fragment as Component,
 } from '@qwik.dev/core';
 import { ssrRenderToDom } from '@qwik.dev/core/testing';
+import { buildSync } from 'esbuild';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import { vi } from 'vitest';
@@ -18,6 +21,29 @@ const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe('SSR Backpatching', () => {
+  it('should allow the executor to be inlined more than once', () => {
+    const __dirname = fileURLToPath(new URL('.', import.meta.url));
+    const tsPath = join(__dirname, '../../backpatch-executor.ts');
+
+    const { outputFiles } = buildSync({
+      entryPoints: [tsPath],
+      bundle: true,
+      write: false,
+      target: 'es2020',
+      format: 'esm',
+      minify: false,
+      sourcemap: false,
+    });
+    const code = outputFiles[0].text;
+
+    expect(() => {
+      new Function('document', 'NodeFilter', `${code}\n${code}`)(
+        { currentScript: null },
+        { SHOW_ELEMENT: 1 }
+      );
+    }).not.toThrow();
+  });
+
   it('should handle basic backpatching', async () => {
     const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-1');
 

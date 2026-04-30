@@ -1,5 +1,25 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.33
+
+### Major Changes
+
+- We removed the following `renderToStream` APIs: (by [@maiieul](https://github.com/maiieul) in [#8518](https://github.com/QwikDev/qwik/pull/8518))
+  - `preloads.ssrPreloadProbability` and `preloads.preloadProbability` APIs because the number of simultaneous idle preloads should be easy to determine for the developer.
+  - `preloads.debug` API because it hasn't really proved useful after a full year of modulepreloads.
+  - the deprecated Service Worker `prefetchStrategy` API.
+
+### Patch Changes
+
+- fix(vite): resolve relative SSR/client input paths to absolute before passing to rollup, preventing "[vite-plugin-qwik] Qwik input "src/entry.preview.tsx" not found" errors. (by [@maiieul](https://github.com/maiieul) in [#8573](https://github.com/QwikDev/qwik/pull/8573))
+
+- 🐞🩹 Node SSR streaming to honor downstream backpressure (by [@Varixo](https://github.com/Varixo) in [#8557](https://github.com/QwikDev/qwik/pull/8557))
+
+- 🐞🩹 Qwik vite plugin's auto-detection of Qwik library dependencies now walks up the directory tree from Vite's `root` and unions deps from every `package.json` it finds. Previously it only read the `package.json` at `root`, which meant monorepo setups with the Vite root pointing at a sub-project (e.g. an Nx lib) missed Qwik libraries declared at the workspace root. Those libraries then fell through to Vite's pre-bundling, leaving raw `$()` calls in the bundled output and producing the runtime error "Optimizer should replace all usages of $()". (by [@maiieul](https://github.com/maiieul) in [#8586](https://github.com/QwikDev/qwik/pull/8586))
+
+- Updated dependencies [[`581a96e`](https://github.com/QwikDev/qwik/commit/581a96e6d74eef7a1dc47b145ae42dbb68531dcb)]:
+  - @qwik.dev/optimizer@2.1.0-beta.3
+
 ## 2.0.0-beta.32
 
 ### Major Changes

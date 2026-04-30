@@ -60,7 +60,7 @@ import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-ope
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
-import { setVNodeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
+import { updateDirtySubtreeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';
@@ -750,7 +750,7 @@ function expectSlot(diffContext: DiffContext) {
     diffContext.$vNewNode$ = vnode_newVirtual();
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
-    setVNodeCursorBoundary(
+    updateDirtySubtreeCursorBoundary(
       diffContext.$container$,
       diffContext.$vNewNode$ as VirtualVNode,
       cursorBoundary
@@ -773,7 +773,7 @@ function expectSlot(diffContext: DiffContext) {
     diffContext.$vNewNode$ = vProjectedNode;
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
-    setVNodeCursorBoundary(
+    updateDirtySubtreeCursorBoundary(
       diffContext.$container$,
       diffContext.$vNewNode$ as VirtualVNode,
       cursorBoundary

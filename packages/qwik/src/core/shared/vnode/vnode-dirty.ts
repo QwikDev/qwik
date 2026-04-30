@@ -54,6 +54,8 @@ function propagateToCursorRoot(container: Container, vNode: VNode, cursorRoot: V
 
     // Stop when we reach the cursor root or a dirty ancestor
     if (current === cursorRoot || isDirty) {
+      // Known cursor root / dirty ancestor case: cache the boundary discovered while walking
+      // before attaching this dirty vnode to the existing scheduled subtree.
       setNearestCursorBoundary(vNode, cursorBoundary);
       propagatePath(current);
       // Update cursor position if current is a cursor
@@ -102,6 +104,8 @@ function findAndPropagateToBlockingCursor(container: Container, vNode: VNode): b
     }
 
     if (currentIsCursor) {
+      // Existing cursor case: attach this dirty vnode to the blocking cursor found above it and
+      // remember that cursor's nearest boundary for async/suspense bookkeeping.
       setNearestCursorBoundary(vNode, cursorBoundary);
       propagatePath(current);
       reusablePath.length = 0;
@@ -111,6 +115,8 @@ function findAndPropagateToBlockingCursor(container: Container, vNode: VNode): b
     reusablePath.push(current);
     current = current.slotParent || current.parent;
   }
+  // New cursor case: no blocking cursor was found above this vnode, so cache the nearest boundary
+  // before the caller creates a cursor rooted at this vnode.
   setNearestCursorBoundary(vNode, cursorBoundary);
   reusablePath.length = 0;
   return false;
@@ -160,6 +166,8 @@ export function markVNodeDirty(
 
   // We must attach to a cursor subtree if it exists
   if (parent && parent.dirty & ChoreBits.DIRTY_MASK) {
+    // Dirty parent case: this vnode joins an already scheduled subtree, so inherit the parent's
+    // nearest boundary unless this vnode owns a boundary itself.
     setNearestCursorBoundary(
       vNode,
       getOwnCursorBoundary(container, vNode) || getNearestCursorBoundary(container, parent)
@@ -200,6 +208,8 @@ export function markVNodeDirty(
       addCursor(container, vNode, 0);
     }
   } else {
+    // Existing cursor-root case: the vnode is already the scheduled cursor, so only its own
+    // boundary can be authoritative here.
     setNearestCursorBoundary(vNode, getOwnCursorBoundary(container, vNode));
   }
 }

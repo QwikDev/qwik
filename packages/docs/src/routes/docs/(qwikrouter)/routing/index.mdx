@@ -291,14 +291,16 @@ export default component$(() => {
 
 <Note>While refreshing the page, the `isNavigating` boolean from `useLocation()` will be `true` until the page is fully rendered.</Note>
 
-### `<Link prefetch>`
+### `<Link>` prefetching
 
-By default, a `Link` component will start prefetching the next page as soon as the user hovers over the corresponding link in the UI. So if the application is done prefetching when the user clicks on the link, the next page will appear instantly. Although Qwik applications already excel at lazy loading javascript, this behavior can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
+Use `prefetchBundle` and `prefetchData` to control what a link prefetches and when it starts.
 
-If this is not your desired behavior, you can set the `prefetch` prop to false.
-```tsx
- <Link prefetch={false} href="/about">About</Link>
-```
+By default, `prefetchBundle` uses `visible`, while `prefetchData` uses `intent`, so route bundles
+are prefetched when the link enters the viewport and route data is prefetched when the user shows
+navigation intent.
+
+For the full list of strategies, examples, and deprecated `prefetch` behavior, see
+[`<Link>` prefetch in the API reference](/docs/(qwikrouter)/api/index.mdx#prefetch).
 
 ### Scroll Restoration
 

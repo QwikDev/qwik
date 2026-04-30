@@ -264,7 +264,10 @@ export const Link: Component<LinkProps>;
 //
 // @public (undocumented)
 export interface LinkProps extends AnchorAttributes {
+    // @deprecated (undocumented)
     prefetch?: boolean | 'js';
+    prefetchBundle?: PrefetchStrategy;
+    prefetchData?: PrefetchStrategy;
     // (undocumented)
     reload?: boolean;
     // (undocumented)
@@ -304,6 +307,25 @@ export type PageModule = RouteModule & {
 
 // @public (undocumented)
 export type PathParams = Record<string, string>;
+
+// @public
+export type PrefetchStrategy =
+/**
+* Prefetch when the user commits to navigating.
+*
+* Triggered by `pointerdown` or the `Enter` key.
+*/
+'commit'
+/**
+* Prefetch when the user shows navigation intent.
+*
+* Triggered by `pointerenter`, hover, or focus.
+*/
+| 'intent'
+/** Prefetch when the link becomes visible in the viewport. */
+| 'visible'
+/** Disable link prefetching. */
+| 'off';
 
 // @public (undocumented)
 export type PreventNavigateCallback = (url?: number | URL) => ValueOrPromise<boolean>;

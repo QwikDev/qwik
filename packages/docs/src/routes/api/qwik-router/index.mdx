@@ -1146,17 +1146,47 @@ boolean \| 'js'
 
 </td><td>
 
-_(Optional)_ \*\*Defaults to \_true\_.\*\*
+_(Optional)_
 
-Whether Qwik should prefetch and cache the target page of this \*\*`Link`\*\*, this includes invoking any \*\*`routeLoader$`\*\*, \*\*`onGet`\*\*, etc.
+</td></tr>
+<tr><td>
 
-This \*\*improves UX performance\*\* for client-side (\*\*SPA\*\*) navigations.
+prefetchBundle?
 
-Prefetching occurs when a the Link enters the viewport in production (\*\*`q-e:qvisible`\*\*), or with \*\*`mouseover`/`focus`\*\* during dev.
+</td><td>
+
+</td><td>
+
+[PrefetchStrategy](#prefetchstrategy)
+
+</td><td>
+
+_(Optional)_ Controls when Qwik should prefetch the javascript bundles required to render this \*\*`Link`\*\* target during client-side navigation.
+
+Defaults to \*\*`"visible"`\*\*.
 
 Prefetching will not occur if the user has the \*\*data saver\*\* setting enabled.
 
-Setting this value to \*\*`"js"`\*\* will prefetch only javascript bundles required to render this page on the client, \*\*`false`\*\* will disable prefetching altogether.
+</td></tr>
+<tr><td>
+
+prefetchData?
+
+</td><td>
+
+</td><td>
+
+[PrefetchStrategy](#prefetchstrategy)
+
+</td><td>
+
+_(Optional)_ Controls when Qwik should prefetch and cache route data for this \*\*`Link`\*\* target, including invoking any \*\*`routeLoader$`\*\*, \*\*`onGet`\*\*, etc.
+
+Defaults to \*\*`"visible"`\*\*. When using the deprecated \*\*`prefetch="js"`\*\* prop, route data prefetching defaults to \*\*`"off"`\*\*.
+
+Prefetching route data can improve client-side navigation performance for pages that wait on loaders, server handlers, databases, or API calls.
+
+Prefetching will not occur if the user has the \*\*data saver\*\* setting enabled.
 
 </td></tr>
 <tr><td>
@@ -1322,6 +1352,32 @@ export declare type PathParams = Record<string, string>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="prefetchstrategy">PrefetchStrategy</h2>
+
+Defines when link prefetching should be triggered.
+
+```typescript
+export type PrefetchStrategy =
+  /**
+   * Prefetch when the user commits to navigating.
+   *
+   * Triggered by `pointerdown` or the `Enter` key.
+   */
+  | "commit"
+  /**
+   * Prefetch when the user shows navigation intent.
+   *
+   * Triggered by `pointerenter`, hover, or focus.
+   */
+  | "intent"
+  /** Prefetch when the link becomes visible in the viewport. */
+  | "visible"
+  /** Disable link prefetching. */
+  | "off";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx)
 
 <h2 id="preventnavigatecallback">PreventNavigateCallback</h2>
 

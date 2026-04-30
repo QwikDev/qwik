@@ -45,18 +45,18 @@ import { Note, LongNote } from '../../../../../components/note/note';
 
 # State
 
-State management is an important part of any app. In Qwik, there are two types of state, reactive and static:
+Applications need to keep track of values that change over time. In Qwik, those values usually fall into two groups:
 
-1. Static state is anything that can be serialized: a string, number, object, array... anything.
-2. A reactive state on the other hand is created with `useSignal()` or `useStore()`.
+1. Plain data: serializable values like strings, numbers, objects, and arrays.
+2. Reactive state: values that trigger UI updates where they are used. Create it with `useSignal()` or `useStore()`.
 
-It is important to notice that state in Qwik is not necessarily a local component state, but rather an app state that can be instantiated by any component.
+State in Qwik does not have to live inside one component. Any component can create state, and that state can be shared with other parts of the app.
 
 ## `useSignal()`
 
-Use `useSignal()` to create a reactive signal (a form of state). The `useSignal()` takes an initial value and returns a reactive signal.
+A <a href="https://www.builder.io/blog/usesignal-is-the-future-of-web-frameworks" target="_blank" rel="noopener noreferrer">reactive signal</a> is an object with a single `.value` property.
 
-The reactive signal returned by `useSignal()` consists of an object with a single property `.value`. If you change the `value` property of the signal, any component that depends on it will be updated automatically.
+When `.value` changes, Qwik updates the components that use it.
 
 <CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx">
 ```tsx {4} /count/
@@ -74,37 +74,42 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-This example above shows how `useSignal()` can be used in a counter component to keep track of the count. Modifying the `count.value` property will cause the component to be updated automatically. For instance, when the property is changed in the button click handler as in the example above.
+In this example, `count` is a signal. Clicking the button updates `count.value`, and Qwik updates the button text automatically.
 
-<Note>
-If you just need to read the signal's value, don't pass the entire signal as a prop, instead pass only its value:
-</Note>
+<LongNote title="Passing signals to child components">
+Both `.value` and the signal object can be passed as props.
 
-⛔ **Avoid:**
+Pass `.value` when the child only needs the current value. Pass the signal object when the child should be able to read and update the value, or when the prop is typed as `Signal<T>`.
 
-```tsx
-const isClosedSig = useSignal(false);
-
-return <Child isClosed={isClosedSig} />;
-```
-
-✅ **Instead do:**
+**Current value only:**
 
 ```tsx
-const isClosedSig = useSignal(false);
+const isClosed = useSignal(false);
 
-return <Child isClosed={isClosedSig.value} />;
+return <Child isClosed={isClosed.value} />;
 ```
 
+This passes the current boolean value.
+
+**Pass the signal object:**
+
+```tsx
+const isClosed = useSignal(false);
+
+return <Child isClosed={isClosed} />;
+```
+
+This passes the signal object, so the child can read and update `isClosed.value`.
+</LongNote>
 
 ## `useStore()`
 
-Works very similarly to `useSignal()`, but it takes an object as its initial value and the reactivity extends to nested objects and arrays by default. One can think of a store as a multiple-value signal or an object made of several signals.
+A store is similar to a signal, but for an entire object instead of a single `.value` property.
 
-Use `useStore(initialStateObject)` hook to create a reactive object. It takes an initial object (or a factory function) and returns a reactive object.
+Pass an initial object, or a function that returns one. Qwik tracks reads and writes to the object's properties. By default, nested objects and arrays are also tracked.
 
 <CodeSandbox src="/src/routes/demo/state/counter-store/index.tsx" >
-```tsx {4} /state/ /count/#a
+```tsx {4} /count/#a /name/
 import { component$, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -118,17 +123,32 @@ export default component$(() => {
         value={state.name}
         onInput$={(_, el) => (state.name = el.value)}
       />
+      <p>Name: {state.name}</p>
     </>
   );
 });
 ```
 </CodeSandbox>
 
-<Note>
-For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
-</Note>
+<LongNote title="Avoid destructuring store properties">
+Keep the store object, not destructured values.
 
-Because [`useStore()`](/docs/(qwik)/core/state/index.mdx#usestore) tracks deep reactivity, that means that Arrays and Objects inside the store will also be reactive.
+```tsx
+const state = useStore({ count: 0 });
+
+// Good: Qwik can track this property.
+state.count++;
+
+// Avoid: `count` is just a local variable now.
+const { count } = state;
+```
+
+If you destructure a store property, Qwik cannot track writes to that local variable.
+</LongNote>
+
+### Nested objects and arrays
+
+By default, a store also tracks objects and arrays inside it:
 
 <CodeSandbox src="/src/routes/demo/state/counter-store-deep/index.tsx" style={{ height: '10em' }}>
 ```tsx
@@ -147,16 +167,16 @@ export default component$(() => {
       <p>{store.nested.fields.are}</p>
       <button
         onClick$={() => {
-          // Even though we are mutating a nested object, this will trigger a re-render
+          // Updating a nested property updates the UI.
           store.nested.fields.are = 'tracked';
         }}
       >
-        Clicking me works because store is deep watched
+        Update nested field
       </button>
       <br />
       <button
         onClick$={() => {
-          // Because store is deep watched, this will trigger a re-render
+          // Updating an array also updates the UI.
           store.list.push(`Item ${store.list.length + 1}`);
         }}
       >
@@ -173,40 +193,30 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-Notice that for `useStore()` to track all nested properties, it needs to allocate a lot of Proxy objects. This can be a performance issue if you have a lot of nested properties. In that case, you can use the `deep: false` option to only track the top-level properties.
+Nested tracking is convenient, but it can add overhead for large objects. If you only need to track top-level properties, pass `{ deep: false }`:
 
 ```tsx
 const shallowStore = useStore(
   {
     nested: {
-      fields: { are: 'also tracked' }
+      fields: { are: 'not tracked deeply' }
     },
-    list: ['Item 1'],
+    count: 0,
   },
   { deep: false }
 );
 ```
-<LongNote title="Handling Dynamic Object Mutations">
-When dynamically manipulating object properties, such as deleting them while they are being rendered somewhere in the app, you may encounter issues. This could happen if the component renders values dependent on an object's property that is currently being removed. To prevent this situation, use optional chaining when accessing properties. For example, if attempting to remove a property:
+### Store methods
+
+Stores can include methods. Use `$()` so the method can be serialized, and use the `function` keyword when the method needs JavaScript's `this` keyword.
 
 ```tsx
-delete store.propertyName;
-```
+import { $, component$, useStore, type QRL } from '@qwik.dev/core';
 
-Be sure to access this property cautiously in the component by using optional chaining (`?.`):
-
-```tsx
-const propertyValue = store.propertyName?.value;
-```
-</LongNote>
-### Methods
-
-To provide methods on the store, you must make them into QRLs and refer to the store with `this`, like so:
-
-```tsx
-import { component$, useStore, $, type QRL } from "@qwik.dev/core";
-
-type CountStore = { count: number; increment: QRL<(this: CountStore) => void> };
+type CountStore = {
+  count: number;
+  increment: QRL<(this: CountStore) => void>;
+};
 
 export default component$(() => {
   const state = useStore<CountStore>({
@@ -225,26 +235,26 @@ export default component$(() => {
 });
 ```
 
-<Note title="Why use a regular function?">
-Do you know why you should use a regular `function(){}` instead of an arrow function in `useStore()`? This is because [arrow functions don't have their own bindings to `this`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions) in JavaScript. This means that if you try to access `this` using an arrow function, `this.count` could point to another object's `count`.
+<Note title="Why use the function keyword?">
+This example uses `this.count` to update the store. Use the `function` keyword here so <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" target="_blank" rel="noopener noreferrer">`this`</a> points to the store.
 </Note>
 
-## Computed state
+## Computed values
 
-In Qwik, there are two ways to create computed values, each with a different use case (in order of preference):
+Sometimes you do not need to store state directly. You can calculate it from existing state, or resolve it from async work.
 
-1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived synchronously purely from the source state (current application state). For example, creating a lowercase version of a string or combining first and last names into a full name.
+`useComputed$()` and `useAsync$()` both create signals for those values:
 
-2. `useAsync$()`: `useAsync$()` is the preferred way for asynchronous computed values. Use it when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state), or performing a long computation in a WebWorker.
+1. `useComputed$()`: creates a signal from a synchronous calculation, such as formatting a name.
+2. `useAsync$()`: creates a signal from async work, such as fetched data or Web Worker output.
 
-
-In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask)). This way does not produce a new signal, but rather modifies the existing state or produces a side effect.
+If you do not need a new signal, try [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) instead. A task runs code during component setup or when tracked state changes, and you write any result to existing state yourself.
 
 ### `useComputed$()`
 
-Use `useComputed$` to memoize a value derived synchronously from other state.
+Create a signal for a value that can be calculated immediately from other state.
 
-It is similar to `memo` in other frameworks, since it will only recompute the value when one of the input signals changes.
+Qwik keeps the result and runs the function again only when one of the signals it reads changes.
 
 <CodeSandbox src="/src/routes/demo/state/computed/index.tsx" style={{ height: '8em' }}>
 ```tsx {5} /useComputed$/
@@ -252,8 +262,8 @@ import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const name = useSignal('Qwik');
-  const capitalizedName = useComputed$(() => {
-    // it will automatically reexecute when name.value changes
+  const upperName = useComputed$(() => {
+    // Runs again when name.value changes.
     return name.value.toUpperCase();
   });
 
@@ -261,7 +271,7 @@ export default component$(() => {
     <>
       <input type="text" bind:value={name} />
       <p>Name: {name.value}</p>
-      <p>Capitalized name: {capitalizedName.value}</p>
+      <p>Uppercase name: {upperName.value}</p>
     </>
   );
 });
@@ -269,107 +279,108 @@ export default component$(() => {
 </CodeSandbox>
 
 <Note>
-Because `useComputed$()` is synchronous it is not necessary to explicitly track the input signals.
+You do not need to list dependencies for `useComputed$()`. Qwik automatically tracks the signals read inside the function.
 </Note>
-
-#### `useComputed$` and `noSerialize()`
-
-When using `useComputed$()` with `noSerialize()`, the computed value will not be sent to the client. This means that the value will be recalculated on the client when it is needed.
-
-You can use this to instantiate a custom class.
 
 ### `useAsync$()`
 
-`useAsync$()` is a very powerful primitive that allows you to create a computed value that is asynchronous. It is
-similar to `useComputed$()`, but it allows the compute function to be asynchronous.
+Create a signal for a value that comes from async work, such as fetching data, calling `server$()`, reading from a Web Worker, or running a long calculation.
 
-It returns an `AsyncSignal<T>` that has the result of the async function, which holds the future `.value` and also has reactive `.loading` and `.error` properties to track the state of the async function.
+Like `useComputed$()`, the function can run again when the state it tracks changes.
 
-The common use case is to fetch data asynchronously, possibly based on other signals (you need to read those with `track()`). This will happen during SSR and in the client, transparently.
+Unlike `useComputed$()`, the result can be pending. While the async work is running, the signal exposes `.loading`; when it finishes, it exposes either `.value` or `.error`.
 
-It also has built-in support for polling, which makes it trivial to show data that needs to be kept up to date.
+Read `.value` when you need the result. If the result is not ready yet, that part of the UI can wait and a [`<Suspense>`](/docs/(qwik)/core/suspense/index.mdx) boundary can show fallback UI.
+
+The async work can run during SSR and in the browser. `useAsync$()` also supports polling for values that need to stay up to date.
 
 #### Example
 
-This example will fetch a list of jokes based on the query typed by the user, automatically reacting to changes in the query, including aborting requests that are currently pending.
+Below, `useAsync$()` fetches programming jokes for the current query. `track(query)` reruns the async function when the query changes, and `abortSignal` cancels any previous request.
 
 <CodeSandbox src="/src/routes/demo/state/async-joke/index.tsx" style={{ height: '20em' }}>
-```tsx {11} /useAsync$/
+```tsx /useAsync$/ /track(query)/ /abortSignal/
 import { component$, useAsync$, useSignal } from '@qwik.dev/core';
+
+type Joke = {
+  joke?: string;
+  setup?: string;
+  delivery?: string;
+};
 
 export default component$(() => {
   const query = useSignal('');
 
-  // this will first run during SSR (server)
-  // then re-run whenever postId changes (client)
-  // so this code runs both on the server and the client
   const jokes = useAsync$(async ({ track, abortSignal }) => {
+    // Re-run when query changes.
+    const search = track(query).trim();
     const url = new URL(
       'https://v2.jokeapi.dev/joke/Programming?safe-mode&amount=2'
     );
-    const search = track(query);
+
     if (search) {
       url.searchParams.set('contains', search);
     }
 
-    // The abortSignal is automatically aborted when this function re-runs,
-    // canceling any pending fetch requests.
-    const resp = await fetch(url, { signal: abortSignal });
-    const json = (await resp.json()) as {
-      jokes: { setup?: string; delivery?: string; joke?: never }[];
+    const response = await fetch(url, { signal: abortSignal });
+    const data = (await response.json()) as {
+      jokes?: Joke[];
     };
 
-    return json.jokes;
+    return data.jokes ?? [];
   });
+
+  let content;
+  if (jokes.loading) {
+    content = <p>Loading...</p>;
+  } else if (jokes.error) {
+    content = <div>Error: {jokes.error.message}</div>;
+  } else if (jokes.value.length === 0) {
+    content = <p>No jokes found</p>;
+  } else {
+    content = (
+      <ul>
+        {jokes.value.map((joke, i) => (
+          <li key={i}>
+            <div style={{ whiteSpace: 'pre-wrap' }}>
+              {joke.joke ?? `${joke.setup}\n${joke.delivery}`}
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <>
       <label>
         Query: <input bind:value={query} />
       </label>
-      {jokes.loading ? (
-        <p>Loading...</p>
-      ) : jokes.error ? (
-        <div>Error: {jokes.error.message}</div>
-      ) : jokes.value ? (
-        <ul>
-          {jokes.value.map((joke, i) => (
-            <li key={i}>
-              <div style={{ whiteSpace: 'pre-wrap' }}>
-                {joke.joke || `${joke.setup}\n${joke.delivery}`}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No jokes found</p>
-      )}
+      {content}
     </>
   );
 });
 ```
 </CodeSandbox>
 
-As we see in the example above, `useAsync$()` returns an `AsyncSignal<T>` object that works like a reactive promise, containing the data and the async state. Note that during SSR, the Promise will be awaited.
+The code handles loading and errors inline with `.loading` and `.error`. During SSR, Qwik waits for the async work before rendering the result.
 
-<LongNote title="useAsync$ vs useTask$ vs routeLoader$">
-The important thing to understand about `useAsync$` is that it executes on the initial component render (just like `useTask$`). Often times it is desirable to start fetching the data on the server as part of the initial HTTP request, even before the component is rendered. Fetching data based on the path as part of Server-Side Rendering (SSR) is a common and preferred method of data loading, typically handled by the [`routeLoader$`](/docs/(qwikrouter)/route-loader/index.mdx) API. `useAsync$` is more of a low-level API that is useful when you want to fetch data in the browser.
+<Note title="useAsync$ and Suspense">
+The jokes example handles several UI states inline: loading, error, no results, and results.
 
-See [`routeLoader$`](/docs/(qwikrouter)/route-loader/index.mdx) for fetching data as part of initial HTTP request, before SSR starts.
-</LongNote>
+That is useful when each state needs its own markup. If you only need fallback UI while `.value` is not ready, wrap that part of the UI in [`<Suspense>`](/docs/(qwik)/core/suspense/index.mdx).
+</Note>
 
-#### Channel example
-
-In this example, we use `useAsync$()` to get updates from a server using Server-Sent Events (SSE). Note that it writes to its own value, updating its subscribers.
+<LongNote title="Advanced: channel example">
+`useAsync$()` can also keep its own value updated after the first result. For example, a Server-Sent Events connection can write new messages into the async signal.
 
 ```tsx
 import { component$, useAsync$ } from '@qwik.dev/core';
 
 export default component$(() => {
-  const state = useAsync$<string[]>(
-    ({ track, abortSignal }) => {
-      const url = new URL('/api/state-channel');
-      const eventSource = new EventSource(url);
+  const state = useAsync$<string>(
+    ({ abortSignal }) => {
+      const eventSource = new EventSource('/api/state-channel');
 
       eventSource.onmessage = (event) => {
         state.value = event.data;
@@ -381,7 +392,6 @@ export default component$(() => {
 
       return 'init';
     },
-    // Close the channel as soon as there are no subscribers
     { eagerCleanup: true }
   );
 
@@ -389,83 +399,73 @@ export default component$(() => {
 });
 ```
 
-#### API
+`eagerCleanup` closes the connection as soon as nothing is reading the async signal.
+</LongNote>
 
-The API of `useAsync$()` (and `createAsync$()`) is as follows:
+<LongNote title="API reference">
+Most apps only need `.value`, `.loading`, and `.error`. The full API also includes options for cleanup, polling, cancellation, timeouts, and manual invalidation.
+
 ```tsx
 function useAsync$<T>(
   asyncFn: (opts: {
-    track: <U>(signal: Signal<U>) => U;
-    cleanup: (fn: () => void) => void;
-    abortSignal: AbortSignal;
-    previous: T | undefined;
-  }) => Promise<T>,
+    track: Tracker;
+    cleanup: (fn: () => void | Promise<void>) => void;
+    readonly abortSignal: AbortSignal;
+    readonly previous: T | undefined;
+    readonly info: unknown;
+  }) => T | Promise<T>,
   options?: {
-    initial?: T; // initial stale value
-    expires?: number; // expiration time in ms
-    poll?: boolean; // whether to automatically re-run the async function when `expires` milliseconds have passed and there are listeners
-    concurrency?: number; // concurrency level, default is 1
-    timeout?: number; // max time in ms to run the async function
-    clientOnly?: boolean; // do not run during SSR
-    eagerCleanup?: boolean; // run cleanup as soon as there are no subscribers
-    allowStale?: boolean; // allow stale values while the async function is re-running
+    initial?: T | (() => T);
+    concurrency?: number;
+    eagerCleanup?: boolean;
+    interval?: number;
+    clientOnly?: boolean;
+    timeout?: number;
   }
 ): AsyncSignal<T>;
 ```
 
-Arguments:
+Callback options:
 
-- The `track` and `cleanup` functions are the same as in `useTask$`, used to track reactive signals and clean up resources when the async function is re-run or the component is destroyed.
-
-- The `abortSignal` is automatically aborted when the async function is re-run or the component is destroyed, which allows you to cancel any pending async operations. Best practice is to pass it to every API that supports it. Also, read from it after every await, and if it is aborted, stop the execution of the async function. (`if (abortSignal.aborted) return;`)
-
-- `previous` is the previous resolved value of the async function, which can be useful to implement logic based on the previous value. If there is no previous value, it will be `undefined`. An error result will clear the value, as well as invalidating when `allowStale: false`.
-
-The callback passed to `useAsync$()` runs as soon as it is read. That means that if you use it in the JSX output, it will start during the initial render of that part of the JSX. So if you pass it to a component, it will start when that component is rendered, after tasks have run. If you want to start it immediately on initialization, you can call `asyncSignal.promise()` to start it immediately. This can also be used to await the completion, but you still have to read the value or error from the signal itself.
+- `track`: tracks reactive state used by the async function.
+- `cleanup`: runs cleanup when the function re-runs or the component is destroyed.
+- `abortSignal`: aborts when the function re-runs or is destroyed. Pass it to APIs like `fetch()`.
+- `previous`: the previous resolved value, if one exists.
+- `info`: the value passed to `asyncSignal.invalidate(info)`.
 
 Options:
 
-- `initial`: the initial stale value of the async signal before the async function resolves. This is useful to show some initial data while the async function is still loading. If not provided, reading the value before it's resolved will throw a `Promise`, which is Qwik's way of ensuring the current function will re-run when the value is available.
-- `expires`: if provided, the async function will be re-run every `expires` milliseconds, as long as the async signal is used somewhere. This is useful to keep data fresh. If `poll` is `false`, the value will be marked as stale after `expires` milliseconds, but the async function will not be automatically re-run. Instead, it will be re-run when `.value` or `.loading` is read.
-- `poll`: whether to automatically re-run the async function when `expires` milliseconds have passed and there are listeners. Defaults to `true`.
-- `concurrency`: controls what happens when the async function is still running and it needs to be re-run:
-  - The default is `concurrency: 1`, which means that the currently running async function and its cleanups have to complete before a new one starts.
-  - If set to a number, there can be be up to that number currently in flight before new calls need to wait for one of them to complete. `0` means no limit.
-  - No matter the `concurrency` setting, whenever the signal is invalidated, the currently running async function will be aborted using the `abortSignal`. It's up to you to decide to use the signal or not.
-  - Cleanups are awaited, so if you do not want that, you should not return a Promise from the cleanup function.
-- `timeout`: if provided, the async function will be automatically aborted if it takes longer than the specified time in ms to resolve.
-- `clientOnly`: if set to `true`, the async function will not run during SSR and reading from the value during SSR will throw an Error.
-- `eagerCleanup`: if set to `true`, the cleanup will run as soon as there are no subscribers to the async signal, instead of waiting for the next time it needs to be re-run. This is useful to free up resources as soon as they are not needed anymore.
-- `allowStale`: if set to `true`, reading `.value` when the signal is invalidated will return the previous value, even while the new value is loading. Thanks to reactivity, the reader will automatically get the new value once it's loaded. This is useful to avoid showing loading spinners. When set to `false`, invalidation will clear the value and make reads throw the computation promise until the new value is loaded; the exception is that during polling the stale value will be kept while the new value is loading.
+- `initial`: value to use before the async function resolves.
+- `concurrency`: number of computations that can run at the same time. Defaults to `1`; `0` means no limit.
+- `eagerCleanup`: cleanup as soon as nothing is reading the signal.
+- `interval`: polling or stale interval in milliseconds.
+- `clientOnly`: skip SSR and only run in the browser.
+- `timeout`: abort if the function takes longer than this many milliseconds.
 
-The returned `AsyncSignal<T>` has the following (reactive) properties:
+Returned signal:
 
 ```ts
 interface AsyncSignal<T> {
   value: T;
   loading: boolean;
-  untrackedLoading: boolean;
   error: Error | undefined;
-  untrackedError: Error | undefined;
-  expires: number;
-  poll: boolean;
+  interval: number;
   promise(): Promise<void>;
   abort(reason?: any): void;
+  invalidate(info?: unknown): void;
 }
 ```
 
-- `value: T`: the resolved value (or initial value if not yet resolved). Note that reading this property before the async function has completed will throw a `Promise` for the result, which causes Qwik to wait until that resolves and then re-run the reading function. Writing a different value to this property will update the value and notify subscribers.
-- `loading: boolean`: whether the async function is currently running
-- `untrackedLoading: boolean`: same as `loading`, but does not trigger reactivity when it changes
-- `error: Error | undefined`: the error if the async function failed
-- `untrackedError: Error | undefined`: same as `error`, but does not trigger reactivity when it changes
-- `expires: number`: the current expiration time in milliseconds. This can be updated to change the expiration time or to stop polling by setting it to `0`.
-- `poll: boolean`: whether to automatically re-run the async function when `expires` milliseconds have passed and there are listeners. Defaults to `true`.
+- `value`: the resolved value, or `initial` if provided.
+- `loading`: whether the async function is running.
+- `error`: the error if the async function failed.
+- `interval`: current polling or stale interval.
+- `promise()`: starts the async function if needed and waits for it to finish.
+- `abort()`: aborts the current async function.
+- `invalidate()`: marks the signal to run again.
+</LongNote>
 
-- `promise(): Promise<void>`: a function that can be called to start the async function. It returns a promise that resolves when the async function completes, but not its result. That needs to be read from `value` or `error`.
-- `abort(reason?: any): void`: a function that can be called to abort the currently running async function and run cleanups if needed. The reason is passed to the abortSignal.
-
-## Passing state
+## Sharing state
 
 One of the nice features of Qwik is that the state can be passed to other components. Writing to the store will then only re-render the components which read from the store only.
 
@@ -541,7 +541,9 @@ export const Child = component$(() => {
 ```
 </CodeSandbox>
 
-## `useSerializer$()` / `createSerializer$()`
+## Serialization
+
+### `useSerializer$()` / `createSerializer$()`
 
 Sometimes you need to serialize data that Qwik doesn't know how to serialize. For this, you can use the `useSerializer$(cfg)` hook to create a serializer for the data. `createSerializer$(cfg)` does the same thing but is not bound to a specific component and can be called anywhere.
 
@@ -601,7 +603,7 @@ This primitive is very powerful, and can be used to create all sorts of custom s
 
 Also note that serialization can also happen on the client, when calling `server$` functions.
 
-## `noSerialize()` / `NoSerializeSymbol`
+### `noSerialize()` / `NoSerializeSymbol`
 
 Qwik ensures that all application state is always serializable. This is important to ensure that Qwik applications have a [resumability](/docs/(qwik)/concepts/resumable/index.mdx) property.
 
@@ -611,6 +613,12 @@ For example, a reference to a third-party library such as [Monaco editor](https:
 `NoSerializeSymbol` is an alternative to `noSerialize()`: You can add this symbol to an object (preferably on the prototype) and it will mark the object as non-serializable.
 
 If a value is marked as non-serializable, then that value will not survive serialization events, such as resuming the application on the client from SSR. In this situation, the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
+
+#### `useComputed$()` and `noSerialize()`
+
+If a computed value is wrapped with `noSerialize()`, Qwik will not send that value to the client. It will be created again on the client when the computed signal is read.
+
+This is useful for values that cannot be serialized, such as custom class instances.
 
 <CodeSandbox src="/src/routes/demo/state/no-serialize/index.tsx" style={{ height: '8em' }}>
 ```tsx /noSerialize/
@@ -651,7 +659,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-## `SerializerSymbol`
+### `SerializerSymbol`
 
 The `SerializerSymbol` is a symbol that can be added to an object to achieve custom serialization. There is no corresponding `DeserializerSymbol` however, for that you should use the `useSerializer$()` hook.
 

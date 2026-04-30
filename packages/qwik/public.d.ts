@@ -57,6 +57,8 @@ export {
   Signal,
   SkipRender,
   Slot,
+  Suspense,
+  SuspenseProps,
   sync$,
   TaskCtx,
   // TODO do we really want to export this?

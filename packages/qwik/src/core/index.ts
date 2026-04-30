@@ -182,6 +182,9 @@ export type { ComputedOptions } from './reactive-primitives/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 export { eachCmpTask as _eaT, eachCmp as _eaC } from './control-flow/each';
 export { Each } from './control-flow/each';
+export { suspenseTask as _suT, suspenseCmp as _suC } from './control-flow/suspense';
+export { Suspense } from './control-flow/suspense';
+export type { SuspenseProps } from './control-flow/suspense';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

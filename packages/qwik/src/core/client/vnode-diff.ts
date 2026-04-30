@@ -43,6 +43,7 @@ import {
   QBackRefs,
   QContainerAttr,
   QDefaultSlot,
+  QCursorBoundary,
   QSlot,
   QTemplate,
   dangerouslySetInnerHTML,
@@ -59,6 +60,7 @@ import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-ope
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { updateDirtySubtreeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';
@@ -727,9 +729,12 @@ function expectProjection(diffContext: DiffContext) {
 }
 
 function expectSlot(diffContext: DiffContext) {
+  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
   const vHost = vnode_getProjectionParentComponent(diffContext.$vParent$);
 
   const slotNameKey = getSlotNameKey(diffContext, vHost);
+  const cursorBoundary =
+    directGetPropsProxyProp<CursorBoundary | null, any>(jsxNode, QCursorBoundary) || null;
 
   const vProjectedNode = vHost
     ? vnode_getProp<VirtualVNode | null>(
@@ -744,6 +749,12 @@ function expectSlot(diffContext: DiffContext) {
   if (vProjectedNode == null) {
     diffContext.$vNewNode$ = vnode_newVirtual();
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
+    vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
+    updateDirtySubtreeCursorBoundary(
+      diffContext.$container$,
+      diffContext.$vNewNode$ as VirtualVNode,
+      cursorBoundary
+    );
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection); // Nothing to project, so render content of the slot.
@@ -761,6 +772,12 @@ function expectSlot(diffContext: DiffContext) {
     const oldParent = vProjectedNode.parent;
     diffContext.$vNewNode$ = vProjectedNode;
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
+    vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
+    updateDirtySubtreeCursorBoundary(
+      diffContext.$container$,
+      diffContext.$vNewNode$ as VirtualVNode,
+      cursorBoundary
+    );
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);

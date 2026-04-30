@@ -1,0 +1,295 @@
+---
+title: Suspense | Components
+keywords: 'suspense, fallback, async rendering, loading'
+---
+
+import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
+import { Note } from '~/components/note/note';
+
+# Suspense
+
+`<Suspense>` shows a fallback while its content is loading.
+
+When the content is ready, Qwik replaces the fallback with the real content.
+
+Suspense does not fetch data or create async values. It only decides what to show while rendering is paused.
+
+The high-level model is:
+
+```tsx
+useSignal()     // state you set directly
+useComputed$()  // state calculated synchronously
+useAsync$()     // state resolved from async work
+
+<Suspense>      // fallback UI while content loads
+```
+
+The loading work happens elsewhere. Suspense only shows the fallback.
+
+## Basic Usage
+
+Wrap loading content with `<Suspense>` and pass a `fallback`:
+
+<CodeSandbox src="/src/routes/demo/component/suspense/index.tsx" style={{ height: '14em' }}>
+```tsx /Suspense/ /fallback/ /delay/
+import { component$, Suspense, useSignal, type JSXOutput } from '@qwik.dev/core';
+
+const AsyncMessage = component$(() => {
+  const content = new Promise<JSXOutput>((resolve) => {
+    setTimeout(() => resolve(<p>Async content resolved.</p>), 1000);
+  });
+
+  return <>{content}</>;
+});
+
+export default component$(() => {
+  const show = useSignal(false);
+
+  return (
+    <section>
+      <button onClick$={() => (show.value = !show.value)}>
+        {show.value ? 'Hide' : 'Show'} content
+      </button>
+
+      {show.value && (
+        <Suspense fallback={<p>Loading content...</p>} delay={150}>
+          <AsyncMessage />
+        </Suspense>
+      )}
+    </section>
+  );
+});
+```
+</CodeSandbox>
+
+While `AsyncMessage` is loading, Qwik shows the fallback. Once it resolves, Qwik shows the real content.
+
+## With `useAsync$()`
+
+The async signal loads the data. Suspense shows the fallback while `user.value` is not ready.
+
+<CodeSandbox src="/src/routes/demo/component/suspense-async/index.tsx" style={{ height: '16em' }}>
+```tsx /useAsync$/ /Suspense/ /user.value/
+import { component$, Suspense, useAsync$, useSignal } from '@qwik.dev/core';
+
+type User = {
+  name: {
+    first: string;
+    last: string;
+  };
+  email: string;
+};
+
+const UserCard = component$(() => {
+  const user = useAsync$(async ({ abortSignal }) => {
+    const response = await fetch('https://randomuser.me/api/', {
+      signal: abortSignal,
+    });
+    const data = (await response.json()) as {
+      results: User[];
+    };
+
+    return data.results[0];
+  });
+
+  return (
+    <p>
+      User: {user.value.name.first} {user.value.name.last} ({user.value.email})
+    </p>
+  );
+});
+
+export default component$(() => {
+  const show = useSignal(false);
+
+  return (
+    <section>
+      <button onClick$={() => (show.value = !show.value)}>
+        {show.value ? 'Hide user' : 'Load random user'}
+      </button>
+
+      {show.value && (
+        <Suspense fallback={<p>Loading user...</p>}>
+          <UserCard />
+        </Suspense>
+      )}
+    </section>
+  );
+});
+```
+</CodeSandbox>
+
+When `UserCard` reads `user.value` before the request finishes, Qwik shows the nearest `<Suspense>` fallback.
+
+Inline `.loading` and `.error` checks are still useful when loading, error, and success states need different markup. Suspense works well when one fallback can cover the whole section.
+
+## What Can Trigger Suspense
+
+Suspense can show its fallback when content inside it is still loading, including:
+
+- reading a `useAsync$()` value before it is ready
+- returning a `Promise` from JSX
+- rendering a child component that is still loading
+- running descendant work that blocks rendering
+
+Suspense does not do the loading work. It only controls the fallback while that work finishes.
+
+## `delay`
+
+The `delay` prop waits before showing the fallback:
+
+<CodeSandbox src="/src/routes/demo/component/suspense-delay/index.tsx" style={{ height: '17em' }}>
+```tsx /delay/
+import {
+  component$,
+  Suspense,
+  useSignal,
+  type JSXOutput,
+} from '@qwik.dev/core';
+
+const LOAD_MS = 2500;
+const FALLBACK_DELAY_MS = 1000;
+
+const SlowContent = component$(() => (
+  <>
+    {new Promise<JSXOutput>((resolve) => {
+      setTimeout(() => resolve(<p>Loaded content.</p>), LOAD_MS);
+    })}
+  </>
+));
+
+export default component$(() => {
+  const run = useSignal(0);
+  const elapsed = useSignal(0);
+
+  return (
+    <section>
+      <button
+        disabled={run.value > 0 && elapsed.value < LOAD_MS}
+        onClick$={() => {
+          run.value++;
+          elapsed.value = 0;
+
+          const start = Date.now();
+          const timer = setInterval(() => {
+            elapsed.value = Math.min(Date.now() - start, LOAD_MS);
+
+            if (elapsed.value === LOAD_MS) {
+              clearInterval(timer);
+            }
+          }, 100);
+        }}
+      >
+        Load content
+      </button>
+
+      {run.value > 0 && (
+        <Suspense
+          fallback={<p>Fallback shown after {FALLBACK_DELAY_MS}ms.</p>}
+          delay={FALLBACK_DELAY_MS}
+        >
+          <SlowContent key={run.value} />
+        </Suspense>
+      )}
+
+      <p>Elapsed: {elapsed.value}ms</p>
+    </section>
+  );
+});
+```
+</CodeSandbox>
+
+Use `delay` to avoid flashing a loading state for work that usually resolves quickly.
+
+If the content resolves before the delay finishes, the fallback is not shown.
+
+## `showStale`
+
+By default, when a boundary that already showed content pauses again, the fallback replaces the content while the new work is pending.
+
+Use `showStale` to keep the previous content visible while also showing the fallback:
+
+<CodeSandbox src="/src/routes/demo/component/suspense-show-stale/index.tsx" style={{ height: '20em' }}>
+```tsx /showStale/
+import { component$, Suspense, useSignal, type JSXOutput } from '@qwik.dev/core';
+
+const LOAD_MS = 1200;
+
+const COLORS = ['#7c3aed', '#0891b2', '#16a34a', '#ea580c'];
+
+const ProfileCard = component$((props: { version: number }) => {
+  const content = new Promise<JSXOutput>((resolve) => {
+    const color = COLORS[props.version % COLORS.length];
+
+    setTimeout(
+      () =>
+        resolve(
+          <article style={{ border: `4px solid ${color}`, padding: '12px' }}>
+            <p>Profile version {props.version}</p>
+          </article>
+        ),
+      LOAD_MS
+    );
+  });
+
+  return <>{content}</>;
+});
+
+export default component$(() => {
+  const version = useSignal(1);
+
+  return (
+    <section>
+      <button onClick$={() => version.value++}>Refresh profile</button>
+
+      <Suspense fallback={<p>Loading new profile...</p>} showStale>
+        <ProfileCard version={version.value} />
+      </Suspense>
+    </section>
+  );
+});
+```
+</CodeSandbox>
+
+Click “Refresh profile” after the first card appears. The old card stays visible alongside the fallback while the new card loads.
+
+`showStale` only affects content that has already been revealed. During the first render, there is no previous content to keep visible, so the boundary only shows the fallback while it waits.
+
+<Note>
+`showStale` keeps previously revealed content visible while the same content updates. If you change a child component's `key`, Qwik treats it as a new instance, so there may be no stale content to keep.
+
+`showStale` only controls what the user sees. It does not cache data or change what the subtree returns.
+</Note>
+
+## API
+
+```tsx
+type SuspenseProps = {
+  fallback?: JSXOutput;
+  delay?: number;
+  showStale?: boolean;
+};
+```
+
+Props:
+
+- `fallback`: JSX rendered while the boundary is waiting
+- `delay`: milliseconds to wait before showing the fallback, defaults to `0`
+- `showStale`: keep previously revealed content visible while showing the fallback during later waits
+
+## Suspense Is Not an Error Boundary
+
+`<Suspense>` only handles content that is still loading. It does not catch errors thrown by child components.
+
+For errors thrown by descendants, reach for [`useErrorBoundary()`](/api/qwik/#useerrorboundary).
+
+## Choosing the Right Primitive
+
+| API | Best for |
+| --- | --- |
+| `useAsync$()` | Async data or other async work that should produce a signal |
+| `<Suspense>` | Showing one fallback while a section is loading |
+| `useTask$()` | Running setup or update code that writes to existing state or performs a side effect |
+| `routeLoader$()` | Loading route data before the route renders |
+
+For async work inside a component, `useAsync$()` is usually the starting point. Add `<Suspense>` when one fallback can cover the loading state for a section. Keep inline `.loading` and `.error` checks when each state needs different markup.

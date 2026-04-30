@@ -97,7 +97,6 @@ export const Child = component$((props: { name: string }) => {
 
 <Note>In the above example, the Parent component passes a changing `name` property to the Child component. The Child component will only re-render when the count signal changes.</Note>
 
-
 ### Rendering a list of items
 
 Qwik supports rendering lists with either `items.map()` or the experimental [`Each`](/docs/labs/each/) component.
@@ -225,6 +224,26 @@ Whenever the state of the application changes, Qwik will schedule a render opera
 In addition, because of the asynchronous nature of Qwik, all DOM writes are buffered and only flushed once all of the components have been downloaded and their JSX functions executed. The result is that the UI will update as an atomic operation, and the user will not see the intermediate steps, even if the application is slow to render.
 
 The end goal is to enable performance and consistent rendering, even in the context of fast changing state and slow network.
+
+## Rendering Work That Waits
+
+Sometimes part of the UI needs to wait before it can show content, such as showing a fallback while a profile card, search result, or other section is still being prepared.
+
+Wrap that part of the UI in [`<Suspense>`](/docs/core/suspense/) when you want a fallback boundary:
+
+```tsx /Suspense/
+import { component$, Suspense } from '@qwik.dev/core';
+
+export default component$(() => {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <UserCard />
+    </Suspense>
+  );
+});
+```
+
+`<Suspense>` does not define the work. It only controls what renders while that part of the UI waits.
 
 ## Fine-grained Reactivity
 

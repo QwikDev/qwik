@@ -13,16 +13,16 @@ export default component$(() => {
       <p>{store.nested.fields.are}</p>
       <button
         onClick$={() => {
-          // Even though we are mutating a nested object, this will trigger a re-render
+          // Updating a nested property updates the UI.
           store.nested.fields.are = 'tracked';
         }}
       >
-        Clicking me works because store is deep watched
+        Update nested field
       </button>
       <br />
       <button
         onClick$={() => {
-          // Because store is deep watched, this will trigger a re-render
+          // Updating an array also updates the UI.
           store.list.push(`Item ${store.list.length + 1}`);
         }}
       >

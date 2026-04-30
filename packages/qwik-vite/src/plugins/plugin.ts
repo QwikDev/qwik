@@ -65,6 +65,8 @@ const CLIENT_STRIP_CTX_NAME = [
 export enum ExperimentalFeatures {
   /** Enable the Each keyed-list primitive */
   each = 'each',
+  /** Enable the Suspense fallback primitive */
+  suspense = 'suspense',
   /** Enable the usePreventNavigate hook */
   preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */

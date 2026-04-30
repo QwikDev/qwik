@@ -84,7 +84,7 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
   }
   // merge cursor boundaries
   const oldBoundaries = oldCursorData.boundaries;
-  if (oldBoundaries && oldBoundaries.length > 0) {
+  if (__EXPERIMENTAL__.suspense && oldBoundaries && oldBoundaries.length > 0) {
     const newBoundaries = (newCursorData.boundaries ||= []);
     for (let i = 0; i < oldBoundaries.length; i++) {
       const boundary = oldBoundaries[i];

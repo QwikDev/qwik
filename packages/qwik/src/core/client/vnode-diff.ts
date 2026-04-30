@@ -59,12 +59,8 @@ import type { TextVNode } from '../shared/vnode/text-vnode';
 import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
-import {
-  addVNodeOperation,
-  markVNodeDirty,
-  setVNodeCursorBoundary,
-} from '../shared/vnode/vnode-dirty';
-import type { CursorBoundary } from '../use/use-cursor-boundary';
+import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { setVNodeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';

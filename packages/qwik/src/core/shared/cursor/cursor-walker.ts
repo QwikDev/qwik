@@ -34,10 +34,13 @@ import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
 import { isDev, isServer } from '@qwik.dev/core/build';
-import { QCursorBoundary, QNearestCursorBoundary } from '../utils/markers';
-import { vnode_setProp } from '../../client/vnode-utils';
-import { getNearestCursorBoundary } from '../vnode/vnode-dirty';
-import type { CursorBoundary } from '../../use/use-cursor-boundary';
+import { QCursorBoundary } from '../utils/markers';
+import {
+  addCursorBoundary,
+  clearNearestCursorBoundary,
+  resolveCursorBoundaries,
+  type CursorBoundary,
+} from '../../use/use-cursor-boundary';
 
 const DEBUG = false;
 
@@ -139,7 +142,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
       // Move to next node
-      clearNearestCursorBoundary(currentVNode);
+      __EXPERIMENTAL__.suspense && clearNearestCursorBoundary(currentVNode);
       setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor, container));
       continue;
     }
@@ -253,37 +256,6 @@ function finishWalk(
   }
 }
 
-function addCursorBoundary(cursorData: CursorData, vNode: VNode): void {
-  const boundary = getNearestCursorBoundary(cursorData.container, vNode);
-  if (!boundary) {
-    return;
-  }
-  const boundaries = (cursorData.boundaries ||= []);
-  if (!boundaries.includes(boundary)) {
-    boundaries.push(boundary);
-    boundary.pending.value++;
-  }
-}
-
-function clearNearestCursorBoundary(vNode: VNode): void {
-  if (vNode.props) {
-    vnode_setProp(vNode, QNearestCursorBoundary, null);
-  }
-}
-
-function resolveCursorBoundaries(cursorData: CursorData): void {
-  const boundaries = cursorData.boundaries;
-  if (!boundaries) {
-    return;
-  }
-  cursorData.boundaries = null;
-  for (let i = 0; i < boundaries.length; i++) {
-    const boundary = boundaries[i];
-    boundary.pending.value = Math.max(0, boundary.pending.value - 1);
-    boundary.version.value++;
-  }
-}
-
 export function resolveCursor(container: Container): void {
   DEBUG && console.warn(`walkCursor: cursor resolved, ${container.$pendingCount$} remaining`);
   container.$checkPendingCount$();
@@ -381,11 +353,14 @@ export function getNextVNode(vNode: VNode, cursor: Cursor, container?: Container
   parent!.dirty &= ~ChoreBits.CHILDREN;
   parent!.dirtyChildren = null;
   parent!.nextDirtyChildIndex = 0;
-  clearNearestCursorBoundary(parent!);
+  __EXPERIMENTAL__.suspense && clearNearestCursorBoundary(parent!);
   return getNextVNode(parent!, cursor, container);
 }
 
 function splitCursorBoundary(container: Container, vNode: VNode): boolean {
+  if (!__EXPERIMENTAL__.suspense) {
+    return false;
+  }
   if (
     !vNode.props ||
     !(QCursorBoundary in vNode.props) ||

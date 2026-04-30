@@ -17,7 +17,7 @@ import { useTaskQrl, type TaskCtx } from '../use/use-task';
 
 type SuspenseState = 'content' | 'fallback';
 
-/** @public */
+/** @public @experimental */
 export type SuspenseProps = {
   fallback?: JSXOutput;
   showStale?: boolean;
@@ -56,6 +56,12 @@ export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
 
 /** @internal */
 export const suspenseCmp = (props: SuspenseProps) => {
+  if (!__EXPERIMENTAL__.suspense) {
+    throw new Error(
+      'Suspense is experimental and must be enabled with `experimental: ["suspense"]` in the `qwikVite` plugin.'
+    );
+  }
+
   const state = useSignal<SuspenseState>('content');
   const cursorBoundary = useCursorBoundary();
 
@@ -101,7 +107,7 @@ export const suspenseCmp = (props: SuspenseProps) => {
   );
 };
 
-/** @public */
+/** @public @experimental */
 export const Suspense = /*#__PURE__*/ componentQrl<SuspenseProps>(
   /*#__PURE__*/ inlinedQrl(suspenseCmp, '_suC')
 ) as typeof suspenseCmp;

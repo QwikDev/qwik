@@ -555,7 +555,7 @@ jobs:
   ############ BUILD DOCS ############
   build-docs:
     if: always() && needs.changes.outputs.build-docs == 'true'
-    name: Build Docs
+    name: Build Docs  
     needs:
       - changes
       - build-other-packages
@@ -740,6 +740,7 @@ jobs:
 
     needs:
       - build-other-packages
+      - build-docs
       - changes
       - test-unit
 
@@ -768,6 +769,7 @@ jobs:
         uses: actions/download-artifact@v4
 
       - name: Move Distribution Artifacts
+        shell: bash
         run: |
           mv artifact-qwik/* packages/qwik/
           mkdir -p packages/qwik-city/lib/
@@ -776,11 +778,29 @@ jobs:
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+          mkdir -p packages/docs/dist
+          cp -R artifact-docs/. packages/docs/dist/
+          mkdir -p packages/qwik-labs/lib packages/qwik-labs/vite
+          cp -R artifact-qwiklabs/lib/. packages/qwik-labs/lib/
+          cp -R artifact-qwiklabs/vite/. packages/qwik-labs/vite/
+          cp artifact-qwiklabs/package.json packages/qwik-labs/package.json
+          mkdir -p packages/qwik-react/lib
+          cp -R artifact-qwikreact/lib/. packages/qwik-react/lib/
+          cp artifact-qwikreact/package.json packages/qwik-react/package.json
 
       - run: pnpm install --frozen-lockfile
 
       - name: CLI E2E Tests
+        if: needs.changes.outputs.build-cli-e2e == 'true'
         run: pnpm run test.e2e.cli
+
+      - name: Install Playwright (Docs)
+        if: needs.changes.outputs.build-docs == 'true'
+        run: npx playwright install chromium --with-deps
+
+      - name: Docs E2E Tests
+        if: needs.changes.outputs.build-docs == 'true'
+        run: pnpm run test.e2e.docs
 
   ########### LINT PACKAGES ############
   lint-package:

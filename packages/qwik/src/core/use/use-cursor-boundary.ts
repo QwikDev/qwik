@@ -29,15 +29,6 @@ export const useCursorBoundary = (): CursorBoundary => {
   return useConstant(createCursorBoundary);
 };
 
-export function clearNearestCursorBoundary(vNode: VNode): void {
-  if (!__EXPERIMENTAL__.suspense) {
-    return;
-  }
-  if (vNode.props) {
-    vnode_setProp(vNode, QNearestCursorBoundary, null);
-  }
-}
-
 export function addCursorBoundary(cursorData: CursorData, vNode: VNode): void {
   if (!__EXPERIMENTAL__.suspense) {
     return;
@@ -86,6 +77,13 @@ export function getNearestCursorBoundaryProp(vNode: VNode): CursorBoundary | nul
   );
 }
 
+export function clearNearestCursorBoundary(vNode: VNode): void {
+  if (!__EXPERIMENTAL__.suspense) {
+    return;
+  }
+  vnode_setProp(vNode, QNearestCursorBoundary, null);
+}
+
 export function getNearestCursorBoundary(
   container: Container,
   vNode: VNode
@@ -100,7 +98,8 @@ export function setNearestCursorBoundary(vNode: VNode, boundary: CursorBoundary 
   __EXPERIMENTAL__.suspense && vnode_setProp(vNode, QNearestCursorBoundary, boundary);
 }
 
-export function setVNodeCursorBoundary(
+/** Updates the nearest cursor boundary cache on a vnode and any already-dirty descendants. */
+export function updateDirtySubtreeCursorBoundary(
   container: Container,
   vNode: VNode,
   boundary: CursorBoundary | null
@@ -108,7 +107,7 @@ export function setVNodeCursorBoundary(
   if (!__EXPERIMENTAL__.suspense) {
     return;
   }
-  vnode_setProp(vNode, QNearestCursorBoundary, boundary);
+  setNearestCursorBoundary(vNode, boundary);
 
   const dirtyChildren = vNode.dirtyChildren;
   if (!dirtyChildren || dirtyChildren.length === 0) {
@@ -117,6 +116,10 @@ export function setVNodeCursorBoundary(
 
   for (let i = 0; i < dirtyChildren.length; i++) {
     const child = dirtyChildren[i];
-    setVNodeCursorBoundary(container, child, getOwnCursorBoundary(container, child) || boundary);
+    updateDirtySubtreeCursorBoundary(
+      container,
+      child,
+      getOwnCursorBoundary(container, child) || boundary
+    );
   }
 }

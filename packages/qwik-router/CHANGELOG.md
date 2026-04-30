@@ -1,5 +1,18 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.33
+
+### Minor Changes
+
+- ✨ add configurable Link component prefetch data strategies (by [@Varixo](https://github.com/Varixo) in [#8548](https://github.com/QwikDev/qwik/pull/8548))
+
+### Patch Changes
+
+- 🐞🩹 Node SSR streaming to honor downstream backpressure (by [@Varixo](https://github.com/Varixo) in [#8557](https://github.com/QwikDev/qwik/pull/8557))
+
+- Updated dependencies [[`1d532e2`](https://github.com/QwikDev/qwik/commit/1d532e2e34cda06c0edde5a0609f5ab1f873b811), [`3755593`](https://github.com/QwikDev/qwik/commit/375559368bb849d460d044c1bb9a3bafa8d38c94), [`ae7e595`](https://github.com/QwikDev/qwik/commit/ae7e595bae8383bf46a20cf6fa92356698c7abf2), [`dbb1541`](https://github.com/QwikDev/qwik/commit/dbb154108c5279f68b48dc02aab762cd51fc787d)]:
+  - @qwik.dev/core@2.0.0-beta.33
+
 ## 2.0.0-beta.32
 
 ### Minor Changes

@@ -3,8 +3,9 @@ import { defineConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import { ssgWorkerImportPlugin } from './src/buildtime/vite/ssg-worker-imports';
 import pkg from './package.json' with { type: 'json' };
+import type { UserConfig } from 'vite';
 
-export default defineConfig(() => {
+export default defineConfig((): UserConfig => {
   return {
     build: {
       emptyOutDir: false,
@@ -13,7 +14,7 @@ export default defineConfig(() => {
       target: 'esnext',
       outDir: 'lib',
       minify: false,
-      rollupOptions: {
+      rolldownOptions: {
         input: {
           index: './src/runtime/src/',
           'adapters/azure-swa/vite': './src/adapters/azure-swa/vite',

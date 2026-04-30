@@ -54,7 +54,7 @@ export async function createLinter(
             if (message.ruleId != null && !message.ruleId.startsWith('qwik/')) {
               continue;
             }
-            const err = createRollupError(file.filePath, message);
+            const err = createBundlerError(file.filePath, message);
             ctx.warn(err);
           }
         });
@@ -69,7 +69,7 @@ function parseRequest(id: string) {
   return id.split('?', 2)[0];
 }
 
-function createRollupError(id: string, reportMessage: Linter.LintMessage) {
+function createBundlerError(id: string, reportMessage: Linter.LintMessage) {
   const err: Rollup.RollupError = Object.assign(new Error(reportMessage.message), {
     id,
     plugin: 'vite-plugin-eslint',

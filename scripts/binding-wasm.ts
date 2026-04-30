@@ -1,7 +1,7 @@
 import { type BuildConfig, copyFile, emptyDir, ensureDir } from './util.ts';
 import { execa } from 'execa';
 import { join } from 'node:path';
-import { rollup } from 'rollup';
+import { rolldown } from 'rolldown';
 
 export async function buildWasmBinding(config: BuildConfig) {
   const srcWasmDir = config.srcWasmDir;
@@ -39,7 +39,7 @@ export async function buildWasmBinding(config: BuildConfig) {
     CARGO_PROFILE_RELEASE_OPT_LEVEL: 'z',
   });
 
-  const build = await rollup({
+  const build = await rolldown({
     input: wasmJsBuildPath,
   });
 

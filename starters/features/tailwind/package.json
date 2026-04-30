@@ -22,7 +22,7 @@
   "devDependencies": {
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.1.4",
-    "@tailwindcss/vite": "^4.1.4"
+    "@tailwindcss/vite": "^4.2.0"
   },
   "type": "module"
 }

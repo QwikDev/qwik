@@ -34,9 +34,6 @@ function customTerserPlugin(): Plugin {
             regex: MANGLE_PROPS_REGEX,
           },
         },
-        format: {
-          comments: true,
-        },
       });
 
       return result.code || null;
@@ -59,7 +56,7 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
         formats: ['es'],
         fileName: () => 'preloader.mjs',
       },
-      rollupOptions: {
+      rolldownOptions: {
         external: ['@qwik.dev/core/build'],
       },
       minify: false, // This is the default, just to be explicit

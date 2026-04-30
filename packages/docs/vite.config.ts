@@ -12,7 +12,7 @@ import type { ShikiTransformer } from '@shikijs/types';
 import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
 // import { qwikDevtools } from '@qwik.dev/devtools';
-import { defineConfig, loadEnv, type Plugin, type Rollup, type UserConfig } from 'vite';
+import { defineConfig, loadEnv, type Plugin, type UserConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
@@ -27,10 +27,10 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
     name: 'mute-warnings',
     enforce: 'pre',
     config: (userConfig) => {
-      const origOnLog = userConfig.build?.rollupOptions?.onLog;
+      const origOnLog = userConfig.build?.rolldownOptions?.onLog;
       return {
         build: {
-          rollupOptions: {
+          rolldownOptions: {
             onLog(type, warning, defaultHandler) {
               if (type === 'warn') {
                 if (warning.code) {
@@ -94,42 +94,6 @@ function transformerMetaShowTitle(): ShikiTransformer {
         });
       }
       meta.replace(titleMatch[0], '');
-    },
-  };
-}
-
-function overrideManualChunksForRepl(): Plugin {
-  return {
-    name: 'override-manual-chunks-for-repl',
-    enforce: 'post',
-    config(userConfig) {
-      const prevOutput = userConfig.build?.rollupOptions?.output;
-      const prevManualChunks: Rollup.ManualChunksOption | undefined =
-        prevOutput && !Array.isArray(prevOutput)
-          ? (prevOutput as Rollup.OutputOptions).manualChunks
-          : undefined;
-
-      return {
-        build: {
-          rollupOptions: {
-            output: {
-              manualChunks: (id, meta) => {
-                const moduleInfo = meta.getModuleInfo(id);
-                if (moduleInfo) {
-                  // Prevent the similar optimizer plugin logic from running on the repl
-                  if (id.includes('repl') && (moduleInfo as any).meta?.qwikdeps?.length === 0) {
-                    return null;
-                  }
-                }
-
-                if (typeof prevManualChunks === 'function') {
-                  return prevManualChunks(id, meta);
-                }
-              },
-            },
-          },
-        },
-      };
     },
   };
 }
@@ -264,12 +228,12 @@ export default defineConfig(({ mode }) => {
       qwikReact(),
       qwikInsights({ publicApiKey: insightsApiKey }),
       tailwindcss(),
-      overrideManualChunksForRepl(),
       // qwikDevtools(),
     ],
     build: {
       sourcemap: true,
-      rollupOptions: {
+      rolldownOptions: {
+        makeAbsoluteExternalsRelative: true,
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },

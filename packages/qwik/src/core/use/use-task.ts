@@ -270,6 +270,11 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
     setCaptures(deserializeCaptures(container, this));
   }
   const task = _captures![0] as Task;
+  if (!task?.$el$) {
+    // Task or its host element was not properly deserialized
+    // (e.g., container destroyed during async dispatch)
+    return;
+  }
   task.$flags$ |= TaskFlags.DIRTY;
   markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
 }

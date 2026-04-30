@@ -44,6 +44,16 @@ test('should only render string/number', async () => {
   await expectRendered(fixture, '<div>string123</div>');
 });
 
+test('should throw error when function is passed as JSX child', async () => {
+  const fixture = new ElementFixture();
+  try {
+    await render(fixture.host, <div>{() => <span>hello</span>}</div>);
+    assert.fail('Expected an error to be thrown');
+  } catch (e: any) {
+    assert.match(e.message, /is not an accepted value|Functions are not valid JSX children/);
+  }
+});
+
 test('should serialize events correctly', async () => {
   const fixture = new ElementFixture();
   await render(

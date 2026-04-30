@@ -1968,6 +1968,11 @@ export const HtmlContext = component$(() => {
   return <Slot />;
 });
 
+test('should throw error when function is passed as JSX child', async () => {
+  const fn = () => jsx('div', { children: 'hello' });
+  await throws(() => testSSR(jsx('body', { children: [fn] }), ''));
+});
+
 async function testSSR(
   node: JSXOutput,
   expected: string | string[],

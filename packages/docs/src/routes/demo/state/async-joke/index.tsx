@@ -1,52 +1,60 @@
 import { component$, useAsync$, useSignal } from '@qwik.dev/core';
 
+type Joke = {
+  joke?: string;
+  setup?: string;
+  delivery?: string;
+};
+
 export default component$(() => {
   const query = useSignal('');
 
-  // this will first run during SSR (server)
-  // then re-run whenever postId changes (client)
-  // so this code runs both on the server and the client
   const jokes = useAsync$(async ({ track, abortSignal }) => {
+    // Re-run when query changes.
+    const search = track(query).trim();
     const url = new URL(
       'https://v2.jokeapi.dev/joke/Programming?safe-mode&amount=2'
     );
-    const search = track(query);
+
     if (search) {
       url.searchParams.set('contains', search);
     }
 
-    // The abortSignal is automatically aborted when this function re-runs,
-    // canceling any pending fetch requests.
-    const resp = await fetch(url, { signal: abortSignal });
-    const json = (await resp.json()) as {
-      jokes: { setup?: string; delivery?: string; joke?: never }[];
+    const response = await fetch(url, { signal: abortSignal });
+    const data = (await response.json()) as {
+      jokes?: Joke[];
     };
 
-    return json.jokes;
+    return data.jokes ?? [];
   });
+
+  let content;
+  if (jokes.loading) {
+    content = <p>Loading...</p>;
+  } else if (jokes.error) {
+    content = <div>Error: {jokes.error.message}</div>;
+  } else if (jokes.value.length === 0) {
+    content = <p>No jokes found</p>;
+  } else {
+    content = (
+      <ul>
+        {jokes.value.map((joke, i) => (
+          <li key={i}>
+            <div style={{ whiteSpace: 'pre-wrap' }}>
+              {joke.joke ?? `${joke.setup}\n${joke.delivery}`}
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <>
       <label>
         Query: <input bind:value={query} />
       </label>
-      {jokes.loading ? (
-        <p>Loading...</p>
-      ) : jokes.error ? (
-        <div>Error: {jokes.error.message}</div>
-      ) : jokes.value ? (
-        <ul>
-          {jokes.value.map((joke, i) => (
-            <li key={i}>
-              <div style={{ whiteSpace: 'pre-wrap' }}>
-                {joke.joke || `${joke.setup}\n${joke.delivery}`}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No jokes found</p>
-      )}
+      {content}
     </>
   );
 });

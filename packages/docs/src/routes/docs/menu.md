@@ -18,6 +18,7 @@
 - [Slots](</docs/(qwik)/core/slots/index.mdx>)
 - [Rendering](</docs/(qwik)/core/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/core/styles/index.mdx>)
+- [Suspense](</docs/(qwik)/core/suspense/index.mdx>)
 - [API Reference](/api/qwik/)
 
 ### Concepts

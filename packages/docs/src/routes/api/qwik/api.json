@@ -2265,7 +2265,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type SuspenseProps = {\n    fallback?: JSXOutput;\n    showStale?: boolean;\n    timeout?: number;\n};\n```\n**References:** [JSXOutput](#jsxoutput)",
+      "content": "```typescript\nexport type SuspenseProps = {\n    fallback?: JSXOutput;\n    showStale?: boolean;\n    delay?: number;\n};\n```\n**References:** [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/suspense.tsx",
       "mdFile": "core.suspenseprops.md"
     },

@@ -1228,7 +1228,7 @@ export const Suspense: typeof _suC;
 export type SuspenseProps = {
     fallback?: JSXOutput;
     showStale?: boolean;
-    timeout?: number;
+    delay?: number;
 };
 
 // @internal (undocumented)

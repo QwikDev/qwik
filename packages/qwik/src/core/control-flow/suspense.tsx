@@ -17,11 +17,11 @@ import { useTaskQrl, type TaskCtx } from '../use/use-task';
 
 type SuspenseState = 'content' | 'fallback';
 
-/** @public @experimental */
+/** @public */
 export type SuspenseProps = {
   fallback?: JSXOutput;
   showStale?: boolean;
-  timeout?: number;
+  delay?: number;
 };
 
 const _hf0 = (p0: SuspenseProps, p1: Signal<SuspenseState>) => ({
@@ -38,7 +38,7 @@ const _hf1_str = '{display:p1.value==="content"||p0.showStale?"contents":"none"}
 /** @internal */
 export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
   const cursorBoundary = _captures![0] as CursorBoundary,
-    props = _captures![1] as { timeout?: number },
+    props = _captures![1] as { delay?: number },
     state = _captures![2] as Signal<SuspenseState>;
   const pendingCount = track(cursorBoundary.pending);
   const isBrowserEnv = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
@@ -46,12 +46,12 @@ export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
     state.value = 'content';
     return;
   }
-  const timeout = setTimeout(() => {
+  const delayTimer = setTimeout(() => {
     if (cursorBoundary.pending.value > 0) {
       state.value = 'fallback';
     }
-  }, props.timeout ?? 0);
-  cleanup(() => clearTimeout(timeout));
+  }, props.delay ?? 0);
+  cleanup(() => clearTimeout(delayTimer));
 };
 
 /** @internal */
@@ -101,7 +101,7 @@ export const suspenseCmp = (props: SuspenseProps) => {
   );
 };
 
-/** @public @experimental */
+/** @public */
 export const Suspense = /*#__PURE__*/ componentQrl<SuspenseProps>(
   /*#__PURE__*/ inlinedQrl(suspenseCmp, '_suC')
 ) as typeof suspenseCmp;

@@ -1,5 +1,11 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.34
+
+### Patch Changes
+
+- Allow `Temporal`-types in `valid-lexical-scope`-lint (as they can be serialized) (by [@FloezeTv](https://github.com/FloezeTv) in [#8578](https://github.com/QwikDev/qwik/pull/8578))
+
 ## 2.0.0-beta.33
 
 ### Patch Changes

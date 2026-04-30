@@ -10,7 +10,7 @@ import {
   Fragment as Component,
 } from '@qwik.dev/core';
 import { ssrRenderToDom } from '@qwik.dev/core/testing';
-import { buildSync } from 'esbuild';
+import { buildSync, transformSync } from 'esbuild';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import { vi } from 'vitest';
@@ -36,12 +36,7 @@ describe('SSR Backpatching', () => {
     });
     const code = outputFiles[0].text;
 
-    expect(() => {
-      new Function('document', 'NodeFilter', `${code}\n${code}`)(
-        { currentScript: null },
-        { SHOW_ELEMENT: 1 }
-      );
-    }).not.toThrow();
+    expect(() => transformSync(`${code}\n${code}`, { loader: 'js' })).not.toThrow();
   });
 
   it('should handle basic backpatching', async () => {

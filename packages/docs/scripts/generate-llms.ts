@@ -262,6 +262,13 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Core Concepts',
+      'Suspense',
+      '/docs/core/suspense/',
+      'Fallback boundaries for async rendering, including `useAsync$`, `delay`, and `showStale` patterns.',
+      toSourcePath('docs', '(qwik)', 'core', 'suspense', 'index.mdx')
+    ),
+    docEntry(
+      'Core Concepts',
       'Styles',
       '/docs/core/styles/',
       'Styling patterns including scoped styles, inline styles, and stylesheet loading.',

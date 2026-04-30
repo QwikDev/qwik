@@ -38,7 +38,7 @@ export const SingleBoundary = component$(() => {
 
   return (
     <div id="single-boundary">
-      <Suspense fallback={<span id="single-fallback">Loading single</span>} timeout={10}>
+      <Suspense fallback={<span id="single-fallback">Loading single</span>} delay={10}>
         <BlockingUpdate id="single" resolveName={resolveName} pendingName={pendingName} />
       </Suspense>
       <ResolveUpdate id="single" resolveName={resolveName} />
@@ -52,11 +52,7 @@ export const ShowStaleBoundary = component$(() => {
 
   return (
     <div id="show-stale-boundary">
-      <Suspense
-        fallback={<span id="show-stale-fallback">Loading stale</span>}
-        timeout={10}
-        showStale
-      >
+      <Suspense fallback={<span id="show-stale-fallback">Loading stale</span>} delay={10} showStale>
         <BlockingUpdate id="show-stale" resolveName={resolveName} pendingName={pendingName} />
       </Suspense>
       <ResolveUpdate id="show-stale" resolveName={resolveName} />
@@ -70,9 +66,9 @@ export const NestedBoundaries = component$(() => {
 
   return (
     <div id="nested-boundary">
-      <Suspense fallback={<span id="outer-fallback">Loading outer</span>} timeout={10}>
+      <Suspense fallback={<span id="outer-fallback">Loading outer</span>} delay={10}>
         <section id="outer-content">
-          <Suspense fallback={<span id="inner-fallback">Loading inner</span>} timeout={10}>
+          <Suspense fallback={<span id="inner-fallback">Loading inner</span>} delay={10}>
             <BlockingUpdate id="inner" resolveName={resolveName} pendingName={pendingName} />
           </Suspense>
         </section>
@@ -95,7 +91,7 @@ export const MountedAsyncBoundary = component$(() => {
         <>
           <Suspense
             fallback={<span id="mounted-async-fallback">Loading mounted async</span>}
-            timeout={10}
+            delay={10}
           >
             <MountedAsyncChild resolveName={resolveName} />
           </Suspense>

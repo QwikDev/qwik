@@ -22,6 +22,7 @@ Qwik v2 is a ground-up rewrite of the framework. This guide covers what's new, h
 - **Smaller serialized state** — Up to 30% smaller HTML
 - **HMR** — Instant browser updates without losing state
 - **`useAsync$`** — Replaces `useResource$` with polling, concurrency control, and abort
+- **`<Suspense>`** — Shows fallback UI while part of the page waits
 
 ## Quick Start
 
@@ -268,9 +269,9 @@ Still compile in v2, removed in v3.
 | Track deps | `ctx.track(() => sig.value)` | `ctx.track(sig)` (both forms work) |
 | Abort | Manual `AbortController` | `ctx.abortSignal` |
 | Previous value | - | `ctx.previous` |
-| Polling | - | `options.expires` + `options.poll` |
-| Initial value | - | `options.initial` (stale) |
-| Rendering | `<Resource onResolved={} />` | `if`/`else` branching |
+| Polling | - | `options.interval` |
+| Initial value | - | `options.initial` |
+| Rendering | `<Resource onResolved={} />` | `.loading`/`.error` branching or `<Suspense>` |
 
 <LongNote title="Full before/after example">
 
@@ -342,6 +343,8 @@ const Cmp = component$(() => {
 ```
 
 </LongNote>
+
+`useAsync$()` owns the work that creates the value. [`<Suspense>`](/docs/(qwik)/core/suspense/index.mdx) owns the fallback UI if you want to read `.value` directly while the value may still be pending.
 
 What changed:
 

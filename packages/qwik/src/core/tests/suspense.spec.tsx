@@ -278,14 +278,14 @@ describe.each([
     }
   });
 
-  it('should not show fallback when Promise resolves before timeout', async () => {
+  it('should not show fallback when Promise resolves before delay', async () => {
     const fastContent = new Promise<JSXOutput>((resolve) =>
       setTimeout(() => resolve(<p>Fast</p>), 5)
     );
 
     const { vNode } = await render(
       <div>
-        <Suspense fallback={<span>Loading...</span>} timeout={100}>
+        <Suspense fallback={<span>Loading...</span>} delay={100}>
           {fastContent as any}
         </Suspense>
       </div>,
@@ -351,7 +351,7 @@ describe.each([
   });
 });
 
-describe('domRender: Suspense client-side pause timeout', () => {
+describe('domRender: Suspense client-side pause delay', () => {
   it('should show fallback mid-flight and swap it for children on completion', async () => {
     (globalThis as any).__slowContent = new Promise<JSXOutput>((resolve) => {
       (globalThis as any).__slowResolve = resolve;
@@ -362,14 +362,14 @@ describe('domRender: Suspense client-side pause timeout', () => {
 
     const renderPromise = domRender(
       <div>
-        <Suspense fallback={<span>Loading...</span>} timeout={10}>
+        <Suspense fallback={<span>Loading...</span>} delay={10}>
           <SlowChild />
         </Suspense>
       </div>,
       { debug }
     );
 
-    // Wait past the timeout (10ms) so the pause-timer fires and marks fallback visible.
+    // Wait past the delay (10ms) so the pause-timer fires and marks fallback visible.
     await new Promise((r) => setTimeout(r, 40));
 
     (globalThis as any).__slowResolve(<p>Done</p>);
@@ -404,9 +404,9 @@ describe('domRender: Suspense client-side pause timeout', () => {
     delete (globalThis as any).__slowResolve;
   });
 
-  it('should re-show fallback when a descendant updates and blocks past timeout', async () => {
+  it('should re-show fallback when a descendant updates and blocks past delay', async () => {
     // After initial mount, flip the signal: the child's render returns a Promise that takes
-    // longer than the Suspense timeout. The new update-time cursor should inherit the
+    // longer than the Suspense delay. The new update-time cursor should inherit the
     // boundary's hooks and re-trigger the fallback, then clear it once resolved.
     (globalThis as any).__susToggle = null as any;
     (globalThis as any).__susResolve = null as any;
@@ -428,7 +428,7 @@ describe('domRender: Suspense client-side pause timeout', () => {
 
     const { document, vNode } = await domRender(
       <div>
-        <Suspense fallback={<span>Loading...</span>} timeout={10}>
+        <Suspense fallback={<span>Loading...</span>} delay={10}>
           <Child />
         </Suspense>
       </div>,
@@ -464,7 +464,7 @@ describe('domRender: Suspense client-side pause timeout', () => {
     const toggle = (globalThis as any).__susToggle as { value: number };
     toggle.value = 1;
 
-    // Wait past the timeout so the new cursor's pause-timer fires.
+    // Wait past the delay so the new cursor's pause-timer fires.
     await delay(40);
 
     html = document.querySelector('div')!.innerHTML;
@@ -524,7 +524,7 @@ describe('domRender: Suspense client-side pause timeout', () => {
 
     const { container, document } = await domRender(
       <div>
-        <Suspense fallback={0} timeout={10}>
+        <Suspense fallback={0} delay={10}>
           <Child />
         </Suspense>
       </div>,
@@ -580,7 +580,7 @@ describe('domRender: Suspense client-side pause timeout', () => {
 
     const { document, vNode } = await domRender(
       <div>
-        <Suspense fallback={<span>Loading...</span>} timeout={10} showStale>
+        <Suspense fallback={<span>Loading...</span>} delay={10} showStale>
           <Child />
         </Suspense>
       </div>,
@@ -686,7 +686,7 @@ describe('domRender: Suspense client-side pause timeout', () => {
           <p>Count: {count.value}</p>
           <div>
             <button onClick$={() => count.value++}>Click</button>
-            <Suspense fallback={<div>counting...</div>} timeout={10}>
+            <Suspense fallback={<div>counting...</div>} delay={10}>
               <Slow count={count.value} />
             </Suspense>
           </div>

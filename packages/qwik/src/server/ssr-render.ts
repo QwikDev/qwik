@@ -1,5 +1,8 @@
+import { getClientManifest } from '@qwik.dev/core';
 import { getSymbolHash, setServerPlatform } from './platform';
-import type { JSXOutput, ResolvedManifest, SymbolMapper, StreamWriter } from './qwik-types';
+import type { JSXOutput, ResolvedManifest, StreamWriter, SymbolMapper } from './qwik-types';
+import { ssrCreateContainer } from './ssr-container';
+import { StreamHandler } from './ssr-stream-handler';
 import type {
   QwikManifest,
   RenderToStreamOptions,
@@ -8,9 +11,6 @@ import type {
   RenderToStringResult,
 } from './types';
 import { getBuildBase } from './utils';
-import { ssrCreateContainer } from './ssr-container';
-import { manifest as builtManifest } from '@qwik-client-manifest';
-import { StreamHandler } from './ssr-stream-handler';
 
 /**
  * Creates a server-side `document`, renders to root node to the document, then serializes the
@@ -102,6 +102,7 @@ export const renderToStream = async (
 export function resolveManifest(
   manifest?: Partial<QwikManifest | ResolvedManifest> | undefined
 ): ResolvedManifest | undefined {
+  const builtManifest = getClientManifest();
   const mergedManifest = (manifest ? { ...builtManifest, ...manifest } : builtManifest) as
     | ResolvedManifest
     | QwikManifest;
@@ -109,7 +110,7 @@ export function resolveManifest(
   if (!mergedManifest || 'mapper' in mergedManifest) {
     return mergedManifest;
   }
-  if (mergedManifest!.mapping) {
+  if (mergedManifest.mapping) {
     const mapper: SymbolMapper = {};
     for (const symbol in mergedManifest.mapping) {
       const bundleFilename = mergedManifest.mapping[symbol];

@@ -7,8 +7,15 @@ let _locale: string | undefined = undefined;
 let localAsyncStore: AsyncLocalStorage<string> | undefined;
 
 if (isServer) {
-  import('node:async_hooks')
-    .then((module) => {
+  // Hide the `node:` specifier from static analysis so consumers bundling the
+  // published core for the browser without the Qwik Vite plugin (e.g. raw
+  // webpack used by Cypress's webpack-preprocessor) don't fail with
+  // "UnhandledSchemeError" on this dead-code branch. The `.join` defeats
+  // Rollup's constant folding so the literal isn't restored at qwik build
+  // time, and the magic comments cover Vite/webpack at consumer build time.
+  const moduleName = ['node', 'async_hooks'].join(':');
+  import(/* @vite-ignore */ /* webpackIgnore: true */ moduleName)
+    .then((module: typeof import('node:async_hooks')) => {
       localAsyncStore = new module.AsyncLocalStorage();
     })
     .catch(() => {

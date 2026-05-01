@@ -1,6 +1,6 @@
 ---
 title: Suspense | Components
-keywords: 'suspense, fallback, async rendering, loading'
+keywords: 'suspense, reveal, fallback, async rendering, loading'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -261,6 +261,39 @@ Click “Refresh profile” after the first card appears. The old card stays vis
 `showStale` only controls what the user sees. It does not cache data or change what the subtree returns.
 </Note>
 
+## Coordinating Boundaries with `Reveal`
+
+Use `<Reveal>` when a group of sibling `<Suspense>` boundaries should reveal in a specific order.
+
+```tsx /Reveal/ /order/ /collapsed/
+import { component$, Reveal, Suspense } from '@qwik.dev/core';
+
+export default component$(() => {
+  return (
+    <Reveal order="sequential" collapsed>
+      <Suspense fallback={<p>Loading profile...</p>}>
+        <Profile />
+      </Suspense>
+
+      <Suspense fallback={<p>Loading activity...</p>}>
+        <Activity />
+      </Suspense>
+    </Reveal>
+  );
+});
+```
+
+`Reveal` does not start or resolve async work. It only coordinates which registered boundary is allowed to show its content.
+
+Reveal order options:
+
+- `parallel`: boundaries reveal independently
+- `sequential`: later boundaries wait for earlier pending boundaries
+- `reverse`: earlier boundaries wait for later pending boundaries
+- `together`: no boundary reveals content until all boundaries are ready
+
+By default, a pending boundary that is blocked by `Reveal` can still show its fallback. Add `collapsed` to hide blocked pending boundaries completely until they are allowed to reveal.
+
 ## API
 
 ```tsx
@@ -269,6 +302,13 @@ type SuspenseProps = {
   delay?: number;
   showStale?: boolean;
 };
+
+type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';
+
+type RevealProps = {
+  order?: RevealOrder;
+  collapsed?: boolean;
+};
 ```
 
 Props:
@@ -276,6 +316,8 @@ Props:
 - `fallback`: JSX rendered while the boundary is waiting
 - `delay`: milliseconds to wait before showing the fallback, defaults to `0`
 - `showStale`: keep previously revealed content visible while showing the fallback during later waits
+- `order`: reveal order for child Suspense boundaries, defaults to `parallel`
+- `collapsed`: hide pending blocked boundaries instead of showing their fallbacks
 
 ## Suspense Is Not an Error Boundary
 

@@ -120,7 +120,6 @@ export const useRevealBoundary = (boundary: CursorBoundary): RevealRegistration 
     }
     const item: RevealItem = { boundary };
     reveal.items.push(item);
-    reveal.version.value++;
     return { reveal, item };
   });
 

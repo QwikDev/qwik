@@ -1,7 +1,8 @@
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   Fragment as Component,
+  Reveal,
   Suspense,
   Fragment,
   Fragment as Projection,
@@ -352,6 +353,18 @@ describe.each([
 });
 
 describe('domRender: Suspense client-side pause delay', () => {
+  afterEach(() => {
+    delete (globalThis as any).__slowContent;
+    delete (globalThis as any).__slowResolve;
+    delete (globalThis as any).__susToggle;
+    delete (globalThis as any).__susResolve;
+    delete (globalThis as any).__zeroFallbackToggle;
+    delete (globalThis as any).__zeroFallbackResolve;
+    delete (globalThis as any).__showStaleToggle;
+    delete (globalThis as any).__showStaleResolve;
+    delete (globalThis as any).__slowChildResolve;
+  });
+
   it('should show fallback mid-flight and swap it for children on completion', async () => {
     (globalThis as any).__slowContent = new Promise<JSXOutput>((resolve) => {
       (globalThis as any).__slowResolve = resolve;
@@ -400,8 +413,6 @@ describe('domRender: Suspense client-side pause delay', () => {
         </Component>
       </div>
     );
-    delete (globalThis as any).__slowContent;
-    delete (globalThis as any).__slowResolve;
   });
 
   it('should re-show fallback when a descendant updates and blocks past delay', async () => {
@@ -499,8 +510,6 @@ describe('domRender: Suspense client-side pause delay', () => {
         </Component>
       </div>
     );
-    delete (globalThis as any).__susToggle;
-    delete (globalThis as any).__susResolve;
   });
 
   it('should show a numeric zero fallback while a descendant update is blocked', async () => {
@@ -554,9 +563,6 @@ describe('domRender: Suspense client-side pause delay', () => {
     expect(fallbackHost.style.display).toBe('none');
     expect(contentHost.style.display).toBe('contents');
     expect(contentHost.textContent).toContain('value=1');
-
-    delete (globalThis as any).__zeroFallbackToggle;
-    delete (globalThis as any).__zeroFallbackResolve;
   });
 
   it('should keep stale content visible while showing fallback during updates when showStale is enabled', async () => {
@@ -655,9 +661,6 @@ describe('domRender: Suspense client-side pause delay', () => {
         </Component>
       </div>
     );
-
-    delete (globalThis as any).__showStaleToggle;
-    delete (globalThis as any).__showStaleResolve;
   });
 
   it('should show fallback when a child component rerenders to a promise child', async () => {
@@ -772,7 +775,177 @@ describe('domRender: Suspense client-side pause delay', () => {
         </main>
       </Component>
     );
+  });
+});
 
-    delete (globalThis as any).__slowChildResolve;
+describe('domRender: Reveal suspense coordination', () => {
+  type RevealTestState = {
+    toggles: Record<string, { value: number }>;
+    resolvers: Record<string, () => void>;
+  };
+
+  const RevealTestChild = component$((props: { id: string }) => {
+    const toggle = useSignal(0);
+    const state = (globalThis as any).__revealState as RevealTestState;
+    state.toggles[props.id] = toggle;
+    useTask$(({ track }) => {
+      const value = track(() => toggle.value);
+      if (value === 0) {
+        return;
+      }
+      return new Promise<void>((resolve) => {
+        state.resolvers[props.id] = resolve;
+      });
+    });
+    return (
+      <p>
+        {props.id}:{toggle.value}
+      </p>
+    );
+  });
+
+  const renderReveal = async (props: {
+    order?: 'parallel' | 'sequential' | 'reverse' | 'together';
+    collapsed?: boolean;
+  }) => {
+    const state: RevealTestState = { toggles: {}, resolvers: {} };
+    (globalThis as any).__revealState = state;
+    const result = await domRender(
+      <div id="reveal-root">
+        <Reveal {...props}>
+          <Suspense fallback={<span>Loading first</span>} delay={10}>
+            <RevealTestChild id="first" />
+          </Suspense>
+          <Suspense fallback={<span>Loading second</span>} delay={10}>
+            <RevealTestChild id="second" />
+          </Suspense>
+        </Reveal>
+      </div>,
+      { debug }
+    );
+    return { ...result, state, root: result.document.querySelector('#reveal-root')! };
+  };
+
+  const getRevealHosts = (root: Element) => {
+    const children = root.children;
+    return {
+      firstFallback: children[0] as HTMLElement,
+      firstContent: children[1] as HTMLElement,
+      secondFallback: children[2] as HTMLElement,
+      secondContent: children[3] as HTMLElement,
+    };
+  };
+
+  const blockRevealChildren = async (state: RevealTestState) => {
+    state.toggles.first.value = 1;
+    state.toggles.second.value = 1;
+    await delay(40);
+  };
+
+  afterEach(() => {
+    delete (globalThis as any).__revealState;
+  });
+
+  it('should keep parallel boundaries independent', async () => {
+    const { container, root, state } = await renderReveal({ order: 'parallel' });
+
+    await blockRevealChildren(state);
+    let hosts = getRevealHosts(root);
+    expect(hosts.firstFallback.style.display).toBe('contents');
+    expect(hosts.secondFallback.style.display).toBe('contents');
+
+    state.resolvers.second();
+    await delay(20);
+
+    hosts = getRevealHosts(root);
+    expect(hosts.firstFallback.style.display).toBe('contents');
+    expect(hosts.secondFallback.style.display).toBe('none');
+
+    expect(hosts.secondContent.style.display).toBe('contents');
+
+    state.resolvers.first();
+    await waitForDrain(container);
+  });
+
+  it('should reveal sequential content in registration order', async () => {
+    const { container, root, state } = await renderReveal({ order: 'sequential' });
+
+    await blockRevealChildren(state);
+    let hosts = getRevealHosts(root);
+    expect(hosts.firstFallback.style.display).toBe('contents');
+    expect(hosts.secondFallback.style.display).toBe('contents');
+
+    expect(hosts.secondContent.style.display).toBe('none');
+
+    state.resolvers.second();
+    await delay(20);
+
+    hosts = getRevealHosts(root);
+    expect(hosts.secondFallback.style.display).toBe('none');
+    expect(hosts.secondContent.style.display).toBe('none');
+
+    state.resolvers.first();
+    await waitForDrain(container);
+
+    hosts = getRevealHosts(root);
+    expect(hosts.firstContent.style.display).toBe('contents');
+    expect(hosts.secondContent.style.display).toBe('contents');
+  });
+
+  it('should collapse unrevealed sequential fallbacks', async () => {
+    const { container, root, state } = await renderReveal({ order: 'sequential', collapsed: true });
+
+    await blockRevealChildren(state);
+    const hosts = getRevealHosts(root);
+    expect(hosts.firstFallback.style.display).toBe('contents');
+    expect(hosts.secondFallback.style.display).toBe('none');
+
+    expect(hosts.secondContent.style.display).toBe('none');
+
+    state.resolvers.first();
+    state.resolvers.second();
+    await waitForDrain(container);
+  });
+
+  it('should reveal reverse content from the end', async () => {
+    const { container, root, state } = await renderReveal({ order: 'reverse' });
+
+    await blockRevealChildren(state);
+    state.resolvers.first();
+    await delay(20);
+
+    let hosts = getRevealHosts(root);
+    expect(hosts.firstFallback.style.display).toBe('none');
+
+    expect(hosts.firstContent.style.display).toBe('none');
+
+    state.resolvers.second();
+    await waitForDrain(container);
+
+    hosts = getRevealHosts(root);
+    expect(hosts.firstContent.style.display).toBe('contents');
+    expect(hosts.secondContent.style.display).toBe('contents');
+  });
+
+  it('should reveal together only after all boundaries resolve', async () => {
+    const { container, root, state } = await renderReveal({ order: 'together' });
+
+    await blockRevealChildren(state);
+    state.resolvers.first();
+    await delay(20);
+
+    let hosts = getRevealHosts(root);
+    expect(hosts.firstFallback.style.display).toBe('none');
+
+    expect(hosts.firstContent.style.display).toBe('none');
+
+    expect(hosts.secondFallback.style.display).toBe('contents');
+
+    state.resolvers.second();
+    await waitForDrain(container);
+
+    hosts = getRevealHosts(root);
+    expect(hosts.firstContent.style.display).toBe('contents');
+    expect(hosts.secondContent.style.display).toBe('contents');
   });
 });

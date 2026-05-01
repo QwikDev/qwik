@@ -1976,6 +1976,48 @@
       "mdFile": "core.resourcereturn.md"
     },
     {
+      "name": "Reveal",
+      "id": "reveal",
+      "hierarchy": [
+        {
+          "name": "Reveal",
+          "id": "reveal"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nReveal: typeof revealCmp\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx",
+      "mdFile": "core.reveal.md"
+    },
+    {
+      "name": "RevealOrder",
+      "id": "revealorder",
+      "hierarchy": [
+        {
+          "name": "RevealOrder",
+          "id": "revealorder"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx",
+      "mdFile": "core.revealorder.md"
+    },
+    {
+      "name": "RevealProps",
+      "id": "revealprops",
+      "hierarchy": [
+        {
+          "name": "RevealProps",
+          "id": "revealprops"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type RevealProps = {\n    order?: RevealOrder;\n    collapsed?: boolean;\n};\n```\n**References:** [RevealOrder](#revealorder)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx",
+      "mdFile": "core.revealprops.md"
+    },
+    {
       "name": "SerializationStrategy",
       "id": "serializationstrategy",
       "hierarchy": [

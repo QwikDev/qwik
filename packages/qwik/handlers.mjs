@@ -13,8 +13,14 @@ export {
   _run,
   _task,
   _val,
+  // Each
   _eaC,
   _eaT,
+  // Suspense
   _suC,
   _suT,
+  // Reveal
+  _reR,
+  _reC,
+  _reT,
 } from '@qwik.dev/core/internal';

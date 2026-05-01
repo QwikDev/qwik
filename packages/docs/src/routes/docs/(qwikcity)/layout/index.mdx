@@ -285,19 +285,7 @@ export default ({ children }: any) => (
   <div class="product-area">
     {children}  {/* q:slot attributes inside children are hidden from the outer layout */}
   </div>
-);
+)
 ```
 
-If this kind of wrapping is needed, use a `component$` with its own `<Slot />` instead, accepting that the page cannot target the outer layout's named slots from there:
-
-```tsx title="src/routes/products/layout.tsx — ✅ component$ when a wrapping element is needed"
-import { component$, Slot } from '@builder.io/qwik';
-
-// component$ with a Slot — children are projected into this layout's own slot.
-// q:slot attributes from the page target THIS layout's slots, not the outer layout's.
-export default component$(() => (
-  <div class="product-area">
-    <Slot />
-  </div>
-));
-```
+You will either need to repeat the Slot structure, or move the wrapper div to the child component.

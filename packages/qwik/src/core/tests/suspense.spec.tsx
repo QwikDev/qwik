@@ -1,5 +1,5 @@
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   Fragment as Component,
   Reveal,
@@ -17,6 +17,7 @@ import {
 } from '@qwik.dev/core';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
+import * as logUtils from '../shared/utils/log';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -348,6 +349,33 @@ describe.each([
 
       expect(ErrorProvider.error).toBeInstanceOf(Error);
       expect(document.body.innerHTML).not.toContain(loading);
+    }
+  });
+});
+
+describe('ssrRenderToDom: Reveal suspense coordination', () => {
+  it('should not schedule reveal updates during SSR registration', async () => {
+    const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => {});
+
+    try {
+      await ssrRenderToDom(
+        <Reveal order="sequential" collapsed>
+          <Suspense fallback={<span>Loading first</span>}>
+            <p>First</p>
+          </Suspense>
+          <Suspense fallback={<span>Loading second</span>}>
+            <p>Second</p>
+          </Suspense>
+        </Reveal>,
+        { debug }
+      );
+
+      const lateChoreWarnings = logWarnSpy.mock.calls.filter(([message]) =>
+        String(message).includes('A chore was scheduled on a host element')
+      );
+      expect(lateChoreWarnings).toEqual([]);
+    } finally {
+      logWarnSpy.mockRestore();
     }
   });
 });

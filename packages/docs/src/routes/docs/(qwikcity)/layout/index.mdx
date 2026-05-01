@@ -206,3 +206,98 @@ export default () => (
 ```
 
 > **Note:** The named-slot technique relies on inline components not creating a component boundary. Keep the inline default export as a thin routing shell and put all business logic inside `component$` children.
+
+### Nested layouts with named slots
+
+When there are nested layouts (an outer layout wrapping an inner layout wrapping a page), any **intermediate** layout that sits between the outer layout's named slots and the page must also be an inline component. It must render `{children}` directly inside a fragment — **not** wrapped in any HTML element — so that `q:slot` attributes propagate all the way up to the outer layout.
+
+```
+src/routes/
+├── layout.tsx          ← outer layout (component$ — defines named slots)
+├── products/
+│   ├── layout.tsx      ← inner layout (inline — must pass {children} through a fragment)
+│   └── index.tsx       ← page (inline — provides q:slot content)
+```
+
+**Outer layout** (`component$` with named slots — unchanged):
+
+```tsx title="src/routes/layout.tsx"
+import { component$, Slot } from '@builder.io/qwik';
+
+export default component$(() => {
+  return (
+    <div class="layout">
+      <nav><Slot name="breadcrumb" /></nav>
+      <main><Slot /></main>
+      <aside><Slot name="sidebar" /></aside>
+    </div>
+  );
+});
+```
+
+**Inner layout** (inline component — passes `{children}` top-level in a fragment):
+
+```tsx title="src/routes/products/layout.tsx"
+// Inline component — renders its own content alongside {children} in a fragment.
+// {children} MUST be top-level (not wrapped in any HTML element) so that
+// q:slot attributes from nested pages propagate to the outer layout.
+export default ({ children }: any) => (
+  <>
+    {/* contributes to the outer layout's "breadcrumb" slot */}
+    <nav q:slot="breadcrumb">
+      <a href="/">Home</a> / <a href="/products">Products</a>
+    </nav>
+    {children} {/* top-level — q:slot attributes inside are still visible to outer layout */}
+  </>
+);
+```
+
+**Page** (inline component — provides its own named-slot content):
+
+```tsx title="src/routes/products/index.tsx"
+export default () => (
+  <>
+    <aside q:slot="sidebar">
+      <p>Category filters</p>
+    </aside>
+    <div>
+      <h1>All Products</h1>
+    </div>
+  </>
+);
+```
+
+When the router composes these three layers the outer layout's `splitProjectedChildren` receives a flat list of JSX nodes:
+
+| Element | Source | Goes to |
+|---|---|---|
+| `<nav q:slot="breadcrumb">…` | inner layout | outer `breadcrumb` slot |
+| `<aside q:slot="sidebar">…` | page | outer `sidebar` slot |
+| `<div><h1>…` | page | outer default slot |
+
+**What breaks the propagation:**
+
+If the inner layout wraps `{children}` in an HTML element, Qwik stops flattening at that element boundary and the inner `q:slot` attributes from the page are no longer visible to the outer layout:
+
+```tsx title="src/routes/products/layout.tsx — ❌ wrapping children hides q:slot attributes"
+// WRONG — the <div> wrapper stops q:slot propagation to the outer layout
+export default ({ children }: any) => (
+  <div class="product-area">
+    {children}  {/* q:slot attributes inside children are hidden from the outer layout */}
+  </div>
+);
+```
+
+If this kind of wrapping is needed, use a `component$` with its own `<Slot />` instead, accepting that the page cannot target the outer layout's named slots from there:
+
+```tsx title="src/routes/products/layout.tsx — ✅ component$ when a wrapping element is needed"
+import { component$, Slot } from '@builder.io/qwik';
+
+// component$ with a Slot — children are projected into this layout's own slot.
+// q:slot attributes from the page target THIS layout's slots, not the outer layout's.
+export default component$(() => (
+  <div class="product-area">
+    <Slot />
+  </div>
+));
+```

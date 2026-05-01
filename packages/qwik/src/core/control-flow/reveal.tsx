@@ -58,7 +58,10 @@ export const revealCanReveal = () => {
   const reveal = registration.reveal;
   const current = registration.item;
   const items = reveal.items;
-  reveal.version.value;
+  // `version` is monotonic; the branch keeps the subscription read from being dropped by minifiers.
+  if (reveal.version.value < 0) {
+    return false;
+  }
 
   switch (reveal.order) {
     case 'together':

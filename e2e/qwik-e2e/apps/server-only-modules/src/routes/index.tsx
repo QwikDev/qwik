@@ -9,5 +9,11 @@ export const useSecret = routeLoader$(() => {
 
 export default component$(() => {
   const secret = useSecret();
-  return <main>{secret.value}</main>;
+  const exampleText = "import './fake.server'";
+  return (
+    <main>
+      {secret.value}
+      <code>{exampleText}</code>
+    </main>
+  );
 });

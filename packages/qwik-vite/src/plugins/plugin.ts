@@ -19,6 +19,11 @@ import type {
 } from '../types';
 import { convertManifestToBundleGraph, type BundleGraphAdder } from './bundle-graph';
 import { createLinter, type QwikLinter } from './eslint-plugin';
+import {
+  createServerOnlyImportError,
+  isServerOnlyModule,
+  mightContainServerOnlyImport,
+} from './server-only-modules';
 import { isVirtualId, isWin, parseId } from './vite-utils';
 import MagicString from 'magic-string';
 
@@ -54,6 +59,11 @@ const CLIENT_STRIP_CTX_NAME = [
   'browser',
   'event$',
 ];
+
+type ViteResolveIdOptions = NonNullable<Parameters<Extract<Plugin['resolveId'], Function>>[2]>;
+type QwikResolveIdOptions = Partial<ViteResolveIdOptions> & {
+  scan?: boolean;
+};
 
 /**
  * Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or
@@ -460,9 +470,105 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         : opts.target === 'ssr' || opts.target === 'test';
   };
 
+  const shouldAssertClientImports = (isServer: boolean) => {
+    return !isServer && (opts.target === 'client' || (!!devServer && opts.target === 'ssr'));
+  };
+
+  const shouldValidateDevSsrClientOutput = (isServer: boolean) => {
+    return !!devServer && isServer && (opts.target === 'client' || opts.target === 'ssr');
+  };
+
   const assertClientCanImport = (pathId: string, importerId?: string | null, isServer = false) => {
-    if (!isServer && opts.target === 'client' && isServerOnlyModule(pathId, opts)) {
+    if (shouldAssertClientImports(isServer) && isServerOnlyModule(pathId, opts)) {
       throw new Error(createServerOnlyImportError(pathId, importerId));
+    }
+  };
+
+  const isServerOnlyImportCandidate = (importId: string) => {
+    const normalizedImportId = importId.replace(/\\/g, '/');
+    return normalizedImportId.includes('.server') || /(^|\/)server(\/|$)/.test(normalizedImportId);
+  };
+
+  const getImportSpecifiers = (ctx: Rollup.PluginContext, code: string): string[] => {
+    const imports = new Set<string>();
+
+    const addSource = (source: any) => {
+      if (typeof source?.value === 'string') {
+        imports.add(source.value);
+      }
+    };
+
+    const stack = [ctx.parse(code) as any];
+    while (stack.length > 0) {
+      const node = stack.pop();
+      if (!node || typeof node !== 'object' || typeof node.type !== 'string') {
+        continue;
+      }
+
+      if (node.type === 'ImportDeclaration' && node.importKind !== 'type') {
+        addSource(node.source);
+      } else if (
+        (node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') &&
+        node.exportKind !== 'type'
+      ) {
+        addSource(node.source);
+      } else if (node.type === 'ImportExpression') {
+        addSource(node.source);
+      } else if (node.type === 'CallExpression' && node.callee?.type === 'Import') {
+        addSource(node.arguments?.[0]);
+      }
+
+      for (const key of Object.keys(node)) {
+        if (key === 'parent') {
+          continue;
+        }
+        const value = node[key];
+        if (Array.isArray(value)) {
+          for (const child of value) {
+            stack.push(child);
+          }
+        } else {
+          stack.push(value);
+        }
+      }
+    }
+
+    return Array.from(imports);
+  };
+
+  const assertClientTransformCanImport = async (
+    ctx: Rollup.PluginContext,
+    code: string,
+    importerId: string
+  ) => {
+    if (!mightContainServerOnlyImport(code)) {
+      return;
+    }
+    for (const importId of getImportSpecifiers(ctx, code)) {
+      if (!isServerOnlyImportCandidate(importId)) {
+        continue;
+      }
+      assertClientCanImport(importId, importerId);
+      const resolved = await ctx.resolve(importId, importerId, { skipSelf: true });
+      if (resolved) {
+        assertClientCanImport(normalizePath(parseId(resolved.id).pathId), importerId);
+      }
+    }
+  };
+
+  const assertClientTransformOutputCanImport = async (
+    ctx: Rollup.PluginContext,
+    output: TransformOutput,
+    srcDir: string,
+    additionalOnly = false
+  ) => {
+    const path = getPath();
+    for (const mod of output.modules) {
+      if (additionalOnly && !isAdditionalFile(mod)) {
+        continue;
+      }
+      const outputPath = normalizePath(path.join(srcDir, mod.path));
+      await assertClientTransformCanImport(ctx, mod.code, outputPath);
     }
   };
 
@@ -481,7 +587,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: Rollup.PluginContext,
     id: string,
     importerId: string | undefined,
-    resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
+    resolveOpts?: QwikResolveIdOptions
   ) => {
     if (isVirtualId(id)) {
       return;
@@ -539,7 +645,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     let result: Rollup.ResolveIdResult;
 
     /** At this point, the request has been normalized. */
-    assertClientCanImport(pathId, importerId, isServer);
+    if (!(devServer && resolveOpts?.scan)) {
+      assertClientCanImport(pathId, importerId, isServer);
+    }
 
     if (
       /**
@@ -797,7 +905,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
 
     const { pathId } = parseId(id);
-    assertClientCanImport(normalizePath(pathId), undefined, isServer);
+    const normalizedPathId = normalizePath(pathId);
+    assertClientCanImport(normalizedPathId, undefined, isServer);
     const parsedPathId = path.parse(pathId);
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
@@ -890,6 +999,28 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const newOutput = await optimizer.transformModules(transformOpts);
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
+
+      if (shouldAssertClientImports(isServer)) {
+        await assertClientTransformOutputCanImport(ctx, newOutput, srcDir);
+      } else if (shouldValidateDevSsrClientOutput(isServer) && mightContainServerOnlyImport(code)) {
+        const clientTransformOpts: TransformModulesOptions = {
+          ...transformOpts,
+          entryStrategy,
+          isServer: false,
+        };
+        if (strip) {
+          clientTransformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
+          clientTransformOpts.stripExports = SERVER_STRIP_EXPORTS;
+          clientTransformOpts.stripEventHandlers = undefined;
+          clientTransformOpts.regCtxName = undefined;
+        }
+        await assertClientTransformOutputCanImport(
+          ctx,
+          await optimizer.transformModules(clientTransformOpts),
+          srcDir,
+          true
+        );
+      }
 
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
@@ -1325,48 +1456,6 @@ export const SSR_OUT_DIR = 'server';
 const LIB_OUT_DIR = 'lib';
 
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
-
-const SERVER_ONLY_FILE_REGEX = /\.server\.[cm]?[jt]sx?$/;
-const SERVER_ONLY_QRL_REGEX = /\.server\.[cm]?[jt]sx?_/;
-
-const normalizeServerOnlyPath = (pathId: string) =>
-  pathId.replace(/\\/g, '/').replace(/^\/@fs\//, '');
-
-export const isServerOnlyFile = (pathId: string): boolean => {
-  const normalizedPath = normalizeServerOnlyPath(pathId);
-  return SERVER_ONLY_FILE_REGEX.test(normalizedPath) || SERVER_ONLY_QRL_REGEX.test(normalizedPath);
-};
-
-export const isInSrcServerDir = (pathId: string, srcDir?: string | null): boolean => {
-  if (!srcDir) {
-    return false;
-  }
-  const normalizedPath = normalizeServerOnlyPath(pathId);
-  const normalizedSrcDir = normalizeServerOnlyPath(srcDir).replace(/\/+$/, '');
-  if (!normalizedPath.startsWith(normalizedSrcDir + '/')) {
-    return false;
-  }
-  return normalizedPath
-    .slice(normalizedSrcDir.length + 1)
-    .split('/')
-    .includes('server');
-};
-
-export const isServerOnlyModule = (
-  pathId: string,
-  opts: Pick<NormalizedQwikPluginOptions, 'srcDir'>
-): boolean => isServerOnlyFile(pathId) || isInSrcServerDir(pathId, opts.srcDir);
-
-const createServerOnlyImportError = (pathId: string, importerId?: string | null): string => {
-  const importer = importerId ? `\nImporter: ${importerId}` : '';
-  return (
-    `Server-only module cannot be imported by client code.\n\n` +
-    `Server-only module: ${pathId}${importer}\n\n` +
-    `Files named \`.server.*\` or placed under \`src/**/server/**\` are excluded from ` +
-    `client bundles. Move this import behind SSR-only route loaders, actions, endpoint handlers, ` +
-    `or expose the operation through an intentional \`server$\` API.`
-  );
-};
 
 /** @public */
 export interface QwikPluginDevTools {

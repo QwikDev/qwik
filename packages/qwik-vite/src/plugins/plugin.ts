@@ -535,7 +535,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const assertClientTransformCanImport = async (
     ctx: Rollup.PluginContext,
     code: string,
-    importerId: string
+    resolveImporterId: string,
+    importerId = resolveImporterId
   ) => {
     if (!mightContainServerOnlyImport(code)) {
       return;
@@ -545,7 +546,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         continue;
       }
       assertClientCanImport(importId, importerId);
-      const resolved = await ctx.resolve(importId, importerId, { skipSelf: true });
+      const resolved = await ctx.resolve(importId, resolveImporterId, { skipSelf: true });
       if (resolved) {
         assertClientCanImport(normalizePath(parseId(resolved.id).pathId), importerId);
       }
@@ -556,6 +557,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: Rollup.PluginContext,
     output: TransformOutput,
     srcDir: string,
+    importerId?: string,
     additionalOnly = false
   ) => {
     const path = getPath();
@@ -564,7 +566,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         continue;
       }
       const outputPath = normalizePath(path.join(srcDir, mod.path));
-      await assertClientTransformCanImport(ctx, mod.code, outputPath);
+      await assertClientTransformCanImport(ctx, mod.code, outputPath, importerId ?? outputPath);
     }
   };
 
@@ -1006,7 +1008,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
 
       if (shouldAssertClientImports(isServer)) {
-        await assertClientTransformOutputCanImport(ctx, newOutput, srcDir);
+        await assertClientTransformOutputCanImport(ctx, newOutput, srcDir, normalizedPathId);
       } else if (shouldValidateDevSsrClientOutput(isServer) && mightContainServerOnlyImport(code)) {
         const clientTransformOpts: TransformModulesOptions = {
           ...transformOpts,
@@ -1023,6 +1025,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           ctx,
           await optimizer.transformModules(clientTransformOpts),
           srcDir,
+          normalizedPathId,
           true
         );
       }

@@ -220,6 +220,7 @@ export const addQwikLibs = async (version: string) => {
     `declare module '@qwik.dev/core/jsx-runtime' { export * from '@qwik.dev/core' }`,
     '/node_modules/@qwik.dev/core/dist/jsx-runtime.d.ts'
   );
+  typescriptDefaults.addExtraLib(WORKER_LIB, '/node_modules/@qwik.dev/core/worker.d.ts');
   typescriptDefaults.addExtraLib(CLIENT_LIB);
   typescriptDefaults.addExtraLib(cssTypes, '/node_modules/csstype/index.d.ts');
 };
@@ -402,6 +403,23 @@ declare module '*.css' {}
 declare module '*.css?inline' {
   const css: string
   export default css
+}
+`;
+
+const WORKER_LIB = `
+declare module '@qwik.dev/core/worker' {
+  import type { QRL } from '@qwik.dev/core';
+
+  export interface WorkerFunction {
+    (...args: any[]): any;
+  }
+
+  export interface WorkerConstructorQRL {
+    <T extends WorkerFunction>(fnQrl: QRL<T>): QRL<T>;
+  }
+
+  export const workerQrl: WorkerConstructorQRL;
+  export const worker$: <T extends WorkerFunction>(qrl: T) => QRL<T>;
 }
 `;
 

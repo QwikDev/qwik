@@ -1,40 +1,13 @@
-import { _deserialize } from '@qwik.dev/core';
+import { runWorkerMessage, setBrowserWorkerPlatform } from './worker.shared.js';
 
-globalThis.document = {
-  nodeType: 9,
-  ownerDocument: undefined,
-  dispatchEvent() {
-    return true;
-  },
-  createElement() {
-    return {
-      nodeType: 1,
-    };
-  },
-};
+setBrowserWorkerPlatform(import.meta.url);
 
-globalThis.onmessage = async ({ data }) => {
-  const requestId = data[0];
-  const baseURI = data[1];
-  const qBase = data[2];
-  const containerEl = {
-    nodeType: 1,
-    ownerDocument: {
-      baseURI,
+globalThis.onmessage = ({ data }) => {
+  return runWorkerMessage(
+    data,
+    (response) => {
+      self.postMessage(response);
     },
-    closest() {
-      return containerEl;
-    },
-    getAttribute(name) {
-      return name === 'q:base' ? qBase : undefined;
-    },
-  };
-  try {
-    const [qrl, ...args] = _deserialize(data[3]);
-    const output = await qrl.apply(undefined, args);
-    self.postMessage([requestId, true, output]);
-  } catch (err) {
-    self.postMessage([requestId, false, err]);
-    return;
-  }
+    globalThis
+  );
 };

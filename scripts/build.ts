@@ -24,6 +24,7 @@ import { submoduleQwikLoader } from './submodule-qwikloader.ts';
 import { submoduleBackpatch } from './submodule-backpatch.ts';
 import { submoduleServer } from './submodule-server.ts';
 import { submoduleTesting } from './submodule-testing.ts';
+import { submoduleWorker } from './submodule-worker.ts';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers.ts';
 import { tsc, tscQwik, tscQwikRouter } from './tsc.ts';
 import { tscDocs } from './tsc-docs.ts';
@@ -90,7 +91,10 @@ export async function build(config: BuildConfig) {
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),
+        submoduleWorker(config),
       ]);
+    } else if (config.qwikworker) {
+      await submoduleWorker(config);
     }
     if (config.insights) {
       await submoduleInsights(config);
@@ -169,6 +173,7 @@ export async function build(config: BuildConfig) {
           );
         },
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
+        [join(config.srcQwikDir, 'web-worker')]: () => submoduleWorker(config),
         [config.optimizerDir]: () => submoduleOptimizer(config),
         [config.qwikViteDir]: () => submoduleOptimizer(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),

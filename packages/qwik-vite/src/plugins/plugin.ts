@@ -21,6 +21,10 @@ import { convertManifestToBundleGraph, type BundleGraphAdder } from './bundle-gr
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import { isVirtualId, isWin, parseId } from './vite-utils';
 import MagicString from 'magic-string';
+import {
+  createDevWorkerQrlChunkResolver,
+  rewriteWorkerQrlChunkPlaceholders,
+} from './worker-qrl-chunks';
 
 const REG_CTX_NAME = ['server'];
 
@@ -76,8 +80,6 @@ export enum ExperimentalFeatures {
   noSPA = 'noSPA',
   /** Enable request.rewrite() */
   enableRequestRewrite = 'enableRequestRewrite',
-  /** Enable worker$ */
-  webWorker = 'webWorker',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
   insights = 'insights',
 }
@@ -741,12 +743,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // When the parent file changes, Vite invalidates and re-serves the segment.
       // The custom event will ensure the re-rendering of mounted components, when non-segment files are changed.
       // This is needed to propagate changes from imports that are not QRL parents, for example styles.
-      if (devServer?.hot && parentId && opts.devTools.hmr) {
+      if (devServer?.hot && parentId && opts.devTools.hmr && segment?.ctxName !== 'worker$') {
         const parentUrl = parentId.startsWith(opts.rootDir!)
           ? parentId.slice(opts.rootDir!.length)
           : parentId;
         code +=
-          `\nif (import.meta.hot) {import.meta.hot.accept(()=>{` +
+          `\nif (import.meta.hot && typeof document !== 'undefined') {import.meta.hot.accept(()=>{` +
           `document.dispatchEvent(new CustomEvent('qHmr', {detail: {files:[${JSON.stringify(parentUrl)}], t: document.__hmrT}}));` +
           `});}`;
       }
@@ -827,9 +829,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
-      if (devServer) {
-        const moduleGraph =
-          (ctx.environment as DevEnvironment | undefined)?.moduleGraph ?? devServer.moduleGraph;
+      const moduleGraph =
+        (ctx.environment as DevEnvironment | undefined)?.moduleGraph ?? devServer?.moduleGraph;
+      if (moduleGraph) {
         devPath = moduleGraph.getModuleById(pathId)?.url;
         // Fallback: if the module isn't in the graph yet (first transform),
         // compute a root-relative URL path that matches what hotUpdate sends.
@@ -875,6 +877,15 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const now = Date.now();
       const newOutput = await optimizer.transformModules(transformOpts);
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
+      if (devPath) {
+        const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(devPath);
+        for (const outputModule of newOutput.modules) {
+          outputModule.code = rewriteWorkerQrlChunkPlaceholders(
+            outputModule.code,
+            resolveWorkerChunkPath
+          );
+        }
+      }
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
 
       // uncomment to show transform results
@@ -1038,6 +1049,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   function getQwikBuildModule(isServer: boolean, _target: QwikBuildTarget) {
     const isDev = opts.buildMode === 'development';
+    if (isDev) {
+      return `// @qwik.dev/core/build
+export const isBrowser = /*#__PURE__*/ (() =>
+  typeof window !== 'undefined' &&
+  typeof HTMLElement !== 'undefined' &&
+  !!window.document &&
+  String(HTMLElement).includes('[native code]'))();
+export const isServer = !isBrowser;
+export const isDev = true;
+`;
+    }
+
     return `// @qwik.dev/core/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
@@ -1214,6 +1237,8 @@ export const isDev = ${JSON.stringify(isDev)};
     if (typeof opts.transformedModuleOutput === 'function') {
       await opts.transformedModuleOutput(getTransformedOutputs());
     }
+
+    return manifest;
   }
 
   return {

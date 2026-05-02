@@ -1,0 +1,62 @@
+{
+  "id": "qwik-worker",
+  "package": "@qwik.dev/qwik/worker",
+  "members": [
+    {
+      "name": "worker$",
+      "id": "worker_",
+      "hierarchy": [
+        {
+          "name": "worker$",
+          "id": "worker_"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nworker$: <T extends WorkerFunction>(qrl: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nQRL&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/web-worker/worker-qrl.ts",
+      "mdFile": "core.worker_.md"
+    },
+    {
+      "name": "WorkerConstructorQRL",
+      "id": "workerconstructorqrl",
+      "hierarchy": [
+        {
+          "name": "WorkerConstructorQRL",
+          "id": "workerconstructorqrl"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface WorkerConstructorQRL \n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/web-worker/worker-qrl.ts",
+      "mdFile": "core.workerconstructorqrl.md"
+    },
+    {
+      "name": "WorkerFunction",
+      "id": "workerfunction",
+      "hierarchy": [
+        {
+          "name": "WorkerFunction",
+          "id": "workerfunction"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface WorkerFunction \n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/web-worker/worker-qrl.ts",
+      "mdFile": "core.workerfunction.md"
+    },
+    {
+      "name": "workerQrl",
+      "id": "workerqrl",
+      "hierarchy": [
+        {
+          "name": "workerQrl",
+          "id": "workerqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nworkerQrl: WorkerConstructorQRL\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/web-worker/worker-qrl.ts",
+      "mdFile": "core.workerqrl.md"
+    }
+  ]
+}

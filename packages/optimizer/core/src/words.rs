@@ -10,6 +10,8 @@ lazy_static! {
 	pub static ref CHILDREN: Atom = Atom::from("children");
 	pub static ref _QRL: Atom = Atom::from("qrl");
 	pub static ref _QRL_DEV: Atom = Atom::from("qrlDEV");
+	pub static ref _QRL_WITH_CHUNK: Atom = Atom::from("_qrlWithChunk");
+	pub static ref _QRL_WITH_CHUNK_DEV: Atom = Atom::from("_qrlWithChunkDEV");
 	pub static ref _INLINED_QRL: Atom = Atom::from("inlinedQrl");
 	pub static ref _INLINED_QRL_DEV: Atom = Atom::from("inlinedQrlDEV");
 	pub static ref _NOOP_QRL: Atom = Atom::from("_noopQrl");
@@ -23,6 +25,7 @@ lazy_static! {
 	pub static ref BUILDER_IO_QWIK_JSX: Atom = Atom::from("@qwik.dev/core/jsx-runtime");
 	pub static ref BUILDER_IO_QWIK_JSX_DEV: Atom = Atom::from("@qwik.dev/core/jsx-dev-runtime");
 	pub static ref QCOMPONENT: Atom = Atom::from("component$");
+	pub static ref QWORKER: Atom = Atom::from("worker$");
 	pub static ref _CAPTURES: Atom = Atom::from("_captures");
 	pub static ref H: Atom = Atom::from("h");
 	pub static ref FRAGMENT: Atom = Atom::from("Fragment");

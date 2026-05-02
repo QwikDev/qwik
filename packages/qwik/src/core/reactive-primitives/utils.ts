@@ -1,6 +1,5 @@
 import { qwikDebugToString } from '../debug';
 import { assertDefined } from '../shared/error/assert';
-import { isServerPlatform } from '../shared/platform/platform';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container, SerializationStrategy } from '../shared/types';
 import { OnRenderProp } from '../shared/utils/markers';
@@ -26,7 +25,7 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-execution';
 import type { VNode } from '../shared/vnode/vnode';
 import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
-import { isDev, isServer } from '@qwik.dev/core/build';
+import { isBrowser, isDev } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -88,7 +87,6 @@ export const scheduleEffects = (
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | undefined
 ) => {
-  const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
   if (effects) {
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription.consumer;

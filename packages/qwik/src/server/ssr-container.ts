@@ -752,7 +752,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       maybeThen(this.emitStateData(), () => {
         this.$noMoreRoots$ = true;
         this.emitVNodeData();
-        preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
+        if (!isDev) {
+          preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
+        }
         this.emitSyncFnsData();
         this.emitPatchDataIfNeeded();
         this.emitExecutorIfNeeded();
@@ -1012,7 +1014,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitPreloaderPre() {
-    preloaderPre(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
+    if (!isDev) {
+      preloaderPre(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
+    }
   }
 
   isStatic(): boolean {

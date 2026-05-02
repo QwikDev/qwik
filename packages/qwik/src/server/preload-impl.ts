@@ -7,6 +7,9 @@ const simplifyPath = (base: string, path: string | null | undefined) => {
   if (path == null) {
     return null;
   }
+  if (path[0] === '/') {
+    return path;
+  }
   const segments = `${base}${path}`.split('/');
   const simplified = [];
   for (let i = 0; i < segments.length; i++) {
@@ -40,7 +43,7 @@ export const preloaderPre = (
   const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest?.preloader);
   let bundleGraphPath = resolvedManifest?.manifest.bundleGraphAsset;
   if (bundleGraphPath) {
-    bundleGraphPath = (import.meta.env.BASE_URL || '/') + bundleGraphPath;
+    bundleGraphPath = simplifyPath(import.meta.env.BASE_URL || '/', bundleGraphPath)!;
   }
   if (preloaderBundle && bundleGraphPath && options !== false) {
     const bundleGraph = container.resolvedManifest?.manifest.bundleGraph;
@@ -125,6 +128,7 @@ export const includePreloader = (
   const base = getBase(container);
 
   const links = [];
+  let hasAbsolutePreload = false;
 
   const { resolvedManifest } = container;
   if (allowedSsrPreloads) {
@@ -136,6 +140,9 @@ export const includePreloader = (
       if (href === preloaderBundle || href === coreBundle) {
         continue;
       }
+      if (href[0] === '/') {
+        hasAbsolutePreload = true;
+      }
       links.push(href);
       if (--allowedSsrPreloads === 0) {
         break;
@@ -143,6 +150,9 @@ export const includePreloader = (
     }
   }
   const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest.preloader);
+  const setHref = hasAbsolutePreload
+    ? `e.href=l[0]=='/'?l:${JSON.stringify(base)}+l;`
+    : `e.href=${JSON.stringify(base)}+l;`;
   const insertLinks = links.length
     ? /**
        * We only use modulepreload links because they behave best. Older browsers can rely on the
@@ -152,7 +162,7 @@ export const includePreloader = (
       `${JSON.stringify(links)}.map((l,e)=>{` +
       `e=document.createElement('link');` +
       `e.rel='modulepreload';` +
-      `e.href=${JSON.stringify(base)}+l;` +
+      setHref +
       `document.head.appendChild(e)` +
       `});`
     : '';

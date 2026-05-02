@@ -561,6 +561,41 @@ describe('render api', () => {
         // expect(preloadScript[0]?.textContent).toContain(`bundle-graph`);
         expect(document.querySelectorAll('link')).toHaveLength(0);
       });
+      it('should not prefix absolute dev server preload paths', async () => {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
+          base: '/',
+          containerTagName: 'div',
+          manifest: {
+            ...defaultManifest,
+            mapping: {
+              ...mapping,
+              s_click4: '/src/routes/index.tsx_s_click4.js',
+            },
+          },
+        });
+        const document = createDocument({ html: result.html });
+        const preloadScript = document.querySelector('script[q\\:type=preload]');
+        expect(preloadScript?.textContent).toContain('"/src/routes/index.tsx_s_click4.js"');
+        expect(preloadScript?.textContent).toContain(`e.href=l[0]=='/'?l:"/"+l`);
+        expect(preloadScript?.textContent).not.toContain('e.href="/"+');
+      });
+      it('should keep relative ssr preload paths relative', async () => {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+          manifest: {
+            ...defaultManifest,
+            mapping: {
+              ...mapping,
+              s_click4: 's-click4.js',
+            },
+          },
+        });
+        const document = createDocument({ html: result.html });
+        const preloadScript = document.querySelector('script[q\\:type=preload]');
+        expect(preloadScript?.textContent).toContain('"s-click4.js"');
+        expect(preloadScript?.textContent).toContain('e.href="/build/"+l');
+        expect(preloadScript?.textContent).not.toContain('"/build/s-click4.js"');
+      });
     });
     describe('containerTagName/containerAttributes', () => {
       it('should render correct container tag name', async () => {

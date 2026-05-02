@@ -88,6 +88,27 @@ test('appends preloads directly to head within a trigger slice', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(2);
 });
 
+test('does not turn absolute dev server paths into protocol-relative urls', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+
+  loadBundleGraph('/', undefined);
+  preload('/src/routes/index.tsx_component.js', 1);
+
+  vi.runAllTimers();
+
+  const link = document.head.querySelector('link') as HTMLLinkElement;
+  expect(link.href).toBe('http://document.qwik.dev/src/routes/index.tsx_component.js');
+});
+
 test('yields after the frame budget and resumes later', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

@@ -2,6 +2,7 @@ import type { TestPlatform } from './types';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { getSymbolHash } from '../core/shared/qrl/qrl-utils';
+import { getGlobalSingleton } from '../core/shared/singletons';
 
 function createPlatform() {
   const moduleCache = new Map<string, { [symbol: string]: any }>();
@@ -9,7 +10,7 @@ function createPlatform() {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
       const hash = getSymbolHash(symbolName);
-      const regSym = (globalThis as any).__qwik_reg_symbols?.get(hash);
+      const regSym = getGlobalSingleton<Map<string, any>>('regSymbols')?.get(hash);
       if (regSym) {
         return regSym;
       }

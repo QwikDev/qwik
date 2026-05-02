@@ -17,7 +17,7 @@ import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
 import { DomContainer } from '../../client/dom-container';
-import { loading } from '../serdes/inflate';
+import { loadingHolder } from '../serdes/inflate';
 import type { Container } from '../types';
 import { ElementVNode } from '../vnode/element-vnode';
 
@@ -438,11 +438,11 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
     if (!container) {
       throw qError(QError.qrlMissingContainer);
     }
-    const prevLoading = loading;
+    const prevLoading = loadingHolder.p;
     _captures = qrl.$captures$ = deserializeCaptures(container, _captures);
-    if (loading !== prevLoading) {
+    if (loadingHolder.p !== prevLoading) {
       // return the loading promise so callers can await it
-      return loading;
+      return loadingHolder.p;
     }
   }
 };

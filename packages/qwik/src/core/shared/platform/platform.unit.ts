@@ -1,16 +1,17 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createPlatform, setPlatform } from './platform';
 import { getSymbolHash } from '../qrl/qrl-utils';
+import { symbolRegistry } from '../qrl/qrl';
 
 describe('core platform', () => {
   beforeEach(() => {
     // Initialize a fresh Map for each test to avoid pollution
-    (globalThis as any).__qwik_reg_symbols = new Map<string, any>();
+    symbolRegistry?.clear();
   });
 
   afterEach(() => {
     // Clean up global state
-    delete (globalThis as any).__qwik_reg_symbols;
+    symbolRegistry?.clear();
   });
 
   describe('importSymbol - server mode', () => {
@@ -21,7 +22,7 @@ describe('core platform', () => {
       const symbolName = 'myComponent_abc123';
       const hash = getSymbolHash(symbolName);
       const mockFunction = () => 'mock component';
-      (globalThis as any).__qwik_reg_symbols.set(hash, mockFunction);
+      symbolRegistry?.set(hash, mockFunction);
 
       // importSymbol should return the registered symbol synchronously
       const result = await platform.importSymbol(null as any, '', symbolName);
@@ -76,7 +77,7 @@ describe('core platform', () => {
       const symbolName = 'my_component_with_underscores_abc123';
       const hash = getSymbolHash(symbolName);
       const mockFunction = () => 'mock';
-      (globalThis as any).__qwik_reg_symbols.set(hash, mockFunction);
+      symbolRegistry?.set(hash, mockFunction);
 
       const result = await platform.importSymbol(null as any, '', symbolName);
 

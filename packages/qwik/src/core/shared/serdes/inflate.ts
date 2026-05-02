@@ -38,11 +38,17 @@ import type { DeserializeContainer, HostElement } from '../types';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
+import { registerSingleton } from '../singletons';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
 import { TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
 
-export let loading = Promise.resolve();
+interface LoadingHolder {
+  p: Promise<void>;
+}
+export const loadingHolder = registerSingleton<LoadingHolder>('loadingHolder', () => ({
+  p: Promise.resolve(),
+}));
 
 const dangerousObjectKeys = new Set([
   'constructor',
@@ -224,7 +230,7 @@ export const inflate = (
       const p = computed.$computeQrl$.resolve(container as any).catch(() => {
         // ignore preload errors
       });
-      loading = loading.finally(() => p);
+      loadingHolder.p = loadingHolder.p.finally(() => p);
       if (d[1]) {
         computed.$effects$ = new Set(d[1]);
       }

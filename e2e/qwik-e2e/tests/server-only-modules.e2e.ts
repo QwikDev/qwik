@@ -90,9 +90,15 @@ test.describe('server-only modules', () => {
 
   test('dev rejects route components that use .server modules during ssr load', async () => {
     await withDevServer(rejectedAppDir, async (server) => {
-      await expect(server.ssrLoadModule('/src/routes/index.tsx')).rejects.toThrow(
-        /Server-only module cannot be imported by client code/
-      );
+      let message = '';
+      try {
+        await server.ssrLoadModule('/src/routes/index.tsx');
+      } catch (error) {
+        message = String((error as Error).message);
+      }
+      expect(message).toContain('Server-only module cannot be imported by client code');
+      expect(message).toMatch(/Importer: .*src[\\/]routes[\\/]index\.tsx/);
+      expect(message).not.toContain('_routes_component_');
     });
   });
 

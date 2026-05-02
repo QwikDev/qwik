@@ -180,6 +180,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         debug,
         srcInputs,
         entryStrategy,
+        experimental: ['suspense'],
         manifestOutput: (m: any) => {
           result.manifest = m;
         },
@@ -225,6 +226,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         debug,
         srcInputs,
         entryStrategy,
+        experimental: ['suspense'],
       }),
       replResolver(deps, { srcInputs, buildMode }, 'ssr'),
       replMinify(buildMode),

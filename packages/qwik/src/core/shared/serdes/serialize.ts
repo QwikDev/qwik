@@ -60,7 +60,7 @@ import { fastSkipSerialize, SerializerSymbol } from './verify';
  */
 export class Serializer {
   private $rootIdx$ = 0;
-  private $forwardRefs$: number[] = [];
+  private $forwardRefs$: Array<number | string> = [];
   private $forwardRefsId$ = 0;
   private $promises$: Set<Promise<unknown>> = new Set();
   private $s11nWeakRefs$ = new Map<unknown, number>();
@@ -146,21 +146,25 @@ export class Serializer {
     return Number(key);
   }
 
+  private outputString(value: string): void {
+    const s = this.stringNeedsJsonEscape$(value) ? JSON.stringify(value) : QUOTE + value + QUOTE;
+    let angleBracketIdx: number = -1;
+    let lastIdx = 0;
+    while ((angleBracketIdx = s.indexOf(CLOSE_TAG, lastIdx)) !== -1) {
+      this.$writer$.write(s.slice(lastIdx, angleBracketIdx));
+      this.$writer$.write(ESCAPED_CLOSE_TAG);
+      lastIdx = angleBracketIdx + 2;
+    }
+    this.$writer$.write(lastIdx === 0 ? s : s.slice(lastIdx));
+  }
+
   /** Output a type,value pair. If the value is an array, it calls writeValue on each item. */
   private output(type: number, value: number | string | any[], keepUndefined?: boolean) {
     if (typeof value === 'number') {
       this.$writer$.write(type + COMMA + value);
     } else if (typeof value === 'string') {
-      const s = this.stringNeedsJsonEscape$(value) ? JSON.stringify(value) : QUOTE + value + QUOTE;
       this.$writer$.write(type + COMMA);
-      let angleBracketIdx: number = -1;
-      let lastIdx = 0;
-      while ((angleBracketIdx = s.indexOf(CLOSE_TAG, lastIdx)) !== -1) {
-        this.$writer$.write(s.slice(lastIdx, angleBracketIdx));
-        this.$writer$.write(ESCAPED_CLOSE_TAG);
-        lastIdx = angleBracketIdx + 2;
-      }
-      this.$writer$.write(lastIdx === 0 ? s : s.slice(lastIdx));
+      this.outputString(value);
     } else {
       this.$writer$.write(type + COMMA);
       this.outputArray(value, !!keepUndefined, (valueItem, idx) => {
@@ -182,6 +186,13 @@ export class Serializer {
       if (keepWeak) {
         // we're testing a weakref, so don't mark it as seen yet
         return true as unknown as SeenRef;
+      }
+      const externalRootId = __EXPERIMENTAL__.suspense
+        ? this.$serializationContext$.$getExternalRootId$?.(value)
+        : undefined;
+      if (externalRootId !== undefined) {
+        this.output(TypeIds.RootRef, externalRootId);
+        return;
       }
       // Maybe it's a weakref and that should count as seen
       if (typeof forwardRefIdx === 'number') {
@@ -206,7 +217,9 @@ export class Serializer {
 
     // Check if there was a weakref to us
     if (typeof forwardRefIdx === 'number') {
-      this.$forwardRefs$[forwardRefIdx] = seen.$index$;
+      this.$forwardRefs$[forwardRefIdx] = this.$serializationContext$.$formatLocalRef$(
+        seen.$index$
+      );
       this.$s11nWeakRefs$.delete(value);
     }
 
@@ -217,7 +230,10 @@ export class Serializer {
     if (!this.$parent$ && rootIdx === index) {
       return seen;
     }
-    this.output(TypeIds.RootRef, rootIdx);
+    this.output(
+      TypeIds.RootRef,
+      typeof rootIdx === 'number' ? this.$serializationContext$.$formatLocalRef$(rootIdx) : rootIdx
+    );
   }
 
   // First check for scalars, then do objects with seen checks
@@ -546,9 +562,9 @@ export class Serializer {
       this.output(TypeIds.VNode, value.id);
       const vNodeData = value.vnodeData;
       if (vNodeData) {
-        discoverValuesForVNodeData(vNodeData, (vNodeDataValue) =>
-          this.$serializationContext$.$addRoot$(vNodeDataValue)
-        );
+        discoverValuesForVNodeData(vNodeData, (vNodeDataValue) => {
+          this.$serializationContext$.$addRoot$(vNodeDataValue);
+        });
         vNodeData[0] |= VNodeDataFlag.SERIALIZE;
       }
       if (value.children) {
@@ -639,7 +655,7 @@ export class Serializer {
           this.$s11nWeakRefs$.set(obj, forwardRefId);
           this.$forwardRefs$[forwardRefId] = -1;
         }
-        this.output(TypeIds.ForwardRef, forwardRefId);
+        this.output(TypeIds.ForwardRef, this.$serializationContext$.$formatLocalRef$(forwardRefId));
       }
     } else if (vnode_isVNode(value)) {
       this.output(TypeIds.Constant, Constants.Undefined);
@@ -658,18 +674,18 @@ export class Serializer {
         this.$promises$.delete(promise);
         this.$forwardRefs$[forwardRefId] = this.$serializationContext$.$addRoot$(
           classCreator(true, resolvedValue)
-        ) as number;
+        );
       })
       .catch((err) => {
         this.$promises$.delete(promise);
         this.$forwardRefs$[forwardRefId] = this.$serializationContext$.$addRoot$(
           classCreator(false, err)
-        ) as number;
+        );
       });
 
     this.$promises$.add(promise);
 
-    return forwardRefId;
+    return this.$serializationContext$.$formatLocalRef$(forwardRefId);
   }
 
   private async outputRoots() {
@@ -713,7 +729,11 @@ export class Serializer {
             : this.$forwardRefs$.slice(0, lastIdx + 1);
         // We could also implement RLE of -1 values
         this.outputArray(out, true, (value) => {
-          this.$writer$.write(String(value));
+          if (typeof value === 'string') {
+            this.outputString(value);
+          } else {
+            this.$writer$.write(String(value));
+          }
         });
       }
     }

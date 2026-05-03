@@ -38,7 +38,7 @@ export class SerializationBackRef {
 }
 
 interface AddRootFn {
-  (obj: unknown, returnRef?: never): number;
+  (obj: unknown, returnRef?: never): number | string;
   (obj: unknown, returnRef: true): SeenRef;
 }
 export interface SerializationContext {
@@ -76,6 +76,8 @@ export interface SerializationContext {
   $roots$: unknown[];
 
   $promoteToRoot$: (ref: SeenRef, index?: number) => void;
+  $formatLocalRef$: (id: number) => number | string;
+  $formatLocalPath$: (path: string) => string;
 
   $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
 
@@ -90,6 +92,8 @@ export interface SerializationContext {
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
   $eagerResume$: Set<unknown>;
+  $statePrefix$: string | null;
+  $getExternalRootId$: ((obj: unknown) => number | undefined) | null;
 
   $setProp$: (obj: any, prop: string, value: any) => void;
 }
@@ -103,6 +107,8 @@ class SerializationContextImpl implements SerializationContext {
   public $eventQrls$: Set<QRL> = new Set();
   public $eventNames$: Set<string> = new Set();
   public $renderSymbols$: Set<string> = new Set();
+  public $statePrefix$: string | null = null;
+  public $getExternalRootId$: ((obj: unknown) => number | undefined) | null = null;
   private $serializer$: Serializer;
 
   constructor(
@@ -141,6 +147,16 @@ class SerializationContextImpl implements SerializationContext {
     return ref;
   }
 
+  $formatLocalRef$(id: number): number | string {
+    return __EXPERIMENTAL__.suspense && this.$statePrefix$ ? `${this.$statePrefix$}${id}` : id;
+  }
+
+  $formatLocalPath$(path: string): string {
+    return __EXPERIMENTAL__.suspense && this.$statePrefix$ && path.indexOf(':') === -1
+      ? `${this.$statePrefix$}${path}`
+      : path;
+  }
+
   /**
    * Returns a path string representing the path from roots through all parents to the object.
    * Format: "3 2 0" where each number is the index within its parent, from root to leaf.
@@ -155,7 +171,7 @@ class SerializationContextImpl implements SerializationContext {
     // Now we are at root, but it could be a backref
     path.unshift(ref.$index$);
 
-    return path.join(' ');
+    return this.$formatLocalPath$(path.join(' '));
   }
 
   $promoteToRoot$(ref: SeenRef, index?: number) {
@@ -169,8 +185,14 @@ class SerializationContextImpl implements SerializationContext {
   }
 
   $addRoot$(obj: any, returnRef: true): SeenRef;
-  $addRoot$(obj: any, returnRef?: never): number;
-  $addRoot$(obj: any, returnRef: boolean = false): number | SeenRef {
+  $addRoot$(obj: any, returnRef?: never): number | string;
+  $addRoot$(obj: any, returnRef: boolean = false): number | string | SeenRef {
+    if (__EXPERIMENTAL__.suspense && !returnRef) {
+      const externalRootId = this.$getExternalRootId$?.(obj);
+      if (externalRootId !== undefined) {
+        return externalRootId;
+      }
+    }
     let seen = this.$seenObjsMap$.get(obj);
     let index: number;
 
@@ -190,7 +212,7 @@ class SerializationContextImpl implements SerializationContext {
       index = seen.$index$;
     }
 
-    return returnRef ? seen : index;
+    return returnRef ? seen : this.$formatLocalRef$(index);
   }
 
   $isSsrNode$(obj: unknown): obj is SsrNode {

@@ -17,7 +17,7 @@ import { QRLEventHandlerMulti } from '@qwik.dev/core';
 import { QwikIntrinsicElements } from '@qwik.dev/core';
 import { QwikJSX } from '@qwik.dev/core';
 import { Render } from '@qwik.dev/core/server';
-import { RenderOptions } from '@qwik.dev/core/server';
+import { RenderToStreamOptions } from '@qwik.dev/core/server';
 import { RequestEvent } from '@qwik.dev/router/middleware/request-handler';
 import { RequestEventAction } from '@qwik.dev/router/middleware/request-handler';
 import { RequestEventBase } from '@qwik.dev/router/middleware/request-handler';
@@ -418,12 +418,12 @@ export interface QwikRouterProps {
 export const QwikRouterProvider: Component<QwikRouterProps>;
 
 // @public (undocumented)
-export type RendererOptions = Omit<RenderOptions, 'serverData'> & {
+export type RendererOptions = Omit<RenderToStreamOptions, 'serverData'> & {
     serverData: ServerData;
 };
 
 // @public (undocumented)
-export type RendererOutputOptions = Omit<RenderOptions, 'serverData'> & {
+export type RendererOutputOptions = Omit<RenderToStreamOptions, 'serverData'> & {
     serverData: ServerData & {
         documentHead?: DocumentHeadValue;
     } & Record<string, unknown>;

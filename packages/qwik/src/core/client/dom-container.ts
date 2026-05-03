@@ -25,6 +25,8 @@ import {
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
+  QSegmentAttr,
+  QSegmentAttrSelector,
   QScopedStyle,
   QStyle,
   QStyleSelector,
@@ -41,8 +43,8 @@ import {
 } from '../shared/utils/scoped-styles';
 import { setErrorPayload } from '../shared/cursor/chore-execution';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
-import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ContextId } from '../use/use-context';
@@ -95,11 +97,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
-  public $forwardRefs$: Array<number> | null = null;
+  public $forwardRefs$: Array<number | string> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
+  private $rootForwardRefs$: Array<number | string> | null = null;
+  private $segmentRawStateData$: Map<string, unknown[]> = new Map();
+  private $segmentStateData$: Map<string, unknown[]> = new Map();
+  private $segmentForwardRefs$: Map<string, Array<number | string> | null> = new Map();
+  private $processedSegmentStateScripts$: WeakSet<Element> = new WeakSet();
   private $styleIds$: Set<string> | null = null;
 
   constructor(element: ContainerElement) {
@@ -120,17 +127,21 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!document.qVNodeData) {
       processVNodeData(document);
     }
+    document.qProcessVNodeData = processVNodeData;
+    if (__EXPERIMENTAL__.suspense) {
+      document.qProcessOOOS = (doc: Document) => {
+        processVNodeData(doc);
+        this.$processSegmentStateScripts$();
+      };
+    }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
     this.$setServerData$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     element.qContainer = this;
     (element as any).qDestroy = () => this.$destroy$();
-    const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
-    if (qwikStates.length !== 0) {
-      const lastState = qwikStates[qwikStates.length - 1];
-      this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      preprocessState(this.$rawStateData$, this);
-      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    this.$processRootStateScript$();
+    if (__EXPERIMENTAL__.suspense) {
+      this.$processSegmentStateScripts$();
     }
     this.$hoistStyles$();
     if (!qTest && element.isConnected) {
@@ -143,13 +154,72 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.vNodeLocate = () => null as any;
     this.$rawStateData$.length = 0;
     this.$stateData$.length = 0;
+    if (__EXPERIMENTAL__.suspense) {
+      this.$segmentRawStateData$.clear();
+      this.$segmentStateData$.clear();
+      this.$segmentForwardRefs$.clear();
+    }
     this.$getObjectById$ = () => undefined;
     const el = this.element;
     el.qContainer = undefined;
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
+    if (__EXPERIMENTAL__.suspense) {
+      el.qSegmentVnodeData = undefined;
+      el.qSegmentVNodeRefs = undefined;
+    }
     el.removeAttribute(QContainerAttr);
-    (el.ownerDocument as QDocument).qVNodeData = undefined!;
+    const document = el.ownerDocument as QDocument;
+    document.qVNodeData = undefined!;
+    if (__EXPERIMENTAL__.suspense) {
+      document.qProcessOOOS = undefined;
+    }
+  }
+
+  private $processRootStateScript$(): void {
+    const rootState = this.element.querySelector(
+      `script[type="qwik/state"]:not(${QSegmentAttrSelector})`
+    );
+    if (rootState) {
+      this.$rawStateData$ = JSON.parse(rootState.textContent!);
+      preprocessState(this.$rawStateData$, this);
+      this.$rootForwardRefs$ = this.$forwardRefs$;
+      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    }
+  }
+
+  $processSegmentStateScripts$(): void {
+    if (!__EXPERIMENTAL__.suspense) {
+      return;
+    }
+    const qwikStates = this.element.querySelectorAll(
+      `script[type="qwik/state"]${QSegmentAttrSelector}`
+    );
+    for (let i = 0; i < qwikStates.length; i++) {
+      const stateScript = qwikStates[i];
+      if (this.$processedSegmentStateScripts$.has(stateScript)) {
+        continue;
+      }
+      const segmentId = stateScript.getAttribute(QSegmentAttr);
+      if (!segmentId) {
+        continue;
+      }
+      this.$processedSegmentStateScripts$.add(stateScript);
+      this.$processSegmentState$(segmentId, JSON.parse(stateScript.textContent!));
+    }
+  }
+
+  private $processSegmentState$(segmentId: string, rawStateData: unknown[]): void {
+    if (!__EXPERIMENTAL__.suspense) {
+      return;
+    }
+    preprocessState(rawStateData, this, segmentId);
+    const segmentForwardRefs = this.$forwardRefs$;
+    const segmentStateData = wrapDeserializerProxy(this, rawStateData) as unknown[];
+    this.$forwardRefs$ = this.$rootForwardRefs$;
+    this.$segmentRawStateData$.set(segmentId, rawStateData);
+    this.$segmentStateData$.set(segmentId, segmentStateData);
+    this.$segmentForwardRefs$.set(segmentId, segmentForwardRefs);
   }
 
   /**
@@ -174,8 +244,29 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
   }
 
-  $setRawState$(id: number, vParent: VNode): void {
-    this.$stateData$[id] = vParent;
+  $setRawState$(id: number | string, vParent: VNode, segmentId?: string | null): void {
+    let stateId: number;
+
+    if (typeof id === 'string') {
+      const segmentSeparator = __EXPERIMENTAL__.suspense ? id.indexOf(':') : -1;
+      if (segmentSeparator !== -1) {
+        stateId = Number(id.slice(segmentSeparator + 1));
+        segmentId = id.slice(0, segmentSeparator);
+      } else {
+        stateId = Number(id);
+      }
+    } else {
+      stateId = id;
+    }
+
+    if (__EXPERIMENTAL__.suspense && segmentId) {
+      const segmentStateData = this.$segmentStateData$.get(segmentId);
+      if (segmentStateData) {
+        segmentStateData[stateId] = vParent;
+        return;
+      }
+    }
+    this.$stateData$[stateId] = vParent;
   }
 
   parseQRL<T = unknown>(qrlStr: string): QRL<T> {
@@ -289,8 +380,30 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   $getObjectById$ = (id: number | string): unknown => {
+    if (__EXPERIMENTAL__.suspense && typeof id === 'string') {
+      const segmentSeparator = id.indexOf(':');
+      if (segmentSeparator !== -1) {
+        const segmentId = id.slice(0, segmentSeparator);
+        const segmentStateData = this.$segmentStateData$.get(segmentId);
+        if (segmentStateData) {
+          return getObjectById(id.slice(segmentSeparator + 1), segmentStateData);
+        }
+        return undefined;
+      }
+    }
     return getObjectById(id, this.$stateData$);
   };
+
+  $getForwardRef$(id: number | string): number | string | undefined {
+    if (__EXPERIMENTAL__.suspense && typeof id === 'string') {
+      const segmentSeparator = id.indexOf(':');
+      if (segmentSeparator !== -1) {
+        const segmentForwardRefs = this.$segmentForwardRefs$.get(id.slice(0, segmentSeparator));
+        return segmentForwardRefs?.[Number(id.slice(segmentSeparator + 1))];
+      }
+    }
+    return this.$rootForwardRefs$?.[Number(id)];
+  }
 
   getSyncFn(id: number): (...args: unknown[]) => unknown {
     const fn = this.$qFuncs$[id];

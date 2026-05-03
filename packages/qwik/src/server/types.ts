@@ -174,8 +174,22 @@ export interface InOrderDirect {
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 /** @public */
+export interface OutOfOrderDisabled {
+  strategy: 'disabled';
+}
+
+/** @public */
+export interface OutOfOrderSuspense {
+  strategy: 'suspense';
+}
+
+/** @public */
+export type OutOfOrderStreaming = OutOfOrderDisabled | OutOfOrderSuspense;
+
+/** @public */
 export interface StreamingOptions {
   inOrder?: InOrderStreaming;
+  outOfOrder?: OutOfOrderStreaming;
 }
 
 /** @public */

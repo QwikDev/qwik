@@ -208,6 +208,43 @@ describe('processVnodeData', () => {
       </html>
     );
   });
+  it('should keep suspense content segment elements out of the root table', () => {
+    const [container] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          <h1 :>Title</h1>
+          <div : q:f="1" style="display:none"><p :>Loading</p></div>
+          <div : q:r="1" style="display:contents"><section :><button :>OK</button></section></div>
+          ${encodeVNode({ 0: '~', 1: '~' }, 's1')}
+          <footer :>Footer</footer>
+        </body>
+      </html>`);
+
+    expect(container.rootVNode).toMatchVDOM(
+      <html {...qContainerPaused}>
+        <head />
+        <body>
+          <h1>Title</h1>
+          <div {...{ 'q:f': '1' }} style="display:none">
+            <p>Loading</p>
+          </div>
+          <div {...{ 'q:r': '1' }} style="display:contents">
+            <section>
+              <button>OK</button>
+            </section>
+          </div>
+          <footer>Footer</footer>
+        </body>
+      </html>
+    );
+    expect(container.vNodeLocate('s1:0')).toMatchVDOM(
+      <section>
+        <button>OK</button>
+      </section>
+    );
+    expect(container.vNodeLocate('s1:1')).toMatchVDOM(<button>OK</button>);
+  });
 });
 
 describe('emitVNodeSeparators', () => {
@@ -304,7 +341,7 @@ const findContainers = (element: Document | ShadowRoot, containers: Element[]) =
   }
 };
 
-function encodeVNode(data: Record<number, string> = {}) {
+function encodeVNode(data: Record<number, string> = {}, segment?: string) {
   const keys = Object.keys(data)
     .map((key) => parseInt(key, 10))
     .sort();
@@ -316,7 +353,7 @@ function encodeVNode(data: Record<number, string> = {}) {
     idx = key;
   }
 
-  return `<script type="qwik/vnode">${result}</script>`;
+  return `<script type="qwik/vnode"${segment ? ` q:s="${segment}"` : ''}>${result}</script>`;
 }
 
 // Keep in sync with ssr-container.ts

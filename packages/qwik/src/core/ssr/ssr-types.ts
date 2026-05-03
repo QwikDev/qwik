@@ -55,6 +55,29 @@ export interface ISsrComponentFrame {
 
 export type SymbolToChunkResolver = (symbol: string) => string;
 
+export type SSRPromiseMode = 'normal' | 'suspense-capture';
+
+/** @internal */
+export type SSRSlotReplayRecords = Map<ISsrComponentFrame, Map<string, JSXChildren | null>>;
+
+/** @internal */
+export interface SSRSlotReplay {
+  mode: 'record' | 'replay';
+  records: SSRSlotReplayRecords;
+}
+
+export interface SSRRenderJSXOptions {
+  currentStyleScoped: string | null;
+  parentComponentFrame: ISsrComponentFrame | null;
+  promiseMode?: SSRPromiseMode;
+  slotReplay?: SSRSlotReplay;
+}
+
+export interface SSROutOfOrderSegment {
+  html: string;
+  suspended: Promise<unknown> | null;
+}
+
 export interface SSRContainer extends Container {
   readonly tag: string;
   readonly isHtml: boolean;
@@ -64,6 +87,7 @@ export interface SSRContainer extends Container {
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly resolvedManifest: ResolvedManifest;
+  readonly outOfOrderStreaming: boolean;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   $noScriptHere$: number;
@@ -93,23 +117,27 @@ export interface SSRContainer extends Container {
   openComponent(attrs: Props): void;
   getComponentFrame(projectionDepth: number): ISsrComponentFrame | null;
   getParentComponentFrame(): ISsrComponentFrame | null;
-  closeComponent(): Promise<void>;
+  closeComponent(promiseMode?: SSRPromiseMode): Promise<void>;
 
   textNode(text: string): void;
   htmlNode(rawHtml: string): void;
   commentNode(text: string): void;
-  addRoot(obj: any): number | undefined;
+  addRoot(obj: any): number | string | undefined;
   getOrCreateLastNode(): ISsrNode;
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
-  renderJSX(
+  renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
+  captureOutOfOrderPromise(promise: Promise<unknown>): never;
+  nextOutOfOrderId(): number;
+  segment(
+    segmentId: string,
     jsx: JSXOutput,
-    options: {
-      currentStyleScoped: string | null;
-      parentComponentFrame: ISsrComponentFrame | null;
-    }
-  ): Promise<void>;
+    options: SSRRenderJSXOptions
+  ): Promise<SSROutOfOrderSegment>;
+  queueOutOfOrderSegment(segment: Promise<void>): void;
+  emitOutOfOrderExecutorIfNeeded(): void;
+  emitInlineScript(script: string): void;
 
   emitPreloaderPre(): void;
 

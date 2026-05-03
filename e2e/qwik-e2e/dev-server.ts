@@ -52,6 +52,17 @@ const repoRoot = resolve(__dirname, '..', '..');
 const appsDir = join(e2eDir, 'apps');
 const appNames = readdirSync(appsDir).filter((p) => statSync(join(appsDir, p)).isDirectory());
 
+type OOOSReleaseStore = {
+  resolved: Set<string>;
+  resolvers: Map<string, () => void>;
+};
+
+const getOOOSReleaseStore = (): OOOSReleaseStore =>
+  ((globalThis as any).__qwikOOOSReleaseStore ||= {
+    resolved: new Set<string>(),
+    resolvers: new Map<string, () => void>(),
+  });
+
 /** Used when qwik-router server is enabled */
 const qwikRouterVirtualEntry = '@router-ssr-entry';
 const entrySsrFileName = 'entry.ssr.tsx';
@@ -393,6 +404,18 @@ async function main() {
   // Debug logging backchannel: browser sends errors/logs here
   app.post('/__log', express.text(), (req, res) => {
     console.error(`[BROWSER] ${req.body}`);
+    res.status(204).end();
+  });
+
+  app.post('/__ooos-release/:id', (req, res) => {
+    const id = req.params.id;
+    const store = getOOOSReleaseStore();
+    store.resolved.add(id);
+    const resolver = store.resolvers.get(id);
+    if (resolver) {
+      store.resolvers.delete(id);
+      resolver();
+    }
     res.status(204).end();
   });
 

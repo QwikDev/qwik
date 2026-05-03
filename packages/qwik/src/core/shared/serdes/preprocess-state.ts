@@ -51,34 +51,58 @@ import { TypeIds } from './constants';
  * @internal
  */
 
-export function preprocessState(data: unknown[], container: DeserializeContainer) {
+export function preprocessState(
+  data: unknown[],
+  container: DeserializeContainer,
+  segmentId?: string
+) {
   const isRootDeepRef = (type: TypeIds, value: unknown) => {
-    return type === TypeIds.RootRef && typeof value === 'string';
+    return type === TypeIds.RootRef && typeof value === 'string' && value.indexOf(' ') !== -1;
   };
 
   const isForwardRefsMap = (type: TypeIds) => {
     return type === TypeIds.ForwardRefs;
   };
 
+  const getSegmentAndIndex = (value: string) => {
+    const segmentSeparator = __EXPERIMENTAL__.suspense ? value.indexOf(':') : -1;
+    if (segmentSeparator === -1) {
+      return {
+        segment: __EXPERIMENTAL__.suspense ? segmentId : undefined,
+        index: parseInt(value, 10),
+      };
+    }
+    return {
+      segment: value.slice(0, segmentSeparator),
+      index: parseInt(value.slice(segmentSeparator + 1), 10),
+    };
+  };
+
   const processRootRef = (index: number) => {
     const rootRefPath = (data[index + 1] as string).split(' ');
-    let object: unknown[] | number = data;
+    const firstRef = getSegmentAndIndex(rootRefPath[0]);
+    const normalizedSegmentId = firstRef.segment;
+    let object: unknown[] | number | string = data;
     let objectType: TypeIds = TypeIds.RootRef;
     let typeIndex = 0;
     let valueIndex = 0;
     let parent: unknown[] | null = null;
 
     for (let i = 0; i < rootRefPath.length; i++) {
-      parent = object;
+      parent = object as unknown[];
 
-      typeIndex = parseInt(rootRefPath[i], 10) * 2;
+      typeIndex = (i === 0 ? firstRef.index : parseInt(rootRefPath[i], 10)) * 2;
       valueIndex = typeIndex + 1;
 
-      objectType = object[typeIndex] as TypeIds;
-      object = object[valueIndex] as unknown[];
+      const objectArray = object as unknown[];
+      objectType = objectArray[typeIndex] as TypeIds;
+      object = objectArray[valueIndex] as unknown[];
 
       if (objectType === TypeIds.RootRef) {
-        const rootRef = object as unknown as number;
+        const rootRef =
+          typeof object === 'string'
+            ? getSegmentAndIndex(object).index
+            : (object as unknown as number);
         const rootRefTypeIndex = rootRef * 2;
         objectType = data[rootRefTypeIndex] as TypeIds;
         object = data[rootRefTypeIndex + 1] as unknown[];
@@ -87,7 +111,10 @@ export function preprocessState(data: unknown[], container: DeserializeContainer
 
     if (parent) {
       parent[typeIndex] = TypeIds.RootRef;
-      parent[valueIndex] = index / 2;
+      parent[valueIndex] =
+        __EXPERIMENTAL__.suspense && normalizedSegmentId
+          ? `${normalizedSegmentId}:${index / 2}`
+          : index / 2;
     }
     data[index] = objectType;
     data[index + 1] = object;
@@ -97,7 +124,7 @@ export function preprocessState(data: unknown[], container: DeserializeContainer
     if (isRootDeepRef(data[i] as TypeIds, data[i + 1])) {
       processRootRef(i);
     } else if (isForwardRefsMap(data[i] as TypeIds)) {
-      container.$forwardRefs$ = data[i + 1] as number[];
+      container.$forwardRefs$ = data[i + 1] as Array<number | string>;
     }
   }
 }

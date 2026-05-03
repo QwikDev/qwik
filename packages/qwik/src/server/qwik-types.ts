@@ -24,6 +24,9 @@ export type {
   ISsrComponentFrame,
   ISsrNode,
   SSRContainer,
+  SSROutOfOrderSegment,
+  SSRPromiseMode,
+  SSRRenderJSXOptions,
   StreamWriter,
   IStreamHandler,
 } from '../core/ssr/ssr-types';

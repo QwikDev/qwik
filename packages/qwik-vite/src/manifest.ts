@@ -11,10 +11,16 @@ const extraSymbols = new Set([
   '_run',
   '_task',
   '_val',
+  // Each
   '_eaC',
   '_eaT',
+  // Suspense
   '_suC',
   '_suT',
+  // Reveal
+  '_reR',
+  '_reC',
+  '_reT',
 ]);
 
 // This is just the initial prioritization of the symbols and entries

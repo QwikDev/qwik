@@ -90,6 +90,31 @@ test.describe('suspense', () => {
       await expect(page.locator('#mounted-async-value')).toHaveText('Async content');
       await expect(page.locator('#mounted-async-fallback')).toBeHidden();
     });
+
+    test('should reveal collapsed sequential boundaries in order', async ({ page }) => {
+      await expect(page.locator('#reveal-first-value')).toHaveText('value=0');
+      await expect(page.locator('#reveal-second-value')).toHaveText('value=0');
+      await expect(page.locator('#reveal-first-fallback')).toBeHidden();
+      await expect(page.locator('#reveal-second-fallback')).toBeHidden();
+
+      await page.locator('#reveal-first-button').click();
+      await page.locator('#reveal-second-button').click();
+      await page.waitForTimeout(40);
+
+      await expect(page.locator('#reveal-first-fallback')).toBeVisible();
+      await expect(page.locator('#reveal-second-fallback')).toBeHidden();
+      await expect(page.locator('#reveal-second-value')).toBeHidden();
+
+      await resolveSuspense(page, 'reveal-second', '__resolveRevealSecondSuspense');
+      await expect(page.locator('#reveal-second-fallback')).toBeHidden();
+      await expect(page.locator('#reveal-second-value')).toBeHidden();
+
+      await resolveSuspense(page, 'reveal-first', '__resolveRevealFirstSuspense');
+      await expect(page.locator('#reveal-first-value')).toHaveText('value=1');
+      await expect(page.locator('#reveal-second-value')).toHaveText('value=1');
+      await expect(page.locator('#reveal-first-fallback')).toBeHidden();
+      await expect(page.locator('#reveal-second-fallback')).toBeHidden();
+    });
   }
 
   tests();

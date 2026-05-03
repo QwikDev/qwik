@@ -1,9 +1,19 @@
-import { component$, Suspense, useSignal, useTask$, type JSXOutput } from '@qwik.dev/core';
+import {
+  component$,
+  Reveal,
+  Suspense,
+  useSignal,
+  useTask$,
+  type JSXOutput,
+  type Signal,
+} from '@qwik.dev/core';
 
 interface BlockingUpdateProps {
   id: string;
   resolveName: string;
   pendingName: string;
+  target?: Signal<number>;
+  showButton?: boolean;
 }
 
 export const SuspenseRoot = component$(() => {
@@ -28,6 +38,7 @@ export const SuspenseChildren = component$(() => {
       <ShowStaleBoundary />
       <NestedBoundaries />
       <MountedAsyncBoundary />
+      <RevealBoundaries />
     </>
   );
 });
@@ -112,6 +123,72 @@ export const MountedAsyncChild = component$((props: { resolveName: string }) => 
   return <>{content}</>;
 });
 
+export const RevealBoundaries = component$(() => {
+  const firstResolveName = '__resolveRevealFirstSuspense';
+  const firstPendingName = '__pendingRevealFirstSuspense';
+  const secondResolveName = '__resolveRevealSecondSuspense';
+  const secondPendingName = '__pendingRevealSecondSuspense';
+  const firstTarget = useSignal(0);
+  const secondTarget = useSignal(0);
+
+  return (
+    <div id="reveal-boundary">
+      <Reveal order="sequential" collapsed>
+        <Suspense
+          fallback={<span id="reveal-first-fallback">Loading reveal first</span>}
+          delay={10}
+        >
+          <BlockingUpdate
+            id="reveal-first"
+            resolveName={firstResolveName}
+            pendingName={firstPendingName}
+            target={firstTarget}
+            showButton={false}
+          />
+        </Suspense>
+        <Suspense
+          fallback={<span id="reveal-second-fallback">Loading reveal second</span>}
+          delay={10}
+        >
+          <BlockingUpdate
+            id="reveal-second"
+            resolveName={secondResolveName}
+            pendingName={secondPendingName}
+            target={secondTarget}
+            showButton={false}
+          />
+        </Suspense>
+      </Reveal>
+      <button
+        id="reveal-first-button"
+        onClick$={() => {
+          if ((globalThis as any)[firstPendingName]) {
+            return;
+          }
+          (globalThis as any)[firstPendingName] = true;
+          firstTarget.value++;
+        }}
+      >
+        Increment reveal-first
+      </button>
+      <button
+        id="reveal-second-button"
+        onClick$={() => {
+          if ((globalThis as any)[secondPendingName]) {
+            return;
+          }
+          (globalThis as any)[secondPendingName] = true;
+          secondTarget.value++;
+        }}
+      >
+        Increment reveal-second
+      </button>
+      <ResolveUpdate id="reveal-first" resolveName={firstResolveName} />
+      <ResolveUpdate id="reveal-second" resolveName={secondResolveName} />
+    </div>
+  );
+});
+
 export const ResolveUpdate = component$((props: { id: string; resolveName: string }) => {
   return (
     <button
@@ -129,7 +206,8 @@ export const ResolveUpdate = component$((props: { id: string; resolveName: strin
 });
 
 export const BlockingUpdate = component$((props: BlockingUpdateProps) => {
-  const target = useSignal(0);
+  const localTarget = useSignal(0);
+  const target = props.target ?? localTarget;
   const value = useSignal(0);
 
   useTask$(({ track, cleanup }) => {
@@ -155,18 +233,20 @@ export const BlockingUpdate = component$((props: BlockingUpdateProps) => {
 
   return (
     <>
-      <button
-        id={`${props.id}-button`}
-        onClick$={() => {
-          if ((globalThis as any)[props.pendingName]) {
-            return;
-          }
-          (globalThis as any)[props.pendingName] = true;
-          target.value++;
-        }}
-      >
-        Increment {props.id}
-      </button>
+      {props.showButton !== false && (
+        <button
+          id={`${props.id}-button`}
+          onClick$={() => {
+            if ((globalThis as any)[props.pendingName]) {
+              return;
+            }
+            (globalThis as any)[props.pendingName] = true;
+            target.value++;
+          }}
+        >
+          Increment {props.id}
+        </button>
+      )}
       <p id={`${props.id}-value`}>value={value.value}</p>
     </>
   );

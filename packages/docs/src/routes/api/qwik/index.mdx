@@ -4398,6 +4398,35 @@ export type ResourceReturn<T> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
+<h2 id="reveal">Reveal</h2>
+
+```typescript
+Reveal: typeof revealCmp;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx)
+
+<h2 id="revealorder">RevealOrder</h2>
+
+```typescript
+export type RevealOrder = "parallel" | "sequential" | "reverse" | "together";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx)
+
+<h2 id="revealprops">RevealProps</h2>
+
+```typescript
+export type RevealProps = {
+  order?: RevealOrder;
+  collapsed?: boolean;
+};
+```
+
+**References:** [RevealOrder](#revealorder)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx)
+
 <h2 id="serializationstrategy">SerializationStrategy</h2>
 
 Serialization strategy for computed and async signals. This determines whether to serialize their value during SSR.

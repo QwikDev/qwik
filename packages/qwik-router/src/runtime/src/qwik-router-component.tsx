@@ -31,6 +31,7 @@
  * signals.
  */
 import * as qwikRouterConfig from '@qwik-router-config';
+import { ensureSlash } from '../../utils/pathname';
 import {
   $,
   component$,
@@ -529,7 +530,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             trackUrl.pathname = trackUrl.pathname.slice(0, -1);
           }
         } else if (!globalThis.__NO_TRAILING_SLASH__) {
-          trackUrl.pathname += '/';
+          trackUrl.pathname = ensureSlash(trackUrl.pathname);
         }
         const loadRoutePromise = loadRoute(
           qwikRouterConfig.routes,

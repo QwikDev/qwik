@@ -1,4 +1,5 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
+import { ensureSlash } from '../../utils/pathname';
 import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
@@ -674,7 +675,7 @@ function matchRouteTree(
   // Also collect _R from the final matched node (page-level loaders)
   if (node._R) {
     loaderHashes.push(...node._R);
-    const matchedPathname = pathname.endsWith('/') ? pathname : pathname + '/';
+    const matchedPathname = ensureSlash(pathname);
     for (const hash of node._R) {
       loaderPathsByHash[hash] = matchedPathname;
     }

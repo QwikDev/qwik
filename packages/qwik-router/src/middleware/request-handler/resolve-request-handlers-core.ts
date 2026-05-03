@@ -20,6 +20,7 @@ import {
   loadRouteLoader,
   setRouteLoaders,
 } from '../../runtime/src/route-loaders';
+import { ensureSlash } from '../../utils/pathname';
 import type { RequestEventInternal } from './request-event-core';
 import { loaderHandler } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
@@ -516,7 +517,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     if (pathname !== basePathname && !pathname.endsWith('.html')) {
       if (!globalThis.__NO_TRAILING_SLASH__) {
         if (!pathname.endsWith('/')) {
-          throw ev.redirect(deps.HttpStatus.MovedPermanently, pathname + '/' + search);
+          throw ev.redirect(deps.HttpStatus.MovedPermanently, ensureSlash(pathname) + search);
         }
       } else {
         if (pathname.endsWith('/')) {
@@ -553,7 +554,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     url = new URL(url);
     if (!globalThis.__NO_TRAILING_SLASH__) {
       if (!url.pathname.endsWith('/')) {
-        url.pathname += '/';
+        url.pathname = ensureSlash(url.pathname);
       }
     } else {
       if (url.pathname.endsWith('/')) {

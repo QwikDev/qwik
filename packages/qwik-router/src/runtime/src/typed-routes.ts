@@ -1,3 +1,5 @@
+import { ensureSlash } from '../../utils/pathname';
+
 /**
  * @beta
  * @experimental
@@ -23,9 +25,7 @@ export const untypedAppUrl = function appUrl(
   let url = path.join('/');
   let baseURL = import.meta.env.BASE_URL;
   if (baseURL) {
-    if (!baseURL.endsWith('/')) {
-      baseURL += '/';
-    }
+    baseURL = ensureSlash(baseURL);
     while (url.startsWith('/')) {
       url = url.substring(1);
     }

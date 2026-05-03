@@ -20,6 +20,7 @@ import { _getAsyncRequestStore } from '../../middleware/request-handler/async-re
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import { ServerError } from '../../middleware/request-handler/server-error';
+import { ensureSlash } from '../../utils/pathname';
 import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
 import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
 import type {
@@ -139,7 +140,7 @@ export const fetchRouteLoaderData = async (
   if (basePath !== '/' && !resolvedPath.startsWith(basePath)) {
     resolvedPath = basePath + resolvedPath.slice(1);
   }
-  const pathBase = resolvedPath.endsWith('/') ? resolvedPath : resolvedPath + '/';
+  const pathBase = ensureSlash(resolvedPath);
   const pageUrl = opts?.pageUrl;
   const search = pageUrl?.search ?? '';
   // TODO allowList search params + compat flag that allows search params

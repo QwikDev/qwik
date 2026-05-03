@@ -1,5 +1,6 @@
 import { isDev } from '@qwik.dev/core';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
+import { ensureSlash } from '../../../utils/pathname';
 import { RedirectMessage } from '../redirect-handler';
 import type { RequestEventInternal } from '../request-event-core';
 import { IsQLoader, IsQAction } from '../request-path';
@@ -97,7 +98,7 @@ function resolveValidFullPath(requestEv: RequestEventInternal, pagePath: string 
     if (pagePathname === loaderPathname) {
       return undefined;
     }
-    const loaderPrefix = loaderPathname.endsWith('/') ? loaderPathname : loaderPathname + '/';
+    const loaderPrefix = ensureSlash(loaderPathname);
     return pagePathname.startsWith(loaderPrefix) ? pagePathname : undefined;
   } catch {
     return undefined;

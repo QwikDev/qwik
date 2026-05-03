@@ -1,5 +1,6 @@
 import type { RouteActionValue } from './types';
 import { _deserialize } from '@qwik.dev/core/internal';
+import { ensureSlash } from '../../utils/pathname';
 import { QACTION_KEY } from './constants';
 
 /**
@@ -21,7 +22,7 @@ export async function submitAction(
     }
   | undefined
 > {
-  const pathBase = routePath.endsWith('/') ? routePath : routePath + '/';
+  const pathBase = ensureSlash(routePath);
   const url = `${pathBase}?${QACTION_KEY}=${encodeURIComponent(action.id)}`;
 
   const actionData = action.data;

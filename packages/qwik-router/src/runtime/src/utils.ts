@@ -1,3 +1,4 @@
+import { ensureSlash } from '../../utils/pathname';
 import type { SimpleURL } from './types';
 
 /** Gets an absolute url path string (url.pathname + url.search + url.hash) */
@@ -9,11 +10,10 @@ export const toUrl = (url: string | URL, baseUrl: SimpleURL) => new URL(url, bas
 /** Checks only if the origins are the same. */
 export const isSameOrigin = (a: SimpleURL, b: SimpleURL) => a.origin === b.origin;
 
-const withSlash = (path: string) => (path.endsWith('/') ? path : path + '/');
 /** Checks only if the pathnames are the same for the URLs (doesn't include search and hash) */
 export const isSamePathname = ({ pathname: a }: SimpleURL, { pathname: b }: SimpleURL) => {
   const lDiff = Math.abs(a.length - b.length);
-  return lDiff === 0 ? a === b : lDiff === 1 && withSlash(a) === withSlash(b);
+  return lDiff === 0 ? a === b : lDiff === 1 && ensureSlash(a) === ensureSlash(b);
 };
 /** Checks only if the search query strings are the same for the URLs */
 export const isSameSearchQuery = (a: SimpleURL, b: SimpleURL) => a.search === b.search;

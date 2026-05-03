@@ -2,6 +2,7 @@ import * as qwikRouterConfig from '@qwik-router-config';
 import { isBrowser } from '@qwik.dev/core';
 // @ts-expect-error no types for preloader yet
 import { p as preload } from '@qwik.dev/core/preloader';
+import { ensureSlash } from '../../utils/pathname';
 import { fetchRouteLoaderData } from './route-loaders';
 import { loadRoute } from './routing';
 /**
@@ -39,7 +40,7 @@ export async function prefetchRoute(
     // Preload JS bundles using the route NAME (not pathname) — the bundle graph
     // is keyed by route name (e.g. "products/[id]/") not actual path
     let routeName = loadedRoute.$routeName$;
-    routeName = routeName.endsWith('/') ? routeName : routeName + '/';
+    routeName = ensureSlash(routeName);
     if (routeName.length > 1 && routeName.startsWith('/')) {
       routeName = routeName.slice(1);
     }

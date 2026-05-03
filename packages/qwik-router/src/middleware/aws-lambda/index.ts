@@ -5,6 +5,7 @@ import type { NodeRequestNextFunction } from '@qwik.dev/router/middleware/node';
 import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
 import type { Http2ServerRequest } from 'node:http2';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { ensureSlash } from '../../utils/pathname';
 
 interface AwsOpt {
   render: Render;
@@ -57,7 +58,7 @@ export function createQwikRouter(opts: AwsOpt): QwikRouterAwsLambdaMiddleware {
           return pathT;
         }
         if (!url.pathname.endsWith('/')) {
-          return url.pathname + '/' + url.search;
+          return ensureSlash(url.pathname) + url.search;
         }
       }
       return pathT;

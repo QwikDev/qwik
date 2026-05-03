@@ -1,15 +1,24 @@
 import { tryGetInvokeContext } from './use-core';
 import { isServer } from '@qwik.dev/core/build';
 import type { AsyncLocalStorage } from 'node:async_hooks';
+import { registerSingleton } from '../shared/singletons';
 
-let _locale: string | undefined = undefined;
+interface LocaleStore {
+  locale: string | undefined;
+  asyncStore: AsyncLocalStorage<string> | undefined;
+}
 
-let localAsyncStore: AsyncLocalStorage<string> | undefined;
+const localeStore = registerSingleton<LocaleStore>('localeStore', () => ({
+  locale: undefined,
+  asyncStore: undefined,
+}));
 
 if (isServer) {
   import('node:async_hooks')
     .then((module) => {
-      localAsyncStore = new module.AsyncLocalStorage();
+      if (!localeStore.asyncStore) {
+        localeStore.asyncStore = new module.AsyncLocalStorage();
+      }
     })
     .catch(() => {
       // ignore if AsyncLocalStorage is not available
@@ -26,14 +35,14 @@ if (isServer) {
  */
 export function getLocale(defaultLocale?: string): string {
   // Prefer per-request locale from local AsyncLocalStorage if available (server-side)
-  if (localAsyncStore) {
-    const locale = localAsyncStore.getStore();
+  if (localeStore.asyncStore) {
+    const locale = localeStore.asyncStore.getStore();
     if (locale) {
       return locale;
     }
   }
 
-  if (_locale === undefined) {
+  if (localeStore.locale === undefined) {
     const ctx = tryGetInvokeContext();
     if (ctx && ctx.$locale$) {
       return ctx.$locale$;
@@ -43,7 +52,7 @@ export function getLocale(defaultLocale?: string): string {
     }
     throw new Error('Reading `locale` outside of context.');
   }
-  return _locale;
+  return localeStore.locale;
 }
 
 /**
@@ -52,16 +61,16 @@ export function getLocale(defaultLocale?: string): string {
  * @public
  */
 export function withLocale<T>(locale: string, fn: () => T): T {
-  if (localAsyncStore) {
-    return localAsyncStore.run(locale, fn);
+  if (localeStore.asyncStore) {
+    return localeStore.asyncStore.run(locale, fn);
   }
 
-  const previousLang = _locale;
+  const previousLang = localeStore.locale;
   try {
-    _locale = locale;
+    localeStore.locale = locale;
     return fn();
   } finally {
-    _locale = previousLang;
+    localeStore.locale = previousLang;
   }
 }
 
@@ -74,9 +83,9 @@ export function withLocale<T>(locale: string, fn: () => T): T {
  * @public
  */
 export function setLocale(locale: string): void {
-  if (localAsyncStore) {
-    localAsyncStore.enterWith(locale);
+  if (localeStore.asyncStore) {
+    localeStore.asyncStore.enterWith(locale);
     return;
   }
-  _locale = locale;
+  localeStore.locale = locale;
 }

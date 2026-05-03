@@ -2,13 +2,17 @@ import { TypeIds } from './constants';
 import type { DomContainer } from '../../client/dom-container';
 import { vnode_isVNode } from '../../client/vnode-utils';
 import { isObject } from '../utils/types';
+import { registerSingleton } from '../singletons';
 import { allocate } from './allocate';
 import { inflate } from './inflate';
 
 /** Arrays/Objects are special-cased so their identifiers is a single digit. */
 export const needsInflation = (typeId: TypeIds) =>
   typeId >= TypeIds.Error || typeId === TypeIds.Array || typeId === TypeIds.Object;
-const deserializedProxyMap = new WeakMap<object, unknown[]>();
+const deserializedProxyMap = registerSingleton(
+  'deserializedProxyMap',
+  () => new WeakMap<object, unknown[]>()
+);
 type DeserializerProxy<T extends object = object> = T & { [SERIALIZER_PROXY_UNWRAP]: object };
 
 export const isDeserializerProxy = (value: unknown): value is DeserializerProxy => {

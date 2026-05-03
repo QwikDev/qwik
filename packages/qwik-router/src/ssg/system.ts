@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { createWorkerPool } from './worker-pool';
 import { getLoaderName } from '../middleware/request-handler/request-path';
 import { normalizePath } from '../utils/fs';
+import { ensureSlash } from '../utils/pathname';
 
 /** @public */
 export async function createSystem(opts: SsgGenerateOptions, threadId?: number): Promise<System> {
@@ -69,11 +70,7 @@ export async function createSystem(opts: SsgGenerateOptions, threadId?: number):
   const getLoaderFilePath = (pathname: string, loaderId: string, manifestHash: string) => {
     pathname = decodeURIComponent(pathname.slice(basenameLen));
     const suffix = getLoaderName(loaderId, manifestHash);
-    if (pathname.endsWith('/')) {
-      pathname += suffix;
-    } else {
-      pathname += '/' + suffix;
-    }
+    pathname = ensureSlash(pathname) + suffix;
     return join(outDir, pathname);
   };
 

@@ -27,6 +27,7 @@ export function isStaticPath(method: string, url: URL) {
   const loaderMatch = p.match(LOADER_REGEX);
   if (loaderMatch) {
     const pWithoutLoader = p.slice(0, p.length - loaderMatch[0].length);
+    // don't use ensureSlash since we know it does not have a slash and we check both cases
     if (staticPaths.has(pWithoutLoader + '/') || staticPaths.has(pWithoutLoader)) {
       return true;
     }

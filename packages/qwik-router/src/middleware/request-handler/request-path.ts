@@ -1,3 +1,5 @@
+import { ensureSlash } from '../../utils/pathname';
+
 // New per-loader/per-action URL patterns
 export const IsQLoader = '@isQLoader';
 export const IsQAction = '@isQAction';
@@ -48,7 +50,7 @@ export function trimRecognizedInternalPathname(
 ): string {
   let trimmed = pathname.slice(0, pathname.length - recognized.trimLength) || '/';
   if (!globalThis.__NO_TRAILING_SLASH__ && !trimmed.endsWith('/')) {
-    trimmed += '/';
+    trimmed = ensureSlash(trimmed);
   }
   return trimmed;
 }

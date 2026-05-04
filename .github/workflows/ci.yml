@@ -1129,13 +1129,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Run pre-publish artifact transforms (e.g. strip `import.meta.env.TEST` so
-      # non-Vite consumers like webpack don't blow up at runtime). Only the
-      # publish-job's local copy is touched — the cached `dist/` shared with the
-      # unit-test job is untouched.
-      - name: Pre-publish bundle transforms
-        run: pnpm release.pre-publish
-
       # Do this before other release steps to avoid
       # publishing temporary files
       - name: Create Release Pull Request or Publish to npm
@@ -1214,13 +1207,6 @@ jobs:
 
       - name: Fixup package.json files
         run: pnpm run release.fixup-package-json
-
-      # Run pre-publish artifact transforms (e.g. strip `import.meta.env.TEST` so
-      # non-Vite consumers like webpack don't blow up at runtime). Only the
-      # publish-job's local copy is touched — the cached `dist/` shared with the
-      # unit-test job is untouched.
-      - name: Pre-publish bundle transforms
-        run: pnpm release.pre-publish
 
       - name: Publish packages for testing
         # TODO: bring back --compact in the package.json release.pkg-pr-new script after first npm public of V2 alpha

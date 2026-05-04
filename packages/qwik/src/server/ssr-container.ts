@@ -468,7 +468,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write(' ' + Q_PROPS_SEPARATOR);
     if (key !== null) {
       this.write(`="${key}"`);
-    } else if (import.meta.env.TEST) {
+    } else if (import.meta.env?.TEST) {
       // Domino sometimes does not like empty attributes, so we need to add a empty value
       this.write(EMPTY_ATTR);
     }

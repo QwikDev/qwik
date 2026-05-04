@@ -82,7 +82,7 @@ export class SignalImpl<T = any> implements Signal<T> {
       // to unsubscribe from. So we need to store the reference from the effect back
       // to this signal.
       ensureContainsBackRef(effectSubscriber, this);
-      (import.meta.env.TEST ? !isDomContainer(this.$container$) : isServer) &&
+      (import.meta.env?.TEST ? !isDomContainer(this.$container$) : isServer) &&
         addQrlToSerializationCtx(effectSubscriber, this.$container$);
       DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
     } else {

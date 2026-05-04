@@ -103,7 +103,7 @@ export const revealCleanupTask = ({ cleanup }: TaskCtx) => {
   const registration = _captures![0] as RevealRegistration;
   cleanup(() => {
     // Keep the SSR registry intact so `reveal.items` serializes for resume.
-    if (import.meta.env.TEST ? isServerPlatform() : !isBrowser) {
+    if (import.meta.env?.TEST ? isServerPlatform() : !isBrowser) {
       return;
     }
     const items = registration.reveal.items;

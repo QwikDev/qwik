@@ -176,7 +176,7 @@ export class AsyncSignalImpl<T>
     if (this.$current$?.$promise$) {
       if (
         this.$untrackedValue$ === NEEDS_COMPUTATION ||
-        (import.meta.env.TEST ? isServerPlatform() : isServer)
+        (import.meta.env?.TEST ? isServerPlatform() : isServer)
       ) {
         DEBUG && log('Throwing promise while computing initial value', this);
         throw this.$current$?.$promise$;
@@ -192,7 +192,7 @@ export class AsyncSignalImpl<T>
     // For clientOnly signals without initial value during SSR, throw if trying to read value
     // During SSR, clientOnly signals are skipped, so there's no computed value available
     if (
-      (import.meta.env.TEST ? isServerPlatform() : isServer) &&
+      (import.meta.env?.TEST ? isServerPlatform() : isServer) &&
       this.$flags$ & AsyncSignalFlags.CLIENT_ONLY &&
       this.$untrackedValue$ === NEEDS_COMPUTATION
     ) {
@@ -275,7 +275,7 @@ export class AsyncSignalImpl<T>
     // reading `.loading` means someone is interested in the result, so we should trigger the computation. The alternative is eager computation or imperative calls to invalidate; this seems nicer.
     this.$computeIfNeeded$();
     // During SSR there's no such thing as loading state, we must render complete results
-    if ((import.meta.env.TEST ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
+    if ((import.meta.env?.TEST ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
       DEBUG && log('Throwing loading promise for SSR');
       throw this.$current$?.$promise$;
     }
@@ -393,7 +393,7 @@ export class AsyncSignalImpl<T>
     if (!(this.$flags$ & AsyncSignalFlags.EAGER_CLEANUP) || this.$hasSubscribers$()) {
       return;
     }
-    if (!(import.meta.env.TEST ? !isServerPlatform() : isBrowser)) {
+    if (!(import.meta.env?.TEST ? !isServerPlatform() : isBrowser)) {
       return;
     }
     setTimeout(() => {
@@ -419,7 +419,7 @@ export class AsyncSignalImpl<T>
     }
     // Skip computation on SSR for clientOnly signals
     if (
-      (import.meta.env.TEST ? isServerPlatform() : isServer) &&
+      (import.meta.env?.TEST ? isServerPlatform() : isServer) &&
       this.$flags$ & AsyncSignalFlags.CLIENT_ONLY
     ) {
       // We must pretend to load, and register as a listener for the captures
@@ -588,7 +588,7 @@ export class AsyncSignalImpl<T>
   }
 
   private $scheduleNextPoll$() {
-    if ((import.meta.env.TEST ? isServerPlatform() : isServer) || !this.$expires$) {
+    if ((import.meta.env?.TEST ? isServerPlatform() : isServer) || !this.$expires$) {
       return;
     }
 

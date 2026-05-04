@@ -437,7 +437,7 @@ export const vnode_setAttr = (
   scopedStyleIdPrefix: string | null = null
 ) => {
   if (vnode_isElementVNode(vNode)) {
-    import.meta.env.TEST &&
+    import.meta.env?.TEST &&
       scopedStyleIdPrefix &&
       vnode_setProp(vNode, debugStyleScopeIdPrefixAttr, scopedStyleIdPrefix);
     vnode_setProp(vNode, key, value);

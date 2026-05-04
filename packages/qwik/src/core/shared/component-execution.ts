@@ -98,7 +98,7 @@ export const executeComponent = (
     componentFn = () => invokeApply(iCtx, inlineComponent, [props || EMPTY_OBJ]);
   }
 
-  const isSsr = import.meta.env.TEST ? isServerPlatform() : isServer;
+  const isSsr = import.meta.env?.TEST ? isServerPlatform() : isServer;
 
   const executeComponentWithPromiseExceptionRetry = (retryCount = 0): ValueOrPromise<JSXOutput> =>
     safeCall<JSXOutput, JSXOutput, JSXOutput>(

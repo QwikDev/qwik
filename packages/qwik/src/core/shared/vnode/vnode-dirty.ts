@@ -123,7 +123,7 @@ function findAndPropagateToBlockingCursor(container: Container, vNode: VNode): b
 }
 
 function isSsrNodeGuard(_vNode: VNode | ISsrNode): _vNode is ISsrNode {
-  return import.meta.env.TEST ? isServerPlatform() : isServer;
+  return import.meta.env?.TEST ? isServerPlatform() : isServer;
 }
 /**
  * Marks a vNode as dirty and propagates dirty bits up the tree.

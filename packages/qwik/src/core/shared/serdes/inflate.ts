@@ -403,7 +403,7 @@ export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
 }
 
 function restoreEffectBackRefForConsumer(effect: EffectSubscription): void {
-  const isServerSide = import.meta.env.TEST ? isServerPlatform() : isServer;
+  const isServerSide = import.meta.env?.TEST ? isServerPlatform() : isServer;
   const consumerBackRef = effect.consumer as BackRef;
   if (isServerSide && !consumerBackRef) {
     // on browser, we don't serialize for example VNodes, so then on server side we don't have consumer

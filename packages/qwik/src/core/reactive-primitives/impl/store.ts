@@ -271,7 +271,7 @@ export function addStoreEffect(
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
   // TODO is this needed with the preloader?
-  (import.meta.env.TEST ? !isDomContainer(store.$container$) : isServer) &&
+  (import.meta.env?.TEST ? !isDomContainer(store.$container$) : isServer) &&
     addQrlToSerializationCtx(effectSubscription, store.$container$);
 
   DEBUG &&

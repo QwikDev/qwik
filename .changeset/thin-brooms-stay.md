@@ -2,4 +2,4 @@
 '@qwik.dev/core': patch
 ---
 
-fix: import.meta.env.TEST is now reserved for local and CI builds, not leaking into released core.mjs anymore — preventing issues in non Vite environments.
+fix: make `import.meta.env.X` accesses null-safe (`import.meta.env?.X`) so non-Vite consumers (webpack, etc.) don't blow up at runtime when `import.meta.env` is undefined.

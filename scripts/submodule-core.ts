@@ -1,4 +1,3 @@
-import replace from '@rollup/plugin-replace';
 import { build, type BuildOptions } from 'esbuild';
 import { join } from 'node:path';
 import { type InputOptions, type OutputOptions, rollup } from 'rollup';
@@ -37,29 +36,11 @@ export async function submoduleCore(config: BuildConfig): Promise<object | undef
 }
 
 async function submoduleCoreProd(config: BuildConfig): Promise<object | undefined> {
-  // Only strip `import.meta.env.TEST` (→ `false`) when producing the bundle that
-  // will be published. Local dev/CI test builds keep the literal so the workspace's
-  // own vitest run can override it (vitest populates `import.meta.env.TEST = true`
-  // at runtime; without the literal, dual-mode SSR/CSR guards collapse to the
-  // build-time `isServer` constant and break tests that switch platform via
-  // `setPlatform()`). The substitution exists to fix non-Vite consumers (webpack,
-  // etc.) of the published `core.mjs` where `import.meta.env` is undefined.
-  // CI publish flows always pass `--set-dist-tag`; local test builds don't.
-  const isPublishBuild = !!(config.prepareRelease || config.release || config.setDistTag);
-
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
     external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
     plugins: [
-      ...(isPublishBuild
-        ? [
-            replace({
-              preventAssignment: true,
-              values: { 'import.meta.env.TEST': 'false' },
-            }),
-          ]
-        : []),
       {
         name: 'setVersion',
         generateBundle(_, bundles) {
@@ -339,9 +320,6 @@ async function submoduleCoreProduction(
 async function submoduleCoreDev(config: BuildConfig) {
   const submodule = 'core';
 
-  // See note in submoduleCoreProd: only strip `import.meta.env.TEST` for publish builds.
-  const isPublishBuild = !!(config.prepareRelease || config.release || config.setDistTag);
-
   const opts: BuildOptions = {
     entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
     entryNames: submodule,
@@ -351,7 +329,6 @@ async function submoduleCoreDev(config: BuildConfig) {
     target,
     define: {
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-      ...(isPublishBuild ? { 'import.meta.env.TEST': 'false' } : {}),
     },
   };
 

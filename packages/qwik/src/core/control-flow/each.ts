@@ -33,7 +33,7 @@ export const eachCmpTask = async ({ track }: TaskCtx) => {
   const host = context.$hostElement$!;
   const container = context.$container$!;
   markVNodeDirty(container, host, ChoreBits.RECONCILE);
-  const isSsr = import.meta.env.TEST ? isServerPlatform() : isServer;
+  const isSsr = import.meta.env?.TEST ? isServerPlatform() : isServer;
   if (isSsr) {
     await container.$renderPromise$;
   }

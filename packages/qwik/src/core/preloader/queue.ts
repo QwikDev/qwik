@@ -23,7 +23,7 @@ export const nextAdjustmentMacroTask = createMacroTask(processPendingAdjustments
 let isTriggerScheduled = false;
 let isAdjustmentScheduled = false;
 let isProcessingAdjustments = false;
-const shouldYieldInBrowser = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
+const shouldYieldInBrowser = import.meta.env?.TEST ? !isServerPlatform() : isBrowser;
 
 type AdjustmentFrame = {
   $bundle$: BundleImport;
@@ -286,7 +286,7 @@ export const preload = (item: string | string[], probability?: number) => {
   }
 };
 
-if (import.meta.env.TEST ? !isServerPlatform() : isBrowser) {
+if (import.meta.env?.TEST ? !isServerPlatform() : isBrowser) {
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;

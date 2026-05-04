@@ -8,7 +8,7 @@ import { BundleImportState_None, BundleImportState_Alias } from './types';
 
 export let base: string | undefined;
 export let graph: BundleGraph;
-const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
+const isBrowser = import.meta.env?.TEST ? !isServerPlatform() : !isServer;
 
 const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {

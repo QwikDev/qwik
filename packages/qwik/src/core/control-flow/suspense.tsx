@@ -56,7 +56,7 @@ export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
     state = _captures![2] as Signal<SuspenseState>,
     revealRegistration = _captures![3] as RevealRegistration | null;
   const pendingCount = track(cursorBoundary.pending);
-  const isBrowserEnv = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
+  const isBrowserEnv = import.meta.env?.TEST ? !isServerPlatform() : isBrowser;
   if (revealRegistration !== null && isBrowserEnv) {
     revealRegistration.reveal.version.value++;
   }

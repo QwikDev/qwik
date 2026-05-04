@@ -88,7 +88,7 @@ export const scheduleEffects = (
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | undefined
 ) => {
-  const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
+  const isBrowser = import.meta.env?.TEST ? !isServerPlatform() : !isServer;
   if (effects) {
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription.consumer;

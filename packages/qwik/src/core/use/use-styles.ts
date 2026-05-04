@@ -83,7 +83,7 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
 export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);
 
 const liveUpdate =
-  isDev && ((import.meta.hot && typeof document !== 'undefined') || import.meta.env.TEST);
+  isDev && ((import.meta.hot && typeof document !== 'undefined') || import.meta.env?.TEST);
 
 const _useStyles = (
   styleQrl: QRL<string>,

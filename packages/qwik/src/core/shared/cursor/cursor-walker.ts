@@ -105,7 +105,7 @@ export function processCursorQueue(): void {
  *   tick)
  */
 export function walkCursor(cursor: Cursor, until: number): boolean | void {
-  const isRunningOnServer = import.meta.env.TEST ? isServerPlatform() : isServer;
+  const isRunningOnServer = import.meta.env?.TEST ? isServerPlatform() : isServer;
 
   const cursorData = getCursorData(cursor)!;
 

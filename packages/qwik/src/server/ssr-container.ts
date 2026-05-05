@@ -292,6 +292,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private outOfOrderUsed = false;
   private outOfOrderExecutorEmitted = false;
   private outOfOrderPendingSegments: Promise<void>[] = [];
+  private rootContainerReady = false;
+  private rootContainerReadyPromise: Promise<void> | null = null;
+  private resolveRootContainerReady: (() => void) | null = null;
+  private renderQueue: Promise<unknown> = Promise.resolve();
 
   constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
@@ -390,11 +394,50 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     await _walkJSX(this, jsx, options);
   }
 
+  /**
+   * Queue render work that temporarily owns this mutable SSRContainer.
+   *
+   * After refresh, Suspense promises may already be resolved:
+   *
+   * Root container: [emit state + flush] | ready suspense A: | segment(A) -----> suspense B: |
+   * segment(B) -----> same mutable container ^ overlap corrupts state
+   *
+   * `segment()` swaps writer, frame, vnode, and serialization state on this container, so resolved
+   * Suspense renders must be queued:
+   *
+   * Root container: [emit state + flush] | ready suspense A: | segment(A) -----> suspense B: |
+   * segment(B) ----->
+   */
+  runQueuedRender<T>(render: () => ValueOrPromise<T>): Promise<T> {
+    const result = this.renderQueue.then(render, render);
+    this.renderQueue = result.catch(() => {});
+    return result;
+  }
+
   captureOutOfOrderPromise(promise: Promise<unknown>): never {
     if (!__EXPERIMENTAL__.suspense) {
       throw promise;
     }
     throw new OutOfOrderSuspensePromise(promise);
+  }
+
+  waitForRootContainerReady(): ValueOrPromise<void> {
+    if (!__EXPERIMENTAL__.suspense || this.rootContainerReady) {
+      return;
+    }
+    return (this.rootContainerReadyPromise ||= new Promise<void>((resolve) => {
+      this.resolveRootContainerReady = resolve;
+    }));
+  }
+
+  private markRootContainerReady(): void {
+    if (!__EXPERIMENTAL__.suspense || this.rootContainerReady) {
+      return;
+    }
+    this.rootContainerReady = true;
+    this.resolveRootContainerReady?.();
+    this.resolveRootContainerReady = null;
+    this.rootContainerReadyPromise = null;
   }
 
   nextOutOfOrderId(): number {
@@ -689,6 +732,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         maybeThen(this.emitContainerData(), async () => {
           if (__EXPERIMENTAL__.suspense && this.outOfOrderUsed) {
             await this.streamHandler.flush();
+            this.markRootContainerReady();
             if (this.outOfOrderPendingSegments.length) {
               await Promise.all(this.outOfOrderPendingSegments);
             }

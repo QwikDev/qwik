@@ -109,6 +109,13 @@ test.describe('out-of-order suspense streaming', () => {
     await page.locator('#ooos-multi-first-resolved-button').click();
     await expect(page.locator('#ooos-multi-first-resolved-count')).toHaveText('1');
     await navigation;
+
+    await page.reload({ waitUntil: 'commit' });
+    await expect(page.locator('#ooos-title')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-multi-first-resolved')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-multi-second-resolved')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-multi-first-fallback')).toBeHidden();
+    await expect(page.locator('#ooos-multi-second-fallback')).toBeHidden();
   });
 
   test('shares root state between fallback and resolved suspense content', async ({

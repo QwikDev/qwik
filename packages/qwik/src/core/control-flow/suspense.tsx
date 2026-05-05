@@ -266,17 +266,20 @@ async function emitResolvedOutOfOrderSegment(
   slotReplayRecords: SSRSlotReplayRecords
 ): Promise<void> {
   await firstPromise;
-  const rendered = await ssr.segment(segmentId, children, {
-    ...options,
-    promiseMode: 'normal',
-    slotReplay: {
-      mode: 'replay',
-      records: slotReplayRecords,
-    },
+  await ssr.waitForRootContainerReady();
+  await ssr.runQueuedRender(async () => {
+    const rendered = await ssr.segment(segmentId, children, {
+      ...options,
+      promiseMode: 'normal',
+      slotReplay: {
+        mode: 'replay',
+        records: slotReplayRecords,
+      },
+    });
+    writeOutOfOrderResolvedTemplate(ssr, boundaryId, rendered.html, revealBoundary);
+    ssr.emitInlineScript(`qO(${boundaryId})`);
+    await ssr.streamHandler.flush();
   });
-  writeOutOfOrderResolvedTemplate(ssr, boundaryId, rendered.html, revealBoundary);
-  ssr.emitInlineScript(`qO(${boundaryId})`);
-  await ssr.streamHandler.flush();
 }
 
 function shouldRenderFallback(

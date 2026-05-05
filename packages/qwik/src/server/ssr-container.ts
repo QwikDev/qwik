@@ -1155,7 +1155,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Add q-d:qidle attribute to eagerly resume some state if needed */
   private stateScriptAttrs(segmentId?: string): Props {
-    const attrs: Props = { type: 'qwik/state' };
+    const attrs: Props = { type: 'qwik/state', [QInstanceAttr]: this.$instanceHash$ };
     if (__EXPERIMENTAL__.suspense && segmentId) {
       attrs[QSegmentAttr] = segmentId;
     }

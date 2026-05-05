@@ -178,7 +178,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   private $processRootStateScript$(): void {
     const rootState = this.element.querySelector(
-      `script[type="qwik/state"]:not(${QSegmentAttrSelector})`
+      `${this.$stateScriptSelector$()}:not(${QSegmentAttrSelector})`
     );
     if (rootState) {
       this.$rawStateData$ = JSON.parse(rootState.textContent!);
@@ -188,12 +188,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
   }
 
+  private $stateScriptSelector$(): string {
+    return `script[type="qwik/state"][q\\:instance="${this.$instanceHash$}"]`;
+  }
+
   $processSegmentStateScripts$(): void {
     if (!__EXPERIMENTAL__.suspense) {
       return;
     }
     const qwikStates = this.element.querySelectorAll(
-      `script[type="qwik/state"]${QSegmentAttrSelector}`
+      `${this.$stateScriptSelector$()}${QSegmentAttrSelector}`
     );
     for (let i = 0; i < qwikStates.length; i++) {
       const stateScript = qwikStates[i];

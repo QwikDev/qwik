@@ -9,6 +9,7 @@ import { Slot } from '../shared/jsx/slot.public';
 import { isServerPlatform } from '../shared/platform/platform';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import { _captures } from '../shared/qrl/qrl-class';
+import { noSerialize, type NoSerialize } from '../shared/serdes/verify';
 import { canRevealRegistration, type RevealOrder } from '../shared/utils/reveal';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import { createContextId, useContext, useContextProvider } from '../use/use-context';
@@ -38,7 +39,7 @@ export type RevealContext = {
   collapsed: boolean;
   items: RevealItem[];
   version: Signal<number>;
-  ooos?: OutOfOrderRevealCoordinator<RevealItem>;
+  ooos?: NoSerialize<OutOfOrderRevealCoordinator<RevealItem>>;
 };
 
 export type RevealRegistration = {
@@ -115,10 +116,7 @@ const getOutOfOrderCoordinator = (
     reveal.order,
     reveal.collapsed
   );
-  Object.defineProperty(reveal, 'ooos', {
-    configurable: true,
-    value: nextCoordinator,
-  });
+  reveal.ooos = noSerialize(nextCoordinator);
   return nextCoordinator;
 };
 

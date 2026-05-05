@@ -917,7 +917,7 @@ describe('render api', () => {
           streaming,
         });
         // This can change when the size of the output changes
-        expect(stream.write).toHaveBeenCalledTimes(4);
+        expect(stream.write).toHaveBeenCalledTimes(5);
       });
 
       it('should wait for an async flush before emitting the next chunk', async () => {

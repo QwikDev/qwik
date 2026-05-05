@@ -327,11 +327,12 @@ Qwik keeps the streamed HTML resumable.
 
 That means the shell of the page can become interactive even while a Suspense section is still
 waiting. If your fallback has buttons or other event handlers, they can also resume while the
-fallback is visible.
+fallback is visible, after the root page state has loaded in the browser.
 
 When the real content arrives, Qwik removes the fallback and inserts the resolved content. The
-resolved content has its own resumable state and can become interactive like any other
-server-rendered Qwik HTML.
+resolved content may be visible before it is interactive. Qwik resumes that content after the root
+page state and the content's streamed state have both loaded, then its event handlers and state work
+like any other server-rendered Qwik HTML.
 
 ### When to Use It
 

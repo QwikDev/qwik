@@ -42,7 +42,13 @@ import {
   isInternalServerComponent,
 } from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
+import type {
+  ISsrComponentFrame,
+  ISsrNode,
+  SSRContainer,
+  SSRRenderJSXOptions,
+  SSRSlotReplayRecords,
+} from './ssr-types';
 
 class MaybeAsyncSignal {}
 
@@ -251,7 +257,7 @@ function processJSXNode(
             );
             enqueue(ssr.closeProjection);
             const slotDefaultChildren: JSXChildren | null = jsx.children || null;
-            const replay = options.slotReplay;
+            const replay = __EXPERIMENTAL__.suspense ? options.slotReplay : undefined;
             const frameSlots = replay?.records.get(componentFrame);
             let slotChildren: JSXChildren | null;
             if (replay?.mode === 'replay' && frameSlots?.has(slotName)) {
@@ -260,13 +266,7 @@ function processJSXNode(
               slotChildren =
                 componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
               if (replay?.mode === 'record') {
-                const records = replay.records;
-                let recordedSlots = records.get(componentFrame);
-                if (!recordedSlots) {
-                  recordedSlots = new Map();
-                  records.set(componentFrame, recordedSlots);
-                }
-                recordedSlots.set(slotName, slotChildren);
+                recordSlotReplay(replay.records, componentFrame, slotName, slotChildren);
               }
               if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
                 ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
@@ -385,6 +385,19 @@ function processJSXNode(
 
 function isSuspenseCaptureMode(options: SSRRenderJSXOptions): boolean {
   return __EXPERIMENTAL__.suspense && options.promiseMode === 'suspense-capture';
+}
+
+function recordSlotReplay(
+  records: SSRSlotReplayRecords,
+  componentFrame: ISsrComponentFrame,
+  slotName: string,
+  slotChildren: JSXChildren | null
+): void {
+  let recordedSlots = records.get(componentFrame);
+  if (!recordedSlots) {
+    records.set(componentFrame, (recordedSlots = new Map()));
+  }
+  recordedSlots.set(slotName, slotChildren);
 }
 
 function maybeAddPollingAsyncSignalToEagerResume(

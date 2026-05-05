@@ -11,8 +11,6 @@ import { isServerPlatform } from '../shared/platform/platform';
 import { _fnSignal } from '../shared/qrl/inlined-fn';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import { _captures } from '../shared/qrl/qrl-class';
-import { DEBUG_TYPE, VirtualType } from '../shared/types';
-import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import {
   QCursorBoundary,
   QSuspense,
@@ -33,6 +31,8 @@ import {
   type OutOfOrderRevealBoundary,
   type OutOfOrderRevealBoundaryRegistration,
 } from './suspense-utils';
+import { DEBUG_TYPE, VirtualType } from '../shared/types';
+import { EMPTY_OBJ } from '../shared/utils/flyweight';
 
 type SuspenseState = 'content' | 'fallback';
 
@@ -212,9 +212,9 @@ const SSRSuspense = __EXPERIMENTAL__.suspense
 
       const suspended = content.suspended;
       const revealBoundary = suspended ? (reveal?.register() ?? null) : null;
-      ssr.openFragment(getSuspenseFragmentProps());
+      ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.Fragment } : EMPTY_OBJ);
       ssr.commentNode(QSuspense + boundaryId);
-      await writeSuspenseJSXHost(
+      await renderSuspenseJSXHost(
         ssr,
         createFallbackHostProps(
           boundaryId,
@@ -227,9 +227,12 @@ const SSRSuspense = __EXPERIMENTAL__.suspense
           promiseMode: 'normal',
         }
       );
-      await writeSuspenseHost(
+      await renderSuspenseHTMLHost(
         ssr,
-        createContentHostProps(boundaryId, suspended ? 'none' : 'contents'),
+        {
+          [QSuspenseResolved]: `${boundaryId}`,
+          style: { display: suspended ? 'none' : 'contents' },
+        },
         suspended ? '' : content.html
       );
       ssr.commentNode(QSuspenseEnd + boundaryId);
@@ -307,13 +310,17 @@ function shouldRenderFallback(
   );
 }
 
-async function writeSuspenseHost(ssr: SSRContainer, props: Props, html: string): Promise<void> {
+async function renderSuspenseHTMLHost(
+  ssr: SSRContainer,
+  props: Props,
+  html: string
+): Promise<void> {
   ssr.openElement('div', null, props, null, null, null);
   ssr.write(html);
   await ssr.closeElement();
 }
 
-async function writeSuspenseJSXHost(
+async function renderSuspenseJSXHost(
   ssr: SSRContainer,
   props: Props,
   jsx: JSXOutput,
@@ -324,17 +331,6 @@ async function writeSuspenseJSXHost(
     await ssr.renderJSX(jsx, options);
   }
   await ssr.closeElement();
-}
-
-function getSuspenseFragmentProps(): Props {
-  return isDev ? { [DEBUG_TYPE]: VirtualType.Fragment } : EMPTY_OBJ;
-}
-
-function createContentHostProps(boundaryId: number, display: 'contents' | 'none'): Props {
-  return {
-    [QSuspenseResolved]: `${boundaryId}`,
-    style: { display },
-  };
 }
 
 function createFallbackHostProps(

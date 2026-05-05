@@ -741,7 +741,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Any function taking a props object that returns JSXOutput.\n\nThe `key`<!-- -->, `flags` and `dev` parameters are for internal use.\n\n\n```typescript\nexport type FunctionComponent<P = unknown> = {\n    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;\n}['renderFn'];\n```\n**References:** [DevJSX](#devjsx)<!-- -->, [JSXOutput](#jsxoutput)",
+      "content": "Any function taking a props object that returns JSXOutput.\n\nThe `key`<!-- -->, `flags` and `dev` parameters are for internal use.\n\n\n```typescript\nexport type FunctionComponent<P = unknown> = {\n    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): ValueOrPromise<JSXOutput>;\n}['renderFn'];\n```\n**References:** [DevJSX](#devjsx)<!-- -->, [ValueOrPromise](#valueorpromise)<!-- -->, [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-node.ts",
       "mdFile": "core.functioncomponent.md"
     },
@@ -1254,7 +1254,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;\n```\n**References:** [JSXOutput](#jsxoutput)",
+      "content": "```typescript\nexport type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXOutput>;\n```\n**References:** [ValueOrPromise](#valueorpromise)<!-- -->, [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts",
       "mdFile": "core.onrenderfn.md"
     },

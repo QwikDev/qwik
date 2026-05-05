@@ -1799,11 +1799,11 @@ export type FunctionComponent<P = unknown> = {
     key: string | null,
     flags: number,
     dev?: DevJSX,
-  ): JSXOutput;
+  ): ValueOrPromise<JSXOutput>;
 }["renderFn"];
 ```
 
-**References:** [DevJSX](#devjsx), [JSXOutput](#jsxoutput)
+**References:** [DevJSX](#devjsx), [ValueOrPromise](#valueorpromise), [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-node.ts)
 
@@ -2870,10 +2870,10 @@ NoSerializeSymbol: unique symbol
 <h2 id="onrenderfn">OnRenderFn</h2>
 
 ```typescript
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
+export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXOutput>;
 ```
 
-**References:** [JSXOutput](#jsxoutput)
+**References:** [ValueOrPromise](#valueorpromise), [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
 

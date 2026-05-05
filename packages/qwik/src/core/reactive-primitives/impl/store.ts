@@ -18,8 +18,9 @@ import {
   type StoreTarget,
 } from '../types';
 import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy';
-import { isDomContainer } from '../../client/dom-container';
 import { isDev, isServer } from '@qwik.dev/core/build';
+import type { SSRContainer } from '../../ssr/ssr-types';
+import { isServerPlatform } from '../../shared/platform/platform';
 
 const DEBUG = false;
 
@@ -265,14 +266,25 @@ export function addStoreEffect(
   // Let's make sure that we have a reference to this effect.
   // Adding reference is essentially adding a subscription, so if the signal
   // changes we know who to notify.
+  const isOnServer = import.meta.env.TEST ? isServerPlatform() : isServer;
+  const shouldRecordExternalRootEffect =
+    __EXPERIMENTAL__.suspense && store instanceof StoreHandler && isOnServer;
+  const isNewSubscription = shouldRecordExternalRootEffect && !effects.has(effectSubscription);
   ensureContainsSubscription(effects, effectSubscription);
   // But when effect is scheduled in needs to be able to know which signals
   // to unsubscribe from. So we need to store the reference from the effect back
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
+  if (isOnServer && isNewSubscription) {
+    (store.$container$ as SSRContainer).$recordExternalRootEffect$(
+      target,
+      effectSubscription,
+      prop,
+      effectsMap
+    );
+  }
   // TODO is this needed with the preloader?
-  (import.meta.env.TEST ? !isDomContainer(store.$container$) : isServer) &&
-    addQrlToSerializationCtx(effectSubscription, store.$container$);
+  isOnServer && addQrlToSerializationCtx(effectSubscription, store.$container$);
 
   DEBUG &&
     log(

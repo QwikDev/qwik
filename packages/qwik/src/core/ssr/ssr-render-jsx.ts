@@ -93,7 +93,7 @@ export async function _walkJSX(
               stack.push(trackFn());
             } catch (err) {
               if (isPromise(err)) {
-                ssr.captureOutOfOrderPromise(err);
+                ssr.$captureOutOfOrderPromise$(err);
               } else {
                 throw err;
               }
@@ -157,7 +157,7 @@ function processJSXNode(
       ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.Awaited } : EMPTY_OBJ);
       enqueue(ssr.closeFragment);
       if (isSuspenseCaptureMode(options)) {
-        ssr.captureOutOfOrderPromise(value);
+        ssr.$captureOutOfOrderPromise$(value);
       } else {
         enqueue(value);
         enqueue(Promise);
@@ -341,7 +341,7 @@ function processJSXNode(
           enqueue(() => ssr.closeComponent(options.promiseMode));
           if (isPromise(jsxOutput)) {
             if (isSuspenseCaptureMode(options)) {
-              ssr.captureOutOfOrderPromise(jsxOutput);
+              ssr.$captureOutOfOrderPromise$(jsxOutput);
             } else {
               // Defer reading QScopedStyle until after the promise resolves
               enqueue(async () => {
@@ -372,7 +372,7 @@ function processJSXNode(
             jsx
           );
           if (isPromise(jsxOutput) && isSuspenseCaptureMode(options)) {
-            ssr.captureOutOfOrderPromise(jsxOutput);
+            ssr.$captureOutOfOrderPromise$(jsxOutput);
           } else {
             enqueue(jsxOutput);
             isPromise(jsxOutput) && enqueue(Promise);

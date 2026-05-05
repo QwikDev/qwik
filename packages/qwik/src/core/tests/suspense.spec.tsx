@@ -2,6 +2,7 @@ import {
   createDocument,
   domRender,
   emulateExecutionOfQwikFuncs,
+  getTestPlatform,
   ssrRenderToDom,
   trigger,
   waitForDrain,
@@ -15,12 +16,15 @@ import {
   Fragment as Projection,
   Fragment as Awaited,
   component$,
+  getPlatform,
   getDomContainer,
+  setPlatform,
   type JSXOutput,
   useErrorBoundary,
   Slot,
   useTask$,
   useSignal,
+  useStore,
   Fragment as Signal,
 } from '@qwik.dev/core';
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
@@ -1278,6 +1282,103 @@ describe('renderToStream: out-of-order Suspense', () => {
     } finally {
       delete (globalThis as any).__ooosUnitSharedShellValue;
       delete (globalThis as any).__ooosUnitSharedResolvedValue;
+    }
+  });
+
+  it('should merge resolved segment effects for root-owned stores', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    (globalThis as any).__ooosUnitStoreShellValue = 0;
+    (globalThis as any).__ooosUnitStoreResolvedValue = 0;
+
+    const Slow = component$((props: { state: { count: number } }) => (
+      <>
+        {slow}
+        <button
+          id="ooos-unit-store-resolved-button"
+          onClick$={() => {
+            props.state.count += 1;
+            (globalThis as any).__ooosUnitStoreResolvedValue = props.state.count;
+          }}
+        >
+          Touch resolved store
+        </button>
+        <span id="ooos-unit-store-resolved-count">{props.state.count}</span>
+      </>
+    ));
+    const App = component$(() => {
+      const state = useStore({ count: 0 });
+      return (
+        <main>
+          <button
+            id="ooos-unit-store-shell-button"
+            onClick$={() => {
+              state.count += 1;
+              (globalThis as any).__ooosUnitStoreShellValue = state.count;
+            }}
+          >
+            Touch shell store
+          </button>
+          <span id="ooos-unit-store-shell-count">{state.count}</span>
+          <Suspense fallback={<p>Waiting store</p>}>
+            <Slow state={state} />
+          </Suspense>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: {
+        write(chunk) {
+          chunks.push(chunk);
+        },
+      },
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting store'));
+      resolveSlow(<span id="ooos-unit-store-ready">Ready store</span>);
+      await renderPromise;
+
+      const html = chunks.join('');
+      const document = createDocument({ html });
+      const scripts = Array.from(
+        document.querySelectorAll('script[type="text/javascript"]'),
+        (script) => script.textContent || ''
+      );
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+      const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:s="s1"]');
+      expect(segmentStateScript?.getAttribute('q:fx')).not.toBeNull();
+      expect(document.querySelector('#ooos-unit-store-resolved-button')).not.toBeNull();
+
+      const platform = getPlatform();
+      setPlatform(getTestPlatform());
+      try {
+        emulateExecutionOfQwikFuncs(document);
+        emulateExecutionOfBackpatch(document);
+        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+
+        await trigger(container.element, '#ooos-unit-store-shell-button', 'click');
+        await waitForDrain(container);
+        expect((globalThis as any).__ooosUnitStoreShellValue).toBe(1);
+        expect(document.querySelector('#ooos-unit-store-shell-count')?.textContent).toBe('1');
+        expect(document.querySelector('#ooos-unit-store-resolved-count')?.textContent).toBe('1');
+      } finally {
+        setPlatform(platform);
+      }
+    } finally {
+      delete (globalThis as any).__ooosUnitStoreShellValue;
+      delete (globalThis as any).__ooosUnitStoreResolvedValue;
     }
   });
 

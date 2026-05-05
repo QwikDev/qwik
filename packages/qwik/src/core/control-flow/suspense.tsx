@@ -270,7 +270,7 @@ async function emitResolvedOutOfOrderSegment(
   slotReplayRecords: SSRSlotReplayRecords
 ): Promise<void> {
   await firstPromise;
-  const rendered = await ssr.runQueuedRenderBeforeRootState(async () => {
+  const rendered = await ssr.$runQueuedRenderBeforeRootState$(async () => {
     const rendered = await ssr.segment(segmentId, children, {
       ...options,
       promiseMode: 'normal',
@@ -292,7 +292,7 @@ async function emitOutOfOrderSegmentScripts(ssr: SSRContainer, scripts: string):
     return;
   }
   await ssr.waitForRootContainerReady();
-  await ssr.runQueuedRender(async () => {
+  await ssr.$runQueuedRender$(async () => {
     ssr.write(scripts);
     ssr.emitInlineScript('qO.p()');
     await ssr.streamHandler.flush();

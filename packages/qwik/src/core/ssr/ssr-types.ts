@@ -14,6 +14,7 @@ import type { Props } from '../shared/jsx/jsx-runtime';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { SsrNodeFlags } from '../shared/types';
+import type { EffectSubscription } from '../reactive-primitives/types';
 import type { ResourceReturnInternal } from '../use/use-resource';
 
 /** @internal */
@@ -129,9 +130,15 @@ export interface SSRContainer extends Container {
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
   renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
-  runQueuedRender<T>(render: () => ValueOrPromise<T>): Promise<T>;
-  runQueuedRenderBeforeRootState<T>(render: () => ValueOrPromise<T>): Promise<T>;
-  captureOutOfOrderPromise(promise: Promise<unknown>): never;
+  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): Promise<T>;
+  $runQueuedRenderBeforeRootState$<T>(render: () => ValueOrPromise<T>): Promise<T>;
+  $captureOutOfOrderPromise$(promise: Promise<unknown>): never;
+  $recordExternalRootEffect$(
+    producer: unknown,
+    effect: EffectSubscription,
+    prop: string | symbol | null,
+    sourceEffects?: Map<string | symbol, Set<EffectSubscription>>
+  ): void;
   waitForRootContainerReady(): ValueOrPromise<void>;
   nextOutOfOrderId(): number;
   segment(

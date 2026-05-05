@@ -218,10 +218,17 @@ interface RenderState {
   externalRootEffects: Map<number, ExternalRootEffects> | null;
 }
 
+type ExternalRootEffectProp = string | symbol | null;
+
 interface ExternalRootEffects {
-  producer: SignalImpl<unknown>;
-  effects: Set<EffectSubscription>;
+  producer: unknown;
+  effects: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>;
+  sourceEffects?: Map<string | symbol, Set<EffectSubscription>>;
 }
+
+type ExternalRootEffectsPatch = Array<
+  [number, EffectSubscription[] | Array<[string | symbol, EffectSubscription[]]>]
+>;
 
 class OutOfOrderSuspensePromise {
   constructor(public promise: Promise<unknown>) {}
@@ -419,7 +426,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    *
    * Root render: [emit state + flush] promise A: -> segment(A) promise B: ---------> segment(B)
    */
-  runQueuedRender<T>(render: () => ValueOrPromise<T>): Promise<T> {
+  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): Promise<T> {
     const run = () =>
       Promise.resolve(
         __EXPERIMENTAL__.suspense && this.rootContainerDataStarted && !this.rootContainerReady
@@ -431,41 +438,78 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return result;
   }
 
-  runQueuedRenderBeforeRootState<T>(render: () => ValueOrPromise<T>): Promise<T> {
+  $runQueuedRenderBeforeRootState$<T>(render: () => ValueOrPromise<T>): Promise<T> {
     if (!__EXPERIMENTAL__.suspense || this.rootContainerDataStarted) {
-      return this.runQueuedRender(render);
+      return this.$runQueuedRender$(render);
     }
     return new Promise<T>((resolve, reject) => {
-      this.outOfOrderReadyRenders.push(() => this.runQueuedRender(render).then(resolve, reject));
+      this.outOfOrderReadyRenders.push(() => this.$runQueuedRender$(render).then(resolve, reject));
     });
   }
 
-  captureOutOfOrderPromise(promise: Promise<unknown>): never {
+  $captureOutOfOrderPromise$(promise: Promise<unknown>): never {
     if (!__EXPERIMENTAL__.suspense) {
       throw promise;
     }
     throw new OutOfOrderSuspensePromise(promise);
   }
 
-  recordExternalRootEffect(producer: unknown, effect: EffectSubscription): void {
+  $recordExternalRootEffect$(
+    producer: unknown,
+    effect: EffectSubscription,
+    prop: ExternalRootEffectProp,
+    sourceEffects?: Map<string | symbol, Set<EffectSubscription>>
+  ): void {
     if (!__EXPERIMENTAL__.suspense || !this.externalRootEffectContext) {
       return;
     }
-    const rootId = this.externalRootEffectContext.$hasRootId$(producer);
+    const rootId = this.$getExternalRootEffectId$(producer, prop);
     if (rootId === undefined) {
       return;
     }
     let record = this.externalRootEffects?.get(rootId);
     if (!record) {
+      if (prop !== null && !sourceEffects) {
+        return;
+      }
       this.externalRootEffects!.set(
         rootId,
         (record = {
-          producer: producer as SignalImpl<unknown>,
-          effects: new Set(),
+          producer,
+          effects: prop === null ? new Set() : new Map(),
+          sourceEffects,
         })
       );
     }
-    record.effects.add(effect);
+    if (prop === null) {
+      (record.effects as Set<EffectSubscription>).add(effect);
+    } else if (prop !== null) {
+      const effectsMap = record.effects as Map<string | symbol, Set<EffectSubscription>>;
+      let effects = effectsMap.get(prop);
+      if (!effects) {
+        effectsMap.set(prop, (effects = new Set()));
+      }
+      effects.add(effect);
+    }
+  }
+
+  private $getExternalRootEffectId$(
+    producer: unknown,
+    prop: ExternalRootEffectProp
+  ): number | undefined {
+    if (
+      prop !== null &&
+      producer &&
+      (typeof producer === 'object' || typeof producer === 'function')
+    ) {
+      const proxy = this.$storeProxyMap$.get(producer as object);
+      const proxyRootId =
+        proxy === undefined ? undefined : this.externalRootEffectContext!.$hasRootId$(proxy);
+      if (proxyRootId !== undefined) {
+        return proxyRootId;
+      }
+    }
+    return this.externalRootEffectContext!.$hasRootId$(producer);
   }
 
   waitForRootContainerReady(): ValueOrPromise<void> {
@@ -638,9 +682,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!__EXPERIMENTAL__.suspense || !this.externalRootEffects?.size) {
       return;
     }
-    const patch: Array<[number, EffectSubscription[]]> = [];
+    const patch: ExternalRootEffectsPatch = [];
     for (const [rootId, record] of this.externalRootEffects) {
-      patch.push([rootId, [...record.effects]]);
+      if (record.sourceEffects) {
+        const effectsPatch: Array<[string | symbol, EffectSubscription[]]> = [];
+        for (const [prop, effects] of record.effects as Map<
+          string | symbol,
+          Set<EffectSubscription>
+        >) {
+          effectsPatch.push([prop, [...effects]]);
+        }
+        patch.push([rootId, effectsPatch]);
+      } else {
+        patch.push([rootId, [...(record.effects as Set<EffectSubscription>)]]);
+      }
     }
     const patchIndex = this.serializationCtx.$roots$.length;
     this.serializationCtx.$addRoot$(patch);
@@ -652,10 +707,23 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
     for (const record of this.externalRootEffects.values()) {
-      const producerEffects = record.producer.$effects$;
-      for (const effect of record.effects) {
-        producerEffects?.delete(effect);
-        effect.backRef?.delete(record.producer);
+      if (record.sourceEffects) {
+        for (const [prop, effects] of record.effects as Map<
+          string | symbol,
+          Set<EffectSubscription>
+        >) {
+          const producerEffects = record.sourceEffects.get(prop);
+          for (const effect of effects) {
+            producerEffects?.delete(effect);
+            effect.backRef?.delete(record.producer as any);
+          }
+        }
+      } else {
+        const producerEffects = (record.producer as SignalImpl<unknown>).$effects$;
+        for (const effect of record.effects as Set<EffectSubscription>) {
+          producerEffects?.delete(effect);
+          effect.backRef?.delete(record.producer as any);
+        }
       }
     }
   }

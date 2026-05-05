@@ -604,13 +604,13 @@ packages/qwik/src/server/ssr-container.ts
     records q:fx patches
     handles sync fn merging/appending
 
-  runQueuedRenderBeforeRootState()
+  $runQueuedRenderBeforeRootState$()
     queues early resolved segment renders
 
   flushOutOfOrderRendersBeforeRootState()
     drains those renders between shell HTML and root state
 
-  runQueuedRender()
+  $runQueuedRender$()
     serializes mutable SSR container ownership
     waits for root state once root state emission has started
 

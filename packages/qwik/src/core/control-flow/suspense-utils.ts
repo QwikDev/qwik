@@ -1,4 +1,8 @@
 import type { Container } from '../shared/types';
+import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { getStoreHandler, getStoreTarget } from '../reactive-primitives/impl/store';
+import type { EffectSubscription } from '../reactive-primitives/types';
+import { scheduleEffects } from '../reactive-primitives/utils';
 import {
   canRevealRegistration,
   type RevealItemLike,
@@ -21,6 +25,11 @@ export type OutOfOrderRevealBoundary = {
 export type OutOfOrderRevealBoundaryRegistration = {
   register: () => OutOfOrderRevealBoundary;
 };
+
+/** @internal */
+export type ExternalRootEffectsPatch = Array<
+  [number, EffectSubscription[] | Array<[string | symbol, EffectSubscription[]]>]
+>;
 
 type OutOfOrderRevealOrderCode = 'p' | 's' | 'r' | 't';
 const outOfOrderRevealIds = new WeakMap<Container, number>();
@@ -110,4 +119,69 @@ export const isOutOfOrderStreaming = (): boolean => {
     | { readonly outOfOrderStreaming?: boolean }
     | undefined;
   return container?.outOfOrderStreaming === true;
+};
+
+/** @internal */
+export const mergeExternalRootEffects = (
+  container: Container,
+  segmentStateData: unknown[],
+  externalRootEffectsIndex: string | null
+): void => {
+  if (!__EXPERIMENTAL__.suspense || !externalRootEffectsIndex) {
+    return;
+  }
+  const patches = segmentStateData[Number(externalRootEffectsIndex)] as
+    | ExternalRootEffectsPatch
+    | undefined;
+  if (!patches) {
+    return;
+  }
+  for (let i = 0; i < patches.length; i++) {
+    const [rootId, patchEffects] = patches[i];
+    const root = container.$getObjectById$(rootId);
+    if (root instanceof SignalImpl) {
+      mergeExternalRootEffectSet(
+        container,
+        root,
+        root,
+        (root.$effects$ ||= new Set()),
+        patchEffects as EffectSubscription[]
+      );
+    } else {
+      const handler = getStoreHandler(root as any);
+      const target = getStoreTarget(root as any);
+      if (!handler || !target) {
+        continue;
+      }
+      const effectsMap = (handler.$effects$ ||= new Map());
+      for (const [prop, effects] of patchEffects as Array<
+        [string | symbol, EffectSubscription[]]
+      >) {
+        let rootEffects = effectsMap.get(prop);
+        if (!rootEffects) {
+          rootEffects = new Set();
+          effectsMap.set(prop, rootEffects);
+        }
+        mergeExternalRootEffectSet(container, handler, target, rootEffects, effects);
+      }
+    }
+  }
+};
+
+const mergeExternalRootEffectSet = (
+  container: Container,
+  producer: unknown,
+  backRef: unknown,
+  rootEffects: Set<EffectSubscription>,
+  patchEffects: EffectSubscription[]
+): void => {
+  let newEffects: Set<EffectSubscription> | undefined;
+  for (const effect of patchEffects) {
+    if (!rootEffects.has(effect)) {
+      rootEffects.add(effect);
+      (newEffects ||= new Set()).add(effect);
+    }
+    (effect.backRef ||= new Set()).add(backRef as any);
+  }
+  scheduleEffects(container, producer as any, newEffects);
 };

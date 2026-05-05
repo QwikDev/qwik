@@ -14,7 +14,8 @@ import {
 import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
 import type { WrappedSignalImpl } from './wrapped-signal-impl';
-import { isDomContainer } from '../../client/dom-container';
+import { isServerPlatform } from '../../shared/platform/platform';
+import type { SSRContainer } from '../../ssr/ssr-types';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -77,24 +78,19 @@ export class SignalImpl<T = any> implements Signal<T> {
       // Let's make sure that we have a reference to this effect.
       // Adding reference is essentially adding a subscription, so if the signal
       // changes we know who to notify.
+      const isOnServer = import.meta.env.TEST ? isServerPlatform() : isServer;
       const effects = (this.$effects$ ||= new Set());
-      const isNewSubscription = !effects.has(effectSubscriber);
+      const shouldRecordExternalRootEffect = __EXPERIMENTAL__.suspense && isOnServer;
+      const isNewSubscription = shouldRecordExternalRootEffect && !effects.has(effectSubscriber);
       ensureContainsSubscription(effects, effectSubscriber);
       // But when effect is scheduled in needs to be able to know which signals
       // to unsubscribe from. So we need to store the reference from the effect back
       // to this signal.
       ensureContainsBackRef(effectSubscriber, this);
-      if (isNewSubscription) {
-        (
-          this.$container$ as
-            | (Container & {
-                recordExternalRootEffect?: (producer: unknown, effect: EffectSubscription) => void;
-              })
-            | null
-        )?.recordExternalRootEffect?.(this, effectSubscriber);
+      if (isOnServer && isNewSubscription) {
+        (this.$container$ as SSRContainer).$recordExternalRootEffect$(this, effectSubscriber, null);
       }
-      (import.meta.env.TEST ? !isDomContainer(this.$container$) : isServer) &&
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
+      isOnServer && addQrlToSerializationCtx(effectSubscriber, this.$container$);
       DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
     } else {
       DEBUG && log('read no sub', pad('\n' + this.toString(), '  '));

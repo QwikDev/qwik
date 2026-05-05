@@ -5,6 +5,8 @@ import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
+import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import type { EffectSubscription } from '../reactive-primitives/types';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
@@ -26,6 +28,7 @@ import {
   QLocaleAttr,
   QManifestHashAttr,
   QSegmentAttr,
+  QSegmentEffectsAttr,
   QSegmentAttrSelector,
   QScopedStyle,
   QStyle,
@@ -209,11 +212,19 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         continue;
       }
       this.$processedSegmentStateScripts$.add(stateScript);
-      this.$processSegmentState$(segmentId, JSON.parse(stateScript.textContent!));
+      this.$processSegmentState$(
+        segmentId,
+        JSON.parse(stateScript.textContent!),
+        stateScript.getAttribute(QSegmentEffectsAttr)
+      );
     }
   }
 
-  private $processSegmentState$(segmentId: string, rawStateData: unknown[]): void {
+  private $processSegmentState$(
+    segmentId: string,
+    rawStateData: unknown[],
+    externalRootEffectsIndex: string | null
+  ): void {
     if (!__EXPERIMENTAL__.suspense) {
       return;
     }
@@ -224,6 +235,35 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$segmentRawStateData$.set(segmentId, rawStateData);
     this.$segmentStateData$.set(segmentId, segmentStateData);
     this.$segmentForwardRefs$.set(segmentId, segmentForwardRefs);
+    this.$mergeExternalRootEffects$(segmentStateData, externalRootEffectsIndex);
+  }
+
+  private $mergeExternalRootEffects$(
+    segmentStateData: unknown[],
+    externalRootEffectsIndex: string | null
+  ): void {
+    if (!externalRootEffectsIndex) {
+      return;
+    }
+    const patches = segmentStateData[Number(externalRootEffectsIndex)] as
+      | Array<[number, EffectSubscription[]]>
+      | undefined;
+    if (!patches) {
+      return;
+    }
+    for (const [rootId, effects] of patches) {
+      const root = this.$getObjectById$(rootId);
+      if (!(root instanceof SignalImpl)) {
+        continue;
+      }
+      const rootEffects = (root.$effects$ ||= new Set());
+      for (const effect of effects) {
+        if (!rootEffects.has(effect)) {
+          rootEffects.add(effect);
+        }
+        (effect.backRef ||= new Set()).add(root);
+      }
+    }
   }
 
   /**

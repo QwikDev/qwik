@@ -145,9 +145,13 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-cross-resolved-count')).toHaveText('shared=0');
 
     // The resolved HTML was rendered on the server before the fallback click. This click proves
-    // the resolved QRL captures the root signal by updating the shell binding.
+    // the resolved segment merges its root signal subscription back into root state.
     await page.locator('#ooos-cross-resolved-button').click();
     await expect(page.locator('#ooos-cross-shell-count')).toHaveText('shared=2');
+    await expect(page.locator('#ooos-cross-resolved-count')).toHaveText('shared=2');
+    await page.locator('#ooos-cross-shell-button').click();
+    await expect(page.locator('#ooos-cross-shell-count')).toHaveText('shared=3');
+    await expect(page.locator('#ooos-cross-resolved-count')).toHaveText('shared=3');
     await navigation;
   });
 

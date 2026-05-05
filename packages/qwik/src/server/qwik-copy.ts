@@ -41,6 +41,7 @@ export {
   QRenderAttr,
   QRuntimeAttr,
   QSegmentAttr,
+  QSegmentEffectsAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,

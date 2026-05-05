@@ -77,11 +77,22 @@ export class SignalImpl<T = any> implements Signal<T> {
       // Let's make sure that we have a reference to this effect.
       // Adding reference is essentially adding a subscription, so if the signal
       // changes we know who to notify.
-      ensureContainsSubscription((this.$effects$ ||= new Set()), effectSubscriber);
+      const effects = (this.$effects$ ||= new Set());
+      const isNewSubscription = !effects.has(effectSubscriber);
+      ensureContainsSubscription(effects, effectSubscriber);
       // But when effect is scheduled in needs to be able to know which signals
       // to unsubscribe from. So we need to store the reference from the effect back
       // to this signal.
       ensureContainsBackRef(effectSubscriber, this);
+      if (isNewSubscription) {
+        (
+          this.$container$ as
+            | (Container & {
+                recordExternalRootEffect?: (producer: unknown, effect: EffectSubscription) => void;
+              })
+            | null
+        )?.recordExternalRootEffect?.(this, effectSubscriber);
+      }
       (import.meta.env.TEST ? !isDomContainer(this.$container$) : isServer) &&
         addQrlToSerializationCtx(effectSubscriber, this.$container$);
       DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));

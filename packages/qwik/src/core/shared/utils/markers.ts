@@ -15,6 +15,7 @@ export const QSlotParent = 'q:sparent';
 export const QSlotS = 'q:s';
 export const QSegmentAttr = 'q:s';
 export const QSegmentAttrSelector = '[q\\:s]';
+export const QSegmentEffectsAttr = 'q:fx';
 export const QSuspense = 'q:sus=';
 export const QSuspenseEnd = '/' + QSuspense;
 export const QSuspenseFallback = 'q:f';

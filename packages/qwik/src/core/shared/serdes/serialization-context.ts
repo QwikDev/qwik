@@ -79,6 +79,7 @@ export interface SerializationContext {
   $formatLocalRef$: (id: number) => number | string;
   $formatLocalPath$: (path: string) => string;
 
+  $setSyncFnOffset$: (offset: number, existingFns?: string[]) => void;
   $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
 
   $isSsrNode$: (obj: unknown) => obj is SsrNode;
@@ -101,6 +102,7 @@ export interface SerializationContext {
 class SerializationContextImpl implements SerializationContext {
   private $seenObjsMap$ = new Map<unknown, SeenRef>();
   private $syncFnMap$ = new Map<string, number>();
+  private $syncFnOffset$ = 0;
   public $syncFns$: string[] = [];
   public $roots$: unknown[] = [];
   public $eagerResume$: Set<unknown> = new Set();
@@ -228,24 +230,32 @@ class SerializationContextImpl implements SerializationContext {
     return id && (id.$parent$ ? undefined : id.$index$);
   }
 
+  $setSyncFnOffset$(offset: number, existingFns?: string[]): void {
+    this.$syncFnOffset$ = offset;
+    if (existingFns) {
+      for (let i = 0; i < existingFns.length; i++) {
+        this.$syncFnMap$.set(existingFns[i], i);
+      }
+    }
+  }
+
   $addSyncFn$(funcStr: string | null, argCount: number, fn: Function): number {
     const isFullFn = funcStr == null;
+    let code: string;
     if (isFullFn) {
-      funcStr = ((fn as any).serialized as string) || fn.toString();
-    }
-    let id = this.$syncFnMap$.get(funcStr!);
-    if (id === undefined) {
-      id = this.$syncFns$.length;
-      this.$syncFnMap$.set(funcStr!, id);
-      if (isFullFn) {
-        this.$syncFns$.push(funcStr!);
-      } else {
-        let code = '(';
-        for (let i = 0; i < argCount; i++) {
-          code += (i == 0 ? 'p' : ',p') + i;
-        }
-        this.$syncFns$.push((code += ')=>' + funcStr));
+      code = ((fn as any).serialized as string) || fn.toString();
+    } else {
+      code = '(';
+      for (let i = 0; i < argCount; i++) {
+        code += (i == 0 ? 'p' : ',p') + i;
       }
+      code += ')=>' + funcStr;
+    }
+    let id = this.$syncFnMap$.get(code);
+    if (id === undefined) {
+      id = this.$syncFnOffset$ + this.$syncFns$.length;
+      this.$syncFnMap$.set(code, id);
+      this.$syncFns$.push(code);
     }
     return id;
   }

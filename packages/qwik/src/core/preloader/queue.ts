@@ -1,6 +1,5 @@
-import { isBrowser } from '@qwik.dev/core/build';
 import { base, getBundle } from './bundle-graph';
-import { config, doc, rel, yieldInterval } from './constants';
+import { config, doc, isBrowser, rel, yieldInterval } from './constants';
 import type { BundleImport, BundleImports, ImportProbability } from './types';
 import {
   BundleImportState_Loaded,
@@ -10,7 +9,6 @@ import {
 } from './types';
 import type { QwikSymbolEvent } from '../shared/jsx/types/jsx-qwik-events';
 import { createMacroTask } from '../shared/platform/next-tick';
-import { isServerPlatform } from '../shared/platform/platform';
 
 export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
@@ -23,7 +21,6 @@ export const nextAdjustmentMacroTask = createMacroTask(processPendingAdjustments
 let isTriggerScheduled = false;
 let isAdjustmentScheduled = false;
 let isProcessingAdjustments = false;
-const shouldYieldInBrowser = import.meta.env?.TEST ? !isServerPlatform() : isBrowser;
 
 type AdjustmentFrame = {
   $bundle$: BundleImport;
@@ -183,13 +180,13 @@ function processPendingAdjustments() {
 
   isAdjustmentScheduled = false;
   isProcessingAdjustments = true;
-  const deadline = shouldYieldInBrowser ? performance.now() + yieldInterval : 0;
+  const deadline = isBrowser ? performance.now() + yieldInterval : 0;
   let processed = false;
 
   while (adjustmentStack.length) {
     processed = true;
     const checkDeadline = processAdjustmentFrame();
-    if (shouldYieldInBrowser && checkDeadline && performance.now() >= deadline) {
+    if (isBrowser && checkDeadline && performance.now() >= deadline) {
       if (!isAdjustmentScheduled) {
         isAdjustmentScheduled = true;
         nextAdjustmentMacroTask();
@@ -200,7 +197,7 @@ function processPendingAdjustments() {
 
   isProcessingAdjustments = false;
 
-  if (processed && shouldYieldInBrowser) {
+  if (processed && isBrowser) {
     nextTriggerMacroTask();
   }
 }
@@ -251,7 +248,7 @@ export const adjustProbabilities = (
   seen?: Set<BundleImport>
 ) => {
   enqueueAdjustment(bundle, newInverseProbability, seen);
-  if (shouldYieldInBrowser) {
+  if (isBrowser) {
     nextAdjustmentMacroTask();
   } else {
     processPendingAdjustments();
@@ -279,14 +276,14 @@ export const preload = (item: string | string[], probability?: number) => {
   } else {
     handleBundle(item, inverseProbability);
   }
-  if (shouldYieldInBrowser) {
+  if (isBrowser) {
     nextAdjustmentMacroTask();
   } else {
     processPendingAdjustments();
   }
 };
 
-if (import.meta.env?.TEST ? !isServerPlatform() : isBrowser) {
+if (isBrowser) {
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;

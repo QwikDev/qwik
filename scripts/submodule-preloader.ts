@@ -65,6 +65,7 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
       minify: false, // This is the default, just to be explicit
       outDir: config.distQwikPkgDir,
     },
+    define: { 'import.meta.env.TEST': 'false' }, // We replace `import.meta.env.TEST` with `false` at build time. This prevents `import.meta.env?.TEST` from blowing up the preloader.mjs size and prevents non vite environments (e.g. webpack, node etc.) from blowing up when `import.meta.env` is undefined.
     plugins: [customTerserPlugin()],
   });
 

@@ -7,6 +7,7 @@ import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import type { EffectSubscription } from '../reactive-primitives/types';
+import { scheduleEffects } from '../reactive-primitives/utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
@@ -257,12 +258,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         continue;
       }
       const rootEffects = (root.$effects$ ||= new Set());
+      let newEffects: Set<EffectSubscription> | undefined;
       for (const effect of effects) {
         if (!rootEffects.has(effect)) {
           rootEffects.add(effect);
+          (newEffects ||= new Set()).add(effect);
         }
         (effect.backRef ||= new Set()).add(root);
       }
+      scheduleEffects(this, root, newEffects);
     }
   }
 

@@ -142,10 +142,11 @@ test.describe('out-of-order suspense streaming', () => {
     await page.locator('#ooos-cross-release').click();
     await expect(page.locator('#ooos-cross-resolved')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-cross-fallback')).toBeHidden();
-    await expect(page.locator('#ooos-cross-resolved-count')).toHaveText('shared=0');
+    await expect(page.locator('#ooos-cross-resolved-count')).toHaveText('shared=1');
 
-    // The resolved HTML was rendered on the server before the fallback click. This click proves
-    // the resolved segment merges its root signal subscription back into root state.
+    // The resolved HTML was rendered on the server before the fallback click. Processing the
+    // segment metadata should merge and schedule the content subscription so it catches up before
+    // the next user interaction.
     await page.locator('#ooos-cross-resolved-button').click();
     await expect(page.locator('#ooos-cross-shell-count')).toHaveText('shared=2');
     await expect(page.locator('#ooos-cross-resolved-count')).toHaveText('shared=2');

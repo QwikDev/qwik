@@ -21,6 +21,7 @@ type OutOfOrderGroup = {
 type OutOfOrderExecutor = {
   (boundaryId: number): void;
   g(groupId: number, total: number, order: string): void;
+  p(): void;
 };
 
 type OutOfOrderDocument = Document & {
@@ -35,6 +36,14 @@ type OutOfOrderGlobal = typeof globalThis & {
 export const installOutOfOrderExecutor = (doc: Document) => {
   const groups: Record<string, OutOfOrderGroup> = {};
 
+  const process = () => {
+    const executorDoc = doc as OutOfOrderDocument;
+    const processOOOS = executorDoc.qProcessOOOS || executorDoc.qProcessVNodeData;
+    if (processOOOS) {
+      processOOOS(executorDoc);
+    }
+  };
+
   const group = (groupId: number | string, total: number, order: string): OutOfOrderGroup =>
     groups[groupId] ||
     (groups[groupId] = {
@@ -45,10 +54,8 @@ export const installOutOfOrderExecutor = (doc: Document) => {
     });
 
   const swap = (resolved: OutOfOrderTemplate, fallback: OutOfOrderFallback) => {
-    const executorDoc = doc as OutOfOrderDocument;
     let content: Element | null;
     let parent: Node | null;
-    let process: ((doc: Document) => void) | undefined;
 
     if (!resolved || !fallback) {
       return 0;
@@ -73,10 +80,7 @@ export const installOutOfOrderExecutor = (doc: Document) => {
     fallback.removeAttribute(Q_ORDER_ATTR);
     fallback.removeAttribute(Q_COLLAPSED_ATTR);
     resolved.remove();
-    process = executorDoc.qProcessOOOS || executorDoc.qProcessVNodeData;
-    if (process) {
-      process(executorDoc);
-    }
+    process();
     return 1;
   };
 
@@ -166,6 +170,7 @@ export const installOutOfOrderExecutor = (doc: Document) => {
     }
     flush(currentGroup);
   };
+  qO.p = process;
 
   (globalThis as OutOfOrderGlobal).qO = qO;
 };

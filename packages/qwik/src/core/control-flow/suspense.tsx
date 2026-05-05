@@ -291,9 +291,7 @@ async function emitOutOfOrderSegmentScripts(ssr: SSRContainer, scripts: string):
   await ssr.waitForRootContainerReady();
   await ssr.runQueuedRender(async () => {
     ssr.write(scripts);
-    ssr.emitInlineScript(
-      'document.qProcessOOOS?document.qProcessOOOS(document):document.qProcessVNodeData&&document.qProcessVNodeData(document)'
-    );
+    ssr.emitInlineScript('qO.p()');
     await ssr.streamHandler.flush();
   });
 }

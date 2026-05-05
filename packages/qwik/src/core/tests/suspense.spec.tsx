@@ -1049,6 +1049,66 @@ describe('renderToStream: out-of-order Suspense', () => {
     expect(contentHost.style.display).toBe('contents');
   });
 
+  it('should stream resolved HTML before root state and segment scripts after it', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    let releaseFirstFlush!: () => void;
+    let flushes = 0;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <main>
+          <button onClick$={() => count.value++}>{count.value}</button>
+          <Suspense fallback={<button onClick$={() => undefined}>Waiting</button>}>
+            <Slow />
+          </Suspense>
+          <footer>Footer</footer>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: {
+        write(chunk) {
+          chunks.push(chunk);
+          flushes++;
+          if (flushes === 1) {
+            return new Promise<void>((resolve) => {
+              releaseFirstFlush = resolve;
+            });
+          }
+        },
+      },
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting'));
+    resolveSlow(<button onClick$={() => undefined}>Done early</button>);
+    await vi.waitFor(() => expect(releaseFirstFlush).toBeDefined());
+    releaseFirstFlush();
+    await renderPromise;
+
+    const html = chunks.join('');
+    const resolvedHtmlIndex = html.indexOf('<template q:r="1">');
+    const swapIndex = html.indexOf('qO(1)');
+    const rootStateIndex = html.indexOf('type="qwik/state"');
+    const segmentStateIndex = html.indexOf('q:s="s1"');
+
+    expect(resolvedHtmlIndex).toBeGreaterThan(-1);
+    expect(swapIndex).toBeGreaterThan(resolvedHtmlIndex);
+    expect(rootStateIndex).toBeGreaterThan(swapIndex);
+    expect(segmentStateIndex).toBeGreaterThan(rootStateIndex);
+  });
+
   it('should emit compact segment vnode attributes', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {

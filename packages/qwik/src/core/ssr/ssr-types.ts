@@ -75,6 +75,7 @@ export interface SSRRenderJSXOptions {
 
 export interface SSROutOfOrderSegment {
   html: string;
+  scripts: string;
   suspended: Promise<unknown> | null;
 }
 
@@ -129,6 +130,7 @@ export interface SSRContainer extends Container {
   render(jsx: JSXOutput): Promise<void>;
   renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
   runQueuedRender<T>(render: () => ValueOrPromise<T>): Promise<T>;
+  runQueuedRenderBeforeRootState<T>(render: () => ValueOrPromise<T>): Promise<T>;
   captureOutOfOrderPromise(promise: Promise<unknown>): never;
   waitForRootContainerReady(): ValueOrPromise<void>;
   nextOutOfOrderId(): number;

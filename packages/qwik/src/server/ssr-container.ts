@@ -170,6 +170,9 @@ class StringBufferWriter {
   write(text: string) {
     this.buffer.push(text);
   }
+  clear() {
+    this.buffer.length = 0;
+  }
   toString() {
     return this.buffer.join('');
   }
@@ -212,7 +215,12 @@ interface RenderState {
   noScriptHere: number;
   vnodeSegment: string | null;
   externalRootEffectContext: SerializationContext | null;
-  externalRootEffects: Map<number, Set<EffectSubscription>> | null;
+  externalRootEffects: Map<number, ExternalRootEffects> | null;
+}
+
+interface ExternalRootEffects {
+  producer: SignalImpl<unknown>;
+  effects: Set<EffectSubscription>;
 }
 
 class OutOfOrderSuspensePromise {
@@ -296,12 +304,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private outOfOrderUsed = false;
   private outOfOrderExecutorEmitted = false;
   private outOfOrderPendingSegments: Promise<void>[] = [];
+  private outOfOrderReadyRenders: Array<() => Promise<void>> = [];
   private rootContainerReady = false;
+  private rootContainerDataStarted = false;
   private rootContainerReadyPromise: Promise<void> | null = null;
   private resolveRootContainerReady: (() => void) | null = null;
   private renderQueue: Promise<unknown> = Promise.resolve();
   private externalRootEffectContext: SerializationContext | null = null;
-  private externalRootEffects: Map<number, Set<EffectSubscription>> | null = null;
+  private externalRootEffects: Map<number, ExternalRootEffects> | null = null;
 
   constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
@@ -410,9 +420,24 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * Root render: [emit state + flush] promise A: -> segment(A) promise B: ---------> segment(B)
    */
   runQueuedRender<T>(render: () => ValueOrPromise<T>): Promise<T> {
-    const result = this.renderQueue.then(render, render);
+    const run = () =>
+      Promise.resolve(
+        __EXPERIMENTAL__.suspense && this.rootContainerDataStarted && !this.rootContainerReady
+          ? this.waitForRootContainerReady()
+          : undefined
+      ).then(render);
+    const result = this.renderQueue.then(run, run);
     this.renderQueue = result.catch(() => {});
     return result;
+  }
+
+  runQueuedRenderBeforeRootState<T>(render: () => ValueOrPromise<T>): Promise<T> {
+    if (!__EXPERIMENTAL__.suspense || this.rootContainerDataStarted) {
+      return this.runQueuedRender(render);
+    }
+    return new Promise<T>((resolve, reject) => {
+      this.outOfOrderReadyRenders.push(() => this.runQueuedRender(render).then(resolve, reject));
+    });
   }
 
   captureOutOfOrderPromise(promise: Promise<unknown>): never {
@@ -430,11 +455,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (rootId === undefined) {
       return;
     }
-    let effects = this.externalRootEffects?.get(rootId);
-    if (!effects) {
-      this.externalRootEffects!.set(rootId, (effects = new Set()));
+    let record = this.externalRootEffects?.get(rootId);
+    if (!record) {
+      this.externalRootEffects!.set(
+        rootId,
+        (record = {
+          producer: producer as SignalImpl<unknown>,
+          effects: new Set(),
+        })
+      );
     }
-    effects.add(effect);
+    record.effects.add(effect);
   }
 
   waitForRootContainerReady(): ValueOrPromise<void> {
@@ -454,6 +485,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.resolveRootContainerReady?.();
     this.resolveRootContainerReady = null;
     this.rootContainerReadyPromise = null;
+  }
+
+  private async flushOutOfOrderRendersBeforeRootState(): Promise<void> {
+    if (!__EXPERIMENTAL__.suspense || this.rootContainerDataStarted) {
+      return;
+    }
+    await this.streamHandler.flush();
+    while (this.outOfOrderReadyRenders.length) {
+      const readyRenders = this.outOfOrderReadyRenders;
+      this.outOfOrderReadyRenders = [];
+      for (let i = 0; i < readyRenders.length; i++) {
+        await readyRenders[i]();
+      }
+    }
+    this.rootContainerDataStarted = true;
   }
 
   nextOutOfOrderId(): number {
@@ -500,8 +546,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.serializationCtx.$getExternalRootId$ = (obj) =>
       parentState.serializationCtx.$hasRootId$(obj);
     this.externalRootEffectContext =
-      parentState.externalRootEffectContext ||
-      (this.rootContainerReady ? parentState.serializationCtx : null);
+      parentState.externalRootEffectContext || parentState.serializationCtx;
     this.externalRootEffects = this.externalRootEffectContext ? new Map() : null;
     this.lastNode = null;
     this.currentElementFrame = rootFrame;
@@ -517,21 +562,29 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.vnodeSegment = segmentId;
 
     try {
+      const rootReadyAtSegment = this.rootContainerReady;
       await this.renderJSX(jsx, options);
       await this.resolvePromiseAttributes();
       this.mergeSegmentEventData(parentState.serializationCtx);
+      const html = writer.toString();
+      writer.clear();
       const externalRootEffectsIndex = this.addExternalRootEffectsPatch();
       await this.emitStateData(segmentId, externalRootEffectsIndex);
       this.mergeSegmentSyncFns(parentState.serializationCtx);
+      if (!rootReadyAtSegment) {
+        this.detachExternalRootEffects();
+      }
       this.$noMoreRoots$ = true;
       this.emitVNodeData(segmentId);
-      this.emitSyncFnsData(true);
+      if (rootReadyAtSegment) {
+        this.emitSyncFnsData(true);
+      }
       this.emitPatchDataIfNeeded();
       this.drainCleanupQueue();
-      return { html: writer.toString(), suspended: null };
+      return { html, scripts: writer.toString(), suspended: null };
     } catch (err) {
       if (err instanceof OutOfOrderSuspensePromise) {
-        return { html: '', suspended: err.promise };
+        return { html: '', scripts: '', suspended: err.promise };
       }
       throw err;
     } finally {
@@ -586,12 +639,25 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
     const patch: Array<[number, EffectSubscription[]]> = [];
-    for (const [rootId, effects] of this.externalRootEffects) {
-      patch.push([rootId, [...effects]]);
+    for (const [rootId, record] of this.externalRootEffects) {
+      patch.push([rootId, [...record.effects]]);
     }
     const patchIndex = this.serializationCtx.$roots$.length;
     this.serializationCtx.$addRoot$(patch);
     return patchIndex;
+  }
+
+  private detachExternalRootEffects(): void {
+    if (!__EXPERIMENTAL__.suspense || !this.externalRootEffects) {
+      return;
+    }
+    for (const record of this.externalRootEffects.values()) {
+      const producerEffects = record.producer.$effects$;
+      for (const effect of record.effects) {
+        producerEffects?.delete(effect);
+        effect.backRef?.delete(record.producer);
+      }
+    }
   }
 
   private mergeSegmentEventData(parentSerializationCtx: SerializationContext): void {
@@ -775,17 +841,24 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       // start snapshot timer
       this.onRenderDone();
       const snapshotTimer = createTimer();
+      const beforeContainerData =
+        __EXPERIMENTAL__.suspense && this.outOfOrderUsed
+          ? this.flushOutOfOrderRendersBeforeRootState()
+          : undefined;
       return maybeThen(
-        maybeThen(this.emitContainerData(), async () => {
-          if (__EXPERIMENTAL__.suspense && this.outOfOrderUsed) {
-            await this.streamHandler.flush();
-            this.markRootContainerReady();
-            if (this.outOfOrderPendingSegments.length) {
-              await Promise.all(this.outOfOrderPendingSegments);
+        maybeThen(
+          maybeThen(beforeContainerData, () => this.emitContainerData()),
+          async () => {
+            if (__EXPERIMENTAL__.suspense && this.outOfOrderUsed) {
+              await this.streamHandler.flush();
+              this.markRootContainerReady();
+              if (this.outOfOrderPendingSegments.length) {
+                await Promise.all(this.outOfOrderPendingSegments);
+              }
             }
+            this._closeElement();
           }
-          this._closeElement();
-        }),
+        ),
         () => {
           // set snapshot time
           this.timing.snapshot = snapshotTimer();

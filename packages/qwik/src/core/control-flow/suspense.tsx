@@ -235,6 +235,7 @@ const SSRSuspense = __EXPERIMENTAL__.suspense
       ssr.commentNode(QSuspenseEnd + boundaryId);
       ssr.closeFragment();
       if (!suspended) {
+        ssr.queueOutOfOrderSegment(emitOutOfOrderSegmentScripts(ssr, content.scripts));
         return;
       }
       ssr.emitOutOfOrderExecutorIfNeeded();
@@ -266,8 +267,7 @@ async function emitResolvedOutOfOrderSegment(
   slotReplayRecords: SSRSlotReplayRecords
 ): Promise<void> {
   await firstPromise;
-  await ssr.waitForRootContainerReady();
-  await ssr.runQueuedRender(async () => {
+  const rendered = await ssr.runQueuedRenderBeforeRootState(async () => {
     const rendered = await ssr.segment(segmentId, children, {
       ...options,
       promiseMode: 'normal',
@@ -278,6 +278,22 @@ async function emitResolvedOutOfOrderSegment(
     });
     writeOutOfOrderResolvedTemplate(ssr, boundaryId, rendered.html, revealBoundary);
     ssr.emitInlineScript(`qO(${boundaryId})`);
+    await ssr.streamHandler.flush();
+    return rendered;
+  });
+  await emitOutOfOrderSegmentScripts(ssr, rendered.scripts);
+}
+
+async function emitOutOfOrderSegmentScripts(ssr: SSRContainer, scripts: string): Promise<void> {
+  if (!scripts) {
+    return;
+  }
+  await ssr.waitForRootContainerReady();
+  await ssr.runQueuedRender(async () => {
+    ssr.write(scripts);
+    ssr.emitInlineScript(
+      'document.qProcessOOOS?document.qProcessOOOS(document):document.qProcessVNodeData&&document.qProcessVNodeData(document)'
+    );
     await ssr.streamHandler.flush();
   });
 }

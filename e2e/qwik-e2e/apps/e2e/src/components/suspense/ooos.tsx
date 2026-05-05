@@ -11,27 +11,40 @@ import {
 
 type OutOfOrderReleaseStore = {
   resolved: Set<string>;
-  resolvers: Map<string, () => void>;
+  resolvers: Map<string, Set<() => void>>;
 };
 
 const getOutOfOrderReleaseStore = (): OutOfOrderReleaseStore =>
   ((globalThis as any).__qwikOOOSReleaseStore ||= {
     resolved: new Set<string>(),
-    resolvers: new Map<string, () => void>(),
+    resolvers: new Map<string, Set<() => void>>(),
   });
+
+const getOutOfOrderReleaseKey = (requestId: string, releaseId: string): string => {
+  return `${requestId}:${releaseId}`;
+};
 
 const getSearchParam = (url: string | undefined, name: string): string | null => {
   return url ? new URL(url).searchParams.get(name) : null;
 };
 
-const waitForOutOfOrderRelease = (releaseId: string, value: JSXOutput): Promise<JSXOutput> => {
+const waitForOutOfOrderRelease = (
+  requestId: string,
+  releaseId: string,
+  value: JSXOutput
+): Promise<JSXOutput> => {
   return new Promise<JSXOutput>((resolve) => {
     const release = () => resolve(value);
     const store = getOutOfOrderReleaseStore();
-    if (store.resolved.has(releaseId)) {
+    const key = getOutOfOrderReleaseKey(requestId, releaseId);
+    if (store.resolved.has(key)) {
       release();
     } else {
-      store.resolvers.set(releaseId, release);
+      let resolvers = store.resolvers.get(key);
+      if (!resolvers) {
+        store.resolvers.set(key, (resolvers = new Set()));
+      }
+      resolvers.add(release);
     }
   });
 };
@@ -91,10 +104,11 @@ export const FallbackOutOfOrderContent = component$(() => {
 
 export const SlowOutOfOrderContent = component$(() => {
   const url = useServerData<string>('url');
+  const requestId = useServerData<string>('ooosRequestId');
   if (isServer) {
     const releaseId = getSearchParam(url, 'release');
     if (releaseId) {
-      return waitForOutOfOrderRelease(releaseId, <ResolvedOutOfOrderContent />);
+      return waitForOutOfOrderRelease(requestId, releaseId, <ResolvedOutOfOrderContent />);
     }
     const params = url ? new URL(url).searchParams : null;
     const delay = Number(params?.get('delay') || 1000);
@@ -199,13 +213,14 @@ export const CrossStateOutOfOrderSuspense = component$(() => {
 export const ManualOutOfOrderReleaseButton = component$(
   (props: { id: string; label: string; releaseParam: string }) => {
     const url = useServerData<string>('url');
+    const requestId = useServerData<string>('ooosRequestId');
     const releaseId = getSearchParam(url, props.releaseParam);
-    if (!releaseId) {
+    if (!releaseId || !requestId) {
       return null;
     }
     const html = `<button id="${escapeAttr(props.id)}" onclick="fetch('/__ooos-release/${encodeURIComponent(
-      releaseId
-    )}',{method:'POST'})">${escapeHtml(props.label)}</button>`;
+      requestId
+    )}/${encodeURIComponent(releaseId)}',{method:'POST'})">${escapeHtml(props.label)}</button>`;
 
     return <span dangerouslySetInnerHTML={html} />;
   }
@@ -219,10 +234,12 @@ type ControlledOutOfOrderContentProps = {
 
 export const ControlledOutOfOrderContent = component$<ControlledOutOfOrderContentProps>((props) => {
   const url = useServerData<string>('url');
+  const requestId = useServerData<string>('ooosRequestId');
   if (isServer) {
     const releaseId = getSearchParam(url, props.releaseParam);
     if (releaseId) {
       return waitForOutOfOrderRelease(
+        requestId,
         releaseId,
         <ResolvedOutOfOrderPanel id={props.id} label={props.label} />
       );
@@ -278,10 +295,15 @@ export const CrossStateFallback = component$((props: { shared: Signal<number> })
 
 export const CrossStateContent = component$<{ shared: Signal<number> }>((props) => {
   const url = useServerData<string>('url');
+  const requestId = useServerData<string>('ooosRequestId');
   if (isServer) {
     const releaseId = getSearchParam(url, 'cross');
     if (releaseId) {
-      return waitForOutOfOrderRelease(releaseId, <CrossStateResolved shared={props.shared} />);
+      return waitForOutOfOrderRelease(
+        requestId,
+        releaseId,
+        <CrossStateResolved shared={props.shared} />
+      );
     }
     return new Promise<JSXOutput>((resolve) => {
       setTimeout(() => resolve(<CrossStateResolved shared={props.shared} />), 1000);

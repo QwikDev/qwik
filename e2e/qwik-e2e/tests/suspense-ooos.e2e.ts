@@ -1,13 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
-
-const releaseOutOfOrderSegment = async (page: Page, id: string) => {
-  await page.evaluate(async (releaseId) => {
-    const response = await fetch(`/__ooos-release/${releaseId}`, { method: 'POST' });
-    if (!response.ok) {
-      throw new Error(`Failed to release OOOS segment: ${response.status}`);
-    }
-  }, id);
-};
+import { test, expect } from '@playwright/test';
 
 test.describe('out-of-order suspense streaming', () => {
   test.beforeEach(async ({ page }) => {
@@ -64,7 +55,7 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-fallback')).toBeVisible();
     await expect(page.locator('#ooos-resolved')).toHaveCount(0);
 
-    await releaseOutOfOrderSegment(page, releaseId);
+    await page.locator('#ooos-default-release').click();
     await expect(page.locator('#ooos-resolved')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-fallback')).toBeHidden();
     await navigation;
@@ -112,10 +103,15 @@ test.describe('out-of-order suspense streaming', () => {
 
     await page.reload({ waitUntil: 'commit' });
     await expect(page.locator('#ooos-title')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-multi-first-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-multi-second-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-multi-first-resolved')).toHaveCount(0);
+    await expect(page.locator('#ooos-multi-second-resolved')).toHaveCount(0);
+
+    await page.locator('#ooos-multi-first-release').click();
+    await page.locator('#ooos-multi-second-release').click();
     await expect(page.locator('#ooos-multi-first-resolved')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-multi-second-resolved')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#ooos-multi-first-fallback')).toBeHidden();
-    await expect(page.locator('#ooos-multi-second-fallback')).toBeHidden();
   });
 
   test('shares root state between fallback and resolved suspense content', async ({

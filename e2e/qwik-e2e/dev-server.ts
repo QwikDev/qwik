@@ -54,14 +54,20 @@ const appNames = readdirSync(appsDir).filter((p) => statSync(join(appsDir, p)).i
 
 type OOOSReleaseStore = {
   resolved: Set<string>;
-  resolvers: Map<string, () => void>;
+  resolvers: Map<string, Set<() => void>>;
 };
 
 const getOOOSReleaseStore = (): OOOSReleaseStore =>
   ((globalThis as any).__qwikOOOSReleaseStore ||= {
     resolved: new Set<string>(),
-    resolvers: new Map<string, () => void>(),
+    resolvers: new Map<string, Set<() => void>>(),
   });
+
+const getOOOSReleaseKey = (requestId: string, releaseId: string): string => {
+  return `${requestId}:${releaseId}`;
+};
+
+let ooosRequestCounter = 0;
 
 /** Used when qwik-router server is enabled */
 const qwikRouterVirtualEntry = '@router-ssr-entry';
@@ -294,6 +300,7 @@ async function ssrApp(
   // ssr the document
   const base = `/${appName}/build/`;
   const url = new URL(`${req.protocol}://${req.hostname}${req.url}`).href;
+  const ooosRequestId = `${process.pid}-${++ooosRequestCounter}`;
 
   const opts: RenderToStreamOptions = {
     stream: res,
@@ -302,6 +309,7 @@ async function ssrApp(
     base,
     serverData: {
       url,
+      ooosRequestId,
     },
   };
   await render(opts);
@@ -407,14 +415,16 @@ async function main() {
     res.status(204).end();
   });
 
-  app.post('/__ooos-release/:id', (req, res) => {
+  app.post('/__ooos-release/:requestId/:id', (req, res) => {
+    const requestId = req.params.requestId;
     const id = req.params.id;
     const store = getOOOSReleaseStore();
-    store.resolved.add(id);
-    const resolver = store.resolvers.get(id);
-    if (resolver) {
-      store.resolvers.delete(id);
-      resolver();
+    const key = getOOOSReleaseKey(requestId, id);
+    const resolvers = store.resolvers.get(key);
+    store.resolved.add(key);
+    if (resolvers) {
+      store.resolvers.delete(key);
+      resolvers.forEach((resolve) => resolve());
     }
     res.status(204).end();
   });

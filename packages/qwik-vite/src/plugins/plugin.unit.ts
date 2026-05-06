@@ -181,6 +181,88 @@ test('input array', async () => {
   ]);
 });
 
+test('input prefers root-relative path when it exists', async () => {
+  const repo = '/repo';
+  const rootDir = '/repo/apps/mock-app';
+  const plugin = await mockPlugin({
+    cwd: repo,
+    fileExists: (id) =>
+      id === '/repo/apps/mock-app/src/entry.fastify.tsx' || id === '/repo/src/entry.fastify.tsx',
+  });
+  const opts = await plugin.normalizeOptions({
+    rootDir,
+    scope: 'mock-app',
+    input: ['src/entry.fastify.tsx'],
+  });
+
+  assert.deepEqual(opts.input, ['/repo/apps/mock-app/src/entry.fastify.tsx']);
+});
+
+test('input falls back to cwd-relative monorepo path when root-relative path does not exist', async () => {
+  const repo = '/repo';
+  const rootDir = '/repo/apps/mock-app';
+  const plugin = await mockPlugin({
+    cwd: repo,
+    fileExists: (id) => id === '/repo/apps/mock-app/src/entry.fastify.tsx',
+  });
+  const opts = await plugin.normalizeOptions({
+    rootDir,
+    scope: 'mock-app',
+    input: ['apps/mock-app/src/entry.fastify.tsx'],
+  });
+
+  assert.deepEqual(opts.input, ['/repo/apps/mock-app/src/entry.fastify.tsx']);
+});
+
+test('input object supports root-relative and cwd-relative paths', async () => {
+  const repo = '/repo';
+  const rootDir = '/repo/apps/mock-app';
+  const plugin = await mockPlugin({
+    cwd: repo,
+    fileExists: (id) =>
+      id === '/repo/apps/mock-app/src/entry.server.tsx' ||
+      id === '/repo/apps/mock-app/src/entry.fastify.tsx',
+  });
+  const opts = await plugin.normalizeOptions({
+    rootDir,
+    scope: 'mock-app',
+    input: {
+      server: 'src/entry.server.tsx',
+      fastify: 'apps/mock-app/src/entry.fastify.tsx',
+      virtual: '@qwik-city-plan',
+    },
+  });
+
+  assert.deepEqual(opts.input, {
+    server: '/repo/apps/mock-app/src/entry.server.tsx',
+    fastify: '/repo/apps/mock-app/src/entry.fastify.tsx',
+    virtual: '@qwik-city-plan',
+  });
+});
+
+test('input array supports win32 cwd-relative monorepo path', async () => {
+  const existing = new Set([
+    'C:/repo/apps/mock-app/src/entry.server.tsx',
+    'C:/repo/apps/mock-app/src/entry.fastify.tsx',
+  ]);
+  const plugin = await mockPlugin({
+    os: 'win32',
+    cwd: 'C:\\repo',
+    path: path.win32,
+    fileExists: (id) => existing.has(id.replace(/\\/g, '/')),
+  });
+  const opts = await plugin.normalizeOptions({
+    rootDir: 'C:\\repo\\apps\\mock-app',
+    scope: 'mock-app',
+    input: ['src\\entry.server.tsx', 'apps\\mock-app\\src\\entry.fastify.tsx'],
+  });
+
+  assert.deepEqual(opts.input, [
+    'C:/repo/apps/mock-app/src/entry.server.tsx',
+    'C:/repo/apps/mock-app/src/entry.fastify.tsx',
+  ]);
+});
+
 test.runIf(process.platform === 'win32')('input array, win32', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({
@@ -315,15 +397,42 @@ describe('resolveId', () => {
   });
 });
 
-async function mockPlugin(os = process.platform) {
+interface MockPluginOptions {
+  os?: string;
+  cwd?: string;
+  path?: typeof path;
+  fileExists?: (id: string) => boolean;
+}
+
+async function mockPlugin(osOrOptions: string | MockPluginOptions = process.platform) {
+  const options: MockPluginOptions =
+    typeof osOrOptions === 'string' ? { os: osOrOptions } : osOrOptions;
+  const mockFs = options.fileExists
+    ? {
+        existsSync: options.fileExists,
+        promises: {
+          stat: async () => false,
+          readFile: async () => {
+            throw new Error('ENOENT');
+          },
+        },
+      }
+    : undefined;
+  const sysPath = options.path || path;
+  const sysCwd = options.cwd || process.cwd();
   const plugin = createQwikPlugin({
     sys: {
-      cwd: () => process.cwd(),
+      cwd: () => sysCwd,
       env: 'node',
-      os,
-      dynamicImport: async (path) => import(path),
-      strictDynamicImport: async (path) => import(path),
-      path: path as any,
+      os: options.os || process.platform,
+      dynamicImport: async (importPath) => {
+        if (importPath === 'node:fs' && mockFs) {
+          return mockFs;
+        }
+        return import(importPath);
+      },
+      strictDynamicImport: async (importPath) => import(importPath),
+      path: sysPath as any,
     },
     binding: { mockBinding: true },
   });

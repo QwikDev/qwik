@@ -387,12 +387,32 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.input = [opts.input];
     }
     // Normalize relative input paths to absolute (consistent with rootDir/srcDir/outDir)
+    const normalizeInput = (inp: string) => {
+      if (inp.startsWith('@') || inp.startsWith('\0') || path.isAbsolute(inp)) {
+        return inp;
+      }
+
+      const rootResolved = resolvePath(opts.rootDir, inp);
+      if (maybeFs?.existsSync(rootResolved)) {
+        return rootResolved;
+      }
+
+      const cwdResolved = resolvePath(optimizer.sys.cwd(), inp);
+      if (maybeFs?.existsSync(cwdResolved)) {
+        return cwdResolved;
+      }
+
+      return rootResolved;
+    };
     if (Array.isArray(opts.input)) {
-      opts.input = opts.input.map((inp) =>
-        inp.startsWith('@') || inp.startsWith('\0') || path.isAbsolute(inp)
-          ? inp
-          : normalizePath(path.resolve(opts.rootDir, inp))
-      );
+      opts.input = opts.input.map(normalizeInput);
+    } else if (opts.input && typeof opts.input === 'object') {
+      opts.input = Object.fromEntries(
+        Object.entries(opts.input).map(([entry, input]) => [
+          entry,
+          typeof input === 'string' ? normalizeInput(input) : input,
+        ])
+      ) as { [entry: string]: string };
     }
 
     const out = { ...opts };

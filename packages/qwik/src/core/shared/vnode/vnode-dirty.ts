@@ -140,6 +140,13 @@ export function markVNodeDirty(
   bits: ChoreBits,
   cursorRoot: VNode | null = null
 ): void {
+  if (!vNode) {
+    // vNode can be undefined when a container is destroyed during async qwikloader dispatch.
+    // DomContainer.$destroy$() replaces $getObjectById$ with () => undefined and truncates
+    // $stateData$, so deserializeCaptures returns [undefined] for pending event handlers.
+    // This affects scheduleTask, scheduleEffects, _hmr, _val, _chk, and _res.
+    return;
+  }
   const prevDirty = vNode.dirty;
   vNode.dirty |= bits;
   if (isSsrNodeGuard(vNode)) {

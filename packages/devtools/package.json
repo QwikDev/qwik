@@ -1,0 +1,112 @@
+{
+  "name": "@qwik.dev/devtools",
+  "description": "Qwik devtools package",
+  "version": "0.2.8",
+  "bugs": "https://github.com/QwikDev/devtools/issues",
+  "dependencies": {
+    "birpc": "^4.0.0",
+    "debug": "4.4.3",
+    "dree": "^5.1.5",
+    "fast-glob": "^3.3.3",
+    "oxc-parser": "^0.120.0",
+    "rollup-plugin-visualizer": "^6.0.3",
+    "superjson": "^2.2.6",
+    "vite-hot-client": "^2.1.0",
+    "vite-plugin-inspect": "^11.3.3"
+  },
+  "devDependencies": {
+    "@babel/types": "7.29.0",
+    "@changesets/cli": "2.29.5",
+    "@changesets/get-github-info": "0.6.0",
+    "@changesets/types": "6.1.0",
+    "@qwik.dev/core": "workspace:*",
+    "@tailwindcss/postcss": "4.2.4",
+    "@tailwindcss/vite": "4.2.4",
+    "@types/debug": "4.1.13",
+    "@types/eslint": "9.6.1",
+    "@types/node": "24.10.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@typescript-eslint/eslint-plugin": "8.57.1",
+    "@typescript-eslint/parser": "8.57.1",
+    "autoprefixer": "10.4.27",
+    "cpy-cli": "7.0.0",
+    "eslint": "10.0.3",
+    "eslint-plugin-qwik": "workspace:*",
+    "nodemon": "3.1.14",
+    "np": "11.0.2",
+    "postcss": "8.5.8",
+    "prettier": "3.7.4",
+    "prettier-plugin-tailwindcss": "0.7.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "shiki": "4.0.2",
+    "tailwindcss": "4.2.4",
+    "tsdown": "0.21.10",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.1",
+    "vite-tsconfig-paths": "6.1.1",
+    "vitest": "4.1.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/plugin/index.d.mts",
+      "import": "./dist/plugin/index.mjs"
+    },
+    "./ui": {
+      "types": "./dist/ui/lib-types/ui/src/index.d.ts",
+      "import": "./dist/ui/index.qwik.mjs",
+      "style": "./dist/ui/styles.css"
+    },
+    "./ui/styles.css": {
+      "import": "./dist/ui/styles.css"
+    },
+    "./kit": {
+      "types": "./dist/kit/index.d.mts",
+      "import": "./dist/kit/index.mjs"
+    },
+    "./style": {
+      "import": "./dist/ui/styles.css"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "homepage": "https://github.com/QwikDev/devtools#readme",
+  "keywords": [
+    "devtools",
+    "plugin",
+    "qwik"
+  ],
+  "license": "MIT",
+  "main": "./dist/plugin/index.mjs",
+  "peerDependencies": {
+    "@qwik.dev/core": "workspace:^",
+    "@qwik.dev/router": "workspace:^",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@tailwindcss/vite": "^4.2.1",
+    "tailwindcss": "^4.2.1",
+    "vite": ">=6 <9"
+  },
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "qwik": "./dist/ui/index.qwik.mjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/devtools"
+  },
+  "scripts": {
+    "build": "tsx scripts/build-devtools.ts",
+    "change": "changeset",
+    "dev": "nodemon --watch kit/src --watch plugin/src --watch ui/src --watch plugin/tsdown.config.ts --watch ui/vite.config.mts --watch tsconfig.json --ext ts,tsx,mts,css --exec \"pnpm build\"",
+    "release": "changeset publish",
+    "release.pkg-pr-new": "pnpm dlx pkg-pr-new publish"
+  },
+  "type": "module",
+  "types": "./dist/plugin/index.d.mts"
+}

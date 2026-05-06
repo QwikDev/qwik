@@ -1,0 +1,200 @@
+@import 'tailwindcss';
+@config '../tailwind.config.ts';
+
+/**
+ * Tailwind CSS imports (v4)
+ * View the full documentation at https://tailwindcss.com
+ */
+
+@theme {
+  /* default (light) tokens; can be overridden by :root rules below */
+  --color-background: #ffffff;
+  --color-foreground: #000000;
+  --color-primary: #16b6f6;
+  --color-primary-hover: #38bdf8;
+  --color-primary-active: #0ea5e9;
+  --color-secondary: #6b7280;
+  --color-muted: #9ca3af;
+  --color-muted-foreground: #6b7280;
+  --color-accent: #16b6f6;
+  --color-border: #e5e7eb;
+  --color-input: #e5e7eb;
+  --color-ring: #16b6f6;
+  --color-card: #f2f2f2;
+  --color-glass-border: rgba(255, 255, 255, 0.4);
+  --color-glass-bg: rgba(255, 255, 255, 0.7);
+  --color-glass-shadow: rgba(0, 0, 0, 0.05);
+  --color-card-item-bg: rgba(0, 0, 0, 0.02);
+  --color-card-item-hover-bg: rgba(0, 0, 0, 0.04);
+}
+
+:root {
+  --theme-name: 'light';
+  --color-background: #fdfdfd;
+  --color-foreground: #09090b;
+  --color-primary: #16b6f6;
+  --color-primary-hover: #38bdf8;
+  --color-primary-active: #0ea5e9;
+  --color-secondary: #71717a;
+  --color-border: #e4e4e7;
+  --color-card: rgba(255, 255, 255, 0.6);
+  --color-card-item-bg: rgba(0, 0, 0, 0.02);
+  --color-card-item-hover-bg: rgba(0, 0, 0, 0.04);
+
+  /* Glassmorphism Variables */
+  --color-glass-border: rgba(255, 255, 255, 0.6);
+  --color-glass-bg: rgba(255, 255, 255, 0.85);
+  --color-glass-panel-bg: rgba(250, 250, 250, 0.75);
+  --color-glass-shadow: rgba(0, 0, 0, 0.08);
+
+  /* Scrollbar variables */
+  --color-scrollbar-thumb: rgba(161, 161, 170, 0.5);
+  --color-scrollbar-thumb-hover: rgba(113, 113, 122, 0.7);
+
+  /* Tailwind semantic variables */
+  --color-muted: #a1a1aa;
+  --color-muted-foreground: #71717a;
+  --color-accent: #16b6f6;
+  --color-input: var(--color-border);
+  --color-ring: var(--color-primary);
+}
+
+:root[data-theme='dark'] {
+  --theme-name: 'dark';
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+  --color-primary: #16b6f6;
+  --color-primary-hover: #38bdf8;
+  --color-primary-active: #0ea5e9;
+  --color-secondary: #a1a1aa;
+  --color-border: #27272a;
+  --color-card: rgba(24, 24, 27, 0.6);
+  --color-card-item-bg: rgba(255, 255, 255, 0.03);
+  --color-card-item-hover-bg: rgba(255, 255, 255, 0.06);
+
+  /* Glassmorphism Variables */
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-bg: rgba(9, 9, 11, 0.85);
+  --color-glass-panel-bg: rgba(24, 24, 27, 0.75);
+  --color-glass-shadow: rgba(0, 0, 0, 0.3);
+
+  /* Scrollbar variables */
+  --color-scrollbar-thumb: rgba(82, 82, 91, 0.5);
+  --color-scrollbar-thumb-hover: rgba(113, 113, 122, 0.7);
+
+  /* Tailwind semantic variables */
+  --color-muted: #27272a;
+  --color-muted-foreground: #a1a1aa;
+  --color-accent: #16b6f6;
+  --color-input: var(--color-border);
+  --color-ring: var(--color-primary);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --theme-name: 'dark';
+    --color-background: #09090b;
+    --color-foreground: #fafafa;
+    --color-primary: #16b6f6;
+    --color-primary-hover: #38bdf8;
+    --color-primary-active: #0ea5e9;
+    --color-secondary: #a1a1aa;
+    --color-border: #27272a;
+    --color-card: rgba(24, 24, 27, 0.6);
+    --color-card-item-bg: rgba(255, 255, 255, 0.03);
+    --color-card-item-hover-bg: rgba(255, 255, 255, 0.06);
+
+    /* Glassmorphism Variables */
+    --color-glass-border: rgba(255, 255, 255, 0.08);
+    --color-glass-bg: rgba(9, 9, 11, 0.85);
+    --color-glass-panel-bg: rgba(24, 24, 27, 0.75);
+    --color-glass-shadow: rgba(0, 0, 0, 0.3);
+
+    /* Scrollbar variables */
+    --color-scrollbar-thumb: rgba(82, 82, 91, 0.5);
+    --color-scrollbar-thumb-hover: rgba(113, 113, 122, 0.7);
+
+    /* Tailwind semantic variables */
+    --color-muted: #27272a;
+    --color-muted-foreground: #a1a1aa;
+    --color-accent: #16b6f6;
+    --color-input: var(--color-border);
+    --color-ring: var(--color-primary);
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-scrollbar-thumb) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-scrollbar-thumb);
+    border-radius: 9999px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-scrollbar-thumb-hover);
+  }
+
+  .glass-panel {
+    background-color: var(--color-glass-panel-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--color-glass-border);
+    box-shadow: 0 8px 32px 0 var(--color-glass-shadow);
+  }
+
+  .glass-button {
+    background-color: var(--color-glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--color-glass-border);
+    box-shadow: 0 4px 16px 0 var(--color-glass-shadow);
+  }
+}
+
+/* Animations */
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulsePulsar {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(22, 182, 246, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(22, 182, 246, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(22, 182, 246, 0);
+  }
+}
+
+.animate-slide-up-fade {
+  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulsar {
+  animation: pulsePulsar 2s infinite;
+}

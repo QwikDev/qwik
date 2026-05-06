@@ -24,6 +24,7 @@ export enum ExperimentalFeatures {
     insights = "insights",
     noSPA = "noSPA",
     preventNavigate = "preventNavigate",
+    suspense = "suspense",
     valibot = "valibot",
     webWorker = "webWorker"
 }

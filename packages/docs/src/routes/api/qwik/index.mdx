@@ -1807,6 +1807,20 @@ export type FunctionComponent<P = unknown> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-node.ts)
 
+<h2 id="getclientmanifest">getClientManifest</h2>
+
+Returns the client build manifest, which includes the mappings from symbols to bundles, the bundlegraph etc.
+
+```typescript
+getClientManifest: () => ServerQwikManifest | undefined;
+```
+
+**Returns:**
+
+ServerQwikManifest \| undefined
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/get-client-manifest.ts)
+
 <h2 id="getdomcontainer">getDomContainer</h2>
 
 ```typescript
@@ -4384,6 +4398,35 @@ export type ResourceReturn<T> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
+<h2 id="reveal">Reveal</h2>
+
+```typescript
+Reveal: typeof revealCmp;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx)
+
+<h2 id="revealorder">RevealOrder</h2>
+
+```typescript
+export type RevealOrder = "parallel" | "sequential" | "reverse" | "together";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx)
+
+<h2 id="revealprops">RevealProps</h2>
+
+```typescript
+export type RevealProps = {
+  order?: RevealOrder;
+  collapsed?: boolean;
+};
+```
+
+**References:** [RevealOrder](#revealorder)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx)
+
 <h2 id="serializationstrategy">SerializationStrategy</h2>
 
 Serialization strategy for computed and async signals. This determines whether to serialize their value during SSR.
@@ -5017,6 +5060,28 @@ Description
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts)
+
+<h2 id="suspense">Suspense</h2>
+
+```typescript
+Suspense: typeof suspenseCmp;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/suspense.tsx)
+
+<h2 id="suspenseprops">SuspenseProps</h2>
+
+```typescript
+export type SuspenseProps = {
+  fallback?: JSXOutput;
+  showStale?: boolean;
+  delay?: number;
+};
+```
+
+**References:** [JSXOutput](#jsxoutput)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/suspense.tsx)
 
 <h2 id="svgattributes">SVGAttributes</h2>
 

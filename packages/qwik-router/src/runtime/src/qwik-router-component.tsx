@@ -950,14 +950,26 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
     { deep: false }
   );
 
-  const loadersData = props.loaders?.reduce(
-    (acc, { loader, data }) => {
-      acc[(loader as LoaderInternal).__id] = data;
-      return acc;
-    },
-    {} as Record<string, QwikRouterMockLoaderProp['data']>
-  );
-  const loaderState = useStore(loadersData ?? {}, { deep: false });
+  // Mirror useQwikRouter: each loader id must be backed by an AsyncSignal so
+  // that user code reading `useFooLoader().value` (and `.loading`/`.error`/
+  // `.promise`) works. Storing raw data here would surface as `undefined`
+  // once the framework reads `state[id].value`.
+  const container = _getContextContainer();
+  const loadersObject: Record<string, unknown> = {};
+  const loadersState: Record<string, AsyncSignal<unknown>> = {};
+  if (props.loaders) {
+    for (const { loader, data } of props.loaders) {
+      const id = (loader as LoaderInternal).__id;
+      loadersObject[id] = data;
+      loadersState[id] = createLoaderSignal(
+        loadersObject,
+        id,
+        url,
+        DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
+        container
+      );
+    }
+  }
 
   const goto: RouteNavigate =
     props.goto ??
@@ -987,7 +999,7 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
   useContextProvider(HttpStatusContext, httpStatus);
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, goto);
-  useContextProvider(RouteStateContext, loaderState);
+  useContextProvider(RouteStateContext, loadersState);
   useContextProvider(RouteActionContext, actionState);
 
   const actionsMocks = props.actions?.reduce(

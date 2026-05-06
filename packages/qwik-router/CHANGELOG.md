@@ -1,5 +1,16 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.34
+
+### Patch Changes
+
+- fix(core): Q3 error "Only primitive and object literals can be serialized" no longer throws for route loaders and actions. (by [@maiieul](https://github.com/maiieul) in [#8592](https://github.com/QwikDev/qwik/pull/8592))
+
+  fix(router): `QwikRouterMockProvider`'s `loaders` mocks stopped working due to a V2 refactor. They now properly mimick V2's implementation and work as expected.
+
+- Updated dependencies [[`bbc7916`](https://github.com/QwikDev/qwik/commit/bbc79162eb9c0ecbd0a066a7ef440ee5a8a27c43)]:
+  - @qwik.dev/core@2.0.0-beta.34
+
 ## 2.0.0-beta.33
 
 ### Minor Changes

@@ -54,6 +54,7 @@ export { getPlatform, setPlatform } from './shared/platform/platform';
 export type { CorePlatform } from './shared/platform/types';
 export type { ClientContainer } from './client/types';
 export type { DomContainer } from './client/dom-container';
+export { getClientManifest } from './shared/get-client-manifest';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
@@ -182,6 +183,16 @@ export type { ComputedOptions } from './reactive-primitives/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 export { eachCmpTask as _eaT, eachCmp as _eaC } from './control-flow/each';
 export { Each } from './control-flow/each';
+export {
+  revealCanReveal as _reR,
+  revealCleanupTask as _reT,
+  revealCmp as _reC,
+} from './control-flow/reveal';
+export { Reveal } from './control-flow/reveal';
+export type { RevealOrder, RevealProps } from './control-flow/reveal';
+export { suspenseTask as _suT, suspenseCmp as _suC } from './control-flow/suspense';
+export { Suspense } from './control-flow/suspense';
+export type { SuspenseProps } from './control-flow/suspense';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

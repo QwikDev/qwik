@@ -9,6 +9,7 @@ import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
 import { ResolvedManifest } from '@qwik.dev/core/optimizer';
+import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -426,6 +427,9 @@ export const Fragment: FunctionComponent<{
 export type FunctionComponent<P = unknown> = {
     renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
+
+// @public
+export const getClientManifest: () => ServerQwikManifest | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
 //
@@ -902,6 +906,12 @@ export interface ReadonlySignal<T = unknown> {
     readonly value: T;
 }
 
+// @internal (undocumented)
+export const _reC: (props: RevealProps) => JSXNodeInternal<FunctionComponent<    {
+name?: string;
+children?: JSXChildren;
+}>>;
+
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
 
@@ -946,6 +956,9 @@ export interface RenderSSROptions {
     // (undocumented)
     stream: StreamWriter;
 }
+
+// @internal (undocumented)
+export const _reR: () => boolean;
 
 // @internal
 export function _res(this: string | undefined, _: any, element: Element): void;
@@ -999,6 +1012,23 @@ export type ResourceReturn<T> = {
 
 // @internal (undocumented)
 export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
+
+// @internal (undocumented)
+export const _reT: (input: TaskCtx) => void;
+
+// Warning: (ae-incompatible-release-tags) The symbol "Reveal" is marked as @public, but its signature references "_reC" which is marked as @internal
+//
+// @public (undocumented)
+export const Reveal: typeof _reC;
+
+// @public (undocumented)
+export type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';
+
+// @public (undocumented)
+export type RevealProps = {
+    order?: RevealOrder;
+    collapsed?: boolean;
+};
 
 // @internal
 export const _rsc: <T>(arg: ResourceCtx<T>) => Promise<{
@@ -1212,6 +1242,27 @@ export class _SubscriptionData {
     // (undocumented)
     data: NodePropData;
 }
+
+// @internal (undocumented)
+export const _suC: (props: SuspenseProps) => JSXNodeInternal<FunctionComponent<    {
+children?: any;
+key?: string | number | null;
+}>>;
+
+// Warning: (ae-incompatible-release-tags) The symbol "Suspense" is marked as @public, but its signature references "_suC" which is marked as @internal
+//
+// @public (undocumented)
+export const Suspense: typeof _suC;
+
+// @public (undocumented)
+export type SuspenseProps = {
+    fallback?: JSXOutput;
+    showStale?: boolean;
+    delay?: number;
+};
+
+// @internal (undocumented)
+export const _suT: (input: TaskCtx) => void;
 
 // Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point index.d.ts
 //

@@ -309,10 +309,9 @@ describe('resolveId', () => {
       'id',
       '@qwik.dev/core/build'
     );
-    expect(await plugin.resolveId({} as any, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
-      'id',
-      '@qwik-client-manifest'
-    );
+    expect(
+      await plugin.resolveId({} as any, '@qwik-client-manifest', '/foo/bar/core')
+    ).toHaveProperty('id', '@qwik-client-manifest');
   });
 });
 
@@ -331,3 +330,56 @@ async function mockPlugin(os = process.platform) {
   await plugin.init();
   return plugin;
 }
+
+describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
+  const sampleManifest: QwikManifest = {
+    manifestHash: 'abc123',
+    mapping: { symbol_abc: 'chunk.js' },
+    symbols: {},
+    bundles: {},
+    version: '1',
+  };
+
+  test('replaces !globalThis.__QWIK_MANIFEST__ with false when no manifest is available', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({ target: 'ssr', buildMode: 'development' });
+
+    const code = `if (!globalThis.__QWIK_MANIFEST__) { throw new Error('no manifest'); }`;
+    const result = await plugin.transform({} as any, code, '/root/src/server.js');
+
+    expect(result).toBeTruthy();
+    expect(result!.code).toContain('false');
+    expect(result!.code).not.toContain('!globalThis.__QWIK_MANIFEST__');
+  });
+
+  test('replaces globalThis.__QWIK_MANIFEST__ with manifest JSON when manifest is available', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'ssr',
+      buildMode: 'development',
+      manifestInput: sampleManifest,
+    });
+
+    const code = `const m = globalThis.__QWIK_MANIFEST__;`;
+    const result = await plugin.transform({} as any, code, '/root/src/server.js');
+
+    expect(result).toBeTruthy();
+    expect(result!.code).not.toContain('globalThis.__QWIK_MANIFEST__');
+    expect(result!.code).toContain('"manifestHash":"abc123"');
+  });
+
+  test('generates a fresh sourcemap after manifest replacement', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'ssr',
+      buildMode: 'development',
+      manifestInput: sampleManifest,
+    });
+
+    const code = `const m = globalThis.__QWIK_MANIFEST__;`;
+    const result = await plugin.transform({} as any, code, '/root/src/server.js');
+
+    expect(result).toBeTruthy();
+    expect(result!.map).toBeTruthy();
+  });
+});

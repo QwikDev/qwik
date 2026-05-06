@@ -144,6 +144,7 @@
     "execa": "9.6.1",
     "express": "4.22.0",
     "globals": "17.0.0",
+    "happy-dom": "20.9.0",
     "imagetools-core": "9.1.0",
     "install": "0.13.0",
     "memfs": "4.51.1",

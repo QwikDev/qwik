@@ -251,7 +251,7 @@ export default defineConfig(({ mode }) => {
       }),
       qwikVite({
         debug: false,
-        experimental: ['each', 'preventNavigate', 'insights'],
+        experimental: ['each', 'suspense', 'preventNavigate', 'insights'],
         devTools: { hmr: false },
       }),
       partytownVite({

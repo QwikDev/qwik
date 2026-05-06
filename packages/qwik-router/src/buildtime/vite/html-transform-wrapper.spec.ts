@@ -16,7 +16,15 @@ class MockServerResponse extends EventEmitter {
     return true;
   });
 
-  private _origEnd = vi.fn((chunk?: any, cb?: () => void) => {
+  private _origEnd = vi.fn((chunk?: any, encoding?: any, cb?: () => void) => {
+    if (typeof chunk === 'function') {
+      cb = chunk;
+      chunk = undefined;
+      encoding = undefined;
+    } else if (typeof encoding === 'function') {
+      cb = encoding;
+      encoding = undefined;
+    }
     if (chunk && typeof chunk !== 'function') {
       this.output += chunk.toString();
     }
@@ -112,6 +120,23 @@ describe('wrapResponseForHtmlTransform', () => {
     await new Promise((resolve) => res.on('finish', resolve));
 
     expect(server.transformIndexHtml).toHaveBeenCalledOnce();
+    expect(res.output).toMatchInlineSnapshot(
+      `"<html><head><!-- head pre content --><!-- head post content --></head><body><!-- body pre content --><h1>Hello</h1><!-- body post content --></body></html>"`
+    );
+  });
+
+  it('should handle callback-only response end', async () => {
+    const callback = vi.fn();
+    wrapResponseForHtmlTransform(req, res as any, server);
+
+    res.setHeader('Content-Type', 'text/html');
+    res.write('<html><head></head><body><h1>Hello</h1></body></html>');
+    res.end(callback);
+
+    await new Promise((resolve) => res.on('finish', resolve));
+
+    expect(callback).toHaveBeenCalledOnce();
+    expect(res.origWrite).not.toHaveBeenCalledWith(callback, undefined, undefined);
     expect(res.output).toMatchInlineSnapshot(
       `"<html><head><!-- head pre content --><!-- head post content --></head><body><!-- body pre content --><h1>Hello</h1><!-- body post content --></body></html>"`
     );

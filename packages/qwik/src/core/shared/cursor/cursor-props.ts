@@ -4,6 +4,7 @@ import { removeCursorFromQueue } from './cursor-queue';
 import type { Container } from '../types';
 import type { VNodeJournal } from '../../client/vnode-utils';
 import type { Task } from '../../use/use-task';
+import type { CursorBoundary } from '../../use/use-cursor-boundary';
 
 export const cursorDatas = new WeakMap<Cursor, CursorData>();
 
@@ -21,6 +22,7 @@ export interface CursorData {
   position: VNode | null;
   priority: number;
   promise: Promise<void> | null;
+  boundaries: CursorBoundary[] | null;
 }
 
 /**
@@ -78,6 +80,17 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
       newJournal.push(...oldJournal);
     } else {
       newCursorData.journal = oldJournal;
+    }
+  }
+  // merge cursor boundaries
+  const oldBoundaries = oldCursorData.boundaries;
+  if (__EXPERIMENTAL__.suspense && oldBoundaries && oldBoundaries.length > 0) {
+    const newBoundaries = (newCursorData.boundaries ||= []);
+    for (let i = 0; i < oldBoundaries.length; i++) {
+      const boundary = oldBoundaries[i];
+      if (!newBoundaries.includes(boundary)) {
+        newBoundaries.push(boundary);
+      }
     }
   }
 }

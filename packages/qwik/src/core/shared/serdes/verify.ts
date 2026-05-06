@@ -37,6 +37,14 @@ const _verifySerializable = <T>(
     if (canSerialize(unwrapped)) {
       return value;
     }
+    // Framework-internal branded values (e.g. route loaders/actions, validators)
+    // are callables or objects that stamp __brand / __brand__ to opt out of the
+    // serializer walking their internals. Honor that for both objects and
+    // functions — loader/action refs are functions with __brand = 'server_loader'
+    // / 'server_action' and should not be rejected as unserializable.
+    if ((unwrapped as any).__brand || (unwrapped as any).__brand__) {
+      return value;
+    }
     const typeObj = typeof unwrapped;
     switch (typeObj) {
       case 'object':
@@ -64,10 +72,6 @@ const _verifySerializable = <T>(
         }
         // We don't want to walk internal framework objects
         if (unwrapped instanceof VNode) {
-          return value;
-        }
-        // We have .__brand and .__brand__
-        if ((unwrapped as any).__brand || (unwrapped as any).__brand__) {
           return value;
         }
         if (isSerializableObject(unwrapped)) {

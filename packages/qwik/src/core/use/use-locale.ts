@@ -1,4 +1,5 @@
 import { tryGetInvokeContext } from './use-core';
+import { getAsyncLocalStorage } from '../shared/platform/async-local-storage';
 import { isServer } from '@qwik.dev/core/build';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 
@@ -7,13 +8,10 @@ let _locale: string | undefined = undefined;
 let localAsyncStore: AsyncLocalStorage<string> | undefined;
 
 if (isServer) {
-  import('node:async_hooks')
-    .then((module) => {
-      localAsyncStore = new module.AsyncLocalStorage();
-    })
-    .catch(() => {
-      // ignore if AsyncLocalStorage is not available
-    });
+  const AsyncLocalStorage = getAsyncLocalStorage();
+  if (AsyncLocalStorage) {
+    localAsyncStore = new AsyncLocalStorage();
+  }
 }
 
 /**

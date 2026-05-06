@@ -24,11 +24,15 @@ export type {
   ISsrComponentFrame,
   ISsrNode,
   SSRContainer,
+  SSROutOfOrderSegment,
+  SSRPromiseMode,
+  SSRRenderJSXOptions,
   StreamWriter,
   IStreamHandler,
 } from '../core/ssr/ssr-types';
 export type { ResolvedManifest, SymbolMapper } from '@qwik.dev/core/optimizer';
 export type { SymbolToChunkResolver } from '../core/ssr/ssr-types';
 export type { NodePropData } from '../core/reactive-primitives/subscription-data';
+export type { EffectSubscription } from '../core/reactive-primitives/types';
 export type { SignalImpl } from '../core/reactive-primitives/impl/signal-impl';
 export type { Props } from '../core/shared/jsx/jsx-runtime';

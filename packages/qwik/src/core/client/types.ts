@@ -4,6 +4,7 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container } from '../shared/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
+import type { VNode } from '../shared/vnode/vnode';
 
 export type ClientAttrKey = string;
 export type ClientAttrValue = string | null;
@@ -17,9 +18,16 @@ export interface ClientContainer extends Container {
   $locale$: string;
   qManifestHash: string;
   rootVNode: ElementVNode;
-  $forwardRefs$: Array<number> | null;
+  $forwardRefs$: Array<number | string> | null;
+  vNodeLocate(id: string | Element): VNode;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
-  $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
+  $getForwardRef$(id: number | string): number | string | undefined;
+  $processSegmentStateScripts$(): void;
+  $setRawState$(
+    id: number | string,
+    vParent: ElementVNode | VirtualVNode,
+    segmentId?: string | null
+  ): void;
 }
 
 /** @internal */
@@ -40,6 +48,12 @@ export interface ContainerElement extends HTMLElement {
 
   /** String from `<script type="qwik/vnode">` tag. */
   qVnodeData?: string;
+
+  /** Segment-local strings from `<script type="qwik/vnode" q:s="...">` tags. */
+  qSegmentVnodeData?: Map<string, string>;
+
+  /** Root-global VNode id offset for each Suspense segment. */
+  qSegmentVnodeOffsets?: Map<string, number>;
 }
 
 /** @internal */
@@ -50,6 +64,12 @@ export interface QDocument extends Document {
    * This map is used to rebuild virtual nodes from the HTML. Missing extra text nodes, and Fragments.
    */
   qVNodeData: WeakMap<Element, string>;
+
+  /** Processes newly inserted vnode metadata, used by OOOS before/after resume. */
+  qProcessVNodeData?: (document: Document) => void;
+
+  /** Processes an out-of-order Suspense segment after its resolved HTML is swapped in. */
+  qProcessOOOS?: (document: Document) => void;
 }
 
 /**

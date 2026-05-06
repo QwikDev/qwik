@@ -208,6 +208,63 @@ describe('processVnodeData', () => {
       </html>
     );
   });
+  it('should add suspense content segment elements to the root vnode table', () => {
+    const [container] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          <h1 :>Title</h1>
+          <div : q:f="1" style="display:none"><p :>Loading</p></div>
+          <div : q:r="1" style="display:contents"><section :><button :>OK</button></section></div>
+          ${encodeVNode({ 0: '~', 1: '~' }, 's1')}
+          <footer :>Footer</footer>
+        </body>
+      </html>`);
+
+    expect(container.rootVNode).toMatchVDOM(
+      <html {...qContainerPaused}>
+        <head />
+        <body>
+          <h1>Title</h1>
+          <div {...{ 'q:f': '1' }} style="display:none">
+            <p>Loading</p>
+          </div>
+          <div {...{ 'q:r': '1' }} style="display:contents">
+            <section>
+              <button>OK</button>
+            </section>
+          </div>
+          <footer>Footer</footer>
+        </body>
+      </html>
+    );
+    expect(container.vNodeLocate('0')).toMatchVDOM(
+      <section>
+        <button>OK</button>
+      </section>
+    );
+    expect(container.vNodeLocate('1')).toMatchVDOM(<button>OK</button>);
+  });
+  it('should merge suspense content segment refs into the root vnode table with an offset', () => {
+    const [container] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          <h1 :>Title</h1>
+          <div : q:f="1" style="display:none"><p :>Loading</p></div>
+          <div : q:r="1" style="display:contents"><section :><button :>OK</button></section></div>
+          ${encodeVNode({ 0: '~', 1: '~' }, 's1', 8)}
+          <footer :>Footer</footer>
+        </body>
+      </html>`);
+
+    expect(container.vNodeLocate('8')).toMatchVDOM(
+      <section>
+        <button>OK</button>
+      </section>
+    );
+    expect(container.vNodeLocate('9')).toMatchVDOM(<button>OK</button>);
+  });
 });
 
 describe('emitVNodeSeparators', () => {
@@ -304,7 +361,7 @@ const findContainers = (element: Document | ShadowRoot, containers: Element[]) =
   }
 };
 
-function encodeVNode(data: Record<number, string> = {}) {
+function encodeVNode(data: Record<number, string> = {}, segment?: string, offset?: number) {
   const keys = Object.keys(data)
     .map((key) => parseInt(key, 10))
     .sort();
@@ -316,7 +373,9 @@ function encodeVNode(data: Record<number, string> = {}) {
     idx = key;
   }
 
-  return `<script type="qwik/vnode">${result}</script>`;
+  return `<script type="qwik/vnode"${segment ? ` q:s="${segment}"` : ''}${
+    offset ? ` q:o="${offset}"` : ''
+  }>${result}</script>`;
 }
 
 // Keep in sync with ssr-container.ts

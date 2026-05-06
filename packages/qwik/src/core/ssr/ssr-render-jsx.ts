@@ -37,8 +37,18 @@ import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import type { CursorBoundary } from '../use/use-cursor-boundary';
+import {
+  getInternalServerComponentHandler,
+  isInternalServerComponent,
+} from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { ISsrComponentFrame, ISsrNode, SSRContainer } from './ssr-types';
+import type {
+  ISsrComponentFrame,
+  ISsrNode,
+  SSRContainer,
+  SSRRenderJSXOptions,
+  SSRSlotReplayRecords,
+} from './ssr-types';
 
 class MaybeAsyncSignal {}
 
@@ -67,10 +77,7 @@ function setParentOptions(
 export async function _walkJSX(
   ssr: SSRContainer,
   value: JSXOutput,
-  options: {
-    currentStyleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-  }
+  options: SSRRenderJSXOptions
 ): Promise<void> {
   const stack: StackValue[] = [value];
   const enqueue = (value: StackValue) => stack.push(value);
@@ -81,7 +88,19 @@ export async function _walkJSX(
         // Reference equality first (no prototype walk), then typeof
         if (value === MaybeAsyncSignal) {
           const trackFn = stack.pop() as () => StackValue;
-          await retryOnPromise(() => stack.push(trackFn()));
+          if (isSuspenseCaptureMode(options)) {
+            try {
+              stack.push(trackFn());
+            } catch (err) {
+              if (isPromise(err)) {
+                ssr.$captureOutOfOrderPromise$(err);
+              } else {
+                throw err;
+              }
+            }
+          } else {
+            await retryOnPromise(() => stack.push(trackFn()));
+          }
           continue;
         }
         if (typeof value === 'function') {
@@ -108,7 +127,7 @@ function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
   value: JSXOutput,
-  options: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null }
+  options: SSRRenderJSXOptions
 ) {
   // console.log('processJSXNode', value);
   if (value == null) {
@@ -137,8 +156,12 @@ function processJSXNode(
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.Awaited } : EMPTY_OBJ);
       enqueue(ssr.closeFragment);
-      enqueue(value);
-      enqueue(Promise);
+      if (isSuspenseCaptureMode(options)) {
+        ssr.$captureOutOfOrderPromise$(value);
+      } else {
+        enqueue(value);
+        enqueue(Promise);
+      }
       enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
@@ -146,6 +169,8 @@ function processJSXNode(
           await _walkJSX(ssr, chunk as JSXOutput, {
             currentStyleScoped: options.currentStyleScoped,
             parentComponentFrame: options.parentComponentFrame,
+            promiseMode: options.promiseMode,
+            slotReplay: options.slotReplay,
           });
           await ssr.streamHandler.flush();
         }
@@ -194,7 +219,10 @@ function processJSXNode(
         const children = jsx.children as JSXOutput;
         children != null && enqueue(children);
       } else if (isFunction(type)) {
-        if (type === Fragment) {
+        if (__EXPERIMENTAL__.suspense && isInternalServerComponent(type)) {
+          enqueue(() => getInternalServerComponentHandler(type)(ssr, jsx, options));
+          return;
+        } else if (type === Fragment) {
           const attrs: Record<string, string | null> =
             jsx.key != null ? { [ELEMENT_KEY]: jsx.key } : {};
           if (isDev) {
@@ -229,10 +257,20 @@ function processJSXNode(
             );
             enqueue(ssr.closeProjection);
             const slotDefaultChildren: JSXChildren | null = jsx.children || null;
-            const slotChildren =
-              componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
-            if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
-              ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
+            const replay = __EXPERIMENTAL__.suspense ? options.slotReplay : undefined;
+            const frameSlots = replay?.records.get(componentFrame);
+            let slotChildren: JSXChildren | null;
+            if (replay?.mode === 'replay' && frameSlots?.has(slotName)) {
+              slotChildren = frameSlots.get(slotName)!;
+            } else {
+              slotChildren =
+                componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
+              if (replay?.mode === 'record') {
+                recordSlotReplay(replay.records, componentFrame, slotName, slotChildren);
+              }
+              if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
+                ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
+              }
             }
             enqueue(slotChildren as JSXOutput);
             enqueue(
@@ -263,6 +301,8 @@ function processJSXNode(
                 await _walkJSX(ssr, chunk, {
                   currentStyleScoped: options.currentStyleScoped,
                   parentComponentFrame: options.parentComponentFrame,
+                  promiseMode: options.promiseMode,
+                  slotReplay: options.slotReplay,
                 });
                 await ssr.streamHandler.flush();
               },
@@ -298,16 +338,20 @@ function processJSXNode(
           enqueue(
             setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
           );
-          enqueue(ssr.closeComponent);
+          enqueue(() => ssr.closeComponent(options.promiseMode));
           if (isPromise(jsxOutput)) {
-            // Defer reading QScopedStyle until after the promise resolves
-            enqueue(async () => {
-              const resolvedOutput = await jsxOutput;
-              const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
+            if (isSuspenseCaptureMode(options)) {
+              ssr.$captureOutOfOrderPromise$(jsxOutput);
+            } else {
+              // Defer reading QScopedStyle until after the promise resolves
+              enqueue(async () => {
+                const resolvedOutput = await jsxOutput;
+                const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 
-              enqueue(resolvedOutput);
-              enqueue(setParentOptions(options, compStyleComponentId, componentFrame));
-            });
+                enqueue(resolvedOutput);
+                enqueue(setParentOptions(options, compStyleComponentId, componentFrame));
+              });
+            }
           } else {
             enqueue(jsxOutput);
             const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
@@ -327,12 +371,33 @@ function processJSXNode(
             type,
             jsx
           );
-          enqueue(jsxOutput);
-          isPromise(jsxOutput) && enqueue(Promise);
+          if (isPromise(jsxOutput) && isSuspenseCaptureMode(options)) {
+            ssr.$captureOutOfOrderPromise$(jsxOutput);
+          } else {
+            enqueue(jsxOutput);
+            isPromise(jsxOutput) && enqueue(Promise);
+          }
         }
       }
     }
   }
+}
+
+function isSuspenseCaptureMode(options: SSRRenderJSXOptions): boolean {
+  return __EXPERIMENTAL__.suspense && options.promiseMode === 'suspense-capture';
+}
+
+function recordSlotReplay(
+  records: SSRSlotReplayRecords,
+  componentFrame: ISsrComponentFrame,
+  slotName: string,
+  slotChildren: JSXChildren | null
+): void {
+  let recordedSlots = records.get(componentFrame);
+  if (!recordedSlots) {
+    records.set(componentFrame, (recordedSlots = new Map()));
+  }
+  recordedSlots.set(slotName, slotChildren);
 }
 
 function maybeAddPollingAsyncSignalToEagerResume(

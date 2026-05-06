@@ -49,7 +49,7 @@ export type QRLInternalMethods<TYPE> = {
     /** If this returns false, the function execution will be skipped */
     beforeFn?: () => void | false
   ): TYPE extends (...args: any) => any
-    ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE> | undefined>
+    ? (...args: Parameters<TYPE>) => ValueOrPromise<Awaited<ReturnType<TYPE>> | undefined>
     : // unknown instead of never so we allow assigning function QRLs to any
       unknown;
 

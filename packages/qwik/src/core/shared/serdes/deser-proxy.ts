@@ -34,14 +34,10 @@ export const wrapDeserializerProxy = (container: DomContainer, data: unknown): u
   return proxy;
 };
 class DeserializationHandler implements ProxyHandler<object> {
-  public $length$: number;
-
   constructor(
     public $container$: DomContainer,
     public $data$: unknown[]
-  ) {
-    this.$length$ = this.$data$.length / 2;
-  }
+  ) {}
 
   get(target: unknown[], property: PropertyKey, receiver: object) {
     if (property === SERIALIZER_PROXY_UNWRAP) {
@@ -54,7 +50,7 @@ class DeserializationHandler implements ProxyHandler<object> {
         : typeof property === 'string'
           ? parseInt(property as string, 10)
           : NaN;
-    if (Number.isNaN(i) || i < 0 || i >= this.$length$) {
+    if (Number.isNaN(i) || i < 0 || i >= this.$data$.length / 2) {
       return Reflect.get(target, property, receiver);
     }
     // The serialized data is an array with 2 values for each item

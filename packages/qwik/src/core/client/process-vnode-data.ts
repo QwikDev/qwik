@@ -2,6 +2,7 @@
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import type { ContainerElement, QDocument } from './types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { QElement } from '../shared/types';
 
 /**
  * Process the VNodeData script tags and store the VNodeData in the VNodeDataMap.
@@ -63,6 +64,11 @@ export function processVNodeData(document: Document) {
   const Q_IGNORE_END = '/' + Q_IGNORE;
   const Q_CONTAINER_ISLAND = 'q:container-island';
   const Q_CONTAINER_ISLAND_END = '/' + Q_CONTAINER_ISLAND;
+  const Q_SUSPENSE = 'q:sus=';
+  const Q_SUSPENSE_END = '/q:sus=';
+  const Q_SUSPENSE_RESOLVED = 'q:r';
+  const Q_SEGMENT = 'q:s';
+  const Q_SEGMENT_OFFSET = 'q:o';
   const qDocument = document as QDocument;
   const vNodeDataMap =
     qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
@@ -89,8 +95,18 @@ export function processVNodeData(document: Document) {
     for (let i = 0; i < scripts.length; i++) {
       const script = scripts[i];
       const qContainerElement = script.closest('[q\\:container]') as ContainerElement | null;
-      qContainerElement!.qVnodeData = script.textContent!;
-      qContainerElement!.qVNodeRefs = new Map<number, Element | ElementVNode>();
+      const segment = __EXPERIMENTAL__.suspense ? script.getAttribute(Q_SEGMENT) : null;
+      if (segment) {
+        (qContainerElement!.qSegmentVnodeData ||= new Map()).set(segment, script.textContent!);
+        (qContainerElement!.qSegmentVnodeOffsets ||= new Map()).set(
+          segment,
+          parseInt(script.getAttribute(Q_SEGMENT_OFFSET) || '0', 10)
+        );
+        qContainerElement!.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+      } else {
+        qContainerElement!.qVnodeData = script.textContent!;
+        qContainerElement!.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+      }
     }
     const shadowRoots = element.querySelectorAll('[q\\:shadowroot]');
     for (let i = 0; i < shadowRoots.length; i++) {
@@ -106,17 +122,19 @@ export function processVNodeData(document: Document) {
   ///////////////////////////////
 
   const enum NodeType {
-    CONTAINER_MASK /* ***************** */ = 0b0000001,
-    ELEMENT /* ************************ */ = 0b0000010, // regular element
-    ELEMENT_CONTAINER /* ************** */ = 0b0000011, // container element need to descend into it
-    ELEMENT_SHADOW_ROOT_WRAPPER /* **** */ = 0b0000110, // shadow root wrapper element with q:shadowroot attribute
-    COMMENT_SKIP_START /* ************* */ = 0b0001001, // Comment but skip the content until COMMENT_SKIP_END
-    COMMENT_SKIP_END /* *************** */ = 0b0001000, // Comment end
-    COMMENT_IGNORE_START /* *********** */ = 0b0010000, // Comment ignore, descend into children and skip the content until COMMENT_ISLAND_START
-    COMMENT_IGNORE_END /* ************* */ = 0b0100000, // Comment ignore end
-    COMMENT_ISLAND_START /* *********** */ = 0b1000001, // Comment island, count elements for parent container until COMMENT_ISLAND_END
-    COMMENT_ISLAND_END /* ************* */ = 0b1000000, // Comment island end
-    OTHER /* ************************** */ = 0b0000000,
+    CONTAINER_MASK /* ***************** */ = 0b000000001,
+    ELEMENT /* ************************ */ = 0b000000010, // regular element
+    ELEMENT_CONTAINER /* ************** */ = 0b000000011, // container element need to descend into it
+    ELEMENT_SHADOW_ROOT_WRAPPER /* **** */ = 0b000000110, // shadow root wrapper element with q:shadowroot attribute
+    COMMENT_SKIP_START /* ************* */ = 0b000001001, // Comment but skip the content until COMMENT_SKIP_END
+    COMMENT_SKIP_END /* *************** */ = 0b000001000, // Comment end
+    COMMENT_IGNORE_START /* *********** */ = 0b000010000, // Comment ignore, descend into children and skip the content until COMMENT_ISLAND_START
+    COMMENT_IGNORE_END /* ************* */ = 0b000100000, // Comment ignore end
+    COMMENT_ISLAND_START /* *********** */ = 0b001000001, // Comment island, count elements for parent container until COMMENT_ISLAND_END
+    COMMENT_ISLAND_END /* ************* */ = 0b001000000, // Comment island end
+    COMMENT_SUSPENSE_START /* ********* */ = 0b010000000,
+    COMMENT_SUSPENSE_END /* *********** */ = 0b100000000,
+    OTHER /* ************************** */ = 0b000000000,
   }
 
   /**
@@ -132,8 +150,7 @@ export function processVNodeData(document: Document) {
         if (hasAttribute.call(node, Q_SHADOW_ROOT)) {
           return NodeType.ELEMENT_SHADOW_ROOT_WRAPPER;
         }
-        const isQElement = hasAttribute.call(node, Q_PROPS_SEPARATOR);
-        return isQElement ? NodeType.ELEMENT : NodeType.OTHER;
+        return hasAttribute.call(node, Q_PROPS_SEPARATOR) ? NodeType.ELEMENT : NodeType.OTHER;
       } else {
         return NodeType.ELEMENT_CONTAINER;
       }
@@ -143,12 +160,16 @@ export function processVNodeData(document: Document) {
         return NodeType.COMMENT_ISLAND_START;
       } else if (nodeValue.startsWith(Q_IGNORE)) {
         return NodeType.COMMENT_IGNORE_START;
+      } else if (__EXPERIMENTAL__.suspense && nodeValue.startsWith(Q_SUSPENSE)) {
+        return NodeType.COMMENT_SUSPENSE_START;
       } else if (nodeValue.startsWith(Q_CONTAINER)) {
         return NodeType.COMMENT_SKIP_START;
       } else if (nodeValue.startsWith(Q_CONTAINER_ISLAND_END)) {
         return NodeType.COMMENT_ISLAND_END;
       } else if (nodeValue.startsWith(Q_IGNORE_END)) {
         return NodeType.COMMENT_IGNORE_END;
+      } else if (__EXPERIMENTAL__.suspense && nodeValue.startsWith(Q_SUSPENSE_END)) {
+        return NodeType.COMMENT_SUSPENSE_END;
       } else if (nodeValue.startsWith(Q_CONTAINER_END)) {
         return NodeType.COMMENT_SKIP_END;
       }
@@ -177,7 +198,10 @@ export function processVNodeData(document: Document) {
     exitNode: Node | null,
     vData: string,
     qVNodeRefs: Map<number, Element | ElementVNode>,
-    prefix: string
+    prefix: string,
+    qContainerElement: ContainerElement | null,
+    segmentId?: string,
+    vNodeIndexOffset = 0
   ) => {
     const vData_length = vData.length;
     /// Stores the current element index as the TreeWalker traverses the DOM.
@@ -227,7 +251,8 @@ export function processVNodeData(document: Document) {
           nextNode,
           container.qVnodeData || '',
           container.qVNodeRefs!,
-          prefix + '  '
+          prefix + '  ',
+          container
         );
       } else if (nodeType === NodeType.COMMENT_IGNORE_START) {
         let islandNode = node;
@@ -264,7 +289,12 @@ export function processVNodeData(document: Document) {
           }
         } while (getFastNodeType(nextNode) !== NodeType.COMMENT_SKIP_END);
         // console.log('EXIT', nextNode?.outerHTML);
-        walkContainer(walker, node, node, nextNode, '', null!, prefix + '  ');
+        walkContainer(walker, node, node, nextNode, '', null!, prefix + '  ', qContainerElement);
+      } else if (nodeType === NodeType.COMMENT_SUSPENSE_START) {
+        nextNode = nextSibling(node);
+        if (nextNode) {
+          walker.currentNode = nextNode;
+        }
       } else if (nodeType === NodeType.ELEMENT_SHADOW_ROOT_WRAPPER) {
         // If we are in a shadow root, we need to get the shadow root element.
         nextNode = nextSibling(node);
@@ -282,12 +312,17 @@ export function processVNodeData(document: Document) {
             null,
             '',
             null!,
-            prefix + '  '
+            prefix + '  ',
+            null
           );
         }
       }
 
       if ((nodeType & NodeType.ELEMENT) === NodeType.ELEMENT) {
+        if (__EXPERIMENTAL__.suspense && segmentId) {
+          const element = node as QElement;
+          element._qSegment = segmentId;
+        }
         if (vNodeElementIndex < elementIdx) {
           // VNodeData needs to catch up with the elementIdx
           if (vNodeElementIndex === -1) {
@@ -324,14 +359,87 @@ export function processVNodeData(document: Document) {
         // );
         if (elementIdx === vNodeElementIndex) {
           if (needsToStoreRef === elementIdx) {
-            qVNodeRefs.set(elementIdx, node as Element);
+            qVNodeRefs.set(vNodeIndexOffset + elementIdx, node as Element);
           }
           const instructions = vData.substring(vData_start, vData_end);
           vNodeDataMap.set(node as Element, instructions);
         }
         elementIdx++;
+        if (
+          __EXPERIMENTAL__.suspense &&
+          !segmentId &&
+          nodeType === NodeType.ELEMENT &&
+          getNodeType.call(node!) === 1 /* Node.ELEMENT_NODE */
+        ) {
+          const contentBoundaryId = getAttribute.call(node!, Q_SUSPENSE_RESOLVED);
+          if (contentBoundaryId !== null) {
+            processSuspenseContentSegment(
+              qContainerElement,
+              node!,
+              contentBoundaryId,
+              prefix + '  '
+            );
+            nextNode = nextSibling(node);
+            if (nextNode) {
+              walker.currentNode = nextNode;
+            }
+          }
+        }
       }
     } while ((node = nextNode || walker.nextNode()));
+  };
+
+  const processSuspenseContentSegment = (
+    qContainerElement: ContainerElement | null,
+    contentNode: Node | null,
+    boundaryId: string,
+    prefix: string
+  ) => {
+    const segmentData = qContainerElement?.qSegmentVnodeData;
+    const segmentOffsets = qContainerElement?.qSegmentVnodeOffsets;
+    const qVNodeRefs = qContainerElement?.qVNodeRefs;
+    if (!segmentData || !qVNodeRefs || !contentNode) {
+      return;
+    }
+    const nextNode = contentNode ? nextSibling(contentNode) : null;
+
+    const processSegment = (segmentId: string, firstNode: Node | null, exitNode: Node | null) => {
+      const vData = segmentData.get(segmentId);
+      if (!vData) {
+        return;
+      }
+      const vNodeIndexOffset = segmentOffsets?.get(segmentId) || 0;
+      if (!firstNode || firstNode === exitNode) {
+        return;
+      }
+      const segmentWalker = document.createTreeWalker(
+        document,
+        0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
+      );
+      segmentWalker.currentNode = firstNode;
+      walkContainer(
+        segmentWalker,
+        null,
+        firstNode,
+        exitNode,
+        vData,
+        qVNodeRefs,
+        prefix + segmentId + '  ',
+        qContainerElement,
+        segmentId,
+        vNodeIndexOffset
+      );
+    };
+
+    processSegment('s' + boundaryId, firstSegmentChild(contentNode), nextNode);
+  };
+
+  const firstSegmentChild = (node: Node | null) => {
+    let child = node ? node.firstChild : null;
+    while (child && getFastNodeType(child) === NodeType.OTHER) {
+      child = child.nextSibling;
+    }
+    return child;
   };
 
   // Walk the tree and process each `q:container` element.
@@ -340,7 +448,7 @@ export function processVNodeData(document: Document) {
     0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
   );
 
-  walkContainer(walker, null, walker.firstChild(), null, '', null!, '');
+  walkContainer(walker, null, walker.firstChild(), null, '', null!, '', null);
 }
 
 const isSeparator = (ch: number) =>

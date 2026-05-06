@@ -254,6 +254,96 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
+<h2 id="outoforderdisabled">OutOfOrderDisabled</h2>
+
+```typescript
+export interface OutOfOrderDisabled
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+strategy
+
+</td><td>
+
+</td><td>
+
+'disabled'
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
+
+<h2 id="outoforderstreaming">OutOfOrderStreaming</h2>
+
+```typescript
+export type OutOfOrderStreaming = OutOfOrderDisabled | OutOfOrderSuspense;
+```
+
+**References:** [OutOfOrderDisabled](#outoforderdisabled), [OutOfOrderSuspense](#outofordersuspense)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
+
+<h2 id="outofordersuspense">OutOfOrderSuspense</h2>
+
+```typescript
+export interface OutOfOrderSuspense
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+strategy
+
+</td><td>
+
+</td><td>
+
+'suspense'
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
+
 <h2 id="prefetchresource">PrefetchResource</h2>
 
 ```typescript
@@ -1054,6 +1144,21 @@ inOrder?
 </td><td>
 
 [InOrderStreaming](#inorderstreaming)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+outOfOrder?
+
+</td><td>
+
+</td><td>
+
+[OutOfOrderStreaming](#outoforderstreaming)
 
 </td><td>
 

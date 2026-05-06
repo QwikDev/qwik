@@ -6,11 +6,12 @@ import type { VNode } from './vnode/vnode';
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
+  $getForwardRef$: (id: number | string) => number | string | undefined;
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
   $storeProxyMap$: ObjToProxyMap;
-  $forwardRefs$: Array<number> | null;
+  $forwardRefs$: Array<number | string> | null;
 }
 
 /** @internal */
@@ -61,6 +62,7 @@ export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends Element {
   _qDispatch?: Record<string, EventHandler | EventHandler[]>;
+  _qSegment?: string;
   vNode?: VNode;
 }
 

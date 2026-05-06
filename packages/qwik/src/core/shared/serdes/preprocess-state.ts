@@ -51,9 +51,14 @@ import { TypeIds } from './constants';
  * @internal
  */
 
-export function preprocessState(data: unknown[], container: DeserializeContainer) {
+export function preprocessState(
+  data: unknown[],
+  container: DeserializeContainer,
+  segmentId?: string,
+  startIndex = 0
+) {
   const isRootDeepRef = (type: TypeIds, value: unknown) => {
-    return type === TypeIds.RootRef && typeof value === 'string';
+    return type === TypeIds.RootRef && typeof value === 'string' && value.indexOf(' ') !== -1;
   };
 
   const isForwardRefsMap = (type: TypeIds) => {
@@ -62,23 +67,26 @@ export function preprocessState(data: unknown[], container: DeserializeContainer
 
   const processRootRef = (index: number) => {
     const rootRefPath = (data[index + 1] as string).split(' ');
-    let object: unknown[] | number = data;
+    const firstRefIndex = parseInt(rootRefPath[0], 10);
+    let object: unknown[] | number | string = data;
     let objectType: TypeIds = TypeIds.RootRef;
     let typeIndex = 0;
     let valueIndex = 0;
     let parent: unknown[] | null = null;
 
     for (let i = 0; i < rootRefPath.length; i++) {
-      parent = object;
+      parent = object as unknown[];
 
-      typeIndex = parseInt(rootRefPath[i], 10) * 2;
+      typeIndex = (i === 0 ? firstRefIndex : parseInt(rootRefPath[i], 10)) * 2;
       valueIndex = typeIndex + 1;
 
-      objectType = object[typeIndex] as TypeIds;
-      object = object[valueIndex] as unknown[];
+      const objectArray = object as unknown[];
+      objectType = objectArray[typeIndex] as TypeIds;
+      object = objectArray[valueIndex] as unknown[];
 
       if (objectType === TypeIds.RootRef) {
-        const rootRef = object as unknown as number;
+        const rootRef =
+          typeof object === 'string' ? parseInt(object, 10) : (object as unknown as number);
         const rootRefTypeIndex = rootRef * 2;
         objectType = data[rootRefTypeIndex] as TypeIds;
         object = data[rootRefTypeIndex + 1] as unknown[];
@@ -93,11 +101,11 @@ export function preprocessState(data: unknown[], container: DeserializeContainer
     data[index + 1] = object;
   };
 
-  for (let i = 0; i < data.length; i += 2) {
+  for (let i = startIndex; i < data.length; i += 2) {
     if (isRootDeepRef(data[i] as TypeIds, data[i + 1])) {
       processRootRef(i);
     } else if (isForwardRefsMap(data[i] as TypeIds)) {
-      container.$forwardRefs$ = data[i + 1] as number[];
+      container.$forwardRefs$ = data[i + 1] as Array<number | string>;
     }
   }
 }

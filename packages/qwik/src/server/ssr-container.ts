@@ -44,9 +44,13 @@ import {
   QManifestHashAttr,
   QRenderAttr,
   QRuntimeAttr,
+  QSegmentAttr,
+  QSegmentEffectsAttr,
+  QSegmentOffsetAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,
+  QStatePatchAttr,
   QStyle,
   QTemplate,
   QUOTE,
@@ -74,6 +78,7 @@ import {
 } from './qwik-copy';
 import {
   type ContextId,
+  type EffectSubscription,
   type HostElement,
   type SSRContainer as ISSRContainer,
   type ISsrComponentFrame,
@@ -85,13 +90,29 @@ import {
   type Props,
   type SerializationContext,
   type SignalImpl,
+  type SSROutOfOrderSegment,
+  type SSRPromiseMode,
+  type SSRRenderJSXOptions,
   type StreamWriter,
   type SymbolToChunkResolver,
   type ValueOrPromise,
 } from './qwik-types';
 
+import {
+  addExternalRootEffectEntry,
+  collectExternalRootEffectsPatch,
+  createExternalRootEffectEntry,
+  type ExternalRootEffectEntry,
+  type ExternalRootEffectProp,
+  type ExternalRootEffects,
+  type ExternalRootEffectsPatch,
+} from './ooos-utils';
 import { preloaderPost, preloaderPre } from './preload-impl';
-import { getQwikBackpatchExecutorScript, getQwikLoaderScript } from './scripts';
+import {
+  getQwikBackpatchExecutorScript,
+  getQwikLoaderScript,
+  getQwikOutOfOrderExecutorScript,
+} from './scripts';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
 import {
@@ -106,6 +127,7 @@ import {
   type BackpatchEntry,
   type RenderOptions,
   type RenderToStreamResult,
+  type RenderToStreamOptions,
   type SSRContainerOptions,
   type SSRRenderOptions,
 } from './types';
@@ -159,6 +181,9 @@ class StringBufferWriter {
   write(text: string) {
     this.buffer.push(text);
   }
+  clear() {
+    this.buffer.length = 0;
+  }
   toString() {
     return this.buffer.join('');
   }
@@ -184,6 +209,40 @@ interface ElementFrame {
   currentFile: string | null;
 }
 
+interface RenderState {
+  writer: StreamWriter;
+  streamHandler: IStreamHandler;
+  serializationCtx: SerializationContext;
+  lastNode: ISsrNode | null;
+  currentComponentNode: ISsrNode | null;
+  currentElementFrame: ElementFrame | null;
+  depthFirstElementCount: number;
+  vNodeDatas: VNodeData[];
+  vNodeDataOffset: number;
+  vNodeDataGlobalCount: number;
+  componentStack: ISsrComponentFrame[];
+  cleanupQueue: CleanupQueue;
+  promiseAttributes: Array<Promise<any>> | null;
+  backpatchMap: Map<number | string, BackpatchEntry[]>;
+  noMoreRoots: boolean;
+  noScriptHere: number;
+  vnodeSegment: string | null;
+  externalRootEffectContext: SerializationContext | null;
+  externalRootEffects: Map<number, ExternalRootEffects> | null;
+  pendingSegmentEffects: Map<unknown, ExternalRootEffects> | null;
+}
+
+class OutOfOrderSuspensePromise {
+  constructor(public promise: Promise<unknown>) {}
+}
+
+const noopStreamHandler: IStreamHandler = {
+  flush() {},
+  waitForPendingFlush() {},
+  streamBlockStart() {},
+  streamBlockEnd() {},
+};
+
 const EMPTY_OBJ = {};
 
 /**
@@ -207,6 +266,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public resolvedManifest: ResolvedManifest;
   public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
+  public readonly outOfOrderStreaming: boolean;
   public serializationCtx: SerializationContext;
   /**
    * We use this to append additional nodes in the head node
@@ -227,7 +287,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
   private isBackpatchExecutorEmitted = false;
-  private backpatchMap = new Map<number, BackpatchEntry[]>();
+  private backpatchMap = new Map<number | string, BackpatchEntry[]>();
 
   private currentElementFrame: ElementFrame | null = null;
 
@@ -240,6 +300,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    */
   private depthFirstElementCount: number = -1;
   private vNodeDatas: VNodeData[] = [];
+  private vNodeDataOffset = 0;
+  private vNodeDataGlobalCount = 0;
   private componentStack: ISsrComponentFrame[] = [];
   private cleanupQueue: CleanupQueue = [];
   private emitContainerDataFrame: ElementFrame | null = null;
@@ -248,6 +310,22 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private $noMoreRoots$ = false;
   private qlInclude: QwikLoaderInclude;
   private promiseAttributes: Array<Promise<any>> | null = null;
+  private vnodeSegment: string | null = null;
+  private outOfOrderId = 0;
+  private outOfOrderUsed = false;
+  private outOfOrderExecutorEmitted = false;
+  private outOfOrderPendingSegments: Promise<void>[] = [];
+  private outOfOrderReadyRenders: Array<() => Promise<void>> = [];
+  private outOfOrderSegmentScripts: string[] = [];
+  private rootContainerReady = false;
+  private rootContainerDataStarted = false;
+  private rootContainerReadyPromise: Promise<void> | null = null;
+  private resolveRootContainerReady: (() => void) | null = null;
+  private renderQueue: Promise<unknown> = Promise.resolve();
+  private emittedSyncFnCount = 0;
+  private externalRootEffectContext: SerializationContext | null = null;
+  private externalRootEffects: Map<number, ExternalRootEffects> | null = null;
+  private pendingSegmentEffects: Map<unknown, ExternalRootEffects> | null = null;
 
   constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
@@ -271,6 +349,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
+    const outOfOrderStreaming =
+      (this.renderOptions as RenderToStreamOptions).streaming?.outOfOrder?.strategy === 'suspense';
+    if (!__EXPERIMENTAL__.suspense) {
+      if (outOfOrderStreaming) {
+        throw new Error(
+          'Out-of-order Suspense streaming requires `experimental: ["suspense"]` in the `qwikVite` plugin.'
+        );
+      }
+      this.outOfOrderStreaming = false;
+    } else {
+      this.outOfOrderStreaming = outOfOrderStreaming;
+    }
     // start from 100_000 to avoid interfering with potential existing ids
     this.$currentUniqueId$ = 100_000;
 
@@ -327,14 +417,436 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     await this.closeContainer();
   }
 
-  async renderJSX(
-    jsx: JSXOutput,
-    options: {
-      currentStyleScoped: string | null;
-      parentComponentFrame: ISsrComponentFrame | null;
-    }
-  ) {
+  async renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions) {
     await _walkJSX(this, jsx, options);
+  }
+
+  /**
+   * Queue render work that temporarily owns this mutable SSRContainer.
+   *
+   * After refresh, multiple Suspense promises can resolve at nearly the same time. `segment()`
+   * swaps writer, frame, vnode, and serialization state on this container, so resolved Suspense
+   * renders must run one at a time:
+   *
+   * Root render: [emit state + flush] promise A: -> segment(A) promise B: ---------> segment(B)
+   */
+  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): Promise<T> {
+    const run = () =>
+      Promise.resolve(
+        __EXPERIMENTAL__.suspense && this.rootContainerDataStarted && !this.rootContainerReady
+          ? this.waitForRootContainerReady()
+          : undefined
+      ).then(render);
+    const result = this.renderQueue.then(run, run);
+    this.renderQueue = result.catch(() => {});
+    return result;
+  }
+
+  $runQueuedRenderBeforeRootState$<T>(render: () => ValueOrPromise<T>): Promise<T> {
+    if (!__EXPERIMENTAL__.suspense || this.rootContainerDataStarted) {
+      return this.$runQueuedRender$(render);
+    }
+    return new Promise<T>((resolve, reject) => {
+      this.outOfOrderReadyRenders.push(() => this.$runQueuedRender$(render).then(resolve, reject));
+    });
+  }
+
+  $captureOutOfOrderPromise$(promise: Promise<unknown>): never {
+    if (!__EXPERIMENTAL__.suspense) {
+      throw promise;
+    }
+    throw new OutOfOrderSuspensePromise(promise);
+  }
+
+  $recordExternalRootEffect$(
+    producer: unknown,
+    effect: EffectSubscription,
+    prop: ExternalRootEffectProp,
+    sourceEffects?: Map<string | symbol, Set<EffectSubscription>>
+  ): void {
+    if (!__EXPERIMENTAL__.suspense || !this.externalRootEffectContext) {
+      return;
+    }
+    const entry = createExternalRootEffectEntry(producer, effect, prop, sourceEffects);
+    const rootId = this.$getExternalRootEffectId$(producer, prop, false);
+    if (rootId === undefined) {
+      addExternalRootEffectEntry(this.pendingSegmentEffects, producer, entry);
+      return;
+    }
+    addExternalRootEffectEntry(this.externalRootEffects, rootId, entry);
+  }
+
+  private $getExternalRootEffectId$(
+    producer: unknown,
+    prop: ExternalRootEffectProp,
+    ensureRootId: boolean
+  ): number | undefined {
+    if (
+      prop !== null &&
+      producer &&
+      (typeof producer === 'object' || typeof producer === 'function')
+    ) {
+      const proxy = this.$storeProxyMap$.get(producer as object);
+      const proxyRootId =
+        proxy === undefined
+          ? undefined
+          : ensureRootId
+            ? this.externalRootEffectContext!.$ensureRootId$(proxy)
+            : this.externalRootEffectContext!.$hasRootId$(proxy);
+      if (proxyRootId !== undefined) {
+        return proxyRootId;
+      }
+    }
+    return ensureRootId
+      ? this.externalRootEffectContext!.$ensureRootId$(producer)
+      : this.externalRootEffectContext!.$hasRootId$(producer);
+  }
+
+  private waitForRootContainerReady(): ValueOrPromise<void> {
+    if (!__EXPERIMENTAL__.suspense || this.rootContainerReady) {
+      return;
+    }
+    return (this.rootContainerReadyPromise ||= new Promise<void>((resolve) => {
+      this.resolveRootContainerReady = resolve;
+    }));
+  }
+
+  private markRootContainerReady(): void {
+    if (!__EXPERIMENTAL__.suspense || this.rootContainerReady) {
+      return;
+    }
+    this.rootContainerReady = true;
+    this.resolveRootContainerReady?.();
+    this.resolveRootContainerReady = null;
+    this.rootContainerReadyPromise = null;
+  }
+
+  private resolvePendingSegmentEffects(rootStart: number): void {
+    if (!__EXPERIMENTAL__.suspense || !this.pendingSegmentEffects) {
+      return;
+    }
+    for (const entries of this.pendingSegmentEffects.values()) {
+      for (let i = 0; i < entries.length; i++) {
+        this.resolvePendingSegmentEffectRecord(entries[i], rootStart);
+      }
+    }
+  }
+
+  private resolvePendingSegmentEffectRecord(
+    entry: ExternalRootEffectEntry,
+    rootStart: number
+  ): void {
+    const { producer, prop } = entry;
+    let rootId = this.$getExternalRootEffectId$(producer, prop, false);
+    if (rootId !== undefined) {
+      if (rootId >= rootStart) {
+        return;
+      }
+    } else {
+      rootId = this.$getExternalRootEffectId$(producer, prop, true);
+    }
+    if (rootId === undefined) {
+      return;
+    }
+    addExternalRootEffectEntry(this.externalRootEffects, rootId, entry);
+  }
+
+  private async flushOutOfOrderRendersBeforeRootState(): Promise<void> {
+    if (!__EXPERIMENTAL__.suspense || this.rootContainerDataStarted) {
+      return;
+    }
+    await this.streamHandler.flush();
+    while (this.outOfOrderReadyRenders.length) {
+      const readyRenders = this.outOfOrderReadyRenders;
+      this.outOfOrderReadyRenders = [];
+      for (let i = 0; i < readyRenders.length; i++) {
+        await readyRenders[i]();
+      }
+    }
+    this.rootContainerDataStarted = true;
+  }
+
+  nextOutOfOrderId(): number {
+    if (!__EXPERIMENTAL__.suspense) {
+      return 0;
+    }
+    this.outOfOrderUsed = true;
+    return ++this.outOfOrderId;
+  }
+
+  emitOutOfOrderSegmentScripts(scripts: string): ValueOrPromise<void> {
+    if (!__EXPERIMENTAL__.suspense || !scripts) {
+      return;
+    }
+    if (!this.rootContainerReady) {
+      if (!this.rootContainerDataStarted) {
+        this.outOfOrderSegmentScripts.push(scripts);
+        return;
+      }
+    }
+    return this.flushOutOfOrderSegmentScripts(scripts);
+  }
+
+  private emitQueuedOutOfOrderSegmentScripts(): void {
+    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderSegmentScripts.length) {
+      return;
+    }
+    const scripts = this.outOfOrderSegmentScripts;
+    this.outOfOrderSegmentScripts = [];
+    for (let i = 0; i < scripts.length; i++) {
+      this.writeOutOfOrderSegmentScripts(scripts[i]);
+    }
+  }
+
+  private writeOutOfOrderSegmentScripts(scripts: string): void {
+    this.write(scripts);
+    this.emitInlineScript('qO.p()');
+  }
+
+  private flushOutOfOrderSegmentScripts(scripts: string): Promise<void> {
+    return this.$runQueuedRender$(async () => {
+      this.writeOutOfOrderSegmentScripts(scripts);
+      await this.streamHandler.flush();
+    });
+  }
+
+  async segment(
+    segmentId: string,
+    jsx: JSXOutput,
+    options: SSRRenderJSXOptions
+  ): Promise<SSROutOfOrderSegment> {
+    if (!__EXPERIMENTAL__.suspense) {
+      throw new Error(
+        'Out-of-order Suspense streaming requires `experimental: ["suspense"]` in the `qwikVite` plugin.'
+      );
+    }
+    const parentState = this.captureRenderState();
+    const writer = new StringBufferWriter();
+    const rootFrame: ElementFrame = {
+      tagNesting: TagNesting.ANYTHING,
+      parent: null,
+      elementName: '#segment',
+      depthFirstElementIdx: -1,
+      vNodeData: [VNodeDataFlag.NONE],
+      currentFile: null,
+    };
+    this.writer = writer;
+    this.streamHandler = noopStreamHandler;
+    const rootSerializationCtx =
+      parentState.externalRootEffectContext || parentState.serializationCtx;
+    const rootStart = rootSerializationCtx.$roots$.length;
+    const vNodeDataOffset = Math.max(
+      parentState.vNodeDataGlobalCount,
+      parentState.vNodeDataOffset + parentState.vNodeDatas.length
+    );
+    this.serializationCtx = this.serializationCtxFactory(
+      SsrNode,
+      DomRef,
+      this.symbolToChunkResolver,
+      writer
+    );
+    this.serializationCtx.$setSyncFnOffset$(
+      rootSerializationCtx.$syncFns$.length,
+      rootSerializationCtx.$syncFns$
+    );
+    this.serializationCtx.$rootIdOffset$ = rootStart;
+    this.serializationCtx.$getExternalRootId$ = (obj) => rootSerializationCtx.$hasRootId$(obj);
+    this.externalRootEffectContext = rootSerializationCtx;
+    this.externalRootEffects = this.externalRootEffectContext ? new Map() : null;
+    this.pendingSegmentEffects = new Map();
+    this.lastNode = null;
+    this.currentElementFrame = rootFrame;
+    this.currentComponentNode = parentState.currentComponentNode;
+    this.depthFirstElementCount = -1;
+    this.vNodeDatas = [];
+    this.vNodeDataOffset = vNodeDataOffset;
+    this.vNodeDataGlobalCount = vNodeDataOffset;
+    this.componentStack = parentState.componentStack.slice();
+    this.cleanupQueue = [];
+    this.promiseAttributes = null;
+    this.backpatchMap = new Map();
+    this.$noMoreRoots$ = false;
+    this.$noScriptHere$ = 0;
+    this.vnodeSegment = segmentId;
+
+    try {
+      const rootReadyAtSegment = this.rootContainerReady;
+      await this.renderJSX(jsx, options);
+      await this.resolvePromiseAttributes();
+      this.mergeSegmentEventData(rootSerializationCtx);
+      this.mergeSegmentSyncFns(rootSerializationCtx);
+      this.commitSegmentRoots(rootSerializationCtx, this.serializationCtx, rootStart);
+      this.serializationCtx = rootSerializationCtx;
+      const html = writer.toString();
+      writer.clear();
+      this.resolvePendingSegmentEffects(rootStart);
+      const externalRootEffectsIndex = this.addExternalRootEffectsPatch();
+      if (rootReadyAtSegment) {
+        await this.emitStatePatchData(externalRootEffectsIndex);
+      } else if (externalRootEffectsIndex !== undefined) {
+        this.emitStatePatchDataMarker(externalRootEffectsIndex);
+      }
+      if (!rootReadyAtSegment) {
+        this.detachExternalRootEffectRecords(this.externalRootEffects?.values());
+      }
+      this.$noMoreRoots$ = true;
+      this.emitVNodeData(segmentId, vNodeDataOffset);
+      parentState.vNodeDataGlobalCount = vNodeDataOffset + this.vNodeDatas.length;
+      if (rootReadyAtSegment) {
+        this.emitSyncFnsData(true);
+      }
+      this.emitPatchDataIfNeeded();
+      this.drainCleanupQueue();
+      return { html, scripts: writer.toString(), suspended: null };
+    } catch (err) {
+      if (err instanceof OutOfOrderSuspensePromise) {
+        this.detachExternalRootEffectRecords(this.externalRootEffects?.values());
+        this.detachExternalRootEffectRecords(this.pendingSegmentEffects?.values());
+        return { html: '', scripts: '', suspended: err.promise };
+      }
+      throw err;
+    } finally {
+      this.restoreRenderState(parentState);
+    }
+  }
+
+  private captureRenderState(): RenderState {
+    return {
+      writer: this.writer,
+      streamHandler: this.streamHandler,
+      serializationCtx: this.serializationCtx,
+      lastNode: this.lastNode,
+      currentComponentNode: this.currentComponentNode,
+      currentElementFrame: this.currentElementFrame,
+      depthFirstElementCount: this.depthFirstElementCount,
+      vNodeDatas: this.vNodeDatas,
+      vNodeDataOffset: this.vNodeDataOffset,
+      vNodeDataGlobalCount: this.vNodeDataGlobalCount,
+      componentStack: this.componentStack,
+      cleanupQueue: this.cleanupQueue,
+      promiseAttributes: this.promiseAttributes,
+      backpatchMap: this.backpatchMap,
+      noMoreRoots: this.$noMoreRoots$,
+      noScriptHere: this.$noScriptHere$,
+      vnodeSegment: this.vnodeSegment,
+      externalRootEffectContext: this.externalRootEffectContext,
+      externalRootEffects: this.externalRootEffects,
+      pendingSegmentEffects: this.pendingSegmentEffects,
+    };
+  }
+
+  private restoreRenderState(state: RenderState): void {
+    this.writer = state.writer;
+    this.streamHandler = state.streamHandler;
+    this.serializationCtx = state.serializationCtx;
+    this.serializationCtx.$setWriter$(this.writer);
+    this.lastNode = state.lastNode;
+    this.currentComponentNode = state.currentComponentNode;
+    this.currentElementFrame = state.currentElementFrame;
+    this.depthFirstElementCount = state.depthFirstElementCount;
+    this.vNodeDatas = state.vNodeDatas;
+    this.vNodeDataOffset = state.vNodeDataOffset;
+    this.vNodeDataGlobalCount = state.vNodeDataGlobalCount;
+    this.componentStack = state.componentStack;
+    this.cleanupQueue = state.cleanupQueue;
+    this.promiseAttributes = state.promiseAttributes;
+    this.backpatchMap = state.backpatchMap;
+    this.$noMoreRoots$ = state.noMoreRoots;
+    this.$noScriptHere$ = state.noScriptHere;
+    this.vnodeSegment = state.vnodeSegment;
+    this.externalRootEffectContext = state.externalRootEffectContext;
+    this.externalRootEffects = state.externalRootEffects;
+    this.pendingSegmentEffects = state.pendingSegmentEffects;
+  }
+
+  private addExternalRootEffectsPatch(): number | undefined {
+    if (!__EXPERIMENTAL__.suspense || !this.externalRootEffects?.size) {
+      return;
+    }
+    const patch: ExternalRootEffectsPatch = [];
+    for (const [rootId, entries] of this.externalRootEffects) {
+      const effects = collectExternalRootEffectsPatch(entries);
+      if (effects instanceof Map) {
+        const effectsPatch: Array<[string | symbol, EffectSubscription[]]> = [];
+        for (const [prop, propEffects] of effects) {
+          effectsPatch.push([prop, [...propEffects]]);
+        }
+        patch.push([rootId, effectsPatch]);
+      } else if (effects) {
+        patch.push([rootId, [...effects]]);
+      }
+    }
+    const patchIndex = this.serializationCtx.$roots$.length;
+    this.serializationCtx.$addRoot$(patch);
+    return patchIndex;
+  }
+
+  private detachExternalRootEffectRecords(
+    records: Iterable<ExternalRootEffects> | undefined
+  ): void {
+    if (!__EXPERIMENTAL__.suspense || !records) {
+      return;
+    }
+    for (const entries of records) {
+      for (let i = 0; i < entries.length; i++) {
+        this.detachExternalRootEffectRecord(entries[i]);
+      }
+    }
+  }
+
+  private detachExternalRootEffectRecord(entry: ExternalRootEffectEntry): void {
+    const { effect, producer, prop, sourceEffects } = entry;
+    if (prop !== null) {
+      sourceEffects?.get(prop)?.delete(effect);
+      effect.backRef?.delete(producer as any);
+    } else {
+      (producer as SignalImpl<unknown>).$effects$?.delete(effect);
+      effect.backRef?.delete(producer as any);
+    }
+  }
+
+  private commitSegmentRoots(
+    rootSerializationCtx: SerializationContext,
+    segmentSerializationCtx: SerializationContext,
+    rootStart: number
+  ): void {
+    let expectedRootId = rootStart;
+    const segmentRoots = segmentSerializationCtx.$roots$;
+    const segmentRootObjs = segmentSerializationCtx.$rootObjs$;
+    for (let i = 0; i < segmentRoots.length; i++) {
+      if (isDev && rootSerializationCtx.$roots$.length !== expectedRootId) {
+        throw new Error(
+          `Suspense state root commit was interleaved: expected ${expectedRootId}, received ${rootSerializationCtx.$roots$.length}.`
+        );
+      }
+      const rootId = rootSerializationCtx.$commitRoot$(segmentRoots[i], segmentRootObjs[i]);
+      if (isDev && rootId !== expectedRootId) {
+        throw new Error(
+          `Suspense state root commit id mismatch: expected ${expectedRootId}, received ${rootId}.`
+        );
+      }
+      expectedRootId++;
+    }
+  }
+
+  private mergeSegmentEventData(rootSerializationCtx: SerializationContext): void {
+    for (const eventName of this.serializationCtx.$eventNames$) {
+      rootSerializationCtx.$eventNames$.add(eventName);
+    }
+    for (const qrl of this.serializationCtx.$eventQrls$) {
+      rootSerializationCtx.$eventQrls$.add(qrl);
+    }
+  }
+
+  private mergeSegmentSyncFns(rootSerializationCtx: SerializationContext): void {
+    rootSerializationCtx.$syncFns$.push(...this.serializationCtx.$syncFns$);
+  }
+
+  queueOutOfOrderSegment(segment: Promise<void>): void {
+    if (!__EXPERIMENTAL__.suspense) {
+      return;
+    }
+    this.outOfOrderPendingSegments.push(segment);
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
@@ -498,8 +1010,25 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       // start snapshot timer
       this.onRenderDone();
       const snapshotTimer = createTimer();
+      const beforeContainerData =
+        __EXPERIMENTAL__.suspense && this.outOfOrderUsed
+          ? this.flushOutOfOrderRendersBeforeRootState()
+          : undefined;
       return maybeThen(
-        maybeThen(this.emitContainerData(), () => this._closeElement()),
+        maybeThen(
+          maybeThen(beforeContainerData, () => this.emitContainerData()),
+          async () => {
+            if (__EXPERIMENTAL__.suspense && this.outOfOrderUsed) {
+              this.emitQueuedOutOfOrderSegmentScripts();
+              await this.streamHandler.flush();
+              this.markRootContainerReady();
+              if (this.outOfOrderPendingSegments.length) {
+                await Promise.all(this.outOfOrderPendingSegments);
+              }
+            }
+            this._closeElement();
+          }
+        ),
         () => {
           // set snapshot time
           this.timing.snapshot = snapshotTimer();
@@ -568,7 +1097,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
       // TODO: we should probably serialize only projection VNode
-      this.serializationCtx.$addRoot$(componentFrame.componentNode);
+      this.addRoot(componentFrame.componentNode);
       componentFrame.projectionDepth++;
     }
   }
@@ -607,15 +1136,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   /** Writes closing data to vNodeData for component boundaries and emit unclaimed projections inline */
-  async closeComponent() {
+  async closeComponent(promiseMode?: SSRPromiseMode) {
     const componentFrame = this.componentStack.pop()!;
-    await this.emitUnclaimedProjectionForComponent(componentFrame);
+    await this.emitUnclaimedProjectionForComponent(componentFrame, promiseMode);
     this.closeFragment();
     this.currentComponentNode = this.currentComponentNode?.parentComponent || null;
   }
 
   private async emitUnclaimedProjectionForComponent(
-    componentFrame: ISsrComponentFrame
+    componentFrame: ISsrComponentFrame,
+    promiseMode?: SSRPromiseMode
   ): Promise<void> {
     if (componentFrame.slots.length === 0) {
       return;
@@ -642,6 +1172,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       await this.renderJSX(children, {
         currentStyleScoped: scopedStyleId,
         parentComponentFrame: componentFrame.projectionComponentFrame,
+        promiseMode,
       });
       this.closeFragment();
     }
@@ -665,8 +1196,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   addRoot(obj: unknown) {
+    const externalRootId = __EXPERIMENTAL__.suspense
+      ? this.serializationCtx.$getExternalRootId$?.(obj)
+      : undefined;
+    if (externalRootId !== undefined) {
+      return externalRootId;
+    }
     if (this.$noMoreRoots$) {
-      return this.serializationCtx.$hasRootId$(obj);
+      const rootId = this.serializationCtx.$hasRootId$(obj);
+      return rootId === undefined ? undefined : this.serializationCtx.$formatLocalRef$(rootId);
     }
     return this.serializationCtx.$addRoot$(obj);
   }
@@ -677,7 +1215,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.currentComponentNode,
         this.currentElementFrame!.vNodeData,
         // we start at -1, so we need to add +1
-        this.currentElementFrame!.depthFirstElementIdx + 1,
+        this.currentElementFrame!.depthFirstElementIdx + 1 + this.vNodeDataOffset,
         this.cleanupQueue,
         this.currentElementFrame!.currentFile
       );
@@ -758,6 +1296,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.emitSyncFnsData();
         this.emitPatchDataIfNeeded();
         this.emitExecutorIfNeeded();
+        this.emitOutOfOrderExecutorIfNeeded();
         this.emitQwikLoaderAtBottomIfNeeded();
       })
     );
@@ -781,11 +1320,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * NOTE: Not every element will need vNodeData. So we need to encode how many elements should be
    * skipped. By choosing different separators we can encode different numbers of elements to skip.
    */
-  emitVNodeData() {
-    if (!this.serializationCtx.$roots$.length) {
+  emitVNodeData(segmentId?: string, vNodeDataOffset = this.vNodeDataOffset) {
+    if (!segmentId && !this.serializationCtx.$roots$.length) {
       return;
     }
-    this.openElement('script', null, { type: 'qwik/vnode' });
+    const attrs: Props = { type: 'qwik/vnode' };
+    if (__EXPERIMENTAL__.suspense && segmentId) {
+      attrs[QSegmentAttr] = segmentId;
+      if (vNodeDataOffset) {
+        attrs[QSegmentOffsetAttr] = String(vNodeDataOffset);
+      }
+    }
+    this.openElement('script', null, attrs);
     const vNodeAttrsStack: Props[] = [];
     const vNodeData = this.vNodeDatas;
     let lastSerializedIdx = 0;
@@ -936,14 +1482,29 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const attrs = this.stateScriptAttrs();
 
     this.openElement('script', null, attrs);
+    this.serializationCtx.$setWriter$(this.writer);
     return maybeThen(this.serializationCtx.$serialize$(), () => {
       this.closeElement();
     });
   }
 
+  private emitStatePatchData(externalRootEffectsIndex?: number): ValueOrPromise<void> {
+    const attrs = this.statePatchScriptAttrs(externalRootEffectsIndex);
+    this.openElement('script', null, attrs);
+    this.serializationCtx.$setWriter$(this.writer);
+    return maybeThen(this.serializationCtx.$serializePatch$(), () => {
+      this.closeElement();
+    });
+  }
+
+  private emitStatePatchDataMarker(externalRootEffectsIndex: number): void {
+    this.openElement('script', null, this.statePatchScriptAttrs(externalRootEffectsIndex));
+    this.closeElement();
+  }
+
   /** Add q-d:qidle attribute to eagerly resume some state if needed */
   private stateScriptAttrs(): Props {
-    const attrs: Props = { type: 'qwik/state' };
+    const attrs: Props = { type: 'qwik/state', [QInstanceAttr]: this.$instanceHash$ };
     const eagerResume = this.serializationCtx.$eagerResume$;
     if (eagerResume.size > 0) {
       attrs['q-d:qidle'] = createQRL(null, '_res', _res, null, [...eagerResume]);
@@ -951,19 +1512,42 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return attrs;
   }
 
-  private emitSyncFnsData() {
+  private statePatchScriptAttrs(externalRootEffectsIndex?: number): Props {
+    const attrs = this.stateScriptAttrs();
+    attrs[QStatePatchAttr] = true;
+    if (externalRootEffectsIndex !== undefined) {
+      attrs[QSegmentEffectsAttr] = String(externalRootEffectsIndex);
+    }
+    return attrs;
+  }
+
+  private emitSyncFnsData(append = false) {
     const fns = this.serializationCtx.$syncFns$;
-    if (fns.length) {
+    const start = append ? this.emittedSyncFnCount : 0;
+    if (fns.length > start) {
       const scriptAttrs: Record<string, string> = { 'q:func': 'qwik/json' };
       if (this.renderOptions.serverData?.nonce) {
         scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
       }
       this.openElement('script', null, scriptAttrs);
-      this.write(Q_FUNCS_PREFIX.replace('HASH', this.$instanceHash$));
-      this.write(BRACKET_OPEN);
-      this.writeArray(fns, COMMA);
-      this.write(BRACKET_CLOSE);
+      if (append) {
+        const qFuncsExpr = Q_FUNCS_PREFIX.replace('HASH', this.$instanceHash$).slice(0, -1);
+        this.write(`(${qFuncsExpr}||(${qFuncsExpr}=[])).push(`);
+      } else {
+        this.write(Q_FUNCS_PREFIX.replace('HASH', this.$instanceHash$));
+      }
+      if (!append) {
+        this.write(BRACKET_OPEN);
+      }
+      this.writeArray(append ? fns.slice(start) : fns, COMMA);
+      if (!append) {
+        this.write(BRACKET_CLOSE);
+      }
+      if (append) {
+        this.write(')');
+      }
       this.closeElement();
+      this.emittedSyncFnCount = fns.length;
     }
   }
 
@@ -1013,6 +1597,24 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeElement();
   }
 
+  emitOutOfOrderExecutorIfNeeded(): void {
+    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderUsed || this.outOfOrderExecutorEmitted) {
+      return;
+    }
+    this.outOfOrderExecutorEmitted = true;
+    this.emitInlineScript(getQwikOutOfOrderExecutorScript({ debug: isDev }));
+  }
+
+  emitInlineScript(script: string): void {
+    const scriptAttrs: Record<string, string> = { type: 'text/javascript' };
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
+    }
+    this.openElement('script', null, scriptAttrs);
+    this.write(script);
+    this.closeElement();
+  }
+
   emitPreloaderPre() {
     if (!isDev) {
       preloaderPre(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
@@ -1020,7 +1622,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   isStatic(): boolean {
-    return this.serializationCtx.$eventQrls$.size === 0;
+    return (
+      !(__EXPERIMENTAL__.suspense && this.outOfOrderUsed) &&
+      this.serializationCtx.$eventQrls$.size === 0
+    );
   }
 
   emitQwikLoaderAtTopIfNeeded() {
@@ -1242,7 +1847,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           throw qError(QError.invalidRefValue, [currentFile]);
         }
       } else if (key === ITERATION_ITEM_SINGLE || key === ITERATION_ITEM_MULTI) {
-        value = this.serializationCtx.$addRoot$(value);
+        const rootId = this.addRoot(value);
+        if (rootId === undefined) {
+          continue;
+        }
+        value = String(rootId);
       } else if (isSignal(value)) {
         const lastNode = this.getOrCreateLastNode();
         const signalData = new SubscriptionData({

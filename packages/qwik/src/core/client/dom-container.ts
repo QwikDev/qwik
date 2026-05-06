@@ -5,6 +5,7 @@ import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
+import { mergeExternalRootEffects } from '../control-flow/suspense-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
@@ -25,7 +26,9 @@ import {
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
+  QSegmentEffectsAttr,
   QScopedStyle,
+  QStatePatchAttrSelector,
   QStyle,
   QStyleSelector,
   QStylesAllSelector,
@@ -41,8 +44,8 @@ import {
 } from '../shared/utils/scoped-styles';
 import { setErrorPayload } from '../shared/cursor/chore-execution';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
-import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ContextId } from '../use/use-context';
@@ -95,11 +98,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
-  public $forwardRefs$: Array<number> | null = null;
+  public $forwardRefs$: Array<number | string> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
+  private $rootForwardRefs$: Array<number | string> | null = null;
+  private $processedStatePatchScripts$: WeakSet<Element> = new WeakSet();
   private $styleIds$: Set<string> | null = null;
 
   constructor(element: ContainerElement) {
@@ -120,17 +125,24 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!document.qVNodeData) {
       processVNodeData(document);
     }
+    document.qProcessVNodeData = processVNodeData;
+    if (__EXPERIMENTAL__.suspense) {
+      document.qProcessOOOS ||= (doc: Document) => {
+        processVNodeData(doc);
+        const containers = doc.querySelectorAll(QContainerSelector);
+        for (let i = 0; i < containers.length; i++) {
+          (containers[i] as ContainerElement).qContainer?.$processSegmentStateScripts$();
+        }
+      };
+    }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
     this.$setServerData$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     element.qContainer = this;
     (element as any).qDestroy = () => this.$destroy$();
-    const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
-    if (qwikStates.length !== 0) {
-      const lastState = qwikStates[qwikStates.length - 1];
-      this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      preprocessState(this.$rawStateData$, this);
-      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    this.$processRootStateScript$();
+    if (__EXPERIMENTAL__.suspense) {
+      this.$processSegmentStateScripts$();
     }
     this.$hoistStyles$();
     if (!qTest && element.isConnected) {
@@ -148,8 +160,109 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     el.qContainer = undefined;
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
+    if (__EXPERIMENTAL__.suspense) {
+      el.qSegmentVnodeData = undefined;
+      el.qSegmentVnodeOffsets = undefined;
+    }
     el.removeAttribute(QContainerAttr);
-    (el.ownerDocument as QDocument).qVNodeData = undefined!;
+    const document = el.ownerDocument as QDocument;
+    const hasContainers = document.querySelector(QContainerSelector) !== null;
+    if (!hasContainers) {
+      document.qVNodeData = undefined!;
+    }
+    if (__EXPERIMENTAL__.suspense) {
+      if (!hasContainers) {
+        document.qProcessOOOS = undefined;
+      }
+    }
+  }
+
+  private $processRootStateScript$(): void {
+    const rootState = this.element.querySelector(
+      `${this.$stateScriptSelector$()}:not(${QStatePatchAttrSelector})`
+    );
+    if (rootState) {
+      this.$rawStateData$ = JSON.parse(rootState.textContent!);
+      preprocessState(this.$rawStateData$, this);
+      this.$rootForwardRefs$ = this.$forwardRefs$;
+      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    }
+  }
+
+  private $stateScriptSelector$(): string {
+    return `script[type="qwik/state"][q\\:instance="${this.$instanceHash$}"]`;
+  }
+
+  $processSegmentStateScripts$(): void {
+    if (!__EXPERIMENTAL__.suspense) {
+      return;
+    }
+    const qwikStates = this.element.querySelectorAll(
+      `${this.$stateScriptSelector$()}${QStatePatchAttrSelector}`
+    );
+    for (let i = 0; i < qwikStates.length; i++) {
+      const stateScript = qwikStates[i];
+      if (this.$processedStatePatchScripts$.has(stateScript)) {
+        continue;
+      }
+      this.$processedStatePatchScripts$.add(stateScript);
+      this.$processStatePatch$(
+        stateScript.textContent,
+        stateScript.getAttribute(QSegmentEffectsAttr)
+      );
+    }
+  }
+
+  private $processStatePatch$(
+    textContent: string | null,
+    externalRootEffectsIndex: string | null
+  ): void {
+    if (!__EXPERIMENTAL__.suspense) {
+      return;
+    }
+    if (textContent) {
+      const [rootStart, rawStateData, forwardRefs] = JSON.parse(textContent) as [
+        number,
+        unknown[],
+        Array<number | string> | undefined,
+      ];
+      this.$appendStatePatchRoots$(rootStart, rawStateData);
+      this.$mergeForwardRefs$(forwardRefs);
+    }
+    mergeExternalRootEffects(this, this.$stateData$, externalRootEffectsIndex);
+  }
+
+  private $appendStatePatchRoots$(rootStart: number, rawStateData: unknown[]): void {
+    const currentRootCount = this.$rawStateData$.length / 2;
+    if (rootStart !== currentRootCount) {
+      if (qDev) {
+        throw new Error(
+          `Invalid Qwik state patch root start: expected ${currentRootCount}, received ${rootStart}.`
+        );
+      }
+      return;
+    }
+    for (let i = 0; i < rawStateData.length; i++) {
+      this.$rawStateData$[rootStart * 2 + i] = rawStateData[i];
+    }
+    preprocessState(this.$rawStateData$, this, undefined, rootStart * 2);
+    this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    this.$stateData$.length = this.$rawStateData$.length / 2;
+    this.$rootForwardRefs$ = this.$forwardRefs$;
+  }
+
+  private $mergeForwardRefs$(forwardRefs: Array<number | string> | undefined): void {
+    if (!forwardRefs) {
+      return;
+    }
+    const rootForwardRefs = (this.$rootForwardRefs$ ||= []);
+    for (let i = 0; i < forwardRefs.length; i++) {
+      const ref = forwardRefs[i];
+      if (ref !== -1 && ref !== undefined) {
+        rootForwardRefs[i] = ref;
+      }
+    }
+    this.$forwardRefs$ = rootForwardRefs;
   }
 
   /**
@@ -174,8 +287,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
   }
 
-  $setRawState$(id: number, vParent: VNode): void {
-    this.$stateData$[id] = vParent;
+  $setRawState$(id: number | string, vParent: VNode, _segmentId?: string | null): void {
+    let stateId: number;
+
+    if (typeof id === 'string') {
+      stateId = Number(id);
+    } else {
+      stateId = id;
+    }
+
+    this.$stateData$[stateId] = vParent;
   }
 
   parseQRL<T = unknown>(qrlStr: string): QRL<T> {
@@ -291,6 +412,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   $getObjectById$ = (id: number | string): unknown => {
     return getObjectById(id, this.$stateData$);
   };
+
+  $getForwardRef$(id: number | string): number | string | undefined {
+    return this.$rootForwardRefs$?.[Number(id)];
+  }
 
   getSyncFn(id: number): (...args: unknown[]) => unknown {
     const fn = this.$qFuncs$[id];

@@ -1,4 +1,12 @@
-import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
+import {
+  createDocument,
+  domRender,
+  emulateExecutionOfQwikFuncs,
+  getTestPlatform,
+  ssrRenderToDom,
+  trigger,
+  waitForDrain,
+} from '@qwik.dev/core/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   Fragment as Component,
@@ -8,16 +16,22 @@ import {
   Fragment as Projection,
   Fragment as Awaited,
   component$,
+  getPlatform,
+  getDomContainer,
+  setPlatform,
   type JSXOutput,
   useErrorBoundary,
   Slot,
   useTask$,
   useSignal,
+  useStore,
   Fragment as Signal,
 } from '@qwik.dev/core';
-import { ErrorProvider } from '../../testing/rendering.unit-util';
+import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import * as logUtils from '../shared/utils/log';
+import { renderToStream } from '../../server/ssr-render';
+import type { StreamWriter } from '../../server/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -975,5 +989,826 @@ describe('domRender: Reveal suspense coordination', () => {
     hosts = getRevealHosts(root);
     expect(hosts.firstContent.style.display).toBe('contents');
     expect(hosts.secondContent.style.display).toBe('contents');
+  });
+});
+
+describe('renderToStream: out-of-order Suspense', () => {
+  it('should stream fallback and shell before slow content resolves', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const chunks: string[] = [];
+    const stream: StreamWriter = {
+      write(chunk) {
+        chunks.push(chunk);
+      },
+    };
+
+    const renderPromise = renderToStream(
+      <main>
+        <h1>Title</h1>
+        <Suspense fallback={<button>Waiting</button>}>
+          <Slow />
+        </Suspense>
+        <footer>Footer</footer>
+      </main>,
+      {
+        containerTagName: 'div',
+        qwikLoader: 'never',
+        stream,
+        streaming: {
+          inOrder: { strategy: 'disabled' },
+          outOfOrder: { strategy: 'suspense' },
+        },
+      }
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting'));
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Footer'));
+    expect(chunks.join('')).not.toContain('Done');
+
+    resolveSlow(<section>Done</section>);
+    await renderPromise;
+    const html = chunks.join('');
+    expect(html).toContain('<!--q:sus=1-->');
+    expect(html).toContain('<div q:f="1" style="display:contents"');
+    expect(html).toContain('<div q:r="1" style="display:none"');
+    expect(html).toContain('<!--/q:sus=1-->');
+    expect(html).toContain('<template q:r="1">');
+    expect(html).toContain('qO(1)');
+    expect(html).toContain('Done');
+
+    const document = createDocument({ html });
+    const scripts = Array.from(
+      document.querySelectorAll('script[type="text/javascript"]'),
+      (script) => script.textContent || ''
+    );
+    // eslint-disable-next-line no-new-func
+    new Function('document', scripts.join('\n'))(document);
+    const fallbackHost = document.querySelector('button')!.parentElement as HTMLElement;
+    const contentHost = document.querySelector('section')!.parentElement as HTMLElement;
+    expect(fallbackHost.style.display).toBe('none');
+    expect(contentHost.style.display).toBe('contents');
+  });
+
+  it('should stream resolved HTML before root state and segment scripts after it', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    let releaseFirstFlush!: () => void;
+    let flushes = 0;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <main>
+          <button onClick$={() => count.value++}>{count.value}</button>
+          <Suspense fallback={<button onClick$={() => undefined}>Waiting</button>}>
+            <Slow />
+          </Suspense>
+          <footer>Footer</footer>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: {
+        write(chunk) {
+          chunks.push(chunk);
+          flushes++;
+          if (flushes === 1) {
+            return new Promise<void>((resolve) => {
+              releaseFirstFlush = resolve;
+            });
+          }
+        },
+      },
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting'));
+    resolveSlow(<button onClick$={() => undefined}>Done early</button>);
+    await vi.waitFor(() => expect(releaseFirstFlush).toBeDefined());
+    releaseFirstFlush();
+    await renderPromise;
+
+    const html = chunks.join('');
+    const resolvedHtmlIndex = html.indexOf('<template q:r="1">');
+    const swapIndex = html.indexOf('qO(1)');
+    const rootStateIndex = html.indexOf('type="qwik/state"');
+    const segmentStateIndex = html.indexOf('q:s="s1"');
+
+    expect(resolvedHtmlIndex).toBeGreaterThan(-1);
+    expect(swapIndex).toBeGreaterThan(resolvedHtmlIndex);
+    expect(rootStateIndex).toBeGreaterThan(swapIndex);
+    expect(segmentStateIndex).toBeGreaterThan(rootStateIndex);
+  });
+
+  it('should emit compact segment vnode attributes', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(
+      <main>
+        <Suspense fallback={<button onClick$={() => undefined}>Fallback</button>}>
+          <Slow />
+        </Suspense>
+      </main>,
+      {
+        containerTagName: 'div',
+        qwikLoader: 'never',
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+          },
+        },
+        streaming: {
+          inOrder: { strategy: 'disabled' },
+          outOfOrder: { strategy: 'suspense' },
+        },
+      }
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Fallback'));
+    resolveSlow(<button onClick$={() => undefined}>Resolved</button>);
+    await renderPromise;
+    const html = chunks.join('');
+    expect(html).not.toContain('q:s="f1"');
+    expect(html).toContain('q:s="s1"');
+    expect(html).not.toContain('q:segment');
+    expect(html).not.toContain('q:suspense');
+  });
+
+  it('should replay projected Slot children when resolved content is rendered later', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const Boundary = component$(() => (
+      <Suspense fallback={<p>Waiting slot</p>}>
+        <Slot />
+      </Suspense>
+    ));
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(
+      <main>
+        <Boundary>
+          <Slow />
+        </Boundary>
+      </main>,
+      {
+        containerTagName: 'div',
+        qwikLoader: 'never',
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+          },
+        },
+        streaming: {
+          inOrder: { strategy: 'disabled' },
+          outOfOrder: { strategy: 'suspense' },
+        },
+      }
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting slot'));
+    expect(chunks.join('')).not.toContain('Slotted done');
+
+    resolveSlow(<strong>Slotted done</strong>);
+    await renderPromise;
+
+    const html = chunks.join('');
+    expect(html).toContain('<template q:r="1">');
+    expect(html).toContain('Slotted done');
+  });
+
+  it('should let resolved segment QRLs capture root-owned state', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    (globalThis as any).__ooosUnitSharedShellValue = 0;
+    (globalThis as any).__ooosUnitSharedResolvedValue = 0;
+
+    const Slow = component$((props: { count: any }) => (
+      <>
+        {slow}
+        <button
+          id="ooos-unit-shared-resolved-button"
+          onClick$={() => {
+            props.count.value += 1;
+            (globalThis as any).__ooosUnitSharedResolvedValue = props.count.value;
+          }}
+        >
+          Touch resolved shared
+        </button>
+      </>
+    ));
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <main>
+          <button
+            id="ooos-unit-shared-shell-button"
+            onClick$={() => {
+              count.value += 1;
+              (globalThis as any).__ooosUnitSharedShellValue = count.value;
+            }}
+          >
+            Touch shell shared
+          </button>
+          <span id="ooos-unit-shared-count">{count.value}</span>
+          <Suspense fallback={<p>Waiting shared</p>}>
+            <Slow count={count} />
+          </Suspense>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: {
+        write(chunk) {
+          chunks.push(chunk);
+        },
+      },
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting shared'));
+      resolveSlow(<span id="ooos-unit-shared-ready">Ready shared</span>);
+      await renderPromise;
+
+      const html = chunks.join('');
+      const document = createDocument({ html });
+      const scripts = Array.from(
+        document.querySelectorAll('script[type="text/javascript"]'),
+        (script) => script.textContent || ''
+      );
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+      const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:patch]');
+      expect(segmentStateScript).not.toBeNull();
+      expect(segmentStateScript?.hasAttribute('q:s')).toBe(false);
+      expect(segmentStateScript?.getAttribute('q:fx')).toBeNull();
+      expect(document.querySelector('#ooos-unit-shared-resolved-button')).not.toBeNull();
+
+      emulateExecutionOfQwikFuncs(document);
+      emulateExecutionOfBackpatch(document);
+      const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+
+      await trigger(container.element, '#ooos-unit-shared-shell-button', 'click');
+      expect((globalThis as any).__ooosUnitSharedShellValue).toBe(1);
+    } finally {
+      delete (globalThis as any).__ooosUnitSharedShellValue;
+      delete (globalThis as any).__ooosUnitSharedResolvedValue;
+    }
+  });
+
+  it('should merge resolved segment effects for root-owned stores', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    (globalThis as any).__ooosUnitStoreShellValue = 0;
+    (globalThis as any).__ooosUnitStoreResolvedValue = 0;
+
+    const Slow = component$((props: { state: { count: number } }) => (
+      <>
+        {slow}
+        <button
+          id="ooos-unit-store-resolved-button"
+          onClick$={() => {
+            props.state.count += 1;
+            (globalThis as any).__ooosUnitStoreResolvedValue = props.state.count;
+          }}
+        >
+          Touch resolved store
+        </button>
+        <span id="ooos-unit-store-resolved-count">{props.state.count}</span>
+      </>
+    ));
+    const App = component$(() => {
+      const state = useStore({ count: 0 });
+      return (
+        <main>
+          <button
+            id="ooos-unit-store-shell-button"
+            onClick$={() => {
+              state.count += 1;
+              (globalThis as any).__ooosUnitStoreShellValue = state.count;
+            }}
+          >
+            Touch shell store
+          </button>
+          <span id="ooos-unit-store-shell-count">{state.count}</span>
+          <Suspense fallback={<p>Waiting store</p>}>
+            <Slow state={state} />
+          </Suspense>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: {
+        write(chunk) {
+          chunks.push(chunk);
+        },
+      },
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting store'));
+      resolveSlow(<span id="ooos-unit-store-ready">Ready store</span>);
+      await renderPromise;
+
+      const html = chunks.join('');
+      const document = createDocument({ html });
+      const scripts = Array.from(
+        document.querySelectorAll('script[type="text/javascript"]'),
+        (script) => script.textContent || ''
+      );
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+      const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:patch]');
+      expect(segmentStateScript?.getAttribute('q:fx')).not.toBeNull();
+      expect(segmentStateScript?.hasAttribute('q:s')).toBe(false);
+      expect(document.querySelector('#ooos-unit-store-resolved-button')).not.toBeNull();
+
+      const platform = getPlatform();
+      setPlatform(getTestPlatform());
+      try {
+        emulateExecutionOfQwikFuncs(document);
+        emulateExecutionOfBackpatch(document);
+        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+
+        await trigger(container.element, '#ooos-unit-store-shell-button', 'click');
+        await waitForDrain(container);
+        expect((globalThis as any).__ooosUnitStoreShellValue).toBe(1);
+        expect(document.querySelector('#ooos-unit-store-shell-count')?.textContent).toBe('1');
+        expect(document.querySelector('#ooos-unit-store-resolved-count')?.textContent).toBe('1');
+      } finally {
+        setPlatform(platform);
+      }
+    } finally {
+      delete (globalThis as any).__ooosUnitStoreShellValue;
+      delete (globalThis as any).__ooosUnitStoreResolvedValue;
+    }
+  });
+
+  it('should share a root-owned store across multiple resolved segments', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    (globalThis as any).__ooosUnitSharedStoreFirstValue = 0;
+
+    const First = component$((props: { shared: { count: number } }) => (
+      <>
+        {first}
+        <button
+          id="ooos-unit-shared-store-first-button"
+          onClick$={() => {
+            props.shared.count += 1;
+            (globalThis as any).__ooosUnitSharedStoreFirstValue = props.shared.count;
+          }}
+        >
+          Touch first shared store
+        </button>
+        <span id="ooos-unit-shared-store-first-count">{props.shared.count}</span>
+      </>
+    ));
+    const Second = component$((props: { shared: { count: number } }) => (
+      <>
+        {second}
+        <span id="ooos-unit-shared-store-second-count">{props.shared.count}</span>
+      </>
+    ));
+    const App = component$(() => {
+      const shared = useStore({ count: 0 });
+      return (
+        <main>
+          <button
+            id="ooos-unit-shared-store-shell-button"
+            onClick$={() => {
+              shared.count += 1;
+            }}
+          >
+            Touch shell shared store
+          </button>
+          <span id="ooos-unit-shared-store-shell-count">{shared.count}</span>
+          <Suspense fallback={<p>Waiting first shared store</p>}>
+            <First shared={shared} />
+          </Suspense>
+          <Suspense fallback={<p>Waiting second shared store</p>}>
+            <Second shared={shared} />
+          </Suspense>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: {
+        write(chunk) {
+          chunks.push(chunk);
+        },
+      },
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting first shared store'));
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second shared store'));
+      resolveFirst(<span id="ooos-unit-shared-store-first-ready">First ready</span>);
+      resolveSecond(<span id="ooos-unit-shared-store-second-ready">Second ready</span>);
+      await renderPromise;
+
+      const html = chunks.join('');
+      const document = createDocument({ html });
+      const scripts = Array.from(
+        document.querySelectorAll('script[type="text/javascript"]'),
+        (script) => script.textContent || ''
+      );
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+      const segmentStateScripts = document.querySelectorAll(
+        'script[type="qwik/state"][q\\:patch][q\\:fx]'
+      );
+      expect(segmentStateScripts.length).toBe(2);
+      expect(document.querySelector('#ooos-unit-shared-store-first-button')).not.toBeNull();
+      expect(document.querySelector('#ooos-unit-shared-store-second-count')).not.toBeNull();
+
+      const platform = getPlatform();
+      setPlatform(getTestPlatform());
+      try {
+        emulateExecutionOfQwikFuncs(document);
+        emulateExecutionOfBackpatch(document);
+        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+
+        await trigger(container.element, '#ooos-unit-shared-store-first-button', 'click');
+        await waitForDrain(container);
+        expect((globalThis as any).__ooosUnitSharedStoreFirstValue).toBe(1);
+        expect(document.querySelector('#ooos-unit-shared-store-shell-count')?.textContent).toBe(
+          '1'
+        );
+        expect(document.querySelector('#ooos-unit-shared-store-first-count')?.textContent).toBe(
+          '1'
+        );
+        expect(document.querySelector('#ooos-unit-shared-store-second-count')?.textContent).toBe(
+          '1'
+        );
+      } finally {
+        setPlatform(platform);
+      }
+    } finally {
+      delete (globalThis as any).__ooosUnitSharedStoreFirstValue;
+    }
+  });
+
+  it('should share a store used only by multiple resolved segments', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    (globalThis as any).__ooosUnitCrossStoreFirstValue = 0;
+
+    const First = component$((props: { shared: { count: number } }) => (
+      <>
+        {first}
+        <button
+          id="ooos-unit-cross-store-first-button"
+          onClick$={() => {
+            props.shared.count += 1;
+            (globalThis as any).__ooosUnitCrossStoreFirstValue = props.shared.count;
+          }}
+        >
+          Touch first cross store
+        </button>
+        <span id="ooos-unit-cross-store-first-count">{props.shared.count}</span>
+      </>
+    ));
+    const Second = component$((props: { shared: { count: number } }) => (
+      <>
+        {second}
+        <span id="ooos-unit-cross-store-second-count">{props.shared.count}</span>
+      </>
+    ));
+    const App = component$(() => {
+      const shared = useStore({ count: 0 });
+      return (
+        <main>
+          <h1>Shell does not read the cross store</h1>
+          <Suspense fallback={<p>Waiting first cross store</p>}>
+            <First shared={shared} />
+          </Suspense>
+          <Suspense fallback={<p>Waiting second cross store</p>}>
+            <Second shared={shared} />
+          </Suspense>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: {
+        write(chunk) {
+          chunks.push(chunk);
+        },
+      },
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting first cross store'));
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second cross store'));
+      resolveFirst(<span id="ooos-unit-cross-store-first-ready">First ready</span>);
+      resolveSecond(<span id="ooos-unit-cross-store-second-ready">Second ready</span>);
+      await renderPromise;
+
+      const html = chunks.join('');
+      const document = createDocument({ html });
+      const scripts = Array.from(
+        document.querySelectorAll('script[type="text/javascript"]'),
+        (script) => script.textContent || ''
+      );
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+      const segmentStateScripts = document.querySelectorAll('script[type="qwik/state"][q\\:patch]');
+      expect(segmentStateScripts.length).toBeGreaterThan(0);
+      for (const script of segmentStateScripts) {
+        expect(script.hasAttribute('q:s')).toBe(false);
+      }
+      expect(document.querySelector('#ooos-unit-cross-store-first-button')).not.toBeNull();
+      expect(document.querySelector('#ooos-unit-cross-store-second-count')).not.toBeNull();
+
+      const platform = getPlatform();
+      setPlatform(getTestPlatform());
+      try {
+        emulateExecutionOfQwikFuncs(document);
+        emulateExecutionOfBackpatch(document);
+        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+
+        expect(document.querySelector('#ooos-unit-cross-store-first-count')?.textContent).toBe('0');
+        expect(document.querySelector('#ooos-unit-cross-store-second-count')?.textContent).toBe(
+          '0'
+        );
+
+        await trigger(container.element, '#ooos-unit-cross-store-first-button', 'click');
+        await waitForDrain(container);
+        expect((globalThis as any).__ooosUnitCrossStoreFirstValue).toBe(1);
+        expect(document.querySelector('#ooos-unit-cross-store-first-count')?.textContent).toBe('1');
+        expect(document.querySelector('#ooos-unit-cross-store-second-count')?.textContent).toBe(
+          '1'
+        );
+      } finally {
+        setPlatform(platform);
+      }
+    } finally {
+      delete (globalThis as any).__ooosUnitCrossStoreFirstValue;
+    }
+  });
+
+  it('should coordinate out-of-order segments inside sequential collapsed Reveal', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    const First = component$(() => <>{first}</>);
+    const Second = component$(() => <>{second}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(
+      <main>
+        <Reveal order="sequential" collapsed>
+          <Suspense fallback={<p>First fallback</p>}>
+            <First />
+          </Suspense>
+          <Suspense fallback={<p>Second fallback</p>}>
+            <Second />
+          </Suspense>
+        </Reveal>
+        <footer>Footer</footer>
+      </main>,
+      {
+        containerTagName: 'div',
+        qwikLoader: 'never',
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+          },
+        },
+        streaming: {
+          inOrder: { strategy: 'disabled' },
+          outOfOrder: { strategy: 'suspense' },
+        },
+      }
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('First fallback'));
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Footer'));
+    const shellDocument = createDocument({ html: chunks.join('') });
+    const shellFallbackHosts = shellDocument.querySelectorAll('[q\\:f]');
+    expect((shellFallbackHosts[0] as HTMLElement).style.display).toBe('contents');
+    expect((shellFallbackHosts[1] as HTMLElement).style.display).toBe('none');
+
+    resolveSecond(<p>Second done</p>);
+    await delay(40);
+    const secondReadyHtml = chunks.join('');
+    expect(secondReadyHtml).toContain('Second done');
+    expect(secondReadyHtml).toContain('qO(2)');
+    expect(secondReadyHtml).toContain('qO.g(1,2,"s")');
+    expect(secondReadyHtml).toContain('q:f="1" q:g="1" q:i="0" q:o="s" q:c');
+    expect(secondReadyHtml).toContain('q:f="2" q:g="1" q:i="1" q:o="s" q:c');
+
+    const runOutOfOrderScripts = (html: string) => {
+      const document = createDocument({ html });
+      const scripts = Array.from(
+        document.querySelectorAll('script[type="text/javascript"]'),
+        (script) => script.textContent || ''
+      );
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+      return document;
+    };
+
+    const secondReadyDocument = runOutOfOrderScripts(secondReadyHtml);
+    expect(secondReadyDocument.querySelector('main')!.textContent).toContain('First fallback');
+    expect(secondReadyDocument.querySelector('main')!.textContent).not.toContain('Second done');
+    expect(
+      (
+        Array.from(secondReadyDocument.querySelectorAll('p')).find(
+          (node) => node.textContent === 'Second fallback'
+        )!.parentElement as HTMLElement
+      ).style.display
+    ).toBe('none');
+
+    resolveFirst(<p>First done</p>);
+    await renderPromise;
+
+    const html = chunks.join('');
+    expect(html).toContain('qO(1)');
+    expect(html).toContain('qO(2)');
+    const document = runOutOfOrderScripts(html);
+    const text = document.querySelector('main')!.textContent!;
+    expect(text).toContain('First done');
+    expect(text).toContain('Second done');
+    expect(
+      (
+        Array.from(document.querySelectorAll('p')).find(
+          (node) => node.textContent === 'First fallback'
+        )!.parentElement as HTMLElement
+      ).style.display
+    ).toBe('none');
+    expect(
+      (
+        Array.from(document.querySelectorAll('p')).find(
+          (node) => node.textContent === 'Second fallback'
+        )!.parentElement as HTMLElement
+      ).style.display
+    ).toBe('none');
+  });
+
+  it('should keep pending fallback state isolated from shell state', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    (globalThis as any).__ooosUnitFallbackClicks = 0;
+    (globalThis as any).__ooosUnitShellClicks = 0;
+    const Slow = component$(() => <>{slow}</>);
+    const Fallback = component$(() => {
+      const count = useSignal(0);
+      return (
+        <section id="ooos-unit-fallback">
+          <button
+            id="ooos-unit-fallback-button"
+            onClick$={() => {
+              (globalThis as any).__ooosUnitFallbackClicks =
+                ((globalThis as any).__ooosUnitFallbackClicks || 0) + 1;
+              count.value += 1;
+              (globalThis as any).__ooosUnitFallbackValue = count.value;
+            }}
+          >
+            Touch fallback
+          </button>
+          <span id="ooos-unit-fallback-count">{count.value}</span>
+        </section>
+      );
+    });
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <main>
+          <Suspense fallback={<Fallback />}>
+            <Slow />
+          </Suspense>
+          <button
+            id="ooos-unit-shell-button"
+            onClick$={() => {
+              (globalThis as any).__ooosUnitShellClicks =
+                ((globalThis as any).__ooosUnitShellClicks || 0) + 1;
+              count.value += 1;
+              (globalThis as any).__ooosUnitShellValue = count.value;
+            }}
+          >
+            Touch shell
+          </button>
+          <span id="ooos-unit-shell-count">{count.value}</span>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: {
+        write(chunk) {
+          chunks.push(chunk);
+        },
+      },
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('ooos-unit-fallback-button'));
+      await vi.waitFor(() => expect(chunks.join('')).toContain('ooos-unit-shell-button'));
+      await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+      const html = chunks.join('');
+      const document = createDocument({ html });
+      emulateExecutionOfQwikFuncs(document);
+      emulateExecutionOfBackpatch(document);
+      const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+      expect(document.querySelector('script[type="qwik/state"][q\\:s]') == null).toBe(true);
+
+      await trigger(container.element, '#ooos-unit-fallback-button', 'click');
+      expect((globalThis as any).__ooosUnitFallbackClicks).toBe(1);
+      expect((globalThis as any).__ooosUnitFallbackValue).toBe(1);
+
+      await trigger(container.element, '#ooos-unit-shell-button', 'click');
+      expect((globalThis as any).__ooosUnitShellClicks).toBe(1);
+      expect((globalThis as any).__ooosUnitShellValue).toBe(1);
+    } finally {
+      resolveSlow(<section>Done</section>);
+      await renderPromise;
+      delete (globalThis as any).__ooosUnitFallbackClicks;
+      delete (globalThis as any).__ooosUnitShellClicks;
+      delete (globalThis as any).__ooosUnitFallbackValue;
+      delete (globalThis as any).__ooosUnitShellValue;
+    }
   });
 });

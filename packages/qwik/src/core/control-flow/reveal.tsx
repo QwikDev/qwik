@@ -3,17 +3,26 @@ import type { Signal } from '../reactive-primitives/signal.public';
 import { createSignal } from '../reactive-primitives/signal.public';
 import { componentQrl } from '../shared/component.public';
 import { _jsxSorted } from '../shared/jsx/jsx-internal';
+import { Fragment } from '../shared/jsx/jsx-runtime';
+import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import { isServerPlatform } from '../shared/platform/platform';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import { _captures } from '../shared/qrl/qrl-class';
+import { noSerialize, type NoSerialize } from '../shared/serdes/verify';
+import { canRevealRegistration, type RevealOrder } from '../shared/utils/reveal';
+import { createInternalServerComponent } from '../ssr/internal-server-component';
 import { createContextId, useContext, useContextProvider } from '../use/use-context';
 import type { CursorBoundary } from '../use/use-cursor-boundary';
 import { useConstant } from '../use/use-signal';
 import { useTaskQrl, type TaskCtx } from '../use/use-task';
+import {
+  createOutOfOrderRevealCoordinator,
+  isOutOfOrderStreaming,
+  type OutOfOrderRevealCoordinator,
+} from './suspense-utils';
 
-/** @public @experimental */
-export type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';
+export type { RevealOrder } from '../shared/utils/reveal';
 
 /** @public @experimental */
 export type RevealProps = {
@@ -30,6 +39,7 @@ export type RevealContext = {
   collapsed: boolean;
   items: RevealItem[];
   version: Signal<number>;
+  ooos?: NoSerialize<OutOfOrderRevealCoordinator<RevealItem>>;
 };
 
 export type RevealRegistration = {
@@ -51,51 +61,11 @@ const createRevealContext = (props: RevealProps): RevealContext => {
 /** @internal */
 export const revealCanReveal = () => {
   const registration = _captures![0] as RevealRegistration | null;
-  if (registration === null) {
-    return true;
-  }
-
-  const reveal = registration.reveal;
-  const current = registration.item;
-  const items = reveal.items;
   // `version` is monotonic; the branch keeps the subscription read from being dropped by minifiers.
-  if (reveal.version.value < 0) {
+  if (registration !== null && registration.reveal.version.value < 0) {
     return false;
   }
-
-  switch (reveal.order) {
-    case 'together':
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].boundary.pending.untrackedValue > 0) {
-          return false;
-        }
-      }
-      return true;
-    case 'sequential':
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item === current) {
-          return true;
-        }
-        if (item.boundary.pending.untrackedValue > 0) {
-          return false;
-        }
-      }
-      return true;
-    case 'reverse':
-      for (let i = items.length - 1; i >= 0; i--) {
-        const item = items[i];
-        if (item === current) {
-          return true;
-        }
-        if (item.boundary.pending.untrackedValue > 0) {
-          return false;
-        }
-      }
-      return true;
-    default:
-      return true;
-  }
+  return canRevealRegistration(registration);
 };
 
 /** @internal */
@@ -135,6 +105,21 @@ export const useRevealBoundary = (boundary: CursorBoundary): RevealRegistration 
   return registration;
 };
 
+const getOutOfOrderCoordinator = (
+  reveal: RevealContext
+): OutOfOrderRevealCoordinator<RevealItem> => {
+  const coordinator = reveal.ooos;
+  if (coordinator) {
+    return coordinator;
+  }
+  const nextCoordinator = createOutOfOrderRevealCoordinator<RevealItem>(
+    reveal.order,
+    reveal.collapsed
+  );
+  reveal.ooos = noSerialize(nextCoordinator);
+  return nextCoordinator;
+};
+
 /** @internal */
 export const revealCmp = (props: RevealProps) => {
   if (!__EXPERIMENTAL__.suspense) {
@@ -146,6 +131,31 @@ export const revealCmp = (props: RevealProps) => {
   const reveal = useConstant(createRevealContext, props);
   useContextProvider(RevealContext, reveal);
 
+  const isServerEnv = import.meta.env.TEST ? isServerPlatform() : !isBrowser;
+  if (__EXPERIMENTAL__.suspense && isServerEnv && isOutOfOrderStreaming()) {
+    const coordinator = getOutOfOrderCoordinator(reveal);
+    return /*#__PURE__*/ _jsxSorted(
+      Fragment,
+      null,
+      null,
+      [
+        /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, 'u7_0'),
+        /*#__PURE__*/ _jsxSorted(
+          SSRReveal,
+          {
+            coordinator,
+          },
+          null,
+          null,
+          0,
+          'u7_1'
+        ),
+      ],
+      1,
+      'u7_2'
+    );
+  }
+
   return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, 'u7_0');
 };
 
@@ -153,3 +163,22 @@ export const revealCmp = (props: RevealProps) => {
 export const Reveal = /*#__PURE__*/ componentQrl<RevealProps>(
   /*#__PURE__*/ inlinedQrl(revealCmp, '_reC')
 ) as typeof revealCmp;
+
+type SSRRevealProps = {
+  coordinator: OutOfOrderRevealCoordinator;
+};
+
+const SSRReveal = __EXPERIMENTAL__.suspense
+  ? /*#__PURE__*/ createInternalServerComponent<SSRRevealProps>((ssr, jsx) => {
+      const coordinator = directGetPropsProxyProp<OutOfOrderRevealCoordinator, unknown>(
+        jsx,
+        'coordinator'
+      );
+      const script = coordinator.script();
+      if (!script) {
+        return;
+      }
+      ssr.emitOutOfOrderExecutorIfNeeded();
+      ssr.emitInlineScript(script);
+    })
+  : null!;

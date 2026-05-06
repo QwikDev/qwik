@@ -40,10 +40,18 @@ export {
   QManifestHashAttr,
   QRenderAttr,
   QRuntimeAttr,
+  QSegmentAttr,
+  QSegmentEffectsAttr,
+  QSegmentOffsetAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,
+  QStatePatchAttr,
   QStyle,
+  QSuspense,
+  QSuspenseEnd,
+  QSuspenseFallback,
+  QSuspenseResolved,
   QTemplate,
   QVersionAttr,
   Q_PROPS_SEPARATOR,
@@ -66,6 +74,11 @@ export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
 export { isHtmlAttributeAnEventName, isPreventDefault } from '../core/shared/utils/event-names';
 export { ITERATION_ITEM_SINGLE, ITERATION_ITEM_MULTI } from '../core/shared/utils/markers';
 export { isObjectEmpty } from '../core/shared/utils/objects';
+export type {
+  OutOfOrderRevealBoundary,
+  OutOfOrderRevealBoundaryRegistration,
+  OutOfOrderRevealCoordinator,
+} from '../core/control-flow/suspense-utils';
 export {
   LT,
   GT,

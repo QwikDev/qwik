@@ -810,7 +810,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RendererOptions = Omit<RenderOptions, 'serverData'> & {\n    serverData: ServerData;\n};\n```\n**References:** [ServerData](#serverdata)",
+      "content": "```typescript\nexport type RendererOptions = Omit<RenderToStreamOptions, 'serverData'> & {\n    serverData: ServerData;\n};\n```\n**References:** [ServerData](#serverdata)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts",
       "mdFile": "router.rendereroptions.md"
     },
@@ -824,7 +824,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RendererOutputOptions = Omit<RenderOptions, 'serverData'> & {\n    serverData: ServerData & {\n        documentHead?: DocumentHeadValue;\n    } & Record<string, unknown>;\n};\n```\n**References:** [ServerData](#serverdata)<!-- -->, [DocumentHeadValue](#documentheadvalue)",
+      "content": "```typescript\nexport type RendererOutputOptions = Omit<RenderToStreamOptions, 'serverData'> & {\n    serverData: ServerData & {\n        documentHead?: DocumentHeadValue;\n    } & Record<string, unknown>;\n};\n```\n**References:** [ServerData](#serverdata)<!-- -->, [DocumentHeadValue](#documentheadvalue)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts",
       "mdFile": "router.rendereroutputoptions.md"
     },

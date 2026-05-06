@@ -134,6 +134,245 @@ Suspense can show its fallback when content inside it is still loading, includin
 
 Suspense does not do the loading work. It only controls the fallback while that work finishes.
 
+## Out-of-order Streaming
+
+Out-of-order streaming is an optional server rendering mode for `<Suspense>`.
+
+Server rendering means Qwik creates HTML on the server and sends it to the browser. Streaming means
+the browser can receive that HTML in chunks instead of waiting for one complete HTML string.
+
+Out-of-order streaming helps when one section of the page is slow, but the rest of the page is ready.
+
+Without out-of-order streaming, the server renders the page in order. If a Suspense child is still
+waiting, the server waits at that point before it can continue sending the next HTML.
+
+With out-of-order streaming, Qwik can:
+
+1. Send the HTML that is ready.
+2. Send the Suspense fallback for the slow section.
+3. Continue sending the rest of the page, such as the footer or nearby buttons.
+4. Send the real Suspense content later, when it finishes.
+5. Replace the fallback with the real content in the browser.
+
+From the user's point of view, the page appears sooner. They can see the shell of the page while
+one slower section is still loading.
+
+<Note>
+Out-of-order streaming only applies to promises inside `<Suspense>`. A promise outside Suspense still
+follows the normal SSR rendering behavior.
+</Note>
+
+You do not need to write the streaming markers or replacement scripts yourself. Keep writing
+`<Suspense>` and fallbacks normally; Qwik handles the streamed HTML and browser-side replacement.
+
+### Enable Suspense
+
+Suspense is experimental, so first enable it in `vite.config.ts`:
+
+```ts title="vite.config.ts" /experimental/
+import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikRouter } from '@qwik.dev/router/vite';
+import { defineConfig } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+
+export default defineConfig(() => ({
+  plugins: [
+    qwikRouter(),
+    qwikVite({
+      experimental: ['suspense'],
+    }),
+    tsconfigPaths(),
+  ],
+}));
+```
+
+### Enable Out-of-order Streaming
+
+Then enable out-of-order streaming in your server entry point.
+
+Most Qwik apps have a `src/entry.ssr.tsx` file. That file receives render options from the adapter
+and returns the JSX and options that should be rendered.
+
+Add `streaming.outOfOrder` to those options:
+
+```tsx title="src/entry.ssr.tsx" /outOfOrder/
+import { createRenderer } from '@qwik.dev/router';
+import Root from './root';
+
+export default createRenderer((opts) => {
+  return {
+    jsx: <Root />,
+    options: {
+      ...opts,
+      streaming: {
+        ...opts.streaming,
+        outOfOrder: { strategy: 'suspense' },
+      },
+    },
+  };
+});
+```
+
+Out-of-order streaming is disabled by default. The enabled value is:
+
+```ts
+outOfOrder: { strategy: 'suspense' }
+```
+
+To turn it off again, remove the option or use:
+
+```ts
+outOfOrder: { strategy: 'disabled' }
+```
+
+If your project calls `renderToStream()` directly, pass the same `streaming` option to
+`renderToStream()`:
+
+```tsx title="src/entry.ssr.tsx" /outOfOrder/
+import { renderToStream, type RenderToStreamOptions } from '@qwik.dev/core/server';
+import Root from './root';
+
+export default function (opts: RenderToStreamOptions) {
+  return renderToStream(<Root />, {
+    ...opts,
+    streaming: {
+      ...opts.streaming,
+      outOfOrder: { strategy: 'suspense' },
+    },
+  });
+}
+```
+
+### Example
+
+In this example, the page shell and fallback can stream before `ProfileDetails` finishes:
+
+```tsx /Suspense/ /fallback/ /profile.value/
+import { component$, Suspense, useAsync$ } from '@qwik.dev/core';
+
+const ProfileDetails = component$(() => {
+  const profile = useAsync$(async ({ abortSignal }) => {
+    const response = await fetch('/api/profile', {
+      signal: abortSignal,
+    });
+
+    return response.json() as Promise<{
+      name: string;
+      plan: string;
+    }>;
+  });
+
+  return (
+    <section>
+      <h2>{profile.value.name}</h2>
+      <p>Plan: {profile.value.plan}</p>
+    </section>
+  );
+});
+
+export default component$(() => {
+  return (
+    <main>
+      <h1>Account</h1>
+
+      <Suspense fallback={<p>Loading profile...</p>}>
+        <ProfileDetails />
+      </Suspense>
+
+      <footer>Need help? Contact support.</footer>
+    </main>
+  );
+});
+```
+
+If `/api/profile` is slow, Qwik can send:
+
+- the `Account` heading
+- the `Loading profile...` fallback
+- the footer
+
+Then, when the profile request resolves, Qwik sends the finished profile HTML and swaps it into the
+Suspense boundary.
+
+If the profile request finishes before the server needs to stream the fallback, Qwik can send the
+finished profile directly and the fallback may never appear.
+
+### Fallbacks
+
+The fallback is real UI. Choose markup that is useful while the user waits:
+
+```tsx
+<Suspense fallback={<p>Loading recommendations...</p>}>
+  <Recommendations />
+</Suspense>
+```
+
+If you do not provide a fallback, the boundary has no visible loading UI. The rest of the page can
+still stream, but that section will appear empty until the content is ready.
+
+When out-of-order streaming is enabled, a boundary that suspends during the initial server render
+streams its fallback as soon as Qwik reaches that boundary. The `delay` prop is still useful for
+client-side waits and later updates, but it is not used as a timer for the initial server stream.
+
+For best results:
+
+- keep fallbacks small
+- reserve enough space to avoid layout shift
+- use accessible text, not only a spinner
+- avoid important actions that disappear immediately when the real content arrives
+
+### Interactivity
+
+Qwik keeps the streamed HTML resumable.
+
+That means the shell of the page can become interactive even while a Suspense section is still
+waiting. If your fallback has buttons or other event handlers, they can also resume while the
+fallback is visible, after the root page state has loaded in the browser.
+
+When the real content arrives, Qwik removes the fallback and inserts the resolved content. The
+resolved content may be visible before it is interactive. Qwik resumes that content after the root
+page state and the content's streamed state have both loaded, then its event handlers and state work
+like any other server-rendered Qwik HTML.
+
+### When to Use It
+
+Out-of-order streaming is useful for independent page sections that may be slower than the rest of
+the page, such as:
+
+- account panels
+- recommendations
+- reviews
+- dashboards
+- comments
+- secondary content below the main heading
+
+It is less useful when the slow content is required before the rest of the page makes sense. In that
+case, showing a complete page a little later may be clearer than streaming a partial page early.
+
+### Static Builds
+
+Out-of-order streaming is an SSR feature. It helps when the browser is receiving an HTTP response
+while the server is still rendering.
+
+For static site generation, the HTML file is created ahead of time. The user receives the finished
+file later, so there is no live server stream to reveal a fallback first.
+
+### Troubleshooting
+
+If you see an error that says Suspense must be enabled, add `experimental: ['suspense']` to
+`qwikVite()`.
+
+If the fallback never appears, check these common causes:
+
+- the content resolves before the browser receives the fallback
+- the slow promise is outside `<Suspense>`
+- there is no `fallback` prop
+- the hosting platform or proxy buffers the whole response instead of streaming it
+
+If your site uses a Content Security Policy with script nonces, keep passing the nonce through your
+SSR render options. Qwik will add the nonce to the inline scripts it uses for out-of-order
+streaming.
+
 ## `delay`
 
 The `delay` prop waits before showing the fallback:

@@ -1,16 +1,15 @@
 import { rmSync } from 'fs';
 import { copyFile, watch } from 'fs/promises';
 import { join } from 'path';
-import { apiExtractorQwik, apiExtractorQwikCity } from './api.ts';
+import { apiExtractorQwik, apiExtractorQwikRouter } from './api.ts';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform.ts';
 import { buildWasmBinding } from './binding-wasm.ts';
 import { buildCreateQwikCli } from './create-qwik-cli.ts';
+import { buildDevtools } from './devtools.ts';
+import { buildBrowserExtension } from './browser-extension.ts';
 import { buildEslint } from './eslint.ts';
-import { buildQwikAuth } from './qwik-auth.ts';
-import { buildQwikCity } from './qwik-city.ts';
-import { buildQwikLabs } from './qwik-labs.ts';
 import { buildQwikReact } from './qwik-react.ts';
-import { buildQwikWorker } from './qwik-worker.ts';
+import { buildQwikRouter } from './qwik-router.ts';
 import {
   commitPrepareReleaseVersion,
   prepareReleaseVersion,
@@ -21,12 +20,14 @@ import {
 import { submoduleBuild } from './submodule-build.ts';
 import { submoduleCli } from './submodule-cli.ts';
 import { submoduleCore } from './submodule-core.ts';
+import { submoduleInsights } from './submodule-insights.ts';
 import { submoduleOptimizer } from './submodule-optimizer.ts';
 import { submoduleQwikLoader } from './submodule-qwikloader.ts';
+import { submoduleBackpatch } from './submodule-backpatch.ts';
 import { submoduleServer } from './submodule-server.ts';
 import { submoduleTesting } from './submodule-testing.ts';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers.ts';
-import { tsc, tscQwik, tscQwikCity } from './tsc.ts';
+import { tsc, tscQwik, tscQwikRouter } from './tsc.ts';
 import { tscDocs } from './tsc-docs.ts';
 import { emptyDir, ensureDir, panic, type BuildConfig } from './util.ts';
 import { validateBuild } from './validate-build.ts';
@@ -62,26 +63,44 @@ export async function build(config: BuildConfig) {
       rmSync(config.dtsDir, { recursive: true, force: true });
       await tscQwik(config);
     }
+    ensureDir(config.distQwikPkgDir);
+    if (config.qwik && !config.dev) {
+      emptyDir(config.distQwikPkgDir);
+    }
 
+    if (config.qwik || config.optimizer) {
+      await submoduleQwikLoader(config);
+    }
+
+    if (config.optimizer) {
+      await submoduleOptimizer(config);
+    }
+    if (config.platformBinding) {
+      await buildPlatformBinding(config);
+    } else if (config.platformBindingWasmCopy) {
+      await copyPlatformBindingWasm(config);
+    }
+    if (config.wasm) {
+      await buildWasmBinding(config);
+    }
+
+    let coreNameCache: object | undefined;
     if (config.qwik) {
-      if (config.dev) {
-        ensureDir(config.distQwikPkgDir);
-      } else {
-        emptyDir(config.distQwikPkgDir);
-      }
-
-      await submodulePreloader(config);
-      await Promise.all([
+      [coreNameCache] = await Promise.all([
         submoduleCore(config),
-        submoduleQwikLoader(config),
+        submoduleBackpatch(config),
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),
       ]);
-
+    }
+    if (config.insights) {
+      await submoduleInsights(config);
+    }
+    if (config.qwik) {
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader
-      await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
+      await Promise.all([submoduleServer(config, coreNameCache), submodulePreloader(config)]);
     }
 
     if (config.api || (!config.dev && config.qwik)) {
@@ -93,26 +112,24 @@ export async function build(config: BuildConfig) {
       await apiExtractorQwik(config);
     }
 
-    if (config.platformBinding) {
-      await buildPlatformBinding(config);
-    } else if (config.platformBindingWasmCopy) {
-      await copyPlatformBindingWasm(config);
+    if (config.tsc || (!config.dev && config.qwikrouter)) {
+      await tscQwikRouter(config);
     }
 
-    if (config.wasm) {
-      await buildWasmBinding(config);
+    if (config.qwikrouter) {
+      await buildQwikRouter(config);
     }
 
-    if (config.tsc || (!config.dev && config.qwikcity)) {
-      await tscQwikCity(config);
+    if (config.devtools) {
+      await buildDevtools(config);
     }
 
-    if (config.qwikcity) {
-      await buildQwikCity(config);
+    if (config.browserExtension) {
+      await buildBrowserExtension(config);
     }
 
-    if (config.api || ((!config.dev || config.tsc) && config.qwikcity)) {
-      await apiExtractorQwikCity(config);
+    if (config.api || ((!config.dev || config.tsc) && config.qwikrouter)) {
+      await apiExtractorQwikRouter(config);
     }
 
     if (config.tsc) {
@@ -125,18 +142,6 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikreact) {
       await buildQwikReact(config);
-    }
-
-    if (config.qwikauth) {
-      await buildQwikAuth(config);
-    }
-
-    if (config.qwikworker) {
-      await buildQwikWorker(config);
-    }
-
-    if (config.qwiklabs) {
-      await buildQwikLabs(config);
     }
 
     if (config.supabaseauthhelpers) {
@@ -169,22 +174,15 @@ export async function build(config: BuildConfig) {
         [join(config.srcQwikDir, 'core')]: async () => {
           await submoduleCore({ ...config, dev: true });
           await copyFile(
-            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
-          );
-          await copyFile(
             join(config.srcQwikDir, '..', 'dist', 'core.mjs'),
             join(config.srcQwikDir, '..', 'dist', 'core.prod.mjs')
           );
-          console.log(
-            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
-          );
         },
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
-        [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
+        [config.optimizerDir]: () => submoduleOptimizer(config),
+        [config.qwikViteDir]: () => submoduleOptimizer(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
-        [join(config.srcQwikCityDir, 'runtime/src')]: () => buildQwikCity(config),
+        [join(config.srcQwikRouterDir, 'runtime/src')]: () => buildQwikRouter(config),
       });
     }
   } catch (e: any) {

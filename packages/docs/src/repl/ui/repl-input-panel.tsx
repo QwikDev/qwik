@@ -1,4 +1,4 @@
-import type { QRL } from '@builder.io/qwik';
+import type { QRL } from '@qwik.dev/core';
 import { Editor } from './editor';
 import { ReplCommands } from './repl-commands';
 import { ReplTabButton } from './repl-tab-button';
@@ -13,11 +13,12 @@ export const ReplInputPanel = ({
   enableCopyToPlayground,
   enableDownload,
   enableInputDelete,
+  editorTheme,
 }: ReplInputPanelProps) => {
   return (
     <div class="repl-panel repl-input-panel" translate="no">
       <ReplTabButtons>
-        {input.files.map((f) =>
+        {input.files.map((f, index) =>
           f.hidden ? null : (
             <ReplTabButton
               key={f.path}
@@ -33,6 +34,7 @@ export const ReplInputPanel = ({
                 }
               }}
               enableInputDelete={enableInputDelete}
+              order={input.files.length - index}
             />
           )
         )}
@@ -46,6 +48,7 @@ export const ReplInputPanel = ({
       <div class="repl-tab">
         <Editor
           input={input}
+          editorTheme={editorTheme}
           onChange$={onInputChange$}
           store={store}
           ariaLabel="File Input"
@@ -70,4 +73,5 @@ interface ReplInputPanelProps {
   enableDownload?: boolean;
   enableCopyToPlayground?: boolean;
   enableInputDelete?: boolean;
+  editorTheme?: import('./monaco').EditorThemeName;
 }

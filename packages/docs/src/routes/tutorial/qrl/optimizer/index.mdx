@@ -21,8 +21,8 @@ While the Optimizer can serialize any data that Qwik can serialize, it has speci
 
 In this example notice that we have two lazy-loaded chunks because we have two `$` in our code.
 
-Open the `Symbols` tab and notice how Optimizer turned the `onClick$` function into an entry point. Specifically, notice that the `onClick$` entry point does not import the `@builder.io/qwik` module.
+Open the `Symbols` tab and notice how Optimizer turned the `onClick$` function into an entry point. Specifically, notice that the `onClick$` entry point does not import the `@qwik.dev/core` module.
 
 Now change the `onClick$` callback to `store.count++`.
 
-Open the `Symbols` tab again and notice that this time the Optimizer imported `@builder.io/qwik` and inserted `useLexicalScope()` call to restore the captured state of the event handler. Restoring the captured state of the function is what makes Qwik resumable.
+Open the `Symbols` tab again and notice that this time the Optimizer imported `@qwik.dev/core` and inserted `useLexicalScope()` call to restore the captured state of the event handler. Restoring the captured state of the function is what makes Qwik resumable.

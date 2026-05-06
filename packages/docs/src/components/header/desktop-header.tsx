@@ -1,0 +1,366 @@
+import {
+  $,
+  component$,
+  Slot,
+  useComputed$,
+  useOnDocument,
+  useSignal,
+  useVisibleTask$,
+  type JSXOutput,
+} from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/router';
+import { Link } from '../action/action';
+import { QwikLogoOnly } from '../svgs/qwik-logo';
+import { navbar, lucide, streamlinepixel as pixel } from '@qds.dev/ui';
+import NavBlogImg from '../../media/navbar/nav-blog.png?jsx';
+import NavConceptsImg from '../../media/navbar/nav-concepts.png?jsx';
+import NavCookbooksImg from '../../media/navbar/nav-cookbooks.png?jsx';
+import NavIntegrationsImg from '../../media/navbar/nav-integrations.png?jsx';
+import NavQwikCoreImg from '../../media/navbar/nav-qwik-core.png?jsx';
+import NavRouterImg from '../../media/navbar/nav-router.png?jsx';
+import NavTutorialImg from '../../media/navbar/nav-tutorial.png?jsx';
+import { tw } from '~/utils/utils';
+import { SearchModal } from '../search/search';
+
+const ImageCardClasses =
+  'absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform';
+
+const ImageCard = component$(
+  (props: { href: string; label: string; description: string; class?: string }) => (
+    <a
+      href={props.href}
+      class={[
+        'relative rounded-lg overflow-hidden flex flex-col gap-1 items-start justify-end p-4 group',
+        props.class,
+      ]}
+    >
+      <Slot />
+      <div class="absolute bottom-0 left-0 right-0 h-[134px] bg-linear-to-b from-transparent to-standalone-accent" />
+      <div class="absolute inset-0 pointer-events-none rounded-[inherit] shadow-secondary-border-inset" />
+      <span class="relative font-bold text-base leading-[22px] text-primary-foreground-base">
+        {props.label}
+      </span>
+      <span class="relative font-semibold text-sm leading-[20px] text-primary-foreground-accent">
+        {props.description}
+      </span>
+    </a>
+  )
+);
+
+const NavPill = component$((props: { href: string; label: string; icon?: JSXOutput }) => (
+  <a
+    href={props.href}
+    class="flex gap-3 items-center px-4 pt-4 pb-3 relative rounded-[4px] bg-secondary-background-base hover:bg-secondary-background-accent transition-colors shadow-secondary-border-inset"
+  >
+    <div class="size-9 bg-background-base border-[1.6px] border-emphasis rounded-lg shadow-xs-emphasis flex items-center justify-center shrink-0">
+      {props.icon}
+    </div>
+    <span class="font-bold text-base leading-[22px] text-secondary-foreground-base whitespace-nowrap">
+      {props.label}
+    </span>
+  </a>
+));
+
+const contentBaseClass = tw(
+  'open:flex fixed top-[calc(76px+24px+16px)] left-1/2 -translate-x-1/2 m-0 gap-4 shadow-emphasis rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0'
+);
+
+const triggerAnchorReset = 'anchor-name: none;';
+const contentAnchorReset = 'position-anchor: none;';
+const navPillIconClass = 'size-5 text-border-emphasis';
+
+enum NavSections {
+  Core = 'Core',
+  Ecosystem = 'Ecosystem',
+  Router = 'Router',
+  Resources = 'Resources',
+}
+
+const contentWidths: Record<NavSections, string> = {
+  [NavSections.Core]: 'w-[calc(100vw-48px)] max-w-[840px]',
+  [NavSections.Ecosystem]: 'w-[calc(100vw-48px)] max-w-[680px]',
+  [NavSections.Router]: 'w-[calc(100vw-48px)] max-w-[680px]',
+  [NavSections.Resources]: 'w-[calc(100vw-48px)] max-w-[840px]',
+};
+
+const getContentWidthClass = (label: NavSections) => contentWidths[label] ?? contentWidths.Core;
+
+export const DesktopHeader = component$(() => {
+  const initialized = useSignal(false);
+  const hidden = useSignal(false);
+  const focused = useSignal(false);
+  const lastScrollY = useSignal(0);
+
+  const navRef = useSignal<HTMLElement>();
+
+  const toggleNavbar = $(() => {
+    const y = window.scrollY;
+
+    if (!initialized.value) {
+      initialized.value = true;
+      lastScrollY.value = y;
+      return;
+    }
+
+    // Don't hide while a dropdown menu is open
+    if (navRef.value?.querySelector('[ui-open]')) {
+      lastScrollY.value = y;
+      return;
+    }
+
+    focused.value = false;
+    if (y >= lastScrollY.value && y > 40) {
+      hidden.value = true;
+    } else {
+      hidden.value = false;
+    }
+    lastScrollY.value = y;
+  });
+
+  useOnDocument('scroll', toggleNavbar);
+
+  useVisibleTask$(
+    () => {
+      toggleNavbar();
+    },
+    { strategy: 'document-ready' }
+  );
+
+  const loc = useLocation();
+  const isHomepage = useComputed$(() => loc.url.pathname === '/');
+  const isHidden = useComputed$(() => hidden.value && !focused.value && !isHomepage.value);
+
+  return (
+    <div
+      ref={navRef}
+      class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-[''] 2xl:block hidden"
+    >
+      <navbar.root
+        class="fixed top-6 left-1/2 z-99999 flex w-full h-[70px] max-w-[840px] items-center justify-between rounded-2xl border-[1.6px] border-base mx-auto bg-background-base shadow-base transition-[translate,opacity] duration-300 ease px-6"
+        style={{
+          translate: isHidden.value ? '-50% calc(-100% - 24px)' : '-50% 0',
+          opacity: isHidden.value ? 0 : 1,
+        }}
+        onFocusIn$={() => (focused.value = true)}
+        onFocusOut$={() => (focused.value = false)}
+      >
+        <a href="/" class="flex items-center gap-2 text-foreground-accent">
+          <QwikLogoOnly />
+        </a>
+
+        <div class="flex items-center">
+          {/* ── Core ── */}
+          <navbar.item class="relative">
+            <navbar.itemtrigger
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5 cursor-pointer"
+              style={triggerAnchorReset}
+            >
+              <span>Core</span>
+            </navbar.itemtrigger>
+            <navbar.itemcontent
+              class={[contentBaseClass, getContentWidthClass(NavSections.Core)]}
+              style={contentAnchorReset}
+            >
+              {/* Pills column */}
+              <div class="flex flex-col gap-4 w-64.5 shrink-0">
+                <NavPill
+                  href="/docs/core/state"
+                  label="State"
+                  icon={<pixel.internetnetworkarrowsync class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/core/tasks"
+                  label="Lifecycle"
+                  icon={<pixel.changecleanenergy class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/core/events"
+                  label="Events"
+                  icon={<pixel.interfaceessentialcursorclickpoint class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/core/tasks"
+                  label="Tasks"
+                  icon={<pixel.interfaceessentiallist class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/core/slots"
+                  label="Slots"
+                  icon={<pixel.contentfilesarchivebooks1 class={navPillIconClass} />}
+                />
+              </div>
+              {/* Image cards */}
+              <ImageCard
+                href="/docs"
+                label="Qwik Core"
+                description="What's inside the core framework?"
+                class="w-64.5 shrink-0 self-stretch"
+              >
+                <NavQwikCoreImg class={ImageCardClasses} />
+              </ImageCard>
+              <ImageCard
+                href="/tutorial/welcome/overview"
+                label="Your first app"
+                description="A guided tutorial"
+                class="w-64.5 shrink-0 self-stretch"
+              >
+                <NavTutorialImg class={ImageCardClasses} />
+              </ImageCard>
+            </navbar.itemcontent>
+          </navbar.item>
+
+          {/* ── Ecosystem ── */}
+          <navbar.item class="relative">
+            <navbar.itemtrigger
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5 cursor-pointer"
+              style={triggerAnchorReset}
+            >
+              <span>Ecosystem</span>
+            </navbar.itemtrigger>
+            <navbar.itemcontent
+              class={[contentBaseClass, getContentWidthClass(NavSections.Ecosystem)]}
+              style={contentAnchorReset}
+            >
+              <ImageCard
+                href="/docs/integrations"
+                label="Integrations"
+                description="Find tools you can use out-of-the-box with Qwik"
+                class="h-[364px] flex-1 min-w-0"
+              >
+                <NavIntegrationsImg class={ImageCardClasses} />
+              </ImageCard>
+              <ImageCard
+                href="/docs/cookbook"
+                label="Cookbooks"
+                description="Guides, recipes and examples"
+                class="h-[364px] flex-1 min-w-0"
+              >
+                <NavCookbooksImg class={ImageCardClasses} />
+              </ImageCard>
+            </navbar.itemcontent>
+          </navbar.item>
+
+          {/* ── Router ── */}
+          <navbar.item class="relative">
+            <navbar.itemtrigger
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5 cursor-pointer"
+              style={triggerAnchorReset}
+            >
+              <span>Router</span>
+            </navbar.itemtrigger>
+            <navbar.itemcontent
+              class={[contentBaseClass, getContentWidthClass(NavSections.Router)]}
+              style={contentAnchorReset}
+            >
+              {/* Pills column */}
+              <div class="flex flex-col gap-4 w-64.5 shrink-0">
+                <NavPill
+                  href="/docs/routing"
+                  label="Routing"
+                  icon={<pixel.computersdeviceselectronicsboard class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/route-loader"
+                  label="Data Fetching"
+                  icon={<pixel.internetnetworkdownload class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/deployments"
+                  label="Deployments"
+                  icon={<pixel.businessproductstartup1 class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/middleware"
+                  label="Middleware"
+                  icon={<pixel.interfaceessentialhierarchy1 class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/endpoints"
+                  label="API Routes"
+                  icon={<pixel.interfaceessentialcogdouble class={navPillIconClass} />}
+                />
+              </div>
+              {/* Single wide image card */}
+              <ImageCard
+                href="/docs/qwikrouter"
+                label="Qwik Router"
+                description="A fast way to start iterating with Qwik apps"
+                class="flex-1 min-w-0 self-stretch"
+              >
+                <NavRouterImg class={ImageCardClasses} />
+              </ImageCard>
+            </navbar.itemcontent>
+          </navbar.item>
+
+          {/* ── Resources ── */}
+          <navbar.item class="relative">
+            <navbar.itemtrigger
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5 cursor-pointer"
+              style={triggerAnchorReset}
+            >
+              <span>Resources</span>
+            </navbar.itemtrigger>
+            <navbar.itemcontent
+              class={[contentBaseClass, getContentWidthClass(NavSections.Resources)]}
+              style={contentAnchorReset}
+            >
+              {/* Image cards */}
+              <ImageCard
+                href="/blog"
+                label="Blog"
+                description="Latest news and updates"
+                class="w-64.5 shrink-0 self-stretch"
+              >
+                <NavBlogImg class={ImageCardClasses} />
+              </ImageCard>
+              <ImageCard
+                href="/docs/concepts/think-qwik"
+                label="Concepts"
+                description="Think Qwik"
+                class="w-64.5 shrink-0 self-stretch"
+              >
+                <NavConceptsImg class={ImageCardClasses} />
+              </ImageCard>
+              {/* Pills column */}
+              <div class="flex flex-col gap-4 w-64.5 shrink-0">
+                <NavPill
+                  href="/playground"
+                  label="Playground"
+                  icon={<pixel.codingappswebsitesplugin class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/labs"
+                  label="Qwik Labs"
+                  icon={<pixel.healthlaboratory class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/media/"
+                  label="Media"
+                  icon={<pixel.entertainmenteventshobbiesfilmplayer class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/press/"
+                  label="Press"
+                  icon={<pixel.interfaceessentialpaginatefilterpicture class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/ecosystem/#community"
+                  label="Community"
+                  icon={<pixel.businessproductsnetworkuser class={navPillIconClass} />}
+                />
+              </div>
+            </navbar.itemcontent>
+          </navbar.item>
+
+          {/* ── Search ── */}
+          <SearchModal />
+        </div>
+
+        <Link href="/docs/getting-started" variant="primary">
+          <span>Get Started</span>
+          <lucide.arrowright class="size-4" />
+        </Link>
+      </navbar.root>
+    </div>
+  );
+});

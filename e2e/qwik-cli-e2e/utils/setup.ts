@@ -1,16 +1,16 @@
 import { execSync } from 'child_process';
+import { existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { workspaceRoot } from '.';
-import { existsSync, writeFileSync } from 'fs';
 
 const packageCfg = {
-  '@builder.io/qwik': {
+  '@qwik.dev/core': {
     packagePath: 'packages/qwik',
     distPath: 'packages/qwik/dist',
   },
-  '@builder.io/qwik-city': {
-    packagePath: 'packages/qwik-city',
-    distPath: 'packages/qwik-city/lib',
+  '@qwik.dev/router': {
+    packagePath: 'packages/qwik-router',
+    distPath: 'packages/qwik-router/lib',
   },
   'eslint-plugin-qwik': {
     packagePath: 'packages/eslint-plugin-qwik',

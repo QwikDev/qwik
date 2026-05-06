@@ -26,14 +26,16 @@ export function updateViteConfig(ts: TypeScript, sourceText: string, updates?: V
 
   sourceText = transformSource(ts, sourceText, () => (tsSourceFile) => {
     if (updates.imports) {
-      for (const importData of updates.imports) {
+      for (let i = 0; i < updates.imports.length; i++) {
+        const importData = updates.imports[i];
         tsSourceFile = ensureImport(ts, tsSourceFile, importData);
       }
     }
 
     const statements: Statement[] = [];
 
-    for (const s of tsSourceFile.statements) {
+    for (let i = 0; i < tsSourceFile.statements.length; i++) {
+      const s = tsSourceFile.statements[i];
       if (ts.isExportAssignment(s) && s.expression && ts.isCallExpression(s.expression)) {
         if (
           ts.isIdentifier(s.expression.expression) &&
@@ -65,9 +67,10 @@ export function updateViteConfig(ts: TypeScript, sourceText: string, updates?: V
 function ensureImport(ts: TypeScript, tsSourceFile: SourceFile, importData: EnsureImport) {
   if (importData && importData.importPath) {
     if (Array.isArray(importData.namedImports)) {
-      importData.namedImports.forEach((namedImport) => {
+      for (let i = 0; i < importData.namedImports.length; i++) {
+        const namedImport = importData.namedImports[i];
         tsSourceFile = ensureNamedImport(ts, tsSourceFile, namedImport, importData.importPath);
-      });
+      }
     }
     if (typeof importData.defaultImport === 'string') {
       tsSourceFile = ensureDefaultImport(
@@ -330,7 +333,8 @@ function updateDefineConfig(ts: TypeScript, callExp: CallExpression, updates: Vi
 
 function updateDefineConfigFnReturn(ts: TypeScript, fnBody: Block, updates: ViteConfigUpdates) {
   const statements: Statement[] = [];
-  for (const s of fnBody.statements) {
+  for (let i = 0; i < fnBody.statements.length; i++) {
+    const s = fnBody.statements[i];
     if (ts.isReturnStatement(s) && s.expression && ts.isObjectLiteralExpression(s.expression)) {
       statements.push(
         ts.factory.updateReturnStatement(s, updateVitConfigObj(ts, s.expression, updates))
@@ -359,7 +363,8 @@ function updateVitConfigObj(
 function updatePlugins(ts: TypeScript, obj: ObjectLiteralExpression, updates: ViteConfigUpdates) {
   const properties: any[] = [];
 
-  for (const p of obj.properties) {
+  for (let i = 0; i < obj.properties.length; i++) {
+    const p = obj.properties[i];
     if (ts.isPropertyAssignment(p)) {
       if (p.name && ts.isIdentifier(p.name) && p.name.text === 'plugins') {
         if (ts.isArrayLiteralExpression(p.initializer)) {
@@ -388,7 +393,8 @@ function updatePluginsArray(
   const elms: Expression[] = [...arr.elements];
 
   if (updates.vitePlugins) {
-    for (const vitePlugin of updates.vitePlugins) {
+    for (let i = 0; i < updates.vitePlugins.length; i++) {
+      const vitePlugin = updates.vitePlugins[i];
       const pluginExp = createPluginCall(ts, vitePlugin);
       const pluginName = (pluginExp?.expression as Identifier | null)?.escapedText;
       const alreadyDefined = elms.some(
@@ -404,7 +410,8 @@ function updatePluginsArray(
   }
 
   if (updates.vitePluginsPrepend) {
-    for (const vitePlugin of updates.vitePluginsPrepend) {
+    for (let i = 0; i < updates.vitePluginsPrepend.length; i++) {
+      const vitePlugin = updates.vitePluginsPrepend[i];
       const pluginExp = createPluginCall(ts, vitePlugin);
       const pluginName = (pluginExp?.expression as Identifier | null)?.escapedText;
       const alreadyDefined = elms.some(
@@ -424,7 +431,7 @@ function updatePluginsArray(
       const elm = elms[i];
       if (ts.isCallExpression(elm) && ts.isIdentifier(elm.expression)) {
         if (elm.expression.escapedText === 'qwikVite') {
-          elms[i] = updateQwikCityPlugin(ts, elm, updates.qwikViteConfig);
+          elms[i] = updateQwikRouterPlugin(ts, elm, updates.qwikViteConfig);
         }
       }
     }
@@ -440,7 +447,8 @@ function createPluginCall(ts: TypeScript, vitePlugin: string): CallExpression | 
       'export default ' + vitePlugin,
       ts.ScriptTarget.Latest
     );
-    for (const s of tmp.statements) {
+    for (let i = 0; i < tmp.statements.length; i++) {
+      const s = tmp.statements[i];
       if (ts.isExportAssignment(s)) {
         return s.expression as CallExpression;
       }
@@ -449,7 +457,7 @@ function createPluginCall(ts: TypeScript, vitePlugin: string): CallExpression | 
   return null;
 }
 
-function updateQwikCityPlugin(
+function updateQwikRouterPlugin(
   ts: TypeScript,
   callExp: CallExpression,
   qwikViteConfig: { [key: string]: string }
@@ -471,16 +479,20 @@ function updateObjectLiteralExpression(
   obj: ObjectLiteralExpression,
   updateObj: { [propName: string]: string }
 ) {
-  for (const [propName, value] of Object.entries(updateObj)) {
+  const properties = Object.entries(updateObj);
+  for (let i = 0; i < properties.length; i++) {
+    const [propName, value] = properties[i];
     if (typeof value === 'string') {
       const tmp = ts.createSourceFile('tmp.ts', 'export default ' + value, ts.ScriptTarget.Latest);
 
-      for (const s of tmp.statements) {
+      for (let j = 0; j < tmp.statements.length; j++) {
+        const s = tmp.statements[j];
         if (ts.isExportAssignment(s)) {
           const exp = s.expression;
           let added = false;
           const properties: any[] = [];
-          for (const p of obj.properties) {
+          for (let k = 0; k < obj.properties.length; k++) {
+            const p = obj.properties[k];
             if (p.name && ts.isIdentifier(p.name) && p.name.text === propName) {
               properties.push(ts.factory.createPropertyAssignment(propName, exp));
               added = true;

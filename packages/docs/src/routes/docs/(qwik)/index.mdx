@@ -17,14 +17,7 @@ contributors:
 updated_at: '2023-06-25T19:43:33Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
-import ImgSeeMoreMedia from '~/media/icons/see_more_media.svg?jsx';
-import ImgShowcase from '~/media/icons/showcase.svg?jsx';
-import ImgQwikcityAndRouting from '~/media/icons/qwikCity_and_routing.svg?jsx';
-import ImgCommunityChat from '~/media/icons/community_chat.svg?jsx';
-import ImgCoursesBook from '~/media/icons/courses_book.svg?jsx';
-import ImgApiServer from '~/media/icons/api_server.svg?jsx';
-import ImgWhyQwikLogo from '~/media/icons/why_qwik_logo.svg?jsx';
-import ImgGettingStartedRocket from '~/media/icons/getting_started_rocket.svg?jsx';
+import { streamlinepixel as pixel } from '@qds.dev/ui';
 
 # Welcome to Qwik
 
@@ -33,58 +26,101 @@ Qwik is a new kind of web framework that can deliver instant loading web applica
 ## Getting Started with Qwik
 
 <div class="card-grid">
-  <a class="card card-center" href="/docs/getting-started/">
-    <ImgGettingStartedRocket class="intro-icon" style="margin-bottom:-7px"/>
-    <h3>Getting Started</h3>
+  <a class="card card-intro" href="/docs/getting-started/">
+    <div class="card-icon">
+      <pixel.businessproductstartup1 class="intro-icon" />
+    </div>
+    <div class="card-body">
+      <h3>Getting Started</h3>
+      <p>Learn the basics and create your first Qwik app in minutes.</p>
+    </div>
   </a>
-  <a class="card card-center" href="/docs/concepts/think-qwik/">
-    <ImgWhyQwikLogo class="intro-icon" />
-    <h3>Why Qwik?</h3>
+  <a class="card card-intro card-violet" href="/docs/concepts/think-qwik/">
+    <div class="card-icon">
+      <pixel.interfaceessentialflash class="intro-icon" />
+    </div>
+    <div class="card-body">
+      <h3>Why Qwik?</h3>
+      <p>Understand resumability, JS streaming, and what makes Qwik unique.</p>
+    </div>
   </a>
-  <a class="card card-center" href="/api/">
-    <ImgApiServer class="intro-icon" style="margin-bottom:15px"/>
-    <h3>API</h3>
+  <a class="card card-intro" href="/api/">
+    <div class="card-icon">
+      <pixel.codingappswebsitesprogrammingholdcode class="intro-icon" />
+    </div>
+    <div class="card-body">
+      <h3>API Reference</h3>
+      <p>Complete reference for all Qwik core APIs, hooks, and utilities.</p>
+    </div>
   </a>
-  <a class="card card-center" href="/ecosystem/#courses">
-    <ImgCoursesBook class="intro-icon" style="margin-bottom:15px"/>
-    <h3>Courses</h3>
+  <a class="card card-intro card-violet" href="/ecosystem/#courses">
+    <div class="card-icon">
+      <pixel.contentfilesopenbook class="intro-icon" />
+    </div>
+    <div class="card-body">
+      <h3>Courses</h3>
+      <p>Step-by-step tutorials and interactive courses for all skill levels.</p>
+    </div>
   </a>
-  <a class="card card-center" href="https://qwik.dev/chat">
-     <ImgCommunityChat class="intro-icon" />
-    <h3>Community</h3>
+  <a class="card card-intro" href="https://qwik.dev/chat">
+    <div class="card-icon">
+      <pixel.emailmailchat class="intro-icon" />
+    </div>
+    <div class="card-body">
+      <h3>Community</h3>
+      <p>Join the Discord, contribute to the project, and share what you build.</p>
+    </div>
   </a>
-  <a class="card card-center" href="/docs/qwikcity/">
-    <ImgQwikcityAndRouting class="intro-icon" />
-    <h3>Qwik City & Routing</h3>
+  <a class="card card-intro card-violet" href="/docs/qwikrouter/">
+    <div class="card-icon">
+      <pixel.mapnavigationcompassdirection class="intro-icon" />
+    </div>
+    <div class="card-body">
+      <h3>Qwik Router</h3>
+      <p>File-based routing, loaders, actions, and middleware for your app.</p>
+    </div>
   </a>
 </div>
 
 ## Explore More
 
 <div class="card-grid">
-  <a class="card card-center" href="/media/">
-    <ImgSeeMoreMedia class="intro-icon" />
-    <h3>See more presentations, videos, and podcasts</h3>
+  <a class="card card-explore" href="/media/">
+    <div class="card-icon">
+      <pixel.videomoviesvintagetv1 class="intro-icon" />
+    </div>
+    <div class="card-body">
+      <h3>Media & Presentations</h3>
+      <p>See more presentations, videos, and podcasts</p>
+    </div>
   </a>
-  <a class="card card-center" href="/showcase/">
-    <ImgShowcase class="intro-icon" />
-    <h3>Check out websites built with Qwik</h3>
+  <a class="card card-explore card-violet" href="/showcase/">
+    <div class="card-icon">
+      <pixel.interfaceessentialtrophy class="intro-icon" />
+    </div>
+    <div class="card-body">
+      <h3>Showcase</h3>
+      <p>Check out websites built with Qwik</p>
+    </div>
   </a>
 </div>
 
 ## Why Qwik?
 
 <div class="card-grid">
-  <div class="card">
+  <div class="card card-feature">
     <h3>General-purpose</h3>
     <p>Qwik can be used to build any type of website or application.</p>
   </div>
-  <div class="card">
+  <div class="card card-feature">
     <h3>Instant Interactivity</h3>
     <p>Qwik apps work instantly without any delay because they don't need hydration, regardless of their size or complexity.</p>
   </div>
-  <div class="card">
+  <div class="card card-feature">
     <h3>JS Streaming</h3>
     <p>Qwik delivers sub-second full page loads, even on mobile, by serving pure HTML and executing JavaScript when your users opt-in.</p>
   </div>
 </div>
+
+
+

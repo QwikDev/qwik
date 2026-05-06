@@ -23,6 +23,7 @@ created_at: '2023-04-19T22:13:46Z'
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note, LongNote } from '~/components/note/note';
 
 # Image Optimization
 
@@ -69,7 +70,7 @@ Add the `?jsx` suffix **at the end** of the import
 import Image from '[IMAGE_PATH]?w=24&h=24&jsx';
 ```
 
-> ⚠️ Make sure to put the `jsx` query parameter at the end of the import path, otherwise typescript might complain.
+<Note title="Warning">Make sure to put the `jsx` query parameter at the end of the import path, otherwise typescript might complain.</Note>
 
 Use the image in the template as a component:
 
@@ -100,24 +101,25 @@ This script will generate the following `<img>` element with the following optim
 >
 ```
 
-> - `decoding="async"`: indicates that the image will not block the rendering of the page while the image is being decoded. For further reference, please check the [MDN web docs](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding).
-> - `loading="lazy"`: allows the browser to delay the loading of an image until it is visible in the viewport, which helps improve [page loading performance](https://web.dev/browser-level-image-lazy-loading/)
-> - `srcset`: this attribute allows to choose the most appropriate image based on the device's screen size and resolution
-> - `width` and `height`: setting `width` and `height` attributes prevents layout reflow, which hurts the [CLS](https://web.dev/cls/) score
+<LongNote title="Image Attributes Explained">
+- `decoding="async"`: indicates that the image will not block the rendering of the page while the image is being decoded. For further reference, please check the [MDN web docs](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding).
+- `loading="lazy"`: allows the browser to delay the loading of an image until it is visible in the viewport, which helps improve [page loading performance](https://web.dev/browser-level-image-lazy-loading/)
+- `srcset`: this attribute allows to choose the most appropriate image based on the device's screen size and resolution
+- `width` and `height`: setting `width` and `height` attributes prevents layout reflow, which hurts the [CLS](https://web.dev/cls/) score
+</LongNote>
 
-> **Note:** You can also change the default behavior by manually setting the value of these properties:
-> * ```<Image decoding="sync" loading="eager" />```
+<Note>You can also change the default behavior by manually setting the value of these properties: `<Image decoding="sync" loading="eager" />`</Note>
 
 Thanks to `srcset` attribute the browser will load the most suitable image for the device's resolution:
 
 <img width="100%" src="/docs/integrations/image-optimization/image-network.png"/>
 
-> The original source size was 1.5Mb but its size is now just few kilobytes
+<Note>The original source size was 1.5Mb but its size is now just few kilobytes</Note>
 
 #### Example
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import Image from '~/media/your_image.png?jsx';
 
 export default component$(() => {
@@ -168,7 +170,7 @@ Supported file formats to be converted are:
 In the below example, a `jpg` image is converted to a `png` format:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import Image from '~/media/your_image.jpg?format=png&jsx';
 
 export default component$(() => {
@@ -186,7 +188,7 @@ As noted above, the default quality is set to 75, but you can also specify the q
 Quality parameter is an integer between 1 and 100.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import Image from '~/media/your_image.png?quality=100&jsx';
 
 export default component$(() => {
@@ -216,11 +218,11 @@ but in that case you need to manually specify the `height` as well to avoid it b
 
 Below you can see a simple trick to avoid having to manually set the `height`, while also maintaining the aspect ratio:
 
-> **TIP:** you should always specify `width` and `height` values to prevent layout reflow
+<Note title="TIP">You should always specify `width` and `height` values to prevent layout reflow.</Note>
 
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import Image from '~/media/emote.png?jsx';
 
 export default component$(() => {
@@ -252,7 +254,7 @@ export default component$(() => {
 <abbr title="Scalable Vector Graphics">SVGs</abbr> can be added directly to your JSX code, but you can also use the image optimization approach to optimize them:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import SvgImage from '~/media/your_image.svg?jsx';
 
 export default component$(() => {
@@ -273,9 +275,8 @@ export default component$(() => {
 
 Unpic is a third-party image optimization library that works with existing image optimization CDNs. It provides an `Image` component that can be used to optimize images.
 
-<CodeSandbox src="/src/routes/demo/integration/img/unpic/simple/index.tsx" style={{ height: '40em' }}>
 ```tsx {6} /Slot/
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { Image } from '@unpic/qwik';
 
 export default component$(() => {
@@ -290,20 +291,21 @@ export default component$(() => {
   );
 });
 ```
-</CodeSandbox>
 
-> **Note:** qwik-image and unpic are not a CDN and does not host your images. They work with existing image optimization CDNs. We suggest using some of the popular CDNs:
-> - Cloudinary
-> - Cloudflare
-> - Bunny.net
-> - Vercel / Next.js
-> - Imgix, including Unsplash, DatoCMS, Sanity and Prismic
-> - Shopify
-> - Kontent.ai
-> - Builder.io
-> - Contentful
-> - Storyblok
-> - WordPress.com and Jetpack Site Accelerator
+<LongNote title="Supported Image CDNs">
+qwik-image and unpic are not a CDN and do not host your images. They work with existing image optimization CDNs. We suggest using some of the popular CDNs:
+- Cloudinary
+- Cloudflare
+- Bunny.net
+- Vercel / Next.js
+- Imgix, including Unsplash, DatoCMS, Sanity and Prismic
+- Shopify
+- Kontent.ai
+- Builder.io
+- Contentful
+- Storyblok
+- WordPress.com and Jetpack Site Accelerator
+</LongNote>
 
 ## `qwik-image`
 
@@ -333,11 +335,11 @@ bun install qwik-image
 </span>
 </PackageManagerTabs>
 
-> This is a pluggable component so devs could connect different image loaders to it (like builder.io or other CDNs)
+<Note>This is a pluggable component so devs could connect different image loaders to it (like builder.io or other CDNs)</Note>
 
 <CodeSandbox src="/src/routes/demo/integration/img/qwik-image/index.tsx" style={{ height: '40em' }}>
 ```tsx
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 import {
   Image,
   type ImageTransformerProps,

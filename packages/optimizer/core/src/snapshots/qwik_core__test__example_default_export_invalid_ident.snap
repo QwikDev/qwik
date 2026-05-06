@@ -1,0 +1,91 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 1595
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+	return (
+		<div onClick$={() => console.log(mongodb)}>
+		</div>
+	);
+});
+
+
+============================= src/components/mongo/404.tsx__404_component_div_q_e_click_aMLnLWtkRhc.tsx (ENTRY POINT)==
+
+export const _404_component_div_q_e_click_aMLnLWtkRhc = ()=>console.log(mongodb);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"wDAKiB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/components/mongo/404.tsx",
+  "name": "_404_component_div_q_e_click_aMLnLWtkRhc",
+  "entry": null,
+  "displayName": "404.tsx__404_component_div_q_e_click",
+  "hash": "aMLnLWtkRhc",
+  "canonicalFilename": "404.tsx__404_component_div_q_e_click_aMLnLWtkRhc",
+  "path": "src/components/mongo",
+  "extension": "tsx",
+  "parent": "_404_component_zRvoWc98eqo",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    109,
+    135
+  ]
+}
+*/
+============================= src/components/mongo/404.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q__404_component_zRvoWc98eqo = /*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_zRvoWc98eqo"), "_404_component_zRvoWc98eqo");
+//
+export default /*#__PURE__*/ componentQrl(q__404_component_zRvoWc98eqo);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CAKZ\"}")
+============================= src/components/mongo/404.tsx__404_component_zRvoWc98eqo.tsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q__404_component_div_q_e_click_aMLnLWtkRhc = /*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_div_q_e_click_aMLnLWtkRhc"), "_404_component_div_q_e_click_aMLnLWtkRhc");
+//
+export const _404_component_zRvoWc98eqo = ()=>{
+    return <div q-e:click={q__404_component_div_q_e_click_aMLnLWtkRhc}>
+		</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG0B;IACzB,QACE,IAAI,uDAAsC;EAC3C,EAAE;AAEJ\"}")
+/*
+{
+  "origin": "src/components/mongo/404.tsx",
+  "name": "_404_component_zRvoWc98eqo",
+  "entry": null,
+  "displayName": "404.tsx__404_component",
+  "hash": "zRvoWc98eqo",
+  "canonicalFilename": "404.tsx__404_component_zRvoWc98eqo",
+  "path": "src/components/mongo",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    74,
+    152
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

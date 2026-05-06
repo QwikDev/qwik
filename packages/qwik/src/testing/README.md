@@ -1,15 +1,15 @@
-### @builder.io/qwik/testing
+### @qwik.dev/core/testing
 
 ```ts
 //vite.config.ts
 import { defineConfig } from 'vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
-import { qwikCity } from '@builder.io/qwik-city/vite';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikRouter } from '@qwik.dev/router/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => {
   return {
-    plugins: [qwikCity(), qwikVite(), tsconfigPaths()],
+    plugins: [qwikRouter(), qwikVite(), tsconfigPaths()],
     define: {
       'globalThis.qTest': true,
       'globalThis.qDev': true,
@@ -19,9 +19,9 @@ export default defineConfig(() => {
 ```
 
 ```jsx
-// card.test.tsx
+// card.spec.tsx
 
-import { createDOM } from '@builder.io/qwik/testing';
+import { createDOM } from '@qwik.dev/core/testing';
 import { test, expect } from 'vitest';
 import Card from './card.tsx';
 

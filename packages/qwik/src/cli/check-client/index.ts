@@ -118,7 +118,8 @@ export async function hasNewer(srcPath: string, timestamp: number): Promise<bool
       return;
     }
 
-    for (const item of items) {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
       if (returnValue) {
         return;
       }

@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import playwright from 'playwright';
 import { assert, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import {
   assertHostUnused,
@@ -14,6 +14,8 @@ import {
   type QwikProjectType,
 } from '../utils';
 
+const browserType = process.env.PW_BROWSER || 'chromium';
+
 let SERVE_PORT = 3535;
 beforeEach(() => {
   // the port doesn't clear immediately after the previous test
@@ -22,7 +24,6 @@ beforeEach(() => {
 for (const type of ['empty', 'playground'] as QwikProjectType[]) {
   describe(`template: ${type}`, () => {
     beforeAll(() => {
-      console.log('================================================ scaffolding', type);
       const config = scaffoldQwikProject(type);
       global.tmpDir = config.tmpDir;
 
@@ -34,12 +35,12 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
         }
         config.cleanupFn();
       };
-    });
+    }, 120000);
 
     if (type === 'playground') {
       test(
-        'Should serve the app in dev mode and update the content on hot reload',
-        { timeout: DEFAULT_TIMEOUT },
+        'Should work, and preserve client state across HMR updates',
+        { timeout: DEFAULT_TIMEOUT * 2 },
         async () => {
           const host = `http://localhost:${SERVE_PORT}/`;
           await assertHostUnused(host);
@@ -52,13 +53,85 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
           );
           assert.equal(existsSync(global.tmpDir), true);
 
-          await expectHtmlOnARootPage(host);
+          const counterComponentPath = join(
+            global.tmpDir,
+            'src/components/starter/counter/counter.tsx'
+          );
+          const originalCounterContent = readFileSync(counterComponentPath, 'utf-8');
 
-          // Don't let process termination errors fail the test
+          const browser = await playwright[browserType].launch();
           try {
-            await promisifiedTreeKill(p.pid!, 'SIGKILL');
-          } catch (e) {
-            log(`Error terminating dev server: ${e.message}`);
+            const page = await browser.newPage();
+
+            const consoleLogs: string[] = [];
+            page.on('console', (msg) => {
+              consoleLogs.push(`[${msg.type()}] ${msg.text()}`);
+            });
+            page.on('pageerror', (err) => {
+              consoleLogs.push(`[pageerror] ${err.message}`);
+            });
+            page.on('response', (resp) => {
+              if (resp.status() >= 400) {
+                consoleLogs.push(`[${resp.status()}] ${resp.url()}`);
+              }
+            });
+
+            await page.goto(host);
+            log('Page loaded');
+
+            const plusBtn = page.locator('button', { hasText: '+' }).first();
+            await plusBtn.waitFor({ timeout: 10000 });
+            log('Found + button');
+
+            await clickUntilCounterReaches(page, plusBtn, 73, 6, 10000);
+            log('Counter is at 73');
+
+            const markerText = `HMR-OK-${Date.now()}`;
+            writeFileSync(counterComponentPath, withHmrMarker(originalCounterContent, markerText));
+            log(`Modified counter.tsx with marker ${markerText}`);
+
+            try {
+              await page.waitForFunction(
+                (expectedMarker) => {
+                  const marker = document.querySelector('[data-testid="hmr-marker"]');
+                  const gaugeValue = document.querySelector('._value_1v6hy_9, [class*="value"]');
+                  return (
+                    marker?.textContent === expectedMarker &&
+                    gaugeValue?.textContent?.trim() === '73'
+                  );
+                },
+                markerText,
+                { timeout: 20000 }
+              );
+            } catch (e) {
+              const hasMarker = await page.locator('[data-testid="hmr-marker"]').count();
+              const bodyText = await page.textContent('body');
+              log(
+                `HMR wait failed. marker count=${hasMarker}, body includes 73: ${bodyText?.includes('73')}`
+              );
+              log(`Console logs:\n${consoleLogs.join('\n')}`);
+              throw e;
+            }
+
+            const markerValue = await page.locator('[data-testid="hmr-marker"]').textContent();
+            expect(markerValue).toBe(markerText);
+
+            const bodyText = await page.textContent('body');
+            expect(bodyText).toContain('73');
+
+            log('HMR state preservation verified: content updated, counter state preserved');
+          } finally {
+            try {
+              writeFileSync(counterComponentPath, originalCounterContent);
+            } catch (e) {
+              log(`Error restoring counter.tsx: ${e.message}`);
+            }
+            await browser.close();
+            try {
+              await promisifiedTreeKill(p.pid!, 'SIGKILL');
+            } catch (e) {
+              log(`Error terminating dev server: ${e.message}`);
+            }
           }
         }
       );
@@ -68,7 +141,6 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
       const host = `http://localhost:${SERVE_PORT}/`;
       await assertHostUnused(host);
 
-      // First build the app
       const buildProcess = await runCommandUntil(`npm run build`, global.tmpDir, (output) => {
         return output.includes('dist/build') || output.includes('built in');
       });
@@ -79,7 +151,6 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
         log(`Error terminating build process: ${e.message}`);
       }
 
-      // Now run the preview
       const p = await runCommandUntil(
         `npm run preview -- --no-open --port ${SERVE_PORT}`,
         global.tmpDir,
@@ -90,13 +161,12 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
 
       assert.equal(existsSync(global.tmpDir), true);
 
-      // Wait a bit for the server to fully start
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const res = await waitForHttpText(
+        host,
+        (html) => (type === 'playground' ? html.includes('fantastic') : html.includes('Hi')),
+        20000
+      );
 
-      const res = await fetch(host, { headers: { accept: 'text/html' } }).then((r) => r.text());
-      console.log('** res', res);
-
-      // Check for the appropriate content based on template type
       if (type === 'playground') {
         expect(res).toContain('fantastic');
       } else if (type === 'empty') {
@@ -113,22 +183,76 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
   });
 }
 
-async function expectHtmlOnARootPage(host: string) {
-  expect((await getPageHtml(host)).querySelector('.container h1')?.textContent).toBe(
-    `So fantasticto have you here`
+function withHmrMarker(counterContent: string, markerText: string) {
+  return counterContent.replace(
+    `<Gauge value={count.value} />`,
+    `<span data-testid="hmr-marker">${markerText}</span><Gauge value={count.value} />`
   );
-  const heroComponentPath = join(global.tmpDir, `src/components/starter/hero/hero.tsx`);
-  const heroComponentTextContent = readFileSync(heroComponentPath, 'utf-8');
-  writeFileSync(
-    heroComponentPath,
-    heroComponentTextContent.replace(
-      `to have <span class="highlight">you</span> here`,
-      `to have <span class="highlight">e2e tests</span> here`
-    )
+}
+
+async function clickUntilCounterReaches(
+  page: playwright.Page,
+  plusBtn: playwright.Locator,
+  expectedValue: number,
+  maxClicks: number,
+  timeoutMs: number
+) {
+  const expectedText = String(expectedValue);
+  const deadline = Date.now() + timeoutMs;
+  for (let i = 0; i < maxClicks; i++) {
+    await plusBtn.click();
+    try {
+      await page.waitForFunction(
+        (text) => {
+          const gaugeValue = document.querySelector('._value_1v6hy_9, [class*="value"]');
+          return gaugeValue?.textContent?.trim() === text;
+        },
+        expectedText,
+        { timeout: Math.max(Math.min(deadline - Date.now(), 2000), 1) }
+      );
+      return;
+    } catch {
+      // ignore
+    }
+  }
+  await page.waitForFunction(
+    (text) => {
+      const gaugeValue = document.querySelector('._value_1v6hy_9, [class*="value"]');
+      return gaugeValue?.textContent?.trim() === text;
+    },
+    expectedText,
+    { timeout: Math.max(deadline - Date.now(), 1) }
   );
-  // wait for the arbitrary amount of time before the app is reloaded
-  await new Promise((r) => setTimeout(r, 2000));
-  expect((await getPageHtml(host)).querySelector('.container h1')?.textContent).toBe(
-    `So fantasticto have e2e tests here`
-  );
+}
+
+async function waitForHttpText(
+  host: string,
+  matcher: (html: string) => boolean,
+  timeoutMs: number
+): Promise<string> {
+  let lastHtml = '';
+  await waitFor(async () => {
+    const html = await fetch(host, { headers: { accept: 'text/html' } }).then((r) => r.text());
+    lastHtml = html;
+    return matcher(html);
+  }, timeoutMs);
+  return lastHtml;
+}
+
+async function waitFor(
+  callback: () => Promise<boolean>,
+  timeoutMs: number,
+  intervalMs = 250
+): Promise<void> {
+  const timeoutAt = Date.now() + timeoutMs;
+  while (Date.now() < timeoutAt) {
+    try {
+      if (await callback()) {
+        return;
+      }
+      // eslint-disable-next-line no-empty
+    } catch {}
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+  throw new Error(`Timed out after ${timeoutMs}ms`);
 }

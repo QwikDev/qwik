@@ -7,7 +7,7 @@ import {
   useVisibleTask$,
   $,
   useOnWindow,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';
@@ -15,6 +15,7 @@ import type { ReplStore, ReplAppInput } from '../types';
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { ReplInstance } from '../repl-instance';
+import { ReplMainResizer } from './repl-main-resizer';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);
@@ -77,6 +78,7 @@ export const Repl = component$((props: ReplProps) => {
     }
   });
 
+  // Initialize the REPL instance
   useVisibleTask$(
     async () => {
       (store as any).instance = noSerialize(new ReplInstance(store, input));
@@ -98,6 +100,7 @@ export const Repl = component$((props: ReplProps) => {
     { strategy: 'document-ready' }
   );
 
+  // Track input changes to rebuild the app
   useVisibleTask$(({ track }) => {
     track(input);
 
@@ -128,7 +131,10 @@ export const Repl = component$((props: ReplProps) => {
         onInputDelete$={onInputDelete$}
         enableCopyToPlayground={props.enableCopyToPlayground}
         enableDownload={props.enableDownload}
+        enableInputDelete={props.enableInputDelete}
+        editorTheme={props.editorTheme}
       />
+      {props.enableMainSplitter ? <ReplMainResizer /> : null}
       <ReplOutputPanel input={input} store={store} />
       <ReplDetailPanel input={input} store={store} />
     </>
@@ -145,4 +151,6 @@ export interface ReplProps {
   enableInputDelete?: boolean;
   enableDownload?: boolean;
   enableCopyToPlayground?: boolean;
+  enableMainSplitter?: boolean;
+  editorTheme?: import('./monaco').EditorThemeName;
 }

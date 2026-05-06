@@ -61,7 +61,6 @@ export const validLexicalScope = createRule({
     const esTreeNodeToTSNodeMap = services.esTreeNodeToTSNodeMap;
     const typeChecker = services.program.getTypeChecker();
     const relevantScopes: Map<any, string> = new Map();
-    let exports: ts.Symbol[] = [];
 
     function walkScope(scope: Scope.Scope) {
       scope.references.forEach((ref) => {
@@ -292,7 +291,15 @@ function _isTypeCapturable(
     return;
   }
   seen.add(type);
-  if (type.getProperty('__no_serialize__') || type.getProperty('__qwik_serializable__')) {
+  if (
+    type
+      .getProperties()
+      .some((p) =>
+        /(__no_serialize__|__qwik_serializable__|NoSerializeSymbol|SerializerSymbol)/i.test(
+          p.escapedName as string
+        )
+      )
+  ) {
     return;
   }
   const isUnknown = type.flags & ts.TypeFlags.Unknown;
@@ -429,7 +436,9 @@ function _isTypeCapturable(
       };
     }
 
-    for (const symbol of type.getProperties()) {
+    const signalValue = getSignalValueProperty(type);
+    const props = signalValue ? [signalValue] : type.getProperties();
+    for (const symbol of props) {
       const result = isSymbolCapturable(context, checker, symbol, node, opts, level + 1, seen);
       if (result) {
         const loc = result.location;
@@ -452,6 +461,30 @@ function isSymbolCapturable(
 ) {
   const type = checker.getTypeOfSymbolAtLocation(symbol, node);
   return _isTypeCapturable(context, checker, type, node, opts, level, seen);
+}
+
+/**
+ * Returns the `value` property symbol if `type` is Signal-shaped — i.e. its own symbol name ends
+ * with `Signal` (e.g. `Signal`, `ReadonlySignal`), or its `value` property is declared on an
+ * interface whose name ends with `Signal`. The latter covers TS utility wrappers such as
+ * `Readonly<Signal<T>>` / `Pick<Signal<T>, 'value'>` and user interfaces extending `Signal`, which
+ * produce synthetic symbol names that the simple name check would miss.
+ */
+function getSignalValueProperty(type: ts.Type): ts.Symbol | undefined {
+  const valueProp = type.getProperty('value');
+  if (!valueProp) {
+    return undefined;
+  }
+  if ((type.symbol?.escapedName as string)?.endsWith('Signal')) {
+    return valueProp;
+  }
+  for (const decl of valueProp.declarations ?? []) {
+    const parent = decl.parent;
+    if (parent && ts.isInterfaceDeclaration(parent) && parent.name.text.endsWith('Signal')) {
+      return valueProp;
+    }
+  }
+  return undefined;
 }
 
 function getElementTypeOfArrayType(type: ts.Type, checker: ts.TypeChecker): ts.Type | undefined {
@@ -499,7 +532,7 @@ function isQwikHook(variable, context) {
     const scope = context.sourceCode.getScope(def.node);
     const ref = scope.references.find((r) => r.identifier.name === hookName);
 
-    return ref?.resolved && isFromQwikModule(ref.resolved, context);
+    return ref?.resolved && isFromQwikModule(ref.resolved);
   }
   return false;
 }
@@ -512,6 +545,8 @@ function isFromQwikModule(resolvedVar) {
     const importSource = def.parent.source.value;
 
     return (
+      importSource.startsWith('@qwik.dev/core') ||
+      importSource.startsWith('@qwik.dev/router') ||
       importSource.startsWith('@builder.io/qwik') ||
       importSource.startsWith('@builder.io/qwik-city')
     );
@@ -529,10 +564,19 @@ const ALLOWED_CLASSES = {
   Set: true,
   Map: true,
   Uint8Array: true,
+  // Types in Temporal
+  Duration: true,
+  Instant: true,
+  PlainDate: true,
+  PlainDateTime: true,
+  PlainMonthDay: true,
+  PlainTime: true,
+  PlainYearMonth: true,
+  ZonedDateTime: true,
 };
 
 const referencesOutsideGood = `
-import { component$, useTask$, $ } from '@builder.io/qwik';
+import { component$, useTask$, $ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const print = $((msg: string) => {
@@ -547,7 +591,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const referencesOutsideBad = `
-import { component$, useTask$ } from '@builder.io/qwik';
+import { component$, useTask$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const print = (msg: string) => {
@@ -562,7 +606,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const invalidJsxDollarGood = `
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const click = $(() => console.log());
@@ -572,7 +616,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const invalidJsxDollarBad = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const click = () => console.log();
@@ -582,7 +626,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const mutableIdentifierGood = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const person = { name: 'Bob' };
@@ -597,7 +641,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const mutableIdentifierBad = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   let personName = 'Bob';

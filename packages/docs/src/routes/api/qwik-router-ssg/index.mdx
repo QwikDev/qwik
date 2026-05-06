@@ -1,0 +1,543 @@
+---
+title: \@qwik.dev/qwik-router/ssg API Reference
+---
+
+# [API](/api) &rsaquo; @qwik.dev/qwik-router/ssg
+
+<h2 id="generate">generate</h2>
+
+Use this function when SSG should be generated from another module, such as a Vite plugin. This function's should be passed the paths of the entry module and Qwik Router Plan.
+
+```typescript
+export declare function generate(opts: SsgGenerateOptions): Promise<SsgResult>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[SsgGenerateOptions](#ssginternaloptions)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+Promise&lt;[SsgResult](#staticgenerateresult)&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/index.ts)
+
+<h2 id="runssg">runSsg</h2>
+
+Run SSG as a standalone process. Writes `_static-paths.json` to `outDir` and exits with code 0 on success, 1 on error.
+
+Intended to be called from a generated `run-ssg.js` wrapper that provides render/config.
+
+```typescript
+export declare function runSsg(opts: SsgGenerateOptions): Promise<never>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[SsgGenerateOptions](#ssginternaloptions)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+Promise&lt;never&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/index.ts)
+
+<h2 id="ssginternaloptions">SsgInternalOptions</h2>
+
+Internal SSG options that include the render function and router config.
+
+```typescript
+export interface SsgGenerateOptions extends SsgOptions
+```
+
+**Extends:** [SsgOptions](#ssgoptions)
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qwikRouterConfig
+
+</td><td>
+
+</td><td>
+
+QwikRouterConfig
+
+</td><td>
+
+The Qwik Router Config object (default export from `@qwik-router-config`).
+
+</td></tr>
+<tr><td>
+
+render
+
+</td><td>
+
+</td><td>
+
+Render
+
+</td><td>
+
+The SSR render function (default export from entry.ssr).
+
+</td></tr>
+<tr><td>
+
+workerFilePath?
+
+</td><td>
+
+</td><td>
+
+string \| URL
+
+</td><td>
+
+_(Optional)_ Path or URL to the worker entry file. Workers are spawned using this file. When run-ssg.js serves as both main and worker entry, this should be `import.meta.url` of that file.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/types.ts)
+
+<h2 id="ssgoptions">SsgOptions</h2>
+
+```typescript
+export interface SsgOptions extends SsgRenderOptions
+```
+
+**Extends:** [SsgRenderOptions](#ssgrenderoptions)
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+basePathname?
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Defaults to `/`
+
+</td></tr>
+<tr><td>
+
+rootDir?
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/types.ts)
+
+<h2 id="ssgrenderoptions">SsgRenderOptions</h2>
+
+```typescript
+export interface SsgRenderOptions extends RenderOptions
+```
+
+**Extends:** RenderOptions
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+emit404Pages?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Set to `false` if the static build should not write custom or default `404.html` pages. Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
+emitData?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Set to `false` if the generated `q-data.json` data files should not be written to disk. Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
+emitHtml?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Set to `false` if the generated static HTML files should not be written to disk. Setting to `false` is useful if the SSG should only write the `q-data.json` files to disk. Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
+exclude?
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ Defines file system routes relative to the source `routes` directory that should not be static generated. Accepts wildcard behavior. This should not include the "base" pathname. `exclude` always takes priority over `include`.
+
+</td></tr>
+<tr><td>
+
+include?
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ Defines file system routes relative to the source `routes` directory that should be static generated. Accepts wildcard behavior. This should not include the "base" pathname. If not provided, all routes will be static generated. `exclude` always takes priority over `include`.
+
+</td></tr>
+<tr><td>
+
+log?
+
+</td><td>
+
+</td><td>
+
+'debug' \| 'quiet'
+
+</td><td>
+
+_(Optional)_ Log level. `'quiet'` suppresses per-page output, `'debug'` enables verbose logging.
+
+</td></tr>
+<tr><td>
+
+maxTasksPerWorker?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum number of tasks to be running at one time per worker. Defaults to `20`.
+
+</td></tr>
+<tr><td>
+
+maxWorkers?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum number of workers to use while generating the static pages. Defaults to the number of CPUs available.
+
+</td></tr>
+<tr><td>
+
+origin
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain). For example, `https://qwik.dev` has the protocol `https://` and domain `qwik.dev`. However, the `origin` does not include a `pathname`.
+
+The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the `pathname`. For example, in order to render a correct canonical tag URL or URLs within the `sitemap.xml`, the `origin` must be provided too.
+
+If the site also starts with a pathname other than `/`, please use the `basePathname` option in the Qwik Router config options.
+
+</td></tr>
+<tr><td>
+
+outDir
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+File system directory where the static files should be written.
+
+</td></tr>
+<tr><td>
+
+sitemapOutFile?
+
+</td><td>
+
+</td><td>
+
+string \| null
+
+</td><td>
+
+_(Optional)_ File system path to write the `sitemap.xml` to. Defaults to `sitemap.xml` and written to the root of the `outDir`. Setting to `null` will prevent the sitemap from being created.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/types.ts)
+
+<h2 id="startworker">startWorker</h2>
+
+Bootstrap a worker thread for SSG rendering. Called from the generated `run-ssg.js` when it detects it's running as a worker thread.
+
+```typescript
+export declare function startWorker(
+  opts: Pick<SsgGenerateOptions, "render" | "qwikRouterConfig">,
+): Promise<void>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+Pick&lt;[SsgGenerateOptions](#ssginternaloptions), 'render' \| 'qwikRouterConfig'&gt;
+
+</td><td>
+
+Must include `render` and `qwikRouterConfig` (imported by the worker entry). The remaining serializable options come from `workerData`.
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+Promise&lt;void&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/index.ts)
+
+<h2 id="staticgenerateresult">StaticGenerateResult</h2>
+
+```typescript
+export interface SsgResult
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+duration
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+errors
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+rendered
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+staticPaths
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/types.ts)

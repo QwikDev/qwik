@@ -1,4 +1,4 @@
-**/**.api.md
+**/*.api.md
 **/*.log
 **/.DS_Store
 *.
@@ -14,7 +14,13 @@ dist-dev
 lib
 target
 starters/apps/**/dist
+starters/apps/**/server
+e2e/**/dist
+e2e/**/server
 node_modules
+
+# E2E snapshot
+e2e/**/*.ssg.html
 
 tsconfig.tsbuildinfo
 
@@ -25,6 +31,7 @@ packages/docs/public/repl/repl-sw.js*
 packages/*/lib
 packages/*/dist
 packages/*/server
+packages/*/bindings
 
 # API output files
 packages/docs/src/routes/api
@@ -36,8 +43,6 @@ packages/insights/drizzle
 packages/insights/.netlify
 packages/insights/scripts
 packages/insights/**/*.gen.d.ts
-packages/qwik-labs/lib-types
-packages/qwik-labs/vite
 
 # insights cache files
 **/q-insights.json

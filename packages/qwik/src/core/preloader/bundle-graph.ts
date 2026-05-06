@@ -1,11 +1,14 @@
-import { isBrowser } from '@builder.io/qwik/build';
-import { config, isJSRegex } from './constants';
-import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
+import { isServer } from '@qwik.dev/core/build';
+import { isServerPlatform } from '../shared/platform/platform';
+import { createMacroTask } from '../shared/platform/next-tick';
+import { config, isJSRegex, yieldInterval } from './constants';
+import { adjustProbabilities, bundles, shouldResetFactor, nextTriggerMacroTask } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_None, BundleImportState_Alias } from './types';
 
 export let base: string | undefined;
 export let graph: BundleGraph;
+const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
 
 const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {
@@ -13,7 +16,7 @@ const makeBundle = (name: string, deps?: ImportProbability[]) => {
     $state$: isJSRegex.test(name) ? BundleImportState_None : BundleImportState_Alias,
     $deps$: shouldResetFactor ? deps?.map((d) => ({ ...d, $factor$: 1 })) : deps,
     $inverseProbability$: 1,
-    $createdTs$: Date.now(),
+    $createdTs$: performance.now(),
     $waitedMs$: 0,
     $loadedMs$: 0,
   };
@@ -68,23 +71,13 @@ export const loadBundleGraph = (
   basePath: string,
   serializedResponse?: ReturnType<typeof fetch>,
   opts?: {
-    /** Enable logging */
-    debug?: boolean;
     /** Maximum number of simultaneous preload links */
     P?: number;
-    /** Minimum probability for a bundle to be added to the preload queue */
-    Q?: number;
   }
 ) => {
   if (opts) {
-    if ('d' in opts) {
-      config.$DEBUG$ = !!opts.d;
-    }
     if ('P' in opts) {
       config.$maxIdlePreloads$ = opts['P'] as number;
-    }
-    if ('Q' in opts) {
-      config.$invPreloadProbability$ = 1 - (opts['Q'] as number);
     }
   }
   if (!isBrowser || basePath == null) {
@@ -106,33 +99,32 @@ export const loadBundleGraph = (
             bundle.$inverseProbability$ = 1;
           }
         }
-        config.$DEBUG$ &&
-          log(`parseBundleGraph got ${graph.size} bundles, adjusting ${toAdjust.length}`);
-        for (const [bundle, inverseProbability] of toAdjust) {
-          adjustProbabilities(bundle, inverseProbability);
+        if (!toAdjust.length) {
+          nextTriggerMacroTask();
+          return;
         }
-        trigger();
+        let i = 0;
+        const continueAdjust = createMacroTask(() => {
+          const deadline = performance.now() + yieldInterval;
+          while (i < toAdjust.length) {
+            const [bundle, inverseProbability] = toAdjust[i];
+            i++;
+            adjustProbabilities(bundle, inverseProbability);
+            if (i < toAdjust.length && performance.now() >= deadline) {
+              continueAdjust();
+              return;
+            }
+          }
+          nextTriggerMacroTask();
+        });
+        continueAdjust();
       })
       .catch(console.warn);
   }
 };
 
 /** Used during SSR */
-export const initPreloader = (
-  serializedBundleGraph?: (string | number)[],
-  opts?: {
-    debug?: boolean;
-    preloadProbability?: number;
-  }
-) => {
-  if (opts) {
-    if ('debug' in opts) {
-      config.$DEBUG$ = !!opts.debug;
-    }
-    if (typeof opts.preloadProbability === 'number') {
-      config.$invPreloadProbability$ = 1 - opts.preloadProbability;
-    }
-  }
+export const initPreloader = (serializedBundleGraph?: (string | number)[]) => {
   if (base != null || !serializedBundleGraph) {
     return;
   }

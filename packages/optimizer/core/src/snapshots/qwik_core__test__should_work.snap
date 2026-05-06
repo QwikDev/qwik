@@ -1,0 +1,99 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6206
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from "@qwik.dev/core";
+		import { globalAction$ } from "@qwik.dev/router";
+
+		export const useSecretAction = globalAction$(
+			async (payload) => console.log(payload) || 'hi'
+		);
+
+		export const SecretForm = component$(() => {
+			const action = useSecretAction();
+			return <div>{action.value}</div>
+		});
+		
+============================= test.js ==
+
+import { globalActionQrl } from "@qwik.dev/router";
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_SecretForm_component_1noi8FsTz7c = /*#__PURE__*/ qrl(()=>import("./test.tsx_SecretForm_component_1noi8FsTz7c"), "SecretForm_component_1noi8FsTz7c");
+const q_useSecretAction_globalAction_Cbn41AEUQ0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_useSecretAction_globalAction_Cbn41AEUQ0Q"), "useSecretAction_globalAction_Cbn41AEUQ0Q");
+//
+export const useSecretAction = globalActionQrl(q_useSecretAction_globalAction_Cbn41AEUQ0Q);
+export const SecretForm = /*#__PURE__*/ componentQrl(q_SecretForm_component_1noi8FsTz7c);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAIE,OAAO,MAAM,kBAAkB,4DAE7B;AAEF,OAAO,MAAM,2BAAa,iDAGvB\"}")
+============================= test.tsx_SecretForm_component_1noi8FsTz7c.js (ENTRY POINT)==
+
+import { useSecretAction } from "./test";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+//
+export const SecretForm_component_1noi8FsTz7c = ()=>{
+    const action = useSecretAction();
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(action), 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;gDAQuC;IACpC,MAAM,SAAS;IACf,qBAAO,WAAC,6BAAK;AACd\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "SecretForm_component_1noi8FsTz7c",
+  "entry": null,
+  "displayName": "test.tsx_SecretForm_component",
+  "hash": "1noi8FsTz7c",
+  "canonicalFilename": "test.tsx_SecretForm_component_1noi8FsTz7c",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    246,
+    330
+  ]
+}
+*/
+============================= test.tsx_useSecretAction_globalAction_Cbn41AEUQ0Q.js (ENTRY POINT)==
+
+export const useSecretAction_globalAction_Cbn41AEUQ0Q = async (payload)=>console.log(payload) || 'hi';
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAKG,OAAO,UAAY,QAAQ,GAAG,CAAC,YAAY\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "useSecretAction_globalAction_Cbn41AEUQ0Q",
+  "entry": null,
+  "displayName": "test.tsx_useSecretAction_globalAction",
+  "hash": "Cbn41AEUQ0Q",
+  "canonicalFilename": "test.tsx_useSecretAction_globalAction_Cbn41AEUQ0Q",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "globalAction$",
+  "captures": false,
+  "loc": [
+    153,
+    200
+  ],
+  "paramNames": [
+    "payload"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

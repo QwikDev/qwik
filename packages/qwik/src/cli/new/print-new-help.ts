@@ -31,7 +31,8 @@ export async function printNewHelp() {
 
   outString.push(``);
   outString.push(`${cyan('Available templates')}`);
-  for (const t of templates) {
+  for (let i = 0; i < templates.length; i++) {
+    const t = templates[i];
     let postfix = '';
     if (t.id === 'qwik') {
       postfix = ' (default)';

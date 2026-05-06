@@ -1,30 +1,32 @@
-import { $, component$, useStyles$, useStore, useVisibleTask$, useTask$ } from '@builder.io/qwik';
-import type { RequestHandler, DocumentHead } from '@builder.io/qwik-city';
-import { Repl } from '../../repl/ui';
-import { Header } from '../../components/header/header';
-import styles from './playground.css?inline';
 import playgroundApp from '@playground-data';
-import type { ReplAppInput } from '../../repl/types';
-import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/ui/repl-share-url';
-import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
-import { isBrowser } from '@builder.io/qwik';
+import {
+  component$,
+  isBrowser,
+  useSignal,
+  useStore,
+  useStyles$,
+  useTask$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
+import type { DocumentHead, RequestHandler } from '@qwik.dev/router';
+import type { ReplAppInput } from '~/repl/types';
 import { setReplCorsHeaders } from '~/utils/utils';
+import { Header } from '../../components/header/header';
+import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
+import { Repl } from '../../repl/ui';
+import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/ui/repl-share-url';
+import styles from './playground.css?inline';
 
 export default component$(() => {
   useStyles$(styles);
+  const shareUrlTmr = useSignal<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const store = useStore<PlaygroundStore>(() => {
-    const initStore: PlaygroundStore = {
-      files: playgroundApp.inputs,
-      version: '',
-      buildMode: 'development',
-      entryStrategy: 'segment',
-      colResizeActive: false,
-      colLeft: 50,
-      shareUrlTmr: null,
-    };
-    return initStore;
-  });
+  const store = useStore<ReplAppInput>(() => ({
+    files: playgroundApp.inputs,
+    version: '',
+    buildMode: 'development',
+    entryStrategy: 'segment',
+  }));
 
   const panelStore = useStore(() => ({
     active: 'Input',
@@ -50,30 +52,14 @@ export default component$(() => {
 
     if (isBrowser) {
       if (store.version) {
-        clearTimeout(store.shareUrlTmr);
+        clearTimeout(shareUrlTmr.value);
 
-        store.shareUrlTmr = setTimeout(() => {
+        shareUrlTmr.value = setTimeout(() => {
           const shareUrl = createPlaygroundShareUrl(store);
           history.replaceState({}, '', shareUrl);
         }, 1000);
       }
     }
-  });
-
-  const pointerDown = $(() => {
-    store.colResizeActive = true;
-  });
-
-  const pointerMove = $((ev: PointerEvent) => {
-    if (store.colResizeActive) {
-      store.colLeft = (ev.clientX, ev.clientX / window.innerWidth) * 100;
-      store.colLeft = Math.max(25, store.colLeft);
-      store.colLeft = Math.min(75, store.colLeft);
-    }
-  });
-
-  const pointerUp = $(() => {
-    store.colResizeActive = false;
   });
 
   return (
@@ -82,40 +68,31 @@ export default component$(() => {
         playground: true,
         'full-width': true,
         'fixed-header': true,
-        'repl-resize-active': store.colResizeActive,
+        'repl-theme-docs': true,
       }}
     >
       <Header />
-
-      <div
-        class={{
-          'repl-panel-output': panelStore.active === 'Output',
-          'repl-panel-console': panelStore.active === 'Console',
-          repl: true,
-        }}
-        style={{
-          gridTemplateColumns: `${store.colLeft}% ${100 - store.colLeft}%`,
-        }}
-      >
-        <Repl
-          input={store}
-          enableCopyToPlayground={false}
-          enableDownload={true}
-          enableInputDelete={true}
-        />
-      </div>
-
-      <div
-        class="repl-col-resize-bar"
-        onPointerDown$={pointerDown}
-        onPointerMove$={pointerMove}
-        onPointerUp$={pointerUp}
-        onPointerOut$={pointerUp}
-        style={{
-          left: `calc(${store.colLeft}% - 6px)`,
-        }}
-      />
       <PanelToggle panelStore={panelStore} />
+      <main class="playground-main">
+        <div
+          class={{
+            repl: true,
+            'repl-mobile-paged': true,
+            'repl-mobile-paged-3': true,
+            'repl-mobile-panel-output': panelStore.active === 'Output',
+            'repl-mobile-panel-console': panelStore.active === 'Console',
+          }}
+        >
+          <Repl
+            input={store}
+            enableCopyToPlayground={false}
+            enableDownload={true}
+            enableInputDelete={true}
+            enableMainSplitter={true}
+            editorTheme="github-light"
+          />
+        </div>
+      </main>
     </div>
   );
 });
@@ -123,12 +100,6 @@ export default component$(() => {
 export const head: DocumentHead = {
   title: 'Playground',
 };
-
-export interface PlaygroundStore extends ReplAppInput {
-  colResizeActive: boolean;
-  colLeft: number;
-  shareUrlTmr: any;
-}
 
 export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({

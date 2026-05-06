@@ -1,0 +1,153 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 4823
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const Greeter = component$(() => {
+	return (
+		<div>
+			<div passive:click onClick$={() => {}}/>
+			<div passive:scroll window:onScroll$={() => {}}/>
+			<div passive:touchstart document:onTouchStart$={() => {}}/>
+			<div passive:mouseover/>
+		</div>
+	)
+});
+
+
+============================= test.tsx_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY.tsx (ENTRY POINT)==
+
+export const Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qEAQmD,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_div_div_q_dp_touchstart",
+  "hash": "bnDJsbR1WQY",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY",
+  "path": "",
+  "extension": "tsx",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "document:onTouchStart$",
+  "captures": false,
+  "loc": [
+    256,
+    264
+  ]
+}
+*/
+============================= test.tsx_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo.tsx (ENTRY POINT)==
+
+export const Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAOyC,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_div_div_q_wp_scroll",
+  "hash": "jjcqiis8xgo",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo",
+  "path": "",
+  "extension": "tsx",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "window:onScroll$",
+  "captures": false,
+  "loc": [
+    193,
+    201
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q");
+//
+export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,wBAAU,8CASpB\"}")
+============================= test.tsx_Greeter_component_div_div_q_ep_click_TfPSP48mcOk.tsx (ENTRY POINT)==
+
+export const Greeter_component_div_div_q_ep_click_TfPSP48mcOk = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gEAMgC,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_div_div_q_ep_click_TfPSP48mcOk",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_div_div_q_ep_click",
+  "hash": "TfPSP48mcOk",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_ep_click_TfPSP48mcOk",
+  "path": "",
+  "extension": "tsx",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    140,
+    148
+  ]
+}
+*/
+============================= test.tsx_Greeter_component_n7HuG2hhU0Q.tsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY"), "Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY");
+const q_Greeter_component_div_div_q_ep_click_TfPSP48mcOk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_div_div_q_ep_click_TfPSP48mcOk"), "Greeter_component_div_div_q_ep_click_TfPSP48mcOk");
+const q_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo"), "Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo");
+//
+export const Greeter_component_n7HuG2hhU0Q = ()=>{
+    return <div>
+			<div q-ep:click={q_Greeter_component_div_div_q_ep_click_TfPSP48mcOk}/>
+			<div q-wp:scroll={q_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo}/>
+			<div q-dp:touchstart={q_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY}/>
+			<div/>
+		</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;6CAGkC;IACjC,QACE,IAAI;GACJ,CAAC,IAAkB,iEAAqB;GACxC,CAAC,IAAmB,mEAA6B;GACjD,CAAC,IAAuB,2EAAmC;GAC3D,CAAC,KAAuB;EACzB,EAAE;AAEJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_n7HuG2hhU0Q",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component",
+  "hash": "n7HuG2hhU0Q",
+  "canonicalFilename": "test.tsx_Greeter_component_n7HuG2hhU0Q",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    82,
+    309
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

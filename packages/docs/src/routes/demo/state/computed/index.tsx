@@ -1,9 +1,9 @@
-import { component$, useComputed$, useSignal } from '@builder.io/qwik';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const name = useSignal('Qwik');
-  const capitalizedName = useComputed$(() => {
-    // it will automatically reexecute when name.value changes
+  const upperName = useComputed$(() => {
+    // Runs again when name.value changes.
     return name.value.toUpperCase();
   });
 
@@ -11,7 +11,7 @@ export default component$(() => {
     <>
       <input type="text" bind:value={name} />
       <p>Name: {name.value}</p>
-      <p>Capitalized name: {capitalizedName.value}</p>
+      <p>Uppercase name: {upperName.value}</p>
     </>
   );
 });

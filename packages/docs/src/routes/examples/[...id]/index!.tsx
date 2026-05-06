@@ -1,15 +1,21 @@
-import { component$, useStyles$, useTask$, useStore, useVisibleTask$ } from '@builder.io/qwik';
-import type { RequestHandler, PathParams, StaticGenerateHandler } from '@builder.io/qwik-city';
-import { Repl } from '../../../repl/ui';
-import styles from './examples.css?inline';
-import { Header } from '../../../components/header/header';
 import exampleSections, { type ExampleApp } from '@examples-data';
-import type { ReplAppInput } from '../../../repl/types';
-import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
+import {
+  component$,
+  isBrowser,
+  useStore,
+  useStyles$,
+  useTask$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
+import type { PathParams, RequestHandler, StaticGenerateHandler } from '@qwik.dev/router';
+import { useLocation, type DocumentHead } from '@qwik.dev/router';
+import { Header } from '../../../components/header/header';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
-import { isBrowser } from '@builder.io/qwik';
+import type { ReplAppInput } from '../../../repl/types';
+import { Repl } from '../../../repl/ui';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/ui/repl-share-url';
 import { setReplCorsHeaders } from '~/utils/utils';
+import styles from './examples.css?inline';
 
 export default component$(() => {
   useStyles$(styles);
@@ -84,9 +90,21 @@ export default component$(() => {
   });
 
   return (
-    <div class="examples full-width fixed-header">
+    <div
+      class={{
+        examples: true,
+        'full-width': true,
+        'fixed-header': true,
+        'repl-theme-docs': true,
+        'examples-active-examples': panelStore.active === 'Examples',
+        'examples-active-input': panelStore.active === 'Input',
+        'examples-active-output': panelStore.active === 'Output',
+        'examples-active-console': panelStore.active === 'Console',
+      }}
+    >
       <Header />
 
+      <PanelToggle panelStore={panelStore} />
       <div
         class={{
           'examples-menu-container': true,
@@ -107,7 +125,7 @@ export default component$(() => {
                   preventdefault:click
                   onClick$={() => {
                     store.appId = app.id;
-                    panelStore.active === 'Input';
+                    panelStore.active = 'Input';
                     history.replaceState({}, '', `/examples/${app.id}/`);
                   }}
                   class={{
@@ -134,12 +152,18 @@ export default component$(() => {
         </div>
 
         <main class="examples-repl">
-          <div class="repl">
-            <Repl input={store} enableDownload={true} />
+          <div class="examples-repl-shell">
+            <div class="repl">
+              <Repl
+                input={store}
+                enableDownload={true}
+                enableMainSplitter={true}
+                editorTheme="github-light"
+              />
+            </div>
           </div>
         </main>
       </div>
-      <PanelToggle panelStore={panelStore} />
     </div>
   );
 });

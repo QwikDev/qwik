@@ -1,0 +1,455 @@
+---
+title: Upgrade to v2 | Qwik
+description: Complete guide for migrating a Qwik application from v1 (@builder.io) to v2 (@qwik.dev).
+contributors:
+  - thejackshelton
+updated_at: '2026-03-19T00:00:00Z'
+created_at: '2026-03-19T00:00:00Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note, LongNote } from '~/components/note/note';
+import { Checklist, ChecklistItem } from '~/components/checklist/checklist';
+
+# Migrating to Qwik v2
+
+Qwik v2 is a ground-up rewrite of the framework. This guide covers what's new, how to run the automated migration, and what to verify afterward.
+
+## What's New in v2
+
+- **Vite environment API** — Better monorepo and adapter support
+- **Vite 8 / Rolldown** — Out of the box compatibility
+- **Smaller serialized state** — Up to 30% smaller HTML
+- **HMR** — Instant browser updates without losing state
+- **`useAsync$`** — Replaces `useResource$` with polling, concurrency control, and abort
+- **`<Suspense>`** — Shows fallback UI while part of the page waits
+
+## Quick Start
+
+1. [Run the CLI](#run-the-migration-cli)
+2. [Handle third-party libraries](#third-party-libraries)
+3. [Check behavioral changes](#behavioral-changes)
+4. [Migrate deprecated APIs](#deprecated-apis)
+5. [Run the checklist](#verification-checklist)
+
+---
+
+## Run the Migration CLI
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm qwik migrate-v2
+```
+</span>
+<span q:slot="npm">
+```shell
+npx qwik migrate-v2
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn qwik migrate-v2
+```
+</span>
+<span q:slot="bun">
+```shell
+bunx qwik migrate-v2
+```
+</span>
+</PackageManagerTabs>
+
+The CLI handles package renames, identifier changes, config updates, and dependency migration automatically.
+
+<LongNote title="What the CLI renames">
+
+**Packages**
+
+| v1 | v2 |
+|---|---|
+| `@builder.io/qwik` | `@qwik.dev/core` |
+| `@builder.io/qwik-city` | `@qwik.dev/router` |
+| `@builder.io/qwik-react` | `@qwik.dev/react` |
+| `@qwik-city-plan` | `@qwik-router-config` |
+| `@builder.io/qwik/jsx-runtime` | `@qwik.dev/core/jsx-runtime` |
+
+**Identifiers**
+
+| v1 | v2 |
+|---|---|
+| `QwikCityProvider` | `QwikRouterProvider` |
+| `qwikCity` | `qwikRouter` |
+| `QwikCityPlugin` | `QwikRouterPlugin` |
+| `createQwikCity` | `createQwikRouter` |
+| `qwikCityPlan` | `qwikRouterConfig` |
+| `jsxs` | `jsx` |
+
+</LongNote>
+
+---
+
+## Third-Party Libraries
+
+If you use third-party libraries that depend on `@builder.io/qwik`, you may need to configure overrides and SSR bundling.
+
+### Package manager overrides
+
+Redirect the old package name so your package manager doesn't install v1 alongside v2:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```json
+{
+  "pnpm": {
+    "overrides": {
+      "@builder.io/qwik": "npm:@qwik.dev/core@^2",
+      "@builder.io/qwik-city": "npm:@qwik.dev/router@^2"
+    }
+  }
+}
+```
+</span>
+<span q:slot="npm">
+```json
+{
+  "overrides": {
+    "@builder.io/qwik": "npm:@qwik.dev/core@^2",
+    "@builder.io/qwik-city": "npm:@qwik.dev/router@^2"
+  }
+}
+```
+</span>
+<span q:slot="yarn">
+```json
+{
+  "resolutions": {
+    "@builder.io/qwik": "npm:@qwik.dev/core@^2",
+    "@builder.io/qwik-city": "npm:@qwik.dev/router@^2"
+  }
+}
+```
+</span>
+<span q:slot="bun">
+```json
+{
+  "overrides": {
+    "@builder.io/qwik": "npm:@qwik.dev/core@^2",
+    "@builder.io/qwik-city": "npm:@qwik.dev/router@^2"
+  }
+}
+```
+</span>
+</PackageManagerTabs>
+
+### ssr.noExternal
+
+Qwik libraries must be bundled into the server build for the optimizer to process them:
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  ssr: {
+    noExternal: ['some-qwik-library'],
+  },
+  optimizeDeps: {
+    exclude: ['some-qwik-library'],
+  },
+});
+```
+
+<Note>Without this, you'll see `Code(Q30)` duplicate runtime errors or "external dependency" warnings.</Note>
+
+---
+
+## Behavioral Changes
+
+These won't cause compile errors but will break runtime behavior if not addressed.
+
+### useComputed$ is sync-only
+
+`useComputed$` rejects async functions in v2. Error Q29 fires at runtime.
+
+```typescript
+// v1 (no longer supported in v2)
+const data = useComputed$(async () => {
+  const result = await fetch('/api/data');
+  return result.json();
+});
+```
+
+```typescript
+// v2
+const data = useAsync$(async ({ abortSignal }) => {
+  const result = await fetch('/api/data', { signal: abortSignal });
+  return result.json();
+});
+```
+
+<Note title="READING ASYNCSIGNAL.VALUE">
+`.value` throws while unresolved. Always branch on `.loading` / `.error` first, or provide an `initial` value.
+</Note>
+
+```tsx
+let content: JSXOutput;
+
+if (data.loading) {
+  content = <p>Loading...</p>;
+} else if (data.error) {
+  content = <p>Error: {data.error.message}</p>;
+} else {
+  content = <p>{JSON.stringify(data.value)}</p>;
+}
+
+return <div>{content}</div>;
+```
+
+### useVisibleTask$ eagerness removed
+
+The `eagerness` option (`'load'` / `'idle'`) was removed in v2. Delete it if present.
+
+### QwikCityProvider → useQwikRouter
+
+Replace the `<QwikCityProvider>` wrapper with the `useQwikRouter()` hook:
+
+```tsx
+// v1
+import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  return (
+    <QwikCityProvider>
+      <head>
+        <meta charset="utf-8" />
+      </head>
+      <body>
+        <RouterOutlet />
+      </body>
+    </QwikCityProvider>
+  );
+});
+```
+
+```tsx
+// v2
+import { RouterOutlet, useQwikRouter } from '@qwik.dev/router';
+
+export default component$(() => {
+  useQwikRouter();
+
+  return (
+    <>
+      <head>
+        <meta charset="utf-8" />
+      </head>
+      <body>
+        <RouterOutlet />
+      </body>
+    </>
+  );
+});
+```
+
+<Note>If your root component is reactive (reads signals), use `<QwikRouterProvider>` instead. `useQwikRouter()` only runs once during SSR.</Note>
+
+### Serialization
+
+v1 serialized state into `<script type="qwik/json">` tags. v2 uses `<script type="qwik/vnode">` and `<script type="qwik/state">` at the end of the document. No code change needed, but tooling that parses the old tags will need updating.
+
+---
+
+## Deprecated APIs
+
+Still compile in v2, removed in v3.
+
+### useResource$ → useAsync$
+
+| Aspect | v1 `useResource$` | v2 `useAsync$` |
+|---|---|---|
+| Return type | `.value: Promise<T>` | `.value: T` |
+| Track deps | `ctx.track(() => sig.value)` | `ctx.track(sig)` (both forms work) |
+| Abort | Manual `AbortController` | `ctx.abortSignal` |
+| Previous value | - | `ctx.previous` |
+| Polling | - | `options.interval` |
+| Initial value | - | `options.initial` |
+| Rendering | `<Resource onResolved={} />` | `.loading`/`.error` branching or `<Suspense>` |
+
+<LongNote title="Full before/after example">
+
+v1:
+
+```tsx
+import { useResource$, Resource } from '@builder.io/qwik';
+
+const Cmp = component$(() => {
+  const city = useSignal('');
+
+  const weather = useResource$(async ({ track, cleanup }) => {
+    const cityName = track(() => city.value);
+    const controller = new AbortController();
+    cleanup(() => controller.abort());
+    const res = await fetch(`/api/weather?city=${cityName}`, {
+      signal: controller.signal,
+    });
+    return res.json() as Promise<{ temp: number }>;
+  });
+
+  return (
+    <div>
+      <input name="city" bind:value={city} />
+      <Resource
+        value={weather}
+        onPending={() => <span>Loading...</span>}
+        onRejected={(e) => <span>Error: {e.message}</span>}
+        onResolved={(data) => <span>Temperature: {data.temp}</span>}
+      />
+    </div>
+  );
+});
+```
+
+v2:
+
+```tsx
+import { useAsync$ } from '@qwik.dev/core';
+
+const Cmp = component$(() => {
+  const city = useSignal('');
+
+  const weather = useAsync$(async ({ track, abortSignal }) => {
+    const cityName = track(city);
+    const res = await fetch(`/api/weather?city=${cityName}`, {
+      signal: abortSignal,
+    });
+    return res.json() as Promise<{ temp: number }>;
+  });
+
+  let content: JSXOutput;
+
+  if (weather.loading) {
+    content = <div>Loading...</div>;
+  } else if (weather.error) {
+    content = <div>Error: {weather.error.message}</div>;
+  } else {
+    content = <div>Temperature: {weather.value.temp}</div>;
+  }
+
+  return (
+    <div>
+      <input name="city" bind:value={city} />
+      {content}
+    </div>
+  );
+});
+```
+
+</LongNote>
+
+`useAsync$()` owns the work that creates the value. [`<Suspense>`](/docs/(qwik)/core/suspense/index.mdx) owns the fallback UI if you want to read `.value` directly while the value may still be pending.
+
+What changed:
+
+- `track(() => signal.value)` → `track(signal)` (shorthand, old form still works)
+- Manual `AbortController` + `cleanup()` → `ctx.abortSignal`
+- `<Resource onResolved={} />` → `if`/`else` branching
+- `.value` is `T` directly, not `Promise<T>`
+- `.error` is `Error | undefined`
+- For unlimited parallel fetches, pass `{ concurrency: 0 }`
+
+### qwik-labs
+
+`@builder.io/qwik-labs` is removed in v2:
+
+| Feature | v2 Replacement |
+|---|---|
+| Insights | `@qwik.dev/core/insights` + `@qwik.dev/core/insights/vite` |
+| Typed Routes | Built into `@qwik.dev/router` via `qwikTypes()` |
+
+<LongNote title="Migrating Insights step-by-step">
+
+1. Remove the old package: `pnpm remove @builder.io/qwik-labs`
+
+2. Enable the experimental feature and add the plugin:
+
+```typescript
+// vite.config.ts
+import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikInsights } from '@qwik.dev/core/insights/vite';
+
+export default defineConfig(() => ({
+  plugins: [
+    qwikVite({ experimental: ['insights'] }),
+    qwikInsights(),
+  ],
+}));
+```
+
+3. Update the import in `root.tsx`:
+
+```typescript
+// Before
+import { Insights } from '@builder.io/qwik-labs';
+// After
+import { Insights } from '@qwik.dev/core/insights';
+```
+
+</LongNote>
+
+---
+
+## Troubleshooting
+
+Find your error message below.
+
+### useComputed$ QRL ... cannot return a Promise
+
+Replace with `useAsync$`. See [useComputed$ is sync-only](#usecomputed-is-sync-only).
+
+### Only primitive and object literals can be serialized
+
+A class instance or plain function in a store/signal/prop (error Q3). Wrap with `noSerialize()` or convert to a QRL with `$()`.
+
+### Qwik version X already imported while importing Y
+
+Two copies of Qwik loaded (error Q30). Add [package manager overrides](#package-manager-overrides) and [ssr.noExternal](#ssrnoexternal).
+
+### IMPORTANT: This dependency was pre-bundled by Vite
+
+Add the library to `optimizeDeps.exclude`. See [ssr.noExternal](#ssrnoexternal).
+
+### [package] is being treated as an external dependency
+
+Add to both `ssr.noExternal` and `optimizeDeps.exclude`. See [ssr.noExternal](#ssrnoexternal).
+
+### Cannot find module '@builder.io/qwik'
+
+Usually a stale `jsxImportSource` in `tsconfig.json`. Run the CLI again or check your `tsconfig.json`.
+
+### Cannot find module '@builder.io/qwik-labs'
+
+Package removed in v2. See [qwik-labs](#qwik-labs).
+
+### ERR_REQUIRE_ESM / require() of ES Module
+
+Add `"type": "module"` to `package.json`. Run the CLI again if this wasn't set automatically.
+
+### Calling a 'use*()' method outside 'component$(...)'
+
+Move the hook inside `component$` (error Q10).
+
+### Move qwik packages [...] to devDependencies
+
+Move all `@qwik.dev/*` to `devDependencies` in `package.json`.
+
+---
+
+## Verification Checklist
+
+Every item should pass before your migration is done.
+
+<Checklist>
+  <ChecklistItem label='tsconfig.json has moduleResolution: Bundler and jsxImportSource: @qwik.dev/core' />
+  <ChecklistItem label='package.json has "type": "module"' />
+  <ChecklistItem label='All @qwik.dev/* packages are in devDependencies' />
+  <ChecklistItem label='Dev server starts without Code(Q30) in the console' />
+  <ChecklistItem label='npx tsc --noEmit passes' />
+</Checklist>

@@ -8,15 +8,18 @@ contributors:
   - mrhoodz
   - thejackshelton
   - wtlin1228
-updated_at: '2023-06-25T19:43:33Z'
+  - varixo
+updated_at: '2026-04-04T00:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
+
+import { Note } from '~/components/note/note';
 
 # Optimizer
 
 Qwik's philosophy is to delay loading code for as long as possible. To do that, Qwik relies on an Optimizer to re-arrange the code for lazy loading. The Optimizer is a code level transformation that runs as part of the rollup.
 
-> The Optimizer is written in Rust (and available as WASM) for instant performance.
+<Note>The Optimizer is written in Rust (and available as WASM) for instant performance.</Note>
 
 The Optimizer looks for `$` and applies a transformation that extracts the expression following the `$` and turns it into a lazy-loadable and importable symbol.
 
@@ -55,3 +58,9 @@ Notice that every occurrence of `$` results in a new lazy loadable symbol.
 ## Serialization
 
 See [serialization](../../concepts/resumable/index.mdx#serialization) for a discussion of what is serializable.
+
+## Suppressing optimizer diagnostics
+
+Some optimizer diagnostics can be suppressed for a single line with [`@qwik-disable-next-line`](../optimizer-hints/index.mdx).
+
+Use it when a warning is intentional and you want to silence only that specific occurrence.

@@ -1,7 +1,7 @@
-import { $, component$, Slot, useStyles$ } from '@builder.io/qwik';
+import { $, component$, Slot, useStyles$ } from '@qwik.dev/core';
 import { Header } from '../../components/header/header';
 import { Footer } from '../../components/footer/footer';
-import { type RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from '@qwik.dev/router';
 import { useImageProvider, type ImageTransformerProps } from 'qwik-image';
 import docsStyles from '../docs/docs.css?inline';
 
@@ -23,22 +23,24 @@ export default component$(() => {
   useImageProvider({ imageTransformer$: $(({ src }: ImageTransformerProps): string => src) });
 
   return (
-    <>
+    <div class="bg-grid-stars">
+      <div
+        class="absolute -z-2 left-1/2 top-1/2 -translate-x-[90%] -translate-y-[90%]
+          w-[250vw] h-[200vw] bg-hero-gradient-blue
+          2xl:w-[1600px] 2xl:h-[1200px] 2xl:-translate-x-[110%]"
+      />
       <Header />
-      <main>
-        <div class="blog">
-          <div class="purple-gradient" role="presentation" />
-          <div class="blue-gradient" role="presentation" />
-          <div class="flex flex-wrap gap-9 max-w-[1200px] mb-20 mx-auto">
-            <div class="w-full px-10 xl:px-0">
-              <Slot />
-            </div>
+      {/* blue gradient — centered on section, shifted left */}
+      <main class="flex fixed-header">
+        <div class="flex flex-wrap max-w-[1280px] mt-16 mb-20 mx-auto">
+          <div class="w-full px-10 xl:px-0">
+            <Slot />
           </div>
         </div>
       </main>
       <div class="px-4">
         <Footer />
       </div>
-    </>
+    </div>
   );
 });

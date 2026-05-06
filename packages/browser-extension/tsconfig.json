@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "lit",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "types": ["chrome"]
+  },
+  "include": ["src/**/*.ts"]
+}

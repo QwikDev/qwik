@@ -1,5 +1,7 @@
 import prismjs from 'prismjs';
+import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-jsx';
+import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-tsx';
 
 const escapeHtml = (code: string) =>

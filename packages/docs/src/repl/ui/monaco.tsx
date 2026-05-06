@@ -1,21 +1,22 @@
-import { noSerialize } from '@builder.io/qwik';
-import type { Diagnostic } from '@builder.io/qwik/optimizer';
+import { isServer, noSerialize } from '@qwik.dev/core';
+import type { Diagnostic } from '@qwik.dev/core/optimizer';
 import type MonacoTypes from 'monaco-editor';
-import type { EditorProps, EditorStore } from './editor';
-import type { ReplStore } from '../types';
-import { getColorPreference } from '../../components/theme-toggle/theme-toggle';
-import { bundled, getDeps, getNpmCdnUrl } from '../bundler/bundled';
-import { isServer } from '@builder.io/qwik';
-import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
+import type { ThemePreference } from '~/components/theme-toggle';
 import cssTypes from '../../../../qwik/node_modules/csstype/index.d.ts?raw';
+import { bundled, getDeps, getNpmCdnUrl } from '../bundler/bundled';
+import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
+import type { ReplStore } from '../types';
+import type { EditorProps, EditorStore } from './editor';
 
 export const initMonacoEditor = async (
   containerElm: any,
   props: EditorProps,
   editorStore: EditorStore,
-  replStore: ReplStore
+  replStore: ReplStore,
+  theme: EditorThemeName
 ) => {
   const monaco = await getMonaco();
+  ensureThemes(monaco);
   const ts = monaco.languages.typescript;
 
   ts.typescriptDefaults.setCompilerOptions({
@@ -25,7 +26,7 @@ export const initMonacoEditor = async (
     esModuleInterop: true,
     isolatedModules: true,
     jsx: ts.JsxEmit.ReactJSX,
-    jsxImportSource: '@builder.io/qwik',
+    jsxImportSource: '@qwik.dev/core',
     moduleResolution: ts.ModuleResolutionKind.NodeJs,
     noEmit: true,
     skipLibCheck: true,
@@ -46,11 +47,14 @@ export const initMonacoEditor = async (
 
   const editor = monaco.editor.create(containerElm, {
     ...defaultEditorOpts,
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, DejaVu Sans Mono, monospace',
+    fontSize: 14,
     ariaLabel: props.ariaLabel,
     lineNumbers: props.lineNumbers,
     wordWrap: props.wordWrap,
     model: null,
-    theme: getEditorTheme(getColorPreference() === 'dark'),
+    theme: getEditorTheme(theme),
   });
 
   ts.typescriptDefaults.setEagerModelSync(true);
@@ -136,8 +140,11 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
   }
 };
 
-export const getEditorTheme = (isDark: boolean) => {
-  return isDark ? 'vs-dark' : 'vs';
+export const getEditorTheme = (theme: EditorThemeName) => {
+  if (theme === 'github-light') {
+    return 'github-light';
+  }
+  return theme === 'light' ? 'vs' : 'vs-dark';
 };
 
 const checkDiagnostics = async (
@@ -210,8 +217,8 @@ export const addQwikLibs = async (version: string) => {
     }
   });
   typescriptDefaults.addExtraLib(
-    `declare module '@builder.io/qwik/jsx-runtime' { export * from '@builder.io/qwik' }`,
-    '/node_modules/@builder.io/qwik/dist/jsx-runtime.d.ts'
+    `declare module '@qwik.dev/core/jsx-runtime' { export * from '@qwik.dev/core' }`,
+    '/node_modules/@qwik.dev/core/dist/jsx-runtime.d.ts'
   );
   typescriptDefaults.addExtraLib(CLIENT_LIB);
   typescriptDefaults.addExtraLib(cssTypes, '/node_modules/csstype/index.d.ts');
@@ -300,7 +307,7 @@ const loadDeps = async (pkgVersion: string) => {
   return monacoCtx.deps;
 };
 
-const getMonaco = async (): Promise<Monaco> => {
+export const getMonaco = async (): Promise<Monaco> => {
   if (isServer) {
     throw new Error('Monaco cannot be used on the server');
   }
@@ -314,7 +321,9 @@ const getMonaco = async (): Promise<Monaco> => {
 
         // https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/editor/editor.main.js
         require(['vs/editor/editor.main'], () => {
-          resolve((globalThis as any).monaco);
+          const monaco = (globalThis as any).monaco as Monaco;
+          ensureThemes(monaco);
+          resolve(monaco);
         });
       });
       script.async = true;
@@ -339,8 +348,47 @@ const defaultEditorOpts: IStandaloneEditorConstructionOptions = {
   tabSize: 2,
 };
 
+const ensureThemes = (monaco: Monaco) => {
+  if (monacoCtx.hasRegisteredThemes) {
+    return;
+  }
+
+  monaco.editor.defineTheme('github-light', {
+    base: 'vs',
+    inherit: true,
+    rules: [
+      { token: 'comment', foreground: '6e7781' },
+      { token: 'keyword', foreground: 'cf222e' },
+      { token: 'string', foreground: '0a3069' },
+      { token: 'number', foreground: '0550ae' },
+      { token: 'type', foreground: '953800' },
+      { token: 'delimiter', foreground: '1f2328' },
+      { token: 'tag', foreground: '116329' },
+      { token: 'attribute.name', foreground: '6639ba' },
+      { token: 'attribute.value', foreground: '0a3069' },
+    ],
+    colors: {
+      'editor.background': '#ffffff',
+      'editor.foreground': '#1f2328',
+      'editor.lineHighlightBackground': '#f6f8fa',
+      'editor.selectionBackground': '#0969da26',
+      'editor.selectionHighlightBackground': '#0969da14',
+      'editor.inactiveSelectionBackground': '#afb8c133',
+      'editorCursor.foreground': '#1f2328',
+      'editorWhitespace.foreground': '#d0d7de',
+      'editorIndentGuide.background1': '#d0d7de',
+      'editorLineNumber.foreground': '#8c959f',
+      'editorLineNumber.activeForeground': '#1f2328',
+      'editorGutter.background': '#ffffff',
+    },
+  });
+
+  monacoCtx.hasRegisteredThemes = true;
+};
+
 const monacoCtx: MonacoContext = {
   deps: [],
+  hasRegisteredThemes: false,
   loader: null,
   tsWorker: null,
 };
@@ -366,9 +414,11 @@ export type IModelContentChangedEvent = MonacoTypes.editor.IModelContentChangedE
 export type TypeScriptWorker = MonacoTypes.languages.typescript.TypeScriptWorker;
 export type TypeScriptDiagnostic = MonacoTypes.languages.typescript.Diagnostic;
 export type DiagnosticMessageChain = MonacoTypes.languages.typescript.DiagnosticMessageChain;
+export type EditorThemeName = ThemePreference | 'github-light';
 
 interface MonacoContext {
   deps: NodeModuleDep[];
+  hasRegisteredThemes: boolean;
   loader: Promise<Monaco> | null;
   tsWorker: null | TypeScriptWorker;
 }

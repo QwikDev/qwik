@@ -1,0 +1,107 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 4577
+expression: output
+---
+==INPUT==
+
+
+		import { component$, useTask$ } from '@qwik.dev/core'
+
+		export default component$<any>(({ ...props }) => {
+		useTask$(() => {
+			props.checked
+		})
+
+		return 'hi'
+		})
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGE,6BAAe,2CAMb\"}")
+============================= test.tsx_test_component_useTask_jewzFYh3XmQ.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const test_component_useTask_jewzFYh3XmQ = ()=>{
+    const props = _captures[0];
+    props.checked;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;kDAIW;;IACR,MAAM,OAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_useTask_jewzFYh3XmQ",
+  "entry": null,
+  "displayName": "test.tsx_test_component_useTask",
+  "hash": "jewzFYh3XmQ",
+  "canonicalFilename": "test.tsx_test_component_useTask_jewzFYh3XmQ",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    123,
+    151
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _restProps } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+//
+const q_test_component_useTask_jewzFYh3XmQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_useTask_jewzFYh3XmQ"), "test_component_useTask_jewzFYh3XmQ");
+//
+export const test_component_LUXeXe0DQrg = (_rawProps)=>{
+    const props = _restProps(_rawProps);
+    useTaskQrl(q_test_component_useTask_jewzFYh3XmQ.w([
+        props
+    ]));
+    return 'hi';
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAGiC;;IAC/B;;;IAIA,OAAO;AACP\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    92,
+    171
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

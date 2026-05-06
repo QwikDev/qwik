@@ -11,7 +11,7 @@
   },
   "dtsRollup": {
     "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/dist/core.d.ts"
+    "untrimmedFilePath": "<projectFolder>/dist/core-internal.d.ts"
   },
   "docModel": {
     "enabled": true,

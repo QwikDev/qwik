@@ -15,6 +15,7 @@ created_at: '2023-04-28T22:00:03Z'
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Modular Forms
 
@@ -22,9 +23,7 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 To get started, install the `@modular-forms/qwik` package:
 
->⚠️ Warning:  
->Make sure to install @modular-forms/qwik as a devDependency, since it only runs at build/SSR time.
->Putting it in your regular dependencies will trigger Vite plugin errors.
+<Note title="Warning">Make sure to install @modular-forms/qwik as a devDependency, since it only runs at build/SSR time. Putting it in your regular dependencies will trigger Vite plugin errors.</Note>
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
@@ -148,7 +147,7 @@ This API design results in a fully type-safe form. Furthermore, it gives you ful
 
 One of the core functionalities of Modular Forms is input validation. You can use a Valibot or Zod schema for this or our internal validation functions. To keep this guide simple, we use the Valibot schema we created earlier and pass it to the `useForm` hook.
 
-> `valiForm$` is an adapter that converts Valibot's error messages to the format expected by Modular Forms. For Zod use `zodForm$` instead.
+<Note>`valiForm$` is an adapter that converts Valibot's error messages to the format expected by Modular Forms. For Zod use `zodForm$` instead.</Note>
 
 ```ts
 const [loginForm, { Form, Field, FieldArray }] = useForm<LoginForm>({
@@ -202,12 +201,11 @@ export default component$(() => {
 
 If we now put all the building blocks together, we get a working login form. Below you can see the assembled code and try it out in the attached sandbox.
 
-<CodeSandbox src="/src/routes/demo/integration/modular-forms/index.tsx">
 ```tsx
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { $, component$, type QRL } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { $, component$, type QRL } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
 import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
 import * as v from 'valibot';
@@ -271,7 +269,64 @@ export default component$(() => {
   );
 });
 ```
-</CodeSandbox>
+
+## Dealing With Props
+
+Sometimes, you may need to initialize or update the state of your form from the parent component via props. In such cases, you can use the setValue function, as illustrated in the example below:
+
+```tsx
+import { setValue, useForm } from "@modular-forms/qwik";
+
+export interface FormProps {
+ login?: LoginForm
+}
+
+export default component$<FormProps>((props) => {
+  const [loginForm, { Form, Field }] = useForm<LoginForm>({
+   // rest of the code...
+  });
+
+ useTask$(({ track }) => {
+     const login = track(() => props.login);
+    if (!login) return;
+    for (const [key,value] of Object.entries(login)) {
+      setValue(loginForm, key, value);
+    }
+  });
+
+  // rest of the code...
+});
+```
+By tracking props.login with useTask$, the form fields are dynamically updated whenever the parent provides new values.
+
+## Dealing With Props
+
+Sometimes, you may need to initialize or update the state of your form from the parent component via props. In such cases, you can use the setValue function, as illustrated in the example below:
+
+```tsx
+import { setValue, useForm } from "@modular-forms/qwik";
+
+export interface FormProps {
+ login?: LoginForm
+}
+
+export default component$<FormProps>((props) => {
+  const [loginForm, { Form, Field }] = useForm<LoginForm>({
+   // rest of the code...
+  });
+
+ useTask$(({ track }) => {
+     const login = track(() => props.login);
+    if (!login) return;
+    for (const [key,value] of Object.entries(login)) {
+      setValue(loginForm, key, value);
+    }
+  });
+
+  // rest of the code...
+});
+```
+By tracking props.login with useTask$, the form fields are dynamically updated whenever the parent provides new values.
 
 ## Dealing With Props
 
@@ -306,4 +361,5 @@ By tracking props.login with useTask$, the form fields are dynamically updated w
 
 You have learned the basics of Modular Forms and are ready to create your first simple form. For more info and details you can find more guides and the API reference on our website: [modularforms.dev](https://modularforms.dev/)
 
-> Do you like Modular Forms so far? It would be a great honor for us to get a star from you on [GitHub](https://github.com/fabian-hiller/modular-forms)!
+<Note>Do you like Modular Forms so far? It would be a great honor for us to get a star from you on [GitHub](https://github.com/fabian-hiller/modular-forms)!</Note>
+

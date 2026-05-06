@@ -1,0 +1,36 @@
+{
+  "name": "@qwik.dev/optimizer",
+  "description": "Qwik optimizer runtime and native bindings.",
+  "version": "2.1.0-beta.3",
+  "bugs": "https://github.com/QwikDev/qwik/issues",
+  "engines": {
+    "node": "^20.3.0 || >=21.0.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "bindings",
+    "dist"
+  ],
+  "homepage": "https://qwik.dev/",
+  "license": "MIT",
+  "main": "./dist/index.mjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/optimizer"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}

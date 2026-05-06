@@ -1,8 +1,52 @@
 ---
-title: \@builder.io/qwik/server API Reference
+title: \@qwik.dev/qwik/server API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik/server
+# [API](/api) &rsaquo; @qwik.dev/qwik/server
+
+<h2 id="getqwikbackpatchexecutorscript">getQwikBackpatchExecutorScript</h2>
+
+Provides the `backpatch-executor.js` executor script as a string.
+
+```typescript
+export declare function getQwikBackpatchExecutorScript(opts?: {
+  debug?: boolean;
+}): string;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+\{ debug?: boolean; }
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+string
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts)
 
 <h2 id="getqwikloaderscript">getQwikLoaderScript</h2>
 
@@ -115,7 +159,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[maximunChunk?](#)
+maximumChunk?
 
 </td><td>
 
@@ -130,7 +174,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[maximunInitialChunk?](#)
+maximumInitialChunk?
 
 </td><td>
 
@@ -145,7 +189,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[strategy](#)
+strategy
 
 </td><td>
 
@@ -185,7 +229,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[strategy](#)
+strategy
 
 </td><td>
 
@@ -207,112 +251,6 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 ```
 
 **References:** [InOrderAuto](#inorderauto), [InOrderDisabled](#inorderdisabled)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-<h2 id="prefetchimplementation">PrefetchImplementation</h2>
-
-> Warning: This API is now obsolete.
->
-> Use `preloader` instead
-
-```typescript
-export interface PrefetchImplementation
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[linkFetchPriority?](#)
-
-</td><td>
-
-</td><td>
-
-'auto' \| 'low' \| 'high' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[linkInsert?](#)
-
-</td><td>
-
-</td><td>
-
-'js-append' \| 'html-append' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[linkRel?](#)
-
-</td><td>
-
-</td><td>
-
-'prefetch' \| 'preload' \| 'modulepreload' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[prefetchEvent?](#)
-
-</td><td>
-
-</td><td>
-
-'always' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[workerFetchInsert?](#)
-
-</td><td>
-
-</td><td>
-
-'always' \| 'no-link-support' \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -341,7 +279,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[imports](#)
+imports
 
 </td><td>
 
@@ -354,7 +292,7 @@ Description
 </td></tr>
 <tr><td>
 
-[url](#)
+url
 
 </td><td>
 
@@ -363,63 +301,6 @@ Description
 string
 
 </td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-<h2 id="prefetchstrategy">PrefetchStrategy</h2>
-
-```typescript
-export interface PrefetchStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[implementation?](#)
-
-</td><td>
-
-</td><td>
-
-[PrefetchImplementation](#prefetchimplementation)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[symbolsToPrefetch?](#)
-
-</td><td>
-
-</td><td>
-
-[SymbolsToPrefetch](#symbolstoprefetch)
-
-</td><td>
-
-_(Optional)_
 
 </td></tr>
 </tbody></table>
@@ -451,24 +332,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[debug?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ Log preloader debug information to the console.
-
-Defaults to `false`
-
-</td></tr>
-<tr><td>
-
-[maxIdlePreloads?](#)
+maxIdlePreloads?
 
 </td><td>
 
@@ -487,41 +351,7 @@ Defaults to `25`
 </td></tr>
 <tr><td>
 
-[preloadProbability?](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[ssrPreloadProbability?](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_ The minimum probability for a bundle to be added as a preload link during SSR.
-
-Defaults to `0.7` (70% probability)
-
-This makes sure that the most likely bundles are preloaded ahead of time.
-
-</td></tr>
-<tr><td>
-
-[ssrPreloads?](#)
+ssrPreloads?
 
 </td><td>
 
@@ -563,7 +393,7 @@ export type QwikLoaderOptions =
 export type Render = RenderToString | RenderToStream;
 ```
 
-**References:** [RenderToString](#rendertostring), [RenderToStream](#rendertostream)
+**References:** [RenderToString](#rendertostring-type-alias), [RenderToStream](#rendertostream-type-alias)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -594,7 +424,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[base?](#)
+base?
 
 </td><td>
 
@@ -609,7 +439,7 @@ _(Optional)_ Specifies the root of the JS files of the client build. Setting a b
 </td></tr>
 <tr><td>
 
-[containerAttributes?](#)
+containerAttributes?
 
 </td><td>
 
@@ -624,7 +454,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[containerTagName?](#)
+containerTagName?
 
 </td><td>
 
@@ -639,7 +469,7 @@ _(Optional)_ When set, the app is serialized into a fragment. And the returned h
 </td></tr>
 <tr><td>
 
-[locale?](#)
+locale?
 
 </td><td>
 
@@ -654,22 +484,7 @@ _(Optional)_ Language to use when rendering the document.
 </td></tr>
 <tr><td>
 
-[prefetchStrategy?](#)
-
-</td><td>
-
-</td><td>
-
-[PrefetchStrategy](#prefetchstrategy) \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[preloader?](#)
+preloader?
 
 </td><td>
 
@@ -684,7 +499,7 @@ _(Optional)_ Specifies how preloading is handled. This ensures that code is inst
 </td></tr>
 <tr><td>
 
-[qwikLoader?](#)
+qwikLoader?
 
 </td><td>
 
@@ -709,22 +524,7 @@ Note that the Qwik Loader is absolutely required for Qwik to work. There must be
 </td></tr>
 <tr><td>
 
-[qwikPrefetchServiceWorker?](#)
-
-</td><td>
-
-</td><td>
-
-QwikPrefetchServiceWorkerOptions
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[serverData?](#)
+serverData?
 
 </td><td>
 
@@ -734,12 +534,12 @@ Record&lt;string, any&gt;
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Metadata that can be retrieved during SSR with `useServerData()`.
 
 </td></tr>
 <tr><td>
 
-[snapshot?](#)
+snapshot?
 
 </td><td>
 
@@ -781,7 +581,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[isStatic](#)
+isStatic
 
 </td><td>
 
@@ -794,7 +594,7 @@ boolean
 </td></tr>
 <tr><td>
 
-[manifest?](#)
+manifest?
 
 </td><td>
 
@@ -809,20 +609,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[prefetchResources](#)
-
-</td><td>
-
-</td><td>
-
-[PrefetchResource](#prefetchresource)[]
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[snapshotResult](#)
+snapshotResult?
 
 </td><td>
 
@@ -831,6 +618,8 @@ _(Optional)_
 SnapshotResult \| undefined
 
 </td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>
@@ -847,7 +636,7 @@ export type RenderToStream = (
 
 **References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 <h2 id="rendertostream-type-alias">RenderToStream</h2>
 
@@ -888,7 +677,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[stream](#)
+stream
 
 </td><td>
 
@@ -901,7 +690,7 @@ StreamWriter
 </td></tr>
 <tr><td>
 
-[streaming?](#)
+streaming?
 
 </td><td>
 
@@ -945,7 +734,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[flushes](#)
+flushes
 
 </td><td>
 
@@ -958,7 +747,7 @@ number
 </td></tr>
 <tr><td>
 
-[size](#)
+size
 
 </td><td>
 
@@ -971,7 +760,7 @@ number
 </td></tr>
 <tr><td>
 
-[timing](#)
+timing
 
 </td><td>
 
@@ -996,7 +785,7 @@ export type RenderToString = (
 
 **References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 <h2 id="rendertostring-type-alias">RenderToString</h2>
 
@@ -1047,7 +836,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[html](#)
+html
 
 </td><td>
 
@@ -1060,13 +849,13 @@ string
 </td></tr>
 <tr><td>
 
-[timing](#)
+timing
 
 </td><td>
 
 </td><td>
 
-\{ render: number; snapshot: number; }
+\{ firstFlush: number; render: number; snapshot: number; }
 
 </td><td>
 
@@ -1117,7 +906,7 @@ _(Optional)_
 
 ResolvedManifest \| undefined
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 <h2 id="serializedocumentoptions">SerializeDocumentOptions</h2>
 
@@ -1144,7 +933,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[debug?](#)
+debug?
 
 </td><td>
 
@@ -1159,7 +948,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[manifest?](#)
+manifest?
 
 </td><td>
 
@@ -1174,7 +963,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[symbolMapper?](#)
+symbolMapper?
 
 </td><td>
 
@@ -1258,7 +1047,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[inOrder?](#)
+inOrder?
 
 </td><td>
 
@@ -1272,20 +1061,6 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
-
-<h2 id="symbolstoprefetch">SymbolsToPrefetch</h2>
-
-Auto: Prefetch all possible QRLs used by the document. Default
-
-```typescript
-export type SymbolsToPrefetch =
-  | "auto"
-  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
-```
-
-**References:** [PrefetchResource](#prefetchresource)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 

@@ -1,0 +1,171 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 822
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
+import { clientSupabase } from 'supabase';
+import { Client } from 'openai';
+import { secret } from './secret';
+import { sideEffect } from './secret';
+
+const supabase = clientSupabase();
+const dfd = new Client(secret);
+
+(function() {
+	console.log('run');
+	})();
+	(() => {
+	console.log('run');
+	})();
+
+sideEffect();
+
+export const api = server$(() => {
+	supabase.from('ffg').do(dfd);
+});
+
+export default component$(() => {
+	return (
+		<button onClick$={() => await api()}></button>
+	)
+	});
+
+============================= test.tsx_api_server_JonPp043gH0.js (ENTRY POINT)==
+
+export const api_server_JonPp043gH0 = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "api_server_JonPp043gH0",
+  "entry": null,
+  "displayName": "test.tsx_api_server",
+  "hash": "JonPp043gH0",
+  "canonicalFilename": "test.tsx_api_server_JonPp043gH0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "server$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ]
+}
+*/
+============================= test.js ==
+
+import { serverQrl } from "@qwik.dev/router";
+import { _noopQrlDEV } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
+import { sideEffect } from './secret';
+//
+const q_qrl_4294901760 = /*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 0,
+    hi: 0,
+    displayName: "test.tsx_api_server"
+});
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 503,
+    hi: 575,
+    displayName: "test.tsx_test_component"
+});
+//
+(function() {
+    console.log('run');
+})();
+(()=>{
+    console.log('run');
+})();
+sideEffect();
+export const api = serverQrl(q_qrl_4294901760);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;;;;;;;;;;;;;;;AAKtC,CAAC;IACA,QAAQ,GAAG,CAAC;AACZ,CAAC;AACD,CAAC;IACD,QAAQ,GAAG,CAAC;AACZ,CAAC;AAEF;AAEA,OAAO,MAAM,MAAM,4BAEhB;AAEH,6BAAe,2CAIX\"}")
+============================= test.tsx_test_component_button_q_e_click_qwSL5gM03T4.js (ENTRY POINT)==
+
+import { api } from "./test";
+//
+export const test_component_button_q_e_click_qwSL5gM03T4 = ()=>await api();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2DA0BoB,IAAM,MAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_button_q_e_click_qwSL5gM03T4",
+  "entry": null,
+  "displayName": "test.tsx_test_component_button_q_e_click",
+  "hash": "qwSL5gM03T4",
+  "canonicalFilename": "test.tsx_test_component_button_q_e_click_qwSL5gM03T4",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    541,
+    558
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
+//
+const q_test_component_button_q_e_click_qwSL5gM03T4 = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 541,
+    hi: 558,
+    displayName: "test.tsx_test_component_button_q_e_click"
+});
+//
+export const test_component_LUXeXe0DQrg = ()=>{
+    return /*#__PURE__*/ _jsxSorted("button", null, {
+        "q-e:click": q_test_component_button_q_e_click_qwSL5gM03T4
+    }, null, 3, "u6_0", {
+        fileName: "test.tsx",
+        lineNumber: 27,
+        columnNumber: 3
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;0CAwB0B;IACzB,qBACC,WAAC;QAAO,WAAQ;;;;;;AAEjB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    503,
+    575
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

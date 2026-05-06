@@ -1,57 +1,8 @@
 ---
-title: \@builder.io/qwik/optimizer API Reference
+title: \@qwik.dev/qwik/optimizer API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik/optimizer
-
-<h2 id="path-basename">basename</h2>
-
-```typescript
-basename(path: string, ext?: string): string;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-path
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-ext
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-string
+# [API](/api) &rsaquo; @qwik.dev/qwik/optimizer
 
 <h2 id="bundlegraphadder">BundleGraphAdder</h2>
 
@@ -69,287 +20,13 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<
 
 **References:** [QwikManifest](#qwikmanifest)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/bundle-graph.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/bundle-graph.ts)
 
-<h2 id="componententrystrategy">ComponentEntryStrategy</h2>
-
-```typescript
-export interface ComponentEntryStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[manual?](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[type](#)
-
-</td><td>
-
-</td><td>
-
-'component'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="createoptimizer">createOptimizer</h2>
-
-```typescript
-createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-optimizerOptions
-
-</td><td>
-
-[OptimizerOptions](#optimizeroptions)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-Promise&lt;[Optimizer](#optimizer)&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/optimizer.ts)
-
-<h2 id="diagnostic">Diagnostic</h2>
-
-```typescript
-export interface Diagnostic
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[category](#)
-
-</td><td>
-
-</td><td>
-
-[DiagnosticCategory](#diagnosticcategory)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[code](#)
-
-</td><td>
-
-</td><td>
-
-string \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[file](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[highlights](#)
-
-</td><td>
-
-</td><td>
-
-[SourceLocation](#sourcelocation)[]
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[message](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[scope](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[suggestions](#)
-
-</td><td>
-
-</td><td>
-
-string[] \| null
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="diagnosticcategory">DiagnosticCategory</h2>
-
-```typescript
-export type DiagnosticCategory = "error" | "warning" | "sourceError";
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="path-dirname">dirname</h2>
-
-```typescript
-dirname(path: string): string;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-path
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-string
+<h2 id="experimentalfeatures-each">each</h2>
 
 <h2 id="experimentalfeatures-enablerequestrewrite">enableRequestRewrite</h2>
 
-<h2 id="entrystrategy">EntryStrategy</h2>
-
-```typescript
-export type EntryStrategy =
-  | InlineEntryStrategy
-  | HoistEntryStrategy
-  | SingleEntryStrategy
-  | HookEntryStrategy
-  | SegmentEntryStrategy
-  | ComponentEntryStrategy
-  | SmartEntryStrategy;
-```
-
-**References:** [InlineEntryStrategy](#inlineentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [SegmentEntryStrategy](#segmententrystrategy), [ComponentEntryStrategy](#componententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
 <h2 id="experimentalfeatures">ExperimentalFeatures</h2>
-
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.
 
@@ -374,6 +51,19 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+each
+
+</td><td>
+
+`"each"`
+
+</td><td>
+
+Enable the Each keyed-list primitive
+
+</td></tr>
+<tr><td>
+
 enableRequestRewrite
 
 </td><td>
@@ -382,7 +72,20 @@ enableRequestRewrite
 
 </td><td>
 
-**_(ALPHA)_** Enable request.rewrite()
+Enable request.rewrite()
+
+</td></tr>
+<tr><td>
+
+insights
+
+</td><td>
+
+`"insights"`
+
+</td><td>
+
+Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component
 
 </td></tr>
 <tr><td>
@@ -395,7 +98,7 @@ noSPA
 
 </td><td>
 
-**_(ALPHA)_** Disable SPA navigation handler in Qwik City
+Disable SPA navigation handler in Qwik Router
 
 </td></tr>
 <tr><td>
@@ -408,7 +111,20 @@ preventNavigate
 
 </td><td>
 
-**_(ALPHA)_** Enable the usePreventNavigate hook
+Enable the usePreventNavigate hook
+
+</td></tr>
+<tr><td>
+
+suspense
+
+</td><td>
+
+`"suspense"`
+
+</td><td>
+
+Enable the Suspense fallback primitive
 
 </td></tr>
 <tr><td>
@@ -421,90 +137,25 @@ valibot
 
 </td><td>
 
-**_(ALPHA)_** Enable the Valibot form validation
+Enable the Valibot form validation
+
+</td></tr>
+<tr><td>
+
+webWorker
+
+</td><td>
+
+`"webWorker"`
+
+</td><td>
+
+Enable worker$
 
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
-
-<h2 id="path-extname">extname</h2>
-
-```typescript
-extname(path: string): string;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-path
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-string
-
-<h2 id="path-format">format</h2>
-
-```typescript
-format(pathObject: {
-        root: string;
-        dir: string;
-        base: string;
-        ext: string;
-        name: string;
-    }): string;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-pathObject
-
-</td><td>
-
-\{ root: string; dir: string; base: string; ext: string; name: string; }
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-string
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/plugin.ts)
 
 <h2 id="globalinjections">GlobalInjections</h2>
 
@@ -531,7 +182,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[attributes?](#)
+attributes?
 
 </td><td>
 
@@ -546,7 +197,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[location](#)
+location
 
 </td><td>
 
@@ -559,7 +210,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[tag](#)
+tag
 
 </td><td>
 
@@ -572,671 +223,11 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
-<h2 id="inlineentrystrategy">InlineEntryStrategy</h2>
-
-```typescript
-export interface InlineEntryStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[type](#)
-
-</td><td>
-
-</td><td>
-
-'inline'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="path-isabsolute">isAbsolute</h2>
-
-```typescript
-isAbsolute(path: string): boolean;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-path
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-boolean
-
-<h2 id="path-join">join</h2>
-
-```typescript
-join(...paths: string[]): string;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-paths
-
-</td><td>
-
-string[]
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-string
-
-<h2 id="minifymode">MinifyMode</h2>
-
-```typescript
-export type MinifyMode = "simplify" | "none";
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="path-normalize">normalize</h2>
-
-```typescript
-normalize(path: string): string;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-path
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-string
+<h2 id="experimentalfeatures-insights">insights</h2>
 
 <h2 id="experimentalfeatures-nospa">noSPA</h2>
-
-<h2 id="optimizer">Optimizer</h2>
-
-```typescript
-export interface Optimizer
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[sys](#)
-
-</td><td>
-
-</td><td>
-
-[OptimizerSystem](#optimizersystem)
-
-</td><td>
-
-Optimizer system use. This can be updated with a custom file system.
-
-</td></tr>
-</tbody></table>
-
-<table><thead><tr><th>
-
-Method
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[transformFs(opts)](#optimizer-transformfs)
-
-</td><td>
-
-Transforms the directory from the file system.
-
-</td></tr>
-<tr><td>
-
-[transformFsSync(opts)](#optimizer-transformfssync)
-
-</td><td>
-
-Transforms the directory from the file system.
-
-</td></tr>
-<tr><td>
-
-[transformModules(opts)](#optimizer-transformmodules)
-
-</td><td>
-
-Transforms the input code string, does not access the file system.
-
-</td></tr>
-<tr><td>
-
-[transformModulesSync(opts)](#optimizer-transformmodulessync)
-
-</td><td>
-
-Transforms the input code string, does not access the file system.
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="optimizeroptions">OptimizerOptions</h2>
-
-```typescript
-export interface OptimizerOptions
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[binding?](#)
-
-</td><td>
-
-</td><td>
-
-any
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[inlineStylesUpToBytes?](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_ Inline the global styles if they're smaller than this
-
-</td></tr>
-<tr><td>
-
-[sourcemap?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ Enable sourcemaps
-
-</td></tr>
-<tr><td>
-
-[sys?](#)
-
-</td><td>
-
-</td><td>
-
-[OptimizerSystem](#optimizersystem)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="optimizersystem">OptimizerSystem</h2>
-
-```typescript
-export interface OptimizerSystem
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[cwd](#)
-
-</td><td>
-
-</td><td>
-
-() =&gt; string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[dynamicImport](#)
-
-</td><td>
-
-</td><td>
-
-(path: string) =&gt; Promise&lt;any&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[env](#)
-
-</td><td>
-
-</td><td>
-
-[SystemEnvironment](#systemenvironment)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[getInputFiles?](#)
-
-</td><td>
-
-</td><td>
-
-(rootDir: string) =&gt; Promise&lt;[TransformModuleInput](#transformmoduleinput)[]&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[os](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[path](#)
-
-</td><td>
-
-</td><td>
-
-[Path](#path)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[strictDynamicImport](#)
-
-</td><td>
-
-</td><td>
-
-(path: string) =&gt; Promise&lt;any&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="path-parse">parse</h2>
-
-```typescript
-parse(path: string): {
-        root: string;
-        dir: string;
-        base: string;
-        ext: string;
-        name: string;
-    };
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-path
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-\{ root: string; dir: string; base: string; ext: string; name: string; }
-
-<h2 id="path">Path</h2>
-
-```typescript
-export interface Path
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[delimiter](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[posix](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-[Path](#path)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[sep](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[win32](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-null
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-<table><thead><tr><th>
-
-Method
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[basename(path, ext)](#path-basename)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[dirname(path)](#path-dirname)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[extname(path)](#path-extname)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[format(pathObject)](#path-format)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[isAbsolute(path)](#path-isabsolute)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[join(paths)](#path-join)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[normalize(path)](#path-normalize)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[parse(path)](#path-parse)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[relative(from, to)](#path-relative)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[resolve(paths)](#path-resolve)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 <h2 id="experimentalfeatures-preventnavigate">preventNavigate</h2>
 
@@ -1265,7 +256,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[name](#)
+name
 
 </td><td>
 
@@ -1280,7 +271,7 @@ Name of the asset
 </td></tr>
 <tr><td>
 
-[size](#)
+size
 
 </td><td>
 
@@ -1295,7 +286,7 @@ Size of the asset
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
 <h2 id="qwikbuildmode">QwikBuildMode</h2>
 
@@ -1303,7 +294,7 @@ Size of the asset
 export type QwikBuildMode = "production" | "development";
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/plugin.ts)
 
 <h2 id="qwikbuildtarget">QwikBuildTarget</h2>
 
@@ -1311,7 +302,7 @@ export type QwikBuildMode = "production" | "development";
 export type QwikBuildTarget = "client" | "ssr" | "lib" | "test";
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/plugin.ts)
 
 <h2 id="qwikbundle">QwikBundle</h2>
 
@@ -1338,7 +329,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[dynamicImports?](#)
+dynamicImports?
 
 </td><td>
 
@@ -1353,7 +344,7 @@ _(Optional)_ Dynamic imports
 </td></tr>
 <tr><td>
 
-[imports?](#)
+imports?
 
 </td><td>
 
@@ -1368,7 +359,7 @@ _(Optional)_ Direct imports
 </td></tr>
 <tr><td>
 
-[interactivity?](#)
+interactivity?
 
 </td><td>
 
@@ -1383,7 +374,7 @@ _(Optional)_ Interactivity score of the bundle
 </td></tr>
 <tr><td>
 
-[origins?](#)
+origins?
 
 </td><td>
 
@@ -1398,7 +389,7 @@ _(Optional)_ Source files of the bundle
 </td></tr>
 <tr><td>
 
-[size](#)
+size
 
 </td><td>
 
@@ -1413,7 +404,7 @@ Size of the bundle
 </td></tr>
 <tr><td>
 
-[symbols?](#)
+symbols?
 
 </td><td>
 
@@ -1428,7 +419,7 @@ _(Optional)_ Symbols in the bundle
 </td></tr>
 <tr><td>
 
-[total](#)
+total
 
 </td><td>
 
@@ -1443,7 +434,7 @@ Total size of this bundle's static import graph
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
 <h2 id="qwikbundlegraph">QwikBundleGraph</h2>
 
@@ -1455,7 +446,7 @@ Format: [ 'bundle-a.js', 3, 5 // Depends on 'bundle-b.js' and 'bundle-c.js' 'bun
 export type QwikBundleGraph = Array<string | number>;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
 <h2 id="qwikmanifest">QwikManifest</h2>
 
@@ -1484,7 +475,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[assets?](#)
+assets?
 
 </td><td>
 
@@ -1499,7 +490,7 @@ _(Optional)_ All assets. The key is the fileName relative to the rootDir
 </td></tr>
 <tr><td>
 
-[bundleGraph?](#)
+bundleGraph?
 
 </td><td>
 
@@ -1514,7 +505,7 @@ _(Optional)_ All bundles in a compact graph format with probabilities
 </td></tr>
 <tr><td>
 
-[bundleGraphAsset?](#)
+bundleGraphAsset?
 
 </td><td>
 
@@ -1529,7 +520,7 @@ _(Optional)_ The bundle graph fileName
 </td></tr>
 <tr><td>
 
-[bundles](#)
+bundles
 
 </td><td>
 
@@ -1544,7 +535,7 @@ All code bundles, used to know the import graph. The key is the bundle fileName 
 </td></tr>
 <tr><td>
 
-[core?](#)
+core?
 
 </td><td>
 
@@ -1559,7 +550,7 @@ _(Optional)_ The Qwik core bundle fileName
 </td></tr>
 <tr><td>
 
-[injections?](#)
+injections?
 
 </td><td>
 
@@ -1574,7 +565,7 @@ _(Optional)_ CSS etc to inject in the document head
 </td></tr>
 <tr><td>
 
-[manifestHash](#)
+manifestHash
 
 </td><td>
 
@@ -1589,7 +580,7 @@ Content hash of the manifest, if this changes, the code changed
 </td></tr>
 <tr><td>
 
-[mapping](#)
+mapping
 
 </td><td>
 
@@ -1604,13 +595,13 @@ Where QRLs are located. The key is the symbol name, the value is the bundle file
 </td></tr>
 <tr><td>
 
-[options?](#)
+options?
 
 </td><td>
 
 </td><td>
 
-\{ target?: string; buildMode?: string; entryStrategy?: \{ type: [EntryStrategy](#entrystrategy)['type']; }; }
+\{ target?: string; buildMode?: string; entryStrategy?: \{ type: EntryStrategy['type']; }; }
 
 </td><td>
 
@@ -1619,7 +610,7 @@ _(Optional)_ The options used to build the manifest
 </td></tr>
 <tr><td>
 
-[platform?](#)
+platform?
 
 </td><td>
 
@@ -1634,7 +625,7 @@ _(Optional)_ The platform used to build the manifest
 </td></tr>
 <tr><td>
 
-[preloader?](#)
+preloader?
 
 </td><td>
 
@@ -1649,7 +640,7 @@ _(Optional)_ The preloader bundle fileName
 </td></tr>
 <tr><td>
 
-[qwikLoader?](#)
+qwikLoader?
 
 </td><td>
 
@@ -1664,7 +655,7 @@ _(Optional)_ The Qwik loader bundle fileName
 </td></tr>
 <tr><td>
 
-[symbols](#)
+symbols
 
 </td><td>
 
@@ -1679,7 +670,7 @@ QRL symbols
 </td></tr>
 <tr><td>
 
-[version](#)
+version
 
 </td><td>
 
@@ -1694,7 +685,7 @@ The version of the manifest
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
 <h2 id="qwikrollup">qwikRollup</h2>
 
@@ -1736,7 +727,7 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rollup.ts)
 
 <h2 id="qwikrolluppluginoptions">QwikRollupPluginOptions</h2>
 
@@ -1763,7 +754,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[buildMode?](#)
+buildMode?
 
 </td><td>
 
@@ -1780,7 +771,7 @@ Default `development`
 </td></tr>
 <tr><td>
 
-[csr?](#)
+csr?
 
 </td><td>
 
@@ -1795,7 +786,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[debug?](#)
+debug?
 
 </td><td>
 
@@ -1812,13 +803,13 @@ Default `false`
 </td></tr>
 <tr><td>
 
-[entryStrategy?](#)
+entryStrategy?
 
 </td><td>
 
 </td><td>
 
-[EntryStrategy](#entrystrategy)
+EntryStrategy
 
 </td><td>
 
@@ -1829,7 +820,7 @@ Default `{ type: "smart" }`)
 </td></tr>
 <tr><td>
 
-[experimental?](#)
+experimental?
 
 </td><td>
 
@@ -1844,7 +835,7 @@ _(Optional)_ Experimental features. These can come and go in patch releases, and
 </td></tr>
 <tr><td>
 
-[lint?](#)
+lint?
 
 </td><td>
 
@@ -1859,7 +850,7 @@ _(Optional)_ Run eslint on the source files for the ssr build or dev server. Thi
 </td></tr>
 <tr><td>
 
-[manifestInput?](#)
+manifestInput?
 
 </td><td>
 
@@ -1876,7 +867,7 @@ Default `undefined`
 </td></tr>
 <tr><td>
 
-[manifestOutput?](#)
+manifestOutput?
 
 </td><td>
 
@@ -1893,13 +884,13 @@ Default `undefined`
 </td></tr>
 <tr><td>
 
-[optimizerOptions?](#)
+optimizerOptions?
 
 </td><td>
 
 </td><td>
 
-[OptimizerOptions](#optimizeroptions)
+OptimizerOptions
 
 </td><td>
 
@@ -1908,7 +899,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[rootDir?](#)
+rootDir?
 
 </td><td>
 
@@ -1925,7 +916,7 @@ Default `process.cwd()`
 </td></tr>
 <tr><td>
 
-[srcDir?](#)
+srcDir?
 
 </td><td>
 
@@ -1942,13 +933,13 @@ Default `src`
 </td></tr>
 <tr><td>
 
-[srcInputs?](#)
+srcInputs?
 
 </td><td>
 
 </td><td>
 
-[TransformModuleInput](#transformmoduleinput)[] \| null
+TransformModuleInput[] \| null
 
 </td><td>
 
@@ -1959,7 +950,7 @@ Default: `null`
 </td></tr>
 <tr><td>
 
-[target?](#)
+target?
 
 </td><td>
 
@@ -1976,13 +967,13 @@ Default `client`
 </td></tr>
 <tr><td>
 
-[transformedModuleOutput?](#)
+transformedModuleOutput?
 
 </td><td>
 
 </td><td>
 
-((transformedModules: [TransformModule](#transformmodule)[]) =&gt; Promise&lt;void&gt; \| void) \| null
+((transformedModules: TransformModule[]) =&gt; Promise&lt;void&gt; \| void) \| null
 
 </td><td>
 
@@ -1991,7 +982,7 @@ _(Optional)_ Hook that's called after the build and provides all of the transfor
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rollup.ts)
 
 <h2 id="qwiksymbol">QwikSymbol</h2>
 
@@ -2018,7 +1009,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[canonicalFilename](#)
+canonicalFilename
 
 </td><td>
 
@@ -2031,7 +1022,22 @@ string
 </td></tr>
 <tr><td>
 
-[captures](#)
+captureNames?
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ The transformed names of scoped variables, if any
+
+</td></tr>
+<tr><td>
+
+captures
 
 </td><td>
 
@@ -2041,10 +1047,12 @@ boolean
 
 </td><td>
 
+Whether the symbol captures a variable
+
 </td></tr>
 <tr><td>
 
-[ctxKind](#)
+ctxKind
 
 </td><td>
 
@@ -2057,7 +1065,7 @@ boolean
 </td></tr>
 <tr><td>
 
-[ctxName](#)
+ctxName
 
 </td><td>
 
@@ -2070,7 +1078,7 @@ string
 </td></tr>
 <tr><td>
 
-[displayName](#)
+displayName
 
 </td><td>
 
@@ -2083,7 +1091,7 @@ string
 </td></tr>
 <tr><td>
 
-[hash](#)
+hash
 
 </td><td>
 
@@ -2096,7 +1104,7 @@ string
 </td></tr>
 <tr><td>
 
-[loc](#)
+loc
 
 </td><td>
 
@@ -2109,7 +1117,7 @@ string
 </td></tr>
 <tr><td>
 
-[origin](#)
+origin
 
 </td><td>
 
@@ -2122,7 +1130,22 @@ string
 </td></tr>
 <tr><td>
 
-[parent](#)
+paramNames?
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ The parameter names if it's a function with parameters
+
+</td></tr>
+<tr><td>
+
+parent
 
 </td><td>
 
@@ -2135,7 +1158,7 @@ string \| null
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
 <h2 id="qwikvite">qwikVite</h2>
 
@@ -2177,64 +1200,7 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
-
-<h2 id="qwikvitedevresponse">QwikViteDevResponse</h2>
-
-```typescript
-export interface QwikViteDevResponse
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[\_qwikEnvData?](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, any&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[\_qwikRenderResolve?](#)
-
-</td><td>
-
-</td><td>
-
-() =&gt; void
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/vite.ts)
 
 <h2 id="qwikviteplugin">QwikVitePlugin</h2>
 
@@ -2248,7 +1214,7 @@ export type QwikVitePlugin = P<QwikVitePluginApi> & {
 
 **References:** [QwikVitePluginApi](#qwikvitepluginapi)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/vite.ts)
 
 <h2 id="qwikvitepluginapi">QwikVitePluginApi</h2>
 
@@ -2275,7 +1241,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[getAssetsDir](#)
+getAssetsDir
 
 </td><td>
 
@@ -2288,7 +1254,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getClientOutDir](#)
+getClientOutDir
 
 </td><td>
 
@@ -2301,7 +1267,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getClientPublicOutDir](#)
+getClientPublicOutDir
 
 </td><td>
 
@@ -2314,7 +1280,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getManifest](#)
+getManifest
 
 </td><td>
 
@@ -2327,20 +1293,20 @@ Description
 </td></tr>
 <tr><td>
 
-[getOptimizer](#)
+getOptimizer
 
 </td><td>
 
 </td><td>
 
-() =&gt; [Optimizer](#optimizer) \| null
+() =&gt; Optimizer \| null
 
 </td><td>
 
 </td></tr>
 <tr><td>
 
-[getOptions](#)
+getOptions
 
 </td><td>
 
@@ -2353,7 +1319,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getRootDir](#)
+getRootDir
 
 </td><td>
 
@@ -2366,7 +1332,7 @@ Description
 </td></tr>
 <tr><td>
 
-[registerBundleGraphAdder](#)
+registerBundleGraphAdder
 
 </td><td>
 
@@ -2379,7 +1345,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/vite.ts)
 
 <h2 id="qwikvitepluginoptions">QwikVitePluginOptions</h2>
 
@@ -2389,90 +1355,7 @@ export type QwikVitePluginOptions =
   | QwikVitePluginSSROptions;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
-
-<h2 id="path-relative">relative</h2>
-
-```typescript
-relative(from: string, to: string): string;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-from
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-to
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-string
-
-<h2 id="path-resolve">resolve</h2>
-
-```typescript
-resolve(...paths: string[]): string;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-paths
-
-</td><td>
-
-string[]
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-string
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/vite.ts)
 
 <h2 id="resolvedmanifest">ResolvedManifest</h2>
 
@@ -2499,7 +1382,22 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[injections](#)
+bundleGraph?
+
+</td><td>
+
+</td><td>
+
+[QwikBundleGraph](#qwikbundlegraph)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+injections?
 
 </td><td>
 
@@ -2509,10 +1407,12 @@ Description
 
 </td><td>
 
+_(Optional)_
+
 </td></tr>
 <tr><td>
 
-[manifest](#)
+manifest
 
 </td><td>
 
@@ -2525,7 +1425,7 @@ Description
 </td></tr>
 <tr><td>
 
-[mapper](#)
+mapper
 
 </td><td>
 
@@ -2538,245 +1438,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="segmentanalysis">SegmentAnalysis</h2>
-
-```typescript
-export interface SegmentAnalysis
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[canonicalFilename](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[captures](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[ctxKind](#)
-
-</td><td>
-
-</td><td>
-
-'eventHandler' \| 'function'
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[ctxName](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[displayName](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[entry](#)
-
-</td><td>
-
-</td><td>
-
-string \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[extension](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[hash](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[loc](#)
-
-</td><td>
-
-</td><td>
-
-[number, number]
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[name](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[origin](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[parent](#)
-
-</td><td>
-
-</td><td>
-
-string \| null
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="segmententrystrategy">SegmentEntryStrategy</h2>
-
-```typescript
-export interface SegmentEntryStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[manual?](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[type](#)
-
-</td><td>
-
-</td><td>
-
-'segment'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
 <h2 id="serverqwikmanifest">ServerQwikManifest</h2>
 
@@ -2798,262 +1460,20 @@ export type ServerQwikManifest = Pick<
 
 **References:** [QwikManifest](#qwikmanifest)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
-<h2 id="singleentrystrategy">SingleEntryStrategy</h2>
+<h2 id="experimentalfeatures-suspense">suspense</h2>
 
-```typescript
-export interface SingleEntryStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[manual?](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[type](#)
-
-</td><td>
-
-</td><td>
-
-'single'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="smartentrystrategy">SmartEntryStrategy</h2>
+<h2 id="symbolmapper">SymbolMapper</h2>
 
 ```typescript
-export interface SmartEntryStrategy
+export type SymbolMapper = Record<
+  string,
+  readonly [symbol: string, chunk: string]
+>;
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[manual?](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[type](#)
-
-</td><td>
-
-</td><td>
-
-'smart'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="sourcelocation">SourceLocation</h2>
-
-```typescript
-export interface SourceLocation
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[endCol](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[endLine](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[hi](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[lo](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[startCol](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[startLine](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="sourcemapsoption">SourceMapsOption</h2>
-
-```typescript
-export type SourceMapsOption = "external" | "inline" | undefined | null;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="symbolmapper-variable">symbolMapper</h2>
-
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-
-For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
-
-Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.
-
-This would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.
-
-```typescript
-symbolMapper: ReturnType<typeof createSymbolMapper>;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite-dev-server.ts)
-
-<h2 id="symbolmapper-type-alias">SymbolMapper</h2>
-
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-
-For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
-
-Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.
-
-This would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.
-
-```typescript
-symbolMapper: ReturnType<typeof createSymbolMapper>;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
 <h2 id="symbolmapperfn">SymbolMapperFn</h2>
 
@@ -3067,791 +1487,8 @@ export type SymbolMapperFn = (
 
 **References:** [SymbolMapper](#symbolmapper)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="systemenvironment">SystemEnvironment</h2>
-
-```typescript
-export type SystemEnvironment =
-  | "node"
-  | "deno"
-  | "bun"
-  | "webworker"
-  | "browsermain"
-  | "unknown";
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="optimizer-transformfs">transformFs</h2>
-
-Transforms the directory from the file system.
-
-```typescript
-transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformFsOptions](#transformfsoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-Promise&lt;[TransformOutput](#transformoutput)&gt;
-
-<h2 id="transformfsoptions">TransformFsOptions</h2>
-
-```typescript
-export interface TransformFsOptions extends TransformOptions
-```
-
-**Extends:** [TransformOptions](#transformoptions)
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[vendorRoots](#)
-
-</td><td>
-
-</td><td>
-
-string[]
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="optimizer-transformfssync">transformFsSync</h2>
-
-Transforms the directory from the file system.
-
-```typescript
-transformFsSync(opts: TransformFsOptions): TransformOutput;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformFsOptions](#transformfsoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-[TransformOutput](#transformoutput)
-
-<h2 id="transformmodule">TransformModule</h2>
-
-```typescript
-export interface TransformModule
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[code](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[isEntry](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[map](#)
-
-</td><td>
-
-</td><td>
-
-string \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[origPath](#)
-
-</td><td>
-
-</td><td>
-
-string \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[path](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[segment](#)
-
-</td><td>
-
-</td><td>
-
-[SegmentAnalysis](#segmentanalysis) \| null
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="transformmoduleinput">TransformModuleInput</h2>
-
-```typescript
-export interface TransformModuleInput
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[code](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[devPath?](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[path](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="optimizer-transformmodules">transformModules</h2>
-
-Transforms the input code string, does not access the file system.
-
-```typescript
-transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformModulesOptions](#transformmodulesoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-Promise&lt;[TransformOutput](#transformoutput)&gt;
-
-<h2 id="transformmodulesoptions">TransformModulesOptions</h2>
-
-```typescript
-export interface TransformModulesOptions extends TransformOptions
-```
-
-**Extends:** [TransformOptions](#transformoptions)
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[input](#)
-
-</td><td>
-
-</td><td>
-
-[TransformModuleInput](#transformmoduleinput)[]
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="optimizer-transformmodulessync">transformModulesSync</h2>
-
-Transforms the input code string, does not access the file system.
-
-```typescript
-transformModulesSync(opts: TransformModulesOptions): TransformOutput;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformModulesOptions](#transformmodulesoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-[TransformOutput](#transformoutput)
-
-<h2 id="transformoptions">TransformOptions</h2>
-
-```typescript
-export interface TransformOptions
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[entryStrategy?](#)
-
-</td><td>
-
-</td><td>
-
-[EntryStrategy](#entrystrategy)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[explicitExtensions?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[isServer?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[minify?](#)
-
-</td><td>
-
-</td><td>
-
-[MinifyMode](#minifymode)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[mode?](#)
-
-</td><td>
-
-</td><td>
-
-EmitMode
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[preserveFilenames?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[regCtxName?](#)
-
-</td><td>
-
-</td><td>
-
-string[]
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[rootDir?](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[scope?](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[sourceMaps?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[srcDir](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[stripCtxName?](#)
-
-</td><td>
-
-</td><td>
-
-string[]
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[stripEventHandlers?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[stripExports?](#)
-
-</td><td>
-
-</td><td>
-
-string[]
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[transpileJsx?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[transpileTs?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="transformoutput">TransformOutput</h2>
-
-```typescript
-export interface TransformOutput
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[diagnostics](#)
-
-</td><td>
-
-</td><td>
-
-[Diagnostic](#diagnostic)[]
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[isJsx](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[isTypeScript](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[modules](#)
-
-</td><td>
-
-</td><td>
-
-[TransformModule](#transformmodule)[]
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-<h2 id="transpileoption">TranspileOption</h2>
-
-```typescript
-export type TranspileOption = boolean | undefined | null;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
 <h2 id="experimentalfeatures-valibot">valibot</h2>
 
-<h2 id="versions">versions</h2>
-
-```typescript
-versions: {
-  qwik: string;
-}
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/versions.ts)
+<h2 id="experimentalfeatures-webworker">webWorker</h2>

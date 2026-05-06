@@ -23,11 +23,14 @@ contributors:
   - Balastrong
   - Jemsco
   - shairez
-updated_at: '2024-01-09T20:55:11Z'
+  - wmertens
+  - varixo
+updated_at: '2026-04-04T00:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Events
 
@@ -41,9 +44,9 @@ For a web application to be interactive, there needs to be a way to respond to u
 
 In the following example, the `onClick$` attribute of the `<button>` element is used to let Qwik know that a callback `() => store.count++` should be executed whenever the `click` event is fired by the `<button>`.
 
-<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx">
 ```tsx {7} /onClick$/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const count = useSignal(0);
@@ -61,15 +64,15 @@ You can also use `bind:propertyName` to conveniently have a [two-way binding](/d
 
 Notice that `onClick$` ends with [`$`](/docs/(qwik)/advanced/dollar/index.mdx). This is a hint to both the [Optimizer](/docs/(qwik)/advanced/optimizer/index.mdx) and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler is not loaded into the JavaScript Virtual Machine (VM) until the user activates the click event. However, to avoid delays during the first interaction, it is eagerly loaded into the browser cache.
 
-> In real-world applications, the listener may refer to complex code. By creating a lazy-loaded boundary (with the `$`), Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.
+<Note>In real-world applications, the listener may refer to complex code. By creating a lazy-loaded boundary (with the `$`), Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.</Note>
 
 ## Reusing Event Handlers
 
-To reuse the same event handler for multiple elements or events, you have to wrap the event handler into the `$()` function exported by `@builder.io/qwik`. This transforms it into a [`QRL`](/docs/advanced/qrl/).
+To reuse the same event handler for multiple elements or events, you have to wrap the event handler into the `$()` function exported by `@qwik.dev/core`. This transforms it into a [`QRL`](/docs/advanced/qrl/).
 
-<CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx">
 ```tsx {5} /increment/#a
-import { component$, useSignal, $ } from '@builder.io/qwik';
+import { component$, useSignal, $ } from '@qwik.dev/core';
 
 export default component$(() => {
   const count = useSignal(0);
@@ -85,14 +88,14 @@ export default component$(() => {
 </CodeSandbox>
 
 
-> **Note:** If you extract the event handler, you must manually wrap it in the `$(...handler...)`. This ensures that it is lazily attached.
+<Note>If you extract the event handler, you must manually wrap it in the `$(...handler...)`. This ensures that it is lazily attached.</Note>
 
 ## Multiple Event Handlers
 
 To register multiple event handlers for the same event, you can pass an array of event handlers to the `on{EventName}$` attribute.
 
 ```tsx /onClick$/
-import { component$, useSignal, $ } from '@builder.io/qwik';
+import { component$, useSignal, $ } from '@qwik.dev/core';
 
 export default component$(() => {
   const count = useSignal(0);
@@ -116,9 +119,9 @@ export default component$(() => {
 
 The first argument of the event handler is the `Event` object. This object contains information about the event that triggered the handler. For example, the `Event` object for a `click` event contains information about the mouse position and the element that was clicked. You can check out the [MDN docs to know more details about each DOM event](https://developer.mozilla.org/en-US/docs/Web/API/Event).
 
-<CodeSandbox src="/src/routes/demo/events/mouse-position/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/mouse-position/index.tsx">
 ```tsx /event/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const position = useSignal<{ x: number; y: number }>();
@@ -148,9 +151,9 @@ Due to Qwik's asynchronous nature, the execution of an event handler might be de
 
 Because event handling is asynchronous, you can't use `event.preventDefault()` or `event.stopPropagation()`. To solve this, Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` and `stoppropagation:{eventName}` attributes.
 
-<CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx">
 ```tsx {7}
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   return (
@@ -170,13 +173,88 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
+### Passive events
+
+Use `passive:eventname` to mark a Qwik event listener as passive when the handler does not need
+`preventDefault()`.
+
+This is especially useful for events such as `touchstart`, `touchmove`, and `scroll`, where the
+browser can optimize scrolling when it knows the listener is passive.
+
+```tsx /passive:touchmove/ /passive:touchstart/ /passive:scroll/
+<div passive:touchmove onTouchMove$={() => console.log('move')} />
+
+<button
+  passive:touchstart
+  document:onTouchStart$={() => console.log('document touchstart')}
+/>
+
+<button passive:scroll window:onScroll$={() => console.log('window scroll')} />
+```
+
+`passive:eventname` is only a marker. It must match a Qwik handler for the same event, and Qwik
+consumes it during JSX processing.
+
+Passive listeners do not combine with `preventdefault:eventname` for the same event. Qwik warns
+about that combination with the `preventdefault-passive-check` optimizer diagnostic and drops the
+`preventdefault:*` marker for that event.
+
+<Note>
+  If you need to prevent the browser default, do not use `passive:eventname` for that event. If
+  you intentionally want to suppress the optimizer warning for one line, use
+  [`@qwik-disable-next-line`](/docs/(qwik)/advanced/optimizer-hints/index.mdx).
+</Note>
+
+### Capture events
+
+Use `capture:eventname` to run an element event handler during the capture phase instead of the
+default bubbling phase.
+
+This is useful when a parent element needs to observe or intercept an event before it reaches a
+child's bubbling handler.
+
+```tsx /capture:click/
+<div
+  capture:click
+  onClick$={() => console.log('parent capture')}
+>
+  <button onClick$={() => console.log('button bubble')} />
+</div>
+```
+
+When the button is clicked, Qwik runs:
+
+1. the parent's `click` handler during capture
+2. the button's `click` handler during bubbling
+
+`capture:eventname` is scoped to a single event. For example, this makes `click` capture-phase
+while leaving `scroll` in its normal mode:
+
+```tsx /capture:click/
+<div
+  capture:click
+  onClick$={() => console.log('capture click')}
+  onScroll$={() => console.log('bubble scroll')}
+/>
+```
+
+`capture:eventname` only applies to element-scoped handlers such as `onClick$`. It does not change
+`window:on*` or `document:on*` listeners.
+
+<Note>
+  `capture:eventname` is a marker for the existing handler bucket for that event. A single element
+  event cannot be both capture and bubble at the same time. For example, you can mark `click` as
+  capture and leave `scroll` as bubble on the same element, but you cannot register both capture
+  and bubble handlers for `click` on the same element.
+</Note>
+
 ### Event Target
 
 Because event handling is asynchronous, you can't use `event.currentTarget`. To solve this, Qwik handlers provide a `currentTarget` as a second argument.
 
 <CodeSandbox src="/src/routes/demo/events/target/index.tsx" style={{ height: '10em' }}>
 ```tsx /currentTarget/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const currentElm = useSignal<HTMLElement|null>(null);
@@ -201,7 +279,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> **Note:** `currentTarget` in the DOM points to the element that the event listener was attached to. In the example above it will always be the `<SECTION>` element.
+<Note>`currentTarget` in the DOM points to the element that the event listener was attached to. In the example above it will always be the `<SECTION>` element.</Note>
 
 ### Synchronous Event Handling
 
@@ -211,7 +289,7 @@ To do this, you can leverage a `useVisibleTask` to programmatically add an event
 
 <CodeSandbox src="/src/routes/demo/events/synchronous/index.tsx" style={{ height: '10em' }}>
 ```tsx {7-20}
-import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const draggableRef = useSignal<HTMLElement>();
@@ -244,7 +322,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> **NOTE** Using `VisibleTask` to listen for events is an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. You should use JSX to listen for events, for example: `<div onClick$={...}>`. Alternatively, if you need to listen to events programmatically, consider using the `useOn(...)` event methods.
+<Note>Using `VisibleTask` to listen for events is an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. You should use JSX to listen for events, for example: `<div onClick$={...}>`. Alternatively, if you need to listen to events programmatically, consider using the `useOn(...)` event methods.</Note>
 
 ## Custom Event Props
 
@@ -253,7 +331,7 @@ When creating your components, it is often useful to pass custom event props tha
 For example, listening for triple click events, which html cannot do by default, would require creating an `onTripleClick$` custom event prop.
 <CodeSandbox src="/src/routes/demo/events/custom-event/index.tsx" style={{ height: '10em' }}>
 ```tsx
-import { component$, Slot, useStore } from '@builder.io/qwik';
+import { component$, Slot, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   return (
@@ -297,7 +375,11 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 ```
 </CodeSandbox>
 
-> Notice the use of the `QRL` type in `onTripleClick$: QRL<() => void>;`. It is like wrapping a function in `$()` but at the type level. If you had `const greet = $(() => "hi 👋");` and hovered over 'greet', you would see that 'greet' is of type `QRL<() => "hi 👋">`
+<Note>Notice the use of the `QRL` type in `onTripleClick$: QRL<() => void>;`. It is like wrapping a function in `$()` but at the type level. If you had `const greet = $(() => "hi");` and hovered over 'greet', you would see that 'greet' is of type `QRL<() => "hi">`</Note>
+
+Event names are case sensitive, but all DOM events except for `DOMContentLoaded` are lowercase. For a better DX, event names are always lowercased, so `onTripleClick$` becomes `tripleclick` under the hood.
+
+To listen for a custom event with uppercase letters, you add a `-` after `on`. For example, to listen for a custom event named `CustomEvent`, you would use `on-CustomEvent$`. For a window event named `Hi-There`, you would use `window:on-Hi-There$`.
 
 ## Window and Document Events
 
@@ -316,9 +398,28 @@ The `window:on`/`document:` prefixes are used to register an event at the curren
 
 `useOn[window|document]()` hook will add a DOM-based event listener at the component level programmatically. This is often useful when you want to create your own use hooks or if you don't know the event name at the time of compilation.
 
+Use `useOn()` when you need the ergonomics of JSX event handlers, but the listener must be registered from a reusable hook or helper instead of directly in markup. The event still stays lazy-loadable because the callback is wrapped in `$()`.
+
+As a rule of thumb:
+
+- Prefer JSX such as `<button onClick$={...}>` when the listener belongs directly to that element in the component's template.
+- Use `useOn()` when you are building a custom `use*()` hook and the hook should attach to the current component's host element.
+- Use `useOnDocument()` or `useOnWindow()` when the event source is global rather than the component's own host element.
+
+The "host element" for `useOn()` is the top-level DOM element rendered by the current component. That means `useOn('click', ...)` behaves like attaching a listener to that root node, not to every child in the component.
+
+All three hooks also accept an optional third argument for event modifiers:
+
+- `{ passive: true }` registers a passive listener for events such as `touchmove`, `wheel`, or `scroll` when the handler does not need to call `preventDefault()`.
+- `{ capture: true }` runs the listener during the capture phase instead of the bubbling phase.
+- `{ preventdefault: true }` applies the same behavior as JSX `preventdefault:event`, so Qwik calls `event.preventDefault()` before the handler runs.
+- `{ stoppropagation: true }` applies the same behavior as JSX `stoppropagation:event`, so Qwik stops propagation before the handler runs.
+
+Avoid combining `passive: true` with `preventdefault: true`, because passive listeners cannot cancel the browser's default behavior.
+
 <CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" style={{ height: '10em' }}>
 ```tsx
-import { $, component$, useOnDocument, useStore } from '@builder.io/qwik';
+import { $, component$, useOnDocument, useStore } from '@qwik.dev/core';
 
 // Assume reusable use method that does not have access to JSX
 // but needs to register event handlers.
@@ -345,3 +446,46 @@ export default component$(() => {
 });
 ```
 </CodeSandbox>
+
+In the example above, `useMousePosition()` is a reusable hook. It cannot write `onMouseMove$` into JSX because it does not render any DOM itself, so it registers the listener programmatically with `useOnDocument()`. This is the main use case for the `useOn*()` family.
+
+```tsx
+import { $, component$, useOnWindow, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const scrollCount = useSignal(0);
+
+  useOnWindow(
+    'scroll',
+    $(() => {
+      scrollCount.value++;
+    }),
+    { passive: true }
+  );
+
+  return <p>Scroll events: {scrollCount.value}</p>;
+});
+```
+
+```tsx
+import { $, component$, useOn, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const logs = useSignal<string[]>([]);
+
+  useOn(
+    'click',
+    $(() => {
+      logs.value = [...logs.value, 'captured on host'];
+    }),
+    { capture: true, stoppropagation: true }
+  );
+
+  return (
+    <div>
+      <button>Click me</button>
+      <pre>{logs.value.join('\n')}</pre>
+    </div>
+  );
+});
+```

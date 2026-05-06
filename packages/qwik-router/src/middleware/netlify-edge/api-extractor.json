@@ -1,0 +1,20 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "extends": "../../api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-router/src/middleware/netlify-edge/index.d.ts",
+  "newlineKind": "lf",
+  "apiReport": {
+    "enabled": true,
+    "reportFileName": "middleware.netlify-edge",
+    "reportFolder": "<projectFolder>/src/middleware/netlify-edge/",
+    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-router/middleware/netlify-edge"
+  },
+  "dtsRollup": {
+    "enabled": true,
+    "untrimmedFilePath": "<projectFolder>/lib/middleware/netlify-edge/index.d.ts"
+  },
+  "docModel": {
+    "enabled": true,
+    "apiJsonFilePath": "<projectFolder>/../../dist-dev/api/qwik-router/middleware/netlify-edge/docs.api.json"
+  }
+}

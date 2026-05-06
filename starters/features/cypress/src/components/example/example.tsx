@@ -1,4 +1,4 @@
-import { component$, useStore } from "@builder.io/qwik";
+import { component$, useStore } from "@qwik.dev/core";
 
 import { useExampleLoader } from "../../loaders/example.loader";
 import { useExampleAction } from "../../actions/example.action";

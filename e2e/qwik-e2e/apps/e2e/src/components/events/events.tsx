@@ -1,0 +1,280 @@
+import { $, component$, useOnWindow, useSignal, useStore } from '@qwik.dev/core';
+
+export const Events = component$(() => {
+  const rerenderCount = useSignal(0);
+
+  return (
+    <div>
+      <button id="rerender" onClick$={() => rerenderCount.value++}>
+        Rerender {rerenderCount.value}
+      </button>
+      <EventsParent key={rerenderCount.value} />
+      <p id="render-count">{rerenderCount.value}</p>
+    </div>
+  );
+});
+
+const EventsParent = component$(() => {
+  const store = useStore({
+    countTransparent: 0,
+    countWrapped: 0,
+    countAnchor: 0,
+    countNestedAnchor: 0,
+    countNestedButton: 0,
+    propagationStoppedCount: 0,
+    passiveRegularClickCount: 0,
+    passiveClickCount: 0,
+    passivePreventDefaultCount: 0,
+    passivePreventDefaultState: 'unset',
+    passiveDocumentCount: 0,
+    passiveWindowCount: 0,
+    hoverOrderLog: '',
+  });
+  return (
+    <>
+      <Buttons
+        onTransparentClick$={async () => {
+          store.countTransparent++;
+        }}
+        onWrappedClick$={async () => {
+          store.countWrapped++;
+        }}
+      ></Buttons>
+      <p>
+        <a href="/" preventdefault:click id="prevent-default-1">
+          Should prevent default
+        </a>
+      </p>
+      <div>
+        <p>
+          <a
+            href="/e2e/events-client"
+            preventdefault:click
+            id="prevent-default-parent-anchor"
+            onClick$={() => {
+              store.countNestedAnchor++;
+            }}
+          >
+            <button
+              id="prevent-default-child-button"
+              onClick$={async () => {
+                store.countNestedButton++;
+              }}
+            >
+              Should not redirect when child button is clicked
+            </button>
+          </a>
+        </p>
+        <div
+          onClick$={() => {
+            throw new Error('event was not stopped');
+          }}
+        >
+          <a
+            href="/"
+            preventdefault:click
+            id="prevent-default-2"
+            onClick$={(ev) => {
+              ev.stopPropagation();
+              store.countAnchor++;
+            }}
+          >
+            Should count
+          </a>
+        </div>
+        <div
+          onClick$={() => {
+            store.propagationStoppedCount++;
+            throw new Error('event was not stopped');
+          }}
+        >
+          <button
+            stoppropagation:click
+            id="stop-propagation"
+            onClick$={(ev) => {
+              store.propagationStoppedCount++;
+            }}
+          >
+            Should stop propagation{' '}
+          </button>
+        </div>
+      </div>
+      <p id="count-transparent">countTransparent: {store.countTransparent}</p>
+      <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
+      <p id="count-anchor">countAnchor: {store.countAnchor}</p>
+      <p id="count-nested-anchor">countNestedAnchor: {store.countNestedAnchor}</p>
+      <p id="count-nested-button">countNestedButton: {store.countNestedButton}</p>
+      <p id="count-propagation">countPropagationStopped: {store.propagationStoppedCount}</p>
+      <div id="hover-order-fixture" style="display:flex;gap:16px">
+        <div
+          id="hover-order-red"
+          style="width:80px;height:80px;background:#d44"
+          onMouseLeave$={$(async () => {
+            await new Promise<void>((resolve) => {
+              setTimeout(resolve, 60);
+            });
+            store.hoverOrderLog = store.hoverOrderLog
+              ? `${store.hoverOrderLog}|red mouse out`
+              : 'red mouse out';
+          })}
+        ></div>
+        <div
+          id="hover-order-blue"
+          style="width:80px;height:80px;background:#48f"
+          onMouseOver$={$(() => {
+            store.hoverOrderLog = store.hoverOrderLog
+              ? `${store.hoverOrderLog}|blue mouse in`
+              : 'blue mouse in';
+          })}
+        ></div>
+      </div>
+      <p id="hover-order-log">{store.hoverOrderLog}</p>
+      <div>
+        <button
+          id="passive-regular-click"
+          onClick$={() => {
+            store.passiveRegularClickCount++;
+          }}
+        >
+          Regular click
+        </button>
+        <button
+          id="passive-click"
+          passive:click
+          onClick$={() => {
+            store.passiveClickCount++;
+          }}
+        >
+          Passive click
+        </button>
+        <button
+          id="passive-preventdefault"
+          passive:click
+          preventdefault:click
+          onClick$={(ev) => {
+            store.passivePreventDefaultCount++;
+            store.passivePreventDefaultState = String(ev.defaultPrevented);
+          }}
+        >
+          Passive preventdefault
+        </button>
+        <button
+          id="passive-document"
+          passive:touchstart
+          document:onTouchStart$={() => {
+            store.passiveDocumentCount++;
+          }}
+        >
+          Passive document
+        </button>
+        <button
+          id="passive-window"
+          passive:scroll
+          window:onScroll$={() => {
+            store.passiveWindowCount++;
+          }}
+        >
+          Passive window
+        </button>
+      </div>
+      <p id="count-passive-regular-click">
+        countPassiveRegularClick: {store.passiveRegularClickCount}
+      </p>
+      <p id="count-passive-click">countPassiveClick: {store.passiveClickCount}</p>
+      <p id="count-passive-preventdefault">
+        countPassivePreventDefault: {store.passivePreventDefaultCount}
+      </p>
+      <p id="state-passive-preventdefault">
+        passivePreventDefaultState: {store.passivePreventDefaultState}
+      </p>
+      <p id="count-passive-document">countPassiveDocument: {store.passiveDocumentCount}</p>
+      <p id="count-passive-window">countPassiveWindow: {store.passiveWindowCount}</p>
+      <UseOnWindowConditionalRenderIssue3948 />
+      <UndefinedEventHandler />
+      <ExecuteAllEventHandlers />
+    </>
+  );
+});
+
+interface ButtonProps {
+  onTransparentClick$?: QRL<(ev: Event) => any>;
+  onWrappedClick$?: QRL<(nu: number) => void>;
+}
+
+export const Buttons = component$((props: ButtonProps) => {
+  const store = useStore({ count: 0 });
+  return (
+    <div>
+      <span>some</span>
+      <button id="btn-transparent" onClick$={props.onTransparentClick$ as any}>
+        Transparent
+      </button>
+      <button
+        id="btn-wrapped"
+        onClick$={async () => {
+          store.count++;
+          await props.onWrappedClick$?.(store.count);
+        }}
+      >
+        Wrapped {store.count}
+      </button>
+    </div>
+  );
+});
+
+export const Listener = component$((props: { name: string }) => {
+  const count = useSignal(0);
+
+  useOnWindow(
+    'click',
+    $(() => {
+      count.value++;
+    })
+  );
+
+  return (
+    <p id={`issue-3948-${props.name}`}>
+      {props.name} count: {count.value}
+    </p>
+  );
+});
+
+export const UseOnWindowConditionalRenderIssue3948 = component$(() => {
+  const showingToggle = useSignal(false);
+
+  return (
+    <>
+      <Listener name="always" />
+      <label for="issue-3948-toggle">
+        <input id="issue-3948-toggle" type="checkbox" bind:checked={showingToggle} /> Show
+        conditional
+      </label>
+      {showingToggle.value && <Listener name="conditional" />}
+    </>
+  );
+});
+
+const UndefinedEventHandler = component$(() => {
+  return (
+    <p>
+      <button id="undefined-event-handler" onClick$={[undefined]}>
+        Should not throw
+      </button>
+    </p>
+  );
+});
+
+const ExecuteAllEventHandlers = component$(() => {
+  const store1 = useStore({ count: 1 });
+  const store2 = useStore({ count: 1 });
+
+  const update = $(() => store2.count++);
+  return (
+    <button
+      id="execute-all-event-handlers"
+      onClick$={[$(() => store1.count++), update, undefined, [null, $(() => (store2.count += 1))]]}
+    >
+      {store1.count} / {store2.count}
+    </button>
+  );
+});

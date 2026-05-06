@@ -98,6 +98,15 @@ import {
   type ValueOrPromise,
 } from './qwik-types';
 
+import {
+  addExternalRootEffectEntry,
+  collectExternalRootEffectsPatch,
+  createExternalRootEffectEntry,
+  type ExternalRootEffectEntry,
+  type ExternalRootEffectProp,
+  type ExternalRootEffects,
+  type ExternalRootEffectsPatch,
+} from './ooos-utils';
 import { preloaderPost, preloaderPre } from './preload-impl';
 import {
   getQwikBackpatchExecutorScript,
@@ -223,18 +232,6 @@ interface RenderState {
   pendingSegmentEffects: Map<unknown, ExternalRootEffects> | null;
 }
 
-type ExternalRootEffectProp = string | symbol | null;
-
-interface ExternalRootEffects {
-  producer: unknown;
-  effects: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>;
-  sourceEffects?: Map<string | symbol, Set<EffectSubscription>>;
-}
-
-type ExternalRootEffectsPatch = Array<
-  [number, EffectSubscription[] | Array<[string | symbol, EffectSubscription[]]>]
->;
-
 class OutOfOrderSuspensePromise {
   constructor(public promise: Promise<unknown>) {}
 }
@@ -319,6 +316,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private outOfOrderExecutorEmitted = false;
   private outOfOrderPendingSegments: Promise<void>[] = [];
   private outOfOrderReadyRenders: Array<() => Promise<void>> = [];
+  private outOfOrderSegmentScripts: string[] = [];
   private rootContainerReady = false;
   private rootContainerDataStarted = false;
   private rootContainerReadyPromise: Promise<void> | null = null;
@@ -469,68 +467,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!__EXPERIMENTAL__.suspense || !this.externalRootEffectContext) {
       return;
     }
+    const entry = createExternalRootEffectEntry(producer, effect, prop, sourceEffects);
     const rootId = this.$getExternalRootEffectId$(producer, prop, false);
     if (rootId === undefined) {
-      this.recordExternalRootEffect(
-        this.pendingSegmentEffects,
-        producer,
-        producer,
-        effect,
-        prop,
-        sourceEffects
-      );
+      addExternalRootEffectEntry(this.pendingSegmentEffects, producer, entry);
       return;
     }
-    this.recordExternalRootEffect(
-      this.externalRootEffects,
-      rootId,
-      producer,
-      effect,
-      prop,
-      sourceEffects
-    );
-  }
-
-  private recordExternalRootEffect<K>(
-    records: Map<K, ExternalRootEffects> | null,
-    key: K,
-    producer: unknown,
-    effect: EffectSubscription,
-    prop: ExternalRootEffectProp,
-    sourceEffects?: Map<string | symbol, Set<EffectSubscription>>
-  ): void {
-    if (!records || (prop !== null && !sourceEffects)) {
-      return;
-    }
-    let record = records.get(key);
-    if (!record) {
-      records.set(
-        key,
-        (record = {
-          producer,
-          effects: prop === null ? new Set() : new Map(),
-          sourceEffects,
-        })
-      );
-    }
-    this.addExternalRootEffect(record, effect, prop);
-  }
-
-  private addExternalRootEffect(
-    record: ExternalRootEffects,
-    effect: EffectSubscription,
-    prop: ExternalRootEffectProp
-  ): void {
-    if (prop === null) {
-      (record.effects as Set<EffectSubscription>).add(effect);
-    } else {
-      const effectsMap = record.effects as Map<string | symbol, Set<EffectSubscription>>;
-      let effects = effectsMap.get(prop);
-      if (!effects) {
-        effectsMap.set(prop, (effects = new Set()));
-      }
-      effects.add(effect);
-    }
+    addExternalRootEffectEntry(this.externalRootEffects, rootId, entry);
   }
 
   private $getExternalRootEffectId$(
@@ -559,7 +502,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       : this.externalRootEffectContext!.$hasRootId$(producer);
   }
 
-  waitForRootContainerReady(): ValueOrPromise<void> {
+  private waitForRootContainerReady(): ValueOrPromise<void> {
     if (!__EXPERIMENTAL__.suspense || this.rootContainerReady) {
       return;
     }
@@ -582,52 +525,30 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!__EXPERIMENTAL__.suspense || !this.pendingSegmentEffects) {
       return;
     }
-    for (const record of this.pendingSegmentEffects.values()) {
-      if (record.sourceEffects) {
-        for (const [prop, effects] of record.effects as Map<
-          string | symbol,
-          Set<EffectSubscription>
-        >) {
-          this.resolvePendingSegmentEffectRecord(record, prop, effects, rootStart);
-        }
-      } else {
-        this.resolvePendingSegmentEffectRecord(
-          record,
-          null,
-          record.effects as Set<EffectSubscription>,
-          rootStart
-        );
+    for (const entries of this.pendingSegmentEffects.values()) {
+      for (let i = 0; i < entries.length; i++) {
+        this.resolvePendingSegmentEffectRecord(entries[i], rootStart);
       }
     }
   }
 
   private resolvePendingSegmentEffectRecord(
-    record: ExternalRootEffects,
-    prop: ExternalRootEffectProp,
-    effects: Set<EffectSubscription>,
+    entry: ExternalRootEffectEntry,
     rootStart: number
   ): void {
-    let rootId = this.$getExternalRootEffectId$(record.producer, prop, false);
+    const { producer, prop } = entry;
+    let rootId = this.$getExternalRootEffectId$(producer, prop, false);
     if (rootId !== undefined) {
       if (rootId >= rootStart) {
         return;
       }
     } else {
-      rootId = this.$getExternalRootEffectId$(record.producer, prop, true);
+      rootId = this.$getExternalRootEffectId$(producer, prop, true);
     }
     if (rootId === undefined) {
       return;
     }
-    for (const effect of effects) {
-      this.recordExternalRootEffect(
-        this.externalRootEffects,
-        rootId,
-        record.producer,
-        effect,
-        prop,
-        record.sourceEffects
-      );
-    }
+    addExternalRootEffectEntry(this.externalRootEffects, rootId, entry);
   }
 
   private async flushOutOfOrderRendersBeforeRootState(): Promise<void> {
@@ -651,6 +572,42 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.outOfOrderUsed = true;
     return ++this.outOfOrderId;
+  }
+
+  emitOutOfOrderSegmentScripts(scripts: string): ValueOrPromise<void> {
+    if (!__EXPERIMENTAL__.suspense || !scripts) {
+      return;
+    }
+    if (!this.rootContainerReady) {
+      if (!this.rootContainerDataStarted) {
+        this.outOfOrderSegmentScripts.push(scripts);
+        return;
+      }
+    }
+    return this.flushOutOfOrderSegmentScripts(scripts);
+  }
+
+  private emitQueuedOutOfOrderSegmentScripts(): void {
+    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderSegmentScripts.length) {
+      return;
+    }
+    const scripts = this.outOfOrderSegmentScripts;
+    this.outOfOrderSegmentScripts = [];
+    for (let i = 0; i < scripts.length; i++) {
+      this.writeOutOfOrderSegmentScripts(scripts[i]);
+    }
+  }
+
+  private writeOutOfOrderSegmentScripts(scripts: string): void {
+    this.write(scripts);
+    this.emitInlineScript('qO.p()');
+  }
+
+  private flushOutOfOrderSegmentScripts(scripts: string): Promise<void> {
+    return this.$runQueuedRender$(async () => {
+      this.writeOutOfOrderSegmentScripts(scripts);
+      await this.streamHandler.flush();
+    });
   }
 
   async segment(
@@ -807,18 +764,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
     const patch: ExternalRootEffectsPatch = [];
-    for (const [rootId, record] of this.externalRootEffects) {
-      if (record.sourceEffects) {
+    for (const [rootId, entries] of this.externalRootEffects) {
+      const effects = collectExternalRootEffectsPatch(entries);
+      if (effects instanceof Map) {
         const effectsPatch: Array<[string | symbol, EffectSubscription[]]> = [];
-        for (const [prop, effects] of record.effects as Map<
-          string | symbol,
-          Set<EffectSubscription>
-        >) {
-          effectsPatch.push([prop, [...effects]]);
+        for (const [prop, propEffects] of effects) {
+          effectsPatch.push([prop, [...propEffects]]);
         }
         patch.push([rootId, effectsPatch]);
-      } else {
-        patch.push([rootId, [...(record.effects as Set<EffectSubscription>)]]);
+      } else if (effects) {
+        patch.push([rootId, [...effects]]);
       }
     }
     const patchIndex = this.serializationCtx.$roots$.length;
@@ -832,29 +787,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!__EXPERIMENTAL__.suspense || !records) {
       return;
     }
-    for (const record of records) {
-      this.detachExternalRootEffectRecord(record);
+    for (const entries of records) {
+      for (let i = 0; i < entries.length; i++) {
+        this.detachExternalRootEffectRecord(entries[i]);
+      }
     }
   }
 
-  private detachExternalRootEffectRecord(record: ExternalRootEffects): void {
-    if (record.sourceEffects) {
-      for (const [prop, effects] of record.effects as Map<
-        string | symbol,
-        Set<EffectSubscription>
-      >) {
-        const producerEffects = record.sourceEffects.get(prop);
-        for (const effect of effects) {
-          producerEffects?.delete(effect);
-          effect.backRef?.delete(record.producer as any);
-        }
-      }
+  private detachExternalRootEffectRecord(entry: ExternalRootEffectEntry): void {
+    const { effect, producer, prop, sourceEffects } = entry;
+    if (prop !== null) {
+      sourceEffects?.get(prop)?.delete(effect);
+      effect.backRef?.delete(producer as any);
     } else {
-      const producerEffects = (record.producer as SignalImpl<unknown>).$effects$;
-      for (const effect of record.effects as Set<EffectSubscription>) {
-        producerEffects?.delete(effect);
-        effect.backRef?.delete(record.producer as any);
-      }
+      (producer as SignalImpl<unknown>).$effects$?.delete(effect);
+      effect.backRef?.delete(producer as any);
     }
   }
 
@@ -1072,6 +1019,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           maybeThen(beforeContainerData, () => this.emitContainerData()),
           async () => {
             if (__EXPERIMENTAL__.suspense && this.outOfOrderUsed) {
+              this.emitQueuedOutOfOrderSegmentScripts();
               await this.streamHandler.flush();
               this.markRootContainerReady();
               if (this.outOfOrderPendingSegments.length) {

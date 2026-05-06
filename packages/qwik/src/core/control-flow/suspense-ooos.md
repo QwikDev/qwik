@@ -318,7 +318,7 @@ The root state is always first.
 
 ### After root state
 
-Delayed segment scripts are emitted after `waitForRootContainerReady()` resolves:
+Buffered segment scripts are drained immediately after root container data is emitted:
 
 ```html
 <script type="qwik/state" q:instance="..." q:s="s1">
@@ -560,7 +560,7 @@ Option B: duplicate root-owned objects in the segment
 Option C: make root state splittable
   possible later, but it is a larger protocol change
 
-Current option: stream segment HTML early, delay segment metadata
+Current option: stream segment HTML early, buffer segment metadata until root state
   preserves identity and still improves visual streaming
 ```
 
@@ -591,11 +591,11 @@ packages/qwik/src/core/control-flow/suspense.tsx
     waits for the captured promise
     renders segment HTML before root state if possible
     writes <template q:r> + qO()
-    delays segment scripts
+    buffers segment scripts until root state when needed
 
-  emitOutOfOrderSegmentScripts()
-    waits for root state
-    writes delayed scripts
+  SSRContainer.emitOutOfOrderSegmentScripts()
+    buffers scripts before root state
+    writes scripts immediately after root state is ready
     triggers qProcessOOOS()
 
 packages/qwik/src/server/ssr-container.ts

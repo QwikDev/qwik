@@ -139,8 +139,8 @@ export interface SSRContainer extends Container {
     prop: string | symbol | null,
     sourceEffects?: Map<string | symbol, Set<EffectSubscription>>
   ): void;
-  waitForRootContainerReady(): ValueOrPromise<void>;
   nextOutOfOrderId(): number;
+  emitOutOfOrderSegmentScripts(scripts: string): ValueOrPromise<void>;
   segment(
     segmentId: string,
     jsx: JSXOutput,

@@ -238,7 +238,10 @@ const SSRSuspense = __EXPERIMENTAL__.suspense
       ssr.commentNode(QSuspenseEnd + boundaryId);
       ssr.closeFragment();
       if (!suspended) {
-        ssr.queueOutOfOrderSegment(emitOutOfOrderSegmentScripts(ssr, content.scripts));
+        const scriptFlush = ssr.emitOutOfOrderSegmentScripts(content.scripts);
+        if (scriptFlush) {
+          ssr.queueOutOfOrderSegment(scriptFlush);
+        }
         return;
       }
       ssr.emitOutOfOrderExecutorIfNeeded();
@@ -284,19 +287,7 @@ async function emitResolvedOutOfOrderSegment(
     await ssr.streamHandler.flush();
     return rendered;
   });
-  await emitOutOfOrderSegmentScripts(ssr, rendered.scripts);
-}
-
-async function emitOutOfOrderSegmentScripts(ssr: SSRContainer, scripts: string): Promise<void> {
-  if (!scripts) {
-    return;
-  }
-  await ssr.waitForRootContainerReady();
-  await ssr.$runQueuedRender$(async () => {
-    ssr.write(scripts);
-    ssr.emitInlineScript('qO.p()');
-    await ssr.streamHandler.flush();
-  });
+  await ssr.emitOutOfOrderSegmentScripts(rendered.scripts);
 }
 
 function shouldRenderFallback(

@@ -669,3 +669,17 @@ export class AsyncSignalImpl<T>
     }
   }
 }
+
+/**
+ * Inject a pre-loaded value into an AsyncSignal while preserving track() subscriptions. Calls
+ * `invalidate({ __v })` so the compute function reads the value from `info`, then triggers an
+ * immediate synchronous compute via the private $computeIfNeeded$() method (which is mangled in
+ * core builds, so callers from other packages must go through this helper).
+ *
+ * @internal
+ */
+export const _injectAsyncSignalValue = (signal: AsyncSignal<unknown>, value: unknown) => {
+  const impl = signal as AsyncSignalImpl<unknown>;
+  impl.invalidate({ __v: value });
+  impl.$computeIfNeeded$();
+};

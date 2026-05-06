@@ -1,9 +1,8 @@
-import { inlinedQrl, type QRL } from '@qwik.dev/core';
-import { _serialize, _UNINITIALIZED, _verifySerializable, isDev } from '@qwik.dev/core/internal';
+import { inlinedQrl, isDev, type QRL } from '@qwik.dev/core';
+import { _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import type {
   ActionInternal,
-  ClientPageData,
   ContentModule,
   DataValidator,
   DocumentHeadProps,
@@ -15,19 +14,23 @@ import type {
   RouteModule,
   ValidatorReturn,
 } from '../../runtime/src/types';
+import {
+  getRouteLoaderCtx,
+  getRouteLoaderValues,
+  loadRouteLoader,
+  setRouteLoaders,
+} from '../../runtime/src/route-loaders';
 import type { RequestEventInternal } from './request-event-core';
+import { loaderHandler } from './handlers/loader-handler';
+import { jsonRequestWrapper } from './handlers/json-request-wrapper';
+import { actionHandler } from './handlers/action-handler';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
 
 interface ResolveRequestHandlersDeps {
   QACTION_KEY: string;
   QFN_KEY: string;
-  QLOADER_KEY: string;
-  QDATA_JSON: string;
-  IsQData: string;
   RequestEvETagCacheKey: string;
   RequestEvHttpStatusMessage: string;
-  RequestEvIsRewrite: string;
-  RequestEvShareQData: string;
   RequestEvShareServerTiming: string;
   RequestEvSharedActionId: string;
   RequestRouteName: string;
@@ -41,10 +44,7 @@ interface ResolveRequestHandlersDeps {
   isContentType: typeof import('./request-utils').isContentType;
   getCachedHtml: typeof import('./etag').getCachedHtml;
   getQwikRouterServerData: typeof import('./response-page').getQwikRouterServerData;
-  getRequestLoaderSerializationStrategyMap: typeof import('./request-event-core').getRequestLoaderSerializationStrategyMap;
-  getRequestLoaders: typeof import('./request-event-core').getRequestLoaders;
   getRequestMode: typeof import('./request-event-core').getRequestMode;
-  getRouteLoaderPromise: typeof import('./request-loader').getRouteLoaderPromise;
   loadHttpError: () => Promise<unknown>;
   MAX_CACHE_SIZE: number;
   resolveCacheKey: typeof import('./etag').resolveCacheKey;
@@ -59,8 +59,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     route: LoadedRoute,
     method: string,
     checkOrigin: boolean | 'lax-proto',
-    renderHandler: RequestHandler,
-    isInternal: boolean
+    renderHandler: RequestHandler
   ) => {
     const routeLoaders: LoaderInternal[] = [];
     const routeActions: ActionInternal[] = [];
@@ -69,11 +68,12 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
 
     const isPageRoute = !!isLastModulePageRoute(route.$mods$);
 
-    if (isInternal) {
-      requestHandlers.push(handleQDataRedirect);
-    }
-
     if (isPageRoute) {
+      /**
+       * JSON request wrapper must be before all middleware so it can rewrite the URL and catch
+       * redirects/errors from plugin/route middleware via try/catch on next()
+       */
+      requestHandlers.push(jsonRequestWrapper());
       requestHandlers.push(serverErrorMiddleware(route, renderHandler));
     }
 
@@ -108,17 +108,18 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         requestHandlers.unshift(csrfCheckMiddleware);
       }
     }
+
     if (isPageRoute) {
+      // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
+      requestHandlers.push(loaderHandler(routeLoaders));
+      // Per-action handler: returns JSON and exits if IsQAction + Accept: json
+      requestHandlers.push(actionHandler(routeActions, routeLoaders));
       if (method === 'POST' || method === 'GET') {
         requestHandlers.push(runServerFunction);
       }
 
       if (!route.$notFound$) {
         requestHandlers.push(fixTrailingSlash);
-      }
-
-      if (isInternal) {
-        requestHandlers.push(renderQData);
       }
     }
 
@@ -127,7 +128,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         ev.sharedMap.set(deps.RequestRouteName, routeName);
       });
       requestHandlers.push(actionsMiddleware(routeActions));
-      requestHandlers.push(loadersMiddleware(routeLoaders));
+      requestHandlers.push(loadersMiddleware(routeLoaders, route));
       requestHandlers.push(eTagMiddleware(route));
       requestHandlers.push(renderHandler);
     }
@@ -135,14 +136,14 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     return requestHandlers;
   };
 
-  const _resolveRequestHandlers = (
+  function _resolveRequestHandlers(
     routeLoaders: LoaderInternal[],
     routeActions: ActionInternal[],
     requestHandlers: RequestHandler[],
     routeModules: RouteModule[],
     collectActions: boolean,
     method: string
-  ) => {
+  ) {
     for (const routeModule of routeModules) {
       if (typeof routeModule.onRequest === 'function') {
         requestHandlers.push(routeModule.onRequest);
@@ -200,7 +201,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         }
       }
     }
-  };
+  }
 
   const checkBrand = (obj: any, brand: string) => {
     return obj && typeof obj === 'function' && obj.__brand === brand;
@@ -214,7 +215,6 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         return;
       }
       const { method } = requestEv;
-      const loaders = deps.getRequestLoaders(requestEv);
       if (isDev && method === 'GET') {
         if (requestEv.query.has(deps.QACTION_KEY)) {
           console.warn(
@@ -240,8 +240,9 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
               );
             }
             const result = await runValidators(requestEv, action.__validators, data);
+            let actionResult: unknown;
             if (!result.success) {
-              loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
+              actionResult = requestEv.fail(result.status ?? 500, result.error);
             } else {
               const actionResolved = isDev
                 ? await measure(requestEv, action.__qrl.getHash(), () =>
@@ -251,28 +252,40 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
               if (isDev) {
                 verifySerializable(actionResolved, action.__qrl);
               }
-              loaders[selectedActionId] = actionResolved;
+              actionResult = actionResolved;
             }
+            requestEv.sharedMap.set('@actionResult', actionResult);
           }
         }
       }
     };
   }
 
-  function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandler {
+  function loadersMiddleware(routeLoaders: LoaderInternal[], route: LoadedRoute): RequestHandler {
     return async (requestEvent: RequestEvent) => {
       const requestEv = requestEvent as RequestEventInternal;
       if (requestEv.headersSent) {
         requestEv.exit();
         return;
       }
-      const loaders = deps.getRequestLoaders(requestEv);
-      const loadersSerializationStrategy = deps.getRequestLoaderSerializationStrategyMap(requestEv);
       if (routeLoaders.length > 0) {
-        const resolvedLoadersPromises = routeLoaders.map((loader) =>
-          deps.getRouteLoaderPromise(loader, loaders, loadersSerializationStrategy, requestEv)
+        // Set up the RouteLoaderCtx with loader paths from the route
+        const routeLoaderCtx = getRouteLoaderCtx(requestEv);
+        if (route.$loaderPaths$) {
+          Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
+        }
+
+        // Store loader internals so SSG can check __expires
+        setRouteLoaders(requestEv, routeLoaders);
+
+        // Run loaders directly and store raw values.
+        // Errors/redirects propagate so middleware can catch them (e.g. plugin@errors).
+        const loaderValues = getRouteLoaderValues(requestEv);
+        await Promise.all(
+          routeLoaders.map(async (loader) => {
+            loaderValues[loader.__id] = await loadRouteLoader(loader, requestEv);
+          })
         );
-        await Promise.all(resolvedLoadersPromises);
       }
     };
   }
@@ -282,7 +295,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       if (requestEv.headersSent) {
         return;
       }
-      if (requestEv.method !== 'GET' || requestEv.sharedMap.has(deps.IsQData)) {
+      if (requestEv.method !== 'GET') {
         return;
       }
 
@@ -300,17 +313,18 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         return;
       }
 
-      const loaders = deps.getRequestLoaders(requestEv);
+      const loaderValues = getRouteLoaderValues(requestEv);
       const getData = ((loaderOrAction: any) => {
         const id = loaderOrAction.__id;
-        if (loaderOrAction.__brand === 'server_loader' && !(id in loaders)) {
-          throw new Error('Loader not executed for this request.');
+        if (loaderOrAction.__brand === 'server_loader') {
+          if (!(id in loaderValues)) {
+            throw new Error('Loader not executed for this request.');
+          }
+          return loaderValues[id];
         }
-        const data = loaders[id];
-        if (data instanceof Promise) {
-          throw new Error('Loaders returning a promise cannot be resolved for the eTag function.');
-        }
-        return data;
+        return requestEv.sharedMap.get(deps.RequestEvSharedActionId) === id
+          ? requestEv.sharedMap.get('@actionResult')
+          : undefined;
       }) as ResolveSyncValue;
 
       const routeLocation = {
@@ -377,10 +391,6 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         await requestEv.next();
       } catch (e) {
         if (!(e instanceof deps.ServerError) || requestEv.headersSent) {
-          throw e;
-        }
-
-        if (requestEv.sharedMap.has(deps.IsQData)) {
           throw e;
         }
 
@@ -496,15 +506,14 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
   }
 
   function fixTrailingSlash(ev: RequestEvent) {
-    const { basePathname, originalUrl, sharedMap } = ev;
+    const { basePathname, originalUrl } = ev;
     const { pathname, search } = originalUrl;
-    const isQData = sharedMap.has(deps.IsQData);
 
     if (!pathname.startsWith('/') || pathname.startsWith('//')) {
       return;
     }
 
-    if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
+    if (pathname !== basePathname && !pathname.endsWith('.html')) {
       if (!globalThis.__NO_TRAILING_SLASH__) {
         if (!pathname.endsWith('/')) {
           throw ev.redirect(deps.HttpStatus.MovedPermanently, pathname + '/' + search);
@@ -542,9 +551,6 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
 
   function getPathname(url: URL) {
     url = new URL(url);
-    if (url.pathname.endsWith(deps.QDATA_JSON)) {
-      url.pathname = url.pathname.slice(0, -deps.QDATA_JSON.length);
-    }
     if (!globalThis.__NO_TRAILING_SLASH__) {
       if (!url.pathname.endsWith('/')) {
         url.pathname += '/';
@@ -606,9 +612,6 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       if (requestEv.headersSent) {
         return;
       }
-      if (requestEv.sharedMap.has(deps.IsQData)) {
-        return;
-      }
 
       const responseHeaders = requestEv.headers;
       if (!responseHeaders.has('Content-Type')) {
@@ -637,7 +640,6 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
 
       const pipe = pipeSource.pipeTo(writableStream, { preventClose: true });
       const stream = writable.getWriter();
-      const status = requestEv.status();
       try {
         const isStatic = deps.getRequestMode(requestEv) === 'static';
         const serverData = deps.getQwikRouterServerData(requestEv);
@@ -650,16 +652,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
             ...serverData.containerAttributes,
           },
         });
-        const qData: ClientPageData = {
-          loaders: deps.getRequestLoaders(requestEv),
-          action: requestEv.sharedMap.get(deps.RequestEvSharedActionId),
-          status: status !== 200 ? status : 200,
-          href: getPathname(requestEv.url),
-        };
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
         }
-        requestEv.sharedMap.set(deps.RequestEvShareQData, qData);
       } finally {
         await stream.ready;
         await stream.close();
@@ -679,97 +674,6 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
 
       await writableStream.close();
     };
-  }
-
-  async function handleQDataRedirect(requestEv: RequestEvent) {
-    try {
-      await requestEv.next();
-    } catch (err) {
-      if (!(err instanceof deps.RedirectMessage)) {
-        throw err;
-      }
-    }
-    if (requestEv.headersSent) {
-      return;
-    }
-
-    const status = requestEv.status();
-    const location = requestEv.headers.get('Location');
-    const isRedirect = status >= 301 && status <= 308 && location;
-
-    if (isRedirect) {
-      const adaptedLocation = makeQDataPath(location);
-      if (adaptedLocation) {
-        requestEv.headers.set('Location', adaptedLocation);
-        requestEv.getWritableStream().close();
-        return;
-      } else {
-        requestEv.status(200);
-        requestEv.headers.delete('Location');
-      }
-    }
-  }
-
-  async function renderQData(requestEv: RequestEvent) {
-    await requestEv.next();
-
-    if (requestEv.headersSent || requestEv.exited) {
-      return;
-    }
-
-    const status = requestEv.status();
-    const redirectLocation = requestEv.headers.get('Location');
-
-    requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
-
-    let loaders = deps.getRequestLoaders(requestEv);
-    const selectedLoaderIds = requestEv.query.getAll(deps.QLOADER_KEY);
-
-    const hasCustomLoaders = selectedLoaderIds.length > 0;
-
-    if (hasCustomLoaders) {
-      const selectedLoaders: Record<string, unknown> = {};
-      for (const loaderId of selectedLoaderIds) {
-        const loader = loaders[loaderId];
-        selectedLoaders[loaderId] = loader;
-      }
-      loaders = selectedLoaders;
-    }
-
-    const qData: ClientPageData = hasCustomLoaders
-      ? {
-          loaders,
-          status: status !== 200 ? status : 200,
-          href: getPathname(requestEv.url),
-        }
-      : {
-          loaders,
-          action: requestEv.sharedMap.get(deps.RequestEvSharedActionId),
-          status: status !== 200 ? status : 200,
-          href: getPathname(requestEv.url),
-          redirect: redirectLocation ?? undefined,
-          isRewrite: requestEv.sharedMap.get(deps.RequestEvIsRewrite),
-        };
-    const writer = requestEv.getWritableStream().getWriter();
-    const data = await _serialize(qData);
-    writer.write(deps.encoder.encode(data));
-    requestEv.sharedMap.set(deps.RequestEvShareQData, qData);
-
-    writer.close();
-  }
-
-  function makeQDataPath(href: string) {
-    if (href.startsWith('/')) {
-      if (!href.includes(deps.QDATA_JSON)) {
-        const url = new URL(href, 'http://localhost');
-
-        const pathname = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
-        return pathname + deps.QDATA_JSON + url.search;
-      }
-      return href;
-    } else {
-      return undefined;
-    }
   }
 
   function now() {

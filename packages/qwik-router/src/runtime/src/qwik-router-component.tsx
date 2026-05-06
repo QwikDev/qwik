@@ -1,3 +1,35 @@
+/**
+ * Qwik Router Component
+ *
+ * This file contains the main Qwik Router component, which initializes the router and provides the
+ * necessary context for it to work. It also contains the logic for handling navigation, including
+ * updating the URL, managing scroll restoration, and resolving document head changes.
+ *
+ * Note: This component is designed to work both on the server and the client. During server-side
+ * rendering (SSR), it initializes the router state based on the URL and route data provided by the
+ * server environment. On the client, it handles navigation events and updates the router state
+ * accordingly.
+ *
+ * SSR is _required_ for the initial load.
+ *
+ * The flow of navigation is as follows:
+ *
+ * 1. During SSR, the server environment parses the initial URL and collects the route data.
+ * 2. It runs the middleware hooks (`onRequest`, `onGet`, `onPost`, etc.), and responds to q-loader,
+ *    action$ and server$ requests.
+ * 3. If SSR is deemed appropriate, the route data is provided via `useServerData` and this component
+ *    uses it to initialize the router contexts, register Tasks, and render the Slot. This component
+ *    will never render again.
+ * 4. Then, slotted components like `<DocumentHeadTags />` and `<RouterOutlet />` can consume the route
+ *    data to render the page.
+ * 5. On the client, when a navigation event occurs, this calls `goto()`, which updates the URL in the
+ *    same tick, loads the route data and adjusts the router context.
+ * 6. The changed contexts trigger the slotted components to re-render with the new route data.
+ *
+ * Since the head data can depend on route loaders and they get their data asynchronously and can
+ * update without navigation, the head is resolved in a separate Task that tracks the relevant
+ * signals.
+ */
 import * as qwikRouterConfig from '@qwik-router-config';
 import {
   $,
@@ -19,23 +51,24 @@ import {
 import {
   _getContextContainer,
   _hasStoreEffects,
-  _UNINITIALIZED,
   _waitUntilRendered,
+  createAsync$,
   forceStoreEffects,
-  SerializerSymbol,
   type AsyncSignal,
   type ClientContainer,
-  type SerializationStrategy,
+  type NoSerialize,
   type ValueOrPromise,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
-import { CLIENT_DATA_CACHE, DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
+import { Q_ROUTE } from './constants';
+import { prefetchRoute } from './prefetch-route';
 import {
   ContentContext,
   ContentInternalContext,
   DocumentHeadContext,
   HttpStatusContext,
   RouteActionContext,
+  RouteLoaderCtxContext,
   RouteLocationContext,
   RouteNavigateContext,
   RoutePreventNavigateContext,
@@ -52,10 +85,14 @@ import {
   saveScrollHistory,
 } from './scroll-restoration';
 import spaInit from './spa-init';
+import {
+  ensureRouteLoaderSignals,
+  setLoaderSignalValue,
+  updateRouteLoaderPaths,
+} from './route-loaders';
 import type {
   Action,
   ActionInternal,
-  ClientPageData,
   ContentModule,
   ContentState,
   ContentStateInternal,
@@ -66,6 +103,7 @@ import type {
   Loader,
   LoaderInternal,
   MutableRouteLocation,
+  NavigationType,
   PageModule,
   PreventNavigateCallback,
   ResolvedDocumentHead,
@@ -75,10 +113,10 @@ import type {
   RouteStateInternal,
   ScrollState,
 } from './types';
-import { loadClientData } from './use-endpoint';
+import { submitAction } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
-import { createLoaderSignal, isSameOrigin, isSamePath, toPath, toUrl } from './utils';
-import { startViewTransition } from './view-transition';
+import { isSameOrigin, isSamePath, toPath, toUrl } from './utils';
+import { startViewTransition, type ViewTransition } from './view-transition';
 
 declare const window: ClientSPAWindow;
 
@@ -117,9 +155,25 @@ const preventNav: {
   $handler$?: (event: BeforeUnloadEvent) => void;
 } = {};
 
-// Track navigations during prevent so we don't overwrite
-// We need to use an object so we can write into it from qrls
-const internalState = { navCount: 0 };
+// Track navigations during prevent so we don't overwrite.
+// We need to use an object so we can write into it from qrls.
+const internalState: {
+  navCount: number;
+  currentTransition?: ViewTransition;
+} = { navCount: 0 };
+
+const getScroller = () => {
+  let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
+  if (!scroller) {
+    scroller = document.getElementById(QWIK_CITY_SCROLLER);
+    if (scroller && isDev) {
+      console.warn(
+        `Please update your scroller ID to "${QWIK_ROUTER_SCROLLER}" as "${QWIK_CITY_SCROLLER}" is deprecated and will be removed in V3`
+      );
+    }
+  }
+  return scroller ?? document.documentElement;
+};
 
 /**
  * @public
@@ -167,42 +221,22 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
   const navResolver: { r?: () => void } = {};
-  const container = _getContextContainer();
-  const getSerializationStrategy = (loaderId: string): SerializationStrategy => {
-    return (
-      env.response.loadersSerializationStrategy.get(loaderId) ||
-      DEFAULT_LOADERS_SERIALIZATION_STRATEGY
-    );
-  };
-
-  // On server this object contains the all the loaders data
-  // On client after resuming this object contains only keys and _UNINITIALIZED as values
-  // Thanks to this we can use this object as a capture ref and not to serialize unneeded data
-  // While resolving the loaders we will override the _UNINITIALIZED with the actual data
-  const loadersObject: Record<string, unknown> = {};
-
-  // This object contains the signals for the loaders
-  // It is used for the loaders context RouteStateContext
-  const loaderState: Record<string, AsyncSignal<unknown>> = {};
-
-  for (const [key, value] of Object.entries(env.response.loaders)) {
-    loadersObject[key] = value;
-    loaderState[key] = createLoaderSignal(
-      loadersObject,
-      key,
-      url,
-      getSerializationStrategy(key),
-      container
-    );
-  }
-  // Serialize it as keys and _UNINITIALIZED as values
-  (loadersObject as any)[SerializerSymbol] = (obj: Record<string, unknown>) => {
-    const loadersSerializationObject: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(obj)) {
-      loadersSerializationObject[k] = getSerializationStrategy(k) === 'always' ? v : _UNINITIALIZED;
+  // Set manifestHash/pageUrl here since they're not available during middleware execution
+  env.routeLoaderCtx.manifestHash = manifestHash || '';
+  env.routeLoaderCtx.pageUrl = url;
+  // deep: true so that changes to loaderPaths properties are tracked by AsyncSignal QRLs
+  const routeLoaderCtx = useStore(env.routeLoaderCtx);
+  // Create AsyncSignals whose QRL closures capture the store proxy for client-side reactivity.
+  // Then set .value from middleware-computed loader values (inert, non-reactive data).
+  const loaderState = useStore<Record<string, AsyncSignal<unknown>>>({}, { deep: false });
+  const contentModulesForInit = env.loadedRoute.$mods$ as ContentModule[];
+  const loaders = ensureRouteLoaderSignals(contentModulesForInit, loaderState, routeLoaderCtx);
+  for (const loader of loaders) {
+    const value = env.loaderValues[loader.__id];
+    if (value !== undefined) {
+      setLoaderSignalValue(loaderState[loader.__id], value);
     }
-    return loadersSerializationObject;
-  };
+  }
 
   // The initial state of routeInternal uses the URL provided by the server environment.
   // It may not be accurate to the actual URL the browser is accessing the site from.
@@ -223,6 +257,22 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   const contentInternal = useSignal<ContentStateInternal>();
 
+  /**
+   * Non-serializable navigation context passed from the nav task to the head+commit task. Only the
+   * data that can't be derived from existing stores/signals.
+   */
+  const navContext = useSignal<
+    NoSerialize<{
+      routeName: string;
+      navType: NavigationType;
+      replaceState: boolean | undefined;
+      shouldForcePrevUrl: boolean;
+      shouldForceUrl: boolean;
+      shouldForceParams: boolean;
+      navCount: number;
+    }>
+  >();
+
   const httpStatus = useSignal({
     status: env.response.status,
     message: env.loadedRoute.$notFound$
@@ -231,7 +281,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   });
 
   const currentActionId = env.response.action;
-  const currentAction = currentActionId ? env.response.loaders[currentActionId] : undefined;
+  const currentAction = currentActionId ? env.response.actionResult : undefined;
   const actionState = useSignal<RouteActionValue>(
     currentAction
       ? {
@@ -244,7 +294,17 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
       : undefined
   );
-
+  const actionDataSignal = useSignal<
+    { action?: string; actionResult?: unknown; status: number } | undefined
+  >(
+    currentActionId
+      ? {
+          action: currentActionId,
+          actionResult: currentAction,
+          status: env.response.status,
+        }
+      : undefined
+  );
   const registerPreventNav = $((fn$: QRL<PreventNavigateCallback>) => {
     if (!isBrowser) {
       return;
@@ -284,19 +344,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     };
   });
 
-  const getScroller = $(() => {
-    let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
-    if (!scroller) {
-      scroller = document.getElementById(QWIK_CITY_SCROLLER);
-      if (scroller && isDev) {
-        console.warn(
-          `Please update your scroller ID to "${QWIK_ROUTER_SCROLLER}" as "${QWIK_CITY_SCROLLER}" is deprecated and will be removed in V3`
-        );
-      }
-    }
-    return scroller ?? document.documentElement;
-  });
-
+  /**
+   * This is the `nav()` function that `useNavigation()` returns. It is also used internally for SPA
+   * navigations and is provided in context for use in loaders and actions.
+   *
+   * Note: when goto is called, the address bar change must happen in the same tick for Safari to
+   * treat it as a user-initiated navigation and allow scroll restoration to work. For this reason,
+   * make sure to change the address bar before awaiting anything.
+   */
   const goto: RouteNavigate = $(async (path, opt) => {
     const {
       type = 'link',
@@ -305,6 +360,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       scroll = true,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
     internalState.navCount++;
+    internalState.currentTransition?.skipTransition();
 
     // If this is the first SPA navigation, we rewrite routeInternal's URL
     // as the browser location URL to prevent an erroneous origin mismatch.
@@ -368,7 +424,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
 
         // Always scroll on same-page popstates, #hash clicks, or links.
-        const scroller = await getScroller();
+        const scroller = getScroller();
 
         restoreScroll(type, dest, new URL(location.href), scroller, getScrollHistory());
 
@@ -391,7 +447,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     if (isBrowser && type === 'link' && !forceReload) {
       // WebKit on iOS may treat async pushState() calls as skippable history entries.
       // Commit the navigation entry while the original tap/click is still active.
-      const scroller = await getScroller();
+      const scroller = getScroller();
 
       window._qRouterScrollEnabled = false;
       clearTimeout(window._qRouterScrollDebounce);
@@ -412,8 +468,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     };
 
     if (isBrowser) {
-      loadClientData(dest);
-      loadRoute(qwikRouterConfig.routes, qwikRouterConfig.cacheModules, dest.pathname);
+      // Prefetch: start loading route bundles and optionally loader data
+      prefetchRoute(dest, true, 0.8, manifestHash);
     }
 
     actionState.value = undefined;
@@ -431,27 +487,38 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
+  useContextProvider(RouteLoaderCtxContext, routeLoaderCtx);
+  // Set goto on the loader context so async loader fetch can do SPA redirects
+  routeLoaderCtx.goto = goto as any;
   useContextProvider(RouteActionContext, actionState);
   useContextProvider<any>(RoutePreventNavigateContext, registerPreventNav);
 
+  /**
+   * This is split in 3 tasks because we need to update the head once we figured out the route, and
+   * before we trigger the render, and we need to subscribe only head to loader signal updates
+   */
   useTask$(
     async ({ track }) => {
-      const container = _getContextContainer();
       const navigation = track(routeInternal);
       const action = track(actionState);
 
-      const locale = getLocale('');
       const prevUrl = routeLocation.url;
       const navType = action ? 'form' : navigation.type;
       const replaceState = navigation.replaceState;
+      // Capture navCount at task entry. If another goto() fires while we're awaiting
+      // loadRoute or loaders, navCount will have been bumped and we should bail so
+      // the task's next invocation takes over with the newer destination.
+      const navCountBefore = internalState.navCount;
       let trackUrl: URL;
-      let clientPageData: EndpointResponse | ClientPageData | undefined;
+      let endpointResponse: EndpointResponse | undefined;
+      let actionData: { action?: string; actionResult?: unknown; status: number } | undefined;
       let loadedRoute: LoadedRoute;
       if (isServer) {
         // server
         trackUrl = new URL(navigation.dest, routeLocation.url);
         loadedRoute = env!.loadedRoute;
-        clientPageData = env!.response;
+        endpointResponse = env!.response;
+        actionData = endpointResponse;
       } else {
         // client
         trackUrl = new URL(navigation.dest, location as any as URL);
@@ -464,55 +531,96 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         } else if (!globalThis.__NO_TRAILING_SLASH__) {
           trackUrl.pathname += '/';
         }
-        let loadRoutePromise = loadRoute(
+        const loadRoutePromise = loadRoute(
           qwikRouterConfig.routes,
           qwikRouterConfig.cacheModules,
           trackUrl.pathname
         );
-        const pageData = (clientPageData = await loadClientData(trackUrl, {
-          action,
-          clearCache: true,
-        }));
-        if (!pageData) {
-          // Reset the path to the current path
-          routeInternal.untrackedValue = { type: navType, dest: trackUrl };
-          return;
-        }
-        const newHref = pageData.href;
-        const newURL = new URL(newHref, trackUrl);
-        if (!isSamePath(newURL, trackUrl)) {
-          // Change our path to the canonical path in the response unless rewrite.
-          if (!pageData.isRewrite) {
-            trackUrl = newURL;
-          }
-
-          loadRoutePromise = loadRoute(
-            qwikRouterConfig.routes,
-            qwikRouterConfig.cacheModules,
-            newURL.pathname // Load the actual required path.
-          );
-        }
-
         try {
           loadedRoute = await loadRoutePromise;
         } catch (e) {
-          console.error(e);
-          window.location.href = newHref;
+          console.error(`Could not load route ${trackUrl.pathname}, reloading:`, e);
+          window.location.href = trackUrl.href;
           return;
+        }
+        // Bail if a second nav() was fired while we were loading route modules.
+        if (internalState.navCount !== navCountBefore) {
+          return;
+        }
+
+        // Submit action if one was triggered
+        if (action) {
+          const result = await submitAction(action, trackUrl.pathname);
+          if (!result) {
+            // HTTP redirect happened — bail
+            routeInternal.untrackedValue = { type: navType, dest: trackUrl };
+            return;
+          }
+
+          actionData = {
+            status: result.status,
+            action: action.id,
+            actionResult: result.result,
+          };
+
+          // Resolve the action promise
+          if (action.resolve) {
+            action.resolve({
+              status: result.status,
+              result: result.result,
+            });
+          }
+
+          // Apply loader updates from action result via setLoaderSignalValue.
+          // This preserves track() subscriptions for future re-computations.
+          if (result.loaderValues) {
+            for (const [id, value] of Object.entries(result.loaderValues)) {
+              const signal = loaderState[id];
+              if (signal) {
+                setLoaderSignalValue(signal, value);
+              }
+            }
+          }
+          if (result.loaderHashes) {
+            for (const hash of result.loaderHashes) {
+              loaderState[hash]?.invalidate(true);
+            }
+          }
         }
       }
 
       const { $routeName$, $params$, $mods$, $menu$, $notFound$ } = loadedRoute;
       const contentModules = $mods$ as ContentModule[];
+      updateRouteLoaderPaths(routeLoaderCtx, loadedRoute.$loaderPaths$, trackUrl);
+      const routeLoaders = ensureRouteLoaderSignals(contentModules, loaderState, routeLoaderCtx);
+      if (routeLoaders.length > 0) {
+        // Trigger loader signals to fetch data for the new route. No await —
+        // we want to render ASAP. Loaders update the page when they resolve,
+        // and SSR awaits them on the server side. A loader that redirects
+        // fires goto() directly; the new nav starts while this one finishes
+        // committing, producing a brief flash of the current page.
+        for (let i = 0; i < routeLoaders.length; i++) {
+          const loader = routeLoaders[i];
+          // trigger load
+          loaderState[loader.__id].untrackedLoading;
+        }
+      }
+      if (internalState.navCount !== navCountBefore) {
+        return;
+      }
 
       // Update httpStatus for 404/error pages
       if ($notFound$) {
         httpStatus.value = { status: 404, message: 'Not Found' };
-      } else {
+      } else if (endpointResponse) {
         httpStatus.value = {
-          status: clientPageData?.status ?? 200,
-          message: (clientPageData as EndpointResponse)?.statusMessage ?? '',
+          status: endpointResponse.status,
+          message: endpointResponse.statusMessage ?? 'OK',
         };
+      } else if (actionData) {
+        httpStatus.value = { status: actionData.status, message: 'OK' };
+      } else {
+        httpStatus.value = { status: 200, message: 'OK' };
       }
       const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
@@ -545,311 +653,187 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         routeLocationTarget.params = $params$;
       }
 
-      routeInternal.untrackedValue = { type: navType, dest: trackUrl };
+      routeInternal.untrackedValue = {
+        type: navType,
+        dest: trackUrl,
+        forceReload: navigation.forceReload,
+        replaceState: navigation.replaceState,
+        scroll: navigation.scroll,
+        historyUpdated: navigation.historyUpdated,
+      };
 
-      // Needs to be done after routeLocation is updated
-      const resolvedHead = resolveHead(
-        clientPageData!,
-        routeLocation,
-        contentModules,
-        locale,
-        serverHead
-      );
-
-      // Update content
+      // Update content.
+      // IMPORTANT: contentInternal must use .untrackedValue, NOT .value. Subscribers
+      // (RouterOutlet, head task) are fired later by contentInternal.trigger()
+      // inside navigate(), which runs inside the view-transition's update callback.
+      // Using .value here would fire subscribers before startViewTransition captures
+      // the old DOM, breaking view transitions (the update callback never gets invoked).
       content.headings = pageModule.headings;
       content.menu = $menu$;
       contentInternal.untrackedValue = noSerialize(contentModules);
+      actionDataSignal.value = actionData;
 
-      // Update document head
-      documentHead.links = resolvedHead.links;
-      documentHead.meta = resolvedHead.meta;
-      documentHead.styles = resolvedHead.styles;
-      documentHead.scripts = resolvedHead.scripts;
-      documentHead.title = resolvedHead.title;
-      documentHead.frontmatter = resolvedHead.frontmatter;
+      // Preserve historyUpdated/scroll/etc. for the commit task. Without this, the
+      // commit task reads `navigation.historyUpdated` as undefined and calls
+      // clientNavigate a second time, pushing an extra history entry.
 
-      if (isBrowser) {
-        let scrollState: ScrollState | undefined;
-        if (navType === 'popstate') {
-          scrollState = getScrollHistory();
-        }
-        const scroller = await getScroller();
-
-        if (
-          (navigation.scroll &&
-            (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
-            (navType === 'link' || navType === 'popstate')) ||
-          // Action might have responded with a redirect.
-          (navType === 'form' && !isSamePath(trackUrl, prevUrl))
-        ) {
-          // Mark next DOM render to scroll.
-          (document as any).__q_scroll_restore__ = () =>
-            restoreScroll(navType, trackUrl, prevUrl, scroller, scrollState);
-        }
-
-        const loaders = clientPageData?.loaders;
-        if (loaders) {
-          for (const [key, value] of Object.entries(loaders)) {
-            const signal = loaderState[key];
-            const awaitedValue = await value;
-            loadersObject[key] = awaitedValue;
-            if (!signal) {
-              loaderState[key] = createLoaderSignal(
-                loadersObject,
-                key,
-                trackUrl,
-                DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
-                container
-              );
-            } else {
-              signal.invalidate();
-            }
-          }
-        }
-        CLIENT_DATA_CACHE.clear();
-
-        // See also spa-init.ts
-        if (!window._qRouterSPA) {
-          // only add event listener once
-          window._qRouterSPA = true;
-          history.scrollRestoration = 'manual';
-
-          window.addEventListener('popstate', () => {
-            // Disable scroll handler eagerly to prevent overwriting history.state.
-            window._qRouterScrollEnabled = false;
-            clearTimeout(window._qRouterScrollDebounce);
-
-            goto(location.href, {
-              type: 'popstate',
-            });
-          });
-
-          window.removeEventListener('popstate', window._qRouterInitPopstate!);
-          window._qRouterInitPopstate = undefined;
-
-          // Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
-          // Devs could push their own states that we can't control.
-          // If a user doesn't initiate scroll after, it will not have any scrollState.
-          // We patch these to always include scrollState.
-          // TODO Block this after Navigation API PR, browsers that support it have a Navigation API solution.
-          if (!window._qRouterHistoryPatch) {
-            window._qRouterHistoryPatch = true;
-            const pushState = history.pushState;
-            const replaceState = history.replaceState;
-
-            const prepareState = (state: any) => {
-              if (state === null || typeof state === 'undefined') {
-                state = {};
-              } else if (state?.constructor !== Object) {
-                state = { _data: state };
-
-                if (isDev) {
-                  console.warn(
-                    'In a Qwik SPA context, `history.state` is used to store scroll state. ' +
-                      'Direct calls to `pushState()` and `replaceState()` must supply an actual Object type. ' +
-                      'We need to be able to automatically attach the scroll state to your state object. ' +
-                      'A new state object has been created, your data has been moved to: `history.state._data`'
-                  );
-                }
-              }
-
-              state._qRouterScroll = state._qRouterScroll || currentScrollState(scroller);
-              return state;
-            };
-
-            history.pushState = (state, title, url) => {
-              state = prepareState(state);
-              return pushState.call(history, state, title, url);
-            };
-
-            history.replaceState = (state, title, url) => {
-              state = prepareState(state);
-              return replaceState.call(history, state, title, url);
-            };
-          }
-
-          // Chromium and WebKit fire popstate+hashchange for all #anchor clicks,
-          // ... even if the URL is already on the #hash.
-          // Firefox only does it once and no more, but will still scroll. It also sets state to null.
-          // Any <a> tags w/ #hash href will break SPA state in Firefox.
-          // We patch these events and direct them to Link pipeline during SPA.
-          document.addEventListener('click', (event) => {
-            if (event.defaultPrevented) {
-              return;
-            }
-
-            const target = (event.target as HTMLElement).closest('a[href]');
-
-            if (target && !target.hasAttribute('preventdefault:click')) {
-              const href = target.getAttribute('href')!;
-              const prev = new URL(location.href);
-              const dest = new URL(href, prev);
-              // Patch only same-page anchors.
-              if (isSameOrigin(dest, prev) && isSamePath(dest, prev)) {
-                event.preventDefault();
-
-                // Simulate same-page (no hash) anchor reload.
-                // history.scrollRestoration = 'manual' makes these not scroll.
-                if (!dest.hash && !dest.href.endsWith('#')) {
-                  if (dest.href !== prev.href) {
-                    history.pushState(null, '', dest);
-                  }
-
-                  window._qRouterScrollEnabled = false;
-                  clearTimeout(window._qRouterScrollDebounce);
-                  saveScrollHistory({
-                    ...currentScrollState(scroller),
-                    x: 0,
-                    y: 0,
-                  });
-                  location.reload();
-                  return;
-                }
-
-                goto(target.getAttribute('href')!);
-              }
-            }
-          });
-
-          document.removeEventListener('click', window._qRouterInitAnchors!);
-          window._qRouterInitAnchors = undefined;
-
-          // TODO Remove block after Navigation API PR.
-          // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.
-          // Only Chromium 96 - 101 have BFCache without Navigation API. (<1% of users)
-          if (!(window as any).navigation) {
-            // Commit scrollState on refresh, cross-origin navigation, mobile view changes, etc.
-            document.addEventListener(
-              'visibilitychange',
-              () => {
-                if (
-                  (window._qRouterScrollEnabled || window._qCityScrollEnabled) &&
-                  document.visibilityState === 'hidden'
-                ) {
-                  if (window._qCityScrollEnabled) {
-                    console.warn(
-                      '"_qCityScrollEnabled" is deprecated. Use "_qRouterScrollEnabled" instead.'
-                    );
-                  }
-                  // Last & most reliable point to commit state.
-                  // Do not clear timeout here in case debounce gets to run later.
-                  const scrollState = currentScrollState(scroller);
-                  saveScrollHistory(scrollState);
-                }
-              },
-              { passive: true }
-            );
-
-            document.removeEventListener('visibilitychange', window._qRouterInitVisibility!);
-            window._qRouterInitVisibility = undefined;
-          }
-
-          window.addEventListener(
-            'scroll',
-            () => {
-              // TODO: remove "_qCityScrollEnabled" condition in v3
-              if (!window._qRouterScrollEnabled && !window._qCityScrollEnabled) {
-                return;
-              }
-
-              clearTimeout(window._qRouterScrollDebounce);
-              window._qRouterScrollDebounce = setTimeout(() => {
-                const scrollState = currentScrollState(scroller);
-                saveScrollHistory(scrollState);
-                // Needed for e2e debounceDetector.
-                window._qRouterScrollDebounce = undefined;
-              }, 200);
-            },
-            { passive: true }
-          );
-
-          removeEventListener('scroll', window._qRouterInitScroll!);
-          window._qRouterInitScroll = undefined;
-
-          // Cache SPA recovery script.
-          spaInit.resolve();
-        }
-
-        if (navType !== 'popstate') {
-          window._qRouterScrollEnabled = false;
-          clearTimeout(window._qRouterScrollDebounce);
-
-          if (!navigation.historyUpdated) {
-            // Save the final scroll state before pushing new state.
-            // Upgrades/replaces state with scroll pos on nav as needed.
-            const scrollState = currentScrollState(scroller);
-            saveScrollHistory(scrollState);
-          }
-        }
-
-        const navigate = () => {
-          if (navigation.historyUpdated) {
-            const currentPath = location.pathname + location.search + location.hash;
-            const nextPath = toPath(trackUrl);
-            if (currentPath !== nextPath) {
-              // The history entry was already created under the original user gesture.
-              // We only normalize the current entry here once async navigation resolves.
-              history.replaceState(history.state, '', nextPath);
-            }
-          } else {
-            clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
-          }
-          contentInternal.trigger();
-          return _waitUntilRendered(container!);
-        };
-
-        const _waitNextPage = () => {
-          if (isServer || props?.viewTransition === false) {
-            return navigate();
-          } else {
-            const viewTransition = startViewTransition({
-              update: navigate,
-              types: ['qwik-navigation'],
-            });
-            if (!viewTransition) {
-              return Promise.resolve();
-            }
-            return viewTransition.ready;
-          }
-        };
-        _waitNextPage()
-          .catch((err) => {
-            // If the view transition fails, navigate to the page anyway
-            navigate();
-            if (err instanceof DOMException && err.name === 'TimeoutError') {
-              throw new Error(
-                'View transition timed out. This can happen if you have "disableCache" in your browser devtools enabled.'
-              );
-            }
-            // Re-throw the error on console
-            throw err;
-          })
-          .finally(() => {
-            (container as ClientContainer).element.setAttribute?.(Q_ROUTE, $routeName$);
-            const scrollState = currentScrollState(scroller);
-            saveScrollHistory(scrollState);
-            window._qRouterScrollEnabled = true;
-            if (isBrowser) {
-              callRestoreScrollOnDocument();
-            }
-
-            if (shouldForcePrevUrl) {
-              forceStoreEffects(routeLocation, 'prevUrl');
-            }
-            if (shouldForceUrl) {
-              forceStoreEffects(routeLocation, 'url');
-            }
-            if (shouldForceParams) {
-              forceStoreEffects(routeLocation, 'params');
-            }
-            routeLocation.isNavigating = false;
-            navResolver.r?.();
-          });
-      }
+      // hand off to next tasks
+      navContext.value = noSerialize({
+        routeName: $routeName$,
+        navType,
+        replaceState,
+        shouldForcePrevUrl,
+        shouldForceUrl,
+        shouldForceParams,
+        navCount: navCountBefore,
+      });
     },
-    // We should only wait for navigation to complete on the server
+    // We should only wait for head calculation to complete on the server
     { deferUpdates: isServer }
+  );
+
+  /**
+   * Calc head. This is in a separate task so that loader updates can trigger head recalculation
+   * without re-running the navigation logic.
+   *
+   * Note that on the server these tasks run sequentially.
+   */
+  useTask$(
+    ({ track }) => {
+      const contentModules = track(contentInternal);
+      if (!contentModules) {
+        return;
+      }
+      const actionData = track(actionDataSignal);
+
+      // Resolve head — this might throw a promise so keep it near the top of the function
+      const head = track(() =>
+        resolveHead(
+          actionData,
+          loaderState,
+          routeLocation,
+          contentModules,
+          getLocale(''),
+          serverHead
+        )
+      );
+      documentHead.links = head.links;
+      documentHead.meta = head.meta;
+      documentHead.styles = head.styles;
+      documentHead.scripts = head.scripts;
+      documentHead.title = head.title;
+      documentHead.frontmatter = head.frontmatter;
+    },
+    { deferUpdates: isServer }
+  );
+
+  /** Actual navigation */
+  useTask$(
+    ({ track }) => {
+      const nav = track(navContext);
+      if (isServer || !nav) {
+        return;
+      }
+
+      if (nav.navCount !== internalState.navCount) {
+        navResolver.r?.();
+        return;
+      }
+
+      const container = _getContextContainer();
+      const navigation = routeInternal.untrackedValue;
+
+      const { navType, replaceState, routeName } = nav;
+      const trackUrl = routeLocation.url;
+      // prevUrl is only assigned when the path changes (see nav task). On the first SPA nav
+      // after SSR, or on same-path/hash-only navs, prevUrl is undefined — fall back to
+      // trackUrl so isSamePath() returns true and scroll/history logic no-ops correctly.
+      const prevUrl = routeLocation.prevUrl ?? trackUrl;
+
+      const scroller = getScroller();
+      // Scroll restore setup — must happen before navigation commits
+      let scrollState: ScrollState | undefined;
+      if (navType === 'popstate') {
+        scrollState = getScrollHistory();
+      }
+      if (
+        (navigation.scroll &&
+          (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
+          (navType === 'link' || navType === 'popstate')) ||
+        // Action might have responded with a redirect.
+        (navType === 'form' && !isSamePath(trackUrl, prevUrl))
+      ) {
+        // Mark next DOM render to scroll.
+        (document as any).__q_scroll_restore__ = () =>
+          restoreScroll(navType, trackUrl, prevUrl, scroller, scrollState);
+      }
+
+      initializeSPA(goto, scroller);
+
+      if (navType !== 'popstate') {
+        window._qRouterScrollEnabled = false;
+        clearTimeout(window._qRouterScrollDebounce);
+
+        if (!navigation.historyUpdated) {
+          // Save the final scroll state before pushing new state.
+          // Upgrades/replaces state with scroll pos on nav as needed.
+          const scrollState = currentScrollState(scroller);
+          saveScrollHistory(scrollState);
+        }
+      }
+
+      const navigate = () => {
+        if (nav.navCount !== internalState.navCount) {
+          return Promise.resolve();
+        }
+        if (navigation.historyUpdated) {
+          const currentPath = location.pathname + location.search + location.hash;
+          const nextPath = toPath(trackUrl);
+          if (currentPath !== nextPath) {
+            // The history entry was already created under the original user gesture.
+            // We only normalize the current entry here once async navigation resolves.
+            history.replaceState(history.state, '', nextPath);
+          }
+        } else {
+          clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
+        }
+        contentInternal.trigger();
+        return _waitUntilRendered(container!);
+      };
+
+      const _waitNextPage = () => {
+        if (props?.viewTransition === false || !('startViewTransition' in document)) {
+          return navigate().then(() => undefined as ViewTransition | undefined);
+        }
+        const { ready, transition } = startViewTransition({
+          update: navigate,
+          types: ['qwik-navigation'],
+        });
+        internalState.currentTransition = transition;
+        return ready.then(() => transition);
+      };
+      _waitNextPage().finally(() => {
+        internalState.currentTransition = undefined;
+        (container as ClientContainer).element.setAttribute?.(Q_ROUTE, routeName);
+        const scrollState = currentScrollState(scroller);
+        saveScrollHistory(scrollState);
+        window._qRouterScrollEnabled = true;
+        callRestoreScrollOnDocument();
+
+        if (nav.shouldForcePrevUrl) {
+          forceStoreEffects(routeLocation, 'prevUrl');
+        }
+        if (nav.shouldForceUrl) {
+          forceStoreEffects(routeLocation, 'url');
+        }
+        if (nav.shouldForceParams) {
+          forceStoreEffects(routeLocation, 'params');
+        }
+        routeLocation.isNavigating = false;
+        navResolver.r?.();
+      });
+    },
+    { deferUpdates: false }
   );
 };
 
@@ -950,25 +934,16 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
     { deep: false }
   );
 
-  // Mirror useQwikRouter: each loader id must be backed by an AsyncSignal so
-  // that user code reading `useFooLoader().value` (and `.loading`/`.error`/
-  // `.promise`) works. Storing raw data here would surface as `undefined`
-  // once the framework reads `state[id].value`.
-  const container = _getContextContainer();
-  const loadersObject: Record<string, unknown> = {};
-  const loadersState: Record<string, AsyncSignal<unknown>> = {};
-  if (props.loaders) {
-    for (const { loader, data } of props.loaders) {
-      const id = (loader as LoaderInternal).__id;
-      loadersObject[id] = data;
-      loadersState[id] = createLoaderSignal(
-        loadersObject,
-        id,
-        url,
-        DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
-        container
-      );
-    }
+  const loadersData = props.loaders?.reduce(
+    (acc, { loader, data }) => {
+      acc[(loader as LoaderInternal).__id] = data;
+      return acc;
+    },
+    {} as Record<string, QwikRouterMockLoaderProp['data']>
+  );
+  const loadersState = useStore<Record<string, AsyncSignal<unknown>>>({}, { deep: false });
+  for (const [loaderId, data] of Object.entries(loadersData ?? {})) {
+    loadersState[loaderId] ||= createAsync$(async () => data, { initial: data });
   }
 
   const goto: RouteNavigate =
@@ -1062,4 +1037,168 @@ export interface ClientSPAWindow extends Window {
   _qRouterInitVisibility?: () => void;
   _qRouterInitScroll?: () => void;
   _qcs?: boolean;
+}
+
+// See also spa-init.ts
+function initializeSPA(goto: RouteNavigate, scroller: HTMLElement) {
+  if (!window._qRouterSPA) {
+    // only add event listener once
+    window._qRouterSPA = true;
+    history.scrollRestoration = 'manual';
+
+    window.addEventListener('popstate', () => {
+      // Disable scroll handler eagerly to prevent overwriting history.state.
+      window._qRouterScrollEnabled = false;
+      clearTimeout(window._qRouterScrollDebounce);
+
+      goto(location.href, {
+        type: 'popstate',
+      });
+    });
+
+    window.removeEventListener('popstate', window._qRouterInitPopstate!);
+    window._qRouterInitPopstate = undefined;
+
+    // Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
+    // Devs could push their own states that we can't control.
+    // If a user doesn't initiate scroll after, it will not have any scrollState.
+    // We patch these to always include scrollState.
+    // TODO Block this after Navigation API PR, browsers that support it have a Navigation API solution.
+    if (!window._qRouterHistoryPatch) {
+      window._qRouterHistoryPatch = true;
+      const pushState = history.pushState;
+      const replaceState = history.replaceState;
+
+      const prepareState = (state: any) => {
+        if (state === null || typeof state === 'undefined') {
+          state = {};
+        } else if (state?.constructor !== Object) {
+          state = { _data: state };
+
+          if (isDev) {
+            console.warn(
+              'In a Qwik SPA context, `history.state` is used to store scroll state. ' +
+                'Direct calls to `pushState()` and `replaceState()` must supply an actual Object type. ' +
+                'We need to be able to automatically attach the scroll state to your state object. ' +
+                'A new state object has been created, your data has been moved to: `history.state._data`'
+            );
+          }
+        }
+
+        state._qRouterScroll = state._qRouterScroll || currentScrollState(scroller);
+        return state;
+      };
+
+      history.pushState = (state, title, url) => {
+        state = prepareState(state);
+        return pushState.call(history, state, title, url);
+      };
+
+      history.replaceState = (state, title, url) => {
+        state = prepareState(state);
+        return replaceState.call(history, state, title, url);
+      };
+    }
+
+    // Chromium and WebKit fire popstate+hashchange for all #anchor clicks,
+    // ... even if the URL is already on the #hash.
+    // Firefox only does it once and no more, but will still scroll. It also sets state to null.
+    // Any <a> tags w/ #hash href will break SPA state in Firefox.
+    // We patch these events and direct them to Link pipeline during SPA.
+    document.addEventListener('click', (event) => {
+      if (event.defaultPrevented) {
+        return;
+      }
+
+      const target = (event.target as HTMLElement).closest('a[href]');
+
+      if (target && !target.hasAttribute('preventdefault:click')) {
+        const href = target.getAttribute('href')!;
+        const prev = new URL(location.href);
+        const dest = new URL(href, prev);
+        // Patch only same-page anchors.
+        if (isSameOrigin(dest, prev) && isSamePath(dest, prev)) {
+          event.preventDefault();
+
+          // Simulate same-page (no hash) anchor reload.
+          // history.scrollRestoration = 'manual' makes these not scroll.
+          if (!dest.hash && !dest.href.endsWith('#')) {
+            if (dest.href !== prev.href) {
+              history.pushState(null, '', dest);
+            }
+
+            window._qRouterScrollEnabled = false;
+            clearTimeout(window._qRouterScrollDebounce);
+            saveScrollHistory({
+              ...currentScrollState(scroller),
+              x: 0,
+              y: 0,
+            });
+            location.reload();
+            return;
+          }
+
+          goto(target.getAttribute('href')!);
+        }
+      }
+    });
+
+    document.removeEventListener('click', window._qRouterInitAnchors!);
+    window._qRouterInitAnchors = undefined;
+
+    // TODO Remove block after Navigation API PR.
+    // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.
+    // Only Chromium 96 - 101 have BFCache without Navigation API. (<1% of users)
+    if (!(window as any).navigation) {
+      // Commit scrollState on refresh, cross-origin navigation, mobile view changes, etc.
+      document.addEventListener(
+        'visibilitychange',
+        () => {
+          if (
+            (window._qRouterScrollEnabled || window._qCityScrollEnabled) &&
+            document.visibilityState === 'hidden'
+          ) {
+            if (window._qCityScrollEnabled) {
+              console.warn(
+                '"_qCityScrollEnabled" is deprecated. Use "_qRouterScrollEnabled" instead.'
+              );
+            }
+            // Last & most reliable point to commit state.
+            // Do not clear timeout here in case debounce gets to run later.
+            const scrollState = currentScrollState(scroller);
+            saveScrollHistory(scrollState);
+          }
+        },
+        { passive: true }
+      );
+
+      document.removeEventListener('visibilitychange', window._qRouterInitVisibility!);
+      window._qRouterInitVisibility = undefined;
+    }
+
+    window.addEventListener(
+      'scroll',
+      () => {
+        // TODO: remove "_qCityScrollEnabled" condition in v3
+        if (!window._qRouterScrollEnabled && !window._qCityScrollEnabled) {
+          return;
+        }
+
+        clearTimeout(window._qRouterScrollDebounce);
+        window._qRouterScrollDebounce = setTimeout(() => {
+          const scrollState = currentScrollState(scroller);
+          saveScrollHistory(scrollState);
+          // Needed for e2e debounceDetector.
+          window._qRouterScrollDebounce = undefined;
+        }, 200);
+      },
+      { passive: true }
+    );
+
+    removeEventListener('scroll', window._qRouterInitScroll!);
+    window._qRouterInitScroll = undefined;
+
+    // Cache SPA recovery script.
+    spaInit.resolve();
+  }
 }

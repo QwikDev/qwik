@@ -95,6 +95,9 @@ function normalizeOptions(
 
   opts.mdx = opts.mdx || {};
   opts.platform = opts.platform || {};
+  if (opts.strictLoaders === undefined) {
+    opts.strictLoaders = true;
+  }
 
   return opts;
 }

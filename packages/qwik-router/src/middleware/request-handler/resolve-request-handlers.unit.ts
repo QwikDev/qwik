@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getPathname, fixTrailingSlash, resolveRequestHandlers } from './resolve-request-handlers';
-import { RequestEvHttpStatusMessage } from './request-event-core';
+import { RequestEvHttpStatusMessage, RequestEvSharedActionId } from './request-event-core';
 import { createRequestEvent } from './request-event';
 import { RedirectMessage } from './redirect-handler';
 import { isContentType } from './request-utils';
@@ -46,18 +46,7 @@ function createMockRequestEvent(url = 'http://localhost:3000/test', trailingSlas
 
 describe('resolve-request-handler', () => {
   describe('getPathname', () => {
-    it('should remove q-data.json', () => {
-      globalThis.__NO_TRAILING_SLASH__ = false;
-      expect(getPathname(new URL('http://server/path/q-data.json?foo=bar#hash'))).toBe(
-        '/path/?foo=bar#hash'
-      );
-      globalThis.__NO_TRAILING_SLASH__ = true;
-      expect(getPathname(new URL('http://server/path/q-data.json?foo=bar#hash'))).toBe(
-        '/path?foo=bar#hash'
-      );
-    });
-
-    it('should pass non q-data.json through', () => {
+    it('should handle pathname with trailing slash', () => {
       globalThis.__NO_TRAILING_SLASH__ = false;
       expect(getPathname(new URL('http://server/path?foo=bar#hash'))).toBe('/path/?foo=bar#hash');
       globalThis.__NO_TRAILING_SLASH__ = true;
@@ -304,7 +293,7 @@ describe('resolve-request-handler', () => {
       const renderHandler = vi.fn(async (requestEv: { exit: () => void }) => {
         requestEv.exit();
       });
-      const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler, false);
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler);
       const requestEv = createRequestEvent(
         createMockServerRequestEvent(),
         route,
@@ -318,6 +307,20 @@ describe('resolve-request-handler', () => {
       expect(renderHandler).toHaveBeenCalledOnce();
       expect(requestEv.status()).toBe(418);
       expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('teapot');
+    });
+  });
+
+  describe('action result resolution', () => {
+    it('returns only the submitted action result', async () => {
+      const requestEv = createMockRequestEvent('http://localhost:3000/about/', true);
+      const actionA = { __brand: 'server_action', __id: 'action-a' };
+      const actionB = { __brand: 'server_action', __id: 'action-b' };
+
+      requestEv.sharedMap.set(RequestEvSharedActionId, 'action-a');
+      requestEv.sharedMap.set('@actionResult', { ok: true });
+
+      await expect(requestEv.resolveValue(actionA as any)).resolves.toEqual({ ok: true });
+      await expect(requestEv.resolveValue(actionB as any)).resolves.toBeUndefined();
     });
   });
 });

@@ -169,6 +169,8 @@ export { router }
             },
           },
         ],
+        // Legacy e2e tests rely on actions re-running all loaders
+        strictLoaders: false,
       }) as PluginOption
       // qwikRouterSsg.nodeServerAdapter({
       //   ssg: null,

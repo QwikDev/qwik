@@ -12,7 +12,7 @@ export interface System {
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
   getRouteFilePath: (pathname: string, isHtml: boolean) => string;
-  getDataFilePath: (pathname: string) => string;
+  getLoaderFilePath: (pathname: string, loaderId: string, manifestHash: string) => string;
   getEnv: (key: string) => string | undefined;
   platform: { [key: string]: any };
 }
@@ -68,13 +68,13 @@ export interface SsgRenderOptions extends RenderOptions {
   log?: 'debug' | 'quiet';
   /**
    * Set to `false` if the generated static HTML files should not be written to disk. Setting to
-   * `false` is useful if the SSG should only write the `q-data.json` files to disk. Defaults to
+   * `false` is useful if the SSG should only write the per-loader data files to disk. Defaults to
    * `true`.
    */
   emitHtml?: boolean;
   /**
-   * Set to `false` if the generated `q-data.json` data files should not be written to disk.
-   * Defaults to `true`.
+   * Set to `false` if the generated per-loader data files should not be written to disk. Defaults
+   * to `true`.
    */
   emitData?: boolean;
   /**

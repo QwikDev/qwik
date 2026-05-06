@@ -57,6 +57,7 @@ export interface Container {
   ): SerializationContext;
 }
 
+/** @internal */
 export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends Element {

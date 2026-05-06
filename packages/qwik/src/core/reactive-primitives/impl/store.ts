@@ -73,6 +73,7 @@ export const isStore = (value: object): boolean => {
   return STORE_TARGET in value;
 };
 
+/** @internal */
 export function createStore<T extends object>(
   container: Container | null | undefined,
   obj: T,

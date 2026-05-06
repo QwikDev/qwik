@@ -67,6 +67,7 @@ describe('SSG worker bundle isolation', () => {
           ssr: true,
           rollupOptions: {
             input: join(appDir, 'run-ssg.ts'),
+            external: ['@qwik-router-config'],
           },
         },
       });

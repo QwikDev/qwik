@@ -52,12 +52,32 @@ function getRoutesExpr(trie: BuildTrieNode, routes: BuiltRoute[] = []): string {
   const c: string[] = [];
   const esmImports: string[] = [];
   const ctx = {
-    opts: { basePathname: '/', routesDir: '/routes' },
+    opts: {
+      basePathname: '/',
+      routesDir: '/routes',
+      platform: null!,
+      mdx: null!,
+      serverPluginsDir: '/routes',
+      mdxPlugins: null!,
+      rewriteRoutes: null!,
+      defaultLoadersSerializationStrategy: 'never',
+      strictLoaders: true,
+    },
     routeTrie: trie,
     routes,
     layouts: [],
+    serverPlugins: [],
     dynamicImports: true,
-  } as any;
+    rootDir: '/',
+    entries: [],
+    serviceWorkers: [],
+    menus: [],
+    frontmatter: new Map(),
+    diagnostics: [],
+    target: 'ssr',
+    isDirty: false,
+    activeBuild: null,
+  } satisfies Parameters<typeof createRoutes>[0];
   createRoutes(ctx, mockQwikPlugin, c, esmImports, false);
   const routesLine = c.find((line) => line.startsWith('export const routes'));
   assert.ok(routesLine, 'should have a routes export');

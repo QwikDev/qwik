@@ -61,8 +61,8 @@ test.describe('nav', () => {
       await expect(increment).toHaveText('Click me 1');
     });
 
-    test('should update history before async SPA route load completes', async ({ page }) => {
-      await page.route('**/products/jacket/q-data.json', async (route) => {
+    test('should update history and render immediately during SPA nav', async ({ page }) => {
+      await page.route('**/products/jacket/q-loader-*.json', async (route) => {
         await new Promise((resolve) => setTimeout(resolve, 600));
         await route.continue();
       });
@@ -74,10 +74,11 @@ test.describe('nav', () => {
       await expect(heading).toHaveText('Product: hat');
       await link.click();
 
+      // URL and params update immediately — the nav task does not wait for loaders.
+      // The heading uses params.id directly so it switches right away.
       await expect
         .poll(() => new URL(page.url()).pathname)
         .toBe('/qwikrouter-test/products/jacket/');
-      await expect(heading).toHaveText('Product: hat');
       await expect(heading).toHaveText('Product: jacket');
     });
 
@@ -303,6 +304,35 @@ test.describe('nav', () => {
       await mpaLink.click();
       expect(didTrigger).toBe(true);
     });
+
+    test('second nav() call should win when two are fired back-to-back', async ({ page }) => {
+      await page.goto('/qwikrouter-test/double-nav/a/');
+      await expect(page.locator('#double-nav-a')).toBeVisible();
+
+      const btn = page.locator('#double-nav-btn');
+      await btn.click();
+
+      // Should end up at C (the second nav call), not B
+      await expect(page.locator('#double-nav-c')).toBeVisible();
+      expect(new URL(page.url()).pathname).toBe('/qwikrouter-test/double-nav/c/');
+      await expect(page.locator('#double-nav-c-data')).toHaveText('data-c');
+    });
+
+    test('loader redirect via query string should SPA navigate to target', async ({ page }) => {
+      await page.goto('/qwikrouter-test/loader-redirect/');
+      await expect(page.locator('#loader-redirect-home')).toBeVisible();
+
+      const btn = page.locator('#loader-redirect-btn');
+      await btn.click();
+
+      // Should end up at the redirect target, not the source route.
+      // The redirect involves a network roundtrip (loader fetch sees a 302) plus
+      // two sequential SPA navigations (source → target). The DOM update may lag
+      // the history pushState, so wait directly for the target element.
+      await expect(page.locator('#loader-redirect-target')).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('#loader-redirect-target-data')).toHaveText('target-data');
+      expect(new URL(page.url()).searchParams.get('done')).toBe('true');
+    });
   }
 
   function tests() {
@@ -513,17 +543,6 @@ test.describe('nav', () => {
       );
 
       await expect(page.locator('#redirected-result')).toHaveText('true');
-    });
-
-    test('server plugin q-data redirect from /redirectme to /', async ({ baseURL }) => {
-      const res = await fetch(new URL('/qwikrouter-test/redirectme/q-data.json', baseURL), {
-        redirect: 'manual',
-        headers: {
-          Accept: 'application/json',
-        },
-      });
-      expect(res.status).toBe(301);
-      expect(res.headers.get('Location')).toBe('/qwikrouter-test/q-data.json');
     });
 
     test('should not execute task from removed layout, and should be executed only once for SPA', async ({

@@ -61,6 +61,29 @@ export function qwikRouter(userOpts?: QwikRouterVitePluginOptions): PluginOption
   ];
 }
 
+/** Replace or strip `_R: "__LOADERS:path1|path2__"` placeholders in a bundle chunk. */
+function replaceLoaderPlaceholders(code: string, loadersByFile: Map<string, string[]>): string {
+  // Replace `_R: "__LOADERS:path1|path2__"` with the actual hash array, or strip the whole
+  // `_R: ...` entry when no routeLoader$ was found — that way the client-side routing code
+  // never sees a stale placeholder string and spreads it character-by-character.
+  return code.replace(/_R\s*:\s*"__LOADERS:([^"]+)__"\s*,?/g, (_match, paths: string) => {
+    const filePaths = paths.split('|');
+    const hashes: string[] = [];
+    for (const filePath of filePaths) {
+      const fileHashes = loadersByFile.get(filePath);
+      if (fileHashes) {
+        hashes.push(...fileHashes);
+      }
+    }
+    if (hashes.length > 0) {
+      return `_R: ${JSON.stringify(hashes)},`;
+    }
+    // Trailing commas inside object literals are legal, so removing a mid-object entry
+    // (and the trailing comma it emitted with) leaves the surrounding trie literal valid.
+    return '';
+  });
+}
+
 function qwikRouterPlugin(
   userOpts: QwikRouterVitePluginOptions | undefined,
   buildContextRef: BuildContextRef
@@ -76,6 +99,8 @@ function qwikRouterPlugin(
   let devSsrServer = userOpts?.devSsrServer;
   const routesDir = userOpts?.routesDir ?? 'src/routes';
   const serverPluginsDir = userOpts?.serverPluginsDir ?? routesDir;
+  /** Map from source file path to array of routeLoader$ hashes found in that file */
+  const loadersByFile = new Map<string, string[]>();
 
   const api: QwikRouterPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -105,6 +130,7 @@ function qwikRouterPlugin(
           'globalThis.__SSR_CACHE_SIZE__': JSON.stringify(
             viteEnv.command === 'serve' ? 0 : (userOpts?.ssrCacheSize ?? 50)
           ),
+          'globalThis.__STRICT_LOADERS__': JSON.stringify(userOpts?.strictLoaders !== false),
         },
         appType: 'custom',
         resolve: {
@@ -200,6 +226,28 @@ function qwikRouterPlugin(
       if (!qwikPlugin) {
         throw new Error('Missing vite-plugin-qwik');
       }
+
+      // Register callback to discover routeLoader$ hashes from optimizer segments
+      qwikPlugin.api.onSegment((parentId, segment) => {
+        if (segment.ctxName === 'routeLoader$') {
+          const normalizedId = normalizePath(parentId);
+          const existing = loadersByFile.get(normalizedId) || [];
+          existing.push(segment.hash);
+          loadersByFile.set(normalizedId, existing);
+
+          // In dev: invalidate @qwik-router-config so trie re-generates with loader info
+          if (devServer) {
+            const graph = devServer.environments?.ssr?.moduleGraph;
+            if (graph) {
+              const mod = graph.getModuleById('@qwik-router-config');
+              if (mod) {
+                ctx!.isDirty = true;
+                graph.invalidateModule(mod);
+              }
+            }
+          }
+        }
+      });
       if (typeof devSsrServer !== 'boolean') {
         // read the old option from qwik plugin
         devSsrServer = qwikPlugin.api._oldDevSsrServer();
@@ -293,7 +341,8 @@ function qwikRouterPlugin(
             return generateQwikRouterConfig(
               ctx,
               qwikPlugin!,
-              this.environment.config.consumer === 'server'
+              this.environment.config.consumer === 'server',
+              loadersByFile
             );
           }
 
@@ -351,6 +400,14 @@ function qwikRouterPlugin(
     },
 
     generateBundle(_, bundles) {
+      // Replace __LOADERS:...__ placeholder strings with actual loader hash arrays.
+      // Runs even when no routeLoader$ was found so placeholders collapse to `void 0`
+      // (otherwise they remain as raw strings and the client iterates them per-character).
+      for (const chunk of Object.values(bundles)) {
+        if (chunk.type === 'chunk' && chunk.code.includes('__LOADERS:')) {
+          chunk.code = replaceLoaderPlaceholders(chunk.code, loadersByFile);
+        }
+      }
       // Turn entry and service worker chunks into entry points
       if (this.environment.config.consumer === 'client') {
         const entries = [...ctx!.entries, ...ctx!.serviceWorkers].map((entry) => {

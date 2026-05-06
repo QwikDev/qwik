@@ -8,11 +8,5 @@ vi.hoisted(() => {
 });
 
 vi.stubGlobal('qInstallOOOS', installOutOfOrderExecutor);
-vi.stubGlobal(
-  'QWIK_OUT_OF_ORDER_EXECUTOR_MINIFIED',
-  'globalThis.qInstallOOOS(document);var qO=globalThis.qO'
-);
-vi.stubGlobal(
-  'QWIK_OUT_OF_ORDER_EXECUTOR_DEBUG',
-  'globalThis.qInstallOOOS(document);var qO=globalThis.qO'
-);
+vi.stubGlobal('QWIK_OUT_OF_ORDER_EXECUTOR_MINIFIED', 'globalThis.qInstallOOOS(document)');
+vi.stubGlobal('QWIK_OUT_OF_ORDER_EXECUTOR_DEBUG', 'globalThis.qInstallOOOS(document)');

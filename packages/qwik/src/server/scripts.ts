@@ -46,5 +46,11 @@ export function getQwikOutOfOrderExecutorScript(opts: { debug?: boolean } = {}) 
   if (!__EXPERIMENTAL__.suspense) {
     return '';
   }
-  return opts.debug ? QWIK_OUT_OF_ORDER_EXECUTOR_DEBUG : QWIK_OUT_OF_ORDER_EXECUTOR_MINIFIED;
+  const script = opts.debug
+    ? QWIK_OUT_OF_ORDER_EXECUTOR_DEBUG
+    : QWIK_OUT_OF_ORDER_EXECUTOR_MINIFIED;
+  // OOOS uses classic scripts so qO() can run synchronously in stream order. Wrap the
+  // whole executor so multiple streamed containers can include it without redeclaring
+  // top-level consts; the first installed executor services every container.
+  return `if(!globalThis.qO||globalThis.qO.d!==document){${script}}`;
 }

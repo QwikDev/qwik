@@ -81,13 +81,12 @@ export class SignalImpl<T = any> implements Signal<T> {
       const isOnServer = import.meta.env.TEST ? isServerPlatform() : isServer;
       const effects = (this.$effects$ ||= new Set());
       const shouldRecordExternalRootEffect = __EXPERIMENTAL__.suspense && isOnServer;
-      const isNewSubscription = shouldRecordExternalRootEffect && !effects.has(effectSubscriber);
       ensureContainsSubscription(effects, effectSubscriber);
       // But when effect is scheduled in needs to be able to know which signals
       // to unsubscribe from. So we need to store the reference from the effect back
       // to this signal.
       ensureContainsBackRef(effectSubscriber, this);
-      if (isOnServer && isNewSubscription) {
+      if (shouldRecordExternalRootEffect) {
         (this.$container$ as SSRContainer).$recordExternalRootEffect$(this, effectSubscriber, null);
       }
       isOnServer && addQrlToSerializationCtx(effectSubscriber, this.$container$);

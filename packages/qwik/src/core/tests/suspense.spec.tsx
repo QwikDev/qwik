@@ -1268,9 +1268,10 @@ describe('renderToStream: out-of-order Suspense', () => {
       );
       // eslint-disable-next-line no-new-func
       new Function('document', scripts.join('\n'))(document);
-      const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:s="s1"]');
-      expect(segmentStateScript?.textContent).not.toContain('r:');
-      expect(segmentStateScript?.textContent).toContain('s1:');
+      const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:patch]');
+      expect(segmentStateScript).not.toBeNull();
+      expect(segmentStateScript?.hasAttribute('q:s')).toBe(false);
+      expect(segmentStateScript?.getAttribute('q:fx')).toBeNull();
       expect(document.querySelector('#ooos-unit-shared-resolved-button')).not.toBeNull();
 
       emulateExecutionOfQwikFuncs(document);
@@ -1357,8 +1358,9 @@ describe('renderToStream: out-of-order Suspense', () => {
       );
       // eslint-disable-next-line no-new-func
       new Function('document', scripts.join('\n'))(document);
-      const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:s="s1"]');
+      const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:patch]');
       expect(segmentStateScript?.getAttribute('q:fx')).not.toBeNull();
+      expect(segmentStateScript?.hasAttribute('q:s')).toBe(false);
       expect(document.querySelector('#ooos-unit-store-resolved-button')).not.toBeNull();
 
       const platform = getPlatform();
@@ -1379,6 +1381,237 @@ describe('renderToStream: out-of-order Suspense', () => {
     } finally {
       delete (globalThis as any).__ooosUnitStoreShellValue;
       delete (globalThis as any).__ooosUnitStoreResolvedValue;
+    }
+  });
+
+  it('should share a root-owned store across multiple resolved segments', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    (globalThis as any).__ooosUnitSharedStoreFirstValue = 0;
+
+    const First = component$((props: { shared: { count: number } }) => (
+      <>
+        {first}
+        <button
+          id="ooos-unit-shared-store-first-button"
+          onClick$={() => {
+            props.shared.count += 1;
+            (globalThis as any).__ooosUnitSharedStoreFirstValue = props.shared.count;
+          }}
+        >
+          Touch first shared store
+        </button>
+        <span id="ooos-unit-shared-store-first-count">{props.shared.count}</span>
+      </>
+    ));
+    const Second = component$((props: { shared: { count: number } }) => (
+      <>
+        {second}
+        <span id="ooos-unit-shared-store-second-count">{props.shared.count}</span>
+      </>
+    ));
+    const App = component$(() => {
+      const shared = useStore({ count: 0 });
+      return (
+        <main>
+          <button
+            id="ooos-unit-shared-store-shell-button"
+            onClick$={() => {
+              shared.count += 1;
+            }}
+          >
+            Touch shell shared store
+          </button>
+          <span id="ooos-unit-shared-store-shell-count">{shared.count}</span>
+          <Suspense fallback={<p>Waiting first shared store</p>}>
+            <First shared={shared} />
+          </Suspense>
+          <Suspense fallback={<p>Waiting second shared store</p>}>
+            <Second shared={shared} />
+          </Suspense>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: {
+        write(chunk) {
+          chunks.push(chunk);
+        },
+      },
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting first shared store'));
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second shared store'));
+      resolveFirst(<span id="ooos-unit-shared-store-first-ready">First ready</span>);
+      resolveSecond(<span id="ooos-unit-shared-store-second-ready">Second ready</span>);
+      await renderPromise;
+
+      const html = chunks.join('');
+      const document = createDocument({ html });
+      const scripts = Array.from(
+        document.querySelectorAll('script[type="text/javascript"]'),
+        (script) => script.textContent || ''
+      );
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+      const segmentStateScripts = document.querySelectorAll(
+        'script[type="qwik/state"][q\\:patch][q\\:fx]'
+      );
+      expect(segmentStateScripts.length).toBe(2);
+      expect(document.querySelector('#ooos-unit-shared-store-first-button')).not.toBeNull();
+      expect(document.querySelector('#ooos-unit-shared-store-second-count')).not.toBeNull();
+
+      const platform = getPlatform();
+      setPlatform(getTestPlatform());
+      try {
+        emulateExecutionOfQwikFuncs(document);
+        emulateExecutionOfBackpatch(document);
+        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+
+        await trigger(container.element, '#ooos-unit-shared-store-first-button', 'click');
+        await waitForDrain(container);
+        expect((globalThis as any).__ooosUnitSharedStoreFirstValue).toBe(1);
+        expect(document.querySelector('#ooos-unit-shared-store-shell-count')?.textContent).toBe(
+          '1'
+        );
+        expect(document.querySelector('#ooos-unit-shared-store-first-count')?.textContent).toBe(
+          '1'
+        );
+        expect(document.querySelector('#ooos-unit-shared-store-second-count')?.textContent).toBe(
+          '1'
+        );
+      } finally {
+        setPlatform(platform);
+      }
+    } finally {
+      delete (globalThis as any).__ooosUnitSharedStoreFirstValue;
+    }
+  });
+
+  it('should share a store used only by multiple resolved segments', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    (globalThis as any).__ooosUnitCrossStoreFirstValue = 0;
+
+    const First = component$((props: { shared: { count: number } }) => (
+      <>
+        {first}
+        <button
+          id="ooos-unit-cross-store-first-button"
+          onClick$={() => {
+            props.shared.count += 1;
+            (globalThis as any).__ooosUnitCrossStoreFirstValue = props.shared.count;
+          }}
+        >
+          Touch first cross store
+        </button>
+        <span id="ooos-unit-cross-store-first-count">{props.shared.count}</span>
+      </>
+    ));
+    const Second = component$((props: { shared: { count: number } }) => (
+      <>
+        {second}
+        <span id="ooos-unit-cross-store-second-count">{props.shared.count}</span>
+      </>
+    ));
+    const App = component$(() => {
+      const shared = useStore({ count: 0 });
+      return (
+        <main>
+          <h1>Shell does not read the cross store</h1>
+          <Suspense fallback={<p>Waiting first cross store</p>}>
+            <First shared={shared} />
+          </Suspense>
+          <Suspense fallback={<p>Waiting second cross store</p>}>
+            <Second shared={shared} />
+          </Suspense>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: {
+        write(chunk) {
+          chunks.push(chunk);
+        },
+      },
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting first cross store'));
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second cross store'));
+      resolveFirst(<span id="ooos-unit-cross-store-first-ready">First ready</span>);
+      resolveSecond(<span id="ooos-unit-cross-store-second-ready">Second ready</span>);
+      await renderPromise;
+
+      const html = chunks.join('');
+      const document = createDocument({ html });
+      const scripts = Array.from(
+        document.querySelectorAll('script[type="text/javascript"]'),
+        (script) => script.textContent || ''
+      );
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+      const segmentStateScripts = document.querySelectorAll('script[type="qwik/state"][q\\:patch]');
+      expect(segmentStateScripts.length).toBeGreaterThan(0);
+      for (const script of segmentStateScripts) {
+        expect(script.hasAttribute('q:s')).toBe(false);
+      }
+      expect(document.querySelector('#ooos-unit-cross-store-first-button')).not.toBeNull();
+      expect(document.querySelector('#ooos-unit-cross-store-second-count')).not.toBeNull();
+
+      const platform = getPlatform();
+      setPlatform(getTestPlatform());
+      try {
+        emulateExecutionOfQwikFuncs(document);
+        emulateExecutionOfBackpatch(document);
+        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+
+        expect(document.querySelector('#ooos-unit-cross-store-first-count')?.textContent).toBe('0');
+        expect(document.querySelector('#ooos-unit-cross-store-second-count')?.textContent).toBe(
+          '0'
+        );
+
+        await trigger(container.element, '#ooos-unit-cross-store-first-button', 'click');
+        await waitForDrain(container);
+        expect((globalThis as any).__ooosUnitCrossStoreFirstValue).toBe(1);
+        expect(document.querySelector('#ooos-unit-cross-store-first-count')?.textContent).toBe('1');
+        expect(document.querySelector('#ooos-unit-cross-store-second-count')?.textContent).toBe(
+          '1'
+        );
+      } finally {
+        setPlatform(platform);
+      }
+    } finally {
+      delete (globalThis as any).__ooosUnitCrossStoreFirstValue;
     }
   });
 
@@ -1560,7 +1793,7 @@ describe('renderToStream: out-of-order Suspense', () => {
       emulateExecutionOfQwikFuncs(document);
       emulateExecutionOfBackpatch(document);
       const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
-      expect(document.querySelector('script[type="qwik/state"][q\\:s="f1"]') == null).toBe(true);
+      expect(document.querySelector('script[type="qwik/state"][q\\:s]') == null).toBe(true);
 
       await trigger(container.element, '#ooos-unit-fallback-button', 'click');
       expect((globalThis as any).__ooosUnitFallbackClicks).toBe(1);

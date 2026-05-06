@@ -789,15 +789,7 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
   let elementOffset: number = -1;
   let refElement: Element | VNode;
   let localId = typeof id === 'string' ? id : '';
-  let isSegmentRef = false;
   if (typeof id === 'string') {
-    const segmentSeparator = id.indexOf(':');
-    if (__EXPERIMENTAL__.suspense && segmentSeparator !== -1) {
-      const segmentId = id.slice(0, segmentSeparator);
-      localId = id.slice(segmentSeparator + 1);
-      qVNodeRefs = containerElement.qSegmentVNodeRefs?.get(segmentId);
-      isSegmentRef = true;
-    }
     isDev && assertDefined(qVNodeRefs, 'Missing qVNodeRefs.');
     elementOffset = parseInt(localId);
     refElement = qVNodeRefs!.get(elementOffset)!;
@@ -823,7 +815,7 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
         containerElement.contains(refElement),
         `Couldn't find the element inside the container while locating the VNode.`
       );
-    if (isSegmentRef) {
+    if (__EXPERIMENTAL__.suspense && (refElement as QElement)._qSegment) {
       vNode = vnode_newUnMaterializedElement(refElement);
       vnode_ensureElementKeyInflated(vNode as ElementVNode);
     } else {

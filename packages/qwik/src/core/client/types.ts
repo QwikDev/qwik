@@ -22,6 +22,7 @@ export interface ClientContainer extends Container {
   vNodeLocate(id: string | Element): VNode;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $getForwardRef$(id: number | string): number | string | undefined;
+  $processSegmentStateScripts$(): void;
   $setRawState$(
     id: number | string,
     vParent: ElementVNode | VirtualVNode,
@@ -51,8 +52,8 @@ export interface ContainerElement extends HTMLElement {
   /** Segment-local strings from `<script type="qwik/vnode" q:s="...">` tags. */
   qSegmentVnodeData?: Map<string, string>;
 
-  /** Segment-local VNode refs keyed by q:s segment id. */
-  qSegmentVNodeRefs?: Map<string, Map<number, Element | ElementVNode>>;
+  /** Root-global VNode id offset for each Suspense segment. */
+  qSegmentVnodeOffsets?: Map<string, number>;
 }
 
 /** @internal */

@@ -269,13 +269,12 @@ export function addStoreEffect(
   const isOnServer = import.meta.env.TEST ? isServerPlatform() : isServer;
   const shouldRecordExternalRootEffect =
     __EXPERIMENTAL__.suspense && store instanceof StoreHandler && isOnServer;
-  const isNewSubscription = shouldRecordExternalRootEffect && !effects.has(effectSubscription);
   ensureContainsSubscription(effects, effectSubscription);
   // But when effect is scheduled in needs to be able to know which signals
   // to unsubscribe from. So we need to store the reference from the effect back
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
-  if (isOnServer && isNewSubscription) {
+  if (shouldRecordExternalRootEffect) {
     (store.$container$ as SSRContainer).$recordExternalRootEffect$(
       target,
       effectSubscription,

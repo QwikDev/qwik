@@ -68,6 +68,7 @@ export function processVNodeData(document: Document) {
   const Q_SUSPENSE_END = '/q:sus=';
   const Q_SUSPENSE_RESOLVED = 'q:r';
   const Q_SEGMENT = 'q:s';
+  const Q_SEGMENT_OFFSET = 'q:o';
   const qDocument = document as QDocument;
   const vNodeDataMap =
     qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
@@ -97,10 +98,11 @@ export function processVNodeData(document: Document) {
       const segment = __EXPERIMENTAL__.suspense ? script.getAttribute(Q_SEGMENT) : null;
       if (segment) {
         (qContainerElement!.qSegmentVnodeData ||= new Map()).set(segment, script.textContent!);
-        const refs = (qContainerElement!.qSegmentVNodeRefs ||= new Map());
-        if (!refs.has(segment)) {
-          refs.set(segment, new Map<number, Element | ElementVNode>());
-        }
+        (qContainerElement!.qSegmentVnodeOffsets ||= new Map()).set(
+          segment,
+          parseInt(script.getAttribute(Q_SEGMENT_OFFSET) || '0', 10)
+        );
+        qContainerElement!.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
       } else {
         qContainerElement!.qVnodeData = script.textContent!;
         qContainerElement!.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
@@ -198,7 +200,8 @@ export function processVNodeData(document: Document) {
     qVNodeRefs: Map<number, Element | ElementVNode>,
     prefix: string,
     qContainerElement: ContainerElement | null,
-    segmentId?: string
+    segmentId?: string,
+    vNodeIndexOffset = 0
   ) => {
     const vData_length = vData.length;
     /// Stores the current element index as the TreeWalker traverses the DOM.
@@ -319,7 +322,6 @@ export function processVNodeData(document: Document) {
         if (__EXPERIMENTAL__.suspense && segmentId) {
           const element = node as QElement;
           element._qSegment = segmentId;
-          element._qSegmentIdx = elementIdx;
         }
         if (vNodeElementIndex < elementIdx) {
           // VNodeData needs to catch up with the elementIdx
@@ -357,7 +359,7 @@ export function processVNodeData(document: Document) {
         // );
         if (elementIdx === vNodeElementIndex) {
           if (needsToStoreRef === elementIdx) {
-            qVNodeRefs.set(elementIdx, node as Element);
+            qVNodeRefs.set(vNodeIndexOffset + elementIdx, node as Element);
           }
           const instructions = vData.substring(vData_start, vData_end);
           vNodeDataMap.set(node as Element, instructions);
@@ -394,18 +396,19 @@ export function processVNodeData(document: Document) {
     prefix: string
   ) => {
     const segmentData = qContainerElement?.qSegmentVnodeData;
-    const segmentRefs = qContainerElement?.qSegmentVNodeRefs;
-    if (!segmentData || !segmentRefs || !contentNode) {
+    const segmentOffsets = qContainerElement?.qSegmentVnodeOffsets;
+    const qVNodeRefs = qContainerElement?.qVNodeRefs;
+    if (!segmentData || !qVNodeRefs || !contentNode) {
       return;
     }
     const nextNode = contentNode ? nextSibling(contentNode) : null;
 
     const processSegment = (segmentId: string, firstNode: Node | null, exitNode: Node | null) => {
       const vData = segmentData.get(segmentId);
-      const qVNodeRefs = segmentRefs.get(segmentId);
-      if (!vData || !qVNodeRefs) {
+      if (!vData) {
         return;
       }
+      const vNodeIndexOffset = segmentOffsets?.get(segmentId) || 0;
       if (!firstNode || firstNode === exitNode) {
         return;
       }
@@ -423,7 +426,8 @@ export function processVNodeData(document: Document) {
         qVNodeRefs,
         prefix + segmentId + '  ',
         qContainerElement,
-        segmentId
+        segmentId,
+        vNodeIndexOffset
       );
     };
 

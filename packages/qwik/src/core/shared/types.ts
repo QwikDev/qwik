@@ -63,7 +63,6 @@ export type HostElement = VNode | ISsrNode;
 export interface QElement extends Element {
   _qDispatch?: Record<string, EventHandler | EventHandler[]>;
   _qSegment?: string;
-  _qSegmentIdx?: number;
   vNode?: VNode;
 }
 

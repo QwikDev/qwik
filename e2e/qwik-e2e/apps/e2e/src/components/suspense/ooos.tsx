@@ -8,6 +8,7 @@ import {
   type JSXOutput,
   type Signal,
 } from '@qwik.dev/core';
+import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
 
 type OutOfOrderReleaseStore = {
   resolved: Set<string>;
@@ -69,6 +70,12 @@ export const OutOfOrderSuspenseRoot = component$(() => {
         <CrossStateOutOfOrderSuspense />
       ) : scenario === 'reveal' ? (
         <RevealOutOfOrderSuspense />
+      ) : scenario === 'containers' ? (
+        <OutOfOrderSuspenseContainers />
+      ) : scenario === 'container' ? (
+        <OutOfOrderSuspenseContainerFragment />
+      ) : scenario === 'rerender' ? (
+        <OutOfOrderSuspenseRerender />
       ) : (
         <Suspense fallback={<FallbackOutOfOrderContent />}>
           <SlowOutOfOrderContent />
@@ -85,6 +92,77 @@ export const OutOfOrderSuspenseRoot = component$(() => {
       <span id="ooos-shell-count">{shellCount.value}</span>
       <footer id="ooos-footer">Footer shell</footer>
     </main>
+  );
+});
+
+const SSRStreamOutOfOrderContainer = component$<{
+  id: string;
+  releaseId: string | null;
+}>(({ id, releaseId }) => {
+  const decoder = new TextDecoder();
+  const getSSRStreamFunction = (remoteUrl: string) => async (stream: SSRStreamWriter) => {
+    const response = await fetch(`http://localhost:${(globalThis as any).PORT}${remoteUrl}`, {
+      headers: {
+        accept: 'text/html',
+      },
+    });
+    if (response.ok) {
+      const reader = response.body!.getReader();
+      let fragmentChunk = await reader.read();
+      while (!fragmentChunk.done) {
+        stream.write((<SSRRaw data={decoder.decode(fragmentChunk.value)} />) as string);
+        fragmentChunk = await reader.read();
+      }
+    } else {
+      console.error('Failed to connect with status:', response.status, response.statusText);
+    }
+  };
+  const params = new URLSearchParams({
+    fragment: '',
+    loader: 'false',
+    scenario: 'container',
+    id,
+  });
+  if (releaseId) {
+    params.set('release', releaseId);
+  }
+
+  return (
+    <section id={`ooos-${id}-stream`}>
+      <SSRStream>{getSSRStreamFunction(`/e2e/suspense-ooos?${params}`)}</SSRStream>
+    </section>
+  );
+});
+
+export const OutOfOrderSuspenseContainers = component$(() => {
+  const url = useServerData<string>('url');
+  const firstReleaseId = getSearchParam(url, 'first');
+  const secondReleaseId = getSearchParam(url, 'second');
+
+  return (
+    <section id="ooos-containers">
+      <SSRStreamOutOfOrderContainer id="container-first" releaseId={firstReleaseId} />
+      <SSRStreamOutOfOrderContainer id="container-second" releaseId={secondReleaseId} />
+    </section>
+  );
+});
+
+export const OutOfOrderSuspenseContainerFragment = component$(() => {
+  const url = useServerData<string>('url');
+  const id = getSearchParam(url, 'id') || 'container';
+  const label = id.replace(/-/g, ' ');
+
+  return (
+    <section id={`ooos-${id}-root`}>
+      <Suspense fallback={<OutOfOrderFallbackPanel id={id} label={label} />}>
+        <ControlledOutOfOrderContent id={id} label={label} releaseParam="release" />
+      </Suspense>
+      <ManualOutOfOrderReleaseButton
+        id={`ooos-${id}-release`}
+        label={`Resolve ${label}`}
+        releaseParam="release"
+      />
+    </section>
   );
 });
 
@@ -210,6 +288,35 @@ export const CrossStateOutOfOrderSuspense = component$(() => {
   );
 });
 
+export const OutOfOrderSuspenseRerender = component$(() => {
+  const render = useSignal(0);
+
+  return (
+    <section id="ooos-rerender-root">
+      <button id="ooos-rerender-button" onClick$={() => render.value++}>
+        Rerender keyed suspense
+      </button>
+      <span id="ooos-rerender-count">{render.value}</span>
+      <KeyedOutOfOrderSuspense key={render.value} value={render.value} />
+      <ManualOutOfOrderReleaseButton
+        id="ooos-rerender-release"
+        label="Resolve rerender suspense"
+        releaseParam="rerender"
+      />
+    </section>
+  );
+});
+
+export const KeyedOutOfOrderSuspense = component$((props: { value: number }) => {
+  return (
+    <section id="ooos-rerender-keyed" data-value={props.value}>
+      <Suspense fallback={<OutOfOrderFallbackPanel id="rerender" label="Rerender" />}>
+        <RerenderOutOfOrderContent value={props.value} />
+      </Suspense>
+    </section>
+  );
+});
+
 export const ManualOutOfOrderReleaseButton = component$(
   (props: { id: string; label: string; releaseParam: string }) => {
     const url = useServerData<string>('url');
@@ -225,6 +332,39 @@ export const ManualOutOfOrderReleaseButton = component$(
     return <span dangerouslySetInnerHTML={html} />;
   }
 );
+
+export const RerenderOutOfOrderContent = component$((props: { value: number }) => {
+  const url = useServerData<string>('url');
+  const requestId = useServerData<string>('ooosRequestId');
+  if (isServer) {
+    const releaseId = getSearchParam(url, 'rerender');
+    if (releaseId) {
+      return waitForOutOfOrderRelease(
+        requestId,
+        releaseId,
+        <RerenderOutOfOrderPanel value={props.value} />
+      );
+    }
+    return new Promise<JSXOutput>((resolve) => {
+      setTimeout(() => resolve(<RerenderOutOfOrderPanel value={props.value} />), 1000);
+    });
+  }
+  return <RerenderOutOfOrderPanel value={props.value} />;
+});
+
+export const RerenderOutOfOrderPanel = component$((props: { value: number }) => {
+  const count = useSignal(0);
+
+  return (
+    <section id="ooos-rerender-resolved">
+      <p id="ooos-rerender-resolved-label">Resolved rerender {props.value}</p>
+      <button id="ooos-rerender-resolved-button" onClick$={() => count.value++}>
+        Touch rerender resolved
+      </button>
+      <span id="ooos-rerender-resolved-count">{count.value}</span>
+    </section>
+  );
+});
 
 type ControlledOutOfOrderContentProps = {
   id: string;

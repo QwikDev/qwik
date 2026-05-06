@@ -26,10 +26,9 @@ import {
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
-  QSegmentAttr,
   QSegmentEffectsAttr,
-  QSegmentAttrSelector,
   QScopedStyle,
+  QStatePatchAttrSelector,
   QStyle,
   QStyleSelector,
   QStylesAllSelector,
@@ -105,10 +104,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
   private $rootForwardRefs$: Array<number | string> | null = null;
-  private $segmentRawStateData$: Map<string, unknown[]> = new Map();
-  private $segmentStateData$: Map<string, unknown[]> = new Map();
-  private $segmentForwardRefs$: Map<string, Array<number | string> | null> = new Map();
-  private $processedSegmentStateScripts$: WeakSet<Element> = new WeakSet();
+  private $processedStatePatchScripts$: WeakSet<Element> = new WeakSet();
   private $styleIds$: Set<string> | null = null;
 
   constructor(element: ContainerElement) {
@@ -131,9 +127,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
     document.qProcessVNodeData = processVNodeData;
     if (__EXPERIMENTAL__.suspense) {
-      document.qProcessOOOS = (doc: Document) => {
+      document.qProcessOOOS ||= (doc: Document) => {
         processVNodeData(doc);
-        this.$processSegmentStateScripts$();
+        const containers = doc.querySelectorAll(QContainerSelector);
+        for (let i = 0; i < containers.length; i++) {
+          (containers[i] as ContainerElement).qContainer?.$processSegmentStateScripts$();
+        }
       };
     }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
@@ -156,11 +155,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.vNodeLocate = () => null as any;
     this.$rawStateData$.length = 0;
     this.$stateData$.length = 0;
-    if (__EXPERIMENTAL__.suspense) {
-      this.$segmentRawStateData$.clear();
-      this.$segmentStateData$.clear();
-      this.$segmentForwardRefs$.clear();
-    }
     this.$getObjectById$ = () => undefined;
     const el = this.element;
     el.qContainer = undefined;
@@ -168,19 +162,24 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     el.qVNodeRefs = undefined;
     if (__EXPERIMENTAL__.suspense) {
       el.qSegmentVnodeData = undefined;
-      el.qSegmentVNodeRefs = undefined;
+      el.qSegmentVnodeOffsets = undefined;
     }
     el.removeAttribute(QContainerAttr);
     const document = el.ownerDocument as QDocument;
-    document.qVNodeData = undefined!;
+    const hasContainers = document.querySelector(QContainerSelector) !== null;
+    if (!hasContainers) {
+      document.qVNodeData = undefined!;
+    }
     if (__EXPERIMENTAL__.suspense) {
-      document.qProcessOOOS = undefined;
+      if (!hasContainers) {
+        document.qProcessOOOS = undefined;
+      }
     }
   }
 
   private $processRootStateScript$(): void {
     const rootState = this.element.querySelector(
-      `${this.$stateScriptSelector$()}:not(${QSegmentAttrSelector})`
+      `${this.$stateScriptSelector$()}:not(${QStatePatchAttrSelector})`
     );
     if (rootState) {
       this.$rawStateData$ = JSON.parse(rootState.textContent!);
@@ -199,42 +198,71 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       return;
     }
     const qwikStates = this.element.querySelectorAll(
-      `${this.$stateScriptSelector$()}${QSegmentAttrSelector}`
+      `${this.$stateScriptSelector$()}${QStatePatchAttrSelector}`
     );
     for (let i = 0; i < qwikStates.length; i++) {
       const stateScript = qwikStates[i];
-      if (this.$processedSegmentStateScripts$.has(stateScript)) {
+      if (this.$processedStatePatchScripts$.has(stateScript)) {
         continue;
       }
-      const segmentId = stateScript.getAttribute(QSegmentAttr);
-      if (!segmentId) {
-        continue;
-      }
-      this.$processedSegmentStateScripts$.add(stateScript);
-      this.$processSegmentState$(
-        segmentId,
-        JSON.parse(stateScript.textContent!),
+      this.$processedStatePatchScripts$.add(stateScript);
+      this.$processStatePatch$(
+        stateScript.textContent,
         stateScript.getAttribute(QSegmentEffectsAttr)
       );
     }
   }
 
-  private $processSegmentState$(
-    segmentId: string,
-    rawStateData: unknown[],
+  private $processStatePatch$(
+    textContent: string | null,
     externalRootEffectsIndex: string | null
   ): void {
     if (!__EXPERIMENTAL__.suspense) {
       return;
     }
-    preprocessState(rawStateData, this, segmentId);
-    const segmentForwardRefs = this.$forwardRefs$;
-    const segmentStateData = wrapDeserializerProxy(this, rawStateData) as unknown[];
-    this.$forwardRefs$ = this.$rootForwardRefs$;
-    this.$segmentRawStateData$.set(segmentId, rawStateData);
-    this.$segmentStateData$.set(segmentId, segmentStateData);
-    this.$segmentForwardRefs$.set(segmentId, segmentForwardRefs);
-    mergeExternalRootEffects(this, segmentStateData, externalRootEffectsIndex);
+    if (textContent) {
+      const [rootStart, rawStateData, forwardRefs] = JSON.parse(textContent) as [
+        number,
+        unknown[],
+        Array<number | string> | undefined,
+      ];
+      this.$appendStatePatchRoots$(rootStart, rawStateData);
+      this.$mergeForwardRefs$(forwardRefs);
+    }
+    mergeExternalRootEffects(this, this.$stateData$, externalRootEffectsIndex);
+  }
+
+  private $appendStatePatchRoots$(rootStart: number, rawStateData: unknown[]): void {
+    const currentRootCount = this.$rawStateData$.length / 2;
+    if (rootStart !== currentRootCount) {
+      if (qDev) {
+        throw new Error(
+          `Invalid Qwik state patch root start: expected ${currentRootCount}, received ${rootStart}.`
+        );
+      }
+      return;
+    }
+    for (let i = 0; i < rawStateData.length; i++) {
+      this.$rawStateData$[rootStart * 2 + i] = rawStateData[i];
+    }
+    preprocessState(this.$rawStateData$, this, undefined, rootStart * 2);
+    this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    this.$stateData$.length = this.$rawStateData$.length / 2;
+    this.$rootForwardRefs$ = this.$forwardRefs$;
+  }
+
+  private $mergeForwardRefs$(forwardRefs: Array<number | string> | undefined): void {
+    if (!forwardRefs) {
+      return;
+    }
+    const rootForwardRefs = (this.$rootForwardRefs$ ||= []);
+    for (let i = 0; i < forwardRefs.length; i++) {
+      const ref = forwardRefs[i];
+      if (ref !== -1 && ref !== undefined) {
+        rootForwardRefs[i] = ref;
+      }
+    }
+    this.$forwardRefs$ = rootForwardRefs;
   }
 
   /**
@@ -259,28 +287,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
   }
 
-  $setRawState$(id: number | string, vParent: VNode, segmentId?: string | null): void {
+  $setRawState$(id: number | string, vParent: VNode, _segmentId?: string | null): void {
     let stateId: number;
 
     if (typeof id === 'string') {
-      const segmentSeparator = __EXPERIMENTAL__.suspense ? id.indexOf(':') : -1;
-      if (segmentSeparator !== -1) {
-        stateId = Number(id.slice(segmentSeparator + 1));
-        segmentId = id.slice(0, segmentSeparator);
-      } else {
-        stateId = Number(id);
-      }
+      stateId = Number(id);
     } else {
       stateId = id;
     }
 
-    if (__EXPERIMENTAL__.suspense && segmentId) {
-      const segmentStateData = this.$segmentStateData$.get(segmentId);
-      if (segmentStateData) {
-        segmentStateData[stateId] = vParent;
-        return;
-      }
-    }
     this.$stateData$[stateId] = vParent;
   }
 
@@ -395,28 +410,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   $getObjectById$ = (id: number | string): unknown => {
-    if (__EXPERIMENTAL__.suspense && typeof id === 'string') {
-      const segmentSeparator = id.indexOf(':');
-      if (segmentSeparator !== -1) {
-        const segmentId = id.slice(0, segmentSeparator);
-        const segmentStateData = this.$segmentStateData$.get(segmentId);
-        if (segmentStateData) {
-          return getObjectById(id.slice(segmentSeparator + 1), segmentStateData);
-        }
-        return undefined;
-      }
-    }
     return getObjectById(id, this.$stateData$);
   };
 
   $getForwardRef$(id: number | string): number | string | undefined {
-    if (__EXPERIMENTAL__.suspense && typeof id === 'string') {
-      const segmentSeparator = id.indexOf(':');
-      if (segmentSeparator !== -1) {
-        const segmentForwardRefs = this.$segmentForwardRefs$.get(id.slice(0, segmentSeparator));
-        return segmentForwardRefs?.[Number(id.slice(segmentSeparator + 1))];
-      }
-    }
     return this.$rootForwardRefs$?.[Number(id)];
   }
 

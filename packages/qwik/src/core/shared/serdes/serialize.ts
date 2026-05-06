@@ -66,6 +66,7 @@ export class Serializer {
   private $s11nWeakRefs$ = new Map<unknown, number>();
   private $parent$: SeenRef | undefined;
   private $qrlMap$ = new Map<string, QRLInternal>();
+  private $streamedRootLimit$ = 0;
   private $writer$: StreamWriter;
   /** We need to determine this at runtime because polyfills may not be loaded a module load time */
   private $hasTemporal$ = typeof Temporal !== 'undefined';
@@ -75,7 +76,39 @@ export class Serializer {
   }
 
   async serialize(): Promise<void> {
-    await this.outputRoots();
+    const previousStreamedRootLimit = this.$streamedRootLimit$;
+    this.$streamedRootLimit$ = 0;
+    try {
+      await this.outputRoots();
+    } finally {
+      this.$streamedRootLimit$ = previousStreamedRootLimit;
+    }
+  }
+
+  async serializePatch(): Promise<void> {
+    const rootStart = this.$rootIdx$;
+    const previousStreamedRootLimit = this.$streamedRootLimit$;
+    this.$streamedRootLimit$ = rootStart;
+    this.$writer$.write(BRACKET_OPEN);
+    try {
+      this.$writer$.write(String(rootStart));
+      this.$writer$.write(COMMA);
+      this.$writer$.write(BRACKET_OPEN);
+      await this.outputPendingRoots();
+      this.$writer$.write(BRACKET_CLOSE);
+      const forwardRefs = this.getForwardRefsPayload();
+      if (forwardRefs) {
+        this.$writer$.write(COMMA);
+        this.outputForwardRefsArray(forwardRefs);
+      }
+    } finally {
+      this.$streamedRootLimit$ = previousStreamedRootLimit;
+    }
+    this.$writer$.write(BRACKET_CLOSE);
+  }
+
+  $setWriter$(writer: StreamWriter): void {
+    this.$writer$ = writer;
   }
 
   /** Helper to output an array */
@@ -201,6 +234,8 @@ export class Serializer {
       } else {
         return this.$serializationContext$.$markSeen$(value, this.$parent$, index);
       }
+    } else if (seen.$parent$ && this.isSeenInStreamedRoot(seen)) {
+      seen = this.$serializationContext$.$addDuplicateRoot$(value);
     }
 
     // Now that we saw it a second time, make sure it's a root
@@ -208,10 +243,10 @@ export class Serializer {
       // Note, this means it was output before so we always need a backref
       // Special case: we're a root so instead of adding a backref, we replace ourself
       if (!this.$parent$) {
-        this.$serializationContext$.$promoteToRoot$(seen, index);
+        this.$serializationContext$.$promoteToRoot$(seen, value, index);
         value = this.$serializationContext$.$roots$[index];
       } else {
-        this.$serializationContext$.$promoteToRoot$(seen);
+        this.$serializationContext$.$promoteToRoot$(seen, value);
       }
     }
 
@@ -234,6 +269,13 @@ export class Serializer {
       TypeIds.RootRef,
       typeof rootIdx === 'number' ? this.$serializationContext$.$formatLocalRef$(rootIdx) : rootIdx
     );
+  }
+
+  private isSeenInStreamedRoot(ref: SeenRef): boolean {
+    while (ref.$parent$) {
+      ref = ref.$parent$;
+    }
+    return ref.$index$ < this.$streamedRootLimit$;
   }
 
   // First check for scalars, then do objects with seen checks
@@ -688,15 +730,11 @@ export class Serializer {
     return this.$serializationContext$.$formatLocalRef$(forwardRefId);
   }
 
-  private async outputRoots() {
-    this.$writer$.write(BRACKET_OPEN);
+  private async outputPendingRoots(): Promise<number> {
+    let rootsWritten = 0;
     const { $roots$ } = this.$serializationContext$;
     while (this.$rootIdx$ < $roots$.length || this.$promises$.size) {
-      if (this.$rootIdx$ !== 0) {
-        this.$writer$.write(COMMA);
-      }
-
-      let separator = false;
+      let separator = rootsWritten > 0;
       for (; this.$rootIdx$ < $roots$.length; this.$rootIdx$++) {
         if (separator) {
           this.$writer$.write(COMMA);
@@ -704,6 +742,7 @@ export class Serializer {
           separator = true;
         }
         this.writeValue($roots$[this.$rootIdx$], this.$rootIdx$);
+        rootsWritten++;
       }
 
       if (this.$promises$.size) {
@@ -714,28 +753,43 @@ export class Serializer {
         }
       }
     }
+    return rootsWritten;
+  }
 
-    if (this.$forwardRefs$.length) {
-      let lastIdx = this.$forwardRefs$.length - 1;
-      while (lastIdx >= 0 && this.$forwardRefs$[lastIdx] === -1) {
-        lastIdx--;
+  private getForwardRefsPayload(): Array<number | string> | null {
+    let lastIdx = this.$forwardRefs$.length - 1;
+    while (lastIdx >= 0 && this.$forwardRefs$[lastIdx] === -1) {
+      lastIdx--;
+    }
+    if (lastIdx < 0) {
+      return null;
+    }
+    return lastIdx === this.$forwardRefs$.length - 1
+      ? this.$forwardRefs$
+      : this.$forwardRefs$.slice(0, lastIdx + 1);
+  }
+
+  private outputForwardRefsArray(forwardRefs: Array<number | string>): void {
+    this.outputArray(forwardRefs, true, (value) => {
+      if (typeof value === 'string') {
+        this.outputString(value);
+      } else {
+        this.$writer$.write(String(value));
       }
-      if (lastIdx >= 0) {
+    });
+  }
+
+  private async outputRoots() {
+    this.$writer$.write(BRACKET_OPEN);
+    const rootsWritten = await this.outputPendingRoots();
+
+    const forwardRefs = this.getForwardRefsPayload();
+    if (forwardRefs) {
+      if (rootsWritten > 0) {
         this.$writer$.write(COMMA);
-        this.$writer$.write(TypeIds.ForwardRefs + COMMA);
-        const out =
-          lastIdx === this.$forwardRefs$.length - 1
-            ? this.$forwardRefs$
-            : this.$forwardRefs$.slice(0, lastIdx + 1);
-        // We could also implement RLE of -1 values
-        this.outputArray(out, true, (value) => {
-          if (typeof value === 'string') {
-            this.outputString(value);
-          } else {
-            this.$writer$.write(String(value));
-          }
-        });
       }
+      this.$writer$.write(TypeIds.ForwardRefs + COMMA);
+      this.outputForwardRefsArray(forwardRefs);
     }
 
     this.$writer$.write(BRACKET_CLOSE);

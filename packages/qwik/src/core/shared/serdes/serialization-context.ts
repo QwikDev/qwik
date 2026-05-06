@@ -43,6 +43,8 @@ interface AddRootFn {
 }
 export interface SerializationContext {
   $serialize$: () => ValueOrPromise<void>;
+  $serializePatch$: () => ValueOrPromise<void>;
+  $setWriter$: (writer: StreamWriter) => void;
 
   $symbolToChunkResolver$: SymbolToChunkResolver;
 
@@ -60,6 +62,7 @@ export interface SerializationContext {
 
   /** Returns the root index of the object, if it is a root. Otherwise returns undefined. */
   $hasRootId$: (obj: unknown) => number | undefined;
+  $ensureRootId$: (obj: unknown) => number | undefined;
 
   /**
    * Root objects which need to be serialized.
@@ -69,13 +72,16 @@ export interface SerializationContext {
    * Returns the index of the root object.
    */
   $addRoot$: AddRootFn;
+  $addDuplicateRoot$: (obj: unknown) => SeenRef;
 
   /** Mark an object as seen during serialization. This is used to handle backreferences and cycles */
   $markSeen$: (obj: unknown, parent: SeenRef | undefined, index: number) => SeenRef;
 
   $roots$: unknown[];
+  $rootObjs$: unknown[];
 
-  $promoteToRoot$: (ref: SeenRef, index?: number) => void;
+  $promoteToRoot$: (ref: SeenRef, obj: unknown, index?: number) => void;
+  $commitRoot$: (root: unknown, obj: unknown) => number;
   $formatLocalRef$: (id: number) => number | string;
   $formatLocalPath$: (path: string) => string;
 
@@ -93,7 +99,7 @@ export interface SerializationContext {
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
   $eagerResume$: Set<unknown>;
-  $statePrefix$: string | null;
+  $rootIdOffset$: number;
   $getExternalRootId$: ((obj: unknown) => number | undefined) | null;
 
   $setProp$: (obj: any, prop: string, value: any) => void;
@@ -105,11 +111,12 @@ class SerializationContextImpl implements SerializationContext {
   private $syncFnOffset$ = 0;
   public $syncFns$: string[] = [];
   public $roots$: unknown[] = [];
+  public $rootObjs$: unknown[] = [];
   public $eagerResume$: Set<unknown> = new Set();
   public $eventQrls$: Set<QRL> = new Set();
   public $eventNames$: Set<string> = new Set();
   public $renderSymbols$: Set<string> = new Set();
-  public $statePrefix$: string | null = null;
+  public $rootIdOffset$ = 0;
   public $getExternalRootId$: ((obj: unknown) => number | undefined) | null = null;
   private $serializer$: Serializer;
 
@@ -139,6 +146,15 @@ class SerializationContextImpl implements SerializationContext {
     return await this.$serializer$.serialize();
   }
 
+  async $serializePatch$(): Promise<void> {
+    return await this.$serializer$.serializePatch();
+  }
+
+  $setWriter$(writer: StreamWriter): void {
+    this.$writer$ = writer;
+    this.$serializer$.$setWriter$(writer);
+  }
+
   getSeenRef(obj: unknown) {
     return this.$seenObjsMap$.get(obj);
   }
@@ -150,13 +166,18 @@ class SerializationContextImpl implements SerializationContext {
   }
 
   $formatLocalRef$(id: number): number | string {
-    return __EXPERIMENTAL__.suspense && this.$statePrefix$ ? `${this.$statePrefix$}${id}` : id;
+    return __EXPERIMENTAL__.suspense ? id + this.$rootIdOffset$ : id;
   }
 
   $formatLocalPath$(path: string): string {
-    return __EXPERIMENTAL__.suspense && this.$statePrefix$ && path.indexOf(':') === -1
-      ? `${this.$statePrefix$}${path}`
-      : path;
+    if (__EXPERIMENTAL__.suspense && this.$rootIdOffset$) {
+      const spaceIndex = path.indexOf(' ');
+      return spaceIndex === -1
+        ? String(parseInt(path, 10) + this.$rootIdOffset$)
+        : String(parseInt(path.slice(0, spaceIndex), 10) + this.$rootIdOffset$) +
+            path.slice(spaceIndex);
+    }
+    return path;
   }
 
   /**
@@ -176,14 +197,23 @@ class SerializationContextImpl implements SerializationContext {
     return this.$formatLocalPath$(path.join(' '));
   }
 
-  $promoteToRoot$(ref: SeenRef, index?: number) {
+  $promoteToRoot$(ref: SeenRef, obj: unknown, index?: number) {
     const path = this.$getObjectPath$(ref) as string;
     if (index === undefined) {
       index = this.$roots$.length;
     }
     this.$roots$[index] = new SerializationBackRef(path);
+    this.$rootObjs$[index] = obj;
     ref.$parent$ = null;
     ref.$index$ = index;
+  }
+
+  $commitRoot$(root: unknown, obj: unknown): number {
+    const index = this.$roots$.length;
+    this.$roots$.push(root);
+    this.$rootObjs$[index] = obj;
+    this.$seenObjsMap$.set(obj, { $index$: index });
+    return index;
   }
 
   $addRoot$(obj: any, returnRef: true): SeenRef;
@@ -207,14 +237,25 @@ class SerializationContextImpl implements SerializationContext {
       };
       this.$seenObjsMap$.set(obj, seen);
       this.$roots$.push(obj);
+      this.$rootObjs$.push(obj);
     } else {
       if (seen.$parent$) {
-        this.$promoteToRoot$(seen);
+        this.$promoteToRoot$(seen, obj);
       }
       index = seen.$index$;
     }
 
     return returnRef ? seen : this.$formatLocalRef$(index);
+  }
+
+  $addDuplicateRoot$(obj: any): SeenRef {
+    const seen = {
+      $index$: this.$roots$.length,
+    };
+    this.$seenObjsMap$.set(obj, seen);
+    this.$roots$.push(obj);
+    this.$rootObjs$.push(obj);
+    return seen;
   }
 
   $isSsrNode$(obj: unknown): obj is SsrNode {
@@ -228,6 +269,23 @@ class SerializationContextImpl implements SerializationContext {
   $hasRootId$(obj: any) {
     const id = this.$seenObjsMap$.get(obj);
     return id && (id.$parent$ ? undefined : id.$index$);
+  }
+
+  $ensureRootId$(obj: any) {
+    const ref = this.$seenObjsMap$.get(obj);
+    if (!ref) {
+      return undefined;
+    }
+    if (!ref.$parent$) {
+      return ref.$index$;
+    }
+    const index = this.$roots$.length;
+    const path = this.$getObjectPath$(ref) as string;
+    this.$roots$.push(new SerializationBackRef(path));
+    this.$rootObjs$[index] = obj;
+    ref.$parent$ = null;
+    ref.$index$ = index;
+    return index;
   }
 
   $setSyncFnOffset$(offset: number, existingFns?: string[]): void {

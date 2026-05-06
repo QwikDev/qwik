@@ -196,7 +196,7 @@ export interface _ContainerElement extends HTMLElement {
     // (undocumented)
     qContainer?: ClientContainer;
     qSegmentVnodeData?: Map<string, string>;
-    qSegmentVNodeRefs?: Map<string, Map<number, Element | _ElementVNode>>;
+    qSegmentVnodeOffsets?: Map<string, number>;
     qVnodeData?: string;
     qVNodeRefs?: Map<number, Element | _ElementVNode>;
 }
@@ -317,7 +317,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
     // (undocumented)
-    $setRawState$(id: number | string, vParent: _VNode, segmentId?: string | null): void;
+    $setRawState$(id: number | string, vParent: _VNode, _segmentId?: string | null): void;
     // (undocumented)
     $storeProxyMap$: ObjToProxyMap;
     constructor(element: _ContainerElement);
@@ -723,7 +723,7 @@ export const PrefetchServiceWorker: (opts: {
 // Warning: (ae-forgotten-export) The symbol "DeserializeContainer" needs to be exported by the entry point index.d.ts
 //
 // @internal
-export function _preprocessState(data: unknown[], container: DeserializeContainer, segmentId?: string): void;
+export function _preprocessState(data: unknown[], container: DeserializeContainer, segmentId?: string, startIndex?: number): void;
 
 // @public
 export type PropFunction<T> = QRL<T>;

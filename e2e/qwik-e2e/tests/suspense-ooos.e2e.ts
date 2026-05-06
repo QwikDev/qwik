@@ -189,4 +189,71 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-reveal-second-resolved-count')).toHaveText('1');
     await navigation;
   });
+
+  test('keeps vnode structure stable when resolved suspense content is keyed rerendered', async ({
+    page,
+  }, testInfo) => {
+    const releaseId = `rerender-${testInfo.workerIndex}-${Date.now()}`;
+    const params = new URLSearchParams({
+      scenario: 'rerender',
+      rerender: releaseId,
+    });
+    const navigation = page.goto(`/e2e/suspense-ooos?${params}`, { waitUntil: 'commit' });
+
+    await expect(page.locator('#ooos-title')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-rerender-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-rerender-resolved')).toHaveCount(0);
+    await expect(page.locator('#ooos-rerender-keyed')).toHaveAttribute('data-value', '0');
+
+    await page.locator('#ooos-rerender-release').click();
+    await expect(page.locator('#ooos-rerender-resolved')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-rerender-fallback')).toBeHidden();
+    await expect(page.locator('#ooos-rerender-resolved-label')).toHaveText('Resolved rerender 0');
+
+    await page.locator('#ooos-rerender-resolved-button').click();
+    await expect(page.locator('#ooos-rerender-resolved-count')).toHaveText('1');
+
+    await page.locator('#ooos-rerender-button').click();
+    await expect(page.locator('#ooos-rerender-count')).toHaveText('1');
+    await expect(page.locator('#ooos-rerender-keyed')).toHaveAttribute('data-value', '1');
+    await expect(page.locator('#ooos-rerender-resolved')).toBeVisible();
+    await expect(page.locator('#ooos-rerender-resolved-label')).toHaveText('Resolved rerender 1');
+    await expect(page.locator('#ooos-rerender-resolved-count')).toHaveText('0');
+
+    await page.locator('#ooos-rerender-resolved-button').click();
+    await expect(page.locator('#ooos-rerender-resolved-count')).toHaveText('1');
+    await navigation;
+  });
+
+  test('keeps out-of-order swaps scoped to streamed containers', async ({ page }, testInfo) => {
+    const firstReleaseId = `container-first-${testInfo.workerIndex}-${Date.now()}`;
+    const secondReleaseId = `container-second-${testInfo.workerIndex}-${Date.now()}`;
+    const params = new URLSearchParams({
+      scenario: 'containers',
+      first: firstReleaseId,
+      second: secondReleaseId,
+    });
+    const navigation = page.goto(`/e2e/suspense-ooos?${params}`, { waitUntil: 'commit' });
+
+    await expect(page.locator('#ooos-container-first-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-container-first-resolved')).toHaveCount(0);
+
+    await page.locator('#ooos-container-first-release').click();
+    await expect(page.locator('#ooos-container-first-resolved')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-container-first-fallback')).toBeHidden();
+
+    await expect(page.locator('#ooos-container-second-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-container-second-resolved')).toHaveCount(0);
+
+    await page.locator('#ooos-container-second-release').click();
+    await expect(page.locator('#ooos-container-second-resolved')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-container-second-fallback')).toBeHidden();
+    await expect(page.locator('#ooos-container-first-resolved')).toBeVisible();
+
+    await page.locator('#ooos-container-first-resolved-button').click();
+    await page.locator('#ooos-container-second-resolved-button').click();
+    await expect(page.locator('#ooos-container-first-resolved-count')).toHaveText('1');
+    await expect(page.locator('#ooos-container-second-resolved-count')).toHaveText('1');
+    await navigation;
+  });
 });

@@ -635,7 +635,10 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         pipeSource = readable.pipeThrough(capture);
       }
 
-      const pipe = pipeSource.pipeTo(writableStream, { preventClose: true });
+      let pipeError: unknown;
+      const pipe = pipeSource.pipeTo(writableStream, { preventClose: true }).catch((error) => {
+        pipeError = error;
+      });
       const stream = writable.getWriter();
       const status = requestEv.status();
       try {
@@ -664,6 +667,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         await stream.ready;
         await stream.close();
         await pipe;
+      }
+      if (pipeError) {
+        throw pipeError;
       }
 
       if (eTagCacheKey && cacheChunks && cacheChunks.length > 0) {

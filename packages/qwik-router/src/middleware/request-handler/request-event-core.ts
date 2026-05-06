@@ -1,10 +1,4 @@
-import type { ValueOrPromise } from '@qwik.dev/core';
-import {
-  _deserialize,
-  _UNINITIALIZED,
-  isDev,
-  type SerializationStrategy,
-} from '@qwik.dev/core/internal';
+import { _deserialize, isDev } from '@qwik.dev/core/internal';
 import type {
   ActionInternal,
   FailReturn,
@@ -12,6 +6,7 @@ import type {
   LoadedRoute,
   LoaderInternal,
 } from '../../runtime/src/types';
+import { getRouteLoaderValues, loadRouteLoader } from '../../runtime/src/route-loaders';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RewriteMessage } from './rewrite-handler';
 import type { ServerError } from './server-error';
@@ -37,19 +32,19 @@ interface RequestEventDeps {
   RedirectMessage: new () => RedirectMessage;
   RewriteMessage: new (pathname: string) => RewriteMessage;
   ServerError: new <T = any>(status: number, data: T) => ServerError<T>;
-  getRouteLoaderPromise: typeof import('./request-loader').getRouteLoaderPromise;
-  getRouteMatchPathname: typeof import('./request-path').getRouteMatchPathname;
-  IsQData: string;
+  recognizeRequest: typeof import('./request-path').recognizeRequest;
+  trimRecognizedInternalPathname: typeof import('./request-path').trimRecognizedInternalPathname;
+  IsQLoader: string;
+  IsQAction: string;
+  QLoaderId: string;
+  QActionId: string;
+  QACTION_KEY: string;
   encoder: TextEncoder;
   getContentType: typeof import('./request-utils').getContentType;
 }
 
-const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
-export const RequestEvLoaderSerializationStrategyMap = Symbol(
-  'RequestEvLoaderSerializationStrategyMap'
-);
 export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
@@ -58,8 +53,6 @@ export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
 export const RequestEvETagCacheKey = '@eTagCacheKey';
 export const RequestEvHttpStatusMessage = '@httpStatusMessage';
-/** @internal */
-export const RequestEvShareQData = 'qData';
 
 export function createRequestEventWithDeps(
   deps: RequestEventDeps,
@@ -75,12 +68,21 @@ export function createRequestEventWithDeps(
   const cookie = new deps.Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
-  const { pathname, isInternal } = deps.getRouteMatchPathname(url.pathname);
-  if (isInternal) {
-    // For the middleware callbacks we pretend it's a regular request
-    url.pathname = pathname;
-    // But we set this flag so that they can act differently
-    sharedMap.set(deps.IsQData, true);
+  // Recognize internal request types (q-loader-*.json)
+  const recognized = deps.recognizeRequest(url.pathname);
+  if (recognized) {
+    url.pathname = deps.trimRecognizedInternalPathname(url.pathname, recognized);
+    sharedMap.set(recognized.type, true);
+    if (recognized.data?.loaderId) {
+      sharedMap.set(deps.QLoaderId, recognized.data.loaderId);
+    }
+  }
+
+  // Detect action requests via ?qaction= query parameter
+  const actionId = url.searchParams.get(deps.QACTION_KEY);
+  if (actionId) {
+    sharedMap.set(deps.IsQAction, true);
+    sharedMap.set(deps.QActionId, actionId);
   }
 
   let routeModuleIndex = -1;
@@ -163,10 +165,7 @@ export function createRequestEventWithDeps(
     return message;
   };
 
-  const loaders: Record<string, ValueOrPromise<unknown> | undefined> = {};
   const requestEv: RequestEventInternal = {
-    [RequestEvLoaders]: loaders,
-    [RequestEvLoaderSerializationStrategyMap]: new Map(),
     [RequestEvMode]: serverRequestEv.mode,
     get [RequestEvRoute]() {
       return loadedRoute;
@@ -213,25 +212,18 @@ export function createRequestEventWithDeps(
     },
 
     resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
-      // create user request event, which is a narrowed down request context
-      const id = loaderOrAction.__id;
       if (loaderOrAction.__brand === 'server_loader') {
-        if (!(id in loaders)) {
-          throw new Error(
-            'You can not get the returned data of a loader that has not been executed for this request.'
-          );
+        // Check if the loader was already run by the middleware
+        const loaderValues = getRouteLoaderValues(requestEv);
+        if (loaderOrAction.__id in loaderValues) {
+          return loaderValues[loaderOrAction.__id];
         }
-        if (loaders[id] === _UNINITIALIZED) {
-          await deps.getRouteLoaderPromise(
-            loaderOrAction,
-            loaders,
-            requestEv[RequestEvLoaderSerializationStrategyMap],
-            requestEv
-          );
-        }
+        return loadRouteLoader(loaderOrAction, requestEv);
       }
 
-      return loaders[id];
+      return requestEv.sharedMap.get(RequestEvSharedActionId) === loaderOrAction.__id
+        ? requestEv.sharedMap.get('@actionResult')
+        : undefined;
     }) as ResolveValue,
 
     status: (statusCode?: number) => {
@@ -361,8 +353,6 @@ export function createRequestEventWithDeps(
 }
 
 export interface RequestEventInternal extends Readonly<RequestEvent>, Readonly<RequestEventLoader> {
-  readonly [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
-  readonly [RequestEvLoaderSerializationStrategyMap]: Map<string, SerializationStrategy>;
   readonly [RequestEvMode]: ServerRequestMode;
   readonly [RequestEvRoute]: LoadedRoute;
 
@@ -385,14 +375,6 @@ export interface RequestEventInternal extends Readonly<RequestEvent>, Readonly<R
     requestHandlers: RequestHandler<any>[],
     url: URL
   ): void;
-}
-
-export function getRequestLoaders(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvLoaders];
-}
-
-export function getRequestLoaderSerializationStrategyMap(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvLoaderSerializationStrategyMap];
 }
 
 export function getRequestRoute(requestEv: RequestEventCommon) {

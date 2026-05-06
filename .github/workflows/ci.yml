@@ -80,7 +80,7 @@ jobs:
         run: echo event_name=${{ github.event_name }}
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set Dist Tag
         id: set_dist_tag
@@ -137,7 +137,7 @@ jobs:
 
       - name: 'check cache: qwik'
         id: cache-qwik
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: packages/qwik/dist
@@ -147,7 +147,7 @@ jobs:
       - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
       - name: 'check cache: rust'
         id: cache-rust
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: packages/optimizer/bindings
@@ -155,7 +155,7 @@ jobs:
       - run: 'echo ${{ steps.cache-rust.outputs.cache-primary-key }} > rust-key.txt'
       - name: 'check cache: others'
         id: cache-others
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: |
@@ -168,14 +168,14 @@ jobs:
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: docs-build-completed.txt
           key: ${{ hashfiles('others-key.txt', 'packages/docs/**/*') }}
       - name: 'check cache: insights'
         id: cache-insights
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: |
@@ -184,35 +184,35 @@ jobs:
           key: ${{ hashfiles('others-key.txt', 'packages/insights/**/*') }}
       - name: 'check cache: unit tests'
         id: cache-unit
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: unit-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'packages/**/*.unit.*') }}
       - name: 'check cache: benchmarks'
         id: cache-bench
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: bench-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'packages/**/*.bench.*', 'scripts/validate-bench*', 'packages/docs/**/*') }}
       - name: 'check cache: e2e tests'
         id: cache-e2e
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: e2e-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'starters/**/*') }}
       - name: 'check cache: cli e2e tests'
         id: cache-cli-e2e
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: cli-e2e-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'e2e/**/*') }}
       - name: 'check cache: docs e2e tests'
         id: cache-docs-e2e
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: docs-e2e-tests-completed.txt
@@ -226,13 +226,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         if: needs.changes.outputs.build-qwik == 'true'
       - name: Setup Node
         if: needs.changes.outputs.build-qwik == 'true'
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
@@ -252,7 +252,7 @@ jobs:
 
       - name: Restore qwik cache
         if: needs.changes.outputs.build-qwik != 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           fail-on-cache-miss: true
           path: packages/qwik/dist
@@ -264,13 +264,13 @@ jobs:
 
       - name: Save qwik cache
         if: needs.changes.outputs.build-qwik == 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-qwik }}
           path: packages/qwik/dist
 
       - name: Upload Qwik artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-qwik
           include-hidden-files: true
@@ -300,16 +300,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: clippy,rustfmt
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
@@ -343,7 +343,7 @@ jobs:
         run: ls -lR packages/optimizer/bindings/
 
       - name: Upload Platform Binding Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-bindings-${{ matrix.settings.target }}
           include-hidden-files: true
@@ -367,7 +367,7 @@ jobs:
         run: exit 1
 
       - name: Restore artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Move Rust Artifacts
         if: needs.changes.outputs.build-rust == 'true'
@@ -385,13 +385,13 @@ jobs:
 
       - name: Save rust cache
         if: needs.changes.outputs.build-rust == 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-rust }}
           path: packages/optimizer/
 
       - name: Upload optimizer artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-optimizer
           include-hidden-files: true
@@ -429,26 +429,26 @@ jobs:
 
       - name: Checkout
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         if: needs.changes.outputs.build-others == 'true'
       - name: Setup Node
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Restore Qwik artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: artifact-qwik
           path: packages/qwik/dist/
 
       - name: Restore Optimizer artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: artifact-optimizer
           path: packages/optimizer/
@@ -462,7 +462,7 @@ jobs:
         run: pnpm build --tsc --api --qwikrouter --cli --qwikreact --eslint --set-dist-tag="${{ needs.changes.outputs.disttag }}"
       - name: Save others cache
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-others }}
           path: |
@@ -473,7 +473,7 @@ jobs:
 
       - name: 'restore: qwik-router & others'
         if: needs.changes.outputs.build-others != 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             packages/qwik-router/lib
@@ -486,7 +486,7 @@ jobs:
         run: tree -a packages/qwik-router/lib/
 
       - name: Upload QwikRouter Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-qwikrouter
           include-hidden-files: true
@@ -497,7 +497,7 @@ jobs:
         run: tree -a packages/qwik-react/lib/
 
       - name: Upload qwik-react Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-qwikreact
           include-hidden-files: true
@@ -509,7 +509,7 @@ jobs:
         run: tree -a packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-create-qwik
           include-hidden-files: true
@@ -520,7 +520,7 @@ jobs:
         run: tree -a packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-eslint-plugin-qwik
           include-hidden-files: true
@@ -546,18 +546,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -567,7 +567,7 @@ jobs:
         run: pnpm run build.packages.insights
 
       - name: Save Insights Cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-insights }}
           path: |
@@ -593,18 +593,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -614,7 +614,7 @@ jobs:
         run: pnpm build --tsc-docs && pnpm run build.packages.docs && echo ok > docs-build-completed.txt
 
       - name: Save Docs Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-docs
           include-hidden-files: true
@@ -623,7 +623,7 @@ jobs:
             packages/docs/server
 
       - name: Save Docs Cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-docs }}
           path: docs-build-completed.txt
@@ -650,18 +650,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -675,13 +675,13 @@ jobs:
         run: pnpm run test.e2e.docs && echo ok > docs-e2e-tests-completed.txt
 
       - name: Save Docs E2E Tests Cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-docs-e2e }}
           path: docs-e2e-tests-completed.txt
 
       - name: Upload Playwright Trace
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: docs-playwright-report
@@ -713,18 +713,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -755,7 +755,7 @@ jobs:
         run: echo ok > unit-tests-completed.txt
 
       - name: Save unit tests cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-unit }}
           path: unit-tests-completed.txt
@@ -784,18 +784,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -829,7 +829,7 @@ jobs:
         run: echo ok > bench-tests-completed.txt
 
       - name: Save benchmarks cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-bench }}
           path: bench-tests-completed.txt
@@ -875,18 +875,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -900,7 +900,7 @@ jobs:
         run: pnpm run test.e2e.${{ matrix.settings.browser }}
 
       - name: Upload Playwright Trace
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure() # only when tests fail
         with:
           name: playwright-report
@@ -946,18 +946,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -996,7 +996,7 @@ jobs:
         run: echo ok > e2e-tests-completed.txt
 
       - name: Save e2e tests cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-e2e }}
           path: e2e-tests-completed.txt
@@ -1022,7 +1022,7 @@ jobs:
         run: echo ok > cli-e2e-tests-completed.txt
 
       - name: Save cli-e2e tests cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-cli-e2e }}
           path: cli-e2e-tests-completed.txt
@@ -1033,11 +1033,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
@@ -1111,18 +1111,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts

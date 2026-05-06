@@ -169,6 +169,21 @@ export interface PluginOptions {
   rewriteRoutes?: RewriteRouteOption[];
   /** The serialization strategy for route loaders. Defaults to `never`. */
   defaultLoadersSerializationStrategy?: SerializationStrategy;
+  /**
+   * Enable strict mode for route loaders and actions by default.
+   *
+   * When true:
+   *
+   * - Loaders without an explicit `search` option act as if `search: []` — they only re-fetch when
+   *   the route path changes and ignore all URL search params.
+   * - Actions without an explicit `invalidate` option act as if `invalidate: []` — they don't re-run
+   *   any loaders after completion.
+   *
+   * Individual loaders/actions can override this by specifying `search` or `invalidate` explicitly.
+   *
+   * Defaults to `true`.
+   */
+  strictLoaders?: boolean;
 }
 
 export interface MdxPlugins {

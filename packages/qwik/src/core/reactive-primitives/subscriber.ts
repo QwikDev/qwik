@@ -5,6 +5,7 @@ import { Consumer, EffectProperty, EffectSubscription } from './types';
 import { _EFFECT_BACK_REF, type BackRef } from './backref';
 import type { SubscriptionData } from './subscription-data';
 
+/** @internal */
 export function getSubscriber(
   effect: Consumer,
   prop: EffectProperty | string,

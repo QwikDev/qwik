@@ -19,10 +19,13 @@ export const useNestedLoader = routeLoader$(async (requestEv) => {
 
 export default component$(() => {
   const testSignal = useTestLoader();
+  const eagerSignal = useTestLoaderEager();
   const toggle = useSignal(false);
   return (
     <>
       {testSignal.value.test}
+      {/* Read eager signal in default render path so it's computed + serialized during SSR */}
+      <span id="eager-ssr">{eagerSignal.value.foo}</span>
       <button id="toggle-child" onClick$={() => (toggle.value = !toggle.value)}>
         toggle child
       </button>

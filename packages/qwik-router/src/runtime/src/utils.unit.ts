@@ -1,6 +1,5 @@
 import { assert, test } from 'vitest';
 import {
-  getClientDataPath,
   getClientNavPath,
   shouldPreload,
   isSameOrigin,
@@ -60,29 +59,6 @@ import {
   const b = new URL(t.b);
   test(`isSameOriginDifferentPathname(${a},${b})`, () => {
     assert.equal(isSameOriginDifferentPathname(a, b), t.expect);
-  });
-});
-
-[
-  { pathname: '/', expect: '/q-data.json' },
-  { pathname: '/about', expect: '/about/q-data.json' },
-  { pathname: '/about/', expect: '/about/q-data.json' },
-].forEach((t) => {
-  test(`getClientEndpointUrl("${t.pathname}")`, () => {
-    const endpointPath = getClientDataPath(t.pathname);
-    assert.equal(endpointPath, t.expect);
-  });
-});
-
-[
-  { pathname: '/', search: '?foo=bar', expect: '/q-data.json?foo=bar' },
-  { pathname: '/about', search: '?foo=bar', expect: '/about/q-data.json?foo=bar' },
-  { pathname: '/about/', search: '?foo=bar', expect: '/about/q-data.json?foo=bar' },
-  { pathname: '/about/', search: '?foo=bar&baz=qux', expect: '/about/q-data.json?foo=bar&baz=qux' },
-].forEach((t) => {
-  test(`getClientEndpointUrl("${t.pathname}", "${t.search}")`, () => {
-    const endpointPath = getClientDataPath(t.pathname, t.search);
-    assert.equal(endpointPath, t.expect);
   });
 });
 

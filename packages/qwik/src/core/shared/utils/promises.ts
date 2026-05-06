@@ -85,6 +85,7 @@ export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;
 };
 
+/** @internal */
 export const delay = (timeout: number) => {
   return new Promise((resolve) => {
     setTimeout(resolve, timeout);
@@ -103,6 +104,8 @@ const justThrow = (e: any) => {
 /**
  * Retries a function that throws a promise. If you pass `onError`, you're responsible for handling
  * errors.
+ *
+ * @internal
  */
 export function retryOnPromise<T>(
   fn: () => ValueOrPromise<T>,

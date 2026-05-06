@@ -3,7 +3,7 @@ import type {
   RebuildRouteInfoInternal,
   RequestHandler,
 } from '../../runtime/src/types';
-import { _asyncRequestStore } from './async-request-store';
+import { _getAsyncRequestStore } from './async-request-store';
 import { getErrorHtml } from './error-handler';
 import { type RequestEventInternal } from './request-event-core';
 import { createRequestEvent } from './request-event';
@@ -33,7 +33,7 @@ export function runQwikRouter<T>(
       RedirectMessage,
       RewriteMessage,
       ServerError,
-      asyncRequestStore: _asyncRequestStore,
+      asyncRequestStore: _getAsyncRequestStore(),
       createRequestEvent,
       encoder,
       getErrorHtml,

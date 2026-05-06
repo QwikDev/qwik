@@ -76,8 +76,6 @@ export {
   globalActionQrl,
   routeAction$,
   routeActionQrl,
-  routeLoader$,
-  routeLoaderQrl,
   server$,
   serverQrl,
   valibot$,
@@ -87,6 +85,7 @@ export {
   zod$,
   zodQrl,
 } from './server-functions';
+export { routeLoader$, routeLoaderQrl } from './route-loaders';
 export { ServiceWorkerRegister } from './sw-component';
 export {
   useContent,

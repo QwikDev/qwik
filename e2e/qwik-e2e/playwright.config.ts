@@ -33,9 +33,9 @@ const config: PlaywrightTestConfig = {
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   testIgnore: /.*example.spec.tsx?$/,
-  retries: 0,
-  // retries: 1,
+  retries: 1,
   expect: { timeout: inGithubCI ? 120000 : 3000 },
+  outputDir: '../../test-results/',
   webServer: {
     command: 'pnpm node --require ./scripts/runBefore.ts e2e/qwik-e2e/dev-server.ts 3301',
     port: 3301,

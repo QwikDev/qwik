@@ -375,11 +375,17 @@ export interface QwikRouterEnvData {
     // (undocumented)
     loadedRoute: LoadedRoute;
     // (undocumented)
+    loaderValues: Record<string, unknown>;
+    // (undocumented)
     params: PathParams;
     // Warning: (ae-forgotten-export) The symbol "EndpointResponse" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     response: EndpointResponse;
+    // Warning: (ae-forgotten-export) The symbol "RouteLoaderCtx" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    routeLoaderCtx: RouteLoaderCtx;
     // (undocumented)
     routeName: string;
 }
@@ -446,7 +452,7 @@ export type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Recor
     readonly manifestHash: string;
 };
 
-// @public (undocumented)
+// @public
 export const routeAction$: ActionConstructor;
 
 // Warning: (ae-internal-missing-underscore) The name "routeActionQrl" should be prefixed with an underscore because the declaration is marked as @internal
@@ -484,11 +490,12 @@ export interface RouteData {
     // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
     _N?: MenuModuleLoader;
     _P?: string;
+    _R?: string[];
 }
 
 // Warning: (ae-forgotten-export) The symbol "LoaderConstructor" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export const routeLoader$: LoaderConstructor;
 
 // Warning: (ae-forgotten-export) The symbol "LoaderConstructorQRL" needs to be exported by the entry point index.d.ts

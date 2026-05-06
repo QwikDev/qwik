@@ -235,6 +235,7 @@ export const runTask = (
   return result;
 };
 
+/** @internal */
 export class Task<T = unknown, B = T>
   extends BackRef
   implements DescriptorBase<unknown, Signal<B>>

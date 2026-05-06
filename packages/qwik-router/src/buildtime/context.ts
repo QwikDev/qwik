@@ -1,5 +1,6 @@
 import { isAbsolute, resolve } from 'node:path';
 import { normalizePath } from '../utils/fs';
+import { ensureSlash } from '../utils/pathname';
 import type { RoutingContext, NormalizedPluginOptions, PluginOptions } from './types';
 
 export function createBuildContext(
@@ -52,7 +53,7 @@ function normalizeOptions(
       `warning: vite's config.base must begin and end with /. This will be an error in v2. If you have a valid use case, please open an issue.`
     );
     if (!viteBasePath.endsWith('/')) {
-      viteBasePath += '/';
+      viteBasePath = ensureSlash(viteBasePath);
     }
   }
   const opts: NormalizedPluginOptions = { ...userOpts } as any;
@@ -86,7 +87,7 @@ function normalizeOptions(
     console.error(
       `Warning: qwik-router plugin basePathname must end with /. This will be an error in v2`
     );
-    opts.basePathname += '/';
+    opts.basePathname = ensureSlash(opts.basePathname);
   }
 
   // cleanup basePathname
@@ -95,6 +96,9 @@ function normalizeOptions(
 
   opts.mdx = opts.mdx || {};
   opts.platform = opts.platform || {};
+  if (opts.strictLoaders === undefined) {
+    opts.strictLoaders = true;
+  }
 
   return opts;
 }

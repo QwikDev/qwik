@@ -95,6 +95,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
+  const segmentCallbacks = new Set<(parentId: string, segment: SegmentAnalysis) => void>();
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
@@ -436,8 +437,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
 
-    if (opts.target === 'client' && !devServer) {
-      // emitFile() is only supported during build, not in Vite serve mode
+    if (opts.target === 'client') {
       const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
         skipSelf: true,
       });
@@ -740,7 +740,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // In HMR mode, append self-accept code to QRL segments
       // When the parent file changes, Vite invalidates and re-serves the segment.
       // The custom event will ensure the re-rendering of mounted components, when non-segment files are changed.
-      // This is needed to propagate changes from imports that are not QRL parents, for example styles.
       if (devServer?.hot && parentId && opts.devTools.hmr) {
         const parentUrl = parentId.startsWith(opts.rootDir!)
           ? parentId.slice(opts.rootDir!.length)
@@ -828,21 +827,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
       if (devServer) {
-        const moduleGraph =
-          (ctx.environment as DevEnvironment | undefined)?.moduleGraph ?? devServer.moduleGraph;
-        devPath = moduleGraph.getModuleById(pathId)?.url;
-        // Fallback: if the module isn't in the graph yet (first transform),
-        // compute a root-relative URL path that matches what hotUpdate sends.
-        if (!devPath && opts.rootDir) {
-          const rootDir = normalizePath(opts.rootDir);
-          const normalizedId = normalizePath(pathId);
-          if (normalizedId.startsWith(rootDir)) {
-            devPath = normalizedId.slice(rootDir.length);
-            if (!devPath.startsWith('/')) {
-              devPath = '/' + devPath;
-            }
-          }
-        }
+        devPath = devServer.moduleGraph.getModuleById(pathId)?.url;
       }
       const transformOpts: TransformModulesOptions = {
         input: [{ code, path: filePath, devPath }],
@@ -897,13 +882,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
-          if (devServer) {
-            const mod = devServer.moduleGraph.getModuleById(key);
-            if (mod) {
-              // not sure if this works
-              devServer.moduleGraph.invalidateModule(mod);
-            }
-          }
           if (opts.target === 'client' && !devServer) {
             // rollup must be told about all entry points
             ctx.emitFile({
@@ -911,6 +889,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
               type: 'chunk',
               preserveSignature: 'allow-extension',
             });
+          }
+          // Notify segment callbacks
+          if (mod.segment && segmentCallbacks.size > 0) {
+            for (const cb of segmentCallbacks) {
+              cb(id, mod.segment);
+            }
           }
         }
       }
@@ -1233,6 +1217,7 @@ export const isDev = ${JSON.stringify(isDev)};
     normalizePath,
     onDiagnostics,
     resolveId,
+    segmentCallbacks,
     transform,
     validateSource,
     setSourceMapSupport,

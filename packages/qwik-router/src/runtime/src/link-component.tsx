@@ -11,15 +11,15 @@ import {
   type QwikIntrinsicElements,
   type QwikVisibleEvent,
 } from '@qwik.dev/core';
-import { preloadRouteBundles } from './client-navigate';
-import { loadClientData } from './use-endpoint';
-import { useLocation, useNavigate } from './use-functions';
+import { prefetchRoute } from './prefetch-route';
+import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
+  const head = useDocumentHead();
   const originalHref = props.href;
   const anchorRef = useSignal<HTMLAnchorElement>();
   const {
@@ -48,19 +48,6 @@ export const Link = component$<LinkProps>((props) => {
   const shouldPrefetchData =
     !!clientNavPath && prefetchDataProp !== 'off' && shouldPrefetch && !isDepratedPrefetchDisabled;
 
-  const handleBundlePrefetch = shouldPrefetchBundle
-    ? $((_: any, elm: HTMLAnchorElement) => {
-        if ((navigator as any).connection?.saveData) {
-          return;
-        }
-
-        if (elm && elm.href) {
-          const url = new URL(elm.href);
-          preloadRouteBundles(url.pathname);
-        }
-      })
-    : null;
-
   const handleDataPrefetch = shouldPrefetchData
     ? $((_: any, elm: HTMLAnchorElement) => {
         if ((navigator as any).connection?.saveData) {
@@ -69,10 +56,7 @@ export const Link = component$<LinkProps>((props) => {
 
         if (elm && elm.href) {
           const url = new URL(elm.href);
-          loadClientData(url, {
-            preloadRouteBundles: false,
-            isPrefetch: true,
-          });
+          prefetchRoute(url, true, 0.8, head.manifestHash);
         }
       })
     : null;
@@ -111,7 +95,7 @@ export const Link = component$<LinkProps>((props) => {
 
   const handlePreload = $((_: any, elm: HTMLAnchorElement) => {
     const url = new URL(elm.href);
-    preloadRouteBundles(url.pathname, 1);
+    prefetchRoute(url, false, 1);
   });
 
   useVisibleTask$(({ track }) => {
@@ -134,21 +118,23 @@ export const Link = component$<LinkProps>((props) => {
 
     const isProdOrTest = !isDev || import.meta.env.TEST;
 
-    if (isProdOrTest && anchorRef.value) {
+    if (isProdOrTest && anchorRef.value?.href && !(navigator as any).connection?.saveData) {
       if (
-        prefetchBundleProp === 'visible' ||
-        // deprecated prop below, remove in favor of prefetchBundle
-        prefetchProp === 'js' ||
-        prefetchProp === true
-      ) {
-        handleBundlePrefetch?.(null, anchorRef.value);
-      }
-      if (
-        prefetchDataProp === 'visible' ||
-        // deprecated prop below, remove in favor of prefetchData
-        prefetchProp === true
+        handleDataPrefetch &&
+        (prefetchDataProp === 'visible' ||
+          // deprecated prop below, remove in favor of prefetchData
+          prefetchProp === true)
       ) {
         handleDataPrefetch?.(null, anchorRef.value);
+      } else if (
+        shouldPrefetchBundle &&
+        (prefetchBundleProp === 'visible' ||
+          // deprecated prop below, remove in favor of prefetchBundle
+          prefetchProp === 'js' ||
+          prefetchProp === true)
+      ) {
+        const url = new URL(anchorRef.value.href);
+        prefetchRoute(url, true, 0.8, head.manifestHash);
       }
     }
   });

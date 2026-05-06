@@ -1,10 +1,16 @@
-import { QDATA_KEY } from '../../runtime/src/constants';
+import { QACTION_KEY, QDATA_KEY } from '../../runtime/src/constants';
 import { isPromise } from '../../runtime/src/utils';
 import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
 import { createRequestEventWithDeps } from './request-event-core';
-import { getRouteLoaderPromise } from './request-loader';
-import { getRouteMatchPathname, IsQData } from './request-path';
+import {
+  IsQAction,
+  IsQLoader,
+  QActionId,
+  QLoaderId,
+  recognizeRequest,
+  trimRecognizedInternalPathname,
+} from './request-path';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { RewriteMessage } from './rewrite-handler';
 import { ServerError } from './server-error';
@@ -15,6 +21,7 @@ type CreateRequestEventArgs =
 
 const requestEventDeps = {
   QDATA_KEY,
+  QACTION_KEY,
   isPromise,
   createCacheControl,
   Cookie,
@@ -22,9 +29,12 @@ const requestEventDeps = {
   RedirectMessage,
   RewriteMessage,
   ServerError,
-  getRouteLoaderPromise,
-  getRouteMatchPathname,
-  IsQData,
+  recognizeRequest,
+  trimRecognizedInternalPathname,
+  IsQLoader,
+  IsQAction,
+  QLoaderId,
+  QActionId,
   encoder,
   getContentType,
 };

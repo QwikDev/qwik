@@ -16,17 +16,11 @@ import type { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent as RequestEvent_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { RequestHandler as RequestHandler_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue as ResolveSyncValue_2 } from '@qwik.dev/router/middleware/request-handler';
-import { SerializationStrategy } from '@qwik.dev/core/internal';
 import type { ValueOrPromise } from '@qwik.dev/core';
 
 // @public (undocumented)
 export class AbortMessage {
 }
-
-// Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
-//
-// @internal (undocumented)
-export let _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
@@ -84,6 +78,11 @@ export interface EnvGetter {
     // (undocumented)
     get(key: string): string | undefined;
 }
+
+// Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export const _getAsyncRequestStore: () => AsyncLocalStorage<RequestEventInternal> | undefined;
 
 // @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;
@@ -167,11 +166,6 @@ export interface RequestEventLoader<PLATFORM = QwikRouterPlatform> extends Reque
     // (undocumented)
     resolveValue: ResolveValue;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "RequestEvShareQData" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const RequestEvShareQData = "qData";
 
 // @public (undocumented)
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;

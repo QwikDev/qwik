@@ -51,6 +51,17 @@ When the user asks for a ticket without specifying labels/state/project:
 
 If the user specifies different values, follow them.
 
+## Assignment on "In Progress" transitions
+
+When **creating** a ticket directly in `In Progress` state, OR **updating** a ticket's state to `In Progress`, run `id -un` first:
+
+- If it returns `scottweaver`, include `assigneeId: 15f7e516-d30c-44a6-bada-aeb635dec8a9` (Scott's Linear user ID, displayName `scott.t.weaver`) in the mutation input.
+- For any other local user, do NOT auto-assign. Leave the ticket unassigned and let the human decide.
+
+Other states (`Backlog`, `Todo`, `In Review`, `Done`, `Cancelled`) get no auto-assignment. Don't override an explicit assignee the user has named.
+
+Rationale: an unassigned `In Progress` ticket is ambiguous about ownership. The `id -un` check is the durable way to confirm the assistant is running as Scott rather than as a teammate or CI runner.
+
 ## Workflow
 
 1. **Draft in chat first.** Show full title + description (markdown) for every ticket before creating. Include labels, state, project, and parent/sub structure if applicable.

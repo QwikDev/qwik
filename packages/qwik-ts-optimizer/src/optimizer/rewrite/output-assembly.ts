@@ -29,16 +29,9 @@ import { rewriteFunctionSignature } from '../segment-codegen.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { isRelativePathInsideBase } from '../path-utils.js';
 import { transformInlineSegmentBody } from './inline-body.js';
+import { hasUnderscorePlaceholderParams, matchesRegCtxName } from './predicates.js';
 import type { InlineSegmentJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
-
-function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolean {
-  if (!regCtxName || regCtxName.length === 0) return false;
-  for (const name of regCtxName) {
-    if (ext.calleeName === name + '$') return true;
-  }
-  return false;
-}
 
 function isCustomInlined(
   ext: ExtractionResult,
@@ -300,8 +293,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     );
 
     let sigRewrittenBody = rawBody;
-    if (ext.paramNames.length >= 2 &&
-        ext.paramNames[0] === '_' && ext.paramNames[1] === '_1') {
+    if (hasUnderscorePlaceholderParams(ext.paramNames)) {
       sigRewrittenBody = rewriteFunctionSignature(rawBody, ext.paramNames);
     }
 

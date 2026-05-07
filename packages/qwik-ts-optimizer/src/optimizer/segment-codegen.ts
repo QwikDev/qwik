@@ -11,6 +11,7 @@ import { isAstNode } from './utils/ast.js';
 import { parseWithRawTransfer } from './utils/parse.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { inlineConstCaptures } from './rewrite/index.js';
+import { hasUnderscorePlaceholderParams } from './rewrite/predicates.js';
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx, collectConstBindings } from './transform/jsx.js';
 import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
@@ -507,9 +508,7 @@ export function generateSegmentCode(
   normalizeSeparators(parts);
 
   // Rewrite function signature when paramNames has loop/q:p padding pattern
-  if (extraction.paramNames.length >= 2 &&
-      extraction.paramNames[0] === '_' &&
-      extraction.paramNames[1] === '_1') {
+  if (hasUnderscorePlaceholderParams(extraction.paramNames)) {
     bodyText = rewriteFunctionSignature(bodyText, extraction.paramNames);
   }
 

@@ -27,6 +27,7 @@ import {
   getQrlCalleeName,
 } from '../rewrite-calls.js';
 import { isStrippedSegment } from '../strip-ctx.js';
+import { isEventHandlerOrJsxProp, matchesRegCtxName } from './predicates.js';
 import { transformEventPropName } from '../transform/event-handlers.js';
 import { transformAllJsx } from '../transform/jsx.js';
 import { stripExportDeclarations } from '../strip-exports.js';
@@ -114,14 +115,6 @@ function isCustomInlined(
     if (info.importedName === ext.calleeName) return false;
   }
   return true;
-}
-
-function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolean {
-  if (!regCtxName || regCtxName.length === 0) return false;
-  for (const name of regCtxName) {
-    if (ext.calleeName === name + '$') return true;
-  }
-  return false;
 }
 
 export interface JsxRewriteOptions {
@@ -443,7 +436,7 @@ function rewriteCallSites(ctx: RewriteContext): void {
       s.overwrite(ext.callStart, ext.callEnd, getQrlVarName(ctx, ext.symbolName));
     } else if (ext.isBare) {
       s.overwrite(ext.callStart, ext.callEnd, getQrlVarName(ctx, ext.symbolName));
-    } else if ((ext.ctxKind === 'eventHandler' || ext.ctxKind === 'jSXProp') && !ext.qrlCallee) {
+    } else if (isEventHandlerOrJsxProp(ext.ctxKind) && !ext.qrlCallee) {
       let propName: string;
       if (ext.isComponentEvent) {
         propName = ext.ctxName;
@@ -616,7 +609,7 @@ function addCaptureWrapping(ctx: RewriteContext): void {
 
     if (ext.captureNames.length === 0) continue;
 
-    if ((ext.ctxKind === 'eventHandler' || ext.ctxKind === 'jSXProp') && !ext.qrlCallee) continue;
+    if (isEventHandlerOrJsxProp(ext.ctxKind) && !ext.qrlCallee) continue;
 
     const effectiveCaptures = ext.captureNames.filter(name => !migratedNames.has(name));
     if (effectiveCaptures.length === 0) continue;

@@ -26,6 +26,11 @@ import {
   replacePropsFieldReferencesInBody,
   type InlineSegmentJsxOptions,
 } from './raw-props.js';
+import {
+  hasUnderscorePlaceholderParams,
+  isEventHandlerOrJsxProp,
+  matchesRegCtxName,
+} from './predicates.js';
 
 function getJsxAttrName(attr: any): string | null {
   if (attr.name?.type === 'JSXIdentifier') return attr.name.name;
@@ -105,15 +110,20 @@ function walkAstForQp(
   }
 }
 
-/** Extraction's callee name (e.g. "server$") matches regCtxName "server" + "$". */
-function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolean {
-  if (!regCtxName || regCtxName.length === 0) return false;
-  for (const name of regCtxName) {
-    if (ext.calleeName === name + '$') return true;
-  }
-  return false;
-}
-
+/**
+ * Transform an inline segment body through nine sequential phases:
+ * nested-call rewriting, own const-literal inlining, parent const-literal
+ * inlining, capture unpacking, _rawProps, props-field captures, body const
+ * propagation, JSX, and dead-const removal.
+ *
+ * `additionalImports` is collected incrementally as transforms run —
+ * each phase decides what symbols it needs and adds them to the map.
+ * This is intentional: deriving the imports centrally would require
+ * each phase to either expose its decisions or duplicate the
+ * detection logic, both of which add coupling. The incremental form
+ * keeps each phase self-contained, at the cost of imports being set
+ * across multiple call sites in this function.
+ */
 export function transformInlineSegmentBody(
   ext: ExtractionResult,
   allExtractions: ExtractionResult[],
@@ -141,7 +151,7 @@ export function transformInlineSegmentBody(
       if (relCallStart >= 0 && relCallEnd <= body.length) {
         if (child.isBare) {
           body = body.slice(0, relCallStart) + childVarName + body.slice(relCallEnd);
-        } else if ((child.ctxKind === 'eventHandler' || child.ctxKind === 'jSXProp') && !child.qrlCallee) {
+        } else if (isEventHandlerOrJsxProp(child.ctxKind) && !child.qrlCallee) {
           let propName: string;
           if (child.isComponentEvent) {
             propName = child.ctxName;
@@ -161,8 +171,7 @@ export function transformInlineSegmentBody(
           const hasLoopCrossCaptures = !isRegCtx &&
             child.captures &&
             child.captureNames.length > 0 &&
-            child.paramNames.length >= 2 &&
-            child.paramNames[0] === '_' && child.paramNames[1] === '_1';
+            hasUnderscorePlaceholderParams(child.paramNames);
 
           if (hasLoopCrossCaptures) {
             const hoistedName = child.symbolName;

@@ -28,8 +28,9 @@ export {
 // Import helpers from split modules
 import {
   rewriteNestedCallSitesInline,
+  applySelfRefIndirection,
   inlineEnumReferences,
-  applyRawPropsIfComponent,
+  applyRawPropsToSegmentBody,
   stripDiagnosticsAndDirectives,
   transformSyncCalls,
   ensureCoreImports,
@@ -465,13 +466,14 @@ export function generateSegmentCode(
 
   if (nestedCallSites && nestedCallSites.length > 0) {
     bodyText = rewriteNestedCallSitesInline(bodyText, nestedCallSites, extraction.argStart);
+    bodyText = applySelfRefIndirection(bodyText);
   }
 
   if (enumValueMap && enumValueMap.size > 0) {
     bodyText = inlineEnumReferences(bodyText, enumValueMap);
   }
 
-  bodyText = applyRawPropsIfComponent(bodyText, extraction, parts);
+  bodyText = applyRawPropsToSegmentBody(bodyText, parts);
   bodyText = stripDiagnosticsAndDirectives(bodyText);
 
   if (captureInfo?.propsFieldCaptures && captureInfo.propsFieldCaptures.size > 0) {

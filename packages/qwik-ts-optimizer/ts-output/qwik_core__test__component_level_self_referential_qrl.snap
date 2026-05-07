@@ -37,23 +37,23 @@ export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
 ============================= test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY.js (ENTRY POINT)==
 import { _captures } from "@qwik.dev/core";
 //
-export const Foo_component_sig_useAsync_f0BGwWm4eeY = async ({cleanup}) => {
+export const Foo_component_sig_useAsync_f0BGwWm4eeY = async (_rawProps) => {
 const sig = _captures[0];
 		const timer = setInterval(() => {
 			sig.value++;
 		}, 1000);
-		cleanup(() => clearInterval(timer));
+		_rawProps.cleanup(() => clearInterval(timer));
 		return 0;
 	};
 ============================= test.tsx_Foo_component_other_useAsync_fsHooibmyyE.js (ENTRY POINT)==
 import { _captures } from "@qwik.dev/core";
 //
-export const Foo_component_other_useAsync_fsHooibmyyE = async ({cleanup}) => {
+export const Foo_component_other_useAsync_fsHooibmyyE = async (_rawProps) => {
 const other = _captures[0];
 		const timer = setInterval(() => {
 			other.value++;
 		}, 900);
-		cleanup(() => clearInterval(timer));
+		_rawProps.cleanup(() => clearInterval(timer));
 		return 0;
 	};
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
@@ -64,12 +64,15 @@ const q_Foo_component_other_useAsync_fsHooibmyyE = /*#__PURE__*/ qrl(()=>import(
 const q_Foo_component_sig_useAsync_f0BGwWm4eeY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY"), "Foo_component_sig_useAsync_f0BGwWm4eeY");
 //
 export const Foo_component_HTDRsvUbLiE = (props) => {
-	const sig = useAsyncQrl(q_Foo_component_sig_useAsync_f0BGwWm4eeY.w([
-        sig
+    const _ref = {};
+	_ref.sig = useAsyncQrl(q_Foo_component_sig_useAsync_f0BGwWm4eeY.w([
+        _ref.sig
     ]));
-	const other = useAsyncQrl(q_Foo_component_other_useAsync_fsHooibmyyE.w([
-        other
+    const { sig } = _ref;
+	_ref.other = useAsyncQrl(q_Foo_component_other_useAsync_fsHooibmyyE.w([
+        _ref.other
     ]));
+    const { other } = _ref;
 	return (
 		<div>
 			{other.value}

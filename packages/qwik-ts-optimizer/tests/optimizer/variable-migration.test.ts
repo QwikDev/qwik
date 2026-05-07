@@ -126,6 +126,59 @@ describe('analyzeMigration', () => {
     expect(decisions[0].varName).toBe('a');
   });
 
+  it('Test 6a: shared destructure all flowing to one segment => move (MIG-05a)', () => {
+    const decls = [
+      makeDecl({ name: 'a', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'b', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+    ];
+    const segmentUsage = new Map([['seg1', new Set(['a', 'b'])]]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(2);
+    expect(decisions[0].action).toBe('move');
+    expect(decisions[0].targetSegment).toBe('seg1');
+    expect(decisions[1].action).toBe('move');
+    expect(decisions[1].targetSegment).toBe('seg1');
+  });
+
+  it('Test 6b: shared destructure split across segments => reexport', () => {
+    const decls = [
+      makeDecl({ name: 'a', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'b', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+    ];
+    const segmentUsage = new Map([
+      ['seg1', new Set(['a'])],
+      ['seg2', new Set(['b'])],
+    ]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions[0].action).toBe('reexport');
+    expect(decisions[1].action).toBe('reexport');
+  });
+
+  it('Test 6c: shared destructure with one binding used by root => reexport', () => {
+    const decls = [
+      makeDecl({ name: 'a', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'b', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+    ];
+    const segmentUsage = new Map([['seg1', new Set(['a'])]]);
+    const rootUsage = new Set(['b']);
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(2);
+    expect(decisions[0].action).toBe('reexport');
+    expect(decisions[0].varName).toBe('a');
+    // 'b' is used by root only; not by any segment, so MIG-05a doesn't apply and
+    // it stays in the parent. Original decideMigration tree gives 'keep' for unused-by-segments.
+    expect(decisions[1].action).toBe('keep');
+    expect(decisions[1].varName).toBe('b');
+  });
+
   it('Test 7: variable not used by any segment => keep', () => {
     const decls = [makeDecl({ name: 'unused' })];
     const segmentUsage = new Map<string, Set<string>>();

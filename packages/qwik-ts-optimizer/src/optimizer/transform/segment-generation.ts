@@ -513,6 +513,7 @@ export function generateAllSegmentModules(
         }
       }
 
+      const movedDeclRanges = new Set<string>();
       for (const decision of migrationDecisions) {
         if (
           decision.action === "move" &&
@@ -520,6 +521,9 @@ export function generateAllSegmentModules(
         ) {
           const decl = moduleLevelDeclsByName.get(decision.varName);
           if (decl) {
+            const rangeKey = `${decl.declStart}:${decl.declEnd}`;
+            if (movedDeclRanges.has(rangeKey)) continue;
+            movedDeclRanges.add(rangeKey);
             const importDeps: Array<{
               localName: string;
               importedName: string;

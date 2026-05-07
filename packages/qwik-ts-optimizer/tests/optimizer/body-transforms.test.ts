@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applySelfRefIndirection,
   injectCapturesUnpacking,
   rewriteFunctionSignature,
 } from '../../src/optimizer/segment-codegen/body-transforms.js';
@@ -33,6 +34,37 @@ describe('body-transforms', () => {
     it('converts expression bodies to block bodies when injecting captures', () => {
       expect(injectCapturesUnpacking('(props) => props.count + 1', ['count', 'label'])).toBe(
         '(props) => {\nconst count = _captures[0], label = _captures[1];\nreturn props.count + 1;\n}',
+      );
+    });
+  });
+
+  describe('applySelfRefIndirection', () => {
+    it('rewrites self-referential const declarators', () => {
+      const output = applySelfRefIndirection('() => {\n  const x = call(q_abc.w([x]));\n  return x;\n}');
+      const normalize = (text: string) => text.replace(/\s+/g, ' ').trim();
+      expect(normalize(output)).toBe(normalize(`() => {
+        const _ref = {};
+        _ref.x = call(q_abc.w([_ref.x]));
+        const { x } = _ref;
+        return x;
+      }`));
+    });
+
+    it('does not rewrite non-const self-referential declarators', () => {
+      expect(applySelfRefIndirection('() => {\n  let x = call(q_abc.w([x]));\n  return x;\n}')).toBe(
+        '() => {\n  let x = call(q_abc.w([x]));\n  return x;\n}',
+      );
+    });
+
+    it('does not rewrite var self-referential declarators', () => {
+      expect(applySelfRefIndirection('() => {\n  var x = call(q_abc.w([x]));\n  return x;\n}')).toBe(
+        '() => {\n  var x = call(q_abc.w([x]));\n  return x;\n}',
+      );
+    });
+
+    it('does not rewrite non-qrl .w() calls', () => {
+      expect(applySelfRefIndirection('() => {\n  const x = call(worker.w([x]));\n  return x;\n}')).toBe(
+        '() => {\n  const x = call(worker.w([x]));\n  return x;\n}',
       );
     });
   });

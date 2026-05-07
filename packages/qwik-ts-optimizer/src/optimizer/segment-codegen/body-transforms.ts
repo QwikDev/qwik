@@ -263,15 +263,70 @@ export function inlineEnumReferences(bodyText: string, enumValueMap: Map<string,
   return bodyText;
 }
 
-/** Apply _rawProps transform for component$ segments, add _restProps import if needed. */
-export function applyRawPropsIfComponent(
-  bodyText: string,
-  extraction: ExtractionResult,
-  parts: string[],
-): string {
-  const isComponentSegment = extraction.ctxName === 'component$' || extraction.ctxName === 'componentQrl';
-  if (!isComponentSegment) return bodyText;
+/**
+ * Apply `_ref` indirection for self-referential captures.
+ *
+ * When a component body declares `const X = call(q_yyy.w([X]))`, the capture
+ * array references `X` inside its own initializer — TDZ. Rewrites to:
+ *
+ *     const _ref = {};
+ *     _ref.X = call(q_yyy.w([_ref.X]));
+ *     const { X } = _ref;
+ *
+ * Detection is conservative: only `q_xxx.w([...])` arrays are inspected for
+ * Identifier elements matching the enclosing const declarator name.
+ */
+export function applySelfRefIndirection(bodyText: string): string {
+  if (!bodyText.includes('.w([')) return bodyText;
 
+  const session = createFunctionTransformSession('__sr__.tsx', bodyText, { wrapperPrefix: 'const __sr__ = ' });
+  if (!session) return bodyText;
+  const block = session.fn.body;
+  if (!block || block.type !== 'BlockStatement') return bodyText;
+
+  let foundAny = false;
+  for (const stmt of block.body ?? []) {
+    if (stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const' || stmt.declarations?.length !== 1) continue;
+    const d = stmt.declarations[0];
+    if (d?.id?.type !== 'Identifier' || !d.init) continue;
+    const { name } = d.id;
+    let referenced = false;
+    walk(d.init, {
+      enter(node: AstNode) {
+        if (node.type !== 'CallExpression') return;
+        const callee = node.callee as AstNode | undefined;
+        if (!callee || (callee.type !== 'MemberExpression' && callee.type !== 'StaticMemberExpression')) return;
+        if (callee.property?.type !== 'Identifier' || callee.property.name !== 'w') return;
+        const calleeObject = callee.object as AstNode | undefined;
+        if (calleeObject?.type !== 'Identifier' || !calleeObject.name.startsWith('q_')) return;
+        const arr = node.arguments?.[0] as AstNode | undefined;
+        if (!arr || arr.type !== 'ArrayExpression') return;
+        for (const el of arr.elements ?? []) {
+          if (el?.type === 'Identifier' && el.name === name) {
+            session.edits.overwrite(el.start, el.end, `_ref.${name}`);
+            referenced = true;
+          }
+        }
+      },
+    });
+    if (referenced) {
+      foundAny = true;
+      session.edits.overwrite(stmt.start, d.id.end, `_ref.${name}`);
+      session.edits.appendRight(stmt.end, `\n    const { ${name} } = _ref;`);
+    }
+  }
+
+  if (!foundAny) return bodyText;
+  insertFunctionBodyPrologue(session, session.fn, '    const _ref = {};');
+  return session.toSource();
+}
+
+/**
+ * Normalise destructured first params to `_rawProps`, add `_restProps` import if needed.
+ * Applies to any qrl segment with a destructured first param (component$ or otherwise) —
+ * `applyRawPropsTransform` is a no-op when the first param isn't destructured.
+ */
+export function applyRawPropsToSegmentBody(bodyText: string, parts: string[]): string {
   const result = applyRawPropsTransform(bodyText);
   if (result === bodyText) return bodyText;
 

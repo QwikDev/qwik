@@ -66,7 +66,7 @@ Full feature analysis with file/line pointers: `CONVERGENCE_FAILURES.md` in this
 
 Most recent first. Trim older entries when this list exceeds ~10.
 
-- **2026-05-07** — OSS-338 landed as [PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6) (`refactor/mig-05a-post-pass`). `variable-migration.ts` refactored to centralise MIG reasons, extract a named MIG-05a post-pass with explicit JSDoc preconditions, and deduplicate the "which segments use this binding?" lookup. Behavior preserved (26/26 unit, 33/179 convergence, 56/640 full suite). Linear status moved to In Review.
+- **2026-05-07** — OSS-338 opened as [PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6) (`refactor/mig-05a-post-pass`). `variable-migration.ts` refactored to centralise MIG reasons, extract a named MIG-05a post-pass with explicit JSDoc preconditions, and deduplicate the "which segments use this binding?" lookup. Behavior preserved (26/26 unit, 33/179 convergence, 56/640 full suite). Linear status moved to In Review.
 - **2026-05-07** — Refactor track kicked off. Audit (`refactor/optimizer-audit`) identified 7 candidates ranked by value-per-blast-radius. Parent OSS-337 + three sub-issues OSS-338/339/340 created. OSS-338 (MIG-05a) is the first active branch.
 - **2026-05-07** — `METHODOLOGIES.md` clarified: "minimum code" rule explicitly favours long-run readability/reusability over shortest diff. Helpers / shared predicates encouraged at 3+ call sites.
 - **2026-05-07** — `LINEAR.md` updated with `In Progress` and `In Review` state UUIDs alongside the existing `Backlog`, saving a re-probe round-trip.

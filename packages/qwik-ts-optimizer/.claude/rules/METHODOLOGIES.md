@@ -13,4 +13,10 @@ Sources:
 
 ## Features and Branching
 
+## Git Policies
+
 When starting work on a new feature, we must do it in a new branch.  You should prompt as whether to branch from `main` or the currently checked out branch.
+
+## Strive to add as little code as possible
+
+Before making code changes or proposals, thoroughly evaluate the existing code and find places where existing logic can be reused.  Refactoring code to achieve this goal is encouraged.

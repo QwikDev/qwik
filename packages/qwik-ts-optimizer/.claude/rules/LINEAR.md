@@ -26,6 +26,8 @@ Verified 2026-05-07. Re-probe via API if a request 404s — labels/states get re
 | Team **Open-Source** (`OSS`) | `6809d650-bb22-41ed-8b29-fadea9a6845a` |
 | Project **Qwik Optimizer Rewrite** | `68ceb0b7-a527-4875-b263-4554498df67f` |
 | State **Backlog** | `6a715dec-622f-4b47-a375-f9f3187764f1` |
+| State **In Progress** | `d29d316a-4cbf-43a4-a43c-c16c636747d5` |
+| State **In Review** | `2325618c-ff7a-466b-8443-57e477ef0673` |
 | Label **Qwik Optimizer** | `993c1f3b-6d98-4d05-9c06-5b9c0ec67cc4` |
 | Label **TECH DEBT** | `21f7debc-0965-4b8f-957c-f63798d81fc1` |
 

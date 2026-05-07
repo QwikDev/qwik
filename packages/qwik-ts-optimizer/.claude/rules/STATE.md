@@ -2,7 +2,7 @@
 
 Snapshot of where the active workstream stands. Read at the start of a session to rehydrate context fast. **Update aggressively** as meaningful progress lands — see "Maintenance" at the bottom.
 
-Last updated: 2026-05-07 (refactor track kicked off)
+Last updated: 2026-05-07 (OSS-338 PR opened)
 
 ## Goal
 
@@ -28,15 +28,14 @@ These are the baselines the refactor track must not regress (`REGRESSION.md`):
 |---|---|---|---|---|
 | `main` | `f95b268` | ✅ | baseline | F1 PR merged + rule-doc updates (methodologies nuance, Linear state IDs) |
 | `ast-parity/F2` | `a644c16` (stale) | ❌ local-only | parked | F2 cluster paused; needs rebase onto current `main` (now contains F1 const-declarator fix and test hardening) before resuming. Carries F1c statement-ordering as foundation. |
-| `refactor/optimizer-audit` | `f95b268` | ❌ local-only | n/a | scratch branch where the codebase audit ran; no commits of its own. Safe to delete once refactor branches are underway. |
-| `refactor/mig-05a-post-pass` | (active) | ❌ local-only | baseline | **active workstream** — OSS-338. |
+| `refactor/mig-05a-post-pass` | `b0b2930` | ✅ | baseline | **active workstream** — OSS-338, [PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6) open against `main`. |
 
 ## Refactor track (OSS-337)
 
 | Ticket | Title | Branch | Status |
 |---|---|---|---|
 | [OSS-337](https://linear.app/kunai/issue/OSS-337) | Optimizer pipeline refactor track — audit follow-up | (parent — no branch) | Backlog |
-| [OSS-338](https://linear.app/kunai/issue/OSS-338) | Refactor MIG-05a post-pass in `variable-migration.ts` | `refactor/mig-05a-post-pass` | **In Progress** |
+| [OSS-338](https://linear.app/kunai/issue/OSS-338) | Refactor MIG-05a post-pass in `variable-migration.ts` | `refactor/mig-05a-post-pass` ([PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6)) | **In Review** |
 | [OSS-339](https://linear.app/kunai/issue/OSS-339) | Refactor `rewriteNestedCallSitesInline` in `body-transforms.ts` | `refactor/nested-callsite-rewrite` (not yet created) | Backlog |
 | [OSS-340](https://linear.app/kunai/issue/OSS-340) | Refactor `transformInlineSegmentBody` gating logic in `inline-body.ts` | `refactor/inline-body-gating` (not yet created) | Backlog |
 
@@ -67,6 +66,7 @@ Full feature analysis with file/line pointers: `CONVERGENCE_FAILURES.md` in this
 
 Most recent first. Trim older entries when this list exceeds ~10.
 
+- **2026-05-07** — OSS-338 landed as [PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6) (`refactor/mig-05a-post-pass`). `variable-migration.ts` refactored to centralise MIG reasons, extract a named MIG-05a post-pass with explicit JSDoc preconditions, and deduplicate the "which segments use this binding?" lookup. Behavior preserved (26/26 unit, 33/179 convergence, 56/640 full suite). Linear status moved to In Review.
 - **2026-05-07** — Refactor track kicked off. Audit (`refactor/optimizer-audit`) identified 7 candidates ranked by value-per-blast-radius. Parent OSS-337 + three sub-issues OSS-338/339/340 created. OSS-338 (MIG-05a) is the first active branch.
 - **2026-05-07** — `METHODOLOGIES.md` clarified: "minimum code" rule explicitly favours long-run readability/reusability over shortest diff. Helpers / shared predicates encouraged at 3+ call sites.
 - **2026-05-07** — `LINEAR.md` updated with `In Progress` and `In Review` state UUIDs alongside the existing `Backlog`, saving a re-probe round-trip.
@@ -80,9 +80,7 @@ Most recent first. Trim older entries when this list exceeds ~10.
 
 ## What to do next
 
-Active: **OSS-338 / `refactor/mig-05a-post-pass`** — extract MIG-05a as a named post-pass with explicit preconditions and a single eligibility helper. Acceptance criteria captured in the Linear issue. Convergence baseline (33 / 212) and full-suite baseline (56 / 696) must not regress.
-
-After OSS-338 lands, OSS-339 and OSS-340 are next in queue. Each is its own branch off `main` and its own PR.
+OSS-338 is in review ([PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6)). When it merges, retire `refactor/mig-05a-post-pass` and pick up **OSS-339** (`rewriteNestedCallSitesInline` in `body-transforms.ts`) on a fresh branch off `main`. Then **OSS-340** (`transformInlineSegmentBody` gating) on a third branch.
 
 When the refactor track wraps, resume parity work by rebasing `ast-parity/F2` onto current `main` (the const-declarator restriction and test hardening from PR #5 will need to apply cleanly).
 

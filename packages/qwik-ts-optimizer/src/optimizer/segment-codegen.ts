@@ -30,7 +30,7 @@ import {
   rewriteNestedCallSitesInline,
   applySelfRefIndirection,
   inlineEnumReferences,
-  applyRawPropsIfComponent,
+  applyRawPropsToSegmentBody,
   stripDiagnosticsAndDirectives,
   transformSyncCalls,
   ensureCoreImports,
@@ -473,7 +473,7 @@ export function generateSegmentCode(
     bodyText = inlineEnumReferences(bodyText, enumValueMap);
   }
 
-  bodyText = applyRawPropsIfComponent(bodyText, extraction, parts);
+  bodyText = applyRawPropsToSegmentBody(bodyText, parts);
   bodyText = stripDiagnosticsAndDirectives(bodyText);
 
   if (captureInfo?.propsFieldCaptures && captureInfo.propsFieldCaptures.size > 0) {

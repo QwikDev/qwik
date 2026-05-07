@@ -1,17 +1,69 @@
 # Convergence Failure Grouping
 
-Snapshot of the 34 failing `pnpm vitest convergence` tests as of 2026-05-06, grouped by root cause for feature-sized work breakdown. Re-run `pnpm vitest convergence --run` to refresh; the categorization itself ages but is still a useful map.
+Snapshot of the 33 failing `pnpm vitest convergence` tests as of 2026-05-06, grouped by root cause for feature-sized work breakdown. Re-run `pnpm vitest convergence --run` to refresh; the categorization itself ages but is still a useful map.
 
-Investigation 2026-05-06 corrected the original groupings for F3, F4, F8 after tracing diffs to actual root causes in code. Original groupings were based on diff symptoms; corrected groupings reflect the underlying transformation gap.
+Investigation 2026-05-06 corrected the original groupings for F3, F4, F8 after tracing diffs to actual root causes in code. Original groupings were based on diff symptoms; corrected groupings reflect the underlying transformation gap. Convergence count is now **33/212** (was 34/212). One test, `component_level_self_referential_qrl`, has been flipped to passing as of 2026-05-07. Date stamp updated: 2026-05-07.
 
 The convergence test (`tests/optimizer/convergence.test.ts`) is stricter than `tests/optimizer/failure-families.test.ts` — it also checks segment metadata (`displayName`, `hash`, `canonicalFilename`, `ctxKind`, `ctxName`, `captures`). Snapshot of failure-families counts at the same point in time: 17 fully passing, 70 parent-rewrite-only, 0 untransformed, 3 segment-identity, 119 segment-codegen.
 
-## Feature 1: Self-referential QRL `_ref` indirection (3 tests)
+## Feature 1: Self-referential QRL `_ref` indirection (CLOSED — 1 test passing)
 
-When a QRL captures a variable whose initializer references the QRL itself, the Rust optimizer emits a `_ref.<name>` indirection (assign-then-destructure) so the capture array does not TDZ. TS emits direct names.
+When a component body declares `const X = useFooQrl(q_yyy.w([X]))`, the capture
+array references `X` inside its own initializer (TDZ). The Rust optimizer
+rewrites to `_ref` indirection so the QRL runtime resolves `_ref.X` lazily after
+assignment:
 
-- `component_level_self_referential_qrl`
+    const _ref = {};
+    _ref.X = useFooQrl(q_yyy.w([_ref.X]));
+    const { X } = _ref;
+
+**Resolved:** `applySelfRefIndirection` in `src/optimizer/segment-codegen/body-transforms.ts`
+runs as a post-pass after `rewriteNestedCallSitesInline`. AST-walks the body's
+`q_xxx.w([...])` arrays, detects Identifier elements matching the enclosing
+const declarator name, and emits `_ref` indirection edits in reverse order to
+avoid offset overlap. Companion fix: removed the `component$`/`componentQrl`
+ctxName gate from `applyRawPropsIfComponent` so non-component qrl segments
+(e.g. `useAsync$(({cleanup}) => ...)`) also get destructured first params
+normalised to `_rawProps` to match SWC.
+
+- ✅ `component_level_self_referential_qrl` (passing)
+
+The other two tests originally grouped here have different root causes — see F1b
+and F1c below.
+
+## Feature 1b: Mutual-recursion component migration (1 test, OPEN)
+
+When components are mutually recursive (`A` references `B`, `B` references `A`)
+and not exported, Rust migrates one component's `componentQrl(...)` declaration
+INTO the other component's segment file rather than keeping both in the parent
+with `_auto_*` re-exports. Example: in the expected output for
+`example_self_referential_component_migration`, `ComponentB`'s
+`componentQrl(...)` is moved into `ComponentA`'s segment file, and `ComponentA`
+stays in the parent with `_auto_ComponentA`. TS currently keeps both in the
+parent and re-exports both as `_auto_*`.
+
+This is a multi-pass migration policy refinement, related to F4 (MIG-05a) but
+operating on mutually-recursive component declarations rather than shared
+destructures.
+
 - `example_self_referential_component_migration`
+
+## Feature 1c: Inline-strategy emit ordering for self-referential components (1 test, OPEN)
+
+For inline entry strategy with a self-referential root-level component (e.g.
+`const Tree = component$((props) => <Tree/>)`), the Rust output emits:
+
+    const q_Tree_xxx = _noopQrlDEV("Tree_xxx", {...});
+    export const Tree = componentQrl(q_Tree_xxx);
+    q_Tree_xxx.s((props) => {...uses Tree...});
+
+The `.s(body)` call comes AFTER `Tree` is declared, so the body's reference to
+`Tree` resolves correctly at runtime. TS currently emits `.s(body)` before
+`Tree` is defined, causing a forward reference (TDZ at module load).
+
+This is part of Feature 2 (hoisted/inline/lib entry strategies) — fix the inline
+strategy emit order.
+
 - `root_level_self_referential_qrl_inline`
 
 ## Feature 2: Hoisted / inline / lib entry strategies (5-6 tests)
@@ -114,7 +166,8 @@ Smaller blast-radius first; F2/F3 last because they touch the largest pipelines.
 | Order | Feature | Tests | Notes |
 |---|---|---|---|
 | 1 | F4 MIG-05 refinement | 1 | Smallest verified scope; 1 boolean refinement in `decideMigration` plus group-by-declStart logic |
-| 2 | F1 `_ref` indirection | 3 | Self-contained pass on capture analysis |
+| 2 | F1 `_ref` indirection | ✅ closed (1/1 covered tests passing) | F1b and F1c remain open. |
+| 2a | F1b mutual-recursion component migration | 1 | Related to F4 (mutual-recursion vs shared-destructure migration policy); multi-pass migration refinement |
 | 3 | F8 individual fixes | 5 | Each test is its own bug; tackle case-by-case (ternary fold, hoist depth, `_fnSignal` dedup, etc.) |
 | 4 | F7 inner-function extraction discipline | 4 + `fun_with_scopes` from F8 | Marker detection rules |
 | 5 | F6 JSX runtime preservation | 3 | Front-end pass gating |
@@ -122,6 +175,6 @@ Smaller blast-radius first; F2/F3 last because they touch the largest pipelines.
 | 7 | F9 spread/var/const splitting | 2 | Extends jsxify |
 | 8 | F10 import-aware naming | 2 | Naming convention edge cases |
 | 9 | F3 lightweight-inline coordinated rewrite | 4 | 8 coordinated changes — use a Plan agent before attempting |
-| 10 | F2 hoisted/inline/lib strategies | 5-6 | Largest scope; touches whole emit pipeline |
+| 10 | F2 hoisted/inline/lib strategies + F1c inline-emit ordering | 5-6 (F1c folds in here) | Largest scope; touches whole emit pipeline |
 
-F1 + F4 + F5 alone clears ~7/34 (~20%) without touching F2/F3.
+F1 (closed) + F4 + F5 alone clears ~7/34 (~21%) without touching F2/F3 — though F4 still has the parent-passes-but-segments-fail caveat.

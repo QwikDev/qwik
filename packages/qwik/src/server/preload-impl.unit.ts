@@ -35,13 +35,18 @@ const createContainer = () => {
 
 describe('preloader', () => {
   afterEach(() => {
+    vi.doUnmock('./qwik-copy');
     vi.unstubAllEnvs();
     vi.resetModules();
   });
 
   it('does not emit preloader assets or scripts in dev mode', async () => {
     vi.stubEnv('DEV', true);
-    vi.stubEnv('TEST', '');
+    vi.doMock('./qwik-copy', () => ({
+      initPreloader: vi.fn(),
+      qTest: false,
+    }));
+    vi.resetModules();
 
     const { container, elements, getScriptContent } = createContainer();
     const { preloaderPost, preloaderPre } = await import('./preload-impl');

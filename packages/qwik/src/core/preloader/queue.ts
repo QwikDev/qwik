@@ -1,5 +1,5 @@
 import { base, getBundle } from './bundle-graph';
-import { config, doc, isRunningOnBrowser, rel, yieldInterval } from './constants';
+import { config, doc, isBrowser, rel, yieldInterval } from './constants';
 import type { BundleImport, BundleImports, ImportProbability } from './types';
 import {
   BundleImportState_Loaded,
@@ -180,13 +180,13 @@ function processPendingAdjustments() {
 
   isAdjustmentScheduled = false;
   isProcessingAdjustments = true;
-  const deadline = isRunningOnBrowser ? performance.now() + yieldInterval : 0;
+  const deadline = isBrowser ? performance.now() + yieldInterval : 0;
   let processed = false;
 
   while (adjustmentStack.length) {
     processed = true;
     const checkDeadline = processAdjustmentFrame();
-    if (isRunningOnBrowser && checkDeadline && performance.now() >= deadline) {
+    if (isBrowser && checkDeadline && performance.now() >= deadline) {
       if (!isAdjustmentScheduled) {
         isAdjustmentScheduled = true;
         nextAdjustmentMacroTask();
@@ -197,7 +197,7 @@ function processPendingAdjustments() {
 
   isProcessingAdjustments = false;
 
-  if (processed && isRunningOnBrowser) {
+  if (processed && isBrowser) {
     nextTriggerMacroTask();
   }
 }
@@ -248,7 +248,7 @@ export const adjustProbabilities = (
   seen?: Set<BundleImport>
 ) => {
   enqueueAdjustment(bundle, newInverseProbability, seen);
-  if (isRunningOnBrowser) {
+  if (isBrowser) {
     nextAdjustmentMacroTask();
   } else {
     processPendingAdjustments();
@@ -276,14 +276,14 @@ export const preload = (item: string | string[], probability?: number) => {
   } else {
     handleBundle(item, inverseProbability);
   }
-  if (isRunningOnBrowser) {
+  if (isBrowser) {
     nextAdjustmentMacroTask();
   } else {
     processPendingAdjustments();
   }
 };
 
-if (isRunningOnBrowser) {
+if (isBrowser) {
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;

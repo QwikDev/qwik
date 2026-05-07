@@ -1,53 +1,12 @@
 import { join } from 'node:path';
 import { build } from 'vite';
 import { fileSize, type BuildConfig } from './util.ts';
-import { minify } from 'terser';
-import type { Plugin } from 'vite';
 import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
 
 /**
- * Custom plugin to apply terser during the bundle generation. Vite doesn't minify library ES
- * modules.
- */
-function customTerserPlugin(): Plugin {
-  return {
-    name: 'custom-terser',
-    async renderChunk(code, chunk) {
-      // Only process JavaScript chunks
-      if (!chunk.fileName.endsWith('.mjs') && !chunk.fileName.endsWith('.js')) {
-        return null;
-      }
-
-      // Keep the result readable for debugging
-      const result = await minify(code, {
-        compress: {
-          defaults: false,
-          module: true,
-          hoist_props: true,
-          unused: true,
-          booleans_as_integers: true,
-        },
-        mangle: {
-          toplevel: false,
-          properties: {
-            // use short attribute names for internal properties
-            regex: MANGLE_PROPS_REGEX,
-          },
-        },
-        format: {
-          comments: true,
-        },
-      });
-
-      return result.code || null;
-    },
-  };
-}
-
-/**
- * Builds the qwikloader javascript files using Vite. These files can be used by other tooling, and
- * are provided in the package so CDNs could point to them. The @builder.io/optimizer submodule also
- * provides a utility function.
+ * Builds the preloader script as a stand-alone ES module. Vite handles the minification via Terser
+ * — we only need to pass the property-mangling regex so `$...$` internal properties stay in sync
+ * with the names mangled by the core/server bundles (see `MANGLE_PROPS_REGEX`).
  */
 export async function submodulePreloader(config: BuildConfig): Promise<void> {
   await build({
@@ -62,10 +21,25 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
       rollupOptions: {
         external: ['@qwik.dev/core/build'],
       },
-      minify: false, // This is the default, just to be explicit
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          defaults: false,
+          module: true,
+          hoist_props: true,
+          unused: true,
+          booleans_as_integers: true,
+        },
+        mangle: {
+          toplevel: false,
+          properties: {
+            // use short attribute names for internal properties
+            regex: MANGLE_PROPS_REGEX,
+          },
+        },
+      },
       outDir: config.distQwikPkgDir,
     },
-    plugins: [customTerserPlugin()],
   });
 
   const preloaderSize = await fileSize(join(config.distQwikPkgDir, 'preloader.mjs'));

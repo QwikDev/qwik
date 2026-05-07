@@ -21,6 +21,20 @@ When starting work on a new feature, we must do it in a new branch.  You should 
 
 Before making code changes or proposals, thoroughly evaluate the existing code and find places where existing logic can be reused.  Refactoring code to achieve this goal is encouraged.
 
+The goal is the smallest **long-run** codebase, not the smallest diff. Better, more readable, and more reusable code should always trump strict "fewest lines" thinking — extracting a clear helper today (even at +10 lines) prevents +50 lines of duplication tomorrow. Over time, that is what keeps the codebase small.
+
+What this still rules out:
+- Speculative abstractions for hypothetical future requirements.
+- Gratuitous wrapping (a one-line helper whose only job is to rename a call).
+- Over-engineered classes when a function does the job.
+
+What this encourages:
+- Extracting a shared predicate / helper when the same check appears in three or more places.
+- Renaming or splitting a function whose name no longer describes what it actually does.
+- Promoting a pattern to a utility once a third call site appears.
+
+When in doubt, optimise for the next reader, not the smallest patch.
+
 ## Push / PR only when tests flip
 
 Branches should only be pushed to the remote and opened as PRs when the work moves the needle — i.e. flips at least one test from FAILED to PASSED (or, for general refactoring branches explicitly labeled as such, achieves a stated structural improvement).

@@ -1,0 +1,51 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [main]
+
+# Cancel an in-flight run when a new commit lands on the same PR — the
+# old result is no longer relevant.
+concurrency:
+  group: test-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck + tests + regression check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.25.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Cache vitest
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.vite
+          key: vitest-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: vitest-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Run vitest (full suite)
+        # Convergence is a subset filtered by file path inside the
+        # baseline parser, so a single run produces both suites' data.
+        # continue-on-error: vitest exits non-zero because of expected
+        # failures — the regression check is the gate, not the exit code.
+        run: pnpm vitest run --reporter=json --outputFile=ci-full.json
+        continue-on-error: true
+
+      - name: Check regression against baseline
+        run: pnpm ci:baseline:check ci-full.json

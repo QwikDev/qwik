@@ -9,7 +9,10 @@
   },
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "ci:baseline:check": "node scripts/check-regression.mjs",
+    "ci:baseline:update": "node scripts/update-baseline.mjs"
   },
   "dependencies": {
     "magic-regexp": "^0.11.0",

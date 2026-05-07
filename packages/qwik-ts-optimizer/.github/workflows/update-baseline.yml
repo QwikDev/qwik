@@ -1,0 +1,62 @@
+name: Update CI baseline
+
+on:
+  push:
+    branches: [main]
+
+# Avoid stacking baseline updates if multiple commits land back-to-back —
+# only the latest matters.
+concurrency:
+  group: update-baseline
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: Regenerate .ci/baseline.json
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need fetch-depth 0 so the bot's commit can push without rebase
+          # surprises against a shallow clone.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.25.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Cache vitest
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.vite
+          key: vitest-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: vitest-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run vitest (full suite)
+        run: pnpm vitest run --reporter=json --outputFile=ci-full.json
+        continue-on-error: true
+
+      - name: Update baseline
+        run: pnpm ci:baseline:update ci-full.json
+
+      - name: Commit baseline if changed
+        run: |
+          if [[ -z "$(git status --porcelain .ci/baseline.json)" ]]; then
+            echo "Baseline unchanged — nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .ci/baseline.json
+          git commit -m "chore(ci): update test baseline [skip ci]"
+          git push origin HEAD:main

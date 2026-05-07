@@ -5,6 +5,8 @@ import { apiExtractorQwik, apiExtractorQwikRouter } from './api.ts';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform.ts';
 import { buildWasmBinding } from './binding-wasm.ts';
 import { buildCreateQwikCli } from './create-qwik-cli.ts';
+import { buildDevtools } from './devtools.ts';
+import { buildBrowserExtension } from './browser-extension.ts';
 import { buildEslint } from './eslint.ts';
 import { buildQwikReact } from './qwik-react.ts';
 import { buildQwikRouter } from './qwik-router.ts';
@@ -116,6 +118,14 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikrouter) {
       await buildQwikRouter(config);
+    }
+
+    if (config.devtools) {
+      await buildDevtools(config);
+    }
+
+    if (config.browserExtension) {
+      await buildBrowserExtension(config);
     }
 
     if (config.api || ((!config.dev || config.tsc) && config.qwikrouter)) {

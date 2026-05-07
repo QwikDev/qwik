@@ -23,7 +23,7 @@
     "image-size": "1.2.1",
     "kleur": "4.1.5",
     "prettier": "3.7.4",
-    "vitest": "4.0.18"
+    "vitest": "4.1.0"
   },
   "engines": {
     "node": "^20.3.0 || >=21.0.0"

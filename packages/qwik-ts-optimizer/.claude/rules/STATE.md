@@ -2,17 +2,17 @@
 
 Snapshot of where the active workstream stands. Read at the start of a session to rehydrate context fast. **Update aggressively** as meaningful progress lands — see "Maintenance" at the bottom.
 
-Last updated: 2026-05-07 (OSS-338 PR opened)
+Last updated: 2026-05-07 (OSS-344 implementation done; PR open)
 
 ## Goal
 
-**Active workstream:** optimizer codebase refactor track (audit follow-up). Reduce friction in modules that F2–F10 parity work touches repeatedly, before scaling further feature work. Tracked under Linear parent **OSS-337**.
+**Active workstream:** optimizer codebase refactor track v2 — segment generation cleanup. Tracked under Linear parent **[OSS-343](https://linear.app/kunai/issue/OSS-343)**. Continues the audit follow-up work from track v1 ([OSS-337](https://linear.app/kunai/issue/OSS-337), closed). First active ticket is **[OSS-344](https://linear.app/kunai/issue/OSS-344)** — predicates consolidation follow-up.
 
 **Long-term project goal:** 100% snapshot test parity between the TypeScript optimizer (this repo) and the SWC reference (`./swc-reference-only`), verified by `pnpm vitest convergence --run`. The refactor track is a side-track that pauses parity feature work to make subsequent feature work easier.
 
 ## Current measurements
 
-These are the baselines the refactor track must not regress (`REGRESSION.md`):
+These are the baselines the refactor track must not regress (`REGRESSION.md`). The CI gate now enforces them automatically on every PR — see "CI infrastructure" below.
 
 | Metric | Value |
 |---|---|
@@ -20,28 +20,56 @@ These are the baselines the refactor track must not regress (`REGRESSION.md`):
 | Convergence passing | **179 / 212** (84.4%) |
 | Full suite failing | 56 / 696 |
 | Full suite passing | 640 / 696 |
-| Last verified | 2026-05-07 on `main` (`f95b268`) |
+| Last verified | 2026-05-07 on `main` (post OSS-340 merge) |
+
+## CI infrastructure (live)
+
+Landed via [OSS-341](https://linear.app/kunai/issue/OSS-341) and unblocked via [OSS-342](https://linear.app/kunai/issue/OSS-342):
+
+- **`.github/workflows/test.yml`** — runs on every PR to `main`. Steps: typecheck → full vitest → name-based regression check against `.ci/baseline.json`. Fails the PR if any baseline-passing test ID is now failing.
+- **`.github/workflows/update-baseline.yml`** — runs on push to `main`. Regenerates `.ci/baseline.json` from a fresh test run; commits via `github-actions[bot]` with `[skip ci]` if the passing set changed.
+- **Node version requirement: `>=22`** (encoded in `package.json` `engines.node`). `oxc-parser`'s `experimentalRawTransfer` throws on Node 20 — was the root cause of the apparent macOS/Linux divergence in OSS-342.
+- **End-to-end smoke-tested** red-and-green via the throw-away PR #9 (closed unmerged): regression check correctly fails on intentional break, passes on revert.
+- **Validated on real PRs**: PR #10 (OSS-339) and PR #11 (OSS-340) both ran the gate green.
+
+Helpful local commands:
+
+- `pnpm typecheck` — runs `tsc --noEmit`
+- `pnpm ci:baseline:check <vitest-json>` — local regression check against the stored baseline
+- `pnpm ci:baseline:update <vitest-json>` — regenerate baseline locally (rare; auto-update on main is preferred)
+- `node scripts/diff-platform-results.mjs <vitest-json>` — diff a vitest JSON against the baseline (cross-environment investigation tool)
 
 ## Branches in flight
 
 | Branch | Head | Pushed | Tests | Notes |
 |---|---|---|---|---|
-| `main` | `f95b268` | ✅ | baseline | F1 PR merged + rule-doc updates (methodologies nuance, Linear state IDs) |
-| `ast-parity/F2` | `a644c16` (stale) | ❌ local-only | parked | F2 cluster paused; needs rebase onto current `main` (now contains F1 const-declarator fix and test hardening) before resuming. Carries F1c statement-ordering as foundation. |
-| `refactor/mig-05a-post-pass` | `b0b2930` | ✅ | baseline | **active workstream** — OSS-338, [PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6) open against `main`. |
+| `main` | latest post-OSS-340 merge | ✅ | baseline | All v1 refactor track work + CI infrastructure landed |
+| `ast-parity/F2` | `a644c16` (stale) | ❌ local-only | parked | F2 cluster paused; will need rebase onto current `main` (which now contains F1 const-declarator fix, F4 MIG-05a refactor, body-transforms cleanup, predicates module, and CI gate) before resuming |
+| `refactor/predicates-followup` | `0586182` | ✅ | baseline | **active workstream** — OSS-344 PR open |
 
-## Refactor track (OSS-337)
+## Refactor track v2 ([OSS-343](https://linear.app/kunai/issue/OSS-343))
 
 | Ticket | Title | Branch | Status |
 |---|---|---|---|
-| [OSS-337](https://linear.app/kunai/issue/OSS-337) | Optimizer pipeline refactor track — audit follow-up | (parent — no branch) | Backlog |
-| [OSS-338](https://linear.app/kunai/issue/OSS-338) | Refactor MIG-05a post-pass in `variable-migration.ts` | `refactor/mig-05a-post-pass` ([PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6)) | **In Review** |
-| [OSS-339](https://linear.app/kunai/issue/OSS-339) | Refactor `rewriteNestedCallSitesInline` in `body-transforms.ts` | `refactor/nested-callsite-rewrite` (not yet created) | Backlog |
-| [OSS-340](https://linear.app/kunai/issue/OSS-340) | Refactor `transformInlineSegmentBody` gating logic in `inline-body.ts` | `refactor/inline-body-gating` (not yet created) | Backlog |
+| [OSS-343](https://linear.app/kunai/issue/OSS-343) | Refactor track v2 — segment generation cleanup *(parent)* | (no branch) | Backlog (auto-rolls up) |
+| [OSS-344](https://linear.app/kunai/issue/OSS-344) | Consolidate `isStrippedSegment` + `isAnyComponentCtx` into `rewrite/predicates.ts` | `refactor/predicates-followup` | **In Review** (PR open; assigned scott.t.weaver) |
+| [OSS-345](https://linear.app/kunai/issue/OSS-345) | Pre-compute field maps in `segment-generation.ts` | `refactor/precompute-field-maps` (not yet created) | Backlog |
+| [OSS-346](https://linear.app/kunai/issue/OSS-346) | Refactor `generateSegmentCode` 8-phase sequencer | `refactor/generate-segment-code-phases` (not yet created) | Backlog |
+| [OSS-347](https://linear.app/kunai/issue/OSS-347) | Discovery + plan for `generateAllSegmentModules` refactor *(planning ticket — produces SPEC + sub-tickets, not direct code)* | `refactor/generate-all-segment-modules-spec` (not yet created) | Backlog |
 
-Each sub-issue has explicit acceptance criteria including the convergence/full-suite no-regression bound.
+Each implementation sub-issue has explicit acceptance criteria including convergence + full-suite no-regression bounds. Per-PR commit messages follow the four-question format from `METHODOLOGIES.md` "Refactoring" section.
 
-## Parity feature status (paused)
+## Refactor track v1 ([OSS-337](https://linear.app/kunai/issue/OSS-337)) — closed
+
+All sub-issues merged and closed. Worth recording the shape because v2 follows the same playbook.
+
+| Ticket | Outcome |
+|---|---|
+| OSS-338 | Extracted `MIG_REASON` const + `usingSegmentsOf` helper + named MIG-05a post-pass with JSDoc preconditions in `variable-migration.ts`. Renamed keys to action-prefixed style in a fixup commit. |
+| OSS-339 | Named `OUTERMOST_BODY_THRESHOLD` magic constant + `formatWCall` helper + `spliceWithinBody` helper in `body-transforms.ts`. |
+| OSS-340 | New module `rewrite/predicates.ts` consolidating `matchesRegCtxName` (3 byte-identical duplicates), `isEventHandlerOrJsxProp`, `hasUnderscorePlaceholderParams` across 4 files. |
+
+## Parity feature status (paused, awaiting refactor track v2 close)
 
 Snapshot from before the refactor track started. Numeric features track the original `CONVERGENCE_FAILURES.md` grouping. Suffix letters (F1b, F1c) are sub-features that emerged from in-flight rescoping.
 
@@ -50,9 +78,9 @@ Snapshot from before the refactor track started. Numeric features track the orig
 | F1 — `_ref` indirection | ✅ CLOSED | `component_level_self_referential_qrl` | shipped via PR #5; const-declarator fix added during review |
 | F1b — mutual-recursion migration | OPEN | `example_self_referential_component_migration` | not started; deeper migration policy than F4 |
 | F1c — inline-strategy emit ordering | LANDED (foundation only) | `root_level_self_referential_qrl_inline` | statement-order fix lives on `ast-parity/F2`; test won't flip until F2 also fixes path/hash/key-prefix bugs |
-| F2 — hoisted / inline / lib strategies | PAUSED | 5–6 tests | active before refactor track started; resume on rebased `ast-parity/F2` |
-| F3 — `_rawProps` lightweight components | OPEN | 4 tests | 8 coordinated changes; bigger than original 1-pass scoping |
-| F4 — MIG-05a shared destructure | LANDED partial | `example_invalid_references` | parent module passes; segments still fail (nested-segment migration not applied — separate bug). OSS-338 refactor will tighten this code path. |
+| F2 — hoisted / inline / lib strategies | PAUSED | 5–6 tests | active before refactor track started; resume on rebased `ast-parity/F2`. **The refactor track has now built foundation for F2:** named threshold, formatWCall, spliceWithinBody, predicates module. |
+| F3 — `_rawProps` lightweight components | OPEN | 4 tests | 8 coordinated changes; bigger than original 1-pass scoping. Will reuse `isComponentCtx` + `isAnyComponentCtx` from OSS-344 once that lands. |
+| F4 — MIG-05a shared destructure | LANDED partial | `example_invalid_references` | parent passes; segments still fail. OSS-338 cleaned the code path; nested-segment migration is the next step. |
 | F5 — server-marker stripping → null body | OPEN | 3 tests |  |
 | F6 — JSX runtime preservation | OPEN | 3 tests |  |
 | F7 — inner-function extraction discipline | OPEN | 4 tests + `fun_with_scopes` from F8 |  |
@@ -60,29 +88,33 @@ Snapshot from before the refactor track started. Numeric features track the orig
 | F9 — spread / var / const splitting | OPEN | 2 tests |  |
 | F10 — import-aware naming | OPEN | 2 tests |  |
 
-Full feature analysis with file/line pointers: `CONVERGENCE_FAILURES.md` in this directory.
+Full feature analysis: `CONVERGENCE_FAILURES.md`.
 
 ## Most recent meaningful progress
 
-Most recent first. Trim older entries when this list exceeds ~10.
+Most recent first. Trim entries older than ~10 to keep this file from bloating.
 
-- **2026-05-07** — OSS-338 opened as [PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6) (`refactor/mig-05a-post-pass`). `variable-migration.ts` refactored to centralise MIG reasons, extract a named MIG-05a post-pass with explicit JSDoc preconditions, and deduplicate the "which segments use this binding?" lookup. Behavior preserved (26/26 unit, 33/179 convergence, 56/640 full suite). Linear status moved to In Review.
-- **2026-05-07** — Refactor track kicked off. Audit (`refactor/optimizer-audit`) identified 7 candidates ranked by value-per-blast-radius. Parent OSS-337 + three sub-issues OSS-338/339/340 created. OSS-338 (MIG-05a) is the first active branch.
-- **2026-05-07** — `METHODOLOGIES.md` clarified: "minimum code" rule explicitly favours long-run readability/reusability over shortest diff. Helpers / shared predicates encouraged at 3+ call sites.
-- **2026-05-07** — `LINEAR.md` updated with `In Progress` and `In Review` state UUIDs alongside the existing `Backlog`, saving a re-probe round-trip.
-- **2026-05-07** — F1 PR #5 merged into `main`. Convergence stays 33/212 (one test had already flipped pre-merge); full suite grew 692 → 696 from new test cases, all passing.
-- **2026-05-07** — Copilot autofix on F1 PR added explicit assertions to `tests/optimizer/variable-migration.test.ts` (length, varName, action). Pure hardening, no production-code change.
-- **2026-05-07** — `ast-parity/F1.c` renamed to `ast-parity/F2`; F1c statement-ordering folded in as foundation. Branch is parked on stale F1 base; needs rebase before resuming.
-- **2026-05-07** — F1 simplified (`refactor(F1)`): 89→47 lines on `applySelfRefIndirection`, renamed companion to `applyRawPropsToSegmentBody`.
-- **2026-05-07** — Linear issues OSS-334/335/336 filed for codebase-wide silent-bailout audit (parent + 2 sub-issues, all `Backlog` / `TECH DEBT`).
-- **2026-05-06** — F1 `_ref` indirection landed. `component_level_self_referential_qrl` flipped to passing. Convergence 34→33.
-- **2026-05-06** — F4 MIG-05a refinement landed for shared destructures flowing to one segment. Parent passes; segments still fail.
+- **2026-05-07** — [OSS-344](https://linear.app/kunai/issue/OSS-344) implementation done; PR opened. Adds `isComponentCtx` (two-arm) + `isAnyComponentCtx` (three-arm) to `rewrite/predicates.ts`; moves `isStrippedSegment` here from `strip-ctx.ts` (now codegen-only). 5 imports repointed; 2 inline OR-chains replaced. Convergence 33/212 + full-suite 56/696 unchanged from main.
+- **2026-05-07** — Refactor track v2 kicked off. Parent [OSS-343](https://linear.app/kunai/issue/OSS-343) + 4 sub-issues created (OSS-344/345/346/347). OSS-344 is the active branch, picking up the predicates-consolidation thread from OSS-340.
+- **2026-05-07** — [OSS-340](https://linear.app/kunai/issue/OSS-340) merged via PR #11. Closes refactor track v1. New module `src/optimizer/rewrite/predicates.ts` consolidates 3 predicates × 9 inline call sites.
+- **2026-05-07** — [OSS-339](https://linear.app/kunai/issue/OSS-339) merged via PR #10. `body-transforms.ts` cleanup: named `OUTERMOST_BODY_THRESHOLD`, `formatWCall`, `spliceWithinBody`. First PR to validate the CI gate end-to-end.
+- **2026-05-07** — [OSS-342](https://linear.app/kunai/issue/OSS-342) merged via PR #8. CI unblocked: Node bumped 20 → 22, workflow files re-enabled. Phantom submodule references at `.claude/worktrees/*` cleaned up. Diagnosis was the macOS/Linux "divergence" was actually `oxc-parser`'s `experimentalRawTransfer` requiring Node 22+.
+- **2026-05-07** — [OSS-341](https://linear.app/kunai/issue/OSS-341) merged via PR #7. CI infrastructure: name-based regression check (`scripts/check-regression.mjs`), auto-baseline workflow (`scripts/update-baseline.mjs`), `.ci/baseline.json`. Workflows briefly parked at `.yml.disabled` while OSS-342 investigation ran.
+- **2026-05-07** — [OSS-338](https://linear.app/kunai/issue/OSS-338) merged via PR #6. `variable-migration.ts` cleanup: `MIG_REASON` const, `usingSegmentsOf` helper, named MIG-05a post-pass with JSDoc preconditions. Fixup commit renamed keys to action-prefixed style.
+- **2026-05-07** — `METHODOLOGIES.md` "Refactoring" section added: codifies the four-question commit/Linear comment format (what / why-isolation / why-future / risk) and the long-form-first / commit-trimmed-from-it authoring pattern.
+- **2026-05-07** — `LINEAR.md` updated with state UUIDs (Backlog, In Progress, In Review, Done) and the In-Progress auto-assignment convention (when local user is `scottweaver`, assign to scott.t.weaver).
+- **2026-05-07** — `METHODOLOGIES.md` clarified: minimum-code rule explicitly favours long-run readability/reusability over shortest diff. Helpers / shared predicates encouraged at 3+ call sites.
+- **2026-05-06** — Audit run on the now-deleted `refactor/optimizer-audit` branch identified 7 candidates for the optimizer pipeline; 3 became refactor track v1 (OSS-338/339/340), 4 became refactor track v2 (OSS-344–347).
 
 ## What to do next
 
-OSS-338 is in review ([PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6)). When it merges, retire `refactor/mig-05a-post-pass` and pick up **OSS-339** (`rewriteNestedCallSitesInline` in `body-transforms.ts`) on a fresh branch off `main`. Then **OSS-340** (`transformInlineSegmentBody` gating) on a third branch.
+**Awaiting review:** [OSS-344](https://linear.app/kunai/issue/OSS-344) PR. Once merged, refresh STATE.md to point at OSS-345.
 
-When the refactor track wraps, resume parity work by rebasing `ast-parity/F2` onto current `main` (the const-declarator restriction and test hardening from PR #5 will need to apply cleanly).
+**Next up: [OSS-345](https://linear.app/kunai/issue/OSS-345) / `refactor/precompute-field-maps`** — pre-compute field maps in `segment-generation.ts` so per-segment generation is no longer O(N·M) on field/segment counts. Branch not yet created.
+
+After OSS-345, queue is OSS-346 → OSS-347. OSS-347 is discovery-only — its output is a SPEC plus follow-up implementation tickets, not direct code.
+
+When the v2 track wraps, parity work resumes by rebasing `ast-parity/F2` onto current `main`. The F2 cluster bugs (path normalisation, hash, key prefix, extra empty segment file) will then have access to the foundation built by tracks v1+v2: predicates module, named thresholds, helpers, immutable field maps, named phase functions.
 
 ## Maintenance
 
@@ -122,15 +154,17 @@ Each update:
 2. Add an entry at the top of "Most recent meaningful progress" with the date and a one-line summary.
 3. Trim entries older than ~10 to keep this file from bloating.
 4. Update the "Current measurements" table if test counts changed.
-5. Update the "Branches in flight", "Refactor track", and "Parity feature status" tables if any changed.
+5. Update the "Branches in flight", "Refactor track v2", and "Parity feature status" tables if any changed.
 
 ## Where to look for more
 
 - `CONVERGENCE_FAILURES.md` — feature breakdown with per-test root causes
 - `CONSTRAINTS.md` — hard rules (read-only directories)
-- `REGRESSION.md` — regression invariants
-- `METHODOLOGIES.md` — process / workflow rules
-- `LINEAR.md` — ticket management conventions
-- Linear OSS-337 — refactor track parent (rolls up sub-issue completion)
+- `REGRESSION.md` — regression invariants (now CI-enforced)
+- `METHODOLOGIES.md` — process / workflow rules including the Refactoring section
+- `LINEAR.md` — ticket management conventions including state UUIDs and auto-assignment
+- `.github/workflows/README.md` — CI workflow documentation
+- Linear OSS-343 — refactor track v2 parent (rolls up sub-issue completion)
 - `pnpm vitest convergence --run` — current parity measurement
+- `pnpm ci:baseline:check <vitest-json>` — local regression check against stored baseline
 - `tests/optimizer/failure-families.test.ts` — secondary signal (broader, less strict than convergence)

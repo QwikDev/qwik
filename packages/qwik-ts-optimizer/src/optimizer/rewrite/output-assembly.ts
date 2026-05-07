@@ -24,12 +24,15 @@ import {
   buildHoistConstDecl,
   buildHoistSCall,
 } from '../inline-strategy.js';
-import { isStrippedSegment } from '../strip-ctx.js';
 import { rewriteFunctionSignature } from '../segment-codegen.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { isRelativePathInsideBase } from '../path-utils.js';
 import { transformInlineSegmentBody } from './inline-body.js';
-import { hasUnderscorePlaceholderParams, matchesRegCtxName } from './predicates.js';
+import {
+  hasUnderscorePlaceholderParams,
+  isStrippedSegment,
+  matchesRegCtxName,
+} from './predicates.js';
 import type { InlineSegmentJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
 

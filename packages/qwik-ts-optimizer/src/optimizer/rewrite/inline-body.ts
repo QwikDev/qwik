@@ -28,6 +28,7 @@ import {
 } from './raw-props.js';
 import {
   hasUnderscorePlaceholderParams,
+  isComponentCtx,
   isEventHandlerOrJsxProp,
   matchesRegCtxName,
 } from './predicates.js';
@@ -229,9 +230,8 @@ export function transformInlineSegmentBody(
     additionalImports.set('_captures', '@qwik.dev/core');
   }
   // _rawProps transform only applies to component$ extractions
-  const isComponentCtx = ext.ctxName === 'component$' || ext.ctxName === 'componentQrl';
   {
-    const rawPropsResult = isComponentCtx ? applyRawPropsTransform(body) : body;
+    const rawPropsResult = isComponentCtx(ext.ctxName) ? applyRawPropsTransform(body) : body;
     if (rawPropsResult !== body) {
       body = rawPropsResult;
       if (body.includes('_restProps(')) {

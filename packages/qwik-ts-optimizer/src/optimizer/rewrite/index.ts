@@ -26,8 +26,7 @@ import {
   needsPureAnnotation,
   getQrlCalleeName,
 } from '../rewrite-calls.js';
-import { isStrippedSegment } from '../strip-ctx.js';
-import { isEventHandlerOrJsxProp, matchesRegCtxName } from './predicates.js';
+import { isEventHandlerOrJsxProp, isStrippedSegment, matchesRegCtxName } from './predicates.js';
 import { transformEventPropName } from '../transform/event-handlers.js';
 import { transformAllJsx } from '../transform/jsx.js';
 import { stripExportDeclarations } from '../strip-exports.js';

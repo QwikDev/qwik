@@ -29,7 +29,8 @@ import {
 import { resolveEntryField } from "../entry-strategy.js";
 import { buildQrlDeclaration } from "../rewrite-calls.js";
 import { buildQrlDevDeclaration } from "../dev-mode.js";
-import { isStrippedSegment, generateStrippedSegmentCode } from "../strip-ctx.js";
+import { generateStrippedSegmentCode } from "../strip-ctx.js";
+import { isStrippedSegment } from "../rewrite/predicates.js";
 import {
   buildStrippedNoopQrl,
   buildStrippedNoopQrlDev,

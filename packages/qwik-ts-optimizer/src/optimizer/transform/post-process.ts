@@ -28,6 +28,7 @@ import {
   removeUnusedImports,
 } from './module-cleanup.js';
 import { applySegmentDCE, hasSegmentDcePatterns } from './dead-code.js';
+import { isAnyComponentCtx } from '../rewrite/predicates.js';
 
 export interface SegmentPostProcessOptions {
   symbolName: string;
@@ -218,13 +219,7 @@ export function postProcessSegmentCode(
   }
 
   // HMR injection for component$ segments
-  if (
-    opts.emitMode === "hmr" &&
-    opts.devFile &&
-    (opts.ctxName === "component$" ||
-      opts.ctxName === "componentQrl" ||
-      opts.ctxName === "component")
-  ) {
+  if (opts.emitMode === "hmr" && opts.devFile && isAnyComponentCtx(opts.ctxName)) {
     result = injectUseHmr(result, opts.devFile);
   }
 

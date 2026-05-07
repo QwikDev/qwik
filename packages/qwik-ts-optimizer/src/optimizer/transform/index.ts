@@ -22,7 +22,7 @@ import {
 } from "../rewrite/index.js";
 import { collectImports } from "../marker-detection.js";
 import { buildDevFilePath } from "../dev-mode.js";
-import { isStrippedSegment } from "../strip-ctx.js";
+import { isStrippedSegment } from "../rewrite/predicates.js";
 import { isSimpleIdentifierName } from '../utils/identifier-name.js';
 import {
   analyzeCaptures,

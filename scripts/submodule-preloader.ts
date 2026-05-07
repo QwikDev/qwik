@@ -65,6 +65,7 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
       minify: false, // This is the default, just to be explicit
       outDir: config.distQwikPkgDir,
     },
+    define: { 'globalThis.qTest': 'false' }, // In vitest environments, `qTest` is `true` which allows test-only code to run, but in production builds it should be `false` to allow dead code elimination.
     plugins: [customTerserPlugin()],
   });
 

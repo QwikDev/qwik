@@ -65,7 +65,13 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
       minify: false, // This is the default, just to be explicit
       outDir: config.distQwikPkgDir,
     },
-    define: { 'import.meta.env.TEST': 'false' }, // We replace `import.meta.env.TEST` with `false` at build time. This prevents `import.meta.env?.TEST` from blowing up the preloader.mjs size and prevents non vite environments (e.g. webpack, node etc.) from blowing up when `import.meta.env` is undefined.
+    // Substitute `globalThis.qTest` with `false` at transform time. The preloader sources
+    // use the `qTest` const from qdev.ts (which reads `globalThis.qTest === true`); doing
+    // this substitution at transform time lets Rollup constant-fold `qTest ? X : Y` early
+    // enough to tree-shake `isServerPlatform` (and its transitive deps like platform.ts /
+    // qError) out of the bundle. Doing it later (e.g. via Terser `global_defs`) is too
+    // late — by then the dead-branch references have already pulled their imports in.
+    define: { 'globalThis.qTest': 'false' },
     plugins: [customTerserPlugin()],
   });
 

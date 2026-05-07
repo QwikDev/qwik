@@ -1,4 +1,5 @@
 import { isBrowser } from '@qwik.dev/core/build';
+import { qTest } from '../shared/utils/qdev';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { createSignal } from '../reactive-primitives/signal.public';
 import { componentQrl } from '../shared/component.public';
@@ -103,7 +104,7 @@ export const revealCleanupTask = ({ cleanup }: TaskCtx) => {
   const registration = _captures![0] as RevealRegistration;
   cleanup(() => {
     // Keep the SSR registry intact so `reveal.items` serializes for resume.
-    if (import.meta.env?.TEST ? isServerPlatform() : !isBrowser) {
+    if (qTest ? isServerPlatform() : !isBrowser) {
       return;
     }
     const items = registration.reveal.items;

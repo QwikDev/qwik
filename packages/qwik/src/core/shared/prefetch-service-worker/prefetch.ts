@@ -1,5 +1,6 @@
 // keep this import from core/build so the cjs build works
 import { isDev } from '@qwik.dev/core/build';
+import { qTest } from '../utils/qdev';
 import { _jsxSorted } from '../../internal';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 
@@ -17,7 +18,7 @@ export const PrefetchServiceWorker = (opts: {
   fetchBundleGraph?: boolean;
   nonce?: string;
 }): JSXOutput => {
-  const isTest = import.meta.env?.TEST;
+  const isTest = qTest;
   if (isDev && !isTest) {
     const props = {
       dangerouslySetInnerHTML: '<!-- PrefetchServiceWorker is disabled in dev mode. -->',

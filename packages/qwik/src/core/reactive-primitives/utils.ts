@@ -1,4 +1,5 @@
 import { qwikDebugToString } from '../debug';
+import { qTest } from '../shared/utils/qdev';
 import { assertDefined } from '../shared/error/assert';
 import { isServerPlatform } from '../shared/platform/platform';
 import type { QRL } from '../shared/qrl/qrl.public';
@@ -88,7 +89,7 @@ export const scheduleEffects = (
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | undefined
 ) => {
-  const isBrowser = import.meta.env?.TEST ? !isServerPlatform() : !isServer;
+  const isBrowser = qTest ? !isServerPlatform() : !isServer;
   if (effects) {
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription.consumer;

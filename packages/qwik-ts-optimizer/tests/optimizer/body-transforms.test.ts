@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applySelfRefIndirection,
   injectCapturesUnpacking,
   rewriteFunctionSignature,
 } from '../../src/optimizer/segment-codegen/body-transforms.js';
@@ -33,6 +34,20 @@ describe('body-transforms', () => {
     it('converts expression bodies to block bodies when injecting captures', () => {
       expect(injectCapturesUnpacking('(props) => props.count + 1', ['count', 'label'])).toBe(
         '(props) => {\nconst count = _captures[0], label = _captures[1];\nreturn props.count + 1;\n}',
+      );
+    });
+  });
+
+  describe('applySelfRefIndirection', () => {
+    it('rewrites self-referential const declarators', () => {
+      expect(applySelfRefIndirection('() => {\n  const x = call(q_abc.w([x]));\n  return x;\n}')).toBe(
+        '() => {\n    const _ref = {};\n  _ref.x = call(q_abc.w([_ref.x]));\n    const { x } = _ref;\n  return x;\n}',
+      );
+    });
+
+    it('does not rewrite non-const self-referential declarators', () => {
+      expect(applySelfRefIndirection('() => {\n  let x = call(q_abc.w([x]));\n  return x;\n}')).toBe(
+        '() => {\n  let x = call(q_abc.w([x]));\n  return x;\n}',
       );
     });
   });

@@ -286,7 +286,7 @@ export function applySelfRefIndirection(bodyText: string): string {
 
   let foundAny = false;
   for (const stmt of block.body ?? []) {
-    if (stmt.type !== 'VariableDeclaration' || stmt.declarations?.length !== 1) continue;
+    if (stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const' || stmt.declarations?.length !== 1) continue;
     const d = stmt.declarations[0];
     if (d?.id?.type !== 'Identifier' || !d.init) continue;
     const { name } = d.id;

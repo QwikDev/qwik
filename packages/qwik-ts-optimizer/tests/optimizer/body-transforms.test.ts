@@ -55,5 +55,17 @@ describe('body-transforms', () => {
         '() => {\n  let x = call(q_abc.w([x]));\n  return x;\n}',
       );
     });
+
+    it('does not rewrite var self-referential declarators', () => {
+      expect(applySelfRefIndirection('() => {\n  var x = call(q_abc.w([x]));\n  return x;\n}')).toBe(
+        '() => {\n  var x = call(q_abc.w([x]));\n  return x;\n}',
+      );
+    });
+
+    it('does not rewrite non-qrl .w() calls', () => {
+      expect(applySelfRefIndirection('() => {\n  const x = call(worker.w([x]));\n  return x;\n}')).toBe(
+        '() => {\n  const x = call(worker.w([x]));\n  return x;\n}',
+      );
+    });
   });
 });

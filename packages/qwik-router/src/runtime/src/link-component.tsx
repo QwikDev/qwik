@@ -132,7 +132,7 @@ export const Link = component$<LinkProps>((props) => {
       }
     }
 
-    const isProdOrTest = !isDev || import.meta.env.TEST;
+    const isProdOrTest = !isDev || import.meta.env?.TEST;
 
     if (isProdOrTest && anchorRef.value) {
       if (

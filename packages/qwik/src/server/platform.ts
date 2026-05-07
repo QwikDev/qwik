@@ -27,14 +27,14 @@ const getDevSegmentPath = (
   if (!parent) {
     // Core symbols
     if (symbolName.startsWith('_') && symbolName.length < 6) {
-      return [symbolName, `${import.meta.env.BASE_URL}@qwik-handlers`];
+      return [symbolName, `${import.meta.env?.BASE_URL}@qwik-handlers`];
     }
     console.error('qwik symbolMapper: unknown qrl requested without parent:', symbolName);
-    return [symbolName, `${import.meta.env.BASE_URL}${symbolName}.js`];
+    return [symbolName, `${import.meta.env?.BASE_URL}${symbolName}.js`];
   }
   // In dev mode, the `parent` is the Vite URL for the parent, not the real absolute path.
   // It is always absolute but when on Windows that's without a /
-  const qrlFile = `${import.meta.env.BASE_URL}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
+  const qrlFile = `${import.meta.env?.BASE_URL}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
   return [symbolName, qrlFile];
 };
 
@@ -46,7 +46,7 @@ export function createPlatform(
   const mapperFn = opts.symbolMapper
     ? opts.symbolMapper
     : (symbolName: string, _chunk: any, parent?: string): readonly [string, string] | undefined => {
-        if (mapper || (isDev && import.meta.env.MODE !== 'test')) {
+        if (mapper || (isDev && import.meta.env?.MODE !== 'test')) {
           const hash = getSymbolHash(symbolName);
           const result = !isDev
             ? mapper![hash]

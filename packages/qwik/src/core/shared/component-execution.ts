@@ -1,4 +1,5 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
+import { qTest } from './utils/qdev';
 import { vnode_isVNode } from '../client/vnode-utils';
 import { isSignal } from '../reactive-primitives/utils';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
@@ -98,7 +99,7 @@ export const executeComponent = (
     componentFn = () => invokeApply(iCtx, inlineComponent, [props || EMPTY_OBJ]);
   }
 
-  const isSsr = import.meta.env.TEST ? isServerPlatform() : isServer;
+  const isSsr = qTest ? isServerPlatform() : isServer;
 
   const executeComponentWithPromiseExceptionRetry = (retryCount = 0): ValueOrPromise<JSXOutput> =>
     safeCall<JSXOutput, JSXOutput, JSXOutput>(

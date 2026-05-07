@@ -402,13 +402,58 @@ export function computeSegmentUsage(
  * 6. shared destructuring -> reexport
  * 7. used by exactly one segment -> move
  * 8. unused by any segment -> keep
+ *
+ * Post-pass MIG-05a: when every binding in a shared-destructure declaration
+ * is `reexport`-ed solely because of MIG-05 *and* they all flow to the same
+ * single segment with no root/multi-segment/export/side-effect interference,
+ * the whole destructure can be moved together into that segment instead.
  */
 export function analyzeMigration(
   decls: ModuleLevelDecl[],
   segmentUsage: Map<string, Set<string>>,
   rootUsage: Set<string>,
 ): MigrationDecision[] {
-  return decls.map(decl => decideMigration(decl, segmentUsage, rootUsage));
+  const decisions = decls.map(decl => decideMigration(decl, segmentUsage, rootUsage));
+
+  const groups = new Map<string, number[]>();
+  for (let i = 0; i < decls.length; i++) {
+    if (!decls[i].isPartOfSharedDestructuring) continue;
+    const key = `${decls[i].declStart}:${decls[i].declEnd}`;
+    let group = groups.get(key);
+    if (!group) { group = []; groups.set(key, group); }
+    group.push(i);
+  }
+
+  for (const indices of groups.values()) {
+    // A single decl flagged as shared can only exist as synthetic test data;
+    // real shared destructures always have >=2 sibling bindings.
+    if (indices.length < 2) continue;
+    let unifiedTarget: string | null = null;
+    let eligible = true;
+    for (const i of indices) {
+      const d = decls[i];
+      if (d.isExported || d.hasSideEffects || rootUsage.has(d.name)) { eligible = false; break; }
+      const using: string[] = [];
+      for (const [segName, usedNames] of segmentUsage) {
+        if (usedNames.has(d.name)) using.push(segName);
+      }
+      if (using.length !== 1) { eligible = false; break; }
+      if (unifiedTarget === null) unifiedTarget = using[0];
+      else if (unifiedTarget !== using[0]) { eligible = false; break; }
+    }
+    if (!eligible || unifiedTarget === null) continue;
+
+    for (const i of indices) {
+      decisions[i] = {
+        action: 'move',
+        varName: decls[i].name,
+        targetSegment: unifiedTarget,
+        reason: 'all bindings of shared destructure flow to same single segment (MIG-05a)',
+      };
+    }
+  }
+
+  return decisions;
 }
 
 function decideMigration(

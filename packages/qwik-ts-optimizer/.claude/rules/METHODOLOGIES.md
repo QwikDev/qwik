@@ -10,3 +10,7 @@ Web searches are permitted to acheive this goal.
 
 Sources:
 - https://unjs.io/
+
+## Features and Branching
+
+When starting work on a new feature, we must do it in a new branch.  You should prompt as whether to branch from `main` or the currently checked out branch.

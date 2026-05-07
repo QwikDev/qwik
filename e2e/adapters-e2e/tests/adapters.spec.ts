@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test.describe('Verifying Express Adapter', () => {
+test.describe('Verifying server adapters', () => {
   test('should ignore unknown qdata', async ({ page, request }) => {
     page.goto('/');
 

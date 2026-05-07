@@ -33,6 +33,7 @@ import { TreeshakingApp } from './components/treeshaking/treeshaking';
 import { TwoListeners } from './components/two-listeners/twolisteners';
 import { UseId } from './components/useid/useid';
 import { Watch } from './components/watch/watch';
+import { WorkerRoot } from './components/worker/worker';
 
 import './global.css';
 import { QRL } from './components/qrl/qrl';
@@ -81,6 +82,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/backpatching': () => <Backpatching />,
   '/e2e/each': () => <EachRoot />,
   '/e2e/suspense': () => <SuspenseRoot />,
+  '/e2e/worker': () => <WorkerRoot />,
 };
 
 export const Root = component$<{ pathname: string }>(({ pathname }) => {

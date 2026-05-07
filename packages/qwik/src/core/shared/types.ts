@@ -22,6 +22,7 @@ export interface Container {
   /// Retrieve Object from paused serialized state.
   readonly $getObjectById$: (id: number | string) => any;
   readonly $serverData$: Record<string, any>;
+  readonly $instanceHash$: string | null;
   $currentUniqueId$: number;
   $buildBase$: string | null;
   $renderPromise$: Promise<void> | null;

@@ -153,21 +153,33 @@ export async function normalizeRollupOutputOptions(
   };
 }
 
+const normalizeChunkPathPrefix = (prefix: string) => {
+  if (!prefix) {
+    return '';
+  }
+  return `${prefix.replace(/\/+$/, '')}/`;
+};
+
+export const getChunkPathPrefix = (prefix: string) => {
+  return `${normalizeChunkPathPrefix(prefix)}build/`;
+};
+
 const getChunkFileName = (
   prefix: string,
   opts: NormalizedQwikPluginOptions,
   optimizer: Optimizer
 ) => {
+  const chunkPathPrefix = getChunkPathPrefix(prefix);
   if (opts.buildMode === 'production' && !opts.debug) {
-    return `${prefix}build/q-[hash].js`;
+    return `${chunkPathPrefix}q-[hash].js`;
   } else {
     // Friendlier names in dev or preview with debug mode
     return (chunkInfo: Rollup.PreRenderedChunk) => {
       if (chunkInfo.moduleIds?.some((id) => /core\.(prod|min)\.mjs$/.test(id))) {
-        return `${prefix}build/core.js`;
+        return `${chunkPathPrefix}core.js`;
       }
       if (chunkInfo.moduleIds?.some((id) => /qwik-router\/lib\/index\.qwik\.mjs$/.test(id))) {
-        return `${prefix}build/qwik-router.js`;
+        return `${chunkPathPrefix}qwik-router.js`;
       }
 
       // The chunk name can often be a path. We sanitize it to use dashes instead of slashes, to keep the same folder structure as without debug:true.
@@ -177,7 +189,7 @@ const getChunkFileName = (
         .replace(/^(\.\.\/)+/, '')
         .replace(/^\/+/, '')
         .replace(/\//g, '-');
-      return `${prefix}build/${sanitized}.js`;
+      return `${chunkPathPrefix}${sanitized}.js`;
     };
   }
 };

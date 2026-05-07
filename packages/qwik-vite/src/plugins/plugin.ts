@@ -1126,10 +1126,8 @@ export const isDev = ${JSON.stringify(isDev)};
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
-        // the vite preload helper must be included or to prevent breaking circular dependencies
         id.endsWith('@qwik.dev/core/build') ||
-        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id) ||
-        id === '\0vite/preload-helper.js'
+        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id)
       ) {
         return 'qwik-preloader';
       } else if (

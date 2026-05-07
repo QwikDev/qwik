@@ -112,6 +112,49 @@ function findVarDeclarationEnd(text: string, startPos: number, varName: string):
 }
 
 /**
+ * Threshold separating "outermost arrow body" from "nested loop callback"
+ * by the position `findEnclosingArrowBodyForCapture` returns.
+ *
+ * When that helper lands inside the segment body's outermost arrow
+ * (e.g., the `(props) => {...}` that wraps the whole segment), the
+ * returned position is small — within ~10 chars of `bodyText[0]`.
+ * Anything deeper, like an `arr.map(item => {...})` callback nested
+ * inside, gives a much larger position. Captures resolved at the
+ * outermost level go to component scope (before the return); captures
+ * resolved inside a nested callback get hoisted at the local declaration
+ * site instead.
+ *
+ * 20 is empirical, tuned against the SWC reference output. A future
+ * structural replacement (e.g., counting `=>` tokens before
+ * `enclosingPos` or tracking scope depth during AST walking) would
+ * need careful re-validation against the snapshot suite before
+ * swapping in.
+ */
+const OUTERMOST_BODY_THRESHOLD = 20;
+
+/**
+ * Format `qrlVar.w([captures])` with symmetric indentation (open and
+ * joiner lines share `innerIndent`; the closing bracket uses
+ * `closeIndent`). The loop-callback hoist branch in
+ * `rewriteNestedCallSitesInline` uses an asymmetric layout
+ * (12-space first item, 8-space rest+close) and stays inline — see
+ * the comment near that branch for the SWC-compat rationale.
+ */
+function formatWCall(qrlVar: string, captures: string[], innerIndent: string, closeIndent: string): string {
+  return `${qrlVar}.w([\n${innerIndent}${captures.join(',\n' + innerIndent)}\n${closeIndent}])`;
+}
+
+/**
+ * Replace `bodyText[start, end)` with `replacement`. Returns the body
+ * unchanged when the range is out of bounds — defensive guard against
+ * stale positions from upstream rewriting.
+ */
+function spliceWithinBody(bodyText: string, start: number, end: number, replacement: string): string {
+  if (start < 0 || end > bodyText.length) return bodyText;
+  return bodyText.slice(0, start) + replacement + bodyText.slice(end);
+}
+
+/**
  * Rewrite nested $() calls and $-suffixed JSX attrs in the body text,
  * replacing them with QRL variable references. Returns the modified body text.
  *
@@ -134,18 +177,16 @@ export function rewriteNestedCallSitesInline(
       const propValueRef = site.hoistedSymbolName ?? site.qrlVarName;
       const relStart = site.attrStart - bodyOffset;
       const relEnd = site.attrEnd - bodyOffset;
-      if (relStart >= 0 && relEnd <= bodyText.length) {
-        bodyText = bodyText.slice(0, relStart) +
-          `${site.transformedPropName}={${propValueRef}}` +
-          bodyText.slice(relEnd);
-      }
+      bodyText = spliceWithinBody(bodyText, relStart, relEnd, `${site.transformedPropName}={${propValueRef}}`);
 
       if (site.hoistedSymbolName && site.hoistedCaptureNames && site.hoistedCaptureNames.length > 0) {
         const capturedVar = site.hoistedCaptureNames[0];
         const enclosingPos = findEnclosingArrowBodyForCapture(bodyText, relStart, capturedVar);
-        // Top-level function body (< 20 chars from start) means component-scoped captures
-        const isLoopCallback = enclosingPos >= 0 && enclosingPos > 20;
+        const isLoopCallback = enclosingPos >= 0 && enclosingPos > OUTERMOST_BODY_THRESHOLD;
         if (isLoopCallback) {
+          // Asymmetric indentation (12-space first item, 8-space rest+close)
+          // matches the SWC reference output for this branch byte-for-byte.
+          // Kept inline rather than going through formatWCall.
           const captureList = site.hoistedCaptureNames.join(',\n        ');
           const decl = `const ${site.hoistedSymbolName} = ${site.qrlVarName}.w([\n            ${captureList}\n        ]);`;
           let latestDeclPos = -1;
@@ -156,26 +197,21 @@ export function rewriteNestedCallSitesInline(
           hoistDeclarations.push({ position: latestDeclPos >= 0 ? latestDeclPos : enclosingPos, declaration: decl });
         } else {
           if (!componentScopeWDecls) componentScopeWDecls = [];
-          const captureList = site.hoistedCaptureNames.join(',\n        ');
-          const decl = `const ${site.hoistedSymbolName} = ${site.qrlVarName}.w([\n        ${captureList}\n    ]);`;
-          componentScopeWDecls.push(decl);
+          const wCall = formatWCall(site.qrlVarName, site.hoistedCaptureNames, '        ', '    ');
+          componentScopeWDecls.push(`const ${site.hoistedSymbolName} = ${wCall};`);
         }
       }
     } else {
       const relStart = site.callStart - bodyOffset;
       const relEnd = site.callEnd - bodyOffset;
-      if (relStart >= 0 && relEnd <= bodyText.length) {
-        let qrlRef = site.qrlVarName;
-        if (site.captureNames && site.captureNames.length > 0) {
-          qrlRef += '.w([\n        ' + site.captureNames.join(',\n        ') + '\n    ])';
-        }
-        if (site.qrlCallee) {
-          const purePrefix = needsPureAnnotation(site.qrlCallee) ? '/*#__PURE__*/ ' : '';
-          bodyText = bodyText.slice(0, relStart) + `${purePrefix}${site.qrlCallee}(${qrlRef})` + bodyText.slice(relEnd);
-        } else {
-          bodyText = bodyText.slice(0, relStart) + qrlRef + bodyText.slice(relEnd);
-        }
+      let qrlRef = site.qrlVarName;
+      if (site.captureNames && site.captureNames.length > 0) {
+        qrlRef = formatWCall(site.qrlVarName, site.captureNames, '        ', '    ');
       }
+      const replacement = site.qrlCallee
+        ? `${needsPureAnnotation(site.qrlCallee) ? '/*#__PURE__*/ ' : ''}${site.qrlCallee}(${qrlRef})`
+        : qrlRef;
+      bodyText = spliceWithinBody(bodyText, relStart, relEnd, replacement);
     }
   }
 

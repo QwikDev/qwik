@@ -393,6 +393,31 @@ export function computeSegmentUsage(
 }
 
 /**
+ * Reasons returned in `MigrationDecision.reason`. Centralised so the same
+ * MIG code never appears as a free-floating string in two places.
+ */
+const MIG_REASON = {
+  M01: 'single-use safe variable (MIG-01)',
+  M02: 'used by multiple segments (MIG-02)',
+  M03: 'exported variable used by segment (MIG-03)',
+  M04: 'declaration has side effects (MIG-04)',
+  M05: 'part of shared destructuring pattern (MIG-05)',
+  M05A: 'all bindings of shared destructure flow to same single segment (MIG-05a)',
+  KEEP_EXPORTED: 'exported but not used by any segment',
+  KEEP_UNUSED: 'not used by any segment',
+  REEXPORT_DUAL_USE: 'used by both root code and segment(s)',
+} as const;
+
+/** Names of the segments that reference `name`. */
+function usingSegmentsOf(name: string, segmentUsage: Map<string, Set<string>>): string[] {
+  const result: string[] = [];
+  for (const [segName, usedNames] of segmentUsage) {
+    if (usedNames.has(name)) result.push(segName);
+  }
+  return result;
+}
+
+/**
  * Decision tree for each module-level declaration (order matters):
  * 1. exported + used by segment -> reexport
  * 2. exported + unused by segments -> keep
@@ -414,45 +439,7 @@ export function analyzeMigration(
   rootUsage: Set<string>,
 ): MigrationDecision[] {
   const decisions = decls.map(decl => decideMigration(decl, segmentUsage, rootUsage));
-
-  const groups = new Map<string, number[]>();
-  for (let i = 0; i < decls.length; i++) {
-    if (!decls[i].isPartOfSharedDestructuring) continue;
-    const key = `${decls[i].declStart}:${decls[i].declEnd}`;
-    let group = groups.get(key);
-    if (!group) { group = []; groups.set(key, group); }
-    group.push(i);
-  }
-
-  for (const indices of groups.values()) {
-    // A single decl flagged as shared can only exist as synthetic test data;
-    // real shared destructures always have >=2 sibling bindings.
-    if (indices.length < 2) continue;
-    let unifiedTarget: string | null = null;
-    let eligible = true;
-    for (const i of indices) {
-      const d = decls[i];
-      if (d.isExported || d.hasSideEffects || rootUsage.has(d.name)) { eligible = false; break; }
-      const using: string[] = [];
-      for (const [segName, usedNames] of segmentUsage) {
-        if (usedNames.has(d.name)) using.push(segName);
-      }
-      if (using.length !== 1) { eligible = false; break; }
-      if (unifiedTarget === null) unifiedTarget = using[0];
-      else if (unifiedTarget !== using[0]) { eligible = false; break; }
-    }
-    if (!eligible || unifiedTarget === null) continue;
-
-    for (const i of indices) {
-      decisions[i] = {
-        action: 'move',
-        varName: decls[i].name,
-        targetSegment: unifiedTarget,
-        reason: 'all bindings of shared destructure flow to same single segment (MIG-05a)',
-      };
-    }
-  }
-
+  promoteSharedDestructureGroups(decls, decisions, segmentUsage, rootUsage);
   return decisions;
 }
 
@@ -461,34 +448,102 @@ function decideMigration(
   segmentUsage: Map<string, Set<string>>,
   rootUsage: Set<string>,
 ): MigrationDecision {
-  const usingSegments: string[] = [];
-  for (const [segName, usedNames] of segmentUsage) {
-    if (usedNames.has(decl.name)) usingSegments.push(segName);
-  }
-
+  const usingSegments = usingSegmentsOf(decl.name, segmentUsage);
   const usedByAnySegment = usingSegments.length > 0;
   const usedByRoot = rootUsage.has(decl.name);
 
   if (decl.isExported && usedByAnySegment) {
-    return { action: 'reexport', varName: decl.name, reason: 'exported variable used by segment (MIG-03)' };
+    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.M03 };
   }
   if (decl.isExported) {
-    return { action: 'keep', varName: decl.name, reason: 'exported but not used by any segment' };
+    return { action: 'keep', varName: decl.name, reason: MIG_REASON.KEEP_EXPORTED };
   }
   if (usedByRoot && usedByAnySegment) {
-    return { action: 'reexport', varName: decl.name, reason: 'used by both root code and segment(s)' };
+    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.REEXPORT_DUAL_USE };
   }
   if (usingSegments.length > 1) {
-    return { action: 'reexport', varName: decl.name, reason: 'used by multiple segments (MIG-02)' };
+    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.M02 };
   }
   if (decl.hasSideEffects && usedByAnySegment) {
-    return { action: 'reexport', varName: decl.name, reason: 'declaration has side effects (MIG-04)' };
+    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.M04 };
   }
   if (decl.isPartOfSharedDestructuring && usedByAnySegment) {
-    return { action: 'reexport', varName: decl.name, reason: 'part of shared destructuring pattern (MIG-05)' };
+    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.M05 };
   }
   if (usingSegments.length === 1) {
-    return { action: 'move', varName: decl.name, targetSegment: usingSegments[0], reason: 'single-use safe variable (MIG-01)' };
+    return { action: 'move', varName: decl.name, targetSegment: usingSegments[0], reason: MIG_REASON.M01 };
   }
-  return { action: 'keep', varName: decl.name, reason: 'not used by any segment' };
+  return { action: 'keep', varName: decl.name, reason: MIG_REASON.KEEP_UNUSED };
+}
+
+/**
+ * MIG-05a post-pass. When every binding in a shared-destructure declaration
+ * flows to the same single segment with no root/multi-segment/export/
+ * side-effect interference, promote them all from `reexport` to `move`
+ * targeting that segment. Mutates `decisions` in place; no-op when the
+ * preconditions don't hold.
+ *
+ * Preconditions per binding:
+ * - not exported, no side effects, not used by root code
+ * - used by exactly one segment
+ * - all sibling bindings target the same segment
+ *
+ * Single-binding "shared" decls only appear in synthetic test data — real
+ * shared destructures always have >=2 sibling bindings.
+ */
+function promoteSharedDestructureGroups(
+  decls: ModuleLevelDecl[],
+  decisions: MigrationDecision[],
+  segmentUsage: Map<string, Set<string>>,
+  rootUsage: Set<string>,
+): void {
+  const groupsByDeclSpan = new Map<string, number[]>();
+  for (let i = 0; i < decls.length; i++) {
+    if (!decls[i].isPartOfSharedDestructuring) continue;
+    const key = `${decls[i].declStart}:${decls[i].declEnd}`;
+    let group = groupsByDeclSpan.get(key);
+    if (!group) { group = []; groupsByDeclSpan.set(key, group); }
+    group.push(i);
+  }
+
+  for (const indices of groupsByDeclSpan.values()) {
+    if (indices.length < 2) continue;
+    const target = unifiedSingleSegmentTarget(indices, decls, segmentUsage, rootUsage);
+    if (!target) continue;
+
+    for (const i of indices) {
+      decisions[i] = {
+        action: 'move',
+        varName: decls[i].name,
+        targetSegment: target,
+        reason: MIG_REASON.M05A,
+      };
+    }
+  }
+}
+
+/**
+ * Returns the single segment all siblings flow to, or null if any sibling
+ * fails the MIG-05a preconditions.
+ */
+function unifiedSingleSegmentTarget(
+  indices: number[],
+  decls: ModuleLevelDecl[],
+  segmentUsage: Map<string, Set<string>>,
+  rootUsage: Set<string>,
+): string | null {
+  let target: string | null = null;
+
+  for (const i of indices) {
+    const d = decls[i];
+    if (d.isExported || d.hasSideEffects || rootUsage.has(d.name)) return null;
+
+    const using = usingSegmentsOf(d.name, segmentUsage);
+    if (using.length !== 1) return null;
+
+    if (target === null) target = using[0];
+    else if (target !== using[0]) return null;
+  }
+
+  return target;
 }

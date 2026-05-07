@@ -118,6 +118,7 @@
  */
 
 import { isDev } from '@qwik.dev/core/build';
+import { qTest } from '../shared/utils/qdev';
 import { qwikDebugToString } from '../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
@@ -437,7 +438,7 @@ export const vnode_setAttr = (
   scopedStyleIdPrefix: string | null = null
 ) => {
   if (vnode_isElementVNode(vNode)) {
-    import.meta.env.TEST &&
+    qTest &&
       scopedStyleIdPrefix &&
       vnode_setProp(vNode, debugStyleScopeIdPrefixAttr, scopedStyleIdPrefix);
     vnode_setProp(vNode, key, value);

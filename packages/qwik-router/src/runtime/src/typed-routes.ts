@@ -21,7 +21,7 @@ export const untypedAppUrl = function appUrl(
     }
   }
   let url = path.join('/');
-  let baseURL = import.meta.env.BASE_URL;
+  let baseURL = import.meta.env?.BASE_URL;
   if (baseURL) {
     if (!baseURL.endsWith('/')) {
       baseURL += '/';

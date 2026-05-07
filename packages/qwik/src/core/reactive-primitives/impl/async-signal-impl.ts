@@ -1,4 +1,5 @@
 import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
+import { qTest } from '../../shared/utils/qdev';
 import { qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
@@ -174,10 +175,7 @@ export class AsyncSignalImpl<T>
   get untrackedValue() {
     this.$computeIfNeeded$();
     if (this.$current$?.$promise$) {
-      if (
-        this.$untrackedValue$ === NEEDS_COMPUTATION ||
-        (import.meta.env.TEST ? isServerPlatform() : isServer)
-      ) {
+      if (this.$untrackedValue$ === NEEDS_COMPUTATION || (qTest ? isServerPlatform() : isServer)) {
         DEBUG && log('Throwing promise while computing initial value', this);
         throw this.$current$?.$promise$;
       }
@@ -192,7 +190,7 @@ export class AsyncSignalImpl<T>
     // For clientOnly signals without initial value during SSR, throw if trying to read value
     // During SSR, clientOnly signals are skipped, so there's no computed value available
     if (
-      (import.meta.env.TEST ? isServerPlatform() : isServer) &&
+      (qTest ? isServerPlatform() : isServer) &&
       this.$flags$ & AsyncSignalFlags.CLIENT_ONLY &&
       this.$untrackedValue$ === NEEDS_COMPUTATION
     ) {
@@ -275,7 +273,7 @@ export class AsyncSignalImpl<T>
     // reading `.loading` means someone is interested in the result, so we should trigger the computation. The alternative is eager computation or imperative calls to invalidate; this seems nicer.
     this.$computeIfNeeded$();
     // During SSR there's no such thing as loading state, we must render complete results
-    if ((import.meta.env.TEST ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
+    if ((qTest ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
       DEBUG && log('Throwing loading promise for SSR');
       throw this.$current$?.$promise$;
     }
@@ -393,7 +391,7 @@ export class AsyncSignalImpl<T>
     if (!(this.$flags$ & AsyncSignalFlags.EAGER_CLEANUP) || this.$hasSubscribers$()) {
       return;
     }
-    if (!(import.meta.env.TEST ? !isServerPlatform() : isBrowser)) {
+    if (!(qTest ? !isServerPlatform() : isBrowser)) {
       return;
     }
     setTimeout(() => {
@@ -418,10 +416,7 @@ export class AsyncSignalImpl<T>
       return;
     }
     // Skip computation on SSR for clientOnly signals
-    if (
-      (import.meta.env.TEST ? isServerPlatform() : isServer) &&
-      this.$flags$ & AsyncSignalFlags.CLIENT_ONLY
-    ) {
+    if ((qTest ? isServerPlatform() : isServer) && this.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
       // We must pretend to load, and register as a listener for the captures
       this.$untrackedLoading$ = true;
       (this.$container$ as SSRContainer)?.serializationCtx.$eagerResume$.add(this);
@@ -588,7 +583,7 @@ export class AsyncSignalImpl<T>
   }
 
   private $scheduleNextPoll$() {
-    if ((import.meta.env.TEST ? isServerPlatform() : isServer) || !this.$expires$) {
+    if ((qTest ? isServerPlatform() : isServer) || !this.$expires$) {
       return;
     }
 

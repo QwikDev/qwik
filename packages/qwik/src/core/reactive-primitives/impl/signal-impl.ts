@@ -3,7 +3,7 @@ import { pad, qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../shared/error/assert';
 import { qError, QError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
-import { qDev } from '../../shared/utils/qdev';
+import { qDev, qTest } from '../../shared/utils/qdev';
 import { tryGetInvokeContext } from '../../use/use-core';
 import {
   addQrlToSerializationCtx,
@@ -82,7 +82,7 @@ export class SignalImpl<T = any> implements Signal<T> {
       // to unsubscribe from. So we need to store the reference from the effect back
       // to this signal.
       ensureContainsBackRef(effectSubscriber, this);
-      (import.meta.env.TEST ? !isDomContainer(this.$container$) : isServer) &&
+      (qTest ? !isDomContainer(this.$container$) : isServer) &&
         addQrlToSerializationCtx(effectSubscriber, this.$container$);
       DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
     } else {

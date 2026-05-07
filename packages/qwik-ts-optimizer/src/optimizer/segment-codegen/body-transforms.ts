@@ -297,6 +297,8 @@ export function applySelfRefIndirection(bodyText: string): string {
         const callee = node.callee as AstNode | undefined;
         if (!callee || (callee.type !== 'MemberExpression' && callee.type !== 'StaticMemberExpression')) return;
         if (callee.property?.type !== 'Identifier' || callee.property.name !== 'w') return;
+        const calleeObject = callee.object as AstNode | undefined;
+        if (calleeObject?.type !== 'Identifier' || !calleeObject.name.startsWith('q_')) return;
         const arr = node.arguments?.[0] as AstNode | undefined;
         if (!arr || arr.type !== 'ArrayExpression') return;
         for (const el of arr.elements ?? []) {

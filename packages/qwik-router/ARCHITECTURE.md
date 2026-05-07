@@ -222,11 +222,10 @@ method.
 3. Nav task calls `submitAction(action, pathname)`:
    - POST to `{pathname}/?qaction={id}` with `Accept: application/json`.
    - Body is FormData or JSON.
-4. Response envelope: `{ d?, e?, r?, s?, h?, l? }` (data, error, redirect, status,
-   hashes-to-invalidate, loader-values).
+4. Response body: `{ result, loaderHashes? }`.
 5. If redirect (`r`): navigate via `goto`.
-6. If loader values (`l`): `setLoaderSignalValue(signal, value)` for each.
-7. If hashes (`h`): `signal.invalidate(true)` to trigger refetch.
+6. If hashes are present: `signal.invalidate(true)` for those loaders.
+7. If hashes are absent: invalidate all current route loaders.
 8. Resolves the `action.submit()` promise with `{ status, data, error }`.
 
 ### Server-Side Action Execution
@@ -235,7 +234,8 @@ method.
 
 1. Find action by ID, parse body, run validators, call QRL.
 2. If `action.__invalidate` is set: return specific hashes in `h` for client refetch.
-3. Otherwise (and not `__STRICT_LOADERS__`): re-run ALL loaders, return values in `l`.
+3. Otherwise, return no loader values. The client invalidates all current route loaders unless
+   `__STRICT_LOADERS__` is enabled, in which case the response includes an empty hash list.
 
 **Progressive enhancement** (`actionsMiddleware`): For form POST without JS:
 

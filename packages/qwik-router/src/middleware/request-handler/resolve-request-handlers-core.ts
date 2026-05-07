@@ -114,7 +114,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
       requestHandlers.push(loaderHandler(routeLoaders));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
-      requestHandlers.push(actionHandler(routeActions, routeLoaders));
+      requestHandlers.push(actionHandler(routeActions));
       if (method === 'POST' || method === 'GET') {
         requestHandlers.push(runServerFunction);
       }

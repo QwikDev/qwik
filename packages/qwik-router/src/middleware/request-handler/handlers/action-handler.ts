@@ -3,12 +3,10 @@ import type {
   ActionInternal,
   DataValidator,
   JSONObject,
-  LoaderInternal,
   RequestEvent,
   RequestHandler,
   ValidatorReturn,
 } from '../../../runtime/src/types';
-import { getRouteLoaderValues, loadRouteLoader } from '../../../runtime/src/route-loaders';
 import { RequestEvSharedActionId, type RequestEventInternal } from '../request-event-core';
 import { IsQAction, QActionId } from '../request-path';
 import type { QRL } from '@qwik.dev/core';
@@ -20,14 +18,11 @@ import type { RequestEventBase } from '../types';
  * When the request has `Accept: application/json`, returns the action result as JSON. Otherwise,
  * falls through to let the page render (progressive enhancement for forms).
  *
- * If the action has no `invalidate` list, all loaders are re-run and their values are sent back
- * alongside the action result. If `invalidate` is specified, only those loader hashes are sent
- * (without values) for the client to re-fetch individually.
+ * If the action has no `invalidate` list, the client invalidates all current route loaders unless
+ * strict loaders mode treats it as `invalidate: []`. If `invalidate` is specified, only those
+ * loader hashes are sent for the client to re-fetch.
  */
-export function actionHandler(
-  routeActions: ActionInternal[],
-  routeLoaders: LoaderInternal[]
-): RequestHandler {
+export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
 
@@ -111,16 +106,9 @@ export function actionHandler(
     if (action.__invalidate) {
       // Action specifies which loaders to invalidate — send only hashes, client re-fetches
       responseData.loaderHashes = action.__invalidate;
-    } else if (!globalThis.__STRICT_LOADERS__) {
-      // No invalidate list — re-run ALL loaders and send their values back.
-      // Store in request's loaderValues so cross-loader resolveValue() works.
-      const loaderValues = getRouteLoaderValues(requestEv);
-      await Promise.all(
-        routeLoaders.map(async (loader) => {
-          loaderValues[loader.__id] = await loadRouteLoader(loader, requestEv);
-        })
-      );
-      responseData.loaders = loaderValues;
+    } else if (globalThis.__STRICT_LOADERS__) {
+      // Strict mode treats omitted invalidate as invalidate: [].
+      responseData.loaderHashes = [];
     }
 
     const serialized = await _serialize(responseData);

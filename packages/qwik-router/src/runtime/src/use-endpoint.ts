@@ -7,7 +7,8 @@ import { QACTION_KEY } from './constants';
  * Submit an action to the server and get the result.
  *
  * POSTs to `/routePath/?qaction={actionId}` with `Accept: application/json`. The server runs the
- * action and returns the action result together with the loader hashes that should be invalidated.
+ * action and returns the action result, optionally with the loader hashes that should be
+ * invalidated.
  */
 export async function submitAction(
   action: NonNullable<RouteActionValue>,
@@ -18,7 +19,6 @@ export async function submitAction(
       result: unknown;
       redirect?: string;
       loaderHashes?: string[];
-      loaderValues?: Record<string, unknown>;
     }
   | undefined
 > {
@@ -65,14 +65,12 @@ export async function submitAction(
       result: unknown;
       redirect?: string;
       loaderHashes?: string[];
-      loaders?: Record<string, unknown>;
     }>(text);
     return {
       status: response.status,
       result: data?.result,
       redirect: data?.redirect,
       loaderHashes: data?.loaderHashes,
-      loaderValues: data?.loaders,
     };
   }
 

@@ -4,6 +4,7 @@
 
 ```ts
 
+import type { AsyncLocalStorage } from 'node:async_hooks';
 import type * as CSS_2 from 'csstype';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
@@ -142,6 +143,8 @@ export interface _Container {
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
+    readonly $instanceHash$: string | null;
+    // (undocumented)
     readonly $locale$: string;
     // (undocumented)
     $pendingCount$: number;
@@ -237,6 +240,11 @@ export const createComputedQrl: <T>(qrl: QRL<() => T>, options?: ComputedOptions
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
+
+// Warning: (ae-forgotten-export) The symbol "DeserializeContainer" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer;
 
 // @internal
 export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: Readonly<unknown[]> | string | null, container?: _Container) => _QRLInternal<TYPE>;
@@ -427,6 +435,9 @@ export const Fragment: FunctionComponent<{
 export type FunctionComponent<P = unknown> = {
     renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
+
+// @internal (undocumented)
+export const _getAsyncLocalStorage: () => (new <T>() => AsyncLocalStorage<T>) | undefined;
 
 // @public
 export const getClientManifest: () => ServerQwikManifest | undefined;
@@ -710,8 +721,6 @@ export const PrefetchServiceWorker: (opts: {
     nonce?: string;
 }) => JSXOutput;
 
-// Warning: (ae-forgotten-export) The symbol "DeserializeContainer" needs to be exported by the entry point index.d.ts
-//
 // @internal
 export function _preprocessState(data: unknown[], container: DeserializeContainer): void;
 
@@ -778,6 +787,12 @@ export function _qrlToString(serializationContext: SerializationContext, qrl: _Q
 
 // @internal (undocumented)
 export function _qrlToString(serializationContext: SerializationContext, qrl: _QRLInternal | SyncQRLInternal, raw: true): [string, string, string | null];
+
+// @internal (undocumented)
+export const _qrlWithChunk: <T = any>(chunk: string, importer: () => Promise<any>, symbol: string, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
+
+// @internal (undocumented)
+export const _qrlWithChunkDEV: <T = any>(chunk: string, importer: () => Promise<any>, symbol: string, opts: QRLDev, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 // @public @deprecated (undocumented)
 export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;

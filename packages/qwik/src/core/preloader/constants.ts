@@ -2,7 +2,9 @@ import { isServer } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import { isServerPlatform } from '../shared/platform/platform';
 
-export const isBrowser = qTest ? !isServerPlatform() : !isServer;
+const hasDocument = typeof document !== 'undefined';
+
+export const isBrowser = (qTest ? !isServerPlatform() : !isServer) && hasDocument;
 
 // Browser-specific setup
 export const doc = isBrowser ? document : undefined!;

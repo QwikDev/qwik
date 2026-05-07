@@ -7521,6 +7521,60 @@ export const handler = $(() => {
 	});
 }
 
+#[test]
+fn worker_qrl_segment_dev_snapshot() {
+	test_input!(TestInput {
+		code: r#"
+import { worker$ } from '@qwik.dev/core';
+
+export const runInWorker = worker$(() => 'hello');
+"#
+		.to_string(),
+		filename: "src/routes/index.tsx".into(),
+		mode: EmitMode::Dev,
+		snapshot: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn worker_qrl_segment_prod_snapshot() {
+	test_input!(TestInput {
+		code: r#"
+import { worker$ } from '@qwik.dev/core';
+
+export const runInWorker = worker$(() => 'hello');
+"#
+		.to_string(),
+		filename: "src/routes/index.tsx".into(),
+		mode: EmitMode::Prod,
+		snapshot: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn worker_qrl_direct_event_dev_snapshot() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+import { worker$ } from '@qwik.dev/core/worker';
+
+export default component$(() => {
+  const count = useSignal(0);
+  return <button onClick$={worker$(() => count.value++)}>Move work to worker</button>;
+});
+"#
+		.to_string(),
+		filename: "src/routes/index.tsx".into(),
+		mode: EmitMode::Dev,
+		transpile_jsx: true,
+		transpile_ts: true,
+		snapshot: true,
+		..TestInput::default()
+	});
+}
+
 impl TestInput {
 	pub fn default() -> Self {
 		Self {

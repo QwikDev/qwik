@@ -42,7 +42,12 @@ export const preloaderPre = (
   if (bundleGraphPath) {
     bundleGraphPath = (import.meta.env?.BASE_URL || '/') + bundleGraphPath;
   }
-  if (preloaderBundle && bundleGraphPath && options !== false) {
+  if (
+    !(import.meta.env?.DEV && !qTest) &&
+    preloaderBundle &&
+    bundleGraphPath &&
+    options !== false
+  ) {
     const bundleGraph = container.resolvedManifest?.manifest.bundleGraph;
     initPreloader(bundleGraph);
 
@@ -188,6 +193,9 @@ export const includePreloader = (
 };
 
 export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, nonce?: string) => {
+  if (import.meta.env?.DEV && !qTest) {
+    return;
+  }
   if (opts.preloader !== false) {
     const qrls = Array.from(ssrContainer.serializationCtx.$eventQrls$) as QRLInternal[];
     const preloadBundles = getBundles(qrls);

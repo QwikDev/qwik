@@ -50,6 +50,12 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.srcQwikDir, 'web-worker'),
+    join(config.distQwikPkgDir, 'worker', 'index.d.mts'),
+    '../core-internal.js'
+  );
+  createTypesApi(
+    config,
     join(config.srcQwikDir, 'insights'),
     join(config.distQwikPkgDir, 'insights', 'index.d.ts'),
     '..'

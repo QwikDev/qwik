@@ -1,0 +1,146 @@
+---
+title: Web Workers | Advanced
+---
+
+# `worker$()`
+
+A Web Worker lets the browser run JavaScript away from the main UI thread. This is useful when a
+calculation is large enough that it could make clicks, typing, scrolling, or animations feel stuck.
+
+`worker$()` is Qwik's way to run one of your functions in a worker. You write a normal function and
+wrap it with `worker$()`.
+
+```tsx
+import { component$, useSignal } from '@qwik.dev/core';
+import { worker$ } from '@qwik.dev/core/worker';
+
+const incrementInWorker = worker$((count: number) => count + 1);
+
+export default component$(() => {
+  const count = useSignal(0);
+
+  return (
+    <button
+      onClick$={async () => {
+        count.value = await incrementInWorker(count.value);
+      }}
+    >
+      Count: {count.value}
+    </button>
+  );
+});
+```
+
+`worker$()` returns a QRL function. Calling it always returns a promise, so you can use `await`,
+`.then()`, or any other promise flow that fits your code.
+
+## What to Put in a Worker
+
+Use `worker$()` for work that is expensive enough to move out of the UI path:
+
+- parsing or formatting large data
+- compression, hashing, or encoding
+- image, text, or number processing
+- calculations that would otherwise make the page feel unresponsive
+
+Small operations are usually better left inline. Sending data to a worker and getting a response back
+has a cost, so `worker$()` is most useful when the work itself is meaningfully heavier than that cost.
+
+## Passing Data
+
+Pass data that Qwik can serialize to worker functions. This follows the same
+[serialization boundary rules](../../../(qwikrouter)/guides/serialization/index.mdx) as other Qwik
+QRLs.
+
+```tsx
+import { worker$ } from '@qwik.dev/core/worker';
+
+const formatMessage = worker$((name: string, count: number) => {
+  return `${name}:${count}`;
+});
+
+formatMessage('qwik', 2).then((result) => {
+  console.log(result);
+});
+```
+
+Return values should also be serializable by Qwik.
+
+## Events and Forms
+
+Browser event objects and DOM nodes should not be sent to a worker. Read the data you need from the
+event first, then pass that data to the worker.
+
+For form submissions, Qwik helps by converting a form `SubmitEvent` into `FormData` before it reaches
+the worker.
+
+```tsx
+import { component$, useSignal } from '@qwik.dev/core';
+import { worker$ } from '@qwik.dev/core/worker';
+
+const parseValue = worker$((value: string) => Number(value));
+
+export default component$(() => {
+  const count = useSignal(0);
+
+  return (
+    <input
+      onInput$={async (_, target) => {
+        count.value = await parseValue(target.value);
+      }}
+    />
+  );
+});
+```
+
+```tsx
+import { component$, useSignal } from '@qwik.dev/core';
+import { worker$ } from '@qwik.dev/core/worker';
+
+const submitInWorker = worker$((data: FormData) => {
+  return `${data.get('name')}:${data.get('count')}`;
+});
+
+export default component$(() => {
+  const result = useSignal('pending');
+
+  return (
+    <form
+      preventdefault:submit
+      onSubmit$={async (event) => {
+        result.value = await submitInWorker(event);
+      }}
+    >
+      <input name="name" value="qwik" />
+      <input name="count" value="2" />
+      <button type="submit">Submit to worker</button>
+      <p>{result.value}</p>
+    </form>
+  );
+});
+```
+
+## Setup
+
+No manual `new Worker()` setup is needed when using the Qwik Vite plugin. Import `worker$()` from
+`@qwik.dev/core/worker`, define the worker function, and call it from your component, event handler,
+task, or other Qwik code.
+
+## Server-side Rendering
+
+`worker$()` is mainly useful to think about as a browser Web Worker API. During SSR, Qwik can also
+offload worker functions when worker support is available. If workers are not available in the
+current runtime, Qwik invokes the QRL directly instead.
+
+## Things to Remember
+
+- Worker functions return promises.
+- Pass data, not DOM nodes.
+- Keep arguments and return values serializable.
+- Prefer `worker$()` for expensive work, not tiny calculations.
+- Avoid browser-only globals inside the worker function.
+
+## API Reference
+
+- [`worker$()` API](/api/qwik-worker/#worker_)
+- [`workerQrl()` API](/api/qwik-worker/#workerqrl)

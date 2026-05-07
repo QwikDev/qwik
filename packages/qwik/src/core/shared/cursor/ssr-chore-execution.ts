@@ -18,6 +18,7 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import { _jsxSorted } from '../../internal';
 import { untrack } from '../../use/use-core';
+import { isDev } from '@qwik.dev/core/build';
 
 /** @internal */
 export function _executeSsrChores(
@@ -31,7 +32,7 @@ export function _executeSsrChores(
     if (ssrNode.dirty & ChoreBits.COMPUTE) {
       executeCompute(ssrNode, container);
     }
-    if (ssrNode.dirty & ChoreBits.DIRTY_MASK) {
+    if (isDev && ssrNode.dirty & ChoreBits.DIRTY_MASK) {
       // We are running on the server.
       // On server we can't schedule task for a different host!
       // Server is SSR, and therefore scheduling for anything but the current host

@@ -149,6 +149,7 @@ const EventsParent = component$(() => {
         </button>
         <button
           id="passive-preventdefault"
+          // @qwik-disable-next-line preventdefault-passive-check
           passive:click
           preventdefault:click
           onClick$={(ev) => {

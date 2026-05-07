@@ -7,6 +7,8 @@ export default component$(() => {
     <>
       <a href="/profile">go to profile</a>
       <br />
+      <a href="/worker">go to worker</a>
+      <br />
       <h1>Home page</h1>
       <br />
       {/* We need to extract the component to see the bug on 1.5.7 */}

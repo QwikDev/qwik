@@ -2507,9 +2507,9 @@ export const Link_component_handlePreload_MhXmSxzp4GE = (_, elm) => {
 ============================= index.qwik.mjs_Link_component_useVisibleTask_6K6z063D0C4.js (ENTRY POINT)==
 import { _captures, isDev } from "@qwik.dev/core";
 //
-export const Link_component_useVisibleTask_6K6z063D0C4 = ({ track }) => {
+export const Link_component_useVisibleTask_6K6z063D0C4 = (_rawProps) => {
 const anchorRef = _captures[0], handlePrefetch = _captures[1], linkProps = _captures[2], loc = _captures[3];
-    track(() => loc.url.pathname);
+    _rawProps.track(() => loc.url.pathname);
     const handler = linkProps.onQVisible$;
     if (handler) {
       const event = new CustomEvent('qvisible');
@@ -3018,10 +3018,10 @@ const saveScrollHistory = (scrollState) => {
   state._qRouterScroll = scrollState;
   history.replaceState(state, '');
 };
-export const useQwikRouter_useTask_omhKiQfdzZU = ({ track }) => {
+export const useQwikRouter_useTask_omhKiQfdzZU = (_rawProps) => {
     async function run() {
-      const navigation = track(routeInternal);
-      const action = track(actionState);
+      const navigation = _rawProps.track(routeInternal);
+      const action = _rawProps.track(actionState);
       const locale = getLocale('');
       const prevUrl = routeLocation.url;
       const navType = action ? 'form' : navigation.type;
@@ -3346,8 +3346,8 @@ export const useQwikMockRouter_goto_ojVznvSDqoM = async () => {
       console.warn('QwikRouterMockProvider: goto not provided');
     };
 ============================= index.qwik.mjs_useQwikMockRouter_useTask_oml2hW1aK6I.js (ENTRY POINT)==
-export const useQwikMockRouter_useTask_oml2hW1aK6I = async ({ track }) => {
-    const action = track(actionState);
+export const useQwikMockRouter_useTask_oml2hW1aK6I = async (_rawProps) => {
+    const action = _rawProps.track(actionState);
     if (!action?.resolve) {
       return;
     }

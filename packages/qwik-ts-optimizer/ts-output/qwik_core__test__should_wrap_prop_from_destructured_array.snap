@@ -60,11 +60,11 @@ export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
 ============================= test.tsx_Input_component_useTask_Sbgs9Wtfkt0.js (ENTRY POINT)==
 import { _captures } from "@qwik.dev/core";
 //
-export const Input_component_useTask_Sbgs9Wtfkt0 = ({ track }) => {
+export const Input_component_useTask_Sbgs9Wtfkt0 = (_rawProps) => {
 const props = _captures[0];
-					track(() => props.error);
-					track(() => props.error2);
-					track(() => props.error3);
+					_rawProps.track(() => props.error);
+					_rawProps.track(() => props.error2);
+					_rawProps.track(() => props.error3);
 				};
 ============================= test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU.js (ENTRY POINT)==
 export const test_component_div_button_q_e_click_2TvarUvNGmU = (_, _1, store) => {

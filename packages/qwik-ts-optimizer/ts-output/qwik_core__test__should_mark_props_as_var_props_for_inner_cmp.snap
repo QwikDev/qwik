@@ -50,9 +50,9 @@ export const ModelImg = /* @__PURE__ */ componentQrl(q_ModelImg_component_iJe6IC
 import { serverImg } from "~/routes/(authenticated)/layout";
 import { _captures } from "@qwik.dev/core";
 //
-export const ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI = async ({ track }) => {
+export const ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI = async (_rawProps) => {
 const props = _captures[0];
-    track(() => props.store.model);
+    _rawProps.track(() => props.store.model);
     return await serverImg('some.png');
   };
 ============================= test.tsx_Image_component_CS20HgBlRYI.js (ENTRY POINT)==

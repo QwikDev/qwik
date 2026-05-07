@@ -263,15 +263,127 @@ export function inlineEnumReferences(bodyText: string, enumValueMap: Map<string,
   return bodyText;
 }
 
-/** Apply _rawProps transform for component$ segments, add _restProps import if needed. */
+/**
+ * Apply `_ref` indirection for self-referential captures.
+ *
+ * When a component body declares `const X = useFooQrl(q_yyy.w([X]))`, the
+ * capture array references `X` inside its own initializer — TDZ. The Rust
+ * optimizer rewrites this to:
+ *
+ *     const _ref = {};
+ *     _ref.X = useFooQrl(q_yyy.w([_ref.X]));
+ *     const { X } = _ref;
+ *
+ * which lets the QRL runtime resolve `_ref.X` lazily after assignment.
+ *
+ * Detection is conservative: only `q_xxx.w([...])` arrays are inspected for
+ * Identifier elements that match the enclosing const declarator name. Other
+ * forms of self-reference (e.g. shadowed lexical scopes inside an arrow inside
+ * the initializer) are intentionally ignored.
+ */
+export function applySelfRefIndirection(bodyText: string): string {
+  // Quick string-based bailout: if there's no `.w([` we can never match.
+  if (!bodyText.includes('.w([')) return bodyText;
+
+  const wrapper = 'const __sr__ = ';
+  const wrapped = wrapper + bodyText;
+  let parsed: AstParseResult;
+  try {
+    parsed = parseWithRawTransfer('__sr__.tsx', wrapped);
+  } catch {
+    return bodyText;
+  }
+  if (!parsed.program || (parsed.errors && parsed.errors.length > 0)) return bodyText;
+
+  const stmt0 = parsed.program.body?.[0];
+  if (!stmt0 || stmt0.type !== 'VariableDeclaration') return bodyText;
+  const wrapperDecl = stmt0.declarations?.[0];
+  if (!wrapperDecl) return bodyText;
+  const arrow = wrapperDecl.init as AstNode | undefined;
+  if (!arrow || (arrow.type !== 'ArrowFunctionExpression' && arrow.type !== 'FunctionExpression')) return bodyText;
+  const blockBody = arrow.body as AstNode | undefined;
+  if (!blockBody || blockBody.type !== 'BlockStatement') return bodyText;
+
+  interface SelfRef {
+    stmt: AstNode;
+    declId: AstNode;
+    init: AstNode;
+    name: string;
+    refsInWArray: AstNode[];
+  }
+  const selfRefs: SelfRef[] = [];
+
+  for (const s of blockBody.body ?? []) {
+    if (s.type !== 'VariableDeclaration') continue;
+    if (!s.declarations || s.declarations.length !== 1) continue;
+    const d = s.declarations[0];
+    if (!d.id || d.id.type !== 'Identifier' || !d.init) continue;
+    const name = d.id.name;
+    const refs: AstNode[] = [];
+    walk(d.init, {
+      enter(node: AstNode) {
+        if (node.type !== 'CallExpression') return;
+        const callee = node.callee as AstNode | undefined;
+        if (!callee) return;
+        if (callee.type !== 'MemberExpression' && callee.type !== 'StaticMemberExpression') return;
+        const prop = callee.property as AstNode | undefined;
+        if (!prop || prop.type !== 'Identifier' || prop.name !== 'w') return;
+        const args = node.arguments as AstNode[] | undefined;
+        if (!args || args.length === 0) return;
+        const arr = args[0];
+        if (arr.type !== 'ArrayExpression') return;
+        for (const el of (arr.elements ?? [])) {
+          if (el && el.type === 'Identifier' && el.name === name) refs.push(el);
+        }
+      },
+    });
+    if (refs.length > 0) {
+      selfRefs.push({ stmt: s, declId: d.id, init: d.init, name, refsInWArray: refs });
+    }
+  }
+
+  if (selfRefs.length === 0) return bodyText;
+
+  // Compose edits in raw (wrapped) coordinates, then apply in reverse order.
+  type Edit = { start: number; end: number; replacement: string };
+  const edits: Edit[] = [];
+
+  // Insert `const _ref = {};` immediately after the block opening `{`.
+  const blockBodyStart = blockBody.start + 1;
+  edits.push({ start: blockBodyStart, end: blockBodyStart, replacement: '\n    const _ref = {};' });
+
+  for (const sr of selfRefs) {
+    // Replace each `name` ref in .w array with `_ref.name`
+    for (const ref of sr.refsInWArray) {
+      edits.push({ start: ref.start, end: ref.end, replacement: `_ref.${sr.name}` });
+    }
+    // Replace the stmt prefix `const NAME` with `_ref.NAME` (preserves the `=` and init).
+    edits.push({ start: sr.stmt.start, end: sr.declId.end, replacement: `_ref.${sr.name}` });
+    // Append destructure after the original stmt end.
+    edits.push({ start: sr.stmt.end, end: sr.stmt.end, replacement: `\n    const { ${sr.name} } = _ref;` });
+  }
+
+  edits.sort((a, b) => b.start - a.start);
+  let result = wrapped;
+  for (const e of edits) {
+    result = result.slice(0, e.start) + e.replacement + result.slice(e.end);
+  }
+  return result.slice(wrapper.length);
+}
+
+/**
+ * Apply _rawProps transform to a segment body and add _restProps import if needed.
+ *
+ * Originally gated to `component$`/`componentQrl` segments only. Broadened to all
+ * segments because non-component qrl segments (e.g. `useAsync$(({cleanup}) => ...)`)
+ * also need destructured first params normalised to `_rawProps` to match SWC.
+ * `applyRawPropsTransform` is a no-op when the first param isn't destructured.
+ */
 export function applyRawPropsIfComponent(
   bodyText: string,
-  extraction: ExtractionResult,
+  _extraction: ExtractionResult,
   parts: string[],
 ): string {
-  const isComponentSegment = extraction.ctxName === 'component$' || extraction.ctxName === 'componentQrl';
-  if (!isComponentSegment) return bodyText;
-
   const result = applyRawPropsTransform(bodyText);
   if (result === bodyText) return bodyText;
 

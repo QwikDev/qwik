@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <script type="module">
+      let panelCreated = false;
+
+      function detectAndCreate() {
+        if (panelCreated) return;
+        chrome.devtools.inspectedWindow.eval(
+          `!!document.querySelector('[q\\\\:container]')`,
+          (hasQwik, err) => {
+            if (hasQwik && !err && !panelCreated) {
+              panelCreated = true;
+              chrome.devtools.panels.create('Qwik', '/icon-32.png', '/panel.html');
+            }
+          }
+        );
+      }
+
+      // Retry detection: Qwik container may not exist yet (SSR hydration)
+      let attempts = 0;
+      function retryDetect() {
+        if (panelCreated || attempts >= 15) return;
+        attempts++;
+        detectAndCreate();
+        setTimeout(retryDetect, 1000);
+      }
+
+      retryDetect();
+
+      chrome.devtools.network.onNavigated.addListener(() => {
+        attempts = 0;
+        setTimeout(retryDetect, 500);
+      });
+    </script>
+  </body>
+</html>

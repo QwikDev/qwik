@@ -170,9 +170,13 @@ describe('analyzeMigration', () => {
 
     const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
 
+    expect(decisions).toHaveLength(2);
     expect(decisions[0].action).toBe('reexport');
+    expect(decisions[0].varName).toBe('a');
     // 'b' is used by root only; not by any segment, so MIG-05a doesn't apply and
     // it stays in the parent. Original decideMigration tree gives 'keep' for unused-by-segments.
+    expect(decisions[1].action).toBe('keep');
+    expect(decisions[1].varName).toBe('b');
   });
 
   it('Test 7: variable not used by any segment => keep', () => {

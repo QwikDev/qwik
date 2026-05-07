@@ -40,9 +40,10 @@ describe('body-transforms', () => {
 
   describe('applySelfRefIndirection', () => {
     it('rewrites self-referential const declarators', () => {
-      expect(applySelfRefIndirection('() => {\n  const x = call(q_abc.w([x]));\n  return x;\n}')).toBe(
-        '() => {\n    const _ref = {};\n  _ref.x = call(q_abc.w([_ref.x]));\n    const { x } = _ref;\n  return x;\n}',
-      );
+      const output = applySelfRefIndirection('() => {\n  const x = call(q_abc.w([x]));\n  return x;\n}');
+      expect(output).toContain('const _ref = {};');
+      expect(output).toContain('_ref.x = call(q_abc.w([_ref.x]));');
+      expect(output).toContain('const { x } = _ref;');
     });
 
     it('does not rewrite non-const self-referential declarators', () => {

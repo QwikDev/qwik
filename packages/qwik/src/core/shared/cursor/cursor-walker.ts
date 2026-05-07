@@ -6,6 +6,7 @@
  */
 
 import { isServerPlatform } from '../platform/platform';
+import { qTest } from '../utils/qdev';
 import type { VNode } from '../vnode/vnode';
 import {
   executeCleanup,
@@ -105,7 +106,7 @@ export function processCursorQueue(): void {
  *   tick)
  */
 export function walkCursor(cursor: Cursor, until: number): boolean | void {
-  const isRunningOnServer = import.meta.env?.TEST ? isServerPlatform() : isServer;
+  const isRunningOnServer = qTest ? isServerPlatform() : isServer;
 
   const cursorData = getCursorData(cursor)!;
 

@@ -1,5 +1,5 @@
 import { getPlatform } from '@qwik.dev/core';
-import { initPreloader } from './qwik-copy';
+import { initPreloader, qTest } from './qwik-copy';
 import type { QRLInternal, SSRContainer } from './qwik-types';
 import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
 
@@ -22,7 +22,7 @@ const simplifyPath = (base: string, path: string | null | undefined) => {
 
 const getBase = (container: SSRContainer) => {
   let base = container.$buildBase$!;
-  if (import.meta.env?.DEV && !import.meta.env?.TEST) {
+  if (import.meta.env?.DEV && !qTest) {
     // Vite dev server active
     // in dev, all bundles are absolute paths from the base url, not /build
     base = import.meta.env?.BASE_URL;

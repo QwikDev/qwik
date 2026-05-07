@@ -60,6 +60,7 @@ export { serializeAttribute } from '../core/shared/utils/styles';
 export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
 export { preload } from '../core/preloader/queue';
 export { initPreloader } from '../core/preloader/bundle-graph';
+export { qTest } from '../core/shared/utils/qdev';
 export { SsrNodeFlags } from '../core/shared/types';
 export { isPromise, retryOnPromise } from '../core/shared/utils/promises';
 export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';

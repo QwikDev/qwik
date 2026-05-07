@@ -1,4 +1,5 @@
 import { type QRL } from '../shared/qrl/qrl.public';
+import { qTest } from '../shared/utils/qdev';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { useSequentialScope } from './use-sequential-scope';
@@ -82,8 +83,7 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
 // </docs>
 export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);
 
-const liveUpdate =
-  isDev && ((import.meta.hot && typeof document !== 'undefined') || import.meta.env?.TEST);
+const liveUpdate = isDev && ((import.meta.hot && typeof document !== 'undefined') || qTest);
 
 const _useStyles = (
   styleQrl: QRL<string>,

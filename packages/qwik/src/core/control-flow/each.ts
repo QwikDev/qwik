@@ -1,4 +1,5 @@
 import type { PublicProps } from '../shared/component.public';
+import { qTest } from '../shared/utils/qdev';
 import type { DevJSX, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { inlinedQrl } from '../shared/qrl/qrl';
@@ -33,7 +34,7 @@ export const eachCmpTask = async ({ track }: TaskCtx) => {
   const host = context.$hostElement$!;
   const container = context.$container$!;
   markVNodeDirty(container, host, ChoreBits.RECONCILE);
-  const isSsr = import.meta.env?.TEST ? isServerPlatform() : isServer;
+  const isSsr = qTest ? isServerPlatform() : isServer;
   if (isSsr) {
     await container.$renderPromise$;
   }

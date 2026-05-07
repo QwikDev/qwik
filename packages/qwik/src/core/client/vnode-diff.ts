@@ -1,4 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
+import { qTest } from '../shared/utils/qdev';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
 import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
@@ -180,7 +181,7 @@ function setAttribute(
   scopedStyleIdPrefix: string | null,
   originalValue: any
 ) {
-  import.meta.env?.TEST &&
+  qTest &&
     scopedStyleIdPrefix &&
     vnode_setProp(vnode, debugStyleScopeIdPrefixAttr, scopedStyleIdPrefix);
   vnode_setProp(vnode, key, originalValue);
@@ -1129,7 +1130,7 @@ function createElementWithNamespace(diffContext: DiffContext, elementName: strin
   const domParentVNode = vnode_getDomParentVNode(diffContext.$vParent$, true);
   const namespaceData = getNewElementNamespaceData(domParentVNode, elementName);
 
-  const currentDocument = import.meta.env?.TEST ? diffContext.$container$.document : document;
+  const currentDocument = qTest ? diffContext.$container$.document : document;
 
   const element =
     namespaceData.elementNamespaceFlag === VNodeFlags.NS_html
@@ -1312,7 +1313,7 @@ const patchProperty = (
 };
 
 function registerQwikLoaderEvent(diffContext: DiffContext, eventName: string) {
-  const qWindow = import.meta.env?.TEST
+  const qWindow = qTest
     ? (diffContext.$container$.document.defaultView as qWindow | null)
     : (window as unknown as qWindow);
   if (qWindow) {
@@ -1751,7 +1752,7 @@ function expectText(diffContext: DiffContext, text: string) {
     diffContext.$journal$,
     diffContext.$vParent$,
     (diffContext.$vNewNode$ = vnode_newText(
-      (import.meta.env?.TEST ? diffContext.$container$.document : document).createTextNode(text),
+      (qTest ? diffContext.$container$.document : document).createTextNode(text),
       text
     )),
     getCurrentInsertBefore(diffContext)

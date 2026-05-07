@@ -23,7 +23,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Node 22+ required: oxc-parser's experimentalRawTransfer
+          # (see src/ast-types.ts) throws on Node 20.
+          node-version: 22
           cache: pnpm
 
       - name: Cache vitest

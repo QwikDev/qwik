@@ -1,43 +1,15 @@
 # GitHub Actions workflows
 
-## Currently disabled
+| File | Trigger | Purpose |
+|---|---|---|
+| `test.yml` | `pull_request` to `main` | Typecheck + full vitest suite + name-based regression check against `.ci/baseline.json`. Gate for PRs. |
+| `update-baseline.yml` | `push` to `main` | Re-runs the suite and auto-commits a refreshed `.ci/baseline.json` if test outcomes changed. Uses `[skip ci]` to avoid recursion. |
 
-Both workflows in this directory are parked with a `.disabled` suffix. GitHub
-Actions only scans `.yml` / `.yaml` files, so renamed files are not picked up.
+## Node version
 
-| File | Trigger |
-|---|---|
-| `test.yml.disabled` | `pull_request` to `main` (PR gate) |
-| `update-baseline.yml.disabled` | `push` to `main` (baseline auto-update) |
+Both workflows pin `node-version: 22`. Node 20 is **not** supported — `oxc-parser`'s `experimentalRawTransfer` option (used in `src/ast-types.ts`) throws unconditionally on Node 20, cascading into ~274 test failures. `package.json` `engines.node` reflects the same `>=22` requirement.
 
-## Why
+## History
 
-The infrastructure built under [OSS-341](https://linear.app/kunai/issue/OSS-341)
-(name-based regression check + auto-baseline) is sound, and a single CI run
-exercised it end-to-end. That run revealed two problems that have to be solved
-before the gates can be enabled safely:
-
-1. **macOS ↔ Linux test divergence.** On the Linux runner, **3 / 212**
-   convergence tests pass and **366 / 696** full-suite tests pass — vs
-   **179 / 212** and **640 / 696** locally on macOS. With the baseline
-   captured on macOS, the regression check on every PR would report ~274
-   "regressions" that are really platform-specific pre-existing failures.
-2. **Phantom submodule reference.** `.claude/worktrees/const-idents` is
-   tracked as a submodule but has no entry in `.gitmodules`, so any
-   `git push` from the workflow's checkout fails with
-   `fatal: No url found for submodule path '.claude/worktrees/const-idents'`.
-
-Both are tracked in Linear (see ticket created alongside this commit).
-
-## Re-enabling
-
-Once the divergence is investigated and resolved (or the baseline is
-regenerated on Linux as the source of truth), restoring the gates is a
-one-command revert per file:
-
-```sh
-git mv .github/workflows/test.yml.disabled .github/workflows/test.yml
-git mv .github/workflows/update-baseline.yml.disabled .github/workflows/update-baseline.yml
-```
-
-The workflow contents themselves are unchanged from OSS-341.
+- Initial design and infrastructure: [OSS-341](https://linear.app/kunai/issue/OSS-341).
+- Workflows were briefly parked at `.yml.disabled` while [OSS-342](https://linear.app/kunai/issue/OSS-342) tracked an apparent macOS/Linux test divergence. Root cause turned out to be Node 20 vs Node 22, not a platform issue. Fix: bump `node-version` in both workflows to 22.

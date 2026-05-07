@@ -394,18 +394,21 @@ export function computeSegmentUsage(
 
 /**
  * Reasons returned in `MigrationDecision.reason`. Centralised so the same
- * MIG code never appears as a free-floating string in two places.
+ * MIG code never appears as a free-floating string in two places. Keys
+ * follow `<ACTION>_<DISCRIMINATOR>` so the action taken is visible at the
+ * call site; reason strings keep the `(MIG-XX)` suffix as a grep target
+ * back to the Rust SWC reference.
  */
 const MIG_REASON = {
-  M01: 'single-use safe variable (MIG-01)',
-  M02: 'used by multiple segments (MIG-02)',
-  M03: 'exported variable used by segment (MIG-03)',
-  M04: 'declaration has side effects (MIG-04)',
-  M05: 'part of shared destructuring pattern (MIG-05)',
-  M05A: 'all bindings of shared destructure flow to same single segment (MIG-05a)',
+  MOVE_SINGLE_SEGMENT: 'single-use safe variable (MIG-01)',
+  MOVE_SHARED_DESTRUCTURE_UNIFIED: 'all bindings of shared destructure flow to same single segment (MIG-05a)',
+  REEXPORT_EXPORTED: 'exported variable used by segment (MIG-03)',
+  REEXPORT_DUAL_USE: 'used by both root code and segment(s)',
+  REEXPORT_MULTI_SEGMENT: 'used by multiple segments (MIG-02)',
+  REEXPORT_SIDE_EFFECTS: 'declaration has side effects (MIG-04)',
+  REEXPORT_SHARED_DESTRUCTURE: 'part of shared destructuring pattern (MIG-05)',
   KEEP_EXPORTED: 'exported but not used by any segment',
   KEEP_UNUSED: 'not used by any segment',
-  REEXPORT_DUAL_USE: 'used by both root code and segment(s)',
 } as const;
 
 /** Names of the segments that reference `name`. */
@@ -453,7 +456,7 @@ function decideMigration(
   const usedByRoot = rootUsage.has(decl.name);
 
   if (decl.isExported && usedByAnySegment) {
-    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.M03 };
+    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.REEXPORT_EXPORTED };
   }
   if (decl.isExported) {
     return { action: 'keep', varName: decl.name, reason: MIG_REASON.KEEP_EXPORTED };
@@ -462,16 +465,16 @@ function decideMigration(
     return { action: 'reexport', varName: decl.name, reason: MIG_REASON.REEXPORT_DUAL_USE };
   }
   if (usingSegments.length > 1) {
-    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.M02 };
+    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.REEXPORT_MULTI_SEGMENT };
   }
   if (decl.hasSideEffects && usedByAnySegment) {
-    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.M04 };
+    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.REEXPORT_SIDE_EFFECTS };
   }
   if (decl.isPartOfSharedDestructuring && usedByAnySegment) {
-    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.M05 };
+    return { action: 'reexport', varName: decl.name, reason: MIG_REASON.REEXPORT_SHARED_DESTRUCTURE };
   }
   if (usingSegments.length === 1) {
-    return { action: 'move', varName: decl.name, targetSegment: usingSegments[0], reason: MIG_REASON.M01 };
+    return { action: 'move', varName: decl.name, targetSegment: usingSegments[0], reason: MIG_REASON.MOVE_SINGLE_SEGMENT };
   }
   return { action: 'keep', varName: decl.name, reason: MIG_REASON.KEEP_UNUSED };
 }
@@ -516,7 +519,7 @@ function promoteSharedDestructureGroups(
         action: 'move',
         varName: decls[i].name,
         targetSegment: target,
-        reason: MIG_REASON.M05A,
+        reason: MIG_REASON.MOVE_SHARED_DESTRUCTURE_UNIFIED,
       };
     }
   }

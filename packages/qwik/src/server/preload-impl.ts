@@ -1,5 +1,4 @@
 import { getPlatform } from '@qwik.dev/core';
-import { isDev } from '@qwik.dev/core/build';
 import { initPreloader, qTest } from './qwik-copy';
 import type { QRLInternal, SSRContainer } from './qwik-types';
 import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
@@ -44,7 +43,7 @@ export const preloaderPre = (
     bundleGraphPath = (import.meta.env?.BASE_URL || '/') + bundleGraphPath;
   }
   if (
-    !(isDev && !import.meta.env.TEST) &&
+    !(import.meta.env?.DEV && !qTest) &&
     preloaderBundle &&
     bundleGraphPath &&
     options !== false
@@ -194,7 +193,7 @@ export const includePreloader = (
 };
 
 export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, nonce?: string) => {
-  if (isDev && !import.meta.env.TEST) {
+  if (import.meta.env?.DEV && !qTest) {
     return;
   }
   if (opts.preloader !== false) {

@@ -120,7 +120,7 @@ When the v2 track wraps, parity work resumes by rebasing `ast-parity/F2` onto cu
 
 ### Branch scoping
 
-Unlike other files in `.claude/rules/` (CONSTRAINTS, REGRESSION, METHODOLOGIES, CONVERGENCE_FAILURES, LINEAR) which are project-wide rules edited and reviewed in isolation, **STATE.md is branch-scoped**. It reflects the active workstream of whatever branch it's committed on:
+Unlike other files in `.claude/rules/` (CONSTRAINTS, REGRESSION, METHODOLOGIES, CONVERGENCE_FAILURES, LINEAR, OPTIMIZER) which are project-wide rules edited and reviewed in isolation, **STATE.md is branch-scoped**. It reflects the active workstream of whatever branch it's committed on:
 
 - **Edit/commit on feature & working branches only.** Never edit STATE.md directly on `main` as part of a standalone changeset. Never cherry-pick a STATE.md change to `main`.
 - **It travels with merges.** When a feature branch merges into `main`, its STATE.md comes along naturally. After the merge, `main` carries that branch's final state until the next branch merges and overwrites it.
@@ -156,6 +156,7 @@ Each update:
 
 ## Where to look for more
 
+- `OPTIMIZER.md` — end-to-end pipeline walkthrough with deep dives on capture analysis, migration policy, JSX rewrite, and segment metadata. Read this when onboarding into a new optimizer area.
 - `CONVERGENCE_FAILURES.md` — feature breakdown with per-test root causes
 - `CONSTRAINTS.md` — hard rules (read-only directories)
 - `REGRESSION.md` — regression invariants (now CI-enforced)

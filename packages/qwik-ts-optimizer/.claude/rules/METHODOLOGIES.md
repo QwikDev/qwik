@@ -72,3 +72,11 @@ Author the long form first; the commit message is a trim of it, not the other wa
 - Future-work claims with no concrete beneficiary. If no ticket / feature / file uses the new structure, it's speculative abstraction.
 
 OSS-338 / [PR #6](https://github.com/thejackshelton/TS-Optimizer/pull/6) is a worked example of both forms.
+
+### Pipeline-touching refactors must audit OPTIMIZER.md
+
+Refactors that touch any module listed in `OPTIMIZER.md`'s "Trigger checklist for pipeline refactors" carry an additional obligation: audit `OPTIMIZER.md` against the change before merging the PR. The doc captures the optimizer's stable structural shape (phase numbering, file:line refs, tool/author convention names, worked-example snapshots), and silent drift between the doc and the code is the easy failure mode — there's no test that catches it.
+
+Fold the doc update into the same PR as the code change. Doc-only catch-up PRs are fine when drift is discovered later, but they're a sign the process leaked.
+
+See `OPTIMIZER.md` "Maintenance" section for the full checklist and triggers.

@@ -2,11 +2,11 @@
 
 Snapshot of where the active workstream stands. Read at the start of a session to rehydrate context fast. **Update aggressively** as meaningful progress lands — see "Maintenance" at the bottom.
 
-Last updated: 2026-05-08 (refactor track v2 implementation closed; doc + types polish shipped; OSS-347 is the only remaining ticket)
+Last updated: 2026-05-08 (post OSS-351 fold-in optimization + OSS-348 state cleanup; OSS-352 filed as backlog; OSS-347 still the only remaining track v2 ticket)
 
 ## Goal
 
-**Active workstream:** between workstreams. Refactor track v2 ([OSS-343](https://linear.app/kunai/issue/OSS-343)) implementation work is closed — OSS-344 (PR #12), OSS-345 (PR #13), and OSS-346 (PR #14) all merged. The only remaining track v2 ticket is **[OSS-347](https://linear.app/kunai/issue/OSS-347)**, a discovery-only SPEC for `generateAllSegmentModules` that produces follow-up implementation tickets rather than direct code. Two doc/types side-tracks also shipped this session: OPTIMIZER.md walkthrough + Maintenance governance ([OSS-348](https://linear.app/kunai/issue/OSS-348), PR #15), REGRESSION.md mechanism rewrite (PR #16, no ticket), types.ts JSDoc parity ([OSS-349](https://linear.app/kunai/issue/OSS-349), PR #17), and `extractSegments` `preParsedModule` plumbing ([OSS-350](https://linear.app/kunai/issue/OSS-350), PR #18).
+**Active workstream:** between workstreams. Refactor track v2 ([OSS-343](https://linear.app/kunai/issue/OSS-343)) implementation work is closed — OSS-344 (PR #12), OSS-345 (PR #13), and OSS-346 (PR #14) all merged. The only remaining track v2 ticket is **[OSS-347](https://linear.app/kunai/issue/OSS-347)**, a discovery-only SPEC for `generateAllSegmentModules` that produces follow-up implementation tickets rather than direct code. Doc/types/perf side-tracks also shipped this session: OPTIMIZER.md walkthrough + Maintenance governance ([OSS-348](https://linear.app/kunai/issue/OSS-348), PR #15), REGRESSION.md mechanism rewrite (PR #16, no ticket), types.ts JSDoc parity ([OSS-349](https://linear.app/kunai/issue/OSS-349), PR #17), `extractSegments` `preParsedModule` plumbing ([OSS-350](https://linear.app/kunai/issue/OSS-350), PR #18), and `extract.ts` JSX-extension fold-in ([OSS-351](https://linear.app/kunai/issue/OSS-351), PR #20). One backlog item filed during the OSS-351 review: [OSS-352](https://linear.app/kunai/issue/OSS-352) (`inlinedQrl` extension JSX-detection investigation).
 
 **Long-term project goal:** 100% snapshot test parity between the TypeScript optimizer (this repo) and the SWC reference (`./swc-reference-only`), verified by `pnpm vitest convergence --run`. The refactor track is a side-track that pauses parity feature work to make subsequent feature work easier.
 
@@ -20,7 +20,7 @@ These are the baselines the refactor track must not regress (`REGRESSION.md`). T
 | Convergence passing | **179 / 212** (84.4%) |
 | Full suite failing | 56 / 696 |
 | Full suite passing | 640 / 696 |
-| Last verified | 2026-05-08 on `main` (post OSS-350 + OSS-349 merges, head `5fce6e3`) |
+| Last verified | 2026-05-08 on `main` (post OSS-351 merge, head `83f2804`) |
 
 ## CI infrastructure (live)
 
@@ -30,7 +30,7 @@ Landed via [OSS-341](https://linear.app/kunai/issue/OSS-341) and unblocked via [
 - **`.github/workflows/update-baseline.yml`** — runs on push to `main`. Regenerates `.ci/baseline.json` from a fresh test run; commits via `github-actions[bot]` with `[skip ci]` if the passing set changed.
 - **Node version requirement: `>=22`** (encoded in `package.json` `engines.node`). `oxc-parser`'s `experimentalRawTransfer` throws on Node 20 — was the root cause of the apparent macOS/Linux divergence in OSS-342.
 - **End-to-end smoke-tested** red-and-green via the throw-away PR #9 (closed unmerged): regression check correctly fails on intentional break, passes on revert.
-- **Validated on real PRs**: every refactor-track PR through PR #18 has run the gate green — PR #10 (OSS-339), PR #11 (OSS-340), PR #12 (OSS-344), PR #13 (OSS-345), PR #14 (OSS-346), PR #17 (OSS-349 docs-only), PR #18 (OSS-350). Doc-only PRs (PR #15 OSS-348, PR #16 REGRESSION) also ran clean since they don't change source.
+- **Validated on real PRs**: every refactor-track PR through PR #20 has run the gate green — PR #10 (OSS-339), PR #11 (OSS-340), PR #12 (OSS-344), PR #13 (OSS-345), PR #14 (OSS-346), PR #17 (OSS-349 docs-only), PR #18 (OSS-350), PR #20 (OSS-351). Doc-only PRs (PR #15 OSS-348, PR #16 REGRESSION, PR #19 STATE refresh) also ran clean since they don't change source.
 
 Helpful local commands:
 
@@ -43,7 +43,7 @@ Helpful local commands:
 
 | Branch | Head | Pushed | Tests | Notes |
 |---|---|---|---|---|
-| `main` | `5fce6e3` (post OSS-350 + OSS-349 merges) | ✅ | baseline | All track v1 + track v2 implementation work landed; OPTIMIZER.md / REGRESSION.md / types.ts JSDoc shipped |
+| `main` | `83f2804` (post OSS-351 merge) | ✅ | baseline | All track v1 + track v2 implementation work landed; OPTIMIZER.md / REGRESSION.md / types.ts JSDoc / extract.ts JSX fold-in shipped |
 | `ast-parity/F2` | `a644c16` (stale) | ❌ local-only | parked | F2 cluster paused; will need rebase onto current `main` (which now contains F1 const-declarator fix, F4 MIG-05a refactor, body-transforms cleanup, predicates module + predicates v2, immutable field maps, generateSegmentCode phase helpers, single-parse plumbing, and CI gate) before resuming |
 | _(no active workstream branch)_ | — | — | — | Between tracks; OSS-347 is the next ticket and its branch hasn't been created yet |
 
@@ -94,6 +94,7 @@ Full feature analysis: `CONVERGENCE_FAILURES.md`.
 
 Most recent first. Trim entries older than ~10 to keep this file from bloating.
 
+- **2026-05-08** — [OSS-351](https://linear.app/kunai/issue/OSS-351) merged via PR #20. `extract.ts` folds the per-extraction `walk(arg, ...)` JSX-detection subtree walk into the main `walk(program, ...)`. Active-segment stack maintained on enter/leave of each extraction's wrapping node; per-segment `hasJsx` is flipped when an enclosed `JSXElement`/`JSXFragment` is visited; the file extension is finalised once at pop time via `extensionFromSegmentJsx`. `defaultExtension` hoisted to a per-call constant; `nodeContainedIn` defensive guard added; old `determineExtension` helper removed. Companion backlog item [OSS-352](https://linear.app/kunai/issue/OSS-352) filed during review for the pre-existing `inlinedQrl` path's lack of JSX detection (out-of-scope here). Convergence 33/212 + full-suite 56/696 unchanged. Also: [OSS-348](https://linear.app/kunai/issue/OSS-348) state cleanup — moved In Review → Done now that PR #15 has been merged for several commits.
 - **2026-05-08** — [OSS-350](https://linear.app/kunai/issue/OSS-350) merged via PR #18. `extractSegments` gains optional `preParsedModule` companion to `preParsedProgram`; `transform/index.ts` lifts the post-repair `{program, module}` parse to a single point right after Phase 0 via direct destructuring. Closes a latent gap where `collectImports` got `undefined` module on the pre-parsed-program path. Foundation for OSS-347's single-shared-AST reasoning. Convergence 33/212 + full-suite 56/696 unchanged.
 - **2026-05-08** — [OSS-349](https://linear.app/kunai/issue/OSS-349) merged via PR #17. `types.ts` gains class-level + per-field/per-variant JSDoc on every exported type — `TransformModulesOptions`, `TransformModuleInput`, `TransformOutput`, `TransformModule`, `SegmentAnalysis`, `SegmentMetadataInternal`, `EntryStrategy`, `MinifyMode`, `EmitMode`, `DiagnosticHighlightFlat`, `Diagnostic`. NAPI-parity-only fields (`rootDir`, `sourceMaps`, `preserveFilenames`, `Diagnostic.suggestions`) explicitly flagged; verified by grep. Comment-only change.
 - **2026-05-08** — `REGRESSION.md` rewritten via PR #16 (no Linear ticket — small docs improvement). Coarse two-sentence "success rate must not decrease" rule replaced with the actual mechanism: set-based invariant, baseline file shape, the two scripts (`check-regression.mjs` / `update-baseline.mjs`), the two workflows (`test.yml` PR gate + `update-baseline.yml` push-to-main auto-baseline), failure-mode decision tree, local-equivalent commands.
@@ -103,13 +104,14 @@ Most recent first. Trim entries older than ~10 to keep this file from bloating.
 - **2026-05-07** — [OSS-344](https://linear.app/kunai/issue/OSS-344) merged via PR #12. `rewrite/predicates.ts` gains `isComponentCtx` (two-arm) + `isAnyComponentCtx` (three-arm); `isStrippedSegment` moved here from `strip-ctx.ts` (now codegen-only). 5 imports repointed; 2 inline OR-chains replaced. Convergence 33/212 + full-suite 56/696 unchanged.
 - **2026-05-07** — Refactor track v2 kicked off. Parent [OSS-343](https://linear.app/kunai/issue/OSS-343) + 4 sub-issues created (OSS-344/345/346/347). OSS-344 is the active branch, picking up the predicates-consolidation thread from OSS-340.
 - **2026-05-07** — [OSS-340](https://linear.app/kunai/issue/OSS-340) merged via PR #11. Closes refactor track v1. New module `src/optimizer/rewrite/predicates.ts` consolidates 3 predicates × 9 inline call sites.
-- **2026-05-07** — [OSS-338](https://linear.app/kunai/issue/OSS-338) merged via PR #6. `variable-migration.ts` cleanup: `MIG_REASON` const, `usingSegmentsOf` helper, named MIG-05a post-pass with JSDoc preconditions.
 
 ## What to do next
 
 **Track v2 implementation is closed.** OSS-344, OSS-345, and OSS-346 all merged. Only [OSS-347](https://linear.app/kunai/issue/OSS-347) remains in the track and it is **discovery-only** — its output is a SPEC for refactoring `generateAllSegmentModules` plus follow-up implementation tickets, not direct code. When you start it: branch as `refactor/generate-all-segment-modules-spec`, refresh this STATE.md to mark OSS-347 In Progress, and read `OPTIMIZER.md`'s "Quick reference — code map" + the segment-generation deep dive for the orchestrator's current shape.
 
 **After OSS-347 produces its sub-tickets**, parity work resumes by rebasing `ast-parity/F2` onto current `main`. The F2 cluster bugs (path normalisation, hash, key prefix, extra empty segment file) will then have access to the foundation built by tracks v1+v2: predicates module, named thresholds, helpers, immutable field maps, named phase functions, single-shared-AST plumbing, and a documented pipeline contract in `OPTIMIZER.md`.
+
+**[OSS-352](https://linear.app/kunai/issue/OSS-352)** is a small standalone investigation backlog item (does the `inlinedQrl` extraction path need the same JSX-detection treatment OSS-351 added to the marker / JSX-attr paths?). It can be picked up at any time without disrupting OSS-347 or the F2 cluster.
 
 **If you're between sessions and need to pick up cold:** read `OPTIMIZER.md` first — the Two-namespaces section + the Phase pipeline table + the marker catalog give you the working vocabulary. Then check Linear OSS-343 for the parent's roll-up status and OSS-347 for what's still open.
 

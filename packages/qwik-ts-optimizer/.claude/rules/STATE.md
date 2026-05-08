@@ -2,11 +2,11 @@
 
 Snapshot of where the active workstream stands. Read at the start of a session to rehydrate context fast. **Update aggressively** as meaningful progress lands — see "Maintenance" at the bottom.
 
-Last updated: 2026-05-08 (OSS-346 implementation done; PR #14 open)
+Last updated: 2026-05-08 (refactor track v2 implementation closed; doc + types polish shipped; OSS-347 is the only remaining ticket)
 
 ## Goal
 
-**Active workstream:** optimizer codebase refactor track v2 — segment generation cleanup. Tracked under Linear parent **[OSS-343](https://linear.app/kunai/issue/OSS-343)**. Continues the audit follow-up work from track v1 ([OSS-337](https://linear.app/kunai/issue/OSS-337), closed). OSS-344 (PR #12) and OSS-345 (PR #13) merged; current ticket is **[OSS-346](https://linear.app/kunai/issue/OSS-346)** — extract per-phase helpers from `generateSegmentCode` in `segment-codegen.ts:444`.
+**Active workstream:** between workstreams. Refactor track v2 ([OSS-343](https://linear.app/kunai/issue/OSS-343)) implementation work is closed — OSS-344 (PR #12), OSS-345 (PR #13), and OSS-346 (PR #14) all merged. The only remaining track v2 ticket is **[OSS-347](https://linear.app/kunai/issue/OSS-347)**, a discovery-only SPEC for `generateAllSegmentModules` that produces follow-up implementation tickets rather than direct code. Two doc/types side-tracks also shipped this session: OPTIMIZER.md walkthrough + Maintenance governance ([OSS-348](https://linear.app/kunai/issue/OSS-348), PR #15), REGRESSION.md mechanism rewrite (PR #16, no ticket), types.ts JSDoc parity ([OSS-349](https://linear.app/kunai/issue/OSS-349), PR #17), and `extractSegments` `preParsedModule` plumbing ([OSS-350](https://linear.app/kunai/issue/OSS-350), PR #18).
 
 **Long-term project goal:** 100% snapshot test parity between the TypeScript optimizer (this repo) and the SWC reference (`./swc-reference-only`), verified by `pnpm vitest convergence --run`. The refactor track is a side-track that pauses parity feature work to make subsequent feature work easier.
 
@@ -20,7 +20,7 @@ These are the baselines the refactor track must not regress (`REGRESSION.md`). T
 | Convergence passing | **179 / 212** (84.4%) |
 | Full suite failing | 56 / 696 |
 | Full suite passing | 640 / 696 |
-| Last verified | 2026-05-08 on `main` (post OSS-345 merge) |
+| Last verified | 2026-05-08 on `main` (post OSS-350 + OSS-349 merges, head `5fce6e3`) |
 
 ## CI infrastructure (live)
 
@@ -30,7 +30,7 @@ Landed via [OSS-341](https://linear.app/kunai/issue/OSS-341) and unblocked via [
 - **`.github/workflows/update-baseline.yml`** — runs on push to `main`. Regenerates `.ci/baseline.json` from a fresh test run; commits via `github-actions[bot]` with `[skip ci]` if the passing set changed.
 - **Node version requirement: `>=22`** (encoded in `package.json` `engines.node`). `oxc-parser`'s `experimentalRawTransfer` throws on Node 20 — was the root cause of the apparent macOS/Linux divergence in OSS-342.
 - **End-to-end smoke-tested** red-and-green via the throw-away PR #9 (closed unmerged): regression check correctly fails on intentional break, passes on revert.
-- **Validated on real PRs**: PR #10 (OSS-339), PR #11 (OSS-340), PR #12 (OSS-344), and PR #13 (OSS-345) all ran the gate green.
+- **Validated on real PRs**: every refactor-track PR through PR #18 has run the gate green — PR #10 (OSS-339), PR #11 (OSS-340), PR #12 (OSS-344), PR #13 (OSS-345), PR #14 (OSS-346), PR #17 (OSS-349 docs-only), PR #18 (OSS-350). Doc-only PRs (PR #15 OSS-348, PR #16 REGRESSION) also ran clean since they don't change source.
 
 Helpful local commands:
 
@@ -43,9 +43,9 @@ Helpful local commands:
 
 | Branch | Head | Pushed | Tests | Notes |
 |---|---|---|---|---|
-| `main` | `9fc30c3` (post OSS-345 merge) | ✅ | baseline | All v1 + OSS-344/345 of v2 landed |
-| `ast-parity/F2` | `a644c16` (stale) | ❌ local-only | parked | F2 cluster paused; will need rebase onto current `main` (which now contains F1 const-declarator fix, F4 MIG-05a refactor, body-transforms cleanup, predicates module, predicates v2, immutable field maps, and CI gate) before resuming |
-| `refactor/generate-segment-code-phases` | `7243375` | ✅ | baseline | **active workstream** — OSS-346 PR #14 open |
+| `main` | `5fce6e3` (post OSS-350 + OSS-349 merges) | ✅ | baseline | All track v1 + track v2 implementation work landed; OPTIMIZER.md / REGRESSION.md / types.ts JSDoc shipped |
+| `ast-parity/F2` | `a644c16` (stale) | ❌ local-only | parked | F2 cluster paused; will need rebase onto current `main` (which now contains F1 const-declarator fix, F4 MIG-05a refactor, body-transforms cleanup, predicates module + predicates v2, immutable field maps, generateSegmentCode phase helpers, single-parse plumbing, and CI gate) before resuming |
+| _(no active workstream branch)_ | — | — | — | Between tracks; OSS-347 is the next ticket and its branch hasn't been created yet |
 
 ## Refactor track v2 ([OSS-343](https://linear.app/kunai/issue/OSS-343))
 
@@ -54,7 +54,7 @@ Helpful local commands:
 | [OSS-343](https://linear.app/kunai/issue/OSS-343) | Refactor track v2 — segment generation cleanup *(parent)* | (no branch) | Backlog (auto-rolls up) |
 | [OSS-344](https://linear.app/kunai/issue/OSS-344) | Consolidate `isStrippedSegment` + `isAnyComponentCtx` into `rewrite/predicates.ts` | `refactor/predicates-followup` (merged) | **Done** (PR #12) |
 | [OSS-345](https://linear.app/kunai/issue/OSS-345) | Pre-compute field maps in `segment-generation.ts` | `refactor/precompute-field-maps` (merged) | **Done** (PR #13) |
-| [OSS-346](https://linear.app/kunai/issue/OSS-346) | Refactor `generateSegmentCode` 8-phase sequencer | `refactor/generate-segment-code-phases` | **In Review** (PR #14 open; assigned scott.t.weaver) |
+| [OSS-346](https://linear.app/kunai/issue/OSS-346) | Refactor `generateSegmentCode` 8-phase sequencer | `refactor/generate-segment-code-phases` (merged) | **Done** (PR #14) |
 | [OSS-347](https://linear.app/kunai/issue/OSS-347) | Discovery + plan for `generateAllSegmentModules` refactor *(planning ticket — produces SPEC + sub-tickets, not direct code)* | `refactor/generate-all-segment-modules-spec` (not yet created) | Backlog |
 
 Each implementation sub-issue has explicit acceptance criteria including convergence + full-suite no-regression bounds. Per-PR commit messages follow the four-question format from `METHODOLOGIES.md` "Refactoring" section.
@@ -94,25 +94,24 @@ Full feature analysis: `CONVERGENCE_FAILURES.md`.
 
 Most recent first. Trim entries older than ~10 to keep this file from bloating.
 
-- **2026-05-08** — [OSS-346](https://linear.app/kunai/issue/OSS-346) implementation done; PR #14 open. Extracted `collectInitialImports` (Phases 1–3) and `applyBodyTransforms` (Phase 4) helpers from the 87-line `generateSegmentCode` orchestrator in `segment-codegen.ts`; orchestrator drops to 35 lines. Three redundant `captureInfo?` probes consolidate inside the body helper; non-null assertion gone. Phases 5–9 stay inline. Convergence 33/212 + full-suite 56/696 unchanged.
+- **2026-05-08** — [OSS-350](https://linear.app/kunai/issue/OSS-350) merged via PR #18. `extractSegments` gains optional `preParsedModule` companion to `preParsedProgram`; `transform/index.ts` lifts the post-repair `{program, module}` parse to a single point right after Phase 0 via direct destructuring. Closes a latent gap where `collectImports` got `undefined` module on the pre-parsed-program path. Foundation for OSS-347's single-shared-AST reasoning. Convergence 33/212 + full-suite 56/696 unchanged.
+- **2026-05-08** — [OSS-349](https://linear.app/kunai/issue/OSS-349) merged via PR #17. `types.ts` gains class-level + per-field/per-variant JSDoc on every exported type — `TransformModulesOptions`, `TransformModuleInput`, `TransformOutput`, `TransformModule`, `SegmentAnalysis`, `SegmentMetadataInternal`, `EntryStrategy`, `MinifyMode`, `EmitMode`, `DiagnosticHighlightFlat`, `Diagnostic`. NAPI-parity-only fields (`rootDir`, `sourceMaps`, `preserveFilenames`, `Diagnostic.suggestions`) explicitly flagged; verified by grep. Comment-only change.
+- **2026-05-08** — `REGRESSION.md` rewritten via PR #16 (no Linear ticket — small docs improvement). Coarse two-sentence "success rate must not decrease" rule replaced with the actual mechanism: set-based invariant, baseline file shape, the two scripts (`check-regression.mjs` / `update-baseline.mjs`), the two workflows (`test.yml` PR gate + `update-baseline.yml` push-to-main auto-baseline), failure-mode decision tree, local-equivalent commands.
+- **2026-05-08** — [OSS-348](https://linear.app/kunai/issue/OSS-348) merged via PR #15. New project-wide rule file `.claude/rules/OPTIMIZER.md` (~860 lines). End-to-end pipeline walkthrough using `example_1` worked example, 9-phase pipeline table, four deep dives (capture analysis, migration policy, JSX rewrite, segment metadata), the marker family triad + catalog, consolidated symbol-naming-and-hashing section, plus a Maintenance section governing how the doc stays current with active development. Cross-linked from `STATE.md` and `METHODOLOGIES.md`.
+- **2026-05-08** — [OSS-346](https://linear.app/kunai/issue/OSS-346) merged via PR #14. Extracted `collectInitialImports` (Phases 1–3) and `applyBodyTransforms` (Phase 4) helpers from the 87-line `generateSegmentCode` orchestrator in `segment-codegen.ts`; orchestrator drops to 35 lines. Three redundant `captureInfo?` probes consolidated inside the body helper; non-null assertion gone. Phases 5–9 stay inline. Closes refactor track v2 implementation work. Convergence 33/212 + full-suite 56/696 unchanged.
 - **2026-05-08** — [OSS-345](https://linear.app/kunai/issue/OSS-345) merged via PR #13. Replaced closure-mutated `fieldMapCache` in `segment-generation.ts` with an immutable `ReadonlyMap` built once before the per-extraction loop. Both call sites collapsed to single `Map.get`. Convergence 33/212 + full-suite 56/696 unchanged.
 - **2026-05-07** — [OSS-344](https://linear.app/kunai/issue/OSS-344) merged via PR #12. `rewrite/predicates.ts` gains `isComponentCtx` (two-arm) + `isAnyComponentCtx` (three-arm); `isStrippedSegment` moved here from `strip-ctx.ts` (now codegen-only). 5 imports repointed; 2 inline OR-chains replaced. Convergence 33/212 + full-suite 56/696 unchanged.
 - **2026-05-07** — Refactor track v2 kicked off. Parent [OSS-343](https://linear.app/kunai/issue/OSS-343) + 4 sub-issues created (OSS-344/345/346/347). OSS-344 is the active branch, picking up the predicates-consolidation thread from OSS-340.
 - **2026-05-07** — [OSS-340](https://linear.app/kunai/issue/OSS-340) merged via PR #11. Closes refactor track v1. New module `src/optimizer/rewrite/predicates.ts` consolidates 3 predicates × 9 inline call sites.
-- **2026-05-07** — [OSS-339](https://linear.app/kunai/issue/OSS-339) merged via PR #10. `body-transforms.ts` cleanup: named `OUTERMOST_BODY_THRESHOLD`, `formatWCall`, `spliceWithinBody`. First PR to validate the CI gate end-to-end.
-- **2026-05-07** — [OSS-342](https://linear.app/kunai/issue/OSS-342) merged via PR #8. CI unblocked: Node bumped 20 → 22, workflow files re-enabled. Phantom submodule references at `.claude/worktrees/*` cleaned up. Diagnosis was the macOS/Linux "divergence" was actually `oxc-parser`'s `experimentalRawTransfer` requiring Node 22+.
-- **2026-05-07** — [OSS-341](https://linear.app/kunai/issue/OSS-341) merged via PR #7. CI infrastructure: name-based regression check (`scripts/check-regression.mjs`), auto-baseline workflow (`scripts/update-baseline.mjs`), `.ci/baseline.json`. Workflows briefly parked at `.yml.disabled` while OSS-342 investigation ran.
-- **2026-05-07** — [OSS-338](https://linear.app/kunai/issue/OSS-338) merged via PR #6. `variable-migration.ts` cleanup: `MIG_REASON` const, `usingSegmentsOf` helper, named MIG-05a post-pass with JSDoc preconditions. Fixup commit renamed keys to action-prefixed style.
-- **2026-05-07** — `METHODOLOGIES.md` "Refactoring" section added: codifies the four-question commit/Linear comment format (what / why-isolation / why-future / risk) and the long-form-first / commit-trimmed-from-it authoring pattern.
-- **2026-05-06** — Audit run on the now-deleted `refactor/optimizer-audit` branch identified 7 candidates for the optimizer pipeline; 3 became refactor track v1 (OSS-338/339/340), 4 became refactor track v2 (OSS-344–347).
+- **2026-05-07** — [OSS-338](https://linear.app/kunai/issue/OSS-338) merged via PR #6. `variable-migration.ts` cleanup: `MIG_REASON` const, `usingSegmentsOf` helper, named MIG-05a post-pass with JSDoc preconditions.
 
 ## What to do next
 
-**Awaiting review:** [OSS-346](https://linear.app/kunai/issue/OSS-346) PR #14. Once merged, refresh STATE.md to point at OSS-347.
+**Track v2 implementation is closed.** OSS-344, OSS-345, and OSS-346 all merged. Only [OSS-347](https://linear.app/kunai/issue/OSS-347) remains in the track and it is **discovery-only** — its output is a SPEC for refactoring `generateAllSegmentModules` plus follow-up implementation tickets, not direct code. When you start it: branch as `refactor/generate-all-segment-modules-spec`, refresh this STATE.md to mark OSS-347 In Progress, and read `OPTIMIZER.md`'s "Quick reference — code map" + the segment-generation deep dive for the orchestrator's current shape.
 
-**Next up: [OSS-347](https://linear.app/kunai/issue/OSS-347) / `refactor/generate-all-segment-modules-spec`** — discovery-only ticket. Output is a SPEC for refactoring `generateAllSegmentModules` plus follow-up implementation tickets, not direct code. Branch not yet created.
+**After OSS-347 produces its sub-tickets**, parity work resumes by rebasing `ast-parity/F2` onto current `main`. The F2 cluster bugs (path normalisation, hash, key prefix, extra empty segment file) will then have access to the foundation built by tracks v1+v2: predicates module, named thresholds, helpers, immutable field maps, named phase functions, single-shared-AST plumbing, and a documented pipeline contract in `OPTIMIZER.md`.
 
-When the v2 track wraps, parity work resumes by rebasing `ast-parity/F2` onto current `main`. The F2 cluster bugs (path normalisation, hash, key prefix, extra empty segment file) will then have access to the foundation built by tracks v1+v2: predicates module, named thresholds, helpers, immutable field maps, named phase functions.
+**If you're between sessions and need to pick up cold:** read `OPTIMIZER.md` first — the Two-namespaces section + the Phase pipeline table + the marker catalog give you the working vocabulary. Then check Linear OSS-343 for the parent's roll-up status and OSS-347 for what's still open.
 
 ## Maintenance
 

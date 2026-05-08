@@ -436,33 +436,43 @@ function normalizeSeparators(parts: string[]): void {
   parts.push(...other);
 }
 
-// ── Main entry point ──
+// ── Phase helpers ──
 
 /**
- * Generate the segment module source code for an extracted segment.
+ * Phases 1–3: build the upfront `parts[]` (imports + capture/migration imports
+ * + nested QRL declarations) and the `importsBySource` index that downstream
+ * post-transform import re-collection (Phase 8) needs to merge into.
  */
-export function generateSegmentCode(
+function collectInitialImports(
   extraction: ExtractionResult,
-  nestedQrlDecls?: string[],
-  captureInfo?: SegmentCaptureInfo,
-  jsxOptions?: SegmentJsxOptions,
-  nestedCallSites?: NestedCallSiteInfo[],
-  importContext?: SegmentImportData,
-  enumValueMap?: Map<string, Map<string, string>>,
-): { code: string; keyCounterValue?: number } {
-  const capturedNames = new Set<string>(captureInfo ? captureInfo.captureNames : []);
-  let segmentKeyCounterValue: number | undefined;
-
-  // Phase 1: Build import statements
+  capturedNames: Set<string>,
+  captureInfo: SegmentCaptureInfo | undefined,
+  nestedQrlDecls: string[] | undefined,
+  importContext: SegmentImportData | undefined,
+): { parts: string[]; importsBySource: Map<string, SegmentImportSpec[]> } {
   const { parts, importsBySource } = buildSegmentImports(extraction, capturedNames, importContext);
-
-  // Phase 2: Add _captures, _auto_, and moved-declaration imports
   addCaptureAndMigrationImports(parts, captureInfo);
-
-  // Phase 3: Add nested QRL declarations
   addNestedQrlDeclarations(parts, nestedQrlDecls);
+  return { parts, importsBySource };
+}
 
-  // Phase 4: Transform body text
+/**
+ * Phase 4: apply the body-text-only transforms — nested call site rewriting,
+ * self-ref indirection, enum inlining, raw-props normalisation, diagnostic
+ * stripping, and the three capture-driven passes (props field rename,
+ * const-literal inlining, captures unpacking).
+ *
+ * Returns the updated `captureInfo` because const-literal inlining filters
+ * inlined names out of `captureNames`; downstream phases (JSX, captures
+ * unpacking) need that filtered view.
+ */
+function applyBodyTransforms(
+  extraction: ExtractionResult,
+  parts: string[],
+  captureInfo: SegmentCaptureInfo | undefined,
+  nestedCallSites: NestedCallSiteInfo[] | undefined,
+  enumValueMap: Map<string, Map<string, string>> | undefined,
+): { bodyText: string; captureInfo: SegmentCaptureInfo | undefined } {
   let bodyText = extraction.bodyText;
 
   if (nestedCallSites && nestedCallSites.length > 0) {
@@ -477,50 +487,92 @@ export function generateSegmentCode(
   bodyText = applyRawPropsToSegmentBody(bodyText, parts);
   bodyText = stripDiagnosticsAndDirectives(bodyText);
 
-  if (captureInfo?.propsFieldCaptures && captureInfo.propsFieldCaptures.size > 0) {
-    bodyText = replacePropsFieldReferences(bodyText, captureInfo.propsFieldCaptures);
+  // Destructure capture-driven payloads once so the conditional pass list
+  // below doesn't re-probe `captureInfo?.x && captureInfo.x.size > 0` at
+  // every step (that pattern was repeated three times in the original).
+  const propsFieldCaptures = captureInfo?.propsFieldCaptures;
+  if (propsFieldCaptures && propsFieldCaptures.size > 0) {
+    bodyText = replacePropsFieldReferences(bodyText, propsFieldCaptures);
   }
 
-  if (captureInfo?.constLiterals && captureInfo.constLiterals.size > 0) {
-    bodyText = inlineConstCaptures(bodyText, captureInfo.constLiterals);
-    captureInfo = {
+  let liveCaptureInfo = captureInfo;
+  const constLiterals = captureInfo?.constLiterals;
+  if (constLiterals && constLiterals.size > 0 && captureInfo) {
+    bodyText = inlineConstCaptures(bodyText, constLiterals);
+    liveCaptureInfo = {
       ...captureInfo,
-      captureNames: captureInfo.captureNames.filter(n => !captureInfo!.constLiterals!.has(n)),
+      captureNames: captureInfo.captureNames.filter(n => !constLiterals.has(n)),
     };
   }
 
-  if (captureInfo && captureInfo.captureNames.length > 0 && !captureInfo.skipCaptureInjection) {
-    bodyText = injectCapturesUnpacking(bodyText, captureInfo.captureNames);
+  if (
+    liveCaptureInfo &&
+    liveCaptureInfo.captureNames.length > 0 &&
+    !liveCaptureInfo.skipCaptureInjection
+  ) {
+    bodyText = injectCapturesUnpacking(bodyText, liveCaptureInfo.captureNames);
   }
 
-  // Phase 5: JSX transformation
+  return { bodyText, captureInfo: liveCaptureInfo };
+}
+
+// ── Main entry point ──
+
+/**
+ * Generate the segment module source code for an extracted segment.
+ *
+ * 9-phase sequencer. Phases 1–3 (imports) and Phase 4 (body transforms) are
+ * extracted into named helpers above. Phases 5–9 stay inline because each is
+ * already a short named-function call or a single conditional.
+ */
+export function generateSegmentCode(
+  extraction: ExtractionResult,
+  nestedQrlDecls?: string[],
+  captureInfo?: SegmentCaptureInfo,
+  jsxOptions?: SegmentJsxOptions,
+  nestedCallSites?: NestedCallSiteInfo[],
+  importContext?: SegmentImportData,
+  enumValueMap?: Map<string, Map<string, string>>,
+): { code: string; keyCounterValue?: number } {
+  const capturedNames = new Set<string>(captureInfo ? captureInfo.captureNames : []);
+
+  // Phases 1–3: upfront import declarations.
+  const { parts, importsBySource } = collectInitialImports(
+    extraction, capturedNames, captureInfo, nestedQrlDecls, importContext,
+  );
+
+  // Phase 4: body-text transforms (also yields the post-const-inline captureInfo).
+  let { bodyText, captureInfo: liveCaptureInfo } = applyBodyTransforms(
+    extraction, parts, captureInfo, nestedCallSites, enumValueMap,
+  );
+
+  // Phase 5: JSX transformation.
+  let segmentKeyCounterValue: number | undefined;
   if (jsxOptions?.enableJsx) {
-    const jsxResult = transformSegmentJsx(bodyText, parts, jsxOptions, nestedCallSites, captureInfo);
+    const jsxResult = transformSegmentJsx(bodyText, parts, jsxOptions, nestedCallSites, liveCaptureInfo);
     bodyText = jsxResult.bodyText;
     segmentKeyCounterValue = jsxResult.keyCounterValue;
   }
 
-  // Phase 6: Ensure core symbol imports and transform sync$ calls
+  // Phase 6: core-symbol imports + sync$ call rewriting.
   ensureCoreImports(bodyText, parts);
   bodyText = transformSyncCalls(bodyText, parts);
 
-  // Phase 7: Normalize separators
+  // Phase 7: separator normalization (after core imports, before re-collection).
   normalizeSeparators(parts);
 
-  // Rewrite function signature when paramNames has loop/q:p padding pattern
+  // Function signature rewrite for loop-padding (_,_1,...) parameters.
   if (hasUnderscorePlaceholderParams(extraction.paramNames)) {
     bodyText = rewriteFunctionSignature(bodyText, extraction.paramNames);
   }
 
-  // Phase 8: Post-transform import re-collection
+  // Phase 8: post-transform import re-collection + final separator normalization.
   if (importContext) {
     recollectPostTransformImports(bodyText, parts, importContext, importsBySource, capturedNames, nestedCallSites);
   }
-
-  // Final separator normalization after import re-collection
   normalizeSeparators(parts);
 
-  // Phase 9: Dead code elimination and emit
+  // Phase 9: dead-code elimination + emit.
   if (nestedCallSites && nestedCallSites.length > 0) {
     bodyText = removeDeadConstLiterals(bodyText);
   }

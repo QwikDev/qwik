@@ -296,19 +296,25 @@ export function generateAllSegmentModules(
   // Collect TS enum declarations for value inlining
   const enumValueMap = collectEnumValueMap(program, shouldTranspileTs);
 
-  // Caches for per-parent-body operations
-  const fieldMapCache = new Map<string, Map<string, string>>();
-  function cachedFieldMap(parentExt: {
-    symbolName: string;
-    bodyText: string;
-  }): Map<string, string> {
-    let cached = fieldMapCache.get(parentExt.symbolName);
-    if (cached === undefined) {
-      cached = extractDestructuredFieldMap(parentExt.bodyText);
-      fieldMapCache.set(parentExt.symbolName, cached);
+  // Pre-compute destructured field maps for every parent that an extraction
+  // references. Replaces a closure-mutated lazy cache with an immutable
+  // lookup so the per-extraction loop below has no side-effecting state.
+  // `bodyText` is read-only across the loop, so eager pre-computation is
+  // behaviour-equivalent to the previous lazy form.
+  const fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>> = (() => {
+    const parentSymbolNames = new Set<string>();
+    for (const ext of updatedExtractions) {
+      if (ext.parent !== null) parentSymbolNames.add(ext.parent);
     }
-    return cached;
-  }
+    const result = new Map<string, ReadonlyMap<string, string>>();
+    for (const symbolName of parentSymbolNames) {
+      const parentExt = extBySymbol.get(symbolName);
+      if (parentExt !== undefined) {
+        result.set(symbolName, extractDestructuredFieldMap(parentExt.bodyText));
+      }
+    }
+    return result;
+  })();
 
   for (const ext of updatedExtractions) {
     if (ext.isSync) continue;
@@ -331,30 +337,27 @@ export function generateAllSegmentModules(
       ext.parent !== null &&
       ext.captureNames.length > 0
     ) {
-      const parentExt = extBySymbol.get(ext.parent!);
-      if (parentExt) {
-        const fieldMap = cachedFieldMap(parentExt);
-        if (fieldMap.size > 0) {
-          const nonPropsCaptures: string[] = [];
-          let hasPropsFields = false;
+      const fieldMap = fieldMaps.get(ext.parent);
+      if (fieldMap !== undefined && fieldMap.size > 0) {
+        const nonPropsCaptures: string[] = [];
+        let hasPropsFields = false;
+        for (const name of ext.captureNames) {
+          if (fieldMap.has(name)) {
+            hasPropsFields = true;
+          } else {
+            nonPropsCaptures.push(name);
+          }
+        }
+        if (hasPropsFields) {
+          const propsFieldCaptures = new Map<string, string>();
           for (const name of ext.captureNames) {
             if (fieldMap.has(name)) {
-              hasPropsFields = true;
-            } else {
-              nonPropsCaptures.push(name);
+              propsFieldCaptures.set(name, fieldMap.get(name)!);
             }
           }
-          if (hasPropsFields) {
-            const propsFieldCaptures = new Map<string, string>();
-            for (const name of ext.captureNames) {
-              if (fieldMap.has(name)) {
-                propsFieldCaptures.set(name, fieldMap.get(name)!);
-              }
-            }
-            ext.propsFieldCaptures = propsFieldCaptures;
-            ext.captureNames = [...nonPropsCaptures, "_rawProps"].sort();
-            ext.captures = ext.captureNames.length > 0;
-          }
+          ext.propsFieldCaptures = propsFieldCaptures;
+          ext.captureNames = [...nonPropsCaptures, "_rawProps"].sort();
+          ext.captures = ext.captureNames.length > 0;
         }
       }
     }
@@ -459,26 +462,23 @@ export function generateAllSegmentModules(
 
     // Consolidate destructured prop-field captures into _rawProps
     if (ext.parent !== null && ext.captureNames.length > 0) {
-      const parentExt = extBySymbol.get(ext.parent!);
-      if (parentExt) {
-        const fieldMap = cachedFieldMap(parentExt);
-        if (fieldMap.size > 0) {
-          const propsFieldCaptures = new Map<string, string>();
-          const nonPropsCaptures: string[] = [];
-          for (const name of ext.captureNames) {
-            if (fieldMap.has(name)) {
-              propsFieldCaptures.set(name, fieldMap.get(name)!);
-            } else {
-              nonPropsCaptures.push(name);
-            }
+      const fieldMap = fieldMaps.get(ext.parent);
+      if (fieldMap !== undefined && fieldMap.size > 0) {
+        const propsFieldCaptures = new Map<string, string>();
+        const nonPropsCaptures: string[] = [];
+        for (const name of ext.captureNames) {
+          if (fieldMap.has(name)) {
+            propsFieldCaptures.set(name, fieldMap.get(name)!);
+          } else {
+            nonPropsCaptures.push(name);
           }
-          if (propsFieldCaptures.size > 0) {
-            const newCaptureNames = [...nonPropsCaptures, "_rawProps"].sort();
-            captureInfo.captureNames = newCaptureNames;
-            captureInfo.propsFieldCaptures = propsFieldCaptures;
-            ext.captureNames = newCaptureNames;
-            ext.captures = newCaptureNames.length > 0;
-          }
+        }
+        if (propsFieldCaptures.size > 0) {
+          const newCaptureNames = [...nonPropsCaptures, "_rawProps"].sort();
+          captureInfo.captureNames = newCaptureNames;
+          captureInfo.propsFieldCaptures = propsFieldCaptures;
+          ext.captureNames = newCaptureNames;
+          ext.captures = newCaptureNames.length > 0;
         }
       }
     }

@@ -12,29 +12,129 @@
 // Input types
 // ---------------------------------------------------------------------------
 
+/**
+ * Options for the `transformModule` batch transform (Qwik optimizer entry).
+ *
+ * Shape matches the historical SWC/NAPI binding so callers can swap implementations.
+ * Some fields exist for that contract but are not read yet by this TypeScript
+ * optimizer (see each property).
+ */
 export interface TransformModulesOptions {
+  /** Source modules to transform (path + source per file). */
   input: TransformModuleInput[];
+
+  /**
+   * Absolute path to the application source root. Used with each input's
+   * `path` to compute module-relative paths (e.g. for outputs and diagnostics).
+   */
   srcDir: string;
+
+  /**
+   * Optional project root for path normalization in the full Qwik toolchain.
+   * **Not used** by this implementation today; kept for NAPI parity.
+   */
   rootDir?: string;
+
+  /**
+   * How lazy boundaries / QRL entry chunks are laid out (`inline`, `hoist`,
+   * `hook`, `segment`, etc.).
+   * @defaultValue `{ type: 'smart' }`
+   */
   entryStrategy?: EntryStrategy;
+
+  /**
+   * Post-transform simplification level for emitted parent code.
+   * Passed through to the parent-module rewrite step.
+   */
   minify?: MinifyMode;
+
+  /**
+   * Whether to emit source maps. **Not wired** in this implementation yet
+   * (output `map` fields are currently `null`); kept for NAPI parity.
+   */
   sourceMaps?: boolean;
+
+  /**
+   * When `true`, strip TypeScript syntax (and related optimizer behavior such
+   * as enum handling). When omitted or `false`, TypeScript is preserved except
+   * where JSX transpilation implies extension changes.
+   */
   transpileTs?: boolean;
+
+  /**
+   * When `false`, skip JSX→JS transform and signal-aware JSX handling.
+   * When omitted or `undefined`, JSX transpilation is **enabled** (matches
+   * historical default-on behavior).
+   */
   transpileJsx?: boolean;
+
+  /**
+   * Preserve original filenames in emitted artifact paths/metadata where the
+   * Rust optimizer does. **Not used** by this implementation yet; NAPI parity.
+   */
   preserveFilenames?: boolean;
+
+  /**
+   * When `true`, relative imports to the parent module include explicit file
+   * extensions (e.g. `./foo.js` vs `./foo`).
+   */
   explicitExtensions?: boolean;
+
+  /**
+   * Build flavor: affects prod symbol hashing (`prod`), dev paths (`dev`/`hmr`),
+   * library emit (`lib`), etc.
+   * @defaultValue `'prod'`
+   */
   mode?: EmitMode;
+
+  /**
+   * Optional scope string folded into QRL hashing / extraction disambiguation
+   * (same role as in the upstream optimizer).
+   */
   scope?: string;
+
+  /**
+   * Export names to strip from the rewritten parent module (client/server split).
+   */
   stripExports?: string[];
+
+  /**
+   * Context-name patterns used when registering or rewriting stripped regions
+   * (passed to parent rewrite / codegen when applicable).
+   */
   regCtxName?: string[];
+
+  /** Context names to strip in emitted parent code when strip rules apply. */
   stripCtxName?: string[];
+
+  /** Strip JSX event props/handlers when building server-only or stripped graphs. */
   stripEventHandlers?: boolean;
+
+  /**
+   * Server build: drives constant substitution (e.g. `import.meta` / env-like
+   * replacements) during parent rewrite.
+   */
   isServer?: boolean;
 }
 
+/**
+ * One source file passed to `transformModule`. The optimizer transforms each
+ * input independently into a parent module plus zero-or-more segment modules.
+ */
 export interface TransformModuleInput {
+  /**
+   * Module path used for both naming (folded into hash + display name) and
+   * relative-import emission. Should be relative to `srcDir`.
+   */
   path: string;
+
+  /** Raw source text. */
   code: string;
+
+  /**
+   * Optional dev-mode path used by `qrlDEV`/`useHmr` injection when emitting
+   * dev or HMR builds. Falls back to a derived path when omitted.
+   */
   devPath?: string;
 }
 
@@ -42,19 +142,80 @@ export interface TransformModuleInput {
 // Output types
 // ---------------------------------------------------------------------------
 
+/**
+ * Result of a `transformModule` invocation across one or more inputs.
+ *
+ * Each input contributes a parent module plus its segment modules to
+ * `modules`; diagnostics are aggregated into a single flat list.
+ */
 export interface TransformOutput {
+  /**
+   * All emitted modules in dependency-friendly order: rewritten parent
+   * modules and their extracted segment modules.
+   */
   modules: TransformModule[];
+
+  /** Errors and warnings collected during transform (`diagnostics.ts`). */
   diagnostics: Diagnostic[];
+
+  /**
+   * `true` if any input was a `.ts` or `.tsx` file. Hint flag for the build
+   * pipeline so it can decide whether downstream tooling needs to handle TS.
+   */
   isTypeScript: boolean;
+
+  /**
+   * `true` if any input was a `.tsx` or `.jsx` file. Hint flag for the build
+   * pipeline so it can decide whether downstream tooling needs to handle JSX.
+   */
   isJsx: boolean;
 }
 
+/**
+ * One emitted module — either a rewritten parent (the original file's
+ * QRL-referenced shell) or an extracted segment (a single `$()` body lifted
+ * into its own lazy-loadable file).
+ *
+ * Distinguish the two by `origPath`: parent modules carry their input path
+ * here; segment modules have `origPath: null`.
+ */
 export interface TransformModule {
+  /**
+   * Output path for this module, relative to `srcDir`. For segment modules
+   * this is `<canonicalFilename>.<extension>`; for parent modules it is the
+   * original input path.
+   */
   path: string;
+
+  /**
+   * `true` when this module is a lazy-load entry point that the runtime
+   * resolves via `qrl(() => import(...))`. Set on every segment module.
+   * Parent modules use `false`.
+   */
   isEntry: boolean;
+
+  /** Emitted source code. Empty string for inline-strategy segments. */
   code: string;
+
+  /**
+   * Source map text. **Not wired** in this implementation today (always
+   * `null`); kept for NAPI parity. Source map emission is gated by
+   * `TransformModulesOptions.sourceMaps`.
+   */
   map: string | null;
+
+  /**
+   * Segment metadata when this module was emitted as an extracted segment;
+   * `null` for parent modules and stripped-segment placeholders. The runtime
+   * uses this to wire `qrl(...)` references to the correct file.
+   */
   segment: SegmentAnalysis | null;
+
+  /**
+   * Original input file path for parent modules (preserves the source from
+   * `TransformModuleInput.path`). `null` on segment modules — they have no
+   * pre-extraction counterpart.
+   */
   origPath: string | null;
 }
 
@@ -62,30 +223,114 @@ export interface TransformModule {
 // Segment analysis
 // ---------------------------------------------------------------------------
 
+/**
+ * Per-segment metadata emitted alongside each extracted segment module.
+ *
+ * Field semantics, computation, and how each name is composed live in
+ * `.claude/rules/OPTIMIZER.md` ("Symbol naming and hashing"). Snapshot
+ * comparisons in `tests/optimizer/convergence.test.ts` strict-equality
+ * compare a subset of these fields against `match-these-snaps/`.
+ */
 export interface SegmentAnalysis {
+  /** Source file the segment was extracted from (e.g. `"test.tsx"`). */
   origin: string;
+
+  /**
+   * Canonical symbol name — `<contextPortion>_<hash>` (or `s_<hash>` after
+   * the prod-mode rename). Used as the segment file's exported binding name
+   * and as the `qrl(...)` second argument.
+   */
   name: string;
+
+  /**
+   * Entry-strategy routing field. Resolved during Phase 5 segment generation
+   * (`entry-strategy.ts:resolveEntryField`). `null` for `smart`/`segment`/
+   * `hook`/`inline`/`hoist`; parent symbol name for `component`'s
+   * non-component children; fixed `"entry_hooks"` for `single`.
+   */
   entry: string | null;
+
+  /** Human-readable name — `<fileStem>_<contextPortion>`, no hash suffix. */
   displayName: string;
+
+  /**
+   * 11-char SipHash-1-3 of `(scope + relPath + contextPortion)`,
+   * base64url-encoded with `-` and `_` rewritten to `0` for filesystem
+   * safety. Stable across builds.
+   */
   hash: string;
+
+  /**
+   * `<displayName>_<hash>` — basis for the segment file path on disk.
+   */
   canonicalFilename: string;
+
+  /**
+   * File extension for the segment module (e.g. `"tsx"`, `"jsx"`, `"js"`).
+   * Determined from the source extension and JSX/TS transpilation settings.
+   */
   extension: string;
+
+  /**
+   * Symbol name of the enclosing extraction for nested segments; `null` for
+   * top-level extractions. Resolved during parent rewrite, not at extract
+   * time (`rewrite/index.ts:resolveNesting`).
+   */
   parent: string | null;
+
+  /**
+   * Where the `$()` was found:
+   * - `'function'` — bare callable (`useTask$`, `component$`, etc.)
+   * - `'eventHandler'` — `on*$` / `document:on*$` / `window:on*$` on an HTML element
+   * - `'jSXProp'` — any `*$` attribute on a component element
+   */
   ctxKind: 'eventHandler' | 'function' | 'jSXProp';
+
+  /**
+   * The `$`-marker name (`'component$'`, `'useTask$'`, etc.) for `function`
+   * ctxKind, or the JSX attribute name for handler/prop ctxKinds. Drives
+   * strip rules, HMR injection, and per-marker special-cases downstream.
+   */
   ctxName: string;
+
+  /**
+   * `true` iff this segment closes over any outer-scope binding —
+   * derived from `captureNames.length > 0` at extraction time, so it can
+   * temporarily diverge from `captureNames` during downstream filtering
+   * (props consolidation, const inline, migration).
+   */
   captures: boolean;
+
+  /**
+   * Source-byte range `[start, end]` of the segment's body in the original
+   * source. Used by source map emission and migration source-range surgery.
+   */
   loc: [number, number];
 }
 
 /**
- * Internal metadata extending SegmentAnalysis with optional fields
- * used for snapshot comparison compatibility.
+ * Internal metadata extending `SegmentAnalysis` with optional fields used for
+ * snapshot comparison compatibility.
  *
- * paramNames and captureNames appear in snapshot metadata but are not
- * part of the public API type.
+ * `paramNames` and `captureNames` appear in `match-these-snaps/` metadata
+ * blocks but are not part of the public API type. They're populated by
+ * capture analysis (`capture-analysis.ts`) and threaded through Phase 5
+ * codegen for `_captures` unpacking and signature rewrites.
  */
 export interface SegmentMetadataInternal extends SegmentAnalysis {
+  /**
+   * Closure parameter names. Used by `rewriteFunctionSignature` for
+   * loop-padding (`_,_1,...`) cases and by codegen to rename destructured
+   * props to `_rawProps`.
+   */
   paramNames?: string[];
+
+  /**
+   * List of captured outer-scope names. Mutated during Phase 4–5: props
+   * consolidation can replace destructured prop names with `_rawProps`,
+   * const-literal inlining drops folded names, migration filtering drops
+   * names that became `_auto_` imports.
+   */
   captureNames?: string[];
 }
 
@@ -93,37 +338,119 @@ export interface SegmentMetadataInternal extends SegmentAnalysis {
 // Strategy and mode types
 // ---------------------------------------------------------------------------
 
+/**
+ * How the optimizer lays out lazy-load boundaries / QRL entry chunks.
+ *
+ * Affects whether segments emit as separate files (`smart`/`segment`/`hook`)
+ * or stay inlined into the parent via `inlinedQrl` / `_noopQrl().s(body)`
+ * (`inline`/`hoist`/`lib`-style flows).
+ *
+ * The optional `manual` map on each variant lets the caller override the
+ * resolved entry name per-symbol; consulted by `entry-strategy.ts:resolveEntryField`.
+ */
 export type EntryStrategy =
+  /** Each segment stays inline in the parent via `inlinedQrl(body, name)`. */
   | { type: 'inline' }
+  /** Segment bodies hoist to module scope but stay in the parent file. */
   | { type: 'hoist' }
+  /** Per-segment files keyed by hook (manual override map allowed). */
   | { type: 'hook'; manual?: Record<string, string> }
+  /** Per-segment files keyed by extracted symbol (manual override allowed). */
   | { type: 'segment'; manual?: Record<string, string> }
+  /** Bundle every segment into a single file named `entry_hooks`. */
   | { type: 'single'; manual?: Record<string, string> }
+  /** Group segments by enclosing component$; non-component children point at parent. */
   | { type: 'component'; manual?: Record<string, string> }
+  /** Default heuristic blend; one segment per extraction. */
   | { type: 'smart'; manual?: Record<string, string> };
 
+/**
+ * Post-transform parent-module simplification level.
+ * - `'simplify'` (default): remove unused bindings, dedupe exports, drop
+ *   redundant imports — see `rewrite/index.ts` cleanup passes.
+ * - `'none'`: skip simplification passes; preserves more of the original
+ *   structure (used for debugging or library emit where downstream tooling
+ *   handles minification).
+ */
 export type MinifyMode = 'simplify' | 'none';
+
+/**
+ * Build flavor for the emit pipeline.
+ * - `'prod'` (default): symbol names get rewritten to short `s_<hash>` form,
+ *   no dev-only metadata.
+ * - `'dev'`: preserves long symbol names, emits `qrlDEV(...)` with
+ *   `{ file, lo, hi, displayName }` metadata for source-mapped tooling.
+ * - `'hmr'`: like `dev` plus `useHmr(devFile)` injection on `component$`
+ *   segments (`postProcessSegmentCode`).
+ * - `'lib'`: library-emit flavor; preserves more of the original module
+ *   structure for consumers that re-bundle.
+ */
 export type EmitMode = 'dev' | 'prod' | 'lib' | 'hmr';
 
 // ---------------------------------------------------------------------------
 // Diagnostics
 // ---------------------------------------------------------------------------
 
+/**
+ * A flat source-range descriptor attached to diagnostic messages.
+ *
+ * Carries both byte offsets (`lo`/`hi`, for source-map and AST-range work)
+ * and 1-based line/column pairs (for human-readable IDE display). The
+ * "Flat" suffix distinguishes this from any nested-highlight shape used
+ * upstream.
+ */
 export interface DiagnosticHighlightFlat {
+  /** Inclusive byte offset of the start of the highlighted span. */
   lo: number;
+  /** Exclusive byte offset of the end of the highlighted span. */
   hi: number;
+  /** 1-based line number where the span starts. */
   startLine: number;
+  /** 0-based column on `startLine` where the span starts. */
   startCol: number;
+  /** 1-based line number where the span ends. */
   endLine: number;
+  /** 0-based column on `endLine` where the span ends. */
   endCol: number;
 }
 
+/**
+ * One error or warning surfaced by the optimizer. Constructed via the
+ * helpers in `diagnostics.ts` (e.g. `emitC02`, `emitC05`,
+ * `emitPassiveConflictWarning`); collected into `TransformOutput.diagnostics`.
+ *
+ * Suppressible from source via `// @qwik-disable-next-line <code>` directives
+ * (parsed by `parseDisableDirectives` in `diagnostics.ts`).
+ */
 export interface Diagnostic {
+  /** Severity. `'error'` blocks; `'warning'` is informational. */
   category: 'error' | 'warning';
+
+  /**
+   * Stable diagnostic identifier (e.g. `'C02'` for cross-boundary local
+   * function reference, `'C05'` for missing `Qrl` export, `'preventdefault-passive-check'`
+   * for the passive-event prop conflict).
+   */
   code: string;
+
+  /** Source file the diagnostic refers to (relative path). */
   file: string;
+
+  /** Human-readable message. */
   message: string;
+
+  /**
+   * Source-range highlights. `null` when the diagnostic doesn't pin to a
+   * specific location.
+   */
   highlights: DiagnosticHighlightFlat[] | null;
+
+  /**
+   * Suggested fixes. **Not wired** in this implementation today (always
+   * `null`); kept for NAPI parity.
+   */
   suggestions: null;
+
+  /** Origin scope, always `'optimizer'` for diagnostics emitted from this module. */
   scope: string;
 }

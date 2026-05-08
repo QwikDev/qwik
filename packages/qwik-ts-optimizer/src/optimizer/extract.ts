@@ -95,23 +95,27 @@ export interface ExtractionResult {
   constLiterals?: Map<string, string>;
 }
 
+/** True when `inner`'s source span lies inside `outer`'s span (typical ESTree layout). */
+function nodeContainedIn(inner: AstNode, outer: AstNode): boolean {
+  return inner.start >= outer.start && inner.end <= outer.end;
+}
+
 /**
- * Determine the file extension for a segment based on whether its body
- * contains JSX nodes.
+ * Pick segment module extension from whether the segment body contains JSX and the source file extension.
  */
-function determineExtension(argNode: AstNode, sourceExt: string): string {
-  let hasJsx = false;
-  walk(argNode, {
-    enter(node: AstNode) {
-      if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
-        hasJsx = true;
-      }
-    },
-  });
+function extensionFromSegmentJsx(hasJsx: boolean, sourceExt: string): string {
   if (hasJsx) return '.tsx';
   if (sourceExt === '.ts') return '.ts';
   return '.js';
 }
+
+/** Open segment bodies during the program walk — used to fold JSX detection into this walk without extra subtree walks. */
+type ActiveSegmentBody = {
+  leaveNode: AstNode;
+  root: AstNode;
+  result: ExtractionResult;
+  hasJsx: boolean;
+};
 
 /** Resolve aliased import back to its original name (e.g., `c$` -> `component$`). */
 function resolveCanonicalCalleeName(
@@ -210,10 +214,12 @@ export function extractSegments(
     ? getBasename(relDir)
     : getBasename(relPath);
   const sourceExt = getExtension(relPath) || '.js';
+  const defaultExtension = extensionFromSegmentJsx(false, sourceExt);
   const fileName = getBasename(relPath);
   const ctx = new ContextStack(fileStem, relPath, scope, fileName);
 
   const results: ExtractionResult[] = [];
+  const activeSegmentBodies: ActiveSegmentBody[] = [];
 
   const pushedNodes = new Map<AstNode, number>();
   const parentMap = new Map<AstNode, AstParentNode>();
@@ -224,6 +230,14 @@ export function extractSegments(
   walk(program, {
     enter(node: AstNode, parent: AstParentNode) {
       if (parent) parentMap.set(node, parent);
+
+      if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
+        for (const seg of activeSegmentBodies) {
+          if (!seg.hasJsx && nodeContainedIn(node, seg.root)) {
+            seg.hasJsx = true;
+          }
+        }
+      }
 
       let pushCount = 0;
 
@@ -513,10 +527,9 @@ export function extractSegments(
         const lastUnder = symbolName.lastIndexOf('_');
         const hash = lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName;
 
-        const extension = determineExtension(arg, sourceExt);
         const [line, col] = computeLineColFromOffset(source, arg.start);
 
-        results.push({
+        const extraction: ExtractionResult = {
           symbolName,
           displayName,
           hash,
@@ -536,7 +549,7 @@ export function extractSegments(
           ctxKind,
           ctxName,
           origin: relPath,
-          extension,
+          extension: defaultExtension,
           loc: [line, col],
           parent: null,
           captures: false,
@@ -547,7 +560,9 @@ export function extractSegments(
           explicitCaptures: null,
           inlinedQrlNameArg: null,
           isComponentEvent: false,
-        });
+        };
+        results.push(extraction);
+        activeSegmentBodies.push({ leaveNode: node, root: arg, result: extraction, hasJsx: false });
       }
 
       // JSX $-suffixed attribute extraction (e.g., onClick$={expr})
@@ -602,10 +617,9 @@ export function extractSegments(
           const lastUnder = symbolName.lastIndexOf('_');
           const hash = lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName;
 
-          const extension = determineExtension(expr, sourceExt);
           const [line, col] = computeLineColFromOffset(source, expr.start);
 
-          results.push({
+          const extraction: ExtractionResult = {
             symbolName,
             displayName,
             hash,
@@ -625,7 +639,7 @@ export function extractSegments(
             ctxKind,
             ctxName,
             origin: relPath,
-            extension,
+            extension: defaultExtension,
             loc: [line, col],
             parent: null,
             captures: false,
@@ -636,7 +650,9 @@ export function extractSegments(
             explicitCaptures: null,
             inlinedQrlNameArg: null,
             isComponentEvent,
-          });
+          };
+          results.push(extraction);
+          activeSegmentBodies.push({ leaveNode: node, root: expr, result: extraction, hasJsx: false });
         }
       }
 
@@ -644,6 +660,14 @@ export function extractSegments(
     },
 
     leave(node: AstNode) {
+      const activeTop = activeSegmentBodies[activeSegmentBodies.length - 1];
+      if (activeTop?.leaveNode === node) {
+        if (activeTop.hasJsx) {
+          activeTop.result.extension = extensionFromSegmentJsx(true, sourceExt);
+        }
+        activeSegmentBodies.pop();
+      }
+
       const count = pushedNodes.get(node);
       if (count !== undefined) {
         for (let i = 0; i < count; i++) {

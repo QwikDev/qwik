@@ -9,6 +9,7 @@
 
 import { walk } from 'oxc-walker';
 import type {
+  AstEcmaScriptModule,
   AstNode,
   AstParentNode,
   AstParseResult,
@@ -190,13 +191,18 @@ export function extractSegments(
   scope?: string,
   transpileJsx?: boolean,
   preParsedProgram?: AstProgram,
+  /** When `preParsedProgram` is set, optional module metadata from the same parse. */
+  preParsedModule?: AstEcmaScriptModule,
 ): ExtractionResult[] {
   const parseResult: AstParseResult | null = preParsedProgram
     ? null
     : parseWithRawTransfer(relPath, source);
   const program = preParsedProgram ?? parseResult!.program;
 
-  const imports = collectImports(program, parseResult?.module);
+  const imports = collectImports(
+    program,
+    preParsedProgram ? preParsedModule : parseResult?.module,
+  );
   const customInlined = collectCustomInlined(program);
 
   const relDir = getDirectory(relPath);

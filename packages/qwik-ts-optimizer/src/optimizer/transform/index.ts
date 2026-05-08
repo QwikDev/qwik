@@ -10,7 +10,6 @@
 import type {
   AstFunction,
   AstProgram,
-  AstEcmaScriptModule,
   TSEnumDeclaration,
 } from "../../ast-types.js";
 import { parseWithRawTransfer } from "../utils/parse.js";
@@ -105,6 +104,12 @@ export function transformModule(
     // Phase 0: Repair input for SWC-recoverable parse errors
     const repairResult = repairInput(input.code, relPath);
     const repairedCode = repairResult.source;
+    // Single module AST for extraction and the rest of the pipeline. When
+    // repair already produced a program, reuse it; otherwise parse once here
+    // so extractSegments does not parse the same source again internally.
+    const { program, module: parserModule } = repairResult.program
+      ? { program: repairResult.program, module: repairResult.module }
+      : parseWithRawTransfer(relPath, repairedCode);
 
     // Phase 1: Extract $() segments
     const willTranspileJsx =
@@ -114,7 +119,8 @@ export function transformModule(
       relPath,
       options.scope,
       willTranspileJsx,
-      repairResult.program,
+      program,
+      parserModule,
     );
 
     // Early exit: no segments and no JSX to transpile
@@ -126,19 +132,13 @@ export function transformModule(
           repairedCode,
           relPath,
           input.path,
-          repairResult.program,
+          program,
         ),
       );
       continue;
     }
 
     // Phase 2: Collect imports and analyze captures
-    const parseResult: { program: AstProgram; module: AstEcmaScriptModule | undefined } =
-      repairResult.program
-        ? { program: repairResult.program, module: repairResult.module }
-        : parseWithRawTransfer(relPath, repairedCode);
-    const program = parseResult.program;
-    const parserModule = parseResult.module;
     const originalImports = collectImports(program, parserModule);
     const importedNames = new Set<string>(originalImports.keys());
 

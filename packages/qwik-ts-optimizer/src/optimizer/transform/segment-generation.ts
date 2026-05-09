@@ -796,221 +796,254 @@ export function buildNestedCallSites(
 }
 
 /**
- * Generate all segment TransformModule entries.
+ * Build a single default-strategy {@link TransformModule} for `ext`. Default
+ * strategy emits each segment as a standalone module with its own code,
+ * metadata, and import context (vs the inline strategy's metadata-only
+ * shape — see {@link buildInlineStrategySegment}).
  *
- * This is Phase 5 of the transform pipeline -- producing segment modules
- * with their code, metadata, and import context.
+ * Sequences seven sub-phases against the per-extraction state:
+ * 1. Build per-child QRL declarations + childQrlVarNames map.
+ * 2. Initialise captureInfo + consolidate destructured prop-field captures.
+ * 3. Wire pre-computed const literal inlining.
+ * 4. Wire top-level migration (only when `parent === null && !isInlinedQrl`).
+ * 5. Build nested call-site info.
+ * 6. Generate segment code (or stripped sentinel) + post-process.
+ * 7. Build SegmentMetadataInternal + final TransformModule.
+ *
+ * Returns the module plus `keyCounterValue` (the JSX key counter advanced
+ * by `generateSegmentCode`); the orchestrator threads that value into the
+ * next iteration.
  */
-export function generateAllSegmentModules(
+export function buildDefaultStrategySegment(
+  ext: ExtractionResult,
   ctx: SegmentGenerationContext,
-): TransformModule[] {
-  const allModules: TransformModule[] = [];
-  const prep = computeSegmentGenerationPrep(ctx);
+  prep: SegmentGenerationPrep,
+  stripped: boolean,
+  segmentKeyCounter: number,
+): { module: TransformModule; keyCounterValue: number | undefined } {
+  const {
+    options, relPath,
+    emitMode, devFile, entryStrategy, migrationDecisions,
+    moduleLevelDeclsByName,
+    parentModulePath, qrlOutputExt,
+    sourceExtensions, shouldTranspileJsx, shouldTranspileTs, isJsx,
+    importedNames, elementQpParamsMap,
+    constLiteralsMap,
+  } = ctx;
   const {
     extBySymbol, sortedExtractions, sameFileSymbols,
     defaultExportedNames, renamedExports, segmentImportList,
     enumValueMap, fieldMaps,
   } = prep;
-  const {
-    program, originalImports, options, relPath,
-    emitMode, devFile, isInlineStrategy, entryStrategy, migrationDecisions,
-    moduleLevelDecls, moduleLevelDeclsByName, segmentUsage,
-    parentModulePath, preRenameSymbolName, qrlOutputExt,
-    sourceExtensions, shouldTranspileJsx, shouldTranspileTs, isJsx,
-    importedNames, enclosingExtMap, elementQpParamsMap,
-    constLiteralsMap,
-  } = ctx;
 
-  // Track running JSX key counter across segments
-  let segmentKeyCounter = ctx.parentJsxKeyCounterValue;
+  const children = sortedExtractions.filter(
+    (c) => c.parent === ext.symbolName && !c.isSync,
+  );
+  const isDevMode = emitMode === "dev" || emitMode === "hmr";
+  const { nestedQrlDecls, childQrlVarNames } = buildNestedQrlDeclarations(
+    children, options, isDevMode, devFile, qrlOutputExt,
+  );
 
-  for (const ext of sortedExtractions) {
-    if (ext.isSync) continue;
+  // Build capture info
+  const captureInfo: SegmentCaptureInfo = {
+    captureNames: ext.captureNames,
+    autoImports: [],
+    movedDeclarations: [],
+  };
 
-    // Check if this segment is stripped
-    const stripped = isStrippedSegment(
-      ext.ctxName,
-      ext.ctxKind,
-      options.stripCtxName,
-      options.stripEventHandlers,
-    );
-
-    if (stripped) {
-      ext.loc = [0, 0];
-    }
-
-    // Inline/hoist strategy: emit metadata-only and continue.
-    if (isInlineStrategy) {
-      allModules.push(buildInlineStrategySegment(ext, ctx, prep, stripped));
-      continue;
-    }
-
-    // Default strategy: emit separate segment modules
-    const children = sortedExtractions.filter(
-      (c) => c.parent === ext.symbolName && !c.isSync,
-    );
-    const isDevMode = emitMode === "dev" || emitMode === "hmr";
-    const { nestedQrlDecls, childQrlVarNames } = buildNestedQrlDeclarations(
-      children, options, isDevMode, devFile, qrlOutputExt,
-    );
-
-    // Build capture info
-    const captureInfo: SegmentCaptureInfo = {
-      captureNames: ext.captureNames,
-      autoImports: [],
-      movedDeclarations: [],
-    };
-
-    // Consolidate destructured prop-field captures into _rawProps.
-    // Default-strategy: writes to captureInfo + ext (vs the inline path which
-    // only writes to ext). Shared helper produces the same partition for both.
-    if (ext.parent !== null && ext.captureNames.length > 0) {
-      const fieldMap = fieldMaps.get(ext.parent);
-      if (fieldMap !== undefined && fieldMap.size > 0) {
-        const result = consolidateRawPropsCaptures(ext.captureNames, fieldMap);
-        if (result !== null) {
-          captureInfo.captureNames = result.newCaptureNames;
-          captureInfo.propsFieldCaptures = result.propsFieldCaptures;
-          ext.captureNames = result.newCaptureNames;
-          ext.captures = result.newCaptureNames.length > 0;
-        }
+  // Consolidate destructured prop-field captures into _rawProps.
+  // Default-strategy: writes to captureInfo + ext (vs the inline path which
+  // only writes to ext). Shared helper produces the same partition for both.
+  if (ext.parent !== null && ext.captureNames.length > 0) {
+    const fieldMap = fieldMaps.get(ext.parent);
+    if (fieldMap !== undefined && fieldMap.size > 0) {
+      const result = consolidateRawPropsCaptures(ext.captureNames, fieldMap);
+      if (result !== null) {
+        captureInfo.captureNames = result.newCaptureNames;
+        captureInfo.propsFieldCaptures = result.propsFieldCaptures;
+        ext.captureNames = result.newCaptureNames;
+        ext.captures = result.newCaptureNames.length > 0;
       }
     }
+  }
 
-    // Wire pre-computed const literal inlining info
-    const preComputedConsts = constLiteralsMap.get(ext.symbolName);
-    if (preComputedConsts) {
-      captureInfo.constLiterals = preComputedConsts;
-      captureInfo.captureNames = ext.captureNames;
-    }
+  // Wire pre-computed const literal inlining info
+  const preComputedConsts = constLiteralsMap.get(ext.symbolName);
+  if (preComputedConsts) {
+    captureInfo.constLiterals = preComputedConsts;
+    captureInfo.captureNames = ext.captureNames;
+  }
 
-    // For top-level segments (no parent): wire migration info
-    if (ext.parent === null && !ext.isInlinedQrl) {
-      wireTopLevelMigration(ext, captureInfo, ctx, prep);
-    }
+  // For top-level segments (no parent): wire migration info
+  if (ext.parent === null && !ext.isInlinedQrl) {
+    wireTopLevelMigration(ext, captureInfo, ctx, prep);
+  }
 
-    const nestedCallSites = buildNestedCallSites(
-      children, childQrlVarNames, elementQpParamsMap,
-    );
+  const nestedCallSites = buildNestedCallSites(
+    children, childQrlVarNames, elementQpParamsMap,
+  );
 
-    const effectiveCaptureInfo = resolveCaptureInfo(
-      captureInfo,
-      ext.isInlinedQrl,
-    );
+  const effectiveCaptureInfo = resolveCaptureInfo(
+    captureInfo,
+    ext.isInlinedQrl,
+  );
 
-    // Build import context
-    const importContext: SegmentImportData = {
-      moduleImports: segmentImportList,
-      sameFileSymbols,
-      defaultExportedNames:
-        defaultExportedNames.size > 0 ? defaultExportedNames : undefined,
-      renamedExports: renamedExports.size > 0 ? renamedExports : undefined,
-      parentModulePath,
-      migrationDecisions: migrationDecisions.map((d) => {
-        const decl = moduleLevelDeclsByName.get(d.varName);
-        return {
-          varName: d.varName,
-          action: d.action,
-          isExported: decl?.isExported ?? false,
-        };
-      }),
-    };
+  // Build import context
+  const importContext: SegmentImportData = {
+    moduleImports: segmentImportList,
+    sameFileSymbols,
+    defaultExportedNames:
+      defaultExportedNames.size > 0 ? defaultExportedNames : undefined,
+    renamedExports: renamedExports.size > 0 ? renamedExports : undefined,
+    parentModulePath,
+    migrationDecisions: migrationDecisions.map((d) => {
+      const decl = moduleLevelDeclsByName.get(d.varName);
+      return {
+        varName: d.varName,
+        action: d.action,
+        isExported: decl?.isExported ?? false,
+      };
+    }),
+  };
 
-    // Generate segment code
-    const segmentResult = stripped
-      ? { code: generateStrippedSegmentCode(ext.symbolName) }
-      : generateSegmentCode(
-          ext,
-          nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
-          effectiveCaptureInfo,
-          (() => {
-            const srcExt =
-              sourceExtensions.get(ext.symbolName) ?? ext.extension;
-            return (
-              shouldTranspileJsx &&
-              (srcExt === ".tsx" || srcExt === ".jsx" || isJsx)
-            );
-          })()
-            ? {
-                enableJsx: true,
-                importedNames,
-                relPath,
-                devOptions: isDevMode ? { relPath } : undefined,
-                keyCounterStart: segmentKeyCounter,
-              }
-            : undefined,
-          nestedCallSites.length > 0 ? nestedCallSites : undefined,
-          importContext,
-          enumValueMap.size > 0 ? enumValueMap : undefined,
-        );
-    let segmentCode = segmentResult.code;
+  // Generate segment code
+  const segmentResult = stripped
+    ? { code: generateStrippedSegmentCode(ext.symbolName) }
+    : generateSegmentCode(
+        ext,
+        nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
+        effectiveCaptureInfo,
+        (() => {
+          const srcExt =
+            sourceExtensions.get(ext.symbolName) ?? ext.extension;
+          return (
+            shouldTranspileJsx &&
+            (srcExt === ".tsx" || srcExt === ".jsx" || isJsx)
+          );
+        })()
+          ? {
+              enableJsx: true,
+              importedNames,
+              relPath,
+              devOptions: isDevMode ? { relPath } : undefined,
+              keyCounterStart: segmentKeyCounter,
+            }
+          : undefined,
+        nestedCallSites.length > 0 ? nestedCallSites : undefined,
+        importContext,
+        enumValueMap.size > 0 ? enumValueMap : undefined,
+      );
+  let segmentCode = segmentResult.code;
 
-    if (segmentResult.keyCounterValue !== undefined) {
-      segmentKeyCounter = segmentResult.keyCounterValue;
-    }
-
-    if (!stripped) {
-      segmentCode = postProcessSegmentCode(segmentCode, {
-        symbolName: ext.symbolName,
-        canonicalFilename: ext.canonicalFilename,
-        extension: ext.extension,
-        ctxName: ext.ctxName,
-        sourceExtensions,
-        shouldTranspileTs,
-        shouldTranspileJsx,
-        isServer: options.isServer,
-        emitMode,
-        devFile,
-      });
-    }
-
-    // Build segment metadata and entry field
-    let parentComponentSymbol: string | null = null;
-    if (entryStrategy.type === "component") {
-      let current = ext.parent;
-      while (current) {
-        const parentExt = extBySymbol.get(current!);
-        if (parentExt && parentExt.ctxName === "component") {
-          parentComponentSymbol = parentExt.symbolName;
-          break;
-        }
-        current = parentExt?.parent ?? null;
-      }
-    }
-    const entryField = resolveEntryField(
-      entryStrategy.type,
-      ext.symbolName,
-      ext.ctxName,
-      parentComponentSymbol,
-      getManualEntryMap(entryStrategy as Exclude<EntryStrategy, { type: 'inline' } | { type: 'hoist' }>),
-    );
-
-    const segmentAnalysis: SegmentMetadataInternal = {
-      origin: ext.origin,
-      name: ext.symbolName,
-      entry: entryField,
-      displayName: ext.displayName,
-      hash: ext.hash,
+  if (!stripped) {
+    segmentCode = postProcessSegmentCode(segmentCode, {
+      symbolName: ext.symbolName,
       canonicalFilename: ext.canonicalFilename,
-      extension: ext.extension.replace(leadingDot, ""),
-      parent: ext.parent,
-      ctxKind: ext.ctxKind,
+      extension: ext.extension,
       ctxName: ext.ctxName,
-      captures: ext.captures,
-      loc: ext.loc,
-      captureNames: ext.captureNames,
-      paramNames: ext.paramNames,
-    };
+      sourceExtensions,
+      shouldTranspileTs,
+      shouldTranspileJsx,
+      isServer: options.isServer,
+      emitMode,
+      devFile,
+    });
+  }
 
-    const segmentModule: TransformModule = {
+  // Build segment metadata and entry field
+  let parentComponentSymbol: string | null = null;
+  if (entryStrategy.type === "component") {
+    let current = ext.parent;
+    while (current) {
+      const parentExt = extBySymbol.get(current!);
+      if (parentExt && parentExt.ctxName === "component") {
+        parentComponentSymbol = parentExt.symbolName;
+        break;
+      }
+      current = parentExt?.parent ?? null;
+    }
+  }
+  const entryField = resolveEntryField(
+    entryStrategy.type,
+    ext.symbolName,
+    ext.ctxName,
+    parentComponentSymbol,
+    getManualEntryMap(entryStrategy as Exclude<EntryStrategy, { type: 'inline' } | { type: 'hoist' }>),
+  );
+
+  const segmentAnalysis: SegmentMetadataInternal = {
+    origin: ext.origin,
+    name: ext.symbolName,
+    entry: entryField,
+    displayName: ext.displayName,
+    hash: ext.hash,
+    canonicalFilename: ext.canonicalFilename,
+    extension: ext.extension.replace(leadingDot, ""),
+    parent: ext.parent,
+    ctxKind: ext.ctxKind,
+    ctxName: ext.ctxName,
+    captures: ext.captures,
+    loc: ext.loc,
+    captureNames: ext.captureNames,
+    paramNames: ext.paramNames,
+  };
+
+  return {
+    module: {
       path: ext.canonicalFilename + ext.extension,
       isEntry: true,
       code: segmentCode,
       map: null,
       segment: segmentAnalysis,
       origPath: null,
-    };
-    allModules.push(segmentModule);
+    },
+    keyCounterValue: segmentResult.keyCounterValue,
+  };
+}
+
+/**
+ * Generate all segment TransformModule entries.
+ *
+ * This is Phase 5 of the transform pipeline -- producing segment modules
+ * with their code, metadata, and import context. The function is a thin
+ * sequencer over {@link computeSegmentGenerationPrep} (per-call setup) +
+ * a per-extraction loop that forks on entry strategy:
+ * inline/hoist → {@link buildInlineStrategySegment} (metadata-only emit);
+ * default → {@link buildDefaultStrategySegment} (full code + metadata).
+ *
+ * The JSX key counter is threaded across segments so per-module JSX keys
+ * stay unique.
+ */
+export function generateAllSegmentModules(
+  ctx: SegmentGenerationContext,
+): TransformModule[] {
+  const prep = computeSegmentGenerationPrep(ctx);
+  const allModules: TransformModule[] = [];
+  let segmentKeyCounter = ctx.parentJsxKeyCounterValue;
+
+  for (const ext of prep.sortedExtractions) {
+    if (ext.isSync) continue;
+
+    const stripped = isStrippedSegment(
+      ext.ctxName,
+      ext.ctxKind,
+      ctx.options.stripCtxName,
+      ctx.options.stripEventHandlers,
+    );
+    if (stripped) ext.loc = [0, 0];
+
+    if (ctx.isInlineStrategy) {
+      allModules.push(buildInlineStrategySegment(ext, ctx, prep, stripped));
+      continue;
+    }
+
+    const result = buildDefaultStrategySegment(
+      ext, ctx, prep, stripped, segmentKeyCounter,
+    );
+    if (result.keyCounterValue !== undefined) {
+      segmentKeyCounter = result.keyCounterValue;
+    }
+    allModules.push(result.module);
   }
 
   return allModules;

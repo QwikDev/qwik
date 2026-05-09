@@ -8,10 +8,10 @@ import type {
   CallExpression,
   JSXOpeningElement,
 } from '../../ast-types.js';
-import { parseWithRawTransfer } from '../utils/parse.js';
 import type { ExtractionResult } from '../extract.js';
 import {
   classifyDeclarationType,
+  classifyDeclarationTypeInClosure,
   emitC02,
   emitC05,
   emitPassiveConflictWarning,
@@ -24,7 +24,6 @@ export function detectC02Diagnostics(
   extractions: ExtractionResult[],
   closureNodes: Map<string, AstFunction>,
   enclosingExtMap: Map<string, ExtractionResult>,
-  bodyPrograms: Map<string, AstProgram>,
   importedNames: Set<string>,
   program: AstProgram,
   source: string,
@@ -44,25 +43,20 @@ export function detectC02Diagnostics(
     if (undeclaredIds.length === 0) continue;
 
     const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
+    const enclosingClosure = enclosingExt
+      ? closureNodes.get(enclosingExt.symbolName)
+      : undefined;
 
     for (const refName of undeclaredIds) {
       if (importedNames.has(refName)) continue;
 
       let declType: 'var' | 'fn' | 'class';
-      if (enclosingExt) {
-        try {
-          let encProgram = bodyPrograms.get(enclosingExt.symbolName);
-          if (!encProgram) {
-            const wrappedBody = `(${enclosingExt.bodyText})`;
-            encProgram = parseWithRawTransfer('segment.tsx', wrappedBody).program;
-            bodyPrograms.set(enclosingExt.symbolName, encProgram);
-          }
-          declType = classifyDeclarationType(encProgram, refName);
-        } catch {
-          declType = 'var';
-        }
-      } else {
-        declType = classifyDeclarationType(program, refName);
+      try {
+        declType = enclosingClosure
+          ? classifyDeclarationTypeInClosure(enclosingClosure, refName)
+          : classifyDeclarationType(program, refName);
+      } catch {
+        declType = 'var';
       }
 
       if (declType === 'fn' || declType === 'class') {

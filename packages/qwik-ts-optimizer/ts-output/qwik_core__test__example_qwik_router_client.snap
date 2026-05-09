@@ -3747,12 +3747,12 @@ export const DocumentHeadTags_component_LaCcLS5Bz4c = (props) => {
     "message": "'callRestoreScrollOnDocument' is a local function, and local function/class declarations can't be referenced from this callback. Move 'callRestoreScrollOnDocument' into the callback, or rewrite it as a captured value.",
     "highlights": [
       {
-        "lo": 11823,
-        "hi": 11850,
-        "startLine": 374,
-        "startCol": 30,
-        "endLine": 375,
-        "endCol": 3
+        "lo": 35010,
+        "hi": 35037,
+        "startLine": 1005,
+        "startCol": 17,
+        "endLine": 1005,
+        "endCol": 44
       }
     ],
     "suggestions": null,
@@ -3765,12 +3765,12 @@ export const DocumentHeadTags_component_LaCcLS5Bz4c = (props) => {
     "message": "'action' is a local function, and local function/class declarations can't be referenced from this callback. Move 'action' into the callback, or rewrite it as a captured value.",
     "highlights": [
       {
-        "lo": 35,
-        "hi": 41,
-        "startLine": 2,
-        "startCol": 35,
-        "endLine": 2,
-        "endCol": 41
+        "lo": 53421,
+        "hi": 53427,
+        "startLine": 1591,
+        "startCol": 24,
+        "endLine": 1591,
+        "endCol": 30
       }
     ],
     "suggestions": null,

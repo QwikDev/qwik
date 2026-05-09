@@ -6,7 +6,7 @@
  */
 
 import { createRegExp, exactly, maybe, whitespace } from 'magic-regexp';
-import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
+import type { AstFunction, AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from './types.js';
 
 /** C02: captured function/class reference across a $() boundary. */
@@ -118,6 +118,21 @@ type DeclKind = 'var' | 'fn' | 'class';
 /** Classify whether an identifier was declared as a function, class, or variable. */
 export function classifyDeclarationType(program: AstProgram, identName: string): DeclKind {
   return classifyInStatements(program.body, identName);
+}
+
+/**
+ * Variant of {@link classifyDeclarationType} that walks a closure body directly
+ * instead of a wrapped re-parsed program. Used when the caller already has the
+ * closure AST node from `extractSegments`'s companion map.
+ */
+export function classifyDeclarationTypeInClosure(
+  closure: AstFunction,
+  identName: string,
+): DeclKind {
+  if (closure.body?.type === 'BlockStatement') {
+    return classifyInStatements(closure.body.body ?? [], identName);
+  }
+  return classifyInExpression(closure.body, identName);
 }
 
 function classifyInStatements(stmts: ReadonlyArray<AstNode>, identName: string): DeclKind {

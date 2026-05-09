@@ -9,7 +9,6 @@
 
 import type {
   AstFunction,
-  AstProgram,
   TSEnumDeclaration,
 } from "../../ast-types.js";
 import { parseWithRawTransfer } from "../utils/parse.js";
@@ -39,6 +38,7 @@ import type {
 } from "../types.js";
 import {
   classifyDeclarationType,
+  classifyDeclarationTypeInClosure,
   parseDisableDirectives,
   filterSuppressedDiagnostics,
 } from "../diagnostics.js";
@@ -114,6 +114,11 @@ export function transformModule(
     // Phase 1: Extract $() segments
     const willTranspileJsx =
       options.transpileJsx !== false && (ext === ".tsx" || ext === ".jsx");
+    // Closure AST nodes (the `arg` of each marker call) are threaded out by
+    // `extractSegments` keyed by post-disambiguation `symbolName`. Reusing the
+    // original parse's nodes here lets us skip the per-extraction body
+    // re-parse the receiver used to perform.
+    const closureNodes = new Map<string, AstFunction>();
     const extractions = extractSegments(
       repairedCode,
       relPath,
@@ -121,6 +126,7 @@ export function transformModule(
       willTranspileJsx,
       program,
       parserModule,
+      closureNodes,
     );
 
     // Early exit: no segments and no JSX to transpile
@@ -151,41 +157,13 @@ export function transformModule(
       relPath,
     );
 
-    // Pre-parse each extraction's body to get closure AST nodes, and collect
-    // scope identifiers from each body (needed for nested capture analysis)
-    const closureNodes = new Map<string, AstFunction>();
+    // Collect scope identifiers from each segment's body for nested capture
+    // analysis. The closure AST nodes themselves were already populated by
+    // `extractSegments` above — no body re-parse needed.
     const bodyScopeIds = new Map<string, Set<string>>();
-    const bodyPrograms = new Map<string, AstProgram>();
-
-    for (const extraction of extractions) {
-      try {
-        const wrappedBody = `(${extraction.bodyText})`;
-        const bodyParse = parseWithRawTransfer("segment.tsx", wrappedBody);
-        bodyPrograms.set(extraction.symbolName, bodyParse.program);
-        const exprStmt = bodyParse.program.body[0];
-        let closureNode =
-          exprStmt?.type === "ExpressionStatement" ? exprStmt.expression : null;
-
-        while (closureNode?.type === "ParenthesizedExpression") {
-          closureNode = closureNode.expression;
-        }
-
-        if (
-          closureNode &&
-          (closureNode.type === "ArrowFunctionExpression" ||
-            closureNode.type === "FunctionExpression")
-        ) {
-          closureNodes.set(extraction.symbolName, closureNode);
-          const bodyIds = collectScopeIdentifiers(
-            closureNode,
-            extraction.bodyText,
-            "segment.tsx",
-          );
-          bodyScopeIds.set(extraction.symbolName, bodyIds);
-        }
-      } catch {
-        // If parsing fails, skip
-      }
+    for (const [symbolName, closureNode] of closureNodes) {
+      const bodyIds = collectScopeIdentifiers(closureNode, "", "");
+      bodyScopeIds.set(symbolName, bodyIds);
     }
 
     // Run capture analysis with the correct parent scope for each extraction.
@@ -236,11 +214,13 @@ export function transformModule(
 
       // Filter out function/class declarations from captures.
       if (extraction.captureNames.length > 0) {
-        const classifyScope = enclosingExt
-          ? (bodyPrograms.get(enclosingExt.symbolName) ?? program)
-          : program;
+        const enclosingClosure = enclosingExt
+          ? closureNodes.get(enclosingExt.symbolName)
+          : undefined;
         extraction.captureNames = extraction.captureNames.filter((name) => {
-          const declType = classifyDeclarationType(classifyScope, name);
+          const declType = enclosingClosure
+            ? classifyDeclarationTypeInClosure(enclosingClosure, name)
+            : classifyDeclarationType(program, name);
           return declType === "var";
         });
         extraction.captures = extraction.captureNames.length > 0;
@@ -319,7 +299,6 @@ export function transformModule(
       extractions,
       closureNodes,
       enclosingExtMap,
-      bodyPrograms,
       importedNames,
       program,
       repairedCode,

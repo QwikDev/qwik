@@ -10,6 +10,7 @@
 import { walk } from 'oxc-walker';
 import type {
   AstEcmaScriptModule,
+  AstFunction,
   AstNode,
   AstParentNode,
   AstParseResult,
@@ -197,6 +198,12 @@ export function extractSegments(
   preParsedProgram?: AstProgram,
   /** When `preParsedProgram` is set, optional module metadata from the same parse. */
   preParsedModule?: AstEcmaScriptModule,
+  /**
+   * Optional out-map. When provided, populated with the closure AST node
+   * (`ArrowFunctionExpression` | `FunctionExpression`) for each extraction whose body is a function,
+   * keyed by the post-disambiguation `symbolName`. Lets callers skip a redundant per-extraction body re-parse.
+   */
+  closureNodesOut?: Map<string, AstFunction>,
 ): ExtractionResult[] {
   const parseResult: AstParseResult | null = preParsedProgram
     ? null
@@ -220,6 +227,13 @@ export function extractSegments(
 
   const results: ExtractionResult[] = [];
   const activeSegmentBodies: ActiveSegmentBody[] = [];
+  /**
+   * Pairings of (extraction → its closure AST node) collected during the walk.
+   * Populated into `closureNodesOut` after `disambiguateExtractions` mutates
+   * `symbolName` in place — extraction object identity stays stable through
+   * the rename, so the pairing remains correct.
+   */
+  const pendingClosures: Array<{ extraction: ExtractionResult; node: AstFunction }> = [];
 
   const pushedNodes = new Map<AstNode, number>();
   const parentMap = new Map<AstNode, AstParentNode>();
@@ -411,7 +425,7 @@ export function extractSegments(
 
           const extension = sourceExt;
 
-          results.push({
+          const extraction: ExtractionResult = {
             symbolName: nameValue,
             displayName: inlinedDisplayName,
             hash: inlinedHash,
@@ -442,7 +456,14 @@ export function extractSegments(
             explicitCaptures: explicitCapturesText,
             inlinedQrlNameArg: nameValue,
             isComponentEvent: false,
-          });
+          };
+          results.push(extraction);
+          if (
+            arg0.type === 'ArrowFunctionExpression' ||
+            arg0.type === 'FunctionExpression'
+          ) {
+            pendingClosures.push({ extraction, node: arg0 });
+          }
         }
 
         if (pushCount > 0) pushedNodes.set(node, pushCount);
@@ -563,6 +584,12 @@ export function extractSegments(
         };
         results.push(extraction);
         activeSegmentBodies.push({ leaveNode: node, root: arg, result: extraction, hasJsx: false });
+        if (
+          arg.type === 'ArrowFunctionExpression' ||
+          arg.type === 'FunctionExpression'
+        ) {
+          pendingClosures.push({ extraction, node: arg });
+        }
       }
 
       // JSX $-suffixed attribute extraction (e.g., onClick$={expr})
@@ -653,6 +680,9 @@ export function extractSegments(
           };
           results.push(extraction);
           activeSegmentBodies.push({ leaveNode: node, root: expr, result: extraction, hasJsx: false });
+          // The enclosing if-block already gates on `expr.type` being a function expression,
+          // so the cast here is safe.
+          pendingClosures.push({ extraction, node: expr as AstFunction });
         }
       }
 
@@ -679,6 +709,12 @@ export function extractSegments(
   });
 
   disambiguateExtractions(results, fileStem, relPath, scope);
+
+  if (closureNodesOut) {
+    for (const { extraction, node } of pendingClosures) {
+      closureNodesOut.set(extraction.symbolName, node);
+    }
+  }
 
   return results;
 }

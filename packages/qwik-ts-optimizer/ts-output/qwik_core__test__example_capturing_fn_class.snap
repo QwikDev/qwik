@@ -60,12 +60,12 @@ export const App_component_ckEPmXZlub0 = () => {
     "message": "'hola' is a local function, and local function/class declarations can't be referenced from this callback. Move 'hola' into the callback, or rewrite it as a captured value.",
     "highlights": [
       {
-        "lo": 11,
-        "hi": 15,
-        "startLine": 3,
-        "startCol": 10,
-        "endLine": 3,
-        "endCol": 14
+        "lo": 187,
+        "hi": 191,
+        "startLine": 13,
+        "startCol": 3,
+        "endLine": 13,
+        "endCol": 7
       }
     ],
     "suggestions": null,
@@ -78,12 +78,12 @@ export const App_component_ckEPmXZlub0 = () => {
     "message": "'Thing' is a local class, and local function/class declarations can't be referenced from this callback. Move 'Thing' into the callback, or rewrite it as a captured value.",
     "highlights": [
       {
-        "lo": 25,
-        "hi": 30,
-        "startLine": 3,
-        "startCol": 24,
-        "endLine": 3,
-        "endCol": 29
+        "lo": 201,
+        "hi": 206,
+        "startLine": 14,
+        "startCol": 7,
+        "endLine": 14,
+        "endCol": 12
       }
     ],
     "suggestions": null,

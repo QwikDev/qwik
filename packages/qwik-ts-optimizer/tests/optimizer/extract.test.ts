@@ -130,6 +130,42 @@ export const handler = $(() => {
     expect(results[0].extension).toBe('.js');
   });
 
+  it('inlinedQrl arrow body containing JSX flips extension via activeSegmentBodies (OSS-352)', () => {
+    // Defensive against peer codegen tools that might emit raw JSX inside an
+    // inlinedQrl arrow body. None of the 12 inlinedQrl-using snapshots in
+    // match-these-snaps/ exercise this path (peer tools pre-transform JSX),
+    // but the activeSegmentBodies push covers the case for symmetry with
+    // OSS-351's marker-call / JSX-attribute paths.
+    //
+    // Source must be `.tsx` for the parser to accept raw JSX; the test
+    // demonstrates that the leave-handler runs `extensionFromSegmentJsx(true, ...)`
+    // — which produces `.tsx` for `.tsx` sources (same as initial sourceExt
+    // here, but the path is exercised; for hypothetical `.jsx`-source peer
+    // tools the same path would flip `.jsx` → `.tsx`).
+    const source = `
+import { inlinedQrl } from '@qwik.dev/core';
+const _x = inlinedQrl(() => <div>Hello</div>, "Foo_component_xxxxxxxxxx");
+`;
+    const results = extractSegments(source, 'test.tsx');
+    expect(results).toHaveLength(1);
+    expect(results[0].isInlinedQrl).toBe(true);
+    expect(results[0].extension).toBe('.tsx');
+  });
+
+  it('inlinedQrl with no-JSX arrow body leaves extension as sourceExt (OSS-352)', () => {
+    // Counter-test: when the leave-handler observes hasJsx=false, it does NOT
+    // overwrite the initial `extension = sourceExt` (preserves the inlinedQrl
+    // path's "peer tool's source flavor is intent" contract for non-JSX bodies).
+    const source = `
+import { inlinedQrl } from '@qwik.dev/core';
+const _x = inlinedQrl(() => console.log('plain'), "Foo_component_xxxxxxxxxx");
+`;
+    const results = extractSegments(source, 'test.tsx');
+    expect(results).toHaveLength(1);
+    expect(results[0].isInlinedQrl).toBe(true);
+    expect(results[0].extension).toBe('.tsx');
+  });
+
   it('sets ctxKind="function" and ctxName="component$" for component$', () => {
     const source = `
 import { component$ } from '@qwik.dev/core';

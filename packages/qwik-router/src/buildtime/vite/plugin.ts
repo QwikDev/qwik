@@ -5,6 +5,7 @@ import { basename, extname, join, resolve } from 'node:path';
 import type {
   ConfigEnv,
   EnvironmentOptions,
+  HmrContext,
   Plugin,
   PluginOption,
   Rollup,
@@ -12,7 +13,17 @@ import type {
   ViteDevServer,
 } from 'vite';
 import { loadEnv } from 'vite';
-import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
+import {
+  isEntryName,
+  isErrorName,
+  isIndexModule,
+  isLayoutModule,
+  isMenuFileName,
+  isPluginModule,
+  isServiceWorkerName,
+  normalizePath,
+  removeExtension,
+} from '../../utils/fs';
 import { parseRoutesDir } from '../build';
 import { createBuildContext, resetBuildContext } from '../context';
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
@@ -62,7 +73,10 @@ export function qwikRouter(userOpts?: QwikRouterVitePluginOptions): PluginOption
 }
 
 /** Replace or strip `_R: "__LOADERS:path1|path2__"` placeholders in a bundle chunk. */
-function replaceLoaderPlaceholders(code: string, loadersByFile: Map<string, string[]>): string {
+export function replaceLoaderPlaceholders(
+  code: string,
+  loadersByFile: Map<string, string[]>
+): string {
   // Replace `_R: "__LOADERS:path1|path2__"` with the actual hash array, or strip the whole
   // `_R: ...` entry when no routeLoader$ was found — that way the client-side routing code
   // never sees a stale placeholder string and spreads it character-by-character.
@@ -82,6 +96,81 @@ function replaceLoaderPlaceholders(code: string, loadersByFile: Map<string, stri
     // (and the trailing comma it emitted with) leaves the surrounding trie literal valid.
     return '';
   });
+}
+
+export function addRouteLoaderHash(
+  loadersByFile: Map<string, string[]>,
+  filePath: string,
+  hash: string
+) {
+  const normalizedPath = normalizePath(filePath);
+  const existing = loadersByFile.get(normalizedPath);
+  if (!existing) {
+    loadersByFile.set(normalizedPath, [hash]);
+    return true;
+  }
+  if (!existing.includes(hash)) {
+    existing.push(hash);
+    return true;
+  }
+  return false;
+}
+
+export function clearRouteLoaderHashes(loadersByFile: Map<string, string[]>, filePath: string) {
+  return loadersByFile.delete(normalizePath(filePath));
+}
+
+export function isRouterSourceFilePath(filePath: string) {
+  const fileName = basename(filePath);
+  const extlessName = removeExtension(fileName);
+  return (
+    isMenuFileName(fileName) ||
+    isIndexModule(extlessName) ||
+    isErrorName(extlessName) ||
+    isLayoutModule(extlessName) ||
+    isEntryName(extlessName) ||
+    isServiceWorkerName(extlessName) ||
+    isPluginModule(extlessName)
+  );
+}
+
+function isPathInDir(filePath: string, dirPath: string) {
+  return filePath === dirPath || filePath.startsWith(`${dirPath}/`);
+}
+
+function isRouterSourceFileForContext(filePath: string, ctx: RoutingContext) {
+  const normalizedPath = normalizePath(filePath);
+  return (
+    isRouterSourceFilePath(normalizedPath) &&
+    (isPathInDir(normalizedPath, ctx.opts.routesDir) ||
+      isPathInDir(normalizedPath, ctx.opts.serverPluginsDir))
+  );
+}
+
+export function invalidateRouterConfigModules(server: ViteDevServer) {
+  const modules: NonNullable<ReturnType<ViteDevServer['moduleGraph']['getModuleById']>>[] = [];
+  const moduleGraphs = new Set<ViteDevServer['moduleGraph']>();
+  moduleGraphs.add(server.moduleGraph);
+
+  const environments = (server as any).environments;
+  if (environments) {
+    for (const environment of Object.values(environments)) {
+      const graph = (environment as any)?.moduleGraph;
+      if (graph) {
+        moduleGraphs.add(graph);
+      }
+    }
+  }
+
+  for (const graph of moduleGraphs) {
+    const mod = graph.getModuleById(QWIK_ROUTER_CONFIG_ID);
+    if (mod) {
+      graph.invalidateModule(mod);
+      modules.push(mod);
+    }
+  }
+
+  return modules;
 }
 
 function qwikRouterPlugin(
@@ -230,21 +319,11 @@ function qwikRouterPlugin(
       // Register callback to discover routeLoader$ hashes from optimizer segments
       qwikPlugin.api.onSegment((parentId, segment) => {
         if (segment.ctxName === 'routeLoader$') {
-          const normalizedId = normalizePath(parentId);
-          const existing = loadersByFile.get(normalizedId) || [];
-          existing.push(segment.hash);
-          loadersByFile.set(normalizedId, existing);
+          const changed = addRouteLoaderHash(loadersByFile, parentId, segment.hash);
 
-          // In dev: invalidate @qwik-router-config so trie re-generates with loader info
-          if (devServer) {
-            const graph = devServer.environments?.ssr?.moduleGraph;
-            if (graph) {
-              const mod = graph.getModuleById('@qwik-router-config');
-              if (mod) {
-                ctx!.isDirty = true;
-                graph.invalidateModule(mod);
-              }
-            }
+          // In dev: invalidate @qwik-router-config so it re-emits _R with loader info.
+          if (changed && devServer) {
+            invalidateRouterConfigModules(devServer);
           }
         }
       });
@@ -261,26 +340,22 @@ function qwikRouterPlugin(
     async configureServer(server) {
       devServer = server;
       // recursively watch all route files in the src/routes directory
-      const toWatch = resolve(
-        rootDir!,
-        'src/routes/**/{index,layout,entry,service-worker}{.,@,-}*'
-      );
+      const toWatch = [
+        join(
+          ctx!.opts.routesDir,
+          '**/{index,index!,index@*,layout,layout!,layout-*,error,404,entry,service-worker,menu}.{ts,tsx,js,jsx,md,mdx}'
+        ),
+        join(ctx!.opts.serverPluginsDir, 'plugin{,@*}.{ts,tsx,js,jsx}'),
+      ];
       server.watcher.add(toWatch);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       server.watcher.on('change', (path) => {
-        // If the path is not an index or layout file, skip
-        if (!/\/(index[.@]|layout[.-]|entry\.|service-worker\.)[^/]*$/.test(path)) {
+        if (!isRouterSourceFileForContext(path, ctx!)) {
           return;
         }
-        // Invalidate the router config
+        clearRouteLoaderHashes(loadersByFile, path);
         ctx!.isDirty = true;
-        const graph = server.environments?.ssr?.moduleGraph;
-        if (graph) {
-          const mod = graph.getModuleById('@qwik-router-config');
-          if (mod) {
-            graph.invalidateModule(mod);
-          }
-        }
+        invalidateRouterConfigModules(server);
       });
 
       if (userOpts?.devSsrServer !== false) {
@@ -289,6 +364,16 @@ function qwikRouterPlugin(
           server.middlewares.use(makeRouterDevMiddleware(server, ctx!));
         };
       }
+    },
+
+    handleHotUpdate({ file, modules, server }: HmrContext) {
+      if (!ctx || !isRouterSourceFileForContext(file, ctx)) {
+        return;
+      }
+      clearRouteLoaderHashes(loadersByFile, file);
+      ctx.isDirty = true;
+      const configModules = invalidateRouterConfigModules(server);
+      return [...modules, ...configModules];
     },
 
     transformIndexHtml() {

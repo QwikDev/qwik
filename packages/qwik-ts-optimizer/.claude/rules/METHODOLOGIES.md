@@ -45,6 +45,50 @@ Foundation work that prepares the way for a flip but does not itself flip a test
 
 This keeps the remote and review queue focused on observable progress and avoids cluttering the project with in-flight scaffolding.
 
+## After a PR merges
+
+When a PR merges to `main`, the work is shipped but not yet **closed**. A small cleanup routine propagates the merge to the parts of the project that don't update themselves: the local repo, the remote, Linear, and `STATE.md`. Skipping any one creates drift — stale branches accumulate, Linear tickets read "In Progress" weeks after the code shipped, and `STATE.md` describes a world that no longer exists.
+
+Run this as soon as the PR is merged. **Confirm with the user before the destructive steps** if acting unprompted — branch deletion is destructive; everything else is reversible.
+
+### Checklist
+
+1. **Pull `main` and switch off the merged branch.**
+   ```
+   git checkout main && git pull --ff-only
+   ```
+   Grounds the rest of the cleanup against the post-merge tip.
+
+2. **Delete the merged branch — local and remote.**
+   ```
+   git branch -d <branch-name>
+   git push origin --delete <branch-name>
+   ```
+   Use `-d`, not `-D`. If `-d` refuses, the branch isn't actually merged — investigate before forcing. Squash-merged PRs may produce a warning like *"deleting branch ... merged to refs/remotes/origin/... but not yet merged to HEAD"* — that's expected and the deletion still proceeds.
+
+3. **Verify the Linear ticket is Done.** The GitHub→Linear integration *usually* auto-flips a ticket from In Review → Done when its referenced PR merges, but it can miss (most often when the PR description's ticket reference uses a non-canonical format). Confirm by opening `linear.app/kunai/issue/OSS-XXX` or via the API. If it's still In Review or In Progress, flip it manually using the `issueUpdate` recipe in `LINEAR.md`.
+
+4. **Refresh `STATE.md`** when the merge moves project state meaningfully.
+   - **Always:** bump "Last updated"; update `main`'s head SHA in "Branches in flight" + "Current measurements"; remove the merged branch from "Branches in flight"; prepend an entry to "Most recent meaningful progress".
+   - **As applicable:** update the "Active workstream" paragraph; trim the progress log if it exceeds ~10 entries; update "Refactor track" or "Parity feature status" tables if the PR moved one.
+   - **Where to commit:** STATE.md edits go on a feature branch — never directly to `main` (per STATE.md's own Maintenance rules). Two valid patterns:
+     - **Refresh-only PR** — preferred when several merges have batched up or the merge is significant (see PRs #19, #21, #25).
+     - **Inline with the next active workstream branch's first commit** if a successor branch is already starting.
+   - **Auto-merge is fine for STATE.md-only PRs.** The diff is pure documentation, low-risk, and gate-checked by CI like every other PR. Queue them with `gh pr merge --auto --squash <pr-number>` (or the GitHub UI's auto-merge button) and let the CI pass trigger the merge — no manual review required. This applies *only* to PRs whose entire diff is `.claude/rules/STATE.md`; PRs that also touch other files still go through normal review.
+
+### What "merged" means here
+
+This routine fires when the PR's commits are reachable from `origin/main`. It does **not** fire on:
+
+- A PR approved but not yet merged.
+- A PR closed without merging — that has its own cleanup: Linear ticket → Cancelled (or back to Backlog if work will resume), branch deleted if abandoned, no `STATE.md` changes.
+
+### Don't
+
+- **Don't auto-delete the branch without confirming.** Especially when running unattended; especially with squash-merged PRs where the warning could mask an unintended state.
+- **Don't edit `STATE.md` on `main` directly.** STATE.md's own Maintenance section forbids this. Always go through a feature branch + PR, even for tiny changes.
+- **Don't extend auto-merge beyond STATE.md.** The exemption is narrow on purpose — other rule files (METHODOLOGIES, OPTIMIZER, CONSTRAINTS, REGRESSION, LINEAR) govern project behavior and changes deserve a review eye.
+
 ## Refactoring
 
 Refactors don't flip tests. They rely entirely on the explanation to justify themselves — both at review time and later, when someone is deciding whether to extend the new structure or revert it. The commit message and the Linear ticket comment are the durable record of *why*.

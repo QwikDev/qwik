@@ -181,13 +181,15 @@ Top-level entry is `transformModule` at `src/optimizer/transform/index.ts:90`. T
 |---|---|---|---|
 | 0 | `transform/index.ts:106` | Repair SWC-recoverable parse errors | `repairInput` |
 | 1 | `transform/index.ts:112` | Walk the AST, find every `$(...)` call, record loc + body text + initial metadata | `extractSegments` in `extract.ts` |
-| 2 | `transform/index.ts:135` | Re-parse each closure body, run scope analysis to determine which outer-scope vars each segment captures | `collectScopeIdentifiers`, `analyzeCaptures`, `computeSegmentUsage` |
+| 2 | `transform/index.ts:147` | Collect imports + run scope analysis on each closure to determine which outer-scope vars are captured. Closure AST nodes are threaded through from Phase 1 (`closureNodes` map populated by `extractSegments` per OSS-353); no per-extraction body re-parse | `collectScopeIdentifiers`, `analyzeCaptures`, `computeSegmentUsage` |
 | 3 | `transform/index.ts:330` | For each module-level binding referenced inside a segment, decide: stay in parent (`keep`), move into segment (`move`), or re-export (`reexport`) | `decideMigration` in `variable-migration.ts` |
 | 4 | `transform/index.ts:432` | Rewrite the parent module — replace each `$(closure)` with a generated `q_<symbol>` `qrl(...)` reference; apply migration decisions | `rewriteOriginalModule` |
-| 5 | `transform/index.ts:542` | Emit one module per non-stripped segment | `generateAllSegmentModules` in `transform/segment-generation.ts` |
+| 5 | `transform/index.ts:532` | Emit one module per non-stripped segment | `generateAllSegmentModules` in `transform/segment-generation.ts` (34-line sequencer over named helpers per OSS-356/357/358 — see SPEC at `.planning/specs/segment-generation-refactor.md`) |
 | 6 | `transform/index.ts:610` | Apply diagnostic suppression directives | (lightweight cleanup) |
 
-Phase 5's per-segment work flows through `generateSegmentCode` (`segment-codegen.ts:444` — refactored in OSS-346 into a 9-phase sequencer with extracted helpers `collectInitialImports` and `applyBodyTransforms`) followed by `postProcessSegmentCode` (`transform/post-process.ts:163`).
+The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1017`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireTopLevelMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
+
+Phase 5's per-segment work flows through `generateSegmentCode` (`segment-codegen.ts:528` — refactored in OSS-346 into a 9-phase sequencer with extracted helpers `collectInitialImports` and `applyBodyTransforms`) followed by `postProcessSegmentCode` (`transform/post-process.ts:163`).
 
 ---
 
@@ -233,7 +235,7 @@ Now we rewrite `test.tsx`:
 
 ### Phase 5 — segment generation (`segment-generation.ts:generateAllSegmentModules` → `segment-codegen.ts:generateSegmentCode`)
 
-For each segment, `generateSegmentCode` runs the 9-phase sequencer at `segment-codegen.ts:444`. Walking through the renderHeader1 segment:
+For each segment, `generateSegmentCode` runs the 9-phase sequencer at `segment-codegen.ts:528`. Walking through the renderHeader1 segment:
 
 | Sub-phase | Effect on this segment |
 |---|---|
@@ -281,9 +283,9 @@ Two functions, both in `src/optimizer/capture-analysis.ts`:
 - **`collectScopeIdentifiers`** (`capture-analysis.ts:68`) — recursively walks a container (Program, BlockStatement, FunctionBody, Function). Returns a `Set<string>` of every name that's declared inside it: var/const/let bindings (including destructure patterns), function and class names, function parameters.
 - **`analyzeCaptures`** (`capture-analysis.ts:35`) — for one closure: calls `getUndeclaredIdentifiersInFunction()` (from oxc-walker) to find free variables, intersects with the parent scope's identifiers (so we keep only outer-scope refs, not globals), filters out imports, filters out function/class declaration names. Returns sorted, deduplicated `string[]`.
 
-The orchestration lives in `transform/index.ts:135–328`. For each extraction it:
+The orchestration lives in `transform/index.ts:147–328`. For each extraction it:
 
-1. Re-parses the closure body inside a `(...)` wrapper to get a function AST.
+1. Looks up the closure AST node from the `closureNodes` map populated by Phase 1's `extractSegments` (OSS-353 — replaced an earlier per-extraction body re-parse with a single canonical AST walk; the closure node carries its own source-absolute positions so diagnostics align with the original file).
 2. Picks the right parent scope: if the closure is nested inside another extraction, the parent is the outer extraction's body scope; otherwise it's the module scope.
 3. Calls `analyzeCaptures` to populate `extraction.captureNames`.
 4. Sets `extraction.captures = captureNames.length > 0`.
@@ -616,7 +618,7 @@ The metadata block emitted next to each segment file (the `/* { ... } */` commen
 
 ### Field reference
 
-All fields live on `ExtractionResult` (`src/optimizer/extract.ts:38–95`). They originate during Phase 1 extraction and travel through every downstream phase.
+All fields live on `ExtractionResult` (`src/optimizer/extract.ts:40–97`). They originate during Phase 1 extraction and travel through every downstream phase.
 
 | Field | Type | Computed at | Used for |
 |---|---|---|---|
@@ -762,10 +764,17 @@ actual.captures !== expected.captures
 | Capture analysis | `src/optimizer/capture-analysis.ts` |
 | Migration decisions | `src/optimizer/variable-migration.ts` |
 | Parent rewrite | `src/optimizer/rewrite/index.ts`, `rewrite/output-assembly.ts` |
-| Per-segment codegen orchestrator | `src/optimizer/segment-codegen.ts:444` (`generateSegmentCode`) |
+| Per-segment codegen orchestrator | `src/optimizer/segment-codegen.ts:528` (`generateSegmentCode`) |
 | Per-segment body transforms | `src/optimizer/segment-codegen/body-transforms.ts` |
 | Per-segment import collection | `src/optimizer/segment-codegen/import-collection.ts` |
-| All-segments orchestrator | `src/optimizer/transform/segment-generation.ts:generateAllSegmentModules` |
+| All-segments orchestrator | `src/optimizer/transform/segment-generation.ts:1017` (`generateAllSegmentModules`) — 34-line sequencer |
+| All-segments setup (Prep) | `src/optimizer/transform/segment-generation.ts:319` (`computeSegmentGenerationPrep`) |
+| Inline-strategy segment builder | `src/optimizer/transform/segment-generation.ts:407` (`buildInlineStrategySegment`) |
+| Default-strategy segment builder | `src/optimizer/transform/segment-generation.ts:817` (`buildDefaultStrategySegment`) |
+| Migration wiring (top-level segments) | `src/optimizer/transform/segment-generation.ts:558` (`wireTopLevelMigration`) |
+| Nested call-site builder | `src/optimizer/transform/segment-generation.ts:698` (`buildNestedCallSites`) |
+| Nested QRL declarations | `src/optimizer/transform/segment-generation.ts:474` (`buildNestedQrlDeclarations`) |
+| Raw-props consolidation (shared) | `src/optimizer/transform/segment-generation.ts:288` (`consolidateRawPropsCaptures`) |
 | Post-process per segment | `src/optimizer/transform/post-process.ts:163` (`postProcessSegmentCode`) |
 | Shared extraction predicates | `src/optimizer/rewrite/predicates.ts` |
 | Stripped-segment codegen | `src/optimizer/strip-ctx.ts` |

@@ -33,7 +33,7 @@ import { stripExportDeclarations } from '../strip-exports.js';
 import { replaceConstants } from '../const-replacement.js';
 import type { EmitMode } from '../types.js';
 import { collectBindingNamesFromPattern } from '../utils/binding-pattern.js';
-import type { AstProgram, IdentifierName, ImportDeclarationSpecifier, ImportSpecifier, StringLiteral } from '../../ast-types.js';
+import type { AstFunction, AstProgram, IdentifierName, ImportDeclarationSpecifier, ImportSpecifier, StringLiteral } from '../../ast-types.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import type { RewriteContext } from './rewrite-context.js';
 import {
@@ -47,6 +47,7 @@ import {
 // Re-export split modules for backward compatibility
 export {
   resolveConstLiterals,
+  resolveConstLiteralsInClosure,
   inlineConstCaptures,
   propagateConstLiteralsInBody,
 } from './const-propagation.js';
@@ -156,12 +157,14 @@ export function rewriteParentModule(
   minify?: string,
   outputExtension?: string,
   existingProgram?: AstProgram,
+  /** Closure AST nodes per extraction; threaded into `RewriteContext.closureNodes`. See OSS-354. */
+  closureNodes?: Map<string, AstFunction>,
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const program = existingProgram ?? parseSync(relPath, source, RAW_TRANSFER_PARSER_OPTIONS).program;
 
   const ctx: RewriteContext = {
-    source, relPath, s, program, extractions, originalImports,
+    source, relPath, s, program, closureNodes, extractions, originalImports,
     migrationDecisions, moduleLevelDecls, jsxOptions, mode, devFilePath,
     inlineOptions, stripExports, isServer, explicitExtensions, transpileTs,
     minify, outputExtension,

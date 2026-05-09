@@ -12,7 +12,7 @@
 
 import { parseSync } from 'oxc-parser';
 import { forEachAstChild } from '../utils/ast.js';
-import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
+import { RAW_TRANSFER_PARSER_OPTIONS, type AstFunction } from '../../ast-types.js';
 
 // Walker functions traverse arbitrary OXC AST node shapes (including runtime-only
 // types like StringLiteral, StaticMemberExpression) not in @oxc-project/types.
@@ -53,6 +53,50 @@ export function resolveConstLiterals(parentBody: string, captureNames: string[])
   }
 
   walkNode(parseResult.program);
+  return result;
+}
+
+/**
+ * Variant of {@link resolveConstLiterals} that walks an already-parsed closure
+ * node directly, skipping the wrapper-and-reparse trick. `source` is the
+ * source string from which the closure was originally parsed — `init.start` /
+ * `init.end` on each AST node are source-absolute offsets into it.
+ *
+ * Use when the caller has access to the closure node from `extractSegments`'s
+ * companion map (see OSS-353).
+ */
+export function resolveConstLiteralsInClosure(
+  closureNode: AstFunction,
+  source: string,
+  captureNames: string[],
+): Map<string, string> {
+  const result = new Map<string, string>();
+  if (captureNames.length === 0) return result;
+  if (!closureNode.body) return result;
+
+  const captureSet = new Set(captureNames);
+
+  function walkNode(node: any): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type !== 'VariableDeclaration' || node.kind !== 'const') {
+      forEachAstChild(node, (child) => walkNode(child));
+      return;
+    }
+
+    for (const decl of node.declarations ?? []) {
+      if (decl.id?.type !== 'Identifier' || !captureSet.has(decl.id.name) || !decl.init) continue;
+      const init = decl.init;
+      if (!isLiteralNode(init)) continue;
+      if (init.start >= 0 && init.end <= source.length) {
+        result.set(decl.id.name, source.slice(init.start, init.end));
+      }
+    }
+
+    forEachAstChild(node, (child) => walkNode(child));
+  }
+
+  walkNode(closureNode.body);
   return result;
 }
 

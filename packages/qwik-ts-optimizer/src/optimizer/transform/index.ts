@@ -16,7 +16,7 @@ import { extractSegments } from "../extract.js";
 import { repairInput } from "../input-repair.js";
 import {
   rewriteParentModule,
-  resolveConstLiterals,
+  resolveConstLiteralsInClosure,
 } from "../rewrite/index.js";
 import { collectImports } from "../marker-detection.js";
 import { buildDevFilePath } from "../dev-mode.js";
@@ -245,8 +245,11 @@ export function transformModule(
         continue;
       const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
       if (!enclosingExt) continue;
-      const constValues = resolveConstLiterals(
-        enclosingExt.bodyText,
+      const enclosingClosure = closureNodes.get(enclosingExt.symbolName);
+      if (!enclosingClosure) continue;
+      const constValues = resolveConstLiteralsInClosure(
+        enclosingClosure,
+        repairedCode,
         extraction.captureNames,
       );
       if (constValues.size > 0) {
@@ -405,6 +408,13 @@ export function transformModule(
         const original = ext.symbolName;
         ext.symbolName = "s_" + ext.hash;
         preRenameSymbolName.set(ext.symbolName, original);
+        // Mirror the rename in `closureNodes` so post-rename lookups (Phase 4
+        // const-literal resolution, etc.) still find the threaded AST node.
+        const closure = closureNodes.get(original);
+        if (closure) {
+          closureNodes.delete(original);
+          closureNodes.set(ext.symbolName, closure);
+        }
       }
     }
 
@@ -481,6 +491,7 @@ export function transformModule(
       options.minify,
       qrlOutputExt,
       program,
+      closureNodes,
     );
 
     // Post-process parent: DCE + unused import cleanup
@@ -532,8 +543,11 @@ export function transformModule(
         if (ext.captureNames.length === 0) continue;
         const parentExt = updatedExtractions.find(e => e.symbolName === ext.parent);
         if (!parentExt) continue;
-        const constValues = resolveConstLiterals(
-          parentExt.bodyText,
+        const parentClosure = closureNodes.get(parentExt.symbolName);
+        if (!parentClosure) continue;
+        const constValues = resolveConstLiteralsInClosure(
+          parentClosure,
+          repairedCode,
           ext.captureNames,
         );
         if (constValues.size > 0) {

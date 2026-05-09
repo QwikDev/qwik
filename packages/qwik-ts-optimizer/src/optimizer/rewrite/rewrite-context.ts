@@ -10,7 +10,7 @@ import type { ImportInfo } from '../marker-detection.js';
 import type { MigrationDecision, ModuleLevelDecl } from '../variable-migration.js';
 import type { JsxTransformOutput } from '../transform/jsx.js';
 import type { EmitMode } from '../types.js';
-import type { AstProgram } from '../../ast-types.js';
+import type { AstFunction, AstProgram } from '../../ast-types.js';
 import type { InlineStrategyOptions, JsxRewriteOptions } from './index.js';
 
 interface SurvivingImportInfo {
@@ -28,6 +28,12 @@ export interface RewriteContext {
   relPath: string;
   s: MagicString;
   program: AstProgram;
+  /**
+   * Closure AST nodes per extraction (keyed by symbolName), threaded from
+   * `extractSegments` to enable AST-based helpers that would otherwise
+   * re-parse the body. See OSS-353 / OSS-354.
+   */
+  closureNodes?: Map<string, AstFunction>;
   extractions: ExtractionResult[];
   originalImports: Map<string, ImportInfo>;
   migrationDecisions?: MigrationDecision[];

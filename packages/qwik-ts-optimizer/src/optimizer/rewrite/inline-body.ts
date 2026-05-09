@@ -8,7 +8,7 @@
 
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
-import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
+import { RAW_TRANSFER_PARSER_OPTIONS, type AstFunction } from '../../ast-types.js';
 import type { ExtractionResult } from '../extract.js';
 import { transformEventPropName } from '../transform/event-handlers.js';
 import { transformAllJsx } from '../transform/jsx.js';
@@ -17,6 +17,7 @@ import { getQrlImportSource } from '../rewrite-calls.js';
 import { injectCapturesUnpacking, removeDeadConstLiterals } from '../segment-codegen.js';
 import {
   resolveConstLiterals,
+  resolveConstLiteralsInClosure,
   inlineConstCaptures,
   propagateConstLiteralsInBody,
 } from './const-propagation.js';
@@ -132,6 +133,14 @@ export function transformInlineSegmentBody(
   jsxBodyOptions?: InlineSegmentJsxOptions,
   regCtxName?: string[],
   sharedSignalHoister?: SignalHoister,
+  /**
+   * Closure AST nodes per extraction (keyed by symbolName). When supplied
+   * together with `source`, lets the const-literal resolver skip its body
+   * re-parse. See OSS-354.
+   */
+  closureNodes?: Map<string, AstFunction>,
+  /** Source string the closures were parsed from — required when `closureNodes` is supplied. */
+  source?: string,
 ): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {
   let body = ext.bodyText;
   const additionalImports = new Map<string, string>();
@@ -212,7 +221,10 @@ export function transformInlineSegmentBody(
   if (ext.captureNames.length > 0 && ext.parent !== null) {
     const parentExt = allExtractions.find(e => e.symbolName === ext.parent);
     if (parentExt) {
-      const constValues = resolveConstLiterals(parentExt.bodyText, ext.captureNames);
+      const parentClosure = closureNodes?.get(parentExt.symbolName);
+      const constValues = parentClosure && source !== undefined
+        ? resolveConstLiteralsInClosure(parentClosure, source, ext.captureNames)
+        : resolveConstLiterals(parentExt.bodyText, ext.captureNames);
       if (constValues.size > 0) {
         body = inlineConstCaptures(body, constValues);
         ext.captureNames = ext.captureNames.filter(n => !constValues.has(n));

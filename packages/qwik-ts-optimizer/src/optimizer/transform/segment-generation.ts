@@ -39,7 +39,6 @@ import {
 import { transformEventPropName } from "./event-handlers.js";
 import {
   extractDestructuredFieldMap,
-  resolveConstLiterals,
 } from "../rewrite/index.js";
 import { collectSameFileSymbolInfo } from "../utils/module-symbols.js";
 import { rewriteImportSource } from "../rewrite-imports.js";

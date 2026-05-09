@@ -293,6 +293,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
     const { transformedBody: rawBody, additionalImports, hoistedDeclarations, keyCounterValue } = transformInlineSegmentBody(
       ext, extractions, qrlVarNames, inlineSegmentJsxOptions, inlineOptions?.regCtxName, sharedHoister,
+      ctx.closureNodes, ctx.source,
     );
 
     let sigRewrittenBody = rawBody;

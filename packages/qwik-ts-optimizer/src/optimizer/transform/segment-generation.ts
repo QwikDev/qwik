@@ -236,34 +236,99 @@ export interface SegmentGenerationContext {
 }
 
 /**
- * Generate all segment TransformModule entries.
+ * Immutable per-call setup data produced once before the per-extraction loop
+ * in {@link generateAllSegmentModules}. All fields are read-only across the
+ * loop body; producing them up-front means the per-extraction code has no
+ * setup-time side effects to reason about.
  *
- * This is Phase 5 of the transform pipeline -- producing segment modules
- * with their code, metadata, and import context.
+ * Note: `sortedExtractions` is the same reference as `ctx.updatedExtractions`,
+ * which {@link computeSegmentGenerationPrep} sorts in place (children before
+ * parents). Treat it as logically immutable inside the loop.
  */
-export function generateAllSegmentModules(
-  ctx: SegmentGenerationContext,
-): TransformModule[] {
-  const allModules: TransformModule[] = [];
-  const {
-    updatedExtractions, program, originalImports, options, relPath,
-    emitMode, devFile, isInlineStrategy, entryStrategy, migrationDecisions,
-    moduleLevelDecls, moduleLevelDeclsByName, segmentUsage,
-    parentModulePath, preRenameSymbolName, qrlOutputExt,
-    sourceExtensions, shouldTranspileJsx, shouldTranspileTs, isJsx,
-    importedNames, enclosingExtMap, elementQpParamsMap,
-    constLiteralsMap,
-  } = ctx;
+export interface SegmentGenerationPrep {
+  /**
+   * All fields below are *intended* read-only across the per-extraction loop.
+   * Types stay mutable to match downstream signatures (`SegmentImportData`,
+   * `generateSegmentCode`) without forcing readonly-cast plumbing through them.
+   */
+  extBySymbol: Map<string, ExtractionResult>;
+  sortedExtractions: ExtractionResult[];
+  sameFileSymbols: Set<string>;
+  defaultExportedNames: Set<string>;
+  renamedExports: Map<string, string>;
+  segmentImportList: SegmentImportData["moduleImports"];
+  enumValueMap: Map<string, Map<string, string>>;
+  fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
+}
 
-  // Build O(1) lookup map for extractions by symbolName
+/**
+ * Result of {@link consolidateRawPropsCaptures}. Returned (vs in-place
+ * mutation) so the caller can decide which surface to write to — the
+ * inline-strategy path writes to `ext.propsFieldCaptures`, the default-strategy
+ * path writes to `captureInfo.propsFieldCaptures`. Both paths additionally
+ * mutate `ext.captureNames` and `ext.captures`.
+ */
+export interface RawPropsConsolidation {
+  propsFieldCaptures: Map<string, string>;
+  /** Sorted; includes the literal `"_rawProps"` sentinel. */
+  newCaptureNames: string[];
+}
+
+/**
+ * Partition an extraction's `captureNames` into a `propsFieldCaptures` map
+ * (the names that resolve to a destructured field on the parent's first
+ * argument) and a `_rawProps`-suffixed sorted array (the remaining captures
+ * plus the `_rawProps` sentinel for the runtime). Returns `null` when no
+ * captures resolve to props fields — the caller leaves `ext` untouched in
+ * that case.
+ *
+ * Shared between the inline-strategy metadata path and the default-strategy
+ * codegen path; identical algorithm in both, only the write surfaces differ.
+ */
+export function consolidateRawPropsCaptures(
+  captureNames: readonly string[],
+  fieldMap: ReadonlyMap<string, string>,
+): RawPropsConsolidation | null {
+  const propsFieldCaptures = new Map<string, string>();
+  const nonPropsCaptures: string[] = [];
+  for (const name of captureNames) {
+    const fieldExpr = fieldMap.get(name);
+    if (fieldExpr !== undefined) {
+      propsFieldCaptures.set(name, fieldExpr);
+    } else {
+      nonPropsCaptures.push(name);
+    }
+  }
+  if (propsFieldCaptures.size === 0) return null;
+  return {
+    propsFieldCaptures,
+    newCaptureNames: [...nonPropsCaptures, "_rawProps"].sort(),
+  };
+}
+
+/**
+ * Compute the {@link SegmentGenerationPrep} record consumed by the per-extraction
+ * loop in {@link generateAllSegmentModules}. Folds the eight setup steps
+ * (extBySymbol, depth-sort, same-file symbol triple, segmentImportList,
+ * enumValueMap, fieldMaps) into a single immutable record so the loop body
+ * has no setup-time side effects to reason about.
+ *
+ * Mutates `ctx.updatedExtractions` in place to depth-sort children before
+ * parents (preserved verbatim from the pre-OSS-356 inline form).
+ */
+export function computeSegmentGenerationPrep(
+  ctx: SegmentGenerationContext,
+): SegmentGenerationPrep {
+  // Build O(1) lookup map for extractions by symbolName.
   const extBySymbol = new Map<string, ExtractionResult>();
-  for (const ext of updatedExtractions) {
+  for (const ext of ctx.updatedExtractions) {
     extBySymbol.set(ext.symbolName, ext);
   }
 
-  // Sort extractions so children are processed before parents (depth-first, leaves first).
+  // Sort extractions so children are processed before parents
+  // (depth-first, leaves first).
   const extractionDepth = new Map<string, number>();
-  for (const ext of updatedExtractions) {
+  for (const ext of ctx.updatedExtractions) {
     let depth = 0;
     let current = ext.parent;
     while (current) {
@@ -273,49 +338,156 @@ export function generateAllSegmentModules(
     }
     extractionDepth.set(ext.symbolName, depth);
   }
-  updatedExtractions.sort((a, b) => {
+  ctx.updatedExtractions.sort((a, b) => {
     const da = extractionDepth.get(a.symbolName) ?? 0;
     const db = extractionDepth.get(b.symbolName) ?? 0;
     return db - da;
   });
 
-  // Track running JSX key counter across segments
-  let segmentKeyCounter = ctx.parentJsxKeyCounterValue;
-
-  // Collect same-file exported/declared names for self-referential segment imports
+  // Collect same-file exported/declared names for self-referential segment imports.
   const { sameFileSymbols, defaultExportedNames, renamedExports } =
-    collectSameFileSymbolInfo(program);
+    collectSameFileSymbolInfo(ctx.program);
 
-  // Collect import attributes and build module imports context
-  const importAttributesMap = collectImportAttributes(program);
+  // Collect import attributes and build module imports context.
+  const importAttributesMap = collectImportAttributes(ctx.program);
   const segmentImportList = buildSegmentImportList(
-    originalImports, importAttributesMap,
+    ctx.originalImports,
+    importAttributesMap,
   );
 
-  // Collect TS enum declarations for value inlining
-  const enumValueMap = collectEnumValueMap(program, shouldTranspileTs);
+  // Collect TS enum declarations for value inlining.
+  const enumValueMap = collectEnumValueMap(ctx.program, ctx.shouldTranspileTs);
 
   // Pre-compute destructured field maps for every parent that an extraction
   // references. Replaces a closure-mutated lazy cache with an immutable
-  // lookup so the per-extraction loop below has no side-effecting state.
-  // `bodyText` is read-only across the loop, so eager pre-computation is
-  // behaviour-equivalent to the previous lazy form.
+  // lookup so the per-extraction loop has no side-effecting state.
+  // (OSS-345 introduced the immutable form; OSS-356 hoists it into Prep.)
+  // ReadonlyMap stays narrower than the rest of Prep because nothing
+  // downstream needs Map-mutating methods on this one.
   const fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>> = (() => {
     const parentSymbolNames = new Set<string>();
-    for (const ext of updatedExtractions) {
+    for (const ext of ctx.updatedExtractions) {
       if (ext.parent !== null) parentSymbolNames.add(ext.parent);
     }
     const result = new Map<string, ReadonlyMap<string, string>>();
     for (const symbolName of parentSymbolNames) {
       const parentExt = extBySymbol.get(symbolName);
       if (parentExt !== undefined) {
-        result.set(symbolName, extractDestructuredFieldMap(parentExt.bodyText));
+        result.set(
+          symbolName,
+          extractDestructuredFieldMap(parentExt.bodyText),
+        );
       }
     }
     return result;
   })();
 
-  for (const ext of updatedExtractions) {
+  return {
+    extBySymbol,
+    sortedExtractions: ctx.updatedExtractions,
+    sameFileSymbols,
+    defaultExportedNames,
+    renamedExports,
+    segmentImportList,
+    enumValueMap,
+    fieldMaps,
+  };
+}
+
+/**
+ * Build a single inline-strategy {@link TransformModule} — metadata-only,
+ * with empty (or stripped) code. Inline/hoist entry strategies emit segment
+ * bodies inside the parent module rather than as separate files, so Phase 5
+ * here only contributes the per-segment metadata block.
+ *
+ * Mutates `ext.captureNames`, `ext.captures`, and `ext.propsFieldCaptures`
+ * when raw-props consolidation applies — preserved verbatim from the
+ * pre-OSS-356 inline form.
+ */
+export function buildInlineStrategySegment(
+  ext: ExtractionResult,
+  ctx: SegmentGenerationContext,
+  prep: SegmentGenerationPrep,
+  stripped: boolean,
+): TransformModule {
+  // Inline strategy: apply _rawProps consolidation for metadata
+  if (ext.parent !== null && ext.captureNames.length > 0) {
+    const fieldMap = prep.fieldMaps.get(ext.parent);
+    if (fieldMap !== undefined && fieldMap.size > 0) {
+      const result = consolidateRawPropsCaptures(ext.captureNames, fieldMap);
+      if (result !== null) {
+        ext.propsFieldCaptures = result.propsFieldCaptures;
+        ext.captureNames = result.newCaptureNames;
+        ext.captures = result.newCaptureNames.length > 0;
+      }
+    }
+  }
+
+  const entryField = resolveEntryField(
+    ctx.entryStrategy.type,
+    ext.symbolName,
+    ext.ctxName,
+    null,
+    undefined,
+  );
+
+  const segmentAnalysis: SegmentMetadataInternal = {
+    origin: ext.origin,
+    name: ext.symbolName,
+    entry: entryField,
+    displayName: ext.displayName,
+    hash: ext.hash,
+    canonicalFilename: ext.canonicalFilename,
+    extension: ext.extension.replace(leadingDot, ""),
+    parent: ext.parent,
+    ctxKind: ext.ctxKind,
+    ctxName: ext.ctxName,
+    captures: ext.captures,
+    loc: ext.loc,
+    captureNames: ext.captureNames,
+    paramNames: ext.paramNames,
+  };
+
+  return {
+    path: ext.canonicalFilename + ext.extension,
+    isEntry: true,
+    code: stripped ? generateStrippedSegmentCode(ext.symbolName) : "",
+    map: null,
+    segment: segmentAnalysis,
+    origPath: null,
+  };
+}
+
+/**
+ * Generate all segment TransformModule entries.
+ *
+ * This is Phase 5 of the transform pipeline -- producing segment modules
+ * with their code, metadata, and import context.
+ */
+export function generateAllSegmentModules(
+  ctx: SegmentGenerationContext,
+): TransformModule[] {
+  const allModules: TransformModule[] = [];
+  const prep = computeSegmentGenerationPrep(ctx);
+  const {
+    extBySymbol, sortedExtractions, sameFileSymbols,
+    defaultExportedNames, renamedExports, segmentImportList,
+    enumValueMap, fieldMaps,
+  } = prep;
+  const {
+    program, originalImports, options, relPath,
+    emitMode, devFile, isInlineStrategy, entryStrategy, migrationDecisions,
+    moduleLevelDecls, moduleLevelDeclsByName, segmentUsage,
+    parentModulePath, preRenameSymbolName, qrlOutputExt,
+    sourceExtensions, shouldTranspileJsx, shouldTranspileTs, isJsx,
+    importedNames, enclosingExtMap, elementQpParamsMap,
+    constLiteralsMap,
+  } = ctx;
+
+  // Track running JSX key counter across segments
+  let segmentKeyCounter = ctx.parentJsxKeyCounterValue;
+
+  for (const ext of sortedExtractions) {
     if (ext.isSync) continue;
 
     // Check if this segment is stripped
@@ -330,78 +502,14 @@ export function generateAllSegmentModules(
       ext.loc = [0, 0];
     }
 
-    // For inline strategy: apply _rawProps consolidation for metadata
-    if (
-      isInlineStrategy &&
-      ext.parent !== null &&
-      ext.captureNames.length > 0
-    ) {
-      const fieldMap = fieldMaps.get(ext.parent);
-      if (fieldMap !== undefined && fieldMap.size > 0) {
-        const nonPropsCaptures: string[] = [];
-        let hasPropsFields = false;
-        for (const name of ext.captureNames) {
-          if (fieldMap.has(name)) {
-            hasPropsFields = true;
-          } else {
-            nonPropsCaptures.push(name);
-          }
-        }
-        if (hasPropsFields) {
-          const propsFieldCaptures = new Map<string, string>();
-          for (const name of ext.captureNames) {
-            if (fieldMap.has(name)) {
-              propsFieldCaptures.set(name, fieldMap.get(name)!);
-            }
-          }
-          ext.propsFieldCaptures = propsFieldCaptures;
-          ext.captureNames = [...nonPropsCaptures, "_rawProps"].sort();
-          ext.captures = ext.captureNames.length > 0;
-        }
-      }
-    }
-
-    // For inline/hoist strategy, emit metadata only
+    // Inline/hoist strategy: emit metadata-only and continue.
     if (isInlineStrategy) {
-      const entryField = resolveEntryField(
-        entryStrategy.type,
-        ext.symbolName,
-        ext.ctxName,
-        null,
-        undefined,
-      );
-
-      const segmentAnalysis: SegmentMetadataInternal = {
-        origin: ext.origin,
-        name: ext.symbolName,
-        entry: entryField,
-        displayName: ext.displayName,
-        hash: ext.hash,
-        canonicalFilename: ext.canonicalFilename,
-        extension: ext.extension.replace(leadingDot, ""),
-        parent: ext.parent,
-        ctxKind: ext.ctxKind,
-        ctxName: ext.ctxName,
-        captures: ext.captures,
-        loc: ext.loc,
-        captureNames: ext.captureNames,
-        paramNames: ext.paramNames,
-      };
-
-      const segmentModule: TransformModule = {
-        path: ext.canonicalFilename + ext.extension,
-        isEntry: true,
-        code: stripped ? generateStrippedSegmentCode(ext.symbolName) : "",
-        map: null,
-        segment: segmentAnalysis,
-        origPath: null,
-      };
-      allModules.push(segmentModule);
+      allModules.push(buildInlineStrategySegment(ext, ctx, prep, stripped));
       continue;
     }
 
     // Default strategy: emit separate segment modules
-    const children = updatedExtractions.filter(
+    const children = sortedExtractions.filter(
       (c) => c.parent === ext.symbolName && !c.isSync,
     );
     const isDevMode = emitMode === "dev" || emitMode === "hmr";
@@ -459,25 +567,18 @@ export function generateAllSegmentModules(
       movedDeclarations: [],
     };
 
-    // Consolidate destructured prop-field captures into _rawProps
+    // Consolidate destructured prop-field captures into _rawProps.
+    // Default-strategy: writes to captureInfo + ext (vs the inline path which
+    // only writes to ext). Shared helper produces the same partition for both.
     if (ext.parent !== null && ext.captureNames.length > 0) {
       const fieldMap = fieldMaps.get(ext.parent);
       if (fieldMap !== undefined && fieldMap.size > 0) {
-        const propsFieldCaptures = new Map<string, string>();
-        const nonPropsCaptures: string[] = [];
-        for (const name of ext.captureNames) {
-          if (fieldMap.has(name)) {
-            propsFieldCaptures.set(name, fieldMap.get(name)!);
-          } else {
-            nonPropsCaptures.push(name);
-          }
-        }
-        if (propsFieldCaptures.size > 0) {
-          const newCaptureNames = [...nonPropsCaptures, "_rawProps"].sort();
-          captureInfo.captureNames = newCaptureNames;
-          captureInfo.propsFieldCaptures = propsFieldCaptures;
-          ext.captureNames = newCaptureNames;
-          ext.captures = newCaptureNames.length > 0;
+        const result = consolidateRawPropsCaptures(ext.captureNames, fieldMap);
+        if (result !== null) {
+          captureInfo.captureNames = result.newCaptureNames;
+          captureInfo.propsFieldCaptures = result.propsFieldCaptures;
+          ext.captureNames = result.newCaptureNames;
+          ext.captures = result.newCaptureNames.length > 0;
         }
       }
     }

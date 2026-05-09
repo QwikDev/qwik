@@ -57,7 +57,10 @@ The current CI assertion caps are **1.15×** for BENCH-01 and **1.5×** for BENC
 
 | Date | Commit | Workstream | SWC ms | TS ms | Ratio | Notes |
 |---|---|---|---|---|---|---|
-| **2026-05-09** | **`4673e07`** | **post #27 — current `main`** | 550 | 1465 | **2.66×** | post-OSS-355 + post-merge-routine codification |
+| **2026-05-09** | **`dbe32d2`** | **post #36 — current `main`** | 549 | 1475 | **2.69×** | post-Sub-C — refactor track v2 fully closed; orchestrator at 34 lines |
+| 2026-05-09 | `e8a705b` | post #34 — OSS-357 (Sub-B) | 552 | 1485 | 2.69× | migration-wiring + nested call-sites + nested QRL decls extracted |
+| 2026-05-09 | `42ef260` | post #32 — OSS-356 (Sub-A) | 548 | 1549 | 2.83× | Prep + inline-strategy + shared rawProps helper extracted (single noisy run; Sub-B + Sub-C re-stabilise) |
+| 2026-05-09 | `4673e07` | post #27 — pre-track-v2 baseline | 550 | 1465 | 2.66× | post-OSS-355 + post-merge-routine codification |
 | 2026-05-09 | `854f04b` | post #23 — OSS-354 | 557 | 1514 | 2.72× | closure-form `resolveConstLiterals` + prod-rename sync |
 | 2026-05-08 | `29a439e` | post #22 — OSS-353 | 582 | 1571 | 2.70× | closure-node threading; per-extraction body re-parse dropped |
 | 2026-05-08 | `3b8eac6` | post #18 — OSS-350 | 574 | 1589 | 2.77× | `preParsedModule` plumbing — single shared parse |
@@ -71,7 +74,10 @@ The current CI assertion caps are **1.15×** for BENCH-01 and **1.5×** for BENC
 
 | Date | Commit | Workstream | SWC ms | TS ms | Ratio | Notes |
 |---|---|---|---|---|---|---|
-| **2026-05-09** | **`4673e07`** | **post #27 — current `main`** | 19 | 91 | **4.67×** | post-OSS-355 + post-merge-routine codification |
+| **2026-05-09** | **`dbe32d2`** | **post #36 — current `main`** | 19 | 94 | **4.87×** | post-Sub-C — refactor track v2 fully closed |
+| 2026-05-09 | `e8a705b` | post #34 — OSS-357 (Sub-B) | 19 | 91 | 4.72× | migration-wiring + nested call-sites + nested QRL decls extracted |
+| 2026-05-09 | `42ef260` | post #32 — OSS-356 (Sub-A) | 19 | 95 | 4.88× | Prep + inline-strategy + shared rawProps helper extracted |
+| 2026-05-09 | `4673e07` | post #27 — pre-track-v2 baseline | 19 | 91 | 4.67× | post-OSS-355 + post-merge-routine codification |
 | 2026-05-09 | `854f04b` | post #23 — OSS-354 | 20 | 93 | 4.65× | closure-form `resolveConstLiterals` + prod-rename sync |
 | 2026-05-08 | `29a439e` | post #22 — OSS-353 | 20 | 102 | 5.09× | closure-node threading; per-extraction body re-parse dropped |
 | 2026-05-08 | `3b8eac6` | post #18 — OSS-350 | 20 | 98 | 4.87× | `preParsedModule` plumbing |
@@ -85,16 +91,16 @@ The current CI assertion caps are **1.15×** for BENCH-01 and **1.5×** for BENC
 
 ## Visual trend
 
-Both charts plot **TS / SWC ratio** (the dimensionless regression signal — lower is better) across the same 9 commits the tables above describe, oldest → newest. The y-axes are intentionally narrow so within-noise movement is visible; widening them to start at 0 would flatten the trend and hide the ~10% spread.
+Both charts plot **TS / SWC ratio** (the dimensionless regression signal — lower is better) across the same 12 commits the tables above describe, oldest → newest. The y-axes are intentionally narrow so within-noise movement is visible; widening them to start at 0 would flatten the trend and hide the ~10% spread.
 
 ### BENCH-01 ratio over time
 
 ```mermaid
 xychart-beta
     title "BENCH-01 — TS / SWC ratio (lower is better; CI cap = 1.15×)"
-    x-axis ["d3226c3", "e98cbff", "dd450a6", "d3f4387", "b903652", "3b8eac6", "29a439e", "854f04b", "4673e07"]
+    x-axis ["d3226c3", "e98cbff", "dd450a6", "d3f4387", "b903652", "3b8eac6", "29a439e", "854f04b", "4673e07", "42ef260", "e8a705b", "dbe32d2"]
     y-axis "Ratio (×)" 2.5 --> 3.0
-    line [2.82, 2.86, 2.74, 2.72, 2.83, 2.77, 2.70, 2.72, 2.66]
+    line [2.82, 2.86, 2.74, 2.72, 2.83, 2.77, 2.70, 2.72, 2.66, 2.83, 2.69, 2.69]
 ```
 
 ### BENCH-02 ratio over time
@@ -102,9 +108,9 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "BENCH-02 — TS / SWC ratio (lower is better; CI cap = 1.5×)"
-    x-axis ["d3226c3", "e98cbff", "dd450a6", "d3f4387", "b903652", "3b8eac6", "29a439e", "854f04b", "4673e07"]
+    x-axis ["d3226c3", "e98cbff", "dd450a6", "d3f4387", "b903652", "3b8eac6", "29a439e", "854f04b", "4673e07", "42ef260", "e8a705b", "dbe32d2"]
     y-axis "Ratio (×)" 4.5 --> 5.5
-    line [4.75, 4.93, 5.15, 5.03, 5.27, 4.87, 5.09, 4.65, 4.67]
+    line [4.75, 4.93, 5.15, 5.03, 5.27, 4.87, 5.09, 4.65, 4.67, 4.88, 4.72, 4.87]
 ```
 
 > The CI caps (1.15× and 1.5×) sit well below the visible y-axis ranges and aren't drawn. Mermaid's `xychart-beta` doesn't support reference lines — caps stay textual in each chart's title. The tables above remain the source of truth; the charts are a visual aid.
@@ -113,17 +119,23 @@ xychart-beta
 
 ## Trend so far
 
-**Over the 4 days from 2026-05-06 → 2026-05-09 the TS optimizer is unchanged in perf within noise**, with one mildly suggestive recent uptick:
+**Over the 4 days from 2026-05-06 → 2026-05-09 the TS optimizer is unchanged in perf within noise.** Refactor track v2 (OSS-343) closed in this window — `generateAllSegmentModules` went from 580 lines to a 34-line orchestrator over named helpers, ~94% reduction — and the four final ratios (pre-Sub-A, post-Sub-A, post-Sub-B, post-Sub-C) all sit inside the variance band:
 
-- **BENCH-01 TS time** moves between 1465 and 1635 ms (10% spread). The two most recent rows (854f04b, 4673e07) are the lowest two — both post-OSS-353/354, which both targeted the AST-walking hot path (closure-node threading and closure-form const-literal resolution). This is *consistent with* a real ~5–7% improvement, but barely above the variance band. Re-running each commit 3–5× would be needed to call it confidently.
-- **BENCH-02 TS time** moves between 91 and 102 ms — same story, with the same two recent commits at the bottom of the range.
-- **Ratios** (TS ÷ SWC) cluster at **~2.7×** for BENCH-01 and **~4.8×** for BENCH-02 — nowhere near the 1.15× and 1.5× CI caps.
+- **BENCH-01 TS time** moves between 1465 and 1635 ms across all 12 rows (~10% spread). The four track-v2 boundary rows are 1465 / 1549 / 1485 / 1475 — Sub-A's 1549 reading is a single noisy run; Sub-B and Sub-C come back down to the pre-track baseline.
+- **BENCH-02 TS time** moves between 91 and 102 ms across all 12 rows (~10% spread). The four track-v2 boundary rows are 91 / 95 / 91 / 94 — same pattern.
+- **Ratios** (TS ÷ SWC) cluster at **~2.7×** for BENCH-01 and **~4.8×** for BENCH-02 — nowhere near the 1.15× and 1.5× CI caps. Track v2's start (4673e07) and end (dbe32d2) ratios are 2.66× → 2.69× and 4.67× → 4.87× — both inside noise.
 
-**The refactor track was not perf-targeted.** Its goal was code-quality / structural cleanup to make subsequent feature work cheaper. The flat-with-a-hint-of-recent-improvement trend is the expected outcome — the underlying optimizer pipeline shape is largely unchanged.
+**The refactor track was explicitly not perf-targeted.** Its goal was code-quality / structural cleanup to make subsequent feature *and* perf work cheaper. The flat-within-noise outcome is the expected outcome; if track v2 had moved either ratio meaningfully, it would have been a surprise (and worth investigating which extraction caused it).
+
+What track v2 *did* do for future perf work:
+
+- **Named helpers expose seams for profiling.** Pre-track, `generateAllSegmentModules` was 580 lines of inline phases; post-track, it's six named helpers with documented mutation surfaces. Profiling can target a specific helper rather than narrowing into an opaque mega-function.
+- **The immutable `SegmentGenerationPrep` record** confines per-call setup costs to one well-defined block; cache-line / memory-layout tweaks have a single owner.
+- **Two backlog candidates surfaced** (eliminate per-iteration `ext` mutation; split the 28-field `SegmentGenerationContext`) that *could* unlock perf wins by enabling structural sharing or reducing destructure overhead. Neither has been measured.
 
 To meaningfully move the ratios:
 
-- BENCH-02 (worst-case file) is dominated by per-extraction work — that's where AST-walking optimizations like OSS-353's body-reparse drop should show up most. The numbers do hint at this; profiling would confirm.
+- BENCH-02 (worst-case file) is dominated by per-extraction work — that's where AST-walking optimizations like OSS-353's body-reparse drop should show up most. The numbers hint at this; profiling would confirm.
 - BENCH-01 is dominated by file-discovery + parsing across the batch. Throughput here is more about the parse → walk → emit cycle than any single phase.
 
 When perf-targeted tickets get filed, link them here and add a row before/after each one to make the impact visible.

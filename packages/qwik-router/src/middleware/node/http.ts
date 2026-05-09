@@ -60,25 +60,25 @@ export function normalizeUrl(url: string, base: string) {
 function createNodeResponseSink(res: ServerResponse) {
   let closed = res.closed || res.destroyed;
   let responseError: unknown;
-  let resolveClosed = () => {};
-  const closedPromise = new Promise<void>((resolve) => {
-    resolveClosed = resolve;
-    if (closed) {
-      resolve();
-      return;
-    }
-    res.once('close', () => {
-      closed = true;
-      resolve();
-    });
-  });
+  let resolveClosed: () => void;
+  const closedPromise = closed
+    ? Promise.resolve()
+    : new Promise<void>((resolve) => {
+        resolveClosed = resolve;
+        res.once('close', () => {
+          closed = true;
+          resolve();
+        });
+      });
 
   res.on('error', (error) => {
     if (responseError === undefined) {
       responseError = error;
     }
-    closed = true;
-    resolveClosed();
+    if (!closed) {
+      closed = true;
+      resolveClosed();
+    }
   });
 
   const shouldPropagateResponseError = () =>

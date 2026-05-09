@@ -221,9 +221,14 @@ export function createRequestEventWithDeps(
         return loadRouteLoader(loaderOrAction, requestEv);
       }
 
-      return requestEv.sharedMap.get(RequestEvSharedActionId) === loaderOrAction.__id
-        ? requestEv.sharedMap.get('@actionResult')
-        : undefined;
+      // Actions are transient (one-shot per request). After action submission,
+      // the client invalidates loaders and refetches them as standalone GETs
+      // with no action context, so any loader that read action state would
+      // produce different data on the inline-render path vs the JSON refetch
+      // path. To keep loader output a pure function of the URL, we always
+      // return undefined for actions here. Read action state from the action
+      // signal at render time (head, components) instead of inside a loader.
+      return undefined;
     }) as ResolveValue,
 
     status: (statusCode?: number) => {

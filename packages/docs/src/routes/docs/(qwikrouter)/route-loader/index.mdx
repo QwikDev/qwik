@@ -338,7 +338,58 @@ export const useProductRecommendations = routeLoader$(async (requestEvent) => {
 });
 ```
 
-<Note>The same API can be used to access the data from a `routeAction$` or a `globalAction$`.</Note>
+<Note>`resolveValue` only resolves other `routeLoader$`s — actions are not visible to it. See [Loaders cannot read action state](#loaders-cannot-read-action-state) below.</Note>
+
+## Loaders cannot read action state
+
+A `routeLoader$` represents data tied to the route. Its result must be reproducible from the URL alone (`params` plus `search`) so that:
+
+- the per-loader JSON endpoint is cacheable and prefetchable,
+- SPA navigation can serve cached loader data without re-running the closure on the server,
+- after an action submission, the client can invalidate just the affected loaders and refetch them as standalone GET requests.
+
+Because of this, **`requestEvent.resolveValue(myAction)` always returns `undefined` inside a loader**, regardless of how the loader was triggered (initial render, navigation, post-action invalidation, polling). Action results are transient — they only exist for the request that handled the submission, and the loader refetch that follows an action is a separate GET with no action context. Returning the action result on the inline-render path but not on the refetch path would silently produce different data depending on whether JS was enabled, so the API simply doesn't expose action state to loaders at all. Read action state directly from the action signal where you render.
+
+```tsx /resolveValue/#a title="src/routes/[id]/index.tsx"
+import { component$ } from '@qwik.dev/core';
+import { routeAction$, routeLoader$, Form } from '@qwik.dev/router';
+
+export const useNameAction = routeAction$(async (data) => data);
+
+// ❌ Don't: `form` is always undefined, regardless of whether an action just ran.
+export const useGreetingBroken = routeLoader$(async ({ resolveValue, params }) => {
+  const form = await resolveValue(useNameAction);
+  return { name: form?.name ?? params.id };
+});
+
+// ✅ Do: the loader is a pure function of the URL. The component blends in
+//    transient action state where it actually renders.
+export const useGreeting = routeLoader$(({ params }) => ({ name: params.id }));
+
+export default component$(() => {
+  const greeting = useGreeting();
+  const action = useNameAction();
+  const name = action.value?.name ?? greeting.value.name;
+  return (
+    <Form action={action}>
+      <p>Hello, {name}!</p>
+      <input name="name" />
+      <button type="submit">Update</button>
+    </Form>
+  );
+});
+```
+
+The same rule applies to anything else that's only valid for one request — request bodies, one-shot tokens, `Set-Cookie` values written by middleware on this request, etc. If the loader's output depends on it, the next refetch (after an action, on a navigation, on a poll) will produce different data than the cached/prefetched response.
+
+### Patterns that used to read action state — and what to do instead
+
+| Use case                                               | Workaround                                                                                                                                                                                          |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Echo the just-submitted form value back into the page  | Loader returns the URL-derived value; the component overlays `action.value` on top, e.g. `action.value?.name ?? loader.value.name`.                                                                 |
+| Recompute derived data from the submission             | Put the inputs in the URL (search params, or `goto()` after the action) so the loader reads them from `requestEvent` like any other route input. This also makes the result shareable and cacheable. |
+| Refresh authoritative data after a mutation            | Have the action write to your store (DB, KV, etc.) and let the loader read from that store. The action's `invalidate` list re-runs the loader so it picks up the new state — no action result needed. |
+| Show success / error feedback from the action          | Read the action signal directly in the component: `action.value`, `action.isRunning`, `action.value?.failed`. Don't route ephemeral UI feedback through a loader.                                  |
 
 ## Failed values with `routeLoader$`
 

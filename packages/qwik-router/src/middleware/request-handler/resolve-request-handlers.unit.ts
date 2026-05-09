@@ -311,7 +311,10 @@ describe('resolve-request-handler', () => {
   });
 
   describe('action result resolution', () => {
-    it('returns only the submitted action result', async () => {
+    it('always returns undefined for actions, even when one was submitted', async () => {
+      // Loaders must be a pure function of the URL — see route-loader docs and the
+      // action-state changeset. resolveValue intentionally hides action state from
+      // loaders so MPA inline-render and SPA JSON refetch produce the same result.
       const requestEv = createMockRequestEvent('http://localhost:3000/about/', true);
       const actionA = { __brand: 'server_action', __id: 'action-a' };
       const actionB = { __brand: 'server_action', __id: 'action-b' };
@@ -319,7 +322,7 @@ describe('resolve-request-handler', () => {
       requestEv.sharedMap.set(RequestEvSharedActionId, 'action-a');
       requestEv.sharedMap.set('@actionResult', { ok: true });
 
-      await expect(requestEv.resolveValue(actionA as any)).resolves.toEqual({ ok: true });
+      await expect(requestEv.resolveValue(actionA as any)).resolves.toBeUndefined();
       await expect(requestEv.resolveValue(actionB as any)).resolves.toBeUndefined();
     });
   });

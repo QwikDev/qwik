@@ -46,7 +46,11 @@ test.describe('loaders', () => {
       await expect(slow).toHaveText('slow: 123');
       await expect(nestedDate).toHaveText('date: 2021-01-01T00:00:00.000Z');
       await expect(nestedDep).toHaveText('dep: 84');
-      await expect(nestedName).toHaveText('name: Manuel');
+      // The loader-derived name is unchanged after the action: route loaders
+      // refetched after an action submission run as standalone GETs without
+      // action context, so they don't see action state via resolveValue().
+      // Action state is observable directly via the action signal — see the title.
+      await expect(nestedName).toHaveText('name: hola');
 
       await page.locator('#link-stuff').click();
       // Wait for URL to change first, then verify content

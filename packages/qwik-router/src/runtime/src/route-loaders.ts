@@ -176,6 +176,15 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
   let lastFilteredSearch: string | undefined;
   return createAsync$(
     async ({ track, info, previous, abortSignal }) => {
+      // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
+      // an action response). Skipping the track() calls below is safe: route loader
+      // functions run on the server and have no access to client-side reactive state,
+      // so their compute never registers subscriptions of its own. The track() calls
+      // in the client branch only exist to react to route/page-URL changes, which fire
+      // a fresh invalidate (without info.__v) when they happen.
+      if (info && typeof info === 'object' && '__v' in (info as object)) {
+        return (info as { __v: unknown }).__v;
+      }
       if (isServer) {
         return (capture as ServerRouteLoaderCapture).load();
       }
@@ -187,11 +196,6 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
       const pageUrl = track(routeLoaderCtx, 'pageUrl') as URL;
       const mHash = routeLoaderCtx.manifestHash;
       const basePath = routeLoaderCtx.basePath;
-      // If info contains a pre-loaded value (from action response), use it directly.
-      // track() was already called above to maintain subscriptions.
-      if (info && typeof info === 'object' && '__v' in (info as object)) {
-        return (info as { __v: unknown }).__v;
-      }
       // A loader that's never been on any route we've visited has no fetch path yet —
       // return whatever value it has (undefined on the very first run). In practice
       // this branch only fires on the initial client-side read for a loader that

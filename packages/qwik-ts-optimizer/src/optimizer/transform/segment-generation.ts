@@ -459,6 +459,343 @@ export function buildInlineStrategySegment(
 }
 
 /**
+ * Build the per-child QRL declaration strings (one per non-sync child of
+ * `ext`). Each child becomes either a `_noopQrl(...)` / `_noopQrlDEV(...)`
+ * declaration (when stripped) or a `qrl(...)` / `qrlDEV(...)` declaration.
+ *
+ * Returns the declaration strings paired with `childQrlVarNames`, the map
+ * from `child.symbolName → q_<name>` (or `q_qrl_<sentinel>` for stripped
+ * children) that downstream consumers (e.g. {@link buildNestedCallSites})
+ * use to refer to the child's QRL.
+ *
+ * Stripped-segment indexing is per-call (each call to this helper has its
+ * own `strippedIdx` counter via {@link getSentinelCounter}).
+ */
+export function buildNestedQrlDeclarations(
+  children: ExtractionResult[],
+  options: TransformModulesOptions,
+  isDevMode: boolean,
+  devFile: string | undefined,
+  qrlOutputExt: string | undefined,
+): {
+  nestedQrlDecls: string[];
+  childQrlVarNames: Map<string, string>;
+} {
+  let strippedIdx = 0;
+  const childQrlVarNames = new Map<string, string>();
+  const nestedQrlDecls = children.map((child) => {
+    const childStripped = isStrippedSegment(
+      child.ctxName,
+      child.ctxKind,
+      options.stripCtxName,
+      options.stripEventHandlers,
+    );
+    if (childStripped) {
+      const idx = strippedIdx++;
+      const counter = getSentinelCounter(idx);
+      childQrlVarNames.set(child.symbolName, `q_qrl_${counter}`);
+      if (isDevMode && devFile) {
+        return buildStrippedNoopQrlDev(child.symbolName, idx, {
+          file: devFile,
+          lo: 0,
+          hi: 0,
+          displayName: child.displayName,
+        });
+      }
+      return buildStrippedNoopQrl(child.symbolName, idx);
+    }
+    childQrlVarNames.set(child.symbolName, `q_${child.symbolName}`);
+    if (isDevMode && devFile) {
+      const devExt = options.explicitExtensions
+        ? (qrlOutputExt ?? ".js")
+        : undefined;
+      return buildQrlDevDeclaration(
+        child.symbolName,
+        child.canonicalFilename,
+        devFile,
+        child.loc[0],
+        child.loc[1],
+        child.displayName,
+        devExt,
+      );
+    }
+    return buildQrlDeclaration(
+      child.symbolName,
+      child.canonicalFilename,
+      options.explicitExtensions,
+      child.extension,
+      qrlOutputExt,
+    );
+  });
+  return { nestedQrlDecls, childQrlVarNames };
+}
+
+/**
+ * Wire migration data (auto-imports, moved declarations, capture filtering,
+ * capture/param reconciliation) into `captureInfo` and `ext` for a top-level
+ * segment.
+ *
+ * Caller-side precondition: only invoked when
+ * `ext.parent === null && !ext.isInlinedQrl`. The helper does not re-check
+ * this; behaviour is undefined if called for a non-top-level extraction.
+ *
+ * **Mutation surface (preserved verbatim from the pre-OSS-357 inline form):**
+ * - `captureInfo.autoImports` — `push`'d once per applicable `reexport`
+ *   migration decision.
+ * - `captureInfo.movedDeclarations` — `push`'d once per applicable `move`
+ *   migration decision.
+ * - `captureInfo.captureNames` — overwritten at the end with the post-filter
+ *   capture list.
+ * - `ext.captureNames` — filtered in place to drop migrated var names.
+ * - `ext.captures` — recomputed from the filtered captureNames; may flip to
+ *   `false` when all remaining captures are also paramNames.
+ *
+ * Reads from `ctx.{program, originalImports, migrationDecisions,
+ * moduleLevelDeclsByName, segmentUsage, parentModulePath,
+ * preRenameSymbolName}` and `prep.{sameFileSymbols, defaultExportedNames,
+ * renamedExports}`.
+ */
+export function wireTopLevelMigration(
+  ext: ExtractionResult,
+  captureInfo: SegmentCaptureInfo,
+  ctx: SegmentGenerationContext,
+  prep: SegmentGenerationPrep,
+): void {
+  const {
+    program,
+    originalImports,
+    migrationDecisions,
+    moduleLevelDeclsByName,
+    segmentUsage,
+    parentModulePath,
+    preRenameSymbolName,
+  } = ctx;
+  const { sameFileSymbols, defaultExportedNames, renamedExports } = prep;
+
+  const migrationKey =
+    preRenameSymbolName.get(ext.symbolName) ?? ext.symbolName;
+
+  const segUsage = segmentUsage.get(migrationKey);
+  if (segUsage) {
+    for (const decision of migrationDecisions) {
+      if (
+        decision.action === "reexport" &&
+        segUsage.has(decision.varName)
+      ) {
+        const decl = moduleLevelDeclsByName.get(decision.varName);
+        if (decl?.isExported) {
+          continue;
+        }
+        captureInfo.autoImports.push({
+          varName: decision.varName,
+          parentModulePath,
+        });
+      }
+    }
+  }
+
+  const movedDeclRanges = new Set<string>();
+  for (const decision of migrationDecisions) {
+    if (
+      decision.action === "move" &&
+      decision.targetSegment === migrationKey
+    ) {
+      const decl = moduleLevelDeclsByName.get(decision.varName);
+      if (decl) {
+        const rangeKey = `${decl.declStart}:${decl.declEnd}`;
+        if (movedDeclRanges.has(rangeKey)) continue;
+        movedDeclRanges.add(rangeKey);
+        const importDeps: Array<{
+          localName: string;
+          importedName: string;
+          source: string;
+        }> = [];
+        const declIdentifiers = new Set<string>();
+        walk(program, {
+          enter(node: AstNode) {
+            if (
+              node.type === "Identifier" &&
+              node.start >= decl.declStart &&
+              node.end <= decl.declEnd
+            ) {
+              declIdentifiers.add(node.name);
+            }
+          },
+        });
+        for (const idName of declIdentifiers) {
+          const imp = originalImports.get(idName);
+          if (imp) {
+            importDeps.push({
+              localName: imp.localName,
+              importedName: imp.importedName,
+              source: imp.source,
+            });
+            continue;
+          }
+
+          if (!sameFileSymbols.has(idName) || idName === decision.varName) {
+            continue;
+          }
+
+          if (defaultExportedNames.has(idName)) {
+            importDeps.push({
+              localName: idName,
+              importedName: 'default',
+              source: parentModulePath,
+            });
+            continue;
+          }
+
+          const exportedAs = renamedExports.get(idName);
+          importDeps.push({
+            localName: idName,
+            importedName: exportedAs ?? idName,
+            source: parentModulePath,
+          });
+        }
+        captureInfo.movedDeclarations.push({
+          text: decl.declText,
+          importDeps,
+        });
+      }
+    }
+  }
+
+  // Filter out migrated vars from captures
+  const migratedVarNames = new Set<string>();
+  for (const decision of migrationDecisions) {
+    if (decision.action === "reexport" || decision.action === "move") {
+      migratedVarNames.add(decision.varName);
+    }
+  }
+  ext.captureNames = ext.captureNames.filter(
+    (name) => !migratedVarNames.has(name),
+  );
+  ext.captures = ext.captureNames.length > 0;
+
+  // Reconcile captures with paramNames after migration filtering
+  if (ext.captures && ext.paramNames.length > 0) {
+    const paramSet = new Set(ext.paramNames);
+    const allCapturesInParams = ext.captureNames.every((name) =>
+      paramSet.has(name),
+    );
+    if (allCapturesInParams) {
+      ext.captures = false;
+    }
+  }
+
+  captureInfo.captureNames = ext.captureNames;
+}
+
+/**
+ * Build the per-child {@link NestedCallSiteInfo} array. Branches per child
+ * on whether the call site is a JSX attribute (`eventHandler` ctxKind with
+ * a `$`-suffixed callee) — the JSX-attr branch carries event-prop-name
+ * transform, passive-event detection (via the `_q_ep_`/`_q_wp_`/`_q_dp_`
+ * displayName pattern), loop-cross-capture detection, and loop-local-param
+ * computation.
+ */
+export function buildNestedCallSites(
+  children: ExtractionResult[],
+  childQrlVarNames: Map<string, string>,
+  elementQpParamsMap: Map<string, string[]>,
+): NestedCallSiteInfo[] {
+  const nestedCallSites: NestedCallSiteInfo[] = [];
+  for (const child of children) {
+    const qrlVarName =
+      childQrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
+    const isJsxAttr =
+      child.ctxKind === "eventHandler" &&
+      child.calleeName.endsWith("$") &&
+      child.calleeName !== "$";
+    if (isJsxAttr) {
+      let propName: string;
+      if (child.isComponentEvent) {
+        propName = child.calleeName;
+      } else {
+        const passiveSet = new Set<string>();
+        const displayNamePath = child.displayName ?? child.symbolName;
+        const callee = child.calleeName;
+        let eventNameForPassive = callee;
+        if (eventNameForPassive.startsWith("document:"))
+          eventNameForPassive = eventNameForPassive.slice(9);
+        else if (eventNameForPassive.startsWith("window:"))
+          eventNameForPassive = eventNameForPassive.slice(7);
+        if (
+          eventNameForPassive.startsWith("on") &&
+          eventNameForPassive.endsWith("$")
+        ) {
+          eventNameForPassive = eventNameForPassive
+            .slice(2, -1)
+            .toLowerCase();
+        }
+        if (
+          displayNamePath.includes("_q_ep_") ||
+          displayNamePath.includes("_q_wp_") ||
+          displayNamePath.includes("_q_dp_")
+        ) {
+          passiveSet.add(eventNameForPassive);
+        }
+        propName =
+          transformEventPropName(child.calleeName, passiveSet) ??
+          child.calleeName;
+      }
+
+      const hasLoopCrossCaptures =
+        child.captures &&
+        child.captureNames.length > 0 &&
+        child.paramNames.length >= 2 &&
+        child.paramNames[0] === "_" &&
+        child.paramNames[1] === "_1";
+
+      const loopLocalParams: string[] = [];
+      if (
+        child.paramNames.length >= 2 &&
+        child.paramNames[0] === "_" &&
+        child.paramNames[1] === "_1"
+      ) {
+        for (let pi = 2; pi < child.paramNames.length; pi++) {
+          const p = child.paramNames[pi];
+          if (numberedPaddingParam.test(p)) continue;
+          loopLocalParams.push(p);
+        }
+      }
+
+      nestedCallSites.push({
+        qrlVarName,
+        callStart: child.callStart,
+        callEnd: child.callEnd,
+        isJsxAttr: true,
+        attrStart: child.callStart,
+        attrEnd: child.callEnd,
+        transformedPropName: propName,
+        hoistedSymbolName: hasLoopCrossCaptures
+          ? child.symbolName
+          : undefined,
+        hoistedCaptureNames: hasLoopCrossCaptures
+          ? child.captureNames
+          : undefined,
+        loopLocalParamNames:
+          loopLocalParams.length > 0 ? loopLocalParams : undefined,
+        elementQpParams: elementQpParamsMap.get(child.symbolName),
+      });
+    } else {
+      nestedCallSites.push({
+        qrlVarName,
+        callStart: child.callStart,
+        callEnd: child.callEnd,
+        isJsxAttr: false,
+        qrlCallee: child.isBare ? undefined : child.qrlCallee || undefined,
+        captureNames:
+          child.captureNames.length > 0 ? child.captureNames : undefined,
+        importSource: child.importSource || undefined,
+      });
+    }
+  }
+  return nestedCallSites;
+}
+
+/**
  * Generate all segment TransformModule entries.
  *
  * This is Phase 5 of the transform pipeline -- producing segment modules
@@ -513,52 +850,9 @@ export function generateAllSegmentModules(
       (c) => c.parent === ext.symbolName && !c.isSync,
     );
     const isDevMode = emitMode === "dev" || emitMode === "hmr";
-    let strippedIdx = 0;
-    const childQrlVarNames = new Map<string, string>();
-    const nestedQrlDecls = children.map((child) => {
-      const childStripped = isStrippedSegment(
-        child.ctxName,
-        child.ctxKind,
-        options.stripCtxName,
-        options.stripEventHandlers,
-      );
-      if (childStripped) {
-        const idx = strippedIdx++;
-        const counter = getSentinelCounter(idx);
-        childQrlVarNames.set(child.symbolName, `q_qrl_${counter}`);
-        if (isDevMode && devFile) {
-          return buildStrippedNoopQrlDev(child.symbolName, idx, {
-            file: devFile,
-            lo: 0,
-            hi: 0,
-            displayName: child.displayName,
-          });
-        }
-        return buildStrippedNoopQrl(child.symbolName, idx);
-      }
-      childQrlVarNames.set(child.symbolName, `q_${child.symbolName}`);
-      if (isDevMode && devFile) {
-        const devExt = options.explicitExtensions
-          ? (qrlOutputExt ?? ".js")
-          : undefined;
-        return buildQrlDevDeclaration(
-          child.symbolName,
-          child.canonicalFilename,
-          devFile,
-          child.loc[0],
-          child.loc[1],
-          child.displayName,
-          devExt,
-        );
-      }
-      return buildQrlDeclaration(
-        child.symbolName,
-        child.canonicalFilename,
-        options.explicitExtensions,
-        child.extension,
-        qrlOutputExt,
-      );
-    });
+    const { nestedQrlDecls, childQrlVarNames } = buildNestedQrlDeclarations(
+      children, options, isDevMode, devFile, qrlOutputExt,
+    );
 
     // Build capture info
     const captureInfo: SegmentCaptureInfo = {
@@ -592,214 +886,12 @@ export function generateAllSegmentModules(
 
     // For top-level segments (no parent): wire migration info
     if (ext.parent === null && !ext.isInlinedQrl) {
-      const migrationKey =
-        preRenameSymbolName.get(ext.symbolName) ?? ext.symbolName;
-
-      const segUsage = segmentUsage.get(migrationKey);
-      if (segUsage) {
-        for (const decision of migrationDecisions) {
-          if (
-            decision.action === "reexport" &&
-            segUsage.has(decision.varName)
-          ) {
-            const decl = moduleLevelDeclsByName.get(decision.varName);
-            if (decl?.isExported) {
-              continue;
-            }
-            captureInfo.autoImports.push({
-              varName: decision.varName,
-              parentModulePath,
-            });
-          }
-        }
-      }
-
-      const movedDeclRanges = new Set<string>();
-      for (const decision of migrationDecisions) {
-        if (
-          decision.action === "move" &&
-          decision.targetSegment === migrationKey
-        ) {
-          const decl = moduleLevelDeclsByName.get(decision.varName);
-          if (decl) {
-            const rangeKey = `${decl.declStart}:${decl.declEnd}`;
-            if (movedDeclRanges.has(rangeKey)) continue;
-            movedDeclRanges.add(rangeKey);
-            const importDeps: Array<{
-              localName: string;
-              importedName: string;
-              source: string;
-            }> = [];
-            const declIdentifiers = new Set<string>();
-            walk(program, {
-              enter(node: AstNode) {
-                if (
-                  node.type === "Identifier" &&
-                  node.start >= decl.declStart &&
-                  node.end <= decl.declEnd
-                ) {
-                  declIdentifiers.add(node.name);
-                }
-              },
-            });
-            for (const idName of declIdentifiers) {
-              const imp = originalImports.get(idName);
-              if (imp) {
-                importDeps.push({
-                  localName: imp.localName,
-                  importedName: imp.importedName,
-                  source: imp.source,
-                });
-                continue;
-              }
-
-              if (!sameFileSymbols.has(idName) || idName === decision.varName) {
-                continue;
-              }
-
-              if (defaultExportedNames.has(idName)) {
-                importDeps.push({
-                  localName: idName,
-                  importedName: 'default',
-                  source: parentModulePath,
-                });
-                continue;
-              }
-
-              const exportedAs = renamedExports.get(idName);
-              importDeps.push({
-                localName: idName,
-                importedName: exportedAs ?? idName,
-                source: parentModulePath,
-              });
-            }
-            captureInfo.movedDeclarations.push({
-              text: decl.declText,
-              importDeps,
-            });
-          }
-        }
-      }
-
-      // Filter out migrated vars from captures
-      const migratedVarNames = new Set<string>();
-      for (const decision of migrationDecisions) {
-        if (decision.action === "reexport" || decision.action === "move") {
-          migratedVarNames.add(decision.varName);
-        }
-      }
-      ext.captureNames = ext.captureNames.filter(
-        (name) => !migratedVarNames.has(name),
-      );
-      ext.captures = ext.captureNames.length > 0;
-
-      // Reconcile captures with paramNames after migration filtering
-      if (ext.captures && ext.paramNames.length > 0) {
-        const paramSet = new Set(ext.paramNames);
-        const allCapturesInParams = ext.captureNames.every((name) =>
-          paramSet.has(name),
-        );
-        if (allCapturesInParams) {
-          ext.captures = false;
-        }
-      }
-
-      captureInfo.captureNames = ext.captureNames;
+      wireTopLevelMigration(ext, captureInfo, ctx, prep);
     }
 
-    // Build nested call site info
-    const nestedCallSites: NestedCallSiteInfo[] = [];
-    for (const child of children) {
-      const qrlVarName =
-        childQrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
-      const isJsxAttr =
-        child.ctxKind === "eventHandler" &&
-        child.calleeName.endsWith("$") &&
-        child.calleeName !== "$";
-      if (isJsxAttr) {
-        let propName: string;
-        if (child.isComponentEvent) {
-          propName = child.calleeName;
-        } else {
-          const passiveSet = new Set<string>();
-          const displayNamePath = child.displayName ?? child.symbolName;
-          const callee = child.calleeName;
-          let eventNameForPassive = callee;
-          if (eventNameForPassive.startsWith("document:"))
-            eventNameForPassive = eventNameForPassive.slice(9);
-          else if (eventNameForPassive.startsWith("window:"))
-            eventNameForPassive = eventNameForPassive.slice(7);
-          if (
-            eventNameForPassive.startsWith("on") &&
-            eventNameForPassive.endsWith("$")
-          ) {
-            eventNameForPassive = eventNameForPassive
-              .slice(2, -1)
-              .toLowerCase();
-          }
-          if (
-            displayNamePath.includes("_q_ep_") ||
-            displayNamePath.includes("_q_wp_") ||
-            displayNamePath.includes("_q_dp_")
-          ) {
-            passiveSet.add(eventNameForPassive);
-          }
-          propName =
-            transformEventPropName(child.calleeName, passiveSet) ??
-            child.calleeName;
-        }
-
-        const hasLoopCrossCaptures =
-          child.captures &&
-          child.captureNames.length > 0 &&
-          child.paramNames.length >= 2 &&
-          child.paramNames[0] === "_" &&
-          child.paramNames[1] === "_1";
-
-        const loopLocalParams: string[] = [];
-        if (
-          child.paramNames.length >= 2 &&
-          child.paramNames[0] === "_" &&
-          child.paramNames[1] === "_1"
-        ) {
-          for (let pi = 2; pi < child.paramNames.length; pi++) {
-            const p = child.paramNames[pi];
-            if (numberedPaddingParam.test(p)) continue;
-            loopLocalParams.push(p);
-          }
-        }
-
-        nestedCallSites.push({
-          qrlVarName,
-          callStart: child.callStart,
-          callEnd: child.callEnd,
-          isJsxAttr: true,
-          attrStart: child.callStart,
-          attrEnd: child.callEnd,
-          transformedPropName: propName,
-          hoistedSymbolName: hasLoopCrossCaptures
-            ? child.symbolName
-            : undefined,
-          hoistedCaptureNames: hasLoopCrossCaptures
-            ? child.captureNames
-            : undefined,
-          loopLocalParamNames:
-            loopLocalParams.length > 0 ? loopLocalParams : undefined,
-          elementQpParams: elementQpParamsMap.get(child.symbolName),
-        });
-      } else {
-        nestedCallSites.push({
-          qrlVarName,
-          callStart: child.callStart,
-          callEnd: child.callEnd,
-          isJsxAttr: false,
-          qrlCallee: child.isBare ? undefined : child.qrlCallee || undefined,
-          captureNames:
-            child.captureNames.length > 0 ? child.captureNames : undefined,
-          importSource: child.importSource || undefined,
-        });
-      }
-    }
+    const nestedCallSites = buildNestedCallSites(
+      children, childQrlVarNames, elementQpParamsMap,
+    );
 
     const effectiveCaptureInfo = resolveCaptureInfo(
       captureInfo,

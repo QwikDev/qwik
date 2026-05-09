@@ -11,6 +11,11 @@
  * Usage:
  *   npx vitest run tests/benchmark/optimizer-benchmark.test.ts
  *
+ * Environment:
+ *   QWIK_HOME — path to a Qwik repo checkout (required to run benchmarks).
+ *   QWIK_SWC_BINDING_OVERRIDE — optional basename of the native binding shim
+ *     (e.g. `qwik.linux-x64-gnu.node`). When set, autodetect is skipped.
+ *
  * These tests are wrapped in describe.skip so they do NOT run during
  * the normal `npx vitest run` invocation. To run them explicitly:
  *   npx vitest run tests/benchmark/optimizer-benchmark.test.ts --no-file-parallelism
@@ -18,7 +23,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { relative } from 'node:path';
@@ -30,28 +34,71 @@ import * as process from "node:process";
 // Constants
 // ---------------------------------------------------------------------------
 
-const QWIK_PACKAGES_DIR = '/Users/jackshelton/dev/open-source/qwik/packages';
-const WORST_CASE_FILE =
-  '/Users/jackshelton/dev/open-source/qwik/packages/qwik/src/core/tests/component.spec.tsx';
+const QWIK_HOME = process.env.QWIK_HOME;
 
 const MONOREPO_RATIO_LIMIT = 1.15;
 const SINGLE_FILE_RATIO_LIMIT = 1.5;
 
 const WARMUP_RUNS = 1;
 const MEASURED_RUNS = 2;
-const QWIK_SWC_BINDING = process.env.QWIK_SWC_BINDING;
-if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
-    describe.skip('BENCH-00: QWIK_SWC_BINDING was not set, skipping benchmark tests.', () => {})
+
+
+if (!QWIK_HOME) {
+    describe.skip('BENCH-00: QWIK_HOME was not set, skipping benchmark tests.', () => { })
 } else {
-// ---------------------------------------------------------------------------
-// SWC binding (native NAPI module)
-// ---------------------------------------------------------------------------
+    /** Keep in sync with `$QWIK_HOME/packages/qwik/src/optimizer/src/qwik-binding-map.ts` (napi-rs triples). */
+    const QWIK_BINDING_MAP: Record<string, Record<string, { platformArchABI: string }[]>> = {
+        darwin: {
+            arm64: [{ platformArchABI: 'qwik.darwin-arm64.node' }],
+            x64: [{ platformArchABI: 'qwik.darwin-x64.node' }],
+        },
+        win32: {
+            x64: [{ platformArchABI: 'qwik.win32-x64-msvc.node' }],
+        },
+        linux: {
+            x64: [{ platformArchABI: 'qwik.linux-x64-gnu.node' }],
+        },
+    };
 
-    const swcBinding = require(QWIK_SWC_BINDING);
+    /**
+     * Basename of the binding shim under `packages/optimizer/bindings/<name>.js`
+     * (e.g. `qwik.darwin-arm64.node`).
+     */
+    function resolveQwikSwcBindingBasename(): string {
+        const override = process.env.QWIK_SWC_BINDING_OVERRIDE;
+        if (override !== undefined && override !== '') {
+            return override;
+        }
+        const { platform, arch } = process;
+        const byPlatform = QWIK_BINDING_MAP[platform];
+        if (!byPlatform) {
+            throw new Error(
+                `Unsupported platform "${platform}" for Qwik SWC binding autodetect. Set QWIK_SWC_BINDING_OVERRIDE.`,
+            );
+        }
+        const triples = byPlatform[arch];
+        if (!triples?.length) {
+            throw new Error(
+                `Unsupported architecture "${arch}" on "${platform}" for Qwik SWC binding autodetect. Set QWIK_SWC_BINDING_OVERRIDE.`,
+            );
+        }
+        return triples[0].platformArchABI;
+    }
 
-// ---------------------------------------------------------------------------
-// File discovery (cached)
-// ---------------------------------------------------------------------------
+    const QWIK_PACKAGES_DIR = `${QWIK_HOME}/packages`;
+    const WORST_CASE_FILE = `${QWIK_PACKAGES_DIR}/qwik/src/core/tests/component.spec.tsx`;
+    const qwikSwcBindingBasename = resolveQwikSwcBindingBasename();
+    const qwikSwcBindingPath = `${QWIK_PACKAGES_DIR}/optimizer/bindings/${qwikSwcBindingBasename}`;
+
+    // ---------------------------------------------------------------------------
+    // SWC binding (native NAPI module)
+    // ---------------------------------------------------------------------------
+
+    const swcBinding = require(qwikSwcBindingPath);
+
+    // ---------------------------------------------------------------------------
+    // File discovery (cached)
+    // ---------------------------------------------------------------------------
 
     let discoveredFiles: string[] | null = null;
 
@@ -60,7 +107,7 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
 
         const output = execSync(
             `find ${QWIK_PACKAGES_DIR} -type f \\( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \\) ! -path "*/node_modules/*" ! -path "*/dist/*" ! -path "*/.turbo/*"`,
-            {encoding: 'utf-8', maxBuffer: 50 * 1024 * 1024},
+            { encoding: 'utf-8', maxBuffer: 50 * 1024 * 1024 },
         );
 
         discoveredFiles = output
@@ -71,9 +118,9 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
         return discoveredFiles;
     }
 
-// ---------------------------------------------------------------------------
-// Input builders
-// ---------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------
+    // Input builders
+    // ---------------------------------------------------------------------------
 
     function buildTsInput(files: string[]): TransformModuleInput[] {
         return files.map((file) => ({
@@ -100,9 +147,9 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
         };
     }
 
-// ---------------------------------------------------------------------------
-// Timing helper — run N times, return minimum elapsed time in ms
-// ---------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------
+    // Timing helper — run N times, return minimum elapsed time in ms
+    // ---------------------------------------------------------------------------
 
     async function measureMinAsync(
         fn: () => Promise<unknown>,
@@ -129,9 +176,9 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
         return min;
     }
 
-// ---------------------------------------------------------------------------
-// BENCH-01: Full monorepo benchmark
-// ---------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------
+    // BENCH-01: Full monorepo benchmark
+    // ---------------------------------------------------------------------------
 
     const runBenchmarks = process.env['BENCH'] === '1';
     const describeFn = runBenchmarks ? describe : describe.skip;
@@ -142,7 +189,7 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
             async () => {
                 const files = discoverFiles();
                 const tsInput = buildTsInput(files);
-                const swcInput = tsInput.map((f) => ({path: f.path, code: f.code}));
+                const swcInput = tsInput.map((f) => ({ path: f.path, code: f.code }));
                 const swcOptions = buildSwcOptions(swcInput);
 
                 // Warmup both optimizers
@@ -152,7 +199,7 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
                         input: tsInput,
                         srcDir: QWIK_PACKAGES_DIR,
                         rootDir: QWIK_PACKAGES_DIR,
-                        entryStrategy: {type: 'segment'},
+                        entryStrategy: { type: 'segment' },
                         minify: 'simplify',
                         transpileTs: true,
                         transpileJsx: true,
@@ -174,7 +221,7 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
                             input: tsInput,
                             srcDir: QWIK_PACKAGES_DIR,
                             rootDir: QWIK_PACKAGES_DIR,
-                            entryStrategy: {type: 'segment'},
+                            entryStrategy: { type: 'segment' },
                             minify: 'simplify',
                             transpileTs: true,
                             transpileJsx: true,
@@ -206,9 +253,9 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
         );
     });
 
-// ---------------------------------------------------------------------------
-// BENCH-02: Worst-case single file benchmark
-// ---------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------
+    // BENCH-02: Worst-case single file benchmark
+    // ---------------------------------------------------------------------------
 
     describeFn('BENCH-02: worst-case single file benchmark', () => {
         it(
@@ -218,8 +265,8 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
                 const filePath = relative(QWIK_PACKAGES_DIR, WORST_CASE_FILE);
                 const lineCount = code.split('\n').length;
 
-                const tsInput: TransformModuleInput[] = [{path: filePath, code}];
-                const swcInput = [{path: filePath, code}];
+                const tsInput: TransformModuleInput[] = [{ path: filePath, code }];
+                const swcInput = [{ path: filePath, code }];
                 const swcOptions = buildSwcOptions(swcInput);
 
                 // Warmup both optimizers
@@ -229,7 +276,7 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
                         input: tsInput,
                         srcDir: QWIK_PACKAGES_DIR,
                         rootDir: QWIK_PACKAGES_DIR,
-                        entryStrategy: {type: 'segment'},
+                        entryStrategy: { type: 'segment' },
                         minify: 'simplify',
                         transpileTs: true,
                         transpileJsx: true,
@@ -251,7 +298,7 @@ if (!QWIK_SWC_BINDING || QWIK_SWC_BINDING === '') {
                             input: tsInput,
                             srcDir: QWIK_PACKAGES_DIR,
                             rootDir: QWIK_PACKAGES_DIR,
-                            entryStrategy: {type: 'segment'},
+                            entryStrategy: { type: 'segment' },
                             minify: 'simplify',
                             transpileTs: true,
                             transpileJsx: true,

@@ -519,6 +519,8 @@
       "tests/optimizer/extract.test.ts :: extractSegments has correct loc [line, col] from argument position",
       "tests/optimizer/extract.test.ts :: extractSegments includes the direct wrapper call name for bare $() segments",
       "tests/optimizer/extract.test.ts :: extractSegments inherits local wrapper call names for bare $() segments",
+      "tests/optimizer/extract.test.ts :: extractSegments inlinedQrl arrow body containing JSX flips extension via activeSegmentBodies (OSS-352)",
+      "tests/optimizer/extract.test.ts :: extractSegments inlinedQrl with no-JSX arrow body leaves extension as sourceExt (OSS-352)",
       "tests/optimizer/extract.test.ts :: extractSegments only includes imports referenced by the segment body",
       "tests/optimizer/extract.test.ts :: extractSegments sets ctxKind=\"function\" and ctxName=\"component$\" for component$",
       "tests/optimizer/failure-families.test.ts :: failure families categorizes all 209 snapshots into ordered families",
@@ -826,6 +828,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 696
+    "total": 698
   }
 }

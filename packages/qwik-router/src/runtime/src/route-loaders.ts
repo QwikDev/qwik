@@ -1,7 +1,9 @@
-import { implicit$FirstArg, isDev, isServer, type QRL } from '@qwik.dev/core';
+import * as qwikRouterConfig from '@qwik-router-config';
+import { implicit$FirstArg, isDev, isServer, type NoSerialize, type QRL } from '@qwik.dev/core';
 import {
   _deserialize,
   _getContextEvent,
+  _getContextContainer,
   _injectAsyncSignalValue,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
@@ -31,6 +33,7 @@ import type {
   LoaderOptions,
   RequestEvent,
   RequestEventLoader,
+  RouteNavigate,
   RouteModule,
   ValidatorReturn,
 } from './types';
@@ -69,16 +72,16 @@ export type LoaderResponse = {
  * a store that gets updated on navigation.
  *
  * - `loaderPaths`: loader ID → fetch path (the longest route path for that loader)
- * - `pageUrl`: the full page URL (used for search and the X-Qwik-fullpath header on fetch)
- * - `manifestHash`: the build manifest hash (part of the fetch URL)
+ * - `pagePathname` / `pageSearch`: client-only navigation state used for loader invalidation and
+ *   q-loader fetches. They are intentionally omitted from SSR state and fall back to `location`
+ *   until the first SPA navigation.
  */
 export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
-  pageUrl: URL;
-  manifestHash: string;
-  basePath: string;
-  /** SPA navigation function, set by the router component. noSerialize'd. */
-  goto?: (url: string) => void;
+  pagePathname?: string;
+  pageSearch?: string;
+  /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
+  goto?: NoSerialize<RouteNavigate>;
 };
 
 class ServerRouteLoaderCapture {
@@ -112,6 +115,17 @@ const isRequestEvent = (value: unknown): value is RequestEvent =>
 
 const isLoaderInternal = (value: unknown): value is LoaderInternal =>
   typeof value === 'function' && (value as LoaderInternal).__brand === 'server_loader';
+
+const getClientManifestHash = (ctx: unknown) => {
+  // We cheat and grab the internal signal of the AsyncJob
+  // Maybe we should expose .signal? Would be good for implementing channels
+  const container = (ctx as { $signal$?: { $container$?: unknown } }).$signal$?.$container$;
+  return (
+    (container as { qManifestHash?: string } | undefined)?.qManifestHash ||
+    (_getContextContainer() as { qManifestHash?: string } | undefined)?.qManifestHash ||
+    'dev'
+  );
+};
 
 /**
  * Fetch a single loader's data from the server.
@@ -175,7 +189,8 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
   const searchFilter = loader.__search;
   let lastFilteredSearch: string | undefined;
   return createAsync$(
-    async ({ track, info, previous, abortSignal }) => {
+    async (ctx) => {
+      const { track, info, previous, abortSignal } = ctx;
       // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
       // an action response). Skipping the track() calls below is safe: route loader
       // functions run on the server and have no access to client-side reactive state,
@@ -191,11 +206,15 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
       const id = capture as string;
       // Track reactive dependencies so the signal re-fetches when the route path changes
       const routePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
-      // Track the page URL — when search params are filtered, we still subscribe to
-      // pageUrl changes but skip the fetch if the filtered search hasn't changed.
-      const pageUrl = track(routeLoaderCtx, 'pageUrl') as URL;
-      const mHash = routeLoaderCtx.manifestHash;
-      const basePath = routeLoaderCtx.basePath;
+      // Track the client page path/search. These fields are only assigned on SPA navigation; before
+      // that, `location` is the source of truth and avoids serializing a duplicate URL in SSR state.
+      const pagePathname =
+        (track(routeLoaderCtx, 'pagePathname') as string | undefined) || location.pathname;
+      const pageSearch =
+        (track(routeLoaderCtx, 'pageSearch') as string | undefined) || location.search;
+      const pageUrl = new URL(pagePathname + pageSearch, location.href);
+      const mHash = getClientManifestHash(ctx);
+      const basePath = (qwikRouterConfig as any).basePathname ?? '/';
       // A loader that's never been on any route we've visited has no fetch path yet —
       // return whatever value it has (undefined on the very first run). In practice
       // this branch only fires on the initial client-side read for a loader that
@@ -398,9 +417,6 @@ export function getRouteLoaderCtx(requestEv: RequestEventBase): RouteLoaderCtx {
   if (!ctx) {
     ctx = {
       loaderPaths: {},
-      pageUrl: new URL(requestEv.url.href),
-      manifestHash: '',
-      basePath: requestEv.basePathname || '/',
     };
     requestEv.sharedMap.set(REQUEST_LOADER_PATHS_STORE, ctx);
   }
@@ -421,7 +437,10 @@ export const updateRouteLoaderPaths = (
   loaderPaths: Record<string, string> | undefined,
   pageUrl: URL
 ) => {
-  ctx.pageUrl = pageUrl;
+  if (!isServer) {
+    ctx.pagePathname = pageUrl.pathname;
+    ctx.pageSearch = pageUrl.search;
+  }
   if (loaderPaths) {
     for (const key in loaderPaths) {
       ctx.loaderPaths[key] = loaderPaths[key];
@@ -577,8 +596,11 @@ export const routeLoaderQrl = ((
 
   function loader() {
     const state = _resolveContextWithoutSequentialScope(RouteStateContext)!;
-    const routeLoaderCtx = _resolveContextWithoutSequentialScope(RouteLoaderCtxContext)!;
-    const signal = ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
+    let signal = state[loader.__id];
+    if (!signal) {
+      const routeLoaderCtx = _resolveContextWithoutSequentialScope(RouteLoaderCtxContext)!;
+      signal = ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
+    }
     void signal.promise();
     return signal;
   }

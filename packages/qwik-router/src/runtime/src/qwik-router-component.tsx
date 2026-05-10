@@ -213,10 +213,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
   const navResolver: { r?: () => void } = {};
-  // Set manifestHash/pageUrl here since they're not available during middleware execution
-  env.routeLoaderCtx.manifestHash = manifestHash || '';
-  env.routeLoaderCtx.pageUrl = url;
-  // deep: true so that changes to loaderPaths properties are tracked by AsyncSignal QRLs
+  // deep: true so that changes to loaderPaths and page path/search properties are tracked by
+  // AsyncSignal QRLs.
   const routeLoaderCtx = useStore(env.routeLoaderCtx);
   // Create AsyncSignals whose QRL closures capture the store proxy for client-side reactivity.
   // Then set .value from middleware-computed loader values (inert, non-reactive data).
@@ -237,7 +235,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
-    scroll: true,
   });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(() =>
     createDocumentHead(serverHead, manifestHash)
@@ -480,8 +477,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteLoaderCtxContext, routeLoaderCtx);
-  // Set goto on the loader context so async loader fetch can do SPA redirects
-  routeLoaderCtx.goto = goto as any;
   useContextProvider(RouteActionContext, actionState);
   useContextProvider<any>(RoutePreventNavigateContext, registerPreventNav);
 
@@ -572,6 +567,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
       const { $routeName$, $params$, $mods$, $menu$, $notFound$ } = loadedRoute;
       const contentModules = $mods$ as ContentModule[];
+      if (!isServer) {
+        routeLoaderCtx.goto = noSerialize(goto);
+      }
       updateRouteLoaderPaths(routeLoaderCtx, loadedRoute.$loaderPaths$, trackUrl);
       const routeLoaders = ensureRouteLoaderSignals(contentModules, loaderState, routeLoaderCtx);
       if (shouldInvalidateActionLoaders) {
@@ -645,14 +643,23 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         routeLocationTarget.params = $params$;
       }
 
-      routeInternal.untrackedValue = {
+      const nextRouteInternal: RouteStateInternal = {
         type: navType,
         dest: trackUrl,
-        forceReload: navigation.forceReload,
-        replaceState: navigation.replaceState,
-        scroll: navigation.scroll,
-        historyUpdated: navigation.historyUpdated,
       };
+      if (navigation.forceReload !== undefined) {
+        nextRouteInternal.forceReload = navigation.forceReload;
+      }
+      if (navigation.replaceState !== undefined) {
+        nextRouteInternal.replaceState = navigation.replaceState;
+      }
+      if (navigation.scroll !== undefined) {
+        nextRouteInternal.scroll = navigation.scroll;
+      }
+      if (navigation.historyUpdated !== undefined) {
+        nextRouteInternal.historyUpdated = navigation.historyUpdated;
+      }
+      routeInternal.untrackedValue = nextRouteInternal;
 
       // Update content.
       // IMPORTANT: contentInternal must use .untrackedValue, NOT .value. Subscribers

@@ -187,7 +187,7 @@ Top-level entry is `transformModule` at `src/optimizer/transform/index.ts:90`. T
 | 5 | `transform/index.ts:532` | Emit one module per non-stripped segment | `generateAllSegmentModules` in `transform/segment-generation.ts` (34-line sequencer over named helpers per OSS-356/357/358 — see SPEC at `.planning/specs/segment-generation-refactor.md`) |
 | 6 | `transform/index.ts:610` | Apply diagnostic suppression directives | (lightweight cleanup) |
 
-The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1017`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireTopLevelMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
+The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1017`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
 
 Phase 5's per-segment work flows through `generateSegmentCode` (`segment-codegen.ts:528` — refactored in OSS-346 into a 9-phase sequencer with extracted helpers `collectInitialImports` and `applyBodyTransforms`) followed by `postProcessSegmentCode` (`transform/post-process.ts:163`).
 
@@ -771,7 +771,7 @@ actual.captures !== expected.captures
 | All-segments setup (Prep) | `src/optimizer/transform/segment-generation.ts:319` (`computeSegmentGenerationPrep`) |
 | Inline-strategy segment builder | `src/optimizer/transform/segment-generation.ts:407` (`buildInlineStrategySegment`) |
 | Default-strategy segment builder | `src/optimizer/transform/segment-generation.ts:817` (`buildDefaultStrategySegment`) |
-| Migration wiring (top-level segments) | `src/optimizer/transform/segment-generation.ts:558` (`wireTopLevelMigration`) |
+| Migration wiring (top-level + nested) | `src/optimizer/transform/segment-generation.ts:562` (`wireMigration`) |
 | Nested call-site builder | `src/optimizer/transform/segment-generation.ts:698` (`buildNestedCallSites`) |
 | Nested QRL declarations | `src/optimizer/transform/segment-generation.ts:474` (`buildNestedQrlDeclarations`) |
 | Raw-props consolidation (shared) | `src/optimizer/transform/segment-generation.ts:288` (`consolidateRawPropsCaptures`) |

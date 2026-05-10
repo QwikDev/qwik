@@ -532,12 +532,16 @@ export function buildNestedQrlDeclarations(
 
 /**
  * Wire migration data (auto-imports, moved declarations, capture filtering,
- * capture/param reconciliation) into `captureInfo` and `ext` for a top-level
- * segment.
+ * capture/param reconciliation) into `captureInfo` and `ext`.
  *
- * Caller-side precondition: only invoked when
- * `ext.parent === null && !ext.isInlinedQrl`. The helper does not re-check
- * this; behaviour is undefined if called for a non-top-level extraction.
+ * Applies to both top-level and nested segments. Per-segment matching is keyed
+ * by `migrationKey` (`preRenameSymbolName.get(ext.symbolName) ?? ext.symbolName`),
+ * so a `move` decision targeting a nested segment lands its declaration in
+ * that nested segment's file rather than its parent.
+ *
+ * Caller-side precondition: only invoked when `!ext.isInlinedQrl`.
+ * `inlinedQrl` extractions skip migration wiring because their capture list
+ * is pre-baked by the upstream tool.
  *
  * **Mutation surface (preserved verbatim from the pre-OSS-357 inline form):**
  * - `captureInfo.autoImports` — `push`'d once per applicable `reexport`
@@ -555,7 +559,7 @@ export function buildNestedQrlDeclarations(
  * preRenameSymbolName}` and `prep.{sameFileSymbols, defaultExportedNames,
  * renamedExports}`.
  */
-export function wireTopLevelMigration(
+export function wireMigration(
   ext: ExtractionResult,
   captureInfo: SegmentCaptureInfo,
   ctx: SegmentGenerationContext,
@@ -874,9 +878,11 @@ export function buildDefaultStrategySegment(
     captureInfo.captureNames = ext.captureNames;
   }
 
-  // For top-level segments (no parent): wire migration info
-  if (ext.parent === null && !ext.isInlinedQrl) {
-    wireTopLevelMigration(ext, captureInfo, ctx, prep);
+  // Wire migration info for both top-level and nested segments. Per-segment
+  // matching is keyed by migrationKey, so a move decision targeting a nested
+  // segment lands its declaration in that nested segment's file (F4).
+  if (!ext.isInlinedQrl) {
+    wireMigration(ext, captureInfo, ctx, prep);
   }
 
   const nestedCallSites = buildNestedCallSites(

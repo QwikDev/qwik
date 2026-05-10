@@ -14,6 +14,7 @@ export type {
   ChainExpression,
   Class,
   Declaration,
+  Directive,
   DoWhileStatement,
   ExportNamedDeclaration,
   ExportSpecifier,

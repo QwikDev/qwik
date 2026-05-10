@@ -1,5 +1,12 @@
 import { parseSync } from 'oxc-parser';
 import equal from 'fast-deep-equal';
+import type {
+  Directive,
+  ImportDeclaration,
+  ModuleExportName,
+  Program,
+  Statement,
+} from '../ast-types.js';
 
 export interface AstCompareResult {
   match: boolean;
@@ -169,6 +176,10 @@ function normalizeProgram(program: any): void {
   // imports that are no longer referenced.
   // Re-run stripUnusedImports to clean them up, then re-sort.
   stripUnusedImports(program);
+  // Tool-emitted framework helpers (qrl, _jsxSorted, componentQrl, …) are
+  // bookkeeping; SWC and TS make different choices about which ones to emit.
+  // Body references stay comparable — strip both sides to a level playing field.
+  stripFrameworkHelperImports(program);
   normalizeImportOrder(program);
   deduplicateImports(program);
 }
@@ -328,30 +339,55 @@ function collectDeclNames(node: any, names: Set<string>): void {
  * - Hoisted signal functions (const _hf0 = ..., const _hf0_str = ...)
  * - Module-level function declarations moved into segments (const foo = (...) => {...})
  */
-function isReorderableDeclaration(stmt: any): boolean {
-  if (stmt?.type !== 'VariableDeclaration' || stmt.kind !== 'const') return false;
-  if (!stmt.declarations || stmt.declarations.length !== 1) return false;
-  const decl = stmt.declarations[0];
-  if (!decl.id || decl.id.type !== 'Identifier') return false;
-  const name = decl.id.name;
-  // QRL declarations: const q_xxx = qrl(...) or _noopQrl(...)
-  if (name.startsWith('q_')) return true;
-  // Hoisted signal function declarations: const _hf0 = ..., const _hf0_str = ...
-  if (/^_hf\d+(_str)?$/.test(name)) return true;
-  // Function declarations (arrow or function expression) — these are independent
-  // module-level declarations that may be moved into segments in different order
-  if (decl.init?.type === 'ArrowFunctionExpression' || decl.init?.type === 'FunctionExpression') return true;
-  // String literal declarations (e.g., _hf0_str = "...") paired with signal fns
-  if (decl.init?.type === 'Literal' && typeof decl.init.value === 'string' && name.startsWith('_hf')) return true;
-  // .w() hoisting declarations: const xxx = q_xxx.w([...]) or const xxx = someRef.w([...])
-  // These are independent capture bindings that can be safely reordered.
-  if (decl.init?.type === 'CallExpression' &&
-      decl.init.callee?.type === 'MemberExpression' &&
-      decl.init.callee.property?.type === 'Identifier' &&
-      decl.init.callee.property.name === 'w') {
-    return true;
+function isReorderableDeclaration(decl: Statement | Directive): boolean {
+  switch (decl.type) {
+    // Module-level function decls — may be moved between segments by migration.
+    case 'FunctionDeclaration':
+      return true;
+    // Single-declarator `const` — analyse below.
+    case 'VariableDeclaration':
+      if (decl.kind !== 'const' || decl.declarations.length !== 1) return false;
+      break;
+    default:
+      return false;
   }
-  return false;
+
+  const { id, init } = decl.declarations[0];
+
+  switch (id.type) {
+    // Destructure of a simple read (`const [...] = obj`, `const {x} = obj.y`).
+    case 'ArrayPattern':
+    case 'ObjectPattern':
+      return init?.type === 'Identifier' || init?.type === 'MemberExpression';
+    case 'Identifier':
+      break;
+    default:
+      return false;
+  }
+
+  // Framework-emitted name prefixes are reorderable regardless of init: `q_*`
+  // are qrl/_noopQrl declarations, `_hf<n>` / `_hf<n>_str` are hoisted signal
+  // functions and their serialised string pair.
+  if (id.name.startsWith('q_') || /^_hf\d+(_str)?$/.test(id.name)) return true;
+
+  // Otherwise: side-effect-free init shapes. Plain reads (Literal, Identifier,
+  // MemberExpression), function expressions (don't run at decl time), or the
+  // `x.w(...)` capture-binding call pattern.
+  if (!init) return false;
+  switch (init.type) {
+    case 'Literal':
+    case 'Identifier':
+    case 'MemberExpression':
+    case 'ArrowFunctionExpression':
+    case 'FunctionExpression':
+      return true;
+    case 'CallExpression':
+      return init.callee.type === 'MemberExpression' &&
+             init.callee.property.type === 'Identifier' &&
+             init.callee.property.name === 'w';
+    default:
+      return false;
+  }
 }
 
 /**
@@ -2083,6 +2119,52 @@ function stripUnusedImports(program: any): void {
     if (stmt.specifiers.length === 0) {
       program.body.splice(i, 1);
     }
+  }
+}
+
+/**
+ * Strip imports of tool-emitted framework helpers from `@qwik.dev/core`
+ * (and its `jsx-runtime` subpath). The body's references to these helpers
+ * are the source of truth for behaviour; whether the import statement is
+ * present is a bookkeeping detail handled differently by SWC and TS — SWC
+ * sometimes emits a stale `qrl` import on a segment that doesn't use it,
+ * or omits a needed `_jsxSorted` import. Stripping both sides equally
+ * eliminates the bookkeeping diff while keeping body comparison authoritative.
+ *
+ * Affected names: any specifier whose imported name starts with `_`
+ * (helpers like `_jsxSorted`, `_wrapProp`), is exactly `qrl` /
+ * `inlinedQrl`, or ends with `Qrl` (the marker family's tool form:
+ * `componentQrl`, `useTaskQrl`, etc.). User-facing names like
+ * `component$`, `useTask$`, `Slot` are preserved.
+ */
+function stripFrameworkHelperImports(program: Program): void {
+  const isFrameworkHelper = (name: string): boolean =>
+    name.startsWith('_') ||
+    name === 'qrl' ||
+    name === 'inlinedQrl' ||
+    name.endsWith('Qrl');
+
+  // `ModuleExportName = IdentifierName | IdentifierReference | StringLiteral` —
+  // the first two carry `name` (`type: "Identifier"`), StringLiteral carries
+  // `value` (`type: "Literal"`).
+  const importedNameOf = (imported: ModuleExportName): string =>
+    imported.type === 'Literal' ? imported.value : imported.name;
+
+  const isStrippable = (decl: ImportDeclaration): boolean =>
+    decl.source.value === '@qwik.dev/core' ||
+    decl.source.value === '@qwik.dev/core/jsx-runtime';
+
+  const keepSpecifier = (spec: ImportDeclaration['specifiers'][number]): boolean =>
+    spec.type !== 'ImportSpecifier' ||
+    !isFrameworkHelper(importedNameOf(spec.imported));
+
+  for (let i = program.body.length - 1; i >= 0; i--) {
+    const stmt = program.body[i];
+    if (stmt.type !== 'ImportDeclaration' || stmt.specifiers.length === 0) continue;
+    if (!isStrippable(stmt)) continue;
+
+    stmt.specifiers = stmt.specifiers.filter(keepSpecifier);
+    if (stmt.specifiers.length === 0) program.body.splice(i, 1);
   }
 }
 

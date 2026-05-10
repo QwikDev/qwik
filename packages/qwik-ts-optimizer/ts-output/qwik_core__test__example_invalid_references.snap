@@ -28,6 +28,7 @@ export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
 import { _jsxSorted } from "@qwik.dev/core";
 //
+class I10 {}
 export const App_component_1_w0t0o3QMovU = () => {
 		return (
 			/*#__PURE__*/ _jsxSorted(I10, null, null, null, 3, "u6_0")

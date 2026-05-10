@@ -41,14 +41,15 @@ export const loadRoute = async (
   const modules: RouteModule[] = new Array(loaders.length);
   const pendingLoads: Promise<any>[] = [];
 
-  loaders.forEach((moduleLoader, i) => {
+  for (let i = 0; i < loaders.length; i++) {
+    const moduleLoader = loaders[i];
     loadModule<RouteModule>(
       moduleLoader,
       pendingLoads,
       (routeModule) => (modules[i] = routeModule),
       cacheModules
     );
-  });
+  }
 
   let menu: ContentMenu | undefined = undefined;
   loadModule<MenuModule>(
@@ -127,12 +128,14 @@ function walkTrieKeys(
   if (node._L) {
     layouts.push(node._L);
   }
-  for (const key of keys) {
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
     let next = node[key] as RouteData | undefined;
 
     // If not a direct child, search inside _M group nodes
     if (!next && node._M) {
-      for (const group of node._M) {
+      for (let j = 0; j < node._M.length; j++) {
+        const group = node._M[j];
         next = group[key] as RouteData | undefined;
         if (next) {
           // Collect the group's layout
@@ -182,7 +185,8 @@ function resolveLoaders(
     if (!targetNode._I && targetNode._G == null) {
       const indexResult = findIndexNode(targetNode);
       if (indexResult) {
-        for (const g of indexResult.groups) {
+        for (let j = 0; j < indexResult.groups.length; j++) {
+          const g = indexResult.groups[j];
           if (g._L) {
             targetLayouts.push(g._L);
           }
@@ -232,14 +236,16 @@ function collectNodeMeta(
   loaderPathsByHash?: Record<string, string>,
   matchedPathname = '/'
 ) {
-  for (const g of groups) {
+  for (let j = 0; j < groups.length; j++) {
+    const g = groups[j];
     if (g._L) {
       layouts.push(g._L);
     }
     if (g._R && loaderHashes) {
       loaderHashes.push(...g._R);
       if (loaderPathsByHash) {
-        for (const hash of g._R) {
+        for (let i = 0; i < g._R.length; i++) {
+          const hash = g._R[i];
           loaderPathsByHash[hash] = matchedPathname;
         }
       }
@@ -260,7 +266,8 @@ function collectNodeMeta(
   if (node._R && loaderHashes) {
     loaderHashes.push(...node._R);
     if (loaderPathsByHash) {
-      for (const hash of node._R) {
+      for (let i = 0; i < node._R.length; i++) {
+        const hash = node._R[i];
         loaderPathsByHash[hash] = matchedPathname;
       }
     }
@@ -302,7 +309,8 @@ function findChild(
   //    Groups can have their own exact matches and wildcards, so check them
   //    before this node's wildcards.
   if (node._M) {
-    for (const group of node._M) {
+    for (let j = 0; j < node._M.length; j++) {
+      const group = node._M[j];
       const groupResult = findChild(group, part, partLower, parts, partIndex, params);
       if (groupResult) {
         // Prepend this group to the groups chain
@@ -376,7 +384,8 @@ function findIndexNode(node: RouteData): { target: RouteData; groups: RouteData[
     return { target: node, groups: [] };
   }
   if (node._M) {
-    for (const group of node._M) {
+    for (let j = 0; j < node._M.length; j++) {
+      const group = node._M[j];
       const result = findIndexNode(group);
       if (result) {
         // Only add the group to the chain if it's not already the target
@@ -400,7 +409,8 @@ function findRestNode(node: RouteData): { next: RouteData; groups: RouteData[] }
     return { next: node._A as RouteData, groups: [] };
   }
   if (node._M) {
-    for (const group of node._M) {
+    for (let j = 0; j < node._M.length; j++) {
+      const group = node._M[j];
       const result = findRestNode(group);
       if (result) {
         result.groups.unshift(group);
@@ -454,7 +464,8 @@ function matchRouteTree(
   }
   if (root._R) {
     loaderHashes.push(...root._R);
-    for (const hash of root._R) {
+    for (let i = 0; i < root._R.length; i++) {
+      const hash = root._R[i];
       loaderPathsByHash[hash] = '/';
     }
   }
@@ -676,7 +687,8 @@ function matchRouteTree(
   if (node._R) {
     loaderHashes.push(...node._R);
     const matchedPathname = ensureSlash(pathname);
-    for (const hash of node._R) {
+    for (let i = 0; i < node._R.length; i++) {
+      const hash = node._R[i];
       loaderPathsByHash[hash] = matchedPathname;
     }
   }

@@ -20,6 +20,7 @@ import type {
 import type * as v from 'valibot';
 import type * as z from 'zod';
 import type { Q_ROUTE } from './constants';
+import type { RouteLoaderCtx } from './route-loaders';
 
 export type {
   Cookie,
@@ -449,7 +450,7 @@ export interface QwikRouterEnvData {
   params: PathParams;
   response: EndpointResponse;
   loadedRoute: LoadedRoute;
-  routeLoaderCtx: import('./route-loaders').RouteLoaderCtx;
+  routeLoaderCtx: RouteLoaderCtx;
   loaderValues: Record<string, unknown>;
 }
 

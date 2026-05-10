@@ -6,7 +6,7 @@
  * final output assembly with TS type stripping.
  */
 
-import { transformSync as oxcTransformSync } from 'oxc-transform';
+import { transformSync as oxcTransformSync, type TransformOptions } from 'oxc-transform';
 import { createRegExp, exactly, wordBoundary } from 'magic-regexp';
 import type { ExtractionResult } from '../extract.js';
 import type { ImportInfo } from '../marker-detection.js';
@@ -504,7 +504,7 @@ export function assembleOutput(ctx: RewriteContext): string {
   }
 
   if (transpileTs) {
-    const tsStripOptions: Record<string, any> = { typescript: { onlyRemoveTypeImports: false } };
+    const tsStripOptions: TransformOptions = { typescript: { onlyRemoveTypeImports: false } };
     if (!jsxOptions?.enableJsx) {
       tsStripOptions.jsx = 'preserve';
     }

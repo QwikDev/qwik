@@ -8,7 +8,9 @@
 import { createRegExp, exactly, oneOrMore, anyOf, digit, whitespace, charNotIn } from 'magic-regexp';
 import { analyzeSignalExpression, type SignalHoister } from '../signal-analysis.js';
 import { classifyConstness } from './jsx.js';
-import type { JSXChild } from '../../ast-types.js';
+import type { JSXChild, JSXElement, JSXExpressionContainer, JSXFragment } from '../../ast-types.js';
+
+type AnnotatedJSXChild = JSXChild & { _trimmedText?: string };
 
 const jsxFlagTail = createRegExp(
   exactly(',').and(whitespace.times.any()).and(oneOrMore(digit).grouped())
@@ -67,7 +69,7 @@ export function normalizeJsxChildren(children: JSXChild[]): (JSXChild & { _trimm
     if (!hasNewline) {
       const prevSibling = meaningful.length > 0 ? meaningful[meaningful.length - 1] : null;
       const nextSibling = children.slice(i + 1).find(
-        (c: any) => c.type !== 'JSXText' || c.value?.trim(),
+        (c: JSXChild) => c.type !== 'JSXText' || c.value.trim(),
       );
       if (
         prevSibling && nextSibling &&
@@ -141,15 +143,15 @@ function hasStaticSubtreeFlag(transformedText: string): boolean {
  * SWC propagates dynamic status upward through the JSX tree.
  */
 function classifyNestedJsxChild(
-  child: any,
+  child: JSXElement | JSXFragment,
   childText: string,
 ): 'static' | 'dynamic' {
   if (child.type === 'JSXFragment') {
     return hasStaticSubtreeFlag(childText) ? 'static' : 'dynamic';
   }
 
-  const tagName = child.openingElement?.name;
-  const tagStr = tagName?.type === 'JSXIdentifier' ? tagName.name : '';
+  const tagName = child.openingElement.name;
+  const tagStr = tagName.type === 'JSXIdentifier' ? tagName.name : '';
   const isComponent = tagStr.length > 0 && tagStr[0] === tagStr[0].toUpperCase() && tagStr[0] !== tagStr[0].toLowerCase();
   if (isComponent) return 'dynamic';
 
@@ -160,7 +162,7 @@ function classifyNestedJsxChild(
 }
 
 function processOneChild(
-  child: any,
+  child: AnnotatedJSXChild,
   source: string,
   s?: import('magic-string').default,
   importedNames?: Set<string>,
@@ -174,7 +176,7 @@ function processOneChild(
   }
 
   if (child.type === 'JSXText') {
-    const trimmed = child.value?.trim();
+    const trimmed = child.value.trim();
     if (!trimmed) return { text: null, type: 'none' };
     return { text: `"${trimmed}"`, type: 'static' };
   }
@@ -194,7 +196,7 @@ function processOneChild(
 
 /** Process a JSX expression container child ({expr}). */
 function processExpressionChild(
-  child: any,
+  child: JSXExpressionContainer,
   source: string,
   s?: import('magic-string').default,
   importedNames?: Set<string>,
@@ -210,14 +212,13 @@ function processExpressionChild(
 
   const exprText = s ? s.slice(expr.start, expr.end) : source.slice(expr.start, expr.end);
 
+  // Runtime emits all four literal interfaces (String/Numeric/Boolean/Null)
+  // under one `'Literal'` discriminant; narrow on `.value`'s primitive type.
   if (
-    expr.type === 'StringLiteral' ||
-    expr.type === 'NumericLiteral' ||
-    expr.type === 'BooleanLiteral' ||
-    (expr.type === 'Literal' &&
-      (typeof expr.value === 'string' ||
-        typeof expr.value === 'number' ||
-        typeof expr.value === 'boolean'))
+    expr.type === 'Literal' &&
+    (typeof expr.value === 'string' ||
+      typeof expr.value === 'number' ||
+      typeof expr.value === 'boolean')
   ) {
     return { text: exprText, type: 'static' };
   }

@@ -83,21 +83,25 @@ export function forEachAstChild(
 ): void {
   if (!node || typeof node !== "object") return;
 
-  for (const key of Object.keys(node)) {
+  // `node` may be either the strict oxc `Node` union or the loose
+  // `AstCompatNode` shape; the loop only needs string-indexable access
+  // and the children get re-validated via `isAstNode` before dispatch.
+  const compat = node as AstCompatNode;
+  for (const key of Object.keys(compat)) {
     if (skipKeys.has(key)) continue;
 
-    const value = node[key];
+    const value = compat[key];
     if (!value || typeof value !== "object") continue;
 
     if (Array.isArray(value)) {
       for (const item of value) {
-        if (isAstNode(item)) visitor(item, key, node);
+        if (isAstNode(item)) visitor(item, key, compat);
       }
       continue;
     }
 
     if (isAstNode(value)) {
-      visitor(value, key, node);
+      visitor(value, key, compat);
     }
   }
 }

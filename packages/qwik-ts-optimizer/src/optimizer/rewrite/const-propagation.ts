@@ -12,11 +12,19 @@
 
 import { parseSync } from 'oxc-parser';
 import { forEachAstChild } from '../utils/ast.js';
-import { RAW_TRANSFER_PARSER_OPTIONS, type AstFunction } from '../../ast-types.js';
+import {
+  RAW_TRANSFER_PARSER_OPTIONS,
+  type AstCompatNode,
+  type AstFunction,
+  type AstNode,
+  type Expression,
+  type VariableDeclarator,
+} from '../../ast-types.js';
 
-// Walker functions traverse arbitrary OXC AST node shapes (including runtime-only
-// types like StringLiteral, StaticMemberExpression) not in @oxc-project/types.
-// Walker parameters use `any` since the strict Node union doesn't cover these.
+// Walker parameters: `AstNode | null | undefined` matches what `forEachAstChild`
+// passes through and lets discriminated-union narrowing (`node.type === 'X'`)
+// type the field accesses below. `parentNode` uses `AstCompatNode` to match
+// `forEachAstChild`'s callback signature exactly.
 
 export function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<string, string> {
   const result = new Map<string, string>();
@@ -30,16 +38,16 @@ export function resolveConstLiterals(parentBody: string, captureNames: string[])
   const offset = wrapperPrefix.length;
   const captureSet = new Set(captureNames);
 
-  function walkNode(node: any): void {
-    if (!node || typeof node !== 'object') return;
+  function walkNode(node: AstNode | null | undefined): void {
+    if (!node) return;
 
     if (node.type !== 'VariableDeclaration' || node.kind !== 'const') {
-      forEachAstChild(node, (child) => walkNode(child));
+      forEachAstChild(node, (child) => walkNode(child as AstNode));
       return;
     }
 
-    for (const decl of node.declarations ?? []) {
-      if (decl.id?.type !== 'Identifier' || !captureSet.has(decl.id.name) || !decl.init) continue;
+    for (const decl of node.declarations) {
+      if (decl.id.type !== 'Identifier' || !captureSet.has(decl.id.name) || !decl.init) continue;
       const init = decl.init;
       if (!isLiteralNode(init)) continue;
       const literalStart = init.start - offset;
@@ -49,7 +57,7 @@ export function resolveConstLiterals(parentBody: string, captureNames: string[])
       }
     }
 
-    forEachAstChild(node, (child) => walkNode(child));
+    forEachAstChild(node, (child) => walkNode(child as AstNode));
   }
 
   walkNode(parseResult.program);
@@ -76,16 +84,16 @@ export function resolveConstLiteralsInClosure(
 
   const captureSet = new Set(captureNames);
 
-  function walkNode(node: any): void {
-    if (!node || typeof node !== 'object') return;
+  function walkNode(node: AstNode | null | undefined): void {
+    if (!node) return;
 
     if (node.type !== 'VariableDeclaration' || node.kind !== 'const') {
-      forEachAstChild(node, (child) => walkNode(child));
+      forEachAstChild(node, (child) => walkNode(child as AstNode));
       return;
     }
 
-    for (const decl of node.declarations ?? []) {
-      if (decl.id?.type !== 'Identifier' || !captureSet.has(decl.id.name) || !decl.init) continue;
+    for (const decl of node.declarations) {
+      if (decl.id.type !== 'Identifier' || !captureSet.has(decl.id.name) || !decl.init) continue;
       const init = decl.init;
       if (!isLiteralNode(init)) continue;
       if (init.start >= 0 && init.end <= source.length) {
@@ -93,7 +101,7 @@ export function resolveConstLiteralsInClosure(
       }
     }
 
-    forEachAstChild(node, (child) => walkNode(child));
+    forEachAstChild(node, (child) => walkNode(child as AstNode));
   }
 
   walkNode(closureNode.body);
@@ -113,13 +121,16 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
   const offset = wrapperPrefix.length;
   const replacements: Array<{ start: number; end: number; value: string }> = [];
 
-  function walkNode(node: any, parentKey?: string, parentNode?: any): void {
-    if (!node || typeof node !== 'object') return;
+  function walkNode(node: AstNode | null | undefined, parentKey?: string, parentNode?: AstCompatNode): void {
+    if (!node) return;
 
     if (node.type === 'Identifier' && constValues.has(node.name)) {
-      const isDeclId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
-      const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
-      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed;
+      const parentType = parentNode?.type;
+      const isDeclId = parentKey === 'id' && parentType === 'VariableDeclarator';
+      const isPropertyKey = parentKey === 'key' && (parentType === 'Property' || parentType === 'ObjectProperty');
+      const isMemberProp = parentKey === 'property' &&
+        (parentType === 'MemberExpression' || parentType === 'StaticMemberExpression') &&
+        !parentNode?.computed;
 
       if (!isDeclId && !isPropertyKey && !isMemberProp) {
         replacements.push({
@@ -131,7 +142,7 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
     }
 
     forEachAstChild(node, (child, key, parent) => {
-      walkNode(child, key, parent);
+      walkNode(child as AstNode, key, parent);
     });
   }
 
@@ -150,7 +161,7 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
 interface ConstDecl {
   name: string;
   initText: string;
-  initNode: any;
+  initNode: Expression;
   stmtStart: number;
   stmtEnd: number;
   isLiteral: boolean;
@@ -170,10 +181,13 @@ interface IdentRef {
 // ── Helpers ──
 
 /** Check if a ref is a "real" reference (not a decl id, property key, or non-computed member prop). */
-function isRealRef(parentKey: string | undefined, parentNode: any): boolean {
-  if (parentKey === 'id' && parentNode?.type === 'VariableDeclarator') return false;
-  if (parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty')) return false;
-  if (parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode?.computed) return false;
+function isRealRef(parentKey: string | undefined, parentNode: AstCompatNode | undefined): boolean {
+  const parentType = parentNode?.type;
+  if (parentKey === 'id' && parentType === 'VariableDeclarator') return false;
+  if (parentKey === 'key' && (parentType === 'Property' || parentType === 'ObjectProperty')) return false;
+  if (parentKey === 'property' &&
+      (parentType === 'MemberExpression' || parentType === 'StaticMemberExpression') &&
+      !parentNode?.computed) return false;
   return true;
 }
 
@@ -181,52 +195,36 @@ function isRealRef(parentKey: string | undefined, parentNode: any): boolean {
  * Check if an AST init expression is side-effect-free (safe to inline).
  * Only allows simple member access chains and identifiers.
  */
-function isSimpleSideEffectFree(node: any): boolean {
-  if (!node || typeof node !== 'object') return false;
+function isSimpleSideEffectFree(node: AstNode | null | undefined): boolean {
+  if (!node) return false;
   switch (node.type) {
     case 'Identifier':
       return !node.name.startsWith('_');
-    case 'StringLiteral':
     case 'Literal':
-    case 'NumericLiteral':
-    case 'BooleanLiteral':
-    case 'NullLiteral':
+      // Runtime emits all four literal interfaces (String/Numeric/Boolean/
+      // Null) under the same `'Literal'` discriminant.
       return true;
     case 'MemberExpression':
-    case 'StaticMemberExpression':
+      // Runtime emits all three member-expression interfaces (Computed,
+      // Static, PrivateField) under the same `'MemberExpression'`
+      // discriminant; all three carry `.object`.
       return isSimpleSideEffectFree(node.object);
-    case 'ComputedMemberExpression':
-      return isSimpleSideEffectFree(node.object) && isSimpleSideEffectFree(node.property);
     default:
       return false;
   }
 }
 
-function isLiteralNode(node: any): boolean {
-  return node.type === 'StringLiteral' || node.type === 'Literal' ||
-    node.type === 'NumericLiteral' || node.type === 'BooleanLiteral' ||
-    node.type === 'NullLiteral';
+function isLiteralNode(node: AstNode): boolean {
+  return node.type === 'Literal';
 }
 
 /** Collect all identifier names referenced in a subtree. */
-function collectIdentifiers(node: any): string[] {
+function collectIdentifiers(node: AstNode): string[] {
   const ids: string[] = [];
-  function walk(n: any): void {
-    if (!n || typeof n !== 'object') return;
+  function walk(n: AstNode | null | undefined): void {
+    if (!n) return;
     if (n.type === 'Identifier') { ids.push(n.name); return; }
-    for (const key of Object.keys(n)) {
-      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-      const val = n[key];
-      if (val && typeof val === 'object') {
-        if (Array.isArray(val)) {
-          for (const item of val) {
-            if (item && typeof item.type === 'string') walk(item);
-          }
-        } else if (typeof val.type === 'string') {
-          walk(val);
-        }
-      }
-    }
+    forEachAstChild(n, (child) => walk(child as AstNode));
   }
   walk(node);
   return ids;
@@ -253,19 +251,19 @@ export function propagateConstLiteralsInBody(body: string): string {
 
   let currentDeclName: string | null = null;
 
-  function walkCollect(node: any, parentKey?: string, parentNode?: any): void {
-    if (!node || typeof node !== 'object') return;
+  function walkCollect(node: AstNode | null | undefined, parentKey?: string, parentNode?: AstCompatNode): void {
+    if (!node) return;
 
     if (node.type === 'VariableDeclaration' && (node.kind === 'let' || node.kind === 'var')) {
-      for (const decl of node.declarations ?? []) {
-        if (decl.id?.type === 'Identifier') mutableVars.add(decl.id.name);
+      for (const decl of node.declarations) {
+        if (decl.id.type === 'Identifier') mutableVars.add(decl.id.name);
       }
     }
 
     if (node.type === 'VariableDeclaration' && node.kind === 'const' &&
-        node.declarations?.length === 1) {
+        node.declarations.length === 1) {
       const decl = node.declarations[0];
-      if (decl.id?.type === 'Identifier' && decl.init) {
+      if (decl.id.type === 'Identifier' && decl.init) {
         const init = decl.init;
         const initStart = init.start - offset;
         const initEnd = init.end - offset;
@@ -287,7 +285,7 @@ export function propagateConstLiteralsInBody(body: string): string {
           const savedDeclName = currentDeclName;
           currentDeclName = decl.id.name;
           forEachAstChild(init, (child, key, parent) => {
-            walkCollect(child, key, parent);
+            walkCollect(child as AstNode, key, parent);
           });
           currentDeclName = savedDeclName;
           return;
@@ -309,7 +307,7 @@ export function propagateConstLiteralsInBody(body: string): string {
     }
 
     forEachAstChild(node, (child, key, parent) => {
-      walkCollect(child, key, parent);
+      walkCollect(child as AstNode, key, parent);
     });
   }
 

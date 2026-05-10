@@ -9,7 +9,7 @@
 import type MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
 import { forEachAstChild } from '../utils/ast.js';
-import type { AstProgram, JSXElementName } from '../../ast-types.js';
+import type { AstNode, AstProgram, Expression, JSXElementName, VariableDeclarator } from '../../ast-types.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { collectPassiveDirectives } from './event-handlers.js';
 import { detectLoopContext, type LoopContext } from '../loop-hoisting.js';
@@ -53,17 +53,11 @@ export function isConstBindingName(
   return importedNames.has(name) || (constIdents?.has(name) ?? false);
 }
 
-function isReturnStatic(init: any): boolean {
+function isReturnStatic(init: Expression | null | undefined): boolean {
   if (!init) return true;
-  if (init.type === 'CallExpression' && init.callee) {
-    const callee = init.callee;
-    let calleeName: string | undefined;
-    if (callee.type === 'Identifier') {
-      calleeName = callee.name;
-    }
-    if (calleeName) {
-      return calleeName.endsWith('$') || calleeName.endsWith('Qrl') || calleeName.startsWith('use');
-    }
+  if (init.type === 'CallExpression' && init.callee.type === 'Identifier') {
+    const calleeName = init.callee.name;
+    return calleeName.endsWith('$') || calleeName.endsWith('Qrl') || calleeName.startsWith('use');
   }
   return false;
 }
@@ -75,39 +69,37 @@ function isReturnStatic(init: any): boolean {
 export function collectConstBindings(program: AstProgram): Set<string> {
   const constBindings = new Set<string>();
 
-  function visitNode(node: any): void {
-    if (!node || typeof node !== 'object') return;
+  function visitNode(node: AstNode | null | undefined): void {
+    if (!node) return;
 
     if (node.type === 'VariableDeclaration' && node.kind === 'const') {
-      for (const decl of node.declarations || []) {
+      for (const decl of node.declarations) {
         collectFromDeclarator(decl);
       }
     }
 
-    forEachAstChild(node, (child) => visitNode(child));
+    forEachAstChild(node, (child) => visitNode(child as AstNode));
   }
 
-  function collectFromDeclarator(decl: any): void {
-    if (!decl) return;
-    const id = decl.id || decl.name;
+  function collectFromDeclarator(decl: VariableDeclarator): void {
+    const id = decl.id;
     const init = decl.init;
-    if (!id) return;
 
     if (id.type === 'Identifier') {
       if (isReturnStatic(init)) {
           constBindings.add(id.name);
       }
     } else if (id.type === 'ArrayPattern') {
-      for (const elem of id.elements || []) {
+      for (const elem of id.elements) {
         if (elem && elem.type === 'Identifier' && isReturnStatic(init)) {
           constBindings.add(elem.name);
         }
       }
     } else if (id.type === 'ObjectPattern') {
-      for (const prop of id.properties || []) {
-        if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
-          const val = prop.value || prop.key;
-          if (val && val.type === 'Identifier' && isReturnStatic(init)) {
+      for (const prop of id.properties) {
+        if (prop.type === 'Property') {
+          const val = prop.value;
+          if (val.type === 'Identifier' && isReturnStatic(init)) {
             constBindings.add(val.name);
           }
         }
@@ -126,20 +118,20 @@ export function collectConstBindings(program: AstProgram): Set<string> {
 function collectAllLocalNames(program: AstProgram): Set<string> {
   const names = new Set<string>();
 
-  function addIdent(node: any): void {
+  function addIdent(node: AstNode | null | undefined): void {
     if (!node) return;
     if (node.type === 'Identifier') {
       names.add(node.name);
     } else if (node.type === 'ArrayPattern') {
-      for (const elem of node.elements || []) {
+      for (const elem of node.elements) {
         if (elem) addIdent(elem.type === 'RestElement' ? elem.argument : elem);
       }
     } else if (node.type === 'ObjectPattern') {
-      for (const prop of node.properties || []) {
+      for (const prop of node.properties) {
         if (prop.type === 'RestElement') {
           addIdent(prop.argument);
         } else {
-          addIdent(prop.value || prop.key);
+          addIdent(prop.value);
         }
       }
     } else if (node.type === 'AssignmentPattern') {
@@ -147,12 +139,12 @@ function collectAllLocalNames(program: AstProgram): Set<string> {
     }
   }
 
-  function visit(node: any): void {
-    if (!node || typeof node !== 'object') return;
+  function visit(node: AstNode | null | undefined): void {
+    if (!node) return;
 
     if (node.type === 'VariableDeclaration') {
-      for (const decl of node.declarations || []) {
-        addIdent(decl.id || decl.name);
+      for (const decl of node.declarations) {
+        addIdent(decl.id);
       }
     }
 
@@ -177,13 +169,13 @@ function collectAllLocalNames(program: AstProgram): Set<string> {
 
     if ((node.type === 'ForInStatement' || node.type === 'ForOfStatement') && node.left) {
       if (node.left.type === 'VariableDeclaration') {
-        for (const decl of node.left.declarations || []) {
-          addIdent(decl.id || decl.name);
+        for (const decl of node.left.declarations) {
+          addIdent(decl.id);
         }
       }
     }
 
-    forEachAstChild(node, (child) => visit(child));
+    forEachAstChild(node, (child) => visit(child as AstNode));
   }
 
   visit(program);
@@ -195,22 +187,20 @@ function collectAllLocalNames(program: AstProgram): Set<string> {
  * Mirrors SWC's `is_const_expr`.
  */
 export function classifyConstness(
-  exprNode: any,
+  exprNode: AstNode | null | undefined,
   importedNames: Set<string>,
   constIdents?: Set<string>,
 ): 'const' | 'var' {
   if (!exprNode) return 'const';
 
   switch (exprNode.type) {
-    case 'StringLiteral':
     case 'Literal':
-    case 'NumericLiteral':
-    case 'BooleanLiteral':
-    case 'NullLiteral':
+      // Runtime emits all four literal interfaces (String/Numeric/Boolean/
+      // Null) under the same `'Literal'` discriminant.
       return 'const';
 
     case 'TemplateLiteral': {
-      if (!exprNode.expressions || exprNode.expressions.length === 0) return 'const';
+      if (exprNode.expressions.length === 0) return 'const';
       for (const expr of exprNode.expressions) {
         if (classifyConstness(expr, importedNames, constIdents) === 'var') return 'var';
       }
@@ -225,11 +215,11 @@ export function classifyConstness(
       return 'var';
     }
 
-    case 'MemberExpression':
-    case 'StaticMemberExpression':
-    case 'ComputedMemberExpression': {
+    case 'MemberExpression': {
+      // Runtime emits Computed/Static/PrivateField under one
+      // `'MemberExpression'` discriminant; all three carry `.object`.
       const obj = exprNode.object;
-      if (obj && obj.type === 'Identifier' && importedNames.has(obj.name)) return 'const';
+      if (obj.type === 'Identifier' && importedNames.has(obj.name)) return 'const';
       return 'var';
     }
 
@@ -254,7 +244,6 @@ export function classifyConstness(
     }
 
     case 'ObjectExpression': {
-      if (!exprNode.properties) return 'const';
       for (const prop of exprNode.properties) {
         if (prop.type === 'SpreadElement') {
           if (classifyConstness(prop.argument, importedNames, constIdents) === 'var') return 'var';
@@ -266,7 +255,6 @@ export function classifyConstness(
     }
 
     case 'ArrayExpression': {
-      if (!exprNode.elements) return 'const';
       for (const el of exprNode.elements) {
         if (el === null) continue;
         if (el.type === 'SpreadElement') {
@@ -494,21 +482,21 @@ export function transformAllJsx(
   const childJsxNodes = new WeakSet<object>();
 
   walk(program, {
-    enter(node: any) {
+    enter(node) {
       const loopCtx = detectLoopContext(node, source);
       if (loopCtx) {
         loopStack.push(loopCtx);
       }
 
       if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
-        for (const child of node.children ?? []) {
+        for (const child of node.children) {
           if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
             childJsxNodes.add(child);
           }
         }
       }
     },
-    leave(node: any) {
+    leave(node) {
       if (loopStack.length > 0 && loopStack[loopStack.length - 1].loopNode === node) {
         loopStack.pop();
       }

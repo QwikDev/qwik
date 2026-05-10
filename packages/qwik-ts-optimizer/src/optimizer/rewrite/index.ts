@@ -33,7 +33,8 @@ import { stripExportDeclarations } from '../strip-exports.js';
 import { replaceConstants } from '../const-replacement.js';
 import type { EmitMode } from '../types.js';
 import { collectBindingNamesFromPattern } from '../utils/binding-pattern.js';
-import type { AstFunction, AstProgram, IdentifierName, ImportDeclarationSpecifier, ImportSpecifier, StringLiteral } from '../../ast-types.js';
+import type { AstFunction, AstNode, AstProgram, IdentifierName, ImportDeclarationSpecifier, ImportSpecifier, StringLiteral } from '../../ast-types.js';
+import { forEachAstChild } from '../utils/ast.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import type { RewriteContext } from './rewrite-context.js';
 import {
@@ -472,16 +473,15 @@ function rewriteNoArgMarkers(ctx: RewriteContext): void {
   const { s, program, originalImports, extractedCalleeNames, alreadyImported } = ctx;
   const extractedCallStarts = new Set(ctx.extractions.map(e => e.callStart));
 
-  function walk(node: any): void {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) { for (const item of node) walk(item); return; }
+  function walk(node: AstNode | null | undefined): void {
+    if (!node) return;
     if (node.type === 'CallExpression' && !extractedCallStarts.has(node.start)) {
-      const calleeName = node.callee?.type === 'Identifier' ? node.callee.name : null;
+      const calleeName = node.callee.type === 'Identifier' ? node.callee.name : null;
       if (calleeName) {
         const importInfo = originalImports.get(calleeName);
         if (importInfo && importInfo.importedName.endsWith('$') &&
             importInfo.importedName !== '$' && importInfo.importedName !== 'sync$') {
-          if (!node.arguments || node.arguments.length === 0) {
+          if (node.arguments.length === 0) {
             const qrlCallee = getQrlCalleeName(importInfo.importedName);
             s.overwrite(node.callee.start, node.callee.end, qrlCallee);
             if (needsPureAnnotation(qrlCallee)) {
@@ -496,12 +496,9 @@ function rewriteNoArgMarkers(ctx: RewriteContext): void {
         }
       }
     }
-    for (const key of Object.keys(node)) {
-      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-      walk(node[key]);
-    }
+    forEachAstChild(node, (child) => walk(child as AstNode));
   }
-  walk(program.body);
+  for (const stmt of program.body) walk(stmt);
 }
 
 function removeUnusedBindings(ctx: RewriteContext): void {

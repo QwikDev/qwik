@@ -8,7 +8,14 @@
 
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
-import { RAW_TRANSFER_PARSER_OPTIONS, type AstFunction } from '../../ast-types.js';
+import { forEachAstChild } from '../utils/ast.js';
+import {
+  RAW_TRANSFER_PARSER_OPTIONS,
+  type AstFunction,
+  type AstNode,
+  type JSXAttribute,
+  type JSXAttributeItem,
+} from '../../ast-types.js';
 import type { ExtractionResult } from '../extract.js';
 import { transformEventPropName } from '../transform/event-handlers.js';
 import { transformAllJsx } from '../transform/jsx.js';
@@ -34,10 +41,10 @@ import {
   matchesRegCtxName,
 } from './predicates.js';
 
-function getJsxAttrName(attr: any): string | null {
-  if (attr.name?.type === 'JSXIdentifier') return attr.name.name;
-  if (attr.name?.type === 'JSXNamespacedName') {
-    return `${attr.name.namespace?.name}:${attr.name.name?.name}`;
+function getJsxAttrName(attr: JSXAttribute): string | null {
+  if (attr.name.type === 'JSXIdentifier') return attr.name.name;
+  if (attr.name.type === 'JSXNamespacedName') {
+    return `${attr.name.namespace.name}:${attr.name.name.name}`;
   }
   return null;
 }
@@ -54,7 +61,7 @@ function isEventAttribute(name: string): boolean {
  * adding matched QRL names to `qrlsWithCaptures`.
  */
 function collectQpParamsFromElement(
-  attrs: any[],
+  attrs: JSXAttributeItem[],
   qrlParamMap: Map<string, string[]>,
   qrlsWithCaptures: Set<string>,
 ): string[] {
@@ -67,7 +74,7 @@ function collectQpParamsFromElement(
     const attrName = getJsxAttrName(attr);
     if (!attrName || !isEventAttribute(attrName)) continue;
     if (attr.value?.type !== 'JSXExpressionContainer') continue;
-    if (attr.value.expression?.type !== 'Identifier') continue;
+    if (attr.value.expression.type !== 'Identifier') continue;
 
     const qrlName = attr.value.expression.name;
     const params = qrlParamMap.get(qrlName);
@@ -87,29 +94,21 @@ function collectQpParamsFromElement(
  * that reference QRLs with promoted captures, populating qpOverrides.
  */
 function walkAstForQp(
-  node: any,
+  node: AstNode | null | undefined,
   qrlParamMap: Map<string, string[]>,
   qpOverrides: Map<number, string[]>,
   qrlsWithCaptures: Set<string>,
 ): void {
-  if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node)) {
-    for (const child of node) walkAstForQp(child, qrlParamMap, qpOverrides, qrlsWithCaptures);
-    return;
-  }
+  if (!node) return;
 
   if (node.type === 'JSXElement' && node.openingElement) {
-    const attrs = node.openingElement.attributes || [];
-    const elementParams = collectQpParamsFromElement(attrs, qrlParamMap, qrlsWithCaptures);
+    const elementParams = collectQpParamsFromElement(node.openingElement.attributes, qrlParamMap, qrlsWithCaptures);
     if (elementParams.length > 0) {
       qpOverrides.set(node.start, elementParams);
     }
   }
 
-  for (const key of Object.keys(node)) {
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
-    walkAstForQp(node[key], qrlParamMap, qpOverrides, qrlsWithCaptures);
-  }
+  forEachAstChild(node, (child) => walkAstForQp(child as AstNode, qrlParamMap, qpOverrides, qrlsWithCaptures));
 }
 
 /**

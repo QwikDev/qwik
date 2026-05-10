@@ -97,12 +97,21 @@ function createNodeResponseSink(res: ServerResponse) {
 
     return new Promise<void>((resolve, reject) => {
       let settled = false;
+      let onDrain: (() => void) | undefined;
+
+      const cleanupDrain = () => {
+        if (onDrain) {
+          res.off('drain', onDrain);
+          onDrain = undefined;
+        }
+      };
 
       const finish = () => {
         if (settled) {
           return;
         }
         settled = true;
+        cleanupDrain();
 
         // Let Node process the completed write before SSR keeps emitting more chunks.
         setImmediate(resolve);
@@ -119,6 +128,7 @@ function createNodeResponseSink(res: ServerResponse) {
         }
         settled = true;
         closed = true;
+        cleanupDrain();
         reject(error);
       };
 
@@ -130,8 +140,9 @@ function createNodeResponseSink(res: ServerResponse) {
         finish();
       });
 
+      let ok: boolean;
       try {
-        res.write(chunk, (error) => {
+        ok = res.write(chunk, (error) => {
           if (error) {
             if (isClientAbortWriteError(error)) {
               finishClosed();
@@ -148,6 +159,28 @@ function createNodeResponseSink(res: ServerResponse) {
           return;
         }
         fail(error);
+        return;
+      }
+
+      // Some response wrappers (notably `compression`) replace res.write
+      // with a 2-arg signature and silently drop the per-write callback,
+      // which would otherwise hang the SSR walker forever. Resolve via
+      // Node's standard backpressure protocol instead:
+      //   - res.write() returned true  → no backpressure, resolve now.
+      //   - res.write() returned false → wait for 'drain'.
+      // The per-write callback (if it ever fires) still surfaces errors,
+      // and becomes a no-op for resolution once we've already settled.
+      if (settled) {
+        return;
+      }
+      if (ok) {
+        finish();
+      } else {
+        onDrain = () => {
+          onDrain = undefined;
+          finish();
+        };
+        res.once('drain', onDrain);
       }
     });
   };
@@ -189,10 +222,15 @@ function createNodeResponseSink(res: ServerResponse) {
         finish();
       });
 
+      // Resolve on 'finish' (data fully flushed). We do NOT pass a callback
+      // to res.end because some response wrappers replace it with a 2-arg
+      // signature `(chunk, encoding)` (notably `compression@1.x`) and would
+      // treat the callback as a chunk, then throw inside Buffer.from(...) —
+      // leaving the underlying stream un-ended and the socket hanging.
+      res.once('finish', finish);
+
       try {
-        res.end(() => {
-          finish();
-        });
+        res.end();
       } catch (error) {
         if (isClientAbortWriteError(error)) {
           finish();

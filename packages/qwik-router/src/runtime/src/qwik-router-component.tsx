@@ -212,7 +212,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     prevUrl: undefined,
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
-  const navResolver: { r?: () => void } = {};
+  const navResolver: { r?: () => void; p?: Promise<void> } = {};
   // deep: true so that changes to loaderPaths and page path/search properties are tracked by
   // AsyncSignal QRLs.
   const routeLoaderCtx = useStore(env.routeLoaderCtx);
@@ -348,9 +348,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       replaceState = false,
       scroll = true,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
-    internalState.navCount++;
-    internalState.currentTransition?.skipTransition();
-
     // If this is the first SPA navigation, we rewrite routeInternal's URL
     // as the browser location URL to prevent an erroneous origin mismatch.
     // The initial value of routeInternal is derived from the server env,
@@ -370,6 +367,21 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         : typeof path === 'number'
           ? path
           : toUrl(path, routeLocation.url);
+
+    if (
+      navResolver.p &&
+      !forceReload &&
+      typeof dest !== 'number' &&
+      isSamePath(dest, lastDest) &&
+      dest.href === lastDest.href
+    ) {
+      // Repeated redirects/loaders can request the same in-flight destination. Treat that as a
+      // duplicate so we don't bump navCount and cancel the navigation that would commit it.
+      return navResolver.p;
+    }
+
+    internalState.navCount++;
+    internalState.currentTransition?.skipTransition();
 
     if (
       preventNav.$cbs$ &&
@@ -464,9 +476,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     actionState.value = undefined;
     routeLocation.isNavigating = true;
 
-    return new Promise<void>((resolve) => {
-      navResolver.r = resolve;
+    navResolver.p = new Promise<void>((resolve) => {
+      navResolver.r = () => {
+        navResolver.r = undefined;
+        navResolver.p = undefined;
+        resolve();
+      };
     });
+    return navResolver.p;
   });
 
   useContextProvider(ContentContext, content);
@@ -735,7 +752,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
 
       if (nav.navCount !== internalState.navCount) {
-        navResolver.r?.();
         return;
       }
 
@@ -781,10 +797,17 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
       }
 
+      let didNavigate = false;
+      let navigatePromise: Promise<void> | undefined;
+      let currentTransition: ViewTransition | undefined;
       const navigate = () => {
+        if (navigatePromise) {
+          return navigatePromise;
+        }
         if (nav.navCount !== internalState.navCount) {
           return Promise.resolve();
         }
+        didNavigate = true;
         if (navigation.historyUpdated) {
           const currentPath = location.pathname + location.search + location.hash;
           const nextPath = toPath(trackUrl);
@@ -797,7 +820,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
         }
         contentInternal.trigger();
-        return _waitUntilRendered(container!);
+        return (navigatePromise = _waitUntilRendered(container!));
       };
 
       const _waitNextPage = () => {
@@ -808,11 +831,28 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           update: navigate,
           types: ['qwik-navigation'],
         });
+        currentTransition = transition;
         internalState.currentTransition = transition;
-        return ready.then(() => transition);
+        return ready.then(
+          () => transition,
+          (reason) => {
+            if (!didNavigate && nav.navCount === internalState.navCount) {
+              return navigate().then(() => transition);
+            }
+            if ((reason as Error)?.name === 'AbortError') {
+              return transition;
+            }
+            throw reason;
+          }
+        );
       };
       _waitNextPage().finally(() => {
-        internalState.currentTransition = undefined;
+        if (currentTransition && internalState.currentTransition === currentTransition) {
+          internalState.currentTransition = undefined;
+        }
+        if (nav.navCount !== internalState.navCount) {
+          return;
+        }
         (container as ClientContainer).element.setAttribute?.(Q_ROUTE, routeName);
         const scrollState = currentScrollState(scroller);
         saveScrollHistory(scrollState);

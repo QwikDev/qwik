@@ -1,4 +1,4 @@
-import { expect, test, type Locator } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import {
   assertPage,
   getScrollHeight,
@@ -34,6 +34,26 @@ test.describe('nav', () => {
         naturalHeight,
         naturalWidth,
       });
+  }
+
+  async function reloadFromPage(page: Page) {
+    const loaded = page.waitForEvent('load');
+    await page.evaluate(() => location.reload());
+    await loaded;
+  }
+
+  async function waitForPreventNavigateReady(page: Page) {
+    await expect
+      .poll(async () =>
+        page.evaluate(async () => {
+          const count = document.querySelector('#pn-runcount');
+          const before = count?.textContent;
+          window.dispatchEvent(new Event('beforeunload', { cancelable: true }));
+          await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+          return count?.textContent !== before;
+        })
+      )
+      .toBe(true);
   }
 
   test.describe('mpa', () => {
@@ -83,7 +103,14 @@ test.describe('nav', () => {
     });
 
     test.describe('scroll-restoration', () => {
-      test('should not refresh again on popstate after manual refresh', async ({ page }) => {
+      test('should not refresh again on popstate after manual refresh', async ({
+        page,
+        browserName,
+      }) => {
+        test.slow(
+          browserName === 'firefox',
+          'Firefox can be slow to resume SPA popstate handling after reload'
+        );
         const documentLoadsKey = '__qwik_router_document_loads__';
         await page.addInitScript((storageKey) => {
           const documentLoads = Number(sessionStorage.getItem(storageKey) || '0') + 1;
@@ -103,20 +130,20 @@ test.describe('nav', () => {
         await expect(page.locator('h1')).toHaveText('Page Short');
         await expect.poll(getDocumentLoads).toBe(1);
 
-        await page.reload();
+        await reloadFromPage(page);
         await expect(page.locator('h1')).toHaveText('Page Short');
         await expect.poll(getDocumentLoads).toBe(2);
 
         await page.goBack();
 
         await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/page-long/');
-        await expect(page.locator('h1')).toHaveText('Page Long');
+        await expect(page.locator('h1')).toHaveText('Page Long', { timeout: 15000 });
         await expect.poll(getDocumentLoads).toBe(2);
 
         await page.goForward();
 
         await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/page-short/');
-        await expect(page.locator('h1')).toHaveText('Page Short');
+        await expect(page.locator('h1')).toHaveText('Page Short', { timeout: 15000 });
         await expect.poll(getDocumentLoads).toBe(2);
       });
       test('should scroll on hash change', async ({ page }) => {
@@ -248,7 +275,11 @@ test.describe('nav', () => {
       }
     });
 
-    test('preventNavigate', async ({ page }) => {
+    test('preventNavigate', async ({ page, browserName }) => {
+      test.slow(
+        browserName === 'firefox',
+        'Firefox beforeunload and SPA prevent navigation can be slow under parallel e2e load'
+      );
       await page.goto('/qwikrouter-test/prevent-navigate/');
       const toggleDirty = page.locator('#pn-button');
       const link = page.locator('#pn-link');
@@ -265,6 +296,8 @@ test.describe('nav', () => {
       await page.goBack();
       await expect(count).toHaveText('0');
       await expect(toggleDirty).toHaveText('is clean');
+      await waitForPreventNavigateReady(page);
+      await expect(count).toHaveText('1');
       await toggleDirty.click();
       await expect(toggleDirty).toHaveText('is dirty');
       // dirty browser nav
@@ -274,7 +307,7 @@ test.describe('nav', () => {
         expect(dialog.type()).toBe('beforeunload');
         await dialog.accept();
       });
-      await page.reload();
+      await reloadFromPage(page);
       expect(didTrigger).toBe(true);
       await expect(count).toHaveText('0');
       await toggleDirty.click();

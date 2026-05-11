@@ -3,7 +3,6 @@ import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { directSetAttribute } from '../utils/attribute';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
-import { isPromise } from '../utils/promises';
 import { serializeAttribute } from '../utils/styles';
 import {
   DeleteOperation,
@@ -193,16 +192,12 @@ function executeAfterFlush(container: Container, cursorData: CursorData): void {
       visibleTasks.map((t) => t.$qrl$.$symbol$)
     );
 
-  let visibleTaskPromise: Promise<void> | undefined;
+  // Visible tasks are post-flush side effects: render() must not wait for them.
+  // Gating $renderPromise$ on these promises breaks transient-state testing
+  // (e.g. loading-state assertions before a fetch resolves) and diverges from V1.
   for (let i = 0; i < visibleTasks.length; i++) {
     const task = visibleTasks[i];
-    const result = runTask(task, container, task.$el$);
-    if (isPromise(result)) {
-      visibleTaskPromise = visibleTaskPromise ? visibleTaskPromise.then(() => result) : result;
-    }
-  }
-  if (visibleTaskPromise) {
-    (cursorData.extraPromises ||= []).push(visibleTaskPromise);
+    runTask(task, container, task.$el$);
   }
   cursorData.afterFlushTasks = null;
 }

@@ -16,7 +16,16 @@ import {
   useVisibleTask$,
   useTask$,
 } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
+import {
+  createDocument,
+  domRender,
+  getTestPlatform,
+  ssrRenderToDom,
+  trigger,
+  waitForDrain,
+} from '@qwik.dev/core/testing';
+import { render, setPlatform } from '@qwik.dev/core';
+import { _getDomContainer } from '@qwik.dev/core/internal';
 import { describe, expect, it, vi } from 'vitest';
 import { ELEMENT_SEQ } from '../../server/qwik-copy';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
@@ -129,10 +138,13 @@ describe.each([
       (globalThis as any).log.push('render');
       return <span>{state.value}</span>;
     });
-    const { vNode, document } = await render(<VisibleCmp />, { debug });
+    const { vNode, document, container } = await render(<VisibleCmp />, { debug });
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'span', 'qvisible');
     }
+    // wait for the async tail explicitly.
+    await delay(20);
+    await waitForDrain(container);
     expect((globalThis as any).log).toEqual(['VisibleCmp', 'render', 'task', 'resolved']);
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -185,6 +197,8 @@ describe.each([
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'span', 'qvisible');
     }
+    // wait for the async throw.
+    await delay(10);
     expect(ErrorProvider.error).toBe(render === domRender ? error : null);
   });
 
@@ -1159,6 +1173,9 @@ describe.each([
       vi.useRealTimers();
       await triggerPromise;
       await waitForDrain(container);
+      // render() no longer waits for visible tasks — wait for async cleanup + rerun.
+      await delay(30);
+      await waitForDrain(container);
       expect((globalThis as any).log).toEqual([
         'task:0',
         'cleanup:0:start',
@@ -1168,5 +1185,72 @@ describe.each([
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('render() does not wait for visible tasks', () => {
+  it('should resolve render() before a slow visible task completes', async () => {
+    (globalThis as any).log = [] as string[];
+    const Cmp = component$(() => {
+      const state = useSignal('initial');
+      useVisibleTask$(async () => {
+        (globalThis as any).log.push('task-start');
+        await delay(100);
+        state.value = 'after-task';
+        (globalThis as any).log.push('task-done');
+      });
+      return <span>{state.value}</span>;
+    });
+
+    const start = Date.now();
+    const { vNode, container } = await domRender(<Cmp />);
+    const renderDuration = Date.now() - start;
+
+    expect(renderDuration).toBeLessThan(80);
+    expect((globalThis as any).log).not.toContain('task-done');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <span>
+          <Signal ssr-required>initial</Signal>
+        </span>
+      </Component>
+    );
+
+    await delay(150);
+    await waitForDrain(container);
+    expect((globalThis as any).log).toContain('task-done');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <span>
+          <Signal ssr-required>after-task</Signal>
+        </span>
+      </Component>
+    );
+    (globalThis as any).log = undefined;
+  });
+
+  it('cleanup() should still tear down a pending visible task', async () => {
+    (globalThis as any).log = [] as string[];
+    const Cmp = component$(() => {
+      useVisibleTask$(({ cleanup }) => {
+        (globalThis as any).log.push('task');
+        cleanup(() => (globalThis as any).log.push('cleanup'));
+      });
+      return <span>hello</span>;
+    });
+
+    // domRender doesn't expose cleanup; replicate its setup so we can call cleanup ourselves.
+    setPlatform(getTestPlatform());
+    const document = createDocument();
+    const result = await render(document.body, <Cmp />);
+    await delay(10);
+    expect((globalThis as any).log).toContain('task');
+    const container = _getDomContainer(document.body);
+    result.cleanup();
+    // Visible-task cleanups are scheduled via CLEANUP chore — wait for the queue to drain.
+    await delay(10);
+    await waitForDrain(container);
+    expect((globalThis as any).log).toContain('cleanup');
+    (globalThis as any).log = undefined;
   });
 });

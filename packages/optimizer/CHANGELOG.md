@@ -1,5 +1,11 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-beta.4
+
+### Minor Changes
+
+- ✨ add worker$ support running heavy work in Web Workers (by [@Varixo](https://github.com/Varixo) in [#8572](https://github.com/QwikDev/qwik/pull/8572))
+
 ## 2.1.0-beta.3
 
 ### Minor Changes

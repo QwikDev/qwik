@@ -1,5 +1,24 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.35
+
+### Minor Changes
+
+- ✨ add worker$ support running heavy work in Web Workers (by [@Varixo](https://github.com/Varixo) in [#8572](https://github.com/QwikDev/qwik/pull/8572))
+
+### Patch Changes
+
+- fix(router): Node SSR no longer hangs when using `compression` (or other middleware that wraps `res.write` / `res.end`). (by [@maiieul](https://github.com/maiieul) in [#8620](https://github.com/QwikDev/qwik/pull/8620))
+
+- 🐞🩹 handle aborted Node response streams without crashing and resolve the Node response stream contract (by [@Varixo](https://github.com/Varixo) in [#8613](https://github.com/QwikDev/qwik/pull/8613))
+
+- fix(router): The Vite dev won't crash anymore when `src/entry.ssr` is missing (e.g. in monorepos) (by [@maiieul](https://github.com/maiieul) in [#8601](https://github.com/QwikDev/qwik/pull/8601))
+
+- 🐞🩹 handle callback-only response end in Vite HTML transform (by [@Varixo](https://github.com/Varixo) in [#8597](https://github.com/QwikDev/qwik/pull/8597))
+
+- Updated dependencies [[`8fdf639`](https://github.com/QwikDev/qwik/commit/8fdf6393312a10407db8d9a0b0199d77e2a208c7), [`8dbdc12`](https://github.com/QwikDev/qwik/commit/8dbdc1253d7ab4fe9bcef520d79b1c85aac3b372), [`b6f7556`](https://github.com/QwikDev/qwik/commit/b6f755677abc91b4a873afa2b50930d4354ecee9), [`5cb730f`](https://github.com/QwikDev/qwik/commit/5cb730f56b2500fca0c0acd06249f8b1f4612f40), [`c5f5bb0`](https://github.com/QwikDev/qwik/commit/c5f5bb0c89037848db7c7aee90e0d6daf2f97d3e), [`dc9a8e8`](https://github.com/QwikDev/qwik/commit/dc9a8e8ba830663c5b4ef1297079a976d8b258c6), [`ea33c02`](https://github.com/QwikDev/qwik/commit/ea33c02d179a52e438446ad3d511c1e77e45fa79), [`b90aa3f`](https://github.com/QwikDev/qwik/commit/b90aa3fa64464fda83b790f5f8f122a2a8e7ea5b), [`a8e3dc0`](https://github.com/QwikDev/qwik/commit/a8e3dc0694954aee6d9348b85a5c6cbb9b05b71d), [`5fd8f65`](https://github.com/QwikDev/qwik/commit/5fd8f65c5c7999785304580a92f7bfc7b57a9e68)]:
+  - @qwik.dev/core@2.0.0-beta.35
+
 ## 2.0.0-beta.34
 
 ### Patch Changes

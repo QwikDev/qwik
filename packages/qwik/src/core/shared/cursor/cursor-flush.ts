@@ -3,6 +3,7 @@ import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { directSetAttribute } from '../utils/attribute';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
+import { isPromise } from '../utils/promises';
 import { serializeAttribute } from '../utils/styles';
 import {
   DeleteOperation,
@@ -195,9 +196,25 @@ function executeAfterFlush(container: Container, cursorData: CursorData): void {
   // Visible tasks are post-flush side effects: render() must not wait for them.
   // Gating $renderPromise$ on these promises breaks transient-state testing
   // (e.g. loading-state assertions before a fetch resolves) and diverges from V1.
+  // We track pending promises on $visibleTasksPromise$ so tests can opt-in to awaiting them.
+  let visibleTaskPromise: Promise<void> | undefined;
   for (let i = 0; i < visibleTasks.length; i++) {
     const task = visibleTasks[i];
-    runTask(task, container, task.$el$);
+    const result = runTask(task, container, task.$el$);
+    if (isPromise(result)) {
+      const p = result as Promise<void>;
+      visibleTaskPromise = visibleTaskPromise ? visibleTaskPromise.then(() => p) : p;
+    }
+  }
+  if (visibleTaskPromise) {
+    const prior = container.$visibleTasksPromise$;
+    const combined = prior ? prior.then(() => visibleTaskPromise!) : visibleTaskPromise;
+    container.$visibleTasksPromise$ = combined;
+    combined.finally(() => {
+      if (container.$visibleTasksPromise$ === combined) {
+        container.$visibleTasksPromise$ = null;
+      }
+    });
   }
   cursorData.afterFlushTasks = null;
 }

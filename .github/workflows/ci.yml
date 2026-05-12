@@ -60,9 +60,10 @@ jobs:
       hash-e2e: ${{ steps.cache-e2e.outputs.cache-primary-key }}
       hash-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-primary-key }}
       hash-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-primary-key }}
-      build-qwik: ${{ steps.cache-qwik.outputs.cache-hit != 'true' }}
-      build-rust: ${{ steps.cache-rust.outputs.cache-hit != 'true' }}
-      build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
+      force: ${{ steps.release-build.outputs.force == 'true' }}
+      build-qwik: ${{ steps.cache-qwik.outputs.cache-hit != 'true' || steps.release-build.outputs.force == 'true' }}
+      build-rust: ${{ steps.cache-rust.outputs.cache-hit != 'true' || steps.release-build.outputs.force == 'true' }}
+      build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' || steps.release-build.outputs.force == 'true' }}
       build-docs: ${{ steps.cache-docs.outputs.cache-hit != 'true' }}
       build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
       build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
@@ -82,6 +83,15 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Release build mode
+        id: release-build
+        run: |
+          force=false
+          if [ "${{ github.repository }}" = "QwikDev/qwik" ]; then
+            force=true
+          fi
+          echo "force=${force}" >> $GITHUB_OUTPUT
 
       - name: Set Dist Tag
         id: set_dist_tag
@@ -303,7 +313,7 @@ jobs:
         run: tree -a packages/qwik/dist/
 
       - name: Save qwik cache
-        if: needs.changes.outputs.build-qwik == 'true'
+        if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.force != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ needs.changes.outputs.hash-qwik }}
@@ -424,7 +434,7 @@ jobs:
           done
 
       - name: Save rust cache
-        if: needs.changes.outputs.build-rust == 'true'
+        if: needs.changes.outputs.build-rust == 'true' && needs.changes.outputs.force != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ needs.changes.outputs.hash-rust }}
@@ -501,7 +511,7 @@ jobs:
         if: needs.changes.outputs.build-others == 'true'
         run: pnpm build --tsc --api --qwikrouter --cli --qwikreact --eslint --set-dist-tag="${{ needs.changes.outputs.disttag }}"
       - name: Save others cache
-        if: needs.changes.outputs.build-others == 'true'
+        if: needs.changes.outputs.build-others == 'true' && needs.changes.outputs.force != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ needs.changes.outputs.hash-others }}

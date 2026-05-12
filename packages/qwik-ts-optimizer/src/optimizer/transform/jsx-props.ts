@@ -11,6 +11,7 @@ import { analyzeSignalExpression, type SignalHoister } from '../signal-analysis.
 import { transformEventPropName, isEventProp, isPassiveDirective } from './event-handlers.js';
 import { isBindProp, transformBindProp, mergeEventHandlers } from './bind.js';
 import { classifyConstness, isConstBindingName } from './jsx.js';
+import { simplifyExpression, formatSimplifiedLiteral } from '../utils/simplify.js';
 
 /** True for value nodes that are always const (literals, arrows, identifiers). */
 function isConstValueNode(valueNode: AstMaybeNode): boolean {
@@ -161,6 +162,15 @@ export function processProps(
     } else if (attr.value.type === 'JSXExpressionContainer') {
       valueNode = attr.value.expression;
       valueText = source.slice(valueNode.start, valueNode.end);
+      // Match SWC's `simplify::simplifier` (explicitly invoked from
+      // swc-reference-only/parse.rs:360) by simplifying compile-time-
+      // constant prop expressions to their literal result. Without
+      // this, `prop={'true' + 1 ? 'true' : ''}` emits as
+      // `prop: "true" + 1 ? "true" : ""` instead of `prop: 'true'`.
+      const simplified = simplifyExpression(valueNode);
+      if (simplified.simplified) {
+        valueText = formatSimplifiedLiteral(simplified.value);
+      }
     } else {
       valueNode = attr.value;
       valueText = source.slice(attr.value.start, attr.value.end);

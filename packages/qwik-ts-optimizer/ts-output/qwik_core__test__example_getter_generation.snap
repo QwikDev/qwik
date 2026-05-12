@@ -64,7 +64,7 @@ export const App_component_ckEPmXZlub0 = () => {
 	});
 	const signal = useSignal(0);
 	return /*#__PURE__*/ _jsxSorted(Cmp, null, {
-		prop: "true" + 1 ? "true" : "",
+		prop: "true",
 		count: _wrapProp(store, "count"),
 		nested: _fnSignal(_hf0, [store], _hf0_str),
 		signal,

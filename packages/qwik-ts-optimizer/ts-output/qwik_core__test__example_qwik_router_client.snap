@@ -1811,12 +1811,12 @@ const q_routeActionQrl_action_submit_JY3C42B1B08 = /*#__PURE__*/ qrl(()=>import(
 const q_serverQrl_RA3PmZ4Oyak = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_serverQrl_RA3PmZ4Oyak.mjs"), "serverQrl_RA3PmZ4Oyak");
 const q_spaInit_event_Js1cotabL5I = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_spaInit_event_Js1cotabL5I.mjs"), "spaInit_event_Js1cotabL5I");
 const q_usePreventNavigateQrl_useVisibleTask_no0bm2fybZo = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_no0bm2fybZo.mjs"), "usePreventNavigateQrl_useVisibleTask_no0bm2fybZo");
-const q_useQwikMockRouter_goto_ojVznvSDqoM = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikMockRouter_goto_ojVznvSDqoM.mjs"), "useQwikMockRouter_goto_ojVznvSDqoM");
 const q_useQwikMockRouter_useTask_oml2hW1aK6I = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikMockRouter_useTask_oml2hW1aK6I.mjs"), "useQwikMockRouter_useTask_oml2hW1aK6I");
 const q_useQwikRouter_goto_OSnb99dm7Ow = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikRouter_goto_OSnb99dm7Ow.mjs"), "useQwikRouter_goto_OSnb99dm7Ow");
 const q_useQwikRouter_registerPreventNav_W0LIs8PUJoA = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikRouter_registerPreventNav_W0LIs8PUJoA.mjs"), "useQwikRouter_registerPreventNav_W0LIs8PUJoA");
 const q_useQwikRouter_useStyles_XNocHv0sxCQ = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikRouter_useStyles_XNocHv0sxCQ.mjs"), "useQwikRouter_useStyles_XNocHv0sxCQ");
 const q_useQwikRouter_useTask_omhKiQfdzZU = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikRouter_useTask_omhKiQfdzZU.mjs"), "useQwikRouter_useTask_omhKiQfdzZU");
+qrl(()=>import("./index.qwik.mjs_useQwikMockRouter_goto_ojVznvSDqoM.mjs"), "useQwikMockRouter_goto_ojVznvSDqoM");
 //
 
 export { z } from 'zod';

@@ -165,6 +165,18 @@ function normalizeProgram(program: any): void {
   // bindings — if the binding was inlined, the call is dead code)
   stripOrphanedSideEffectCalls(program);
 
+  // Bare `qrl(()=>import(...), "<sym>");` statements are preload-registration
+  // side effects with no observable runtime semantics beyond hinting the
+  // runtime to fetch a chunk early. SWC and TS-Optimizer emit them at
+  // different module-level positions (SWC interleaves them with the
+  // `const q_*` decls; TS-Optimizer's `removeUnusedBindings` overwrites
+  // them at the original `$()` call site after the unused const-binding
+  // is stripped, leaving the bare statement adjacent to wherever the
+  // source decl was). Stripping both sides equally eliminates the
+  // bookkeeping diff while keeping `const q_*`, `componentQrl(q_*)`,
+  // and export-chain comparison authoritative.
+  stripBareQrlPreloadCalls(program);
+
   // Second pass — arrow bodies and blocks may have changed after stripping
   normalizeArrowBodies(program);
   unwrapSingleStatementBlocks(program);
@@ -2411,6 +2423,30 @@ function stripOrphanedSideEffectCalls(program: any): void {
         program.body.splice(i, 1);
         changed = true;
       }
+    }
+  }
+}
+
+/**
+ * Strip top-level bare `qrl(...)` / `qrlDEV(...)` preload-registration
+ * ExpressionStatements. They have no observable runtime semantics beyond
+ * hinting the chunk loader to fetch early; their position in the module
+ * body is framework bookkeeping, not behaviour. Applied to both expected
+ * and actual sides equally so the rest of the structure can be compared
+ * without position noise.
+ */
+function stripBareQrlPreloadCalls(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+  for (let i = program.body.length - 1; i >= 0; i--) {
+    const stmt = program.body[i];
+    if (stmt?.type !== 'ExpressionStatement') continue;
+    const expr = stmt.expression;
+    if (
+      expr?.type === 'CallExpression' &&
+      expr.callee?.type === 'Identifier' &&
+      (expr.callee.name === 'qrl' || expr.callee.name === 'qrlDEV')
+    ) {
+      program.body.splice(i, 1);
     }
   }
 }

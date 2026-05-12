@@ -89,6 +89,27 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
     case 'MetaProperty':
       return true;
 
+    case 'CallExpression': {
+      // Marker calls (`component$`, `useTask$`, `sync$`, etc., or the bare `$`)
+      // are pure from the migration policy's perspective: the parent rewrite
+      // replaces them with `componentQrl(qrl(...))` or equivalent, which
+      // doesn't observably mutate. Treating them as safe lets MIG-01 fire for
+      // single-segment marker decls (e.g. mutual-recursion components) instead
+      // of getting trapped in MIG-04.
+      //
+      // Detection mirrors the structural rule in `marker-detection.ts`:
+      // any callee whose source-level identifier name ends in `$`. Renamed
+      // marker imports (`import { component$ as cmp }`) would not match and
+      // remain conservatively side-effecty — that's fine, since the
+      // misclassification only loses a `move` optimization (reexport is still
+      // correct output).
+      if (node.callee?.type === 'Identifier') {
+        const name = node.callee.name;
+        if (name === '$' || name.endsWith('$')) return true;
+      }
+      return false;
+    }
+
     default:
       return false;
   }

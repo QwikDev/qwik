@@ -224,6 +224,17 @@ export function classifyConstness(
     }
 
     case 'CallExpression':
+      // `_fnSignal(_hf<n>, [deps], _hf<n>_str)` is a hoisted reactive
+      // expression — its callee identity is stable, the runtime evaluates
+      // the inner `_hf<n>` against fresh deps. SWC classifies these as
+      // const; matching that puts them in the const-props bag where the
+      // runtime can skip re-computing the prop record on re-render.
+      if (
+        exprNode.callee.type === 'Identifier' &&
+        exprNode.callee.name === '_fnSignal'
+      ) {
+        return 'const';
+      }
       return 'var';
 
     case 'UnaryExpression':

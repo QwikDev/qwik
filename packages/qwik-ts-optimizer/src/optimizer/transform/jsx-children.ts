@@ -43,9 +43,38 @@ export function normalizeJsxChildren(children: JSXChild[]): (JSXChild & { _trimm
     let normalized: string;
 
     if (hasNewline) {
+      // Babel/React JSX whitespace rule (`cleanJSXElementLiteralChild` in
+      // @babel/plugin-transform-react-jsx). The key asymmetry the naive
+      // `lines.map(trim).filter().join(' ')` form gets wrong: a line that
+      // is BOTH the last line of the chunk AND non-empty preserves its
+      // trailing whitespace, because the trailing space belongs to inline
+      // content rather than a newline-adjacent indent. Same for the first
+      // line and its leading whitespace.
+      //
+      // Worked examples:
+      //   "\n    Level "   → "Level "   (trailing space kept; it's on the
+      //                                   last non-empty line)
+      //   "\n    B\n    "  → "B"        (trailing whitespace is on a
+      //                                   later, empty line — dropped)
       const lines = raw.split('\n');
-      const trimmedLines = lines.map((l: string) => l.trim()).filter((l: string) => l.length > 0);
-      normalized = trimmedLines.join(' ');
+      let lastNonEmptyLine = -1;
+      for (let li = 0; li < lines.length; li++) {
+        if (/[^ \t]/.test(lines[li])) lastNonEmptyLine = li;
+      }
+      let out = '';
+      for (let li = 0; li < lines.length; li++) {
+        let line = lines[li].replace(/\t/g, ' ');
+        const isFirstLine = li === 0;
+        const isLastLine = li === lines.length - 1;
+        const isLastNonEmptyLine = li === lastNonEmptyLine;
+        if (!isFirstLine) line = line.replace(/^ +/, '');
+        if (!isLastLine) line = line.replace(/ +$/, '');
+        if (line) {
+          if (!isLastNonEmptyLine) line += ' ';
+          out += line;
+        }
+      }
+      normalized = out;
     } else {
       const prevChild = i > 0 ? children[i - 1] : null;
       if (prevChild && prevChild.type === 'JSXExpressionContainer') {

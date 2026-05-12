@@ -265,8 +265,18 @@ export function processProps(
           const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, valueNode.start ?? 0);
           const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
           const formattedName = formatPropName(propName);
+          // Function parameters are stable bindings within the enclosing
+          // segment scope, but SWC only treats them as const-eligible deps
+          // when the receiving JSX element is a *component* (non-HTML). On
+          // HTML elements, `_fnSignal` props that close over a parameter
+          // stay in the var bag because the runtime re-renders the DOM
+          // element on every prop change. On component elements, the
+          // const-props bag's identity-stability matters more than the
+          // value-changes-on-rerender concern.
           const depsAllConst = signalResult.deps.every(dep =>
-            importedNames.has(dep) || (constIdents?.has(dep) ?? false)
+            importedNames.has(dep) ||
+            (constIdents?.has(dep) ?? false) ||
+            (!tagIsHtml && (_paramNames?.has(dep) ?? false))
           );
           if (depsAllConst && !inLoop) {
             constEntries.push(`${formattedName}: ${fnSignalCall}`);

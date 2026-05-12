@@ -52,10 +52,10 @@ import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
 const q_ComponentA_component_100sEyGkGuA = /*#__PURE__*/ qrl(()=>import("./test.tsx_ComponentA_component_100sEyGkGuA"), "ComponentA_component_100sEyGkGuA");
-const q_ComponentB_component_WfCOFVxlmq4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_ComponentB_component_WfCOFVxlmq4"), "ComponentB_component_WfCOFVxlmq4");
 const q_MutualExample_component_LXt10RL0k44 = /*#__PURE__*/ qrl(()=>import("./test.tsx_MutualExample_component_LXt10RL0k44"), "MutualExample_component_LXt10RL0k44");
 const q_Nested_component_8cqIQQSPqhE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Nested_component_8cqIQQSPqhE"), "Nested_component_8cqIQQSPqhE");
 const q_RecursiveList_component_ignTe6QguYQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_RecursiveList_component_ignTe6QguYQ"), "RecursiveList_component_ignTe6QguYQ");
+qrl(()=>import("./test.tsx_ComponentB_component_WfCOFVxlmq4"), "ComponentB_component_WfCOFVxlmq4");
 //
 
 // Self-referential component: the Nested component references itself in its JSX
@@ -69,11 +69,8 @@ export const RecursiveList = /*#__PURE__*/ componentQrl(q_RecursiveList_componen
 // Mutually recursive components: A references B, B references A
 const ComponentA = /*#__PURE__*/ componentQrl(q_ComponentA_component_100sEyGkGuA);
 
-const ComponentB = /*#__PURE__*/ componentQrl(q_ComponentB_component_WfCOFVxlmq4);
-
 export const MutualExample = /*#__PURE__*/ componentQrl(q_MutualExample_component_LXt10RL0k44);
 export { ComponentA as _auto_ComponentA };
-export { ComponentB as _auto_ComponentB };
 ============================= test.tsx_Nested_component_8cqIQQSPqhE.ts (ENTRY POINT)==
 import { _jsxSorted } from "@qwik.dev/core";
 import { Nested } from "./test";
@@ -94,13 +91,15 @@ const _hf0_str = "p0.depth-1";
 export const RecursiveList_component_ignTe6QguYQ = (props) => {
 	if (props.depth === 0) return /*#__PURE__*/ _jsxSorted("div", null, null, "End", 3, "u6_2");
 	return (
-		/*#__PURE__*/ _jsxSorted("div", null, null, ["Level", _wrapProp(props, "depth"), /*#__PURE__*/ _jsxSorted(RecursiveList, { depth: _fnSignal(_hf0, [props], _hf0_str) }, null, null, 3, "u6_3")], 1, "u6_4")
+		/*#__PURE__*/ _jsxSorted("div", null, null, ["Level ", _wrapProp(props, "depth"), /*#__PURE__*/ _jsxSorted(RecursiveList, null, { depth: _fnSignal(_hf0, [props], _hf0_str) }, null, 3, "u6_3")], 1, "u6_4")
 	);
 };
 ============================= test.tsx_ComponentA_component_100sEyGkGuA.ts (ENTRY POINT)==
-import { _auto_ComponentB as ComponentB } from "./test";
 import { _jsxSorted } from "@qwik.dev/core";
 //
+const q_ComponentB_component_WfCOFVxlmq4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_ComponentB_component_WfCOFVxlmq4"), "ComponentB_component_WfCOFVxlmq4");
+//
+const ComponentB = /*#__PURE__*/ componentQrl(q_ComponentB_component_WfCOFVxlmq4);
 export const ComponentA_component_100sEyGkGuA = () => {
 	return (
 		/*#__PURE__*/ _jsxSorted("div", null, null, ["A", /*#__PURE__*/ _jsxSorted(ComponentB, null, null, null, 3, "u6_5")], 1, "u6_6")

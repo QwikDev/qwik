@@ -28,6 +28,7 @@ import {
 } from "../segment-codegen.js";
 import { resolveEntryField } from "../entry-strategy.js";
 import { buildQrlDeclaration } from "../rewrite-calls.js";
+import { getQrlCalleeName } from "../utils/qrl-naming.js";
 import { buildQrlDevDeclaration } from "../dev-mode.js";
 import { generateStrippedSegmentCode } from "../strip-ctx.js";
 import { isStrippedSegment } from "../rewrite/predicates.js";
@@ -531,6 +532,62 @@ export function buildNestedQrlDeclarations(
 }
 
 /**
+ * When a single-segment marker-call decl (`const X = component$(() => ...)`)
+ * is `move`d into a sibling segment's file, the raw source text would
+ * re-emit the marker call and its closure body — duplicating the body that
+ * was already extracted into its own segment file. Instead, synthesize the
+ * parent-rewrite-equivalent pair so the moved decl behaves like every other
+ * marker-call binding in the codebase: a qrl ref for the extracted body
+ * followed by a `componentQrl(q_<symbol>)`-style wrap.
+ *
+ * Returns `null` when the decl's initializer isn't a marker call, or when no
+ * top-level extraction is found inside its source range (which would mean
+ * the marker body wasn't extracted — extraction failure, not our concern).
+ */
+function tryBuildMarkerDeclMove(
+  decl: ModuleLevelDecl,
+  extractions: readonly ExtractionResult[],
+  relPath: string,
+  options: TransformModulesOptions,
+  qrlOutputExt: string | undefined,
+  sourceExtensions: Map<string, string>,
+): { qrlDecl: string; wrapDecl: string } | null {
+  // Match the decl to its top-level marker-call extraction by displayName.
+  // Format is `<fileStem>_<declName>(_<marker>...)` per `naming.ts`; positional
+  // matching via `ext.loc` doesn't work here because `loc` is stored as
+  // `[line, col]`, not the `[start, end]` byte range surfaced in snapshots.
+  const fileStem = relPath.split("/").pop() ?? relPath;
+  const exactDisplayName = `${fileStem}_${decl.name}`;
+  const prefixDisplayName = `${exactDisplayName}_`;
+  let match: ExtractionResult | null = null;
+  for (const ext of extractions) {
+    if (ext.parent !== null) continue;
+    if (ext.isInlinedQrl) continue;
+    if (
+      ext.displayName === exactDisplayName ||
+      ext.displayName.startsWith(prefixDisplayName)
+    ) {
+      match = ext;
+      break;
+    }
+  }
+  if (!match) return null;
+  const qrlCallee = getQrlCalleeName(match.ctxName);
+  if (!qrlCallee) return null;
+  const outputExt =
+    qrlOutputExt ?? sourceExtensions.get(match.symbolName) ?? match.extension;
+  const qrlDecl = buildQrlDeclaration(
+    match.symbolName,
+    match.canonicalFilename,
+    options.explicitExtensions,
+    match.extension,
+    outputExt,
+  );
+  const wrapDecl = `const ${decl.name} = /*#__PURE__*/ ${qrlCallee}(q_${match.symbolName});`;
+  return { qrlDecl, wrapDecl };
+}
+
+/**
  * Wire migration data (auto-imports, moved declarations, capture filtering,
  * capture/param reconciliation) into `captureInfo` and `ext`.
  *
@@ -657,10 +714,33 @@ export function wireMigration(
             source: parentModulePath,
           });
         }
-        captureInfo.movedDeclarations.push({
-          text: decl.declText,
-          importDeps,
-        });
+        const markerXform = tryBuildMarkerDeclMove(
+          decl,
+          ctx.extractions,
+          ctx.relPath,
+          ctx.options,
+          ctx.qrlOutputExt,
+          ctx.sourceExtensions,
+        );
+        if (markerXform) {
+          // Replace the source-level `const X = component$(...)` with the
+          // parent-rewrite-equivalent pair: a qrl ref for the extracted body,
+          // followed by the marker-Qrl wrap. The componentQrl/qrl imports are
+          // auto-collected by the segment's import pass.
+          captureInfo.movedDeclarations.push({
+            text: markerXform.qrlDecl,
+            importDeps,
+          });
+          captureInfo.movedDeclarations.push({
+            text: markerXform.wrapDecl,
+            importDeps: [],
+          });
+        } else {
+          captureInfo.movedDeclarations.push({
+            text: decl.declText,
+            importDeps,
+          });
+        }
       }
     }
   }
@@ -930,6 +1010,9 @@ export function buildDefaultStrategySegment(
           ? {
               enableJsx: true,
               importedNames,
+              paramNames: ext.paramNames.length > 0
+                ? new Set(ext.paramNames)
+                : undefined,
               relPath,
               devOptions: isDevMode ? { relPath } : undefined,
               keyCounterStart: segmentKeyCounter,

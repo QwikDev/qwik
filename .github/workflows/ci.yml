@@ -40,7 +40,8 @@ on:
 env:
   # Disable incremental build, speeds up CI
   CARGO_INCREMENTAL: 0
-  CI_NODE_VERSION: 22.18.0
+  CI_NODE_VERSION: 24.15.0
+  CI_NODE_VERSION_E2E: 22.22.2
 
 permissions:
   contents: read
@@ -921,7 +922,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: ${{ env.CI_NODE_VERSION }}
+          node-version: ${{ env.CI_NODE_VERSION_E2E }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -1016,7 +1017,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: ${{ env.CI_NODE_VERSION }}
+          node-version: ${{ env.CI_NODE_VERSION_E2E }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 

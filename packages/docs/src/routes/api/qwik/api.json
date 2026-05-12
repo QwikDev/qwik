@@ -2074,6 +2074,48 @@
       "mdFile": "core.setplatform.md"
     },
     {
+      "name": "Show",
+      "id": "show",
+      "hierarchy": [
+        {
+          "name": "Show",
+          "id": "show"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nShow: ShowComponent\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/show.ts",
+      "mdFile": "core.show.md"
+    },
+    {
+      "name": "ShowComponent",
+      "id": "showcomponent",
+      "hierarchy": [
+        {
+          "name": "ShowComponent",
+          "id": "showcomponent"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ShowComponent = <WHEN = unknown, THEN extends JSXOutput = JSXOutput, ELSE extends JSXOutput = JSXOutput>(props: PublicProps<ShowProps<WHEN, THEN, ELSE>>, key: string | null, flags: number, dev?: DevJSX) => JSXOutput;\n```\n**References:** [JSXOutput](#jsxoutput)<!-- -->, [PublicProps](#publicprops)<!-- -->, [ShowProps](#showprops)<!-- -->, [DevJSX](#devjsx)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/show.ts",
+      "mdFile": "core.showcomponent.md"
+    },
+    {
+      "name": "ShowProps",
+      "id": "showprops",
+      "hierarchy": [
+        {
+          "name": "ShowProps",
+          "id": "showprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ShowProps<WHEN = unknown, THEN extends JSXOutput = JSXOutput, ELSE extends JSXOutput = JSXOutput> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nelse$?\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;() =&gt; ELSE&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nthen$\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;() =&gt; THEN&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nwhen$\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;() =&gt; WHEN&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/show.ts",
+      "mdFile": "core.showprops.md"
+    },
+    {
       "name": "Signal",
       "id": "signal",
       "hierarchy": [

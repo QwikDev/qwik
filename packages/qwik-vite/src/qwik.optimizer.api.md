@@ -23,6 +23,7 @@ export enum ExperimentalFeatures {
     each = "each",
     insights = "insights",
     noSPA = "noSPA",
+    show = "show",
     suspense = "suspense",
     valibot = "valibot"
 }

@@ -40,7 +40,8 @@ on:
 env:
   # Disable incremental build, speeds up CI
   CARGO_INCREMENTAL: 0
-  CI_NODE_VERSION: 22.18.0
+  CI_NODE_VERSION: 24.15.0
+  CI_NODE_VERSION_E2E: 22.22.2
 
 permissions:
   contents: read
@@ -325,6 +326,7 @@ jobs:
         settings:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            checks: true
             wasm: true
 
           - host: macos-latest
@@ -356,19 +358,23 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - run: pnpm install
-      - if: matrix.settings.wasm
-        run: pnpm install -w wasm-pack
+
+      - name: Install Wasm build tools
+        if: matrix.settings.wasm
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo install wasm-pack --locked
 
       - name: Lint check
-        if: matrix.settings.wasm
+        if: matrix.settings.checks
         run: pnpm lint.rust
 
       - name: Unit tests
-        if: matrix.settings.wasm
+        if: matrix.settings.checks
         run: pnpm test.rust
         
       - name: TS bridge
-        if: matrix.settings.wasm
+        if: matrix.settings.checks
         run: pnpm build --optimizer
 
       - name: Build Platform Binding
@@ -921,7 +927,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: ${{ env.CI_NODE_VERSION }}
+          node-version: ${{ env.CI_NODE_VERSION_E2E }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -1016,7 +1022,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: ${{ env.CI_NODE_VERSION }}
+          node-version: ${{ env.CI_NODE_VERSION_E2E }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 

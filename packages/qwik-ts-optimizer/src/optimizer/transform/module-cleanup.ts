@@ -200,6 +200,7 @@ export function applySegmentSideEffectSimplification(
     declEnd: number;
     initType: string;
     initText: string;
+    initNode: AstNode;
   }> = [];
 
   walk(parsed.program, {
@@ -222,6 +223,7 @@ export function applySegmentSideEffectSimplification(
               declEnd: node.end,
               initType: declarator.init.type,
               initText: exportSection.slice(declarator.init.start, declarator.init.end),
+              initNode: declarator.init,
             });
           }
         }
@@ -251,7 +253,12 @@ export function applySegmentSideEffectSimplification(
     ) {
       replacement = decl.initText + ';';
     } else if (decl.initType === 'BinaryExpression') {
-      const operandIds = extractBinaryOperandIdentifiers(decl.initText);
+      // AST-walk preferred — the legacy regex version scans raw source
+      // text and would match identifier-like substrings inside string
+      // literals (`'p' + pi` → `['p', 'pi']`), corrupting the
+      // side-effect-preserving rewrite. Fall back to the regex only if
+      // the AST node isn't available.
+      const operandIds = extractBinaryOperandIdentifiersFromAst(decl.initNode);
       replacement = operandIds.length > 0 ? operandIds.join(', ') + ';' : decl.initText + ';';
     } else {
       continue;
@@ -556,36 +563,39 @@ export function buildParentExtractionMap(
   return map;
 }
 
-function extractBinaryOperandIdentifiers(text: string): string[] {
+/**
+ * Collect identifier names from a BinaryExpression AST subtree. Recurses
+ * through nested BinaryExpressions so `a + b + c` yields `[a, b, c]`. The
+ * AST walk only touches actual `Identifier` nodes — string/numeric
+ * literals and parenthesised inner expressions are skipped. This replaces
+ * an earlier regex-based extractor that scanned raw source text and
+ * would corrupt cases like `'p' + pi` (matching `p` from inside the
+ * string literal alongside `pi`).
+ */
+function extractBinaryOperandIdentifiersFromAst(node: AstNode): string[] {
   const ids: string[] = [];
   const seen = new Set<string>();
-  // Matches JS identifiers: starts with [a-zA-Z_$], followed by [a-zA-Z0-9_$]*.
-  // Not converted to magic-regexp: charIn() escapes hyphens, breaking character ranges.
-  const idRegex = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\b/g;
-  let match;
-  while ((match = idRegex.exec(text)) !== null) {
-    const name = match[1];
-    if (
-      [
-        'const',
-        'let',
-        'var',
-        'new',
-        'typeof',
-        'void',
-        'delete',
-        'true',
-        'false',
-        'null',
-        'undefined',
-      ].includes(name)
-    ) {
-      continue;
+  function visit(n: AstNode | null | undefined): void {
+    if (!n) return;
+    if (n.type === 'Identifier') {
+      if (!seen.has(n.name)) {
+        seen.add(n.name);
+        ids.push(n.name);
+      }
+      return;
     }
-    if (!seen.has(name)) {
-      seen.add(name);
-      ids.push(name);
+    if (n.type === 'BinaryExpression' || n.type === 'LogicalExpression') {
+      visit(n.left);
+      visit(n.right);
+      return;
     }
+    if (n.type === 'ParenthesizedExpression') {
+      visit(n.expression);
+      return;
+    }
+    // Other shapes (literals, calls, member expressions, etc.) contribute
+    // no bare identifiers we want to preserve as side-effect reads.
   }
+  visit(node);
   return ids;
 }

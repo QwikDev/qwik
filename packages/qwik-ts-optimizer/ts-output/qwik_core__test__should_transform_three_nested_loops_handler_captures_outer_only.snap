@@ -54,11 +54,9 @@ const q_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo = /*#__PURE__*/ 
 export const test_component_LUXeXe0DQrg = () => {
 	const data = useSignal([[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]);
 	return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((plane, pi) => {
-		p, pi;
-		return /*#__PURE__*/ _jsxSorted("div", null, null, plane.map((row, ri) => /*#__PURE__*/ _jsxSorted("div", null, null, row.map((cell, ci) => /*#__PURE__*/ _jsxSorted("button", {
-			"q-e:click": q_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo,
-			"q:ps": [cell, ci]
-		}, null, cell, 4, ci)), 1, ri)), 1, pi);
+		const planeId = "p" + pi;
+		const test_component_div_div_div_button_q_e_click_7fyCCEiYKFo = q_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo.w([planeId]);
+		return /*#__PURE__*/ _jsxSorted("div", null, null, plane.map((row, ri) => /*#__PURE__*/ _jsxSorted("div", null, null, row.map((cell, ci) => /*#__PURE__*/ _jsxSorted("button", { "q-e:click": test_component_div_div_div_button_q_e_click_7fyCCEiYKFo }, null, cell, 0, ci)), 1, ri)), 1, pi);
 	}), 1, "u6_0");
 };
 

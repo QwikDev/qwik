@@ -234,11 +234,13 @@ export function processProps(
           const qrlName = valueText.trim();
           if (qrlsWithCaptures.has(qrlName)) {
             varEntries.push(`${formattedName}: ${valueText}`);
+            hasVarEventHandler = true;
           } else {
             constEntries.push(`${formattedName}: ${valueText}`);
           }
         } else {
           varEntries.push(`${formattedName}: ${valueText}`);
+          hasVarEventHandler = true;
         }
       } else {
         const existing = bindHandlers.get(propName);

@@ -328,7 +328,15 @@ function buildQrlsWithCapturesSet(nestedCallSites: NestedCallSiteInfo[] | undefi
   if (!nestedCallSites) return undefined;
   const result = new Set<string>();
   for (const site of nestedCallSites) {
-    if (site.loopLocalParamNames && site.loopLocalParamNames.length > 0) {
+    // Either form of cross-loop wiring contributes a "captures" qrl: the
+    // explicit loop-local param case (`_, _1, iterVar`) and the
+    // cross-scope-capture case (`hoistedSymbolName` set, no loop-local
+    // padding). Both flow data per iteration; classifying the event
+    // handler entry as var rather than const is correct for both.
+    const hasLoopLocal =
+      site.loopLocalParamNames && site.loopLocalParamNames.length > 0;
+    const hasHoistedCaptures = !!site.hoistedSymbolName;
+    if (hasLoopLocal || hasHoistedCaptures) {
       result.add(site.qrlVarName);
       if (site.hoistedSymbolName) result.add(site.hoistedSymbolName);
     }

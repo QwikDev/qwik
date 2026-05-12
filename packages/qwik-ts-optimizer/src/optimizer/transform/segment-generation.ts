@@ -783,6 +783,7 @@ export function buildNestedCallSites(
   children: ExtractionResult[],
   childQrlVarNames: Map<string, string>,
   elementQpParamsMap: Map<string, string[]>,
+  extractionLoopMap: Map<string, LoopContext[]>,
 ): NestedCallSiteInfo[] {
   const nestedCallSites: NestedCallSiteInfo[] = [];
   for (const child of children) {
@@ -825,12 +826,29 @@ export function buildNestedCallSites(
           child.calleeName;
       }
 
+      // Two-armed detection: an event-handler QRL needs `.w([captures])`
+      // wiring whenever it captures something the runtime can't deliver
+      // positionally. The original arm catches the "handler has loop-iter
+      // padded params (`_, _1, ...`)" case where some captures became
+      // positional. The second arm catches the "handler is inside a loop
+      // AND has cross-scope captures only" case (e.g. an `onClick$` deep
+      // inside three nested maps that captures an outer-loop-derived
+      // const) — that handler has no loop-iter padding because it doesn't
+      // reference the immediate-loop iter vars, but it still needs the
+      // `.w()` binding emitted in the outer scope where its captures are
+      // in scope, otherwise the parent body references the captured var
+      // nowhere and the side-effect simplifier strips the decl.
+      const childIsInLoop =
+        (extractionLoopMap.get(child.symbolName)?.length ?? 0) > 0;
       const hasLoopCrossCaptures =
         child.captures &&
         child.captureNames.length > 0 &&
-        child.paramNames.length >= 2 &&
-        child.paramNames[0] === "_" &&
-        child.paramNames[1] === "_1";
+        (
+          (child.paramNames.length >= 2 &&
+            child.paramNames[0] === "_" &&
+            child.paramNames[1] === "_1") ||
+          childIsInLoop
+        );
 
       const loopLocalParams: string[] = [];
       if (
@@ -966,7 +984,7 @@ export function buildDefaultStrategySegment(
   }
 
   const nestedCallSites = buildNestedCallSites(
-    children, childQrlVarNames, elementQpParamsMap,
+    children, childQrlVarNames, elementQpParamsMap, ctx.extractionLoopMap,
   );
 
   const effectiveCaptureInfo = resolveCaptureInfo(

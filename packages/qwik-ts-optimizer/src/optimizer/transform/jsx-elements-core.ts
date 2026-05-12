@@ -69,6 +69,7 @@ function injectQpProp(
   qpOverrides: Map<number, string[]> | undefined,
   varEntries: string[],
   constEntries: string[],
+  qrlsWithCaptures: Set<string> | undefined,
 ): void {
   if (!tagIsHtml) return;
 
@@ -88,10 +89,43 @@ function injectQpProp(
     || constEntries.some(e => isRewrittenEventEntry(e) || e.startsWith('"host:'));
   if (!hasEventHandlers) return;
 
+  // Suppress the iterVars fallback when ANY event handler on this element
+  // references a QRL with hoisted cross-scope captures (qrlsWithCaptures
+  // tracks both `loopLocalParamNames` and `hoistedSymbolName` cases).
+  // Those handlers receive their data via `.w([captures])` bindings hoisted
+  // to the outer loop scope, not via positional iterVar delivery — emitting
+  // `q:p` for the immediate iterVars would be redundant and diverges from
+  // SWC's emit (no q:p on these elements).
+  if (qrlsWithCaptures && eventHandlerReferencesCapturingQrl(varEntries, constEntries, qrlsWithCaptures)) {
+    return;
+  }
+
   const qpResult = buildCaptureProp(loopCtx!.iterVars);
   if (qpResult) {
     varEntries.push(`${formatPropName(qpResult.propName)}: ${qpResult.propValue}`);
   }
+}
+
+/** Match `"q-e:click": <ident>` (or any rewritten-event prefix) and check the
+ * identifier against the qrlsWithCaptures set. The prop name itself contains
+ * a colon (`q-e:click`), so the value separator is the colon *after* the
+ * closing quote of the name. */
+function eventHandlerReferencesCapturingQrl(
+  varEntries: string[],
+  constEntries: string[],
+  qrlsWithCaptures: Set<string>,
+): boolean {
+  for (const e of [...varEntries, ...constEntries]) {
+    if (!isRewrittenEventEntry(e)) continue;
+    if (e[0] !== '"') continue;
+    const closingQuote = e.indexOf('"', 1);
+    if (closingQuote < 0) continue;
+    const colonIdx = e.indexOf(':', closingQuote);
+    if (colonIdx < 0) continue;
+    const valueText = e.slice(colonIdx + 1).trim();
+    if (qrlsWithCaptures.has(valueText)) return true;
+  }
+  return false;
 }
 
 /**
@@ -294,7 +328,7 @@ export function transformJsxElement(
     neededImports.add(imp);
   }
 
-  injectQpProp(node, tagIsHtml, inLoop, loopCtx, qpOverrides, varEntries, constEntries);
+  injectQpProp(node, tagIsHtml, inLoop, loopCtx, qpOverrides, varEntries, constEntries, qrlsWithCaptures);
 
   if (moveEventHandlersForNonConstCaptures(
     node, tagIsHtml, inLoop, qpOverrides, constIdents, importedNames,

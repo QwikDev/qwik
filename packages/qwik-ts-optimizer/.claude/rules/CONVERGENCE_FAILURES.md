@@ -1,8 +1,8 @@
 # Convergence Failure Grouping
 
-Snapshot of the 33 failing `pnpm vitest convergence` tests as of 2026-05-06, grouped by root cause for feature-sized work breakdown. Re-run `pnpm vitest convergence --run` to refresh; the categorization itself ages but is still a useful map.
+Snapshot of the 30 failing `pnpm vitest convergence` tests as of 2026-05-12, grouped by root cause for feature-sized work breakdown. Re-run `pnpm vitest convergence --run` to refresh; the categorization itself ages but is still a useful map.
 
-Investigation 2026-05-06 corrected the original groupings for F3, F4, F8 after tracing diffs to actual root causes in code. Original groupings were based on diff symptoms; corrected groupings reflect the underlying transformation gap. Convergence count is now **33/212** (was 34/212). One test, `component_level_self_referential_qrl`, has been flipped to passing as of 2026-05-07. Date stamp updated: 2026-05-07.
+Investigation 2026-05-06 corrected the original groupings for F3, F4, F8 after tracing diffs to actual root causes in code. Original groupings were based on diff symptoms; corrected groupings reflect the underlying transformation gap. Convergence count is now **30/212** — F1 closed 2026-05-07 (`component_level_self_referential_qrl`); F4 closed 2026-05-09 ([OSS-359](https://linear.app/kunai/issue/OSS-359) / PR #42, `example_invalid_references`); F1b closed 2026-05-11 ([OSS-360](https://linear.app/kunai/issue/OSS-360) / PR #46, `example_self_referential_component_migration`); F8a closed 2026-05-12 ([OSS-361](https://linear.app/kunai/issue/OSS-361) / PR #48, `example_getter_generation`). Date stamp updated: 2026-05-12.
 
 The convergence test (`tests/optimizer/convergence.test.ts`) is stricter than `tests/optimizer/failure-families.test.ts` — it also checks segment metadata (`displayName`, `hash`, `canonicalFilename`, `ctxKind`, `ctxName`, `captures`). Snapshot of failure-families counts at the same point in time: 17 fully passing, 70 parent-rewrite-only, 0 untransformed, 3 segment-identity, 119 segment-codegen.
 
@@ -137,11 +137,11 @@ TS extracts any nested arrow/function as a candidate segment. Rust only extracts
 - `example_invalid_segment_expr1` (locals `style`, `render` extracted incorrectly)
 - `fun_with_scopes` (6 extra segments from inner inline components — moved here from F8)
 
-## Feature 8: Diverse semantic bugs sharing a "verbatim body" symptom (5 tests)
+## Feature 8: Diverse semantic bugs sharing a "verbatim body" symptom (4 remaining tests; 1 closed)
 
 **Lead-in note**: the original "verbatim body" / "mechanical printer issue" framing was misleading. After examining each test's AST diff, every test in this bucket has a real semantic bug, NOT a printer/whitespace issue. F8 should NOT be treated as a single coherent feature — each test needs its own fix. They share only the symptom that "segment body looks similar to source."
 
-- `example_getter_generation` — ternary `'true'+1 ? 'true' : ''` not constant-folded; emits `prop: "true"+1?"true":""` instead of `prop: 'true'`. Solvable by either a constant-fold pass or an AST-compare normalizer.
+- ✅ `example_getter_generation` — ternary `'true'+1 ? 'true' : ''` not constant-folded; emitted `prop: "true"+1?"true":""` instead of `prop: 'true'`. **Closed via PR #48 ([OSS-361](https://linear.app/kunai/issue/OSS-361))** — new `src/optimizer/utils/simplify.ts` module ports the JSX-prop slice of SWC's `simplify::simplifier`. Production fix (not compareAst) because SWC explicitly invokes the simplifier at `swc-reference-only/parse.rs:360` — it's an intentional code-size optimization, not parity scaffolding.
 - `should_transform_three_nested_loops_handler_captures_outer_only` — capture analysis fails to detect outer-loop var `planeId` as the actual capture; emits `q:ps:[cell, ci]` and drops the `const planeId='p'+pi` line entirely.
 - `should_wrap_prop_from_destructured_array` — `_fnSignal` helper de-dup is too aggressive (only emits `_hf0`, missing `_hf1` for `store5.errors.test`); destructure of `useForm2()` result not flattened; missing `error4`/`error5` JSX props.
 - `example_qwik_react` — module-level `filterProps` should become `_auto_filterProps as filterProps` in the segment; instead actual nonsense-imports `reactCmpQrl` from `@qwik.dev/core`.
@@ -168,7 +168,7 @@ Smaller blast-radius first; F2/F3 last because they touch the largest pipelines.
 | 1 | F4 MIG-05 refinement | 1 | Smallest verified scope; 1 boolean refinement in `decideMigration` plus group-by-declStart logic |
 | 2 | F1 `_ref` indirection | ✅ closed (1/1 covered tests passing) | F1b and F1c remain open. |
 | 2a | F1b mutual-recursion component migration | 1 | Related to F4 (mutual-recursion vs shared-destructure migration policy); multi-pass migration refinement |
-| 3 | F8 individual fixes | 5 | Each test is its own bug; tackle case-by-case (ternary fold, hoist depth, `_fnSignal` dedup, etc.) |
+| 3 | F8 individual fixes | 4 (1 of 5 closed) | F8a closed via PR #48 (ternary fold → `simplify.ts`). 4 remaining: hoist depth, `_fnSignal` dedup, capture-analysis, migration. Tackle case-by-case. |
 | 4 | F7 inner-function extraction discipline | 4 + `fun_with_scopes` from F8 | Marker detection rules |
 | 5 | F6 JSX runtime preservation | 3 | Front-end pass gating |
 | 6 | F5 server-marker stripping | 3 | New transform pass |

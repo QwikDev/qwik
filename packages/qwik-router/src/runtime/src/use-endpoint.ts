@@ -26,6 +26,8 @@ export async function submitAction(
   const url = `${pathBase}?${QACTION_KEY}=${encodeURIComponent(action.id)}`;
 
   const actionData = action.data;
+  // Clear immediately so a task rerun can't re-submit the same payload
+  action.data = undefined;
   let fetchOptions: RequestInit;
 
   if (actionData instanceof FormData) {

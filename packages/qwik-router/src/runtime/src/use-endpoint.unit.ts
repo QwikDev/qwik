@@ -2,6 +2,77 @@ import { _serialize } from '@qwik.dev/core/internal';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { FULLPATH_HEADER, fetchRouteLoaderData } from './route-loaders';
+import { submitAction } from './use-endpoint';
+
+describe('submitAction', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  const makeJsonResponse = async (payload: object, status = 200) =>
+    new Response(await _serialize(payload), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+  it('clears action.data immediately after capture to prevent re-submission on task rerun', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(await makeJsonResponse({ result: { ok: true } }))
+    );
+
+    const action = { id: 'act-a', data: { name: 'Ada' } };
+    await submitAction(action as any, '/test/');
+
+    expect(action.data).toBeUndefined();
+  });
+
+  it('clears action.data even when fetch throws', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
+
+    const action = { id: 'act-a', data: { field: 'value' } };
+    await expect(submitAction(action as any, '/test/')).rejects.toThrow('network error');
+
+    expect(action.data).toBeUndefined();
+  });
+
+  it('returns result and status from JSON action response', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          await makeJsonResponse({ result: { ok: true }, loaderHashes: ['hash-1'] }, 200)
+        )
+    );
+
+    const result = await submitAction({ id: 'act-a', data: {} } as any, '/test/');
+
+    expect(result).toEqual({
+      status: 200,
+      result: { ok: true },
+      loaderHashes: ['hash-1'],
+      redirect: undefined,
+    });
+  });
+
+  it('reflects non-200 status from action response (fail/validator)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          await makeJsonResponse({ result: { failed: true, message: 'bad' } }, 422)
+        )
+    );
+
+    const result = await submitAction({ id: 'act-a', data: {} } as any, '/test/');
+
+    expect(result?.status).toBe(422);
+    expect(result?.result).toMatchObject({ failed: true });
+  });
+});
 
 describe('fetchRouteLoaderData', () => {
   afterEach(() => {

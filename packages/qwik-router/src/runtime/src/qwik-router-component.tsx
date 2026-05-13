@@ -569,12 +569,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             actionResult: result.result,
           };
 
-          // Resolve the action promise
+          // Resolve the action promise and free the closure
           if (action.resolve) {
             action.resolve({
               status: result.status,
               result: result.result,
             });
+            action.resolve = undefined;
           }
 
           actionLoaderHashes = result.loaderHashes;

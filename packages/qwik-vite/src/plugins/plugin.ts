@@ -72,14 +72,10 @@ export enum ExperimentalFeatures {
   each = 'each',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
-  /** Enable the usePreventNavigate hook */
-  preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
-  /** Enable request.rewrite() */
-  enableRequestRewrite = 'enableRequestRewrite',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
   insights = 'insights',
 }

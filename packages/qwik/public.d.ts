@@ -18,6 +18,7 @@ export {
   EventHandler,
   Fragment,
   FunctionComponent,
+  getClientManifest,
   getLocale,
   getPlatform,
   implicit$FirstArg,

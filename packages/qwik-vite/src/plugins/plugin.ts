@@ -952,6 +952,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     if (shouldReturn) {
+      if (isPublicVirtualId(id)) {
+        map = null;
+      }
       return { code, map, meta };
     }
     debug(`transform(${count})`, 'Not transforming', id);
@@ -1290,6 +1293,8 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
 function isAdditionalFile(mod: TransformModule) {
   return mod.isEntry || mod.segment;
 }
+
+const isPublicVirtualId = (id: string) => id.startsWith('virtual:');
 
 const TRANSFORM_EXTS = {
   '.jsx': true,

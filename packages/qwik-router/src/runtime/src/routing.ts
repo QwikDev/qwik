@@ -283,10 +283,26 @@ function collectNodeMeta(
   }
 }
 
+enum ChildMatchKind {
+  Exact,
+  Wildcard,
+  Rest,
+}
+
+interface ChildMatch {
+  next: RouteData;
+  groups: RouteData[];
+  routePart: string;
+  done: boolean;
+  kind: ChildMatchKind;
+  paramName?: string;
+  paramValue?: string;
+}
+
 /**
  * Try to find a child matching `partLower` in `node`, including inside group children (_M). Returns
- * the matched child node, the groups entered to reach it, and what to push to routeParts. Returns
- * undefined if no match.
+ * the matched child node, the groups entered to reach it, what to push to routeParts, and which
+ * kind of edge matched. Returns undefined if no match.
  *
  * Priority: exact match → _M groups (recursively) → _W wildcard → _A rest wildcard. This ensures
  * exact matches inside nested groups take precedence over wildcards at parent level.
@@ -296,13 +312,18 @@ function findChild(
   part: string,
   partLower: string,
   parts: string[],
-  partIndex: number,
-  params: PathParams
-): { next: RouteData; groups: RouteData[]; routePart: string; done: boolean } | undefined {
+  partIndex: number
+): ChildMatch | undefined {
   // 1. Try exact match on this node's direct children
   const exact = node[partLower] as RouteData | undefined;
   if (exact) {
-    return { next: exact, groups: [], routePart: part, done: false };
+    return {
+      next: exact,
+      groups: [],
+      routePart: part,
+      done: false,
+      kind: ChildMatchKind.Exact,
+    };
   }
 
   // 2. Try matching inside group children (_M array).
@@ -311,7 +332,7 @@ function findChild(
   if (node._M) {
     for (let j = 0; j < node._M.length; j++) {
       const group = node._M[j];
-      const groupResult = findChild(group, part, partLower, parts, partIndex, params);
+      const groupResult = findChild(group, part, partLower, parts, partIndex);
       if (groupResult) {
         // Prepend this group to the groups chain
         groupResult.groups.unshift(group);
@@ -321,7 +342,7 @@ function findChild(
   }
 
   // 3. Try wildcard [param] on this node
-  const wildcard = tryWildcardMatch(node, part, partLower, parts, partIndex, params);
+  const wildcard = tryWildcardMatch(node, part, partLower, parts, partIndex);
   if (wildcard) {
     return { ...wildcard, groups: [] };
   }
@@ -335,9 +356,8 @@ function tryWildcardMatch(
   part: string,
   partLower: string,
   parts: string[],
-  partIndex: number,
-  params: PathParams
-): { next: RouteData; routePart: string; done: boolean } | undefined {
+  partIndex: number
+): Omit<ChildMatch, 'groups'> | undefined {
   // Wildcard [param]
   let next = node._W as RouteData | undefined;
   if (next) {
@@ -353,13 +373,25 @@ function tryWildcardMatch(
       ) {
         const paramName = next._P!;
         const value = part.slice(pre.length, suf ? part.length - suf.length : undefined);
-        params[paramName] = value;
-        return { next, routePart: `${pre}[${paramName}]${suf}`, done: false };
+        return {
+          next,
+          routePart: `${pre}[${paramName}]${suf}`,
+          done: false,
+          kind: ChildMatchKind.Wildcard,
+          paramName,
+          paramValue: value,
+        };
       }
     } else {
       const paramName = next._P!;
-      params[paramName] = part;
-      return { next, routePart: `[${paramName}]`, done: false };
+      return {
+        next,
+        routePart: `[${paramName}]`,
+        done: false,
+        kind: ChildMatchKind.Wildcard,
+        paramName,
+        paramValue: part,
+      };
     }
   }
 
@@ -368,8 +400,14 @@ function tryWildcardMatch(
   if (next) {
     const paramName = next._P!;
     const restValue = parts.slice(partIndex).join('/');
-    params[paramName] = restValue;
-    return { next, routePart: `[...${paramName}]`, done: true };
+    return {
+      next,
+      routePart: `[...${paramName}]`,
+      done: true,
+      kind: ChildMatchKind.Rest,
+      paramName,
+      paramValue: restValue,
+    };
   }
 
   return undefined;
@@ -510,9 +548,15 @@ function matchRouteTree(
     const part = parts[i];
     const partLower = part.toLowerCase();
 
-    // Before matching this segment, check if the current node has _A as a fallback.
-    // If the primary match (_W or exact) eventually leads to no route, we can fall back here.
-    const restInfo = findRestNode(node);
+    const found = findChild(node, part, partLower, parts, i);
+    if (!found) {
+      matched = false;
+      break;
+    }
+
+    // Wildcard route subtrees can still fall back to a sibling rest route if they dead-end later.
+    // Exact route subtrees own their unmatched descendants.
+    const restInfo = found.kind === ChildMatchKind.Wildcard ? findRestNode(node) : undefined;
     if (restInfo) {
       restFallback = {
         aNode: restInfo.next,
@@ -529,10 +573,8 @@ function matchRouteTree(
       };
     }
 
-    const found = findChild(node, part, partLower, parts, i, params);
-    if (!found) {
-      matched = false;
-      break;
+    if (found.paramName) {
+      params[found.paramName] = found.paramValue!;
     }
 
     routeParts.push(found.routePart);

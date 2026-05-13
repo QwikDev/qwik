@@ -576,12 +576,33 @@ test('loadRoute — _A fallback with multi-segment rest value', async () => {
   const catchallLoader = makeLoader();
   const routes: RouteData = {
     _A: { _P: 'rest', _I: catchallLoader },
-    blog: { _W: { _P: 'slug' } }, // no _I on slug — dead end
+    _W: { _P: 'section', _W: { _P: 'slug' } }, // no _I on slug — dead end
   };
-  // /blog/post/extra — _W matches "post" but no _I, fallback to _A
+  // /blog/post/extra — _W matches but no _I, fallback to _A
   const result = await loadRoute(routes, false, '/blog/post/extra');
   assert.isFalse(result.$notFound$);
   assert.deepEqual(result.$params$, { rest: 'blog/post/extra' });
+});
+
+test('loadRoute — exact child dead end does not fall back to sibling _M catchall', async () => {
+  const catchallLoader = makeLoader();
+  const routes: RouteData = {
+    _4: makeLoader(),
+    _M: [
+      {
+        _A: { _P: 'catchall', _I: catchallLoader },
+      },
+    ],
+    'loader-redirect': {
+      source: {
+        _I: makeLoader(),
+      },
+    },
+  };
+
+  const result = await loadRoute(routes, false, '/loader-redirect/notexist');
+  assert.isTrue(result.$notFound$);
+  assert.notDeepEqual(result.$params$, { catchall: 'loader-redirect/notexist' });
 });
 
 // ─── Menu (_N) trie tests ───────────────────────────────────────────────────────

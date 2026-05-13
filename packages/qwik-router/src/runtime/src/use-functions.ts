@@ -47,11 +47,6 @@ export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext)
 
 /** @internal Implementation of usePreventNavigate$ */
 export const usePreventNavigateQrl = (fn: QRL<PreventNavigateCallback>): void => {
-  if (!__EXPERIMENTAL__.preventNavigate) {
-    throw new Error(
-      'usePreventNavigate$ is experimental and must be enabled with `experimental: ["preventNavigate"]` in the `qwikVite` plugin.'
-    );
-  }
   const registerPreventNav = useContext(RoutePreventNavigateContext);
   // Note: we have to use a visible task because:
   // - the onbeforeunload event is synchronous, so we need to preload the callbacks

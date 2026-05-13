@@ -58,6 +58,7 @@ import {
   VirtualType,
   convertStyleIdsToString,
   dangerouslySetInnerHTML,
+  encodeVNodeDataKey,
   encodeVNodeDataString,
   escapeHTML,
   isHtmlAttributeAnEventName,
@@ -864,7 +865,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private writeFragmentAttrs(fragmentAttrs: Props): void {
     for (const key in fragmentAttrs) {
       let value = fragmentAttrs[key] as string;
-      let encodeValue = false;
+      let encodeValue: ((value: string) => string) | null = null;
       if (typeof value !== 'string') {
         const rootId = this.addRoot(value);
         // We didn't add the vnode data, so we are only interested in the vnode position
@@ -887,7 +888,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataChar.PROPS_CHAR);
           break;
         case ELEMENT_KEY:
-          encodeValue = true;
+          encodeValue = encodeVNodeDataKey;
           this.write(VNodeDataChar.KEY_CHAR);
           break;
         case ELEMENT_SEQ:
@@ -910,13 +911,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataChar.SLOT_CHAR);
           break;
         default: {
-          encodeValue = true;
+          encodeValue = encodeURI;
           this.write(VNodeDataChar.SEPARATOR_CHAR);
           this.write(encodeVNodeDataString(key));
           this.write(VNodeDataChar.SEPARATOR_CHAR);
         }
       }
-      const encodedValue = encodeVNodeDataString(encodeValue ? encodeURI(value) : value);
+      const encodedValue = encodeVNodeDataString(encodeValue ? encodeValue(value) : value);
       const isEncoded = encodeValue ? encodedValue !== value : false;
       if (isEncoded) {
         // add separator only before and after the encoded value

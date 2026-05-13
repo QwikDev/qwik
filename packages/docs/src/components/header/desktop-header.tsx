@@ -144,7 +144,7 @@ export const DesktopHeader = component$(() => {
         onFocusIn$={() => (focused.value = true)}
         onFocusOut$={() => (focused.value = false)}
       >
-        <a href="/" class="flex items-center gap-2 text-foreground-accent">
+        <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">
           <QwikLogoOnly />
         </a>
 

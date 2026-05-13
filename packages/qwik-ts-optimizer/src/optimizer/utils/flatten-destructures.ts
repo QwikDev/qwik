@@ -69,6 +69,17 @@ export function flattenDestructureUseCalls(
     enter(node: AstNode, parent: AstParentNode) {
       if (node.type !== 'Identifier' || !node.name) return;
       if (isDeclaringIdentifierPosition(node, parent)) return;
+      // Skip identifiers that fall inside ANY flattened decl's pattern
+      // range — those ranges were overwritten by the first pass, and
+      // magic-string will throw if we try to split a chunk that has
+      // already been edited. The walker visits inner Identifier nodes
+      // of shorthand-Property destructures (`{url}` → both the key
+      // and value sides resolve to the same Identifier), and those
+      // value-side Identifiers don't match `isDeclaringIdentifier
+      // Position`'s key-equality check.
+      for (const d of decls) {
+        if (node.start >= d.idStart && node.end <= d.idEnd) return;
+      }
       // Find the innermost enclosing scope substitution set, if any.
       for (const decl of decls) {
         if (node.start < decl.scopeStart || node.end > decl.scopeEnd) continue;
@@ -76,9 +87,6 @@ export function flattenDestructureUseCalls(
         if (!subs) continue;
         const hit = subs.find(sub => sub.from === node.name);
         if (!hit) continue;
-        // Skip the original declarator pattern position — we've already
-        // overwritten that, and re-overwriting would conflict.
-        if (node.start >= decl.idStart && node.end <= decl.idEnd) return;
         s.overwrite(node.start, node.end, hit.to);
         return;
       }

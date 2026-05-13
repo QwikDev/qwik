@@ -61,20 +61,25 @@ export function applySegmentConstReplacement(
   code: string,
   filename: string,
   isServer?: boolean,
+  preParsedProgram?: AstProgram,
 ): string {
   if (isServer === undefined) return code;
 
-  let parsed: AstParseResult;
-  try {
-    parsed = parseWithRawTransfer(filename, code);
-  } catch {
-    return code;
+  let program: AstProgram;
+  if (preParsedProgram) {
+    program = preParsedProgram;
+  } else {
+    try {
+      program = parseWithRawTransfer(filename, code).program;
+    } catch {
+      return code;
+    }
   }
 
   const replacements = new Map<string, string>();
   const importRanges = new Set<string>();
 
-  for (const node of parsed.program.body) {
+  for (const node of program.body) {
     if (node.type !== 'ImportDeclaration') continue;
     const source = node.source?.value ?? '';
     if (!CONST_IMPORT_SOURCES.includes(source)) continue;
@@ -98,7 +103,7 @@ export function applySegmentConstReplacement(
   if (replacements.size === 0) return code;
 
   const s = new MagicString(code);
-  walk(parsed.program, {
+  walk(program, {
     enter(node: AstNode, parent: AstParentNode) {
       if (node.type !== 'Identifier') return;
       const replacement = replacements.get(node.name);
@@ -115,16 +120,24 @@ export function applySegmentConstReplacement(
   return s.toString();
 }
 
-export function injectUseHmr(segmentCode: string, devFile: string): string {
-  let parsed: AstParseResult;
-  try {
-    parsed = parseWithRawTransfer('__segment_hmr__.tsx', segmentCode);
-  } catch {
-    return segmentCode;
+export function injectUseHmr(
+  segmentCode: string,
+  devFile: string,
+  preParsedProgram?: AstProgram,
+): string {
+  let program: AstProgram;
+  if (preParsedProgram) {
+    program = preParsedProgram;
+  } else {
+    try {
+      program = parseWithRawTransfer('__segment_hmr__.tsx', segmentCode).program;
+    } catch {
+      return segmentCode;
+    }
   }
 
   let targetFn: AstFunction | null = null;
-  for (const stmt of parsed.program.body) {
+  for (const stmt of program.body) {
     if (stmt.type !== 'ExportNamedDeclaration' || stmt.declaration?.type !== 'VariableDeclaration') continue;
     const init = stmt.declaration.declarations?.[0]?.init;
     if (!init) continue;
@@ -176,19 +189,29 @@ function inferBlockIndent(code: string, start: number): string {
 export function applySegmentSideEffectSimplification(
   code: string,
   filename: string,
+  preParsedProgram?: AstProgram,
 ): string {
   const exportMatch = code.match(exportConstLine);
   if (!exportMatch) return code;
 
   const exportStart = code.indexOf(exportMatch[0]!);
-  const beforeExport = code.slice(0, exportStart);
-  const exportSection = code.slice(exportStart);
 
-  let parsed: AstParseResult;
-  try {
-    parsed = parseWithRawTransfer(filename, exportSection);
-  } catch {
-    return code;
+  // Parse the FULL `code` rather than slicing to `exportSection` and
+  // reparsing — per `CODING_BEST_PRACTICES.md` "Should only ever parse
+  // once" the AST should never be re-derived from a substring of the
+  // original input. The walk filters nodes by absolute position
+  // (`>= exportStart`) instead. Caller can pass `preParsedProgram` so
+  // we skip the parse entirely when the upstream pipeline already
+  // holds a fresh AST of the current `code`.
+  let program: AstProgram;
+  if (preParsedProgram) {
+    program = preParsedProgram;
+  } else {
+    try {
+      program = parseWithRawTransfer(filename, code).program;
+    } catch {
+      return code;
+    }
   }
 
   const allRefs = new Map<string, number>();
@@ -203,15 +226,23 @@ export function applySegmentSideEffectSimplification(
     initNode: AstNode;
   }> = [];
 
-  walk(parsed.program, {
+  walk(program, {
     enter(node: AstNode, parent: AstParentNode) {
+      // Skip everything outside the export section — equivalent to the
+      // old substring slice. Cheap position check; no traversal cost
+      // beyond visiting the nodes once.
+      if (node.start !== undefined && node.end !== undefined &&
+          (node.end <= exportStart)) return;
+
       if (node.type === 'Identifier' && node.name) {
         if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
         if (parent?.type === 'ImportSpecifier') return;
+        if (node.start === undefined || node.start < exportStart) return;
         allRefs.set(node.name, (allRefs.get(node.name) ?? 0) + 1);
       }
 
       if (node.type === 'VariableDeclaration' && node.kind === 'const') {
+        if (node.start === undefined || node.start < exportStart) return;
         for (const declarator of node.declarations) {
           if (declarator.id?.type === 'Identifier' && declarator.init) {
             if (node.declarations?.length > 1) continue;
@@ -222,7 +253,7 @@ export function applySegmentSideEffectSimplification(
               declStart: node.start,
               declEnd: node.end,
               initType: declarator.init.type,
-              initText: exportSection.slice(declarator.init.start, declarator.init.end),
+              initText: code.slice(declarator.init.start, declarator.init.end),
               initNode: declarator.init,
             });
           }
@@ -243,7 +274,7 @@ export function applySegmentSideEffectSimplification(
     ) {
       continue;
     }
-    if (exportSection.includes(`export const ${decl.name} =`)) continue;
+    if (code.indexOf(`export const ${decl.name} =`, exportStart) >= 0) continue;
 
     let replacement: string;
     if (
@@ -273,7 +304,10 @@ export function applySegmentSideEffectSimplification(
 
   if (replacements.length === 0) return code;
 
-  let result = exportSection;
+  // Positions are now absolute (relative to `code`) since we parsed the
+  // full source. Apply right-to-left so prior replacements don't shift
+  // remaining offsets.
+  let result = code;
   replacements.sort((a, b) => b.start - a.start);
   for (const replacement of replacements) {
     result =
@@ -281,14 +315,14 @@ export function applySegmentSideEffectSimplification(
       replacement.replacement +
       result.slice(replacement.end);
   }
-
-  return beforeExport + result;
+  return result;
 }
 
 export function removeUnusedImports(
   code: string,
   filename: string,
   transpileJsx?: boolean,
+  preParsedProgram?: AstProgram,
 ): string {
   const sepIdx = code.indexOf('\n//\n');
   if (sepIdx >= 0) {
@@ -326,11 +360,15 @@ export function removeUnusedImports(
     }
   }
 
-  let parsed: AstParseResult;
-  try {
-    parsed = parseWithRawTransfer(filename, code);
-  } catch {
-    return code;
+  let parsed: AstParseResult | { program: AstProgram };
+  if (preParsedProgram) {
+    parsed = { program: preParsedProgram };
+  } else {
+    try {
+      parsed = parseWithRawTransfer(filename, code);
+    } catch {
+      return code;
+    }
   }
 
   const importSpecs: Array<{

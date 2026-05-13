@@ -57,7 +57,10 @@ The current CI assertion caps are **1.15×** for BENCH-01 and **1.5×** for BENC
 
 | Date | Commit | Workstream | SWC ms | TS ms | Ratio | Notes |
 |---|---|---|---|---|---|---|
-| **2026-05-09** | **`dbe32d2`** | **post #36 — current `main`** | 549 | 1475 | **2.69×** | post-Sub-C — refactor track v2 fully closed; orchestrator at 34 lines |
+| **2026-05-13** | **`b792bf6`** | **PR #56 branch HEAD — post-OSS-365 + F8c crash fix** | 552 | 1568 | **2.83×** | code-health #2: shared AST across module-cleanup post-process pipeline + substring re-parse eliminated. Includes flatten-destructures crash fix. Pre-merge — SHA will change on squash. |
+| 2026-05-13 | `1df6b8d` | post #54 — OSS-364 | 547 | 1576 | 2.88× | code-health #1: event-capture-promotion walks 5→2 via pre-collection. Crash fix applied for measurement (same fix as the b792bf6 row). |
+| 2026-05-13 | `ee3be65` | post #52 — F8c / OSS-363 | 552 | 1549 | 2.80× | F8c: new `flatten-destructures.ts` Phase 0.5 step + rawProps gate + compound-destructure const classification. Crash fix applied for measurement (BENCH-01 crashes on plain HEAD due to the magic-string overwrite bug). |
+| 2026-05-09 | `dbe32d2` | post #36 — pre-F1b/F8/code-health | 549 | 1475 | **2.69×** | post-Sub-C — refactor track v2 fully closed; orchestrator at 34 lines |
 | 2026-05-09 | `e8a705b` | post #34 — OSS-357 (Sub-B) | 552 | 1485 | 2.69× | migration-wiring + nested call-sites + nested QRL decls extracted |
 | 2026-05-09 | `42ef260` | post #32 — OSS-356 (Sub-A) | 548 | 1549 | 2.83× | Prep + inline-strategy + shared rawProps helper extracted (single noisy run; Sub-B + Sub-C re-stabilise) |
 | 2026-05-09 | `4673e07` | post #27 — pre-track-v2 baseline | 550 | 1465 | 2.66× | post-OSS-355 + post-merge-routine codification |
@@ -74,7 +77,10 @@ The current CI assertion caps are **1.15×** for BENCH-01 and **1.5×** for BENC
 
 | Date | Commit | Workstream | SWC ms | TS ms | Ratio | Notes |
 |---|---|---|---|---|---|---|
-| **2026-05-09** | **`dbe32d2`** | **post #36 — current `main`** | 19 | 94 | **4.87×** | post-Sub-C — refactor track v2 fully closed |
+| **2026-05-13** | **`b792bf6`** | **PR #56 branch HEAD — post-OSS-365 + F8c crash fix** | 19 | 96 | **5.11×** | code-health #2. Pre-merge — SHA will change on squash. |
+| 2026-05-13 | `1df6b8d` | post #54 — OSS-364 | 20 | 97 | 5.02× | code-health #1: event-capture-promotion walks 5→2. |
+| 2026-05-13 | `ee3be65` | post #52 — F8c / OSS-363 | 19 | 97 | 5.03× | F8c destructure-flattening landed. |
+| 2026-05-09 | `dbe32d2` | post #36 — pre-F1b/F8/code-health | 19 | 94 | **4.87×** | post-Sub-C — refactor track v2 fully closed |
 | 2026-05-09 | `e8a705b` | post #34 — OSS-357 (Sub-B) | 19 | 91 | 4.72× | migration-wiring + nested call-sites + nested QRL decls extracted |
 | 2026-05-09 | `42ef260` | post #32 — OSS-356 (Sub-A) | 19 | 95 | 4.88× | Prep + inline-strategy + shared rawProps helper extracted |
 | 2026-05-09 | `4673e07` | post #27 — pre-track-v2 baseline | 19 | 91 | 4.67× | post-OSS-355 + post-merge-routine codification |
@@ -98,9 +104,9 @@ Both charts plot **TS / SWC ratio** (the dimensionless regression signal — low
 ```mermaid
 xychart-beta
     title "BENCH-01 — TS / SWC ratio (lower is better; CI cap = 1.15×)"
-    x-axis ["d3226c3", "e98cbff", "dd450a6", "d3f4387", "b903652", "3b8eac6", "29a439e", "854f04b", "4673e07", "42ef260", "e8a705b", "dbe32d2"]
+    x-axis ["d3226c3", "e98cbff", "dd450a6", "d3f4387", "b903652", "3b8eac6", "29a439e", "854f04b", "4673e07", "42ef260", "e8a705b", "dbe32d2", "ee3be65", "1df6b8d", "b792bf6"]
     y-axis "Ratio (×)" 2.5 --> 3.0
-    line [2.82, 2.86, 2.74, 2.72, 2.83, 2.77, 2.70, 2.72, 2.66, 2.83, 2.69, 2.69]
+    line [2.82, 2.86, 2.74, 2.72, 2.83, 2.77, 2.70, 2.72, 2.66, 2.83, 2.69, 2.69, 2.80, 2.88, 2.83]
 ```
 
 ### BENCH-02 ratio over time
@@ -108,9 +114,9 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "BENCH-02 — TS / SWC ratio (lower is better; CI cap = 1.5×)"
-    x-axis ["d3226c3", "e98cbff", "dd450a6", "d3f4387", "b903652", "3b8eac6", "29a439e", "854f04b", "4673e07", "42ef260", "e8a705b", "dbe32d2"]
+    x-axis ["d3226c3", "e98cbff", "dd450a6", "d3f4387", "b903652", "3b8eac6", "29a439e", "854f04b", "4673e07", "42ef260", "e8a705b", "dbe32d2", "ee3be65", "1df6b8d", "b792bf6"]
     y-axis "Ratio (×)" 4.5 --> 5.5
-    line [4.75, 4.93, 5.15, 5.03, 5.27, 4.87, 5.09, 4.65, 4.67, 4.88, 4.72, 4.87]
+    line [4.75, 4.93, 5.15, 5.03, 5.27, 4.87, 5.09, 4.65, 4.67, 4.88, 4.72, 4.87, 5.03, 5.02, 5.11]
 ```
 
 > The CI caps (1.15× and 1.5×) sit well below the visible y-axis ranges and aren't drawn. Mermaid's `xychart-beta` doesn't support reference lines — caps stay textual in each chart's title. The tables above remain the source of truth; the charts are a visual aid.
@@ -139,6 +145,24 @@ To meaningfully move the ratios:
 - BENCH-01 is dominated by file-discovery + parsing across the batch. Throughput here is more about the parse → walk → emit cycle than any single phase.
 
 When perf-targeted tickets get filed, link them here and add a row before/after each one to make the impact visible.
+
+### Update 2026-05-13 — F8c + code-health pass
+
+Three new rows added today isolating F8c ([OSS-363](https://linear.app/kunai/issue/OSS-363), PR #52), OSS-364 (PR #54), OSS-365 + flatten-destructures crash fix (PR #56 branch HEAD). All measurements taken on the same machine, same SWC binding, in sequence.
+
+| Boundary | BENCH-01 ratio | BENCH-02 ratio |
+|---|---|---|
+| `dbe32d2` (pre-F8c baseline, 2026-05-09) | 2.69× | 4.87× |
+| `ee3be65` (post-F8c) | 2.80× | 5.03× |
+| `1df6b8d` (post-OSS-364, walks 5→2) | 2.88× | 5.02× |
+| `b792bf6` (post-OSS-365, parse-sharing) | 2.83× | 5.11× |
+
+**Takeaways:**
+
+1. **F8c added ~4% to BENCH-01** (2.69× → 2.80×). The new `flatten-destructures.ts` Phase 0.5 step is a real cost: one extra `walk(program, ...)` to identify candidate decls and (when changes apply) a re-parse of the rewritten source. F8c was a parity fix, not perf-targeted; this overhead is expected.
+2. **OSS-364 and OSS-365 (the code-health pass) had no measurable effect.** Both PRs reduced redundant walks / parses (5→2 in `event-capture-promotion`, 4→1 in the `module-cleanup` post-process), matching the rule's "parse once, walk once" intent — but the per-walk/per-parse cost is dwarfed by the rest of the pipeline. Final ratio 2.83× is inside the variance band relative to the 2.80× post-F8c row (3 runs each: 2.79–2.88 vs 2.79–2.88 vs 2.83–2.86 — all overlapping). The work was a code-quality investment, not a throughput win.
+3. **BENCH-02 (worst-case single file) is essentially flat across all four points.** The savings from the code-health PRs don't show up here because the worst-case file doesn't exercise the redundant-walk code paths in `event-capture-promotion` or the post-process pipeline as heavily as the full monorepo does.
+4. **Crash discovered.** Running BENCH-01 on the post-F8c commit (`ee3be65`) crashed in `flatten-destructures.ts` with `Cannot split a chunk that has already been edited (45:10 – "{ url }")` — a real bug that convergence tests missed because the failing shape (two flattenable decls in the same scope, second decl's pattern containing an Identifier whose name matches the first's substitution) wasn't in the snapshot corpus. Fix bundled in PR #56 (commit `b792bf6`); regression test pinned in `tests/optimizer/flatten-destructures.test.ts`. **The benchmark suite caught a correctness bug, not just a perf number** — useful precedent for adding benchmark-style runs to CI on real source corpora.
 
 ---
 

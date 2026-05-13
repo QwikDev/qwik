@@ -29,6 +29,8 @@ import {
 } from './module-cleanup.js';
 import { applySegmentDCE, hasSegmentDcePatterns } from './dead-code.js';
 import { isAnyComponentCtx } from '../rewrite/predicates.js';
+import { parseWithRawTransfer } from '../utils/parse.js';
+import type { AstProgram } from '../../ast-types.js';
 
 export interface SegmentPostProcessOptions {
   symbolName: string;
@@ -198,34 +200,64 @@ export function postProcessSegmentCode(
     }
   }
 
+  // Single-parse-cache for the post-process pipeline. Each helper accepts
+  // `preParsedProgram?: AstProgram`; we parse once on first use and reuse
+  // until a helper mutates the code (which invalidates the AST). Matches
+  // `CODING_BEST_PRACTICES.md` "Should only ever parse once" — when no
+  // helper mutates, the pipeline parses at most once for all four steps.
+  let cachedProgram: AstProgram | undefined;
+  const lazyParse = (): AstProgram | undefined => {
+    if (cachedProgram) return cachedProgram;
+    try {
+      cachedProgram = parseWithRawTransfer(filename, result).program;
+    } catch {
+      cachedProgram = undefined;
+    }
+    return cachedProgram;
+  };
+  const runHelper = <T extends string>(helper: () => T): T => {
+    const before = result;
+    const out = helper();
+    // String identity is sufficient: helpers return the original `result`
+    // reference when they no-op, and a new string when they mutate.
+    if (out !== before) cachedProgram = undefined;
+    return out;
+  };
+
   // Apply isServer/isBrowser const replacement
   if (
     opts.isServer !== undefined &&
     (result.includes("@qwik.dev/core") || result.includes("@builder.io/qwik"))
   ) {
-    result = applySegmentConstReplacement(result, filename, opts.isServer);
+    result = runHelper(() =>
+      applySegmentConstReplacement(result, filename, opts.isServer, lazyParse()),
+    );
   }
 
   // Dead code elimination
   if (hasSegmentDcePatterns(result)) {
-    result = applySegmentDCE(result);
+    result = runHelper(() => applySegmentDCE(result));
   }
 
   // Side-effect simplification for unused variable bindings
   const exportIdx = result.indexOf("export const ");
   const afterExportLine = exportIdx >= 0 ? result.indexOf("\n", exportIdx) : -1;
   if (afterExportLine >= 0 && result.indexOf("const ", afterExportLine) >= 0) {
-    result = applySegmentSideEffectSimplification(result, filename);
+    result = runHelper(() =>
+      applySegmentSideEffectSimplification(result, filename, lazyParse()),
+    );
   }
 
   // HMR injection for component$ segments
   if (opts.emitMode === "hmr" && opts.devFile && isAnyComponentCtx(opts.ctxName)) {
-    result = injectUseHmr(result, opts.devFile);
+    result = runHelper(() => injectUseHmr(result, opts.devFile!, lazyParse()));
   }
 
   // Clean up unused imports
   if (result.includes("\nimport ")) {
-    result = removeUnusedImports(result, filename);
+    result = runHelper(() =>
+      removeUnusedImports(result, filename, undefined, lazyParse()),
+    );
   }
 
   return result;

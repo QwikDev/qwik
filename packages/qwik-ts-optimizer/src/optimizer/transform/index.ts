@@ -277,7 +277,7 @@ export function transformModule(
 
     // Event handler capture-to-param promotion (q:p delivery mechanism)
     const globalDeclPositions = new Map<string, number>();
-    const extractionLoopMap = buildExtractionLoopMap(program, extractions, repairedCode);
+    const { extractionLoopMap, loopBodyVarDecls } = buildExtractionLoopMap(program, extractions, repairedCode);
     const allScopeEntries = collectAllScopeEntries(program);
 
     promoteEventHandlerCaptures(
@@ -289,6 +289,7 @@ export function transformModule(
       enclosingExtMap,
       extractionLoopMap,
       allScopeEntries,
+      loopBodyVarDecls,
       program,
       repairedCode,
       globalDeclPositions,

@@ -31,8 +31,9 @@ export function buildExtractionLoopMap(
   program: AstProgram,
   extractions: ExtractionResult[],
   repairedCode: string,
-): Map<string, LoopContext[]> {
+): { extractionLoopMap: Map<string, LoopContext[]>; loopBodyVarDecls: LoopBodyVarDeclMap } {
   const extractionLoopMap = new Map<string, LoopContext[]>();
+  const loopBodyVarDecls: LoopBodyVarDeclMap = new Map();
   const loopStack: LoopContext[] = [];
 
   walk(program, {
@@ -40,6 +41,23 @@ export function buildExtractionLoopMap(
       const loopCtx = detectLoopContext(node, repairedCode);
       if (loopCtx) {
         loopStack.push(loopCtx);
+        if (!loopBodyVarDecls.has(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd))) {
+          loopBodyVarDecls.set(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd), []);
+        }
+      }
+      // VariableDeclarations encountered inside any active loop body get
+      // bucketed under the innermost loop. Skips loops' OWN init clauses
+      // (those are scoped to the loop construct, not its body).
+      if (node.type === 'VariableDeclaration' && loopStack.length > 0 && node.start !== undefined) {
+        const innermost = loopStack[loopStack.length - 1];
+        if (node.start >= innermost.loopBodyStart && node.end !== undefined && node.end <= innermost.loopBodyEnd) {
+          const bucket = loopBodyVarDecls.get(loopBodyKey(innermost.loopBodyStart, innermost.loopBodyEnd))!;
+          for (const decl of node.declarations ?? []) {
+            if (decl.id?.type === 'Identifier') {
+              bucket.push({ name: decl.id.name, declStart: decl.start ?? node.start });
+            }
+          }
+        }
       }
       // Check if this node's range matches any extraction's call range
       if (
@@ -70,14 +88,32 @@ export function buildExtractionLoopMap(
     },
   });
 
-  return extractionLoopMap;
+  return { extractionLoopMap, loopBodyVarDecls };
 }
+
+/** Source kind of a binding, recorded so consumers can filter to
+ * `let`/`var` (loop-counter-shaped) vs `param`/`const`/`function`/
+ * `class` without re-walking. */
+type BindingKind = 'param' | 'let' | 'const' | 'var' | 'function' | 'class';
 
 interface ScopeEntry {
   type: "function" | "for-loop";
   start: number;
   end: number;
-  bindings: Array<{ name: string; pos: number }>;
+  bindings: Array<{ name: string; pos: number; kind: BindingKind }>;
+}
+
+/** Per-loop record of VariableDeclarations whose source range falls
+ * inside that loop's body. Pre-collected so the per-extraction loop
+ * in `promoteEventHandlerCaptures` can look up loop-local declarations
+ * via key lookup instead of re-walking the program for each extraction.
+ *
+ * Keyed by `${loopBodyStart}-${loopBodyEnd}` — the LoopContext's
+ * positional fingerprint. */
+export type LoopBodyVarDeclMap = Map<string, Array<{ name: string; declStart: number }>>;
+
+function loopBodyKey(start: number, end: number): string {
+  return `${start}-${end}`;
 }
 
 /**
@@ -97,17 +133,20 @@ export function collectAllScopeEntries(program: AstProgram): ScopeEntry[] {
         node.start !== undefined &&
         node.end !== undefined
       ) {
-        const bindings: Array<{ name: string; pos: number }> = [];
+        const bindings: Array<{ name: string; pos: number; kind: BindingKind }> = [];
         for (const param of node.params ?? []) {
           const names = new Set<string>();
           addBindingNamesFromPatternToSet(param, names);
           for (const n of names) {
-            bindings.push({ name: n, pos: param.start ?? 0 });
+            bindings.push({ name: n, pos: param.start ?? 0, kind: 'param' });
           }
         }
         if (node.body?.type === "BlockStatement") {
           for (const stmt of node.body.body ?? []) {
             if (stmt.type === "VariableDeclaration") {
+              const stmtKind: BindingKind =
+                stmt.kind === 'const' ? 'const' :
+                stmt.kind === 'let' ? 'let' : 'var';
               for (const decl of stmt.declarations ?? []) {
                 if (decl.id) {
                   const names = new Set<string>();
@@ -116,6 +155,7 @@ export function collectAllScopeEntries(program: AstProgram): ScopeEntry[] {
                     bindings.push({
                       name: n,
                       pos: decl.start ?? stmt.start ?? 0,
+                      kind: stmtKind,
                     });
                   }
                 }
@@ -139,7 +179,10 @@ export function collectAllScopeEntries(program: AstProgram): ScopeEntry[] {
       ) {
         const left = node.type === "ForStatement" ? node.init : node.left;
         if (left?.type === "VariableDeclaration") {
-          const bindings: Array<{ name: string; pos: number }> = [];
+          const leftKind: BindingKind =
+            left.kind === 'const' ? 'const' :
+            left.kind === 'let' ? 'let' : 'var';
+          const bindings: Array<{ name: string; pos: number; kind: BindingKind }> = [];
           for (const decl of left.declarations ?? []) {
             if (decl.id) {
               const names = new Set<string>();
@@ -148,6 +191,7 @@ export function collectAllScopeEntries(program: AstProgram): ScopeEntry[] {
                 bindings.push({
                   name: n,
                   pos: decl.start ?? left.start ?? 0,
+                  kind: leftKind,
                 });
               }
             }
@@ -184,7 +228,8 @@ export function promoteEventHandlerCaptures(
   enclosingExtMap: Map<string, ExtractionResult>,
   extractionLoopMap: Map<string, LoopContext[]>,
   allScopeEntries: ScopeEntry[],
-  program: AstProgram,
+  loopBodyVarDecls: LoopBodyVarDeclMap,
+  _program: AstProgram,
   repairedCode: string,
   globalDeclPositions: Map<string, number>,
 ): void {
@@ -241,47 +286,27 @@ export function promoteEventHandlerCaptures(
             (loop.type === "while" || loop.type === "do-while") &&
             loop.iterVars.length === 0
           ) {
-            // Walk AST to find function declarations/expressions containing the loop
-            // and collect their body-level let/var declarations
-            walk(program, {
-              enter(node: AstNode) {
-                if (
-                  (node.type === "ArrowFunctionExpression" ||
-                    node.type === "FunctionExpression" ||
-                    node.type === "FunctionDeclaration") &&
-                  node.start !== undefined &&
-                  node.end !== undefined &&
-                  node.start < loop.loopNode.start &&
-                  node.end > loop.loopNode.end &&
-                  node.start < extraction.callStart &&
-                  node.end > extraction.callEnd
-                ) {
-                  // This function contains both the loop and the handler
-                  if (node.body?.type === "BlockStatement") {
-                    for (const stmt of node.body.body ?? []) {
-                      if (
-                        stmt.type === "VariableDeclaration" &&
-                        (stmt.kind === "let" || stmt.kind === "var")
-                      ) {
-                        for (const decl of stmt.declarations ?? []) {
-                          if (
-                            decl.id?.type === "Identifier" &&
-                            !undeclaredSet.has(decl.id.name)
-                          ) {
-                            const varName = decl.id.name;
-                            if (getWholeWordPattern(varName).test(bodyText)) {
-                              undeclaredIds.push(varName);
-                              undeclaredSet.add(varName);
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              leave() {},
-            });
+            // Pre-collected lookup (replaces a `walk(program, ...)` that
+            // re-scanned the whole AST per-extraction): find function-
+            // scope entries containing both the loop and the extraction
+            // call site, then gather their `let`/`var` body-level
+            // declarations that are referenced in the handler body text.
+            for (const entry of allScopeEntries) {
+              if (entry.type !== 'function') continue;
+              if (
+                entry.start >= loop.loopNode.start ||
+                entry.end <= loop.loopNode.end ||
+                entry.start >= extraction.callStart ||
+                entry.end <= extraction.callEnd
+              ) continue;
+              for (const b of entry.bindings) {
+                if (b.kind !== 'let' && b.kind !== 'var') continue;
+                if (undeclaredSet.has(b.name)) continue;
+                if (!getWholeWordPattern(b.name).test(bodyText)) continue;
+                undeclaredIds.push(b.name);
+                undeclaredSet.add(b.name);
+              }
+            }
           }
         }
       }
@@ -390,71 +415,40 @@ export function promoteEventHandlerCaptures(
       // 1. Immediate loop's iterVars
       const loopLocalSet = new Set<string>(immediateLoop.iterVars);
 
-      // 2. Block-scoped declarations inside the immediate loop body
-      walk(program, {
-        enter(node: AstNode) {
-          if (
-            node.type === "VariableDeclaration" &&
-            node.start !== undefined &&
-            node.end !== undefined &&
-            node.start >= immediateLoop.loopBodyStart &&
-            node.end <= immediateLoop.loopBodyEnd
-          ) {
-            for (const decl of node.declarations ?? []) {
-              if (decl.id?.type === "Identifier") {
-                loopLocalSet.add(decl.id.name);
-              }
-            }
-          }
-        },
-        leave() {},
-      });
+      // 2. Block-scoped declarations inside the immediate loop body —
+      //    pre-collected during `buildExtractionLoopMap` (replaces a
+      //    `walk(program, ...)` that re-scanned per-extraction).
+      const loopBodyDecls = loopBodyVarDecls.get(loopBodyKey(immediateLoop.loopBodyStart, immediateLoop.loopBodyEnd));
+      if (loopBodyDecls) {
+        for (const d of loopBodyDecls) loopLocalSet.add(d.name);
+      }
 
-      // 3. For while/do-while loops: also include let/var declarations from
-      //    the containing function body that precede the loop. These are
-      //    potential loop counter variables (e.g., `let i = 0` before `while(i < n)`).
-      //    Only include variables that are referenced in the handler body text.
+      // 3. For while/do-while loops: also include let/var declarations
+      //    from any enclosing function body that contains both the loop
+      //    and the extraction, where the decl precedes the loop. Looked
+      //    up against `allScopeEntries` (replaces another per-extraction
+      //    walk of the whole program).
       if (
         (immediateLoop.type === "while" ||
           immediateLoop.type === "do-while") &&
         immediateLoop.iterVars.length === 0
       ) {
         const handlerBody = extraction.bodyText;
-        walk(program, {
-          enter(node: AstNode) {
-            if (
-              (node.type === "FunctionDeclaration" ||
-                node.type === "FunctionExpression" ||
-                node.type === "ArrowFunctionExpression") &&
-              node.start !== undefined &&
-              node.end !== undefined &&
-              node.start < immediateLoop.loopNode.start &&
-              node.end > immediateLoop.loopNode.end &&
-              node.start < extraction.callStart &&
-              node.end > extraction.callEnd &&
-              node.body?.type === "BlockStatement"
-            ) {
-              for (const stmt of node.body.body ?? []) {
-                if (
-                  stmt.type === "VariableDeclaration" &&
-                  (stmt.kind === "let" || stmt.kind === "var") &&
-                  stmt.start !== undefined &&
-                  stmt.start < immediateLoop.loopNode.start
-                ) {
-                  for (const decl of stmt.declarations ?? []) {
-                    if (decl.id?.type === "Identifier") {
-                      const varName = decl.id.name;
-                      if (getWholeWordPattern(varName).test(handlerBody)) {
-                        loopLocalSet.add(varName);
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          leave() {},
-        });
+        for (const entry of allScopeEntries) {
+          if (entry.type !== 'function') continue;
+          if (
+            entry.start >= immediateLoop.loopNode.start ||
+            entry.end <= immediateLoop.loopNode.end ||
+            entry.start >= extraction.callStart ||
+            entry.end <= extraction.callEnd
+          ) continue;
+          for (const b of entry.bindings) {
+            if (b.kind !== 'let' && b.kind !== 'var') continue;
+            if (b.pos >= immediateLoop.loopNode.start) continue;
+            if (!getWholeWordPattern(b.name).test(handlerBody)) continue;
+            loopLocalSet.add(b.name);
+          }
+        }
       }
 
       // Partition captures

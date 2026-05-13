@@ -113,7 +113,7 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
 
     const serialized = await _serialize(responseData);
     requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
-    requestEv.send(200, serialized);
+    requestEv.send(requestEv.status(), serialized);
   };
 }
 

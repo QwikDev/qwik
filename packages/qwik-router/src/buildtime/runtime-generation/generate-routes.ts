@@ -422,7 +422,8 @@ function serializeBuildTrie(
       notFoundFiles,
       childAncestors,
       isSSR,
-      nextIndent
+      nextIndent,
+      loadersByFile
     );
     if (childStr !== '{}') {
       const keyStr = JSON.stringify(key);

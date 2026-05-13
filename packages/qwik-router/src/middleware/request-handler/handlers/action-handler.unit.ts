@@ -28,6 +28,7 @@ const createActionRequest = () => {
     status: undefined as number | undefined,
     body: undefined as string | undefined,
   };
+  let currentStatus = 200;
   const request = new Request('http://localhost/test/?qaction=action-a', {
     method: 'POST',
     headers: {
@@ -45,17 +46,23 @@ const createActionRequest = () => {
     headersSent: false,
     exited: false,
     parseBody: vi.fn(async () => ({ name: 'Ada' })),
-    fail: vi.fn((status: number, data: Record<string, unknown>) => ({
-      failed: true,
-      status,
-      ...data,
-    })),
-    json: vi.fn((status: number, data: unknown) => {
-      sent.status = status;
+    fail: vi.fn((statusCode: number, data: Record<string, unknown>) => {
+      currentStatus = statusCode;
+      return { failed: true, status: statusCode, ...data };
+    }),
+    status: vi.fn((statusCode?: number) => {
+      if (typeof statusCode === 'number') {
+        currentStatus = statusCode;
+        return statusCode;
+      }
+      return currentStatus;
+    }),
+    json: vi.fn((statusCode: number, data: unknown) => {
+      sent.status = statusCode;
       sent.body = JSON.stringify(data);
     }),
-    send: vi.fn((status: number, body: string) => {
-      sent.status = status;
+    send: vi.fn((statusCode: number, body: string) => {
+      sent.status = statusCode;
       sent.body = body;
     }),
   };
@@ -103,5 +110,52 @@ describe('actionHandler', () => {
       loaderHashes: [],
     });
     expect(response).not.toHaveProperty('loaders');
+  });
+
+  it('reflects validator failure status in HTTP response', async () => {
+    globalThis.__STRICT_LOADERS__ = false;
+    const { requestEv, sent } = createActionRequest();
+
+    const action = {
+      ...createAction(),
+      __validators: [
+        {
+          validate: vi.fn(async () => ({
+            success: false,
+            status: 422,
+            error: { field: 'name', message: 'too short' },
+          })),
+        },
+      ],
+    } as any;
+
+    await actionHandler([action])(requestEv as any);
+
+    expect(sent.status).toBe(422);
+    const response = _deserialize<Record<string, unknown>>(sent.body!);
+    expect(response.result).toMatchObject({ failed: true, status: 422 });
+  });
+
+  it('reflects fail() status called from action QRL in HTTP response', async () => {
+    globalThis.__STRICT_LOADERS__ = false;
+    const { requestEv, sent } = createActionRequest();
+
+    const action = {
+      __brand: 'server_action',
+      __id: 'action-a',
+      __validators: undefined,
+      __invalidate: undefined,
+      __qrl: {
+        getHash: () => 'action-a',
+        // First arg is requestEv, second is parsed body data
+        call: vi.fn(async (ev: any) => ev.fail(500, { msg: 'something went wrong' })),
+      },
+    } as any;
+
+    await actionHandler([action])(requestEv as any);
+
+    expect(sent.status).toBe(500);
+    const response = _deserialize<Record<string, unknown>>(sent.body!);
+    expect(response.result).toMatchObject({ failed: true, msg: 'something went wrong' });
   });
 });

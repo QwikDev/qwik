@@ -423,11 +423,15 @@ function qwikRouterPlugin(
 
           if (isRouterConfig) {
             // @qwik-router-config
+            // In dev server mode, loadersByFile is kept current via onSegment + module
+            // invalidation, so pass it directly. In build mode the config is loaded before
+            // route files are optimized, so loadersByFile is empty here; pass undefined to
+            // emit __LOADERS:...__ placeholders that generateBundle replaces after optimization.
             return generateQwikRouterConfig(
               ctx,
               qwikPlugin!,
               this.environment.config.consumer === 'server',
-              loadersByFile
+              devServer ? loadersByFile : undefined
             );
           }
 

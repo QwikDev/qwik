@@ -1,3 +1,4 @@
+import { _serialize } from '@qwik.dev/core/internal';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { FULLPATH_HEADER, fetchRouteLoaderData } from './route-loaders';
@@ -55,5 +56,108 @@ describe('fetchRouteLoaderData', () => {
         },
       })
     );
+  });
+
+  it('dedupes concurrent loader fetches for the same request', async () => {
+    const body = await _serialize({ d: 'prefetched' });
+    let resolveFetch: (() => void) | undefined;
+    const fetchSpy = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveFetch = () => resolve(new Response(body));
+        })
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const url = new URL('http://localhost/products/123/?view=full');
+    const first = fetchRouteLoaderData('dedupe-concurrent', '/products/123/', 'manifest-hash', {
+      pageUrl: url,
+    });
+    const second = fetchRouteLoaderData('dedupe-concurrent', '/products/123/', 'manifest-hash', {
+      pageUrl: url,
+      signal: new AbortController().signal,
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    resolveFetch!();
+
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      { d: 'prefetched' },
+      { d: 'prefetched' },
+    ]);
+  });
+
+  it('lets an abortable caller stop waiting for a shared prefetch', async () => {
+    const body = await _serialize({ d: 'prefetched' });
+    let resolveFetch: (() => void) | undefined;
+    const fetchSpy = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveFetch = () => resolve(new Response(body));
+        })
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const url = new URL('http://localhost/products/123/?view=full');
+    const prefetch = fetchRouteLoaderData('abort-shared', '/products/123/', 'manifest-hash', {
+      pageUrl: url,
+    });
+    const controller = new AbortController();
+    const navigation = fetchRouteLoaderData('abort-shared', '/products/123/', 'manifest-hash', {
+      pageUrl: url,
+      signal: controller.signal,
+    });
+
+    controller.abort('stale navigation');
+    await expect(navigation).rejects.toBe('stale navigation');
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    resolveFetch!();
+    await expect(prefetch).resolves.toEqual({ d: 'prefetched' });
+  });
+
+  it('reuses a recently completed loader fetch', async () => {
+    const body = await _serialize({ d: 'cached' });
+    const fetchSpy = vi.fn().mockResolvedValue(new Response(body));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const url = new URL('http://localhost/products/123/?view=full');
+    const first = await fetchRouteLoaderData(
+      'dedupe-completed',
+      '/products/123/',
+      'manifest-hash',
+      {
+        pageUrl: url,
+      }
+    );
+    const second = await fetchRouteLoaderData(
+      'dedupe-completed',
+      '/products/123/',
+      'manifest-hash',
+      {
+        pageUrl: url,
+      }
+    );
+
+    expect(first).toEqual({ d: 'cached' });
+    expect(second).toEqual({ d: 'cached' });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not let abortable requests populate the shared loader fetch cache', async () => {
+    const body = await _serialize({ d: 'uncached' });
+    const fetchSpy = vi.fn().mockImplementation(() => Promise.resolve(new Response(body)));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const url = new URL('http://localhost/products/123/?view=full');
+    await fetchRouteLoaderData('abort-uncached', '/products/123/', 'manifest-hash', {
+      pageUrl: url,
+      signal: new AbortController().signal,
+    });
+    await fetchRouteLoaderData('abort-uncached', '/products/123/', 'manifest-hash', {
+      pageUrl: url,
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 });

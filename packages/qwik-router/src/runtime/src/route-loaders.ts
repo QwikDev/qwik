@@ -67,6 +67,41 @@ export type LoaderResponse = {
   e?: InstanceType<typeof ServerError>;
 };
 
+type LoaderFetchCacheEntry = {
+  promise?: Promise<LoaderResponse | undefined>;
+  value?: LoaderResponse;
+  expires: number;
+};
+
+const LOADER_FETCH_CACHE_TTL = 5_000;
+const LOADER_FETCH_CACHE_MAX = 128;
+/** Preload fetch cache, prevents duplicate fetches */
+const fetchCache = new Map<string, LoaderFetchCacheEntry>();
+
+const perfNow = () => globalThis.performance?.now() ?? Date.now();
+
+const setCache = (key: string, entry: LoaderFetchCacheEntry) => {
+  fetchCache.set(key, entry);
+  if (fetchCache.size > LOADER_FETCH_CACHE_MAX) {
+    const oldestKey = fetchCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      fetchCache.delete(oldestKey);
+    }
+  }
+};
+
+/** We don't have aborts when preloading so we just pretend we do */
+const wrapWithAbort = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> => {
+  if (signal.aborted) {
+    return Promise.reject(signal.reason);
+  }
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => reject(signal.reason);
+    signal.addEventListener('abort', abort, { once: true });
+    promise.finally(() => signal.removeEventListener('abort', abort)).then(resolve, reject);
+  });
+};
+
 /**
  * Reactive context for route loaders. On the server this is stored in sharedMap, on the client it's
  * a store that gets updated on navigation.
@@ -166,20 +201,65 @@ export const fetchRouteLoaderData = async (
     headers[FULLPATH_HEADER] = pageUrl.pathname;
   }
 
-  const response = await fetch(url, {
-    signal: opts?.signal,
-    cache: opts?.ignoreCache ? 'reload' : 'default',
-    headers,
+  const cacheKey = `${url}\n${headers[FULLPATH_HEADER] ?? ''}`;
+  if (!opts?.ignoreCache) {
+    const entry = fetchCache.get(cacheKey);
+    if (entry) {
+      if (entry.promise) {
+        return opts?.signal ? wrapWithAbort(entry.promise, opts.signal) : entry.promise;
+      }
+      if (entry.expires > perfNow()) {
+        return entry.value;
+      }
+      fetchCache.delete(cacheKey);
+    }
+  }
+
+  const request = async () => {
+    const response = await fetch(url, {
+      signal: opts?.signal,
+      cache: opts?.ignoreCache ? 'reload' : 'default',
+      headers,
+    });
+    // Middleware redirects produce HTTP 3xx — convert to LoaderResponse
+    if (response.redirected) {
+      return { r: response.url };
+    }
+    if (!response.ok) {
+      return undefined;
+    }
+    const text = await response.text();
+    return _deserialize<LoaderResponse>(text) ?? undefined;
+  };
+
+  if (opts?.ignoreCache || opts?.signal) {
+    // Never cache these requests, since they're either one-off or have abort signals that can't be shared
+    // The browser cache will still apply
+    return request();
+  }
+
+  const promise = request().then(
+    (value) => {
+      if (value === undefined) {
+        fetchCache.delete(cacheKey);
+      } else {
+        setCache(cacheKey, {
+          value,
+          expires: perfNow() + LOADER_FETCH_CACHE_TTL,
+        });
+      }
+      return value;
+    },
+    (err) => {
+      fetchCache.delete(cacheKey);
+      throw err;
+    }
+  );
+  setCache(cacheKey, {
+    promise,
+    expires: perfNow() + LOADER_FETCH_CACHE_TTL,
   });
-  // Middleware redirects produce HTTP 3xx — convert to LoaderResponse
-  if (response.redirected) {
-    return { r: response.url };
-  }
-  if (!response.ok) {
-    return undefined;
-  }
-  const text = await response.text();
-  return _deserialize<LoaderResponse>(text) ?? undefined;
+  return promise;
 };
 
 const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLoaderCtx) => {

@@ -2115,7 +2115,7 @@ function materializeFromVNodeData(
       let value;
       if (isEscapedValue) {
         consume();
-        value = decodeURI(decodeVNodeDataString(consumeValue()));
+        value = decodeURIComponent(decodeVNodeDataString(consumeValue()));
         consume();
       } else {
         value = consumeValue();

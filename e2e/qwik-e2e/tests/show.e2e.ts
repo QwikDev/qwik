@@ -48,4 +48,10 @@ test.describe('show', () => {
     await page.locator('#toggle-interactive').click();
     await expect(page.locator('#branch-action')).toHaveText('Inside 1');
   });
+
+  test('should pass the when$ value to the then$ branch', async ({ page }) => {
+    await expect(page.locator('#item-result')).toHaveText('No value');
+    await page.locator('#set-item').click();
+    await expect(page.locator('#item-result')).toHaveText('Got: hello');
+  });
 });

@@ -1278,9 +1278,9 @@ export type ShowComponent = <WHEN = unknown, THEN extends JSXOutput = JSXOutput,
 // @public (undocumented)
 export interface ShowProps<WHEN = unknown, THEN extends JSXOutput = JSXOutput, ELSE extends JSXOutput = JSXOutput> {
     // (undocumented)
-    else$?: QRL<() => ELSE>;
+    else$?: QRL<(when: WHEN) => ELSE>;
     // (undocumented)
-    then$: QRL<() => THEN>;
+    then$: QRL<(when: WHEN) => THEN>;
     // (undocumented)
     when$: QRL<() => WHEN>;
 }

@@ -39,23 +39,26 @@ export default defineConfig(() => {
 });
 ```
 
-<CodeSandbox src="/src/routes/demo/component/show/index.tsx" style={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/component/show/index.tsx" style={{ height: '18em' }}>
 ```tsx /Show/ /when$/ /then$/ /else$/
 import { Show, component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
-  const signedIn = useSignal(false);
+  const count = useSignal(0);
 
   return (
     <>
-      <button onClick$={() => (signedIn.value = !signedIn.value)}>
-        {signedIn.value ? 'Sign out' : 'Sign in'}
-      </button>
+      <button onClick$={() => count.value++}>Add item</button>
+      <button onClick$={() => (count.value = 0)}>Clear</button>
 
       <Show
-        when$={() => signedIn.value}
-        then$={() => <p>Welcome back.</p>}
-        else$={() => <p>Please sign in.</p>}
+        when$={() => count.value}
+        then$={(count) => (
+          <p>
+            {count} item{count === 1 ? '' : 's'} in your cart.
+          </p>
+        )}
+        else$={(count) => <p>Your cart is empty ({count}).</p>}
       />
     </>
   );
@@ -68,11 +71,24 @@ export default component$(() => {
 `Show` accepts three props:
 
 - `when$`: returns the condition. Truthy values select `then$`, falsey values select `else$`.
-- `then$`: returns the JSX to render when `when$` is truthy.
-- `else$`: optionally returns the JSX to render when `when$` is falsey.
+- `then$`: receives the value returned by `when$` and returns the JSX to render when it is truthy.
+- `else$`: optionally receives the value returned by `when$` and returns the JSX to render when it
+  is falsey.
 
 `when$`, `then$`, and `else$` are QRL props. Use the `$` suffix so the optimizer can extract the
 closures.
+
+The `then$` and `else$` callback argument is typed from the return value of `when$`:
+
+```tsx /Show/ /when$/ /then$/ /else$/
+const count = useSignal(0);
+
+<Show
+  when$={() => count.value}
+  then$={(count) => <p>{count} items selected.</p>}
+  else$={(count) => <p>No items selected ({count}).</p>}
+/>;
+```
 
 ## Without `else$`
 
@@ -106,8 +122,8 @@ inside `when$`:
 
 ```tsx /Show/ /user.value/
 <Show
-  when$={() => user.value !== null}
-  then$={() => <p>Hello {user.value!.name}</p>}
+  when$={() => user.value?.name ?? ''}
+  then$={(name) => <p>Hello {name}</p>}
   else$={() => <p>Please sign in.</p>}
 />
 ```

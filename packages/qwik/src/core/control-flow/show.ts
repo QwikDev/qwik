@@ -25,8 +25,8 @@ export interface ShowProps<
   ELSE extends JSXOutput = JSXOutput,
 > {
   when$: QRL<() => WHEN>;
-  then$: QRL<() => THEN>;
-  else$?: QRL<() => ELSE>;
+  then$: QRL<(when: WHEN) => THEN>;
+  else$?: QRL<(when: WHEN) => ELSE>;
 }
 
 /** @public @experimental */
@@ -41,8 +41,12 @@ export type ShowComponent = <
   dev?: DevJSX
 ) => JSXOutput;
 
-const invokeShowFn = <T>(fn: QRL<() => T> | (() => T), context: InvokeContext | undefined) => {
-  return isQrl(fn) ? (fn as QRLInternal<() => T>).getFn(context)() : fn();
+const invokeShowFn = <T, A>(
+  fn: QRL<(arg: A) => T> | ((arg: A) => T),
+  context: InvokeContext | undefined,
+  arg: A
+) => {
+  return isQrl(fn) ? (fn as QRLInternal<(arg: A) => T>).getFn(context)(arg) : fn(arg);
 };
 
 /** @internal */
@@ -54,10 +58,10 @@ export const showCmpTask = ({ track }: TaskCtx) => {
   const isSsr = qTest ? isServerPlatform() : isServer;
 
   return maybeThen(
-    track(() => invokeShowFn(props.when$, tryGetInvokeContext())),
+    track(() => invokeShowFn(props.when$, tryGetInvokeContext(), undefined as any)),
     (condition) => {
       const branch = condition ? props.then$ : props.else$;
-      return maybeThen(branch ? invokeShowFn(branch, context) : null, (output) => {
+      return maybeThen(branch ? invokeShowFn(branch, context, condition) : null, (output) => {
         const jsx = branch ? [output] : [];
         if (isSsr) {
           const ssr = container as SSRContainer;

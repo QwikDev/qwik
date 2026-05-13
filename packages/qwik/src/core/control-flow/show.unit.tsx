@@ -26,7 +26,9 @@ describe('Show types', () => {
       then$: () => <span>Then</span>,
     };
 
-    expectTypeOf(props.else$).toEqualTypeOf<undefined | QRL<() => JSXOutput> | (() => JSXOutput)>();
+    expectTypeOf(props.else$).toEqualTypeOf<
+      undefined | QRL<(when: boolean) => JSXOutput> | ((when: boolean) => JSXOutput)
+    >();
   });
 
   test('accepts a QRL when$ value', () => () => {
@@ -37,5 +39,26 @@ describe('Show types', () => {
     };
 
     expectTypeOf(props.when$).toEqualTypeOf<QRL<() => boolean> | (() => boolean)>();
+  });
+
+  test('then$ receives the when$ return value', () => () => {
+    void ({
+      when$: () => 'hello',
+      then$: (when: string) => {
+        expectTypeOf(when).toEqualTypeOf<string>();
+        return <span>{when}</span>;
+      },
+    } satisfies Parameters<typeof Show<string, JSXOutput>>[0]);
+  });
+
+  test('else$ receives the when$ return value', () => () => {
+    void ({
+      when$: () => 'hello',
+      then$: (when: string) => <span>{when}</span>,
+      else$: (when: string) => {
+        expectTypeOf(when).toEqualTypeOf<string>();
+        return <span>{when}</span>;
+      },
+    } satisfies Parameters<typeof Show<string, JSXOutput, JSXOutput>>[0]);
   });
 });

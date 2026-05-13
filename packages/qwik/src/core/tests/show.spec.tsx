@@ -134,4 +134,69 @@ describe.each([
       </div>
     );
   });
+
+  it('should pass the when$ value to then$', async () => {
+    const Cmp = component$(() => (
+      <div id="show">
+        <Show when$={() => 'hello'} then$={(v) => <span>{v}</span>} />
+      </div>
+    ));
+
+    const { document } = await render(<Cmp />, { debug });
+
+    await expect(document.getElementById('show')).toMatchDOM(
+      <div id="show">
+        <span>hello</span>
+      </div>
+    );
+  });
+
+  it('should pass the when$ value to else$', async () => {
+    const Cmp = component$(() => (
+      <div id="show">
+        <Show
+          when$={() => null as string | null}
+          then$={() => <span>Then</span>}
+          else$={(v) => <span>{String(v)}</span>}
+        />
+      </div>
+    ));
+
+    const { document } = await render(<Cmp />, { debug });
+
+    await expect(document.getElementById('show')).toMatchDOM(
+      <div id="show">
+        <span>null</span>
+      </div>
+    );
+  });
+
+  it('should pass the updated when$ value to then$ after signal change', async () => {
+    const Cmp = component$(() => {
+      const item = useSignal('first');
+      return (
+        <Fragment>
+          <div id="show">
+            <Show when$={() => item.value} then$={(v) => <span>{v}</span>} />
+          </div>
+          <button onClick$={() => (item.value = 'second')}>Change</button>
+        </Fragment>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+
+    await expect(document.getElementById('show')).toMatchDOM(
+      <div id="show">
+        <span>first</span>
+      </div>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    await expect(document.getElementById('show')).toMatchDOM(
+      <div id="show">
+        <span>second</span>
+      </div>
+    );
+  });
 });

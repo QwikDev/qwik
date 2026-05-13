@@ -5,6 +5,7 @@ export const ShowRoot = component$(() => {
   const withoutElse = useSignal(false);
   const interactive = useSignal(true);
   const branchCount = useSignal(0);
+  const item = useSignal<string | null>(null);
 
   return (
     <>
@@ -55,6 +56,17 @@ export const ShowRoot = component$(() => {
         />
       </div>
       <div id="branch-count">{branchCount.value}</div>
+
+      <button id="set-item" onClick$={() => (item.value = 'hello')}>
+        Set item
+      </button>
+      <div id="item-result">
+        <Show
+          when$={() => item.value}
+          then$={(v) => <span>Got: {v}</span>}
+          else$={() => <span>No value</span>}
+        />
+      </div>
     </>
   );
 });

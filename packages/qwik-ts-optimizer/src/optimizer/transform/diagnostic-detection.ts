@@ -5,8 +5,6 @@ import type {
   AstNode,
   AstParentNode,
   AstProgram,
-  CallExpression,
-  JSXOpeningElement,
 } from '../../ast-types.js';
 import type { ExtractionResult } from '../extract.js';
 import {
@@ -19,6 +17,8 @@ import {
 import { collectExportNames } from '../marker-detection.js';
 import type { Diagnostic } from '../types.js';
 import { computeLineColFromOffset } from '../utils/source-loc.js';
+
+type SourceRange = { start: number; end: number };
 
 export function detectC02Diagnostics(
   extractions: ExtractionResult[],
@@ -47,9 +47,14 @@ export function detectC02Diagnostics(
       ? closureNodes.get(enclosingExt.symbolName)
       : undefined;
 
+    // First pass: classify each undeclared id and collect the set of fn/class
+    // names that need a reference-site lookup. We use the set both as the
+    // walker's filter and to gate the second pass.
+    type Classified = { refName: string; declType: 'var' | 'fn' | 'class' };
+    const classified: Classified[] = [];
+    const fnOrClassNames = new Set<string>();
     for (const refName of undeclaredIds) {
       if (importedNames.has(refName)) continue;
-
       let declType: 'var' | 'fn' | 'class';
       try {
         declType = enclosingClosure
@@ -58,27 +63,37 @@ export function detectC02Diagnostics(
       } catch {
         declType = 'var';
       }
-
       if (declType === 'fn' || declType === 'class') {
-        const site = findIdentifierReferenceSite(closureNode, refName);
-        if (!site) {
-          diagnostics.push(emitC02(refName, file, declType === 'class'));
-          continue;
-        }
-
-        const [startLine, startCol] = computeLineColFromOffset(source, site.start);
-        const [endLine, endCol] = computeLineColFromOffset(source, site.end);
-        diagnostics.push(
-          emitC02(refName, file, declType === 'class', {
-            lo: site.start,
-            hi: site.end,
-            startLine,
-            startCol,
-            endLine,
-            endCol,
-          }),
-        );
+        classified.push({ refName, declType });
+        fnOrClassNames.add(refName);
       }
+    }
+
+    if (classified.length === 0) continue;
+
+    // Single walk of the closure subtree collecting the first reference site
+    // for every name in `fnOrClassNames`. Replaces the per-refName subtree
+    // walk that ran inside the loop below. See OSS-366.
+    const referenceSites = collectIdentifierReferenceSites(closureNode, fnOrClassNames);
+
+    for (const { refName, declType } of classified) {
+      const site = referenceSites.get(refName);
+      if (!site) {
+        diagnostics.push(emitC02(refName, file, declType === 'class'));
+        continue;
+      }
+      const [startLine, startCol] = computeLineColFromOffset(source, site.start);
+      const [endLine, endCol] = computeLineColFromOffset(source, site.end);
+      diagnostics.push(
+        emitC02(refName, file, declType === 'class', {
+          lo: site.start,
+          hi: site.end,
+          startLine,
+          startCol,
+          endLine,
+          endCol,
+        }),
+      );
     }
   }
 }
@@ -101,15 +116,29 @@ export function detectC05Diagnostics(
 ): void {
   const moduleExportNames = collectExportNames(program, moduleInfo);
 
+  // Collect the set of `$`-suffixed export names that survive the gates;
+  // we walk the program once for all of them rather than once per export.
+  // Pre-OSS-366 this was O(target_count × programSize).
+  const targets = new Set<string>();
+  const targetToQrl = new Map<string, string>();
   for (const exportName of moduleExportNames) {
     if (!exportName.endsWith('$')) continue;
     const importInfo = originalImports.get(exportName);
     if (importInfo?.isQwikCore) continue;
     const qrlName = exportName.slice(0, -1) + 'Qrl';
     if (moduleExportNames.has(qrlName)) continue;
+    targets.add(exportName);
+    targetToQrl.set(exportName, qrlName);
+  }
 
-    const callSites = findCallSites(program, exportName);
-    for (const site of callSites) {
+  if (targets.size === 0) return;
+
+  const callSitesByName = collectCallSitesByName(program, targets);
+
+  for (const [exportName, sites] of callSitesByName) {
+    const qrlName = targetToQrl.get(exportName);
+    if (!qrlName) continue;
+    for (const site of sites) {
       const [startLine, startCol] = computeLineColFromOffset(source, site.start);
       const [endLine, endCol] = computeLineColFromOffset(source, site.end);
       diagnostics.push(
@@ -179,46 +208,78 @@ export function detectPassivePreventdefaultConflicts(
   });
 }
 
-function findCallSites(
+/**
+ * Single-pass collection of `CallExpression` callee sites whose callee is a
+ * bare `Identifier` and whose name is in `names`. Returns a map keyed by
+ * callee name. Replaces the previous per-name walk pattern (OSS-366).
+ */
+function collectCallSitesByName(
   program: AstProgram,
-  funcName: string,
-): Array<{ start: number; end: number }> {
-  const sites: Array<{ start: number; end: number }> = [];
+  names: Set<string>,
+): Map<string, SourceRange[]> {
+  const out = new Map<string, SourceRange[]>();
   walk(program, {
     enter(node: AstNode) {
       if (
-        node.type === 'CallExpression' &&
-        node.callee?.type === 'Identifier' &&
-        node.callee.name === funcName
-      ) {
-        sites.push({ start: node.callee.start, end: node.callee.end });
-      }
+        node.type !== 'CallExpression' ||
+        node.callee?.type !== 'Identifier' ||
+        !names.has(node.callee.name)
+      ) return;
+      const name = node.callee.name;
+      const bucket = out.get(name);
+      const entry = { start: node.callee.start, end: node.callee.end };
+      if (bucket) bucket.push(entry);
+      else out.set(name, [entry]);
     },
   });
-  return sites;
+  return out;
 }
 
-function findIdentifierReferenceSite(
+/**
+ * Single-pass collection of the FIRST reference-site for each name in
+ * `names` within a closure subtree. "Reference-site" excludes declaring
+ * positions and non-computed property keys / member properties — same
+ * exclusions the original per-name walker applied. Replaces the previous
+ * per-name closure walk (OSS-366).
+ */
+function collectIdentifierReferenceSites(
   closureNode: AstFunction,
-  identName: string,
-): { start: number; end: number } | null {
-  let site: { start: number; end: number } | null = null;
+  names: Set<string>,
+): Map<string, SourceRange> {
+  const out = new Map<string, SourceRange>();
+  if (names.size === 0) return out;
+  let remaining = names.size;
 
   walk(closureNode, {
     enter(node: AstNode, parent: AstParentNode) {
-      if (site || node.type !== 'Identifier' || node.name !== identName) return;
-
-      if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
-      if (parent?.type === 'FunctionDeclaration' && parent.id === node) return;
-      if (parent?.type === 'FunctionExpression' && parent.id === node) return;
-      if (parent?.type === 'ClassDeclaration' && parent.id === node) return;
-      if (parent?.type === 'ClassExpression' && parent.id === node) return;
-      if (parent?.type === 'MemberExpression' && parent.property === node && !parent.computed) return;
-      if ((parent?.type === 'Property') && parent.key === node) return;
-
-      site = { start: node.start, end: node.end };
+      if (remaining === 0) return;
+      if (node.type !== 'Identifier') return;
+      const name = node.name;
+      if (!names.has(name) || out.has(name)) return;
+      if (isDeclaringOrMemberKey(node, parent)) return;
+      out.set(name, { start: node.start, end: node.end });
+      remaining--;
     },
   });
 
-  return site;
+  return out;
+}
+
+function isDeclaringOrMemberKey(node: AstNode, parent: AstParentNode): boolean {
+  if (!parent) return false;
+  switch (parent.type) {
+    case 'VariableDeclarator':
+      return parent.id === node;
+    case 'FunctionDeclaration':
+    case 'FunctionExpression':
+    case 'ClassDeclaration':
+    case 'ClassExpression':
+      return parent.id === node;
+    case 'MemberExpression':
+      return parent.property === node && !parent.computed;
+    case 'Property':
+      return parent.key === node;
+    default:
+      return false;
+  }
 }

@@ -53,6 +53,18 @@ export function isConstBindingName(
   return importedNames.has(name) || (constIdents?.has(name) ?? false);
 }
 
+/**
+ * Extract a non-computed Property key as a string. Returns the identifier
+ * name for `{x: ...}`, the stringified value for `{"x": ...}` / `{1: ...}`,
+ * or null for any shape that can't be resolved statically.
+ */
+function staticPropKeyName(key: AstNode | null | undefined): string | null {
+  if (!key) return null;
+  if (key.type === 'Identifier') return key.name;
+  if (key.type === 'Literal') return String(key.value);
+  return null;
+}
+
 function isReturnStatic(init: Expression | null | undefined): boolean {
   if (!init) return true;
   if (init.type === 'CallExpression' && init.callee.type === 'Identifier') {
@@ -82,28 +94,76 @@ export function collectConstBindings(program: AstProgram): Set<string> {
   }
 
   function collectFromDeclarator(decl: VariableDeclarator): void {
-    const id = decl.id;
-    const init = decl.init;
+    walkPatternInit(decl.id, decl.init);
+  }
 
+  /** Walk a destructure pattern and its initializer in parallel. For each
+   * leaf binding, classify it as const iff the corresponding init expression
+   * is `isReturnStatic`. This catches compound destructures where the init
+   * is an ArrayExpression / ObjectExpression literal whose individual
+   * elements are themselves const-stable (e.g. `const [store, math] =
+   * [useStore(...), Math.random()]` → `store` const, `math` not). Without
+   * this, the source-level destructure form would leave all bindings
+   * unclassified because the top-level init isn't a single call. */
+  function walkPatternInit(id: AstNode | null | undefined, init: Expression | null | undefined): void {
+    if (!id) return;
     if (id.type === 'Identifier') {
-      if (isReturnStatic(init)) {
-          constBindings.add(id.name);
-      }
-    } else if (id.type === 'ArrayPattern') {
-      for (const elem of id.elements) {
-        if (elem && elem.type === 'Identifier' && isReturnStatic(init)) {
-          constBindings.add(elem.name);
+      if (isReturnStatic(init)) constBindings.add(id.name);
+      return;
+    }
+    if (id.type === 'ArrayPattern') {
+      const elems = id.elements;
+      if (init && init.type === 'ArrayExpression') {
+        for (let i = 0; i < elems.length; i++) {
+          const elem = elems[i];
+          // RestElement isn't tracked — the rest binding's init is the
+          // "remainder" of the array, not const-foldable per-elem.
+          if (!elem || elem.type === 'RestElement') continue;
+          const initElem = init.elements?.[i] ?? null;
+          // SpreadElement in an array literal isn't a per-position init
+          // we can pair with the destructure slot; skip.
+          if (initElem && initElem.type === 'SpreadElement') continue;
+          walkPatternInit(elem, initElem);
+        }
+      } else {
+        // Non-array-literal init (e.g. `const [a] = fn()`): treat all
+        // bindings under the same init.
+        for (const elem of elems) {
+          if (!elem || elem.type === 'RestElement') continue;
+          walkPatternInit(elem, init);
         }
       }
-    } else if (id.type === 'ObjectPattern') {
-      for (const prop of id.properties) {
-        if (prop.type === 'Property') {
-          const val = prop.value;
-          if (val.type === 'Identifier' && isReturnStatic(init)) {
-            constBindings.add(val.name);
-          }
+      return;
+    }
+    if (id.type === 'ObjectPattern') {
+      const props = id.properties;
+      if (init && init.type === 'ObjectExpression') {
+        // Build a name→value map for the object literal.
+        const valueByKey = new Map<string, Expression | null>();
+        for (const ip of init.properties ?? []) {
+          if (ip.type !== 'Property' || ip.computed) continue;
+          const keyName = staticPropKeyName(ip.key);
+          if (keyName === null) continue;
+          valueByKey.set(keyName, ip.value as Expression);
+        }
+        for (const pp of props) {
+          if (pp.type !== 'Property' || pp.computed) continue;
+          const keyName = staticPropKeyName(pp.key);
+          if (keyName === null) continue;
+          walkPatternInit(pp.value, valueByKey.get(keyName) ?? null);
+        }
+      } else {
+        // Non-object-literal init (e.g. `const {x} = fn()`): treat all
+        // value bindings under the same init.
+        for (const pp of props) {
+          if (pp.type !== 'Property') continue;
+          walkPatternInit(pp.value, init);
         }
       }
+      return;
+    }
+    if (id.type === 'AssignmentPattern') {
+      walkPatternInit(id.left, init);
     }
   }
 

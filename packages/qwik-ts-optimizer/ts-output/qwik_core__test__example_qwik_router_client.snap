@@ -2507,9 +2507,9 @@ export const Link_component_handlePreload_MhXmSxzp4GE = (_, elm) => {
 ============================= index.qwik.mjs_Link_component_useVisibleTask_6K6z063D0C4.js (ENTRY POINT)==
 import { _captures, isDev } from "@qwik.dev/core";
 //
-export const Link_component_useVisibleTask_6K6z063D0C4 = (_rawProps) => {
+export const Link_component_useVisibleTask_6K6z063D0C4 = ({ track }) => {
 const anchorRef = _captures[0], handlePrefetch = _captures[1], linkProps = _captures[2], loc = _captures[3];
-    _rawProps.track(() => loc.url.pathname);
+    track(() => loc.url.pathname);
     const handler = linkProps.onQVisible$;
     if (handler) {
       const event = new CustomEvent('qvisible');

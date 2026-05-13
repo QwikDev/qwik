@@ -60,11 +60,11 @@ export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
 ============================= test.tsx_Input_component_useTask_Sbgs9Wtfkt0.js (ENTRY POINT)==
 import { _captures } from "@qwik.dev/core";
 //
-export const Input_component_useTask_Sbgs9Wtfkt0 = (_rawProps) => {
+export const Input_component_useTask_Sbgs9Wtfkt0 = ({ track }) => {
 const props = _captures[0];
-					_rawProps.track(() => props.error);
-					_rawProps.track(() => props.error2);
-					_rawProps.track(() => props.error3);
+					track(() => props.error);
+					track(() => props.error2);
+					track(() => props.error3);
 				};
 ============================= test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU.js (ENTRY POINT)==
 export const test_component_div_button_q_e_click_2TvarUvNGmU = (_, _1, store) => {
@@ -93,6 +93,8 @@ import { Input } from "./test";
 //
 const _hf0 = (p0) => p0.errors.test;
 const _hf0_str = "p0.errors.test";
+const _hf1 = (p0) => p0.store5.errors.test;
+const _hf1_str = "p0.store5.errors.test";
 //
 const q_test_component_div_button_q_e_click_2TvarUvNGmU = /*#__PURE__*/ qrl(() => import("./test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU"), "test_component_div_button_q_e_click_2TvarUvNGmU");
 //
@@ -106,21 +108,18 @@ export const test_component_LUXeXe0DQrg = () => {
 	const math2 = [Math.random()];
 	const { math3 } = { math3: Math.random() };
 	const [store4] = useForm();
-	const { store5 } = useForm2();
-	return /*#__PURE__*/ _jsxSorted("div", null, null, [/*#__PURE__*/ _jsxSorted("button", {
-		"q:p": store,
-		"q-e:click": q_test_component_div_button_q_e_click_2TvarUvNGmU
-	}, null, "click", 6, null), /*#__PURE__*/ _jsxSorted(Input, {
-		error: _fnSignal(_hf0, [store], _hf0_str),
-		error2: _fnSignal(_hf0, [store2], _hf0_str),
-		error3: _fnSignal(_hf0, [store3], _hf0_str),
+	const form2 = useForm2();
+	return /*#__PURE__*/ _jsxSorted("div", null, null, [/*#__PURE__*/ _jsxSorted("button", { "q:p": store }, { "q-e:click": q_test_component_div_button_q_e_click_2TvarUvNGmU }, "click", 7, null), /*#__PURE__*/ _jsxSorted(Input, {
 		math,
 		math2,
 		math3,
 		math4
 	}, {
+		error: _fnSignal(_hf0, [store], _hf0_str),
+		error2: _fnSignal(_hf0, [store2], _hf0_str),
+		error3: _fnSignal(_hf0, [store3], _hf0_str),
 		error4: _fnSignal(_hf0, [store4], _hf0_str),
-		error5: _fnSignal(_hf0, [store5], _hf0_str)
+		error5: _fnSignal(_hf1, [form2], _hf1_str)
 	}, null, 3, "u6_1")], 1, "u6_2");
 };
 

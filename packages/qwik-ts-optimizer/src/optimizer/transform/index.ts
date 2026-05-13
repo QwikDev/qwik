@@ -12,6 +12,7 @@ import type {
   TSEnumDeclaration,
 } from "../../ast-types.js";
 import { parseWithRawTransfer } from "../utils/parse.js";
+import { flattenAndReparse } from "../utils/flatten-destructures.js";
 import { extractSegments } from "../extract.js";
 import { repairInput } from "../input-repair.js";
 import {
@@ -103,13 +104,26 @@ export function transformModule(
 
     // Phase 0: Repair input for SWC-recoverable parse errors
     const repairResult = repairInput(input.code, relPath);
-    const repairedCode = repairResult.source;
+    let repairedCode = repairResult.source;
     // Single module AST for extraction and the rest of the pipeline. When
     // repair already produced a program, reuse it; otherwise parse once here
     // so extractSegments does not parse the same source again internally.
-    const { program, module: parserModule } = repairResult.program
+    let { program, module: parserModule } = repairResult.program
       ? { program: repairResult.program, module: repairResult.module }
       : parseWithRawTransfer(relPath, repairedCode);
+
+    // Phase 0.5: Flatten `const {x} = useFoo()` inside `component$` bodies
+    // to `const foo = useFoo()` + reference rewrites. Mirrors SWC's
+    // `props_destructuring::transform_component_body` (a code-size
+    // optimization applied before extraction). Runs after repair so the
+    // AST positions are valid. If the rewrite produced changes, re-parse
+    // so downstream phases see the rewritten source.
+    const flattened = flattenAndReparse(repairedCode, relPath, program);
+    if (flattened.changed) {
+      repairedCode = flattened.source;
+      program = flattened.program;
+      parserModule = flattened.module ?? parserModule;
+    }
 
     // Phase 1: Extract $() segments
     const willTranspileJsx =

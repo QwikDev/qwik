@@ -247,8 +247,8 @@
   /* Semantic colors - derived from the hue scales above */
   --color-primary-background-base: var(--color-violet-55);
   --color-primary-background-accent: var(--color-violet-60);
-  --color-primary-foreground-base: var(--color-slate-shallow);
-  --color-primary-foreground-accent: var(--color-slate-0);
+  --color-primary-foreground-base: var(--color-white);
+  --color-primary-foreground-accent: var(--color-violet-shallow);
   --color-primary-border-base: var(--color-violet-65);
   --color-primary-border-accent: var(--color-violet-70);
   --color-primary-shadow-base: var(--color-violet-75);
@@ -269,7 +269,7 @@
   --color-secondary-ring-base: var(--color-violet-45);
 
   --color-alert-background-base: var(--color-rose-55);
-  --color-alert-foreground-base: var(--color-rose-shallow);
+  --color-alert-foreground-base: var(--color-white);
   --color-alert-border-base: var(--color-rose-65);
   --color-alert-shadow-base: var(--color-rose-75);
   --color-alert-ring-base: var(--color-rose-65);

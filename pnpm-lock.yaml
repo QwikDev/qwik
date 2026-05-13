@@ -71,8 +71,8 @@ importers:
         specifier: workspace:*
         version: link:packages/optimizer
       '@qwik.dev/partytown':
-        specifier: 0.11.2
-        version: 0.11.2
+        specifier: 0.13.2
+        version: 0.13.2
       '@qwik.dev/router':
         specifier: workspace:*
         version: link:packages/qwik-router
@@ -501,8 +501,8 @@ importers:
         specifier: workspace:*
         version: link:../optimizer
       '@qwik.dev/partytown':
-        specifier: 0.11.2
-        version: 0.11.2
+        specifier: 0.13.2
+        version: 0.13.2
       '@qwik.dev/react':
         specifier: workspace:*
         version: link:../qwik-react
@@ -3774,8 +3774,8 @@ packages:
   '@quansync/fs@1.0.0':
     resolution: {integrity: sha512-4TJ3DFtlf1L5LDMaM6CanJ/0lckGNtJcMjQ1NAV6zDmA0tEHKZtxNKin8EgPaVX1YzljbxckyT2tJrpQKAtngQ==}
 
-  '@qwik.dev/partytown@0.11.2':
-    resolution: {integrity: sha512-795y49CqBiKiwKAD+QBZlzlqEK275hVcazZ7wBPSfgC23L+vWuA7PJmMpgxojOucZHzYi5rAAQ+IP1I3BKVZxw==}
+  '@qwik.dev/partytown@0.13.2':
+    resolution: {integrity: sha512-Umls4bSkuzqLVcGvf8OgwIn/OldproSAbaQ/iYGe8VPYBpl2CaOSxabWwkeC72LDFqxVL0b0q8XlI8MuChDyzg==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -14578,7 +14578,7 @@ snapshots:
     dependencies:
       quansync: 1.0.0
 
-  '@qwik.dev/partytown@0.11.2':
+  '@qwik.dev/partytown@0.13.2':
     dependencies:
       dotenv: 16.6.1
 

@@ -65,11 +65,11 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
                 )}
               </button>
             )}
-            <a href="/" class="flex items-center gap-2 text-foreground-accent">
+            <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">
               <QwikLogoOnly />
             </a>
           </div>
-          <modal.trigger>
+          <modal.trigger aria-label="Open menu">
             <lucide.menu class="vanilla-icon" />
           </modal.trigger>
         </div>
@@ -83,7 +83,7 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
         >
           {/* Header inside modal */}
           <div class="flex items-center justify-between px-4 py-4 border-b-[1.6px] border-base shrink-0 bg-background-base">
-            <a href="/" class="flex items-center gap-2 text-foreground-accent">
+            <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">
               <QwikLogoOnly />
             </a>
             <div class="flex items-center gap-8">

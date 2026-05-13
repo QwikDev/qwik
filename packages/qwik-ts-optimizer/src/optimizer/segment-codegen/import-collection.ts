@@ -29,6 +29,13 @@ const qrlSuffixPattern = createRegExp(
 /**
  * Parse a body text string and extract all referenced Identifier and JSXIdentifier names.
  * Used to determine which imports a segment body needs after all transforms.
+ *
+ * Single walk collects three things at once: the first function node, every
+ * Uppercase JSXIdentifier (component refs), and every plain Identifier name.
+ * Post-walk we either use `getUndeclaredIdentifiersInFunction` against the
+ * found function (the common path — bare-expression bodies are rare) or fall
+ * back to the bare Identifier set. The bare set is only populated for the
+ * fallback path; the common path discards it. See OSS-367.
  */
 function collectBodyIdentifiers(bodyText: string): Set<string> {
   const ids = new Set<string>();
@@ -37,6 +44,7 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
     const parsed = parseWithRawTransfer('segment.tsx', wrapped);
 
     let funcNode: AstFunction | null = null;
+    const bareIds = new Set<string>();
     walk(parsed.program, {
       enter(node: AstNode) {
         if (!funcNode && (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression')) {
@@ -44,6 +52,10 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
         }
         if (node.type === 'JSXIdentifier' && node.name && node.name[0] >= 'A' && node.name[0] <= 'Z') {
           ids.add(node.name);
+          return;
+        }
+        if (node.type === 'Identifier' && node.name) {
+          bareIds.add(node.name);
         }
       }
     });
@@ -52,11 +64,7 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
       const undeclared = getUndeclaredIdentifiersInFunction(funcNode);
       for (const name of undeclared) ids.add(name);
     } else {
-      walk(parsed.program, {
-        enter(node: AstNode) {
-          if (node.type === 'Identifier' && node.name) ids.add(node.name);
-        }
-      });
+      for (const name of bareIds) ids.add(name);
     }
   } catch {
     // Matches identifiers starting with uppercase, _ or $. Fallback when AST parse fails.

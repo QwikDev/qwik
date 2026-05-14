@@ -116,6 +116,13 @@ type ActiveSegmentBody = {
   root: AstNode;
   result: ExtractionResult;
   hasJsx: boolean;
+  /**
+   * When set, the outer extraction walk accumulates referenced Identifier
+   * names here as it descends into the body. On `leave`, the populated
+   * `segmentImports` is computed from this set instead of re-walking the
+   * body sub-tree. See OSS-368.
+   */
+  bodyIds?: Set<string>;
 };
 
 /** Resolve aliased import back to its original name (e.g., `c$` -> `component$`). */
@@ -161,16 +168,27 @@ function collectIdentifiers(node: AstNode): Set<string> {
   return ids;
 }
 
-/** Return the subset of file-level imports referenced by identifiers in `bodyNode`. */
-function collectSegmentImports(bodyNode: AstNode, imports: Map<string, ImportInfo>): ImportInfo[] {
-  const bodyIds = collectIdentifiers(bodyNode);
+/**
+ * Filter file-level imports down to those referenced by the given identifier
+ * set. Hot path (function bodies pushed onto `activeSegmentBodies`) feeds in
+ * the Set accumulated during the outer extraction walk — no extra walk. Cold
+ * path falls back to `collectSegmentImports` which still re-walks the body
+ * sub-tree.
+ */
+function filterImportsByIds(
+  ids: Set<string>,
+  imports: Map<string, ImportInfo>,
+): ImportInfo[] {
   const result: ImportInfo[] = [];
   for (const [localName, info] of imports) {
-    if (bodyIds.has(localName)) {
-      result.push(info);
-    }
+    if (ids.has(localName)) result.push(info);
   }
   return result;
+}
+
+/** Return the subset of file-level imports referenced by identifiers in `bodyNode`. */
+function collectSegmentImports(bodyNode: AstNode, imports: Map<string, ImportInfo>): ImportInfo[] {
+  return filterImportsByIds(collectIdentifiers(bodyNode), imports);
 }
 
 /** Check whether a JSX tag name represents a component (starts with uppercase). */
@@ -244,6 +262,16 @@ export function extractSegments(
   walk(program, {
     enter(node: AstNode, parent: AstParentNode) {
       if (parent) parentMap.set(node, parent);
+
+      // Accumulate Identifier names into each active body's deferred set
+      // (OSS-368). Replaces the per-extraction `collectIdentifiers` sub-walk:
+      // the outer walk is about to visit these nodes anyway, so collecting
+      // here costs O(activeStack.length) per Identifier — usually 1–2.
+      if (node.type === 'Identifier' && node.name) {
+        for (const seg of activeSegmentBodies) {
+          seg.bodyIds?.add(node.name);
+        }
+      }
 
       if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
         for (const seg of activeSegmentBodies) {
@@ -457,7 +485,13 @@ export function extractSegments(
             captures: inlinedCaptureNames.length > 0,
             captureNames: inlinedCaptureNames,
             paramNames: [],
-            segmentImports: collectSegmentImports(arg0, imports),
+            // Function arg0 defers segmentImports collection into the outer
+            // walk via activeSegmentBodies (OSS-368). Non-function arg0 (rare
+            // — peer-tool cold path) falls back to the inline sub-walk.
+            segmentImports:
+              arg0.type === 'ArrowFunctionExpression' || arg0.type === 'FunctionExpression'
+                ? []
+                : collectSegmentImports(arg0, imports),
             isInlinedQrl: true,
             explicitCaptures: explicitCapturesText,
             inlinedQrlNameArg: nameValue,
@@ -481,6 +515,7 @@ export function extractSegments(
               root: arg0,
               result: extraction,
               hasJsx: false,
+              bodyIds: new Set<string>(),
             });
             pendingClosures.push({ extraction, node: arg0 });
           }
@@ -596,14 +631,15 @@ export function extractSegments(
           captures: false,
           captureNames: [],
           paramNames: [],
-          segmentImports: collectSegmentImports(arg, imports),
+          // OSS-368 — deferred; populated on leave from activeSegmentBodies.bodyIds.
+          segmentImports: [],
           isInlinedQrl: false,
           explicitCaptures: null,
           inlinedQrlNameArg: null,
           isComponentEvent: false,
         };
         results.push(extraction);
-        activeSegmentBodies.push({ leaveNode: node, root: arg, result: extraction, hasJsx: false });
+        activeSegmentBodies.push({ leaveNode: node, root: arg, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
         if (
           arg.type === 'ArrowFunctionExpression' ||
           arg.type === 'FunctionExpression'
@@ -692,14 +728,15 @@ export function extractSegments(
             captures: false,
             captureNames: [],
             paramNames: [],
-            segmentImports: collectSegmentImports(expr, imports),
+            // OSS-368 — deferred; populated on leave from activeSegmentBodies.bodyIds.
+            segmentImports: [],
             isInlinedQrl: false,
             explicitCaptures: null,
             inlinedQrlNameArg: null,
             isComponentEvent,
           };
           results.push(extraction);
-          activeSegmentBodies.push({ leaveNode: node, root: expr, result: extraction, hasJsx: false });
+          activeSegmentBodies.push({ leaveNode: node, root: expr, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
           // The enclosing if-block already gates on `expr.type` being a function expression,
           // so the cast here is safe.
           pendingClosures.push({ extraction, node: expr as AstFunction });
@@ -714,6 +751,9 @@ export function extractSegments(
       if (activeTop?.leaveNode === node) {
         if (activeTop.hasJsx) {
           activeTop.result.extension = extensionFromSegmentJsx(true, sourceExt);
+        }
+        if (activeTop.bodyIds) {
+          activeTop.result.segmentImports = filterImportsByIds(activeTop.bodyIds, imports);
         }
         activeSegmentBodies.pop();
       }

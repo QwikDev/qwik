@@ -241,20 +241,67 @@ function collectIdentifiersFromExpr(
 }
 
 /**
- * Collect all reactive roots from an expression.
- * Reactive roots are:
- * - The object of a `.value` access (signal pattern)
- * - The root identifier of a deep member chain on a local object (store pattern)
+ * Unified single-walk collector for signal-analysis dependencies.
  *
- * Returns unique root names in order of first appearance.
+ * Returns both `roots` (reactive roots in order of first appearance — what
+ * `collectReactiveRoots` used to produce) AND `allDeps` (reactive roots
+ * plus bare locally-bound Identifiers, sorted alphabetically — what
+ * `collectAllDeps` used to produce). Walking once eliminates the
+ * back-to-back duplicate tree traversal at the 3 call sites in
+ * `analyzeSignalExpression` / `tryBuildFnSignal`. See OSS-369.
+ *
+ * Three semantic divergences from the pre-OSS-369 split:
+ * - `localNames` is now applied consistently. Where the old `collectAllDeps`
+ *   didn't gate store-checks, roots that aren't in `localNames` now flow
+ *   through bare-ident collection (via the leftmost-Identifier visit) and
+ *   appear in `allDeps` after the alphabetical sort — same final output.
+ * - Complex `.value` objects (e.g. `(a || b).value`) use the
+ *   `collectIdentifiersFromExpr` fallback for BOTH outputs. Old
+ *   `collectAllDeps` silently produced empty output here.
+ * - The Property.key / non-computed MemberExpression.property exclusion is
+ *   applied for both outputs. Safe for roots because signal/store
+ *   detection happens at the MemberExpression level, not the property
+ *   Identifier.
  */
-function collectReactiveRoots(
+interface SignalDepsResult {
+  roots: string[];
+  allDeps: string[];
+}
+
+function collectSignalDeps(
   node: AstNode,
   importedNames: Set<string>,
   localNames?: Set<string>,
-): string[] {
+): SignalDepsResult {
   const roots: string[] = [];
-  const seen = new Set<string>();
+  const bareIdents: string[] = [];
+  const rootsSeen = new Set<string>();
+  const allSeen = new Set<string>();
+
+  function addRoot(name: string | null): void {
+    if (name == null) return;
+    if (!rootsSeen.has(name)) {
+      rootsSeen.add(name);
+      roots.push(name);
+    }
+    allSeen.add(name);
+  }
+
+  function addBare(name: string): void {
+    if (importedNames.has(name) || GLOBAL_NAMES.has(name)) return;
+    if (allSeen.has(name)) return;
+    allSeen.add(name);
+    bareIdents.push(name);
+  }
+
+  function fallbackCollectIdents(n: AstMaybeNode): void {
+    if (n == null) return;
+    if (n.type === 'Identifier') {
+      if (!importedNames.has(n.name)) addRoot(n.name);
+      return;
+    }
+    forEachChildNode(n, (child) => fallbackCollectIdents(child));
+  }
 
   function walk(n: AstMaybeNode): void {
     if (n == null) return;
@@ -262,80 +309,30 @@ function collectReactiveRoots(
     if (isSignalValueAccess(n)) {
       const root = getMemberChainRoot(n.object);
       if (root != null) {
-        if (!seen.has(root)) { seen.add(root); roots.push(root); }
+        addRoot(root);
         return;
       }
-      // Complex expression like (a || b).value -- collect all identifiers
-      collectIdentifiersFromExpr(n.object, importedNames, seen, roots);
+      fallbackCollectIdents(n.object);
       return;
     }
 
     if (isDeepStoreAccess(n, importedNames, localNames)) {
-      const root = getMemberChainRoot(n);
-      if (root != null && !seen.has(root)) { seen.add(root); roots.push(root); }
+      addRoot(getMemberChainRoot(n));
       return;
     }
 
     if (isStoreFieldAccess(n, importedNames, localNames)) {
       const memberNode = n as MemberExpressionNode;
-      const root = getMemberChainRoot(memberNode.object);
-      if (root != null && !seen.has(root)) { seen.add(root); roots.push(root); }
+      addRoot(getMemberChainRoot(memberNode.object));
       return;
     }
 
-    forEachChildNode(n, (child) => walk(child));
-  }
-
-  walk(node);
-  return roots;
-}
-
-/**
- * Collect ALL dependency identifiers from an expression: reactive roots
- * (signal.value, store accesses) PLUS bare local identifiers.
- *
- * Used after confirming reactive roots exist -- bare local identifiers also
- * become deps since _fnSignal needs to track all mutable values for re-evaluation.
- *
- * Returns unique dep names sorted alphabetically (matching SWC's compute_scoped_idents).
- */
-function collectAllDeps(
-  node: AstNode,
-  importedNames: Set<string>,
-): string[] {
-  const reactiveRoots: string[] = [];
-  const bareIdents: string[] = [];
-  const seen = new Set<string>();
-
-  function walk(n: AstMaybeNode): void {
-    if (n == null) return;
-
-    if (isSignalValueAccess(n)) {
-      const root = getMemberChainRoot(n.object);
-      if (root != null && !seen.has(root)) { seen.add(root); reactiveRoots.push(root); }
-      return;
-    }
-
-    if (isDeepStoreAccess(n, importedNames)) {
-      const root = getMemberChainRoot(n);
-      if (root != null && !seen.has(root)) { seen.add(root); reactiveRoots.push(root); }
-      return;
-    }
-
-    if (isStoreFieldAccess(n, importedNames)) {
-      const memberNode = n as MemberExpressionNode;
-      const root = getMemberChainRoot(memberNode.object);
-      if (root != null && !seen.has(root)) { seen.add(root); reactiveRoots.push(root); }
-      return;
-    }
-
-    if (n.type === 'Identifier' && !importedNames.has(n.name) && !GLOBAL_NAMES.has(n.name)) {
-      if (!seen.has(n.name)) { seen.add(n.name); bareIdents.push(n.name); }
+    if (n.type === 'Identifier') {
+      addBare(n.name);
       return;
     }
 
     forEachChildNode(n, (child, key, parent) => {
-      // Object literal keys and non-computed member property names aren't deps
       if (key === 'key' && parent.type === 'Property') return;
       if (
         key === 'property' &&
@@ -349,9 +346,22 @@ function collectAllDeps(
   }
 
   walk(node);
-  const allDeps = [...reactiveRoots, ...bareIdents];
+
+  const allDeps = [...roots, ...bareIdents];
   allDeps.sort((a, b) => a.localeCompare(b));
-  return allDeps;
+  return { roots, allDeps };
+}
+
+/**
+ * Thin wrapper preserving the pre-OSS-369 call shape for the 2 sites in
+ * `analyzeMemberExpression` that need only reactive roots (not bare deps).
+ */
+function collectReactiveRoots(
+  node: AstNode,
+  importedNames: Set<string>,
+  localNames?: Set<string>,
+): string[] {
+  return collectSignalDeps(node, importedNames, localNames).roots;
 }
 
 // --- fnSignal generation -----------------------------------------------------
@@ -760,17 +770,15 @@ export function analyzeSignalExpression(
 
   // Object/array expressions with reactive values get wrapped in _fnSignal
   if (exprNode.type === 'ObjectExpression') {
-    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+    const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
     if (roots.length === 0) return { type: 'none' };
-    const allDeps = collectAllDeps(exprNode, importedNames);
     const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr, isObjectExpr: true };
   }
 
   if (exprNode.type === 'ArrayExpression') {
-    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+    const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
     if (roots.length === 0) return { type: 'none' };
-    const allDeps = collectAllDeps(exprNode, importedNames);
     const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
   }
@@ -799,14 +807,13 @@ function tryBuildFnSignal(
   importedNames: Set<string>,
   localNames?: Set<string>,
 ): SignalExprResult {
-  const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+  const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
   if (roots.length === 0) return { type: 'none' };
 
   if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
   if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
   if (containsJsx(exprNode)) return { type: 'none' };
 
-  const allDeps = collectAllDeps(exprNode, importedNames);
   const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
   return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
 }

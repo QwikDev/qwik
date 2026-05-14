@@ -196,7 +196,12 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       }
     case TypeIds.SubscriptionData:
       return new SubscriptionData({} as NodePropData);
+    case TypeIds.SubscriptionDataConstTrue:
+      return new SubscriptionData({ $scopedStyleIdPrefix$: null, $isConst$: true });
+    case TypeIds.SubscriptionDataConstFalse:
+      return new SubscriptionData({ $scopedStyleIdPrefix$: null, $isConst$: false });
     case TypeIds.EffectSubscription:
+    case TypeIds.EffectSubscriptionNoData:
       return new EffectSubscription(null!, null!, null, null);
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);

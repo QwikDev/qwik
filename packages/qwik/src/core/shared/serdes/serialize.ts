@@ -146,6 +146,25 @@ export class Serializer {
     return Number(key);
   }
 
+  private outputShortStringConstant$(value: string): boolean {
+    switch (value) {
+      case ':':
+        this.output(TypeIds.Constant, Constants.Colon);
+        return true;
+      case '.':
+        this.output(TypeIds.Constant, Constants.Dot);
+        return true;
+      case 'id':
+        this.output(TypeIds.Constant, Constants.Id);
+        return true;
+      case 'ref':
+        this.output(TypeIds.Constant, Constants.Ref);
+        return true;
+      default:
+        return false;
+    }
+  }
+
   /** Output a type,value pair. If the value is an array, it calls writeValue on each item. */
   private output(type: number, value: number | string | any[], keepUndefined?: boolean) {
     if (typeof value === 'number') {
@@ -254,6 +273,8 @@ export class Serializer {
         case 'string':
           if (value.length === 0) {
             this.output(TypeIds.Constant, Constants.EmptyString);
+          } else if (this.outputShortStringConstant$(value)) {
+            break;
           } else {
             // If the string is short, we output directly
             // Very short strings add overhead to tracking
@@ -355,14 +376,21 @@ export class Serializer {
         value[_PROPS_HANDLER].$effects$,
       ]);
     } else if (value instanceof SubscriptionData) {
-      // TODO make everything optional or use two types
-      this.output(TypeIds.SubscriptionData, [
-        value.data.$scopedStyleIdPrefix$,
-        value.data.$isConst$,
-      ]);
+      const { $scopedStyleIdPrefix$, $isConst$ } = value.data;
+      if ($scopedStyleIdPrefix$ === null) {
+        this.output(
+          $isConst$ ? TypeIds.SubscriptionDataConstTrue : TypeIds.SubscriptionDataConstFalse,
+          0
+        );
+      } else {
+        this.output(TypeIds.SubscriptionData, [$scopedStyleIdPrefix$, $isConst$]);
+      }
     } else if (value instanceof EffectSubscription) {
-      // TODO no data if [null, true]
-      this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
+      if (value.data === null) {
+        this.output(TypeIds.EffectSubscriptionNoData, [value.consumer, value.property]);
+      } else {
+        this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
+      }
     } else if (isStore(value)) {
       const storeHandler = getStoreHandler(value)!;
       const storeTarget = getStoreTarget(value);

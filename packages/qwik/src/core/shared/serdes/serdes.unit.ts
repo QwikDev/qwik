@@ -110,7 +110,11 @@ describe('shared-serialization', () => {
         15 Constant MAX_SAFE_INTEGER
         16 Constant MAX_SAFE_INTEGER-1
         17 Constant MIN_SAFE_INTEGER
-        (81 chars)"
+        18 Constant ':'
+        19 Constant '.'
+        20 Constant 'id'
+        21 ...
+        (101 chars)"
       `);
     });
     it(title(TypeIds.Array), async () => {
@@ -532,16 +536,15 @@ describe('shared-serialization', () => {
           {string} "foo"
           Signal [
             Constant undefined
-            EffectSubscription [
+            EffectSubscriptionNoData [
               Signal [
                 {string} "test"
               ]
-              {string} ":"
-              Constant null
+              Constant ':'
             ]
           ]
         ]
-        (51 chars)"
+        (46 chars)"
       `);
     });
     it(title(TypeIds.WrappedSignal), async () => {
@@ -568,17 +571,16 @@ describe('shared-serialization', () => {
           Array [
             Signal [
               {number} 3
-              EffectSubscription [
+              EffectSubscriptionNoData [
                 RootRef 1
-                {string} "."
-                Constant null
+                Constant '.'
               ]
             ]
             {string} "value"
           ]
           {number} 7
         ]
-        (77 chars)"
+        (72 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
@@ -858,20 +860,17 @@ describe('shared-serialization', () => {
         ]
         8 Signal [
           {number} 1
-          EffectSubscription [
+          EffectSubscriptionNoData [
             RootRef 1
-            {string} ":"
-            Constant null
+            Constant ':'
           ]
-          EffectSubscription [
+          EffectSubscriptionNoData [
             RootRef 2
-            {string} ":"
-            Constant null
+            Constant ':'
           ]
-          EffectSubscription [
+          EffectSubscriptionNoData [
             RootRef 3
-            {string} ":"
-            Constant null
+            Constant ':'
           ]
         ]
         9 {string} "mock-chunk"
@@ -883,7 +882,7 @@ describe('shared-serialization', () => {
         15 {string} "concurrent"
         16 {string} "timeout"
         17 {string} "undefinedSignal"
-        (502 chars)"
+        (487 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -924,13 +923,18 @@ describe('shared-serialization', () => {
     it(title(TypeIds.SubscriptionData), async () => {
       expect(await dump(new SubscriptionData({ $isConst$: true, $scopedStyleIdPrefix$: null })))
         .toMatchInlineSnapshot(`
-        "
-        0 SubscriptionData [
-          Constant null
-          Constant true
-        ]
-        (14 chars)"
-      `);
+          "
+          0 SubscriptionDataConstTrue 0
+          (6 chars)"
+        `);
+    });
+    it(title(TypeIds.SubscriptionData) + ' const false', async () => {
+      expect(await dump(new SubscriptionData({ $isConst$: false, $scopedStyleIdPrefix$: null })))
+        .toMatchInlineSnapshot(`
+          "
+          0 SubscriptionDataConstFalse 0
+          (6 chars)"
+        `);
     });
   });
 
@@ -1233,6 +1237,14 @@ describe('shared-serialization', () => {
       const effect = deserialize(objs)[0] as SubscriptionData;
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: true, $scopedStyleIdPrefix$: null });
+    });
+    it(title(TypeIds.SubscriptionData) + ' const false', async () => {
+      const objs = await serialize(
+        new SubscriptionData({ $isConst$: false, $scopedStyleIdPrefix$: null })
+      );
+      const effect = deserialize(objs)[0] as SubscriptionData;
+      expect(effect).toBeInstanceOf(SubscriptionData);
+      expect(effect.data).toEqual({ $isConst$: false, $scopedStyleIdPrefix$: null });
     });
   });
 

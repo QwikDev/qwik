@@ -328,12 +328,24 @@ export const inflate = (
       effectData.data.$isConst$ = (data as any[])[1];
       break;
     }
+    case TypeIds.SubscriptionDataConstTrue:
+    case TypeIds.SubscriptionDataConstFalse:
+      break;
     case TypeIds.EffectSubscription: {
       const effectSub = target as EffectSubscription;
       const d = data as [Consumer, EffectProperty | string, SubscriptionData | null];
       effectSub.consumer = d[0];
       effectSub.property = d[1];
       effectSub.data = d[2];
+      restoreEffectBackRefForConsumer(effectSub);
+      break;
+    }
+    case TypeIds.EffectSubscriptionNoData: {
+      const effectSub = target as EffectSubscription;
+      const d = data as [Consumer, EffectProperty | string];
+      effectSub.consumer = d[0];
+      effectSub.property = d[1];
+      effectSub.data = null;
       restoreEffectBackRefForConsumer(effectSub);
       break;
     }

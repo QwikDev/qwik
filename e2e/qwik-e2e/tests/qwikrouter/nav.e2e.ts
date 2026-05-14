@@ -365,6 +365,9 @@ test.describe('nav', () => {
       await expect(page.locator('#loader-redirect-target')).toBeVisible({ timeout: 15000 });
       await expect(page.locator('#loader-redirect-target-data')).toHaveText('target-data');
       expect(new URL(page.url()).searchParams.get('done')).toBe('true');
+      // Old content must be gone — the redirect should replace, not append.
+      await expect(page.locator('#loader-redirect-home')).not.toBeVisible();
+      await expect(page.locator('#loader-redirect-source')).not.toBeVisible();
     });
   }
 

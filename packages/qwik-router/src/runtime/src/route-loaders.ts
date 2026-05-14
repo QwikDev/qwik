@@ -344,7 +344,7 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
         //
         const goto = routeLoaderCtx.goto;
         if (goto) {
-          goto(response.r);
+          goto(response.r, { replaceState: true });
         } else {
           location.href = response.r;
         }

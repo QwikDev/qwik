@@ -57,9 +57,6 @@ const renderLink = async (
   const { document } = await render(<Root {...props} />, {
     debug,
   });
-  if (render === ssrRenderToDom) {
-    await trigger(document.body, 'a', 'qvisible');
-  }
   const anchor = document.querySelector('a');
   expect(anchor).not.toBeNull();
   return { document, anchor: anchor! };
@@ -80,8 +77,8 @@ describe.each([
     const { document, anchor } = await renderLink(render);
 
     expect(anchor?.getAttribute('href')).toBe('http://localhost/test');
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
+    expect(anchor?.getAttribute('data-q-prefetch')).toBe('b');
+    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
     expect(loadClientDataMock).not.toHaveBeenCalled();
 
     await trigger(document.body, anchor, 'pointerenter');
@@ -130,53 +127,46 @@ describe.each([
   });
 
   it('prefetches route data when visible strategy is enabled', async () => {
-    await renderLink(render, { prefetchBundle: 'off', prefetchData: 'visible' });
+    const { anchor } = await renderLink(render, { prefetchBundle: 'off', prefetchData: 'visible' });
 
-    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
-    expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
-      preloadRouteBundles: false,
-      isPrefetch: true,
-    });
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+    expect(anchor.getAttribute('data-q-prefetch')).toBe('d');
+    expect(loadClientDataMock).not.toHaveBeenCalled();
     expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
   });
 
   it('prefetches bundles when visible strategy is enabled', async () => {
-    await renderLink(render, { prefetchBundle: 'visible', prefetchData: 'off' });
+    const { anchor } = await renderLink(render, { prefetchBundle: 'visible', prefetchData: 'off' });
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
+    expect(anchor.getAttribute('data-q-prefetch')).toBe('b');
+    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
     expect(loadClientDataMock).not.toHaveBeenCalled();
   });
 
   it('prefetches bundles and route data when visible strategy is enabled for both', async () => {
-    await renderLink(render, { prefetchBundle: 'visible', prefetchData: 'visible' });
+    const { anchor } = await renderLink(render, {
+      prefetchBundle: 'visible',
+      prefetchData: 'visible',
+    });
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
-    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+    expect(anchor.getAttribute('data-q-prefetch')).toBe('bd');
+    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
+    expect(loadClientDataMock).not.toHaveBeenCalled();
   });
 
   it('prefetches bundles when deprecated prefetch is js', async () => {
-    await renderLink(render, { prefetch: 'js' });
+    const { anchor } = await renderLink(render, { prefetch: 'js' });
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
+    expect(anchor.getAttribute('data-q-prefetch')).toBe('b');
+    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
     expect(loadClientDataMock).not.toHaveBeenCalled();
   });
 
   it('prefetches bundles and route data when deprecated prefetch is true', async () => {
-    await renderLink(render, { prefetch: true });
+    const { anchor } = await renderLink(render, { prefetch: true });
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
-    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
-    expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
-      preloadRouteBundles: false,
-      isPrefetch: true,
-    });
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+    expect(anchor.getAttribute('data-q-prefetch')).toBe('bd');
+    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
+    expect(loadClientDataMock).not.toHaveBeenCalled();
   });
 
   it('does not prefetch route data when data prefetching is off', async () => {
@@ -203,10 +193,9 @@ describe.each([
     const { document } = await render(<DeprecatedRoot />, {
       debug,
     });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'a', 'qvisible');
-    }
+    const anchor = document.querySelector('a');
 
+    expect(anchor?.hasAttribute('data-q-prefetch')).toBe(false);
     expect(loadClientDataMock).not.toHaveBeenCalled();
     expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
   });
@@ -222,9 +211,6 @@ describe.each([
     const { document } = await render(<ClickRoot />, {
       debug,
     });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'a', 'qvisible');
-    }
     const anchor = document.querySelector('a');
     preloadRouteBundlesMock.mockClear();
 

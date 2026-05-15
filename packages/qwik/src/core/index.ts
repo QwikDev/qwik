@@ -1,20 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
-// Protect against duplicate imports
+// Server-side singleton registry — also runs the duplicate-Qwik version check on import
 //////////////////////////////////////////////////////////////////////////////////////////
-import { QError, qError } from './shared/error/error';
-import { isDev } from '@qwik.dev/core/build';
-import { version } from './version';
-
-if ((globalThis as any).__qwik) {
-  qError(QError.duplicateQwik, [(globalThis as any).__qwik, version]);
-}
-(globalThis as any).__qwik = version;
-
-if (isDev && import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    (globalThis as any).__qwik = undefined;
-  });
-}
+import './shared/singletons';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Core API

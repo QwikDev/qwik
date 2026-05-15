@@ -66,6 +66,7 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
               args.path.includes('util') ||
               args.path.includes('shared') ||
               args.path.includes('ssr') ||
+              args.path.includes('version') ||
               // we allow building preloader into server builds
               args.path.includes('preloader')
             ) {

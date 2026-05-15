@@ -2,9 +2,15 @@
 import { isServer } from '@qwik.dev/core/build';
 import { QError, qError } from '../error/error';
 import { getSymbolHash } from '../qrl/qrl-utils';
+import { registerSingleton } from '../singletons';
 import { QBaseAttr } from '../utils/markers';
 import { qDynamicPlatform } from '../utils/qdev';
 import type { CorePlatform } from './types';
+
+// This is see also qrl.ts - importing from there causes loop
+const symbolRegistry = isServer
+  ? registerSingleton('regSymbols', () => new Map<string, any>())
+  : undefined;
 
 export const createPlatform = (): CorePlatform => {
   return {
@@ -12,7 +18,7 @@ export const createPlatform = (): CorePlatform => {
     importSymbol(containerEl, url, symbolName) {
       if (isServer) {
         const hash = getSymbolHash(symbolName);
-        const regSym = (globalThis as any).__qwik_reg_symbols?.get(hash);
+        const regSym = symbolRegistry!.get(hash);
         if (regSym) {
           return regSym;
         }

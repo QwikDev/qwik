@@ -91,6 +91,7 @@ export type {
   OutOfOrderRevealBoundary,
   OutOfOrderRevealCoordinator,
 } from '../core/control-flow/suspense-utils';
+export { getSingleton } from '../core/shared/singletons';
 export {
   LT,
   GT,

@@ -532,18 +532,20 @@ export function buildPassthroughModule(
   }
 
   const bodyReferencedNames = new Set<string>();
-  for (const stmt of program.body) {
-    if (stmt.type === 'ImportDeclaration') continue;
-    if (stmt.type !== 'VariableDeclaration') {
-      walk(stmt, {
-        enter(node: AstNode) {
-          if (node.type === 'Identifier' && node.name) {
-            bodyReferencedNames.add(node.name);
-          }
-        },
-      });
-    }
-  }
+  walk(program, {
+    enter(this: { skip: () => void }, node: AstNode, parent: AstParentNode) {
+      if (
+        parent?.type === 'Program' &&
+        (node.type === 'ImportDeclaration' || node.type === 'VariableDeclaration')
+      ) {
+        this.skip();
+        return;
+      }
+      if (node.type === 'Identifier' && node.name) {
+        bodyReferencedNames.add(node.name);
+      }
+    },
+  });
 
   for (const stmt of program.body) {
     if (stmt.type !== 'VariableDeclaration') continue;

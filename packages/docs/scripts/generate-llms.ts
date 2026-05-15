@@ -303,6 +303,20 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Routing and Server',
+      'Prevent Navigation',
+      '/docs/advanced/prevent-navigation/',
+      'How to use `usePreventNavigate$` to guard unsaved state during SPA and browser navigation.',
+      toSourcePath('docs', '(qwikrouter)', 'advanced', 'prevent-navigation', 'index.mdx')
+    ),
+    docEntry(
+      'Routing and Server',
+      'Rewrites',
+      '/docs/guides/rewrites/',
+      'How to use `request.rewrite()` in route middleware to render another path while keeping the visible URL.',
+      toSourcePath('docs', '(qwikrouter)', 'guides', 'rewrites', 'index.mdx')
+    ),
+    docEntry(
+      'Routing and Server',
       'Route Loader',
       '/docs/route-loader/',
       'Server-side data loading with `routeLoader$`, typed access, and route-level data dependencies.',

@@ -4,6 +4,14 @@ import { createSignal } from '../../reactive-primitives/signal.public';
 import { createDocument } from '@qwik.dev/core/testing';
 import { QContainerAttr } from '../../shared/utils/markers';
 import { setCaptures } from '../qrl/qrl-class';
+import { TypeIds } from '../serdes/constants';
+
+const addStateRoots = (document: Document, ...roots: unknown[]) => {
+  const state = document.createElement('script');
+  state.setAttribute('type', 'qwik/state');
+  state.textContent = JSON.stringify(roots.flatMap((root) => [TypeIds.Plain, root]));
+  document.body.appendChild(state);
+};
 
 describe('bind handlers', () => {
   describe('_res', () => {
@@ -12,8 +20,9 @@ describe('bind handlers', () => {
       document.body.setAttribute(QContainerAttr, 'paused');
       const element = document.createElement('div');
       document.body.appendChild(element);
+      addStateRoots(document, {}, {});
 
-      // Simulate capture string format: "0 1" (root IDs)
+      // Simulate capture delta string format: first root id, then deltas.
       const captureString = '0 1';
 
       // Call _res as qwikloader would - should not throw
@@ -35,6 +44,7 @@ describe('bind handlers', () => {
       document.body.setAttribute(QContainerAttr, 'paused');
       const element = document.createElement('div');
       document.body.appendChild(element);
+      addStateRoots(document, {});
 
       const captureString = '0';
 

@@ -4,7 +4,7 @@ import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import {
   _captures,
-  deserializeCaptures,
+  deserializeCaptureDeltas,
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
@@ -253,7 +253,7 @@ export const isTask = (value: any): value is Task => {
 export function scheduleTask(this: string, _event: Event, element: Element) {
   const container = getDomContainer(element);
   if (typeof this === 'string') {
-    setCaptures(deserializeCaptures(container, this));
+    setCaptures(deserializeCaptureDeltas(container, this));
   }
   const task = _captures![0] as Task;
   task.$flags$ |= TaskFlags.DIRTY;

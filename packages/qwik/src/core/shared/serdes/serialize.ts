@@ -146,6 +146,19 @@ export class Serializer {
     return Number(key);
   }
 
+  private rebaseQrlCaptureDeltas$(baseRootId: number, captureDeltas: string): string {
+    let previousCaptureId = 0;
+    let previousOutputBase = baseRootId;
+    const deltaList = captureDeltas.split(' ');
+    for (let i = 0; i < deltaList.length; i++) {
+      const captureId = previousCaptureId + Number(deltaList[i]);
+      deltaList[i] = String(captureId - previousOutputBase);
+      previousCaptureId = captureId;
+      previousOutputBase = captureId;
+    }
+    return deltaList.join(' ');
+  }
+
   private outputShortStringConstant$(value: string): boolean {
     switch (value) {
       case ':':
@@ -306,7 +319,7 @@ export class Serializer {
             this.output(TypeIds.Constant, Constants.Fragment);
           } else if (isQrl(value)) {
             if (this.getSeenRefOrOutput(value, index)) {
-              const [chunk, symbol, captures] = qrlToString(
+              const [chunk, symbol, captureDeltasFromZero] = qrlToString(
                 this.$serializationContext$,
                 value,
                 true
@@ -314,7 +327,12 @@ export class Serializer {
               let data: string | number;
               if (chunk !== '') {
                 // not a sync QRL, replace all parts with string references
-                data = `${this.$serializationContext$.$addRoot$(chunk)}#${this.$serializationContext$.$addRoot$(symbol)}${captures ? '#' + captures : ''}`;
+                const chunkRootId = this.$serializationContext$.$addRoot$(chunk);
+                const symbolRootId = this.$serializationContext$.$addRoot$(symbol);
+                const captureDeltas = captureDeltasFromZero
+                  ? this.rebaseQrlCaptureDeltas$(symbolRootId, captureDeltasFromZero)
+                  : null;
+                data = `${chunkRootId}#${symbolRootId - chunkRootId}${captureDeltas ? '#' + captureDeltas : ''}`;
                 // Since we map QRLs to strings, we need to keep track of this secondary mapping
                 const existing = this.$qrlMap$.get(data);
                 if (existing) {

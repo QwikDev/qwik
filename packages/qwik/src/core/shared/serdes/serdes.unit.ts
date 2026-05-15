@@ -31,7 +31,7 @@ import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
-import { isQrl } from '../qrl/qrl-utils';
+import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { retryOnPromise } from '../utils/promises';
 import { Fragment } from '../jsx/jsx-runtime';
@@ -423,13 +423,32 @@ describe('shared-serialization', () => {
       expect(await dump(inlinedQrl(() => myVar + other, 'dump_qrl', [myVar, other])))
         .toMatchInlineSnapshot(`
           "
-          0 QRL "3#4#1 2"
+          0 QRL "3#1#-3 1"
           1 {number} 123
           2 {string} "hello"
           3 {string} "mock-chunk"
           4 {string} "dump_qrl"
-          (57 chars)"
+          (58 chars)"
         `);
+    });
+    it('serializes QRL root ids as deltas', async () => {
+      const myVar = 123;
+      const other = 'hello';
+      const objs = await serialize(inlinedQrl(() => myVar + other, 'dump_qrl', [myVar, other]));
+      expect(objs[0]).toBe(TypeIds.QRL);
+      expect(objs[1]).toBe('3#1#-3 1');
+    });
+    it('serializes positive QRL capture deltas', async () => {
+      const capture = { value: 123 };
+      const qrl = inlinedQrl(() => capture.value, 'capture_qrl', [capture]);
+      const objs = await serialize('mock-chunk', 'capture_qrl', qrl);
+      expect(objs[4]).toBe(TypeIds.QRL);
+      expect(objs[5]).toBe('0#1#2');
+    });
+    it('keeps sync QRL serialization numeric', async () => {
+      const objs = await serialize(createQRL('', SYNC_QRL, () => 'hi', null, null));
+      expect(objs[0]).toBe(TypeIds.QRL);
+      expect(objs[1]).toBe(0);
     });
     it(title(TypeIds.Task), async () => {
       expect(
@@ -445,7 +464,7 @@ describe('shared-serialization', () => {
       ).toMatchInlineSnapshot(`
         "
         0 Task [
-          QRL "2#3#1"
+          QRL "2#1#-2"
           {number} 2
           {number} 0
           RootRef 1
@@ -456,7 +475,7 @@ describe('shared-serialization', () => {
         ]
         2 {string} "mock-chunk"
         3 {string} "task_qrl"
-        (75 chars)"
+        (76 chars)"
       `);
     });
     it(title(TypeIds.Component), async () => {
@@ -466,7 +485,7 @@ describe('shared-serialization', () => {
         `
         "
         0 Component [
-          QRL "1#2"
+          QRL "1#1"
         ]
         1 {string} "mock-chunk"
         2 {string} "dump_component"
@@ -593,23 +612,23 @@ describe('shared-serialization', () => {
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ComputedSignal [
-          QRL "6#7#5"
+          QRL "6#1#-2"
         ]
         1 ComputedSignal [
-          QRL "6#8#5"
+          QRL "6#2#-3"
           Constant undefined
           {number} 2
         ]
         2 ComputedSignal [
-          QRL "6#9#5"
+          QRL "6#3#-4"
         ]
         3 ComputedSignal [
-          QRL "6#10#5"
+          QRL "6#4#-5"
           Constant undefined
           {number} 4
         ]
         4 ComputedSignal [
-          QRL "6#11#5"
+          QRL "6#5#-6"
         ]
         5 Signal [
           {number} 0
@@ -620,7 +639,7 @@ describe('shared-serialization', () => {
         9 {string} "describe_describe_it_never_createComputed_1HbLed7JXyo"
         10 {string} "describe_describe_it_always_createComputed_4nMmgHlUOog"
         11 {string} "describe_describe_it_noSer_createComputed_pXwl00hYYQQ"
-        (409 chars)"
+        (412 chars)"
       `);
     });
     it(title(TypeIds.SerializerSignal), async () => {
@@ -659,23 +678,23 @@ describe('shared-serialization', () => {
         "
         0 Array [
           SerializerSignal [
-            QRL "1#2"
+            QRL "1#1"
             Constant undefined
             {number} 4
           ]
           SerializerSignal [
-            QRL "1#3"
+            QRL "1#2"
             Constant undefined
             Constant NEEDS_COMPUTATION
           ]
           SerializerSignal [
-            QRL "1#4"
+            QRL "1#3"
             Constant undefined
             {number} 4
           ]
           ForwardRef 0
           SerializerSignal [
-            QRL "1#5"
+            QRL "1#4"
             Constant undefined
             Constant NEEDS_COMPUTATION
           ]
@@ -686,7 +705,7 @@ describe('shared-serialization', () => {
         4 {string} "describe_describe_it_thunked_createSerializer_ufw7hr9vFDo"
         5 {string} "describe_describe_it_unreadPromise_createSerializer_8vLYtMSnQio"
         6 SerializerSignal [
-          QRL "1#7"
+          QRL "1#6"
           Constant undefined
           {number} 4
         ]
@@ -782,7 +801,7 @@ describe('shared-serialization', () => {
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 AsyncSignal [
-          QRL "9#10#8"
+          QRL "9#1#-2"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -790,7 +809,7 @@ describe('shared-serialization', () => {
           {number} 1
         ]
         1 AsyncSignal [
-          QRL "9#11#8"
+          QRL "9#2#-3"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -799,10 +818,10 @@ describe('shared-serialization', () => {
           {number} 2
         ]
         2 AsyncSignal [
-          QRL "9#12#8"
+          QRL "9#3#-4"
         ]
         3 AsyncSignal [
-          QRL "9#13#8"
+          QRL "9#4#-5"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -811,7 +830,7 @@ describe('shared-serialization', () => {
           {number} 2
         ]
         4 AsyncSignal [
-          QRL "9#14#8"
+          QRL "9#5#-6"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -821,7 +840,7 @@ describe('shared-serialization', () => {
           {number} 100
         ]
         5 AsyncSignal [
-          QRL "9#15#8"
+          QRL "9#6#-7"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -832,7 +851,7 @@ describe('shared-serialization', () => {
           {number} 23
         ]
         6 AsyncSignal [
-          QRL "9#16#8"
+          QRL "9#7#-8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -844,7 +863,7 @@ describe('shared-serialization', () => {
           {number} 5000
         ]
         7 AsyncSignal [
-          QRL "9#17"
+          QRL "9#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -876,7 +895,7 @@ describe('shared-serialization', () => {
         15 {string} "concurrent"
         16 {string} "timeout"
         17 {string} "undefinedSignal"
-        (487 chars)"
+        (486 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -1155,6 +1174,21 @@ describe('shared-serialization', () => {
       const qrl = deserialize(objs)[0] as QRLInternal;
       expect(isQrl(qrl)).toBeTruthy();
       expect(await (qrl.getFn() as any)()).toBe(myVar + other);
+    });
+    it('deserializes QRL delta captures lazily', async () => {
+      const capture = { value: 123 };
+      const objs = await serialize(inlinedQrl(() => capture.value, 'capture_qrl', [capture]));
+      const state = deserialize(objs);
+      const qrl = state[0] as QRLInternal;
+      const restoredCapture = state[1];
+
+      expect(isQrl(qrl)).toBeTruthy();
+      expect(qrl.$captures$).toBe('2#1#-2');
+      expect(qrl.$captures$).not.toBe(restoredCapture);
+
+      const captures = qrl.getCaptured();
+      expect(captures![0]).toBe(restoredCapture);
+      expect(qrl.$captures$).toBe(captures);
     });
     it(title(TypeIds.Task), async () => {
       const qrl = inlinedQrl(0, 's_zero') as any;
@@ -1550,14 +1584,14 @@ describe('shared-serialization', () => {
       const objs = await serialize(qrl1, [qrl2]);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 QRL "3#4#2"
+        0 QRL "3#1#-2"
         1 Array [
           RootRef 0
         ]
         2 Object 0
         3 {string} "mock-chunk"
         4 {string} "dump_qrl"
-        (51 chars)"
+        (52 chars)"
       `);
     });
     it('should dedupe identical root qrls', async () => {
@@ -1569,12 +1603,12 @@ describe('shared-serialization', () => {
       const objs = await serialize(qrl1, qrl2);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 QRL "3#4#2"
+        0 QRL "3#1#-2"
         1 RootRef 0
         2 Object 0
         3 {string} "mock-chunk"
         4 {string} "dump_qrl"
-        (47 chars)"
+        (48 chars)"
       `);
     });
   });
@@ -1615,7 +1649,7 @@ describe('shared-serialization', () => {
           {string} "child"
           ForwardRef 0
         ]
-        1 QRL "3#4#2"
+        1 QRL "3#1#-2"
         2 Object [
           {string} "should"
           {string} "serialize"
@@ -1625,7 +1659,7 @@ describe('shared-serialization', () => {
         5 ForwardRefs [
           2
         ]
-        (93 chars)"
+        (94 chars)"
       `);
     });
     it('should serialize object after qrl', async () => {
@@ -1644,7 +1678,7 @@ describe('shared-serialization', () => {
           {string} "child"
           ForwardRef 0
         ]
-        1 QRL "3#4#2"
+        1 QRL "3#1#-2"
         2 Object [
           {string} "should"
           {string} "serialize"
@@ -1654,7 +1688,7 @@ describe('shared-serialization', () => {
         5 ForwardRefs [
           2
         ]
-        (93 chars)"
+        (94 chars)"
       `);
     });
     it('should not serialize multipe same weak ref', async () => {
@@ -1789,11 +1823,11 @@ describe('shared-serialization', () => {
             {number} 1
           ]
         ]
-        1 QRL "3#4#2"
+        1 QRL "3#1#-2"
         2 RootRef "0 0"
         3 {string} "mock-chunk"
         4 {string} "foo"
-        (65 chars)"
+        (66 chars)"
       `);
       // make sure shared1 is only serialized once
       expect([objs[4], objs[5]]).toEqual([TypeIds.RootRef, '0 0']);

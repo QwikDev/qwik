@@ -26,7 +26,7 @@ export function setEvent(
      *
      * For internal qrls (starting with `_`) we assume that they do the right thing.
      */
-    if (!qrl.$symbol$.startsWith('_') && (qrl.$captures$?.length || hasMovedCaptures)) {
+    if (!qrl.$symbol$.startsWith('_') && (Array.isArray(qrl.$captures$) || hasMovedCaptures)) {
       qrl = createQRL(null, '_run', _run, null, [qrl]);
     }
     return qrlToString(serializationCtx, qrl);

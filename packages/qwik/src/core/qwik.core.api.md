@@ -246,8 +246,10 @@ export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE
 // @internal (undocumented)
 export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer;
 
+// Warning: (ae-forgotten-export) The symbol "QrlCaptures" needs to be exported by the entry point index.d.ts
+//
 // @internal
-export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: Readonly<unknown[]> | string | null, container?: _Container) => _QRLInternal<TYPE>;
+export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: QrlCaptures, container?: _Container) => _QRLInternal<TYPE>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializerArg" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SerializerSignal" needs to be exported by the entry point index.d.ts

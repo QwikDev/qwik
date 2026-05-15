@@ -1,7 +1,7 @@
 import { getDomContainer } from '../client/dom-container';
 import {
   _captures,
-  deserializeCaptures,
+  deserializeCaptureDeltas,
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
@@ -37,7 +37,7 @@ export const _hmr = function (
   // Deserialize captures from `this` when called via qwikloader/attribute dispatch
   if (typeof this === 'string') {
     const container = getDomContainer(element);
-    setCaptures(deserializeCaptures(container, this));
+    setCaptures(deserializeCaptureDeltas(container, this));
   }
   const host = _captures![0] as VNode;
   const container = getDomContainer(element);

@@ -262,38 +262,6 @@ const DECLARATION_TYPES = new Set([
 ]);
 
 /**
- * Batch version of collectLocalDeclarations: collects locals for all
- * extractions in a single AST walk instead of O(N) separate walks.
- */
-function collectAllLocalDeclarations(
-  program: AstProgram,
-  extractions: Array<{ symbolName: string; argStart: number; argEnd: number }>,
-): Map<string, Set<string>> {
-  const result = new Map<string, Set<string>>();
-  for (const ext of extractions) {
-    result.set(ext.symbolName, new Set());
-  }
-
-  if (extractions.length === 0) return result;
-
-  walk(program, {
-    enter(node: AstNode) {
-      if (!DECLARATION_TYPES.has(node.type)) return;
-
-      const nodeStart = node.start;
-      const nodeEnd = node.end;
-
-      for (const ext of extractions) {
-        if (nodeStart < ext.argStart || nodeEnd > ext.argEnd) continue;
-        addDeclaredNamesFromNode(node, result.get(ext.symbolName)!);
-      }
-    },
-  });
-
-  return result;
-}
-
-/**
  * Positions of top-level declaration-site identifiers. SWC's
  * `build_main_module_usage_set` skips these so they don't count as root usage.
  */
@@ -358,6 +326,17 @@ function collectBindingPositions(node: AstMaybeNode, positions: Set<number>): vo
  * Attribute every identifier reference to either a segment or root scope.
  * Filters out locally-declared names within segments and declaration-site
  * identifiers at root level.
+ *
+ * Implementation note: a previous design ran two `walk(program, ...)` passes
+ * back-to-back (first to collect per-extraction locals, then to classify
+ * identifiers). The two are merged into a single walk here, but identifier
+ * classification cannot happen inline during `enter`: in DFS order an
+ * identifier reference can be visited *before* its hoisted declaration
+ * (e.g. `function f() { g(); function g() {} }` — the `g` Identifier is
+ * entered before the `function g` FunctionDeclaration). To keep semantic
+ * equivalence with the two-pass version, identifier visits are buffered
+ * during the walk and classified in a post-walk linear pass once the
+ * locals map is fully populated.
  */
 export function computeSegmentUsage(
   program: AstProgram,
@@ -365,50 +344,61 @@ export function computeSegmentUsage(
 ): { segmentUsage: Map<string, Set<string>>; rootUsage: Set<string> } {
   const segmentUsage = new Map<string, Set<string>>();
   const rootUsage = new Set<string>();
+  const extractionLocals = new Map<string, Set<string>>();
 
   for (const ext of extractions) {
     segmentUsage.set(ext.symbolName, new Set());
+    extractionLocals.set(ext.symbolName, new Set());
   }
 
-  const extractionLocals = collectAllLocalDeclarations(program, extractions);
   const rootDeclPositions = collectRootDeclPositions(program);
+  const identifierVisits: Array<{ pos: number; name: string }> = [];
 
   walk(program, {
     enter(node: AstNode) {
+      if (DECLARATION_TYPES.has(node.type) && extractions.length > 0) {
+        const nodeStart = node.start;
+        const nodeEnd = node.end;
+        for (const ext of extractions) {
+          if (nodeStart < ext.argStart || nodeEnd > ext.argEnd) continue;
+          addDeclaredNamesFromNode(node, extractionLocals.get(ext.symbolName)!);
+        }
+      }
       // JSXIdentifier matters too: <Component> references module-level bindings
-      if (node.type !== 'Identifier' && node.type !== 'JSXIdentifier') return;
-
-      const pos = node.start;
-      const name = node.name;
-
-      // When nested extractions overlap (e.g., $() inside component$()),
-      // attribute to the innermost (smallest) range.
-      let inSegment = false;
-      let innermostExt: (typeof extractions)[0] | null = null;
-      let smallestSize = Infinity;
-      for (const ext of extractions) {
-        if (pos >= ext.argStart && pos < ext.argEnd) {
-          const size = ext.argEnd - ext.argStart;
-          if (size < smallestSize) {
-            smallestSize = size;
-            innermostExt = ext;
-          }
-          inSegment = true;
-        }
-      }
-
-      if (innermostExt) {
-        const locals = extractionLocals.get(innermostExt.symbolName)!;
-        if (!locals.has(name)) {
-          segmentUsage.get(innermostExt.symbolName)!.add(name);
-        }
-      }
-
-      if (!inSegment && !rootDeclPositions.has(pos)) {
-        rootUsage.add(name);
+      if (node.type === 'Identifier' || node.type === 'JSXIdentifier') {
+        identifierVisits.push({ pos: node.start, name: node.name });
       }
     },
   });
+
+  for (const { pos, name } of identifierVisits) {
+    // When nested extractions overlap (e.g., $() inside component$()),
+    // attribute to the innermost (smallest) range.
+    let inSegment = false;
+    let innermostExt: (typeof extractions)[0] | null = null;
+    let smallestSize = Infinity;
+    for (const ext of extractions) {
+      if (pos >= ext.argStart && pos < ext.argEnd) {
+        const size = ext.argEnd - ext.argStart;
+        if (size < smallestSize) {
+          smallestSize = size;
+          innermostExt = ext;
+        }
+        inSegment = true;
+      }
+    }
+
+    if (innermostExt) {
+      const locals = extractionLocals.get(innermostExt.symbolName)!;
+      if (!locals.has(name)) {
+        segmentUsage.get(innermostExt.symbolName)!.add(name);
+      }
+    }
+
+    if (!inSegment && !rootDeclPositions.has(pos)) {
+      rootUsage.add(name);
+    }
+  }
 
   return { segmentUsage, rootUsage };
 }

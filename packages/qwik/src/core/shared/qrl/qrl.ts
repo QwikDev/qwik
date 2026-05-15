@@ -1,4 +1,5 @@
 import { QError, qError } from '../error/error';
+import { registerSingleton } from '../singletons';
 import { qDev } from '../utils/qdev';
 import { isFunction, isString } from '../utils/types';
 import { createQRL, type QRLInternal } from './qrl-class';
@@ -131,6 +132,8 @@ export const inlinedQrlDEV = <T = any>(
   return qrl;
 };
 
+// See also ../platform/platform.ts, which reads this registry on the server
+const getSymbolRegistry = () => registerSingleton('regSymbols', () => new Map<string, any>());
 /**
  * Register a QRL symbol globally for lookup by its hash. This is used by the optimizer to register
  * the names passed in `reg_ctx_name`.
@@ -138,9 +141,6 @@ export const inlinedQrlDEV = <T = any>(
  * @internal
  */
 export const _regSymbol = (symbol: any, hash: string) => {
-  if (typeof (globalThis as any).__qwik_reg_symbols === 'undefined') {
-    (globalThis as any).__qwik_reg_symbols = new Map<string, any>();
-  }
-  (globalThis as any).__qwik_reg_symbols.set(hash, symbol);
+  getSymbolRegistry().set(hash, symbol);
   return symbol;
 };

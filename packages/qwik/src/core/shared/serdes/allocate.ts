@@ -19,6 +19,7 @@ import { qError, QError } from '../error/error';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy } from '../jsx/props-proxy';
 import type { QRLInternal } from '../qrl/qrl-class';
+import { registerSingleton } from '../singletons';
 import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
 import type { ElementVNode } from '../vnode/element-vnode';
@@ -28,7 +29,10 @@ import { needsInflation } from './deser-proxy';
 import { createQRLWithBackChannel } from './qrl-to-string';
 import { SubscriptionPatch } from './subscription-patch';
 
-export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
+export const resolvers = registerSingleton(
+  'resolvers',
+  () => new WeakMap<Promise<any>, [Function, Function]>()
+);
 
 const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 const BASE64_REGEXP = /^[A-Za-z0-9+/]*$/;

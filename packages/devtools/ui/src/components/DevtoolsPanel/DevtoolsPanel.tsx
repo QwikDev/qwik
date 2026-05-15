@@ -9,7 +9,7 @@ import {
   useVisibleTask$,
 } from '@qwik.dev/core';
 import { State } from '../../types/state';
-import { IconArrowsPointingIn, IconArrowsPointingOut, IconXMark } from '../Icons/Icons';
+import { IconArrowsPointingIn, IconArrowsPointingOut, IconXMark, QwikLogo } from '../Icons/Icons';
 
 interface DevtoolsPanelProps {
   state: State;
@@ -467,14 +467,7 @@ export const DevtoolsPanel = component$((props: DevtoolsPanelProps) => {
             onDblClick$={handleToggleFullscreen}
           >
             <div class="flex min-w-0 items-center gap-3">
-              <img
-                width={20}
-                height={20}
-                src="https://qwik.dev/logos/qwik-logo.svg"
-                alt="Qwik Logo"
-                class="h-5 w-5 shrink-0"
-                draggable={false}
-              />
+              <QwikLogo title="Qwik Logo" class="h-5 w-5 shrink-0" />
               <div class="min-w-0">
                 <div class="truncate text-sm font-semibold">Qwik DevTools</div>
                 <div class="text-muted-foreground truncate text-xs">

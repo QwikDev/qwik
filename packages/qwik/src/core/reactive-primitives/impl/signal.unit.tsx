@@ -11,7 +11,7 @@ import type { Container, HostElement } from '../../shared/types';
 import { ELEMENT_SEQ } from '../../shared/utils/markers';
 import { retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
-import { Task } from '../../use/use-task';
+import { Task, TaskFlags } from '../../use/use-task';
 import {
   createAsync$,
   createComputed$,
@@ -310,7 +310,7 @@ describe('signal', () => {
   function effectQrl(fnQrl: QRL<() => void>) {
     const qrl = fnQrl as QRLInternal<() => void>;
     const element: HostElement = vnode_newVirtual();
-    task = task || new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    task = task || new Task(TaskFlags.TASK, 0, element, fnQrl as QRLInternal, null);
     vnode_setProp(element, ELEMENT_SEQ, [task]);
     if (!qrl.resolved) {
       throw qrl.resolve();

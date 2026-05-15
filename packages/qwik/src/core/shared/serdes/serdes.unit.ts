@@ -27,7 +27,7 @@ import {
   SignalFlags,
   StoreFlags,
 } from '../../reactive-primitives/types';
-import { Task } from '../../use/use-task';
+import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
@@ -435,11 +435,10 @@ describe('shared-serialization', () => {
       expect(
         await dump(
           new Task(
-            0,
+            TaskFlags.TASK,
             0,
             shared1 as any,
             inlinedQrl(() => shared1, 'task_qrl', [shared1]) as QRLInternal,
-            shared2 as any,
             null
           )
         )
@@ -447,22 +446,17 @@ describe('shared-serialization', () => {
         "
         0 Task [
           QRL "2#3#1"
-          {number} 0
+          {number} 2
           {number} 0
           RootRef 1
-          Object [
-            {string} "shared"
-            {number} 2
-          ]
         ]
         1 Object [
-          RootRef 4
+          {string} "shared"
           {number} 1
         ]
         2 {string} "mock-chunk"
         3 {string} "task_qrl"
-        4 RootRef "0 4 0"
-        (97 chars)"
+        (75 chars)"
       `);
     });
     it(title(TypeIds.Component), async () => {
@@ -1164,11 +1158,10 @@ describe('shared-serialization', () => {
     });
     it(title(TypeIds.Task), async () => {
       const qrl = inlinedQrl(0, 's_zero') as any;
-      const objs = await serialize(new Task(0, 0, shared1 as any, qrl, shared2 as any, null));
+      const objs = await serialize(new Task(TaskFlags.TASK, 0, shared1 as any, qrl, null));
       const [task] = deserialize(objs) as Task[];
       expect(task.$qrl$.$symbol$).toEqual(qrl.$symbol$);
       expect(task.$el$).toEqual(shared1);
-      expect(task.$state$).toEqual(shared2);
     });
     it.todo(title(TypeIds.Component));
     it(title(TypeIds.Signal), async () => {
@@ -1258,7 +1251,7 @@ describe('shared-serialization', () => {
     it('restores effect backref when consumer is Task', async () => {
       const qrl = inlinedQrl(0, 's_zero') as any;
       const shared = { x: 1 };
-      const task = new Task(0, 0, shared as any, qrl, shared as any, null);
+      const task = new Task(TaskFlags.TASK, 0, shared as any, qrl, null);
       const effect = new EffectSubscription(task, EffectProperty.COMPONENT, null, null);
       const carrier = createSignal(0);
       (carrier as SignalImpl).$effects$ = new Set([effect]);
@@ -1319,7 +1312,7 @@ describe('shared-serialization', () => {
     it('restores multiple effect backrefs on the same consumer (Task)', async () => {
       const qrl = inlinedQrl(0, 's_zero') as any;
       const shared = {} as any;
-      const task = new Task(0, 0, shared, qrl, undefined, null);
+      const task = new Task(TaskFlags.TASK, 0, shared, qrl, null);
       const effect1 = new EffectSubscription(task, EffectProperty.COMPONENT, null, null);
       const effect2 = new EffectSubscription(task, 'customProp', null, null);
       const carrier = createSignal(0);
@@ -1360,7 +1353,7 @@ describe('shared-serialization', () => {
      */
     const makeEffect = () =>
       new EffectSubscription(
-        new Task(0, 0, {} as any, inlinedQrl(0, 's_zero') as any, {} as any, null),
+        new Task(TaskFlags.TASK, 0, {} as any, inlinedQrl(0, 's_zero') as any, null),
         EffectProperty.COMPONENT,
         null,
         null

@@ -132,15 +132,6 @@ export interface TaskCtx {
 /** @public */
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => ValueOrPromise<void>)>;
 
-export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
-  $flags$: number;
-  $index$: number;
-  $el$: HostElement;
-  $qrl$: QRLInternal<T>;
-  $state$: B | undefined;
-  $destroy$: (() => void) | null;
-}
-
 /** @public */
 export interface TaskOptions {
   /** Block the rendering of the component until the task completes. Default is `true` */
@@ -165,7 +156,6 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
     i,
     iCtx.$hostElement$,
     qrl,
-    undefined,
     null
   );
   // In V2 we add the task to the sequential scope. We need to do this
@@ -235,19 +225,15 @@ export const runTask = (
   return result;
 };
 
-export class Task<T = unknown, B = T>
-  extends BackRef
-  implements DescriptorBase<unknown, Signal<B>>
-{
+export class Task<T = unknown, B = T> extends BackRef {
   $destroyPromise$: Promise<void> | undefined;
   $taskPromise$: Promise<void> | null = null;
 
   constructor(
-    public $flags$: number,
+    public $flags$: TaskFlags,
     public $index$: number,
     public $el$: HostElement,
     public $qrl$: QRLInternal<T>,
-    public $state$: Signal<B> | undefined,
     public $destroy$: (() => void) | null
   ) {
     super();

@@ -540,22 +540,6 @@ export class Serializer {
       this.output(TypeIds.URL, value.href);
     } else if (value instanceof Date) {
       this.output(TypeIds.Date, Number.isNaN(value.valueOf()) ? '' : value.valueOf());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.Duration) {
-      this.output(TypeIds.TemporalDuration, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.Instant) {
-      this.output(TypeIds.TemporalInstant, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDate) {
-      this.output(TypeIds.TemporalPlainDate, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDateTime) {
-      this.output(TypeIds.TemporalPlainDateTime, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainMonthDay) {
-      this.output(TypeIds.TemporalPlainMonthDay, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainTime) {
-      this.output(TypeIds.TemporalPlainTime, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainYearMonth) {
-      this.output(TypeIds.TemporalPlainYearMonth, value.toJSON());
-    } else if (this.$hasTemporal$ && value instanceof Temporal.ZonedDateTime) {
-      this.output(TypeIds.TemporalZonedDateTime, value.toJSON());
     } else if (value instanceof RegExp) {
       this.output(TypeIds.Regex, value.toString());
     } else if (value instanceof Error) {
@@ -623,7 +607,7 @@ export class Serializer {
       }
       this.output(TypeIds.JSXNode, out);
     } else if (value instanceof Task) {
-      const out: unknown[] = [value.$qrl$, value.$flags$, value.$index$, value.$el$, value.$state$];
+      const out: unknown[] = [value.$qrl$, value.$flags$, value.$index$, value.$el$];
       while (out[out.length - 1] === undefined) {
         out.pop();
       }
@@ -669,6 +653,22 @@ export class Serializer {
         }
         this.output(TypeIds.ForwardRef, forwardRefId);
       }
+    } else if (this.$hasTemporal$ && value instanceof Temporal.Duration) {
+      this.output(TypeIds.TemporalDuration, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.Instant) {
+      this.output(TypeIds.TemporalInstant, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDate) {
+      this.output(TypeIds.TemporalPlainDate, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainDateTime) {
+      this.output(TypeIds.TemporalPlainDateTime, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainMonthDay) {
+      this.output(TypeIds.TemporalPlainMonthDay, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainTime) {
+      this.output(TypeIds.TemporalPlainTime, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.PlainYearMonth) {
+      this.output(TypeIds.TemporalPlainYearMonth, value.toJSON());
+    } else if (this.$hasTemporal$ && value instanceof Temporal.ZonedDateTime) {
+      this.output(TypeIds.TemporalZonedDateTime, value.toJSON());
     } else if (vnode_isVNode(value)) {
       this.output(TypeIds.Constant, Constants.Undefined);
     } else {

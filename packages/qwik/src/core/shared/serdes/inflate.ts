@@ -104,7 +104,6 @@ export const inflate = (
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
-      task.$state$ = v[4];
       break;
     case TypeIds.Component:
       (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];

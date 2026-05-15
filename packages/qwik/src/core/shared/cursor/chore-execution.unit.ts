@@ -173,7 +173,6 @@ function createMockTask(flags: TaskFlags, el: HostElement): Task {
   task.$index$ = 0;
   task.$el$ = el;
   task.$qrl$ = {} as any;
-  task.$state$ = undefined;
   task.$destroy$ = null;
   return task;
 }

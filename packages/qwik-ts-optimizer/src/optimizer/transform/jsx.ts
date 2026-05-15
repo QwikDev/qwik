@@ -9,7 +9,7 @@
 import type MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
 import { forEachAstChild } from '../utils/ast.js';
-import type { AstNode, AstProgram, Expression, JSXElementName, VariableDeclarator } from '../../ast-types.js';
+import type { AstNode, AstProgram, Expression, JSXElementName } from '../../ast-types.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { collectPassiveDirectives } from './event-handlers.js';
 import { detectLoopContext, type LoopContext } from '../loop-hoisting.js';
@@ -74,27 +74,50 @@ function isReturnStatic(init: Expression | null | undefined): boolean {
   return false;
 }
 
+export interface ConstAndLocalNames {
+  /** Const-bound identifiers whose initializer is `isReturnStatic` —
+   * treated as immutable references for prop classification. */
+  constBindings: Set<string>;
+  /** Every locally declared identifier name (any binding kind) — used to
+   * distinguish known locals from unknown globals for signal analysis. */
+  allLocalNames: Set<string>;
+}
+
 /**
- * Collect names of const-bound identifiers with "static" initializers.
- * These are treated as immutable references for prop classification.
+ * Single-pass collection of both `constBindings` (const-declared idents with
+ * static initializers) and `allLocalNames` (every locally declared ident).
+ *
+ * Each binding-introducing node feeds the right output(s):
+ * - `VariableDeclaration`: always `addIdent` per declarator for
+ *   `allLocalNames`; if `kind === 'const'`, also `walkPatternInit` to classify
+ *   leaf bindings for `constBindings`.
+ * - `FunctionDeclaration` / `ClassDeclaration` name, function params,
+ *   `CatchClause` param, `ForIn/ForOfStatement` left-hand pattern: `addIdent`
+ *   only.
  */
-export function collectConstBindings(program: AstProgram): Set<string> {
+export function collectConstAndLocalNames(program: AstProgram): ConstAndLocalNames {
   const constBindings = new Set<string>();
+  const allLocalNames = new Set<string>();
 
-  function visitNode(node: AstNode | null | undefined): void {
+  function addIdent(node: AstNode | null | undefined): void {
     if (!node) return;
-
-    if (node.type === 'VariableDeclaration' && node.kind === 'const') {
-      for (const decl of node.declarations) {
-        collectFromDeclarator(decl);
+    if (node.type === 'Identifier') {
+      allLocalNames.add(node.name);
+    } else if (node.type === 'ArrayPattern') {
+      for (const elem of node.elements) {
+        if (elem) addIdent(elem.type === 'RestElement' ? elem.argument : elem);
       }
+    } else if (node.type === 'ObjectPattern') {
+      for (const prop of node.properties) {
+        if (prop.type === 'RestElement') {
+          addIdent(prop.argument);
+        } else {
+          addIdent(prop.value);
+        }
+      }
+    } else if (node.type === 'AssignmentPattern') {
+      addIdent(node.left);
     }
-
-    forEachAstChild(node, (child) => visitNode(child as AstNode));
-  }
-
-  function collectFromDeclarator(decl: VariableDeclarator): void {
-    walkPatternInit(decl.id, decl.init);
   }
 
   /** Walk a destructure pattern and its initializer in parallel. For each
@@ -167,44 +190,14 @@ export function collectConstBindings(program: AstProgram): Set<string> {
     }
   }
 
-  visitNode(program);
-  return constBindings;
-}
-
-/**
- * Collect all locally declared identifier names from an AST program.
- * Used to distinguish known locals from unknown globals for signal analysis.
- */
-function collectAllLocalNames(program: AstProgram): Set<string> {
-  const names = new Set<string>();
-
-  function addIdent(node: AstNode | null | undefined): void {
-    if (!node) return;
-    if (node.type === 'Identifier') {
-      names.add(node.name);
-    } else if (node.type === 'ArrayPattern') {
-      for (const elem of node.elements) {
-        if (elem) addIdent(elem.type === 'RestElement' ? elem.argument : elem);
-      }
-    } else if (node.type === 'ObjectPattern') {
-      for (const prop of node.properties) {
-        if (prop.type === 'RestElement') {
-          addIdent(prop.argument);
-        } else {
-          addIdent(prop.value);
-        }
-      }
-    } else if (node.type === 'AssignmentPattern') {
-      addIdent(node.left);
-    }
-  }
-
   function visit(node: AstNode | null | undefined): void {
     if (!node) return;
 
     if (node.type === 'VariableDeclaration') {
+      const isConst = node.kind === 'const';
       for (const decl of node.declarations) {
         addIdent(decl.id);
+        if (isConst) walkPatternInit(decl.id, decl.init);
       }
     }
 
@@ -239,7 +232,7 @@ function collectAllLocalNames(program: AstProgram): Set<string> {
   }
 
   visit(program);
-  return names;
+  return { constBindings, allLocalNames };
 }
 
 /**
@@ -517,10 +510,10 @@ export function transformAllJsx(
   paramNames?: Set<string>,
   relPath?: string,
   sharedSignalHoister?: SignalHoister,
-  constIdents?: Set<string>,
+  precomputedConstAndLocal?: ConstAndLocalNames,
 ): JsxTransformOutput {
-  const resolvedConstIdents = constIdents ?? collectConstBindings(program);
-  const allDeclaredNames = collectAllLocalNames(program);
+  const { constBindings: resolvedConstIdents, allLocalNames: allDeclaredNames } =
+    precomputedConstAndLocal ?? collectConstAndLocalNames(program);
   const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0, prefix);
   const signalHoister = sharedSignalHoister ?? new SignalHoister();

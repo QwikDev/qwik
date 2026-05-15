@@ -13,7 +13,7 @@ import { rewriteImportSource } from './rewrite-imports.js';
 import { inlineConstCaptures } from './rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from './rewrite/predicates.js';
 import type { ExtractionResult } from './extract.js';
-import { transformAllJsx, collectConstBindings } from './transform/jsx.js';
+import { transformAllJsx, collectConstAndLocalNames } from './transform/jsx.js';
 import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
 import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
 
@@ -294,14 +294,14 @@ function transformSegmentJsx(
     const qrlsWithCaptures = buildQrlsWithCapturesSet(nestedCallSites);
     const qpOverrides = buildQpOverrides(nestedCallSites, bodyParse.program);
 
-    const segConstIdents = collectConstBindings(bodyParse.program);
+    const segConstAndLocal = collectConstAndLocalNames(bodyParse.program);
     if (captureInfo?.captureNames) {
-      for (const name of captureInfo.captureNames) segConstIdents.add(name);
+      for (const name of captureInfo.captureNames) segConstAndLocal.constBindings.add(name);
     }
 
     const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames,
       undefined, jsxOptions.devOptions, jsxOptions.keyCounterStart, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath,
-      undefined, segConstIdents);
+      undefined, segConstAndLocal);
 
     const transformedWrapped = bodyS.toString();
     bodyText = transformedWrapped.slice(1, -1);

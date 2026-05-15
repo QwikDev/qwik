@@ -1,5 +1,6 @@
 import { component$, useSignal, $, useTask$ } from '@qwik.dev/core';
 import type { State } from '../../types/state';
+import { QwikLogo } from '../Icons/Icons';
 
 interface DevtoolsButtonProps {
   state: State;
@@ -114,12 +115,8 @@ export const DevtoolsButton = component$((props: DevtoolsButtonProps) => {
       onMouseDown$={handleMouseDown}
       onClick$={handleClick}
     >
-      <img
-        width={28}
-        height={28}
-        src="https://qwik.dev/logos/qwik-logo.svg"
-        alt="Qwik Logo"
-        draggable={false}
+      <QwikLogo
+        title="Qwik Logo"
         class="pointer-events-none h-7 w-7 opacity-90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
       />
     </div>

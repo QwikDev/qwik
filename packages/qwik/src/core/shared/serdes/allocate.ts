@@ -19,6 +19,7 @@ import { qError, QError } from '../error/error';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy } from '../jsx/props-proxy';
 import type { QRLInternal } from '../qrl/qrl-class';
+import { registerSingleton } from '../singletons';
 import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
 import type { ElementVNode } from '../vnode/element-vnode';
@@ -27,8 +28,14 @@ import { _constants, TypeIds, type Constants } from './constants';
 import { needsInflation } from './deser-proxy';
 import { createQRLWithBackChannel } from './qrl-to-string';
 
-export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
-export const pendingStoreTargets = new Map<object, { t: TypeIds; v: unknown }>();
+export const resolvers = registerSingleton(
+  'resolvers',
+  () => new WeakMap<Promise<any>, [Function, Function]>()
+);
+export const pendingStoreTargets = registerSingleton(
+  'pendingStoreTargets',
+  () => new Map<object, { t: TypeIds; v: unknown }>()
+);
 
 export const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
   switch (typeId) {

@@ -149,15 +149,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   const manifestHash =
     useServerData<Record<string, string>>('containerAttributes')?.['q:manifest-hash'];
 
-  if (
-    env.ev.originalUrl.pathname !== env.ev.url.pathname &&
-    !__EXPERIMENTAL__.enableRequestRewrite
-  ) {
-    throw new Error(
-      `enableRequestRewrite is an experimental feature and is not enabled. Please enable the feature flag by adding \`experimental: ["enableRequestRewrite"]\` to your qwikVite plugin options.`
-    );
-  }
-
   const url = new URL(urlEnv);
   const routeLocationTarget: MutableRouteLocation = {
     url,

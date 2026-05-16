@@ -1140,6 +1140,138 @@ describe('renderToStream: out-of-order Suspense', () => {
     expect(contentHost.style.display).toBe('contents');
   });
 
+  it('should reveal delayed fallback with a backpatch when content is still pending', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(
+      <main>
+        <Suspense fallback={<button id="ooos-delay-fallback">Delayed waiting</button>} delay={10}>
+          <Slow />
+        </Suspense>
+        <footer>Footer</footer>
+      </main>,
+      {
+        containerTagName: 'div',
+        qwikLoader: 'never',
+        stream: collectStream(chunks),
+        streaming: {
+          inOrder: { strategy: 'disabled' },
+          outOfOrder: true,
+        },
+      }
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Delayed waiting'));
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Footer'));
+    await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/backpatch"'));
+
+    const shellHtml = chunks.join('');
+    expect(shellHtml).toContain('<div style="display:none"');
+    expect(shellHtml).toContain('"style","display:contents"');
+    const document = createDocument({ html: shellHtml });
+    const scripts = Array.from(
+      document.querySelectorAll('script[type="text/javascript"]'),
+      (script) => script.textContent || ''
+    );
+    // eslint-disable-next-line no-new-func
+    new Function('document', 'debug', scripts.join('\n'))(document, false);
+    emulateExecutionOfBackpatch(document);
+    const fallbackHost = document.querySelector('#ooos-delay-fallback')!
+      .parentElement as HTMLElement;
+    expect(fallbackHost.style.display).toBe('contents');
+
+    resolveSlow(<section>Delayed done</section>);
+    await renderPromise;
+  });
+
+  it('should not emit delayed fallback backpatch when content resolves before delay', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(
+      <main>
+        <Suspense
+          fallback={<button id="ooos-fast-delay-fallback">Fast waiting</button>}
+          delay={10_000}
+        >
+          <Slow />
+        </Suspense>
+      </main>,
+      {
+        containerTagName: 'div',
+        qwikLoader: 'never',
+        stream: collectStream(chunks),
+        streaming: {
+          inOrder: { strategy: 'disabled' },
+          outOfOrder: true,
+        },
+      }
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Fast waiting'));
+    resolveSlow(<section id="ooos-fast-delay-content">Fast done</section>);
+    await renderPromise;
+
+    const html = chunks.join('');
+    expect(html).toContain('<div style="display:none"');
+    expect(html).not.toContain('type="qwik/backpatch"');
+    const document = createDocument({ html });
+    const scripts = Array.from(
+      document.querySelectorAll('script[type="text/javascript"]'),
+      (script) => script.textContent || ''
+    );
+    // eslint-disable-next-line no-new-func
+    new Function('document', scripts.join('\n'))(document);
+    const fallbackHost = document.querySelector('#ooos-fast-delay-fallback')!
+      .parentElement as HTMLElement;
+    const contentHost = document.querySelector('#ooos-fast-delay-content')!
+      .parentElement as HTMLElement;
+    expect(fallbackHost.style.display).toBe('none');
+    expect(contentHost.style.display).toBe('contents');
+  });
+
+  it('should show fallback immediately when SSR delay is not positive', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(
+      <main>
+        <Suspense fallback={<button>Immediate waiting</button>} delay={0}>
+          <Slow />
+        </Suspense>
+      </main>,
+      {
+        containerTagName: 'div',
+        qwikLoader: 'never',
+        stream: collectStream(chunks),
+        streaming: {
+          inOrder: { strategy: 'disabled' },
+          outOfOrder: true,
+        },
+      }
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Immediate waiting'));
+    expect(chunks.join('')).toContain('<div style="display:contents"');
+    expect(chunks.join('')).not.toContain('type="qwik/backpatch"');
+
+    resolveSlow(<section>Immediate done</section>);
+    await renderPromise;
+  });
+
   it('should stream resolved HTML and segment vnode data before root state when ready early', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     let releaseFirstFlush!: () => void;

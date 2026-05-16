@@ -18,7 +18,8 @@ export function executeBackpatch(doc: Document, containerElement?: Element | nul
     doc.querySelector('[q\\:container]:not([q\\:container=html]):not([q\\:container=text])');
 
   if (container) {
-    const script = container.querySelector(BACKPATCH_DATA_SELECTOR);
+    const scripts = container.querySelectorAll(BACKPATCH_DATA_SELECTOR);
+    const script = scripts[scripts.length - 1];
     if (script) {
       const data = JSON.parse(script.textContent || '[]');
       const walker = doc.createTreeWalker(container, NodeFilter.SHOW_ELEMENT);

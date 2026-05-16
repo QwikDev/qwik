@@ -179,6 +179,82 @@ test.describe('out-of-order suspense streaming', () => {
     await navigation;
   });
 
+  test('reveals delayed fallback when delay resolves before content', async ({
+    page,
+    browserName,
+  }, testInfo) => {
+    const releaseId = `delay-before-content-${testInfo.workerIndex}-${Date.now()}`;
+    const params = new URLSearchParams({
+      scenario: 'delay',
+      delayRelease: releaseId,
+      fallbackDelay: '1000',
+    });
+    const navigation = page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+      waitUntil: 'commit',
+    });
+
+    await expect(page.locator('#ooos-title')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-delay-fallback')).toHaveCount(1);
+    await expect(page.locator('#ooos-delay-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-delay-resolved')).toHaveCount(0);
+
+    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
+    await page.locator('#ooos-delay-fallback-button').click();
+    await expect(page.locator('#ooos-delay-fallback-count')).toHaveText('1');
+
+    await page.locator('#ooos-delay-release').click();
+    await expect(page.locator('#ooos-delay-resolved')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-delay-fallback')).toBeHidden();
+    await navigation;
+  });
+
+  test('does not reveal delayed fallback when content resolves before delay', async ({
+    page,
+    browserName,
+  }) => {
+    await page.addInitScript(() => {
+      (window as any).__ooosDelayFallbackWasVisible = false;
+      const checkFallbackVisibility = () => {
+        const fallback = document.querySelector('#ooos-delay-fallback');
+        if (fallback && fallback.getClientRects().length > 0) {
+          (window as any).__ooosDelayFallbackWasVisible = true;
+        }
+      };
+      const observe = () => {
+        checkFallbackVisibility();
+        new MutationObserver(checkFallbackVisibility).observe(document.documentElement, {
+          attributes: true,
+          childList: true,
+          subtree: true,
+        });
+        setInterval(checkFallbackVisibility, 50);
+      };
+      if (document.documentElement) {
+        observe();
+      } else {
+        document.addEventListener('DOMContentLoaded', observe, { once: true });
+      }
+    });
+    const params = new URLSearchParams({
+      scenario: 'delay',
+      fallbackDelay: '2000',
+    });
+    const navigation = page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+      waitUntil: 'commit',
+    });
+
+    await expect(page.locator('#ooos-title')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-delay-fallback')).toHaveCount(1);
+    await expect(page.locator('#ooos-delay-resolved')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-delay-fallback')).toBeHidden();
+
+    await page.waitForTimeout(2200);
+    await expect(page.locator('#ooos-delay-resolved')).toBeVisible();
+    await expect(page.locator('#ooos-delay-fallback')).toBeHidden();
+    expect(await page.evaluate(() => (window as any).__ooosDelayFallbackWasVisible)).toBe(false);
+    await navigation;
+  });
+
   test('coordinates out-of-order suspense boundaries inside collapsed reveal', async ({
     page,
     browserName,

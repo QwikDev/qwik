@@ -16,7 +16,7 @@ export default function (opts: RenderToStreamOptions) {
       url.pathname === '/e2e/suspense-ooos'
         ? {
             ...opts.streaming,
-            outOfOrder: { strategy: 'suspense' },
+            outOfOrder: true,
           }
         : opts.streaming,
   };

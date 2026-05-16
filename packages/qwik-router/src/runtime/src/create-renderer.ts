@@ -1,13 +1,13 @@
 import type { JSXOutput } from '@qwik.dev/core';
-import { renderToStream, type Render, type RenderOptions } from '@qwik.dev/core/server';
+import { renderToStream, type Render, type RenderToStreamOptions } from '@qwik.dev/core/server';
 import type { DocumentHeadValue, ServerData } from './types';
 
 /** @public */
-export type RendererOptions = Omit<RenderOptions, 'serverData'> & {
+export type RendererOptions = Omit<RenderToStreamOptions, 'serverData'> & {
   serverData: ServerData;
 };
 /** @public */
-export type RendererOutputOptions = Omit<RenderOptions, 'serverData'> & {
+export type RendererOutputOptions = Omit<RenderToStreamOptions, 'serverData'> & {
   serverData: ServerData & {
     documentHead?: DocumentHeadValue;
   } & Record<string, unknown>;

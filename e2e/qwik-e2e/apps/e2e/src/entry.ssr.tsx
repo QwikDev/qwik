@@ -9,6 +9,17 @@ import { LogConsole } from '../../../log-console';
  */
 export default function (opts: RenderToStreamOptions) {
   const url = new URL(opts.serverData!.url);
+  const renderOpts: RenderToStreamOptions = {
+    debug: true,
+    ...opts,
+    streaming:
+      url.pathname === '/e2e/suspense-ooos'
+        ? {
+            ...opts.streaming,
+            outOfOrder: { strategy: 'suspense' },
+          }
+        : opts.streaming,
+  };
 
   // Render segment instead
   if (url.searchParams.has('fragment')) {
@@ -18,7 +29,6 @@ export default function (opts: RenderToStreamOptions) {
         <Root pathname={url.pathname} />
       </>,
       {
-        debug: true,
         containerTagName: 'container',
         // streaming: {
         //   inOrder: {
@@ -28,7 +38,7 @@ export default function (opts: RenderToStreamOptions) {
         qwikLoader: {
           include: url.searchParams.get('loader') === 'false' ? 'never' : 'auto',
         },
-        ...opts,
+        ...renderOpts,
       }
     );
   }
@@ -44,9 +54,6 @@ export default function (opts: RenderToStreamOptions) {
         <Root pathname={url.pathname} />
       </body>
     </>,
-    {
-      debug: true,
-      ...opts,
-    }
+    renderOpts
   );
 }

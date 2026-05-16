@@ -4,7 +4,12 @@ import { isServer } from '@qwik.dev/core';
 import { unwrapStore } from '@qwik.dev/core/internal';
 import { getBundler } from './bundler';
 import { registerReplSW } from './register-repl-sw';
-import type { RequestMessage, ResponseMessage } from './repl-sw';
+import type {
+  RequestMessage,
+  ResponseMessage,
+  StreamEndMessage,
+  StreamStartMessage,
+} from './repl-sw';
 import type { ReplAppInput, ReplResult, ReplStore } from './types';
 import { updateReplOutput } from './ui/repl-output-update';
 import type {
@@ -13,29 +18,11 @@ import type {
 } from './bundler/repl-ssr-worker';
 import ssrWorkerUrl from './bundler/repl-ssr-worker?worker&url';
 import listenerScript from './bundler/client-events-listener?compiled-string';
+import { createPreviewStyleInjector, injectPreviewStyle } from './repl-preview-html';
 
-const replPreviewStyle = `<style data-repl-preview-font>
-html, body {
-  font-family: sans-serif;
-}
-
-body,
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-</style>`;
-
-const injectPreviewStyle = (html: string) => {
-  if (/<\/head>/i.test(html)) {
-    return html.replace(/<\/head>/i, `${replPreviewStyle}</head>`);
-  }
-  if (/<body[^>]*>/i.test(html)) {
-    return html.replace(/<body([^>]*)>/i, `<body$1>${replPreviewStyle}`);
-  }
-  return replPreviewStyle + html;
+const isPreviewHtmlRequest = (url: string) => {
+  const match = url.match(/\/repl\/client\/[a-z0-9]+\/(.*)/);
+  return match && (match[1] === '' || match[1] === 'index.html');
 };
 
 let channel: BroadcastChannel;
@@ -66,6 +53,7 @@ export class ReplInstance {
 
   private buildPromise: Promise<void> | null = null;
   private bundlePromise: Promise<void> | null = null;
+  private streamingReloadBuildId = 0;
   async _ensureBundled() {
     if (this.dirtyBundle && this.input.version) {
       // Notice when input changed during build by changing before
@@ -107,6 +95,13 @@ export class ReplInstance {
 
   async _ensureSsr() {
     if (this.lastResult) {
+      if (this.input.outOfOrderStreaming && !this.lastResult.html) {
+        if (this.streamingReloadBuildId !== this.lastResult.buildId) {
+          this.streamingReloadBuildId = this.lastResult.buildId;
+          this.store.reload++;
+        }
+        return;
+      }
       // We clear html when new SSR is needed
       if (!this.lastResult.html) {
         const ssrResult = await this.executeSSR(this.lastResult);
@@ -167,6 +162,18 @@ export class ReplInstance {
 
   handleReplRequest = async (msg: RequestMessage) => {
     const { requestId, url } = msg;
+    if (this.input.outOfOrderStreaming && isPreviewHtmlRequest(url)) {
+      this.streamPreviewHtml(requestId).catch((e) => {
+        channel!.postMessage({
+          type: 'repl-stream-chunk',
+          requestId,
+          body: errorHtml((e as Error).message, 'REPL'),
+        });
+        channel!.postMessage({ type: 'repl-stream-end', requestId } as StreamEndMessage);
+      });
+      return;
+    }
+
     let error: string | null = null;
     const fileContent = await this.getFile(url).catch((e) => {
       error = e.message;
@@ -197,6 +204,65 @@ export class ReplInstance {
     };
     channel!.postMessage(message);
   };
+
+  private async streamPreviewHtml(requestId: number) {
+    const headers: Record<string, string> = {
+      'Cache-Control': 'no-store, no-cache, max-age=0',
+      'Content-Type': 'text/html',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    };
+    channel!.postMessage({
+      type: 'repl-stream-start',
+      requestId,
+      response: {
+        status: 200,
+        statusText: 'OK',
+        headers,
+      },
+    } as StreamStartMessage);
+
+    this.ensureBuilt();
+    await this.bundlePromise?.catch(() => {});
+    if (!this.lastResult) {
+      throw new Error('No build result available');
+    }
+
+    let ssrChunkCount = 0;
+    const writeChunk = (body: string) => {
+      if (body) {
+        channel!.postMessage({
+          type: 'repl-stream-chunk',
+          requestId,
+          body,
+        });
+      }
+    };
+    const previewStyleInjector = createPreviewStyleInjector();
+    const ssrResult = await this.executeSSR(this.lastResult, (html) => {
+      ssrChunkCount++;
+      writeChunk(previewStyleInjector.write(html));
+    });
+    if (ssrChunkCount === 0) {
+      writeChunk(injectPreviewStyle(ssrResult.html));
+    } else {
+      writeChunk(previewStyleInjector.flush());
+    }
+    channel!.postMessage({
+      type: 'repl-stream-chunk',
+      requestId,
+      body: `<script>${listenerScript}</script>`,
+    });
+    channel!.postMessage({ type: 'repl-stream-end', requestId } as StreamEndMessage);
+
+    if (this.lastResult) {
+      this.lastResult.html = ssrResult.html;
+      if (ssrResult.events) {
+        this.lastResult.events.push(...ssrResult.events);
+      }
+      updateReplOutput(this.store, this.lastResult, { reload: false });
+    }
+  }
 
   getContentType = (url: string): string => {
     const noQuery = url.split('?')[0];
@@ -272,7 +338,14 @@ export class ReplInstance {
 
   private _ssrWorkerP: Promise<Worker> | null = null;
   private _ssrKey: string | null = null;
-  private _resultResolver: ((result: { html: string; events?: any[] }) => void) | null = null;
+  private _ssrRequestId = 0;
+  private _ssrRequests = new Map<
+    number,
+    {
+      resolve: (result: { html: string; events?: any[] }) => void;
+      chunkWriter: ((html: string) => void) | null;
+    }
+  >();
 
   // Get the long-running SSR worker for this build. We don't terminate so it's easy to debug, and later it might handle routes.
   private async getSsrWorker(result: ReplResult): Promise<Worker> {
@@ -283,6 +356,7 @@ export class ReplInstance {
     }
     if (!this._ssrWorkerP || this._ssrKey !== key) {
       if (this._ssrWorkerP) {
+        this.resolvePendingSsrRequests(errorHtml('SSR worker replaced by a newer build', 'SSR'));
         await this._ssrWorkerP.then((w) => w.terminate());
       }
       // Start from /repl so repl-sw can intercept the requests
@@ -300,52 +374,82 @@ export class ReplInstance {
 
         if (type === 'ready') {
           resolveWorker(ssrWorker);
-        } else if (type === 'ssr-result') {
-          this._resultResolver?.({
-            html: e.data.html,
-            events: e.data.events,
-          });
-        } else if (type === 'ssr-error') {
-          this._resultResolver?.({
-            html: errorHtml(e.data.error, 'SSR'),
-          });
         } else {
-          this._resultResolver?.({
-            html: errorHtml(`Unknown SSR worker response: ${type}`, 'SSR'),
-          });
+          const request = this._ssrRequests.get(e.data.requestId);
+          if (!request) {
+            return;
+          }
+          if (type === 'ssr-chunk') {
+            request.chunkWriter?.(e.data.html);
+          } else {
+            this._ssrRequests.delete(e.data.requestId);
+            if (type === 'ssr-result') {
+              request.resolve({
+                html: e.data.html,
+                events: e.data.events,
+              });
+            } else if (type === 'ssr-error') {
+              request.resolve({
+                html: errorHtml(e.data.error, 'SSR'),
+              });
+            } else {
+              request.resolve({
+                html: errorHtml(`Unknown SSR worker response: ${type}`, 'SSR'),
+              });
+            }
+          }
         }
       };
 
       ssrWorker.onerror = () => {
         // Unfortunately onerror doesn't provide error details
         rejectWorker();
+        this.resolvePendingSsrRequests(errorHtml('SSR worker failed', 'SSR'));
         ssrWorker.terminate();
         this._ssrWorkerP = null;
       };
     }
     return this._ssrWorkerP;
   }
-  private async executeSSR(result: ReplResult): Promise<{ html: string; events?: any[] }> {
+  private async executeSSR(
+    result: ReplResult,
+    onChunk?: (html: string) => void
+  ): Promise<{ html: string; events?: any[] }> {
     const entryModule = result.ssrModules.find((m) => m.path.includes('entry.server'));
     if (!entryModule || typeof entryModule.code !== 'string') {
       return { html: errorHtml('No SSR entry module found', 'SSR') };
     }
     try {
       const ssrWorker = await this.getSsrWorker(result);
+      const requestId = ++this._ssrRequestId;
       const ssrMessage: RunSsrMessage = {
         type: 'run-ssr',
+        requestId,
         replId: this.replId,
         entry: entryModule.path,
         baseUrl: `/repl/client/${this.replId}/build/`,
         manifest: result.manifest,
+        outOfOrderStreaming: this.input.outOfOrderStreaming,
+        streamHtml: !!onChunk,
       };
       return new Promise((res) => {
-        this._resultResolver = res;
+        this._ssrRequests.set(requestId, {
+          resolve: res,
+          chunkWriter: onChunk || null,
+        });
         ssrWorker.postMessage(ssrMessage);
       });
     } catch (e) {
       return { html: errorHtml((e as Error).message, 'SSR') };
     }
+  }
+
+  private resolvePendingSsrRequests(html: string): void {
+    const requests = this._ssrRequests;
+    this._ssrRequests = new Map();
+    requests.forEach((request) => {
+      request.resolve({ html });
+    });
   }
 
   markDirty(): void {

@@ -87,6 +87,48 @@
       "mdFile": "core.inorderstreaming.md"
     },
     {
+      "name": "OutOfOrderDisabled",
+      "id": "outoforderdisabled",
+      "hierarchy": [
+        {
+          "name": "OutOfOrderDisabled",
+          "id": "outoforderdisabled"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface OutOfOrderDisabled \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstrategy\n\n\n</td><td>\n\n\n</td><td>\n\n'disabled'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
+      "mdFile": "core.outoforderdisabled.md"
+    },
+    {
+      "name": "OutOfOrderStreaming",
+      "id": "outoforderstreaming",
+      "hierarchy": [
+        {
+          "name": "OutOfOrderStreaming",
+          "id": "outoforderstreaming"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type OutOfOrderStreaming = OutOfOrderDisabled | OutOfOrderSuspense;\n```\n**References:** [OutOfOrderDisabled](#outoforderdisabled)<!-- -->, [OutOfOrderSuspense](#outofordersuspense)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
+      "mdFile": "core.outoforderstreaming.md"
+    },
+    {
+      "name": "OutOfOrderSuspense",
+      "id": "outofordersuspense",
+      "hierarchy": [
+        {
+          "name": "OutOfOrderSuspense",
+          "id": "outofordersuspense"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface OutOfOrderSuspense \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstrategy\n\n\n</td><td>\n\n\n</td><td>\n\n'suspense'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
+      "mdFile": "core.outofordersuspense.md"
+    },
+    {
       "name": "PrefetchResource",
       "id": "prefetchresource",
       "hierarchy": [
@@ -334,7 +376,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface StreamingOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninOrder?\n\n\n</td><td>\n\n\n</td><td>\n\n[InOrderStreaming](#inorderstreaming)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface StreamingOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninOrder?\n\n\n</td><td>\n\n\n</td><td>\n\n[InOrderStreaming](#inorderstreaming)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\noutOfOrder?\n\n\n</td><td>\n\n\n</td><td>\n\n[OutOfOrderStreaming](#outoforderstreaming)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "core.streamingoptions.md"
     },

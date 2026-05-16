@@ -53,7 +53,7 @@ import {
   debugStyleScopeIdPrefixAttr,
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
-import { isSlotProp } from '../shared/utils/prop';
+import { isSlotProp, resolveSlotName } from '../shared/utils/prop';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isArray, isObject, type ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
@@ -735,7 +735,7 @@ function expectSlot(diffContext: DiffContext) {
   const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
   const vHost = vnode_getProjectionParentComponent(diffContext.$vParent$);
 
-  const slotNameKey = getSlotNameKey(diffContext, vHost);
+  const slotNameKey = resolveSlotName(vHost, jsxNode, diffContext.$container$);
   const cursorBoundary =
     directGetPropsProxyProp<CursorBoundary | null, any>(jsxNode, QCursorBoundary) || null;
 
@@ -811,23 +811,6 @@ function expectSlot(diffContext: DiffContext) {
     }
   }
   return true;
-}
-
-function getSlotNameKey(diffContext: DiffContext, vHost: VNode | null) {
-  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
-  const constProps = jsxNode.constProps;
-  if (constProps && typeof constProps == 'object' && _hasOwnProperty.call(constProps, 'name')) {
-    const constValue = constProps.name;
-    if (vHost && constValue instanceof WrappedSignalImpl) {
-      return trackSignalAndAssignHost(
-        constValue,
-        vHost,
-        EffectProperty.COMPONENT,
-        diffContext.$container$
-      );
-    }
-  }
-  return directGetPropsProxyProp(jsxNode, 'name') || QDefaultSlot;
 }
 
 function cleanupSideBuffer(diffContext: DiffContext) {

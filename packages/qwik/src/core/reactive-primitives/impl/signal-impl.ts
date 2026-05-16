@@ -3,18 +3,21 @@ import { pad, qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../shared/error/assert';
 import { qError, QError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
+import { isSameContainer } from '../../shared/utils/container';
 import { qDev, qTest } from '../../shared/utils/qdev';
 import { tryGetInvokeContext } from '../../use/use-core';
 import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  getEffectSerializationContainer,
   scheduleEffects,
 } from '../utils';
 import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
 import type { WrappedSignalImpl } from './wrapped-signal-impl';
-import { isDomContainer } from '../../client/dom-container';
+import { isServerPlatform } from '../../shared/platform/platform';
+import type { SSRSegmentContainer } from '../../ssr/ssr-types';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -68,7 +71,7 @@ export class SignalImpl<T = any> implements Signal<T> {
     } else {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
           'Do not use signals across containers'
         );
     }
@@ -77,13 +80,30 @@ export class SignalImpl<T = any> implements Signal<T> {
       // Let's make sure that we have a reference to this effect.
       // Adding reference is essentially adding a subscription, so if the signal
       // changes we know who to notify.
-      ensureContainsSubscription((this.$effects$ ||= new Set()), effectSubscriber);
+      const isOnServer = qTest ? isServerPlatform() : isServer;
+      const effects = (this.$effects$ ||= new Set());
+      const shouldRecordExternalRootEffect = __EXPERIMENTAL__.suspense && isOnServer;
+
+      ensureContainsSubscription(effects, effectSubscriber);
       // But when effect is scheduled in needs to be able to know which signals
       // to unsubscribe from. So we need to store the reference from the effect back
       // to this signal.
       ensureContainsBackRef(effectSubscriber, this);
-      (qTest ? !isDomContainer(this.$container$) : isServer) &&
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
+
+      if (isOnServer) {
+        const serializationContainer = getEffectSerializationContainer(
+          ctx.$container$,
+          this.$container$
+        );
+        if (shouldRecordExternalRootEffect) {
+          (serializationContainer as SSRSegmentContainer | null)?.$recordExternalRootEffect$?.(
+            this,
+            effectSubscriber,
+            null
+          );
+        }
+        addQrlToSerializationCtx(effectSubscriber, serializationContainer);
+      }
       DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
     } else {
       DEBUG && log('read no sub', pad('\n' + this.toString(), '  '));

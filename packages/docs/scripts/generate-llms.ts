@@ -275,13 +275,6 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Core Concepts',
-      'Suspense',
-      '/docs/core/suspense/',
-      'Fallback boundaries for async rendering, including `useAsync$`, `delay`, and `showStale` patterns.',
-      toSourcePath('docs', '(qwik)', 'core', 'suspense', 'index.mdx')
-    ),
-    docEntry(
-      'Core Concepts',
       'Styles',
       '/docs/core/styles/',
       'Styling patterns including scoped styles, inline styles, and stylesheet loading.',
@@ -351,6 +344,13 @@ The playground focuses on rapid experimentation rather than long-form documentat
       'Migration notes, upgrade guidance, and version transition details.',
       toSourcePath('docs', 'upgrade', 'index.mdx'),
       true
+    ),
+    docEntry(
+      'Experimental',
+      'Suspense',
+      '/docs/labs/suspense/',
+      'Experimental fallback boundaries for async rendering and out-of-order streaming, including `useAsync$`, `delay`, and `showStale` patterns.',
+      toSourcePath('docs', 'labs', 'suspense', 'index.mdx')
     ),
     apiEntry('qwik'),
     apiEntry('qwik-router'),

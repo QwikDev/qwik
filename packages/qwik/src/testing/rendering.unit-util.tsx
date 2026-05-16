@@ -35,15 +35,13 @@ import { _dumpState, _preprocessState as preprocessState } from '@qwik.dev/core/
 import {
   OnRenderProp,
   QContainerSelector,
-  QFuncsPrefix,
-  QInstanceAttr,
   QScopedStyle,
   QStyle,
 } from '../core/shared/utils/markers';
 import { useContextProvider } from '@qwik.dev/core';
 import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
 import type { HostElement } from '../server/qwik-types';
-import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
+import { renderToString } from '../server/ssr-render';
 import { createDocument } from './document';
 import './vdom-diff.unit-util';
 import type { VNode } from '../core/shared/vnode/vnode';
@@ -278,14 +276,11 @@ function _vnode_moveToVirtual(parent: VirtualVNode, newChild: VNode, insertBefor
 
 /** @public */
 export function emulateExecutionOfQwikFuncs(document: Document) {
-  const qFuncs = document.body.querySelector('[q\\:func]');
-  const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
-  const hash = containerElement.getAttribute(QInstanceAttr);
-  if (qFuncs && hash) {
-    let code = qFuncs.textContent || '';
-    code = code.replace(Q_FUNCS_PREFIX.replace('HASH', hash), '');
+  const qFuncs = document.body.querySelectorAll('[q\\:func]');
+  for (let i = 0; i < qFuncs.length; i++) {
+    const code = qFuncs[i].textContent || '';
     if (code) {
-      (document as any)[QFuncsPrefix + hash] = eval(code);
+      eval(code);
     }
   }
 }

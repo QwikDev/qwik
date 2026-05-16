@@ -34,16 +34,22 @@ import {
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
+import type { InnerContainer } from '../shared/utils/container';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import type { CursorBoundary } from '../use/use-cursor-boundary';
+import {
+  getInternalServerComponentHandler,
+  isInternalServerComponent,
+} from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { ISsrComponentFrame, ISsrNode, SSRContainer } from './ssr-types';
+import type { ISsrComponentFrame, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
+import { resolveSlotName } from '../shared/utils/prop';
 
 class MaybeAsyncSignal {}
 
 type StackFn = () => ValueOrPromise<void>;
-type StackValue = ValueOrPromise<
+export type StackValue = ValueOrPromise<
   | JSXOutput
   | StackFn
   | Promise<JSXOutput>
@@ -67,10 +73,7 @@ function setParentOptions(
 export async function _walkJSX(
   ssr: SSRContainer,
   value: JSXOutput,
-  options: {
-    currentStyleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-  }
+  options: SSRRenderJSXOptions
 ): Promise<void> {
   const stack: StackValue[] = [value];
   const enqueue = (value: StackValue) => stack.push(value);
@@ -108,7 +111,7 @@ function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
   value: JSXOutput,
-  options: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null }
+  options: SSRRenderJSXOptions
 ) {
   // console.log('processJSXNode', value);
   if (value == null) {
@@ -185,16 +188,22 @@ function processJSXNode(
           enqueue(ssr.additionalHeadNodes);
         } else if (type === 'body') {
           enqueue(ssr.additionalBodyNodes);
-        } else if (!ssr.isHtml && !(ssr as any)._didAddQwikLoader && !ssr.$noScriptHere$) {
-          ssr.emitQwikLoaderAtTopIfNeeded();
-          ssr.emitPreloaderPre();
-          (ssr as any)._didAddQwikLoader = true;
+        } else {
+          const innerSSR = ssr as SSRContainer & InnerContainer;
+          if (!ssr.isHtml && !innerSSR._didAddQwikLoader && !ssr.$noScriptHere$) {
+            ssr.emitQwikLoaderAtTopIfNeeded();
+            ssr.emitPreloaderPre();
+            innerSSR._didAddQwikLoader = true;
+          }
         }
 
         const children = jsx.children as JSXOutput;
         children != null && enqueue(children);
       } else if (isFunction(type)) {
-        if (type === Fragment) {
+        if (__EXPERIMENTAL__.suspense && isInternalServerComponent(type)) {
+          enqueue(() => getInternalServerComponentHandler(type)(ssr, jsx, options, enqueue));
+          return;
+        } else if (type === Fragment) {
           const attrs: Record<string, string | null> =
             jsx.key != null ? { [ELEMENT_KEY]: jsx.key } : {};
           if (isDev) {
@@ -221,7 +230,7 @@ function processJSXNode(
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
             const node = ssr.getOrCreateLastNode();
-            const slotName = getSlotName(host, jsx, ssr);
+            const slotName = resolveSlotName(host, jsx, ssr);
             projectionAttrs[QSlot] = slotName;
 
             enqueue(
@@ -298,7 +307,7 @@ function processJSXNode(
           enqueue(
             setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
           );
-          enqueue(ssr.closeComponent);
+          enqueue(() => ssr.closeComponent());
           if (isPromise(jsxOutput)) {
             // Defer reading QScopedStyle until after the promise resolves
             enqueue(async () => {
@@ -352,17 +361,6 @@ function maybeAddPollingAsyncSignalToEagerResume(
       serializationCtx.$eagerResume$.add(unwrappedSignal);
     }
   }
-}
-
-function getSlotName(host: ISsrNode, jsx: JSXNodeInternal, ssr: SSRContainer): string {
-  const constProps = jsx.constProps;
-  if (constProps && typeof constProps == 'object' && 'name' in constProps) {
-    const constValue = constProps.name;
-    if (constValue instanceof WrappedSignalImpl) {
-      return trackSignalAndAssignHost(constValue, host, EffectProperty.COMPONENT, ssr);
-    }
-  }
-  return directGetPropsProxyProp(jsx, 'name') || QDefaultSlot;
 }
 
 function appendQwikInspectorAttribute(jsx: JSXNodeInternal, qwikInspectorAttrValue: string | null) {

@@ -3855,5 +3855,30 @@ describe.each([
 
       await trigger(document.body, 'button', 'click');
     });
+
+    it('should materialize q:vnode component keys containing vnode-data directive characters', async () => {
+      const ChildComp = component$(() => {
+        useVisibleTask$(() => {});
+        return <i>child</i>;
+      });
+
+      const Cmp = component$(() => {
+        const count = useSignal(0);
+
+        return (
+          <div>
+            <button onClick$={() => count.value++}>{count.value}</button>
+            <ChildComp key="?=;@~" />
+          </div>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(document.querySelector('button')!.textContent).toBe('1');
+      expect(document.querySelector('i')!.textContent).toBe('child');
+    });
   });
 });

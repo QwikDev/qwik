@@ -58,6 +58,41 @@ export function encodeVNodeDataString(str: string): string {
   }
 }
 
+export function encodeVNodeDataKey(str: string): string {
+  const encoded = encodeURI(str);
+  let encodedKey = '';
+  const length = encoded.length;
+  let idx = 0;
+  let lastIdx = idx;
+  for (; idx < length; idx++) {
+    // We get the charCode NOT string. String would allocate memory.
+    const ch = encoded.charCodeAt(idx);
+    let replacement: string | null = null;
+    if (ch === 59 /* ; */) {
+      replacement = '%3B';
+    } else if (ch === 61 /* = */) {
+      replacement = '%3D';
+    } else if (ch === 63 /* ? */) {
+      replacement = '%3F';
+    } else if (ch === 64 /* @ */) {
+      replacement = '%40';
+    } else if (ch === 126 /* ~ */) {
+      replacement = '%7E';
+    } else {
+      continue;
+    }
+    encodedKey += encoded.substring(lastIdx, idx) + replacement;
+    lastIdx = idx + 1;
+  }
+  if (lastIdx === 0) {
+    // This is most common case, just return previous string no memory allocation.
+    return encoded;
+  } else {
+    // Add the tail of replacement.
+    return encodedKey + encoded.substring(lastIdx);
+  }
+}
+
 export function decodeVNodeDataString(str: string): string {
   let result = '';
   for (let i = 0; i < str.length; i++) {

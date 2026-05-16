@@ -502,11 +502,8 @@ describe('transformJsxFragment', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxFragment(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     expect(result).toBeDefined();
@@ -525,11 +522,8 @@ describe('transformJsxFragment', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxFragment(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     expect(result!.children).toContain('[');

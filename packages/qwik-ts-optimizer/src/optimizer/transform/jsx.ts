@@ -638,11 +638,7 @@ export function transformAllJsx(
           for (const imp of result.neededImports) neededImports.add(imp);
         }
       } else if (node.type === 'JSXFragment') {
-        const isChildFragment = childJsxNodes.has(node);
-        const result = transformJsxFragment(
-          node, source, s, importedNames, keyCounter,
-          isChildFragment, resolvedConstIdents, signalHoister, allDeclaredNames,
-        );
+        const result = transformJsxFragment(jsxCtx, node);
         if (result) {
           const callStr = appendDevSuffix(result.callString, getDevSourceSuffix(node.start));
           s.overwrite(node.start, node.end, `/*#__PURE__*/ ${callStr}`);

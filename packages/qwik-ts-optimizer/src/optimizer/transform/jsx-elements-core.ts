@@ -6,9 +6,7 @@
  * flags, keys, and spread handling.
  */
 
-import type MagicString from 'magic-string';
 import type { JSXAttributeItem, JSXElement, JSXFragment } from '../../ast-types.js';
-import { SignalHoister } from '../signal-analysis.js';
 import { collectPassiveDirectives } from './event-handlers.js';
 import { buildCaptureProp, type LoopContext } from '../loop-hoisting.js';
 import {
@@ -416,18 +414,12 @@ export function transformJsxElement(
  * Transform a JSX fragment node to a _jsxSorted call.
  */
 export function transformJsxFragment(
+  ctx: JsxTransformContext,
   node: JSXFragment,
-  source: string,
-  s: MagicString,
-  importedNames: Set<string>,
-  keyCounter: JsxKeyCounter,
-  _isSoleChild?: boolean,
-  constIdents?: Set<string>,
-  signalHoister?: SignalHoister,
-  allDeclaredNames?: Set<string>,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXFragment') return null;
 
+  const { source, s, importedNames, keyCounter, signalHoister, constIdents, allDeclaredNames } = ctx;
   const neededImports = new Set<string>();
   neededImports.add('_jsxSorted');
 

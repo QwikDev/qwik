@@ -48,19 +48,7 @@ export interface InOrderDisabled {
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 // @public (undocumented)
-export interface OutOfOrderDisabled {
-    // (undocumented)
-    strategy: 'disabled';
-}
-
-// @public (undocumented)
-export type OutOfOrderStreaming = OutOfOrderDisabled | OutOfOrderSuspense;
-
-// @public (undocumented)
-export interface OutOfOrderSuspense {
-    // (undocumented)
-    strategy: 'suspense';
-}
+export type OutOfOrderStreaming = boolean;
 
 // @public (undocumented)
 export interface PrefetchResource {

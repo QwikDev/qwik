@@ -322,7 +322,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
     const outOfOrderStreaming =
-      (this.renderOptions as RenderToStreamOptions).streaming?.outOfOrder?.strategy === 'suspense';
+      (this.renderOptions as RenderToStreamOptions).streaming?.outOfOrder === true;
     if (!__EXPERIMENTAL__.suspense) {
       if (outOfOrderStreaming) {
         throw new Error(
@@ -506,7 +506,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     if (!this.outOfOrderStreaming) {
       throw new Error(
-        'Out-of-order Suspense streaming requires `streaming.outOfOrder.strategy` to be `"suspense"`.'
+        'Out-of-order Suspense streaming requires `streaming.outOfOrder` to be `true`.'
       );
     }
     this.markVNodeRefForSerialization(options.parentComponentFrame?.componentNode);

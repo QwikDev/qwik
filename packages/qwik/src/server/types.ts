@@ -175,17 +175,7 @@ export interface InOrderDirect {
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 /** @public */
-export interface OutOfOrderDisabled {
-  strategy: 'disabled';
-}
-
-/** @public */
-export interface OutOfOrderSuspense {
-  strategy: 'suspense';
-}
-
-/** @public */
-export type OutOfOrderStreaming = OutOfOrderDisabled | OutOfOrderSuspense;
+export type OutOfOrderStreaming = boolean;
 
 /** @public */
 export interface StreamingOptions {

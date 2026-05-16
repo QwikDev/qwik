@@ -1011,7 +1011,7 @@ describe('domRender: Reveal suspense coordination', () => {
 });
 
 describe('renderToStream: out-of-order Suspense', () => {
-  it('should not use out-of-order streaming when suspense strategy is disabled', async () => {
+  it('should not use out-of-order streaming when outOfOrder is false', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
       resolveSlow = resolve;
@@ -1031,7 +1031,7 @@ describe('renderToStream: out-of-order Suspense', () => {
         stream: collectStream(chunks),
         streaming: {
           inOrder: { strategy: 'disabled' },
-          outOfOrder: { strategy: 'disabled' },
+          outOfOrder: false,
         },
       }
     );
@@ -1106,7 +1106,7 @@ describe('renderToStream: out-of-order Suspense', () => {
         stream,
         streaming: {
           inOrder: { strategy: 'disabled' },
-          outOfOrder: { strategy: 'suspense' },
+          outOfOrder: true,
         },
       }
     );
@@ -1178,7 +1178,7 @@ describe('renderToStream: out-of-order Suspense', () => {
       },
       streaming: {
         inOrder: { strategy: 'disabled' },
-        outOfOrder: { strategy: 'suspense' },
+        outOfOrder: true,
       },
     });
 
@@ -1257,7 +1257,7 @@ describe('renderToStream: out-of-order Suspense', () => {
       stream: collectStream(chunks),
       streaming: {
         inOrder: { strategy: 'disabled' },
-        outOfOrder: { strategy: 'suspense' },
+        outOfOrder: true,
       },
     });
 
@@ -1276,6 +1276,7 @@ describe('renderToStream: out-of-order Suspense', () => {
                 <div style="display: none;">
                   <p>Waiting forward refs</p>
                 </div>
+                {/* @ts-ignore-next-line */}
                 <div q:rp="1" style="display: contents;">
                   <Projection ssr-required>
                     <Component>
@@ -1390,7 +1391,7 @@ describe('renderToStream: out-of-order Suspense', () => {
         stream: collectStream(chunks),
         streaming: {
           inOrder: { strategy: 'disabled' },
-          outOfOrder: { strategy: 'suspense' },
+          outOfOrder: true,
         },
       }
     );
@@ -1439,7 +1440,7 @@ describe('renderToStream: out-of-order Suspense', () => {
         stream: collectStream(chunks),
         streaming: {
           inOrder: { strategy: 'disabled' },
-          outOfOrder: { strategy: 'suspense' },
+          outOfOrder: true,
         },
       }
     );
@@ -1480,7 +1481,7 @@ describe('renderToStream: out-of-order Suspense', () => {
         stream: collectStream(chunks),
         streaming: {
           inOrder: { strategy: 'disabled' },
-          outOfOrder: { strategy: 'suspense' },
+          outOfOrder: true,
         },
       }
     );
@@ -1521,7 +1522,7 @@ describe('renderToStream: out-of-order Suspense', () => {
         stream: collectStream(chunks),
         streaming: {
           inOrder: { strategy: 'disabled' },
-          outOfOrder: { strategy: 'suspense' },
+          outOfOrder: true,
         },
       }
     );
@@ -1584,7 +1585,7 @@ describe('renderToStream: out-of-order Suspense', () => {
         stream: collectStream(chunks),
         streaming: {
           inOrder: { strategy: 'disabled' },
-          outOfOrder: { strategy: 'suspense' },
+          outOfOrder: true,
         },
       }
     );
@@ -1667,7 +1668,7 @@ describe('renderToStream: out-of-order Suspense', () => {
       stream: collectStream(chunks),
       streaming: {
         inOrder: { strategy: 'disabled' },
-        outOfOrder: { strategy: 'suspense' },
+        outOfOrder: true,
       },
     });
 
@@ -1754,7 +1755,7 @@ describe('renderToStream: out-of-order Suspense', () => {
       stream: collectStream(chunks),
       streaming: {
         inOrder: { strategy: 'disabled' },
-        outOfOrder: { strategy: 'suspense' },
+        outOfOrder: true,
       },
     });
 
@@ -1861,7 +1862,7 @@ describe('renderToStream: out-of-order Suspense', () => {
       stream: collectStream(chunks),
       streaming: {
         inOrder: { strategy: 'disabled' },
-        outOfOrder: { strategy: 'suspense' },
+        outOfOrder: true,
       },
     });
 
@@ -1973,7 +1974,7 @@ describe('renderToStream: out-of-order Suspense', () => {
       stream: collectStream(chunks),
       streaming: {
         inOrder: { strategy: 'disabled' },
-        outOfOrder: { strategy: 'suspense' },
+        outOfOrder: true,
       },
     });
 
@@ -2059,7 +2060,7 @@ describe('renderToStream: out-of-order Suspense', () => {
         stream: collectStream(chunks),
         streaming: {
           inOrder: { strategy: 'disabled' },
-          outOfOrder: { strategy: 'suspense' },
+          outOfOrder: true,
         },
       }
     );
@@ -2195,7 +2196,7 @@ describe('renderToStream: out-of-order Suspense', () => {
       stream: collectStream(chunks),
       streaming: {
         inOrder: { strategy: 'disabled' },
-        outOfOrder: { strategy: 'suspense' },
+        outOfOrder: true,
       },
     });
 

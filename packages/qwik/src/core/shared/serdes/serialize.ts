@@ -95,6 +95,7 @@ export class Serializer {
     const previousStreamedRootLimit = this.$streamedRootLimit$;
     this.$streamedRootLimit$ = rootStart;
     this.$writer$.write(BRACKET_OPEN);
+    this.$serializationContext$.$serializedForwardRefCount$ = 0;
     try {
       this.$writer$.write(String(rootStart));
       this.$writer$.write(COMMA);
@@ -102,6 +103,7 @@ export class Serializer {
       await this.outputSelectedRoots(rootIds);
       this.$writer$.write(BRACKET_CLOSE);
       const forwardRefs = this.getForwardRefsPayload();
+      this.$serializationContext$.$serializedForwardRefCount$ = forwardRefs?.length ?? 0;
       if (forwardRefs || extraRootId !== undefined) {
         this.$writer$.write(COMMA);
         if (forwardRefs) {
@@ -765,7 +767,7 @@ export class Serializer {
           this.$s11nWeakRefs$.set(obj, forwardRefId);
           this.$forwardRefs$[forwardRefId] = -1;
         }
-        this.output(TypeIds.ForwardRef, this.$serializationContext$.$formatLocalRef$(forwardRefId));
+        this.output(TypeIds.ForwardRef, this.getForwardRefId(forwardRefId));
       }
     } else if (vnode_isVNode(value)) {
       this.output(TypeIds.Constant, Constants.Undefined);
@@ -795,7 +797,11 @@ export class Serializer {
 
     this.$promises$.add(promise);
 
-    return this.$serializationContext$.$formatLocalRef$(forwardRefId);
+    return this.getForwardRefId(forwardRefId);
+  }
+
+  private getForwardRefId(localId: number): number {
+    return this.$serializationContext$.$forwardRefOffset$ + localId;
   }
 
   private async outputPendingRoots(): Promise<number> {
@@ -826,22 +832,24 @@ export class Serializer {
 
   private async outputSelectedRoots(rootIds: number[]): Promise<void> {
     let separator = false;
-    for (let i = 0; i < rootIds.length; i++) {
-      if (separator) {
-        this.$writer$.write(COMMA);
-      } else {
-        separator = true;
+    let i = 0;
+    while (i < rootIds.length || this.$promises$.size) {
+      if (i < rootIds.length) {
+        if (separator) {
+          this.$writer$.write(COMMA);
+        } else {
+          separator = true;
+        }
+        const rootId = rootIds[i++];
+        this.writeValue(this.$serializationContext$.$roots$[rootId], rootId);
+        continue;
       }
-      const rootId = rootIds[i];
-      this.writeValue(this.$serializationContext$.$roots$[rootId], rootId);
-    }
-    while (this.$promises$.size) {
+
       try {
         await Promise.race(this.$promises$);
       } catch {
         // ignore rejections, they will be serialized as rejected promises
       }
-      this.$rootIdx$ = this.$serializationContext$.$roots$.length;
     }
   }
 
@@ -872,11 +880,14 @@ export class Serializer {
     });
   }
 
-  private async outputRoots() {
+  private async outputRoots(): Promise<void> {
     this.$writer$.write(BRACKET_OPEN);
     const rootsWritten = await this.outputPendingRoots();
 
     const forwardRefs = this.getForwardRefsPayload();
+    this.$serializationContext$.$rootStateRootCount$ = this.$serializationContext$.$roots$.length;
+    this.$serializationContext$.$hasRootStateForwardRefs$ = !!forwardRefs;
+    const forwardRefCount = forwardRefs?.length ?? 0;
     if (forwardRefs) {
       if (rootsWritten > 0) {
         this.$writer$.write(COMMA);
@@ -886,6 +897,10 @@ export class Serializer {
     }
 
     this.$writer$.write(BRACKET_CLOSE);
+    this.$serializationContext$.$serializedRootCount$ =
+      this.$serializationContext$.$roots$.length +
+      (this.$serializationContext$.$hasRootStateForwardRefs$ ? 1 : 0);
+    this.$serializationContext$.$serializedForwardRefCount$ = forwardRefCount;
   }
 }
 

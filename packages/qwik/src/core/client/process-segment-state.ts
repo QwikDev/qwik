@@ -108,8 +108,8 @@ const mergeForwardRefs = (
   const rootForwardRefs = (stateContainer.$rootForwardRefs$ ||= []);
   for (let i = 0; i < forwardRefs.length; i++) {
     const ref = forwardRefs[i];
-    if (ref !== -1 && ref !== undefined) {
-      rootForwardRefs[i] = ref;
+    if (ref !== undefined) {
+      rootForwardRefs.push(ref);
     }
   }
   stateContainer.$forwardRefs$ = rootForwardRefs;

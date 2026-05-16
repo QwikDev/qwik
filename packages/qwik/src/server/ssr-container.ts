@@ -509,6 +509,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         'Out-of-order Suspense streaming requires `streaming.outOfOrder.strategy` to be `"suspense"`.'
       );
     }
+    this.markVNodeRefForSerialization(options.parentComponentFrame?.componentNode);
     const writer = new StringBufferSegmentWriter();
     const segmentContainer = this.createSegmentContainer(segmentId, writer);
     await segmentContainer.renderJSX(jsx, options);
@@ -535,7 +536,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       parent: null,
       elementName: '#segment',
       depthFirstElementIdx: -1,
-      vNodeData: [VNodeDataFlag.NONE],
+      // OOOS inserts this synthetic root under the Suspense content host on the client.
+      vNodeData: [VNodeDataFlag.SERIALIZE],
       currentFile: null,
     };
     const segmentContainer = new SSRSegmentContainer(
@@ -1056,7 +1058,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * skipped. By choosing different separators we can encode different numbers of elements to skip.
    */
   emitVNodeData(segmentId?: string) {
-    if (!segmentId && !this.serializationCtx.$roots$.length) {
+    if (
+      !segmentId &&
+      !this.serializationCtx.$roots$.length &&
+      !this.hasVNodeDataForSerialization()
+    ) {
       return;
     }
     const attrs: Props = { type: 'qwik/vnode' };
@@ -1135,6 +1141,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
     }
     this.closeScript();
+  }
+
+  private markVNodeRefForSerialization(node: ISsrNode | null | undefined): void {
+    if (node) {
+      node.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
+    }
+  }
+
+  private hasVNodeDataForSerialization(): boolean {
+    for (let i = 0; i < this.vNodeDatas.length; i++) {
+      if (this.vNodeDatas[i][0] & VNodeDataFlag.SERIALIZE) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private writeFragmentAttrs(fragmentAttrs: Props): void {
@@ -1778,7 +1799,6 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
           segmentSerializationCtx.$serializedForwardRefCount$;
       }
       this.$noMoreRoots$ = true;
-      this.markVNodeDataForSerialization();
       this.emitVNodeData(segmentId);
       if (rootReadyAtSegment) {
         const segmentCtx = this.serializationCtx;
@@ -1861,21 +1881,6 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     segmentSerializationCtx: SerializationContext
   ): void {
     rootContainer.serializationCtx.$syncFns$.push(...segmentSerializationCtx.$syncFns$);
-  }
-
-  private markVNodeDataForSerialization(): void {
-    for (let i = 0; i < this.vNodeDatas.length; i++) {
-      const vNodeData = this.vNodeDatas[i];
-      if (
-        vNodeData[0] &
-        (VNodeDataFlag.TEXT_DATA |
-          VNodeDataFlag.VIRTUAL_NODE |
-          VNodeDataFlag.ELEMENT_NODE |
-          VNodeDataFlag.REFERENCE)
-      ) {
-        vNodeData[0] |= VNodeDataFlag.SERIALIZE;
-      }
-    }
   }
 
   private collectSubscriptionPatches(rootContainer: SSRContainer, rootLimit: number) {

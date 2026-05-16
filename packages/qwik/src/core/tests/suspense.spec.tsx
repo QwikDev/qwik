@@ -53,6 +53,13 @@ describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: loops', ({ render }) => {
+  const isSsr = render === ssrRenderToDom;
+  const fallbackAttrs = {
+    style: isSsr ? 'display: none;' : 'display:none',
+  };
+  const contentAttrs = (id = '1') =>
+    isSsr ? { 'q:rp': id, style: 'display: contents;' } : { style: 'display:contents' };
+
   it('should render sync children', async () => {
     const { vNode } = await render(
       <Suspense fallback={<span>Loading...</span>}>
@@ -64,10 +71,10 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required>
-          <div style="display:none">
+          <div {...fallbackAttrs}>
             <span>Loading...</span>
           </div>
-          <div style="display:contents">
+          <div {...contentAttrs()}>
             <Projection ssr-required>
               <p>Sync content</p>
             </Projection>
@@ -90,10 +97,10 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required>
-          <div style="display:none">
+          <div {...fallbackAttrs}>
             <span>Loading...</span>
           </div>
-          <div style="display:contents">
+          <div {...contentAttrs()}>
             <Projection ssr-required>
               <Component ssr-required>
                 <p>Child content</p>
@@ -123,10 +130,10 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required>
-          <div style="display:none">
+          <div {...fallbackAttrs}>
             <span>Loading...</span>
           </div>
-          <div style="display:contents">
+          <div {...contentAttrs()}>
             <Projection ssr-required>
               <Component ssr-required>
                 <Fragment ssr-required>
@@ -153,8 +160,8 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required>
-          <div style="display:none" />
-          <div style="display:contents">
+          <div {...fallbackAttrs} />
+          <div {...contentAttrs()}>
             <Projection ssr-required>
               <p>No fallback</p>
             </Projection>
@@ -181,10 +188,10 @@ describe.each([
       <div>
         <Component ssr-required>
           <Fragment ssr-required>
-            <div style="display:none">
+            <div {...fallbackAttrs}>
               <span>Loading 1...</span>
             </div>
-            <div style="display:contents">
+            <div {...contentAttrs('1')}>
               <Projection ssr-required>
                 <p>Content 1</p>
               </Projection>
@@ -194,10 +201,10 @@ describe.each([
 
         <Component ssr-required>
           <Fragment ssr-required>
-            <div style="display:none">
+            <div {...fallbackAttrs}>
               <span>Loading 2...</span>
             </div>
-            <div style="display:contents">
+            <div {...contentAttrs('2')}>
               <Projection ssr-required>
                 <p>Content 2</p>
               </Projection>
@@ -219,10 +226,10 @@ describe.each([
       <div>
         <Component ssr-required>
           <Fragment ssr-required>
-            <div style="display:none">
+            <div {...fallbackAttrs}>
               <span>Loading...</span>
             </div>
-            <div style="display:contents">
+            <div {...contentAttrs()}>
               <Projection ssr-required></Projection>
             </div>
           </Fragment>
@@ -245,10 +252,10 @@ describe.each([
       <div>
         <Component ssr-required>
           <Fragment ssr-required>
-            <div style="display:none">
+            <div {...fallbackAttrs}>
               <span>Loading...</span>
             </div>
-            <div style="display:contents">
+            <div {...contentAttrs()}>
               <Projection ssr-required>
                 <Awaited>
                   <p>Resolved</p>
@@ -323,10 +330,10 @@ describe.each([
       <div>
         <Component ssr-required>
           <Fragment ssr-required>
-            <div style="display:none">
+            <div {...fallbackAttrs}>
               <span>Loading...</span>
             </div>
-            <div style="display:contents">
+            <div {...contentAttrs()}>
               <Projection ssr-required>
                 <Awaited>
                   <p>Fast</p>
@@ -1039,6 +1046,43 @@ describe('renderToStream: out-of-order Suspense', () => {
     expect(html).not.toContain('qO(');
   });
 
+  it('should use out-of-order streaming by default when Suspense is enabled', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = renderToStream(
+      <main>
+        <Suspense fallback={<button>Waiting default</button>}>
+          <Slow />
+        </Suspense>
+      </main>,
+      {
+        containerTagName: 'div',
+        qwikLoader: 'never',
+        stream: collectStream(chunks),
+        streaming: {
+          inOrder: { strategy: 'disabled' },
+        },
+      }
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting default'));
+    expect(chunks.join('')).not.toContain('Done default');
+
+    resolveSlow(<section>Done default</section>);
+    await renderPromise;
+
+    const html = chunks.join('');
+    expect(html).toContain('Done default');
+    expect(html).toContain('q:rp="1"');
+    expect(html).toContain('<template q:r="1"></template>');
+    expect(html).toContain('qO(1)');
+  });
+
   it('should stream fallback and shell before slow content resolves', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
@@ -1229,10 +1273,10 @@ describe('renderToStream: out-of-order Suspense', () => {
             <button id="ooos-unit-slow-forward-ref-button">Read slow forward ref</button>
             <Component ssr-required>
               <Fragment ssr-required>
-                <div style="display:none">
+                <div style="display: none;">
                   <p>Waiting forward refs</p>
                 </div>
-                <div style="display:contents">
+                <div q:rp="1" style="display: contents;">
                   <Projection ssr-required>
                     <Component>
                       <Fragment ssr-required>

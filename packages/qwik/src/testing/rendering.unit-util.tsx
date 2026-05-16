@@ -150,6 +150,7 @@ export async function ssrRenderToDom(
 
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
+  emulateExecutionOfOutOfOrderScripts(document);
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');
@@ -307,6 +308,17 @@ export function emulateExecutionOfBackpatch(document: Document) {
 
   // Use the shared backpatch executor function
   executeBackpatch(document);
+}
+
+export function emulateExecutionOfOutOfOrderScripts(document: Document) {
+  const scripts = Array.from(
+    document.querySelectorAll('script[type="text/javascript"]'),
+    (script) => script.textContent || ''
+  ).filter((code) => code.includes('qO') || code.includes('qInstallOOOS'));
+  if (scripts.length > 0) {
+    // eslint-disable-next-line no-new-func
+    new Function('document', scripts.join('\n'))(document);
+  }
 }
 
 function renderStyles(getStyles: () => Record<string, string | string[]>) {

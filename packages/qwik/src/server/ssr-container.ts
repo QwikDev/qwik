@@ -1303,10 +1303,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
+  emitBackpatchDataAndExecutorIfNeeded(): void {
+    if (this.backpatchMap.size === 0) {
+      return;
+    }
+    this.emitPatchDataIfNeeded();
+    this.emitExecutorIfNeeded();
+  }
+
   private emitExecutorIfNeeded(): void {
     if (!this.isBackpatchExecutorEmitted) {
       return;
     }
+    this.isBackpatchExecutorEmitted = false;
 
     const scriptAttrs: Record<string, string> = { type: 'text/javascript' };
     if (this.renderOptions.serverData?.nonce) {

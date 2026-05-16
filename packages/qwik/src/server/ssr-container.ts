@@ -242,6 +242,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public renderOptions: RenderOptions;
   public readonly outOfOrderStreaming: boolean;
   public serializationCtx: SerializationContext;
+  private hasVNodeRefsForSerialization = false;
   /**
    * We use this to append additional nodes in the head node
    *
@@ -1058,11 +1059,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * skipped. By choosing different separators we can encode different numbers of elements to skip.
    */
   emitVNodeData(segmentId?: string) {
-    if (
-      !segmentId &&
-      !this.serializationCtx.$roots$.length &&
-      !this.hasVNodeDataForSerialization()
-    ) {
+    if (!segmentId && !this.serializationCtx.$roots$.length && !this.hasVNodeRefsForSerialization) {
       return;
     }
     const attrs: Props = { type: 'qwik/vnode' };
@@ -1145,17 +1142,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private markVNodeRefForSerialization(node: ISsrNode | null | undefined): void {
     if (node) {
+      this.hasVNodeRefsForSerialization = true;
       node.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
     }
-  }
-
-  private hasVNodeDataForSerialization(): boolean {
-    for (let i = 0; i < this.vNodeDatas.length; i++) {
-      if (this.vNodeDatas[i][0] & VNodeDataFlag.SERIALIZE) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private writeFragmentAttrs(fragmentAttrs: Props): void {

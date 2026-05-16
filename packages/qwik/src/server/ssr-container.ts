@@ -242,6 +242,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public renderOptions: RenderOptions;
   public readonly outOfOrderStreaming: boolean;
   public serializationCtx: SerializationContext;
+  // Sometimes there is no app state, but framework metadata still points to a vnode id.
+  // For example, an OOOS segment can point outside the segment to a root vnode through
+  // q:sparent, so root vnode data must still be emitted for the client ref table.
   private hasVNodeRefsForSerialization = false;
   /**
    * We use this to append additional nodes in the head node
@@ -836,11 +839,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   openProjection(attrs: Props) {
     this.openFragment(attrs);
+    const projectionNode = this.lastNode;
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
+      this.markVNodeDataForSerialization(projectionNode);
       // TODO: we should probably serialize only projection VNode
       if (!this.vnodeSegment) {
         this.addRoot(componentFrame.componentNode);
+      } else {
+        this.markVNodeRefForSerialization(componentFrame.componentNode);
       }
       componentFrame.projectionDepth++;
     }
@@ -901,6 +908,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       const slotName = componentFrame.slots[i] as string;
       const children = componentFrame.slots[i + 1] as JSXOutput;
 
+      if (this.vnodeSegment) {
+        this.markVNodeRefForSerialization(componentFrame.componentNode);
+      }
       this.openFragment(
         isDev
           ? {
@@ -911,9 +921,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           : { [QSlotParent]: componentFrame.componentNode.id, [QSlot]: slotName }
       );
       const lastNode = this.getOrCreateLastNode();
-      if (lastNode.vnodeData) {
-        lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
-      }
+      this.markVNodeDataForSerialization(lastNode);
       componentFrame.componentNode.setProp(slotName, lastNode.id);
       // Use projectionComponentFrame so that Slots can find their projections from the correct parent
       await this.renderJSX(children, {
@@ -1147,6 +1155,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private markVNodeRefForSerialization(node: ISsrNode | null | undefined): void {
     if (node) {
       this.hasVNodeRefsForSerialization = true;
+      this.markVNodeDataForSerialization(node);
+    }
+  }
+
+  private markVNodeDataForSerialization(node: ISsrNode | null | undefined): void {
+    if (node) {
       node.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
     }
   }

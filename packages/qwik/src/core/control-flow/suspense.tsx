@@ -126,11 +126,9 @@ export const suspenseCmp = (props: SuspenseProps) => {
   const outOfOrderBoundaryState = isServerOutOfOrder ? createOutOfOrderBoundaryState() : null;
   const renderOutOfOrderFallback =
     isServerOutOfOrder && shouldRenderFallback(props.fallback, outOfOrderRevealBoundary);
-  const fallbackStyle = /*#__PURE__*/ _fnSignal(
-    _hf0,
-    [props, state, canReveal, revealRegistration],
-    _hf0_str
-  );
+  const outOfOrderFallbackStyle = isServerOutOfOrder
+    ? /*#__PURE__*/ _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str)
+    : null;
 
   return /*#__PURE__*/ _jsxSorted(
     Fragment,
@@ -143,7 +141,7 @@ export const suspenseCmp = (props: SuspenseProps) => {
             {
               boundary: outOfOrderBoundaryState,
               delay: props.delay,
-              fallbackStyle,
+              fallbackStyle: outOfOrderFallbackStyle!,
               renderFallback: renderOutOfOrderFallback,
               state,
             },
@@ -155,7 +153,7 @@ export const suspenseCmp = (props: SuspenseProps) => {
         : /*#__PURE__*/ _jsxSorted(
             'div',
             {
-              style: fallbackStyle,
+              style: _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
             },
             null,
             _wrapProp(props, 'fallback'),

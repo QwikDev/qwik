@@ -50,7 +50,7 @@ export const renderToStream = async (
       ...opts,
       streaming: {
         ...opts.streaming,
-        outOfOrder: { strategy: 'suspense' },
+        outOfOrder: true,
       },
     };
   }

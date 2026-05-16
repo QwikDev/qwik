@@ -80,3 +80,9 @@ export const VNodeDataChar = {
   SLOT: /* ************** */ 126, // `~` - `q:slot' - Slot name
   SLOT_CHAR: /* ******* */ '~',
 };
+
+export const getSegmentVNodeId = (segmentId: string, localIndex: number): number => {
+  const segmentIndex = parseInt(segmentId, 10) - 1;
+  const diagonal = segmentIndex + localIndex;
+  return -((diagonal * (diagonal + 1)) / 2 + localIndex + 1);
+};

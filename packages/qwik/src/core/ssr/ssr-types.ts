@@ -14,12 +14,27 @@ import type { Props } from '../shared/jsx/jsx-runtime';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { SsrNodeFlags } from '../shared/types';
+import type { EffectSubscription } from '../reactive-primitives/types';
 import type { ResourceReturnInternal } from '../use/use-resource';
 
 /** @internal */
+export interface SSRRootRefPathChunk {
+  readonly path: number[];
+}
+
+/** @internal */
+export type SSRWriteChunk = string | number | SSRRootRefPathChunk;
+
+/** @public */
 export interface StreamWriter {
   write(chunk: string): ValueOrPromise<void>;
-  waitForDrain?(): ValueOrPromise<void>;
+}
+
+/** @internal */
+export interface SSRInternalStreamWriter extends StreamWriter {
+  writeRootRef(id: number): ValueOrPromise<void>;
+  writeRootRefPath(path: number[]): ValueOrPromise<void>;
+  toString(remap?: number[]): string;
 }
 
 export interface ISsrNode {
@@ -55,15 +70,34 @@ export interface ISsrComponentFrame {
 
 export type SymbolToChunkResolver = (symbol: string) => string;
 
+export interface SSRRenderJSXOptions {
+  currentStyleScoped: string | null;
+  parentComponentFrame: ISsrComponentFrame | null;
+}
+
+export interface SegmentRenderContext {
+  container: SSRSegmentContainer;
+  writer: SSRInternalStreamWriter;
+  htmlChunks: SSRWriteChunk[];
+}
+
+export interface SSROutOfOrderSegment {
+  html: string;
+  scripts: string;
+  suspended: Promise<unknown> | null;
+  context: SegmentRenderContext;
+}
+
 export interface SSRContainer extends Container {
   readonly tag: string;
   readonly isHtml: boolean;
   readonly size: number;
-  readonly writer: StreamWriter;
+  readonly writer: SSRInternalStreamWriter;
   readonly streamHandler: IStreamHandler;
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly resolvedManifest: ResolvedManifest;
+  readonly outOfOrderStreaming: boolean;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   $noScriptHere$: number;
@@ -98,18 +132,25 @@ export interface SSRContainer extends Container {
   textNode(text: string): void;
   htmlNode(rawHtml: string): void;
   commentNode(text: string): void;
-  addRoot(obj: any): number | undefined;
+  addRoot(obj: any): number | string | undefined;
   getOrCreateLastNode(): ISsrNode;
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
-  renderJSX(
+  renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
+  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): Promise<T>;
+  $runQueuedRenderBeforeRootState$<T>(render: () => ValueOrPromise<T>): Promise<T>;
+  nextOutOfOrderId(): number;
+  emitOutOfOrderSegmentScripts(scripts: string): void;
+  segment(
+    segmentId: string,
     jsx: JSXOutput,
-    options: {
-      currentStyleScoped: string | null;
-      parentComponentFrame: ISsrComponentFrame | null;
-    }
-  ): Promise<void>;
+    options: SSRRenderJSXOptions
+  ): Promise<SSROutOfOrderSegment>;
+  queueOutOfOrderSegment(segment: Promise<void>): void;
+  emitOutOfOrderExecutorIfNeeded(): void;
+  emitInlineScript(script: string): void;
+  writeScript(attrs: Props, body?: string): void;
 
   emitPreloaderPre(): void;
 
@@ -122,6 +163,17 @@ export interface SSRContainer extends Container {
     attrName: string,
     serializedValue: string | boolean | null
   ): void;
+}
+
+export interface SSRSegmentContainer extends SSRContainer {
+  $rootContainer$: SSRContainer;
+  $recordExternalRootEffect$(
+    producer: unknown,
+    effect: EffectSubscription,
+    prop: string | symbol | null,
+    sourceEffects?: Map<string | symbol, Set<EffectSubscription>>
+  ): void;
+  $finalizeOutOfOrderSegment$(segmentId: string, segment: SSROutOfOrderSegment): Promise<string>;
 }
 
 /** @internal */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
-import { VNodeDataSeparator } from '../shared/vnode-data-types';
+import { VNodeDataSeparator, getSegmentVNodeId } from '../shared/vnode-data-types';
 import { getDomContainer } from './dom-container';
 import { findVDataSectionEnd, processVNodeData } from './process-vnode-data';
 import type { ClientContainer } from './types';
@@ -208,6 +208,173 @@ describe('processVnodeData', () => {
       </html>
     );
   });
+  it('should add suspense content segment elements to the root vnode table', () => {
+    const [container] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          <h1 :>Title</h1>
+          <div : style="display:none"><p :>Loading</p></div>
+          <div : q:rp="1" style="display:contents"><section :><button :>OK</button></section></div>
+          ${encodeVNode({ 1: '~', 2: '~' }, '1')}
+          <footer :>Footer</footer>
+        </body>
+      </html>`);
+
+    expect(container.rootVNode).toMatchVDOM(
+      <html {...qContainerPaused}>
+        <head />
+        <body>
+          <h1>Title</h1>
+          <div style="display:none">
+            <p>Loading</p>
+          </div>
+          <div {...{ 'q:rp': '1' }} style="display:contents">
+            <section>
+              <button>OK</button>
+            </section>
+          </div>
+          <footer>Footer</footer>
+        </body>
+      </html>
+    );
+    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 0)}`)).toMatchVDOM(
+      <div {...{ 'q:rp': '1' }} style="display:contents">
+        <section>
+          <button>OK</button>
+        </section>
+      </div>
+    );
+    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 1)}`)).toMatchVDOM(
+      <section>
+        <button>OK</button>
+      </section>
+    );
+    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 2)}`)).toMatchVDOM(<button>OK</button>);
+  });
+  it('should materialize suspense content host from DOM when segment data starts at child', () => {
+    const [container] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          <h1 :>Title</h1>
+          <div : q:rp="1" style="display:contents"><section :><button :>OK</button></section></div>
+          ${encodeVNode({ 4: '=1' })}
+          ${encodeVNode({ 1: '~', 2: '~' }, '1')}
+        </body>
+      </html>`);
+
+    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 0)}A`)).toMatchVDOM(
+      <section>
+        <button>OK</button>
+      </section>
+    );
+  });
+  it('should not cache empty children for a suspense placeholder-only result parent', () => {
+    const [container] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          <div : q:rp="1" style="display:none"><template q:r="1"></template></div>
+        </body>
+      </html>`);
+    const resultParent = container.element.querySelector('[q\\:rp]')!;
+    const resultParentVNode = container.vNodeLocate(resultParent);
+
+    expect(vnode_getFirstChild(resultParentVNode)).toBeNull();
+    expect((resultParentVNode as any).firstChild).toBeUndefined();
+
+    resultParent.innerHTML = '<section :><button :>OK</button></section>';
+    expect(vnode_getFirstChild(resultParentVNode)).toMatchVDOM(
+      <section>
+        <button>OK</button>
+      </section>
+    );
+  });
+  it('should merge suspense content segment refs into the root vnode table by segment id', () => {
+    const [container] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          <h1 :>Title</h1>
+          <div : style="display:none"><p :>Loading</p></div>
+          <div : q:rp="1" style="display:contents"><section :><button :>OK</button></section></div>
+          ${encodeVNode({ 1: '~', 2: '~' }, '1', 8)}
+          <footer :>Footer</footer>
+        </body>
+      </html>`);
+
+    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 1)}`)).toMatchVDOM(
+      <section>
+        <button>OK</button>
+      </section>
+    );
+    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 2)}`)).toMatchVDOM(<button>OK</button>);
+  });
+  it('should process suspense content segment vnode data on the content host', () => {
+    const [container] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          <h1 :>Title</h1>
+          <div : style="display:none"><p :>Loading</p></div>
+          <div : q:rp="1" style="display:contents">HelloWorld</div>
+          ${encodeVNode({ 0: 'FF' }, '1')}
+          <footer :>Footer</footer>
+        </body>
+      </html>`);
+
+    expect(container.rootVNode).toMatchVDOM(
+      <html {...qContainerPaused}>
+        <head />
+        <body>
+          <h1>Title</h1>
+          <div style="display:none">
+            <p>Loading</p>
+          </div>
+          <div {...{ 'q:rp': '1' }} style="display:contents">
+            {'Hello'}
+            {'World'}
+          </div>
+          <footer>Footer</footer>
+        </body>
+      </html>
+    );
+  });
+  it('should process suspense content segment vnode data for nested text', () => {
+    const [container] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          <h1 :>Title</h1>
+          <div : style="display:none"><p :>Loading</p></div>
+          <div : q:rp="1" style="display:contents"><section :><p :>HelloWorld</p></section></div>
+          ${encodeVNode({ 2: 'FF' }, '1')}
+          <footer :>Footer</footer>
+        </body>
+      </html>`);
+
+    expect(container.rootVNode).toMatchVDOM(
+      <html {...qContainerPaused}>
+        <head />
+        <body>
+          <h1>Title</h1>
+          <div style="display:none">
+            <p>Loading</p>
+          </div>
+          <div {...{ 'q:rp': '1' }} style="display:contents">
+            <section>
+              <p>
+                {'Hello'}
+                {'World'}
+              </p>
+            </section>
+          </div>
+          <footer>Footer</footer>
+        </body>
+      </html>
+    );
+  });
 });
 
 describe('emitVNodeSeparators', () => {
@@ -304,7 +471,7 @@ const findContainers = (element: Document | ShadowRoot, containers: Element[]) =
   }
 };
 
-function encodeVNode(data: Record<number, string> = {}) {
+function encodeVNode(data: Record<number, string> = {}, segment?: string, offset?: number) {
   const keys = Object.keys(data)
     .map((key) => parseInt(key, 10))
     .sort();
@@ -316,7 +483,9 @@ function encodeVNode(data: Record<number, string> = {}) {
     idx = key;
   }
 
-  return `<script type="qwik/vnode">${result}</script>`;
+  return `<script type="qwik/vnode"${segment ? ` q:r="${segment}"` : ''}${
+    offset ? ` q:o="${offset}"` : ''
+  }>${result}</script>`;
 }
 
 // Keep in sync with ssr-container.ts

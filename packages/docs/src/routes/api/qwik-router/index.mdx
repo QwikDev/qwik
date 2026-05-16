@@ -1991,7 +1991,7 @@ QwikRouterProvider: import("@qwik.dev/core").Component<QwikRouterProps>;
 <h2 id="rendereroptions">RendererOptions</h2>
 
 ```typescript
-export type RendererOptions = Omit<RenderOptions, "serverData"> & {
+export type RendererOptions = Omit<RenderToStreamOptions, "serverData"> & {
   serverData: ServerData;
 };
 ```
@@ -2003,7 +2003,10 @@ export type RendererOptions = Omit<RenderOptions, "serverData"> & {
 <h2 id="rendereroutputoptions">RendererOutputOptions</h2>
 
 ```typescript
-export type RendererOutputOptions = Omit<RenderOptions, "serverData"> & {
+export type RendererOutputOptions = Omit<
+  RenderToStreamOptions,
+  "serverData"
+> & {
   serverData: ServerData & {
     documentHead?: DocumentHeadValue;
   } & Record<string, unknown>;

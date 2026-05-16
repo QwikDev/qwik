@@ -1,5 +1,6 @@
 import type { SnapshotResult } from '@qwik.dev/core';
 import type { StreamWriter } from '@qwik.dev/core/internal';
+import type { SSRInternalStreamWriter } from './qwik-types';
 import type {
   QwikManifest,
   ServerQwikManifest,
@@ -94,7 +95,7 @@ export interface SSRRenderOptions {
   streamHandler: StreamHandler;
   locale?: string;
   tagName?: string;
-  writer?: StreamWriter;
+  writer?: SSRInternalStreamWriter;
   timing?: RenderToStreamResult['timing'];
   buildBase?: string;
   resolvedManifest?: ResolvedManifest;
@@ -174,8 +175,22 @@ export interface InOrderDirect {
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 /** @public */
+export interface OutOfOrderDisabled {
+  strategy: 'disabled';
+}
+
+/** @public */
+export interface OutOfOrderSuspense {
+  strategy: 'suspense';
+}
+
+/** @public */
+export type OutOfOrderStreaming = OutOfOrderDisabled | OutOfOrderSuspense;
+
+/** @public */
 export interface StreamingOptions {
   inOrder?: InOrderStreaming;
+  outOfOrder?: OutOfOrderStreaming;
 }
 
 /** @public */

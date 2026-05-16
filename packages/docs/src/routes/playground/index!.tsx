@@ -26,6 +26,7 @@ export default component$(() => {
     version: '',
     buildMode: 'development',
     entryStrategy: 'segment',
+    outOfOrderStreaming: false,
   }));
 
   const panelStore = useStore(() => ({
@@ -40,6 +41,7 @@ export default component$(() => {
       store.version = shareData.version;
       store.buildMode = shareData.buildMode;
       store.entryStrategy = shareData.entryStrategy;
+      store.outOfOrderStreaming = shareData.outOfOrderStreaming;
       store.files = shareData.files;
     }
   });
@@ -47,6 +49,7 @@ export default component$(() => {
   useTask$(({ track }) => {
     track(() => store.buildMode);
     track(() => store.entryStrategy);
+    track(() => store.outOfOrderStreaming);
     track(() => store.version);
     track(() => store.files.forEach((f) => f.code));
 

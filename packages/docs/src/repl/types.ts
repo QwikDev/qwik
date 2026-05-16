@@ -13,6 +13,7 @@ export interface ReplAppInput {
   buildMode: 'development' | 'production';
   entryStrategy: string;
   debug?: boolean;
+  outOfOrderStreaming?: boolean;
 }
 
 export type PkgUrls = { [pkgName: string]: { [path: string]: string; version: string } };
@@ -98,6 +99,7 @@ export interface ReplMessageBase {
 export interface InitSSRMessage {
   type: 'run-ssr';
   replId: string;
+  outOfOrderStreaming?: boolean;
 }
 
 export interface ExecuteSSRMessage {
@@ -106,6 +108,7 @@ export interface ExecuteSSRMessage {
   ssrModules: ReplModuleOutput[];
   baseUrl: string;
   manifest: QwikManifest | undefined;
+  outOfOrderStreaming?: boolean;
 }
 
 export interface SSRResultMessage {
@@ -113,6 +116,11 @@ export interface SSRResultMessage {
   buildId: number;
   html: string;
   events: ReplEvent[];
+}
+
+export interface SSRChunkMessage {
+  type: 'ssr-chunk';
+  html: string;
 }
 
 export interface SSRErrorMessage {

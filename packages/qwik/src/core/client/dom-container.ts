@@ -26,6 +26,7 @@ import {
   QLocaleAttr,
   QManifestHashAttr,
   QScopedStyle,
+  QStatePatchAttrSelector,
   QStyle,
   QStyleSelector,
   QStylesAllSelector,
@@ -41,11 +42,12 @@ import {
 } from '../shared/utils/scoped-styles';
 import { setErrorPayload } from '../shared/cursor/chore-execution';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
-import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ContextId } from '../use/use-context';
+import { processSegmentStateScripts } from './process-segment-state';
 import { processVNodeData } from './process-vnode-data';
 import {
   VNodeFlags,
@@ -95,11 +97,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
-  public $forwardRefs$: Array<number> | null = null;
+  public $forwardRefs$: Array<number | string> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
+  private $rootForwardRefs$: Array<number | string> | null = null;
   private $styleIds$: Set<string> | null = null;
 
   constructor(element: ContainerElement) {
@@ -120,17 +123,23 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!document.qVNodeData) {
       processVNodeData(document);
     }
+    if (__EXPERIMENTAL__.suspense) {
+      document.qProcessOOOS ||= (doc: Document) => {
+        processVNodeData(doc);
+        const containers = doc.querySelectorAll(QContainerSelector);
+        for (let i = 0; i < containers.length; i++) {
+          (containers[i] as ContainerElement).qContainer?.$processSegmentStateScripts$();
+        }
+      };
+    }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
     this.$setServerData$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     element.qContainer = this;
     (element as any).qDestroy = () => this.$destroy$();
-    const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
-    if (qwikStates.length !== 0) {
-      const lastState = qwikStates[qwikStates.length - 1];
-      this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      preprocessState(this.$rawStateData$, this);
-      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    this.$processRootStateScript$();
+    if (__EXPERIMENTAL__.suspense) {
+      this.$processSegmentStateScripts$();
     }
     this.$hoistStyles$();
     if (!qTest && element.isConnected) {
@@ -148,8 +157,43 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     el.qContainer = undefined;
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
+    if (__EXPERIMENTAL__.suspense) {
+      el.qSegmentVnodeData = undefined;
+    }
     el.removeAttribute(QContainerAttr);
-    (el.ownerDocument as QDocument).qVNodeData = undefined!;
+    const document = el.ownerDocument as QDocument;
+    const hasContainers = document.querySelector(QContainerSelector) !== null;
+    if (!hasContainers) {
+      document.qVNodeData = undefined!;
+    }
+    if (__EXPERIMENTAL__.suspense) {
+      if (!hasContainers) {
+        document.qProcessOOOS = undefined;
+      }
+    }
+  }
+
+  private $processRootStateScript$(): void {
+    const rootState = this.element.querySelector(
+      `${this.$stateScriptSelector$()}:not(${QStatePatchAttrSelector})`
+    );
+    if (rootState) {
+      this.$rawStateData$ = JSON.parse(rootState.textContent!);
+      preprocessState(this.$rawStateData$, this);
+      this.$rootForwardRefs$ = this.$forwardRefs$;
+      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    }
+  }
+
+  private $stateScriptSelector$(): string {
+    return `script[type="qwik/state"][q\\:instance="${this.$instanceHash$}"]`;
+  }
+
+  $processSegmentStateScripts$(): void {
+    if (!__EXPERIMENTAL__.suspense) {
+      return;
+    }
+    processSegmentStateScripts(this);
   }
 
   /**
@@ -291,6 +335,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   $getObjectById$ = (id: number | string): unknown => {
     return getObjectById(id, this.$stateData$);
   };
+
+  $getForwardRef$(id: number): number | string | undefined {
+    return this.$rootForwardRefs$?.[id];
+  }
 
   getSyncFn(id: number): (...args: unknown[]) => unknown {
     const fn = this.$qFuncs$[id];

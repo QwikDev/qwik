@@ -6,8 +6,12 @@
  */
 
 import { createRegExp, exactly, oneOrMore, anyOf, digit, whitespace, charNotIn } from 'magic-regexp';
-import { analyzeSignalExpression, type SignalHoister } from '../signal-analysis.js';
-import { classifyConstness } from './jsx.js';
+import { analyzeSignalExpression } from '../signal-analysis.js';
+import {
+  classifyConstness,
+  type JsxTransformContext,
+  type ProcessChildrenOptions,
+} from './jsx.js';
 import type { JSXChild, JSXElement, JSXExpressionContainer, JSXFragment } from '../../ast-types.js';
 
 type AnnotatedJSXChild = JSXChild & { _trimmedText?: string };
@@ -117,14 +121,9 @@ export function normalizeJsxChildren(children: JSXChild[]): (JSXChild & { _trimm
  * Process JSX children nodes and return a children string representation.
  */
 export function processChildren(
+  ctx: JsxTransformContext,
   children: JSXChild[],
-  source: string,
-  s?: import('magic-string').default,
-  importedNames?: Set<string>,
-  signalHoister?: SignalHoister,
-  neededImports?: Set<string>,
-  constIdents?: Set<string>,
-  allDeclaredNames?: Set<string>,
+  opts: ProcessChildrenOptions,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (!children || children.length === 0) {
     return { text: null, type: 'none' };
@@ -137,13 +136,13 @@ export function processChildren(
   }
 
   if (meaningful.length === 1) {
-    return processOneChild(meaningful[0], source, s, importedNames, signalHoister, neededImports, constIdents, allDeclaredNames);
+    return processOneChild(ctx, meaningful[0], opts);
   }
 
   const parts: string[] = [];
   let isDynamic = false;
   for (const child of meaningful) {
-    const { text, type } = processOneChild(child, source, s, importedNames, signalHoister, neededImports, constIdents, allDeclaredNames);
+    const { text, type } = processOneChild(ctx, child, opts);
     if (text !== null) {
       parts.push(text);
     }
@@ -191,14 +190,9 @@ function classifyNestedJsxChild(
 }
 
 function processOneChild(
+  ctx: JsxTransformContext,
   child: AnnotatedJSXChild,
-  source: string,
-  s?: import('magic-string').default,
-  importedNames?: Set<string>,
-  signalHoister?: SignalHoister,
-  neededImports?: Set<string>,
-  constIdents?: Set<string>,
-  allDeclaredNames?: Set<string>,
+  opts: ProcessChildrenOptions,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (child._trimmedText) {
     return { text: `"${child._trimmedText}"`, type: 'static' };
@@ -211,11 +205,11 @@ function processOneChild(
   }
 
   if (child.type === 'JSXExpressionContainer') {
-    return processExpressionChild(child, source, s, importedNames, signalHoister, neededImports, constIdents, allDeclaredNames);
+    return processExpressionChild(ctx, child, opts);
   }
 
   if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
-    const childText = s ? s.slice(child.start, child.end) : source.slice(child.start, child.end);
+    const childText = ctx.s.slice(child.start, child.end);
     const type = classifyNestedJsxChild(child, childText);
     return { text: childText, type };
   }
@@ -225,21 +219,18 @@ function processOneChild(
 
 /** Process a JSX expression container child ({expr}). */
 function processExpressionChild(
+  ctx: JsxTransformContext,
   child: JSXExpressionContainer,
-  source: string,
-  s?: import('magic-string').default,
-  importedNames?: Set<string>,
-  signalHoister?: SignalHoister,
-  neededImports?: Set<string>,
-  constIdents?: Set<string>,
-  allDeclaredNames?: Set<string>,
+  opts: ProcessChildrenOptions,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   const expr = child.expression;
   if (!expr || expr.type === 'JSXEmptyExpression') {
     return { text: null, type: 'none' };
   }
 
-  const exprText = s ? s.slice(expr.start, expr.end) : source.slice(expr.start, expr.end);
+  const { source, s, importedNames, signalHoister, constIdents, allDeclaredNames } = ctx;
+  const { neededImports, enableSignalAnalysis = true } = opts;
+  const exprText = s.slice(expr.start, expr.end);
 
   // Runtime emits all four literal interfaces (String/Numeric/Boolean/Null)
   // under one `'Literal'` discriminant; narrow on `.value`'s primitive type.
@@ -252,37 +243,44 @@ function processExpressionChild(
     return { text: exprText, type: 'static' };
   }
 
-  if (importedNames && signalHoister) {
-    const signalResult = analyzeSignalExpression(expr, source, importedNames, allDeclaredNames);
-
-    if (signalResult.type === 'wrapProp') {
-      neededImports?.add('_wrapProp');
-      let wrapIsConst = true;
-      if (expr.type === 'MemberExpression' && expr.object?.type === 'Identifier') {
-        const objName = expr.object.name;
-        if (!importedNames.has(objName) && !(constIdents?.has(objName))) {
-          wrapIsConst = false;
-        }
-      }
-      return { text: signalResult.code, type: wrapIsConst ? 'static' : 'dynamic' };
-    }
-
-    if (signalResult.type === 'fnSignal') {
-      const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, expr.start ?? 0);
-      const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
-      neededImports?.add('_fnSignal');
-      const depsConst = signalResult.deps.every(dep =>
-        importedNames.has(dep) || (constIdents?.has(dep) ?? false)
-      );
-      return { text: fnSignalCall, type: depsConst ? 'static' : 'dynamic' };
-    }
+  // The signal-analysis branch and the constness-classification branch
+  // were historically gated on `importedNames` being defined — the call
+  // site in `transformJsxElement` passed `undefined` for both
+  // `importedNames` and `signalHoister` whenever `childSignalsEnabled`
+  // was false (text-only tags, components opting out). Now expressed as
+  // a single typed `enableSignalAnalysis` opt; both branches share the
+  // gate because they were always toggled together at the call site.
+  if (!enableSignalAnalysis) {
+    return { text: exprText, type: 'dynamic' };
   }
 
-  if (importedNames) {
-    const propClass = classifyConstness(expr, importedNames, constIdents);
-    if (propClass === 'const') {
-      return { text: exprText, type: 'static' };
+  const signalResult = analyzeSignalExpression(expr, source, importedNames, allDeclaredNames);
+
+  if (signalResult.type === 'wrapProp') {
+    neededImports.add('_wrapProp');
+    let wrapIsConst = true;
+    if (expr.type === 'MemberExpression' && expr.object?.type === 'Identifier') {
+      const objName = expr.object.name;
+      if (!importedNames.has(objName) && !(constIdents?.has(objName))) {
+        wrapIsConst = false;
+      }
     }
+    return { text: signalResult.code, type: wrapIsConst ? 'static' : 'dynamic' };
+  }
+
+  if (signalResult.type === 'fnSignal') {
+    const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, expr.start ?? 0);
+    const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
+    neededImports.add('_fnSignal');
+    const depsConst = signalResult.deps.every(dep =>
+      importedNames.has(dep) || (constIdents?.has(dep) ?? false)
+    );
+    return { text: fnSignalCall, type: depsConst ? 'static' : 'dynamic' };
+  }
+
+  const propClass = classifyConstness(expr, importedNames, constIdents);
+  if (propClass === 'const') {
+    return { text: exprText, type: 'static' };
   }
 
   return { text: exprText, type: 'dynamic' };

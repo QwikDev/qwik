@@ -69,6 +69,24 @@ export interface JsxElementOptions {
   qpOverrides?: Map<number, string[]>;
 }
 
+/** Per-call options for `processChildren`. */
+export interface ProcessChildrenOptions {
+  /**
+   * Per-element accumulator. `processChildren` and its helpers add the
+   * names of any runtime helpers they emit (`_wrapProp`, `_fnSignal`, …)
+   * into this set so the caller can wire imports.
+   */
+  neededImports: Set<string>;
+  /**
+   * Gate for child-expression signal analysis (`_fnSignal` hoisting,
+   * `_wrapProp`, constness classification). Defaults to `true`. Set to
+   * `false` for elements where signal-aware processing of children is
+   * suppressed (currently: text-only HTML tags, and components opting
+   * out via `enableChildSignals: false`).
+   */
+  enableSignalAnalysis?: boolean;
+}
+
 /** Per-call options for `processProps`. */
 export interface ProcessPropsOptions {
   tagIsHtml: boolean;

@@ -333,16 +333,10 @@ export function transformJsxElement(
   }
 
   const childSignalsEnabled = enableChildSignals && !textOnly;
-  const { text: childrenText, type: childrenType } = processChildren(
-    node.children,
-    source,
-    s,
-    childSignalsEnabled ? importedNames : undefined,
-    childSignalsEnabled ? signalHoister : undefined,
+  const { text: childrenText, type: childrenType } = processChildren(ctx, node.children, {
     neededImports,
-    constIdents,
-    allDeclaredNames,
-  );
+    enableSignalAnalysis: childSignalsEnabled,
+  });
 
   const hasQpProp = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'))
     || constEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'));
@@ -419,20 +413,13 @@ export function transformJsxFragment(
 ): JsxTransformResult | null {
   if (node.type !== 'JSXFragment') return null;
 
-  const { source, s, importedNames, keyCounter, signalHoister, constIdents, allDeclaredNames } = ctx;
+  const { keyCounter } = ctx;
   const neededImports = new Set<string>();
   neededImports.add('_jsxSorted');
 
-  const { text: childrenText, type: childrenType } = processChildren(
-    node.children,
-    source,
-    s,
-    importedNames,
-    signalHoister,
+  const { text: childrenText, type: childrenType } = processChildren(ctx, node.children, {
     neededImports,
-    constIdents,
-    allDeclaredNames,
-  );
+  });
 
   const flags = computeJsxFlags(false, childrenType);
   const keyStr = `"${keyCounter.next()}"`;

@@ -1,5 +1,9 @@
 // NOTE: we want to move this function to qwikloader, and therefore this function should not have any external dependencies
-import { VNodeDataChar, VNodeDataSeparator, getSegmentVNodeId } from '../shared/vnode-data-types';
+import {
+  VNodeDataChar,
+  VNodeDataSeparator,
+  getSegmentVNodeRefId,
+} from '../shared/vnode-data-types';
 import type { ContainerElement, QDocument } from './types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { QElement } from '../shared/types';
@@ -339,7 +343,7 @@ export function processVNodeData(document: Document) {
           if (contentBoundaryId === null) {
             if (needsToStoreRef === elementIdx) {
               qVNodeRefs.set(
-                segmentId ? getSegmentVNodeId(segmentId, elementIdx) : elementIdx,
+                segmentId ? getSegmentVNodeRefId(segmentId, elementIdx) : elementIdx,
                 node as Element
               );
             }
@@ -369,7 +373,7 @@ export function processVNodeData(document: Document) {
         if (!vData) {
           return;
         }
-        qVNodeRefs.set(getSegmentVNodeId(boundaryId, 0), contentNode as QElement);
+        qVNodeRefs.set(getSegmentVNodeRefId(boundaryId, 0), contentNode as QElement);
         const segmentWalker = document.createTreeWalker(
           document,
           0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */

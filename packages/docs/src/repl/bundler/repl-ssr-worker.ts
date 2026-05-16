@@ -143,7 +143,7 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
   };
   if (message.outOfOrderStreaming === false) {
     renderOptions.streaming = {
-      outOfOrder: { strategy: 'disabled' },
+      outOfOrder: false,
     };
   }
 

@@ -18,7 +18,6 @@
 - [Slots](</docs/(qwik)/core/slots/index.mdx>)
 - [Rendering](</docs/(qwik)/core/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/core/styles/index.mdx>)
-- [Suspense](</docs/(qwik)/core/suspense/index.mdx>)
 - [API Reference](/api/qwik/)
 
 ### Concepts
@@ -163,6 +162,7 @@
 
 - [Overview](/docs/labs/index.mdx)
 - [Each](/docs/labs/each/index.mdx)
+- [Suspense](/docs/labs/suspense/index.mdx)
 - [Insights](/docs/labs/insights/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)
 - [Devtools](/docs/labs/devtools/index.mdx)

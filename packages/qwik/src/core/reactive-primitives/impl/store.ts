@@ -4,10 +4,12 @@ import { assertTrue } from '../../shared/error/assert';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { isObject, isSerializableObject } from '../../shared/utils/types';
 import type { Container } from '../../shared/types';
+import { isSameContainer } from '../../shared/utils/container';
 import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  getEffectSerializationContainer,
   scheduleEffects,
 } from '../utils';
 import {
@@ -19,8 +21,9 @@ import {
   type StoreTarget,
 } from '../types';
 import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy';
-import { isDomContainer } from '../../client/dom-container';
 import { isDev, isServer } from '@qwik.dev/core/build';
+import { isServerPlatform } from '../../shared/platform/platform';
+import type { SSRSegmentContainer } from '../../ssr/ssr-types';
 
 const DEBUG = false;
 
@@ -138,7 +141,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
       } else {
         isDev &&
           assertTrue(
-            !ctx.$container$ || ctx.$container$ === this.$container$,
+            !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
             'Do not use signals across containers'
           );
       }
@@ -148,7 +151,8 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
           target,
           Array.isArray(target) ? STORE_ALL_PROPS : prop,
           this,
-          effectSubscriber
+          effectSubscriber,
+          ctx.$container$
         );
       }
     }
@@ -216,7 +220,8 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
             target,
             Array.isArray(target) ? STORE_ALL_PROPS : prop,
             this,
-            effectSubscriber
+            effectSubscriber,
+            ctx.$container$
           );
         }
       }
@@ -228,7 +233,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     const ctx = tryGetInvokeContext();
     const effectSubscriber = ctx?.$effectSubscriber$;
     if (effectSubscriber) {
-      addStoreEffect(target, STORE_ALL_PROPS, this, effectSubscriber);
+      addStoreEffect(target, STORE_ALL_PROPS, this, effectSubscriber, ctx.$container$);
     }
     return Reflect.ownKeys(target);
   }
@@ -255,7 +260,8 @@ export function addStoreEffect(
   target: StoreTarget | PropsProxy,
   prop: string | symbol,
   store: StoreHandler | PropsProxyHandler,
-  effectSubscription: EffectSubscription
+  effectSubscription: EffectSubscription,
+  renderContainer?: Container
 ) {
   const effectsMap = (store.$effects$ ||= new Map());
   let effects = effectsMap.get(prop);
@@ -266,14 +272,30 @@ export function addStoreEffect(
   // Let's make sure that we have a reference to this effect.
   // Adding reference is essentially adding a subscription, so if the signal
   // changes we know who to notify.
+  const isOnServer = qTest ? isServerPlatform() : isServer;
+  const shouldRecordExternalRootEffect =
+    __EXPERIMENTAL__.suspense && store instanceof StoreHandler && isOnServer;
   ensureContainsSubscription(effects, effectSubscription);
   // But when effect is scheduled in needs to be able to know which signals
   // to unsubscribe from. So we need to store the reference from the effect back
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
-  // TODO is this needed with the preloader?
-  (qTest ? !isDomContainer(store.$container$) : isServer) &&
-    addQrlToSerializationCtx(effectSubscription, store.$container$);
+  if (isOnServer) {
+    const serializationContainer = getEffectSerializationContainer(
+      renderContainer,
+      store.$container$
+    );
+    if (shouldRecordExternalRootEffect) {
+      (serializationContainer as SSRSegmentContainer | null)?.$recordExternalRootEffect$?.(
+        target,
+        effectSubscription,
+        prop,
+        effectsMap
+      );
+    }
+    // TODO is this needed with the preloader?
+    addQrlToSerializationCtx(effectSubscription, serializationContainer);
+  }
 
   DEBUG &&
     log(

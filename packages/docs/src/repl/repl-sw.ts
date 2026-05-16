@@ -27,8 +27,36 @@ export type ResponseMessage = {
     body: string;
   } | null;
 };
+export type StreamStartMessage = {
+  type: 'repl-stream-start';
+  requestId: number;
+  response: {
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+  };
+};
+export type StreamChunkMessage = {
+  type: 'repl-stream-chunk';
+  requestId: number;
+  body: string;
+};
+export type StreamEndMessage = {
+  type: 'repl-stream-end';
+  requestId: number;
+};
 
-const pendingRequests = new Map<number, { resolve: (r: Response) => void; timeoutId: any }>();
+type ReplMessage = ResponseMessage | StreamStartMessage | StreamChunkMessage | StreamEndMessage;
+
+const pendingRequests = new Map<
+  number,
+  {
+    resolve: (r: Response) => void;
+    timeoutId: any;
+    controller?: ReadableStreamDefaultController<Uint8Array>;
+    encoder?: TextEncoder;
+  }
+>();
 
 let nextId = 1;
 
@@ -101,7 +129,7 @@ let nextId = 1;
 });
 
 /** Receive responses for the REPL requests */
-channel.onmessage = (ev: MessageEvent<ResponseMessage>) => {
+channel.onmessage = (ev: MessageEvent<ReplMessage>) => {
   const msg = ev.data;
 
   if (msg.type === 'repl-response') {
@@ -122,6 +150,33 @@ channel.onmessage = (ev: MessageEvent<ResponseMessage>) => {
       } else {
         resolve(new Response('404 - Not found', { status: 404 }));
       }
+    }
+  } else if (msg.type === 'repl-stream-start') {
+    const pending = pendingRequests.get(msg.requestId);
+    if (pending) {
+      clearTimeout(pending.timeoutId);
+      pending.encoder = new TextEncoder();
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          pending.controller = controller;
+        },
+      });
+      pending.resolve(
+        new Response(stream, {
+          status: msg.response.status,
+          statusText: msg.response.statusText,
+          headers: msg.response.headers,
+        })
+      );
+    }
+  } else if (msg.type === 'repl-stream-chunk') {
+    const pending = pendingRequests.get(msg.requestId);
+    pending?.controller?.enqueue(pending.encoder!.encode(msg.body));
+  } else if (msg.type === 'repl-stream-end') {
+    const pending = pendingRequests.get(msg.requestId);
+    if (pending) {
+      pending.controller?.close();
+      pendingRequests.delete(msg.requestId);
     }
   }
 };

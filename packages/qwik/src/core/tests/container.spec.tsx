@@ -190,6 +190,28 @@ describe('serializer v2', () => {
     });
   });
 
+  describe('state scripts', () => {
+    it('should only deserialize state owned by the current container', () => {
+      const document = createDocument();
+      document.body.innerHTML = `
+        <div q:container="paused" q:locale="" q:base="" q:manifest-hash="" q:instance="root" :>
+          <section :>
+            <container q:container="paused" q:locale="" q:base="" q:manifest-hash="" q:instance="nested" :>
+              <script type="qwik/state" q:instance="nested" :>[0,"nested"]</script>
+            </container>
+          </section>
+          <script type="qwik/state" q:instance="root" :>[0,"root"]</script>
+        </div>
+      `;
+
+      const rootContainer = getDomContainer(document.body.firstElementChild!);
+      const nestedContainer = getDomContainer(document.querySelector('container')!);
+
+      expect(rootContainer.$getObjectById$(0)).toBe('root');
+      expect(nestedContainer.$getObjectById$(0)).toBe('nested');
+    });
+  });
+
   describe('object serialization', () => {
     it('should serialize object', async () => {
       const container = await withContainer((ssrContainer) => {

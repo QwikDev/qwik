@@ -6,17 +6,32 @@ import { componentQrl } from '../shared/component.public';
 import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { Fragment } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
-import type { JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
 import { _fnSignal } from '../shared/qrl/inlined-fn';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import { _captures } from '../shared/qrl/qrl-class';
-import { QCursorBoundary } from '../shared/utils/markers';
+import {
+  QCursorBoundary,
+  QDefaultSlot,
+  QSuspenseResolved,
+  QSuspenseResultParent,
+} from '../shared/utils/markers';
+import { resolveSlotName } from '../shared/utils/prop';
+import { createInternalServerComponent } from '../ssr/internal-server-component';
+import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
 import { useComputedQrl } from '../use/use-computed';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { useSignal } from '../use/use-signal';
 import { useTaskQrl, type TaskCtx } from '../use/use-task';
 import { revealCanReveal, useRevealBoundary, type RevealRegistration } from './reveal';
+import {
+  isOutOfOrderStreaming,
+  nextOutOfOrderSuspenseId,
+  SUSPENSE_QRL_SYMBOL,
+  type OutOfOrderRevealBoundary,
+} from './suspense-utils';
 
 type SuspenseState = 'content' | 'fallback';
 
@@ -97,6 +112,13 @@ export const suspenseCmp = (props: SuspenseProps) => {
     ])
   );
 
+  const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
+  const isServerOutOfOrder = isServerEnv && isOutOfOrderStreaming();
+  const outOfOrderBoundaryId = isServerOutOfOrder ? nextOutOfOrderSuspenseId() : 0;
+  const outOfOrderRevealBoundary = isServerOutOfOrder
+    ? (revealRegistration?.reveal.ooos?.register(revealRegistration) ?? null)
+    : null;
+
   return /*#__PURE__*/ _jsxSorted(
     Fragment,
     null,
@@ -105,7 +127,13 @@ export const suspenseCmp = (props: SuspenseProps) => {
       /*#__PURE__*/ _jsxSorted(
         'div',
         {
-          style: _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
+          style: isServerOutOfOrder
+            ? {
+                display: shouldRenderFallback(props.fallback, outOfOrderRevealBoundary)
+                  ? 'contents'
+                  : 'none',
+              }
+            : _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
         },
         null,
         _wrapProp(props, 'fallback'),
@@ -115,14 +143,25 @@ export const suspenseCmp = (props: SuspenseProps) => {
       /*#__PURE__*/ _jsxSorted(
         'div',
         null,
-        {
-          style: _fnSignal(_hf1, [props, state, canReveal], _hf1_str),
-        },
+        isServerOutOfOrder
+          ? {
+              [QSuspenseResultParent]: String(outOfOrderBoundaryId),
+              style: { display: 'none' },
+            }
+          : {
+              style: _fnSignal(_hf1, [props, state, canReveal], _hf1_str),
+            },
         /*#__PURE__*/ _jsxSorted(
-          Slot,
-          {
-            [QCursorBoundary]: cursorBoundary,
-          },
+          isServerOutOfOrder ? SSRDeferredSlot : Slot,
+          isServerOutOfOrder
+            ? {
+                [QCursorBoundary]: cursorBoundary,
+                boundaryId: outOfOrderBoundaryId,
+                reveal: outOfOrderRevealBoundary,
+              }
+            : {
+                [QCursorBoundary]: cursorBoundary,
+              },
           null,
           null,
           3,
@@ -139,5 +178,112 @@ export const suspenseCmp = (props: SuspenseProps) => {
 
 /** @public @experimental */
 export const Suspense = /*#__PURE__*/ componentQrl<SuspenseProps>(
-  /*#__PURE__*/ inlinedQrl(suspenseCmp, '_suC')
+  /*#__PURE__*/ inlinedQrl(suspenseCmp, SUSPENSE_QRL_SYMBOL)
 ) as typeof suspenseCmp;
+
+type SSRDeferredSlotProps = {
+  boundaryId: number;
+  reveal: OutOfOrderRevealBoundary | null;
+};
+
+const SSRDeferredSlot = __EXPERIMENTAL__.suspense
+  ? /*#__PURE__*/ createInternalServerComponent<SSRDeferredSlotProps>(async (ssr, jsx, options) => {
+      const boundaryId = (jsx.varProps.boundaryId as number | undefined) ?? ssr.nextOutOfOrderId();
+      const contentSegment = `${boundaryId}`;
+      const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
+      const content = ssr.segment(
+        contentSegment,
+        createClaimedDeferredSlot(ssr, jsx, options),
+        options
+      );
+
+      writeOutOfOrderPlaceholder(ssr, boundaryId);
+      ssr.emitOutOfOrderExecutorIfNeeded();
+      ssr.queueOutOfOrderSegment(
+        content.then((rendered) =>
+          emitRenderedOutOfOrderSegment(ssr, boundaryId, contentSegment, rendered, revealBoundary)
+        )
+      );
+    })
+  : null!;
+
+function createClaimedDeferredSlot(
+  ssr: SSRContainer,
+  jsx: JSXNodeInternal,
+  options: SSRRenderJSXOptions
+): ReturnType<typeof _jsxSorted> {
+  const componentFrame = options.parentComponentFrame;
+  if (!componentFrame) {
+    return /*#__PURE__*/ _jsxSorted(
+      Slot,
+      jsx.varProps,
+      jsx.constProps,
+      jsx.children,
+      jsx.flags,
+      jsx.key
+    );
+  }
+  const slotName = resolveSlotName(componentFrame.componentNode, jsx, ssr);
+  const slotDefaultChildren = (jsx.children || null) as JSXChildren | null;
+  const slotChildren =
+    (
+      componentFrame as unknown as { claimChildrenForSlot(slotName: string): JSXChildren | null }
+    ).claimChildrenForSlot(slotName) || slotDefaultChildren;
+  if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
+    ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
+  }
+  return /*#__PURE__*/ _jsxSorted(
+    Slot,
+    jsx.varProps,
+    jsx.constProps,
+    slotChildren,
+    jsx.flags,
+    jsx.key
+  );
+}
+
+async function emitRenderedOutOfOrderSegment(
+  ssr: SSRContainer,
+  boundaryId: number,
+  segmentId: string,
+  rendered: SSROutOfOrderSegment,
+  revealBoundary: OutOfOrderRevealBoundary | null
+): Promise<void> {
+  await ssr.$runQueuedRenderBeforeRootState$(async () => {
+    const scripts = await rendered.context.container.$finalizeOutOfOrderSegment$(
+      segmentId,
+      rendered
+    );
+    writeOutOfOrderResolvedTemplate(ssr, boundaryId, rendered.html, revealBoundary);
+    ssr.emitOutOfOrderSegmentScripts(scripts);
+    ssr.emitInlineScript(`qO(${boundaryId})`);
+    // qO() is the browser-visible handoff for this segment, so flush it immediately.
+    await ssr.streamHandler.flush();
+  });
+}
+
+function shouldRenderFallback(
+  fallback: JSXOutput,
+  revealBoundary: OutOfOrderRevealBoundary | null
+): boolean {
+  return (
+    fallback != null &&
+    fallback !== false &&
+    (revealBoundary === null || revealBoundary.showFallback)
+  );
+}
+
+function writeOutOfOrderPlaceholder(ssr: SSRContainer, boundaryId: number): void {
+  ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
+}
+
+function writeOutOfOrderResolvedTemplate(
+  ssr: SSRContainer,
+  boundaryId: number,
+  html: string,
+  revealBoundary: OutOfOrderRevealBoundary | null
+): void {
+  ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"${revealBoundary?.attrs ?? ''}>`);
+  ssr.write(html);
+  ssr.write('</template>');
+}

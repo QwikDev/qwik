@@ -26,6 +26,7 @@ import type { VNode } from '../vnode/vnode';
 import { _constants, TypeIds, type Constants } from './constants';
 import { needsInflation } from './deser-proxy';
 import { createQRLWithBackChannel } from './qrl-to-string';
+import { SubscriptionPatch } from './subscription-patch';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 export const pendingStoreTargets = new Map<object, { t: TypeIds; v: unknown }>();
@@ -37,10 +38,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.RootRef:
       return container.$getObjectById$(value as number);
     case TypeIds.ForwardRef:
-      if (!container.$forwardRefs$) {
-        return _UNINITIALIZED;
-      }
-      const rootRef = container.$forwardRefs$[value as number];
+      const rootRef = container.$getForwardRef$(value as number);
       if (rootRef === -1 || rootRef === undefined) {
         return _UNINITIALIZED;
       } else {
@@ -198,6 +196,8 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return new SubscriptionData({} as NodePropData);
     case TypeIds.EffectSubscription:
       return new EffectSubscription(null!, null!, null, null);
+    case TypeIds.SubscriptionPatch:
+      return new SubscriptionPatch();
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }

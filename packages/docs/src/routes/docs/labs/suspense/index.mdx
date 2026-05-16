@@ -17,7 +17,7 @@ import { Note } from '~/components/note/note';
 
 `<Suspense>` shows a fallback while its content is loading.
 
-When the content is ready, Qwik replaces the fallback with the real content.
+When the content is ready, Qwik hides the fallback and shows the real content.
 
 Suspense does not fetch data or create async values. It only decides what to show while rendering is paused.
 
@@ -146,7 +146,8 @@ Suspense does not do the loading work. It only controls the fallback while that 
 Out-of-order streaming is an optional server rendering mode for `<Suspense>`.
 
 Server rendering means Qwik creates HTML on the server and sends it to the browser. Streaming means
-the browser can receive that HTML in chunks instead of waiting for one complete HTML string.
+the browser can receive that HTML in chunks, within the same HTTP connection, instead of waiting for
+one complete HTML string.
 
 Out-of-order streaming helps when one section of the page is slow, but the rest of the page is ready.
 
@@ -156,10 +157,14 @@ waiting, the server waits at that point before it can continue sending the next 
 With out-of-order streaming, Qwik can:
 
 1. Send the HTML that is ready.
-2. Send the Suspense fallback for the slow section.
+2. Send the Suspense fallback for that section.
 3. Continue sending the rest of the page, such as the footer or nearby buttons.
 4. Send the real Suspense content later, when it finishes.
-5. Replace the fallback with the real content in the browser.
+5. Hide the fallback and show the real content in the browser.
+
+During SSR, Qwik includes the fallback in the stream when the boundary has a fallback. If the
+Suspense content finishes quickly, the resolved content can be shown before the user notices the
+fallback.
 
 From the user's point of view, the page appears sooner. They can see the shell of the page while
 one slower section is still loading.
@@ -169,8 +174,8 @@ Out-of-order streaming only applies to promises inside `<Suspense>`. A promise o
 follows the normal SSR rendering behavior.
 </Note>
 
-You do not need to write the streaming markers or replacement scripts yourself. Keep writing
-`<Suspense>` and fallbacks normally; Qwik handles the streamed HTML and browser-side replacement.
+You do not need to write the streaming markers or reveal scripts yourself. Keep writing
+`<Suspense>` and fallbacks normally; Qwik handles the streamed HTML and browser-side reveal.
 
 ### Enable Suspense
 
@@ -193,14 +198,15 @@ export default defineConfig(() => ({
 }));
 ```
 
-### Enable Out-of-order Streaming
+### Configure Out-of-order Streaming
 
-Then enable out-of-order streaming in your server entry point.
+After Suspense is enabled, out-of-order streaming is enabled by default. You can also set it
+explicitly in your server entry point.
 
 Most Qwik apps have a `src/entry.ssr.tsx` file. That file receives render options from the adapter
 and returns the JSX and options that should be rendered.
 
-Add `streaming.outOfOrder` to those options:
+Add `streaming.outOfOrder` to those options if you want to set it directly:
 
 ```tsx title="src/entry.ssr.tsx" /outOfOrder/
 import { createRenderer } from '@qwik.dev/router';
@@ -213,27 +219,27 @@ export default createRenderer((opts) => {
       ...opts,
       streaming: {
         ...opts.streaming,
-        outOfOrder: { strategy: 'suspense' },
+        outOfOrder: true,
       },
     },
   };
 });
 ```
 
-Out-of-order streaming is disabled by default. The enabled value is:
+The enabled value is:
 
 ```ts
-outOfOrder: { strategy: 'suspense' }
+outOfOrder: true
 ```
 
-To turn it off again, remove the option or use:
+To turn it off again, use:
 
 ```ts
-outOfOrder: { strategy: 'disabled' }
+outOfOrder: false
 ```
 
-If your project calls `renderToStream()` directly, pass the same `streaming` option to
-`renderToStream()`:
+If your project calls `renderToStream()` directly, pass the same `streaming` option when you want to
+set it explicitly:
 
 ```tsx title="src/entry.ssr.tsx" /outOfOrder/
 import { renderToStream, type RenderToStreamOptions } from '@qwik.dev/core/server';
@@ -244,7 +250,7 @@ export default function (opts: RenderToStreamOptions) {
     ...opts,
     streaming: {
       ...opts.streaming,
-      outOfOrder: { strategy: 'suspense' },
+      outOfOrder: true,
     },
   });
 }
@@ -298,11 +304,11 @@ If `/api/profile` is slow, Qwik can send:
 - the `Loading profile...` fallback
 - the footer
 
-Then, when the profile request resolves, Qwik sends the finished profile HTML and swaps it into the
+Then, when the profile request resolves, Qwik sends the finished profile HTML and shows it in the
 Suspense boundary.
 
-If the profile request finishes before the server needs to stream the fallback, Qwik can send the
-finished profile directly and the fallback may never appear.
+If the profile request finishes quickly, Qwik still sends the fallback during SSR, but the finished
+profile can be shown before the user notices it.
 
 ### Fallbacks
 
@@ -336,10 +342,10 @@ That means the shell of the page can become interactive even while a Suspense se
 waiting. If your fallback has buttons or other event handlers, they can also resume while the
 fallback is visible, after the root page state has loaded in the browser.
 
-When the real content arrives, Qwik removes the fallback and inserts the resolved content. The
-resolved content may be visible before it is interactive. Qwik resumes that content after the root
-page state and the content's streamed state have both loaded, then its event handlers and state work
-like any other server-rendered Qwik HTML.
+When the real content arrives, Qwik hides the fallback and shows the resolved content. The fallback
+stays in the DOM. The resolved content may be visible before it is interactive. Qwik resumes that
+content after the root page state and the content's streamed state have both loaded, then its event
+handlers and state work like any other server-rendered Qwik HTML.
 
 ### When to Use It
 
@@ -364,14 +370,17 @@ while the server is still rendering.
 For static site generation, the HTML file is created ahead of time. The user receives the finished
 file later, so there is no live server stream to reveal a fallback first.
 
+For this reason, Qwik Router disables out-of-order streaming during SSG. Static pages are written as
+complete HTML files even if the server entry point sets `streaming.outOfOrder` to `true`.
+
 ### Troubleshooting
 
 If you see an error that says Suspense must be enabled, add `experimental: ['suspense']` to
 `qwikVite()`.
 
-If the fallback never appears, check these common causes:
+If the fallback is not visible, check these common causes:
 
-- the content resolves before the browser receives the fallback
+- the resolved content is shown before the browser paints the fallback
 - the slow promise is outside `<Suspense>`
 - there is no `fallback` prop
 - the hosting platform or proxy buffers the whole response instead of streaming it

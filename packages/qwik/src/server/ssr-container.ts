@@ -63,7 +63,7 @@ import {
   encodeVNodeDataKey,
   encodeVNodeDataString,
   escapeHTML,
-  getSegmentVNodeId,
+  getSegmentVNodeRefId,
   isHtmlAttributeAnEventName,
   isObjectEmpty,
   isPreventDefault,
@@ -956,7 +956,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.currentComponentNode,
         this.currentElementFrame!.vNodeData,
         this.vnodeSegment
-          ? getSegmentVNodeId(this.vnodeSegment, elementIndex)
+          ? getSegmentVNodeRefId(this.vnodeSegment, elementIndex)
           : elementIndex + this.vNodeDataOffset,
         this.cleanupQueue,
         this.currentElementFrame!.currentFile

@@ -420,6 +420,24 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
   );
 });
 
+test('transform omits sourcemaps for public virtual modules', async () => {
+  const plugin = await mockPlugin(process.platform, false);
+  await plugin.normalizeOptions({ rootDir: '/root', srcDir: '/root/src' });
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+    } as any,
+    `export default p => <svg {...p} viewBox="0 0 1 1" />;`,
+    'virtual:/root/src/components/favicon.svg.qwik.jsx'
+  );
+
+  expect(result).toBeTruthy();
+  expect(result!.code).toContain('_jsxSplit');
+  expect(result!.map).toBeNull();
+});
+
 async function mockPlugin(os = process.platform, useMockBinding = true) {
   const plugin = createQwikPlugin({
     sys: {

@@ -45,7 +45,17 @@ export const createRenderer = (
 ) => {
   return ((opts: RendererOptions) => {
     const { jsx, options } = getOptions(opts);
-    return renderToStream(jsx, options as any);
+    const isStatic = opts.serverData.renderMode === 'static';
+    const renderOptions = isStatic
+      ? {
+          ...options,
+          streaming: {
+            ...options.streaming,
+            outOfOrder: false,
+          },
+        }
+      : options;
+    return renderToStream(jsx, renderOptions as any);
     // We force the type to be Render because that's what createQwikRouter accepts
   }) as unknown as Render;
 };

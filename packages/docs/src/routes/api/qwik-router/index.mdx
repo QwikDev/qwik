@@ -2522,6 +2522,7 @@ The server data that is provided by Qwik Router during SSR rendering. It can be 
 export type ServerData = {
   url: string;
   requestHeaders: Record<string, string>;
+  renderMode: "static" | "server";
   locale: string | undefined;
   nonce: string | undefined;
   containerAttributes: Record<string, string> & {

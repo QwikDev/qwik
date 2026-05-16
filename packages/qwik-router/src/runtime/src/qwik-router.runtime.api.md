@@ -529,6 +529,7 @@ export const server$: <T extends ServerFunction>(qrl: T, options?: ServerConfig 
 export type ServerData = {
     url: string;
     requestHeaders: Record<string, string>;
+    renderMode: 'static' | 'server';
     locale: string | undefined;
     nonce: string | undefined;
     containerAttributes: Record<string, string> & {

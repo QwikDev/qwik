@@ -299,8 +299,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private emittedQwikEventNames = new Set<string>();
   protected subscriptionPatchRecords: SubscriptionPatchRecords | null = null;
 
-  public rootContainerSerializedRootCount = 0;
-
   constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
@@ -433,7 +431,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || this.rootContainerReady) {
       return;
     }
-    this.rootContainerSerializedRootCount = this.serializationCtx.$roots$.length;
     this.rootContainerReady = true;
     this.resolveRootContainerReady?.();
     this.resolveRootContainerReady = null;
@@ -1755,7 +1752,8 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       const subscriptionPatches = rootReadyAtSegment
         ? this.collectSubscriptionPatches(
             rootContainer,
-            rootContainer.rootContainerSerializedRootCount
+            rootContainer.serializationCtx.$serializedRootCount$ -
+              (rootContainer.serializationCtx.$hasRootStateForwardRefs$ ? 1 : 0)
           )
         : undefined;
       if (subscriptionPatches) {
@@ -1765,14 +1763,19 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
         rootReadyAtSegment &&
         (commit.newRootLocalIds.length > 0 || subscriptionPatchRootId !== undefined)
       ) {
+        segmentSerializationCtx.$forwardRefOffset$ =
+          rootContainer.serializationCtx.$serializedForwardRefCount$;
         await this.emitStatePatchData(
           segmentId,
           commit.newRootStart,
           commit.newRootLocalIds,
           subscriptionPatchRootId
         );
-        rootContainer.rootContainerSerializedRootCount =
-          rootContainer.serializationCtx.$roots$.length;
+        rootContainer.serializationCtx.$serializedRootCount$ =
+          rootContainer.serializationCtx.$roots$.length +
+          (rootContainer.serializationCtx.$hasRootStateForwardRefs$ ? 1 : 0);
+        rootContainer.serializationCtx.$serializedForwardRefCount$ +=
+          segmentSerializationCtx.$serializedForwardRefCount$;
       }
       this.$noMoreRoots$ = true;
       this.markVNodeDataForSerialization();
@@ -1802,7 +1805,9 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     segmentSerializationCtx: SerializationContext
   ): SegmentRootCommit {
     const rootIdMap: number[] = [];
-    const newRootStart = rootContainer.serializationCtx.$roots$.length;
+    const newRootStart = rootContainer.rootContainerReady
+      ? rootContainer.serializationCtx.$serializedRootCount$
+      : rootContainer.serializationCtx.$roots$.length;
     const newRootLocalIds: number[] = [];
     const segmentRoots = segmentSerializationCtx.$roots$;
     const segmentRootObjs = segmentSerializationCtx.$rootObjs$;
@@ -1832,7 +1837,11 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       rootId = rootContainer.serializationCtx.$commitRoot$(root, rootObj);
       commit.newRootLocalIds.push(localId);
     }
-    commit.rootIdMap[localId] = rootId;
+    const rootCtx = rootContainer.serializationCtx;
+    commit.rootIdMap[localId] =
+      rootContainer.rootContainerReady && rootId >= rootCtx.$rootStateRootCount$
+        ? rootId + (rootCtx.$hasRootStateForwardRefs$ ? 1 : 0)
+        : rootId;
   }
 
   private mergeSegmentEventData(

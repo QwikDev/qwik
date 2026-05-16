@@ -85,6 +85,11 @@ export interface SerializationContext {
   $roots$: unknown[];
   $rootObjs$: unknown[];
   $onAddRoot$?: (id: number, root: unknown, obj: unknown) => void;
+  $forwardRefOffset$: number;
+  $serializedRootCount$: number;
+  $serializedForwardRefCount$: number;
+  $rootStateRootCount$: number;
+  $hasRootStateForwardRefs$: boolean;
 
   $promoteToRoot$: (ref: SeenRef, obj: unknown, index?: number) => void;
 
@@ -115,6 +120,11 @@ class SerializationContextImpl implements SerializationContext {
   public $roots$: unknown[] = [];
   public $rootObjs$: unknown[] = [];
   public $onAddRoot$: ((id: number, root: unknown, obj: unknown) => void) | undefined;
+  public $forwardRefOffset$ = 0;
+  public $serializedRootCount$ = 0;
+  public $serializedForwardRefCount$ = 0;
+  public $rootStateRootCount$ = 0;
+  public $hasRootStateForwardRefs$ = false;
   public $eagerResume$: Set<unknown> = new Set();
   public $eventQrls$: Set<QRL> = new Set();
   public $eventNames$: Set<string> = new Set();
@@ -144,7 +154,7 @@ class SerializationContextImpl implements SerializationContext {
   }
 
   async $serialize$(): Promise<void> {
-    return await this.$serializer$.serialize();
+    await this.$serializer$.serialize();
   }
 
   async $serializePatch$(
@@ -152,7 +162,7 @@ class SerializationContextImpl implements SerializationContext {
     rootIds: number[],
     extraRootId?: number | string | number[]
   ): Promise<void> {
-    return await this.$serializer$.serializePatch(rootStart, rootIds, extraRootId);
+    await this.$serializer$.serializePatch(rootStart, rootIds, extraRootId);
   }
 
   $setWriter$(writer: SSRInternalStreamWriter): void {

@@ -7,10 +7,15 @@
  */
 
 import type { AstMaybeNode, JSXAttributeItem } from '../../ast-types.js';
-import { analyzeSignalExpression, type SignalHoister } from '../signal-analysis.js';
+import { analyzeSignalExpression } from '../signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective } from './event-handlers.js';
 import { isBindProp, transformBindProp, mergeEventHandlers } from './bind.js';
-import { classifyConstness, isConstBindingName } from './jsx.js';
+import {
+  classifyConstness,
+  isConstBindingName,
+  type JsxTransformContext,
+  type ProcessPropsOptions,
+} from './jsx.js';
 import { simplifyExpression, formatSimplifiedLiteral } from '../utils/simplify.js';
 
 /** True for value nodes that are always const (literals, arrows, identifiers). */
@@ -64,18 +69,9 @@ export function formatPropName(name: string): string {
  * Process JSX attributes and classify them into varProps and constProps.
  */
 export function processProps(
+  ctx: JsxTransformContext,
   attributes: JSXAttributeItem[],
-  source: string,
-  importedNames: Set<string>,
-  tagIsHtml: boolean,
-  passiveEvents: Set<string>,
-  signalHoister: SignalHoister,
-  inLoop?: boolean,
-  qrlsWithCaptures?: Set<string>,
-  _paramNames?: Set<string>,
-  constIdents?: Set<string>,
-  allDeclaredNames?: Set<string>,
-  skipSignalAnalysis?: boolean,
+  opts: ProcessPropsOptions,
 ): {
   varEntries: string[];
   constEntries: string[];
@@ -87,6 +83,8 @@ export function processProps(
   additionalSpreads: string[];
   neededImports: Set<string>;
 } {
+  const { source, importedNames, signalHoister, qrlsWithCaptures, paramNames, constIdents, allDeclaredNames } = ctx;
+  const { tagIsHtml, passiveEvents, inLoop, skipSignalAnalysis } = opts;
   const varEntries: string[] = [];
   const constEntries: string[] = [];
   const beforeSpreadEntries: string[] = [];
@@ -288,7 +286,7 @@ export function processProps(
           const depsAllConst = signalResult.deps.every(dep =>
             importedNames.has(dep) ||
             (constIdents?.has(dep) ?? false) ||
-            (!tagIsHtml && (_paramNames?.has(dep) ?? false))
+            (!tagIsHtml && (paramNames?.has(dep) ?? false))
           );
           if (depsAllConst && !inLoop) {
             constEntries.push(`${formattedName}: ${fnSignalCall}`);

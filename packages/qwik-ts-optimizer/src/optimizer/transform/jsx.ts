@@ -42,6 +42,47 @@ export interface JsxTransformOutput {
   keyCounterValue: number;
 }
 
+/**
+ * Shared plumbing + scope information threaded through the JSX transform
+ * for a single `transformAllJsx` invocation. Consumers (`transformJsxElement`,
+ * `processProps`, future `transformJsxFragment` / `processChildren` refactors)
+ * read a subset; the context is constant across every element in one call.
+ */
+export interface JsxTransformContext {
+  source: string;
+  s: MagicString;
+  importedNames: Set<string>;
+  keyCounter: JsxKeyCounter;
+  signalHoister: SignalHoister;
+  constIdents?: Set<string>;
+  allDeclaredNames?: Set<string>;
+  paramNames?: Set<string>;
+  qrlsWithCaptures?: Set<string>;
+}
+
+/** Per-element options for `transformJsxElement`. All fields are optional. */
+export interface JsxElementOptions {
+  passiveEvents?: Set<string>;
+  loopCtx?: LoopContext | null;
+  isSoleChild?: boolean;
+  enableChildSignals?: boolean;
+  qpOverrides?: Map<number, string[]>;
+}
+
+/** Per-call options for `processProps`. */
+export interface ProcessPropsOptions {
+  tagIsHtml: boolean;
+  passiveEvents: Set<string>;
+  inLoop?: boolean;
+  /**
+   * Skip signal analysis for prop value expressions. Set to `true` when the
+   * caller intends to lower the element to `_createElement` (spread + key
+   * variant), since that path emits prop values verbatim and any
+   * `_fnSignal` hoists for those values would be unreachable.
+   */
+  skipSignalAnalysis?: boolean;
+}
+
 export function isConstBindingName(
   name: string | null,
   importedNames: Set<string>,
@@ -520,6 +561,17 @@ export function transformAllJsx(
   const neededImports = new Set<string>();
   let needsFragment = false;
   const ranges = skipRanges ?? [];
+  const jsxCtx: JsxTransformContext = {
+    source,
+    s,
+    importedNames,
+    keyCounter,
+    signalHoister,
+    constIdents: resolvedConstIdents,
+    allDeclaredNames,
+    paramNames,
+    qrlsWithCaptures,
+  };
 
   let lineStarts: number[] | null = null;
   if (devOptions) {
@@ -573,12 +625,13 @@ export function transformAllJsx(
         const passiveEvents = collectPassiveDirectives(node.openingElement?.attributes ?? []);
         const isSoleChild = childJsxNodes.has(node);
 
-        const result = transformJsxElement(
-          node, source, s, importedNames, keyCounter,
-          passiveEvents, signalHoister, currentLoop, isSoleChild,
-          enableSignals, qpOverrides, qrlsWithCaptures, paramNames,
-          resolvedConstIdents, allDeclaredNames,
-        );
+        const result = transformJsxElement(jsxCtx, node, {
+          passiveEvents,
+          loopCtx: currentLoop,
+          isSoleChild,
+          enableChildSignals: enableSignals,
+          qpOverrides,
+        });
         if (result) {
           const callStr = appendDevSuffix(result.callString, getDevSourceSuffix(node.start));
           s.overwrite(node.start, node.end, `/*#__PURE__*/ ${callStr}`);

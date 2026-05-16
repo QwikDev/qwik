@@ -24,6 +24,8 @@ import {
   isTextOnlyElement,
   computeJsxFlags,
   type JsxKeyCounter,
+  type JsxTransformContext,
+  type JsxElementOptions,
 } from './jsx.js';
 
 function buildAdditionalSpreadsPart(
@@ -272,23 +274,14 @@ function buildJsxSplitCall(
  * Transform a single JSX element node to a _jsxSorted/_jsxSplit/_createElement call.
  */
 export function transformJsxElement(
+  ctx: JsxTransformContext,
   node: JSXElement,
-  source: string,
-  s: MagicString,
-  importedNames: Set<string>,
-  keyCounter: JsxKeyCounter,
-  passiveEvents?: Set<string>,
-  signalHoister?: SignalHoister,
-  loopCtx?: LoopContext | null,
-  isSoleChild?: boolean,
-  enableChildSignals: boolean = true,
-  qpOverrides?: Map<number, string[]>,
-  qrlsWithCaptures?: Set<string>,
-  paramNames?: Set<string>,
-  constIdents?: Set<string>,
-  allDeclaredNames?: Set<string>,
+  opts: JsxElementOptions = {},
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
+
+  const { source, s, importedNames, keyCounter, signalHoister, constIdents, allDeclaredNames, qrlsWithCaptures } = ctx;
+  const { passiveEvents, loopCtx, isSoleChild, enableChildSignals = true, qpOverrides } = opts;
 
   const neededImports = new Set<string>();
   const openingElement = node.openingElement;
@@ -298,7 +291,6 @@ export function transformJsxElement(
   const rawTagName = tagIsHtml ? tag.slice(1, -1) : '';
   const textOnly = tagIsHtml && isTextOnlyElement(rawTagName);
   const elementPassiveEvents = passiveEvents ?? collectPassiveDirectives(openingElement.attributes);
-  const hoister = signalHoister ?? new SignalHoister();
   const inLoop = !!loopCtx && loopCtx.iterVars.length > 0;
 
   const preHasSpread = openingElement.attributes?.some(
@@ -321,7 +313,12 @@ export function transformJsxElement(
     hasVarEventHandler: initialHasVarEventHandler,
     hasSpread,
     neededImports: propImports,
-  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames, constIdents, allDeclaredNames, willUseCreateElement);
+  } = processProps(ctx, openingElement.attributes, {
+    tagIsHtml,
+    passiveEvents: elementPassiveEvents,
+    inLoop,
+    skipSignalAnalysis: willUseCreateElement,
+  });
   let hasVarEventHandler = initialHasVarEventHandler;
 
   for (const imp of propImports) {
@@ -343,7 +340,7 @@ export function transformJsxElement(
     source,
     s,
     childSignalsEnabled ? importedNames : undefined,
-    childSignalsEnabled ? hoister : undefined,
+    childSignalsEnabled ? signalHoister : undefined,
     neededImports,
     constIdents,
     allDeclaredNames,

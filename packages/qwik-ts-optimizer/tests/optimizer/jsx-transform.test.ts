@@ -15,8 +15,19 @@ import {
   isHtmlElement,
   processJsxTag,
   transformAllJsx,
+  type JsxTransformContext,
 } from '../../src/optimizer/transform/jsx.js';
+import { SignalHoister } from '../../src/optimizer/signal-analysis.js';
 import MagicString from 'magic-string';
+
+function makeCtx(
+  source: string,
+  s: MagicString,
+  importedNames: Set<string>,
+  keyCounter: JsxKeyCounter,
+): JsxTransformContext {
+  return { source, s, importedNames, keyCounter, signalHoister: new SignalHoister() };
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -207,11 +218,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     // Should produce _jsxSorted("div", null, { class: "class" }, "12", 3, null)
@@ -232,11 +240,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     expect(result!.constProps).toContain('title: "hello"');
@@ -252,11 +257,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     expect(result!.varProps).toContain('title: globalVar');
@@ -272,11 +274,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     expect(result!.varProps).toContain('class: styles.foo');
@@ -292,11 +291,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     expect(result!.children).toBeNull();
@@ -312,11 +308,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     // Components use identifier, not string literal
@@ -332,11 +325,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     expect(result!.tag).toBe('"div"');
@@ -351,11 +341,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     // Key should be the expression, not auto-generated u6_N
@@ -373,11 +360,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     expect(result!.key).toBe('"stuff"');
@@ -392,11 +376,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     // Multiple children should produce array-like output
@@ -413,11 +394,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     // Single child should NOT be in an array
@@ -433,11 +411,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     expect(result!.callString).toContain('_jsxSplit');
@@ -458,11 +433,8 @@ describe('transformJsxElement', () => {
     const keyCounter = new JsxKeyCounter();
 
     const result = transformJsxElement(
+      makeCtx(source, s, importedNames, keyCounter),
       jsxNode,
-      source,
-      s,
-      importedNames,
-      keyCounter,
     );
 
     expect(result!.tag).toBe('Foo.Bar');

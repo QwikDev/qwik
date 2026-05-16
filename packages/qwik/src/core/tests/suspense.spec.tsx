@@ -31,6 +31,7 @@ import {
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
+import { TypeIds } from '../shared/serdes/constants';
 import * as logUtils from '../shared/utils/log';
 import { renderToStream } from '../../server/ssr-render';
 import type { StreamWriter } from '../../server/types';
@@ -1158,6 +1159,152 @@ describe('renderToStream: out-of-order Suspense', () => {
     expect(swapChunkIndex).toBeGreaterThan(-1);
     expect(rootStateChunkIndex).toBeGreaterThan(-1);
     expect(html).not.toContain('q:patch');
+  });
+
+  it('should preserve a slow root forward ref when a later segment has a faster forward ref', async () => {
+    let resolveRootPromise!: (value: string) => void;
+    let resolveSegment!: (value: JSXOutput) => void;
+    const rootPromise = new Promise<string>((resolve) => {
+      resolveRootPromise = resolve;
+    });
+    const segmentGate = new Promise<JSXOutput>((resolve) => {
+      resolveSegment = resolve;
+    });
+    const segmentPromise = Promise.resolve('fast segment promise');
+    (globalThis as any).__ooosUnitSlowForwardRefValue = '';
+    (globalThis as any).__ooosUnitFastForwardRefValue = '';
+
+    const SegmentContent = component$(() => {
+      const fast = useSignal<Promise<string>>(segmentPromise);
+      return (
+        <button
+          id="ooos-unit-fast-forward-ref-button"
+          onClick$={async () => {
+            (globalThis as any).__ooosUnitFastForwardRefValue = await fast.value;
+          }}
+        >
+          Read fast forward ref
+        </button>
+      );
+    });
+    const Slow = component$(() => <>{segmentGate}</>);
+    const App = component$(() => {
+      const slow = useSignal<Promise<string>>(rootPromise);
+      return (
+        <main>
+          <button
+            id="ooos-unit-slow-forward-ref-button"
+            onClick$={async () => {
+              (globalThis as any).__ooosUnitSlowForwardRefValue = await slow.value;
+            }}
+          >
+            Read slow forward ref
+          </button>
+          <Suspense fallback={<p>Waiting forward refs</p>}>
+            <Slow />
+          </Suspense>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+    const renderPromise = renderToStream(<App />, {
+      containerTagName: 'div',
+      qwikLoader: 'never',
+      stream: collectStream(chunks),
+      streaming: {
+        inOrder: { strategy: 'disabled' },
+        outOfOrder: { strategy: 'suspense' },
+      },
+    });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting forward refs'));
+      resolveRootPromise('slow root promise');
+      resolveSegment(<SegmentContent />);
+      await renderPromise;
+      const { vNode } = await ssrRenderToDom(<App />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <main>
+            <button id="ooos-unit-slow-forward-ref-button">Read slow forward ref</button>
+            <Component ssr-required>
+              <Fragment ssr-required>
+                <div style="display:none">
+                  <p>Waiting forward refs</p>
+                </div>
+                <div style="display:contents">
+                  <Projection ssr-required>
+                    <Component>
+                      <Fragment ssr-required>
+                        <Component>
+                          <Fragment ssr-required>
+                            <Fragment ssr-required>
+                              <button id="ooos-unit-fast-forward-ref-button">
+                                Read fast forward ref
+                              </button>
+                            </Fragment>
+                          </Fragment>
+                        </Component>
+                      </Fragment>
+                    </Component>
+                  </Projection>
+                </div>
+              </Fragment>
+            </Component>
+          </main>
+        </Component>
+      );
+
+      const document = createDocument({ html: chunks.join('') });
+      const scripts = Array.from(
+        document.querySelectorAll('script[type="text/javascript"]'),
+        (script) => script.textContent || ''
+      );
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+      const rootStateScript = document.querySelector('script[type="qwik/state"]:not([q\\:patch])');
+      const segmentStateScript = document.querySelector(
+        'script[type="qwik/state"][q\\:patch][q\\:r]'
+      );
+      expect(rootStateScript).not.toBeNull();
+      expect(segmentStateScript).not.toBeNull();
+      expect(JSON.parse(rootStateScript!.textContent!) as unknown[]).toContain(TypeIds.ForwardRefs);
+      const segmentPatch = JSON.parse(segmentStateScript!.textContent!) as unknown[];
+      const segmentRoots = segmentPatch[1] as unknown[];
+      const segmentForwardRefs = segmentPatch[2] as unknown[];
+      const hasForwardRef = (value: unknown): boolean =>
+        Array.isArray(value) &&
+        value.some(
+          (item, index) =>
+            (item === TypeIds.ForwardRef && value[index + 1] === 1) || hasForwardRef(item)
+        );
+      expect(segmentForwardRefs.length).toBe(1);
+      expect(hasForwardRef(segmentRoots)).toBe(true);
+
+      const platform = getPlatform();
+      setPlatform(getTestPlatform());
+      try {
+        emulateExecutionOfQwikFuncs(document);
+        emulateExecutionOfBackpatch(document);
+        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+
+        await trigger(container.element, '#ooos-unit-slow-forward-ref-button', 'click');
+        await waitForDrain(container);
+        expect((globalThis as any).__ooosUnitSlowForwardRefValue).toBe('slow root promise');
+
+        await trigger(container.element, '#ooos-unit-fast-forward-ref-button', 'click');
+        await waitForDrain(container);
+        expect((globalThis as any).__ooosUnitFastForwardRefValue).toBe('fast segment promise');
+      } finally {
+        setPlatform(platform);
+      }
+    } finally {
+      resolveRootPromise('slow root promise');
+      resolveSegment(<SegmentContent />);
+      await renderPromise;
+      delete (globalThis as any).__ooosUnitSlowForwardRefValue;
+      delete (globalThis as any).__ooosUnitFastForwardRefValue;
+    }
   });
 
   it('should stream sibling task-backed boundaries as each task resolves once', async () => {

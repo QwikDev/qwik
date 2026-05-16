@@ -35,6 +35,11 @@ import {
 
 type SuspenseState = 'content' | 'fallback';
 
+type SSROutOfOrderBoundaryState = {
+  contentResolved: boolean;
+  delayTimer: ReturnType<typeof setTimeout> | null;
+};
+
 /** @public @experimental */
 export type SuspenseProps = {
   fallback?: JSXOutput;
@@ -118,28 +123,45 @@ export const suspenseCmp = (props: SuspenseProps) => {
   const outOfOrderRevealBoundary = isServerOutOfOrder
     ? (revealRegistration?.reveal.ooos?.register(revealRegistration) ?? null)
     : null;
+  const outOfOrderBoundaryState = isServerOutOfOrder ? createOutOfOrderBoundaryState() : null;
+  const renderOutOfOrderFallback =
+    isServerOutOfOrder && shouldRenderFallback(props.fallback, outOfOrderRevealBoundary);
+  const fallbackStyle = /*#__PURE__*/ _fnSignal(
+    _hf0,
+    [props, state, canReveal, revealRegistration],
+    _hf0_str
+  );
 
   return /*#__PURE__*/ _jsxSorted(
     Fragment,
     null,
     null,
     [
-      /*#__PURE__*/ _jsxSorted(
-        'div',
-        {
-          style: isServerOutOfOrder
-            ? {
-                display: shouldRenderFallback(props.fallback, outOfOrderRevealBoundary)
-                  ? 'contents'
-                  : 'none',
-              }
-            : _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
-        },
-        null,
-        _wrapProp(props, 'fallback'),
-        1,
-        null
-      ),
+      isServerOutOfOrder
+        ? /*#__PURE__*/ _jsxSorted(
+            SSRFallback,
+            {
+              boundary: outOfOrderBoundaryState,
+              delay: props.delay,
+              fallbackStyle,
+              renderFallback: renderOutOfOrderFallback,
+              state,
+            },
+            null,
+            _wrapProp(props, 'fallback'),
+            1,
+            null
+          )
+        : /*#__PURE__*/ _jsxSorted(
+            'div',
+            {
+              style: fallbackStyle,
+            },
+            null,
+            _wrapProp(props, 'fallback'),
+            1,
+            null
+          ),
       /*#__PURE__*/ _jsxSorted(
         'div',
         null,
@@ -156,6 +178,7 @@ export const suspenseCmp = (props: SuspenseProps) => {
           isServerOutOfOrder
             ? {
                 [QCursorBoundary]: cursorBoundary,
+                boundary: outOfOrderBoundaryState,
                 boundaryId: outOfOrderBoundaryId,
                 reveal: outOfOrderRevealBoundary,
               }
@@ -181,7 +204,43 @@ export const Suspense = /*#__PURE__*/ componentQrl<SuspenseProps>(
   /*#__PURE__*/ inlinedQrl(suspenseCmp, SUSPENSE_QRL_SYMBOL)
 ) as typeof suspenseCmp;
 
+type SSRFallbackProps = {
+  boundary: SSROutOfOrderBoundaryState | null;
+  delay?: number;
+  fallbackStyle: Signal<{ display: string }>;
+  renderFallback: boolean;
+  state: Signal<SuspenseState>;
+};
+
+const SSRFallback = __EXPERIMENTAL__.suspense
+  ? /*#__PURE__*/ createInternalServerComponent<SSRFallbackProps>((ssr, jsx, _options, enqueue) => {
+      const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
+      const delay = jsx.varProps.delay as number | undefined;
+      const fallbackStyle = jsx.varProps.fallbackStyle as Signal<{ display: string }>;
+      const renderFallback = jsx.varProps.renderFallback === true;
+      const state = jsx.varProps.state as Signal<SuspenseState>;
+      if (renderFallback && !isPositiveDelay(delay)) {
+        state.value = 'fallback';
+      } else if (boundaryState && renderFallback && isPositiveDelay(delay)) {
+        enqueue(() => scheduleOutOfOrderFallbackDelay(ssr, boundaryState, state, delay));
+      }
+      enqueue(
+        /*#__PURE__*/ _jsxSorted(
+          'div',
+          {
+            style: fallbackStyle,
+          },
+          null,
+          jsx.children as JSXOutput,
+          1,
+          null
+        )
+      );
+    })
+  : null!;
+
 type SSRDeferredSlotProps = {
+  boundary: SSROutOfOrderBoundaryState | null;
   boundaryId: number;
   reveal: OutOfOrderRevealBoundary | null;
 };
@@ -190,6 +249,7 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
   ? /*#__PURE__*/ createInternalServerComponent<SSRDeferredSlotProps>(async (ssr, jsx, options) => {
       const boundaryId = (jsx.varProps.boundaryId as number | undefined) ?? ssr.nextOutOfOrderId();
       const contentSegment = `${boundaryId}`;
+      const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
       const content = ssr.segment(
         contentSegment,
@@ -201,7 +261,14 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       ssr.emitOutOfOrderExecutorIfNeeded();
       ssr.queueOutOfOrderSegment(
         content.then((rendered) =>
-          emitRenderedOutOfOrderSegment(ssr, boundaryId, contentSegment, rendered, revealBoundary)
+          emitRenderedOutOfOrderSegment(
+            ssr,
+            boundaryId,
+            contentSegment,
+            rendered,
+            revealBoundary,
+            boundaryState
+          )
         )
       );
     })
@@ -247,8 +314,10 @@ async function emitRenderedOutOfOrderSegment(
   boundaryId: number,
   segmentId: string,
   rendered: SSROutOfOrderSegment,
-  revealBoundary: OutOfOrderRevealBoundary | null
+  revealBoundary: OutOfOrderRevealBoundary | null,
+  boundaryState: SSROutOfOrderBoundaryState | null
 ): Promise<void> {
+  markOutOfOrderContentResolved(boundaryState);
   await ssr.$runQueuedRenderBeforeRootState$(async () => {
     const scripts = await rendered.context.container.$finalizeOutOfOrderSegment$(
       segmentId,
@@ -260,6 +329,47 @@ async function emitRenderedOutOfOrderSegment(
     // qO() is the browser-visible handoff for this segment, so flush it immediately.
     await ssr.streamHandler.flush();
   });
+}
+
+function createOutOfOrderBoundaryState(): SSROutOfOrderBoundaryState {
+  return {
+    contentResolved: false,
+    delayTimer: null,
+  };
+}
+
+function markOutOfOrderContentResolved(boundaryState: SSROutOfOrderBoundaryState | null): void {
+  if (!boundaryState) {
+    return;
+  }
+  boundaryState.contentResolved = true;
+  if (boundaryState.delayTimer) {
+    clearTimeout(boundaryState.delayTimer);
+    boundaryState.delayTimer = null;
+  }
+}
+
+function scheduleOutOfOrderFallbackDelay(
+  ssr: SSRContainer,
+  boundaryState: SSROutOfOrderBoundaryState,
+  state: Signal<SuspenseState>,
+  delay: number
+): void {
+  boundaryState.delayTimer = setTimeout(() => {
+    boundaryState.delayTimer = null;
+    void ssr.$runQueuedRenderBeforeRootState$(async () => {
+      if (boundaryState.contentResolved) {
+        return;
+      }
+      state.value = 'fallback';
+      ssr.emitBackpatchDataAndExecutorIfNeeded();
+      await ssr.streamHandler.flush();
+    });
+  }, delay);
+}
+
+function isPositiveDelay(delay: number | undefined): delay is number {
+  return typeof delay === 'number' && Number.isFinite(delay) && delay > 0;
 }
 
 function shouldRenderFallback(

@@ -162,9 +162,12 @@ With out-of-order streaming, Qwik can:
 4. Send the real Suspense content later, when it finishes.
 5. Hide the fallback and show the real content in the browser.
 
-During SSR, Qwik includes the fallback in the stream when the boundary has a fallback. If the
-Suspense content finishes quickly, the resolved content can be shown before the user notices the
-fallback.
+During SSR, Qwik includes the fallback in the stream when the boundary has a fallback. Qwik hides
+that fallback when the resolved content is shown. It stays in the DOM; it is not removed.
+
+If the boundary has a positive `delay`, Qwik still sends the fallback HTML immediately, but starts
+it hidden. If the delay finishes before the content, Qwik reveals the fallback. If the content
+finishes before the delay, the fallback remains hidden and the resolved content is shown instead.
 
 From the user's point of view, the page appears sooner. They can see the shell of the page while
 one slower section is still loading.
@@ -324,8 +327,9 @@ If you do not provide a fallback, the boundary has no visible loading UI. The re
 still stream, but that section will appear empty until the content is ready.
 
 When out-of-order streaming is enabled, a boundary that suspends during the initial server render
-streams its fallback as soon as Qwik reaches that boundary. The `delay` prop is still useful for
-client-side waits and later updates, but it is not used as a timer for the initial server stream.
+streams its fallback as soon as Qwik reaches that boundary. Without a positive `delay`, the fallback
+can be visible immediately. With a positive `delay`, the fallback is streamed hidden and is only
+revealed if the delay finishes before the real content.
 
 For best results:
 
@@ -457,6 +461,11 @@ export default component$(() => {
 Use `delay` to avoid flashing a loading state for work that usually resolves quickly.
 
 If the content resolves before the delay finishes, the fallback is not shown.
+
+During out-of-order SSR streaming, Qwik still sends the fallback HTML immediately so the browser can
+reveal it without waiting for another HTML chunk. For `delay > 0`, the fallback starts hidden. If
+the delay finishes first, Qwik reveals it with a streamed update. If the content finishes first, Qwik
+cancels the reveal and shows the resolved content instead.
 
 ## `showStale`
 

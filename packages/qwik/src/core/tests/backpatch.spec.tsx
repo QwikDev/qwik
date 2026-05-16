@@ -8,17 +8,37 @@ import {
   type Signal,
   Fragment as Component,
 } from '@qwik.dev/core';
-import { ssrRenderToDom } from '@qwik.dev/core/testing';
+import { createDocument, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import { vi } from 'vitest';
 import * as logUtils from '../shared/utils/log';
 import { ELEMENT_BACKPATCH_DATA } from '../../server/qwik-copy';
+import { executeBackpatch } from '../../backpatch-executor-shared';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe('SSR Backpatching', () => {
+  it('should apply the latest backpatch data script', () => {
+    const document = createDocument({
+      html: `
+        <div q:container="paused" :="">
+          <input :="" id="initial">
+          <script type="qwik/backpatch">[1,"id","first"]</script>
+          <script type="qwik/backpatch">[1,"id","second",1,"aria-label","second"]</script>
+        </div>
+      `,
+    });
+    const container = document.querySelector('[q\\:container]')!;
+
+    executeBackpatch(document, container);
+
+    const input = document.querySelector('input')!;
+    expect(input.getAttribute('id')).toBe('second');
+    expect(input.getAttribute('aria-label')).toBe('second');
+  });
+
   it('should handle basic backpatching', async () => {
     const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-1');
 

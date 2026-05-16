@@ -79,6 +79,8 @@ export const OutOfOrderSuspenseRoot = component$(() => {
           <MultipleOutOfOrderSuspense />
         ) : scenario === 'cross-state' ? (
           <CrossStateOutOfOrderSuspense />
+        ) : scenario === 'delay' ? (
+          <DelayedFallbackOutOfOrderSuspense />
         ) : scenario === 'reveal' ? (
           <RevealOutOfOrderSuspense />
         ) : scenario === 'containers' ? (
@@ -299,6 +301,27 @@ export const CrossStateOutOfOrderSuspense = component$(() => {
         id="ooos-cross-release"
         label="Resolve cross-state suspense"
         releaseParam="cross"
+      />
+    </section>
+  );
+});
+
+export const DelayedFallbackOutOfOrderSuspense = component$(() => {
+  const url = useServerData<string>('url');
+  const fallbackDelay = Number(getSearchParam(url, 'fallbackDelay') || 1000);
+
+  return (
+    <section id="ooos-delay-root">
+      <Suspense
+        fallback={<OutOfOrderFallbackPanel id="delay" label="Delay" />}
+        delay={fallbackDelay}
+      >
+        <ControlledOutOfOrderContent id="delay" label="Delay" releaseParam="delayRelease" />
+      </Suspense>
+      <ManualOutOfOrderReleaseButton
+        id="ooos-delay-release"
+        label="Resolve delay suspense"
+        releaseParam="delayRelease"
       />
     </section>
   );

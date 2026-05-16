@@ -6,7 +6,7 @@ const dataDefaults: PlaygroundShareUrl = {
   version: '',
   buildMode: 'development',
   entryStrategy: 'segment',
-  outOfOrderStreaming: false,
+  outOfOrderStreaming: true,
   files: [],
 };
 export const parsePlaygroundShareUrl = (shareable: string) => {
@@ -29,7 +29,8 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
         data.entryStrategy = entryStrategy;
       }
 
-      data.outOfOrderStreaming = params.get('ooos') === '1' || params.get('outOfOrder') === '1';
+      const outOfOrderStreaming = params.get('ooos') ?? params.get('outOfOrder');
+      data.outOfOrderStreaming = outOfOrderStreaming === null || outOfOrderStreaming === '1';
 
       if (params.has('files')) {
         // Old URLs that didn't compress
@@ -132,8 +133,8 @@ export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/
   if (data.entryStrategy !== dataDefaults.entryStrategy) {
     params.set('entryStrategy', data.entryStrategy);
   }
-  if (data.outOfOrderStreaming) {
-    params.set('ooos', '1');
+  if (data.outOfOrderStreaming === false) {
+    params.set('ooos', '0');
   }
 
   params.set('f', compressFiles(data.files));

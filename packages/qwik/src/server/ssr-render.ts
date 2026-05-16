@@ -45,6 +45,16 @@ export const renderToStream = async (
   jsx: JSXOutput,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
+  if (__EXPERIMENTAL__.suspense && opts.streaming?.outOfOrder === undefined) {
+    opts = {
+      ...opts,
+      streaming: {
+        ...opts.streaming,
+        outOfOrder: { strategy: 'suspense' },
+      },
+    };
+  }
+
   const timing: RenderToStreamResult['timing'] = {
     firstFlush: 0,
     render: 0,

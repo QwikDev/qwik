@@ -32,7 +32,7 @@ export default component$(() => {
       appId: app ? app.id : '',
       buildMode: 'development',
       entryStrategy: 'segment',
-      outOfOrderStreaming: false,
+      outOfOrderStreaming: true,
       files: app?.inputs || [],
       version: '',
       shareUrlTmr: undefined,

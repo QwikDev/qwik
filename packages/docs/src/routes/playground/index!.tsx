@@ -26,7 +26,7 @@ export default component$(() => {
     version: '',
     buildMode: 'development',
     entryStrategy: 'segment',
-    outOfOrderStreaming: false,
+    outOfOrderStreaming: true,
   }));
 
   const panelStore = useStore(() => ({

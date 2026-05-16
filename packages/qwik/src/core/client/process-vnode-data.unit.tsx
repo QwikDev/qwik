@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
-import { VNodeDataSeparator, getSegmentVNodeId } from '../shared/vnode-data-types';
+import { VNodeDataSeparator, getSegmentVNodeRefId } from '../shared/vnode-data-types';
 import { getDomContainer } from './dom-container';
 import { findVDataSectionEnd, processVNodeData } from './process-vnode-data';
 import type { ClientContainer } from './types';
@@ -238,19 +238,21 @@ describe('processVnodeData', () => {
         </body>
       </html>
     );
-    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 0)}`)).toMatchVDOM(
+    expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 0)}`)).toMatchVDOM(
       <div {...{ 'q:rp': '1' }} style="display:contents">
         <section>
           <button>OK</button>
         </section>
       </div>
     );
-    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 1)}`)).toMatchVDOM(
+    expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 1)}`)).toMatchVDOM(
       <section>
         <button>OK</button>
       </section>
     );
-    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 2)}`)).toMatchVDOM(<button>OK</button>);
+    expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 2)}`)).toMatchVDOM(
+      <button>OK</button>
+    );
   });
   it('should materialize suspense content host from DOM when segment data starts at child', () => {
     const [container] = process(`
@@ -264,7 +266,7 @@ describe('processVnodeData', () => {
         </body>
       </html>`);
 
-    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 0)}A`)).toMatchVDOM(
+    expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 0)}A`)).toMatchVDOM(
       <section>
         <button>OK</button>
       </section>
@@ -304,12 +306,14 @@ describe('processVnodeData', () => {
         </body>
       </html>`);
 
-    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 1)}`)).toMatchVDOM(
+    expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 1)}`)).toMatchVDOM(
       <section>
         <button>OK</button>
       </section>
     );
-    expect(container.vNodeLocate(`${getSegmentVNodeId('1', 2)}`)).toMatchVDOM(<button>OK</button>);
+    expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 2)}`)).toMatchVDOM(
+      <button>OK</button>
+    );
   });
   it('should process suspense content segment vnode data on the content host', () => {
     const [container] = process(`

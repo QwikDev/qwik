@@ -67,7 +67,7 @@ export { serializeAttribute } from '../core/shared/utils/styles';
 export {
   VNodeDataChar,
   VNodeDataSeparator,
-  getSegmentVNodeId,
+  getSegmentVNodeRefId,
 } from '../core/shared/vnode-data-types';
 export { preload } from '../core/preloader/queue';
 export { initPreloader } from '../core/preloader/bundle-graph';

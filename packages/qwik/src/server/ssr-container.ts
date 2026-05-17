@@ -104,7 +104,7 @@ import {
 import {
   collectSubscriptionPatches,
   recordExternalRootEffect,
-  type SubscriptionPatchRecords,
+  type SubscriptionPatchRecord,
 } from './ooos-utils';
 import { preloaderPost, preloaderPre } from './preload-impl';
 import {
@@ -208,6 +208,7 @@ interface ElementFrame {
   depthFirstElementIdx: number;
   vNodeData: VNodeData;
   currentFile: string | null;
+  refBase: number | string | null;
 }
 
 const noopStreamHandler: IStreamHandler = {
@@ -216,8 +217,6 @@ const noopStreamHandler: IStreamHandler = {
   streamBlockStart() {},
   streamBlockEnd() {},
 };
-
-const EMPTY_OBJ = {};
 
 /**
  * Stores sequential sequence arrays, which in turn store Tasks which have cleanup functions which
@@ -229,6 +228,18 @@ const QTemplateProps = {
   hidden: true,
   'aria-hidden': true,
 };
+
+export const enum SSRContainerState {
+  NotReady = 0,
+  DataStreamStarted = 1,
+  OOOSReady = 2,
+}
+
+const enum OutOfOrderSegmentState {
+  Rendering = 0,
+  EarlyFinalized = 1,
+  Done = 2,
+}
 
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
@@ -265,6 +276,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
   private isBackpatchExecutorEmitted = false;
+  private isOutOfOrderExecutorEmitted = false;
   private backpatchMap = new Map<number | string, BackpatchEntry[]>();
 
   private currentElementFrame: ElementFrame | null = null;
@@ -287,24 +299,23 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   protected $noMoreRoots$ = false;
   private qlInclude: QwikLoaderInclude;
   private promiseAttributes: Array<Promise<any>> | null = null;
-  private vnodeSegment: string | null = null;
+  protected vnodeSegment: string | null = null;
+  private $containerState$ = SSRContainerState.NotReady;
+
+  // OOOS related fields
   private outOfOrderId = 0;
   private outOfOrderUsed = false;
-  private outOfOrderExecutorEmitted = false;
   private outOfOrderPendingSegments: Promise<void>[] = [];
-  private outOfOrderReadyRenders: Array<() => Promise<void>> = [];
-  private outOfOrderSegmentScripts: string[] = [];
-  public rootContainerReady = false;
-  private rootContainerDataStarted = false;
+  public outOfOrderSegments: SSRSegmentContainer[] = [];
   private rootContainerReadyPromise: Promise<void> | null = null;
   private resolveRootContainerReady: (() => void) | null = null;
   private renderQueue: Promise<unknown> = Promise.resolve();
-  public emittedSyncFnCount = 0;
   private emittedQwikEventNames = new Set<string>();
-  protected subscriptionPatchRecords: SubscriptionPatchRecords | null = null;
+  public emittedSyncFnCount = 0;
+  public rootContainerSerializedRootCount = 0;
 
   constructor(opts: SSRContainerOptions) {
-    super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
+    super(opts.renderOptions.serverData ?? {}, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
       const idx = symbol.lastIndexOf('_');
       const chunk = this.resolvedManifest.mapper[idx == -1 ? symbol : symbol.substring(idx + 1)];
@@ -397,33 +408,28 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     await _walkJSX(this, jsx, options);
   }
 
+  $isReadyForOOOS$(): boolean {
+    return this.$containerState$ === SSRContainerState.OOOSReady;
+  }
+
   /** Queue OOOS serialization/write work that must not overlap with root state serialization. */
-  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): Promise<T> {
-    const run = () =>
-      Promise.resolve(
-        __EXPERIMENTAL__.suspense &&
-          this.outOfOrderStreaming &&
-          this.rootContainerDataStarted &&
-          !this.rootContainerReady
-          ? this.waitForRootContainerReady()
-          : undefined
-      ).then(render);
-    const result = this.renderQueue.then(run, run);
+  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {
+    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
+      return render();
+    }
+    if (this.$containerState$ === SSRContainerState.NotReady) {
+      return render();
+    }
+    const result =
+      this.$containerState$ === SSRContainerState.DataStreamStarted
+        ? this.renderQueue.then(() => this.$waitForRootContainerReady$()).then(render)
+        : this.renderQueue.then(render);
     this.renderQueue = result.catch(() => {});
     return result;
   }
 
-  $runQueuedRenderBeforeRootState$<T>(render: () => ValueOrPromise<T>): Promise<T> {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || this.rootContainerDataStarted) {
-      return this.$runQueuedRender$(render);
-    }
-    return new Promise<T>((resolve, reject) => {
-      this.outOfOrderReadyRenders.push(() => this.$runQueuedRender$(render).then(resolve, reject));
-    });
-  }
-
-  private waitForRootContainerReady(): ValueOrPromise<void> {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || this.rootContainerReady) {
+  private $waitForRootContainerReady$(): ValueOrPromise<void> {
+    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || this.$isReadyForOOOS$()) {
       return;
     }
     return (this.rootContainerReadyPromise ||= new Promise<void>((resolve) => {
@@ -431,31 +437,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }));
   }
 
-  private markRootContainerReady(): void {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || this.rootContainerReady) {
+  private $markRootContainerReady$(): void {
+    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || this.$isReadyForOOOS$()) {
       return;
     }
-    this.rootContainerReady = true;
+    this.rootContainerSerializedRootCount = this.serializationCtx.$roots$.length;
+    this.$containerState$ = SSRContainerState.OOOSReady;
     this.resolveRootContainerReady?.();
     this.resolveRootContainerReady = null;
     this.rootContainerReadyPromise = null;
-  }
-
-  private async flushOutOfOrderRendersBeforeRootState(): Promise<void> {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || this.rootContainerDataStarted) {
-      return;
-    }
-    await this.streamHandler.flush();
-    await Promise.resolve();
-    while (this.outOfOrderReadyRenders.length) {
-      const readyRenders = this.outOfOrderReadyRenders;
-      this.outOfOrderReadyRenders = [];
-      for (let i = 0; i < readyRenders.length; i++) {
-        await readyRenders[i]();
-      }
-    }
-    this.emitQueuedOutOfOrderSegmentScripts();
-    this.rootContainerDataStarted = true;
   }
 
   nextOutOfOrderId(): number {
@@ -470,31 +460,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || !scripts) {
       return;
     }
-    if (!this.rootContainerReady) {
-      if (!this.rootContainerDataStarted) {
-        this.outOfOrderSegmentScripts.push(scripts);
-        return;
-      }
-    }
-    this.writeOutOfOrderSegmentScripts(scripts);
-  }
-
-  private emitQueuedOutOfOrderSegmentScripts(): void {
-    if (
-      !__EXPERIMENTAL__.suspense ||
-      !this.outOfOrderStreaming ||
-      !this.outOfOrderSegmentScripts.length
-    ) {
-      return;
-    }
-    const scripts = this.outOfOrderSegmentScripts;
-    this.outOfOrderSegmentScripts = [];
-    for (let i = 0; i < scripts.length; i++) {
-      this.writeOutOfOrderSegmentScripts(scripts[i]);
-    }
-  }
-
-  private writeOutOfOrderSegmentScripts(scripts: string): void {
     this.write(scripts);
   }
 
@@ -516,25 +481,38 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.markVNodeRefForSerialization(options.parentComponentFrame?.componentNode);
     const writer = new StringBufferSegmentWriter();
     const segmentContainer = this.createSegmentContainer(segmentId, writer);
-    await segmentContainer.renderJSX(jsx, options);
-    await segmentContainer.resolvePromiseAttributes();
-    const htmlChunks = writer.extract();
-    return {
-      html: '',
-      scripts: '',
-      suspended: null,
-      context: {
+    this.outOfOrderSegments.push(segmentContainer);
+    try {
+      await segmentContainer.renderJSX(jsx, options);
+      await segmentContainer.resolvePromiseAttributes();
+      const htmlChunks = writer.extract();
+      return {
         container: segmentContainer,
         writer,
         htmlChunks,
-      },
-    };
+      };
+    } catch (error) {
+      this.removeOutOfOrderSegment(segmentContainer);
+      throw error;
+    }
+  }
+
+  private $getRootContainer$(): SSRContainer {
+    let rootContainer: SSRContainer = this;
+    while (rootContainer instanceof SSRSegmentContainer) {
+      rootContainer = rootContainer.$rootContainer$;
+    }
+    return rootContainer;
   }
 
   private createSegmentContainer(
     segmentId: string,
     writer: StringBufferSegmentWriter
-  ): SSRContainer & ISSRSegmentContainer {
+  ): SSRSegmentContainer {
+    const rootContainer = this.$getRootContainer$();
+    const contentHostNode = this.getOrCreateLastNode();
+    this.addRoot(contentHostNode);
+    this.markVNodeRefForSerialization(contentHostNode);
     const rootFrame: ElementFrame = {
       tagNesting: TagNesting.ANYTHING,
       parent: null,
@@ -543,6 +521,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       // OOOS inserts this synthetic root under the Suspense content host on the client.
       vNodeData: [VNodeDataFlag.SERIALIZE],
       currentFile: null,
+      refBase: contentHostNode.id,
     };
     const segmentContainer = new SSRSegmentContainer(
       {
@@ -555,7 +534,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         resolvedManifest: this.resolvedManifest,
         renderOptions: this.renderOptions,
       },
-      this
+      rootContainer
     );
 
     const innerSegmentContainer = segmentContainer as typeof segmentContainer & InnerContainer;
@@ -576,7 +555,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     segmentContainer.vNodeDatas = [rootFrame.vNodeData];
     segmentContainer.componentStack = this.componentStack.slice();
     segmentContainer.vnodeSegment = segmentId;
-    segmentContainer.subscriptionPatchRecords = [];
     segmentContainer.styleIds = this.styleIds;
     segmentContainer.emittedQwikEventNames = this.emittedQwikEventNames;
     segmentContainer.qlInclude = QwikLoaderInclude.Done;
@@ -590,6 +568,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
     this.outOfOrderPendingSegments.push(segment);
+  }
+
+  removeOutOfOrderSegment(segment: SSRSegmentContainer): void {
+    const segments = this.outOfOrderSegments;
+    for (let i = 0; i < segments.length; i++) {
+      if (segments[i] === segment) {
+        segments.splice(i, 1);
+        return;
+      }
+    }
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
@@ -755,25 +743,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       // start snapshot timer
       this.onRenderDone();
       const snapshotTimer = createTimer();
-      const beforeContainerData =
-        __EXPERIMENTAL__.suspense && this.outOfOrderStreaming && this.outOfOrderUsed
-          ? this.flushOutOfOrderRendersBeforeRootState()
-          : undefined;
       return maybeThen(
-        maybeThen(
-          maybeThen(beforeContainerData, () => this.emitContainerData()),
-          async () => {
-            if (__EXPERIMENTAL__.suspense && this.outOfOrderStreaming && this.outOfOrderUsed) {
-              this.emitQueuedOutOfOrderSegmentScripts();
-              await this.streamHandler.flush();
-              this.markRootContainerReady();
-              if (this.outOfOrderPendingSegments.length) {
-                await Promise.all(this.outOfOrderPendingSegments);
-              }
-            }
-            this._closeElement();
-          }
-        ),
+        maybeThen(this.emitContainerData(), () => this._closeElement()),
         () => {
           // set snapshot time
           this.timing.snapshot = snapshotTimer();
@@ -948,22 +919,26 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   addRoot(obj: unknown) {
     if (this.$noMoreRoots$) {
       const rootId = this.serializationCtx.$hasRootId$(obj);
-      return rootId === undefined ? undefined : this.serializationCtx.$formatLocalRef$(rootId);
+      return rootId;
     }
     return this.serializationCtx.$addRoot$(obj);
   }
 
   getOrCreateLastNode(): ISsrNode {
     if (!this.lastNode) {
-      const elementIndex = this.currentElementFrame!.depthFirstElementIdx + 1;
+      const currentFrame = this.currentElementFrame!;
+      const elementIndex = currentFrame.depthFirstElementIdx + 1;
+      const refBase =
+        currentFrame.refBase ??
+        (this.vnodeSegment
+          ? getSegmentVNodeRefId(this.vnodeSegment, elementIndex)
+          : elementIndex + this.vNodeDataOffset);
       this.lastNode = vNodeData_createSsrNodeReference(
         this.currentComponentNode,
-        this.currentElementFrame!.vNodeData,
-        this.vnodeSegment
-          ? getSegmentVNodeRefId(this.vnodeSegment, elementIndex)
-          : elementIndex + this.vNodeDataOffset,
+        currentFrame.vNodeData,
+        refBase,
         this.cleanupQueue,
-        this.currentElementFrame!.currentFile
+        currentFrame.currentFile
       );
     }
     return this.lastNode!;
@@ -1031,21 +1006,63 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ////////////////////////////////////
 
   private emitContainerData(): ValueOrPromise<void> {
+    const isStreamingDisabled =
+      (this.renderOptions as RenderToStreamOptions).streaming?.inOrder?.strategy === 'disabled';
+    const shouldFlushShell =
+      !isStreamingDisabled ||
+      (__EXPERIMENTAL__.suspense && this.outOfOrderStreaming && this.outOfOrderUsed);
     // TODO first emit state, then only emit slots where the parent is serialized (so they could rerender)
-    return maybeThen(this.resolvePromiseAttributes(), () =>
-      maybeThen(this.emitStateData(), () => {
-        this.$noMoreRoots$ = true;
-        this.emitVNodeData();
-        if (!isDev) {
-          preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
-        }
-        this.emitSyncFnsData();
-        this.emitPatchDataIfNeeded();
-        this.emitExecutorIfNeeded();
-        this.emitOutOfOrderExecutorIfNeeded();
-        this.emitQwikLoaderAtBottomIfNeeded();
-      })
+    return maybeThen(
+      maybeThen(shouldFlushShell ? this.streamHandler.flush() : undefined, () =>
+        this.resolvePromiseAttributes()
+      ),
+      () => {
+        this.$containerState$ = SSRContainerState.DataStreamStarted;
+        return maybeThen(this.emitStateData(), () => {
+          this.$noMoreRoots$ = true;
+          return maybeThen(this.emitRestStateData(), () => this.emitOutOfOrderSegmentsAndData());
+        });
+      }
     );
+  }
+
+  private emitRestStateData(): void {
+    this.emitVNodeData();
+    this.emitDelayedOutOfOrderSegmentVNodeData();
+    if (!isDev) {
+      preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
+    }
+    this.emitSyncFnsData();
+    this.emitPatchDataIfNeeded();
+    this.emitExecutorIfNeeded();
+    this.emitQwikLoaderAtBottomIfNeeded();
+  }
+
+  private emitDelayedOutOfOrderSegmentVNodeData(): void {
+    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || !this.outOfOrderUsed) {
+      return;
+    }
+    for (let i = 0; i < this.outOfOrderSegments.length; i++) {
+      const segment = this.outOfOrderSegments[i];
+      if (segment.$outOfOrderState$ === OutOfOrderSegmentState.EarlyFinalized) {
+        segment.$emitDelayedOutOfOrderVNodeData$();
+        i--;
+      }
+    }
+  }
+
+  private emitOutOfOrderSegmentsAndData(): ValueOrPromise<void> {
+    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || !this.outOfOrderUsed) {
+      return;
+    }
+    this.emitOutOfOrderExecutorIfNeeded();
+
+    return maybeThen(this.streamHandler.flush(), async () => {
+      this.$markRootContainerReady$();
+      if (this.outOfOrderPendingSegments.length) {
+        await Promise.all(this.outOfOrderPendingSegments);
+      }
+    });
   }
 
   /**
@@ -1345,11 +1362,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       !__EXPERIMENTAL__.suspense ||
       !this.outOfOrderStreaming ||
       !this.outOfOrderUsed ||
-      this.outOfOrderExecutorEmitted
+      this.isOutOfOrderExecutorEmitted
     ) {
       return;
     }
-    this.outOfOrderExecutorEmitted = true;
+    this.isOutOfOrderExecutorEmitted = true;
     this.writeScript(
       { type: 'text/javascript', nonce: this.renderOptions.serverData?.nonce },
       getQwikOutOfOrderExecutorScript({ debug: isDev })
@@ -1562,6 +1579,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       depthFirstElementIdx,
       vNodeData: [VNodeDataFlag.NONE],
       currentFile: isDev ? currentFile || null : null,
+      refBase: null,
     };
     this.currentElementFrame = frame;
     this.vNodeDatas.push(frame.vNodeData);
@@ -1741,11 +1759,35 @@ interface SegmentRootCommit {
 }
 
 export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentContainer {
+  $outOfOrderState$ = OutOfOrderSegmentState.Rendering;
+  $outOfOrderRootIdMap$: number[] | null = null;
+  private subscriptionPatchRecords: SubscriptionPatchRecord[] = [];
+
   constructor(
     opts: SSRContainerOptions,
     public override $rootContainer$: SSRContainer
   ) {
     super(opts);
+  }
+
+  override nextOutOfOrderId(): number {
+    return this.$rootContainer$.nextOutOfOrderId();
+  }
+
+  override $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {
+    return this.$rootContainer$.$runQueuedRender$(render);
+  }
+
+  override queueOutOfOrderSegment(segment: Promise<void>): void {
+    this.$rootContainer$.queueOutOfOrderSegment(segment);
+  }
+
+  override emitOutOfOrderSegmentScripts(scripts: string): void {
+    this.$rootContainer$.emitOutOfOrderSegmentScripts(scripts);
+  }
+
+  override emitOutOfOrderExecutorIfNeeded(): void {
+    this.$rootContainer$.emitOutOfOrderExecutorIfNeeded();
   }
 
   $recordExternalRootEffect$(
@@ -1769,29 +1811,20 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   async $finalizeOutOfOrderSegment$(
     segmentId: string,
     segment: SSROutOfOrderSegment
-  ): Promise<string> {
+  ): Promise<{ html: string; scripts: string }> {
     const rootContainer = this.$rootContainer$;
-    const rootReadyAtSegment = rootContainer.rootContainerReady;
+    const rootReadyAtSegment = rootContainer.$isReadyForOOOS$();
     const segmentSerializationCtx = this.serializationCtx;
-    const commit = this.commitSegmentRoots(rootContainer, segmentSerializationCtx);
-    segmentSerializationCtx.$onAddRoot$ = (localId, root, obj) => {
-      this.commitSegmentRoot(rootContainer, localId, root, obj, commit);
-    };
+
     try {
-      const rootIdMap = commit.rootIdMap;
-      this.mergeSegmentEventData(rootContainer, segmentSerializationCtx);
-      this.mergeSegmentSyncFns(rootContainer, segmentSerializationCtx);
-      let subscriptionPatchRootId: number | undefined;
-      const subscriptionPatches = rootReadyAtSegment
-        ? this.collectSubscriptionPatches(
-            rootContainer,
-            rootContainer.serializationCtx.$serializedRootCount$ -
-              (rootContainer.serializationCtx.$hasRootStateForwardRefs$ ? 1 : 0)
-          )
-        : undefined;
-      if (subscriptionPatches) {
-        subscriptionPatchRootId = segmentSerializationCtx.$addRoot$(subscriptionPatches);
-      }
+      const commit = this.$commitRoots$(rootContainer, segmentSerializationCtx);
+      this.$mergeSegmentEventData$(rootContainer, segmentSerializationCtx);
+      this.$mergeSegmentSyncFns$(rootContainer, segmentSerializationCtx);
+      const subscriptionPatchRootId = this.$addSubscriptionsToRoots$(
+        rootContainer,
+        rootReadyAtSegment,
+        segmentSerializationCtx
+      );
       if (
         rootReadyAtSegment &&
         (commit.newRootLocalIds.length > 0 || subscriptionPatchRootId !== undefined)
@@ -1810,9 +1843,9 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
         rootContainer.serializationCtx.$serializedForwardRefCount$ +=
           segmentSerializationCtx.$serializedForwardRefCount$;
       }
-      this.$noMoreRoots$ = true;
-      this.emitVNodeData(segmentId);
       if (rootReadyAtSegment) {
+        this.$noMoreRoots$ = true;
+        this.emitVNodeData(segmentId);
         const segmentCtx = this.serializationCtx;
         this.serializationCtx = rootContainer.serializationCtx;
         this.emittedSyncFnCount = rootContainer.emittedSyncFnCount;
@@ -1823,13 +1856,66 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       }
       this.emitPatchDataIfNeeded();
       this.drainCleanupQueue();
-      segment.html = renderSSRChunks(segment.context.htmlChunks, rootIdMap);
-      segment.scripts = segment.context.writer.toString(rootIdMap);
-      return segment.scripts;
+      const rootIdMap = commit.rootIdMap;
+      if (rootReadyAtSegment) {
+        this.$outOfOrderState$ = OutOfOrderSegmentState.Done;
+      } else {
+        this.$outOfOrderRootIdMap$ = rootIdMap;
+        this.$outOfOrderState$ = OutOfOrderSegmentState.EarlyFinalized;
+      }
+      return {
+        html: renderSSRChunks(segment.htmlChunks, rootIdMap),
+        scripts: segment.writer.toString(rootIdMap),
+      };
     } finally {
-      segmentSerializationCtx.$onAddRoot$ = undefined;
+      if (this.$outOfOrderState$ !== OutOfOrderSegmentState.EarlyFinalized) {
+        segmentSerializationCtx.$onAddRoot$ = undefined;
+        rootContainer.removeOutOfOrderSegment(this);
+      }
       rootContainer.serializationCtx.$setWriter$(rootContainer.writer);
     }
+  }
+
+  $emitDelayedOutOfOrderVNodeData$(): void {
+    try {
+      this.emitVNodeData(this.vnodeSegment!);
+      this.$rootContainer$.emitOutOfOrderSegmentScripts(
+        this.writer.toString(this.$outOfOrderRootIdMap$!)
+      );
+      this.$outOfOrderState$ = OutOfOrderSegmentState.Done;
+      this.$rootContainer$.removeOutOfOrderSegment(this);
+    } finally {
+      this.serializationCtx.$onAddRoot$ = undefined;
+    }
+  }
+
+  private $commitRoots$(
+    rootContainer: SSRContainer,
+    segmentSerializationCtx: SerializationContext
+  ): SegmentRootCommit {
+    const commit = this.commitSegmentRoots(rootContainer, segmentSerializationCtx);
+    segmentSerializationCtx.$onAddRoot$ = (localId, root, obj) => {
+      this.commitSegmentRoot(rootContainer, localId, root, obj, commit);
+    };
+    return commit;
+  }
+
+  private $addSubscriptionsToRoots$(
+    rootContainer: SSRContainer,
+    rootReadyAtSegment: boolean,
+    segmentSerializationCtx: SerializationContext
+  ) {
+    let subscriptionPatchRootId: number | undefined = undefined;
+    const subscriptionPatches = rootReadyAtSegment
+      ? this.collectSubscriptionPatches(
+          rootContainer,
+          rootContainer.rootContainerSerializedRootCount
+        )
+      : undefined;
+    if (subscriptionPatches) {
+      subscriptionPatchRootId = segmentSerializationCtx.$addRoot$(subscriptionPatches);
+    }
+    return subscriptionPatchRootId;
   }
 
   private commitSegmentRoots(
@@ -1837,21 +1923,58 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     segmentSerializationCtx: SerializationContext
   ): SegmentRootCommit {
     const rootIdMap: number[] = [];
-    const newRootStart = rootContainer.rootContainerReady
+    const newRootStart = rootContainer.$isReadyForOOOS$()
       ? rootContainer.serializationCtx.$serializedRootCount$
       : rootContainer.serializationCtx.$roots$.length;
     const newRootLocalIds: number[] = [];
+    const commit = {
+      rootIdMap,
+      newRootStart,
+      newRootLocalIds,
+    };
+    this.promoteSharedSegmentRoots(rootContainer, segmentSerializationCtx, commit);
     const segmentRoots = segmentSerializationCtx.$roots$;
     const segmentRootObjs = segmentSerializationCtx.$rootObjs$;
     for (let i = 0; i < segmentRoots.length; i++) {
       const rootObj = segmentRootObjs[i];
-      this.commitSegmentRoot(rootContainer, i, segmentRoots[i], rootObj, {
-        rootIdMap,
-        newRootStart,
-        newRootLocalIds,
-      });
+      this.commitSegmentRoot(rootContainer, i, segmentRoots[i], rootObj, commit);
     }
-    return { rootIdMap, newRootStart, newRootLocalIds };
+    return commit;
+  }
+
+  private promoteSharedSegmentRoots(
+    rootContainer: SSRContainer,
+    segmentSerializationCtx: SerializationContext,
+    commit: SegmentRootCommit
+  ): void {
+    const segmentRoots = segmentSerializationCtx.$roots$;
+    const segmentRootObjs = segmentSerializationCtx.$rootObjs$;
+    for (let i = 0; i < segmentRootObjs.length; i++) {
+      const rootObj = segmentRootObjs[i];
+      if (this.isRootOrUsedByOtherLiveSegment(rootContainer, rootObj)) {
+        this.commitSegmentRoot(rootContainer, i, segmentRoots[i], rootObj, commit);
+      }
+    }
+  }
+
+  private isRootOrUsedByOtherLiveSegment(rootContainer: SSRContainer, obj: unknown): boolean {
+    if (rootContainer.serializationCtx.$hasRootId$(obj) !== undefined) {
+      return true;
+    }
+    const segments = rootContainer.outOfOrderSegments;
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      if (segment === this) {
+        continue;
+      }
+      const rootObjs = segment.serializationCtx.$rootObjs$;
+      for (let j = 0; j < rootObjs.length; j++) {
+        if (rootObjs[j] === obj) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private commitSegmentRoot(
@@ -1871,12 +1994,12 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     }
     const rootCtx = rootContainer.serializationCtx;
     commit.rootIdMap[localId] =
-      rootContainer.rootContainerReady && rootId >= rootCtx.$rootStateRootCount$
+      rootContainer.$isReadyForOOOS$() && rootId >= rootCtx.$rootStateRootCount$
         ? rootId + (rootCtx.$hasRootStateForwardRefs$ ? 1 : 0)
         : rootId;
   }
 
-  private mergeSegmentEventData(
+  private $mergeSegmentEventData$(
     rootContainer: SSRContainer,
     segmentSerializationCtx: SerializationContext
   ): void {
@@ -1888,7 +2011,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     }
   }
 
-  private mergeSegmentSyncFns(
+  private $mergeSegmentSyncFns$(
     rootContainer: SSRContainer,
     segmentSerializationCtx: SerializationContext
   ): void {

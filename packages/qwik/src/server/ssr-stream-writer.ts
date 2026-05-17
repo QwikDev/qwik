@@ -1,4 +1,4 @@
-import type { SSRInternalStreamWriter, SSRWriteChunk } from './qwik-types';
+import type { SSRInternalStreamWriter, SSRSegmentWriteChunk } from './qwik-types';
 export {
   createStringStreamWriter,
   stringifyRootRefPath,
@@ -7,17 +7,19 @@ export {
 } from './qwik-copy';
 import { writeStringRootRef, writeStringRootRefPath } from './qwik-copy';
 
-export const renderSSRChunks = (chunks: SSRWriteChunk[], remap?: number[]): string => {
+export const renderSSRChunks = (chunks: SSRSegmentWriteChunk[], remap?: number[]): string => {
   let out = '';
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
     if (typeof chunk === 'string') {
       out += chunk;
-    } else if (typeof chunk === 'number') {
-      out += String(remap ? remap[chunk] : chunk);
     } else {
-      const path = chunk.path;
-      out += String(remap ? remap[path[0]] : path[0]);
+      const localId = chunk.type === 'root-ref' ? chunk.localId : chunk.localPath[0];
+      out += String(remap ? (remap[localId] ?? localId) : localId);
+      if (chunk.type !== 'root-ref-path') {
+        continue;
+      }
+      const path = chunk.localPath;
       for (let j = 1; j < path.length; j++) {
         out += ' ' + path[j];
       }
@@ -46,21 +48,21 @@ export class StringSSRWriter implements SSRInternalStreamWriter {
 }
 
 export class StringBufferSegmentWriter implements SSRInternalStreamWriter {
-  private chunks: SSRWriteChunk[] = [];
+  private chunks: SSRSegmentWriteChunk[] = [];
   write(text: string) {
     this.chunks.push(text);
   }
   writeRootRef(id: number): void {
-    this.chunks.push(id);
+    this.chunks.push({ type: 'root-ref', localId: id });
   }
   writeRootRefPath(path: number[]): void {
-    this.chunks.push({ path });
+    this.chunks.push({ type: 'root-ref-path', localPath: path });
   }
   clear() {
     this.chunks.length = 0;
   }
 
-  extract(): SSRWriteChunk[] {
+  extract(): SSRSegmentWriteChunk[] {
     const chunks = this.chunks;
     this.chunks = [];
     return chunks;

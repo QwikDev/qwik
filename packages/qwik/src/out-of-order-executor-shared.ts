@@ -27,7 +27,7 @@ type OutOfOrderExecutor = {
 };
 
 type OutOfOrderDocument = Document & {
-  qProcessOOOS?: (doc: Document) => void;
+  qProcessOOOS?: (doc: Document, boundaryId: number) => void;
 };
 
 type OutOfOrderGlobal = typeof globalThis & {
@@ -37,9 +37,9 @@ type OutOfOrderGlobal = typeof globalThis & {
 export const installOutOfOrderExecutor = (doc: Document) => {
   const groups = new WeakMap<OutOfOrderScope, Record<string, OutOfOrderGroup>>();
 
-  const process = () => {
+  const process = (boundaryId: number) => {
     const executorDoc = doc as OutOfOrderDocument;
-    executorDoc.qProcessOOOS?.(executorDoc);
+    executorDoc.qProcessOOOS?.(executorDoc, boundaryId);
   };
 
   const getScope = (): OutOfOrderScope => {
@@ -189,7 +189,7 @@ export const installOutOfOrderExecutor = (doc: Document) => {
     if (!entry) {
       return;
     }
-    process();
+    process(boundaryId);
     const groupId = resolved.getAttribute(Q_GROUP_ATTR);
     if (groupId) {
       const index = +(resolved.getAttribute(Q_INDEX_ATTR) || 0);

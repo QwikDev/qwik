@@ -72,8 +72,6 @@ export interface ClientContainer extends _Container {
     // (undocumented)
     $locale$: string;
     // (undocumented)
-    $processSegmentStateScripts$(): void;
-    // (undocumented)
     $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
     // (undocumented)
     document: _QDocument;
@@ -325,8 +323,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $hoistStyles$(): void;
     // (undocumented)
     $instanceHash$: string;
-    // (undocumented)
-    $processSegmentStateScripts$(): void;
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
     // (undocumented)
@@ -756,7 +752,7 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `
 
 // @internal (undocumented)
 export interface _QDocument extends Document {
-    qProcessOOOS?: (document: Document) => void;
+    qProcessOOOS?: (document: Document, boundaryId: number) => void;
     // (undocumented)
     qVNodeData: WeakMap<Element, string>;
 }
@@ -985,6 +981,8 @@ export interface RenderSSROptions {
     manifestHash: string;
     // (undocumented)
     serverData?: Record<string, any>;
+    // Warning: (ae-incompatible-release-tags) The symbol "stream" is marked as @public, but its signature references "StreamWriter" which is marked as @internal
+    //
     // (undocumented)
     stream: StreamWriter;
 }
@@ -1259,8 +1257,12 @@ export interface SSRStreamWriter {
     write(chunk: JSXOutput): void;
 }
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "StreamWriter" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export interface StreamWriter {
+    // (undocumented)
+    waitForDrain?(): ValueOrPromise<void>;
     // (undocumented)
     write(chunk: string): ValueOrPromise<void>;
 }
@@ -1289,10 +1291,7 @@ export class _SubscriptionPatch {
 }
 
 // @internal (undocumented)
-export const _suC: (props: SuspenseProps) => JSXNodeInternal<FunctionComponent<    {
-children?: any;
-key?: string | number | null;
-}>>;
+export const _suC: (props: SuspenseProps) => JSXNodeInternal<string>[];
 
 // Warning: (ae-incompatible-release-tags) The symbol "Suspense" is marked as @public, but its signature references "_suC" which is marked as @internal
 //

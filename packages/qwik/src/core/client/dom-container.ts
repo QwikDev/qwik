@@ -48,7 +48,7 @@ import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ContextId } from '../use/use-context';
 import { processSegmentStateScripts } from './process-segment-state';
-import { processVNodeData } from './process-vnode-data';
+import { processOutOfOrderSegmentVNodeData, processVNodeData } from './process-vnode-data';
 import {
   VNodeFlags,
   type ContainerElement,
@@ -87,6 +87,26 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
+function getOutOfOrderStreamingScript(doc: Document, boundaryId: number) {
+  const segmentId = String(boundaryId);
+  const qContainerElement = (doc.currentScript as Element | null)?.closest(
+    QContainerSelector
+  ) as ContainerElement | null;
+  processOutOfOrderSegmentVNodeData(doc, segmentId, qContainerElement || doc);
+  const qContainer = qContainerElement?.qContainer as DomContainer | undefined;
+  if (qContainer) {
+    processSegmentStateScripts(qContainer, segmentId);
+  } else {
+    const containers = doc.querySelectorAll(QContainerSelector);
+    for (let i = 0; i < containers.length; i++) {
+      const container = (containers[i] as ContainerElement).qContainer as DomContainer | undefined;
+      if (container) {
+        processSegmentStateScripts(container, segmentId);
+      }
+    }
+  }
+}
+
 /** @internal */
 export class DomContainer extends _SharedContainer implements IClientContainer {
   public element: ContainerElement;
@@ -123,14 +143,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!document.qVNodeData) {
       processVNodeData(document);
     }
-    if (__EXPERIMENTAL__.suspense) {
-      document.qProcessOOOS ||= (doc: Document) => {
-        processVNodeData(doc);
-        const containers = doc.querySelectorAll(QContainerSelector);
-        for (let i = 0; i < containers.length; i++) {
-          (containers[i] as ContainerElement).qContainer?.$processSegmentStateScripts$();
-        }
-      };
+    if (__EXPERIMENTAL__.suspense && document.querySelector('template[q\\:r]')) {
+      document.qProcessOOOS ||= getOutOfOrderStreamingScript;
     }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
     this.$setServerData$();
@@ -139,7 +153,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     (element as any).qDestroy = () => this.$destroy$();
     this.$processRootStateScript$();
     if (__EXPERIMENTAL__.suspense) {
-      this.$processSegmentStateScripts$();
+      processSegmentStateScripts(this);
     }
     this.$hoistStyles$();
     if (!qTest && element.isConnected) {
@@ -187,13 +201,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   private $stateScriptSelector$(): string {
     return `script[type="qwik/state"][q\\:instance="${this.$instanceHash$}"]`;
-  }
-
-  $processSegmentStateScripts$(): void {
-    if (!__EXPERIMENTAL__.suspense) {
-      return;
-    }
-    processSegmentStateScripts(this);
   }
 
   /**

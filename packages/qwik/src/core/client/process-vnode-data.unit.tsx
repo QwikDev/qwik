@@ -3,7 +3,11 @@ import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
 import { VNodeDataSeparator, getSegmentVNodeRefId } from '../shared/vnode-data-types';
 import { getDomContainer } from './dom-container';
-import { findVDataSectionEnd, processVNodeData } from './process-vnode-data';
+import {
+  findVDataSectionEnd,
+  processOutOfOrderSegmentVNodeData,
+  processVNodeData,
+} from './process-vnode-data';
 import type { ClientContainer } from './types';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
@@ -216,7 +220,8 @@ describe('processVnodeData', () => {
           <h1 :>Title</h1>
           <div : style="display:none"><p :>Loading</p></div>
           <div : q:rp="1" style="display:contents"><section :><button :>OK</button></section></div>
-          ${encodeVNode({ 1: '~', 2: '~' }, '1')}
+          ${encodeVNode({ 6: '~' })}
+          ${encodeVNode({ 0: '~{1}', 1: '~', 2: '~' }, '1')}
           <footer :>Footer</footer>
         </body>
       </html>`);
@@ -230,20 +235,22 @@ describe('processVnodeData', () => {
             <p>Loading</p>
           </div>
           <div {...{ 'q:rp': '1' }} style="display:contents">
-            <section>
-              <button>OK</button>
-            </section>
+            <Fragment>
+              <section>
+                <button>OK</button>
+              </section>
+            </Fragment>
           </div>
           <footer>Footer</footer>
         </body>
       </html>
     );
-    expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 0)}`)).toMatchVDOM(
-      <div {...{ 'q:rp': '1' }} style="display:contents">
+    expect(container.vNodeLocate(`6A`)).toMatchVDOM(
+      <Fragment>
         <section>
           <button>OK</button>
         </section>
-      </div>
+      </Fragment>
     );
     expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 1)}`)).toMatchVDOM(
       <section>
@@ -261,15 +268,43 @@ describe('processVnodeData', () => {
         <body :>
           <h1 :>Title</h1>
           <div : q:rp="1" style="display:contents"><section :><button :>OK</button></section></div>
-          ${encodeVNode({ 4: '=1' })}
-          ${encodeVNode({ 1: '~', 2: '~' }, '1')}
+          ${encodeVNode({ 4: '~||=1||' })}
+          ${encodeVNode({ 0: '{1}', 1: '~', 2: '~' }, '1')}
         </body>
       </html>`);
 
-    expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 0)}A`)).toMatchVDOM(
+    expect(container.vNodeLocate(`4AA`)).toMatchVDOM(
       <section>
         <button>OK</button>
       </section>
+    );
+  });
+  it('should keep suspense result parent available as a root vnode ref', () => {
+    const [container] = process(`
+      <html q:container="paused" :>
+          <head :></head>
+          <body :>
+          <div : q:rp="1" style="display:contents"><section :><button :>OK</button></section></div>
+          ${encodeVNode({ 3: '~' })}
+          ${encodeVNode({ 0: '{1}', 1: '~', 2: '~' }, '1')}
+        </body>
+      </html>`);
+    const resultParent = container.element.querySelector('[q\\:rp="1"]')!;
+    const section = resultParent.querySelector('section')!;
+
+    expect(container.element.qVNodeRefs?.get(3)).toBe(resultParent);
+    expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 0))).toBe(false);
+    expect((resultParent as any)._qSegment).toBeUndefined();
+    expect((section as any)._qSegment).toBe('1');
+    const rootHostVNode = container.vNodeLocate('3');
+    expect(rootHostVNode).toMatchVDOM(
+      <div {...{ 'q:rp': '1' }} style="display:contents">
+        <Fragment>
+          <section>
+            <button>OK</button>
+          </section>
+        </Fragment>
+      </div>
     );
   });
   it('should not cache empty children for a suspense placeholder-only result parent', () => {
@@ -378,6 +413,39 @@ describe('processVnodeData', () => {
         </body>
       </html>
     );
+  });
+  it('should process only requested suspense content segment vnode data', () => {
+    const document = createDocument({
+      html: `
+        <html q:container="paused" :>
+          <head :></head>
+          <body :>
+            <div : q:rp="1" style="display:contents">
+              <section :><button :>One</button></section>
+            </div>
+            <div : q:rp="2" style="display:contents">
+              <section :><button :>Two</button></section>
+            </div>
+            ${encodeVNode()}
+          </body>
+        </html>`,
+    });
+    processVNodeData(document);
+    const containerElement = document.querySelector('[q\\:container]')!;
+    const container = getDomContainer(containerElement);
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      encodeVNode({ 0: '{1}', 1: '~', 2: '~' }, '1') +
+        encodeVNode({ 0: '{1}', 1: '~', 2: '~' }, '2')
+    );
+
+    processOutOfOrderSegmentVNodeData(document, '2', container.element);
+
+    expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 0))).toBe(false);
+    expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 1))).toBe(false);
+    expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('2', 0))).toBe(false);
+    expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('2', 1))).toBe(true);
+    expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('2', 2))).toBe(true);
   });
 });
 

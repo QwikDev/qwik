@@ -25,9 +25,16 @@ export interface SSRRootRefPathChunk {
 /** @internal */
 export type SSRWriteChunk = string | number | SSRRootRefPathChunk;
 
-/** @public */
+/** @internal */
+export type SSRSegmentWriteChunk =
+  | string
+  | { readonly type: 'root-ref'; readonly localId: number }
+  | { readonly type: 'root-ref-path'; readonly localPath: number[] };
+
+/** @internal */
 export interface StreamWriter {
   write(chunk: string): ValueOrPromise<void>;
+  waitForDrain?(): ValueOrPromise<void>;
 }
 
 /** @internal */
@@ -78,15 +85,10 @@ export interface SSRRenderJSXOptions {
 export interface SegmentRenderContext {
   container: SSRSegmentContainer;
   writer: SSRInternalStreamWriter;
-  htmlChunks: SSRWriteChunk[];
+  htmlChunks: SSRSegmentWriteChunk[];
 }
 
-export interface SSROutOfOrderSegment {
-  html: string;
-  scripts: string;
-  suspended: Promise<unknown> | null;
-  context: SegmentRenderContext;
-}
+export type SSROutOfOrderSegment = SegmentRenderContext;
 
 export interface SSRContainer extends Container {
   readonly tag: string;
@@ -138,8 +140,7 @@ export interface SSRContainer extends Container {
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
   renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
-  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): Promise<T>;
-  $runQueuedRenderBeforeRootState$<T>(render: () => ValueOrPromise<T>): Promise<T>;
+  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T>;
   nextOutOfOrderId(): number;
   emitOutOfOrderSegmentScripts(scripts: string): void;
   segment(
@@ -174,7 +175,10 @@ export interface SSRSegmentContainer extends SSRContainer {
     prop: string | symbol | null,
     sourceEffects?: Map<string | symbol, Set<EffectSubscription>>
   ): void;
-  $finalizeOutOfOrderSegment$(segmentId: string, segment: SSROutOfOrderSegment): Promise<string>;
+  $finalizeOutOfOrderSegment$(
+    segmentId: string,
+    segment: SSROutOfOrderSegment
+  ): Promise<{ html: string; scripts: string }>;
 }
 
 /** @internal */

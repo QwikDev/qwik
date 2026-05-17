@@ -22,7 +22,6 @@ export interface ClientContainer extends Container {
   vNodeLocate(id: string | Element): VNode;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $getForwardRef$(id: number): number | string | undefined;
-  $processSegmentStateScripts$(): void;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }
 
@@ -59,7 +58,7 @@ export interface QDocument extends Document {
   qVNodeData: WeakMap<Element, string>;
 
   /** Processes an out-of-order Suspense segment after its resolved HTML is swapped in. */
-  qProcessOOOS?: (document: Document) => void;
+  qProcessOOOS?: (document: Document, boundaryId: number) => void;
 }
 
 /**

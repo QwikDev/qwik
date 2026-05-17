@@ -59,7 +59,36 @@ import type { QElement } from '../shared/types';
  * - Attach all `qwik/vnode` scripts (not the data contain within them) to the `q:container` element.
  * - Walk the tree and process each `q:container` element.
  */
+type VNodeDataScope = Document | ShadowRoot;
+type OutOfOrderSegmentScope = Document | Element;
+
+export function processOutOfOrderSegmentVNodeData(
+  document: Document,
+  segmentId: string,
+  scope: OutOfOrderSegmentScope
+) {
+  if (!__EXPERIMENTAL__.suspense) {
+    return;
+  }
+  const script = scope.querySelector(`script[type="qwik/vnode"][q\\:r="${segmentId}"]`);
+  const qContainerElement = script?.closest('[q\\:container]') as ContainerElement | null;
+  const contentNode = qContainerElement?.querySelector(`[q\\:rp="${segmentId}"]`) as Element | null;
+  if (script && qContainerElement && contentNode) {
+    processVNodeDataImpl(document, segmentId, qContainerElement, contentNode, script.textContent!);
+  }
+}
+
 export function processVNodeData(document: Document) {
+  processVNodeDataImpl(document);
+}
+
+function processVNodeDataImpl(
+  document: Document,
+  segmentId?: string,
+  segmentContainer?: ContainerElement | null,
+  segmentContent?: Element | null,
+  segmentVNodeData?: string
+) {
   const Q_CONTAINER = 'q:container';
   const Q_CONTAINER_END = '/' + Q_CONTAINER;
   const Q_PROPS_SEPARATOR = ':';
@@ -90,7 +119,7 @@ export function processVNodeData(document: Document) {
   const getNodeType = getter(prototype, 'nodeType') as (this: Node) => number;
 
   // Process all of the `qwik/vnode` script tags by attaching them to the corresponding containers.
-  const attachVnodeDataAndRefs = (element: Document | ShadowRoot) => {
+  const attachVnodeDataAndRefs = (element: VNodeDataScope) => {
     const scripts = element.querySelectorAll('script[type="qwik/vnode"]');
     for (let i = 0; i < scripts.length; i++) {
       const script = scripts[i];
@@ -112,7 +141,6 @@ export function processVNodeData(document: Document) {
       shadowRoot && attachVnodeDataAndRefs(shadowRoot);
     }
   };
-  attachVnodeDataAndRefs(document);
 
   ///////////////////////////////
   // Functions to consume the tree.
@@ -143,12 +171,6 @@ export function processVNodeData(document: Document) {
     if (nodeType === 1 /* Node.ELEMENT_NODE */) {
       if (getAttribute.call(node, Q_CONTAINER) !== null) {
         return NodeType.ELEMENT_CONTAINER;
-      }
-      if (__EXPERIMENTAL__.suspense && getAttribute.call(node, Q_SUSPENSE_RESOLVED) !== null) {
-        const localName = (node as Element).localName;
-        if (localName === 'template' || localName === 'script') {
-          return NodeType.OTHER;
-        }
       }
       if (hasAttribute.call(node, Q_SHADOW_ROOT)) {
         return NodeType.ELEMENT_SHADOW_ROOT_WRAPPER;
@@ -200,6 +222,7 @@ export function processVNodeData(document: Document) {
     qContainerElement: ContainerElement | null,
     segmentId?: string
   ) => {
+    const isSegment = __EXPERIMENTAL__.suspense && segmentId !== undefined;
     const vData_length = vData.length;
     /// Stores the current element index as the TreeWalker traverses the DOM.
     let elementIdx = 0;
@@ -305,7 +328,7 @@ export function processVNodeData(document: Document) {
       }
 
       if ((nodeType & NodeType.ELEMENT) === NodeType.ELEMENT) {
-        if (segmentId) {
+        if (isSegment && node !== containerNode) {
           const element = node as QElement;
           element._qSegment = segmentId;
         }
@@ -335,19 +358,31 @@ export function processVNodeData(document: Document) {
         }
         const contentBoundaryId =
           __EXPERIMENTAL__.suspense &&
-          !segmentId &&
+          !isSegment &&
           nodeType === NodeType.ELEMENT_SUSPENSE_RESULT_PARENT
             ? getAttribute.call(node!, Q_SUSPENSE_RESULT_PARENT)!
             : null;
         if (elementIdx === vNodeElementIndex) {
-          if (contentBoundaryId === null) {
-            if (needsToStoreRef === elementIdx) {
-              qVNodeRefs.set(
-                segmentId ? getSegmentVNodeRefId(segmentId, elementIdx) : elementIdx,
-                node as Element
-              );
+          if (needsToStoreRef === elementIdx && !(isSegment && node === containerNode)) {
+            qVNodeRefs.set(
+              isSegment ? getSegmentVNodeRefId(segmentId, elementIdx) : elementIdx,
+              node as Element
+            );
+          }
+          const data = vData.substring(vData_start, vData_end);
+          if (isSegment && node === containerNode) {
+            const existing = vNodeDataMap.get(node as Element);
+            if (existing === undefined || existing === '') {
+              vNodeDataMap.set(node as Element, data);
+            } else if (
+              existing.charCodeAt(0) === VNodeDataChar.SEPARATOR &&
+              existing.charCodeAt(1) === VNodeDataChar.SEPARATOR &&
+              !existing.endsWith(data)
+            ) {
+              vNodeDataMap.set(node as Element, existing + data);
             }
-            vNodeDataMap.set(node as Element, vData.substring(vData_start, vData_end));
+          } else {
+            vNodeDataMap.set(node as Element, data);
           }
         }
         elementIdx++;
@@ -363,17 +398,17 @@ export function processVNodeData(document: Document) {
   };
 
   const processSuspenseContentSegment = __EXPERIMENTAL__.suspense
-    ? (qContainerElement: ContainerElement | null, contentNode: Element, boundaryId: string) => {
-        const segmentData = qContainerElement?.qSegmentVnodeData;
+    ? (
+        qContainerElement: ContainerElement | null,
+        contentNode: Element,
+        boundaryId: string,
+        vData?: string
+      ) => {
         const qVNodeRefs = qContainerElement?.qVNodeRefs;
-        if (!segmentData || !qVNodeRefs) {
+        vData ||= qContainerElement?.qSegmentVnodeData?.get(boundaryId);
+        if (!vData || !qVNodeRefs) {
           return;
         }
-        const vData = segmentData.get(boundaryId);
-        if (!vData) {
-          return;
-        }
-        qVNodeRefs.set(getSegmentVNodeRefId(boundaryId, 0), contentNode as QElement);
         const segmentWalker = document.createTreeWalker(
           document,
           0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
@@ -391,6 +426,14 @@ export function processVNodeData(document: Document) {
         );
       }
     : null;
+
+  if (__EXPERIMENTAL__.suspense && segmentId !== undefined) {
+    segmentContainer!.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+    processSuspenseContentSegment!(segmentContainer!, segmentContent!, segmentId, segmentVNodeData);
+    return;
+  }
+
+  attachVnodeDataAndRefs(document);
 
   // Walk the tree and process each `q:container` element.
   const walker = document.createTreeWalker(

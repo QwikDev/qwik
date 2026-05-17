@@ -305,9 +305,7 @@ export class Serializer {
 
     // Check if there was a weakref to us
     if (typeof forwardRefIdx === 'number') {
-      this.$forwardRefs$[forwardRefIdx] = this.$serializationContext$.$formatLocalRef$(
-        seen.$index$
-      );
+      this.$forwardRefs$[forwardRefIdx] = seen.$index$;
       this.$s11nWeakRefs$.delete(value);
     }
 
@@ -318,10 +316,7 @@ export class Serializer {
     if (!this.$parent$ && rootIdx === index) {
       return seen;
     }
-    this.output(
-      TypeIds.RootRef,
-      typeof rootIdx === 'number' ? this.$serializationContext$.$formatLocalRef$(rootIdx) : rootIdx
-    );
+    this.output(TypeIds.RootRef, rootIdx);
   }
 
   private isSeenInStreamedRoot(ref: SeenRef): boolean {

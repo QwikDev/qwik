@@ -91,7 +91,10 @@ export async function _walkJSX(
           if (value === Promise) {
             stack.push(await (stack.pop() as Promise<JSXOutput>));
           } else {
-            await (value as StackFn).apply(ssr);
+            const result = (value as StackFn).apply(ssr);
+            if (isPromise(result)) {
+              await result;
+            }
           }
           continue;
         }

@@ -70,16 +70,14 @@ describe.each([
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          <div {...fallbackAttrs}>
-            <span>Loading...</span>
-          </div>
-          <div {...contentAttrs()}>
-            <Projection ssr-required>
-              <p>Sync content</p>
-            </Projection>
-          </div>
-        </Fragment>
+        <div {...fallbackAttrs}>
+          <span>Loading...</span>
+        </div>
+        <div {...contentAttrs()}>
+          <Projection ssr-required>
+            <p>Sync content</p>
+          </Projection>
+        </div>
       </Component>
     );
   });
@@ -96,18 +94,16 @@ describe.each([
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          <div {...fallbackAttrs}>
-            <span>Loading...</span>
-          </div>
-          <div {...contentAttrs()}>
-            <Projection ssr-required>
-              <Component ssr-required>
-                <p>Child content</p>
-              </Component>
-            </Projection>
-          </div>
-        </Fragment>
+        <div {...fallbackAttrs}>
+          <span>Loading...</span>
+        </div>
+        <div {...contentAttrs()}>
+          <Projection ssr-required>
+            <Component ssr-required>
+              <p>Child content</p>
+            </Component>
+          </Projection>
+        </div>
       </Component>
     );
   });
@@ -129,22 +125,20 @@ describe.each([
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          <div {...fallbackAttrs}>
-            <span>Loading...</span>
-          </div>
-          <div {...contentAttrs()}>
-            <Projection ssr-required>
-              <Component ssr-required>
-                <Fragment ssr-required>
-                  <Awaited ssr-required>
-                    <p>Async content</p>
-                  </Awaited>
-                </Fragment>
-              </Component>
-            </Projection>
-          </div>
-        </Fragment>
+        <div {...fallbackAttrs}>
+          <span>Loading...</span>
+        </div>
+        <div {...contentAttrs()}>
+          <Projection ssr-required>
+            <Component ssr-required>
+              <Fragment ssr-required>
+                <Awaited ssr-required>
+                  <p>Async content</p>
+                </Awaited>
+              </Fragment>
+            </Component>
+          </Projection>
+        </div>
       </Component>
     );
   });
@@ -159,14 +153,12 @@ describe.each([
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          <div {...fallbackAttrs} />
-          <div {...contentAttrs()}>
-            <Projection ssr-required>
-              <p>No fallback</p>
-            </Projection>
-          </div>
-        </Fragment>
+        <div {...fallbackAttrs} />
+        <div {...contentAttrs()}>
+          <Projection ssr-required>
+            <p>No fallback</p>
+          </Projection>
+        </div>
       </Component>
     );
   });
@@ -187,29 +179,25 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <div>
         <Component ssr-required>
-          <Fragment ssr-required>
-            <div {...fallbackAttrs}>
-              <span>Loading 1...</span>
-            </div>
-            <div {...contentAttrs('1')}>
-              <Projection ssr-required>
-                <p>Content 1</p>
-              </Projection>
-            </div>
-          </Fragment>
+          <div {...fallbackAttrs}>
+            <span>Loading 1...</span>
+          </div>
+          <div {...contentAttrs('1')}>
+            <Projection ssr-required>
+              <p>Content 1</p>
+            </Projection>
+          </div>
         </Component>
 
         <Component ssr-required>
-          <Fragment ssr-required>
-            <div {...fallbackAttrs}>
-              <span>Loading 2...</span>
-            </div>
-            <div {...contentAttrs('2')}>
-              <Projection ssr-required>
-                <p>Content 2</p>
-              </Projection>
-            </div>
-          </Fragment>
+          <div {...fallbackAttrs}>
+            <span>Loading 2...</span>
+          </div>
+          <div {...contentAttrs('2')}>
+            <Projection ssr-required>
+              <p>Content 2</p>
+            </Projection>
+          </div>
         </Component>
       </div>
     );
@@ -225,14 +213,12 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <div>
         <Component ssr-required>
-          <Fragment ssr-required>
-            <div {...fallbackAttrs}>
-              <span>Loading...</span>
-            </div>
-            <div {...contentAttrs()}>
-              <Projection ssr-required></Projection>
-            </div>
-          </Fragment>
+          <div {...fallbackAttrs}>
+            <span>Loading...</span>
+          </div>
+          <div {...contentAttrs()}>
+            <Projection ssr-required></Projection>
+          </div>
         </Component>
       </div>
     );
@@ -251,18 +237,16 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <div>
         <Component ssr-required>
-          <Fragment ssr-required>
-            <div {...fallbackAttrs}>
-              <span>Loading...</span>
-            </div>
-            <div {...contentAttrs()}>
-              <Projection ssr-required>
-                <Awaited>
-                  <p>Resolved</p>
-                </Awaited>
-              </Projection>
-            </div>
-          </Fragment>
+          <div {...fallbackAttrs}>
+            <span>Loading...</span>
+          </div>
+          <div {...contentAttrs()}>
+            <Projection ssr-required>
+              <Awaited>
+                <p>Resolved</p>
+              </Awaited>
+            </Projection>
+          </div>
         </Component>
       </div>
     );
@@ -329,18 +313,16 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <div>
         <Component ssr-required>
-          <Fragment ssr-required>
-            <div {...fallbackAttrs}>
-              <span>Loading...</span>
-            </div>
-            <div {...contentAttrs()}>
-              <Projection ssr-required>
-                <Awaited>
-                  <p>Fast</p>
-                </Awaited>
-              </Projection>
-            </div>
-          </Fragment>
+          <div {...fallbackAttrs}>
+            <span>Loading...</span>
+          </div>
+          <div {...contentAttrs()}>
+            <Projection ssr-required>
+              <Awaited>
+                <p>Fast</p>
+              </Awaited>
+            </Projection>
+          </div>
         </Component>
       </div>
     );
@@ -454,22 +436,20 @@ describe('domRender: Suspense client-side pause delay', () => {
     expect(vNode).toMatchVDOM(
       <div>
         <Component>
-          <Fragment>
-            <div style="display:none">
-              <span>Loading...</span>
-            </div>
-            <div style="display:contents">
-              <Projection>
-                <Component>
-                  <Fragment>
-                    <Awaited>
-                      <p>Done</p>
-                    </Awaited>
-                  </Fragment>
-                </Component>
-              </Projection>
-            </div>
-          </Fragment>
+          <div style="display:none">
+            <span>Loading...</span>
+          </div>
+          <div style="display:contents">
+            <Projection>
+              <Component>
+                <Fragment>
+                  <Awaited>
+                    <p>Done</p>
+                  </Awaited>
+                </Fragment>
+              </Component>
+            </Projection>
+          </div>
         </Component>
       </div>
     );
@@ -513,20 +493,18 @@ describe('domRender: Suspense client-side pause delay', () => {
     expect(vNode).toMatchVDOM(
       <div>
         <Component ssr-required>
-          <Fragment ssr-required>
-            <div style="display:none">
-              <span>Loading...</span>
-            </div>
-            <div style="display:contents">
-              <Projection ssr-required>
-                <Component>
-                  <p>
-                    value=<Signal>0</Signal>
-                  </p>
-                </Component>
-              </Projection>
-            </div>
-          </Fragment>
+          <div style="display:none">
+            <span>Loading...</span>
+          </div>
+          <div style="display:contents">
+            <Projection ssr-required>
+              <Component>
+                <p>
+                  value=<Signal>0</Signal>
+                </p>
+              </Component>
+            </Projection>
+          </div>
         </Component>
       </div>
     );
@@ -553,20 +531,18 @@ describe('domRender: Suspense client-side pause delay', () => {
     expect(vNode).toMatchVDOM(
       <div>
         <Component ssr-required>
-          <Fragment ssr-required>
-            <div style="display:none">
-              <span>Loading...</span>
-            </div>
-            <div style="display:contents">
-              <Projection ssr-required>
-                <Component>
-                  <p>
-                    value=<Signal>1</Signal>
-                  </p>
-                </Component>
-              </Projection>
-            </div>
-          </Fragment>
+          <div style="display:none">
+            <span>Loading...</span>
+          </div>
+          <div style="display:contents">
+            <Projection ssr-required>
+              <Component>
+                <p>
+                  value=<Signal>1</Signal>
+                </p>
+              </Component>
+            </Projection>
+          </div>
         </Component>
       </div>
     );
@@ -662,20 +638,18 @@ describe('domRender: Suspense client-side pause delay', () => {
     expect(vNode).toMatchVDOM(
       <div>
         <Component>
-          <Fragment ssr-required>
-            <div style="display:none">
-              <span>Loading...</span>
-            </div>
-            <div style="display:contents">
-              <Projection ssr-required>
-                <Component>
-                  <p>
-                    value=<Signal>0</Signal>
-                  </p>
-                </Component>
-              </Projection>
-            </div>
-          </Fragment>
+          <div style="display:none">
+            <span>Loading...</span>
+          </div>
+          <div style="display:contents">
+            <Projection ssr-required>
+              <Component>
+                <p>
+                  value=<Signal>0</Signal>
+                </p>
+              </Component>
+            </Projection>
+          </div>
         </Component>
       </div>
     );
@@ -704,20 +678,18 @@ describe('domRender: Suspense client-side pause delay', () => {
     expect(vNode).toMatchVDOM(
       <div>
         <Component>
-          <Fragment ssr-required>
-            <div style="display:none">
-              <span>Loading...</span>
-            </div>
-            <div style="display:contents">
-              <Projection ssr-required>
-                <Component>
-                  <p>
-                    value=<Signal>1</Signal>
-                  </p>
-                </Component>
-              </Projection>
-            </div>
-          </Fragment>
+          <div style="display:none">
+            <span>Loading...</span>
+          </div>
+          <div style="display:contents">
+            <Projection ssr-required>
+              <Component>
+                <p>
+                  value=<Signal>1</Signal>
+                </p>
+              </Component>
+            </Projection>
+          </div>
         </Component>
       </div>
     );
@@ -773,20 +745,18 @@ describe('domRender: Suspense client-side pause delay', () => {
           <div>
             <button>Click</button>
             <Component>
-              <Fragment ssr-required>
-                <div style="display:none">
-                  <div>counting...</div>
-                </div>
-                <div style="display:contents">
-                  <Projection ssr-required>
-                    <Component>
-                      <div>
-                        Count: <Signal>0</Signal>
-                      </div>
-                    </Component>
-                  </Projection>
-                </div>
-              </Fragment>
+              <div style="display:none">
+                <div>counting...</div>
+              </div>
+              <div style="display:contents">
+                <Projection ssr-required>
+                  <Component>
+                    <div>
+                      Count: <Signal>0</Signal>
+                    </div>
+                  </Component>
+                </Projection>
+              </div>
             </Component>
           </div>
         </main>
@@ -816,23 +786,62 @@ describe('domRender: Suspense client-side pause delay', () => {
           <div>
             <button>Click</button>
             <Component>
-              <Fragment ssr-required>
-                <div style="display:none">
-                  <div>counting...</div>
-                </div>
-                <div style="display:contents">
-                  <Projection ssr-required>
-                    <Component>
-                      <div>
-                        Count: <Signal>1</Signal>
-                      </div>
-                    </Component>
-                  </Projection>
-                </div>
-              </Fragment>
+              <div style="display:none">
+                <div>counting...</div>
+              </div>
+              <div style="display:contents">
+                <Projection ssr-required>
+                  <Component>
+                    <div>
+                      Count: <Signal>1</Signal>
+                    </div>
+                  </Component>
+                </Projection>
+              </div>
             </Component>
           </div>
         </main>
+      </Component>
+    );
+  });
+
+  it('should keep projected button interactive when Slot is wrapped in Suspense', async () => {
+    const Child = component$(() => (
+      <Suspense>
+        <Slot />
+      </Suspense>
+    ));
+
+    const Parent = component$(() => {
+      const counter = useSignal(0);
+      return (
+        <Child>
+          <button onClick$={() => counter.value++}>{counter.value}</button>
+        </Child>
+      );
+    });
+
+    const { container, document, vNode } = await domRender(<Parent />, { debug });
+
+    await trigger(document.body, 'button', 'click');
+    await waitForDrain(container);
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <Component>
+            <div style="display:none" />
+            <div style="display:contents">
+              <Projection ssr-required>
+                <Fragment>
+                  <button>
+                    <Signal>1</Signal>
+                  </button>
+                </Fragment>
+              </Projection>
+            </div>
+          </Component>
+        </Component>
       </Component>
     );
   });
@@ -1285,7 +1294,18 @@ describe('renderToStream: out-of-order Suspense', () => {
       return (
         <main>
           <button onClick$={() => count.value++}>{count.value}</button>
-          <Suspense fallback={<button onClick$={() => undefined}>Waiting</button>}>
+          <Suspense
+            fallback={
+              <button
+                onClick$={() => {
+                  // do nothing, workaround for the optimizer bug
+                  globalThis;
+                }}
+              >
+                Waiting
+              </button>
+            }
+          >
             <Slow />
           </Suspense>
           <footer>Footer</footer>
@@ -1404,15 +1424,15 @@ describe('renderToStream: out-of-order Suspense', () => {
           <main>
             <button id="ooos-unit-slow-forward-ref-button">Read slow forward ref</button>
             <Component ssr-required>
-              <Fragment ssr-required>
-                <div style="display: none;">
-                  <p>Waiting forward refs</p>
-                </div>
-                {/* @ts-ignore-next-line */}
-                <div q:rp="1" style="display: contents;">
-                  <Projection ssr-required>
-                    <Component>
-                      <Fragment ssr-required>
+              <div style="display: none;">
+                <p>Waiting forward refs</p>
+              </div>
+              {/* @ts-ignore-next-line */}
+              <div q:rp="1" style="display: contents;">
+                <Projection ssr-required>
+                  <Component>
+                    <Fragment ssr-required>
+                      <Awaited>
                         <Component>
                           <Fragment ssr-required>
                             <Fragment ssr-required>
@@ -1422,11 +1442,11 @@ describe('renderToStream: out-of-order Suspense', () => {
                             </Fragment>
                           </Fragment>
                         </Component>
-                      </Fragment>
-                    </Component>
-                  </Projection>
-                </div>
-              </Fragment>
+                      </Awaited>
+                    </Fragment>
+                  </Component>
+                </Projection>
+              </div>
             </Component>
           </main>
         </Component>
@@ -1562,7 +1582,18 @@ describe('renderToStream: out-of-order Suspense', () => {
 
     const renderPromise = renderToStream(
       <main>
-        <Suspense fallback={<button onClick$={() => undefined}>Fallback</button>}>
+        <Suspense
+          fallback={
+            <button
+              onClick$={() => {
+                // do nothing, workaround for the optimizer bug
+                globalThis;
+              }}
+            >
+              Fallback
+            </button>
+          }
+        >
           <Slow />
         </Suspense>
       </main>,

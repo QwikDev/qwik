@@ -64,6 +64,12 @@ export const revealCanReveal = () => {
   if (registration !== null && registration.reveal.version.value < 0) {
     return false;
   }
+  if (qTest ? isServerPlatform() : !isBrowser) {
+    const ooos = registration?.reveal.ooos;
+    if (ooos) {
+      return ooos.canReveal(registration);
+    }
+  }
   return canRevealRegistration(registration);
 };
 

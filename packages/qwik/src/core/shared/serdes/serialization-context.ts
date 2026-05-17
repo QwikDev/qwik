@@ -77,7 +77,6 @@ export interface SerializationContext {
   $addRoot$: AddRootFn;
   $addDuplicateRoot$: (obj: unknown) => SeenRef;
   $commitRoot$: (root: unknown, obj: unknown) => number;
-  $formatLocalRef$: (id: number) => number;
 
   /** Mark an object as seen during serialization. This is used to handle backreferences and cycles */
   $markSeen$: (obj: unknown, parent: SeenRef | undefined, index: number) => SeenRef;
@@ -258,10 +257,6 @@ class SerializationContextImpl implements SerializationContext {
     this.$roots$.push(root);
     this.$rootObjs$.push(obj);
     return index;
-  }
-
-  $formatLocalRef$(id: number): number {
-    return id;
   }
 
   $isSsrNode$(obj: unknown): obj is SsrNode {

@@ -25,6 +25,7 @@ export type {
   ISsrComponentFrame,
   ISsrNode,
   SSRRootRefPathChunk,
+  SSRSegmentWriteChunk,
   SSRContainer,
   SSRSegmentContainer,
   SSRInternalStreamWriter,

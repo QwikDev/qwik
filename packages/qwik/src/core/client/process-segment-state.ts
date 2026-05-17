@@ -2,7 +2,7 @@ import { applySubscriptionPatches } from '../control-flow/suspense-utils';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { preprocessState } from '../shared/serdes/index';
 import type { SubscriptionPatch } from '../shared/serdes/subscription-patch';
-import { QStatePatchAttrSelector } from '../shared/utils/markers';
+import { QStatePatchAttrSelector, QSuspenseResolved } from '../shared/utils/markers';
 import { qDev } from '../shared/utils/qdev';
 import type { DomContainer } from './dom-container';
 
@@ -19,7 +19,7 @@ type SegmentStateContainer = {
 const processedStatePatchScripts = new WeakMap<DomContainer, WeakSet<Element>>();
 
 /** @internal */
-export const processSegmentStateScripts = (container: DomContainer): void => {
+export const processSegmentStateScripts = (container: DomContainer, segmentId?: string): void => {
   if (!__EXPERIMENTAL__.suspense) {
     return;
   }
@@ -30,6 +30,9 @@ export const processSegmentStateScripts = (container: DomContainer): void => {
   const processedScripts = getProcessedStatePatchScripts(container);
   for (let i = 0; i < qwikStates.length; i++) {
     const stateScript = qwikStates[i];
+    if (segmentId !== undefined && stateScript.getAttribute(QSuspenseResolved) !== segmentId) {
+      continue;
+    }
     if (processedScripts.has(stateScript)) {
       continue;
     }

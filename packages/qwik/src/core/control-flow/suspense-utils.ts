@@ -10,6 +10,7 @@ import {
   type RevealOrder,
   type RevealRegistrationLike,
 } from '../shared/utils/reveal';
+import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
 import { tryGetInvokeContext } from '../use/use-core';
 import type { SSRContainer } from '../ssr/ssr-types';
 
@@ -20,6 +21,7 @@ export const SUSPENSE_QRL_SYMBOL = '_suC';
 export type OutOfOrderRevealBoundary = {
   attrs: string;
   showFallback: boolean;
+  resolve: () => void;
 };
 
 type OutOfOrderRevealOrderCode = 'p' | 's' | 'r' | 't';
@@ -45,10 +47,15 @@ export class OutOfOrderRevealCoordinator<ITEM extends RevealItemLike = RevealIte
     return {
       attrs:
         ` q:g="${this.id}" q:i="${index}" q:o="${this.orderCode}"` + (this.collapsed ? ' q:c' : ''),
-      showFallback:
-        canRevealRegistration(registration, (item) => this.pendingItems.has(item)) ||
-        !this.collapsed,
+      showFallback: this.canReveal(registration) || !this.collapsed,
+      resolve: () => {
+        this.pendingItems.delete(registration.item);
+      },
     };
+  }
+
+  canReveal(registration: RevealRegistrationLike<ITEM>): boolean {
+    return canRevealRegistration(registration, (item) => this.pendingItems.has(item));
   }
 
   script(): string {
@@ -92,9 +99,9 @@ export const isOutOfOrderStreaming = (): boolean => {
     return false;
   }
   const container = tryGetInvokeContext()?.$container$ as
-    | { readonly outOfOrderStreaming?: boolean }
+    | ({ readonly outOfOrderStreaming?: boolean } & Container)
     | undefined;
-  return container?.outOfOrderStreaming === true;
+  return container?.outOfOrderStreaming === true && !isOutOfOrderSegmentContainer(container);
 };
 
 /** @internal */

@@ -1,22 +1,16 @@
 import type { Rule } from 'eslint';
-import type {
-  ArrowFunctionExpression,
-  CallExpression,
-  Expression,
-  FunctionExpression,
-  Node,
-  Pattern,
-} from 'estree';
+import type { TSESTree } from '@typescript-eslint/utils';
+import { traverse } from './utils';
 
 const USE_TASK_CALLEES = new Set(['useTask$', 'useTaskQrl']);
 
-function isUseTaskCall(node: CallExpression): boolean {
+function isUseTaskCall(node: TSESTree.CallExpression): boolean {
   return node.callee.type === 'Identifier' && USE_TASK_CALLEES.has(node.callee.name);
 }
 
 function getTaskCallback(
-  node: CallExpression
-): ArrowFunctionExpression | FunctionExpression | null {
+  node: TSESTree.CallExpression
+): TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression | null {
   const arg0 = node.arguments[0];
   if (arg0?.type === 'ArrowFunctionExpression' || arg0?.type === 'FunctionExpression') {
     return arg0;
@@ -24,7 +18,7 @@ function getTaskCallback(
   return null;
 }
 
-function isDeferUpdatesFalse(node: Expression | Pattern | undefined): boolean {
+function isDeferUpdatesFalse(node: TSESTree.Expression | TSESTree.Pattern | undefined): boolean {
   if (!node) {
     return false;
   }
@@ -35,12 +29,12 @@ function isDeferUpdatesFalse(node: Expression | Pattern | undefined): boolean {
     return true;
   }
   if (node.type === 'TSAsExpression') {
-    return isDeferUpdatesFalse(node.expression as Expression);
+    return isDeferUpdatesFalse(node.expression);
   }
   return false;
 }
 
-function hasDeferUpdatesFalseOption(node: CallExpression): boolean {
+function hasDeferUpdatesFalseOption(node: TSESTree.CallExpression): boolean {
   const opts = node.arguments[1];
   if (!opts || opts.type !== 'ObjectExpression') {
     return false;
@@ -55,18 +49,16 @@ function hasDeferUpdatesFalseOption(node: CallExpression): boolean {
     if (name !== 'deferUpdates') {
       continue;
     }
-    if (isDeferUpdatesFalse(prop.value as Expression | Pattern)) {
+    if (isDeferUpdatesFalse(prop.value)) {
       return true;
     }
   }
   return false;
 }
 
-function collectUseNavigateBoundNamesFromNode(root: Node): Set<string> {
+function collectUseNavigateBoundNamesFromNode(root: TSESTree.Node): Set<string> {
   const ids = new Set<string>();
-  const stack: Node[] = [root];
-  while (stack.length) {
-    const n = stack.pop()!;
+  traverse(root, (n) => {
     if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init) {
       if (
         n.init.type === 'CallExpression' &&
@@ -76,28 +68,13 @@ function collectUseNavigateBoundNamesFromNode(root: Node): Set<string> {
         ids.add(n.id.name);
       }
     }
-    for (const key of Object.keys(n) as (keyof Node)[]) {
-      if (key === 'parent') {
-        continue;
-      }
-      const child = (n as unknown as Record<string, unknown>)[key as string];
-      if (Array.isArray(child)) {
-        for (const c of child) {
-          if (c && typeof c === 'object' && c !== null && 'type' in (c as object)) {
-            stack.push(c as Node);
-          }
-        }
-      } else if (child && typeof child === 'object' && 'type' in (child as object)) {
-        stack.push(child as Node);
-      }
-    }
-  }
+  });
   return ids;
 }
 
-function collectNavigateBindingsForUseTask(useTaskCall: CallExpression): Set<string> {
+function collectNavigateBindingsForUseTask(useTaskCall: TSESTree.CallExpression): Set<string> {
   const ids = new Set<string>();
-  let current: Node | null = useTaskCall.parent;
+  let current: TSESTree.Node | null = useTaskCall.parent;
   while (current) {
     if (current.type === 'ArrowFunctionExpression' || current.type === 'FunctionExpression') {
       const p = current.parent;
@@ -117,19 +94,17 @@ function collectNavigateBindingsForUseTask(useTaskCall: CallExpression): Set<str
       }
       break;
     }
-    current = current.parent as Node | null;
+    current = current.parent ?? null;
   }
   return ids;
 }
 
 function reportAwaitedNavigateCalls(
   context: Rule.RuleContext,
-  root: Node,
+  root: TSESTree.Node,
   navigateIds: Set<string>
 ) {
-  const stack: Node[] = [root];
-  while (stack.length) {
-    const n = stack.pop()!;
+  traverse(root, (n) => {
     if (n.type === 'AwaitExpression') {
       const arg = n.argument;
       if (arg.type === 'CallExpression' && arg.callee.type === 'Identifier') {
@@ -142,22 +117,7 @@ function reportAwaitedNavigateCalls(
         }
       }
     }
-    for (const key of Object.keys(n) as (keyof Node)[]) {
-      if (key === 'parent') {
-        continue;
-      }
-      const child = (n as unknown as Record<string, unknown>)[key as string];
-      if (Array.isArray(child)) {
-        for (const c of child) {
-          if (c && typeof c === 'object' && c !== null && 'type' in (c as object)) {
-            stack.push(c as Node);
-          }
-        }
-      } else if (child && typeof child === 'object' && 'type' in (child as object)) {
-        stack.push(child as Node);
-      }
-    }
-  }
+  });
 }
 
 export const noAwaitNavigateInUseTask: Rule.RuleModule = {

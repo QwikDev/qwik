@@ -1,6 +1,6 @@
-// This was vibe-coded with AI
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
 import { QwikEslintExamples } from '../examples';
+import { findObjectProperty, isFunctionExpression, traverseWithParents } from './utils';
 
 const createRule = ESLintUtils.RuleCreator(
   (name) => `https://qwik.dev/docs/advanced/eslint/#${name}`
@@ -21,59 +21,34 @@ export const serializerSignalUsage = createRule({
   },
   defaultOptions: [],
   create(context) {
-    // Helper: check if an identifier looks like a signal/store by name
     function isSignalOrStoreName(name: string): boolean {
       return (
         name.endsWith('Signal') || name.endsWith('Store') || name === 'signal' || name === 'store'
       );
     }
 
-    // Helper: collect signals/stores used in a function body
-    function collectSignalsFromFunction(
-      node: TSESTree.BlockStatement | TSESTree.Expression
-    ): Set<string> {
-      const signals = new Set<string>();
-      const visited = new WeakSet<object>();
-      const functionParams = new Set<string>();
-
-      // Collect function parameters if available
-      if ('params' in node && Array.isArray(node.params)) {
-        node.params.forEach((param) => {
-          if (param.type === 'Identifier') {
-            functionParams.add(param.name);
-          }
-        });
-      }
-
-      function isAssignmentTarget(node: TSESTree.Node): boolean {
-        const parent = (node as any).parent;
-        if (!parent) {
-          return false;
-        }
-        if (parent.type === 'AssignmentExpression' && parent.left === node) {
-          return true;
-        }
-        if (parent.type === 'UpdateExpression' && parent.argument === node) {
-          return true;
-        }
+    function isAssignmentTarget(node: TSESTree.Node, parent: TSESTree.Node | null): boolean {
+      if (!parent) {
         return false;
       }
+      return (
+        (parent.type === 'AssignmentExpression' && parent.left === node) ||
+        (parent.type === 'UpdateExpression' && parent.argument === node)
+      );
+    }
 
-      function visit(n: any) {
-        if (!n || typeof n !== 'object' || visited.has(n)) {
-          return;
-        }
-        visited.add(n);
+    function collectSignalsFromFunction(
+      fn: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression
+    ): Set<string> {
+      const signals = new Set<string>();
+      const functionParams = new Set<string>();
 
-        // MemberExpression: obj.value or obj.prop
-        if (n.type === 'MemberExpression' && !isAssignmentTarget(n)) {
-          // Only support simple identifiers for now
+      traverseWithParents(fn.body, (n, parent) => {
+        if (n.type === 'MemberExpression' && !isAssignmentTarget(n, parent)) {
           if (n.object.type === 'Identifier' && !functionParams.has(n.object.name)) {
-            // Heuristic: treat as signal if .value, or as store if .prop
             if (n.property.type === 'Identifier' && n.property.name === 'value') {
               signals.add(n.object.name);
             } else if (n.property.type === 'Identifier') {
-              // If the object name looks like a store, track property
               if (isSignalOrStoreName(n.object.name)) {
                 signals.add(`${n.object.name}.${n.property.name}`);
               }
@@ -81,108 +56,77 @@ export const serializerSignalUsage = createRule({
           }
         }
 
-        // Identifier: countSignal, myStore, etc.
         if (n.type === 'Identifier' && !functionParams.has(n.name) && isSignalOrStoreName(n.name)) {
           signals.add(n.name);
         }
+      });
 
-        // Visit child nodes
-        for (const key in n) {
-          if (key === 'parent') {
-            continue;
-          }
-          const value = n[key];
-          if (Array.isArray(value)) {
-            value.forEach(visit);
-          } else if (value && typeof value === 'object') {
-            (value as any).parent = n; // for assignment checking
-            visit(value);
-          }
-        }
-      }
-
-      // If node is a block, visit all statements; else, visit the expression
-      if (node.type === 'BlockStatement') {
-        node.body.forEach(visit);
-      } else {
-        visit(node);
-      }
       return signals;
+    }
+
+    function getReturnedSerializerObject(
+      fn: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression
+    ): TSESTree.ObjectExpression | undefined {
+      if (fn.body.type === 'ObjectExpression') {
+        return fn.body;
+      }
+      if (fn.body.type !== 'BlockStatement') {
+        return undefined;
+      }
+      const returnStatement = fn.body.body.find(
+        (stmt): stmt is TSESTree.ReturnStatement => stmt.type === 'ReturnStatement'
+      );
+      return returnStatement?.argument?.type === 'ObjectExpression'
+        ? returnStatement.argument
+        : undefined;
     }
 
     return {
       CallExpression(node: TSESTree.CallExpression) {
         if (
-          node.callee.type === 'Identifier' &&
-          (node.callee.name === 'useSerializer$' || node.callee.name === 'createSerializer$')
+          node.callee.type !== 'Identifier' ||
+          (node.callee.name !== 'useSerializer$' && node.callee.name !== 'createSerializer$')
         ) {
-          const arg = node.arguments[0];
-          if (
-            arg &&
-            (arg.type === 'ArrowFunctionExpression' || arg.type === 'FunctionExpression')
-          ) {
-            // Find the returned object
-            let returnValue: TSESTree.ObjectExpression | undefined;
-            if (arg.body.type === 'BlockStatement') {
-              const ret = arg.body.body.find((stmt) => stmt.type === 'ReturnStatement') as
-                | TSESTree.ReturnStatement
-                | undefined;
-              if (ret && ret.argument && ret.argument.type === 'ObjectExpression') {
-                returnValue = ret.argument;
-              }
-            } else if (arg.body.type === 'ObjectExpression') {
-              returnValue = arg.body;
-            }
+          return;
+        }
 
-            if (returnValue) {
-              const updateProp = returnValue.properties.find(
-                (p) =>
-                  p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'update'
-              ) as TSESTree.Property | undefined;
-              const deserializeProp = returnValue.properties.find(
-                (p) =>
-                  p.type === 'Property' &&
-                  p.key.type === 'Identifier' &&
-                  p.key.name === 'deserialize'
-              ) as TSESTree.Property | undefined;
+        const arg = node.arguments[0];
+        if (!isFunctionExpression(arg)) {
+          return;
+        }
 
-              if (updateProp && deserializeProp) {
-                const updateFn = updateProp.value;
-                const deserializeFn = deserializeProp.value;
+        const returnValue = getReturnedSerializerObject(arg);
+        if (!returnValue) {
+          return;
+        }
 
-                // Only support function expressions for now
-                if (
-                  (updateFn.type === 'ArrowFunctionExpression' ||
-                    updateFn.type === 'FunctionExpression') &&
-                  (deserializeFn.type === 'ArrowFunctionExpression' ||
-                    deserializeFn.type === 'FunctionExpression')
-                ) {
-                  const updateSignals = collectSignalsFromFunction(updateFn.body);
-                  const deserializeSignals = collectSignalsFromFunction(deserializeFn.body);
+        const updateProp = findObjectProperty(returnValue, 'update');
+        const deserializeProp = findObjectProperty(returnValue, 'deserialize');
+        const updateFn = updateProp?.value;
+        const deserializeFn = deserializeProp?.value;
+        if (
+          !updateProp ||
+          !isFunctionExpression(updateFn) ||
+          !isFunctionExpression(deserializeFn)
+        ) {
+          return;
+        }
 
-                  // Check both directions
-                  const missingInDeserialize = Array.from(updateSignals).filter(
-                    (signal) => !deserializeSignals.has(signal)
-                  );
-                  const missingInUpdate = Array.from(deserializeSignals).filter(
-                    (signal) => !updateSignals.has(signal)
-                  );
+        const updateSignals = collectSignalsFromFunction(updateFn);
+        const deserializeSignals = collectSignalsFromFunction(deserializeFn);
+        const allMissingSignals = [
+          ...Array.from(updateSignals).filter((signal) => !deserializeSignals.has(signal)),
+          ...Array.from(deserializeSignals).filter((signal) => !updateSignals.has(signal)),
+        ];
 
-                  const allMissingSignals = [...missingInDeserialize, ...missingInUpdate];
-
-                  if (allMissingSignals.length > 0) {
-                    context.report({
-                      node: updateProp,
-                      messageId: 'serializerSignalMismatch',
-                      data: {
-                        signals: allMissingSignals.join(', '),
-                      },
-                    });
-                  }
-                }
-              }
-            }
-          }
+        if (allMissingSignals.length > 0) {
+          context.report({
+            node: updateProp,
+            messageId: 'serializerSignalMismatch',
+            data: {
+              signals: allMissingSignals.join(', '),
+            },
+          });
         }
       },
     };

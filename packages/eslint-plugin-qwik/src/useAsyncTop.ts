@@ -1,58 +1,16 @@
-import { Rule } from 'eslint';
-import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
+import type { Rule } from 'eslint';
+import { ESLintUtils, TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
+import type { TSESLint } from '@typescript-eslint/utils';
 import ts from 'typescript';
-
-// Utility type to handle nodes from Rule handlers which may come from @types/estree
-// The nodes from Rule handlers are compatible with TSESTree at runtime but not at the type level
-// because @types/estree uses string literals while TSESTree uses AST_NODE_TYPES enum
-type RuleNode<T extends TSESTree.Node = TSESTree.Node> = {
-  type: any;
-  parent?: any;
-  [key: string]: any;
-};
-
-function isFromQwikModule(resolvedVar: any): boolean {
-  return resolvedVar?.defs?.some((def: any) => {
-    if (def.type !== 'ImportBinding') {
-      return false;
-    }
-    const importSource = def.parent.source.value;
-    return (
-      importSource.startsWith('@qwik.dev/core') ||
-      importSource.startsWith('@qwik.dev/router') ||
-      importSource.startsWith('@builder.io/qwik') ||
-      importSource.startsWith('@builder.io/qwik-city')
-    );
-  });
-}
-
-function resolveVariableForIdentifier(context: Rule.RuleContext, ident: any) {
-  const scope = context.sourceCode.getScope(ident);
-  const ref = scope.references.find((r) => r.identifier === ident);
-  if (ref && ref.resolved) {
-    return ref.resolved;
-  }
-  // Fallback lookup walking up scopes by name
-  let current: any = scope;
-  while (current) {
-    const found = current.variables.find((v: any) => v.name === ident.name);
-    if (found) {
-      return found;
-    }
-    current = current.upper;
-  }
-  return null;
-}
+import {
+  findContainingFunction,
+  isFromQwikModule,
+  isQwikQrlCallee,
+  resolveVariableForIdentifier,
+} from './utils';
 
 function isQrlCallee(context: Rule.RuleContext, callee: TSESTree.Identifier): boolean {
-  if (!callee || callee.type !== AST_NODE_TYPES.Identifier) {
-    return false;
-  }
-  if (!callee.name.endsWith('$')) {
-    return false;
-  }
-  const resolved = resolveVariableForIdentifier(context, callee);
-  return isFromQwikModule(resolved);
+  return isQwikQrlCallee(context, callee);
 }
 
 function getFirstStatementIfValueRead(
@@ -74,13 +32,15 @@ function getFirstStatementIfValueRead(
   return null;
 }
 
-function isAsyncIdentifier(context: Rule.RuleContext, ident: any): boolean {
+function isAsyncIdentifier(context: Rule.RuleContext, ident: TSESTree.Identifier): boolean {
   const variable = resolveVariableForIdentifier(context, ident);
   if (!variable || (variable.defs && variable.defs.length === 0)) {
     return false;
   }
 
-  const services: any = (context as any).sourceCode.parserServices;
+  const services = ESLintUtils.getParserServices(
+    context as unknown as TSESLint.RuleContext<string, readonly unknown[]>
+  );
   const checker: ts.TypeChecker | undefined = services?.program?.getTypeChecker();
   const esTreeNodeToTSNodeMap = services?.esTreeNodeToTSNodeMap;
 
@@ -151,7 +111,7 @@ function isAsyncIdentifier(context: Rule.RuleContext, ident: any): boolean {
     if (def.type === 'ImportBinding' && checker && esTreeNodeToTSNodeMap) {
       try {
         // Map the identifier to TS node & promise symbol (following re-exports)
-        const tsNode = esTreeNodeToTSNodeMap.get(ident as any);
+        const tsNode = esTreeNodeToTSNodeMap.get(ident);
         if (tsNode) {
           let symbol = checker.getSymbolAtLocation(tsNode);
           if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
@@ -188,7 +148,7 @@ function isAsyncIdentifier(context: Rule.RuleContext, ident: any): boolean {
   // As a fallback, try using TypeScript type information if available
   if (checker && esTreeNodeToTSNodeMap) {
     try {
-      const tsNode = esTreeNodeToTSNodeMap.get(ident as any);
+      const tsNode = esTreeNodeToTSNodeMap.get(ident);
       const type = checker.getTypeAtLocation(tsNode);
       const typeStr = checker.typeToString(type.getNonNullableType());
       // Heuristic: type name includes Async or LoaderSignal
@@ -205,7 +165,7 @@ function isAsyncIdentifier(context: Rule.RuleContext, ident: any): boolean {
 
 function hasAwaitPromiseBefore(
   body: TSESTree.BlockStatement,
-  beforeStmt: RuleNode<TSESTree.ExpressionStatement> | RuleNode<TSESTree.ReturnStatement>,
+  beforeStmt: TSESTree.ExpressionStatement | TSESTree.ReturnStatement,
   identifierName: string
 ): boolean {
   for (const stmt of body.body) {
@@ -241,34 +201,10 @@ function hasAwaitPromiseBefore(
   return false;
 }
 
-function findContainingFunction(
-  node: RuleNode
-):
-  | RuleNode<TSESTree.FunctionDeclaration>
-  | RuleNode<TSESTree.FunctionExpression>
-  | RuleNode<TSESTree.ArrowFunctionExpression>
-  | null {
-  let current: any = node;
-  while (current) {
-    if (
-      current.type === AST_NODE_TYPES.FunctionDeclaration ||
-      current.type === AST_NODE_TYPES.FunctionExpression ||
-      current.type === AST_NODE_TYPES.ArrowFunctionExpression
-    ) {
-      return current;
-    }
-    current = current.parent;
-  }
-  return null;
-}
-
 function shouldCheckFunction(
   context: Rule.RuleContext,
-  fn:
-    | RuleNode<TSESTree.FunctionDeclaration>
-    | RuleNode<TSESTree.FunctionExpression>
-    | RuleNode<TSESTree.ArrowFunctionExpression>,
-  signalIdent: RuleNode<TSESTree.Identifier>
+  fn: TSESTree.FunctionDeclaration | TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression,
+  signalIdent: TSESTree.Identifier
 ): boolean {
   // Check if this function is directly passed to a QRL (e.g., component$, $, etc.)
   const parent = fn.parent;

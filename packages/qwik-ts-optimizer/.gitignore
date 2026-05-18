@@ -6,3 +6,4 @@ rust-impl/target/
 isolate-*.log
 .logs/subtask2.log
 ts-output/
+.claude/skills/

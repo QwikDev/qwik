@@ -7,7 +7,7 @@
 
 import { createRegExp, exactly, oneOrMore, whitespace, charNotIn } from 'magic-regexp';
 import MagicString from 'magic-string';
-import { isAstNode } from './utils/ast.js';
+import { forEachAstChild, isAstNode } from './utils/ast.js';
 import { parseWithRawTransfer } from './utils/parse.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { inlineConstCaptures } from './rewrite/index.js';
@@ -467,22 +467,7 @@ function buildQpOverrides(
       if (elementParams.length > 0) qpOverrides.set(node.start, elementParams);
     }
 
-    const record = node as unknown as Record<string, unknown>;
-    for (const key of Object.keys(record)) {
-      const value = record[key];
-      if (!value || typeof value !== 'object') continue;
-      if (Array.isArray(value)) {
-        for (const item of value) {
-          if (isAstNode(item)) {
-            walkAst(item as AstNode);
-          }
-        }
-        continue;
-      }
-      if (isAstNode(value)) {
-        walkAst(value as AstNode);
-      }
-    }
+    forEachAstChild(node, (child) => walkAst(child as AstNode));
   }
 
   walkAst(program);

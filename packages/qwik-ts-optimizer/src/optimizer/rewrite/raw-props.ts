@@ -18,6 +18,7 @@ import { buildPropertyAccessor } from '../utils/identifier-name.js';
 import { rewritePropsFieldReferences } from '../utils/props-field-rewrite.js';
 import {
   forEachAstChild,
+  someAstChild,
   getAssignedIdentifierName,
   type AstIdentifierNode,
   type AstRangedNode,
@@ -254,18 +255,7 @@ function blockHasReturn(stmt: AstMaybeNode): boolean {
   ) {
     return false;
   }
-  const record = stmt as unknown as Record<string, unknown>;
-  for (const key of Object.keys(record)) {
-    const v = record[key];
-    if (Array.isArray(v)) {
-      for (const item of v) {
-        if (isAstNode(item) && blockHasReturn(item as AstMaybeNode)) return true;
-      }
-    } else if (isAstNode(v)) {
-      if (blockHasReturn(v as AstMaybeNode)) return true;
-    }
-  }
-  return false;
+  return someAstChild(stmt, (child) => blockHasReturn(child as AstMaybeNode));
 }
 
 function arrowBodyLooksLikeComponent(body: AstMaybeNode): boolean {

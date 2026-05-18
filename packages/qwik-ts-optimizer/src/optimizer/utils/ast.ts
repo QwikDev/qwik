@@ -105,3 +105,35 @@ export function forEachAstChild(
     }
   }
 }
+
+/**
+ * Short-circuit sibling of `forEachAstChild`. Returns `true` on the first
+ * child for which `predicate` returns truthy; otherwise iterates every
+ * child and returns `false`. Same skip-keys + `isAstNode` validation as
+ * `forEachAstChild`.
+ */
+export function someAstChild(
+  node: AstCompatMaybeNode,
+  predicate: (child: AstCompatNode, key: string, parent: AstCompatNode) => boolean,
+  skipKeys: ReadonlySet<string> = DEFAULT_META_KEYS,
+): boolean {
+  if (!node || typeof node !== "object") return false;
+
+  const compat = node as AstCompatNode;
+  for (const key of Object.keys(compat)) {
+    if (skipKeys.has(key)) continue;
+
+    const value = compat[key];
+    if (!value || typeof value !== "object") continue;
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (isAstNode(item) && predicate(item, key, compat)) return true;
+      }
+      continue;
+    }
+
+    if (isAstNode(value) && predicate(value, key, compat)) return true;
+  }
+  return false;
+}

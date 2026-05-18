@@ -7,7 +7,7 @@
 
 import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
 import type { AstMaybeNode, AstNode, AstParentNode } from '../ast-types.js';
-import { isAstNode } from './utils/ast.js';
+import { forEachAstChild, isAstNode } from './utils/ast.js';
 
 const trailingComma = createRegExp(
   exactly(',').and(anyOf('}', ']', ')').grouped()),
@@ -26,37 +26,19 @@ type AstNodeList = ReadonlyArray<AstMaybeNode>;
 // --- AST traversal helpers ---------------------------------------------------
 
 /**
- * Walk all AST child nodes of `node`, calling `visitor` on each.
- * Skips position/type metadata keys automatically.
+ * Walk all AST child nodes of `node`, calling `visitor` on each. Skips
+ * position/type metadata keys automatically. Thin wrapper over the shared
+ * `forEachAstChild` that retypes the visitor parameters as `AstNode` —
+ * the single cast inside is validated by `forEachAstChild`'s `isAstNode`
+ * gate.
  */
 function forEachChildNode(
   node: AstMaybeNode,
   visitor: (child: AstNode, key: string, parent: AstNode) => void,
 ): void {
-  if (!node) return;
-
-  const record = node as unknown as Record<string, unknown>;
-  for (const key of Object.keys(record)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') {
-      continue;
-    }
-
-    const value = record[key];
-    if (!value || typeof value !== 'object') continue;
-
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        if (isAstNode(item)) {
-          visitor(item as AstNode, key, node);
-        }
-      }
-      continue;
-    }
-
-    if (isAstNode(value)) {
-      visitor(value as AstNode, key, node);
-    }
-  }
+  forEachAstChild(node, (child, key, parent) => {
+    visitor(child as AstNode, key, parent as AstNode);
+  });
 }
 
 // --- Node type detection -----------------------------------------------------

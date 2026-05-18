@@ -1,5 +1,5 @@
 import type { AstMaybeNode, AstNode, AstParentNode } from '../../ast-types.js';
-import { isAstNode } from './ast.js';
+import { forEachAstChild } from './ast.js';
 import { buildPropertyAccessor } from './identifier-name.js';
 import { createTransformSession } from './transform-session.js';
 
@@ -79,24 +79,7 @@ export function rewritePropsFieldReferences(
       }
     }
 
-    const record = node as unknown as Record<string, unknown>;
-    for (const key of Object.keys(record)) {
-      const value = record[key];
-      if (!value || typeof value !== 'object') continue;
-
-      if (Array.isArray(value)) {
-        for (const item of value) {
-          if (isAstNode(item)) {
-            walkNode(item as AstNode, key, node);
-          }
-        }
-        continue;
-      }
-
-      if (isAstNode(value)) {
-        walkNode(value as AstNode, key, node);
-      }
-    }
+    forEachAstChild(node, (child, key, parent) => walkNode(child as AstNode, key, parent as AstNode));
   }
 
   walkNode(program);

@@ -12,6 +12,7 @@ import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
 import {
   addBindingNamesFromPatternToSet,
   collectBindingNamesFromPattern,
+  type BindingPatternLike,
 } from './utils/binding-pattern.js';
 
 export interface MigrationDecision {
@@ -116,11 +117,14 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
 }
 
 /** Add all binding names from a pattern into a Set. */
-function addBindingNamesToSet(pattern: AstMaybeNode, target: Set<string>): void {
+function addBindingNamesToSet(
+  pattern: BindingPatternLike | null | undefined,
+  target: Set<string>,
+): void {
   addBindingNamesFromPatternToSet(pattern, target);
 }
 
-function countBindings(node: AstMaybeNode): number {
+function countBindings(node: BindingPatternLike | null | undefined): number {
   return collectBindingNamesFromPattern(node).length;
 }
 
@@ -285,7 +289,10 @@ function collectRootDeclPositions(program: AstProgram): Set<number> {
   return positions;
 }
 
-function collectBindingPositions(node: AstMaybeNode, positions: Set<number>): void {
+function collectBindingPositions(
+  node: BindingPatternLike | null | undefined,
+  positions: Set<number>,
+): void {
   if (!node) return;
 
   switch (node.type) {
@@ -317,8 +324,14 @@ function collectBindingPositions(node: AstMaybeNode, positions: Set<number>): vo
       collectBindingPositions(node.left, positions);
       break;
 
-    default:
+    case 'TSParameterProperty':
+      collectBindingPositions(node.parameter, positions);
       break;
+
+    default: {
+      const _exhaustive: never = node;
+      throw new Error(`unhandled binding-pattern node: ${(_exhaustive as { type?: string }).type}`);
+    }
   }
 }
 

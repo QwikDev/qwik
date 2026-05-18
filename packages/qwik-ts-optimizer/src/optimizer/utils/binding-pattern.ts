@@ -2,9 +2,34 @@
  * Shared binding-pattern helpers for ESTree-compatible AST nodes.
  */
 
-import type { AstMaybeNode } from '../../ast-types.js';
+import type {
+  BindingPattern,
+  BindingRestElement,
+  FormalParameterRest,
+  TSParameterProperty,
+} from '@oxc-project/types';
 
-function visitBindingNames(node: AstMaybeNode, visit: (name: string) => void): void {
+/**
+ * The closed union of node types `visitBindingNames` dispatches on.
+ *
+ * OXC's canonical `BindingPattern` covers identifier-in-binding-position,
+ * object pattern, array pattern, and assignment pattern. We extend with
+ * `BindingRestElement` / `FormalParameterRest` (both `type: "RestElement"`
+ * at runtime; appear in array-pattern element slots and function-param
+ * rest slots respectively) and `TSParameterProperty` (TS class constructor
+ * param shorthand). The switch in `visitBindingNames` exhausts this union;
+ * adding a new variant upstream forces a compile-time update.
+ */
+export type BindingPatternLike =
+  | BindingPattern
+  | BindingRestElement
+  | FormalParameterRest
+  | TSParameterProperty;
+
+function visitBindingNames(
+  node: BindingPatternLike | null | undefined,
+  visit: (name: string) => void,
+): void {
   if (!node) return;
 
   switch (node.type) {
@@ -36,22 +61,35 @@ function visitBindingNames(node: AstMaybeNode, visit: (name: string) => void): v
     case 'TSParameterProperty':
       visitBindingNames(node.parameter, visit);
       break;
+
+    default: {
+      const _exhaustive: never = node;
+      throw new Error(`unhandled binding-pattern node: ${(_exhaustive as { type?: string }).type}`);
+    }
   }
 }
 
 /** Collect all declared binding names from a pattern node. */
-export function collectBindingNamesFromPattern(pattern: AstMaybeNode): string[] {
+export function collectBindingNamesFromPattern(
+  pattern: BindingPatternLike | null | undefined,
+): string[] {
   const names: string[] = [];
   visitBindingNames(pattern, (name) => names.push(name));
   return names;
 }
 
 /** Add all binding names from a pattern node into an existing array. */
-export function appendBindingNamesFromPattern(pattern: AstMaybeNode, target: string[]): void {
+export function appendBindingNamesFromPattern(
+  pattern: BindingPatternLike | null | undefined,
+  target: string[],
+): void {
   visitBindingNames(pattern, (name) => target.push(name));
 }
 
 /** Add all binding names from a pattern node into an existing set. */
-export function addBindingNamesFromPatternToSet(pattern: AstMaybeNode, target: Set<string>): void {
+export function addBindingNamesFromPatternToSet(
+  pattern: BindingPatternLike | null | undefined,
+  target: Set<string>,
+): void {
   visitBindingNames(pattern, (name) => target.add(name));
 }

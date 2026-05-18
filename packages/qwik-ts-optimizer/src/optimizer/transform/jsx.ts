@@ -494,8 +494,10 @@ export function processJsxTag(nameNode: JSXElementName | null | undefined): stri
     }
     case 'JSXNamespacedName':
       return `"${nameNode.namespace.name}:${nameNode.name.name}"`;
-    default:
-      return '"div"';
+    default: {
+      const _exhaustive: never = nameNode;
+      throw new Error(`unhandled JSXElementName: ${(_exhaustive as { type?: string }).type}`);
+    }
   }
 }
 

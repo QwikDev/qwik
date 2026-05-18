@@ -71,6 +71,7 @@ import {
   promoteEventHandlerCaptures,
   unifyParameterSlots,
   buildElementCaptureMap,
+  type EventCaptureContext,
 } from './event-capture-promotion.js';
 import {
   generateAllSegmentModules,
@@ -279,8 +280,7 @@ export function transformModule(
     const globalDeclPositions = new Map<string, number>();
     const { extractionLoopMap, loopBodyVarDecls } = buildExtractionLoopMap(program, extractions, repairedCode);
     const allScopeEntries = collectAllScopeEntries(program);
-
-    promoteEventHandlerCaptures(
+    const eventCaptureCtx: EventCaptureContext = {
       extractions,
       closureNodes,
       bodyScopeIds,
@@ -290,28 +290,16 @@ export function transformModule(
       extractionLoopMap,
       allScopeEntries,
       loopBodyVarDecls,
-      program,
       repairedCode,
-      globalDeclPositions,
-    );
+    };
+
+    promoteEventHandlerCaptures(eventCaptureCtx, globalDeclPositions);
 
     // Unify parameter slots for multiple event handlers on the same element
-    unifyParameterSlots(
-      extractions,
-      enclosingExtMap,
-      extractionLoopMap,
-      globalDeclPositions,
-      repairedCode,
-    );
+    unifyParameterSlots(eventCaptureCtx, globalDeclPositions);
 
     // Build elementQpParams map
-    const elementQpParamsMap = buildElementCaptureMap(
-      extractions,
-      enclosingExtMap,
-      extractionLoopMap,
-      globalDeclPositions,
-      repairedCode,
-    );
+    const elementQpParamsMap = buildElementCaptureMap(eventCaptureCtx, globalDeclPositions);
 
     detectC02Diagnostics(
       extractions,

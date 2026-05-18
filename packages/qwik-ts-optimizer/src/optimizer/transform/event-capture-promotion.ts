@@ -10,7 +10,6 @@
 import { walk, getUndeclaredIdentifiersInFunction } from "oxc-walker";
 import type { AstNode, AstFunction, AstProgram } from "../../ast-types.js";
 import type { ExtractionResult } from "../extract.js";
-import type { ImportInfo } from "../marker-detection.js";
 import {
   detectLoopContext,
   generateParamPadding,
@@ -96,11 +95,36 @@ export function buildExtractionLoopMap(
  * `class` without re-walking. */
 type BindingKind = 'param' | 'let' | 'const' | 'var' | 'function' | 'class';
 
-interface ScopeEntry {
+export interface ScopeEntry {
   type: "function" | "for-loop";
   start: number;
   end: number;
   bindings: Array<{ name: string; pos: number; kind: BindingKind }>;
+}
+
+/**
+ * Shared plumbing for the three-step event-handler capture promotion
+ * orchestration: `promoteEventHandlerCaptures` populates the captures,
+ * `unifyParameterSlots` aligns slot ordering across sibling handlers,
+ * and `buildElementCaptureMap` produces the per-element `q:ps` map.
+ *
+ * All three functions read a subset of this context; the broad shape
+ * makes it a discoverable surface for the orchestration state. The
+ * mutation target `globalDeclPositions` stays as a separate explicit
+ * argument so the linkage between the three calls (write/read/read)
+ * is visible at the call site.
+ */
+export interface EventCaptureContext {
+  extractions: ExtractionResult[];
+  closureNodes: Map<string, AstFunction>;
+  bodyScopeIds: Map<string, Set<string>>;
+  moduleScopeIds: Set<string>;
+  importedNames: Set<string>;
+  enclosingExtMap: Map<string, ExtractionResult>;
+  extractionLoopMap: Map<string, LoopContext[]>;
+  allScopeEntries: ScopeEntry[];
+  loopBodyVarDecls: LoopBodyVarDeclMap;
+  repairedCode: string;
 }
 
 /** Per-loop record of VariableDeclarations whose source range falls
@@ -220,19 +244,22 @@ export function collectAllScopeEntries(program: AstProgram): ScopeEntry[] {
  * become positional function parameters instead of runtime captures.
  */
 export function promoteEventHandlerCaptures(
-  extractions: ExtractionResult[],
-  closureNodes: Map<string, AstFunction>,
-  bodyScopeIds: Map<string, Set<string>>,
-  moduleScopeIds: Set<string>,
-  importedNames: Set<string>,
-  enclosingExtMap: Map<string, ExtractionResult>,
-  extractionLoopMap: Map<string, LoopContext[]>,
-  allScopeEntries: ScopeEntry[],
-  loopBodyVarDecls: LoopBodyVarDeclMap,
-  _program: AstProgram,
-  repairedCode: string,
+  ctx: EventCaptureContext,
   globalDeclPositions: Map<string, number>,
 ): void {
+  const {
+    extractions,
+    closureNodes,
+    bodyScopeIds,
+    moduleScopeIds,
+    importedNames,
+    enclosingExtMap,
+    extractionLoopMap,
+    allScopeEntries,
+    loopBodyVarDecls,
+    repairedCode,
+  } = ctx;
+
   for (const extraction of extractions) {
     // Only process event handlers
     if (extraction.ctxKind !== "eventHandler") continue;
@@ -476,12 +503,10 @@ export function promoteEventHandlerCaptures(
  * Ensures consistent positional parameter ordering across handlers.
  */
 export function unifyParameterSlots(
-  extractions: ExtractionResult[],
-  enclosingExtMap: Map<string, ExtractionResult>,
-  extractionLoopMap: Map<string, LoopContext[]>,
+  ctx: EventCaptureContext,
   globalDeclPositions: Map<string, number>,
-  repairedCode: string,
 ): void {
+  const { extractions, enclosingExtMap, extractionLoopMap, repairedCode } = ctx;
   // Group event handlers by parent extraction and element position
   const handlersByParent = new Map<string, typeof extractions>();
   for (const ext of extractions) {
@@ -591,12 +616,10 @@ export function unifyParameterSlots(
  * for its containing element.
  */
 export function buildElementCaptureMap(
-  extractions: ExtractionResult[],
-  enclosingExtMap: Map<string, ExtractionResult>,
-  extractionLoopMap: Map<string, LoopContext[]>,
+  ctx: EventCaptureContext,
   globalDeclPositions: Map<string, number>,
-  repairedCode: string,
 ): Map<string, string[]> {
+  const { extractions, enclosingExtMap, extractionLoopMap, repairedCode } = ctx;
   const elementQpParamsMap = new Map<string, string[]>();
 
   // Group event handlers by parent and element (same logic as slot unification)

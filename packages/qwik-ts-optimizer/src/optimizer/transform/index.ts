@@ -321,14 +321,22 @@ export function transformModule(
     for (const d of moduleLevelDecls) {
       moduleLevelDeclsByName.set(d.name, d);
     }
-    const nonInlinedExtractions = extractions.filter((e) => !e.isInlinedQrl);
+    // Include both `$()` and `inlinedQrl(...)` extractions: module-level
+    // references inside a peer-tool-emitted `inlinedQrl` body (e.g. qwik-react
+    // codegen) still need migration attribution. The explicit-captures list on
+    // `inlinedQrl` only covers closure variables — module-level decls referenced
+    // in the body (like a peer-tool's shared `filterProps`) are NOT in the
+    // captures and need usage attribution via the program walk.
     const { segmentUsage, rootUsage } = computeSegmentUsage(
       program,
-      nonInlinedExtractions,
+      extractions,
     );
 
     // Augment segmentUsage with captureNames from scope-aware capture analysis.
-    for (const ext of nonInlinedExtractions) {
+    // (For `inlinedQrl` extractions, the explicit captures are already in
+    // `captureNames` — this also folds them into `segmentUsage` so they read
+    // back consistently with `$()` extractions.)
+    for (const ext of extractions) {
       const usage = segmentUsage.get(ext.symbolName);
       if (usage && ext.captureNames) {
         for (const name of ext.captureNames) {

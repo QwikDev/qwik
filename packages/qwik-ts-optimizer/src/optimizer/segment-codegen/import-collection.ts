@@ -160,7 +160,7 @@ function addQrlCalleeImports(
   parts: string[],
   bodyText: string,
   nestedCallSites: NestedCallSiteInfo[] | undefined,
-  _importContext: SegmentImportData,
+  importContext: SegmentImportData,
 ): void {
   if (!nestedCallSites) {
     qrlSuffixPattern.lastIndex = 0;
@@ -170,10 +170,18 @@ function addQrlCalleeImports(
         const qrlName = qrlMatch[1];
         if (parts.some(p => p.includes(qrlName))) continue;
         const markerName = `${qrlName.slice(0, -3)}$`;
-        if (getQrlCalleeName(markerName) === qrlName) {
-          const importSource = getQrlImportSource(qrlName);
-          insertImportBeforeSeparator(parts, `import { ${qrlName} } from "${importSource}";`);
-        }
+        if (getQrlCalleeName(markerName) !== qrlName) continue;
+        // Gate on the name being a legitimate `*Qrl` import — either from
+        // the source file's imports or the optimizer's runtime-imports
+        // injection list (`segment-generation.ts:166-194`). Without this
+        // gate, ANY user-named identifier ending in `Qrl` (e.g. a function
+        // parameter named `reactCmpQrl` in qwik-react's `qwikifyQrl`) gets
+        // a bogus `import { reactCmpQrl } from "@qwik.dev/core";` emitted
+        // — getQrlCalleeName's check above is trivially true since it
+        // literally re-suffixes `Qrl` onto its input.
+        if (!importContext.moduleImports.some(m => m.localName === qrlName)) continue;
+        const importSource = getQrlImportSource(qrlName);
+        insertImportBeforeSeparator(parts, `import { ${qrlName} } from "${importSource}";`);
       }
     return;
   }

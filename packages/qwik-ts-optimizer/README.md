@@ -23,7 +23,7 @@ Each snapshot contains:
 
 ### `ts-output/` — What We Currently Produce
 
-**Automatically regenerated** every time the convergence tests run. Each snapshot with an `==INPUT==` section gets transformed and written here (208 of 209 — `relative_paths` has no input section).
+**Not committed to git** (gitignored). **Automatically regenerated** every time the convergence tests run. Each snapshot with an `==INPUT==` section gets transformed and written here (208 of 209 — `relative_paths` has no input section). The convergence test compares against `match-these-snaps/`, not `ts-output/` — this directory is for human inspection only.
 
 ## How Convergence Tests Work
 

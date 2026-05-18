@@ -7,3 +7,5 @@ isolate-*.log
 .logs/subtask2.log
 ts-output/
 .claude/skills/
+ci-full.json
+local.json

@@ -13,7 +13,9 @@ import { rewriteImportSource } from './rewrite-imports.js';
 import { inlineConstCaptures } from './rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from './rewrite/predicates.js';
 import type { ExtractionResult } from './extract.js';
-import { transformAllJsx, collectConstAndLocalNames } from './transform/jsx.js';
+import { transformAllJsx, collectConstAndLocalNames, JsxKeyCounter } from './transform/jsx.js';
+import { transformJsxCalls, collectJsxFunctionNames } from './transform/jsx-call-transform.js';
+import { computeKeyPrefix } from './key-prefix.js';
 import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
 import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
 
@@ -276,6 +278,75 @@ function addNestedQrlDeclarations(parts: string[], nestedQrlDecls: string[] | un
 }
 
 // ── JSX transformation ──
+
+/**
+ * Phase 5b helper: rewrite peer-tool `jsx(Tag, propsObj, ...)` calls (e.g.
+ * from `qwik-react` codegen) into `_jsxSorted(...)` form. Sits alongside
+ * `transformSegmentJsx` (which handles `<JSX/>` syntax) — the two are
+ * complementary because peer tools pre-process JSX to `jsx()` calls before
+ * the optimizer sees the source, and the syntax-based pass skips them.
+ *
+ * Returns the rewritten body and (if any rewrites happened) the updated
+ * key-counter value to thread back into `segmentKeyCounterValue`.
+ */
+function transformSegmentJsxCalls(
+  bodyText: string,
+  parts: string[],
+  relPath: string,
+  importContext: SegmentImportData,
+  keyCounterStartOverride: number | undefined,
+): { bodyText: string; keyCounterValue?: number } {
+  // Cheap fast-path: only parse if the body even mentions a candidate
+  // jsx-function name. Most segments don't.
+  const jsxFunctions = collectJsxFunctionNames(importContext);
+  if (jsxFunctions.size === 0) return { bodyText };
+
+  let anyMatch = false;
+  for (const name of jsxFunctions) {
+    if (bodyText.includes(name + '(')) {
+      anyMatch = true;
+      break;
+    }
+  }
+  if (!anyMatch) return { bodyText };
+
+  try {
+    const wrappedBody = `(${bodyText})`;
+    const bodyParse = parseWithRawTransfer('segment.tsx', wrappedBody);
+    const bodyS = new MagicString(wrappedBody);
+
+    const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
+    const startAt = keyCounterStartOverride ?? 0;
+    const keyCounter = new JsxKeyCounter(startAt, prefix);
+
+    const neededImports = new Set<string>();
+    transformJsxCalls(wrappedBody, bodyS, bodyParse.program, {
+      jsxFunctions,
+      keyCounter,
+      neededImports,
+    });
+
+    const transformedWrapped = bodyS.toString();
+    const newBodyText = transformedWrapped.slice(1, -1);
+
+    if (newBodyText === bodyText) return { bodyText };
+
+    for (const sym of neededImports) {
+      if (!parts.some(p => p.includes(`{ ${sym} }`) || p.includes(`, ${sym}`))) {
+        const sepIdx = parts.indexOf('//');
+        if (sepIdx >= 0) {
+          parts.splice(sepIdx, 0, `import { ${sym} } from "@qwik.dev/core";`);
+        } else {
+          parts.push(`import { ${sym} } from "@qwik.dev/core";`);
+        }
+      }
+    }
+
+    return { bodyText: newBodyText, keyCounterValue: keyCounter.current() };
+  } catch {
+    return { bodyText };
+  }
+}
 
 function transformSegmentJsx(
   bodyText: string,
@@ -560,6 +631,25 @@ export function generateSegmentCode(
     const jsxResult = transformSegmentJsx(bodyText, parts, jsxOptions, nestedCallSites, liveCaptureInfo);
     bodyText = jsxResult.bodyText;
     segmentKeyCounterValue = jsxResult.keyCounterValue;
+  }
+
+  // Phase 5b: peer-tool JSX-call rewriting. `qwik-react` and similar peer
+  // codegen emit `jsx(Tag, propsObj)` calls (already pre-processed from JSX
+  // syntax). Phase 5's JSX-syntax transform skips them because they're not
+  // `<JSX/>`, and the entire Phase 5 may be skipped when source isn't .tsx/
+  // .jsx (qwik-react ships as .mjs). Rewrite them to `_jsxSorted(...)` here so
+  // they merge into the optimizer's emit shape. Runs unconditionally — the
+  // cheap fast-path inside `transformSegmentJsxCalls` skips when no jsx
+  // imports are present. SWC's reference equivalent: `handle_jsx` at
+  // `swc-reference-only/transform.rs:1163` gated by `jsx_functions` membership.
+  if (importContext) {
+    const jsxCallResult = transformSegmentJsxCalls(
+      bodyText, parts, extraction.origin, importContext, segmentKeyCounterValue,
+    );
+    bodyText = jsxCallResult.bodyText;
+    if (jsxCallResult.keyCounterValue !== undefined) {
+      segmentKeyCounterValue = jsxCallResult.keyCounterValue;
+    }
   }
 
   // Phase 6: core-symbol imports + sync$ call rewriting.

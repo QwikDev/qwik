@@ -1,0 +1,29 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 3886
+expression: output
+---
+==INPUT==
+
+
+		export const bump = ({ count }: { count: number }) => {
+			[count] = [42];
+			return { count };
+		};
+		
+============================= test.js ==
+
+export const bump = ({ count })=>{
+    [count] = [
+        42
+    ];
+    return {
+        count
+    };
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACE,OAAO,MAAM,OAAO,CAAC,EAAE,KAAK,EAAqB;IAChD,CAAC,MAAM,GAAG;QAAC;KAAG;IACd,OAAO;QAAE;IAAM;AAChB,EAAE\"}")
+== DIAGNOSTICS ==
+
+[]

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::code_move::create_return_stmt;
 use crate::collector::{new_ident_from_id, GlobalCollect, Id};
@@ -61,6 +61,26 @@ enum TransformInit {
 impl<'a> PropsDestructuring<'a> {
 	fn transform_component_props(&mut self, arrow: &mut ast::ArrowExpr) {
 		if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
+			// Refuse to transform if the body reassigns any destructured
+			// parameter (via `=`, compound assignment, or `++`/`--`). This
+			// pass rewrites identifier *reads* to `_rawProps.<name>` but does
+			// not rewrite assignment LHS, so a reassignment would leave the
+			// LHS as a now-undeclared identifier — silently miscompiling the
+			// function and producing a strict-mode `ReferenceError` at
+			// runtime. Reassigning a Qwik component prop is also semantically
+			// meaningless (props are read-only), so refusing is safe.
+			let destructured_names = collect_destructured_names(obj);
+			if !destructured_names.is_empty() {
+				let mut finder = ReassignFinder {
+					names: &destructured_names,
+					found: false,
+				};
+				arrow.body.visit_mut_with(&mut finder);
+				if finder.found {
+					return;
+				}
+			}
+
 			let new_ident = private_ident!("_rawProps");
 			if let Some((rest_id_opt, local)) =
 				transform_pat(ast::Expr::Ident(new_ident.clone()), obj, self)
@@ -565,4 +585,121 @@ fn create_omit_props(
 		}],
 		..Default::default()
 	})))
+}
+
+/// Collects all local bindings introduced by an object destructure pattern.
+fn collect_destructured_names(obj: &ast::ObjectPat) -> HashSet<Id> {
+	let mut names = HashSet::new();
+	for prop in &obj.props {
+		match prop {
+			ast::ObjectPatProp::Assign(v) => {
+				// `{ foo }` or `{ foo = default }` — local name is `foo`
+				names.insert(id!(v.key));
+			}
+			ast::ObjectPatProp::KeyValue(v) => {
+				// `{ key: value }` where value is a Pat
+				match v.value.as_ref() {
+					ast::Pat::Ident(ident) => {
+						names.insert(id!(ident.id));
+					}
+					ast::Pat::Assign(ast::AssignPat {
+						left: box ast::Pat::Ident(ident),
+						..
+					}) => {
+						names.insert(id!(ident.id));
+					}
+					_ => {}
+				}
+			}
+			ast::ObjectPatProp::Rest(rest) => {
+				if let ast::Pat::Ident(ident) = rest.arg.as_ref() {
+					names.insert(id!(ident.id));
+				}
+			}
+		}
+	}
+	names
+}
+
+/// Visitor that detects whether any of the given identifier bindings are
+/// reassigned (via `=`, compound assignment, or `++`/`--`) anywhere inside
+/// the visited subtree.
+struct ReassignFinder<'a> {
+	names: &'a HashSet<Id>,
+	found: bool,
+}
+
+impl<'a> VisitMut for ReassignFinder<'a> {
+	fn visit_mut_assign_expr(&mut self, node: &mut ast::AssignExpr) {
+		match &node.left {
+			ast::AssignTarget::Simple(ast::SimpleAssignTarget::Ident(bi)) => {
+				if self.names.contains(&id!(bi.id)) {
+					self.found = true;
+					return;
+				}
+			}
+			ast::AssignTarget::Pat(target_pat) => {
+				if assign_target_pat_writes_to(target_pat, self.names) {
+					self.found = true;
+					return;
+				}
+			}
+			_ => {}
+		}
+		if !self.found {
+			node.visit_mut_children_with(self);
+		}
+	}
+
+	fn visit_mut_update_expr(&mut self, node: &mut ast::UpdateExpr) {
+		if let ast::Expr::Ident(ref ident) = &*node.arg {
+			if self.names.contains(&id!(ident)) {
+				self.found = true;
+				return;
+			}
+		}
+		if !self.found {
+			node.visit_mut_children_with(self);
+		}
+	}
+}
+
+/// Returns true if the destructuring-assignment target (the LHS of
+/// `[a, b] = …` or `({ a, b } = …)`) re-binds any tracked name.
+fn assign_target_pat_writes_to(target: &ast::AssignTargetPat, names: &HashSet<Id>) -> bool {
+	match target {
+		ast::AssignTargetPat::Array(arr) => array_pat_writes_to(arr, names),
+		ast::AssignTargetPat::Object(obj) => object_pat_writes_to(obj, names),
+		ast::AssignTargetPat::Invalid(_) => false,
+	}
+}
+
+/// Returns true if any `Pat` reachable inside this pattern is an `Ident`
+/// whose `Id` is in `names`. Handles nested array/object patterns, rest
+/// elements, and `Pat::Assign` defaults.
+fn pat_writes_to(pat: &ast::Pat, names: &HashSet<Id>) -> bool {
+	match pat {
+		ast::Pat::Ident(bi) => names.contains(&id!(bi.id)),
+		ast::Pat::Array(arr) => array_pat_writes_to(arr, names),
+		ast::Pat::Object(obj) => object_pat_writes_to(obj, names),
+		ast::Pat::Rest(rest) => pat_writes_to(&rest.arg, names),
+		ast::Pat::Assign(ap) => pat_writes_to(&ap.left, names),
+		ast::Pat::Expr(_) | ast::Pat::Invalid(_) => false,
+	}
+}
+
+fn array_pat_writes_to(arr: &ast::ArrayPat, names: &HashSet<Id>) -> bool {
+	arr.elems
+		.iter()
+		.any(|elem| elem.as_ref().is_some_and(|p| pat_writes_to(p, names)))
+}
+
+fn object_pat_writes_to(obj: &ast::ObjectPat, names: &HashSet<Id>) -> bool {
+	obj.props.iter().any(|prop| match prop {
+		ast::ObjectPatProp::KeyValue(kv) => pat_writes_to(&kv.value, names),
+		// `{ ogImage }` and `{ ogImage = default }` — shorthand binds `ogImage`
+		// directly via `key` (the value field is the optional default RHS).
+		ast::ObjectPatProp::Assign(ap) => names.contains(&id!(ap.key.id)),
+		ast::ObjectPatProp::Rest(rest) => pat_writes_to(&rest.arg, names),
+	})
 }

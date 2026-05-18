@@ -3774,6 +3774,129 @@ fn destructure_args_colon_props3() {
 	});
 }
 
+// Regression: a plain helper arrow that destructures a parameter and
+// reassigns it inside the body must NOT be treated as an inline component.
+// The pre-fix behavior renamed the param to `_rawProps`, rewrote the
+// destructured reads, but left the assignment LHS as the now-undeclared
+// `ogImage`, causing strict-mode `ReferenceError` at runtime.
+//
+// The fix is to refuse the transform whenever the body reassigns a
+// destructured parameter. The expected snapshot leaves the arrow unchanged.
+#[test]
+fn destructure_args_helper_reassigns_template_literal() {
+	test_input!(TestInput {
+		code: r#"
+		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+			if (!ogImage) ogImage = `fallback-image-url`;
+			return {
+				title: "x",
+				meta: [{ property: "og:image", content: ogImage }],
+			};
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+// Same as above but with a string-literal RHS. Pre-fix, a downstream
+// simplifier silently dropped the assignment, producing wrong output with
+// no error. Post-fix, the arrow is left alone.
+#[test]
+fn destructure_args_helper_reassigns_string_literal() {
+	test_input!(TestInput {
+		code: r#"
+		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+			if (!ogImage) ogImage = "fallback-image-url";
+			return {
+				title: "x",
+				meta: [{ property: "og:image", content: ogImage }],
+			};
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+// Compound assignment / nullish-assign forms of the same bug.
+#[test]
+fn destructure_args_helper_reassigns_nullish_assign() {
+	test_input!(TestInput {
+		code: r#"
+		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+			ogImage ??= `fallback-image-url`;
+			return { ogImage };
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+// Reassignment via update expression (++, --). Same defensive refusal.
+#[test]
+fn destructure_args_helper_update_expr_on_param() {
+	test_input!(TestInput {
+		code: r#"
+		export const bump = ({ count }: { count: number }) => {
+			count++;
+			return { count };
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+// Reassignment via object-destructuring assignment: `({ ogImage } = newObj)`.
+// The LHS is an AssignTarget::Pat(AssignTargetPat::Object), not a
+// SimpleAssignTarget, so a finder that only inspects SimpleAssignTarget::Ident
+// misses it. The rewrite then fires and the same class of bug (assignment to
+// an undeclared identifier in strict mode) recurs. Snapshot must leave the
+// arrow unchanged.
+#[test]
+fn destructure_args_helper_reassigns_object_destructure() {
+	test_input!(TestInput {
+		code: r#"
+		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+			({ ogImage } = { ogImage: "fallback-image-url" });
+			return { meta: [{ property: "og:image", content: ogImage }] };
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+// Reassignment via array-destructuring assignment: `[count] = [42]`.
+// AssignTarget::Pat(AssignTargetPat::Array) — same gap as the object case.
+#[test]
+fn destructure_args_helper_reassigns_array_destructure() {
+	test_input!(TestInput {
+		code: r#"
+		export const bump = ({ count }: { count: number }) => {
+			[count] = [42];
+			return { count };
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 #[test]
 fn should_handle_dangerously_set_inner_html() {
 	test_input!(TestInput {

@@ -37,6 +37,12 @@ const createTestContainer = () => {
   return { container, writer };
 };
 
+const getNoScriptHereCount = (container: ReturnType<typeof ssrCreateContainer>) => {
+  // Raw-text elements do not allow observable nested element output, so this focused regression
+  // test inspects the internal guard directly.
+  return Reflect.get(container, '$noScriptHere$') as number;
+};
+
 describe('SSR Container', () => {
   it('should not emit Qwik loader before style elements', async () => {
     const { container, writer } = createTestContainer();
@@ -103,11 +109,11 @@ describe('SSR Container', () => {
       const { container } = createTestContainer();
 
       container.openContainer();
-      expect((container as any).$noScriptHere$).toBe(0);
+      expect(getNoScriptHereCount(container)).toBe(0);
       container.openElement(elementName, null, {}, null, null, null);
-      expect((container as any).$noScriptHere$).toBe(1);
+      expect(getNoScriptHereCount(container)).toBe(1);
       await container.closeElement();
-      expect((container as any).$noScriptHere$).toBe(0);
+      expect(getNoScriptHereCount(container)).toBe(0);
       await container.closeContainer();
     }
   });

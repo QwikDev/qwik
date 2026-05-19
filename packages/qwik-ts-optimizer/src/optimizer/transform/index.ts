@@ -528,6 +528,7 @@ export function transformModule(
       options.transpileJsx,
     );
     const parentModule: TransformModule = {
+      kind: 'parent',
       path: relPath,
       isEntry: false,
       code: cleanedCode,

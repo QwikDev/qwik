@@ -451,6 +451,7 @@ export function buildInlineStrategySegment(
   };
 
   return {
+    kind: 'segment',
     path: mkRelativePath(ext.canonicalFilename + ext.extension),
     isEntry: true,
     code: stripped ? generateStrippedSegmentCode(ext.symbolName) : "",
@@ -1098,6 +1099,7 @@ export function buildDefaultStrategySegment(
 
   return {
     module: {
+      kind: 'segment',
       path: mkRelativePath(ext.canonicalFilename + ext.extension),
       isEntry: true,
       code: segmentCode,

@@ -125,15 +125,32 @@ describe('TransformOutput', () => {
 describe('TransformModule', () => {
   it('has correct shape', () => {
     const mod: TransformModule = {
+      kind: 'parent',
       path: mkRelativePath('test.tsx'),
       isEntry: false,
       code: 'export const x = 1;',
       map: null,
       segment: null,
-      origPath: null,
+      origPath: 'test.tsx',
     };
     expect(mod.path).toBe('test.tsx');
     expect(mod.segment).toBeNull();
+  });
+
+  it('has correct shape for a parent variant (OSS-390)', () => {
+    const mod: TransformModule = {
+      kind: 'parent',
+      path: mkRelativePath('test.tsx'),
+      isEntry: false,
+      code: 'export const x = 1;',
+      map: null,
+      segment: null,
+      origPath: 'test.tsx',
+    };
+    expect(mod.kind).toBe('parent');
+    expect(mod.isEntry).toBe(false);
+    expect(mod.segment).toBeNull();
+    expect(mod.origPath).toBe('test.tsx');
   });
 });
 

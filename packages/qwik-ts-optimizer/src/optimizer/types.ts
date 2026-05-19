@@ -199,23 +199,60 @@ export interface TransformOutput {
  * QRL-referenced shell) or an extracted segment (a single `$()` body lifted
  * into its own lazy-loadable file).
  *
- * Distinguish the two by `origPath`: parent modules carry their input path
- * here; segment modules have `origPath: null`.
+ * Discriminated on `kind`. Internal code should narrow via
+ * `module.kind === 'segment'`; external consumers serializing the value
+ * for the future NAPI/CLI surface may elide `kind` if the existing JSON
+ * contract requires it. Runtime object shape (other than `kind`) is
+ * unchanged from the pre-OSS-390 flat form: the redundant null-arm
+ * fields (`segment: null` on parents, `origPath: null` on segments) are
+ * retained on each variant so consumer narrowings keep working. A
+ * follow-up may drop them once consumers have migrated to `kind`-based
+ * narrowing.
  */
-export interface TransformModule {
+export type TransformModule = TransformModuleParent | TransformModuleSegment;
+
+/** Rewritten parent module — the original file's QRL-referenced shell. */
+export interface TransformModuleParent {
+  readonly kind: 'parent';
+
+  /** Output path for this module, relative to `srcDir` — the original input path. */
+  readonly path: RelativePath;
+
+  /** Parents are never lazy-load entry points. */
+  readonly isEntry: false;
+
+  /** Emitted source code. */
+  readonly code: string;
+
   /**
-   * Output path for this module, relative to `srcDir`. For segment modules
-   * this is `<canonicalFilename>.<extension>`; for parent modules it is the
-   * original input path.
+   * Source map text. **Not wired** in this implementation today (always
+   * `null`); kept for NAPI parity. Source map emission is gated by
+   * `TransformModulesOptions.sourceMaps`.
+   */
+  readonly map: string | null;
+
+  /** Always `null` on parent modules — kept as a stable field for NAPI/consumer parity. */
+  readonly segment: null;
+
+  /**
+   * Original input file path (preserves the source from
+   * `TransformModuleInput.path`).
+   */
+  readonly origPath: string;
+}
+
+/** Extracted segment module — a single `$()` body lifted into its own lazy-loadable file. */
+export interface TransformModuleSegment {
+  readonly kind: 'segment';
+
+  /**
+   * Output path for this module, relative to `srcDir` —
+   * `<canonicalFilename>.<extension>`.
    */
   readonly path: RelativePath;
 
-  /**
-   * `true` when this module is a lazy-load entry point that the runtime
-   * resolves via `qrl(() => import(...))`. Set on every segment module.
-   * Parent modules use `false`.
-   */
-  readonly isEntry: boolean;
+  /** Segments are always lazy-load entry points resolved via `qrl(() => import(...))`. */
+  readonly isEntry: true;
 
   /** Emitted source code. Empty string for inline-strategy segments. */
   readonly code: string;
@@ -228,18 +265,13 @@ export interface TransformModule {
   readonly map: string | null;
 
   /**
-   * Segment metadata when this module was emitted as an extracted segment;
-   * `null` for parent modules and stripped-segment placeholders. The runtime
-   * uses this to wire `qrl(...)` references to the correct file.
+   * Segment metadata. The runtime uses this to wire `qrl(...)` references to the
+   * correct file.
    */
-  readonly segment: SegmentAnalysis | null;
+  readonly segment: SegmentAnalysis;
 
-  /**
-   * Original input file path for parent modules (preserves the source from
-   * `TransformModuleInput.path`). `null` on segment modules — they have no
-   * pre-extraction counterpart.
-   */
-  readonly origPath: string | null;
+  /** Always `null` on segment modules — kept as a stable field for NAPI/consumer parity. */
+  readonly origPath: null;
 }
 
 // ---------------------------------------------------------------------------

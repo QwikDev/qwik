@@ -576,6 +576,7 @@ export function buildPassthroughModule(
   }
 
   return {
+    kind: 'parent',
     path: relPath,
     isEntry: false,
     code: s.toString(),

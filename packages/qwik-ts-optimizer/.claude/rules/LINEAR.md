@@ -63,6 +63,29 @@ Other states (`Backlog`, `Todo`, `In Review`, `Done`, `Cancelled`) get no auto-a
 
 Rationale: an unassigned `In Progress` ticket is ambiguous about ownership. The `id -un` check is the durable way to confirm the assistant is running as Scott rather than as a teammate or CI runner.
 
+## Ticket references in commits and PR titles
+
+**Always use uppercase `OSS-XXX` when referencing a Linear ticket in a PR title, commit message header, or commit message body.** Never `oss-XXX`, never mixed case.
+
+This is the canonical form the GitHub→Linear integration recognises. Lowercase refs (e.g. a Conventional-Commits-style `refactor(oss-384): ...`) are *not* matched by the integration's parser, so the linked ticket never auto-flips from In Review → Done when the PR merges. Every wrap-up then has to flip the ticket manually via `issueUpdate`, which is wasted work and easy to forget.
+
+**Correct forms:**
+
+- Header: `refactor(OSS-384): introduce brand types`
+- Body: `Refs: OSS-384 (sub of OSS-381).`
+- Body: `Closes OSS-393.`
+- PR title: `refactor(OSS-384): ...` or `docs(OSS-393): ...`
+
+**Incorrect:**
+
+- `refactor(oss-384): ...` ← lowercase scope, the auto-flip trap
+- `OSS:384` or `OSS_384` ← wrong separator
+- `oss-384` anywhere in the PR description ← still not parsed
+
+If you discover a merged PR whose ticket didn't auto-flip, the casing is almost certainly the cause — check the PR title and commit messages. The fix going forward is at the commit-write step, not at wrap-up.
+
+History: OSS-382/383/384/393 all missed auto-flip due to lowercase headers (the project's prior `refactor(oss-XXX):` pattern). This rule, established 2026-05-18, fixes the source.
+
 ## Workflow
 
 1. **Draft in chat first.** Show full title + description (markdown) for every ticket before creating. Include labels, state, project, and parent/sub structure if applicable.

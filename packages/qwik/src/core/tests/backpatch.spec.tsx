@@ -1,6 +1,7 @@
 import {
   createContextId,
   useContext,
+  useAsync$,
   useContextProvider,
   useSignal,
   useTask$,
@@ -255,6 +256,56 @@ describe('SSR Backpatching', () => {
     expect(
       (backpatchedArticle?.ownerDocument as any).qVNodeData?.get(backpatchedArticle)
     ).not.toContain('aria');
+  });
+
+  it('should serialize async style objects before backpatching', async () => {
+    const Child = component$<{ color: string }>(({ color }) => {
+      return (
+        <div id="style-target" style={{ color }}>
+          Styled
+        </div>
+      );
+    });
+
+    const Parent = component$(() => {
+      const color = useAsync$(() => Promise.resolve('red'));
+      return <Child color={color.value} />;
+    });
+
+    const { document } = await ssrRenderToDom(<Parent />, { debug });
+    const target = document.querySelector('#style-target');
+
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+    expect(target?.getAttribute('style')).toBe('color:red');
+    expect(target?.outerHTML).not.toContain('[object Object]');
+  });
+
+  it('should serialize async class objects before backpatching', async () => {
+    const Child = component$<{ isActive: boolean }>(({ isActive }) => {
+      return (
+        <div
+          id="class-target"
+          class={{
+            active: isActive,
+            inactive: !isActive,
+          }}
+        >
+          Styled
+        </div>
+      );
+    });
+
+    const Parent = component$(() => {
+      const isActive = useAsync$(() => Promise.resolve(true));
+      return <Child isActive={isActive.value} />;
+    });
+
+    const { document } = await ssrRenderToDom(<Parent />, { debug });
+    const target = document.querySelector('#class-target');
+
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+    expect(target?.getAttribute('class')).toBe('active');
+    expect(target?.outerHTML).not.toContain('[object Object]');
   });
 
   describe('removing attributes', () => {

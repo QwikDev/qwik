@@ -1260,7 +1260,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         const lastNode = this.getOrCreateLastNode();
         this.addPromiseAttribute(value);
         value.then((resolvedValue) => {
-          this.addBackpatchEntry(lastNode.id, key, resolvedValue);
+          this.addBackpatchEntry(
+            lastNode.id,
+            key,
+            serializeAttribute(key, resolvedValue, styleScopedId)
+          );
         });
         continue;
       }

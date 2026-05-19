@@ -10,8 +10,12 @@
 
 import type {
   CanonicalFilename,
+  CtxName,
   DisplayName,
+  FilePath,
   Hash,
+  Origin,
+  RelativePath,
   SymbolName,
 } from './types/brands.js';
 
@@ -34,7 +38,7 @@ export interface TransformModulesOptions {
    * Absolute path to the application source root. Used with each input's
    * `path` to compute module-relative paths (e.g. for outputs and diagnostics).
    */
-  srcDir: string;
+  srcDir: FilePath;
 
   /**
    * Optional project root for path normalization in the full Qwik toolchain.
@@ -133,7 +137,7 @@ export interface TransformModuleInput {
    * Module path used for both naming (folded into hash + display name) and
    * relative-import emission. Should be relative to `srcDir`.
    */
-  path: string;
+  path: FilePath;
 
   /** Raw source text. */
   code: string;
@@ -192,7 +196,7 @@ export interface TransformModule {
    * this is `<canonicalFilename>.<extension>`; for parent modules it is the
    * original input path.
    */
-  path: string;
+  path: RelativePath;
 
   /**
    * `true` when this module is a lazy-load entry point that the runtime
@@ -240,7 +244,7 @@ export interface TransformModule {
  */
 export interface SegmentAnalysis {
   /** Source file the segment was extracted from (e.g. `"test.tsx"`). */
-  origin: string;
+  origin: Origin;
 
   /**
    * Canonical symbol name — `<contextPortion>_<hash>` (or `s_<hash>` after
@@ -298,7 +302,7 @@ export interface SegmentAnalysis {
    * ctxKind, or the JSX attribute name for handler/prop ctxKinds. Drives
    * strip rules, HMR injection, and per-marker special-cases downstream.
    */
-  ctxName: string;
+  ctxName: CtxName;
 
   /**
    * `true` iff this segment closes over any outer-scope binding —

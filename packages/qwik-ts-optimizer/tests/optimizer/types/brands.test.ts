@@ -151,12 +151,27 @@ describe('mkCtxName', () => {
     expect(mkCtxName('bind:value$')).toBe('bind:value$');
   });
 
+  it('accepts bare `$` standalone (OSS-385)', () => {
+    // The bare-`$()` marker's ctxName is literally '$' in production —
+    // see `tests/optimizer/extract.test.ts` for the contract. The
+    // OSS-383 regex was too strict; OSS-385 loosened it.
+    expect(mkCtxName('$')).toBe('$');
+  });
+
+  it('accepts hyphenated JSX attribute names (OSS-385)', () => {
+    // JSX accepts dashed attribute names and convergence fixtures emit
+    // them as ctxName values (e.g. `on-cLick$` in `example_jsx_listeners`).
+    expect(mkCtxName('on-cLick$')).toBe('on-cLick$');
+    expect(mkCtxName('aria-label$')).toBe('aria-label$');
+    expect(mkCtxName('data-foo$')).toBe('data-foo$');
+  });
+
   it('rejects invalid shapes', () => {
     expect(() => mkCtxName('')).toThrow();
     expect(() => mkCtxName('$leading')).toThrow();
     expect(() => mkCtxName('1leading')).toThrow();
     expect(() => mkCtxName('has space$')).toThrow();
-    expect(() => mkCtxName('has-dash$')).toThrow();
+    expect(() => mkCtxName('-leading-dash')).toThrow();
     expect(() => mkCtxName('foo$bar$')).toThrow();
   });
 });

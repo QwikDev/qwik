@@ -6,6 +6,20 @@
  * platforms.
  */
 import { basename, dirname, extname, normalize, normalizeString, relative } from 'pathe';
+import {
+  type FilePath,
+  type RelativePath,
+  mkRelativePath,
+} from './types/brands.js';
+
+// path-utils functions: the high-level entry points (`computeRelPath`,
+// `computeParentModulePath`, `computeOutputExtension`) take/return branded
+// path types because their contracts encode real semantic distinctions
+// (FilePath = arbitrary path; RelativePath = no-leading-slash). The
+// low-level string manipulators below (`getBasename`, `getDirectory`,
+// `getExtension`, etc.) accept plain `string` — they work on any
+// path-shaped input by design, and branding them just forces casts at
+// every consumer with no type-safety win.
 
 /** Determine file extension from a path string. */
 export function getExtension(filePath: string): string {
@@ -43,32 +57,44 @@ export function normalizePath(filePath: string): string {
 
 /**
  * Compute relative path from srcDir. If path doesn't start with srcDir,
- * returns the path as-is (normalized).
+ * returns a normalized form with any leading `/` stripped — the contract
+ * is that the returned value is always usable where a relative path is
+ * expected (no leading slash). This matches `RelativePath`'s shape rule
+ * in `types/brands.ts` so the result can be branded without per-fallback
+ * special-casing at consumers.
  */
-export function computeRelPath(inputPath: string, srcDir: string): string {
+export function computeRelPath(inputPath: FilePath, srcDir: FilePath): RelativePath {
   const normInput = normalizePath(inputPath);
   const normSrc = normalizePath(srcDir);
 
   if (normSrc === '.' || normSrc === '' || normSrc === './') {
-    return normInput;
+    return mkRelativePath(stripLeadingSlash(normInput));
   }
 
   const rel = relative(normSrc, normInput);
   if (rel !== '' && rel !== '.' && rel !== '..' && !rel.startsWith('../')) {
-    return rel;
+    return mkRelativePath(rel);
   }
 
-  return normInput;
+  return mkRelativePath(stripLeadingSlash(normInput));
+}
+
+function stripLeadingSlash(path: string): string {
+  return path.startsWith('/') ? path.slice(1) : path;
 }
 
 /**
  * Check whether a relative import path stays within the srcDir-relative tree
  * when resolved from a file's relative path.
+ *
+ * `relativePath` is an import-specifier string (e.g. `./foo`, `../bar`),
+ * gate-checked on entry. `importerPath` is the source file's
+ * project-relative path.
  */
-export function isRelativePathInsideBase(relativePath: string, importerPath: string): boolean {
+export function isRelativePathInsideBase(relativePath: string, importerPath: RelativePath): boolean {
   if (!relativePath.startsWith('.')) return false;
 
-  const importerDir = getDirectory(normalizePath(importerPath));
+  const importerDir = getDirectory(importerPath);
   const combined = importerDir ? `${importerDir}/${relativePath}` : relativePath;
   const normalized = normalizeString(normalizePath(combined), true);
 
@@ -81,7 +107,7 @@ export function isRelativePathInsideBase(relativePath: string, importerPath: str
  * so we use only the basename (no directory component), prefixed with "./".
  */
 export function computeParentModulePath(
-  relPath: string,
+  relPath: RelativePath,
   explicitExtensions?: boolean,
 ): string {
   const basename = getBasename(relPath);

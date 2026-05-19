@@ -25,6 +25,7 @@
  */
 
 import type { TransformModulesOptions } from '../../src/optimizer/types.js';
+import { mkFilePath } from '../../src/optimizer/types/brands.js';
 
 /**
  * Options override for a single snapshot test.
@@ -621,8 +622,8 @@ export function getSnapshotTransformOptions(
   const srcDir = overrides.srcDir ?? DEFAULT_OPTIONS.srcDir;
 
   return {
-    input: [{ path: filename, code: inputCode, devPath: overrides.devPath }],
-    srcDir,
+    input: [{ path: mkFilePath(filename), code: inputCode, devPath: overrides.devPath }],
+    srcDir: mkFilePath(srcDir),
     transpileTs: overrides.transpileTs ?? DEFAULT_OPTIONS.transpileTs,
     transpileJsx: overrides.transpileJsx ?? DEFAULT_OPTIONS.transpileJsx,
     mode: overrides.mode ?? DEFAULT_OPTIONS.mode,

@@ -3,8 +3,10 @@ import { extractSegments, type ExtractionResult } from '../../src/optimizer/extr
 import { generateSegmentCode } from '../../src/optimizer/segment-codegen.js';
 import {
   mkCanonicalFilename,
+  mkCtxName,
   mkDisplayName,
   mkHash,
+  mkOrigin,
   mkSymbolName,
 } from '../../src/optimizer/types/brands.js';
 
@@ -254,8 +256,8 @@ describe('generateSegmentCode', () => {
       isSync: false,
       qrlCallee: 'componentQrl',
       ctxKind: 'function',
-      ctxName: 'component$',
-      origin: 'test.tsx',
+      ctxName: mkCtxName('component$'),
+      origin: mkOrigin('test.tsx'),
       extension: '.tsx',
       loc: [2, 0] as [number, number],
       parent: null,
@@ -296,8 +298,8 @@ describe('generateSegmentCode', () => {
       isSync: false,
       qrlCallee: '',
       ctxKind: 'function',
-      ctxName: '$',
-      origin: 'test.tsx',
+      ctxName: mkCtxName('$'),
+      origin: mkOrigin('test.tsx'),
       extension: '.js',
       loc: [1, 0] as [number, number],
       parent: null,

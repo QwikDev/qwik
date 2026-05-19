@@ -38,12 +38,16 @@ import { getQrlCalleeName } from './utils/qrl-naming.js';
 import { computeLineColFromOffset } from './utils/source-loc.js';
 import {
   type CanonicalFilename,
+  type CtxName,
   type DisplayName,
   type Hash,
+  type Origin,
   type SymbolName,
   mkCanonicalFilename,
+  mkCtxName,
   mkDisplayName,
   mkHash,
+  mkOrigin,
   mkSymbolName,
 } from './types/brands.js';
 
@@ -74,8 +78,8 @@ export interface ExtractionResult {
 
   // Metadata
   ctxKind: 'function' | 'eventHandler' | 'jSXProp';
-  ctxName: string;
-  origin: string;
+  ctxName: CtxName;
+  origin: Origin;
   extension: string;
   loc: [number, number];
   parent: SymbolName | null;
@@ -491,8 +495,8 @@ export function extractSegments(
             qrlCallee: '',
             importSource: imports.get(calleeName)?.source ?? '@qwik.dev/core',
             ctxKind: 'function',
-            ctxName: inlinedCtxName,
-            origin: relPath,
+            ctxName: mkCtxName(inlinedCtxName),
+            origin: mkOrigin(relPath),
             extension,
             loc: [arg0.start, arg0.end],
             parent: null,
@@ -609,7 +613,7 @@ export function extractSegments(
 
         const ctxKind = getExtractionKind(canonicalCallee, isEventAttr, isJsxNonEventAttr);
         const isJsxAttrContext = isEventAttr || isJsxNonEventAttr;
-        const ctxName = getExtractionName(canonicalCallee, isJsxAttrContext, isJsxAttrContext ? attrCtx : undefined);
+        const ctxName = mkCtxName(getExtractionName(canonicalCallee, isJsxAttrContext, isJsxAttrContext ? attrCtx : undefined));
 
         const displayName = ctx.getDisplayName();
         const symbolName = ctx.getSymbolName();
@@ -638,7 +642,7 @@ export function extractSegments(
           importSource: imports.get(calleeName)?.source ?? '',
           ctxKind,
           ctxName,
-          origin: relPath,
+          origin: mkOrigin(relPath),
           extension: defaultExtension,
           loc: [line, col],
           parent: null,
@@ -706,7 +710,7 @@ export function extractSegments(
               ctxKind = 'jSXProp';
             }
           }
-          const ctxName = attrName;
+          const ctxName = mkCtxName(attrName);
 
           const displayName = ctx.getDisplayName();
           const symbolName = ctx.getSymbolName();
@@ -735,7 +739,7 @@ export function extractSegments(
             importSource: '',
             ctxKind,
             ctxName,
-            origin: relPath,
+            origin: mkOrigin(relPath),
             extension: defaultExtension,
             loc: [line, col],
             parent: null,

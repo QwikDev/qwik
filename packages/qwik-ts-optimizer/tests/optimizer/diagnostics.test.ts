@@ -16,6 +16,7 @@ import {
 } from '../../src/optimizer/diagnostics.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import type { Diagnostic } from '../../src/optimizer/types.js';
+import { mkFilePath } from '../../src/optimizer/types/brands.js';
 
 describe('emitC02', () => {
   it('produces error with code C02 for a function reference', () => {
@@ -195,8 +196,8 @@ export const App = component$(() => {
 })
 `;
     const result = transformModule({
-      input: [{ path: 'test.tsx', code: input }],
-      srcDir: '.',
+      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      srcDir: mkFilePath('.'),
     });
 
     // Should still produce code output (diagnostics are non-blocking)
@@ -236,8 +237,8 @@ export const App = component$((props) => {
 });
 `;
     const result = transformModule({
-      input: [{ path: 'test.tsx', code: input }],
-      srcDir: '.',
+      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      srcDir: mkFilePath('.'),
     });
 
     // Should still produce code
@@ -265,8 +266,8 @@ export const App = component$((props) => {
 \t\t});
 \t\t`;
     const result = transformModule({
-      input: [{ path: 'test.tsx', code: input }],
-      srcDir: '.',
+      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      srcDir: mkFilePath('.'),
     });
 
     const passiveDiags = result.diagnostics.filter(
@@ -294,8 +295,8 @@ export const App = component$((props) => {
 \t\t});
 \t\t`;
     const result = transformModule({
-      input: [{ path: 'test.tsx', code: input }],
-      srcDir: '.',
+      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      srcDir: mkFilePath('.'),
     });
 
     // The preventdefault-passive-check should be suppressed
@@ -322,8 +323,8 @@ export const App = component$((props) => {
 \t\t});
 \t\t`;
     const result = transformModule({
-      input: [{ path: 'test.tsx', code: input }],
-      srcDir: '.',
+      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      srcDir: mkFilePath('.'),
     });
 
     const c05Diags = result.diagnostics.filter((d) => d.code === 'C05');
@@ -340,8 +341,8 @@ export const App = component$(() => {
 })
 `;
     const result = transformModule({
-      input: [{ path: 'test.tsx', code: input }],
-      srcDir: '.',
+      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      srcDir: mkFilePath('.'),
     });
 
     // Diagnostics present

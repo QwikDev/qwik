@@ -17,6 +17,7 @@ import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { compareAst } from '../../src/testing/ast-compare.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotFiles } from '../../src/testing/batch-runner.js';
+import { mkFilePath } from '../../src/optimizer/types/brands.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAP_DIR = join(__dirname, '../../match-these-snaps');
@@ -84,8 +85,8 @@ describe('snapshot batch validation', () => {
           'test.tsx';
 
         const result = transformModule({
-          input: [{ path: filename, code: parsed.input }],
-          srcDir: '.',
+          input: [{ path: mkFilePath(filename), code: parsed.input }],
+          srcDir: mkFilePath('.'),
           mode: 'lib',
         });
 
@@ -161,8 +162,8 @@ describe('snapshot batch validation', () => {
           'test.tsx';
 
         const result = transformModule({
-          input: [{ path: filename, code: parsed.input }],
-          srcDir: '.',
+          input: [{ path: mkFilePath(filename), code: parsed.input }],
+          srcDir: mkFilePath('.'),
           mode: 'lib',
         });
 
@@ -229,8 +230,8 @@ describe('snapshot batch validation', () => {
           'test.tsx';
 
         const result = transformModule({
-          input: [{ path: filename, code: parsed.input }],
-          srcDir: '.',
+          input: [{ path: mkFilePath(filename), code: parsed.input }],
+          srcDir: mkFilePath('.'),
           mode: 'lib',
         });
 

@@ -83,16 +83,26 @@ const IDENTIFIER_SHAPE = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 const HASH_SHAPE = /^[A-Za-z0-9_]+$/;
 
 /**
- * Context-name shape: a marker callee (`component$`, `useTask$`,
- * `useStyles$`), a synthesised base form (`component`), the post-rewrite
- * `Qrl`-suffixed form (`componentQrl`), or a JSX attribute name with
- * optional namespace prefix and `$` suffix (`onClick$`,
- * `document:onScroll$`, `window:onResize$`, `bind:value$`).
+ * Context-name shape — one of:
  *
- * Must start with a letter or underscore; body may contain alphanumerics,
- * underscore, or `:` (for namespaced JSX attrs); optional trailing `$`.
+ * - The bare base marker `$` standalone (the `$()` callable's ctxName).
+ *   Per the OSS-385 audit, refusing this would block legitimate production
+ *   input (`tests/optimizer/extract.test.ts:55` asserts `seg.ctxName === '$'`
+ *   for bare-`$()` extractions).
+ * - A marker callee: `component$`, `useTask$`, `useStyles$`.
+ * - A synthesised base form: `component`.
+ * - The post-rewrite `Qrl`-suffixed form: `componentQrl`.
+ * - A JSX attribute name with optional namespace prefix and `$` suffix:
+ *   `onClick$`, `document:onScroll$`, `window:onResize$`, `bind:value$`.
+ * - A hyphenated JSX attribute name: `on-cLick$`, `aria-label$`, `data-*$`,
+ *   etc. JSX accepts dashed attribute names and convergence fixtures
+ *   include them; refusing `-` would block real input.
+ *
+ * The non-`$` arm: must start with a letter or underscore; body may
+ * contain alphanumerics, underscore, `:` (for namespaced JSX attrs), or
+ * `-` (for hyphenated JSX attrs); optional trailing `$`.
  */
-const CTX_NAME_SHAPE = /^[a-zA-Z_][a-zA-Z0-9_:]*\$?$/;
+const CTX_NAME_SHAPE = /^(\$|[a-zA-Z_][a-zA-Z0-9_:-]*\$?)$/;
 
 // ---------------------------------------------------------------------------
 // Smart constructors — identifier brands

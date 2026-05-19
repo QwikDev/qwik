@@ -11,6 +11,7 @@ import type { MigrationDecision, ModuleLevelDecl } from '../variable-migration.j
 import type { JsxTransformOutput } from '../transform/jsx.js';
 import type { EmitMode } from '../types.js';
 import type { AstFunction, AstProgram } from '../../ast-types.js';
+import type { RelativePath } from '../types/brands.js';
 import type { InlineStrategyOptions, JsxRewriteOptions } from './index.js';
 
 interface SurvivingImportInfo {
@@ -25,7 +26,7 @@ interface SurvivingImportInfo {
 
 export interface RewriteContext {
   source: string;
-  relPath: string;
+  relPath: RelativePath;
   s: MagicString;
   program: AstProgram;
   /**

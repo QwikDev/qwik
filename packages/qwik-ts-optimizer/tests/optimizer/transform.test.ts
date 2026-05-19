@@ -7,20 +7,21 @@
 
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../src/optimizer/transform/index.js';
+import { mkFilePath } from '../../src/optimizer/types/brands.js';
 
 describe('transformModule', () => {
   it('transforms a single component$ into parent + segment', () => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 export const App = component$(() => {
   return <div>Hello</div>;
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     expect(result.modules.length).toBeGreaterThan(1);
@@ -45,14 +46,14 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { $ } from '@qwik.dev/core';
 export const handler = $(() => {
   console.log('hello');
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     expect(result.modules.length).toBe(2);
@@ -69,14 +70,14 @@ export const handler = $(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@builder.io/qwik';
 export const App = component$(() => {
   return <div>Hello</div>;
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     // Parent module should have rewritten imports
@@ -88,12 +89,12 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { sync$ } from '@qwik.dev/core';
 const fn = sync$(() => true);`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     // sync$ should not produce a segment module
@@ -104,22 +105,22 @@ const fn = sync$(() => true);`,
 
   it('returns correct isTypeScript and isJsx flags', () => {
     const tsxResult = transformModule({
-      input: [{ path: 'test.tsx', code: 'const x = 1;' }],
-      srcDir: '.',
+      input: [{ path: mkFilePath('test.tsx'), code: 'const x = 1;' }],
+      srcDir: mkFilePath('.'),
     });
     expect(tsxResult.isTypeScript).toBe(true);
     expect(tsxResult.isJsx).toBe(true);
 
     const tsResult = transformModule({
-      input: [{ path: 'test.ts', code: 'const x = 1;' }],
-      srcDir: '.',
+      input: [{ path: mkFilePath('test.ts'), code: 'const x = 1;' }],
+      srcDir: mkFilePath('.'),
     });
     expect(tsResult.isTypeScript).toBe(true);
     expect(tsResult.isJsx).toBe(false);
 
     const jsResult = transformModule({
-      input: [{ path: 'test.js', code: 'const x = 1;' }],
-      srcDir: '.',
+      input: [{ path: mkFilePath('test.js'), code: 'const x = 1;' }],
+      srcDir: mkFilePath('.'),
     });
     expect(jsResult.isTypeScript).toBe(false);
     expect(jsResult.isJsx).toBe(false);
@@ -127,8 +128,8 @@ const fn = sync$(() => true);`,
 
   it('returns empty diagnostics array', () => {
     const result = transformModule({
-      input: [{ path: 'test.tsx', code: 'const x = 1;' }],
-      srcDir: '.',
+      input: [{ path: mkFilePath('test.tsx'), code: 'const x = 1;' }],
+      srcDir: mkFilePath('.'),
     });
     expect(result.diagnostics).toEqual([]);
   });
@@ -137,7 +138,7 @@ const fn = sync$(() => true);`,
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { $, component$ } from '@qwik.dev/core';
 export const App = component$(() => {
   return <div>Hello</div>;
@@ -147,7 +148,7 @@ export const handler = $(() => {
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     // Parent + at least 2 segments
@@ -164,7 +165,7 @@ export const handler = $(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$, $ } from '@qwik.dev/core';
 export const App = component$(() => {
   const count = 0;
@@ -175,7 +176,7 @@ export const App = component$(() => {
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     // Find parent module and segments
@@ -200,7 +201,7 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 const TITLE = "Hello World";
 export const App = component$(() => {
@@ -208,7 +209,7 @@ export const App = component$(() => {
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
       mode: 'lib',
     });
 
@@ -236,7 +237,7 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 const helperFn = (msg) => console.log(msg);
 export const App = component$(() => {
@@ -245,7 +246,7 @@ export const App = component$(() => {
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
       mode: 'lib',
     });
 
@@ -270,7 +271,7 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Lightweight = (props) => {
@@ -278,7 +279,7 @@ export const Lightweight = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -295,7 +296,7 @@ export const Lightweight = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
@@ -303,7 +304,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -316,7 +317,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -324,7 +325,7 @@ export const App = component$(() => {
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const segments = result.modules.filter((m) => m.segment !== null);
@@ -340,7 +341,7 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 import styles from './styles.module.css';
 
@@ -349,7 +350,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -362,7 +363,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$, $ } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -370,7 +371,7 @@ export const App = component$(() => {
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const segments = result.modules.filter((m) => m.segment !== null);
@@ -388,7 +389,7 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -396,7 +397,7 @@ export const App = component$(() => {
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const segments = result.modules.filter((m) => m.segment !== null);
@@ -412,12 +413,12 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.ts',
+          path: mkFilePath('test.ts'),
           code: `import { $ } from '@qwik.dev/core';
 export const handler = $(() => { console.log('hello'); });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -434,7 +435,7 @@ export const handler = $(() => { console.log('hello'); });`,
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
@@ -443,7 +444,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -455,7 +456,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
@@ -463,7 +464,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -474,7 +475,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
@@ -483,7 +484,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -497,7 +498,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
@@ -505,7 +506,7 @@ export const App = component$(() => {
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     // The segment body should contain the q-e:click naming
@@ -520,7 +521,7 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
@@ -528,7 +529,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -542,7 +543,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
@@ -550,7 +551,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -562,7 +563,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
@@ -571,7 +572,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -584,7 +585,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
@@ -593,7 +594,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -606,7 +607,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
@@ -615,7 +616,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -627,7 +628,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
@@ -635,7 +636,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -655,7 +656,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 export const App = component$(() => {
   const items = [1, 2, 3];
@@ -667,7 +668,7 @@ export const App = component$(() => {
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const segments = result.modules.filter((m) => m.segment !== null);
@@ -690,7 +691,7 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 export const App = component$(() => {
   const items = [];
@@ -701,7 +702,7 @@ export const App = component$(() => {
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const segments = result.modules.filter((m) => m.segment !== null);
@@ -719,14 +720,14 @@ export const App = component$(() => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 export const Comp = (props) => {
   return <div class="hello">world</div>;
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -742,7 +743,7 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 export const Comp = (props) => {
   const items = [1, 2, 3];
@@ -754,7 +755,7 @@ export const Comp = (props) => {
 };`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const parent = result.modules[0];
@@ -768,14 +769,14 @@ export const Comp = (props) => {
     const result = transformModule({
       input: [
         {
-          path: 'test.tsx',
+          path: mkFilePath('test.tsx'),
           code: `import { component$ } from '@qwik.dev/core';
 export const App = component$(() => {
   return <div>Hello</div>;
 });`,
         },
       ],
-      srcDir: '.',
+      srcDir: mkFilePath('.'),
     });
 
     const seg = result.modules[1].segment!;

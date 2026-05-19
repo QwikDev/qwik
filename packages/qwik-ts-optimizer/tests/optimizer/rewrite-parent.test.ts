@@ -11,6 +11,7 @@ import { rewriteParentModule } from '../../src/optimizer/rewrite/index.js';
 import { extractSegments } from '../../src/optimizer/extract.js';
 import { collectImports } from '../../src/optimizer/marker-detection.js';
 import { parseSync } from 'oxc-parser';
+import { mkRelativePath } from '../../src/optimizer/types/brands.js';
 
 /**
  * Helper: extract and rewrite a source file, returning the parent code.
@@ -19,7 +20,7 @@ function rewrite(source: string, relPath = 'test.tsx'): string {
   const extractions = extractSegments(source, relPath);
   const { program } = parseSync(relPath, source);
   const imports = collectImports(program);
-  const result = rewriteParentModule(source, relPath, extractions, imports);
+  const result = rewriteParentModule(source, mkRelativePath(relPath), extractions, imports);
   return result.code;
 }
 
@@ -178,7 +179,7 @@ export const App = component$(() => {
     const extractions = extractSegments(source, 'test.tsx');
     const { program } = parseSync('test.tsx', source);
     const imports = collectImports(program);
-    const result = rewriteParentModule(source, 'test.tsx', extractions, imports);
+    const result = rewriteParentModule(source, mkRelativePath('test.tsx'), extractions, imports);
 
     // Should have extractions with parent relationship
     // The inner $() should reference the outer component$ as parent

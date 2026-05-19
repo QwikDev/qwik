@@ -32,6 +32,7 @@ import { getQrlCalleeName } from "../utils/qrl-naming.js";
 import { buildQrlDevDeclaration } from "../dev-mode.js";
 import { generateStrippedSegmentCode } from "../strip-ctx.js";
 import { isStrippedSegment } from "../rewrite/predicates.js";
+import { mkRelativePath } from "../types/brands.js";
 import {
   buildStrippedNoopQrl,
   buildStrippedNoopQrlDev,
@@ -450,7 +451,7 @@ export function buildInlineStrategySegment(
   };
 
   return {
-    path: ext.canonicalFilename + ext.extension,
+    path: mkRelativePath(ext.canonicalFilename + ext.extension),
     isEntry: true,
     code: stripped ? generateStrippedSegmentCode(ext.symbolName) : "",
     map: null,
@@ -1097,7 +1098,7 @@ export function buildDefaultStrategySegment(
 
   return {
     module: {
-      path: ext.canonicalFilename + ext.extension,
+      path: mkRelativePath(ext.canonicalFilename + ext.extension),
       isEntry: true,
       code: segmentCode,
       map: null,

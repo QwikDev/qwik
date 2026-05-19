@@ -20,6 +20,7 @@ import { parseSync } from 'oxc-parser';
 import type { ExtractionResult } from '../extract.js';
 import type { ImportInfo } from '../marker-detection.js';
 import type { MigrationDecision, ModuleLevelDecl } from '../variable-migration.js';
+import type { RelativePath } from '../types/brands.js';
 import { rewriteImportSource } from '../rewrite-imports.js';
 import {
   buildSyncTransform,
@@ -142,7 +143,7 @@ export interface JsxRewriteOptions {
  */
 export function rewriteParentModule(
   source: string,
-  relPath: string,
+  relPath: RelativePath,
   extractions: ExtractionResult[],
   originalImports: Map<string, ImportInfo>,
   migrationDecisions?: MigrationDecision[],

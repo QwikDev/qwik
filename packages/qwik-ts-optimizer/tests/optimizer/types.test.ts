@@ -20,16 +20,20 @@ import type {
 } from '../../src/optimizer/types.js';
 import {
   mkCanonicalFilename,
+  mkCtxName,
   mkDisplayName,
+  mkFilePath,
   mkHash,
+  mkOrigin,
+  mkRelativePath,
   mkSymbolName,
 } from '../../src/optimizer/types/brands.js';
 
 describe('TransformModulesOptions', () => {
   it('accepts all expected fields', () => {
     const opts: TransformModulesOptions = {
-      input: [{ path: 'test.tsx', code: 'const x = 1;' }],
-      srcDir: '/src',
+      input: [{ path: mkFilePath('test.tsx'), code: 'const x = 1;' }],
+      srcDir: mkFilePath('/src'),
       rootDir: '/root',
       entryStrategy: { type: 'smart' },
       minify: 'none',
@@ -58,7 +62,7 @@ describe('TransformModulesOptions', () => {
 describe('SegmentAnalysis', () => {
   it('has all required fields', () => {
     const seg: SegmentAnalysis = {
-      origin: 'test.tsx',
+      origin: mkOrigin('test.tsx'),
       name: mkSymbolName('onClick_abc123'),
       entry: null,
       displayName: mkDisplayName('test_onClick'),
@@ -67,7 +71,7 @@ describe('SegmentAnalysis', () => {
       extension: 'tsx',
       parent: null,
       ctxKind: 'eventHandler',
-      ctxName: 'onClick$',
+      ctxName: mkCtxName('onClick$'),
       captures: true,
       loc: [10, 50],
     };
@@ -117,7 +121,7 @@ describe('TransformOutput', () => {
 describe('TransformModule', () => {
   it('has correct shape', () => {
     const mod: TransformModule = {
-      path: 'test.tsx',
+      path: mkRelativePath('test.tsx'),
       isEntry: false,
       code: 'export const x = 1;',
       map: null,
@@ -150,7 +154,7 @@ describe('Diagnostic', () => {
 describe('SegmentMetadataInternal', () => {
   it('extends SegmentAnalysis with optional paramNames and captureNames', () => {
     const meta: SegmentMetadataInternal = {
-      origin: 'test.tsx',
+      origin: mkOrigin('test.tsx'),
       name: mkSymbolName('s_abc123'),
       entry: null,
       displayName: mkDisplayName('test_s'),
@@ -159,7 +163,7 @@ describe('SegmentMetadataInternal', () => {
       extension: 'tsx',
       parent: null,
       ctxKind: 'function',
-      ctxName: '$',
+      ctxName: mkCtxName('$'),
       captures: false,
       loc: [0, 20],
       paramNames: ['a', 'b'],

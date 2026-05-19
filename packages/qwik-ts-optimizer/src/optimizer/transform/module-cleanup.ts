@@ -15,6 +15,7 @@ import type {
 import { parseWithRawTransfer } from '../utils/parse.js';
 import type { ExtractionResult } from '../extract.js';
 import type { TransformModule } from '../types.js';
+import type { RelativePath } from '../types/brands.js';
 
 const exportConstAssign = createRegExp(
   exactly('export')
@@ -513,7 +514,7 @@ export function removeUnusedImports(
 
 export function buildPassthroughModule(
   repairedCode: string,
-  relPath: string,
+  relPath: RelativePath,
   origPath: string,
   cachedProgram: AstProgram | undefined,
 ): TransformModule {

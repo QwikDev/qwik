@@ -6,7 +6,7 @@ import { DomContainer, getDomContainer } from './dom-container';
 import { findVDataSectionEnd, processVNodeData, whenVNodeDataReady } from './process-vnode-data';
 import type { ClientContainer, ContainerElement, QDocument } from './types';
 import { QContainerValue } from '../shared/types';
-import { QContainerAttr, QStyle } from '../shared/utils/markers';
+import { QContainerAttr, QStatePrewarmAttr, QStyle } from '../shared/utils/markers';
 import { vnode_getFirstChild } from './vnode-utils';
 import { Fragment } from '@qwik.dev/core';
 import { TypeIds } from '../shared/serdes/constants';
@@ -175,6 +175,139 @@ describe('processVnodeData', () => {
       expect((document.documentElement as ContainerElement).qVNodeRefs?.get(4)).toBe(
         document.querySelector('button')
       );
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
+    });
+  });
+
+  it('should keep below-threshold state lazy until first access', async () => {
+    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
+    for (let i = 1; i < 128; i++) {
+      stateItems.push(TypeIds.Plain, i);
+    }
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
+          <head :></head>
+          <body :>
+            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
+
+      await ready;
+      const rawState = (container as any).$rawStateData$ as unknown[];
+      expect(rawState[0]).toBe(TypeIds.Object);
+      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
+      expect(rawState[0]).toBe(TypeIds.Plain);
+    });
+  });
+
+  it('should eagerly deserialize opted-in large state before marking the container resumed', async () => {
+    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
+    for (let i = 1; i < 2048; i++) {
+      stateItems.push(TypeIds.Plain, i);
+    }
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="" ${QStatePrewarmAttr}="2048">
+          <head :></head>
+          <body :>
+            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
+      let chunks = 0;
+
+      while (!isContainerReady(container)) {
+        expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
+        runNextTask(tasks);
+        chunks++;
+        expect(chunks).toBeLessThan(300);
+      }
+
+      await ready;
+      const rawState = (container as any).$rawStateData$ as unknown[];
+      expect(chunks).toBeGreaterThan(1);
+      expect(rawState[0]).toBe(TypeIds.Plain);
+      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
+    });
+  });
+
+  it('should keep large state lazy by default', async () => {
+    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
+    for (let i = 1; i < 2048; i++) {
+      stateItems.push(TypeIds.Plain, i);
+    }
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
+          <head :></head>
+          <body :>
+            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
+
+      await ready;
+      const rawState = (container as any).$rawStateData$ as unknown[];
+      expect(rawState[0]).toBe(TypeIds.Object);
+      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
+      expect(rawState[0]).toBe(TypeIds.Plain);
+    });
+  });
+
+  it('should eagerly deserialize smaller state when state prewarm threshold is lowered', async () => {
+    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
+    for (let i = 1; i < 128; i++) {
+      stateItems.push(TypeIds.Plain, i);
+    }
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="" ${QStatePrewarmAttr}="128">
+          <head :></head>
+          <body :>
+            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
+
+      await ready;
+      const rawState = (container as any).$rawStateData$ as unknown[];
+      expect(rawState[0]).toBe(TypeIds.Plain);
+      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
       expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
     });
   });

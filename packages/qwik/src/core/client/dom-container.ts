@@ -7,6 +7,7 @@ import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
+import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
 import { getObjectById, parseQRL } from '../shared/serdes/index';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import { _SharedContainer } from '../shared/shared-container';
@@ -27,6 +28,7 @@ import {
   QLocaleAttr,
   QManifestHashAttr,
   QScopedStyle,
+  QStatePrewarmAttr,
   QStyle,
   QStyleSelector,
   QStylesAllSelector,
@@ -155,7 +157,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
       yield* preprocessStateIterator(this.$rawStateData$, this);
-      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+      const rootCount = this.$rawStateData$.length / 2;
+      const statePrewarm = element.getAttribute(QStatePrewarmAttr);
+      if (statePrewarm !== null && rootCount > 0 && rootCount >= Number(statePrewarm)) {
+        this.$stateData$ = yield* eagerDeserializeStateIterator(this, this.$rawStateData$);
+      } else {
+        this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+      }
     }
     this.$hoistStyles$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);

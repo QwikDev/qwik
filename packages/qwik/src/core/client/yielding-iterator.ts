@@ -1,6 +1,6 @@
 import { createMacroTask } from '../shared/platform/next-tick';
 
-const YIELD_INTERVAL = 1000 / 60;
+export const YIELD_INTERVAL = 10;
 
 export interface YieldingIteratorState<T = void> {
   $iterator$: Generator<void, T, void>;

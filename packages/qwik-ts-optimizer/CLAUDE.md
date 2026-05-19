@@ -37,6 +37,7 @@ decide which file is authoritative for a given decision.
 | Open convergence failures and feature work                   | `CONVERGENCE_FAILURES.md`  |
 | Git workflow, PRs, refactors, post-merge cleanup             | `METHODOLOGIES.md`         |
 | Linear tickets (drafting, creating, transitions)             | `LINEAR.md`                |
+| Portable-skill bindings (tracker + state file + conventions) | `PROJECT.md`               |
 | Branch state, in-flight work, recent merges                  | `STATE.md`                 |
 | Regression risk reasoning                                    | `REGRESSION.md`            |
 | Hard prohibitions                                            | `CONSTRAINTS.md`           |

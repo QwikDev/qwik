@@ -17,6 +17,10 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname;
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 const DRY_RUN = process.argv.includes('--dry-run');
 
 // uses: owner/repo@<40-char sha> # tag
@@ -178,7 +182,7 @@ for (const file of files) {
     if (oldRef === oldTag && content.includes(beforeTag)) {
       // Make sure we're not replacing inside a sha-pinned line
       const tagLineRe = new RegExp(
-        `(uses:\\s{1,10})${repo.replace(/\//g, '\\/')}@${oldRef}(?!\\s*#)`,
+        `(uses:\\s{1,10})${escapeRegex(repo)}@${escapeRegex(oldRef)}(?!\\s*#)`,
         'g'
       );
       const newContent = content.replace(tagLineRe, `$1${afterTag}`);

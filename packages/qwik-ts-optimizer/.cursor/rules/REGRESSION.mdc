@@ -1,0 +1,116 @@
+---
+alwaysApply: true
+---
+
+# DO NOT EDIT — generated from .claude/rules by sync-claude-to-cursor-rules.sh
+
+# Regression Prevention
+
+## The invariant
+
+> **No test ID that was passing on `main` may be failing or missing on a PR branch.**
+
+The check is **set-based, not count-based**. A naive "convergence pass count must not decrease" rule would let test churn (renames, deletions, replacements) hide regressions: deleting one passing test and flipping another to passing leaves the count unchanged but loses coverage. Set membership catches that.
+
+Two suites are tracked independently:
+
+| Suite | Definition |
+|---|---|
+| `convergence` | Tests whose file path contains `convergence`. The strict parity gate against `match-these-snaps/`. |
+| `full` | Every test in the project. Broader signal that catches regressions outside the snapshot suite. |
+
+Both invariants apply to every PR. Convergence is a subset of `full`, but they're tracked as separate sets so a regression localised to non-convergence tests still gets reported clearly.
+
+## The mechanism
+
+Three pieces enforce this:
+
+| Piece | Path | Role |
+|---|---|---|
+| Baseline file | `.ci/baseline.json` | Source of truth — the set of passing test IDs as of the most recent push to `main`. Auto-managed; do not edit by hand. |
+| Regression check | `scripts/check-regression.mjs` (`pnpm ci:baseline:check <vitest-json>`) | Compares a current run's passing set to the baseline. Exits non-zero if any baseline-passing ID is no longer passing or if total test count dropped. |
+| Baseline updater | `scripts/update-baseline.mjs` (`pnpm ci:baseline:update <vitest-json>`) | Regenerates `.ci/baseline.json` from a fresh vitest JSON. |
+
+Both scripts share a parser at `scripts/lib/baseline.mjs` that turns a vitest `--reporter=json` output into `{ convergence: { passing, total }, full: { passing, total } }`. Test IDs are `<repo-relative file> :: <vitest fullName>`, sorted, stable across machines and cwd (project root is auto-detected from path prefixes inside the JSON).
+
+Two GitHub Actions workflows wire it together (see `.github/workflows/`):
+
+### `.github/workflows/test.yml` — runs on every PR to `main`
+
+Steps, in order:
+
+1. `pnpm install --frozen-lockfile`
+2. `pnpm typecheck` (hard fail if it errors)
+3. `pnpm vitest run --reporter=json --outputFile=ci-full.json` — uses `continue-on-error: true` because vitest exits non-zero on the project's *expected* failing tests (the 33 convergence + 56 full); the regression check is the gate, not vitest's exit code
+4. `pnpm ci:baseline:check ci-full.json` — **the gate**
+
+PR fails iff step 4 fails. Step 4 considers the PR a regression when:
+
+- Any test ID in `baseline[suite].passing` is **not** in the current run's passing set, **OR**
+- `current[suite].total < baseline[suite].total` (silent test deletion guard).
+
+New passes (test IDs now passing that weren't in baseline) are reported as informational `⤴︎` lines but never fail the gate — they'll be absorbed into the baseline automatically when the PR merges.
+
+A small operational detail: the workflow has a concurrency group keyed on the PR number with `cancel-in-progress: true`, so an in-flight run gets cancelled when a new commit lands on the same PR.
+
+### `.github/workflows/update-baseline.yml` — runs on push to `main`
+
+Steps:
+
+1. Same install + vitest run as above (`continue-on-error: true`).
+2. `pnpm ci:baseline:update ci-full.json` — writes a fresh `.ci/baseline.json`.
+3. If the file changed (`git status --porcelain`), commits it as `github-actions[bot]` with the message `chore(ci): update test baseline [skip ci]` and pushes to `main`. The `[skip ci]` tag prevents the new commit from itself re-triggering the workflow (otherwise: infinite loop).
+
+Effect: the moment a PR merges, the next push absorbs any new passes into the baseline, and the next PR's gate compares against that updated set. Contributors don't update `.ci/baseline.json` by hand — they shouldn't even need to look at it.
+
+## Node version
+
+Both workflows pin `node-version: 22`. Node 20 is **not** supported — `oxc-parser`'s `experimentalRawTransfer` option (used in `src/ast-types.ts`) throws unconditionally on Node 20, cascading into ~274 test failures. `package.json` `engines.node` reflects the same `>=22` requirement. This was the root cause of the apparent macOS/Linux divergence tracked in [OSS-342](https://linear.app/kunai/issue/OSS-342).
+
+## What to do when the gate fails
+
+The check's output names every regressed test ID (up to 25 listed; rest summarised). Three diagnosis paths:
+
+1. **You changed something that broke them.** Common case. Run `pnpm vitest <test-name>` against one of the listed IDs, fix the regression, re-push.
+2. **A test legitimately changed and the baseline is stale.** Rare. Happens if a test was renamed or split between baseline-update runs. Don't update the baseline manually on your branch — let it land on `main` first and the auto-update will absorb it.
+3. **The total count dropped.** Means a test was deleted or filtered out. Either restore it or update the baseline through the normal merge flow if the deletion was intentional.
+
+Local equivalent of the CI gate:
+
+```bash
+pnpm vitest run --reporter=json --outputFile=local.json
+pnpm ci:baseline:check local.json
+```
+
+For investigating cross-environment differences (e.g. is this a real regression or a platform artefact?), use `node scripts/diff-platform-results.mjs <vitest-json>` — diffs a vitest JSON against the stored baseline and reports symmetric differences.
+
+## What about test counts?
+
+The headline numbers in `STATE.md` (`33 / 212 convergence failing`, `56 / 696 full failing`) are derived from the baseline, not authoritative on their own. They exist as a quick-glance signal: if a contributor sees those numbers shift in a PR before the gate runs, that's a hint the diff did something unexpected. The gate itself doesn't care about the numbers; it cares about set membership.
+
+When the numbers change on `main`, that's a feature flip (a test went from failing to passing, or vice versa). Update `STATE.md` to reflect the new baseline; that file's "Current measurements" section is the human-facing snapshot.
+
+## History
+
+- Designed and shipped by [OSS-341](https://linear.app/kunai/issue/OSS-341).
+- Workflows were briefly parked at `.yml.disabled` while [OSS-342](https://linear.app/kunai/issue/OSS-342) tracked an apparent macOS/Linux test divergence. Root cause: Node 20 vs Node 22, not a platform issue.
+- End-to-end smoke-tested red-and-green via the throw-away PR #9 (closed unmerged): the regression check correctly fails on intentional break, passes on revert.
+- Validated on every refactor-track PR since (PR #10 OSS-339 → PR #14 OSS-346).
+
+## Maintenance
+
+This file is a project-wide stable rule alongside `OPTIMIZER.md`, `METHODOLOGIES.md`, `LINEAR.md`, `CONSTRAINTS.md`. Update it when the **mechanism** changes:
+
+- A new gate is added (e.g. lint, security scan) or removed.
+- The script API or output format changes (`pnpm ci:baseline:check`, `pnpm ci:baseline:update`).
+- A workflow file gains or loses a step that affects whether/when the gate runs.
+- The Node version requirement changes.
+- The baseline file shape (`{convergence, full}` partition) changes.
+
+Don't update for:
+
+- Per-PR baseline drift (that's `STATE.md`'s "Current measurements" section).
+- Mid-investigation findings about flaky tests.
+- Changes to the underlying test suite that don't affect the gate.
+
+Keep this file the answer to "how does the regression gate work?" — not "how is the project doing right now?"

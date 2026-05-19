@@ -141,7 +141,6 @@ const NO_SCRIPT_HERE_ELEMENTS = new Set([
   'noframes',
   'noscript',
   'xmp',
-  'plaintext',
   'template',
   'svg',
   'math',
@@ -440,16 +439,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ): string | undefined {
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
-    if (
-      elementName === 'plaintext' &&
-      !isQwikStyle &&
-      this.qlInclude === QwikLoaderInclude.Inline &&
-      this.$noScriptHere$ === 0
-    ) {
-      // <plaintext> switches the tokenizer to plain text until EOF, so any later script would be
-      // swallowed even after a serialized closing tag.
-      this.emitQwikLoaderInline();
-    }
     // keep track of parser states/contexts where inline scripts are not safe to emit.
     // Non-element tokenizer states are already safe because emission only happens before opening
     // a new element, never while serializing a tag, attribute, comment, or CDATA section.

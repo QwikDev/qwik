@@ -1,23 +1,11 @@
-import { Rule } from 'eslint';
+import type { Rule } from 'eslint';
 import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
-import * as eslint from 'eslint'; // For Scope types
+import type { TSESLint } from '@typescript-eslint/utils';
+import { isDescendantOf, resolveVariableForIdentifier, traverse } from './utils';
+
 const ISSERVER = 'isServer';
 const GLOBALAPIS = ['process', '__dirname', '__filename', 'module'];
 const PRESETNODEAPIS = ['fs', 'os', 'path', 'child_process', 'http', 'https', 'Buffer'];
-// Helper function: checks if a node is a descendant of another node
-function isNodeDescendantOf(descendantNode, ancestorNode): boolean {
-  if (!ancestorNode) {
-    return false;
-  }
-  let current: TSESTree.Node | undefined = descendantNode.parent;
-  while (current) {
-    if (current === ancestorNode) {
-      return true;
-    }
-    current = current.parent;
-  }
-  return false;
-}
 
 export const scopeUseTask: Rule.RuleModule = {
   meta: {
@@ -25,8 +13,6 @@ export const scopeUseTask: Rule.RuleModule = {
     docs: {
       description:
         'Disallow direct or indirect (via one-level function call) Node.js API usage in useTask$ without a server guard (e.g., isServer).',
-      category: 'Best Practices',
-      recommended: true,
       url: '', // Optional: URL to your rule's documentation
     },
     fixable: undefined,
@@ -71,7 +57,10 @@ export const scopeUseTask: Rule.RuleModule = {
      * @param functionContextNode - The function context node where the API or call resides.
      * @returns True if the node is properly guarded, false otherwise.
      */
-    function isApiUsageGuarded(apiOrCallNode, functionContextNode): boolean {
+    function isApiUsageGuarded(
+      apiOrCallNode: TSESTree.Node,
+      functionContextNode: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression
+    ): boolean {
       let currentParentNode: TSESTree.Node | undefined = apiOrCallNode.parent;
       while (
         currentParentNode &&
@@ -81,7 +70,7 @@ export const scopeUseTask: Rule.RuleModule = {
         if (currentParentNode.type === AST_NODE_TYPES.IfStatement) {
           const ifStatement = currentParentNode;
           if (
-            isNodeDescendantOf(apiOrCallNode, ifStatement.consequent) ||
+            isDescendantOf(apiOrCallNode, ifStatement.consequent) ||
             apiOrCallNode === ifStatement.consequent
           ) {
             const testExpression = ifStatement.test;
@@ -134,12 +123,12 @@ export const scopeUseTask: Rule.RuleModule = {
      * @returns True if the identifier is shadowed by such a declaration, false otherwise (implying
      *   it might be a global API).
      */
-    function isIdentifierShadowedByDeclaration(identifierNode): boolean {
+    function isIdentifierShadowedByDeclaration(identifierNode: TSESTree.Identifier): boolean {
       const scope = sourceCode.getScope(identifierNode);
-      let variable: eslint.Scope.Variable | undefined | null = null;
+      let variable: TSESLint.Scope.Variable | undefined | null = null;
 
       // Try to find the variable starting from the current scope and going upwards
-      let currentScopeForSearch: eslint.Scope.Scope | null = scope;
+      let currentScopeForSearch: TSESLint.Scope.Scope | null = scope;
 
       if (!GLOBALAPIS.includes(identifierNode.name)) {
         return true;
@@ -192,20 +181,22 @@ export const scopeUseTask: Rule.RuleModule = {
      * @param callSiteNode The node where this function/expression was called/used from within
      *   useTask$ (for reporting).
      */
-    function analyzeNodeContent(nodeToAnalyze, functionContextForGuardCheck, callSiteNode) {
+    function analyzeNodeContent(
+      nodeToAnalyze: TSESTree.Node,
+      functionContextForGuardCheck:
+        | TSESTree.ArrowFunctionExpression
+        | TSESTree.FunctionDeclaration
+        | TSESTree.FunctionExpression,
+      callSiteNode: TSESTree.CallExpression
+    ) {
       // Internal recursive visitor
-      function internalVisitor(currentNode: TSESTree.Node): boolean {
-        // Returns true if an error was reported
-        if (!currentNode) {
-          return false;
-        }
-
+      traverse(nodeToAnalyze, (currentNode) => {
         if (currentNode.type === AST_NODE_TYPES.Identifier) {
           if (forbiddenApis.has(currentNode.name)) {
             if (!isIdentifierShadowedByDeclaration(currentNode)) {
               if (!isApiUsageGuarded(currentNode, functionContextForGuardCheck)) {
                 context.report({
-                  node: callSiteNode as any,
+                  node: callSiteNode,
                   messageId: 'unsafeApiUsageInCalledFunction',
                   data: {
                     apiName: currentNode.name,
@@ -222,31 +213,8 @@ export const scopeUseTask: Rule.RuleModule = {
             }
           }
         }
-
-        // Traverse child nodes
-        for (const key in currentNode) {
-          if (key === 'parent' || key === 'range' || key === 'loc') {
-            continue;
-          }
-
-          const child = (currentNode as any)[key];
-          if (Array.isArray(child)) {
-            for (const item of child) {
-              if (item && typeof item === 'object' && 'type' in item) {
-                if (internalVisitor(item as TSESTree.Node)) {
-                  return true;
-                }
-              }
-            }
-          } else if (child && typeof child === 'object' && 'type' in child) {
-            if (internalVisitor(child as TSESTree.Node)) {
-              return true;
-            }
-          }
-        }
         return false;
-      }
-      internalVisitor(nodeToAnalyze);
+      });
     }
 
     return {
@@ -288,7 +256,7 @@ export const scopeUseTask: Rule.RuleModule = {
         // Ensure this identifier is directly within the useTask$ callback body.
         if (
           currentUseTaskFunction.body !== node &&
-          !isNodeDescendantOf(node, currentUseTaskFunction.body)
+          !isDescendantOf(node, currentUseTaskFunction.body)
         ) {
           return;
         }
@@ -319,7 +287,7 @@ export const scopeUseTask: Rule.RuleModule = {
         if (!currentUseTaskFunction) {
           return;
         }
-        if (!isNodeDescendantOf(callNode, currentUseTaskFunction.body)) {
+        if (!isDescendantOf(callNode, currentUseTaskFunction.body)) {
           return;
         }
         if (isApiUsageGuarded(callNode, currentUseTaskFunction)) {
@@ -328,48 +296,7 @@ export const scopeUseTask: Rule.RuleModule = {
 
         if (callNode.callee.type === AST_NODE_TYPES.Identifier) {
           const calleeIdentifierNode = callNode.callee;
-          const scopeOfCallee = sourceCode.getScope(calleeIdentifierNode);
-          let resolvedVariable: eslint.Scope.Variable | null = null;
-
-          // Find the reference object for the calleeIdentifierNode
-          const ref = scopeOfCallee.references.find((r) => r.identifier === calleeIdentifierNode);
-          if (ref && ref.resolved) {
-            resolvedVariable = ref.resolved;
-          } else {
-            // Fallback: If not found as a direct reference (e.g. declared in same scope or complex cases),
-            // try to find variable by name walking up the scope chain.
-            let currentScopeToSearch: eslint.Scope.Scope | null = scopeOfCallee;
-            while (currentScopeToSearch) {
-              const v = currentScopeToSearch.variables.find(
-                (va) => va.name === calleeIdentifierNode.name
-              );
-              if (v && v.defs.length > 0) {
-                // Ensure it has definitions
-                resolvedVariable = v;
-                break;
-              }
-              if (currentScopeToSearch.type === 'global' && !v) {
-                // If global and still not found, break
-                // Check globalScope explicitly for built-ins if not found as a declared variable
-                const globalVar =
-                  currentScopeToSearch.type === 'global'
-                    ? currentScopeToSearch.variables.find(
-                        (gv) => gv.name === calleeIdentifierNode.name
-                      )
-                    : null;
-                if (globalVar) {
-                  resolvedVariable = globalVar;
-                }
-                break;
-              }
-              if (!currentScopeToSearch.upper) {
-                break;
-              } // No more upper scopes
-              currentScopeToSearch = currentScopeToSearch.upper;
-            }
-          }
-
-          const variable = resolvedVariable;
+          const variable = resolveVariableForIdentifier(context, calleeIdentifierNode);
 
           if (variable && variable.defs.length > 0) {
             const definition = variable.defs[0]; // Assuming the first definition is the relevant one

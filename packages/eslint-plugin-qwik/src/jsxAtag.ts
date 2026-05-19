@@ -1,4 +1,5 @@
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
+import { hasJsxAttribute } from './utils';
 
 const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.dev/docs/advanced/dollar/');
 
@@ -9,7 +10,6 @@ export const jsxAtag = createRule({
     type: 'problem',
     docs: {
       description: 'For a perfect SEO score, always provide href attribute for <a> elements.',
-      recommended: 'warn',
     },
     fixable: 'code',
     schema: [],
@@ -29,15 +29,10 @@ export const jsxAtag = createRule({
           );
 
           if (!hasSpread) {
-            const hasHref = node.openingElement.attributes.some(
-              (attr) =>
-                attr.type === 'JSXAttribute' &&
-                attr.name.type === 'JSXIdentifier' &&
-                attr.name.name === 'href'
-            );
+            const hasHref = hasJsxAttribute(node.openingElement.attributes, 'href');
             if (!hasHref) {
               context.report({
-                node: node as any,
+                node,
                 messageId: 'noHref',
               });
             }

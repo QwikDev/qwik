@@ -34,9 +34,14 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
   if (!node) return UNSIMPLIFIED;
   switch (node.type) {
     case 'Literal': {
-      const v = (node as { value?: unknown; bigint?: unknown }).value;
-      const bigint = (node as { bigint?: unknown }).bigint;
-      if (bigint !== undefined) return UNSIMPLIFIED;
+      // After narrowing, `node` is `BooleanLiteral | NullLiteral |
+      // NumericLiteral | StringLiteral | BigIntLiteral | RegExpLiteral`.
+      // The typeof guards below admit only the four primitive-valued
+      // variants (Boolean/Null/Numeric/String) — BigIntLiteral's
+      // `bigint`-typed value and RegExpLiteral's `object`-typed value
+      // both fall through to UNSIMPLIFIED. The old explicit `.bigint`
+      // check is therefore redundant.
+      const v = node.value;
       if (
         v === null ||
         v === undefined ||
@@ -50,11 +55,10 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
     }
 
     case 'UnaryExpression': {
-      const u = node as { operator: string; argument: AstMaybeNode };
-      const arg = simplifyExpression(u.argument);
+      const arg = simplifyExpression(node.argument);
       if (!arg.simplified) return UNSIMPLIFIED;
       const v = arg.value;
-      switch (u.operator) {
+      switch (node.operator) {
         case '!': return { simplified: true, value: !v };
         case 'typeof': return { simplified: true, value: typeof v };
         case 'void': return { simplified: true, value: undefined };
@@ -66,14 +70,19 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
     }
 
     case 'BinaryExpression': {
-      const b = node as { operator: string; left: AstMaybeNode; right: AstMaybeNode };
-      const left = simplifyExpression(b.left);
+      const left = simplifyExpression(node.left);
       if (!left.simplified) return UNSIMPLIFIED;
-      const right = simplifyExpression(b.right);
+      const right = simplifyExpression(node.right);
       if (!right.simplified) return UNSIMPLIFIED;
+      // `as never` casts here are load-bearing — TypeScript correctly
+      // refuses `string + boolean` etc., but matching SWC's simplifier
+      // means doing the JS-side arithmetic that does allow it. The
+      // casts bridge the TS-vs-JS arithmetic gap; the value remains
+      // typed to the SimplifyResult union via the typeof guards on
+      // each non-`+` branch.
       const l = left.value as never;
       const r = right.value as never;
-      switch (b.operator) {
+      switch (node.operator) {
         case '+': return { simplified: true, value: (l as never) + (r as never) };
         case '-': return typeof l === 'number' && typeof r === 'number' ? { simplified: true, value: l - r } : UNSIMPLIFIED;
         case '*': return typeof l === 'number' && typeof r === 'number' ? { simplified: true, value: l * r } : UNSIMPLIFIED;
@@ -94,23 +103,21 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
     }
 
     case 'LogicalExpression': {
-      const lg = node as { operator: string; left: AstMaybeNode; right: AstMaybeNode };
-      const left = simplifyExpression(lg.left);
+      const left = simplifyExpression(node.left);
       if (!left.simplified) return UNSIMPLIFIED;
       const l = left.value;
-      switch (lg.operator) {
-        case '&&': return l ? simplifyExpression(lg.right) : left;
-        case '||': return l ? left : simplifyExpression(lg.right);
-        case '??': return l === null || l === undefined ? simplifyExpression(lg.right) : left;
+      switch (node.operator) {
+        case '&&': return l ? simplifyExpression(node.right) : left;
+        case '||': return l ? left : simplifyExpression(node.right);
+        case '??': return l === null || l === undefined ? simplifyExpression(node.right) : left;
       }
       return UNSIMPLIFIED;
     }
 
     case 'ConditionalExpression': {
-      const c = node as { test: AstMaybeNode; consequent: AstMaybeNode; alternate: AstMaybeNode };
-      const t = simplifyExpression(c.test);
+      const t = simplifyExpression(node.test);
       if (!t.simplified) return UNSIMPLIFIED;
-      return simplifyExpression(t.value ? c.consequent : c.alternate);
+      return simplifyExpression(t.value ? node.consequent : node.alternate);
     }
   }
   return UNSIMPLIFIED;

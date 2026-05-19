@@ -74,7 +74,13 @@ Run this as soon as the PR is merged. **Confirm with the user before the destruc
    - **Where to commit:** STATE.md edits go on a feature branch — never directly to `main` (per STATE.md's own Maintenance rules). Two valid patterns:
      - **Refresh-only PR** — preferred when several merges have batched up or the merge is significant (see PRs #19, #21, #25).
      - **Inline with the next active workstream branch's first commit** if a successor branch is already starting.
-   - **Auto-merge is fine for STATE.md-only PRs.** The diff is pure documentation, low-risk, and gate-checked by CI like every other PR. Queue them with `gh pr merge --auto --squash <pr-number>` (or the GitHub UI's auto-merge button) and let the CI pass trigger the merge — no manual review required. This applies *only* to PRs whose entire diff is `.claude/rules/STATE.md`; PRs that also touch other files still go through normal review.
+
+5. **Audit `OPTIMIZER.md` for pipeline-touching merges.** If the merged PR touched any file listed in OPTIMIZER.md's "Trigger checklist for pipeline refactors", and the PR did not already update OPTIMIZER.md, audit the doc against the change before continuing.
+   - Most pipeline-touching changes are **type-internal** (renames, signature widening, brand propagation, helper extraction) and don't require a doc update — the conceptual contract OPTIMIZER.md describes is unchanged.
+   - **Update OPTIMIZER.md only when the change is structural:** a phase added/removed/renumbered, a new tool-surface convention name, a migration rule changed, a worked-example snapshot replaced, an `ExtractionResult` field added/removed/repurposed, or file:line refs in OPTIMIZER.md drifted by >50 lines or moved files. See OPTIMIZER.md's "Maintenance" section for the full criteria.
+   - **Fold the update into the same branch as the STATE.md refresh.** Both are docs-only edits under `.claude/rules/`; they ride the same auto-merge carve-out (see below).
+
+6. **Auto-merge is fine for docs-only PRs under `.claude/rules/`.** The diff is pure documentation, low-risk, and gate-checked by CI like every other PR. This covers STATE.md (frequent), OPTIMIZER.md (when the audit above folds an update in), and the other rule files when modified in isolation. Queue them with `gh pr merge --auto --squash <pr-number>` (or the GitHub UI's auto-merge button) and let the CI pass trigger the merge — no manual review required. This applies *only* to PRs whose entire diff is under `.claude/rules/` (any combination of files in that directory). PRs that also touch source (`src/`), tests (`tests/`), or workflows (`.github/`) go through normal review. The CI gate runs identically on both.
 
 ### What "merged" means here
 
@@ -87,7 +93,7 @@ This routine fires when the PR's commits are reachable from `origin/main`. It do
 
 - **Don't auto-delete the branch without confirming.** Especially when running unattended; especially with squash-merged PRs where the warning could mask an unintended state.
 - **Don't edit `STATE.md` on `main` directly.** STATE.md's own Maintenance section forbids this. Always go through a feature branch + PR, even for tiny changes.
-- **Don't extend auto-merge beyond STATE.md.** The exemption is narrow on purpose — other rule files (METHODOLOGIES, OPTIMIZER, CONSTRAINTS, REGRESSION, LINEAR) govern project behavior and changes deserve a review eye.
+- **Don't extend auto-merge beyond `.claude/rules/`.** The exemption is narrow on purpose — source code (`src/`), tests (`tests/`), and workflows (`.github/`) affect runtime behavior and changes deserve a review eye. Rule-file-only PRs are the boundary; anything else goes through standard review.
 
 ## Refactoring
 

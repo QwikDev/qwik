@@ -7,6 +7,7 @@ import type {
   IdentifierReference,
   AstCompatMaybeNode,
   AstCompatNode,
+  AstNode,
   VariableDeclarator,
 } from '../../ast-types.js';
 
@@ -76,16 +77,23 @@ export function getAssignedIdentifierName(value: unknown): string | null {
   return null;
 }
 
+/**
+ * Walk every AST child of `node`, calling `visitor` on each.
+ *
+ * `node` may be the strict oxc `Node` union or the loose duck-typed
+ * `AstCompatNode` shape; the loop only needs string-indexable access.
+ * Children get re-validated via `isAstNode` before dispatch, so the
+ * visitor receives values that satisfy the `AstNode` contract — the
+ * cast at the dispatch site is the brand-constructor pattern (one
+ * validated cast at the boundary, zero at call sites).
+ */
 export function forEachAstChild(
   node: AstCompatMaybeNode,
-  visitor: (child: AstCompatNode, key: string, parent: AstCompatNode) => void,
+  visitor: (child: AstNode, key: string, parent: AstNode) => void,
   skipKeys: ReadonlySet<string> = DEFAULT_META_KEYS,
 ): void {
   if (!node || typeof node !== "object") return;
 
-  // `node` may be either the strict oxc `Node` union or the loose
-  // `AstCompatNode` shape; the loop only needs string-indexable access
-  // and the children get re-validated via `isAstNode` before dispatch.
   const compat = node as AstCompatNode;
   for (const key of Object.keys(compat)) {
     if (skipKeys.has(key)) continue;
@@ -95,13 +103,13 @@ export function forEachAstChild(
 
     if (Array.isArray(value)) {
       for (const item of value) {
-        if (isAstNode(item)) visitor(item, key, compat);
+        if (isAstNode(item)) visitor(item as AstNode, key, compat as AstNode);
       }
       continue;
     }
 
     if (isAstNode(value)) {
-      visitor(value, key, compat);
+      visitor(value as AstNode, key, compat as AstNode);
     }
   }
 }
@@ -110,11 +118,11 @@ export function forEachAstChild(
  * Short-circuit sibling of `forEachAstChild`. Returns `true` on the first
  * child for which `predicate` returns truthy; otherwise iterates every
  * child and returns `false`. Same skip-keys + `isAstNode` validation as
- * `forEachAstChild`.
+ * `forEachAstChild`; predicate receives the tight `AstNode` form.
  */
 export function someAstChild(
   node: AstCompatMaybeNode,
-  predicate: (child: AstCompatNode, key: string, parent: AstCompatNode) => boolean,
+  predicate: (child: AstNode, key: string, parent: AstNode) => boolean,
   skipKeys: ReadonlySet<string> = DEFAULT_META_KEYS,
 ): boolean {
   if (!node || typeof node !== "object") return false;
@@ -128,12 +136,12 @@ export function someAstChild(
 
     if (Array.isArray(value)) {
       for (const item of value) {
-        if (isAstNode(item) && predicate(item, key, compat)) return true;
+        if (isAstNode(item) && predicate(item as AstNode, key, compat as AstNode)) return true;
       }
       continue;
     }
 
-    if (isAstNode(value) && predicate(value, key, compat)) return true;
+    if (isAstNode(value) && predicate(value as AstNode, key, compat as AstNode)) return true;
   }
   return false;
 }

@@ -108,7 +108,7 @@ function walkAstForQp(
     }
   }
 
-  forEachAstChild(node, (child) => walkAstForQp(child as AstNode, qrlParamMap, qpOverrides, qrlsWithCaptures));
+  forEachAstChild(node, (child) => walkAstForQp(child, qrlParamMap, qpOverrides, qrlsWithCaptures));
 }
 
 /**

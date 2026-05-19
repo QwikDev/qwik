@@ -508,7 +508,7 @@ function rewriteNoArgMarkers(ctx: RewriteContext): void {
         }
       }
     }
-    forEachAstChild(node, (child) => walk(child as AstNode));
+    forEachAstChild(node, (child) => walk(child));
   }
   for (const stmt of program.body) walk(stmt);
 }

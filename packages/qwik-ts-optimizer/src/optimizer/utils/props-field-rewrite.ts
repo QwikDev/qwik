@@ -79,7 +79,7 @@ export function rewritePropsFieldReferences(
       }
     }
 
-    forEachAstChild(node, (child, key, parent) => walkNode(child as AstNode, key, parent as AstNode));
+    forEachAstChild(node, (child, key, parent) => walkNode(child, key, parent));
   }
 
   walkNode(program);

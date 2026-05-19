@@ -13,6 +13,7 @@ import type {
   BindingProperty,
   CallExpression,
   AstMaybeNode,
+  AstNode,
 } from '../../ast-types.js';
 import { buildPropertyAccessor } from '../utils/identifier-name.js';
 import { rewritePropsFieldReferences } from '../utils/props-field-rewrite.js';
@@ -255,7 +256,7 @@ function blockHasReturn(stmt: AstMaybeNode): boolean {
   ) {
     return false;
   }
-  return someAstChild(stmt, (child) => blockHasReturn(child as AstMaybeNode));
+  return someAstChild(stmt, (child) => blockHasReturn(child));
 }
 
 function arrowBodyLooksLikeComponent(body: AstMaybeNode): boolean {
@@ -376,7 +377,7 @@ function collectIdentifierReplacements(
 ): IdentifierReplacement[] {
   const replacements: IdentifierReplacement[] = [];
 
-  function walk(node: unknown, parentKey?: string, parentNode?: AstCompatNode): void {
+  function walk(node: unknown, parentKey?: string, parentNode?: AstNode): void {
     if (!isAstNode(node)) return;
     if (
       hasRange(node) &&
@@ -386,20 +387,20 @@ function collectIdentifierReplacements(
     }
 
     if (isRangedIdentifierNode(node) && fieldLocalToKey.has(node.name)) {
-      const isPropertyKey =
-        parentKey === 'key' &&
-        (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
+      // Runtime emits 'Property' / 'MemberExpression' — the historic
+      // 'ObjectProperty' / 'StaticMemberExpression' branches were
+      // dead and got pruned when the type tightened (per PR #44).
+      const isPropertyKey = parentKey === 'key' && parentNode?.type === 'Property';
       const isMemberProp =
         parentKey === 'property' &&
-        (parentNode?.type === 'MemberExpression' ||
-          parentNode?.type === 'StaticMemberExpression') &&
-        !parentNode?.computed;
+        parentNode?.type === 'MemberExpression' &&
+        !parentNode.computed;
       const isParam = parentKey === 'params';
       const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
       const isShorthandValue =
         parentKey === 'value' &&
-        (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
-        parentNode?.shorthand === true;
+        parentNode?.type === 'Property' &&
+        parentNode.shorthand === true;
 
       if (isShorthandValue) {
         replacements.push({

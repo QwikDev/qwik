@@ -9,8 +9,15 @@
 
 import { describe, it, expect } from 'vitest';
 import { forEachAstChild, someAstChild } from '../../../src/optimizer/utils/ast.js';
-import type { AstCompatNode } from '../../../src/ast-types.js';
+import type { AstCompatNode, AstNode } from '../../../src/ast-types.js';
 
+// Tests use synthetic `type` strings (`'A'`, `'B'`, `'Foo'`, etc.) that
+// don't satisfy `AstNode`'s strict discriminated-union — the goal is
+// to exercise traversal mechanics (short-circuit, skip-keys, parent
+// threading) independent of real node shapes. The `AstCompatNode`
+// duck-typed shape is the right input type here; downstream
+// comparisons cast `.type` to `string` since the iterator now
+// surfaces `AstNode`'s strict union at the visitor boundary.
 function mkNode(type: string, extra: Record<string, unknown> = {}): AstCompatNode {
   return { type, start: 0, end: 0, ...extra };
 }
@@ -42,7 +49,7 @@ describe('someAstChild', () => {
     let seen: string[] = [];
     const result = someAstChild(node, (child) => {
       seen.push(child.type);
-      return child.type === 'B';
+      return (child.type as string) === 'B';
     });
     expect(result).toBe(true);
     expect(seen).toEqual(['A', 'B']);
@@ -56,7 +63,7 @@ describe('someAstChild', () => {
     let seen: string[] = [];
     someAstChild(node, (child) => {
       seen.push(child.type);
-      return child.type === 'B';
+      return (child.type as string) === 'B';
     });
     expect(seen).toEqual(['A', 'B']);
     expect(seen).not.toContain('C');
@@ -87,7 +94,7 @@ describe('someAstChild', () => {
     const child = mkNode('Bar');
     const parent = mkNode('Foo', { body: child });
     let capturedKey: string | null = null;
-    let capturedParent: AstCompatNode | null = null;
+    let capturedParent: AstNode | null = null;
     someAstChild(parent, (c, key, p) => {
       capturedKey = key;
       capturedParent = p;

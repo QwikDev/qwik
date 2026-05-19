@@ -23,24 +23,6 @@ type IdentifierNode = Extract<AstNode, { type: 'Identifier' }>;
 type MemberExpressionNode = Extract<AstNode, { type: 'MemberExpression' }>;
 type AstNodeList = ReadonlyArray<AstMaybeNode>;
 
-// --- AST traversal helpers ---------------------------------------------------
-
-/**
- * Walk all AST child nodes of `node`, calling `visitor` on each. Skips
- * position/type metadata keys automatically. Thin wrapper over the shared
- * `forEachAstChild` that retypes the visitor parameters as `AstNode` —
- * the single cast inside is validated by `forEachAstChild`'s `isAstNode`
- * gate.
- */
-function forEachChildNode(
-  node: AstMaybeNode,
-  visitor: (child: AstNode, key: string, parent: AstNode) => void,
-): void {
-  forEachAstChild(node, (child, key, parent) => {
-    visitor(child as AstNode, key, parent as AstNode);
-  });
-}
-
 // --- Node type detection -----------------------------------------------------
 
 const GLOBAL_NAMES = new Set([
@@ -116,7 +98,7 @@ function containsJsx(node: AstNode | AstNodeList | null | undefined): boolean {
   const currentNode = node as AstNode;
   if (currentNode.type === 'JSXElement' || currentNode.type === 'JSXFragment') return true;
   let found = false;
-  forEachChildNode(currentNode, (child) => {
+  forEachAstChild(currentNode, (child) => {
     if (!found && containsJsx(child)) found = true;
   });
   if (found) return true;
@@ -144,7 +126,7 @@ function containsUnknownCall(node: AstMaybeNode, importedNames: Set<string>): bo
   if (node.type === 'TaggedTemplateExpression') return true;
 
   let found = false;
-  forEachChildNode(node, (child) => {
+  forEachAstChild(node, (child) => {
     if (!found && containsUnknownCall(child, importedNames)) found = true;
   });
   return found;
@@ -161,7 +143,7 @@ function containsImportedReference(node: AstMaybeNode, importedNames: Set<string
   if (node.type === 'Identifier' && importedNames.has(node.name)) return true;
 
   let found = false;
-  forEachChildNode(node, (child) => {
+  forEachAstChild(node, (child) => {
     if (!found && containsImportedReference(child, importedNames)) found = true;
   });
   return found;
@@ -217,7 +199,7 @@ function collectIdentifiersFromExpr(
     }
     return;
   }
-  forEachChildNode(node, (child) => {
+  forEachAstChild(node, (child) => {
     collectIdentifiersFromExpr(child, importedNames, seen, roots);
   });
 }
@@ -282,7 +264,7 @@ function collectSignalDeps(
       if (!importedNames.has(n.name)) addRoot(n.name);
       return;
     }
-    forEachChildNode(n, (child) => fallbackCollectIdents(child));
+    forEachAstChild(n, (child) => fallbackCollectIdents(child));
   }
 
   function walk(n: AstMaybeNode): void {
@@ -314,7 +296,7 @@ function collectSignalDeps(
       return;
     }
 
-    forEachChildNode(n, (child, key, parent) => {
+    forEachAstChild(n, (child, key, parent) => {
       if (key === 'key' && parent.type === 'Property') return;
       if (
         key === 'property' &&
@@ -425,7 +407,7 @@ function generateFnSignal(
       return;
     }
 
-    forEachChildNode(n, (child, key, parent) => collectReplacements(child, key, parent));
+    forEachAstChild(n, (child, key, parent) => collectReplacements(child, key, parent));
   }
 
   collectReplacements(exprNode);

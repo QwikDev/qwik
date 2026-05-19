@@ -287,7 +287,7 @@ export function collectConstAndLocalNames(program: AstProgram): ConstAndLocalNam
       }
     }
 
-    forEachAstChild(node, (child) => visit(child as AstNode));
+    forEachAstChild(node, (child) => visit(child));
   }
 
   visit(program);

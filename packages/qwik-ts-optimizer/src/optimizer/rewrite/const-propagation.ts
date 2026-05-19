@@ -21,10 +21,9 @@ import {
   type VariableDeclarator,
 } from '../../ast-types.js';
 
-// Walker parameters: `AstNode | null | undefined` matches what `forEachAstChild`
-// passes through and lets discriminated-union narrowing (`node.type === 'X'`)
-// type the field accesses below. `parentNode` uses `AstCompatNode` to match
-// `forEachAstChild`'s callback signature exactly.
+// Walker parameters: `AstNode | null | undefined` matches what
+// `forEachAstChild` passes through and lets discriminated-union
+// narrowing (`node.type === 'X'`) type the field accesses below.
 
 export function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<string, string> {
   const result = new Map<string, string>();
@@ -42,7 +41,7 @@ export function resolveConstLiterals(parentBody: string, captureNames: string[])
     if (!node) return;
 
     if (node.type !== 'VariableDeclaration' || node.kind !== 'const') {
-      forEachAstChild(node, (child) => walkNode(child as AstNode));
+      forEachAstChild(node, (child) => walkNode(child));
       return;
     }
 
@@ -57,7 +56,7 @@ export function resolveConstLiterals(parentBody: string, captureNames: string[])
       }
     }
 
-    forEachAstChild(node, (child) => walkNode(child as AstNode));
+    forEachAstChild(node, (child) => walkNode(child));
   }
 
   walkNode(parseResult.program);
@@ -88,7 +87,7 @@ export function resolveConstLiteralsInClosure(
     if (!node) return;
 
     if (node.type !== 'VariableDeclaration' || node.kind !== 'const') {
-      forEachAstChild(node, (child) => walkNode(child as AstNode));
+      forEachAstChild(node, (child) => walkNode(child));
       return;
     }
 
@@ -101,7 +100,7 @@ export function resolveConstLiteralsInClosure(
       }
     }
 
-    forEachAstChild(node, (child) => walkNode(child as AstNode));
+    forEachAstChild(node, (child) => walkNode(child));
   }
 
   walkNode(closureNode.body);
@@ -121,16 +120,18 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
   const offset = wrapperPrefix.length;
   const replacements: Array<{ start: number; end: number; value: string }> = [];
 
-  function walkNode(node: AstNode | null | undefined, parentKey?: string, parentNode?: AstCompatNode): void {
+  function walkNode(node: AstNode | null | undefined, parentKey?: string, parentNode?: AstNode): void {
     if (!node) return;
 
     if (node.type === 'Identifier' && constValues.has(node.name)) {
-      const parentType = parentNode?.type;
-      const isDeclId = parentKey === 'id' && parentType === 'VariableDeclarator';
-      const isPropertyKey = parentKey === 'key' && (parentType === 'Property' || parentType === 'ObjectProperty');
+      // Runtime emits 'Property' / 'MemberExpression' — the historic
+      // 'ObjectProperty' / 'StaticMemberExpression' branches were
+      // dead and got pruned when the type tightened (per PR #44).
+      const isDeclId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
+      const isPropertyKey = parentKey === 'key' && parentNode?.type === 'Property';
       const isMemberProp = parentKey === 'property' &&
-        (parentType === 'MemberExpression' || parentType === 'StaticMemberExpression') &&
-        !parentNode?.computed;
+        parentNode?.type === 'MemberExpression' &&
+        !parentNode.computed;
 
       if (!isDeclId && !isPropertyKey && !isMemberProp) {
         replacements.push({
@@ -142,7 +143,7 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
     }
 
     forEachAstChild(node, (child, key, parent) => {
-      walkNode(child as AstNode, key, parent);
+      walkNode(child, key, parent);
     });
   }
 
@@ -181,13 +182,15 @@ interface IdentRef {
 // ── Helpers ──
 
 /** Check if a ref is a "real" reference (not a decl id, property key, or non-computed member prop). */
-function isRealRef(parentKey: string | undefined, parentNode: AstCompatNode | undefined): boolean {
-  const parentType = parentNode?.type;
-  if (parentKey === 'id' && parentType === 'VariableDeclarator') return false;
-  if (parentKey === 'key' && (parentType === 'Property' || parentType === 'ObjectProperty')) return false;
+function isRealRef(parentKey: string | undefined, parentNode: AstNode | undefined): boolean {
+  // Runtime emits 'Property' / 'MemberExpression' — the historic
+  // 'ObjectProperty' / 'StaticMemberExpression' branches were dead
+  // and got pruned when the type tightened (per PR #44).
+  if (parentKey === 'id' && parentNode?.type === 'VariableDeclarator') return false;
+  if (parentKey === 'key' && parentNode?.type === 'Property') return false;
   if (parentKey === 'property' &&
-      (parentType === 'MemberExpression' || parentType === 'StaticMemberExpression') &&
-      !parentNode?.computed) return false;
+      parentNode?.type === 'MemberExpression' &&
+      !parentNode.computed) return false;
   return true;
 }
 
@@ -224,7 +227,7 @@ function collectIdentifiers(node: AstNode): string[] {
   function walk(n: AstNode | null | undefined): void {
     if (!n) return;
     if (n.type === 'Identifier') { ids.push(n.name); return; }
-    forEachAstChild(n, (child) => walk(child as AstNode));
+    forEachAstChild(n, (child) => walk(child));
   }
   walk(node);
   return ids;
@@ -251,7 +254,7 @@ export function propagateConstLiteralsInBody(body: string): string {
 
   let currentDeclName: string | null = null;
 
-  function walkCollect(node: AstNode | null | undefined, parentKey?: string, parentNode?: AstCompatNode): void {
+  function walkCollect(node: AstNode | null | undefined, parentKey?: string, parentNode?: AstNode): void {
     if (!node) return;
 
     if (node.type === 'VariableDeclaration' && (node.kind === 'let' || node.kind === 'var')) {
@@ -285,7 +288,7 @@ export function propagateConstLiteralsInBody(body: string): string {
           const savedDeclName = currentDeclName;
           currentDeclName = decl.id.name;
           forEachAstChild(init, (child, key, parent) => {
-            walkCollect(child as AstNode, key, parent);
+            walkCollect(child, key, parent);
           });
           currentDeclName = savedDeclName;
           return;
@@ -307,7 +310,7 @@ export function propagateConstLiteralsInBody(body: string): string {
     }
 
     forEachAstChild(node, (child, key, parent) => {
-      walkCollect(child as AstNode, key, parent);
+      walkCollect(child, key, parent);
     });
   }
 

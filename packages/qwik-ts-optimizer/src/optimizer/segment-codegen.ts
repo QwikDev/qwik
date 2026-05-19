@@ -467,7 +467,7 @@ function buildQpOverrides(
       if (elementParams.length > 0) qpOverrides.set(node.start, elementParams);
     }
 
-    forEachAstChild(node, (child) => walkAst(child as AstNode));
+    forEachAstChild(node, (child) => walkAst(child));
   }
 
   walkAst(program);

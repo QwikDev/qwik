@@ -622,8 +622,8 @@ fn collect_destructured_names(obj: &ast::ObjectPat) -> HashSet<Id> {
 }
 
 /// Visitor that detects whether any of the given identifier bindings are
-/// reassigned (via `=`, compound assignment, or `++`/`--`) anywhere inside
-/// the visited subtree.
+/// reassigned (via `=`, compound assignment, `++`/`--`, or a bare for-in /
+/// for-of head like `for (x of …)`) anywhere inside the visited subtree.
 struct ReassignFinder<'a> {
 	names: &'a HashSet<Id>,
 	found: bool,
@@ -661,6 +661,33 @@ impl<'a> VisitMut for ReassignFinder<'a> {
 		if !self.found {
 			node.visit_mut_children_with(self);
 		}
+	}
+
+	fn visit_mut_for_of_stmt(&mut self, node: &mut ast::ForOfStmt) {
+		if for_head_writes_to(&node.left, self.names) {
+			self.found = true;
+			return;
+		}
+		node.visit_mut_children_with(self);
+	}
+
+	fn visit_mut_for_in_stmt(&mut self, node: &mut ast::ForInStmt) {
+		if for_head_writes_to(&node.left, self.names) {
+			self.found = true;
+			return;
+		}
+		node.visit_mut_children_with(self);
+	}
+}
+
+/// Returns true if the LHS of a `for-of` / `for-in` writes to a tracked
+/// name. A `VarDecl` head (`for (let x …)`) introduces a fresh binding and
+/// is ignored — only bare `Pat` heads (e.g. `for (x of …)` or
+/// `for ({x} of …)`) reassign an outer binding.
+fn for_head_writes_to(head: &ast::ForHead, names: &HashSet<Id>) -> bool {
+	match head {
+		ast::ForHead::Pat(pat) => pat_writes_to(pat, names),
+		ast::ForHead::UsingDecl(_) | ast::ForHead::VarDecl(_) => false,
 	}
 }
 

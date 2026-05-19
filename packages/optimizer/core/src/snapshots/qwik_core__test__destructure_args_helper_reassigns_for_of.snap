@@ -1,0 +1,33 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+			for (ogImage of ["fallback-image-url"]) {}
+			return { meta: [{ property: "og:image", content: ogImage }] };
+		};
+		
+============================= test.js ==
+
+export const buildHead = ({ ogImage })=>{
+    for (ogImage of [
+        "fallback-image-url"
+    ]);
+    return {
+        meta: [
+            {
+                property: "og:image",
+                content: ogImage
+            }
+        ]
+    };
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACE,OAAO,MAAM,YAAY,CAAC,EAAE,OAAO,EAAwB;IAC1D,KAAK,WAAW;QAAC;KAAqB;IACtC,OAAO;QAAE,MAAM;YAAC;gBAAE,UAAU;gBAAY,SAAS;YAAQ;SAAE;IAAC;AAC7D,EAAE\"}")
+== DIAGNOSTICS ==
+
+[]

@@ -3897,6 +3897,84 @@ fn destructure_args_helper_reassigns_array_destructure() {
 	});
 }
 
+// Reassignment via `for (x of …)` where `x` refers to the destructured outer
+// binding (no `let`/`const`/`var` declarator). The LHS is `ForHead::Pat`, not
+// `AssignExpr`/`UpdateExpr`, so a finder that only overrides those misses it.
+// Same class of bug as the other reassignment forms — must leave the arrow
+// untouched.
+#[test]
+fn destructure_args_helper_reassigns_for_of() {
+	test_input!(TestInput {
+		code: r#"
+		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+			for (ogImage of ["fallback-image-url"]) {}
+			return { meta: [{ property: "og:image", content: ogImage }] };
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+// Same as above for `for (x in …)`.
+#[test]
+fn destructure_args_helper_reassigns_for_in() {
+	test_input!(TestInput {
+		code: r#"
+		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+			for (ogImage in { "fallback-image-url": 1 }) {}
+			return { meta: [{ property: "og:image", content: ogImage }] };
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+// `for ({ogImage} of …)` — destructuring-pattern LHS targeting the outer
+// binding. Tests that the for-head visitor walks into nested patterns via
+// `pat_writes_to`, not just bare `Pat::Ident`.
+#[test]
+fn destructure_args_helper_reassigns_for_of_destructure() {
+	test_input!(TestInput {
+		code: r#"
+		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+			for ({ ogImage } of [{ ogImage: "fallback-image-url" }]) {}
+			return { meta: [{ property: "og:image", content: ogImage }] };
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+// Negative case — `for (let x of …)` introduces a fresh binding. The inner
+// `x` shadows nothing (different name) and must NOT cause us to refuse the
+// transform. This verifies we don't over-trigger on for-head bindings.
+#[test]
+fn destructure_args_inline_cmp_for_of_declarator_no_refusal() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from "@qwik.dev/core";
+		export const Cmp = component$(({ items }: { items: string[] }) => {
+			const out = [];
+			for (const it of items) out.push(it);
+			return <div>{out.join(",")}</div>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 #[test]
 fn should_handle_dangerously_set_inner_html() {
 	test_input!(TestInput {

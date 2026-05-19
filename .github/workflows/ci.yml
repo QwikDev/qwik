@@ -916,35 +916,11 @@ jobs:
       - name: Fixup package.json files
         run: pnpm run release.fixup-package-json
 
-      - name: Commit Build Artifacts
-        if: github.event_name == 'push'
-        env:
-          QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
-        run: pnpm run qwik-push-build-repos
-
       - name: Publish packages for testing
         if: github.event_name != 'workflow_dispatch'
         run: pnpm release.pkg-pr-new
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  ############ TRIGGER QWIKCITY E2E TEST ############
-  trigger-qwikcity-e2e:
-    name: Trigger Qwik City E2E
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/upcoming'
-
-    needs:
-      - changes
-      - release
-
-    steps:
-      - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
-        with:
-          token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
-          repository: builderIO/qwik-city-e2e
-          event-type: main-updated
 
   ############ Everything is fine ############
   requirements-passed:

@@ -65,26 +65,31 @@ Rationale: an unassigned `In Progress` ticket is ambiguous about ownership. The 
 
 ## Ticket references in commits and PR titles
 
-**Always use uppercase `OSS-XXX` when referencing a Linear ticket in a PR title, commit message header, or commit message body.** Never `oss-XXX`, never mixed case.
-
-This is the canonical form the GitHub→Linear integration recognises. Lowercase refs (e.g. a Conventional-Commits-style `refactor(oss-384): ...`) are *not* matched by the integration's parser, so the linked ticket never auto-flips from In Review → Done when the PR merges. Every wrap-up then has to flip the ticket manually via `issueUpdate`, which is wasted work and easy to forget.
+**Always use uppercase `OSS-XXX` with a closing-keyword reference (`Closes OSS-XXX` / `Fixes OSS-XXX` / `Resolves OSS-XXX`) in the PR body.** That combination is what the GitHub→Linear integration recognises to auto-flip the ticket from In Review → Done when the PR merges. Without both pieces, the wrap-up has to flip the ticket manually via `issueUpdate` — wasted work and easy to forget.
 
 **Correct forms:**
 
 - Header: `refactor(OSS-384): introduce brand types`
-- Body: `Refs: OSS-384 (sub of OSS-381).`
-- Body: `Closes OSS-393.`
+- PR body: `Closes OSS-384.`
+- PR body for sub-tickets: `Closes OSS-384 (sub of OSS-381).`
 - PR title: `refactor(OSS-384): ...` or `docs(OSS-393): ...`
 
-**Incorrect:**
+**Incorrect (auto-flip traps):**
 
-- `refactor(oss-384): ...` ← lowercase scope, the auto-flip trap
+- `refactor(oss-384): ...` ← lowercase scope
 - `OSS:384` or `OSS_384` ← wrong separator
-- `oss-384` anywhere in the PR description ← still not parsed
+- `Refs: OSS-384.` ← not a closing keyword, integration ignores it
+- `OSS-384` mentioned without a closing keyword ← integration ignores it
+- `Related: OSS-384` ← not a closing keyword
 
-If you discover a merged PR whose ticket didn't auto-flip, the casing is almost certainly the cause — check the PR title and commit messages. The fix going forward is at the commit-write step, not at wrap-up.
+If a merged PR's ticket didn't auto-flip, the cause is one of those incorrect forms in the PR title or body. Surface it at wrap-up so the source PR's body can be corrected for next time (the fix is at the commit-write step, not at wrap-up).
 
-History: OSS-382/383/384/393 all missed auto-flip due to lowercase headers (the project's prior `refactor(oss-XXX):` pattern). This rule, established 2026-05-18, fixes the source.
+### History
+
+The closing-keyword requirement was learned incrementally:
+
+- **OSS-382/383/384/393 missed auto-flip with lowercase `refactor(oss-XXX):`** headers. First hypothesis (2026-05-18): case-sensitive parser. PR #96 codified uppercase as the fix.
+- **OSS-385 (PR #97) still missed** with `refactor(OSS-385):` uppercase title + `Refs: OSS-385` body. Hypothesis revised (2026-05-19): the integration parser needs a closing-keyword form in the body, not just a bare reference. `Refs:` is not a closing keyword. This rule reflects the revised hypothesis; to be verified on OSS-386's merge.
 
 ## Workflow
 

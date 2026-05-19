@@ -25,7 +25,7 @@ export function stripExportDeclarations(
   source: string,
   s: MagicString,
   program: AstProgram,
-  stripExports: string[],
+  stripExports: readonly string[],
   importMap: Map<string, ImportInfo>,
 ): StripExportsResult {
   if (stripExports.length === 0) {

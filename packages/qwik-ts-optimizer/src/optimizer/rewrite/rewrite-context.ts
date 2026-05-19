@@ -43,7 +43,7 @@ export interface RewriteContext {
   mode?: EmitMode;
   devFilePath?: string;
   inlineOptions?: InlineStrategyOptions;
-  stripExports?: string[];
+  stripExports?: readonly string[];
   isServer?: boolean;
   explicitExtensions?: boolean;
   transpileTs?: boolean;

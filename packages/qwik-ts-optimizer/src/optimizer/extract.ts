@@ -55,61 +55,92 @@ import {
 } from './types/brands.js';
 
 export interface ExtractionResult {
-  // Identity
+  // Identity — write-once at construction, then mutated by two known
+  // post-extraction passes: (1) `disambiguateExtractions` at the end of
+  // Phase 1 renames colliding extractions in-place; (2) the prod-mode
+  // rename in `transform/index.ts` rewrites `symbolName` to `s_<hash>`
+  // form. Marking these `readonly` would force both passes to construct
+  // new `ExtractionResult` objects — a larger refactor than OSS-387
+  // intends. Left mutable; OSS-389's phased discriminated union for
+  // ExtractionResult is the natural home for that restructure.
   symbolName: SymbolName;
   displayName: DisplayName;
   hash: Hash;
   canonicalFilename: CanonicalFilename;
 
-  // Positions in original source (for magic-string)
-  callStart: ByteOffset;
-  callEnd: ByteOffset;
-  calleeStart: ByteOffset;
-  calleeEnd: ByteOffset;
-  argStart: ByteOffset;
-  argEnd: ByteOffset;
+  // Positions in original source (for magic-string) — write-once.
+  readonly callStart: ByteOffset;
+  readonly callEnd: ByteOffset;
+  readonly calleeStart: ByteOffset;
+  readonly calleeEnd: ByteOffset;
+  readonly argStart: ByteOffset;
+  readonly argEnd: ByteOffset;
 
-  // Segment content
-  bodyText: BodyText;
+  // Segment content — write-once.
+  readonly bodyText: BodyText;
 
-  // Call form info
-  calleeName: string;
-  isBare: boolean;
-  isSync: boolean;
-  qrlCallee: string;
-  importSource: string;
+  // Call form info — write-once.
+  readonly calleeName: string;
+  readonly isBare: boolean;
+  readonly isSync: boolean;
+  readonly qrlCallee: string;
+  readonly importSource: string;
 
-  // Metadata
-  ctxKind: 'function' | 'eventHandler' | 'jSXProp';
-  ctxName: CtxName;
-  origin: Origin;
+  // Metadata — write-once.
+  readonly ctxKind: 'function' | 'eventHandler' | 'jSXProp';
+  readonly ctxName: CtxName;
+  readonly origin: Origin;
+
+  // `extension` is set at extraction with an initial value, then mutated
+  // by two known post-extraction passes: (1) `leave` handler at
+  // `extract.ts:797` flips it to `.tsx` when the segment body contains
+  // JSX; (2) the transpile-downgrade loop in `transform/index.ts:452`
+  // rewrites `.tsx` → `.js`/`.ts`/`.jsx` based on transpile flags.
+  // Left mutable.
   extension: string;
+
+  // `loc` is set at extraction but the stripped-segment fallback in
+  // `transform/segment-generation.ts:1141` zeroes it to `[0, 0]`. Left
+  // mutable.
   loc: [ByteOffset, ByteOffset];
+
+  // `parent` is resolved during parent rewrite (rewrite/index.ts:resolveNesting),
+  // not at extraction time. Left mutable.
   parent: SymbolName | null;
+
+  // `captures` is `captureNames.length > 0` at construction but can
+  // drift through Phase 4-5 filtering (props consolidation, const
+  // inlining, migration). Left mutable.
   captures: boolean;
 
-  // Capture analysis (Phase 3)
+  // Capture analysis (Phase 3) — `captureNames` and `paramNames` are
+  // mutated through Phase 4-5 (props consolidation, const-literal
+  // inlining, migration filtering). Per OSS-387 ticket, this stays
+  // mutable; OSS-389's phased union will handle the restructure.
   captureNames: string[];
   paramNames: string[];
 
-  // Imports needed by this segment
+  // Imports needed by this segment — populated during the same Phase 1
+  // walk that produces the extraction; filtered/finalised in `leave`.
   segmentImports: ImportInfo[];
 
-  // inlinedQrl support
-  isInlinedQrl: boolean;
-  explicitCaptures: string | null;
-  inlinedQrlNameArg: string | null;
+  // inlinedQrl support — write-once.
+  readonly isInlinedQrl: boolean;
+  readonly explicitCaptures: string | null;
+  readonly inlinedQrlNameArg: string | null;
 
-  // Component element event handler (uppercase tag like <CustomComponent onClick$={...}>)
-  isComponentEvent: boolean;
+  // Component element event handler (uppercase tag like <CustomComponent onClick$={...}>) — write-once.
+  readonly isComponentEvent: boolean;
 
   // Props field capture consolidation: maps original local name -> prop key name.
   // Set when captures from a parent component's destructured props are consolidated into _rawProps.
+  // Assigned during Phase 4 raw-props rewrite; left mutable.
   propsFieldCaptures?: Map<string, string>;
 
   // Const literal values resolved from parent scope.
   // Maps captured variable name -> literal source text (e.g., "text" -> "'hola'").
   // These are inlined into the segment body and removed from captureNames.
+  // Assigned during Phase 4 const-literal resolution; left mutable.
   constLiterals?: Map<string, string>;
 }
 

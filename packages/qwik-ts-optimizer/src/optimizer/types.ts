@@ -34,102 +34,104 @@ import type {
  * Some fields exist for that contract but are not read yet by this TypeScript
  * optimizer (see each property).
  */
+// `TransformModulesOptions` is the user-supplied input contract. All
+// fields readonly: the optimizer reads but never mutates options.
 export interface TransformModulesOptions {
   /** Source modules to transform (path + source per file). */
-  input: TransformModuleInput[];
+  readonly input: readonly TransformModuleInput[];
 
   /**
    * Absolute path to the application source root. Used with each input's
    * `path` to compute module-relative paths (e.g. for outputs and diagnostics).
    */
-  srcDir: FilePath;
+  readonly srcDir: FilePath;
 
   /**
    * Optional project root for path normalization in the full Qwik toolchain.
    * **Not used** by this implementation today; kept for NAPI parity.
    */
-  rootDir?: string;
+  readonly rootDir?: string;
 
   /**
    * How lazy boundaries / QRL entry chunks are laid out (`inline`, `hoist`,
    * `hook`, `segment`, etc.).
    * @defaultValue `{ type: 'smart' }`
    */
-  entryStrategy?: EntryStrategy;
+  readonly entryStrategy?: EntryStrategy;
 
   /**
    * Post-transform simplification level for emitted parent code.
    * Passed through to the parent-module rewrite step.
    */
-  minify?: MinifyMode;
+  readonly minify?: MinifyMode;
 
   /**
    * Whether to emit source maps. **Not wired** in this implementation yet
    * (output `map` fields are currently `null`); kept for NAPI parity.
    */
-  sourceMaps?: boolean;
+  readonly sourceMaps?: boolean;
 
   /**
    * When `true`, strip TypeScript syntax (and related optimizer behavior such
    * as enum handling). When omitted or `false`, TypeScript is preserved except
    * where JSX transpilation implies extension changes.
    */
-  transpileTs?: boolean;
+  readonly transpileTs?: boolean;
 
   /**
    * When `false`, skip JSX→JS transform and signal-aware JSX handling.
    * When omitted or `undefined`, JSX transpilation is **enabled** (matches
    * historical default-on behavior).
    */
-  transpileJsx?: boolean;
+  readonly transpileJsx?: boolean;
 
   /**
    * Preserve original filenames in emitted artifact paths/metadata where the
    * Rust optimizer does. **Not used** by this implementation yet; NAPI parity.
    */
-  preserveFilenames?: boolean;
+  readonly preserveFilenames?: boolean;
 
   /**
    * When `true`, relative imports to the parent module include explicit file
    * extensions (e.g. `./foo.js` vs `./foo`).
    */
-  explicitExtensions?: boolean;
+  readonly explicitExtensions?: boolean;
 
   /**
    * Build flavor: affects prod symbol hashing (`prod`), dev paths (`dev`/`hmr`),
    * library emit (`lib`), etc.
    * @defaultValue `'prod'`
    */
-  mode?: EmitMode;
+  readonly mode?: EmitMode;
 
   /**
    * Optional scope string folded into QRL hashing / extraction disambiguation
    * (same role as in the upstream optimizer).
    */
-  scope?: string;
+  readonly scope?: string;
 
   /**
    * Export names to strip from the rewritten parent module (client/server split).
    */
-  stripExports?: string[];
+  readonly stripExports?: readonly string[];
 
   /**
    * Context-name patterns used when registering or rewriting stripped regions
    * (passed to parent rewrite / codegen when applicable).
    */
-  regCtxName?: string[];
+  readonly regCtxName?: readonly string[];
 
   /** Context names to strip in emitted parent code when strip rules apply. */
-  stripCtxName?: string[];
+  readonly stripCtxName?: readonly string[];
 
   /** Strip JSX event props/handlers when building server-only or stripped graphs. */
-  stripEventHandlers?: boolean;
+  readonly stripEventHandlers?: boolean;
 
   /**
    * Server build: drives constant substitution (e.g. `import.meta` / env-like
    * replacements) during parent rewrite.
    */
-  isServer?: boolean;
+  readonly isServer?: boolean;
 }
 
 /**
@@ -141,16 +143,16 @@ export interface TransformModuleInput {
    * Module path used for both naming (folded into hash + display name) and
    * relative-import emission. Should be relative to `srcDir`.
    */
-  path: FilePath;
+  readonly path: FilePath;
 
   /** Raw source text. */
-  code: SourceText;
+  readonly code: SourceText;
 
   /**
    * Optional dev-mode path used by `qrlDEV`/`useHmr` injection when emitting
    * dev or HMR builds. Falls back to a derived path when omitted.
    */
-  devPath?: string;
+  readonly devPath?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -163,27 +165,33 @@ export interface TransformModuleInput {
  * Each input contributes a parent module plus its segment modules to
  * `modules`; diagnostics are aggregated into a single flat list.
  */
+// `TransformOutput` is the public NAPI output contract. All fields are
+// readonly: the optimizer constructs the result and hands it to the
+// consumer; downstream code should treat it as immutable. (Builder
+// orchestrators internally accumulate the `modules` / `diagnostics`
+// arrays before constructing the output; that mutation happens in
+// the orchestrator's local scope, not via this interface.)
 export interface TransformOutput {
   /**
    * All emitted modules in dependency-friendly order: rewritten parent
    * modules and their extracted segment modules.
    */
-  modules: TransformModule[];
+  readonly modules: readonly TransformModule[];
 
   /** Errors and warnings collected during transform (`diagnostics.ts`). */
-  diagnostics: Diagnostic[];
+  readonly diagnostics: readonly Diagnostic[];
 
   /**
    * `true` if any input was a `.ts` or `.tsx` file. Hint flag for the build
    * pipeline so it can decide whether downstream tooling needs to handle TS.
    */
-  isTypeScript: boolean;
+  readonly isTypeScript: boolean;
 
   /**
    * `true` if any input was a `.tsx` or `.jsx` file. Hint flag for the build
    * pipeline so it can decide whether downstream tooling needs to handle JSX.
    */
-  isJsx: boolean;
+  readonly isJsx: boolean;
 }
 
 /**
@@ -200,38 +208,38 @@ export interface TransformModule {
    * this is `<canonicalFilename>.<extension>`; for parent modules it is the
    * original input path.
    */
-  path: RelativePath;
+  readonly path: RelativePath;
 
   /**
    * `true` when this module is a lazy-load entry point that the runtime
    * resolves via `qrl(() => import(...))`. Set on every segment module.
    * Parent modules use `false`.
    */
-  isEntry: boolean;
+  readonly isEntry: boolean;
 
   /** Emitted source code. Empty string for inline-strategy segments. */
-  code: string;
+  readonly code: string;
 
   /**
    * Source map text. **Not wired** in this implementation today (always
    * `null`); kept for NAPI parity. Source map emission is gated by
    * `TransformModulesOptions.sourceMaps`.
    */
-  map: string | null;
+  readonly map: string | null;
 
   /**
    * Segment metadata when this module was emitted as an extracted segment;
    * `null` for parent modules and stripped-segment placeholders. The runtime
    * uses this to wire `qrl(...)` references to the correct file.
    */
-  segment: SegmentAnalysis | null;
+  readonly segment: SegmentAnalysis | null;
 
   /**
    * Original input file path for parent modules (preserves the source from
    * `TransformModuleInput.path`). `null` on segment modules — they have no
    * pre-extraction counterpart.
    */
-  origPath: string | null;
+  readonly origPath: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -246,16 +254,20 @@ export interface TransformModule {
  * comparisons in `tests/optimizer/convergence.test.ts` strict-equality
  * compare a subset of these fields against `match-these-snaps/`.
  */
+// `SegmentAnalysis` is the public NAPI output type: it's constructed once
+// per segment at the end of Phase 5 segment generation (after all
+// Phase 4-5 mutations on `ExtractionResult` have settled) and handed to
+// the runtime / external consumers read-only. All fields are `readonly`.
 export interface SegmentAnalysis {
   /** Source file the segment was extracted from (e.g. `"test.tsx"`). */
-  origin: Origin;
+  readonly origin: Origin;
 
   /**
    * Canonical symbol name — `<contextPortion>_<hash>` (or `s_<hash>` after
    * the prod-mode rename). Used as the segment file's exported binding name
    * and as the `qrl(...)` second argument.
    */
-  name: SymbolName;
+  readonly name: SymbolName;
 
   /**
    * Entry-strategy routing field. Resolved during Phase 5 segment generation
@@ -263,35 +275,35 @@ export interface SegmentAnalysis {
    * `hook`/`inline`/`hoist`; parent symbol name for `component`'s
    * non-component children; fixed `"entry_hooks"` for `single`.
    */
-  entry: string | null;
+  readonly entry: string | null;
 
   /** Human-readable name — `<fileStem>_<contextPortion>`, no hash suffix. */
-  displayName: DisplayName;
+  readonly displayName: DisplayName;
 
   /**
    * 11-char SipHash-1-3 of `(scope + relPath + contextPortion)`,
    * base64url-encoded with `-` and `_` rewritten to `0` for filesystem
    * safety. Stable across builds.
    */
-  hash: Hash;
+  readonly hash: Hash;
 
   /**
    * `<displayName>_<hash>` — basis for the segment file path on disk.
    */
-  canonicalFilename: CanonicalFilename;
+  readonly canonicalFilename: CanonicalFilename;
 
   /**
    * File extension for the segment module (e.g. `"tsx"`, `"jsx"`, `"js"`).
    * Determined from the source extension and JSX/TS transpilation settings.
    */
-  extension: string;
+  readonly extension: string;
 
   /**
    * Symbol name of the enclosing extraction for nested segments; `null` for
    * top-level extractions. Resolved during parent rewrite, not at extract
    * time (`rewrite/index.ts:resolveNesting`).
    */
-  parent: SymbolName | null;
+  readonly parent: SymbolName | null;
 
   /**
    * Where the `$()` was found:
@@ -299,14 +311,14 @@ export interface SegmentAnalysis {
    * - `'eventHandler'` — `on*$` / `document:on*$` / `window:on*$` on an HTML element
    * - `'jSXProp'` — any `*$` attribute on a component element
    */
-  ctxKind: 'eventHandler' | 'function' | 'jSXProp';
+  readonly ctxKind: 'eventHandler' | 'function' | 'jSXProp';
 
   /**
    * The `$`-marker name (`'component$'`, `'useTask$'`, etc.) for `function`
    * ctxKind, or the JSX attribute name for handler/prop ctxKinds. Drives
    * strip rules, HMR injection, and per-marker special-cases downstream.
    */
-  ctxName: CtxName;
+  readonly ctxName: CtxName;
 
   /**
    * `true` iff this segment closes over any outer-scope binding —
@@ -314,13 +326,13 @@ export interface SegmentAnalysis {
    * temporarily diverge from `captureNames` during downstream filtering
    * (props consolidation, const inline, migration).
    */
-  captures: boolean;
+  readonly captures: boolean;
 
   /**
    * Source-byte range `[start, end]` of the segment's body in the original
    * source. Used by source map emission and migration source-range surgery.
    */
-  loc: [ByteOffset, ByteOffset];
+  readonly loc: readonly [ByteOffset, ByteOffset];
 }
 
 /**
@@ -337,16 +349,20 @@ export interface SegmentMetadataInternal extends SegmentAnalysis {
    * Closure parameter names. Used by `rewriteFunctionSignature` for
    * loop-padding (`_,_1,...`) cases and by codegen to rename destructured
    * props to `_rawProps`.
+   *
+   * Snapshotted from `ExtractionResult.paramNames` after Phase 4-5
+   * mutations have settled; readonly at the SegmentMetadataInternal layer.
    */
-  paramNames?: string[];
+  readonly paramNames?: readonly string[];
 
   /**
-   * List of captured outer-scope names. Mutated during Phase 4–5: props
-   * consolidation can replace destructured prop names with `_rawProps`,
-   * const-literal inlining drops folded names, migration filtering drops
-   * names that became `_auto_` imports.
+   * List of captured outer-scope names. Mutated during Phase 4–5 on
+   * `ExtractionResult.captureNames` (props consolidation can replace
+   * destructured prop names with `_rawProps`, const-literal inlining
+   * drops folded names, migration filtering drops names that became
+   * `_auto_` imports). The snapshot here is taken after those settle.
    */
-  captureNames?: string[];
+  readonly captureNames?: readonly string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -416,17 +432,17 @@ export type EmitMode = 'dev' | 'prod' | 'lib' | 'hmr';
  */
 export interface DiagnosticHighlightFlat {
   /** Inclusive byte offset of the start of the highlighted span. */
-  lo: ByteOffset;
+  readonly lo: ByteOffset;
   /** Exclusive byte offset of the end of the highlighted span. */
-  hi: ByteOffset;
+  readonly hi: ByteOffset;
   /** 1-based line number where the span starts. */
-  startLine: LineNumber;
+  readonly startLine: LineNumber;
   /** 0-based column on `startLine` where the span starts. */
-  startCol: ColumnNumber;
+  readonly startCol: ColumnNumber;
   /** 1-based line number where the span ends. */
-  endLine: LineNumber;
+  readonly endLine: LineNumber;
   /** 0-based column on `endLine` where the span ends. */
-  endCol: ColumnNumber;
+  readonly endCol: ColumnNumber;
 }
 
 /**
@@ -439,33 +455,33 @@ export interface DiagnosticHighlightFlat {
  */
 export interface Diagnostic {
   /** Severity. `'error'` blocks; `'warning'` is informational. */
-  category: 'error' | 'warning';
+  readonly category: 'error' | 'warning';
 
   /**
    * Stable diagnostic identifier (e.g. `'C02'` for cross-boundary local
    * function reference, `'C05'` for missing `Qrl` export, `'preventdefault-passive-check'`
    * for the passive-event prop conflict).
    */
-  code: string;
+  readonly code: string;
 
   /** Source file the diagnostic refers to (relative path). */
-  file: string;
+  readonly file: string;
 
   /** Human-readable message. */
-  message: string;
+  readonly message: string;
 
   /**
    * Source-range highlights. `null` when the diagnostic doesn't pin to a
    * specific location.
    */
-  highlights: DiagnosticHighlightFlat[] | null;
+  readonly highlights: readonly DiagnosticHighlightFlat[] | null;
 
   /**
    * Suggested fixes. **Not wired** in this implementation today (always
    * `null`); kept for NAPI parity.
    */
-  suggestions: null;
+  readonly suggestions: null;
 
   /** Origin scope, always `'optimizer'` for diagnostics emitted from this module. */
-  scope: string;
+  readonly scope: string;
 }

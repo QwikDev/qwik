@@ -72,8 +72,11 @@ describe('segment-only convergence debug', () => {
 
       let result;
       try {
-        const opts = getSnapshotTransformOptions(snapName, parsed.input);
-        opts.input = [{ path: mkFilePath(filename), code: mkSourceText(parsed.input) }];
+        const baseOpts = getSnapshotTransformOptions(snapName, parsed.input);
+        const opts = {
+          ...baseOpts,
+          input: [{ path: mkFilePath(filename), code: mkSourceText(parsed.input) }],
+        };
         result = transformModule(opts);
       } catch (err) {
         console.log(`TRANSFORM ERROR in ${snapName}: ${err}`);

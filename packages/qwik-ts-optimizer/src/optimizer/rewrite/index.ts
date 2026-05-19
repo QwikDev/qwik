@@ -70,15 +70,15 @@ import { extractDestructuredFieldMap } from './raw-props.js';
 
 export interface InlineStrategyOptions {
   /** Whether to use inline/hoist strategy (_noopQrl + .s()) */
-  inline: boolean;
+  readonly inline: boolean;
   /** Entry strategy type: 'inline' puts body in .s(), 'hoist' extracts body as const */
-  entryType?: 'inline' | 'hoist';
+  readonly entryType?: 'inline' | 'hoist';
   /** Strip context names (server/client strip) */
-  stripCtxName?: string[];
+  readonly stripCtxName?: readonly string[];
   /** Strip event handlers */
-  stripEventHandlers?: boolean;
+  readonly stripEventHandlers?: boolean;
   /** Register context names (server-tagged extractions get _regSymbol wrapping) */
-  regCtxName?: string[];
+  readonly regCtxName?: readonly string[];
 }
 
 export interface ParentRewriteResult {
@@ -152,7 +152,7 @@ export function rewriteParentModule(
   mode?: EmitMode,
   devFilePath?: string,
   inlineOptions?: InlineStrategyOptions,
-  stripExports?: string[],
+  stripExports?: readonly string[],
   isServer?: boolean,
   explicitExtensions?: boolean,
   transpileTs?: boolean,

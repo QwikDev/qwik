@@ -130,7 +130,7 @@ export function transformInlineSegmentBody(
   allExtractions: ExtractionResult[],
   qrlVarNames: Map<string, string>,
   jsxBodyOptions?: InlineSegmentJsxOptions,
-  regCtxName?: string[],
+  regCtxName?: readonly string[],
   sharedSignalHoister?: SignalHoister,
   /**
    * Closure AST nodes per extraction (keyed by symbolName). When supplied

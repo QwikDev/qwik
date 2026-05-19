@@ -14,15 +14,15 @@ import type {
 import { isQwikPackageSource } from './utils/qwik-packages.js';
 
 export interface ImportInfo {
-  localName: string;
-  importedName: string;
-  source: string;
-  isQwikCore: boolean;
+  readonly localName: string;
+  readonly importedName: string;
+  readonly source: string;
+  readonly isQwikCore: boolean;
 }
 
 export interface CustomInlinedInfo {
-  dollarName: string;
-  qrlName: string;
+  readonly dollarName: string;
+  readonly qrlName: string;
 }
 
 function getExportedSpecifierName(

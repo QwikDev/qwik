@@ -16,21 +16,25 @@ import {
 } from './utils/binding-pattern.js';
 
 export interface MigrationDecision {
-  action: 'move' | 'reexport' | 'keep';
-  varName: string;
-  targetSegment?: string;
-  reason: string;
+  readonly action: 'move' | 'reexport' | 'keep';
+  readonly varName: string;
+  readonly targetSegment?: string;
+  readonly reason: string;
 }
 
 export interface ModuleLevelDecl {
-  name: string;
-  declStart: number;
-  declEnd: number;
-  declText: string;
+  readonly name: string;
+  readonly declStart: number;
+  readonly declEnd: number;
+  readonly declText: string;
+  // `isExported` is set conservatively to `false` during the initial decl
+  // walk, then flipped to `true` in a follow-up pass that scans
+  // `ExportNamedDeclaration` re-export specifiers at module scope
+  // (`variable-migration.ts:216`). Left mutable for that two-pass shape.
   isExported: boolean;
-  hasSideEffects: boolean;
-  isPartOfSharedDestructuring: boolean;
-  kind: string;
+  readonly hasSideEffects: boolean;
+  readonly isPartOfSharedDestructuring: boolean;
+  readonly kind: string;
 }
 
 /**

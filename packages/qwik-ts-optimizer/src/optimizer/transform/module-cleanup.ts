@@ -41,7 +41,7 @@ const nsImportPattern = createRegExp(
     .and(oneOrMore(wordChar).grouped()),
 );
 
-const CONST_IMPORT_SOURCES = [
+const CONST_IMPORT_SOURCES: readonly string[] = [
   '@qwik.dev/core',
   '@qwik.dev/core/build',
   '@builder.io/qwik',
@@ -49,7 +49,7 @@ const CONST_IMPORT_SOURCES = [
   '@builder.io/qwik-city/build',
 ];
 
-const QWIK_IMPORT_PREFIXES = ['@qwik.dev/', '@builder.io/qwik'];
+const QWIK_IMPORT_PREFIXES: readonly string[] = ['@qwik.dev/', '@builder.io/qwik'];
 
 function getImportedSpecifierName(spec: ImportSpecifier): string | undefined {
   if (spec.imported.type === 'Identifier') {

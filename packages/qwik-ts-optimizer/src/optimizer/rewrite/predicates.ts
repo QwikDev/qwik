@@ -22,7 +22,7 @@ import type { ExtractionResult } from '../extract.js';
  * Previously duplicated byte-for-byte in three modules; this is the
  * canonical version.
  */
-export function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolean {
+export function matchesRegCtxName(ext: ExtractionResult, regCtxName?: readonly string[]): boolean {
   if (!regCtxName || regCtxName.length === 0) return false;
   for (const name of regCtxName) {
     if (ext.calleeName === name + '$') return true;
@@ -46,7 +46,7 @@ export function isEventHandlerOrJsxProp(ctxKind: ExtractionResult['ctxKind'] | u
  * positional placeholders for the surrounding loop's index and item.
  * Real captures begin at index 2.
  */
-export function hasUnderscorePlaceholderParams(paramNames: string[]): boolean {
+export function hasUnderscorePlaceholderParams(paramNames: readonly string[]): boolean {
   return paramNames.length >= 2 && paramNames[0] === '_' && paramNames[1] === '_1';
 }
 
@@ -96,7 +96,7 @@ export function isAnyComponentCtx(ctxName: string): boolean {
 export function isStrippedSegment(
   ctxName: string,
   ctxKind: string,
-  stripCtxName?: string[],
+  stripCtxName?: readonly string[],
   stripEventHandlers?: boolean,
 ): boolean {
   if (stripCtxName && stripCtxName.length > 0) {

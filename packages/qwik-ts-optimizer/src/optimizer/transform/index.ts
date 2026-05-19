@@ -23,6 +23,7 @@ import { collectImports } from "../marker-detection.js";
 import { buildDevFilePath } from "../dev-mode.js";
 import { isStrippedSegment } from "../rewrite/predicates.js";
 import { isSimpleIdentifierName } from '../utils/identifier-name.js';
+import { type SymbolName, mkSymbolName } from '../types/brands.js';
 import {
   analyzeCaptures,
   collectScopeIdentifiers,
@@ -411,13 +412,13 @@ export function transformModule(
     );
 
     // Prod mode: rename symbols to s_{hash}
-    const preRenameSymbolName = new Map<string, string>();
+    const preRenameSymbolName = new Map<SymbolName, SymbolName>();
     const emitMode = options.mode ?? "prod";
     if (emitMode === "prod") {
       for (const ext of extractions) {
         if (ext.isInlinedQrl) continue;
         const original = ext.symbolName;
-        ext.symbolName = "s_" + ext.hash;
+        ext.symbolName = mkSymbolName("s_" + ext.hash);
         preRenameSymbolName.set(ext.symbolName, original);
         // Mirror the rename in `closureNodes` so post-rename lookups (Phase 4
         // const-literal resolution, etc.) still find the threaded AST node.

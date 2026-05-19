@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { extractSegments, type ExtractionResult } from '../../src/optimizer/extract.js';
 import { generateSegmentCode } from '../../src/optimizer/segment-codegen.js';
+import {
+  mkCanonicalFilename,
+  mkDisplayName,
+  mkHash,
+  mkSymbolName,
+} from '../../src/optimizer/types/brands.js';
 
 describe('extractSegments', () => {
   it('extracts single component$ with correct symbolName and displayName', () => {
@@ -232,10 +238,10 @@ export const App = component$(() => {
 describe('generateSegmentCode', () => {
   it('produces correct module string with imports and export', () => {
     const extraction: ExtractionResult = {
-      symbolName: 'App_component_abc12345678',
-      displayName: 'test.tsx_App_component',
-      hash: 'abc12345678',
-      canonicalFilename: 'App_component_abc12345678',
+      symbolName: mkSymbolName('App_component_abc12345678'),
+      displayName: mkDisplayName('test.tsx_App_component'),
+      hash: mkHash('abc12345678'),
+      canonicalFilename: mkCanonicalFilename('App_component_abc12345678'),
       callStart: 0,
       callEnd: 100,
       calleeStart: 0,
@@ -274,10 +280,10 @@ describe('generateSegmentCode', () => {
 
   it('omits separator comment when no imports', () => {
     const extraction: ExtractionResult = {
-      symbolName: 'handler_abc12345678',
-      displayName: 'test.tsx_handler',
-      hash: 'abc12345678',
-      canonicalFilename: 'handler_abc12345678',
+      symbolName: mkSymbolName('handler_abc12345678'),
+      displayName: mkDisplayName('test.tsx_handler'),
+      hash: mkHash('abc12345678'),
+      canonicalFilename: mkCanonicalFilename('handler_abc12345678'),
       callStart: 0,
       callEnd: 50,
       calleeStart: 0,

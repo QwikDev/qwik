@@ -7,6 +7,7 @@
 
 import { charIn, createRegExp, exactly, global as g, oneOrMore } from 'magic-regexp';
 import SipHash13 from 'siphash/lib/siphash13.js';
+import { type Hash, mkHash } from '../optimizer/types/brands.js';
 
 const ZERO_KEY: [number, number, number, number] = [0, 0, 0, 0];
 
@@ -22,7 +23,7 @@ export function qwikHash(
   scope: string | undefined,
   relPath: string,
   displayName: string
-): string {
+): Hash {
   // HASH-02: Hash input is raw concatenated bytes: scope + rel_path + display_name (no separators)
   const input = (scope ?? '') + relPath + displayName;
 
@@ -47,9 +48,10 @@ export function qwikHash(
   const DASH_UNDERSCORE = createRegExp(charIn('-_'), [g]);
 
   const base64 = btoa(String.fromCharCode(...bytes));
-  return base64
+  const encoded = base64
     .replace(PLUS, '-')
     .replace(SLASH, '_')
     .replace(TRAILING_PAD, '')
     .replace(DASH_UNDERSCORE, '0');
+  return mkHash(encoded);
 }

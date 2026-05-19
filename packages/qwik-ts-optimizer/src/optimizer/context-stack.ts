@@ -9,6 +9,7 @@
 import { createRegExp, exactly, oneOrMore, char } from 'magic-regexp';
 import { buildDisplayName, buildSymbolName } from '../hashing/naming.js';
 import { getFileStem } from './path-utils.js';
+import type { DisplayName, SymbolName } from './types/brands.js';
 
 const catchAllRouteParam = createRegExp(
   exactly('[[...').and(oneOrMore(char).grouped()).and(']]').at.lineStart().at.lineEnd(),
@@ -89,12 +90,12 @@ export class ContextStack {
   }
 
   /** Get the display name from the current context stack. */
-  getDisplayName(): string {
+  getDisplayName(): DisplayName {
     return buildDisplayName(this.fileName, this.stack);
   }
 
   /** Get the symbol name (contextPortion + hash) from the current context. */
-  getSymbolName(): string {
+  getSymbolName(): SymbolName {
     return buildSymbolName(this.getDisplayName(), this.scope, this.relPath);
   }
 

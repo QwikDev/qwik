@@ -43,7 +43,7 @@ import {
 
 const sym: SymbolName = mkSymbolName('foo');
 const hash: Hash = mkHash('jMxQsjbyDss');
-const canonical: CanonicalFilename = mkCanonicalFilename('test_tsx_foo_jMxQsjbyDss');
+const canonical: CanonicalFilename = mkCanonicalFilename('test.tsx_foo_jMxQsjbyDss');
 const display: DisplayName = mkDisplayName('Foo');
 const ctx: CtxName = mkCtxName('component$');
 

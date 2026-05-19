@@ -7,6 +7,12 @@
 
 import { qwikHash } from './siphash.js';
 import { getBasename } from '../optimizer/path-utils.js';
+import {
+  type DisplayName,
+  type SymbolName,
+  mkDisplayName,
+  mkSymbolName,
+} from '../optimizer/types/brands.js';
 
 /**
  * Escape a string to contain only alphanumeric characters and underscores.
@@ -57,7 +63,7 @@ export function escapeSymbol(str: string): string {
  * @param contextStack - Array of context names (e.g., ["renderHeader1", "div", "onClick$"])
  * @returns Full display name (e.g., "test.tsx_renderHeader1_div_onClick")
  */
-export function buildDisplayName(fileStem: string, contextStack: string[]): string {
+export function buildDisplayName(fileStem: string, contextStack: string[]): DisplayName {
   const joined = contextStack.length === 0 ? 's_' : contextStack.join('_');
 
   let escaped = escapeSymbol(joined);
@@ -69,10 +75,10 @@ export function buildDisplayName(fileStem: string, contextStack: string[]): stri
 
   // For empty stack, escapeSymbol("s_") produces "s" but we want "s_"
   if (contextStack.length === 0) {
-    return fileStem + '_s_';
+    return mkDisplayName(fileStem + '_s_');
   }
 
-  return fileStem + '_' + escaped;
+  return mkDisplayName(fileStem + '_' + escaped);
 }
 
 /**
@@ -88,10 +94,10 @@ export function buildDisplayName(fileStem: string, contextStack: string[]): stri
  * @returns Symbol name (e.g., "renderHeader1_jMxQsjbyDss")
  */
 export function buildSymbolName(
-  displayName: string,
+  displayName: DisplayName,
   scope: string | undefined,
   relPath: string
-): string {
+): SymbolName {
   // Extract the file stem from the relPath to find the context portion
   const basename = getBasename(relPath);
   const prefix = basename + '_';
@@ -100,5 +106,5 @@ export function buildSymbolName(
     : displayName;
 
   const hash = qwikHash(scope, relPath, contextPortion);
-  return contextPortion + '_' + hash;
+  return mkSymbolName(contextPortion + '_' + hash);
 }

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { escapeSymbol, buildDisplayName, buildSymbolName } from '../../src/hashing/naming.js';
+import { mkDisplayName } from '../../src/optimizer/types/brands.js';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -56,19 +57,19 @@ describe('buildDisplayName', () => {
 
 describe('buildSymbolName', () => {
   it('produces correct symbol name for renderHeader1_div_onClick', () => {
-    expect(buildSymbolName('test.tsx_renderHeader1_div_onClick', undefined, 'test.tsx')).toBe(
+    expect(buildSymbolName(mkDisplayName('test.tsx_renderHeader1_div_onClick'), undefined, 'test.tsx')).toBe(
       'renderHeader1_div_onClick_USi8k1jUb40'
     );
   });
 
   it('produces correct symbol name for renderHeader1', () => {
-    expect(buildSymbolName('test.tsx_renderHeader1', undefined, 'test.tsx')).toBe(
+    expect(buildSymbolName(mkDisplayName('test.tsx_renderHeader1'), undefined, 'test.tsx')).toBe(
       'renderHeader1_jMxQsjbyDss'
     );
   });
 
   it('produces correct symbol name for renderHeader2_component', () => {
-    expect(buildSymbolName('test.tsx_renderHeader2_component', undefined, 'test.tsx')).toBe(
+    expect(buildSymbolName(mkDisplayName('test.tsx_renderHeader2_component'), undefined, 'test.tsx')).toBe(
       'renderHeader2_component_Ay6ibkfFYsw'
     );
   });
@@ -126,7 +127,7 @@ describe('buildSymbolName', () => {
           continue;
         }
 
-        const computed = buildSymbolName(meta.displayName, undefined, meta.origin);
+        const computed = buildSymbolName(mkDisplayName(meta.displayName), undefined, meta.origin);
         totalNames++;
 
         if (computed !== meta.name) {

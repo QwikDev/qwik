@@ -18,6 +18,12 @@ import type {
   DiagnosticHighlightFlat,
   SegmentMetadataInternal,
 } from '../../src/optimizer/types.js';
+import {
+  mkCanonicalFilename,
+  mkDisplayName,
+  mkHash,
+  mkSymbolName,
+} from '../../src/optimizer/types/brands.js';
 
 describe('TransformModulesOptions', () => {
   it('accepts all expected fields', () => {
@@ -53,11 +59,11 @@ describe('SegmentAnalysis', () => {
   it('has all required fields', () => {
     const seg: SegmentAnalysis = {
       origin: 'test.tsx',
-      name: 'onClick_abc123',
+      name: mkSymbolName('onClick_abc123'),
       entry: null,
-      displayName: 'test_onClick',
-      hash: 'abc123',
-      canonicalFilename: 'test_onclick_abc123',
+      displayName: mkDisplayName('test_onClick'),
+      hash: mkHash('abc123'),
+      canonicalFilename: mkCanonicalFilename('test_onclick_abc123'),
       extension: 'tsx',
       parent: null,
       ctxKind: 'eventHandler',
@@ -145,11 +151,11 @@ describe('SegmentMetadataInternal', () => {
   it('extends SegmentAnalysis with optional paramNames and captureNames', () => {
     const meta: SegmentMetadataInternal = {
       origin: 'test.tsx',
-      name: 's_abc123',
+      name: mkSymbolName('s_abc123'),
       entry: null,
-      displayName: 'test_s',
-      hash: 'abc123',
-      canonicalFilename: 'test_s_abc123',
+      displayName: mkDisplayName('test_s'),
+      hash: mkHash('abc123'),
+      canonicalFilename: mkCanonicalFilename('test_s_abc123'),
       extension: 'tsx',
       parent: null,
       ctxKind: 'function',

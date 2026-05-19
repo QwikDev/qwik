@@ -36,13 +36,23 @@ import { isEventProp, transformEventPropName, collectPassiveDirectives } from '.
 import { getBasename, getDirectory, getExtension, getFileStem } from './path-utils.js';
 import { getQrlCalleeName } from './utils/qrl-naming.js';
 import { computeLineColFromOffset } from './utils/source-loc.js';
+import {
+  type CanonicalFilename,
+  type DisplayName,
+  type Hash,
+  type SymbolName,
+  mkCanonicalFilename,
+  mkDisplayName,
+  mkHash,
+  mkSymbolName,
+} from './types/brands.js';
 
 export interface ExtractionResult {
   // Identity
-  symbolName: string;
-  displayName: string;
-  hash: string;
-  canonicalFilename: string;
+  symbolName: SymbolName;
+  displayName: DisplayName;
+  hash: Hash;
+  canonicalFilename: CanonicalFilename;
 
   // Positions in original source (for magic-string)
   callStart: number;
@@ -68,7 +78,7 @@ export interface ExtractionResult {
   origin: string;
   extension: string;
   loc: [number, number];
-  parent: string | null;
+  parent: SymbolName | null;
   captures: boolean;
 
   // Capture analysis (Phase 3)
@@ -405,26 +415,30 @@ export function extractSegments(
         if (arg0 && nameValue && !isNullBody) {
           const bodyText = source.slice(arg0.start, arg0.end);
 
-          // Split symbol name into display portion and hash portion
+          // Split symbol name into display portion and hash portion. The
+          // 8+-alphanumeric gate here matches `HASH_SHAPE` in `types/brands.ts`,
+          // so the parsed `lastPart` is always a valid `Hash`.
           const lastUnder = nameValue.lastIndexOf('_');
-          let inlinedHash: string;
+          let inlinedHash: Hash;
           let displayNameSuffix: string;
           if (lastUnder > 0) {
             const lastPart = nameValue.slice(lastUnder + 1);
             if (lastPart.length >= 8 && /^[a-zA-Z0-9]+$/.test(lastPart)) {
-              inlinedHash = lastPart;
+              inlinedHash = mkHash(lastPart);
               displayNameSuffix = nameValue.slice(0, lastUnder);
             } else {
-              inlinedHash = nameValue;
+              inlinedHash = mkHash(nameValue);
               displayNameSuffix = nameValue;
             }
           } else {
-            inlinedHash = nameValue;
+            inlinedHash = mkHash(nameValue);
             displayNameSuffix = nameValue;
           }
 
-          const inlinedDisplayName = fileStem + '_' + displayNameSuffix;
-          const inlinedCanonicalFilename = inlinedDisplayName + '_' + inlinedHash;
+          const inlinedDisplayName = mkDisplayName(fileStem + '_' + displayNameSuffix);
+          const inlinedCanonicalFilename = mkCanonicalFilename(
+            inlinedDisplayName + '_' + inlinedHash,
+          );
 
           let explicitCapturesText: string | null = null;
           const inlinedCaptureNames: string[] = [];
@@ -460,7 +474,7 @@ export function extractSegments(
           const extension = sourceExt;
 
           const extraction: ExtractionResult = {
-            symbolName: nameValue,
+            symbolName: mkSymbolName(nameValue),
             displayName: inlinedDisplayName,
             hash: inlinedHash,
             canonicalFilename: inlinedCanonicalFilename,
@@ -601,7 +615,7 @@ export function extractSegments(
         const symbolName = ctx.getSymbolName();
 
         const lastUnder = symbolName.lastIndexOf('_');
-        const hash = lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName;
+        const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
 
         const [line, col] = computeLineColFromOffset(source, arg.start);
 
@@ -609,7 +623,7 @@ export function extractSegments(
           symbolName,
           displayName,
           hash,
-          canonicalFilename: displayName + '_' + hash,
+          canonicalFilename: mkCanonicalFilename(displayName + '_' + hash),
           callStart: node.start,
           callEnd: node.end,
           calleeStart: node.callee.start,
@@ -698,7 +712,7 @@ export function extractSegments(
           const symbolName = ctx.getSymbolName();
 
           const lastUnder = symbolName.lastIndexOf('_');
-          const hash = lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName;
+          const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
 
           const [line, col] = computeLineColFromOffset(source, expr.start);
 
@@ -706,7 +720,7 @@ export function extractSegments(
             symbolName,
             displayName,
             hash,
-            canonicalFilename: displayName + '_' + hash,
+            canonicalFilename: mkCanonicalFilename(displayName + '_' + hash),
             callStart: node.start,
             callEnd: node.end,
             calleeStart: node.name.start,
@@ -806,10 +820,10 @@ function disambiguateExtractions(
 
       const newContext = contextPortion + '_' + newIndex;
       const newHash = qwikHash(scope, relPath, newContext);
-      ext.displayName = prefix + newContext;
+      ext.displayName = mkDisplayName(prefix + newContext);
       ext.hash = newHash;
-      ext.symbolName = newContext + '_' + newHash;
-      ext.canonicalFilename = ext.displayName + '_' + newHash;
+      ext.symbolName = mkSymbolName(newContext + '_' + newHash);
+      ext.canonicalFilename = mkCanonicalFilename(ext.displayName + '_' + newHash);
     }
   }
 }

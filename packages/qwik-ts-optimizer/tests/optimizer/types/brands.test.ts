@@ -53,12 +53,30 @@ describe('mkHash', () => {
   });
 
   it('rejects non-11-char or non-alphanumeric inputs', () => {
+    // The original OSS-383 brand spec implied an 11-char-strict shape;
+    // OSS-384 loosened the validator to match the peer-tool input class
+    // the inlinedQrl parser accepts at runtime. The strict-rejection
+    // assertions here cover the values that *must still* be rejected.
     expect(() => mkHash('')).toThrow();
-    expect(() => mkHash('tooshort')).toThrow();
-    expect(() => mkHash('waytoolongahashvalue')).toThrow();
     expect(() => mkHash('contains-dash')).toThrow();
-    expect(() => mkHash('contains_unde')).toThrow();
     expect(() => mkHash('has space123')).toThrow();
+  });
+
+  it('accepts peer-tool hash slots loosened to match the inlinedQrl parser', () => {
+    // OSS-384 widened the brand to accept everything the extraction parser
+    // pushes through: short alphanumeric names (e.g. "task"), and the
+    // fallback case where the whole symbol name (with underscores) becomes
+    // the hash slot when no `_<hash>` suffix is parseable.
+    expect(mkHash('task')).toBe('task');
+    expect(mkHash('AaBbCcDd')).toBe('AaBbCcDd');
+    expect(mkHash('waytoolongahashvalue')).toBe('waytoolongahashvalue');
+    expect(mkHash('Foo_component_bbb')).toBe('Foo_component_bbb');
+  });
+
+  it('still rejects whitespace and non-identifier separators after the loosening', () => {
+    expect(() => mkHash('contains.dot')).toThrow();
+    expect(() => mkHash('with/slash')).toThrow();
+    expect(() => mkHash('  ')).toThrow();
   });
 });
 
@@ -70,9 +88,27 @@ describe('mkCanonicalFilename', () => {
   });
 
   it('rejects values with non-identifier characters', () => {
+    // OSS-384 loosened the validator to non-empty-only (production values
+    // include bracket-routes and digit-leading filenames). The strict-
+    // rejection cases preserved here are values that must remain rejected:
+    // empty strings. Non-empty arbitrary input is accepted by design now.
     expect(() => mkCanonicalFilename('')).toThrow();
-    expect(() => mkCanonicalFilename('test.tsx_renderHeader1')).toThrow();
-    expect(() => mkCanonicalFilename('with/slash')).toThrow();
+  });
+
+  it('accepts real-world dotted, bracket-route, and digit-leading values', () => {
+    // After OSS-384, the brand admits the actual production-emitted shapes.
+    expect(mkCanonicalFilename('test.tsx_renderHeader1_jMxQsjbyDss')).toBe(
+      'test.tsx_renderHeader1_jMxQsjbyDss',
+    );
+    expect(mkCanonicalFilename('test.spec.tsx_Foo_jMxQsjbyDss')).toBe(
+      'test.spec.tsx_Foo_jMxQsjbyDss',
+    );
+    expect(mkCanonicalFilename('[[...slug]].tsx_slug_component_AaBbCcDdEeF')).toBe(
+      '[[...slug]].tsx_slug_component_AaBbCcDdEeF',
+    );
+    expect(mkCanonicalFilename('404.tsx__404_component_AaBbCcDdEeF')).toBe(
+      '404.tsx__404_component_AaBbCcDdEeF',
+    );
   });
 });
 
@@ -82,8 +118,20 @@ describe('mkDisplayName', () => {
   });
 
   it('rejects invalid shapes', () => {
+    // OSS-384 loosened mkDisplayName to non-empty-only (production values
+    // include bracket-routes and digit-leading filenames). The empty case
+    // is the only one that remains rejected.
     expect(() => mkDisplayName('')).toThrow();
-    expect(() => mkDisplayName('1leading-digit')).toThrow();
+  });
+
+  it('accepts real-world dotted, bracket-route, and digit-leading values', () => {
+    expect(mkDisplayName('test.tsx_renderHeader1')).toBe('test.tsx_renderHeader1');
+    expect(mkDisplayName('test.spec.tsx_Foo')).toBe('test.spec.tsx_Foo');
+    expect(mkDisplayName('foo.mjs_bar')).toBe('foo.mjs_bar');
+    expect(mkDisplayName('[[...slug]].tsx_slug_component')).toBe(
+      '[[...slug]].tsx_slug_component',
+    );
+    expect(mkDisplayName('404.tsx__404_component')).toBe('404.tsx__404_component');
   });
 });
 

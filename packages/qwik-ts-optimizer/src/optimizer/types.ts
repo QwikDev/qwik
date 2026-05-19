@@ -8,6 +8,13 @@
  * Source: Qwik optimizer types.ts (verified from GitHub + research)
  */
 
+import type {
+  CanonicalFilename,
+  DisplayName,
+  Hash,
+  SymbolName,
+} from './types/brands.js';
+
 // ---------------------------------------------------------------------------
 // Input types
 // ---------------------------------------------------------------------------
@@ -240,7 +247,7 @@ export interface SegmentAnalysis {
    * the prod-mode rename). Used as the segment file's exported binding name
    * and as the `qrl(...)` second argument.
    */
-  name: string;
+  name: SymbolName;
 
   /**
    * Entry-strategy routing field. Resolved during Phase 5 segment generation
@@ -251,19 +258,19 @@ export interface SegmentAnalysis {
   entry: string | null;
 
   /** Human-readable name — `<fileStem>_<contextPortion>`, no hash suffix. */
-  displayName: string;
+  displayName: DisplayName;
 
   /**
    * 11-char SipHash-1-3 of `(scope + relPath + contextPortion)`,
    * base64url-encoded with `-` and `_` rewritten to `0` for filesystem
    * safety. Stable across builds.
    */
-  hash: string;
+  hash: Hash;
 
   /**
    * `<displayName>_<hash>` — basis for the segment file path on disk.
    */
-  canonicalFilename: string;
+  canonicalFilename: CanonicalFilename;
 
   /**
    * File extension for the segment module (e.g. `"tsx"`, `"jsx"`, `"js"`).
@@ -276,7 +283,7 @@ export interface SegmentAnalysis {
    * top-level extractions. Resolved during parent rewrite, not at extract
    * time (`rewrite/index.ts:resolveNesting`).
    */
-  parent: string | null;
+  parent: SymbolName | null;
 
   /**
    * Where the `$()` was found:

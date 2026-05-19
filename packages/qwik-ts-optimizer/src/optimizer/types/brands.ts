@@ -59,13 +59,28 @@ export type ColumnNumber = number & { readonly __brand: 'ColumnNumber' };
 const IDENTIFIER_SHAPE = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 
 /**
- * Qwik's 11-character hash form, per the documented SipHash-1-3 →
- * base64url-with-`-`/`_`-rewritten-to-`0` scheme in OPTIMIZER.md
- * ("Symbol naming and hashing"). The character set is the alphanumeric
- * subset of base64url after the safety rewrite — no `-`, no `_`, no `+`,
- * no `/`, no padding.
+ * Hash slot shape: any non-empty alphanumeric-or-underscore string.
+ *
+ * Qwik's own `qwikHash()` always emits exactly 11 alphanumeric chars
+ * (SipHash-1-3 → 8 bytes → 11 base64url chars after the `-`/`_` → `0`
+ * safety rewrite — see OPTIMIZER.md "Symbol naming and hashing"). But the
+ * inlinedQrl extraction path at `extract.ts` has two looser fallbacks
+ * driven by peer-tool input we don't control:
+ *
+ * 1. Parser happy path accepts 8+ alphanumeric (`extract.ts:424`).
+ * 2. Parse failure (no `_` separator, or last segment <8 chars / non-
+ *    alphanumeric) falls back to using the whole symbol name as the hash
+ *    slot — which can contain underscores like `Foo_component_bbb`.
+ *
+ * The brand validation matches the parser's actual acceptance set so it
+ * doesn't reject inputs the rest of the pipeline already handles. We
+ * still catch whitespace, path separators, `.`, `-`, and other non-
+ * identifier garbage at the type boundary — those *are* the bugs worth
+ * preventing here. The TypeScript type-level distinction from `SymbolName`
+ * (different brand marker) provides the swap-prevention safety
+ * regardless of how the runtime regex is shaped.
  */
-const QWIK_HASH_SHAPE = /^[A-Za-z0-9]{11}$/;
+const HASH_SHAPE = /^[A-Za-z0-9_]+$/;
 
 /**
  * Context-name shape: a marker callee (`component$`, `useTask$`,
@@ -91,22 +106,33 @@ export function mkSymbolName(s: string): SymbolName {
 }
 
 export function mkHash(s: string): Hash {
-  if (!QWIK_HASH_SHAPE.test(s)) {
-    throw new Error(`mkHash: expected 11-char base64url-safe hash, got: ${JSON.stringify(s)}`);
+  if (!HASH_SHAPE.test(s)) {
+    throw new Error(`mkHash: expected non-empty [A-Za-z0-9_]+, got: ${JSON.stringify(s)}`);
   }
   return s as Hash;
 }
 
+/**
+ * `CanonicalFilename` and `DisplayName` are deliberately loose at the brand
+ * level — the validity space is wider than a JS identifier. Examples of
+ * legitimate values from the Qwik test fixtures: `test.tsx_renderHeader1`,
+ * `[[...slug]].tsx_slug_component` (Qwik catch-all route), `404.tsx__404_component`
+ * (digit-leading filename). Trying to enforce a regex here either rejects
+ * real inputs (the case we hit during OSS-384's call-site sweep) or becomes
+ * permissive enough to be meaningless. Non-empty is the only invariant we
+ * can rely on; the brand still keeps these distinct from `SymbolName`,
+ * `Hash`, and arbitrary strings at the type level.
+ */
 export function mkCanonicalFilename(s: string): CanonicalFilename {
-  if (!IDENTIFIER_SHAPE.test(s)) {
-    throw new Error(`mkCanonicalFilename: invalid identifier shape: ${JSON.stringify(s)}`);
+  if (s.length === 0) {
+    throw new Error('mkCanonicalFilename: empty string');
   }
   return s as CanonicalFilename;
 }
 
 export function mkDisplayName(s: string): DisplayName {
-  if (!IDENTIFIER_SHAPE.test(s)) {
-    throw new Error(`mkDisplayName: invalid identifier shape: ${JSON.stringify(s)}`);
+  if (s.length === 0) {
+    throw new Error('mkDisplayName: empty string');
   }
   return s as DisplayName;
 }

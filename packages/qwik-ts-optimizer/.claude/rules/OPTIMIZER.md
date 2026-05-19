@@ -85,7 +85,7 @@ Three markers break the uniform treatment:
 
 | Marker | Why it's special |
 |---|---|
-| `$(fn)` | The bare base marker — no naming context. Symbol name derives from the call-site / JSX surroundings (`extract.ts:441–453`) |
+| `$(fn)` | The bare base marker — no naming context. Symbol name derives from the call-site / JSX surroundings via `getDirectWrapperContextName` (`extract.ts:151–167`) |
 | `sync$(fn)` | Recognised but **does not extract** (`marker-detection.ts:222`, `isSyncMarker`). Body stays inline as a literal callback for QRL APIs that need a function reference rather than a lazy ref |
 | `implicit$FirstArg(fn, ...)` | Meta-marker; lets a non-`$`-suffixed function be treated as if its first argument were `$()`-marked. Backbone of `qwik-react`'s `qwikify$`. Resolved via `customInlined` map in `extract.ts:116` (`resolveCanonicalCalleeName`) |
 
@@ -179,7 +179,7 @@ Top-level entry is `transformModule` at `src/optimizer/transform/index.ts:90`. T
 
 | Phase | Marker | What it does | Key code |
 |---|---|---|---|
-| 0 | `transform/index.ts:106` | Repair SWC-recoverable parse errors | `repairInput` |
+| 0 | `transform/index.ts:108` | Repair SWC-recoverable parse errors | `repairInput` |
 | 1 | `transform/index.ts:112` | Walk the AST, find every `$(...)` call, record loc + body text + initial metadata | `extractSegments` in `extract.ts` |
 | 2 | `transform/index.ts:147` | Collect imports + run scope analysis on each closure to determine which outer-scope vars are captured. Closure AST nodes are threaded through from Phase 1 (`closureNodes` map populated by `extractSegments` per OSS-353); no per-extraction body re-parse | `collectScopeIdentifiers`, `analyzeCaptures`, `computeSegmentUsage` |
 | 3 | `transform/index.ts:330` | For each module-level binding referenced inside a segment, decide: stay in parent (`keep`), move into segment (`move`), or re-export (`reexport`) | `decideMigration` in `variable-migration.ts` |
@@ -187,9 +187,9 @@ Top-level entry is `transformModule` at `src/optimizer/transform/index.ts:90`. T
 | 5 | `transform/index.ts:532` | Emit one module per non-stripped segment | `generateAllSegmentModules` in `transform/segment-generation.ts` (34-line sequencer over named helpers per OSS-356/357/358 — see SPEC at `.planning/specs/segment-generation-refactor.md`) |
 | 6 | `transform/index.ts:610` | Apply diagnostic suppression directives | (lightweight cleanup) |
 
-The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1017`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
+The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1124`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
 
-Phase 5's per-segment work flows through `generateSegmentCode` (`segment-codegen.ts:528` — refactored in OSS-346 into a 9-phase sequencer with extracted helpers `collectInitialImports` and `applyBodyTransforms`) followed by `postProcessSegmentCode` (`transform/post-process.ts:163`).
+Phase 5's per-segment work flows through `generateSegmentCode` (`segment-codegen.ts:592` — refactored in OSS-346 into a 9-phase sequencer with extracted helpers `collectInitialImports` and `applyBodyTransforms`) followed by `postProcessSegmentCode` (`transform/post-process.ts:165`).
 
 ---
 
@@ -235,7 +235,7 @@ Now we rewrite `test.tsx`:
 
 ### Phase 5 — segment generation (`segment-generation.ts:generateAllSegmentModules` → `segment-codegen.ts:generateSegmentCode`)
 
-For each segment, `generateSegmentCode` runs the 9-phase sequencer at `segment-codegen.ts:528`. Walking through the renderHeader1 segment:
+For each segment, `generateSegmentCode` runs the 9-phase sequencer at `segment-codegen.ts:592`. Walking through the renderHeader1 segment:
 
 | Sub-phase | Effect on this segment |
 |---|---|
@@ -532,7 +532,7 @@ Otherwise: `_jsxSorted`, which is the common fast path.
 
 ### Var props vs const props
 
-Each JSX attribute is classified as either `var` (could change between renders) or `const` (stable for the lifetime of the element). The classification logic lives in `classifyConstness` at `transform/jsx.ts:197–298`.
+Each JSX attribute is classified as either `var` (could change between renders) or `const` (stable for the lifetime of the element). The classification logic lives in `classifyConstness` at `transform/jsx.ts:301–435`.
 
 | const | var |
 |---|---|
@@ -589,7 +589,7 @@ Reading the `_jsxSorted` arguments:
 
 Every JSX element gets a key string of the form `"<prefix>_<count>"` (e.g., `"u6_0"`). The prefix is a hash of the module's relative path (`computeKeyPrefix(relPath)`); the counter is monotonic across the module.
 
-Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `transform/jsx.ts:326–346`, threaded as:
+Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `transform/jsx.ts:437–457`, threaded as:
 
 - `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:557) → into `transform/index.ts:603`.
 - `parentJsxKeyCounterValue` → consumed by `segment-generation.ts:284` and `transformSegmentJsx` (segment-codegen.ts:280–325) as `keyCounterStart`.
@@ -764,10 +764,10 @@ actual.captures !== expected.captures
 | Capture analysis | `src/optimizer/capture-analysis.ts` |
 | Migration decisions | `src/optimizer/variable-migration.ts` |
 | Parent rewrite | `src/optimizer/rewrite/index.ts`, `rewrite/output-assembly.ts` |
-| Per-segment codegen orchestrator | `src/optimizer/segment-codegen.ts:528` (`generateSegmentCode`) |
+| Per-segment codegen orchestrator | `src/optimizer/segment-codegen.ts:592` (`generateSegmentCode`) |
 | Per-segment body transforms | `src/optimizer/segment-codegen/body-transforms.ts` |
 | Per-segment import collection | `src/optimizer/segment-codegen/import-collection.ts` |
-| All-segments orchestrator | `src/optimizer/transform/segment-generation.ts:1017` (`generateAllSegmentModules`) — 34-line sequencer |
+| All-segments orchestrator | `src/optimizer/transform/segment-generation.ts:1124` (`generateAllSegmentModules`) — 34-line sequencer |
 | All-segments setup (Prep) | `src/optimizer/transform/segment-generation.ts:319` (`computeSegmentGenerationPrep`) |
 | Inline-strategy segment builder | `src/optimizer/transform/segment-generation.ts:407` (`buildInlineStrategySegment`) |
 | Default-strategy segment builder | `src/optimizer/transform/segment-generation.ts:817` (`buildDefaultStrategySegment`) |

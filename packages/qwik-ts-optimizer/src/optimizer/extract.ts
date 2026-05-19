@@ -54,21 +54,20 @@ import {
   mkSymbolName,
 } from './types/brands.js';
 
-export interface ExtractionResult {
-  // Identity — write-once at construction, then mutated by two known
-  // post-extraction passes: (1) `disambiguateExtractions` at the end of
-  // Phase 1 renames colliding extractions in-place; (2) the prod-mode
-  // rename in `transform/index.ts` rewrites `symbolName` to `s_<hash>`
-  // form. Marking these `readonly` would force both passes to construct
-  // new `ExtractionResult` objects — a larger refactor than OSS-387
-  // intends. Left mutable; OSS-389's phased discriminated union for
-  // ExtractionResult is the natural home for that restructure.
-  symbolName: SymbolName;
-  displayName: DisplayName;
-  hash: Hash;
-  canonicalFilename: CanonicalFilename;
+/**
+ * Fields shared across all three phases of the extraction pipeline.
+ * Once set at extraction time (post-disambig + post-prod-rename +
+ * post-transpile-downgrade), these are immutable for the rest of the
+ * pipeline. Phase transitions use object spread to carry these forward.
+ */
+export interface ExtractionBase {
+  // Identity (final after disambig + prod-rename)
+  readonly symbolName: SymbolName;
+  readonly displayName: DisplayName;
+  readonly hash: Hash;
+  readonly canonicalFilename: CanonicalFilename;
 
-  // Positions in original source (for magic-string) — write-once.
+  // Positions in original source (for magic-string)
   readonly callStart: ByteOffset;
   readonly callEnd: ByteOffset;
   readonly calleeStart: ByteOffset;
@@ -76,73 +75,122 @@ export interface ExtractionResult {
   readonly argStart: ByteOffset;
   readonly argEnd: ByteOffset;
 
-  // Segment content — write-once.
+  // Segment content
   readonly bodyText: BodyText;
 
-  // Call form info — write-once.
+  // Call form info
   readonly calleeName: string;
   readonly isBare: boolean;
   readonly isSync: boolean;
   readonly qrlCallee: string;
   readonly importSource: string;
 
-  // Metadata — write-once.
+  // Metadata
   readonly ctxKind: 'function' | 'eventHandler' | 'jSXProp';
   readonly ctxName: CtxName;
   readonly origin: Origin;
+  // `extension` finalises after JSX-detection (extract leave-handler) and
+  // transpile-downgrade — both during extraction-phase construction.
+  readonly extension: string;
+  // `loc` finalises at extraction time. The stripped-segment emission
+  // path in segment-generation derives its zeroed loc locally rather
+  // than mutating the consolidated extraction (OSS-389).
+  readonly loc: readonly [ByteOffset, ByteOffset];
 
-  // `extension` is set at extraction with an initial value, then mutated
-  // by two known post-extraction passes: (1) `leave` handler at
-  // `extract.ts:797` flips it to `.tsx` when the segment body contains
-  // JSX; (2) the transpile-downgrade loop in `transform/index.ts:452`
-  // rewrites `.tsx` → `.js`/`.ts`/`.jsx` based on transpile flags.
-  // Left mutable.
-  extension: string;
+  // Imports needed by this segment, finalised during the extraction
+  // walk's `leave` handler before the variant is exposed.
+  readonly segmentImports: readonly ImportInfo[];
 
-  // `loc` is set at extraction but the stripped-segment fallback in
-  // `transform/segment-generation.ts:1141` zeroes it to `[0, 0]`. Left
-  // mutable.
-  loc: [ByteOffset, ByteOffset];
-
-  // `parent` is resolved during parent rewrite (rewrite/index.ts:resolveNesting),
-  // not at extraction time. Left mutable.
-  parent: SymbolName | null;
-
-  // `captures` is `captureNames.length > 0` at construction but can
-  // drift through Phase 4-5 filtering (props consolidation, const
-  // inlining, migration). Left mutable.
-  captures: boolean;
-
-  // Capture analysis (Phase 3) — `captureNames` and `paramNames` are
-  // mutated through Phase 4-5 (props consolidation, const-literal
-  // inlining, migration filtering). Per OSS-387 ticket, this stays
-  // mutable; OSS-389's phased union will handle the restructure.
-  captureNames: string[];
-  paramNames: string[];
-
-  // Imports needed by this segment — populated during the same Phase 1
-  // walk that produces the extraction; filtered/finalised in `leave`.
-  segmentImports: ImportInfo[];
-
-  // inlinedQrl support — write-once.
+  // inlinedQrl support
   readonly isInlinedQrl: boolean;
   readonly explicitCaptures: string | null;
   readonly inlinedQrlNameArg: string | null;
 
-  // Component element event handler (uppercase tag like <CustomComponent onClick$={...}>) — write-once.
+  // Component element event handler (uppercase tag like <CustomComponent onClick$={...}>)
   readonly isComponentEvent: boolean;
+}
 
-  // Props field capture consolidation: maps original local name -> prop key name.
-  // Set when captures from a parent component's destructured props are consolidated into _rawProps.
-  // Assigned during Phase 4 raw-props rewrite; left mutable.
+/**
+ * Phase-spanning fields. Present on all variants; mutable for the
+ * pipeline's in-place transition pattern (Phase 1 → 3 capture analysis,
+ * Phase 5 parent rewrite, event-capture promotion all mutate in place).
+ * The discriminator `phase` narrows the union at consumer sites.
+ *
+ * See OSS-389's "pragmatic pivot": union types + discriminator ship now;
+ * per-field readonly enforcement on phase-spanning fields is the natural
+ * follow-up once consumer sites have been narrowed to specific variants
+ * and the construct-new pattern is applied at each phase boundary.
+ * Truly-immutable fields (identity, position, body text, ctx, etc.) stay
+ * readonly on `ExtractionBase` — OSS-387's discipline is preserved there.
+ */
+interface ExtractionPhaseFields {
+  captureNames: string[];
+  paramNames: string[];
+  captures: boolean;
+  parent: SymbolName | null;
   propsFieldCaptures?: Map<string, string>;
-
-  // Const literal values resolved from parent scope.
-  // Maps captured variable name -> literal source text (e.g., "text" -> "'hola'").
-  // These are inlined into the segment body and removed from captureNames.
-  // Assigned during Phase 4 const-literal resolution; left mutable.
   constLiterals?: Map<string, string>;
 }
+
+/**
+ * Phase 1 output (post-disambig, post-prod-rename, post-transpile-downgrade).
+ * `captureNames`/`paramNames` are empty unless pre-populated by the
+ * inlinedQrl path's explicit-captures array. `parent` is `null` until
+ * parent rewrite resolves nesting.
+ */
+export interface ExtractedSegment extends ExtractionBase, ExtractionPhaseFields {
+  readonly phase: 'extracted';
+}
+
+/** Phase 3 output (post-capture-analysis). */
+export interface CapturedSegment extends ExtractionBase, ExtractionPhaseFields {
+  readonly phase: 'captured';
+}
+
+/**
+ * Phase 5 output (post-parent-rewrite). `parent` is resolved;
+ * `propsFieldCaptures` and `constLiterals` are finalised. Downstream
+ * consumers (segment generation, NAPI emit) take this variant.
+ */
+export interface ConsolidatedSegment extends ExtractionBase, ExtractionPhaseFields {
+  readonly phase: 'consolidated';
+}
+
+/**
+ * Discriminated union over the three pipeline phases. Consumers narrow
+ * on `phase` to access phase-specific fields safely. See OSS-389.
+ *
+ * Phase transitions construct new objects via spread:
+ * - `extractSegments`/post-extract passes → `ExtractedSegment`
+ * - capture analysis: `ExtractedSegment → CapturedSegment`
+ * - parent rewrite: `CapturedSegment → ConsolidatedSegment`
+ *
+ * `phase` is internal to the optimizer; it does NOT propagate to the
+ * NAPI `SegmentAnalysis` output (which is constructed from a
+ * `ConsolidatedSegment` at segment generation, picking fields).
+ */
+export type ExtractionResult = ExtractedSegment | CapturedSegment | ConsolidatedSegment;
+
+/**
+ * Strip `readonly` from every property of `T`. Used by phase-transition
+ * code as an FFI-boundary cast: at the start of a phase-transition
+ * function the input array is cast to the next phase's mutable builder
+ * type; mutations happen in-place; the function returns the array typed
+ * as the readonly next-phase variant. Within a phase, the same pattern
+ * applies for the few mutation sites that survive (e.g. event-capture
+ * promotion's loop-iteration padding). External consumers see the
+ * readonly union and narrow via `phase`.
+ */
+export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
+
+/** Builder type for the extraction walker's WIP segment state. */
+export type ExtractedSegmentBuilder = Mutable<ExtractedSegment>;
+
+/** Builder type for capture analysis (Phase 3). */
+export type CapturedSegmentBuilder = Mutable<CapturedSegment>;
+
+/** Builder type for parent rewrite (Phase 5). */
+export type ConsolidatedSegmentBuilder = Mutable<ConsolidatedSegment>;
 
 /** True when `inner`'s source span lies inside `outer`'s span (typical ESTree layout). */
 function nodeContainedIn(inner: AstNode, outer: AstNode): boolean {
@@ -162,7 +210,13 @@ function extensionFromSegmentJsx(hasJsx: boolean, sourceExt: string): string {
 type ActiveSegmentBody = {
   leaveNode: AstNode;
   root: AstNode;
-  result: ExtractionResult;
+  /**
+   * The WIP segment under construction. Mutated during the walker's
+   * `leave` handler (JSX-detection extension flip, segmentImports
+   * finalisation). Once the walker completes, the builder is exposed as
+   * the readonly `ExtractedSegment` variant at the function boundary.
+   */
+  result: ExtractedSegmentBuilder;
   hasJsx: boolean;
   /**
    * When set, the outer extraction walk accumulates referenced Identifier
@@ -270,7 +324,7 @@ export function extractSegments(
    * keyed by the post-disambiguation `symbolName`. Lets callers skip a redundant per-extraction body re-parse.
    */
   closureNodesOut?: Map<string, AstFunction>,
-): ExtractionResult[] {
+): readonly ExtractedSegment[] {
   const parseResult: AstParseResult | null = preParsedProgram
     ? null
     : parseWithRawTransfer(relPath, source);
@@ -291,7 +345,10 @@ export function extractSegments(
   const fileName = getBasename(relPath);
   const ctx = new ContextStack(fileStem, relPath, scope, fileName);
 
-  const results: ExtractionResult[] = [];
+  // The walker builds WIP segments via mutation (push on enter, mutate
+  // on leave). The function returns `readonly ExtractedSegment[]` at the
+  // boundary — the mutation is internal-only. See `ExtractedSegmentBuilder`.
+  const results: ExtractedSegmentBuilder[] = [];
   const activeSegmentBodies: ActiveSegmentBody[] = [];
   /**
    * Pairings of (extraction → its closure AST node) collected during the walk.
@@ -511,7 +568,8 @@ export function extractSegments(
           // baseline.
           const extension = sourceExt;
 
-          const extraction: ExtractionResult = {
+          const extraction: ExtractedSegmentBuilder = {
+            phase: 'extracted',
             symbolName: mkSymbolName(nameValue),
             displayName: inlinedDisplayName,
             hash: inlinedHash,
@@ -655,7 +713,8 @@ export function extractSegments(
         const lastUnder = symbolName.lastIndexOf('_');
         const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
 
-        const extraction: ExtractionResult = {
+        const extraction: ExtractedSegmentBuilder = {
+          phase: 'extracted',
           symbolName,
           displayName,
           hash,
@@ -755,7 +814,8 @@ export function extractSegments(
           const lastUnder = symbolName.lastIndexOf('_');
           const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
 
-          const extraction: ExtractionResult = {
+          const extraction: ExtractedSegmentBuilder = {
+            phase: 'extracted',
             symbolName,
             displayName,
             hash,
@@ -839,11 +899,15 @@ export function extractSegments(
  * recomputing hashes accordingly. Mirrors Rust's `register_context_name`.
  */
 function disambiguateExtractions(
-  extractions: ExtractionResult[],
+  extractions: ExtractedSegmentBuilder[],
   fileStem: string,
   relPath: string,
   scope?: string,
 ): void {
+  // Mutates identity fields on entries that collide on `displayName`'s
+  // context portion. The builder type's mutability is the FFI-boundary
+  // concession; `extractSegments` exposes the array as
+  // `readonly ExtractedSegment[]` at its return statement.
   const nameCounters = new Map<string, number>();
   const prefix = fileStem + '_';
 

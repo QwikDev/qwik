@@ -14,6 +14,7 @@ import type {
 import { parseWithRawTransfer } from "../utils/parse.js";
 import { flattenAndReparse } from "../utils/flatten-destructures.js";
 import { extractSegments } from "../extract.js";
+import type { ExtractionResult, Mutable } from "../extract.js";
 import { repairInput } from "../input-repair.js";
 import {
   rewriteParentModule,
@@ -135,7 +136,14 @@ export function transformModule(
     // original parse's nodes here lets us skip the per-extraction body
     // re-parse the receiver used to perform.
     const closureNodes = new Map<string, AstFunction>();
-    const extractions = extractSegments(
+    // OSS-389: extractSegments returns `readonly ExtractedSegment[]` as
+    // its phase-locked contract. The orchestrator below applies in-place
+    // mutations (prod rename, transpile-downgrade, capture analysis,
+    // raw-props consolidation) that gradually advance the array elements
+    // through `captured` → `consolidated` phases. The cast here is the
+    // single FFI-boundary widening; per-mutation Mutable casts handle
+    // field-level readonly enforcement.
+    const extractions: ExtractionResult[] = extractSegments(
       repairedCode,
       relPath,
       options.scope,
@@ -143,7 +151,7 @@ export function transformModule(
       program,
       parserModule,
       closureNodes,
-    );
+    ) as ExtractionResult[];
 
     // Early exit: no segments and no JSX to transpile
     const needsJsxTransform =
@@ -418,7 +426,10 @@ export function transformModule(
       for (const ext of extractions) {
         if (ext.isInlinedQrl) continue;
         const original = ext.symbolName;
-        ext.symbolName = mkSymbolName("s_" + ext.hash);
+        // OSS-389: prod rename mutates identity post-extraction. Internal-
+        // builder cast — the alternative is a full pass-through array.map()
+        // which the OSS-389 pragmatic-pivot deferred.
+        (ext as Mutable<ExtractionResult>).symbolName = mkSymbolName("s_" + ext.hash);
         preRenameSymbolName.set(ext.symbolName, original);
         // Mirror the rename in `closureNodes` so post-rename lookups (Phase 4
         // const-literal resolution, etc.) still find the threaded AST node.
@@ -448,20 +459,23 @@ export function transformModule(
       sourceExtensions.set(extraction.symbolName, extraction.extension);
     }
 
-    // When JSX will be transpiled, downgrade extensions on extraction results
+    // When JSX will be transpiled, downgrade extensions on extraction
+    // results. OSS-389: in-place mutation via internal-builder cast — see
+    // the prod-rename comment above; same pragmatic-pivot rationale.
     if (shouldTranspileJsx || shouldTranspileTs) {
       for (const extraction of extractions) {
+        const wip = extraction as Mutable<ExtractionResult>;
         if (shouldTranspileJsx) {
-          if (extraction.extension === ".tsx")
-            extraction.extension = shouldTranspileTs ? ".js" : ".ts";
-          else if (extraction.extension === ".jsx")
-            extraction.extension = ".js";
-          else if (shouldTranspileTs && extraction.extension === ".ts")
-            extraction.extension = ".js";
+          if (wip.extension === ".tsx")
+            wip.extension = shouldTranspileTs ? ".js" : ".ts";
+          else if (wip.extension === ".jsx")
+            wip.extension = ".js";
+          else if (shouldTranspileTs && wip.extension === ".ts")
+            wip.extension = ".js";
         } else if (shouldTranspileTs) {
-          if (extraction.extension === ".ts") extraction.extension = ".js";
-          else if (extraction.extension === ".tsx")
-            extraction.extension = ".jsx";
+          if (wip.extension === ".ts") wip.extension = ".js";
+          else if (wip.extension === ".tsx")
+            wip.extension = ".jsx";
         }
       }
     }

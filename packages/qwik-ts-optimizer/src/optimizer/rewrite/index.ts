@@ -17,7 +17,7 @@
 import MagicString from 'magic-string';
 import { createRegExp, exactly, wordBoundary } from 'magic-regexp';
 import { parseSync } from 'oxc-parser';
-import type { ExtractionResult } from '../extract.js';
+import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extract.js';
 import type { ImportInfo } from '../marker-detection.js';
 import type { MigrationDecision, ModuleLevelDecl } from '../variable-migration.js';
 import type { RelativePath } from '../types/brands.js';
@@ -366,13 +366,16 @@ function resolveNesting(ctx: RewriteContext): void {
       }
     }
     if (bestParent) {
-      sorted[i].parent = bestParent.symbolName;
+      // OSS-389: resolveNesting transitions captured → consolidated by
+      // setting parent. Internal-builder cast (see extract.ts `Mutable<T>`)
+      // — the caller treats the array as ConsolidatedSegment[] after this.
+      (sorted[i] as Mutable<ConsolidatedSegment>).parent = bestParent.symbolName;
     }
   }
 
   for (const ext of sorted) {
     const orig = ctx.extractions.find((e) => e.symbolName === ext.symbolName);
-    if (orig) orig.parent = ext.parent;
+    if (orig) (orig as Mutable<ConsolidatedSegment>).parent = ext.parent;
   }
 }
 
@@ -400,9 +403,14 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
       }
     }
     if (hasPropsFields) {
-      ext.propsFieldCaptures = propsFieldCaptures;
-      ext.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
-      ext.captures = ext.captureNames.length > 0;
+      // OSS-389: parent-rewrite raw-props consolidation transitions
+      // captured → consolidated. Internal-builder cast (see extract.ts
+      // `Mutable<T>`). After this block, ext is effectively a
+      // ConsolidatedSegment from downstream's perspective.
+      const wip = ext as Mutable<ConsolidatedSegment>;
+      wip.propsFieldCaptures = propsFieldCaptures;
+      wip.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
+      wip.captures = wip.captureNames.length > 0;
     }
   }
 }

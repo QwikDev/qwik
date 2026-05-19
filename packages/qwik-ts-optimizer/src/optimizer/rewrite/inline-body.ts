@@ -16,7 +16,7 @@ import {
   type JSXAttribute,
   type JSXAttributeItem,
 } from '../../ast-types.js';
-import type { ExtractionResult } from '../extract.js';
+import type { ExtractionResult, Mutable } from '../extract.js';
 import { transformEventPropName } from '../transform/event-handlers.js';
 import { transformAllJsx } from '../transform/jsx.js';
 import { SignalHoister } from '../signal-analysis.js';
@@ -229,10 +229,17 @@ export function transformInlineSegmentBody(
         : resolveConstLiterals(parentExt.bodyText, ext.captureNames);
       if (constValues.size > 0) {
         body = inlineConstCaptures(body, constValues);
-        ext.captureNames = ext.captureNames.filter(n => !constValues.has(n));
-        ext.captures = ext.captureNames.length > 0;
-        if (!ext.constLiterals) ext.constLiterals = constValues;
-        else for (const [k, v] of constValues) ext.constLiterals.set(k, v);
+        // OSS-389: const-literal inlining drops folded names from
+        // captureNames + accumulates into constLiterals. Internal-builder
+        // cast — ext is effectively transitioning toward consolidated.
+        const wip = ext as Mutable<ExtractionResult>;
+        wip.captureNames = wip.captureNames.filter(n => !constValues.has(n));
+        wip.captures = wip.captureNames.length > 0;
+        if (!wip.constLiterals) wip.constLiterals = constValues;
+        else {
+          const accumulator = wip.constLiterals as Map<string, string>;
+          for (const [k, v] of constValues) accumulator.set(k, v);
+        }
       }
     }
   }

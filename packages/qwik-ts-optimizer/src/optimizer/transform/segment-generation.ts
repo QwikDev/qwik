@@ -11,7 +11,7 @@ import type {
   AstProgram,
   TSEnumDeclaration,
 } from "../../ast-types.js";
-import type { ExtractionResult } from "../extract.js";
+import type { ExtractionResult, Mutable } from "../extract.js";
 import type { ImportInfo } from "../marker-detection.js";
 import type { MigrationDecision, ModuleLevelDecl } from "../variable-migration.js";
 import type {
@@ -1138,7 +1138,9 @@ export function generateAllSegmentModules(
       ctx.options.stripCtxName,
       ctx.options.stripEventHandlers,
     );
-    if (stripped) ext.loc = [mkByteOffset(0), mkByteOffset(0)];
+    // OSS-389: stripped-segment fallback zeros loc before SegmentAnalysis
+    // emission. Internal-builder cast — see extract.ts `Mutable<T>`.
+    if (stripped) (ext as Mutable<ExtractionResult>).loc = [mkByteOffset(0), mkByteOffset(0)];
 
     if (ctx.isInlineStrategy) {
       allModules.push(buildInlineStrategySegment(ext, ctx, prep, stripped));

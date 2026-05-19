@@ -19,20 +19,24 @@ import type {
   SegmentMetadataInternal,
 } from '../../src/optimizer/types.js';
 import {
+  mkByteOffset,
   mkCanonicalFilename,
+  mkColumnNumber,
   mkCtxName,
   mkDisplayName,
   mkFilePath,
   mkHash,
+  mkLineNumber,
   mkOrigin,
   mkRelativePath,
+  mkSourceText,
   mkSymbolName,
 } from '../../src/optimizer/types/brands.js';
 
 describe('TransformModulesOptions', () => {
   it('accepts all expected fields', () => {
     const opts: TransformModulesOptions = {
-      input: [{ path: mkFilePath('test.tsx'), code: 'const x = 1;' }],
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText('const x = 1;') }],
       srcDir: mkFilePath('/src'),
       rootDir: '/root',
       entryStrategy: { type: 'smart' },
@@ -73,7 +77,7 @@ describe('SegmentAnalysis', () => {
       ctxKind: 'eventHandler',
       ctxName: mkCtxName('onClick$'),
       captures: true,
-      loc: [10, 50],
+      loc: [mkByteOffset(10), mkByteOffset(50)],
     };
     expect(seg.origin).toBe('test.tsx');
     expect(seg.name).toBe('onClick_abc123');
@@ -141,7 +145,7 @@ describe('Diagnostic', () => {
       file: 'test.tsx',
       message: 'Function reference error',
       highlights: [
-        { lo: 0, hi: 10, startLine: 1, startCol: 0, endLine: 1, endCol: 10 },
+        { lo: mkByteOffset(0), hi: mkByteOffset(10), startLine: mkLineNumber(1), startCol: mkColumnNumber(0), endLine: mkLineNumber(1), endCol: mkColumnNumber(10) },
       ],
       suggestions: null,
       scope: 'optimizer',
@@ -165,7 +169,7 @@ describe('SegmentMetadataInternal', () => {
       ctxKind: 'function',
       ctxName: mkCtxName('$'),
       captures: false,
-      loc: [0, 20],
+      loc: [mkByteOffset(0), mkByteOffset(20)],
       paramNames: ['a', 'b'],
       captureNames: ['x', 'y'],
     };

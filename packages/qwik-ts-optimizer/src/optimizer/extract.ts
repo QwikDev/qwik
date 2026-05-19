@@ -35,14 +35,17 @@ import {
 import { isEventProp, transformEventPropName, collectPassiveDirectives } from './transform/event-handlers.js';
 import { getBasename, getDirectory, getExtension, getFileStem } from './path-utils.js';
 import { getQrlCalleeName } from './utils/qrl-naming.js';
-import { computeLineColFromOffset } from './utils/source-loc.js';
 import {
+  type BodyText,
+  type ByteOffset,
   type CanonicalFilename,
   type CtxName,
   type DisplayName,
   type Hash,
   type Origin,
   type SymbolName,
+  mkBodyText,
+  mkByteOffset,
   mkCanonicalFilename,
   mkCtxName,
   mkDisplayName,
@@ -59,15 +62,15 @@ export interface ExtractionResult {
   canonicalFilename: CanonicalFilename;
 
   // Positions in original source (for magic-string)
-  callStart: number;
-  callEnd: number;
-  calleeStart: number;
-  calleeEnd: number;
-  argStart: number;
-  argEnd: number;
+  callStart: ByteOffset;
+  callEnd: ByteOffset;
+  calleeStart: ByteOffset;
+  calleeEnd: ByteOffset;
+  argStart: ByteOffset;
+  argEnd: ByteOffset;
 
   // Segment content
-  bodyText: string;
+  bodyText: BodyText;
 
   // Call form info
   calleeName: string;
@@ -81,7 +84,7 @@ export interface ExtractionResult {
   ctxName: CtxName;
   origin: Origin;
   extension: string;
-  loc: [number, number];
+  loc: [ByteOffset, ByteOffset];
   parent: SymbolName | null;
   captures: boolean;
 
@@ -482,13 +485,13 @@ export function extractSegments(
             displayName: inlinedDisplayName,
             hash: inlinedHash,
             canonicalFilename: inlinedCanonicalFilename,
-            callStart: node.start,
-            callEnd: node.end,
-            calleeStart: node.callee.start,
-            calleeEnd: node.callee.end,
-            argStart: arg0.start,
-            argEnd: arg0.end,
-            bodyText,
+            callStart: mkByteOffset(node.start),
+            callEnd: mkByteOffset(node.end),
+            calleeStart: mkByteOffset(node.callee.start),
+            calleeEnd: mkByteOffset(node.callee.end),
+            argStart: mkByteOffset(arg0.start),
+            argEnd: mkByteOffset(arg0.end),
+            bodyText: mkBodyText(bodyText),
             calleeName,
             isBare: false,
             isSync: false,
@@ -498,7 +501,7 @@ export function extractSegments(
             ctxName: mkCtxName(inlinedCtxName),
             origin: mkOrigin(relPath),
             extension,
-            loc: [arg0.start, arg0.end],
+            loc: [mkByteOffset(arg0.start), mkByteOffset(arg0.end)],
             parent: null,
             captures: inlinedCaptureNames.length > 0,
             captureNames: inlinedCaptureNames,
@@ -621,20 +624,18 @@ export function extractSegments(
         const lastUnder = symbolName.lastIndexOf('_');
         const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
 
-        const [line, col] = computeLineColFromOffset(source, arg.start);
-
         const extraction: ExtractionResult = {
           symbolName,
           displayName,
           hash,
           canonicalFilename: mkCanonicalFilename(displayName + '_' + hash),
-          callStart: node.start,
-          callEnd: node.end,
-          calleeStart: node.callee.start,
-          calleeEnd: node.callee.end,
-          argStart: arg.start,
-          argEnd: arg.end,
-          bodyText,
+          callStart: mkByteOffset(node.start),
+          callEnd: mkByteOffset(node.end),
+          calleeStart: mkByteOffset(node.callee.start),
+          calleeEnd: mkByteOffset(node.callee.end),
+          argStart: mkByteOffset(arg.start),
+          argEnd: mkByteOffset(arg.end),
+          bodyText: mkBodyText(bodyText),
           calleeName: canonicalCallee,
           isBare,
           isSync,
@@ -644,7 +645,12 @@ export function extractSegments(
           ctxName,
           origin: mkOrigin(relPath),
           extension: defaultExtension,
-          loc: [line, col],
+          // OSS-386: `loc` is documented as `[byteStart, byteEnd]` in
+          // OPTIMIZER.md and snap fixtures emit byte offsets; this site
+          // previously emitted `[line, col]` (a pre-existing semantic
+          // mismatch, hidden because convergence's strict-compare skips
+          // `loc`). Branding `ByteOffset` makes the contract explicit.
+          loc: [mkByteOffset(arg.start), mkByteOffset(arg.end)],
           parent: null,
           captures: false,
           captureNames: [],
@@ -718,20 +724,18 @@ export function extractSegments(
           const lastUnder = symbolName.lastIndexOf('_');
           const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
 
-          const [line, col] = computeLineColFromOffset(source, expr.start);
-
           const extraction: ExtractionResult = {
             symbolName,
             displayName,
             hash,
             canonicalFilename: mkCanonicalFilename(displayName + '_' + hash),
-            callStart: node.start,
-            callEnd: node.end,
-            calleeStart: node.name.start,
-            calleeEnd: node.name.end,
-            argStart: expr.start,
-            argEnd: expr.end,
-            bodyText,
+            callStart: mkByteOffset(node.start),
+            callEnd: mkByteOffset(node.end),
+            calleeStart: mkByteOffset(node.name.start),
+            calleeEnd: mkByteOffset(node.name.end),
+            argStart: mkByteOffset(expr.start),
+            argEnd: mkByteOffset(expr.end),
+            bodyText: mkBodyText(bodyText),
             calleeName: attrName,
             isBare: false,
             isSync: false,
@@ -741,7 +745,9 @@ export function extractSegments(
             ctxName,
             origin: mkOrigin(relPath),
             extension: defaultExtension,
-            loc: [line, col],
+            // OSS-386: same pre-existing semantic mismatch as site 1 — `loc` now
+            // carries byte offsets matching OPTIMIZER.md's documented contract.
+            loc: [mkByteOffset(expr.start), mkByteOffset(expr.end)],
             parent: null,
             captures: false,
             captureNames: [],

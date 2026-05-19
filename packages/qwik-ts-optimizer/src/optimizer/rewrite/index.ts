@@ -472,7 +472,10 @@ function rewriteCallSites(ctx: RewriteContext): void {
 
 function rewriteNoArgMarkers(ctx: RewriteContext): void {
   const { s, program, originalImports, extractedCalleeNames, alreadyImported } = ctx;
-  const extractedCallStarts = new Set(ctx.extractions.map(e => e.callStart));
+  // Typed `Set<number>` so membership checks against raw `node.start` work
+  // without brand wrapping at every lookup. The ByteOffset values flow in
+  // via covariance; the lookup unbrands harmlessly.
+  const extractedCallStarts = new Set<number>(ctx.extractions.map(e => e.callStart));
 
   function walk(node: AstNode | null | undefined): void {
     if (!node) return;

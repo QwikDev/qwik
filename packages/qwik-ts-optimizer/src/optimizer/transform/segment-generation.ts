@@ -32,7 +32,7 @@ import { getQrlCalleeName } from "../utils/qrl-naming.js";
 import { buildQrlDevDeclaration } from "../dev-mode.js";
 import { generateStrippedSegmentCode } from "../strip-ctx.js";
 import { isStrippedSegment } from "../rewrite/predicates.js";
-import { mkRelativePath } from "../types/brands.js";
+import { mkByteOffset, mkRelativePath } from "../types/brands.js";
 import {
   buildStrippedNoopQrl,
   buildStrippedNoopQrlDev,
@@ -1138,7 +1138,7 @@ export function generateAllSegmentModules(
       ctx.options.stripCtxName,
       ctx.options.stripEventHandlers,
     );
-    if (stripped) ext.loc = [0, 0];
+    if (stripped) ext.loc = [mkByteOffset(0), mkByteOffset(0)];
 
     if (ctx.isInlineStrategy) {
       allModules.push(buildInlineStrategySegment(ext, ctx, prep, stripped));

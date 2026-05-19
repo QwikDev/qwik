@@ -16,7 +16,13 @@ import {
 } from '../../src/optimizer/diagnostics.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import type { Diagnostic } from '../../src/optimizer/types.js';
-import { mkFilePath } from '../../src/optimizer/types/brands.js';
+import {
+  mkByteOffset,
+  mkColumnNumber,
+  mkFilePath,
+  mkLineNumber,
+  mkSourceText,
+} from '../../src/optimizer/types/brands.js';
 
 describe('emitC02', () => {
   it('produces error with code C02 for a function reference', () => {
@@ -87,7 +93,7 @@ someLine();`;
 describe('filterSuppressedDiagnostics', () => {
   it('removes diagnostics matching directive codes', () => {
     const diags: Diagnostic[] = [
-      { category: 'error', code: 'C03', file: 'test.tsx', message: 'test', highlights: [{ lo: 0, hi: 10, startLine: 3, startCol: 1, endLine: 3, endCol: 10 }], suggestions: null, scope: 'optimizer' },
+      { category: 'error', code: 'C03', file: 'test.tsx', message: 'test', highlights: [{ lo: mkByteOffset(0), hi: mkByteOffset(10), startLine: mkLineNumber(3), startCol: mkColumnNumber(1), endLine: mkLineNumber(3), endCol: mkColumnNumber(10) }], suggestions: null, scope: 'optimizer' },
     ];
     const directives = new Map<number, Set<string>>();
     directives.set(3, new Set(['C03']));
@@ -109,9 +115,9 @@ describe('filterSuppressedDiagnostics', () => {
     // Directive on line 2 suppresses line 3 only
     const diags: Diagnostic[] = [
       // Diagnostic on line 3 -- should be suppressed
-      { category: 'error', code: 'C03', file: 'test.tsx', message: 'uses local values (a)', highlights: [{ lo: 20, hi: 30, startLine: 3, startCol: 1, endLine: 3, endCol: 10 }], suggestions: null, scope: 'optimizer' },
+      { category: 'error', code: 'C03', file: 'test.tsx', message: 'uses local values (a)', highlights: [{ lo: mkByteOffset(20), hi: mkByteOffset(30), startLine: mkLineNumber(3), startCol: mkColumnNumber(1), endLine: mkLineNumber(3), endCol: mkColumnNumber(10) }], suggestions: null, scope: 'optimizer' },
       // Diagnostic on line 4 -- should NOT be suppressed
-      { category: 'error', code: 'C03', file: 'test.tsx', message: 'uses local values (b)', highlights: [{ lo: 40, hi: 50, startLine: 4, startCol: 1, endLine: 4, endCol: 10 }], suggestions: null, scope: 'optimizer' },
+      { category: 'error', code: 'C03', file: 'test.tsx', message: 'uses local values (b)', highlights: [{ lo: mkByteOffset(40), hi: mkByteOffset(50), startLine: mkLineNumber(4), startCol: mkColumnNumber(1), endLine: mkLineNumber(4), endCol: mkColumnNumber(10) }], suggestions: null, scope: 'optimizer' },
     ];
     const directives = new Map<number, Set<string>>();
     directives.set(3, new Set(['C03'])); // Only line 3 is suppressed
@@ -139,12 +145,12 @@ describe('filterSuppressedDiagnostics', () => {
 describe('emitC05', () => {
   it('produces error with code C05 for missing Qrl export', () => {
     const diag = emitC05('useMemo$', 'useMemoQrl', 'test.tsx', {
-      lo: 241,
-      hi: 249,
-      startLine: 11,
-      startCol: 5,
-      endLine: 11,
-      endCol: 12,
+      lo: mkByteOffset(241),
+      hi: mkByteOffset(249),
+      startLine: mkLineNumber(11),
+      startCol: mkColumnNumber(5),
+      endLine: mkLineNumber(11),
+      endCol: mkColumnNumber(12),
     });
     expect(diag.category).toBe('error');
     expect(diag.code).toBe('C05');
@@ -196,7 +202,7 @@ export const App = component$(() => {
 })
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -237,7 +243,7 @@ export const App = component$((props) => {
 });
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -266,7 +272,7 @@ export const App = component$((props) => {
 \t\t});
 \t\t`;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -295,7 +301,7 @@ export const App = component$((props) => {
 \t\t});
 \t\t`;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -323,7 +329,7 @@ export const App = component$((props) => {
 \t\t});
 \t\t`;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -341,7 +347,7 @@ export const App = component$(() => {
 })
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 

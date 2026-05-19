@@ -20,7 +20,7 @@
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import type { TransformModule } from '../../src/optimizer/types.js';
-import { mkFilePath } from '../../src/optimizer/types/brands.js';
+import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 function findModule(modules: TransformModule[], pathSubstr: string): TransformModule | undefined {
   return modules.find((m) => m.path.includes(pathSubstr));
@@ -44,7 +44,7 @@ const Foo = componentQrl(inlinedQrl(() => {
 }, "Foo_component_bbb", []));
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.ts'), code: input }],
+      input: [{ path: mkFilePath('test.ts'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -76,7 +76,7 @@ const Foo = componentQrl(inlinedQrl(() => {
 }, "Foo_component_ccc", []));
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.ts'), code: input }],
+      input: [{ path: mkFilePath('test.ts'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -105,7 +105,7 @@ function qwikifyQrl(reactCmpQrl) {
 }
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.ts'), code: input }],
+      input: [{ path: mkFilePath('test.ts'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -129,7 +129,7 @@ const Foo = component$(() => {
 });
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.tsx'), code: input }],
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 

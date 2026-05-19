@@ -28,7 +28,7 @@ import { execSync } from 'node:child_process';
 import { relative } from 'node:path';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import type { TransformModuleInput } from '../../src/optimizer/types.js';
-import { mkFilePath } from '../../src/optimizer/types/brands.js';
+import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 import * as process from "node:process";
 
 // ---------------------------------------------------------------------------
@@ -126,7 +126,7 @@ if (!QWIK_HOME) {
     function buildTsInput(files: string[]): TransformModuleInput[] {
         return files.map((file) => ({
             path: mkFilePath(relative(QWIK_PACKAGES_DIR, file)),
-            code: readFileSync(file, 'utf-8'),
+            code: mkSourceText(readFileSync(file, 'utf-8')),
         }));
     }
 
@@ -266,7 +266,7 @@ if (!QWIK_HOME) {
                 const filePath = relative(QWIK_PACKAGES_DIR, WORST_CASE_FILE);
                 const lineCount = code.split('\n').length;
 
-                const tsInput: TransformModuleInput[] = [{ path: mkFilePath(filePath), code }];
+                const tsInput: TransformModuleInput[] = [{ path: mkFilePath(filePath), code: mkSourceText(code) }];
                 const swcInput = [{ path: filePath, code }];
                 const swcOptions = buildSwcOptions(swcInput);
 

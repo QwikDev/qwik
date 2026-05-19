@@ -15,10 +15,34 @@ import {
   emitPassiveConflictWarning,
 } from '../diagnostics.js';
 import { collectExportNames } from '../marker-detection.js';
-import type { Diagnostic } from '../types.js';
+import type { Diagnostic, DiagnosticHighlightFlat } from '../types.js';
 import { computeLineColFromOffset } from '../utils/source-loc.js';
+import {
+  mkByteOffset,
+  mkColumnNumber,
+  mkLineNumber,
+} from '../types/brands.js';
 
 type SourceRange = { start: number; end: number };
+
+/**
+ * Construct a `DiagnosticHighlightFlat` from a byte range, computing the
+ * line/col pairs and wrapping every position field with its brand.
+ * Centralises the OSS-386 brand-construction so each diagnostic emitter
+ * doesn't repeat the 6 wraps inline.
+ */
+function buildHighlight(source: string, lo: number, hi: number): DiagnosticHighlightFlat {
+  const [startLine, startCol] = computeLineColFromOffset(source, lo);
+  const [endLine, endCol] = computeLineColFromOffset(source, hi);
+  return {
+    lo: mkByteOffset(lo),
+    hi: mkByteOffset(hi),
+    startLine: mkLineNumber(startLine),
+    startCol: mkColumnNumber(startCol),
+    endLine: mkLineNumber(endLine),
+    endCol: mkColumnNumber(endCol),
+  };
+}
 
 export function detectC02Diagnostics(
   extractions: ExtractionResult[],
@@ -82,17 +106,8 @@ export function detectC02Diagnostics(
         diagnostics.push(emitC02(refName, file, declType === 'class'));
         continue;
       }
-      const [startLine, startCol] = computeLineColFromOffset(source, site.start);
-      const [endLine, endCol] = computeLineColFromOffset(source, site.end);
       diagnostics.push(
-        emitC02(refName, file, declType === 'class', {
-          lo: site.start,
-          hi: site.end,
-          startLine,
-          startCol,
-          endLine,
-          endCol,
-        }),
+        emitC02(refName, file, declType === 'class', buildHighlight(source, site.start, site.end)),
       );
     }
   }
@@ -139,17 +154,8 @@ export function detectC05Diagnostics(
     const qrlName = targetToQrl.get(exportName);
     if (!qrlName) continue;
     for (const site of sites) {
-      const [startLine, startCol] = computeLineColFromOffset(source, site.start);
-      const [endLine, endCol] = computeLineColFromOffset(source, site.end);
       diagnostics.push(
-        emitC05(exportName, qrlName, file, {
-          lo: site.start,
-          hi: site.end,
-          startLine,
-          startCol,
-          endLine,
-          endCol,
-        }),
+        emitC05(exportName, qrlName, file, buildHighlight(source, site.start, site.end)),
       );
     }
   }
@@ -189,18 +195,8 @@ export function detectPassivePreventdefaultConflicts(
 
       for (const eventName of passiveEvents) {
         if (preventdefaultEvents.has(eventName)) {
-          const [startLine, startCol] = computeLineColFromOffset(source, node.start);
-          const [endLine, endCol] = computeLineColFromOffset(source, node.end);
-
           diagnostics.push(
-            emitPassiveConflictWarning(eventName, file, {
-              lo: node.start,
-              hi: node.end,
-              startLine,
-              startCol,
-              endLine,
-              endCol,
-            }),
+            emitPassiveConflictWarning(eventName, file, buildHighlight(source, node.start, node.end)),
           );
         }
       }

@@ -537,7 +537,10 @@ function applyBodyTransforms(
   nestedCallSites: NestedCallSiteInfo[] | undefined,
   enumValueMap: Map<string, Map<string, string>> | undefined,
 ): { bodyText: string; captureInfo: SegmentCaptureInfo | undefined } {
-  let bodyText = extraction.bodyText;
+  // Locally mutable plain string for the body-transform pipeline below.
+  // BodyText brand applies at the ExtractionResult boundary; internal
+  // helpers work on string.
+  let bodyText: string = extraction.bodyText;
 
   if (nestedCallSites && nestedCallSites.length > 0) {
     bodyText = rewriteNestedCallSitesInline(bodyText, nestedCallSites, extraction.argStart);

@@ -141,7 +141,10 @@ export function transformInlineSegmentBody(
   /** Source string the closures were parsed from — required when `closureNodes` is supplied. */
   source?: string,
 ): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {
-  let body = ext.bodyText;
+  // `body` is locally mutable plain string for slicing/concatenation
+  // throughout this transform. The branded BodyText only matters at the
+  // ExtractionResult boundary; internal mutations work on string.
+  let body: string = ext.bodyText;
   const additionalImports = new Map<string, string>();
   const hoistedDeclarations: string[] = [];
 

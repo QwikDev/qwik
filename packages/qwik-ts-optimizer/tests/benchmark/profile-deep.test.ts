@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 import { transformModule } from '../../src/optimizer/transform/index.js';
-import { mkFilePath } from '../../src/optimizer/types/brands.js';
+import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 const QWIK_PACKAGES_DIR = '/Users/jackshelton/dev/open-source/qwik/packages';
 const WORST_CASE = QWIK_PACKAGES_DIR + '/qwik/src/core/tests/component.spec.tsx';
@@ -12,7 +12,7 @@ describe('PROFILE', () => {
     const code = readFileSync(WORST_CASE, 'utf-8');
     const filePath = relative(QWIK_PACKAGES_DIR, WORST_CASE);
     const opts = {
-      input: [{ path: mkFilePath(filePath), code }],
+      input: [{ path: mkFilePath(filePath), code: mkSourceText(code) }],
       srcDir: mkFilePath(QWIK_PACKAGES_DIR), rootDir: QWIK_PACKAGES_DIR,
       entryStrategy: { type: 'segment' as const }, minify: 'simplify' as const,
       transpileTs: true, transpileJsx: true,

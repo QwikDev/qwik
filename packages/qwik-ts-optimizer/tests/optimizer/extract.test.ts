@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { extractSegments, type ExtractionResult } from '../../src/optimizer/extract.js';
 import { generateSegmentCode } from '../../src/optimizer/segment-codegen.js';
 import {
+  mkBodyText,
+  mkByteOffset,
   mkCanonicalFilename,
   mkCtxName,
   mkDisplayName,
@@ -188,6 +190,12 @@ export const App = component$(() => {
   });
 
   it('has correct loc [line, col] from argument position', () => {
+    // Original test preserved for baseline continuity. The name and intent
+    // were misleading before OSS-386: `loc` is `[byteStart, byteEnd]`, not
+    // `[line, col]` (see the three OSS-386 regression tests immediately
+    // below). The original assertions (`>= 2` and `>= 0`) happen to pass
+    // for byte offsets too, so this test still passes; the semantic
+    // contract is pinned by the OSS-386 tests below.
     const source = `import { $ } from '@qwik.dev/core';
 const handler = $(() => {
   console.log('hi');
@@ -197,9 +205,65 @@ const handler = $(() => {
     expect(results).toHaveLength(1);
 
     const [line, col] = results[0].loc;
-    // The arrow function argument starts on line 2
     expect(line).toBeGreaterThanOrEqual(2);
     expect(col).toBeGreaterThanOrEqual(0);
+  });
+
+  // OSS-386 regression coverage: `loc` is `[byteStart, byteEnd]` of the
+  // segment body in the original source — *not* `[line, col]`. The
+  // documented contract (OPTIMIZER.md "Symbol naming and hashing" + snap
+  // fixture format) was previously violated by two of three extraction
+  // emission sites (marker-call and JSX-attr paths emitted `[line, col]`).
+  // The bug was hidden because convergence's strict-compare explicitly
+  // skips `loc`. OSS-386's `ByteOffset` brand made it a compile error,
+  // and these tests pin the byte-offset contract going forward across all
+  // three emission paths.
+
+  it('loc matches [argStart, argEnd] for marker-call path (OSS-386)', () => {
+    const source = `import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  return null;
+});
+`;
+    const results = extractSegments(source, 'test.tsx');
+    expect(results).toHaveLength(1);
+    const seg = results[0];
+
+    expect(seg.loc[0]).toBe(seg.argStart);
+    expect(seg.loc[1]).toBe(seg.argEnd);
+    // Slicing the source with the byte range yields the actual arrow function.
+    expect(source.slice(seg.loc[0], seg.loc[1])).toMatch(/^\(\)\s*=>/);
+  });
+
+  it('loc matches [argStart, argEnd] for JSX-attr path (OSS-386)', () => {
+    const source = `import { component$ } from '@qwik.dev/core';
+export const App = component$(() => <button onClick$={() => console.log('hi')}/>);
+`;
+    const results = extractSegments(source, 'test.tsx');
+    const handler = results.find((r) => r.ctxKind === 'eventHandler');
+    expect(handler).toBeDefined();
+    if (!handler) throw new Error('expected event-handler extraction');
+
+    expect(handler.loc[0]).toBe(handler.argStart);
+    expect(handler.loc[1]).toBe(handler.argEnd);
+    expect(source.slice(handler.loc[0], handler.loc[1])).toContain('console.log');
+  });
+
+  it('loc matches [argStart, argEnd] for inlinedQrl path (OSS-386)', () => {
+    // Pre-existing site 1 always emitted the correct byte offsets — this
+    // test pins that behavior as the canonical contract the other two
+    // sites now match.
+    const source = `import { inlinedQrl } from '@qwik.dev/core';
+const x = inlinedQrl(() => 'body', "Foo_aaaaaaaa");
+`;
+    const results = extractSegments(source, 'test.tsx');
+    expect(results).toHaveLength(1);
+    const seg = results[0];
+
+    expect(seg.isInlinedQrl).toBe(true);
+    expect(seg.loc[0]).toBe(seg.argStart);
+    expect(seg.loc[1]).toBe(seg.argEnd);
+    expect(source.slice(seg.loc[0], seg.loc[1])).toContain(`'body'`);
   });
 
   it('extracts sync$ with isSync=true', () => {
@@ -244,13 +308,13 @@ describe('generateSegmentCode', () => {
       displayName: mkDisplayName('test.tsx_App_component'),
       hash: mkHash('abc12345678'),
       canonicalFilename: mkCanonicalFilename('App_component_abc12345678'),
-      callStart: 0,
-      callEnd: 100,
-      calleeStart: 0,
-      calleeEnd: 10,
-      argStart: 11,
-      argEnd: 99,
-      bodyText: '() => {\n  return foo();\n}',
+      callStart: mkByteOffset(0),
+      callEnd: mkByteOffset(100),
+      calleeStart: mkByteOffset(0),
+      calleeEnd: mkByteOffset(10),
+      argStart: mkByteOffset(11),
+      argEnd: mkByteOffset(99),
+      bodyText: mkBodyText('() => {\n  return foo();\n}'),
       calleeName: 'component$',
       isBare: false,
       isSync: false,
@@ -259,7 +323,7 @@ describe('generateSegmentCode', () => {
       ctxName: mkCtxName('component$'),
       origin: mkOrigin('test.tsx'),
       extension: '.tsx',
-      loc: [2, 0] as [number, number],
+      loc: [mkByteOffset(2), mkByteOffset(0)],
       parent: null,
       captures: false,
       captureNames: [],
@@ -286,13 +350,13 @@ describe('generateSegmentCode', () => {
       displayName: mkDisplayName('test.tsx_handler'),
       hash: mkHash('abc12345678'),
       canonicalFilename: mkCanonicalFilename('handler_abc12345678'),
-      callStart: 0,
-      callEnd: 50,
-      calleeStart: 0,
-      calleeEnd: 1,
-      argStart: 2,
-      argEnd: 49,
-      bodyText: '() => console.log("hi")',
+      callStart: mkByteOffset(0),
+      callEnd: mkByteOffset(50),
+      calleeStart: mkByteOffset(0),
+      calleeEnd: mkByteOffset(1),
+      argStart: mkByteOffset(2),
+      argEnd: mkByteOffset(49),
+      bodyText: mkBodyText('() => console.log("hi")'),
       calleeName: '$',
       isBare: true,
       isSync: false,
@@ -301,7 +365,7 @@ describe('generateSegmentCode', () => {
       ctxName: mkCtxName('$'),
       origin: mkOrigin('test.tsx'),
       extension: '.js',
-      loc: [1, 0] as [number, number],
+      loc: [mkByteOffset(1), mkByteOffset(0)],
       parent: null,
       captures: false,
       captureNames: [],

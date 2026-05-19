@@ -16,7 +16,7 @@ import type { SegmentMetadata } from '../../src/testing/snapshot-parser.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotFiles } from '../../src/testing/batch-runner.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
-import { mkFilePath } from '../../src/optimizer/types/brands.js';
+import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAP_DIR = join(__dirname, '../../match-these-snaps');
@@ -73,7 +73,7 @@ describe('segment-only convergence debug', () => {
       let result;
       try {
         const opts = getSnapshotTransformOptions(snapName, parsed.input);
-        opts.input = [{ path: mkFilePath(filename), code: parsed.input }];
+        opts.input = [{ path: mkFilePath(filename), code: mkSourceText(parsed.input) }];
         result = transformModule(opts);
       } catch (err) {
         console.log(`TRANSFORM ERROR in ${snapName}: ${err}`);

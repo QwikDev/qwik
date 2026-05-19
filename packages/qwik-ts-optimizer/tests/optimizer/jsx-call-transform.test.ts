@@ -12,7 +12,7 @@ import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import { collectJsxFunctionNames } from '../../src/optimizer/transform/jsx-call-transform.js';
 import type { TransformModule } from '../../src/optimizer/types.js';
-import { mkFilePath } from '../../src/optimizer/types/brands.js';
+import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 function findModule(modules: TransformModule[], pathSubstr: string): TransformModule | undefined {
   return modules.find((m) => m.path.includes(pathSubstr));
@@ -102,7 +102,7 @@ const Foo = componentQrl(inlinedQrl(() => {
 }, "Foo_component_aaa", []));
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.mjs'), code: input }],
+      input: [{ path: mkFilePath('test.mjs'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -125,7 +125,7 @@ const Foo = componentQrl(inlinedQrl(() => {
 }, "Foo_component_bbb", []));
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.mjs'), code: input }],
+      input: [{ path: mkFilePath('test.mjs'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -145,7 +145,7 @@ const Foo = componentQrl(inlinedQrl(() => {
 }, "Foo_component_ccc", []));
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.mjs'), code: input }],
+      input: [{ path: mkFilePath('test.mjs'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -164,7 +164,7 @@ const Foo = componentQrl(inlinedQrl(() => {
 }, "Foo_component_ddd", []));
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.mjs'), code: input }],
+      input: [{ path: mkFilePath('test.mjs'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -189,7 +189,7 @@ const Foo = componentQrl(inlinedQrl(() => {
 }, "Foo_component_eee", []));
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.mjs'), code: input }],
+      input: [{ path: mkFilePath('test.mjs'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 
@@ -212,7 +212,7 @@ const Foo = componentQrl(inlinedQrl(() => {
 }, "Foo_component_fff", []));
 `;
     const result = transformModule({
-      input: [{ path: mkFilePath('test.mjs'), code: input }],
+      input: [{ path: mkFilePath('test.mjs'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
     });
 

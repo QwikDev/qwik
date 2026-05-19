@@ -9,13 +9,17 @@
  */
 
 import type {
+  ByteOffset,
   CanonicalFilename,
+  ColumnNumber,
   CtxName,
   DisplayName,
   FilePath,
   Hash,
+  LineNumber,
   Origin,
   RelativePath,
+  SourceText,
   SymbolName,
 } from './types/brands.js';
 
@@ -140,7 +144,7 @@ export interface TransformModuleInput {
   path: FilePath;
 
   /** Raw source text. */
-  code: string;
+  code: SourceText;
 
   /**
    * Optional dev-mode path used by `qrlDEV`/`useHmr` injection when emitting
@@ -316,7 +320,7 @@ export interface SegmentAnalysis {
    * Source-byte range `[start, end]` of the segment's body in the original
    * source. Used by source map emission and migration source-range surgery.
    */
-  loc: [number, number];
+  loc: [ByteOffset, ByteOffset];
 }
 
 /**
@@ -412,17 +416,17 @@ export type EmitMode = 'dev' | 'prod' | 'lib' | 'hmr';
  */
 export interface DiagnosticHighlightFlat {
   /** Inclusive byte offset of the start of the highlighted span. */
-  lo: number;
+  lo: ByteOffset;
   /** Exclusive byte offset of the end of the highlighted span. */
-  hi: number;
+  hi: ByteOffset;
   /** 1-based line number where the span starts. */
-  startLine: number;
+  startLine: LineNumber;
   /** 0-based column on `startLine` where the span starts. */
-  startCol: number;
+  startCol: ColumnNumber;
   /** 1-based line number where the span ends. */
-  endLine: number;
+  endLine: LineNumber;
   /** 0-based column on `endLine` where the span ends. */
-  endCol: number;
+  endCol: ColumnNumber;
 }
 
 /**

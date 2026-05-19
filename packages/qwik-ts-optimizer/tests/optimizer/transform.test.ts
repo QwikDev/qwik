@@ -7,7 +7,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../src/optimizer/transform/index.js';
-import { mkFilePath } from '../../src/optimizer/types/brands.js';
+import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 describe('transformModule', () => {
   it('transforms a single component$ into parent + segment', () => {
@@ -15,10 +15,10 @@ describe('transformModule', () => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 export const App = component$(() => {
   return <div>Hello</div>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -47,10 +47,10 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { $ } from '@qwik.dev/core';
+          code: mkSourceText(`import { $ } from '@qwik.dev/core';
 export const handler = $(() => {
   console.log('hello');
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -71,10 +71,10 @@ export const handler = $(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@builder.io/qwik';
+          code: mkSourceText(`import { component$ } from '@builder.io/qwik';
 export const App = component$(() => {
   return <div>Hello</div>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -90,8 +90,8 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { sync$ } from '@qwik.dev/core';
-const fn = sync$(() => true);`,
+          code: mkSourceText(`import { sync$ } from '@qwik.dev/core';
+const fn = sync$(() => true);`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -105,21 +105,21 @@ const fn = sync$(() => true);`,
 
   it('returns correct isTypeScript and isJsx flags', () => {
     const tsxResult = transformModule({
-      input: [{ path: mkFilePath('test.tsx'), code: 'const x = 1;' }],
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText('const x = 1;') }],
       srcDir: mkFilePath('.'),
     });
     expect(tsxResult.isTypeScript).toBe(true);
     expect(tsxResult.isJsx).toBe(true);
 
     const tsResult = transformModule({
-      input: [{ path: mkFilePath('test.ts'), code: 'const x = 1;' }],
+      input: [{ path: mkFilePath('test.ts'), code: mkSourceText('const x = 1;') }],
       srcDir: mkFilePath('.'),
     });
     expect(tsResult.isTypeScript).toBe(true);
     expect(tsResult.isJsx).toBe(false);
 
     const jsResult = transformModule({
-      input: [{ path: mkFilePath('test.js'), code: 'const x = 1;' }],
+      input: [{ path: mkFilePath('test.js'), code: mkSourceText('const x = 1;') }],
       srcDir: mkFilePath('.'),
     });
     expect(jsResult.isTypeScript).toBe(false);
@@ -128,7 +128,7 @@ const fn = sync$(() => true);`,
 
   it('returns empty diagnostics array', () => {
     const result = transformModule({
-      input: [{ path: mkFilePath('test.tsx'), code: 'const x = 1;' }],
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText('const x = 1;') }],
       srcDir: mkFilePath('.'),
     });
     expect(result.diagnostics).toEqual([]);
@@ -139,13 +139,13 @@ const fn = sync$(() => true);`,
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { $, component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { $, component$ } from '@qwik.dev/core';
 export const App = component$(() => {
   return <div>Hello</div>;
 });
 export const handler = $(() => {
   console.log('click');
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -166,14 +166,14 @@ export const handler = $(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$, $ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$, $ } from '@qwik.dev/core';
 export const App = component$(() => {
   const count = 0;
   const handler = $(() => {
     console.log(count);
   });
   return <div onClick$={handler}>Hello</div>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -202,11 +202,11 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 const TITLE = "Hello World";
 export const App = component$(() => {
   return <div>{TITLE}</div>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -238,12 +238,12 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 const helperFn = (msg) => console.log(msg);
 export const App = component$(() => {
   helperFn("hello");
   return <div>Hello</div>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -272,11 +272,11 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Lightweight = (props) => {
   return <div class="hello">world</div>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -297,11 +297,11 @@ export const Lightweight = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
   return <>text</>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -318,11 +318,11 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
   return <div class="test">hello</div>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -342,12 +342,12 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 import styles from './styles.module.css';
 
 export const Comp = (props) => {
   return <div class={styles.container} data-value={window.location.href}>content</div>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -364,11 +364,11 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$, $ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$, $ } from '@qwik.dev/core';
 
 export const App = component$(() => {
   return <div transparent$={() => true}>hello</div>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -390,11 +390,11 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
   return <button onClick$={() => console.log("hi")}>click</button>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -414,8 +414,8 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.ts'),
-          code: `import { $ } from '@qwik.dev/core';
-export const handler = $(() => { console.log('hello'); });`,
+          code: mkSourceText(`import { $ } from '@qwik.dev/core';
+export const handler = $(() => { console.log('hello'); });`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -436,12 +436,12 @@ export const handler = $(() => { console.log('hello'); });`,
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
   const sig = { value: 0 };
   return <div count={sig.value}/>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -457,11 +457,11 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
   return <div class={props.class}/>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -476,12 +476,12 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
   const sig = { value: 0 };
   return <div count={12 + sig.value}/>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -499,11 +499,11 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
   return <button onClick$={() => console.log("hi")}>click</button>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -522,11 +522,11 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
   return <div document:onFocus$={() => {}} window:onClick$={() => {}}/>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -544,11 +544,11 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
   return <CustomComponent onClick$={() => {}}/>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -564,12 +564,12 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
   const val = {};
   return <input bind:value={val}/>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -586,12 +586,12 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
   const chk = {};
   return <input bind:checked={chk}/>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -608,12 +608,12 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
   const s = {};
   return <input bind:stuff={s}/>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -629,11 +629,11 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 
 export const Comp = (props) => {
   return <div passive:click onClick$={() => {}}/>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -657,7 +657,7 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 export const App = component$(() => {
   const items = [1, 2, 3];
   const els = [];
@@ -665,7 +665,7 @@ export const App = component$(() => {
     els.push(<div onClick$={() => console.log(item)}>{item}</div>);
   }
   return <div>{els}</div>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -692,14 +692,14 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 export const App = component$(() => {
   const items = [];
   for (let i = 0; i < 10; i++) {
     items.push(<span>{i}</span>);
   }
   return <div>{items}</div>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -721,10 +721,10 @@ export const App = component$(() => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 export const Comp = (props) => {
   return <div class="hello">world</div>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -744,7 +744,7 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 export const Comp = (props) => {
   const items = [1, 2, 3];
   const els = [];
@@ -752,7 +752,7 @@ export const Comp = (props) => {
     els.push(<span class="item">{item}</span>);
   }
   return <div>{els}</div>;
-};`,
+};`),
         },
       ],
       srcDir: mkFilePath('.'),
@@ -770,10 +770,10 @@ export const Comp = (props) => {
       input: [
         {
           path: mkFilePath('test.tsx'),
-          code: `import { component$ } from '@qwik.dev/core';
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
 export const App = component$(() => {
   return <div>Hello</div>;
-});`,
+});`),
         },
       ],
       srcDir: mkFilePath('.'),

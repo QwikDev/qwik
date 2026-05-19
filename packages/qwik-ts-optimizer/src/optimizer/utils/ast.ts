@@ -52,9 +52,17 @@ export function isVariableDeclaratorNode(node: unknown): node is VariableDeclara
   return isAstNode(node) && node.type === "VariableDeclarator";
 }
 
-export function getPatternProperties(node: unknown): AstCompatNode[] {
+/**
+ * Return the AST `properties` array from a destructure pattern node.
+ *
+ * Each element is validated via `isAstNode` before being included; the
+ * downstream cast to `AstNode[]` is the brand-constructor pattern (one
+ * validated cast at the boundary, zero at call sites) — same shape as
+ * `forEachAstChild`'s visitor dispatch.
+ */
+export function getPatternProperties(node: unknown): AstNode[] {
   if (!isAstNode(node) || !Array.isArray(node.properties)) return [];
-  return node.properties.filter(isAstNode);
+  return node.properties.filter(isAstNode) as AstNode[];
 }
 
 export function getObjectPropertyKeyName(key: unknown): string | null {

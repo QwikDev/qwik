@@ -34,7 +34,7 @@ import { stripExportDeclarations } from '../strip-exports.js';
 import { replaceConstants } from '../const-replacement.js';
 import type { EmitMode } from '../types.js';
 import { collectBindingNamesFromPattern } from '../utils/binding-pattern.js';
-import type { AstFunction, AstNode, AstProgram, IdentifierName, ImportDeclarationSpecifier, ImportSpecifier, StringLiteral } from '../../ast-types.js';
+import type { AstFunction, AstNode, AstProgram, ImportDeclarationSpecifier, ImportSpecifier } from '../../ast-types.js';
 import { forEachAstChild } from '../utils/ast.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import type { RewriteContext } from './rewrite-context.js';
@@ -107,6 +107,18 @@ function isMarkerSpecifier(
   extractedCalleeNames: Set<string>,
 ): boolean {
   return extractedCalleeNames.has(importedName);
+}
+
+/**
+ * Get the name an import specifier is bringing in from the source module.
+ * Handles ES2022 `import { "foo" as bar } from ...` (StringLiteral imported)
+ * by falling through to the local binding name; ordinary
+ * `import { foo as bar }` returns the imported Identifier's `name`.
+ */
+function importedSpecifierName(spec: ImportSpecifier): string {
+  const imported = spec.imported;
+  if (imported.type === 'Identifier') return imported.name;
+  return spec.local.name;
 }
 
 function isCustomInlined(
@@ -243,7 +255,7 @@ function processImports(ctx: RewriteContext): void {
     const sourceNode = node.source;
     const rewrittenSource = rewriteImportSource(sourceNode.value);
 
-    const rawSource = (sourceNode as StringLiteral).raw ?? sourceNode.value;
+    const rawSource = sourceNode.raw ?? sourceNode.value;
     const quoteChar = rawSource.startsWith("'") ? "'" : '"';
 
     if (!specifiers || specifiers.length === 0) {
@@ -257,7 +269,7 @@ function processImports(ctx: RewriteContext): void {
     for (let i = 0; i < specifiers.length; i++) {
       const spec = specifiers[i];
       if (spec.type !== 'ImportSpecifier') continue;
-      const importedName = ((spec as ImportSpecifier).imported as IdentifierName)?.name ?? spec.local.name;
+      const importedName = importedSpecifierName(spec);
       if (isMarkerSpecifier(importedName, extractedCalleeNames)) {
         toRemove.push(i);
       }
@@ -276,7 +288,7 @@ function processImports(ctx: RewriteContext): void {
       const hasNonDollarSurvivor = specifiers.some((spec: ImportDeclarationSpecifier, i: number) => {
         if (toRemove.includes(i)) return false;
         if (spec.type !== 'ImportSpecifier') return true;
-        const importedName = ((spec as ImportSpecifier).imported as IdentifierName)?.name ?? spec.local.name;
+        const importedName = importedSpecifierName(spec);
         return !importedName.endsWith('$');
       });
       if (hasNonDollarSurvivor) preserveAll = true;
@@ -295,7 +307,7 @@ function processImports(ctx: RewriteContext): void {
         nsPart = `* as ${spec.local.name}`;
       } else {
         const localName = spec.local.name;
-        const importedName = ((spec as ImportSpecifier).imported as IdentifierName)?.name ?? localName;
+        const importedName = importedSpecifierName(spec);
         namedPartsStructured.push({ local: localName, imported: importedName });
         if (importedName !== localName) {
           namedParts.push(`${importedName} as ${localName}`);

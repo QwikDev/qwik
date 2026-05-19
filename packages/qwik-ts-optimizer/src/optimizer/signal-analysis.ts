@@ -95,6 +95,9 @@ function getPropertyName(node: MemberExpressionNode): string | null {
 function containsJsx(node: AstNode | AstNodeList | null | undefined): boolean {
   if (node == null) return false;
   if (Array.isArray(node)) return node.some((child) => containsJsx(child));
+  // `Array.isArray` narrows mutable arrays but not `ReadonlyArray`
+  // (which is what `AstNodeList` is) — the cast bridges that quirk
+  // so downstream `.type` access works against the strict union.
   const currentNode = node as AstNode;
   if (currentNode.type === 'JSXElement' || currentNode.type === 'JSXFragment') return true;
   let found = false;
@@ -286,6 +289,11 @@ function collectSignalDeps(
     }
 
     if (isStoreFieldAccess(n, importedNames, localNames)) {
+      // The cast is load-bearing: the preceding `isDeepStoreAccess`
+      // predicate also returns `n is MemberExpressionNode`, so TS
+      // has already excluded MemberExpression from `n`'s type by
+      // this point in the control flow — narrowing `n` again to the
+      // same type produces `never`. The cast overrides that.
       const memberNode = n as MemberExpressionNode;
       addRoot(getMemberChainRoot(memberNode.object));
       return;
@@ -378,6 +386,8 @@ function generateFnSignal(
 
     // Single-level store field access (e.g., _rawProps.fromProps)
     if (isStoreFieldAccess(n, new Set())) {
+      // Load-bearing cast — see containsJsx-sibling block above for
+      // why the predicate-narrowing-exclusion chain forces it.
       const memberNode = n as MemberExpressionNode;
       const rootId = findRootIdentifier(memberNode.object);
       if (rootId && rootToParam.has(rootId.name)) {

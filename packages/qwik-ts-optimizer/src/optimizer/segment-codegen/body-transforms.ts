@@ -330,16 +330,13 @@ export function applySelfRefIndirection(bodyText: string): string {
     walk(d.init, {
       enter(node: AstNode) {
         if (node.type !== 'CallExpression') return;
-        // OXC may emit either MemberExpression or StaticMemberExpression here
-        // depending on parse mode. StaticMemberExpression is a project-local
-        // AST type (see ast-types.ts) not in @oxc-project/types, so we cast to
-        // a structural shape covering both.
-        const callee = node.callee as { type: string; property?: AstNode; object?: AstNode } | undefined;
-        if (!callee || (callee.type !== 'MemberExpression' && callee.type !== 'StaticMemberExpression')) return;
-        if (callee.property?.type !== 'Identifier' || callee.property.name !== 'w') return;
-        const calleeObject = callee.object as AstNode | undefined;
-        if (calleeObject?.type !== 'Identifier' || !calleeObject.name.startsWith('q_')) return;
-        const arr = node.arguments?.[0] as AstNode | undefined;
+        // Runtime emits 'MemberExpression'; the historic
+        // 'StaticMemberExpression' branch was dead per PR #44.
+        const callee = node.callee;
+        if (callee.type !== 'MemberExpression') return;
+        if (callee.property.type !== 'Identifier' || callee.property.name !== 'w') return;
+        if (callee.object.type !== 'Identifier' || !callee.object.name.startsWith('q_')) return;
+        const arr = node.arguments[0];
         if (!arr || arr.type !== 'ArrayExpression') return;
         for (const el of arr.elements ?? []) {
           if (el?.type === 'Identifier' && el.name === name) {

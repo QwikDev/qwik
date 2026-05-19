@@ -132,6 +132,8 @@ enum QwikLoaderInclude {
   Done,
 }
 
+const NO_SCRIPT_HERE_ELEMENTS = new Set(['noscript', 'template', 'script', 'svg', 'math']);
+
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
   opts.renderOptions ||= {};
   return new SSRContainer({
@@ -425,8 +427,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ): string | undefined {
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
-    // keep track of noscript and template, and for html we only emit inside body
-    if (elementName === 'noscript' || elementName === 'template' || elementName === 'script') {
+    // keep track of parser states/contexts where inline scripts are not safe to emit
+    if (NO_SCRIPT_HERE_ELEMENTS.has(elementName)) {
       this.$noScriptHere$++;
     }
     if (
@@ -542,7 +544,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.lastNode = null;
     // keep track of where to emit scripts
-    if (elementName === 'noscript' || elementName === 'template' || elementName === 'script') {
+    if (NO_SCRIPT_HERE_ELEMENTS.has(elementName)) {
       this.$noScriptHere$--;
     }
   }

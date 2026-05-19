@@ -55,6 +55,54 @@ describe('SSR Container', () => {
     expect(html.indexOf('id="qwikloader"')).toBeGreaterThan(html.indexOf('my-style-id'));
   });
 
+  it('should not emit inline Qwik loader while inside foreign content', async () => {
+    for (const foreignElement of ['svg', 'math']) {
+      const writer = {
+        chunks: [] as string[],
+        write(text: string) {
+          this.chunks.push(text);
+        },
+        toString() {
+          return this.chunks.join('');
+        },
+      };
+
+      const container = ssrCreateContainer({
+        tagName: 'div',
+        writer,
+        renderOptions: {
+          qwikLoader: 'inline',
+        },
+        streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+          firstFlush: 0,
+          render: 0,
+          snapshot: 0,
+        }),
+      });
+
+      container.openContainer();
+      container.openElement(foreignElement, null, {}, null, null, null);
+      container.textNode('x'.repeat(30 * 1024));
+      container.openElement('g', null, {}, null, null, null);
+      await container.closeElement();
+      await container.closeElement();
+
+      container.openElement('div', null, {}, null, null, null);
+      await container.closeElement();
+      await container.closeContainer();
+
+      const html = writer.toString();
+      const foreignStart = html.indexOf(`<${foreignElement}`);
+      const foreignEnd = html.indexOf(`</${foreignElement}>`);
+      const loaderIdx = html.indexOf('id="qwikloader"');
+
+      expect(loaderIdx).toBeGreaterThan(-1);
+      expect(foreignStart).toBeGreaterThan(-1);
+      expect(foreignEnd).toBeGreaterThan(foreignStart);
+      expect(loaderIdx).toBeGreaterThan(foreignEnd);
+    }
+  });
+
   it('should encode custom attributes with separators in emitVNodeData', () => {
     const writer = {
       chunks: [] as string[],

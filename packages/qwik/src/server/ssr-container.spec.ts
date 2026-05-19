@@ -68,7 +68,9 @@ describe('SSR Container', () => {
   });
 
   it('should not emit inline Qwik loader while inside foreign content', async () => {
-    for (const foreignElement of ['svg', 'math']) {
+    const foreignElements = ['svg', 'math'];
+    for (let i = 0; i < foreignElements.length; i++) {
+      const foreignElement = foreignElements[i];
       const { container, writer } = createTestContainer();
 
       container.openContainer();
@@ -95,7 +97,7 @@ describe('SSR Container', () => {
   });
 
   it('should track blocked parser-state elements in the no-script refcounter', async () => {
-    for (const elementName of [
+    const blockedElements = [
       'script',
       'style',
       'textarea',
@@ -105,7 +107,9 @@ describe('SSR Container', () => {
       'noscript',
       'xmp',
       'template',
-    ]) {
+    ];
+    for (let i = 0; i < blockedElements.length; i++) {
+      const elementName = blockedElements[i];
       const { container } = createTestContainer();
 
       container.openContainer();

@@ -1,7 +1,7 @@
 import type { FunctionComponent, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isDocument, isElement } from '../shared/utils/element';
 import { QContainerValue } from '../shared/types';
-import { DomContainer, getDomContainer, whenContainerDataReady } from './dom-container';
+import { DomContainer, getDomContainer } from './dom-container';
 import { cleanup } from './vnode-diff';
 import { QContainerAttr } from '../shared/utils/markers';
 import type { RenderOptions, RenderResult } from './types';
@@ -43,7 +43,6 @@ export const render = async (
   (parent as Element).setAttribute(QContainerAttr, QContainerValue.RESUMED);
 
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
-  await whenContainerDataReady(container, () => undefined);
   container.$serverData$ = opts.serverData || {};
   const host = container.rootVNode;
   vnode_setProp(host, NODE_DIFF_DATA_KEY, jsxNode);

@@ -194,6 +194,8 @@ export interface _Container {
 export interface _ContainerElement extends HTMLElement {
     // (undocumented)
     qContainer?: ClientContainer;
+    // (undocumented)
+    qDestroy?: () => void;
     qVnodeData?: string;
     qVNodeRefs?: Map<number, Element | _ElementVNode>;
 }
@@ -304,16 +306,14 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
 class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
-    // (undocumented)
-    $containerDataCallbacks$?: Array<() => void>;
-    // (undocumented)
-    $containerDataReady$: boolean;
-    // (undocumented)
-    $containerDataStarted$: boolean;
-    // Warning: (ae-forgotten-export) The symbol "ProcessContainerDataState" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "ContainerDataProcessState" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    $containerDataState$?: ProcessContainerDataState;
+    $containerDataProcessState$: ContainerDataProcessState;
+    // (undocumented)
+    $containerStateReadyCallbacks$: Array<() => unknown | Promise<unknown>> | undefined;
+    // (undocumented)
+    $containerVNodeReadyCallbacks$: Array<() => unknown | Promise<unknown>> | undefined;
     $destroy$(): void;
     // (undocumented)
     $forwardRefs$: Array<number> | null;
@@ -755,14 +755,6 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `
 export interface _QDocument extends Document {
     // (undocumented)
     qVNodeData: WeakMap<Element, string>;
-    // (undocumented)
-    qVNodeDataCallbacks?: Array<() => void>;
-    // (undocumented)
-    qVNodeDataReady?: boolean;
-    // (undocumented)
-    qVNodeDataStarted?: boolean;
-    // (undocumented)
-    qVNodeDataState?: unknown;
 }
 
 // Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts

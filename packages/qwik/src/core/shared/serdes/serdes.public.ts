@@ -6,11 +6,9 @@ import { eagerDeserializeStateIterator } from './inflate';
 import { preprocessState } from './preprocess-state';
 import { isDev } from '@qwik.dev/core/build';
 import {
-  createMacroTask,
-  runYieldingIterator,
+  createYieldingIteratorState,
   scheduleYieldingIterator,
-  type YieldingIteratorState,
-} from '../platform/next-tick';
+} from '../../client/yielding-iterator';
 
 /**
  * Serialize data to string using SerializationContext.
@@ -56,28 +54,7 @@ export async function _deserialize<T>(rawStateData: string): Promise<T> {
 
 const runDeserializeIterator = <T>(iterator: Generator<void, T, void>): Promise<T> => {
   return new Promise<T>((resolve, reject) => {
-    const state: YieldingIteratorState<T> = {
-      $iterator$: iterator,
-      $schedule$: undefined!,
-      $scheduled$: false,
-    };
-    const schedule = createMacroTask(() =>
-      runYieldingIterator(
-        state,
-        () => true,
-        (value) => {
-          schedule.$destroy$?.();
-          resolve(value);
-        },
-        (error) => {
-          schedule.$destroy$?.();
-          reject(error);
-        },
-        undefined,
-        false
-      )
-    );
-    state.$schedule$ = schedule;
+    const state = createYieldingIteratorState(iterator, resolve, reject);
     scheduleYieldingIterator(state);
   });
 };

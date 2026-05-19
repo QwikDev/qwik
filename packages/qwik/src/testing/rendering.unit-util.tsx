@@ -69,7 +69,6 @@ export async function domRender(
   await render(document.body, jsx);
   const getStyles = getStylesFactory(document);
   const container = _getDomContainer(document.body);
-  await whenVNodeDataReady(container.document, () => undefined);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- CSR --------------------------');
@@ -332,7 +331,8 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
 
 export async function rerenderComponent(element: HTMLElement) {
   const container = _getDomContainer(element) as _DomContainer;
-  await whenVNodeDataReady(container.document, () => undefined);
+  await whenVNodeDataReady(container, () => undefined);
+  await whenContainerDataReady(container, () => undefined);
   const vElement = container.vNodeLocate(element);
   const host = getHostVNode(vElement) as HostElement;
   markVNodeDirty(container, host, ChoreBits.COMPONENT);

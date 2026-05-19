@@ -2,12 +2,9 @@
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import type { ContainerElement, QDocument } from './types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
-import {
-  createMacroTask,
-  runYieldingIterator,
-  scheduleYieldingIterator,
-  type YieldingIteratorState,
-} from '../shared/platform/next-tick';
+import type { DomContainer } from './dom-container';
+import { createYieldingIteratorState, scheduleYieldingIterator } from './yielding-iterator';
+import { ContainerDataProcessState } from './process-container-state-utils';
 
 const Q_CONTAINER = 'q:container';
 const Q_CONTAINER_END = '/' + Q_CONTAINER;
@@ -30,10 +27,6 @@ const enum NodeType {
   COMMENT_ISLAND_START /* *********** */ = 0b1000001, // Comment island, count elements for parent container until COMMENT_ISLAND_END
   COMMENT_ISLAND_END /* ************* */ = 0b1000000, // Comment island end
   OTHER /* ************************** */ = 0b0000000,
-}
-
-interface ProcessVNodeDataState extends YieldingIteratorState {
-  $document$: QDocument;
 }
 
 /**
@@ -87,66 +80,46 @@ interface ProcessVNodeDataState extends YieldingIteratorState {
  * - Attach all `qwik/vnode` scripts (not the data contain within them) to the `q:container` element.
  * - Walk the tree and process each `q:container` element.
  */
-export function processVNodeData(document: Document): void {
-  const qDocument = document as QDocument;
-  if (qDocument.qVNodeDataStarted || qDocument.qVNodeDataReady) {
+export function processVNodeData(container: DomContainer): void {
+  if (container.$containerDataProcessState$ >= ContainerDataProcessState.ProcessingVNode) {
     return;
   }
-  qDocument.qVNodeDataStarted = true;
+  container.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
+  const qDocument = container.document;
   qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
-  if (!document.querySelector('script[type="qwik/vnode"], [q\\:shadowroot]')) {
-    markVNodeDataReady(qDocument);
+  if (!qDocument.querySelector('script[type="qwik/vnode"], [q\\:shadowroot]')) {
+    markVNodeDataReady(container);
     return;
   }
-  const state: ProcessVNodeDataState = {
-    $document$: qDocument,
-    $iterator$: processVNodeDataIterator(document),
-    $schedule$: undefined!,
-    $scheduled$: false,
-  };
-  const schedule = createMacroTask(() => {
-    if (state.$document$.qVNodeDataState !== state) {
-      schedule.$destroy$?.();
-      return;
-    }
-    runYieldingIterator(
-      state,
-      () => true,
-      () => {
-        schedule.$destroy$?.();
-        markVNodeDataReady(state.$document$);
-      },
-      () => {
-        schedule.$destroy$?.();
-        state.$document$.qVNodeDataStarted = false;
-        state.$document$.qVNodeDataState = undefined;
-      }
-    );
-  });
-  state.$schedule$ = schedule;
-  qDocument.qVNodeDataState = state;
+  const state = createYieldingIteratorState(
+    processVNodeDataIterator(qDocument),
+    () => markVNodeDataReady(container),
+    () => (container.$containerDataProcessState$ = ContainerDataProcessState.NotStarted)
+  );
   scheduleYieldingIterator(state);
 }
 
-export const onVNodeDataReady = (document: Document, callback: () => void): void => {
-  const qDocument = document as QDocument;
-  if (qDocument.qVNodeDataReady) {
+function isVNodeDataReady(container: DomContainer): boolean {
+  return container.$containerDataProcessState$ >= ContainerDataProcessState.ProcessingVNodeDone;
+}
+
+export const onVNodeDataReady = (container: DomContainer, callback: () => void): void => {
+  if (isVNodeDataReady(container)) {
     callback();
   } else {
-    (qDocument.qVNodeDataCallbacks ||= []).push(callback);
+    (container.$containerVNodeReadyCallbacks$ ||= []).push(callback);
   }
 };
 
 export const whenVNodeDataReady = <T>(
-  document: Document,
+  container: DomContainer,
   callback: () => T | Promise<T>
 ): T | Promise<T> => {
-  const qDocument = document as QDocument;
-  if (qDocument.qVNodeDataReady) {
+  if (isVNodeDataReady(container)) {
     return callback();
   }
   return new Promise<T>((resolve, reject) => {
-    onVNodeDataReady(document, () => {
+    onVNodeDataReady(container, () => {
       try {
         resolve(callback());
       } catch (error) {
@@ -156,14 +129,13 @@ export const whenVNodeDataReady = <T>(
   });
 };
 
-function markVNodeDataReady(document: QDocument): void {
-  if (document.qVNodeDataReady) {
+function markVNodeDataReady(container: DomContainer): void {
+  if (container.$containerDataProcessState$ !== ContainerDataProcessState.ProcessingVNode) {
     return;
   }
-  document.qVNodeDataReady = true;
-  document.qVNodeDataState = undefined;
-  const callbacks = document.qVNodeDataCallbacks;
-  document.qVNodeDataCallbacks = undefined;
+  container.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNodeDone;
+  const callbacks = container.$containerVNodeReadyCallbacks$;
+  container.$containerVNodeReadyCallbacks$ = undefined;
   if (callbacks) {
     for (let i = 0; i < callbacks.length; i++) {
       callbacks[i]();

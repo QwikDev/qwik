@@ -40,6 +40,7 @@ export interface ContainerElement extends HTMLElement {
 
   /** String from `<script type="qwik/vnode">` tag. */
   qVnodeData?: string;
+  qDestroy?: () => void;
 }
 
 /** @internal */
@@ -50,10 +51,6 @@ export interface QDocument extends Document {
    * This map is used to rebuild virtual nodes from the HTML. Missing extra text nodes, and Fragments.
    */
   qVNodeData: WeakMap<Element, string>;
-  qVNodeDataStarted?: boolean;
-  qVNodeDataReady?: boolean;
-  qVNodeDataState?: unknown;
-  qVNodeDataCallbacks?: Array<() => void>;
 }
 
 /**

@@ -8,14 +8,13 @@
  *
  */
 import {
-  createQwikCity,
+  createQwikRouter,
   type PlatformVercel,
-} from "@builder.io/qwik-city/middleware/vercel-edge";
-import qwikCityPlan from "@qwik-city-plan";
+} from "@qwik.dev/router/middleware/vercel-edge";
 import render from "./entry.ssr";
 
 declare global {
-  type QwikCityPlatform = PlatformVercel;
+  type QwikRouterPlatform = PlatformVercel;
 }
 
-export default createQwikCity({ render, qwikCityPlan });
+export default createQwikRouter({ render });

@@ -1,6 +1,7 @@
 import type { TSESLint } from '@typescript-eslint/utils';
 import jsxAstUtils from 'jsx-ast-utils';
 import { QwikEslintExamples } from '../examples';
+import { hasJsxImportSourceComment } from './utils';
 
 const reactSpecificProps = [
   { from: 'className', to: 'class' },
@@ -25,10 +26,7 @@ export const noReactProps = {
     },
   },
   create(context) {
-    const modifyJsxSource = context.sourceCode
-      .getAllComments()
-      .some((c) => c.value.includes('@jsxImportSource'));
-    if (modifyJsxSource) {
+    if (hasJsxImportSourceComment(context)) {
       return {};
     }
     return {

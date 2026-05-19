@@ -1,7 +1,10 @@
 import fs from 'node:fs';
-import { join, sep } from 'node:path';
+import { join, sep, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { TemplateSet } from '../types';
 import { getFilesDeep } from './utils';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let templates: TemplateSet[] | null = null;
 

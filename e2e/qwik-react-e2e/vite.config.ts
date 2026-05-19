@@ -2,9 +2,9 @@
  * This is the base config for vite. When building, the adapter config is used which loads this file
  * and extends it.
  */
-import { qwikCity } from '@builder.io/qwik-city/vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
-import { qwikReact } from '@builder.io/qwik-react/vite';
+import { qwikRouter } from '@qwik.dev/router/vite';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikReact } from '@qwik.dev/react/vite';
 import { defineConfig, type UserConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import pkg from './package.json';
@@ -23,7 +23,9 @@ errorOnDuplicatesPkgDeps(devDependencies, dependencies);
  */
 export default defineConfig((): UserConfig => {
   return {
-    plugins: [qwikCity(), qwikVite(), tsconfigPaths({ root: '.' }), qwikReact()],
+    // Make it easier to debug
+    build: { minify: false },
+    plugins: [qwikRouter(), qwikVite(), tsconfigPaths({ root: '.' }), qwikReact()],
     // This tells Vite which dependencies to pre-build in dev mode.
     optimizeDeps: {
       // Put problematic deps that break bundling here, mostly those with binaries.

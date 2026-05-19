@@ -1,4 +1,4 @@
-import type { RequestEvent } from '@builder.io/qwik-city';
+import type { RequestEvent } from '@qwik.dev/router';
 
 // Keep in sync with `public/_redirects`
 
@@ -92,6 +92,8 @@ const redirects: Record<string, string> = {
   '/docs/components/resource/': '/docs/core/state/',
   '/docs/cookbook/re-exporting-loaders/': '/docs/re-exporting-loaders/',
   '/docs/env-variables/': '/docs/guides/env-variables/',
+  '/docs/labs/usePreventNavigate': '/docs/advanced/prevent-navigation/',
+  '/docs/labs/usePreventNavigate/': '/docs/advanced/prevent-navigation/',
   '/docs/overview': '/docs/',
   '/docs/overview/': '/docs/',
   '/docs/think-qwik/': '/docs/concepts/think-qwik/',

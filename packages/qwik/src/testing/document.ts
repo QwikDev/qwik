@@ -2,6 +2,21 @@ import type { MockDocumentOptions, MockWindow } from './types';
 import domino from 'domino';
 import { normalizeUrl } from './util';
 
+export function mockAttachShadow(el: Element) {
+  if (typeof (el as any).attachShadow !== 'function') {
+    (el as any).attachShadow = function (opts: any) {
+      const sr = new MockShadowRoot(el);
+      (el as any).shadowRoot = sr;
+      return sr;
+    };
+  }
+  if (typeof (el as any).hasAttribute !== 'function') {
+    (el as any).hasAttribute = function (attr: string) {
+      return el.getAttribute(attr) !== null;
+    };
+  }
+  return el;
+}
 /**
  * Create emulated `Document` for server environment. Does not implement the full browser `document`
  * and `window` API. This api may be removed in the future.
@@ -75,3 +90,30 @@ export function ensureGlobals(doc: any, opts?: MockDocumentOptions) {
 const noop = () => {};
 
 const QWIK_DOC = Symbol();
+
+class MockShadowRoot extends (domino as any).impl.DocumentFragment {
+  nodeType = 11; // DOCUMENT_FRAGMENT_NODE
+  host: Element;
+
+  constructor(host: Element) {
+    super();
+    this.host = host;
+    this.ownerDocument = host.ownerDocument;
+  }
+
+  append(...nodes: any[]) {
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      if (node.nodeType === 11) {
+        // document fragment
+        const childNodes = Array.from(node.childNodes);
+        for (let j = 0; j < childNodes.length; j++) {
+          const child = childNodes[j];
+          this.appendChild(child as any);
+        }
+      } else {
+        this.appendChild(node);
+      }
+    }
+  }
+}

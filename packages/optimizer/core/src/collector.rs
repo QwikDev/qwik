@@ -1,0 +1,528 @@
+use std::collections::{HashMap, HashSet};
+
+use indexmap::IndexMap;
+
+use swc_atoms::{atom, Atom};
+use swc_common::{Span, SyntaxContext, DUMMY_SP};
+use swc_ecmascript::ast;
+use swc_ecmascript::utils::private_ident;
+use swc_ecmascript::visit::{noop_visit_type, Visit, VisitWith};
+
+macro_rules! id {
+	($ident: expr) => {
+		($ident.sym.clone(), $ident.ctxt)
+	};
+}
+
+pub type Id = (Atom, SyntaxContext);
+
+pub fn new_ident_from_id(id: &Id) -> ast::Ident {
+	ast::Ident::new(id.0.clone(), DUMMY_SP, id.1)
+}
+
+#[derive(Eq, PartialEq, Clone, Copy)]
+pub enum ImportKind {
+	Named,
+	All,
+	Default,
+}
+
+#[derive(Clone)]
+pub struct Import {
+	pub source: Atom,
+	pub specifier: Atom,
+	pub kind: ImportKind,
+	pub synthetic: bool,
+	pub asserts: Option<Box<ast::ObjectLit>>,
+}
+
+#[derive(Clone)]
+pub struct ExportInfo {
+	pub local_id: Id,
+	pub exported_names: Vec<Option<Atom>>,
+}
+
+pub struct GlobalCollect {
+	pub synthetic: Vec<(Id, Import)>,
+	pub imports: IndexMap<Id, Import>,
+	pub exports: IndexMap<Atom, ExportInfo>,
+	pub root: IndexMap<Id, Span>,
+
+	rev_imports: HashMap<(Atom, Atom), Id>,
+	canonical_ids: HashMap<Atom, Id>,
+	in_export_decl: bool,
+}
+
+pub fn global_collect(program: &ast::Program) -> GlobalCollect {
+	let mut collect = GlobalCollect {
+		synthetic: vec![],
+		imports: IndexMap::with_capacity(16),
+		exports: IndexMap::with_capacity(16),
+
+		root: IndexMap::with_capacity(16),
+		rev_imports: HashMap::with_capacity(16),
+		canonical_ids: HashMap::with_capacity(16),
+
+		in_export_decl: false,
+	};
+	program.visit_with(&mut collect);
+	collect
+}
+
+impl GlobalCollect {
+	fn register_canonical_id(&mut self, id: &Id) {
+		self.canonical_ids
+			.entry(id.0.clone())
+			.or_insert_with(|| id.clone());
+	}
+
+	pub fn add_root(&mut self, id: Id, span: Span) {
+		self.register_canonical_id(&id);
+		self.root.insert(id, span);
+	}
+
+	pub fn canonical_id_for(&self, id: &Id) -> Id {
+		self.canonical_ids
+			.get(&id.0)
+			.cloned()
+			.unwrap_or_else(|| id.clone())
+	}
+
+	pub fn root_id_for_symbol(&self, symbol: &Atom) -> Option<Id> {
+		self.root
+			.keys()
+			.find(|candidate| &candidate.0 == symbol)
+			.cloned()
+	}
+
+	pub fn has_export_symbol(&self, symbol: &Atom) -> bool {
+		self.exports.contains_key(symbol)
+	}
+
+	pub fn has_export_id(&self, id: &Id) -> bool {
+		self.has_export_symbol(&id.0)
+	}
+
+	pub fn resolve_export_name_for_id(&self, id: &Id) -> Option<Option<Atom>> {
+		let export = self.exports.get(&id.0)?;
+		let auto_name: Atom = format!("_auto_{}", id.0).into();
+		if export
+			.exported_names
+			.iter()
+			.any(|name| name.as_ref() == Some(&auto_name))
+		{
+			return Some(Some(auto_name));
+		}
+
+		export.exported_names.first().cloned()
+	}
+
+	pub fn export_local_ids(&self) -> Vec<Id> {
+		self.exports
+			.values()
+			.map(|info| info.local_id.clone())
+			.collect()
+	}
+
+	pub fn remove_root_and_exports_for_id(&mut self, id: &Id) {
+		self.root.shift_remove(id);
+		if self
+			.exports
+			.get(&id.0)
+			.is_some_and(|info| info.local_id == *id)
+		{
+			self.exports.shift_remove(&id.0);
+		}
+	}
+
+	pub fn get_imported_local(&self, specifier: &Atom, source: &Atom) -> Option<Id> {
+		self.imports
+			.iter()
+			.find(|(_, import)| &import.specifier == specifier && &import.source == source)
+			.map(|s| s.0.clone())
+	}
+
+	pub fn is_global(&self, local: &Id) -> bool {
+		if self.imports.contains_key(local) {
+			return true;
+		}
+		if self.has_export_id(local) {
+			return true;
+		}
+		if self.root.contains_key(local) {
+			return true;
+		}
+		false
+	}
+
+	pub fn import(&mut self, specifier: &Atom, source: &Atom) -> Id {
+		self.rev_imports
+			.get(&(specifier.clone(), source.clone()))
+			.cloned()
+			.map_or_else(
+				|| {
+					let local = id!(private_ident!(specifier.clone()));
+					self.add_import(
+						local.clone(),
+						Import {
+							source: source.clone(),
+							specifier: specifier.clone(),
+							kind: ImportKind::Named,
+							synthetic: true,
+							asserts: None,
+						},
+					);
+					local
+				},
+				|local| local,
+			)
+	}
+
+	pub fn add_import(&mut self, local: Id, import: Import) {
+		self.register_canonical_id(&local);
+		if import.synthetic {
+			self.synthetic.push((local.clone(), import.clone()));
+		}
+		self.rev_imports.insert(
+			(import.specifier.clone(), import.source.clone()),
+			local.clone(),
+		);
+		self.imports.insert(local, import);
+	}
+
+	pub fn add_export(&mut self, local: Id, exported: Option<Atom>) -> bool {
+		self.register_canonical_id(&local);
+		let canonical_local = self.canonical_id_for(&local);
+		if let indexmap::map::Entry::Vacant(e) = self.exports.entry(local.0.clone()) {
+			e.insert(ExportInfo {
+				local_id: canonical_local,
+				exported_names: vec![exported],
+			});
+			return true;
+		}
+
+		let export_info = self.exports.get_mut(&local.0).expect("entry exists");
+		if export_info.local_id != canonical_local {
+			export_info.local_id = canonical_local;
+		}
+
+		if export_info.exported_names.contains(&exported) {
+			return false;
+		}
+		export_info.exported_names.push(exported);
+		true
+	}
+}
+
+impl Visit for GlobalCollect {
+	noop_visit_type!();
+
+	fn visit_module_item(&mut self, node: &ast::ModuleItem) {
+		if let ast::ModuleItem::Stmt(ast::Stmt::Decl(decl)) = node {
+			match decl {
+				ast::Decl::Fn(function) => {
+					self.add_root(id!(function.ident), function.ident.span);
+				}
+				ast::Decl::Class(class) => {
+					self.add_root(id!(class.ident), class.ident.span);
+				}
+				ast::Decl::Var(var) => {
+					for decl in &var.decls {
+						let mut identifiers: Vec<(Id, Span)> = vec![];
+						collect_from_pat(&decl.name, &mut identifiers);
+						for (id, span) in identifiers {
+							self.add_root(id, span);
+						}
+					}
+				}
+				ast::Decl::TsEnum(enu) => {
+					self.add_root(id!(enu.id), enu.id.span);
+				}
+				_ => {}
+			}
+		} else {
+			node.visit_children_with(self);
+		}
+	}
+
+	fn visit_import_decl(&mut self, node: &ast::ImportDecl) {
+		for specifier in &node.specifiers {
+			match specifier {
+				ast::ImportSpecifier::Named(named) => {
+					let imported = match &named.imported {
+						Some(ast::ModuleExportName::Ident(ident)) => ident.sym.clone(),
+						_ => named.local.sym.clone(),
+					};
+					self.add_import(
+						id!(named.local),
+						Import {
+							source: node.src.value.clone(),
+							specifier: imported,
+							kind: ImportKind::Named,
+							synthetic: false,
+							asserts: node.with.clone(),
+						},
+					);
+				}
+				ast::ImportSpecifier::Default(default) => {
+					self.add_import(
+						id!(default.local),
+						Import {
+							source: node.src.value.clone(),
+							specifier: atom!("default"),
+							kind: ImportKind::Default,
+							synthetic: false,
+							asserts: node.with.clone(),
+						},
+					);
+				}
+				ast::ImportSpecifier::Namespace(namespace) => {
+					self.add_import(
+						id!(namespace.local),
+						Import {
+							source: node.src.value.clone(),
+							specifier: "*".into(),
+							kind: ImportKind::All,
+							synthetic: false,
+							asserts: node.with.clone(),
+						},
+					);
+				}
+			}
+		}
+	}
+
+	fn visit_named_export(&mut self, node: &ast::NamedExport) {
+		if node.src.is_some() {
+			return;
+		}
+
+		for specifier in &node.specifiers {
+			match specifier {
+				ast::ExportSpecifier::Named(named) => {
+					let local = match &named.orig {
+						ast::ModuleExportName::Ident(ident) => Some(id!(ident)),
+						_ => None,
+					};
+					let exported = match &named.exported {
+						Some(ast::ModuleExportName::Ident(exported)) => Some(exported.sym.clone()),
+						_ => None,
+					};
+					if let Some(local) = local {
+						self.add_export(local, exported);
+					}
+				}
+				ast::ExportSpecifier::Default(default) => {
+					self.add_export(id!(default.exported), Some(atom!("default")));
+				}
+				ast::ExportSpecifier::Namespace(namespace) => {
+					if let ast::ModuleExportName::Ident(ident) = &namespace.name {
+						self.add_export(id!(ident), Some("*".into()));
+					}
+				}
+			}
+		}
+	}
+
+	fn visit_export_decl(&mut self, node: &ast::ExportDecl) {
+		match &node.decl {
+			ast::Decl::TsEnum(enu) => {
+				self.add_export(id!(enu.id), None);
+			}
+			ast::Decl::Class(class) => {
+				self.add_export(id!(class.ident), None);
+			}
+			ast::Decl::Fn(func) => {
+				self.add_export(id!(func.ident), None);
+			}
+			ast::Decl::Var(var) => {
+				for decl in &var.decls {
+					self.in_export_decl = true;
+					decl.name.visit_with(self);
+					self.in_export_decl = false;
+
+					decl.init.visit_with(self);
+				}
+			}
+			_ => {}
+		}
+	}
+
+	fn visit_export_default_decl(&mut self, node: &ast::ExportDefaultDecl) {
+		match &node.decl {
+			ast::DefaultDecl::Class(class) => {
+				if let Some(ident) = &class.ident {
+					self.add_export(id!(ident), Some(atom!("default")));
+				}
+			}
+			ast::DefaultDecl::Fn(func) => {
+				if let Some(ident) = &func.ident {
+					self.add_export(id!(ident), Some(atom!("default")));
+				}
+			}
+			_ => {
+				unreachable!("unsupported export default declaration");
+			}
+		};
+	}
+
+	fn visit_binding_ident(&mut self, node: &ast::BindingIdent) {
+		if self.in_export_decl {
+			self.add_export(id!(node.id), None);
+		}
+	}
+
+	fn visit_assign_pat_prop(&mut self, node: &ast::AssignPatProp) {
+		if self.in_export_decl {
+			self.add_export(id!(node.key), None);
+		}
+	}
+}
+
+#[derive(Debug)]
+enum ExprOrSkip {
+	Expr,
+	Skip,
+}
+
+/// Collects all identifiers while visiting the AST.
+#[derive(Debug)]
+pub struct IdentCollector {
+	pub local_idents: HashSet<Id>,
+	pub use_h: bool,
+	pub use_fragment: bool,
+
+	expr_ctxt: Vec<ExprOrSkip>,
+}
+
+impl IdentCollector {
+	pub fn new() -> Self {
+		Self {
+			local_idents: HashSet::new(),
+			expr_ctxt: Vec::with_capacity(32),
+			use_h: false,
+			use_fragment: false,
+		}
+	}
+
+	pub fn get_words(self) -> Vec<Id> {
+		let mut local_idents: Vec<Id> = self.local_idents.into_iter().collect();
+		local_idents.sort();
+		local_idents
+	}
+}
+
+impl Visit for IdentCollector {
+	noop_visit_type!();
+
+	fn visit_expr(&mut self, node: &ast::Expr) {
+		self.expr_ctxt.push(ExprOrSkip::Expr);
+		node.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+
+	fn visit_stmt(&mut self, node: &ast::Stmt) {
+		self.expr_ctxt.push(ExprOrSkip::Skip);
+		node.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+
+	fn visit_jsx_element(&mut self, node: &ast::JSXElement) {
+		self.use_h = true;
+		node.visit_children_with(self);
+	}
+
+	fn visit_jsx_fragment(&mut self, node: &ast::JSXFragment) {
+		self.use_h = true;
+		self.use_fragment = true;
+		node.visit_children_with(self);
+	}
+
+	fn visit_jsx_element_name(&mut self, node: &ast::JSXElementName) {
+		if let ast::JSXElementName::Ident(ref ident) = node {
+			let ident_name = ident.sym.as_ref().chars().next();
+			if let Some('A'..='Z') = ident_name {
+			} else {
+				return;
+			}
+		}
+
+		node.visit_children_with(self);
+	}
+	fn visit_jsx_attr(&mut self, node: &ast::JSXAttr) {
+		self.expr_ctxt.push(ExprOrSkip::Skip);
+		node.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+
+	fn visit_ident(&mut self, node: &ast::Ident) {
+		if matches!(self.expr_ctxt.last(), Some(ExprOrSkip::Expr))
+			&& node.ctxt != SyntaxContext::empty()
+			&& (node.sym != *"undefined"
+				&& node.sym != *"NaN"
+				&& node.sym != *"Infinity"
+				&& node.sym != *"null")
+		{
+			self.local_idents.insert(id!(node));
+		}
+	}
+
+	fn visit_key_value_prop(&mut self, node: &ast::KeyValueProp) {
+		self.expr_ctxt.push(ExprOrSkip::Skip);
+		node.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+
+	// props.foo
+	fn visit_member_expr(&mut self, member: &ast::MemberExpr) {
+		self.expr_ctxt.push(ExprOrSkip::Skip);
+		member.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+}
+
+pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut Vec<(Id, Span)>) -> bool {
+	match pat {
+		ast::Pat::Ident(ident) => {
+			identifiers.push((id!(ident.id), ident.id.span));
+			true
+		}
+		ast::Pat::Array(array) => {
+			for el in array.elems.iter().flatten() {
+				collect_from_pat(el, identifiers);
+			}
+			false
+		}
+		ast::Pat::Rest(rest) => {
+			if let ast::Pat::Ident(ident) = rest.arg.as_ref() {
+				identifiers.push((id!(ident.id), ident.id.span));
+			}
+			false
+		}
+		ast::Pat::Assign(expr) => {
+			if let ast::Pat::Ident(ident) = expr.left.as_ref() {
+				identifiers.push((id!(ident.id), ident.id.span));
+			}
+			false
+		}
+		ast::Pat::Object(obj) => {
+			for prop in &obj.props {
+				match prop {
+					ast::ObjectPatProp::Assign(ref v) => {
+						identifiers.push((id!(v.key), v.key.span));
+					}
+					ast::ObjectPatProp::KeyValue(ref v) => {
+						collect_from_pat(&v.value, identifiers);
+					}
+					ast::ObjectPatProp::Rest(ref v) => {
+						if let ast::Pat::Ident(ident) = v.arg.as_ref() {
+							identifiers.push((id!(ident.id), ident.id.span));
+						}
+					}
+				}
+			}
+			false
+		}
+		_ => false,
+	}
+}

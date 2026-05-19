@@ -1,35 +1,31 @@
 /**
  * WHAT IS THIS FILE?
  *
- * SSR entry point, in all cases the application is rendered outside the browser, this entry point
- * will be the common one.
+ * SSR renderer function, used by Qwik Router.
  *
- * - Server (express, cloudflare...)
- * - Npm run start
- * - Npm run preview
- * - Npm run build
+ * Note that this is the only place the Qwik renderer is called. On the client, containers resume
+ * and do not call render.
  */
-import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
-import { manifest } from '@qwik-client-manifest';
+import { createRenderer } from '@qwik.dev/router';
 import Root from './root';
 
-export default function (opts: RenderToStreamOptions) {
-  return renderToStream(<Root />, {
-    manifest,
-    ...opts,
-    // Use container attributes to set attributes on the html tag.
-    containerAttributes: {
-      lang: 'en-us',
-      ...opts.containerAttributes,
+export default createRenderer((opts) => {
+  return {
+    jsx: <Root />,
+    options: {
+      ...opts,
+      // Use container attributes to set attributes on the html tag.
+      containerAttributes: {
+        lang: 'en-us',
+        ...opts.containerAttributes,
+      },
+      serverData: {
+        ...opts.serverData,
+        // These are the default values for the document head and are overridden by the `head` exports
+        // documentHead: {
+        //   title: "My App",
+        // },
+      },
     },
-    // prefetchStrategy: {
-    //   implementation: {
-    //     linkInsert: "html-append",
-    //     linkRel: "modulepreload",
-    //   },
-    // },
-    serverData: {
-      ...opts.serverData,
-    },
-  });
-}
+  };
+});

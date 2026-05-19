@@ -1,0 +1,81 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 7250
+expression: output
+---
+==INPUT==
+
+
+import { _captures, inlinedQrl } from '@qwik.dev/core';
+
+const left = 1;
+const right = 2;
+
+export const task = inlinedQrl(() => {
+	const left = _captures[0];
+	const middle = _captures[1];
+	const right = _captures[2];
+	return middle ? left : right;
+}, 'task', [left, true, right]);
+
+============================= test.tsx_task_task.tsx (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const task = ()=>{
+    const left = _captures[0];
+    const middle = _captures[1];
+    const right = _captures[2];
+    return middle ? left : right;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;oBAM+B;IAC9B,MAAM,OAAO,SAAS,CAAC,EAAE;IACzB,MAAM,SAAS,SAAS,CAAC,EAAE;IAC3B,MAAM,QAAQ,SAAS,CAAC,EAAE;IAC1B,OAAO,SAAS,OAAO;AACxB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "task",
+  "entry": null,
+  "displayName": "test.tsx_task",
+  "hash": "task",
+  "canonicalFilename": "test.tsx_task_task",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "task",
+  "captures": true,
+  "loc": [
+    124,
+    251
+  ],
+  "captureNames": [
+    "left",
+    "right"
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { qrlDEV } from "@qwik.dev/core";
+//
+const q_task = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_task_task"), "task", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 124,
+    hi: 251,
+    displayName: "test.tsx_task"
+});
+//
+const left = 1;
+const right = 2;
+export const task = q_task.w([
+    left,
+    true,
+    right
+]);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAGA,MAAM,OAAO;AACb,MAAM,QAAQ;AAEd,OAAO,MAAM,gBAKF;IAAC;IAAM;IAAM;CAAM,EAAE\"}")
+== DIAGNOSTICS ==
+
+[]

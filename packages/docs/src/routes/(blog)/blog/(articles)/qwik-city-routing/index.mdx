@@ -1,5 +1,5 @@
 ---
-title: 'Qwik City Routing: A Visual Guide'
+title: 'Qwik Router: A Visual Guide'
 authors:
   - 'Vishwas Gopinath'
 tags: ['Web development']
@@ -16,9 +16,9 @@ Routing plays a crucial role in the world of web development, allowing seamless 
 
 ## Getting started
 
-While Qwik primarily focuses on the Component API, the routing feature is supported by **[Qwik City](https://qwik.dev/docs/qwikcity/)**. Qwik City can be thought of as the equivalent of Next.js for React, Nuxt for Vue, SvelteKit for Svelte, and Analog for Angular.
+While Qwik primarily focuses on the Component API, the routing feature is supported by **[Qwik Router](https://qwik.dev/docs/qwikrouter/)**. Qwik Router can be thought of as the equivalent of Next.js for React, Nuxt for Vue, SvelteKit for Svelte, and Analog for Angular.
 
-To begin, follow these commands in the terminal to create and run a new Qwik City project:
+To begin, follow these commands in the terminal to create and run a new Qwik Router project:
 
 > 📖 Select “Empty App” as your starter template when creating the app.
 
@@ -32,15 +32,15 @@ Open the project in your preferred code editor.
 
 ## Routing conventions
 
-Qwik City employs a directory-based routing mechanism, where URL paths in the browser are determined by files and folders in the codebase. Following conventions is crucial for proper routing functionality. Let's discuss and understand the different conventions.
+Qwik Router employs a directory-based routing mechanism, where URL paths in the browser are determined by files and folders in the codebase. Following conventions is crucial for proper routing functionality. Let's discuss and understand the different conventions.
 
-> 📖 In this blog post, we will concentrate solely on pages (UI) within Qwik City's routes, without delving into endpoints (API requests). Endpoints will be addressed comprehensively in a separate blog post.
+> 📖 In this blog post, we will concentrate solely on pages (UI) within Qwik Router's routes, without delving into endpoints (API requests). Endpoints will be addressed comprehensively in a separate blog post.
 
 ## Root route
 
-At the heart of Qwik City’s routing is the `routes` folder within the `src` folder. To create a route for the root URL (`localhost:5173`), follow these steps:
+At the heart of Qwik Router’s routing is the `routes` folder within the `src` folder. To create a route for the root URL (`localhost:5173`), follow these steps:
 
-- Inside the `routes` folder, create an `index.tsx` file. This file is special to Qwik City and represents the route.
+- Inside the `routes` folder, create an `index.tsx` file. This file is special to Qwik Router and represents the route.
 - Define a simple Qwik component in the `index.tsx` file, to represent the Home page:
 
 ```tsx
@@ -102,13 +102,13 @@ This demonstrates that routes are associated with a file based on the containing
 
 ### Handling non-matching routes
 
-What happens if you enter a URL that cannot map to a file within the `routes` folder? For example, `/dashboard`. Qwik City will automatically respond with a `404 Not Found` response and a view displaying possible routes in the app in dev mode. You don't have to explicitly handle non-matching routes, as Qwik City takes care of this for you.
+What happens if you enter a URL that cannot map to a file within the `routes` folder? For example, `/dashboard`. Qwik Router will automatically respond with a `404 Not Found` response and a view displaying possible routes in the app in dev mode. You don't have to explicitly handle non-matching routes, as Qwik Router takes care of this for you.
 
 > 📖 You can also define a [custom 404 page](https://qwik.dev/docs/advanced/routing/#custom-404-page) or a [dynamic 404 page](https://qwik.dev/docs/advanced/routing/#dynamic-404-page).
 
 ## Nested routes
 
-In addition to basic routes, Qwik City offers support for nested routes, so you can establish a hierarchical structure within your application. Let’s aim to render a page when the user navigates to the URL `localhost:5173/blog`. Furthermore, we need to render pages for `localhost:5173/blog/first` and `localhost:5173/blog/second`.
+In addition to basic routes, Qwik Router offers support for nested routes, so you can establish a hierarchical structure within your application. Let’s aim to render a page when the user navigates to the URL `localhost:5173/blog`. Furthermore, we need to render pages for `localhost:5173/blog/first` and `localhost:5173/blog/second`.
 
 To implement nested routes, follow these steps:
 
@@ -149,7 +149,7 @@ export default component$(() => {
 
 Now, navigating to `localhost:5173/blog/first` displays the first blog post, and `localhost:5173/blog/second` shows the second blog post.
 
-By creating a nested folder structure, Qwik City automatically routes the files accordingly. This simplifies the process of creating nested routes and enhances the organization and structure of your application.
+By creating a nested folder structure, Qwik Router automatically routes the files accordingly. This simplifies the process of creating nested routes and enhances the organization and structure of your application.
 
 ### Visual representation
 
@@ -159,7 +159,7 @@ By creating a nested folder structure, Qwik City automatically routes the files 
 
 ## Dynamic routes
 
-Predefined paths like `/blog/first` and `/blog/second` may not always be suitable for complex applications with hundreds of routes. Qwik City supports dynamic routes to handle such scenarios. Let’s create dynamic routes to handle a product listing and detail page.
+Predefined paths like `/blog/first` and `/blog/second` may not always be suitable for complex applications with hundreds of routes. Qwik Router supports dynamic routes to handle such scenarios. Let’s create dynamic routes to handle a product listing and detail page.
 
 To create dynamic routes, follow these steps:
 
@@ -197,7 +197,7 @@ export default component$(() => {
 
 Now, when you navigate to `localhost:5173/products/1`, you'll get the product details page. Similarly, accessing `/products/2`, `/products/3`, or even `/products/100` will display the same details page. `[productId]` is the dynamic route segment that can accommodate values like 1, 2, 3, and so on.
 
-To display the specific product ID, you can make use of the `useLocation()` function from Qwik City. Modify the component as follows:
+To display the specific product ID, you can make use of the `useLocation()` function from Qwik Router. Modify the component as follows:
 
 ```tsx
 // routes/products/[productId]/index.tsx
@@ -212,7 +212,7 @@ export default component$(() => {
 
 Now, when you navigate to `localhost:5173/products/1`, the details about product 1 display. Similarly, visiting `/products/100` displays details about product 100.
 
-Dynamic routes are beneficial when implementing the list-detail pattern in any UI application. By understanding how to create dynamic routes in Qwik City, you can build flexible and scalable applications that adapt to varying user interactions.
+Dynamic routes are beneficial when implementing the list-detail pattern in any UI application. By understanding how to create dynamic routes in Qwik Router, you can build flexible and scalable applications that adapt to varying user interactions.
 
 ### Visual representation
 
@@ -256,12 +256,12 @@ The key takeaway from this section is that it is possible to create nested dynam
 
 ## Catch-all routes
 
-Qwik City provides the catch-all routes feature which allows for flexible routing. Let's say we want to create a documentation site with multiple features and concepts, where each concept has its own unique route. Instead of creating separate files for each route, we can use a catch-all route.
+Qwik Router provides the catch-all routes feature which allows for flexible routing. Let's say we want to create a documentation site with multiple features and concepts, where each concept has its own unique route. Instead of creating separate files for each route, we can use a catch-all route.
 
 To implement a catch-all route, follow these steps:
 
 - Create a `src/routes/docs` folder.
-- Inside the `docs` folder, create a folder with a special name recognized by Qwik City. Use square brackets and three dots (for example, `[...slug]`) to enclose a name of your choice.
+- Inside the `docs` folder, create a folder with a special name recognized by Qwik Router. Use square brackets and three dots (for example, `[...slug]`) to enclose a name of your choice.
 - Inside the `slug` folder, create an `index.tsx` file with a basic Qwik component representing the documentation home page.
 
 ```tsx
@@ -275,7 +275,7 @@ export default component$(() => {
 
 By using this structure, the `index.tsx` file will match any URL that contains the `/docs` segment in the path. This way, we can define a single file that handles all the route segments in the URL.
 
-To access the different segments in the URL, rely on the `useLocation()` function that Qwik City provides. For example: `localhost:5173/docs/routing/catch-all-segments` can render the following component:
+To access the different segments in the URL, rely on the `useLocation()` function that Qwik Router provides. For example: `localhost:5173/docs/routing/catch-all-segments` can render the following component:
 
 ```tsx
 // routes/docs/[...slug]/index.tsx
@@ -309,9 +309,9 @@ With catch-all segments, you can create a hierarchical structure for your routes
 
 We’ve learned that a page represents a unique UI for a specific route. However, in many cases, we want to have a consistent layout across multiple pages in our application, such as a header at the top and a footer at the bottom. With layouts, achieving this becomes much easier and more flexible.
 
-### Layouts in Qwik City
+### Layouts in Qwik Router
 
-So, what exactly are layouts? A layout in Qwik City is a UI component that is shared between multiple pages in an application. It allows us to define a common structure and appearance for a group of pages, reducing redundancy and promoting code reusability.
+So, what exactly are layouts? A layout in Qwik Router is a UI component that is shared between multiple pages in an application. It allows us to define a common structure and appearance for a group of pages, reducing redundancy and promoting code reusability.
 
 ## Creating a layout
 
@@ -370,7 +370,7 @@ The header and footer can be customized according to our needs, providing the de
 
 ## Nested layouts
 
-In addition to the Root layout, Qwik City supports the concept of nested layouts. This feature allows us to define layouts specific to certain areas of our application.
+In addition to the Root layout, Qwik Router supports the concept of nested layouts. This feature allows us to define layouts specific to certain areas of our application.
 
 Consider a product details page that dynamically reads the product ID from the route parameters. Here is the folder structure for the dynamic route:
 
@@ -430,7 +430,7 @@ For instance, `routes/(auth)/register/index.tsx`, `routes/(auth)/login/index.tsx
 
 ## Named layouts
 
-In certain cases, sibling routes may require distinct layouts that differ significantly from one another. Qwik City provides the ability to define multiple layouts for sibling routes, including a default layout and additional named layouts. This allows child routes to request a specific named layout based on their requirements.
+In certain cases, sibling routes may require distinct layouts that differ significantly from one another. Qwik Router provides the ability to define multiple layouts for sibling routes, including a default layout and additional named layouts. This allows child routes to request a specific named layout based on their requirements.
 
 To create a named layout, the filename should start with "layout" followed by a dash "-" and a unique name. For example, a named layout could be named `layout-two.tsx`. A route can then request the named layout by adding the suffix “@two” to the file name: `routes/(auth)/reset/index@two.tsx`.
 
@@ -442,10 +442,10 @@ To create a named layout, the filename should start with "layout" followed by a 
 
 ## Conclusion
 
-In this blog post, we explored the basics of routing in Qwik City. We discussed routing conventions, created routes for different scenarios, and highlighted Qwik City's convention over configuration approach for routing.
+In this blog post, we explored the basics of routing in Qwik Router. We discussed routing conventions, created routes for different scenarios, and highlighted Qwik Router's convention over configuration approach for routing.
 
 Layouts allow us to define consistent UI structures across multiple pages, reduce code duplication, and easily manage shared components. Nested layouts take this concept even further, enabling us to create specialized layouts for different sections of our application. Grouped layouts, on the other hand, allow us to share UI without affecting the URL. Named layouts allow us to select a layout for a specific route.
 
-With Qwik City, you can easily define and manage routes by leveraging the file and folder structure of your codebase, eliminating the need for additional routing configuration.
+With Qwik Router, you can easily define and manage routes by leveraging the file and folder structure of your codebase, eliminating the need for additional routing configuration.
 
 </ArticleBlock>

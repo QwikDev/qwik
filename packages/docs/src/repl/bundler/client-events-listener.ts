@@ -1,4 +1,4 @@
-import type { QwikSymbolEvent } from '@builder.io/qwik';
+import type { QwikSymbolEvent } from '@qwik.dev/core/internal';
 import type { ReplEvent } from '../types';
 
 (() => {

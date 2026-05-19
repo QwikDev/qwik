@@ -1,27 +1,22 @@
 // @ts-ignore: Unused import
-import { component$, useStore, Resource, useResource$ } from '@builder.io/qwik';
+import { component$, useSignal, useAsync$ } from '@qwik.dev/core';
 
 export default component$(() => {
-  const github = useStore({
-    org: 'QwikDev',
-  });
+  const githubOrg = useSignal('QwikDev');
 
-  // Use useResource$() to set up how the data is fetched from the server.
+  // Use useAsync$() to set up how the data is fetched from the server.
   // See the example for Fetching Data in the text on the left.
   // @ts-ignore: Unused declaration
-  const reposResource = useResource$<string[]>(({ track, cleanup }) => {
-    // We need a way to re-run fetching data whenever the `github.org` changes.
+  const repos = useAsync$(({ track, abortSignal }) => {
+    // We need a way to re-run fetching data whenever sthe `github.org` changes.
     // Use `track` to trigger re-running of the this data fetching function.
-    track(() => github.org);
+    const org = track(githubOrg);
 
-    // A good practice is to use `AbortController` to abort the fetching of data if
-    // new request comes in. We create a new `AbortController` and register a `cleanup`
-    // function which is called when this function re-runs.
-    const controller = new AbortController();
-    cleanup(() => controller.abort());
+    // The abortSignal is automatically aborted when this function re-runs,
+    // canceling any pending fetch requests.
 
     // Fetch the data and return the promises.
-    return getRepositories(github.org, controller);
+    return getRepositories(org, abortSignal);
   });
 
   console.log('Render');
@@ -30,17 +25,19 @@ export default component$(() => {
       <p>
         <label>
           GitHub username:
-          <input value={github.org} onInput$={(ev, el) => (github.org = el.value)} />
+          <input bind:value={githubOrg} />
         </label>
       </p>
       <section>
-        {/* Use <Resource> to display the data from the useResource$() function. */}
-        {/* To help, here's a callback function to display the data on resolved. */}
-        {/* (repos) => (
+        {/* Display the async signal data using its properties. */}
+        {/* To help, here's a callback function to display the data: */}
+        {/* repos.loading && <div>Loading...</div> */}
+        {/* repos.error && <div>Error: {repos.error.message}</div> */}
+        {/* repos.value && (
             <ul>
-              {repos.map((repo) => (
+              {repos.value.map((repo) => (
                 <li>
-                  <a href={`https://github.com/${github.org}/${repo}`}>{repo}</a>
+                  <a href={`https://github.com/${githubOrg.value}/${repo}`}>{repo}</a>
                 </li>
               ))}
             </ul>
@@ -52,11 +49,11 @@ export default component$(() => {
 
 export async function getRepositories(
   username: string,
-  controller?: AbortController
+  abortSignal?: AbortSignal
 ): Promise<string[]> {
   console.log('FETCH', `https://api.github.com/users/${username}/repos`);
   const resp = await fetch(`https://api.github.com/users/${username}/repos`, {
-    signal: controller?.signal,
+    signal: abortSignal,
   });
   console.log('FETCH resolved');
   const json = await resp.json();

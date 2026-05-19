@@ -1,0 +1,183 @@
+---
+title: \@qwik.dev/qwik-router/middleware/aws-lambda API Reference
+---
+
+# [API](/api) &rsaquo; @qwik.dev/qwik-router/middleware/aws-lambda
+
+<h2 id="createqwikcity">createQwikCity</h2>
+
+> Warning: This API is now obsolete.
+>
+> Use `createQwikRouter` instead. Will be removed in V3
+
+```typescript
+createQwikCity: typeof createQwikRouter;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/aws-lambda/index.ts)
+
+<h2 id="createqwikrouter">createQwikRouter</h2>
+
+```typescript
+export declare function createQwikRouter(
+  opts: AwsOpt,
+): QwikRouterAwsLambdaMiddleware;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+AwsOpt
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[QwikRouterAwsLambdaMiddleware](#qwikrouterawslambdamiddleware)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/aws-lambda/index.ts)
+
+<h2 id="platformawslambda">PlatformAwsLambda</h2>
+
+```typescript
+export interface PlatformAwsLambda extends Object
+```
+
+**Extends:** Object
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/aws-lambda/index.ts)
+
+<h2 id="qwikcityawslambdaoptions">QwikCityAwsLambdaOptions</h2>
+
+> Warning: This API is now obsolete.
+>
+> Use `QwikRouterAwsLambdaOptions` instead. Will be removed in V3
+
+```typescript
+export type QwikCityAwsLambdaOptions = QwikRouterAwsLambdaOptions;
+```
+
+**References:** [QwikRouterAwsLambdaOptions](#qwikrouterawslambdaoptions)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/aws-lambda/index.ts)
+
+<h2 id="qwikrouterawslambdamiddleware">QwikRouterAwsLambdaMiddleware</h2>
+
+```typescript
+export interface QwikRouterAwsLambdaMiddleware
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fixPath
+
+</td><td>
+
+</td><td>
+
+(pathT: string) =&gt; string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+handle
+
+</td><td>
+
+</td><td>
+
+(req: any, res: any) =&gt; void
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+notFound
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+router
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+staticFile
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/aws-lambda/index.ts)
+
+<h2 id="qwikrouterawslambdaoptions">QwikRouterAwsLambdaOptions</h2>
+
+```typescript
+export interface QwikRouterAwsLambdaOptions extends ServerRenderOptions
+```
+
+**Extends:** ServerRenderOptions
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/aws-lambda/index.ts)

@@ -1,7 +1,7 @@
-import { $, component$, useSignal, useStylesScoped$ } from "@builder.io/qwik";
-import { server$ } from "@builder.io/qwik-city";
 import { search } from "@orama/orama";
-import { type Pokemon, oramaDb, createOramaDb } from "~/orama";
+import { server$ } from "@qwik.dev/router";
+import { $, component$, useSignal, useStylesScoped$ } from "@qwik.dev/core";
+import { type Pokemon, createOramaDb, oramaDb } from "~/orama";
 
 createOramaDb();
 

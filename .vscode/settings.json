@@ -1,5 +1,7 @@
 {
-  "vitest.include": ["**/*.unit.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+  "vitest.include": [
+    "**/*.unit.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"
+  ],
   "vitest.exclude": [
     "**/node_modules/**",
     "**/dist/**",
@@ -7,8 +9,21 @@
     "**/cypress/**",
     "**/.{idea,git,cache,output,temp}/**"
   ],
-  "javascript.preferences.autoImportFileExcludePatterns": ["node:test"],
+  "cSpell.words": [
+    "bucketize",
+    "Stringifiable"
+  ],
+  "javascript.preferences.autoImportFileExcludePatterns": [
+    "node:test"
+  ],
   "typescript.preferences.preferTypeOnlyAutoImports": true,
   "typescript.tsdk": "./node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "makefile.configureOnOpen": false,
+  "tailwindCSS.experimental.classRegex": [
+    [
+      "tw\\((\\s*['\"`][\\s\\S]*?['\"`]\\s*)\\)",
+      "['\"`]([^'\"`]*)['\"`]"
+    ]
+  ]
 }

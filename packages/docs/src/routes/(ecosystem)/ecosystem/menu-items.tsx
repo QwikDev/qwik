@@ -1,5 +1,5 @@
-import { Link } from '@builder.io/qwik-city';
-import { $ } from '@builder.io/qwik';
+import { $ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 
 export const MenuItems = () => {
   const scrollIntoView = $((_: any, elm: HTMLAnchorElement) => {

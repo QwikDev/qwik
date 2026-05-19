@@ -1,0 +1,460 @@
+import {
+  type VNodeJournal,
+  vnode_createErrorDiv,
+  vnode_insertElementBefore,
+  vnode_isElementVNode,
+} from '../../client/vnode-utils';
+import { vnode_diff } from '../../client/vnode-diff';
+import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';
+import { executeComponent } from '../component-execution';
+import type { OnRenderFn } from '../component.public';
+import type { Props } from '../jsx/jsx-runtime';
+import type { QRLInternal } from '../qrl/qrl-class';
+import { ChoreBits } from '../vnode/enums/chore-bits.enum';
+import { ELEMENT_SEQ, ELEMENT_PROPS, OnRenderProp, QScopedStyle } from '../utils/markers';
+import { addComponentStylePrefix } from '../utils/scoped-styles';
+import { isPromise, maybeThen, retryOnPromise, safeCall } from '../utils/promises';
+import type { ValueOrPromise } from '../utils/types';
+import type { Container, HostElement } from '../types';
+import type { VNode } from '../vnode/vnode';
+import { VNodeFlags, type ClientContainer } from '../../client/types';
+import type { NodeProp } from '../../reactive-primitives/subscription-data';
+import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
+import type { Signal } from '../../reactive-primitives/signal.public';
+import type { ElementVNode } from '../vnode/element-vnode';
+import type { VirtualVNode } from '../vnode/virtual-vnode';
+import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
+import type { JSXOutput } from '../jsx/types/jsx-node';
+import {
+  HOST_SIGNAL,
+  ERROR_DATA_KEY,
+  NODE_DIFF_DATA_KEY,
+  NODE_PROPS_DATA_KEY,
+  type CursorData,
+} from './cursor-props';
+import { invoke, newInvokeContext, untrack } from '../../use/use-core';
+import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
+import { SignalFlags } from '../../reactive-primitives/types';
+import { cleanupDestroyable } from '../../use/utils/destroyable';
+import type { ISsrNode } from '../../ssr/ssr-types';
+import type { Cursor } from './cursor';
+import { reconcileKeyedLoopToParent } from '../../client/reconcile-keyed-loop';
+import { _getProps } from '../jsx/props-proxy';
+import type { EachProps } from '../../control-flow/each';
+
+/**
+ * Executes tasks for a vNode if the TASKS dirty bit is set. Tasks are stored in the ELEMENT_SEQ
+ * property and executed in order.
+ *
+ * Behavior:
+ *
+ * - Resources: Just run, don't save promise anywhere
+ * - Tasks: Chain promises only between each other
+ * - VisibleTasks: Store promises in afterFlush on cursor root for client, we need to wait for all
+ *   visible tasks to complete before flushing changes to the DOM. On server, we keep them on vNode
+ *   for streaming.
+ *
+ * @param vNode - The vNode to execute tasks for
+ * @param container - The container
+ * @param cursor - The cursor root vNode, should be set on client only
+ * @returns Promise if any regular task returns a promise, void otherwise
+ */
+export function executeTasks(
+  vNode: VNode,
+  container: Container,
+  cursorData: CursorData
+): ValueOrPromise<void> {
+  vNode.dirty &= ~ChoreBits.TASKS;
+
+  const elementSeq = container.getHostProp<unknown[] | null>(vNode, ELEMENT_SEQ);
+
+  if (!elementSeq || elementSeq.length === 0) {
+    // No tasks to execute, clear the bit
+    return;
+  }
+
+  // Execute all tasks in sequence
+  let taskPromise: Promise<void> | undefined;
+
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
+    if (item instanceof Task) {
+      const task = item as Task<TaskFn, TaskFn>;
+
+      // Skip if task is not dirty
+      if (!(task.$flags$ & TaskFlags.DIRTY)) {
+        continue;
+      }
+
+      if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
+        // VisibleTasks: store for execution after flush (don't execute now)
+        (cursorData.afterFlushTasks ||= []).push(task);
+      } else {
+        // Regular tasks: chain promises only between each other
+        const isRenderBlocking = !!(task.$flags$ & TaskFlags.RENDER_BLOCKING);
+        const result = runTask(task, container, vNode);
+        if (isPromise(result)) {
+          if (isRenderBlocking) {
+            taskPromise = taskPromise
+              ? taskPromise.then(() => result as Promise<void>)
+              : (result as Promise<void>);
+          } else {
+            // TODO: set extrapromises on vNode instead of cursorData if server
+            (cursorData.extraPromises ||= []).push(result as Promise<void>);
+          }
+        }
+      }
+    }
+  }
+
+  return taskPromise;
+}
+
+function getNodeDiffPayload(vNode: VNode): JSXOutput | null {
+  const props = vNode.props as Props;
+  return props?.[NODE_DIFF_DATA_KEY] as JSXOutput | null;
+}
+
+export function setNodeDiffPayload(vNode: VNode, payload: JSXOutput | Signal<JSXOutput>): void {
+  const props = (vNode.props ||= {}) as Props;
+  props[NODE_DIFF_DATA_KEY] = payload;
+}
+
+function getErrorPayload(vNode: VNode): Error | null {
+  const props = vNode.props as Props;
+  return (props?.[ERROR_DATA_KEY] as Error) ?? null;
+}
+
+export function setErrorPayload(vNode: VNode, error: Error | null): void {
+  const props = (vNode.props ||= {}) as Props;
+  props[ERROR_DATA_KEY] = error;
+}
+
+export function executeErrorWrap(vNode: VNode, journal: VNodeJournal): void {
+  vNode.dirty &= ~ChoreBits.ERROR_WRAP;
+
+  const err = getErrorPayload(vNode);
+  if (!err) {
+    return;
+  }
+  // cleanup payload
+  setErrorPayload(vNode, null);
+
+  const vHost = vNode;
+  const vHostParent = vHost.parent;
+  const vHostNextSibling = vHost.nextSibling as VNode | null;
+  const vErrorDiv = vnode_createErrorDiv(journal, document, vHost, err);
+  // If the host is an element node, we need to insert the error div into its parent.
+  const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
+  // If the host is different then we need to insert errored-host in the same position as the host.
+  const insertBefore = insertHost === vHost ? null : vHostNextSibling;
+  vnode_insertElementBefore(
+    journal,
+    insertHost as ElementVNode | VirtualVNode,
+    vErrorDiv,
+    insertBefore
+  );
+  // vnode_createErrorDiv moves children into the errored-host element, which can
+  // mark the host with CHILDREN dirty bit. Clear it along with dirtyChildren to
+  // avoid an infinite loop — those children are now under errored-host, not this host.
+  // This is safe because CHILDREN is always processed before ERROR_WRAP in the walker,
+  // so any pre-existing child work has already completed.
+  vNode.dirty &= ~ChoreBits.CHILDREN;
+  vNode.dirtyChildren = null;
+}
+
+export function executeNodeDiff(
+  vNode: VNode,
+  container: Container,
+  journal: VNodeJournal,
+  cursor: Cursor
+): ValueOrPromise<void> {
+  vNode.dirty &= ~ChoreBits.NODE_DIFF;
+
+  const domVNode = vNode as ElementVNode;
+  let jsx = getNodeDiffPayload(vNode);
+  if (!jsx) {
+    return;
+  }
+  // cleanup payload
+  setNodeDiffPayload(vNode, null);
+  if (isSignal(jsx)) {
+    jsx = jsx.value as any;
+  }
+  return vnode_diff(container as ClientContainer, journal, jsx, domVNode, cursor, null);
+}
+
+/**
+ * Executes a component for a vNode if the COMPONENT dirty bit is set. Gets the component QRL from
+ * OnRenderProp and executes it.
+ *
+ * @param vNode - The vNode to execute component for
+ * @param container - The container
+ * @returns Promise if component execution is async, void otherwise
+ */
+export function executeComponentChore(
+  vNode: VNode,
+  container: Container,
+  journal: VNodeJournal,
+  cursor: Cursor
+): ValueOrPromise<void> {
+  vNode.dirty &= ~ChoreBits.COMPONENT;
+  const host = vNode as HostElement;
+  const componentQRL = container.getHostProp<QRLInternal<OnRenderFn<unknown>> | null>(
+    host,
+    OnRenderProp
+  );
+
+  if (!componentQRL) {
+    return;
+  }
+
+  const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
+
+  const result = safeCall(
+    () => executeComponent(container, host, host, componentQRL, props),
+    (jsx) => {
+      const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
+      return retryOnPromise(() =>
+        vnode_diff(
+          container as ClientContainer,
+          journal,
+          jsx,
+          host as VNode,
+          cursor,
+          addComponentStylePrefix(styleScopedId)
+        )
+      );
+    },
+    (err: any) => {
+      container.handleError(err, host);
+    }
+  );
+
+  if (isPromise(result)) {
+    return result as Promise<void>;
+  }
+
+  return;
+}
+
+/**
+ * Gets node prop data from a vNode.
+ *
+ * @param vNode - The vNode to get node prop data from
+ * @returns Array of NodeProp, or null if none
+ */
+function getNodePropData(vNode: VNode): Map<string, NodeProp> | null {
+  const props = (vNode.props ||= {}) as Props;
+  return (props[NODE_PROPS_DATA_KEY] as Map<string, NodeProp> | null) ?? null;
+}
+
+/**
+ * Sets node prop data for a vNode.
+ *
+ * @param vNode - The vNode to set node prop data for
+ * @param property - The property to set node prop data for
+ * @param nodeProp - The node prop data to set
+ */
+export function setNodePropData(vNode: VNode, property: string, nodeProp: NodeProp): void {
+  const props = (vNode.props ||= {}) as Props;
+  let data = props[NODE_PROPS_DATA_KEY] as Map<string, NodeProp> | null;
+  if (!data) {
+    data = new Map();
+    props[NODE_PROPS_DATA_KEY] = data;
+  }
+  data.set(property, nodeProp);
+}
+
+/**
+ * Clears node prop data from a vNode.
+ *
+ * @param vNode - The vNode to clear node prop data from
+ */
+function clearNodePropData(vNode: VNode): void {
+  const props = (vNode.props ||= {}) as Props;
+  delete props[NODE_PROPS_DATA_KEY];
+}
+
+function setNodeProp(
+  domVNode: ElementVNode,
+  journal: VNodeJournal,
+  property: string,
+  value: any,
+  isConst: boolean,
+  scopedStyleIdPrefix: string | null = null
+): void {
+  journal.push(
+    createSetAttributeOperation(
+      domVNode.node!,
+      property,
+      value,
+      scopedStyleIdPrefix,
+      (domVNode.flags & VNodeFlags.NS_svg) !== 0
+    )
+  );
+  if (!isConst) {
+    if (domVNode.props && value == null) {
+      delete domVNode.props[property];
+    } else {
+      (domVNode.props ||= {})[property] = value;
+    }
+  }
+}
+
+/**
+ * Executes node prop updates for a vNode if the NODE_PROPS dirty bit is set. Processes all pending
+ * node prop updates that were stored via addPendingNodeProp.
+ *
+ * @param vNode - The vNode to execute node props for
+ * @param container - The container
+ * @returns Void
+ */
+export function executeNodeProps(vNode: VNode, journal: VNodeJournal): void {
+  vNode.dirty &= ~ChoreBits.NODE_PROPS;
+  if (!(vNode.flags & VNodeFlags.Element)) {
+    return;
+  }
+
+  const allPropData = getNodePropData(vNode);
+  if (!allPropData || allPropData.size === 0) {
+    return;
+  }
+
+  const domVNode = vNode as ElementVNode;
+
+  // Process all pending node prop updates
+  for (const [property, nodeProp] of allPropData.entries()) {
+    let value: Signal<any> | string = nodeProp.value;
+    if (isSignal(value)) {
+      // TODO: Handle async signals (promises) - need to track pending async prop data
+      value = value.value as any;
+    }
+
+    // Pass raw value and scopedStyleIdPrefix - serialization happens in flush
+    const isConst = nodeProp.isConst;
+    setNodeProp(domVNode, journal, property, value, isConst, nodeProp.scopedStyleIdPrefix);
+  }
+
+  // Clear pending prop data after processing
+  clearNodePropData(vNode);
+}
+
+/**
+ * Execute visible task cleanups and add promises to extraPromises.
+ *
+ * @param vNode - The vNode to cleanup
+ * @param container - The container
+ * @returns Void
+ */
+export function executeCleanup(vNode: VNode, container: Container): void {
+  vNode.dirty &= ~ChoreBits.CLEANUP;
+
+  // TODO add promises to extraPromises
+
+  const elementSeq = container.getHostProp<unknown[] | null>(vNode, ELEMENT_SEQ);
+
+  if (!elementSeq || elementSeq.length === 0) {
+    // No tasks to execute, clear the bit
+    return;
+  }
+
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
+    if (item instanceof Task) {
+      if (item.$flags$ & TaskFlags.NEEDS_CLEANUP) {
+        item.$flags$ &= ~TaskFlags.NEEDS_CLEANUP;
+        const task = item as Task<TaskFn, TaskFn>;
+        cleanupDestroyable(task);
+      }
+    }
+  }
+}
+
+/**
+ * Executes compute/recompute chores for a vNode if the COMPUTE dirty bit is set. This handles
+ * signal recomputation and effect scheduling.
+ *
+ * @param vNode - The vNode to execute compute for
+ * @param container - The container
+ * @returns Promise if computation is async, void otherwise
+ */
+export function executeCompute(
+  vNode: VNode | ISsrNode,
+  container: Container
+): ValueOrPromise<void> {
+  vNode.dirty &= ~ChoreBits.COMPUTE;
+  const target = container.getHostProp<WrappedSignalImpl<unknown> | null>(vNode, HOST_SIGNAL);
+  if (!target) {
+    return;
+  }
+  const effects = target.$effects$;
+
+  const ctx = newInvokeContext();
+  ctx.$container$ = container;
+  // needed for computed signals and throwing QRLs
+  return maybeThen(
+    retryOnPromise(() =>
+      invoke.call(target, ctx, (target as WrappedSignalImpl<unknown>).$computeIfNeeded$)
+    ),
+    () => {
+      if ((target as WrappedSignalImpl<unknown>).$flags$ & SignalFlags.RUN_EFFECTS) {
+        (target as WrappedSignalImpl<unknown>).$flags$ &= ~SignalFlags.RUN_EFFECTS;
+        return scheduleEffects(container, target, effects);
+      }
+    }
+  );
+}
+
+/**
+ * Executes a reconcile chore for a vNode if the RECONCILE dirty bit is set. This handles the
+ * reconciliation of a keyed loop.
+ *
+ * @param container - The container
+ * @param journal - The journal
+ * @param vNode - The vNode
+ * @returns Promise if reconcile is async, void otherwise
+ */
+export function executeReconcile(
+  vNode: VNode,
+  container: Container,
+  journal: VNodeJournal,
+  cursor: Cursor
+): ValueOrPromise<void> {
+  vNode.dirty &= ~ChoreBits.RECONCILE;
+  const host = vNode as ElementVNode;
+  const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
+  if (!props) {
+    return;
+  }
+  let items = _getProps(props, 'items' satisfies keyof EachProps<any>) as any[];
+  if (isSignal(items)) {
+    items = untrack(items) as any[];
+  }
+  const keyQrl = _getProps(props, 'key$' satisfies keyof EachProps<any>) as QRLInternal<
+    (item: any, index: number) => string
+  >;
+  const itemQrl = _getProps(props, 'item$' satisfies keyof EachProps<any>) as QRLInternal<
+    (item: any, index: number) => JSXOutput
+  >;
+  const keyOf = keyQrl.resolved;
+  const itemFn = itemQrl.resolved;
+
+  if (keyOf !== undefined && itemFn !== undefined) {
+    return reconcileKeyedLoopToParent(container, journal, host, cursor, items, keyOf, itemFn);
+  }
+
+  return maybeThen(keyQrl.resolve(), (resolvedKeyOf) =>
+    maybeThen(itemQrl.resolve(), (resolvedItemFn) =>
+      reconcileKeyedLoopToParent(
+        container,
+        journal,
+        host,
+        cursor,
+        items,
+        resolvedKeyOf,
+        resolvedItemFn
+      )
+    )
+  );
+}

@@ -1,4 +1,4 @@
-import { component$ } from "@builder.io/qwik";
+import { component$ } from "@qwik.dev/core";
 import { useServerTimeLoader } from "../../../routes/layout";
 import styles from "./footer.module.css";
 

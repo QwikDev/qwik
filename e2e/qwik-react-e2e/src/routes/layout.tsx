@@ -1,5 +1,5 @@
-import { component$, Slot } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
+import { component$, Slot } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 
 export default component$(() => {
   return (
@@ -9,6 +9,9 @@ export default component$(() => {
       </Link>
       <Link data-testid="react-link" href="/react">
         react
+      </Link>
+      <Link data-testid="reactify-link" href="/reactify">
+        reactify
       </Link>
       <br />
       <main>

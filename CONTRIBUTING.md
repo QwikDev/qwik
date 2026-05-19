@@ -178,7 +178,7 @@ If you want to work on the Rust code, use `build.full` instead of `build.local`.
 
 ### Fast build
 
-This will build only Qwik and Qwik City and their types. This is not enough to run the docs.
+This will build only Qwik and Qwik Router and their types. This is not enough to run the docs.
 
 ```shell
 pnpm build.core
@@ -186,10 +186,10 @@ pnpm build.core
 
 ### Custom build
 
-Once you have done a full build, the types are built, and you can build just the code you're working on. For qwik and qwik-city, you can do very fast rebuilds with
+Once you have done a full build, the types are built, and you can build just the code you're working on. For qwik and qwik-router, you can do very fast rebuilds with
 
 ```shell
-pnpm build --dev --qwik --qwikcity
+pnpm build --dev --qwik --qwikrouter
 ```
 
 The `--dev` flag skips type checking and generating.
@@ -199,9 +199,8 @@ You can run `pnpm build` without parameters to see which flags are available. No
 - `--tsc`: build types
 - `--api`: build API docs and type bundles. Requires `--tsc` to have run.
 - `--build`: Qwik (you'll probably also need `--dev`)
-- `--qwikcity`: Qwik City (you'll probably also need `--dev`)
+- `--qwikrouter`: Qwik Router (you'll probably also need `--dev`)
 - `--qwikreact`: Qwik React
-- `--qwiklabs`: Qwik Labs
 - `--eslint`: Eslint plugin
 
 E.g. to build only the React integration, you'd run `pnpm build --qwikreact`.
@@ -230,7 +229,7 @@ It will build **everything**, including Rust packages and WASM.
 pnpm build.full
 ```
 
-The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
+The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@qwik.dev/core](https://www.npmjs.com/package/@qwik.dev/core).
 
 To update the Rust test snapshots after you've made changes to the Rust code, run `pnpm test.rust.update`.
 
@@ -243,12 +242,12 @@ Assuming qwik is in `../qwik`, run this inside the root of your app:
 
 ```shell
 pnpm link ../qwik/packages/qwik
-pnpm link ../qwik/packages/qwik-city
+pnpm link ../qwik/packages/qwik-router
 ```
 
-Other package managers probably need to first be told about the packages. For example, with `bun` you need to `cd ../qwik/packages/qwik` and `bun link`, repeat for `qwik-city`. Then in your app run `bun link @builder.io/qwik @builder.io/qwik-city`.
+Other package managers probably need to first be told about the packages. For example, with `bun` you need to `cd ../qwik/packages/qwik` and `bun link`, repeat for `qwik-router`. Then in your app run `bun link @qwik.dev/core @qwik.dev/router`.
 
-If you can't use package linking, just copy the contents of `packages/qwik` into your projects' `node_modules/@builder.io/qwik` folder, and/or the contents of `packages/qwik-city` into your projects' `node_modules/@builder.io/qwik-city` folder.
+If you can't use package linking, just copy the contents of `packages/qwik` into your projects' `node_modules/@qwik.dev/core` folder, and/or the contents of `packages/qwik-router` into your projects' `node_modules/@qwik.dev/router` folder.
 
 ### Working on the docs site
 
@@ -330,7 +329,7 @@ For larger PRs, it would really help if you follow these guidelines.
 - Keep your commits focused and atomic. Each commit should represent a single, coherent change.
 - If you have commits like `wip lol` or `fixup`, squash them. Use `git rebase -i`.
 - Commits must follow the format: `type(scope): description`
-  For example: `feat(qwik-city): confetti animations` or `chore: pnpm api.update`
+  For example: `feat(qwik-router): confetti animations` or `chore: pnpm api.update`
 
   Common types include:
   - feat: A new feature

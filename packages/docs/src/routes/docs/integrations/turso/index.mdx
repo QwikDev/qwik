@@ -9,6 +9,7 @@ created_at: '2023-07-23T00:17:06Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Turso
 
@@ -96,7 +97,7 @@ inside `.env.local`.
 PRIVATE_TURSO_DATABASE_URL=file:foo.db
 ```
 
-> ***Note***: A database token is not needed when working with file databases and `createClient` must be imported from `@libsql/client` since importing from `@libsql/client/web` [does not support local file URLs](https://docs.turso.tech/sdk/ts/reference#local-development).
+<Note>A database token is not needed when working with file databases and `createClient` must be imported from `@libsql/client` since importing from `@libsql/client/web` [does not support local file URLs](https://docs.turso.tech/sdk/ts/reference#local-development).</Note>
 
 ## Using a Turso database
 

@@ -1,0 +1,45 @@
+---
+title: Rewrites | Guides
+description: Learn how to use rewrites in Qwik Router.
+contributors:
+  - omerman
+updated_at: '2025-05-04T19:43:33Z'
+created_at: '2025-05-04T23:45:13Z'
+---
+
+# Rewrites
+
+Sometimes you want to redirect a user from the current page to another page,
+but you want to keep the current URL in the browser history.
+
+Let's say a user tries to access an article which is indexed by its name,
+e.g `/articles/qwik-is-very-quick`.
+but in our code, we access it by its id, on our directory structure.
+
+```
+src/routes/articles/
+├── [id]
+├─── index.tsx
+```
+
+
+```tsx title="src/routes/plugin@article-rewrite.tsx"
+import type { RequestHandler } from "@qwik.dev/router";
+
+export const onRequest: RequestHandler = async ({ url, rewrite }) => {
+  const pattern = /^\/articles\/(.*)$/;
+  // Detects /articles/<article-name>, returns null if url does not match the pattern.
+  const match = url.pathname.match(pattern);
+  if (match) {
+    const articleName = match[1];
+    const { id } = await db.getArticleByName(articleName);
+    throw rewrite(`/articles/${id}`);
+  }
+};
+```
+
+The `rewrite()` function, which was destructured in the RequestHandler function arguments, is invoked with a pathname string.
+
+```tsx
+throw rewrite(`/articles/777/`);
+```

@@ -10,56 +10,53 @@ contributors:
   - forresst
   - mrhoodz
   - iancharlesdouglas
-updated_at: '2023-06-25T19:43:33Z'
+  - wmertens
+updated_at: '2026-02-10T12:00:00Z'
 created_at: '2022-08-02T12:07:45Z'
 ---
 
 For this tutorial, we would like to fetch the list of repositories for a given GitHub organization. To aid you, we have added the `getRepositories()` function to the bottom of the file. Your task is to use the `getRepositories()` function to fetch the list of repositories whenever the user updates the `org` input.
 
-Qwik provides [`useResource$()`](/docs/(qwik)/core/state/index.mdx) and `<Resource>` to help you fetch and display data from the server. When fetching data the application can be in one of three states:
+Qwik provides [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) to help you lazily fetch and display data from the server. It returns an `AsyncSignal<T>` which has these states:
 
-- `pending`: the data is being fetched from the server => Render `loading...` indicator.
-- `resolved`: the data has successfully been fetched from the server => Render the data.
-- `rejected`: the data could not be fetched from the server due to an error => Render the error.
+- loading: the data is being fetched from the server => Render `loading...` indicator. `.loading` is `true` while data is being fetched.
+- resolved: the data has successfully been fetched from the server => Render the data. `.value` contains the last fetched data or the initial value.
+- errored: the data could not be fetched from the server due to an error => Render the error. `.error` contains the error, if any.
 
-Use [`useResource$()`](/docs/(qwik)/core/state/index.mdx) function to set up how the data is fetched from the server. Use `<Resource>` to display the data.
+These states are reactive, meaning that if you use them and they change, your component will automatically re-render to reflect the new state.
+
+Note that when reading `.loading`, it will trigger the actual loading of the data. So you typically won't have to trigger the load manually.
 
 ## Fetching data
 
-Use [`useResource$()`](/docs/(qwik)/core/state/index.mdx) to set up how the data is fetched from the server.
+Use [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) to set up how the data is fetched from the server.
 
 ```jsx
-  const reposResource = useResource$<string[]>(({ track, cleanup }) => {
+  const reposResource = useAsync$<string[]>(({ track, abortSignal }) => {
     // We need a way to re-run fetching data whenever the `github.org` changes.
     // Use `track` to trigger re-running of this data fetching function.
-    track(() => github.org);
+    const org = track(githubOrg);
 
-    // A good practice is to use `AbortController` to abort the fetching of data if
-    // new request comes in. We create a new `AbortController` and register a `cleanup`
-    // function which is called when this function re-runs.
-    const controller = new AbortController();
-    cleanup(() => controller.abort());
+    // The abortSignal is automatically provided and will be aborted when this
+    // function re-runs, allowing you to cancel pending operations.
 
     // Fetch the data and return the promises.
-    return getRepositories(github.org, controller);
+    return getRepositories(org, abortSignal);
   });
 ```
 
-The [`useResource$()`](/docs/(qwik)/core/state/index.mdx) function returns a `ResourceReturn` object, which is a Promise-like object that can be serialized by Qwik. The [`useResource$()`](/docs/(qwik)/core/state/index.mdx) function allows you to `track` store properties so that the [`useResource$()`](/docs/(qwik)/core/state/index.mdx) function can be reactive on store changes. The `cleanup` function allows you to register code that needs to be run to release resources from the previous run. Finally, the [`useResource$()`](/docs/(qwik)/core/state/index.mdx) function returns a promise that will resolve to the value.
+The [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function returns an `AsyncSignal` object, which is reactive state that can be serialized by Qwik. The [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function allows you to `track` store properties so that the [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function can be reactive on store changes. The `abortSignal` allows you to cancel pending operations when the function re-runs. Finally, the [`useAsync$()`](/docs/(qwik)/core/state/index.mdx) function returns a promise that will resolve to the value.
 
 ## Rendering data
 
-Use `<Resource>` to display the data of [`useResource$()`](/docs/(qwik)/core/state/index.mdx) function. The `<Resource>` allows you to render different content depending if the resource is `pending`, `resolved` or `rejected`.
+The `AsyncSignal` provides the `.loading`, `.error`, and `.value` reactive properties to allow you to render different content depending if the resource is `pending`, `resolved` or `rejected`.
 
-On the server the `<Resource>` does not render `loading` state, instead, it pauses rendering until the resource is resolved and will always render as either `resolved` or `rejected`. (On the client, the `<Resource>` renders all states including `pending`.)
+On the server, rendering pauses until the resource is resolved and will always render as either `resolved` or `rejected`. (On the client, all states including `pending` are rendered.)
 
 ```jsx
-<Resource
-  value={resourceToRender}
-  onPending={() => <div>Loading...</div>}
-  onRejected={(reason) => <div>Error: {reason}</div>}
-  onResolved={(data) => <div>{data}</div>}
-/>
+{reposResource.loading && <div>Loading...</div>}
+{reposResource.error && <div>Error: {reposResource.error.message}</div>}
+{reposResource.value && <div>{reposResource.value}</div>}
 ```
 
 ## SSR vs Client

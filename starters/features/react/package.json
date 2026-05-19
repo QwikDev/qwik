@@ -19,7 +19,7 @@
           "namedImports": [
             "qwikReact"
           ],
-          "importPath": "@builder.io/qwik-react/vite"
+          "importPath": "@qwik.dev/react/vite"
         }
       ],
       "vitePlugins": [
@@ -28,7 +28,7 @@
     }
   },
   "devDependencies": {
-    "@builder.io/qwik-react": "0.5.0",
+    "@qwik.dev/react": "0.5.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^5.13.0",

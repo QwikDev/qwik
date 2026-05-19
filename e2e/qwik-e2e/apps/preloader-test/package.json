@@ -1,0 +1,19 @@
+{
+  "name": "preloader-test",
+  "scripts": {
+    "build": "qwik build",
+    "build.client": "vite build",
+    "build.preview": "vite build --ssr src/entry.preview.tsx",
+    "dev": "vite --mode ssr",
+    "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
+    "preview": "qwik build preview && vite preview --open",
+    "start": "vite --open --mode ssr"
+  },
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@qwik-ui/headless": "0.7.1",
+    "body-scroll-lock-upgrade": "1.1.0",
+    "focus-trap": "7.5.4"
+  }
+}

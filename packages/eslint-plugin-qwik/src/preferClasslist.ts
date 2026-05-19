@@ -3,6 +3,7 @@
 import type { TSESTree as T } from '@typescript-eslint/utils';
 import jsxAstUtils from 'jsx-ast-utils';
 import { QwikEslintExamples } from '../examples';
+import { hasJsxImportSourceComment } from './utils';
 
 export const preferClasslist = {
   meta: {
@@ -39,10 +40,7 @@ export const preferClasslist = {
     },
   },
   create(context) {
-    const modifyJsxSource = context.sourceCode
-      .getAllComments()
-      .some((c) => c.value.includes('@jsxImportSource'));
-    if (modifyJsxSource) {
+    if (hasJsxImportSourceComment(context)) {
       return {};
     }
     const classnames = context.options[0]?.classnames ?? ['cn', 'clsx', 'classnames'];
@@ -92,7 +90,7 @@ export const preferClasslist = {
 };
 
 const preferClasslistGood = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import styles from './MyComponent.module.css';
  
 export default component$((props) => {
@@ -112,7 +110,7 @@ export default component$((props) => {
 });`.trim();
 
 const preferClasslistBad = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import classnames from 'classnames';
 import styles from './MyComponent.module.css';
  

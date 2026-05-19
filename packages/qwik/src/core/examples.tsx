@@ -6,15 +6,15 @@
 // it to the desired comment location
 //
 
-import { component$ } from './component/component.public';
-import { qrl } from './qrl/qrl';
-import { $, type QRL } from './qrl/qrl.public';
+import { component$ } from './shared/component.public';
+import { qrl } from './shared/qrl/qrl';
+import { $, type QRL } from './shared/qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
-import { useVisibleTask$, useTask$ } from './use/use-task';
-import { implicit$FirstArg } from './util/implicit_dollar';
-import { isServer, isBrowser } from '../build';
+import { useTask$ } from './use/use-task-dollar';
+import { useVisibleTask$ } from './use/use-visible-task-dollar';
+import { implicit$FirstArg } from './shared/qrl/implicit_dollar';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -29,11 +29,11 @@ export interface CounterProps {
   step?: number;
 }
 export const Counter = component$((props: CounterProps) => {
-  const state = useStore({ count: props.initialValue || 0 });
+  const state = useSignal(props.initialValue || 0);
   return (
     <div>
-      <span>{state.count}</span>
-      <button onClick$={() => (state.count += props.step || 1)}>+</button>
+      <span>{state.value}</span>
+      <button onClick$={() => (state.value += props.step || 1)}>+</button>
     </div>
   );
 });
@@ -214,6 +214,8 @@ export const CmpInline = component$(() => {
     useTask$(({ track }) => {
       // Any signals or stores accessed inside the task will be tracked
       const count = track(() => store.count);
+      // For stores you can also pass the store and specify the property
+      track(store, 'count');
       // You can also pass a signal to track() directly
       const signalCount = track(signal);
       store.doubleCount = count + signalCount;
@@ -237,102 +239,6 @@ export const CmpInline = component$(() => {
   // </docs>
 
   return Cmp;
-};
-
-() => {
-  let db: any;
-  // <docs anchor="use-server-mount">
-  const Cmp = component$(() => {
-    const store = useStore({
-      users: [],
-    });
-
-    useTask$(async () => {
-      if (isServer) {
-        // This code will ONLY run once in the server, when the component is mounted
-        store.users = await db.requestUsers();
-      }
-    });
-
-    return (
-      <div>
-        {store.users.map((user) => (
-          <User user={user} />
-        ))}
-      </div>
-    );
-  });
-
-  interface User {
-    name: string;
-  }
-  function User(props: { user: User }) {
-    return <div>Name: {props.user.name}</div>;
-  }
-  // </docs>
-  return Cmp;
-};
-
-() => {
-  // <docs anchor="use-client-mount">
-  const Cmp = component$(() => {
-    useTask$(async () => {
-      if (isBrowser) {
-        // This code will ONLY run once in the client, when the component is mounted
-      }
-    });
-
-    return <div>Cmp</div>;
-  });
-  // </docs>
-  return Cmp;
-};
-
-() => {
-  // <docs anchor="use-mount">
-  const Cmp = component$(() => {
-    const store = useStore({
-      temp: 0,
-    });
-
-    useTask$(async () => {
-      // This code will run once whenever a component is mounted in the server, or in the client
-      const res = await fetch('weather-api.example');
-      const json = (await res.json()) as any;
-      store.temp = json.temp;
-    });
-
-    return (
-      <div>
-        <p>The temperature is: ${store.temp}</p>
-      </div>
-    );
-  });
-  // </docs>
-  return Cmp;
-};
-
-() => {
-  // <docs anchor="use-client-effect">
-  const Timer = component$(() => {
-    const store = useStore({
-      count: 0,
-    });
-
-    useVisibleTask$(() => {
-      // Only runs in the client
-      const timer = setInterval(() => {
-        store.count++;
-      }, 500);
-      return () => {
-        clearInterval(timer);
-      };
-    });
-
-    return <div>{store.count}</div>;
-  });
-  // </docs>
-  return Timer;
 };
 
 () => {
@@ -391,6 +297,45 @@ export const CmpInline = component$(() => {
     return <div />;
   }
   return Stores;
+};
+
+() => {
+  // <docs anchor="use-signal">
+  const Signals = component$(() => {
+    const counter = useSignal(1);
+    const text = useSignal('changeme');
+    const toggle = useSignal(false);
+
+    // useSignal() can also accept a function to calculate the initial value
+    const state = useSignal(() => {
+      return expensiveInitialValue();
+    });
+
+    return (
+      <div>
+        <button onClick$={() => counter.value++}>Counter: {counter.value}</button>
+        {
+          // pass signal values as the value, the optimizer will make it pass the signal
+        }
+        <Child state={state.value} />
+        {
+          // signals can be bound to inputs. A property named `bind:x` implies that the property is a signal
+        }
+        <input type="text" bind:value={text} />
+        <input type="checkbox" bind:checked={toggle} />
+      </div>
+    );
+  });
+  // </docs>
+
+  function expensiveInitialValue() {
+    return 42;
+  }
+
+  function Child(_props: any) {
+    return <div />;
+  }
+  return Signals;
 };
 
 //
@@ -474,7 +419,8 @@ function doExtraStuff() {
 // <docs anchor="qrl-capturing-rules">
 
 import { createContextId, useContext, useContextProvider } from './use/use-context';
-import { Resource, useResource$ } from './use/use-resource';
+import { Resource } from './use/use-resource';
+import { useResource$ } from './use/use-resource-dollar';
 import { useSignal } from './use/use-signal';
 
 export const greet = () => console.log('greet');

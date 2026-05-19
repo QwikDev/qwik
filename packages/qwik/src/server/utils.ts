@@ -12,7 +12,7 @@ export function createTimer() {
   return () => {
     const end = performance.now();
     const delta = end - start;
-    return delta / 1000000;
+    return delta / 1_000_000;
   };
 }
 
@@ -27,7 +27,7 @@ export function getBuildBase(opts: RenderToStringOptions) {
     }
     return base;
   }
-  return `${import.meta.env.BASE_URL || '/'}build/`;
+  return `${import.meta.env?.BASE_URL || '/'}build/`;
 }
 
 /** @public */

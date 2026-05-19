@@ -1,127 +1,105 @@
-import { build, type BuildOptions } from 'esbuild';
-import {
-  access,
-  type BuildConfig,
-  getBanner,
-  nodeTarget,
-  readFile,
-  target,
-  writeFile,
-} from './util.ts';
-import { join } from 'node:path';
-import { minify } from 'terser';
 import { platformArchTriples } from '@napi-rs/triples';
-import { constants, existsSync } from 'node:fs';
+import { constants, existsSync, mkdirSync, rmSync, symlinkSync } from 'node:fs';
+import { join } from 'node:path';
+import { build as viteBuild, type UserConfig } from 'vite';
+import { compiledStringPlugin } from './compiled-string-plugin.ts';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
-import RawPlugin from 'esbuild-plugin-raw';
+import { access, getBanner, target, writeFile, type BuildConfig } from './util.ts';
 
-/** Builds @builder.io/optimizer */
+/** Builds packages/optimizer and packages/qwik-vite */
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 
   // Uncomment this to regenerate the platform binding map for the optimizer. This is only necessary when adding new platform bindings to qwik, and should be committed to source control.
   // await generatePlatformBindingsData(config);
 
-  async function buildOptimizer() {
-    const opts: BuildOptions = {
-      entryPoints: [join(config.srcQwikDir, submodule, 'src', 'index.ts')],
-      entryNames: 'optimizer',
-      outdir: config.distQwikPkgDir,
-      bundle: true,
-      sourcemap: false,
-      platform: 'node',
-      target,
-      external: [
-        /* no Node.js built-in externals allowed! */
-        'espree',
-        'launch-editor',
+  const entryPoint = join(config.qwikViteDir, 'index.ts');
+  const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
+
+  // Vite configuration for qwik-vite optimizer (packages/qwik/dist/optimizer.mjs)
+  const esmConfig: UserConfig = {
+    clearScreen: false,
+    resolve: {
+      alias: [
+        {
+          find: /^image-size(?=\/|$)/,
+          replacement: join(config.packagesDir, 'qwik', 'node_modules', 'image-size'),
+        },
+        {
+          find: /^launch-editor$/,
+          replacement: join(config.packagesDir, 'qwik', 'node_modules', 'launch-editor'),
+        },
       ],
-    };
-
-    const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
-
-    const esmBuild = build({
-      ...opts,
-      format: 'esm',
-      banner: { js: getBanner('@builder.io/qwik/optimizer', config.distVersion) },
-      outExtension: { '.js': '.mjs' },
-      define: {
-        'globalThis.IS_CJS': 'false',
-        'globalThis.IS_ESM': 'true',
-        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-        ...qwikloaderScripts,
+    },
+    build: {
+      emptyOutDir: false,
+      outDir: config.distQwikPkgDir,
+      sourcemap: false,
+      target: target,
+      minify: !config.dev,
+      rollupOptions: {
+        external: ['node:fs', 'node:path', 'launch-editor', '@qwik.dev/optimizer'],
+        output: {
+          banner: getBanner('@qwik.dev/core/optimizer', config.distVersion),
+        },
       },
-      plugins: [RawPlugin()],
-    });
-
-    const cjsBanner = [`globalThis.qwikOptimizer = (function (module) {`].join('\n');
-
-    const cjsBuild = build({
-      ...opts,
-      format: 'cjs',
-      banner: { js: cjsBanner },
-      footer: {
-        js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
+      lib: {
+        entry: entryPoint,
+        name: 'optimizer',
+        fileName: () => `optimizer.mjs`,
+        formats: ['es'],
       },
-      outExtension: { '.js': '.cjs' },
-      define: {
-        'globalThis.IS_CJS': 'true',
-        'globalThis.IS_ESM': 'false',
-        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-        ...qwikloaderScripts,
+    },
+    define: {
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      ...qwikloaderScripts,
+    },
+    plugins: [
+      compiledStringPlugin(),
+      {
+        name: 'forbid-core',
+        enforce: 'pre',
+        resolveId(id) {
+          // throws an error if files from src/core are loaded, except for some allowed imports
+          if (/src[/\\]core[\\/]/.test(id) && !id.includes('util') && !id.includes('shared')) {
+            console.error('forbid-core', id);
+            throw new Error('Import of core files is not allowed in server builds.');
+          }
+          return null;
+        },
       },
-      target: nodeTarget,
-      plugins: [RawPlugin()],
-    });
+    ],
+  };
 
-    await Promise.all([esmBuild, cjsBuild]);
+  // Build qwik-vite optimizer and @qwik.dev/optimizer package (via its own vite.config.ts)
+  await Promise.all([
+    viteBuild(esmConfig),
+    viteBuild({
+      root: config.optimizerPkgDir,
+      configFile: join(config.optimizerPkgDir, 'vite.config.ts'),
+      mode: config.dev ? 'development' : 'production',
+    }),
+  ]);
 
-    if (!config.dev) {
-      const esmDist = join(config.distQwikPkgDir, 'optimizer.mjs');
-      const cjsDist = join(config.distQwikPkgDir, 'optimizer.cjs');
+  const optimizerScopeDir = join(config.rootDir, 'node_modules', '@qwik.dev');
+  const optimizerLinkPath = join(optimizerScopeDir, 'optimizer');
+  const optimizerTargetPath =
+    process.platform === 'win32'
+      ? config.optimizerPkgDir
+      : join('..', '..', 'packages', 'optimizer');
+  const optimizerLinkType = process.platform === 'win32' ? 'junction' : 'dir';
+  mkdirSync(optimizerScopeDir, { recursive: true });
+  rmSync(optimizerLinkPath, { force: true, recursive: true });
+  // Windows commonly blocks directory symlinks unless Developer Mode or elevated privileges are enabled.
+  symlinkSync(optimizerTargetPath, optimizerLinkPath, optimizerLinkType);
 
-      await Promise.all(
-        [esmDist, cjsDist].map(async (p) => {
-          const src = await readFile(p, 'utf-8');
-          const result = await minify(src, {
-            compress: {
-              booleans: false,
-              collapse_vars: false,
-              comparisons: false,
-              drop_debugger: false,
-              expression: false,
-              keep_classnames: true,
-              inline: false,
-              if_return: false,
-              join_vars: false,
-              loops: false,
-              passes: 1,
-              reduce_funcs: false,
-              reduce_vars: false,
-              sequences: false,
-              switches: false,
-            },
-            format: {
-              comments: false,
-              braces: true,
-              beautify: true,
-              indent_level: 2,
-              preamble: getBanner('@builder.io/qwik/optimizer', config.distVersion),
-            },
-            mangle: false,
-          });
-          await writeFile(p, result.code!);
-        })
-      );
-    }
-
-    console.log('🐹', submodule);
-  }
-
-  await Promise.all([buildOptimizer()]);
+  console.log('🐹', submodule);
 }
 
-async function generatePlatformBindingsData(config: BuildConfig) {
+// This function is only used when adding platform bindings
+// Uncomment the call to generatePlatformBindingsData(config) above when needed
+// export so that it can stay without being used
+export async function generatePlatformBindingsData(config: BuildConfig) {
   // generate the platform binding information for only what qwik provides
   // allows us to avoid using a file system in the optimizer, take a look at:
   // - node_modules/@node-rs/helper/lib/loader.js
@@ -160,12 +138,12 @@ async function generatePlatformBindingsData(config: BuildConfig) {
 
   const code = c.join('\n') + '\n';
 
-  const platformBindingPath = join(config.srcQwikDir, 'optimizer', 'src', 'qwik-binding-map.ts');
+  const platformBindingPath = join(config.optimizerDir, 'qwik-binding-map.ts');
   let isWritable;
   try {
     await access(platformBindingPath, constants.W_OK);
     isWritable = true;
-  } catch (e) {
+  } catch {
     isWritable = false;
   }
   if (isWritable) {

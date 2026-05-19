@@ -4,8 +4,8 @@
   "type": "module",
   "__qwik__": {
     "priority": 2,
-    "displayName": "Playground App (Qwik City + Qwik)",
-    "qwikCity": true,
+    "displayName": "Playground App (Qwik + Qwik Router)",
+    "qwikRouter": true,
     "docs": [
       "https://qwik.dev/docs/getting-started/"
     ]

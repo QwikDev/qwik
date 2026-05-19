@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 
 import { type ReactNode } from 'react';
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 
 function Frame({ children }: { children?: ReactNode[] }) {
   console.log('React <Zippy/> Render');

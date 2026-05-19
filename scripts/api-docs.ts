@@ -8,14 +8,14 @@ export async function generateQwikApiMarkdownDocs(config: BuildConfig, apiJsonIn
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
 }
 
-export async function generateQwikCityApiMarkdownDocs(
+export async function generateQwikRouterApiMarkdownDocs(
   config: BuildConfig,
   apiJsonInputDir: string
 ) {
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city']);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'middleware']);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'static']);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'vite']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router', 'middleware']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router', 'static']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router', 'vite']);
 
   // doesn't really belong here, ah well
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-react']);
@@ -49,28 +49,28 @@ async function generateApiMarkdownSubPackageDocs(
     return;
   }
 
-  const subPkgName = ['@builder.io', ...names].filter((n) => n !== 'core').join('/');
+  const subPkgName = ['@qwik.dev', ...names].filter((n) => n !== 'core').join('/');
   console.log('📚', `Generate API ${subPkgName} markdown docs`);
 
-  const apiOuputDir = join(
+  const apiOutputDir = join(
     config.rootDir,
     'dist-dev',
     'api-docs',
     names.filter((n) => n !== 'core').join('-')
   );
-  mkdirSync(apiOuputDir, { recursive: true });
-  console.log(apiOuputDir);
+  mkdirSync(apiOutputDir, { recursive: true });
+  console.log(apiOutputDir);
 
   await execa(
     'api-documenter',
-    ['markdown', '--input-folder', subPkgInputDir, '--output-folder', apiOuputDir],
+    ['markdown', '--input-folder', subPkgInputDir, '--output-folder', apiOutputDir],
     {
       stdio: 'inherit',
       cwd: join(config.rootDir, 'node_modules', '.bin'),
     }
   );
 
-  await createApiData(config, docsApiJsonPath, apiOuputDir, subPkgName);
+  await createApiData(config, docsApiJsonPath, apiOutputDir, subPkgName);
 }
 
 async function createApiData(
@@ -80,9 +80,10 @@ async function createApiData(
   subPkgName: string
 ) {
   const apiExtractedJson = JSON.parse(readFileSync(docsApiJsonPath, 'utf-8'));
+  const mdPrefix = getMdPrefix(apiExtractedJson, subPkgName);
 
   const apiData: ApiData = {
-    id: subPkgName.replace('@builder.io/', '').replace(/\//g, '-'),
+    id: subPkgName.replace('@qwik.dev/', '').replace(/\//g, '-'),
     package: subPkgName,
     members: [],
   };
@@ -114,7 +115,7 @@ async function createApiData(
 
     const id = getCanonical(hierarchySplit);
 
-    const mdFile = getMdFile(subPkgName, hierarchySplit);
+    const mdFile = getMdFile(mdPrefix, hierarchySplit);
     const mdPath = join(apiOuputDir, mdFile);
 
     const content: string[] = [];
@@ -169,16 +170,23 @@ async function createApiData(
 
   addMembers(apiExtractedJson, '');
 
-  apiData.members.forEach((m1) => {
-    apiData.members.forEach((m2) => {
-      while (m1.content.includes(`./${m2.mdFile}`)) {
-        m1.content = m1.content.replace(`./${m2.mdFile}`, `#${m2.id}`);
-      }
-    });
-  });
+  const memberNameCounts = getMemberNameCounts(apiData.members);
+  const memberAnchorsByMdFile = new Map(
+    apiData.members.map((member) => [member.mdFile, `#${getAnchorId(member, memberNameCounts)}`])
+  );
 
-  apiData.members.forEach((m) => {
-    m.content = m.content.replace(/\.\/qwik(.*)\.md/g, '#');
+  apiData.members.forEach((member) => {
+    // `api-documenter` emits many standalone markdown files into `dist-dev/api-docs`,
+    // but the docs site publishes a single `index.mdx` page per package. Rewrite links
+    // to included members as in-page anchors, and fall back to plain text for members
+    // we intentionally omit from the final one-page docs output.
+    member.content = member.content.replace(
+      /\[([^\]]+)\]\(\.\/([^)]+\.md)\)/g,
+      (_match, label: string, mdFile: string) => {
+        const anchor = memberAnchorsByMdFile.get(mdFile);
+        return anchor ? `[${label}](${anchor})` : label;
+      }
+    );
   });
 
   apiData.members.sort((a, b) => {
@@ -198,11 +206,7 @@ async function createApiData(
 async function createApiMarkdown(a: ApiData) {
   let md: string[] = [];
 
-  const memberNameCounts = a.members.reduce((acc: Record<string, number>, m) => {
-    const normalizedName = m.name.toLowerCase();
-    acc[normalizedName] = (acc[normalizedName] || 0) + 1;
-    return acc;
-  }, {});
+  const memberNameCounts = getMemberNameCounts(a.members);
 
   md.push(`---`);
   md.push(`title: \\${a.package} API Reference`);
@@ -213,9 +217,7 @@ async function createApiMarkdown(a: ApiData) {
 
   for (const m of a.members) {
     // const title = `${toSnakeCase(m.kind)} - ${m.name.replace(/"/g, '')}`;
-    const kind = toSnakeCase(m.kind);
-    const isDuplicateName = memberNameCounts[m.name.toLowerCase()] > 1;
-    const anchorId = isDuplicateName ? `${m.id}-${kind}` : m.id;
+    const anchorId = getAnchorId(m, memberNameCounts);
 
     md.push(`<h2 id="${anchorId}">${m.name}</h2>`);
     md.push(``);
@@ -302,16 +304,41 @@ interface ApiMember {
   mdFile: string;
 }
 
+function getMemberNameCounts(members: ApiMember[]) {
+  return members.reduce((acc: Record<string, number>, member) => {
+    const normalizedName = member.name.toLowerCase();
+    acc[normalizedName] = (acc[normalizedName] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function getAnchorId(member: ApiMember, memberNameCounts: Record<string, number>) {
+  const normalizedName = member.name.toLowerCase();
+  if (memberNameCounts[normalizedName] > 1) {
+    return `${member.id}-${toSnakeCase(member.kind)}`;
+  }
+  return member.id;
+}
+
 function getCanonical(hierarchy: string[]) {
   return hierarchy.map((h) => getSafeFilenameForName(h)).join('-');
 }
 
-function getMdFile(subPkgName: string, hierarchy: string[]) {
+function getMdPrefix(apiExtractedJson: any, subPkgName: string) {
+  if (typeof apiExtractedJson?.name === 'string' && apiExtractedJson.name.length > 0) {
+    return getSafeFilenameForName(apiExtractedJson.name.split('/').pop()!);
+  }
+
+  return subPkgName.includes('router') ? 'router' : 'core';
+}
+
+function getMdFile(mdPrefix: string, hierarchy: string[]) {
   let mdFile = '';
   for (const h of hierarchy) {
     mdFile += '.' + getSafeFilenameForName(h);
   }
-  return `qwik${subPkgName.includes('city') ? '-city' : ''}${mdFile}.md`;
+
+  return `${mdPrefix}${mdFile}.md`;
 }
 
 function getSafeFilenameForName(name: string): string {

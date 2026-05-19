@@ -1,13 +1,13 @@
-import type { Plugin } from 'vite';
-import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
-import { join, basename } from 'node:path';
+import type { TransformModuleInput } from '@qwik.dev/core/optimizer';
+import MagicString from 'magic-string';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { basename, join } from 'node:path';
+import type { PluginContext } from 'rollup';
+import type { Plugin } from 'vite';
+import type { ReplModuleInput } from './src/repl/types';
 import type { ExampleSection } from './src/routes/examples/apps/examples-data';
 import type { PlaygroundApp } from './src/routes/playground/playground-data';
 import type { TutorialSection } from './src/routes/tutorial/tutorial-data';
-import type { PluginContext } from 'rollup';
-import type { ReplModuleInput } from './src/repl/types';
-import MagicString from 'magic-string';
 
 export function playgroundData(routesDir: string): Plugin {
   const playgroundAppDir = join(routesDir, 'playground', 'app');

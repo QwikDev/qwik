@@ -5,7 +5,7 @@ import {
   useStyles$,
   useVisibleTask$,
   type Signal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 import * as L from 'leaflet';
 import leafletStyles from 'leaflet/dist/leaflet.css?inline';
 

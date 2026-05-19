@@ -19,6 +19,8 @@ updated_at: '2023-06-25T19:43:33Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
+import { Note, LongNote } from '~/components/note/note';
+
 # The dollar `$` sign
 
 Qwik splits up your application into many small pieces we call symbols. A component can be broken up into many symbols, so a symbol is smaller than a component. The splitting up is performed by the [Qwik Optimizer](../optimizer/index.mdx).
@@ -32,7 +34,7 @@ The [optimizer](../optimizer/index.mdx) runs as a Vite plugin during bundling. T
 The `$` tells the optimizer which functions to extract into a separate file and which ones to leave untouched. The optimizer does not keep an internal list of magic functions, instead, it solely relies on the `$` suffix to know which functions to transform. The system is extendable and developers can create their own `$` functions, such as `myCustomFunction$()`.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   console.log('render');
@@ -43,7 +45,7 @@ export default component$(() => {
 The component above is split into multiple chunks thanks to the `$` syntax:
 
 ```js title="app.js"
-import { componentQrl, qrl } from '@builder.io/qwik';
+import { componentQrl, qrl } from '@qwik.dev/core';
 
 const App = /*#__PURE__*/ componentQrl(
   qrl(() => import('./app_component_akbu84a8zes.js'), 'App_component_AkbU84a8zes')
@@ -53,8 +55,8 @@ export { App };
 ```
 
 ```js title="app_component_akbu84a8zes.js"
-import { jsx as _jsx } from '@builder.io/qwik/jsx-runtime';
-import { qrl } from '@builder.io/qwik';
+import { jsx as _jsx } from '@qwik.dev/core/jsx-runtime';
+import { qrl } from '@qwik.dev/core';
 export const App_component_AkbU84a8zes = () => {
   console.log('render');
   return /*#__PURE__*/ _jsx('button', {
@@ -75,7 +77,7 @@ export const App_component_button_onClick_01pEgC10cpw = () => console.log('hello
 
 The Optimizer uses `$` as a signal to extract the code. The developer needs to understand that the extraction comes with constraints and therefore special rules apply whenever the `$` is present. (Not all valid JavaScript code is valid code for the Optimizer.)
 
-> The worst kind of code magic is the kind that's invisible to the developer.
+<Note>The worst kind of code magic is the kind that's invisible to the developer.</Note>
 
 ### Allowed expressions
 
@@ -122,10 +124,12 @@ foo$(bar);
 
 For closures, the rules are a bit relaxed, and local identifiers can be referenced and captured.
 
-> **RULE**: If a function lexically captures a variable (or parameter), that variable must be:
->
-> 1. a `const` and
-> 2. the value must be serializable.
+<LongNote title="Closure Capture Rule">
+If a function lexically captures a variable (or parameter), that variable must be:
+
+1. a `const` and
+2. the value must be serializable.
+</LongNote>
 
 ##### Captured variables must be declared as a `const`.
 

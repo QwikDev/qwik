@@ -1,14 +1,15 @@
-import { component$ } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 import { Image } from 'qwik-image';
-import { ClockIcon } from '../icons/clock-icon';
 import { blogArticles } from '../../data';
+import { lucide } from '@qds.dev/ui';
+import { ArticleTag } from './article-tag';
 
 export const FeaturedArticle = component$(() => {
   return (
     <article class="relative group cursor-pointer">
       <Link href={blogArticles[0].path}>
-        <div class="relative max-w-[1200px] overflow-hidden rounded-xl">
+        <div class="relative max-w-[1280px] overflow-hidden rounded-xl border-b-[1.6px] border-border-base bg-background-accent shadow-base">
           <Image
             layout="fullWidth"
             objectFit="fill"
@@ -26,23 +27,20 @@ export const FeaturedArticle = component$(() => {
             hidden: blogArticles[0].featuredTitlePosition === 'none',
           }}
         >
-          <h2 class="pb-4 text-3xl font-bold leading-tight hover:text-slate-200 transition-colors">
+          <h2 class="pb-4 text-h5 font-heading leading-tight transition-colors">
             {blogArticles[0].title}
           </h2>
           <div class="pb-4">
             {blogArticles[0].tags.map((tag, key) => (
-              <span
-                key={key}
-                class="mb-4 px-3 py-1 mr-2 text-xs text-[#0e201a] bg-white rounded-full backdrop-blur-xs"
-              >
-                {tag}
-              </span>
+              <ArticleTag key={key} tag={tag} />
             ))}
           </div>
           <div class="mb-4 flex items-center space-x-4 text-sm">
-            <div class="flex items-center">
-              <ClockIcon />
-              <span>{blogArticles[0].readingTime || '5'} min read</span>
+            <div class="flex items-center gap-2">
+              <lucide.clock2 class="size-[18px] text-border-base" />
+              <span class="text-body-sm text-alert-foreground-base">
+                {blogArticles[0].readingTime || '5'} min read
+              </span>
             </div>
           </div>
         </div>

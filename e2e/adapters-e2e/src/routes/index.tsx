@@ -1,11 +1,13 @@
-import { component$ } from '@builder.io/qwik';
-import { type DocumentHead } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { type DocumentHead } from '@qwik.dev/router';
 import ClickMe from '~/components/click-me/click-me';
 
 export default component$(() => {
   return (
     <>
       <a href="/profile">go to profile</a>
+      <br />
+      <a href="/worker">go to worker</a>
       <br />
       <h1>Home page</h1>
       <br />

@@ -9,6 +9,7 @@ created_at: '2023-04-26T16:12:18Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Library
 
@@ -52,7 +53,6 @@ This will create a new folder called `my-library` with the following structure:
 │   │   │   └── counter.tsx
 │   │   └── logo
 │   │       └── logo.tsx
-│   ├── entry.dev.tsx
 │   ├── entry.ssr.tsx
 │   ├── index.ts
 │   └── root.tsx
@@ -89,13 +89,13 @@ The most important files of a library are a properly configured `package.json` a
 
 Notice the `qwik` field, this is the entry point for the Qwik Optimizer, it will use this file to generate the `index.qwik.mjs` file.
 
-> The file must be called with the `.qwik.mjs` extension, otherwise the Qwik Optimizer will not recognize it.
+<Note>The file must be called with the `.qwik.mjs` extension, otherwise the Qwik Optimizer will not recognize it.</Note>
 
 ## vite.config.ts
 
 ```ts {8-12}
 import { defineConfig } from 'vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikVite } from '@qwik.dev/core/optimizer';
 
 export default defineConfig(() => {
   return {
@@ -126,7 +126,7 @@ export { Counter } from './components/counter/counter';
 
 ## Libraries are also Apps
 
-The library starter is also a standalone Qwik app (without routing, nor Qwik City), this is the reason why you will find `entry.dev.tsx`, `entry.ssr.tsx` and `root.tsx` files.
+The library starter is also a standalone Qwik app (without routing, nor Qwik Router), this is the reason why you will find the `entry.ssr.tsx` and `root.tsx` files.
 
 Do not worry about them, they won't be part of the final library, but they are useful during development and testing, so you can test your components in a real Qwik app.
 
@@ -164,6 +164,4 @@ This will create a `lib` folder with the following structure. Then you can publi
 npm publish
 ```
 
-> Notice that before first publishing, you might want to update the `package.json` fields, like `name`, `version`, `description`, etc.
-
-> For any other subsequent publish, you will need to update the `version` field.
+<Note>Before first publishing, you might want to update the `package.json` fields, like `name`, `version`, `description`, etc. For any other subsequent publish, you will need to update the `version` field.</Note>

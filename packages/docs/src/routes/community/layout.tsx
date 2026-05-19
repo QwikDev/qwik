@@ -1,5 +1,5 @@
-import { component$, Slot, useStyles$ } from '@builder.io/qwik';
-import { SideBar } from '../../components/sidebar/sidebar';
+import { component$, Slot, useSignal, useStyles$ } from '@qwik.dev/core';
+import { Sidebar } from '../../components/sidebar/sidebar';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
@@ -10,12 +10,13 @@ export { useMarkdownItems } from '../../components/sidebar/sidebar';
 
 export default component$(() => {
   useStyles$(styles);
+  const mobileSidebarOpen = useSignal(false);
 
   return (
     <div class="docs fixed-header">
-      <Header />
+      <Header mobileSidebarOpen={mobileSidebarOpen} />
       <div class="flex gap-12 xl:gap-20 items-stretch content-container">
-        <SideBar />
+        <Sidebar mobileOpen={mobileSidebarOpen} />
         <main class="contents">
           <div class="docs-container">
             <article>

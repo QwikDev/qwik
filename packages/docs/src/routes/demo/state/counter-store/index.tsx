@@ -1,4 +1,4 @@
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   const state = useStore({ count: 0, name: 'Qwik' });
@@ -11,6 +11,7 @@ export default component$(() => {
         value={state.name}
         onInput$={(_, el) => (state.name = el.value)}
       />
+      <p>Name: {state.name}</p>
     </>
   );
 });

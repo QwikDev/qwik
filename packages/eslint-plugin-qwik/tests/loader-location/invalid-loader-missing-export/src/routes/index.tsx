@@ -1,6 +1,6 @@
 // Expect error: { "messageId": "missingExport" }
 
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
 
 const useFormLoader = routeLoader$(() => {
   return null;

@@ -15,9 +15,10 @@
     "priority": 30,
     "displayName": "Adapter: AWS Lambda",
     "docs": [
-      "https://qwik.dev/qwikcity/adaptors/aws-lambda/",
+      "https://qwik.dev/docs/deployments/aws-lambda/",
       "https://aws.amazon.com/es/lambda/",
       "https://www.serverless.com/cloud/docs/get-started"
     ]
-  }
+  },
+  "type": "module"
 }

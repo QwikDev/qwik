@@ -1,5 +1,6 @@
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
 import { QwikEslintExamples } from '../examples';
+import { findJsxAttribute, hasJsxAttribute } from './utils';
 
 const createRule = ESLintUtils.RuleCreator(
   (name) => `https://qwik.dev/docs/advanced/eslint/#${name}`
@@ -40,12 +41,7 @@ See https://qwik.dev/docs/integrations/image-optimization/#responsive-images`,
           );
 
           if (!hasSpread) {
-            const src = node.openingElement.attributes.find(
-              (attr) =>
-                attr.type === 'JSXAttribute' &&
-                attr.name.type === 'JSXIdentifier' &&
-                attr.name.name === 'src'
-            ) as TSESTree.JSXAttribute | undefined;
+            const src = findJsxAttribute(node.openingElement.attributes, 'src');
             if (src && src.value) {
               const literal: TSESTree.Literal | undefined =
                 src.value.type === 'Literal'
@@ -72,21 +68,11 @@ See https://qwik.dev/docs/integrations/image-optimization/#responsive-images`,
               }
             }
 
-            const hasWidth = node.openingElement.attributes.some(
-              (attr) =>
-                attr.type === 'JSXAttribute' &&
-                attr.name.type === 'JSXIdentifier' &&
-                attr.name.name === 'width'
-            );
-            const hasHeight = node.openingElement.attributes.some(
-              (attr) =>
-                attr.type === 'JSXAttribute' &&
-                attr.name.type === 'JSXIdentifier' &&
-                attr.name.name === 'height'
-            );
+            const hasWidth = hasJsxAttribute(node.openingElement.attributes, 'width');
+            const hasHeight = hasJsxAttribute(node.openingElement.attributes, 'height');
             if (!hasWidth || !hasHeight) {
               context.report({
-                node: node as any,
+                node,
                 messageId: 'noWidthHeight',
               });
             }

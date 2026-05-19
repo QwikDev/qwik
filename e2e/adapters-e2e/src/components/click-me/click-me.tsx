@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 // We need to extract the component to see the bug on 1.5.7
 export default component$(() => {

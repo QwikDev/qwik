@@ -1,6 +1,5 @@
-import { $, useOn, useOnDocument, useSignal } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik';
-import { Component, createContext, createElement, createRef } from 'react';
+import { $, isServer, useOn, useOnDocument, useSignal, type QRL } from '@qwik.dev/core';
+import { Component, createContext, createElement, createRef, type ReactElement } from 'react';
 import type { QwikifyOptions, QwikifyProps } from './types';
 
 interface SlotState {
@@ -10,18 +9,31 @@ interface SlotState {
 }
 const SlotCtx = createContext<SlotState>({ scopeId: '' });
 
-export function main(slotEl: Element | undefined, scopeId: string, RootCmp: any, props: any) {
+export interface QwikProjectionState {
+  parentVNode: any; // VirtualVNode
+  container: any; // Container
+}
+export const QwikProjectionCtx = createContext<QwikProjectionState | null>(null);
+
+export function main(
+  slotEl: Element | undefined,
+  scopeId: string,
+  RootCmp: any,
+  props: any,
+  projectionState?: QwikProjectionState | null
+) {
   const newProps = getReactProps(props);
-  return mainExactProps(slotEl, scopeId, RootCmp, newProps);
+  return mainExactProps(slotEl, scopeId, RootCmp, newProps, projectionState);
 }
 
 export function mainExactProps(
   slotEl: Element | undefined,
   scopeId: string,
   RootCmp: any,
-  props: any
+  props: any,
+  projectionState?: QwikProjectionState | null
 ) {
-  return createElement(SlotCtx.Provider, {
+  let tree: ReactElement = createElement(SlotCtx.Provider, {
     value: {
       el: slotEl,
       scopeId,
@@ -32,6 +44,13 @@ export function mainExactProps(
       children: createElement(SlotElement, null),
     }),
   });
+  if (projectionState) {
+    tree = createElement(QwikProjectionCtx.Provider, {
+      value: projectionState,
+      children: tree,
+    });
+  }
+  return tree;
 }
 
 export class SlotElement extends Component {
@@ -133,3 +152,22 @@ export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = 
 };
 
 const HOST_PREFIX = 'host:';
+
+export interface SSRProjectionEntry {
+  qrl: QRL<any>;
+  props: Record<string, any>;
+}
+
+export interface SSRProjectionRegistry {
+  entries: Map<string, SSRProjectionEntry>;
+}
+
+let _ssrProjectionRegistry: SSRProjectionRegistry | null = null;
+
+export function setSSRProjectionRegistry(registry: SSRProjectionRegistry | null): void {
+  _ssrProjectionRegistry = registry;
+}
+
+export function getSSRProjectionRegistry(): SSRProjectionRegistry | null {
+  return _ssrProjectionRegistry;
+}

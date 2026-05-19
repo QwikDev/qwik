@@ -1,4 +1,4 @@
-import { component$, type QRL, Slot, useStore } from '@builder.io/qwik';
+import { component$, type QRL, Slot, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   return (

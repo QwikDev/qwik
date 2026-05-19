@@ -15,10 +15,10 @@ export async function updateViteConfigs(
     if (viteConfig) {
       let viteConfigPath = join(rootDir, 'vite.config.ts');
       if (!fs.existsSync(viteConfigPath)) {
-        viteConfigPath = join(rootDir, 'vite.config.mts');
+        viteConfigPath = join(rootDir, 'vite.config.ts');
       }
       if (!fs.existsSync(viteConfigPath)) {
-        throw new Error(`Could not find vite.config.ts or vite.config.mts in ${rootDir}`);
+        throw new Error(`Could not find vite.config.ts or vite.config.ts in ${rootDir}`);
       }
       const destContent = await fs.promises.readFile(viteConfigPath, 'utf-8');
 

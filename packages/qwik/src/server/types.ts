@@ -1,23 +1,19 @@
-import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
+import type { SnapshotResult } from '@qwik.dev/core';
+import type { StreamWriter } from '@qwik.dev/core/internal';
 import type {
   QwikManifest,
   ServerQwikManifest,
   ResolvedManifest,
   SymbolMapper,
   SymbolMapperFn,
-} from '@builder.io/qwik/optimizer';
+} from '@qwik.dev/core/optimizer';
+import type { StreamHandler } from './ssr-stream-handler';
 
 /** @public */
 export interface SerializeDocumentOptions {
   manifest?: Partial<QwikManifest | ResolvedManifest>;
   symbolMapper?: SymbolMapperFn;
   debug?: boolean;
-}
-
-/** @public */
-export interface PrefetchStrategy {
-  implementation?: PrefetchImplementation;
-  symbolsToPrefetch?: SymbolsToPrefetch;
 }
 
 /** @public */
@@ -34,20 +30,6 @@ export interface PreloaderOptions {
    */
   ssrPreloads?: number;
   /**
-   * The minimum probability for a bundle to be added as a preload link during SSR.
-   *
-   * Defaults to `0.7` (70% probability)
-   *
-   * This makes sure that the most likely bundles are preloaded ahead of time.
-   */
-  ssrPreloadProbability?: number;
-  /**
-   * Log preloader debug information to the console.
-   *
-   * Defaults to `false`
-   */
-  debug?: boolean;
-  /**
    * Maximum number of simultaneous preload links that the preloader will maintain. If you set this
    * higher, the browser will have all JS files in memory sooner, but it will contend with other
    * resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait
@@ -59,39 +41,7 @@ export interface PreloaderOptions {
    * Defaults to `25`
    */
   maxIdlePreloads?: number;
-  /**
-   * @deprecated The minimum probability for a bundle to be added to the preload queue.
-   *
-   *   Defaulted to `0.35` (35% probability).
-   *
-   *   Deprecated because this could cause performance issues with bundles fetched on on click instead
-   *   of being preloaded ahead of time.
-   */
-  preloadProbability?: number;
 }
-
-/** @public @deprecated Use `preloader` instead */
-export interface PrefetchImplementation {
-  /** @deprecated No longer used. */
-  linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
-  /** @deprecated No longer used. */
-  linkFetchPriority?: 'auto' | 'low' | 'high' | null;
-  /** @deprecated No longer used. */
-  linkInsert?: 'js-append' | 'html-append' | null;
-  /** @deprecated No longer used. */
-  workerFetchInsert?: 'always' | 'no-link-support' | null;
-  /** @deprecated No longer used. */
-  prefetchEvent?: 'always' | null;
-}
-
-/**
- * Auto: Prefetch all possible QRLs used by the document. Default
- *
- * @public
- */
-export type SymbolsToPrefetch =
-  | 'auto'
-  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
 
 /** @public */
 export interface PrefetchResource {
@@ -114,6 +64,7 @@ export interface RenderToStreamResult extends RenderResult {
 export interface RenderToStringResult extends RenderResult {
   html: string;
   timing: {
+    firstFlush: number;
     render: number;
     snapshot: number;
   };
@@ -121,8 +72,8 @@ export interface RenderToStringResult extends RenderResult {
 
 /** @public */
 export interface RenderResult {
-  prefetchResources: PrefetchResource[];
-  snapshotResult: SnapshotResult | undefined;
+  /** @deprecated Not longer used in v2 */
+  snapshotResult?: SnapshotResult | undefined;
   isStatic: boolean;
   manifest?: ServerQwikManifest;
 }
@@ -139,16 +90,18 @@ export type QwikLoaderOptions =
       position?: 'top' | 'bottom';
     };
 
-/**
- * @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts.
- * @public
- */
-export interface QwikPrefetchServiceWorkerOptions {
-  /** @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts. */
-  include?: boolean;
-  /** @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts. */
-  position?: 'top' | 'bottom';
+export interface SSRRenderOptions {
+  streamHandler: StreamHandler;
+  locale?: string;
+  tagName?: string;
+  writer?: StreamWriter;
+  timing?: RenderToStreamResult['timing'];
+  buildBase?: string;
+  resolvedManifest?: ResolvedManifest;
+  renderOptions?: RenderOptions;
 }
+
+export type SSRContainerOptions = Required<SSRRenderOptions>;
 
 /** @public */
 export interface RenderOptions extends SerializeDocumentOptions {
@@ -187,18 +140,13 @@ export interface RenderOptions extends SerializeDocumentOptions {
   /** Specifies how preloading is handled. This ensures that code is instantly available when needed. */
   preloader?: PreloaderOptions | false;
 
-  /** @deprecated Use `preloader` instead */
-  qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
-
-  /** @deprecated Use `preloader` instead */
-  prefetchStrategy?: PrefetchStrategy | null;
-
   /**
    * When set, the app is serialized into a fragment. And the returned html is not a complete
    * document. Defaults to `html`
    */
   containerTagName?: string;
   containerAttributes?: Record<string, string>;
+  /** Metadata that can be retrieved during SSR with `useServerData()`. */
   serverData?: Record<string, any>;
 }
 
@@ -208,8 +156,8 @@ export interface RenderToStringOptions extends RenderOptions {}
 /** @public */
 export interface InOrderAuto {
   strategy: 'auto';
-  maximunInitialChunk?: number;
-  maximunChunk?: number;
+  maximumInitialChunk?: number;
+  maximumChunk?: number;
 }
 
 /** @public */
@@ -244,5 +192,30 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
 
 /** @public */
 export type Render = RenderToString | RenderToStream;
+
+/**
+ * Flags for VNodeData (Flags con be bitwise combined)
+ *
+ * @internal
+ */
+export const enum VNodeDataFlag {
+  /// Initial state.
+  NONE = 0,
+  /// Indicates that multiple Text nodes are present and can't be derived from HTML.
+  TEXT_DATA = 1,
+  /// Indicates that the virtual nodes are present and can't be derived from HTML.
+  VIRTUAL_NODE = 2,
+  /// Indicates that the element nodes are present and some data can't be derived from HTML.
+  ELEMENT_NODE = 4,
+  /// Indicates that serialized data is referencing this node and so we need to retrieve a reference to it.
+  REFERENCE = 8,
+  /// Should be output during serialization.
+  SERIALIZE = 16,
+}
+
+export type BackpatchEntry = {
+  attrName: string;
+  value: Awaited<string | boolean | null>;
+};
 
 export type { QwikManifest, ServerQwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

@@ -24,14 +24,14 @@ export const AtomStatus = component$(({ctx,atom})=>{
 ============================= test.jsx ==
 
 import { componentQrl } from "@qwik.dev/core";
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
 //
 const q_AtomStatus_component_hdwpoUtydSA = /*#__PURE__*/ _noopQrl("AtomStatus_component_hdwpoUtydSA");
 const q_AtomStatus_component_span_q_e_click_0yqKAycyBF0 = /*#__PURE__*/ _noopQrl("AtomStatus_component_span_q_e_click_0yqKAycyBF0");
 //
 q_AtomStatus_component_span_q_e_click_0yqKAycyBF0.s((ev)=>{
-    const _rawProps = _captures[0];
+    let _rawProps = _capturesObj._[0];
     return atomStatusClick(_rawProps.ctx, ev, [
         _rawProps.atom
     ]);

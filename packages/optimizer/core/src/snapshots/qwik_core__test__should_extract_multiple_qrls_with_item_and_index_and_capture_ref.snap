@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5026
+assertion_line: 5212
 expression: output
 ---
 ==INPUT==
@@ -35,10 +35,10 @@ export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CAWZ\"}")
 ============================= test.tsx_test_component_div_div_q_e_hover_2iHUE4xtgo8.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const test_component_div_div_q_e_hover_2iHUE4xtgo8 = (_, _1, _2, index)=>{
-    const bar = _captures[0];
+    let bar = _capturesObj._[0];
     return console.log(bar.value, index);
 };
 
@@ -75,10 +75,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const test_component_div_div_q_e_click_Mc600uqO6ps = (_, _1, item)=>{
-    const foo = _captures[0];
+    let foo = _capturesObj._[0];
     return console.log(item, foo.value);
 };
 

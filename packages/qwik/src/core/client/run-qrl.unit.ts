@@ -11,11 +11,14 @@ import { VNodeFlags } from './types';
 vi.mock('../shared/qrl/qrl-class', async () => {
   const actual =
     await vi.importActual<typeof import('../shared/qrl/qrl-class')>('../shared/qrl/qrl-class');
+  const capturesObj: { _: unknown[] | null } = { _: null };
   return {
     ...actual,
     deserializeCaptures: vi.fn(),
-    setCaptures: vi.fn(),
-    _captures: null,
+    setCaptures: vi.fn((captures: unknown[] | null) => {
+      capturesObj._ = captures;
+    }),
+    _capturesObj: capturesObj,
   };
 });
 
@@ -94,11 +97,7 @@ describe('_run', () => {
     vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
     vi.mocked(qrlClass.deserializeCaptures).mockReturnValue([mockQrl]);
 
-    // Mock _captures global
-    Object.defineProperty(qrlClass, '_captures', {
-      get: () => [mockQrl],
-      configurable: true,
-    });
+    qrlClass._capturesObj._ = [mockQrl];
   });
 
   afterEach(() => {
@@ -137,15 +136,12 @@ describe('_run', () => {
 
   it('should get QRL from first capture', () => {
     const mockQrlFromCaptures = vi.fn();
-    Object.defineProperty(qrlClass, '_captures', {
-      get: () => [mockQrlFromCaptures],
-      configurable: true,
-    });
+    vi.mocked(qrlClass.deserializeCaptures).mockReturnValue([mockQrlFromCaptures]);
 
     _run.call('captures', mockEvent, mockElement);
 
-    // The function should use the QRL from _captures[0]
-    expect(qrlClass._captures![0]).toBe(mockQrlFromCaptures);
+    // The function should use the QRL from _capturesObj._[0]
+    expect(qrlClass._capturesObj._![0]).toBe(mockQrlFromCaptures);
   });
 
   it('should handle empty captures string', () => {

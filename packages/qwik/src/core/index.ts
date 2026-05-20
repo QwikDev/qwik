@@ -32,6 +32,7 @@ export { eventQrl } from './shared/qrl/qrl.public';
 export { event$ } from './shared/qrl/qrl.public.dollar';
 
 export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './shared/qrl/qrl';
+export { _capturesObj } from './shared/qrl/qrl-class';
 export type { QRL, PropFunction } from './shared/qrl/qrl.public';
 export { implicit$FirstArg } from './shared/qrl/implicit_dollar';
 

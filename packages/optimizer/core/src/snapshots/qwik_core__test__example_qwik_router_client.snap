@@ -1932,11 +1932,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_Link_component_useVisibleTask_6K6z063D0C4.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { isDev } from "@qwik.dev/core";
 //
 export const Link_component_useVisibleTask_6K6z063D0C4 = ({ track })=>{
-    const anchorRef = _captures[0], handlePrefetch = _captures[1], linkProps = _captures[2], loc = _captures[3];
+    let anchorRef = _capturesObj._[0], handlePrefetch = _capturesObj._[1], linkProps = _capturesObj._[2], loc = _capturesObj._[3];
     track(()=>loc.url.pathname);
     const handler = linkProps.onQVisible$;
     if (handler) {
@@ -2601,10 +2601,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_ErrorBoundary_component_useOnWindow_GYhPAutMLGk.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const ErrorBoundary_component_useOnWindow_GYhPAutMLGk = (e)=>{
-    const store = _captures[0];
+    let store = _capturesObj._[0];
     store.error = e.detail.error;
 };
 
@@ -2793,10 +2793,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_Form_form_q_e_submit_iIfbMzzXpIA.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Form_form_q_e_submit_iIfbMzzXpIA = (evt)=>{
-    const action = _captures[0];
+    let action = _capturesObj._[0];
     if (!action.submitted) return action.submit(evt);
 };
 
@@ -3159,7 +3159,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_useQwikRouter_useTask_omhKiQfdzZU.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { QWIK_ROUTER_SCROLLER } from "./index.qwik.mjs";
 import { _auto_getScrollHistory as getScrollHistory } from "./index.qwik.mjs";
 import { _auto_restoreScroll as restoreScroll } from "./index.qwik.mjs";
@@ -3273,7 +3273,7 @@ const startViewTransition = (params)=>{
     } else params.update?.();
 };
 export const useQwikRouter_useTask_omhKiQfdzZU = ({ track })=>{
-    const actionState = _captures[0], content = _captures[1], contentInternal = _captures[2], documentHead = _captures[3], env = _captures[4], goto = _captures[5], loaderState = _captures[6], loadersObject = _captures[7], navResolver = _captures[8], props = _captures[9], routeInternal = _captures[10], routeLocation = _captures[11], routeLocationTarget = _captures[12], serverHead = _captures[13];
+    let actionState = _capturesObj._[0], content = _capturesObj._[1], contentInternal = _capturesObj._[2], documentHead = _capturesObj._[3], env = _capturesObj._[4], goto = _capturesObj._[5], loaderState = _capturesObj._[6], loadersObject = _capturesObj._[7], navResolver = _capturesObj._[8], props = _capturesObj._[9], routeInternal = _capturesObj._[10], routeLocation = _capturesObj._[11], routeLocationTarget = _capturesObj._[12], serverHead = _capturesObj._[13];
     async function run() {
         const navigation = track(routeInternal);
         const action = track(actionState);
@@ -3552,10 +3552,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_no0bm2fybZo.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const usePreventNavigateQrl_useVisibleTask_no0bm2fybZo = ()=>{
-    const fn = _captures[0], registerPreventNav = _captures[1];
+    let fn = _capturesObj._[0], registerPreventNav = _capturesObj._[1];
     return registerPreventNav(fn);
 };
 
@@ -3587,10 +3587,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_useQwikMockRouter_useTask_oml2hW1aK6I.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const useQwikMockRouter_useTask_oml2hW1aK6I = async ({ track })=>{
-    const actionState = _captures[0], actionsMocks = _captures[1];
+    let actionState = _capturesObj._[0], actionsMocks = _capturesObj._[1];
     const action = track(actionState);
     if (!action?.resolve) return;
     const mock = actionsMocks?.[action.id];
@@ -3631,7 +3631,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_serverQrl_RA3PmZ4Oyak.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { _auto_useQwikRouterEnv as useQwikRouterEnv } from "./index.qwik.mjs";
 import { j as QDATA_KEY } from "./chunks/routing.qwik.mjs";
 import { f as QFN_KEY } from "./chunks/routing.qwik.mjs";
@@ -3665,7 +3665,7 @@ const deserializeStream = async function*(stream, abortSignal) {
     }
 };
 export const serverQrl_RA3PmZ4Oyak = async function(...args) {
-    const fetchOptions = _captures[0], headers = _captures[1], method = _captures[2], origin = _captures[3], qrl = _captures[4];
+    let fetchOptions = _capturesObj._[0], headers = _capturesObj._[1], method = _capturesObj._[2], origin = _capturesObj._[3], qrl = _capturesObj._[4];
     const abortSignal = args.length > 0 && args[0] instanceof AbortSignal ? args.shift() : void 0;
     if (isServer) {
         let requestEvent = _asyncRequestStore?.getStore();
@@ -3774,10 +3774,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_Link_component_handleClientSideNavigation_rMfmL7bFMLU.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Link_component_handleClientSideNavigation_rMfmL7bFMLU = (event, elm)=>{
-    const nav = _captures[0], reload = _captures[1], replaceState = _captures[2], scroll = _captures[3];
+    let nav = _capturesObj._[0], reload = _capturesObj._[1], replaceState = _capturesObj._[2], scroll = _capturesObj._[3];
     if (event.defaultPrevented) {
         if (elm.href) {
             elm.setAttribute('aria-pressed', 'true');
@@ -3929,10 +3929,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_GetForm_component_form_q_e_submit_D0PAP3eJ0Ng.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const GetForm_component_form_q_e_submit_D0PAP3eJ0Ng = async (_evt, form)=>{
-    const nav = _captures[0];
+    let nav = _capturesObj._[0];
     const formData = new FormData(form);
     const params = new URLSearchParams();
     formData.forEach((value, key)=>{
@@ -3975,7 +3975,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_useQwikRouter_goto_OSnb99dm7Ow.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { QWIK_CITY_SCROLLER } from "./index.qwik.mjs";
 import { QWIK_ROUTER_SCROLLER } from "./index.qwik.mjs";
 import { _auto_getScrollHistory as getScrollHistory } from "./index.qwik.mjs";
@@ -3992,7 +3992,7 @@ import * as qwikRouterConfig from "@qwik-router-config";
 import { t as toUrl } from "./chunks/routing.qwik.mjs";
 //
 export const useQwikRouter_goto_OSnb99dm7Ow = async (path, opt)=>{
-    const actionState = _captures[0], navResolver = _captures[1], routeInternal = _captures[2], routeLocation = _captures[3];
+    let actionState = _capturesObj._[0], navResolver = _capturesObj._[1], routeInternal = _capturesObj._[2], routeLocation = _capturesObj._[3];
     const { type = 'link', forceReload = path === void 0, // Hack for nav() because this API is already set.
     replaceState = false, scroll = true } = typeof opt === 'object' ? opt : {
         forceReload: opt
@@ -4134,12 +4134,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_routeActionQrl_action_submit_JY3C42B1B08.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { isServer } from "@qwik.dev/core";
 import { noSerialize } from "@qwik.dev/core";
 //
 export const routeActionQrl_action_submit_JY3C42B1B08 = (input = {})=>{
-    const currentAction = _captures[0], id = _captures[1], loc = _captures[2], state = _captures[3];
+    let currentAction = _capturesObj._[0], id = _capturesObj._[1], loc = _capturesObj._[2], state = _capturesObj._[3];
     if (isServer) throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
     let data;

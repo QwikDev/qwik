@@ -23,7 +23,7 @@ expression: output
 import { _restProps } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { useComputedQrl } from "@qwik.dev/core";
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 //
@@ -32,12 +32,12 @@ const q_test_component_useComputed_PYU291PvidQ = /*#__PURE__*/ _noopQrl("test_co
 const q_test_component_useTask_jewzFYh3XmQ = /*#__PURE__*/ _noopQrl("test_component_useTask_jewzFYh3XmQ");
 //
 const test_component_useComputed_PYU291PvidQ = ()=>{
-    const _rawProps = _captures[0];
+    let _rawProps = _capturesObj._[0];
     return _rawProps.color;
 };
 q_test_component_useComputed_PYU291PvidQ.s(test_component_useComputed_PYU291PvidQ);
 const test_component_useTask_jewzFYh3XmQ = ()=>{
-    const props = _captures[0];
+    let props = _capturesObj._[0];
     props.checked;
 };
 q_test_component_useTask_jewzFYh3XmQ.s(test_component_useTask_jewzFYh3XmQ);

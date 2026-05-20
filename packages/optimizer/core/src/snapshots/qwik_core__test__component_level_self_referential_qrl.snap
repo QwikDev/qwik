@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5854
+assertion_line: 6143
 expression: output
 ---
 ==INPUT==
@@ -81,10 +81,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Foo_component_other_useAsync_fsHooibmyyE.tsx (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Foo_component_other_useAsync_fsHooibmyyE = async (_rawProps)=>{
-    const other = _captures[0];
+    let other = _capturesObj._[0];
     const timer = setInterval(()=>{
         other.value++;
     }, 900);
@@ -134,10 +134,10 @@ export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,6CAA6C;;AAC7C,OAAO,MAAM,oBAAM,0CAoBhB\"}")
 ============================= test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY.tsx (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Foo_component_sig_useAsync_f0BGwWm4eeY = async (_rawProps)=>{
-    const sig = _captures[0];
+    let sig = _capturesObj._[0];
     const timer = setInterval(()=>{
         sig.value++;
     }, 1000);

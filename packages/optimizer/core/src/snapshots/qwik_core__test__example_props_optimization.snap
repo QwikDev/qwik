@@ -52,7 +52,7 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
 import { _restProps } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
@@ -76,7 +76,7 @@ const q_Works_component_t45qL4vNGv0 = /*#__PURE__*/ _noopQrl("Works_component_t4
 const q_Works_component_useTask_pjo5U5Ikll0 = /*#__PURE__*/ _noopQrl("Works_component_useTask_pjo5U5Ikll0");
 //
 q_Works_component_useTask_pjo5U5Ikll0.s(({ track })=>{
-    const _rawProps = _captures[0], rest = _captures[1];
+    let _rawProps = _capturesObj._[0], rest = _capturesObj._[1];
     track(()=>_rawProps.count);
     console.log(_rawProps.count, rest, _rawProps.stuff, _rawProps.some ?? 3, _rawProps.stuffDefault ?? 123);
 });
@@ -108,7 +108,7 @@ q_Works_component_t45qL4vNGv0.s((_rawProps)=>{
     }, _wrapProp(_rawProps, "count"), 0, "u6_0");
 });
 q_NoWorks2_component_useTask_lXiqwbxxjq0.s(({ track })=>{
-    const count = _captures[0];
+    let count = _capturesObj._[0];
     track(()=>count);
     console.log(count);
 });
@@ -122,7 +122,7 @@ q_NoWorks2_component_JPD9t2HyEKg.s(({ count, stuff: { hey } })=>{
     }, null, count, 1, "u6_1");
 });
 q_NoWorks3_component_useTask_3cQGU0s1VwU.s(({ track })=>{
-    const count = _captures[0];
+    let count = _capturesObj._[0];
     track(()=>count);
     console.log(count);
 });

@@ -6921,10 +6921,10 @@ export const App = component$(() => {
 		"Expected inlinedQrl first arg to be an inline function expression in lib mode.\nGenerated code:\n{}",
 		combined_code
 	);
-	// No _captures should be used
+	// No _capturesObj(Obj) should be used
 	assert!(
-		!compact_code.contains("_captures"),
-		"Expected no _captures in lib mode output.\nGenerated code:\n{}",
+		!compact_code.contains("_capturesObj"),
+		"Expected no _capturesObj.* in lib mode output.\nGenerated code:\n{}",
 		combined_code
 	);
 }
@@ -6933,19 +6933,19 @@ export const App = component$(() => {
 fn inlined_qrl_preserves_captures() {
 	// Simulates lib-preprocessed code being processed by the app optimizer.
 	// The inner inlinedQrl has 5 captures, including variables defined via
-	// the outer function's _captures destructuring.
+	// the outer function's _capturesObj reads.
 	let res = test_input!(TestInput {
 		code: r#"
-import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _captures } from '@qwik.dev/core';
+import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _capturesObj } from '@qwik.dev/core';
 
 export function qwikifyQrl(reactCmp$, opts) {
 	return componentQrl(inlinedQrl((props) => {
-		const opts2 = _captures[0], reactCmp$2 = _captures[1];
+		const opts2 = _capturesObj._[0], reactCmp$2 = _capturesObj._[1];
 		const hostRef = useSignal();
 		const signal = useSignal();
 		const text = 'hello';
 		useTaskQrl(inlinedQrl(async ({ track }) => {
-			const hostRef2 = _captures[0], reactCmp$3 = _captures[1], opts3 = _captures[2], signal2 = _captures[3], text2 = _captures[4];
+			const hostRef2 = _capturesObj._[0], reactCmp$3 = _capturesObj._[1], opts3 = _capturesObj._[2], signal2 = _capturesObj._[3], text2 = _capturesObj._[4];
 			track(signal2);
 			console.log(hostRef2, reactCmp$3, opts3, text2);
 		}, "s_inner123", [hostRef, reactCmp$2, opts2, signal, text]));
@@ -7026,18 +7026,18 @@ fn inlined_qrl_preserves_destructured_captures() {
 	// the destructuring because it would break the explicit captures.
 	let res = test_input!(TestInput {
 		code: r#"
-import { componentQrl, inlinedQrl, useComputedQrl, useSignal, useTaskQrl, _captures, _jsxSorted } from '@qwik.dev/core';
+import { componentQrl, inlinedQrl, useComputedQrl, useSignal, useTaskQrl, _capturesObj, _jsxSorted } from '@qwik.dev/core';
 import { useCustomSignal } from './use-custom-signal.qwik.mjs';
 
 const MyComponent = componentQrl(inlinedQrl((props) => {
     const count = useSignal(0);
     const { openSig: isOpen } = useCustomSignal(props, { open: false });
     const label = useComputedQrl(inlinedQrl(() => {
-        const count2 = _captures[0], isOpen2 = _captures[1];
+        const count2 = _capturesObj._[0], isOpen2 = _capturesObj._[1];
         return count2.value + isOpen2.value;
     }, "MyComponent_component_label_useComputed_ABC123", [count, isOpen]));
     useTaskQrl(inlinedQrl(({ track }) => {
-        const isOpen3 = _captures[0];
+        const isOpen3 = _capturesObj._[0];
         track(() => isOpen3.value);
         console.log("isOpen changed:", isOpen3.value);
     }, "MyComponent_component_useTask_DEF456", [isOpen]));
@@ -7105,12 +7105,12 @@ fn lib_full_names_shortened_in_prod() {
 	// When a prod build consumes this lib, names should be shortened to "s_hash".
 	let res = test_input!(TestInput {
 		code: r#"
-import { componentQrl, inlinedQrl, useTaskQrl, _captures } from '@qwik.dev/core';
+import { componentQrl, inlinedQrl, useTaskQrl, _capturesObj } from '@qwik.dev/core';
 
 export const Works = componentQrl(inlinedQrl((props) => {
 	const text = 'hola';
 	useTaskQrl(inlinedQrl(() => {
-		const text = _captures[0];
+		const text = _capturesObj._[0];
 		console.log(text);
 	}, "Works_component_useTask_pjo5U5Ikll0", [text]));
 }, "Works_component_t45qL4vNGv0"));
@@ -7606,15 +7606,15 @@ impl TestInput {
 fn should_preserve_non_ident_explicit_captures() {
 	let res = test_input!(TestInput {
 		code: r#"
-import { _captures, inlinedQrl } from '@qwik.dev/core';
+import { _capturesObj, inlinedQrl } from '@qwik.dev/core';
 
 const left = 1;
 const right = 2;
 
 export const task = inlinedQrl(() => {
-	const left = _captures[0];
-	const middle = _captures[1];
-	const right = _captures[2];
+	const left = _capturesObj._[0];
+	const middle = _capturesObj._[1];
+	const right = _capturesObj._[2];
 	return middle ? left : right;
 }, 'task', [left, true, right]);
 "#

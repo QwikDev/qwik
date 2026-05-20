@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 6512
+assertion_line: 6765
 expression: output
 ---
 ==INPUT==
@@ -71,7 +71,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
 import { _getVarProps } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { useStylesScopedQrl } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
@@ -111,7 +111,7 @@ export const rawFn = (event, element)=>{
 };
 q_Field_Lifecycle_children_1_Bk3lkC2Z00U.s(rawFn);
 const Field_Lifecycle_children_4aZ3omfUAIs = (element)=>{
-    const field1 = _captures[0];
+    let field1 = _capturesObj._[0];
     field1.internal.elements.push(element);
 };
 q_Field_Lifecycle_children_4aZ3omfUAIs.s(Field_Lifecycle_children_4aZ3omfUAIs);

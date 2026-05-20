@@ -78,7 +78,7 @@ export {
 } from './use/use-core';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { isTask as _isTask, scheduleTask as _task } from './use/use-task';
-export { _captures } from './shared/qrl/qrl-class';
+export { _capturesObj } from './shared/qrl/qrl-class';
 export { _rsc } from './use/use-resource';
 export type { AsyncSignalOptions } from './reactive-primitives/types';
 export { setEvent as _setEvent } from './ssr/ssr-events';

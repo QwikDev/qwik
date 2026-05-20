@@ -11,7 +11,7 @@ import { componentQrl } from '../shared/component.public';
 import { type TaskCtx, useTaskQrl } from '../use/use-task';
 import { isServer } from '@qwik.dev/core/build';
 import { SkipRender } from '../shared/jsx/utils.public';
-import { _captures } from '../shared/qrl/qrl-class';
+import { _capturesObj } from '../shared/qrl/qrl-class';
 
 export interface EachProps<T, ITEM extends JSXOutput = JSXOutput> {
   items: readonly T[];
@@ -28,7 +28,7 @@ export type EachComponent = <T, ITEM extends JSXOutput = JSXOutput>(
 
 /** @internal */
 export const eachCmpTask = async ({ track }: TaskCtx) => {
-  const props = _captures![0] as EachProps<any>;
+  const props = _capturesObj._![0] as EachProps<any>;
   track(() => props.items);
   const context = tryGetInvokeContext()!;
   const host = context.$hostElement$!;

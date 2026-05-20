@@ -14,6 +14,12 @@ import { useTaskQrl, type TaskFn, type TaskOptions } from './use-task';
  * function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to
  * rerun.
  *
+ * Cleanup callbacks registered with `cleanup()` or returned from the task may be async. When a task
+ * reruns, Qwik waits for the previous cleanup to finish before starting the next invocation.
+ *
+ * During SSR, the cleanup function is called immediately after SSR completes. Therefore, it is not
+ * called on the client side after resuming, but only the second time the task runs on the client.
+ *
  * @param task - Function which should be re-executed when changes to the inputs are detected
  * @public
  *

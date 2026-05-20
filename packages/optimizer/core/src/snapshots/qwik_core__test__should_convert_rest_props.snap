@@ -29,10 +29,10 @@ export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGE,6BAAe,2CAMb\"}")
 ============================= test.tsx_test_component_useTask_jewzFYh3XmQ.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const test_component_useTask_jewzFYh3XmQ = ()=>{
-    const props = _captures[0];
+    let props = _capturesObj._[0];
     props.checked;
 };
 

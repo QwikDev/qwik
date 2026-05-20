@@ -1,6 +1,6 @@
 import { getDomContainer } from '../client/dom-container';
 import {
-  _captures,
+  _capturesObj,
   deserializeCaptures,
   setCaptures,
   type QRLInternal,
@@ -18,7 +18,7 @@ import type { QRL } from '../shared/qrl/qrl.public';
  *
  * When called by the qwikloader or the test dispatch, `this` is the serialized captures string
  * which we deserialize to get the host VNode. When called through `_qDispatch` (client-rendered),
- * `_captures` is already set by `ensureQrlCaptures` in the QRL call chain.
+ * `_capturesObj._` is already set by `ensureQrlCaptures` in the QRL call chain.
  *
  * @internal
  */
@@ -39,7 +39,7 @@ export const _hmr = function (
     const container = getDomContainer(element);
     setCaptures(deserializeCaptures(container, this));
   }
-  const host = _captures![0] as VNode;
+  const host = _capturesObj._![0] as VNode;
   const container = getDomContainer(element);
   markVNodeDirty(container, host, ChoreBits.COMPONENT);
   // Mark HMR as handled

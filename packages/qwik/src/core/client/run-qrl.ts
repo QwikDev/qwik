@@ -1,6 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
 import {
-  _captures,
+  _capturesObj,
   deserializeCaptures,
   setCaptures,
   type QRLInternal,
@@ -80,7 +80,7 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
   if (typeof this === 'string') {
     setCaptures(deserializeCaptures(ctx.$container$!, this));
   }
-  const qrlToRun = _captures![0] as QRLInternal<(...args: any[]) => void>;
+  const qrlToRun = _capturesObj._![0] as QRLInternal<(...args: any[]) => void>;
   isDev && assertQrl(qrlToRun);
   return runEventHandlerQRL(qrlToRun, event, element, ctx);
 }

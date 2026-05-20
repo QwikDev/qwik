@@ -145,6 +145,7 @@ pub struct QwikTransform<'a> {
 	h_fn: Option<Id>,
 	fragment_fn: Option<Id>,
 	fn_signal_fn: Option<Id>,
+	captures_obj_id: Option<Id>,
 
 	jsx_mutable: bool,
 
@@ -310,6 +311,7 @@ impl<'a> QwikTransform<'a> {
 			fn_signal_fn: options
 				.global_collect
 				.get_imported_local(&_INLINED_FN, &options.core_module),
+			captures_obj_id: None,
 			marker_functions,
 			jsx_functions,
 			immutable_function_cmp,
@@ -937,10 +939,10 @@ impl<'a> QwikTransform<'a> {
 				scoped_idents = vec![];
 			}
 
-			// Inject _captures destructuring if there are captured variables
+			// Inject _capturesObj reads if there are captured variables
 			let folded = if !scoped_idents.is_empty() {
-				let new_local = self.ensure_core_import(&_CAPTURES);
-				transform_function_expr(folded, &new_local, &scoped_idents)
+				let captures_obj = self.ensure_captures_obj();
+				transform_function_expr(folded, &captures_obj, &scoped_idents)
 			} else {
 				folded
 			};
@@ -1008,7 +1010,7 @@ impl<'a> QwikTransform<'a> {
 			compute_scoped_idents(&descendent_idents, &decl_collect);
 
 		// Filter out function parameters from scoped_idents
-		// Parameters don't need to be captured via _captures
+		// Parameters don't need to be captured via captures
 		scoped_idents.retain(|id| !param_idents.contains(id));
 
 		if !can_capture && !scoped_idents.is_empty() {
@@ -1063,8 +1065,8 @@ impl<'a> QwikTransform<'a> {
 			(self.create_noop_qrl(&symbol_name, segment_data), is_const)
 		} else if self.is_inline() {
 			let folded = if !segment_data.scoped_idents.is_empty() {
-				let new_local = self.ensure_core_import(&_CAPTURES);
-				transform_function_expr(folded, &new_local, &segment_data.scoped_idents)
+				let captures_obj = self.ensure_captures_obj();
+				transform_function_expr(folded, &captures_obj, &segment_data.scoped_idents)
 			} else {
 				folded
 			};
@@ -1284,6 +1286,16 @@ impl<'a> QwikTransform<'a> {
 		self.options
 			.global_collect
 			.import(new_specifier, &self.options.core_module)
+	}
+
+	fn ensure_captures_obj(&mut self) -> Id {
+		if let Some(id) = &self.captures_obj_id {
+			return id.clone();
+		}
+
+		let captures_obj = self.ensure_core_import(&_CAPTURES_OBJ);
+		self.captures_obj_id = Some(captures_obj.clone());
+		captures_obj
 	}
 
 	fn ensure_export(&mut self, id: &Id) {
@@ -4127,7 +4139,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			// Also collect top-level `const <ident> = <expr>` declarations from the
 			// callback body. These derived consts (e.g. `const index = i + 1`) are in
 			// scope at the JSX render site so they can be passed via `q:p`/`q:ps` as
-			// positional arguments rather than captured via `_captures`.
+			// positional arguments rather than captured.
 			if let Some(arg) = node.args.first() {
 				if let ast::Expr::Arrow(arrow) = &*arg.expr {
 					if let box ast::BlockStmtOrExpr::BlockStmt(ref block) = arrow.body {

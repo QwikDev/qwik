@@ -52,6 +52,14 @@ macro_rules! id_eq {
 	};
 }
 
+fn is_capture_read(member: &ast::MemberExpr) -> bool {
+	matches!(
+		&member.obj,
+		box ast::Expr::Member(obj)
+			if matches!(&obj.prop, ast::MemberProp::Ident(prop) if prop.sym.as_ref() == "_")
+	)
+}
+
 enum TransformInit {
 	Keep,
 	Remove,
@@ -88,15 +96,14 @@ impl<'a> PropsDestructuring<'a> {
 	}
 	fn transform_component_body(&mut self, body: &mut ast::BlockStmt) {
 		// Skip already-preprocessed QRL function bodies (from lib builds).
-		// These have _captures destructuring at the top that must not be inlined,
+		// These have _capturesObj reads at the top that must not be inlined,
 		// because inner QRL capture arrays reference the named variables.
 		if body.stmts.first().is_some_and(|stmt| {
 			if let ast::Stmt::Decl(ast::Decl::Var(var)) = stmt {
 				var.decls.iter().any(|decl| {
 					matches!(
 						&decl.init,
-						Some(box ast::Expr::Member(m))
-							if matches!(&m.obj, box ast::Expr::Ident(id) if id.sym == *_CAPTURES)
+						Some(box ast::Expr::Member(m)) if is_capture_read(m)
 					)
 				})
 			} else {
@@ -317,8 +324,8 @@ impl<'a> VisitMut for PropsDestructuring<'a> {
 			}
 
 			// Skip first arg of inlinedQrl calls — pre-compiled library code.
-			// The function body already has _captures destructuring and explicit
-			// capture arrays that reference the original variable names.
+			// The function body already has _capturesObj reads at the top that must not be inlined,
+			// and explicit capture arrays that reference the original variable names.
 			if id_eq!(ident, &self.inlined_qrl_ident) || id_eq!(ident, &self.inlined_qrl_dev_ident)
 			{
 				for arg in node.args.iter_mut().skip(1) {

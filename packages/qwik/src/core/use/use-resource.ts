@@ -1,6 +1,6 @@
 import type { QRLInternal, ValueOrPromise } from '../../server/qwik-types';
 import { qwikDebugToString } from '../debug';
-import { _captures } from '../internal';
+import { _capturesObj } from '../internal';
 import { createStore } from '../reactive-primitives/impl/store';
 import {
   createAsyncQrl,
@@ -71,7 +71,7 @@ export interface ResourceOptions {
  * @internal
  */
 export const _rsc = async <T>(arg: ResourceCtx<T>) => {
-  const [fn, ref] = _captures as [QRLInternal<ResourceFn<T>>, { r: T; i: number }];
+  const [fn, ref] = _capturesObj._ as [QRLInternal<ResourceFn<T>>, { r: T; i: number }];
   DEBUG && log('invoke resource function');
   const result = await fn(arg);
   DEBUG && log('resource function resolved', result);

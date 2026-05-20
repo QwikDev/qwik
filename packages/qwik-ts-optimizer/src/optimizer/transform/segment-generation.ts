@@ -20,6 +20,7 @@ import type {
   TransformModulesOptions,
   EntryStrategy,
 } from "../types.js";
+import { hasManualEntryMap } from "../types.js";
 import {
   generateSegmentCode,
   type SegmentCaptureInfo,
@@ -45,7 +46,6 @@ import {
 import { collectSameFileSymbolInfo } from "../utils/module-symbols.js";
 import { rewriteImportSource } from "../rewrite-imports.js";
 import {
-  getManualEntryMap,
   leadingDot,
   numberedPaddingParam,
   paddingParam,
@@ -1077,7 +1077,7 @@ export function buildDefaultStrategySegment(
     ext.symbolName,
     ext.ctxName,
     parentComponentSymbol,
-    getManualEntryMap(entryStrategy as Exclude<EntryStrategy, { type: 'inline' } | { type: 'hoist' }>),
+    hasManualEntryMap(entryStrategy) ? entryStrategy.manual : undefined,
   );
 
   const segmentAnalysis: SegmentMetadataInternal = {

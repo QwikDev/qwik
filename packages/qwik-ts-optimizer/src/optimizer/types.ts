@@ -402,14 +402,37 @@ export interface SegmentMetadataInternal extends SegmentAnalysis {
 // ---------------------------------------------------------------------------
 
 /**
+ * Mixin shape for the `EntryStrategy` variants that accept a per-symbol
+ * manual override map. Extracted (OSS-392) so the 5 manual-bearing variants
+ * declare the relationship once instead of duplicating `manual?:` five times.
+ *
+ * Consulted by `entry-strategy.ts:resolveEntryField` and unpacked at the
+ * use site via the {@link hasManualEntryMap} predicate.
+ *
+ * Note: `inline` and `hoist` are intentionally NOT extended with this mixin
+ * — those strategies emit segment bodies *inside* the parent module (so there's
+ * no per-segment file path to override), and the type system rejects
+ * `{ type: 'inline', manual: ... }` accordingly.
+ */
+export interface WithManualEntryMap {
+  /**
+   * Per-symbol override of the resolved entry chunk name. Keys are
+   * `SymbolName`s; values are the chunk name the runtime should fetch from.
+   */
+  readonly manual?: Record<string, string>;
+}
+
+/**
  * How the optimizer lays out lazy-load boundaries / QRL entry chunks.
  *
  * Affects whether segments emit as separate files (`smart`/`segment`/`hook`)
  * or stay inlined into the parent via `inlinedQrl` / `_noopQrl().s(body)`
  * (`inline`/`hoist`/`lib`-style flows).
  *
- * The optional `manual` map on each variant lets the caller override the
- * resolved entry name per-symbol; consulted by `entry-strategy.ts:resolveEntryField`.
+ * The 5 variants that emit separate files accept a per-symbol manual
+ * override via {@link WithManualEntryMap}. The 2 inline-mode variants
+ * (`inline`/`hoist`) don't — `manual` is not a meaningful concept when
+ * segments stay in the parent.
  */
 export type EntryStrategy =
   /** Each segment stays inline in the parent via `inlinedQrl(body, name)`. */
@@ -417,15 +440,27 @@ export type EntryStrategy =
   /** Segment bodies hoist to module scope but stay in the parent file. */
   | { type: 'hoist' }
   /** Per-segment files keyed by hook (manual override map allowed). */
-  | { type: 'hook'; manual?: Record<string, string> }
+  | (WithManualEntryMap & { type: 'hook' })
   /** Per-segment files keyed by extracted symbol (manual override allowed). */
-  | { type: 'segment'; manual?: Record<string, string> }
+  | (WithManualEntryMap & { type: 'segment' })
   /** Bundle every segment into a single file named `entry_hooks`. */
-  | { type: 'single'; manual?: Record<string, string> }
+  | (WithManualEntryMap & { type: 'single' })
   /** Group segments by enclosing component$; non-component children point at parent. */
-  | { type: 'component'; manual?: Record<string, string> }
+  | (WithManualEntryMap & { type: 'component' })
   /** Default heuristic blend; one segment per extraction. */
-  | { type: 'smart'; manual?: Record<string, string> };
+  | (WithManualEntryMap & { type: 'smart' });
+
+/**
+ * Type predicate narrowing an `EntryStrategy` to the variants that carry a
+ * {@link WithManualEntryMap} mixin. Use instead of a `as Exclude<...>` cast
+ * at narrowing sites — OSS-392, per the CBP rule "Casts are reserved for
+ * two narrow purposes" (brand constructors + validated FFI).
+ */
+export function hasManualEntryMap(
+  s: EntryStrategy,
+): s is EntryStrategy & WithManualEntryMap {
+  return s.type !== 'inline' && s.type !== 'hoist';
+}
 
 /**
  * Post-transform parent-module simplification level.

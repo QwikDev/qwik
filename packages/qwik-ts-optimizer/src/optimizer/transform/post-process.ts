@@ -20,7 +20,6 @@ import {
 } from "magic-regexp";
 import { transformSync as oxcTransformSync, type TransformOptions } from "oxc-transform";
 import type { SegmentCaptureInfo } from '../segment-codegen.js';
-import type { TransformModulesOptions } from '../types.js';
 import {
   applySegmentConstReplacement,
   applySegmentSideEffectSimplification,
@@ -43,12 +42,6 @@ export interface SegmentPostProcessOptions {
   isServer?: boolean;
   emitMode: string;
   devFile?: string;
-}
-
-export function getManualEntryMap(
-  strategy: Exclude<NonNullable<TransformModulesOptions['entryStrategy']>, { type: 'inline' } | { type: 'hoist' }>,
-): Record<string, string> | undefined {
-  return strategy.manual;
 }
 
 const tsTypeAnnotationProbe = createRegExp(

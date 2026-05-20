@@ -202,15 +202,21 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
       DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
       addCursorBoundary(cursorData, currentVNode);
       // Store promise on cursor and pause
-      cursorData.promise = result;
+      const blockingPromise = result;
+      cursorData.promise = blockingPromise;
       pauseCursor(cursor, container);
 
       const host = currentVNode;
-      result
+      blockingPromise
         .catch((error) => {
-          container.handleError(error, host);
+          if (cursorData.promise === blockingPromise) {
+            container.handleError(error, host);
+          }
         })
         .finally(() => {
+          if (cursorData.promise !== blockingPromise) {
+            return;
+          }
           cursorData.promise = null;
           resumeCursor(cursor, container);
           triggerCursors();

@@ -8,7 +8,7 @@ import { VNodeFlags } from '../../client/types';
 import { vnode_isDescendantOf } from '../../client/vnode-utils';
 import type { Container } from '../types';
 import type { Cursor } from './cursor';
-import { getCursorData } from './cursor-props';
+import { getCursorData, mergeCursorJournalAndBoundaries, type CursorData } from './cursor-props';
 
 /** Global cursor queue array. Cursors are sorted by priority. */
 const globalCursorQueue: Cursor[] = [];
@@ -71,16 +71,33 @@ export function pauseCursor(cursor: Cursor, container: Container): void {
 }
 
 export function resumeCursor(cursor: Cursor, container: Container): void {
-  const index = pausedCursorQueue.indexOf(cursor);
-  if (index !== -1) {
-    const lastIndex = pausedCursorQueue.length - 1;
-    if (index !== lastIndex) {
-      pausedCursorQueue[index] = pausedCursorQueue[lastIndex];
-    }
-    pausedCursorQueue.pop();
-    container.$pendingCount$--;
+  if (!(cursor.flags & VNodeFlags.Cursor)) {
+    return;
   }
+  removeCursorFromPausedQueue(cursor, container);
   addCursorToQueue(container, cursor);
+}
+
+export function abandonCursor(
+  container: Container,
+  targetCursorData: CursorData,
+  cursor: Cursor
+): void {
+  const oldCursorData = getCursorData(cursor);
+  if (!oldCursorData || oldCursorData === targetCursorData) {
+    return;
+  }
+
+  removeCursorFromQueue(cursor, container, false);
+  removeCursorFromPausedQueue(cursor, container);
+  mergeCursorJournalAndBoundaries(targetCursorData, oldCursorData);
+
+  oldCursorData.afterFlushTasks = null;
+  oldCursorData.extraPromises = null;
+  oldCursorData.journal = null;
+  oldCursorData.boundaries = null;
+  oldCursorData.position = null;
+  oldCursorData.promise = null;
 }
 
 /**
@@ -92,7 +109,7 @@ export function removeCursorFromQueue(
   cursor: Cursor,
   container: Container,
   keepCursorFlag?: boolean
-): void {
+): boolean {
   if (!keepCursorFlag) {
     cursor.flags &= ~VNodeFlags.Cursor;
   }
@@ -107,5 +124,21 @@ export function removeCursorFromQueue(
     // globalCursorQueue.pop();
     globalCursorQueue.splice(index, 1);
     container.$pendingCount$--;
+    return true;
   }
+  return false;
+}
+
+function removeCursorFromPausedQueue(cursor: Cursor, container: Container): boolean {
+  const index = pausedCursorQueue.indexOf(cursor);
+  if (index === -1) {
+    return false;
+  }
+  const lastIndex = pausedCursorQueue.length - 1;
+  if (index !== lastIndex) {
+    pausedCursorQueue[index] = pausedCursorQueue[lastIndex];
+  }
+  pausedCursorQueue.pop();
+  container.$pendingCount$--;
+  return true;
 }

@@ -2,16 +2,19 @@ import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createPlatform, getSymbolHash } from './platform';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { _regSymbol } from '../core/shared/qrl/qrl';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import { getSingleton } from '../core/shared/singletons';
+
+const symbolRegistry = () => getSingleton<Map<string, any>>('regSymbols');
 
 describe('server platform', () => {
   beforeEach(() => {
-    // Initialize a fresh global Qwik state for each test to avoid pollution
-    (globalThis as any).__qwik = undefined;
+    // Start each test with an empty symbol registry to avoid pollution
+    symbolRegistry()?.clear();
   });
 
   afterEach(() => {
-    // Clean up global state
-    (globalThis as any).__qwik = undefined;
+    symbolRegistry()?.clear();
   });
 
   describe('importSymbol', () => {

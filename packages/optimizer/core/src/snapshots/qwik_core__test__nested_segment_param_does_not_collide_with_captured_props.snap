@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 639
+assertion_line: 615
 expression: output
 ---
 ==INPUT==
@@ -70,10 +70,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Cmp_component_networkFee_useComputed_ysNbpjmzm2Q = async (_rawProps)=>{
-    const _rawProps1 = _captures[0];
+    let _rawProps1 = _capturesObj._[0];
     const open = _rawProps.track(()=>_rawProps1.isOpen?.value ?? true);
     return open ? _rawProps1.initialFee : 0;
 };

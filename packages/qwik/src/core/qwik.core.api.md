@@ -35,8 +35,13 @@ export class _AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> impl
 // @public @deprecated (undocumented)
 export type AsyncSignalOptions<T> = ComputedOptions<T>;
 
-// @internal
+// @internal @deprecated
 export let _captures: Readonly<unknown[]> | null;
+
+// @internal
+export const _capturesObj: {
+    _: Readonly<unknown[]> | null;
+};
 
 // @internal
 export function _chk(this: string | undefined, _: any, element: HTMLInputElement): void | Promise<void>;
@@ -541,6 +546,9 @@ export const getPlatform: () => CorePlatform;
 
 // @internal (undocumented)
 export function _getQContainerElement(element: Element): Element | null;
+
+// @internal
+export const _getSingleton: <T>(key: string) => T | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "Consumer" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "EffectSubscription" needs to be exported by the entry point index.d.ts

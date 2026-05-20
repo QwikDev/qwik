@@ -99,7 +99,7 @@ The outputs would look like this:
 
 ```tsx title="./app.tsx_app_component_useTask_41mb3rLO0N0.js"
 export const s_41mb3rLO0N0 = ({ track }) => {
-    const count = _captures[0];
+    const count = _capturesObj._[0];
     track(count);
     console.log('Count is now', count.value);
 };
@@ -107,7 +107,7 @@ export const s_41mb3rLO0N0 = ({ track }) => {
 
 ```tsx title="./app.tsx_app_component_button_on_click_LToOrb0bX0M.js"
 export const s_LToOrb0bX0M = () => {
-    const count = _captures[0];
+    const count = _capturesObj._[0];
     count.value++;
 };
 ```

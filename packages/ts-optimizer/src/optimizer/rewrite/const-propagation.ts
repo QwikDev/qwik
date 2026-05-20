@@ -295,7 +295,7 @@ export function propagateConstLiteralsInBody(body: string): string {
   const mutableVars = new Set<string>();
   const mutatedObjects = new Set<string>();
   // Identifiers inside `q_X.w([...])` capture arrays — serialization
-  // contracts aligned with `_captures[N]` reads; never inline or remove.
+  // contracts aligned with `_capturesObj._[N]` reads; never inline or remove.
   const protectedNames = new Set<string>();
 
   let currentDeclName: string | null = null;
@@ -325,7 +325,7 @@ export function propagateConstLiteralsInBody(body: string): string {
     }
 
     // A `q_X.w([...])` capture array is a serialization contract aligned with
-    // the segment's `_captures[N]` reads — its identifiers must stay verbatim.
+    // the segment's `_capturesObj._[N]` reads — its identifiers must stay verbatim.
     if (
       node.type === 'CallExpression' &&
       (node.callee as { type?: string; property?: { type?: string; name?: string } })?.type ===

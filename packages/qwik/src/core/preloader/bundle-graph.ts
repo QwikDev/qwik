@@ -1,6 +1,5 @@
-import { isBrowser } from '@qwik.dev/core/build';
 import { createMacroTask } from '../shared/platform/next-tick';
-import { config, isJSRegex, yieldInterval } from './constants';
+import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
 import { adjustProbabilities, bundles, nextTriggerMacroTask, shouldResetFactor } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_Alias, BundleImportState_None } from './types';

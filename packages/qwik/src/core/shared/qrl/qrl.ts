@@ -1,4 +1,3 @@
-import { isServer } from '@qwik.dev/core/build';
 import { QError, qError } from '../error/error';
 import { registerSingleton } from '../singletons';
 import { qDev } from '../utils/qdev';
@@ -133,10 +132,8 @@ export const inlinedQrlDEV = <T = any>(
   return qrl;
 };
 
-// See also ../plaform/platform.ts
-const symbolRegistry = isServer
-  ? registerSingleton('regSymbols', () => new Map<string, any>())
-  : undefined;
+// See also ../platform/platform.ts, which reads this registry on the server
+const getSymbolRegistry = () => registerSingleton('regSymbols', () => new Map<string, any>());
 /**
  * Register a QRL symbol globally for lookup by its hash. This is used by the optimizer to register
  * the names passed in `reg_ctx_name`.
@@ -144,6 +141,6 @@ const symbolRegistry = isServer
  * @internal
  */
 export const _regSymbol = (symbol: any, hash: string) => {
-  symbolRegistry!.set(hash, symbol);
+  getSymbolRegistry().set(hash, symbol);
   return symbol;
 };

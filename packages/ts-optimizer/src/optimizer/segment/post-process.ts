@@ -68,6 +68,9 @@ function hasCapturePayload(
   return includeConstLiterals && captureInfo.constLiterals !== undefined;
 }
 
+/** Generated segments import `_capturesObj`; libraries built earlier import `_captures`. */
+const isCapturesImport = (name: string) => name === '_capturesObj' || name === '_captures';
+
 export function resolveCaptureInfo(
   captureInfo: SegmentCaptureInfo,
   isInlinedQrl: boolean
@@ -153,7 +156,7 @@ function sortSegmentImports(
   const hasExistingCaptureImport =
     !prioritizeGeneratedCaptures &&
     imports.some((node) =>
-      node.specifiers.some((specifier) => specifier.local.name === '_captures')
+      node.specifiers.some((specifier) => isCapturesImport(specifier.local.name))
     );
   const sorted = [...imports].sort((a, b) => {
     const rank = (node: (typeof imports)[number]): number => {
@@ -175,7 +178,7 @@ function sortSegmentImports(
       if (hasExistingCaptureImport) {
         return 1;
       }
-      if (node.specifiers.some((specifier) => specifier.local.name === '_captures')) {
+      if (node.specifiers.some((specifier) => isCapturesImport(specifier.local.name))) {
         return 1;
       }
       return node.source.value === parentModulePath ? 2 : 3;

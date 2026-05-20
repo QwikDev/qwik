@@ -304,8 +304,7 @@ function removeDir(dir: string) {
 
 async function routerApp(req: Request, res: Response, next: NextFunction, appDir: string) {
   const ssrPath = join(appDir, 'server', `${qwikRouterVirtualEntry}.js`);
-  // it's ok in the devserver to import core multiple times
-  (globalThis as any).__qwik = null;
+  // it's ok in the devserver to import core multiple times (same version shares singletons)
   const mod = await import(file(ssrPath));
   const router: any = mod.router;
   router(req, res, next);
@@ -319,8 +318,7 @@ async function ssrApp(
   manifest: QwikManifest
 ) {
   const ssrPath = join(appDir, 'server', 'entry.ssr.js');
-  // it's ok in the devserver to import core multiple times
-  (globalThis as any).__qwik = null;
+  // it's ok in the devserver to import core multiple times (same version shares singletons)
   const mod = await import(file(ssrPath));
   const render: Render = mod.default ?? mod.render;
 

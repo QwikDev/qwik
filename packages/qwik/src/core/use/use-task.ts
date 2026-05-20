@@ -4,7 +4,7 @@ import { ErrorBoundaryPhase, tagErrorPhase } from '../shared/error/error-handlin
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import {
-  _captures,
+  _capturesObj,
   deserializeCaptureDeltas,
   setCaptures,
   type QRLInternal,
@@ -263,7 +263,7 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
     if (typeof this === 'string') {
       setCaptures(deserializeCaptureDeltas(container, this));
     }
-    const task = _captures![0] as Task;
+    const task = _capturesObj._![0] as Task;
     if (!task.$el$) {
       // An ErrorBoundary tore the host down; the task has nothing left to run against.
       return;

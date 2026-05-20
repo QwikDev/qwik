@@ -56,8 +56,8 @@ export const usePreventNavigateQrl = (fn) => {
     expect(meta.captures).toBe(true);
     expect(meta.captureNames).toEqual(['fn', 'registerPreventNav']);
 
-    expect(seg.code).toContain('_captures[0]');
-    expect(seg.code).toContain('_captures[1]');
+    expect(seg.code).toContain('_capturesObj._[0]');
+    expect(seg.code).toContain('_capturesObj._[1]');
 
     const parent = findParent(result.modules);
     expect(parent.code).toMatch(/\.w\(\[\s*fn,\s*registerPreventNav\s*\]\)/);

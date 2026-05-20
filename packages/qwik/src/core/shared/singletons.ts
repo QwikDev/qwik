@@ -34,6 +34,11 @@ if (isServer) {
   singletons = QWIK[version] ||= {};
 }
 
+/**
+ * Get or create a singleton shared by all Qwik module instances in this process/version.
+ *
+ * @internal
+ */
 export const registerSingleton = <T>(key: string, factory: () => T): T => {
   if (!(key in singletons)) {
     singletons[key] = factory();
@@ -41,6 +46,11 @@ export const registerSingleton = <T>(key: string, factory: () => T): T => {
   return singletons[key] as T;
 };
 
+/**
+ * Read a singleton registered with `registerSingleton`, if any.
+ *
+ * @internal
+ */
 export const getSingleton = <T>(key: string): T | undefined => {
   return singletons[key] as T | undefined;
 };

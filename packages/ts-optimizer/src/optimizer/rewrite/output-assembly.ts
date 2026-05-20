@@ -107,8 +107,8 @@ export function collectNeededImports(ctx: RewriteContext): void {
           isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers)
         )
     );
-    if (needsCapturesImport && !alreadyImported.has('_captures')) {
-      neededImports.set('_captures', '@qwik.dev/core');
+    if (needsCapturesImport && !alreadyImported.has('_capturesObj')) {
+      neededImports.set('_capturesObj', '@qwik.dev/core');
     }
   } else if (inlineOptions && !inlineOptions.inline) {
     if (hasTopLevelNonSync) {
@@ -505,8 +505,8 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
   const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));
 
   // A migrated decl is reachable directly — module scope under inline/hoist,
-  // or an `_auto_` import under segment-file — never via `_captures`, so
-  // unpacking it from `_captures[N]` would deliver undefined. Exclude these.
+  // or an `_auto_` import under segment-file — never via `_capturesObj`, so
+  // unpacking it from `_capturesObj._[N]` would deliver undefined. Exclude these.
   const migratedNames: ReadonlySet<string> = new Set(
     (migrationDecisions ?? [])
       .filter((d) => d.action === 'reexport' || d.action === 'move')

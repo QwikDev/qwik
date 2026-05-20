@@ -90,7 +90,8 @@ export {
 } from './use/use-core';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { isTask as _isTask, scheduleTask as _task, Task as _Task } from './use/use-task';
-export { _captures } from './shared/qrl/qrl-class';
+export { _captures, _capturesObj } from './shared/qrl/qrl-class';
+export { getSingleton as _getSingleton } from './shared/singletons';
 export { _rsc } from './use/use-resource';
 export type { AsyncSignalImpl as _AsyncSignalImpl } from './reactive-primitives/impl/async-signal-impl';
 export type { ComputedSignalInternal as _ComputedSignalInternal } from './reactive-primitives/signal.public';

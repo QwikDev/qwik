@@ -85,9 +85,9 @@ Three markers break the uniform treatment:
 
 | Marker | Why it's special |
 |---|---|
-| `$(fn)` | The bare base marker — no naming context. Symbol name derives from the call-site / JSX surroundings via `getDirectWrapperContextName` (`extract.ts:243–259`) |
+| `$(fn)` | The bare base marker — no naming context. Symbol name derives from the call-site / JSX surroundings via `getDirectWrapperContextName` (`extract.ts:299–315`) |
 | `sync$(fn)` | Recognised but **does not extract** (`marker-detection.ts:222`, `isSyncMarker`). Body stays inline as a literal callback for QRL APIs that need a function reference rather than a lazy ref |
-| `implicit$FirstArg(fn, ...)` | Meta-marker; lets a non-`$`-suffixed function be treated as if its first argument were `$()`-marked. Backbone of `qwik-react`'s `qwikify$`. Resolved via `customInlined` map in `extract.ts:231` (`resolveCanonicalCalleeName`) |
+| `implicit$FirstArg(fn, ...)` | Meta-marker; lets a non-`$`-suffixed function be treated as if its first argument were `$()`-marked. Backbone of `qwik-react`'s `qwikify$`. Resolved via `customInlined` map in `extract.ts:287` (`resolveCanonicalCalleeName`) |
 
 ---
 
@@ -308,7 +308,7 @@ There are **two completely separate code paths** for populating `captureNames`, 
 **Where you'll actually encounter `inlinedQrl`:**
 
 1. **Interop library codegen.** `qwik-react` and similar frameworks have their own pre-processor that emits `inlinedQrl` directly because they've already done the analysis and want to hand the optimizer a fully-baked QRL. See `match-these-snaps/qwik_core__test__example_qwik_react.snap` lines 14–48 — every `inlinedQrl` there came from `qwikify$`'s codegen, not a developer's keyboard.
-2. **Idempotency.** When the optimizer runs over its own output (or a build pipeline that re-invokes it), it sees `inlinedQrl` calls left from a prior pass. Detection at `extract.ts:491–636` runs *before* the regular `$()` walker so these don't get double-extracted.
+2. **Idempotency.** When the optimizer runs over its own output (or a build pipeline that re-invokes it), it sees `inlinedQrl` calls left from a prior pass. Detection at `extract.ts:600–745` runs *before* the regular `$()` walker so these don't get double-extracted.
 3. **Hand-crafted test fixtures.** Snapshots like `should_preserve_non_ident_explicit_captures.snap` use `inlinedQrl` to exercise edge cases (non-identifier captures, explicit naming) the regular form can't reach.
 
 > **Rule of thumb.** Developers write `$()`. Tools write `inlinedQrl`. If you're hand-writing `inlinedQrl` you almost certainly want `$()` instead.
@@ -620,20 +620,20 @@ The metadata block emitted next to each segment file (the `/* { ... } */` commen
 
 All fields live on `ExtractionBase` and the phase-tagged variants `ExtractedSegment` / `CapturedSegment` / `ConsolidatedSegment` (split into a discriminated union per OSS-389; see `extract.ts:63–186`). They originate during Phase 1 extraction and travel through every downstream phase.
 
-The `Computed at` column points at the marker-call extraction block (`extract.ts:716–751`), where every initial-extraction field is set on the builder; helpers it calls live in `marker-detection.ts` (`getExtractionKind`, `getExtractionName`) and `naming.ts` / `siphash.ts` (symbol/hash composition).
+The `Computed at` column points at the marker-call extraction block (`extract.ts:825–863`), where every initial-extraction field is set on the builder; helpers it calls live in `marker-detection.ts` (`getExtractionKind`, `getExtractionName`) and `naming.ts` / `siphash.ts` (symbol/hash composition).
 
 | Field | Type | Computed at | Used for |
 |---|---|---|---|
-| `origin` | `Origin` | `extract.ts:736` | Source file path; preserved verbatim through pipeline |
-| `name` | `SymbolName` | `extract.ts:711` (computed via `ctx.getSymbolName()`; assigned at :718) | Canonical symbol name for the segment's exported binding (see [Symbol naming and hashing](#symbol-naming-and-hashing)) |
-| `displayName` | `DisplayName` | `extract.ts:710` (computed via `ctx.getDisplayName()`; assigned at :719) | Human-readable name without hash; appears in dev tooling |
-| `hash` | `Hash` | `extract.ts:714` (extracted from `name`; assigned at :720) | 11-char content-addressed suffix; stable across builds |
-| `canonicalFilename` | `CanonicalFilename` | `extract.ts:721` | `displayName + "_" + hash`; basis for the segment file path |
+| `origin` | `Origin` | `extract.ts:845` | Source file path; preserved verbatim through pipeline |
+| `name` | `SymbolName` | `extract.ts:820` (computed via `ctx.naming.getSymbolName()`; assigned at :827) | Canonical symbol name for the segment's exported binding (see [Symbol naming and hashing](#symbol-naming-and-hashing)) |
+| `displayName` | `DisplayName` | `extract.ts:819` (computed via `ctx.naming.getDisplayName()`; assigned at :828) | Human-readable name without hash; appears in dev tooling |
+| `hash` | `Hash` | `extract.ts:823` (extracted from `name`; assigned at :829) | 11-char content-addressed suffix; stable across builds |
+| `canonicalFilename` | `CanonicalFilename` | `extract.ts:830` | `displayName + "_" + hash`; basis for the segment file path |
 | `entry` | `string \| null` | `entry-strategy.ts:19–48` (Phase 5) | Routing field — non-null for `single` / `component` entry strategies |
 | `parent` | `SymbolName \| null` | initially null at extract; resolved in `rewrite/index.ts:361` (`resolveNesting`) | Symbol name of enclosing extraction (for nested segments) |
-| `ctxKind` | `'function' \| 'eventHandler' \| 'jSXProp'` | `extract.ts:706` (`getExtractionKind`); assigned at :734 | Drives downstream branching (e.g., event handlers get JSX-prop emit shape) |
-| `ctxName` | `CtxName` | `extract.ts:708` (`getExtractionName`); assigned at :735 | The `$`-marker name (`component$`, `useTask$`, etc.); drives strip rules and HMR injection |
-| `loc` | `readonly [ByteOffset, ByteOffset]` | `extract.ts:743` | Source byte range; used for source map mapping and migration source-range surgery |
+| `ctxKind` | `'function' \| 'eventHandler' \| 'jSXProp'` | `extract.ts:815` (`getExtractionKind`); assigned at :843 | Drives downstream branching (e.g., event handlers get JSX-prop emit shape) |
+| `ctxName` | `CtxName` | `extract.ts:817` (`getExtractionName`); assigned at :844 | The `$`-marker name (`component$`, `useTask$`, etc.); drives strip rules and HMR injection |
+| `loc` | `readonly [ByteOffset, ByteOffset]` | `extract.ts:852` | Source byte range; used for source map mapping and migration source-range surgery |
 | `captures` | `boolean` | `capture-analysis.ts:51` | Quick boolean — does this segment close over outer scope? |
 | `captureNames` | `readonly SymbolName[]` | `capture-analysis.ts:26–27` | Actual list of captured names; mutated through Phase 4–5 (props consolidation, const inline, migration filter) |
 | `paramNames` | `readonly string[]` | `capture-analysis.ts:40` | Closure parameter names; threaded to `rewriteFunctionSignature` for loop-padding (`_,_1,...`) cases |
@@ -679,7 +679,7 @@ The walker pushes when entering relevant nodes and pops when leaving them; the s
 
 #### Disambiguation
 
-When two extractions in one file would collide on `displayName` (e.g., a `$()` nested inside a `component$` whose stack already ends at `Foo_component`), `disambiguateExtractions` (`extract.ts:901–934`) appends `_1`, `_2`, ... to the second-onwards occurrences and **recomputes the hash** for each renamed entry. This is why `example_multi_capture` shows both `Foo_component_HTDRsvUbLiE` (the outer) and `Foo_component_1_DvU6FitWglY` (the nested one) — the inner `$()` originally shared context with its parent, so it got the `_1` suffix and a fresh hash with `_1` folded into the input.
+When two extractions in one file would collide on `displayName` (e.g., a `$()` nested inside a `component$` whose stack already ends at `Foo_component`), `disambiguateExtractions` (`extract.ts:994–1027`) appends `_1`, `_2`, ... to the second-onwards occurrences and **recomputes the hash** for each renamed entry. This is why `example_multi_capture` shows both `Foo_component_HTDRsvUbLiE` (the outer) and `Foo_component_1_DvU6FitWglY` (the nested one) — the inner `$()` originally shared context with its parent, so it got the `_1` suffix and a fresh hash with `_1` folded into the input.
 
 #### Production rename
 

@@ -6,6 +6,7 @@ import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
+import { registerSingleton } from '../singletons';
 import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
@@ -456,15 +457,30 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
 });
 
 /**
- * The current captured scope during QRL invocation. This is used to provide the lexical scope for
- * QRL functions. It is used one time per invocation, synchronously, so it is safe to store it in
- * module scope.
+ * Holder for the current captured scope during QRL invocation. This is used to provide the lexical
+ * scope for QRL functions. It is used one time per invocation, synchronously, so it is safe to
+ * store it in one place.
  *
+ * It is an object (instead of a `let` binding) registered as a singleton, so that duplicated Qwik
+ * modules (e.g. an externalized library and the app both bundling core) share the same holder.
+ * Generated segment code reads captures as `_capturesObj._[N]`.
+ *
+ * @internal
+ */
+export const _capturesObj = registerSingleton<{ _: Readonly<unknown[]> | null }>(
+  'qrlCaptures',
+  () => ({ _: null })
+);
+/**
+ * Legacy binding for libraries built before `_capturesObj`; their segments read `_captures[N]` from
+ * their own copy of core, so this live binding is kept in sync.
+ *
+ * @deprecated Use `_capturesObj._` instead.
  * @internal
  */
 export let _captures: Readonly<unknown[]> | null = null;
 export const setCaptures = (captures: Readonly<unknown[]> | null) => {
-  _captures = captures;
+  _captures = _capturesObj._ = captures;
 };
 
 export const deserializeCaptureDeltas = (
@@ -501,7 +517,10 @@ const deserializeQrlCaptureDeltas = (container: Container, qrlString: string) =>
   return deserializeCaptureDeltas(container, qrlString, secondHash + 1, previousRootId);
 };
 
-/** Puts the qrl captures into `_captures`, and returns a Promise that should be awaited if possible */
+/**
+ * Puts the qrl captures into `_capturesObj`, and returns a Promise that should be awaited if
+ * possible
+ */
 const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
   // We read the captures once, synchronously, so no need to keep previous
   const serializedCaptures = qrl.$captures$;
@@ -511,13 +530,14 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
       throw qError(QError.qrlMissingContainer);
     }
     const prevLoading = loadingHolder.p;
-    _captures = qrl.$captures$ = deserializeQrlCaptureDeltas(container, serializedCaptures);
+    const captures = (qrl.$captures$ = deserializeQrlCaptureDeltas(container, serializedCaptures));
+    setCaptures(captures);
     if (loadingHolder.p !== prevLoading) {
       // return the loading promise so callers can await it
       return loadingHolder.p;
     }
   } else {
-    _captures = serializedCaptures || null;
+    setCaptures(serializedCaptures || null);
   }
 };
 

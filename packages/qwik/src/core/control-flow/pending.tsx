@@ -10,7 +10,7 @@ import { isServerPlatform } from '../shared/platform/platform';
 import { _fnSignal } from '../shared/qrl/inlined-fn';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { _captures, type QRLInternal } from '../shared/qrl/qrl-class';
+import { _capturesObj, type QRLInternal } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
   QDefaultSlot,
@@ -69,10 +69,10 @@ const _hf1_str = '{display:p0.value==="content"&&p1.value?"contents":"none"}';
 
 /** @internal */
 export const pendingTask = ({ track, cleanup }: TaskCtx) => {
-  const cursorBoundary = _captures![0] as CursorBoundary,
-    props = _captures![1] as { delay?: number },
-    state = _captures![2] as Signal<PendingState>,
-    revealRegistration = _captures![3] as RevealRegistration | null;
+  const cursorBoundary = _capturesObj._![0] as CursorBoundary,
+    props = _capturesObj._![1] as { delay?: number },
+    state = _capturesObj._![2] as Signal<PendingState>,
+    revealRegistration = _capturesObj._![3] as RevealRegistration | null;
   const pendingCount = track(cursorBoundary);
   const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
   if (revealRegistration !== null && isBrowserEnv) {

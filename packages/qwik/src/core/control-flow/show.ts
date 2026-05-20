@@ -6,7 +6,7 @@ import type { DevJSX, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { SkipRender } from '../shared/jsx/utils.public';
 import { isServerPlatform } from '../shared/platform/platform';
 import { inlinedQrl } from '../shared/qrl/qrl';
-import { _captures, type QRLInternal } from '../shared/qrl/qrl-class';
+import { _capturesObj, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { isQrl } from '../shared/qrl/qrl-utils';
 import { qTest } from '../shared/utils/qdev';
@@ -51,7 +51,7 @@ const invokeShowFn = <T, A>(
 
 /** @internal */
 export const showCmpTask = ({ track }: TaskCtx) => {
-  const props = _captures![0] as ShowProps<any>;
+  const props = _capturesObj._![0] as ShowProps<any>;
   const context = tryGetInvokeContext()!;
   const host = context.$hostElement$!;
   const container = context.$container$!;

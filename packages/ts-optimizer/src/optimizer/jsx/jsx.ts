@@ -220,7 +220,7 @@ export interface ScopeAwareBindings {
   classify(name: string, atPosition: number): 'const' | 'var' | 'param' | undefined;
   /**
    * Register `name` as const everywhere — for names that aren't AST-declared but are runtime-const
-   * (e.g. `_captures[i]` unpacking bindings). Inner-scope bindings still shadow.
+   * (e.g. `_capturesObj._[i]` unpacking bindings). Inner-scope bindings still shadow.
    */
   addProgramScopeConst(name: string): void;
 }
@@ -229,8 +229,8 @@ class ScopeAwareBindingsImpl implements ScopeAwareBindings {
   private nameToScopes = new Map<string, ScopeRange[]>();
   /**
    * Names that classify as `'const'` everywhere, overriding AST-derived binding. Populated by
-   * `addProgramScopeConst` for `_captures[N]` unpacking names: those appear as `const X =
-   * _captures[N]` whose MemberExpression initializer wouldn't pass `isReturnStatic`, so the
+   * `addProgramScopeConst` for `_capturesObj._[N]` unpacking names: those appear as `const X =
+   * _capturesObj._[N]` whose MemberExpression initializer wouldn't pass `isReturnStatic`, so the
    * AST-derived kind would wrongly be `'var'`.
    */
   private alwaysConst = new Set<string>();

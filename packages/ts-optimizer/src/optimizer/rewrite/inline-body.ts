@@ -64,7 +64,7 @@ export function transformInlineSegmentBody(
   sharedKeyCounterStart?: number,
   /**
    * Module-level decls that migration reexports or moves. Filtered from `captureNames` here because
-   * under inline/hoist the body references them from module scope directly — no `_captures[N]`
+   * under inline/hoist the body references them from module scope directly — no `_capturesObj._[N]`
    * indirection.
    */
   migratedNames?: ReadonlySet<string>,
@@ -261,7 +261,7 @@ export function transformInlineSegmentBody(
           // inlinedQrl children have empty `qrlCallee` (peer-tool spec args),
           // so emit the bare `q_X.w([captures])` ref without a wrapper call.
           // Explicit capture arrays pass through verbatim — the body indexes
-          // `_captures[N]`, so dropping or reordering entries breaks it.
+          // `_capturesObj._[N]`, so dropping or reordering entries breaks it.
           let replacement = childVarName;
           const liveExplicitCaptures =
             site.explicitCaptureStart !== undefined && site.explicitCaptureEnd !== undefined
@@ -327,7 +327,7 @@ export function transformInlineSegmentBody(
   }
 
   // Explicit inlinedQrl captures are a pre-compiled contract with the body's
-  // `_captures[N]` reads — never const-inline entries out of them.
+  // `_capturesObj._[N]` reads — never const-inline entries out of them.
   const hasExplicitCaptureContract = ext.isInlinedQrl && ext.explicitCaptures !== null;
   if (ext.captureNames.length > 0 && ext.parent !== null && !hasExplicitCaptureContract) {
     const parentExt = allExtractions.find((e) => e.symbolName === ext.parent);
@@ -356,10 +356,10 @@ export function transformInlineSegmentBody(
 
   if (ext.isInlinedQrl) {
     // Peer-tool `inlinedQrl(...)` bodies destructure captures themselves;
-    // injecting `_captures` unpacking would duplicate the destructuring.
+    // injecting `_capturesObj` unpacking would duplicate the destructuring.
   } else if (ext.captureNames.length > 0) {
     // Migrated names are in module scope under inline/hoist, so filter them
-    // out — they don't need `_captures[N]` indirection.
+    // out — they don't need `_capturesObj._[N]` indirection.
     const effectiveCaptures =
       migratedNames && migratedNames.size > 0
         ? ext.captureNames.filter((n) => !migratedNames.has(n))
@@ -369,7 +369,7 @@ export function transformInlineSegmentBody(
         body,
         resolveRawPropsSlots(effectiveCaptures, ext.rawPropsSources, bindingNames)
       );
-      additionalImports.set('_captures', '@qwik.dev/core');
+      additionalImports.set('_capturesObj', '@qwik.dev/core');
     }
   }
   {
@@ -535,7 +535,7 @@ export function transformInlineSegmentBody(
         }
 
         // Stripped event handlers emit `= null` bodies, so their captures can't
-        // reach the runtime via `_captures[N]`; propagate them to the parent JSX
+        // reach the runtime via `_capturesObj._[N]`; propagate them to the parent JSX
         // element's `q:p` var-prop instead, keyed by the post-rewrite QRL var.
         if (stripCtxName || stripEventHandlers) {
           for (const child of nested) {

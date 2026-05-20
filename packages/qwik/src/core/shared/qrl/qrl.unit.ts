@@ -4,7 +4,7 @@ import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 import { _regSymbol, inlinedQrl, qrl } from './qrl';
-import { _captures, createQRL, deserializeCaptureDeltas } from './qrl-class';
+import { _capturesObj, createQRL, deserializeCaptureDeltas } from './qrl-class';
 import { type QRL } from './qrl.public';
 
 function matchProps(obj: any, properties: Record<string, any>) {
@@ -303,7 +303,7 @@ describe('inlinedQrl', () => {
 });
 
 describe('w (with captures)', () => {
-  const capFn = () => _captures;
+  const capFn = () => _capturesObj._;
 
   test('should share the same LazyRef', () => {
     const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);

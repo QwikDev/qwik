@@ -47,12 +47,12 @@ export const Child = component$(() => {
 
 ============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js ==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import mongo from "mongodb";
 import redis from "redis";
 //
 export const Parent_component_useTask_gDH1EtUWqBU = async ()=>{
-    const state = _captures[0];
+    let state = _capturesObj._[0];
     state.text = await mongo.users();
     redis.set(state.text);
 };
@@ -97,11 +97,11 @@ export const Child = /*#__PURE__*/ componentQrl(q_Child_component_9GyF01GDKqw);
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAKA,OAAO,MAAM,uBAAS,6CAgBnB;AAEH,OAAO,MAAM,sBAAQ,4CAelB\"}")
 ============================= test.tsx_Child_component_useTask_Oh4n7ZeqJkU.js ==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import mongo from "mongodb";
 //
 export const Child_component_useTask_Oh4n7ZeqJkU = async ()=>{
-    const state = _captures[0];
+    let state = _capturesObj._[0];
     state.text = await mongo.users();
 };
 

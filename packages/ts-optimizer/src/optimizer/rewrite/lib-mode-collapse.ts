@@ -23,7 +23,7 @@
  * Bodies are substituted bottom-up: each q_X's body has inner q_Y references replaced first, so the
  * outer literal already contains the collapsed inner ones.
  *
- * Import side: removes `_noopQrl`, adds `inlinedQrl`; `_captures` stays.
+ * Import side: removes `_noopQrl`, adds `inlinedQrl`; `_capturesObj` stays.
  */
 
 import MagicString from 'magic-string';

@@ -44,7 +44,7 @@ import {
   type CatchStore,
   CatchPhase,
 } from './error-handling';
-import { _captures } from '../qrl/qrl-class';
+import { _capturesObj } from '../qrl/qrl-class';
 import type { DomContainer } from '../../client/dom-container';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import type { VNode } from '../vnode/vnode';
@@ -73,7 +73,7 @@ export interface CatchProps {
 
 /** @internal */
 export const catchReset = (): void => {
-  const [host] = _captures as [VNode];
+  const [host] = _capturesObj._ as [VNode];
   // this is executed only on client
   const container = tryGetInvokeContext()?.$container$ as DomContainer | undefined;
   const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;

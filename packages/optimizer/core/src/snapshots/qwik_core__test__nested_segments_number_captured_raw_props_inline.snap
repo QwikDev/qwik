@@ -24,7 +24,7 @@ export const Cmp = component$(({ isOpen, initialFee }) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { useComputedQrl } from "@qwik.dev/core";
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -36,11 +36,11 @@ const q_Cmp_component_other_useComputed_1mipxhl07gU = /*#__PURE__*/ _noopQrl("Cm
 const q_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc = /*#__PURE__*/ _noopQrl("Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc");
 //
 q_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk.s(()=>{
-    const _rawProps = _captures[0], _rawProps1 = _captures[1];
+    let _rawProps = _capturesObj._[0], _rawProps1 = _capturesObj._[1];
     return _rawProps1.track(()=>_rawProps.isOpen.value) + _rawProps.initialFee;
 });
 q_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q.s(async (_rawProps1)=>{
-    const _rawProps = _captures[0];
+    let _rawProps = _capturesObj._[0];
     const inner = q_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk.w([
         _rawProps,
         _rawProps1
@@ -48,11 +48,11 @@ q_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q.s(async (_rawProps1)=>{
     return inner;
 });
 q_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc.s((_rawProps1)=>{
-    const _rawProps = _captures[0], _rawProps2 = _captures[1];
+    let _rawProps = _capturesObj._[0], _rawProps2 = _capturesObj._[1];
     return _rawProps1.track(()=>_rawProps2.track(()=>_rawProps.initialFee));
 });
 q_Cmp_component_other_useComputed_1mipxhl07gU.s((_rawProps2)=>{
-    const _rawProps = _captures[0];
+    let _rawProps = _capturesObj._[0];
     const deeper = useComputedQrl(q_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc.w([
         _rawProps,
         _rawProps2

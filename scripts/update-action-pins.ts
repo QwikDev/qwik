@@ -27,8 +27,8 @@ const DRY_RUN = process.argv.includes('--dry-run');
 const PINNED_RE =
   /(?<=uses:\s{1,10})([a-zA-Z0-9_.\-]+\/[a-zA-Z0-9_.\-]+)@([0-9a-f]{40})\s*#\s*(\S+)/g;
 
-// uses: owner/repo@vX or @vX.Y.Z (tag-based, not pinned)
-const TAG_RE = /(?<=uses:\s{1,10})([a-zA-Z0-9_.\-]+\/[a-zA-Z0-9_.\-]+)@(v[0-9][^\s]*)/g;
+// uses: owner/repo@ref (tag-based or branch-based, not pinned)
+const TAG_RE = /(?<=uses:\s{1,10})([a-zA-Z0-9_.\-]+\/[a-zA-Z0-9_.\-]+)@([^\s#]+)/g;
 
 function ghApi(path: string): unknown {
   return JSON.parse(
@@ -91,7 +91,7 @@ for (const file of files) {
   }
 
   for (const [, repo, tag] of content.matchAll(TAG_RE)) {
-    if (!repo.startsWith('.')) {
+    if (!repo.startsWith('.') && !/^[0-9a-f]{40}$/.test(tag)) {
       const key = `${repo}@${tag}`;
       if (!pinnedActions.has(key)) {
         tagActions.set(key, { repo, currentRef: tag, currentTag: tag });
@@ -120,7 +120,7 @@ for (const [key, { repo, currentRef: sha, currentTag: tag }] of pinnedActions) {
   let latestTag: string;
   let latestSha: string;
   try {
-    latestTag = getLatestTag(repo);
+    latestTag = /^v?\d/.test(tag) ? getLatestTag(repo) : tag;
     latestSha = getCommitSha(repo, latestTag);
   } catch (e) {
     console.log(`ERROR: ${(e as Error).message}`);
@@ -182,7 +182,7 @@ for (const file of files) {
     if (oldRef === oldTag && content.includes(beforeTag)) {
       // Make sure we're not replacing inside a sha-pinned line
       const tagLineRe = new RegExp(
-        `(uses:\\s{1,10})${escapeRegex(repo)}@${escapeRegex(oldRef)}(?!\\s*#)`,
+        `(uses:\\s{1,10})${escapeRegex(repo)}@${escapeRegex(oldRef)}(?:\\s*#\\s*[^\\n]*)?`,
         'g'
       );
       const newContent = content.replace(tagLineRe, `$1${afterTag}`);

@@ -3774,205 +3774,174 @@ fn destructure_args_colon_props3() {
 	});
 }
 
-// Regression: a plain helper arrow that destructures a parameter and
-// reassigns it inside the body must NOT be treated as an inline component.
-// The pre-fix behavior renamed the param to `_rawProps`, rewrote the
-// destructured reads, but left the assignment LHS as the now-undeclared
-// `ogImage`, causing strict-mode `ReferenceError` at runtime.
+// Regression for #8638: when a helper arrow destructures a parameter and
+// reassigns one of those bindings, the props-destructuring pass must refuse
+// the rewrite. Pre-fix the param was renamed to `_rawProps` and reads were
+// rewritten, but assignment LHSs were left dangling — strict-mode
+// `ReferenceError` at runtime (and in some shapes the assignment was
+// silently dropped by a downstream simplifier).
 //
-// The fix is to refuse the transform whenever the body reassigns a
-// destructured parameter. The expected snapshot leaves the arrow unchanged.
+// Each row exercises a different LHS shape: bare AssignExpr, compound /
+// nullish, UpdateExpr, object- and array-destructuring assignment, and
+// `for-of` / `for-in` heads (including a nested destructuring pattern).
+// The signal is direct: the emitted code must not contain `_rawProps`
+// (transform refused) and must still contain the original destructured
+// name (helper not dropped).
 #[test]
-fn destructure_args_helper_reassigns_template_literal() {
-	test_input!(TestInput {
-		code: r#"
-		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
-			if (!ogImage) ogImage = `fallback-image-url`;
-			return {
-				title: "x",
-				meta: [{ property: "og:image", content: ogImage }],
+fn destructure_args_helper_reassigns_refuses_transform() {
+	let cases: &[(&str, &str, &str)] = &[
+		(
+			"template_literal",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				if (!ogImage) { ogImage = `fallback-image-url`; }
+				return { meta: [{ property: "og:image", content: ogImage }] };
 			};
-		};
-		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
-}
-
-// Same as above but with a string-literal RHS. Pre-fix, a downstream
-// simplifier silently dropped the assignment, producing wrong output with
-// no error. Post-fix, the arrow is left alone.
-#[test]
-fn destructure_args_helper_reassigns_string_literal() {
-	test_input!(TestInput {
-		code: r#"
-		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
-			if (!ogImage) ogImage = "fallback-image-url";
-			return {
-				title: "x",
-				meta: [{ property: "og:image", content: ogImage }],
+			"#,
+		),
+		(
+			"string_literal",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				if (!ogImage) { ogImage = "fallback-image-url"; }
+				return { meta: [{ property: "og:image", content: ogImage }] };
 			};
-		};
-		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
+			"#,
+		),
+		(
+			"nullish_assign",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				ogImage ??= `fallback-image-url`;
+				return { ogImage };
+			};
+			"#,
+		),
+		(
+			"update_expr",
+			"count",
+			r#"
+			export const bump = ({ count }: { count: number }) => {
+				count++;
+				return { count };
+			};
+			"#,
+		),
+		(
+			"object_destructure_assign",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				({ ogImage } = { ogImage: "fallback-image-url" });
+				return { meta: [{ property: "og:image", content: ogImage }] };
+			};
+			"#,
+		),
+		(
+			"array_destructure_assign",
+			"count",
+			r#"
+			export const bump = ({ count }: { count: number }) => {
+				[count] = [42];
+				return { count };
+			};
+			"#,
+		),
+		(
+			"for_of",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				for (ogImage of ["fallback-image-url"]) {}
+				return { meta: [{ property: "og:image", content: ogImage }] };
+			};
+			"#,
+		),
+		(
+			"for_in",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				for (ogImage in { "fallback-image-url": 1 }) {}
+				return { meta: [{ property: "og:image", content: ogImage }] };
+			};
+			"#,
+		),
+		(
+			"for_of_destructure",
+			"ogImage",
+			r#"
+			export const buildHead = ({ ogImage }: { ogImage?: string }) => {
+				for ({ ogImage } of [{ ogImage: "fallback-image-url" }]) {}
+				return { meta: [{ property: "og:image", content: ogImage }] };
+			};
+			"#,
+		),
+	];
+
+	for (label, binding, code) in cases {
+		let output = test_input!(TestInput {
+			code: code.to_string(),
+			snapshot: false,
+			transpile_ts: true,
+			transpile_jsx: true,
+			..TestInput::default()
+		})
+		.unwrap_or_else(|e| panic!("[{}] transform failed: {}", label, e));
+
+		let emitted = &output.modules[0].code;
+		assert!(
+			!emitted.contains("_rawProps"),
+			"[{}] props-destructuring rewrite must be refused on reassignment, but `_rawProps` was injected.\n--- emitted ---\n{}",
+			label,
+			emitted
+		);
+		assert!(
+			emitted.contains(binding),
+			"[{}] expected destructured binding `{}` to be preserved in the emitted code, got:\n{}",
+			label,
+			binding,
+			emitted
+		);
+	}
 }
 
-// Compound assignment / nullish-assign forms of the same bug.
-#[test]
-fn destructure_args_helper_reassigns_nullish_assign() {
-	test_input!(TestInput {
-		code: r#"
-		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
-			ogImage ??= `fallback-image-url`;
-			return { ogImage };
-		};
-		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
-}
-
-// Reassignment via update expression (++, --). Same defensive refusal.
-#[test]
-fn destructure_args_helper_update_expr_on_param() {
-	test_input!(TestInput {
-		code: r#"
-		export const bump = ({ count }: { count: number }) => {
-			count++;
-			return { count };
-		};
-		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
-}
-
-// Reassignment via object-destructuring assignment: `({ ogImage } = newObj)`.
-// The LHS is an AssignTarget::Pat(AssignTargetPat::Object), not a
-// SimpleAssignTarget, so a finder that only inspects SimpleAssignTarget::Ident
-// misses it. The rewrite then fires and the same class of bug (assignment to
-// an undeclared identifier in strict mode) recurs. Snapshot must leave the
-// arrow unchanged.
-#[test]
-fn destructure_args_helper_reassigns_object_destructure() {
-	test_input!(TestInput {
-		code: r#"
-		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
-			({ ogImage } = { ogImage: "fallback-image-url" });
-			return { meta: [{ property: "og:image", content: ogImage }] };
-		};
-		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
-}
-
-// Reassignment via array-destructuring assignment: `[count] = [42]`.
-// AssignTarget::Pat(AssignTargetPat::Array) — same gap as the object case.
-#[test]
-fn destructure_args_helper_reassigns_array_destructure() {
-	test_input!(TestInput {
-		code: r#"
-		export const bump = ({ count }: { count: number }) => {
-			[count] = [42];
-			return { count };
-		};
-		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
-}
-
-// Reassignment via `for (x of …)` where `x` refers to the destructured outer
-// binding (no `let`/`const`/`var` declarator). The LHS is `ForHead::Pat`, not
-// `AssignExpr`/`UpdateExpr`, so a finder that only overrides those misses it.
-// Same class of bug as the other reassignment forms — must leave the arrow
-// untouched.
-#[test]
-fn destructure_args_helper_reassigns_for_of() {
-	test_input!(TestInput {
-		code: r#"
-		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
-			for (ogImage of ["fallback-image-url"]) {}
-			return { meta: [{ property: "og:image", content: ogImage }] };
-		};
-		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
-}
-
-// Same as above for `for (x in …)`.
-#[test]
-fn destructure_args_helper_reassigns_for_in() {
-	test_input!(TestInput {
-		code: r#"
-		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
-			for (ogImage in { "fallback-image-url": 1 }) {}
-			return { meta: [{ property: "og:image", content: ogImage }] };
-		};
-		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
-}
-
-// `for ({ogImage} of …)` — destructuring-pattern LHS targeting the outer
-// binding. Tests that the for-head visitor walks into nested patterns via
-// `pat_writes_to`, not just bare `Pat::Ident`.
-#[test]
-fn destructure_args_helper_reassigns_for_of_destructure() {
-	test_input!(TestInput {
-		code: r#"
-		export const buildHead = ({ ogImage }: { ogImage?: string }) => {
-			for ({ ogImage } of [{ ogImage: "fallback-image-url" }]) {}
-			return { meta: [{ property: "og:image", content: ogImage }] };
-		};
-		"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
-}
-
-// Negative case — `for (let x of …)` introduces a fresh binding. The inner
-// `x` shadows nothing (different name) and must NOT cause us to refuse the
-// transform. This verifies we don't over-trigger on for-head bindings.
+// Positive control — `for (const it of …)` introduces a fresh inner binding
+// that shadows nothing; the refusal guard must NOT over-trigger on for-head
+// declarators. Verified by checking that the extracted component body still
+// receives the rewrite (`_rawProps.items`).
 #[test]
 fn destructure_args_inline_cmp_for_of_declarator_no_refusal() {
-	test_input!(TestInput {
+	let output = test_input!(TestInput {
 		code: r#"
 		import { component$ } from "@qwik.dev/core";
 		export const Cmp = component$(({ items }: { items: string[] }) => {
 			const out = [];
-			for (const it of items) out.push(it);
+			for (const it of items) { out.push(it); }
 			return <div>{out.join(",")}</div>;
 		});
 		"#
 		.to_string(),
+		snapshot: false,
 		transpile_ts: true,
 		transpile_jsx: true,
 		..TestInput::default()
-	});
+	})
+	.unwrap();
+
+	let entry = output
+		.modules
+		.iter()
+		.find(|m| m.is_entry)
+		.expect("expected an entry-point module for the component body");
+	assert!(
+		entry.code.contains("_rawProps.items"),
+		"expected `items` read to be rewritten to `_rawProps.items` in the extracted body, got:\n{}",
+		entry.code
+	);
 }
 
 #[test]

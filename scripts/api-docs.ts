@@ -169,12 +169,14 @@ async function createApiData(
 
   addMembers(apiExtractedJson, '');
 
-  apiData.members.forEach((m1) => {
-    apiData.members.forEach((m2) => {
-      while (m1.content.includes(`./${m2.mdFile}`)) {
-        m1.content = m1.content.replace(`./${m2.mdFile}`, `#${m2.id}`);
-      }
-    });
+  const memberNameCounts = getMemberNameCounts(apiData.members);
+
+  apiData.members.forEach((m) => {
+    m.anchorId = getMemberAnchorId(m, memberNameCounts);
+  });
+
+  apiData.members.forEach((m) => {
+    m.content = replaceMemberLinks(m.content, apiData.members);
   });
 
   apiData.members.forEach((m) => {
@@ -189,7 +191,7 @@ async function createApiData(
   mkdirSync(docsDir, { recursive: true });
 
   const apiJsonPath = join(docsDir, `api.json`);
-  writeFileSync(apiJsonPath, JSON.stringify(apiData, null, 2));
+  writeFileSync(apiJsonPath, JSON.stringify(createApiJsonData(apiData), null, 2));
 
   const apiMdPath = join(docsDir, `index.mdx`);
   writeFileSync(apiMdPath, await createApiMarkdown(apiData));
@@ -198,11 +200,7 @@ async function createApiData(
 async function createApiMarkdown(a: ApiData) {
   let md: string[] = [];
 
-  const memberNameCounts = a.members.reduce((acc: Record<string, number>, m) => {
-    const normalizedName = m.name.toLowerCase();
-    acc[normalizedName] = (acc[normalizedName] || 0) + 1;
-    return acc;
-  }, {});
+  const memberNameCounts = getMemberNameCounts(a.members);
 
   md.push(`---`);
   md.push(`title: \\${a.package} API Reference`);
@@ -213,9 +211,7 @@ async function createApiMarkdown(a: ApiData) {
 
   for (const m of a.members) {
     // const title = `${toSnakeCase(m.kind)} - ${m.name.replace(/"/g, '')}`;
-    const kind = toSnakeCase(m.kind);
-    const isDuplicateName = memberNameCounts[m.name.toLowerCase()] > 1;
-    const anchorId = isDuplicateName ? `${m.id}-${kind}` : m.id;
+    const anchorId = m.anchorId ?? getMemberAnchorId(m, memberNameCounts);
 
     md.push(`<h2 id="${anchorId}">${m.name}</h2>`);
     md.push(``);
@@ -300,6 +296,59 @@ interface ApiMember {
   content: string;
   editUrl?: string;
   mdFile: string;
+  anchorId?: string;
+}
+
+function createApiJsonData(apiData: ApiData) {
+  return {
+    ...apiData,
+    members: apiData.members.map(({ anchorId, ...member }) => member),
+  };
+}
+
+function getMemberNameCounts(members: Pick<ApiMember, 'name'>[]) {
+  return members.reduce((acc: Record<string, number>, m) => {
+    const normalizedName = m.name.toLowerCase();
+    acc[normalizedName] = (acc[normalizedName] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function getMemberAnchorId(
+  m: Pick<ApiMember, 'id' | 'kind' | 'name'>,
+  memberNameCounts: Record<string, number>
+) {
+  const isDuplicateName = memberNameCounts[m.name.toLowerCase()] > 1;
+  return isDuplicateName ? `${m.id}-${toSnakeCase(m.kind)}` : m.id;
+}
+
+function replaceMemberLinks(content: string, members: ApiMember[]) {
+  return content.replace(/\[([^\]]+)\]\(\.\/([^)]+)\)/g, (match, linkText, mdFile) => {
+    const anchorId = getLinkedMemberAnchorId(members, mdFile, linkText);
+    return anchorId ? `[${linkText}](#${anchorId})` : match;
+  });
+}
+
+function getLinkedMemberAnchorId(members: ApiMember[], mdFile: string, linkText: string) {
+  const sameFileMembers = members.filter((m) => m.mdFile === mdFile);
+  if (sameFileMembers.length === 0) {
+    return undefined;
+  }
+
+  const normalizedLinkText = normalizeApiLinkText(linkText);
+  const matchingMember =
+    sameFileMembers.find((m) => m.name === normalizedLinkText) ??
+    sameFileMembers.find((m) => m.name.toLowerCase() === normalizedLinkText.toLowerCase());
+
+  return (matchingMember ?? sameFileMembers[0]).anchorId;
+}
+
+function normalizeApiLinkText(linkText: string) {
+  return linkText
+    .replace(/\\([_$[\]])/g, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/`/g, '')
+    .trim();
 }
 
 function getCanonical(hierarchy: string[]) {

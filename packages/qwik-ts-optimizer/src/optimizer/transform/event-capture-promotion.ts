@@ -8,6 +8,7 @@
  */
 
 import { walk, getUndeclaredIdentifiersInFunction } from "oxc-walker";
+import { walkWithProtocol } from "../utils/walk-with-protocol.js";
 import type { AstNode, AstFunction, AstProgram } from "../../ast-types.js";
 import type { ExtractionResult } from "../extract.js";
 import {
@@ -23,6 +24,34 @@ import {
 } from './post-process.js';
 
 /**
+ * Enter-phase context for the `buildExtractionLoopMap` walker (OSS-396, Phase 2a
+ * of OSS-391). Carries the two read-only inputs (`extractions`, `repairedCode`),
+ * the three mutable buffers the walk fills (`extractionLoopMap`,
+ * `loopBodyVarDecls`, `loopStack`), and a `pushLoop` mutator. Holds NO exit-only
+ * act-helpers — calling `ctx.popTopLoopIfMatches` from the enter handler is a
+ * compile error because this type has no such field.
+ */
+interface BuildExtractionLoopMapEnterContext {
+  readonly extractions: ExtractionResult[];
+  readonly repairedCode: string;
+  readonly extractionLoopMap: Map<string, LoopContext[]>;
+  readonly loopBodyVarDecls: LoopBodyVarDeclMap;
+  readonly loopStack: readonly LoopContext[];
+  readonly pushLoop: (loopCtx: LoopContext) => void;
+}
+
+/**
+ * Exit-phase context for the `buildExtractionLoopMap` walker. Extends
+ * EnterContext with the exit-only `popTopLoopIfMatches` act-helper, which
+ * detects whether the leaving node is a loop boundary and pops the top of
+ * `loopStack` accordingly.
+ */
+interface BuildExtractionLoopMapExitContext
+  extends BuildExtractionLoopMapEnterContext {
+  readonly popTopLoopIfMatches: (node: AstNode) => void;
+}
+
+/**
  * Build a map from extraction symbolName to its loop context stack.
  * Walks the AST once to detect which extractions are inside loops.
  */
@@ -35,22 +64,41 @@ export function buildExtractionLoopMap(
   const loopBodyVarDecls: LoopBodyVarDeclMap = new Map();
   const loopStack: LoopContext[] = [];
 
-  walk(program, {
-    enter(node: AstNode) {
+  const enterCtx: BuildExtractionLoopMapEnterContext = {
+    extractions,
+    repairedCode,
+    extractionLoopMap,
+    loopBodyVarDecls,
+    loopStack,
+    pushLoop: (loopCtx) => { loopStack.push(loopCtx); },
+  };
+
+  const exitCtx: BuildExtractionLoopMapExitContext = {
+    ...enterCtx,
+    popTopLoopIfMatches: (node) => {
       const loopCtx = detectLoopContext(node, repairedCode);
       if (loopCtx) {
-        loopStack.push(loopCtx);
-        if (!loopBodyVarDecls.has(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd))) {
-          loopBodyVarDecls.set(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd), []);
+        loopStack.pop();
+      }
+    },
+  };
+
+  walkWithProtocol(program, enterCtx, exitCtx, {
+    enter(node, _parent, ctx) {
+      const loopCtx = detectLoopContext(node, ctx.repairedCode);
+      if (loopCtx) {
+        ctx.pushLoop(loopCtx);
+        if (!ctx.loopBodyVarDecls.has(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd))) {
+          ctx.loopBodyVarDecls.set(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd), []);
         }
       }
       // VariableDeclarations encountered inside any active loop body get
       // bucketed under the innermost loop. Skips loops' OWN init clauses
       // (those are scoped to the loop construct, not its body).
-      if (node.type === 'VariableDeclaration' && loopStack.length > 0 && node.start !== undefined) {
-        const innermost = loopStack[loopStack.length - 1];
+      if (node.type === 'VariableDeclaration' && ctx.loopStack.length > 0 && node.start !== undefined) {
+        const innermost = ctx.loopStack[ctx.loopStack.length - 1];
         if (node.start >= innermost.loopBodyStart && node.end !== undefined && node.end <= innermost.loopBodyEnd) {
-          const bucket = loopBodyVarDecls.get(loopBodyKey(innermost.loopBodyStart, innermost.loopBodyEnd))!;
+          const bucket = ctx.loopBodyVarDecls.get(loopBodyKey(innermost.loopBodyStart, innermost.loopBodyEnd))!;
           for (const decl of node.declarations ?? []) {
             if (decl.id?.type === 'Identifier') {
               bucket.push({ name: decl.id.name, declStart: decl.start ?? node.start });
@@ -62,28 +110,25 @@ export function buildExtractionLoopMap(
       if (
         node.start !== undefined &&
         node.end !== undefined &&
-        loopStack.length > 0
+        ctx.loopStack.length > 0
       ) {
-        for (const ext of extractions) {
+        for (const ext of ctx.extractions) {
           if (node.start <= ext.callStart && node.end >= ext.callEnd) {
             // This node contains the extraction -- record current loop stack
             // We only need the innermost, but store all for nested loop analysis
             if (
-              !extractionLoopMap.has(ext.symbolName) ||
-              extractionLoopMap.get(ext.symbolName)!.length <
-                loopStack.length
+              !ctx.extractionLoopMap.has(ext.symbolName) ||
+              ctx.extractionLoopMap.get(ext.symbolName)!.length <
+                ctx.loopStack.length
             ) {
-              extractionLoopMap.set(ext.symbolName, [...loopStack]);
+              ctx.extractionLoopMap.set(ext.symbolName, [...ctx.loopStack]);
             }
           }
         }
       }
     },
-    leave(node: AstNode) {
-      const loopCtx = detectLoopContext(node, repairedCode);
-      if (loopCtx) {
-        loopStack.pop();
-      }
+    leave(node, _parent, ctx) {
+      ctx.popTopLoopIfMatches(node);
     },
   });
 

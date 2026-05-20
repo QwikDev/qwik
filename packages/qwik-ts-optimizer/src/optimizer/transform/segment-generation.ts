@@ -11,7 +11,7 @@ import type {
   AstProgram,
   TSEnumDeclaration,
 } from "../../ast-types.js";
-import type { ExtractionResult, Mutable } from "../extract.js";
+import type { ConsolidatedSegment, ExtractionResult, Mutable } from "../extract.js";
 import type { ImportInfo } from "../marker-detection.js";
 import type { MigrationDecision, ModuleLevelDecl } from "../variable-migration.js";
 import type {
@@ -207,8 +207,8 @@ export function buildSegmentImportList(
 }
 
 export interface SegmentGenerationContext {
-  extractions: ExtractionResult[];
-  updatedExtractions: ExtractionResult[];
+  extractions: ConsolidatedSegment[];
+  updatedExtractions: ConsolidatedSegment[];
   program: AstProgram;
   originalImports: Map<string, ImportInfo>;
   options: TransformModulesOptions;
@@ -253,8 +253,8 @@ export interface SegmentGenerationPrep {
    * Types stay mutable to match downstream signatures (`SegmentImportData`,
    * `generateSegmentCode`) without forcing readonly-cast plumbing through them.
    */
-  extBySymbol: Map<string, ExtractionResult>;
-  sortedExtractions: ExtractionResult[];
+  extBySymbol: Map<string, ConsolidatedSegment>;
+  sortedExtractions: ConsolidatedSegment[];
   sameFileSymbols: Set<string>;
   defaultExportedNames: Set<string>;
   renamedExports: Map<string, string>;
@@ -322,7 +322,7 @@ export function computeSegmentGenerationPrep(
   ctx: SegmentGenerationContext,
 ): SegmentGenerationPrep {
   // Build O(1) lookup map for extractions by symbolName.
-  const extBySymbol = new Map<string, ExtractionResult>();
+  const extBySymbol = new Map<string, ConsolidatedSegment>();
   for (const ext of ctx.updatedExtractions) {
     extBySymbol.set(ext.symbolName, ext);
   }
@@ -407,7 +407,7 @@ export function computeSegmentGenerationPrep(
  * pre-OSS-356 inline form.
  */
 export function buildInlineStrategySegment(
-  ext: ExtractionResult,
+  ext: ConsolidatedSegment,
   ctx: SegmentGenerationContext,
   prep: SegmentGenerationPrep,
   stripped: boolean,
@@ -475,7 +475,7 @@ export function buildInlineStrategySegment(
  * own `strippedIdx` counter via {@link getSentinelCounter}).
  */
 export function buildNestedQrlDeclarations(
-  children: ExtractionResult[],
+  children: ConsolidatedSegment[],
   options: TransformModulesOptions,
   isDevMode: boolean,
   devFile: string | undefined,
@@ -548,7 +548,7 @@ export function buildNestedQrlDeclarations(
  */
 function tryBuildMarkerDeclMove(
   decl: ModuleLevelDecl,
-  extractions: readonly ExtractionResult[],
+  extractions: readonly ConsolidatedSegment[],
   relPath: string,
   options: TransformModulesOptions,
   qrlOutputExt: string | undefined,
@@ -561,7 +561,7 @@ function tryBuildMarkerDeclMove(
   const fileStem = relPath.split("/").pop() ?? relPath;
   const exactDisplayName = `${fileStem}_${decl.name}`;
   const prefixDisplayName = `${exactDisplayName}_`;
-  let match: ExtractionResult | null = null;
+  let match: ConsolidatedSegment | null = null;
   for (const ext of extractions) {
     if (ext.parent !== null) continue;
     if (ext.isInlinedQrl) continue;
@@ -619,7 +619,7 @@ function tryBuildMarkerDeclMove(
  * renamedExports}`.
  */
 export function wireMigration(
-  ext: ExtractionResult,
+  ext: ConsolidatedSegment,
   captureInfo: SegmentCaptureInfo,
   ctx: SegmentGenerationContext,
   prep: SegmentGenerationPrep,
@@ -782,7 +782,7 @@ export function wireMigration(
  * computation.
  */
 export function buildNestedCallSites(
-  children: ExtractionResult[],
+  children: ConsolidatedSegment[],
   childQrlVarNames: Map<string, string>,
   elementQpParamsMap: Map<string, string[]>,
   extractionLoopMap: Map<string, LoopContext[]>,
@@ -919,7 +919,7 @@ export function buildNestedCallSites(
  * next iteration.
  */
 export function buildDefaultStrategySegment(
-  ext: ExtractionResult,
+  ext: ConsolidatedSegment,
   ctx: SegmentGenerationContext,
   prep: SegmentGenerationPrep,
   stripped: boolean,
@@ -1142,7 +1142,7 @@ export function generateAllSegmentModules(
     );
     // OSS-389: stripped-segment fallback zeros loc before SegmentAnalysis
     // emission. Internal-builder cast — see extract.ts `Mutable<T>`.
-    if (stripped) (ext as Mutable<ExtractionResult>).loc = [mkByteOffset(0), mkByteOffset(0)];
+    if (stripped) (ext as Mutable<ConsolidatedSegment>).loc = [mkByteOffset(0), mkByteOffset(0)];
 
     if (ctx.isInlineStrategy) {
       allModules.push(buildInlineStrategySegment(ext, ctx, prep, stripped));

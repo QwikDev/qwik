@@ -304,7 +304,7 @@ export const App = component$(() => {
 describe('generateSegmentCode', () => {
   it('produces correct module string with imports and export', () => {
     const extraction: ExtractionResult = {
-      phase: 'extracted',
+      phase: 'consolidated',
       symbolName: mkSymbolName('App_component_abc12345678'),
       displayName: mkDisplayName('test.tsx_App_component'),
       hash: mkHash('abc12345678'),
@@ -347,7 +347,7 @@ describe('generateSegmentCode', () => {
 
   it('omits separator comment when no imports', () => {
     const extraction: ExtractionResult = {
-      phase: 'extracted',
+      phase: 'consolidated',
       symbolName: mkSymbolName('handler_abc12345678'),
       displayName: mkDisplayName('test.tsx_handler'),
       hash: mkHash('abc12345678'),

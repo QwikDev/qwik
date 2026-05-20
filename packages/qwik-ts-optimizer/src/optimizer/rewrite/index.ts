@@ -84,8 +84,13 @@ export interface InlineStrategyOptions {
 export interface ParentRewriteResult {
   /** Rewritten parent module source code. */
   code: string;
-  /** All extractions (possibly with nested parent refs). */
-  extractions: ExtractionResult[];
+  /**
+   * All extractions, post-`resolveNesting` (parent references resolved,
+   * phase discriminator flipped to `'consolidated'`). Same underlying array
+   * as the `extractions` parameter passed to {@link rewriteParentModule} —
+   * mutated in place per the OSS-389 pragmatic-pivot pattern.
+   */
+  extractions: ConsolidatedSegment[];
   /** Final JSX key counter value after parent module transform (for segment continuation). */
   jsxKeyCounterValue?: number;
 }
@@ -207,6 +212,18 @@ export function rewriteParentModule(
   processImports(ctx);
   applyModeTransforms(ctx);
   resolveNesting(ctx);
+
+  // OSS-398 (OSS-389 Phase 2): flip the `phase` discriminator from
+  // 'captured' to 'consolidated' now that `resolveNesting` has resolved
+  // each extraction's `parent` reference (the last phase-spanning field
+  // that needed to settle). Remaining helpers in this function and all
+  // Phase 5 consumers downstream see `ConsolidatedSegment` types.
+  // Internal-builder cast (FFI-boundary pattern, same family as the
+  // Mutable<> casts at `rewriteCallSites` / `addCaptureWrapping`).
+  for (const ext of extractions) {
+    (ext as Mutable<ExtractionResult>).phase = 'consolidated';
+  }
+
   preConsolidateRawPropsCaptures(ctx);
   ctx.topLevel = extractions.filter((e) => e.parent === null);
   preComputeQrlVarNames(ctx);
@@ -224,7 +241,10 @@ export function rewriteParentModule(
 
   return {
     code: finalCode,
-    extractions,
+    // OSS-398: `extractions` is the same array passed in, mutated through
+    // resolveNesting + preConsolidateRawPropsCaptures + the phase-flip
+    // above. Every element now has `phase: 'consolidated'`.
+    extractions: extractions as ConsolidatedSegment[],
     jsxKeyCounterValue: ctx.jsxKeyCounterValue || undefined,
   };
 }

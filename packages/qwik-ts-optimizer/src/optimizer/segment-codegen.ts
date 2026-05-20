@@ -12,7 +12,7 @@ import { parseWithRawTransfer } from './utils/parse.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { inlineConstCaptures } from './rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from './rewrite/predicates.js';
-import type { ExtractionResult } from './extract.js';
+import type { ConsolidatedSegment } from './extract.js';
 import { transformAllJsx, collectConstAndLocalNames, JsxKeyCounter } from './transform/jsx.js';
 import { transformJsxCalls, collectJsxFunctionNames } from './transform/jsx-call-transform.js';
 import { computeKeyPrefix } from './key-prefix.js';
@@ -132,7 +132,7 @@ function replacePropsFieldReferences(bodyText: string, fieldMap: Map<string, str
  * grouping by source and filtering out captured names.
  */
 function buildSegmentImports(
-  extraction: ExtractionResult,
+  extraction: ConsolidatedSegment,
   capturedNames: Set<string>,
   importContext: SegmentImportData | undefined,
 ): { parts: string[]; importsBySource: Map<string, SegmentImportSpec[]> } {
@@ -508,7 +508,7 @@ function normalizeSeparators(parts: string[]): void {
  * post-transform import re-collection (Phase 8) needs to merge into.
  */
 function collectInitialImports(
-  extraction: ExtractionResult,
+  extraction: ConsolidatedSegment,
   capturedNames: Set<string>,
   captureInfo: SegmentCaptureInfo | undefined,
   nestedQrlDecls: string[] | undefined,
@@ -531,7 +531,7 @@ function collectInitialImports(
  * unpacking) need that filtered view.
  */
 function applyBodyTransforms(
-  extraction: ExtractionResult,
+  extraction: ConsolidatedSegment,
   parts: string[],
   captureInfo: SegmentCaptureInfo | undefined,
   nestedCallSites: NestedCallSiteInfo[] | undefined,
@@ -593,7 +593,7 @@ function applyBodyTransforms(
  * already a short named-function call or a single conditional.
  */
 export function generateSegmentCode(
-  extraction: ExtractionResult,
+  extraction: ConsolidatedSegment,
   nestedQrlDecls?: string[],
   captureInfo?: SegmentCaptureInfo,
   jsxOptions?: SegmentJsxOptions,

@@ -14,7 +14,7 @@ import type {
 import { parseWithRawTransfer } from "../utils/parse.js";
 import { flattenAndReparse } from "../utils/flatten-destructures.js";
 import { extractSegments } from "../extract.js";
-import type { ExtractionResult, Mutable } from "../extract.js";
+import type { ConsolidatedSegment, ExtractionResult, Mutable } from "../extract.js";
 import { repairInput } from "../input-repair.js";
 import {
   rewriteParentModule,
@@ -321,6 +321,17 @@ export function transformModule(
       diagnostics,
     );
 
+    // OSS-398 (OSS-389 Phase 2): flip the `phase` discriminator from
+    // 'extracted' to 'captured' now that Phase 2 capture analysis has
+    // populated `captureNames` / `paramNames`. Internal-builder cast
+    // (FFI-boundary pattern, matching the prod-rename + transpile-downgrade
+    // sites above) — the alternative is a full pass-through `.map()` to
+    // construct new objects, deferred to OSS-389's Phase 3 alongside the
+    // per-variant field-presence + construct-new work.
+    for (const extraction of extractions) {
+      (extraction as Mutable<ExtractionResult>).phase = 'captured';
+    }
+
     // Phase 3: Variable migration analysis
     const moduleLevelDecls = collectModuleLevelDecls(program, repairedCode);
     const moduleLevelDeclsByName = new Map<
@@ -556,7 +567,9 @@ export function transformModule(
       );
     }
 
-    // Phase 5: Generate segment modules
+    // Phase 5: Generate segment modules. `parentResult.extractions` is
+    // already typed as `ConsolidatedSegment[]` — `rewriteParentModule`
+    // flips the phase discriminator after `resolveNesting` (OSS-398).
     const updatedExtractions = parentResult.extractions;
 
     // Pre-pass: resolve const literal captures for child segments (default strategy only).
@@ -593,7 +606,9 @@ export function transformModule(
     }
 
     const segmentCtx: SegmentGenerationContext = {
-      extractions,
+      // OSS-398: same array as `updatedExtractions` (rewriteParentModule
+      // mutates in place); cast to the narrow variant for Phase 5 typing.
+      extractions: extractions as ConsolidatedSegment[],
       updatedExtractions,
       program,
       originalImports,

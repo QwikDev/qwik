@@ -132,6 +132,20 @@ enum QwikLoaderInclude {
   Done,
 }
 
+const NO_SCRIPT_HERE_ELEMENTS = new Set([
+  'script',
+  'style',
+  'textarea',
+  'title',
+  'iframe',
+  'noframes',
+  'noscript',
+  'xmp',
+  'template',
+  'svg',
+  'math',
+]);
+
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
   opts.renderOptions ||= {};
   return new SSRContainer({
@@ -425,8 +439,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ): string | undefined {
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
-    // keep track of noscript and template, and for html we only emit inside body
-    if (elementName === 'noscript' || elementName === 'template' || elementName === 'script') {
+    // keep track of parser states/contexts where inline scripts are not safe to emit.
+    // Non-element tokenizer states are already safe because emission only happens before opening
+    // a new element, never while serializing a tag, attribute, comment, or CDATA section.
+    if (NO_SCRIPT_HERE_ELEMENTS.has(elementName)) {
       this.$noScriptHere$++;
     }
     if (
@@ -542,7 +558,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.lastNode = null;
     // keep track of where to emit scripts
-    if (elementName === 'noscript' || elementName === 'template' || elementName === 'script') {
+    if (NO_SCRIPT_HERE_ELEMENTS.has(elementName)) {
       this.$noScriptHere$--;
     }
   }

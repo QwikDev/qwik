@@ -12,7 +12,9 @@ import { EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
-import type { Cursor } from '../shared/cursor/cursor';
+import { isCursor, type Cursor } from '../shared/cursor/cursor';
+import { abandonCursor } from '../shared/cursor/cursor-queue';
+import { getCursorData } from '../shared/cursor/cursor-props';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
@@ -1938,6 +1940,7 @@ export function cleanup(
   cursorRoot: VNode | null = null
 ) {
   let vCursor: VNode | null = vNode;
+  const cursorRootData = cursorRoot && isCursor(cursorRoot) ? getCursorData(cursorRoot) : null;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
     markVNodeAsDeleted(vCursor);
@@ -1946,6 +1949,9 @@ export function cleanup(
   }
   let vParent: VNode | null = null;
   do {
+    if (cursorRootData && vCursor !== cursorRoot && isCursor(vCursor)) {
+      abandonCursor(container, cursorRootData, vCursor);
+    }
     const type = vCursor.flags;
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
       clearAllEffects(container, vCursor);

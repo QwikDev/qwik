@@ -47,6 +47,10 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
   removeCursorFromQueue(oldCursor, container);
   const oldCursorData = getCursorData(oldCursor)!;
 
+  mergeCursorData(newCursorData, oldCursorData);
+}
+
+export function mergeCursorData(newCursorData: CursorData, oldCursorData: CursorData): void {
   if (oldCursorData === newCursorData) {
     // same cursor data, no need to merge
     return;
@@ -72,6 +76,17 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
       newCursorData.extraPromises = oldExtraPromises;
     }
   }
+  mergeCursorJournalAndBoundaries(newCursorData, oldCursorData);
+}
+
+export function mergeCursorJournalAndBoundaries(
+  newCursorData: CursorData,
+  oldCursorData: CursorData
+): void {
+  if (oldCursorData === newCursorData) {
+    return;
+  }
+
   // merge journal
   const oldJournal = oldCursorData.journal;
   if (oldJournal && oldJournal.length > 0) {

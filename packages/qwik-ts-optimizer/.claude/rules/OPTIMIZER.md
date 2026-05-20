@@ -532,7 +532,7 @@ Otherwise: `_jsxSorted`, which is the common fast path.
 
 ### Var props vs const props
 
-Each JSX attribute is classified as either `var` (could change between renders) or `const` (stable for the lifetime of the element). The classification logic lives in `classifyConstness` at `transform/jsx.ts:301–435`.
+Each JSX attribute is classified as either `var` (could change between renders) or `const` (stable for the lifetime of the element). The classification logic lives in `classifyConstness` at `transform/jsx.ts:334–442`.
 
 | const | var |
 |---|---|
@@ -589,9 +589,9 @@ Reading the `_jsxSorted` arguments:
 
 Every JSX element gets a key string of the form `"<prefix>_<count>"` (e.g., `"u6_0"`). The prefix is a hash of the module's relative path (`computeKeyPrefix(relPath)`); the counter is monotonic across the module.
 
-Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `transform/jsx.ts:437–457`, threaded as:
+Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `transform/jsx.ts:470–490`, threaded as:
 
-- `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:557) → into `transform/index.ts:603`.
+- `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:736) → into `transform/index.ts:603`.
 - `parentJsxKeyCounterValue` → consumed by `segment-generation.ts:284` and `transformSegmentJsx` (segment-codegen.ts:280–325) as `keyCounterStart`.
 - Each segment's emit returns its updated `keyCounterValue` (`segment-generation.ts:754–757`) — folded back so the next segment continues counting.
 

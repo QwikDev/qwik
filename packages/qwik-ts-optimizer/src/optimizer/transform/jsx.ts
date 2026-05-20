@@ -7,7 +7,7 @@
  */
 
 import type MagicString from 'magic-string';
-import { walk } from 'oxc-walker';
+import { walkWithProtocol } from '../utils/walk-with-protocol.js';
 import { forEachAstChild } from '../utils/ast.js';
 import type { AstNode, AstProgram, Expression, JSXElementName } from '../../ast-types.js';
 import { SignalHoister } from '../signal-analysis.js';
@@ -58,6 +58,39 @@ export interface JsxTransformContext {
   allDeclaredNames?: Set<string>;
   paramNames?: Set<string>;
   qrlsWithCaptures?: Set<string>;
+}
+
+/**
+ * Enter-phase context for the JSX walker (OSS-391). Carries the read-only
+ * source text plus the two enter-phase accumulators: the loop stack (pushed
+ * on loop enter) and the sole-child JSX marker WeakSet (filled when a parent
+ * JSX node first sees its children). Holds NO MagicString — calling
+ * `ctx.s.overwrite(...)` from the enter handler is a compile error because
+ * this type has no `s` field.
+ */
+export interface JsxWalkEnterContext {
+  readonly source: string;
+  readonly loopStack: LoopContext[];
+  readonly childJsxNodes: WeakSet<object>;
+}
+
+/**
+ * Exit-phase context for the JSX walker (OSS-391). Extends EnterContext with
+ * the MagicString accumulator, the per-element transform inputs (`jsxCtx`,
+ * `enableSignals`, `qpOverrides`, `ranges`), and the act-helpers needed
+ * during leave: `neededImports` (write target), `getDevSourceSuffix` (dev
+ * suffix builder), `setNeedsFragment` (flip the outer `needsFragment` flag
+ * when a JSXFragment is rewritten).
+ */
+export interface JsxWalkExitContext extends JsxWalkEnterContext {
+  readonly s: MagicString;
+  readonly ranges: ReadonlyArray<{ start: number; end: number }>;
+  readonly jsxCtx: JsxTransformContext;
+  readonly enableSignals: boolean;
+  readonly qpOverrides: Map<number, string[]> | undefined;
+  readonly neededImports: Set<string>;
+  readonly getDevSourceSuffix: (nodeStart: number) => string;
+  readonly setNeedsFragment: () => void;
 }
 
 /** Per-element options for `transformJsxElement`. All fields are optional. */
@@ -504,7 +537,7 @@ export function processJsxTag(nameNode: JSXElementName | null | undefined): stri
 function isInSkipRange(
   nodeStart: number,
   nodeEnd: number,
-  skipRanges: Array<{ start: number; end: number }>,
+  skipRanges: ReadonlyArray<{ start: number; end: number }>,
 ): boolean {
   for (const range of skipRanges) {
     if (nodeStart >= range.start && nodeEnd <= range.end) return true;
@@ -617,53 +650,78 @@ export function transformAllJsx(
   const loopStack: LoopContext[] = [];
   const childJsxNodes = new WeakSet<object>();
 
-  walk(program, {
-    enter(node) {
-      const loopCtx = detectLoopContext(node, source);
+  // Per OSS-391: split walk state into Enter and Exit context views so the
+  // type system enforces "enter gathers, exit acts." Enter sees only what's
+  // needed to record loop context and pre-mark sole-child JSX nodes; Exit
+  // adds the MagicString, the dev-suffix helper, and the act-helpers that
+  // mutate `s` and `needsFragment`. Calling `ctx.s.overwrite(...)` from
+  // enter would be a compile error because the EnterContext type has no
+  // `s` field.
+  const enterCtx: JsxWalkEnterContext = {
+    source,
+    loopStack,
+    childJsxNodes,
+  };
+  const exitCtx: JsxWalkExitContext = {
+    ...enterCtx,
+    s,
+    ranges,
+    jsxCtx,
+    enableSignals,
+    qpOverrides,
+    neededImports,
+    getDevSourceSuffix,
+    setNeedsFragment: () => { needsFragment = true; },
+  };
+
+  walkWithProtocol(program, enterCtx, exitCtx, {
+    enter(node, _parent, ctx) {
+      const loopCtx = detectLoopContext(node, ctx.source);
       if (loopCtx) {
-        loopStack.push(loopCtx);
+        ctx.loopStack.push(loopCtx);
       }
 
       if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
         for (const child of node.children) {
           if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
-            childJsxNodes.add(child);
+            ctx.childJsxNodes.add(child);
           }
         }
       }
     },
-    leave(node) {
-      if (loopStack.length > 0 && loopStack[loopStack.length - 1].loopNode === node) {
-        loopStack.pop();
+    leave(node, _parent, ctx) {
+      if (ctx.loopStack.length > 0 && ctx.loopStack[ctx.loopStack.length - 1].loopNode === node) {
+        ctx.loopStack.pop();
       }
 
-      if (ranges.length > 0 && isInSkipRange(node.start, node.end, ranges)) return;
+      if (ctx.ranges.length > 0 && isInSkipRange(node.start, node.end, ctx.ranges)) return;
 
-      const currentLoop = loopStack.length > 0 ? loopStack[loopStack.length - 1] : null;
+      const currentLoop =
+        ctx.loopStack.length > 0 ? ctx.loopStack[ctx.loopStack.length - 1] : null;
 
       if (node.type === 'JSXElement') {
         const passiveEvents = collectPassiveDirectives(node.openingElement?.attributes ?? []);
-        const isSoleChild = childJsxNodes.has(node);
+        const isSoleChild = ctx.childJsxNodes.has(node);
 
-        const result = transformJsxElement(jsxCtx, node, {
+        const result = transformJsxElement(ctx.jsxCtx, node, {
           passiveEvents,
           loopCtx: currentLoop,
           isSoleChild,
-          enableChildSignals: enableSignals,
-          qpOverrides,
+          enableChildSignals: ctx.enableSignals,
+          qpOverrides: ctx.qpOverrides,
         });
         if (result) {
-          const callStr = appendDevSuffix(result.callString, getDevSourceSuffix(node.start));
-          s.overwrite(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
-          for (const imp of result.neededImports) neededImports.add(imp);
+          const callStr = appendDevSuffix(result.callString, ctx.getDevSourceSuffix(node.start));
+          ctx.s.overwrite(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
+          for (const imp of result.neededImports) ctx.neededImports.add(imp);
         }
       } else if (node.type === 'JSXFragment') {
-        const result = transformJsxFragment(jsxCtx, node);
+        const result = transformJsxFragment(ctx.jsxCtx, node);
         if (result) {
-          const callStr = appendDevSuffix(result.callString, getDevSourceSuffix(node.start));
-          s.overwrite(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
-          for (const imp of result.neededImports) neededImports.add(imp);
-          needsFragment = true;
+          const callStr = appendDevSuffix(result.callString, ctx.getDevSourceSuffix(node.start));
+          ctx.s.overwrite(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
+          for (const imp of result.neededImports) ctx.neededImports.add(imp);
+          ctx.setNeedsFragment();
         }
       }
     },

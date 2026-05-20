@@ -8,6 +8,7 @@
  */
 
 import { walk } from 'oxc-walker';
+import { walkWithProtocol } from './utils/walk-with-protocol.js';
 import type {
   AstEcmaScriptModule,
   AstFunction,
@@ -206,6 +207,61 @@ function extensionFromSegmentJsx(hasJsx: boolean, sourceExt: string): string {
   return '.js';
 }
 
+/**
+ * `ContextStack` restricted to the push/peek/read methods the enter handler
+ * uses. The `.pop()` method is intentionally absent — calling it from enter
+ * would corrupt the context-stack-vs-pushedNodes pairing (OSS-397, Phase 2b
+ * of OSS-391). Backed by the same `ContextStack` instance the exit handler
+ * sees as the full type via `ExtractWalkExitContext.naming`.
+ */
+type ContextStackForEnter = Pick<
+  ContextStack,
+  'push' | 'pushDefaultExport' | 'getDisplayName' | 'getSymbolName' | 'peek'
+>;
+
+/**
+ * Enter-phase context for the extraction walker (OSS-397). Holds the 11
+ * read-only inputs the walker reads, the five mutable buffers it writes
+ * during enter, and a `naming` field narrowed to push-only operations on
+ * the `ContextStack`. The `activeSegmentBodies` field is `readonly` at the
+ * array level so enter can read the top frame + mutate per-frame fields
+ * (`hasJsx`, `bodyIds`) but can't pop the stack — popping is exit-only.
+ */
+interface ExtractWalkEnterContext {
+  readonly source: string;
+  readonly relPath: string;
+  readonly scope: string | undefined;
+  readonly transpileJsx: boolean | undefined;
+  readonly sourceExt: string;
+  readonly defaultExtension: string;
+  readonly fileStem: string;
+  readonly fileName: string;
+  readonly imports: Map<string, ImportInfo>;
+  readonly customInlined: Map<string, CustomInlinedInfo>;
+  readonly hasNonQwikJsxImportSource: boolean;
+  readonly naming: ContextStackForEnter;
+  readonly activeSegmentBodies: readonly ActiveSegmentBody[];
+  readonly pendingClosures: Array<{ extraction: ExtractionResult; node: AstFunction }>;
+  readonly pushedNodes: Map<AstNode, number>;
+  readonly parentMap: Map<AstNode, AstParentNode>;
+  readonly results: ExtractedSegmentBuilder[];
+  readonly pushActiveSegmentBody: (frame: ActiveSegmentBody) => void;
+}
+
+/**
+ * Exit-phase context for the extraction walker. Extends EnterContext with
+ * the two exit-only act-helpers and widens `naming` back to the full
+ * `ContextStack` so the helpers can call `.pop()`. Calling either
+ * `finaliseTopFrameIfMatches` or `popContextStackForNode` from the enter
+ * handler is a compile error because the enter context type has no such
+ * field.
+ */
+interface ExtractWalkExitContext extends Omit<ExtractWalkEnterContext, 'naming'> {
+  readonly naming: ContextStack;
+  readonly finaliseTopFrameIfMatches: (node: AstNode) => void;
+  readonly popContextStackForNode: (node: AstNode) => void;
+}
+
 /** Open segment bodies during the program walk — used to fold JSX detection into this walk without extra subtree walks. */
 type ActiveSegmentBody = {
   leaveNode: AstNode;
@@ -343,7 +399,7 @@ export function extractSegments(
   const sourceExt = getExtension(relPath) || '.js';
   const defaultExtension = extensionFromSegmentJsx(false, sourceExt);
   const fileName = getBasename(relPath);
-  const ctx = new ContextStack(fileStem, relPath, scope, fileName);
+  const naming = new ContextStack(fileStem, relPath, scope, fileName);
 
   // The walker builds WIP segments via mutation (push on enter, mutate
   // on leave). The function returns `readonly ExtractedSegment[]` at the
@@ -364,22 +420,75 @@ export function extractSegments(
   // Suppress JSX $-suffixed attribute extraction when a non-Qwik @jsxImportSource is set
   const hasNonQwikJsxImportSource = /\/\*\s*@jsxImportSource\s+(?!@qwik|@builder\.io\/qwik)\S+/.test(source);
 
-  walk(program, {
-    enter(node: AstNode, parent: AstParentNode) {
-      if (parent) parentMap.set(node, parent);
+  // Per OSS-397 (OSS-391 Phase 2b): split walk state into Enter and Exit
+  // context views so the type system enforces "enter pushes, leave pops."
+  // Enter sees `naming` as a push-only `ContextStackForEnter`; Exit sees the
+  // full `ContextStack` plus the two act-helpers. Calling
+  // `ctx.naming.pop()` or `ctx.popContextStackForNode(node)` from the enter
+  // handler is a compile error.
+  const enterCtx: ExtractWalkEnterContext = {
+    source,
+    relPath,
+    scope,
+    transpileJsx,
+    sourceExt,
+    defaultExtension,
+    fileStem,
+    fileName,
+    imports,
+    customInlined,
+    hasNonQwikJsxImportSource,
+    naming,
+    activeSegmentBodies,
+    pendingClosures,
+    pushedNodes,
+    parentMap,
+    results,
+    pushActiveSegmentBody: (frame) => { activeSegmentBodies.push(frame); },
+  };
+
+  const exitCtx: ExtractWalkExitContext = {
+    ...enterCtx,
+    naming,
+    finaliseTopFrameIfMatches: (node) => {
+      const activeTop = activeSegmentBodies[activeSegmentBodies.length - 1];
+      if (activeTop?.leaveNode === node) {
+        if (activeTop.hasJsx) {
+          activeTop.result.extension = extensionFromSegmentJsx(true, sourceExt);
+        }
+        if (activeTop.bodyIds) {
+          activeTop.result.segmentImports = filterImportsByIds(activeTop.bodyIds, imports);
+        }
+        activeSegmentBodies.pop();
+      }
+    },
+    popContextStackForNode: (node) => {
+      const count = pushedNodes.get(node);
+      if (count !== undefined) {
+        for (let i = 0; i < count; i++) {
+          naming.pop();
+        }
+        pushedNodes.delete(node);
+      }
+    },
+  };
+
+  walkWithProtocol(program, enterCtx, exitCtx, {
+    enter(node: AstNode, parent: AstParentNode, ctx) {
+      if (parent) ctx.parentMap.set(node, parent);
 
       // Accumulate Identifier names into each active body's deferred set
       // (OSS-368). Replaces the per-extraction `collectIdentifiers` sub-walk:
       // the outer walk is about to visit these nodes anyway, so collecting
       // here costs O(activeStack.length) per Identifier — usually 1–2.
       if (node.type === 'Identifier' && node.name) {
-        for (const seg of activeSegmentBodies) {
+        for (const seg of ctx.activeSegmentBodies) {
           seg.bodyIds?.add(node.name);
         }
       }
 
       if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
-        for (const seg of activeSegmentBodies) {
+        for (const seg of ctx.activeSegmentBodies) {
           if (!seg.hasJsx && nodeContainedIn(node, seg.root)) {
             seg.hasJsx = true;
           }
@@ -389,22 +498,22 @@ export function extractSegments(
       let pushCount = 0;
 
       if (node.type === 'VariableDeclarator' && node.id?.type === 'Identifier') {
-        ctx.push(node.id.name);
+        ctx.naming.push(node.id.name);
         pushCount++;
       }
 
       if (node.type === 'FunctionDeclaration' && node.id) {
-        ctx.push(node.id.name);
+        ctx.naming.push(node.id.name);
         pushCount++;
       }
 
       if (node.type === 'Property' && node.key?.type === 'Identifier') {
-        ctx.push(node.key.name);
+        ctx.naming.push(node.key.name);
         pushCount++;
       }
 
       if (node.type === 'MethodDefinition' && node.key?.type === 'Identifier') {
-        ctx.push(node.key.name);
+        ctx.naming.push(node.key.name);
         pushCount++;
       }
 
@@ -412,7 +521,7 @@ export function extractSegments(
       if (node.type === 'CallExpression' && node.callee?.type === 'Identifier') {
         const calleeName = node.callee.name;
         if (calleeName.endsWith('$') && !isMarkerCall(node, imports, customInlined)) {
-          ctx.push(calleeName.slice(0, -1)); // "useMemo$" -> "useMemo"
+          ctx.naming.push(calleeName.slice(0, -1)); // "useMemo$" -> "useMemo"
           pushCount++;
         }
       }
@@ -431,7 +540,7 @@ export function extractSegments(
               ? opening.name.property?.name ?? ''
               : '';
         if (tagName) {
-          ctx.push(tagName);
+          ctx.naming.push(tagName);
           pushCount++;
         }
       }
@@ -439,7 +548,7 @@ export function extractSegments(
       // SWC's jsx plugin converts <> to jsx(Fragment, ...) before the optimizer,
       // so Fragment only enters naming context when transpileJsx is active.
       if (node.type === 'JSXFragment' && transpileJsx) {
-        ctx.push('Fragment');
+        ctx.naming.push('Fragment');
         pushCount++;
       }
 
@@ -455,23 +564,23 @@ export function extractSegments(
           if (rawAttrName.endsWith('$') && isEventProp(rawAttrName)) {
             const isComponentElement = parent?.type === 'JSXOpeningElement' && isComponentTag(parent.name);
             if (isComponentElement) {
-              ctx.push(rawAttrName.slice(0, -1));
+              ctx.naming.push(rawAttrName.slice(0, -1));
             } else {
               const jsxOpening = parent?.type === 'JSXOpeningElement' ? parent : null;
               const siblingAttrs: JSXAttributeItem[] = jsxOpening?.attributes ?? [];
               const passiveEvents = collectPassiveDirectives(siblingAttrs);
               const transformed = transformEventPropName(rawAttrName, passiveEvents);
               if (transformed) {
-                ctx.push(transformed.replace(/[-:]/g, '_'));
+                ctx.naming.push(transformed.replace(/[-:]/g, '_'));
               } else {
-                ctx.push(rawAttrName);
+                ctx.naming.push(rawAttrName);
               }
             }
           } else if (rawAttrName.endsWith('$') && rawAttrName.startsWith('host:')) {
             const stripped = rawAttrName.slice(5, -1);
-            ctx.push('host_' + stripped);
+            ctx.naming.push('host_' + stripped);
           } else {
-            ctx.push(rawAttrName);
+            ctx.naming.push(rawAttrName);
           }
           pushCount++;
         }
@@ -483,7 +592,7 @@ export function extractSegments(
           (decl?.type === 'FunctionDeclaration' && decl.id) ||
           (decl?.type === 'ClassDeclaration' && decl.id);
         if (!hasName) {
-          ctx.pushDefaultExport();
+          ctx.naming.pushDefaultExport();
           pushCount++;
         }
       }
@@ -601,13 +710,13 @@ export function extractSegments(
             segmentImports:
               arg0.type === 'ArrowFunctionExpression' || arg0.type === 'FunctionExpression'
                 ? []
-                : collectSegmentImports(arg0, imports),
+                : collectSegmentImports(arg0, ctx.imports),
             isInlinedQrl: true,
             explicitCaptures: explicitCapturesText,
             inlinedQrlNameArg: nameValue,
             isComponentEvent: false,
           };
-          results.push(extraction);
+          ctx.results.push(extraction);
           if (
             arg0.type === 'ArrowFunctionExpression' ||
             arg0.type === 'FunctionExpression'
@@ -620,25 +729,25 @@ export function extractSegments(
             // (current peer tools — qwik-react etc. — pre-transform JSX, so
             // none of the 12 inlinedQrl-using snapshots in match-these-snaps/
             // exercise this path; verified during OSS-352).
-            activeSegmentBodies.push({
+            ctx.pushActiveSegmentBody({
               leaveNode: node,
               root: arg0,
               result: extraction,
               hasJsx: false,
               bodyIds: new Set<string>(),
             });
-            pendingClosures.push({ extraction, node: arg0 });
+            ctx.pendingClosures.push({ extraction, node: arg0 });
           }
         }
 
-        if (pushCount > 0) pushedNodes.set(node, pushCount);
+        if (pushCount > 0) ctx.pushedNodes.set(node, pushCount);
         return;
       }
 
-      if (node.type === 'CallExpression' && isMarkerCall(node, imports, customInlined)) {
+      if (node.type === 'CallExpression' && isMarkerCall(node, ctx.imports, ctx.customInlined)) {
         const calleeName = getCalleeName(node);
         if (!calleeName) {
-          if (pushCount > 0) pushedNodes.set(node, pushCount);
+          if (pushCount > 0) ctx.pushedNodes.set(node, pushCount);
           return;
         }
 
@@ -648,19 +757,19 @@ export function extractSegments(
           ? getDirectWrapperContextName(node, parent, imports, customInlined)
           : null;
         if (wrapperContext) {
-          ctx.push(wrapperContext);
+          ctx.naming.push(wrapperContext);
           pushCount++;
         }
 
         // SWC skips pushing the callee for bare $() — only wrapper context + counter matter
         if (canonicalCallee !== '$') {
-          ctx.push(calleeName);
+          ctx.naming.push(calleeName);
           pushCount++;
         }
 
         const arg = node.arguments?.[0];
         if (!arg) {
-          if (pushCount > 0) pushedNodes.set(node, pushCount);
+          if (pushCount > 0) ctx.pushedNodes.set(node, pushCount);
           return;
         }
 
@@ -684,7 +793,7 @@ export function extractSegments(
               jsxAttrName = `${jsxAttrParent.name.namespace?.name ?? ''}:${jsxAttrParent.name.name?.name ?? ''}`;
             }
             if (jsxAttrName?.endsWith('$')) {
-              attrCtx = ctx.peek(1) ?? jsxAttrName;
+              attrCtx = ctx.naming.peek(1) ?? jsxAttrName;
 
               // Component elements use jSXProp for ALL $-suffixed attrs;
               // HTML elements use eventHandler for on* attrs.
@@ -707,8 +816,8 @@ export function extractSegments(
         const isJsxAttrContext = isEventAttr || isJsxNonEventAttr;
         const ctxName = mkCtxName(getExtractionName(canonicalCallee, isJsxAttrContext, isJsxAttrContext ? attrCtx : undefined));
 
-        const displayName = ctx.getDisplayName();
-        const symbolName = ctx.getSymbolName();
+        const displayName = ctx.naming.getDisplayName();
+        const symbolName = ctx.naming.getSymbolName();
 
         const lastUnder = symbolName.lastIndexOf('_');
         const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
@@ -752,13 +861,13 @@ export function extractSegments(
           inlinedQrlNameArg: null,
           isComponentEvent: false,
         };
-        results.push(extraction);
-        activeSegmentBodies.push({ leaveNode: node, root: arg, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
+        ctx.results.push(extraction);
+        ctx.pushActiveSegmentBody({ leaveNode: node, root: arg, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
         if (
           arg.type === 'ArrowFunctionExpression' ||
           arg.type === 'FunctionExpression'
         ) {
-          pendingClosures.push({ extraction, node: arg });
+          ctx.pendingClosures.push({ extraction, node: arg });
         }
       }
 
@@ -808,8 +917,8 @@ export function extractSegments(
           }
           const ctxName = mkCtxName(attrName);
 
-          const displayName = ctx.getDisplayName();
-          const symbolName = ctx.getSymbolName();
+          const displayName = ctx.naming.getDisplayName();
+          const symbolName = ctx.naming.getSymbolName();
 
           const lastUnder = symbolName.lastIndexOf('_');
           const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
@@ -850,36 +959,20 @@ export function extractSegments(
             inlinedQrlNameArg: null,
             isComponentEvent,
           };
-          results.push(extraction);
-          activeSegmentBodies.push({ leaveNode: node, root: expr, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
+          ctx.results.push(extraction);
+          ctx.pushActiveSegmentBody({ leaveNode: node, root: expr, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
           // The enclosing if-block already gates on `expr.type` being a function expression,
           // so the cast here is safe.
-          pendingClosures.push({ extraction, node: expr as AstFunction });
+          ctx.pendingClosures.push({ extraction, node: expr as AstFunction });
         }
       }
 
-      if (pushCount > 0) pushedNodes.set(node, pushCount);
+      if (pushCount > 0) ctx.pushedNodes.set(node, pushCount);
     },
 
-    leave(node: AstNode) {
-      const activeTop = activeSegmentBodies[activeSegmentBodies.length - 1];
-      if (activeTop?.leaveNode === node) {
-        if (activeTop.hasJsx) {
-          activeTop.result.extension = extensionFromSegmentJsx(true, sourceExt);
-        }
-        if (activeTop.bodyIds) {
-          activeTop.result.segmentImports = filterImportsByIds(activeTop.bodyIds, imports);
-        }
-        activeSegmentBodies.pop();
-      }
-
-      const count = pushedNodes.get(node);
-      if (count !== undefined) {
-        for (let i = 0; i < count; i++) {
-          ctx.pop();
-        }
-        pushedNodes.delete(node);
-      }
+    leave(node: AstNode, _parent, ctx) {
+      ctx.finaliseTopFrameIfMatches(node);
+      ctx.popContextStackForNode(node);
     },
   });
 

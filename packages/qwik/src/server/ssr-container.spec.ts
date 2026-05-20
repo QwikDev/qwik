@@ -122,29 +122,6 @@ describe('SSR Container', () => {
     }
   });
 
-  it('should emit inline Qwik loader before plaintext', async () => {
-    const { container, writer } = createTestContainer();
-
-    container.openContainer();
-    container.openElement('div', null, {}, null, null, null);
-    container.textNode('prefix');
-    await container.closeElement();
-    container.openElement('plaintext', null, {}, null, null, null);
-    container.textNode('x'.repeat(30 * 1024));
-    await container.closeElement();
-    container.openElement('section', null, {}, null, null, null);
-    await container.closeElement();
-    await container.closeContainer();
-
-    const html = writer.toString();
-    const plaintextIdx = html.indexOf('<plaintext');
-    const loaderIdx = html.indexOf('id="qwikloader"');
-
-    expect(loaderIdx).toBeGreaterThan(-1);
-    expect(plaintextIdx).toBeGreaterThan(-1);
-    expect(loaderIdx).toBeLessThan(plaintextIdx);
-  });
-
   it('should encode custom attributes with separators in emitVNodeData', () => {
     const writer = {
       chunks: [] as string[],

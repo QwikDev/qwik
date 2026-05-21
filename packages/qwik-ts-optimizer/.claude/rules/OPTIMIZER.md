@@ -502,7 +502,7 @@ Output Other segment (snap lines 32–38) imports `SHARED_CONFIG` the same way b
 
 Two consumers of the `migrationDecisions` array:
 
-- **Parent rewrite** (`rewrite/output-assembly.ts:459` — `assembleOutput`): for `reexport`, append the `export { x as _auto_x }` line; for `move`, delete the source range.
+- **Parent rewrite** (`rewrite/output-assembly.ts:655` — `assembleOutput`): for `reexport`, append the `export { x as _auto_x }` line; for `move`, delete the source range.
 - **Segment codegen** (`transform/segment-generation.ts:621` — `wireMigration`): for `reexport`, add to the segment's `autoImports` (becomes `import { _auto_x as x }`); for `move` targeting **this segment**, inline the declaration text + its own import deps.
 
 ---

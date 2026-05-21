@@ -274,8 +274,21 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
   if (!ctx.isInline) return;
 
   const { extractions, inlineOptions, jsxOptions, isDevMode, relPath,
-    s, program, neededImports, alreadyImported, qrlVarNames, inlinedQrlSymbols, mode, transpileTs } = ctx;
+    s, program, neededImports, alreadyImported, qrlVarNames, inlinedQrlSymbols, mode, transpileTs,
+    migrationDecisions } = ctx;
   const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));
+
+  // Names migration is reexporting (`_auto_<name>`) or moving — same filter
+  // `addCaptureWrapping` (`rewrite/index.ts:657`) applies at the `.w(...)`
+  // emission site. Body-side capture unpacking must filter symmetrically:
+  // the migrated decl is in module scope under inline/hoist (body stays in
+  // parent) or imported via `_auto_` under segment-file, so `_captures[N]`
+  // indirection is unwanted and would deliver undefined.
+  const migratedNames: ReadonlySet<string> = new Set(
+    (migrationDecisions ?? [])
+      .filter((d) => d.action === 'reexport' || d.action === 'move')
+      .map((d) => d.varName),
+  );
 
   const isHoist = inlineOptions?.entryType === 'hoist' ||
     (inlineOptions?.entryType === 'inline' && !!transpileTs && !!jsxOptions?.enableJsx && mode !== 'dev');
@@ -330,6 +343,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     const { transformedBody: rawBody, additionalImports, hoistedDeclarations, keyCounterValue } = transformInlineSegmentBody(
       ext, extractions, qrlVarNames, inlineSegmentJsxOptions, inlineOptions?.regCtxName, sharedHoister,
       ctx.closureNodes, ctx.source, ctx.originalImports, ctx.relPath, ctx.jsxKeyCounterValue,
+      migratedNames,
     );
 
     let sigRewrittenBody = rawBody;
@@ -362,25 +376,46 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
 
     const forceInlineForRegCtx = isRegCtxMatch && inlineOptions?.entryType === 'inline';
     if (isHoist && !forceInlineForRegCtx) {
-      let hoistBody = transformedBody;
-      try {
-        const stripped = oxcTransformSync('__body__.tsx', hoistBody);
-        if (stripped.code && !stripped.errors?.length) {
-          hoistBody = stripped.code;
-          if (hoistBody.endsWith(';\n')) hoistBody = hoistBody.slice(0, -2);
-          else if (hoistBody.endsWith(';')) hoistBody = hoistBody.slice(0, -1);
-        }
-      } catch {
-        // TS stripping failed, use original
-      }
-      const constDecl = buildHoistConstDecl(ext.symbolName, hoistBody);
-      const sCall = buildHoistSCall(varName, ext.symbolName);
-      const stmtStart = extContainingStmtStart.get(ext.symbolName);
-      if (stmtStart !== undefined) {
-        s.appendLeft(stmtStart, constDecl + '\n' + sCall + '\n');
+      // OSS-407 Fix A: when body is a bare identifier referring to a
+      // module-level decl (`useStyle$(STYLES)` shape — body slice = "STYLES"),
+      // the const-decl wrapping that Hoist normally emits is redundant. SWC
+      // emits `q_X.s(STYLES)` directly. Route to `ctx.sCalls` so `placeSCalls`
+      // can place it relative to the referenced decl (which may be declared
+      // AFTER the extraction's containing statement — TDZ otherwise; see
+      // OSS-407 Fix C in placeSCalls).
+      const moduleDeclNames = ctx.moduleLevelDecls
+        ? new Set(ctx.moduleLevelDecls.map((d) => d.name))
+        : undefined;
+      const trimmedBody = transformedBody.trim();
+      const bareIdentMatch = /^[A-Za-z_$][\w$]*$/.exec(trimmedBody);
+      if (
+        !isRegCtxMatch &&
+        moduleDeclNames &&
+        bareIdentMatch !== null &&
+        moduleDeclNames.has(trimmedBody)
+      ) {
+        ctx.sCalls.push(buildSCall(varName, trimmedBody));
       } else {
-        ctx.sCalls.push(constDecl);
-        ctx.sCalls.push(sCall);
+        let hoistBody = transformedBody;
+        try {
+          const stripped = oxcTransformSync('__body__.tsx', hoistBody);
+          if (stripped.code && !stripped.errors?.length) {
+            hoistBody = stripped.code;
+            if (hoistBody.endsWith(';\n')) hoistBody = hoistBody.slice(0, -2);
+            else if (hoistBody.endsWith(';')) hoistBody = hoistBody.slice(0, -1);
+          }
+        } catch {
+          // TS stripping failed, use original
+        }
+        const constDecl = buildHoistConstDecl(ext.symbolName, hoistBody);
+        const sCall = buildHoistSCall(varName, ext.symbolName);
+        const stmtStart = extContainingStmtStart.get(ext.symbolName);
+        if (stmtStart !== undefined) {
+          s.appendLeft(stmtStart, constDecl + '\n' + sCall + '\n');
+        } else {
+          ctx.sCalls.push(constDecl);
+          ctx.sCalls.push(sCall);
+        }
       }
     } else {
       ctx.sCalls.push(buildSCall(varName, transformedBody));
@@ -513,6 +548,31 @@ function findLastReferencedDeclEnd(
   return maxEnd >= 0 ? maxEnd : null;
 }
 
+/**
+ * For a single sCall, find the last (latest by `declEnd`) module-level decl
+ * the sCall body references AND whose `declStart` is strictly after `threshold`.
+ *
+ * Used by `placeSCalls` to detect TDZ-sensitive forward dependencies: an sCall
+ * that references a decl declared *after* the marker-export anchor (e.g.
+ * `q_useStyle.s(STYLES)` where `const STYLES = '...'` follows `export const
+ * Works = component$(...)` in source). The marker-anchor partitioning otherwise
+ * places such sCalls before the export — referencing STYLES before it's
+ * declared. Returns null when no forward dep exists.
+ */
+function findForwardReferencedDeclEnd(
+  sCall: string,
+  decls: readonly ModuleLevelDecl[],
+  threshold: number,
+): number | null {
+  let maxEnd = -1;
+  for (const decl of decls) {
+    if (decl.declStart <= threshold) continue;
+    if (decl.declEnd <= maxEnd) continue;
+    if (new RegExp('\\b' + decl.name + '\\b').test(sCall)) maxEnd = decl.declEnd;
+  }
+  return maxEnd >= 0 ? maxEnd : null;
+}
+
 function partitionSCallsBySelfRef(
   sCalls: readonly string[],
   exportedNames: ReadonlySet<string>,
@@ -527,21 +587,29 @@ function partitionSCallsBySelfRef(
 }
 
 /**
- * Splice sCalls into the parent module via `MagicString` offsets — eliminates
- * post-`toString()` line/regex/brace-counting that the original line-based
- * placement needed.
+ * Splice sCalls into the parent module via `MagicString` offsets. Each sCall
+ * lands at exactly one position; the chosen position depends on its body's
+ * references against the anchors below.
  *
  * Anchor priority:
- *   1. Last marker-call export (OSS-404 F1c port): partition sCalls by whether
- *      their body references any exported marker name. Self-referencing sCalls
- *      land AFTER the export (avoid TDZ when the body uses its own export name);
- *      non-referencing sCalls land BEFORE.
- *   2. Last module-level decl any sCall body references (OSS-405): peer-tool
- *      `inlinedQrl` input has no marker export to anchor against (it uses plain
- *      `export { name }`), so sCalls land immediately after their last source-
- *      order dependency — splitting the program into the two independent-
- *      statement blocks (sCalls + exports) that `compareAst` expects.
- *   3. No anchor: append at end of file.
+ *   1. Forward decl dependency (OSS-407, per-sCall): when a marker-export
+ *      anchor exists AND the sCall references a module-level decl declared
+ *      *after* the anchor. Place AFTER that decl to avoid TDZ at module
+ *      load (e.g. `q_useStyle.s(STYLES)` where `const STYLES` follows
+ *      `export const Works = component$(...)`). Per-sCall because the same
+ *      module may mix forward-dep sCalls with anchor-relative ones.
+ *   2. Marker-call export anchor (OSS-404 F1c port, group): remaining
+ *      sCalls partition by self-ref to any exported marker name. Self-
+ *      referencing sCalls go AFTER the export to avoid TDZ on the
+ *      reference; non-referencing go BEFORE.
+ *   3. No marker anchor (OSS-405, group): last module-decl any remaining
+ *      sCall body references — peer-tool `inlinedQrl` input uses plain
+ *      `export { name }`, no marker init to anchor against.
+ *   4. No anchor at all → append at end of file.
+ *
+ * The "group" placements preserve OSS-404/OSS-405's behaviour of keeping
+ * adjacent sCalls together. Only the TDZ-sensitive forward-dep case splits
+ * out of the group.
  */
 function placeSCalls(
   s: MagicString,
@@ -552,23 +620,36 @@ function placeSCalls(
   if (sCalls.length === 0) return;
 
   const markerAnchor = findLastMarkerExportAnchor(program);
+  const decls = moduleLevelDecls ?? [];
+
+  // Pull out OSS-407 forward-dep sCalls per-sCall; the rest stays grouped.
+  const groupedSCalls: string[] = [];
+  for (const sCall of sCalls) {
+    const forwardDeclEnd = markerAnchor && decls.length > 0
+      ? findForwardReferencedDeclEnd(sCall, decls, markerAnchor.end)
+      : null;
+    if (forwardDeclEnd !== null) s.appendRight(forwardDeclEnd, '\n' + sCall);
+    else groupedSCalls.push(sCall);
+  }
+  if (groupedSCalls.length === 0) return;
+
   if (markerAnchor) {
     const exportedNames = findExportedMarkerNames(program);
-    const { beforeExport, afterExport } = partitionSCallsBySelfRef(sCalls, exportedNames);
+    const { beforeExport, afterExport } = partitionSCallsBySelfRef(groupedSCalls, exportedNames);
     if (beforeExport.length > 0) s.appendLeft(markerAnchor.start, beforeExport.join('\n') + '\n');
     if (afterExport.length > 0) s.appendRight(markerAnchor.end, '\n' + afterExport.join('\n'));
     return;
   }
 
-  const lastDeclEnd = moduleLevelDecls && moduleLevelDecls.length > 0
-    ? findLastReferencedDeclEnd(sCalls, moduleLevelDecls)
+  const lastDeclEnd = decls.length > 0
+    ? findLastReferencedDeclEnd(groupedSCalls, decls)
     : null;
   if (lastDeclEnd !== null) {
-    s.appendRight(lastDeclEnd, '\n' + sCalls.join('\n'));
+    s.appendRight(lastDeclEnd, '\n' + groupedSCalls.join('\n'));
     return;
   }
 
-  s.append('\n' + sCalls.join('\n'));
+  s.append('\n' + groupedSCalls.join('\n'));
 }
 
 export function assembleOutput(ctx: RewriteContext): string {

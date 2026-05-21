@@ -153,6 +153,18 @@ export function transformInlineSegmentBody(
   parentRelPath?: string,
   /** Shared JSX key counter value for continuation across .s(body) calls. */
   sharedKeyCounterStart?: number,
+  /**
+   * Names of module-level decls that migration is reexporting (`_auto_X`)
+   * or moving. The default-strategy segment-file path filters these from
+   * `captureNames` via `wireMigration` (`segment-generation.ts:756`); the
+   * inline/hoist path needs the same filter because the body stays in the
+   * parent and references the decl directly from module scope (no
+   * `_captures[N]` indirection needed). Without the filter, the body gets
+   * `const X = _captures[0]` injected on top of a `.w([])` call site that
+   * was already filtered by `addCaptureWrapping` — phantom unpacking with
+   * undefined values. See OSS-407.
+   */
+  migratedNames?: ReadonlySet<string>,
 ): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {
   // `body` is locally mutable plain string for slicing/concatenation
   // throughout this transform. The branded BodyText only matters at the
@@ -275,8 +287,20 @@ export function transformInlineSegmentBody(
     // unpacking on top would produce duplicate destructuring. Mirrors the
     // `resolveCaptureInfo` skip path used by the segment-file codegen.
   } else if (ext.captureNames.length > 0) {
-    body = injectCapturesUnpacking(body, ext.captureNames);
-    additionalImports.set('_captures', '@qwik.dev/core');
+    // OSS-407: filter migrated names — they're accessible via module scope
+    // under inline/hoist (body stays in parent) so no `_captures[N]`
+    // indirection is needed. Mirrors the symmetric filter in
+    // `addCaptureWrapping` (`rewrite/index.ts:657`) that already skips
+    // emitting `.w([X])` for migrated `X`. Without this body-side filter,
+    // `const X = _captures[0]` got injected on top of an empty `.w()` call
+    // site — phantom unpacking with undefined values.
+    const effectiveCaptures = migratedNames && migratedNames.size > 0
+      ? ext.captureNames.filter(n => !migratedNames.has(n))
+      : ext.captureNames;
+    if (effectiveCaptures.length > 0) {
+      body = injectCapturesUnpacking(body, effectiveCaptures);
+      additionalImports.set('_captures', '@qwik.dev/core');
+    }
   }
   // _rawProps transform only applies to component$ extractions
   {

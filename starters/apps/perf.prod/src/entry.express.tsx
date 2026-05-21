@@ -1,3 +1,4 @@
+import { getRequestEvent } from "@builder.io/qwik-city";
 import express from "express";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +11,27 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
  * https://expressjs.com/
  */
 const app = express();
+
+/**
+ * Optional request-aware diagnostics for crashes that escape request boundaries.
+ * This does not prevent Node from crashing, but it does provide better diagnostics for uncaught exceptions.
+ * See the Node documentation to handle uncaught exceptions and unhandled rejections in your app.
+ */
+process.on("uncaughtExceptionMonitor", (error, origin) => {
+  const requestEv = getRequestEvent();
+  if (requestEv) {
+    console.error("Unhandled exception during request", {
+      origin,
+      method: requestEv.method,
+      url: requestEv.url.href,
+      headersSent: requestEv.headersSent,
+      error,
+    });
+    return;
+  }
+
+  console.error("Unhandled exception outside request", { origin, error });
+});
 
 /**
  * Serve static client build files,

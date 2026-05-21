@@ -11,6 +11,7 @@ import {
   createQwikCity,
   type PlatformNode,
 } from "@builder.io/qwik-city/middleware/node";
+import { getRequestEvent } from "@builder.io/qwik-city";
 import qwikCityPlan from "@qwik-city-plan";
 import { createServer } from "node:http";
 import render from "./entry.ssr";
@@ -79,6 +80,25 @@ const { router, notFound, staticFile } = createQwikCity({
 });
 
 const server = createServer();
+
+// Optional request-aware diagnostics for crashes that escape request boundaries.
+// This does not prevent Node from crashing, but it does provide better diagnostics for uncaught exceptions.
+// See the Node documentation to handle uncaught exceptions and unhandled rejections in your app.
+process.on("uncaughtExceptionMonitor", (error, origin) => {
+  const requestEv = getRequestEvent();
+  if (requestEv) {
+    console.error("Unhandled exception during request", {
+      origin,
+      method: requestEv.method,
+      url: requestEv.url.href,
+      headersSent: requestEv.headersSent,
+      error,
+    });
+    return;
+  }
+
+  console.error("Unhandled exception outside request", { origin, error });
+});
 
 server.on("request", (req, res) => {
   for (const header of Object.entries(DEFAULT_HEADERS)) {

@@ -283,6 +283,20 @@
       "mdFile": "qwik-city.formsubmitsuccessdetail.md"
     },
     {
+      "name": "getRequestEvent",
+      "id": "getrequestevent",
+      "hierarchy": [
+        {
+          "name": "getRequestEvent",
+          "id": "getrequestevent"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\ngetRequestEvent: () => RequestEvent | undefined\n```\n**Returns:**\n\nRequestEvent \\| undefined",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.getrequestevent.md"
+    },
+    {
       "name": "GetValidatorInputType",
       "id": "getvalidatorinputtype",
       "hierarchy": [

@@ -20,7 +20,7 @@ import {
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
   requestEv: RequestEvent;
-  completion: Promise<unknown>;
+  completion: Promise<Error | void>;
 }
 
 let asyncStore: AsyncStore | undefined;
@@ -37,6 +37,12 @@ import('node:async_hooks')
     );
   });
 
+const ensureError = (err: any) => {
+  if (err instanceof Error) {
+    return err;
+  }
+  return new Error(String(err), { cause: err });
+};
 export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   loadedRoute: LoadedRoute | null,
@@ -46,24 +52,39 @@ export function runQwikCity<T>(
   basePathname = '/',
   qwikSerializer: QwikSerializer
 ): QwikCityRun<T> {
-  let resolve: (value: T) => void;
-  const responsePromise = new Promise<T>((r) => (resolve = r));
-  const requestEv = createRequestEvent(
-    serverRequestEv,
-    loadedRoute,
-    requestHandlers,
-    trailingSlash,
-    basePathname,
-    qwikSerializer,
-    resolve!
-  );
+  let resolve: (value: T | null) => void;
+  const responsePromise = new Promise<T | null>((r) => (resolve = r));
+
+  let requestEv: RequestEventInternal;
+  try {
+    requestEv = createRequestEvent(
+      serverRequestEv,
+      loadedRoute,
+      requestHandlers,
+      trailingSlash,
+      basePathname,
+      qwikSerializer,
+      resolve!
+    );
+  } catch (err) {
+    resolve!(null);
+    return {
+      response: responsePromise,
+      requestEv: { headersSent: false } as RequestEvent,
+      completion: Promise.resolve(ensureError(err)),
+    };
+  }
+
+  const completion = (
+    asyncStore
+      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
+      : runNext(requestEv, rebuildRouteInfo, resolve!)
+  ).catch(ensureError);
 
   return {
     response: responsePromise,
     requestEv,
-    completion: asyncStore
-      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
-      : runNext(requestEv, rebuildRouteInfo, resolve!),
+    completion,
   };
 }
 
@@ -71,7 +92,7 @@ async function runNext(
   requestEv: RequestEventInternal,
   rebuildRouteInfo: RebuildRouteInfoInternal,
   resolve: (value: any) => void
-) {
+): Promise<Error | void> {
   try {
     const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
     isValidURL(requestEv.originalUrl);
@@ -86,7 +107,7 @@ async function runNext(
 
   let rewriteAttempt = 1;
 
-  async function _runNext() {
+  async function _runNext(): Promise<Error | void> {
     try {
       // Run all middlewares
       await requestEv.next();
@@ -137,7 +158,7 @@ async function runNext(
           }
         }
 
-        return e;
+        return e as any;
       }
     }
 

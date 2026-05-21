@@ -1,9 +1,34 @@
-import { describe, expectTypeOf, test } from 'vitest';
+import { describe, expect, expectTypeOf, test, vi } from 'vitest';
 import * as z from 'zod';
-import { server$ } from './server-functions';
+import { getRequestEvent, server$ } from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';
 
 describe('types', () => {
+  test('getRequestEvent returns undefined when no async request store exists', () => {
+    const previousStore = globalThis.qcAsyncRequestStore;
+    globalThis.qcAsyncRequestStore = undefined;
+    try {
+      expect(getRequestEvent()).toBeUndefined();
+    } finally {
+      globalThis.qcAsyncRequestStore = previousStore;
+    }
+  });
+
+  test('getRequestEvent returns current request from async request store', () => {
+    const previousStore = globalThis.qcAsyncRequestStore;
+    const requestEvent = { method: 'GET', url: new URL('http://localhost/') } as any;
+
+    globalThis.qcAsyncRequestStore = {
+      getStore: vi.fn(() => requestEvent),
+    } as any;
+
+    try {
+      expect(getRequestEvent()).toBe(requestEvent);
+    } finally {
+      globalThis.qcAsyncRequestStore = previousStore;
+    }
+  });
+
   test('matching', () => () => {
     const foo = () => server$(() => 'hello');
 

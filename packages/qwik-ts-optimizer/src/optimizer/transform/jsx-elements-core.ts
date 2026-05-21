@@ -24,6 +24,7 @@ import {
   type JsxKeyCounter,
   type JsxTransformContext,
   type JsxElementOptions,
+  type ScopeAwareBindings,
 } from './jsx.js';
 
 function buildAdditionalSpreadsPart(
@@ -137,7 +138,7 @@ function moveEventHandlersForNonConstCaptures(
   tagIsHtml: boolean,
   inLoop: boolean,
   qpOverrides: Map<number, string[]> | undefined,
-  constIdents: Set<string> | undefined,
+  bindings: ScopeAwareBindings | undefined,
   importedNames: Set<string>,
   varEntries: string[],
   constEntries: string[],
@@ -148,7 +149,9 @@ function moveEventHandlersForNonConstCaptures(
   const overrideParams = qpOverrides?.get(node.start);
   if (!overrideParams || overrideParams.length === 0) return false;
 
-  const hasNonConstParam = overrideParams.some(p => !constIdents?.has(p) && !importedNames.has(p));
+  const hasNonConstParam = overrideParams.some(
+    p => bindings?.classify(p, node.start) !== 'const' && !importedNames.has(p),
+  );
   if (!hasNonConstParam) return false;
 
   let movedAny = false;
@@ -278,7 +281,7 @@ export function transformJsxElement(
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
-  const { source, s, importedNames, keyCounter, signalHoister, constIdents, allDeclaredNames, qrlsWithCaptures } = ctx;
+  const { source, s, importedNames, keyCounter, signalHoister, bindings, allDeclaredNames, qrlsWithCaptures } = ctx;
   const { passiveEvents, loopCtx, isSoleChild, enableChildSignals = true, qpOverrides } = opts;
 
   const neededImports = new Set<string>();
@@ -326,7 +329,7 @@ export function transformJsxElement(
   injectQpProp(node, tagIsHtml, inLoop, loopCtx, qpOverrides, varEntries, constEntries, qrlsWithCaptures);
 
   if (moveEventHandlersForNonConstCaptures(
-    node, tagIsHtml, inLoop, qpOverrides, constIdents, importedNames,
+    node, tagIsHtml, inLoop, qpOverrides, bindings, importedNames,
     varEntries, constEntries, hasSpread,
   )) {
     hasVarEventHandler = true;

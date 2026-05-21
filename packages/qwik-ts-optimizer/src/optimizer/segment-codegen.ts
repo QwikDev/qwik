@@ -13,7 +13,7 @@ import { rewriteImportSource } from './rewrite-imports.js';
 import { inlineConstCaptures } from './rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from './rewrite/predicates.js';
 import type { ConsolidatedSegment } from './extract.js';
-import { transformAllJsx, collectConstAndLocalNames, JsxKeyCounter } from './transform/jsx.js';
+import { transformAllJsx, collectScopeAwareBindings, JsxKeyCounter } from './transform/jsx.js';
 import { transformJsxCalls, collectJsxFunctionNames } from './transform/jsx-call-transform.js';
 import { computeKeyPrefix } from './key-prefix.js';
 import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
@@ -365,14 +365,18 @@ function transformSegmentJsx(
     const qrlsWithCaptures = buildQrlsWithCapturesSet(nestedCallSites);
     const qpOverrides = buildQpOverrides(nestedCallSites, bodyParse.program);
 
-    const segConstAndLocal = collectConstAndLocalNames(bodyParse.program);
+    const segScopeBindings = collectScopeAwareBindings(bodyParse.program);
     if (captureInfo?.captureNames) {
-      for (const name of captureInfo.captureNames) segConstAndLocal.constBindings.add(name);
+      // Capture names are injected by `_captures[i]` unpacking at segment
+      // body entry; they're runtime-const but have no AST declaration in
+      // this body. Inject as program-scope consts so any reference in the
+      // segment classifies as const (unless shadowed by an inner binding).
+      for (const name of captureInfo.captureNames) segScopeBindings.bindings.addProgramScopeConst(name);
     }
 
     const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames,
       undefined, jsxOptions.devOptions, jsxOptions.keyCounterStart, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath,
-      undefined, segConstAndLocal);
+      undefined, segScopeBindings);
 
     const transformedWrapped = bodyS.toString();
     bodyText = transformedWrapped.slice(1, -1);

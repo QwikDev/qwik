@@ -54,7 +54,12 @@ export interface JsxTransformContext {
   importedNames: Set<string>;
   keyCounter: JsxKeyCounter;
   signalHoister: SignalHoister;
-  constIdents?: Set<string>;
+  /** Scope-aware binding lookup. Use `bindings.classify(name, atPosition)`
+   * to resolve a reference to its innermost enclosing scope's binding kind;
+   * shadowed names (e.g. arrow param shadowing a for-of binding) resolve
+   * correctly. Replaces the prior flat `constIdents: Set<string>` per
+   * OSS-401. */
+  bindings?: ScopeAwareBindings;
   allDeclaredNames?: Set<string>;
   paramNames?: Set<string>;
   qrlsWithCaptures?: Set<string>;
@@ -137,12 +142,14 @@ export interface ProcessPropsOptions {
 export function isConstBindingName(
   name: string | null,
   importedNames: Set<string>,
-  constIdents?: Set<string>,
+  bindings: ScopeAwareBindings | undefined,
+  atPosition: number,
 ): boolean {
   if (!name) {
     return false;
   }
-  return importedNames.has(name) || (constIdents?.has(name) ?? false);
+  if (importedNames.has(name)) return true;
+  return bindings?.classify(name, atPosition) === 'const';
 }
 
 /**
@@ -166,64 +173,164 @@ function isReturnStatic(init: Expression | null | undefined): boolean {
   return false;
 }
 
-export interface ConstAndLocalNames {
-  /** Const-bound identifiers whose initializer is `isReturnStatic` —
-   * treated as immutable references for prop classification. */
-  constBindings: Set<string>;
-  /** Every locally declared identifier name (any binding kind) — used to
-   * distinguish known locals from unknown globals for signal analysis. */
+/**
+ * Scope-aware binding classification (OSS-401).
+ *
+ * Replaces the prior flat `constBindings: Set<string>` with a position-indexed
+ * lookup. A reference to `item` at position P resolves to the innermost
+ * enclosing scope that declares `item`; classification follows that scope's
+ * binding kind. This is what SWC's hygiene-based `decl_stack` lookup gives
+ * for free; OXC has no equivalent, so we simulate it via scope ranges.
+ *
+ * Per-name index: `nameToScopes: Map<name, scope-range[]>`. Lookup picks the
+ * smallest range containing `atPosition` whose name matches. Synthetic
+ * program-scope bindings (`addProgramScopeConst`) use range `[0, MAX]` so
+ * any inner scope's binding wins — segment-codegen uses this to inject
+ * `_captures[i]` names that aren't AST-declared but are runtime-const.
+ */
+interface ScopeRange {
+  readonly start: number;
+  readonly end: number;
+  readonly kind: 'const' | 'var';
+}
+
+export interface ScopeAwareBindings {
+  /** Look up `name`'s binding kind at AST position `atPosition`. Returns the
+   * innermost matching scope's kind, or undefined if no enclosing scope
+   * binds `name` (caller falls through to imports / undeclared check). */
+  classify(name: string, atPosition: number): 'const' | 'var' | undefined;
+  /** Add a name that classifies as `const` everywhere — used to inject
+   * names that aren't AST-declared but are runtime-const (e.g. capture
+   * bindings from `_captures[i]` unpacking). Any inner-scope binding of
+   * the same name shadows correctly. */
+  addProgramScopeConst(name: string): void;
+}
+
+class ScopeAwareBindingsImpl implements ScopeAwareBindings {
+  private nameToScopes = new Map<string, ScopeRange[]>();
+  /**
+   * Names that classify as `'const'` everywhere, overriding any AST-derived
+   * binding. Populated by `addProgramScopeConst` — used for capture names
+   * injected by `_captures[i]` unpacking. Even though those names appear
+   * as AST `const X = _captures[N]` declarations inside segment bodies,
+   * their initializer (`_captures[N]`) is a MemberExpression that wouldn't
+   * normally pass `isReturnStatic`, so the AST-derived classification
+   * would be `'var'` — incorrect, since `_captures` is a runtime-stable
+   * array. The override matches the prior flat-Set behavior where
+   * `captureInfo.captureNames` were forcibly added to `constBindings`.
+   */
+  private alwaysConst = new Set<string>();
+
+  add(name: string, start: number, end: number, kind: 'const' | 'var'): void {
+    let arr = this.nameToScopes.get(name);
+    if (!arr) {
+      arr = [];
+      this.nameToScopes.set(name, arr);
+    }
+    arr.push({ start, end, kind });
+  }
+
+  classify(name: string, atPosition: number): 'const' | 'var' | undefined {
+    // alwaysConst overrides scope walk — see field doc above.
+    if (this.alwaysConst.has(name)) return 'const';
+    const scopes = this.nameToScopes.get(name);
+    if (!scopes) return undefined;
+    let best: ScopeRange | undefined;
+    let bestSize = Infinity;
+    for (const s of scopes) {
+      if (s.start <= atPosition && atPosition < s.end) {
+        const size = s.end - s.start;
+        if (size < bestSize) {
+          best = s;
+          bestSize = size;
+        }
+      }
+    }
+    return best?.kind;
+  }
+
+  addProgramScopeConst(name: string): void {
+    this.alwaysConst.add(name);
+  }
+}
+
+export interface ScopeAwareCollectResult {
+  /** Scope-aware binding lookup keyed by (name, position). */
+  bindings: ScopeAwareBindings;
+  /** Every locally declared identifier name (any binding kind) — flat,
+   * scope-unaware. Used by signal-analysis as a "this name is declared
+   * somewhere locally, so don't treat it as a signal/store dep" filter. */
   allLocalNames: Set<string>;
 }
 
 /**
- * Single-pass collection of both `constBindings` (const-declared idents with
- * static initializers) and `allLocalNames` (every locally declared ident).
+ * Single-pass collection of scope-aware `bindings` + flat `allLocalNames`.
+ * Walks the AST maintaining a scope stack: each Function* / Arrow / Block /
+ * For-loop / Catch / Program node pushes a frame on enter, pops on leave.
+ * Bindings declared inside are recorded with that frame's source range.
  *
- * Each binding-introducing node feeds the right output(s):
- * - `VariableDeclaration`: always `addIdent` per declarator for
- *   `allLocalNames`; if `kind === 'const'`, also `walkPatternInit` to classify
- *   leaf bindings for `constBindings`.
- * - `FunctionDeclaration` / `ClassDeclaration` name, function params,
- *   `CatchClause` param, `ForIn/ForOfStatement` left-hand pattern: `addIdent`
- *   only.
+ * Const-vs-var classification per binding mirrors the prior `collectConst-
+ * AndLocalNames` behavior:
+ * - `VariableDeclaration` with `kind === 'const'` and `isReturnStatic(init)`
+ *   per leaf → `'const'`
+ * - All other bindings (let/var declarations, function/arrow/method params,
+ *   for-in/of bindings via VarDecl with null init are special-cased through
+ *   the same VarDecl branch, catch param, function/class declaration names)
+ *   → `'var'`
+ *
+ * Block scoping is treated uniformly (every binding goes in its immediate
+ * enclosing scope-introducing node). This is technically more restrictive
+ * than JS semantics for `var` (which floats to the enclosing function), but
+ * is safe: a `var x` recorded in an inner block scope can only produce a
+ * false-positive shadow detection, which classifies the reference as `var`
+ * (the safer direction — fewer false-const classifications).
  */
-export function collectConstAndLocalNames(program: AstProgram): ConstAndLocalNames {
-  const constBindings = new Set<string>();
+export function collectScopeAwareBindings(program: AstProgram): ScopeAwareCollectResult {
+  const bindings = new ScopeAwareBindingsImpl();
   const allLocalNames = new Set<string>();
 
-  function addIdent(node: AstNode | null | undefined): void {
-    if (!node) return;
-    if (node.type === 'Identifier') {
-      allLocalNames.add(node.name);
-    } else if (node.type === 'ArrayPattern') {
-      for (const elem of node.elements) {
-        if (elem) addIdent(elem.type === 'RestElement' ? elem.argument : elem);
+  /** Stack of active scope ranges. The top is the innermost; bindings
+   * declared inside the current visit get recorded with the top range. */
+  const scopeStack: Array<{ start: number; end: number }> = [];
+
+  function currentScope(): { start: number; end: number } {
+    return scopeStack[scopeStack.length - 1];
+  }
+
+  function addBindingIdent(idNode: AstNode | null | undefined, kind: 'const' | 'var'): void {
+    if (!idNode) return;
+    if (idNode.type === 'Identifier') {
+      allLocalNames.add(idNode.name);
+      const scope = currentScope();
+      bindings.add(idNode.name, scope.start, scope.end, kind);
+    } else if (idNode.type === 'ArrayPattern') {
+      for (const elem of idNode.elements) {
+        if (elem) addBindingIdent(elem.type === 'RestElement' ? elem.argument : elem, kind);
       }
-    } else if (node.type === 'ObjectPattern') {
-      for (const prop of node.properties) {
+    } else if (idNode.type === 'ObjectPattern') {
+      for (const prop of idNode.properties) {
         if (prop.type === 'RestElement') {
-          addIdent(prop.argument);
+          addBindingIdent(prop.argument, kind);
         } else {
-          addIdent(prop.value);
+          addBindingIdent(prop.value, kind);
         }
       }
-    } else if (node.type === 'AssignmentPattern') {
-      addIdent(node.left);
+    } else if (idNode.type === 'AssignmentPattern') {
+      addBindingIdent(idNode.left, kind);
     }
   }
 
-  /** Walk a destructure pattern and its initializer in parallel. For each
-   * leaf binding, classify it as const iff the corresponding init expression
-   * is `isReturnStatic`. This catches compound destructures where the init
-   * is an ArrayExpression / ObjectExpression literal whose individual
-   * elements are themselves const-stable (e.g. `const [store, math] =
-   * [useStore(...), Math.random()]` → `store` const, `math` not). Without
-   * this, the source-level destructure form would leave all bindings
-   * unclassified because the top-level init isn't a single call. */
+  /** Walk a destructure pattern paired with its initializer. For each leaf
+   * binding, classify as `'const'` iff the corresponding init expression is
+   * `isReturnStatic`; otherwise `'var'`. Same algorithm as the prior
+   * `walkPatternInit` — catches compound destructures like
+   * `const [store, math] = [useStore(...), Math.random()]` → store const,
+   * math not.
+   */
   function walkPatternInit(id: AstNode | null | undefined, init: Expression | null | undefined): void {
     if (!id) return;
     if (id.type === 'Identifier') {
-      if (isReturnStatic(init)) constBindings.add(id.name);
+      addBindingIdent(id, isReturnStatic(init) ? 'const' : 'var');
       return;
     }
     if (id.type === 'ArrayPattern') {
@@ -231,18 +338,12 @@ export function collectConstAndLocalNames(program: AstProgram): ConstAndLocalNam
       if (init && init.type === 'ArrayExpression') {
         for (let i = 0; i < elems.length; i++) {
           const elem = elems[i];
-          // RestElement isn't tracked — the rest binding's init is the
-          // "remainder" of the array, not const-foldable per-elem.
           if (!elem || elem.type === 'RestElement') continue;
           const initElem = init.elements?.[i] ?? null;
-          // SpreadElement in an array literal isn't a per-position init
-          // we can pair with the destructure slot; skip.
           if (initElem && initElem.type === 'SpreadElement') continue;
           walkPatternInit(elem, initElem);
         }
       } else {
-        // Non-array-literal init (e.g. `const [a] = fn()`): treat all
-        // bindings under the same init.
         for (const elem of elems) {
           if (!elem || elem.type === 'RestElement') continue;
           walkPatternInit(elem, init);
@@ -253,7 +354,6 @@ export function collectConstAndLocalNames(program: AstProgram): ConstAndLocalNam
     if (id.type === 'ObjectPattern') {
       const props = id.properties;
       if (init && init.type === 'ObjectExpression') {
-        // Build a name→value map for the object literal.
         const valueByKey = new Map<string, Expression | null>();
         for (const ip of init.properties ?? []) {
           if (ip.type !== 'Property' || ip.computed) continue;
@@ -268,8 +368,6 @@ export function collectConstAndLocalNames(program: AstProgram): ConstAndLocalNam
           walkPatternInit(pp.value, valueByKey.get(keyName) ?? null);
         }
       } else {
-        // Non-object-literal init (e.g. `const {x} = fn()`): treat all
-        // value bindings under the same init.
         for (const pp of props) {
           if (pp.type !== 'Property') continue;
           walkPatternInit(pp.value, init);
@@ -282,59 +380,104 @@ export function collectConstAndLocalNames(program: AstProgram): ConstAndLocalNam
     }
   }
 
+  function isScopeIntroducing(node: AstNode): boolean {
+    return (
+      node.type === 'FunctionDeclaration' ||
+      node.type === 'FunctionExpression' ||
+      node.type === 'ArrowFunctionExpression' ||
+      node.type === 'BlockStatement' ||
+      node.type === 'ForStatement' ||
+      node.type === 'ForInStatement' ||
+      node.type === 'ForOfStatement' ||
+      node.type === 'CatchClause'
+    );
+  }
+
   function visit(node: AstNode | null | undefined): void {
     if (!node) return;
 
-    if (node.type === 'VariableDeclaration') {
-      const isConst = node.kind === 'const';
-      for (const decl of node.declarations) {
-        addIdent(decl.id);
-        if (isConst) walkPatternInit(decl.id, decl.init);
-      }
+    const pushed = isScopeIntroducing(node);
+    if (pushed) {
+      scopeStack.push({ start: node.start, end: node.end });
     }
 
+    // FunctionDeclaration/ClassDeclaration NAMES bind in their enclosing
+    // scope (the parent), not in the new function-body scope. Add them to
+    // the scope ABOVE the just-pushed frame (if we pushed one).
     if (node.type === 'FunctionDeclaration' && node.id) {
-      addIdent(node.id);
+      const targetScope = pushed && scopeStack.length >= 2
+        ? scopeStack[scopeStack.length - 2]
+        : currentScope();
+      allLocalNames.add(node.id.name);
+      bindings.add(node.id.name, targetScope.start, targetScope.end, 'var');
     }
-
     if (node.type === 'ClassDeclaration' && node.id) {
-      addIdent(node.id);
+      // Classes are not scope-introducing in this model (we don't push for
+      // them); the name binds in the current scope.
+      allLocalNames.add(node.id.name);
+      const scope = currentScope();
+      bindings.add(node.id.name, scope.start, scope.end, 'var');
     }
 
+    // Function parameters bind in the function/arrow body scope (which we
+    // just pushed for these node types).
     if ((node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' ||
          node.type === 'ArrowFunctionExpression') && node.params) {
       for (const param of node.params) {
-        addIdent(param);
+        addBindingIdent(param, 'var');
       }
     }
 
+    // Catch param binds in the catch clause scope.
     if (node.type === 'CatchClause' && node.param) {
-      addIdent(node.param);
+      addBindingIdent(node.param, 'var');
     }
 
-    if ((node.type === 'ForInStatement' || node.type === 'ForOfStatement') && node.left) {
-      if (node.left.type === 'VariableDeclaration') {
-        for (const decl of node.left.declarations) {
-          addIdent(decl.id);
+    // VariableDeclaration handles both standalone `const/let/var x = ...`
+    // AND the LHS of `for (const x of arr)` / `for (let i = 0; ...)`. For
+    // const declarations, walkPatternInit classifies each leaf based on
+    // `isReturnStatic(init)`. For for-of/in, `decl.init === null` →
+    // `isReturnStatic(null) === true` → bound as 'const' (matches prior
+    // behavior).
+    if (node.type === 'VariableDeclaration') {
+      const isConst = node.kind === 'const';
+      for (const decl of node.declarations) {
+        if (isConst) {
+          walkPatternInit(decl.id, decl.init);
+        } else {
+          addBindingIdent(decl.id, 'var');
         }
       }
     }
 
     forEachAstChild(node, (child) => visit(child));
+
+    if (pushed) {
+      scopeStack.pop();
+    }
   }
 
+  // Push the program-level scope frame so top-level bindings have somewhere
+  // to land. Range covers the whole program.
+  scopeStack.push({ start: program.start ?? 0, end: program.end ?? Number.MAX_SAFE_INTEGER });
   visit(program);
-  return { constBindings, allLocalNames };
+  scopeStack.pop();
+
+  return { bindings, allLocalNames };
 }
 
 /**
  * Determine if an expression is immutable (const) or mutable (var).
- * Mirrors SWC's `is_const_expr`.
+ * Mirrors SWC's `is_const_expr`. Per OSS-401, takes the expression's AST
+ * position so identifier references resolve through scope-aware lookup;
+ * shadowed names (e.g. an arrow param shadowing an outer for-of binding)
+ * classify correctly.
  */
 export function classifyConstness(
   exprNode: AstNode | null | undefined,
   importedNames: Set<string>,
-  constIdents?: Set<string>,
+  bindings: ScopeAwareBindings | undefined,
+  atPosition: number,
 ): 'const' | 'var' {
   if (!exprNode) return 'const';
 
@@ -347,7 +490,7 @@ export function classifyConstness(
     case 'TemplateLiteral': {
       if (exprNode.expressions.length === 0) return 'const';
       for (const expr of exprNode.expressions) {
-        if (classifyConstness(expr, importedNames, constIdents) === 'var') return 'var';
+        if (classifyConstness(expr, importedNames, bindings, atPosition) === 'var') return 'var';
       }
       return 'const';
     }
@@ -356,7 +499,12 @@ export function classifyConstness(
       const name = exprNode.name;
       if (name === 'undefined') return 'const';
       if (importedNames.has(name)) return 'const';
-      if (constIdents?.has(name)) return 'const';
+      // Use the identifier's own position for the scope lookup — the
+      // outer `atPosition` is the enclosing expression's start, but the
+      // identifier may sit deeper (e.g. nested in a SequenceExpression).
+      // Both resolve to the same enclosing scope for the cases we care
+      // about; using the identifier's start is the most precise.
+      if (bindings?.classify(name, exprNode.start) === 'const') return 'const';
       return 'var';
     }
 
@@ -383,28 +531,28 @@ export function classifyConstness(
       return 'var';
 
     case 'UnaryExpression':
-      return classifyConstness(exprNode.argument, importedNames, constIdents);
+      return classifyConstness(exprNode.argument, importedNames, bindings, atPosition);
 
     case 'BinaryExpression':
     case 'LogicalExpression': {
-      const leftClass = classifyConstness(exprNode.left, importedNames, constIdents);
-      const rightClass = classifyConstness(exprNode.right, importedNames, constIdents);
+      const leftClass = classifyConstness(exprNode.left, importedNames, bindings, atPosition);
+      const rightClass = classifyConstness(exprNode.right, importedNames, bindings, atPosition);
       return leftClass === 'var' || rightClass === 'var' ? 'var' : 'const';
     }
 
     case 'ConditionalExpression': {
-      const testClass = classifyConstness(exprNode.test, importedNames, constIdents);
-      const consClass = classifyConstness(exprNode.consequent, importedNames, constIdents);
-      const altClass = classifyConstness(exprNode.alternate, importedNames, constIdents);
+      const testClass = classifyConstness(exprNode.test, importedNames, bindings, atPosition);
+      const consClass = classifyConstness(exprNode.consequent, importedNames, bindings, atPosition);
+      const altClass = classifyConstness(exprNode.alternate, importedNames, bindings, atPosition);
       return testClass === 'var' || consClass === 'var' || altClass === 'var' ? 'var' : 'const';
     }
 
     case 'ObjectExpression': {
       for (const prop of exprNode.properties) {
         if (prop.type === 'SpreadElement') {
-          if (classifyConstness(prop.argument, importedNames, constIdents) === 'var') return 'var';
+          if (classifyConstness(prop.argument, importedNames, bindings, atPosition) === 'var') return 'var';
         } else if (prop.value) {
-          if (classifyConstness(prop.value, importedNames, constIdents) === 'var') return 'var';
+          if (classifyConstness(prop.value, importedNames, bindings, atPosition) === 'var') return 'var';
         }
       }
       return 'const';
@@ -414,9 +562,9 @@ export function classifyConstness(
       for (const el of exprNode.elements) {
         if (el === null) continue;
         if (el.type === 'SpreadElement') {
-          if (classifyConstness(el.argument, importedNames, constIdents) === 'var') return 'var';
+          if (classifyConstness(el.argument, importedNames, bindings, atPosition) === 'var') return 'var';
         } else {
-          if (classifyConstness(el, importedNames, constIdents) === 'var') return 'var';
+          if (classifyConstness(el, importedNames, bindings, atPosition) === 'var') return 'var';
         }
       }
       return 'const';
@@ -427,11 +575,11 @@ export function classifyConstness(
       return 'const';
 
     case 'ParenthesizedExpression':
-      return classifyConstness(exprNode.expression, importedNames, constIdents);
+      return classifyConstness(exprNode.expression, importedNames, bindings, atPosition);
 
     case 'SequenceExpression': {
       for (const expr of exprNode.expressions) {
-        if (classifyConstness(expr, importedNames, constIdents) === 'var') return 'var';
+        if (classifyConstness(expr, importedNames, bindings, atPosition) === 'var') return 'var';
       }
       return 'const';
     }
@@ -604,10 +752,10 @@ export function transformAllJsx(
   paramNames?: Set<string>,
   relPath?: string,
   sharedSignalHoister?: SignalHoister,
-  precomputedConstAndLocal?: ConstAndLocalNames,
+  precomputedScopeBindings?: ScopeAwareCollectResult,
 ): JsxTransformOutput {
-  const { constBindings: resolvedConstIdents, allLocalNames: allDeclaredNames } =
-    precomputedConstAndLocal ?? collectConstAndLocalNames(program);
+  const { bindings: resolvedBindings, allLocalNames: allDeclaredNames } =
+    precomputedScopeBindings ?? collectScopeAwareBindings(program);
   const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0, prefix);
   const signalHoister = sharedSignalHoister ?? new SignalHoister();
@@ -620,7 +768,7 @@ export function transformAllJsx(
     importedNames,
     keyCounter,
     signalHoister,
-    constIdents: resolvedConstIdents,
+    bindings: resolvedBindings,
     allDeclaredNames,
     paramNames,
     qrlsWithCaptures,

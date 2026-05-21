@@ -8,6 +8,7 @@ import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import {
   classifyConstness,
+  collectScopeAwareBindings,
   computeJsxFlags,
   JsxKeyCounter,
   transformJsxElement,
@@ -62,89 +63,247 @@ describe('classifyConstness', () => {
 
   it('returns const for string literals', () => {
     const node = parseExpr('"hello"');
-    expect(classifyConstness(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('const');
   });
 
   it('returns const for number literals', () => {
     const node = parseExpr('42');
-    expect(classifyConstness(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('const');
   });
 
   it('returns const for boolean literals', () => {
     const node = parseExpr('true');
-    expect(classifyConstness(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('const');
   });
 
   it('returns const for null literal', () => {
     const node = parseExpr('null');
-    expect(classifyConstness(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('const');
   });
 
   it('returns const for imported identifiers', () => {
     const node = parseExpr('dep');
-    expect(classifyConstness(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('const');
   });
 
   it('returns var for member expression on imported value (styles.foo)', () => {
     const node = parseExpr('styles.foo');
     // SWC is_const.rs treats ALL member expressions as var regardless of import status
-    expect(classifyConstness(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('var');
   });
 
   it('returns var for signal.value access', () => {
     const node = parseExpr('signal.value');
     // signal is not in importedNames, so it's var
-    expect(classifyConstness(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('var');
   });
 
   it('returns var for global variable reference', () => {
     const node = parseExpr('globalThing');
-    expect(classifyConstness(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('var');
   });
 
   it('returns var for function calls', () => {
     const node = parseExpr('doSomething()');
-    expect(classifyConstness(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('var');
   });
 
   it('returns var for window.document', () => {
     const node = parseExpr('window.document');
-    expect(classifyConstness(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('var');
   });
 
   it('returns const for template literal without expressions', () => {
     const node = parseExpr('`hello world`');
-    expect(classifyConstness(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('const');
   });
 
   it('returns var for template literal with runtime expressions', () => {
     const node = parseExpr('`hello ${globalThing}`');
-    expect(classifyConstness(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('var');
   });
 
   it('returns const for ternary with all-const operands', () => {
     const node = parseExpr('importedValue ? true : false');
-    expect(classifyConstness(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('const');
   });
 
   it('returns const for object literal with all-const values', () => {
     const node = parseExpr("{ foo: 'bar', baz: importedValue ? true : false }");
-    expect(classifyConstness(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('const');
   });
 
   it('returns var for object literal with mutable values', () => {
     const node = parseExpr("{ foo: 'bar', baz: count % 2 === 0 }");
-    expect(classifyConstness(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('var');
   });
 
   it('returns const for array with all-const values', () => {
     const node = parseExpr('[1, 2, importedValue, null, {}]');
-    expect(classifyConstness(node, importedNames)).toBe('const');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('const');
   });
 
   it('returns var for array with mutable values', () => {
     const node = parseExpr('[1, 2, state, null, {}]');
-    expect(classifyConstness(node, importedNames)).toBe('var');
+    expect(classifyConstness(node, importedNames, undefined, 0)).toBe('var');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// collectScopeAwareBindings (OSS-401)
+// ---------------------------------------------------------------------------
+
+describe('collectScopeAwareBindings (OSS-401 — scope shadowing)', () => {
+  /** Parse a program and return both the scope-aware bindings and the
+   * source text so tests can locate positions via `source.indexOf(...)`. */
+  function setup(source: string): {
+    bindings: ReturnType<typeof collectScopeAwareBindings>['bindings'];
+    source: string;
+  } {
+    const { program } = parseSync('test.tsx', source);
+    const { bindings } = collectScopeAwareBindings(program as any);
+    return { bindings, source };
+  }
+
+  it('classifies a for-of binding as const at its body position', () => {
+    const source = `
+function f() {
+  for (const item of arr) {
+    use(item);
+  }
+}`;
+    const { bindings, source: src } = setup(source);
+    const refPos = src.indexOf('use(item)') + 4; // position of "item" inside use(item)
+    expect(bindings.classify('item', refPos)).toBe('const');
+  });
+
+  it('classifies an arrow param as var at its body position', () => {
+    const source = `
+function f() {
+  arr.map((item) => use(item));
+}`;
+    const { bindings, source: src } = setup(source);
+    const refPos = src.indexOf('use(item)') + 4;
+    expect(bindings.classify('item', refPos)).toBe('var');
+  });
+
+  it('shadows: arrow param wins over outer for-of binding of the same name', () => {
+    // This is the core OSS-401 case from `example_component_with_event_listeners_inside_loop`:
+    // two scopes in the same file both declare `item`. References inside the
+    // arrow body should resolve to the arrow param (var); references inside
+    // the for-of body should resolve to the for-of binding (const).
+    const source = `
+function outer() {
+  arr.map((item) => use(item));      // arrow param 'item' — var
+  for (const item of arr) {           // for-of binding 'item' — const
+    use(item);
+  }
+}`;
+    const { bindings, source: src } = setup(source);
+    const arrowRef = src.indexOf('use(item))') + 4;
+    const forOfRef = src.indexOf('use(item);') + 4;
+    expect(bindings.classify('item', arrowRef)).toBe('var');
+    expect(bindings.classify('item', forOfRef)).toBe('const');
+  });
+
+  it('shadows: inner arrow param shadows outer for-of binding', () => {
+    const source = `
+function outer() {
+  for (const item of arr) {
+    arr.map((item) => use(item));    // inner 'item' (arrow param) shadows outer 'item' (for-of)
+  }
+}`;
+    const { bindings, source: src } = setup(source);
+    const innerRef = src.indexOf('use(item)') + 4;
+    // Inner arrow body sees the inner arrow param (var).
+    expect(bindings.classify('item', innerRef)).toBe('var');
+  });
+
+  it('classifies a catch param as var', () => {
+    const source = `
+function f() {
+  try { x; } catch (err) { use(err); }
+}`;
+    const { bindings, source: src } = setup(source);
+    const refPos = src.indexOf('use(err)') + 4;
+    expect(bindings.classify('err', refPos)).toBe('var');
+  });
+
+  it('classifies a block-scoped const with literal init as var (matches SWC Var(is_const && is_static))', () => {
+    // `isReturnStatic` only returns true for CallExpressions ending in
+    // `$/Qrl` or starting with `use` (SWC's `is_static` requires the init
+    // to propagate from a Var(true) source). A bare literal init like `42`
+    // doesn't pass that check, so the const declaration classifies as var.
+    // This matches the prior `walkPatternInit` semantics exactly.
+    const source = `
+function f() {
+  {
+    const n = 42;
+    use(n);
+  }
+}`;
+    const { bindings, source: src } = setup(source);
+    const refPos = src.indexOf('use(n)') + 4;
+    expect(bindings.classify('n', refPos)).toBe('var');
+  });
+
+  it('classifies a `const x = useStore()` declaration as const (isReturnStatic)', () => {
+    const source = `function f() { const store = useStore({c: 0}); use(store); }`;
+    const { bindings, source: src } = setup(source);
+    expect(bindings.classify('store', src.indexOf('use(store)') + 4)).toBe('const');
+  });
+
+  it('returns undefined for names that are not declared anywhere', () => {
+    const source = `function f() { use(undeclared); }`;
+    const { bindings } = setup(source);
+    expect(bindings.classify('undeclared', 20)).toBeUndefined();
+  });
+
+  it('addProgramScopeConst classifies as const everywhere, overriding inner var bindings', () => {
+    // Matches segment-codegen capture-injection semantics: capture names get
+    // injected as program-scope consts. Even though `_captures[N]` unpacking
+    // creates an AST-level const declaration whose MemberExpression init
+    // would normally classify as 'var', the alwaysConst override wins so
+    // the name classifies as const at any reference position.
+    const source = `
+const state = _captures[0];
+function inner() {
+  use(state);
+}`;
+    const { bindings } = setup(source);
+    bindings.addProgramScopeConst('state');
+    expect(bindings.classify('state', source.indexOf('use(state)') + 4)).toBe('const');
+  });
+
+  it('for-in binding classifies as const (matches SWC for-of treatment)', () => {
+    const source = `
+function f() {
+  for (const key in obj) {
+    use(key);
+  }
+}`;
+    const { bindings, source: src } = setup(source);
+    const refPos = src.indexOf('use(key)') + 4;
+    expect(bindings.classify('key', refPos)).toBe('const');
+  });
+
+  it('let-bound variable classifies as var', () => {
+    const source = `function f() { let count = 0; use(count); }`;
+    const { bindings, source: src } = setup(source);
+    expect(bindings.classify('count', src.indexOf('use(count)') + 4)).toBe('var');
+  });
+
+  it('compound destructure with literal-array init: per-elem classification', () => {
+    // From `should_wrap_prop_from_destructured_array` (OSS-363) territory.
+    // Mirrors the prior `walkPatternInit` per-elem classification.
+    const source = `function f() { const [store, math] = [useStore(), Math.random()]; use(store); }`;
+    const { bindings, source: src } = setup(source);
+    // `store` paired with `useStore()` — isReturnStatic → const
+    expect(bindings.classify('store', src.indexOf('use(store)') + 4)).toBe('const');
+    // `math` paired with `Math.random()` — NOT isReturnStatic (CallExpression
+    // whose callee is a MemberExpression, not an identifier ending in $/Qrl
+    // or starting with `use`) → var
+    expect(bindings.classify('math', src.indexOf('use(store)') + 4)).toBe('var');
   });
 });
 

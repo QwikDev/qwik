@@ -83,7 +83,7 @@ export function processProps(
   additionalSpreads: string[];
   neededImports: Set<string>;
 } {
-  const { source, importedNames, signalHoister, qrlsWithCaptures, paramNames, constIdents, allDeclaredNames } = ctx;
+  const { source, importedNames, signalHoister, qrlsWithCaptures, paramNames, bindings, allDeclaredNames } = ctx;
   const { tagIsHtml, passiveEvents, inLoop, skipSignalAnalysis } = opts;
   const varEntries: string[] = [];
   const constEntries: string[] = [];
@@ -258,7 +258,7 @@ export function processProps(
         const formattedName = formatPropName(propName);
         if (signalResult.isStoreField && tagIsHtml) {
           const objName = signalResult.code.match(/_wrapProp\((\w+)/)?.[1] ?? null;
-          const isConst = isConstBindingName(objName, importedNames, constIdents);
+          const isConst = isConstBindingName(objName, importedNames, bindings, valueNode?.start ?? 0);
           (isConst ? constEntries : varEntries).push(`${formattedName}: ${signalResult.code}`);
         } else {
           constEntries.push(`${formattedName}: ${signalResult.code}`);
@@ -285,7 +285,7 @@ export function processProps(
           // value-changes-on-rerender concern.
           const depsAllConst = signalResult.deps.every(dep =>
             importedNames.has(dep) ||
-            (constIdents?.has(dep) ?? false) ||
+            (bindings?.classify(dep, valueNode.start) === 'const') ||
             (!tagIsHtml && (paramNames?.has(dep) ?? false))
           );
           if (depsAllConst && !inLoop) {
@@ -300,7 +300,7 @@ export function processProps(
     }
 
     const classification = valueNode
-      ? classifyConstness(valueNode, importedNames, constIdents)
+      ? classifyConstness(valueNode, importedNames, bindings, valueNode.start)
       : 'const';
 
     const entry = `${formatPropName(propName)}: ${valueText}`;

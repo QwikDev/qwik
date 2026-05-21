@@ -228,7 +228,7 @@ function processExpressionChild(
     return { text: null, type: 'none' };
   }
 
-  const { source, s, importedNames, signalHoister, constIdents, allDeclaredNames } = ctx;
+  const { source, s, importedNames, signalHoister, bindings, allDeclaredNames } = ctx;
   const { neededImports, enableSignalAnalysis = true } = opts;
   const exprText = s.slice(expr.start, expr.end);
 
@@ -261,7 +261,7 @@ function processExpressionChild(
     let wrapIsConst = true;
     if (expr.type === 'MemberExpression' && expr.object?.type === 'Identifier') {
       const objName = expr.object.name;
-      if (!importedNames.has(objName) && !(constIdents?.has(objName))) {
+      if (!importedNames.has(objName) && bindings?.classify(objName, expr.start) !== 'const') {
         wrapIsConst = false;
       }
     }
@@ -273,12 +273,12 @@ function processExpressionChild(
     const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
     neededImports.add('_fnSignal');
     const depsConst = signalResult.deps.every(dep =>
-      importedNames.has(dep) || (constIdents?.has(dep) ?? false)
+      importedNames.has(dep) || (bindings?.classify(dep, expr.start) === 'const')
     );
     return { text: fnSignalCall, type: depsConst ? 'static' : 'dynamic' };
   }
 
-  const propClass = classifyConstness(expr, importedNames, constIdents);
+  const propClass = classifyConstness(expr, importedNames, bindings, expr.start);
   if (propClass === 'const') {
     return { text: exprText, type: 'static' };
   }

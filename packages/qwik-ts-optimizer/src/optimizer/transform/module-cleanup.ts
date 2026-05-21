@@ -581,7 +581,6 @@ export function buildPassthroughModule(
     isEntry: false,
     code: s.toString(),
     map: null,
-    segment: null,
     origPath,
   };
 }

@@ -544,7 +544,6 @@ export function transformModule(
       isEntry: false,
       code: cleanedCode,
       map: null,
-      segment: null,
       origPath: input.path,
     };
     allModules.push(parentModule);

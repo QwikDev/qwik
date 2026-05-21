@@ -106,7 +106,7 @@ describe('segment-only convergence debug', () => {
         if (!expectedSeg.metadata) continue;
 
         const actualSeg = result.modules.find(
-          (m) => m.segment && m.segment.name === expectedSeg.metadata!.name,
+          (m) => m.kind === 'segment' && m.segment.name === expectedSeg.metadata!.name,
         );
 
         if (!actualSeg) {
@@ -119,7 +119,7 @@ describe('segment-only convergence debug', () => {
         }
 
         // Check metadata
-        if (actualSeg.segment && expectedSeg.metadata) {
+        if (actualSeg.kind === 'segment' && expectedSeg.metadata) {
           const metaCompare = compareMetadata(expectedSeg.metadata, actualSeg.segment as unknown as SegmentMetadata);
           if (!metaCompare.match) {
             const diffFields = metaCompare.mismatches.map((m) => m.field);

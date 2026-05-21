@@ -31,7 +31,7 @@ function formatSnapshot(input: string, result: TransformOutput): string {
   const lines: string[] = ['==INPUT==\n', input];
 
   for (const mod of result.modules) {
-    const isEntry = mod.segment != null;
+    const isEntry = mod.kind === 'segment';
     const header = isEntry
       ? `\n============================= ${mod.path} (ENTRY POINT)==\n`
       : `\n============================= ${mod.path} ==\n`;
@@ -121,7 +121,7 @@ describe('convergence: all 209 snapshots', () => {
         if (!expectedSeg.metadata) continue;
 
         const actualSeg = result.modules.find(
-          (m) => m.segment && m.segment.name === expectedSeg.metadata!.name,
+          (m) => m.kind === 'segment' && m.segment.name === expectedSeg.metadata!.name,
         );
 
         if (!actualSeg) {
@@ -139,7 +139,7 @@ describe('convergence: all 209 snapshots', () => {
         }
 
         // Compare segment metadata
-        if (actualSeg.segment && expectedSeg.metadata) {
+        if (actualSeg.kind === 'segment' && expectedSeg.metadata) {
           const actual = actualSeg.segment;
           const expected = expectedSeg.metadata;
 

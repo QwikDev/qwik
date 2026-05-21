@@ -135,7 +135,7 @@ const Foo = component$(() => {
 
     // The outer component segment carries the qrl const declaration for the
     // inner useTask, and therefore needs `import { qrl } from "@qwik.dev/core"`.
-    const outerSeg = result.modules.find((m) => m.segment?.ctxName === 'component$');
+    const outerSeg = result.modules.find((m) => m.kind === 'segment' && m.segment.ctxName === 'component$');
     expect(outerSeg?.code).toBeTruthy();
     expect(outerSeg!.code).toMatch(/import\s*\{\s*qrl\s*\}\s*from\s*"@qwik\.dev\/core"/);
   });

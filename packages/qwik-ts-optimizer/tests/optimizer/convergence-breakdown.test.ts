@@ -99,7 +99,7 @@ describe('convergence breakdown', () => {
 
       for (const es of parsed.segments) {
         if (!es.metadata) continue;
-        const as = result.modules.find(m => m.segment?.name === es.metadata!.name);
+        const as = result.modules.find(m => m.kind === 'segment' && m.segment.name === es.metadata!.name);
         if (!as) { segMissing++; continue; }
         if (es.code && as.code) {
           try {

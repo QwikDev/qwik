@@ -109,7 +109,7 @@ describe('snapshot batch validation', () => {
           if (!expectedSeg.metadata) continue;
 
           const actualSeg = result.modules.find(
-            (m) => m.segment && m.segment.name === expectedSeg.metadata!.name,
+            (m) => m.kind === 'segment' && m.segment.name === expectedSeg.metadata!.name,
           );
           expect(actualSeg, `Missing segment: ${expectedSeg.metadata.name}`).toBeDefined();
 
@@ -125,7 +125,7 @@ describe('snapshot batch validation', () => {
           }
 
           // Compare segment metadata
-          if (actualSeg?.segment && expectedSeg.metadata) {
+          if (actualSeg?.kind === 'segment' && expectedSeg.metadata) {
             const actual = actualSeg.segment;
             const expected = expectedSeg.metadata;
 
@@ -178,7 +178,7 @@ describe('snapshot batch validation', () => {
           if (!expectedSeg.metadata) continue;
 
           const actualSeg = result.modules.find(
-            (m) => m.segment && m.segment.name === expectedSeg.metadata!.name,
+            (m) => m.kind === 'segment' && m.segment.name === expectedSeg.metadata!.name,
           );
 
           if (!actualSeg) {
@@ -188,7 +188,7 @@ describe('snapshot batch validation', () => {
 
           matchedCount++;
 
-          if (actualSeg?.segment && expectedSeg.metadata) {
+          if (actualSeg?.kind === 'segment' && expectedSeg.metadata) {
             const actual = actualSeg.segment;
             const expected = expectedSeg.metadata;
 

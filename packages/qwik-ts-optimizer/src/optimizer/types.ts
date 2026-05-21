@@ -199,15 +199,14 @@ export interface TransformOutput {
  * QRL-referenced shell) or an extracted segment (a single `$()` body lifted
  * into its own lazy-loadable file).
  *
- * Discriminated on `kind`. Internal code should narrow via
- * `module.kind === 'segment'`; external consumers serializing the value
- * for the future NAPI/CLI surface may elide `kind` if the existing JSON
- * contract requires it. Runtime object shape (other than `kind`) is
- * unchanged from the pre-OSS-390 flat form: the redundant null-arm
- * fields (`segment: null` on parents, `origPath: null` on segments) are
- * retained on each variant so consumer narrowings keep working. A
- * follow-up may drop them once consumers have migrated to `kind`-based
- * narrowing.
+ * Discriminated on `kind`. Internal code narrows via
+ * `module.kind === 'segment'` (or via the equivalent `module.isEntry`
+ * boolean); the discriminator gates access to variant-specific fields
+ * (`segment` on segment modules, `origPath` on parent modules) at compile
+ * time. Per OSS-399 (OSS-390 Phase 2), the redundant null-arm fields
+ * (`segment: null` on parents, `origPath: null` on segments) that Phase 1
+ * retained for migration safety have been dropped now that all consumers
+ * narrow via `kind`.
  */
 export type TransformModule = TransformModuleParent | TransformModuleSegment;
 
@@ -230,9 +229,6 @@ export interface TransformModuleParent {
    * `TransformModulesOptions.sourceMaps`.
    */
   readonly map: string | null;
-
-  /** Always `null` on parent modules — kept as a stable field for NAPI/consumer parity. */
-  readonly segment: null;
 
   /**
    * Original input file path (preserves the source from
@@ -269,9 +265,6 @@ export interface TransformModuleSegment {
    * correct file.
    */
   readonly segment: SegmentAnalysis;
-
-  /** Always `null` on segment modules — kept as a stable field for NAPI/consumer parity. */
-  readonly origPath: null;
 }
 
 // ---------------------------------------------------------------------------

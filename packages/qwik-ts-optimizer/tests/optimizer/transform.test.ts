@@ -25,21 +25,23 @@ export const App = component$(() => {
     });
 
     expect(result.modules.length).toBeGreaterThan(1);
+    const parent = result.modules[0];
+    const segment = result.modules[1];
+    if (parent.kind !== 'parent') throw new Error('expected parent module');
+    if (segment.kind !== 'segment') throw new Error('expected segment module');
     // Parent module
-    expect(result.modules[0].isEntry).toBe(false);
-    expect(result.modules[0].segment).toBeNull();
-    expect(result.modules[0].origPath).toBe('test.tsx');
+    expect(parent.isEntry).toBe(false);
+    expect(parent.origPath).toBe('test.tsx');
     // Parent code should have componentQrl and qrl references
-    expect(result.modules[0].code).toContain('componentQrl');
-    expect(result.modules[0].code).toContain('qrl(');
+    expect(parent.code).toContain('componentQrl');
+    expect(parent.code).toContain('qrl(');
 
     // Segment module
-    expect(result.modules[1].isEntry).toBe(true);
-    expect(result.modules[1].segment).not.toBeNull();
-    expect(result.modules[1].segment!.ctxName).toBe('component$');
-    expect(result.modules[1].segment!.ctxKind).toBe('function');
-    expect(result.modules[1].segment!.origin).toBe('test.tsx');
-    expect(result.modules[1].code).toContain('export const');
+    expect(segment.isEntry).toBe(true);
+    expect(segment.segment.ctxName).toBe('component$');
+    expect(segment.segment.ctxKind).toBe('function');
+    expect(segment.segment.origin).toBe('test.tsx');
+    expect(segment.code).toContain('export const');
   });
 
   it('transforms bare $() into parent + segment', () => {
@@ -57,13 +59,14 @@ export const handler = $(() => {
     });
 
     expect(result.modules.length).toBe(2);
+    const segment = result.modules[1];
+    if (segment.kind !== 'segment') throw new Error('expected segment module');
     // Parent should reference q_ variable
     expect(result.modules[0].code).toContain('q_');
     // Segment should export the body
-    expect(result.modules[1].segment).not.toBeNull();
-    expect(result.modules[1].segment!.ctxName).toBe('$');
-    expect(result.modules[1].code).toContain('export const');
-    expect(result.modules[1].code).toContain("console.log('hello')");
+    expect(segment.segment.ctxName).toBe('$');
+    expect(segment.code).toContain('export const');
+    expect(segment.code).toContain("console.log('hello')");
   });
 
   it('rewrites @builder.io/qwik imports to @qwik.dev/core', () => {
@@ -153,7 +156,7 @@ export const handler = $(() => {
 
     // Parent + at least 2 segments
     expect(result.modules.length).toBeGreaterThanOrEqual(3);
-    const segments = result.modules.filter((m) => m.segment !== null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
     expect(segments.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -181,7 +184,7 @@ export const App = component$(() => {
 
     // Find parent module and segments
     const parent = result.modules[0];
-    const segments = result.modules.filter((m) => m.segment !== null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
 
     // Find the inner $() segment (the one with captures)
     const innerSegment = segments.find((s) => s.segment!.ctxName === '$' && s.segment!.parent !== null);
@@ -214,7 +217,7 @@ export const App = component$(() => {
     });
 
     const parent = result.modules[0];
-    const segments = result.modules.filter((m) => m.segment !== null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App'));
     expect(appSegment).toBeDefined();
 
@@ -251,7 +254,7 @@ export const App = component$(() => {
     });
 
     const parent = result.modules[0];
-    const segments = result.modules.filter((m) => m.segment !== null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App'));
     expect(appSegment).toBeDefined();
 
@@ -328,7 +331,7 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    const segments = result.modules.filter((m) => m.segment !== null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App'));
     expect(appSegment).toBeDefined();
     // Segment body should have JSX transformed to _jsxSorted
@@ -374,7 +377,7 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    const segments = result.modules.filter((m) => m.segment !== null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
     // Find the transparent$ segment -- Rust optimizer treats ALL $-suffixed JSX
     // attribute extractions as eventHandler, not just on* event props.
     const transparentSeg = segments.find(
@@ -400,7 +403,7 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    const segments = result.modules.filter((m) => m.segment !== null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
     const clickSeg = segments.find(
       (s) => s.segment!.ctxName === 'onClick$'
     );
@@ -510,7 +513,7 @@ export const App = component$(() => {
     });
 
     // The segment body should contain the q-e:click naming
-    const segments = result.modules.filter((m) => m.segment !== null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App_component'));
     if (appSegment) {
       expect(appSegment.code).toContain('"q-e:click"');
@@ -671,7 +674,7 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    const segments = result.modules.filter((m) => m.segment !== null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App_component'));
     expect(appSegment).toBeDefined();
 
@@ -705,7 +708,7 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    const segments = result.modules.filter((m) => m.segment !== null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App_component'));
     expect(appSegment).toBeDefined();
 
@@ -779,7 +782,9 @@ export const App = component$(() => {
       srcDir: mkFilePath('.'),
     });
 
-    const seg = result.modules[1].segment!;
+    const segMod = result.modules[1];
+    if (segMod.kind !== 'segment') throw new Error('expected segment module');
+    const seg = segMod.segment;
     expect(seg.origin).toBe('test.tsx');
     expect(seg.displayName).toContain('App');
     expect(seg.displayName).toContain('component');

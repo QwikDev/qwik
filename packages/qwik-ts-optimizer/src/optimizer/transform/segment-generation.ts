@@ -457,7 +457,6 @@ export function buildInlineStrategySegment(
     code: stripped ? generateStrippedSegmentCode(ext.symbolName) : "",
     map: null,
     segment: segmentAnalysis,
-    origPath: null,
   };
 }
 
@@ -1105,7 +1104,6 @@ export function buildDefaultStrategySegment(
       code: segmentCode,
       map: null,
       segment: segmentAnalysis,
-      origPath: null,
     },
     keyCounterValue: segmentResult.keyCounterValue,
   };

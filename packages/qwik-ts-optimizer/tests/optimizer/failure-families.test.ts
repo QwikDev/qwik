@@ -64,7 +64,7 @@ describe('failure families', () => {
       let anySegMissing = false;
       for (const es of parsed.segments) {
         if (!es.metadata) continue;
-        const as = result.modules.find(m => m.segment?.name === es.metadata!.name);
+        const as = result.modules.find(m => m.kind === 'segment' && m.segment.name === es.metadata!.name);
         if (!as) { anySegMissing = true; allSegsFound = false; continue; }
         if (es.code && as.code) {
           try {
@@ -79,7 +79,7 @@ describe('failure families', () => {
         alreadyPassing.push(name);
       } else if (allSegsFound && allSegsMatch && !parentOk) {
         parentRewriteOnly.push(name);
-      } else if (anySegMissing && result.modules.filter(m => m.segment).length === 0) {
+      } else if (anySegMissing && result.modules.filter(m => m.kind === 'segment').length === 0) {
         untransformed.push(name);
       } else if (anySegMissing) {
         segmentIdentity.push(name);

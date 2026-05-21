@@ -518,6 +518,35 @@ export function assembleOutput(ctx: RewriteContext): string {
   let finalCode = s.toString();
   if (sCalls.length > 0) {
     const lines = finalCode.split('\n');
+
+    // OSS-404 (F1c port from stale `ast-parity/F2` branch commit 534ddd4):
+    // Partition sCalls by whether their body references any name exported
+    // via `export const NAME = ...componentQrl(...)`. Self-referential
+    // components (e.g. `const Tree = component$(() => <Tree/>)`) TDZ at
+    // module load if `q_Tree.s(body)` runs before `Tree` is initialised,
+    // so referencing sCalls go AFTER the export; non-referencing sCalls
+    // keep the existing BEFORE position. Word-boundary regex distinguishes
+    // `Tree` from `q_Tree_xxx` (the underscore prevents `\bTree\b` from
+    // matching inside the QRL var name).
+    const exportedNames = new Set<string>();
+    for (const line of lines) {
+      const m = line.match(/^\s*export\s+(?:const|default)\s+(\w+)\s*=.*Qrl\(/);
+      if (m && m[1]) exportedNames.add(m[1]);
+    }
+
+    const beforeExport: string[] = [];
+    const afterExport: string[] = [];
+    for (const sCall of sCalls) {
+      let referencesExport = false;
+      for (const name of exportedNames) {
+        if (new RegExp('\\b' + name + '\\b').test(sCall)) {
+          referencesExport = true;
+          break;
+        }
+      }
+      (referencesExport ? afterExport : beforeExport).push(sCall);
+    }
+
     let insertIdx = -1;
     for (let i = lines.length - 1; i >= 0; i--) {
       const trimmed = lines[i].trimStart();
@@ -529,7 +558,9 @@ export function assembleOutput(ctx: RewriteContext): string {
       }
     }
     if (insertIdx >= 0) {
-      lines.splice(insertIdx, 0, ...sCalls);
+      // Splice "after" first so it doesn't shift insertIdx.
+      if (afterExport.length > 0) lines.splice(insertIdx + 1, 0, ...afterExport);
+      if (beforeExport.length > 0) lines.splice(insertIdx, 0, ...beforeExport);
     } else {
       lines.push(...sCalls);
     }

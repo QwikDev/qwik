@@ -62,21 +62,41 @@ export function normalizePath(filePath: string): string {
  * expected (no leading slash). This matches `RelativePath`'s shape rule
  * in `types/brands.ts` so the result can be branded without per-fallback
  * special-casing at consumers.
+ *
+ * OSS-404: Preserves a leading `./` from the input when present. SWC's
+ * hash function uses the user-provided path shape (e.g. `./node_modules/x`
+ * stays as `./node_modules/x`), and the JSX dev-info `fileName:` emission
+ * also expects that shape. The earlier behavior of stripping `./` via
+ * `normalize()` produced TS-vs-SWC hash divergence + dev-info path
+ * divergence for `node_modules`-prefixed fixtures. Stripping the `./`
+ * for absolute-path concatenation happens at the call site
+ * (`buildDevFilePath` per OSS-404).
  */
 export function computeRelPath(inputPath: FilePath, srcDir: FilePath): RelativePath {
+  const hasLeadingDotSlash = (inputPath as string).startsWith('./');
   const normInput = normalizePath(inputPath);
   const normSrc = normalizePath(srcDir);
 
   if (normSrc === '.' || normSrc === '' || normSrc === './') {
-    return mkRelativePath(stripLeadingSlash(normInput));
+    return mkRelativePath(restoreDotSlash(stripLeadingSlash(normInput), hasLeadingDotSlash));
   }
 
   const rel = relative(normSrc, normInput);
   if (rel !== '' && rel !== '.' && rel !== '..' && !rel.startsWith('../')) {
-    return mkRelativePath(rel);
+    return mkRelativePath(restoreDotSlash(rel, hasLeadingDotSlash));
   }
 
-  return mkRelativePath(stripLeadingSlash(normInput));
+  return mkRelativePath(restoreDotSlash(stripLeadingSlash(normInput), hasLeadingDotSlash));
+}
+
+/** If the original input had a leading `./` prefix, restore it on the
+ * normalized output (unless the normalized form already has it or is
+ * empty). See OSS-404. */
+function restoreDotSlash(normalized: string, hadDotSlashPrefix: boolean): string {
+  if (!hadDotSlashPrefix) return normalized;
+  if (normalized.startsWith('./')) return normalized;
+  if (normalized === '' || normalized.startsWith('/')) return normalized;
+  return './' + normalized;
 }
 
 function stripLeadingSlash(path: string): string {

@@ -194,4 +194,74 @@ describe('signal-analysis', () => {
       ]);
     });
   });
+
+  // OSS-402: computed MemberExpression with non-literal property emits
+  // _fnSignal. Matches SWC's convert_inlined_fn path for `results[i]` /
+  // `obj[key]` / `obj[42]` inside loop callbacks.
+  describe('analyzeMemberExpression — computed non-literal property (OSS-402)', () => {
+    const importedNames = new Set<string>();
+
+    it('hoists results[i] to _fnSignal((p0,p1)=>p1[p0], [i, results], "p1[p0]")', () => {
+      const { node, source } = parseExpr('results[i]');
+      const localNames = new Set(['results', 'i']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['i', 'results']);
+        expect(result.hoistedFn).toBe('(p0,p1)=>p1[p0]');
+        expect(result.hoistedStr).toBe('"p1[p0]"');
+      }
+    });
+
+    it('hoists obj[key] (for-in pattern) — same shape with different dep names', () => {
+      const { node, source } = parseExpr('obj[key]');
+      const localNames = new Set(['obj', 'key']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['key', 'obj']);
+        expect(result.hoistedFn).toBe('(p0,p1)=>p1[p0]');
+      }
+    });
+
+    it('hoists obj[42] (computed numeric literal — SWC also hoists this case)', () => {
+      const { node, source } = parseExpr('obj[42]');
+      const localNames = new Set(['obj']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['obj']);
+        expect(result.hoistedFn).toBe('(p0)=>p0[42]');
+      }
+    });
+
+    it('does NOT regress obj["string"] — still wrapProp via isStoreFieldAccess (literal-string fast path)', () => {
+      const { node, source } = parseExpr('obj["field"]');
+      const localNames = new Set(['obj']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      expect(result.type).toBe('wrapProp');
+      if (result.type === 'wrapProp') {
+        expect(result.code).toBe('_wrapProp(obj, "field")');
+        expect(result.isStoreField).toBe(true);
+      }
+    });
+
+    it('does NOT hoist obj[i] when obj is not a known local (matches SWC: needs in-scope Var)', () => {
+      // Unknown global / unbound name — the localNames-aware gate filters
+      // out names we can't resolve, matching SWC's decl_stack check.
+      const { node, source } = parseExpr('unknownGlobal[i]');
+      const localNames = new Set(['i']); // intentionally excludes unknownGlobal
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      expect(result.type).toBe('none');
+    });
+
+    it('does NOT hoist when expression contains an unknown function call', () => {
+      // The containsUnknownCall blocker fires for `arr[foo()]` where foo is
+      // not imported — matches SWC's used_as_call gate.
+      const { node, source } = parseExpr('arr[foo()]');
+      const localNames = new Set(['arr']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      expect(result.type).toBe('none');
+    });
+  });
 });

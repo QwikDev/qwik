@@ -866,6 +866,31 @@ function analyzeMemberExpression(
     };
   }
 
+  // OSS-402: MemberExpression with computed non-literal property
+  // (e.g. results[i] in a for-i loop, obj[key] in a for-in loop, obj[42]).
+  // SWC's convert_inlined_fn path emits _fnSignal((p0,p1) => p1[p0], deps, str).
+  // The branches above cover:
+  //   - signal.value          → wrapProp / fnSignal (isSignalValueAccess)
+  //   - obj.x.y / obj.x.y.z   → fnSignal (isDeepStoreAccess, depth ≥ 2)
+  //   - obj.field / obj["x"]  → wrapProp (isStoreFieldAccess via getPropertyName)
+  // This branch catches the remaining case: `exprNode.computed === true` AND
+  // the property isn't a string literal (getPropertyName returned null above,
+  // so isStoreFieldAccess didn't fire). Matches SWC's behavior where
+  // prop_to_string returns None for `[Identifier]` / `[NumericLit]` and
+  // convert_inlined_fn's used_as_object check fires on the local-var object.
+  if (isKnownIdent && exprNode.computed) {
+    const { allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
+    if (
+      allDeps.length > 0 &&
+      !containsUnknownCall(exprNode, importedNames) &&
+      !containsImportedReference(exprNode, importedNames) &&
+      !containsJsx(exprNode)
+    ) {
+      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+      return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
+    }
+  }
+
   return { type: 'none' };
 }
 

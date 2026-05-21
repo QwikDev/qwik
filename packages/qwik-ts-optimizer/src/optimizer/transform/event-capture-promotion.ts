@@ -170,6 +170,15 @@ export interface EventCaptureContext {
   allScopeEntries: ScopeEntry[];
   loopBodyVarDecls: LoopBodyVarDeclMap;
   repairedCode: string;
+  /**
+   * True when the entry strategy is `inline` or `hoist`. Under those
+   * strategies, non-loop eventHandler captures stay in `captureNames`
+   * (downstream `preConsolidateRawPropsCaptures` + `transformInlineSegmentBody`
+   * route them through `_captures[N]` unpacking + `_rawProps.X` rewriting).
+   * Under the default/segment strategy, captures get promoted to
+   * positional `paramNames` for segment-file emission. See OSS-406.
+   */
+  isInlineStrategy: boolean;
 }
 
 /** Per-loop record of VariableDeclarations whose source range falls
@@ -303,6 +312,7 @@ export function promoteEventHandlerCaptures(
     allScopeEntries,
     loopBodyVarDecls,
     repairedCode,
+    isInlineStrategy,
   } = ctx;
 
   for (const extraction of extractions) {
@@ -472,11 +482,26 @@ export function promoteEventHandlerCaptures(
     const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
 
     if (!enclosingLoops || enclosingLoops.length === 0) {
-      // NOT in a loop: ALL captured vars become paramNames, sorted ALPHABETICALLY per SWC Rule 7
-      const sortedCaptures = [...uniqueCaptures].sort();
-      extraction.paramNames = generateParamPadding(sortedCaptures);
-      extraction.captureNames = [];
-      extraction.captures = false;
+      if (isInlineStrategy) {
+        // OSS-406: Under inline/hoist strategy, non-loop captures stay in
+        // `captureNames`. The downstream pipeline
+        // (`preConsolidateRawPropsCaptures` → `transformInlineSegmentBody`
+        // → `injectCapturesUnpacking` → `replacePropsFieldReferencesInBody`)
+        // routes them through `_captures[N]` unpacking + (when the parent
+        // component has destructured props) `_rawProps.X` rewriting. The
+        // segment-file-style positional-param padding produced below is
+        // wrong for `q_X.s(body)` emission — the body needs its original
+        // closure args preserved.
+        const sortedCaptures = [...uniqueCaptures].sort();
+        extraction.captureNames = sortedCaptures;
+        extraction.captures = sortedCaptures.length > 0;
+      } else {
+        // NOT in a loop: ALL captured vars become paramNames, sorted ALPHABETICALLY per SWC Rule 7
+        const sortedCaptures = [...uniqueCaptures].sort();
+        extraction.paramNames = generateParamPadding(sortedCaptures);
+        extraction.captureNames = [];
+        extraction.captures = false;
+      }
     } else {
       // IN a loop: partition captures into loop-local vs cross-scope.
       // Only the IMMEDIATE (innermost) loop's variables are loop-local.

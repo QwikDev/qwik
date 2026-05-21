@@ -289,6 +289,14 @@ export function transformModule(
     const globalDeclPositions = new Map<string, number>();
     const { extractionLoopMap, loopBodyVarDecls } = buildExtractionLoopMap(program, extractions, repairedCode);
     const allScopeEntries = collectAllScopeEntries(program);
+    const earlyEntryStrategy = options.entryStrategy ?? { type: "smart" as const };
+    // OSS-406: ONLY `inline` (not `hoist`) skips the captures→paramNames
+    // promotion. `hoist` emits `(_, _1, capture) => body` const declarations
+    // (per `example_issue_33443`), so it still needs the param-padding form.
+    // Only `inline` emits `q_X.s((origArg) => { const _rawProps = _captures[0]; ... })`,
+    // which requires keeping captures in `captureNames` for the downstream
+    // `_captures[N]` unpacking pipeline.
+    const earlyIsInlineStrategy = earlyEntryStrategy.type === "inline";
     const eventCaptureCtx: EventCaptureContext = {
       extractions,
       closureNodes,
@@ -300,6 +308,7 @@ export function transformModule(
       allScopeEntries,
       loopBodyVarDecls,
       repairedCode,
+      isInlineStrategy: earlyIsInlineStrategy,
     };
 
     promoteEventHandlerCaptures(eventCaptureCtx, globalDeclPositions);

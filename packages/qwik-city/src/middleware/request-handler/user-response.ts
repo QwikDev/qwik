@@ -46,24 +46,40 @@ export function runQwikCity<T>(
   basePathname = '/',
   qwikSerializer: QwikSerializer
 ): QwikCityRun<T> {
-  let resolve: (value: T) => void;
-  const responsePromise = new Promise<T>((r) => (resolve = r));
-  const requestEv = createRequestEvent(
-    serverRequestEv,
-    loadedRoute,
-    requestHandlers,
-    trailingSlash,
-    basePathname,
-    qwikSerializer,
-    resolve!
-  );
+  let resolve: (value: T | null) => void;
+  const responsePromise = new Promise<T | null>((r) => (resolve = r));
+
+  let requestEv: RequestEventInternal;
+  try {
+    requestEv = createRequestEvent(
+      serverRequestEv,
+      loadedRoute,
+      requestHandlers,
+      trailingSlash,
+      basePathname,
+      qwikSerializer,
+      resolve!
+    );
+  } catch (err) {
+    console.error(err);
+    resolve!(null);
+    return {
+      response: responsePromise,
+      requestEv: { headersSent: false } as RequestEvent,
+      completion: Promise.resolve(err),
+    };
+  }
+
+  const completion = (
+    asyncStore
+      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
+      : runNext(requestEv, rebuildRouteInfo, resolve!)
+  ).catch((err) => err);
 
   return {
     response: responsePromise,
     requestEv,
-    completion: asyncStore
-      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
-      : runNext(requestEv, rebuildRouteInfo, resolve!),
+    completion,
   };
 }
 

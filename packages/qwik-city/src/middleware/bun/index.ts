@@ -78,9 +78,9 @@ export function createQwikCity(opts: QwikCityBunOptions) {
       // send request to qwik city request handler
       const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handledResponse) {
-        handledResponse.completion.then((v) => {
-          if (v) {
-            console.error(v);
+        handledResponse.completion.then((err) => {
+          if (err) {
+            console.error(err);
           }
         });
         const response = await handledResponse.response;

@@ -1,5 +1,19 @@
 # @builder.io/qwik-city
 
+## 1.20.0
+
+### Minor Changes
+
+- 🐞🩹 The server plugins were not actually sorted and were relying on directory traversal order. Now they are explicitly sorted by ascending name. (by [@wmertens](https://github.com/wmertens) in [#8568](https://github.com/QwikDev/qwik/pull/8568))
+
+### Patch Changes
+
+- 🐞🩹 include route bundles when their matching origin is not the first manifest origin (by [@Varixo](https://github.com/Varixo) in [#8455](https://github.com/QwikDev/qwik/pull/8455))
+
+- 🐞🩹 Bun and Deno request URL normalization to prevent protocol-relative paths from overriding the configured origin (by [@Varixo](https://github.com/Varixo) in [#8463](https://github.com/QwikDev/qwik/pull/8463))
+
+- ✨ getRequestEvent() provides the current request event; used in the starter templates for providing better diagnostics in uncaught exceptions (by [@wmertens](https://github.com/wmertens) in [#8655](https://github.com/QwikDev/qwik/pull/8655))
+
 ## 1.19.2
 
 ### Patch Changes

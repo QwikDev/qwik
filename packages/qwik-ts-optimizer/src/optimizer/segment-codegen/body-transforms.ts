@@ -274,11 +274,52 @@ function injectHoistDeclarations(
   return bodyText;
 }
 
-/** Inject component-scope .w() declarations before the return statement. */
+/**
+ * Find the position of the component-level `return ` keyword in `bodyText` —
+ * the return statement at depth-1 relative to the body's outer `{...}`.
+ *
+ * Required (OSS-400) because a component body may contain nested function
+ * declarations (each with their own `return`), and `componentScopeWDecls`
+ * must be injected BEFORE the COMPONENT's return, not the first nested
+ * function's return. `indexOf('return ')` would find the wrong one.
+ *
+ * Returns the position of the LAST depth-1 `return ` token (the component's
+ * own return — any inner-function returns sit at deeper depths and are
+ * skipped). Falls back to -1 if no depth-1 return is found.
+ */
+function findComponentReturnPosition(bodyText: string): number {
+  let i = 0;
+  // Skip ahead to the first `{` — the body open.
+  while (i < bodyText.length && bodyText[i] !== '{') i++;
+  if (i >= bodyText.length) return -1;
+  let depth = 1;
+  i++;
+  let lastDepth1Return = -1;
+  while (i < bodyText.length) {
+    const ch = bodyText[i];
+    if (ch === '{') depth++;
+    else if (ch === '}') depth--;
+    else if (depth === 1 && bodyText.startsWith('return ', i)) {
+      // Confirm `return ` is a keyword by checking the preceding char isn't
+      // an identifier continuation (defensive — guards against e.g. `noreturn `
+      // would never appear in TS output but cheap to check).
+      const prev = i > 0 ? bodyText[i - 1] : '\n';
+      if (!/[A-Za-z0-9_$]/.test(prev)) {
+        lastDepth1Return = i;
+      }
+      i += 7;
+      continue;
+    }
+    i++;
+  }
+  return lastDepth1Return;
+}
+
+/** Inject component-scope .w() declarations before the component's return statement. */
 function injectComponentScopeWDecls(bodyText: string, decls: string[] | undefined): string {
   if (!decls || decls.length === 0) return bodyText;
 
-  const returnIdx = bodyText.indexOf('return ');
+  const returnIdx = findComponentReturnPosition(bodyText);
   if (returnIdx < 0) return bodyText;
 
   let lineStart = returnIdx - 1;

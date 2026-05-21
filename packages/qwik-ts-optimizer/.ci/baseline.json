@@ -73,6 +73,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_qwik_react",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_qwik_react_inline",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_reg_ctx_name_segments",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_reg_ctx_name_segments_hoisted",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_reg_ctx_name_segments_inlined",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_renamed_exports",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_segment_variable_migration",
@@ -338,6 +339,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_qwik_react",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_qwik_react_inline",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_reg_ctx_name_segments",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_reg_ctx_name_segments_hoisted",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_reg_ctx_name_segments_inlined",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_renamed_exports",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_segment_variable_migration",
@@ -694,6 +696,12 @@
       "tests/optimizer/oss-406-rawprops-propagation.test.ts :: OSS-406: Inline strategy keeps captureNames intact for non-loop nested handlers default (smart) strategy keeps captureNames empty after promotion (segment-file path)",
       "tests/optimizer/oss-406-rawprops-propagation.test.ts :: OSS-406: Inline strategy keeps captureNames intact for non-loop nested handlers emits inline-style body with _captures[N] unpacking + _rawProps.X rewriting",
       "tests/optimizer/oss-406-rawprops-propagation.test.ts :: OSS-406: Inline strategy keeps captureNames intact for non-loop nested handlers keeps Hoist strategy unchanged — still pads paramNames with (_, _1, capture)",
+      "tests/optimizer/oss-407-hoist-regctxname.test.ts :: OSS-407 Fix A: direct emit for bare-identifier hoist body matching module-level decl emits `q_X.s(STYLES)` directly instead of the const-wrap pair",
+      "tests/optimizer/oss-407-hoist-regctxname.test.ts :: OSS-407 Fix A: direct emit for bare-identifier hoist body matching module-level decl still wraps non-bare-identifier bodies in the const+sCall pair",
+      "tests/optimizer/oss-407-hoist-regctxname.test.ts :: OSS-407 Fix B: filter migrated names from body-side capture unpacking STILL injects `_captures[N]` for non-migrated closure captures (Inline strategy)",
+      "tests/optimizer/oss-407-hoist-regctxname.test.ts :: OSS-407 Fix B: filter migrated names from body-side capture unpacking does NOT inject `const X = _captures[0]` for a migrated module-level decl",
+      "tests/optimizer/oss-407-hoist-regctxname.test.ts :: OSS-407 Fix C: per-sCall placement when sCall references a forward-declared decl keeps non-forward-dep sCalls in their OSS-404 anchor-relative position",
+      "tests/optimizer/oss-407-hoist-regctxname.test.ts :: OSS-407 Fix C: per-sCall placement when sCall references a forward-declared decl places `q_X.s(STYLES)` AFTER `const STYLES = ...` to avoid TDZ",
       "tests/optimizer/path-utils.test.ts :: path-utils detects whether a relative import stays within the srcDir-relative tree",
       "tests/optimizer/path-utils.test.ts :: path-utils normalizes windows-style paths",
       "tests/optimizer/path-utils.test.ts :: path-utils preserves current computeRelPath behavior for paths outside srcDir",
@@ -952,6 +960,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 802
+    "total": 808
   }
 }

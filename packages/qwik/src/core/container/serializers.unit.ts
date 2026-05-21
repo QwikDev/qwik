@@ -35,7 +35,7 @@ describe('ResourceSerializer', () => {
     const resource = serializer.$prepare$('0 0', undefined as any, undefined as any) as any;
     const then = vi.fn(() => Promise.reject(new Error('boom')));
 
-    serializer.$fill$(resource, () => ({ then }), undefined as any);
+    serializer.$fill$!(resource, () => ({ then }), undefined as any);
 
     expect(then).not.toHaveBeenCalled();
     expect(resource._state).toBe('rejected');
@@ -46,7 +46,7 @@ describe('ResourceSerializer', () => {
   test('keeps non-thenable deserialized values resolved', async () => {
     const resource = serializer.$prepare$('0 0', undefined as any, undefined as any) as any;
 
-    serializer.$fill$(resource, () => ({ safe: true }), undefined as any);
+    serializer.$fill$!(resource, () => ({ safe: true }), undefined as any);
 
     expect(resource._state).toBe('resolved');
     await expect(resource.value).resolves.toEqual({ safe: true });

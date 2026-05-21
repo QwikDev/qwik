@@ -55,6 +55,11 @@ import { isDev, isServer } from '@builder.io/qwik';
 import type { FormSubmitCompletedDetail } from './form-component';
 
 /** @public */
+export const getRequestEvent = (): RequestEvent | undefined => {
+  return globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
+};
+
+/** @public */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]

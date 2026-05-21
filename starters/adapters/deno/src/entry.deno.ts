@@ -8,6 +8,7 @@
  * - https://docs.deno.com/runtime/tutorials/http_server
  *
  */
+import { getRequestEvent } from "@builder.io/qwik-city";
 import { createQwikCity } from "@builder.io/qwik-city/middleware/deno";
 import qwikCityPlan from "@qwik-city-plan";
 import render from "./entry.ssr";
@@ -26,6 +27,43 @@ const port = Number(Deno.env.get("PORT") ?? 3009);
 
 /* eslint-disable */
 console.log(`Server starter: http://localhost:${port}/app/`);
+
+// Optional request-aware diagnostics for crashes that escape request boundaries.
+// This does not prevent Deno from crashing, but it does provide better diagnostics.
+// See Deno runtime event docs for error and unhandled rejection behavior.
+globalThis.addEventListener("error", (event) => {
+  const requestEv = getRequestEvent();
+  if (requestEv) {
+    console.error("Unhandled exception during request", {
+      method: requestEv.method,
+      url: requestEv.url.href,
+      headersSent: requestEv.headersSent,
+      error: (event as any).error,
+    });
+    return;
+  }
+
+  console.error("Unhandled exception outside request", {
+    error: (event as any).error,
+  });
+});
+
+globalThis.addEventListener("unhandledrejection", (event) => {
+  const requestEv = getRequestEvent();
+  if (requestEv) {
+    console.error("Unhandled rejection during request", {
+      method: requestEv.method,
+      url: requestEv.url.href,
+      headersSent: requestEv.headersSent,
+      reason: (event as any).reason,
+    });
+    return;
+  }
+
+  console.error("Unhandled rejection outside request", {
+    reason: (event as any).reason,
+  });
+});
 
 Deno.serve({ port }, async (request: Request, info: any) => {
   const staticResponse = await staticFile(request);

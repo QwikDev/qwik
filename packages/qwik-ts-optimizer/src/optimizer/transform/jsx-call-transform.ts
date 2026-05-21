@@ -44,8 +44,19 @@ import type { SegmentImportData } from '../segment-codegen.js';
  *     is what we care about).
  */
 export function collectJsxFunctionNames(importContext: SegmentImportData): Set<string> {
+  return collectJsxFunctionNamesFromIterable(importContext.moduleImports);
+}
+
+/**
+ * Variant that operates on the structural minimum needed for the rule —
+ * lets callers with `ImportInfo[]` (e.g. parent-rewrite under inline strategy)
+ * reuse the same classification without first converting to `SegmentImportData`.
+ */
+export function collectJsxFunctionNamesFromIterable(
+  imports: Iterable<{ readonly localName: string; readonly importedName: string; readonly source: string }>,
+): Set<string> {
   const result = new Set<string>();
-  for (const imp of importContext.moduleImports) {
+  for (const imp of imports) {
     if (
       imp.source === '@qwik.dev/core/jsx-runtime' ||
       imp.source === '@qwik.dev/core/jsx-dev-runtime'

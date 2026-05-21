@@ -430,8 +430,14 @@ export function transformModule(
     const entryStrategy = options.entryStrategy ?? { type: "smart" as const };
     const isInlineStrategy =
       entryStrategy.type === "inline" || entryStrategy.type === "hoist";
+    // OSS-405: under inline strategy, segment bodies stay in the parent module
+    // (inside `q_X.s(body)`), so a `move` decision would delete a decl that the
+    // body still references — broken. Run migration and keep only `reexport`
+    // decisions; SWC emits these too, presumably for API stability across the
+    // segment-file ↔ inline output forms.
     const migrationDecisions = isInlineStrategy
-      ? []
+      ? analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage)
+          .filter((d) => d.action === 'reexport')
       : analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage);
 
     const parentModulePath = computeParentModulePath(

@@ -17,8 +17,11 @@ import {
   type JSXAttributeItem,
 } from '../../ast-types.js';
 import type { ExtractionResult, Mutable } from '../extract.js';
+import type { ImportInfo } from '../marker-detection.js';
 import { transformEventPropName } from '../transform/event-handlers.js';
-import { transformAllJsx } from '../transform/jsx.js';
+import { transformAllJsx, JsxKeyCounter } from '../transform/jsx.js';
+import { transformJsxCalls, collectJsxFunctionNamesFromIterable } from '../transform/jsx-call-transform.js';
+import { computeKeyPrefix } from '../key-prefix.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { getQrlImportSource } from '../rewrite-calls.js';
 import { injectCapturesUnpacking, removeDeadConstLiterals } from '../segment-codegen.js';
@@ -140,6 +143,16 @@ export function transformInlineSegmentBody(
   closureNodes?: Map<string, AstFunction>,
   /** Source string the closures were parsed from — required when `closureNodes` is supplied. */
   source?: string,
+  /**
+   * Parent module imports — used to derive the jsx-runtime callable set for
+   * the OSS-405 `jsx(...) → _jsxSorted(...)` rewrite in inline-strategy bodies.
+   * When omitted (or empty for the module), the rewrite is skipped.
+   */
+  originalImports?: Map<string, ImportInfo>,
+  /** Parent module's relative path — used for JSX key prefix derivation. */
+  parentRelPath?: string,
+  /** Shared JSX key counter value for continuation across .s(body) calls. */
+  sharedKeyCounterStart?: number,
 ): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {
   // `body` is locally mutable plain string for slicing/concatenation
   // throughout this transform. The branded BodyText only matters at the
@@ -197,7 +210,7 @@ export function transformInlineSegmentBody(
 
           const replacement = `${propName}={${qrlRef}}`;
           body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
-        } else {
+        } else if (child.qrlCallee) {
           let replacement = child.qrlCallee + '(' + childVarName;
 
           if (child.captureNames.length > 0) {
@@ -207,9 +220,18 @@ export function transformInlineSegmentBody(
           replacement += ')';
           body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
 
-          if (child.qrlCallee) {
-            additionalImports.set(child.qrlCallee, getQrlImportSource(child.qrlCallee, child.importSource));
+          additionalImports.set(child.qrlCallee, getQrlImportSource(child.qrlCallee, child.importSource));
+        } else {
+          // OSS-405: inlinedQrl children have empty `qrlCallee` (`extract.ts:696`)
+          // — they're peer-tool-emitted spec args, not marker calls. Replacement
+          // is just the `q_X.w([captures])` ref; wrapping it in `(`...`)` would
+          // produce `useTaskQrl((q_X.w([...])))` (double parens) instead of
+          // `useTaskQrl(q_X.w([...]))`.
+          let replacement = childVarName;
+          if (child.captureNames.length > 0) {
+            replacement += '.w([\n        ' + child.captureNames.join(',\n        ') + '\n    ])';
           }
+          body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
         }
       }
     }
@@ -246,6 +268,12 @@ export function transformInlineSegmentBody(
 
   if (isRegCtx) {
     // regCtxName extractions don't use _captures
+  } else if (ext.isInlinedQrl) {
+    // OSS-405: peer-tool `inlinedQrl(body, name, [captures])` bodies are
+    // self-contained — they already destructure captures themselves (e.g.
+    // via `useLexicalScope()` in qwik-react codegen). Injecting `_captures`
+    // unpacking on top would produce duplicate destructuring. Mirrors the
+    // `resolveCaptureInfo` skip path used by the segment-file codegen.
   } else if (ext.captureNames.length > 0) {
     body = injectCapturesUnpacking(body, ext.captureNames);
     additionalImports.set('_captures', '@qwik.dev/core');
@@ -269,6 +297,52 @@ export function transformInlineSegmentBody(
   body = propagateConstLiteralsInBody(body);
 
   let finalKeyCounterValue: number | undefined;
+
+  // OSS-405: rewrite peer-tool `jsx(Tag, propsObj, ...)` calls (e.g. from
+  // qwik-react codegen embedded inside `inlinedQrl(...)` bodies) into the
+  // `_jsxSorted(tag, varProps, constProps, children, flags, key)` form. Mirrors
+  // the Phase 5b path in segment-codegen (`transformSegmentJsxCalls`) — under
+  // inline strategy, the body stays in the parent module rather than going
+  // into a segment file, so this pass has to run here instead.
+  if (originalImports && originalImports.size > 0) {
+    const jsxFunctions = collectJsxFunctionNamesFromIterable(originalImports.values());
+    if (jsxFunctions.size > 0) {
+      let mentionsAny = false;
+      for (const name of jsxFunctions) {
+        if (body.includes(name + '(')) { mentionsAny = true; break; }
+      }
+      if (mentionsAny) {
+        try {
+          const wrappedBody = `(${body})`;
+          const bodyParse = parseSync('__inline_body__.tsx', wrappedBody, RAW_TRANSFER_PARSER_OPTIONS);
+          if (bodyParse.program && !bodyParse.errors?.length) {
+            const callS = new MagicString(wrappedBody);
+            const relPathForPrefix = parentRelPath ?? jsxBodyOptions?.relPath;
+            const prefix = relPathForPrefix ? computeKeyPrefix(relPathForPrefix) : 'u6';
+            const startAt = sharedKeyCounterStart ?? jsxBodyOptions?.keyCounterStart ?? 0;
+            const keyCounter = new JsxKeyCounter(startAt, prefix);
+            const callNeededImports = new Set<string>();
+            transformJsxCalls(wrappedBody, callS, bodyParse.program, {
+              jsxFunctions,
+              keyCounter,
+              neededImports: callNeededImports,
+            });
+            const rewritten = callS.toString();
+            if (rewritten !== wrappedBody) {
+              body = rewritten.slice(1, -1);
+              for (const sym of callNeededImports) {
+                additionalImports.set(sym, '@qwik.dev/core');
+              }
+              finalKeyCounterValue = keyCounter.current();
+            }
+          }
+        } catch {
+          // jsx-call rewrite failed; fall through with body unchanged.
+        }
+      }
+    }
+  }
+
   if (jsxBodyOptions?.enableJsx) {
     const wrapperPrefix = 'const __body__ = ';
     const wrappedSource = wrapperPrefix + body;

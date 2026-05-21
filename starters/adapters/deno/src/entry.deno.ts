@@ -31,39 +31,42 @@ console.log(`Server starter: http://localhost:${port}/app/`);
 // Optional request-aware diagnostics for crashes that escape request boundaries.
 // This does not prevent Deno from crashing, but it does provide better diagnostics.
 // See Deno runtime event docs for error and unhandled rejection behavior.
-globalThis.addEventListener("error", (event) => {
+globalThis.addEventListener("error", (event: ErrorEvent) => {
   const requestEv = getRequestEvent();
   if (requestEv) {
     console.error("Unhandled exception during request", {
       method: requestEv.method,
       url: requestEv.url.href,
       headersSent: requestEv.headersSent,
-      error: (event as any).error,
+      error: event.error,
     });
     return;
   }
 
   console.error("Unhandled exception outside request", {
-    error: (event as any).error,
+    error: event.error,
   });
 });
 
-globalThis.addEventListener("unhandledrejection", (event) => {
-  const requestEv = getRequestEvent();
-  if (requestEv) {
-    console.error("Unhandled rejection during request", {
-      method: requestEv.method,
-      url: requestEv.url.href,
-      headersSent: requestEv.headersSent,
-      reason: (event as any).reason,
+globalThis.addEventListener(
+  "unhandledrejection",
+  (event: PromiseRejectionEvent) => {
+    const requestEv = getRequestEvent();
+    if (requestEv) {
+      console.error("Unhandled rejection during request", {
+        method: requestEv.method,
+        url: requestEv.url.href,
+        headersSent: requestEv.headersSent,
+        reason: event.reason,
+      });
+      return;
+    }
+
+    console.error("Unhandled rejection outside request", {
+      reason: event.reason,
     });
-    return;
-  }
-
-  console.error("Unhandled rejection outside request", {
-    reason: (event as any).reason,
-  });
-});
+  },
+);
 
 Deno.serve({ port }, async (request: Request, info: any) => {
   const staticResponse = await staticFile(request);

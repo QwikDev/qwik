@@ -7,10 +7,11 @@ describe('types', () => {
   test('getRequestEvent returns undefined when no async request store exists', () => {
     const previousStore = globalThis.qcAsyncRequestStore;
     globalThis.qcAsyncRequestStore = undefined;
-
-    expect(getRequestEvent()).toBeUndefined();
-
-    globalThis.qcAsyncRequestStore = previousStore;
+    try {
+      expect(getRequestEvent()).toBeUndefined();
+    } finally {
+      globalThis.qcAsyncRequestStore = previousStore;
+    }
   });
 
   test('getRequestEvent returns current request from async request store', () => {
@@ -21,9 +22,11 @@ describe('types', () => {
       getStore: vi.fn(() => requestEvent),
     } as any;
 
-    expect(getRequestEvent()).toBe(requestEvent);
-
-    globalThis.qcAsyncRequestStore = previousStore;
+    try {
+      expect(getRequestEvent()).toBe(requestEvent);
+    } finally {
+      globalThis.qcAsyncRequestStore = previousStore;
+    }
   });
 
   test('matching', () => () => {

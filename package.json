@@ -181,6 +181,7 @@
   "packageManager": "pnpm@10.14.0",
   "private": true,
   "scripts": {
+    "actions.update-pins": "node --experimental-strip-types scripts/update-action-pins.ts",
     "api.update": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --api --dev",
     "build": "node --require ./scripts/runBefore.ts scripts/index.ts",
     "build.changelog-formatter": "tsc .changeset/changelog-github-custom.ts && mv .changeset/changelog-github-custom.js .changeset/changelog-github-custom.cjs",

@@ -63,6 +63,7 @@ export { routeAction$, routeActionQrl } from './server-functions';
 export { globalAction$, globalActionQrl } from './server-functions';
 export { routeLoader$, routeLoaderQrl } from './server-functions';
 export { server$, serverQrl } from './server-functions';
+export { getRequestEvent } from './server-functions';
 export { valibot$, valibotQrl } from './server-functions';
 export { zod$, zodQrl } from './server-functions';
 export { validator$, validatorQrl } from './server-functions';

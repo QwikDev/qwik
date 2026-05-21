@@ -111,6 +111,23 @@ function serializer<T>(serializer: SerializerInput<T>): Serializer<T> {
   };
 }
 
+const createHandledRejectedPromise = (error: unknown) => {
+  const promise = Promise.reject(error);
+  promise.catch(() => null);
+  return promise;
+};
+
+const isThenable = (value: unknown) => {
+  if ((typeof value !== 'object' && typeof value !== 'function') || value === null) {
+    return false;
+  }
+  try {
+    return typeof (value as PromiseLike<unknown>).then === 'function';
+  } catch {
+    return true;
+  }
+};
+
 const QRLSerializer = /*#__PURE__*/ serializer<QRLInternal>({
   $prefix$: '\u0002',
   $test$: (v) => isQrl(v),
@@ -179,12 +196,19 @@ const ResourceSerializer = /*#__PURE__*/ serializer<ResourceReturnInternal<any>>
   $fill$: (resource, getObject) => {
     if (resource._state === 'resolved') {
       resource._resolved = getObject(resource._resolved);
-      resource.value = Promise.resolve(resource._resolved);
+      if (isThenable(resource._resolved)) {
+        const err = new Error('Invalid deserialized resource value');
+        resource._state = 'rejected';
+        resource._error = err;
+        resource._resolved = undefined;
+        resource.loading = false;
+        resource.value = createHandledRejectedPromise(err);
+      } else {
+        resource.value = Promise.resolve(resource._resolved);
+      }
     } else if (resource._state === 'rejected') {
-      const p = Promise.reject(resource._error);
-      p.catch(() => null);
       resource._error = getObject(resource._error as any as string);
-      resource.value = p;
+      resource.value = createHandledRejectedPromise(resource._error);
     }
   },
 });

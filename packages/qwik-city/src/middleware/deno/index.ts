@@ -12,6 +12,7 @@ import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
+import { normalizeRequestUrl } from '../shared/url';
 // @ts-ignore
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 
@@ -35,7 +36,7 @@ function getRequestUrl(request: Request, opts: QwikCityDenoOptions, info?: Serve
   if (!origin) {
     return url;
   }
-  return new URL(`${url.pathname}${url.search}${url.hash}`, origin);
+  return normalizeRequestUrl(`${url.pathname}${url.search}${url.hash}`, origin);
 }
 
 /** @public */
@@ -86,9 +87,9 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
       // send request to qwik city request handler
       const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handledResponse) {
-        handledResponse.completion.then((v) => {
-          if (v) {
-            console.error(v);
+        handledResponse.completion.then((err) => {
+          if (err) {
+            console.error(err);
           }
         });
         const response = await handledResponse.response;

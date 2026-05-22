@@ -30,6 +30,7 @@ import {
 } from './constants';
 import { RouteStateContext } from './contexts';
 import type { FormSubmitCompletedDetail } from './form-component';
+import { runServerFunctionWithCache } from './server-function-cache';
 import type {
   ActionConstructor,
   ActionConstructorQRL,
@@ -410,7 +411,7 @@ export const serverQrl = <T extends ServerFunction>(
   const origin = options?.origin || '';
   const fetchOptions = options?.fetchOptions || {};
 
-  return $(async function (this: RequestEventBase | undefined, ...args: Parameters<T>) {
+  const serverFn = $(async function (this: RequestEventBase | undefined, ...args: Parameters<T>) {
     // move to ServerConfig
     const abortSignal =
       args.length > 0 && args[0] instanceof AbortSignal ? (args.shift() as AbortSignal) : undefined;
@@ -429,7 +430,9 @@ export const serverQrl = <T extends ServerFunction>(
         );
       }
 
-      return qrl.apply(requestEvent, args);
+      return runServerFunctionWithCache(requestEvent, qrl.getHash(), args, () =>
+        qrl.apply(requestEvent, args)
+      );
     } else {
       // Running on the client, we need to call the function via HTTP
       let filteredArgs: unknown[] | undefined = args.map((arg: unknown) => {
@@ -513,6 +516,9 @@ export const serverQrl = <T extends ServerFunction>(
       }
     }
   }) as ServerQRL<T>;
+  (serverFn as any).__qwik_server_function__ = true;
+  (serverFn as any).__qwik_server_resource_hash__ = qrl.getHash();
+  return serverFn;
 };
 
 /** @public */

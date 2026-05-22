@@ -1,0 +1,10 @@
+{
+  "name": "qwik-cache-examples-gallery",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "pnpm exec tsc -p tsconfig.json",
+    "dev": "pnpm exec vite --config vite.config.ts --mode ssr --host 127.0.0.1 --port 4300 --strictPort",
+    "dev:all": "node scripts/dev-all.mjs"
+  }
+}

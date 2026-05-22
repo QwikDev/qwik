@@ -12,7 +12,7 @@ This is intentionally small. It demonstrates the transport shape:
 client route shell
 -> POST ?qcomponent=ProductPagePartial
 -> server renders and caches the registered component envelope
--> server returns { html, component, cache, resources }
+-> server returns { html, component, cache, resume, resources }
 -> client swaps the payload HTML into an outlet and can inspect cache/resource metadata
 ```
 
@@ -21,7 +21,7 @@ client already has, or can fetch, the compatible component render symbol:
 
 ```txt
 POST ?qcomponent=ProductPagePartial&qcomponent-payload=data
--> server returns { mode: 'data-plus-render-symbol', render, data, component, cache, resources }
+-> server returns { mode: 'data-plus-render-symbol', render, data, component, cache, resume, resources }
 ```
 
 Resource values are metadata-only by default. This example opts `getProduct` and `getPricing` into
@@ -32,6 +32,17 @@ The full production version still needs router-level integration for nested resu
 history, prefetching, invalidation, and partial batching. This example is a practical sketch of the
 navigation model. The JSON payload is still a standalone qcomponent envelope; it does not claim full
 in-page resumable subtree insertion.
+
+The `resume` metadata makes that boundary explicit. It currently reports:
+
+```txt
+boundary: standalone-container
+merge: none
+```
+
+That means qcomponent HTML is safe as a standalone Qwik container payload. It is not a raw fragment
+whose `<script type="qwik/state">`, `<script type="qwik/vnode">`, render symbols, and instance data
+can be merged into an already-resumed parent container.
 
 ## Run
 

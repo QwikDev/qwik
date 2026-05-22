@@ -10,6 +10,7 @@ import {
   createServerFunctionCacheKey,
   defineCacheConfig,
   getAsyncResourceStateSnapshotForServer,
+  getCacheManifestForServer,
   getCacheRegistrySnapshotForServer,
   getConfiguredComponentTarget,
   getServerFunctionResourceHash,
@@ -490,6 +491,218 @@ describe('server function cache', () => {
         },
       ],
     });
+  });
+
+  it('creates a cache manifest with server graph metadata and browser-safe hints', async () => {
+    const getSegment = Object.assign(() => ({ plan: 'free' }), {
+      __qwik_server_resource_hash__: 'segment-hash',
+    });
+    const getProduct = Object.assign(() => ({ title: 'Keyboard' }), {
+      __qwik_server_resource_hash__: 'product-hash',
+    });
+    const component = Object.assign(() => null, {
+      __qwik_component_registry__: {
+        id: 'component:product-card-hash',
+        qrlHash: 'product-card-hash',
+        symbol: 'ProductCard_component_cache_test',
+      },
+    });
+
+    configureCacheForServer(
+      defineCacheConfig({
+        defaults: {
+          resources: {
+            store: 'memory',
+            scope: 'private',
+            namespace: 'secret-resource-namespace',
+          },
+          components: {
+            store: 'memory',
+            scope: 'private',
+            namespace: 'secret-component-namespace',
+          },
+        },
+        optimize: {
+          resources: {
+            getSegment: {
+              target: getSegment,
+              policy: 'privateSegment',
+              tags: ['segment'],
+            },
+            getProduct: {
+              target: getProduct,
+              policy: 'productResource',
+              tags: ['product'],
+              vary: [getSegment],
+            },
+          },
+          components: {
+            ProductCard: {
+              target: component,
+              policy: 'privateProductCard',
+              tags: ['component'],
+              vary: [getSegment, getProduct],
+            },
+          },
+        },
+      })
+    );
+
+    const graphManifestId = getCacheManifestForServer().id;
+    const ev = createRequestEvent();
+    await runServerFunctionWithCache(ev, 'product-hash', [{ productId: '1' }], () => ({
+      title: 'Keyboard',
+    }));
+
+    const manifest = getCacheManifestForServer(ev);
+
+    expect(manifest.id).toBe(graphManifestId);
+    expect(manifest).toMatchObject({
+      kind: 'qwik-cache-manifest',
+      version: 1,
+      generatedFrom: 'runtime-registry',
+      id: expect.stringMatching(/^cache-manifest:v1:/),
+      server: {
+        resources: [
+          {
+            name: 'getSegment',
+            id: 'server:segment-hash',
+            hash: 'segment-hash',
+            policy: 'privateSegment',
+            tags: ['segment'],
+          },
+          {
+            name: 'getProduct',
+            id: 'server:product-hash',
+            hash: 'product-hash',
+            policy: 'productResource',
+            tags: ['product'],
+          },
+        ],
+        components: [
+          {
+            name: 'ProductCard',
+            id: 'component:product-card-hash',
+            ids: ['ProductCard', 'component:product-card-hash', 'product-card-hash'],
+            policy: 'privateProductCard',
+            tags: ['component'],
+            registry: {
+              id: 'component:product-card-hash',
+              qrlHash: 'product-card-hash',
+              symbol: 'ProductCard_component_cache_test',
+            },
+          },
+        ],
+        asyncEdges: [
+          {
+            from: {
+              type: 'component',
+              name: 'ProductCard',
+              id: 'component:product-card-hash',
+            },
+            to: {
+              type: 'resource',
+              name: 'getSegment',
+              hash: 'segment-hash',
+            },
+            source: 'configured-component-vary',
+          },
+          {
+            from: {
+              type: 'component',
+              name: 'ProductCard',
+              id: 'component:product-card-hash',
+            },
+            to: {
+              type: 'resource',
+              name: 'getProduct',
+              hash: 'product-hash',
+            },
+            source: 'configured-component-vary',
+          },
+        ],
+        varyEdges: [
+          {
+            from: {
+              type: 'resource',
+              name: 'getProduct',
+              id: 'server:product-hash',
+            },
+            to: {
+              type: 'resource',
+              name: 'getSegment',
+              hash: 'segment-hash',
+            },
+          },
+          {
+            from: {
+              type: 'component',
+              name: 'ProductCard',
+              id: 'component:product-card-hash',
+            },
+            to: {
+              type: 'resource',
+              name: 'getSegment',
+              hash: 'segment-hash',
+            },
+          },
+          {
+            from: {
+              type: 'component',
+              name: 'ProductCard',
+              id: 'component:product-card-hash',
+            },
+            to: {
+              type: 'resource',
+              name: 'getProduct',
+              hash: 'product-hash',
+            },
+          },
+        ],
+        asyncResources: [
+          {
+            qrlHash: 'product-hash',
+            status: 'resolved',
+            source: 'run',
+          },
+        ],
+      },
+      browser: {
+        resources: [{ hash: 'segment-hash' }, { hash: 'product-hash' }],
+        components: [
+          {
+            ids: ['ProductCard', 'component:product-card-hash', 'product-card-hash'],
+            registry: {
+              id: 'component:product-card-hash',
+              qrlHash: 'product-card-hash',
+              symbol: 'ProductCard_component_cache_test',
+            },
+          },
+        ],
+        asyncEdges: [
+          {
+            componentId: 'component:product-card-hash',
+            resourceHash: 'segment-hash',
+          },
+          {
+            componentId: 'component:product-card-hash',
+            resourceHash: 'product-hash',
+          },
+        ],
+        asyncResources: [
+          {
+            qrlHash: 'product-hash',
+            status: 'resolved',
+            source: 'run',
+          },
+        ],
+      },
+    });
+    expect(JSON.stringify(manifest)).not.toContain('secret-resource-namespace');
+    expect(JSON.stringify(manifest)).not.toContain('secret-component-namespace');
+    expect(JSON.stringify(manifest.browser)).not.toContain('productResource');
+    expect(JSON.stringify(manifest.browser)).not.toContain('privateProductCard');
+    expect(JSON.stringify(manifest.browser)).not.toContain('Keyboard');
   });
 
   it('builds stable component html cache keys for serializable props', () => {

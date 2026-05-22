@@ -38,6 +38,12 @@ export interface QwikCacheConfig {
             dedupe?: boolean;
             namespace?: string;
         };
+        components?: {
+            store?: CacheStoreName;
+            scope?: CacheScope;
+            dedupe?: boolean;
+            namespace?: string;
+        };
     };
     // (undocumented)
     optimize?: {

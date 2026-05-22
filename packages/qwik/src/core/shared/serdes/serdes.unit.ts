@@ -487,6 +487,11 @@ describe('shared-serialization', () => {
         qrlHash: qrl.getHash(),
         symbol: qrl.getSymbol(),
       });
+      expect((component as any).__qwik_component_registry__).toEqual({
+        id: `component:${qrl.getHash()}`,
+        qrlHash: qrl.getHash(),
+        symbol: qrl.getSymbol(),
+      });
     });
     it(title(TypeIds.Signal), async () => {
       const objs = await serialize({ foo: createSignal('hi') });

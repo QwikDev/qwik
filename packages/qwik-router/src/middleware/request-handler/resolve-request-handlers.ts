@@ -1,4 +1,5 @@
-import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
+import { renderToString } from '@qwik.dev/core/server';
+import { QACTION_KEY, QCOMPONENT_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import { resolveRouteConfig } from '../../runtime/src/head';
 import { resolveETag, resolveCacheKey, getCachedHtml, MAX_CACHE_SIZE, setCachedHtml } from './etag';
 import { HttpStatus } from './http-status-codes';
@@ -24,6 +25,7 @@ import { ServerError } from './server-error';
 
 const requestHandlers = createResolveRequestHandlers({
   QACTION_KEY,
+  QCOMPONENT_KEY,
   QFN_KEY,
   QLOADER_KEY,
   QDATA_JSON,
@@ -51,6 +53,7 @@ const requestHandlers = createResolveRequestHandlers({
   resolveCacheKey,
   resolveETag,
   resolveRouteConfig,
+  renderToString,
   setCachedHtml,
 });
 

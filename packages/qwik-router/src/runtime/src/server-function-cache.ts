@@ -90,6 +90,94 @@ export interface QwikCacheRegistrySnapshot {
   components: readonly QwikCacheRegistryComponentEntry[];
 }
 
+export interface QwikCacheManifestResourceEntry {
+  name: string;
+  id: string;
+  hash: string;
+  policy?: string;
+  tags: readonly string[];
+}
+
+export interface QwikCacheManifestComponentEntry {
+  name: string;
+  id: string;
+  ids: readonly string[];
+  policy?: string;
+  tags: readonly string[];
+  registry?: {
+    id: string;
+    qrlHash: string;
+    symbol: string;
+  };
+}
+
+export interface QwikCacheManifestVaryEdge {
+  from: {
+    type: 'resource' | 'component';
+    name: string;
+    id: string;
+  };
+  to: {
+    type: 'resource';
+    hash: string;
+    name?: string;
+  };
+}
+
+export interface QwikCacheManifestAsyncEdge {
+  from: {
+    type: 'component';
+    name: string;
+    id: string;
+  };
+  to: {
+    type: 'resource';
+    hash: string;
+    name?: string;
+  };
+  source: 'configured-component-vary';
+}
+
+export interface QwikCacheManifestAsyncResourceEntry {
+  qrlHash: string;
+  status: AsyncResourceStateStatus;
+  source: AsyncResourceStateEnvelope['source'];
+}
+
+export interface QwikCacheManifestBrowserHints {
+  resources: readonly {
+    hash: string;
+  }[];
+  components: readonly {
+    ids: readonly string[];
+    registry?: {
+      id: string;
+      qrlHash: string;
+      symbol: string;
+    };
+  }[];
+  asyncEdges: readonly {
+    componentId: string;
+    resourceHash: string;
+  }[];
+  asyncResources: readonly QwikCacheManifestAsyncResourceEntry[];
+}
+
+export interface QwikCacheManifest {
+  kind: 'qwik-cache-manifest';
+  version: 1;
+  generatedFrom: 'runtime-registry';
+  id: string;
+  server: {
+    resources: readonly QwikCacheManifestResourceEntry[];
+    components: readonly QwikCacheManifestComponentEntry[];
+    asyncEdges: readonly QwikCacheManifestAsyncEdge[];
+    varyEdges: readonly QwikCacheManifestVaryEdge[];
+    asyncResources: readonly QwikCacheManifestAsyncResourceEntry[];
+  };
+  browser: QwikCacheManifestBrowserHints;
+}
+
 /** @public */
 export type ServerFunctionCacheTarget = {
   getHash?: () => string;
@@ -318,6 +406,99 @@ export const getCacheRegistrySnapshotForServer = (): QwikCacheRegistrySnapshot =
       vary: getVarySnapshot(config.vary),
       registry: getComponentRegistry(config.target),
     })),
+  };
+};
+
+/** @internal */
+export const getCacheManifestForServer = (requestEvent?: RequestEventBase): QwikCacheManifest => {
+  const registry = getCacheRegistrySnapshotForServer();
+  const asyncResources =
+    getAsyncResourceStateSnapshotForServer(requestEvent).map(toManifestAsyncResource);
+  const server = {
+    resources: registry.resources.map((resource) => ({
+      name: resource.name,
+      id: `server:${resource.hash}`,
+      hash: resource.hash,
+      policy: resource.policy,
+      tags: [...resource.tags],
+    })),
+    components: registry.components.map((component) => ({
+      name: component.name,
+      id: component.registry?.id ?? `component:${component.name}`,
+      ids: [...component.ids],
+      policy: component.policy,
+      tags: [...component.tags],
+      ...(component.registry ? { registry: { ...component.registry } } : {}),
+    })),
+    asyncEdges: registry.components.flatMap((component) =>
+      component.vary.map((vary) => ({
+        from: {
+          type: 'component' as const,
+          name: component.name,
+          id: component.registry?.id ?? `component:${component.name}`,
+        },
+        to: {
+          type: 'resource' as const,
+          hash: vary.hash,
+          ...(vary.name ? { name: vary.name } : {}),
+        },
+        source: 'configured-component-vary' as const,
+      }))
+    ),
+    varyEdges: [
+      ...registry.resources.flatMap((resource) =>
+        resource.vary.map((vary) => ({
+          from: {
+            type: 'resource' as const,
+            name: resource.name,
+            id: `server:${resource.hash}`,
+          },
+          to: {
+            type: 'resource' as const,
+            hash: vary.hash,
+            ...(vary.name ? { name: vary.name } : {}),
+          },
+        }))
+      ),
+      ...registry.components.flatMap((component) =>
+        component.vary.map((vary) => ({
+          from: {
+            type: 'component' as const,
+            name: component.name,
+            id: component.registry?.id ?? `component:${component.name}`,
+          },
+          to: {
+            type: 'resource' as const,
+            hash: vary.hash,
+            ...(vary.name ? { name: vary.name } : {}),
+          },
+        }))
+      ),
+    ],
+    asyncResources,
+  };
+  const browser: QwikCacheManifestBrowserHints = {
+    resources: registry.resources.map((resource) => ({ hash: resource.hash })),
+    components: registry.components.map((component) => ({
+      ids: [...component.ids],
+      ...(component.registry ? { registry: { ...component.registry } } : {}),
+    })),
+    asyncEdges: registry.components.flatMap((component) =>
+      component.vary.map((vary) => ({
+        componentId: component.registry?.id ?? `component:${component.name}`,
+        resourceHash: vary.hash,
+      }))
+    ),
+    asyncResources,
+  };
+
+  return {
+    kind: 'qwik-cache-manifest',
+    version: 1,
+    generatedFrom: 'runtime-registry',
+    id: createCacheManifestId(server, browser),
+    server,
+    browser,
   };
 };
 
@@ -833,4 +1014,31 @@ const isAsyncIterable = (value: unknown): value is AsyncIterable<unknown> => {
 
 const isPromiseLike = <T = unknown>(value: unknown): value is Promise<T> => {
   return !!value && typeof value === 'object' && typeof (value as Promise<T>).then === 'function';
+};
+
+const toManifestAsyncResource = (
+  envelope: AsyncResourceStateEnvelope
+): QwikCacheManifestAsyncResourceEntry => ({
+  qrlHash: envelope.qrlHash,
+  status: envelope.status,
+  source: envelope.source,
+});
+
+const createCacheManifestId = (
+  server: QwikCacheManifest['server'],
+  browser: QwikCacheManifestBrowserHints
+): string => {
+  const { asyncResources: _serverAsyncResources, ...serverGraph } = server;
+  const { asyncResources: _browserAsyncResources, ...browserGraph } = browser;
+  return `cache-manifest:v1:${hashString(
+    stableSerialize({ server: serverGraph, browser: browserGraph }) ?? 'null'
+  )}`;
+};
+
+const hashString = (value: string): string => {
+  let hash = 5381;
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 33) ^ value.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36);
 };

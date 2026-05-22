@@ -22,6 +22,10 @@ Cache participation is configured from `src/cache.server.ts`, which is imported 
 - `vary` relationships expressed with normal `server$` resources.
 - Server-only cache registry metadata that can describe configured resources, components, and
   `vary` graph edges without serializing cache stores or credentials to the browser.
+- A server-only cache manifest shape derived from the runtime registry. It records resources,
+  component render symbols, async edges, and `vary` edges, then separates the full server graph from
+  browser-safe hints so future build/optimizer manifests can reuse the same concepts without
+  exposing store names, namespaces, credentials, or policy internals.
 - A fetchable `?qcomponent=ProductCard` partial path that returns a standalone Qwik component
   envelope and reports `X-Qwik-Component-Cache`.
 

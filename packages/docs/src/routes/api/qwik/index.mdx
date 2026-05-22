@@ -172,6 +172,21 @@ export type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
 
+<h2 id="asyncresourcefn">AsyncResourceFn</h2>
+
+Async resource function used by the direct `useAsync$(resource, input)` form.
+
+```typescript
+export type AsyncResourceFn<TInput, TOutput> = (
+  abortSignal: AbortSignal,
+  input: TInput,
+) => ValueOrPromise<TOutput>;
+```
+
+**References:** [ValueOrPromise](#valueorpromise)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
+
 <h2 id="asyncsignal">AsyncSignal</h2>
 
 An AsyncSignal holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.
@@ -4462,6 +4477,22 @@ SerializerSymbol: unique symbol
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts)
+
+<h2 id="serverfunctionqrl">ServerFunctionQrl</h2>
+
+Server function QRL accepted by the direct `useAsync$(serverFn, input)` form.
+
+```typescript
+export type ServerFunctionQrl<TInput = unknown, TOutput = unknown> = QRL<
+  AsyncResourceFn<TInput, TOutput>
+> & {
+  __qwik_server_function__?: true;
+};
+```
+
+**References:** [QRL](#qrl-type-alias), [AsyncResourceFn](#asyncresourcefn)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
 
 <h2 id="setplatform">setPlatform</h2>
 
@@ -9335,52 +9366,51 @@ If the value has not yet been resolved, reading the AsyncSignal will throw a Pro
 If the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.
 
 ```typescript
-useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) =>
-  AsyncSignal<T>;
+useAsync$: UseAsyncDollar;
 ```
 
-<table><thead><tr><th>
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
 
-Parameter
+<h2 id="useasyncdollar">UseAsyncDollar</h2>
 
-</th><th>
+Public callable shape for `useAsync$`.
 
-Type
+```typescript
+export type UseAsyncDollar = {
+  <T>(fn: AsyncFn<T>, options?: AsyncSignalOptions<T>): AsyncSignal<T>;
+  <TInput, TOutput>(
+    fn: AsyncResourceFn<TInput, TOutput>,
+    input: TInput,
+    options?: AsyncSignalOptions<Awaited<TOutput>>,
+  ): AsyncSignal<Awaited<TOutput>>;
+  <TInput, TOutput>(
+    fn: ServerFunctionQrl<TInput, TOutput>,
+    input: TInput,
+    options?: AsyncSignalOptions<Awaited<TOutput>>,
+  ): AsyncSignal<Awaited<TOutput>>;
+};
+```
 
-</th><th>
+**References:** [AsyncFn](#asyncfn), [AsyncSignalOptions](#asyncsignaloptions), [AsyncSignal](#asyncsignal), [AsyncResourceFn](#asyncresourcefn), [ServerFunctionQrl](#serverfunctionqrl)
 
-Description
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
 
-</th></tr></thead>
-<tbody><tr><td>
+<h2 id="useasyncqrl">UseAsyncQrl</h2>
 
-qrl
+Internal QRL form for `useAsync$`.
 
-</td><td>
+```typescript
+export type UseAsyncQrl = {
+  <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>): AsyncSignal<T>;
+  <TInput, TOutput>(
+    qrl: ServerFunctionQrl<TInput, TOutput>,
+    input: TInput,
+    options?: AsyncSignalOptions<Awaited<TOutput>>,
+  ): AsyncSignal<Awaited<TOutput>>;
+};
+```
 
-[AsyncFn](#asyncfn)&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-options
-
-</td><td>
-
-[AsyncSignalOptions](#asyncsignaloptions)&lt;T&gt; \| undefined
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-[AsyncSignal](#asyncsignal)&lt;T&gt;
+**References:** [QRL](#qrl-type-alias), [AsyncFn](#asyncfn), [AsyncSignalOptions](#asyncsignaloptions), [AsyncSignal](#asyncsignal), [ServerFunctionQrl](#serverfunctionqrl)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
 

@@ -5,3 +5,4 @@ export * from './types';
 export * from './constants';
 export * from './globals';
 export * from './hook-types';
+export * from './overlay-paths';

@@ -69,13 +69,13 @@ export const DevtoolsContent = component$<DevtoolsContentProps>(({ state }) => {
           {isExtensionMode ? (
             <ViteOnlyPlaceholder feature="Assets" q:slot="content" />
           ) : (
-            <>
+            <div class="flex flex-col gap-4" q:slot="content">
               <div class="text-muted-foreground flex gap-4 text-sm">
                 <span>Total Size: {assetSummary.totalSizeInKb} KB</span>
                 <span>Count: {assetSummary.count}</span>
               </div>
-              <Assets state={state} q:slot="content" />
-            </>
+              <Assets state={state} />
+            </div>
           )}
         </TabContent>
       );

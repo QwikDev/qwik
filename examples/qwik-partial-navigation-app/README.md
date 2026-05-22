@@ -16,6 +16,18 @@ client route shell
 -> client swaps the payload HTML into an outlet and can inspect cache/resource metadata
 ```
 
+The same endpoint can also return a data-plus-render-symbol envelope for experiments where the
+client already has, or can fetch, the compatible component render symbol:
+
+```txt
+POST ?qcomponent=ProductPagePartial&qcomponent-payload=data
+-> server returns { mode: 'data-plus-render-symbol', render, data, component, cache, resources }
+```
+
+Resource values are metadata-only by default. This example opts `getProduct` and `getPricing` into
+server-owned value serialization from `src/cache.server.ts` so the terminal script can show how a
+future client render path would receive server data without exposing cache store policy.
+
 The full production version still needs router-level integration for nested resumability, focus,
 history, prefetching, invalidation, and partial batching. This example is a practical sketch of the
 navigation model. The JSON payload is still a standalone qcomponent envelope; it does not claim full
@@ -46,4 +58,5 @@ page=keyboard request=1 status=200 componentCache=miss payloadCache=miss resourc
 page=keyboard request=2 status=200 componentCache=hit payloadCache=hit resources=... matched=true bytes=...
 page=mouse request=1 status=200 componentCache=miss payloadCache=miss resources=... matched=true bytes=...
 page=mouse request=2 status=200 componentCache=hit payloadCache=hit resources=... matched=true bytes=...
+mode=data-plus-render-symbol status=200 renderSymbol=... dataResources=... hasValue=true hasHtml=false
 ```

@@ -428,6 +428,105 @@ describe('resolve-request-handler', () => {
       expect(secondPayload.html).toContain('Partial payload');
     });
 
+    it('returns a data-plus-render-symbol envelope when requested by server-owned policy', async () => {
+      const ProductPartial = component$(() => 'Data payload');
+      const getProduct = Object.assign(() => {}, {
+        __qwik_server_resource_hash__: 'product-hash',
+      });
+      configureCacheForServer(
+        defineCacheConfig({
+          defaults: {
+            resources: {
+              dedupe: true,
+            },
+            components: {
+              dedupe: true,
+            },
+          },
+          optimize: {
+            resources: {
+              getProduct: {
+                target: getProduct,
+                serialize: 'value',
+              },
+            },
+            components: {
+              ProductPartial: {
+                target: ProductPartial,
+              },
+            },
+          },
+        })
+      );
+
+      const resourceModule: RouteModule<any> = {
+        onRequest: async (ev) => {
+          await runServerFunctionWithCache(ev, 'product-hash', ['one'], () => ({
+            title: 'Keyboard',
+          }));
+        },
+      };
+      const route: LoadedRoute = {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [resourceModule, justHiModule as RouteModule],
+      };
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', false, vi.fn(), false);
+      const serverRequest = createMockServerRequestEvent(
+        'http://localhost:3000/test?qcomponent=ProductPartial&qcomponent-payload=data',
+        {
+          headers: {
+            'X-QCOMPONENT': 'ProductPartial',
+          },
+        }
+      );
+      const request = createRequestEvent(serverRequest, route, handlers, '/', vi.fn());
+
+      await request.next();
+
+      const payload = JSON.parse(readWrittenText(serverRequest));
+      expect(request.headers.get('Content-Type')).toBe('application/json; charset=utf-8');
+      expect(payload).toMatchObject({
+        type: 'qwik-component-partial',
+        version: 1,
+        standalone: true,
+        mode: 'data-plus-render-symbol',
+        component: {
+          id: 'ProductPartial',
+          name: 'ProductPartial',
+        },
+        cache: {
+          status: 'miss',
+        },
+        render: {
+          componentId: 'ProductPartial',
+          ids: expect.arrayContaining(['ProductPartial']),
+        },
+        resources: [
+          {
+            qrlHash: 'product-hash',
+            status: 'resolved',
+            source: 'run',
+          },
+        ],
+        data: {
+          resources: [
+            {
+              qrlHash: 'product-hash',
+              status: 'resolved',
+              source: 'run',
+              value: {
+                title: 'Keyboard',
+              },
+            },
+          ],
+        },
+      });
+      expect(payload).not.toHaveProperty('html');
+      expect(payload.resources[0]).not.toHaveProperty('value');
+      expect(payload.cache).not.toHaveProperty('namespace');
+    });
+
     it('keeps returning HTML for qcomponent requests that do not ask for JSON', async () => {
       const ProductPartial = component$(() => 'HTML partial');
       configureCacheForServer(

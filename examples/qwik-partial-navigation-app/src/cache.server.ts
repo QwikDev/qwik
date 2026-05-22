@@ -27,11 +27,13 @@ export const cacheConfig = defineCacheConfig({
       getProduct: {
         target: getProduct,
         policy: 'productResource',
+        serialize: 'value',
         vary: [getSegment],
       },
       getPricing: {
         target: getPricing,
         policy: 'productResource',
+        serialize: 'value',
         vary: [getSegment],
       },
     },

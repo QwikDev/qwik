@@ -22,6 +22,7 @@ import type {
   ValidatorReturn,
 } from '../../runtime/src/types';
 import {
+  getAsyncResourcePayloadSnapshotForServer,
   getAsyncResourceStateSnapshotForServer,
   getCacheRegistrySnapshotForServer,
   getConfiguredComponentTarget,
@@ -30,6 +31,8 @@ import {
 } from '../../runtime/src/server-function-cache';
 import type { RequestEventInternal } from './request-event-core';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
+
+type ComponentPartialPayloadMode = 'html' | 'data-plus-render-symbol';
 
 interface ResolveRequestHandlersDeps {
   QACTION_KEY: string;
@@ -545,9 +548,13 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     });
 
     ev.headers.set('X-Qwik-Component-Cache', result.cacheStatus);
-    if (isComponentJsonRequest(ev, data)) {
+    const payloadMode = getComponentPartialPayloadMode(ev, data);
+    if (isComponentJsonRequest(ev, data, payloadMode)) {
       ev.headers.set('Content-Type', 'application/json; charset=utf-8');
-      ev.send(200, JSON.stringify(createComponentPartialEnvelope(ev, componentId, result)));
+      ev.send(
+        200,
+        JSON.stringify(createComponentPartialEnvelope(ev, componentId, result, payloadMode))
+      );
     } else {
       ev.headers.set('Content-Type', 'text/html; charset=utf-8');
       ev.send(200, result.html);
@@ -561,7 +568,32 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     return data ?? {};
   }
 
-  function isComponentJsonRequest(ev: RequestEvent, data: unknown) {
+  function getComponentPartialPayloadMode(
+    ev: RequestEvent,
+    data: unknown
+  ): ComponentPartialPayloadMode {
+    const queryMode = ev.query.get('qcomponent-payload') ?? ev.query.get('qcomponent-mode');
+    if (queryMode === 'data' || queryMode === 'data-plus-render-symbol') {
+      return 'data-plus-render-symbol';
+    }
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+      const componentRequest = data as { payload?: unknown; payloadMode?: unknown };
+      const payloadMode = componentRequest.payloadMode ?? componentRequest.payload;
+      if (payloadMode === 'data' || payloadMode === 'data-plus-render-symbol') {
+        return 'data-plus-render-symbol';
+      }
+    }
+    return 'html';
+  }
+
+  function isComponentJsonRequest(
+    ev: RequestEvent,
+    data: unknown,
+    payloadMode: ComponentPartialPayloadMode
+  ) {
+    if (payloadMode !== 'html') {
+      return true;
+    }
     if (ev.query.get('qcomponent-format') === 'json') {
       return true;
     }
@@ -577,22 +609,37 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
   function createComponentPartialEnvelope(
     ev: RequestEvent,
     componentId: string,
-    result: { html: string; cacheStatus: 'hit' | 'miss' | 'skip' }
+    result: { html: string; cacheStatus: 'hit' | 'miss' | 'skip' },
+    payloadMode: ComponentPartialPayloadMode
   ) {
     const component = getComponentPartialMetadata(componentId);
-    return {
+    const resources = getAsyncResourceStateSnapshotForServer(ev).map((state) => ({
+      qrlHash: state.qrlHash,
+      status: state.status,
+      source: state.source,
+    }));
+    const base = {
       type: 'qwik-component-partial',
       version: 1,
       standalone: true,
+      mode: payloadMode,
       component,
       cache: {
         status: result.cacheStatus,
       },
-      resources: getAsyncResourceStateSnapshotForServer(ev).map((state) => ({
-        qrlHash: state.qrlHash,
-        status: state.status,
-        source: state.source,
-      })),
+      resources,
+    };
+    if (payloadMode === 'data-plus-render-symbol') {
+      return {
+        ...base,
+        render: getComponentPartialRenderMetadata(componentId),
+        data: {
+          resources: getAsyncResourcePayloadSnapshotForServer(ev),
+        },
+      };
+    }
+    return {
+      ...base,
       html: result.html,
     };
   }
@@ -604,6 +651,25 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     return {
       id: componentId,
       ...(entry ? { name: entry.name } : {}),
+      ...(entry?.registry
+        ? {
+            registry: {
+              id: entry.registry.id,
+              qrlHash: entry.registry.qrlHash,
+              symbol: entry.registry.symbol,
+            },
+          }
+        : {}),
+    };
+  }
+
+  function getComponentPartialRenderMetadata(componentId: string) {
+    const entry = getCacheRegistrySnapshotForServer().components.find((component) =>
+      component.ids.includes(componentId)
+    );
+    return {
+      componentId,
+      ids: entry?.ids ?? [componentId],
       ...(entry?.registry
         ? {
             registry: {

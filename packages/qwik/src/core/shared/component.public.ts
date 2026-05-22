@@ -84,6 +84,13 @@ export type PropsOf<COMP> = COMP extends string
 // In reality, Component is a QRL but that makes the types too complex
 export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 
+/** @internal */
+export interface ComponentRegistryEntry {
+  id: string;
+  qrlHash: string;
+  symbol: string;
+}
+
 export type ComponentChildren<PROPS> = PROPS extends {
   children: any;
 }
@@ -127,9 +134,29 @@ type _Only$<P> = {
 };
 
 /** @internal */
+export const COMPONENT_REGISTRY_STATE = Symbol('component-registry-data');
+
+/** @internal */
+export const getComponentRegistryEntry = (
+  component: unknown
+): ComponentRegistryEntry | undefined => {
+  return typeof component === 'function'
+    ? ((component as any)[COMPONENT_REGISTRY_STATE] as ComponentRegistryEntry | undefined)
+    : undefined;
+};
+
+/** @internal */
 export const componentQrl = <PROPS extends Record<any, any>>(
   componentQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
+  const registryEntry = componentQrl
+    ? {
+        id: `component:${componentQrl.getHash()}`,
+        qrlHash: componentQrl.getHash(),
+        symbol: componentQrl.getSymbol(),
+      }
+    : undefined;
+
   // Return a QComponent Factory function.
   function QwikComponent(
     props: PublicProps<PROPS>,
@@ -142,9 +169,15 @@ export const componentQrl = <PROPS extends Record<any, any>>(
     const finalKey = hash + ':' + (key ? key : '');
     const InnerCmp = () => {};
     (InnerCmp as any)[SERIALIZABLE_STATE] = [componentQrl];
+    if (registryEntry) {
+      (InnerCmp as any)[COMPONENT_REGISTRY_STATE] = registryEntry;
+    }
     return _jsxSplit(InnerCmp as any, props, null, props.children, flags, finalKey);
   }
   (QwikComponent as any)[SERIALIZABLE_STATE] = [componentQrl];
+  if (registryEntry) {
+    (QwikComponent as any)[COMPONENT_REGISTRY_STATE] = registryEntry;
+  }
   return QwikComponent as any;
 };
 

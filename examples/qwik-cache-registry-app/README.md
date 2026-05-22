@@ -7,7 +7,8 @@ It uses the normal authoring model:
 ```tsx
 server$(fn);
 component$(fn);
-useAsync$(serverFn, props)<Suspense>;
+useAsync$(serverFn, props);
+<Suspense>;
 ```
 
 Cache participation is configured from `src/cache.server.ts`, which is imported only by the SSR entry.
@@ -19,8 +20,12 @@ Cache participation is configured from `src/cache.server.ts`, which is imported 
 - Direct `useAsync$(getProduct, props)` as the optimized graph edge.
 - Component cache intent configured centrally without changing `component$` authoring.
 - `vary` relationships expressed with normal `server$` resources.
+- A fetchable `?qcomponent=ProductCard` partial path that returns a standalone Qwik component
+  envelope and reports `X-Qwik-Component-Cache`.
 
-The current prototype supports server-resource caching and registry metadata. Rendered component HTML caching still needs the next core runtime slice before this example can show component HTML cache hits from real Qwik SSR.
+The page route still renders through normal Qwik SSR. The component partial endpoint is the safe first
+slice for rendered component output caching because it caches a complete Qwik-rendered container with
+its own serialized metadata instead of splicing raw HTML into an active page stream.
 
 ## Verify
 
@@ -35,4 +40,17 @@ To try the app manually after the local packages are built:
 
 ```sh
 pnpm exec vite --config examples/qwik-cache-registry-app/vite.config.ts --mode ssr
+```
+
+Then, in another terminal:
+
+```sh
+pnpm --dir examples/qwik-cache-registry-app partial http://127.0.0.1:4174/ keyboard
+```
+
+Expected shape:
+
+```txt
+request=1 status=200 componentCache=miss hasProduct=true bytes=...
+request=2 status=200 componentCache=hit hasProduct=true bytes=...
 ```

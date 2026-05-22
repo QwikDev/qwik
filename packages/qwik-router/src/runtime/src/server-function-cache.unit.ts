@@ -9,6 +9,7 @@ import {
   createComponentHtmlCacheKey,
   createServerFunctionCacheKey,
   defineCacheConfig,
+  getAsyncResourceStateSnapshotForServer,
   getCacheRegistrySnapshotForServer,
   getConfiguredComponentTarget,
   getServerFunctionResourceHash,
@@ -78,6 +79,44 @@ describe('server function cache', () => {
     });
   });
 
+  it('records request-scoped async resource state from pending to resolved', async () => {
+    _setServerFunctionCacheOptionsForTest({ enabled: true });
+
+    const ev = createRequestEvent();
+    let resolve!: (value: string) => void;
+    const run = vi.fn(
+      () =>
+        new Promise<string>((res) => {
+          resolve = res;
+        })
+    );
+
+    const pending = runServerFunctionWithCache(ev, 'hash', ['one'], run);
+
+    expect(getAsyncResourceStateSnapshotForServer(ev)).toEqual([
+      expect.objectContaining({
+        qrlHash: 'hash',
+        status: 'pending',
+        source: 'run',
+      }),
+    ]);
+
+    // runServerFunctionWithCache records the pending envelope before it schedules run().
+    // The mock assigns resolve inside run(), so advance one microtask before resolving it.
+    await Promise.resolve();
+    resolve('cached');
+    await expect(pending).resolves.toBe('cached');
+
+    expect(getAsyncResourceStateSnapshotForServer(ev)).toEqual([
+      expect.objectContaining({
+        qrlHash: 'hash',
+        status: 'resolved',
+        source: 'run',
+        value: 'cached',
+      }),
+    ]);
+  });
+
   it('reuses resolved values within one request', async () => {
     _setServerFunctionCacheOptionsForTest({ enabled: true });
 
@@ -124,6 +163,34 @@ describe('server function cache', () => {
     await expect(runServerFunctionWithCache(ev, 'hash', ['one'], run)).resolves.toBe('ok');
 
     expect(run).toHaveBeenCalledTimes(2);
+  });
+
+  it('records rejected async resource state only within the request envelope', async () => {
+    _setServerFunctionCacheOptionsForTest({ enabled: true, memory: true });
+
+    const ev = createRequestEvent();
+    const error = new Error('nope');
+    const run = vi.fn<() => Promise<string>>().mockRejectedValue(error);
+
+    await expect(runServerFunctionWithCache(ev, 'hash', ['one'], run)).rejects.toBe(error);
+
+    expect(getAsyncResourceStateSnapshotForServer(ev)).toEqual([
+      expect.objectContaining({
+        qrlHash: 'hash',
+        status: 'rejected',
+        source: 'run',
+        error,
+      }),
+    ]);
+
+    await expect(
+      runServerFunctionWithCache(
+        createRequestEvent(),
+        'hash',
+        ['one'],
+        vi.fn(() => 'ok')
+      )
+    ).resolves.toBe('ok');
   });
 
   it('falls back to uncached execution when inputs cannot produce a stable key', async () => {
@@ -186,6 +253,48 @@ describe('server function cache', () => {
     expect(_getServerFunctionCacheStatsForTest()).toMatchObject({
       memoryHits: 1,
     });
+  });
+
+  it('records memory hits as resolved async resource state for the current request', async () => {
+    const cachedResource = Object.assign(() => {}, {
+      __qwik_server_resource_hash__: 'cached-hash',
+    });
+
+    configureCacheForServer(
+      defineCacheConfig({
+        defaults: {
+          resources: {
+            store: 'memory',
+            dedupe: true,
+          },
+        },
+        optimize: {
+          resources: {
+            getProduct: {
+              target: cachedResource,
+            },
+          },
+        },
+      })
+    );
+
+    await expect(
+      runServerFunctionWithCache(createRequestEvent(), 'cached-hash', ['one'], () => 'cached')
+    ).resolves.toBe('cached');
+
+    const ev = createRequestEvent();
+    await expect(
+      runServerFunctionWithCache(ev, 'cached-hash', ['one'], () => 'uncached')
+    ).resolves.toBe('cached');
+
+    expect(getAsyncResourceStateSnapshotForServer(ev)).toEqual([
+      expect.objectContaining({
+        qrlHash: 'cached-hash',
+        status: 'resolved',
+        source: 'memory',
+        value: 'cached',
+      }),
+    ]);
   });
 
   it('varies configured server resource cache keys by declared server function output', async () => {

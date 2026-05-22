@@ -42,7 +42,7 @@
     "react-dom": "19.2.4",
     "shiki": "4.0.2",
     "tailwindcss": "4.2.4",
-    "tsdown": "0.21.10",
+    "tsdown": "0.22.0",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
     "vite": "7.3.1",

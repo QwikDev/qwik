@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import type { OutgoingHttpHeader } from 'node:http';
 import { getServerRpcRequestContext } from '@qwik.dev/devtools/kit';
 import type {
   BuildAnalysisRunResult,
@@ -21,6 +22,12 @@ import {
 const BUILD_ANALYSIS_VIEW_PATH = '/__qwik_devtools/build-analysis/report';
 const BUILD_ANALYSIS_DIR = path.join('.qwik-devtools', 'build-analysis');
 const BUILD_ANALYSIS_FILE = 'visualizer.html';
+
+type BuildAnalysisResponse = {
+  setHeader(name: string, value: number | string | string[]): void;
+};
+
+type BuildAnalysisResponseHeaders = Record<string, OutgoingHttpHeader | undefined>;
 
 function findNearestPackageRoot(startDir: string): string {
   let currentDir = path.resolve(startDir);
@@ -109,20 +116,47 @@ function createPlaceholderHtml(reportPath: string) {
 
 function createBuildAnalysisServePlugin(): Plugin {
   let reportPath = resolveBuildAnalysisHtmlPath(process.cwd());
+  let responseHeaders: BuildAnalysisResponseHeaders | undefined;
 
   return {
     name: 'vite-plugin-qwik-devtools-build-analysis-viewer',
     apply: 'serve',
     configResolved(config) {
       reportPath = resolveBuildAnalysisHtmlPath(config.root);
+      responseHeaders = config.server.headers;
     },
     configureServer(server) {
-      attachBuildAnalysisMiddleware(server, () => reportPath);
+      attachBuildAnalysisMiddleware(
+        server,
+        () => reportPath,
+        () => responseHeaders
+      );
     },
   };
 }
 
-function attachBuildAnalysisMiddleware(server: ViteDevServer, getReportPath: () => string) {
+export function setBuildAnalysisResponseHeaders(
+  res: BuildAnalysisResponse,
+  headers?: BuildAnalysisResponseHeaders
+) {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+
+  if (!headers) {
+    return;
+  }
+
+  for (const [name, value] of Object.entries(headers)) {
+    if (value !== undefined) {
+      res.setHeader(name, value);
+    }
+  }
+}
+
+function attachBuildAnalysisMiddleware(
+  server: ViteDevServer,
+  getReportPath: () => string,
+  getResponseHeaders: () => BuildAnalysisResponseHeaders | undefined
+) {
   server.middlewares.use(BUILD_ANALYSIS_VIEW_PATH, async (_req, res) => {
     const reportPath = getReportPath();
     const html = (await fileExists(reportPath))
@@ -130,7 +164,7 @@ function attachBuildAnalysisMiddleware(server: ViteDevServer, getReportPath: () 
       : createPlaceholderHtml(reportPath);
 
     res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    setBuildAnalysisResponseHeaders(res, getResponseHeaders());
     res.end(html);
   });
 }

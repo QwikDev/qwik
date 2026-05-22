@@ -1,7 +1,16 @@
 import { describe, expect, test } from 'vitest';
-import { wrapQwikLazyComponentExports } from './sourceTransforms';
+import { shouldTransformStatisticsSource, wrapQwikLazyComponentExports } from './sourceTransforms';
 
 describe('sourceTransforms', () => {
+  test('skips devtools UI sources to avoid instrumenting the performance panel itself', () => {
+    expect(
+      shouldTransformStatisticsSource('/repo/packages/devtools/ui/src/features/Performance.tsx')
+    ).toBe(false);
+    expect(shouldTransformStatisticsSource('/repo/packages/devtools/ui/lib/devtools.js')).toBe(
+      false
+    );
+  });
+
   test('escapes Windows module ids in wrapped lazy component exports', () => {
     const id = 'C:\\Users\\alice\\src\\app\\entry_component_abc123.tsx';
     const source = `

@@ -33,6 +33,18 @@ import type { RequestEventInternal } from './request-event-core';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
 
 type ComponentPartialPayloadMode = 'html' | 'data-plus-render-symbol';
+type ComponentPartialResumeMetadata = {
+  boundary: 'standalone-container';
+  merge: 'none';
+  reason: string;
+};
+
+const COMPONENT_PARTIAL_RESUME_METADATA: ComponentPartialResumeMetadata = {
+  boundary: 'standalone-container',
+  merge: 'none',
+  reason:
+    'qcomponent HTML carries container-scoped Qwik state/vnode metadata and is not a raw in-page subtree merge payload.',
+};
 
 interface ResolveRequestHandlersDeps {
   QACTION_KEY: string;
@@ -627,6 +639,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       cache: {
         status: result.cacheStatus,
       },
+      resume: COMPONENT_PARTIAL_RESUME_METADATA,
       resources,
     };
     if (payloadMode === 'data-plus-render-symbol') {

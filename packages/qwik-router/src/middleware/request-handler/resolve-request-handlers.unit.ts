@@ -397,6 +397,10 @@ describe('resolve-request-handler', () => {
         cache: {
           status: 'miss',
         },
+        resume: {
+          boundary: 'standalone-container',
+          merge: 'none',
+        },
         resources: [
           {
             qrlHash: 'product-hash',
@@ -497,6 +501,10 @@ describe('resolve-request-handler', () => {
         },
         cache: {
           status: 'miss',
+        },
+        resume: {
+          boundary: 'standalone-container',
+          merge: 'none',
         },
         render: {
           componentId: 'ProductPartial',

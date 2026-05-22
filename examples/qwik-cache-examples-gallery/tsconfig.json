@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "@qwik.dev/core",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "strict": true,
+    "noEmit": true,
+    "incremental": false,
+    "types": ["node"],
+    "baseUrl": "."
+  },
+  "include": ["src", "vite.config.ts", "scripts"]
+}

@@ -1,5 +1,11 @@
 import { inlinedQrl, type QRL } from '@qwik.dev/core';
-import { _serialize, _UNINITIALIZED, _verifySerializable, isDev } from '@qwik.dev/core/internal';
+import {
+  _jsxSorted,
+  _serialize,
+  _UNINITIALIZED,
+  _verifySerializable,
+  isDev,
+} from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import type {
   ActionInternal,
@@ -15,12 +21,17 @@ import type {
   RouteModule,
   ValidatorReturn,
 } from '../../runtime/src/types';
-import { runServerFunctionWithCache } from '../../runtime/src/server-function-cache';
+import {
+  getConfiguredComponentTarget,
+  runComponentHtmlWithCache,
+  runServerFunctionWithCache,
+} from '../../runtime/src/server-function-cache';
 import type { RequestEventInternal } from './request-event-core';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
 
 interface ResolveRequestHandlersDeps {
   QACTION_KEY: string;
+  QCOMPONENT_KEY: string;
   QFN_KEY: string;
   QLOADER_KEY: string;
   QDATA_JSON: string;
@@ -51,6 +62,7 @@ interface ResolveRequestHandlersDeps {
   resolveCacheKey: typeof import('./etag').resolveCacheKey;
   resolveETag: typeof import('./etag').resolveETag;
   resolveRouteConfig: typeof import('../../runtime/src/head').resolveRouteConfig;
+  renderToString: typeof import('@qwik.dev/core/server').renderToString;
   setCachedHtml: typeof import('./etag').setCachedHtml;
 }
 
@@ -112,6 +124,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     if (isPageRoute) {
       if (method === 'POST' || method === 'GET') {
         requestHandlers.push(runServerFunction);
+        requestHandlers.push(runComponentFunction);
       }
 
       if (!route.$notFound$) {
@@ -497,6 +510,50 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     }
   }
 
+  async function runComponentFunction(ev: RequestEvent) {
+    const componentId = ev.query.get(deps.QCOMPONENT_KEY);
+    if (!componentId || ev.request.headers.get('X-QCOMPONENT') !== componentId) {
+      return;
+    }
+
+    ev.exit();
+
+    const target = getConfiguredComponentTarget(componentId);
+    if (typeof target !== 'function') {
+      throw ev.error(404, `Unknown cached component "${componentId}"`);
+    }
+
+    const data = ev.method === 'POST' ? await ev.parseBody() : undefined;
+    const props = getComponentRequestProps(data);
+    const result = await runComponentHtmlWithCache(ev, componentId, props, async () => {
+      const serverData = deps.getQwikRouterServerData(ev);
+      const rendered = await deps.renderToString(
+        _jsxSorted(target as any, props as any, null, null, 0, null) as any,
+        {
+          base: ev.basePathname + 'build/',
+          serverData,
+          containerTagName: 'div',
+          containerAttributes: {
+            ['q:render']: 'component',
+            ...serverData.containerAttributes,
+          },
+        }
+      );
+      return rendered.html;
+    });
+
+    ev.headers.set('Content-Type', 'text/html; charset=utf-8');
+    ev.headers.set('X-Qwik-Component-Cache', result.cacheStatus);
+    ev.send(200, result.html);
+  }
+
+  function getComponentRequestProps(data: unknown) {
+    if (data && typeof data === 'object' && !Array.isArray(data) && 'props' in data) {
+      return (data as { props?: unknown }).props ?? {};
+    }
+    return data ?? {};
+  }
+
   function fixTrailingSlash(ev: RequestEvent) {
     const { basePathname, originalUrl, sharedMap } = ev;
     const { pathname, search } = originalUrl;
@@ -556,7 +613,9 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         url.pathname = url.pathname.slice(0, -1);
       }
     }
-    const search = url.search.slice(1).replaceAll(/&?q(action|data|func|loaders)=[^&]+/g, '');
+    const search = url.search
+      .slice(1)
+      .replaceAll(/&?q(action|component|data|func|loaders)=[^&]+/g, '');
     return `${url.pathname}${search ? `?${search}` : ''}${url.hash}`;
   }
 

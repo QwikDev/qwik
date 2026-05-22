@@ -2,6 +2,7 @@ import type { ValueOrPromise } from '@qwik.dev/core';
 import type { RequestEventBase } from './types';
 
 type ServerFunctionCacheRecord = unknown;
+type ComponentHtmlCacheRecord = string;
 
 /** @public */
 export type CacheStoreName = 'memory' | 'request';
@@ -34,6 +35,12 @@ export interface QwikCacheConfig {
       dedupe?: boolean;
       namespace?: string;
     };
+    components?: {
+      store?: CacheStoreName;
+      scope?: CacheScope;
+      dedupe?: boolean;
+      namespace?: string;
+    };
   };
   optimize?: {
     resources?: Record<string, QwikCacheResourceConfig>;
@@ -45,6 +52,14 @@ export interface QwikCacheConfig {
 export type ServerFunctionCacheTarget = {
   getHash?: () => string;
   __qwik_server_resource_hash__?: string;
+};
+
+type ComponentRegistryTarget = {
+  __qwik_component_registry__?: {
+    id: string;
+    qrlHash: string;
+    symbol: string;
+  };
 };
 
 export interface ServerFunctionCacheOptions {
@@ -63,6 +78,22 @@ export interface ServerFunctionCacheStats {
   keySkips: number;
 }
 
+export interface ComponentHtmlCacheOptions {
+  enabled?: boolean;
+  memory?: boolean;
+  request?: boolean;
+  namespace?: string;
+}
+
+export interface ComponentHtmlCacheStats {
+  misses: number;
+  requestHits: number;
+  memoryHits: number;
+  inflightHits: number;
+  keySkips: number;
+  skips: number;
+}
+
 const DEFAULT_OPTIONS: Required<ServerFunctionCacheOptions> = {
   enabled: false,
   memory: false,
@@ -71,18 +102,39 @@ const DEFAULT_OPTIONS: Required<ServerFunctionCacheOptions> = {
   resourceHashes: null,
 };
 
+const DEFAULT_COMPONENT_OPTIONS: Required<ComponentHtmlCacheOptions> = {
+  enabled: false,
+  memory: false,
+  request: true,
+  namespace: 'qwik-component-html',
+};
+
 const REQUEST_CACHE_KEY = '__qwik_server_function_cache__';
+const COMPONENT_REQUEST_CACHE_KEY = '__qwik_component_html_cache__';
 
 let options = { ...DEFAULT_OPTIONS };
 let stats = createStats();
+let componentOptions = { ...DEFAULT_COMPONENT_OPTIONS };
+let componentStats = createComponentStats();
 
 const memoryCache = new Map<string, ServerFunctionCacheRecord>();
 const memoryInflight = new Map<string, Promise<ServerFunctionCacheRecord>>();
+const componentHtmlMemoryCache = new Map<string, ComponentHtmlCacheRecord>();
+const componentHtmlMemoryInflight = new Map<string, Promise<ComponentHtmlCacheRecord>>();
+const componentTargets = new Map<string, unknown>();
 
 /** @internal */
 export const _setServerFunctionCacheOptionsForTest = (next: ServerFunctionCacheOptions) => {
   options = {
     ...options,
+    ...next,
+  };
+};
+
+/** @internal */
+export const _setComponentHtmlCacheOptionsForTest = (next: ComponentHtmlCacheOptions) => {
+  componentOptions = {
+    ...componentOptions,
     ...next,
   };
 };
@@ -114,6 +166,21 @@ export const configureCacheForServer = (config: QwikCacheConfig) => {
     namespace: defaults?.namespace ?? options.namespace,
     resourceHashes,
   };
+
+  componentTargets.clear();
+  const components = config.optimize?.components ?? {};
+  for (const [name, component] of Object.entries(components)) {
+    registerConfiguredComponentTarget(name, component.target);
+  }
+
+  const componentDefaults = config.defaults?.components;
+  componentOptions = {
+    ...componentOptions,
+    enabled: componentTargets.size > 0,
+    memory: componentDefaults?.store === 'memory',
+    request: componentDefaults?.dedupe !== false,
+    namespace: componentDefaults?.namespace ?? componentOptions.namespace,
+  };
 };
 
 /**
@@ -136,16 +203,31 @@ export const getServerFunctionResourceHash = (target: unknown): string | null =>
 };
 
 /** @internal */
+export const getConfiguredComponentTarget = (componentId: string): unknown | null => {
+  return componentTargets.get(componentId) ?? null;
+};
+
+/** @internal */
 export const _resetServerFunctionCacheForTest = () => {
   options = { ...DEFAULT_OPTIONS };
   stats = createStats();
+  componentOptions = { ...DEFAULT_COMPONENT_OPTIONS };
+  componentStats = createComponentStats();
   memoryCache.clear();
   memoryInflight.clear();
+  componentHtmlMemoryCache.clear();
+  componentHtmlMemoryInflight.clear();
+  componentTargets.clear();
 };
 
 /** @internal */
 export const _getServerFunctionCacheStatsForTest = (): ServerFunctionCacheStats => {
   return { ...stats };
+};
+
+/** @internal */
+export const _getComponentHtmlCacheStatsForTest = (): ComponentHtmlCacheStats => {
+  return { ...componentStats };
 };
 
 /** @internal */
@@ -159,6 +241,19 @@ export const createServerFunctionCacheKey = (
     return null;
   }
   return `${namespace}:${qrlHash}:${serializedArgs}`;
+};
+
+/** @internal */
+export const createComponentHtmlCacheKey = (
+  componentId: string,
+  props: unknown,
+  namespace = componentOptions.namespace
+): string | null => {
+  const serializedProps = stableSerialize(props ?? {});
+  if (serializedProps === null) {
+    return null;
+  }
+  return `${namespace}:${componentId}:${serializedProps}`;
 };
 
 /** @internal */
@@ -227,6 +322,86 @@ export const runServerFunctionWithCache = async <T>(
   }
 };
 
+/** @internal */
+export const runComponentHtmlWithCache = async (
+  requestEvent: RequestEventBase | undefined,
+  componentId: string,
+  props: unknown,
+  run: () => ValueOrPromise<string>
+): Promise<{ html: string; cacheStatus: 'hit' | 'miss' | 'skip' }> => {
+  if (!componentOptions.enabled || !componentTargets.has(componentId)) {
+    componentStats.skips++;
+    return {
+      html: await run(),
+      cacheStatus: 'skip',
+    };
+  }
+
+  const key = createComponentHtmlCacheKey(componentId, props);
+  if (key === null) {
+    componentStats.keySkips++;
+    return {
+      html: await run(),
+      cacheStatus: 'skip',
+    };
+  }
+
+  const requestCache = componentOptions.request
+    ? getComponentRequestCache(requestEvent)
+    : undefined;
+  if (requestCache?.has(key)) {
+    componentStats.requestHits++;
+    return {
+      html: (await requestCache.get(key)) as string,
+      cacheStatus: 'hit',
+    };
+  }
+
+  if (componentOptions.memory && componentHtmlMemoryCache.has(key)) {
+    componentStats.memoryHits++;
+    const html = componentHtmlMemoryCache.get(key)!;
+    requestCache?.set(key, html);
+    return {
+      html,
+      cacheStatus: 'hit',
+    };
+  }
+
+  if (componentOptions.memory && componentHtmlMemoryInflight.has(key)) {
+    componentStats.inflightHits++;
+    return {
+      html: await componentHtmlMemoryInflight.get(key)!,
+      cacheStatus: 'hit',
+    };
+  }
+
+  componentStats.misses++;
+  const promise = Promise.resolve().then(run);
+  requestCache?.set(key, promise);
+  if (componentOptions.memory) {
+    componentHtmlMemoryInflight.set(key, promise);
+  }
+
+  try {
+    const html = await promise;
+    requestCache?.set(key, html);
+    if (componentOptions.memory) {
+      componentHtmlMemoryCache.set(key, html);
+    }
+    return {
+      html,
+      cacheStatus: 'miss',
+    };
+  } catch (err) {
+    requestCache?.delete(key);
+    throw err;
+  } finally {
+    if (componentOptions.memory) {
+      componentHtmlMemoryInflight.delete(key);
+    }
+  }
+};
+
 const getRequestCache = (
   requestEvent: RequestEventBase | undefined
 ): Map<string, ServerFunctionCacheRecord> | undefined => {
@@ -243,6 +418,35 @@ const getRequestCache = (
   return requestCache;
 };
 
+const getComponentRequestCache = (
+  requestEvent: RequestEventBase | undefined
+): Map<string, ComponentHtmlCacheRecord | Promise<ComponentHtmlCacheRecord>> | undefined => {
+  const sharedMap = requestEvent?.sharedMap;
+  if (!sharedMap) {
+    return undefined;
+  }
+  let requestCache = sharedMap.get(COMPONENT_REQUEST_CACHE_KEY) as
+    | Map<string, ComponentHtmlCacheRecord | Promise<ComponentHtmlCacheRecord>>
+    | undefined;
+  if (!requestCache) {
+    sharedMap.set(COMPONENT_REQUEST_CACHE_KEY, (requestCache = new Map()));
+  }
+  return requestCache;
+};
+
+const registerConfiguredComponentTarget = (name: string, target: unknown) => {
+  componentTargets.set(name, target);
+
+  const entry =
+    target && typeof target === 'function'
+      ? (target as ComponentRegistryTarget).__qwik_component_registry__
+      : undefined;
+  if (entry) {
+    componentTargets.set(entry.id, target);
+    componentTargets.set(entry.qrlHash, target);
+  }
+};
+
 function createStats(): ServerFunctionCacheStats {
   return {
     misses: 0,
@@ -250,6 +454,17 @@ function createStats(): ServerFunctionCacheStats {
     memoryHits: 0,
     inflightHits: 0,
     keySkips: 0,
+  };
+}
+
+function createComponentStats(): ComponentHtmlCacheStats {
+  return {
+    misses: 0,
+    requestHits: 0,
+    memoryHits: 0,
+    inflightHits: 0,
+    keySkips: 0,
+    skips: 0,
   };
 }
 

@@ -1,13 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RequestEventBase } from './types';
 import {
+  _getComponentHtmlCacheStatsForTest,
   _getServerFunctionCacheStatsForTest,
   _resetServerFunctionCacheForTest,
   _setServerFunctionCacheOptionsForTest,
   configureCacheForServer,
+  createComponentHtmlCacheKey,
   createServerFunctionCacheKey,
   defineCacheConfig,
+  getConfiguredComponentTarget,
   getServerFunctionResourceHash,
+  runComponentHtmlWithCache,
   runServerFunctionWithCache,
 } from './server-function-cache';
 
@@ -190,5 +194,85 @@ describe('server function cache', () => {
     });
 
     expect(getServerFunctionResourceHash(target)).toBe('resource-hash');
+  });
+
+  it('registers configured components by config name and component registry id', () => {
+    const component = Object.assign(() => null, {
+      __qwik_component_registry__: {
+        id: 'component:product-card-hash',
+        qrlHash: 'product-card-hash',
+        symbol: 'ProductCard_component_cache_test',
+      },
+    });
+
+    configureCacheForServer(
+      defineCacheConfig({
+        defaults: {
+          components: {
+            store: 'memory',
+            dedupe: true,
+          },
+        },
+        optimize: {
+          components: {
+            ProductCard: {
+              target: component,
+            },
+          },
+        },
+      })
+    );
+
+    expect(getConfiguredComponentTarget('ProductCard')).toBe(component);
+    expect(getConfiguredComponentTarget('component:product-card-hash')).toBe(component);
+    expect(getConfiguredComponentTarget('product-card-hash')).toBe(component);
+  });
+
+  it('builds stable component html cache keys for serializable props', () => {
+    expect(createComponentHtmlCacheKey('ProductCard', { b: 1, a: ['two'] })).toBe(
+      createComponentHtmlCacheKey('ProductCard', { a: ['two'], b: 1 })
+    );
+  });
+
+  it('can reuse component html from the optional memory cache', async () => {
+    const component = () => null;
+    const run = vi.fn(() => '<article>Product</article>');
+
+    configureCacheForServer(
+      defineCacheConfig({
+        defaults: {
+          components: {
+            store: 'memory',
+            dedupe: true,
+          },
+        },
+        optimize: {
+          components: {
+            ProductCard: {
+              target: component,
+            },
+          },
+        },
+      })
+    );
+
+    await expect(
+      runComponentHtmlWithCache(createRequestEvent(), 'ProductCard', { productId: '1' }, run)
+    ).resolves.toEqual({
+      html: '<article>Product</article>',
+      cacheStatus: 'miss',
+    });
+    await expect(
+      runComponentHtmlWithCache(createRequestEvent(), 'ProductCard', { productId: '1' }, run)
+    ).resolves.toEqual({
+      html: '<article>Product</article>',
+      cacheStatus: 'hit',
+    });
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(_getComponentHtmlCacheStatsForTest()).toMatchObject({
+      misses: 1,
+      memoryHits: 1,
+    });
   });
 });

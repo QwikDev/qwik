@@ -135,14 +135,19 @@ type _Only$<P> = {
 
 /** @internal */
 export const COMPONENT_REGISTRY_STATE = Symbol('component-registry-data');
+const COMPONENT_REGISTRY_KEY = '__qwik_component_registry__';
 
 /** @internal */
 export const getComponentRegistryEntry = (
   component: unknown
 ): ComponentRegistryEntry | undefined => {
-  return typeof component === 'function'
-    ? ((component as any)[COMPONENT_REGISTRY_STATE] as ComponentRegistryEntry | undefined)
-    : undefined;
+  if (typeof component !== 'function') {
+    return undefined;
+  }
+  return (
+    ((component as any)[COMPONENT_REGISTRY_STATE] as ComponentRegistryEntry | undefined) ??
+    ((component as any)[COMPONENT_REGISTRY_KEY] as ComponentRegistryEntry | undefined)
+  );
 };
 
 /** @internal */
@@ -171,12 +176,14 @@ export const componentQrl = <PROPS extends Record<any, any>>(
     (InnerCmp as any)[SERIALIZABLE_STATE] = [componentQrl];
     if (registryEntry) {
       (InnerCmp as any)[COMPONENT_REGISTRY_STATE] = registryEntry;
+      (InnerCmp as any)[COMPONENT_REGISTRY_KEY] = registryEntry;
     }
     return _jsxSplit(InnerCmp as any, props, null, props.children, flags, finalKey);
   }
   (QwikComponent as any)[SERIALIZABLE_STATE] = [componentQrl];
   if (registryEntry) {
     (QwikComponent as any)[COMPONENT_REGISTRY_STATE] = registryEntry;
+    (QwikComponent as any)[COMPONENT_REGISTRY_KEY] = registryEntry;
   }
   return QwikComponent as any;
 };

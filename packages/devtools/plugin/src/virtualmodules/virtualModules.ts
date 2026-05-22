@@ -4,8 +4,15 @@ import qwikComponentProxySource from './qwikComponentProxy';
 import vnodeBridgeSource, { VNODE_BRIDGE_KEY } from './vnodeBridge';
 import { parseQwikCode } from '../parse/parse';
 import createDebug from 'debug';
+import { normalizeExcludePathnames } from '../../../kit/src/overlay-paths';
 
 const log = createDebug('qwik:devtools:plugin');
+
+export interface QwikDevtoolsOptions {
+  overlay?: {
+    excludePathnames?: string[];
+  };
+}
 
 // ============================================================================
 // Types & Configuration
@@ -76,10 +83,10 @@ export function transformComponentFile(code: string, id: string): string {
   return parseQwikCode(code, { path: id });
 }
 
-export function transformRootFile(code: string): string {
+export function transformRootFile(code: string, opts: QwikDevtoolsOptions = {}): string {
   const devtoolsImport = `import { QwikDevtools } from '@qwik.dev/devtools/ui';`;
   const stylesImport = `import '@qwik.dev/devtools/ui/styles.css';`;
-  const bridgeImport = `import '${VNODE_BRIDGE_KEY}';`;
+  const excludePathnames = normalizeExcludePathnames(opts.overlay?.excludePathnames);
 
   // Add QwikDevtools import if not present
   if (!code.includes(devtoolsImport)) {
@@ -98,7 +105,11 @@ export function transformRootFile(code: string): string {
   const bodyMatch = code.match(/<body[^>]*>([\s\S]*?)<\/body>/);
   if (bodyMatch) {
     const bodyContent = bodyMatch[1];
-    const newBodyContent = `${bodyContent}\n        <QwikDevtools />`;
+    const devtoolsElement =
+      excludePathnames.length > 0
+        ? `<QwikDevtools excludePathnames={${JSON.stringify(excludePathnames)}} />`
+        : '<QwikDevtools />';
+    const newBodyContent = `${bodyContent}\n        ${devtoolsElement}`;
     code = code.replace(bodyContent, newBodyContent);
   }
 

@@ -4,7 +4,7 @@ import { PERF_VIRTUAL_ID, log } from './constants';
 
 export function shouldTransformStatisticsSource(id: string): boolean {
   const cleanId = normalizeId(id);
-  return !isFromNodeModules(cleanId) && !isUiLibBuildOutput(cleanId);
+  return !isFromNodeModules(cleanId) && !isDevtoolsUiSource(cleanId);
 }
 
 export function isPerfVirtualModuleId(id: string): boolean {
@@ -95,8 +95,13 @@ function isFromNodeModules(cleanId: string): boolean {
   return cleanId.includes('/node_modules/') || cleanId.includes('\\node_modules\\');
 }
 
-function isUiLibBuildOutput(cleanId: string): boolean {
-  return cleanId.includes('/packages/ui/lib/') || cleanId.includes('\\packages\\ui\\lib\\');
+function isDevtoolsUiSource(cleanId: string): boolean {
+  return (
+    cleanId.includes('/packages/devtools/ui/src/') ||
+    cleanId.includes('/packages/devtools/ui/lib/') ||
+    cleanId.includes('\\packages\\devtools\\ui\\src\\') ||
+    cleanId.includes('\\packages\\devtools\\ui\\lib\\')
+  );
 }
 
 function replaceExportWithOriginal(code: string, exportName: string): string {

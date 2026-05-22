@@ -37,7 +37,7 @@ function toDevtoolsRoutes(routes: any): RoutesInfo[] {
 }
 
 async function connectRpc() {
-  const hot = await tryCreateHotContext(undefined, ['/']);
+  const hot = await tryCreateHotContext(undefined, [import.meta.env.BASE_URL ?? '/', '/']);
   if (!hot) {
     throw new Error('Vite Hot Context not connected');
   }
@@ -48,13 +48,20 @@ async function connectRpc() {
   return getViteClientRpc();
 }
 
+let rpcPromise: ReturnType<typeof connectRpc> | undefined;
+
+export function getDevtoolsRpc() {
+  rpcPromise ??= connectRpc();
+  return rpcPromise;
+}
+
 /**
  * Default data provider that loads data via Vite HMR RPC. Used when the devtools UI runs as an
  * in-app overlay.
  */
 const viteDataProvider: DataProvider = {
   async loadData(state: DevtoolsState) {
-    const rpc = await connectRpc();
+    const rpc = await getDevtoolsRpc();
 
     const primaryDataPromise = Promise.allSettled([
       rpc.getAssetsFromPublicDir(),

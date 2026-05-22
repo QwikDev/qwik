@@ -242,13 +242,31 @@ function buildJsxSplitCall(
     const shouldMergeConst = (varEntries.length > 0 && constEntries.length > 0) || hasNonBindNonEventVarEntries;
 
     if (shouldMergeConst) {
-      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
-      const hasDuplicateSpreads = additionalSpreads.some(s => s === spreadArg);
-      constPropsPart = buildConstPropsPart(
-        constEntries,
-        spreadArg,
-        hasDuplicateSpreads,
+      // OSS-413: when const entries include a "real" const prop (not just
+      // event-handler routing like `"q-e:click"` or `"q:p"` capture metadata),
+      // split the spreads — `_getConstProps` goes in the const bag alongside
+      // the real const entries, NOT in the var bag. Mirrors SWC's emit for
+      // `<div ... {...rest} override>` where `override` is a real const prop:
+      //   var: { ..._getVarProps(rest), <var entries> }
+      //   const: { ..._getConstProps(rest), override: true }
+      // For event-handler-only const entries (e.g. `should_move_bind_value_to_var_props`),
+      // the current merged form stays — both spreads in var bag, const bag
+      // carries just the event handler.
+      const hasRealConstEntries = constEntries.some(
+        (e) => !isRewrittenEventEntry(e) && !e.startsWith('"q:'),
       );
+      if (hasRealConstEntries) {
+        varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
+        constPropsPart = `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`;
+      } else {
+        varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
+        const hasDuplicateSpreads = additionalSpreads.some(s => s === spreadArg);
+        constPropsPart = buildConstPropsPart(
+          constEntries,
+          spreadArg,
+          hasDuplicateSpreads,
+        );
+      }
     } else {
       varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
       constPropsPart = constEntries.length > 0

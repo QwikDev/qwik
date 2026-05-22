@@ -121,7 +121,9 @@ const memoryCache = new Map<string, ServerFunctionCacheRecord>();
 const memoryInflight = new Map<string, Promise<ServerFunctionCacheRecord>>();
 const componentHtmlMemoryCache = new Map<string, ComponentHtmlCacheRecord>();
 const componentHtmlMemoryInflight = new Map<string, Promise<ComponentHtmlCacheRecord>>();
+const resourceConfigs = new Map<string, QwikCacheResourceConfig>();
 const componentTargets = new Map<string, unknown>();
+const componentConfigs = new Map<string, QwikCacheComponentConfig>();
 
 /** @internal */
 export const _setServerFunctionCacheOptionsForTest = (next: ServerFunctionCacheOptions) => {
@@ -150,10 +152,12 @@ export const defineCacheConfig = <T extends QwikCacheConfig>(config: T): T => co
 export const configureCacheForServer = (config: QwikCacheConfig) => {
   const resources = config.optimize?.resources ?? {};
   const resourceHashes = new Set<string>();
+  resourceConfigs.clear();
   for (const resource of Object.values(resources)) {
     const hash = getServerFunctionResourceHash(resource.target);
     if (hash) {
       resourceHashes.add(hash);
+      resourceConfigs.set(hash, resource);
     }
   }
 
@@ -168,9 +172,10 @@ export const configureCacheForServer = (config: QwikCacheConfig) => {
   };
 
   componentTargets.clear();
+  componentConfigs.clear();
   const components = config.optimize?.components ?? {};
   for (const [name, component] of Object.entries(components)) {
-    registerConfiguredComponentTarget(name, component.target);
+    registerConfiguredComponentTarget(name, component);
   }
 
   const componentDefaults = config.defaults?.components;
@@ -217,7 +222,9 @@ export const _resetServerFunctionCacheForTest = () => {
   memoryInflight.clear();
   componentHtmlMemoryCache.clear();
   componentHtmlMemoryInflight.clear();
+  resourceConfigs.clear();
   componentTargets.clear();
+  componentConfigs.clear();
 };
 
 /** @internal */
@@ -234,9 +241,16 @@ export const _getComponentHtmlCacheStatsForTest = (): ComponentHtmlCacheStats =>
 export const createServerFunctionCacheKey = (
   qrlHash: string,
   args: readonly unknown[] | undefined,
-  namespace = options.namespace
+  namespace = options.namespace,
+  varyParts?: readonly unknown[]
 ): string | null => {
-  const serializedArgs = stableSerialize(args ?? []);
+  const keyInput = varyParts?.length
+    ? {
+        args: args ?? [],
+        vary: varyParts,
+      }
+    : (args ?? []);
+  const serializedArgs = stableSerialize(keyInput);
   if (serializedArgs === null) {
     return null;
   }
@@ -247,9 +261,16 @@ export const createServerFunctionCacheKey = (
 export const createComponentHtmlCacheKey = (
   componentId: string,
   props: unknown,
-  namespace = componentOptions.namespace
+  namespace = componentOptions.namespace,
+  varyParts?: readonly unknown[]
 ): string | null => {
-  const serializedProps = stableSerialize(props ?? {});
+  const keyInput = varyParts?.length
+    ? {
+        props: props ?? {},
+        vary: varyParts,
+      }
+    : (props ?? {});
+  const serializedProps = stableSerialize(keyInput);
   if (serializedProps === null) {
     return null;
   }
@@ -270,7 +291,16 @@ export const runServerFunctionWithCache = async <T>(
     return run();
   }
 
-  const key = createServerFunctionCacheKey(qrlHash, args);
+  const varyTargets = resourceConfigs.get(qrlHash)?.vary;
+  const varyParts = varyTargets?.length
+    ? await resolveVaryParts(requestEvent, varyTargets, args ?? [], qrlHash)
+    : [];
+  if (varyParts === null) {
+    stats.keySkips++;
+    return run();
+  }
+
+  const key = createServerFunctionCacheKey(qrlHash, args, options.namespace, varyParts);
   if (key === null) {
     stats.keySkips++;
     return run();
@@ -337,7 +367,24 @@ export const runComponentHtmlWithCache = async (
     };
   }
 
-  const key = createComponentHtmlCacheKey(componentId, props);
+  const varyTargets = componentConfigs.get(componentId)?.vary;
+  const varyParts = varyTargets?.length
+    ? await resolveVaryParts(requestEvent, varyTargets, [props ?? {}])
+    : [];
+  if (varyParts === null) {
+    componentStats.keySkips++;
+    return {
+      html: await run(),
+      cacheStatus: 'skip',
+    };
+  }
+
+  const key = createComponentHtmlCacheKey(
+    componentId,
+    props,
+    componentOptions.namespace,
+    varyParts
+  );
   if (key === null) {
     componentStats.keySkips++;
     return {
@@ -434,8 +481,10 @@ const getComponentRequestCache = (
   return requestCache;
 };
 
-const registerConfiguredComponentTarget = (name: string, target: unknown) => {
+const registerConfiguredComponentTarget = (name: string, config: QwikCacheComponentConfig) => {
+  const target = config.target;
   componentTargets.set(name, target);
+  componentConfigs.set(name, config);
 
   const entry =
     target && typeof target === 'function'
@@ -444,7 +493,40 @@ const registerConfiguredComponentTarget = (name: string, target: unknown) => {
   if (entry) {
     componentTargets.set(entry.id, target);
     componentTargets.set(entry.qrlHash, target);
+    componentConfigs.set(entry.id, config);
+    componentConfigs.set(entry.qrlHash, config);
   }
+};
+
+const resolveVaryParts = async (
+  requestEvent: RequestEventBase | undefined,
+  varyTargets: readonly ServerFunctionCacheTarget[] | undefined,
+  args: readonly unknown[],
+  skipHash?: string
+): Promise<unknown[] | null> => {
+  if (!varyTargets?.length) {
+    return [];
+  }
+
+  const parts: unknown[] = [];
+  for (const target of varyTargets) {
+    const hash = getServerFunctionResourceHash(target);
+    if (!hash || hash === skipHash || typeof target !== 'function') {
+      continue;
+    }
+    try {
+      parts.push({
+        hash,
+        value: await (target as (...args: unknown[]) => ValueOrPromise<unknown>).apply(
+          requestEvent,
+          Array.from(args)
+        ),
+      });
+    } catch {
+      return null;
+    }
+  }
+  return parts;
 };
 
 function createStats(): ServerFunctionCacheStats {

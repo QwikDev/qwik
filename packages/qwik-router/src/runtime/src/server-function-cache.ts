@@ -15,6 +15,13 @@ export interface AsyncResourceStateEnvelope {
   error?: unknown;
 }
 
+export interface AsyncResourcePayloadEnvelope {
+  qrlHash: string;
+  status: AsyncResourceStateStatus;
+  source: AsyncResourceStateEnvelope['source'];
+  value?: unknown;
+}
+
 /** @public */
 export type CacheStoreName = 'memory' | 'request';
 
@@ -25,6 +32,7 @@ export type CacheScope = 'request' | 'private' | 'public';
 export interface QwikCacheResourceConfig {
   target: ServerFunctionCacheTarget;
   policy?: string;
+  serialize?: 'metadata' | 'value';
   tags?: readonly string[];
   vary?: readonly ServerFunctionCacheTarget[];
 }
@@ -386,6 +394,18 @@ export const getAsyncResourceStateSnapshotForServer = (
   requestEvent: RequestEventBase | undefined
 ): AsyncResourceStateEnvelope[] => {
   return Array.from(getAsyncResourceStateCache(requestEvent, false)?.values() ?? []);
+};
+
+/** @internal */
+export const getAsyncResourcePayloadSnapshotForServer = (
+  requestEvent: RequestEventBase | undefined
+): AsyncResourcePayloadEnvelope[] => {
+  return getAsyncResourceStateSnapshotForServer(requestEvent).map((state) => ({
+    qrlHash: state.qrlHash,
+    status: state.status,
+    source: state.source,
+    ...(shouldSerializeAsyncResourceValue(state) ? { value: state.value } : {}),
+  }));
 };
 
 /** @internal */
@@ -1023,6 +1043,10 @@ const toManifestAsyncResource = (
   status: envelope.status,
   source: envelope.source,
 });
+
+const shouldSerializeAsyncResourceValue = (state: AsyncResourceStateEnvelope): boolean => {
+  return state.status === 'resolved' && resourceConfigs.get(state.qrlHash)?.serialize === 'value';
+};
 
 const createCacheManifestId = (
   server: QwikCacheManifest['server'],

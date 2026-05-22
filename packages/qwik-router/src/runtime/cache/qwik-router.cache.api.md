@@ -57,6 +57,8 @@ export interface QwikCacheResourceConfig {
     // (undocumented)
     policy?: string;
     // (undocumented)
+    serialize?: 'metadata' | 'value';
+    // (undocumented)
     tags?: readonly string[];
     // (undocumented)
     target: ServerFunctionCacheTarget;

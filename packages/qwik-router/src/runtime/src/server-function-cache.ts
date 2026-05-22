@@ -48,6 +48,37 @@ export interface QwikCacheConfig {
   };
 }
 
+export interface QwikCacheRegistryVaryEntry {
+  hash: string;
+  name?: string;
+}
+
+export interface QwikCacheRegistryResourceEntry {
+  name: string;
+  hash: string;
+  policy?: string;
+  tags: readonly string[];
+  vary: readonly QwikCacheRegistryVaryEntry[];
+}
+
+export interface QwikCacheRegistryComponentEntry {
+  name: string;
+  ids: readonly string[];
+  policy?: string;
+  tags: readonly string[];
+  vary: readonly QwikCacheRegistryVaryEntry[];
+  registry?: {
+    id: string;
+    qrlHash: string;
+    symbol: string;
+  };
+}
+
+export interface QwikCacheRegistrySnapshot {
+  resources: readonly QwikCacheRegistryResourceEntry[];
+  components: readonly QwikCacheRegistryComponentEntry[];
+}
+
 /** @public */
 export type ServerFunctionCacheTarget = {
   getHash?: () => string;
@@ -122,8 +153,16 @@ const memoryInflight = new Map<string, Promise<ServerFunctionCacheRecord>>();
 const componentHtmlMemoryCache = new Map<string, ComponentHtmlCacheRecord>();
 const componentHtmlMemoryInflight = new Map<string, Promise<ComponentHtmlCacheRecord>>();
 const resourceConfigs = new Map<string, QwikCacheResourceConfig>();
+const resourceEntries = new Map<
+  string,
+  { name: string; hash: string; config: QwikCacheResourceConfig }
+>();
 const componentTargets = new Map<string, unknown>();
 const componentConfigs = new Map<string, QwikCacheComponentConfig>();
+const componentEntries = new Map<
+  string,
+  { name: string; ids: string[]; config: QwikCacheComponentConfig }
+>();
 
 /** @internal */
 export const _setServerFunctionCacheOptionsForTest = (next: ServerFunctionCacheOptions) => {
@@ -153,11 +192,13 @@ export const configureCacheForServer = (config: QwikCacheConfig) => {
   const resources = config.optimize?.resources ?? {};
   const resourceHashes = new Set<string>();
   resourceConfigs.clear();
-  for (const resource of Object.values(resources)) {
+  resourceEntries.clear();
+  for (const [name, resource] of Object.entries(resources)) {
     const hash = getServerFunctionResourceHash(resource.target);
     if (hash) {
       resourceHashes.add(hash);
       resourceConfigs.set(hash, resource);
+      resourceEntries.set(name, { name, hash, config: resource });
     }
   }
 
@@ -173,6 +214,7 @@ export const configureCacheForServer = (config: QwikCacheConfig) => {
 
   componentTargets.clear();
   componentConfigs.clear();
+  componentEntries.clear();
   const components = config.optimize?.components ?? {};
   for (const [name, component] of Object.entries(components)) {
     registerConfiguredComponentTarget(name, component);
@@ -223,8 +265,10 @@ export const _resetServerFunctionCacheForTest = () => {
   componentHtmlMemoryCache.clear();
   componentHtmlMemoryInflight.clear();
   resourceConfigs.clear();
+  resourceEntries.clear();
   componentTargets.clear();
   componentConfigs.clear();
+  componentEntries.clear();
 };
 
 /** @internal */
@@ -235,6 +279,27 @@ export const _getServerFunctionCacheStatsForTest = (): ServerFunctionCacheStats 
 /** @internal */
 export const _getComponentHtmlCacheStatsForTest = (): ComponentHtmlCacheStats => {
   return { ...componentStats };
+};
+
+/** @internal */
+export const getCacheRegistrySnapshotForServer = (): QwikCacheRegistrySnapshot => {
+  return {
+    resources: Array.from(resourceEntries.values(), ({ name, hash, config }) => ({
+      name,
+      hash,
+      policy: config.policy,
+      tags: [...(config.tags ?? [])],
+      vary: getVarySnapshot(config.vary),
+    })),
+    components: Array.from(componentEntries.values(), ({ name, ids, config }) => ({
+      name,
+      ids: [...ids],
+      policy: config.policy,
+      tags: [...(config.tags ?? [])],
+      vary: getVarySnapshot(config.vary),
+      registry: getComponentRegistry(config.target),
+    })),
+  };
 };
 
 /** @internal */
@@ -483,19 +548,48 @@ const getComponentRequestCache = (
 
 const registerConfiguredComponentTarget = (name: string, config: QwikCacheComponentConfig) => {
   const target = config.target;
+  const ids = [name];
   componentTargets.set(name, target);
   componentConfigs.set(name, config);
 
-  const entry =
-    target && typeof target === 'function'
-      ? (target as ComponentRegistryTarget).__qwik_component_registry__
-      : undefined;
+  const entry = getComponentRegistry(target);
   if (entry) {
+    ids.push(entry.id, entry.qrlHash);
     componentTargets.set(entry.id, target);
     componentTargets.set(entry.qrlHash, target);
     componentConfigs.set(entry.id, config);
     componentConfigs.set(entry.qrlHash, config);
   }
+  componentEntries.set(name, { name, ids, config });
+};
+
+const getComponentRegistry = (
+  target: unknown
+): QwikCacheRegistryComponentEntry['registry'] | undefined => {
+  return target && typeof target === 'function'
+    ? (target as ComponentRegistryTarget).__qwik_component_registry__
+    : undefined;
+};
+
+const getVarySnapshot = (
+  varyTargets: readonly ServerFunctionCacheTarget[] | undefined
+): QwikCacheRegistryVaryEntry[] => {
+  if (!varyTargets?.length) {
+    return [];
+  }
+  return varyTargets.flatMap((target) => {
+    const hash = getServerFunctionResourceHash(target);
+    if (!hash) {
+      return [];
+    }
+    const resource = Array.from(resourceEntries.values()).find((entry) => entry.hash === hash);
+    return [
+      {
+        hash,
+        ...(resource ? { name: resource.name } : {}),
+      },
+    ];
+  });
 };
 
 const resolveVaryParts = async (

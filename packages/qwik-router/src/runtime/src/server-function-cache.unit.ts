@@ -9,6 +9,7 @@ import {
   createComponentHtmlCacheKey,
   createServerFunctionCacheKey,
   defineCacheConfig,
+  getCacheRegistrySnapshotForServer,
   getConfiguredComponentTarget,
   getServerFunctionResourceHash,
   runComponentHtmlWithCache,
@@ -279,6 +280,107 @@ describe('server function cache', () => {
     expect(getConfiguredComponentTarget('ProductCard')).toBe(component);
     expect(getConfiguredComponentTarget('component:product-card-hash')).toBe(component);
     expect(getConfiguredComponentTarget('product-card-hash')).toBe(component);
+  });
+
+  it('creates a server-only cache registry snapshot from configured graph metadata', () => {
+    const getSegment = Object.assign(() => ({ plan: 'free' }), {
+      __qwik_server_resource_hash__: 'segment-hash',
+    });
+    const getProduct = Object.assign(() => ({ title: 'Keyboard' }), {
+      __qwik_server_resource_hash__: 'product-hash',
+    });
+    const component = Object.assign(() => null, {
+      __qwik_component_registry__: {
+        id: 'component:product-card-hash',
+        qrlHash: 'product-card-hash',
+        symbol: 'ProductCard_component_cache_test',
+      },
+    });
+
+    configureCacheForServer(
+      defineCacheConfig({
+        defaults: {
+          resources: {
+            store: 'memory',
+            namespace: 'resource-cache',
+          },
+          components: {
+            store: 'memory',
+            namespace: 'component-cache',
+          },
+        },
+        optimize: {
+          resources: {
+            getSegment: {
+              target: getSegment,
+              policy: 'privateSegment',
+              tags: ['segment'],
+            },
+            getProduct: {
+              target: getProduct,
+              policy: 'productResource',
+              tags: ['product'],
+              vary: [getSegment],
+            },
+          },
+          components: {
+            ProductCard: {
+              target: component,
+              policy: 'productComponent',
+              tags: ['component'],
+              vary: [getSegment, getProduct],
+            },
+          },
+        },
+      })
+    );
+
+    expect(getCacheRegistrySnapshotForServer()).toEqual({
+      resources: [
+        {
+          name: 'getSegment',
+          hash: 'segment-hash',
+          policy: 'privateSegment',
+          tags: ['segment'],
+          vary: [],
+        },
+        {
+          name: 'getProduct',
+          hash: 'product-hash',
+          policy: 'productResource',
+          tags: ['product'],
+          vary: [
+            {
+              name: 'getSegment',
+              hash: 'segment-hash',
+            },
+          ],
+        },
+      ],
+      components: [
+        {
+          name: 'ProductCard',
+          ids: ['ProductCard', 'component:product-card-hash', 'product-card-hash'],
+          policy: 'productComponent',
+          tags: ['component'],
+          vary: [
+            {
+              name: 'getSegment',
+              hash: 'segment-hash',
+            },
+            {
+              name: 'getProduct',
+              hash: 'product-hash',
+            },
+          ],
+          registry: {
+            id: 'component:product-card-hash',
+            qrlHash: 'product-card-hash',
+            symbol: 'ProductCard_component_cache_test',
+          },
+        },
+      ],
+    });
   });
 
   it('builds stable component html cache keys for serializable props', () => {

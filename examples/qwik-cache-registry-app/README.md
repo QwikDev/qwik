@@ -20,6 +20,8 @@ Cache participation is configured from `src/cache.server.ts`, which is imported 
 - Direct `useAsync$(getProduct, props)` as the optimized graph edge.
 - Component cache intent configured centrally without changing `component$` authoring.
 - `vary` relationships expressed with normal `server$` resources.
+- Server-only cache registry metadata that can describe configured resources, components, and
+  `vary` graph edges without serializing cache stores or credentials to the browser.
 - A fetchable `?qcomponent=ProductCard` partial path that returns a standalone Qwik component
   envelope and reports `X-Qwik-Component-Cache`.
 

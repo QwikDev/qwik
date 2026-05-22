@@ -4,6 +4,17 @@ import type { RequestEventBase } from './types';
 type ServerFunctionCacheRecord = unknown;
 type ComponentHtmlCacheRecord = string;
 
+export type AsyncResourceStateStatus = 'pending' | 'resolved' | 'rejected';
+
+export interface AsyncResourceStateEnvelope {
+  key: string;
+  qrlHash: string;
+  status: AsyncResourceStateStatus;
+  source: 'request' | 'memory' | 'inflight' | 'run';
+  value?: unknown;
+  error?: unknown;
+}
+
 /** @public */
 export type CacheStoreName = 'memory' | 'request';
 
@@ -141,6 +152,7 @@ const DEFAULT_COMPONENT_OPTIONS: Required<ComponentHtmlCacheOptions> = {
 };
 
 const REQUEST_CACHE_KEY = '__qwik_server_function_cache__';
+const ASYNC_RESOURCE_STATE_KEY = '__qwik_async_resource_state__';
 const COMPONENT_REQUEST_CACHE_KEY = '__qwik_component_html_cache__';
 
 let options = { ...DEFAULT_OPTIONS };
@@ -282,6 +294,13 @@ export const _getComponentHtmlCacheStatsForTest = (): ComponentHtmlCacheStats =>
 };
 
 /** @internal */
+export const getAsyncResourceStateSnapshotForServer = (
+  requestEvent: RequestEventBase | undefined
+): AsyncResourceStateEnvelope[] => {
+  return Array.from(getAsyncResourceStateCache(requestEvent, false)?.values() ?? []);
+};
+
+/** @internal */
 export const getCacheRegistrySnapshotForServer = (): QwikCacheRegistrySnapshot => {
   return {
     resources: Array.from(resourceEntries.values(), ({ name, hash, config }) => ({
@@ -374,24 +393,70 @@ export const runServerFunctionWithCache = async <T>(
   const requestCache = options.request ? getRequestCache(requestEvent) : undefined;
   if (requestCache?.has(key)) {
     stats.requestHits++;
-    return requestCache.get(key) as T | Promise<T>;
+    const cached = requestCache.get(key) as T | Promise<T>;
+    setAsyncResourceState(requestEvent, {
+      key,
+      qrlHash,
+      status: isPromiseLike(cached) ? 'pending' : 'resolved',
+      source: 'request',
+      ...(isPromiseLike(cached) ? {} : { value: cached }),
+    });
+    return cached;
   }
 
   if (options.memory && memoryCache.has(key)) {
     stats.memoryHits++;
     const value = memoryCache.get(key) as T;
     requestCache?.set(key, value);
+    setAsyncResourceState(requestEvent, {
+      key,
+      qrlHash,
+      status: 'resolved',
+      source: 'memory',
+      value,
+    });
     return value;
   }
 
   if (options.memory && memoryInflight.has(key)) {
     stats.inflightHits++;
-    return memoryInflight.get(key) as Promise<T>;
+    const promise = memoryInflight.get(key) as Promise<T>;
+    setAsyncResourceState(requestEvent, {
+      key,
+      qrlHash,
+      status: 'pending',
+      source: 'inflight',
+    });
+    promise.then(
+      (value) =>
+        setAsyncResourceState(requestEvent, {
+          key,
+          qrlHash,
+          status: 'resolved',
+          source: 'inflight',
+          value,
+        }),
+      (error) =>
+        setAsyncResourceState(requestEvent, {
+          key,
+          qrlHash,
+          status: 'rejected',
+          source: 'inflight',
+          error,
+        })
+    );
+    return promise;
   }
 
   stats.misses++;
   const promise = Promise.resolve().then(run) as Promise<T>;
   requestCache?.set(key, promise);
+  setAsyncResourceState(requestEvent, {
+    key,
+    qrlHash,
+    status: 'pending',
+    source: 'run',
+  });
   if (options.memory) {
     memoryInflight.set(key, promise);
   }
@@ -400,15 +465,30 @@ export const runServerFunctionWithCache = async <T>(
     const value = await promise;
     if (isAsyncIterable(value)) {
       requestCache?.delete(key);
+      deleteAsyncResourceState(requestEvent, key);
       return value;
     }
     requestCache?.set(key, value);
+    setAsyncResourceState(requestEvent, {
+      key,
+      qrlHash,
+      status: 'resolved',
+      source: 'run',
+      value,
+    });
     if (options.memory) {
       memoryCache.set(key, value);
     }
     return value;
   } catch (err) {
     requestCache?.delete(key);
+    setAsyncResourceState(requestEvent, {
+      key,
+      qrlHash,
+      status: 'rejected',
+      source: 'run',
+      error: err,
+    });
     throw err;
   } finally {
     if (options.memory) {
@@ -528,6 +608,37 @@ const getRequestCache = (
     sharedMap.set(REQUEST_CACHE_KEY, (requestCache = new Map()));
   }
   return requestCache;
+};
+
+const getAsyncResourceStateCache = (
+  requestEvent: RequestEventBase | undefined,
+  create = true
+): Map<string, AsyncResourceStateEnvelope> | undefined => {
+  const sharedMap = requestEvent?.sharedMap;
+  if (!sharedMap) {
+    return undefined;
+  }
+  let stateCache = sharedMap.get(ASYNC_RESOURCE_STATE_KEY) as
+    | Map<string, AsyncResourceStateEnvelope>
+    | undefined;
+  if (!stateCache && create) {
+    sharedMap.set(ASYNC_RESOURCE_STATE_KEY, (stateCache = new Map()));
+  }
+  return stateCache;
+};
+
+const setAsyncResourceState = (
+  requestEvent: RequestEventBase | undefined,
+  envelope: AsyncResourceStateEnvelope
+): void => {
+  getAsyncResourceStateCache(requestEvent)?.set(envelope.key, envelope);
+};
+
+const deleteAsyncResourceState = (
+  requestEvent: RequestEventBase | undefined,
+  key: string
+): void => {
+  getAsyncResourceStateCache(requestEvent, false)?.delete(key);
 };
 
 const getComponentRequestCache = (
@@ -718,4 +829,8 @@ const isUnsupportedObject = (value: object): boolean => {
 
 const isAsyncIterable = (value: unknown): value is AsyncIterable<unknown> => {
   return !!value && typeof value === 'object' && Symbol.asyncIterator in value;
+};
+
+const isPromiseLike = <T = unknown>(value: unknown): value is Promise<T> => {
+  return !!value && typeof value === 'object' && typeof (value as Promise<T>).then === 'function';
 };

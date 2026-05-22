@@ -1,0 +1,9 @@
+{
+  "name": "qwik-cache-registry-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "pnpm exec tsc -p tsconfig.json",
+    "dev": "pnpm exec vite --config vite.config.ts --mode ssr"
+  }
+}

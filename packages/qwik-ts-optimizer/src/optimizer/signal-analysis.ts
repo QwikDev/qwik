@@ -8,6 +8,7 @@
 import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
 import type { AstMaybeNode, AstNode, AstParentNode } from '../ast-types.js';
 import { forEachAstChild, isAstNode } from './utils/ast.js';
+import { simplifyExpression, formatSimplifiedLiteral } from './utils/simplify.js';
 
 const trailingComma = createRegExp(
   exactly(',').and(anyOf('}', ']', ')').grouped()),
@@ -422,27 +423,35 @@ function generateFnSignal(
 
   collectReplacements(exprNode);
 
-  // Apply replacements in source order
-  replacements.sort((a, b) => a.start - b.start);
-  let fnBody = '';
-  let pos = 0;
-  for (const r of replacements) {
-    fnBody += exprText.slice(pos, r.start);
-    fnBody += r.replacement;
-    pos = r.end;
-  }
-  fnBody += exprText.slice(pos);
+  // OSS-411: collect SIMPLIFICATION replacements (constant subtrees that
+  // fold to a primitive literal via utils/simplify.ts). These apply only
+  // to the LAMBDA body — mirrors SWC's `simplify::simplifier` pass that
+  // folds compile-time constants in the hoisted arrow body while keeping
+  // `_str` source-preserving. Replacements are guaranteed disjoint from
+  // root replacements because roots target Identifiers (not simplifiable
+  // by definition) and simplifications target Binary/Unary/Logical/
+  // ConditionalExpressions with primitive Literal operands.
+  const simplifications: Array<{ start: number; end: number; replacement: string }> = [];
+  collectSimplifications(exprNode, exprStart, exprText, simplifications);
+
+  // _str body: root replacements only (current behavior — source-preserving).
+  const strFnBody = applyReplacements(exprText, replacements);
+
+  // Lambda body: merged root + simplification replacements.
+  const lambdaFnBody = simplifications.length > 0
+    ? applyReplacements(exprText, [...replacements, ...simplifications])
+    : strFnBody;
 
   const params = roots.map((_, i) => `p${i}`).join(',');
 
   // Object expressions need wrapping parens so the arrow returns an object, not a block
   const needsParens = exprNode.type === 'ObjectExpression';
   const hoistedFn = needsParens
-    ? `(${params})=>(${fnBody})`
-    : `(${params})=>${fnBody}`;
+    ? `(${params})=>(${lambdaFnBody})`
+    : `(${params})=>${lambdaFnBody}`;
 
   // String representation: minimal whitespace, double-quoted strings (matching SWC)
-  let strBody = stripTrailingCommas(normalizeStringQuotes(removeWhitespace(fnBody)));
+  let strBody = stripTrailingCommas(normalizeStringQuotes(removeWhitespace(strFnBody)));
   strBody = stripOuterParens(strBody);
   strBody = stripTernaryConditionParens(strBody);
 
@@ -451,6 +460,65 @@ function generateFnSignal(
     : `"${strBody}"`;
 
   return { hoistedFn, hoistedStr };
+}
+
+/** Apply a list of disjoint range replacements to a source string. */
+function applyReplacements(
+  text: string,
+  replacements: ReadonlyArray<{ start: number; end: number; replacement: string }>,
+): string {
+  if (replacements.length === 0) return text;
+  const sorted = [...replacements].sort((a, b) => a.start - b.start);
+  let out = '';
+  let pos = 0;
+  for (const r of sorted) {
+    out += text.slice(pos, r.start);
+    out += r.replacement;
+    pos = r.end;
+  }
+  out += text.slice(pos);
+  return out;
+}
+
+/**
+ * Walk an expression subtree top-down looking for subtrees that
+ * {@link simplifyExpression} can collapse to a primitive literal. Emits a
+ * replacement (range → `formatSimplifiedLiteral(value)`) per matching
+ * subtree and **does not recurse into simplified subtrees** — the children
+ * are already represented by the parent's emit.
+ *
+ * Skips no-op replacements where the formatted literal equals the source
+ * text verbatim (e.g. source already says `3`).
+ */
+function collectSimplifications(
+  n: AstMaybeNode,
+  exprStart: number,
+  exprText: string,
+  out: Array<{ start: number; end: number; replacement: string }>,
+): void {
+  if (!n || typeof n !== 'object') return;
+  if (typeof n.start !== 'number' || typeof n.end !== 'number') {
+    forEachAstChild(n, (child) => collectSimplifications(child, exprStart, exprText, out));
+    return;
+  }
+
+  const result = simplifyExpression(n);
+  if (result.simplified) {
+    const formatted = formatSimplifiedLiteral(result.value);
+    const sliceStart = n.start - exprStart;
+    const sliceEnd = n.end - exprStart;
+    if (sliceStart >= 0 && sliceEnd <= exprText.length) {
+      const originalText = exprText.slice(sliceStart, sliceEnd);
+      if (formatted !== originalText) {
+        out.push({ start: sliceStart, end: sliceEnd, replacement: formatted });
+      }
+    }
+    // Do NOT recurse — the simplified value already represents the whole
+    // subtree, and recursing would emit overlapping ranges.
+    return;
+  }
+
+  forEachAstChild(n, (child) => collectSimplifications(child, exprStart, exprText, out));
 }
 
 /** Find the root Identifier node at the base of a member chain. */

@@ -733,6 +733,10 @@
       "tests/optimizer/oss-413-bag-split.test.ts :: OSS-413: _jsxSplit bag split for _restProps spread + real const entry keeps merged-in-var when there are no const entries",
       "tests/optimizer/oss-413-bag-split.test.ts :: OSS-413: _jsxSplit bag split for _restProps spread + real const entry positions _getConstProps before const entries in const bag",
       "tests/optimizer/oss-413-bag-split.test.ts :: OSS-413: _jsxSplit bag split for _restProps spread + real const entry splits spread when a boolean-attribute const entry is present",
+      "tests/optimizer/oss-414-paren-norm.test.ts :: OSS-414: _hf<n>_str paren normalization for object-property values keeps bare-form _hf<n>_str unchanged (was already correct via OSS-412)",
+      "tests/optimizer/oss-414-paren-norm.test.ts :: OSS-414: _hf<n>_str paren normalization for object-property values preserves load-bearing parens in non-Property positions",
+      "tests/optimizer/oss-414-paren-norm.test.ts :: OSS-414: _hf<n>_str paren normalization for object-property values strips parens around `??` access in object-form _hf<n>_str",
+      "tests/optimizer/oss-414-paren-norm.test.ts :: OSS-414: _hf<n>_str paren normalization for object-property values strips parens only at direct Property-value position (not transitively)",
       "tests/optimizer/path-utils.test.ts :: path-utils detects whether a relative import stays within the srcDir-relative tree",
       "tests/optimizer/path-utils.test.ts :: path-utils normalizes windows-style paths",
       "tests/optimizer/path-utils.test.ts :: path-utils preserves current computeRelPath behavior for paths outside srcDir",
@@ -997,6 +1001,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 837
+    "total": 841
   }
 }

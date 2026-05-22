@@ -180,21 +180,22 @@ export { makeIt, wrap };
     const parent = findParent(result);
     const code = parent.code;
 
-    // (C.1) sCalls exist for both inlinedQrl extractions.
-    expect(code).toMatch(/q_outer_bbb\.s\(/);
-    expect(code).toMatch(/q_inner_aaa\.s\(/);
+    // (C.1) Two sCalls exist (one per inlinedQrl). Names are prod-renamed
+    // post-OSS-408 (`q_s_<hash>` form), so match by structure rather than
+    // by the source peer-tool name.
+    const sCallMatches = [...code.matchAll(/q_\w+\.s\(/g)];
+    expect(sCallMatches.length).toBeGreaterThanOrEqual(2);
+    const firstSCallPos = sCallMatches[0].index!;
     // (C.2) sCalls come BEFORE the `export { makeIt, wrap }` line. Find
     // both positions and assert ordering; the structural partitioning
     // is what gates the convergence test.
-    const sCallPos = code.indexOf('q_outer_bbb.s(');
     const exportPos = code.indexOf('export { makeIt');
-    expect(sCallPos).toBeGreaterThan(-1);
     expect(exportPos).toBeGreaterThan(-1);
-    expect(sCallPos).toBeLessThan(exportPos);
+    expect(firstSCallPos).toBeLessThan(exportPos);
     // (C.3) sCalls come AFTER `helper` decl (which they reference).
     const helperDeclPos = code.indexOf('const helper');
     expect(helperDeclPos).toBeGreaterThan(-1);
-    expect(sCallPos).toBeGreaterThan(helperDeclPos);
+    expect(firstSCallPos).toBeGreaterThan(helperDeclPos);
   });
 });
 

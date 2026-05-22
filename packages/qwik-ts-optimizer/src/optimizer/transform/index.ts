@@ -450,7 +450,13 @@ export function transformModule(
     const emitMode = options.mode ?? "prod";
     if (emitMode === "prod") {
       for (const ext of extractions) {
-        if (ext.isInlinedQrl) continue;
+        // OSS-408 Fix A: previously skipped `inlinedQrl` extractions on the
+        // grounds that "the name was set explicitly by the upstream tool";
+        // but SWC ALSO renames them under prod (e.g.
+        // `App_component_Fh88JClhbC0` → `s_Fh88JClhbC0`), preserving the
+        // hash suffix so runtime QRL resolution still matches. Skipping the
+        // rename was a parity gap; the runtime uses hash-keyed lookup, not
+        // the symbolic name.
         const original = ext.symbolName;
         // OSS-389: prod rename mutates identity post-extraction. Internal-
         // builder cast — the alternative is a full pass-through array.map()

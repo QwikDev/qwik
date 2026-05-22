@@ -1005,6 +1005,14 @@ function disambiguateExtractions(
   const prefix = fileStem + '_';
 
   for (const ext of extractions) {
+    // OSS-408 Fix B: peer-tool `inlinedQrl(body, "name", [...])` extractions
+    // carry an explicit name set by the upstream tool (qwik-react codegen,
+    // already-optimised input, etc.). Those names are unique by construction
+    // — appending `_<n>` would rewrite a name the consumer already expects
+    // and that the prod-rename hash math (`s_<hash>`) is computed against
+    // verbatim. Skip them.
+    if (ext.isInlinedQrl) continue;
+
     const contextPortion = ext.displayName.startsWith(prefix)
       ? ext.displayName.slice(prefix.length)
       : ext.displayName;

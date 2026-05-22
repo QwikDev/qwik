@@ -33,6 +33,8 @@ import {
   computeJsxFlags,
   type JsxKeyCounter,
 } from './jsx.js';
+import { transformEventPropName } from './event-handlers.js';
+import { forEachAstChild } from '../utils/ast.js';
 import type { SegmentImportData } from '../segment-codegen.js';
 
 /**
@@ -78,6 +80,10 @@ interface JsxCallTransformOptions {
   jsxFunctions: Set<string>;
   keyCounter: JsxKeyCounter;
   neededImports: Set<string>;
+  /** OSS-408: reactive bindings (`useStore`/`useSignal`/...) that drive the
+   * `_wrapProp(...)` rewrite + `isStaticChildren` classification. Empty/absent
+   * means no signal analysis (legacy behaviour). */
+  reactiveBindings?: ReadonlySet<string>;
 }
 
 /**
@@ -100,6 +106,25 @@ export function transformJsxCalls(
 ): void {
   if (opts.jsxFunctions.size === 0) return;
 
+  // OSS-408 Fix D: SWC's `handle_jsx` only auto-keys the OUTERMOST jsx()
+  // call in a body; nested calls (those that appear inside another jsx()
+  // call's argument tree) get `null` as the key. Pre-walk top-down to mark
+  // every jsx() call that's a descendant of another jsx() call.
+  const nestedJsxStarts = new Set<number>();
+  collectNestedJsxStarts(program, opts.jsxFunctions, nestedJsxStarts);
+
+  // OSS-408 Fix C: collect reactive bindings (`const X = useStore(...)` /
+  // `useSignal(...)` / `useComputed(...)` etc.) and rewrite `X.prop`
+  // accesses inside jsx() call argument trees to `_wrapProp(X, "prop")`.
+  // SWC does this signal analysis on JSX prop values + children. Limited
+  // to the immediate jsx() call's argument tree — function bodies (arrow,
+  // inlinedQrl callbacks) are separate scopes and aren't wrapped.
+  const reactiveBindings = collectReactiveBindings(program);
+  if (reactiveBindings.size > 0) {
+    wrapReactiveAccessesInJsxCalls(s, program, opts.jsxFunctions, reactiveBindings, opts.neededImports);
+  }
+  opts.reactiveBindings = reactiveBindings;
+
   walk(program, {
     leave(node: AstNode) {
       // Bail unless this is a `<jsxFunction>(tag, propsObjLiteral, ...)`
@@ -114,10 +139,186 @@ export function transformJsxCalls(
         node.arguments[1]?.type !== 'ObjectExpression'
       ) return;
 
-      const rewritten = buildJsxSortedCall(s, node, opts);
+      const isNested = nestedJsxStarts.has(node.start);
+      const rewritten = buildJsxSortedCall(s, node, opts, isNested);
       if (rewritten !== null) {
         s.overwrite(node.start, node.end, rewritten);
       }
+    },
+  });
+}
+
+/**
+ * Collect names of `const X = use*(...)` declarations — the reactive sources
+ * (`useStore`, `useSignal`, `useComputed`, `useResource`, etc.) whose field
+ * accesses inside JSX need `_wrapProp` wrapping for runtime reactivity.
+ *
+ * Conservative — any local const assigned to a `use*()` call qualifies. The
+ * wrap only fires on identifiers in this set when they appear as the object
+ * of a MemberExpression INSIDE a jsx() call's argument tree (not inside
+ * nested function bodies — see `wrapReactiveAccessesInJsxCalls`).
+ */
+function collectReactiveBindings(program: AstProgram): Set<string> {
+  const result = new Set<string>();
+  walk(program, {
+    enter(node: AstNode) {
+      if (node.type !== 'VariableDeclaration') return;
+      for (const decl of node.declarations ?? []) {
+        if (decl.id?.type !== 'Identifier') continue;
+        if (decl.init?.type !== 'CallExpression') continue;
+        const callee = decl.init.callee;
+        if (callee?.type !== 'Identifier') continue;
+        if (callee.name.startsWith('use')) result.add(decl.id.name);
+      }
+    },
+  });
+  return result;
+}
+
+/**
+ * For each jsx() call, walk its propsObj (the 2nd arg) and rewrite every
+ * MemberExpression `reactiveObj.prop` that appears at a non-nested-function
+ * position into `_wrapProp(reactiveObj, "prop")`. Top-down so outer jsx()
+ * calls process first; we skip recursing into:
+ *
+ *   - nested jsx() calls (they'll be visited by their own `enter`)
+ *   - function/arrow expressions (separate scope; the callback body is its
+ *     own JSX/QRL context)
+ *   - `inlinedQrl(...)` peer-tool calls (also a quasi-function expression
+ *     whose body has its own lexical scope via `useLexicalScope()`)
+ *
+ * The MagicString overwrites are safe because the AST positions are read-
+ * only once per node visit and we don't recurse into rewritten ranges.
+ */
+function wrapReactiveAccessesInJsxCalls(
+  s: MagicString,
+  program: AstProgram,
+  jsxFunctions: ReadonlySet<string>,
+  reactiveBindings: ReadonlySet<string>,
+  neededImports: Set<string>,
+): void {
+  walk(program, {
+    enter(node: AstNode) {
+      if (!isJsxCall(node, jsxFunctions)) return;
+      // `isJsxCall` already narrowed: this is a CallExpression with
+      // arguments.length >= 2 and arguments[1] an ObjectExpression.
+      if (node.type !== 'CallExpression') return;
+      const propsArg = node.arguments?.[1];
+      if (!propsArg || propsArg.type !== 'ObjectExpression') return;
+      walkAndWrap(propsArg, s, jsxFunctions, reactiveBindings, neededImports);
+    },
+  });
+}
+
+function isJsxCall(node: AstNode, jsxFunctions: ReadonlySet<string>): boolean {
+  return (
+    node.type === 'CallExpression' &&
+    node.callee?.type === 'Identifier' &&
+    jsxFunctions.has(node.callee.name) &&
+    !!node.arguments &&
+    node.arguments.length >= 2 &&
+    node.arguments[1]?.type === 'ObjectExpression'
+  );
+}
+
+function walkAndWrap(
+  node: AstNode | null | undefined,
+  s: MagicString,
+  jsxFunctions: ReadonlySet<string>,
+  reactiveBindings: ReadonlySet<string>,
+  neededImports: Set<string>,
+): void {
+  if (!node) return;
+  // Stop at scope/JSX boundaries — these are not part of the current jsx()
+  // call's "JSX context"; signal wrapping doesn't apply inside them.
+  if (isJsxCall(node, jsxFunctions)) return;
+  if (node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') return;
+  if (
+    node.type === 'CallExpression' &&
+    node.callee?.type === 'Identifier' &&
+    node.callee.name === 'inlinedQrl'
+  ) return;
+
+  if (
+    node.type === 'MemberExpression' &&
+    node.object?.type === 'Identifier' &&
+    reactiveBindings.has(node.object.name)
+  ) {
+    const propName = staticPropName(node);
+    if (propName !== null && propName !== 'value') {
+      const objText = s.slice(node.object.start, node.object.end);
+      s.overwrite(node.start, node.end, `_wrapProp(${objText}, "${propName}")`);
+      neededImports.add('_wrapProp');
+      return;
+    }
+  }
+
+  forEachAstChild(node, (child) => walkAndWrap(child as AstNode, s, jsxFunctions, reactiveBindings, neededImports));
+}
+
+function staticPropName(member: AstNode): string | null {
+  if (member.type !== 'MemberExpression' || !member.property) return null;
+  if (!member.computed && member.property.type === 'Identifier') return member.property.name;
+  if (
+    member.computed &&
+    member.property.type === 'Literal' &&
+    typeof member.property.value === 'string'
+  ) return member.property.value;
+  return null;
+}
+
+/**
+ * Walk the program top-down and add every jsx() call whose NEAREST jsx()
+ * ancestor is an HTML-tag call (string-literal tag arg) to `out`. SWC's
+ * behaviour: nested calls under HTML parents take `null` for the key arg
+ * (only the outermost call keys); nested calls under COMPONENT parents
+ * (identifier tag arg) keep auto-keys all the way down.
+ *
+ * Targets fixtures like OSS-408's `example_parsed_inlined_qrls`
+ * (all-HTML; only outer div gets a key) vs OSS-405's
+ * `example_qwik_react_inline` (all-component Host/SkipRerender/Fragment;
+ * every call keys regardless of nesting).
+ */
+function collectNestedJsxStarts(
+  program: AstProgram,
+  jsxFunctions: ReadonlySet<string>,
+  out: Set<number>,
+): void {
+  // Stack of "tag kinds" — most-recent first. Each entry is `'html'` for a
+  // string-literal-tag jsx() call, `'component'` for an identifier-tag call.
+  // Used to look up the nearest jsx() ancestor's tag kind when deciding
+  // whether the current call is "nested under HTML".
+  const tagStack: ('html' | 'component')[] = [];
+  walk(program, {
+    enter(node: AstNode) {
+      if (
+        node.type !== 'CallExpression' ||
+        node.callee?.type !== 'Identifier' ||
+        !jsxFunctions.has(node.callee.name) ||
+        !node.arguments ||
+        node.arguments.length < 2 ||
+        node.arguments[1]?.type !== 'ObjectExpression'
+      ) return;
+      if (tagStack.length > 0 && tagStack[tagStack.length - 1] === 'html') {
+        out.add(node.start);
+      }
+      const tagArg = node.arguments[0];
+      const kind: 'html' | 'component' =
+        tagArg && tagArg.type === 'Literal' && typeof tagArg.value === 'string'
+          ? 'html'
+          : 'component';
+      tagStack.push(kind);
+    },
+    leave(node: AstNode) {
+      if (
+        node.type !== 'CallExpression' ||
+        node.callee?.type !== 'Identifier' ||
+        !jsxFunctions.has(node.callee.name) ||
+        !node.arguments ||
+        node.arguments.length < 2 ||
+        node.arguments[1]?.type !== 'ObjectExpression'
+      ) return;
+      tagStack.pop();
     },
   });
 }
@@ -131,6 +332,7 @@ function buildJsxSortedCall(
   s: MagicString,
   callNode: AstNode,
   opts: JsxCallTransformOptions,
+  isNested: boolean,
 ): string | null {
   // Caller already gates on `callNode.type === 'CallExpression'` and
   // `arguments[1].type === 'ObjectExpression'`. The CallExpression check
@@ -150,6 +352,11 @@ function buildJsxSortedCall(
   ) return null;
 
   const tag = s.slice(tagArg.start, tagArg.end);
+  // HTML tags are string-literal first args (`jsx("button", ...)`); component
+  // tags are identifiers (`jsx(MyCmp, ...)`). Event-handler key rewriting
+  // (`onClick$` → `"q-e:click"`) only applies to HTML — components receive
+  // the `*$` form as a JSX prop and the runtime handles wiring internally.
+  const isHtmlTag = tagArg.type === 'Literal' && typeof tagArg.value === 'string';
 
   // Partition props into `children` (positional 4th arg) and everything else
   // (varProps bag). Anything that isn't a plain `Property` (e.g. spread
@@ -157,6 +364,7 @@ function buildJsxSortedCall(
   // unchanged.
   let childrenText: string | null = null;
   let childrenIsDynamic = false;
+  let hasVarEventHandler = false;
   const varEntries: string[] = [];
   for (const prop of propsArg.properties) {
     if (prop.type !== 'Property') return null;
@@ -164,18 +372,39 @@ function buildJsxSortedCall(
     if (keyName === 'children' && !prop.computed) {
       const value = prop.value;
       childrenText = s.slice(value.start, value.end);
-      childrenIsDynamic = !isStaticChildren(value);
+      childrenIsDynamic = !isStaticChildren(value, opts.reactiveBindings ?? new Set());
       continue;
+    }
+    // OSS-408 Fix (cascade of D): rewrite event-handler prop keys on HTML
+    // tags from the marker form (`onClick$`) to the runtime form
+    // (`"q-e:click"`). Mirrors what `transformAllJsx` does for JSX syntax.
+    if (isHtmlTag && keyName !== null) {
+      const transformed = transformEventPropName(keyName, new Set());
+      if (transformed !== null) {
+        const valueText = s.slice(prop.value.start, prop.value.end);
+        varEntries.push(`"${transformed}": ${valueText}`);
+        // OSS-408 Fix E: a dynamic event-handler prop value (anything that
+        // isn't a static identifier-only reference) makes this a "var event
+        // handler" — drops the `static_listeners` flag bit. The peer-tool
+        // input typically passes `q_X.w([...])` here (CallExpression), so
+        // detect any non-Identifier value as dynamic.
+        if (prop.value.type !== 'Identifier') hasVarEventHandler = true;
+        continue;
+      }
     }
     varEntries.push(s.slice(prop.start, prop.end));
   }
 
   // Optional 3rd arg: explicit key. Maps to the 6th `_jsxSorted` arg.
-  // Fall back to an auto-generated key per `JsxKeyCounter`.
+  // Fall back to an auto-generated key per `JsxKeyCounter` — but only for
+  // OUTERMOST calls. Nested jsx() calls (those inside another jsx() call's
+  // argument tree) get `null` per SWC's `handle_jsx`.
   let keyText: string;
   if (args.length >= 3 && args[2] && args[2].type !== 'SpreadElement') {
     const keyArg = args[2];
     keyText = s.slice(keyArg.start, keyArg.end);
+  } else if (isNested) {
+    keyText = 'null';
   } else {
     keyText = `"${opts.keyCounter.next()}"`;
   }
@@ -187,7 +416,7 @@ function buildJsxSortedCall(
     ? 'none'
     : childrenIsDynamic ? 'dynamic' : 'static';
   const hasVarProps = varEntries.length > 0;
-  const flags = computeJsxFlags(hasVarProps, childrenType);
+  const flags = computeJsxFlags(hasVarProps, childrenType, false, hasVarEventHandler);
 
   opts.neededImports.add('_jsxSorted');
 
@@ -204,11 +433,31 @@ function propertyKeyName(prop: AstNode): string | null {
   return null;
 }
 
-/** Classify a children expression as static. Conservative: any non-trivial
- * expression is dynamic. */
-function isStaticChildren(value: AstNode): boolean {
-  return (
-    value.type === 'Literal' ||
-    (value.type === 'TemplateLiteral' && (value.expressions ?? []).length === 0)
-  );
+/** Classify a children expression as static. OSS-408 Fix E: extends to
+ * MemberExpressions on reactive bindings (which become `_wrapProp(...)` —
+ * compile-time-resolved signal access) and arrays whose elements are all
+ * themselves static. Nested `_jsxSorted(...)` calls (the rewritten form of
+ * inner jsx() calls) classify as dynamic. The reactive-binding check is
+ * done against the SOURCE AST (pre-wrap) since `isStaticChildren` runs
+ * before the source-string `_wrapProp` overwrite via `buildJsxSortedCall`. */
+function isStaticChildren(value: AstNode, reactive: ReadonlySet<string>): boolean {
+  if (value.type === 'Literal') return true;
+  if (value.type === 'TemplateLiteral' && (value.expressions ?? []).length === 0) return true;
+  if (
+    value.type === 'CallExpression' &&
+    value.callee?.type === 'Identifier' &&
+    value.callee.name === '_wrapProp'
+  ) return true;
+  if (
+    value.type === 'MemberExpression' &&
+    value.object?.type === 'Identifier' &&
+    reactive.has(value.object.name)
+  ) {
+    const propName = staticPropName(value);
+    if (propName !== null && propName !== 'value') return true;
+  }
+  if (value.type === 'ArrayExpression') {
+    return (value.elements ?? []).every((el) => el != null && isStaticChildren(el, reactive));
+  }
+  return false;
 }

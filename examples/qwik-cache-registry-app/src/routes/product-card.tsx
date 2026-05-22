@@ -10,6 +10,7 @@ export const ProductCard = component$((props: { productId: string }) => {
         <h2>{product.value.title}</h2>
         <p>{product.value.description}</p>
         <strong>{product.value.price}</strong>
+        <small>segment: {product.value.segment}</small>
         <small>resource reads: {product.value.reads}</small>
       </article>
     </Suspense>

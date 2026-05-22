@@ -7,12 +7,14 @@ type ProductInput = {
 const readsByProduct = new Map<string, number>();
 
 export const getSegment = server$(async function () {
+  const plan = (this as any)?.cookie?.get('plan')?.value === 'pro' ? 'pro' : 'free';
   return {
-    plan: 'pro',
+    plan,
   };
 });
 
 export const getProduct = server$(async function ({ productId }: ProductInput) {
+  const segment = await getSegment();
   await delay(75);
 
   const reads = (readsByProduct.get(productId) ?? 0) + 1;
@@ -22,7 +24,15 @@ export const getProduct = server$(async function ({ productId }: ProductInput) {
     id: productId,
     title: productId === 'keyboard' ? 'Mechanical Keyboard' : 'Wireless Mouse',
     description: `Mock product data for ${productId}.`,
-    price: productId === 'keyboard' ? '$179' : '$99',
+    price:
+      segment.plan === 'pro'
+        ? productId === 'keyboard'
+          ? '$159'
+          : '$79'
+        : productId === 'keyboard'
+          ? '$179'
+          : '$99',
+    segment: segment.plan,
     reads,
   };
 });

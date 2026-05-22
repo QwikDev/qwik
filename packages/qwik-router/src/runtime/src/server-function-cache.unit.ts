@@ -187,6 +187,59 @@ describe('server function cache', () => {
     });
   });
 
+  it('varies configured server resource cache keys by declared server function output', async () => {
+    let segment = 'free';
+    const getSegment = Object.assign(
+      vi.fn(() => ({ segment })),
+      {
+        __qwik_server_resource_hash__: 'segment-hash',
+      }
+    );
+    const getPricing = Object.assign(() => {}, {
+      __qwik_server_resource_hash__: 'pricing-hash',
+    });
+    const run = vi.fn(() => `price:${segment}`);
+
+    configureCacheForServer(
+      defineCacheConfig({
+        defaults: {
+          resources: {
+            store: 'memory',
+            dedupe: true,
+          },
+        },
+        optimize: {
+          resources: {
+            getPricing: {
+              target: getPricing,
+              vary: [getSegment],
+            },
+          },
+        },
+      })
+    );
+
+    await expect(
+      runServerFunctionWithCache(createRequestEvent(), 'pricing-hash', [{ productId: '1' }], run)
+    ).resolves.toBe('price:free');
+    await expect(
+      runServerFunctionWithCache(createRequestEvent(), 'pricing-hash', [{ productId: '1' }], run)
+    ).resolves.toBe('price:free');
+
+    segment = 'pro';
+
+    await expect(
+      runServerFunctionWithCache(createRequestEvent(), 'pricing-hash', [{ productId: '1' }], run)
+    ).resolves.toBe('price:pro');
+
+    expect(getSegment).toHaveBeenCalledTimes(3);
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(_getServerFunctionCacheStatsForTest()).toMatchObject({
+      misses: 2,
+      memoryHits: 1,
+    });
+  });
+
   it('uses the server resource hash instead of the wrapper hash for configured server functions', () => {
     const target = Object.assign(() => {}, {
       __qwik_server_resource_hash__: 'resource-hash',
@@ -272,6 +325,66 @@ describe('server function cache', () => {
     expect(run).toHaveBeenCalledTimes(1);
     expect(_getComponentHtmlCacheStatsForTest()).toMatchObject({
       misses: 1,
+      memoryHits: 1,
+    });
+  });
+
+  it('varies configured component html cache keys by declared server function output', async () => {
+    let plan = 'free';
+    const getSegment = Object.assign(
+      vi.fn(() => ({ plan })),
+      {
+        __qwik_server_resource_hash__: 'segment-hash',
+      }
+    );
+    const component = () => null;
+    const run = vi.fn(() => `<article>${plan}</article>`);
+
+    configureCacheForServer(
+      defineCacheConfig({
+        defaults: {
+          components: {
+            store: 'memory',
+            dedupe: true,
+          },
+        },
+        optimize: {
+          components: {
+            ProductCard: {
+              target: component,
+              vary: [getSegment],
+            },
+          },
+        },
+      })
+    );
+
+    await expect(
+      runComponentHtmlWithCache(createRequestEvent(), 'ProductCard', { productId: '1' }, run)
+    ).resolves.toEqual({
+      html: '<article>free</article>',
+      cacheStatus: 'miss',
+    });
+    await expect(
+      runComponentHtmlWithCache(createRequestEvent(), 'ProductCard', { productId: '1' }, run)
+    ).resolves.toEqual({
+      html: '<article>free</article>',
+      cacheStatus: 'hit',
+    });
+
+    plan = 'pro';
+
+    await expect(
+      runComponentHtmlWithCache(createRequestEvent(), 'ProductCard', { productId: '1' }, run)
+    ).resolves.toEqual({
+      html: '<article>pro</article>',
+      cacheStatus: 'miss',
+    });
+
+    expect(getSegment).toHaveBeenCalledTimes(3);
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(_getComponentHtmlCacheStatsForTest()).toMatchObject({
+      misses: 2,
       memoryHits: 1,
     });
   });

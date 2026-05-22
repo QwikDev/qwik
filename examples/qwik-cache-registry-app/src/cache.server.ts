@@ -20,10 +20,6 @@ export const cacheConfig = defineCacheConfig({
 
   optimize: {
     resources: {
-      getSegment: {
-        target: getSegment,
-        policy: 'privateSegment',
-      },
       getProduct: {
         target: getProduct,
         policy: 'productResource',

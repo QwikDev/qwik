@@ -1886,6 +1886,9 @@ export interface Tracker {
 }
 
 // @internal (undocumented)
+export const _uas: <TInput, TOutput>(ctx: AsyncCtx<Awaited<TOutput>>) => Promise<TOutput>;
+
+// @internal (undocumented)
 export const _UNINITIALIZED: unique symbol;
 
 // @public

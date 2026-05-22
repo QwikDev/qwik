@@ -1,10 +1,12 @@
 import { createAsyncSignal } from '../reactive-primitives/signal-api';
 import { type AsyncSignal } from '../reactive-primitives/signal.public';
 import type { AsyncCtx, AsyncSignalOptions } from '../reactive-primitives/types';
+import { _captures } from '../shared/qrl/qrl-class';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { createQRL } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { ValueOrPromise } from '../shared/utils/types';
+import { useSequentialScope } from './use-sequential-scope';
 import { useConstant } from './use-signal';
 
 /**
@@ -91,31 +93,50 @@ const creator = <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => {
   return createAsyncSignal(qrl, options);
 };
 
+/** @internal */
+export const _uas = async <TInput, TOutput>(ctx: AsyncCtx<Awaited<TOutput>>) => {
+  const [qrl, input] = _captures as [
+    QRL<AsyncResourceFn<TInput, TOutput> | ServerFunctionQrl<TInput, TOutput>>,
+    TInput,
+  ];
+  const resource = isServerFunctionQrl(qrl) ? qrl : await qrl.resolve();
+  return (await (resource as AsyncResourceFn<TInput, TOutput>)(
+    ctx.abortSignal,
+    input
+  )) as Awaited<TOutput>;
+};
+
 const resourceCreator = <TInput, TOutput>(
   qrl: QRL<AsyncResourceFn<TInput, TOutput> | ServerFunctionQrl<TInput, TOutput>>,
   input: TInput,
   options?: AsyncSignalOptions<Awaited<TOutput>>
 ) => {
-  const resourceQrl = createQRL<AsyncFn<Awaited<TOutput>>>(
+  const { val, set, iCtx } = useSequentialScope<AsyncSignal<Awaited<TOutput>>>();
+  if (val) {
+    return val;
+  }
+
+  const resourceQrl = createQRL(
     null,
-    `useAsyncResource_${qrl.getHash()}`,
-    (async (ctx) => {
-      const resource = isServerFunctionQrl(qrl) ? qrl : await qrl.resolve();
-      if (isServerFunctionQrl(resource)) {
-        return (await resource(ctx.abortSignal, input)) as Awaited<TOutput>;
-      }
-      return (resource as unknown as AsyncFn<Awaited<TOutput>>)(ctx);
-    }) as AsyncFn<Awaited<TOutput>>,
+    '_uas',
+    _uas as AsyncFn<Awaited<TOutput>>,
     null,
-    null
+    [qrl, input],
+    iCtx.$container$
   );
   resourceQrl.resolve();
-  const signal = createAsyncSignal(resourceQrl, options);
+  const signalOptions = options?.container
+    ? options
+    : {
+        ...options,
+        container: iCtx.$container$,
+      };
+  const signal = createAsyncSignal(resourceQrl as QRL<AsyncFn<Awaited<TOutput>>>, signalOptions);
   (signal as any).__qwik_async_resource__ = {
     input,
     qrlHash: qrl.getHash(),
   };
-  return signal;
+  return set(signal);
 };
 
 /** @internal */
@@ -125,11 +146,10 @@ export const useAsyncQrl: UseAsyncQrl = (<T>(
   options?: AsyncSignalOptions<T>
 ): AsyncSignal<T> => {
   if (options !== undefined || !isAsyncSignalOptions(inputOrOptions)) {
-    return useConstant(
-      resourceCreator as any,
+    return resourceCreator(
       qrl as unknown as QRL<AsyncResourceFn<unknown, T>>,
       inputOrOptions,
-      options as AsyncSignalOptions<T>
+      options as AsyncSignalOptions<Awaited<T>>
     ) as AsyncSignal<T>;
   }
   return useConstant(creator<T>, qrl, inputOrOptions as AsyncSignalOptions<T> | undefined);

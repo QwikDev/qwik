@@ -74,9 +74,9 @@ describe('buildSymbolName', () => {
     );
   });
 
-  it('matches all symbol names across the 209 snapshot corpus', () => {
+  it('matches all symbol names across the 210 snapshot corpus', () => {
     const snapFiles = readdirSync(SNAP_DIR).filter((f) => f.endsWith('.snap'));
-    expect(snapFiles.length).toBe(209);
+    expect(snapFiles.length).toBe(210);
 
     let totalNames = 0;
     let skipped = 0;

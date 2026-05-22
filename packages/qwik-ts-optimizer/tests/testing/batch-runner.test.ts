@@ -30,9 +30,9 @@ describe('batch-runner', () => {
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('getSnapshotFiles returns all 209 files', () => {
+  it('getSnapshotFiles returns all 210 files', () => {
     const files = getSnapshotFiles(SNAP_DIR);
-    expect(files).toHaveLength(209);
+    expect(files).toHaveLength(210);
     for (const f of files) {
       expect(f).toMatch(/\.snap$/);
     }
@@ -46,9 +46,9 @@ describe('batch-runner', () => {
     expect(batch0).toHaveLength(10);
     expect(batch0[0]).toBe(files[0]);
 
-    // Last batch: 209 - 200 = 9 items
+    // Last batch: 210 - 200 = 10 items
     const batch20 = getBatchFiles(files, 10, 20);
-    expect(batch20).toHaveLength(9);
+    expect(batch20).toHaveLength(10);
     expect(batch20[0]).toBe(files[200]);
   });
 
@@ -154,7 +154,7 @@ describe('batch-runner', () => {
     expect(result.passed).toBe(5);
   });
 
-  it('full corpus parse test - all 209 snapshots parse', () => {
+  it('full corpus parse test - all 210 snapshots parse', () => {
     const allFiles = getSnapshotFiles(SNAP_DIR);
     const totalBatches = Math.ceil(allFiles.length / 10);
     let totalPassed = 0;
@@ -178,7 +178,7 @@ describe('batch-runner', () => {
     }
 
     expect(failures).toEqual([]);
-    expect(totalPassed).toBe(209);
+    expect(totalPassed).toBe(210);
     expect(totalFailed).toBe(0);
   });
 });

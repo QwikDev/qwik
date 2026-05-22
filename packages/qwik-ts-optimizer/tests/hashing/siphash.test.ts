@@ -28,9 +28,9 @@ describe('qwikHash', () => {
     expect(hash).not.toMatch(createRegExp(charIn('-_')));
   });
 
-  it('matches all hashes across the 209 snapshot corpus', () => {
+  it('matches all hashes across the 210 snapshot corpus', () => {
     const snapFiles = readdirSync(SNAP_DIR).filter((f) => f.endsWith('.snap'));
-    expect(snapFiles.length).toBe(209);
+    expect(snapFiles.length).toBe(210);
 
     let totalHashes = 0;
     let skipped = 0;

@@ -648,8 +648,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
       this.openFragment(
         isDev
-          ? { [DEBUG_TYPE]: VirtualType.Projection, [QSlotParent]: componentFrame.componentNode.id }
-          : { [QSlotParent]: componentFrame.componentNode.id }
+          ? {
+              [DEBUG_TYPE]: VirtualType.Projection,
+              [QSlotParent]: componentFrame.componentNode.id,
+              [QSlot]: slotName,
+            }
+          : { [QSlotParent]: componentFrame.componentNode.id, [QSlot]: slotName }
       );
       const lastNode = this.getOrCreateLastNode();
       if (lastNode.vnodeData) {

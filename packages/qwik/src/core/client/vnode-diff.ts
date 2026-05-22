@@ -2005,7 +2005,7 @@ export function cleanup(
                   projectionChild = projectionChild.nextSibling as VNode | null;
                 }
 
-                cleanupStaleUnclaimedProjection(journal, projection);
+                cleanupStaleUnclaimedProjection(container, journal, projection);
               }
             }
           }
@@ -2031,18 +2031,10 @@ export function cleanup(
          */
         const vFirstChild = vnode_getFirstChild(vCursor);
         if (vFirstChild) {
-          vnode_walkVNode(vFirstChild, (vNode) => {
-            /**
-             * Instead of an ID, we store a direct reference to the VNode. This is necessary to
-             * locate the slot's parent in a detached subtree, as the ID would become invalid.
-             */
-            if (vNode.flags & VNodeFlags.Virtual) {
-              // The QSlotParent is used to find the slot parent during scheduling
-              vNode.slotParent;
-            }
-          });
+          vnode_walkVNode(vFirstChild);
           return;
         }
+        clearProjectionFromSlotParent(container, vCursor);
       }
     } else if (type & VNodeFlags.Text) {
       markVNodeAsDeleted(vCursor);
@@ -2080,7 +2072,21 @@ export function cleanup(
   } while (true as boolean);
 }
 
-function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNode) {
+function clearProjectionFromSlotParent(container: ClientContainer, vNode: VNode) {
+  if (!vNode.slotParent) {
+    return;
+  }
+  const slotName = container.getHostProp<string>(vNode, QSlot);
+  if (slotName != null && container.getHostProp(vNode.slotParent, slotName) === vNode) {
+    vnode_setProp(vNode.slotParent, slotName, null);
+  }
+}
+
+function cleanupStaleUnclaimedProjection(
+  container: ClientContainer,
+  journal: VNodeJournal,
+  projection: VNode
+) {
   // we are removing a node where the projection would go after slot render.
   // This is not needed, so we need to cleanup still unclaimed projection
   const projectionParent = projection.parent;
@@ -2091,6 +2097,7 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
       vnode_getElementName(projectionParent as ElementVNode) === QTemplate
     ) {
       // if parent is the q:template element then projection is still unclaimed - remove it
+      clearProjectionFromSlotParent(container, projection);
       vnode_remove(journal, projectionParent as ElementVNode | VirtualVNode, projection, true);
     }
   }

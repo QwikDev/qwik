@@ -15,6 +15,7 @@ import type {
   RouteModule,
   ValidatorReturn,
 } from '../../runtime/src/types';
+import { runServerFunctionWithCache } from '../../runtime/src/server-function-cache';
 import type { RequestEventInternal } from './request-event-core';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
 
@@ -456,13 +457,14 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       const qrl = inlinedQrl(null, serverFnHash, data.slice(1));
       let result: unknown;
       try {
-        if (isDev) {
-          result = await measure(ev, `server_${serverFnHash}`, () =>
-            (qrl as Function).apply(ev, data[0])
-          );
-        } else {
-          result = await (qrl as Function).apply(ev, data[0]);
-        }
+        result = await runServerFunctionWithCache(ev, serverFnHash, data[0], () => {
+          if (isDev) {
+            return measure(ev, `server_${serverFnHash}`, () =>
+              (qrl as Function).apply(ev, data[0])
+            );
+          }
+          return (qrl as Function).apply(ev, data[0]);
+        });
       } catch (err) {
         if (err instanceof deps.ServerError) {
           throw ev.error(err.status as ErrorCodes, err.data);

@@ -720,6 +720,11 @@
       "tests/optimizer/oss-409-rawprops-gate.test.ts :: OSS-409 bug 2: destructure defaults propagate to nested segment bodies does not apply defaults when consolidation aborted (gate cascade)",
       "tests/optimizer/oss-409-rawprops-gate.test.ts :: OSS-409 bug 2: destructure defaults propagate to nested segment bodies emits `(_rawProps.<key> ?? <default>)` in nested useTask body",
       "tests/optimizer/oss-409-rawprops-gate.test.ts :: OSS-409 bug 2: destructure defaults propagate to nested segment bodies omits `??` for non-defaulted fields",
+      "tests/optimizer/oss-411-fnsignal-folding.test.ts :: OSS-411: _fnSignal lambda body folds primitive-operand subtrees does not regress _str format when the simplifiable test arm is a literal",
+      "tests/optimizer/oss-411-fnsignal-folding.test.ts :: OSS-411: _fnSignal lambda body folds primitive-operand subtrees folds BinaryExpression with literal operands in lambda body",
+      "tests/optimizer/oss-411-fnsignal-folding.test.ts :: OSS-411: _fnSignal lambda body folds primitive-operand subtrees folds nested simplifiable subtree leaving non-simplifiable parents intact",
+      "tests/optimizer/oss-411-fnsignal-folding.test.ts :: OSS-411: _fnSignal lambda body folds primitive-operand subtrees leaves non-simplifiable MemberExpression operands untouched",
+      "tests/optimizer/oss-411-fnsignal-folding.test.ts :: OSS-411: _fnSignal lambda body folds primitive-operand subtrees skips no-op replacement when source already matches simplified form",
       "tests/optimizer/path-utils.test.ts :: path-utils detects whether a relative import stays within the srcDir-relative tree",
       "tests/optimizer/path-utils.test.ts :: path-utils normalizes windows-style paths",
       "tests/optimizer/path-utils.test.ts :: path-utils preserves current computeRelPath behavior for paths outside srcDir",
@@ -984,6 +989,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 824
+    "total": 829
   }
 }

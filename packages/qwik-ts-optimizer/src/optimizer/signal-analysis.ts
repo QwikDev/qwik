@@ -434,12 +434,30 @@ function generateFnSignal(
   const simplifications: Array<{ start: number; end: number; replacement: string }> = [];
   collectSimplifications(exprNode, exprStart, exprText, simplifications);
 
-  // _str body: root replacements only (current behavior — source-preserving).
-  const strFnBody = applyReplacements(exprText, replacements);
+  // OSS-414: collect PAREN-STRIP replacements for ParenthesizedExpression
+  // wrappers in always-safe parent positions (Property values in object
+  // literals). raw-props' `applyIdentifierReplacements` defensively wraps
+  // defaulted-field accesses in `(_rawProps.X ?? default)` for runtime
+  // safety; in object-property-value position these parens are cosmetic
+  // and SWC's printer doesn't include them. The bare-form path benefits
+  // from OSS-412's `ParenthesizedExpression` unwrap at the top of
+  // `analyzeSignalExpression`, but the object-form path slices the source
+  // including the inner parens. This helper emits two replacements per
+  // matched paren (strips `(` and `)`) so the source slice that feeds
+  // both `_str` and the lambda body comes out paren-free in safe spots.
+  // Strictly narrower than a generic paren strip — only Property-value
+  // parents qualify, so load-bearing parens (operator precedence,
+  // `(a||b).value` member access) stay intact.
+  const parenStrips: Array<{ start: number; end: number; replacement: string }> = [];
+  collectParenStrips(exprNode, exprStart, exprText, parenStrips);
 
-  // Lambda body: merged root + simplification replacements.
-  const lambdaFnBody = simplifications.length > 0
-    ? applyReplacements(exprText, [...replacements, ...simplifications])
+  // _str body: root replacements + paren strips (source-preserving for
+  // operands, paren-elided in safe positions per SWC's emit).
+  const strFnBody = applyReplacements(exprText, [...replacements, ...parenStrips]);
+
+  // Lambda body: merged root + simplification + paren strips.
+  const lambdaFnBody = (simplifications.length > 0 || parenStrips.length > 0)
+    ? applyReplacements(exprText, [...replacements, ...simplifications, ...parenStrips])
     : strFnBody;
 
   const params = roots.map((_, i) => `p${i}`).join(',');
@@ -519,6 +537,57 @@ function collectSimplifications(
   }
 
   forEachAstChild(n, (child) => collectSimplifications(child, exprStart, exprText, out));
+}
+
+/**
+ * Walk an expression subtree top-down looking for `ParenthesizedExpression`
+ * nodes whose direct parent is a `Property` (object-literal value position).
+ * In that context the parens are always cosmetic — SWC's printer emits the
+ * inner expression directly. Other parents (BinaryExpression/LogicalExpression
+ * operand, MemberExpression object, etc.) may have load-bearing parens that
+ * MUST be preserved, so this helper deliberately doesn't strip them.
+ *
+ * Emits two replacements per match: `[paren.start, inner.start] → ''`
+ * (strip opening `(`) and `[inner.end, paren.end] → ''` (strip closing `)`).
+ * These are disjoint from root + simplification replacements by
+ * construction (paren wrappers bound the outside of the expression;
+ * roots/simplifications target identifiers/subtrees within).
+ */
+function collectParenStrips(
+  n: AstMaybeNode,
+  exprStart: number,
+  exprText: string,
+  out: Array<{ start: number; end: number; replacement: string }>,
+  parentKey?: string,
+  parentNode?: AstParentNode,
+): void {
+  if (!n || typeof n !== 'object') return;
+
+  if (
+    n.type === 'ParenthesizedExpression' &&
+    parentKey === 'value' &&
+    parentNode?.type === 'Property' &&
+    n.expression &&
+    typeof n.start === 'number' &&
+    typeof n.end === 'number' &&
+    typeof n.expression.start === 'number' &&
+    typeof n.expression.end === 'number'
+  ) {
+    const openStart = n.start - exprStart;
+    const openEnd = n.expression.start - exprStart;
+    const closeStart = n.expression.end - exprStart;
+    const closeEnd = n.end - exprStart;
+    if (
+      openStart >= 0 && closeEnd <= exprText.length &&
+      openStart < openEnd && closeStart < closeEnd
+    ) {
+      out.push({ start: openStart, end: openEnd, replacement: '' });
+      out.push({ start: closeStart, end: closeEnd, replacement: '' });
+    }
+  }
+
+  forEachAstChild(n, (child, key, parent) =>
+    collectParenStrips(child, exprStart, exprText, out, key, parent));
 }
 
 /** Find the root Identifier node at the base of a member chain. */

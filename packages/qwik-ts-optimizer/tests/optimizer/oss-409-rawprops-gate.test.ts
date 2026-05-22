@@ -124,8 +124,10 @@ export const C = component$(({count, some = 1+2}) => {
     // `count` reaches into _rawProps (may go via _wrapProp(_rawProps, "count")
     // for Signal-style reactive access in JSX child position).
     expect(code).toMatch(/_rawProps[.,)"]\s*(?:["'])?count/);
-    // Defaulted access carries `?? 1+2` (formatting may add spaces — match either).
-    expect(code).toMatch(/_rawProps\.some\s*\?\?\s*1\s*\+\s*2/);
+    // Defaulted access carries the `1+2` default — either as inline
+    // `_rawProps.some ?? 1+2` (pre-OSS-412) or hoisted into a `_hf<n>_str`
+    // such as `"p0.some??1+2"` (post-OSS-412 bare-expression hoisting).
+    expect(code).toMatch(/(?:_rawProps\.some\s*\?\?\s*1\s*\+\s*2)|(?:p0\.some\?\?1\+2)/);
   });
 });
 

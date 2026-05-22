@@ -780,6 +780,20 @@ export function analyzeSignalExpression(
 ): SignalExprResult {
   if (exprNode == null) return { type: 'none' };
 
+  // OSS-412: unwrap ParenthesizedExpression so signal-analysis sees the
+  // inner expression. raw-props consolidation emits parens around the
+  // synthesized `(_rawProps.<key> ?? <default>)` access for defaulted
+  // destructure-prop locals; after the inline-body re-parse, the JSX
+  // attribute value's expression is a ParenthesizedExpression wrapping
+  // a LogicalExpression. Without this unwrap, `<div some={some}/>`
+  // (where `some` is defaulted) emits inline instead of being hoisted
+  // to `_fnSignal(_hf<n>, [_rawProps], "p0.some??<default>")`. Mirrors
+  // the existing unwrap inside `analyzeMemberExpression` for the same
+  // shape coming through `obj` of a member chain.
+  if (exprNode.type === 'ParenthesizedExpression') {
+    return analyzeSignalExpression(exprNode.expression, source, importedNames, localNames);
+  }
+
   // Literals are never wrapped
   if (exprNode.type === 'Literal') {
     return { type: 'none' };

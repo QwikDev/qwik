@@ -10,6 +10,12 @@ export const cacheConfig = defineCacheConfig({
       dedupe: true,
       namespace: 'qwik-cache-registry-app',
     },
+    components: {
+      store: 'memory',
+      scope: 'private',
+      dedupe: true,
+      namespace: 'qwik-cache-registry-app-component',
+    },
   },
 
   optimize: {

@@ -64,6 +64,12 @@ export interface SegmentCaptureInfo {
    */
   propsFieldCaptures?: Map<string, string>;
   /**
+   * OSS-409 bug 2: map from prop-field local name to destructure-time
+   * default expression source text. When set alongside {@link propsFieldCaptures},
+   * defaulted fields emit `(_rawProps.<key> ?? <default>)`.
+   */
+  propsFieldDefaults?: Map<string, string>;
+  /**
    * Map from captured variable name to its literal source text.
    * When set, these const literal captures are inlined into the segment body.
    */
@@ -116,12 +122,17 @@ interface SegmentImportSpec {
 
 // ── Props field reference replacement ──
 
-function replacePropsFieldReferences(bodyText: string, fieldMap: Map<string, string>): string {
+function replacePropsFieldReferences(
+  bodyText: string,
+  fieldMap: Map<string, string>,
+  defaultValues?: ReadonlyMap<string, string>,
+): string {
   return rewritePropsFieldReferences(bodyText, fieldMap, {
     parseFilename: '__rpf__.tsx',
     wrapperPrefix: '(',
     wrapperSuffix: ')',
     memberPropertyMode: 'all',
+    defaultValues,
   });
 }
 
@@ -563,7 +574,13 @@ function applyBodyTransforms(
   // every step (that pattern was repeated three times in the original).
   const propsFieldCaptures = captureInfo?.propsFieldCaptures;
   if (propsFieldCaptures && propsFieldCaptures.size > 0) {
-    bodyText = replacePropsFieldReferences(bodyText, propsFieldCaptures);
+    // OSS-409 bug 2: pass propsFieldDefaults so defaulted fields emit
+    // `(_rawProps.<key> ?? <default>)` matching SWC's NullishCoalescing.
+    bodyText = replacePropsFieldReferences(
+      bodyText,
+      propsFieldCaptures,
+      captureInfo?.propsFieldDefaults,
+    );
   }
 
   let liveCaptureInfo = captureInfo;

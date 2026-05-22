@@ -7,13 +7,40 @@ import {
 
 describe('raw-props', () => {
   it('rewrites destructured params without reparsing the edited body', () => {
-    const body = '({ count, label = getLabel() }) => ({ count, label, total: count + 1 })';
+    // Const-default (literal) — consolidation fires per SWC's `is_const_expr` gate.
+    // Call-default (e.g. `label = getLabel()`) aborts consolidation; that case
+    // is now covered by 'aborts consolidation for call-expression default' below.
+    const body = '({ count, label = "x" }) => ({ count, label, total: count + 1 })';
 
     const result = applyRawPropsTransform(body);
 
     expect(result).toBe(
-      '(_rawProps) => ({ count: _rawProps.count, label: (_rawProps.label ?? getLabel()), total: _rawProps.count + 1 })',
+      '(_rawProps) => ({ count: _rawProps.count, label: (_rawProps.label ?? "x"), total: _rawProps.count + 1 })',
     );
+  });
+
+  it('aborts consolidation for call-expression default (parity gate)', () => {
+    // Matches SWC's `transform_pat` `skip = true` arm
+    // (`swc-reference-only/props_destructuring.rs:389-391`): when an
+    // AssignmentPattern default contains a CallExpression the destructure
+    // is preserved verbatim instead of being rewritten to `_rawProps.<key>`.
+    const body = '({ count, label = getLabel() }) => ({ count, label, total: count + 1 })';
+
+    const result = applyRawPropsTransform(body);
+
+    // No consolidation — source returned unchanged.
+    expect(result).toBe(body);
+  });
+
+  it('aborts consolidation for nested ObjectPattern field (parity gate)', () => {
+    // Matches SWC's `transform_pat` skip arm for KeyValue with a nested
+    // ObjectPattern value (`swc-reference-only/props_destructuring.rs:456-458`).
+    const body = '({ count, stuff: { hey } }) => ({ count, hey })';
+
+    const result = applyRawPropsTransform(body);
+
+    // No consolidation — source returned unchanged.
+    expect(result).toBe(body);
   });
 
   it('rewrites body-level destructuring and keeps the original param name', () => {

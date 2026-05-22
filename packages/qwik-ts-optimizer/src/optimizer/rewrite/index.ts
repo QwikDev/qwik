@@ -56,6 +56,7 @@ export {
 export {
   applyRawPropsTransformDetailed,
   extractDestructuredFieldMap,
+  extractDestructuredFieldDefaultsMap,
   consolidateRawPropsInWCalls,
   applyRawPropsTransform,
   type RawPropsTransformResult,
@@ -66,7 +67,7 @@ export { transformInlineSegmentBody } from './inline-body.js';
 export type { RewriteContext } from './rewrite-context.js';
 
 // Imports used internally
-import { extractDestructuredFieldMap } from './raw-props.js';
+import { extractDestructuredFieldMap, extractDestructuredFieldDefaultsMap } from './raw-props.js';
 
 export interface InlineStrategyOptions {
   /** Whether to use inline/hoist strategy (_noopQrl + .s()) */
@@ -423,13 +424,25 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
     const fieldMap = extractDestructuredFieldMap(parentExt.bodyText);
     if (fieldMap.size === 0) continue;
 
+    // OSS-409 bug 2: parallel defaults map so nested-segment field
+    // rewrites can emit `(_rawProps.<key> ?? <default>)` for fields
+    // the parent destructure defaulted (`some = 1+2`, `hey2 = 123`).
+    // Defaults-only — fields without a destructure default get bare
+    // `_rawProps.<key>` from the existing rewrite path.
+    const fieldDefaultsMap = extractDestructuredFieldDefaultsMap(parentExt.bodyText);
+
     const nonPropsCaptures: string[] = [];
     let hasPropsFields = false;
     const propsFieldCaptures = new Map<string, string>();
+    const propsFieldDefaults = new Map<string, string>();
     for (const name of ext.captureNames) {
       if (fieldMap.has(name)) {
         hasPropsFields = true;
         propsFieldCaptures.set(name, fieldMap.get(name)!);
+        const defaultExpr = fieldDefaultsMap.get(name);
+        if (defaultExpr !== undefined) {
+          propsFieldDefaults.set(name, defaultExpr);
+        }
       } else {
         nonPropsCaptures.push(name);
       }
@@ -441,6 +454,9 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
       // ConsolidatedSegment from downstream's perspective.
       const wip = ext as Mutable<ConsolidatedSegment>;
       wip.propsFieldCaptures = propsFieldCaptures;
+      if (propsFieldDefaults.size > 0) {
+        wip.propsFieldDefaults = propsFieldDefaults;
+      }
       wip.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
       wip.captures = wip.captureNames.length > 0;
     }

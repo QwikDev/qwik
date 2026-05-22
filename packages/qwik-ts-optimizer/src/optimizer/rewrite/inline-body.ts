@@ -315,7 +315,13 @@ export function transformInlineSegmentBody(
   }
 
   if (ext.propsFieldCaptures && ext.propsFieldCaptures.size > 0) {
-    body = replacePropsFieldReferencesInBody(body, ext.propsFieldCaptures);
+    // OSS-409 bug 2: pass propsFieldDefaults so defaulted fields emit
+    // `(_rawProps.<key> ?? <default>)` (mirrors SWC's NullishCoalescing).
+    body = replacePropsFieldReferencesInBody(
+      body,
+      ext.propsFieldCaptures,
+      ext.propsFieldDefaults,
+    );
   }
 
   body = propagateConstLiteralsInBody(body);

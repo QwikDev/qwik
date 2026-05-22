@@ -108,6 +108,20 @@ interface RawPropsField {
 interface RawPropsBindingInfo {
   fields: RawPropsField[];
   restElementName: string | null;
+  /**
+   * True when the pattern contains a shape that consolidation cannot
+   * safely express via `_rawProps.<key>` rewrites. Mirrors SWC's
+   * `transform_pat` `skip = true` cases in
+   * `swc-reference-only/props_destructuring.rs:371-470`:
+   *   - Property value is a nested ObjectPattern / ArrayPattern
+   *     (e.g. `{ stuff: { hey } }`)
+   *   - Property has an AssignmentPattern default whose right side
+   *     contains a CallExpression (e.g. `{ stuff = hola() }`)
+   *   - RestElement argument is not a plain Identifier
+   * When `unsafe`, the caller MUST abort consolidation and preserve
+   * the original destructure pattern verbatim.
+   */
+  unsafe: boolean;
 }
 
 interface SourceRange {
@@ -151,11 +165,54 @@ export function extractDestructuredFieldMap(body: string): Map<string, string> {
   const firstParam = params[0];
   if (firstParam.type !== 'ObjectPattern') return new Map();
 
+  const bindings = collectPatternBindings(firstParam);
+  // Aborted destructure — return an empty map so downstream consolidation
+  // (`preConsolidateRawPropsCaptures`, nested-segment field propagation)
+  // skips this parent entirely instead of partially consolidating only
+  // the safe-shaped fields. Matches SWC's all-or-nothing gate.
+  if (bindings.unsafe) return new Map();
+
   const fieldMap = new Map<string, string>();
-  for (const field of collectPatternBindings(firstParam).fields) {
+  for (const field of bindings.fields) {
     fieldMap.set(field.local, field.key);
   }
   return fieldMap;
+}
+
+/**
+ * Extract destructure-time default expressions from a function body whose
+ * first parameter is an ObjectPattern. Returns a map keyed by local-binding
+ * name to the default expression's source text (e.g. `some` → `1+2`,
+ * `hey2` → `123`). Returns an empty map when the destructure aborts under
+ * the safe-consolidation gate (mirrors {@link extractDestructuredFieldMap}).
+ *
+ * Used by nested-segment field propagation so `_rawProps.<key>` references
+ * inside a child segment's body get `?? <default>` appended for fields
+ * that the parent destructure defaulted — matching SWC's NullishCoalescing
+ * emission in `transform_pat` (`swc-reference-only/props_destructuring.rs:382-388`).
+ */
+export function extractDestructuredFieldDefaultsMap(body: string): Map<string, string> {
+  const session = createFunctionTransformSession('__rpd__.tsx', body, {
+    wrapperPrefix: 'const __rp__ = ',
+  });
+  if (!session) return new Map();
+
+  const params = session.fn.params;
+  if (params.length === 0) return new Map();
+
+  const firstParam = params[0];
+  if (firstParam.type !== 'ObjectPattern') return new Map();
+
+  const bindings = collectPatternBindings(firstParam, body, session.offset);
+  if (bindings.unsafe) return new Map();
+
+  const defaults = new Map<string, string>();
+  for (const field of bindings.fields) {
+    if (field.defaultValue !== undefined) {
+      defaults.set(field.local, field.defaultValue);
+    }
+  }
+  return defaults;
 }
 
 function collectPatternBindings(
@@ -165,18 +222,40 @@ function collectPatternBindings(
 ): RawPropsBindingInfo {
   const fields: RawPropsField[] = [];
   let restElementName: string | null = null;
+  let unsafe = false;
 
   for (const prop of getPatternProperties(pattern)) {
     if (isRestElementNode(prop)) {
       const restId = isIdentifierNode(prop.argument) ? prop.argument.name : null;
       if (restId) restElementName = restId;
+      else unsafe = true;
       continue;
     }
     if (!isPropertyNode(prop)) continue;
 
     const keyName = getObjectPropertyKeyName(prop.key);
+    if (!keyName) continue;
+
+    // Detect the shapes SWC's `transform_pat` flags as `skip = true`:
+    // (a) value is a nested ObjectPattern / ArrayPattern, or
+    // (b) value is an AssignmentPattern with a non-const default
+    //     (CallExpression in the default's expression tree).
+    // See `swc-reference-only/props_destructuring.rs:371-470` and the
+    // `is_const_expr` heuristic in `swc-reference-only/is_const.rs:43`.
+    if (isAstNode(prop.value)) {
+      const vt = prop.value.type;
+      if (vt === 'ObjectPattern' || vt === 'ArrayPattern') {
+        unsafe = true;
+        continue;
+      }
+      if (isAssignmentPatternNode(prop.value) && containsCallExpression(prop.value.right)) {
+        unsafe = true;
+        continue;
+      }
+    }
+
     const local = getAssignedIdentifierName(prop.value);
-    if (!keyName || !local) continue;
+    if (!local) continue;
 
     let defaultValue: string | undefined;
     if (
@@ -194,7 +273,27 @@ function collectPatternBindings(
     fields.push({ key: String(keyName), local, defaultValue });
   }
 
-  return { fields, restElementName };
+  return { fields, restElementName, unsafe };
+}
+
+/**
+ * Walk an expression subtree looking for any CallExpression. Mirrors the
+ * `visit_call_expr` arm of SWC's `is_const_expr` (`swc-reference-only/
+ * is_const.rs:46-48`) — calls are the bright-line "not const" signal we
+ * gate destructure consolidation on. Arrow function bodies are skipped
+ * (matches SWC's `visit_arrow_expr` no-op at `is_const.rs:54`).
+ */
+function containsCallExpression(node: unknown): boolean {
+  if (!isAstNode(node)) return false;
+  if (node.type === 'CallExpression') return true;
+  if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression') {
+    return false;
+  }
+  let found = false;
+  forEachAstChild(node, (child) => {
+    if (!found && containsCallExpression(child)) found = true;
+  });
+  return found;
 }
 
 function toFieldLocalToKey(fields: RawPropsField[]): Map<string, string> {
@@ -301,6 +400,13 @@ function analyzeRawPropsTransform(
   if (!arrowBodyLooksLikeComponent(fn.body)) return null;
 
   const bindings = collectPatternBindings(firstParam, body, offset);
+  // SWC's `transform_pat` aborts the entire pattern rewrite when any
+  // field has an unsupported shape (nested ObjectPattern/ArrayPattern,
+  // call-expression default, non-ident rest argument). Preserve the
+  // source destructure verbatim in that case — examples:
+  //   NoWorks2: `({ count, stuff: { hey } }) => ...` (nested pattern)
+  //   NoWorks3: `({ count, stuff = hola() }) => ...`  (call default)
+  if (bindings.unsafe) return null;
   if (bindings.fields.length === 0 && !bindings.restElementName) return null;
 
   return {
@@ -347,6 +453,9 @@ function analyzeBodyDestructureDeclarator(
   if (!isIdentifierNode(declarator.init) || declarator.init.name !== baseName) return null;
 
   const bindings = collectPatternBindings(declarator.id);
+  // Same SWC-gate as the param-level path — preserve the source
+  // destructure verbatim when any field has an unsupported shape.
+  if (bindings.unsafe) return null;
   if (bindings.fields.length === 0 && !bindings.restElementName) return null;
 
   return {
@@ -570,11 +679,20 @@ export function applyRawPropsTransform(body: string): string {
 /**
  * Replace original field name references with _rawProps.field in a body string.
  * For child segments whose captures were consolidated into a single _rawProps capture.
+ *
+ * When `defaultValues` is provided, defaulted fields emit
+ * `(_rawProps.<key> ?? <default>)` — see SWC's NullishCoalescing emission in
+ * `transform_pat` (`swc-reference-only/props_destructuring.rs:382-388`).
  */
-export function replacePropsFieldReferencesInBody(body: string, fieldMap: Map<string, string>): string {
+export function replacePropsFieldReferencesInBody(
+  body: string,
+  fieldMap: Map<string, string>,
+  defaultValues?: ReadonlyMap<string, string>,
+): string {
   return rewritePropsFieldReferences(body, fieldMap, {
     parseFilename: '__rpfb__.tsx',
     wrapperPrefix: 'const __rpfb__ = ',
     memberPropertyMode: 'nonComputed',
+    defaultValues,
   });
 }

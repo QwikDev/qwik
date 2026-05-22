@@ -42,6 +42,7 @@ import {
 import { transformEventPropName } from "./event-handlers.js";
 import {
   extractDestructuredFieldMap,
+  extractDestructuredFieldDefaultsMap,
 } from "../rewrite/index.js";
 import { collectSameFileSymbolInfo } from "../utils/module-symbols.js";
 import { rewriteImportSource } from "../rewrite-imports.js";
@@ -261,6 +262,13 @@ export interface SegmentGenerationPrep {
   segmentImportList: SegmentImportData["moduleImports"];
   enumValueMap: Map<string, Map<string, string>>;
   fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
+  /**
+   * OSS-409 bug 2: parallel to `fieldMaps` — for each parent symbol, the
+   * destructure-time default expressions keyed by local-binding name.
+   * Empty inner map means no defaults; consumers should fall through to
+   * bare `_rawProps.<key>` accessors.
+   */
+  fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
 }
 
 /**
@@ -274,6 +282,13 @@ export interface RawPropsConsolidation {
   propsFieldCaptures: Map<string, string>;
   /** Sorted; includes the literal `"_rawProps"` sentinel. */
   newCaptureNames: string[];
+  /**
+   * OSS-409 bug 2: per-field destructure-time defaults for captures
+   * that resolved to a defaulted prop on the parent. Used downstream
+   * by raw-props body rewriting to emit `(_rawProps.<key> ?? <default>)`.
+   * Undefined / empty when no defaults apply.
+   */
+  propsFieldDefaults?: Map<string, string>;
 }
 
 /**
@@ -290,13 +305,17 @@ export interface RawPropsConsolidation {
 export function consolidateRawPropsCaptures(
   captureNames: readonly string[],
   fieldMap: ReadonlyMap<string, string>,
+  fieldDefaults?: ReadonlyMap<string, string>,
 ): RawPropsConsolidation | null {
   const propsFieldCaptures = new Map<string, string>();
+  const propsFieldDefaults = new Map<string, string>();
   const nonPropsCaptures: string[] = [];
   for (const name of captureNames) {
     const fieldExpr = fieldMap.get(name);
     if (fieldExpr !== undefined) {
       propsFieldCaptures.set(name, fieldExpr);
+      const defaultExpr = fieldDefaults?.get(name);
+      if (defaultExpr !== undefined) propsFieldDefaults.set(name, defaultExpr);
     } else {
       nonPropsCaptures.push(name);
     }
@@ -305,6 +324,7 @@ export function consolidateRawPropsCaptures(
   return {
     propsFieldCaptures,
     newCaptureNames: [...nonPropsCaptures, "_rawProps"].sort(),
+    propsFieldDefaults: propsFieldDefaults.size > 0 ? propsFieldDefaults : undefined,
   };
 }
 
@@ -384,6 +404,27 @@ export function computeSegmentGenerationPrep(
     return result;
   })();
 
+  // OSS-409 bug 2: parallel defaults map (parent symbol → local → default expr).
+  // Used by raw-props consolidation in inline + default strategies to emit
+  // `(_rawProps.<key> ?? <default>)` for defaulted fields in nested segments.
+  const fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>> = (() => {
+    const parentSymbolNames = new Set<string>();
+    for (const ext of ctx.updatedExtractions) {
+      if (ext.parent !== null) parentSymbolNames.add(ext.parent);
+    }
+    const result = new Map<string, ReadonlyMap<string, string>>();
+    for (const symbolName of parentSymbolNames) {
+      const parentExt = extBySymbol.get(symbolName);
+      if (parentExt !== undefined) {
+        result.set(
+          symbolName,
+          extractDestructuredFieldDefaultsMap(parentExt.bodyText),
+        );
+      }
+    }
+    return result;
+  })();
+
   return {
     extBySymbol,
     sortedExtractions: ctx.updatedExtractions,
@@ -393,6 +434,7 @@ export function computeSegmentGenerationPrep(
     segmentImportList,
     enumValueMap,
     fieldMaps,
+    fieldDefaultsMaps,
   };
 }
 
@@ -416,9 +458,13 @@ export function buildInlineStrategySegment(
   if (ext.parent !== null && ext.captureNames.length > 0) {
     const fieldMap = prep.fieldMaps.get(ext.parent);
     if (fieldMap !== undefined && fieldMap.size > 0) {
-      const result = consolidateRawPropsCaptures(ext.captureNames, fieldMap);
+      const fieldDefaults = prep.fieldDefaultsMaps.get(ext.parent);
+      const result = consolidateRawPropsCaptures(ext.captureNames, fieldMap, fieldDefaults);
       if (result !== null) {
         ext.propsFieldCaptures = result.propsFieldCaptures;
+        if (result.propsFieldDefaults !== undefined) {
+          ext.propsFieldDefaults = result.propsFieldDefaults;
+        }
         ext.captureNames = result.newCaptureNames;
         ext.captures = result.newCaptureNames.length > 0;
       }
@@ -960,10 +1006,14 @@ export function buildDefaultStrategySegment(
   if (ext.parent !== null && ext.captureNames.length > 0) {
     const fieldMap = fieldMaps.get(ext.parent);
     if (fieldMap !== undefined && fieldMap.size > 0) {
-      const result = consolidateRawPropsCaptures(ext.captureNames, fieldMap);
+      const fieldDefaults = prep.fieldDefaultsMaps.get(ext.parent);
+      const result = consolidateRawPropsCaptures(ext.captureNames, fieldMap, fieldDefaults);
       if (result !== null) {
         captureInfo.captureNames = result.newCaptureNames;
         captureInfo.propsFieldCaptures = result.propsFieldCaptures;
+        if (result.propsFieldDefaults !== undefined) {
+          captureInfo.propsFieldDefaults = result.propsFieldDefaults;
+        }
         ext.captureNames = result.newCaptureNames;
         ext.captures = result.newCaptureNames.length > 0;
       }

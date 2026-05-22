@@ -130,6 +130,17 @@ interface ExtractionPhaseFields {
   captures: boolean;
   parent: SymbolName | null;
   propsFieldCaptures?: Map<string, string>;
+  /**
+   * Parallel to `propsFieldCaptures` — for each captured prop field that
+   * had a destructure-time default (e.g. `some = 1+2`), the default
+   * expression as source text. Nested segment bodies emit
+   * `(_rawProps.<key> ?? <default>)` for these fields so the runtime
+   * applies the default the same way the parent body would. Mirrors
+   * SWC's NullishCoalescing emission in `transform_pat`
+   * (`swc-reference-only/props_destructuring.rs:382-388`). Keyed by
+   * local-binding name (matches `propsFieldCaptures` keying).
+   */
+  propsFieldDefaults?: Map<string, string>;
   constLiterals?: Map<string, string>;
 }
 

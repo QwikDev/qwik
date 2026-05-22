@@ -8,6 +8,13 @@ interface RewritePropsFieldReferencesOptions {
   wrapperPrefix?: string;
   wrapperSuffix?: string;
   memberPropertyMode?: 'all' | 'nonComputed';
+  /**
+   * Optional map of localName → defaultExpressionSource. When provided,
+   * rewrites for matching field names emit `(_rawProps.<key> ?? <default>)`
+   * instead of bare `_rawProps.<key>`. Matches SWC's NullishCoalescing
+   * emission in `transform_pat` (`swc-reference-only/props_destructuring.rs:382-388`).
+   */
+  defaultValues?: ReadonlyMap<string, string>;
 }
 
 /**
@@ -38,6 +45,7 @@ export function rewritePropsFieldReferences(
     start: number;
     end: number;
     key: string;
+    local: string;
     isShorthand?: boolean;
   }> = [];
 
@@ -63,18 +71,21 @@ export function rewritePropsFieldReferences(
         parentNode?.type === 'Property' &&
         parentNode?.shorthand === true;
 
+      const localName = node.name;
       if (isShorthandValue) {
         replacements.push({
           start: node.start - offset,
           end: node.end - offset,
-          key: fieldMap.get(node.name)!,
+          key: fieldMap.get(localName)!,
+          local: localName,
           isShorthand: true,
         });
       } else if (!isPropertyKey && !isMemberProperty && !isParam && !isDeclaratorId) {
         replacements.push({
           start: node.start - offset,
           end: node.end - offset,
-          key: fieldMap.get(node.name)!,
+          key: fieldMap.get(localName)!,
+          local: localName,
         });
       }
     }
@@ -88,7 +99,11 @@ export function rewritePropsFieldReferences(
   replacements.sort((a, b) => b.start - a.start);
   let result = bodyText;
   for (const replacement of replacements) {
-    const accessor = buildPropertyAccessor('_rawProps', replacement.key);
+    const baseAccessor = buildPropertyAccessor('_rawProps', replacement.key);
+    const defaultExpr = options.defaultValues?.get(replacement.local);
+    const accessor = defaultExpr !== undefined
+      ? `(${baseAccessor} ?? ${defaultExpr})`
+      : baseAccessor;
     if (replacement.isShorthand) {
       result =
         result.slice(0, replacement.start) +

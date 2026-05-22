@@ -22,6 +22,8 @@ import type {
   ValidatorReturn,
 } from '../../runtime/src/types';
 import {
+  getAsyncResourceStateSnapshotForServer,
+  getCacheRegistrySnapshotForServer,
   getConfiguredComponentTarget,
   runComponentHtmlWithCache,
   runServerFunctionWithCache,
@@ -542,9 +544,14 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       return rendered.html;
     });
 
-    ev.headers.set('Content-Type', 'text/html; charset=utf-8');
     ev.headers.set('X-Qwik-Component-Cache', result.cacheStatus);
-    ev.send(200, result.html);
+    if (isComponentJsonRequest(ev, data)) {
+      ev.headers.set('Content-Type', 'application/json; charset=utf-8');
+      ev.send(200, JSON.stringify(createComponentPartialEnvelope(ev, componentId, result)));
+    } else {
+      ev.headers.set('Content-Type', 'text/html; charset=utf-8');
+      ev.send(200, result.html);
+    }
   }
 
   function getComponentRequestProps(data: unknown) {
@@ -552,6 +559,67 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       return (data as { props?: unknown }).props ?? {};
     }
     return data ?? {};
+  }
+
+  function isComponentJsonRequest(ev: RequestEvent, data: unknown) {
+    if (ev.query.get('qcomponent-format') === 'json') {
+      return true;
+    }
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+      const format = (data as { format?: unknown }).format;
+      if (format === 'json') {
+        return true;
+      }
+    }
+    return acceptsJson(ev.request.headers.get('accept'));
+  }
+
+  function createComponentPartialEnvelope(
+    ev: RequestEvent,
+    componentId: string,
+    result: { html: string; cacheStatus: 'hit' | 'miss' | 'skip' }
+  ) {
+    const component = getComponentPartialMetadata(componentId);
+    return {
+      type: 'qwik-component-partial',
+      version: 1,
+      standalone: true,
+      component,
+      cache: {
+        status: result.cacheStatus,
+      },
+      resources: getAsyncResourceStateSnapshotForServer(ev).map((state) => ({
+        qrlHash: state.qrlHash,
+        status: state.status,
+        source: state.source,
+      })),
+      html: result.html,
+    };
+  }
+
+  function getComponentPartialMetadata(componentId: string) {
+    const entry = getCacheRegistrySnapshotForServer().components.find((component) =>
+      component.ids.includes(componentId)
+    );
+    return {
+      id: componentId,
+      ...(entry ? { name: entry.name } : {}),
+      ...(entry?.registry
+        ? {
+            registry: {
+              id: entry.registry.id,
+              qrlHash: entry.registry.qrlHash,
+              symbol: entry.registry.symbol,
+            },
+          }
+        : {}),
+    };
+  }
+
+  function acceptsJson(accept: string | null) {
+    return !!accept
+      ?.split(',')
+      .some((part) => part.trim().toLowerCase().startsWith('application/json'));
   }
 
   function fixTrailingSlash(ev: RequestEvent) {

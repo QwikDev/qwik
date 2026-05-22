@@ -5,7 +5,7 @@ const baseUrl = process.argv[2] ?? 'http://127.0.0.1:4176/';
 for (const productId of ['keyboard', 'mouse']) {
   for (let index = 1; index <= 2; index++) {
     const response = await fetchPagePartial(baseUrl, productId);
-    const html = await response.text();
+    const payload = await response.json();
     const expected = productId === 'keyboard' ? 'Keyboard detail' : 'Mouse detail';
 
     console.log(
@@ -14,8 +14,10 @@ for (const productId of ['keyboard', 'mouse']) {
         `request=${index}`,
         `status=${response.status}`,
         `componentCache=${response.headers.get('x-qwik-component-cache')}`,
-        `matched=${html.includes(expected)}`,
-        `bytes=${html.length}`,
+        `payloadCache=${payload.cache.status}`,
+        `resources=${payload.resources.length}`,
+        `matched=${payload.html.includes(expected)}`,
+        `bytes=${payload.html.length}`,
       ].join(' ')
     );
   }
@@ -28,6 +30,7 @@ async function fetchPagePartial(url, productId) {
   return fetch(endpoint, {
     method: 'POST',
     headers: {
+      accept: 'application/json',
       'content-type': 'application/json',
       'X-QCOMPONENT': 'ProductPagePartial',
     },

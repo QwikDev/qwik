@@ -13,6 +13,7 @@ export const PartialRouterDemo = component$(() => {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
+        accept: 'application/json',
         'content-type': 'application/json',
         'X-QCOMPONENT': 'ProductPagePartial',
       },
@@ -23,8 +24,14 @@ export const PartialRouterDemo = component$(() => {
       }),
     });
 
-    html.value = await response.text();
-    status.value = `${productId}: ${response.headers.get('x-qwik-component-cache') ?? 'unknown'}`;
+    const payload = (await response.json()) as {
+      html: string;
+      cache: { status: string };
+      resources: { status: string }[];
+    };
+
+    html.value = payload.html;
+    status.value = `${productId}: ${payload.cache.status}, resources=${payload.resources.length}`;
     history.pushState({ productId }, '', `#${productId}`);
   });
 

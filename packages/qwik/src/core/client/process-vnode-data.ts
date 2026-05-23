@@ -60,26 +60,37 @@ import type { QElement } from '../shared/types';
  * - Walk the tree and process each `q:container` element.
  */
 type VNodeDataScope = Document | ShadowRoot;
-type OutOfOrderSegmentScope = Document | Element;
 
 export function processOutOfOrderSegmentVNodeData(
   document: Document,
   segmentId: string,
-  scope: OutOfOrderSegmentScope
+  contentNode: Element | null
 ) {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.suspense || !contentNode) {
     return;
   }
-  const script = scope.querySelector(`script[type="qwik/vnode"][q\\:r="${segmentId}"]`);
-  const qContainerElement = script?.closest('[q\\:container]') as ContainerElement | null;
-  const contentNode = qContainerElement?.querySelector(`[q\\:rp="${segmentId}"]`) as Element | null;
-  if (script && qContainerElement && contentNode) {
-    processVNodeDataImpl(document, segmentId, qContainerElement, contentNode, script.textContent!);
+  const qContainerElement = contentNode.closest('[q\\:container]') as ContainerElement | null;
+  const script = qContainerElement?.querySelector(
+    `script[type="qwik/vnode"][q\\:r="${segmentId}"]:not([q\\:patch])`
+  );
+  processVNodeDataImpl(
+    document,
+    segmentId,
+    qContainerElement,
+    contentNode,
+    script?.textContent || undefined
+  );
+  const patches = qContainerElement?.querySelectorAll(
+    `script[type="qwik/vnode"][q\\:r="${segmentId}"][q\\:patch]`
+  );
+  for (let i = 0; patches && i < patches.length; i++) {
+    (document as QDocument).qProcessVNodeDataPatch?.(patches[i]);
   }
 }
 
 export function processVNodeData(document: Document) {
   processVNodeDataImpl(document);
+  (document as QDocument).qVNodeDataProcessed = true;
 }
 
 function processVNodeDataImpl(
@@ -99,6 +110,7 @@ function processVNodeDataImpl(
   const Q_CONTAINER_ISLAND_END = '/' + Q_CONTAINER_ISLAND;
   const Q_SUSPENSE_RESOLVED = 'q:r';
   const Q_SUSPENSE_RESULT_PARENT = 'q:rp';
+  const Q_PATCH = 'q:patch';
   const qDocument = document as QDocument;
   const vNodeDataMap = (qDocument.qVNodeData ||= new WeakMap<Element, string>());
   const prototype: any = document.body;
@@ -125,6 +137,10 @@ function processVNodeDataImpl(
       const script = scripts[i];
       const qContainer = script.closest('[q\\:container]') as ContainerElement;
       qContainer.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+      if (script.hasAttribute(Q_PATCH)) {
+        qDocument.qProcessVNodeDataPatch?.(script);
+        continue;
+      }
 
       const scriptContent = script.textContent!;
       const segment = __EXPERIMENTAL__.suspense && script.getAttribute(Q_SUSPENSE_RESOLVED);
@@ -397,6 +413,30 @@ function processVNodeDataImpl(
     } while ((node = nextNode || walker.nextNode()));
   };
 
+  const processVNodeDataScope = (
+    qContainerElement: ContainerElement,
+    contentNode: Element,
+    vData: string,
+    scopeSegmentId?: string
+  ) => {
+    qContainerElement.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+    const scopeWalker = document.createTreeWalker(
+      document,
+      0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
+    );
+    scopeWalker.currentNode = contentNode;
+    walkContainer(
+      scopeWalker,
+      contentNode,
+      contentNode,
+      nextSibling(contentNode),
+      vData,
+      qContainerElement.qVNodeRefs!,
+      qContainerElement,
+      scopeSegmentId
+    );
+  };
+
   const processSuspenseContentSegment = __EXPERIMENTAL__.suspense
     ? (
         qContainerElement: ContainerElement | null,
@@ -404,32 +444,36 @@ function processVNodeDataImpl(
         boundaryId: string,
         vData?: string
       ) => {
-        const qVNodeRefs = qContainerElement?.qVNodeRefs;
         vData ||= qContainerElement?.qSegmentVnodeData?.get(boundaryId);
-        if (!vData || !qVNodeRefs) {
-          return;
+        if (qContainerElement && vData) {
+          processVNodeDataScope(qContainerElement, contentNode, vData, boundaryId);
         }
-        const segmentWalker = document.createTreeWalker(
-          document,
-          0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
-        );
-        segmentWalker.currentNode = contentNode;
-        walkContainer(
-          segmentWalker,
-          contentNode,
-          contentNode,
-          nextSibling(contentNode),
-          vData,
-          qVNodeRefs,
-          qContainerElement,
-          boundaryId
-        );
       }
     : null;
 
+  qDocument.qProcessVNodeDataPatch = (script: Element | null) => {
+    const qContainerElement = script?.closest('[q\\:container]') as ContainerElement | null;
+    const patchSegment = script?.getAttribute(Q_SUSPENSE_RESOLVED);
+    const contentNode =
+      qContainerElement &&
+      (patchSegment
+        ? (qContainerElement.querySelector(`[q\\:rp="${patchSegment}"]`) as Element | null)
+        : qContainerElement);
+    if (qContainerElement && contentNode) {
+      processVNodeDataScope(
+        qContainerElement,
+        contentNode,
+        script!.textContent!,
+        patchSegment || undefined
+      );
+    }
+  };
+
   if (__EXPERIMENTAL__.suspense && segmentId !== undefined) {
-    segmentContainer!.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
-    processSuspenseContentSegment!(segmentContainer!, segmentContent!, segmentId, segmentVNodeData);
+    if (segmentContainer && segmentContent && segmentVNodeData) {
+      segmentContainer.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+      processSuspenseContentSegment!(segmentContainer, segmentContent, segmentId, segmentVNodeData);
+    }
     return;
   }
 

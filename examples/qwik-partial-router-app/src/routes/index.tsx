@@ -1,12 +1,18 @@
 import { component$, useSignal } from '@qwik.dev/core';
-import type { DocumentHead } from '@qwik.dev/router';
+import { type DocumentHead, useLocation } from '@qwik.dev/router';
+import { DemoModePanel, readDemoMode } from '../../../qwik-cache-demo-utils/demo-mode';
 import { ProductPagePartial } from './partials';
 
 type PartialMode = 'html' | 'data';
 
-const runId = `partial-router-${Date.now()}`;
-
-async function requestPartial(componentId: string, slug: string, mode: PartialMode, href: string) {
+async function requestPartial(
+  componentId: string,
+  slug: string,
+  mode: PartialMode,
+  href: string,
+  runId: string,
+  delayMs: number
+) {
   const url = new URL(href);
   url.search = '';
   url.searchParams.set('qcomponent', componentId);
@@ -25,6 +31,7 @@ async function requestPartial(componentId: string, slug: string, mode: PartialMo
       props: {
         slug,
         runId,
+        delayMs,
       },
     }),
   });
@@ -38,6 +45,8 @@ async function requestPartial(componentId: string, slug: string, mode: PartialMo
 }
 
 export default component$(() => {
+  const location = useLocation();
+  const demo = readDemoMode(location.url, 'partial-router');
   const html = useSignal('');
   const envelope = useSignal('');
   const status = useSignal('SSR shell rendered. Choose a partial.');
@@ -50,6 +59,7 @@ export default component$(() => {
       >
         Example gallery
       </a>
+      <DemoModePanel demo={demo} port={4313} />
       <section class="mb-3.5 rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
         <p class="mb-2 text-xs font-extrabold uppercase tracking-wide text-purple-700">
           Partial Router Shell
@@ -71,7 +81,9 @@ export default component$(() => {
               'ProductPagePartial',
               'keyboard',
               'html',
-              location.href
+              location.url.href,
+              demo.runId,
+              demo.delayMs
             );
             status.value = partial.status;
             html.value = partial.html;
@@ -87,7 +99,9 @@ export default component$(() => {
               'AccountPagePartial',
               'workspace',
               'html',
-              location.href
+              location.url.href,
+              demo.runId,
+              demo.delayMs
             );
             status.value = partial.status;
             html.value = partial.html;
@@ -103,7 +117,9 @@ export default component$(() => {
               'SearchPagePartial',
               'desk',
               'data',
-              location.href
+              location.url.href,
+              demo.runId,
+              demo.delayMs
             );
             status.value = partial.status;
             html.value = partial.html;
@@ -118,7 +134,7 @@ export default component$(() => {
       <section class="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-3.5">
         <div class="min-h-80 rounded-lg border border-slate-200 bg-white p-[18px] shadow-xl shadow-slate-900/5">
           <h2 class="mb-4 text-2xl font-black">Initial SSR boundary</h2>
-          <ProductPagePartial slug="keyboard" runId={runId} />
+          <ProductPagePartial slug="keyboard" runId={demo.runId} delayMs={demo.delayMs} />
         </div>
         <div class="min-h-80 rounded-lg border border-slate-200 bg-white p-[18px] shadow-xl shadow-slate-900/5">
           <h2 class="mb-4 text-2xl font-black">Fetched partial output</h2>

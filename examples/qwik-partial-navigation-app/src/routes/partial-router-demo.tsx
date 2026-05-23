@@ -1,6 +1,6 @@
 import { $, component$, useSignal } from '@qwik.dev/core';
 
-export const PartialRouterDemo = component$(() => {
+export const PartialRouterDemo = component$((props: { runId: string; delayMs?: number }) => {
   const html = useSignal('<p>Select a product partial.</p>');
   const status = useSignal('idle');
 
@@ -20,6 +20,8 @@ export const PartialRouterDemo = component$(() => {
       body: JSON.stringify({
         props: {
           productId,
+          runId: props.runId,
+          delayMs: props.delayMs,
         },
       }),
     });

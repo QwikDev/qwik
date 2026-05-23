@@ -1,5 +1,6 @@
 import { component$ } from '@qwik.dev/core';
 import type { DocumentHead } from '@qwik.dev/router';
+import { demoHref } from '../../../qwik-cache-demo-utils/demo-mode';
 
 type Demo = {
   title: string;
@@ -80,6 +81,8 @@ const demos: Demo[] = [
 ];
 
 export default component$(() => {
+  const coldRun = Date.now().toString(36);
+
   return (
     <main class="mx-auto max-w-[1180px] px-5 py-12 text-slate-900">
       <section class="mb-7 max-w-3xl">
@@ -116,12 +119,20 @@ export default component$(() => {
                 <li key={item}>{item}</li>
               ))}
             </ul>
-            <a
-              class="mt-auto inline-flex justify-center rounded-md bg-slate-800 px-4 py-2.5 font-bold text-white no-underline"
-              href={`http://127.0.0.1:${demo.port}/`}
-            >
-              View demo
-            </a>
+            <div class="mt-auto grid gap-2">
+              <a
+                class="inline-flex justify-center rounded-md bg-slate-800 px-4 py-2.5 font-bold text-white no-underline"
+                href={demoHref(demo.port, 'mock-loading', `${coldRun}-${demo.port}`, 900)}
+              >
+                Mock loading
+              </a>
+              <a
+                class="inline-flex justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 font-bold text-slate-900 no-underline"
+                href={demoHref(demo.port, 'cached', 'stable', 0)}
+              >
+                Cached
+              </a>
+            </div>
           </article>
         ))}
       </section>

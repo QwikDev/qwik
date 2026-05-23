@@ -3,6 +3,7 @@ import { server$ } from '@qwik.dev/router';
 export type ProductInput = {
   productId: string;
   runId?: string;
+  delayMs?: number;
 };
 
 const productReads = new Map<string, number>();
@@ -45,9 +46,13 @@ export const getShopperSegment = server$(async function () {
   };
 });
 
-export const getProduct = server$(async function ({ productId, runId = 'commerce' }: ProductInput) {
+export const getProduct = server$(async function ({
+  productId,
+  runId = 'commerce',
+  delayMs = 35,
+}: ProductInput) {
   const segment = await getShopperSegment();
-  await delay(35);
+  await delay(delayMs);
 
   const product = products[productId as keyof typeof products] ?? products.keyboard;
   const readKey = `${runId}:${productId}:${segment.plan}`;
@@ -65,9 +70,9 @@ export const getProduct = server$(async function ({ productId, runId = 'commerce
   };
 });
 
-export const getPrice = server$(async function ({ productId }: ProductInput) {
+export const getPrice = server$(async function ({ productId, delayMs = 20 }: ProductInput) {
   const segment = await getShopperSegment();
-  await delay(20);
+  await delay(delayMs);
 
   const product = products[productId as keyof typeof products] ?? products.keyboard;
   const price = Math.round(product.basePrice * (1 - segment.discount));
@@ -79,9 +84,9 @@ export const getPrice = server$(async function ({ productId }: ProductInput) {
   };
 });
 
-export const getInventory = server$(async function ({ productId }: ProductInput) {
+export const getInventory = server$(async function ({ productId, delayMs = 20 }: ProductInput) {
   const segment = await getShopperSegment();
-  await delay(20);
+  await delay(delayMs);
 
   const product = products[productId as keyof typeof products] ?? products.keyboard;
   return {
@@ -93,11 +98,15 @@ export const getInventory = server$(async function ({ productId }: ProductInput)
   };
 });
 
-export const getRecommendations = server$(async function ({ productId }: ProductInput) {
+export const getRecommendations = server$(async function ({
+  productId,
+  runId = 'commerce',
+  delayMs = 45,
+}: ProductInput) {
   const segment = await getShopperSegment();
-  await delay(45);
+  await delay(delayMs);
 
-  const key = `${productId}:${segment.plan}`;
+  const key = `${runId}:${productId}:${segment.plan}`;
   const reads = (recommendationReads.get(key) ?? 0) + 1;
   recommendationReads.set(key, reads);
 

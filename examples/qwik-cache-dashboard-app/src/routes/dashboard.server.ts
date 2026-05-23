@@ -3,6 +3,8 @@ import { server$ } from '@qwik.dev/router';
 export type TenantInput = {
   tenantId: string;
   range: '7d' | '30d';
+  runId?: string;
+  delayMs?: number;
 };
 
 const revenueReads = new Map<string, number>();
@@ -22,8 +24,8 @@ export const getTenantContext = server$(async function (input?: Partial<TenantIn
 
 export const getRevenue = server$(async function (input: TenantInput) {
   const tenant = await getTenantContext(input);
-  await delay(30);
-  const key = `${tenant.privateKey}:${input.range}:revenue`;
+  await delay(input.delayMs ?? 30);
+  const key = `${input.runId ?? 'dashboard'}:${tenant.privateKey}:${input.range}:revenue`;
   const reads = (revenueReads.get(key) ?? 0) + 1;
   revenueReads.set(key, reads);
   const base = input.range === '30d' ? 124800 : 32750;
@@ -38,8 +40,8 @@ export const getRevenue = server$(async function (input: TenantInput) {
 
 export const getCustomers = server$(async function (input: TenantInput) {
   const tenant = await getTenantContext(input);
-  await delay(30);
-  const key = `${tenant.privateKey}:${input.range}:customers`;
+  await delay(input.delayMs ?? 30);
+  const key = `${input.runId ?? 'dashboard'}:${tenant.privateKey}:${input.range}:customers`;
   const reads = (customerReads.get(key) ?? 0) + 1;
   customerReads.set(key, reads);
   return {
@@ -53,7 +55,7 @@ export const getCustomers = server$(async function (input: TenantInput) {
 
 export const getAlerts = server$(async function (input: TenantInput) {
   const tenant = await getTenantContext(input);
-  await delay(25);
+  await delay(input.delayMs ?? 25);
   return {
     kind: 'alerts',
     tenantId: tenant.tenantId,
@@ -66,7 +68,7 @@ export const getAlerts = server$(async function (input: TenantInput) {
 
 export const getAuditSummary = server$(async function (input: TenantInput) {
   const tenant = await getTenantContext(input);
-  await delay(20);
+  await delay(input.delayMs ?? 20);
   return {
     kind: 'audit',
     tenantId: tenant.tenantId,

@@ -3,6 +3,8 @@ import { server$ } from '@qwik.dev/router';
 export type RemoteInput = {
   productId: string;
   source: 'host' | 'external-team';
+  runId?: string;
+  delayMs?: number;
 };
 
 const reads = new Map<string, number>();
@@ -14,10 +16,15 @@ export const getRemoteSegment = server$(async function () {
   };
 });
 
-export const getRemoteProduct = server$(async function ({ productId, source }: RemoteInput) {
+export const getRemoteProduct = server$(async function ({
+  productId,
+  source,
+  runId = 'component-host',
+  delayMs = 30,
+}: RemoteInput) {
   const segment = await getRemoteSegment();
-  await delay(30);
-  const key = `${segment.origin}:${source}:${productId}`;
+  await delay(delayMs);
+  const key = `${runId}:${segment.origin}:${source}:${productId}`;
   const count = (reads.get(key) ?? 0) + 1;
   reads.set(key, count);
   return {

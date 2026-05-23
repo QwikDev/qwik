@@ -3,6 +3,7 @@ import { server$ } from '@qwik.dev/router';
 export type StressInput = {
   id: string;
   runId: string;
+  delayMs?: number;
 };
 
 const itemReads = new Map<string, number>();
@@ -15,9 +16,9 @@ export const getStressSegment = server$(async function () {
   };
 });
 
-export const getStressItem = server$(async function ({ id, runId }: StressInput) {
+export const getStressItem = server$(async function ({ id, runId, delayMs }: StressInput) {
   const segment = await getStressSegment();
-  await delay(id === 'slow' ? 80 : 10);
+  await delay(delayMs ?? (id === 'slow' ? 80 : 10));
   const key = `${runId}:${id}:${segment.bucket}`;
   const reads = (itemReads.get(key) ?? 0) + 1;
   itemReads.set(key, reads);
@@ -30,9 +31,9 @@ export const getStressItem = server$(async function ({ id, runId }: StressInput)
   };
 });
 
-export const getSharedMetric = server$(async function ({ id, runId }: StressInput) {
+export const getSharedMetric = server$(async function ({ id, runId, delayMs }: StressInput) {
   const segment = await getStressSegment();
-  await delay(15);
+  await delay(delayMs ?? 15);
   const key = `${runId}:${id}:${segment.bucket}:metric`;
   const reads = (metricReads.get(key) ?? 0) + 1;
   metricReads.set(key, reads);

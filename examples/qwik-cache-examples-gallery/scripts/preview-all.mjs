@@ -4,22 +4,14 @@ import { apps, resolveAppDir } from './apps.mjs';
 const children = apps.map(([name, dir, port]) => {
   const child = spawn(
     'pnpm',
-    [
-      'exec',
-      'vite',
-      '--config',
-      'vite.config.ts',
-      '--mode',
-      'ssr',
-      '--host',
-      '127.0.0.1',
-      '--port',
-      String(port),
-      '--strictPort',
-    ],
+    ['exec', 'vite', 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
     {
       cwd: resolveAppDir(dir),
       stdio: ['ignore', 'pipe', 'pipe'],
+      env: {
+        ...process.env,
+        NODE_ENV: 'production',
+      },
     }
   );
 
@@ -36,13 +28,13 @@ const children = apps.map(([name, dir, port]) => {
 let shuttingDown = false;
 
 console.log('');
-console.log('Qwik cache-registry examples are starting:');
+console.log('Qwik cache-registry production previews are starting:');
 for (const [name, , port] of apps) {
   console.log(`  ${name.padEnd(16)} http://127.0.0.1:${port}/`);
 }
 console.log('');
 console.log('Open the gallery at http://127.0.0.1:4300/');
-console.log('Press Ctrl+C to stop all example servers.');
+console.log('Press Ctrl+C to stop all production preview servers.');
 console.log('');
 
 for (const signal of ['SIGINT', 'SIGTERM']) {

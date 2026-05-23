@@ -228,6 +228,15 @@ export interface SegmentGenerationContext {
   migrationDecisions: MigrationDecision[];
   moduleLevelDecls: ModuleLevelDecl[];
   moduleLevelDeclsByName: Map<string, ModuleLevelDecl>;
+  /**
+   * Per-varName post-JSX-rewrite source text for MOVE-target decls. The
+   * parent rewrite captures these post-`runJsxTransform` (pre-assembly)
+   * so JSX inside a moved helper function (e.g. `function Hola(props) {
+   * return <div {...props}/>; }`) carries the rewritten Qwik form into
+   * the segment file. Without this, the raw source survives the move and
+   * oxc-transform's TS-strip pass emits React `_jsx(...)` instead. OSS-430.
+   */
+  movedDeclSnapshots: Map<string, string>;
   segmentUsage: Map<string, Set<string>>;
   parentModulePath: string;
   preRenameSymbolName: Map<string, string>;
@@ -802,8 +811,14 @@ export function wireMigration(
             importDeps: [],
           });
         } else {
+          // OSS-430: prefer the post-JSX-rewrite snapshot when the parent
+          // captured one; falls back to the raw source slice. Snapshot
+          // carries the Qwik JSX form (`_jsxSorted` / `_jsxSplit`) into
+          // the moved helper instead of letting raw JSX fall through to
+          // oxc-transform's React `_jsx` default.
+          const rewrittenText = ctx.movedDeclSnapshots.get(decision.varName);
           captureInfo.movedDeclarations.push({
-            text: decl.declText,
+            text: rewrittenText ?? decl.declText,
             importDeps,
           });
         }

@@ -671,7 +671,22 @@ export function generateSegmentCode(
   bodyText = foldBodySimplifiableExpressions(bodyText);
 
   // Phase 6: core-symbol imports + sync$ call rewriting.
-  ensureCoreImports(bodyText, parts);
+  // OSS-430: include moved-decl text (already in `parts`) when scanning
+  // for core helpers — a moved helper function with rewritten JSX may
+  // reference `_jsxSplit` / `_getVarProps` / `_getConstProps` etc. that
+  // the segment's main body doesn't.
+  // OSS-430: include moved-decl text (already in `parts`) when scanning
+  // for core helpers — a moved helper function with rewritten JSX may
+  // reference `_jsxSplit` / `_getVarProps` / `_getConstProps` etc. that
+  // the segment's main body doesn't. The `//` separator may not yet be
+  // present when ensureCoreImports runs (it's added later by
+  // `normalizeSeparators`), so explicitly include a separator before
+  // calling so the early-return path doesn't bail out.
+  const scanText = bodyText + '\n' + parts
+    .filter(p => !p.startsWith('import') && p !== '//')
+    .join('\n');
+  if (parts.indexOf('//') < 0) parts.push('//');
+  ensureCoreImports(scanText, parts);
   bodyText = transformSyncCalls(bodyText, parts);
 
   // Phase 7: separator normalization (after core imports, before re-collection).

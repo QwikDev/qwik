@@ -98,6 +98,15 @@ export interface ParentRewriteResult {
    * mutated in place per the OSS-389 pragmatic-pivot pattern.
    */
   extractions: ConsolidatedSegment[];
+  /**
+   * Post-JSX-rewrite source text for each module-level decl that
+   * migration will MOVE into a segment file. Keyed by `varName`.
+   * Consumed by `segment-generation.ts:wireMigration` so the moved decl
+   * carries the rewritten JSX (Qwik form) rather than the raw source
+   * (which would survive into the segment and get React-transformed by
+   * oxc-transform's TS-strip pass). See OSS-430.
+   */
+  movedDeclSnapshots: Map<string, string>;
   /** Final JSX key counter value after parent module transform (for segment continuation). */
   jsxKeyCounterValue?: number;
 }
@@ -249,6 +258,28 @@ export function rewriteParentModule(
   removeDuplicateExports(ctx);
   addCaptureWrapping(ctx);
   runJsxTransform(ctx);
+
+  // OSS-430: capture post-JSX-rewrite text for each module-level decl
+  // that migration will MOVE into a segment file. The migration site in
+  // `segment-generation.ts:wireMigration` historically used the raw
+  // `decl.declText` source slice, which meant JSX inside the moved decl
+  // (e.g. a non-component$ helper function with `<div {...props}>`)
+  // never received the Qwik JSX rewrite — it fell through to
+  // oxc-transform's default React JSX transform and emitted `_jsx`.
+  // Sliced from MagicString here (post-JSX-rewrite, pre-assembly) so the
+  // moved text carries the rewritten JSX into the segment file.
+  const movedDeclSnapshots = new Map<string, string>();
+  if (migrationDecisions && moduleLevelDecls) {
+    const declsByName = new Map<string, ModuleLevelDecl>();
+    for (const decl of moduleLevelDecls) declsByName.set(decl.name, decl);
+    for (const decision of migrationDecisions) {
+      if (decision.action !== 'move') continue;
+      const decl = declsByName.get(decision.varName);
+      if (!decl) continue;
+      movedDeclSnapshots.set(decision.varName, ctx.s.slice(decl.declStart, decl.declEnd));
+    }
+  }
+
   collectNeededImports(ctx);
   buildQrlDeclarations(ctx);
   buildInlineSCalls(ctx);
@@ -261,6 +292,7 @@ export function rewriteParentModule(
     // resolveNesting + preConsolidateRawPropsCaptures + the phase-flip
     // above. Every element now has `phase: 'consolidated'`.
     extractions: extractions as ConsolidatedSegment[],
+    movedDeclSnapshots,
     jsxKeyCounterValue: ctx.jsxKeyCounterValue || undefined,
   };
 }

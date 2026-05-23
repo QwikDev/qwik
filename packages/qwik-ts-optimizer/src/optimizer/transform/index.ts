@@ -661,6 +661,7 @@ export function transformModule(
       migrationDecisions,
       moduleLevelDecls,
       moduleLevelDeclsByName,
+      movedDeclSnapshots: parentResult.movedDeclSnapshots,
       segmentUsage,
       parentModulePath,
       preRenameSymbolName,

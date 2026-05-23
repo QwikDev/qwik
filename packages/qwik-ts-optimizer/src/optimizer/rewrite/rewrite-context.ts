@@ -79,4 +79,12 @@ export interface RewriteContext {
   isInline: boolean;
   /** OSS-421: `mode: 'lib'` runs the inline pipeline + a post-pass collapse. */
   isLibMode: boolean;
+  /**
+   * OSS-431: source carries `/* @jsxImportSource <non-qwik-pkg> *‌/` pragma.
+   * When true, skip Qwik's JSX-syntax rewrite (`runJsxTransform`) so
+   * oxc-transform's default JSX transform handles the file using the
+   * pragma-named runtime. Marker calls (`qwikify$`, `component$`, …) still
+   * extract — they're the Qwik↔foreign-runtime bridge.
+   */
+  hasForeignJsxRuntime: boolean;
 }

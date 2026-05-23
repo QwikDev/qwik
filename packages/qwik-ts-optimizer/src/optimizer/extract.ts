@@ -35,6 +35,7 @@ import {
 } from './marker-detection.js';
 import { isEventProp, transformEventPropName, collectPassiveDirectives } from './transform/event-handlers.js';
 import { getBasename, getDirectory, getExtension, getFileStem } from './path-utils.js';
+import { detectForeignJsxRuntime } from './utils/jsx-import-source.js';
 import { getQrlCalleeName } from './utils/qrl-naming.js';
 import {
   type BodyText,
@@ -428,8 +429,10 @@ export function extractSegments(
   const pushedNodes = new Map<AstNode, number>();
   const parentMap = new Map<AstNode, AstParentNode>();
 
-  // Suppress JSX $-suffixed attribute extraction when a non-Qwik @jsxImportSource is set
-  const hasNonQwikJsxImportSource = /\/\*\s*@jsxImportSource\s+(?!@qwik|@builder\.io\/qwik)\S+/.test(source);
+  // Suppress JSX $-suffixed attribute extraction when a non-Qwik
+  // @jsxImportSource is set (OSS-431). The shared helper also detects the
+  // pragma text for downstream phases (parent rewrite, segment codegen).
+  const hasNonQwikJsxImportSource = detectForeignJsxRuntime(source).hasForeignJsxRuntime;
 
   // Per OSS-397 (OSS-391 Phase 2b): split walk state into Enter and Exit
   // context views so the type system enforces "enter pushes, leave pops."

@@ -172,7 +172,14 @@ export function postProcessSegmentCode(
       tsDeclarationProbe.test(result) ||
       tsNonNullPropertyProbe.test(result) ||
       tsGenericCallProbe.test(result);
-    if (hasTsSyntax) {
+    // OSS-431: segments under a foreign `@jsxImportSource` pragma have
+    // raw JSX in their body (Qwik's JSX-syntax rewrite was skipped). The
+    // TS-syntax probes don't detect plain JSX, so force oxc-transform to
+    // run when the body still contains JSX and we should transpile it.
+    // oxc-transform honors the pragma we prepended in `segment-generation.ts`.
+    const needsJsxStrip =
+      opts.shouldTranspileJsx && /<\/?[A-Za-z]/.test(result);
+    if (hasTsSyntax || needsJsxStrip) {
       const tsStripOptions: TransformOptions = {
         typescript: { onlyRemoveTypeImports: false },
       };

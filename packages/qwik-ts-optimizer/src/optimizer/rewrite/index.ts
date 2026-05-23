@@ -201,6 +201,11 @@ export function rewriteParentModule(
    * user explicitly overrides.
    */
   userDevPath?: string,
+  /**
+   * OSS-431: source carries `/* @jsxImportSource <non-qwik-pkg> *‌/`. When
+   * true, `runJsxTransform` is skipped — see RewriteContext.hasForeignJsxRuntime.
+   */
+  hasForeignJsxRuntime?: boolean,
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const program = existingProgram ?? parseSync(relPath, source, RAW_TRANSFER_PARSER_OPTIONS).program;
@@ -231,6 +236,7 @@ export function rewriteParentModule(
     isDevMode: mode === 'dev' || mode === 'hmr',
     isInline: inlineOptions?.inline === true,
     isLibMode: inlineOptions?.isLibMode === true,
+    hasForeignJsxRuntime: hasForeignJsxRuntime === true,
   };
 
   collectExtractedCalleeNames(ctx);
@@ -742,6 +748,12 @@ function addCaptureWrapping(ctx: RewriteContext): void {
 
 function runJsxTransform(ctx: RewriteContext): void {
   if (!ctx.jsxOptions?.enableJsx) return;
+  // OSS-431: foreign `@jsxImportSource` pragma — leave JSX intact so
+  // oxc-transform's default JSX transform handles it (it honors the pragma
+  // and emits `import { jsx as _jsx } from "<pkg>/jsx-runtime"`). The
+  // `<div onClick$>` syntax stays as-is; the foreign runtime treats `onClick$`
+  // as an ordinary attribute name, which is what SWC produces too.
+  if (ctx.hasForeignJsxRuntime) return;
 
   const skipRanges = ctx.topLevel.map((ext) => ({
     start: ext.argStart,

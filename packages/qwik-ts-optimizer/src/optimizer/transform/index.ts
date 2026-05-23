@@ -13,6 +13,7 @@ import type {
 } from "../../ast-types.js";
 import { parseWithRawTransfer } from "../utils/parse.js";
 import { flattenAndReparse } from "../utils/flatten-destructures.js";
+import { detectForeignJsxRuntime } from "../utils/jsx-import-source.js";
 import { extractSegments } from "../extract.js";
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from "../extract.js";
 import { repairInput } from "../input-repair.js";
@@ -127,6 +128,13 @@ export function transformModule(
       program = flattened.program;
       parserModule = flattened.module ?? parserModule;
     }
+
+    // OSS-431: detect foreign `@jsxImportSource` pragma once per source.
+    // Threaded into rewrite + segment generation so both phases skip Qwik's
+    // JSX-syntax rewrite and let oxc-transform's default JSX transform
+    // handle the file using the pragma-named runtime.
+    const { hasForeignJsxRuntime, pragmaText: foreignJsxPragmaText } =
+      detectForeignJsxRuntime(repairedCode);
 
     // Phase 1: Extract $() segments
     const willTranspileJsx =
@@ -566,6 +574,7 @@ export function transformModule(
       program,
       closureNodes,
       input.devPath,
+      hasForeignJsxRuntime,
     );
 
     // Post-process parent: DCE + unused import cleanup
@@ -676,6 +685,8 @@ export function transformModule(
       extractionLoopMap,
       constLiteralsMap,
       parentJsxKeyCounterValue: parentResult.jsxKeyCounterValue ?? 0,
+      hasForeignJsxRuntime,
+      foreignJsxPragmaText,
     };
 
     const segmentModules = generateAllSegmentModules(segmentCtx);

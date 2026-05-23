@@ -251,6 +251,14 @@ export interface SegmentGenerationContext {
   extractionLoopMap: Map<string, LoopContext[]>;
   constLiteralsMap: Map<string, Map<string, string>>;
   parentJsxKeyCounterValue: number;
+  /**
+   * OSS-431: source carries `/* @jsxImportSource <non-qwik-pkg> *‌/`. When
+   * true, segment-codegen skips Qwik's JSX-syntax rewrite and prepends
+   * `foreignJsxPragmaText` to each segment file so oxc-transform's default
+   * JSX transform (run by `postProcessSegmentCode`) honors the pragma.
+   */
+  hasForeignJsxRuntime: boolean;
+  foreignJsxPragmaText: string | null;
 }
 
 /**
@@ -1095,7 +1103,11 @@ export function buildDefaultStrategySegment(
     }),
   };
 
-  // Generate segment code
+  // Generate segment code.
+  // OSS-431: when source carries a foreign `@jsxImportSource` pragma, skip
+  // Qwik's JSX-syntax rewrite entirely. The JSX in the body stays as-is and
+  // oxc-transform's default JSX transform (run by `postProcessSegmentCode`)
+  // honors the pragma we'll prepend below.
   const segmentResult = stripped
     ? { code: generateStrippedSegmentCode(ext.symbolName) }
     : generateSegmentCode(
@@ -1106,6 +1118,7 @@ export function buildDefaultStrategySegment(
           const srcExt =
             sourceExtensions.get(ext.symbolName) ?? ext.extension;
           return (
+            !ctx.hasForeignJsxRuntime &&
             shouldTranspileJsx &&
             (srcExt === ".tsx" || srcExt === ".jsx" || isJsx)
           );
@@ -1131,6 +1144,15 @@ export function buildDefaultStrategySegment(
         enumValueMap.size > 0 ? enumValueMap : undefined,
       );
   let segmentCode = segmentResult.code;
+
+  // OSS-431: prepend foreign `@jsxImportSource` pragma so oxc-transform's
+  // TS-strip + JSX-transform pass inside `postProcessSegmentCode` honors it
+  // and emits `import { jsx as _jsx } from "<pkg>/jsx-runtime"`. The segment
+  // file is a brand-new generated module and wouldn't otherwise inherit the
+  // pragma from the user source.
+  if (!stripped && ctx.hasForeignJsxRuntime && ctx.foreignJsxPragmaText) {
+    segmentCode = ctx.foreignJsxPragmaText + '\n' + segmentCode;
+  }
 
   if (!stripped) {
     segmentCode = postProcessSegmentCode(segmentCode, {

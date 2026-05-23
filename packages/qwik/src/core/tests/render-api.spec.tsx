@@ -50,6 +50,7 @@ const mapping = {
   // Our internal symbols
   _run: 'core',
   _task: 'core',
+  _uas: 'core',
 };
 
 const defaultManifest: QwikManifest = {

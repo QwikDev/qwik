@@ -163,7 +163,7 @@ export type {
   UseAsyncDollar,
   UseAsyncQrl,
 } from './use/use-async';
-export { useAsyncQrl, useAsync$ } from './use/use-async';
+export { _uas, useAsyncQrl, useAsync$ } from './use/use-async';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export {

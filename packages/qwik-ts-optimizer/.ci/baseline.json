@@ -935,6 +935,25 @@
       "tests/optimizer/utils/range-replace.test.ts :: collectRangeReplacements skipSubtree from a collector suppresses recursion for all collectors",
       "tests/optimizer/utils/range-replace.test.ts :: collectRangeReplacements skipSubtree triggered by ANY collector suppresses recursion for ALL",
       "tests/optimizer/utils/range-replace.test.ts :: collectRangeReplacements threads parentKey + parentNode to the collector",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false at root (no parent)",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for ArrayExpression element position",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for AssignmentExpression right side",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for CallExpression / NewExpression arguments",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for ConditionalExpression branches (?: lower precedence than ??)",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for ExpressionStatement",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for JSXExpressionContainer expression",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for ObjectExpression Property value position",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for ParenthesizedExpression (already inside parens)",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for ReturnStatement argument",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for TemplateLiteral expression slot",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns false for VariableDeclarator init",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns true for BinaryExpression operand (any side)",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns true for CallExpression / NewExpression callee",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns true for LogicalExpression operand (?? + ||/&& mixing is a syntax error)",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns true for MemberExpression object position only",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns true for TaggedTemplateExpression tag",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns true for UnaryExpression argument",
+      "tests/optimizer/utils/range-replace.test.ts :: expressionNeedsParens returns true for UpdateExpression argument",
       "tests/optimizer/utils/range-replace.test.ts :: isReplaceableIdentifierPosition returns TRUE for computed member access property (rewrite is safe)",
       "tests/optimizer/utils/range-replace.test.ts :: isReplaceableIdentifierPosition returns false for declarator id",
       "tests/optimizer/utils/range-replace.test.ts :: isReplaceableIdentifierPosition returns false for function parameter position",
@@ -1024,6 +1043,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 862
+    "total": 881
   }
 }

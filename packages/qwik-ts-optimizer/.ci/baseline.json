@@ -745,6 +745,13 @@
       "tests/optimizer/oss-415-body-default-fold.test.ts :: OSS-415: segment-body default folding (post-JSX-transform pass) folds bare nested expressions outside any `??` (general SWC simplifier behavior)",
       "tests/optimizer/oss-415-body-default-fold.test.ts :: OSS-415: segment-body default folding (post-JSX-transform pass) keeps `_hf<n>_str` source-preserving (the architectural conflict the post-pass timing resolves)",
       "tests/optimizer/oss-415-body-default-fold.test.ts :: OSS-415: segment-body default folding (post-JSX-transform pass) leaves non-foldable `?? <expr>` RHS untouched (negative-scope)",
+      "tests/optimizer/oss-421-lib-mode-emission.test.ts :: OSS-421: lib-mode emission shape emits markerQrl(inlinedQrl(body, name)) for top-level component$ under mode=lib",
+      "tests/optimizer/oss-421-lib-mode-emission.test.ts :: OSS-421: lib-mode emission shape imports `inlinedQrl` (and not `_noopQrl`) under mode=lib",
+      "tests/optimizer/oss-421-lib-mode-emission.test.ts :: OSS-421: lib-mode emission shape non-lib modes still use the segment-file emission shape (negative scope)",
+      "tests/optimizer/oss-421-lib-mode-emission.test.ts :: OSS-421: lib-mode emission shape preserves user-level module const decls as identifier refs (not value-inlined)",
+      "tests/optimizer/oss-421-lib-mode-emission.test.ts :: OSS-421: lib-mode emission shape suppresses _auto_X re-exports under mode=lib",
+      "tests/optimizer/oss-421-lib-mode-emission.test.ts :: OSS-421: lib-mode emission shape suppresses segment-file modules under mode=lib",
+      "tests/optimizer/oss-421-lib-mode-emission.test.ts :: OSS-421: lib-mode emission shape threads captures via inlinedQrl 3rd argument under mode=lib",
       "tests/optimizer/path-utils.test.ts :: path-utils detects whether a relative import stays within the srcDir-relative tree",
       "tests/optimizer/path-utils.test.ts :: path-utils normalizes windows-style paths",
       "tests/optimizer/path-utils.test.ts :: path-utils preserves current computeRelPath behavior for paths outside srcDir",
@@ -1043,6 +1050,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 881
+    "total": 888
   }
 }

@@ -7,35 +7,41 @@ const ids = ['a', 'b', 'c', 'a', 'd', 'slow', 'b', 'e', 'f', 'a', 'slow', 'c'];
 
 export default component$(() => {
   return (
-    <main class="page">
-      <a class="gallery-link" href="http://127.0.0.1:4300/">
+    <main class="mx-auto max-w-[1220px] px-[18px] py-10 text-slate-900">
+      <a
+        class="mb-3.5 inline-flex font-extrabold text-slate-900 no-underline"
+        href="http://127.0.0.1:4300/"
+      >
         Example gallery
       </a>
-      <section class="intro">
-        <p class="eyebrow">Cache Torture Lab</p>
-        <h1>Repeated async edges, nested Suspense, and signals</h1>
-        <p>
+      <section class="mb-3.5 rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
+        <p class="mb-2 text-xs font-extrabold uppercase tracking-wide text-amber-700">
+          Cache Torture Lab
+        </p>
+        <h1 class="m-0 text-4xl font-black tracking-normal md:text-5xl">
+          Repeated async edges, nested Suspense, and signals
+        </h1>
+        <p class="max-w-3xl leading-7 text-slate-600">
           This fixture is intentionally dense. It repeats inputs, mixes local signals into cacheable
           components, and keeps one normal SSR widget outside the registry.
         </p>
       </section>
 
-      <section class="grid">
+      <section class="mb-3.5 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-3">
         {ids.map((id, index) => (
           <StressCard key={`${id}-${index}`} id={id} runId={runId} />
         ))}
       </section>
       <NestedStressPanel runId={runId} />
       <NormalSsrWidget />
-      <style>{styles}</style>
     </main>
   );
 });
 
 const NormalSsrWidget = component$(() => {
   return (
-    <section class="panel normal">
-      <h2>Normal SSR fallback area</h2>
+    <section class="mb-3.5 rounded-lg border border-dashed border-slate-300 bg-white p-[18px] shadow-xl shadow-slate-900/5">
+      <h2 class="text-2xl font-black">Normal SSR fallback area</h2>
       <p>This component is not registered in cache config. It should render normally.</p>
     </section>
   );
@@ -44,24 +50,3 @@ const NormalSsrWidget = component$(() => {
 export const head: DocumentHead = {
   title: 'Qwik Cache Torture Example',
 };
-
-const styles = `
-  body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #f6f8fb; color: #1f2933; }
-  .page { width: min(1220px, calc(100% - 36px)); margin: 0 auto; padding: 40px 0; }
-  .gallery-link { display: inline-flex; margin-bottom: 14px; color: #1f2933; font-weight: 800; text-decoration: none; }
-  .intro, .card, .panel { border: 1px solid #d9e2ec; border-radius: 8px; background: white; box-shadow: 0 10px 24px rgba(15, 23, 42, .05); }
-  .intro { padding: 24px; margin-bottom: 14px; }
-  .eyebrow { margin: 0 0 8px; color: #b7791f; font-weight: 800; text-transform: uppercase; font-size: .78rem; }
-  h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: 0; }
-  .intro p { color: #52606d; max-width: 780px; line-height: 1.6; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 14px; }
-  .grid.small { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
-  .card { padding: 16px; min-height: 170px; }
-  .card-top { display: flex; align-items: center; justify-content: space-between; color: #627d98; font-weight: 700; }
-  .card h2 { margin: 16px 0 8px; }
-  .card p { margin: 7px 0; color: #52606d; }
-  button { border: 1px solid #bcccdc; background: #fff; border-radius: 6px; padding: 6px 8px; }
-  .panel { padding: 18px; margin-bottom: 14px; }
-  .muted { color: #627d98; background: #f8fafc; }
-  .normal { border-style: dashed; }
-`;

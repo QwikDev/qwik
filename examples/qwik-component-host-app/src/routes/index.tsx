@@ -41,18 +41,26 @@ export default component$(() => {
   const status = useSignal('No remote component fetched yet.');
 
   return (
-    <main class="page">
-      <a class="gallery-link" href="http://127.0.0.1:4300/">
+    <main class="mx-auto max-w-[1180px] px-[18px] py-10 text-slate-900">
+      <a
+        class="mb-3.5 inline-flex font-extrabold text-slate-900 no-underline"
+        href="http://127.0.0.1:4300/"
+      >
         Example gallery
       </a>
-      <section class="intro">
-        <p class="eyebrow">Component Host Prototype</p>
-        <h1>Fetch registered components like server resources</h1>
-        <p>
+      <section class="mb-3.5 rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
+        <p class="mb-2 text-xs font-extrabold uppercase tracking-wide text-blue-700">
+          Component Host Prototype
+        </p>
+        <h1 class="m-0 text-4xl font-black tracking-normal md:text-5xl">
+          Fetch registered components like server resources
+        </h1>
+        <p class="max-w-3xl leading-7 text-slate-600">
           This assumes a trusted component origin and compatible Qwik versions. It is intentionally
           framed as standalone partial transport, not raw subtree merge.
         </p>
         <button
+          class="mr-2.5 rounded-md bg-slate-800 px-3.5 py-2.5 font-bold text-white"
           onClick$={async () => {
             const result = await requestRemoteTile('html', location.href);
             status.value = result.status;
@@ -63,6 +71,7 @@ export default component$(() => {
           Fetch HTML partial
         </button>
         <button
+          class="mr-2.5 rounded-md bg-slate-800 px-3.5 py-2.5 font-bold text-white"
           onClick$={async () => {
             const result = await requestRemoteTile('data', location.href);
             status.value = result.status;
@@ -75,22 +84,30 @@ export default component$(() => {
         <span>{status.value}</span>
       </section>
 
-      <section class="grid">
-        <div>
-          <h2>Normal SSR source component</h2>
+      <section class="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3.5">
+        <div class="min-h-72 overflow-auto rounded-lg border border-slate-200 bg-white p-[18px] shadow-xl shadow-slate-900/5">
+          <h2 class="mb-4 text-2xl font-black">Normal SSR source component</h2>
           <RemoteProductTile productId="keyboard" source="host" />
         </div>
-        <div>
-          <h2>Host local data render</h2>
+        <div class="min-h-72 overflow-auto rounded-lg border border-slate-200 bg-white p-[18px] shadow-xl shadow-slate-900/5">
+          <h2 class="mb-4 text-2xl font-black">Host local data render</h2>
           <LocalProductPreview title="Local Keyboard Tile" source="host-cache" />
         </div>
-        <div>
-          <h2>Fetched standalone output</h2>
-          {html.value ? <div class="partial-outlet" dangerouslySetInnerHTML={html.value} /> : null}
-          {data.value ? <pre>{data.value}</pre> : null}
+        <div class="min-h-72 overflow-auto rounded-lg border border-slate-200 bg-white p-[18px] shadow-xl shadow-slate-900/5">
+          <h2 class="mb-4 text-2xl font-black">Fetched standalone output</h2>
+          {html.value ? (
+            <div
+              class="max-h-96 overflow-auto rounded-lg border border-dashed border-slate-300"
+              dangerouslySetInnerHTML={html.value}
+            />
+          ) : null}
+          {data.value ? (
+            <pre class="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-lg border border-slate-200 bg-white p-4 text-sm shadow-xl shadow-slate-900/5">
+              {data.value}
+            </pre>
+          ) : null}
         </div>
       </section>
-      <style>{styles}</style>
     </main>
   );
 });
@@ -98,24 +115,3 @@ export default component$(() => {
 export const head: DocumentHead = {
   title: 'Qwik Component Host Example',
 };
-
-const styles = `
-  body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #f5f7fb; color: #1f2933; }
-  .page { width: min(1180px, calc(100% - 36px)); margin: 0 auto; padding: 40px 0; }
-  .gallery-link { display: inline-flex; margin-bottom: 14px; color: #1f2933; font-weight: 800; text-decoration: none; }
-  .intro, .grid > div, .tile, pre { border: 1px solid #d9e2ec; background: white; border-radius: 8px; box-shadow: 0 10px 24px rgba(15, 23, 42, .05); }
-  .intro { padding: 24px; margin-bottom: 14px; }
-  .eyebrow { margin: 0 0 8px; color: #2b6cb0; font-weight: 800; text-transform: uppercase; font-size: .78rem; }
-  h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: 0; }
-  .intro p { color: #52606d; max-width: 780px; line-height: 1.6; }
-  button { border: 0; border-radius: 6px; background: #1f2933; color: white; padding: 10px 14px; font-weight: 700; margin-right: 10px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
-  .grid > div { padding: 18px; min-height: 300px; overflow: auto; }
-  .tile { padding: 18px; }
-  .tile span { color: #627d98; font-weight: 700; }
-  .tile h2 { margin: 12px 0 8px; }
-  .local { background: #f0fff4; }
-  .partial-outlet { border: 1px dashed #bcccdc; border-radius: 8px; overflow: auto; max-height: 360px; }
-  pre { white-space: pre-wrap; overflow: auto; max-height: 420px; padding: 16px; font-size: .82rem; }
-  .muted { color: #627d98; background: #f8fafc; }
-`;

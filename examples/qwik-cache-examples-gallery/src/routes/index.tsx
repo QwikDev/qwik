@@ -81,37 +81,50 @@ const demos: Demo[] = [
 
 export default component$(() => {
   return (
-    <main class="gallery">
-      <section class="intro">
-        <p class="eyebrow">Qwik v2 cache-registry prototype</p>
-        <h1>Example gallery</h1>
-        <p>
+    <main class="mx-auto max-w-[1180px] px-5 py-12 text-slate-900">
+      <section class="mb-7 max-w-3xl">
+        <p class="mb-2.5 text-xs font-bold uppercase tracking-wider text-emerald-800">
+          Qwik v2 cache-registry prototype
+        </p>
+        <h1 class="m-0 text-4xl font-black leading-none tracking-normal md:text-6xl">
+          Example gallery
+        </h1>
+        <p class="mt-5 text-lg leading-8 text-slate-600">
           Each card opens a running local example. The big examples are intentionally shaped like
           real product surfaces so the cache registry has to handle SSR, server resources,
           qcomponent partials, request vary rules, and resumability metadata together.
         </p>
       </section>
 
-      <section class="grid" aria-label="Cache registry examples">
+      <section
+        class="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4"
+        aria-label="Cache registry examples"
+      >
         {demos.map((demo) => (
-          <article class="card" key={demo.title}>
-            <div class="card-top">
+          <article
+            class="flex min-h-80 flex-col rounded-lg border border-slate-200 bg-white p-5 shadow-xl shadow-slate-900/5"
+            key={demo.title}
+          >
+            <div class="flex items-center justify-between gap-3 text-sm text-slate-500">
               <span>{demo.stage}</span>
               <code>:{demo.port}</code>
             </div>
-            <h2>{demo.title}</h2>
-            <p>{demo.description}</p>
-            <ul>
+            <h2 class="mb-2 mt-5 text-xl font-black">{demo.title}</h2>
+            <p class="m-0 leading-6 text-slate-600">{demo.description}</p>
+            <ul class="mb-5 mt-4 list-disc space-y-1.5 pl-5 text-slate-700">
               {demo.proves.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
-            <a href={`http://127.0.0.1:${demo.port}/`}>View demo</a>
+            <a
+              class="mt-auto inline-flex justify-center rounded-md bg-slate-800 px-4 py-2.5 font-bold text-white no-underline"
+              href={`http://127.0.0.1:${demo.port}/`}
+            >
+              View demo
+            </a>
           </article>
         ))}
       </section>
-
-      <style>{styles}</style>
     </main>
   );
 });
@@ -119,91 +132,3 @@ export default component$(() => {
 export const head: DocumentHead = {
   title: 'Qwik Cache Examples Gallery',
 };
-
-const styles = `
-  body {
-    margin: 0;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: #17202a;
-    background: #f6f8fb;
-  }
-  .gallery {
-    width: min(1180px, calc(100% - 40px));
-    margin: 0 auto;
-    padding: 48px 0;
-  }
-  .intro {
-    max-width: 780px;
-    margin-bottom: 28px;
-  }
-  .eyebrow {
-    margin: 0 0 10px;
-    color: #276749;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 0.78rem;
-  }
-  h1 {
-    margin: 0;
-    font-size: clamp(2rem, 5vw, 4.25rem);
-    line-height: 1;
-    letter-spacing: 0;
-  }
-  .intro p:last-child {
-    color: #4a5568;
-    font-size: 1.08rem;
-    line-height: 1.7;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-  }
-  .card {
-    min-height: 320px;
-    border: 1px solid #d9e2ec;
-    border-radius: 8px;
-    background: #fff;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
-  }
-  .card-top {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    align-items: center;
-    color: #52606d;
-    font-size: 0.82rem;
-  }
-  .card h2 {
-    margin: 20px 0 8px;
-    font-size: 1.2rem;
-  }
-  .card p {
-    margin: 0;
-    color: #52606d;
-    line-height: 1.55;
-  }
-  .card ul {
-    margin: 18px 0 22px;
-    padding-left: 18px;
-    color: #334e68;
-  }
-  .card li + li {
-    margin-top: 6px;
-  }
-  .card a {
-    margin-top: auto;
-    display: inline-flex;
-    justify-content: center;
-    border-radius: 6px;
-    background: #1f2933;
-    color: white;
-    text-decoration: none;
-    padding: 10px 14px;
-    font-weight: 700;
-  }
-`;

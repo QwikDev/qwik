@@ -33,7 +33,7 @@ export const StressCard = component$((props: StressInput) => {
   );
 });
 
-export const NestedStressPanel = component$((props: { runId: string }) => {
+export const NestedStressPanel = component$((props: { runId: string; delayMs?: number }) => {
   return (
     <Suspense
       fallback={
@@ -45,9 +45,9 @@ export const NestedStressPanel = component$((props: { runId: string }) => {
       <section class="mb-3.5 rounded-lg border border-slate-200 bg-white p-[18px] shadow-xl shadow-slate-900/5">
         <h2 class="text-2xl font-black">Nested Suspense cluster</h2>
         <div class="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
-          <StressCard id="a" runId={props.runId} />
-          <StressCard id="slow" runId={props.runId} />
-          <StressCard id="a" runId={props.runId} />
+          <StressCard id="a" runId={props.runId} delayMs={props.delayMs} />
+          <StressCard id="slow" runId={props.runId} delayMs={props.delayMs} />
+          <StressCard id="a" runId={props.runId} delayMs={props.delayMs} />
         </div>
       </section>
     </Suspense>

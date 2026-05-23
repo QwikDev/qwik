@@ -1,14 +1,19 @@
 import { component$, useSignal } from '@qwik.dev/core';
-import type { DocumentHead } from '@qwik.dev/router';
+import { type DocumentHead, useLocation } from '@qwik.dev/router';
+import { DemoModePanel, readDemoMode } from '../../../qwik-cache-demo-utils/demo-mode';
 import { AlertPanel } from './alert-panel';
 import { getRevenue, type TenantInput } from './dashboard.server';
 import { CustomerCard, RevenueCard } from './kpi-card';
 
 export default component$(() => {
+  const location = useLocation();
+  const demo = readDemoMode(location.url, 'dashboard');
   const rpcResult = useSignal('not run');
   const input: TenantInput = {
     tenantId: 'acme',
     range: '30d',
+    runId: demo.runId,
+    delayMs: demo.delayMs,
   };
 
   return (
@@ -19,6 +24,7 @@ export default component$(() => {
       >
         Example gallery
       </a>
+      <DemoModePanel demo={demo} port={4312} />
       <section class="mb-4 rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
         <p class="mb-2 text-xs font-extrabold uppercase tracking-wide text-teal-700">
           Multi-Tenant Dashboard

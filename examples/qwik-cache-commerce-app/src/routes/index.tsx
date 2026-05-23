@@ -1,12 +1,13 @@
 import { component$, useSignal } from '@qwik.dev/core';
-import type { DocumentHead } from '@qwik.dev/router';
+import { type DocumentHead, useLocation } from '@qwik.dev/router';
+import { DemoModePanel, readDemoMode } from '../../../qwik-cache-demo-utils/demo-mode';
 import { getProduct } from './catalog.server';
 import { ProductCard } from './product-card';
 import { RecommendationRail } from './recommendation-rail';
 
-const runId = `commerce-${Date.now()}`;
-
 export default component$(() => {
+  const location = useLocation();
+  const demo = readDemoMode(location.url, 'commerce');
   const rpcResult = useSignal('not run');
   const ids = ['keyboard', 'mouse', 'keyboard', 'dock', 'lamp', 'dock'];
 
@@ -18,6 +19,7 @@ export default component$(() => {
       >
         Example gallery
       </a>
+      <DemoModePanel demo={demo} port={4311} />
       <section class="mb-5 rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
         <p class="mb-2 text-xs font-extrabold uppercase tracking-wide text-emerald-700">
           Commerce Storefront
@@ -32,7 +34,11 @@ export default component$(() => {
         <button
           class="mr-3 rounded-md bg-slate-800 px-3.5 py-2.5 font-bold text-white"
           onClick$={async () => {
-            const input = { productId: 'keyboard', runId: `${runId}-client` };
+            const input = {
+              productId: 'keyboard',
+              runId: `${demo.runId}:client`,
+              delayMs: demo.delayMs,
+            };
             const first = await getProduct(input);
             const second = await getProduct(input);
             rpcResult.value = `client server$ reads: ${first.reads}/${second.reads}`;
@@ -49,11 +55,16 @@ export default component$(() => {
       </section>
       <section class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3.5">
         {ids.map((productId, index) => (
-          <ProductCard key={`${productId}-${index}`} productId={productId} runId={runId} />
+          <ProductCard
+            key={`${productId}-${index}`}
+            productId={productId}
+            runId={demo.runId}
+            delayMs={demo.delayMs}
+          />
         ))}
       </section>
 
-      <RecommendationRail productId="keyboard" runId={runId} />
+      <RecommendationRail productId="keyboard" runId={demo.runId} delayMs={demo.delayMs} />
     </main>
   );
 });

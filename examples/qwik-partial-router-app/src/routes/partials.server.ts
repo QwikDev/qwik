@@ -3,6 +3,7 @@ import { server$ } from '@qwik.dev/router';
 export type PartialInput = {
   slug: string;
   runId?: string;
+  delayMs?: number;
 };
 
 const reads = new Map<string, number>();
@@ -17,9 +18,10 @@ export const getRouteSegment = server$(async function () {
 export const getProductPage = server$(async function ({
   slug,
   runId = 'partial-router',
+  delayMs = 25,
 }: PartialInput) {
   const segment = await getRouteSegment();
-  await delay(25);
+  await delay(delayMs);
   const key = `${runId}:${slug}:${segment.segment}`;
   const count = (reads.get(key) ?? 0) + 1;
   reads.set(key, count);
@@ -32,9 +34,9 @@ export const getProductPage = server$(async function ({
   };
 });
 
-export const getAccountPage = server$(async function ({ slug }: PartialInput) {
+export const getAccountPage = server$(async function ({ slug, delayMs = 20 }: PartialInput) {
   const segment = await getRouteSegment();
-  await delay(20);
+  await delay(delayMs);
   return {
     kind: 'account-page',
     slug,
@@ -43,9 +45,9 @@ export const getAccountPage = server$(async function ({ slug }: PartialInput) {
   };
 });
 
-export const getSearchPage = server$(async function ({ slug }: PartialInput) {
+export const getSearchPage = server$(async function ({ slug, delayMs = 20 }: PartialInput) {
   const segment = await getRouteSegment();
-  await delay(20);
+  await delay(delayMs);
   return {
     kind: 'search-page',
     slug,

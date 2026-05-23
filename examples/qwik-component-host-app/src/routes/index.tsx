@@ -1,10 +1,16 @@
 import { component$, useSignal } from '@qwik.dev/core';
-import type { DocumentHead } from '@qwik.dev/router';
+import { type DocumentHead, useLocation } from '@qwik.dev/router';
+import { DemoModePanel, readDemoMode } from '../../../qwik-cache-demo-utils/demo-mode';
 import { LocalProductPreview, RemoteProductTile } from './remote-tile';
 
 type RemotePayload = 'html' | 'data';
 
-async function requestRemoteTile(payload: RemotePayload, href: string) {
+async function requestRemoteTile(
+  payload: RemotePayload,
+  href: string,
+  runId: string,
+  delayMs: number
+) {
   const url = new URL(href);
   url.search = '';
   url.searchParams.set('qcomponent', 'RemoteProductTile');
@@ -23,6 +29,8 @@ async function requestRemoteTile(payload: RemotePayload, href: string) {
       props: {
         productId: 'dock',
         source: 'external-team',
+        runId,
+        delayMs,
       },
     }),
   });
@@ -36,6 +44,8 @@ async function requestRemoteTile(payload: RemotePayload, href: string) {
 }
 
 export default component$(() => {
+  const location = useLocation();
+  const demo = readDemoMode(location.url, 'component-host');
   const html = useSignal('');
   const data = useSignal('');
   const status = useSignal('No remote component fetched yet.');
@@ -48,6 +58,7 @@ export default component$(() => {
       >
         Example gallery
       </a>
+      <DemoModePanel demo={demo} port={4315} />
       <section class="mb-3.5 rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
         <p class="mb-2 text-xs font-extrabold uppercase tracking-wide text-blue-700">
           Component Host Prototype
@@ -62,7 +73,12 @@ export default component$(() => {
         <button
           class="mr-2.5 rounded-md bg-slate-800 px-3.5 py-2.5 font-bold text-white"
           onClick$={async () => {
-            const result = await requestRemoteTile('html', location.href);
+            const result = await requestRemoteTile(
+              'html',
+              location.url.href,
+              demo.runId,
+              demo.delayMs
+            );
             status.value = result.status;
             html.value = result.html;
             data.value = result.data;
@@ -73,7 +89,12 @@ export default component$(() => {
         <button
           class="mr-2.5 rounded-md bg-slate-800 px-3.5 py-2.5 font-bold text-white"
           onClick$={async () => {
-            const result = await requestRemoteTile('data', location.href);
+            const result = await requestRemoteTile(
+              'data',
+              location.url.href,
+              demo.runId,
+              demo.delayMs
+            );
             status.value = result.status;
             html.value = result.html;
             data.value = result.data;
@@ -87,7 +108,12 @@ export default component$(() => {
       <section class="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3.5">
         <div class="min-h-72 overflow-auto rounded-lg border border-slate-200 bg-white p-[18px] shadow-xl shadow-slate-900/5">
           <h2 class="mb-4 text-2xl font-black">Normal SSR source component</h2>
-          <RemoteProductTile productId="keyboard" source="host" />
+          <RemoteProductTile
+            productId="keyboard"
+            source="host"
+            runId={demo.runId}
+            delayMs={demo.delayMs}
+          />
         </div>
         <div class="min-h-72 overflow-auto rounded-lg border border-slate-200 bg-white p-[18px] shadow-xl shadow-slate-900/5">
           <h2 class="mb-4 text-2xl font-black">Host local data render</h2>

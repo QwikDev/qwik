@@ -23,8 +23,18 @@
  * other exotic coercions are left untouched.
  */
 import type { AstMaybeNode } from '../../ast-types.js';
-import { forEachAstChild } from './ast.js';
 import { createTransformSession } from './transform-session.js';
+import {
+  applyReplacements,
+  collectRangeReplacements,
+  type RangeReplacementCollector,
+} from './range-replace.js';
+
+// Re-export `applyReplacements` for the legacy import path (it lived in
+// `simplify.ts` between OSS-415 and OSS-417; relocated to its natural
+// home next to `collectRangeReplacements` in OSS-417). Consumers should
+// import from `range-replace.js` directly going forward.
+export { applyReplacements };
 
 /**
  * Try to simplify the given expression to a JS primitive value at
@@ -155,24 +165,6 @@ export type SimplifyResult =
 
 const UNSIMPLIFIED: SimplifyResult = { simplified: false };
 
-/** Apply a list of disjoint range replacements to a source string. */
-export function applyReplacements(
-  text: string,
-  replacements: ReadonlyArray<{ start: number; end: number; replacement: string }>,
-): string {
-  if (replacements.length === 0) return text;
-  const sorted = [...replacements].sort((a, b) => a.start - b.start);
-  let out = '';
-  let pos = 0;
-  for (const r of sorted) {
-    out += text.slice(pos, r.start);
-    out += r.replacement;
-    pos = r.end;
-  }
-  out += text.slice(pos);
-  return out;
-}
-
 /**
  * Walk an expression subtree top-down looking for subtrees that
  * {@link simplifyExpression} can collapse to a primitive literal. Emits a
@@ -198,40 +190,46 @@ export interface CollectSimplificationsOptions {
   skipLiterals?: boolean;
 }
 
-export function collectSimplifications(
-  n: AstMaybeNode,
-  exprStart: number,
-  exprText: string,
-  out: Array<{ start: number; end: number; replacement: string }>,
+/**
+ * Factory: returns a {@link RangeReplacementCollector} that emits a literal
+ * replacement for any subtree {@link simplifyExpression} can fold to a
+ * primitive value. Mirrors SWC's `simplify::simplifier` pass.
+ *
+ * The collector returns `skipSubtree: true` on matched nodes — children
+ * are subsumed by the parent's emit, and recursing would emit overlapping
+ * ranges into the now-replaced subtree.
+ *
+ * With `options.skipLiterals === true`, `Literal` nodes are ignored —
+ * source-form literals (e.g. `"count"`) stay as-written instead of being
+ * re-canonicalized to single quotes via {@link formatSimplifiedLiteral}.
+ * The lambda-body caller in `signal-analysis.ts` leaves this `false`
+ * because the quote canonicalization is desired there; the body-fold
+ * pass in {@link foldBodySimplifiableExpressions} sets it `true`.
+ */
+export function simplificationsCollector(
   options: CollectSimplificationsOptions = {},
-): void {
-  if (!n || typeof n !== 'object') return;
-  if (typeof n.start !== 'number' || typeof n.end !== 'number') {
-    forEachAstChild(n, (child) =>
-      collectSimplifications(child, exprStart, exprText, out, options));
-    return;
-  }
+): RangeReplacementCollector {
+  return (node, ctx) => {
+    if (options.skipLiterals && node.type === 'Literal') return null;
+    if (typeof node.start !== 'number' || typeof node.end !== 'number') return null;
 
-  if (!options.skipLiterals || n.type !== 'Literal') {
-    const result = simplifyExpression(n);
-    if (result.simplified) {
-      const formatted = formatSimplifiedLiteral(result.value);
-      const sliceStart = n.start - exprStart;
-      const sliceEnd = n.end - exprStart;
-      if (sliceStart >= 0 && sliceEnd <= exprText.length) {
-        const originalText = exprText.slice(sliceStart, sliceEnd);
-        if (formatted !== originalText) {
-          out.push({ start: sliceStart, end: sliceEnd, replacement: formatted });
-        }
-      }
-      // Do NOT recurse — the simplified value already represents the whole
-      // subtree, and recursing would emit overlapping ranges.
-      return;
+    const result = simplifyExpression(node);
+    if (!result.simplified) return null;
+
+    const formatted = formatSimplifiedLiteral(result.value);
+    const sliceStart = node.start - ctx.exprStart;
+    const sliceEnd = node.end - ctx.exprStart;
+    if (sliceStart < 0 || sliceEnd > ctx.exprText.length) {
+      // Out-of-bounds — skip but still suppress recursion so children
+      // don't fire either (would be misaligned by the same offset).
+      return { replacements: [], skipSubtree: true };
     }
-  }
-
-  forEachAstChild(n, (child) =>
-    collectSimplifications(child, exprStart, exprText, out, options));
+    const originalText = ctx.exprText.slice(sliceStart, sliceEnd);
+    const replacements = formatted === originalText
+      ? []  // no-op: source already has the canonical form
+      : [{ start: sliceStart, end: sliceEnd, replacement: formatted }];
+    return { replacements, skipSubtree: true };
+  };
 }
 
 /**
@@ -260,19 +258,15 @@ export function foldBodySimplifiableExpressions(bodyText: string): string {
   });
   if (!session) return bodyText;
 
-  const simplifications: Array<{ start: number; end: number; replacement: string }> = [];
-  // exprText spans the wrapped source; replacements come out relative to it,
-  // then we slice off the wrapper prefix at the end. `skipLiterals: true`
-  // suppresses re-canonicalization of source literals (e.g. `"count"` →
-  // `'count'`) — the body pass only wants to fold *computed* subtrees
-  // (Binary/Unary/Logical/Conditional with primitive-literal operands)
-  // INTO literals; source-form literals stay as-written.
-  collectSimplifications(
+  // `skipLiterals: true` suppresses re-canonicalization of source literals
+  // (e.g. `"count"` → `'count'`) — the body pass only folds *computed*
+  // subtrees (Binary/Unary/Logical/Conditional with primitive-literal
+  // operands) INTO literals; source-form literals stay as-written.
+  const simplifications = collectRangeReplacements(
     session.program,
     0,
     session.wrappedSource,
-    simplifications,
-    { skipLiterals: true },
+    [simplificationsCollector({ skipLiterals: true })],
   );
   if (simplifications.length === 0) return bodyText;
 

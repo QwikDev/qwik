@@ -10,10 +10,15 @@ import type { AstMaybeNode, AstNode, AstParentNode } from '../ast-types.js';
 import { forEachAstChild, isAstNode } from './utils/ast.js';
 import {
   applyReplacements,
-  collectSimplifications,
   formatSimplifiedLiteral,
+  simplificationsCollector,
   simplifyExpression,
 } from './utils/simplify.js';
+import {
+  collectRangeReplacements,
+  isReplaceableIdentifierPosition,
+  type RangeReplacementCollector,
+} from './utils/range-replace.js';
 
 const trailingComma = createRegExp(
   exactly(',').and(anyOf('}', ']', ')').grouped()),
@@ -362,107 +367,32 @@ function generateFnSignal(
   const exprText = source.slice(exprNode.start, exprNode.end);
   const exprStart = exprNode.start;
 
-  const replacements: Array<{ start: number; end: number; replacement: string }> = [];
+  // OSS-417: three passes (root-identifier substitution, simplification,
+  // paren-strip) consolidated via the shared range-replacement walker.
+  // The `_str` body sees roots + paren-strips (source-preserving for
+  // operands; parens elided in object-property-value position per SWC's
+  // emit). The lambda body adds simplifications (constant subtrees folded
+  // to primitive literals, mirroring SWC's `simplify::simplifier`).
+  //
+  // Disjoint-by-construction: roots target Identifiers; simplifications
+  // target Binary/Unary/Logical/Conditional with primitive operands;
+  // paren-strips target ParenthesizedExpression boundary edges. No node
+  // type overlaps with another.
+  const rootCollector = rootReplacementsCollector(rootToParam);
+  const parenCollector = parenStripsCollector();
+  const replacements = collectRangeReplacements(
+    exprNode, exprStart, exprText,
+    [rootCollector, parenCollector],
+  );
+  const simplifications = collectRangeReplacements(
+    exprNode, exprStart, exprText,
+    [simplificationsCollector()],
+  );
 
-  function collectReplacements(
-    n: AstMaybeNode,
-    parentKey?: string,
-    parentNode?: AstParentNode,
-  ): void {
-    if (n == null) return;
+  const strFnBody = applyReplacements(exprText, replacements);
 
-    // For signal.value or deep store access, replace the root identifier
-    if (isSignalValueAccess(n) || isDeepStoreAccess(n, new Set())) {
-      const rootId = findRootIdentifier(n);
-      if (rootId && rootToParam.has(rootId.name)) {
-        replacements.push({
-          start: rootId.start - exprStart,
-          end: rootId.end - exprStart,
-          replacement: rootToParam.get(rootId.name)!,
-        });
-        return;
-      }
-      // Complex object expression (e.g., (a || b).value) -- recurse to find identifiers
-      if (isSignalValueAccess(n) && !rootId) {
-        collectReplacements(n.object);
-        return;
-      }
-      return;
-    }
-
-    // Single-level store field access (e.g., _rawProps.fromProps)
-    if (isStoreFieldAccess(n, new Set())) {
-      // Load-bearing cast — see containsJsx-sibling block above for
-      // why the predicate-narrowing-exclusion chain forces it.
-      const memberNode = n as MemberExpressionNode;
-      const rootId = findRootIdentifier(memberNode.object);
-      if (rootId && rootToParam.has(rootId.name)) {
-        replacements.push({
-          start: rootId.start - exprStart,
-          end: rootId.end - exprStart,
-          replacement: rootToParam.get(rootId.name)!,
-        });
-      }
-      return;
-    }
-
-    // Bare identifier that is a dep -- replace with pN
-    if (n.type === 'Identifier' && rootToParam.has(n.name)) {
-      const isPropertyKey = parentKey === 'key' && parentNode?.type === 'Property';
-      const isMemberProp =
-        parentKey === 'property' &&
-        parentNode?.type === 'MemberExpression' &&
-        !parentNode.computed;
-      if (!isPropertyKey && !isMemberProp) {
-        replacements.push({
-          start: n.start - exprStart,
-          end: n.end - exprStart,
-          replacement: rootToParam.get(n.name)!,
-        });
-      }
-      return;
-    }
-
-    forEachAstChild(n, (child, key, parent) => collectReplacements(child, key, parent));
-  }
-
-  collectReplacements(exprNode);
-
-  // OSS-411: collect SIMPLIFICATION replacements (constant subtrees that
-  // fold to a primitive literal via utils/simplify.ts). These apply only
-  // to the LAMBDA body — mirrors SWC's `simplify::simplifier` pass that
-  // folds compile-time constants in the hoisted arrow body while keeping
-  // `_str` source-preserving. Replacements are guaranteed disjoint from
-  // root replacements because roots target Identifiers (not simplifiable
-  // by definition) and simplifications target Binary/Unary/Logical/
-  // ConditionalExpressions with primitive Literal operands.
-  const simplifications: Array<{ start: number; end: number; replacement: string }> = [];
-  collectSimplifications(exprNode, exprStart, exprText, simplifications);
-
-  // OSS-414: collect PAREN-STRIP replacements for ParenthesizedExpression
-  // wrappers in always-safe parent positions (Property values in object
-  // literals). raw-props' `applyIdentifierReplacements` defensively wraps
-  // defaulted-field accesses in `(_rawProps.X ?? default)` for runtime
-  // safety; in object-property-value position these parens are cosmetic
-  // and SWC's printer doesn't include them. The bare-form path benefits
-  // from OSS-412's `ParenthesizedExpression` unwrap at the top of
-  // `analyzeSignalExpression`, but the object-form path slices the source
-  // including the inner parens. This helper emits two replacements per
-  // matched paren (strips `(` and `)`) so the source slice that feeds
-  // both `_str` and the lambda body comes out paren-free in safe spots.
-  // Strictly narrower than a generic paren strip — only Property-value
-  // parents qualify, so load-bearing parens (operator precedence,
-  // `(a||b).value` member access) stay intact.
-  const parenStrips: Array<{ start: number; end: number; replacement: string }> = [];
-  collectParenStrips(exprNode, exprStart, exprText, parenStrips);
-
-  // _str body: root replacements + paren strips (source-preserving for
-  // operands, paren-elided in safe positions per SWC's emit).
-  const strFnBody = applyReplacements(exprText, [...replacements, ...parenStrips]);
-
-  // Lambda body: merged root + simplification + paren strips.
-  const lambdaFnBody = (simplifications.length > 0 || parenStrips.length > 0)
-    ? applyReplacements(exprText, [...replacements, ...simplifications, ...parenStrips])
+  const lambdaFnBody = simplifications.length > 0
+    ? applyReplacements(exprText, [...replacements, ...simplifications])
     : strFnBody;
 
   const params = roots.map((_, i) => `p${i}`).join(',');
@@ -485,59 +415,138 @@ function generateFnSignal(
   return { hoistedFn, hoistedStr };
 }
 
-// OSS-415: `applyReplacements` and `collectSimplifications` moved to
-// `utils/simplify.ts` so the body-fold pass introduced in OSS-415 can
-// reuse the same primitives the lambda-body folder above already uses.
+/**
+ * OSS-417: factory for the root-identifier-substitution collector used
+ * by {@link generateFnSignal}. Three matched shapes, each replacing the
+ * root identifier of a chain with its `pN` parameter:
+ *
+ * 1. `signal.value` or deep `store.X.Y` access → replace the chain root
+ * 2. Single-level `obj.field` store access → replace the chain root
+ * 3. Bare identifier reference → replace in-place
+ *
+ * Returns `skipSubtree: true` whenever a match consumes the subtree
+ * (preventing duplicate emits on descendants that would re-match arm 3).
+ * For complex-object signal access (e.g. `(a || b).value` where
+ * `findRootIdentifier` returns null), recursion is allowed so arm 3
+ * catches the inner identifiers naturally.
+ *
+ * Pre-OSS-417 this was the inline `collectReplacements` walker in
+ * `generateFnSignal`; the only behavioural change is that arm 3 now uses
+ * the shared {@link isReplaceableIdentifierPosition} predicate, which
+ * additionally excludes function-parameter and declarator-id positions
+ * (a conservative tightening — those positions wouldn't carry reactive
+ * root references in practice).
+ */
+function rootReplacementsCollector(
+  rootToParam: ReadonlyMap<string, string>,
+): RangeReplacementCollector {
+  return (n, ctx) => {
+    if (isSignalValueAccess(n) || isDeepStoreAccess(n, new Set())) {
+      const rootId = findRootIdentifier(n);
+      if (rootId && rootToParam.has(rootId.name)) {
+        return {
+          replacements: [{
+            start: rootId.start - ctx.exprStart,
+            end: rootId.end - ctx.exprStart,
+            replacement: rootToParam.get(rootId.name)!,
+          }],
+          skipSubtree: true,
+        };
+      }
+      if (isSignalValueAccess(n) && !rootId) {
+        // Complex object (e.g. `(a || b).value`) — let orchestrator
+        // recurse so the bare-identifier arm catches inner identifiers.
+        return null;
+      }
+      // Matched shape but rootId not a tracked dep — mirror the
+      // pre-OSS-417 behaviour of returning without recursing.
+      return { replacements: [], skipSubtree: true };
+    }
+
+    if (isStoreFieldAccess(n, new Set())) {
+      const memberNode = n as MemberExpressionNode;
+      const rootId = findRootIdentifier(memberNode.object);
+      if (rootId && rootToParam.has(rootId.name)) {
+        return {
+          replacements: [{
+            start: rootId.start - ctx.exprStart,
+            end: rootId.end - ctx.exprStart,
+            replacement: rootToParam.get(rootId.name)!,
+          }],
+          skipSubtree: true,
+        };
+      }
+      return { replacements: [], skipSubtree: true };
+    }
+
+    if (
+      n.type === 'Identifier' &&
+      rootToParam.has(n.name) &&
+      isReplaceableIdentifierPosition(ctx.parentKey, ctx.parentNode)
+    ) {
+      return {
+        replacements: [{
+          start: n.start - ctx.exprStart,
+          end: n.end - ctx.exprStart,
+          replacement: rootToParam.get(n.name)!,
+        }],
+        skipSubtree: true,
+      };
+    }
+
+    return null;
+  };
+}
 
 /**
- * Walk an expression subtree top-down looking for `ParenthesizedExpression`
- * nodes whose direct parent is a `Property` (object-literal value position).
- * In that context the parens are always cosmetic — SWC's printer emits the
- * inner expression directly. Other parents (BinaryExpression/LogicalExpression
- * operand, MemberExpression object, etc.) may have load-bearing parens that
- * MUST be preserved, so this helper deliberately doesn't strip them.
+ * OSS-417: factory for the OSS-414 paren-strip collector. Matches
+ * `ParenthesizedExpression` nodes whose direct parent is a `Property`
+ * (object-literal value position) — in that context the parens are
+ * always cosmetic and SWC's printer omits them. Other parent positions
+ * (BinaryExpression/LogicalExpression operand, MemberExpression object,
+ * etc.) may have load-bearing parens, so this collector deliberately
+ * skips them.
  *
  * Emits two replacements per match: `[paren.start, inner.start] → ''`
- * (strip opening `(`) and `[inner.end, paren.end] → ''` (strip closing `)`).
- * These are disjoint from root + simplification replacements by
- * construction (paren wrappers bound the outside of the expression;
- * roots/simplifications target identifiers/subtrees within).
+ * (strips opening `(`) and `[inner.end, paren.end] → ''` (strips
+ * closing `)`). Does NOT set `skipSubtree` — nested parens at deeper
+ * Property-value positions still need to be visited.
+ *
+ * Disjoint from root + simplification replacements by construction
+ * (paren wrappers bound the outside of the expression; roots and
+ * simplifications target identifiers/subtrees within).
  */
-function collectParenStrips(
-  n: AstMaybeNode,
-  exprStart: number,
-  exprText: string,
-  out: Array<{ start: number; end: number; replacement: string }>,
-  parentKey?: string,
-  parentNode?: AstParentNode,
-): void {
-  if (!n || typeof n !== 'object') return;
-
-  if (
-    n.type === 'ParenthesizedExpression' &&
-    parentKey === 'value' &&
-    parentNode?.type === 'Property' &&
-    n.expression &&
-    typeof n.start === 'number' &&
-    typeof n.end === 'number' &&
-    typeof n.expression.start === 'number' &&
-    typeof n.expression.end === 'number'
-  ) {
-    const openStart = n.start - exprStart;
-    const openEnd = n.expression.start - exprStart;
-    const closeStart = n.expression.end - exprStart;
-    const closeEnd = n.end - exprStart;
+function parenStripsCollector(): RangeReplacementCollector {
+  return (n, ctx) => {
     if (
-      openStart >= 0 && closeEnd <= exprText.length &&
-      openStart < openEnd && closeStart < closeEnd
+      n.type !== 'ParenthesizedExpression' ||
+      ctx.parentKey !== 'value' ||
+      ctx.parentNode?.type !== 'Property' ||
+      !n.expression ||
+      typeof n.start !== 'number' ||
+      typeof n.end !== 'number' ||
+      typeof n.expression.start !== 'number' ||
+      typeof n.expression.end !== 'number'
     ) {
-      out.push({ start: openStart, end: openEnd, replacement: '' });
-      out.push({ start: closeStart, end: closeEnd, replacement: '' });
+      return null;
     }
-  }
-
-  forEachAstChild(n, (child, key, parent) =>
-    collectParenStrips(child, exprStart, exprText, out, key, parent));
+    const openStart = n.start - ctx.exprStart;
+    const openEnd = n.expression.start - ctx.exprStart;
+    const closeStart = n.expression.end - ctx.exprStart;
+    const closeEnd = n.end - ctx.exprStart;
+    if (
+      openStart < 0 || closeEnd > ctx.exprText.length ||
+      openStart >= openEnd || closeStart >= closeEnd
+    ) {
+      return null;
+    }
+    return {
+      replacements: [
+        { start: openStart, end: openEnd, replacement: '' },
+        { start: closeStart, end: closeEnd, replacement: '' },
+      ],
+    };
+  };
 }
 
 /** Find the root Identifier node at the base of a member chain. */

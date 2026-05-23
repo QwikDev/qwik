@@ -41,6 +41,11 @@ import {
   type FunctionTransformSession,
   type TransformSession,
 } from '../utils/transform-session.js';
+import {
+  collectRangeReplacements,
+  isReplaceableIdentifierPosition,
+  type RangeReplacementCollector,
+} from '../utils/range-replace.js';
 
 function isRawPropsMemberExpression(node: unknown): node is AstCompatNode & { object: AstIdentifierNode } {
   return (
@@ -478,62 +483,84 @@ function isExcludedRange(
   return excludedRanges.some((range) => node.start >= range.start && node.end <= range.end);
 }
 
+/**
+ * OSS-417: collector form of the historic `collectIdentifierReplacements`
+ * walker. Matches Identifier references to destructured prop locals and
+ * emits `IdentifierReplacement` records describing where the
+ * `_rawProps.<key>` rewrite should land.
+ *
+ * Subtree-skip for excluded ranges (param-list, body-destructure statement)
+ * runs at the orchestrator level via `skipSubtree`. The shared
+ * {@link isReplaceableIdentifierPosition} predicate matches the
+ * historic raw-props parent-context guards (property-key / non-computed
+ * member-prop / params / declarator-id excluded).
+ *
+ * The output uses the local `IdentifierReplacement` shape rather than
+ * the generic `RangeReplacement` because the apply step ({@link applyIdentifierReplacements})
+ * needs the original `local` and `key` to compose the accessor + default
+ * value at emit time. The collector populates a closure-captured array
+ * (not the orchestrator's return value) for that reason; the orchestrator
+ * is still doing the walk + skipSubtree dispatch.
+ */
+function buildIdentifierReplacementsCollector(
+  fieldLocalToKey: ReadonlyMap<string, string>,
+  offset: number,
+  out: IdentifierReplacement[],
+  excludedRanges?: ReadonlyArray<{ start: number; end: number }>,
+): RangeReplacementCollector {
+  return (node, ctx) => {
+    if (hasRange(node) && isExcludedRange(node, excludedRanges as Array<{ start: number; end: number }> | undefined)) {
+      return { replacements: [], skipSubtree: true };
+    }
+    if (!isRangedIdentifierNode(node)) return null;
+    const key = fieldLocalToKey.get(node.name);
+    if (key === undefined) return null;
+
+    const isShorthandValue =
+      ctx.parentKey === 'value' &&
+      ctx.parentNode?.type === 'Property' &&
+      ctx.parentNode.shorthand === true;
+
+    if (isShorthandValue) {
+      out.push({
+        start: node.start - offset,
+        end: node.end - offset,
+        key,
+        local: node.name,
+        isShorthand: true,
+      });
+      return { replacements: [] };
+    }
+    if (isReplaceableIdentifierPosition(ctx.parentKey, ctx.parentNode)) {
+      out.push({
+        start: node.start - offset,
+        end: node.end - offset,
+        key,
+        local: node.name,
+      });
+    }
+    return { replacements: [] };
+  };
+}
+
 function collectIdentifierReplacements(
   root: unknown,
   fieldLocalToKey: Map<string, string>,
   offset: number,
   excludedRanges?: Array<{ start: number; end: number }>,
 ): IdentifierReplacement[] {
-  const replacements: IdentifierReplacement[] = [];
-
-  function walk(node: unknown, parentKey?: string, parentNode?: AstNode): void {
-    if (!isAstNode(node)) return;
-    if (
-      hasRange(node) &&
-      isExcludedRange(node, excludedRanges)
-    ) {
-      return;
-    }
-
-    if (isRangedIdentifierNode(node) && fieldLocalToKey.has(node.name)) {
-      // Runtime emits 'Property' / 'MemberExpression' — the historic
-      // 'ObjectProperty' / 'StaticMemberExpression' branches were
-      // dead and got pruned when the type tightened (per PR #44).
-      const isPropertyKey = parentKey === 'key' && parentNode?.type === 'Property';
-      const isMemberProp =
-        parentKey === 'property' &&
-        parentNode?.type === 'MemberExpression' &&
-        !parentNode.computed;
-      const isParam = parentKey === 'params';
-      const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
-      const isShorthandValue =
-        parentKey === 'value' &&
-        parentNode?.type === 'Property' &&
-        parentNode.shorthand === true;
-
-      if (isShorthandValue) {
-        replacements.push({
-          start: node.start - offset,
-          end: node.end - offset,
-          key: fieldLocalToKey.get(node.name)!,
-          local: node.name,
-          isShorthand: true,
-        });
-      } else if (!isPropertyKey && !isMemberProp && !isParam && !isDeclaratorId) {
-        replacements.push({
-          start: node.start - offset,
-          end: node.end - offset,
-          key: fieldLocalToKey.get(node.name)!,
-          local: node.name,
-        });
-      }
-    }
-
-    forEachAstChild(node, (child, key, parent) => walk(child, key, parent));
-  }
-
-  walk(root);
-  return replacements;
+  if (!isAstNode(root)) return [];
+  const out: IdentifierReplacement[] = [];
+  // The shared orchestrator threads strict `AstNode` to collectors; this
+  // call site has an `AstCompatNode` narrowed via `isAstNode`. The two
+  // shapes share the structural fields the orchestrator + collectors
+  // actually read (`type`, `start`, `end`, child node references via
+  // `forEachAstChild`) so the cast is safe — same FFI-boundary
+  // pragmatism as the existing `isAstNode` narrowing pattern.
+  collectRangeReplacements(root as AstNode, 0, '', [
+    buildIdentifierReplacementsCollector(fieldLocalToKey, offset, out, excludedRanges),
+  ]);
+  return out;
 }
 
 function applyIdentifierReplacements(

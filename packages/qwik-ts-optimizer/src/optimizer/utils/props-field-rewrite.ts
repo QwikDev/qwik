@@ -1,6 +1,10 @@
-import type { AstMaybeNode, AstNode, AstParentNode } from '../../ast-types.js';
-import { forEachAstChild } from './ast.js';
 import { buildPropertyAccessor } from './identifier-name.js';
+import {
+  applyReplacements,
+  collectRangeReplacements,
+  isReplaceableIdentifierPosition,
+  type RangeReplacementCollector,
+} from './range-replace.js';
 import { createTransformSession } from './transform-session.js';
 
 interface RewritePropsFieldReferencesOptions {
@@ -15,6 +19,55 @@ interface RewritePropsFieldReferencesOptions {
    * emission in `transform_pat` (`swc-reference-only/props_destructuring.rs:382-388`).
    */
   defaultValues?: ReadonlyMap<string, string>;
+}
+
+/**
+ * Build a {@link RangeReplacementCollector} that rewrites identifier references
+ * matching `fieldMap` keys to `_rawProps.<key>` (or `(_rawProps.<key> ?? <default>)`
+ * when a default is provided). Handles shorthand `Property` value positions
+ * specially by emitting `key: <accessor>` to expand the shorthand.
+ *
+ * Pre-OSS-417 this was the inline `walkNode` in
+ * `rewritePropsFieldReferences`; the predicate matches the historic
+ * behaviour via the shared {@link isReplaceableIdentifierPosition} helper.
+ */
+function propsFieldIdentifierCollector(
+  fieldMap: ReadonlyMap<string, string>,
+  defaultValues: ReadonlyMap<string, string> | undefined,
+  memberPropertyMode: 'all' | 'nonComputed' | undefined,
+): RangeReplacementCollector {
+  return (node, ctx) => {
+    if (node.type !== 'Identifier') return null;
+    const localName = node.name;
+    const key = fieldMap.get(localName);
+    if (key === undefined) return null;
+
+    const isShorthandValue =
+      ctx.parentKey === 'value' &&
+      ctx.parentNode?.type === 'Property' &&
+      ctx.parentNode?.shorthand === true;
+
+    const isReferencePosition = isShorthandValue ||
+      isReplaceableIdentifierPosition(ctx.parentKey, ctx.parentNode, { memberPropertyMode });
+    if (!isReferencePosition) return null;
+
+    const baseAccessor = buildPropertyAccessor('_rawProps', key);
+    const defaultExpr = defaultValues?.get(localName);
+    const accessor = defaultExpr !== undefined
+      ? `(${baseAccessor} ?? ${defaultExpr})`
+      : baseAccessor;
+    const replacement = isShorthandValue ? `${key}: ${accessor}` : accessor;
+
+    return {
+      replacements: [{
+        start: node.start - ctx.exprStart,
+        end: node.end - ctx.exprStart,
+        replacement,
+      }],
+      // Identifier is a leaf — recursion past it is a no-op anyway, so
+      // explicit skipSubtree adds nothing here.
+    };
+  };
 }
 
 /**
@@ -40,84 +93,21 @@ export function rewritePropsFieldReferences(
 
   if (!session) return bodyText;
 
-  const { offset, program } = session;
-  const replacements: Array<{
-    start: number;
-    end: number;
-    key: string;
-    local: string;
-    isShorthand?: boolean;
-  }> = [];
+  const { offset, program, wrappedSource } = session;
+  const collector = propsFieldIdentifierCollector(
+    fieldMap,
+    options.defaultValues,
+    options.memberPropertyMode,
+  );
 
-  function walkNode(
-    node: AstMaybeNode,
-    parentKey?: string,
-    parentNode?: AstParentNode,
-  ): void {
-    if (!node || typeof node !== 'object') return;
-
-    if (node.type === 'Identifier' && fieldMap.has(node.name)) {
-      const isPropertyKey =
-        parentKey === 'key' &&
-        parentNode?.type === 'Property';
-      const isMemberProperty =
-        parentKey === 'property' &&
-        parentNode?.type === 'MemberExpression' &&
-        (options.memberPropertyMode === 'all' || !parentNode.computed);
-      const isParam = parentKey === 'params';
-      const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
-      const isShorthandValue =
-        parentKey === 'value' &&
-        parentNode?.type === 'Property' &&
-        parentNode?.shorthand === true;
-
-      const localName = node.name;
-      if (isShorthandValue) {
-        replacements.push({
-          start: node.start - offset,
-          end: node.end - offset,
-          key: fieldMap.get(localName)!,
-          local: localName,
-          isShorthand: true,
-        });
-      } else if (!isPropertyKey && !isMemberProperty && !isParam && !isDeclaratorId) {
-        replacements.push({
-          start: node.start - offset,
-          end: node.end - offset,
-          key: fieldMap.get(localName)!,
-          local: localName,
-        });
-      }
-    }
-
-    forEachAstChild(node, (child, key, parent) => walkNode(child, key, parent));
-  }
-
-  walkNode(program);
+  // The collector emits ranges relative to `wrappedSource`; `applyReplacements`
+  // splices into `wrappedSource`, then the wrapper-prefix slice yields the
+  // original body's edited form.
+  const replacements = collectRangeReplacements(
+    program, 0, wrappedSource, [collector],
+  );
   if (replacements.length === 0) return bodyText;
 
-  replacements.sort((a, b) => b.start - a.start);
-  let result = bodyText;
-  for (const replacement of replacements) {
-    const baseAccessor = buildPropertyAccessor('_rawProps', replacement.key);
-    const defaultExpr = options.defaultValues?.get(replacement.local);
-    const accessor = defaultExpr !== undefined
-      ? `(${baseAccessor} ?? ${defaultExpr})`
-      : baseAccessor;
-    if (replacement.isShorthand) {
-      result =
-        result.slice(0, replacement.start) +
-        replacement.key +
-        ': ' +
-        accessor +
-        result.slice(replacement.end);
-    } else {
-      result =
-        result.slice(0, replacement.start) +
-        accessor +
-        result.slice(replacement.end);
-    }
-  }
-
-  return result;
+  const edited = applyReplacements(wrappedSource, replacements);
+  return edited.slice(offset, edited.length - (options.wrapperSuffix?.length ?? 0));
 }

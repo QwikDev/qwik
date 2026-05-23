@@ -165,6 +165,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_split_spread_props_with_additional_prop2",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_split_spread_props_with_additional_prop3",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_split_spread_props_with_additional_prop4",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_split_spread_props_with_additional_prop5",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_transform_block_scoped_variables_and_item_index_in_loop",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_transform_block_scoped_variables_in_loop",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_transform_component_with_normal_function",
@@ -437,6 +438,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_split_spread_props_with_additional_prop2",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_split_spread_props_with_additional_prop3",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_split_spread_props_with_additional_prop4",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_split_spread_props_with_additional_prop5",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_transform_block_scoped_variables_and_item_index_in_loop",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_transform_block_scoped_variables_in_loop",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots should_transform_component_with_normal_function",
@@ -778,6 +780,10 @@
       "tests/optimizer/oss-428-devpath-threading.test.ts :: OSS-428: input.devPath threading into JSX dev-info JSX dev-info fileName uses input.devPath when explicitly set",
       "tests/optimizer/oss-428-devpath-threading.test.ts :: OSS-428: input.devPath threading into JSX dev-info non-dev modes ignore devPath for JSX fileName (negative scope)",
       "tests/optimizer/oss-428-devpath-threading.test.ts :: OSS-428: input.devPath threading into JSX dev-info qrlDEV file: uses composed devFilePath when no input.devPath (negative scope)",
+      "tests/optimizer/oss-430-moved-decl-jsx-rewrite.test.ts :: OSS-430: moved-decl JSX carries Qwik rewrite into the segment file Qwik core helpers used by the moved decl get imported into the segment",
+      "tests/optimizer/oss-430-moved-decl-jsx-rewrite.test.ts :: OSS-430: moved-decl JSX carries Qwik rewrite into the segment file fixtures without moved decls keep current behavior (negative scope)",
+      "tests/optimizer/oss-430-moved-decl-jsx-rewrite.test.ts :: OSS-430: moved-decl JSX carries Qwik rewrite into the segment file non-spread JSX in a moved helper still gets rewritten (positive coverage)",
+      "tests/optimizer/oss-430-moved-decl-jsx-rewrite.test.ts :: OSS-430: moved-decl JSX carries Qwik rewrite into the segment file pure-spread JSX in a moved helper compiles to `_jsxSplit` (not React `_jsx`)",
       "tests/optimizer/path-utils.test.ts :: path-utils detects whether a relative import stays within the srcDir-relative tree",
       "tests/optimizer/path-utils.test.ts :: path-utils normalizes windows-style paths",
       "tests/optimizer/path-utils.test.ts :: path-utils preserves current computeRelPath behavior for paths outside srcDir",
@@ -1076,6 +1082,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 910
+    "total": 914
   }
 }

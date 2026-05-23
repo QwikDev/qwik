@@ -54,6 +54,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_jsx_keyed",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_jsx_keyed_dev",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_jsx_listeners",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_lib_mode",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_manual_chunks",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_missing_custom_inlined_functions",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_multi_capture",
@@ -324,6 +325,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_jsx_keyed",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_jsx_keyed_dev",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_jsx_listeners",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_lib_mode",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_manual_chunks",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_missing_custom_inlined_functions",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_multi_capture",
@@ -752,6 +754,12 @@
       "tests/optimizer/oss-421-lib-mode-emission.test.ts :: OSS-421: lib-mode emission shape suppresses _auto_X re-exports under mode=lib",
       "tests/optimizer/oss-421-lib-mode-emission.test.ts :: OSS-421: lib-mode emission shape suppresses segment-file modules under mode=lib",
       "tests/optimizer/oss-421-lib-mode-emission.test.ts :: OSS-421: lib-mode emission shape threads captures via inlinedQrl 3rd argument under mode=lib",
+      "tests/optimizer/oss-423-lib-mode-imports.test.ts :: OSS-423: lib-mode import preservation adds `jsx as _jsx` import from `@qwik.dev/core/jsx-runtime` under lib mode",
+      "tests/optimizer/oss-423-lib-mode-imports.test.ts :: OSS-423: lib-mode import preservation end-to-end: example_lib_mode flips with Sub-A + Sub-C",
+      "tests/optimizer/oss-423-lib-mode-imports.test.ts :: OSS-423: lib-mode import preservation non-lib modes still strip `$`-suffix markers from imports (negative scope)",
+      "tests/optimizer/oss-423-lib-mode-imports.test.ts :: OSS-423: lib-mode import preservation non-lib modes still strip `jsx as _jsx` (negative scope)",
+      "tests/optimizer/oss-423-lib-mode-imports.test.ts :: OSS-423: lib-mode import preservation preserves `$`-suffix marker imports alongside their `*Qrl` rewrites",
+      "tests/optimizer/oss-423-lib-mode-imports.test.ts :: OSS-423: lib-mode import preservation strips bare `$` (no marker-function semantics) under lib mode",
       "tests/optimizer/path-utils.test.ts :: path-utils detects whether a relative import stays within the srcDir-relative tree",
       "tests/optimizer/path-utils.test.ts :: path-utils normalizes windows-style paths",
       "tests/optimizer/path-utils.test.ts :: path-utils preserves current computeRelPath behavior for paths outside srcDir",
@@ -1050,6 +1058,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 888
+    "total": 894
   }
 }

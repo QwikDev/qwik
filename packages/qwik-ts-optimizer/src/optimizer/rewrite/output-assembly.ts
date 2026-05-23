@@ -145,6 +145,15 @@ export function collectNeededImports(ctx: RewriteContext): void {
       neededImports.set('Fragment as _Fragment', '@qwik.dev/core/jsx-runtime');
     }
   }
+
+  // OSS-423: lib mode emits an additional `import { jsx as _jsx } from
+  // "@qwik.dev/core/jsx-runtime"` alongside the rewritten `_jsxSorted`
+  // form. SWC includes it in lib emit even when not directly referenced —
+  // the JSX runtime export surface stays available for downstream library
+  // consumers. Mirrors SWC's `example_lib_mode` snap.
+  if (ctx.isLibMode && jsxResult && !alreadyImported.has('jsx')) {
+    neededImports.set('jsx as _jsx', '@qwik.dev/core/jsx-runtime');
+  }
 }
 
 export function buildQrlDeclarations(ctx: RewriteContext): void {
@@ -439,7 +448,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
  */
 export function filterUnusedImports(ctx: RewriteContext): void {
   const { survivingUserImports, survivingImportInfos, s, qrlDecls, sCalls,
-    inlineHoistedDeclarations, isInline, inlineOptions, relPath } = ctx;
+    inlineHoistedDeclarations, isInline, inlineOptions, relPath, isLibMode } = ctx;
 
   if (survivingUserImports.length === 0 || survivingImportInfos.length === 0) return;
 
@@ -458,6 +467,15 @@ export function filterUnusedImports(ctx: RewriteContext): void {
 
     const usedNamed: { local: string; imported: string }[] = [];
     for (const np of info.namedParts) {
+      // OSS-423: lib-mode `$`-suffix markers (e.g. `component$`, `useStyle$`)
+      // stay in the import even when not referenced in the parent body —
+      // they were rewritten to their `*Qrl` forms but downstream library
+      // consumers may still need the original markers for composition or
+      // re-export. The bare `$` is excluded (no marker-function semantics).
+      if (isLibMode && np.imported.length > 1 && np.imported.endsWith('$')) {
+        usedNamed.push(np);
+        continue;
+      }
       if (createRegExp(wordBoundary, exactly(np.local), wordBoundary).test(fullRefText)) {
         usedNamed.push(np);
       }
@@ -729,6 +747,15 @@ export function assembleOutput(ctx: RewriteContext): string {
     finalCode = collapseToLibInlinedQrl(finalCode);
   }
 
+  // OSS-423: capture lib-mode-preserved imports BEFORE TS-strip. oxc-transform's
+  // strip eliminates unused value imports (the `*$` markers + `jsx as _jsx`
+  // have no in-body references after rewrites). We re-prepend them after
+  // strip to honor lib mode's "preserve user-facing surface" contract.
+  const libModeReservedImports: string[] = [];
+  if (ctx.isLibMode && transpileTs) {
+    libModeReservedImports.push(...extractLibModeReservedImports(finalCode));
+  }
+
   if (transpileTs) {
     const tsStripOptions: TransformOptions = { typescript: { onlyRemoveTypeImports: false } };
     if (!jsxOptions?.enableJsx) {
@@ -740,5 +767,52 @@ export function assembleOutput(ctx: RewriteContext): string {
     }
   }
 
+  // OSS-423: re-prepend lib-mode-preserved imports that oxc-transform's
+  // strip eliminated as "unused." These are intentional public-surface
+  // imports for downstream library consumers (the `*$` markers + the
+  // `jsx as _jsx` runtime export).
+  if (libModeReservedImports.length > 0) {
+    finalCode = libModeReservedImports.join('\n') + '\n' + finalCode;
+  }
+
   return finalCode;
+}
+
+/**
+ * Extract import statements that lib mode wants preserved across TS-strip:
+ * - `import { X$, Y$, ... } from '@qwik.dev/core'` survivor — user-facing
+ *   `$`-suffix markers whose `*Qrl` rewrites are already in the output but
+ *   whose original forms downstream library consumers may want to import.
+ * - `import { jsx as _jsx } from '@qwik.dev/core/jsx-runtime'` — JSX runtime
+ *   surface SWC's lib emit always includes.
+ *
+ * Returns the import statement strings as they appear in `source`. The
+ * caller re-prepends these to the post-strip output.
+ */
+function extractLibModeReservedImports(source: string): string[] {
+  const out: string[] = [];
+
+  // `*$`-suffix marker survivor. Emit with double-quote source string to
+  // match post-strip quote style — compareAst's `deduplicateImports`
+  // keys on the source AST's `raw` field, so single vs double quote
+  // produces different keys and won't merge. Mirroring oxc-transform's
+  // post-strip normalization keeps the dedup path open.
+  const markerRe = /import\s*\{([^}]*\$[^}]*)\}\s*from\s*(["'])@qwik\.dev\/core\2\s*;/g;
+  let m: RegExpExecArray | null;
+  while ((m = markerRe.exec(source)) !== null) {
+    const inner = m[1];
+    // Keep only specifiers ending in `$` (length > 1 — excludes the bare `$`).
+    const kept = inner.split(',').map(s => s.trim()).filter(s => s.length > 1 && s.endsWith('$'));
+    if (kept.length === 0) continue;
+    out.push(`import { ${kept.join(', ')} } from "@qwik.dev/core";`);
+  }
+
+  // `jsx as _jsx` from jsx-runtime
+  const jsxRe = /import\s*\{\s*jsx\s+as\s+_jsx\s*\}\s*from\s*(["'])@qwik\.dev\/core\/jsx-runtime\1\s*;/g;
+  const jsxMatch = jsxRe.exec(source);
+  if (jsxMatch) {
+    out.push(`import { jsx as _jsx } from "@qwik.dev/core/jsx-runtime";`);
+  }
+
+  return out;
 }

@@ -720,6 +720,21 @@ function isIndependentTopLevel(stmt: any): boolean {
   // Export declarations: export const X = componentQrl(...)
   if (stmt?.type === 'ExportNamedDeclaration') return true;
   if (stmt?.type === 'ExportDefaultDeclaration') return true;
+  // OSS-423: `const NAME = <Literal>;` declarations have no observable side
+  // effects and no dependencies, so the order vs. surrounding `export` /
+  // `q_*.s(...)` statements is irrelevant for runtime semantics. SWC's lib
+  // emit places these declarations BEFORE the exports that reference them
+  // (e.g. `const STYLES = '.class {}';` before `export const Works = ...`);
+  // TS keeps source order (decl after the export). Including literal-init
+  // const decls in the sortable set normalises both into the same canonical
+  // order. Strictly gated: only Literal initialisers — anything more
+  // complex (CallExpression, ObjectExpression, etc.) could have side
+  // effects whose order matters.
+  if (stmt?.type === 'VariableDeclaration' && stmt.kind === 'const' &&
+      stmt.declarations?.length === 1 &&
+      stmt.declarations[0]?.init?.type === 'Literal') {
+    return true;
+  }
   return false;
 }
 

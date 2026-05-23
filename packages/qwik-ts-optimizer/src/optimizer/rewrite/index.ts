@@ -274,7 +274,7 @@ function collectExtractedCalleeNames(ctx: RewriteContext): void {
 }
 
 function processImports(ctx: RewriteContext): void {
-  const { s, program, source, extractedCalleeNames, minify } = ctx;
+  const { s, program, source, extractedCalleeNames, minify, isLibMode } = ctx;
 
   for (const node of program.body) {
     if (node.type !== 'ImportDeclaration') continue;
@@ -299,6 +299,15 @@ function processImports(ctx: RewriteContext): void {
       if (spec.type !== 'ImportSpecifier') continue;
       const importedName = importedSpecifierName(spec);
       if (isMarkerSpecifier(importedName, extractedCalleeNames)) {
+        // OSS-423: lib mode preserves the user-facing `*$`-suffix markers
+        // alongside their rewritten `*Qrl` forms — downstream library
+        // consumers may re-import `component$`, `useStyle$`, etc. for
+        // composition or re-export. The bare `$` marker is still stripped
+        // (it has no marker-function semantics post-extraction; SWC also
+        // strips it from `example_lib_mode`'s expected output).
+        if (isLibMode && importedName.length > 1 && importedName.endsWith('$')) {
+          continue;
+        }
         toRemove.push(i);
       }
     }

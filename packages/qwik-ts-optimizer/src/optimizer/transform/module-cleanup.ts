@@ -324,6 +324,7 @@ export function removeUnusedImports(
   filename: string,
   transpileJsx?: boolean,
   preParsedProgram?: AstProgram,
+  isLibMode?: boolean,
 ): string {
   const sepIdx = code.indexOf('\n//\n');
   if (sepIdx >= 0) {
@@ -425,6 +426,24 @@ export function removeUnusedImports(
     if (referencedNames.has(spec.localName)) return false;
 
     const importSource = spec.node.source?.value ?? '';
+
+    // OSS-423: lib mode preserves `$`-suffix marker imports and the
+    // `jsx as _jsx` jsx-runtime import even when unused. These are
+    // public-surface imports for downstream library consumers, intentional
+    // per SWC's lib-emit semantics. Keep them regardless of `transpileJsx`.
+    if (isLibMode) {
+      const importedName = spec.specNode.type === 'ImportSpecifier'
+        ? (getImportedSpecifierName(spec.specNode) ?? spec.localName)
+        : spec.localName;
+      if (importedName.length > 1 && importedName.endsWith('$') &&
+          importSource === '@qwik.dev/core') {
+        return false;
+      }
+      if (importedName === 'jsx' && importSource === '@qwik.dev/core/jsx-runtime') {
+        return false;
+      }
+    }
+
     const isQwikImport = QWIK_IMPORT_PREFIXES.some((prefix) =>
       importSource.startsWith(prefix),
     );

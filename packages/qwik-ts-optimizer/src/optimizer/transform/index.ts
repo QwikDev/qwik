@@ -573,6 +573,8 @@ export function transformModule(
       parentCode,
       relPath,
       options.transpileJsx,
+      undefined,
+      isLibMode,
     );
     const parentModule: TransformModule = {
       kind: 'parent',

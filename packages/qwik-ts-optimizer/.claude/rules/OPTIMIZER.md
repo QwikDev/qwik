@@ -182,10 +182,10 @@ Top-level entry is `transformModule` at `src/optimizer/transform/index.ts:93`. T
 | 0 | `transform/index.ts:108` | Repair SWC-recoverable parse errors | `repairInput` |
 | 1 | `transform/index.ts:131` | Walk the AST, find every `$(...)` call, record loc + body text + initial metadata | `extractSegments` in `extract.ts` |
 | 2 | `transform/index.ts:171` | Collect imports + run scope analysis on each closure to determine which outer-scope vars are captured. Closure AST nodes are threaded through from Phase 1 (`closureNodes` map populated by `extractSegments` per OSS-353); no per-extraction body re-parse | `collectScopeIdentifiers`, `analyzeCaptures`, `computeSegmentUsage` |
-| 3 | `transform/index.ts:324` | For each module-level binding referenced inside a segment, decide: stay in parent (`keep`), move into segment (`move`), or re-export (`reexport`) | `decideMigration` in `variable-migration.ts` |
-| 4 | `transform/index.ts:476` | Rewrite the parent module — replace each `$(closure)` with a generated `q_<symbol>` `qrl(...)` reference; apply migration decisions | `rewriteOriginalModule` |
-| 5 | `transform/index.ts:559` | Emit one module per non-stripped segment | `generateAllSegmentModules` in `transform/segment-generation.ts` (34-line sequencer over named helpers per OSS-356/357/358 — see SPEC at `.planning/specs/segment-generation-refactor.md`) |
-| 6 | `transform/index.ts:630` | Apply diagnostic suppression directives | (lightweight cleanup) |
+| 3 | `transform/index.ts:352` | For each module-level binding referenced inside a segment, decide: stay in parent (`keep`), move into segment (`move`), or re-export (`reexport`) | `decideMigration` in `variable-migration.ts` |
+| 4 | `transform/index.ts:490` | Rewrite the parent module — replace each `$(closure)` with a generated `q_<symbol>` `qrl(...)` reference; apply migration decisions | `rewriteOriginalModule` |
+| 5 | `transform/index.ts:605` | Emit one module per non-stripped segment | `generateAllSegmentModules` in `transform/segment-generation.ts` (34-line sequencer over named helpers per OSS-356/357/358 — see SPEC at `.planning/specs/segment-generation-refactor.md`) |
+| 6 | `transform/index.ts:686` | Apply diagnostic suppression directives | (lightweight cleanup) |
 
 The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1127`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
 

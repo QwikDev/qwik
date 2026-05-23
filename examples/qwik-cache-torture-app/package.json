@@ -3,7 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "pnpm exec qwik build preview",
+    "build.client": "pnpm exec vite build",
+    "build.preview": "pnpm exec vite build --ssr src/entry.preview.tsx",
+    "build.types": "pnpm exec tsc -p tsconfig.json --noEmit",
     "typecheck": "pnpm exec tsc -p tsconfig.json",
-    "dev": "pnpm exec vite --config vite.config.ts --mode ssr"
+    "dev": "pnpm exec vite --config vite.config.ts --mode ssr",
+    "preview": "pnpm exec vite preview --host 127.0.0.1 --port 4314 --strictPort"
   }
 }

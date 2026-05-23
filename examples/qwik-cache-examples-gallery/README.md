@@ -17,6 +17,27 @@ The gallery starts each example app on a stable local port and links to it with 
 The example UIs use the Tailwind CDN from each app's `src/root.tsx`, so there is no
 Tailwind build step for local exploration.
 
+## Production Preview
+
+Use production builds when measuring cache behavior or comparing cold and cached
+response timing:
+
+```bash
+pnpm -C examples/qwik-cache-examples-gallery prod:all
+```
+
+That command builds every example with `qwik build preview`, then starts each
+app with `vite preview` on the same ports used by `dev:all`.
+
+You can also split the steps:
+
+```bash
+pnpm -C examples/qwik-cache-examples-gallery build:all
+pnpm -C examples/qwik-cache-examples-gallery preview:all
+```
+
+Run `dev:all` for fast iteration. Run `prod:all` for performance checks.
+
 ## Query Modes
 
 Each demo supports the same query knobs for comparing cold/mock-loading behavior

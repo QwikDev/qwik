@@ -23,6 +23,8 @@
  * other exotic coercions are left untouched.
  */
 import type { AstMaybeNode } from '../../ast-types.js';
+import { forEachAstChild } from './ast.js';
+import { createTransformSession } from './transform-session.js';
 
 /**
  * Try to simplify the given expression to a JS primitive value at
@@ -152,3 +154,128 @@ export type SimplifyResult =
   | { simplified: false };
 
 const UNSIMPLIFIED: SimplifyResult = { simplified: false };
+
+/** Apply a list of disjoint range replacements to a source string. */
+export function applyReplacements(
+  text: string,
+  replacements: ReadonlyArray<{ start: number; end: number; replacement: string }>,
+): string {
+  if (replacements.length === 0) return text;
+  const sorted = [...replacements].sort((a, b) => a.start - b.start);
+  let out = '';
+  let pos = 0;
+  for (const r of sorted) {
+    out += text.slice(pos, r.start);
+    out += r.replacement;
+    pos = r.end;
+  }
+  out += text.slice(pos);
+  return out;
+}
+
+/**
+ * Walk an expression subtree top-down looking for subtrees that
+ * {@link simplifyExpression} can collapse to a primitive literal. Emits a
+ * replacement (range → `formatSimplifiedLiteral(value)`) per matching
+ * subtree and **does not recurse into simplified subtrees** — the children
+ * are already represented by the parent's emit.
+ *
+ * Skips no-op replacements where the formatted literal equals the source
+ * text verbatim (e.g. source already says `3`).
+ *
+ * `exprStart` is the source-absolute offset of `exprText[0]`; matched
+ * ranges are emitted relative to `exprText`.
+ */
+export interface CollectSimplificationsOptions {
+  /**
+   * When `true`, skip `Literal` nodes — they're already in their canonical
+   * source form and re-formatting via {@link formatSimplifiedLiteral} would
+   * just re-canonicalize the quote style (e.g. `"x"` → `'x'`). The
+   * body-fold pass uses this; the lambda-body folder in `signal-analysis.ts`
+   * (the original caller) leaves it `false` because it relies on the
+   * quote canonicalization for matching SWC's lambda-body emit.
+   */
+  skipLiterals?: boolean;
+}
+
+export function collectSimplifications(
+  n: AstMaybeNode,
+  exprStart: number,
+  exprText: string,
+  out: Array<{ start: number; end: number; replacement: string }>,
+  options: CollectSimplificationsOptions = {},
+): void {
+  if (!n || typeof n !== 'object') return;
+  if (typeof n.start !== 'number' || typeof n.end !== 'number') {
+    forEachAstChild(n, (child) =>
+      collectSimplifications(child, exprStart, exprText, out, options));
+    return;
+  }
+
+  if (!options.skipLiterals || n.type !== 'Literal') {
+    const result = simplifyExpression(n);
+    if (result.simplified) {
+      const formatted = formatSimplifiedLiteral(result.value);
+      const sliceStart = n.start - exprStart;
+      const sliceEnd = n.end - exprStart;
+      if (sliceStart >= 0 && sliceEnd <= exprText.length) {
+        const originalText = exprText.slice(sliceStart, sliceEnd);
+        if (formatted !== originalText) {
+          out.push({ start: sliceStart, end: sliceEnd, replacement: formatted });
+        }
+      }
+      // Do NOT recurse — the simplified value already represents the whole
+      // subtree, and recursing would emit overlapping ranges.
+      return;
+    }
+  }
+
+  forEachAstChild(n, (child) =>
+    collectSimplifications(child, exprStart, exprText, out, options));
+}
+
+/**
+ * OSS-415: fold constant-foldable subtrees inside a segment-body source.
+ *
+ * Runs as a post-JSX-transform pass over the body text. By that timing,
+ * JSX-prop positions have become `_fnSignal(...)` calls (with `_hf<n>_str`
+ * already generated source-preserving), so any remaining `?? <const-expr>`
+ * patterns live in non-JSX positions like `console.log(_rawProps.X ?? 1+2)`.
+ *
+ * Mirrors SWC's `simplify::simplifier` pass that the Qwik Rust optimizer
+ * runs after its main transform (`swc-reference-only/parse.rs:360`).
+ * Strictly narrower than the full SWC simplifier — only folds subtrees that
+ * `simplifyExpression` can collapse to a primitive literal, matching the
+ * same conservative gate the lambda-body folder in `signal-analysis.ts`
+ * already uses.
+ *
+ * Wraps the body in `const __body__ = …` so a bare arrow expression
+ * parses; returns the body source unchanged on parse failure (defensive,
+ * the body has already been through several earlier transforms).
+ */
+export function foldBodySimplifiableExpressions(bodyText: string): string {
+  if (bodyText.length === 0) return bodyText;
+  const session = createTransformSession('__fold__.tsx', bodyText, {
+    wrapperPrefix: 'const __body__ = ',
+  });
+  if (!session) return bodyText;
+
+  const simplifications: Array<{ start: number; end: number; replacement: string }> = [];
+  // exprText spans the wrapped source; replacements come out relative to it,
+  // then we slice off the wrapper prefix at the end. `skipLiterals: true`
+  // suppresses re-canonicalization of source literals (e.g. `"count"` →
+  // `'count'`) — the body pass only wants to fold *computed* subtrees
+  // (Binary/Unary/Logical/Conditional with primitive-literal operands)
+  // INTO literals; source-form literals stay as-written.
+  collectSimplifications(
+    session.program,
+    0,
+    session.wrappedSource,
+    simplifications,
+    { skipLiterals: true },
+  );
+  if (simplifications.length === 0) return bodyText;
+
+  const folded = applyReplacements(session.wrappedSource, simplifications);
+  return folded.slice(session.wrapperPrefix.length);
+}

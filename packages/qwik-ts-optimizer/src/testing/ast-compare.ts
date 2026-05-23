@@ -165,6 +165,21 @@ function normalizeProgram(program: any): void {
   // bindings — if the binding was inlined, the call is dead code)
   stripOrphanedSideEffectCalls(program);
 
+  // OSS-415 sibling: re-sort independent top-level statements (sCalls,
+  // bare-qrl preloads, exports) AFTER `inlineSegmentBodyIntoSCall` +
+  // unused-decl strip. The earlier sort at line 113 ran while the
+  // `const X = body` declarations preceding each `q_X.s(X)` were still
+  // present — those VariableDeclarations are not in the independent set
+  // and broke contiguity, so the sCalls and exports stayed in source
+  // (interleaved) order. After the inline+strip removes those decls
+  // the block is finally contiguous, but the sort needs to fire again
+  // for canonical ordering. Mechanically a re-application of the
+  // existing normalizer — both orderings are runtime-equivalent
+  // (sCalls fill the lazy body on already-initialized QRL refs;
+  // exports expose `componentQrl(q_X)` references with no sequencing
+  // dependency between sCalls and exports).
+  sortIndependentTopLevelStatements(program);
+
   // Bare `qrl(()=>import(...), "<sym>");` statements are preload-registration
   // side effects with no observable runtime semantics beyond hinting the
   // runtime to fetch a chunk early. SWC and TS-Optimizer emit them at

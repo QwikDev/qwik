@@ -124,10 +124,14 @@ export const C = component$(({count, some = 1+2}) => {
     // `count` reaches into _rawProps (may go via _wrapProp(_rawProps, "count")
     // for Signal-style reactive access in JSX child position).
     expect(code).toMatch(/_rawProps[.,)"]\s*(?:["'])?count/);
-    // Defaulted access carries the `1+2` default — either as inline
-    // `_rawProps.some ?? 1+2` (pre-OSS-412) or hoisted into a `_hf<n>_str`
-    // such as `"p0.some??1+2"` (post-OSS-412 bare-expression hoisting).
-    expect(code).toMatch(/(?:_rawProps\.some\s*\?\?\s*1\s*\+\s*2)|(?:p0\.some\?\?1\+2)/);
+    // Defaulted access carries the `1+2` default. Pre-OSS-412: inline
+    // `_rawProps.some ?? 1+2`. Post-OSS-412: hoisted into a `_hf<n>_str`
+    // such as `"p0.some??1+2"`. Post-OSS-415: the inline-body emit is
+    // folded to `_rawProps.some ?? 3`; the source-form `1+2` is still
+    // preserved verbatim inside `_hf<n>_str`. Match any of the three.
+    expect(code).toMatch(
+      /(?:_rawProps\.some\s*\?\?\s*(?:1\s*\+\s*2|3))|(?:p0\.some\?\?1\+2)/,
+    );
   });
 });
 
@@ -154,10 +158,13 @@ export const C = component$(({count, some = 1+2, stuffDefault: hey2 = 123}) => {
 
     const code = findParent(result).code;
 
-    // The nested useTask body should reference _rawProps.some with `?? 1+2`
-    // and _rawProps.stuffDefault with `?? 123` — matching SWC's
-    // NullishCoalescing emission for defaulted fields.
-    expect(code).toMatch(/_rawProps\.some\s*\?\?\s*1\s*\+\s*2/);
+    // The nested useTask body should reference _rawProps.some with the
+    // `1+2` default and _rawProps.stuffDefault with `?? 123` — matching
+    // SWC's NullishCoalescing emission for defaulted fields. Post-OSS-415
+    // the inline-body fold collapses `?? 1+2` to `?? 3`; the bare-literal
+    // `?? 123` is already a no-op for the fold. Match either source-form
+    // or folded form for `some`.
+    expect(code).toMatch(/_rawProps\.some\s*\?\?\s*(?:1\s*\+\s*2|3)/);
     expect(code).toMatch(/_rawProps\.stuffDefault\s*\?\?\s*123/);
     // _rawProps.count has no default — bare access (no `??`).
     expect(code).toMatch(/_rawProps\.count[^?]/);

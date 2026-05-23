@@ -23,6 +23,7 @@ import { transformAllJsx, JsxKeyCounter } from '../transform/jsx.js';
 import { transformJsxCalls, collectJsxFunctionNamesFromIterable } from '../transform/jsx-call-transform.js';
 import { computeKeyPrefix } from '../key-prefix.js';
 import { SignalHoister } from '../signal-analysis.js';
+import { foldBodySimplifiableExpressions } from '../utils/simplify.js';
 import { getQrlImportSource } from '../rewrite-calls.js';
 import { injectCapturesUnpacking, removeDeadConstLiterals } from '../segment-codegen.js';
 import {
@@ -455,6 +456,14 @@ export function transformInlineSegmentBody(
   if (hasNestedExts) {
     body = removeDeadConstLiterals(body);
   }
+
+  // OSS-415: fold constant-foldable subtrees that survived earlier passes
+  // (typically the `?? <default>` RHS injected by `replacePropsFieldReferencesInBody`
+  // in non-JSX positions like `console.log(_rawProps.X ?? 1+2)`). Runs
+  // AFTER JSX transform so `_hf<n>_str` has already been generated from
+  // source-form positions and stays source-preserving; JSX-prop positions
+  // are now `_fnSignal(...)` calls with no `?? <default>` left to fold.
+  body = foldBodySimplifiableExpressions(body);
 
   return { transformedBody: body, additionalImports, hoistedDeclarations, keyCounterValue: finalKeyCounterValue };
 }

@@ -17,6 +17,7 @@ import { transformAllJsx, collectScopeAwareBindings, JsxKeyCounter } from './tra
 import { transformJsxCalls, collectJsxFunctionNames } from './transform/jsx-call-transform.js';
 import { computeKeyPrefix } from './key-prefix.js';
 import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
+import { foldBodySimplifiableExpressions } from './utils/simplify.js';
 import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
 
 // Re-export from body-transforms for backward compatibility
@@ -660,6 +661,14 @@ export function generateSegmentCode(
       segmentKeyCounterValue = jsxCallResult.keyCounterValue;
     }
   }
+
+  // OSS-415: fold constant-foldable subtrees that survived earlier passes
+  // (typically `?? <default>` RHS injected by raw-props in non-JSX
+  // positions). Runs AFTER Phase 5/5b so `_hf<n>_str` has been generated
+  // source-preserving and JSX-prop positions are now `_fnSignal(...)` calls
+  // with no `?? <default>` left to fold. Mirrors the same post-pass added
+  // to the inline-strategy path (`rewrite/inline-body.ts`).
+  bodyText = foldBodySimplifiableExpressions(bodyText);
 
   // Phase 6: core-symbol imports + sync$ call rewriting.
   ensureCoreImports(bodyText, parts);

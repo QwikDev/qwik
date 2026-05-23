@@ -8,7 +8,12 @@
 import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
 import type { AstMaybeNode, AstNode, AstParentNode } from '../ast-types.js';
 import { forEachAstChild, isAstNode } from './utils/ast.js';
-import { simplifyExpression, formatSimplifiedLiteral } from './utils/simplify.js';
+import {
+  applyReplacements,
+  collectSimplifications,
+  formatSimplifiedLiteral,
+  simplifyExpression,
+} from './utils/simplify.js';
 
 const trailingComma = createRegExp(
   exactly(',').and(anyOf('}', ']', ')').grouped()),
@@ -480,64 +485,9 @@ function generateFnSignal(
   return { hoistedFn, hoistedStr };
 }
 
-/** Apply a list of disjoint range replacements to a source string. */
-function applyReplacements(
-  text: string,
-  replacements: ReadonlyArray<{ start: number; end: number; replacement: string }>,
-): string {
-  if (replacements.length === 0) return text;
-  const sorted = [...replacements].sort((a, b) => a.start - b.start);
-  let out = '';
-  let pos = 0;
-  for (const r of sorted) {
-    out += text.slice(pos, r.start);
-    out += r.replacement;
-    pos = r.end;
-  }
-  out += text.slice(pos);
-  return out;
-}
-
-/**
- * Walk an expression subtree top-down looking for subtrees that
- * {@link simplifyExpression} can collapse to a primitive literal. Emits a
- * replacement (range → `formatSimplifiedLiteral(value)`) per matching
- * subtree and **does not recurse into simplified subtrees** — the children
- * are already represented by the parent's emit.
- *
- * Skips no-op replacements where the formatted literal equals the source
- * text verbatim (e.g. source already says `3`).
- */
-function collectSimplifications(
-  n: AstMaybeNode,
-  exprStart: number,
-  exprText: string,
-  out: Array<{ start: number; end: number; replacement: string }>,
-): void {
-  if (!n || typeof n !== 'object') return;
-  if (typeof n.start !== 'number' || typeof n.end !== 'number') {
-    forEachAstChild(n, (child) => collectSimplifications(child, exprStart, exprText, out));
-    return;
-  }
-
-  const result = simplifyExpression(n);
-  if (result.simplified) {
-    const formatted = formatSimplifiedLiteral(result.value);
-    const sliceStart = n.start - exprStart;
-    const sliceEnd = n.end - exprStart;
-    if (sliceStart >= 0 && sliceEnd <= exprText.length) {
-      const originalText = exprText.slice(sliceStart, sliceEnd);
-      if (formatted !== originalText) {
-        out.push({ start: sliceStart, end: sliceEnd, replacement: formatted });
-      }
-    }
-    // Do NOT recurse — the simplified value already represents the whole
-    // subtree, and recursing would emit overlapping ranges.
-    return;
-  }
-
-  forEachAstChild(n, (child) => collectSimplifications(child, exprStart, exprText, out));
-}
+// OSS-415: `applyReplacements` and `collectSimplifications` moved to
+// `utils/simplify.ts` so the body-fold pass introduced in OSS-415 can
+// reuse the same primitives the lambda-body folder above already uses.
 
 /**
  * Walk an expression subtree top-down looking for `ParenthesizedExpression`

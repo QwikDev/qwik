@@ -1,6 +1,3 @@
-import type { VNodeData } from '../../../server/vnode-data';
-import type { _EFFECT_BACK_REF } from '../../internal';
-import type { EffectProperty, EffectSubscription } from '../../reactive-primitives/types';
 import type { ISsrNode, SSRInternalStreamWriter, SymbolToChunkResolver } from '../../ssr/ssr-types';
 import { createStringStreamWriter } from '../../ssr/stream-writer';
 import type { QRL } from '../qrl/qrl.public';
@@ -8,15 +5,8 @@ import type { ObjToProxyMap } from '../types';
 import type { ValueOrPromise } from '../utils/types';
 import { Serializer } from './serialize';
 
-/** A selection of attributes of the real thing */
-type SsrNode = {
-  id: string;
-  children: ISsrNode[] | null;
-  vnodeData: VNodeData;
-  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null;
-};
 type DomRef = {
-  $ssrNode$: SsrNode;
+  $ssrNode$: ISsrNode;
 };
 
 /** Stores the location of an object. If no parent, it's a root. */
@@ -95,8 +85,9 @@ export interface SerializationContext {
   $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
   $setSyncFnOffset$(offset: number, existingFns?: string[]): void;
 
-  $isSsrNode$: (obj: unknown) => obj is SsrNode;
+  $isSsrNode$: (obj: unknown) => obj is ISsrNode;
   $isDomRef$: (obj: unknown) => obj is DomRef;
+  $markSsrNodeForSerialization$: (node: ISsrNode, flags: number) => void;
 
   $writer$: SSRInternalStreamWriter;
   $setWriter$(writer: SSRInternalStreamWriter): void;
@@ -129,6 +120,9 @@ class SerializationContextImpl implements SerializationContext {
   public $eventNames$: Set<string> = new Set();
   public $renderSymbols$: Set<string> = new Set();
   private $serializer$: Serializer;
+  public $markSsrNodeForSerialization$ = (node: ISsrNode, flags: number): void => {
+    node.vnodeData[0] |= flags;
+  };
 
   constructor(
     /**
@@ -259,7 +253,7 @@ class SerializationContextImpl implements SerializationContext {
     return index;
   }
 
-  $isSsrNode$(obj: unknown): obj is SsrNode {
+  $isSsrNode$(obj: unknown): obj is ISsrNode {
     return this.NodeConstructor ? obj instanceof this.NodeConstructor : false;
   }
 

@@ -542,7 +542,10 @@ export class Serializer {
         this.output(TypeIds.Object, out.length ? out : 0);
       }
     } else if (this.$serializationContext$.$isDomRef$(value)) {
-      value.$ssrNode$.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
+      this.$serializationContext$.$markSsrNodeForSerialization$(
+        value.$ssrNode$,
+        VNodeDataFlag.SERIALIZE
+      );
       this.output(TypeIds.RefVNode, value.$ssrNode$.id);
     } else if (value instanceof SignalImpl) {
       if (value instanceof SerializerSignalImpl) {
@@ -672,17 +675,14 @@ export class Serializer {
         discoverValuesForVNodeData(vNodeData, (vNodeDataValue) => {
           this.$serializationContext$.$addRoot$(vNodeDataValue);
         });
-        vNodeData[0] |= VNodeDataFlag.SERIALIZE;
+        this.$serializationContext$.$markSsrNodeForSerialization$(value, VNodeDataFlag.SERIALIZE);
       }
       if (value.children) {
         // Mark child vnode data for serialization (structure only, no value discovery needed)
         const childrenLength = value.children.length;
         for (let i = 0; i < childrenLength; i++) {
           const child = value.children[i];
-          const childVNodeData = child.vnodeData;
-          if (childVNodeData) {
-            childVNodeData[0] |= VNodeDataFlag.SERIALIZE;
-          }
+          this.$serializationContext$.$markSsrNodeForSerialization$(child, VNodeDataFlag.SERIALIZE);
         }
       }
     } else if (typeof FormData !== 'undefined' && value instanceof FormData) {

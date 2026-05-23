@@ -811,7 +811,11 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
       return vNode;
     }
   }
-  isDev && assertDefined(refElement, 'Missing refElement.');
+  isDev &&
+    assertDefined(
+      refElement,
+      'Missing refElement ' + (typeof id === 'string' ? `for id ${id}` : '')
+    );
   if (!vnode_isVNode(refElement)) {
     isDev &&
       assertTrue(

@@ -87,23 +87,13 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
-function getOutOfOrderStreamingScript(doc: Document, boundaryId: number) {
+function getOutOfOrderStreamingScript(boundaryId: number, content: Element | null) {
   const segmentId = String(boundaryId);
-  const qContainerElement = (doc.currentScript as Element | null)?.closest(
-    QContainerSelector
-  ) as ContainerElement | null;
-  processOutOfOrderSegmentVNodeData(doc, segmentId, qContainerElement || doc);
+  const qContainerElement = content?.closest(QContainerSelector) as ContainerElement | null;
   const qContainer = qContainerElement?.qContainer as DomContainer | undefined;
   if (qContainer) {
+    processOutOfOrderSegmentVNodeData(qContainer.element.ownerDocument, segmentId, content);
     processSegmentStateScripts(qContainer, segmentId);
-  } else {
-    const containers = doc.querySelectorAll(QContainerSelector);
-    for (let i = 0; i < containers.length; i++) {
-      const container = (containers[i] as ContainerElement).qContainer as DomContainer | undefined;
-      if (container) {
-        processSegmentStateScripts(container, segmentId);
-      }
-    }
   }
 }
 
@@ -140,7 +130,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$rawStateData$ = [];
     this.$stateData$ = [];
     const document = this.element.ownerDocument as QDocument;
-    if (!document.qVNodeData) {
+    if (!document.qVNodeDataProcessed) {
       processVNodeData(document);
     }
     if (__EXPERIMENTAL__.suspense && document.querySelector('template[q\\:r]')) {
@@ -179,6 +169,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     const hasContainers = document.querySelector(QContainerSelector) !== null;
     if (!hasContainers) {
       document.qVNodeData = undefined!;
+      document.qVNodeDataProcessed = undefined;
+      document.qProcessVNodeDataPatch = undefined;
     }
     if (__EXPERIMENTAL__.suspense) {
       if (!hasContainers) {

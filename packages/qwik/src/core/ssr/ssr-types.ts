@@ -14,7 +14,8 @@ import type { Props } from '../shared/jsx/jsx-runtime';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { SsrNodeFlags } from '../shared/types';
-import type { EffectSubscription } from '../reactive-primitives/types';
+import type { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
+import type { EffectProperty, EffectSubscription } from '../reactive-primitives/types';
 import type { ResourceReturnInternal } from '../use/use-resource';
 
 /** @internal */
@@ -49,8 +50,10 @@ export interface ISsrNode {
   flags: SsrNodeFlags;
   dirty: ChoreBits;
   parentComponent: ISsrNode | null;
+  children: ISsrNode[] | null;
   vnodeData: VNodeData;
   currentFile: string | null;
+  readonly [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null;
   setProp(name: string, value: any): void;
   getProp(name: string): any;
   removeProp(name: string): void;

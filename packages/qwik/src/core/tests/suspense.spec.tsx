@@ -2,7 +2,6 @@ import {
   createDocument,
   domRender,
   emulateExecutionOfQwikFuncs,
-  getTestPlatform,
   ssrRenderToDom,
   trigger,
   waitForDrain,
@@ -16,9 +15,7 @@ import {
   Fragment as Projection,
   Fragment as Awaited,
   component$,
-  getPlatform,
   getDomContainer,
-  setPlatform,
   type JSXOutput,
   useErrorBoundary,
   Slot,
@@ -32,9 +29,9 @@ import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/render
 import { delay } from '../shared/utils/promises';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { TypeIds } from '../shared/serdes/constants';
+import { processOutOfOrderSegmentVNodeData } from '../client/process-vnode-data';
 import * as logUtils from '../shared/utils/log';
-import { renderToStream } from '../../server/ssr-render';
-import type { StreamWriter } from '../../server/types';
+import type { StreamWriter, StreamingOptions } from '../../server/types';
 import { cleanupAttrs } from '../../testing/element-fixture';
 
 const debug = false; //true;
@@ -45,6 +42,33 @@ const collectStream = (chunks: string[]): StreamWriter => ({
     chunks.push(chunk);
   },
 });
+
+type SsrRenderSuspenseStreamOptions = {
+  outOfOrder?: boolean;
+  streaming?: StreamingOptions;
+  debug?: boolean;
+  raw?: boolean;
+  resume?: boolean;
+};
+
+const ssrRenderSuspenseStream = (
+  jsx: JSXOutput,
+  streamOrChunks: StreamWriter | string[],
+  opts: SsrRenderSuspenseStreamOptions = {}
+) => {
+  const stream = Array.isArray(streamOrChunks) ? collectStream(streamOrChunks) : streamOrChunks;
+  const streaming = opts.streaming ?? {
+    inOrder: { strategy: 'disabled' } as const,
+    ...(opts.outOfOrder === undefined ? {} : { outOfOrder: opts.outOfOrder }),
+  };
+  return ssrRenderToDom(jsx, {
+    raw: opts.raw,
+    debug: opts.debug,
+    stream,
+    streaming,
+    resume: opts.resume,
+  });
+};
 
 const loading = '<div style="display:contents"><span>Loading...</span></div>';
 const OOOS_SCOPED_STYLE = `.ooos-scoped { color: red; }`;
@@ -1019,7 +1043,56 @@ describe('domRender: Reveal suspense coordination', () => {
   });
 });
 
-describe('renderToStream: out-of-order Suspense', () => {
+describe('ssrRenderToDom: out-of-order Suspense', () => {
+  const runOutOfOrderScripts = (html: string) => {
+    const document = createDocument({ html });
+    executeOutOfOrderScripts(document);
+    return document;
+  };
+
+  const executeOutOfOrderScripts = (document: Document) => {
+    const scripts = Array.from(
+      document.querySelectorAll('script[type="text/javascript"]'),
+      (script) => script.textContent || ''
+    );
+    const qDocument = document as Document & {
+      qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+    };
+    const previousProcessOOOS = qDocument.qProcessOOOS;
+    qDocument.qProcessOOOS = (boundaryId, content) => {
+      processOutOfOrderSegmentVNodeData(document, String(boundaryId), content);
+      previousProcessOOOS?.(boundaryId, content);
+    };
+    try {
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+    } finally {
+      qDocument.qProcessOOOS = previousProcessOOOS;
+    }
+  };
+
+  const executeOutOfOrderScriptsWithoutVNodeProcessing = (document: Document) => {
+    const scripts = Array.from(
+      document.querySelectorAll('script[type="text/javascript"]'),
+      (script) => script.textContent || ''
+    );
+    const qDocument = document as Document & {
+      qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+    };
+    const previousProcessOOOS = qDocument.qProcessOOOS;
+    qDocument.qProcessOOOS = undefined;
+    try {
+      // eslint-disable-next-line no-new-func
+      new Function('document', scripts.join('\n'))(document);
+    } finally {
+      qDocument.qProcessOOOS = previousProcessOOOS;
+    }
+  };
+
+  const getParagraphHost = (document: Document, text: string) =>
+    Array.from(document.querySelectorAll('p')).find((node) => node.textContent === text)!
+      .parentElement as HTMLElement;
+
   it('should not use out-of-order streaming when outOfOrder is false', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
@@ -1028,21 +1101,14 @@ describe('renderToStream: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Suspense fallback={<button>Waiting</button>}>
           <Slow />
         </Suspense>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: false,
-        },
-      }
+      chunks,
+      { outOfOrder: false }
     );
 
     resolveSlow(<section>Done</section>);
@@ -1063,20 +1129,13 @@ describe('renderToStream: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Suspense fallback={<button>Waiting default</button>}>
           <Slow />
         </Suspense>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-        },
-      }
+      chunks
     );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting default'));
@@ -1092,6 +1151,44 @@ describe('renderToStream: out-of-order Suspense', () => {
     expect(html).toContain('qO(1)');
   });
 
+  it('should emit the out-of-order executor only once for multiple segments', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    const First = component$(() => <>{first}</>);
+    const Second = component$(() => <>{second}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(
+      <main>
+        <Suspense fallback={<p>First waiting</p>}>
+          <First />
+        </Suspense>
+        <Suspense fallback={<p>Second waiting</p>}>
+          <Second />
+        </Suspense>
+      </main>,
+      chunks
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('First waiting'));
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Second waiting'));
+    resolveFirst(<section>First done</section>);
+    resolveSecond(<section>Second done</section>);
+    await renderPromise;
+
+    const html = chunks.join('');
+    const executorMatches = html.match(/globalThis\.qO\|\|globalThis\.qO\.d!==document/g) || [];
+    expect(executorMatches.length).toBe(1);
+    expect(html).toContain('qO(1)');
+    expect(html).toContain('qO(2)');
+  });
+
   it('should stream fallback and shell before slow content resolves', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
@@ -1099,9 +1196,8 @@ describe('renderToStream: out-of-order Suspense', () => {
     });
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
-    const stream = collectStream(chunks);
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <h1>Title</h1>
         <Suspense fallback={<button>Waiting</button>}>
@@ -1109,15 +1205,7 @@ describe('renderToStream: out-of-order Suspense', () => {
         </Suspense>
         <footer>Footer</footer>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream,
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: true,
-        },
-      }
+      chunks
     );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting'));
@@ -1125,7 +1213,7 @@ describe('renderToStream: out-of-order Suspense', () => {
     expect(chunks.join('')).not.toContain('Done');
 
     resolveSlow(<section>Done</section>);
-    await renderPromise;
+    const { document } = await renderPromise;
     const html = chunks.join('');
     expect(html).not.toContain('q:sus');
     expect(html).not.toContain('q:f=');
@@ -1136,13 +1224,6 @@ describe('renderToStream: out-of-order Suspense', () => {
     expect(html).toContain('qO(1)');
     expect(html).toContain('Done');
 
-    const document = createDocument({ html });
-    const scripts = Array.from(
-      document.querySelectorAll('script[type="text/javascript"]'),
-      (script) => script.textContent || ''
-    );
-    // eslint-disable-next-line no-new-func
-    new Function('document', scripts.join('\n'))(document);
     const fallbackHost = document.querySelector('button')!.parentElement as HTMLElement;
     const contentHost = document.querySelector('section')!.parentElement as HTMLElement;
     expect(fallbackHost.style.display).toBe('none');
@@ -1157,22 +1238,14 @@ describe('renderToStream: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Suspense fallback={<button id="ooos-delay-fallback">Delayed waiting</button>} delay={10}>
           <Slow />
         </Suspense>
         <footer>Footer</footer>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: true,
-        },
-      }
+      chunks
     );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('Delayed waiting'));
@@ -1206,7 +1279,7 @@ describe('renderToStream: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Suspense
           fallback={<button id="ooos-fast-delay-fallback">Fast waiting</button>}
@@ -1215,36 +1288,53 @@ describe('renderToStream: out-of-order Suspense', () => {
           <Slow />
         </Suspense>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: true,
-        },
-      }
+      chunks
     );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('Fast waiting'));
     resolveSlow(<section id="ooos-fast-delay-content">Fast done</section>);
-    await renderPromise;
+    const { document } = await renderPromise;
 
     const html = chunks.join('');
     expect(html).toContain('<div style="display:none"');
     expect(html).not.toContain('type="qwik/backpatch"');
-    const document = createDocument({ html });
-    const scripts = Array.from(
-      document.querySelectorAll('script[type="text/javascript"]'),
-      (script) => script.textContent || ''
-    );
-    // eslint-disable-next-line no-new-func
-    new Function('document', scripts.join('\n'))(document);
     const fallbackHost = document.querySelector('#ooos-fast-delay-fallback')!
       .parentElement as HTMLElement;
     const contentHost = document.querySelector('#ooos-fast-delay-content')!
       .parentElement as HTMLElement;
     expect(fallbackHost.style.display).toBe('none');
+    expect(contentHost.style.display).toBe('contents');
+  });
+
+  it('should not emit delayed fallback backpatch when delayed Suspense has no fallback', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(
+      <main>
+        <Suspense delay={10}>
+          <Slow />
+        </Suspense>
+        <footer>Footer</footer>
+      </main>,
+      chunks
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Footer'));
+    await delay(40);
+    expect(chunks.join('')).not.toContain('type="qwik/backpatch"');
+
+    resolveSlow(<section id="ooos-no-fallback-delay-content">No fallback done</section>);
+    const { document } = await renderPromise;
+
+    const html = chunks.join('');
+    expect(html).not.toContain('type="qwik/backpatch"');
+    const contentHost = document.querySelector('#ooos-no-fallback-delay-content')!
+      .parentElement as HTMLElement;
     expect(contentHost.style.display).toBe('contents');
   });
 
@@ -1256,21 +1346,13 @@ describe('renderToStream: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Suspense fallback={<button>Immediate waiting</button>} delay={0}>
           <Slow />
         </Suspense>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: true,
-        },
-      }
+      chunks
     );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('Immediate waiting'));
@@ -1314,10 +1396,9 @@ describe('renderToStream: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(<App />, {
-      containerTagName: 'div',
-      qwikLoader: 'never',
-      stream: {
+    const renderPromise = ssrRenderSuspenseStream(
+      <App />,
+      {
         write(chunk) {
           chunks.push(chunk);
           flushes++;
@@ -1328,11 +1409,8 @@ describe('renderToStream: out-of-order Suspense', () => {
           }
         },
       },
-      streaming: {
-        inOrder: { strategy: 'disabled' },
-        outOfOrder: true,
-      },
-    });
+      { resume: false }
+    );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting'));
     resolveSlow(<button onClick$={() => undefined}>Done early</button>);
@@ -1355,6 +1433,66 @@ describe('renderToStream: out-of-order Suspense', () => {
     expect(swapChunkIndex).toBeGreaterThan(-1);
     expect(rootStateChunkIndex).toBeGreaterThan(-1);
     expect(html).not.toContain('q:patch');
+  });
+
+  it('should resume an early-finalized segment after delayed vnode data is emitted', async () => {
+    let resolveSegment!: (value: JSXOutput) => void;
+    let resolveRoot!: (value: JSXOutput) => void;
+    const segment = new Promise<JSXOutput>((resolve) => {
+      resolveSegment = resolve;
+    });
+    const root = new Promise<JSXOutput>((resolve) => {
+      resolveRoot = resolve;
+    });
+    (globalThis as any).__ooosUnitEarlySegmentClicks = 0;
+
+    const Slow = component$(() => (
+      <>
+        {segment}
+        <button
+          id="ooos-unit-early-segment-button"
+          onClick$={() => {
+            (globalThis as any).__ooosUnitEarlySegmentClicks += 1;
+          }}
+        >
+          Touch early segment
+        </button>
+      </>
+    ));
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(
+      <main>
+        <Suspense fallback={<p>Waiting early segment</p>}>
+          <Slow />
+        </Suspense>
+        {root}
+      </main>,
+      chunks
+    );
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting early segment'));
+      resolveSegment(<span id="ooos-unit-early-segment-ready">Early ready</span>);
+      await vi.waitFor(() => expect(chunks.join('')).toContain('qO(1)'));
+      expect(chunks.join('')).not.toContain('type="qwik/vnode" q:r="1"');
+      resolveRoot(<footer>Root ready</footer>);
+      const { document, container } = await renderPromise;
+      const html = chunks.join('');
+
+      expect(html.indexOf('qO(1)')).toBeGreaterThan(-1);
+      expect(html.indexOf('type="qwik/vnode" q:r="1"')).toBeGreaterThan(html.indexOf('qO(1)'));
+      expect(document.querySelector('#ooos-unit-early-segment-ready')).not.toBeNull();
+
+      await trigger(container.element, '#ooos-unit-early-segment-button', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitEarlySegmentClicks).toBe(1);
+    } finally {
+      resolveSegment(<span id="ooos-unit-early-segment-ready">Early ready</span>);
+      resolveRoot(<footer>Root ready</footer>);
+      await renderPromise;
+      delete (globalThis as any).__ooosUnitEarlySegmentClicks;
+    }
   });
 
   it('should preserve a slow root forward ref when a later segment has a faster forward ref', async () => {
@@ -1403,21 +1541,13 @@ describe('renderToStream: out-of-order Suspense', () => {
       );
     });
     const chunks: string[] = [];
-    const renderPromise = renderToStream(<App />, {
-      containerTagName: 'div',
-      qwikLoader: 'never',
-      stream: collectStream(chunks),
-      streaming: {
-        inOrder: { strategy: 'disabled' },
-        outOfOrder: true,
-      },
-    });
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting forward refs'));
       resolveRootPromise('slow root promise');
       resolveSegment(<SegmentContent />);
-      await renderPromise;
+      const { document, container } = await renderPromise;
       const { vNode } = await ssrRenderToDom(<App />, { debug });
       expect(vNode).toMatchVDOM(
         <Component>
@@ -1452,13 +1582,6 @@ describe('renderToStream: out-of-order Suspense', () => {
         </Component>
       );
 
-      const document = createDocument({ html: chunks.join('') });
-      const scripts = Array.from(
-        document.querySelectorAll('script[type="text/javascript"]'),
-        (script) => script.textContent || ''
-      );
-      // eslint-disable-next-line no-new-func
-      new Function('document', scripts.join('\n'))(document);
       const rootStateScript = document.querySelector('script[type="qwik/state"]:not([q\\:patch])');
       const segmentStateScript = document.querySelector(
         'script[type="qwik/state"][q\\:patch][q\\:r]'
@@ -1478,23 +1601,13 @@ describe('renderToStream: out-of-order Suspense', () => {
       expect(segmentForwardRefs.length).toBe(1);
       expect(hasForwardRef(segmentRoots)).toBe(true);
 
-      const platform = getPlatform();
-      setPlatform(getTestPlatform());
-      try {
-        emulateExecutionOfQwikFuncs(document);
-        emulateExecutionOfBackpatch(document);
-        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+      await trigger(container.element, '#ooos-unit-slow-forward-ref-button', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitSlowForwardRefValue).toBe('slow root promise');
 
-        await trigger(container.element, '#ooos-unit-slow-forward-ref-button', 'click');
-        await waitForDrain(container);
-        expect((globalThis as any).__ooosUnitSlowForwardRefValue).toBe('slow root promise');
-
-        await trigger(container.element, '#ooos-unit-fast-forward-ref-button', 'click');
-        await waitForDrain(container);
-        expect((globalThis as any).__ooosUnitFastForwardRefValue).toBe('fast segment promise');
-      } finally {
-        setPlatform(platform);
-      }
+      await trigger(container.element, '#ooos-unit-fast-forward-ref-button', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitFastForwardRefValue).toBe('fast segment promise');
     } finally {
       resolveRootPromise('slow root promise');
       resolveSegment(<SegmentContent />);
@@ -1528,7 +1641,7 @@ describe('renderToStream: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Suspense fallback={<p>First waiting</p>}>
           <First />
@@ -1537,15 +1650,7 @@ describe('renderToStream: out-of-order Suspense', () => {
           <Second />
         </Suspense>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: true,
-        },
-      }
+      chunks
     );
 
     try {
@@ -1580,7 +1685,7 @@ describe('renderToStream: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Suspense
           fallback={
@@ -1597,15 +1702,7 @@ describe('renderToStream: out-of-order Suspense', () => {
           <Slow />
         </Suspense>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: true,
-        },
-      }
+      chunks
     );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('Fallback'));
@@ -1632,21 +1729,13 @@ describe('renderToStream: out-of-order Suspense', () => {
     ));
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Boundary>
           <Slow />
         </Boundary>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: true,
-        },
-      }
+      chunks
     );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting slot'));
@@ -1673,34 +1762,18 @@ describe('renderToStream: out-of-order Suspense', () => {
     ));
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Boundary>
           <Slow />
         </Boundary>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: true,
-        },
-      }
+      chunks
     );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting slot swap'));
     resolveSlow(<strong id="ooos-slot-resolved">Slotted swapped</strong>);
-    await renderPromise;
-
-    const document = createDocument({ html: chunks.join('') });
-    const scripts = Array.from(
-      document.querySelectorAll('script[type="text/javascript"]'),
-      (script) => script.textContent || ''
-    );
-    // eslint-disable-next-line no-new-func
-    new Function('document', scripts.join('\n'))(document);
+    const { document } = await renderPromise;
 
     const contentHost = document.querySelector('[q\\:rp="1"]') as HTMLElement;
     const resolved = document.querySelector('#ooos-slot-resolved') as HTMLElement;
@@ -1736,34 +1809,18 @@ describe('renderToStream: out-of-order Suspense', () => {
     ));
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Boundary>
           <Slow />
         </Boundary>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: true,
-        },
-      }
+      chunks
     );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting scoped slot'));
     resolveSlow(<StyledSlotContent />);
-    await renderPromise;
-
-    const document = createDocument({ html: chunks.join('') });
-    const scripts = Array.from(
-      document.querySelectorAll('script[type="text/javascript"]'),
-      (script) => script.textContent || ''
-    );
-    // eslint-disable-next-line no-new-func
-    new Function('document', scripts.join('\n'))(document);
+    const { document } = await renderPromise;
 
     const rawStyleId = (globalThis as any).__ooosScopedStyleId as string;
     const styleId = rawStyleId.substring(2);
@@ -1775,10 +1832,120 @@ describe('renderToStream: out-of-order Suspense', () => {
     expect(cleanupAttrs(styleElement.outerHTML)).toBe(
       `<style q:style="${styleId}">${scopeStyle}</style>`
     );
-    expect((document.querySelector('[q\\:rp="1"]') as HTMLElement).contains(styleElement)).toBe(
-      true
-    );
+    expect(document.head.contains(styleElement)).toBe(true);
     delete (globalThis as any).__ooosScopedStyleId;
+  });
+
+  it('should let projected Slot QRLs capture root-owned state when resolved later', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    (globalThis as any).__ooosUnitProjectedSlotValue = 0;
+
+    const Boundary = component$(() => (
+      <Suspense fallback={<p>Waiting projected QRL</p>}>
+        <Slot />
+      </Suspense>
+    ));
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <main>
+          <span id="ooos-unit-projected-slot-count">{count.value}</span>
+          <Boundary>
+            {slow}
+            <button
+              id="ooos-unit-projected-slot-button"
+              onClick$={() => {
+                count.value += 1;
+                (globalThis as any).__ooosUnitProjectedSlotValue = count.value;
+              }}
+            >
+              Touch projected slot
+            </button>
+          </Boundary>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting projected QRL'));
+      resolveSlow(<span id="ooos-unit-projected-slot-ready">Projected ready</span>);
+      const { document, container } = await renderPromise;
+      expect(chunks.join('')).toContain('type="qwik/vnode" q:patch');
+
+      await trigger(container.element, '#ooos-unit-projected-slot-button', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitProjectedSlotValue).toBe(1);
+      expect(document.querySelector('#ooos-unit-projected-slot-count')?.textContent).toBe('1');
+    } finally {
+      resolveSlow(<span id="ooos-unit-projected-slot-ready">Projected ready</span>);
+      await renderPromise;
+      delete (globalThis as any).__ooosUnitProjectedSlotValue;
+    }
+  });
+
+  it('should process vnode patches on resume when qO already swapped content', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    (globalThis as any).__ooosUnitResumeAfterQOValue = 0;
+
+    const Boundary = component$(() => (
+      <Suspense fallback={<p>Waiting resume after qO</p>}>
+        <Slot />
+      </Suspense>
+    ));
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <main>
+          <span id="ooos-unit-resume-after-qo-count">{count.value}</span>
+          <Boundary>
+            {slow}
+            <button
+              id="ooos-unit-resume-after-qo-button"
+              onClick$={() => {
+                count.value += 1;
+                (globalThis as any).__ooosUnitResumeAfterQOValue = count.value;
+              }}
+            >
+              Touch resume after qO
+            </button>
+          </Boundary>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks, { resume: false });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting resume after qO'));
+      resolveSlow(<span id="ooos-unit-resume-after-qo-ready">Resume after qO ready</span>);
+      const { document } = await renderPromise;
+
+      expect(chunks.join('')).toContain('type="qwik/vnode" q:patch');
+      emulateExecutionOfQwikFuncs(document);
+      executeOutOfOrderScriptsWithoutVNodeProcessing(document);
+      emulateExecutionOfBackpatch(document);
+      expect(document.querySelector('#ooos-unit-resume-after-qo-ready')).not.toBeNull();
+
+      const container = getDomContainer(document.querySelector('[q\\:container]')!);
+      await trigger(container.element, '#ooos-unit-resume-after-qo-button', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitResumeAfterQOValue).toBe(1);
+      expect(document.querySelector('#ooos-unit-resume-after-qo-count')?.textContent).toBe('1');
+    } finally {
+      resolveSlow(<span id="ooos-unit-resume-after-qo-ready">Resume after qO ready</span>);
+      await renderPromise;
+      delete (globalThis as any).__ooosUnitResumeAfterQOValue;
+    }
   });
 
   it('should let resolved segment QRLs capture root-owned state', async () => {
@@ -1825,39 +1992,19 @@ describe('renderToStream: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(<App />, {
-      containerTagName: 'div',
-      qwikLoader: 'never',
-      stream: collectStream(chunks),
-      streaming: {
-        inOrder: { strategy: 'disabled' },
-        outOfOrder: true,
-      },
-    });
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting shared'));
       resolveSlow(<span id="ooos-unit-shared-ready">Ready shared</span>);
-      await renderPromise;
+      const { document, container } = await renderPromise;
 
-      const html = chunks.join('');
-      const document = createDocument({ html });
-      const scripts = Array.from(
-        document.querySelectorAll('script[type="text/javascript"]'),
-        (script) => script.textContent || ''
-      );
-      // eslint-disable-next-line no-new-func
-      new Function('document', scripts.join('\n'))(document);
       const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:patch]');
       expect(segmentStateScript).not.toBeNull();
       expect(segmentStateScript?.hasAttribute('q:s')).toBe(false);
       expect(segmentStateScript?.getAttribute('q:r')).toBe('1');
       expect(segmentStateScript?.hasAttribute('q:fx')).toBe(false);
       expect(document.querySelector('#ooos-unit-shared-resolved-button')).not.toBeNull();
-
-      emulateExecutionOfQwikFuncs(document);
-      emulateExecutionOfBackpatch(document);
-      const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
 
       await trigger(container.element, '#ooos-unit-shared-shell-button', 'click');
       expect((globalThis as any).__ooosUnitSharedShellValue).toBe(1);
@@ -1912,29 +2059,13 @@ describe('renderToStream: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(<App />, {
-      containerTagName: 'div',
-      qwikLoader: 'never',
-      stream: collectStream(chunks),
-      streaming: {
-        inOrder: { strategy: 'disabled' },
-        outOfOrder: true,
-      },
-    });
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting store'));
       resolveSlow(<span id="ooos-unit-store-ready">Ready store</span>);
-      await renderPromise;
+      const { document, container } = await renderPromise;
 
-      const html = chunks.join('');
-      const document = createDocument({ html });
-      const scripts = Array.from(
-        document.querySelectorAll('script[type="text/javascript"]'),
-        (script) => script.textContent || ''
-      );
-      // eslint-disable-next-line no-new-func
-      new Function('document', scripts.join('\n'))(document);
       const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:patch]');
       expect(segmentStateScript?.getAttribute('q:r')).toBe('1');
       expect(segmentStateScript?.hasAttribute('q:fx')).toBe(false);
@@ -1942,21 +2073,11 @@ describe('renderToStream: out-of-order Suspense', () => {
       expect(segmentStateScript?.hasAttribute('q:s')).toBe(false);
       expect(document.querySelector('#ooos-unit-store-resolved-button')).not.toBeNull();
 
-      const platform = getPlatform();
-      setPlatform(getTestPlatform());
-      try {
-        emulateExecutionOfQwikFuncs(document);
-        emulateExecutionOfBackpatch(document);
-        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
-
-        await trigger(container.element, '#ooos-unit-store-shell-button', 'click');
-        await waitForDrain(container);
-        expect((globalThis as any).__ooosUnitStoreShellValue).toBe(1);
-        expect(document.querySelector('#ooos-unit-store-shell-count')?.textContent).toBe('1');
-        expect(document.querySelector('#ooos-unit-store-resolved-count')?.textContent).toBe('1');
-      } finally {
-        setPlatform(platform);
-      }
+      await trigger(container.element, '#ooos-unit-store-shell-button', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitStoreShellValue).toBe(1);
+      expect(document.querySelector('#ooos-unit-store-shell-count')?.textContent).toBe('1');
+      expect(document.querySelector('#ooos-unit-store-resolved-count')?.textContent).toBe('1');
     } finally {
       delete (globalThis as any).__ooosUnitStoreShellValue;
       delete (globalThis as any).__ooosUnitStoreResolvedValue;
@@ -2019,31 +2140,15 @@ describe('renderToStream: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(<App />, {
-      containerTagName: 'div',
-      qwikLoader: 'never',
-      stream: collectStream(chunks),
-      streaming: {
-        inOrder: { strategy: 'disabled' },
-        outOfOrder: true,
-      },
-    });
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting first shared store'));
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second shared store'));
       resolveFirst(<span id="ooos-unit-shared-store-first-ready">First ready</span>);
       resolveSecond(<span id="ooos-unit-shared-store-second-ready">Second ready</span>);
-      await renderPromise;
+      const { document, container } = await renderPromise;
 
-      const html = chunks.join('');
-      const document = createDocument({ html });
-      const scripts = Array.from(
-        document.querySelectorAll('script[type="text/javascript"]'),
-        (script) => script.textContent || ''
-      );
-      // eslint-disable-next-line no-new-func
-      new Function('document', scripts.join('\n'))(document);
       const segmentStateScripts = document.querySelectorAll(
         'script[type="qwik/state"][q\\:patch][q\\:r]'
       );
@@ -2056,28 +2161,12 @@ describe('renderToStream: out-of-order Suspense', () => {
       expect(document.querySelector('#ooos-unit-shared-store-first-button')).not.toBeNull();
       expect(document.querySelector('#ooos-unit-shared-store-second-count')).not.toBeNull();
 
-      const platform = getPlatform();
-      setPlatform(getTestPlatform());
-      try {
-        emulateExecutionOfQwikFuncs(document);
-        emulateExecutionOfBackpatch(document);
-        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
-
-        await trigger(container.element, '#ooos-unit-shared-store-first-button', 'click');
-        await waitForDrain(container);
-        expect((globalThis as any).__ooosUnitSharedStoreFirstValue).toBe(1);
-        expect(document.querySelector('#ooos-unit-shared-store-shell-count')?.textContent).toBe(
-          '1'
-        );
-        expect(document.querySelector('#ooos-unit-shared-store-first-count')?.textContent).toBe(
-          '1'
-        );
-        expect(document.querySelector('#ooos-unit-shared-store-second-count')?.textContent).toBe(
-          '1'
-        );
-      } finally {
-        setPlatform(platform);
-      }
+      await trigger(container.element, '#ooos-unit-shared-store-first-button', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitSharedStoreFirstValue).toBe(1);
+      expect(document.querySelector('#ooos-unit-shared-store-shell-count')?.textContent).toBe('1');
+      expect(document.querySelector('#ooos-unit-shared-store-first-count')?.textContent).toBe('1');
+      expect(document.querySelector('#ooos-unit-shared-store-second-count')?.textContent).toBe('1');
     } finally {
       delete (globalThis as any).__ooosUnitSharedStoreFirstValue;
     }
@@ -2131,31 +2220,15 @@ describe('renderToStream: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(<App />, {
-      containerTagName: 'div',
-      qwikLoader: 'never',
-      stream: collectStream(chunks),
-      streaming: {
-        inOrder: { strategy: 'disabled' },
-        outOfOrder: true,
-      },
-    });
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting first cross store'));
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second cross store'));
       resolveFirst(<span id="ooos-unit-cross-store-first-ready">First ready</span>);
       resolveSecond(<span id="ooos-unit-cross-store-second-ready">Second ready</span>);
-      await renderPromise;
+      const { document, container } = await renderPromise;
 
-      const html = chunks.join('');
-      const document = createDocument({ html });
-      const scripts = Array.from(
-        document.querySelectorAll('script[type="text/javascript"]'),
-        (script) => script.textContent || ''
-      );
-      // eslint-disable-next-line no-new-func
-      new Function('document', scripts.join('\n'))(document);
       const segmentStateScripts = document.querySelectorAll('script[type="qwik/state"][q\\:patch]');
       expect(segmentStateScripts.length).toBeGreaterThan(0);
       for (let i = 0; i < segmentStateScripts.length; i++) {
@@ -2165,31 +2238,189 @@ describe('renderToStream: out-of-order Suspense', () => {
       expect(document.querySelector('#ooos-unit-cross-store-first-button')).not.toBeNull();
       expect(document.querySelector('#ooos-unit-cross-store-second-count')).not.toBeNull();
 
-      const platform = getPlatform();
-      setPlatform(getTestPlatform());
-      try {
-        emulateExecutionOfQwikFuncs(document);
-        emulateExecutionOfBackpatch(document);
-        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+      expect(document.querySelector('#ooos-unit-cross-store-first-count')?.textContent).toBe('0');
+      expect(document.querySelector('#ooos-unit-cross-store-second-count')?.textContent).toBe('0');
 
-        expect(document.querySelector('#ooos-unit-cross-store-first-count')?.textContent).toBe('0');
-        expect(document.querySelector('#ooos-unit-cross-store-second-count')?.textContent).toBe(
-          '0'
-        );
-
-        await trigger(container.element, '#ooos-unit-cross-store-first-button', 'click');
-        await waitForDrain(container);
-        expect((globalThis as any).__ooosUnitCrossStoreFirstValue).toBe(1);
-        expect(document.querySelector('#ooos-unit-cross-store-first-count')?.textContent).toBe('1');
-        expect(document.querySelector('#ooos-unit-cross-store-second-count')?.textContent).toBe(
-          '1'
-        );
-      } finally {
-        setPlatform(platform);
-      }
+      await trigger(container.element, '#ooos-unit-cross-store-first-button', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitCrossStoreFirstValue).toBe(1);
+      expect(document.querySelector('#ooos-unit-cross-store-first-count')?.textContent).toBe('1');
+      expect(document.querySelector('#ooos-unit-cross-store-second-count')?.textContent).toBe('1');
     } finally {
       delete (globalThis as any).__ooosUnitCrossStoreFirstValue;
     }
+  });
+
+  it('should share a signal used only by multiple resolved segments', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    (globalThis as any).__ooosUnitCrossSignalSecondValue = 0;
+
+    const First = component$((props: { count: { value: number } }) => (
+      <>
+        {first}
+        <span id="ooos-unit-cross-signal-first-count">{props.count.value}</span>
+      </>
+    ));
+    const Second = component$((props: { count: { value: number } }) => (
+      <>
+        {second}
+        <button
+          id="ooos-unit-cross-signal-second-button"
+          onClick$={() => {
+            props.count.value += 1;
+            (globalThis as any).__ooosUnitCrossSignalSecondValue = props.count.value;
+          }}
+        >
+          Touch second cross signal
+        </button>
+      </>
+    ));
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <main>
+          <h1>Shell does not read the cross signal</h1>
+          <Suspense fallback={<p>Waiting first cross signal</p>}>
+            <First count={count} />
+          </Suspense>
+          <Suspense fallback={<p>Waiting second cross signal</p>}>
+            <Second count={count} />
+          </Suspense>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting first cross signal'));
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second cross signal'));
+      resolveFirst(<span id="ooos-unit-cross-signal-first-ready">First ready</span>);
+      await vi.waitFor(() => expect(chunks.join('')).toContain('First ready'));
+      expect(chunks.join('')).not.toContain('Second ready');
+      resolveSecond(<span id="ooos-unit-cross-signal-second-ready">Second ready</span>);
+      const { document, container } = await renderPromise;
+
+      expect(
+        document.querySelector('script[type="qwik/vnode"][q\\:patch][q\\:r="1"]')
+      ).not.toBeNull();
+      expect(
+        document.querySelector('script[type="qwik/state"][q\\:patch][q\\:r="2"]')
+      ).not.toBeNull();
+      expect(document.querySelector('#ooos-unit-cross-signal-first-count')?.textContent).toBe('0');
+      expect(document.querySelector('#ooos-unit-cross-signal-second-button')).not.toBeNull();
+
+      await trigger(container.element, '#ooos-unit-cross-signal-second-button', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitCrossSignalSecondValue).toBe(1);
+      await vi.waitFor(() =>
+        expect(document.querySelector('#ooos-unit-cross-signal-first-count')?.textContent).toBe('1')
+      );
+    } finally {
+      delete (globalThis as any).__ooosUnitCrossSignalSecondValue;
+    }
+  });
+
+  it('should coordinate out-of-order segments inside reverse Reveal', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    const First = component$(() => <>{first}</>);
+    const Second = component$(() => <>{second}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(
+      <main>
+        <Reveal order="reverse">
+          <Suspense fallback={<p>First reverse fallback</p>}>
+            <First />
+          </Suspense>
+          <Suspense fallback={<p>Second reverse fallback</p>}>
+            <Second />
+          </Suspense>
+        </Reveal>
+      </main>,
+      chunks
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('First reverse fallback'));
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Second reverse fallback'));
+
+    resolveFirst(<p>First reverse done</p>);
+    await delay(40);
+    const firstReadyHtml = chunks.join('');
+    expect(firstReadyHtml).toContain('qO(1)');
+    expect(firstReadyHtml).toContain('qO.g(1,2,"r")');
+    const firstReadyDocument = runOutOfOrderScripts(firstReadyHtml);
+    expect(getParagraphHost(firstReadyDocument, 'First reverse done').style.display).toBe('none');
+
+    resolveSecond(<p>Second reverse done</p>);
+    const { document } = await renderPromise;
+
+    expect(getParagraphHost(document, 'First reverse done').style.display).toBe('contents');
+    expect(getParagraphHost(document, 'Second reverse done').style.display).toBe('contents');
+    expect(getParagraphHost(document, 'First reverse fallback').style.display).toBe('none');
+    expect(getParagraphHost(document, 'Second reverse fallback').style.display).toBe('none');
+  });
+
+  it('should coordinate out-of-order segments inside together Reveal', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    const First = component$(() => <>{first}</>);
+    const Second = component$(() => <>{second}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(
+      <main>
+        <Reveal order="together">
+          <Suspense fallback={<p>First together fallback</p>}>
+            <First />
+          </Suspense>
+          <Suspense fallback={<p>Second together fallback</p>}>
+            <Second />
+          </Suspense>
+        </Reveal>
+      </main>,
+      chunks
+    );
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('First together fallback'));
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Second together fallback'));
+
+    resolveFirst(<p>First together done</p>);
+    await delay(40);
+    const firstReadyHtml = chunks.join('');
+    expect(firstReadyHtml).toContain('qO(1)');
+    expect(firstReadyHtml).toContain('qO.g(1,2,"t")');
+    const firstReadyDocument = runOutOfOrderScripts(firstReadyHtml);
+    expect(getParagraphHost(firstReadyDocument, 'First together done').style.display).toBe('none');
+
+    resolveSecond(<p>Second together done</p>);
+    const { document } = await renderPromise;
+
+    expect(getParagraphHost(document, 'First together done').style.display).toBe('contents');
+    expect(getParagraphHost(document, 'Second together done').style.display).toBe('contents');
+    expect(getParagraphHost(document, 'First together fallback').style.display).toBe('none');
+    expect(getParagraphHost(document, 'Second together fallback').style.display).toBe('none');
   });
 
   it('should coordinate out-of-order segments inside sequential collapsed Reveal', async () => {
@@ -2205,7 +2436,7 @@ describe('renderToStream: out-of-order Suspense', () => {
     const Second = component$(() => <>{second}</>);
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(
+    const renderPromise = ssrRenderSuspenseStream(
       <main>
         <Reveal order="sequential" collapsed>
           <Suspense fallback={<p>First fallback</p>}>
@@ -2217,24 +2448,14 @@ describe('renderToStream: out-of-order Suspense', () => {
         </Reveal>
         <footer>Footer</footer>
       </main>,
-      {
-        containerTagName: 'div',
-        qwikLoader: 'never',
-        stream: collectStream(chunks),
-        streaming: {
-          inOrder: { strategy: 'disabled' },
-          outOfOrder: true,
-        },
-      }
+      chunks
     );
 
     await vi.waitFor(() => expect(chunks.join('')).toContain('First fallback'));
     await vi.waitFor(() => expect(chunks.join('')).toContain('Footer'));
     const shellDocument = createDocument({ html: chunks.join('') });
-    const shellFallbackHosts = ['First fallback', 'Second fallback'].map(
-      (text) =>
-        Array.from(shellDocument.querySelectorAll('p')).find((node) => node.textContent === text)!
-          .parentElement as HTMLElement
+    const shellFallbackHosts = ['First fallback', 'Second fallback'].map((text) =>
+      getParagraphHost(shellDocument, text)
     );
     expect(shellFallbackHosts[0].style.display).toBe('contents');
     expect(shellFallbackHosts[1].style.display).toBe('none');
@@ -2248,58 +2469,22 @@ describe('renderToStream: out-of-order Suspense', () => {
     expect(secondReadyHtml).toContain('<template q:r="2" q:g="1" q:i="1" q:o="s" q:c');
     expect(secondReadyHtml).not.toContain('q:f=');
 
-    const runOutOfOrderScripts = (html: string) => {
-      const document = createDocument({ html });
-      const scripts = Array.from(
-        document.querySelectorAll('script[type="text/javascript"]'),
-        (script) => script.textContent || ''
-      );
-      // eslint-disable-next-line no-new-func
-      new Function('document', scripts.join('\n'))(document);
-      return document;
-    };
-
     const secondReadyDocument = runOutOfOrderScripts(secondReadyHtml);
     expect(secondReadyDocument.querySelector('main')!.textContent).toContain('First fallback');
-    expect(
-      (
-        Array.from(secondReadyDocument.querySelectorAll('p')).find(
-          (node) => node.textContent === 'Second done'
-        )!.parentElement as HTMLElement
-      ).style.display
-    ).toBe('none');
-    expect(
-      (
-        Array.from(secondReadyDocument.querySelectorAll('p')).find(
-          (node) => node.textContent === 'Second fallback'
-        )!.parentElement as HTMLElement
-      ).style.display
-    ).toBe('none');
+    expect(getParagraphHost(secondReadyDocument, 'Second done').style.display).toBe('none');
+    expect(getParagraphHost(secondReadyDocument, 'Second fallback').style.display).toBe('none');
 
     resolveFirst(<p>First done</p>);
-    await renderPromise;
+    const { document } = await renderPromise;
 
     const html = chunks.join('');
     expect(html).toContain('qO(1)');
     expect(html).toContain('qO(2)');
-    const document = runOutOfOrderScripts(html);
     const text = document.querySelector('main')!.textContent!;
     expect(text).toContain('First done');
     expect(text).toContain('Second done');
-    expect(
-      (
-        Array.from(document.querySelectorAll('p')).find(
-          (node) => node.textContent === 'First fallback'
-        )!.parentElement as HTMLElement
-      ).style.display
-    ).toBe('none');
-    expect(
-      (
-        Array.from(document.querySelectorAll('p')).find(
-          (node) => node.textContent === 'Second fallback'
-        )!.parentElement as HTMLElement
-      ).style.display
-    ).toBe('none');
+    expect(getParagraphHost(document, 'First fallback').style.display).toBe('none');
+    expect(getParagraphHost(document, 'Second fallback').style.display).toBe('none');
   });
 
   it('should keep pending fallback state isolated from shell state', async () => {
@@ -2353,15 +2538,7 @@ describe('renderToStream: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = renderToStream(<App />, {
-      containerTagName: 'div',
-      qwikLoader: 'never',
-      stream: collectStream(chunks),
-      streaming: {
-        inOrder: { strategy: 'disabled' },
-        outOfOrder: true,
-      },
-    });
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('ooos-unit-fallback-button'));

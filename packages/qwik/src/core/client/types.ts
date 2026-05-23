@@ -57,8 +57,14 @@ export interface QDocument extends Document {
    */
   qVNodeData: WeakMap<Element, string>;
 
+  /** True once the root document VNode data has been fully processed. */
+  qVNodeDataProcessed?: boolean;
+
+  /** Processes one vnode patch script. */
+  qProcessVNodeDataPatch?: (script: Element | null) => void;
+
   /** Processes an out-of-order Suspense segment after its resolved HTML is swapped in. */
-  qProcessOOOS?: (document: Document, boundaryId: number) => void;
+  qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
 }
 
 /**

@@ -8,11 +8,12 @@ import {
   processOutOfOrderSegmentVNodeData,
   processVNodeData,
 } from './process-vnode-data';
-import type { ClientContainer } from './types';
+import type { ClientContainer, QDocument } from './types';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
 import { vnode_getFirstChild } from './vnode-utils';
 import { Fragment } from '@qwik.dev/core';
+import { installOutOfOrderExecutor } from '../../out-of-order-executor-shared';
 
 describe('processVnodeData', () => {
   it('should process shadow root container', () => {
@@ -439,13 +440,195 @@ describe('processVnodeData', () => {
         encodeVNode({ 0: '{1}', 1: '~', 2: '~' }, '2')
     );
 
-    processOutOfOrderSegmentVNodeData(document, '2', container.element);
+    processOutOfOrderSegmentVNodeData(
+      document,
+      '2',
+      container.element.querySelector('[q\\:rp="2"]')
+    );
 
     expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 0))).toBe(false);
     expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 1))).toBe(false);
     expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('2', 0))).toBe(false);
     expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('2', 1))).toBe(true);
     expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('2', 2))).toBe(true);
+  });
+  it('should process requested suspense segment only within the provided container scope', () => {
+    const document = createDocument({
+      html: `
+        <main>
+          <div id="first" q:container="paused" :>
+            <div : q:rp="1" style="display:contents">
+              <section :><button :>One</button></section>
+            </div>
+            ${encodeVNode()}
+          </div>
+          <div id="second" q:container="paused" :>
+            <div : q:rp="1" style="display:contents">
+              <section :><button :>Two</button></section>
+            </div>
+            ${encodeVNode()}
+          </div>
+        </main>`,
+    });
+    processVNodeData(document);
+    const first = getDomContainer(document.querySelector('#first')!);
+    const second = getDomContainer(document.querySelector('#second')!);
+    first.element.insertAdjacentHTML('beforeend', encodeVNode({ 0: '{1}', 1: '~', 2: '~' }, '1'));
+    second.element.insertAdjacentHTML('beforeend', encodeVNode({ 0: '{1}', 1: '~', 2: '~' }, '1'));
+
+    processOutOfOrderSegmentVNodeData(document, '1', first.element.querySelector('[q\\:rp="1"]'));
+
+    expect(first.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 0))).toBe(false);
+    expect(first.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 1))).toBe(true);
+    expect(first.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 2))).toBe(true);
+    expect(second.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 0))).toBe(false);
+    expect(second.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 1))).toBe(false);
+    expect(second.element.qVNodeRefs?.has(getSegmentVNodeRefId('1', 2))).toBe(false);
+  });
+  it('should scope out-of-order vnode processing to the current script container', () => {
+    const document = createDocument({
+      html: `
+        <main>
+          <div id="first" q:container="paused" :>
+            <div : q:rp="1" style="display:contents"><template q:r="1"></template></div>
+            ${encodeVNode()}
+            ${encodeVNode({ 0: '{1}', 1: '~' }, '1')}
+            <template q:r="1"><section : id="first-done">First</section></template>
+            <script type="text/javascript" id="first-qo"></script>
+          </div>
+          <div id="second" q:container="paused" :>
+            <div : q:rp="1" style="display:contents"><template q:r="1"></template></div>
+            ${encodeVNode()}
+            ${encodeVNode({ 0: '{1}', 1: '~' }, '1')}
+            <template q:r="1"><section : id="second-done">Second</section></template>
+            <script type="text/javascript" id="second-qo"></script>
+          </div>
+        </main>`,
+    });
+    processVNodeData(document);
+    const first = getDomContainer(document.querySelector('#first')!);
+    const second = getDomContainer(document.querySelector('#second')!);
+    const processedContainers: string[] = [];
+    (document as QDocument).qProcessOOOS = (boundaryId, content) => {
+      processedContainers.push(content?.closest('[q\\:container]')?.id || '');
+      processOutOfOrderSegmentVNodeData(document, String(boundaryId), content);
+    };
+    installOutOfOrderExecutor(document);
+
+    Object.defineProperty(document, 'currentScript', {
+      configurable: true,
+      value: document.querySelector('#second-qo'),
+    });
+    (globalThis as any).qO(1);
+    Object.defineProperty(document, 'currentScript', { configurable: true, value: null });
+
+    expect(first.element.querySelector('#first-done')).toBeFalsy();
+    expect(second.element.querySelector('#second-done')).not.toBeNull();
+    expect(processedContainers).toEqual(['second']);
+    expect(second.element.qVNodeRefs?.get(getSegmentVNodeRefId('1', 1))).toBe(
+      second.element.querySelector('#second-done')
+    );
+  });
+  it('should process segment vnode patches during out-of-order segment processing', () => {
+    const document = createDocument({
+      html: `
+        <html q:container="paused" :>
+          <head :></head>
+          <body :>
+            <div : q:rp="1" style="display:contents">
+              <section :><button :>One</button></section>
+            </div>
+            ${encodeVNode()}
+          </body>
+        </html>`,
+    });
+    processVNodeData(document);
+    const container = getDomContainer(document.querySelector('[q\\:container]')!);
+    container.element.insertAdjacentHTML(
+      'beforeend',
+      encodeVNode({ 0: '{1}', 1: '~' }, '1') + encodeVNode({ 2: '~' }, '1', 0, true)
+    );
+
+    processOutOfOrderSegmentVNodeData(
+      document,
+      '1',
+      container.element.querySelector('[q\\:rp="1"]')
+    );
+
+    const button = container.element.querySelector('button');
+    expect(container.element.qVNodeRefs?.get(getSegmentVNodeRefId('1', 1))).toBe(
+      container.element.querySelector('section')
+    );
+    expect(container.element.qVNodeRefs?.get(getSegmentVNodeRefId('1', 2))).toBe(button);
+  });
+  it('should process root vnode data patches for previously skipped entries', () => {
+    const document = createDocument({
+      html: `
+        <html q:container="paused" :>
+          <head :></head>
+          <body :>
+            <main :><span :>Count</span></main>
+            ${encodeVNode()}
+          </body>
+        </html>`,
+    });
+    processVNodeData(document);
+    const container = getDomContainer(document.querySelector('[q\\:container]')!);
+    appendVNodePatch(container.element, encodeVNode({ 4: '~' }, undefined, 0, true));
+
+    expect(container.element.qVNodeRefs?.has(4)).toBe(true);
+  });
+  it('should process segment vnode data patches for previously emitted segment entries', () => {
+    const document = createDocument({
+      html: `
+        <html q:container="paused" :>
+          <head :></head>
+          <body :>
+            <div : q:rp="1" style="display:contents">
+              <section :><button :>One</button></section>
+            </div>
+            ${encodeVNode()}
+          </body>
+        </html>`,
+    });
+    processVNodeData(document);
+    const container = getDomContainer(document.querySelector('[q\\:container]')!);
+    appendVNodePatch(container.element, encodeVNode({ 1: '~' }, '1', 0, true));
+
+    const refId = getSegmentVNodeRefId('1', 1);
+    const refElement = container.element.qVNodeRefs?.get(refId);
+    (document as QDocument).qProcessVNodeDataPatch!(container.element.lastElementChild);
+
+    expect(refElement).toBeTruthy();
+    expect(container.element.qVNodeRefs?.get(refId)).toBe(refElement);
+  });
+  it('should scope vnode data patches to their script container', () => {
+    const document = createDocument({
+      html: `
+        <main>
+          <div id="first" q:container="paused" :>
+            <div : q:rp="1" style="display:contents">
+              <section :><button :>One</button></section>
+            </div>
+            ${encodeVNode()}
+          </div>
+          <div id="second" q:container="paused" :>
+            <div : q:rp="1" style="display:contents">
+              <section :><button :>Two</button></section>
+            </div>
+            ${encodeVNode()}
+          </div>
+        </main>`,
+    });
+    processVNodeData(document);
+    const first = getDomContainer(document.querySelector('#first')!);
+    const second = getDomContainer(document.querySelector('#second')!);
+    appendVNodePatch(first.element, encodeVNode({ 1: '~' }, '1', 0, true));
+    appendVNodePatch(second.element, encodeVNode({ 1: '~' }, '1', 0, true));
+
+    const refId = getSegmentVNodeRefId('1', 1);
+    expect(first.element.qVNodeRefs?.get(refId)).toBe(first.element.querySelector('section'));
+    expect(second.element.qVNodeRefs?.get(refId)).toBe(second.element.querySelector('section'));
   });
 });
 
@@ -543,7 +726,12 @@ const findContainers = (element: Document | ShadowRoot, containers: Element[]) =
   }
 };
 
-function encodeVNode(data: Record<number, string> = {}, segment?: string, offset?: number) {
+function encodeVNode(
+  data: Record<number, string> = {},
+  segment?: string,
+  offset?: number,
+  patch?: boolean
+) {
   const keys = Object.keys(data)
     .map((key) => parseInt(key, 10))
     .sort();
@@ -557,7 +745,13 @@ function encodeVNode(data: Record<number, string> = {}, segment?: string, offset
 
   return `<script type="qwik/vnode"${segment ? ` q:r="${segment}"` : ''}${
     offset ? ` q:o="${offset}"` : ''
-  }>${result}</script>`;
+  }${patch ? ' q:patch' : ''}>${result}</script>`;
+}
+
+function appendVNodePatch(target: Element, html: string) {
+  target.insertAdjacentHTML('beforeend', html);
+  const script = target.lastElementChild as Element;
+  (target.ownerDocument as QDocument).qProcessVNodeDataPatch?.(script);
 }
 
 // Keep in sync with ssr-container.ts

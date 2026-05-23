@@ -752,9 +752,11 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `
 
 // @internal (undocumented)
 export interface _QDocument extends Document {
-    qProcessOOOS?: (document: Document, boundaryId: number) => void;
+    qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+    qProcessVNodeDataPatch?: (script: Element | null) => void;
     // (undocumented)
     qVNodeData: WeakMap<Element, string>;
+    qVNodeDataProcessed?: boolean;
 }
 
 // Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts

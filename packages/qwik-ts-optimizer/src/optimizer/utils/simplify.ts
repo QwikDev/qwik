@@ -166,51 +166,20 @@ export type SimplifyResult =
 const UNSIMPLIFIED: SimplifyResult = { simplified: false };
 
 /**
- * Walk an expression subtree top-down looking for subtrees that
- * {@link simplifyExpression} can collapse to a primitive literal. Emits a
- * replacement (range → `formatSimplifiedLiteral(value)`) per matching
- * subtree and **does not recurse into simplified subtrees** — the children
- * are already represented by the parent's emit.
+ * Shared implementation behind the two public collector factories below.
+ * `skipLiterals = true` suppresses Literal-node matching so source-form
+ * literals (e.g. `"count"`) stay as-written instead of being
+ * re-canonicalized to canonical single-quoted form. Lambda-body emit
+ * (`signal-analysis.ts:generateFnSignal`) wants canonical form;
+ * body-source emit (`foldBodySimplifiableExpressions`) preserves source.
  *
- * Skips no-op replacements where the formatted literal equals the source
- * text verbatim (e.g. source already says `3`).
- *
- * `exprStart` is the source-absolute offset of `exprText[0]`; matched
- * ranges are emitted relative to `exprText`.
- */
-export interface CollectSimplificationsOptions {
-  /**
-   * When `true`, skip `Literal` nodes — they're already in their canonical
-   * source form and re-formatting via {@link formatSimplifiedLiteral} would
-   * just re-canonicalize the quote style (e.g. `"x"` → `'x'`). The
-   * body-fold pass uses this; the lambda-body folder in `signal-analysis.ts`
-   * (the original caller) leaves it `false` because it relies on the
-   * quote canonicalization for matching SWC's lambda-body emit.
-   */
-  skipLiterals?: boolean;
-}
-
-/**
- * Factory: returns a {@link RangeReplacementCollector} that emits a literal
- * replacement for any subtree {@link simplifyExpression} can fold to a
- * primitive value. Mirrors SWC's `simplify::simplifier` pass.
- *
- * The collector returns `skipSubtree: true` on matched nodes — children
- * are subsumed by the parent's emit, and recursing would emit overlapping
+ * Returns `skipSubtree: true` on every matched node — children are
+ * subsumed by the parent's emit, and recursing would emit overlapping
  * ranges into the now-replaced subtree.
- *
- * With `options.skipLiterals === true`, `Literal` nodes are ignored —
- * source-form literals (e.g. `"count"`) stay as-written instead of being
- * re-canonicalized to single quotes via {@link formatSimplifiedLiteral}.
- * The lambda-body caller in `signal-analysis.ts` leaves this `false`
- * because the quote canonicalization is desired there; the body-fold
- * pass in {@link foldBodySimplifiableExpressions} sets it `true`.
  */
-export function simplificationsCollector(
-  options: CollectSimplificationsOptions = {},
-): RangeReplacementCollector {
+function buildSimplificationsCollector(skipLiterals: boolean): RangeReplacementCollector {
   return (node, ctx) => {
-    if (options.skipLiterals && node.type === 'Literal') return null;
+    if (skipLiterals && node.type === 'Literal') return null;
     if (typeof node.start !== 'number' || typeof node.end !== 'number') return null;
 
     const result = simplifyExpression(node);
@@ -230,6 +199,27 @@ export function simplificationsCollector(
       : [{ start: sliceStart, end: sliceEnd, replacement: formatted }];
     return { replacements, skipSubtree: true };
   };
+}
+
+/**
+ * Collector for the hoisted lambda body (`_hf<n>`) emit — used by
+ * `signal-analysis.ts:generateFnSignal`. Folds ANY simplifiable subtree
+ * including `Literal` nodes (re-canonicalizes source quote style to
+ * canonical single-quoted form, matching SWC's lambda-body emit).
+ */
+export function lambdaBodySimplificationsCollector(): RangeReplacementCollector {
+  return buildSimplificationsCollector(false);
+}
+
+/**
+ * Collector for body-source emit — used by
+ * {@link foldBodySimplifiableExpressions}. Folds only *computed*
+ * subtrees (Binary/Unary/Logical/Conditional with primitive operands);
+ * `Literal` nodes are left as-written so the user's source quote style
+ * is preserved.
+ */
+export function bodySourceSimplificationsCollector(): RangeReplacementCollector {
+  return buildSimplificationsCollector(true);
 }
 
 /**
@@ -258,15 +248,11 @@ export function foldBodySimplifiableExpressions(bodyText: string): string {
   });
   if (!session) return bodyText;
 
-  // `skipLiterals: true` suppresses re-canonicalization of source literals
-  // (e.g. `"count"` → `'count'`) — the body pass only folds *computed*
-  // subtrees (Binary/Unary/Logical/Conditional with primitive-literal
-  // operands) INTO literals; source-form literals stay as-written.
   const simplifications = collectRangeReplacements(
     session.program,
     0,
     session.wrappedSource,
-    [simplificationsCollector({ skipLiterals: true })],
+    [bodySourceSimplificationsCollector()],
   );
   if (simplifications.length === 0) return bodyText;
 

@@ -11,7 +11,7 @@ import { forEachAstChild, isAstNode } from './utils/ast.js';
 import {
   applyReplacements,
   formatSimplifiedLiteral,
-  simplificationsCollector,
+  lambdaBodySimplificationsCollector,
   simplifyExpression,
 } from './utils/simplify.js';
 import {
@@ -414,7 +414,7 @@ function generateFnSignal(
   );
   const simplifications = collectRangeReplacements(
     exprNode, exprStart, exprText,
-    [simplificationsCollector()],
+    [lambdaBodySimplificationsCollector()],
   );
 
   const strFnBody = applyReplacements(exprText, replacements);

@@ -18,10 +18,11 @@
  * from `signal-analysis.ts` (originally added in OSS-411). Conservative
  * — only folds non-Literal subtrees (Binary/Unary/Logical/Conditional
  * with primitive-literal operands); source-form literal strings stay
- * as-written via the new `skipLiterals: true` option (without this, the
- * helper would re-canonicalize `"x"` to `'x'` because the original
- * `signal-analysis.ts` caller wanted that behavior for lambda-body
- * emit). Architectural timing — runs AFTER JSX transform completes so
+ * as-written via `bodySourceSimplificationsCollector` (OSS-419 renamed
+ * this from a `skipLiterals: true` option to a dedicated factory
+ * paired with `lambdaBodySimplificationsCollector` for the signal-analysis
+ * call site that DOES want the canonical quote rewrite).
+ * Architectural timing — runs AFTER JSX transform completes so
  * `_hf<n>_str` has already been generated from the source-form
  * positions; remaining `?? <default>` patterns live only in non-JSX
  * positions like `console.log(_rawProps.X ?? 1+2)`.
@@ -161,11 +162,18 @@ export const C = component$(({val = SENTINEL}) => {
   });
 
   it('does NOT re-canonicalize existing string literals (skipLiterals: true)', () => {
-    // The body-fold pass uses `skipLiterals: true` because the source's
-    // literal nodes are already in canonical form. Re-formatting via
-    // `formatSimplifiedLiteral` would rewrite `"foo"` to `'foo'` — that's
-    // intentional in the lambda-body folder (`signal-analysis.ts`) where
-    // it standardizes the lambda body emit, but NOT in the body-source
+    // Test name preserved per REGRESSION.md's "renamed tests count as
+    // missing" caveat; the OSS-415 `skipLiterals: true` option was
+    // replaced by the `bodySourceSimplificationsCollector` factory in
+    // OSS-419 but the test's INTENT is unchanged: source literals must
+    // be preserved verbatim.
+    //
+    // The body-fold pass uses `bodySourceSimplificationsCollector`
+    // because the source's literal nodes are already in canonical form.
+    // Re-formatting via `formatSimplifiedLiteral` would rewrite `"foo"`
+    // to `'foo'` — that's what `lambdaBodySimplificationsCollector`
+    // does for the lambda-body emit (intentional, matches SWC's
+    // canonical form), but NOT what we want in the body-source
     // pass where it would unnecessarily churn existing source.
     const before = `(_rawProps) => {
   console.log("count", "div", "click");
@@ -199,9 +207,10 @@ export const C = component$(({val = SENTINEL}) => {
     expect(after).toMatch(/const b = true\b/);
     // ConditionalExpression with literal test folds (its branch result is
     // a string literal that was emitted with double quotes from source —
-    // skipLiterals leaves it alone for the no-op case, but the conditional
-    // itself isn't a Literal so it folds and the result IS produced via
-    // formatSimplifiedLiteral which uses single quotes).
+    // `bodySourceSimplificationsCollector` leaves Literal nodes alone,
+    // but the ConditionalExpression itself isn't a Literal so it folds
+    // and the result IS produced via formatSimplifiedLiteral which uses
+    // single quotes).
     expect(after).toMatch(/const c = 'yes'/);
   });
 });

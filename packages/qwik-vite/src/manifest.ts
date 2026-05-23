@@ -7,6 +7,7 @@ import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis 
 const extraSymbols = new Set([
   '_chk',
   '_rsc',
+  '_uas',
   '_res',
   '_run',
   '_task',

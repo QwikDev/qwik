@@ -59,6 +59,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_missing_custom_inlined_functions",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_multi_capture",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_mutable_children",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_noop_dev_mode",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_of_synchronous_qrl",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_optimization_issue_3542",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_optimization_issue_3561",
@@ -330,6 +331,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_missing_custom_inlined_functions",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_multi_capture",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_mutable_children",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_noop_dev_mode",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_of_synchronous_qrl",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_optimization_issue_3542",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_optimization_issue_3561",
@@ -760,6 +762,22 @@
       "tests/optimizer/oss-423-lib-mode-imports.test.ts :: OSS-423: lib-mode import preservation non-lib modes still strip `jsx as _jsx` (negative scope)",
       "tests/optimizer/oss-423-lib-mode-imports.test.ts :: OSS-423: lib-mode import preservation preserves `$`-suffix marker imports alongside their `*Qrl` rewrites",
       "tests/optimizer/oss-423-lib-mode-imports.test.ts :: OSS-423: lib-mode import preservation strips bare `$` (no marker-function semantics) under lib mode",
+      "tests/optimizer/oss-425-inline-empty-segment-suppression.test.ts :: OSS-425: inline-strategy empty segment-file suppression default (segment) strategy still emits a file per extraction (negative scope)",
+      "tests/optimizer/oss-425-inline-empty-segment-suppression.test.ts :: OSS-425: inline-strategy empty segment-file suppression mixed stripped + non-stripped under inline: only stripped get files",
+      "tests/optimizer/oss-425-inline-empty-segment-suppression.test.ts :: OSS-425: inline-strategy empty segment-file suppression non-stripped inline-strategy extraction emits NO segment file",
+      "tests/optimizer/oss-425-inline-empty-segment-suppression.test.ts :: OSS-425: inline-strategy empty segment-file suppression stripped + inline still emits the `= null` stub segment file",
+      "tests/optimizer/oss-426-stripped-qrl-cleanup.test.ts :: OSS-426: stripped-QRL parent emission cleanup non-stripped event handlers still receive .w([captures]) when needed (negative scope)",
+      "tests/optimizer/oss-426-stripped-qrl-cleanup.test.ts :: OSS-426: stripped-QRL parent emission cleanup stripCtxName-stripped segments PRESERVE capture metadata (negative-scope policy split)",
+      "tests/optimizer/oss-426-stripped-qrl-cleanup.test.ts :: OSS-426: stripped-QRL parent emission cleanup stripEventHandlers: parent emits bare q_X for stripped handlers (no .w wrap)",
+      "tests/optimizer/oss-426-stripped-qrl-cleanup.test.ts :: OSS-426: stripped-QRL parent emission cleanup stripEventHandlers: stripped event-handler segments have captures:false",
+      "tests/optimizer/oss-427-marker-callee-leak.test.ts :: OSS-427: marker callee no longer leaks into extracted segment imports client$ segment does not re-import client$",
+      "tests/optimizer/oss-427-marker-callee-leak.test.ts :: OSS-427: marker callee no longer leaks into extracted segment imports extracted useTask$ segment does not re-import useTask$",
+      "tests/optimizer/oss-427-marker-callee-leak.test.ts :: OSS-427: marker callee no longer leaks into extracted segment imports identifiers genuinely referenced inside the body ARE still imported (negative scope)",
+      "tests/optimizer/oss-427-marker-callee-leak.test.ts :: OSS-427: marker callee no longer leaks into extracted segment imports inner $() segment does not re-import the bare $ marker",
+      "tests/optimizer/oss-428-devpath-threading.test.ts :: OSS-428: input.devPath threading into JSX dev-info JSX dev-info fileName falls back to relPath when no devPath override",
+      "tests/optimizer/oss-428-devpath-threading.test.ts :: OSS-428: input.devPath threading into JSX dev-info JSX dev-info fileName uses input.devPath when explicitly set",
+      "tests/optimizer/oss-428-devpath-threading.test.ts :: OSS-428: input.devPath threading into JSX dev-info non-dev modes ignore devPath for JSX fileName (negative scope)",
+      "tests/optimizer/oss-428-devpath-threading.test.ts :: OSS-428: input.devPath threading into JSX dev-info qrlDEV file: uses composed devFilePath when no input.devPath (negative scope)",
       "tests/optimizer/path-utils.test.ts :: path-utils detects whether a relative import stays within the srcDir-relative tree",
       "tests/optimizer/path-utils.test.ts :: path-utils normalizes windows-style paths",
       "tests/optimizer/path-utils.test.ts :: path-utils preserves current computeRelPath behavior for paths outside srcDir",
@@ -1058,6 +1076,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 894
+    "total": 910
   }
 }

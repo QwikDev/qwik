@@ -217,6 +217,12 @@ export interface SegmentGenerationContext {
   relPath: string;
   emitMode: string;
   devFile: string | undefined;
+  /**
+   * Raw user-supplied `input.devPath`. Distinguished from `devFile` (which
+   * always falls back to a composed path); JSX dev-info `fileName:` only
+   * honors the explicit override. See OSS-428.
+   */
+  userDevPath: string | undefined;
   isInlineStrategy: boolean;
   entryStrategy: EntryStrategy;
   migrationDecisions: MigrationDecision[];
@@ -439,21 +445,28 @@ export function computeSegmentGenerationPrep(
 }
 
 /**
- * Build a single inline-strategy {@link TransformModule} — metadata-only,
- * with empty (or stripped) code. Inline/hoist entry strategies emit segment
- * bodies inside the parent module rather than as separate files, so Phase 5
- * here only contributes the per-segment metadata block.
+ * Build a single inline-strategy {@link TransformModule}. Inline/hoist
+ * entry strategies emit segment bodies inside the parent module rather
+ * than as separate files.
+ *
+ * Returns `null` for non-stripped extractions — their body is inlined
+ * into the parent and no per-segment file should land on disk (OSS-425
+ * mirrors SWC, which emits no segment file in that case). Stripped
+ * extractions still get their own file holding the `export const X = null`
+ * stub the runtime resolver expects when a stripped QRL is referenced.
  *
  * Mutates `ext.captureNames`, `ext.captures`, and `ext.propsFieldCaptures`
  * when raw-props consolidation applies — preserved verbatim from the
- * pre-OSS-356 inline form.
+ * pre-OSS-356 inline form. Mutation runs unconditionally because the
+ * consolidated capture metadata is also consumed by the parent's inlined
+ * `q_X.s(body)` emission.
  */
 export function buildInlineStrategySegment(
   ext: ConsolidatedSegment,
   ctx: SegmentGenerationContext,
   prep: SegmentGenerationPrep,
   stripped: boolean,
-): TransformModule {
+): TransformModule | null {
   // Inline strategy: apply _rawProps consolidation for metadata
   if (ext.parent !== null && ext.captureNames.length > 0) {
     const fieldMap = prep.fieldMaps.get(ext.parent);
@@ -479,6 +492,12 @@ export function buildInlineStrategySegment(
     undefined,
   );
 
+  // OSS-425: non-stripped inline-strategy extractions emit no segment file.
+  // Their body lives in the parent via `q_X.s(body)`; SWC's reference emits
+  // no companion file. Only stripped extractions ship the `= null` stub
+  // file the runtime resolver still needs to load.
+  if (!stripped) return null;
+
   const segmentAnalysis: SegmentMetadataInternal = {
     origin: ext.origin,
     name: ext.symbolName,
@@ -500,7 +519,7 @@ export function buildInlineStrategySegment(
     kind: 'segment',
     path: mkRelativePath(ext.canonicalFilename + ext.extension),
     isEntry: true,
-    code: stripped ? generateStrippedSegmentCode(ext.symbolName) : "",
+    code: generateStrippedSegmentCode(ext.symbolName),
     map: null,
     segment: segmentAnalysis,
   };
@@ -1083,7 +1102,12 @@ export function buildDefaultStrategySegment(
                 ? new Set(ext.paramNames)
                 : undefined,
               relPath,
-              devOptions: isDevMode ? { relPath } : undefined,
+              // OSS-428: JSX dev-info `fileName:` only switches to the
+              // user-supplied dev path when explicitly set on the input.
+              // The composed `devFile` (srcDir+relPath fallback) keeps
+              // `relPath` semantics here — preserves baseline-passing
+              // `example_dev_mode_inlined` / `example_jsx_keyed_dev` etc.
+              devOptions: isDevMode ? { relPath: ctx.userDevPath ?? relPath } : undefined,
               keyCounterStart: segmentKeyCounter,
             }
           : undefined,
@@ -1192,8 +1216,27 @@ export function generateAllSegmentModules(
     // emission. Internal-builder cast — see extract.ts `Mutable<T>`.
     if (stripped) (ext as Mutable<ConsolidatedSegment>).loc = [mkByteOffset(0), mkByteOffset(0)];
 
+    // OSS-426 Sub-B: clear capture metadata for event-handler segments
+    // stripped via `stripEventHandlers`. SWC's reference emits these with
+    // `captures: false, captureNames: []` because the body is gone — the
+    // runtime never consumes the captures, so the metadata reflects that.
+    // `stripCtxName`-stripped segments preserve their captures (different
+    // policy: those carry runtime-meaningful info even with `null` body).
+    if (
+      stripped &&
+      ctx.options.stripEventHandlers &&
+      ext.ctxKind === 'eventHandler'
+    ) {
+      const mut = ext as Mutable<ConsolidatedSegment>;
+      mut.captures = false;
+      mut.captureNames = [];
+    }
+
     if (ctx.isInlineStrategy) {
-      allModules.push(buildInlineStrategySegment(ext, ctx, prep, stripped));
+      const inlineModule = buildInlineStrategySegment(ext, ctx, prep, stripped);
+      // OSS-425: null result means non-stripped inline — body inlined into
+      // parent, no segment file emitted (matches SWC's reference behavior).
+      if (inlineModule !== null) allModules.push(inlineModule);
       continue;
     }
 

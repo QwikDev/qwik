@@ -185,6 +185,13 @@ export function rewriteParentModule(
   existingProgram?: AstProgram,
   /** Closure AST nodes per extraction; threaded into `RewriteContext.closureNodes`. See OSS-354. */
   closureNodes?: Map<string, AstFunction>,
+  /**
+   * Raw user-supplied dev path from `TransformModuleInput.devPath`,
+   * unlike `devFilePath` which always falls back to a composed path.
+   * OSS-428 — needed so JSX dev-info `fileName:` only switches when the
+   * user explicitly overrides.
+   */
+  userDevPath?: string,
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const program = existingProgram ?? parseSync(relPath, source, RAW_TRANSFER_PARSER_OPTIONS).program;
@@ -192,6 +199,7 @@ export function rewriteParentModule(
   const ctx: RewriteContext = {
     source, relPath, s, program, closureNodes, extractions, originalImports,
     migrationDecisions, moduleLevelDecls, jsxOptions, mode, devFilePath,
+    userDevPath,
     inlineOptions, stripExports, isServer, explicitExtensions, transpileTs,
     minify, outputExtension,
     // Accumulated state
@@ -710,7 +718,11 @@ function runJsxTransform(ctx: RewriteContext): void {
 
   ctx.jsxResult = transformAllJsx(
     ctx.source, ctx.s, ctx.program, ctx.jsxOptions.importedNames, skipRanges,
-    ctx.isDevMode ? { relPath: ctx.relPath } : undefined,
+    // OSS-428: JSX dev-info `fileName:` only switches to the user-supplied
+    // dev path when explicitly set. Composed `devFilePath` (srcDir+relPath
+    // fallback) keeps the default `relPath` behavior — matches SWC and
+    // preserves baseline-passing `example_dev_mode` / `example_jsx_keyed_dev`.
+    ctx.isDevMode ? { relPath: ctx.userDevPath ?? ctx.relPath } : undefined,
     undefined,
     ctx.jsxOptions.enableSignals !== false,
     undefined, undefined, undefined,

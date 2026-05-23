@@ -492,9 +492,20 @@ export function extractSegments(
       // (OSS-368). Replaces the per-extraction `collectIdentifiers` sub-walk:
       // the outer walk is about to visit these nodes anyway, so collecting
       // here costs O(activeStack.length) per Identifier — usually 1–2.
+      //
+      // OSS-427: gate on `nodeContainedIn(node, seg.root)` so the surrounding
+      // marker call's callee (`$`, `client$`, `useTask$`, …) doesn't leak
+      // into the segment's bodyIds — the segment's body is `seg.root` (the
+      // function argument), not the enclosing CallExpression. Without the
+      // gate, extracted segments emit a spurious `import { $ } from
+      // "@qwik.dev/core"` (or `client$` / `useTask$`) for the marker that
+      // wrapped them. Mirrors the same `nodeContainedIn` predicate already
+      // used for the JSX-detection arm just below.
       if (node.type === 'Identifier' && node.name) {
         for (const seg of ctx.activeSegmentBodies) {
-          seg.bodyIds?.add(node.name);
+          if (seg.bodyIds && nodeContainedIn(node, seg.root)) {
+            seg.bodyIds.add(node.name);
+          }
         }
       }
 

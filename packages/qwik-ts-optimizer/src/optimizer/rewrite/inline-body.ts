@@ -42,6 +42,7 @@ import {
   hasUnderscorePlaceholderParams,
   isComponentCtx,
   isEventHandlerOrJsxProp,
+  isStrippedSegment,
   matchesRegCtxName,
 } from './predicates.js';
 
@@ -166,6 +167,18 @@ export function transformInlineSegmentBody(
    * undefined values. See OSS-407.
    */
   migratedNames?: ReadonlySet<string>,
+  /**
+   * OSS-426 Sub-B — strip-config gates suppression of `.w([captures])`
+   * wrapping on stripped child QRLs in JSX prop position. When a child
+   * is stripped, its body is `export const X = null` and cannot consume
+   * captures; SWC's reference emits the bare QRL ref (`q_X`) instead of
+   * `q_X.w([…])`. Only the event-handler JSX-prop path is gated —
+   * marker-call (`qrlCallee`) and inlinedQrl paths preserve their
+   * existing emission shape because stripped extractions don't appear
+   * in those positions for the F5 fixtures.
+   */
+  stripCtxName?: readonly string[],
+  stripEventHandlers?: boolean,
 ): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {
   // `body` is locally mutable plain string for slicing/concatenation
   // throughout this transform. The branded BodyText only matters at the
@@ -211,13 +224,22 @@ export function transformInlineSegmentBody(
             child.captureNames.length > 0 &&
             hasUnderscorePlaceholderParams(child.paramNames);
 
-          if (hasLoopCrossCaptures) {
+          // OSS-426 Sub-B: stripped child segments emit `= null` bodies
+          // that cannot consume captures at runtime. SWC's reference
+          // suppresses the `.w([…])` wrapper at the JSX-prop call site
+          // and emits the bare `q_X` ref. Skip the wrap regardless of
+          // capture count when the child is stripped.
+          const childIsStripped = isStrippedSegment(
+            child.ctxName, child.ctxKind, stripCtxName, stripEventHandlers,
+          );
+
+          if (hasLoopCrossCaptures && !childIsStripped) {
             const hoistedName = child.symbolName;
             const wCaptures = child.captureNames.join(',\n            ');
             const hoistDecl = `const ${hoistedName} = ${childVarName}.w([\n            ${wCaptures}\n        ]);`;
             hoistedDeclarations.push(hoistDecl);
             qrlRef = hoistedName;
-          } else if (!isRegCtx && child.captureNames.length > 0) {
+          } else if (!isRegCtx && !childIsStripped && child.captureNames.length > 0) {
             qrlRef += '.w([\n        ' + child.captureNames.join(',\n        ') + '\n    ])';
           }
 

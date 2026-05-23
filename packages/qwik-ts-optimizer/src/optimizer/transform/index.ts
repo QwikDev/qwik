@@ -565,6 +565,7 @@ export function transformModule(
       qrlOutputExt,
       program,
       closureNodes,
+      input.devPath,
     );
 
     // Post-process parent: DCE + unused import cleanup
@@ -654,6 +655,7 @@ export function transformModule(
       relPath,
       emitMode,
       devFile,
+      userDevPath: input.devPath,
       isInlineStrategy,
       entryStrategy,
       migrationDecisions,

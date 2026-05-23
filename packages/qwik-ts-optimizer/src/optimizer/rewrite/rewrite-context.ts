@@ -42,6 +42,14 @@ export interface RewriteContext {
   jsxOptions?: JsxRewriteOptions;
   mode?: EmitMode;
   devFilePath?: string;
+  /**
+   * Raw user-supplied dev path from `TransformModuleInput.devPath`, *not*
+   * the composed `devFilePath` (which falls back to `srcDir/relPath`).
+   * Used by JSX dev-info `fileName:` emission, which only honors the
+   * user's explicit override and otherwise falls back to `relPath`.
+   * (qrlDEV `file:` differs — it always uses `devFilePath`.) OSS-428.
+   */
+  userDevPath?: string;
   inlineOptions?: InlineStrategyOptions;
   stripExports?: readonly string[];
   isServer?: boolean;

@@ -34,6 +34,34 @@ type IdentifierNode = Extract<AstNode, { type: 'Identifier' }>;
 type MemberExpressionNode = Extract<AstNode, { type: 'MemberExpression' }>;
 type AstNodeList = ReadonlyArray<AstMaybeNode>;
 
+// --- Expression peeling ------------------------------------------------------
+
+/**
+ * Peel TS type-assertion wrappers (`as`, `!`, `<T>`, `satisfies`,
+ * instantiation) and `ParenthesizedExpression` layers off a node.
+ * OSS-418: shared by `analyzeSignalExpression` (top-of-dispatch) and
+ * `analyzeMemberExpression` (member-chain object position). Returns
+ * `null` only when input is nullish.
+ */
+function peelExpressionWrappers(node: AstMaybeNode): AstNode | null {
+  let current: AstMaybeNode = node;
+  while (current) {
+    switch (current.type) {
+      case 'ParenthesizedExpression':
+      case 'TSAsExpression':
+      case 'TSNonNullExpression':
+      case 'TSTypeAssertion':
+      case 'TSInstantiationExpression':
+      case 'TSSatisfiesExpression':
+        current = current.expression;
+        continue;
+      default:
+        return current;
+    }
+  }
+  return null;
+}
+
 // --- Node type detection -----------------------------------------------------
 
 const GLOBAL_NAMES = new Set([
@@ -367,22 +395,22 @@ function generateFnSignal(
   const exprText = source.slice(exprNode.start, exprNode.end);
   const exprStart = exprNode.start;
 
-  // OSS-417: three passes (root-identifier substitution, simplification,
-  // paren-strip) consolidated via the shared range-replacement walker.
-  // The `_str` body sees roots + paren-strips (source-preserving for
-  // operands; parens elided in object-property-value position per SWC's
-  // emit). The lambda body adds simplifications (constant subtrees folded
-  // to primitive literals, mirroring SWC's `simplify::simplifier`).
+  // OSS-417: root-identifier substitution and constant-subtree simplification
+  // share the orchestrator. OSS-418 dropped the OSS-414 paren-strip pass —
+  // raw-props no longer emits defensive parens at Property-value positions
+  // (precedence-aware emission via `expressionNeedsParens` in `raw-props.ts`
+  // and `props-field-rewrite.ts`), so the source slice the `_hf<n>_str`
+  // generator inherits is paren-free to begin with. Organic source parens
+  // in Property-value position would now flow through verbatim; the
+  // convergence baseline confirms no fixture exercises that case.
   //
   // Disjoint-by-construction: roots target Identifiers; simplifications
-  // target Binary/Unary/Logical/Conditional with primitive operands;
-  // paren-strips target ParenthesizedExpression boundary edges. No node
-  // type overlaps with another.
+  // target Binary/Unary/Logical/Conditional with primitive operands.
+  // No node type overlaps with another.
   const rootCollector = rootReplacementsCollector(rootToParam);
-  const parenCollector = parenStripsCollector();
   const replacements = collectRangeReplacements(
     exprNode, exprStart, exprText,
-    [rootCollector, parenCollector],
+    [rootCollector],
   );
   const simplifications = collectRangeReplacements(
     exprNode, exprStart, exprText,
@@ -495,57 +523,6 @@ function rootReplacementsCollector(
     }
 
     return null;
-  };
-}
-
-/**
- * OSS-417: factory for the OSS-414 paren-strip collector. Matches
- * `ParenthesizedExpression` nodes whose direct parent is a `Property`
- * (object-literal value position) — in that context the parens are
- * always cosmetic and SWC's printer omits them. Other parent positions
- * (BinaryExpression/LogicalExpression operand, MemberExpression object,
- * etc.) may have load-bearing parens, so this collector deliberately
- * skips them.
- *
- * Emits two replacements per match: `[paren.start, inner.start] → ''`
- * (strips opening `(`) and `[inner.end, paren.end] → ''` (strips
- * closing `)`). Does NOT set `skipSubtree` — nested parens at deeper
- * Property-value positions still need to be visited.
- *
- * Disjoint from root + simplification replacements by construction
- * (paren wrappers bound the outside of the expression; roots and
- * simplifications target identifiers/subtrees within).
- */
-function parenStripsCollector(): RangeReplacementCollector {
-  return (n, ctx) => {
-    if (
-      n.type !== 'ParenthesizedExpression' ||
-      ctx.parentKey !== 'value' ||
-      ctx.parentNode?.type !== 'Property' ||
-      !n.expression ||
-      typeof n.start !== 'number' ||
-      typeof n.end !== 'number' ||
-      typeof n.expression.start !== 'number' ||
-      typeof n.expression.end !== 'number'
-    ) {
-      return null;
-    }
-    const openStart = n.start - ctx.exprStart;
-    const openEnd = n.expression.start - ctx.exprStart;
-    const closeStart = n.expression.end - ctx.exprStart;
-    const closeEnd = n.end - ctx.exprStart;
-    if (
-      openStart < 0 || closeEnd > ctx.exprText.length ||
-      openStart >= openEnd || closeStart >= closeEnd
-    ) {
-      return null;
-    }
-    return {
-      replacements: [
-        { start: openStart, end: openEnd, replacement: '' },
-        { start: closeStart, end: closeEnd, replacement: '' },
-      ],
-    };
   };
 }
 
@@ -806,21 +783,14 @@ export function analyzeSignalExpression(
   importedNames: Set<string>,
   localNames?: Set<string>,
 ): SignalExprResult {
-  if (exprNode == null) return { type: 'none' };
-
-  // OSS-412: unwrap ParenthesizedExpression so signal-analysis sees the
-  // inner expression. raw-props consolidation emits parens around the
-  // synthesized `(_rawProps.<key> ?? <default>)` access for defaulted
-  // destructure-prop locals; after the inline-body re-parse, the JSX
-  // attribute value's expression is a ParenthesizedExpression wrapping
-  // a LogicalExpression. Without this unwrap, `<div some={some}/>`
-  // (where `some` is defaulted) emits inline instead of being hoisted
-  // to `_fnSignal(_hf<n>, [_rawProps], "p0.some??<default>")`. Mirrors
-  // the existing unwrap inside `analyzeMemberExpression` for the same
-  // shape coming through `obj` of a member chain.
-  if (exprNode.type === 'ParenthesizedExpression') {
-    return analyzeSignalExpression(exprNode.expression, source, importedNames, localNames);
+  // OSS-412/418: peel TS-assertion + Paren wrappers (organic source
+  // wrappers like `<div title={(a || b).value}/>` still flow through).
+  const peeled = peelExpressionWrappers(exprNode);
+  if (peeled == null) return { type: 'none' };
+  if (peeled !== exprNode) {
+    return analyzeSignalExpression(peeled, source, importedNames, localNames);
   }
+  exprNode = peeled;
 
   // Literals are never wrapped
   if (exprNode.type === 'Literal') {
@@ -921,18 +891,7 @@ function analyzeMemberExpression(
   importedNames: Set<string>,
   localNames?: Set<string>,
 ): SignalExprResult {
-  // Unwrap TS type assertions to find the underlying identifier
-  let unwrapped = exprNode.object;
-  while (unwrapped) {
-    if (unwrapped.type === 'TSAsExpression' || unwrapped.type === 'TSNonNullExpression' ||
-        unwrapped.type === 'TSTypeAssertion' || unwrapped.type === 'TSInstantiationExpression' ||
-        unwrapped.type === 'TSSatisfiesExpression' || unwrapped.type === 'ParenthesizedExpression') {
-      unwrapped = unwrapped.expression;
-    } else {
-      break;
-    }
-  }
-
+  const unwrapped = peelExpressionWrappers(exprNode.object);
   const objIdent = unwrapped?.type === 'Identifier' ? unwrapped.name : null;
 
   // SWC only applies signal treatment to identifiers it can resolve in scope

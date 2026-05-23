@@ -43,6 +43,7 @@ import {
 } from '../utils/transform-session.js';
 import {
   collectRangeReplacements,
+  expressionNeedsParens,
   isReplaceableIdentifierPosition,
   type RangeReplacementCollector,
 } from '../utils/range-replace.js';
@@ -102,6 +103,8 @@ interface IdentifierReplacement {
   key: string;
   local: string;
   isShorthand?: boolean;
+  /** OSS-418: parent context requires `(<accessor> ?? <default>)` wrap. */
+  needsParens?: boolean;
 }
 
 interface RawPropsField {
@@ -522,12 +525,14 @@ function buildIdentifierReplacementsCollector(
       ctx.parentNode.shorthand === true;
 
     if (isShorthandValue) {
+      // Shorthand expands to `key: <accessor>` — Property-value position.
       out.push({
         start: node.start - offset,
         end: node.end - offset,
         key,
         local: node.name,
         isShorthand: true,
+        needsParens: false,
       });
       return { replacements: [] };
     }
@@ -537,6 +542,7 @@ function buildIdentifierReplacementsCollector(
         end: node.end - offset,
         key,
         local: node.name,
+        needsParens: expressionNeedsParens(ctx.parentKey, ctx.parentNode),
       });
     }
     return { replacements: [] };
@@ -570,10 +576,17 @@ function applyIdentifierReplacements(
   defaultValues?: Map<string, string>,
 ): void {
   for (const replacement of replacements) {
-    let accessor = buildPropertyAccessor(baseName, replacement.key);
+    const baseAccessor = buildPropertyAccessor(baseName, replacement.key);
     const defaultValue = defaultValues?.get(replacement.local);
-    if (defaultValue !== undefined) {
-      accessor = `(${accessor} ?? ${defaultValue})`;
+    // OSS-418: parens only when parent precedence requires them (captured
+    // at collect time via `expressionNeedsParens` → `replacement.needsParens`).
+    let accessor: string;
+    if (defaultValue === undefined) {
+      accessor = baseAccessor;
+    } else {
+      accessor = replacement.needsParens
+        ? `(${baseAccessor} ?? ${defaultValue})`
+        : `${baseAccessor} ?? ${defaultValue}`;
     }
 
     const start = session.offset + replacement.start;

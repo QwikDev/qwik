@@ -597,7 +597,7 @@ Why threaded across phases: parent rewrite assigns keys to its own JSX, then seg
 
 ### `_fnSignal` — reactive expression hoisting
 
-When a JSX expression depends on a signal or store and is non-trivial (`store.address.city.name`, computed array literals), the optimizer hoists it into a top-level `_hf<n>` arrow + serialised string and replaces the inline expression with a `_fnSignal(_hf<n>, [deps], _hf<n>_str)` call. Logic in `signal-analysis.ts:346` (`generateFnSignal`); fires for object/array literals with reactive values, complex `.value` access on signals, deep store access.
+When a JSX expression depends on a signal or store and is non-trivial (`store.address.city.name`, computed array literals), the optimizer hoists it into a top-level `_hf<n>` arrow + serialised string and replaces the inline expression with a `_fnSignal(_hf<n>, [deps], _hf<n>_str)` call. Logic in `signal-analysis.ts:385` (`generateFnSignal`); fires for object/array literals with reactive values, complex `.value` access on signals, deep store access.
 
 Example shape (from a `_fnSignal`-heavy snapshot):
 

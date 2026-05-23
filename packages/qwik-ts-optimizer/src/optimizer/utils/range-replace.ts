@@ -199,3 +199,34 @@ export function isReplaceableIdentifierPosition(
   if (parentKey === 'id' && parentNode?.type === 'VariableDeclarator') return false;
   return true;
 }
+
+/**
+ * Does a `??` LogicalExpression at this position need wrapping parens?
+ * OSS-418: drives precedence-aware emission in `raw-props.ts` and
+ * `props-field-rewrite.ts`. Returns `true` only when the parent operator
+ * has precedence ≥ `??` (Binary/Logical/Unary/Update/MemberExpression
+ * object / TaggedTemplate tag / Call+New callee). Note that mixing `??`
+ * with `||` or `&&` is a JS syntax error without explicit parens —
+ * `LogicalExpression` includes that case.
+ */
+export function expressionNeedsParens(
+  parentKey: string | undefined,
+  parentNode: AstParentNode | undefined,
+): boolean {
+  if (!parentNode) return false;
+  switch (parentNode.type) {
+    case 'BinaryExpression':
+    case 'LogicalExpression':
+    case 'UnaryExpression':
+    case 'UpdateExpression':
+    case 'TaggedTemplateExpression':
+      return true;
+    case 'MemberExpression':
+      return parentKey === 'object';
+    case 'NewExpression':
+    case 'CallExpression':
+      return parentKey === 'callee';
+    default:
+      return false;
+  }
+}

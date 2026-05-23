@@ -2,6 +2,7 @@ import { buildPropertyAccessor } from './identifier-name.js';
 import {
   applyReplacements,
   collectRangeReplacements,
+  expressionNeedsParens,
   isReplaceableIdentifierPosition,
   type RangeReplacementCollector,
 } from './range-replace.js';
@@ -53,9 +54,17 @@ function propsFieldIdentifierCollector(
 
     const baseAccessor = buildPropertyAccessor('_rawProps', key);
     const defaultExpr = defaultValues?.get(localName);
-    const accessor = defaultExpr !== undefined
-      ? `(${baseAccessor} ?? ${defaultExpr})`
-      : baseAccessor;
+    let accessor: string;
+    if (defaultExpr === undefined) {
+      accessor = baseAccessor;
+    } else {
+      // OSS-418: shorthand expands to Property-value position (precedence-safe).
+      const needsParens = !isShorthandValue &&
+        expressionNeedsParens(ctx.parentKey, ctx.parentNode);
+      accessor = needsParens
+        ? `(${baseAccessor} ?? ${defaultExpr})`
+        : `${baseAccessor} ?? ${defaultExpr}`;
+    }
     const replacement = isShorthandValue ? `${key}: ${accessor}` : accessor;
 
     return {

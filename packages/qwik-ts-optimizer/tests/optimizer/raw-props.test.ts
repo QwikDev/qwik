@@ -10,12 +10,19 @@ describe('raw-props', () => {
     // Const-default (literal) — consolidation fires per SWC's `is_const_expr` gate.
     // Call-default (e.g. `label = getLabel()`) aborts consolidation; that case
     // is now covered by 'aborts consolidation for call-expression default' below.
+    //
+    // OSS-418: `label: <accessor>` lands in `Property` value position, which
+    // is precedence-safe for the `??` operator — no defensive parens needed.
+    // `count + 1` is a non-defaulted reference (no `??` clause at all) so
+    // it's just `_rawProps.count + 1` — also no parens. Pre-OSS-418 emitted
+    // `label: (_rawProps.label ?? "x")` unconditionally; the new output is
+    // bare and matches SWC's emit.
     const body = '({ count, label = "x" }) => ({ count, label, total: count + 1 })';
 
     const result = applyRawPropsTransform(body);
 
     expect(result).toBe(
-      '(_rawProps) => ({ count: _rawProps.count, label: (_rawProps.label ?? "x"), total: _rawProps.count + 1 })',
+      '(_rawProps) => ({ count: _rawProps.count, label: _rawProps.label ?? "x", total: _rawProps.count + 1 })',
     );
   });
 

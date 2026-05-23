@@ -15,6 +15,7 @@ import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import {
   collectRangeReplacements,
+  expressionNeedsParens,
   isReplaceableIdentifierPosition,
   type RangeReplacement,
   type RangeReplacementCollector,
@@ -200,5 +201,112 @@ describe('isReplaceableIdentifierPosition', () => {
 
   it('returns true at root (no parent)', () => {
     expect(isReplaceableIdentifierPosition(undefined, undefined)).toBe(true);
+  });
+});
+
+describe('expressionNeedsParens', () => {
+  // Positions REQUIRING parens
+  it('returns true for BinaryExpression operand (any side)', () => {
+    const parent = { type: 'BinaryExpression' } as AstParentNode;
+    expect(expressionNeedsParens('left', parent)).toBe(true);
+    expect(expressionNeedsParens('right', parent)).toBe(true);
+  });
+
+  it('returns true for LogicalExpression operand (?? + ||/&& mixing is a syntax error)', () => {
+    const parent = { type: 'LogicalExpression' } as AstParentNode;
+    expect(expressionNeedsParens('left', parent)).toBe(true);
+    expect(expressionNeedsParens('right', parent)).toBe(true);
+  });
+
+  it('returns true for UnaryExpression argument', () => {
+    const parent = { type: 'UnaryExpression' } as AstParentNode;
+    expect(expressionNeedsParens('argument', parent)).toBe(true);
+  });
+
+  it('returns true for UpdateExpression argument', () => {
+    const parent = { type: 'UpdateExpression' } as AstParentNode;
+    expect(expressionNeedsParens('argument', parent)).toBe(true);
+  });
+
+  it('returns true for MemberExpression object position only', () => {
+    const parent = { type: 'MemberExpression' } as AstParentNode;
+    expect(expressionNeedsParens('object', parent)).toBe(true);
+    // `property` position is excluded by isReplaceableIdentifierPosition;
+    // even if it weren't, computed-member `[X]` doesn't need parens.
+    expect(expressionNeedsParens('property', parent)).toBe(false);
+  });
+
+  it('returns true for TaggedTemplateExpression tag', () => {
+    const parent = { type: 'TaggedTemplateExpression' } as AstParentNode;
+    expect(expressionNeedsParens('tag', parent)).toBe(true);
+  });
+
+  it('returns true for CallExpression / NewExpression callee', () => {
+    const callParent = { type: 'CallExpression' } as AstParentNode;
+    const newParent = { type: 'NewExpression' } as AstParentNode;
+    expect(expressionNeedsParens('callee', callParent)).toBe(true);
+    expect(expressionNeedsParens('callee', newParent)).toBe(true);
+  });
+
+  // Positions NOT requiring parens
+  it('returns false for CallExpression / NewExpression arguments', () => {
+    const parent = { type: 'CallExpression' } as AstParentNode;
+    expect(expressionNeedsParens('arguments', parent)).toBe(false);
+  });
+
+  it('returns false for ObjectExpression Property value position', () => {
+    const parent = { type: 'Property' } as AstParentNode;
+    expect(expressionNeedsParens('value', parent)).toBe(false);
+  });
+
+  it('returns false for ArrayExpression element position', () => {
+    const parent = { type: 'ArrayExpression' } as AstParentNode;
+    expect(expressionNeedsParens('elements', parent)).toBe(false);
+  });
+
+  it('returns false for ConditionalExpression branches (?: lower precedence than ??)', () => {
+    const parent = { type: 'ConditionalExpression' } as AstParentNode;
+    expect(expressionNeedsParens('test', parent)).toBe(false);
+    expect(expressionNeedsParens('consequent', parent)).toBe(false);
+    expect(expressionNeedsParens('alternate', parent)).toBe(false);
+  });
+
+  it('returns false for AssignmentExpression right side', () => {
+    const parent = { type: 'AssignmentExpression' } as AstParentNode;
+    expect(expressionNeedsParens('right', parent)).toBe(false);
+  });
+
+  it('returns false for ReturnStatement argument', () => {
+    const parent = { type: 'ReturnStatement' } as AstParentNode;
+    expect(expressionNeedsParens('argument', parent)).toBe(false);
+  });
+
+  it('returns false for VariableDeclarator init', () => {
+    const parent = { type: 'VariableDeclarator' } as AstParentNode;
+    expect(expressionNeedsParens('init', parent)).toBe(false);
+  });
+
+  it('returns false for JSXExpressionContainer expression', () => {
+    const parent = { type: 'JSXExpressionContainer' } as AstParentNode;
+    expect(expressionNeedsParens('expression', parent)).toBe(false);
+  });
+
+  it('returns false for TemplateLiteral expression slot', () => {
+    const parent = { type: 'TemplateLiteral' } as AstParentNode;
+    expect(expressionNeedsParens('expressions', parent)).toBe(false);
+  });
+
+  it('returns false for ExpressionStatement', () => {
+    const parent = { type: 'ExpressionStatement' } as AstParentNode;
+    expect(expressionNeedsParens('expression', parent)).toBe(false);
+  });
+
+  it('returns false for ParenthesizedExpression (already inside parens)', () => {
+    const parent = { type: 'ParenthesizedExpression' } as AstParentNode;
+    expect(expressionNeedsParens('expression', parent)).toBe(false);
+  });
+
+  it('returns false at root (no parent)', () => {
+    expect(expressionNeedsParens(undefined, undefined)).toBe(false);
   });
 });

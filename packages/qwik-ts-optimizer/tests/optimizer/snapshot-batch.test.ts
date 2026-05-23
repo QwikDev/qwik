@@ -87,7 +87,7 @@ describe('snapshot batch validation', () => {
         const result = transformModule({
           input: [{ path: mkFilePath(filename), code: mkSourceText(parsed.input) }],
           srcDir: mkFilePath('.'),
-          mode: 'lib',
+          mode: 'test',
         });
 
         // Compare parent module
@@ -164,7 +164,7 @@ describe('snapshot batch validation', () => {
         const result = transformModule({
           input: [{ path: mkFilePath(filename), code: mkSourceText(parsed.input) }],
           srcDir: mkFilePath('.'),
-          mode: 'lib',
+          mode: 'test',
         });
 
         // Verify segment metadata matches for segments that exist
@@ -232,7 +232,7 @@ describe('snapshot batch validation', () => {
         const result = transformModule({
           input: [{ path: mkFilePath(filename), code: mkSourceText(parsed.input) }],
           srcDir: mkFilePath('.'),
-          mode: 'lib',
+          mode: 'test',
         });
 
         // Compare parent module only

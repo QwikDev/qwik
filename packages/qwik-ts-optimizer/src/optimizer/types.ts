@@ -473,10 +473,15 @@ export type MinifyMode = 'simplify' | 'none';
  *   `{ file, lo, hi, displayName }` metadata for source-mapped tooling.
  * - `'hmr'`: like `dev` plus `useHmr(devFile)` injection on `component$`
  *   segments (`postProcessSegmentCode`).
- * - `'lib'`: library-emit flavor; preserves more of the original module
- *   structure for consumers that re-bundle.
+ * - `'lib'`: library-emit flavor; bodies inline as `inlinedQrl(body, name)`
+ *   in a single-module output for library publishing (no segment files).
+ *   Mirrors SWC's `EmitMode::Lib`.
+ * - `'test'`: test-fixture flavor; no special handling (no prod-rename,
+ *   no dev-file paths, no lib emit). Used as the SWC `EmitMode::Test`
+ *   default; TS tests should use this for non-mode-sensitive fixtures
+ *   so the lib-emit trigger only fires when explicitly requested.
  */
-export type EmitMode = 'dev' | 'prod' | 'lib' | 'hmr';
+export type EmitMode = 'dev' | 'prod' | 'lib' | 'hmr' | 'test';
 
 // ---------------------------------------------------------------------------
 // Diagnostics

@@ -213,7 +213,7 @@ export const App = component$(() => {
         },
       ],
       srcDir: mkFilePath('.'),
-      mode: 'lib',
+      mode: 'test',
     });
 
     const parent = result.modules[0];
@@ -250,7 +250,7 @@ export const App = component$(() => {
         },
       ],
       srcDir: mkFilePath('.'),
-      mode: 'lib',
+      mode: 'test',
     });
 
     const parent = result.modules[0];

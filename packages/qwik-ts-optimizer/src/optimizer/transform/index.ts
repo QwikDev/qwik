@@ -289,7 +289,15 @@ export function transformModule(
     const globalDeclPositions = new Map<string, number>();
     const { extractionLoopMap, loopBodyVarDecls } = buildExtractionLoopMap(program, extractions, repairedCode);
     const allScopeEntries = collectAllScopeEntries(program);
-    const earlyEntryStrategy = options.entryStrategy ?? { type: "smart" as const };
+    // OSS-421: `mode: 'lib'` produces a single-module library output (segment
+    // bodies inlined as `inlinedQrl(body, name, [captures])` literals). Re-uses
+    // the inline pipeline for body emission + capture wiring; a post-pass in
+    // `output-assembly.ts` collapses the inline output (`const q_X = _noopQrl
+    // (...); q_X.s(body);`) into the lib shape (`inlinedQrl(body, name, [caps])`).
+    const userEntryStrategy = options.entryStrategy ?? { type: "smart" as const };
+    const earlyEntryStrategy = options.mode === 'lib'
+      ? { type: 'inline' as const }
+      : userEntryStrategy;
     // OSS-406: ONLY `inline` (not `hoist`) skips the captures→paramNames
     // promotion. `hoist` emits `(_, _1, capture) => body` const declarations
     // (per `example_issue_33443`), so it still needs the param-padding form.
@@ -427,9 +435,15 @@ export function transformModule(
       options.transpileJsx,
     );
 
-    const entryStrategy = options.entryStrategy ?? { type: "smart" as const };
+    // OSS-421: same override as the `earlyEntryStrategy` resolution above.
+    // `mode: 'lib'` forces inline-pipeline emission; the lib-specific
+    // collapse happens as a post-pass.
+    const entryStrategy = options.mode === 'lib'
+      ? { type: 'inline' as const }
+      : (options.entryStrategy ?? { type: "smart" as const });
     const isInlineStrategy =
       entryStrategy.type === "inline" || entryStrategy.type === "hoist";
+    const isLibMode = options.mode === 'lib';
     // OSS-405: under inline strategy, segment bodies stay in the parent module
     // (inside `q_X.s(body)`), so a `move` decision would delete a decl that the
     // body still references — broken. Run migration and keep only `reexport`
@@ -528,6 +542,7 @@ export function transformModule(
         ? {
             inline: true,
             entryType: entryStrategy.type as "inline" | "hoist",
+            isLibMode,
             stripCtxName: options.stripCtxName,
             stripEventHandlers: options.stripEventHandlers,
             regCtxName: options.regCtxName,
@@ -659,7 +674,13 @@ export function transformModule(
     };
 
     const segmentModules = generateAllSegmentModules(segmentCtx);
-    allModules.push(...segmentModules);
+    // OSS-421: lib mode produces a single-module library output. The
+    // segment-file modules are still generated (extraction + capture
+    // analysis runs) but the bodies are inlined into the parent module
+    // via `collapseToLibInlinedQrl`. Skip emitting the segment modules.
+    if (!isLibMode) {
+      allModules.push(...segmentModules);
+    }
   }
 
   // Phase 6: Apply diagnostic suppression directives

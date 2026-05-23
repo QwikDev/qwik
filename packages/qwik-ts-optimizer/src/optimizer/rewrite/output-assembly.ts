@@ -28,6 +28,7 @@ import {
   buildHoistSCall,
 } from '../inline-strategy.js';
 import { rewriteFunctionSignature } from '../segment-codegen.js';
+import { collapseToLibInlinedQrl } from './lib-mode-collapse.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { isRelativePathInsideBase } from '../path-utils.js';
 import { transformInlineSegmentBody } from './inline-body.js';
@@ -686,7 +687,11 @@ export function assembleOutput(ctx: RewriteContext): string {
 
   s.prepend(preamble.join('\n') + '\n');
 
-  if (migrationDecisions) {
+  if (migrationDecisions && !ctx.isLibMode) {
+    // OSS-421: `_auto_X` re-exports exist to make module-level decls
+    // available to segment-file imports. Lib mode emits a single-module
+    // output (no segment files), so the re-exports are unnecessary and
+    // diverge from SWC's lib emit which omits them.
     for (const decision of migrationDecisions) {
       if (decision.action === 'reexport') {
         const decl = moduleLevelDecls?.find(d => d.name === decision.varName);
@@ -714,6 +719,15 @@ export function assembleOutput(ctx: RewriteContext): string {
   placeSCalls(s, program, sCalls, moduleLevelDecls);
 
   let finalCode = s.toString();
+
+  // OSS-421: lib-mode collapse runs on the assembled inline-strategy
+  // output. Transforms `_noopQrl(name) + q_X.s(body)` triples into inline
+  // `inlinedQrl(body, name, [captures])` literals at every reference site.
+  // Re-uses the inline pipeline's body emission + capture wiring; only the
+  // final emission shape differs.
+  if (ctx.isLibMode) {
+    finalCode = collapseToLibInlinedQrl(finalCode);
+  }
 
   if (transpileTs) {
     const tsStripOptions: TransformOptions = { typescript: { onlyRemoveTypeImports: false } };

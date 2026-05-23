@@ -74,6 +74,12 @@ export interface InlineStrategyOptions {
   readonly inline: boolean;
   /** Entry strategy type: 'inline' puts body in .s(), 'hoist' extracts body as const */
   readonly entryType?: 'inline' | 'hoist';
+  /**
+   * OSS-421: `mode: 'lib'` reuses the inline pipeline but a post-pass
+   * collapses the `_noopQrl(name)` + `q_X.s(body)` triple into a single
+   * `inlinedQrl(body, name, [captures])` literal at every `q_X` reference.
+   */
+  readonly isLibMode?: boolean;
   /** Strip context names (server/client strip) */
   readonly stripCtxName?: readonly string[];
   /** Strip event handlers */
@@ -207,6 +213,7 @@ export function rewriteParentModule(
     jsxKeyCounterValue: 0,
     isDevMode: mode === 'dev' || mode === 'hmr',
     isInline: inlineOptions?.inline === true,
+    isLibMode: inlineOptions?.isLibMode === true,
   };
 
   collectExtractedCalleeNames(ctx);

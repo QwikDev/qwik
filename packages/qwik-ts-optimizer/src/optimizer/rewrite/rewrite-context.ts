@@ -69,4 +69,6 @@ export interface RewriteContext {
   jsxKeyCounterValue: number;
   isDevMode: boolean;
   isInline: boolean;
+  /** OSS-421: `mode: 'lib'` runs the inline pipeline + a post-pass collapse. */
+  isLibMode: boolean;
 }

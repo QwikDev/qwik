@@ -36,17 +36,31 @@ export const PartialRouterDemo = component$(() => {
   });
 
   return (
-    <section>
-      <nav aria-label="Product partial navigation">
-        <button type="button" onClick$={() => navigate('keyboard')}>
+    <section class="rounded-lg border border-slate-200 bg-white p-[18px] shadow-xl shadow-slate-900/5">
+      <nav class="flex flex-wrap gap-2.5" aria-label="Product partial navigation">
+        <button
+          class="rounded-md bg-slate-800 px-3.5 py-2.5 font-bold text-white"
+          type="button"
+          onClick$={() => navigate('keyboard')}
+        >
           Keyboard
         </button>
-        <button type="button" onClick$={() => navigate('mouse')}>
+        <button
+          class="rounded-md bg-slate-800 px-3.5 py-2.5 font-bold text-white"
+          type="button"
+          onClick$={() => navigate('mouse')}
+        >
           Mouse
         </button>
       </nav>
-      <p aria-live="polite">{status.value}</p>
-      <div data-partial-outlet dangerouslySetInnerHTML={html.value} />
+      <p class="text-slate-600" aria-live="polite">
+        {status.value}
+      </p>
+      <div
+        class="rounded-lg border border-dashed border-slate-300 p-4"
+        data-partial-outlet
+        dangerouslySetInnerHTML={html.value}
+      />
     </section>
   );
 });

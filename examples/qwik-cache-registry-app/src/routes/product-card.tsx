@@ -5,13 +5,22 @@ export const ProductCard = component$((props: { productId: string }) => {
   const product = useAsync$(getProduct, props);
 
   return (
-    <Suspense fallback={<article aria-busy="true">Loading {props.productId}...</article>}>
-      <article>
-        <h2>{product.value.title}</h2>
-        <p>{product.value.description}</p>
-        <strong>{product.value.price}</strong>
-        <small>segment: {product.value.segment}</small>
-        <small>resource reads: {product.value.reads}</small>
+    <Suspense
+      fallback={
+        <article
+          class="min-h-48 rounded-lg border border-slate-200 bg-slate-50 p-[18px] text-slate-500 shadow-xl shadow-slate-900/5"
+          aria-busy="true"
+        >
+          Loading {props.productId}...
+        </article>
+      }
+    >
+      <article class="min-h-48 rounded-lg border border-slate-200 bg-white p-[18px] shadow-xl shadow-slate-900/5">
+        <h2 class="mb-2 mt-0 text-xl font-black">{product.value.title}</h2>
+        <p class="leading-6 text-slate-600">{product.value.description}</p>
+        <strong class="my-3 block text-2xl">{product.value.price}</strong>
+        <small class="block text-slate-500">segment: {product.value.segment}</small>
+        <small class="block text-slate-500">resource reads: {product.value.reads}</small>
       </article>
     </Suspense>
   );

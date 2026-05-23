@@ -12,18 +12,26 @@ export default component$(() => {
   };
 
   return (
-    <main class="page">
-      <a class="gallery-link" href="http://127.0.0.1:4300/">
+    <main class="mx-auto max-w-[1120px] px-[18px] py-10 text-slate-900">
+      <a
+        class="mb-3.5 inline-flex font-extrabold text-slate-900 no-underline"
+        href="http://127.0.0.1:4300/"
+      >
         Example gallery
       </a>
-      <section class="intro">
-        <p class="eyebrow">Multi-Tenant Dashboard</p>
-        <h1>Private cache keys for operational widgets</h1>
-        <p>
+      <section class="mb-4 rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
+        <p class="mb-2 text-xs font-extrabold uppercase tracking-wide text-teal-700">
+          Multi-Tenant Dashboard
+        </p>
+        <h1 class="m-0 text-4xl font-black tracking-normal md:text-5xl">
+          Private cache keys for operational widgets
+        </h1>
+        <p class="max-w-3xl leading-7 text-slate-600">
           Dashboard cards are private by default and vary by tenant context. The same server
           resources can feed SSR, qcomponent partials, and client RPC without exposing policy.
         </p>
         <button
+          class="mr-3 rounded-md bg-slate-800 px-3.5 py-2.5 font-bold text-white"
           onClick$={async () => {
             const first = await getRevenue(input);
             const second = await getRevenue(input);
@@ -35,13 +43,12 @@ export default component$(() => {
         <span>{rpcResult.value}</span>
       </section>
 
-      <section class="kpis">
+      <section class="mb-3.5 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3.5">
         <RevenueCard {...input} />
         <CustomerCard {...input} />
         <RevenueCard {...input} />
       </section>
       <AlertPanel {...input} />
-      <style>{styles}</style>
     </main>
   );
 });
@@ -49,25 +56,3 @@ export default component$(() => {
 export const head: DocumentHead = {
   title: 'Qwik Dashboard Cache Registry Example',
 };
-
-const styles = `
-  body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #f7f7fb; color: #202939; }
-  .page { width: min(1120px, calc(100% - 36px)); margin: 0 auto; padding: 40px 0; }
-  .gallery-link { display: inline-flex; margin-bottom: 14px; color: #202939; font-weight: 800; text-decoration: none; }
-  .intro, .card, .panel { border: 1px solid #d8dee9; background: white; border-radius: 8px; box-shadow: 0 10px 24px rgba(15, 23, 42, .05); }
-  .intro { padding: 24px; margin-bottom: 16px; }
-  .eyebrow { margin: 0 0 8px; color: #2c7a7b; font-size: .78rem; font-weight: 800; text-transform: uppercase; }
-  h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: 0; }
-  .intro p { color: #52606d; max-width: 760px; line-height: 1.6; }
-  button { border: 0; border-radius: 6px; background: #202939; color: white; padding: 10px 14px; font-weight: 700; margin-right: 12px; }
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px; }
-  .card { min-height: 150px; padding: 18px; }
-  .card span { color: #52606d; font-weight: 700; }
-  .card strong { display: block; font-size: 2rem; margin: 16px 0; }
-  .card small { color: #627d98; }
-  .panel { padding: 20px; }
-  .panel-head { display: flex; justify-content: space-between; gap: 12px; color: #627d98; }
-  .panel h2 { margin: 0; color: #202939; }
-  .panel li { margin: 8px 0; }
-  .muted { color: #627d98; background: #f8fafc; }
-`;

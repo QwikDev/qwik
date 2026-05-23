@@ -241,6 +241,10 @@ const enum OutOfOrderSegmentState {
   Done = 2,
 }
 
+type VNodeDataOwner = string | undefined;
+type PendingVNodeDataPatches = Map<VNodeDataOwner, Map<number, VNodeData>>;
+type VNodeDataSerializableNode = Pick<ISsrNode, 'id' | 'vnodeData'>;
+
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
   public isHtml: boolean;
@@ -313,6 +317,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private emittedQwikEventNames = new Set<string>();
   public emittedSyncFnCount = 0;
   public rootContainerSerializedRootCount = 0;
+  private emittedVNodeDataOwners: Set<VNodeDataOwner> | null = null;
 
   constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? {}, opts.locale);
@@ -497,7 +502,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private $getRootContainer$(): SSRContainer {
+  protected $getRootContainer$(): SSRContainer {
     let rootContainer: SSRContainer = this;
     while (rootContainer instanceof SSRSegmentContainer) {
       rootContainer = rootContainer.$rootContainer$;
@@ -810,10 +815,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   openProjection(attrs: Props) {
     this.openFragment(attrs);
-    const projectionNode = this.lastNode;
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
-      this.markVNodeDataForSerialization(projectionNode);
+      const projectionNode = this.getOrCreateLastNode();
+      this.markVNodeRefForSerialization(projectionNode);
       // TODO: we should probably serialize only projection VNode
       if (!this.vnodeSegment) {
         this.addRoot(componentFrame.componentNode);
@@ -888,7 +893,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           : { [QSlotParent]: componentFrame.componentNode.id }
       );
       const lastNode = this.getOrCreateLastNode();
-      this.markVNodeDataForSerialization(lastNode);
+      lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
       componentFrame.componentNode.setProp(slotName, lastNode.id);
       // Use projectionComponentFrame so that Slots can find their projections from the correct parent
       await this.renderJSX(children, {
@@ -1084,20 +1089,31 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * skipped. By choosing different separators we can encode different numbers of elements to skip.
    */
   emitVNodeData(segmentId?: string) {
+    this.$getRootContainer$().markVNodeDataOwnerEmitted(segmentId);
     if (!segmentId && !this.serializationCtx.$roots$.length && !this.hasVNodeRefsForSerialization) {
       return;
     }
+    this.emitVNodeDataScript(segmentId, this.vNodeDatas.entries());
+  }
+
+  protected emitVNodeDataScript(
+    segmentId: string | undefined,
+    entries: Iterable<[number, VNodeData]>,
+    patch = false
+  ) {
     const attrs: Props = { type: 'qwik/vnode' };
     if (__EXPERIMENTAL__.suspense && this.outOfOrderStreaming && segmentId) {
       attrs[QSuspenseResolved] = segmentId;
     }
+    if (patch) {
+      attrs[QStatePatchAttr] = true;
+    }
     this.openScript(attrs);
     const vNodeAttrsStack: Props[] = [];
-    const vNodeData = this.vNodeDatas;
     let lastSerializedIdx = 0;
 
-    for (let elementIdx = 0; elementIdx < vNodeData.length; elementIdx++) {
-      const vNode = vNodeData[elementIdx];
+    // eslint-disable-next-line qwik-local/loop-style -- we want to keep the for..of loop for better readability here
+    for (const [elementIdx, vNode] of entries) {
       const flag = vNode[0];
       if (flag & VNodeDataFlag.SERIALIZE) {
         lastSerializedIdx = this.emitVNodeSeparators(lastSerializedIdx, elementIdx);
@@ -1163,19 +1179,42 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
     }
     this.closeScript();
+    if (patch && !segmentId) {
+      this.emitInlineScript(
+        'document.qProcessVNodeDataPatch&&document.qProcessVNodeDataPatch(document.currentScript.previousElementSibling)'
+      );
+    }
   }
 
   private markVNodeRefForSerialization(node: ISsrNode | null | undefined): void {
     if (node) {
       this.hasVNodeRefsForSerialization = true;
-      this.markVNodeDataForSerialization(node);
+      node.vnodeData[0] |= VNodeDataFlag.SERIALIZE | VNodeDataFlag.REFERENCE;
     }
   }
 
-  private markVNodeDataForSerialization(node: ISsrNode | null | undefined): void {
-    if (node) {
-      node.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
+  private markVNodeDataOwnerEmitted(segmentId?: string): void {
+    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
+      return;
     }
+    (this.emittedVNodeDataOwners ||= new Set()).add(segmentId);
+  }
+
+  isVNodeDataOwnerEmitted(owner: VNodeDataOwner): boolean {
+    return this.emittedVNodeDataOwners?.has(owner) === true;
+  }
+
+  protected getVNodeDataOwnerFromNodeId(id: string): { owner: VNodeDataOwner; localIndex: number } {
+    const refBase = parseInt(id, 10);
+    if (refBase >= 0) {
+      return { owner: undefined, localIndex: refBase };
+    }
+    const pair = -refBase - 1;
+    const diagonal = Math.floor((Math.sqrt(8 * pair + 1) - 1) / 2);
+    const diagonalStart = (diagonal * (diagonal + 1)) / 2;
+    const localIndex = pair - diagonalStart;
+    const segmentIndex = diagonal - localIndex;
+    return { owner: String(segmentIndex + 1), localIndex };
   }
 
   private writeFragmentAttrs(fragmentAttrs: Props): void {
@@ -1762,6 +1801,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   $outOfOrderState$ = OutOfOrderSegmentState.Rendering;
   $outOfOrderRootIdMap$: number[] | null = null;
   private subscriptionPatchRecords: SubscriptionPatchRecord[] = [];
+  private pendingVNodeDataPatches: PendingVNodeDataPatches | null = null;
 
   constructor(
     opts: SSRContainerOptions,
@@ -1843,6 +1883,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
         rootContainer.serializationCtx.$serializedForwardRefCount$ +=
           segmentSerializationCtx.$serializedForwardRefCount$;
       }
+      this.emitPendingVNodeDataPatches();
       if (rootReadyAtSegment) {
         this.$noMoreRoots$ = true;
         this.emitVNodeData(segmentId);
@@ -1879,6 +1920,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   $emitDelayedOutOfOrderVNodeData$(): void {
     try {
       this.emitVNodeData(this.vnodeSegment!);
+      this.emitPendingVNodeDataPatches();
       this.$rootContainer$.emitOutOfOrderSegmentScripts(
         this.writer.toString(this.$outOfOrderRootIdMap$!)
       );
@@ -1886,6 +1928,52 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       this.$rootContainer$.removeOutOfOrderSegment(this);
     } finally {
       this.serializationCtx.$onAddRoot$ = undefined;
+    }
+  }
+
+  private markVNodeDataForSerialization(
+    node: VNodeDataSerializableNode,
+    flags = VNodeDataFlag.SERIALIZE
+  ): void {
+    const previousFlags = node.vnodeData[0];
+    const nextFlags = previousFlags | flags;
+    if (nextFlags !== previousFlags) {
+      node.vnodeData[0] = nextFlags;
+      this.queueLateVNodeDataPatch(node, nextFlags & ~previousFlags);
+    }
+  }
+
+  private queueLateVNodeDataPatch(node: VNodeDataSerializableNode, addedFlags: number): void {
+    if (
+      !__EXPERIMENTAL__.suspense ||
+      !this.outOfOrderStreaming ||
+      !(addedFlags & (VNodeDataFlag.SERIALIZE | VNodeDataFlag.REFERENCE))
+    ) {
+      return;
+    }
+    const owner = this.getVNodeDataOwnerFromNodeId(node.id);
+    if (!this.$getRootContainer$().isVNodeDataOwnerEmitted(owner.owner)) {
+      return;
+    }
+    let ownerPatches = (this.pendingVNodeDataPatches ||= new Map()).get(owner.owner);
+    if (!ownerPatches) {
+      this.pendingVNodeDataPatches.set(owner.owner, (ownerPatches = new Map()));
+    }
+    ownerPatches.set(owner.localIndex, node.vnodeData);
+  }
+
+  private emitPendingVNodeDataPatches(): void {
+    const pendingPatches = this.pendingVNodeDataPatches;
+    this.pendingVNodeDataPatches = null;
+    if (!pendingPatches) {
+      return;
+    }
+    for (const [owner, entries] of pendingPatches) {
+      if (entries.size === 0) {
+        continue;
+      }
+      const sortedEntries = Array.from(entries).sort((a, b) => a[0] - b[0]);
+      this.emitVNodeDataScript(owner, sortedEntries, true);
     }
   }
 
@@ -1991,12 +2079,23 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     if (rootId === undefined) {
       rootId = rootContainer.serializationCtx.$commitRoot$(root, rootObj);
       commit.newRootLocalIds.push(localId);
+      this.seedCommittedRootForLiveSegments(rootContainer, rootObj);
     }
     const rootCtx = rootContainer.serializationCtx;
     commit.rootIdMap[localId] =
       rootContainer.$isReadyForOOOS$() && rootId >= rootCtx.$rootStateRootCount$
         ? rootId + (rootCtx.$hasRootStateForwardRefs$ ? 1 : 0)
         : rootId;
+  }
+
+  private seedCommittedRootForLiveSegments(rootContainer: SSRContainer, rootObj: unknown): void {
+    const segments = rootContainer.outOfOrderSegments;
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      if (segment !== this && segment.$outOfOrderState$ === OutOfOrderSegmentState.Rendering) {
+        segment.serializationCtx.$addRoot$(rootObj);
+      }
+    }
   }
 
   private $mergeSegmentEventData$(
@@ -2038,6 +2137,8 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     const attrs = this.statePatchScriptAttrs(segmentId);
     this.openScript(attrs);
     this.serializationCtx.$setWriter$(this.writer);
+    this.serializationCtx.$markSsrNodeForSerialization$ =
+      this.markVNodeDataForSerialization.bind(this);
     return maybeThen(
       this.serializationCtx.$serializePatch$(rootStart, rootIds, subscriptionPatchRootId),
       () => {

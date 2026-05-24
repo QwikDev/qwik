@@ -18,6 +18,33 @@ import {
 } from './jsx.js';
 import { simplifyExpression, formatSimplifiedLiteral } from '../utils/simplify.js';
 
+/**
+ * Slot entry — one element per JSX attribute in source order. Captures
+ * enough information for `buildJsxSplitCall` (OSS-434) to assemble var/
+ * const bags while preserving SWC's emit ordering rules:
+ *
+ *   - top-level: attributes appear in source order;
+ *   - named props with stable values placed AFTER ALL spreads land in
+ *     the const-bag; everything else (including stable-but-pre-spread
+ *     and unstable values) lands in the var-bag at its source position;
+ *   - spreads appear as raw `...expr` in the var-bag at source position
+ *     when the post-all-spreads const set is non-empty; otherwise the
+ *     `_getVarProps`/`_getConstProps` split wrappers are needed for the
+ *     spread's content to be classified at runtime.
+ */
+export type SlotEntry =
+  | {
+      readonly kind: 'named';
+      readonly entry: string;
+      readonly classification: 'var' | 'const';
+      readonly sourceStart: number;
+    }
+  | {
+      readonly kind: 'spread';
+      readonly expr: string;
+      readonly sourceStart: number;
+    };
+
 /** True for value nodes that are always const (literals, arrows, identifiers). */
 function isConstValueNode(valueNode: AstMaybeNode): boolean {
   if (!valueNode) return true;
@@ -81,6 +108,7 @@ export function processProps(
   hasVarEventHandler: boolean;
   hasSpread: boolean;
   additionalSpreads: string[];
+  slotOrder: SlotEntry[];
   neededImports: Set<string>;
 } {
   const { source, importedNames, signalHoister, qrlsWithCaptures, paramNames, bindings, allDeclaredNames } = ctx;
@@ -88,6 +116,7 @@ export function processProps(
   const varEntries: string[] = [];
   const constEntries: string[] = [];
   const beforeSpreadEntries: string[] = [];
+  const slotOrder: SlotEntry[] = [];
   const neededImports = new Set<string>();
   let key: string | null = null;
   let hasSpread = false;
@@ -95,8 +124,25 @@ export function processProps(
   const bindHandlers = new Map<string, string>();
 
   if (!attributes || attributes.length === 0) {
-    return { varEntries, constEntries, beforeSpreadEntries, key, hasVarProps: false, hasVarEventHandler: false, hasSpread, additionalSpreads: [], neededImports };
+    return { varEntries, constEntries, beforeSpreadEntries, key, hasVarProps: false, hasVarEventHandler: false, hasSpread, additionalSpreads: [], slotOrder, neededImports };
   }
+
+  // OSS-434 helpers: keep the legacy buckets in sync with `slotOrder` at
+  // every push site. The dual write costs little and avoids ripple to the
+  // many existing readers of the buckets (event-handler movement,
+  // `buildJsxSplitCall` legacy paths, `_jsxSorted` no-spread emit, etc.).
+  const pushNamed = (
+    bucket: string[],
+    entry: string,
+    classification: 'var' | 'const',
+    sourceStart: number,
+  ): void => {
+    bucket.push(entry);
+    slotOrder.push({ kind: 'named', entry, classification, sourceStart });
+  };
+  const pushSpread = (expr: string, sourceStart: number): void => {
+    slotOrder.push({ kind: 'spread', expr, sourceStart });
+  };
 
   const hasSpreadAttr = attributes.some(a => a.type === 'JSXSpreadAttribute');
   const spreadIndex = attributes.findIndex(a => a.type === 'JSXSpreadAttribute');
@@ -110,9 +156,11 @@ export function processProps(
     if (attr.type === 'JSXSpreadAttribute') {
       hasSpread = true;
       spreadCount++;
+      const spreadExpr = source.slice(attr.argument.start, attr.argument.end);
       if (spreadCount > 1) {
-        additionalSpreads.push(source.slice(attr.argument.start, attr.argument.end));
+        additionalSpreads.push(spreadExpr);
       }
+      pushSpread(spreadExpr, attr.start);
       continue;
     }
 
@@ -146,7 +194,7 @@ export function processProps(
     if (propName.startsWith('preventdefault:')) {
       const eventName = propName.slice('preventdefault:'.length);
       if (!passiveEvents.has(eventName)) {
-        constEntries.push(`"${propName}": true`);
+        pushNamed(constEntries, `"${propName}": true`, 'const', attr.start);
       }
       continue;
     }
@@ -175,13 +223,13 @@ export function processProps(
     }
 
     if (isBindProp(propName) && !tagIsHtml) {
-      constEntries.push(`"${propName}": ${valueText}`);
+      pushNamed(constEntries, `"${propName}": ${valueText}`, 'const', attr.start);
       continue;
     }
 
     if (isBindProp(propName) && !hasSpreadAttr) {
       const bindResult = transformBindProp(propName, valueText);
-      constEntries.push(`"${bindResult.propName}": ${bindResult.propValue}`);
+      pushNamed(constEntries, `"${bindResult.propName}": ${bindResult.propValue}`, 'const', attr.start);
       if (bindResult.handler) {
         const existing = bindHandlers.get(bindResult.handler.name);
         if (existing) {
@@ -197,7 +245,7 @@ export function processProps(
     }
 
     if (isBindProp(propName) && hasSpreadAttr) {
-      varEntries.push(`"${propName}": ${valueText}`);
+      pushNamed(varEntries, `"${propName}": ${valueText}`, 'var', attr.start);
       continue;
     }
 
@@ -206,9 +254,9 @@ export function processProps(
       if (renamedProp !== null) {
         const formattedName = formatPropName(renamedProp);
         if (isConstValueNode(valueNode)) {
-          constEntries.push(`${formattedName}: ${valueText}`);
+          pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
         } else {
-          varEntries.push(`${formattedName}: ${valueText}`);
+          pushNamed(varEntries, `${formattedName}: ${valueText}`, 'var', attr.start);
           hasVarEventHandler = true;
         }
         continue;
@@ -218,9 +266,9 @@ export function processProps(
     if (propName.endsWith('$') && !isRewrittenEventProp(propName)) {
       const formattedName = formatPropName(propName);
       if (isConstValueNode(valueNode)) {
-        constEntries.push(`${formattedName}: ${valueText}`);
+        pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
       } else {
-        varEntries.push(`${formattedName}: ${valueText}`);
+        pushNamed(varEntries, `${formattedName}: ${valueText}`, 'var', attr.start);
       }
       continue;
     }
@@ -231,21 +279,33 @@ export function processProps(
         if (qrlsWithCaptures) {
           const qrlName = valueText.trim();
           if (qrlsWithCaptures.has(qrlName)) {
-            varEntries.push(`${formattedName}: ${valueText}`);
+            pushNamed(varEntries, `${formattedName}: ${valueText}`, 'var', attr.start);
             hasVarEventHandler = true;
           } else {
-            constEntries.push(`${formattedName}: ${valueText}`);
+            pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
           }
         } else {
-          varEntries.push(`${formattedName}: ${valueText}`);
+          pushNamed(varEntries, `${formattedName}: ${valueText}`, 'var', attr.start);
           hasVarEventHandler = true;
         }
       } else {
+        // OSS-434: capture the slot entry at the prop's source position
+        // so the source-order var-bag emission path in `buildJsxSplitCall`
+        // sees the rewritten event handler in its lexical order. The
+        // `bindHandlers` map below still drives the legacy bucket
+        // injection — both paths stay in sync.
         const existing = bindHandlers.get(propName);
+        const isConst = isConstValueNode(valueNode);
         if (existing) {
           bindHandlers.set(propName, `[${existing}, ${valueText}]`);
         } else {
           bindHandlers.set(propName, valueText);
+          slotOrder.push({
+            kind: 'named',
+            entry: `${formattedName}: ${valueText}`,
+            classification: isConst ? 'const' : 'var',
+            sourceStart: attr.start,
+          });
         }
       }
       continue;
@@ -259,9 +319,14 @@ export function processProps(
         if (signalResult.isStoreField && tagIsHtml) {
           const objName = signalResult.code.match(/_wrapProp\((\w+)/)?.[1] ?? null;
           const isConst = isConstBindingName(objName, importedNames, bindings, valueNode?.start ?? 0);
-          (isConst ? constEntries : varEntries).push(`${formattedName}: ${signalResult.code}`);
+          pushNamed(
+            isConst ? constEntries : varEntries,
+            `${formattedName}: ${signalResult.code}`,
+            isConst ? 'const' : 'var',
+            attr.start,
+          );
         } else {
-          constEntries.push(`${formattedName}: ${signalResult.code}`);
+          pushNamed(constEntries, `${formattedName}: ${signalResult.code}`, 'const', attr.start);
         }
         neededImports.add('_wrapProp');
         continue;
@@ -289,9 +354,9 @@ export function processProps(
             (!tagIsHtml && (paramNames?.has(dep) ?? false))
           );
           if (depsAllConst && !inLoop) {
-            constEntries.push(`${formattedName}: ${fnSignalCall}`);
+            pushNamed(constEntries, `${formattedName}: ${fnSignalCall}`, 'const', attr.start);
           } else {
-            varEntries.push(`${formattedName}: ${fnSignalCall}`);
+            pushNamed(varEntries, `${formattedName}: ${fnSignalCall}`, 'var', attr.start);
           }
           neededImports.add('_fnSignal');
           continue;
@@ -306,11 +371,11 @@ export function processProps(
     const entry = `${formatPropName(propName)}: ${valueText}`;
 
     if (beforeSpread) {
-      beforeSpreadEntries.push(entry);
+      pushNamed(beforeSpreadEntries, entry, classification === 'var' ? 'var' : 'var', attr.start);
     } else if (classification === 'var') {
-      varEntries.push(entry);
+      pushNamed(varEntries, entry, 'var', attr.start);
     } else {
-      constEntries.push(entry);
+      pushNamed(constEntries, entry, 'const', attr.start);
     }
   }
 
@@ -342,6 +407,7 @@ export function processProps(
     hasVarProps: varEntries.length > 0 || beforeSpreadEntries.length > 0,
     hasVarEventHandler,
     hasSpread,
+    slotOrder,
     neededImports,
   };
 }

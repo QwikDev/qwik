@@ -14,6 +14,7 @@ import {
   formatPropName,
   isRewrittenEventEntry,
   sortVarEntries,
+  type SlotEntry,
 } from './jsx-props.js';
 import { processChildren } from './jsx-children.js';
 import {
@@ -200,6 +201,91 @@ function buildCreateElementCall(
   };
 }
 
+/**
+ * OSS-434: Source-ordered `_jsxSplit` emission. Returns null when the
+ * SWC-parity rule doesn't apply (single spread, no spread, or no real-
+ * const-after-all-spreads — the existing wrapper-based path handles
+ * those cases).
+ *
+ * Rule (validated against `issue_7216_add_test` + cross-checked vs the
+ * single-spread fixtures that legitimately need `_getVarProps`/
+ * `_getConstProps` wrappers — `should_split_spread_props_with_additional_prop`,
+ * the three OSS-413 test cases, `example_props_optimization`,
+ * `example_spread_jsx`): when there are MULTIPLE spreads AND at least
+ * one explicit "real-const" prop (literal/stable QRL/identifier value,
+ * not just event-handler routing or `q:p*` capture metadata) positioned
+ * AFTER all spreads, the explicit const props cover the const-bag
+ * completely. Spreads contribute only raw `...expr` to the var-bag at
+ * their source position; the var-bag preserves source order; the const-
+ * bag holds only the post-all-spreads stable entries.
+ *
+ * Single-spread cases continue through the wrapper-based path: SWC's
+ * emit there uses `_getVarProps(spread)` + `_getConstProps(spread)` so
+ * the runtime can classify the spread's keys (see OSS-413 history).
+ */
+function tryBuildSourceOrderedJsxSplit(
+  tag: string,
+  slotOrder: readonly SlotEntry[],
+  childrenText: string | null,
+  flags: number,
+  keyStr: string | null,
+  neededImports: Set<string>,
+): JsxTransformResult | null {
+  let spreadCount = 0;
+  let lastSpreadStart = -1;
+  for (const slot of slotOrder) {
+    if (slot.kind !== 'spread') continue;
+    spreadCount++;
+    if (slot.sourceStart > lastSpreadStart) lastSpreadStart = slot.sourceStart;
+  }
+  if (spreadCount < 2) return null;
+
+  let hasRealConstAfterSpreads = false;
+  for (const slot of slotOrder) {
+    if (slot.kind !== 'named') continue;
+    if (slot.classification !== 'const') continue;
+    if (slot.sourceStart <= lastSpreadStart) continue;
+    if (isRewrittenEventEntry(slot.entry) || slot.entry.startsWith('"q:')) continue;
+    hasRealConstAfterSpreads = true;
+    break;
+  }
+  if (!hasRealConstAfterSpreads) return null;
+
+  // Single linear pass: each slot lands in var-bag or const-bag based on
+  // (kind, classification, position-relative-to-last-spread).
+  const varParts: string[] = [];
+  const constParts: string[] = [];
+  for (const slot of slotOrder) {
+    if (slot.kind === 'spread') {
+      varParts.push(`...${slot.expr}`);
+      continue;
+    }
+    const isAfterAllSpreads = slot.sourceStart > lastSpreadStart;
+    if (slot.classification === 'const' && isAfterAllSpreads) {
+      constParts.push(slot.entry);
+    } else {
+      varParts.push(slot.entry);
+    }
+  }
+
+  neededImports.add('_jsxSplit');
+  const varPropsPart = varParts.length > 0 ? `{ ${varParts.join(', ')} }` : 'null';
+  const constPropsPart = constParts.length > 0 ? `{ ${constParts.join(', ')} }` : 'null';
+  const callString =
+    `_jsxSplit(${tag}, ${varPropsPart}, ${constPropsPart}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
+
+  return {
+    tag,
+    varProps: varPropsPart,
+    constProps: constPropsPart,
+    children: childrenText,
+    flags,
+    key: keyStr,
+    callString,
+    neededImports,
+  };
+}
+
 /** Build a _jsxSplit call for spread without explicit key. */
 function buildJsxSplitCall(
   tag: string,
@@ -213,7 +299,21 @@ function buildJsxSplitCall(
   flags: number,
   keyStr: string | null,
   neededImports: Set<string>,
+  slotOrder?: readonly SlotEntry[],
 ): JsxTransformResult {
+  // OSS-434 Bug 1+2+3: source-ordered emission with raw spreads when an
+  // explicit "real-const" prop is positioned AFTER ALL spreads. SWC's
+  // emit rule: in that case the explicit const props cover the const-bag
+  // completely (cannot be overridden by spread), spreads contribute only
+  // to var-bag, and the var-bag entries appear in source order with
+  // spreads interleaved at their source position.
+  if (slotOrder && slotOrder.length > 0) {
+    const sourceOrdered = tryBuildSourceOrderedJsxSplit(
+      tag, slotOrder, childrenText, flags, keyStr, neededImports,
+    );
+    if (sourceOrdered !== null) return sourceOrdered;
+  }
+
   neededImports.add('_jsxSplit');
   neededImports.add('_getVarProps');
   neededImports.add('_getConstProps');
@@ -331,6 +431,7 @@ export function transformJsxElement(
     hasVarProps,
     hasVarEventHandler: initialHasVarEventHandler,
     hasSpread,
+    slotOrder,
     neededImports: propImports,
   } = processProps(ctx, openingElement.attributes, {
     tagIsHtml,
@@ -402,7 +503,7 @@ export function transformJsxElement(
 
     return buildJsxSplitCall(
       tag, tagIsHtml, spreadArg, beforeSpreadEntries, varEntries, constEntries,
-      additionalSpreads, childrenText, flags, keyStr, neededImports,
+      additionalSpreads, childrenText, flags, keyStr, neededImports, slotOrder,
     );
   }
 

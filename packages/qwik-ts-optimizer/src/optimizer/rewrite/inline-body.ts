@@ -428,6 +428,28 @@ export function transformInlineSegmentBody(
           qrlParamMap.set(child.symbolName, captureParams);
         }
 
+        // OSS-438 Fix B: stripped event handlers' bodies emit `= null`,
+        // so their captures can't reach the runtime via `_captures[N]`.
+        // SWC propagates those captures to the parent JSX element's
+        // `q:p` var-prop instead (`example_strip_client_code`). Mirror
+        // by adding stripped extractions' captureNames into qrlParamMap
+        // keyed by the post-rewrite QRL var name (e.g. `q_qrl_4294…`)
+        // that the body now references.
+        if (stripCtxName || stripEventHandlers) {
+          for (const child of nested) {
+            if (child.ctxKind !== 'eventHandler') continue;
+            if (!child.captures || child.captureNames.length === 0) continue;
+            const isStripped =
+              (stripCtxName && stripCtxName.some(v => child.ctxName.startsWith(v))) ||
+              (stripEventHandlers === true);
+            if (!isStripped) continue;
+            const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
+            if (qrlParamMap.has(childVarName)) continue;
+            qrlParamMap.set(childVarName, [...child.captureNames]);
+            qrlParamMap.set(child.symbolName, [...child.captureNames]);
+          }
+        }
+
         if (qrlParamMap.size > 0) {
           bodyQpOverrides = new Map();
           bodyQrlsWithCaptures = new Set();

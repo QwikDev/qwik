@@ -435,7 +435,19 @@ function buildQpOverrides(
   nestedCallSites: NestedCallSiteInfo[] | undefined,
   program: AstProgram,
 ): Map<number, string[]> | undefined {
-  if (!nestedCallSites || !nestedCallSites.some(s => s.loopLocalParamNames && s.loopLocalParamNames.length > 0)) {
+  // OSS-438 Fix B: also fire when any nestedCallSite carries
+  // `elementQpParams` from `buildElementCaptureMap` (covers the
+  // stripped-event-with-captures case where there's no
+  // `loopLocalParamNames`, since stripped handlers aren't required to be
+  // in a loop — `example_strip_client_code`).
+  if (
+    !nestedCallSites ||
+    !nestedCallSites.some(
+      s =>
+        (s.loopLocalParamNames && s.loopLocalParamNames.length > 0) ||
+        (s.elementQpParams && s.elementQpParams.length > 0),
+    )
+  ) {
     return undefined;
   }
 

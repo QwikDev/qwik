@@ -159,6 +159,10 @@ export function transformModule(
       program,
       parserModule,
       closureNodes,
+      // OSS-438: explicit user-set transpileJsx flag (defaults to false)
+      // for the ctxKind classifier. Distinct from `willTranspileJsx`
+      // which defaults to true on .tsx/.jsx (TS auto-transpile).
+      options.transpileJsx === true,
     ) as ExtractionResult[];
 
     // Early exit: no segments and no JSX to transpile
@@ -331,8 +335,19 @@ export function transformModule(
     // Unify parameter slots for multiple event handlers on the same element
     unifyParameterSlots(eventCaptureCtx, globalDeclPositions);
 
-    // Build elementQpParams map
-    const elementQpParamsMap = buildElementCaptureMap(eventCaptureCtx, globalDeclPositions);
+    // Build elementQpParams map. OSS-438 Fix B (segment-codegen path):
+    // thread strip-config so stripped event handlers' captures populate
+    // `elementQpParamsMap` for segment-body JSX (`buildQpOverrides` in
+    // segment-codegen looks up by handler symbolName via
+    // `nestedCallSite.elementQpParams`). The parent-rewrite JSX path
+    // also needs this propagation but currently can't consume it — see
+    // the follow-up note below.
+    const elementQpParamsMap = buildElementCaptureMap(
+      eventCaptureCtx,
+      globalDeclPositions,
+      options.stripCtxName,
+      options.stripEventHandlers,
+    );
 
     detectC02Diagnostics(
       extractions,

@@ -245,6 +245,8 @@ interface ExtractWalkEnterContext {
   readonly relPath: string;
   readonly scope: string | undefined;
   readonly transpileJsx: boolean | undefined;
+  /** OSS-438: explicit user-set value of `transpileJsx`; defaults to false. */
+  readonly explicitTranspileJsx: boolean;
   readonly sourceExt: string;
   readonly defaultExtension: string;
   readonly fileStem: string;
@@ -469,6 +471,17 @@ export function extractSegments(
    * keyed by the post-disambiguation `symbolName`. Lets callers skip a redundant per-extraction body re-parse.
    */
   closureNodesOut?: Map<string, AstFunction>,
+  /**
+   * OSS-438: SWC's `transpile_jsx` flag value as the **user explicitly
+   * set it** (defaults to false). Distinct from the derived `transpileJsx`
+   * parameter above which defaults to TRUE for `.tsx`/`.jsx` files when
+   * the user omits the flag (TS's "auto-transpile" convention). The
+   * ctxKind classifier needs SWC's strict semantic to mirror SWC's
+   * `parse.rs:259` gate on `transpile_jsx && is_jsx` — that gate selects
+   * between the name-prefix `handle_jsx_value` classifier (default) and
+   * the element-kind `handle_jsx` classifier (active).
+   */
+  explicitTranspileJsx?: boolean,
 ): readonly ExtractedSegment[] {
   const parseResult: AstParseResult | null = preParsedProgram
     ? null
@@ -522,6 +535,7 @@ export function extractSegments(
     relPath,
     scope,
     transpileJsx,
+    explicitTranspileJsx: explicitTranspileJsx === true,
     sourceExt,
     defaultExtension,
     fileStem,
@@ -897,18 +911,42 @@ export function extractSegments(
             if (jsxAttrName?.endsWith('$')) {
               attrCtx = ctx.naming.peek(1) ?? jsxAttrName;
 
-              // Component elements use jSXProp for ALL $-suffixed attrs;
-              // HTML elements use eventHandler for on* attrs.
+              // OSS-438: ctxKind classification matches SWC's two paths
+              // (see `swc-reference-only/transform.rs:1240+` and `:2427`).
+              // Whether SWC takes the element-kind or name-prefix path
+              // depends on `transpileJsx` — when true, `react::react`
+              // pre-transforms JSX to `jsx()` calls (parse.rs:259) so
+              // `handle_jsx`'s `is_fn` (element-kind) classifier fires;
+              // when false, raw JSXAttr stays and `handle_jsx_value`'s
+              // `jsx_event_to_html_attribute` (name-prefix) classifier
+              // fires. TS extract.ts always sees raw JSX so the gate is
+              // explicit here.
               const jsxOpeningElement = parentMap.get(jsxAttrParent);
               const isComponentElement = jsxOpeningElement?.type === 'JSXOpeningElement'
                 && isComponentTag(jsxOpeningElement.name);
 
-              if (isComponentElement) {
-                isEventAttr = false;
-                isJsxNonEventAttr = true;
+              if (ctx.explicitTranspileJsx) {
+                // Element-kind rule (matches handle_jsx is_fn split):
+                // HTML → eventHandler; Component → jSXProp.
+                if (isComponentElement) {
+                  isEventAttr = false;
+                  isJsxNonEventAttr = true;
+                } else {
+                  isEventAttr = true;
+                  isJsxNonEventAttr = false;
+                }
               } else {
-                isEventAttr = jsxAttrName.startsWith('on') || jsxAttrName.startsWith('document:on') || jsxAttrName.startsWith('window:on');
-                isJsxNonEventAttr = !isEventAttr;
+                // Name-prefix rule (matches handle_jsx_value): `on*$`
+                // (incl. `document:on*$`/`window:on*$`) → eventHandler;
+                // anything else → jSXProp.
+                const isOnEventAttr = /^(?:document:|window:)?on[A-Z-]/.test(jsxAttrName);
+                if (isOnEventAttr) {
+                  isEventAttr = true;
+                  isJsxNonEventAttr = false;
+                } else {
+                  isEventAttr = false;
+                  isJsxNonEventAttr = true;
+                }
               }
             }
           }
@@ -1027,13 +1065,16 @@ export function extractSegments(
 
           const isComponentEvent = parent?.type === 'JSXOpeningElement' && isComponentTag(parent.name);
 
-          // HTML elements: all $-attrs -> eventHandler; components: on* -> eventHandler, rest -> jSXProp
-          let ctxKind: 'function' | 'eventHandler' | 'jSXProp' = 'eventHandler';
-          if (isComponentEvent) {
-            const isOnEvent = attrName.startsWith('on') || attrName.startsWith('document:on') || attrName.startsWith('window:on');
-            if (!isOnEvent) {
-              ctxKind = 'jSXProp';
-            }
+          // OSS-438: Same two-rule classification as the marker-call
+          // JSXAttr path above. transpileJsx=true uses element-kind rule
+          // (Component → jSXProp); transpileJsx=false uses name-prefix
+          // rule (`on*$` → eventHandler regardless of element kind).
+          const isOnEventAttr = /^(?:document:|window:)?on[A-Z-]/.test(attrName);
+          let ctxKind: 'function' | 'eventHandler' | 'jSXProp';
+          if (explicitTranspileJsx === true) {
+            ctxKind = isComponentEvent ? 'jSXProp' : 'eventHandler';
+          } else {
+            ctxKind = isComponentEvent && !isOnEventAttr ? 'jSXProp' : 'eventHandler';
           }
           const ctxName = mkCtxName(attrName);
 

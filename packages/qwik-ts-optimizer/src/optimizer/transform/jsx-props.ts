@@ -76,6 +76,24 @@ function isConstValueNode(valueNode: AstMaybeNode): boolean {
     case 'Identifier':
     case 'Literal':
       return true;
+    case 'CallExpression': {
+      // OSS-438: `q_<sym>.w([captures])` on a hoisted QRL binding is a
+      // capture-wrapping invocation that produces a stable QRL reference
+      // for the lifetime of the parent element. SWC classifies these as
+      // const on component-prop position
+      // (`example_strip_client_code`: `render$: q_X.w([state])` lands
+      // in the const-bag because `q_X` is a module-scope const and
+      // `.w(…)` only attaches captures — the call's identity is stable).
+      // Mirrors the same arm in `classifyConstness` (transform/jsx.ts).
+      const callee = valueNode.callee;
+      return (
+        callee?.type === 'MemberExpression' &&
+        callee.object?.type === 'Identifier' &&
+        callee.object.name.startsWith('q_') &&
+        callee.property?.type === 'Identifier' &&
+        callee.property.name === 'w'
+      );
+    }
     default:
       return false;
   }

@@ -684,10 +684,22 @@ export function unifyParameterSlots(
 /**
  * Build the element capture map: for each event handler, store the unified q:ps params
  * for its containing element.
+ *
+ * OSS-438: an optional `stripCtxName` + `stripEventHandlers` arg pair adds a
+ * second pass that picks up stripped event handlers with captures
+ * (`example_strip_client_code`). Stripped handlers have null bodies at
+ * runtime and can't consume captures positionally, so SWC propagates the
+ * captures to the parent JSX element's `q:p` var-prop. The second pass
+ * mirrors that for the segment-codegen JSX path (which re-parses + walks
+ * a fresh AST so positions align). The parent-rewrite JSX path is also
+ * affected but needs separate work to thread the captures through —
+ * tracked as a follow-up.
  */
 export function buildElementCaptureMap(
   ctx: EventCaptureContext,
   globalDeclPositions: Map<string, number>,
+  stripCtxName?: readonly string[],
+  stripEventHandlers?: boolean,
 ): Map<string, string[]> {
   const { extractions, enclosingExtMap, extractionLoopMap, repairedCode } = ctx;
   const elementQpParamsMap = new Map<string, string[]>();
@@ -752,6 +764,58 @@ export function buildElementCaptureMap(
       }
       for (const h of group) {
         elementQpParamsMap.set(h.symbolName, allVars);
+      }
+    }
+  }
+
+  // OSS-438 Fix B: second pass for stripped event handlers with captures.
+  // Stripped bodies (`export const X = null` for `stripCtxName` matches +
+  // all `eventHandler`-kind extractions when `stripEventHandlers` is true)
+  // can't consume captures via `_captures[N]` at runtime. SWC propagates
+  // their captures to the parent JSX element's `q:p` var-prop instead so
+  // the runtime can hand them back when the handler is rehydrated. Group
+  // stripped handlers by element (same byte-offset-walk as the loop pass)
+  // and union their `captureNames` into the element's qpParams.
+  if (stripCtxName || stripEventHandlers) {
+    const strippedByElement = new Map<number, ExtractionResult[]>();
+    for (const ext of extractions) {
+      if (ext.ctxKind !== 'eventHandler') continue;
+      if (!ext.captures || ext.captureNames.length === 0) continue;
+      const isStripped =
+        (stripCtxName && stripCtxName.some(v => ext.ctxName.startsWith(v))) ||
+        (stripEventHandlers === true);
+      if (!isStripped) continue;
+
+      let pos = ext.callStart - 1;
+      while (pos > 0 && repairedCode[pos] !== '<') pos--;
+      const existing = strippedByElement.get(pos);
+      if (existing) existing.push(ext);
+      else strippedByElement.set(pos, [ext]);
+    }
+
+    for (const [, group] of strippedByElement) {
+      const allCaps: string[] = [];
+      const seen = new Set<string>();
+      for (const h of group) {
+        for (const c of h.captureNames) {
+          if (!seen.has(c)) {
+            seen.add(c);
+            allCaps.push(c);
+          }
+        }
+      }
+      // SWC's stripped-event q:p emit uses source-declaration order
+      // (matches the existing loop-handler `anyInLoop2 === true` arm).
+      allCaps.sort(
+        (a, b) =>
+          (globalDeclPositions.get(a) ?? 0) -
+          (globalDeclPositions.get(b) ?? 0),
+      );
+      for (const h of group) {
+        // Don't overwrite an entry already populated by the loop pass.
+        if (!elementQpParamsMap.has(h.symbolName)) {
+          elementQpParamsMap.set(h.symbolName, allCaps);
+        }
       }
     }
   }

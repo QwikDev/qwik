@@ -768,6 +768,17 @@ function runJsxTransform(ctx: RewriteContext): void {
     end: ext.argEnd,
   }));
 
+  // OSS-438 Fix B: propagate captures from stripped event handlers to
+  // their parent JSX element's `q:p` var-prop. Built INSIDE
+  // runJsxTransform (not upstream in `buildElementCaptureMap`) so the
+  // positions stored here match what `injectQpProp` reads during
+  // transformAllJsx's walk — both reads share the same oxc raw-transfer
+  // buffer state. Cross-phase positions are unreliable because every
+  // intervening `parseSync` overwrites the shared buffer (the original
+  // upstream-built map keyed by `<`-walk byte offsets had positions
+  // 524/630 while the walker saw 221/301).
+  const strippedQpOverrides = buildStrippedEventQpOverrides(ctx);
+
   ctx.jsxResult = transformAllJsx(
     ctx.source, ctx.s, ctx.program, ctx.jsxOptions.importedNames, skipRanges,
     // OSS-428: JSX dev-info `fileName:` only switches to the user-supplied
@@ -777,8 +788,85 @@ function runJsxTransform(ctx: RewriteContext): void {
     ctx.isDevMode ? { relPath: ctx.userDevPath ?? ctx.relPath } : undefined,
     undefined,
     ctx.jsxOptions.enableSignals !== false,
-    undefined, undefined, undefined,
+    strippedQpOverrides,
+    undefined, undefined,
     ctx.relPath,
   );
   ctx.jsxKeyCounterValue = ctx.jsxResult.keyCounterValue;
+}
+
+/**
+ * OSS-438 Fix B (parent-rewrite path): walk `ctx.program` to map each
+ * JSXElement that contains stripped event handlers to the unioned
+ * capture names from those handlers. Read by `injectQpProp` via the
+ * `qpOverrides` lookup at `node.start`.
+ *
+ * Disambiguation uses source-order consumption: a per-calleeName queue
+ * of stripped extractions, dequeued as the walk encounters matching
+ * `<x $attr>` attributes. Walker order matches source order (DFS into
+ * children, sibling left-to-right at each level) so the queue dequeues
+ * the right extraction even when the same attr name appears multiple
+ * times across elements.
+ */
+function buildStrippedEventQpOverrides(
+  ctx: RewriteContext,
+): Map<number, string[]> | undefined {
+  if (!ctx.inlineOptions) return undefined;
+  const { stripCtxName, stripEventHandlers } = ctx.inlineOptions;
+  if (!stripCtxName && !stripEventHandlers) return undefined;
+
+  // Pre-filter stripped event extractions with captures, in source order.
+  const stripByName = new Map<string, ExtractionResult[]>();
+  for (const ext of ctx.extractions) {
+    if (ext.ctxKind !== 'eventHandler') continue;
+    if (!ext.captures || ext.captureNames.length === 0) continue;
+    if (!isStrippedSegment(ext.ctxName, ext.ctxKind, stripCtxName, stripEventHandlers)) {
+      continue;
+    }
+    const name = ext.calleeName;
+    const bucket = stripByName.get(name);
+    if (bucket) bucket.push(ext);
+    else stripByName.set(name, [ext]);
+  }
+  if (stripByName.size === 0) return undefined;
+
+  const overrides = new Map<number, string[]>();
+
+  function walk(node: AstNode | null | undefined): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type === 'JSXElement') {
+      const attrs = node.openingElement?.attributes ?? [];
+      const collectedCaps: string[] = [];
+      const seen = new Set<string>();
+      for (const attr of attrs) {
+        if (attr.type !== 'JSXAttribute') continue;
+        let attrName: string | null = null;
+        if (attr.name?.type === 'JSXIdentifier') {
+          attrName = attr.name.name;
+        } else if (attr.name?.type === 'JSXNamespacedName') {
+          attrName = `${attr.name.namespace?.name ?? ''}:${attr.name.name?.name ?? ''}`;
+        }
+        if (!attrName?.endsWith('$')) continue;
+        const queue = stripByName.get(attrName);
+        if (!queue || queue.length === 0) continue;
+        const ext = queue.shift()!;
+        for (const c of ext.captureNames) {
+          if (!seen.has(c)) {
+            seen.add(c);
+            collectedCaps.push(c);
+          }
+        }
+      }
+      if (collectedCaps.length > 0) {
+        overrides.set(node.start, collectedCaps);
+      }
+    }
+
+    forEachAstChild(node as AstNode, (child) => walk(child as AstNode));
+  }
+
+  walk(ctx.program as unknown as AstNode);
+
+  return overrides.size > 0 ? overrides : undefined;
 }

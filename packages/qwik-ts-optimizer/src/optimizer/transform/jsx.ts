@@ -528,6 +528,21 @@ export function classifyConstness(
       ) {
         return 'const';
       }
+      // OSS-438: `q_<sym>.w([captures])` on a hoisted QRL binding is a
+      // capture-wrapping invocation that produces a stable QRL reference
+      // — the underlying `q_<sym>` const is immutable, and `.w()` only
+      // attaches captures for runtime re-inflation. SWC classifies these
+      // as const on component-prop position (`example_strip_client_code`
+      // shows `render$: q_X.w([state])` in the const-props bag).
+      if (
+        exprNode.callee.type === 'MemberExpression' &&
+        exprNode.callee.object.type === 'Identifier' &&
+        exprNode.callee.object.name.startsWith('q_') &&
+        exprNode.callee.property.type === 'Identifier' &&
+        exprNode.callee.property.name === 'w'
+      ) {
+        return 'const';
+      }
       return 'var';
 
     case 'UnaryExpression':

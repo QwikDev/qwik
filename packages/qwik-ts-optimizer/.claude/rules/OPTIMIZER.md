@@ -85,9 +85,9 @@ Three markers break the uniform treatment:
 
 | Marker | Why it's special |
 |---|---|
-| `$(fn)` | The bare base marker — no naming context. Symbol name derives from the call-site / JSX surroundings via `getDirectWrapperContextName` (`extract.ts:299–315`) |
+| `$(fn)` | The bare base marker — no naming context. Symbol name derives from the call-site / JSX surroundings via `getDirectWrapperContextName` (`extract.ts:388–404`) |
 | `sync$(fn)` | Recognised but **does not extract** (`marker-detection.ts:222`, `isSyncMarker`). Body stays inline as a literal callback for QRL APIs that need a function reference rather than a lazy ref |
-| `implicit$FirstArg(fn, ...)` | Meta-marker; lets a non-`$`-suffixed function be treated as if its first argument were `$()`-marked. Backbone of `qwik-react`'s `qwikify$`. Resolved via `customInlined` map in `extract.ts:287` (`resolveCanonicalCalleeName`) |
+| `implicit$FirstArg(fn, ...)` | Meta-marker; lets a non-`$`-suffixed function be treated as if its first argument were `$()`-marked. Backbone of `qwik-react`'s `qwikify$`. Resolved via `customInlined` map in `extract.ts:300` (`resolveCanonicalCalleeName`) |
 
 ---
 
@@ -620,20 +620,20 @@ The metadata block emitted next to each segment file (the `/* { ... } */` commen
 
 All fields live on `ExtractionBase` and the phase-tagged variants `ExtractedSegment` / `CapturedSegment` / `ConsolidatedSegment` (split into a discriminated union per OSS-389; see `extract.ts:63–186`). They originate during Phase 1 extraction and travel through every downstream phase.
 
-The `Computed at` column points at the marker-call extraction block (`extract.ts:825–863`), where every initial-extraction field is set on the builder; helpers it calls live in `marker-detection.ts` (`getExtractionKind`, `getExtractionName`) and `naming.ts` / `siphash.ts` (symbol/hash composition).
+The `Computed at` column points at the marker-call extraction block (`extract.ts:849–982`), where every initial-extraction field is set on the builder; helpers it calls live in `marker-detection.ts` (`getExtractionKind`, `getExtractionName`) and `naming.ts` / `siphash.ts` (symbol/hash composition).
 
 | Field | Type | Computed at | Used for |
 |---|---|---|---|
-| `origin` | `Origin` | `extract.ts:845` | Source file path; preserved verbatim through pipeline |
-| `name` | `SymbolName` | `extract.ts:820` (computed via `ctx.naming.getSymbolName()`; assigned at :827) | Canonical symbol name for the segment's exported binding (see [Symbol naming and hashing](#symbol-naming-and-hashing)) |
-| `displayName` | `DisplayName` | `extract.ts:819` (computed via `ctx.naming.getDisplayName()`; assigned at :828) | Human-readable name without hash; appears in dev tooling |
-| `hash` | `Hash` | `extract.ts:823` (extracted from `name`; assigned at :829) | 11-char content-addressed suffix; stable across builds |
-| `canonicalFilename` | `CanonicalFilename` | `extract.ts:830` | `displayName + "_" + hash`; basis for the segment file path |
+| `origin` | `Origin` | `extract.ts:965` | Source file path; preserved verbatim through pipeline |
+| `name` | `SymbolName` | `extract.ts:940` (default path — `ctx.naming.getSymbolName()`) or `:937` (OSS-437 import-derived override — `mkSymbolName(importContextPortion + "_" + hash)`); assigned to the builder at `:947` | Canonical symbol name for the segment's exported binding (see [Symbol naming and hashing](#symbol-naming-and-hashing)) |
+| `displayName` | `DisplayName` | `extract.ts:939` (default — `ctx.naming.getDisplayName()`) or `:935` (OSS-437 override — `mkDisplayName(fileStem + "_" + importContextPortion)`); assigned at `:948` | Human-readable name without hash; appears in dev tooling |
+| `hash` | `Hash` | `extract.ts:942` (default — extracted from symbol name) or `:936` (OSS-437 override — `qwikHashFromSeed(importHashSeed)`); assigned at `:949` | 11-char content-addressed suffix; stable across builds |
+| `canonicalFilename` | `CanonicalFilename` | `extract.ts:950` | `displayName + "_" + hash`; basis for the segment file path |
 | `entry` | `string \| null` | `entry-strategy.ts:19–48` (Phase 5) | Routing field — non-null for `single` / `component` entry strategies |
 | `parent` | `SymbolName \| null` | initially null at extract; resolved in `rewrite/index.ts:361` (`resolveNesting`) | Symbol name of enclosing extraction (for nested segments) |
-| `ctxKind` | `'function' \| 'eventHandler' \| 'jSXProp'` | `extract.ts:815` (`getExtractionKind`); assigned at :843 | Drives downstream branching (e.g., event handlers get JSX-prop emit shape) |
-| `ctxName` | `CtxName` | `extract.ts:817` (`getExtractionName`); assigned at :844 | The `$`-marker name (`component$`, `useTask$`, etc.); drives strip rules and HMR injection |
-| `loc` | `readonly [ByteOffset, ByteOffset]` | `extract.ts:852` | Source byte range; used for source map mapping and migration source-range surgery |
+| `ctxKind` | `'function' \| 'eventHandler' \| 'jSXProp'` | `extract.ts:920` (`getExtractionKind`); assigned at `:963` | Drives downstream branching (e.g., event handlers get JSX-prop emit shape) |
+| `ctxName` | `CtxName` | `extract.ts:922` (`getExtractionName`); assigned at `:964` | The `$`-marker name (`component$`, `useTask$`, etc.); drives strip rules and HMR injection |
+| `loc` | `readonly [ByteOffset, ByteOffset]` | `extract.ts:972` | Source byte range; used for source map mapping and migration source-range surgery |
 | `captures` | `boolean` | `capture-analysis.ts:51` | Quick boolean — does this segment close over outer scope? |
 | `captureNames` | `readonly SymbolName[]` | `capture-analysis.ts:26–27` | Actual list of captured names; mutated through Phase 4–5 (props consolidation, const inline, migration filter) |
 | `paramNames` | `readonly string[]` | `capture-analysis.ts:40` | Closure parameter names; threaded to `rewriteFunctionSignature` for loop-padding (`_,_1,...`) cases |
@@ -677,9 +677,27 @@ The walker pushes when entering relevant nodes and pops when leaving them; the s
 - `canonicalFilename` = `<displayName>_<hash>` → `test.tsx_renderHeader1_jMxQsjbyDss` (basis for the segment file path on disk)
 - The `name` field on `ExtractionResult` aliases `symbolName`
 
+#### Import-derived override (OSS-437)
+
+When a marker call's first argument is a single `Identifier` resolving to an import binding, the four-step pipeline above is **bypassed**. The displayName + hash derive from the import path instead of the surrounding context stack. Mirrors SWC's `get_import_qrl_name` + `register_context_name` `hash_override` path (swc-reference-only/transform.rs:443-478 + 372-440).
+
+For `useStyles$(css3)` with `import css3 from './style.css'`:
+
+- `resolvedSource` = `resolveImportHashPath('./style.css', relPath)` — normalises `./` and `..` against the current file's directory (`extract.ts:344-371`). For `relPath = "test.tsx"` (no directory) the resolved form is just `style.css`.
+- `pathTail` = `resolvedSource.split('/').last()` = `style.css`
+- `baseName` = `escapeSymbol(pathTail)` = `style_css`
+- `importContextPortion` = `baseName` if `importedName === 'default'`, else `<baseName>_<escapeSymbol(importedName)>`
+- `displayName` = `<fileStem>_<importContextPortion>` = `test.tsx_style_css`
+- `hash` = `qwikHashFromSeed(<resolvedSource>#<importedName>)` = SipHash of `style.css#default` (NOT the usual `scope + relPath + displayName` concat — direct seed bytes)
+- `symbolName` = `<importContextPortion>_<hash>` = `style_css_TRu1FaIoUM0`
+
+This keeps the segment hash stable across files importing the same asset under the same name — `useStyles$(css3)` in any file referencing `./style.css` produces the same hash, even though the surrounding context stack differs. Currently fires for the single-Identifier-import case only; SWC's second arm (namespace-member-import: `useStyles$(ns.foo)`) is unimplemented in TS — file when a fixture exercises it. Helper: `getImportArgNaming` (`extract.ts:325–342`).
+
+`disambiguateExtractions` (below) still runs but the override-hash invariant isn't preserved on collision — collisions recompute via the default `qwikHash(scope, relPath, newContext)` formula, diverging from SWC. The current fixture set has no collisions on the override path; defensively fix when a fixture exercises it.
+
 #### Disambiguation
 
-When two extractions in one file would collide on `displayName` (e.g., a `$()` nested inside a `component$` whose stack already ends at `Foo_component`), `disambiguateExtractions` (`extract.ts:994–1027`) appends `_1`, `_2`, ... to the second-onwards occurrences and **recomputes the hash** for each renamed entry. This is why `example_multi_capture` shows both `Foo_component_HTDRsvUbLiE` (the outer) and `Foo_component_1_DvU6FitWglY` (the nested one) — the inner `$()` originally shared context with its parent, so it got the `_1` suffix and a fresh hash with `_1` folded into the input. **`inlinedQrl` extractions skip disambiguation** (per OSS-408): peer-tool-supplied names already encode uniqueness via their hash suffix, and appending `_<n>` would rewrite a name the upstream consumer expects.
+When two extractions in one file would collide on `displayName` (e.g., a `$()` nested inside a `component$` whose stack already ends at `Foo_component`), `disambiguateExtractions` (`extract.ts:1114–1155`) appends `_1`, `_2`, ... to the second-onwards occurrences and **recomputes the hash** for each renamed entry. This is why `example_multi_capture` shows both `Foo_component_HTDRsvUbLiE` (the outer) and `Foo_component_1_DvU6FitWglY` (the nested one) — the inner `$()` originally shared context with its parent, so it got the `_1` suffix and a fresh hash with `_1` folded into the input. **`inlinedQrl` extractions skip disambiguation** (per OSS-408): peer-tool-supplied names already encode uniqueness via their hash suffix, and appending `_<n>` would rewrite a name the upstream consumer expects.
 
 #### Production rename
 

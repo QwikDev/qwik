@@ -19,6 +19,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_8",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_9",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_build_server",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_capture_imports",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_capturing_fn_class",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_class_name",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_component_with_event_listeners_inside_loop",
@@ -89,6 +90,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_spread_jsx",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_strip_exports_unused",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_strip_exports_used",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_strip_server_code",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_transpile_jsx_only",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_transpile_ts_only",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_ts_enums",
@@ -297,6 +299,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_8",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_9",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_build_server",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_capture_imports",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_capturing_fn_class",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_class_name",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_component_with_event_listeners_inside_loop",
@@ -367,6 +370,7 @@
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_spread_jsx",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_strip_exports_unused",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_strip_exports_used",
+      "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_strip_server_code",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_transpile_jsx_only",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_transpile_ts_only",
       "tests/optimizer/convergence.test.ts :: convergence: all 209 snapshots example_ts_enums",
@@ -813,6 +817,10 @@
       "tests/optimizer/oss-435-jsx-arrow-prop-value.test.ts :: OSS-435 — JSX inside arrow-function bodies on JSX prop values Bug C negative-scope: `<div class={[props.class, \"extra\"]}/>` (ArrayExpression) STILL hoists",
       "tests/optimizer/oss-435-jsx-arrow-prop-value.test.ts :: OSS-435 — JSX inside arrow-function bodies on JSX prop values Bug C negative-scope: `<div data-x={props.a.b + \"lit\"}/>` (BinaryExpression with deep member) STILL hoists",
       "tests/optimizer/oss-435-jsx-arrow-prop-value.test.ts :: OSS-435 — JSX inside arrow-function bodies on JSX prop values Bug C: `<img src={`${props.src}`}/>` is NOT hoisted to `_fnSignal` (TemplateLiteral with non-const dep)",
+      "tests/optimizer/oss-437-import-aware-naming.test.ts :: OSS-437 — import-aware segment naming for single-Identifier marker args Identifier arg that does NOT resolve to an import: keeps default naming",
+      "tests/optimizer/oss-437-import-aware-naming.test.ts :: OSS-437 — import-aware segment naming for single-Identifier marker args default import: `useStyles$(css3)` names segment after the import path",
+      "tests/optimizer/oss-437-import-aware-naming.test.ts :: OSS-437 — import-aware segment naming for single-Identifier marker args non-Identifier arg: `useStyles$(`${css1}${css2}`)` keeps the default stack-based naming",
+      "tests/optimizer/oss-437-import-aware-naming.test.ts :: OSS-437 — import-aware segment naming for single-Identifier marker args relative path resolves: `./style.css` and `style.css` hash identically",
       "tests/optimizer/path-utils.test.ts :: path-utils detects whether a relative import stays within the srcDir-relative tree",
       "tests/optimizer/path-utils.test.ts :: path-utils normalizes windows-style paths",
       "tests/optimizer/path-utils.test.ts :: path-utils preserves current computeRelPath behavior for paths outside srcDir",
@@ -1116,6 +1124,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 940
+    "total": 944
   }
 }

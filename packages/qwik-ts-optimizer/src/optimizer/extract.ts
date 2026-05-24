@@ -19,7 +19,8 @@ import type {
   JSXAttributeItem,
   JSXElementName,
 } from '../ast-types.js';
-import { qwikHash } from '../hashing/siphash.js';
+import { qwikHash, qwikHashFromSeed } from '../hashing/siphash.js';
+import { escapeSymbol } from '../hashing/naming.js';
 import { parseWithRawTransfer } from './utils/parse.js';
 import { ContextStack } from './context-stack.js';
 import {
@@ -302,6 +303,82 @@ function resolveCanonicalCalleeName(
 ): string {
   const importInfo = imports.get(calleeName);
   return importInfo ? importInfo.importedName : calleeName;
+}
+
+/**
+ * OSS-437: when a marker call's single argument is an `Identifier`
+ * resolving to an import binding, segments derive their displayName +
+ * hash from the import path rather than the surrounding context stack
+ * (so e.g. `useStyles$(css3)` with `import css3 from './style.css'`
+ * produces `style_css` / hash of `./style.css#default` instead of
+ * `App_component_useStyles_1` / counter-based name).
+ *
+ * Mirrors SWC's `get_import_qrl_name` (transform.rs:443-478) +
+ * `create_import_display_name` (transform.rs:5260-5267). Returns null
+ * for non-Identifier args or Identifiers that don't resolve to an
+ * import; callers fall back to the default stack-based naming.
+ *
+ * Scope intentionally narrow: single-Identifier case only. The
+ * namespace-member-import variant (`useStyles$(ns.foo)`) from SWC's
+ * second arm is unfiled — add when a fixture exercises it.
+ */
+function getImportArgNaming(
+  arg: AstNode,
+  imports: Map<string, ImportInfo>,
+  relPath: string,
+): { importContextPortion: string; hashSeed: string } | null {
+  if (arg.type !== 'Identifier') return null;
+  const importInfo = imports.get(arg.name);
+  if (!importInfo) return null;
+
+  // SWC's `resolve_import_hash_path` (transform.rs:481-504) normalises
+  // backslashes to forward slashes; resolves `./` and `..` against the
+  // current file's directory; absolute / bare specifiers pass through.
+  // The hash seed (and the path-tail extraction below) uses the
+  // resolved path. Without this, `./style.css` would hash differently
+  // from `style.css` even though both name the same module after
+  // resolution — and SWC uses the resolved form.
+  const resolvedSource = resolveImportHashPath(importInfo.source, relPath);
+
+  // create_import_display_name (transform.rs:506-514):
+  //   path_tail = source.rsplit('/').next().unwrap_or(source)
+  //   base_name = escape_sym(path_tail)
+  //   if import_name == "default" { base_name } else { base_name + "_" + escape_sym(import_name) }
+  // Default imports have `importedName === 'default'` in our ImportInfo model.
+  const slashIdx = resolvedSource.lastIndexOf('/');
+  const pathTail = slashIdx >= 0 ? resolvedSource.slice(slashIdx + 1) : resolvedSource;
+  const baseName = escapeSymbol(pathTail);
+  const importContextPortion = importInfo.importedName === 'default'
+    ? baseName
+    : `${baseName}_${escapeSymbol(importInfo.importedName)}`;
+
+  // SWC's hash_seed: `"<resolved_source>#<import_name>"` (transform.rs:477).
+  const hashSeed = `${resolvedSource}#${importInfo.importedName}`;
+
+  return { importContextPortion, hashSeed };
+}
+
+/**
+ * Mirror of SWC's `resolve_import_hash_path` (transform.rs:481-504).
+ * Absolute / bare specifiers pass through; relative paths resolve
+ * against the directory of `relPath`.
+ */
+function resolveImportHashPath(importPath: string, relPath: string): string {
+  const normalized = importPath.replace(/\\/g, '/');
+  if (!normalized.startsWith('.')) return normalized;
+
+  const baseDir = getDirectory(relPath);
+  const segments = baseDir.split('/').filter((s) => s !== '');
+  for (const segment of normalized.split('/')) {
+    if (segment === '' || segment === '.') continue;
+    if (segment === '..') {
+      if (segments.length === 0) return normalized;
+      segments.pop();
+      continue;
+    }
+    segments.push(segment);
+  }
+  return segments.join('/');
 }
 
 /**
@@ -841,11 +918,29 @@ export function extractSegments(
         const isJsxAttrContext = isEventAttr || isJsxNonEventAttr;
         const ctxName = mkCtxName(getExtractionName(canonicalCallee, isJsxAttrContext, isJsxAttrContext ? attrCtx : undefined));
 
-        const displayName = ctx.naming.getDisplayName();
-        const symbolName = ctx.naming.getSymbolName();
+        // OSS-437: when the marker's first arg is a single Identifier
+        // resolving to an import binding, derive the displayName + hash
+        // from the import path (mirrors SWC's `get_import_qrl_name` +
+        // `register_context_name` `hash_override` path). Falls back to
+        // the default stack-based naming when the helper returns null.
+        const importNaming = !isJsxAttrContext && !isBare
+          ? getImportArgNaming(arg, imports, relPath)
+          : null;
 
-        const lastUnder = symbolName.lastIndexOf('_');
-        const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
+        let displayName: DisplayName;
+        let symbolName: SymbolName;
+        let hash: Hash;
+        if (importNaming !== null) {
+          const fileStem = getBasename(relPath);
+          displayName = mkDisplayName(`${fileStem}_${importNaming.importContextPortion}`);
+          hash = qwikHashFromSeed(importNaming.hashSeed);
+          symbolName = mkSymbolName(`${importNaming.importContextPortion}_${hash}`);
+        } else {
+          displayName = ctx.naming.getDisplayName();
+          symbolName = ctx.naming.getSymbolName();
+          const lastUnder = symbolName.lastIndexOf('_');
+          hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
+        }
 
         const extraction: ExtractedSegmentBuilder = {
           phase: 'extracted',

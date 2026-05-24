@@ -26,7 +26,25 @@ export function qwikHash(
 ): Hash {
   // HASH-02: Hash input is raw concatenated bytes: scope + rel_path + display_name (no separators)
   const input = (scope ?? '') + relPath + displayName;
+  return encodeHash(input);
+}
 
+/**
+ * Compute a Qwik-compatible hash from a raw seed string. Mirrors SWC's
+ * `register_context_name` `hash_override` path
+ * (swc-reference-only/transform.rs:413-414) where the seed bytes are
+ * fed directly to the hasher without the `scope + relPath + displayName`
+ * concat. Used by the OSS-437 import-aware naming path:
+ * `useStyles$(css3)` with `import css3 from './style.css'` hashes the
+ * seed `./style.css#default` rather than the stack-derived
+ * `App_component_useStyles` context portion. Keeps the segment hash
+ * stable across files importing the same asset under the same name.
+ */
+export function qwikHashFromSeed(seed: string): Hash {
+  return encodeHash(seed);
+}
+
+function encodeHash(input: string): Hash {
   // HASH-01: SipHash-1-3 with keys (0,0,0,0)
   const result = SipHash13.hash(ZERO_KEY, input);
 

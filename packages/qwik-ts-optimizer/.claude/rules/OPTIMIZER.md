@@ -517,7 +517,7 @@ The JSX transform converts `<div onClick={...} />` syntax into `_jsxSorted(...)`
 
 Both helpers have the same calling shape — `(tag, varProps, constProps, children, flags, key)` — but they differ in how the runtime treats reactive coordination between var and const props.
 
-The choice is made in `transform/jsx-elements-core.ts:388–391`:
+The choice is made in `transform/jsx-elements-core.ts:510–513`:
 
 ```ts
 const hasBindInConst = !tagIsHtml && constEntries.some(e => e.startsWith('"bind:'));
@@ -589,9 +589,9 @@ Reading the `_jsxSorted` arguments:
 
 Every JSX element gets a key string of the form `"<prefix>_<count>"` (e.g., `"u6_0"`). The prefix is a hash of the module's relative path (`computeKeyPrefix(relPath)`); the counter is monotonic across the module.
 
-Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `transform/jsx.ts:470–490`, threaded as:
+Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `transform/jsx.ts:618–638`, threaded as:
 
-- `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:736) → into `transform/index.ts:623`.
+- `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:741) → into `transform/index.ts:623`.
 - `parentJsxKeyCounterValue` → consumed by `segment-generation.ts:1132` and `transformSegmentJsx` (segment-codegen.ts:351–396) as `keyCounterStart`.
 - Each segment's emit returns its updated `keyCounterValue` (`segment-generation.ts:1110` and folded back at :1155–1156) — folded back so the next segment continues counting.
 

@@ -1372,10 +1372,18 @@ function computeSegmentStartKeys(
 }
 
 /**
- * Count how many JSX elements / fragments a body text contains —
- * mirrors what `JsxKeyCounter.next()` is called for during the JSX
- * transform. Used by {@link computeSegmentStartKeys} to know how much
- * each segment will advance the global counter.
+ * Count how many JSX elements / fragments a body text consumes from
+ * `JsxKeyCounter.next()` during the JSX transform. Used by
+ * {@link computeSegmentStartKeys} to know how much each segment will
+ * advance the global counter.
+ *
+ * Mirrors `transformJsxElement`'s key-emission rule in
+ * `jsx-elements-core.ts:480-487`: a JSXElement that is a JSX-child of a
+ * JSXElement or JSXFragment AND has an HTML tag (lowercase first
+ * character) gets a `null` key and does NOT advance the counter. All
+ * other JSXElements + every JSXFragment do advance the counter. Without
+ * this rule, segments whose body is `<><div/></>` shape over-count by
+ * one (the inner HTML element gets `null`, not a real key).
  */
 function countJsxKeyConsumption(bodyText: string): number {
   // Cheap regex prefilter — if the body contains nothing JSX-shaped, skip
@@ -1384,12 +1392,29 @@ function countJsxKeyConsumption(bodyText: string): number {
   try {
     const parsed = parseWithRawTransfer('segment-jsx-count.tsx', `(${bodyText})`);
     let count = 0;
-    function walk(n: AstNode | null | undefined): void {
-      if (!n) return;
-      if (n.type === 'JSXElement' || n.type === 'JSXFragment') count++;
-      forEachAstChild(n, child => walk(child));
+    function isHtmlElementName(n: AstNode | null | undefined): boolean {
+      if (!n || n.type !== 'JSXElement') return false;
+      const name = n.openingElement?.name;
+      if (!name || name.type !== 'JSXIdentifier') return false;
+      const first = name.name[0];
+      return !!first && first === first.toLowerCase() && first >= 'a' && first <= 'z';
     }
-    walk(parsed.program);
+    function walk(
+      n: AstNode | null | undefined,
+      parentIsJsxParent: boolean,
+    ): void {
+      if (!n) return;
+      if (n.type === 'JSXElement') {
+        // Skip: HTML element that's a JSX child of another JSXElement /
+        // JSXFragment — receives a null key and doesn't advance counter.
+        if (!(parentIsJsxParent && isHtmlElementName(n))) count++;
+      } else if (n.type === 'JSXFragment') {
+        count++;
+      }
+      const childIsInJsxParent = n.type === 'JSXElement' || n.type === 'JSXFragment';
+      forEachAstChild(n, (child) => walk(child, childIsInJsxParent));
+    }
+    walk(parsed.program, false);
     return count;
   } catch {
     return 0;

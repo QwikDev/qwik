@@ -6,6 +6,7 @@
  * signal analysis for prop values.
  */
 
+import type MagicString from 'magic-string';
 import type { AstMaybeNode, JSXAttributeItem } from '../../ast-types.js';
 import { analyzeSignalExpression } from '../signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective } from './event-handlers.js';
@@ -17,6 +18,27 @@ import {
   type ProcessPropsOptions,
 } from './jsx.js';
 import { simplifyExpression, formatSimplifiedLiteral } from '../utils/simplify.js';
+
+/**
+ * Try to read a byte range from MagicString (`s.slice` — reflects accumulated
+ * edits). Fall back to the original `source` text when MagicString throws
+ * (happens when the range's start byte is inside a previously-replaced range,
+ * making the slice anchor ambiguous — e.g. when an upstream rewrite has
+ * already overwritten the entire attribute value before the JSX walker
+ * reaches the outer element). See OSS-435.
+ */
+function sliceWithFallback(
+  s: MagicString,
+  source: string,
+  start: number,
+  end: number,
+): string {
+  try {
+    return s.slice(start, end);
+  } catch {
+    return source.slice(start, end);
+  }
+}
 
 /**
  * Slot entry — one element per JSX attribute in source order. Captures
@@ -111,7 +133,7 @@ export function processProps(
   slotOrder: SlotEntry[];
   neededImports: Set<string>;
 } {
-  const { source, importedNames, signalHoister, qrlsWithCaptures, paramNames, bindings, allDeclaredNames } = ctx;
+  const { source, s, importedNames, signalHoister, qrlsWithCaptures, paramNames, bindings, allDeclaredNames } = ctx;
   const { tagIsHtml, passiveEvents, inLoop, skipSignalAnalysis } = opts;
   const varEntries: string[] = [];
   const constEntries: string[] = [];
@@ -207,7 +229,22 @@ export function processProps(
       valueNode = null;
     } else if (attr.value.type === 'JSXExpressionContainer') {
       valueNode = attr.value.expression;
-      valueText = source.slice(valueNode.start, valueNode.end);
+      // OSS-435: prefer MagicString (post-rewrite) over the raw source.
+      // By the time processProps is called for an outer JSXElement's
+      // leave handler, any JSX nested inside this attribute value's
+      // arrow body has already been visited and overwritten in `s` (DFS
+      // leaves children before parent). Slicing from `source` would
+      // re-emit the original raw JSX into the outer call's attribute
+      // bag, and the surrounding `s.overwrite(node.start, node.end,
+      // callStr)` for the outer element would clobber the inner
+      // rewrites. `s.slice` reflects the post-rewrite text so the inner
+      // `_jsxSorted(...)` survives. The fallback to `source.slice`
+      // covers the case where the value bytes are themselves inside a
+      // replaced range (an upstream rewrite that overwrote the entire
+      // attribute, e.g. event-handler QRL replacement) — MagicString
+      // throws "Cannot use replaced character N as slice start anchor"
+      // in that case; the raw source matches what's expected then.
+      valueText = sliceWithFallback(s, source, valueNode.start, valueNode.end);
       // Match SWC's `simplify::simplifier` (explicitly invoked from
       // swc-reference-only/parse.rs:360) by simplifying compile-time-
       // constant prop expressions to their literal result. Without
@@ -219,7 +256,7 @@ export function processProps(
       }
     } else {
       valueNode = attr.value;
-      valueText = source.slice(attr.value.start, attr.value.end);
+      valueText = sliceWithFallback(s, source, attr.value.start, attr.value.end);
     }
 
     if (isBindProp(propName) && !tagIsHtml) {
@@ -336,6 +373,27 @@ export function processProps(
         // SWC skips _fnSignal for object expressions on class/className
         if (signalResult.isObjectExpr && (propName === 'class' || propName === 'className')) {
           // fall through to classifyConstness
+        } else if (
+          // OSS-435 Bug C: SWC's `create_synthetic_qqsegment`
+          // (swc-reference-only/transform.rs:805) explicitly skips
+          // `_fnSignal` hoist for `TemplateLiteral` and `CallExpression`
+          // when `is_const` is false — i.e. at least one scoped
+          // identifier is non-const. Function parameters of the
+          // segment's own closure on an HTML element are non-const
+          // (their values come from re-renders), so
+          // `<img src={`${props.src}`}/>` inside `(props) => ...`
+          // stays as a raw template literal. ArrayExpression /
+          // ObjectExpression / BinaryExpression / etc. still hoist
+          // regardless — only Tpl + Call are excluded.
+          (valueNode?.type === 'TemplateLiteral' ||
+            valueNode?.type === 'CallExpression') &&
+          !signalResult.deps.every((dep) =>
+            importedNames.has(dep) ||
+            (bindings?.classify(dep, valueNode.start) === 'const') ||
+            (!tagIsHtml && (paramNames?.has(dep) ?? false))
+          )
+        ) {
+          // fall through to classifyConstness — emit raw expression
         } else {
           const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, valueNode.start ?? 0);
           const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;

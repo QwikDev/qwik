@@ -45,6 +45,7 @@ import {
   filterUnusedImports,
   assembleOutput,
 } from './output-assembly.js';
+import { detectAndRenameCollisions } from './symbol-collision.js';
 
 // Re-export split modules for backward compatibility
 export {
@@ -287,6 +288,13 @@ export function rewriteParentModule(
   }
 
   collectNeededImports(ctx);
+  // OSS-432 Bug A: rename user-side top-level symbols that collide with
+  // injected runtime names (e.g. user's `const componentQrl = …` when we
+  // need to emit `import { componentQrl } from "@qwik.dev/core"`). Must
+  // run AFTER collectNeededImports (we need the injected-name set) and
+  // BEFORE buildQrlDeclarations (its `qrl(...)` literal text refers to
+  // the injected name; user-side `qrl` is now `qrl1`).
+  detectAndRenameCollisions(ctx);
   buildQrlDeclarations(ctx);
   buildInlineSCalls(ctx);
   filterUnusedImports(ctx);

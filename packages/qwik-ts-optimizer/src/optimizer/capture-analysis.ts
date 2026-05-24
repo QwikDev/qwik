@@ -30,19 +30,28 @@ export interface CaptureAnalysisResult {
 
 /**
  * Analyze a $() closure node to determine which variables cross the
- * serialization boundary. Excludes globals and import bindings.
+ * serialization boundary. Excludes globals; includes parent-scope
+ * bindings even when a same-name top-level import exists (the inner
+ * binding shadows the import).
  */
 export function analyzeCaptures(
   closureNode: AstFunction,
   parentScopeIdentifiers: Set<string>,
-  importedNames: Set<string>,
 ): CaptureAnalysisResult {
   const paramNames = collectParamNames(closureNode.params ?? []);
   const undeclared = getUndeclaredIdentifiersInFunction(closureNode);
 
+  // OSS-432 Bug B: parent-scope membership wins unconditionally.
+  // Same-scope import + decl is illegal in JS, so a name appearing in
+  // both parentScopeIdentifiers and the module's import set must be a
+  // legitimate inner-scope shadow — the closure resolves to that inner
+  // binding and the value crosses the segment boundary. Pre-fix this
+  // filter also excluded names with a matching top-level import, which
+  // dropped real inner-scope shadows from captureNames (the click
+  // handler in `example_qwik_conflict` was the surfacing fixture).
   const captureNames = [...new Set(
     undeclared
-      .filter((name) => parentScopeIdentifiers.has(name) && !importedNames.has(name))
+      .filter((name) => parentScopeIdentifiers.has(name))
       .sort()
   )];
 

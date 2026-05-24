@@ -211,7 +211,7 @@ describe('analyzeCaptures', () => {
 
     // The inner $() is the second $() call (index 1)
     const { argNode, parentScopeIds, importedNames } = findNthDollarArg(source, 1);
-    const result = analyzeCaptures(argNode, parentScopeIds, importedNames);
+    const result = analyzeCaptures(argNode, parentScopeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['s']);
@@ -229,7 +229,7 @@ describe('analyzeCaptures', () => {
     `;
 
     const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds, importedNames);
+    const result = analyzeCaptures(argNode, parentScopeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['alpha', 'mid', 'zebra']);
@@ -245,7 +245,7 @@ describe('analyzeCaptures', () => {
     `;
 
     const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds, importedNames);
+    const result = analyzeCaptures(argNode, parentScopeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['x']);
@@ -262,7 +262,7 @@ describe('analyzeCaptures', () => {
     `;
 
     const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds, importedNames);
+    const result = analyzeCaptures(argNode, parentScopeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['state']);
@@ -279,7 +279,7 @@ describe('analyzeCaptures', () => {
     `;
 
     const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds, importedNames);
+    const result = analyzeCaptures(argNode, parentScopeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['x']);
@@ -294,7 +294,7 @@ describe('analyzeCaptures', () => {
     `;
 
     const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds, importedNames);
+    const result = analyzeCaptures(argNode, parentScopeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['count', 'name']);
@@ -307,7 +307,7 @@ describe('analyzeCaptures', () => {
     `;
 
     const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds, importedNames);
+    const result = analyzeCaptures(argNode, parentScopeIds);
 
     expect(result.paramNames).toEqual(['props']);
   });
@@ -321,9 +321,9 @@ describe('analyzeCaptures', () => {
     `;
 
     // For module-level, parentScopeIds is empty (no enclosing function scope)
-    const { argNode, importedNames } = findDollarArg(source);
+    const { argNode } = findDollarArg(source);
     const emptyParentScope = new Set<string>();
-    const result = analyzeCaptures(argNode, emptyParentScope, importedNames);
+    const result = analyzeCaptures(argNode, emptyParentScope);
 
     expect(result.captures).toBe(false);
     expect(result.captureNames).toEqual([]);
@@ -336,10 +336,35 @@ describe('analyzeCaptures', () => {
     `;
 
     const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds, importedNames);
+    const result = analyzeCaptures(argNode, parentScopeIds);
 
     expect(result.captureNames).not.toContain('event');
     expect(result.captures).toBe(false);
+  });
+
+  it('Test 10 (OSS-432 Bug B): inner-scope binding shadowing a top-level import IS captured', () => {
+    // The inner `const qrl = 23` shadows the outer `import { qrl } from ...`.
+    // The click handler's reference to `qrl` resolves to the inner binding
+    // and must cross the segment boundary as a capture (so const-literal
+    // resolution can later inline it to `23` in the segment body).
+    const source = `
+      import { qrl } from '@qwik.dev/core/what';
+      function host() {
+        const qrl = 23;
+        $(() => { qrl; });
+      }
+    `;
+
+    // The $() inside host() is the second $-suffixed call in the source.
+    const { argNode, parentScopeIds, importedNames } = findNthDollarArg(source, 0);
+    // Sanity check: the helper records both the import AND the inner binding.
+    expect(importedNames.has('qrl')).toBe(true);
+    expect(parentScopeIds.has('qrl')).toBe(true);
+
+    const result = analyzeCaptures(argNode, parentScopeIds);
+
+    expect(result.captures).toBe(true);
+    expect(result.captureNames).toEqual(['qrl']);
   });
 });
 

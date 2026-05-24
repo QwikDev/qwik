@@ -46,6 +46,8 @@ import {
 } from "../rewrite/index.js";
 import { collectSameFileSymbolInfo } from "../utils/module-symbols.js";
 import { rewriteImportSource } from "../rewrite-imports.js";
+import { parseWithRawTransfer } from "../utils/parse.js";
+import { forEachAstChild } from "../utils/ast.js";
 import {
   leadingDot,
   numberedPaddingParam,
@@ -1238,7 +1240,20 @@ export function generateAllSegmentModules(
 ): TransformModule[] {
   const prep = computeSegmentGenerationPrep(ctx);
   const allModules: TransformModule[] = [];
-  let segmentKeyCounter = ctx.parentJsxKeyCounterValue;
+
+  // OSS-432 Bug C: pre-compute the per-segment JSX-key starting counter in
+  // SOURCE order, independent of the depth-first processing order used by
+  // the main loop below. SWC's reference consumes JSX keys per source
+  // position; consuming in depth-first segment order produces stable but
+  // SWC-divergent keys (e.g. `example_qwik_conflict` Foo body at line 13
+  // would get `u6_1` because Root_1's `<div/>` at line 27 gets `u6_0`
+  // when processed first as a depth-1 child). Surfaced when Bug A + Bug B
+  // exposed the segment-side comparison previously masked by the parent
+  // mismatch.
+  const segmentStartKey = computeSegmentStartKeys(
+    prep.sortedExtractions,
+    ctx.parentJsxKeyCounterValue,
+  );
 
   for (const ext of prep.sortedExtractions) {
     if (ext.isSync) continue;
@@ -1277,14 +1292,106 @@ export function generateAllSegmentModules(
       continue;
     }
 
+    const startKey = segmentStartKey.get(ext.symbolName) ?? ctx.parentJsxKeyCounterValue;
     const result = buildDefaultStrategySegment(
-      ext, ctx, prep, stripped, segmentKeyCounter,
+      ext, ctx, prep, stripped, startKey,
     );
-    if (result.keyCounterValue !== undefined) {
-      segmentKeyCounter = result.keyCounterValue;
-    }
     allModules.push(result.module);
   }
 
   return allModules;
+}
+
+/**
+ * Pre-compute the JSX-key counter value each segment should START at.
+ *
+ * SWC's ordering rule: top-level extractions are processed in SOURCE
+ * order (by their body's byte offset); within each subtree the traversal
+ * is depth-first leaves-first (children consume keys before their
+ * parent). The current `sortedExtractions` does global depth-first
+ * descending, which mixes subtrees across top-level extractions — fine
+ * for codegen ordering but produces JSX keys that don't match SWC when
+ * two top-level subtrees both contain JSX.
+ *
+ * Each segment's exclusive JSX consumption is its own body's JSX-element
+ * count minus the sum of its direct children's totals — because a
+ * parent's bodyText textually contains its children's bodyText, naive
+ * totals would double-count.
+ */
+function computeSegmentStartKeys(
+  sortedExtractions: readonly ConsolidatedSegment[],
+  parentJsxKeyCounterValue: number,
+): Map<string, number> {
+  // 1. Total JSX-element count per extraction (raw body walk).
+  const totalCount = new Map<string, number>();
+  for (const ext of sortedExtractions) {
+    totalCount.set(ext.symbolName, countJsxKeyConsumption(ext.bodyText));
+  }
+
+  // 2. Index children by parent for the recursive traversal below.
+  const childrenBySymbol = new Map<string, ConsolidatedSegment[]>();
+  for (const ext of sortedExtractions) {
+    if (ext.parent === null) continue;
+    const arr = childrenBySymbol.get(ext.parent);
+    if (arr) arr.push(ext);
+    else childrenBySymbol.set(ext.parent, [ext]);
+  }
+
+  // 3. Exclusive JSX consumption per segment.
+  const exclusiveCount = new Map<string, number>();
+  for (const ext of sortedExtractions) {
+    let own = totalCount.get(ext.symbolName) ?? 0;
+    const directChildren = childrenBySymbol.get(ext.symbolName) ?? [];
+    for (const child of directChildren) {
+      own -= totalCount.get(child.symbolName) ?? 0;
+    }
+    exclusiveCount.set(ext.symbolName, Math.max(0, own));
+  }
+
+  // 4. Walk top-level extractions in source order; within each, recurse
+  // depth-first (children-in-source-order first, then self).
+  const result = new Map<string, number>();
+  let counter = parentJsxKeyCounterValue;
+
+  function visit(ext: ConsolidatedSegment): void {
+    if (ext.isSync) return;
+    const children = childrenBySymbol.get(ext.symbolName) ?? [];
+    const childrenInSourceOrder = [...children].sort((a, b) => a.argStart - b.argStart);
+    for (const child of childrenInSourceOrder) visit(child);
+    result.set(ext.symbolName, counter);
+    counter += exclusiveCount.get(ext.symbolName) ?? 0;
+  }
+
+  const topLevelInSourceOrder = sortedExtractions
+    .filter((ext) => ext.parent === null)
+    .slice()
+    .sort((a, b) => a.argStart - b.argStart);
+  for (const ext of topLevelInSourceOrder) visit(ext);
+
+  return result;
+}
+
+/**
+ * Count how many JSX elements / fragments a body text contains —
+ * mirrors what `JsxKeyCounter.next()` is called for during the JSX
+ * transform. Used by {@link computeSegmentStartKeys} to know how much
+ * each segment will advance the global counter.
+ */
+function countJsxKeyConsumption(bodyText: string): number {
+  // Cheap regex prefilter — if the body contains nothing JSX-shaped, skip
+  // the parse. Both `<tag` (element) and `<>` (fragment) start with `<`.
+  if (bodyText.indexOf('<') === -1) return 0;
+  try {
+    const parsed = parseWithRawTransfer('segment-jsx-count.tsx', `(${bodyText})`);
+    let count = 0;
+    function walk(n: AstNode | null | undefined): void {
+      if (!n) return;
+      if (n.type === 'JSXElement' || n.type === 'JSXFragment') count++;
+      forEachAstChild(n, child => walk(child));
+    }
+    walk(parsed.program);
+    return count;
+  } catch {
+    return 0;
+  }
 }

@@ -238,7 +238,6 @@ export function transformModule(
       const result = analyzeCaptures(
         closureNode,
         parentScopeIds,
-        importedNames,
       );
       extraction.captureNames = result.captureNames;
       extraction.paramNames = result.paramNames;

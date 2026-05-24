@@ -1951,6 +1951,9 @@ export function vnode_toString(
             attrs.push(' ' + key + '=' + qwikDebugToString(value));
           }
         }
+        if (vnode.slotParent) {
+          attrs.push(' slotParent=(C)');
+        }
       }
       const name =
         (colorize ? NAME_COL_PREFIX : '') +

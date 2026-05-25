@@ -545,7 +545,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         // Find the actual file on disk by asking vite to resolve it
         const resolved = await ctx.resolve(origId, importerId);
         if (resolved) {
-          const devEnv = ctx.environment as DevEnvironment;
+          const devEnv = ctx.environment as unknown as DevEnvironment;
           const file = devEnv.moduleGraph.getModuleById(resolved.id)?.file;
           if (file) {
             const path = `${file}${location}`;
@@ -880,7 +880,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
       const moduleGraph =
-        (ctx.environment as DevEnvironment | undefined)?.moduleGraph ?? devServer?.moduleGraph;
+        (ctx.environment as unknown as DevEnvironment | undefined)?.moduleGraph ??
+        devServer?.moduleGraph;
       if (moduleGraph) {
         devPath = moduleGraph.getModuleById(pathId)?.url;
         // Fallback: if the module isn't in the graph yet (first transform),

@@ -1,4 +1,4 @@
-import type { OutputBundle, PluginContext } from 'rollup';
+import type { OutputBundle, PluginContext } from 'rolldown';
 import type { Plugin as VitePlugin, UserConfig } from 'vite';
 import type { QwikManifest } from '../types';
 import { QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, type QwikBuildTarget } from './plugin';
@@ -53,27 +53,27 @@ export const getQwikWorkerConfig = (
   };
 };
 
-export const rewriteClientWorkerCorePlaceholders = (rollupBundle: OutputBundle) => {
-  const workerCoreChunk = Object.values(rollupBundle).find(
+export const rewriteClientWorkerCorePlaceholders = (rolldownBundle: OutputBundle) => {
+  const workerCoreChunk = Object.values(rolldownBundle).find(
     (output) => output.type === 'chunk' && output.facadeModuleId === QWIK_WORKER_CORE_ID
   );
   const resolveWorkerCorePath = workerCoreChunk
     ? createBuildWorkerCoreChunkResolver(workerCoreChunk.fileName)
     : undefined;
-  rewriteWorkerCorePlaceholdersInBundle(rollupBundle, (fileName) =>
+  rewriteWorkerCorePlaceholdersInBundle(rolldownBundle, (fileName) =>
     resolveWorkerCorePath?.(fileName)
   );
 };
 
 export const rewriteSsrWorkerCorePlaceholders = (
-  rollupBundle: OutputBundle,
+  rolldownBundle: OutputBundle,
   manifest: QwikManifest | null
 ) => {
   const workerCoreChunkFileName = getWorkerCoreChunkFileNameFromManifest(manifest);
   const resolveWorkerCorePath = workerCoreChunkFileName
     ? createBuildWorkerCoreChunkResolver(workerCoreChunkFileName)
     : undefined;
-  rewriteWorkerCorePlaceholdersInBundle(rollupBundle, (fileName) =>
+  rewriteWorkerCorePlaceholdersInBundle(rolldownBundle, (fileName) =>
     resolveWorkerCorePath?.(fileName)
   );
 };
@@ -107,10 +107,10 @@ const createQwikWorkerPlugins = (userWorkerPlugins: WorkerConfig['plugins']) => 
 };
 
 const rewriteWorkerCorePlaceholdersInBundle = (
-  rollupBundle: OutputBundle,
+  rolldownBundle: OutputBundle,
   resolveWorkerCorePath: (fileName: string) => string | undefined
 ) => {
-  for (const output of Object.values(rollupBundle)) {
+  for (const output of Object.values(rolldownBundle)) {
     if (output.type === 'chunk') {
       output.code = rewriteWorkerCorePlaceholders(output.code, () =>
         resolveWorkerCorePath(output.fileName)

@@ -14,7 +14,7 @@
     "magic-string": "0.30.21"
   },
   "devDependencies": {
-    "rolldown": "1.0.0-rc.16",
+    "rolldown": "1.0.2",
     "@croct/json5-parser": "0.2.2",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",

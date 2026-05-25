@@ -33,7 +33,7 @@
     "tailwindcss": "4.2.4",
     "typescript": "5.9.3",
     "typescript-eslint": "8.56.1",
-    "vite": "8.0.9",
+    "vite": "8.0.14",
     "vite-tsconfig-paths": "6.1.1",
     "vitest": "4.1.0",
     "zod": "3.25.48"

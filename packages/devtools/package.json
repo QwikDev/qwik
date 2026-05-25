@@ -88,7 +88,7 @@
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/vite": "^4.2.1",
     "tailwindcss": "^4.2.1",
-    "vite": ">=6 <9"
+    "vite": ">=6 < 9"
   },
   "private": false,
   "publishConfig": {

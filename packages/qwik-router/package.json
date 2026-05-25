@@ -169,7 +169,7 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "@qwik.dev/core": "workspace:^",
-    "vite": ">=6"
+    "vite": ">=6 < 9"
   },
   "publishConfig": {
     "access": "public"

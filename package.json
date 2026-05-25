@@ -19,7 +19,7 @@
           "dependencies": [
             "vite"
           ],
-          "pinVersion": ">=6"
+          "pinVersion": ">=6 < 9"
         },
         {
           "label": "optimizer needs exact workspace version",

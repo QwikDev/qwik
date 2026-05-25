@@ -38,7 +38,7 @@
     "@types/react-dom": "^18",
     "react": "^18",
     "react-dom": "^18",
-    "vite": ">=6"
+    "vite": ">=6 < 9"
   },
   "publishConfig": {
     "access": "public"

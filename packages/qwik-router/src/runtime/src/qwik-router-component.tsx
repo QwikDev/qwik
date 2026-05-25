@@ -789,25 +789,32 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           contentInternal.trigger();
           return _waitUntilRendered(container!);
         };
+        let navigatePromise: ReturnType<typeof navigate> | undefined;
+        const navigateOnce = () => {
+          if (!navigatePromise) {
+            navigatePromise = navigate();
+          }
+          return navigatePromise;
+        };
 
         const _waitNextPage = () => {
           if (isServer || props?.viewTransition === false) {
-            return navigate();
+            return navigateOnce();
           } else {
             const viewTransition = startViewTransition({
-              update: navigate,
+              update: navigateOnce,
               types: ['qwik-navigation'],
             });
             if (!viewTransition) {
-              return Promise.resolve();
+              return navigatePromise ?? Promise.resolve();
             }
             return viewTransition.ready;
           }
         };
         _waitNextPage()
-          .catch((err) => {
+          .catch(async (err) => {
             // If the view transition fails, navigate to the page anyway
-            navigate();
+            await navigateOnce();
             if (err instanceof DOMException && err.name === 'TimeoutError') {
               throw new Error(
                 'View transition timed out. This can happen if you have "disableCache" in your browser devtools enabled.'

@@ -31,7 +31,7 @@ export default defineConfig(() => {
         fileName: (format, entryName) => `${entryName}.qwik.mjs`,
         cssFileName: 'styles',
       },
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           preserveModules: true,
           preserveModulesRoot: 'src',

@@ -29,7 +29,7 @@ import {
 } from '../../reactive-primitives/types';
 import { Task } from '../../use/use-task';
 import { QError } from '../error/error';
-import { inlinedQrl } from '../qrl/qrl';
+import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
@@ -40,6 +40,7 @@ import { createPropsProxy } from '../jsx/props-proxy';
 import { _OWNER, _PROPS_HANDLER } from '../utils/constants';
 import { _constants, _typeIdNames, TypeIds } from './constants';
 import { _dumpState } from './dump-state';
+import { qrlToString } from './qrl-to-string';
 import { _createDeserializeContainer } from './serdes.public';
 import { createSerializationContext } from './serialization-context';
 import { _serializationWeakRef } from './serialize';
@@ -281,7 +282,7 @@ describe('shared-serialization', () => {
         0 Error [
           {string} "hi"
           {string} "stack"
-          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456\\n    at Traces.$ (file:/...path/file.js:123:456)\\n    at trace (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)"
+          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithCancel (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456"
         ]
         (x chars)"
       `);
@@ -293,7 +294,7 @@ describe('shared-serialization', () => {
           {string} "extra"
           {string} "yey"
           {string} "stack"
-          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456\\n    at Traces.$ (file:/...path/file.js:123:456)\\n    at trace (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)"
+          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithCancel (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456"
         ]
         (x chars)"
       `);
@@ -1970,6 +1971,24 @@ describe('shared-serialization', () => {
 });
 
 describe('serializer - internal', () => {
+  it('qrlToString keeps explicit worker chunk paths', () => {
+    const sCtx = createSerializationContext(
+      null,
+      null,
+      () => '',
+      () => '',
+      new WeakMap(),
+      null!
+    );
+    const qrl = _qrlWithChunk(
+      '/build/worker-entry.js',
+      () => Promise.resolve({ workerSymbol: () => 'hi' }),
+      'workerSymbol'
+    ) as QRLInternal;
+
+    expect(qrlToString(sCtx, qrl)).toBe('/build/worker-entry.js#workerSymbol');
+  });
+
   it('_serialize', async () => {
     const a = { a: 1 };
     const ser = await _serialize({ a, b: [a] });

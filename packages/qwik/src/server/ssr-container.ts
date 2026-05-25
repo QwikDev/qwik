@@ -58,6 +58,7 @@ import {
   VirtualType,
   convertStyleIdsToString,
   dangerouslySetInnerHTML,
+  encodeVNodeDataKey,
   encodeVNodeDataString,
   escapeHTML,
   isHtmlAttributeAnEventName,
@@ -69,6 +70,7 @@ import {
   mapArray_set,
   maybeThen,
   qError,
+  qTest,
   retryOnPromise,
   serializeAttribute,
 } from './qwik-copy';
@@ -129,6 +131,20 @@ enum QwikLoaderInclude {
   Inline,
   Done,
 }
+
+const NO_SCRIPT_HERE_ELEMENTS = new Set([
+  'script',
+  'style',
+  'textarea',
+  'title',
+  'iframe',
+  'noframes',
+  'noscript',
+  'xmp',
+  'template',
+  'svg',
+  'math',
+]);
 
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
   opts.renderOptions ||= {};
@@ -423,8 +439,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ): string | undefined {
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
-    // keep track of noscript and template, and for html we only emit inside body
-    if (elementName === 'noscript' || elementName === 'template' || elementName === 'script') {
+    // keep track of parser states/contexts where inline scripts are not safe to emit.
+    // Non-element tokenizer states are already safe because emission only happens before opening
+    // a new element, never while serializing a tag, attribute, comment, or CDATA section.
+    if (NO_SCRIPT_HERE_ELEMENTS.has(elementName)) {
       this.$noScriptHere$++;
     }
     if (
@@ -468,7 +486,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write(' ' + Q_PROPS_SEPARATOR);
     if (key !== null) {
       this.write(`="${key}"`);
-    } else if (import.meta.env.TEST) {
+    } else if (qTest) {
       // Domino sometimes does not like empty attributes, so we need to add a empty value
       this.write(EMPTY_ATTR);
     }
@@ -540,7 +558,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.lastNode = null;
     // keep track of where to emit scripts
-    if (elementName === 'noscript' || elementName === 'template' || elementName === 'script') {
+    if (NO_SCRIPT_HERE_ELEMENTS.has(elementName)) {
       this.$noScriptHere$--;
     }
   }
@@ -630,8 +648,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
       this.openFragment(
         isDev
-          ? { [DEBUG_TYPE]: VirtualType.Projection, [QSlotParent]: componentFrame.componentNode.id }
-          : { [QSlotParent]: componentFrame.componentNode.id }
+          ? {
+              [DEBUG_TYPE]: VirtualType.Projection,
+              [QSlotParent]: componentFrame.componentNode.id,
+              [QSlot]: slotName,
+            }
+          : { [QSlotParent]: componentFrame.componentNode.id, [QSlot]: slotName }
       );
       const lastNode = this.getOrCreateLastNode();
       if (lastNode.vnodeData) {
@@ -752,7 +774,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       maybeThen(this.emitStateData(), () => {
         this.$noMoreRoots$ = true;
         this.emitVNodeData();
-        preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
+        if (!isDev) {
+          preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
+        }
         this.emitSyncFnsData();
         this.emitPatchDataIfNeeded();
         this.emitExecutorIfNeeded();
@@ -861,7 +885,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private writeFragmentAttrs(fragmentAttrs: Props): void {
     for (const key in fragmentAttrs) {
       let value = fragmentAttrs[key] as string;
-      let encodeValue = false;
+      let encodeValue: ((value: string) => string) | null = null;
       if (typeof value !== 'string') {
         const rootId = this.addRoot(value);
         // We didn't add the vnode data, so we are only interested in the vnode position
@@ -884,7 +908,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataChar.PROPS_CHAR);
           break;
         case ELEMENT_KEY:
-          encodeValue = true;
+          encodeValue = encodeVNodeDataKey;
           this.write(VNodeDataChar.KEY_CHAR);
           break;
         case ELEMENT_SEQ:
@@ -907,13 +931,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataChar.SLOT_CHAR);
           break;
         default: {
-          encodeValue = true;
+          encodeValue = encodeURI;
           this.write(VNodeDataChar.SEPARATOR_CHAR);
           this.write(encodeVNodeDataString(key));
           this.write(VNodeDataChar.SEPARATOR_CHAR);
         }
       }
-      const encodedValue = encodeVNodeDataString(encodeValue ? encodeURI(value) : value);
+      const encodedValue = encodeVNodeDataString(encodeValue ? encodeValue(value) : value);
       const isEncoded = encodeValue ? encodedValue !== value : false;
       if (isEncoded) {
         // add separator only before and after the encoded value
@@ -1012,7 +1036,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitPreloaderPre() {
-    preloaderPre(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
+    if (!isDev) {
+      preloaderPre(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
+    }
   }
 
   isStatic(): boolean {
@@ -1254,7 +1280,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         const lastNode = this.getOrCreateLastNode();
         this.addPromiseAttribute(value);
         value.then((resolvedValue) => {
-          this.addBackpatchEntry(lastNode.id, key, resolvedValue);
+          this.addBackpatchEntry(
+            lastNode.id,
+            key,
+            serializeAttribute(key, resolvedValue, styleScopedId)
+          );
         });
         continue;
       }

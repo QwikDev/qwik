@@ -1,10 +1,10 @@
+import { isDev } from '@qwik.dev/core/build';
 import { logErrorAndStop } from '../utils/log';
-import { qDev } from '../utils/qdev';
 import { isObject } from '../utils/types';
 
 const baseUrl = 'https://qwikdev-build-v2.qwik-8nx.pages.dev/docs/errors/#q';
 export const codeToText = (code: number, ...parts: any[]): string => {
-  if (qDev) {
+  if (isDev) {
     // Keep one error, one line to make it easier to search for the error message.
     // Keep in sync with packages/docs/src/routes/docs/errors/index.mdx
     const MAP = [

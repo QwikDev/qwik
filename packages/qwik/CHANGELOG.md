@@ -1,5 +1,70 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.35
+
+### Minor Changes
+
+- ✨ Add an experimental `<Suspense>` component for showing fallback UI when child content takes longer than expected to render. (by [@Varixo](https://github.com/Varixo) in [#8588](https://github.com/QwikDev/qwik/pull/8588))
+
+  When rendering on the client, `<Suspense>` shows the `fallback` after the configured delay and keeps it visible until the children are ready. During updates, `showStale` can keep the last resolved content visible while the fallback is shown.
+
+  Enable it with `experimental: ['suspense']` in the `qwikVite` plugin.
+
+  On SSR, children render normally for now. The boundary also prepares Suspense for future streaming behavior.
+
+- ✨ add experimental `Reveal` for coordinating `Suspense` boundaries (by [@Varixo](https://github.com/Varixo) in [#8603](https://github.com/QwikDev/qwik/pull/8603))
+
+  `Reveal` lets developers coordinate sibling `Suspense` boundaries with `parallel`, `sequential`, `reverse`, or `together` reveal order. Use `collapsed` to hide pending boundaries that are waiting for their turn instead of showing their fallback.
+
+- ✨ `getClientManifest()` is now the way to get the client build manifest. Importing from `@qwik-client-manifest` is deprecated. (by [@wmertens](https://github.com/wmertens) in [#8352](https://github.com/QwikDev/qwik/pull/8352))
+
+- ✨ add worker$ support running heavy work in Web Workers (by [@Varixo](https://github.com/Varixo) in [#8572](https://github.com/QwikDev/qwik/pull/8572))
+
+### Patch Changes
+
+- fix(cli): defer `build.types` until after `build.lib` finishes so vite's `emptyOutDir` no longer races with tsc and silently wipes the emitted `.d.ts` files. (by [@maiieul](https://github.com/maiieul) in [#8585](https://github.com/QwikDev/qwik/pull/8585))
+
+- fix(core): hide `node:async_hooks` import from non-Qwik bundlers (e.g. cypress E2E) (by [@maiieul](https://github.com/maiieul) in [#8602](https://github.com/QwikDev/qwik/pull/8602))
+
+- 🐞🩹 final core.js output does not include error codes anymore, reducing the core module's size a little bit. (by [@maiieul](https://github.com/maiieul) in [#8612](https://github.com/QwikDev/qwik/pull/8612))
+
+- Migrated DevTools to Qwik, upgraded dependencies, and fixed issues caused by the dependency upgrade. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8593](https://github.com/QwikDev/qwik/pull/8593))
+
+- 🐞🩹 don't include preloader in dev mode (by [@Varixo](https://github.com/Varixo) in [#8606](https://github.com/QwikDev/qwik/pull/8606))
+
+- 🐞🩹 non-Vite consumers (webpack, etc.) don't blow up at runtime anymore when `import.meta.env` is undefined. (by [@maiieul](https://github.com/maiieul) in [#8610](https://github.com/QwikDev/qwik/pull/8610))
+
+- Updated dependencies [[`a8e3dc0`](https://github.com/QwikDev/qwik/commit/a8e3dc0694954aee6d9348b85a5c6cbb9b05b71d)]:
+  - @qwik.dev/optimizer@2.1.0-beta.4
+
+## 2.0.0-beta.34
+
+### Patch Changes
+
+- fix(core): Q3 error "Only primitive and object literals can be serialized" no longer throws for route loaders and actions. (by [@maiieul](https://github.com/maiieul) in [#8592](https://github.com/QwikDev/qwik/pull/8592))
+
+  fix(router): `QwikRouterMockProvider`'s `loaders` mocks stopped working due to a V2 refactor. They now properly mimick V2's implementation and work as expected.
+
+## 2.0.0-beta.33
+
+### Major Changes
+
+- We removed the following `renderToStream` APIs: (by [@maiieul](https://github.com/maiieul) in [#8518](https://github.com/QwikDev/qwik/pull/8518))
+  - `preloads.ssrPreloadProbability` and `preloads.preloadProbability` APIs because the number of simultaneous idle preloads should be easy to determine for the developer.
+  - `preloads.debug` API because it hasn't really proved useful after a full year of modulepreloads.
+  - the deprecated Service Worker `prefetchStrategy` API.
+
+### Patch Changes
+
+- fix(vite): resolve relative SSR/client input paths to absolute before passing to rollup, preventing "[vite-plugin-qwik] Qwik input "src/entry.preview.tsx" not found" errors. (by [@maiieul](https://github.com/maiieul) in [#8573](https://github.com/QwikDev/qwik/pull/8573))
+
+- 🐞🩹 Node SSR streaming to honor downstream backpressure (by [@Varixo](https://github.com/Varixo) in [#8557](https://github.com/QwikDev/qwik/pull/8557))
+
+- 🐞🩹 Qwik vite plugin's auto-detection of Qwik library dependencies now walks up the directory tree from Vite's `root` and unions deps from every `package.json` it finds. Previously it only read the `package.json` at `root`, which meant monorepo setups with the Vite root pointing at a sub-project (e.g. an Nx lib) missed Qwik libraries declared at the workspace root. Those libraries then fell through to Vite's pre-bundling, leaving raw `$()` calls in the bundled output and producing the runtime error "Optimizer should replace all usages of $()". (by [@maiieul](https://github.com/maiieul) in [#8586](https://github.com/QwikDev/qwik/pull/8586))
+
+- Updated dependencies [[`581a96e`](https://github.com/QwikDev/qwik/commit/581a96e6d74eef7a1dc47b145ae42dbb68531dcb)]:
+  - @qwik.dev/optimizer@2.1.0-beta.3
+
 ## 2.0.0-beta.32
 
 ### Major Changes

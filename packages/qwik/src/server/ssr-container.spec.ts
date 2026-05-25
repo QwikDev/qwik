@@ -10,30 +10,42 @@ vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_DEBUG', 'debug');
 });
 
+const createTestContainer = () => {
+  const writer = {
+    chunks: [] as string[],
+    write(text: string) {
+      this.chunks.push(text);
+    },
+    toString() {
+      return this.chunks.join('');
+    },
+  };
+
+  const container = ssrCreateContainer({
+    tagName: 'div',
+    writer,
+    renderOptions: {
+      qwikLoader: 'inline',
+    },
+    streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+      firstFlush: 0,
+      render: 0,
+      snapshot: 0,
+    }),
+  });
+
+  return { container, writer };
+};
+
+const getNoScriptHereCount = (container: ReturnType<typeof ssrCreateContainer>) => {
+  // Raw-text elements do not allow observable nested element output, so this focused regression
+  // test inspects the internal guard directly.
+  return Reflect.get(container, '$noScriptHere$') as number;
+};
+
 describe('SSR Container', () => {
   it('should not emit Qwik loader before style elements', async () => {
-    const writer = {
-      chunks: [] as string[],
-      write(text: string) {
-        this.chunks.push(text);
-      },
-      toString() {
-        return this.chunks.join('');
-      },
-    };
-
-    const container = ssrCreateContainer({
-      tagName: 'div',
-      writer,
-      renderOptions: {
-        qwikLoader: 'inline', // Force inline loader
-      },
-      streamHandler: new StreamHandler({} as RenderToStreamOptions, {
-        firstFlush: 0,
-        render: 0,
-        snapshot: 0,
-      }),
-    });
+    const { container, writer } = createTestContainer();
 
     // Open container
     container.openContainer();
@@ -53,6 +65,61 @@ describe('SSR Container', () => {
 
     const html = writer.toString();
     expect(html.indexOf('id="qwikloader"')).toBeGreaterThan(html.indexOf('my-style-id'));
+  });
+
+  it('should not emit inline Qwik loader while inside foreign content', async () => {
+    const foreignElements = ['svg', 'math'];
+    for (let i = 0; i < foreignElements.length; i++) {
+      const foreignElement = foreignElements[i];
+      const { container, writer } = createTestContainer();
+
+      container.openContainer();
+      container.openElement(foreignElement, null, {}, null, null, null);
+      container.textNode('x'.repeat(30 * 1024));
+      container.openElement('g', null, {}, null, null, null);
+      await container.closeElement();
+      await container.closeElement();
+
+      container.openElement('div', null, {}, null, null, null);
+      await container.closeElement();
+      await container.closeContainer();
+
+      const html = writer.toString();
+      const foreignStart = html.indexOf(`<${foreignElement}`);
+      const foreignEnd = html.indexOf(`</${foreignElement}>`);
+      const loaderIdx = html.indexOf('id="qwikloader"');
+
+      expect(loaderIdx).toBeGreaterThan(-1);
+      expect(foreignStart).toBeGreaterThan(-1);
+      expect(foreignEnd).toBeGreaterThan(foreignStart);
+      expect(loaderIdx).toBeGreaterThan(foreignEnd);
+    }
+  });
+
+  it('should track blocked parser-state elements in the no-script refcounter', async () => {
+    const blockedElements = [
+      'script',
+      'style',
+      'textarea',
+      'title',
+      'iframe',
+      'noframes',
+      'noscript',
+      'xmp',
+      'template',
+    ];
+    for (let i = 0; i < blockedElements.length; i++) {
+      const elementName = blockedElements[i];
+      const { container } = createTestContainer();
+
+      container.openContainer();
+      expect(getNoScriptHereCount(container)).toBe(0);
+      container.openElement(elementName, null, {}, null, null, null);
+      expect(getNoScriptHereCount(container)).toBe(1);
+      await container.closeElement();
+      expect(getNoScriptHereCount(container)).toBe(0);
+      await container.closeContainer();
+    }
   });
 
   it('should encode custom attributes with separators in emitVNodeData', () => {

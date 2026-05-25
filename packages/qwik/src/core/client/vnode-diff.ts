@@ -1,4 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
+import { qTest } from '../shared/utils/qdev';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
 import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
@@ -11,7 +12,9 @@ import { EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
-import type { Cursor } from '../shared/cursor/cursor';
+import { isCursor, type Cursor } from '../shared/cursor/cursor';
+import { abandonCursor } from '../shared/cursor/cursor-queue';
+import { getCursorData } from '../shared/cursor/cursor-props';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
@@ -43,6 +46,7 @@ import {
   QBackRefs,
   QContainerAttr,
   QDefaultSlot,
+  QCursorBoundary,
   QSlot,
   QTemplate,
   dangerouslySetInnerHTML,
@@ -59,6 +63,7 @@ import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-ope
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { updateDirtySubtreeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';
@@ -178,7 +183,7 @@ function setAttribute(
   scopedStyleIdPrefix: string | null,
   originalValue: any
 ) {
-  import.meta.env.TEST &&
+  qTest &&
     scopedStyleIdPrefix &&
     vnode_setProp(vnode, debugStyleScopeIdPrefixAttr, scopedStyleIdPrefix);
   vnode_setProp(vnode, key, originalValue);
@@ -727,9 +732,12 @@ function expectProjection(diffContext: DiffContext) {
 }
 
 function expectSlot(diffContext: DiffContext) {
+  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
   const vHost = vnode_getProjectionParentComponent(diffContext.$vParent$);
 
   const slotNameKey = getSlotNameKey(diffContext, vHost);
+  const cursorBoundary =
+    directGetPropsProxyProp<CursorBoundary | null, any>(jsxNode, QCursorBoundary) || null;
 
   const vProjectedNode = vHost
     ? vnode_getProp<VirtualVNode | null>(
@@ -744,6 +752,12 @@ function expectSlot(diffContext: DiffContext) {
   if (vProjectedNode == null) {
     diffContext.$vNewNode$ = vnode_newVirtual();
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
+    vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
+    updateDirtySubtreeCursorBoundary(
+      diffContext.$container$,
+      diffContext.$vNewNode$ as VirtualVNode,
+      cursorBoundary
+    );
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection); // Nothing to project, so render content of the slot.
@@ -761,6 +775,12 @@ function expectSlot(diffContext: DiffContext) {
     const oldParent = vProjectedNode.parent;
     diffContext.$vNewNode$ = vProjectedNode;
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
+    vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
+    updateDirtySubtreeCursorBoundary(
+      diffContext.$container$,
+      diffContext.$vNewNode$ as VirtualVNode,
+      cursorBoundary
+    );
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
@@ -1112,7 +1132,7 @@ function createElementWithNamespace(diffContext: DiffContext, elementName: strin
   const domParentVNode = vnode_getDomParentVNode(diffContext.$vParent$, true);
   const namespaceData = getNewElementNamespaceData(domParentVNode, elementName);
 
-  const currentDocument = import.meta.env.TEST ? diffContext.$container$.document : document;
+  const currentDocument = qTest ? diffContext.$container$.document : document;
 
   const element =
     namespaceData.elementNamespaceFlag === VNodeFlags.NS_html
@@ -1295,7 +1315,7 @@ const patchProperty = (
 };
 
 function registerQwikLoaderEvent(diffContext: DiffContext, eventName: string) {
-  const qWindow = import.meta.env.TEST
+  const qWindow = qTest
     ? (diffContext.$container$.document.defaultView as qWindow | null)
     : (window as unknown as qWindow);
   if (qWindow) {
@@ -1734,7 +1754,7 @@ function expectText(diffContext: DiffContext, text: string) {
     diffContext.$journal$,
     diffContext.$vParent$,
     (diffContext.$vNewNode$ = vnode_newText(
-      (import.meta.env.TEST ? diffContext.$container$.document : document).createTextNode(text),
+      (qTest ? diffContext.$container$.document : document).createTextNode(text),
       text
     )),
     getCurrentInsertBefore(diffContext)
@@ -1920,6 +1940,7 @@ export function cleanup(
   cursorRoot: VNode | null = null
 ) {
   let vCursor: VNode | null = vNode;
+  const cursorRootData = cursorRoot && isCursor(cursorRoot) ? getCursorData(cursorRoot) : null;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
     markVNodeAsDeleted(vCursor);
@@ -1928,6 +1949,9 @@ export function cleanup(
   }
   let vParent: VNode | null = null;
   do {
+    if (cursorRootData && vCursor !== cursorRoot && isCursor(vCursor)) {
+      abandonCursor(container, cursorRootData, vCursor);
+    }
     const type = vCursor.flags;
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
       clearAllEffects(container, vCursor);
@@ -1981,7 +2005,7 @@ export function cleanup(
                   projectionChild = projectionChild.nextSibling as VNode | null;
                 }
 
-                cleanupStaleUnclaimedProjection(journal, projection);
+                cleanupStaleUnclaimedProjection(container, journal, projection);
               }
             }
           }
@@ -2007,18 +2031,10 @@ export function cleanup(
          */
         const vFirstChild = vnode_getFirstChild(vCursor);
         if (vFirstChild) {
-          vnode_walkVNode(vFirstChild, (vNode) => {
-            /**
-             * Instead of an ID, we store a direct reference to the VNode. This is necessary to
-             * locate the slot's parent in a detached subtree, as the ID would become invalid.
-             */
-            if (vNode.flags & VNodeFlags.Virtual) {
-              // The QSlotParent is used to find the slot parent during scheduling
-              vNode.slotParent;
-            }
-          });
+          vnode_walkVNode(vFirstChild);
           return;
         }
+        clearProjectionFromSlotParent(container, vCursor);
       }
     } else if (type & VNodeFlags.Text) {
       markVNodeAsDeleted(vCursor);
@@ -2056,7 +2072,21 @@ export function cleanup(
   } while (true as boolean);
 }
 
-function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNode) {
+function clearProjectionFromSlotParent(container: ClientContainer, vNode: VNode) {
+  if (!vNode.slotParent) {
+    return;
+  }
+  const slotName = container.getHostProp<string>(vNode, QSlot);
+  if (slotName != null && container.getHostProp(vNode.slotParent, slotName) === vNode) {
+    vnode_setProp(vNode.slotParent, slotName, null);
+  }
+}
+
+function cleanupStaleUnclaimedProjection(
+  container: ClientContainer,
+  journal: VNodeJournal,
+  projection: VNode
+) {
   // we are removing a node where the projection would go after slot render.
   // This is not needed, so we need to cleanup still unclaimed projection
   const projectionParent = projection.parent;
@@ -2067,6 +2097,7 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
       vnode_getElementName(projectionParent as ElementVNode) === QTemplate
     ) {
       // if parent is the q:template element then projection is still unclaimed - remove it
+      clearProjectionFromSlotParent(container, projection);
       vnode_remove(journal, projectionParent as ElementVNode | VirtualVNode, projection, true);
     }
   }

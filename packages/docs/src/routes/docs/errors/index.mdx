@@ -185,7 +185,7 @@ You used a Signal where a primitive was expected (e.g., string concatenation, co
 
 **useComputed$ QRL cannot return a Promise**
 
-The function inside `useComputed$` must be synchronous. If you need async computation, use `useAsync$` instead.
+The function inside `useComputed$` must be synchronous. If you need an async signal with a value that may resolve later, use `useAsync$` instead. If the UI reads the value before it is ready, wrap that UI in `<Suspense>` or handle `.loading` and `.error` inline.
 
 ## Q30
 

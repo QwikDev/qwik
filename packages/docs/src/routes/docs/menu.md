@@ -18,6 +18,7 @@
 - [Slots](</docs/(qwik)/core/slots/index.mdx>)
 - [Rendering](</docs/(qwik)/core/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/core/styles/index.mdx>)
+- [Suspense](</docs/(qwik)/core/suspense/index.mdx>)
 - [API Reference](/api/qwik/)
 
 ### Concepts
@@ -37,6 +38,7 @@
 - [Optimizer](</docs/(qwik)/advanced/optimizer/index.mdx>)
 - [Optimizer Hints](</docs/(qwik)/advanced/optimizer-hints/index.mdx>)
 - [Modules Prefetching](</docs/(qwik)/advanced/modules-prefetching/index.mdx>)
+- [Web Workers](</docs/(qwik)/advanced/worker/index.mdx>)
 - [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
 - [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
 - [Synchronous Events with State](</docs/(qwik)/advanced/sync-events/index.mdx>)

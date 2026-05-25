@@ -21,7 +21,11 @@ export {
 export { QError, qError } from '../core/shared/error/error';
 export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
 export { DEBUG_TYPE, QContainerValue, VirtualType } from '../core/shared/types';
-export { escapeHTML, encodeVNodeDataString } from '../core/shared/utils/character-escaping';
+export {
+  escapeHTML,
+  encodeVNodeDataKey,
+  encodeVNodeDataString,
+} from '../core/shared/utils/character-escaping';
 export {
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -60,6 +64,7 @@ export { serializeAttribute } from '../core/shared/utils/styles';
 export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
 export { preload } from '../core/preloader/queue';
 export { initPreloader } from '../core/preloader/bundle-graph';
+export { qTest } from '../core/shared/utils/qdev';
 export { SsrNodeFlags } from '../core/shared/types';
 export { isPromise, retryOnPromise } from '../core/shared/utils/promises';
 export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';

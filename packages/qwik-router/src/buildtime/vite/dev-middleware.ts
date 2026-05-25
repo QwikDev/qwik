@@ -13,7 +13,17 @@ export const makeRouterDevMiddleware =
 
     // TODO more flexible entry points, like importing `render` from `src/server`
     // TODO pick a better name, entry.server-renderer perhaps?
-    const mod = (await server.ssrLoadModule('src/entry.ssr')) as { default: Render };
+    let mod: { default: Render };
+    try {
+      mod = (await server.ssrLoadModule('src/entry.ssr')) as { default: Render };
+    } catch (e) {
+      // Pass through so hosts without an entry.ssr (e.g. Storybook) can handle the request
+      // themselves instead of crashing the dev server with an unhandled rejection.
+      if (e instanceof Error) {
+        server.ssrFixStacktrace(e);
+      }
+      return next();
+    }
     if (!mod.default) {
       console.error('No default export found in src/entry.ssr');
       return next();

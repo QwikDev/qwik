@@ -1,5 +1,5 @@
 import { getPlatform } from '@qwik.dev/core';
-import { initPreloader } from './qwik-copy';
+import { initPreloader, qTest } from './qwik-copy';
 import type { QRLInternal, SSRContainer } from './qwik-types';
 import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
 
@@ -22,10 +22,10 @@ const simplifyPath = (base: string, path: string | null | undefined) => {
 
 const getBase = (container: SSRContainer) => {
   let base = container.$buildBase$!;
-  if (import.meta.env.DEV && !import.meta.env.TEST) {
+  if (import.meta.env?.DEV && !qTest) {
     // Vite dev server active
     // in dev, all bundles are absolute paths from the base url, not /build
-    base = import.meta.env.BASE_URL;
+    base = import.meta.env?.BASE_URL;
   }
   return base;
 };
@@ -40,9 +40,14 @@ export const preloaderPre = (
   const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest?.preloader);
   let bundleGraphPath = resolvedManifest?.manifest.bundleGraphAsset;
   if (bundleGraphPath) {
-    bundleGraphPath = (import.meta.env.BASE_URL || '/') + bundleGraphPath;
+    bundleGraphPath = (import.meta.env?.BASE_URL || '/') + bundleGraphPath;
   }
-  if (preloaderBundle && bundleGraphPath && options !== false) {
+  if (
+    !(import.meta.env?.DEV && !qTest) &&
+    preloaderBundle &&
+    bundleGraphPath &&
+    options !== false
+  ) {
     const bundleGraph = container.resolvedManifest?.manifest.bundleGraph;
     initPreloader(bundleGraph);
 
@@ -188,6 +193,9 @@ export const includePreloader = (
 };
 
 export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, nonce?: string) => {
+  if (import.meta.env?.DEV && !qTest) {
+    return;
+  }
   if (opts.preloader !== false) {
     const qrls = Array.from(ssrContainer.serializationCtx.$eventQrls$) as QRLInternal[];
     const preloadBundles = getBundles(qrls);

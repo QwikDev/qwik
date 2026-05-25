@@ -165,8 +165,8 @@ test('tsconfigFileNames, empty array fallback to default', async () => {
 test('input string', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ input: 'src/cmps/main.tsx' });
-  // relative inputs are resolved to absolute so rollup can find them
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src/cmps/main.tsx'))]);
+  // we don't provide input so that we don't override the vite input
+  assert.deepEqual(opts.input, undefined);
 });
 
 test('input array', async () => {
@@ -174,21 +174,8 @@ test('input array', async () => {
   const opts = await plugin.normalizeOptions({
     input: ['src/cmps/a.tsx', 'src/cmps/b.tsx'],
   });
-  // relative inputs are resolved to absolute so rollup can find them
-  assert.deepEqual(opts.input, [
-    normalizePath(resolve(cwd, 'src/cmps/a.tsx')),
-    normalizePath(resolve(cwd, 'src/cmps/b.tsx')),
-  ]);
-});
-
-test.runIf(process.platform === 'win32')('input array, win32', async () => {
-  const plugin = await mockPlugin();
-  const opts = await plugin.normalizeOptions({
-    rootDir: 'C:\\proj',
-    input: ['src\\cmps\\a.tsx', 'C:\\abs\\b.tsx'],
-  });
-  // relative paths are resolved against rootDir and normalized; absolute paths pass through
-  assert.deepEqual(opts.input, ['C:/proj/src/cmps/a.tsx', 'C:\\abs\\b.tsx']);
+  // we don't provide input so that we don't override the vite input
+  assert.deepEqual(opts.input, undefined);
 });
 
 test('input with @ prefix is not resolved', async () => {
@@ -497,14 +484,149 @@ describe('resolveId', () => {
       'id',
       '@qwik.dev/core/build'
     );
-    expect(await plugin.resolveId({} as any, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
-      'id',
-      '@qwik-client-manifest'
-    );
+    expect(
+      await plugin.resolveId({} as any, '@qwik-client-manifest', '/foo/bar/core')
+    ).toHaveProperty('id', '@qwik-client-manifest');
   });
 });
 
-async function mockPlugin(os = process.platform) {
+test('load skips HMR wrapper for worker$ segments', async () => {
+  const plugin = await mockPlugin(process.platform, false);
+  await plugin.normalizeOptions({ rootDir: '/root' });
+  plugin.configureServer({
+    hot: {},
+    moduleGraph: {
+      getModuleById: () => undefined,
+      invalidateModule: () => undefined,
+    },
+  } as any);
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+    } as any,
+    `import { worker$ } from '@qwik.dev/core/worker';
+export const runInWorker = worker$(() => 'hello');
+`,
+    '/root/src/routes/index.tsx'
+  );
+
+  const deps = result?.meta?.qwikdeps;
+  expect(deps).toHaveLength(1);
+
+  const segmentId = deps![0];
+  const loaded = await plugin.load({} as any, segmentId);
+  expect((loaded as { code: string }).code).not.toContain(
+    "document.dispatchEvent(new CustomEvent('qHmr'"
+  );
+  expect((loaded as { code: string }).code).not.toContain("typeof document !== 'undefined'");
+});
+
+test('load preserves worker chunk markers inside event segments', async () => {
+  const plugin = await mockPlugin(process.platform, false);
+  await plugin.normalizeOptions({ rootDir: '/root' });
+  plugin.configureServer({
+    hot: {},
+    moduleGraph: {
+      getModuleById: () => undefined,
+      invalidateModule: () => undefined,
+    },
+  } as any);
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+    } as any,
+    `import { component$, useSignal } from '@qwik.dev/core';
+import { worker$ } from '@qwik.dev/core/worker';
+
+const incrementInWorker = worker$((count: number) => count + 1);
+
+export default component$(() => {
+  const count = useSignal(0);
+
+  return (
+    <button
+      onClick$={async () => {
+        count.value = await incrementInWorker(count.value);
+      }}
+    >
+      Increment
+    </button>
+  );
+});
+`,
+    '/root/src/routes/index.tsx'
+  );
+
+  const deps = result?.meta?.qwikdeps;
+  expect(deps?.length).toBeGreaterThan(0);
+
+  const eventSegmentId = deps!.find((dep) => dep.includes('_q_e_click_'));
+  expect(eventSegmentId).toBeTruthy();
+
+  const loaded = await plugin.load({} as any, eventSegmentId!);
+  const code = (loaded as { code: string }).code;
+  expect(code).toContain('_qrlWithChunkDEV(');
+  const workerQrlSentinel = '"__QWIK' + '_WORKER_QRL__:';
+  expect(code.includes(workerQrlSentinel) || code.includes('?worker_file&type=module')).toBe(true);
+});
+
+test('load wraps non-worker QRL segment HMR with a runtime document guard', async () => {
+  const plugin = await mockPlugin(process.platform, false);
+  await plugin.normalizeOptions({ rootDir: '/root' });
+  plugin.configureServer({
+    hot: {},
+    moduleGraph: {
+      getModuleById: () => undefined,
+      invalidateModule: () => undefined,
+    },
+  } as any);
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+    } as any,
+    `import { component$ } from '@qwik.dev/core';
+export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
+`,
+    '/root/src/routes/index.tsx'
+  );
+
+  const deps = result?.meta?.qwikdeps;
+  expect(deps?.length).toBeGreaterThan(0);
+
+  const eventSegmentId = deps!.find((dep) => dep.includes('_q_e_click_'));
+  expect(eventSegmentId).toBeTruthy();
+
+  const loaded = await plugin.load({} as any, eventSegmentId!);
+  expect((loaded as { code: string }).code).toContain(
+    "if (import.meta.hot && typeof document !== 'undefined')"
+  );
+});
+
+test('transform omits sourcemaps for public virtual modules', async () => {
+  const plugin = await mockPlugin(process.platform, false);
+  await plugin.normalizeOptions({ rootDir: '/root', srcDir: '/root/src' });
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+    } as any,
+    `export default p => <svg {...p} viewBox="0 0 1 1" />;`,
+    'virtual:/root/src/components/favicon.svg.qwik.jsx'
+  );
+
+  expect(result).toBeTruthy();
+  expect(result!.code).toContain('_jsxSplit');
+  expect(result!.map).toBeNull();
+});
+
+async function mockPlugin(os = process.platform, useMockBinding = true) {
   const plugin = createQwikPlugin({
     sys: {
       cwd: () => process.cwd(),
@@ -514,8 +636,61 @@ async function mockPlugin(os = process.platform) {
       strictDynamicImport: async (path) => import(path),
       path: path as any,
     },
-    binding: { mockBinding: true },
+    ...(useMockBinding ? { binding: { mockBinding: true } } : {}),
   });
   await plugin.init();
   return plugin;
 }
+
+describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
+  const sampleManifest: QwikManifest = {
+    manifestHash: 'abc123',
+    mapping: { symbol_abc: 'chunk.js' },
+    symbols: {},
+    bundles: {},
+    version: '1',
+  };
+
+  test('replaces !globalThis.__QWIK_MANIFEST__ with false when no manifest is available', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({ target: 'ssr', buildMode: 'development' });
+
+    const code = `if (!globalThis.__QWIK_MANIFEST__) { throw new Error('no manifest'); }`;
+    const result = await plugin.transform({} as any, code, '/root/src/server.js');
+
+    expect(result).toBeTruthy();
+    expect(result!.code).toContain('false');
+    expect(result!.code).not.toContain('!globalThis.__QWIK_MANIFEST__');
+  });
+
+  test('replaces globalThis.__QWIK_MANIFEST__ with manifest JSON when manifest is available', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'ssr',
+      buildMode: 'development',
+      manifestInput: sampleManifest,
+    });
+
+    const code = `const m = globalThis.__QWIK_MANIFEST__;`;
+    const result = await plugin.transform({} as any, code, '/root/src/server.js');
+
+    expect(result).toBeTruthy();
+    expect(result!.code).not.toContain('globalThis.__QWIK_MANIFEST__');
+    expect(result!.code).toContain('"manifestHash":"abc123"');
+  });
+
+  test('generates a fresh sourcemap after manifest replacement', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({
+      target: 'ssr',
+      buildMode: 'development',
+      manifestInput: sampleManifest,
+    });
+
+    const code = `const m = globalThis.__QWIK_MANIFEST__;`;
+    const result = await plugin.transform({} as any, code, '/root/src/server.js');
+
+    expect(result).toBeTruthy();
+    expect(result!.map).toBeTruthy();
+  });
+});

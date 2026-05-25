@@ -1,4 +1,5 @@
 import { QError, qError } from '../error/error';
+import { qDev } from '../utils/qdev';
 import { isFunction, isString } from '../utils/types';
 import { createQRL, type QRLInternal } from './qrl-class';
 import type { QRL } from './qrl.public';
@@ -79,6 +80,29 @@ export const _noopQrlDEV = <T>(
   lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const newQrl = _noopQrl(symbolName, lexicalScopeCapture) as QRLInternal<T>;
+  qDev && newQrl.$setDev$(opts);
+  return newQrl;
+};
+
+/** @internal */
+export const _qrlWithChunk = <T = any>(
+  chunk: string,
+  importer: () => Promise<any>,
+  symbol: string,
+  lexicalScopeCapture?: Readonly<unknown[]>
+): QRL<T> => {
+  return createQRL<T>(chunk, symbol, null, importer, lexicalScopeCapture);
+};
+
+/** @internal */
+export const _qrlWithChunkDEV = <T = any>(
+  chunk: string,
+  importer: () => Promise<any>,
+  symbol: string,
+  opts: QRLDev,
+  lexicalScopeCapture?: Readonly<unknown[]>
+): QRL<T> => {
+  const newQrl = _qrlWithChunk(chunk, importer, symbol, lexicalScopeCapture) as QRLInternal<T>;
   newQrl.$setDev$(opts);
   return newQrl;
 };
@@ -91,7 +115,7 @@ export const qrlDEV = <T = any>(
   lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture, 1) as QRLInternal<T>;
-  newQrl.$setDev$(opts);
+  qDev && newQrl.$setDev$(opts);
   return newQrl;
 };
 
@@ -103,7 +127,7 @@ export const inlinedQrlDEV = <T = any>(
   lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const qrl = inlinedQrl(symbol, symbolName, lexicalScopeCapture) as QRLInternal<T>;
-  qrl.$setDev$(opts);
+  qDev && qrl.$setDev$(opts);
   return qrl;
 };
 

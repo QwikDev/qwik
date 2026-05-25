@@ -38,12 +38,6 @@ export default defineConfig({
         find: '@qwik.dev/core',
         replacement: fileURLToPath(new URL('./packages/qwik/src/core/index.ts', import.meta.url)),
       },
-      {
-        find: '@qwik-client-manifest',
-        replacement: fileURLToPath(
-          new URL('./packages/qwik/src/core/bench/manifest-stub.ts', import.meta.url)
-        ),
-      },
     ],
   },
   test: {

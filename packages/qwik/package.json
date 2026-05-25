@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-beta.32",
+  "version": "2.0.0-beta.35",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.mjs"
@@ -10,7 +10,8 @@
   "dependencies": {
     "@qwik.dev/optimizer": "workspace:*",
     "csstype": "^3.2.3",
-    "launch-editor": "^2.12.0"
+    "launch-editor": "^2.12.0",
+    "magic-string": "0.30.21"
   },
   "devDependencies": {
     "rolldown": "1.0.0-rc.16",
@@ -22,7 +23,7 @@
     "image-size": "1.2.1",
     "kleur": "4.1.5",
     "prettier": "3.7.4",
-    "vitest": "4.0.18"
+    "vitest": "4.1.0"
   },
   "engines": {
     "node": "^20.3.0 || >=21.0.0"
@@ -109,6 +110,10 @@
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.mjs"
     },
+    "./worker": {
+      "types": "./worker.d.ts",
+      "import": "./dist/worker/index.mjs"
+    },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
     "./backpatch-executor.js": "./dist/backpatch-executor.js",
@@ -130,6 +135,7 @@
     "public.d.ts",
     "server.d.ts",
     "testing.d.ts",
+    "worker.d.ts",
     "qwik-cli.mjs"
   ],
   "homepage": "https://qwik.dev/",

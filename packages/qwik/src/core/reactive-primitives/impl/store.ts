@@ -1,4 +1,5 @@
 import { pad, qwikDebugToString } from '../../debug';
+import { qTest } from '../../shared/utils/qdev';
 import { assertTrue } from '../../shared/error/assert';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { isObject, isSerializableObject } from '../../shared/utils/types';
@@ -271,7 +272,7 @@ export function addStoreEffect(
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
   // TODO is this needed with the preloader?
-  (import.meta.env.TEST ? !isDomContainer(store.$container$) : isServer) &&
+  (qTest ? !isDomContainer(store.$container$) : isServer) &&
     addQrlToSerializationCtx(effectSubscription, store.$container$);
 
   DEBUG &&

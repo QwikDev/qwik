@@ -31,10 +31,23 @@ export function getUrl(req: IncomingMessage | Http2ServerRequest, origin: string
   return normalizeUrl((req as any).originalUrl || req.url || '/', origin);
 }
 
-// when the user refreshes or cancels the stream there will be an error
-function isIgnoredError(message = '') {
-  const ignoredErrors = ['The stream has been destroyed', 'write after end'];
-  return ignoredErrors.some((ignored) => message.includes(ignored));
+// Client disconnects are expected during streaming SSR: the socket is gone,
+// so the adapter should stop writing instead of surfacing them as app errors.
+function isClientAbortWriteError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  const code = (error as Error & { code?: string }).code;
+  if (
+    code === 'EPIPE' ||
+    code === 'ECONNRESET' ||
+    code === 'ERR_STREAM_DESTROYED' ||
+    code === 'ERR_STREAM_WRITE_AFTER_END'
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 // ensure no HTTP/2-specific headers are being set
@@ -46,20 +59,137 @@ export function normalizeUrl(url: string, base: string) {
 
 function createNodeResponseSink(res: ServerResponse) {
   let closed = res.closed || res.destroyed;
+  let responseError: unknown;
+  let resolveClosed: () => void;
   const closedPromise = closed
     ? Promise.resolve()
     : new Promise<void>((resolve) => {
+        resolveClosed = resolve;
         res.once('close', () => {
           closed = true;
           resolve();
         });
       });
 
+  res.on('error', (error) => {
+    if (responseError === undefined) {
+      responseError = error;
+    }
+    if (!closed) {
+      closed = true;
+      resolveClosed();
+    }
+  });
+
+  const shouldPropagateResponseError = () =>
+    responseError !== undefined && !isClientAbortWriteError(responseError);
+
   const write = (chunk: Uint8Array) => {
     if (closed || res.closed || res.destroyed) {
       // If the response has already been closed or destroyed (for example the client has disconnected)
       // then writing into it will cause an error. So just stop writing since no one
       // is listening.
+      if (shouldPropagateResponseError()) {
+        return Promise.reject(responseError);
+      }
+      return;
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      let settled = false;
+      let onDrain: (() => void) | undefined;
+
+      const cleanupDrain = () => {
+        if (onDrain) {
+          res.off('drain', onDrain);
+          onDrain = undefined;
+        }
+      };
+
+      const finish = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        cleanupDrain();
+
+        // Let Node process the completed write before SSR keeps emitting more chunks.
+        setImmediate(resolve);
+      };
+
+      const finishClosed = () => {
+        closed = true;
+        finish();
+      };
+
+      const fail = (error: unknown) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        closed = true;
+        cleanupDrain();
+        reject(error);
+      };
+
+      closedPromise.then(() => {
+        if (shouldPropagateResponseError()) {
+          fail(responseError);
+          return;
+        }
+        finish();
+      });
+
+      let ok: boolean;
+      try {
+        ok = res.write(chunk, (error) => {
+          if (error) {
+            if (isClientAbortWriteError(error)) {
+              finishClosed();
+              return;
+            }
+            fail(error);
+            return;
+          }
+          finish();
+        });
+      } catch (error) {
+        if (isClientAbortWriteError(error)) {
+          finishClosed();
+          return;
+        }
+        fail(error);
+        return;
+      }
+
+      // Some response wrappers (notably `compression`) replace res.write
+      // with a 2-arg signature and silently drop the per-write callback,
+      // which would otherwise hang the SSR walker forever. Resolve via
+      // Node's standard backpressure protocol instead:
+      //   - res.write() returned true  → no backpressure, resolve now.
+      //   - res.write() returned false → wait for 'drain'.
+      // The per-write callback (if it ever fires) still surfaces errors,
+      // and becomes a no-op for resolution once we've already settled.
+      if (settled) {
+        return;
+      }
+      if (ok) {
+        finish();
+      } else {
+        onDrain = () => {
+          onDrain = undefined;
+          finish();
+        };
+        res.once('drain', onDrain);
+      }
+    });
+  };
+
+  const close = () => {
+    if (closed || res.closed || res.destroyed) {
+      if (shouldPropagateResponseError()) {
+        return Promise.reject(responseError);
+      }
       return;
     }
 
@@ -71,9 +201,8 @@ function createNodeResponseSink(res: ServerResponse) {
           return;
         }
         settled = true;
-
-        // Let Node process the completed write before SSR keeps emitting more chunks.
-        setImmediate(resolve);
+        closed = true;
+        resolve();
       };
 
       const fail = (error: unknown) => {
@@ -81,42 +210,34 @@ function createNodeResponseSink(res: ServerResponse) {
           return;
         }
         settled = true;
+        closed = true;
         reject(error);
       };
 
-      closedPromise.then(finish);
+      closedPromise.then(() => {
+        if (shouldPropagateResponseError()) {
+          fail(responseError);
+          return;
+        }
+        finish();
+      });
+
+      // Resolve on 'finish' (data fully flushed). We do NOT pass a callback
+      // to res.end because some response wrappers replace it with a 2-arg
+      // signature `(chunk, encoding)` (notably `compression@1.x`) and would
+      // treat the callback as a chunk, then throw inside Buffer.from(...) —
+      // leaving the underlying stream un-ended and the socket hanging.
+      res.once('finish', finish);
 
       try {
-        res.write(chunk, (error) => {
-          if (error) {
-            if (isIgnoredError(error.message)) {
-              finish();
-              return;
-            }
-            fail(error);
-            return;
-          }
-          finish();
-        });
+        res.end();
       } catch (error) {
-        if (error instanceof Error && isIgnoredError(error.message)) {
+        if (isClientAbortWriteError(error)) {
           finish();
           return;
         }
         fail(error);
       }
-    });
-  };
-
-  const close = () => {
-    if (closed || res.closed || res.destroyed) {
-      return;
-    }
-
-    return new Promise<void>((resolve) => {
-      res.end(() => {
-        resolve();
-      });
     });
   };
 
@@ -161,6 +282,9 @@ export async function fromNodeHttp(
 
   const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
   const controller = new AbortController();
+  const abort = () => {
+    controller.abort();
+  };
   const options = {
     method: req.method,
     headers: requestHeaders,
@@ -168,9 +292,10 @@ export async function fromNodeHttp(
     signal: controller.signal,
     duplex: 'half' as any,
   };
-  res.on('close', () => {
-    controller.abort();
-  });
+  req.on('aborted', abort);
+  req.on('error', abort);
+  res.on('close', abort);
+  res.on('error', abort);
   const serverRequestEv: ServerRequestEvent<boolean> = {
     mode,
     url,
@@ -180,7 +305,7 @@ export async function fromNodeHttp(
         return process.env[key];
       },
     },
-    getWritableStream: (status, headers, cookies) => {
+    getWritableStream: (status, headers, cookies, resolve) => {
       res.statusCode = status;
       const sink = createNodeResponseSink(res);
 
@@ -198,6 +323,8 @@ export async function fromNodeHttp(
       } catch (err) {
         console.error(err);
       }
+
+      resolve(true);
 
       return new WritableStream<Uint8Array>({
         write(chunk) {

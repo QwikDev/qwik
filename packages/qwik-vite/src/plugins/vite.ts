@@ -41,6 +41,19 @@ import {
 import { isVirtualId } from './vite-utils';
 import type { BuildOptions, ResolvedId } from 'rolldown';
 import type { RollupOptions } from 'rollup';
+import {
+  createBuildWorkerQrlChunkResolver,
+  rewriteWorkerQrlChunkPlaceholders,
+} from './worker-qrl-chunks';
+import {
+  emitQwikWorkerCoreChunk,
+  getQwikWorkerConfig,
+  isQwikWorkerCoreId,
+  loadQwikWorkerCore,
+  QWIK_WORKER_CORE_ID,
+  rewriteClientWorkerCorePlaceholders,
+  rewriteSsrWorkerCorePlaceholders,
+} from './worker-core';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -232,7 +245,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
 
       const opts = await qwikPlugin.normalizeOptions(pluginOpts);
-      input = opts.input;
+      input ||= opts.input;
 
       // Cache pluginOpts for use in configResolved()
       cachedPluginOpts = pluginOpts;
@@ -330,6 +343,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             ? rolldownBuildOptions
             : rollupBuildOptions,
         },
+        worker: getQwikWorkerConfig(viteConfig.worker, target, viteCommand),
         define: {
           [qDevKey]: qDev,
           [qInspectorKey]: qInspector,
@@ -457,6 +471,26 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       } else {
         qwikPlugin.normalizeOptions(qwikViteOpts);
       }
+
+      // Vite's import-analysis-build plugin rewrites every dynamic import to go
+      // through `__vitePreload`, producing an extra `preload-helper.js` chunk
+      // and adding an import + wrapper to every QRL bundle. Qwik has its own
+      // preloader, so the helper is pure overhead. `build.modulePreload: false`
+      // does NOT disable this — see https://github.com/vitejs/vite/issues/18551.
+      if (
+        viteCommand === 'build' &&
+        !qwikViteOpts.csr &&
+        qwikPlugin.getOptions().target === 'client'
+      ) {
+        const names = ['vite:build-import-analysis'];
+        const plugins = config.plugins as VitePlugin[];
+        for (const name of names) {
+          const i = plugins.findIndex((p) => p?.name === name);
+          if (i >= 0) {
+            plugins.splice(i, 1);
+          }
+        }
+      }
     },
 
     async buildStart() {
@@ -479,11 +513,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       });
 
       await qwikPlugin.buildStart(this);
+      if (viteCommand === 'build' && qwikPlugin.getOptions().target === 'client') {
+        emitQwikWorkerCoreChunk(this);
+      }
     },
 
     resolveId(id, importer, resolveIdOpts) {
       if (id.endsWith(QWIK_HMR_BRIDGE_ID)) {
         return QWIK_HMR_BRIDGE_ID;
+      }
+      if (isQwikWorkerCoreId(id)) {
+        return QWIK_WORKER_CORE_ID;
       }
       const shouldResolveFile = fileFilter(id, 'resolveId');
       if (isVirtualId(id) || !shouldResolveFile) {
@@ -495,6 +535,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     load(id, loadOpts) {
       if (id === QWIK_HMR_BRIDGE_ID) {
         return { code: QWIK_HMR_BRIDGE_CODE };
+      }
+      if (id === QWIK_WORKER_CORE_ID) {
+        return loadQwikWorkerCore();
       }
       const shouldLoadFile = fileFilter(id, 'load');
       if (isVirtualId(id) || !shouldLoadFile) {
@@ -544,6 +587,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       order: 'post',
       async handler(_, rollupBundle) {
         const isClient = this.environment.config.consumer === 'client';
+        const isSSR = this.environment.config.consumer === 'server';
 
         if (isClient) {
           // client build
@@ -591,10 +635,25 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             }
           }
 
-          await qwikPlugin.generateManifest(this, rollupBundle, bundleGraphAdders, {
-            injections,
-            platform: { vite: '' },
-          });
+          const manifest = await qwikPlugin.generateManifest(
+            this,
+            rollupBundle,
+            bundleGraphAdders,
+            {
+              injections,
+              platform: { vite: '' },
+            }
+          );
+
+          const resolveChunkPath = createBuildWorkerQrlChunkResolver(manifest, basePathname);
+          for (const output of Object.values(rollupBundle)) {
+            if (output.type === 'chunk') {
+              output.code = rewriteWorkerQrlChunkPlaceholders(output.code, resolveChunkPath);
+            }
+          }
+          rewriteClientWorkerCorePlaceholders(rollupBundle);
+        } else if (isSSR) {
+          rewriteSsrWorkerCorePlaceholders(rollupBundle, manifestInput);
         }
       },
     },
@@ -769,18 +828,37 @@ async function checkExternals() {
   const core2 = '@qwik.dev/core';
   const core1 = '@builder.io/qwik';
   async function getInstalledDependencies(root: string): Promise<string[]> {
-    try {
-      const pkgPath = path.join(root, 'package.json');
-      const data = await fs.readFile(pkgPath, { encoding: 'utf-8' });
-      const json = JSON.parse(data);
-      return [
-        ...Object.keys(json.dependencies || {}),
-        ...Object.keys(json.devDependencies || {}),
-        ...Object.keys(json.optionalDependencies || {}),
-      ];
-    } catch {
-      return [];
+    // Walk up from `root` and union deps from every package.json we find, so
+    // monorepo setups where Vite's root points at a sub-project still pick up
+    // workspace-root deps (e.g. an Nx lib whose deps are declared at the
+    // repo root).
+    //
+    const deps = new Set<string>();
+    let dir = root;
+    while (dir) {
+      try {
+        const pkgPath = path.join(dir, 'package.json');
+        const data = await fs.readFile(pkgPath, { encoding: 'utf-8' });
+        const json = JSON.parse(data);
+        for (const name of Object.keys(json.dependencies || {})) {
+          deps.add(name);
+        }
+        for (const name of Object.keys(json.devDependencies || {})) {
+          deps.add(name);
+        }
+        for (const name of Object.keys(json.optionalDependencies || {})) {
+          deps.add(name);
+        }
+      } catch {
+        // No package.json at this level, or unreadable — keep walking.
+      }
+      const parent = path.dirname(dir);
+      if (parent === dir) {
+        break;
+      }
+      dir = parent;
     }
+    return [...deps];
   }
 
   async function isQwikDep(dep: string, dir: string) {

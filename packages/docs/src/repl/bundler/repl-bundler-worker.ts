@@ -1,6 +1,12 @@
 import { rolldown, type OutputAsset, type OutputChunk } from '@rolldown/browser';
 import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
-import { definesPlugin, replCss, replMinify, replResolver } from './rollup-plugins';
+import {
+  definesPlugin,
+  replCss,
+  replMinify,
+  replResolver,
+  replWorkerQrlChunks,
+} from './rollup-plugins';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
 // Worker message types
@@ -180,6 +186,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         debug,
         srcInputs,
         entryStrategy,
+        experimental: ['suspense'],
         manifestOutput: (m: any) => {
           result.manifest = m;
         },
@@ -187,7 +194,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
           result.transformedModules = t;
         },
       }),
-      replResolver(deps, { srcInputs, buildMode }, 'client'),
+      replWorkerQrlChunks(() => result.manifest),
+      replResolver(deps, { srcInputs, buildMode, replId }, 'client'),
       replMinify(buildMode),
     ],
     onwarn,
@@ -225,8 +233,9 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         debug,
         srcInputs,
         entryStrategy,
+        experimental: ['suspense'],
       }),
-      replResolver(deps, { srcInputs, buildMode }, 'ssr'),
+      replResolver(deps, { srcInputs, buildMode, replId }, 'ssr'),
       replMinify(buildMode),
     ],
     onwarn,

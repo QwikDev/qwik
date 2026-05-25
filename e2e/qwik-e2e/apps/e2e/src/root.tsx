@@ -33,12 +33,14 @@ import { TreeshakingApp } from './components/treeshaking/treeshaking';
 import { TwoListeners } from './components/two-listeners/twolisteners';
 import { UseId } from './components/useid/useid';
 import { Watch } from './components/watch/watch';
+import { WorkerRoot } from './components/worker/worker';
 
 import './global.css';
 import { QRL } from './components/qrl/qrl';
 import { AsyncRoot } from './components/use-async/use-async';
 import { Backpatching } from './components/backpatching/backpatching';
 import { EachRoot } from './components/each/each';
+import { SuspenseRoot } from './components/suspense/suspense';
 
 const tests: Record<string, FunctionComponent> = {
   '/e2e/two-listeners': () => <TwoListeners />,
@@ -79,6 +81,8 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/async-computed': () => <AsyncRoot />,
   '/e2e/backpatching': () => <Backpatching />,
   '/e2e/each': () => <EachRoot />,
+  '/e2e/suspense': () => <SuspenseRoot />,
+  '/e2e/worker': () => <WorkerRoot />,
 };
 
 export const Root = component$<{ pathname: string }>(({ pathname }) => {

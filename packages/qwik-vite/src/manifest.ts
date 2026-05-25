@@ -4,7 +4,24 @@ import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis 
 
 // The handlers that are exported by the core package
 // See handlers.mjs
-const extraSymbols = new Set(['_chk', '_rsc', '_res', '_run', '_task', '_val', '_eaC', '_eaT']);
+const extraSymbols = new Set([
+  '_chk',
+  '_rsc',
+  '_res',
+  '_run',
+  '_task',
+  '_val',
+  // Each
+  '_eaC',
+  '_eaT',
+  // Suspense
+  '_suC',
+  '_suT',
+  // Reveal
+  '_reR',
+  '_reC',
+  '_reT',
+]);
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should

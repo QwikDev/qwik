@@ -1,5 +1,17 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-beta.4
+
+### Minor Changes
+
+- ✨ add worker$ support running heavy work in Web Workers (by [@Varixo](https://github.com/Varixo) in [#8572](https://github.com/QwikDev/qwik/pull/8572))
+
+## 2.1.0-beta.3
+
+### Minor Changes
+
+- ✨ module-scoped `let` identifiers retain `let` when migrating (by [@wmertens](https://github.com/wmertens) in [#8560](https://github.com/QwikDev/qwik/pull/8560))
+
 ## 2.1.0-beta.2
 
 ### Minor Changes

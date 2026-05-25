@@ -21,6 +21,11 @@ import type {
 import { convertManifestToBundleGraph, type BundleGraphAdder } from './bundle-graph';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import { isVirtualId, isWin, parseId } from './vite-utils';
+import MagicString from 'magic-string';
+import {
+  createDevWorkerQrlChunkResolver,
+  rewriteWorkerQrlChunkPlaceholders,
+} from './worker-qrl-chunks';
 
 const REG_CTX_NAME = ['server'];
 
@@ -66,16 +71,12 @@ const CLIENT_STRIP_CTX_NAME = [
 export enum ExperimentalFeatures {
   /** Enable the Each keyed-list primitive */
   each = 'each',
-  /** Enable the usePreventNavigate hook */
-  preventNavigate = 'preventNavigate',
+  /** Enable the Suspense fallback primitive */
+  suspense = 'suspense',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
-  /** Enable request.rewrite() */
-  enableRequestRewrite = 'enableRequestRewrite',
-  /** Enable worker$ */
-  webWorker = 'webWorker',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
   insights = 'insights',
 }
@@ -382,38 +383,35 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
 
+    const out = { ...opts };
     // Make sure to know what the actual input is
     opts.input ||= updatedOpts.input as string[];
     if (opts.input && typeof opts.input === 'string') {
       opts.input = [opts.input];
     }
-    // Normalize relative input paths to absolute (consistent with rootDir/srcDir/outDir)
-    if (Array.isArray(opts.input)) {
-      opts.input = opts.input.map((inp) =>
-        inp.startsWith('@') || inp.startsWith('\0') || path.isAbsolute(inp)
-          ? inp
-          : normalizePath(path.resolve(opts.rootDir, inp))
-      );
-    }
-
-    const out = { ...opts };
     return out;
   };
 
+  let hasValidatedSource = false;
+
   const validateSource = async (resolver: (id: string) => Promise<unknown | undefined>) => {
-    const sys = getSys();
-    if (sys.env === 'node') {
-      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-      if (!fs.existsSync(opts.rootDir)) {
-        throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
-      }
-      if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
-        throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
-      }
-      for (const [_, input] of Object.entries(opts.input || {})) {
-        const resolved = await resolver(input);
-        if (!resolved) {
-          throw new Error(`Qwik input "${input}" not found.`);
+    if (!hasValidatedSource) {
+      hasValidatedSource = true;
+
+      const sys = getSys();
+      if (sys.env === 'node') {
+        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+        if (!fs.existsSync(opts.rootDir)) {
+          throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
+        }
+        if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
+          throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
+        }
+        for (const [_, input] of Object.entries(opts.input || {})) {
+          const resolved = await resolver(input);
+          if (!resolved) {
+            throw new Error(`Qwik input "${input}" not found.`);
+          }
         }
       }
     }
@@ -617,6 +615,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         };
       }
     } else if (pathId.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
+      console.error(
+        `${importerId ? `${importerId}: ` : ''}importing ${QWIK_CLIENT_MANIFEST_ID} is deprecated. Use \`getClientManifest()\` instead.`
+      );
       debug(`resolveId(${count})`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
       result = {
         id: QWIK_CLIENT_MANIFEST_ID,
@@ -740,7 +741,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       debug(`load(${count})`, QWIK_CLIENT_MANIFEST_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
-        code: await getQwikServerManifestModule(isServer),
+        code: `import { getClientManifest } from '@qwik.dev/core'; export const manifest = getClientManifest();\n`,
       };
     }
     /**
@@ -792,12 +793,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // When the parent file changes, Vite invalidates and re-serves the segment.
       // The custom event will ensure the re-rendering of mounted components, when non-segment files are changed.
       // This is needed to propagate changes from imports that are not QRL parents, for example styles.
-      if (devServer?.hot && parentId && opts.devTools.hmr) {
+      if (devServer?.hot && parentId && opts.devTools.hmr && segment?.ctxName !== 'worker$') {
         const parentUrl = parentId.startsWith(opts.rootDir!)
           ? parentId.slice(opts.rootDir!.length)
           : parentId;
         code +=
-          `\nif (import.meta.hot) {import.meta.hot.accept(()=>{` +
+          `\nif (import.meta.hot && typeof document !== 'undefined') {import.meta.hot.accept(()=>{` +
           `document.dispatchEvent(new CustomEvent('qHmr', {detail: {files:[${JSON.stringify(parentUrl)}], t: document.__hmrT}}));` +
           `});}`;
       }
@@ -809,23 +810,27 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
+  let theManifest: string | null | undefined;
   let transformCount = 0;
   const transform = async function (
     ctx: Rollup.PluginContext,
     code: string,
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
-  ): Promise<Rollup.TransformResult> {
+  ): Promise<Rollup.SourceDescription | undefined> {
     if (isVirtualId(id)) {
       return;
     }
-    const count = transformCount++;
     const isServer = getIsServer(ctx, transformOpts);
     const currentOutputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
       // This is a QRL segment, and we don't need to process it any further
       return;
     }
+
+    let shouldReturn = false;
+
+    const count = transformCount++;
 
     const optimizer = getOptimizer();
     const path = getPath();
@@ -835,6 +840,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
     const ext = parsedPathId.ext.toLowerCase();
+    let map;
+    let meta;
 
     const mode =
       opts.target === 'lib'
@@ -845,11 +852,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             : 'dev'
           : 'prod';
 
-    let didChange = false;
     if (mode !== 'lib') {
       // this messes a bit with the source map, but it's ok for if statements
       code = code.replaceAll(/__EXPERIMENTAL__\.(\w+)/g, (_, feature) => {
-        didChange = true;
+        shouldReturn = true;
         if (opts.experimental?.[feature as ExperimentalFeatures]) {
           return 'true';
         }
@@ -873,9 +879,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
-      if (devServer) {
-        const moduleGraph =
-          (ctx.environment as DevEnvironment | undefined)?.moduleGraph ?? devServer.moduleGraph;
+      const moduleGraph =
+        (ctx.environment as DevEnvironment | undefined)?.moduleGraph ?? devServer?.moduleGraph;
+      if (moduleGraph) {
         devPath = moduleGraph.getModuleById(pathId)?.url;
         // Fallback: if the module isn't in the graph yet (first transform),
         // compute a root-relative URL path that matches what hotUpdate sends.
@@ -921,6 +927,15 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const now = Date.now();
       const newOutput = await optimizer.transformModules(transformOpts);
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
+      if (devPath) {
+        const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(devPath);
+        for (const outputModule of newOutput.modules) {
+          outputModule.code = rewriteWorkerQrlChunkPlaceholders(
+            outputModule.code,
+            resolveWorkerChunkPath
+          );
+        }
+      }
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
@@ -972,19 +987,39 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       ctx.addWatchFile(id);
 
-      return {
-        code: module.code,
-        map: module.map,
-        meta: {
-          segment: module.segment,
-          qwikdeps: Array.from(deps),
-        },
+      code = module.code;
+      map = module.map;
+      meta = {
+        segment: module.segment,
+        qwikdeps: Array.from(deps),
       };
+      shouldReturn = true;
     }
 
-    debug(`transform(${count})`, 'Not transforming', id);
+    if (code.includes(`globalThis.${globalManifestKey}`)) {
+      if (theManifest === undefined) {
+        theManifest = await getQwikServerManifest(isServer);
+      }
+      const s = new MagicString(code);
+      // Always replace the check
+      s.replace(`!globalThis.${globalManifestKey}`, 'false');
+      if (theManifest) {
+        s.replace(`globalThis.${globalManifestKey}`, theManifest);
+      }
+      code = s.toString();
+      // Don't clobber the original source map if we already have one from the transform
+      map ||= s.generateMap({ source: id, includeContent: false });
+      shouldReturn = true;
+      debug(`transform(${count})`, `Replaced globalThis.${globalManifestKey} with manifest input`);
+    }
 
-    return didChange ? { code } : null;
+    if (shouldReturn) {
+      if (isPublicVirtualId(id)) {
+        map = null;
+      }
+      return { code, map, meta };
+    }
+    debug(`transform(${count})`, 'Not transforming', id);
   };
 
   type OutputAnalyzer = {
@@ -1076,6 +1111,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   function getQwikBuildModule(isServer: boolean, _target: QwikBuildTarget) {
     const isDev = opts.buildMode === 'development';
+    if (isDev) {
+      return `// @qwik.dev/core/build
+export const isBrowser = /*#__PURE__*/ (() =>
+  typeof window !== 'undefined' &&
+  typeof HTMLElement !== 'undefined' &&
+  !!window.document &&
+  String(HTMLElement).includes('[native code]'))();
+export const isServer = !isBrowser;
+export const isDev = true;
+`;
+    }
+
     return `// @qwik.dev/core/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
@@ -1083,7 +1130,7 @@ export const isDev = ${JSON.stringify(isDev)};
 `;
   }
 
-  async function getQwikServerManifestModule(isServer: boolean) {
+  async function getQwikServerManifest(isServer: boolean) {
     if (
       !opts.manifestInput &&
       opts.target === 'ssr' &&
@@ -1127,8 +1174,7 @@ export const isDev = ${JSON.stringify(isDev)};
         bundleGraph: manifest.bundleGraph,
       };
     }
-    return `// @qwik-client-manifest
-export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'globalThis.__QWIK_MANIFEST__'};\n`;
+    return serverManifest && JSON.stringify(serverManifest);
   }
 
   function setSourceMapSupport(sourcemap: boolean) {
@@ -1170,10 +1216,8 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
-        // the vite preload helper must be included or to prevent breaking circular dependencies
         id.endsWith('@qwik.dev/core/build') ||
-        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id) ||
-        id === '\0vite/preload-helper.js'
+        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id)
       ) {
         return 'qwik-preloader';
       } else if (
@@ -1286,6 +1330,8 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     if (typeof opts.transformedModuleOutput === 'function') {
       await opts.transformedModuleOutput(getTransformedOutputs());
     }
+
+    return manifest;
   }
 
   return {
@@ -1342,6 +1388,8 @@ function isAdditionalFile(mod: TransformModule) {
   return mod.isEntry || mod.segment;
 }
 
+const isPublicVirtualId = (id: string) => id.startsWith('virtual:');
+
 const TRANSFORM_EXTS = {
   '.jsx': true,
   '.ts': true,
@@ -1368,10 +1416,11 @@ export const QWIK_JSX_DEV_RUNTIME_ID = '@qwik.dev/core/jsx-dev-runtime';
 
 export const QWIK_CORE_SERVER = '@qwik.dev/core/server';
 
+/** To be removed in v3 */
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const QWIK_PRELOADER_ID = '@qwik.dev/core/preloader';
-
+/** @internal virtual import to ensure the _run etc handlers are exported as-is */
 export const QWIK_HANDLERS_ID = '@qwik-handlers';
 
 export const SRC_DIR_DEFAULT = 'src';
@@ -1474,3 +1523,5 @@ export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
 /** @public */
 export type QwikBuildMode = 'production' | 'development';
+
+const globalManifestKey = '__QWIK_MANIFEST__';

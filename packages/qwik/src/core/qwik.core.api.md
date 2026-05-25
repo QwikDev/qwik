@@ -4,11 +4,13 @@
 
 ```ts
 
+import type { AsyncLocalStorage } from 'node:async_hooks';
 import type * as CSS_2 from 'csstype';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
 import { ResolvedManifest } from '@qwik.dev/core/optimizer';
+import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -141,6 +143,8 @@ export interface _Container {
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
+    readonly $instanceHash$: string | null;
+    // (undocumented)
     readonly $locale$: string;
     // (undocumented)
     $pendingCount$: number;
@@ -236,6 +240,11 @@ export const createComputedQrl: <T>(qrl: QRL<() => T>, options?: ComputedOptions
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
+
+// Warning: (ae-forgotten-export) The symbol "DeserializeContainer" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer;
 
 // @internal
 export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: Readonly<unknown[]> | string | null, container?: _Container) => _QRLInternal<TYPE>;
@@ -426,6 +435,12 @@ export const Fragment: FunctionComponent<{
 export type FunctionComponent<P = unknown> = {
     renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
+
+// @internal (undocumented)
+export const _getAsyncLocalStorage: () => (new <T>() => AsyncLocalStorage<T>) | undefined;
+
+// @public
+export const getClientManifest: () => ServerQwikManifest | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
 //
@@ -706,8 +721,6 @@ export const PrefetchServiceWorker: (opts: {
     nonce?: string;
 }) => JSXOutput;
 
-// Warning: (ae-forgotten-export) The symbol "DeserializeContainer" needs to be exported by the entry point index.d.ts
-//
 // @internal
 export function _preprocessState(data: unknown[], container: DeserializeContainer): void;
 
@@ -774,6 +787,12 @@ export function _qrlToString(serializationContext: SerializationContext, qrl: _Q
 
 // @internal (undocumented)
 export function _qrlToString(serializationContext: SerializationContext, qrl: _QRLInternal | SyncQRLInternal, raw: true): [string, string, string | null];
+
+// @internal (undocumented)
+export const _qrlWithChunk: <T = any>(chunk: string, importer: () => Promise<any>, symbol: string, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
+
+// @internal (undocumented)
+export const _qrlWithChunkDEV: <T = any>(chunk: string, importer: () => Promise<any>, symbol: string, opts: QRLDev, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 // @public @deprecated (undocumented)
 export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
@@ -902,6 +921,12 @@ export interface ReadonlySignal<T = unknown> {
     readonly value: T;
 }
 
+// @internal (undocumented)
+export const _reC: (props: RevealProps) => JSXNodeInternal<FunctionComponent<    {
+name?: string;
+children?: JSXChildren;
+}>>;
+
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
 
@@ -946,6 +971,9 @@ export interface RenderSSROptions {
     // (undocumented)
     stream: StreamWriter;
 }
+
+// @internal (undocumented)
+export const _reR: () => boolean;
 
 // @internal
 export function _res(this: string | undefined, _: any, element: Element): void;
@@ -999,6 +1027,23 @@ export type ResourceReturn<T> = {
 
 // @internal (undocumented)
 export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
+
+// @internal (undocumented)
+export const _reT: (input: TaskCtx) => void;
+
+// Warning: (ae-incompatible-release-tags) The symbol "Reveal" is marked as @public, but its signature references "_reC" which is marked as @internal
+//
+// @public (undocumented)
+export const Reveal: typeof _reC;
+
+// @public (undocumented)
+export type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';
+
+// @public (undocumented)
+export type RevealProps = {
+    order?: RevealOrder;
+    collapsed?: boolean;
+};
 
 // @internal
 export const _rsc: <T>(arg: ResourceCtx<T>) => Promise<{
@@ -1212,6 +1257,27 @@ export class _SubscriptionData {
     // (undocumented)
     data: NodePropData;
 }
+
+// @internal (undocumented)
+export const _suC: (props: SuspenseProps) => JSXNodeInternal<FunctionComponent<    {
+children?: any;
+key?: string | number | null;
+}>>;
+
+// Warning: (ae-incompatible-release-tags) The symbol "Suspense" is marked as @public, but its signature references "_suC" which is marked as @internal
+//
+// @public (undocumented)
+export const Suspense: typeof _suC;
+
+// @public (undocumented)
+export type SuspenseProps = {
+    fallback?: JSXOutput;
+    showStale?: boolean;
+    delay?: number;
+};
+
+// @internal (undocumented)
+export const _suT: (input: TaskCtx) => void;
 
 // Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point index.d.ts
 //
@@ -2014,7 +2080,22 @@ export const _vnode_ensureElementInflated: (container: _Container, vnode: _VNode
 export const _vnode_getAttrKeys: (container: _Container, vnode: _ElementVNode | _VirtualVNode) => string[];
 
 // @internal (undocumented)
+export const _vnode_getElementName: (vnode: _ElementVNode) => string;
+
+// @internal (undocumented)
 export const _vnode_getFirstChild: (vnode: _VNode) => _VNode | null;
+
+// @internal (undocumented)
+export const _vnode_getProp: <T = unknown>(vNode: _VNode, key: string, getObject: ((id: string) => unknown) | null) => T | null;
+
+// @internal (undocumented)
+export const _vnode_getVNodeForChildNode: (vNode: _ElementVNode, childElement: Element) => _ElementVNode;
+
+// @internal (undocumented)
+export const _vnode_insertBefore: (journal: _VNodeJournal, parent: _ElementVNode | _VirtualVNode, newChild: _VNode, insertBefore: _VNode | null) => void;
+
+// @internal (undocumented)
+export const _vnode_isElementVNode: (vNode: _VNode) => vNode is _ElementVNode;
 
 // @internal (undocumented)
 export const _vnode_isMaterialized: (vNode: _VNode) => boolean;
@@ -2024,6 +2105,15 @@ export const _vnode_isTextVNode: (vNode: _VNode) => vNode is _TextVNode;
 
 // @internal (undocumented)
 export const _vnode_isVirtualVNode: (vNode: _VNode) => vNode is _VirtualVNode;
+
+// @internal (undocumented)
+export const _vnode_newVirtual: () => _VirtualVNode;
+
+// @internal (undocumented)
+export const _vnode_remove: (journal: _VNodeJournal, vParent: _ElementVNode | _VirtualVNode, vToRemove: _VNode, removeDOM: boolean) => void;
+
+// @internal (undocumented)
+export const _vnode_setProp: (vNode: _VNode, key: string, value: unknown) => void;
 
 // @internal (undocumented)
 export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean, container?: _Container | null): string;
@@ -2069,6 +2159,11 @@ export const enum _VNodeFlags {
     // (undocumented)
     Virtual = 2
 }
+
+// Warning: (ae-forgotten-export) The symbol "VNodeOperation" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export type _VNodeJournal = Array<VNodeOperation>;
 
 // @internal (undocumented)
 export const _waitUntilRendered: (container: _Container) => Promise<void>;

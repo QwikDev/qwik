@@ -60,6 +60,9 @@ function docEntry(
 }
 
 function apiTitleFromSlug(slug: string) {
+  if (slug === 'qwik-worker') {
+    return '@qwik.dev/core/worker';
+  }
   return `@qwik.dev/${slug.replace(/^qwik-/, 'qwik-').replace(/^qwik$/, 'qwik')}`;
 }
 
@@ -79,6 +82,9 @@ function apiDescriptionFromSlug(slug: string) {
   }
   if (slug === 'qwik-testing') {
     return 'Testing helpers and utilities for unit, DOM, and integration-style Qwik tests.';
+  }
+  if (slug === 'qwik-worker') {
+    return 'Worker API reference for `worker$()` and `workerQrl()`, which run Qwik functions away from the main browser thread.';
   }
   if (slug === 'qwik-insights') {
     return 'Insights package API reference for performance tracing and analytics integration.';
@@ -213,6 +219,13 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Core Concepts',
+      'Web Workers',
+      '/docs/advanced/worker/',
+      'Explains `worker$()`, when to use browser Web Workers, and what data can be passed to worker functions.',
+      toSourcePath('docs', '(qwik)', 'advanced', 'worker', 'index.mdx')
+    ),
+    docEntry(
+      'Core Concepts',
       'State',
       '/docs/core/state/',
       'Reference for signals, stores, computed values, async state, and related reactive primitives.',
@@ -262,6 +275,13 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Core Concepts',
+      'Suspense',
+      '/docs/core/suspense/',
+      'Fallback boundaries for async rendering, including `useAsync$`, `delay`, and `showStale` patterns.',
+      toSourcePath('docs', '(qwik)', 'core', 'suspense', 'index.mdx')
+    ),
+    docEntry(
+      'Core Concepts',
       'Styles',
       '/docs/core/styles/',
       'Styling patterns including scoped styles, inline styles, and stylesheet loading.',
@@ -280,6 +300,20 @@ The playground focuses on rapid experimentation rather than long-form documentat
       '/docs/advanced/routing/',
       'Advanced matching behavior and route structure patterns for larger applications.',
       toSourcePath('docs', '(qwikrouter)', 'advanced', 'routing', 'index.mdx')
+    ),
+    docEntry(
+      'Routing and Server',
+      'Prevent Navigation',
+      '/docs/advanced/prevent-navigation/',
+      'How to use `usePreventNavigate$` to guard unsaved state during SPA and browser navigation.',
+      toSourcePath('docs', '(qwikrouter)', 'advanced', 'prevent-navigation', 'index.mdx')
+    ),
+    docEntry(
+      'Routing and Server',
+      'Rewrites',
+      '/docs/guides/rewrites/',
+      'How to use `request.rewrite()` in route middleware to render another path while keeping the visible URL.',
+      toSourcePath('docs', '(qwikrouter)', 'guides', 'rewrites', 'index.mdx')
     ),
     docEntry(
       'Routing and Server',
@@ -321,6 +355,7 @@ The playground focuses on rapid experimentation rather than long-form documentat
     apiEntry('qwik'),
     apiEntry('qwik-router'),
     apiEntry('qwik-server'),
+    apiEntry('qwik-worker'),
     apiEntry('qwik-optimizer'),
     apiEntry('qwik-testing'),
     apiEntry('qwik-insights', true),

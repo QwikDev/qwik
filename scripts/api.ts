@@ -50,6 +50,12 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.srcQwikDir, 'web-worker'),
+    join(config.distQwikPkgDir, 'worker', 'index.d.mts'),
+    '../core-internal.js'
+  );
+  createTypesApi(
+    config,
     join(config.srcQwikDir, 'insights'),
     join(config.distQwikPkgDir, 'insights', 'index.d.ts'),
     '..'
@@ -296,6 +302,7 @@ function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
   const referenceDts = `/// <reference types="./server" />
 declare module '@qwik-client-manifest' {
+  /** @deprecated Use \`getClientManifest()\` instead */
   const manifest: import('./optimizer').QwikManifest;
   export { manifest };
 }

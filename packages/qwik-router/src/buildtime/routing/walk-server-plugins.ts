@@ -30,5 +30,5 @@ export async function walkServerPlugins(opts: NormalizedPluginOptions) {
       }
     })
   );
-  return sourceFiles;
+  return sourceFiles.sort((a, b) => (a.filePath < b.filePath ? -1 : 1));
 }

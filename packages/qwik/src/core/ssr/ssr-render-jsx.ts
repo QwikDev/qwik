@@ -5,7 +5,7 @@ import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-im
 import { AsyncSignalFlags, EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
-import { Fragment } from '../shared/jsx/jsx-runtime';
+import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import { JSXNodeFlags, type JSXNodeInternal, type JSXOutput } from '../shared/jsx/types/jsx-node';
@@ -24,6 +24,7 @@ import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
+  QCursorBoundary,
   QDefaultSlot,
   QScopedStyle,
   QSlot,
@@ -35,6 +36,7 @@ import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
+import type { CursorBoundary } from '../use/use-cursor-boundary';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer } from './ssr-types';
 
@@ -207,9 +209,14 @@ function processJSXNode(
           const componentFrame = options.parentComponentFrame;
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
-            const projectionAttrs: Record<string, string | null> = isDev
-              ? { [DEBUG_TYPE]: VirtualType.Projection }
-              : {};
+            const projectionAttrs: Props = isDev ? { [DEBUG_TYPE]: VirtualType.Projection } : {};
+            const cursorBoundary = directGetPropsProxyProp<CursorBoundary | null, any>(
+              jsx,
+              QCursorBoundary
+            );
+            if (cursorBoundary) {
+              projectionAttrs[QCursorBoundary] = cursorBoundary;
+            }
             projectionAttrs[QSlotParent] = compId;
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;

@@ -258,7 +258,11 @@ class HtmlTransformPatcher {
   }
 
   private async handleEnd(chunk?: any, encoding?: any, callback?: any): Promise<void> {
-    if (typeof encoding === 'function') {
+    if (typeof chunk === 'function') {
+      callback = chunk;
+      chunk = undefined;
+      encoding = undefined;
+    } else if (typeof encoding === 'function') {
       callback = encoding;
       encoding = undefined;
     }

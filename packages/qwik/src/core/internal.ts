@@ -1,4 +1,10 @@
-export { _noopQrl, _noopQrlDEV, _regSymbol } from './shared/qrl/qrl';
+export {
+  _noopQrl,
+  _noopQrlDEV,
+  _qrlWithChunk,
+  _qrlWithChunkDEV,
+  _regSymbol,
+} from './shared/qrl/qrl';
 export type { QRLInternal as _QRLInternal } from './shared/qrl/qrl-class';
 export { createQRL as _createQRL } from './shared/qrl/qrl-class';
 export { qrlToString as _qrlToString } from './shared/serdes/qrl-to-string';
@@ -29,6 +35,7 @@ export {
   vnode_toString as _vnode_toString,
 } from './client/vnode-utils';
 export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
+export { getAsyncLocalStorage as _getAsyncLocalStorage } from './shared/platform/async-local-storage';
 export type { Container as _Container } from './shared/types';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';
@@ -82,3 +89,17 @@ export {
   _updateProjectionProps,
   _removeProjection,
 } from './shared/projection/external-projection';
+export { _createDeserializeContainer } from './shared/serdes/serdes.public';
+
+/** TESTING */
+export {
+  type VNodeJournal as _VNodeJournal,
+  vnode_getElementName as _vnode_getElementName,
+  vnode_getProp as _vnode_getProp,
+  vnode_getVNodeForChildNode as _vnode_getVNodeForChildNode,
+  vnode_insertBefore as _vnode_insertBefore,
+  vnode_newVirtual as _vnode_newVirtual,
+  vnode_remove as _vnode_remove,
+  vnode_setProp as _vnode_setProp,
+  vnode_isElementVNode as _vnode_isElementVNode,
+} from './client/vnode-utils';

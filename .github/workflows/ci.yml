@@ -40,6 +40,8 @@ on:
 env:
   # Disable incremental build, speeds up CI
   CARGO_INCREMENTAL: 0
+  CI_NODE_VERSION: 24.15.0
+  CI_NODE_VERSION_E2E: 22.22.2
 
 permissions:
   contents: read
@@ -142,7 +144,8 @@ jobs:
           lookup-only: true
           path: packages/qwik/dist
           # Note that this includes the package.json of qwik
-          key: ${{ hashfiles('.github/workflows/ci.yml', 'pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', 'packages/qwik/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
+          # qwik-vite source is bundled into packages/qwik/dist/optimizer.mjs by scripts/submodule-optimizer.ts, so its sources must invalidate this cache.
+          key: ${{ hashfiles('.github/workflows/ci.yml', 'pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', 'packages/qwik/**/*', 'packages/qwik-vite/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
       - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
       - name: 'check cache: rust'
         id: cache-rust
@@ -221,9 +224,29 @@ jobs:
   ############ BUILD Qwik ############
   build-qwik:
     name: Build Qwik
-    needs: changes
+    needs:
+      - changes
+      - combined-optimizer
+    if: always()
     runs-on: ubuntu-latest
     steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            (
+              (
+                needs.changes.outputs.build-rust == 'true' &&
+                needs.combined-optimizer.result == 'success'
+              ) ||
+              (
+                needs.changes.outputs.build-rust != 'true' &&
+                needs.combined-optimizer.result == 'skipped'
+              )
+            )
+          )
+        run: exit 1
+
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -233,9 +256,28 @@ jobs:
         if: needs.changes.outputs.build-qwik == 'true'
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
+
+      - name: Restore optimizer cache
+        if: |
+          needs.changes.outputs.build-qwik == 'true' &&
+          needs.changes.outputs.build-rust != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          fail-on-cache-miss: true
+          path: packages/optimizer/
+          key: ${{ needs.changes.outputs.hash-rust }}
+
+      - name: Restore optimizer artifact
+        if: |
+          needs.changes.outputs.build-qwik == 'true' &&
+          needs.changes.outputs.build-rust == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact-optimizer
+          path: packages/optimizer/
 
       - name: Install NPM Dependencies
         if: needs.changes.outputs.build-qwik == 'true'
@@ -284,6 +326,7 @@ jobs:
         settings:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            checks: true
             wasm: true
 
           - host: macos-latest
@@ -310,24 +353,28 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: pnpm install
-      - if: matrix.settings.wasm
-        run: pnpm install -w wasm-pack
+
+      - name: Install Wasm build tools
+        if: matrix.settings.wasm
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo install wasm-pack --locked
 
       - name: Lint check
-        if: matrix.settings.wasm
+        if: matrix.settings.checks
         run: pnpm lint.rust
 
       - name: Unit tests
-        if: matrix.settings.wasm
+        if: matrix.settings.checks
         run: pnpm test.rust
         
       - name: TS bridge
-        if: matrix.settings.wasm
+        if: matrix.settings.checks
         run: pnpm build --optimizer
 
       - name: Build Platform Binding
@@ -436,7 +483,7 @@ jobs:
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -551,7 +598,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -598,7 +645,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -655,7 +702,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -718,7 +765,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -789,7 +836,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -880,7 +927,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION_E2E }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -911,7 +958,7 @@ jobs:
         if: failure()
 
   test-cli-e2e:
-    name: E2E CLI Tests
+    name: E2E CLI Tests (${{ matrix.settings.runtime }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }})
     if: always() && needs.changes.outputs.build-cli-e2e == 'true'
 
     needs:
@@ -924,10 +971,34 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
+            runtime: node
+            integration-script: test.e2e.integrations.chromium
+            run-cli: true
+            run-qwik-react: true
+          - host: ubuntu-latest
+            browser: chromium
+            runtime: bun
+            integration-script: test.e2e.integrations.bun.chromium
+            run-cli: false
+            run-qwik-react: false
+          - host: ubuntu-latest
+            browser: chromium
+            runtime: deno
+            integration-script: test.e2e.integrations.deno.chromium
+            run-cli: false
+            run-qwik-react: false
           - host: macos-latest
             browser: webkit
+            runtime: node
+            integration-script: test.e2e.integrations.webkit
+            run-cli: true
+            run-qwik-react: true
           - host: windows-latest
             browser: chromium
+            runtime: node
+            integration-script: test.e2e.integrations.chromium
+            run-cli: true
+            run-qwik-react: true
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -951,7 +1022,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION_E2E }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -963,15 +1034,29 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Setup Bun
+        if: matrix.settings.runtime == 'bun'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Deno
+        if: matrix.settings.runtime == 'deno'
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
       - name: Install Playwright
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Integration Tests
-        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }}
+        run: pnpm run ${{ matrix.settings.integration-script }}
 
       - name: Playwright E2E Qwik React Tests
+        if: matrix.settings.run-qwik-react
         run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }}
       - name: CLI E2E Tests
+        if: matrix.settings.run-cli
         run: pnpm run test.e2e.cli.${{ matrix.settings.browser }}
 
   save-e2e-tests-cache:
@@ -1038,7 +1123,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -1116,7 +1201,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -1160,8 +1245,54 @@ jobs:
           QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
         run: pnpm run qwik-push-build-repos
 
+  ############ PKG.PR.NEW (decoupled from tests) ############
+  release-pkg-pr-new:
+    name: Release pkg.pr.new
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    needs:
+      - changes
+      - build-qwik
+      - combined-optimizer
+      - build-other-packages
+
+    # Publish previews as soon as the build is ready, regardless of test status.
+    # Accept `skipped` because build jobs are skipped on cache hits.
+    if: |
+      always() &&
+      github.repository == 'QwikDev/qwik' &&
+      github.event_name != 'workflow_dispatch' &&
+      (needs.build-qwik.result == 'success' || needs.build-qwik.result == 'skipped') &&
+      (needs.combined-optimizer.result == 'success' || needs.combined-optimizer.result == 'skipped') &&
+      (needs.build-other-packages.result == 'success' || needs.build-other-packages.result == 'skipped')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Move Distribution Artifacts
+        run: pnpm ci.restore-artifacts
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Fixup package.json files
+        run: pnpm run release.fixup-package-json
+
       - name: Publish packages for testing
-        if: github.event_name != 'workflow_dispatch'
         # TODO: bring back --compact in the package.json release.pkg-pr-new script after first npm public of V2 alpha
         run: pnpm release.pkg-pr-new
         env:

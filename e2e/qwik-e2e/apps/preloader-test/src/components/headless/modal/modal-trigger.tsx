@@ -15,6 +15,7 @@ export const HModalTrigger = component$((props: PropsOf<'button'>) => {
       data-open={context.showSig.value ? '' : undefined}
       data-closed={!context.showSig.value ? '' : undefined}
       onClick$={[handleClick$, props.onClick$]}
+      aria-label="Open menu"
       {...props}
     >
       <Slot />

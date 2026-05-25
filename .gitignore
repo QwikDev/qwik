@@ -47,3 +47,5 @@ sandbox
 
 # Vitest coverage
 packages/coverage/*
+visualizer.html
+**/lib-types/**/*

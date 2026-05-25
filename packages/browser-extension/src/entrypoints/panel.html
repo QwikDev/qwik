@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="/theme-init.js"></script>
+    <script src="/qwikloader.js"></script>
+    <link rel="stylesheet" href="../styles/panel.css" />
+    <style>
+      :root {
+        --spacing: 0.25rem;
+        --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+      }
+      .animate-slide-up-fade {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--color-background, #09090b);
+        color: var(--color-foreground, #fafafa);
+        font-family: var(
+          --font-sans,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif
+        );
+      }
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        font-size: 14px;
+        opacity: 0.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loading" id="loading">Loading Qwik DevTools...</div>
+    <script type="module">
+      const tabId = chrome.devtools.inspectedWindow.tabId;
+      const MAX_RECONNECT_ATTEMPTS = 10;
+      let reconnectAttempts = 0;
+
+      function connect() {
+        let port;
+        try {
+          port = chrome.runtime.connect({ name: `devtools-${tabId}` });
+        } catch {
+          return;
+        }
+        reconnectAttempts = 0;
+        window.__devtools_port = port;
+        window.__devtools_tabId = tabId;
+
+        port.onDisconnect.addListener(() => {
+          if (chrome.runtime.lastError) return;
+          if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) return;
+          reconnectAttempts++;
+          setTimeout(connect, 500);
+        });
+      }
+
+      connect();
+
+      try {
+        const { createExtensionDataProvider, createRemotePageDataSource } =
+          await import('../shared/extension-data-provider.js');
+        const { mountExtension } = await import('@qwik.dev/devtools/ui');
+
+        const provider = createExtensionDataProvider();
+        const pageDataSource = createRemotePageDataSource();
+
+        const loading = document.getElementById('loading');
+        if (loading) loading.remove();
+
+        await mountExtension({
+          renderOptions: {},
+          dataProvider: provider,
+          pageDataSource: pageDataSource,
+        });
+      } catch (err) {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          loading.style.color = '#f7768e';
+          loading.style.whiteSpace = 'pre-wrap';
+          loading.style.fontSize = '12px';
+          loading.style.padding = '16px';
+          loading.textContent = String(err) + '\n' + (err.stack || '');
+        }
+      }
+    </script>
+  </body>
+</html>

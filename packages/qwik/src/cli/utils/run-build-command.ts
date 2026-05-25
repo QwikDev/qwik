@@ -80,6 +80,31 @@ export async function runBuildCommand(app: AppCommand) {
   console.log(``);
 
   let typecheck: Promise<Step> | null = null;
+  const buildTypesCmd = buildTypes
+    ? buildTypes.includes('--pretty')
+      ? buildTypes
+      : // ensures colors flow throw when we console log the stdout
+        `${buildTypes} --pretty`
+    : null;
+
+  const runTypecheck = (): Promise<Step> =>
+    execaCommand(buildTypesCmd!, {
+      stdout: 'inherit',
+      stderr: 'inherit',
+      cwd: app.rootDir,
+    })
+      .then(() => ({
+        title: 'Type checked',
+      }))
+      .catch((e) => {
+        let out = e.stdout || '';
+        if (out.startsWith('tsc')) {
+          out = out.slice(3);
+        }
+        console.log('\n' + out);
+        process.exitCode = 1;
+        throw new Error(`Type check failed: ${out}`);
+      });
 
   for (let i = 0; i < prebuildScripts.length; i++) {
     const script = prebuildScripts[i];
@@ -99,29 +124,12 @@ export async function runBuildCommand(app: AppCommand) {
     }
   }
 
-  if (buildTypes) {
-    let copyScript = buildTypes;
-    if (!copyScript.includes('--pretty')) {
-      // ensures colors flow throw when we console log the stdout
-      copyScript += ' --pretty';
-    }
-    typecheck = execaCommand(copyScript, {
-      stdout: 'inherit',
-      stderr: 'inherit',
-      cwd: app.rootDir,
-    })
-      .then(() => ({
-        title: 'Type checked',
-      }))
-      .catch((e) => {
-        let out = e.stdout || '';
-        if (out.startsWith('tsc')) {
-          out = out.slice(3);
-        }
-        console.log('\n' + out);
-        process.exitCode = 1;
-        throw new Error(`Type check failed: ${out}`);
-      });
+  // For library builds we defer the typecheck until after `build.lib`
+  // finishes — vite empties `outDir` (typically `lib/`) at the start of
+  // its build, which races with tsc's `.d.ts` emit into the same dir
+  // and silently wipes the freshly written declarations.
+  if (buildTypesCmd && !buildLibScript) {
+    typecheck = runTypecheck();
   }
 
   if (buildClientScript) {
@@ -167,6 +175,10 @@ export async function runBuildCommand(app: AppCommand) {
         throw e;
       });
     step2.push(libBuild);
+
+    if (buildTypesCmd) {
+      step2.push(libBuild.then(() => runTypecheck()));
+    }
   }
 
   if (buildPreviewScript) {

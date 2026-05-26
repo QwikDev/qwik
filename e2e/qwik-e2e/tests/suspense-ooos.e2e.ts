@@ -43,7 +43,6 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-footer')).toHaveText('Footer shell', { timeout: 10000 });
     await expect(page.locator('#ooos-resolved')).toHaveCount(0);
 
-    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
     await page.locator('#ooos-fallback-button').click();
     await expect(page.locator('#ooos-fallback-count')).toHaveText('1');
 
@@ -77,7 +76,6 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-resolved')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-fallback')).toBeHidden();
 
-    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
     await page.locator('#ooos-resolved-button').click();
     await expect(page.locator('#ooos-resolved-count')).toHaveText('1');
     await page.locator('#ooos-shell-button').click();
@@ -94,7 +92,6 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-resolved')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('#ooos-fallback')).toBeHidden();
 
-    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
     await page.locator('#ooos-resolved-button').click();
     await expect(page.locator('#ooos-resolved-count')).toHaveText('1');
 
@@ -142,7 +139,6 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-footer')).toHaveText('Footer shell', { timeout: 10000 });
     await expect(page.locator('#ooos-resolved')).toHaveCount(0);
 
-    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
     await expect(page.locator('#ooos-resolved')).toHaveCount(0);
     await page.locator('#ooos-fallback-button').click();
     await expect(page.locator('#ooos-fallback-count')).toHaveText('1');
@@ -179,7 +175,6 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-multi-first-resolved')).toHaveCount(0);
     await expect(page.locator('#ooos-multi-second-resolved')).toHaveCount(0);
 
-    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
     await page.locator('#ooos-multi-first-fallback-button').click();
     await page.locator('#ooos-multi-second-fallback-button').click();
     await expect(page.locator('#ooos-multi-first-fallback-count')).toHaveText('1');
@@ -233,7 +228,6 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-cross-fallback-count')).toHaveText('shared=0');
     await expect(page.locator('#ooos-cross-resolved')).toHaveCount(0);
 
-    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
     await page.locator('#ooos-cross-fallback-button').click();
     await expect(page.locator('#ooos-cross-shell-count')).toHaveText('shared=1');
     await expect(page.locator('#ooos-cross-fallback-count')).toHaveText('shared=1');
@@ -274,7 +268,6 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-delay-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-delay-resolved')).toHaveCount(0);
 
-    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
     await page.locator('#ooos-delay-fallback-button').click();
     await expect(page.locator('#ooos-delay-fallback-count')).toHaveText('1');
 

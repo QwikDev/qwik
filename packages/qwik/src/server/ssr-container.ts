@@ -1045,6 +1045,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.emitPatchDataIfNeeded();
     this.emitExecutorIfNeeded();
     this.emitQwikLoaderAtBottomIfNeeded();
+    this.emitContainerReadyEventIfNeeded();
   }
 
   private emitDelayedOutOfOrderSegmentVNodeData(): void {
@@ -1422,6 +1423,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
     }
     this.writeScript(scriptAttrs, script);
+  }
+
+  private emitContainerReadyEventIfNeeded(): void {
+    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || !this.outOfOrderUsed) {
+      return;
+    }
+    this.emitInlineScript(
+      'document.qready=1;try{document.dispatchEvent(new CustomEvent("qready"))}catch(e){}'
+    );
   }
 
   writeScript(attrs: Props, body?: string): void {

@@ -24,6 +24,9 @@ export function _addProjection(container: _Container, parentVNode: _VirtualVNode
 export type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;
 
 // @public
+export type AsyncResourceFn<TInput, TOutput> = (abortSignal: AbortSignal, input: TInput) => ValueOrPromise<TOutput>;
+
+// @public
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     abort(reason?: any): void;
     error: Error | undefined;
@@ -1079,6 +1082,11 @@ export function _serialize<T>(data: T): Promise<string>;
 // @public
 export const SerializerSymbol: unique symbol;
 
+// @public
+export type ServerFunctionQrl<TInput = unknown, TOutput = unknown> = QRL<AsyncResourceFn<TInput, TOutput>> & {
+    __qwik_server_function__?: true;
+};
+
 // Warning: (ae-forgotten-export) The symbol "SSRWriteChunk" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
@@ -1888,6 +1896,9 @@ export interface Tracker {
 }
 
 // @internal (undocumented)
+export const _uas: <TInput, TOutput>(ctx: AsyncCtx<Awaited<TOutput>>) => Promise<TOutput>;
+
+// @internal (undocumented)
 export const _UNINITIALIZED: unique symbol;
 
 // @public
@@ -1900,12 +1911,25 @@ export const unwrapStore: <T>(value: T) => T;
 export function _updateProjectionProps(container: _Container, vnode: _VirtualVNode, newProps: Record<string, unknown>): void;
 
 // @public
-export const useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) => AsyncSignal<T>;
+export const useAsync$: UseAsyncDollar;
+
+// @public
+export type UseAsyncDollar = {
+    <T>(fn: AsyncFn<T>, options?: AsyncSignalOptions<T>): AsyncSignal<T>;
+    <TInput, TOutput>(fn: AsyncResourceFn<TInput, TOutput>, input: TInput, options?: AsyncSignalOptions<Awaited<TOutput>>): AsyncSignal<Awaited<TOutput>>;
+    <TInput, TOutput>(fn: ServerFunctionQrl<TInput, TOutput>, input: TInput, options?: AsyncSignalOptions<Awaited<TOutput>>): AsyncSignal<Awaited<TOutput>>;
+};
+
+// @public
+export type UseAsyncQrl = {
+    <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>): AsyncSignal<T>;
+    <TInput, TOutput>(qrl: ServerFunctionQrl<TInput, TOutput>, input: TInput, options?: AsyncSignalOptions<Awaited<TOutput>>): AsyncSignal<Awaited<TOutput>>;
+};
 
 // Warning: (ae-internal-missing-underscore) The name "useAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
+export const useAsyncQrl: UseAsyncQrl;
 
 // @public
 export const useComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | undefined) => ComputedReturnType<T>;

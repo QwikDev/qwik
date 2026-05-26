@@ -6,6 +6,7 @@ import {
   _wrapProp,
   component$,
   useAsync$,
+  useAsyncQrl,
   useConstant,
   useErrorBoundary,
   useSignal,
@@ -22,10 +23,59 @@ import { delay } from '../shared/utils/promises';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+type ProductForUseAsyncTest = {
+  title: string;
+  hasAbortSignal: boolean;
+};
+
+export const getProductForUseAsyncTest = $(
+  (abortSignal: AbortSignal, props: { productId: string }) => {
+    return Promise.resolve({
+      title: `Keyboard ${props.productId}`,
+      hasAbortSignal: abortSignal instanceof AbortSignal,
+    });
+  }
+);
+(getProductForUseAsyncTest as any).__qwik_server_function__ = true;
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useAsync', ({ render }) => {
+  it('should resolve direct async resource qrl input', async () => {
+    const Product = component$((props: { productId: string }) => {
+      const product = useAsyncQrl<{ productId: string }, ProductForUseAsyncTest>(
+        getProductForUseAsyncTest as any,
+        props
+      );
+      return (
+        <p>
+          {product.value.title}:{String(product.value.hasAbortSignal)}
+        </p>
+      );
+    });
+
+    const { vNode } = await render(<Product productId="7" />, { debug });
+    expectDirectProduct(vNode, 'Keyboard 7', render === ssrRenderToDom);
+  });
+
+  it('should resolve direct async resource with useAsync$', async () => {
+    const Product = component$((props: { productId: string }) => {
+      const product = useAsync$<{ productId: string }, ProductForUseAsyncTest>(
+        getProductForUseAsyncTest as any,
+        props
+      );
+      return (
+        <p>
+          {product.value.title}:{String(product.value.hasAbortSignal)}
+        </p>
+      );
+    });
+
+    const { vNode } = await render(<Product productId="8" />, { debug });
+    expectDirectProduct(vNode, 'Keyboard 8', render === ssrRenderToDom);
+  });
+
   it('should resolve promise in computed result', async () => {
     const Counter = component$(() => {
       const count = useSignal(1);
@@ -707,3 +757,23 @@ describe.each([
     });
   });
 });
+
+const expectDirectProduct = (vNode: any, title: string, isSsr: boolean) => {
+  if (isSsr) {
+    expect(vNode).toMatchVDOM(
+      <>
+        <p>{`${title}:true`}</p>
+      </>
+    );
+  } else {
+    expect(vNode).toMatchVDOM(
+      <>
+        <p>
+          <Signal>{title}</Signal>
+          {':'}
+          {'true'}
+        </p>
+      </>
+    );
+  }
+};

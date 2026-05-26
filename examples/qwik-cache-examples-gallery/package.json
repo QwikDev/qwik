@@ -1,0 +1,18 @@
+{
+  "name": "qwik-cache-examples-gallery",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm exec qwik build preview",
+    "build.client": "pnpm exec vite build",
+    "build.preview": "pnpm exec vite build --ssr src/entry.preview.tsx",
+    "build.types": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "typecheck": "pnpm exec tsc -p tsconfig.json",
+    "dev": "pnpm exec vite --config vite.config.ts --mode ssr --host 127.0.0.1 --port 4300 --strictPort",
+    "preview": "pnpm exec vite preview --host 127.0.0.1 --port 4300 --strictPort",
+    "dev:all": "node scripts/dev-all.mjs",
+    "build:all": "node scripts/build-all.mjs",
+    "preview:all": "node scripts/preview-all.mjs",
+    "prod:all": "pnpm run build:all && pnpm run preview:all"
+  }
+}

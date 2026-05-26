@@ -16,6 +16,7 @@ export default defineConfig(() => {
       rollupOptions: {
         input: {
           index: './src/runtime/src/',
+          cache: './src/runtime/cache',
           'adapters/azure-swa/vite': './src/adapters/azure-swa/vite',
           'adapters/cloudflare-pages/vite': './src/adapters/cloudflare-pages/vite',
           'adapters/cloud-run/vite': './src/adapters/cloud-run/vite',

@@ -13,6 +13,7 @@ import {
   type AsyncSignal,
 } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
+import { getComponentRegistryEntry } from '../component.public';
 import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _serialize, _wrapProp } from '../../internal';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
@@ -476,6 +477,21 @@ describe('shared-serialization', () => {
         (48 chars)"
       `
       );
+    });
+    it('component registry entry', () => {
+      const qrl = inlinedQrl(() => 'hi', 'dump_component_registry');
+      const component = componentQrl(qrl);
+
+      expect(getComponentRegistryEntry(component)).toEqual({
+        id: `component:${qrl.getHash()}`,
+        qrlHash: qrl.getHash(),
+        symbol: qrl.getSymbol(),
+      });
+      expect((component as any).__qwik_component_registry__).toEqual({
+        id: `component:${qrl.getHash()}`,
+        qrlHash: qrl.getHash(),
+        symbol: qrl.getSymbol(),
+      });
     });
     it(title(TypeIds.Signal), async () => {
       const objs = await serialize({ foo: createSignal('hi') });

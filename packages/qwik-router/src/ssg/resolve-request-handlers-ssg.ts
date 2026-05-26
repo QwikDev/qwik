@@ -1,4 +1,11 @@
-import { QACTION_KEY, QFN_KEY, QLOADER_KEY, resolveRouteConfig } from './worker-imports/runtime';
+import { renderToString } from '@qwik.dev/core/server';
+import {
+  QACTION_KEY,
+  QCOMPONENT_KEY,
+  QFN_KEY,
+  QLOADER_KEY,
+  resolveRouteConfig,
+} from './worker-imports/runtime';
 import {
   resolveETag,
   resolveCacheKey,
@@ -35,6 +42,7 @@ import { getQwikRouterServerData } from './response-page-ssg';
 
 const requestHandlers = createResolveRequestHandlers({
   QACTION_KEY,
+  QCOMPONENT_KEY,
   QFN_KEY,
   QLOADER_KEY,
   QDATA_JSON,
@@ -62,6 +70,7 @@ const requestHandlers = createResolveRequestHandlers({
   resolveCacheKey,
   resolveETag,
   resolveRouteConfig,
+  renderToString,
   setCachedHtml,
 });
 

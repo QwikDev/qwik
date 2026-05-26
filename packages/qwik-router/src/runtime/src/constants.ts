@@ -11,6 +11,8 @@ export const QLOADER_KEY = 'qloaders';
 
 export const QFN_KEY = 'qfunc';
 
+export const QCOMPONENT_KEY = 'qcomponent';
+
 export const QDATA_KEY = 'qdata';
 /** @public */
 export const Q_ROUTE = 'q:route';

@@ -156,8 +156,14 @@ export { useTaskQrl } from './use/use-task';
 export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
 export { useComputed$ } from './use/use-computed';
-export type { AsyncFn } from './use/use-async';
-export { useAsyncQrl, useAsync$ } from './use/use-async';
+export type {
+  AsyncFn,
+  AsyncResourceFn,
+  ServerFunctionQrl,
+  UseAsyncDollar,
+  UseAsyncQrl,
+} from './use/use-async';
+export { _uas, useAsyncQrl, useAsync$ } from './use/use-async';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export {

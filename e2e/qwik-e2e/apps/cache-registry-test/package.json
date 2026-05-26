@@ -1,0 +1,7 @@
+{
+  "description": "Qwik cache registry e2e app",
+  "type": "module",
+  "__qwik__": {
+    "qwikRouter": true
+  }
+}

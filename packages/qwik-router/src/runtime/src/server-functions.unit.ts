@@ -1,9 +1,16 @@
-import { describe, expectTypeOf, test } from 'vitest';
+import { describe, expect, expectTypeOf, test } from 'vitest';
 import * as z from 'zod';
 import { server$ } from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';
 
 describe('types', () => {
+  test('server function marker', () => {
+    const fn = server$(() => 'hello');
+
+    expect((fn as any).__qwik_server_function__).toBe(true);
+    expect((fn as any).__qwik_server_resource_hash__).toBeTypeOf('string');
+  });
+
   test('matching', () => () => {
     const foo = () => server$(() => 'hello');
 

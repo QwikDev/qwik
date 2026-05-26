@@ -98,6 +98,11 @@ export async function apiExtractorQwikRouter(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-router', 'src', 'runtime', 'cache'),
+    join(config.packagesDir, 'qwik-router', 'lib', 'cache', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-router', 'src', 'buildtime', 'vite'),
     join(config.packagesDir, 'qwik-router', 'lib', 'vite', 'index.d.ts')
   );

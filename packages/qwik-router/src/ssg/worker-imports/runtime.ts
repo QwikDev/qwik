@@ -1,5 +1,6 @@
 export {
   QACTION_KEY,
+  QCOMPONENT_KEY,
   QDATA_KEY,
   QFN_KEY,
   QLOADER_KEY,

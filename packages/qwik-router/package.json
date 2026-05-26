@@ -50,6 +50,10 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.qwik.mjs"
     },
+    "./cache": {
+      "types": "./lib/cache/index.d.ts",
+      "import": "./lib/cache/index.mjs"
+    },
     "./adapters/azure-swa/vite": {
       "types": "./lib/adapters/azure-swa/vite/index.d.ts",
       "import": "./lib/adapters/azure-swa/vite/index.mjs"

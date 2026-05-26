@@ -70,6 +70,7 @@ export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/u
 export { _restProps } from './shared/utils/prop';
 export { _walkJSX } from './ssr/ssr-render-jsx';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
+export { _uas } from './use/use-async';
 export {
   _getContextContainer,
   _getContextEvent,

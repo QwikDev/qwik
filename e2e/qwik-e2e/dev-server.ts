@@ -71,6 +71,7 @@ let ooosRequestCounter = 0;
 
 /** Used when qwik-router server is enabled */
 const qwikRouterVirtualEntry = '@router-ssr-entry';
+const entryDevFileName = 'entry.dev.tsx';
 const entrySsrFileName = 'entry.ssr.tsx';
 
 Error.stackTraceLimit = 1000;
@@ -120,6 +121,8 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     }
     if (enableRouterServer) {
       await routerApp(req, res, next, appDir);
+    } else if (url.searchParams.get('csr') === '1') {
+      csrApp(res, appName);
     } else {
       await ssrApp(req, res, appName, appDir, resolved);
       res.end();
@@ -138,8 +141,10 @@ async function buildApp(appDir: string, appName: string, enableRouterServer: boo
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
+  const entryDevPath = join(appSrcDir, entryDevFileName);
   const basePath = `/${appName}/`;
   const isProd = appName.includes('.prod');
+  const clientInput = appName === 'e2e' && existsSync(entryDevPath) ? entryDevPath : undefined;
 
   // always clean the build directory
   removeDir(appDistDir);
@@ -209,6 +214,16 @@ export { router }
     getInlineConf({
       build: {
         minify: false,
+        rollupOptions: clientInput
+          ? {
+              input: {
+                'entry.dev': clientInput,
+              },
+              output: {
+                entryFileNames: 'build/[name].js',
+              },
+            }
+          : undefined,
       },
       define: {
         'globalThis.qDev': !isProd,
@@ -256,6 +271,20 @@ export { router }
   );
 
   return clientManifest!;
+}
+
+function csrApp(res: Response, appName: string) {
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Qwik CSR E2E</title>
+    <script type="module" src="/${appName}/build/qwikloader.js"></script>
+    <script type="module" src="/${appName}/build/entry.dev.js"></script>
+  </head>
+  <body></body>
+</html>`);
 }
 
 function removeDir(dir: string) {

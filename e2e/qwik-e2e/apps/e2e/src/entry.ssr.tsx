@@ -9,16 +9,19 @@ import { LogConsole } from '../../../log-console';
  */
 export default function (opts: RenderToStreamOptions) {
   const url = new URL(opts.serverData!.url);
+  const outOfOrderParam = url.searchParams.get('outOfOrder');
+  const outOfOrderStreaming =
+    outOfOrderParam === 'false' ? false : url.pathname === '/e2e/suspense-ooos' ? true : undefined;
   const renderOpts: RenderToStreamOptions = {
     debug: true,
     ...opts,
     streaming:
-      url.pathname === '/e2e/suspense-ooos'
-        ? {
+      outOfOrderStreaming === undefined
+        ? opts.streaming
+        : {
             ...opts.streaming,
-            outOfOrder: true,
-          }
-        : opts.streaming,
+            outOfOrder: outOfOrderStreaming,
+          },
   };
 
   // Render segment instead

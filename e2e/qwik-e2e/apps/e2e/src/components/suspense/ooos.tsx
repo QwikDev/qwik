@@ -62,6 +62,7 @@ const WEBKIT_STREAMING_FLUSH = '\u200b'.repeat(512);
 
 export const OutOfOrderSuspenseRoot = component$(() => {
   const shellCount = useSignal(0);
+  const render = useSignal(0);
   const url = useServerData<string>('url');
   const scenario = getSearchParam(url, 'scenario');
   const webkitFlush = getSearchParam(url, 'webkitFlush') === '1';
@@ -75,6 +76,10 @@ export const OutOfOrderSuspenseRoot = component$(() => {
       ) : null}
       <main>
         <h1 id="ooos-title">OOOS Suspense</h1>
+        <button id="ooos-force-rerender" data-v={render.value} onClick$={() => render.value++}>
+          Rerender
+        </button>
+        <span id="ooos-render-count">{render.value}</span>
         {scenario === 'multiple' ? (
           <MultipleOutOfOrderSuspense />
         ) : scenario === 'cross-state' ? (
@@ -90,7 +95,7 @@ export const OutOfOrderSuspenseRoot = component$(() => {
         ) : scenario === 'rerender' ? (
           <OutOfOrderSuspenseRerender />
         ) : (
-          <Suspense fallback={<FallbackOutOfOrderContent />}>
+          <Suspense key={render.value} fallback={<FallbackOutOfOrderContent />}>
             <SlowOutOfOrderContent />
           </Suspense>
         )}
@@ -364,9 +369,14 @@ export const ManualOutOfOrderReleaseButton = component$(
     if (!releaseId || !requestId) {
       return null;
     }
-    const html = `<button id="${escapeAttr(props.id)}" onclick="fetch('/__ooos-release/${encodeURIComponent(
-      requestId
-    )}/${encodeURIComponent(releaseId)}',{method:'POST'})">${escapeHtml(props.label)}</button>`;
+    const releaseUrl = `/__ooos-release/${encodeURIComponent(requestId)}/${encodeURIComponent(
+      releaseId
+    )}`;
+    const html = `<button id="${escapeAttr(props.id)}" data-release-url="${escapeAttr(
+      releaseUrl
+    )}" onclick="fetch(this.getAttribute('data-release-url'),{method:'POST'})">${escapeHtml(
+      props.label
+    )}</button>`;
 
     return <span dangerouslySetInnerHTML={html} />;
   }

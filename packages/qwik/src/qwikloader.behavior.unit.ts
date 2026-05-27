@@ -29,6 +29,13 @@ function createEventTarget() {
         listeners.set(eventName, registrations);
       }
     ),
+    removeEventListener: vi.fn((eventName: string, handler: (ev: any) => unknown) => {
+      const registrations = listeners.get(eventName) ?? [];
+      listeners.set(
+        eventName,
+        registrations.filter((registration) => registration.handler !== handler)
+      );
+    }),
     dispatchEvent: vi.fn(),
     querySelectorAll: vi.fn(() => [] as any[]),
   };
@@ -342,5 +349,38 @@ describe('qwikloader behavior', () => {
 
     resolveChild();
     await result;
+  });
+
+  test('waits for streamed container data before running qrl attributes', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const container = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'sync',
+    });
+    const button = createMockElement(container, {
+      'q-e:click': '#0#',
+    });
+
+    getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+    expect(logs).toEqual([]);
+    expect(doc.dispatchEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'qerror' }));
+
+    doc.qFuncs_sync = [
+      () => {
+        logs.push('clicked');
+      },
+    ];
+    doc.readyState = 'interactive';
+    const listeners = getListeners(doc, 'readystatechange');
+    for (let i = 0; i < listeners.length; i++) {
+      listeners[i]!.handler(createMockEvent(doc, 'readystatechange'));
+    }
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(logs).toEqual(['clicked']);
   });
 });

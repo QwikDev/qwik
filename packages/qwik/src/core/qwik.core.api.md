@@ -140,6 +140,7 @@ export interface _Container {
     $checkPendingCount$(): void;
     // (undocumented)
     $currentUniqueId$: number;
+    $deferRootPlaceholder$(scriptNode: JSXNodeInternal<string>): boolean;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
@@ -304,6 +305,8 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
 class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
+    // (undocumented)
+    $deferRootPlaceholder$(): boolean;
     $destroy$(): void;
     // (undocumented)
     $forwardRefs$: Array<number> | null;
@@ -1081,6 +1084,8 @@ export abstract class _SharedContainer implements _Container {
     $checkPendingCount$(): void;
     // (undocumented)
     $currentUniqueId$: number;
+    // (undocumented)
+    abstract $deferRootPlaceholder$(scriptNode: JSXNodeInternal<string>): boolean;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)

@@ -9,6 +9,7 @@ import {
   type SerializationContext,
 } from './serdes/serialization-context';
 import type { Container, HostElement, ObjToProxyMap } from './types';
+import type { JSXNodeInternal } from './jsx/types/jsx-node';
 
 /** @internal */
 export abstract class _SharedContainer implements Container {
@@ -85,4 +86,5 @@ export abstract class _SharedContainer implements Container {
     host: HostElement,
     scoped: boolean
   ): void;
+  abstract $deferRootPlaceholder$(scriptNode: JSXNodeInternal<string>): boolean;
 }

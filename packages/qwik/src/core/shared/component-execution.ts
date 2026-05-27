@@ -132,7 +132,7 @@ export const executeComponent = (
 
         const useOnEvents = container.getHostProp<UseOnMap>(renderHost, USE_ON_LOCAL);
         if (useOnEvents) {
-          return addUseOnEvents(jsx, useOnEvents);
+          return addUseOnEvents(container, jsx, useOnEvents);
         }
         return jsx;
       },
@@ -160,6 +160,7 @@ export const executeComponent = (
  * @returns The modified JSX output.
  */
 function addUseOnEvents(
+  container: Container,
   jsx: JSXOutput,
   useOnEvents: UseOnMap
 ): ValueOrPromise<JSXNodeInternal<string> | null | JSXOutput> {
@@ -184,9 +185,17 @@ function addUseOnEvents(
             key.startsWith(EventNameHtmlScope.window)
           ) {
             if (!placeholderElement) {
-              const [createdElement, newJsx] = injectPlaceholderElement(jsxResult);
-              jsxResult = newJsx;
-              placeholderElement = createdElement;
+              const placeholder = createPlaceholderScriptNode();
+              // A headless component that projects the document root (e.g. wrapping `<head>`/`<body>`
+              // in a `<Slot/>`) would otherwise place the placeholder `<script>` as a direct child of
+              // `<html>`, which is invalid. Let the container defer it into `<head>` in that case.
+              if (container.$deferRootPlaceholder$(placeholder)) {
+                placeholderElement = placeholder;
+              } else {
+                const [createdElement, newJsx] = injectPlaceholderElement(jsxResult, placeholder);
+                jsxResult = newJsx;
+                placeholderElement = createdElement;
+              }
             }
             targetElement = placeholderElement;
           } else {
@@ -336,11 +345,11 @@ function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<st
  * @returns A tuple containing the created placeholder element and the modified JSX output.
  */
 function injectPlaceholderElement(
-  jsx: JSXOutput
+  jsx: JSXOutput,
+  placeholder: JSXNodeInternal<string>
 ): [JSXNodeInternal<string> | null, JSXOutput | null] {
   // For regular JSX nodes, we can append the placeholder to its children.
   if (isJSXNode(jsx)) {
-    const placeholder = createPlaceholderScriptNode();
     // Inline components don't always render children, so we wrap them in Fragment which does.
     if (jsx.type !== Fragment && !isQwikComponent(jsx.type)) {
       return [placeholder, _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null)];
@@ -358,13 +367,12 @@ function injectPlaceholderElement(
 
   // For primitives, we can't add children, so we wrap them in a fragment.
   if (isPrimitiveOrNullUndefined(jsx)) {
-    const placeholder = createPlaceholderScriptNode();
     return [placeholder, _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null)];
   }
 
   // For an array of nodes, we inject the placeholder into the first element.
   if (isArray(jsx) && jsx.length > 0) {
-    const [createdElement, _] = injectPlaceholderElement(jsx[0]);
+    const [createdElement, _] = injectPlaceholderElement(jsx[0], placeholder);
     return [createdElement, jsx];
   }
 

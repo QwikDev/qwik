@@ -725,4 +725,20 @@ describe('abandonCursor', () => {
     expect(container.$pendingCount$).toBe(0);
     expect(getHighestPriorityCursor()).toBeNull();
   });
+
+  it('should release a paused cursor that lost its cursor flag before resuming', () => {
+    const container = createMockContainer();
+    const source = vnode_newVirtual() as Cursor;
+
+    createCursorData(container, source);
+    addCursorToQueue(container, source);
+    pauseCursor(source, container);
+    expect(container.$pendingCount$).toBe(1);
+
+    source.flags &= ~VNodeFlags.Cursor;
+    resumeCursor(source, container);
+
+    expect(container.$pendingCount$).toBe(0);
+    expect(getHighestPriorityCursor()).toBeNull();
+  });
 });

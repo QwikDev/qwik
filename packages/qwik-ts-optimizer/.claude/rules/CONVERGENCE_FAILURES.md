@@ -4,6 +4,15 @@ Snapshot of the 28 failing `pnpm vitest convergence` tests as of 2026-05-13, gro
 
 Investigation 2026-05-06 corrected the original groupings for F3, F4, F8 after tracing diffs to actual root causes in code. Original groupings were based on diff symptoms; corrected groupings reflect the underlying transformation gap. Convergence count is now **28/212** — F1 closed 2026-05-07 (`component_level_self_referential_qrl`); F4 closed 2026-05-09 ([OSS-359](https://linear.app/kunai/issue/OSS-359) / PR #42, `example_invalid_references`); F1b closed 2026-05-11 ([OSS-360](https://linear.app/kunai/issue/OSS-360) / PR #46, `example_self_referential_component_migration`); F8a closed 2026-05-12 ([OSS-361](https://linear.app/kunai/issue/OSS-361) / PR #48, `example_getter_generation`); F8b closed 2026-05-12 ([OSS-362](https://linear.app/kunai/issue/OSS-362) / PR #50, `should_transform_three_nested_loops_handler_captures_outer_only`); F8c closed 2026-05-13 ([OSS-363](https://linear.app/kunai/issue/OSS-363) / PR #52, `should_wrap_prop_from_destructured_array`). Date stamp updated: 2026-05-13.
 
+> **⚠️ Stale-doc notice (2026-05-27)**: this file's headline count (28 failing) and many per-feature counts/statuses are out of date relative to the many feature closures since 2026-05-13. **Current convergence count is 10/212 failing** — see `STATE.md` "Current measurements" for the live numbers and "Most recent meaningful progress" for closure history. The per-feature root-cause descriptions are still useful as a navigation map, but **the headline metrics and the "OPEN" / "PARTIAL" / "CLOSED" labels on each section may not reflect current state** — verify against `STATE.md` before scoping work from this doc.
+
+> **F7 + F3 + example_use_optimization corrections (2026-05-27)** — during an audit for [OSS-439](https://linear.app/kunai/issue/OSS-439) the framing of several entries was found to be wrong:
+>
+> - **F7 ("Inner-function extraction discipline") is not a coherent umbrella.** Personal verification of all 5 listed fixtures' segment counts showed they match SWC exactly — there is no over-extraction happening. The actual divergences are *downstream of extraction* and split across multiple feature areas: 2 fixtures (`example_lightweight_functional`, `example_functional_component_capture_props`) are actually F3 territory (lightweight inline component rawProps + downstream); 1 fixture (`fun_with_scopes`) is F2 inline-strategy territory (uses `_noopQrl`, capture-hygiene renaming, context-stack misses); 2 fixtures (`example_invalid_segment_expr1`, `example_immutable_analysis`) have standalone bugs (single-use binding inlining; TS-type-annotation stripping). Treating F7 as one umbrella will lead to wasted scope.
+> - **`example_use_optimization` is misclassified in F3.** It uses `component$` (not a lightweight inline arrow) and tests chained-destructure folding (`const {a} = b.value; const {c} = a; const d = c.X; …` → SWC simplifies to `b.value.a.c.X`). The actual root cause is F8 territory (semantic body rewriting / chained-destructure folding), comparable to OSS-363's `flatten-destructures.ts` but for a different pattern.
+>
+> The sections below have been updated; the "Suggested implementation order" table has been left mostly as-is for historical reference but the F7 row is no longer accurate.
+
 The convergence test (`tests/optimizer/convergence.test.ts`) is stricter than `tests/optimizer/failure-families.test.ts` — it also checks segment metadata (`displayName`, `hash`, `canonicalFilename`, `ctxKind`, `ctxName`, `captures`). Snapshot of failure-families counts at the same point in time: 17 fully passing, 70 parent-rewrite-only, 0 untransformed, 3 segment-identity, 119 segment-codegen.
 
 ## Feature 1: Self-referential QRL `_ref` indirection (CLOSED — 1 test passing)
@@ -93,7 +102,12 @@ Originally framed as "a single self-contained transform pass." It isn't. After t
 - `destructure_args_inline_cmp_block_stmt`
 - `destructure_args_inline_cmp_block_stmt2`
 - `destructure_args_inline_cmp_expr_stmt`
-- `example_use_optimization` (uses `component$` rather than lightweight inline; tests chained-destructure folding — kept here but flagged as the odd one out)
+- `example_lightweight_functional` — *(moved here from F7 per 2026-05-27 audit; verified F3 territory: `ButtonArrow = ({...}) => <jsx>` needs rawProps consolidation, `Button` function-declaration needs `.w([captures])` wrap on child QRL refs)*
+- `example_functional_component_capture_props` — *(moved here from F7 per 2026-05-27 audit; same family as `lightweight_functional`)*
+
+**OSS-439 (parent ticket, Backlog)** has the Phase 0.55 rawProps consolidation pre-pass as its scope. Foundation work archived on branch `archive/oss-439-rawprops-foundation` after walkback — works correctly for the rawProps part but downstream parent JSX QRL substitution gap pre-dates the work and needs separate sub-tickets to flip any test. See OSS-439 Linear comments for full audit notes.
+
+Previously listed `example_use_optimization` was reclassified to F8 per 2026-05-27 audit — uses `component$`, tests chained-destructure folding (not lightweight inline).
 
 ## Feature 4: MIG-05 shared-destructure reexport refinement (1 test)
 
@@ -127,15 +141,21 @@ When source uses non-qwik JSX (`/* @jsxImportSource react */`, `react/jsx-runtim
 - `example_qwik_conflict` (user `qrl` import not aliased; injected `qrl` clobbers it)
 - `should_split_spread_props_with_additional_prop5` (react `_jsx` rewritten unnecessarily)
 
-## Feature 7: Inner-function extraction discipline (4 tests)
+## Feature 7: ~~Inner-function extraction discipline~~ — DECLASSIFIED (2026-05-27 audit)
 
-TS extracts any nested arrow/function as a candidate segment. Rust only extracts when a marker (`$`) directly applies to the boundary; lightweight functional components, plain locals (`render`, `remove`), and inline JSX renderers stay inline.
+**Original framing was wrong.** All 5 fixtures originally listed here had identical segment counts to SWC — TS was NOT over-extracting. The actual divergences are in downstream rewriting and scatter across multiple feature areas. F7 is no longer treated as a coherent umbrella.
 
-- `example_functional_component_capture_props`
-- `example_lightweight_functional`
-- `example_immutable_analysis` (extra `remove` segment shouldn't exist)
-- `example_invalid_segment_expr1` (locals `style`, `render` extracted incorrectly)
-- `fun_with_scopes` (6 extra segments from inner inline components — moved here from F8)
+Fixture re-classification:
+
+| Fixture | Real classification | Root cause (verified) |
+|---|---|---|
+| `example_lightweight_functional` | F3 | Lightweight inline `ButtonArrow = ({...}) => <jsx>` needs rawProps consolidation + `.w([captures])` wrap missing on `Button` function-decl QRL refs |
+| `example_functional_component_capture_props` | F3 | Same family as `lightweight_functional` |
+| `example_invalid_segment_expr1` | Standalone | Single-use binding inlining missing — `style` (template literal) + `render` (arrow body) should inline into segments when they're the sole consumer of a marker call's Identifier argument. Migration MOVE not firing for this case. |
+| `example_immutable_analysis` | Standalone | TS type annotations not stripped from segment bodies (e.g. `(id: number) =>` survives into segment file); other post-process gaps |
+| `fun_with_scopes` | F2 | Uses `_noopQrl` (inline strategy); context-stack missing `it.each` and inner component names; untransformed `jsx()` calls; capture-hygiene renaming (`field` → `field1`); `_captures` unpacking missing in some bodies |
+
+If a future workstream wants to pick up the "Standalone" entries above, file each as its own narrow ticket — they're genuinely separate bugs with no shared code path.
 
 ## Feature 8: Diverse semantic bugs sharing a "verbatim body" symptom (2 remaining tests; 3 closed)
 
@@ -144,6 +164,7 @@ TS extracts any nested arrow/function as a candidate segment. Rust only extracts
 - ✅ `example_getter_generation` — ternary `'true'+1 ? 'true' : ''` not constant-folded; emitted `prop: "true"+1?"true":""` instead of `prop: 'true'`. **Closed via PR #48 ([OSS-361](https://linear.app/kunai/issue/OSS-361))** — new `src/optimizer/utils/simplify.ts` module ports the JSX-prop slice of SWC's `simplify::simplifier`. Production fix (not compareAst) because SWC explicitly invokes the simplifier at `swc-reference-only/parse.rs:360` — it's an intentional code-size optimization, not parity scaffolding.
 - ✅ `should_transform_three_nested_loops_handler_captures_outer_only` — originally framed as "capture analysis fails to detect outer-loop var `planeId`" but capture analysis was actually correct; the real bug was downstream loop-cross-capture wiring not firing for handlers with cross-scope captures but no `_, _1` loop-iter padding. **Closed via PR #50 ([OSS-362](https://linear.app/kunai/issue/OSS-362))** — five production changes extending the `hasLoopCrossCaptures` detection to a second arm (in-loop + cross-scope captures via `extractionLoopMap`), broadening `buildQrlsWithCapturesSet` to include hoisted-capture QRLs, suppressing the iterVars q:p fallback when a handler has hoisted captures, fixing a missing `hasVarEventHandler = true` in the rewritten-event-prop branch, and replacing a regex-based identifier extractor with an AST-aware version (the regex was matching identifier-like substrings inside string literals like `'p'`).
 - ✅ `should_wrap_prop_from_destructured_array` — `_fnSignal` helper de-dup over-aggressive, destructure of `useForm2()` result not flattened, errors 1–3 wrongly in var bag, `useTask$` rawProps over-eager. **Closed via PR #52 ([OSS-363](https://linear.app/kunai/issue/OSS-363))** — three production-side ports from `swc-reference-only/props_destructuring.rs`: (1) tightened rawProps gate to require a return-statement body, (2) `collectConstBindings` walks pattern + init in parallel for compound destructures, (3) new `src/optimizer/utils/flatten-destructures.ts` module rewrites `const {X} = use*()` → `const flat = use*()` + reference rewrites as a Phase 0.5 step. `_fnSignal` dedup naturally separates once source becomes `form2.store5.errors.test`.
+- `example_use_optimization` — *(reclassified here from F3 per 2026-05-27 audit)*. Uses `component$((props) => { const {countNested} = useStore({value:{count:0}}).value; const countNested2 = countNested; const {hello} = countNested2; const bye = hello.bye; const {ciao} = bye.italian; return <div ciao={ciao}>{foo}</div>; })`. SWC simplifies the chained destructure to a single `useStore` call + a deep MemberExpression: `const store = useStore({value:{count:0}}); return <div ciao={store.value.countNested.hello.bye.italian.ciao}>{foo}</div>`. This is F8-style semantic body rewriting — comparable to OSS-363's `flatten-destructures.ts` (which handled `const {X} = use*()`) but for the chained intermediate-decl case. Needs an extension to `flatten-destructures.ts` or a sibling pass.
 - `example_qwik_react` — module-level `filterProps` should become `_auto_filterProps as filterProps` in the segment; instead actual nonsense-imports `reactCmpQrl` from `@qwik.dev/core`.
 - `example_component_with_event_listeners_inside_loop` — **PARTIAL PROGRESS via OSS-400 / PR #128**: the documented "wrong hoist target depth" bug is fixed (the 6 capture-bindings now correctly hoist to component scope via brace-depth-aware `findComponentReturnPosition`). But the test still fails because the audit during OSS-400 surfaced **two additional bugs** in the same test that weren't in the original framing:
   - **Bug B (scope-unaware `classifyConstness`)** — tracked as [OSS-401](https://linear.app/kunai/issue/OSS-401): `constBindings` is a flat `Set<string>` with no scope info, so when the same name (`item`) appears as both an arrow callback param (`.map((item) => ...)`) AND a for-of binding (`for (const item of ...)`) in the same file, the classifier can't disambiguate. SWC's classification IS scope-aware (for-of binding → const → children static → flag=6; arrow param → var → children dynamic → flag=4); TS picks one classification per name. Fix requires scope-tracking refactor of `collectConstAndLocalNames` in `transform/jsx.ts:190`.
@@ -166,13 +187,15 @@ TS extracts any nested arrow/function as a candidate segment. Rust only extracts
 
 Smaller blast-radius first; F2/F3 last because they touch the largest pipelines.
 
+> **2026-05-27 note**: many entries below are now historical (F1/F4/F1b/F6/F9 closed; F8a/b/c shipped; F2 umbrella closed; etc.). The "Order" column reflects the original 2026-05-13 planning, not current priority. **For current pickup order see `STATE.md` "What to do next"**. The F7 row has been removed because F7 is no longer a coherent umbrella per the 2026-05-27 audit.
+
 | Order | Feature | Tests | Notes |
 |---|---|---|---|
 | 1 | F4 MIG-05 refinement | 1 | Smallest verified scope; 1 boolean refinement in `decideMigration` plus group-by-declStart logic |
 | 2 | F1 `_ref` indirection | ✅ closed (1/1 covered tests passing) | F1b and F1c remain open. |
 | 2a | F1b mutual-recursion component migration | 1 | Related to F4 (mutual-recursion vs shared-destructure migration policy); multi-pass migration refinement |
 | 3 | F8 individual fixes | 2 (3 of 5 closed) | F8a / PR #48 (`simplify.ts`); F8b / PR #50 (loop-cross-capture wiring); F8c / PR #52 (`flatten-destructures.ts` + rawProps gate + compound-destructure classification). 2 remaining: migration (`_auto_filterProps`), hoist depth. Tackle case-by-case. |
-| 4 | F7 inner-function extraction discipline | 4 + `fun_with_scopes` from F8 | Marker detection rules |
+| ~~4~~ | ~~F7 inner-function extraction discipline~~ | — | Declassified — see F7 section above. Fixtures redistributed to F3 / F2 / standalone. |
 | 5 | F6 JSX runtime preservation | 3 | Front-end pass gating |
 | 6 | F5 server-marker stripping | 3 | New transform pass |
 | 7 | F9 spread/var/const splitting | 2 | Extends jsxify |

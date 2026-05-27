@@ -1,6 +1,7 @@
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { ContextId } from '../use/use-context';
 import type { EventHandler } from './jsx/types/jsx-qwik-attributes';
+import type { JSXNodeInternal } from './jsx/types/jsx-node';
 import type { SerializationContext } from './serdes/index';
 import type { VNode } from './vnode/vnode';
 
@@ -37,6 +38,16 @@ export interface Container {
   setHostProp<T>(host: HostElement, name: string, value: T): void;
   getHostProp<T>(host: HostElement, name: string): T | null;
   $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
+  /**
+   * Lets the container place a root-level `useOn` placeholder `<script>` itself, when injecting it
+   * inline would put it somewhere invalid.
+   *
+   * Returns `true` if the container took the node (e.g. SSR deferring it into `<head>` when a
+   * headless component projects the document root such as `<head>`/`<body>`, where a `<script>`
+   * child of `<html>` is illegal), in which case the caller must not inject it into the component's
+   * JSX. Returns `false` to inject it inline.
+   */
+  $deferRootPlaceholder$(scriptNode: JSXNodeInternal<string>): boolean;
   /**
    * When component is about to be executed, it may add/remove children. This can cause problems
    * with the projection because deleting content will prevent the projection references from

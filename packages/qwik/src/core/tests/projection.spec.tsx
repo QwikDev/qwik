@@ -4,10 +4,12 @@ import {
   createContextId,
   Fragment as WrappedSignal,
   Fragment,
+  getPlatform,
   Fragment as InlineComponent,
   jsx,
   Fragment as Projection,
   Fragment as Awaited,
+  setPlatform,
   Slot,
   useContext,
   useContextProvider,
@@ -19,7 +21,9 @@ import {
   type Signal,
   $,
 } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { renderToString } from '@qwik.dev/core/server';
+import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { _useHmr } from '../internal';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { vnode_getProp, vnode_locate } from '../client/vnode-utils';
@@ -3451,5 +3455,47 @@ describe.each([
         </Component>
       );
     });
+  });
+});
+
+// SSR-only (not part of the parametrized `render` suite above): a headless component that projects
+// the document root (`<head>`/`<body>`) through a `<Slot/>` — the common root-provider pattern
+// (e.g. a `useQwikRouter` Provider). In dev/HMR the optimizer injects `_useHmr()` (a
+// `useOnDocument('qHmr', …)`) into every component, so it gets a `useOn` placeholder `<script>`.
+// That placeholder must end up inside `<head>`, not as a direct child of `<html>` — which is
+// invalid HTML and crashes SSR with `Code(Q12): SsrError(tag)`. `_useHmr` is called directly
+// because the optimizer's HMR injection doesn't run in unit tests (same approach as hmr.spec.tsx).
+describe('slot-projected head/body', () => {
+  it('defers the useOn placeholder into <head> instead of under <html>', async () => {
+    const Provider = component$(() => {
+      _useHmr('provider.tsx');
+      return <Slot />;
+    });
+
+    const platform = getPlatform();
+    let html: string;
+    try {
+      const result = await renderToString(
+        <Provider>
+          <head>
+            <title>Test</title>
+          </head>
+          <body>test</body>
+        </Provider>,
+        { qwikLoader: 'never', containerTagName: 'html' }
+      );
+      html = result.html;
+    } finally {
+      setPlatform(platform);
+    }
+
+    const document = createDocument({ html });
+    const scripts = document.querySelectorAll('script');
+    for (let i = 0; i < scripts.length; i++) {
+      expect(scripts[i].parentNode?.nodeName.toLowerCase()).not.toEqual('html');
+    }
+    expect(document.querySelector('script[hidden]')?.parentNode?.nodeName.toLowerCase()).toEqual(
+      'head'
+    );
   });
 });

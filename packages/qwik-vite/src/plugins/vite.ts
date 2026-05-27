@@ -477,12 +477,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       // and adding an import + wrapper to every QRL bundle. Qwik has its own
       // preloader, so the helper is pure overhead. `build.modulePreload: false`
       // does NOT disable this — see https://github.com/vitejs/vite/issues/18551.
+      // Also ignores native:import-analysis-build for rolldown.
+
       if (
         viteCommand === 'build' &&
         !qwikViteOpts.csr &&
         qwikPlugin.getOptions().target === 'client'
       ) {
-        const names = ['vite:build-import-analysis'];
+        const names = ['vite:build-import-analysis', 'native:import-analysis-build'];
         const plugins = config.plugins as VitePlugin[];
         for (const name of names) {
           const i = plugins.findIndex((p) => p?.name === name);

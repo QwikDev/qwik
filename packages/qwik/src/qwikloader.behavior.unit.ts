@@ -165,6 +165,12 @@ function createMockEvent(target: any, type = 'click', overrides: Partial<any> = 
   };
 }
 
+async function flushQueuedTasks() {
+  for (let i = 0; i < 6; i++) {
+    await Promise.resolve();
+  }
+}
+
 describe('qwikloader behavior', () => {
   test('registers listeners for each scope and supports late event registration', () => {
     const { doc, win } = createLoaderEnvironment([
@@ -373,14 +379,101 @@ describe('qwikloader behavior', () => {
         logs.push('clicked');
       },
     ];
+    doc.qready = { sync: 1 };
+    const listeners = getListeners(doc, 'qready');
+    for (let i = 0; i < listeners.length; i++) {
+      listeners[i]!.handler(createMockEvent(doc, 'qready', { detail: 'sync' }));
+    }
+    await flushQueuedTasks();
+
+    expect(logs).toEqual(['clicked']);
+  });
+
+  test('falls back to readystatechange while waiting for streamed container data', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const container = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'sync',
+    });
+    const button = createMockElement(container, {
+      'q-e:click': '#0#',
+    });
+
+    getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+    expect(logs).toEqual([]);
+
+    doc.qFuncs_sync = [
+      () => {
+        logs.push('clicked');
+      },
+    ];
     doc.readyState = 'interactive';
     const listeners = getListeners(doc, 'readystatechange');
     for (let i = 0; i < listeners.length; i++) {
       listeners[i]!.handler(createMockEvent(doc, 'readystatechange'));
     }
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushQueuedTasks();
 
     expect(logs).toEqual(['clicked']);
+  });
+
+  test('waits only for the streamed container that owns the qready event', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const firstContainer = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'first',
+    });
+    const secondContainer = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'second',
+    });
+    const firstButton = createMockElement(firstContainer, {
+      'q-e:click': '#0#',
+    });
+    const secondButton = createMockElement(secondContainer, {
+      'q-e:click': '#0#',
+    });
+
+    getSingleListener(doc, 'click').handler(createMockEvent(firstButton));
+    getSingleListener(doc, 'click').handler(createMockEvent(secondButton));
+
+    expect(logs).toEqual([]);
+    expect(doc.dispatchEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'qerror' }));
+
+    doc.qFuncs_first = [
+      () => {
+        logs.push('first');
+      },
+    ];
+    doc.qFuncs_second = [
+      () => {
+        logs.push('second');
+      },
+    ];
+
+    doc.qready = { first: 1 };
+    const firstReadyListeners = getListeners(doc, 'qready');
+    for (let i = 0; i < firstReadyListeners.length; i++) {
+      firstReadyListeners[i]!.handler(createMockEvent(doc, 'qready', { detail: 'first' }));
+    }
+    await flushQueuedTasks();
+
+    expect(logs).toEqual(['first']);
+    expect(doc.dispatchEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'qerror' }));
+
+    doc.qready.second = 1;
+    const secondReadyListeners = getListeners(doc, 'qready');
+    for (let i = 0; i < secondReadyListeners.length; i++) {
+      secondReadyListeners[i]!.handler(createMockEvent(doc, 'qready', { detail: 'second' }));
+    }
+    await flushQueuedTasks();
+
+    expect(logs).toEqual(['first', 'second']);
   });
 });

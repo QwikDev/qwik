@@ -1193,7 +1193,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               allowedContent(previousTagNesting)[0]
             }.`
           );
-          throw newTagError(text.map(escapeHTML).join('\n'));
+          throw newTagError(text.join('\n'));
         }
       }
     }

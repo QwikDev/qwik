@@ -71,10 +71,10 @@ export function pauseCursor(cursor: Cursor, container: Container): void {
 }
 
 export function resumeCursor(cursor: Cursor, container: Container): void {
+  removeCursorFromPausedQueue(cursor, container);
   if (!(cursor.flags & VNodeFlags.Cursor)) {
     return;
   }
-  removeCursorFromPausedQueue(cursor, container);
   addCursorToQueue(container, cursor);
 }
 

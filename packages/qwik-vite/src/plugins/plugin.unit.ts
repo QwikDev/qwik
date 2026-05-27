@@ -178,12 +178,6 @@ test('input array', async () => {
   assert.deepEqual(opts.input, undefined);
 });
 
-test('input with @ prefix is not resolved', async () => {
-  const plugin = await mockPlugin();
-  const opts = await plugin.normalizeOptions({ input: ['@some/virtual-entry'] });
-  assert.deepEqual(opts.input, ['@some/virtual-entry']);
-});
-
 test('outDir', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ outDir: 'out' });

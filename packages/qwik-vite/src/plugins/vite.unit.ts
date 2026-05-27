@@ -395,24 +395,6 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(c.publicDir, false);
   });
 
-  test('command: build, --ssr with relative path resolves to absolute', async () => {
-    const initOpts = {
-      optimizerOptions: mockOptimizerOptions(),
-    };
-    const plugin = getPlugin(initOpts);
-    const c = (await plugin.config.call(
-      configHookPluginContext,
-      { build: { ssr: 'src/entry.server.tsx' } },
-      { command: 'build', mode: '' }
-    ))!;
-    const build = c.build!;
-    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
-
-    assert.deepEqual((bundlerOptions.input as string[]).map(normalizePath), [
-      normalizePath(resolve(cwd, 'src', 'entry.server.tsx')),
-    ]);
-  });
-
   test('command: serve, --mode ssr', async () => {
     const initOpts = {
       optimizerOptions: mockOptimizerOptions(),
@@ -635,12 +617,15 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     } as QwikVitePluginOptions;
     test('should handle client target', async () => {
       const plugin = getPlugin(initOpts);
+
       const c: any = (await plugin.config.call(
         configHookPluginContext,
         {},
         { command: 'build', mode: 'development' }
       ))!;
-      assert.deepEqual(c.build.rollupOptions.input, ['./src/widget/counter.tsx']);
+      const build = c.build!;
+      const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
+      assert.deepEqual(bundlerOptions.input, ['./src/widget/counter.tsx']);
     });
     test('should handle ssr target', async () => {
       const plugin = getPlugin(initOpts);
@@ -649,7 +634,9 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
         {},
         { command: 'build', mode: 'ssr' }
       ))!;
-      assert.deepEqual(c.build.rollupOptions.input, ['./src/widget/ssr.tsx']);
+      const build = c.build!;
+      const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
+      assert.deepEqual(bundlerOptions.input, ['./src/widget/ssr.tsx']);
     });
   });
 

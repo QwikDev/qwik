@@ -767,10 +767,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   $deferRootPlaceholder$(scriptNode: JSXNodeInternal<string>): boolean {
-    // A headless component executing at the document root (e.g. wrapping `<head>`/`<body>` in a
-    // `<Slot/>`) would render its placeholder `<script>` as a direct child of `<html>`, which is
-    // invalid. Defer it into `<head>` instead (rendered when `<head>` opens) — the same place a
-    // non-headless root attaches such handlers. Otherwise let the caller inject it inline.
+    // At the document root a placeholder `<script>` would be an illegal child of `<html>`, so defer
+    // it into `<head>` instead.
     if (this.isHtml && this.currentElementFrame?.elementName === 'html') {
       this.additionalHeadNodes.push(scriptNode);
       return true;

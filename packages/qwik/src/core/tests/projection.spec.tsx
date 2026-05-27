@@ -3458,13 +3458,6 @@ describe.each([
   });
 });
 
-// SSR-only (not part of the parametrized `render` suite above): a headless component that projects
-// the document root (`<head>`/`<body>`) through a `<Slot/>` — the common root-provider pattern
-// (e.g. a `useQwikRouter` Provider). In dev/HMR the optimizer injects `_useHmr()` (a
-// `useOnDocument('qHmr', …)`) into every component, so it gets a `useOn` placeholder `<script>`.
-// That placeholder must end up inside `<head>`, not as a direct child of `<html>` — which is
-// invalid HTML and crashes SSR with `Code(Q12): SsrError(tag)`. `_useHmr` is called directly
-// because the optimizer's HMR injection doesn't run in unit tests (same approach as hmr.spec.tsx).
 describe('slot-projected head/body', () => {
   it('defers the useOn placeholder into <head> instead of under <html>', async () => {
     const Provider = component$(() => {

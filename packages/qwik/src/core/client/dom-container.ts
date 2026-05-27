@@ -323,11 +323,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
   }
 
-  $deferRootPlaceholder$(): boolean {
-    // The client diffs the placeholder into the component's JSX directly.
-    return false;
-  }
-
   // TODO: should be moved to the Qwik Router?
   /** Set the server data for the Qwik Router. */
   private $setServerData$(): void {

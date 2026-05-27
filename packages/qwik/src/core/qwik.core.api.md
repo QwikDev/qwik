@@ -52,8 +52,10 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
     timeout?: number;
 }
 
-// @internal
-export let _captures: Readonly<unknown[]> | null;
+// @internal (undocumented)
+export const _capturesObj: {
+    _: Readonly<unknown[]> | null;
+};
 
 // @internal
 export function _chk(this: string | undefined, _: any, element: HTMLInputElement): void;

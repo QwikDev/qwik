@@ -10,7 +10,7 @@ import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isServerPlatform } from '../shared/platform/platform';
 import { _fnSignal } from '../shared/qrl/inlined-fn';
 import { inlinedQrl } from '../shared/qrl/qrl';
-import { _captures } from '../shared/qrl/qrl-class';
+import { _capturesObj } from '../shared/qrl/qrl-class';
 import { QCursorBoundary } from '../shared/utils/markers';
 import { useComputedQrl } from '../use/use-computed';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
@@ -52,10 +52,10 @@ const _hf1_str =
 
 /** @internal */
 export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
-  const cursorBoundary = _captures![0] as CursorBoundary,
-    props = _captures![1] as { delay?: number },
-    state = _captures![2] as Signal<SuspenseState>,
-    revealRegistration = _captures![3] as RevealRegistration | null;
+  const cursorBoundary = _capturesObj._![0] as CursorBoundary,
+    props = _capturesObj._![1] as { delay?: number },
+    state = _capturesObj._![2] as Signal<SuspenseState>,
+    revealRegistration = _capturesObj._![3] as RevealRegistration | null;
   const pendingCount = track(cursorBoundary.pending);
   const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
   if (revealRegistration !== null && isBrowserEnv) {

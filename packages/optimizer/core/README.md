@@ -20,9 +20,9 @@ useTask$(() => {
 useTaskQrl(qrl(() => import('./myFile_useTask_abc123'), 's_abc123', [state]));
 
 // Output (segment module: myFile_useTask_abc123.js)
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 export const s_abc123 = () => {
-  const state = _captures[0];
+  const state = _capturesObj._[0];
   console.log(state.count);
 };
 ```
@@ -32,7 +32,7 @@ export const s_abc123 = () => {
 A segment is an extracted closure with metadata. Each segment becomes a separate ES module file (in non-inline strategies). The segment module contains:
 
 1. Imports for all externally-referenced identifiers
-2. A `_captures` import if the closure captures lexical variables
+2. A `_capturesObj` import if the closure captures lexical variables
 3. The closure body as a named export
 
 ### Captures (Scoped Identifiers)
@@ -41,7 +41,7 @@ When a `$`-closure references variables from its enclosing lexical scope (not im
 
 1. Identifies captured variables by walking the closure body and checking each identifier against the lexical scope stack
 2. Passes them as an array argument to `qrl()`: `qrl(import, "name", [var1, var2])`
-3. In the segment module, rewrites the function to read captures from `_captures`: `const var1 = _captures[0]`
+3. In the segment module, rewrites the function to read captures from `_capturesObj`: `const var1 = _capturesObj._[0]`
 
 **Exception — event handlers on native elements:** For `$`-props on native elements (e.g., `onClick$` on `<button>`), captures are instead lifted to `q:p`/`q:ps` props on the element and injected as extra function parameters. This removes the capture array from the QRL, allowing it to be hoisted to module scope. See "Event handler capture lifting" below.
 
@@ -176,13 +176,13 @@ The optimizer processes each source file through these phases in order:
 
 15. **Build segment modules** — For each extracted segment, builds a standalone ES module:
     - Resolves imports: identifiers referencing source-file imports get corresponding import declarations; identifiers referencing source-file exports get `import { _auto_name } from "./sourceFile"`
-    - Adds `_captures` import and rewrites function parameters if the segment has captures
+    - Adds `_capturesObj` import and rewrites function parameters if the segment has captures
     - Includes hoisted QRL consts and migrated root variables
     - Topologically sorts all declarations
 
 16. **Segment DCE** — Runs DCE on each segment module to remove unused imports and dead code.
 
-17. **Empty segment detection** — After DCE, checks if a segment's exported function body is empty (no statements, only `_captures[N]` accesses, `() => undefined`, or `() => void 0`). Empty segments are not emitted.
+17. **Empty segment detection** — After DCE, checks if a segment's exported function body is empty (no statements, only `_capturesObj._[N]` accesses, `() => undefined`, or `() => void 0`). Empty segments are not emitted.
 
 18. **Noop QRL replacement** — In all remaining modules (root + non-empty segments), `qrl()` calls referencing empty segments are replaced with `_noopQrl()`. The captures array is preserved. Unused import arrows (`i_*` consts) and QRL declarations (`_qrl_*` consts) are cleaned up.
 

@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 4944
+assertion_line: 5130
 expression: output
 ---
 ==INPUT==
@@ -66,10 +66,10 @@ export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,oBAAM,0CA4CZ\"}")
 ============================= test.tsx_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48 = (_, _1, row)=>{
-    const data = _captures[0];
+    let data = _capturesObj._[0];
     const dataValue = untrack(()=>data.value);
     data.value = dataValue.toSpliced(dataValue.findIndex((d)=>d.value.id === row.value.id), 1);
 };
@@ -191,10 +191,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg = (_, _1, row, idx)=>{
-    const clickedIndex = _captures[0], selectedItem = _captures[1];
+    let clickedIndex = _capturesObj._[0], selectedItem = _capturesObj._[1];
     if (selectedItem.value) selectedItem.value.selected.value = false;
     selectedItem.value = row.value;
     row.value.selected.value = true;

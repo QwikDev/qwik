@@ -10,7 +10,7 @@ import {
   untrack,
   useComputed$,
   useComputedQrl,
-  _captures,
+  _capturesObj,
   useSignal,
   useStore,
   useTask$,
@@ -41,7 +41,7 @@ describe.each([
           () =>
             Promise.resolve({
               lazy: () => {
-                const [count] = _captures as any;
+                const [count] = _capturesObj._ as any;
                 return count.value * 2;
               },
             }),

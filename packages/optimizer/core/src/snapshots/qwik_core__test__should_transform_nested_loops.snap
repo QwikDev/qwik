@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5095
+assertion_line: 5281
 expression: output
 ---
 ==INPUT==
@@ -125,10 +125,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = (_, _1, item)=>{
-    const row = _captures[0];
+    let row = _capturesObj._[0];
     return console.log(row.value.id, item.value.id);
 };
 

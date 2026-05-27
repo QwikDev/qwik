@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 4903
+assertion_line: 5089
 expression: output
 ---
 ==INPUT==
@@ -140,10 +140,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Parent_component_div_button_q_e_click_1_rAeuW6OvuXM = (_, _1, item)=>{
-    const cart = _captures[0];
+    let cart = _capturesObj._[0];
     cart.push(item);
 };
 

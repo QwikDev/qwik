@@ -61,7 +61,12 @@ export async function submoduleOptimizer(config: BuildConfig) {
         enforce: 'pre',
         resolveId(id) {
           // throws an error if files from src/core are loaded, except for some allowed imports
-          if (/src[/\\]core[\\/]/.test(id) && !id.includes('util') && !id.includes('shared')) {
+          if (
+            /src[/\\]core[\\/]/.test(id) &&
+            !id.includes('util') &&
+            !id.includes('shared') &&
+            !id.includes('version')
+          ) {
             console.error('forbid-core', id);
             throw new Error('Import of core files is not allowed in server builds.');
           }

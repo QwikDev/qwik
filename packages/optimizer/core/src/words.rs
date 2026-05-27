@@ -26,7 +26,7 @@ lazy_static! {
 	pub static ref BUILDER_IO_QWIK_JSX_DEV: Atom = Atom::from("@qwik.dev/core/jsx-dev-runtime");
 	pub static ref QCOMPONENT: Atom = Atom::from("component$");
 	pub static ref QWORKER: Atom = Atom::from("worker$");
-	pub static ref _CAPTURES: Atom = Atom::from("_captures");
+	pub static ref _CAPTURES_OBJ: Atom = Atom::from("_capturesObj");
 	pub static ref H: Atom = Atom::from("h");
 	pub static ref FRAGMENT: Atom = Atom::from("Fragment");
 	pub static ref _INLINED_FN: Atom = Atom::from("_fnSignal");

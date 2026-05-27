@@ -117,10 +117,10 @@ export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,oBAAM,0CA+FZ\"}")
 ============================= test.tsx_App_component_loopForIn_span_q_e_click_adzBGickx1U.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const App_component_loopForIn_span_q_e_click_adzBGickx1U = (_, _1, key)=>{
-    const cart = _captures[0], results = _captures[1];
+    let cart = _capturesObj._[0], results = _capturesObj._[1];
     cart.push(results[key]);
 };
 
@@ -157,10 +157,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_loopWhile_span_q_e_click_05kCMrZVn5E.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const App_component_loopWhile_span_q_e_click_05kCMrZVn5E = (_, _1, i)=>{
-    const cart = _captures[0], results = _captures[1];
+    let cart = _capturesObj._[0], results = _capturesObj._[1];
     cart.push(results[i]);
 };
 
@@ -197,10 +197,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_loopForOf_span_q_e_click_zlNGHYu926I.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const App_component_loopForOf_span_q_e_click_zlNGHYu926I = (_, _1, item)=>{
-    const cart = _captures[0];
+    let cart = _capturesObj._[0];
     cart.push(item);
 };
 
@@ -368,10 +368,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_loopForI_span_q_e_click_PbCYbPM6etI.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const App_component_loopForI_span_q_e_click_PbCYbPM6etI = (_, _1, i)=>{
-    const cart = _captures[0], results = _captures[1];
+    let cart = _capturesObj._[0], results = _capturesObj._[1];
     cart.push(results[i]);
 };
 
@@ -408,10 +408,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const App_component_div_button_q_e_click_UB6Fs5a3bd8 = (_, _1, item)=>{
-    const cart = _captures[0];
+    let cart = _capturesObj._[0];
     cart.push(item);
 };
 
@@ -447,10 +447,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = (_, _1, item)=>{
-    const cart = _captures[0];
+    let cart = _capturesObj._[0];
     cart.push(item);
 };
 

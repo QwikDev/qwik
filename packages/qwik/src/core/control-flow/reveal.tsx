@@ -7,7 +7,7 @@ import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { Slot } from '../shared/jsx/slot.public';
 import { isServerPlatform } from '../shared/platform/platform';
 import { inlinedQrl } from '../shared/qrl/qrl';
-import { _captures } from '../shared/qrl/qrl-class';
+import { _capturesObj } from '../shared/qrl/qrl-class';
 import { createContextId, useContext, useContextProvider } from '../use/use-context';
 import type { CursorBoundary } from '../use/use-cursor-boundary';
 import { useConstant } from '../use/use-signal';
@@ -51,7 +51,7 @@ const createRevealContext = (props: RevealProps): RevealContext => {
 
 /** @internal */
 export const revealCanReveal = () => {
-  const registration = _captures![0] as RevealRegistration | null;
+  const registration = _capturesObj._![0] as RevealRegistration | null;
   if (registration === null) {
     return true;
   }
@@ -101,7 +101,7 @@ export const revealCanReveal = () => {
 
 /** @internal */
 export const revealCleanupTask = ({ cleanup }: TaskCtx) => {
-  const registration = _captures![0] as RevealRegistration;
+  const registration = _capturesObj._![0] as RevealRegistration;
   cleanup(() => {
     // Keep the SSR registry intact so `reveal.items` serializes for resume.
     if (qTest ? isServerPlatform() : !isBrowser) {

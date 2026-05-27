@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5542
+assertion_line: 5728
 expression: output
 ---
 ==INPUT==
@@ -46,10 +46,10 @@ export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CAuBZ\"}")
 ============================= test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const test_component_div_div_span_button_q_e_click_oBFNw2cK30o = (_, _1, cellIndex)=>{
-    const rowIndex = _captures[0];
+    let rowIndex = _capturesObj._[0];
     return console.log(rowIndex, cellIndex);
 };
 
@@ -85,10 +85,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_test_component_div_div_span_span_q_e_keydown_SBPovprktLQ.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const test_component_div_div_span_span_q_e_keydown_SBPovprktLQ = (_, _1, j, cellKey)=>{
-    const i = _captures[0];
+    let i = _capturesObj._[0];
     return console.log(cellKey, i, j);
 };
 

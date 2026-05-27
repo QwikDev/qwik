@@ -6,6 +6,7 @@ import { isBrowser, isDev } from '@qwik.dev/core/build';
 import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
+import { registerSingleton } from '../singletons';
 import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
@@ -17,7 +18,7 @@ import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
 import { DomContainer } from '../../client/dom-container';
-import { loading } from '../serdes/inflate';
+import { loadingHolder } from '../serdes/inflate';
 import type { Container } from '../types';
 import { ElementVNode } from '../vnode/element-vnode';
 
@@ -407,16 +408,22 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
   },
 });
 
+/** @internal */
+export const _capturesObj = registerSingleton<{ _: Readonly<unknown[]> | null }>(
+  'qrlCaptures',
+  () => ({
+    _: null,
+  })
+);
+
 /**
- * The current captured scope during QRL invocation. This is used to provide the lexical scope for
- * QRL functions. It is used one time per invocation, synchronously, so it is safe to store it in
- * module scope.
+ * The current captured scope during QRL invocation. Prefer `_capturesObj` for generated code so
+ * duplicated Qwik modules share the same holder object.
  *
  * @internal
  */
-export let _captures: Readonly<unknown[]> | null = null;
 export const setCaptures = (captures: Readonly<unknown[]> | null) => {
-  _captures = captures;
+  _capturesObj._ = captures;
 };
 
 export const deserializeCaptures = (container: Container, captures: string) => {
@@ -429,21 +436,27 @@ export const deserializeCaptures = (container: Container, captures: string) => {
   return refs;
 };
 
-/** Puts the qrl captures into `_captures`, and returns a Promise that should be awaited if possible */
+/**
+ * Puts the qrl captures into the shared holder, and returns a Promise that should be awaited if
+ * possible
+ */
 const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
   // We read the captures once, synchronously, so no need to keep previous
-  _captures = qrl.$captures$ as any;
+  let captures = qrl.$captures$ as Readonly<unknown[]> | string | null | undefined;
   const container = qrl.$container$;
-  if (typeof _captures === 'string') {
+  if (typeof captures === 'string') {
     if (!container) {
       throw qError(QError.qrlMissingContainer);
     }
-    const prevLoading = loading;
-    _captures = qrl.$captures$ = deserializeCaptures(container, _captures);
-    if (loading !== prevLoading) {
+    const prevLoading = loadingHolder.p;
+    captures = qrl.$captures$ = deserializeCaptures(container, captures);
+    setCaptures(captures);
+    if (loadingHolder.p !== prevLoading) {
       // return the loading promise so callers can await it
-      return loading;
+      return loadingHolder.p;
     }
+  } else {
+    setCaptures(captures ?? null);
   }
 };
 

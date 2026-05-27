@@ -535,15 +535,15 @@ describe('serializer v2', () => {
       ).rejects.toThrowError(
         [
           `Code(Q12): SsrError(tag): Error found in file: ${filePath}`,
-          `HTML rules do not allow &#39;&lt;div&gt;&#39; at this location.`,
+          `HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
-          `  Offending tag: &lt;div&gt;`,
+          `  Offending tag: <div>`,
           `  Existing tag context:`,
-          `    &lt;html&gt; [html content] -&gt; &lt;head&gt;, &lt;body&gt;`,
-          `     &lt;body&gt; [body content] -&gt; all tags allowed here`,
-          `      &lt;p&gt; [phrasing content] -&gt; &lt;a&gt;, &lt;b&gt;, &lt;img&gt;, &lt;input&gt; ... (no &lt;div&gt;, &lt;p&gt; ...)`,
-          `       &lt;b&gt;`,
-          `        &lt;div&gt; &lt;= is not allowed as a child of phrasing content.`,
+          `    <html> [html content] -> <head>, <body>`,
+          `     <body> [body content] -> all tags allowed here`,
+          `      <p> [phrasing content] -> <a>, <b>, <img>, <input> ... (no <div>, <p> ...)`,
+          `       <b>`,
+          `        <div> <= is not allowed as a child of phrasing content.`,
         ].join('\n')
       );
     });
@@ -558,13 +558,13 @@ describe('serializer v2', () => {
       ).rejects.toThrowError(
         [
           `Code(Q12): SsrError(tag): Error found in file: ${filePath}`,
-          `HTML rules do not allow &#39;&lt;div&gt;&#39; at this location.`,
+          `HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
-          `  Offending tag: &lt;div&gt;`,
+          `  Offending tag: <div>`,
           `  Existing tag context:`,
-          `    &lt;div&gt; [any content]`,
-          `     &lt;img&gt; [no-content element]`,
-          `      &lt;div&gt; &lt;= is not allowed as a child of no-content element.`,
+          `    <div> [any content]`,
+          `     <img> [no-content element]`,
+          `      <div> <= is not allowed as a child of no-content element.`,
         ].join('\n')
       );
     });

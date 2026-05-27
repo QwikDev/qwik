@@ -324,6 +324,13 @@ export function processProps(
         pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
       } else {
         pushNamed(varEntries, `${formattedName}: ${valueText}`, 'var', attr.start);
+        // OSS-444: SWC clears `static_listeners` whenever any prop's
+        // value is non-const (`swc-reference-only/transform.rs:2514-2516`,
+        // mirroring :2441-2443). TS's flag math reads `hasVarEventHandler`
+        // for bit 0; setting it here brings Component-prop `*$` attrs
+        // with non-const values into parity (e.g. `<Div onClick$={props.onClick$}>`
+        // where the value is a non-const MemberExpression → flag=2 not 3).
+        hasVarEventHandler = true;
       }
       continue;
     }

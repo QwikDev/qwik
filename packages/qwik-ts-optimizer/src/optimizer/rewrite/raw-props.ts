@@ -515,6 +515,37 @@ function buildIdentifierReplacementsCollector(
     if (hasRange(node) && isExcludedRange(node, excludedRanges as Array<{ start: number; end: number }> | undefined)) {
       return { replacements: [], skipSubtree: true };
     }
+    // OSS-442: JSXIdentifier in a JSX tag-name position is a *reference*
+    // to the same binding the regular Identifier path rewrites — `<Model/>`
+    // looks up `Model` in scope just like `console.log(Model)` would. The
+    // tag accepts a JSXMemberExpression, so a source-text rewrite to
+    // `<props.Model/>` is valid. Only JSXOpeningElement.name and
+    // JSXClosingElement.name are reference positions; JSXAttribute names,
+    // JSXMemberExpression.property, and JSXNamespacedName components are
+    // literal names and must NOT be rewritten.
+    if (
+      isAstNode(node) &&
+      node.type === 'JSXIdentifier' &&
+      hasRange(node) &&
+      typeof (node as { name?: unknown }).name === 'string' &&
+      ctx.parentKey === 'name' &&
+      (ctx.parentNode?.type === 'JSXOpeningElement' ||
+        ctx.parentNode?.type === 'JSXClosingElement')
+    ) {
+      const jsxName = (node as { name: string }).name;
+      const jsxKey = fieldLocalToKey.get(jsxName);
+      if (jsxKey !== undefined) {
+        out.push({
+          start: node.start - offset,
+          end: node.end - offset,
+          key: jsxKey,
+          local: jsxName,
+          // JSX tag position does not need parens around a MemberExpression.
+          needsParens: false,
+        });
+      }
+      return { replacements: [] };
+    }
     if (!isRangedIdentifierNode(node)) return null;
     const key = fieldLocalToKey.get(node.name);
     if (key === undefined) return null;

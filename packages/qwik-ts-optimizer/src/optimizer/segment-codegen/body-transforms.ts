@@ -174,7 +174,20 @@ export function rewriteNestedCallSitesInline(
 
   for (const site of sorted) {
     if (site.isJsxAttr && site.attrStart !== undefined && site.attrEnd !== undefined && site.transformedPropName) {
-      const propValueRef = site.hoistedSymbolName ?? site.qrlVarName;
+      // OSS-444: a JSX-attr child segment that captures variables but
+      // isn't subject to the loop-cross hoist path (`hoistedSymbolName`
+      // unset, populated by buildNestedCallSites only for in-loop or
+      // loop-iter-padded handlers) still needs `.w([captures])` wrapping
+      // at the parent's prop call site. Mirrors the inline-strategy path
+      // at `rewrite/inline-body.ts:242-244`.
+      let propValueRef: string;
+      if (site.hoistedSymbolName) {
+        propValueRef = site.hoistedSymbolName;
+      } else if (site.captureNames && site.captureNames.length > 0) {
+        propValueRef = formatWCall(site.qrlVarName, site.captureNames, '        ', '    ');
+      } else {
+        propValueRef = site.qrlVarName;
+      }
       const relStart = site.attrStart - bodyOffset;
       const relEnd = site.attrEnd - bodyOffset;
       bodyText = spliceWithinBody(bodyText, relStart, relEnd, `${site.transformedPropName}={${propValueRef}}`);

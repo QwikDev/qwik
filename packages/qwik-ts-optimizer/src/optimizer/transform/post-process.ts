@@ -37,6 +37,16 @@ export interface SegmentPostProcessOptions {
   extension: string;
   ctxName: string;
   sourceExtensions: Map<string, string>;
+  /**
+   * OSS-443: the parent input file's extension (`.tsx`, `.ts`, `.jsx`,
+   * `.js`). Drives the parser-input filename passed to oxc-transform's
+   * TS-strip / JSX-strip pass. Separate from {@link sourceExtensions} and
+   * {@link extension}, which carry the segment's *output* extension —
+   * frequently downgraded to `.js` even when the parent source contains
+   * TS or JSX, which would cause oxc-transform to reject TS-typed
+   * segment bodies as syntax errors.
+   */
+  parentSourceExt: string;
   shouldTranspileTs: boolean;
   shouldTranspileJsx: boolean;
   isServer?: boolean;
@@ -186,8 +196,16 @@ export function postProcessSegmentCode(
       if (!opts.shouldTranspileJsx) {
         tsStripOptions.jsx = "preserve";
       }
-      const sourceExt =
-        opts.sourceExtensions.get(opts.symbolName) ?? opts.extension;
+      // OSS-443: parser-input filename must reflect the *source* dialect
+      // (.tsx / .ts / .jsx / .js) so oxc-transform parses the segment body
+      // correctly. The segment's output `extension` may have been downgraded
+      // to `.js` by `transform/index.ts:533-547` (when `shouldTranspileTs`
+      // and/or `shouldTranspileJsx` is set), and `sourceExtensions` captured
+      // the pre-downgrade *segment* extension — which is itself already
+      // `.js` for non-JSX-bearing segments per `extensionFromSegmentJsx`
+      // (extract.ts:217). All segment bodies come from the parent input
+      // file, so the parent's extension is the authoritative source dialect.
+      const sourceExt = opts.parentSourceExt;
       const tsStripped = oxcTransformSync(
         opts.canonicalFilename + sourceExt,
         result,

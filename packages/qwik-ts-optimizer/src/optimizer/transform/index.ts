@@ -690,6 +690,10 @@ export function transformModule(
       preRenameSymbolName,
       qrlOutputExt,
       sourceExtensions,
+      // OSS-443: the parent input file's extension drives oxc-transform's
+      // parser-dialect selection in `postProcessSegmentCode`. Falls back to
+      // `.tsx` (parses TS + JSX, covers both) when extension is missing.
+      parentSourceExt: ext || '.tsx',
       shouldTranspileJsx,
       shouldTranspileTs,
       isJsx,

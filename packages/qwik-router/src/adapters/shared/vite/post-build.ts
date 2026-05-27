@@ -118,7 +118,7 @@ const injectStatics = async (
 
     let replaced = false;
     const newCode = code.replace(
-      /(['"])__QWIK_ROUTER_(STATIC_PATHS|NOT_FOUND)_ARRAY__\1/g,
+      /(["'`])__QWIK_ROUTER_(STATIC_PATHS|NOT_FOUND)_ARRAY__\1/g,
       (_, _quote, type) => {
         replaced = true;
         return type === 'STATIC_PATHS' ? staticPathsCode : notFoundPathsCode;

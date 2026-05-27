@@ -111,20 +111,24 @@ const resolveContainer = (containerEl: QContainerElement) => {
   }
 };
 
-const waitForContainerReady = (container: QContainerElement) =>
-  container.getAttribute('q:container') === 'paused' &&
-  doc.readyState === 'loading' &&
-  !(doc as any)[containerReady] &&
-  new Promise<void>((resolve) => {
-    const done = () => {
-      doc.removeEventListener(readyStateChange, done);
-      doc.removeEventListener(containerReady, done);
-      resolve();
-    };
-    addEventListener(doc, readyStateChange, done);
-    addEventListener(doc, containerReady, done);
-  });
-
+const waitForContainerReady = (container: QContainerElement) => {
+  const hash = container.getAttribute('q:instance')!;
+  return (
+    container.getAttribute('q:container') === 'paused' &&
+    doc.readyState === 'loading' &&
+    !(doc as any)[containerReady]?.[hash] &&
+    new Promise<void>((resolve) => {
+      const ready = (ev: Event) => {
+        if ((ev as CustomEvent).detail === hash) {
+          doc.removeEventListener(containerReady, ready);
+          resolve();
+        }
+      };
+      addEventListener(doc, readyStateChange, resolve as any);
+      addEventListener(doc, containerReady, ready);
+    })
+  );
+};
 const createEvent = <T extends CustomEvent = any>(eventName: string, detail?: T['detail']) =>
   new CustomEvent(eventName, { detail }) as T;
 
@@ -177,9 +181,8 @@ const resolveHandler = (
     element,
     reqTime,
   };
-  if (chunk === '') {
-    const hash = container.getAttribute('q:instance')!;
-    const handler = ((doc as any)['qFuncs_' + hash] || [])[Number.parseInt(symbol)];
+  if (!chunk) {
+    const handler = ((doc as any)['qFuncs_' + container.getAttribute('q:instance')] || [])[+symbol];
     if (!handler && reportSyncError) {
       const error = new Error('sym:' + symbol);
       emitEvent<QwikErrorEvent>('qerror', {
@@ -339,19 +342,17 @@ const dispatch = (
       };
       const resolve = (reportSyncError = true) =>
         resolveHandler(container, element, qBase, base, chunk, symbol, reqTime, reportSyncError);
-      const handler = waitForReady && chunk === '' ? resolve(false) : resolve();
+      const handler = waitForReady && !chunk ? resolve(false) : resolve();
       if (isPromise(handler)) {
         defer = true;
         tasks.push(() => handler.then(run));
-      } else if (defer || (waitForReady && chunk === '' && !handler)) {
+      } else if (defer || (waitForReady && !chunk && !handler)) {
         defer = true;
         tasks.push(async () => {
-          let retry = waitForReady;
           let retryHandler = handler;
-          while (!retryHandler && retry) {
-            await retry;
+          if (!retryHandler && waitForReady) {
+            await waitForReady;
             retryHandler = resolve(false) as Handler | undefined;
-            retry = waitForContainerReady(container);
           }
           await run(retryHandler || (await resolve()));
         });

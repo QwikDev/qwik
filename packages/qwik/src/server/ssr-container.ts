@@ -1430,7 +1430,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
     this.emitInlineScript(
-      'document.qready=1;try{document.dispatchEvent(new CustomEvent("qready"))}catch(e){}'
+      `document.qready||(document.qready={});document.qready["${this.$instanceHash$}"]=1;try{document.dispatchEvent(new CustomEvent("qready",{detail:"${this.$instanceHash$}"}))}catch(e){}`
     );
   }
 

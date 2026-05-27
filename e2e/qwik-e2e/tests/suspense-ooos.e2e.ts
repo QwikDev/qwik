@@ -439,4 +439,84 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-container-second-resolved-count')).toHaveText('1');
     await page.waitForLoadState('load');
   });
+
+  test('keeps streamed container readiness scoped by instance', async ({
+    page,
+    browserName,
+  }, testInfo) => {
+    const firstReleaseId = `container-ready-first-${testInfo.workerIndex}-${Date.now()}`;
+    const secondReleaseId = `container-ready-second-${testInfo.workerIndex}-${Date.now()}`;
+    const params = new URLSearchParams({
+      scenario: 'containers',
+      first: firstReleaseId,
+      second: secondReleaseId,
+    });
+    await page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+      waitUntil: 'commit',
+    });
+
+    await expect(page.locator('#ooos-container-first-fallback')).toBeVisible({ timeout: 10000 });
+    await releaseOutOfOrderSuspense(page, '#ooos-container-first-release');
+    await expect(page.locator('#ooos-container-first-resolved')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#ooos-container-second-fallback')).toBeVisible({ timeout: 10000 });
+
+    const hashes = await page.evaluate(() => {
+      const getHash = (selector: string) => {
+        const container = document
+          .querySelector(selector)
+          ?.closest('[q\\:container]') as Element | null;
+        return container?.getAttribute('q:instance') || null;
+      };
+      return {
+        first: getHash('#ooos-container-first-resolved'),
+        second: getHash('#ooos-container-second-fallback'),
+      };
+    });
+    expect(hashes.first).toBeTruthy();
+    expect(hashes.second).toBeTruthy();
+    expect(hashes.first).not.toBe(hashes.second);
+
+    await page.waitForFunction(({ first, second }) => {
+      const documentWithQwik = document as any;
+      return documentWithQwik.qready?.[first!] && documentWithQwik.qready?.[second!];
+    }, hashes);
+
+    await page.evaluate(({ first, second }) => {
+      const documentWithQwik = document as any;
+      const secondButton = document.querySelector('#ooos-container-second-fallback-button') as any;
+      const qFuncsName = 'qFuncs_' + second;
+      const qFuncs = (documentWithQwik[qFuncsName] ||= []);
+      const qFuncIndex = qFuncs.length;
+      secondButton._qDispatch = undefined;
+      secondButton.setAttribute('q-e:click', `#${qFuncIndex}#`);
+      (window as any).__ooosSecondQFuncIndex = qFuncIndex;
+      documentWithQwik.qready ||= {};
+      documentWithQwik.qready[first!] = 1;
+      delete documentWithQwik.qready[second!];
+    }, hashes);
+
+    await page.locator('#ooos-container-first-resolved-button').click();
+    await expect(page.locator('#ooos-container-first-resolved-count')).toHaveText('1');
+
+    await page.locator('#ooos-container-second-fallback-button').click();
+    await page.evaluate((first) => {
+      document.dispatchEvent(new CustomEvent('qready', { detail: first }));
+    }, hashes.first);
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
+    await expect(page.locator('#ooos-container-second-fallback-count')).toHaveText('0');
+
+    await page.evaluate((second) => {
+      const documentWithQwik = document as any;
+      documentWithQwik['qFuncs_' + second][(window as any).__ooosSecondQFuncIndex] = () => {
+        document.querySelector('#ooos-container-second-fallback-count')!.textContent = '1';
+      };
+      documentWithQwik.qready[second!] = 1;
+      document.dispatchEvent(new CustomEvent('qready', { detail: second }));
+    }, hashes.second);
+    await expect(page.locator('#ooos-container-second-fallback-count')).toHaveText('1');
+
+    await releaseOutOfOrderSuspense(page, '#ooos-container-second-release');
+    await expect(page.locator('#ooos-container-second-resolved')).toBeVisible({ timeout: 10000 });
+    await page.waitForLoadState('load');
+  });
 });

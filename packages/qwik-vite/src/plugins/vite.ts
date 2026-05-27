@@ -482,7 +482,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         !qwikViteOpts.csr &&
         qwikPlugin.getOptions().target === 'client'
       ) {
-        const names = ['vite:build-import-analysis'];
+        const names = ['vite:build-import-analysis', 'native:import-analysis-build'];
         const plugins = config.plugins as VitePlugin[];
         for (const name of names) {
           const i = plugins.findIndex((p) => p?.name === name);

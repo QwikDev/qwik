@@ -30,7 +30,7 @@ import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty } from '../reactive-primitives/types';
 import { EventNameHtmlScope, getEventDataFromHtmlAttribute } from './utils/event-names';
 import { isServerPlatform } from './platform/platform';
-import type { ISsrNode } from '../ssr/ssr-types';
+import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
 import { ChoreBits } from './vnode/enums/chore-bits.enum';
 import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import { isTask } from '../use/use-task';
@@ -190,7 +190,9 @@ function addUseOnEvents(
               // in a `<Slot/>`) would otherwise place the placeholder `<script>` as a direct child of
               // `<html>`, which is invalid. On the server let the container defer it into `<head>`.
               const isSsr = qTest ? isServerPlatform() : isServer;
-              if (!(isSsr && container.$deferRootPlaceholder$?.(placeholderElement))) {
+              if (
+                !(isSsr && (container as SSRContainer).$deferRootPlaceholder$(placeholderElement))
+              ) {
                 jsxResult = injectPlaceholderElement(jsxResult, placeholderElement);
               }
             }

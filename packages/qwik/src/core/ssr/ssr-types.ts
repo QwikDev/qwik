@@ -68,6 +68,13 @@ export interface SSRContainer extends Container {
   additionalBodyNodes: Array<JSXNodeInternal>;
   $noScriptHere$: number;
 
+  /**
+   * Lets the container place a root-level `useOn` placeholder `<script>` itself when injecting it
+   * inline would put it at an illegal position. Returns `true` if the container took the node, in
+   * which case the caller must not inject it into the component's JSX.
+   */
+  $deferRootPlaceholder$(scriptNode: JSXNodeInternal<string>): boolean;
+
   write(text: string): void;
 
   openContainer(): void;

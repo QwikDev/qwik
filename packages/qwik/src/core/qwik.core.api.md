@@ -140,7 +140,6 @@ export interface _Container {
     $checkPendingCount$(): void;
     // (undocumented)
     $currentUniqueId$: number;
-    $deferRootPlaceholder$?(scriptNode: JSXNodeInternal<string>): boolean;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)

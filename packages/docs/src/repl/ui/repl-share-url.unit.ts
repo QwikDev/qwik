@@ -64,6 +64,64 @@ test('createPlaygroundShareUrl 2', () => {
   );
 });
 
+test('createPlaygroundShareUrl omits out of order streaming when enabled', () => {
+  assert.equal(
+    createPlaygroundShareUrl({
+      ...data,
+      outOfOrderStreaming: true,
+    }),
+    '/playground/#v=1.2.3&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB'
+  );
+});
+
+test('createPlaygroundShareUrl includes out of order streaming when disabled', () => {
+  assert.equal(
+    createPlaygroundShareUrl({
+      ...data,
+      outOfOrderStreaming: false,
+    }),
+    '/playground/#v=1.2.3&ooos=0&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB'
+  );
+});
+
+test('parsePlaygroundShareUrl with out of order streaming', () => {
+  expect(
+    parsePlaygroundShareUrl('v=1.2.3&ooos=1&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB')
+  ).toMatchObject({
+    version: '1.2.3',
+    outOfOrderStreaming: true,
+  });
+});
+
+test('parsePlaygroundShareUrl defaults to out of order streaming', () => {
+  expect(
+    parsePlaygroundShareUrl('v=1.2.3&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB')
+  ).toMatchObject({
+    version: '1.2.3',
+    outOfOrderStreaming: true,
+  });
+});
+
+test('parsePlaygroundShareUrl with disabled out of order streaming', () => {
+  expect(
+    parsePlaygroundShareUrl('v=1.2.3&ooos=0&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB')
+  ).toMatchObject({
+    version: '1.2.3',
+    outOfOrderStreaming: false,
+  });
+});
+
+test('parsePlaygroundShareUrl with legacy out of order streaming', () => {
+  expect(
+    parsePlaygroundShareUrl(
+      'v=1.2.3&outOfOrder=1&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB'
+    )
+  ).toMatchObject({
+    version: '1.2.3',
+    outOfOrderStreaming: true,
+  });
+});
+
 test('dictionary is unchanged', () => {
   const dictionaryAsString = strFromU8(dictionary);
   // !!! THIS DICTIONARY MUST NEVER CHANGE - ONLY ALLOW PREPENDING !!!

@@ -2,6 +2,7 @@
 
 > Canonical instruction file for AI coding agents working on the Qwik v2 monorepo.
 > For detailed contributor setup, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+> Qwik core package guidance is available as the `qwik-core-development` Ruler skill.
 
 ## Overview
 

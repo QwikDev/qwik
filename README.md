@@ -49,6 +49,7 @@ bun create qwik@latest
 ## Development
 
 - See [Contributing.md](https://github.com/QwikDev/qwik/blob/main/CONTRIBUTING.md) for more information on how to build Qwik from the source and contribute!
+- AI assistant instructions are managed with [Ruler](https://github.com/intellectronica/ruler). See [.ruler/README.md](./.ruler/README.md) for setup and update instructions.
 
 ## Related
 

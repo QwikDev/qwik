@@ -1,4 +1,4 @@
-# Qwik Core Detailed Notes
+# LLM Context Guide for Qwik Core Development
 
 **Purpose**: This document captures lessons learned and important patterns for LLMs (and developers) working on the Qwik core package (`packages/qwik`). Update this file as you learn new patterns or encounter challenges.
 

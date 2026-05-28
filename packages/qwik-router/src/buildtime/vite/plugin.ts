@@ -455,23 +455,25 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
       reset();
     },
 
-    resolveId(id) {
-      if (id === VIRTUAL_SERVER_FNS) {
-        return { id: RESOLVED_ID, moduleSideEffects: 'no-treeshake' };
-      }
+    resolveId: {
+      async handler(id) {
+        if (id === VIRTUAL_SERVER_FNS) {
+          const isServerBuild =
+            this.environment.config.consumer === 'server' && this.environment.mode === 'build';
+          // Crawl the module graph here rather than in `load` because of deadlocks under rolldown
+          if (isServerBuild) {
+            await collectServerFnModules.call(this);
+          }
+          return { id: RESOLVED_ID, moduleSideEffects: 'no-treeshake' };
+        }
+      },
     },
 
     load: {
       order: 'pre',
-      async handler(id) {
-        const isServerBuild =
-          this.environment.config.consumer === 'server' && this.environment.mode === 'build';
-
+      handler(id) {
         if (id === RESOLVED_ID) {
-          if (isServerBuild) {
-            await collectServerFnModules.call(this);
-          }
-          if (!isServerBuild || serverFnModules.size === 0) {
+          if (serverFnModules.size === 0) {
             return '// No server$ functions';
           }
           return [...serverFnModules].map((mod) => `import ${JSON.stringify(mod)};`).join('\n');

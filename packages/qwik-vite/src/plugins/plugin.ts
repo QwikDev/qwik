@@ -1248,7 +1248,6 @@ export const isDev = ${JSON.stringify(isDev)};
         name: 'qwik-preloader',
         test: (id: string) =>
           id.endsWith('@qwik.dev/core/build') ||
-          id === '\0vite/preload-helper.js' ||
           /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id),
       },
       {

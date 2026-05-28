@@ -55,7 +55,7 @@ describeSSG('SSG output verification', () => {
     expect(content).toContain('## Start Here');
     expect(content).toContain('## Core Concepts');
     expect(content).toContain('## API Packages');
-    expect(content).toContain('https://qwik.dev/');
+    expect(content).toContain('https://next.qwik.dev/');
   });
 
   test('llms-ctx.txt exists', () => {

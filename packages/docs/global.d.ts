@@ -4,6 +4,11 @@ declare module '*?raw-source' {
   export default url;
 }
 
+declare module '*.svg?raw' {
+  const svg: string;
+  export default svg;
+}
+
 declare module '*?compiled-string' {
   const str: string;
   export default str;

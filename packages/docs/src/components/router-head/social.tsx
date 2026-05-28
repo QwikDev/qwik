@@ -1,6 +1,7 @@
+import { OG_IMAGE_SIZE } from '~/utils/og-image';
+
 export const Social = ({ title, description, href, ogImage }: SocialProps) => {
-  const imgAlt =
-    'Image of Qwik Framework Logo, Framework reimagined for the edge. Code snippet npm create qwik@latest';
+  const imgAlt = `Qwik social card for ${title}`;
 
   return (
     <>
@@ -10,8 +11,8 @@ export const Social = ({ title, description, href, ogImage }: SocialProps) => {
       <meta property="og:description" content={description} />
       <meta property="og:image" content={ogImage} />
       <meta property="og:image:alt" content={imgAlt} />
-      <meta property="og:image:width" content="800" />
-      <meta property="og:image:height" content="418" />
+      <meta property="og:image:width" content={OG_IMAGE_SIZE.width} />
+      <meta property="og:image:height" content={OG_IMAGE_SIZE.height} />
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Qwik" />
       <meta property="og:locale" content="en_US" />

@@ -428,9 +428,8 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
   }
   reset();
 
-  async function collectServerFnModules(this: Rollup.PluginContext) {
+  function startCollectingServerFnModules(this: Rollup.PluginContext) {
     if (serverFnsReady) {
-      await serverFnsReady;
       return;
     }
 
@@ -444,8 +443,6 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
         serverFnModules.add(moduleIds[i]);
       }
     })();
-
-    await serverFnsReady;
   }
 
   return {
@@ -456,13 +453,14 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
     },
 
     resolveId: {
-      async handler(id) {
+      handler(id) {
         if (id === VIRTUAL_SERVER_FNS) {
           const isServerBuild =
             this.environment.config.consumer === 'server' && this.environment.mode === 'build';
-          // Crawl the module graph here rather than in `load` because of deadlocks under rolldown
+          // Kick the crawl off but DON'T await it yet: the crawl loads modules that
+          // re-import this virtual module, re-entering resolveId, leading to deadlocks for certain modules.
           if (isServerBuild) {
-            await collectServerFnModules.call(this);
+            startCollectingServerFnModules.call(this);
           }
           return { id: RESOLVED_ID, moduleSideEffects: 'no-treeshake' };
         }
@@ -471,8 +469,11 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
 
     load: {
       order: 'pre',
-      handler(id) {
+      async handler(id) {
         if (id === RESOLVED_ID) {
+          if (serverFnsReady) {
+            await serverFnsReady;
+          }
           if (serverFnModules.size === 0) {
             return '// No server$ functions';
           }

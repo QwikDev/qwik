@@ -647,6 +647,11 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         const result = await render({
           base: requestEv.basePathname + 'build/',
           stream,
+          streaming: isStatic
+            ? {
+                outOfOrder: false,
+              }
+            : undefined,
           serverData,
           containerAttributes: {
             ['q:render']: isStatic ? 'static' : '',

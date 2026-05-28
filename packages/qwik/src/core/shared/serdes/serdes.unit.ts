@@ -44,6 +44,7 @@ import { qrlToString } from './qrl-to-string';
 import { _createDeserializeContainer } from './serdes.public';
 import { createSerializationContext } from './serialization-context';
 import { _serializationWeakRef } from './serialize';
+import { SubscriptionPatch } from './subscription-patch';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 
 const DEBUG = false;
@@ -1233,6 +1234,36 @@ describe('shared-serialization', () => {
       const effect = deserialize(objs)[0] as SubscriptionData;
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: true, $scopedStyleIdPrefix$: null });
+    });
+    it(title(TypeIds.SubscriptionPatch), async () => {
+      const qrl = inlinedQrl(0, 's_zero') as any;
+      const signalTask = new Task(0, 0, {} as any, qrl, undefined, null);
+      const storeTask = new Task(1, 0, {} as any, qrl, undefined, null);
+      const signalEffect = new EffectSubscription(signalTask, EffectProperty.COMPONENT, null, null);
+      const storeEffect = new EffectSubscription(storeTask, EffectProperty.COMPONENT, null, null);
+      const objs = await serialize([
+        new SubscriptionPatch(7, new Set([signalEffect])),
+        new SubscriptionPatch(8, new Map([['count', new Set([storeEffect])]])),
+      ]);
+      const [signalPatch, storePatch] = deserialize(objs)[0] as SubscriptionPatch[];
+
+      expect(signalPatch).toBeInstanceOf(SubscriptionPatch);
+      expect(signalPatch.rootId).toBe(7);
+      expect(signalPatch.subscriptions).toBeInstanceOf(Set);
+      const restoredSignalEffect = [...(signalPatch.subscriptions as Set<EffectSubscription>)][0];
+      expect(restoredSignalEffect.consumer).toBeInstanceOf(Task);
+      expect(
+        (restoredSignalEffect.consumer as Task)[_EFFECT_BACK_REF]!.get(EffectProperty.COMPONENT)
+      ).toBe(restoredSignalEffect);
+
+      expect(storePatch).toBeInstanceOf(SubscriptionPatch);
+      expect(storePatch.rootId).toBe(8);
+      expect(storePatch.subscriptions).toBeInstanceOf(Map);
+      const restoredStoreEffects = (
+        storePatch.subscriptions as Map<string, Set<EffectSubscription>>
+      ).get('count')!;
+      expect(restoredStoreEffects.size).toBe(1);
+      expect([...restoredStoreEffects][0].consumer).toBeInstanceOf(Task);
     });
   });
 

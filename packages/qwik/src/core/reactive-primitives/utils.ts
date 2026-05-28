@@ -4,6 +4,7 @@ import { assertDefined } from '../shared/error/assert';
 import { isServerPlatform } from '../shared/platform/platform';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container, SerializationStrategy } from '../shared/types';
+import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
 import { OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/serdes/verify';
 import { isObject } from '../shared/utils/types';
@@ -82,6 +83,21 @@ export const addQrlToSerializationCtx = (
       (container as SSRContainer).serializationCtx.$eventQrls$.add(qrl);
     }
   }
+};
+
+export const getEffectSerializationContainer = (
+  renderContainer: Container | undefined,
+  ownerContainer: Container | null
+): Container | null => {
+  if (
+    renderContainer &&
+    (!ownerContainer ||
+      renderContainer === ownerContainer ||
+      isOutOfOrderSegmentContainer(renderContainer))
+  ) {
+    return renderContainer;
+  }
+  return ownerContainer;
 };
 
 export const scheduleEffects = (

@@ -22,6 +22,7 @@ export type {
   InOrderAuto,
   InOrderDisabled,
   InOrderStreaming,
+  OutOfOrderStreaming,
 } from './types';
 export { resolveManifest, renderToString, renderToStream } from './ssr-render';
 export { versions } from './utils';

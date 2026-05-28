@@ -61,6 +61,7 @@ export function _createDeserializeContainer(stateData: unknown[]): DeserializeCo
   let state: unknown[];
   const container: DeserializeContainer = {
     $getObjectById$: (id: number | string) => getObjectById(id, state),
+    $getForwardRef$: (id: number | string) => container.$forwardRefs$?.[Number(id)],
     getSyncFn: (_: number) => {
       const fn = () => {};
       return fn;

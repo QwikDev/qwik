@@ -1,9 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ssrCreateContainer } from './ssr-container';
-import { QStyle, VNodeDataChar, encodeVNodeDataString } from './qwik-copy';
+import { QDefaultSlot, QStyle, VNodeDataChar, encodeVNodeDataString } from './qwik-copy';
 import { VNodeDataFlag, type RenderToStreamOptions } from './types';
 import { OPEN_FRAGMENT, CLOSE_FRAGMENT } from './vnode-data';
 import { StreamHandler } from './ssr-stream-handler';
+import { StringSSRWriter } from './ssr-stream-writer';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -11,15 +12,7 @@ vi.hoisted(() => {
 });
 
 const createTestContainer = () => {
-  const writer = {
-    chunks: [] as string[],
-    write(text: string) {
-      this.chunks.push(text);
-    },
-    toString() {
-      return this.chunks.join('');
-    },
-  };
+  const writer = new StringSSRWriter();
 
   const container = ssrCreateContainer({
     tagName: 'div',
@@ -123,15 +116,7 @@ describe('SSR Container', () => {
   });
 
   it('should encode custom attributes with separators in emitVNodeData', () => {
-    const writer = {
-      chunks: [] as string[],
-      write(text: string) {
-        this.chunks.push(text);
-      },
-      toString() {
-        return this.chunks.join('');
-      },
-    };
+    const writer = new StringSSRWriter();
 
     const container = ssrCreateContainer({
       tagName: 'div',
@@ -178,5 +163,44 @@ describe('SSR Container', () => {
     expect(vnodeContent).toContain(
       `${VNodeDataChar.SEPARATOR_CHAR}${encodedValue}${VNodeDataChar.SEPARATOR_CHAR}`
     );
+  });
+
+  it('should encode default slot projection refs with wrapped values', () => {
+    const writer = new StringSSRWriter();
+
+    const container = ssrCreateContainer({
+      tagName: 'div',
+      writer,
+      streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+        firstFlush: 0,
+        render: 0,
+        snapshot: 0,
+      }),
+    });
+    container.openContainer();
+
+    const mockRoot = {};
+    container.serializationCtx.$roots$.push(mockRoot);
+
+    (container as any).vNodeDatas = [
+      [
+        VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+        { [QDefaultSlot]: '-1A' },
+        OPEN_FRAGMENT,
+        CLOSE_FRAGMENT,
+      ],
+    ];
+
+    (container as any).emitVNodeData();
+
+    const output = writer.toString();
+    const vnodeStart = output.indexOf('<script type="qwik/vnode" :="">');
+    const vnodeEnd = output.indexOf('</script>', vnodeStart);
+    const vnodeContent = output.substring(
+      vnodeStart + '<script type="qwik/vnode" :="">'.length,
+      vnodeEnd
+    );
+
+    expect(vnodeContent).toContain('|||\\-1A|');
   });
 });

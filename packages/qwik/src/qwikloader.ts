@@ -42,6 +42,7 @@ const passiveElementPrefix = 'ep';
 const capturePrefix = 'capture:';
 
 const readyStateChange = 'readystatechange';
+const containerReady = 'qready';
 
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
@@ -110,17 +111,24 @@ const resolveContainer = (containerEl: QContainerElement) => {
   }
 };
 
-const waitForContainerReady = (container: QContainerElement) =>
-  container.getAttribute('q:container') === 'paused' && doc.readyState === 'loading'
-    ? new Promise<void>((resolve) => {
-        const done = () => {
-          doc.removeEventListener(readyStateChange, done);
+const waitForContainerReady = (container: QContainerElement) => {
+  const hash = container.getAttribute('q:instance')!;
+  return (
+    container.getAttribute('q:container') === 'paused' &&
+    doc.readyState === 'loading' &&
+    !(doc as any)[containerReady]?.[hash] &&
+    new Promise<void>((resolve) => {
+      const ready = (ev: Event) => {
+        if ((ev as CustomEvent).detail === hash) {
+          doc.removeEventListener(containerReady, ready);
           resolve();
-        };
-        addEventListener(doc, readyStateChange, done);
-      })
-    : undefined;
-
+        }
+      };
+      addEventListener(doc, readyStateChange, resolve as any);
+      addEventListener(doc, containerReady, ready);
+    })
+  );
+};
 const createEvent = <T extends CustomEvent = any>(eventName: string, detail?: T['detail']) =>
   new CustomEvent(eventName, { detail }) as T;
 
@@ -164,7 +172,8 @@ const resolveHandler = (
   base: URL,
   chunk: string,
   symbol: string,
-  reqTime: number
+  reqTime: number,
+  reportSyncError = true
 ) => {
   const eventData: QwikSymbolEvent['detail'] = {
     qBase,
@@ -172,10 +181,9 @@ const resolveHandler = (
     element,
     reqTime,
   };
-  if (chunk === '') {
-    const hash = container.getAttribute('q:instance')!;
-    const handler = ((doc as any)['qFuncs_' + hash] || [])[Number.parseInt(symbol)];
-    if (!handler) {
+  if (!chunk) {
+    const handler = ((doc as any)['qFuncs_' + container.getAttribute('q:instance')] || [])[+symbol];
+    if (!handler && reportSyncError) {
       const error = new Error('sym:' + symbol);
       emitEvent<QwikErrorEvent>('qerror', {
         importError: 'sync',
@@ -307,22 +315,13 @@ const dispatch = (
       const qrl = qrls[i];
       const reqTime = performance.now();
       const [chunk, symbol, capturedIds] = qrl.split('#');
-      const run = (handler: Handler | undefined) => {
+      const run = (handler: Handler | undefined): void | Promise<void> => {
         if (handler && element.isConnected) {
-          try {
-            const result = handler.call(capturedIds, ev, element);
-            if (isPromise(result)) {
-              return result.catch((error) => {
-                emitEvent<QwikErrorEvent>('qerror', {
-                  error,
-                  qBase,
-                  symbol,
-                  element,
-                  reqTime,
-                });
-              });
+          const onError = (error: any) => {
+            const retry = waitForContainerReady(container);
+            if (retry) {
+              return retry.then(() => run(handler));
             }
-          } catch (error) {
             emitEvent<QwikErrorEvent>('qerror', {
               error,
               qBase,
@@ -330,26 +329,32 @@ const dispatch = (
               element,
               reqTime,
             });
+          };
+          try {
+            const result = handler.call(capturedIds, ev, element);
+            if (isPromise(result)) {
+              return result.catch(onError);
+            }
+          } catch (error) {
+            return onError(error);
           }
         }
       };
-      const resolve = () => resolveHandler(container, element, qBase, base, chunk, symbol, reqTime);
-      const handler = waitForReady && chunk === '' ? undefined : resolve();
+      const resolve = (reportSyncError = true) =>
+        resolveHandler(container, element, qBase, base, chunk, symbol, reqTime, reportSyncError);
+      const handler = waitForReady && !chunk ? resolve(false) : resolve();
       if (isPromise(handler)) {
         defer = true;
-        tasks.push(async () => {
-          if (waitForReady) {
-            await waitForReady;
-          }
-          await run(await handler);
-        });
-      } else if (defer || waitForReady) {
+        tasks.push(() => handler.then(run));
+      } else if (defer || (waitForReady && !chunk && !handler)) {
         defer = true;
         tasks.push(async () => {
-          if (waitForReady) {
+          let retryHandler = handler;
+          if (!retryHandler && waitForReady) {
             await waitForReady;
+            retryHandler = resolve(false) as Handler | undefined;
           }
-          await run(handler || (await resolve()));
+          await run(retryHandler || (await resolve()));
         });
       } else {
         const result = run(handler);
@@ -396,8 +401,7 @@ const processElementEvent = (
   for (let i = elements.length - 1; i >= 0; i--) {
     if (captureHandlers[i]) {
       dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
-      const continuePropagation = !ev.cancelBubble;
-      if (!continuePropagation || ev.cancelBubble) {
+      if (ev.cancelBubble) {
         queueTasks(tasks);
         return;
       }
@@ -407,8 +411,7 @@ const processElementEvent = (
   for (let i = 0; i < elements.length; i++) {
     if (!captureHandlers[i]) {
       dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
-      const doBubble = ev.bubbles && !ev.cancelBubble;
-      if (!doBubble || ev.cancelBubble) {
+      if (!ev.bubbles || ev.cancelBubble) {
         queueTasks(tasks);
         return;
       }

@@ -163,11 +163,11 @@ export const ensureDefaultFiles = (appFiles: ReplModuleInput[]) => {
   const files: ReplModuleInput[] = JSON.parse(JSON.stringify(appFiles));
 
   const DEFAULT_ENTRY_SERVER = `
-import { renderToString, RenderOptions } from '@qwik.dev/core/server';
+import { renderToStream, RenderToStreamOptions } from '@qwik.dev/core/server';
 import { Root } from './root';
 
-export default function (opts: RenderOptions) {
-  return renderToString(<Root />, opts);
+export default function (opts: RenderToStreamOptions) {
+  return renderToStream(<Root />, opts);
 }
 `;
 

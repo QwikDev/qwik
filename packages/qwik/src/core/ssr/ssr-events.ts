@@ -2,9 +2,10 @@ import { _run } from '../client/run-qrl';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import { isQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { qrlToString } from '../shared/serdes/qrl-to-string';
+import { qrlToChunks } from '../shared/serdes/qrl-to-string';
 import type { SerializationContext } from '../shared/serdes/serialization-context';
 import { getEventDataFromHtmlAttribute, getScopedEventName } from '../shared/utils/event-names';
+import type { SSRWriteChunk } from './ssr-types';
 
 /** @internal */
 export function setEvent(
@@ -12,12 +13,22 @@ export function setEvent(
   key: string,
   rawValue: unknown,
   hasMovedCaptures: boolean
-): string | null {
-  let value: string | null = null;
+): string | SSRWriteChunk[] | null {
+  let value: string | SSRWriteChunk[] | null = null;
   const qrls = rawValue;
 
-  const appendToValue = (valueToAppend: string) => {
-    value = (value == null ? '' : value + '|') + valueToAppend;
+  const appendToValue = (valueToAppend: string | SSRWriteChunk[]) => {
+    if (value == null) {
+      value = valueToAppend;
+    } else if (typeof value === 'string' && typeof valueToAppend === 'string') {
+      value += '|' + valueToAppend;
+    } else {
+      value = [
+        ...(typeof value === 'string' ? [value] : value),
+        '|',
+        ...(typeof valueToAppend === 'string' ? [valueToAppend] : valueToAppend),
+      ];
+    }
   };
   const getQrlString = (qrl: QRLInternal<unknown>) => {
     /**
@@ -29,7 +40,7 @@ export function setEvent(
     if (!qrl.$symbol$.startsWith('_') && (qrl.$captures$?.length || hasMovedCaptures)) {
       qrl = createQRL(null, '_run', _run, null, [qrl]);
     }
-    return qrlToString(serializationCtx, qrl);
+    return qrlToChunks(serializationCtx, qrl);
   };
 
   if (Array.isArray(qrls)) {

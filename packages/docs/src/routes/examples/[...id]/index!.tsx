@@ -32,6 +32,7 @@ export default component$(() => {
       appId: app ? app.id : '',
       buildMode: 'development',
       entryStrategy: 'segment',
+      outOfOrderStreaming: true,
       files: app?.inputs || [],
       version: '',
       shareUrlTmr: undefined,
@@ -48,6 +49,7 @@ export default component$(() => {
         store.version = shareData.version;
         store.buildMode = shareData.buildMode;
         store.entryStrategy = shareData.entryStrategy;
+        store.outOfOrderStreaming = shareData.outOfOrderStreaming;
         store.files = shareData.files;
         document.title = `REPL Playground - Qwik`;
         return;
@@ -65,6 +67,7 @@ export default component$(() => {
       store.version = shareData.version;
       store.buildMode = shareData.buildMode;
       store.entryStrategy = shareData.entryStrategy;
+      store.outOfOrderStreaming = shareData.outOfOrderStreaming;
       store.files = shareData.files;
       document.title = `REPL Playground - Qwik`;
       return;
@@ -74,6 +77,7 @@ export default component$(() => {
   useTask$(({ track }) => {
     track(() => store.buildMode);
     track(() => store.entryStrategy);
+    track(() => store.outOfOrderStreaming);
     track(() => store.version);
     track(() => store.files.forEach((f) => f.code));
 

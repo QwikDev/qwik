@@ -766,6 +766,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeElement();
   }
 
+  $deferRootPlaceholder$(scriptNode: JSXNodeInternal<string>): boolean {
+    // At the document root a placeholder `<script>` would be an illegal child of `<html>`, so defer
+    // it into `<head>` instead.
+    if (this.isHtml && this.currentElementFrame?.elementName === 'html') {
+      this.additionalHeadNodes.push(scriptNode);
+      return true;
+    }
+    return false;
+  }
+
   ////////////////////////////////////
 
   private emitContainerData(): ValueOrPromise<void> {

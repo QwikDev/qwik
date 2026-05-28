@@ -127,16 +127,22 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         `if (args.includes('--quiet')) ssgOpts.log = 'quiet';`,
         `if (args.includes('--debug')) ssgOpts.log = 'debug';`,
         ``,
-        `if (isMainThread) {`,
-        `  await runSsg({`,
-        `    render,`,
-        `    qwikRouterConfig,`,
-        `    workerFilePath: new URL(import.meta.url).href,`,
-        `    ...ssgOpts,`,
-        `  });`,
-        `} else {`,
-        `  await startWorker({ render, qwikRouterConfig });`,
-        `}`,
+        // Fire-and-forget instead of top-level await. On the worker/edge SSR target Vite
+        // inlines dynamic imports, and Rollup then reads the inlined `./system` namespace
+        // before it is initialized across a top-level await. See rollup/rollup#4166.
+        // runSsg/startWorker keep the process alive (worker handles) and call process.exit.
+        `const ssgRun = isMainThread`,
+        `  ? runSsg({`,
+        `      render,`,
+        `      qwikRouterConfig,`,
+        `      workerFilePath: new URL(import.meta.url).href,`,
+        `      ...ssgOpts,`,
+        `    })`,
+        `  : startWorker({ render, qwikRouterConfig });`,
+        `ssgRun.catch((err) => {`,
+        `  console.error(err);`,
+        `  process.exit(1);`,
+        `});`,
       ].join('\n');
     },
 

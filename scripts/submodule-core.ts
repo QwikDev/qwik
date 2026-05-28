@@ -11,6 +11,22 @@ import { type BuildConfig, fileSize, getBanner, rollupOnWarn, target, writeFile 
 export const MANGLE_PROPS_REGEX = '^\\$.+\\$$';
 
 /**
+ * Terser can leave `/* @__PURE__ * /` annotations in positions where they no longer precede a
+ * call/new expression, which Rolldown reports as INVALID_ANNOTATION when downstream apps bundle
+ * core. Two cases occur:
+ *
+ * 1. The annotation is hoisted in front of a `return` keyword (e.g. `case N: /* @__PURE__ * / return
+ *    new Set()`). Move it back to its canonical spot, right before the returned expression.
+ * 2. Terser rewrites `fn.toString()` into `"" + fn`, stranding the annotation in front of a string
+ *    concatenation. There is no call/new left to annotate, so the annotation is dropped.
+ */
+function fixPureAnnotations(code: string): string {
+  return code
+    .replace(/\/\*\s*@__PURE__\s*\*\/\s*return\s+/g, 'return /* @__PURE__ */ ')
+    .replace(/\/\*\s*@__PURE__\s*\*\/(\s*)(?=[^\sA-Za-z_$(])/g, '$1');
+}
+
+/**
  * Build the core package which is also the root package: @qwik.dev/core
  *
  * Uses esbuild during development (cuz it's super fast) and TSC + Rollup + Terser for production,
@@ -150,13 +166,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
             },
           });
           const esmMinCode = esmMinifyResult.code!;
-          const esmCleanCode = esmMinCode
-            .replace(/__self__/g, '__SELF__')
-            // Terser relocates `/* @__PURE__ */` annotations in front of the `return`
-            // keyword (e.g. `case N: /* @__PURE__ */ return new Set()`), where they are a
-            // no-op and which Rolldown flags as INVALID_ANNOTATION. Move them back to their
-            // canonical position, directly before the returned call/new expression.
-            .replace(/\/\*\s*@__PURE__\s*\*\/\s*return\s+/g, 'return /* @__PURE__ */ ');
+          const esmCleanCode = fixPureAnnotations(esmMinCode.replace(/__self__/g, '__SELF__'));
 
           const selfIdx = esmCleanCode.indexOf('self');
           const indx = Math.max(selfIdx);
@@ -308,7 +318,7 @@ async function submoduleCoreProduction(
     },
     mangle,
   });
-  code = result.code!.replace(/\/\*\s*@__PURE__\s*\*\/\s*return\s+/g, 'return /* @__PURE__ */ ');
+  code = fixPureAnnotations(result.code!);
 
   await writeFile(outPath, code + '\n');
 

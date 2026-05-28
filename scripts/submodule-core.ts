@@ -150,7 +150,13 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
             },
           });
           const esmMinCode = esmMinifyResult.code!;
-          const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
+          const esmCleanCode = esmMinCode
+            .replace(/__self__/g, '__SELF__')
+            // Terser relocates `/* @__PURE__ */` annotations in front of the `return`
+            // keyword (e.g. `case N: /* @__PURE__ */ return new Set()`), where they are a
+            // no-op and which Rolldown flags as INVALID_ANNOTATION. Move them back to their
+            // canonical position, directly before the returned call/new expression.
+            .replace(/\/\*\s*@__PURE__\s*\*\/\s*return\s+/g, 'return /* @__PURE__ */ ');
 
           const selfIdx = esmCleanCode.indexOf('self');
           const indx = Math.max(selfIdx);
@@ -302,7 +308,7 @@ async function submoduleCoreProduction(
     },
     mangle,
   });
-  code = result.code!;
+  code = result.code!.replace(/\/\*\s*@__PURE__\s*\*\/\s*return\s+/g, 'return /* @__PURE__ */ ');
 
   await writeFile(outPath, code + '\n');
 

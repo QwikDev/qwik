@@ -6,7 +6,10 @@ import {
   Fragment as Signal,
   Slot,
   component$,
+  createContextId,
   jsx,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useVisibleTask$,
@@ -39,6 +42,17 @@ const InlineWrapper = () => {
 
 const Id = (props: any) => <div>Id: {props.id}</div>;
 
+const inlineProjectionContext = createContextId<{ value: string }>('inline-projection');
+const InlineProjectionContent = () => {
+  const ctx = useContext(inlineProjectionContext, { value: 'default' });
+  const count = useSignal(0);
+  return (
+    <button onClick$={() => count.value++}>
+      {ctx.value}-{count.value}
+    </button>
+  );
+};
+
 const ChildInline = () => {
   return <div>Child inline</div>;
 };
@@ -57,6 +71,32 @@ describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: inline component', ({ render }) => {
+  it('should resolve context when projected into a context provider', async () => {
+    const Provider = component$(() => {
+      useContextProvider(inlineProjectionContext, { value: 'provided' });
+      return <Slot />;
+    });
+    const Layout = component$(() => {
+      return (
+        <Provider>
+          <Slot />
+        </Provider>
+      );
+    });
+    const App = component$(() => {
+      return (
+        <Layout>
+          <InlineProjectionContent />
+        </Layout>
+      );
+    });
+
+    const { document } = await render(<App />, { debug });
+    expect(document.querySelector('button')?.textContent).toBe('provided-0');
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('button')?.textContent).toBe('provided-1');
+  });
+
   it('should render inline component', async () => {
     const MyComp = () => {
       return <>Hello World!</>;

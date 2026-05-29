@@ -51,14 +51,6 @@ const useFooFn = () => {
   });
 };
 
-// Module-scoped helpers for the MDX-provider regression test. They must live at module scope
-// (like compiled MDX content) so the inline component is serializable when projected.
-const inlineProjectionContext = createContextId<{ value: string }>('inline-projection');
-const InlineProjectionContent = () => {
-  const ctx = useContext(inlineProjectionContext, { value: 'default' });
-  return <div>{ctx.value}</div>;
-};
-
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -412,36 +404,6 @@ describe.each([
         </Component>
       );
     });
-    it('inline component projected into a context provider resolves the context', async () => {
-      const Provider = component$(() => {
-        useContextProvider(inlineProjectionContext, { value: 'provided' });
-        return <Slot />;
-      });
-      const Layout = component$(() => {
-        return (
-          <Provider>
-            <Slot />
-          </Provider>
-        );
-      });
-      // Mirrors the MDX provider pattern: the compiled MDX content is an inline component
-      // that reads context (`useMDXComponents`) and is projected, through a layout, into a
-      // `component$` that provides it. Context must resolve from the projection target
-      // (the provider), not the inline component's lexical owner.
-      const App = component$(() => {
-        return (
-          <Layout>
-            <InlineProjectionContent />
-          </Layout>
-        );
-      });
-
-      const { document } = await render(<App />, { debug });
-      if (render === ssrRenderToDom) {
-        expect(document.querySelector('div')?.textContent).toBe('provided');
-      }
-    });
-
     it('#5270 - retrieve context on un-projected component', async () => {
       const Issue5270Context = createContextId<{ hi: string }>('5270');
       const ProviderParent = component$(() => {

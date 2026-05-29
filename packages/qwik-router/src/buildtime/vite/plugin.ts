@@ -439,7 +439,16 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
       if (!ctx) {
         return;
       }
-      const moduleIds = await collectServerFnModuleIds(ctx, RESOLVED_ID, this);
+      // Skip the virtual module and the router config during the crawl: the config
+      // statically imports VIRTUAL_SERVER_FNS, so `this.load`-ing it here would re-enter
+      // this `resolveId` handler and deadlock. The config holds no user
+      // `serverQrl(`, and its children (routes, layouts, server plugins) are already
+      // seeded into the crawl — so skipping it loses nothing.
+      const moduleIds = await collectServerFnModuleIds(
+        ctx,
+        new Set([RESOLVED_ID, QWIK_ROUTER_CONFIG_ID]),
+        this
+      );
       for (let i = 0; i < moduleIds.length; i++) {
         serverFnModules.add(moduleIds[i]);
       }

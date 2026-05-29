@@ -5,7 +5,7 @@ export type ServerFnPluginContext = Pick<Rollup.PluginContext, 'resolve' | 'load
 export type ServerFnRoutingContext = Pick<RoutingContext, 'layouts' | 'routes' | 'serverPlugins'>;
 export async function collectServerFnModuleIds(
   routingContext: ServerFnRoutingContext,
-  resolvedVirtualId: string,
+  skipModuleIds: Set<string>,
   pluginContext: ServerFnPluginContext
 ) {
   const serverFnModules = new Set<string>();
@@ -34,7 +34,7 @@ export async function collectServerFnModuleIds(
     const [id] = queuedModuleIds;
     queuedModuleIds.delete(id);
 
-    if (seenModuleIds.has(id) || id === resolvedVirtualId) {
+    if (seenModuleIds.has(id) || skipModuleIds.has(id)) {
       continue;
     }
     seenModuleIds.add(id);

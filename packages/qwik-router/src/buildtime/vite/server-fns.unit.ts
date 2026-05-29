@@ -104,7 +104,11 @@ describe('collectServerFnModuleIds', () => {
       },
     };
 
-    const serverFnModules = await collectServerFnModuleIds(ctx, resolvedVirtualId, pluginContext);
+    const serverFnModules = await collectServerFnModuleIds(
+      ctx,
+      new Set([resolvedVirtualId]),
+      pluginContext
+    );
 
     expect(serverFnModules.sort()).toEqual(['/app/lazy.ts', '/app/plugin.ts']);
     expect(loads).toEqual([

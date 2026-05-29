@@ -47,7 +47,7 @@
       Constant STORE_ALL_PROPS
       Set [
         EffectSubscription [
-          VNode "1H"
+          VNode "1J"
           {string} ":"
           Constant null
         ]
@@ -155,7 +155,7 @@
   Signal [
     Constant undefined
     EffectSubscription [
-      VNode "12A"
+      VNode "14A"
       {string} ":"
       Constant null
     ]
@@ -240,7 +240,7 @@
             RootRef [omitted]
           ]
           {number} 7
-          VNode "8"
+          VNode "10"
           EffectSubscription [
             RootRef [omitted]
             {string} "href"
@@ -303,7 +303,7 @@
 50 Map [
   {string} ":"
   EffectSubscription [
-    VNode "12AAA"
+    VNode "14AAA"
     {string} ":"
     Constant null
   ]
@@ -567,7 +567,7 @@
           RootRef [omitted]
         ]
         {number} 7
-        VNode "14A"
+        VNode "16A"
         EffectSubscription [
           RootRef [omitted]
           {string} "."

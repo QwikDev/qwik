@@ -11,6 +11,7 @@ interface ResponsePageDeps {
   getRequestLoaders: typeof import('./request-event-core').getRequestLoaders;
   getRequestLoaderSerializationStrategyMap: typeof import('./request-event-core').getRequestLoaderSerializationStrategyMap;
   getRequestRoute: typeof import('./request-event-core').getRequestRoute;
+  getRequestMode: typeof import('./request-event-core').getRequestMode;
 }
 
 export function getQwikRouterServerDataWithDeps(deps: ResponsePageDeps, requestEv: RequestEvent) {
@@ -40,6 +41,7 @@ export function getQwikRouterServerDataWithDeps(deps: ResponsePageDeps, requestE
   return {
     url: reconstructedUrl.href,
     requestHeaders,
+    renderMode: deps.getRequestMode(requestEv),
     locale: locale(),
     nonce,
     containerAttributes: {

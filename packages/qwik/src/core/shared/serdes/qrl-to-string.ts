@@ -6,6 +6,7 @@ import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-cl
 import { isSyncQrl } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
 import type { Container } from '../types';
+import type { SSRWriteChunk } from '../../ssr/ssr-types';
 
 /** @internal */
 export function qrlToString(
@@ -82,6 +83,27 @@ export function qrlToString(
     qrlStringInline += `#${captureIds}`;
   }
   return qrlStringInline;
+}
+
+/** @internal */
+export function qrlToChunks(
+  serializationContext: SerializationContext,
+  qrl: QRLInternal | SyncQRLInternal
+): string | SSRWriteChunk[] {
+  const [chunk, symbol, captures] = qrlToString(serializationContext, qrl, true);
+  const prefix = `${chunk}#${symbol}`;
+  if (!captures) {
+    return prefix;
+  }
+  const chunks: SSRWriteChunk[] = [prefix, '#'];
+  const captureIds = captures.split(' ');
+  for (let i = 0; i < captureIds.length; i++) {
+    if (i > 0) {
+      chunks.push(' ');
+    }
+    chunks.push(Number(captureIds[i]));
+  }
+  return chunks;
 }
 
 export function createQRLWithBackChannel(

@@ -2164,7 +2164,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     this.serializationCtx.$markSsrNodeForSerialization$ =
       this.markVNodeDataForSerialization.bind(this);
     return maybeThen(
-      this.serializationCtx.$serializePatch$(rootStart, rootIds, subscriptionPatchRootId),
+      this.serializationCtx.$serializePatch$(rootStart, rootIds, subscriptionPatchRootId, 0),
       () => {
         this.closeScript();
       }

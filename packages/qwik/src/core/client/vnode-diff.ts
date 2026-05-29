@@ -1656,32 +1656,64 @@ function expectComponent(diffContext: DiffContext, component: Function) {
     }
 
     if (host) {
-      let componentHost: VNode | null = host;
-      // Find the closest component host which has `OnRender` prop. This is need for subscriptions context.
-      while (
-        componentHost &&
-        (vnode_isVirtualVNode(componentHost)
-          ? vnode_getProp<OnRenderFn<any> | null>(
-              componentHost as VirtualVNode,
-              OnRenderProp,
-              null
-            ) === null
-          : true)
-      ) {
-        componentHost = componentHost.parent || vnode_getProjectionParentComponent(componentHost);
+      if (!isHostInLiveTree(host, diffContext.$container$.rootVNode)) {
+        // The inline component is being diffed into an unattached projection
+        // template, so its eventual projected location — and therefore which
+        // context providers it can read — is not known yet. Defer its execution
+        // to the chore system (exactly like `component$`) by storing the render
+        // function and marking the host dirty. It will run once the projection
+        // is attached into its slot, resolving context from the real location.
+        vnode_setProp(host as VirtualVNode, OnRenderProp, component as OnRenderFn<unknown>);
+        vnode_setProp(host as VirtualVNode, ELEMENT_PROPS, jsxNode.props);
+        markVNodeDirty(
+          diffContext.$container$,
+          host as VirtualVNode,
+          ChoreBits.COMPONENT,
+          diffContext.$cursor$
+        );
+      } else {
+        let componentHost: VNode | null = host;
+        // Find the closest component host which has `OnRender` prop. This is need for subscriptions context.
+        while (
+          componentHost &&
+          (vnode_isVirtualVNode(componentHost)
+            ? vnode_getProp<OnRenderFn<any> | null>(
+                componentHost as VirtualVNode,
+                OnRenderProp,
+                null
+              ) === null
+            : true)
+        ) {
+          componentHost = componentHost.parent || vnode_getProjectionParentComponent(componentHost);
+        }
+
+        const jsxOutput = executeComponent(
+          diffContext.$container$,
+          host,
+          (componentHost || diffContext.$container$.rootVNode) as HostElement,
+          component as OnRenderFn<unknown>,
+          jsxNode.props
+        );
+
+        diffContext.$asyncQueue$.push(jsxOutput, host);
       }
-
-      const jsxOutput = executeComponent(
-        diffContext.$container$,
-        host,
-        (componentHost || diffContext.$container$.rootVNode) as HostElement,
-        component as OnRenderFn<unknown>,
-        jsxNode.props
-      );
-
-      diffContext.$asyncQueue$.push(jsxOutput, host);
     }
   }
+}
+
+/**
+ * Walks the `parent` chain from `host` to determine whether it is attached to the live vnode tree
+ * (reaches `rootVNode`) or sits in an unattached projection template (reaches `null` first).
+ */
+function isHostInLiveTree(host: VNode, rootVNode: VNode): boolean {
+  let vNode: VNode | null = host;
+  while (vNode) {
+    if (vNode === rootVNode) {
+      return true;
+    }
+    vNode = vNode.parent;
+  }
+  return false;
 }
 
 function insertNewComponent(

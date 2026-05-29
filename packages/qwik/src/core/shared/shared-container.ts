@@ -24,7 +24,6 @@ export abstract class _SharedContainer implements Container {
   $buildBase$: string | null = null;
   $renderPromise$: Promise<void> | null = null;
   $resolveRenderPromise$: (() => void) | null = null;
-  $visibleTasksPromise$: Promise<void> | null = null;
   $pendingCount$: number = 0;
 
   constructor(serverData: Record<string, any>, locale: string) {

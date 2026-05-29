@@ -116,18 +116,3 @@ export async function waitForDrain(container: Container) {
   await waitForRenderPromise(500);
   await container.$renderPromise$;
 }
-
-/**
- * Wait for all pending `useVisibleTask$` work to settle, including any renders or follow-up visible
- * tasks they schedule. `render()` and `waitForDrain` do not wait for visible tasks (they are
- * post-flush side effects); use this when a test needs to assert on their effects.
- *
- * @param container - The application container.
- * @public
- */
-export async function waitForVisibleTasks(container: Container) {
-  while (container.$renderPromise$ || container.$visibleTasksPromise$) {
-    await container.$renderPromise$;
-    await container.$visibleTasksPromise$;
-  }
-}

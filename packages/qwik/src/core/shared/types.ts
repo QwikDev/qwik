@@ -27,12 +27,6 @@ export interface Container {
   $buildBase$: string | null;
   $renderPromise$: Promise<void> | null;
   $resolveRenderPromise$: (() => void) | null;
-  /**
-   * Tracks pending `useVisibleTask$` async work. Does NOT gate `$renderPromise$` — visible tasks
-   * are post-flush side effects. Exposed for tests that want to opt-in to awaiting them via
-   * `waitForVisibleTasks(container)`.
-   */
-  $visibleTasksPromise$: Promise<void> | null;
   $pendingCount$: number;
   $checkPendingCount$(): void;
 

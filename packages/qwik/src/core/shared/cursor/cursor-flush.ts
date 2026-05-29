@@ -191,10 +191,6 @@ function executeAfterFlush(container: Container, cursorData: CursorData): void {
       'walkCursor: executeAfterFlush',
       visibleTasks.map((t) => t.$qrl$.$symbol$)
     );
-
-  // Visible tasks are post-flush side effects: render() must not wait for them.
-  // Gating $renderPromise$ on these promises breaks transient-state testing
-  // (e.g. loading-state assertions before a fetch resolves) and diverges from V1.
   for (let i = 0; i < visibleTasks.length; i++) {
     const task = visibleTasks[i];
     runTask(task, container, task.$el$);

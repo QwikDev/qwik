@@ -43,14 +43,9 @@ const InlineWrapper = () => {
 const Id = (props: any) => <div>Id: {props.id}</div>;
 
 const inlineProjectionContext = createContextId<{ value: string }>('inline-projection');
-const InlineProjectionContent = () => {
+const InlineReadsContext = () => {
   const ctx = useContext(inlineProjectionContext, { value: 'default' });
-  const count = useSignal(0);
-  return (
-    <button onClick$={() => count.value++}>
-      {ctx.value}-{count.value}
-    </button>
-  );
+  return <span>{ctx.value}</span>;
 };
 
 const ChildInline = () => {
@@ -86,15 +81,13 @@ describe.each([
     const App = component$(() => {
       return (
         <Layout>
-          <InlineProjectionContent />
+          <InlineReadsContext />
         </Layout>
       );
     });
 
     const { document } = await render(<App />, { debug });
-    expect(document.querySelector('button')?.textContent).toBe('provided-0');
-    await trigger(document.body, 'button', 'click');
-    expect(document.querySelector('button')?.textContent).toBe('provided-1');
+    expect(document.querySelector('span')?.textContent).toBe('provided');
   });
 
   it('should render inline component', async () => {

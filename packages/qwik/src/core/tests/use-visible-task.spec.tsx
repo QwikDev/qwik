@@ -1174,7 +1174,7 @@ describe.each([
       await triggerPromise;
       await waitForDrain(container);
       // render() no longer waits for visible tasks — wait for async cleanup + rerun.
-      await delay(30);
+      await delay(20);
       await waitForDrain(container);
       expect((globalThis as any).log).toEqual([
         'task:0',
@@ -1216,7 +1216,7 @@ describe('render() does not wait for visible tasks', () => {
       </Component>
     );
 
-    await delay(150);
+    await delay(110);
     await waitForDrain(container);
     expect((globalThis as any).log).toContain('task-done');
     expect(vNode).toMatchVDOM(
@@ -1243,12 +1243,10 @@ describe('render() does not wait for visible tasks', () => {
     setPlatform(getTestPlatform());
     const document = createDocument();
     const result = await render(document.body, <Cmp />);
-    await delay(10);
     expect((globalThis as any).log).toContain('task');
     const container = _getDomContainer(document.body);
     result.cleanup();
     // Visible-task cleanups are scheduled via CLEANUP chore — wait for the queue to drain.
-    await delay(10);
     await waitForDrain(container);
     expect((globalThis as any).log).toContain('cleanup');
     (globalThis as any).log = undefined;

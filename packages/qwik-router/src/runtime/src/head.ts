@@ -1,14 +1,13 @@
 import { withLocale } from '@qwik.dev/core';
+import type { AsyncSignal } from '@qwik.dev/core/internal';
 import type {
   CacheKeyFn,
   ContentModule,
   ContentModuleETag,
   RouteLocation,
-  EndpointResponse,
   ResolvedDocumentHead,
   DocumentHeadProps,
   DocumentHeadValue,
-  ClientPageData,
   LoaderInternal,
   Editable,
   ResolveSyncValue,
@@ -16,7 +15,6 @@ import type {
   RouteConfig,
   RouteConfigValue,
 } from './types';
-import { isPromise } from './utils';
 
 export interface ResolvedRouteConfig {
   head: ResolvedDocumentHead;
@@ -135,9 +133,13 @@ export const resolveRouteConfig = (
 /**
  * Resolve only the document head from all content modules. This is the browser-side entry point
  * that ignores eTag/cacheKey (server-only concerns).
+ *
+ * Signal values may throw a promise on the client when still loading — callers should wrap this in
+ * `retryOnPromise` to handle that.
  */
 export const resolveHead = (
-  endpoint: EndpointResponse | ClientPageData,
+  actionData: { action?: string; actionResult?: unknown; status: number } | undefined,
+  loaderState: Record<string, AsyncSignal<unknown>> | undefined,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
   locale: string,
@@ -145,18 +147,19 @@ export const resolveHead = (
 ): ResolvedDocumentHead => {
   const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
     const id = loaderOrAction.__id;
-    if (loaderOrAction.__brand === 'server_loader') {
-      if (!(id in endpoint.loaders)) {
-        throw new Error(
-          'You can not get the returned data of a loader that has not been executed for this request.'
-        );
-      }
+    // Reading `.value` throws a pending promise (suspense-style) when the loader
+    // is still loading, on both server and client. Callers wrap resolveHead in
+    // retryOnPromise so head resolution re-runs once the loader settles.
+    const signal = loaderState?.[id];
+    if (signal) {
+      return signal.value;
     }
-    const data = endpoint.loaders[id];
-    if (isPromise(data)) {
-      throw new Error('Loaders returning a promise can not be resolved for the head function.');
+    // Check action result
+    if (actionData?.action === id) {
+      return actionData.actionResult;
     }
-    return data;
+    // Loader not in current route — return undefined
+    return undefined;
   }) as any as ResolveSyncValue;
 
   return resolveRouteConfig(
@@ -164,7 +167,7 @@ export const resolveHead = (
     routeLocation,
     contentModules,
     locale,
-    endpoint.status,
+    actionData?.status ?? 200,
     defaults
   ).head;
 };

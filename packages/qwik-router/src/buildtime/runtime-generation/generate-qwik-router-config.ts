@@ -8,7 +8,8 @@ import { createServerPlugins } from './generate-server-plugins';
 export function generateQwikRouterConfig(
   ctx: RoutingContext,
   qwikPlugin: QwikVitePlugin,
-  isSSR: boolean
+  isSSR: boolean,
+  loadersByFile?: Map<string, string[]>
 ) {
   const esmImports: string[] = [];
   const c: string[] = [];
@@ -24,7 +25,7 @@ export function generateQwikRouterConfig(
 
   createServerPlugins(ctx, qwikPlugin, c, esmImports, isSSR);
 
-  createRoutes(ctx, qwikPlugin, c, esmImports, isSSR);
+  createRoutes(ctx, qwikPlugin, c, esmImports, isSSR, loadersByFile);
 
   createEntries(ctx, c);
 

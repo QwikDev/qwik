@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { getErrorHtml } from '../../../middleware/request-handler/error-handler';
+import { LOADER_REGEX } from '../../../middleware/request-handler/request-path';
 
 /** Cleans the client output SSG results if needed and injects the SSG metadata into the build output */
 export async function postBuild(
@@ -29,7 +30,7 @@ export async function postBuild(
 
     const fsPath = join(fsDir, fsName);
 
-    if (fsName === 'index.html' || fsName === 'q-data.json') {
+    if (fsName === 'index.html' || LOADER_REGEX.test('/' + fsName)) {
       // static index.html file
       if (!staticPaths.has(pathname) && cleanStatic) {
         await fs.promises.unlink(fsPath);

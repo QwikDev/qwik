@@ -55,7 +55,6 @@ Route Loaders are perfect to fetch data from a database or an API. For example y
 
 Multiple `routeLoader$`s are allowed across the whole application, and they can be used in any Qwik Component. **You can even declare multiple `routeLoader$`s in the same file**.
 
-
 ```tsx title="src/routes/layout.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
@@ -216,6 +215,79 @@ export default () => {
   }
 };
 ```
+
+### Expiration
+
+Route loaders have an expiration mechanism that allows you to specify how long the data should be considered fresh before it needs to be refetched. This can be configured using the `expires` option in the `routeLoader$()`.
+
+```tsx title="src/routes/product/[user]/index.tsx"
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  const res = await fetch(
+    `https://.../products/${requestEvent.params.productId}`
+  );
+  const product = await res.json();
+  return product;
+}, {
+  expires: 60 * 1000, // Data expires after 1 minute
+});
+```
+
+The expiration is also used to set caching headers on the data, for the browser.
+
+When the data from a route loader expires, it will be refetched on the next read, and when the data is refetched, it will reactively update all the components that are using it.
+
+Setting `expires` to `0` means that the data never expires. The data will only be refetched when the application is rebuilt (it uses the manifest hash to bust the cache).
+
+For SSG, routeloaders with `expires: 0` will generate a file on disk. This means that you can use route loaders even with static sites.
+
+#### Polling
+
+If you want to automatically refetch the data when it expires, you can use the boolean `poll` option; this will refetch the data in the background as soon as it expires, but only if there are components that are using the data. Those will be reactively updated once the new data arrives.
+
+#### Stale data
+
+When a route loader's data expires, it becomes stale. During this time, the stale data is still available to be read, but it will trigger a refetch in the background, and update the components once the new data arrives.
+
+If this is not desired, you can pass `allowStale: false` in the options, which will clear the data as soon as it expires, and make the loader block rendering until the new data arrives.
+
+### Caching (eTag)
+
+The `eTag` option allows you to specify a function that generates an eTag for the data returned by the loader. This value is passed to the browser, and the browser will include it in the `If-None-Match` header on subsequent requests. If the eTag matches, the server can respond with a `304 Not Modified` status, indicating that the cached data is still valid and doesn't need to be refetched.
+
+Note that the `eTag` function runs *before* the loader function, and it receives the same `RequestEvent` object as the loader function, which means that you can generate the eTag based on the request details, such as the URL parameters, headers, or cookies. When you return the same `eTag` value as what the browser sent in the `If-None-Match` header, the loader will not execute, and the browser will use the cached data instead.
+
+If you set `eTag` to `true`, Qwik will automatically generate an eTag based on the loader's return value using a hash function. This prevents sending data unnecessarily, but it causes extra work on the server.
+
+```tsx title="src/routes/product/[user]/index.tsx"
+import { routeLoader$ } from '@qwik.dev/router';
+import { getSubscription } from '~/services/subscription';
+
+export const useSubscription = routeLoader$(async (requestEvent) => {
+  const user = requestEvent.sharedMap.get('user')!;
+  const subscription = await getSubscription(user.id);
+  return subscription;
+}, {
+  // Short expiry so logout expires quickly
+  expires: 30 * 1000,
+  // ETag ensures that the data is refetched when the user changes
+  eTag: (ev: RequestEvent) => {
+    const {id} = ev.sharedMap.get('user')!;
+    const day = new Date().getDate();
+    // For the same user, the data is valid for one day
+    return `${id}-${day}`;
+  },
+});
+```
+
+### SPA refetching behavior
+
+When SPA-navigating to a route (user clicks a `<Link />` or the `nav()` API is used), the route loaders will be refetched according to their path.
+
+For example, a route loader in `src/routes/product/[productId]/index.tsx` will be refetched when navigating to `/product/1` or `/product/2`, but it will not be refetched when navigating to `/about`.
+
+Route loaders that are not in the active route will not trigger listeners, and they return `undefined` when read. This is not part of the type definition, as it is an error to read a route loader that is not active. They don't throw an error because there can be intermediate states during navigation when route loaders redirect.
 
 ## RequestEvent
 

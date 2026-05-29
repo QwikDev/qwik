@@ -1,5 +1,6 @@
 import type { QwikRouterConfig, RouteData } from '@qwik.dev/router';
 import { assert, test } from 'vitest';
+import { getLoaderName } from '../middleware/request-handler/request-path';
 import { mainThread } from './orchestrator';
 import type { Logger, MainContext, System } from './types';
 
@@ -123,7 +124,8 @@ function createSystem({
     createTimer: () => () => 0,
     getRouteFilePath: (pathname) =>
       `C:/tmp/out${pathname === '/' ? '/index.html' : `${pathname}/index.html`}`,
-    getDataFilePath: (pathname) => `C:/tmp/out${pathname}/q-data.json`,
+    getLoaderFilePath: (pathname, loaderId, manifestHash) =>
+      `C:/tmp/out${pathname}${getLoaderName(loaderId, manifestHash)}`,
     getEnv: () => undefined,
     platform: {},
   };

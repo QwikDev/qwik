@@ -1,12 +1,13 @@
 import { Form, routeAction$, routeLoader$ } from '@qwik.dev/router';
 import { component$ } from '@qwik.dev/core';
-import { data } from '../data';
+import { SESSION_COOKIE, getSessionData } from '../session-data';
 
-export const useGetData = routeLoader$(() => {
-  return data;
+export const useGetData = routeLoader$(({ cookie }) => {
+  return getSessionData(cookie.get(SESSION_COOKIE)?.value);
 });
 
-export const useOtherAction = routeAction$((form) => {
+export const useOtherAction = routeAction$((form, { cookie }) => {
+  const data = getSessionData(cookie.get(SESSION_COOKIE)?.value);
   const name = form.name as string;
   data.push(name);
   return { success: true };

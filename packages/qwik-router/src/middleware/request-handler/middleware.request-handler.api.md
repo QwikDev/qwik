@@ -16,7 +16,6 @@ import type { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent as RequestEvent_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { RequestHandler as RequestHandler_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue as ResolveSyncValue_2 } from '@qwik.dev/router/middleware/request-handler';
-import { SerializationStrategy } from '@qwik.dev/core/internal';
 import type { ValueOrPromise } from '@qwik.dev/core';
 
 // @public (undocumented)
@@ -167,11 +166,6 @@ export interface RequestEventLoader<PLATFORM = QwikRouterPlatform> extends Reque
     // (undocumented)
     resolveValue: ResolveValue;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "RequestEvShareQData" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const RequestEvShareQData = "qData";
 
 // @public (undocumented)
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;

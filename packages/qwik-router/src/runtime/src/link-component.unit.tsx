@@ -4,18 +4,13 @@ import { QwikRouterMockProvider } from '@qwik.dev/router';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { Link, type PrefetchStrategy } from './link-component';
 
-const { loadClientDataMock, preloadRouteBundlesMock, getClientNavPathMock } = vi.hoisted(() => ({
-  loadClientDataMock: vi.fn(),
-  preloadRouteBundlesMock: vi.fn(),
+const { prefetchRouteMock, getClientNavPathMock } = vi.hoisted(() => ({
+  prefetchRouteMock: vi.fn(),
   getClientNavPathMock: vi.fn(),
 }));
 
-vi.mock('./use-endpoint', () => ({
-  loadClientData: loadClientDataMock,
-}));
-
-vi.mock('./client-navigate', () => ({
-  preloadRouteBundles: preloadRouteBundlesMock,
+vi.mock('./prefetch-route', () => ({
+  prefetchRoute: prefetchRouteMock,
 }));
 
 vi.mock('./utils.ts', async (importOriginal) => {
@@ -65,6 +60,17 @@ const renderLink = async (
   return { document, anchor: anchor! };
 };
 
+const expectPrefetchRouteCall = (
+  callIndex: number,
+  pathname: string,
+  ...expectedArgs: unknown[]
+) => {
+  const [url, ...args] = prefetchRouteMock.mock.calls[callIndex];
+  expect(url).toBeInstanceOf(URL);
+  expect((url as URL).pathname).toBe(pathname);
+  expect(args).toEqual(expectedArgs);
+};
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -72,122 +78,100 @@ describe.each([
   beforeEach(() => {
     getClientNavPathMock.mockClear();
     getClientNavPathMock.mockReturnValue('http://localhost/test');
-    loadClientDataMock.mockClear();
-    preloadRouteBundlesMock.mockClear();
+    prefetchRouteMock.mockClear();
   });
 
   it('prefetches bundles by default and prefetches route data on intent by default', async () => {
     const { document, anchor } = await renderLink(render);
 
     expect(anchor?.getAttribute('href')).toBe('http://localhost/test');
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
-    expect(loadClientDataMock).not.toHaveBeenCalled();
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/test', false, 0.8);
 
     await trigger(document.body, anchor, 'pointerenter');
 
-    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
-    expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
-      preloadRouteBundles: false,
-      isPrefetch: true,
-    });
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
+    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false);
   });
 
   it('prefetches route data on intent', async () => {
     const { document, anchor } = await renderLink(render, { prefetchData: 'intent' });
+    prefetchRouteMock.mockClear();
 
     await trigger(document.body, anchor, 'pointerdown');
     await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
-    expect(loadClientDataMock).not.toHaveBeenCalled();
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
 
     await trigger(document.body, anchor, 'pointerenter');
     await trigger(document.body, anchor, 'focus');
 
-    expect(loadClientDataMock).toHaveBeenCalledTimes(2);
-    expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
-      preloadRouteBundles: false,
-      isPrefetch: true,
-    });
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
-    expect(loadClientDataMock.mock.calls[1][0].pathname).toBe('/test');
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false);
   });
 
   it('prefetches route data on commit', async () => {
     const { document, anchor } = await renderLink(render, { prefetchData: 'commit' });
+    prefetchRouteMock.mockClear();
 
     await trigger(document.body, anchor, 'pointerenter');
     await trigger(document.body, anchor, 'focus');
     await trigger(document.body, anchor, 'keydown', { key: 'Space' });
-    expect(loadClientDataMock).not.toHaveBeenCalled();
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
 
     await trigger(document.body, anchor, 'pointerdown');
     await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
 
-    expect(loadClientDataMock).toHaveBeenCalledTimes(2);
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
-    expect(loadClientDataMock.mock.calls[1][0].pathname).toBe('/test');
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false);
   });
 
   it('prefetches route data when visible strategy is enabled', async () => {
     await renderLink(render, { prefetchBundle: 'off', prefetchData: 'visible' });
 
-    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
-    expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
-      preloadRouteBundles: false,
-      isPrefetch: true,
-    });
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
-    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
   });
 
   it('prefetches bundles when visible strategy is enabled', async () => {
     await renderLink(render, { prefetchBundle: 'visible', prefetchData: 'off' });
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
-    expect(loadClientDataMock).not.toHaveBeenCalled();
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/test', false, 0.8);
   });
 
   it('prefetches bundles and route data when visible strategy is enabled for both', async () => {
     await renderLink(render, { prefetchBundle: 'visible', prefetchData: 'visible' });
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
-    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', true);
   });
 
   it('prefetches bundles when deprecated prefetch is js', async () => {
     await renderLink(render, { prefetch: 'js' });
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
-    expect(loadClientDataMock).not.toHaveBeenCalled();
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/test', false, 0.8);
   });
 
   it('prefetches bundles and route data when deprecated prefetch is true', async () => {
     await renderLink(render, { prefetch: true });
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test');
-    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
-    expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
-      preloadRouteBundles: false,
-      isPrefetch: true,
-    });
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/test');
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', true);
   });
 
   it('does not prefetch route data when data prefetching is off', async () => {
     const { document, anchor } = await renderLink(render, { prefetchData: 'off' });
+    prefetchRouteMock.mockClear();
 
     await trigger(document.body, anchor, 'pointerenter');
     await trigger(document.body, anchor, 'focus');
     await trigger(document.body, anchor, 'pointerdown');
     await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
 
-    expect(loadClientDataMock).not.toHaveBeenCalled();
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
   it('does not prefetch route data or bundles when deprecated prefetch is false', async () => {
@@ -207,8 +191,7 @@ describe.each([
       await trigger(document.body, 'a', 'qvisible');
     }
 
-    expect(loadClientDataMock).not.toHaveBeenCalled();
-    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
   it('preloads route bundles on click before navigation', async () => {
@@ -226,11 +209,11 @@ describe.each([
       await trigger(document.body, 'a', 'qvisible');
     }
     const anchor = document.querySelector('a');
-    preloadRouteBundlesMock.mockClear();
+    prefetchRouteMock.mockClear();
 
     await trigger(document.body, anchor, 'click');
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test', 1);
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/test', false, 1);
   });
 });

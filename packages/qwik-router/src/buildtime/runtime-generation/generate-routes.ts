@@ -36,7 +36,8 @@ export function createRoutes(
   qwikPlugin: QwikVitePlugin,
   c: string[],
   esmImports: string[],
-  isSSR: boolean
+  isSSR: boolean,
+  loadersByFile?: Map<string, string[]>
 ) {
   const includeEndpoints = isSSR;
   const dynamicImports = ctx.dynamicImports;
@@ -134,7 +135,8 @@ export function createRoutes(
     notFoundFiles,
     [],
     isSSR,
-    ''
+    '',
+    loadersByFile
   );
 
   // Note: both error.tsx and 404.tsx in the same directory is fine.
@@ -181,7 +183,8 @@ function serializeBuildTrie(
   notFoundFiles: Map<string, string>,
   ancestorLayouts: LayoutInfo[],
   isSSR: boolean,
-  indent: string
+  indent: string,
+  loadersByFile?: Map<string, string[]>
 ): string {
   const lines: string[] = [];
   const nextIndent = indent + '  ';
@@ -314,6 +317,44 @@ function serializeBuildTrie(
     }
   }
 
+  // Emit _R: routeLoader$ hashes for this node.
+  // In dev mode (loadersByFile populated after invalidation), emit directly.
+  // In build mode, emit placeholder string for renderChunk replacement.
+  {
+    const routeFiles = node._files
+      .filter((f) => f.type === 'route' || f.type === 'layout')
+      .map((f) => f.filePath);
+    // Include server plugin files at the root trie node (they apply to all routes)
+    if (node === ctx.routeTrie) {
+      for (const plugin of ctx.serverPlugins) {
+        routeFiles.push(plugin.filePath);
+      }
+    }
+    if (routeFiles.length > 0) {
+      if (loadersByFile) {
+        // Dev mode: the loader hashes are already known, emit them directly. When no
+        // routeLoader$ was found in any of the referenced files, skip emitting _R
+        // entirely so the runtime routing code doesn't see a stale placeholder.
+        const nodeLoaderHashes: string[] = [];
+        for (const filePath of routeFiles) {
+          const hashes = loadersByFile.get(filePath);
+          if (hashes) {
+            nodeLoaderHashes.push(...hashes);
+          }
+        }
+        if (nodeLoaderHashes.length > 0) {
+          lines.push(`${nextIndent}_R: ${JSON.stringify(nodeLoaderHashes)},`);
+        }
+      } else {
+        // Build mode: emit placeholder "__LOADERS:path1|path2__" — replaceLoaderPlaceholders
+        // in the qwikRouter vite plugin rewrites it to the real array (or strips the whole
+        // `_R: ...,` entry if no loaders were found).
+        const placeholder = `__LOADERS:${routeFiles.join('|')}__`;
+        lines.push(`${nextIndent}_R: ${JSON.stringify(placeholder)},`);
+      }
+    }
+  }
+
   // Emit _E, _4, _N
   if (errorExpr) {
     lines.push(`${nextIndent}_E: ${errorExpr},`);
@@ -356,7 +397,8 @@ function serializeBuildTrie(
         notFoundFiles,
         childAncestors,
         isSSR,
-        nextIndent
+        nextIndent,
+        loadersByFile
       );
       if (childStr !== '{}') {
         groupStrs.push(childStr);

@@ -890,7 +890,6 @@ jobs:
     needs:
       - build-other-packages
       - changes
-      - test-unit
 
     strategy:
       matrix:
@@ -912,11 +911,7 @@ jobs:
         if: |
           !(
             needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success' &&
-            (
-              needs.test-unit.result == 'success' ||
-              needs.test-unit.result == 'skipped'
-            )
+            needs.build-other-packages.result == 'success'
           )
         run: exit 1
 
@@ -964,7 +959,6 @@ jobs:
     needs:
       - build-other-packages
       - changes
-      - test-unit
 
     strategy:
       matrix:
@@ -1007,11 +1001,7 @@ jobs:
         if: |
           !(
             needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success' &&
-            (
-              needs.test-unit.result == 'success' ||
-              needs.test-unit.result == 'skipped'
-            )
+            needs.build-other-packages.result == 'success'
           )
         run: exit 1
 

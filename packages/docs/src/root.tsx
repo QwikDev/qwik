@@ -3,6 +3,7 @@ import { Insights } from '@qwik.dev/core/insights';
 import { RouterOutlet, useQwikRouter } from '@qwik.dev/router';
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, type SiteStore } from './context';
+import karmaticArcadeFontUrl from './media/fonts/karmatic-arcade/karmatic-arcade.woff2?url';
 
 import styles from './global.css?inline';
 
@@ -35,6 +36,14 @@ export default component$(() => {
 
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
         <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
+        <link
+          rel="preload"
+          href={karmaticArcadeFontUrl}
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+          fetchPriority="high"
+        />
 
         <RouterHead />
 

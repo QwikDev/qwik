@@ -54,6 +54,7 @@ bun create qwik@latest
 
 AI assistant instructions are managed with [Ruler](https://github.com/intellectronica/ruler)
 so shared guidance lives in one place instead of being copied across assistant-specific files.
+
 Some examples of configured assistants are Claude, Codex, Cursor, and GitHub Copilot. Ruler supports many additional harnesses.
 
 Start by reading [.ruler/README.md](./.ruler/README.md). To generate the local files for your

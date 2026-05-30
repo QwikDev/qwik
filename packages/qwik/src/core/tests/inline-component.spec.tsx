@@ -66,30 +66,6 @@ describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: inline component', ({ render }) => {
-  it('should resolve context when projected into a context provider', async () => {
-    const Provider = component$(() => {
-      useContextProvider(inlineProjectionContext, { value: 'provided' });
-      return <Slot />;
-    });
-    const Layout = component$(() => {
-      return (
-        <Provider>
-          <Slot />
-        </Provider>
-      );
-    });
-    const App = component$(() => {
-      return (
-        <Layout>
-          <InlineReadsContext />
-        </Layout>
-      );
-    });
-
-    const { document } = await render(<App />, { debug });
-    expect(document.querySelector('span')?.textContent).toBe('provided');
-  });
-
   it('should render inline component', async () => {
     const MyComp = () => {
       return <>Hello World!</>;
@@ -864,6 +840,44 @@ describe.each([
               </InlineComponent>
             </Projection>
           </a>
+        </Component>
+      </Component>
+    );
+  });
+
+  it('should resolve context when projected into a context provider', async () => {
+    const Provider = component$(() => {
+      useContextProvider(inlineProjectionContext, { value: 'provided' });
+      return <Slot />;
+    });
+    const Layout = component$(() => {
+      return (
+        <Provider>
+          <Slot />
+        </Provider>
+      );
+    });
+    const App = component$(() => {
+      return (
+        <Layout>
+          <InlineReadsContext />
+        </Layout>
+      );
+    });
+
+    const { vNode } = await render(<App />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <Projection ssr-required>
+                <InlineComponent ssr-required>
+                  <span>provided</span>
+                </InlineComponent>
+              </Projection>
+            </Projection>
+          </Component>
         </Component>
       </Component>
     );

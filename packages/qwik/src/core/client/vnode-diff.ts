@@ -10,7 +10,6 @@ import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
-import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { isCursor, type Cursor } from '../shared/cursor/cursor';
 import { abandonCursor } from '../shared/cursor/cursor-queue';
@@ -30,7 +29,7 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { HostElement, QElement, qWindow } from '../shared/types';
+import type { QElement, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
@@ -102,6 +101,7 @@ import {
   type VNodeJournal,
 } from './vnode-utils';
 import { isObjectEmpty } from '../shared/utils/objects';
+import { setInlineComponentData } from '../shared/cursor/chore-execution';
 
 export interface DiffContext {
   $container$: ClientContainer;
@@ -1654,66 +1654,31 @@ function expectComponent(diffContext: DiffContext, component: Function) {
       // delete the key from the side buffer if it is the same component
       deleteFromSideBuffer(diffContext, null, lookupKey);
     }
-
     if (host) {
-      if (!isHostInLiveTree(host, diffContext.$container$.rootVNode)) {
-        // The inline component is being diffed into an unattached projection
-        // template, so its eventual projected location — and therefore which
-        // context providers it can read — is not known yet. Defer its execution
-        // to the chore system (exactly like `component$`) by storing the render
-        // function and marking the host dirty. It will run once the projection
-        // is attached into its slot, resolving context from the real location.
-        vnode_setProp(host as VirtualVNode, OnRenderProp, component as OnRenderFn<unknown>);
-        vnode_setProp(host as VirtualVNode, ELEMENT_PROPS, jsxNode.props);
-        markVNodeDirty(
-          diffContext.$container$,
-          host as VirtualVNode,
-          ChoreBits.COMPONENT,
-          diffContext.$cursor$
-        );
-      } else {
-        let componentHost: VNode | null = host;
-        // Find the closest component host which has `OnRender` prop. This is need for subscriptions context.
-        while (
-          componentHost &&
-          (vnode_isVirtualVNode(componentHost)
-            ? vnode_getProp<OnRenderFn<any> | null>(
-                componentHost as VirtualVNode,
-                OnRenderProp,
-                null
-              ) === null
-            : true)
-        ) {
-          componentHost = componentHost.parent || vnode_getProjectionParentComponent(componentHost);
-        }
-
-        const jsxOutput = executeComponent(
-          diffContext.$container$,
-          host,
-          (componentHost || diffContext.$container$.rootVNode) as HostElement,
-          component as OnRenderFn<unknown>,
-          jsxNode.props
-        );
-
-        diffContext.$asyncQueue$.push(jsxOutput, host);
+      let componentHost: VNode | null = host;
+      // Find the closest component host which has `OnRender` prop. This is need for subscriptions context.
+      while (
+        componentHost &&
+        (vnode_isVirtualVNode(componentHost)
+          ? vnode_getProp<OnRenderFn<any> | null>(
+              componentHost as VirtualVNode,
+              OnRenderProp,
+              null
+            ) === null
+          : true)
+      ) {
+        componentHost = componentHost.parent || vnode_getProjectionParentComponent(componentHost);
       }
-    }
-  }
-}
 
-/**
- * Walks the `parent` chain from `host` to determine whether it is attached to the live vnode tree
- * (reaches `rootVNode`) or sits in an unattached projection template (reaches `null` first).
- */
-function isHostInLiveTree(host: VNode, rootVNode: VNode): boolean {
-  let vNode: VNode | null = host;
-  while (vNode) {
-    if (vNode === rootVNode) {
-      return true;
+      setInlineComponentData(host, component, componentHost, jsxNode.props as Props | null);
+      markVNodeDirty(
+        diffContext.$container$,
+        host,
+        ChoreBits.INLINE_COMPONENT,
+        diffContext.$cursor$
+      );
     }
-    vNode = vNode.parent;
   }
-  return false;
 }
 
 function insertNewComponent(

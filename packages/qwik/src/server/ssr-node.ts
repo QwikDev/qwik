@@ -227,8 +227,12 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     return mapArray_has(this.slots, slotName, 0);
   }
 
+  claimChildrenForSlot(slotName: string): JSXChildren | null {
+    return mapApp_remove(this.slots, slotName, 0);
+  }
+
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {
-    const children = mapApp_remove(this.slots, slotName, 0);
+    const children = this.claimChildrenForSlot(slotName);
     this.componentNode.setProp(slotName, projectionNode.id);
     projectionNode.setProp(QSlotParent, this.componentNode.id);
     return children;

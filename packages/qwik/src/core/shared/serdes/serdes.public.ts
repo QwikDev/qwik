@@ -85,6 +85,7 @@ function createBaseDeserializeContainer(
 ): DeserializeContainer {
   const container: DeserializeContainer = {
     $getObjectById$: (id: number | string) => getObjectById(id, getState()),
+    $getForwardRef$: (id: number | string) => container.$forwardRefs$?.[Number(id)],
     getSyncFn: (_: number) => {
       const fn = () => {};
       return fn;

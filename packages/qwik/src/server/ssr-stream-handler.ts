@@ -1,5 +1,6 @@
 import { isPromise } from './qwik-copy';
-import type { IStreamHandler } from './qwik-types';
+import type { IStreamHandler, SSRInternalStreamWriter } from './qwik-types';
+import { createStringStreamWriter } from './ssr-stream-writer';
 import type {
   InOrderStreaming,
   RenderToStreamOptions,
@@ -20,7 +21,7 @@ export class StreamHandler implements IStreamHandler {
   private firstFlushTimer = createTimer();
   private pendingFlush: Promise<void> | undefined;
   private flushQueued = false;
-  public stream: StreamWriter;
+  public stream: SSRInternalStreamWriter;
 
   constructor(
     public opts: RenderToStreamOptions,
@@ -35,67 +36,52 @@ export class StreamHandler implements IStreamHandler {
     this.stream = this.setupStreamWriter();
   }
 
-  private setupStreamWriter() {
+  private setupStreamWriter(): SSRInternalStreamWriter {
     const handler = this;
-    let stream: StreamWriter;
+    let stream: SSRInternalStreamWriter;
     switch (this.inOrderStreaming.strategy) {
       case 'disabled':
-        stream = {
-          write(chunk: string) {
-            if (chunk === undefined || chunk === null) {
-              return;
-            }
-            handler.enqueue(chunk);
-          },
-          waitForDrain() {
-            return handler.waitForPendingFlush();
-          },
-        };
+        stream = createStringStreamWriter((chunk: string) => {
+          if (chunk === undefined || chunk === null) {
+            return;
+          }
+          handler.enqueue(chunk);
+        });
         break;
       case 'direct': {
         const originalStream = this.nativeStream;
-        stream = {
-          write(chunk: string) {
-            if (chunk === undefined || chunk === null) {
-              return;
-            }
-            if (handler.pendingFlush) {
-              const queued = handler.pendingFlush.then(() => originalStream.write(chunk));
-              return handler.trackPendingFlush(queued);
-            }
-            return handler.trackPendingFlush(originalStream.write(chunk));
-          },
-          waitForDrain() {
-            return handler.waitForPendingFlush();
-          },
-        };
+        stream = createStringStreamWriter((chunk: string) => {
+          if (chunk === undefined || chunk === null) {
+            return;
+          }
+          if (handler.pendingFlush) {
+            const queued = handler.pendingFlush.then(() => originalStream.write(chunk));
+            return handler.trackPendingFlush(queued);
+          }
+          return handler.trackPendingFlush(originalStream.write(chunk));
+        });
         break;
       }
       default:
       case 'auto': {
         const minimumChunkSize = this.inOrderStreaming.maximumChunk ?? 0;
         const initialChunkSize = this.inOrderStreaming.maximumInitialChunk ?? 0;
-        stream = {
-          write(chunk) {
-            if (chunk === undefined || chunk === null) {
-              return;
-            }
+        stream = createStringStreamWriter((chunk) => {
+          if (chunk === undefined || chunk === null) {
+            return;
+          }
 
-            handler.enqueue(chunk);
+          handler.enqueue(chunk);
 
-            // Check if we should flush (only if not inside a stream block)
-            if (handler.streamBlockDepth === 0) {
-              const maxBufferSize =
-                handler.networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
-              if (handler.bufferSize >= maxBufferSize) {
-                return handler.flush();
-              }
+          // Check if we should flush (only if not inside a stream block)
+          if (handler.streamBlockDepth === 0) {
+            const maxBufferSize =
+              handler.networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
+            if (handler.bufferSize >= maxBufferSize) {
+              return handler.flush();
             }
-          },
-          waitForDrain() {
-            return handler.waitForPendingFlush();
-          },
-        };
+          }
+        });
         break;
       }
     }

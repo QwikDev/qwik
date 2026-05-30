@@ -42,6 +42,7 @@ import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
 import { TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
+import type { SubscriptionPatch } from './subscription-patch';
 
 export let loading = Promise.resolve();
 
@@ -394,6 +395,16 @@ function* inflateIterator(
       effectSub.property = d[1];
       effectSub.data = d[2];
       restoreEffectBackRefForConsumer(effectSub);
+      break;
+    }
+    case TypeIds.SubscriptionPatch: {
+      const patch = target as SubscriptionPatch;
+      const d = data as [
+        number,
+        Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>,
+      ];
+      patch.rootId = d[0];
+      patch.subscriptions = d[1];
       break;
     }
     case TypeIds.Uint8Array: {

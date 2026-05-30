@@ -290,7 +290,7 @@ Like `useComputed$()`, the function can run again when the state it tracks chang
 
 Unlike `useComputed$()`, the result can be pending. While the async work is running, the signal exposes `.loading`; when it finishes, it exposes either `.value` or `.error`.
 
-Read `.value` when you need the result. If the result is not ready yet, that part of the UI can wait and a [`<Suspense>`](/docs/(qwik)/core/suspense/index.mdx) boundary can show fallback UI.
+Read `.value` when you need the result. If the result is not ready yet, that part of the UI can wait and a [`<Suspense>`](/docs/labs/suspense/index.mdx) boundary can show fallback UI.
 
 The async work can run during SSR and in the browser. `useAsync$()` also supports polling for values that need to stay up to date.
 
@@ -368,7 +368,7 @@ The code handles loading and errors inline with `.loading` and `.error`. During 
 <Note title="useAsync$ and Suspense">
 The jokes example handles several UI states inline: loading, error, no results, and results.
 
-That is useful when each state needs its own markup. If you only need fallback UI while `.value` is not ready, wrap that part of the UI in [`<Suspense>`](/docs/(qwik)/core/suspense/index.mdx).
+That is useful when each state needs its own markup. If you only need fallback UI while `.value` is not ready, wrap that part of the UI in [`<Suspense>`](/docs/labs/suspense/index.mdx).
 </Note>
 
 <LongNote title="Advanced: channel example">

@@ -2014,7 +2014,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/reveal.ts",
       "mdFile": "core.revealorder.md"
     },
     {

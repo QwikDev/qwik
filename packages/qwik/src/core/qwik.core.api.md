@@ -66,7 +66,9 @@ export type ClassList = string | undefined | null | false | Record<string, boole
 // @internal (undocumented)
 export interface ClientContainer extends _Container {
     // (undocumented)
-    $forwardRefs$: Array<number> | null;
+    $forwardRefs$: Array<number | string> | null;
+    // (undocumented)
+    $getForwardRef$(id: number): number | string | undefined;
     // (undocumented)
     $locale$: string;
     // (undocumented)
@@ -83,6 +85,8 @@ export interface ClientContainer extends _Container {
     qManifestHash: string;
     // (undocumented)
     rootVNode: _ElementVNode;
+    // (undocumented)
+    vNodeLocate(id: string | Element): _VNode;
 }
 
 // @public
@@ -145,6 +149,8 @@ export interface _Container {
     // (undocumented)
     readonly $instanceHash$: string | null;
     // (undocumented)
+    $isOutOfOrderSegment$: boolean;
+    // (undocumented)
     readonly $locale$: string;
     // (undocumented)
     $pendingCount$: number;
@@ -152,6 +158,8 @@ export interface _Container {
     $renderPromise$: Promise<void> | null;
     // (undocumented)
     $resolveRenderPromise$: (() => void) | null;
+    // (undocumented)
+    $rootContainer$: _Container | null;
     // (undocumented)
     readonly $serverData$: Record<string, any>;
     // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
@@ -196,6 +204,7 @@ export interface _ContainerElement extends HTMLElement {
     qContainer?: ClientContainer;
     // (undocumented)
     qDestroy?: () => void;
+    qSegmentVnodeData?: Map<string, string>;
     qVnodeData?: string;
     qVNodeRefs?: Map<number, Element | _ElementVNode>;
 }
@@ -311,12 +320,14 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $containerDataProcessState$: ContainerDataProcessState;
     // (undocumented)
-    $containerStateReadyCallbacks$: Array<() => unknown | Promise<unknown>> | undefined;
+    $containerStateDataState$: unknown;
     // (undocumented)
-    $containerVNodeReadyCallbacks$: Array<() => unknown | Promise<unknown>> | undefined;
+    $containerStateReadyCallbacks$: Array<() => unknown | Promise<unknown>> | undefined;
     $destroy$(): void;
     // (undocumented)
-    $forwardRefs$: Array<number> | null;
+    $forwardRefs$: Array<number | string> | null;
+    // (undocumented)
+    $getForwardRef$(id: number): number | string | undefined;
     // (undocumented)
     $getObjectById$: (id: number | string) => unknown;
     $hoistStyles$(): void;
@@ -734,7 +745,7 @@ export const PrefetchServiceWorker: (opts: {
 }) => JSXOutput;
 
 // @internal
-export function _preprocessState(data: unknown[], container: DeserializeContainer): void;
+export function _preprocessState(data: unknown[], container: DeserializeContainer, segmentId?: string, startIndex?: number): void;
 
 // @public
 export type PropFunction<T> = QRL<T>;
@@ -753,8 +764,15 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `
 
 // @internal (undocumented)
 export interface _QDocument extends Document {
+    qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+    qProcessVNodeDataPatch?: (script: Element | null) => void;
     // (undocumented)
     qVNodeData: WeakMap<Element, string>;
+    qVNodeDataCallbacks?: Array<() => void>;
+    qVNodeDataProcessed?: boolean;
+    qVNodeDataReady?: boolean;
+    qVNodeDataStarted?: boolean;
+    qVNodeDataState?: unknown;
 }
 
 // Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts
@@ -933,8 +951,11 @@ export interface ReadonlySignal<T = unknown> {
     readonly value: T;
 }
 
+// Warning: (ae-forgotten-export) The symbol "InternalServerComponent" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SSRRevealSlotProps" needs to be exported by the entry point index.d.ts
+//
 // @internal (undocumented)
-export const _reC: (props: RevealProps) => JSXNodeInternal<FunctionComponent<    {
+export const _reC: (props: RevealProps) => JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>> | JSXNodeInternal<FunctionComponent<    {
 name?: string;
 children?: JSXChildren;
 }>>;
@@ -1074,8 +1095,10 @@ export function _serialize<T>(data: T): Promise<string>;
 // @public
 export const SerializerSymbol: unique symbol;
 
+// Warning: (ae-forgotten-export) The symbol "SSRWriteChunk" needs to be exported by the entry point index.d.ts
+//
 // @internal (undocumented)
-export function _setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown, hasMovedCaptures: boolean): string | null;
+export function _setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown, hasMovedCaptures: boolean): string | SSRWriteChunk[] | null;
 
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
@@ -1098,6 +1121,8 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     $instanceHash$: string | null;
     // (undocumented)
+    $isOutOfOrderSegment$: boolean;
+    // (undocumented)
     readonly $locale$: string;
     // (undocumented)
     $pendingCount$: number;
@@ -1105,6 +1130,8 @@ export abstract class _SharedContainer implements _Container {
     $renderPromise$: Promise<void> | null;
     // (undocumented)
     $resolveRenderPromise$: (() => void) | null;
+    // (undocumented)
+    $rootContainer$: _Container | null;
     // (undocumented)
     $serverData$: Record<string, any>;
     // (undocumented)
@@ -1271,10 +1298,18 @@ export class _SubscriptionData {
 }
 
 // @internal (undocumented)
-export const _suC: (props: SuspenseProps) => JSXNodeInternal<FunctionComponent<    {
-children?: any;
-key?: string | number | null;
-}>>;
+export class _SubscriptionPatch {
+    constructor(rootId?: number, subscriptions?: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>);
+    // (undocumented)
+    rootId: number;
+    // Warning: (ae-forgotten-export) The symbol "EffectSubscription" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    subscriptions: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>;
+}
+
+// @internal (undocumented)
+export const _suC: (props: SuspenseProps) => JSXNodeInternal<string>[];
 
 // Warning: (ae-incompatible-release-tags) The symbol "Suspense" is marked as @public, but its signature references "_suC" which is marked as @internal
 //
@@ -2180,11 +2215,10 @@ export type _VNodeJournal = Array<VNodeOperation>;
 // @internal (undocumented)
 export const _waitUntilRendered: (container: _Container) => Promise<void>;
 
+// Warning: (ae-forgotten-export) The symbol "SSRRenderJSXOptions" needs to be exported by the entry point index.d.ts
+//
 // @internal (undocumented)
-export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
-    currentStyleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-}): Promise<void>;
+export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
 
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;

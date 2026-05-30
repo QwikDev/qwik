@@ -4,10 +4,12 @@ import {
   createContextId,
   Fragment as WrappedSignal,
   Fragment,
+  getPlatform,
   Fragment as InlineComponent,
   jsx,
   Fragment as Projection,
   Fragment as Awaited,
+  setPlatform,
   Slot,
   useContext,
   useContextProvider,
@@ -19,7 +21,9 @@ import {
   type Signal,
   $,
 } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { renderToString } from '@qwik.dev/core/server';
+import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { _useHmr } from '../internal';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { vnode_getProp, vnode_locate } from '../client/vnode-utils';
@@ -3451,5 +3455,40 @@ describe.each([
         </Component>
       );
     });
+  });
+});
+
+describe('slot-projected head/body', () => {
+  it('defers the useOn placeholder into <head> instead of under <html>', async () => {
+    const Provider = component$(() => {
+      _useHmr('provider.tsx');
+      return <Slot />;
+    });
+
+    const platform = getPlatform();
+    let html: string;
+    try {
+      const result = await renderToString(
+        <Provider>
+          <head>
+            <title>Test</title>
+          </head>
+          <body>test</body>
+        </Provider>,
+        { qwikLoader: 'never', containerTagName: 'html' }
+      );
+      html = result.html;
+    } finally {
+      setPlatform(platform);
+    }
+
+    const document = createDocument({ html });
+    const scripts = document.querySelectorAll('script');
+    for (let i = 0; i < scripts.length; i++) {
+      expect(scripts[i].parentNode?.nodeName.toLowerCase()).not.toEqual('html');
+    }
+    expect(document.querySelector('script[hidden]')?.parentNode?.nodeName.toLowerCase()).toEqual(
+      'head'
+    );
   });
 });

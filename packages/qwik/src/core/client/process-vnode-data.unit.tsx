@@ -15,8 +15,11 @@ import { QContainerAttr, QStatePrewarmAttr, QStyle } from '../shared/utils/marke
 import { vnode_getFirstChild } from './vnode-utils';
 import { Fragment } from '@qwik.dev/core';
 import { TypeIds } from '../shared/serdes/constants';
-import { ContainerDataProcessState, isContainerReady } from './process-container-state-utils';
-import { whenContainerDataReady } from './process-state-data';
+import {
+  ContainerDataProcessState,
+  isContainerReady,
+  whenContainerDataReady,
+} from './process-state-data';
 import { installOutOfOrderExecutor } from '../../out-of-order-executor-shared';
 
 describe('processVnodeData', () => {
@@ -202,14 +205,12 @@ describe('processVnodeData', () => {
       const ready = whenContainerDataReady(container, () => undefined);
 
       expect(container.$containerDataProcessState$).not.toBe(
-        ContainerDataProcessState.ProcessingVNodeDone
+        ContainerDataProcessState.ProcessingState
       );
       expect(document.head.contains(style)).toBe(false);
       expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
 
-      while (
-        container.$containerDataProcessState$ < ContainerDataProcessState.ProcessingVNodeDone
-      ) {
+      while (container.$containerDataProcessState$ < ContainerDataProcessState.ProcessingState) {
         runNextTask(tasks);
       }
 
@@ -266,9 +267,7 @@ describe('processVnodeData', () => {
       const container = getDomContainer(document.documentElement) as DomContainer;
       const ready = whenContainerDataReady(container, () => undefined);
 
-      while (
-        container.$containerDataProcessState$ < ContainerDataProcessState.ProcessingVNodeDone
-      ) {
+      while (container.$containerDataProcessState$ < ContainerDataProcessState.ProcessingState) {
         runNextTask(tasks);
       }
 

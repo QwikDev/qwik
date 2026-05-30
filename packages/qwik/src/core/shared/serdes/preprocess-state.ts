@@ -57,7 +57,7 @@ export function preprocessState(
   segmentId?: string,
   startIndex = 0
 ) {
-  const iterator = preprocessStateIterator(data, container, segmentId, startIndex);
+  const iterator = preprocessStateIterator(data, container, startIndex);
   while (!iterator.next().done) {
     // Run synchronously for non-browser and non-container deserialization paths.
   }
@@ -66,7 +66,6 @@ export function preprocessState(
 export function* preprocessStateIterator(
   data: unknown[],
   container: DeserializeContainer,
-  _segmentId?: string,
   startIndex = 0
 ): Generator<void, void, void> {
   const isRootDeepRef = (type: TypeIds, value: unknown) => {

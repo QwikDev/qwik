@@ -12,17 +12,16 @@ import { AsyncSignalFlags } from '../../reactive-primitives/types';
 const withScopeFromQL = <T>(
   captureIds: string | undefined,
   element: Element,
-  callback: (captures: Readonly<unknown[]> | null) => T
+  callback: () => T
 ): T | Promise<T> => {
   if (typeof captureIds === 'string') {
     const container = getDomContainer(element);
     return whenContainerDataReady(container, () => {
-      const captures = deserializeCaptures(container, captureIds);
-      setCaptures(captures);
-      return callback(captures);
+      setCaptures(deserializeCaptures(container, captureIds));
+      return callback();
     });
   }
-  return callback(_captures);
+  return callback();
 };
 /**
  * Handles events for bind:value
@@ -30,8 +29,8 @@ const withScopeFromQL = <T>(
  * @internal
  */
 export function _val(this: string | undefined, _: any, element: HTMLInputElement) {
-  return withScopeFromQL(this, element, (captures) => {
-    const signal = captures![0] as Signal;
+  return withScopeFromQL(this, element, () => {
+    const signal = _captures![0] as Signal;
     signal.value = element.type === 'number' ? element.valueAsNumber : element.value;
   });
 }
@@ -42,8 +41,8 @@ export function _val(this: string | undefined, _: any, element: HTMLInputElement
  * @internal
  */
 export function _chk(this: string | undefined, _: any, element: HTMLInputElement) {
-  return withScopeFromQL(this, element, (captures) => {
-    const signal = captures![0] as Signal;
+  return withScopeFromQL(this, element, () => {
+    const signal = _captures![0] as Signal;
     signal.value = element.checked;
   });
 }
@@ -55,11 +54,11 @@ export function _chk(this: string | undefined, _: any, element: HTMLInputElement
  * @internal
  */
 export function _res(this: string | undefined, _: any, element: Element) {
-  return withScopeFromQL(this, element, (captures) => {
+  return withScopeFromQL(this, element, () => {
     // Captures are deserialized, now trigger computation on AsyncSignals
-    if (captures) {
-      for (let i = 0; i < captures.length; i++) {
-        const capture = captures[i];
+    if (_captures) {
+      for (let i = 0; i < _captures.length; i++) {
+        const capture = _captures[i];
         if (capture instanceof AsyncSignalImpl && capture.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
           capture.$computeIfNeeded$();
         }

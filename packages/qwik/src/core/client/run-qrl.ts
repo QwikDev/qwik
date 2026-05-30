@@ -11,7 +11,7 @@ import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/mar
 import { retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
-import { invokeApply, newInvokeContextFromDOMReady, type InvokeContext } from '../use/use-core';
+import { invokeApply, newInvokeContextFromDOM, type InvokeContext } from '../use/use-core';
 import { getDomContainer, whenContainerDataReady } from './dom-container';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
@@ -37,7 +37,7 @@ export function runEventHandlerQRL(
         handler,
         event,
         element,
-        newInvokeContextFromDOMReady(event, element, container)
+        newInvokeContextFromDOM(event, element, container)
       )
     );
   }
@@ -87,7 +87,7 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
   }
   const container = getDomContainer(element);
   return whenContainerDataReady(container, () => {
-    const ctx = newInvokeContextFromDOMReady(event, element, container);
+    const ctx = newInvokeContextFromDOM(event, element, container);
     if (typeof this === 'string') {
       setCaptures(deserializeCaptures(ctx.$container$!, this));
     }

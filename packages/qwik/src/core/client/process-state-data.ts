@@ -1,5 +1,4 @@
 import { type DomContainer } from './dom-container';
-import { ContainerDataProcessState, isContainerReady } from './process-container-state-utils';
 import { onVNodeDataReady } from './process-vnode-data';
 import {
   createYieldingIteratorState,
@@ -8,23 +7,30 @@ import {
 } from './yielding-iterator';
 import { type ClientContainer } from './types';
 
+export const enum ContainerDataProcessState {
+  NotStarted = 0,
+  ProcessingVNode = 1,
+  ProcessingState = 2,
+  ProcessingStateDone = 3,
+}
+
 interface ProcessContainerStateDataState {
   $queue$: Generator<void, void, void>[];
   $active$: YieldingIteratorState<void> | null;
 }
 
-export function processStateData(container: DomContainer) {
-  if (container.$containerDataProcessState$ >= ContainerDataProcessState.ProcessingState) {
-    return;
-  }
-  processContainerStateData(container, container.$processContainerData$());
+export function isContainerReady(container: DomContainer): boolean {
+  return container.$containerDataProcessState$ === ContainerDataProcessState.ProcessingStateDone;
 }
 
 export function processContainerStateData(
   container: DomContainer,
   iterator: Generator<void, void, void>
 ): void {
-  const state = getProcessContainerStateDataState(container);
+  const state = (container.$containerStateDataState$ ||= {
+    $queue$: [],
+    $active$: null,
+  }) as ProcessContainerStateDataState;
   container.$containerDataProcessState$ = ContainerDataProcessState.ProcessingState;
   state.$queue$.push(iterator);
   scheduleProcessContainerStateData(container, state);
@@ -67,18 +73,6 @@ export const whenContainerDataReady = <T>(
   });
 };
 
-function getProcessContainerStateDataState(
-  container: DomContainer
-): ProcessContainerStateDataState {
-  const existing = container.$containerStateDataState$ as
-    | ProcessContainerStateDataState
-    | undefined;
-  if (existing) {
-    return existing;
-  }
-  return (container.$containerStateDataState$ = { $queue$: [], $active$: null });
-}
-
 function scheduleProcessContainerStateData(
   container: DomContainer,
   state: ProcessContainerStateDataState
@@ -91,7 +85,7 @@ function scheduleProcessContainerStateData(
     markContainerDataReady(container);
     return;
   }
-  const active = (state.$active$ = createYieldingIteratorState(
+  state.$active$ = createYieldingIteratorState(
     iterator,
     () => {
       state.$active$ = null;
@@ -101,19 +95,17 @@ function scheduleProcessContainerStateData(
       state.$active$ = null;
       container.$containerDataProcessState$ = ContainerDataProcessState.ProcessingStateDone;
     }
-  ));
-  scheduleYieldingIterator(active);
+  );
+  scheduleYieldingIterator(state.$active$);
 }
 
 function markContainerDataReady(container: DomContainer): void {
   const state = container.$containerDataProcessState$;
   if (state !== ContainerDataProcessState.ProcessingState) {
-    // Allow finish processing state only if we are processing state
     return;
   }
   container.$containerDataProcessState$ = ContainerDataProcessState.ProcessingStateDone;
   container.$containerStateDataState$ = undefined;
-  // call callbacks gathered before container was ready, meaning state is processing state done
   const callbacks = container.$containerStateReadyCallbacks$;
   container.$containerStateReadyCallbacks$ = undefined;
   if (callbacks) {

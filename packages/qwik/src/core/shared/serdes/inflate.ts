@@ -65,22 +65,16 @@ const isSafeObjectKV = (key: unknown, value: unknown): key is string | number =>
   );
 };
 
-const runDeserializeIterator = <T>(iterator: Generator<void, T, void>): T => {
-  while (true) {
-    const result = iterator.next();
-    if (result.done) {
-      return result.value;
-    }
-  }
-};
-
 export const inflate = (
   container: DeserializeContainer,
   target: unknown,
   typeId: TypeIds,
   data: unknown
 ): void => {
-  runDeserializeIterator(inflateIterator(container, target, typeId, data));
+  const iterator = inflateIterator(container, target, typeId, data);
+  while (!iterator.next().done) {
+    // Run synchronously for lazy deserialization paths.
+  }
 };
 
 function* eagerDeserializeArrayIterator(
@@ -115,14 +109,7 @@ export function* eagerDeserializeStateIterator(
     return output[index];
   };
 
-  const resolveRoot = (id: number | string): unknown => {
-    if (typeof id === 'string') {
-      id = parseInt(id, 10);
-    }
-    return allocateRoot(id);
-  };
-
-  container.$getObjectById$ = resolveRoot;
+  container.$getObjectById$ = (id) => allocateRoot(typeof id === 'string' ? parseInt(id, 10) : id);
   try {
     for (let i = 0; i < length; i++) {
       allocateRoot(i);
@@ -410,10 +397,8 @@ function* inflateIterator(
     case TypeIds.Uint8Array: {
       const bytes = target as Uint8Array;
       const buf = atob(data as string);
-      let i = 0;
       for (let j = 0; j < buf.length; j++) {
-        const s = buf[j];
-        bytes[i++] = s.charCodeAt(0);
+        bytes[j] = buf.charCodeAt(j);
         if ((j & 31) === 31) {
           yield;
         }

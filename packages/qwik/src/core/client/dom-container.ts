@@ -70,9 +70,8 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode-utils';
-import { processContainerStateData, processStateData } from './process-state-data';
+import { ContainerDataProcessState, processContainerStateData } from './process-state-data';
 export { onContainerDataReady, whenContainerDataReady } from './process-state-data';
-import { ContainerDataProcessState, isContainerReady } from './process-container-state-utils';
 
 /** @public */
 export function getDomContainer(element: Element): IClientContainer {
@@ -97,26 +96,6 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
-export const processContainerData = (container: IClientContainer): void => {
-  const domContainer = container as DomContainer;
-  const state = domContainer.$containerDataProcessState$;
-  if (
-    state === ContainerDataProcessState.ProcessingVNode ||
-    state === ContainerDataProcessState.ProcessingState ||
-    isContainerReady(domContainer)
-  ) {
-    return;
-  }
-  domContainer.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
-  processVNodeData(domContainer.document);
-  onVNodeDataReady(domContainer.document, () => {
-    if (domContainer.$containerDataProcessState$ === ContainerDataProcessState.ProcessingVNode) {
-      domContainer.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNodeDone;
-    }
-    processStateData(domContainer);
-  });
-};
-
 function getOutOfOrderStreamingScript(boundaryId: number, content: Element | null) {
   const segmentId = String(boundaryId);
   const qContainerElement = content?.closest(QContainerSelector) as ContainerElement | null;
@@ -125,12 +104,11 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
     const document = qContainer.element.ownerDocument;
     processOutOfOrderSegmentVNodeData(document, segmentId, content);
     onVNodeDataReady(document, () => {
-      if (qContainer.element.qContainer === qContainer) {
+      qContainer.element.qContainer === qContainer &&
         processContainerStateData(
           qContainer,
           processSegmentStateScriptsIterator(qContainer, segmentId)
         );
-      }
     });
   }
 }
@@ -148,8 +126,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $forwardRefs$: Array<number | string> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
   public $containerDataProcessState$ = ContainerDataProcessState.NotStarted;
-  public $containerStateReadyCallbacks$: Array<() => unknown | Promise<unknown>> | undefined =
-    undefined;
+  public $containerStateReadyCallbacks$: Array<() => void> | undefined = undefined;
   public $containerStateDataState$: unknown = undefined;
 
   private $rawStateData$: unknown[];
@@ -172,9 +149,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
     this.$rawStateData$ = [];
     this.$stateData$ = [];
-    if (!document.qVNodeDataProcessed) {
-      processVNodeData(document);
-    }
     if (__EXPERIMENTAL__.suspense && document.querySelector('template[q\\:r]')) {
       document.qProcessOOOS ||= getOutOfOrderStreamingScript;
     }
@@ -182,7 +156,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
-    processContainerData(this);
+    this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
+    processVNodeData(document);
+    onVNodeDataReady(document, () => {
+      if (this.$containerDataProcessState$ === ContainerDataProcessState.ProcessingVNode) {
+        processContainerStateData(this, this.$processContainerData$());
+      }
+    });
   }
 
   *$processContainerData$(): Generator<void, void, void> {
@@ -190,7 +170,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (element.qContainer !== this) {
       return;
     }
-    const rootState = this.$rootStateScript$();
+    const rootState =
+      element.querySelector(
+        `script[type="qwik/state"][q\\:instance="${this.$instanceHash$}"]:not(${QStatePatchAttrSelector})`
+      ) ||
+      element.querySelector(
+        `script[type="qwik/state"]:not([q\\:instance]):not(${QStatePatchAttrSelector})`
+      );
     if (rootState) {
       this.$rawStateData$ = JSON.parse(rootState.textContent!);
       yield* preprocessStateIterator(this.$rawStateData$, this);
@@ -245,21 +231,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         document.qProcessOOOS = undefined;
       }
     }
-  }
-
-  private $rootStateScript$(): Element | null {
-    return (
-      this.element.querySelector(
-        `${this.$stateScriptSelector$()}:not(${QStatePatchAttrSelector})`
-      ) ||
-      this.element.querySelector(
-        `script[type="qwik/state"]:not([q\\:instance]):not(${QStatePatchAttrSelector})`
-      )
-    );
-  }
-
-  private $stateScriptSelector$(): string {
-    return `script[type="qwik/state"][q\\:instance="${this.$instanceHash$}"]`;
   }
 
   /**

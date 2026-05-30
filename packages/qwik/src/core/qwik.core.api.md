@@ -322,7 +322,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $containerStateDataState$: unknown;
     // (undocumented)
-    $containerStateReadyCallbacks$: Array<() => unknown | Promise<unknown>> | undefined;
+    $containerStateReadyCallbacks$: Array<() => void> | undefined;
     $destroy$(): void;
     // (undocumented)
     $forwardRefs$: Array<number | string> | null;

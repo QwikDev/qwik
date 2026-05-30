@@ -18,14 +18,6 @@ type SegmentStateContainer = {
 
 const processedStatePatchScripts = new WeakMap<DomContainer, WeakSet<Element>>();
 
-/** @internal */
-export const processSegmentStateScripts = (container: DomContainer, segmentId?: string): void => {
-  const iterator = processSegmentStateScriptsIterator(container, segmentId);
-  while (!iterator.next().done) {
-    // Run synchronously for existing non-yielded callers.
-  }
-};
-
 export function* processSegmentStateScriptsIterator(
   container: DomContainer,
   segmentId?: string
@@ -35,7 +27,7 @@ export function* processSegmentStateScriptsIterator(
   }
   const stateContainer = container as unknown as SegmentStateContainer;
   const qwikStates = stateContainer.element.querySelectorAll(
-    `${stateScriptSelector(stateContainer.$instanceHash$)}${QStatePatchAttrSelector}`
+    `script[type="qwik/state"][q\\:instance="${stateContainer.$instanceHash$}"]${QStatePatchAttrSelector}`
   );
   const processedScripts = getProcessedStatePatchScripts(container);
   for (let i = 0; i < qwikStates.length; i++) {
@@ -61,28 +53,25 @@ const getProcessedStatePatchScripts = (container: DomContainer): WeakSet<Element
   return processedScripts;
 };
 
-const stateScriptSelector = (instanceHash: string): string => {
-  return `script[type="qwik/state"][q\\:instance="${instanceHash}"]`;
-};
-
 function* processStatePatch(
   container: DomContainer,
   stateContainer: SegmentStateContainer,
   textContent: string | null
 ): Generator<void, void, void> {
-  if (textContent) {
-    const [rootStart, rawStateData, forwardRefs, subscriptionPatchRootId] = JSON.parse(
-      textContent
-    ) as [number, unknown[], Array<number | string> | 0 | undefined, number | string | undefined];
-    yield* appendStatePatchRoots(container, stateContainer, rootStart, rawStateData);
-    mergeForwardRefs(stateContainer, forwardRefs || undefined);
-    applySubscriptionPatches(
-      container,
-      subscriptionPatchRootId === undefined
-        ? undefined
-        : (stateContainer.$getObjectById$(subscriptionPatchRootId) as SubscriptionPatch[])
-    );
+  if (!textContent) {
+    return;
   }
+  const [rootStart, rawStateData, forwardRefs, subscriptionPatchRootId] = JSON.parse(
+    textContent
+  ) as [number, unknown[], Array<number | string> | 0 | undefined, number | string | undefined];
+  yield* appendStatePatchRoots(container, stateContainer, rootStart, rawStateData);
+  mergeForwardRefs(stateContainer, forwardRefs || undefined);
+  applySubscriptionPatches(
+    container,
+    subscriptionPatchRootId === undefined
+      ? undefined
+      : (stateContainer.$getObjectById$(subscriptionPatchRootId) as SubscriptionPatch[])
+  );
 }
 
 function* appendStatePatchRoots(
@@ -104,12 +93,7 @@ function* appendStatePatchRoots(
     stateContainer.$rawStateData$[rootStart * 2 + i] = rawStateData[i];
     yield;
   }
-  yield* preprocessStateIterator(
-    stateContainer.$rawStateData$,
-    container,
-    undefined,
-    rootStart * 2
-  );
+  yield* preprocessStateIterator(stateContainer.$rawStateData$, container, rootStart * 2);
   stateContainer.$stateData$ = wrapDeserializerProxy(
     container,
     stateContainer.$rawStateData$

@@ -114,7 +114,7 @@ export function invokeApply<FN extends (this: THIS, ...args: any[]) => any, THIS
   }
 }
 
-export const newInvokeContextFromDOMReady = (
+export const newInvokeContextFromDOM = (
   event: Event,
   element: Element,
   domContainer: ClientContainer = getDomContainer(element)

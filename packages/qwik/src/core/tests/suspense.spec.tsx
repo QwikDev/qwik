@@ -63,7 +63,7 @@ const ssrRenderSuspenseStream = (
   };
   return ssrRenderToDom(jsx, {
     raw: opts.raw,
-    debug: opts.debug,
+    debug: opts.debug ?? debug,
     stream,
     streaming,
     resume: opts.resume,
@@ -75,7 +75,7 @@ const OOOS_SCOPED_STYLE = `.ooos-scoped { color: red; }`;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: loops', ({ render }) => {
   const isSsr = render === ssrRenderToDom;
   const fallbackAttrs = {

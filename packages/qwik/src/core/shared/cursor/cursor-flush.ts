@@ -3,7 +3,6 @@ import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { directSetAttribute } from '../utils/attribute';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
-import { isPromise } from '../utils/promises';
 import { serializeAttribute } from '../utils/styles';
 import {
   DeleteOperation,
@@ -192,17 +191,9 @@ function executeAfterFlush(container: Container, cursorData: CursorData): void {
       'walkCursor: executeAfterFlush',
       visibleTasks.map((t) => t.$qrl$.$symbol$)
     );
-
-  let visibleTaskPromise: Promise<void> | undefined;
   for (let i = 0; i < visibleTasks.length; i++) {
     const task = visibleTasks[i];
-    const result = runTask(task, container, task.$el$);
-    if (isPromise(result)) {
-      visibleTaskPromise = visibleTaskPromise ? visibleTaskPromise.then(() => result) : result;
-    }
-  }
-  if (visibleTaskPromise) {
-    (cursorData.extraPromises ||= []).push(visibleTaskPromise);
+    runTask(task, container, task.$el$);
   }
   cursorData.afterFlushTasks = null;
 }

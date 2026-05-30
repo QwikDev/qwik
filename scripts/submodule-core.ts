@@ -126,7 +126,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
               defaults: true,
               hoist_funs: true,
               keep_fargs: false,
-              pure_getters: true,
+              pure_getters: 'strict',
               pure_new: true,
               toplevel: true,
               unsafe_arrows: true,
@@ -159,6 +159,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
           });
           const esmMinCode = esmMinifyResult.code!;
           const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
+          validateNoBareExperimentalReferences(esmCleanCode, 'core.min.mjs');
 
           const selfIdx = esmCleanCode.indexOf('self');
           const indx = Math.max(selfIdx);
@@ -275,7 +276,7 @@ async function submoduleCoreProduction(
       keep_infinity: true,
       loops: true,
       properties: true,
-      pure_getters: true,
+      pure_getters: 'strict',
       pure_new: true,
       reduce_funcs: true,
       reduce_vars: true,
@@ -311,10 +312,23 @@ async function submoduleCoreProduction(
     mangle,
   });
   code = result.code!;
+  validateNoBareExperimentalReferences(code, 'core.prod.mjs');
 
   await writeFile(outPath, code + '\n');
 
   console.log('🦝 core.prod.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.prod.mjs')));
+}
+
+function validateNoBareExperimentalReferences(code: string, filename: string) {
+  const bareExperimentalReference = /(?<![\w$.])__EXPERIMENTAL__(?![\w$.])/;
+  const match = bareExperimentalReference.exec(code);
+  if (match) {
+    const index = match.index;
+    throw new Error(
+      `"${filename}" should only reference experimental flags as "__EXPERIMENTAL__.feature".\n` +
+        code.substring(Math.max(0, index - 100), index + 300)
+    );
+  }
 }
 
 async function submoduleCoreDev(config: BuildConfig) {

@@ -1,8 +1,13 @@
 // NOTE: we want to move this function to qwikloader, and therefore this function should not have any external dependencies
-import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
-import type { ContainerElement, QDocument } from './types';
-import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { createMacroTask } from '../shared/platform/next-tick';
+import type { QElement } from '../shared/types';
+import {
+  VNodeDataChar,
+  VNodeDataSeparator,
+  getSegmentVNodeRefId,
+} from '../shared/vnode-data-types';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { ContainerElement, QDocument } from './types';
 
 const VNODE_DATA_YIELD_INTERVAL = 1000 / 60;
 const Q_CONTAINER = 'q:container';
@@ -13,24 +18,31 @@ const Q_IGNORE = 'q:ignore';
 const Q_IGNORE_END = '/' + Q_IGNORE;
 const Q_CONTAINER_ISLAND = 'q:container-island';
 const Q_CONTAINER_ISLAND_END = '/' + Q_CONTAINER_ISLAND;
+const Q_SUSPENSE_RESOLVED = 'q:r';
+const Q_SUSPENSE_RESULT_PARENT = 'q:rp';
+const Q_PATCH = 'q:patch';
 
 const enum NodeType {
-  CONTAINER_MASK /* ***************** */ = 0b0000001,
-  ELEMENT /* ************************ */ = 0b0000010, // regular element
-  ELEMENT_CONTAINER /* ************** */ = 0b0000011, // container element need to descend into it
-  ELEMENT_SHADOW_ROOT_WRAPPER /* **** */ = 0b0000110, // shadow root wrapper element with q:shadowroot attribute
-  COMMENT_SKIP_START /* ************* */ = 0b0001001, // Comment but skip the content until COMMENT_SKIP_END
-  COMMENT_SKIP_END /* *************** */ = 0b0001000, // Comment end
-  COMMENT_IGNORE_START /* *********** */ = 0b0010000, // Comment ignore, descend into children and skip the content until COMMENT_ISLAND_START
-  COMMENT_IGNORE_END /* ************* */ = 0b0100000, // Comment ignore end
-  COMMENT_ISLAND_START /* *********** */ = 0b1000001, // Comment island, count elements for parent container until COMMENT_ISLAND_END
-  COMMENT_ISLAND_END /* ************* */ = 0b1000000, // Comment island end
-  OTHER /* ************************** */ = 0b0000000,
+  CONTAINER_MASK /* ***************** */ = 0b00000001,
+  ELEMENT /* ************************ */ = 0b00000010, // regular element
+  ELEMENT_CONTAINER /* ************** */ = 0b00000011, // container element need to descend into it
+  ELEMENT_SHADOW_ROOT_WRAPPER /* **** */ = 0b00000110, // shadow root wrapper element with q:shadowroot attribute
+  ELEMENT_SUSPENSE_RESULT_PARENT /* * */ = 0b10000010,
+  COMMENT_SKIP_START /* ************* */ = 0b00001001, // Comment but skip the content until COMMENT_SKIP_END
+  COMMENT_SKIP_END /* *************** */ = 0b00001000, // Comment end
+  COMMENT_IGNORE_START /* *********** */ = 0b00010000, // Comment ignore, descend into children and skip the content until COMMENT_ISLAND_START
+  COMMENT_IGNORE_END /* ************* */ = 0b00100000, // Comment ignore end
+  COMMENT_ISLAND_START /* *********** */ = 0b01000001, // Comment island, count elements for parent container until COMMENT_ISLAND_END
+  COMMENT_ISLAND_END /* ************* */ = 0b01000000, // Comment island end
+  OTHER /* ************************** */ = 0b00000000,
 }
+
+type VNodeDataScope = Document | ShadowRoot;
 
 interface ProcessVNodeDataState {
   $document$: QDocument;
-  $iterator$: Generator<void, void, void>;
+  $queue$: Generator<void, void, void>[];
+  $active$: Generator<void, void, void> | null;
   $schedule$: () => void;
   $scheduled$: boolean;
 }
@@ -88,20 +100,43 @@ interface ProcessVNodeDataState {
  */
 export function processVNodeData(document: Document): void {
   const qDocument = document as QDocument;
-  if (qDocument.qVNodeDataStarted || qDocument.qVNodeDataReady) {
+  if (qDocument.qVNodeDataStarted || qDocument.qVNodeDataProcessed) {
     return;
   }
   qDocument.qVNodeDataStarted = true;
-  qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
-  const state: ProcessVNodeDataState = {
-    $document$: qDocument,
-    $iterator$: processVNodeDataIterator(document),
-    $schedule$: undefined!,
-    $scheduled$: false,
-  };
-  state.$schedule$ = createMacroTask(() => runProcessVNodeData(state));
-  qDocument.qVNodeDataState = state;
-  scheduleProcessVNodeData(state);
+  qDocument.qVNodeData ||= new WeakMap<Element, string>();
+  enqueueProcessVNodeDataJob(qDocument, processRootVNodeData(document));
+}
+
+export function processOutOfOrderSegmentVNodeData(
+  document: Document,
+  segmentId: string,
+  contentNode: Element | null
+): void {
+  if (!__EXPERIMENTAL__.suspense || !contentNode) {
+    return;
+  }
+  const qContainerElement = contentNode.closest('[q\\:container]') as ContainerElement | null;
+  if (!qContainerElement) {
+    return;
+  }
+  const script = qContainerElement.querySelector(
+    `script[type="qwik/vnode"][q\\:r="${segmentId}"]:not([q\\:patch])`
+  );
+  const patches = qContainerElement.querySelectorAll(
+    `script[type="qwik/vnode"][q\\:r="${segmentId}"][q\\:patch]`
+  );
+  enqueueProcessVNodeDataJob(
+    document as QDocument,
+    processOutOfOrderSegmentVNodeDataIterator(
+      document,
+      segmentId,
+      qContainerElement,
+      contentNode,
+      script?.textContent || undefined,
+      patches || undefined
+    )
+  );
 }
 
 export const onVNodeDataReady = (document: Document, callback: () => void): void => {
@@ -132,6 +167,33 @@ export const whenVNodeDataReady = <T>(
   });
 };
 
+function enqueueProcessVNodeDataJob(
+  qDocument: QDocument,
+  iterator: Generator<void, void, void>
+): void {
+  const state = getProcessVNodeDataState(qDocument);
+  qDocument.qVNodeDataReady = false;
+  state.$queue$.push(iterator);
+  scheduleProcessVNodeData(state);
+}
+
+function getProcessVNodeDataState(qDocument: QDocument): ProcessVNodeDataState {
+  const existing = qDocument.qVNodeDataState as ProcessVNodeDataState | undefined;
+  if (existing) {
+    return existing;
+  }
+  const state: ProcessVNodeDataState = {
+    $document$: qDocument,
+    $queue$: [],
+    $active$: null,
+    $schedule$: undefined!,
+    $scheduled$: false,
+  };
+  state.$schedule$ = createMacroTask(() => runProcessVNodeData(state));
+  qDocument.qVNodeDataState = state;
+  return state;
+}
+
 function scheduleProcessVNodeData(state: ProcessVNodeDataState): void {
   if (!state.$scheduled$) {
     state.$scheduled$ = true;
@@ -148,10 +210,19 @@ function runProcessVNodeData(state: ProcessVNodeDataState): void {
   let count = 0;
   try {
     while (true) {
-      const result = state.$iterator$.next();
+      let iterator = state.$active$;
+      if (!iterator) {
+        iterator = state.$queue$.shift() || null;
+        state.$active$ = iterator;
+        if (!iterator) {
+          markVNodeDataReady(state.$document$);
+          return;
+        }
+      }
+      const result = iterator.next();
       if (result.done) {
-        markVNodeDataReady(state.$document$);
-        return;
+        state.$active$ = null;
+        continue;
       }
       // Sampling the clock every 32 steps keeps `performance.now()` out of the hottest path.
       if ((++count & 31) === 0 && performance.now() >= deadline) {
@@ -161,6 +232,7 @@ function runProcessVNodeData(state: ProcessVNodeDataState): void {
     }
   } catch (error) {
     state.$document$.qVNodeDataStarted = false;
+    state.$document$.qVNodeDataReady = false;
     state.$document$.qVNodeDataState = undefined;
     throw error;
   }
@@ -181,10 +253,62 @@ function markVNodeDataReady(document: QDocument): void {
   }
 }
 
-function* processVNodeDataIterator(document: Document): Generator<void, void, void> {
+function* processRootVNodeData(document: Document): Generator<void, void, void> {
+  yield* processVNodeDataImpl(document);
+  (document as QDocument).qVNodeDataProcessed = true;
+}
+
+function* processOutOfOrderSegmentVNodeDataIterator(
+  document: Document,
+  segmentId: string,
+  segmentContainer: ContainerElement | null,
+  segmentContent: Element,
+  segmentVNodeData: string | undefined,
+  patches: NodeListOf<Element> | undefined
+): Generator<void, void, void> {
+  yield* processVNodeDataImpl(
+    document,
+    segmentId,
+    segmentContainer,
+    segmentContent,
+    segmentVNodeData
+  );
+  for (let i = 0; patches && i < patches.length; i++) {
+    yield* processVNodeDataPatch(document, patches[i]);
+  }
+}
+
+function* processVNodeDataPatch(
+  document: Document,
+  script: Element | null
+): Generator<void, void, void> {
+  const qContainerElement = script?.closest('[q\\:container]') as ContainerElement | null;
+  const patchSegment = script?.getAttribute(Q_SUSPENSE_RESOLVED);
+  const contentNode =
+    qContainerElement &&
+    (patchSegment
+      ? (qContainerElement.querySelector(`[q\\:rp="${patchSegment}"]`) as Element | null)
+      : qContainerElement);
+  if (qContainerElement && contentNode) {
+    yield* processVNodeDataImpl(
+      document,
+      patchSegment || undefined,
+      qContainerElement,
+      contentNode,
+      script!.textContent!
+    );
+  }
+}
+
+function* processVNodeDataImpl(
+  document: Document,
+  segmentId?: string,
+  segmentContainer?: ContainerElement | null,
+  segmentContent?: Element | null,
+  segmentVNodeData?: string
+): Generator<void, void, void> {
   const qDocument = document as QDocument;
-  const vNodeDataMap =
-    qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
+  const vNodeDataMap = (qDocument.qVNodeData ||= new WeakMap<Element, string>());
   const prototype: any = document.body;
   const getter = (prototype: any, name: string) => {
     let getter: any;
@@ -202,16 +326,30 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
   const hasAttribute = prototype.hasAttribute as (this: Node, name: string) => boolean;
   const getNodeType = getter(prototype, 'nodeType') as (this: Node) => number;
 
+  qDocument.qProcessVNodeDataPatch = (script: Element | null) => {
+    enqueueProcessVNodeDataJob(qDocument, processVNodeDataPatch(document, script));
+  };
+
   // Process all of the `qwik/vnode` script tags by attaching them to the corresponding containers.
-  const attachVnodeDataAndRefs = function* (
-    element: Document | ShadowRoot
-  ): Generator<void, void, void> {
+  const attachVnodeDataAndRefs = function* (element: VNodeDataScope): Generator<void, void, void> {
     const scripts = element.querySelectorAll('script[type="qwik/vnode"]');
     for (let i = 0; i < scripts.length; i++) {
       const script = scripts[i];
-      const qContainerElement = script.closest('[q\\:container]') as ContainerElement | null;
-      qContainerElement!.qVnodeData = script.textContent!;
-      qContainerElement!.qVNodeRefs = new Map<number, Element | ElementVNode>();
+      const qContainer = script.closest('[q\\:container]') as ContainerElement;
+      qContainer.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+      if (script.hasAttribute(Q_PATCH)) {
+        qDocument.qProcessVNodeDataPatch?.(script);
+        yield;
+        continue;
+      }
+
+      const scriptContent = script.textContent!;
+      const segment = __EXPERIMENTAL__.suspense && script.getAttribute(Q_SUSPENSE_RESOLVED);
+      if (segment) {
+        (qContainer.qSegmentVnodeData ||= new Map()).set(segment, scriptContent);
+      } else {
+        qContainer.qVnodeData = scriptContent;
+      }
       yield;
     }
     const shadowRoots = element.querySelectorAll('[q\\:shadowroot]');
@@ -224,7 +362,6 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
       yield;
     }
   };
-  yield* attachVnodeDataAndRefs(document);
 
   ///////////////////////////////
   // Functions to consume the tree.
@@ -238,16 +375,16 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
   const getFastNodeType = (node: Node): NodeType => {
     const nodeType = getNodeType.call(node);
     if (nodeType === 1 /* Node.ELEMENT_NODE */) {
-      const qContainer = getAttribute.call(node, Q_CONTAINER);
-      if (qContainer === null) {
-        if (hasAttribute.call(node, Q_SHADOW_ROOT)) {
-          return NodeType.ELEMENT_SHADOW_ROOT_WRAPPER;
-        }
-        const isQElement = hasAttribute.call(node, Q_PROPS_SEPARATOR);
-        return isQElement ? NodeType.ELEMENT : NodeType.OTHER;
-      } else {
+      if (getAttribute.call(node, Q_CONTAINER) !== null) {
         return NodeType.ELEMENT_CONTAINER;
       }
+      if (hasAttribute.call(node, Q_SHADOW_ROOT)) {
+        return NodeType.ELEMENT_SHADOW_ROOT_WRAPPER;
+      }
+      if (__EXPERIMENTAL__.suspense && getAttribute.call(node, Q_SUSPENSE_RESULT_PARENT) !== null) {
+        return NodeType.ELEMENT_SUSPENSE_RESULT_PARENT;
+      }
+      return hasAttribute.call(node, Q_PROPS_SEPARATOR) ? NodeType.ELEMENT : NodeType.OTHER;
     } else if (nodeType === 8 /* Node.COMMENT_NODE */) {
       const nodeValue = node.nodeValue || ''; // nodeValue is monomorphic so it does not need fast path
       if (nodeValue.startsWith(Q_CONTAINER_ISLAND)) {
@@ -288,8 +425,10 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
     exitNode: Node | null,
     vData: string,
     qVNodeRefs: Map<number, Element | ElementVNode>,
-    prefix: string
+    qContainerElement: ContainerElement | null,
+    segmentId?: string
   ): Generator<void, void, void> {
+    const isSegment = __EXPERIMENTAL__.suspense && segmentId !== undefined;
     const vData_length = vData.length;
     /// Stores the current element index as the TreeWalker traverses the DOM.
     let elementIdx = 0;
@@ -306,7 +445,6 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
       let elementsToSkip = 0;
       while (isSeparator((ch = vData.charCodeAt(vData_start)))) {
         // Keep consuming the separators and incrementing the vNodeIndex
-        // console.log('ADVANCE', vNodeElementIndex, ch, ch - 33);
         elementsToSkip += 1 << (ch - VNodeDataSeparator.ADVANCE_1);
         vData_start++;
         if (vData_start >= vData_length) {
@@ -334,7 +472,6 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
         while (cursor && !(nextNode = nextSibling(cursor))) {
           cursor = cursor!.parentNode;
         }
-        // console.log('EXIT', nextNode?.outerHTML);
         yield* walkContainer(
           walker,
           container,
@@ -342,7 +479,7 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
           nextNode,
           container.qVnodeData || '',
           container.qVNodeRefs!,
-          prefix + '  '
+          container
         );
       } else if (nodeType === NodeType.COMMENT_IGNORE_START) {
         let islandNode: Node | null = node;
@@ -352,7 +489,6 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
             throw new Error(`Island inside <!--${node?.nodeValue}--> not found!`);
           }
         } while (getFastNodeType(islandNode) !== NodeType.COMMENT_ISLAND_START);
-        nextNode = null;
       } else if (nodeType === NodeType.COMMENT_ISLAND_END) {
         // Walk forward to find either the next container-island or the end of the q:ignore block.
         // This handles multiple islands within a single q:ignore block.
@@ -378,8 +514,7 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
             throw new Error(`<!--${node?.nodeValue}--> not closed!`);
           }
         } while (getFastNodeType(nextNode) !== NodeType.COMMENT_SKIP_END);
-        // console.log('EXIT', nextNode?.outerHTML);
-        yield* walkContainer(walker, node, node, nextNode, '', null!, prefix + '  ');
+        yield* walkContainer(walker, node, node, nextNode, '', null!, qContainerElement);
       } else if (nodeType === NodeType.ELEMENT_SHADOW_ROOT_WRAPPER) {
         // If we are in a shadow root, we need to get the shadow root element.
         nextNode = nextSibling(node);
@@ -397,12 +532,16 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
             null,
             '',
             null!,
-            prefix + '  '
+            null
           );
         }
       }
 
       if ((nodeType & NodeType.ELEMENT) === NodeType.ELEMENT) {
+        if (isSegment && node !== containerNode) {
+          const element = node as QElement;
+          element._qSegment = segmentId;
+        }
         if (vNodeElementIndex < elementIdx) {
           // VNodeData needs to catch up with the elementIdx
           if (vNodeElementIndex === -1) {
@@ -411,8 +550,7 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
           vData_start = vData_end;
           if (vData_start < vData_length) {
             vNodeElementIndex += howManyElementsToSkip();
-            const shouldStoreRef = ch === VNodeDataSeparator.REFERENCE;
-            if (shouldStoreRef) {
+            if (ch === VNodeDataSeparator.REFERENCE) {
               // if we need to store the ref handle it here.
               needsToStoreRef = vNodeElementIndex;
               vData_start++;
@@ -428,27 +566,104 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
             vNodeElementIndex = Number.MAX_SAFE_INTEGER;
           }
         }
-        // console.log(
-        //   prefix,
-        //   'ELEMENT',
-        //   nodeType,
-        //   elementIdx,
-        //   vNodeElementIndex,
-        //   (node as any).outerHTML,
-        //   elementIdx === vNodeElementIndex ? vData.substring(vData_start, vData_end) : ''
-        // );
+        const contentBoundaryId =
+          __EXPERIMENTAL__.suspense &&
+          !isSegment &&
+          nodeType === NodeType.ELEMENT_SUSPENSE_RESULT_PARENT
+            ? getAttribute.call(node!, Q_SUSPENSE_RESULT_PARENT)!
+            : null;
         if (elementIdx === vNodeElementIndex) {
-          if (needsToStoreRef === elementIdx) {
-            qVNodeRefs.set(elementIdx, node as Element);
+          if (needsToStoreRef === elementIdx && !(isSegment && node === containerNode)) {
+            qVNodeRefs.set(
+              isSegment ? getSegmentVNodeRefId(segmentId!, elementIdx) : elementIdx,
+              node as Element
+            );
           }
-          const instructions = vData.substring(vData_start, vData_end);
-          vNodeDataMap.set(node as Element, instructions);
+          const data = vData.substring(vData_start, vData_end);
+          if (isSegment && node === containerNode) {
+            const existing = vNodeDataMap.get(node as Element);
+            if (existing === undefined || existing === '') {
+              vNodeDataMap.set(node as Element, data);
+            } else if (
+              existing.charCodeAt(0) === VNodeDataChar.SEPARATOR &&
+              existing.charCodeAt(1) === VNodeDataChar.SEPARATOR &&
+              !existing.endsWith(data)
+            ) {
+              vNodeDataMap.set(node as Element, existing + data);
+            }
+          } else {
+            vNodeDataMap.set(node as Element, data);
+          }
         }
         elementIdx++;
+        if (__EXPERIMENTAL__.suspense && contentBoundaryId !== null) {
+          yield* processSuspenseContentSegment(
+            qContainerElement,
+            node as Element,
+            contentBoundaryId
+          );
+          nextNode = nextSibling(node);
+          if (nextNode) {
+            walker.currentNode = nextNode;
+          }
+        }
       }
       yield;
     } while ((node = nextNode || walker.nextNode()));
   };
+
+  const processVNodeDataScope = function* (
+    qContainerElement: ContainerElement,
+    contentNode: Element,
+    vData: string,
+    scopeSegmentId?: string
+  ): Generator<void, void, void> {
+    qContainerElement.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+    const scopeWalker = document.createTreeWalker(
+      document,
+      0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
+    );
+    scopeWalker.currentNode = contentNode;
+    yield* walkContainer(
+      scopeWalker,
+      contentNode,
+      contentNode,
+      nextSibling(contentNode),
+      vData,
+      qContainerElement.qVNodeRefs!,
+      qContainerElement,
+      scopeSegmentId
+    );
+  };
+
+  const processSuspenseContentSegment = function* (
+    qContainerElement: ContainerElement | null,
+    contentNode: Element,
+    boundaryId: string,
+    vData?: string
+  ): Generator<void, void, void> {
+    vData ||= qContainerElement?.qSegmentVnodeData?.get(boundaryId);
+    if (qContainerElement && vData) {
+      yield* processVNodeDataScope(qContainerElement, contentNode, vData, boundaryId);
+    }
+  };
+
+  if (segmentContainer && segmentContent && segmentVNodeData !== undefined) {
+    segmentContainer.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+    if (__EXPERIMENTAL__.suspense && segmentId !== undefined) {
+      yield* processSuspenseContentSegment(
+        segmentContainer,
+        segmentContent,
+        segmentId,
+        segmentVNodeData
+      );
+    } else {
+      yield* processVNodeDataScope(segmentContainer, segmentContent, segmentVNodeData);
+    }
+    return;
+  }
+
+  yield* attachVnodeDataAndRefs(document);
 
   // Walk the tree and process each `q:container` element.
   const walker = document.createTreeWalker(
@@ -456,7 +671,7 @@ function* processVNodeDataIterator(document: Document): Generator<void, void, vo
     0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
   );
 
-  yield* walkContainer(walker, null, walker.firstChild(), null, '', null!, '');
+  yield* walkContainer(walker, null, walker.firstChild(), null, '', null!, null);
 }
 
 const isSeparator = (ch: number) =>

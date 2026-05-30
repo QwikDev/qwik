@@ -26,6 +26,7 @@ import {
   QLocaleAttr,
   QManifestHashAttr,
   QScopedStyle,
+  QStatePatchAttrSelector,
   QStyle,
   QStyleSelector,
   QStylesAllSelector,
@@ -41,12 +42,17 @@ import {
 } from '../shared/utils/scoped-styles';
 import { setErrorPayload } from '../shared/cursor/chore-execution';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
-import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ContextId } from '../use/use-context';
-import { onVNodeDataReady, processVNodeData } from './process-vnode-data';
+import { processSegmentStateScripts } from './process-segment-state';
+import {
+  onVNodeDataReady,
+  processOutOfOrderSegmentVNodeData,
+  processVNodeData,
+} from './process-vnode-data';
 import {
   VNodeFlags,
   type ContainerElement,
@@ -85,6 +91,21 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
+function getOutOfOrderStreamingScript(boundaryId: number, content: Element | null) {
+  const segmentId = String(boundaryId);
+  const qContainerElement = content?.closest(QContainerSelector) as ContainerElement | null;
+  const qContainer = qContainerElement?.qContainer as DomContainer | undefined;
+  if (qContainer) {
+    const document = qContainer.element.ownerDocument;
+    processOutOfOrderSegmentVNodeData(document, segmentId, content);
+    onVNodeDataReady(document, () => {
+      if (qContainer.element.qContainer === qContainer) {
+        processSegmentStateScripts(qContainer, segmentId);
+      }
+    });
+  }
+}
+
 /** @internal */
 export class DomContainer extends _SharedContainer implements IClientContainer {
   public element: ContainerElement;
@@ -95,11 +116,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
-  public $forwardRefs$: Array<number> | null = null;
+  public $forwardRefs$: Array<number | string> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
+  private $rootForwardRefs$: Array<number | string> | null = null;
   private $styleIds$: Set<string> | null = null;
 
   constructor(element: ContainerElement) {
@@ -117,11 +139,17 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$rawStateData$ = [];
     this.$stateData$ = [];
     const document = this.element.ownerDocument as QDocument;
-    processVNodeData(document);
+    if (!document.qVNodeDataProcessed) {
+      processVNodeData(document);
+    }
+    if (__EXPERIMENTAL__.suspense && document.querySelector('template[q\\:r]')) {
+      document.qProcessOOOS ||= getOutOfOrderStreamingScript;
+    }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
     this.$setServerData$();
     element.qContainer = this;
     (element as any).qDestroy = () => this.$destroy$();
+    this.$processRootStateScript$();
     onVNodeDataReady(document, () => this.$finalizeResume$());
   }
 
@@ -130,12 +158,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (element.qContainer !== this) {
       return;
     }
-    const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
-    if (qwikStates.length !== 0) {
-      const lastState = qwikStates[qwikStates.length - 1];
-      this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      preprocessState(this.$rawStateData$, this);
-      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    this.$processRootStateScript$();
+    if (__EXPERIMENTAL__.suspense) {
+      processSegmentStateScripts(this);
     }
     this.$hoistStyles$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
@@ -154,13 +179,42 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     el.qContainer = undefined;
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
+    if (__EXPERIMENTAL__.suspense) {
+      el.qSegmentVnodeData = undefined;
+    }
     el.removeAttribute(QContainerAttr);
     const document = el.ownerDocument as QDocument;
-    document.qVNodeData = undefined!;
-    document.qVNodeDataStarted = false;
-    document.qVNodeDataReady = false;
-    document.qVNodeDataState = undefined;
-    document.qVNodeDataCallbacks = undefined;
+    const hasContainers = document.querySelector(QContainerSelector) !== null;
+    if (!hasContainers) {
+      document.qVNodeData = undefined!;
+      document.qVNodeDataStarted = undefined;
+      document.qVNodeDataReady = undefined;
+      document.qVNodeDataState = undefined;
+      document.qVNodeDataCallbacks = undefined;
+      document.qVNodeDataProcessed = undefined;
+      document.qProcessVNodeDataPatch = undefined;
+    }
+    if (__EXPERIMENTAL__.suspense) {
+      if (!hasContainers) {
+        document.qProcessOOOS = undefined;
+      }
+    }
+  }
+
+  private $processRootStateScript$(): void {
+    const rootState = this.element.querySelector(
+      `${this.$stateScriptSelector$()}:not(${QStatePatchAttrSelector})`
+    );
+    if (rootState) {
+      this.$rawStateData$ = JSON.parse(rootState.textContent!);
+      preprocessState(this.$rawStateData$, this);
+      this.$rootForwardRefs$ = this.$forwardRefs$;
+      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    }
+  }
+
+  private $stateScriptSelector$(): string {
+    return `script[type="qwik/state"][q\\:instance="${this.$instanceHash$}"]`;
   }
 
   /**
@@ -302,6 +356,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   $getObjectById$ = (id: number | string): unknown => {
     return getObjectById(id, this.$stateData$);
   };
+
+  $getForwardRef$(id: number): number | string | undefined {
+    return this.$rootForwardRefs$?.[id];
+  }
 
   getSyncFn(id: number): (...args: unknown[]) => unknown {
     const fn = this.$qFuncs$[id];

@@ -1,8 +1,9 @@
 import { getClientManifest } from '@qwik.dev/core';
 import { getSymbolHash, setServerPlatform } from './platform';
-import type { JSXOutput, ResolvedManifest, StreamWriter, SymbolMapper } from './qwik-types';
+import type { JSXOutput, ResolvedManifest, SymbolMapper } from './qwik-types';
 import { ssrCreateContainer } from './ssr-container';
 import { StreamHandler } from './ssr-stream-handler';
+import { StringSSRWriter } from './ssr-stream-writer';
 import type {
   QwikManifest,
   RenderToStreamOptions,
@@ -22,12 +23,7 @@ export const renderToString = async (
   jsx: JSXOutput,
   opts: RenderToStringOptions = {}
 ): Promise<RenderToStringResult> => {
-  const chunks: string[] = [];
-  const stream: StreamWriter = {
-    write(chunk) {
-      chunks.push(chunk);
-    },
-  };
+  const stream = new StringSSRWriter();
 
   const result = await renderToStream(jsx, { ...opts, stream });
   return {
@@ -35,7 +31,7 @@ export const renderToString = async (
     timing: result.timing,
     manifest: result.manifest,
     snapshotResult: result.snapshotResult,
-    html: chunks.join(''),
+    html: stream.toString(),
   };
 };
 
@@ -49,6 +45,16 @@ export const renderToStream = async (
   jsx: JSXOutput,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
+  if (__EXPERIMENTAL__.suspense && opts.streaming?.outOfOrder === undefined) {
+    opts = {
+      ...opts,
+      streaming: {
+        ...opts.streaming,
+        outOfOrder: true,
+      },
+    };
+  }
+
   const timing: RenderToStreamResult['timing'] = {
     firstFlush: 0,
     render: 0,

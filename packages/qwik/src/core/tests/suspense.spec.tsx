@@ -75,7 +75,7 @@ const OOOS_SCOPED_STYLE = `.ooos-scoped { color: red; }`;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: loops', ({ render }) => {
   const isSsr = render === ssrRenderToDom;
   const fallbackAttrs = {

@@ -46,6 +46,7 @@ export const QIgnore = 'q:ignore';
 export const QIgnoreEnd = '/' + QIgnore;
 export const QContainerAttr = 'q:container';
 export const QContainerAttrEnd = '/' + QContainerAttr;
+export const QCursorBoundary = 'q:cursorBoundary';
 
 export const QTemplate = 'q:template';
 
@@ -87,7 +88,6 @@ export const ELEMENT_PROPS = 'q:props';
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';
 export const ELEMENT_BACKPATCH_DATA = 'qwik/backpatch';
-export const Q_PREFIX = 'q:';
 
 export const ITERATION_ITEM_SINGLE = 'q:p'; // Single iteration parameter (not an array)
 export const ITERATION_ITEM_MULTI = 'q:ps'; // Multiple iteration parameters (array)
@@ -97,8 +97,7 @@ export const NON_SERIALIZABLE_MARKER_PREFIX = ':';
 export const USE_ON_LOCAL = NON_SERIALIZABLE_MARKER_PREFIX + 'on';
 export const USE_ON_LOCAL_SEQ_IDX = NON_SERIALIZABLE_MARKER_PREFIX + 'onIdx';
 export const USE_ON_LOCAL_FLAGS = NON_SERIALIZABLE_MARKER_PREFIX + 'onFlags';
-export const QCursorBoundary = Q_PREFIX + 'cursorBoundary';
-export const QNearestCursorBoundary = NON_SERIALIZABLE_MARKER_PREFIX + 'nearestCursorBoundary';
+export const NEAREST_CURSOR_BOUNDARY = NON_SERIALIZABLE_MARKER_PREFIX + 'nearestCursorBoundary';
 
 export const Q_PROPS_SEPARATOR = ':';
 

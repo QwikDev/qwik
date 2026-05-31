@@ -1853,6 +1853,20 @@ describe('shared-serialization', () => {
     });
   });
 
+  describe('malformed JSON guards', () => {
+    it('should reject unsupported roots after writing a previous root', async () => {
+      await expect(serializeRaw('ok', Symbol('unsupported'))).rejects.toThrow(
+        'Q' + QError.serializeErrorUnknownType
+      );
+    });
+
+    it('should reject unsupported selected patch roots after writing a previous root', async () => {
+      await expect(serializePatchRaw([0, 1], 'ok', Symbol('unsupported'))).rejects.toThrow(
+        'Q' + QError.serializeErrorUnknownType
+      );
+    });
+  });
+
   describe('custom serialization', () => {
     it('should ignore noSerialize', async () => {
       const obj = { hi: true };
@@ -2053,7 +2067,33 @@ describe('serializer - internal', () => {
   });
 });
 
+async function serializeRaw(...roots: any[]): Promise<string> {
+  const sCtx = createTestSerializationContext();
+  for (let i = 0; i < roots.length; i++) {
+    sCtx.$addRoot$(roots[i]);
+  }
+  await sCtx.$serialize$();
+  return sCtx.$writer$.toString();
+}
+
+async function serializePatchRaw(rootIds: number[], ...roots: any[]): Promise<string> {
+  const sCtx = createTestSerializationContext();
+  for (let i = 0; i < roots.length; i++) {
+    sCtx.$addRoot$(roots[i]);
+  }
+  await sCtx.$serializePatch$(0, rootIds);
+  return sCtx.$writer$.toString();
+}
+
 async function serialize(...roots: any[]): Promise<any[]> {
+  const raw = await serializeRaw(...roots);
+  const objs = JSON.parse(raw);
+  // eslint-disable-next-line no-console
+  DEBUG && console.log(objs);
+  return objs;
+}
+
+function createTestSerializationContext() {
   const sCtx = createSerializationContext(
     null,
     null,
@@ -2062,14 +2102,7 @@ async function serialize(...roots: any[]): Promise<any[]> {
     new WeakMap<any, any>(),
     null!
   );
-  for (let i = 0; i < roots.length; i++) {
-    sCtx.$addRoot$(roots[i]);
-  }
-  await sCtx.$serialize$();
-  const objs = JSON.parse(sCtx.$writer$.toString());
-  // eslint-disable-next-line no-console
-  DEBUG && console.log(objs);
-  return objs;
+  return sCtx;
 }
 
 class MyCustomSerializable {

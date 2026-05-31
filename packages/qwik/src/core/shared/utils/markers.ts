@@ -25,6 +25,7 @@ export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 export const QBackRefs = 'q:brefs';
 export const QFuncsPrefix = 'qFuncs_';
+export const QwikEvContainerReady = 0;
 
 export const getQFuncs = (
   document: Document,

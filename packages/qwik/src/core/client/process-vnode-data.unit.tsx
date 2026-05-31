@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
 import { VNodeDataSeparator, getSegmentVNodeRefId } from '../shared/vnode-data-types';
-import { getDomContainer } from './dom-container';
+import { DomContainer, getDomContainer } from './dom-container';
 import {
   findVDataSectionEnd,
   processOutOfOrderSegmentVNodeData,
@@ -11,12 +11,36 @@ import {
 } from './process-vnode-data';
 import type { ClientContainer, ContainerElement, QDocument } from './types';
 import { QContainerValue } from '../shared/types';
-import { QContainerAttr, QStyle } from '../shared/utils/markers';
+import { QContainerAttr, QStatePrewarmAttr, QStyle } from '../shared/utils/markers';
 import { vnode_getFirstChild } from './vnode-utils';
 import { Fragment } from '@qwik.dev/core';
+import { TypeIds } from '../shared/serdes/constants';
+import {
+  ContainerDataProcessState,
+  isContainerReady,
+  whenContainerDataReady,
+} from './process-state-data';
 import { installOutOfOrderExecutor } from '../../out-of-order-executor-shared';
 
 describe('processVnodeData', () => {
+  it('should finish empty container data after state processing', async () => {
+    const document = createDocument() as QDocument;
+    document.body.setAttribute(QContainerAttr, QContainerValue.RESUMED);
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.body) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      expect(container.$containerDataProcessState$).toBe(ContainerDataProcessState.ProcessingVNode);
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
+
+      await ready;
+      expect(isContainerReady(container)).toBe(true);
+    });
+  });
+
   it('should yield over multiple chunks and preserve vnode data and refs', async () => {
     const document = createDocument({
       html: `
@@ -32,12 +56,10 @@ describe('processVnodeData', () => {
     }) as QDocument;
 
     await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.body) as DomContainer;
       const ready = whenVNodeDataReady(document, () => undefined);
 
-      processVNodeData(document);
-
-      expect(document.qVNodeDataStarted).toBe(true);
-      expect(document.qVNodeDataReady).not.toBe(true);
+      expect(container.$containerDataProcessState$).toBe(ContainerDataProcessState.ProcessingVNode);
       expect(tasks.length).toBe(1);
 
       let chunks = 0;
@@ -71,12 +93,14 @@ describe('processVnodeData', () => {
     }) as QDocument;
 
     await withYieldingVNodeData(document, async (tasks) => {
-      processVNodeData(document);
+      const container = getDomContainer(document.documentElement) as DomContainer;
       while (!document.qVNodeDataReady) {
         runNextTask(tasks);
       }
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
 
-      const container = getDomContainer(document.documentElement);
       container.element.insertAdjacentHTML('beforeend', encodeVNode({ 64: '~' }, '1'));
 
       processOutOfOrderSegmentVNodeData(
@@ -102,7 +126,67 @@ describe('processVnodeData', () => {
     });
   });
 
-  it('should finish resume and hoist styles only after vnode data is ready', async () => {
+  it('should yield while processing out-of-order segment state patches', async () => {
+    const patchState: unknown[] = [];
+    for (let i = 0; i < 128; i++) {
+      patchState.push(TypeIds.Plain, i);
+    }
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
+          <head :></head>
+          <body :>
+            <div : q:rp="1" style="display:contents">
+              ${'<span :></span>'.repeat(8)}
+              <template q:r="1"></template>
+            </div>
+            ${encodeVNode()}
+            <script type="qwik/state" q:instance="">[]</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const initialReady = whenContainerDataReady(container, () => undefined);
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
+      await initialReady;
+
+      container.element.insertAdjacentHTML(
+        'beforeend',
+        encodeVNode({ 8: '~' }, '1') +
+          `<script type="qwik/state" q:instance="" q:patch q:r="1">${JSON.stringify([
+            0,
+            patchState,
+            0,
+          ])}</script>`
+      );
+      document.qProcessOOOS!(1, container.element.querySelector('[q\\:rp="1"]'));
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      expect(document.qVNodeDataReady).not.toBe(true);
+      while (!document.qVNodeDataReady) {
+        runNextTask(tasks);
+      }
+      expect(isContainerReady(container)).not.toBe(true);
+
+      let chunks = 0;
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+        chunks++;
+        expect(chunks).toBeLessThan(50);
+      }
+
+      await ready;
+      expect(chunks).toBeGreaterThan(1);
+      expect(container.$getObjectById$(127)).toBe(127);
+    });
+  });
+
+  it('should finish resume and hoist styles only after container data is ready', async () => {
     const document = createDocument({
       html: `
         <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
@@ -117,17 +201,225 @@ describe('processVnodeData', () => {
     const style = document.body.querySelector('style')!;
 
     await withYieldingVNodeData(document, async (tasks) => {
-      getDomContainer(document.documentElement);
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
 
-      expect(document.qVNodeDataReady).not.toBe(true);
+      expect(container.$containerDataProcessState$).not.toBe(
+        ContainerDataProcessState.ProcessingState
+      );
       expect(document.head.contains(style)).toBe(false);
       expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
 
-      while (!document.qVNodeDataReady) {
+      while (container.$containerDataProcessState$ < ContainerDataProcessState.ProcessingState) {
         runNextTask(tasks);
       }
 
+      expect(isContainerReady(container)).not.toBe(true);
+      expect(document.head.contains(style)).toBe(false);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
+
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
+
+      await ready;
       expect(document.head.contains(style)).toBe(true);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
+    });
+  });
+
+  it('should yield while preprocessing container state without eager deserialization', async () => {
+    const stateItems: unknown[] = [TypeIds.VNode, '4'];
+    for (let i = 0; i < 128; i++) {
+      stateItems.push(TypeIds.Plain, i);
+    }
+    const stateData = JSON.stringify(stateItems);
+    const vData =
+      emitVNodeSeparators(0, 2) +
+      'G2' +
+      emitVNodeSeparators(2, 4) +
+      VNodeDataSeparator.REFERENCE_CH +
+      emitVNodeSeparators(4, 5) +
+      'FB';
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
+          <head :></head>
+          <body :>
+            <!--q:ignore=abc-->
+              <section>
+                <div>
+                  <!--q:container-island=some-id-2-->
+                    <span :><button :>Click</button></span>
+                  <!--/q:container-island-->
+                </div>
+              </section>
+            <!--/q:ignore-->
+            <b :>After!</b>
+            <script type="qwik/vnode">${vData}</script>
+            <script type="qwik/state">${stateData}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      while (container.$containerDataProcessState$ < ContainerDataProcessState.ProcessingState) {
+        runNextTask(tasks);
+      }
+
+      expect(isContainerReady(container)).not.toBe(true);
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
+
+      let chunks = 0;
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+        chunks++;
+        expect(chunks).toBeLessThan(50);
+      }
+
+      await ready;
+      expect(chunks).toBeGreaterThan(1);
+      expect(container.$getObjectById$(1)).toBe(0);
+      expect((document.documentElement as ContainerElement).qVNodeRefs?.get(4)).toBe(
+        document.querySelector('button')
+      );
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
+    });
+  });
+
+  it('should keep below-threshold state lazy until first access', async () => {
+    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
+    for (let i = 1; i < 128; i++) {
+      stateItems.push(TypeIds.Plain, i);
+    }
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
+          <head :></head>
+          <body :>
+            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
+
+      await ready;
+      const rawState = (container as any).$rawStateData$ as unknown[];
+      expect(rawState[0]).toBe(TypeIds.Object);
+      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
+      expect(rawState[0]).toBe(TypeIds.Plain);
+    });
+  });
+
+  it('should eagerly deserialize opted-in large state before marking the container resumed', async () => {
+    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
+    for (let i = 1; i < 2048; i++) {
+      stateItems.push(TypeIds.Plain, i);
+    }
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="" ${QStatePrewarmAttr}="2048">
+          <head :></head>
+          <body :>
+            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
+      let chunks = 0;
+
+      while (!isContainerReady(container)) {
+        expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
+        runNextTask(tasks);
+        chunks++;
+        expect(chunks).toBeLessThan(300);
+      }
+
+      await ready;
+      const rawState = (container as any).$rawStateData$ as unknown[];
+      expect(chunks).toBeGreaterThan(1);
+      expect(rawState[0]).toBe(TypeIds.Plain);
+      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
+      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
+    });
+  });
+
+  it('should keep large state lazy by default', async () => {
+    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
+    for (let i = 1; i < 2048; i++) {
+      stateItems.push(TypeIds.Plain, i);
+    }
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
+          <head :></head>
+          <body :>
+            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
+
+      await ready;
+      const rawState = (container as any).$rawStateData$ as unknown[];
+      expect(rawState[0]).toBe(TypeIds.Object);
+      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
+      expect(rawState[0]).toBe(TypeIds.Plain);
+    });
+  });
+
+  it('should eagerly deserialize smaller state when state prewarm threshold is lowered', async () => {
+    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
+    for (let i = 1; i < 128; i++) {
+      stateItems.push(TypeIds.Plain, i);
+    }
+    const document = createDocument({
+      html: `
+        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="" ${QStatePrewarmAttr}="128">
+          <head :></head>
+          <body :>
+            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
+          </body>
+        </html>
+      `,
+    }) as QDocument;
+
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      const ready = whenContainerDataReady(container, () => undefined);
+
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
+
+      await ready;
+      const rawState = (container as any).$rawStateData$ as unknown[];
+      expect(rawState[0]).toBe(TypeIds.Plain);
+      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
       expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
     });
   });
@@ -915,14 +1207,22 @@ async function process(html: string): Promise<ClientContainer[]> {
       template.remove();
     }
   }
-  const ready = whenVNodeDataReady(document, () => undefined);
-  processVNodeData(document);
-  await ready;
 
   const containers: Element[] = [];
   findContainers(document, containers);
 
-  return containers.map(getDomContainer);
+  const domContainers = containers.map(getDomContainer);
+
+  await Promise.all(
+    domContainers.map(async (container) => {
+      const domContainers = container as DomContainer;
+      processVNodeData(domContainers.document);
+      await whenVNodeDataReady(domContainers.document, () => undefined);
+      await whenContainerDataReady(container, () => undefined);
+    })
+  );
+
+  return domContainers;
 }
 
 const findContainers = (element: Document | ShadowRoot, containers: Element[]) => {

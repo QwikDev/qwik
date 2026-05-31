@@ -11,9 +11,8 @@ import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/mar
 import { retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
-import { invokeApply, newInvokeContextFromDOMReady, type InvokeContext } from '../use/use-core';
-import { getDomContainer } from './dom-container';
-import { whenVNodeDataReady } from './process-vnode-data';
+import { invokeApply, newInvokeContextFromDOM, type InvokeContext } from '../use/use-core';
+import { getDomContainer, whenContainerDataReady } from './dom-container';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
 
@@ -33,12 +32,12 @@ export function runEventHandlerQRL(
   }
   if (!ctx) {
     const container = getDomContainer(element);
-    return whenVNodeDataReady(container.document, () =>
+    return whenContainerDataReady(container, () =>
       runEventHandlerQRL(
         handler,
         event,
         element,
-        newInvokeContextFromDOMReady(event, element, container)
+        newInvokeContextFromDOM(event, element, container)
       )
     );
   }
@@ -87,8 +86,8 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
     return;
   }
   const container = getDomContainer(element);
-  return whenVNodeDataReady(container.document, () => {
-    const ctx = newInvokeContextFromDOMReady(event, element, container);
+  return whenContainerDataReady(container, () => {
+    const ctx = newInvokeContextFromDOM(event, element, container);
     if (typeof this === 'string') {
       setCaptures(deserializeCaptures(ctx.$container$!, this));
     }

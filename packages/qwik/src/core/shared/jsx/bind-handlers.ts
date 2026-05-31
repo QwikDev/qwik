@@ -1,25 +1,27 @@
 import { _captures, deserializeCaptures, setCaptures } from '../../shared/qrl/qrl-class';
 import type { Signal } from '../../reactive-primitives/signal.public';
-import { getDomContainer } from '../../client/dom-container';
-import { whenVNodeDataReady } from '../../client/process-vnode-data';
+import { getDomContainer, whenContainerDataReady } from '../../client/dom-container';
 import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import { AsyncSignalFlags } from '../../reactive-primitives/types';
-import { maybeThen } from '../utils/promises';
 
 /**
  * Qwikloader provides the captures string of the QRL when calling a handler. In that case we must
  * load the QRL captured scope ourselves. Otherwise, we are being called as a QRL and the captures
  * are already set.
  */
-const maybeScopeFromQL = (captureIds: string | undefined, element: Element) => {
+const withScopeFromQL = <T>(
+  captureIds: string | undefined,
+  element: Element,
+  callback: () => T
+): T | Promise<T> => {
   if (typeof captureIds === 'string') {
     const container = getDomContainer(element);
-    return whenVNodeDataReady(container.document, () => {
+    return whenContainerDataReady(container, () => {
       setCaptures(deserializeCaptures(container, captureIds));
-      return null;
+      return callback();
     });
   }
-  return null;
+  return callback();
 };
 /**
  * Handles events for bind:value
@@ -27,7 +29,7 @@ const maybeScopeFromQL = (captureIds: string | undefined, element: Element) => {
  * @internal
  */
 export function _val(this: string | undefined, _: any, element: HTMLInputElement) {
-  return maybeThen(maybeScopeFromQL(this, element), () => {
+  return withScopeFromQL(this, element, () => {
     const signal = _captures![0] as Signal;
     signal.value = element.type === 'number' ? element.valueAsNumber : element.value;
   });
@@ -39,7 +41,7 @@ export function _val(this: string | undefined, _: any, element: HTMLInputElement
  * @internal
  */
 export function _chk(this: string | undefined, _: any, element: HTMLInputElement) {
-  return maybeThen(maybeScopeFromQL(this, element), () => {
+  return withScopeFromQL(this, element, () => {
     const signal = _captures![0] as Signal;
     signal.value = element.checked;
   });
@@ -52,7 +54,7 @@ export function _chk(this: string | undefined, _: any, element: HTMLInputElement
  * @internal
  */
 export function _res(this: string | undefined, _: any, element: Element) {
-  return maybeThen(maybeScopeFromQL(this, element), () => {
+  return withScopeFromQL(this, element, () => {
     // Captures are deserialized, now trigger computation on AsyncSignals
     if (_captures) {
       for (let i = 0; i < _captures.length; i++) {

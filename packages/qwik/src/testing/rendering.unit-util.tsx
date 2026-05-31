@@ -39,7 +39,6 @@ import {
   QScopedStyle,
   QStyle,
 } from '../core/shared/utils/markers';
-import { whenVNodeDataReady } from '../core/client/process-vnode-data';
 import { useContextProvider } from '@qwik.dev/core';
 import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
 import type { HostElement } from '../server/qwik-types';
@@ -55,6 +54,7 @@ import type { ElementVNode } from '../core/shared/vnode/element-vnode';
 import { processOutOfOrderSegmentVNodeData } from '../core/client/process-vnode-data';
 import { executeBackpatch } from '../backpatch-executor-shared';
 import { getTestPlatform } from '@qwik.dev/core/testing';
+import { whenContainerDataReady } from '../core/client/dom-container';
 
 /** @public */
 export async function domRender(
@@ -69,7 +69,6 @@ export async function domRender(
   await render(document.body, jsx);
   const getStyles = getStylesFactory(document);
   const container = _getDomContainer(document.body);
-  await whenVNodeDataReady(container.document, () => undefined);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- CSR --------------------------');
@@ -195,7 +194,7 @@ export async function ssrRenderToDom(
   if (!isStreaming) {
     emulateExecutionOfOutOfOrderScripts(document);
   }
-  await whenVNodeDataReady(container.document, () => undefined);
+  await whenContainerDataReady(container, () => undefined);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- SSR --------------------------');
@@ -389,7 +388,7 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
 
 export async function rerenderComponent(element: HTMLElement) {
   const container = _getDomContainer(element) as _DomContainer;
-  await whenVNodeDataReady(container.document, () => undefined);
+  await whenContainerDataReady(container, () => undefined);
   const vElement = container.vNodeLocate(element);
   const host = getHostVNode(vElement) as HostElement;
   markVNodeDirty(container, host, ChoreBits.COMPONENT);

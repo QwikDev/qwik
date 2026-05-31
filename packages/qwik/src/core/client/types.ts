@@ -43,6 +43,7 @@ export interface ContainerElement extends HTMLElement {
 
   /** String from `<script type="qwik/vnode">` tag. */
   qVnodeData?: string;
+  qDestroy?: () => void;
 
   /** Segment-local strings from `<script type="qwik/vnode" q:r="...">` tags. */
   qSegmentVnodeData?: Map<string, string>;

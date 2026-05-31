@@ -4,8 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ssrCreateContainer } from '../../server/ssr-container';
 import { SsrNode } from '../../server/ssr-node';
 import { createDocument } from '../../testing/document';
-import { getDomContainer } from '../client/dom-container';
-import { whenVNodeDataReady } from '../client/process-vnode-data';
+import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import type { ClientContainer } from '../client/types';
 import {
   vnode_ensureElementInflated,
@@ -192,7 +191,7 @@ describe('serializer v2', () => {
   });
 
   describe('state scripts', () => {
-    it('should only deserialize state owned by the current container', () => {
+    it('should only deserialize state owned by the current container', async () => {
       const document = createDocument();
       document.body.innerHTML = `
         <div q:container="paused" q:locale="" q:base="" q:manifest-hash="" q:instance="root" :>
@@ -207,6 +206,8 @@ describe('serializer v2', () => {
 
       const rootContainer = getDomContainer(document.body.firstElementChild!);
       const nestedContainer = getDomContainer(document.querySelector('container')!);
+      await whenContainerDataReady(rootContainer, () => undefined);
+      await whenContainerDataReady(nestedContainer, () => undefined);
 
       expect(rootContainer.$getObjectById$(0)).toBe('root');
       expect(nestedContainer.$getObjectById$(0)).toBe('nested');
@@ -612,7 +613,7 @@ async function withContainer(
   const html = ssrContainer.writer.toString();
   // console.log(html);
   const container = getDomContainer(toDOM(html));
-  await whenVNodeDataReady(container.document, () => undefined);
+  await whenContainerDataReady(container, () => undefined);
   // console.log(JSON.stringify((container as any).rawStateData, null, 2));
   return container;
 }
@@ -666,7 +667,7 @@ function toDOM(html: string): HTMLElement {
 
 async function toVNode(containerElement: HTMLElement): Promise<VNode> {
   const container = getDomContainer(containerElement);
-  await whenVNodeDataReady(container.document, () => undefined);
+  await whenContainerDataReady(container, () => undefined);
   const vNode = vnode_getFirstChild(container.rootVNode)!;
   return vNode;
 }

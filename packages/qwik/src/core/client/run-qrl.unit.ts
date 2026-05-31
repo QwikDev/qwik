@@ -5,7 +5,6 @@ import * as useCore from '../use/use-core';
 import * as vnodeUtils from './vnode-utils';
 import * as promises from '../shared/utils/promises';
 import * as domContainer from './dom-container';
-import * as processVNodeData from './process-vnode-data';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
 import { VNodeFlags } from './types';
 
@@ -29,7 +28,7 @@ vi.mock('../use/use-core', async () => {
   const actual = await vi.importActual<typeof import('../use/use-core')>('../use/use-core');
   return {
     ...actual,
-    newInvokeContextFromDOMReady: vi.fn(),
+    newInvokeContextFromDOM: vi.fn(),
     invokeApply: vi.fn(),
   };
 });
@@ -39,15 +38,7 @@ vi.mock('./dom-container', async () => {
   return {
     ...actual,
     getDomContainer: vi.fn(),
-  };
-});
-
-vi.mock('./process-vnode-data', async () => {
-  const actual =
-    await vi.importActual<typeof import('./process-vnode-data')>('./process-vnode-data');
-  return {
-    ...actual,
-    whenVNodeDataReady: vi.fn((_document, callback) => callback()),
+    whenContainerDataReady: vi.fn((_container, callback) => callback()),
   };
 });
 
@@ -112,8 +103,8 @@ describe('_run', () => {
 
     // Setup default mocks
     vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
-    vi.mocked(useCore.newInvokeContextFromDOMReady).mockReturnValue(mockContext);
-    vi.mocked(processVNodeData.whenVNodeDataReady).mockImplementation((_document, callback) =>
+    vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
+    vi.mocked(domContainer.whenContainerDataReady).mockImplementation((_container, callback) =>
       callback()
     );
     vi.mocked(qrlClass.deserializeCaptures).mockReturnValue([mockQrl]);
@@ -135,13 +126,13 @@ describe('_run', () => {
     const result = _run.call('', mockEvent, disconnectedElement);
 
     expect(result).toBeUndefined();
-    expect(useCore.newInvokeContextFromDOMReady).not.toHaveBeenCalled();
+    expect(useCore.newInvokeContextFromDOM).not.toHaveBeenCalled();
   });
 
   it('should create invoke context from DOM', () => {
     _run.call('', mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
       mockEvent,
       mockElement,
       mockContainer
@@ -188,7 +179,7 @@ describe('_run', () => {
 
     _run.call(capturesString, mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
       mockEvent,
       mockElement,
       mockContainer
@@ -203,7 +194,7 @@ describe('_run', () => {
 
     _run.call('test-captures', clickEvent, buttonElement);
 
-    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
       clickEvent,
       buttonElement,
       mockContainer
@@ -224,7 +215,7 @@ describe('_run', () => {
 
     _run.call('mouse-captures', mouseEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
       mouseEvent,
       mockElement,
       mockContainer
@@ -236,7 +227,7 @@ describe('_run', () => {
 
     _run.call('keyboard-captures', keyboardEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
       keyboardEvent,
       mockElement,
       mockContainer
@@ -253,10 +244,10 @@ describe('_run', () => {
     expect(qrlClass.setCaptures).toHaveBeenCalled();
   });
 
-  it('should wait for VNodeData readiness before creating context', async () => {
+  it('should wait for container data readiness before creating context', async () => {
     let ready!: () => void;
-    vi.mocked(processVNodeData.whenVNodeDataReady).mockImplementation(
-      (_document, callback: any) =>
+    vi.mocked(domContainer.whenContainerDataReady).mockImplementation(
+      (_container, callback: any) =>
         new Promise((resolve) => {
           ready = () => resolve(callback());
         })
@@ -264,11 +255,11 @@ describe('_run', () => {
 
     const result = _run.call('captures', mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOMReady).not.toHaveBeenCalled();
+    expect(useCore.newInvokeContextFromDOM).not.toHaveBeenCalled();
     ready();
     await result;
 
-    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
       mockEvent,
       mockElement,
       mockContainer
@@ -300,8 +291,8 @@ describe('runEventHandlerQRL', () => {
     mockQrl = vi.fn();
 
     vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
-    vi.mocked(useCore.newInvokeContextFromDOMReady).mockReturnValue(mockContext);
-    vi.mocked(processVNodeData.whenVNodeDataReady).mockImplementation((_document, callback) =>
+    vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
+    vi.mocked(domContainer.whenContainerDataReady).mockImplementation((_container, callback) =>
       callback()
     );
     vi.mocked(useCore.invokeApply).mockReturnValue(undefined);
@@ -326,7 +317,7 @@ describe('runEventHandlerQRL', () => {
   it('should create invoke context from DOM when ctx is not provided', () => {
     runEventHandlerQRL(mockQrl, mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOMReady).toHaveBeenCalledWith(
+    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(
       mockEvent,
       mockElement,
       mockContainer
@@ -336,7 +327,7 @@ describe('runEventHandlerQRL', () => {
   it('should use provided ctx without creating a new one', () => {
     runEventHandlerQRL(mockQrl, mockEvent, mockElement, mockContext);
 
-    expect(useCore.newInvokeContextFromDOMReady).not.toHaveBeenCalled();
+    expect(useCore.newInvokeContextFromDOM).not.toHaveBeenCalled();
   });
 
   it('should call vnode_ensureElementInflated with container and hostElement', () => {

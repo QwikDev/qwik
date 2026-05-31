@@ -1,0 +1,145 @@
+---
+title: State Prewarm | Advanced
+---
+
+import { Note } from '~/components/note/note';
+
+# State Prewarm
+
+Qwik resumes an SSR-rendered application from serialized state in the HTML. By default, that state
+stays lazy in the browser: Qwik parses the state payload, but individual state roots are
+deserialized only when code reads them.
+
+This keeps startup work low, which is usually the best default. On very large pages, however, the
+first read can touch a large connected state graph. In that case the lazy read can turn into one
+large synchronous task. `statePrewarm` is an opt-in render option that performs that state work
+during client resume and slices it into yielded tasks.
+
+## What It Does
+
+When `statePrewarm` is enabled, Qwik eagerly deserializes the container state as part of client
+resume.
+
+- The number is a root-count threshold.
+- If the serialized state has fewer roots than the threshold, state remains lazy.
+- If the serialized state has at least that many roots, Qwik deserializes the state eagerly during
+  resume.
+- The work is yielded across small tasks, so the browser can stay responsive.
+
+`statePrewarm` does not load all QRL chunks or run components. It only
+prepares serialized state so later synchronous state reads are cheaper.
+
+<Note>
+  The default is `false`. With no `statePrewarm` option, Qwik keeps serialized state lazy.
+</Note>
+
+## When To Use It
+
+Use `statePrewarm` only when profiling shows that the first state access creates a long task during
+resume. This is most useful for pages with a large serialized state graph, such as data-heavy product
+pages, dashboards, search pages, or large routed documents.
+
+It is usually not needed for small or typical pages. Prewarming can increase the amount of work done
+during client resume, even though that work is split into smaller tasks.
+
+Good reasons to enable it:
+
+- A performance trace shows a long deserialize or state-inflate task after the first state read.
+- The page serializes thousands of state roots.
+- The page feels blocked soon after resume, and the stack points to state deserialization.
+
+Reasons to keep it disabled:
+
+- The page has little serialized state.
+- The state is rarely read on startup.
+- You want the smallest possible amount of client work during resume.
+
+## Setting The Threshold
+
+Set `statePrewarm` on the server render options. The value is the minimum number of serialized state
+roots required before Qwik prewarms the state.
+
+```tsx
+import { renderToStream, type RenderOptions } from '@qwik.dev/core/server';
+import Root from './root';
+
+export default function (opts: RenderOptions) {
+  return renderToStream(<Root />, {
+    ...opts,
+    statePrewarm: 2048,
+  });
+}
+```
+
+The same option is available with `renderToString`:
+
+```tsx
+import { renderToString, type RenderOptions } from '@qwik.dev/core/server';
+import Root from './root';
+
+export default function (opts: RenderOptions) {
+  return renderToString(<Root />, {
+    ...opts,
+    statePrewarm: 2048,
+  });
+}
+```
+
+In Qwik Router applications, set `statePrewarm` in the server entry or custom renderer where
+`renderToStream` receives the adapter-provided render options:
+
+```tsx
+export default function (opts: RenderOptions) {
+  return renderToStream(<Root />, {
+    ...opts,
+    statePrewarm: 2048,
+  });
+}
+```
+
+Use a lower number to prewarm smaller state payloads:
+
+```tsx
+renderToStream(<Root />, {
+  ...opts,
+  statePrewarm: 512,
+});
+```
+
+Use `0` to prewarm any non-empty serialized state:
+
+```tsx
+renderToStream(<Root />, {
+  ...opts,
+  statePrewarm: 0,
+});
+```
+
+## Disabling It
+
+The default is disabled, so most applications do not need to set anything.
+
+```tsx
+renderToStream(<Root />, {
+  ...opts,
+  statePrewarm: false,
+});
+```
+
+`false` and `undefined` both mean that Qwik will not emit the internal prewarm marker and the
+browser will keep state lazy.
+
+## Choosing A Value
+
+Start with a conservative value such as `2048` and compare traces before and after the change. The
+goal is not to reduce total deserialization work. The goal is to avoid one large synchronous task by
+doing the state work earlier in the resume process and slicing it.
+
+After rebuilding and cache-busting the app, check:
+
+- Whether long tasks caused by state deserialization disappear.
+- Whether state work during resume is split into smaller tasks.
+- Whether the additional resume work is acceptable for the page.
+
+If the page still has long tasks after enabling `statePrewarm`, inspect the trace for other causes
+such as layout, rendering, third-party scripts, image decode, or application microtasks.

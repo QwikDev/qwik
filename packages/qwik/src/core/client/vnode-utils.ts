@@ -786,7 +786,7 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
 
 export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNode => {
   ensureElementVNode(rootVNode);
-  let vNode: VNode | Element = rootVNode;
+  let vNode: VNode = rootVNode;
   const containerElement = rootVNode.node as ContainerElement;
   const qVNodeRefs = containerElement.qVNodeRefs;
   let elementOffset: number = -1;

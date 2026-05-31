@@ -90,10 +90,11 @@ export class Serializer {
   async serializePatch(
     rootStart: number,
     rootIds: number[],
-    extraRootId?: number | string | number[]
+    extraRootId?: number | string | number[],
+    streamedRootLimit = rootStart
   ): Promise<void> {
     const previousStreamedRootLimit = this.$streamedRootLimit$;
-    this.$streamedRootLimit$ = rootStart;
+    this.$streamedRootLimit$ = streamedRootLimit;
     this.$writer$.write(BRACKET_OPEN);
     this.$serializationContext$.$serializedForwardRefCount$ = 0;
     try {

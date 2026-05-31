@@ -1,5 +1,11 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-beta.5
+
+### Patch Changes
+
+- Fix optimizer miscompiling `component$` bodies that destructure props and reassign one of the destructured names (now also handles `for-of` / `for-in` heads); previously caused dev-SSR hangs and runtime ReferenceErrors. Fixes #8638. (by [@46ki75](https://github.com/46ki75) in [#8647](https://github.com/QwikDev/qwik/pull/8647))
+
 ## 2.1.0-beta.4
 
 ### Minor Changes

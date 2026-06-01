@@ -11,8 +11,11 @@ import { getEventDataFromHtmlAttribute, jsxEventToHtmlAttribute } from './event-
 const testCases = [
   // default scope
   { jsx: 'onClick$', html: 'q-e:click', eventName: 'click' },
+  { jsx: 'onClick', html: 'q-e:click', eventName: 'click' },
   { jsx: 'onDblClick$', html: 'q-e:dblclick' },
+  { jsx: 'onDblClick', html: 'q-e:dblclick' },
   { jsx: 'on--CustomEvent$', html: 'q-e:---custom-event' },
+  { jsx: 'on--CustomEvent', html: 'q-e:---custom-event' },
   { jsx: 'on-Custom-Event$', html: 'q-e:-custom---event' },
   { jsx: 'on-custom-event$', html: 'q-e:custom--event' },
   { jsx: 'on-CustomEvent$', html: 'q-e:-custom-event' },
@@ -21,18 +24,24 @@ const testCases = [
   { jsx: 'onCustom-Event$', html: 'q-e:custom--event' },
   // exception for DOMContentLoaded
   { jsx: 'onDOMContentLoaded$', html: 'q-e:-d-o-m-content-loaded' },
+  { jsx: 'onDOMContentLoaded', html: 'q-e:-d-o-m-content-loaded' },
   // window scope
   { jsx: 'window:onLoad$', html: 'q-w:load' },
+  { jsx: 'window:onLoad', html: 'q-w:load' },
   { jsx: 'window:onUnload$', html: 'q-w:unload' },
   // document scope
   { jsx: 'document:onLoad$', html: 'q-d:load' },
+  { jsx: 'document:onLoad', html: 'q-d:load' },
   { jsx: 'document:onUnload$', html: 'q-d:unload' },
 ];
 
 const passiveTestCases = [
   { jsx: 'onClick$', html: 'q-ep:click' },
+  { jsx: 'onClick', html: 'q-ep:click' },
   { jsx: 'window:onScroll$', html: 'q-wp:scroll' },
+  { jsx: 'window:onScroll', html: 'q-wp:scroll' },
   { jsx: 'document:onTouchStart$', html: 'q-dp:touchstart' },
+  { jsx: 'document:onTouchStart', html: 'q-dp:touchstart' },
 ];
 
 describe('Event conversion utilities', () => {

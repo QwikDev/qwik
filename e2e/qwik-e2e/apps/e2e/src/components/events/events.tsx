@@ -28,6 +28,7 @@ const EventsParent = component$(() => {
     passivePreventDefaultState: 'unset',
     passiveDocumentCount: 0,
     passiveWindowCount: 0,
+    qrlNoDollarClickCount: 0,
     hoverOrderLog: '',
   });
   return (
@@ -190,6 +191,15 @@ const EventsParent = component$(() => {
       </p>
       <p id="count-passive-document">countPassiveDocument: {store.passiveDocumentCount}</p>
       <p id="count-passive-window">countPassiveWindow: {store.passiveWindowCount}</p>
+      <button
+        id="qrl-no-dollar-click"
+        onClick={$(() => {
+          store.qrlNoDollarClickCount++;
+        })}
+      >
+        QRL no-dollar click
+      </button>
+      <p id="count-qrl-no-dollar-click">countQrlNoDollarClick: {store.qrlNoDollarClickCount}</p>
       <UseOnWindowConditionalRenderIssue3948 />
       <UndefinedEventHandler />
       <ExecuteAllEventHandlers />

@@ -24,6 +24,10 @@ import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
 import type { QwikProjectionState } from './slot';
 import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 
+const toQrl = <T,>(value: T | QRL<T>): QRL<T> => {
+  return value as QRL<T>;
+};
+
 export function qwikifyQrl<PROPS extends Record<any, any>>(
   reactCmp$: QRL<ReactFC<PROPS & { children?: any }>>,
   opts?: QwikifyOptions
@@ -162,3 +166,10 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
 }
 
 export const qwikify$ = /*#__PURE__*/ implicit$FirstArg(qwikifyQrl);
+
+export const qwikify = <PROPS extends Record<any, any>>(
+  reactCmp: ReactFC<PROPS & { children?: any }> | QRL<ReactFC<PROPS & { children?: any }>>,
+  opts?: QwikifyOptions
+) => {
+  return qwikifyQrl(toQrl(reactCmp), opts);
+};

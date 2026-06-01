@@ -11,8 +11,8 @@ import type { AsyncCtx } from '../reactive-primitives/types';
 import { StoreFlags } from '../reactive-primitives/types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { createQRL } from '../shared/qrl/qrl-class';
-import { assertQrl } from '../shared/qrl/qrl-utils';
-import { type QRL } from '../shared/qrl/qrl.public';
+import { assertQrl, isQrl } from '../shared/qrl/qrl-utils';
+import { dollar, type QRL } from '../shared/qrl/qrl.public';
 import { isPromise } from '../shared/utils/promises';
 import { useSequentialScope } from './use-sequential-scope';
 
@@ -128,6 +128,14 @@ export const useResourceQrl = <T>(
 
   set(resource);
   return resource;
+};
+
+/** @public */
+export const useResource = <T>(
+  fn: ResourceFn<T> | QRL<ResourceFn<T>>,
+  opts?: ResourceOptions
+): ResourceReturn<T> => {
+  return useResourceQrl(isQrl(fn) ? (fn as QRL<ResourceFn<T>>) : dollar(fn as ResourceFn<T>), opts);
 };
 
 /** @public */

@@ -1053,6 +1053,14 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+<h2 id="globalaction">globalAction</h2>
+
+```typescript
+globalAction: ActionConstructor & ActionConstructorQRL;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
 <h2 id="globalaction_">globalAction$</h2>
 
 ```typescript
@@ -2031,6 +2039,14 @@ export type ResolvedDocumentHead<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+<h2 id="routeaction">routeAction</h2>
+
+```typescript
+routeAction: ActionConstructor & ActionConstructorQRL;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
 <h2 id="routeaction_">routeAction$</h2>
 
 ```typescript
@@ -2335,6 +2351,14 @@ _(Optional)_ The parameter name when this node is reached via `_W` or `_A` from 
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+<h2 id="routeloader">routeLoader</h2>
+
+```typescript
+routeLoader: LoaderConstructor & LoaderConstructorQRL;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
 <h2 id="routeloader_">routeLoader$</h2>
 
 ```typescript
@@ -2459,6 +2483,58 @@ RouterOutlet: import("@qwik.dev/core").Component<unknown>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/router-outlet-component.tsx)
+
+<h2 id="server">server</h2>
+
+```typescript
+server: <T extends ServerFunction>(fn: T | QRL<T>, options?: ServerConfig) =>
+  ServerQRL<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fn
+
+</td><td>
+
+T \| QRL&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+ServerConfig
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[ServerQRL](#serverqrl)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
 <h2 id="server_">server$</h2>
 
@@ -2810,6 +2886,44 @@ useNavigate: () => RouteNavigate;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
 
+<h2 id="usepreventnavigate">usePreventNavigate</h2>
+
+```typescript
+usePreventNavigate: (fn: PreventNavigateCallback | QRL<PreventNavigateCallback>) => void
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fn
+
+</td><td>
+
+[PreventNavigateCallback](#preventnavigatecallback) \| QRL&lt;[PreventNavigateCallback](#preventnavigatecallback)&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
+
 <h2 id="usepreventnavigate_">usePreventNavigate$</h2>
 
 Prevent navigation attempts. This hook registers a callback that will be called before SPA or browser navigation.
@@ -2912,12 +3026,30 @@ void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
+<h2 id="valibot">valibot</h2>
+
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+valibot: ValibotConstructor & ValibotConstructorQRL;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
 <h2 id="valibot_">valibot$</h2>
 
 > This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 ```typescript
 valibot$: ValibotConstructor;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
+<h2 id="validator">validator</h2>
+
+```typescript
+validator: ValidatorConstructor & ValidatorConstructorQRL;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
@@ -2985,6 +3117,14 @@ export type ValidatorReturn<T extends Record<string, any> = {}> =
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="zod">zod</h2>
+
+```typescript
+zod: ZodConstructor & ZodConstructorQRL;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
 <h2 id="zod_">zod$</h2>
 

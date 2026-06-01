@@ -55,14 +55,9 @@ const removePassiveMarkers = (
 };
 
 const getPassiveEventKey = (key: string): string | null => {
-  if (key.startsWith('on') && key.endsWith('$')) {
-    return normalizeJsxEventName(key.slice(2, -1));
-  }
-  if (key.startsWith('window:on') && key.endsWith('$')) {
-    return normalizeJsxEventName(key.slice(9, -1));
-  }
-  if (key.startsWith('document:on') && key.endsWith('$')) {
-    return normalizeJsxEventName(key.slice(11, -1));
+  const attr = jsxEventToHtmlAttribute(key);
+  if (attr) {
+    return attr.slice(attr.indexOf(':') + 1);
   }
   return null;
 };

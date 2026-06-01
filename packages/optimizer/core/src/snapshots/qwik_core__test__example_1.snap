@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 92
 expression: output
 ---
 ==INPUT==
@@ -18,20 +17,20 @@ const renderHeader2 = component($(() => {
 	return render;
 }));
 
-============================= test.tsx_renderHeader1_div_onClick_USi8k1jUb40.tsx (ENTRY POINT)==
+============================= test.tsx_renderHeader1_div_q_e_click_fjy1WIjm9hw.tsx (ENTRY POINT)==
 
-export const renderHeader1_div_onClick_USi8k1jUb40 = (ctx)=>console.log(ctx);
+export const renderHeader1_div_q_e_click_fjy1WIjm9hw = (ctx)=>console.log(ctx);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAKkB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAKkB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "renderHeader1_div_onClick_USi8k1jUb40",
+  "name": "renderHeader1_div_q_e_click_fjy1WIjm9hw",
   "entry": null,
-  "displayName": "test.tsx_renderHeader1_div_onClick",
-  "hash": "USi8k1jUb40",
-  "canonicalFilename": "test.tsx_renderHeader1_div_onClick_USi8k1jUb40",
+  "displayName": "test.tsx_renderHeader1_div_q_e_click",
+  "hash": "fjy1WIjm9hw",
+  "canonicalFilename": "test.tsx_renderHeader1_div_q_e_click_fjy1WIjm9hw",
   "path": "",
   "extension": "tsx",
   "parent": "renderHeader1_jMxQsjbyDss",
@@ -64,10 +63,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { qrl } from "@qwik.dev/core";
 //
-const q_renderHeader1_div_onClick_USi8k1jUb40 = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_div_onClick_USi8k1jUb40"), "renderHeader1_div_onClick_USi8k1jUb40");
+const q_renderHeader1_div_q_e_click_fjy1WIjm9hw = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_div_q_e_click_fjy1WIjm9hw"), "renderHeader1_div_q_e_click_fjy1WIjm9hw");
 //
 export const renderHeader1_jMxQsjbyDss = ()=>{
-    return <div onClick={q_renderHeader1_div_onClick_USi8k1jUb40}/>;
+    return <div q-e:click={q_renderHeader1_div_q_e_click_fjy1WIjm9hw}/>;
 };
 
 

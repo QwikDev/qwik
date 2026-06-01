@@ -1,12 +1,15 @@
 import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
 import { component$ } from '../shared/component.public';
+import { $ } from '../shared/qrl/qrl.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { Container, HostElement } from '../shared/types';
+import { useResource } from './use-resource';
 import { useResource$ } from './use-resource-dollar';
 import { useSignal } from './use-signal';
 import { useStore } from './use-store.public';
-import { Task, TaskFlags, runTask } from './use-task';
+import { Task, TaskFlags, runTask, useTask } from './use-task';
 import { useTask$ } from './use-task-dollar';
+import { useVisibleTask } from './use-visible-task';
 import { useVisibleTask$ } from './use-visible-task-dollar';
 
 describe('types', () => {
@@ -20,12 +23,40 @@ describe('types', () => {
         expectTypeOf(track(() => sig.value)).toEqualTypeOf<number>();
         expectTypeOf(track(() => store.count)).toEqualTypeOf<number>();
       });
+      useResource(({ track }) => {
+        expectTypeOf(track(store)).toEqualTypeOf(store);
+        expectTypeOf(track(sig)).toEqualTypeOf<number>();
+        expectTypeOf(track(() => sig.value)).toEqualTypeOf<number>();
+        expectTypeOf(track(() => store.count)).toEqualTypeOf<number>();
+      });
+      useResource(
+        $(({ track }) => {
+          expectTypeOf(track(store)).toEqualTypeOf(store);
+          expectTypeOf(track(sig)).toEqualTypeOf<number>();
+          expectTypeOf(track(() => sig.value)).toEqualTypeOf<number>();
+          expectTypeOf(track(() => store.count)).toEqualTypeOf<number>();
+        })
+      );
       useTask$(({ track }) => {
         expectTypeOf(track(store)).toEqualTypeOf(store);
         expectTypeOf(track(sig)).toEqualTypeOf<number>();
         expectTypeOf(track(() => sig.value)).toEqualTypeOf<number>();
         expectTypeOf(track(() => store.count)).toEqualTypeOf<number>();
       });
+      useTask(({ track }) => {
+        expectTypeOf(track(store)).toEqualTypeOf(store);
+        expectTypeOf(track(sig)).toEqualTypeOf<number>();
+        expectTypeOf(track(() => sig.value)).toEqualTypeOf<number>();
+        expectTypeOf(track(() => store.count)).toEqualTypeOf<number>();
+      });
+      useTask(
+        $(({ track }) => {
+          expectTypeOf(track(store)).toEqualTypeOf(store);
+          expectTypeOf(track(sig)).toEqualTypeOf<number>();
+          expectTypeOf(track(() => sig.value)).toEqualTypeOf<number>();
+          expectTypeOf(track(() => store.count)).toEqualTypeOf<number>();
+        })
+      );
       return null;
     });
   });
@@ -40,6 +71,16 @@ describe('types', () => {
         cleanup(async () => {});
         return async () => {};
       });
+      useVisibleTask(async ({ cleanup }) => {
+        cleanup(async () => {});
+        return async () => {};
+      });
+      useVisibleTask(
+        $(async ({ cleanup }) => {
+          cleanup(async () => {});
+          return async () => {};
+        })
+      );
       return null;
     });
   });

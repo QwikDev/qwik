@@ -236,6 +236,10 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> = GetValidato
 export const globalAction$: ActionConstructor;
 
 // Warning: (ae-forgotten-export) The symbol "ActionConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const globalAction: ActionConstructor & ActionConstructorQRL;
+
 // Warning: (ae-internal-missing-underscore) The name "globalActionQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -449,6 +453,9 @@ export type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Recor
 // @public (undocumented)
 export const routeAction$: ActionConstructor;
 
+// @public (undocumented)
+export const routeAction: ActionConstructor & ActionConstructorQRL;
+
 // Warning: (ae-internal-missing-underscore) The name "routeActionQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -492,6 +499,10 @@ export interface RouteData {
 export const routeLoader$: LoaderConstructor;
 
 // Warning: (ae-forgotten-export) The symbol "LoaderConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const routeLoader: LoaderConstructor & LoaderConstructorQRL;
+
 // Warning: (ae-internal-missing-underscore) The name "routeLoaderQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -524,6 +535,9 @@ export const RouterOutlet: Component<unknown>;
 //
 // @public (undocumented)
 export const server$: <T extends ServerFunction>(qrl: T, options?: ServerConfig | undefined) => ServerQRL<T>;
+
+// @public (undocumented)
+export const server: <T extends ServerFunction>(fn: T | QRL<T>, options?: ServerConfig) => ServerQRL<T>;
 
 // @public
 export type ServerData = {
@@ -600,6 +614,9 @@ export const useNavigate: () => RouteNavigate;
 // @public
 export const usePreventNavigate$: (qrl: PreventNavigateCallback) => void;
 
+// @public (undocumented)
+export const usePreventNavigate: (fn: PreventNavigateCallback | QRL<PreventNavigateCallback>) => void;
+
 // Warning: (ae-internal-missing-underscore) The name "usePreventNavigateQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -614,6 +631,10 @@ export const useQwikRouter: (props?: QwikRouterProps) => void;
 export const valibot$: ValibotConstructor;
 
 // Warning: (ae-forgotten-export) The symbol "ValibotConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @beta (undocumented)
+export const valibot: ValibotConstructor & ValibotConstructorQRL;
+
 // Warning: (ae-internal-missing-underscore) The name "valibotQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -623,6 +644,11 @@ export const valibotQrl: ValibotConstructorQRL;
 //
 // @public (undocumented)
 export const validator$: ValidatorConstructor;
+
+// Warning: (ae-forgotten-export) The symbol "ValidatorConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const validator: ValidatorConstructor & ValidatorConstructorQRL;
 
 // Warning: (ae-forgotten-export) The symbol "IsAny" needs to be exported by the entry point index.d.ts
 //
@@ -639,7 +665,6 @@ export type ValidatorErrorType<T, U = string> = {
     }>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "ValidatorConstructorQRL" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "validatorQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -656,6 +681,11 @@ export { z }
 // @public (undocumented)
 export const zod$: ZodConstructor;
 
+// Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const zod: ZodConstructor & ZodConstructorQRL;
+
 // @public (undocumented)
 export type ZodConstructor = {
     <T extends z_2.ZodRawShape>(schema: T): ZodDataValidator<z_2.ZodObject<T>>;
@@ -664,7 +694,6 @@ export type ZodConstructor = {
     <T extends z_2.Schema>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "zodQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)

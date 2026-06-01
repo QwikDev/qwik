@@ -81,6 +81,15 @@ test.describe('events', () => {
     await expect(page.locator('#hover-order-log')).toHaveText('red mouse out|blue mouse in');
   });
 
+  test('should execute qrl handler passed to no-dollar event', async ({ page }) => {
+    const button = page.locator('#qrl-no-dollar-click');
+    const count = page.locator('#count-qrl-no-dollar-click');
+
+    await expect(count).toHaveText('countQrlNoDollarClick: 0');
+    await button.click();
+    await expect(count).toHaveText('countQrlNoDollarClick: 1');
+  });
+
   test(`GIVEN "stoppropagation" is set as a attribute 
         THEN it should stop propagation`, async ({ page }) => {
     const stoppedPropagationButton = page.locator('#stop-propagation');

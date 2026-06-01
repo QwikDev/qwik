@@ -1,8 +1,8 @@
 import type { EventHandler } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
-import { assertQrl } from '../shared/qrl/qrl-utils';
-import type { QRL } from '../shared/qrl/qrl.public';
+import { assertQrl, isQrl } from '../shared/qrl/qrl-utils';
+import { dollar, type QRL } from '../shared/qrl/qrl.public';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { useOn, useOnDocument } from './use-on';
@@ -54,6 +54,11 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   const task = new Task(flags, i, iCtx.$hostElement$, qrl, undefined, null);
   set(task);
   useRegisterTaskEvents(task, eagerness);
+};
+
+/** @public */
+export const useVisibleTask = (fn: TaskFn | QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
+  useVisibleTaskQrl(isQrl(fn) ? (fn as QRL<TaskFn>) : dollar(fn as TaskFn), opts);
 };
 
 export const useRegisterTaskEvents = (task: Task, eagerness: VisibleTaskStrategy | undefined) => {

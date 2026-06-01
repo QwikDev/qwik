@@ -1,9 +1,9 @@
-import { type QRL } from '../shared/qrl/qrl.public';
+import { dollar, type QRL } from '../shared/qrl/qrl.public';
 import { qTest } from '../shared/utils/qdev';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { useSequentialScope } from './use-sequential-scope';
-import { assertQrl } from '../shared/qrl/qrl-utils';
+import { assertQrl, isQrl } from '../shared/qrl/qrl-utils';
 import { ComponentStylesPrefixContent } from '../shared/utils/markers';
 import { styleKey } from '../shared/utils/styles';
 import { isDev } from '@qwik.dev/core/build';
@@ -51,6 +51,11 @@ export const useStylesQrl = (styles: QRL<string>): UseStyles => {
 // </docs>
 export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
 
+/** @public */
+export const useStyles = (styles: string | QRL<string>): UseStyles => {
+  return useStylesQrl((isQrl(styles) ? styles : dollar(styles)) as QRL<string>);
+};
+
 /** @internal */
 export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
   return {
@@ -82,6 +87,11 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
  */
 // </docs>
 export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);
+
+/** @public */
+export const useStylesScoped = (styles: string | QRL<string>): UseStylesScoped => {
+  return useStylesScopedQrl((isQrl(styles) ? styles : dollar(styles)) as QRL<string>);
+};
 
 const liveUpdate = isDev && ((import.meta.hot && typeof document !== 'undefined') || qTest);
 

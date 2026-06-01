@@ -1795,7 +1795,7 @@ impl<'a> QwikTransform<'a> {
 					}
 				}
 
-				// Transform event props (e.g., onClick$ -> q-e:click)
+				// Transform event props (e.g., onClick$/onClick -> q-e:click)
 				let is_passive = jsx_event_to_event_name(kw.as_ref())
 					.is_some_and(|event_name| context.passive_events.contains(&event_name));
 				if let Some(html_attr) = jsx_event_to_html_attribute(kw.as_ref(), is_passive) {
@@ -3979,7 +3979,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			ast::JSXAttrName::Ident(ref ident) => {
 				let new_word = convert_qrl_word(&ident.sym);
 
-				// Transform event names (onClick$ -> q-e:click) only on native HTML elements
+				// Transform event names (onClick$/onClick -> q-e:click) only on native HTML elements
 				let is_native_element = self.jsx_element_is_native.last().copied().unwrap_or(false);
 				let transformed_name = if is_native_element {
 					let passive_events = self.jsx_element_passive_events.last();
@@ -4806,19 +4806,15 @@ fn normalize_jsx_event_name(name: &str) -> String {
 }
 
 fn jsx_event_to_event_name(jsx_event: &str) -> Option<String> {
-	if !jsx_event.ends_with('$') {
-		return None;
-	}
-
 	let (_, idx) = get_event_scope_data_from_jsx_event(jsx_event, false);
 
 	if idx == usize::MAX {
 		return None;
 	}
 
-	Some(normalize_jsx_event_name(
-		&jsx_event[idx..jsx_event.len() - 1],
-	))
+	let end = jsx_event_name_end(jsx_event, idx)?;
+
+	Some(normalize_jsx_event_name(&jsx_event[idx..end]))
 }
 
 fn passive_attr_to_event_name(passive_attr: &str) -> Option<String> {
@@ -4869,24 +4865,39 @@ fn collect_passive_event_names_from_jsx_attrs(attrs: &[ast::JSXAttrOrSpread]) ->
 		.collect()
 }
 
-/// Converts JSX event names (e.g., onClick$) to HTML attribute names (e.g., q-e:click)
+/// Converts JSX event names (e.g., onClick$/onClick) to HTML attribute names (e.g., q-e:click)
 /// Follows the same logic as jsxEventToHtmlAttribute in event-names.ts
 fn jsx_event_to_html_attribute(jsx_event: &str, is_passive: bool) -> Option<Atom> {
-	if !jsx_event.ends_with('$') {
-		return None;
-	}
-
 	let (prefix, idx) = get_event_scope_data_from_jsx_event(jsx_event, is_passive);
 
 	if idx == usize::MAX {
 		return None;
 	}
 
+	let end = jsx_event_name_end(jsx_event, idx)?;
+
 	Some(Atom::from(format!(
 		"{}{}",
 		prefix,
-		normalize_jsx_event_name(&jsx_event[idx..jsx_event.len() - 1])
+		normalize_jsx_event_name(&jsx_event[idx..end])
 	)))
+}
+
+fn jsx_event_name_end(jsx_event: &str, idx: usize) -> Option<usize> {
+	if jsx_event.ends_with('$') {
+		let end = jsx_event.len() - 1;
+		if end > idx {
+			return Some(end);
+		}
+		return None;
+	}
+
+	let first_event_char = jsx_event[idx..].chars().next()?;
+	if first_event_char.is_ascii_uppercase() || first_event_char == '-' {
+		Some(jsx_event.len())
+	} else {
+		None
+	}
 }
 
 /// Get the event scope prefix and starting index from a JSX event name

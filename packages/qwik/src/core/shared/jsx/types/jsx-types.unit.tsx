@@ -15,7 +15,7 @@ import type {
   QwikViewTransitionEvent,
   QwikVisibleEvent,
 } from '@qwik.dev/core';
-import { $, component$, sync$ } from '@qwik.dev/core';
+import { $, component, component$, sync$ } from '@qwik.dev/core';
 import { assertType, describe, expectTypeOf, test } from 'vitest';
 
 const Fn = () => <div />;
@@ -41,8 +41,12 @@ describe('types', () => {
       return <div />;
     });
     const NoP = component$(() => <div />);
+    const NoPDollarless = component(() => <div />);
+    const NoPQrl = component($(() => <div />));
     expectTypeOf<PropsOf<typeof WithP>>().toEqualTypeOf<never>();
     expectTypeOf<PropsOf<typeof NoP>>().toEqualTypeOf<never>();
+    expectTypeOf<PropsOf<typeof NoPDollarless>>().toEqualTypeOf<never>();
+    expectTypeOf<PropsOf<typeof NoPQrl>>().toEqualTypeOf<never>();
     component$(() => {
       return (
         <>
@@ -52,6 +56,12 @@ describe('types', () => {
           <NoP key={123}>
             <div />
           </NoP>
+          <NoPDollarless key={123}>
+            <div />
+          </NoPDollarless>
+          <NoPQrl key={123}>
+            <div />
+          </NoPQrl>
         </>
       );
     });
@@ -94,8 +104,9 @@ describe('types', () => {
 
   test('component', () => () => {
     const Cmp = component$((props: PropsOf<'svg'>) => {
-      const { width = '240', height = '56', onClick$, ...rest } = props;
+      const { width = '240', height = '56', onClick$, onClick, ...rest } = props;
       expectTypeOf(onClick$).toEqualTypeOf<QRLEventHandlerMulti<PointerEvent, SVGSVGElement>>();
+      expectTypeOf(onClick).toEqualTypeOf<QRLEventHandlerMulti<PointerEvent, SVGSVGElement>>();
       return (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -109,12 +120,44 @@ describe('types', () => {
     expectTypeOf<Parameters<typeof Cmp>[0]['onClick$']>().toMatchTypeOf<
       EventHandler<PointerEvent, SVGSVGElement> | QRLEventHandlerMulti<PointerEvent, SVGSVGElement>
     >();
+    expectTypeOf<Parameters<typeof Cmp>[0]['onClick']>().toMatchTypeOf<
+      QRLEventHandlerMulti<PointerEvent, SVGSVGElement>
+    >();
 
     return (
       <p>
         <Cmp />
       </p>
     );
+  });
+
+  test('no-dollar event handlers', () => () => {
+    expectTypeOf<QwikIntrinsicElements['button']['onClick']>().toEqualTypeOf<
+      QRLEventHandlerMulti<PointerEvent, HTMLButtonElement>
+    >();
+
+    const t = (
+      <>
+        <button
+          onClick={(ev, el) => {
+            expectTypeOf(ev).not.toBeAny();
+            expectTypeOf(ev).toEqualTypeOf<PointerEvent>();
+            expectTypeOf(el).toEqualTypeOf<HTMLButtonElement>();
+          }}
+        />
+        <button onClick={$(() => {})} />
+        <button onClick={$((ev) => expectTypeOf(ev).toEqualTypeOf<PointerEvent>())} />
+        <button
+          document:onClick={(ev, el) => {
+            expectTypeOf(ev).not.toBeAny();
+            expectTypeOf(ev).toEqualTypeOf<PointerEvent>();
+            expectTypeOf(el).toEqualTypeOf<HTMLButtonElement>();
+          }}
+        />
+        <button window:onClick={$((ev) => expectTypeOf(ev).toEqualTypeOf<PointerEvent>())} />
+      </>
+    );
+    expectTypeOf(t).toEqualTypeOf<JSX.Element>();
   });
 
   test('PropFunction', () => () => {

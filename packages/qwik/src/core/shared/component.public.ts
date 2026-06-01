@@ -11,7 +11,7 @@ import { _jsxSplit } from '../internal';
 import type { QwikIntrinsicElements } from './jsx/types/jsx-qwik-elements';
 import { assertNumber } from './error/assert';
 import { qTest } from './utils/qdev';
-import { assertQrl } from './qrl/qrl-utils';
+import { assertQrl, isQrl } from './qrl/qrl-utils';
 import { isDev } from '@qwik.dev/core/build';
 import type { QRLInternal } from './qrl/qrl-class';
 
@@ -211,6 +211,15 @@ export const isQwikComponent = <T extends Component<any>>(component: unknown): c
 // </docs>
 export const component$ = <PROPS = unknown>(onMount: OnRenderFn<PROPS>): Component<PROPS> => {
   return componentQrl(dollar(onMount));
+};
+
+/** @public */
+export const component = <PROPS = unknown>(
+  onMount: OnRenderFn<PROPS> | QRL<OnRenderFn<PROPS>>
+): Component<PROPS> => {
+  return componentQrl(
+    isQrl(onMount) ? (onMount as QRL<OnRenderFn<PROPS>>) : dollar(onMount as OnRenderFn<PROPS>)
+  );
 };
 
 /** @public */

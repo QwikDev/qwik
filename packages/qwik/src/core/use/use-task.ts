@@ -8,8 +8,8 @@ import {
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
-import { assertQrl } from '../shared/qrl/qrl-utils';
-import type { QRL } from '../shared/qrl/qrl.public';
+import { assertQrl, isQrl } from '../shared/qrl/qrl-utils';
+import { dollar, type QRL } from '../shared/qrl/qrl.public';
 import { type Container, type HostElement } from '../shared/types';
 import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, maybeThen, safeCall } from '../shared/utils/promises';
@@ -178,6 +178,11 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   if (isPromise(result)) {
     iCtx.$waitOn$ = result;
   }
+};
+
+/** @public */
+export const useTask = (fn: TaskFn | QRL<TaskFn>, opts?: TaskOptions): void => {
+  useTaskQrl(isQrl(fn) ? (fn as QRL<TaskFn>) : dollar(fn as TaskFn), opts);
 };
 
 export const runTask = (

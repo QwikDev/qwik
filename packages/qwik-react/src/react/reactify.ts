@@ -13,6 +13,10 @@ import {
   type QwikProjectionState,
 } from './slot';
 
+const toQrl = <T>(value: T | QRL<T>): QRL<T> => {
+  return value as QRL<T>;
+};
+
 let slotCounter = 0;
 
 /**
@@ -180,3 +184,8 @@ export function reactifyQrl(qwikCompQrl: QRL<any>): any {
  * @returns A React component that renders the Qwik component
  */
 export const reactify$ = /*#__PURE__*/ implicit$FirstArg(reactifyQrl);
+
+/** @public */
+export const reactify = (qwikComp: any | QRL<any>): any => {
+  return reactifyQrl(toQrl(qwikComp));
+};

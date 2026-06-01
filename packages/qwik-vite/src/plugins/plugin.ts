@@ -80,6 +80,14 @@ export enum ExperimentalFeatures {
   insights = 'insights',
 }
 
+const MISSING_SUSPENSE_EXPERIMENTAL_FLAG =
+  `Suspense requires qwikVite({ experimental: ['suspense'] }). ` +
+  `Add the 'suspense' experimental flag in your Vite config before using ` +
+  `Suspense, Reveal, or async UI that depends on Suspense coordination. ` +
+  `Without this flag, SSR async boundaries can fail to resolve correctly.`;
+
+const CORE_SUSPENSE_IMPORT = /import\s*{[^}]*\bSuspense\b[^}]*}\s*from\s*['"]@qwik\.dev\/core['"]/;
+
 export interface QwikPackages {
   id: string;
   path: string;
@@ -794,6 +802,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             ? 'hmr'
             : 'dev'
           : 'prod';
+
+    if (mode !== 'lib' && !opts.experimental?.suspense && CORE_SUSPENSE_IMPORT.test(code)) {
+      ctx.error(`${MISSING_SUSPENSE_EXPERIMENTAL_FLAG}\n\nFile: ${pathId}`);
+    }
 
     if (mode !== 'lib') {
       // this messes a bit with the source map, but it's ok for if statements

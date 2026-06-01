@@ -227,6 +227,35 @@ test('experimental[]', async () => {
   assert.deepEqual(opts.experimental, { [flag]: true } as any);
 });
 
+test('transform explains missing Suspense experimental flag', async () => {
+  const plugin = await mockPlugin();
+  await plugin.normalizeOptions({ rootDir: '/root', srcDir: '/root/src' });
+
+  await expect(
+    plugin.transform(
+      {
+        addWatchFile: () => undefined,
+        emitFile: () => undefined,
+        error: (message: string) => {
+          throw new Error(message);
+        },
+      } as any,
+      `import { component$, Suspense, useAsync$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const product = useAsync$(async () => ({ title: 'Keyboard' }));
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <h1>{product.value.title}</h1>
+    </Suspense>
+  );
+});
+`,
+      '/root/src/routes/index.tsx'
+    )
+  ).rejects.toThrow(`Suspense requires qwikVite({ experimental: ['suspense'] })`);
+});
+
 describe('resolveId', () => {
   test('qrls', async () => {
     const plugin = await mockPlugin();

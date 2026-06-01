@@ -338,6 +338,41 @@ What is split out: distinct *operations*. The 9-phase sequencer in
 `generateSegmentCode` is the model — each phase is its own named
 function because each phase is its own concern.
 
+### No nested ternaries.
+
+A single ternary is fine: `const x = cond ? a : b`. Stacking them is
+not: `const x = cond1 ? cond2 ? a : b : c` forces the reader to unwind
+operator precedence to figure out which branch produces which value,
+and that effort scales worse than line count.
+
+Rule: at most one `?:` per expression. For two-or-more conditions,
+write a `let` + procedural `if` block. Each guard then reads top-to-
+bottom as its own statement, and the path through the code is visible
+without precedence reasoning:
+
+```typescript
+// Not this:
+const devOptionsForCall = jsxBodyOptions.devOptions
+  ? jsxBodyOptions.source != null
+    ? { ...jsxBodyOptions.devOptions, sourcePosition: {...} }
+    : jsxBodyOptions.devOptions
+  : undefined;
+
+// This:
+let devOptionsForCall = jsxBodyOptions.devOptions;
+if (devOptionsForCall && jsxBodyOptions.source != null) {
+  devOptionsForCall = {
+    ...devOptionsForCall,
+    sourcePosition: { ... },
+  };
+}
+```
+
+The same applies when a single-level ternary's branches contain large
+inline object literals — even one level deep, if either operand is a
+multi-line expression, prefer the procedural form. Inline ternaries are
+for single-line, single-condition selection.
+
 ## What this codebase does not do
 
 A few patterns from broader JS/TS practice that are not used here,

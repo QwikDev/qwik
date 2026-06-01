@@ -1161,6 +1161,13 @@ export function buildDefaultStrategySegment(
               // `relPath` semantics here — preserves baseline-passing
               // `example_dev_mode_inlined` / `example_jsx_keyed_dev` etc.
               devOptions: isDevMode ? { relPath: ctx.userDevPath ?? relPath } : undefined,
+              // OSS-410: source-relative dev-info positions. `transformSegmentJsx`
+              // wraps the body as `(${bodyText})` before parsing; the wrapper
+              // length is 1 (single `(`), and `ext.loc[0]` is the body's byte
+              // offset in the original source. Only populated when dev-info
+              // is requested.
+              source: isDevMode ? ctx.repairedCode : undefined,
+              bodyOriginOffset: isDevMode ? ext.loc[0] : undefined,
               keyCounterStart: segmentKeyCounter,
             }
           : undefined,

@@ -312,6 +312,9 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
         // composed `devFilePath` (srcDir+relPath fallback) keeps the default
         // `relPath` behavior — preserves `example_dev_mode_inlined` etc.
         devOptions: isDevMode ? { relPath: ctx.userDevPath ?? relPath } : undefined,
+        // OSS-410: needed to convert wrapped-body offsets to source-relative
+        // dev-info positions inside `transformInlineSegmentBody`.
+        source: isDevMode ? ctx.source : undefined,
         keyCounterStart: isHoist ? ctx.jsxKeyCounterValue : undefined,
         relPath,
       }

@@ -43,6 +43,43 @@ export interface JsxTransformOutput {
 }
 
 /**
+ * Coordinate-conversion info for JSX dev-info under wrapped-body callers.
+ *
+ * The Inline-strategy path (`rewrite/inline-body.ts`) and default-strategy
+ * segment-file path (`segment-codegen.ts`) parse the extracted body wrapped
+ * in a single-line prefix (`const __body__ = ` and `(` respectively). When
+ * dev-info is requested, JSX positions reported by the AST are offsets in
+ * that wrapped body — not in the original module source. Without conversion,
+ * `lineNumber:` ends up body-relative, but SWC reports source-relative
+ * positions for both fixtures using these paths (`example_dev_mode_inlined`,
+ * `example_dev_mode`, `root_level_self_referential_qrl_inline`). OSS-410.
+ *
+ * Callers that already pass the original module source as `transformAllJsx`'s
+ * `source` arg (parent rewrite at `rewrite/index.ts`) leave this undefined.
+ */
+export interface DevInfoSourcePosition {
+  /** Original module source — `lineStarts` is computed from this. */
+  source: string;
+  /** Byte offset of the wrapped body's start in `source`. */
+  bodyOriginOffset: number;
+  /** Length of the single-line wrapper prefix prepended to the body. */
+  wrapperPrefixLen: number;
+}
+
+/** Dev-info emission options for `transformAllJsx`. */
+export interface DevSuffixOptions {
+  /** Source-file path emitted as `fileName:` on the dev-info object. */
+  relPath: string;
+  /**
+   * Optional coordinate-conversion info; see {@link DevInfoSourcePosition}.
+   * When provided, dev-info `lineNumber:`/`columnNumber:` are computed in
+   * `sourcePosition.source` coords with `bodyOriginOffset + (nodeStart -
+   * wrapperPrefixLen)` as the absolute byte offset.
+   */
+  sourcePosition?: DevInfoSourcePosition;
+}
+
+/**
  * Shared plumbing + scope information threaded through the JSX transform
  * for a single `transformAllJsx` invocation. Consumers (`transformJsxElement`,
  * `processProps`, future `transformJsxFragment` / `processChildren` refactors)
@@ -759,7 +796,7 @@ export function transformAllJsx(
   program: AstProgram,
   importedNames: Set<string>,
   skipRanges?: Array<{ start: number; end: number }>,
-  devOptions?: { relPath: string },
+  devOptions?: DevSuffixOptions,
   keyCounterStart?: number,
   enableSignals: boolean = true,
   qpOverrides?: Map<number, string[]>,
@@ -789,24 +826,39 @@ export function transformAllJsx(
     qrlsWithCaptures,
   };
 
+  // OSS-410: when the JSX walk runs over a *wrapped body* (Inline strategy
+  // via `inline-body.ts` and default-strategy segment files via
+  // `segment-codegen.ts`), `source` here is the wrapped body — not the
+  // original module source. Naively computing `lineStarts` from this `source`
+  // produces body-relative line/column for JSX dev-info, but SWC reports
+  // source-relative positions. `devOptions.sourcePosition` lets callers
+  // declare "compute lineStarts from this other string and convert nodeStart
+  // via `bodyOriginOffset + (nodeStart - wrapperPrefixLen)` before lookup."
+  // Module-level callers (parent rewrite) omit it; their `source` already
+  // IS the original module source.
   let lineStarts: number[] | null = null;
   if (devOptions) {
+    const linesSource = devOptions.sourcePosition?.source ?? source;
     lineStarts = [0];
-    for (let i = 0; i < source.length; i++) {
-      if (source[i] === '\n') lineStarts.push(i + 1);
+    for (let i = 0; i < linesSource.length; i++) {
+      if (linesSource[i] === '\n') lineStarts.push(i + 1);
     }
   }
 
   function getDevSourceSuffix(nodeStart: number): string {
     if (!devOptions || !lineStarts) return '';
+    const effectiveOffset = devOptions.sourcePosition
+      ? devOptions.sourcePosition.bodyOriginOffset +
+        (nodeStart - devOptions.sourcePosition.wrapperPrefixLen)
+      : nodeStart;
     let lo = 0, hi = lineStarts.length - 1;
     while (lo < hi) {
       const mid = (lo + hi + 1) >> 1;
-      if (lineStarts[mid] <= nodeStart) lo = mid;
+      if (lineStarts[mid] <= effectiveOffset) lo = mid;
       else hi = mid - 1;
     }
     const lineNumber = lo + 1;
-    const columnNumber = nodeStart - lineStarts[lo] + 1;
+    const columnNumber = effectiveOffset - lineStarts[lo] + 1;
     return `, {\n    fileName: "${devOptions.relPath}",\n    lineNumber: ${lineNumber},\n    columnNumber: ${columnNumber}\n}`;
   }
 

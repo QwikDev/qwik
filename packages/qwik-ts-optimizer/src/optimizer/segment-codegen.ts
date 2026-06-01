@@ -13,7 +13,7 @@ import { rewriteImportSource } from './rewrite-imports.js';
 import { inlineConstCaptures } from './rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from './rewrite/predicates.js';
 import type { ConsolidatedSegment } from './extract.js';
-import { transformAllJsx, collectScopeAwareBindings, JsxKeyCounter } from './transform/jsx.js';
+import { transformAllJsx, collectScopeAwareBindings, JsxKeyCounter, type DevSuffixOptions } from './transform/jsx.js';
 import { transformJsxCalls, collectJsxFunctionNames } from './transform/jsx-call-transform.js';
 import { computeKeyPrefix } from './key-prefix.js';
 import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
@@ -96,7 +96,20 @@ export interface SegmentJsxOptions {
   paramNames?: Set<string>;
   relPath?: string;
   keyCounterStart?: number;
-  devOptions?: { relPath: string };
+  devOptions?: DevSuffixOptions;
+  /**
+   * OSS-410: original module source string. Used together with
+   * {@link bodyOriginOffset} to compute source-relative dev-info positions
+   * (default-strategy segments wrap the body as `(${bodyText})` before
+   * parsing; without this, dev-info `lineNumber:` lands body-relative).
+   * Only honored when `devOptions` is set.
+   */
+  source?: string;
+  /**
+   * OSS-410: byte offset of the extraction's body in the original source
+   * (`ext.loc[0]`). Used together with {@link source}.
+   */
+  bodyOriginOffset?: number;
 }
 
 export interface NestedCallSiteInfo {
@@ -386,8 +399,27 @@ function transformSegmentJsx(
       for (const name of captureInfo.captureNames) segScopeBindings.bindings.addProgramScopeConst(name);
     }
 
+    // OSS-410: `wrappedBody` adds a single `(` prefix; without sourcePosition
+    // dev-info `lineNumber:` would be body-relative. Source-relative requires
+    // the original module source + body's byte offset.
+    let devOptionsForCall = jsxOptions.devOptions;
+    if (
+      devOptionsForCall &&
+      jsxOptions.source != null &&
+      jsxOptions.bodyOriginOffset != null
+    ) {
+      devOptionsForCall = {
+        ...devOptionsForCall,
+        sourcePosition: {
+          source: jsxOptions.source,
+          bodyOriginOffset: jsxOptions.bodyOriginOffset,
+          wrapperPrefixLen: 1,
+        },
+      };
+    }
+
     const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames,
-      undefined, jsxOptions.devOptions, jsxOptions.keyCounterStart, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath,
+      undefined, devOptionsForCall, jsxOptions.keyCounterStart, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath,
       undefined, segScopeBindings);
 
     const transformedWrapped = bodyS.toString();

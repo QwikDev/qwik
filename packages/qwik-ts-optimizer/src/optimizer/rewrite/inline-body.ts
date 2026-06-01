@@ -399,6 +399,21 @@ export function transformInlineSegmentBody(
   if (jsxBodyOptions?.enableJsx) {
     const wrapperPrefix = 'const __body__ = ';
     const wrappedSource = wrapperPrefix + body;
+    // OSS-410: JSX dev-info needs source-relative line/col. Inside this
+    // function, `wrappedSource` is the JSX parser's input; without the
+    // sourcePosition, dev-info positions would be wrappedSource-relative
+    // (i.e. body-relative, off by the body's source-line offset).
+    let devOptionsForCall = jsxBodyOptions.devOptions;
+    if (devOptionsForCall && jsxBodyOptions.source != null) {
+      devOptionsForCall = {
+        ...devOptionsForCall,
+        sourcePosition: {
+          source: jsxBodyOptions.source,
+          bodyOriginOffset: ext.loc[0],
+          wrapperPrefixLen: wrapperPrefix.length,
+        },
+      };
+    }
 
     const parseResult = parseSync('__body__.tsx', wrappedSource, RAW_TRANSFER_PARSER_OPTIONS);
     if (parseResult.program && !parseResult.errors?.length) {
@@ -467,7 +482,7 @@ export function transformInlineSegmentBody(
         parseResult.program,
         bodyImportedNames,
         [], // No skip ranges within the body
-        jsxBodyOptions.devOptions,
+        devOptionsForCall,
         jsxBodyOptions.keyCounterStart,
         true, // enableSignals
         bodyQpOverrides, // qpOverrides for q:p/q:ps injection

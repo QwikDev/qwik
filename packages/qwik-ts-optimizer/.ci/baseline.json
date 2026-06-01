@@ -859,6 +859,19 @@
       "tests/optimizer/oss-444-jsxprop-capture-wrap.test.ts :: OSS-444 — .w([captures]) on Component-prop QRL refs (default strategy) Negative scope: non-capturing Component-prop emits bare q_X `<Card static$={() => \"hi\"}>` (no captures) → no .w()",
       "tests/optimizer/oss-444-jsxprop-capture-wrap.test.ts :: OSS-444 — .w([captures]) on Component-prop QRL refs (default strategy) Positive: captured Component-prop emits .w(...) wrap multiple captures: prop captures two outer-scope vars",
       "tests/optimizer/oss-444-jsxprop-capture-wrap.test.ts :: OSS-444 — .w([captures]) on Component-prop QRL refs (default strategy) Positive: captured Component-prop emits .w(...) wrap single capture: `<Card captured$={() => state.x}>` → `captured$: q_X.w([state])`",
+      "tests/optimizer/oss-446-jsx-call-naming.test.ts :: OSS-446 Bug 1 — peer-tool jsx() naming context jsx aliased import (jsx$1) is still recognised",
+      "tests/optimizer/oss-446-jsx-call-naming.test.ts :: OSS-446 Bug 1 — peer-tool jsx() naming context jsx(\"html-tag\", { onEvent$: $() }) pushes tag + q_e_<event>",
+      "tests/optimizer/oss-446-jsx-call-naming.test.ts :: OSS-446 Bug 1 — peer-tool jsx() naming context jsx(\"html-tag\", { onEvent$: [..., $()] }) array element still gets tag + q_e_<event>",
+      "tests/optimizer/oss-446-jsx-call-naming.test.ts :: OSS-446 Bug 1 — peer-tool jsx() naming context jsx(Component, { onEvent$: $() }) pushes component-name + raw-key (no q_e_ normalisation)",
+      "tests/optimizer/oss-446-jsx-call-naming.test.ts :: OSS-446 Bug 1 — peer-tool jsx() naming context jsxs and jsxDEV also recognised",
+      "tests/optimizer/oss-446-jsx-call-naming.test.ts :: OSS-446 Bug 1 — peer-tool jsx() naming context negative scope: jsx() from a non-Qwik source is NOT treated as JSX runtime",
+      "tests/optimizer/oss-446-jsx-call-naming.test.ts :: OSS-446 Bug 1 — peer-tool jsx() naming context negative scope: regular ObjectExpression Property keys still push literal",
+      "tests/optimizer/oss-446-lexical-scope-captures.test.ts :: OSS-446 Bug 3 — lexical scope chain for captures component$ baseline still works (no regression)",
+      "tests/optimizer/oss-446-lexical-scope-captures.test.ts :: OSS-446 Bug 3 — lexical scope chain for captures intermediate non-marker function between two markers contributes its scope",
+      "tests/optimizer/oss-446-lexical-scope-captures.test.ts :: OSS-446 Bug 3 — lexical scope chain for captures module-level arrow with marker call captures both outer param and outer const",
+      "tests/optimizer/oss-446-lexical-scope-captures.test.ts :: OSS-446 Bug 3 — lexical scope chain for captures module-level function declaration with marker call captures from its scope",
+      "tests/optimizer/oss-446-lexical-scope-captures.test.ts :: OSS-446 Bug 3 — lexical scope chain for captures negative scope: closure that references nothing outside still has no captures",
+      "tests/optimizer/oss-446-lexical-scope-captures.test.ts :: OSS-446 Bug 3 — lexical scope chain for captures negative scope: sibling functions do not contribute their scope",
       "tests/optimizer/path-utils.test.ts :: path-utils detects whether a relative import stays within the srcDir-relative tree",
       "tests/optimizer/path-utils.test.ts :: path-utils normalizes windows-style paths",
       "tests/optimizer/path-utils.test.ts :: path-utils preserves current computeRelPath behavior for paths outside srcDir",
@@ -1162,6 +1175,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 978
+    "total": 991
   }
 }

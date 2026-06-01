@@ -28,6 +28,7 @@ import { isSimpleIdentifierName } from '../utils/identifier-name.js';
 import { type SymbolName, mkSymbolName } from '../types/brands.js';
 import {
   analyzeCaptures,
+  buildClosureLexicalScopes,
   collectScopeIdentifiers,
 } from "../capture-analysis.js";
 import {
@@ -202,6 +203,14 @@ export function transformModule(
       bodyScopeIds.set(symbolName, bodyIds);
     }
 
+    // OSS-446 Bug 3: lexical scope chain per closure. The prior form used
+    // `enclosingExt`-only or `moduleScopeIds`-only fallbacks, both of which
+    // missed decls from intermediate non-marker enclosing functions (e.g.
+    // a module-level arrow wrapping a `useVisibleTask$(...)` call). The new
+    // map is the union of every enclosing function/arrow scope plus module
+    // scope at the closure's location.
+    const closureLexicalScopes = buildClosureLexicalScopes(program, closureNodes);
+
     // Run capture analysis with the correct parent scope for each extraction.
     for (const extraction of extractions) {
       const closureNode = closureNodes.get(extraction.symbolName);
@@ -209,12 +218,8 @@ export function transformModule(
 
       const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
 
-      let parentScopeIds: Set<string>;
-      if (enclosingExt) {
-        parentScopeIds = bodyScopeIds.get(enclosingExt.symbolName) ?? new Set();
-      } else {
-        parentScopeIds = moduleScopeIds;
-      }
+      const lexicalScope = closureLexicalScopes.get(extraction.symbolName);
+      const parentScopeIds: Set<string> = lexicalScope ?? moduleScopeIds;
 
       // For inlinedQrl extractions, populate captureNames from explicit captures
       if (extraction.isInlinedQrl) {

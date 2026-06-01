@@ -35,6 +35,7 @@ import {
   type ImportInfo,
 } from './marker-detection.js';
 import { isEventProp, transformEventPropName, collectPassiveDirectives } from './transform/event-handlers.js';
+import { collectJsxFunctionNamesFromIterable } from './transform/jsx-call-transform.js';
 import { getBasename, getDirectory, getExtension, getFileStem } from './path-utils.js';
 import { detectForeignJsxRuntime } from './utils/jsx-import-source.js';
 import { getQrlCalleeName } from './utils/qrl-naming.js';
@@ -254,6 +255,23 @@ interface ExtractWalkEnterContext {
   readonly imports: Map<string, ImportInfo>;
   readonly customInlined: Map<string, CustomInlinedInfo>;
   readonly hasNonQwikJsxImportSource: boolean;
+  /**
+   * OSS-446 Bug 1: Local names that resolve to a Qwik JSX-runtime function
+   * (`jsx` / `jsxs` / `jsxDEV` from `@qwik.dev/core` or anything imported from
+   * `@qwik.dev/core/jsx-runtime` / `@qwik.dev/core/jsx-dev-runtime`). Mirrors
+   * SWC's `handle_jsx` callee detection. Used to push naming context for
+   * peer-tool `jsx('tag', { onProp$: ... })` calls the same way JSX syntax
+   * already does for `<tag onProp$=...>`.
+   */
+  readonly jsxFunctions: ReadonlySet<string>;
+  /**
+   * OSS-446 Bug 1: tagged ObjectExpressions that are the props-bag (second
+   * arg) of a recognised JSX-runtime call. Tag value records the tag-kind
+   * derived from the first arg — string-literal → `'html'`, identifier →
+   * `'component'`. The Property handler reads this on enter to decide
+   * between literal-key push and event-handler normalisation.
+   */
+  readonly jsxPropObjects: Map<AstNode, 'html' | 'component'>;
   readonly naming: ContextStackForEnter;
   readonly activeSegmentBodies: readonly ActiveSegmentBody[];
   readonly pendingClosures: Array<{ extraction: ExtractionResult; node: AstFunction }>;
@@ -524,6 +542,15 @@ export function extractSegments(
   // pragma text for downstream phases (parent rewrite, segment codegen).
   const hasNonQwikJsxImportSource = detectForeignJsxRuntime(source).hasForeignJsxRuntime;
 
+  // OSS-446 Bug 1: identify local bindings that resolve to a Qwik JSX-runtime
+  // callable. Re-uses the same predicate used in segment codegen for the
+  // `jsx() → _jsxSorted` rewrite. Empty when the file imports no jsx-runtime
+  // names (e.g. pure JSX-syntax sources); the walker short-circuits cheaply.
+  const jsxFunctions: ReadonlySet<string> = collectJsxFunctionNamesFromIterable(
+    imports.values(),
+  );
+  const jsxPropObjects = new Map<AstNode, 'html' | 'component'>();
+
   // Per OSS-397 (OSS-391 Phase 2b): split walk state into Enter and Exit
   // context views so the type system enforces "enter pushes, leave pops."
   // Enter sees `naming` as a push-only `ContextStackForEnter`; Exit sees the
@@ -543,6 +570,8 @@ export function extractSegments(
     imports,
     customInlined,
     hasNonQwikJsxImportSource,
+    jsxFunctions,
+    jsxPropObjects,
     naming,
     activeSegmentBodies,
     pendingClosures,
@@ -624,7 +653,36 @@ export function extractSegments(
       }
 
       if (node.type === 'Property' && node.key?.type === 'Identifier') {
-        ctx.naming.push(node.key.name);
+        // OSS-446 Bug 1: when the surrounding ObjectExpression was tagged
+        // as a peer-tool JSX props bag (see the JSX-runtime CallExpression
+        // arm below), apply the same naming rules JSX syntax already uses
+        // for `<tag onProp$=...>` — `q_e_<event>` for HTML tags,
+        // `<key without $>` for components. Mirrors SWC's `handle_jsx_value`
+        // (transform.rs:1240) sharing the `ctx_name` path between JSX
+        // syntax and peer-tool jsx() calls.
+        const jsxKind = parent?.type === 'ObjectExpression'
+          ? ctx.jsxPropObjects.get(parent)
+          : undefined;
+        const rawKey = node.key.name;
+        let pushedKey: string;
+        if (jsxKind && rawKey.endsWith('$')) {
+          if (jsxKind === 'component') {
+            pushedKey = rawKey.slice(0, -1);
+          } else {
+            // HTML tag — match the JSX-attribute event-handler branch.
+            // Passive directives aren't a JSX-prop-bag concept (no
+            // `passive:click$` shorthand inside props objects), so pass
+            // an empty Set; `transformEventPropName` falls back to
+            // raw-name push when the prop isn't event-shaped.
+            const transformed = transformEventPropName(rawKey, new Set());
+            pushedKey = transformed
+              ? transformed.replace(/[-:]/g, '_')
+              : rawKey;
+          }
+        } else {
+          pushedKey = rawKey;
+        }
+        ctx.naming.push(pushedKey);
         pushCount++;
       }
 
@@ -639,6 +697,47 @@ export function extractSegments(
         if (calleeName.endsWith('$') && !isMarkerCall(node, imports, customInlined)) {
           ctx.naming.push(calleeName.slice(0, -1)); // "useMemo$" -> "useMemo"
           pushCount++;
+        } else if (
+          // OSS-446 Bug 1: peer-tool `jsx('tag', { onProp$: ... })` calls.
+          // SWC's `handle_jsx` (transform.rs:1163-1188) pushes the tag from
+          // arg[0] onto `stack_ctxt` before descending into the props bag,
+          // so any $() segment inside the bag inherits the tag in its
+          // displayName. Matches the existing `JSXElement` branch below,
+          // applied here for the peer-tool form (qwik-react codegen,
+          // hand-crafted `jsx('form', { onSubmit$: $() })`, etc.).
+          ctx.jsxFunctions.has(calleeName) &&
+          node.arguments &&
+          node.arguments.length >= 2
+        ) {
+          const tagArg = node.arguments[0];
+          const propsArg = node.arguments[1];
+          if (propsArg?.type === 'ObjectExpression') {
+            let tagPush: string | null = null;
+            let tagKind: 'html' | 'component' | null = null;
+            if (tagArg?.type === 'Literal' && typeof tagArg.value === 'string') {
+              tagPush = tagArg.value;
+              tagKind = 'html';
+            } else if (tagArg?.type === 'Identifier') {
+              tagPush = tagArg.name;
+              tagKind = 'component';
+            }
+            // Member-expression or other non-pushable tag (e.g. `jsx(M.N, ...)`)
+            // mirrors SWC's third arm at transform.rs:1184-1187 — no push, but
+            // we still tag the props bag so child Property keys land via the
+            // component-style rule (strip `$`) rather than the literal push.
+            if (tagPush) {
+              ctx.naming.push(tagPush);
+              pushCount++;
+            }
+            if (tagKind) {
+              ctx.jsxPropObjects.set(propsArg, tagKind);
+            } else {
+              // Default unknown tag kind to component-style stripping —
+              // matches SWC's component-arm behaviour for non-literal-string
+              // tag expressions.
+              ctx.jsxPropObjects.set(propsArg, 'component');
+            }
+          }
         }
       }
 

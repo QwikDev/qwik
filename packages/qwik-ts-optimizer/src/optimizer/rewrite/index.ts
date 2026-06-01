@@ -29,7 +29,12 @@ import {
 } from '../rewrite-calls.js';
 import { isEventHandlerOrJsxProp, isStrippedSegment, matchesRegCtxName } from './predicates.js';
 import { transformEventPropName } from '../transform/event-handlers.js';
-import { transformAllJsx } from '../transform/jsx.js';
+import { transformAllJsx, JsxKeyCounter } from '../transform/jsx.js';
+import { computeKeyPrefix } from '../key-prefix.js';
+import {
+  collectJsxFunctionNamesFromIterable,
+  transformJsxCalls,
+} from '../transform/jsx-call-transform.js';
 import { stripExportDeclarations } from '../strip-exports.js';
 import { replaceConstants } from '../const-replacement.js';
 import type { EmitMode } from '../types.js';
@@ -265,6 +270,7 @@ export function rewriteParentModule(
   removeDuplicateExports(ctx);
   addCaptureWrapping(ctx);
   runJsxTransform(ctx);
+  runPeerToolJsxCallTransform(ctx);
 
   // OSS-430: capture post-JSX-rewrite text for each module-level decl
   // that migration will MOVE into a segment file. The migration site in
@@ -794,6 +800,61 @@ function runJsxTransform(ctx: RewriteContext): void {
     },
   );
   ctx.jsxKeyCounterValue = ctx.jsxResult.keyCounterValue;
+}
+
+/**
+ * OSS-446 Bug 2: rewrite peer-tool `jsx()` / `jsxs()` / `jsxDEV()` calls in
+ * the parent body to `_jsxSorted` / `_jsxSplit` form. Previously this only
+ * happened inside segment bodies (OSS-379 Phase 5b), but parent bodies can
+ * contain plain functions producing `jsx('tag', {...})` (e.g. the
+ * qwik_router_client `Form` / `ServiceWorkerRegister` factories) that need
+ * the same rewrite — `_jsxSorted` / `_wrapProp` / etc. imports show up
+ * automatically alongside whatever `transformAllJsx` already required.
+ *
+ * Runs as a sibling of `runJsxTransform`, NOT inside it, because the
+ * peer-tool form is independent of JSX-syntax handling: this fixture's
+ * `.mjs` extension means `ctx.jsxOptions` is undefined (`runJsxTransform`
+ * short-circuits) but peer-tool `jsx()` calls still need rewriting.
+ */
+function runPeerToolJsxCallTransform(ctx: RewriteContext): void {
+  // Foreign `@jsxImportSource` (OSS-431) is for JSX syntax, not the peer-tool
+  // form; even with a foreign pragma, a `jsx(...)` call resolving to a Qwik-
+  // runtime import should still be rewritten.
+  const parentJsxFunctions = collectJsxFunctionNamesFromIterable(
+    ctx.originalImports.values(),
+  );
+  if (parentJsxFunctions.size === 0) return;
+
+  const neededParentImports = new Set<string>();
+  const parentKeyPrefix = ctx.relPath ? computeKeyPrefix(ctx.relPath) : 'u6';
+  const parentKeyCounter = new JsxKeyCounter(
+    ctx.jsxKeyCounterValue ?? 0,
+    parentKeyPrefix,
+  );
+  // Skip jsx() calls inside extraction argument ranges — segment-side
+  // codegen handles those, and the parent's MagicString has already replaced
+  // (or scheduled replacement of) those ranges with `q_<sym>` references.
+  // Reading from a replaced anchor errors out of MagicString.
+  const skipRanges = ctx.extractions.map((e) => ({
+    start: e.argStart,
+    end: e.argEnd,
+  }));
+  transformJsxCalls(ctx.source, ctx.s, ctx.program, {
+    jsxFunctions: parentJsxFunctions,
+    keyCounter: parentKeyCounter,
+    neededImports: neededParentImports,
+    skipRanges,
+  });
+  ctx.jsxKeyCounterValue = parentKeyCounter.current();
+
+  // Imports `transformJsxCalls` declared (`_jsxSorted`, `_wrapProp`, …) ride
+  // through `collectNeededImports` alongside anything else needed. Sourced
+  // from `@qwik.dev/core` — the same provenance segment-side rewriting uses.
+  for (const name of neededParentImports) {
+    if (!ctx.neededImports.has(name)) {
+      ctx.neededImports.set(name, '@qwik.dev/core');
+    }
+  }
 }
 
 /**

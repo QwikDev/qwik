@@ -84,6 +84,15 @@ interface JsxCallTransformOptions {
    * `_wrapProp(...)` rewrite + `isStaticChildren` classification. Empty/absent
    * means no signal analysis (legacy behaviour). */
   reactiveBindings?: ReadonlySet<string>;
+  /**
+   * OSS-446 Bug 2: byte ranges to skip during the walk. Used by the
+   * parent-rewrite path so jsx() calls already inside a marker extraction's
+   * argument tree (where the parent emits `q_<sym>` and segment-codegen
+   * handles the jsx-call rewrite separately) are not double-transformed.
+   * Each range is `[start, end)`; calls whose start byte lies inside any
+   * range are left alone.
+   */
+  skipRanges?: ReadonlyArray<{ readonly start: number; readonly end: number }>;
 }
 
 /**
@@ -119,9 +128,24 @@ export function transformJsxCalls(
   // SWC does this signal analysis on JSX prop values + children. Limited
   // to the immediate jsx() call's argument tree — function bodies (arrow,
   // inlinedQrl callbacks) are separate scopes and aren't wrapped.
+  const skipRanges = opts.skipRanges ?? [];
+  const isInSkipRange = (start: number): boolean => {
+    for (const r of skipRanges) {
+      if (start >= r.start && start < r.end) return true;
+    }
+    return false;
+  };
+
   const reactiveBindings = collectReactiveBindings(program);
   if (reactiveBindings.size > 0) {
-    wrapReactiveAccessesInJsxCalls(s, program, opts.jsxFunctions, reactiveBindings, opts.neededImports);
+    wrapReactiveAccessesInJsxCalls(
+      s,
+      program,
+      opts.jsxFunctions,
+      reactiveBindings,
+      opts.neededImports,
+      isInSkipRange,
+    );
   }
   opts.reactiveBindings = reactiveBindings;
 
@@ -138,6 +162,11 @@ export function transformJsxCalls(
         node.arguments.length < 2 ||
         node.arguments[1]?.type !== 'ObjectExpression'
       ) return;
+
+      // OSS-446 Bug 2: skip ranges occupied by another transform (e.g. parent
+      // rewrite for $() / inlinedQrl arguments — segment-side codegen handles
+      // those jsx() calls separately).
+      if (isInSkipRange(node.start)) return;
 
       const isNested = nestedJsxStarts.has(node.start);
       const rewritten = buildJsxSortedCall(s, node, opts, isNested);
@@ -196,6 +225,7 @@ function wrapReactiveAccessesInJsxCalls(
   jsxFunctions: ReadonlySet<string>,
   reactiveBindings: ReadonlySet<string>,
   neededImports: Set<string>,
+  isInSkipRange: (start: number) => boolean = () => false,
 ): void {
   walk(program, {
     enter(node: AstNode) {
@@ -203,6 +233,9 @@ function wrapReactiveAccessesInJsxCalls(
       // `isJsxCall` already narrowed: this is a CallExpression with
       // arguments.length >= 2 and arguments[1] an ObjectExpression.
       if (node.type !== 'CallExpression') return;
+      // OSS-446 Bug 2: skip calls inside another transform's range — same
+      // gate as the main `_jsxSorted` rewrite below.
+      if (isInSkipRange(node.start)) return;
       const propsArg = node.arguments?.[1];
       if (!propsArg || propsArg.type !== 'ObjectExpression') return;
       walkAndWrap(propsArg, s, jsxFunctions, reactiveBindings, neededImports);
@@ -359,14 +392,22 @@ function buildJsxSortedCall(
   const isHtmlTag = tagArg.type === 'Literal' && typeof tagArg.value === 'string';
 
   // Partition props into `children` (positional 4th arg) and everything else
-  // (varProps bag). Anything that isn't a plain `Property` (e.g. spread
-  // inside the props object) is out of scope — leave the whole call
+  // (varProps bag). SpreadElement entries are preserved inline in source
+  // order — compareAst's `mergeJsxSplitProps` + `mergeGetVarConstProps`
+  // collapse SWC's `_jsxSplit(tag, {..._getVarProps(rest), ...}, _getConstProps(rest), ...)`
+  // into the same shape as `_jsxSorted(tag, {...rest, ...}, null, ...)`, so
+  // we emit the single-bag form regardless. Anything other than
+  // Property/SpreadElement (e.g. a setter) is out of scope — leave the call
   // unchanged.
   let childrenText: string | null = null;
   let childrenIsDynamic = false;
   let hasVarEventHandler = false;
   const varEntries: string[] = [];
   for (const prop of propsArg.properties) {
+    if (prop.type === 'SpreadElement') {
+      varEntries.push(s.slice(prop.start, prop.end));
+      continue;
+    }
     if (prop.type !== 'Property') return null;
     const keyName = propertyKeyName(prop);
     if (keyName === 'children' && !prop.computed) {

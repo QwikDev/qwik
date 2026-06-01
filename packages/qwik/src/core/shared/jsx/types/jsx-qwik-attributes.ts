@@ -94,6 +94,25 @@ type LcEventNameMap = {
 type PascalCaseName<T extends string> = T extends keyof LcEventNameMap
   ? LcEventNameMap[T]
   : Capitalize<T>;
+type LiteralEventName<K> = K extends string ? (string extends K ? never : K) : never;
+type ElementEventPropName<K> =
+  LiteralEventName<K> extends infer E
+    ? E extends string
+      ? `on${PascalCaseName<E>}$` | `on${PascalCaseName<E>}`
+      : never
+    : never;
+type DocumentEventPropName<K> =
+  LiteralEventName<K> extends infer E
+    ? E extends string
+      ? `document:on${PascalCaseName<E>}$` | `document:on${PascalCaseName<E>}`
+      : never
+    : never;
+type WindowEventPropName<K> =
+  LiteralEventName<K> extends infer E
+    ? E extends string
+      ? `window:on${PascalCaseName<E>}$` | `window:on${PascalCaseName<E>}`
+      : never
+    : never;
 
 type PreventDefault = {
   [K in keyof HTMLElementEventMap as `preventdefault:${K}`]?: boolean;
@@ -193,13 +212,13 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRLEventHandlerMulti<EV, EL>[];
 
 type JSXElementEvents = {
-  [K in keyof QwikHTMLElementEventMap as `on${PascalCaseName<K>}$`]: QwikHTMLElementEventMap[K];
+  [K in keyof QwikHTMLElementEventMap as ElementEventPropName<K>]: QwikHTMLElementEventMap[K];
 };
 type JSXDocumentEvents = {
-  [K in keyof QwikDocumentEventMap as `document:on${PascalCaseName<K>}$`]: QwikDocumentEventMap[K];
+  [K in keyof QwikDocumentEventMap as DocumentEventPropName<K>]: QwikDocumentEventMap[K];
 };
 type JSXWindowEvents = {
-  [K in keyof QwikWindowEventMap as `window:on${PascalCaseName<K>}$`]: QwikWindowEventMap[K];
+  [K in keyof QwikWindowEventMap as WindowEventPropName<K>]: QwikWindowEventMap[K];
 };
 type QwikJSXEvents = JSXElementEvents & JSXDocumentEvents & JSXWindowEvents;
 type QwikKnownEvents<EL> = {

@@ -13,6 +13,11 @@ export interface WorkerConstructorQRL {
 }
 
 /** @public */
+export interface WorkerConstructor {
+  <T extends WorkerFunction>(fn: T | QRL<T>): QRL<T>;
+}
+
+/** @public */
 export const workerQrl: WorkerConstructorQRL = (qrl) => {
   return $(async (...args: any[]) => {
     const filtered = sanitizeWorkerArgs(args);
@@ -27,3 +32,8 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
 
 /** @public */
 export const worker$ = implicit$FirstArg(workerQrl);
+
+/** @public */
+export const worker: WorkerConstructor = <T extends WorkerFunction>(fn: T | QRL<T>) => {
+  return workerQrl(fn as QRL<T>);
+};

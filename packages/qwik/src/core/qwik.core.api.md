@@ -96,6 +96,9 @@ export const component$: <PROPS = unknown>(onMount: OnRenderFn<PROPS>) => Compon
 export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 
 // @public (undocumented)
+export const component: <PROPS = unknown>(onMount: OnRenderFn<PROPS> | QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
+
+// @public (undocumented)
 export interface ComponentBaseProps {
     // (undocumented)
     'q:slot'?: string;
@@ -232,6 +235,9 @@ export interface CorrectedToggleEvent extends Event {
 // @public
 export const createAsync$: <T>(qrl: (arg: AsyncCtx<T>) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
 
+// @public (undocumented)
+export const createAsync: <T>(fn: ((arg: AsyncCtx) => Promise<T>) | QRL<(arg: AsyncCtx) => Promise<T>>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
+
 // Warning: (ae-forgotten-export) The symbol "AsyncSignalImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -240,6 +246,9 @@ export const createAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOpti
 
 // @public
 export const createComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>;
+
+// @public (undocumented)
+export const createComputed: <T>(fn: (() => T) | QRL<() => T>, options?: ComputedOptions) => ComputedReturnType<T>;
 
 // Warning: (ae-forgotten-export) The symbol "ComputedSignalImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
@@ -259,10 +268,12 @@ export function _createDeserializeContainer(stateData: unknown[]): DeserializeCo
 export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: Readonly<unknown[]> | string | null, container?: _Container) => _QRLInternal<TYPE>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializerArg" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "SerializerSignal" needs to be exported by the entry point index.d.ts
 //
 // @public
 export const createSerializer$: <T, S>(arg: SerializerArg<T, S>) => T extends Promise<any> ? never : SerializerSignal<T>;
+
+// @public (undocumented)
+export const createSerializer: <T, S>(arg: SerializerArg<T, S> | QRL<SerializerArg<T, S>>) => T extends Promise<any> ? never : SerializerSignal<T>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializerSignalImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createSerializerQrl" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1075,6 +1086,11 @@ export type SerializationStrategy = 'never' | 'always';
 
 // @internal
 export function _serialize<T>(data: T): Promise<string>;
+
+// @public
+export interface SerializerSignal<T> extends ComputedSignal<T> {
+    __no_serialize__: true;
+}
 
 // @public
 export const SerializerSymbol: unique symbol;
@@ -1902,6 +1918,9 @@ export function _updateProjectionProps(container: _Container, vnode: _VirtualVNo
 // @public
 export const useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) => AsyncSignal<T>;
 
+// @public (undocumented)
+export const useAsync: <T>(fn: AsyncFn<T> | QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
+
 // Warning: (ae-internal-missing-underscore) The name "useAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -1909,6 +1928,9 @@ export const useAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions
 
 // @public
 export const useComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | undefined) => ComputedReturnType<T>;
+
+// @public (undocumented)
+export const useComputed: <T>(fn: ComputedFn<T> | QRL<ComputedFn<T>>, options?: ComputedOptions) => ComputedReturnType<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1941,12 +1963,13 @@ export const useId: () => string;
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
 // Warning: (ae-forgotten-export) The symbol "EventQRL" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EventFromName" needs to be exported by the entry point index.d.ts
 //
 // @public
-export const useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void;
+export const useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T> | EventHandler<EventFromName<T>, Element>, options?: UseOnOptions) => void;
 
 // @public
-export const useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void;
+export const useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T> | EventHandler<EventFromName<T>, Element>, options?: UseOnOptions) => void;
 
 // Warning: (ae-forgotten-export) The symbol "UseOnOptionsBase" needs to be exported by the entry point index.d.ts
 //
@@ -1960,10 +1983,13 @@ export type UseOnOptions = UseOnOptionsBase & ({
 });
 
 // @public
-export const useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void;
+export const useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T> | EventHandler<EventFromName<T>, Element>, options?: UseOnOptions) => void;
 
 // @public @deprecated
 export const useResource$: <T>(qrl: ResourceFn<T>, opts?: ResourceOptions | undefined) => ResourceReturn<T>;
+
+// @public (undocumented)
+export const useResource: <T>(fn: ResourceFn<T> | QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useResourceQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1972,6 +1998,9 @@ export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions
 
 // @public
 export const useSerializer$: typeof createSerializer$;
+
+// @public (undocumented)
+export const useSerializer: <T, S>(arg: SerializerArg<T, S> | QRL<SerializerArg<T, S>>) => T extends Promise<any> ? never : SerializerSignal<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useSerializerQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -2004,10 +2033,17 @@ export interface UseStoreOptions {
     reactive?: boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "UseStyles" needs to be exported by the entry point index.d.ts
-//
 // @public
 export const useStyles$: (qrl: string) => UseStyles;
+
+// @public (undocumented)
+export interface UseStyles {
+    // (undocumented)
+    styleId: string;
+}
+
+// @public (undocumented)
+export const useStyles: (styles: string | QRL<string>) => UseStyles;
 
 // Warning: (ae-internal-missing-underscore) The name "useStylesQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -2023,6 +2059,9 @@ export interface UseStylesScoped {
     scopeId: string;
 }
 
+// @public (undocumented)
+export const useStylesScoped: (styles: string | QRL<string>) => UseStylesScoped;
+
 // Warning: (ae-internal-missing-underscore) The name "useStylesScopedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -2031,6 +2070,9 @@ export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 // @public
 export const useTask$: (fn: TaskFn, opts?: TaskOptions) => void;
 
+// @public (undocumented)
+export const useTask: (fn: TaskFn | QRL<TaskFn>, opts?: TaskOptions) => void;
+
 // Warning: (ae-internal-missing-underscore) The name "useTaskQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -2038,6 +2080,9 @@ export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: TaskOptions) => void;
 
 // @public
 export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;
+
+// @public (undocumented)
+export const useVisibleTask: (fn: TaskFn | QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // Warning: (ae-internal-missing-underscore) The name "useVisibleTaskQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //

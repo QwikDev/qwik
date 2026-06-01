@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 150
 expression: output
 ---
 ==INPUT==
@@ -21,11 +20,11 @@ export function App() {
 
 import { qrl } from "@qwik.dev/core";
 //
-const q_App_Header_component_div_onClick_aO7uI7Iw6oQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ"), "App_Header_component_div_onClick_aO7uI7Iw6oQ");
+const q_App_Header_component_div_q_e_click_tbeQzUb0b9Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_div_q_e_click_tbeQzUb0b9Q"), "App_Header_component_div_q_e_click_tbeQzUb0b9Q");
 //
 export const App_Header_component_B9F3YeqcO1w = ()=>{
     console.log("mount");
-    return <div onClick={q_App_Header_component_div_onClick_aO7uI7Iw6oQ}/>;
+    return <div q-e:click={q_App_Header_component_div_q_e_click_tbeQzUb0b9Q}/>;
 };
 
 
@@ -50,20 +49,34 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ.tsx (ENTRY POINT)==
+============================= test.tsx ==
 
-export const App_Header_component_div_onClick_aO7uI7Iw6oQ = (ctx)=>console.log(ctx);
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_Header_component_B9F3YeqcO1w = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_B9F3YeqcO1w"), "App_Header_component_B9F3YeqcO1w");
+//
+export function App() {
+    const Header = /*#__PURE__*/ componentQrl(q_App_Header_component_B9F3YeqcO1w);
+    return Header;
+}
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"4DAMmB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,SAAS;IACf,MAAM,uBAAS;IAMf,OAAO;AACR\"}")
+============================= test.tsx_App_Header_component_div_q_e_click_tbeQzUb0b9Q.tsx (ENTRY POINT)==
+
+export const App_Header_component_div_q_e_click_tbeQzUb0b9Q = (ctx)=>console.log(ctx);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8DAMmB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Header_component_div_onClick_aO7uI7Iw6oQ",
+  "name": "App_Header_component_div_q_e_click_tbeQzUb0b9Q",
   "entry": null,
-  "displayName": "test.tsx_App_Header_component_div_onClick",
-  "hash": "aO7uI7Iw6oQ",
-  "canonicalFilename": "test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ",
+  "displayName": "test.tsx_App_Header_component_div_q_e_click",
+  "hash": "tbeQzUb0b9Q",
+  "canonicalFilename": "test.tsx_App_Header_component_div_q_e_click_tbeQzUb0b9Q",
   "path": "",
   "extension": "tsx",
   "parent": "App_Header_component_B9F3YeqcO1w",
@@ -79,20 +92,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx ==
-
-import { componentQrl } from "@qwik.dev/core";
-import { qrl } from "@qwik.dev/core";
-//
-const q_App_Header_component_B9F3YeqcO1w = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_B9F3YeqcO1w"), "App_Header_component_B9F3YeqcO1w");
-//
-export function App() {
-    const Header = /*#__PURE__*/ componentQrl(q_App_Header_component_B9F3YeqcO1w);
-    return Header;
-}
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,SAAS;IACf,MAAM,uBAAS;IAMf,OAAO;AACR\"}")
 == DIAGNOSTICS ==
 
 []

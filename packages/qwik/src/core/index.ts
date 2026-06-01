@@ -18,7 +18,7 @@ if (import.meta.hot) {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Core API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { componentQrl, component$ } from './shared/component.public';
+export { componentQrl, component$, component } from './shared/component.public';
 
 export type { PropsOf, OnRenderFn, Component, PublicProps } from './shared/component.public';
 
@@ -125,20 +125,27 @@ export { untrack } from './use/use-core';
 export { useId } from './use/use-id';
 export { useContext, useContextProvider, createContextId } from './use/use-context';
 export { useServerData } from './use/use-env-data';
-export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
+export {
+  useStylesQrl,
+  useStyles$,
+  useStyles,
+  useStylesScopedQrl,
+  useStylesScoped$,
+  useStylesScoped,
+} from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, type UseOnOptions } from './use/use-on';
 export { useSignal, useConstant } from './use/use-signal';
 export { withLocale, getLocale } from './use/use-locale';
 
-export type { UseStylesScoped } from './use/use-styles';
+export type { UseStyles, UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';
 export type { ContextId } from './use/use-context';
 export type { UseStoreOptions } from './use/use-store.public';
 export type { ComputedFn, ComputedReturnType } from './use/use-computed';
 export { useComputedQrl } from './use/use-computed';
-export { useSerializerQrl, useSerializer$ } from './use/use-serializer';
+export { useSerializerQrl, useSerializer$, useSerializer } from './use/use-serializer';
 export type { OnVisibleTaskOptions, VisibleTaskStrategy } from './use/use-visible-task';
-export { useVisibleTaskQrl } from './use/use-visible-task';
+export { useVisibleTaskQrl, useVisibleTask } from './use/use-visible-task';
 export type { TaskCtx, TaskFn, Tracker, TaskOptions } from './use/use-task';
 export type {
   ResourceProps,
@@ -150,14 +157,14 @@ export type {
   ResourceResolved,
   ResourceReturn,
 } from './use/use-resource';
-export { useResourceQrl, Resource } from './use/use-resource';
+export { useResourceQrl, useResource, Resource } from './use/use-resource';
 export { useResource$ } from './use/use-resource-dollar';
-export { useTaskQrl } from './use/use-task';
+export { useTaskQrl, useTask } from './use/use-task';
 export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
-export { useComputed$ } from './use/use-computed';
+export { useComputed$, useComputed } from './use/use-computed';
 export type { AsyncFn } from './use/use-async';
-export { useAsyncQrl, useAsync$ } from './use/use-async';
+export { useAsyncQrl, useAsync$, useAsync } from './use/use-async';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export {
@@ -165,16 +172,20 @@ export {
   type AsyncSignal,
   type Signal,
   type ComputedSignal,
+  type SerializerSignal,
 } from './reactive-primitives/signal.public';
 export {
   isSignal,
   createSignal,
   createComputedQrl,
   createComputed$,
+  createComputed,
   createSerializerQrl,
   createSerializer$,
+  createSerializer,
   createAsyncQrl,
   createAsync$,
+  createAsync,
 } from './reactive-primitives/signal.public';
 export type { ComputedOptions } from './reactive-primitives/types';
 

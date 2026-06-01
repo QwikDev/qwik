@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 269
 expression: output
 ---
 ==INPUT==
@@ -46,11 +45,11 @@ export const Header_WlR3xnI6u38 = (decl1, { decl2 }, [decl3])=>{
             return ident10;
         }
     }
-    return <div onClick={(ident11)=>ident11 + ident12} required={false}/>;
+    return <div q-e:click={(ident11)=>ident11 + ident12} required={false}/>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IAE3B,OAAO,EAAE;IACtB;IACU,QAAS;IACT,QAAS;IACnB,OAAO,QAAQ;QAAC;KAAO,EAAE;QAAC;IAAM,GAAG;QAAC,KAAK;IAAM;IAC/C,MAAM;QACL,OAAO,OAAO;QACd,SAAS;YACR,OAAO;QACR;IACD;IAEA,QACE,IAAI,SAAS,CAAC,UAAY,UAAU,SAAS,UAAU;AAE1D\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IAE3B,OAAO,EAAE;IACtB;IACU,QAAS;IACT,QAAS;IACnB,OAAO,QAAQ;QAAC;KAAO,EAAE;QAAC;IAAM,GAAG;QAAC,KAAK;IAAM;IAC/C,MAAM;QACL,OAAO,OAAO;QACd,SAAS;YACR,OAAO;QACR;IACD;IAEA,QACE,IAAI,WAAS,CAAC,UAAY,UAAU,SAAS,UAAU;AAE1D\"}")
 /*
 {
   "origin": "project/test.tsx",

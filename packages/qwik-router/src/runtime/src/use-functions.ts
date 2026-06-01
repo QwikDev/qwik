@@ -24,6 +24,10 @@ import type {
   RouteNavigate,
 } from './types';
 
+const toQrl = <T>(value: T | QRL<T>): QRL<T> => {
+  return value as QRL<T>;
+};
+
 /** @public */
 export const useHttpStatus = () => useContext(HttpStatusContext).value;
 
@@ -90,6 +94,11 @@ export const usePreventNavigateQrl = (fn: QRL<PreventNavigateCallback>): void =>
  * @public
  */
 export const usePreventNavigate$ = implicit$FirstArg(usePreventNavigateQrl);
+
+/** @public */
+export const usePreventNavigate = (fn: PreventNavigateCallback | QRL<PreventNavigateCallback>) => {
+  return usePreventNavigateQrl(toQrl(fn));
+};
 
 export const useAction = (): RouteAction => useContext(RouteActionContext);
 

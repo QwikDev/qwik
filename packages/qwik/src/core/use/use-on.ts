@@ -1,4 +1,5 @@
-import type { QRL } from '../shared/qrl/qrl.public';
+import { dollar, type QRL } from '../shared/qrl/qrl.public';
+import { isQrl } from '../shared/qrl/qrl-utils';
 import { useInvokeContext } from './use-core';
 import { type KnownEventNames } from '../shared/jsx/types/jsx-qwik-events';
 import type {
@@ -49,7 +50,7 @@ export type UseOnOptions = UseOnOptionsBase &
 // </docs>
 export const useOn = <T extends KnownEventNames>(
   event: T | T[],
-  eventQrl: EventQRL<T>,
+  eventQrl: EventQRL<T> | EventHandler<EventFromName<T>, Element>,
   options?: UseOnOptions
 ) => {
   _useOn(
@@ -93,7 +94,7 @@ export const useOn = <T extends KnownEventNames>(
 // </docs>
 export const useOnDocument = <T extends KnownEventNames>(
   event: T | T[],
-  eventQrl: EventQRL<T>,
+  eventQrl: EventQRL<T> | EventHandler<EventFromName<T>, Element>,
   options?: UseOnOptions
 ) => {
   _useOn(
@@ -138,7 +139,7 @@ export const useOnDocument = <T extends KnownEventNames>(
 // </docs>
 export const useOnWindow = <T extends KnownEventNames>(
   event: T | T[],
-  eventQrl: EventQRL<T>,
+  eventQrl: EventQRL<T> | EventHandler<EventFromName<T>, Element>,
   options?: UseOnOptions
 ) => {
   _useOn(
@@ -152,7 +153,7 @@ export const useOnWindow = <T extends KnownEventNames>(
 const _useOn = (
   prefix: EventNameHtmlScope,
   eventName: string | string[],
-  eventQrl: EventQRL,
+  eventQrl: EventQRL | EventHandler,
   options?: UseOnOptions
 ) => {
   const { isAdded, addEvent } = useOnEventsSequentialScope();
@@ -160,13 +161,14 @@ const _useOn = (
     return;
   }
   if (eventQrl) {
+    const qrl = (isQrl(eventQrl) ? eventQrl : dollar(eventQrl)) as EventQRL<KnownEventNames>;
     if (Array.isArray(eventName)) {
       for (let i = 0; i < eventName.length; i++) {
         const event = eventName[i];
-        addEvent(prefix + fromCamelToKebabCase(event), eventQrl, options);
+        addEvent(prefix + fromCamelToKebabCase(event), qrl, options);
       }
     } else {
-      addEvent(prefix + fromCamelToKebabCase(eventName), eventQrl, options);
+      addEvent(prefix + fromCamelToKebabCase(eventName), qrl, options);
     }
   }
 };

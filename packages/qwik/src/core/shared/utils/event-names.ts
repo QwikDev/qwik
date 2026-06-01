@@ -27,13 +27,13 @@ export const enum EventNameHtmlScope {
 export const EVENT_SUFFIX = '$';
 export const DOM_CONTENT_LOADED_EVENT = 'DOMContentLoaded';
 
+const getJsxEventName = (name: string, idx: number): string => {
+  return name.slice(idx, name.endsWith(EVENT_SUFFIX) ? -1 : undefined);
+};
+
 export const isJsxPropertyAnEventName = (name: string): boolean => {
-  return (
-    name.endsWith(EVENT_SUFFIX) &&
-    (name.startsWith(EventNameJSXScope.on) ||
-      name.startsWith(EventNameJSXScope.window) ||
-      name.startsWith(EventNameJSXScope.document))
-  );
+  const [, idx] = getEventScopeDataFromJsxEvent(name);
+  return idx !== -1 && getJsxEventName(name, idx).length > 0;
 };
 
 export const isHtmlAttributeAnEventName = (name: string): boolean => {
@@ -46,11 +46,12 @@ export const isHtmlAttributeAnEventName = (name: string): boolean => {
 };
 
 export function jsxEventToHtmlAttribute(jsxEvent: string, isPassive = false): string | null {
-  if (jsxEvent.endsWith(EVENT_SUFFIX)) {
-    const [prefix, idx] = getEventScopeDataFromJsxEvent(jsxEvent, isPassive);
+  const [prefix, idx] = getEventScopeDataFromJsxEvent(jsxEvent, isPassive);
+  if (idx !== -1) {
+    const eventName = getJsxEventName(jsxEvent, idx);
 
-    if (idx !== -1) {
-      return prefix + normalizeJsxEventName(jsxEvent.slice(idx, -1));
+    if (eventName) {
+      return prefix + normalizeJsxEventName(eventName);
     }
   }
   return null; // Return null if not matching expected format

@@ -632,7 +632,32 @@ cleanup(): void;
 
 void
 
-<h2 id="component">Component</h2>
+<h2 id="component-function">component</h2>
+
+Type representing the Qwik component.
+
+`Component` is the type returned by invoking `component$`.
+
+```tsx
+interface MyComponentProps {
+  someProp: string;
+}
+const MyComponent: Component<MyComponentProps> = component$(
+  (props: MyComponentProps) => {
+    return <span>{props.someProp}</span>;
+  },
+);
+```
+
+```typescript
+export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
+```
+
+**References:** [FunctionComponent](#functioncomponent), [PublicProps](#publicprops)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
+
+<h2 id="component-type-alias">Component</h2>
 
 Type representing the Qwik component.
 
@@ -731,7 +756,7 @@ onMount
 
 **Returns:**
 
-[Component](#component)&lt;PROPS&gt;
+[Component](#component-type-alias)&lt;PROPS&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
 
@@ -1172,6 +1197,60 @@ prevState
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
 
+<h2 id="createasync">createAsync</h2>
+
+```typescript
+createAsync: <T>(
+  fn: ((arg: AsyncCtx) => Promise<T>) | QRL<(arg: AsyncCtx) => Promise<T>>,
+  options?: AsyncSignalOptions<T>,
+) => AsyncSignal<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fn
+
+</td><td>
+
+((arg: AsyncCtx) =&gt; Promise&lt;T&gt;) \| [QRL](#qrl-type-alias)&lt;(arg: AsyncCtx) =&gt; Promise&lt;T&gt;&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[AsyncSignalOptions](#asyncsignaloptions)&lt;T&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[AsyncSignal](#asyncsignal)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
+
 <h2 id="createasync_">createAsync$</h2>
 
 Create a signal holding a `.value` which is calculated from the given async function (QRL). The standalone version of `useAsync$`.
@@ -1225,6 +1304,58 @@ _(Optional)_
 **Returns:**
 
 [AsyncSignal](#asyncsignal)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
+
+<h2 id="createcomputed">createComputed</h2>
+
+```typescript
+createComputed: <T>(fn: (() => T) | QRL<() => T>, options?: ComputedOptions) =>
+  ComputedReturnType<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fn
+
+</td><td>
+
+(() =&gt; T) \| [QRL](#qrl-type-alias)&lt;() =&gt; T&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[ComputedOptions](#computedoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[ComputedReturnType](#computedreturntype)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
@@ -1368,6 +1499,44 @@ The name of the context.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
+<h2 id="createserializer">createSerializer</h2>
+
+```typescript
+createSerializer: <T, S>(arg: SerializerArg<T, S> | QRL<SerializerArg<T, S>>) => T extends Promise<any> ? never : SerializerSignal<T>
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+arg
+
+</td><td>
+
+SerializerArg&lt;T, S&gt; \| [QRL](#qrl-type-alias)&lt;SerializerArg&lt;T, S&gt;&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+T extends Promise&lt;any&gt; ? never : [SerializerSignal](#serializersignal)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
+
 <h2 id="createserializer_">createSerializer$</h2>
 
 Create a signal that holds a custom serializable value. See [useSerializer$](#useserializer_) for more details.
@@ -1404,7 +1573,7 @@ SerializerArg&lt;T, S&gt;
 
 **Returns:**
 
-T extends Promise&lt;any&gt; ? never : SerializerSignal&lt;T&gt;
+T extends Promise&lt;any&gt; ? never : [SerializerSignal](#serializersignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
@@ -3069,7 +3238,7 @@ export type PropsOf<COMP> = COMP extends string
       : never;
 ```
 
-**References:** [QwikIntrinsicElements](#qwikintrinsicelements), [FunctionComponent](#functioncomponent), [Component](#component)
+**References:** [QwikIntrinsicElements](#qwikintrinsicelements), [FunctionComponent](#functioncomponent), [Component](#component-type-alias)
 
 ```tsx
 const Desc = component$(
@@ -4442,6 +4611,52 @@ export type SerializationStrategy = "never" | "always";
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/types.ts)
+
+<h2 id="serializersignal">SerializerSignal</h2>
+
+A serializer signal holds a custom serializable value. See `useSerializer$` for more details.
+
+```typescript
+export interface SerializerSignal<T> extends ComputedSignal<T>
+```
+
+**Extends:** [ComputedSignal](#computedsignal)&lt;T&gt;
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+\_\_no_serialize\_\_
+
+</td><td>
+
+</td><td>
+
+true
+
+</td><td>
+
+Fake property to make the serialization linter happy
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 <h2 id="serializersymbol">SerializerSymbol</h2>
 
@@ -9322,6 +9537,60 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts)
 
+<h2 id="useasync">useAsync</h2>
+
+```typescript
+useAsync: <T>(
+  fn: AsyncFn<T> | QRL<AsyncFn<T>>,
+  options?: AsyncSignalOptions<T>,
+) => AsyncSignal<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fn
+
+</td><td>
+
+[AsyncFn](#asyncfn)&lt;T&gt; \| [QRL](#qrl-type-alias)&lt;[AsyncFn](#asyncfn)&lt;T&gt;&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[AsyncSignalOptions](#asyncsignaloptions)&lt;T&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[AsyncSignal](#asyncsignal)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
+
 <h2 id="useasync_">useAsync$</h2>
 
 Creates an AsyncSignal which holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.
@@ -9383,6 +9652,60 @@ _(Optional)_
 [AsyncSignal](#asyncsignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
+
+<h2 id="usecomputed">useComputed</h2>
+
+```typescript
+useComputed: <T>(
+  fn: ComputedFn<T> | QRL<ComputedFn<T>>,
+  options?: ComputedOptions,
+) => ComputedReturnType<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fn
+
+</td><td>
+
+[ComputedFn](#computedfn)&lt;T&gt; \| [QRL](#qrl-type-alias)&lt;[ComputedFn](#computedfn)&lt;T&gt;&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[ComputedOptions](#computedoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[ComputedReturnType](#computedreturntype)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
 <h2 id="usecomputed_">useComputed$</h2>
 
@@ -9676,7 +9999,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 Events are case sensitive.
 
 ```typescript
-useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void
+useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T> | EventHandler<EventFromName<T>, Element>, options?: UseOnOptions) => void
 ```
 
 <table><thead><tr><th>
@@ -9709,7 +10032,7 @@ eventQrl
 
 </td><td>
 
-EventQRL&lt;T&gt;
+EventQRL&lt;T&gt; \| [EventHandler](#eventhandler)&lt;EventFromName&lt;T&gt;, Element&gt;
 
 </td><td>
 
@@ -9744,7 +10067,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 Events are case sensitive.
 
 ```typescript
-useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void
+useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T> | EventHandler<EventFromName<T>, Element>, options?: UseOnOptions) => void
 ```
 
 <table><thead><tr><th>
@@ -9777,7 +10100,7 @@ eventQrl
 
 </td><td>
 
-EventQRL&lt;T&gt;
+EventQRL&lt;T&gt; \| [EventHandler](#eventhandler)&lt;EventFromName&lt;T&gt;, Element&gt;
 
 </td><td>
 
@@ -9830,7 +10153,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 Events are case sensitive.
 
 ```typescript
-useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void
+useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T> | EventHandler<EventFromName<T>, Element>, options?: UseOnOptions) => void
 ```
 
 <table><thead><tr><th>
@@ -9863,7 +10186,7 @@ eventQrl
 
 </td><td>
 
-EventQRL&lt;T&gt;
+EventQRL&lt;T&gt; \| [EventHandler](#eventhandler)&lt;EventFromName&lt;T&gt;, Element&gt;
 
 </td><td>
 
@@ -9888,6 +10211,60 @@ _(Optional)_
 void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
+
+<h2 id="useresource">useResource</h2>
+
+```typescript
+useResource: <T>(
+  fn: ResourceFn<T> | QRL<ResourceFn<T>>,
+  opts?: ResourceOptions,
+) => ResourceReturn<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fn
+
+</td><td>
+
+[ResourceFn](#resourcefn)&lt;T&gt; \| [QRL](#qrl-type-alias)&lt;[ResourceFn](#resourcefn)&lt;T&gt;&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+opts
+
+</td><td>
+
+[ResourceOptions](#resourceoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[ResourceReturn](#resourcereturn)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 <h2 id="useresource_">useResource$</h2>
 
@@ -9956,6 +10333,44 @@ _(Optional)_
 import("./use-resource").[ResourceReturn](#resourcereturn)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts)
+
+<h2 id="useserializer">useSerializer</h2>
+
+```typescript
+useSerializer: <T, S>(arg: SerializerArg<T, S> | QRL<SerializerArg<T, S>>) => T extends Promise<any> ? never : SerializerSignal<T>
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+arg
+
+</td><td>
+
+SerializerArg&lt;T, S&gt; \| [QRL](#qrl-type-alias)&lt;SerializerArg&lt;T, S&gt;&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+T extends Promise&lt;any&gt; ? never : [SerializerSignal](#serializersignal)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-serializer.ts)
 
 <h2 id="useserializer_">useSerializer$</h2>
 
@@ -10306,6 +10721,86 @@ _(Optional)_ If `false` then the object will not be tracked for changes. Default
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts)
 
+<h2 id="usestyles-function">useStyles</h2>
+
+```typescript
+export interface UseStyles
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+styleId
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+
+<h2 id="usestyles-interface">UseStyles</h2>
+
+```typescript
+export interface UseStyles
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+styleId
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+
 <h2 id="usestyles_">useStyles$</h2>
 
 A lazy-loadable reference to a component's styles.
@@ -10354,11 +10849,51 @@ string
 
 **Returns:**
 
-UseStyles
+[UseStyles](#usestyles-interface)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
-<h2 id="usestylesscoped">UseStylesScoped</h2>
+<h2 id="usestylesscoped-function">useStylesScoped</h2>
+
+```typescript
+export interface UseStylesScoped
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+scopeId
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+
+<h2 id="usestylesscoped-interface">UseStylesScoped</h2>
 
 ```typescript
 export interface UseStylesScoped
@@ -10446,9 +10981,60 @@ string
 
 **Returns:**
 
-[UseStylesScoped](#usestylesscoped)
+[UseStylesScoped](#usestylesscoped-interface)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+
+<h2 id="usetask">useTask</h2>
+
+```typescript
+useTask: (fn: TaskFn | QRL<TaskFn>, opts?: TaskOptions) => void
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fn
+
+</td><td>
+
+[TaskFn](#taskfn) \| [QRL](#qrl-type-alias)&lt;[TaskFn](#taskfn)&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+opts
+
+</td><td>
+
+[TaskOptions](#taskoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 <h2 id="usetask_">useTask$</h2>
 
@@ -10506,6 +11092,57 @@ _(Optional)_
 void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
+
+<h2 id="usevisibletask">useVisibleTask</h2>
+
+```typescript
+useVisibleTask: (fn: TaskFn | QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fn
+
+</td><td>
+
+[TaskFn](#taskfn) \| [QRL](#qrl-type-alias)&lt;[TaskFn](#taskfn)&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+opts
+
+</td><td>
+
+[OnVisibleTaskOptions](#onvisibletaskoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts)
 
 <h2 id="usevisibletask_">useVisibleTask$</h2>
 

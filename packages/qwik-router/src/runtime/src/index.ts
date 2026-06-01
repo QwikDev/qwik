@@ -72,18 +72,25 @@ export {
 } from './qwik-router-component';
 export { RouterOutlet } from './router-outlet-component';
 export {
+  globalAction,
   globalAction$,
   globalActionQrl,
+  routeAction,
   routeAction$,
   routeActionQrl,
+  routeLoader,
   routeLoader$,
   routeLoaderQrl,
+  server,
   server$,
   serverQrl,
+  valibot,
   valibot$,
   valibotQrl,
+  validator,
   validator$,
   validatorQrl,
+  zod,
   zod$,
   zodQrl,
 } from './server-functions';
@@ -94,6 +101,7 @@ export {
   useHttpStatus,
   useLocation,
   useNavigate,
+  usePreventNavigate,
   usePreventNavigate$,
   usePreventNavigateQrl,
 } from './use-functions';

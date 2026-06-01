@@ -13,9 +13,12 @@ import { retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
 import {
+  createAsync,
   createAsync$,
+  createComputed,
   createComputed$,
   createComputedQrl,
+  createSerializer,
   createSerializer$,
   createSignal,
   type AsyncSignal,
@@ -44,6 +47,10 @@ describe('signal types', () => {
     expectTypeOf(signal).toEqualTypeOf<ComputedSignal<number>>();
     const signal2 = createComputed$<number>(() => 1);
     expectTypeOf(signal2).toEqualTypeOf<ComputedSignal<number>>();
+    const signal3 = createComputed(() => 1);
+    expectTypeOf(signal3).toEqualTypeOf<ComputedSignal<number>>();
+    const signal4 = createComputed($(() => 1));
+    expectTypeOf(signal4).toEqualTypeOf<ComputedSignal<number>>();
   });
   it('SerializerSignal<T, S>', () => () => {
     {
@@ -102,6 +109,30 @@ describe('signal types', () => {
       expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
       expectTypeOf(signal.value).toEqualTypeOf<Foo>();
     }
+    {
+      const signal = createSerializer({
+        deserialize: () => new Foo(),
+        serialize: (obj) => {
+          expect(obj).toBeInstanceOf(Foo);
+          return 1;
+        },
+      });
+      expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
+      expectTypeOf(signal.value).toEqualTypeOf<Foo>();
+    }
+    {
+      const signal = createSerializer(
+        $(() => ({
+          deserialize: () => new Foo(),
+          serialize: (obj: Foo) => {
+            expect(obj).toBeInstanceOf(Foo);
+            return 1;
+          },
+        }))
+      );
+      expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
+      expectTypeOf(signal.value).toEqualTypeOf<Foo>();
+    }
   });
   it('AsyncSignal<T>', () => async () => {
     const signal = createAsync$(() => Promise.resolve(42));
@@ -117,6 +148,10 @@ describe('signal types', () => {
     expectTypeOf(signal.abort()).toEqualTypeOf<void>();
     expectTypeOf(signal.invalidate()).toEqualTypeOf<void>();
     expectTypeOf(signal.invalidate('info')).toEqualTypeOf<void>();
+    const signal2 = createAsync(() => Promise.resolve(42));
+    expectTypeOf(signal2).toEqualTypeOf<AsyncSignal<number>>();
+    const signal3 = createAsync($(() => Promise.resolve(42)));
+    expectTypeOf(signal3).toEqualTypeOf<AsyncSignal<number>>();
   });
 });
 

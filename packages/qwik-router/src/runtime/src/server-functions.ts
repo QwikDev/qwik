@@ -63,6 +63,36 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
 
+const toQrl = <T>(value: T | QRL<T>): QRL<T> => {
+  return value as QRL<T>;
+};
+
+type ActionCompatInput =
+  | QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<unknown>>
+  | ((form: JSONObject, event: RequestEventAction) => ValueOrPromise<unknown>);
+
+type LoaderCompatInput =
+  | QRL<(event: RequestEventLoader) => ValueOrPromise<unknown>>
+  | ((event: RequestEventLoader) => ValueOrPromise<unknown>);
+
+type ValidatorCompatInput =
+  | QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
+  | ((ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>);
+
+type ValibotCompatInput =
+  | QRL<v.GenericSchema | v.GenericSchemaAsync>
+  | QRL<(ev: RequestEvent) => v.GenericSchema | v.GenericSchemaAsync>
+  | v.GenericSchema
+  | v.GenericSchemaAsync
+  | ((ev: RequestEvent) => v.GenericSchema | v.GenericSchemaAsync);
+
+type ZodCompatInput =
+  | QRL<z.ZodRawShape | z.Schema>
+  | QRL<(zod: typeof z.z, ev: RequestEvent) => z.ZodRawShape | z.Schema>
+  | z.ZodRawShape
+  | z.Schema
+  | ((zod: typeof z.z, ev: RequestEvent) => z.ZodRawShape | z.Schema);
+
 /** @internal */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
@@ -188,9 +218,25 @@ export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
 ) as any;
 
 /** @public */
+export const routeAction: ActionConstructor & ActionConstructorQRL = ((
+  action: ActionCompatInput,
+  ...rest: (ActionOptions | DataValidator)[]
+) => {
+  return routeActionQrl(toQrl(action), ...(rest as any));
+}) as any;
+
+/** @public */
 export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   globalActionQrl
 ) as any;
+
+/** @public */
+export const globalAction: ActionConstructor & ActionConstructorQRL = ((
+  action: ActionCompatInput,
+  ...rest: (ActionOptions | DataValidator)[]
+) => {
+  return globalActionQrl(toQrl(action), ...(rest as any));
+}) as any;
 
 const getValue = <T extends { value: any }>(obj: T) => obj.value;
 /** @internal */
@@ -235,6 +281,14 @@ export const routeLoaderQrl = ((
 /** @public */
 export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
+/** @public */
+export const routeLoader: LoaderConstructor & LoaderConstructorQRL = ((
+  loader: LoaderCompatInput,
+  ...rest: (LoaderOptions | DataValidator)[]
+) => {
+  return routeLoaderQrl(toQrl(loader), ...(rest as any));
+}) as any;
+
 /** @internal */
 export const validatorQrl = ((
   validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
@@ -249,6 +303,13 @@ export const validatorQrl = ((
 
 /** @public */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
+
+/** @public */
+export const validator: ValidatorConstructor & ValidatorConstructorQRL = ((
+  fn: ValidatorCompatInput
+) => {
+  return validatorQrl(toQrl(fn));
+}) as any;
 
 const flattenValibotIssues = (issues: v.GenericIssue[]) => {
   return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
@@ -323,6 +384,13 @@ export const valibotQrl: ValibotConstructorQRL = (
 /** @beta */
 export const valibot$: ValibotConstructor = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
 
+/** @beta */
+export const valibot: ValibotConstructor & ValibotConstructorQRL = ((
+  schema: ValibotCompatInput
+) => {
+  return valibotQrl(toQrl(schema) as Parameters<typeof valibotQrl>[0]);
+}) as any;
+
 const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
   issues = Array.isArray(issues) ? issues : [issues];
   return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
@@ -392,6 +460,11 @@ export const zodQrl: ZodConstructorQRL = (
 
 /** @public */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl);
+
+/** @public */
+export const zod: ZodConstructor & ZodConstructorQRL = ((schema: ZodCompatInput) => {
+  return zodQrl(toQrl(schema) as Parameters<typeof zodQrl>[0]);
+}) as any;
 
 /** @internal */
 export const serverQrl = <T extends ServerFunction>(
@@ -517,6 +590,14 @@ export const serverQrl = <T extends ServerFunction>(
 
 /** @public */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
+
+/** @public */
+export const server = <T extends ServerFunction>(
+  fn: T | QRL<T>,
+  options?: ServerConfig
+): ServerQRL<T> => {
+  return serverQrl(toQrl(fn), options);
+};
 
 const getValidators = (rest: (LoaderOptions | DataValidator)[], qrl: QRL) => {
   let id: string | undefined;

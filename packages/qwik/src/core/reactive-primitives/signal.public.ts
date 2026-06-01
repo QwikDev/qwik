@@ -1,4 +1,6 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
+import { dollar, type QRL } from '../shared/qrl/qrl.public';
+import { isQrl } from '../shared/qrl/qrl-utils';
 import type { AsyncCtx, AsyncSignalOptions, ComputedOptions, SerializerArg } from './types';
 import {
   createSignal as _createSignal,
@@ -173,6 +175,17 @@ export const createComputed$: <T>(
   qrl: () => T,
   options?: ComputedOptions
 ) => ComputedReturnType<T> = /*#__PURE__*/ implicit$FirstArg(createComputedQrl as any);
+
+/** @public */
+export const createComputed = <T>(
+  fn: (() => T) | QRL<() => T>,
+  options?: ComputedOptions
+): ComputedReturnType<T> => {
+  return createComputedQrl(
+    isQrl(fn) ? (fn as QRL<() => T>) : dollar(fn as () => T),
+    options
+  ) as any;
+};
 export { createComputedQrl };
 
 /**
@@ -185,6 +198,17 @@ export const createAsync$: <T>(
   qrl: (arg: AsyncCtx<T>) => Promise<T>,
   options?: AsyncSignalOptions<T>
 ) => AsyncSignal<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
+
+/** @public */
+export const createAsync = <T>(
+  fn: ((arg: AsyncCtx) => Promise<T>) | QRL<(arg: AsyncCtx) => Promise<T>>,
+  options?: AsyncSignalOptions<T>
+): AsyncSignal<T> => {
+  return createAsyncQrl(
+    (isQrl(fn) ? fn : dollar(fn as (arg: AsyncCtx) => Promise<T>)) as any,
+    options
+  );
+};
 export { createAsyncQrl };
 
 /**
@@ -198,4 +222,11 @@ export const createSerializer$: <T, S>(
 ) => T extends Promise<any> ? never : SerializerSignal<T> = implicit$FirstArg(
   createSerializerQrl as any
 );
+
+/** @public */
+export const createSerializer = <T, S>(
+  arg: SerializerArg<T, S> | QRL<SerializerArg<T, S>>
+): T extends Promise<any> ? never : SerializerSignal<T> => {
+  return createSerializerQrl((isQrl(arg) ? arg : dollar(arg as SerializerArg<T, S>)) as any) as any;
+};
 export { createSerializerQrl };

@@ -10,6 +10,15 @@ import { QRL } from '@qwik.dev/core';
 export const worker$: <T extends WorkerFunction>(qrl: T) => QRL<T>;
 
 // @public (undocumented)
+export const worker: WorkerConstructor;
+
+// @public (undocumented)
+export interface WorkerConstructor {
+    // (undocumented)
+    <T extends WorkerFunction>(fn: T | QRL<T>): QRL<T>;
+}
+
+// @public (undocumented)
 export interface WorkerConstructorQRL {
     // (undocumented)
     <T extends WorkerFunction>(fnQrl: QRL<T>): QRL<T>;

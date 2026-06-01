@@ -1,25 +1,50 @@
 import { describe, expectTypeOf, test } from 'vitest';
+import { $, type QRL } from '@qwik.dev/core';
+import * as v from 'valibot';
 import * as z from 'zod';
-import { server$ } from './server-functions';
-import type { RequestEventBase, ValidatorErrorType } from './types';
+import {
+  globalAction,
+  globalAction$,
+  routeAction,
+  routeAction$,
+  routeLoader,
+  routeLoader$,
+  server,
+  server$,
+  valibot,
+  valibot$,
+  validator,
+  validator$,
+  zod,
+  zod$,
+} from './server-functions';
+import type { JSONObject, RequestEventBase, ValidatorErrorType } from './types';
 
 describe('types', () => {
   test('matching', () => () => {
     const foo = () => server$(() => 'hello');
+    const plain = () => server(() => 'hello');
+    const qrl = () => server($(() => 'hello'));
 
     expectTypeOf(foo).not.toBeAny();
     expectTypeOf(foo).returns.toMatchTypeOf<() => Promise<string>>();
     expectTypeOf(foo).returns.toMatchTypeOf<(sig: AbortSignal) => Promise<string>>();
     expectTypeOf(foo).returns.not.toMatchTypeOf<(meep: boolean) => Promise<string>>();
+    expectTypeOf(plain).returns.toMatchTypeOf<() => Promise<string>>();
+    expectTypeOf(qrl).returns.toMatchTypeOf<() => Promise<string>>();
   });
 
   test('matching with args', () => () => {
     const foo = () => server$((name: string) => 'hello ' + name);
+    const plain = () => server((name: string) => 'hello ' + name);
+    const qrl = () => server($((name: string) => 'hello ' + name));
 
     expectTypeOf(foo).not.toBeAny();
     expectTypeOf(foo).returns.toMatchTypeOf<(name: string) => Promise<string>>();
     expectTypeOf(foo).returns.toMatchTypeOf<(sig: AbortSignal, name: string) => Promise<string>>();
     expectTypeOf(foo).returns.not.toMatchTypeOf<(meep: boolean) => Promise<string>>();
+    expectTypeOf(plain).returns.toMatchTypeOf<(name: string) => Promise<string>>();
+    expectTypeOf(qrl).returns.toMatchTypeOf<(name: string) => Promise<string>>();
   });
 
   test('inferring', () => () => {
@@ -160,5 +185,53 @@ describe('types', () => {
     expectTypeOf<ErrorType>().not.toEqualTypeOf<{
       someAnyType?: string;
     }>();
+  });
+
+  test('non-dollar constructors accept plain and QRL inputs', () => () => {
+    const action = routeAction((form) => ({ ok: form != null }));
+    const actionQrl = routeAction($((form: JSONObject) => ({ ok: form != null })));
+    const actionLegacy = routeAction$((form) => ({ ok: form != null }));
+    const global = globalAction((form) => ({ ok: form != null }));
+    const globalQrl = globalAction($((form: JSONObject) => ({ ok: form != null })));
+    const globalLegacy = globalAction$((form) => ({ ok: form != null }));
+
+    expectTypeOf(action).toEqualTypeOf(actionLegacy);
+    expectTypeOf(actionQrl).toEqualTypeOf(actionLegacy);
+    expectTypeOf(global).toEqualTypeOf(globalLegacy);
+    expectTypeOf(globalQrl).toEqualTypeOf(globalLegacy);
+
+    const loader = routeLoader(() => ({ value: 1 }));
+    const loaderQrl = routeLoader($(() => ({ value: 1 })));
+    const loaderLegacy = routeLoader$(() => ({ value: 1 }));
+
+    expectTypeOf(loader).toEqualTypeOf(loaderLegacy);
+    expectTypeOf(loaderQrl).toEqualTypeOf(loaderLegacy);
+
+    const validate = validator(() => ({ success: true as const, data: { ok: true } }));
+    const validateQrl = validator($(() => ({ success: true as const, data: { ok: true } })));
+    const validateLegacy = validator$(() => ({ success: true as const, data: { ok: true } }));
+
+    expectTypeOf(validate).toEqualTypeOf(validateLegacy);
+    expectTypeOf(validateQrl).toEqualTypeOf(validateLegacy);
+
+    const valibotSchema = v.object({ username: v.string() });
+    const valibotSchemaQrl = true as any as QRL<typeof valibotSchema>;
+    expectTypeOf(valibot(valibotSchema)).not.toBeAny();
+    expectTypeOf(valibot(valibotSchemaQrl)).not.toBeAny();
+    expectTypeOf(valibot(() => valibotSchema)).not.toBeAny();
+    expectTypeOf(valibot($(() => v.object({ username: v.string() })))).toEqualTypeOf(
+      valibot$(() => v.object({ username: v.string() }))
+    );
+
+    const zodSchema = z.object({ username: z.string() });
+    const zodSchemaQrl = true as any as QRL<typeof zodSchema>;
+    expectTypeOf(zod(zodSchema)).not.toBeAny();
+    expectTypeOf(zod(zodSchemaQrl)).not.toBeAny();
+    expectTypeOf(zod((zod) => ({ username: zod.string() }))).toEqualTypeOf(
+      zod$((zod) => ({ username: zod.string() }))
+    );
+    expectTypeOf(
+      zod($((zodInstance: typeof z.z) => ({ username: zodInstance.string() })))
+    ).toEqualTypeOf(zod$((zod) => ({ username: zod.string() })));
   });
 });

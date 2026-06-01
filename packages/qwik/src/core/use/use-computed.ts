@@ -1,5 +1,6 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { QRL } from '../shared/qrl/qrl.public';
+import { dollar, type QRL } from '../shared/qrl/qrl.public';
+import { isQrl } from '../shared/qrl/qrl-utils';
 import type { ComputedSignal } from '../reactive-primitives/signal.public';
 import { createComputedSignal } from '../reactive-primitives/signal-api';
 import type { ComputedOptions } from '../reactive-primitives/types';
@@ -20,6 +21,17 @@ export const useComputedQrl = <T>(
   options?: ComputedOptions
 ): ComputedReturnType<T> => {
   return useConstant(creator<T>, qrl, options) as any;
+};
+
+/** @public */
+export const useComputed = <T>(
+  fn: ComputedFn<T> | QRL<ComputedFn<T>>,
+  options?: ComputedOptions
+): ComputedReturnType<T> => {
+  return useComputedQrl(
+    isQrl(fn) ? (fn as QRL<ComputedFn<T>>) : dollar(fn as ComputedFn<T>),
+    options
+  );
 };
 
 /**

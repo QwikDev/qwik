@@ -1,6 +1,6 @@
 import { sync$ } from '@qwik.dev/core';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { workerQrl } from './worker-qrl';
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { worker, worker$, workerQrl } from './worker-qrl';
 import { __clearWorkerRuntimeCache } from './worker-runtime-shared';
 
 const nodeWorkerThreads = vi.hoisted(() => ({
@@ -28,6 +28,18 @@ describe('workerQrl', () => {
     nodeWorkerThreads.Worker.mockReset();
     nodeWorkerThreads.fs.existsSync.mockReset();
     vi.unstubAllGlobals();
+  });
+
+  it('worker accepts plain functions and QRLs', () => () => {
+    const plain = worker((count: number) => count + 1);
+    const qrl = worker(sync$((count: number) => count + 1));
+    const legacy = worker$((count: number) => count + 1);
+    const qrlOnly = workerQrl(sync$((count: number) => count + 1));
+
+    expectTypeOf(plain(1)).toEqualTypeOf<Promise<number>>();
+    expectTypeOf(qrl(1)).toEqualTypeOf<Promise<number>>();
+    expectTypeOf(legacy(1)).toEqualTypeOf<Promise<number>>();
+    expectTypeOf(qrlOnly(1)).toEqualTypeOf<Promise<number>>();
   });
 
   it('falls back to direct invocation when Worker is unavailable', async () => {

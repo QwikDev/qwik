@@ -20,9 +20,14 @@ describe('types', () => {
     expectTypeOf<QRL<typeof cb2>>().toExtend<EventQRL>();
 
     expectTypeOf<QRL<typeof cbAny>>().toExtend<EventQRL>();
+    expectTypeOf<typeof cb0>().toExtend<Parameters<typeof useOn>[1]>();
+    expectTypeOf<typeof cb1>().toExtend<Parameters<typeof useOn>[1]>();
+    expectTypeOf<typeof cb2>().toExtend<Parameters<typeof useOn>[1]>();
 
     expectTypeOf<QRL<typeof wrong1>>().not.toExtend<EventQRL>();
     expectTypeOf<QRL<typeof wrong2>>().not.toExtend<EventQRL>();
+    expectTypeOf<typeof wrong1>().not.toExtend<Parameters<typeof useOn>[1]>();
+    expectTypeOf<typeof wrong2>().not.toExtend<Parameters<typeof useOn>[1]>();
   });
 
   test('inferring', () => () => {
@@ -47,6 +52,10 @@ describe('types', () => {
         assertType<MouseEvent>(ev);
       })
     );
+    useOn('click', (ev) => {
+      expectTypeOf(ev).not.toBeAny();
+      assertType<MouseEvent>(ev);
+    });
     useOn(
       'copy',
       $((ev) => {

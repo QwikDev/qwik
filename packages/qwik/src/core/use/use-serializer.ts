@@ -1,7 +1,8 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { QRL } from '../shared/qrl/qrl.public';
+import { dollar, type QRL } from '../shared/qrl/qrl.public';
+import { isQrl } from '../shared/qrl/qrl-utils';
 import type { SerializerArg } from '../reactive-primitives/types';
-import type { createSerializer$ } from '../reactive-primitives/signal.public';
+import type { createSerializer$, SerializerSignal } from '../reactive-primitives/signal.public';
 import { createSerializerSignal } from '../reactive-primitives/signal-api';
 import { useConstant } from './use-signal';
 
@@ -76,3 +77,11 @@ export const useSerializerQrl = <T, S>(qrl: QRL<SerializerArg<T, S>>) =>
  * @public
  */
 export const useSerializer$: typeof createSerializer$ = implicit$FirstArg(useSerializerQrl as any);
+
+/** @public */
+export const useSerializer = <T, S>(
+  arg: SerializerArg<T, S> | QRL<SerializerArg<T, S>>
+): T extends Promise<any> ? never : SerializerSignal<T> => {
+  const qrl = (isQrl(arg) ? arg : dollar(arg as SerializerArg<T, S>)) as QRL<SerializerArg<T, S>>;
+  return useSerializerQrl(qrl) as any;
+};

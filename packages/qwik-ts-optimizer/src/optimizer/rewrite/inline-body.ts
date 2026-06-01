@@ -477,19 +477,17 @@ export function transformInlineSegmentBody(
       }
 
       const bodyJsxResult = transformAllJsx(
-        wrappedSource,
-        bodyS,
-        parseResult.program,
-        bodyImportedNames,
-        [], // No skip ranges within the body
-        devOptionsForCall,
-        jsxBodyOptions.keyCounterStart,
-        true, // enableSignals
-        bodyQpOverrides, // qpOverrides for q:p/q:ps injection
-        bodyQrlsWithCaptures, // qrlsWithCaptures for var/const prop classification
-        undefined, // paramNames
-        jsxBodyOptions.relPath, // for key prefix derivation
-        sharedSignalHoister, // shared hoister for _hf counter continuity
+        { source: wrappedSource, s: bodyS, program: parseResult.program, importedNames: bodyImportedNames },
+        {
+          skipRanges: [], // No skip ranges within the body
+          devOptions: devOptionsForCall,
+          keyCounterStart: jsxBodyOptions.keyCounterStart,
+          // enableSignals defaults to true
+          qpOverrides: bodyQpOverrides, // q:p/q:ps injection
+          qrlsWithCaptures: bodyQrlsWithCaptures, // var/const prop classification
+          relPath: jsxBodyOptions.relPath, // key prefix derivation
+          sharedSignalHoister, // _hf counter continuity
+        },
       );
 
       const transformedWrapped = bodyS.toString();

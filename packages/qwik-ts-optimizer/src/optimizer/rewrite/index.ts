@@ -780,17 +780,18 @@ function runJsxTransform(ctx: RewriteContext): void {
   const strippedQpOverrides = buildStrippedEventQpOverrides(ctx);
 
   ctx.jsxResult = transformAllJsx(
-    ctx.source, ctx.s, ctx.program, ctx.jsxOptions.importedNames, skipRanges,
-    // OSS-428: JSX dev-info `fileName:` only switches to the user-supplied
-    // dev path when explicitly set. Composed `devFilePath` (srcDir+relPath
-    // fallback) keeps the default `relPath` behavior — matches SWC and
-    // preserves baseline-passing `example_dev_mode` / `example_jsx_keyed_dev`.
-    ctx.isDevMode ? { relPath: ctx.userDevPath ?? ctx.relPath } : undefined,
-    undefined,
-    ctx.jsxOptions.enableSignals !== false,
-    strippedQpOverrides,
-    undefined, undefined,
-    ctx.relPath,
+    { source: ctx.source, s: ctx.s, program: ctx.program, importedNames: ctx.jsxOptions.importedNames },
+    {
+      skipRanges,
+      // OSS-428: JSX dev-info `fileName:` only switches to the user-supplied
+      // dev path when explicitly set. Composed `devFilePath` (srcDir+relPath
+      // fallback) keeps the default `relPath` behavior — matches SWC and
+      // preserves baseline-passing `example_dev_mode` / `example_jsx_keyed_dev`.
+      devOptions: ctx.isDevMode ? { relPath: ctx.userDevPath ?? ctx.relPath } : undefined,
+      enableSignals: ctx.jsxOptions.enableSignals !== false,
+      qpOverrides: strippedQpOverrides,
+      relPath: ctx.relPath,
+    },
   );
   ctx.jsxKeyCounterValue = ctx.jsxResult.keyCounterValue;
 }

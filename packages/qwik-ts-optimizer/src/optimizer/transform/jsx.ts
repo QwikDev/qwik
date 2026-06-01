@@ -790,22 +790,68 @@ export { transformJsxElement, transformJsxFragment };
  * Walk the AST bottom-up and transform all JSX nodes.
  * Uses leave callback to ensure inner JSX is transformed before outer JSX.
  */
+/**
+ * Required inputs for one `transformAllJsx` invocation — the four values
+ * the orchestrator can't sensibly default. `source` is the parser input
+ * the AST is positioned in; `s` is the MagicString being mutated; `program`
+ * is the parsed AST root; `importedNames` is the set of top-level imported
+ * binding names used for prop-classification.
+ */
+export interface TransformAllJsxInput {
+  source: string;
+  s: MagicString;
+  program: AstProgram;
+  importedNames: Set<string>;
+}
+
+/**
+ * Per-call configuration for `transformAllJsx`. All fields optional; defaults
+ * mirror the previous positional signature (OSS-374/375/376/377 lineage).
+ *
+ * Closes the OSS-374/375/376/377 parameter-reduction arc: the JSX orchestrator
+ * is now context+options shaped like its inner callees (`transformJsxElement`,
+ * `transformJsxFragment`, `processChildren`, `processProps`).
+ */
+export interface TransformAllJsxOptions {
+  /** Byte ranges to skip during the walk (e.g., already-handled subtrees). */
+  skipRanges?: Array<{ start: number; end: number }>;
+  /** Dev-info emission config; when set, JSX calls get a trailing dev-source suffix. */
+  devOptions?: DevSuffixOptions;
+  /** Starting JSX key counter value (continuation across multiple `transformAllJsx` calls). */
+  keyCounterStart?: number;
+  /** Run signal-analysis hoisting (`_fnSignal`, `_wrapProp`). Defaults to true. */
+  enableSignals?: boolean;
+  /** Per-element `q:p`/`q:ps` overrides keyed by JSXElement.start byte offset. */
+  qpOverrides?: Map<number, string[]>;
+  /** Set of QRL local names that carry captures, used by prop classification. */
+  qrlsWithCaptures?: Set<string>;
+  /** Closure parameter names (treated as const for prop classification on HTML tags). */
+  paramNames?: Set<string>;
+  /** Module-relative path used to derive the JSX key prefix. */
+  relPath?: string;
+  /** Shared SignalHoister for `_hf<n>` counter continuity across calls. */
+  sharedSignalHoister?: SignalHoister;
+  /** Pre-computed scope-aware bindings, when the caller already built them. */
+  precomputedScopeBindings?: ScopeAwareCollectResult;
+}
+
 export function transformAllJsx(
-  source: string,
-  s: MagicString,
-  program: AstProgram,
-  importedNames: Set<string>,
-  skipRanges?: Array<{ start: number; end: number }>,
-  devOptions?: DevSuffixOptions,
-  keyCounterStart?: number,
-  enableSignals: boolean = true,
-  qpOverrides?: Map<number, string[]>,
-  qrlsWithCaptures?: Set<string>,
-  paramNames?: Set<string>,
-  relPath?: string,
-  sharedSignalHoister?: SignalHoister,
-  precomputedScopeBindings?: ScopeAwareCollectResult,
+  input: TransformAllJsxInput,
+  opts: TransformAllJsxOptions = {},
 ): JsxTransformOutput {
+  const { source, s, program, importedNames } = input;
+  const {
+    skipRanges,
+    devOptions,
+    keyCounterStart,
+    enableSignals = true,
+    qpOverrides,
+    qrlsWithCaptures,
+    paramNames,
+    relPath,
+    sharedSignalHoister,
+    precomputedScopeBindings,
+  } = opts;
   const { bindings: resolvedBindings, allLocalNames: allDeclaredNames } =
     precomputedScopeBindings ?? collectScopeAwareBindings(program);
   const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';

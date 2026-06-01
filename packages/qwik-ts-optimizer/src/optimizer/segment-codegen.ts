@@ -418,9 +418,18 @@ function transformSegmentJsx(
       };
     }
 
-    const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames,
-      undefined, devOptionsForCall, jsxOptions.keyCounterStart, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath,
-      undefined, segScopeBindings);
+    const jsxResult = transformAllJsx(
+      { source: wrappedBody, s: bodyS, program: bodyParse.program, importedNames: jsxOptions.importedNames },
+      {
+        devOptions: devOptionsForCall,
+        keyCounterStart: jsxOptions.keyCounterStart,
+        qpOverrides,
+        qrlsWithCaptures,
+        paramNames: jsxOptions.paramNames,
+        relPath: jsxOptions.relPath,
+        precomputedScopeBindings: segScopeBindings,
+      },
+    );
 
     const transformedWrapped = bodyS.toString();
     bodyText = transformedWrapped.slice(1, -1);

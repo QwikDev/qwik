@@ -700,7 +700,7 @@ describe('transformAllJsx', () => {
     const { program } = parseSync('test.tsx', source);
     const importedNames = new Set<string>();
 
-    const output = transformAllJsx(source, s, program, importedNames);
+    const output = transformAllJsx({ source, s, program, importedNames });
 
     const result = s.toString();
     // Inner <p> should be transformed first, then outer <div>
@@ -714,7 +714,7 @@ describe('transformAllJsx', () => {
     const { program } = parseSync('test.tsx', source);
     const importedNames = new Set<string>();
 
-    const output = transformAllJsx(source, s, program, importedNames);
+    const output = transformAllJsx({ source, s, program, importedNames });
 
     expect(output.needsFragment).toBe(true);
   });
@@ -725,7 +725,7 @@ describe('transformAllJsx', () => {
     const { program } = parseSync('test.tsx', source);
     const importedNames = new Set<string>();
 
-    const output = transformAllJsx(source, s, program, importedNames);
+    const output = transformAllJsx({ source, s, program, importedNames });
 
     const result = s.toString();
     expect(result).toContain('/*#__PURE__*/');

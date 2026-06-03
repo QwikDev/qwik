@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { _captures, createQRL } from '../../shared/qrl/qrl-class';
+import type { Container } from '../../shared/types';
 import { disposeSubscriber } from './cleanup';
 import { Computed, createComputed } from './computed';
+import { createComputedQrl } from './computed-qrl';
 import { ReactiveFlags } from './flags';
 import { Phase, Scheduler } from './scheduler';
 import { createSignal } from './signal';
@@ -16,11 +19,17 @@ import {
   createTaskQrl,
   createVisibleTask,
   createVisibleTaskQrl,
-  type TaskQrlRef,
+  type TaskFn,
 } from './task';
 import { runWithCollector } from './tracking';
 
 const noopSchedule = (): void => {};
+
+function createCaptureContainer(captures: Record<string, unknown>): Container {
+  return {
+    $getObjectById$: (id: number | string) => captures[String(id)],
+  } as Container;
+}
 
 describe('vdomless reactivity', () => {
   it('notifies signal subscribers and skips Object.is-equal writes', () => {
@@ -136,6 +145,64 @@ describe('vdomless reactivity', () => {
     expect(() => circular.value).toThrow('Circular computed dependency');
   });
 
+  it('runs resolved computed QRLs synchronously', () => {
+    const computed = createComputedQrl(createQRL('chunk', 'symbol', () => 'computed', null, null));
+
+    expect(computed.value).toBe('computed');
+  });
+
+  it('throws unresolved computed QRL promises and computes after resolve', async () => {
+    const qrl = createQRL(
+      'chunk',
+      'symbol',
+      null,
+      () => Promise.resolve({ symbol: () => 'resolved-computed' }),
+      null
+    );
+    const computed = createComputedQrl(qrl);
+    let pending: unknown;
+
+    try {
+      computed.value;
+    } catch (promise) {
+      pending = promise;
+    }
+
+    expect(pending).toBeInstanceOf(Promise);
+    await pending;
+    expect(computed.value).toBe('resolved-computed');
+  });
+
+  it('restores serialized captures for computed QRLs', async () => {
+    const container = createCaptureContainer({
+      0: 'left',
+      1: 'right',
+    });
+    const qrl = createQRL(
+      'chunk',
+      'symbol',
+      null,
+      () =>
+        Promise.resolve({
+          symbol: () => (_captures as readonly string[]).join(':'),
+        }),
+      '0 1',
+      container
+    );
+    const computed = createComputedQrl(qrl, container);
+    let pending: unknown;
+
+    try {
+      computed.value;
+    } catch (promise) {
+      pending = promise;
+    }
+
+    expect(pending).toBeInstanceOf(Promise);
+    await pending;
+    expect(computed.value).toBe('left:right');
+  });
+
   it('flushes scheduled work in phase order', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
@@ -245,15 +312,20 @@ describe('vdomless reactivity', () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
     let resolved = false;
-    const qrl: TaskQrlRef = {
-      resolved: undefined,
-      async resolve() {
+    const qrl = createQRL<TaskFn>(
+      'chunk',
+      'symbol',
+      null,
+      () => {
         resolved = true;
-        return () => {
-          order.push('qrl');
-        };
+        return Promise.resolve({
+          symbol: () => {
+            order.push('qrl');
+          },
+        });
       },
-    };
+      null
+    );
     const task = createTaskQrl(qrl, { scheduler });
 
     scheduler.notify(task);
@@ -268,14 +340,15 @@ describe('vdomless reactivity', () => {
     const order: string[] = [];
     const second = createVisibleTask(() => order.push('second'), { scheduler, seq: 1 });
     const first = createVisibleTaskQrl(
-      {
-        resolved: () => {
+      createQRL<TaskFn>(
+        'chunk',
+        'symbol',
+        () => {
           order.push('first');
         },
-        resolve: async () => {
-          throw new Error('resolved QRL should not load');
-        },
-      },
+        null,
+        null
+      ),
       { scheduler, seq: 0 }
     );
 
@@ -312,6 +385,34 @@ describe('vdomless reactivity', () => {
     resolveFirst?.();
 
     expect(order).toEqual(['first:start', 'second:start']);
+  });
+
+  it('restores serialized captures for task QRLs', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const seen: string[] = [];
+    const container = createCaptureContainer({
+      0: 'task',
+      1: 'capture',
+    });
+    const qrl = createQRL<TaskFn>(
+      'chunk',
+      'symbol',
+      null,
+      () =>
+        Promise.resolve({
+          symbol: () => {
+            seen.push((_captures as readonly string[]).join(':'));
+          },
+        }),
+      '0 1',
+      container
+    );
+    const task = createTaskQrl(qrl, { scheduler, container });
+
+    scheduler.notify(task);
+    await scheduler.flushInteraction();
+
+    expect(seen).toEqual(['task:capture']);
   });
 
   it('cleans up dynamic dependencies for tasks', async () => {

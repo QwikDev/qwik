@@ -1,3 +1,5 @@
+import type { QRLInternal } from '../../shared/qrl/qrl-class';
+import type { Container } from '../../shared/types';
 import { ReactiveFlags } from './flags';
 import { defaultScheduler, Phase, type Scheduler } from './scheduler';
 import {
@@ -10,12 +12,8 @@ import {
 import type { Dependency } from './source';
 
 export type TaskFn = () => unknown;
+export type TaskQrlRef<T extends TaskFn = TaskFn> = QRLInternal<T>;
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
-
-export interface TaskQrlRef<T extends TaskFn = TaskFn> {
-  resolved: T | undefined;
-  resolve(container?: unknown): Promise<T>;
-}
 
 export interface TaskGroup {
   parent: TaskGroup | null;
@@ -28,14 +26,14 @@ export interface TaskOptions {
   index?: number;
   seq?: number;
   scheduler?: Scheduler;
-  container?: unknown;
+  container?: Container;
 }
 
 export interface VisibleTaskOptions {
   strategy?: VisibleTaskStrategy;
   seq?: number;
   scheduler?: Scheduler;
-  container?: unknown;
+  container?: Container;
 }
 
 let nextTaskSeq = 0;
@@ -49,7 +47,7 @@ export class Task {
     readonly index: number,
     readonly seq: number,
     readonly qrl?: TaskQrlRef,
-    readonly container?: unknown
+    readonly container?: Container
   ) {}
 
   run(): unknown {
@@ -63,7 +61,7 @@ export class VisibleTask {
     readonly strategy: VisibleTaskStrategy,
     readonly seq: number,
     readonly qrl?: TaskQrlRef,
-    readonly container?: unknown
+    readonly container?: Container
   ) {}
 
   run(): unknown {
@@ -185,7 +183,7 @@ function runResolvedTask(run: TaskFn): unknown {
 function runTaskBody(
   run: TaskFn | undefined,
   qrl: TaskQrlRef | undefined,
-  container: unknown
+  container: Container | undefined
 ): unknown {
   if (run !== undefined) {
     return run();

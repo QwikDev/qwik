@@ -1,16 +1,14 @@
+import type { QRLInternal } from '../../shared/qrl/qrl-class';
+import type { Container } from '../../shared/types';
 import { Computed } from './computed';
 
 export type ComputedQrlFn<T> = () => T;
-
-export interface ComputedQrlRef<T> {
-  resolved: ComputedQrlFn<T> | undefined;
-  resolve(container?: unknown): Promise<ComputedQrlFn<T>>;
-}
+export type ComputedQrlRef<T> = QRLInternal<ComputedQrlFn<T>>;
 
 export class ComputedQrl<T> extends Computed<T> {
   constructor(
     readonly computeQrl: ComputedQrlRef<T>,
-    readonly container?: unknown
+    readonly container?: Container
   ) {
     super(computeQrlValue);
   }
@@ -18,7 +16,7 @@ export class ComputedQrl<T> extends Computed<T> {
 
 export function createComputedQrl<T>(
   computeQrl: ComputedQrlRef<T>,
-  container?: unknown
+  container?: Container
 ): ComputedQrl<T> {
   return new ComputedQrl(computeQrl, container);
 }

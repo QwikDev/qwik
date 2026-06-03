@@ -5,8 +5,12 @@ import { disposeSubscriber } from './cleanup';
 import { Computed, createComputed } from './computed';
 import { createComputedQrl } from './computed-qrl';
 import {
+  createAttrEffect,
+  createClassEffect,
+  createStyleEffect,
   createTextExpressionEffect,
   createTextExpressionEffectQrl,
+  createTextNodeEffect,
   type TextExpressionFn,
 } from './dom-effect';
 import { ReactiveFlags } from './flags';
@@ -31,6 +35,18 @@ const noopSchedule = (): void => {};
 
 function createText(data = ''): Text {
   return { data } as Text;
+}
+
+function createAttrTarget(): { element: Element; attrs: Map<string, string> } {
+  const attrs = new Map<string, string>();
+  return {
+    element: {
+      setAttribute(name: string, value: string) {
+        attrs.set(name, value);
+      },
+    } as Element,
+    attrs,
+  };
 }
 
 function createCaptureContainer(captures: Record<string, unknown>): Container {
@@ -320,6 +336,104 @@ describe('vdomless reactivity', () => {
     expect(text.data).toBe('1');
   });
 
+  it('patches text nodes from direct sources', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const count = createSignal(7);
+    const text = createText();
+    const effect = createTextNodeEffect(text, count, { scheduler });
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('7');
+    expect(count.subs).toContain(effect);
+
+    count.value = 8;
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('8');
+  });
+
+  it('patches attributes from direct sources', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const title = createSignal('hello');
+    const { element, attrs } = createAttrTarget();
+    const effect = createAttrEffect(element, 'title', title, { scheduler });
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(attrs.get('title')).toBe('hello');
+
+    title.value = 'world';
+    await scheduler.flushInteraction();
+
+    expect(attrs.get('title')).toBe('world');
+  });
+
+  it('patches serialized styles from direct sources', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const style = createSignal({
+      opacity: 0.5,
+      display: 'grid',
+    });
+    const { element, attrs } = createAttrTarget();
+    const effect = createStyleEffect(element, style, { scheduler });
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(attrs.get('style')).toBe('opacity:0.5;display:grid');
+
+    style.value = {
+      opacity: 1,
+      display: 'block',
+    };
+    await scheduler.flushInteraction();
+
+    expect(attrs.get('style')).toBe('opacity:1;display:block');
+  });
+
+  it('patches serialized classes from direct sources', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const classes = createSignal<unknown>({
+      active: true,
+      hidden: false,
+      selected: 1,
+    });
+    const { element, attrs } = createAttrTarget();
+    const effect = createClassEffect(element, classes, { scheduler });
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(attrs.get('class')).toBe('active selected');
+
+    classes.value = ['base', { active: false, next: true }];
+    await scheduler.flushInteraction();
+
+    expect(attrs.get('class')).toBe('base next');
+  });
+
+  it('patches direct DOM effects from computed sources', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const count = createSignal(2);
+    const doubled = createComputed(() => count.value * 2);
+    const text = createText();
+    const effect = createTextNodeEffect(text, doubled, { scheduler });
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('4');
+    expect(doubled.subs).toContain(effect);
+
+    count.value = 3;
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('6');
+  });
+
   it('sorts DOM effects by order and keeps enqueue order for ties', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
@@ -351,6 +465,53 @@ describe('vdomless reactivity', () => {
     await scheduler.flushInteraction();
 
     expect(order).toEqual(['first-tie', 'second-tie', 'next-order']);
+  });
+
+  it('sorts mixed DOM effects by order and keeps enqueue order for ties', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const order = createSignal('');
+    const first = createAttrEffect(createAttrTarget().element, 'data-order', order, {
+      scheduler,
+      order: 0,
+    });
+    const second = createStyleEffect(createAttrTarget().element, order, {
+      scheduler,
+      order: 0,
+    });
+    const third = createTextNodeEffect(createText(), order, { scheduler, order: 1 });
+    const seen: string[] = [];
+
+    first.effect.run = () => {
+      seen.push('first');
+    };
+    second.effect.run = () => {
+      seen.push('second');
+    };
+    third.effect.run = () => {
+      seen.push('third');
+    };
+
+    scheduler.notify(third);
+    scheduler.notify(first);
+    scheduler.notify(second);
+    await scheduler.flushInteraction();
+
+    expect(seen).toEqual(['first', 'second', 'third']);
+  });
+
+  it('removes direct DOM effects from sources when disposed', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const count = createSignal(1);
+    const effect = createTextNodeEffect(createText(), count, { scheduler });
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(count.subs).toContain(effect);
+
+    disposeSubscriber(effect);
+
+    expect(count.subs).toBeNull();
   });
 
   it('rejects async scalar text expressions', async () => {

@@ -222,7 +222,7 @@ export interface SegmentGenerationContext {
   /**
    * Raw user-supplied `input.devPath`. Distinguished from `devFile` (which
    * always falls back to a composed path); JSX dev-info `fileName:` only
-   * honors the explicit override. See OSS-428.
+   * honors the explicit override.
    */
   userDevPath: string | undefined;
   isInlineStrategy: boolean;
@@ -236,7 +236,7 @@ export interface SegmentGenerationContext {
    * so JSX inside a moved helper function (e.g. `function Hola(props) {
    * return <div {...props}/>; }`) carries the rewritten Qwik form into
    * the segment file. Without this, the raw source survives the move and
-   * oxc-transform's TS-strip pass emits React `_jsx(...)` instead. OSS-430.
+   * oxc-transform's TS-strip pass emits React `_jsx(...)` instead.
    */
   movedDeclSnapshots: Map<string, string>;
   segmentUsage: Map<string, Set<string>>;
@@ -245,7 +245,7 @@ export interface SegmentGenerationContext {
   qrlOutputExt: string | undefined;
   sourceExtensions: Map<string, string>;
   /**
-   * OSS-443: the parent input file's extension. Threaded to
+   * The parent input file's extension. Threaded to
    * `postProcessSegmentCode` so oxc-transform's TS-strip / JSX-strip
    * parses the segment body in the source dialect (the segment's own
    * `extension` is often downgraded to `.js` even when the body
@@ -262,8 +262,8 @@ export interface SegmentGenerationContext {
   constLiteralsMap: Map<string, Map<string, string>>;
   parentJsxKeyCounterValue: number;
   /**
-   * OSS-431: source carries `/* @jsxImportSource <non-qwik-pkg> *‌/`. When
-   * true, segment-codegen skips Qwik's JSX-syntax rewrite and prepends
+   * Source carries `/* @jsxImportSource <non-qwik-pkg> *‌/`. When true,
+   * segment-codegen skips Qwik's JSX-syntax rewrite and prepends
    * `foreignJsxPragmaText` to each segment file so oxc-transform's default
    * JSX transform (run by `postProcessSegmentCode`) honors the pragma.
    */
@@ -296,10 +296,10 @@ export interface SegmentGenerationPrep {
   enumValueMap: Map<string, Map<string, string>>;
   fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
   /**
-   * OSS-409 bug 2: parallel to `fieldMaps` — for each parent symbol, the
-   * destructure-time default expressions keyed by local-binding name.
-   * Empty inner map means no defaults; consumers should fall through to
-   * bare `_rawProps.<key>` accessors.
+   * Parallel to `fieldMaps` — for each parent symbol, the destructure-time
+   * default expressions keyed by local-binding name. Empty inner map means
+   * no defaults; consumers should fall through to bare `_rawProps.<key>`
+   * accessors.
    */
   fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
 }
@@ -316,10 +316,10 @@ export interface RawPropsConsolidation {
   /** Sorted; includes the literal `"_rawProps"` sentinel. */
   newCaptureNames: string[];
   /**
-   * OSS-409 bug 2: per-field destructure-time defaults for captures
-   * that resolved to a defaulted prop on the parent. Used downstream
-   * by raw-props body rewriting to emit `(_rawProps.<key> ?? <default>)`.
-   * Undefined / empty when no defaults apply.
+   * Per-field destructure-time defaults for captures that resolved to a
+   * defaulted prop on the parent. Used downstream by raw-props body
+   * rewriting to emit `(_rawProps.<key> ?? <default>)`. Undefined / empty
+   * when no defaults apply.
    */
   propsFieldDefaults?: Map<string, string>;
 }
@@ -369,7 +369,7 @@ export function consolidateRawPropsCaptures(
  * has no setup-time side effects to reason about.
  *
  * Mutates `ctx.updatedExtractions` in place to depth-sort children before
- * parents (preserved verbatim from the pre-OSS-356 inline form).
+ * parents.
  */
 export function computeSegmentGenerationPrep(
   ctx: SegmentGenerationContext,
@@ -414,11 +414,9 @@ export function computeSegmentGenerationPrep(
   const enumValueMap = collectEnumValueMap(ctx.program, ctx.shouldTranspileTs);
 
   // Pre-compute destructured field maps for every parent that an extraction
-  // references. Replaces a closure-mutated lazy cache with an immutable
-  // lookup so the per-extraction loop has no side-effecting state.
-  // (OSS-345 introduced the immutable form; OSS-356 hoists it into Prep.)
-  // ReadonlyMap stays narrower than the rest of Prep because nothing
-  // downstream needs Map-mutating methods on this one.
+  // references. An immutable lookup keeps the per-extraction loop free of
+  // side-effecting state. ReadonlyMap stays narrower than the rest of Prep
+  // because nothing downstream needs Map-mutating methods on this one.
   const fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>> = (() => {
     const parentSymbolNames = new Set<string>();
     for (const ext of ctx.updatedExtractions) {
@@ -437,8 +435,8 @@ export function computeSegmentGenerationPrep(
     return result;
   })();
 
-  // OSS-409 bug 2: parallel defaults map (parent symbol → local → default expr).
-  // Used by raw-props consolidation in inline + default strategies to emit
+  // Parallel defaults map (parent symbol → local → default expr). Used by
+  // raw-props consolidation in inline + default strategies to emit
   // `(_rawProps.<key> ?? <default>)` for defaulted fields in nested segments.
   const fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>> = (() => {
     const parentSymbolNames = new Set<string>();
@@ -477,16 +475,15 @@ export function computeSegmentGenerationPrep(
  * than as separate files.
  *
  * Returns `null` for non-stripped extractions — their body is inlined
- * into the parent and no per-segment file should land on disk (OSS-425
- * mirrors SWC, which emits no segment file in that case). Stripped
- * extractions still get their own file holding the `export const X = null`
- * stub the runtime resolver expects when a stripped QRL is referenced.
+ * into the parent and no per-segment file should land on disk (mirrors
+ * SWC, which emits no segment file in that case). Stripped extractions
+ * still get their own file holding the `export const X = null` stub the
+ * runtime resolver expects when a stripped QRL is referenced.
  *
  * Mutates `ext.captureNames`, `ext.captures`, and `ext.propsFieldCaptures`
- * when raw-props consolidation applies — preserved verbatim from the
- * pre-OSS-356 inline form. Mutation runs unconditionally because the
- * consolidated capture metadata is also consumed by the parent's inlined
- * `q_X.s(body)` emission.
+ * when raw-props consolidation applies. Mutation runs unconditionally
+ * because the consolidated capture metadata is also consumed by the
+ * parent's inlined `q_X.s(body)` emission.
  */
 export function buildInlineStrategySegment(
   ext: ConsolidatedSegment,
@@ -519,10 +516,10 @@ export function buildInlineStrategySegment(
     undefined,
   );
 
-  // OSS-425: non-stripped inline-strategy extractions emit no segment file.
-  // Their body lives in the parent via `q_X.s(body)`; SWC's reference emits
-  // no companion file. Only stripped extractions ship the `= null` stub
-  // file the runtime resolver still needs to load.
+  // Non-stripped inline-strategy extractions emit no segment file. Their
+  // body lives in the parent via `q_X.s(body)`; SWC's reference emits no
+  // companion file. Only stripped extractions ship the `= null` stub file
+  // the runtime resolver still needs to load.
   if (!stripped) return null;
 
   const segmentAnalysis: SegmentMetadataInternal = {
@@ -693,7 +690,7 @@ function tryBuildMarkerDeclMove(
  * `inlinedQrl` extractions skip migration wiring because their capture list
  * is pre-baked by the upstream tool.
  *
- * **Mutation surface (preserved verbatim from the pre-OSS-357 inline form):**
+ * **Mutation surface:**
  * - `captureInfo.autoImports` — `push`'d once per applicable `reexport`
  *   migration decision.
  * - `captureInfo.movedDeclarations` — `push`'d once per applicable `move`
@@ -829,11 +826,11 @@ export function wireMigration(
             importDeps: [],
           });
         } else {
-          // OSS-430: prefer the post-JSX-rewrite snapshot when the parent
-          // captured one; falls back to the raw source slice. Snapshot
-          // carries the Qwik JSX form (`_jsxSorted` / `_jsxSplit`) into
-          // the moved helper instead of letting raw JSX fall through to
-          // oxc-transform's React `_jsx` default.
+          // Prefer the post-JSX-rewrite snapshot when the parent captured
+          // one; falls back to the raw source slice. The snapshot carries
+          // the Qwik JSX form (`_jsxSorted` / `_jsxSplit`) into the moved
+          // helper — without it, raw JSX falls through to oxc-transform's
+          // React `_jsx` default.
           const rewrittenText = ctx.movedDeclSnapshots.get(decision.varName);
           captureInfo.movedDeclarations.push({
             text: rewrittenText ?? decl.declText,
@@ -888,11 +885,10 @@ export function buildNestedCallSites(
   for (const child of children) {
     const qrlVarName =
       childQrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
-    // OSS-441: jSXProp ctxKind is a Component-side `$`-suffix attr that
-    // OSS-438's harmonisation correctly classifies separately from
-    // eventHandler. Both flow as JSX-attr call sites; the inner branch's
-    // `isComponentEvent` arm already keeps the callee raw (`onEvent$`
-    // stays `onEvent$`, no `q-e:event` transform).
+    // jSXProp ctxKind covers Component-side `$`-suffix attrs (classified
+    // separately from eventHandler). Both flow as JSX-attr call sites;
+    // the inner branch's `isComponentEvent` arm keeps the callee raw
+    // (`onEvent$` stays `onEvent$`, no `q-e:event` transform).
     const isJsxAttr =
       (child.ctxKind === "eventHandler" || child.ctxKind === "jSXProp") &&
       child.calleeName.endsWith("$") &&
@@ -981,10 +977,10 @@ export function buildNestedCallSites(
         hoistedCaptureNames: hasLoopCrossCaptures
           ? child.captureNames
           : undefined,
-        // OSS-444: a JSX-attr child segment that captures variables but
-        // isn't subject to the loop-cross hoist path still needs `.w(…)`
+        // A JSX-attr child segment that captures variables but isn't
+        // subject to the loop-cross hoist path still needs `.w(…)`
         // capture wrapping at the parent's prop call site. Mirrors the
-        // inline-strategy path at `rewrite/inline-body.ts:242-244`. The
+        // inline-strategy path at `rewrite/inline-body.ts`. The
         // body-transforms consumer reads this only when
         // `hoistedSymbolName` is unset.
         captureNames:
@@ -1129,10 +1125,10 @@ export function buildDefaultStrategySegment(
   };
 
   // Generate segment code.
-  // OSS-431: when source carries a foreign `@jsxImportSource` pragma, skip
-  // Qwik's JSX-syntax rewrite entirely. The JSX in the body stays as-is and
+  // When source carries a foreign `@jsxImportSource` pragma, skip Qwik's
+  // JSX-syntax rewrite entirely. The JSX in the body stays as-is and
   // oxc-transform's default JSX transform (run by `postProcessSegmentCode`)
-  // honors the pragma we'll prepend below.
+  // honors the pragma we prepend below.
   const segmentResult = stripped
     ? { code: generateStrippedSegmentCode(ext.symbolName) }
     : generateSegmentCode(
@@ -1155,17 +1151,16 @@ export function buildDefaultStrategySegment(
                 ? new Set(ext.paramNames)
                 : undefined,
               relPath,
-              // OSS-428: JSX dev-info `fileName:` only switches to the
-              // user-supplied dev path when explicitly set on the input.
-              // The composed `devFile` (srcDir+relPath fallback) keeps
-              // `relPath` semantics here — preserves baseline-passing
-              // `example_dev_mode_inlined` / `example_jsx_keyed_dev` etc.
+              // JSX dev-info `fileName:` only switches to the user-supplied
+              // dev path when explicitly set on the input. The composed
+              // `devFile` (srcDir+relPath fallback) keeps `relPath`
+              // semantics here.
               devOptions: isDevMode ? { relPath: ctx.userDevPath ?? relPath } : undefined,
-              // OSS-410: source-relative dev-info positions. `transformSegmentJsx`
-              // wraps the body as `(${bodyText})` before parsing; the wrapper
-              // length is 1 (single `(`), and `ext.loc[0]` is the body's byte
-              // offset in the original source. Only populated when dev-info
-              // is requested.
+              // Source-relative dev-info positions. `transformSegmentJsx`
+              // wraps the body as `(${bodyText})` before parsing; the
+              // wrapper length is 1 (single `(`), and `ext.loc[0]` is the
+              // body's byte offset in the original source. Only populated
+              // when dev-info is requested.
               source: isDevMode ? ctx.repairedCode : undefined,
               bodyOriginOffset: isDevMode ? ext.loc[0] : undefined,
               keyCounterStart: segmentKeyCounter,
@@ -1177,11 +1172,11 @@ export function buildDefaultStrategySegment(
       );
   let segmentCode = segmentResult.code;
 
-  // OSS-431: prepend foreign `@jsxImportSource` pragma so oxc-transform's
-  // TS-strip + JSX-transform pass inside `postProcessSegmentCode` honors it
-  // and emits `import { jsx as _jsx } from "<pkg>/jsx-runtime"`. The segment
-  // file is a brand-new generated module and wouldn't otherwise inherit the
-  // pragma from the user source.
+  // Prepend the foreign `@jsxImportSource` pragma so oxc-transform's
+  // TS-strip + JSX-transform pass inside `postProcessSegmentCode` honors
+  // it and emits `import { jsx as _jsx } from "<pkg>/jsx-runtime"`. The
+  // segment file is a brand-new generated module and wouldn't otherwise
+  // inherit the pragma from the user source.
   if (!stripped && ctx.hasForeignJsxRuntime && ctx.foreignJsxPragmaText) {
     segmentCode = ctx.foreignJsxPragmaText + '\n' + segmentCode;
   }
@@ -1272,15 +1267,12 @@ export function generateAllSegmentModules(
   const prep = computeSegmentGenerationPrep(ctx);
   const allModules: TransformModule[] = [];
 
-  // OSS-432 Bug C: pre-compute the per-segment JSX-key starting counter in
-  // SOURCE order, independent of the depth-first processing order used by
-  // the main loop below. SWC's reference consumes JSX keys per source
-  // position; consuming in depth-first segment order produces stable but
-  // SWC-divergent keys (e.g. `example_qwik_conflict` Foo body at line 13
-  // would get `u6_1` because Root_1's `<div/>` at line 27 gets `u6_0`
-  // when processed first as a depth-1 child). Surfaced when Bug A + Bug B
-  // exposed the segment-side comparison previously masked by the parent
-  // mismatch.
+  // Pre-compute the per-segment JSX-key starting counter in SOURCE order,
+  // independent of the depth-first processing order used by the main loop
+  // below. SWC's reference consumes JSX keys per source position; consuming
+  // in depth-first segment order produces stable but SWC-divergent keys
+  // (e.g. a Foo body at line 13 would get `u6_1` because Root_1's `<div/>`
+  // at line 27 gets `u6_0` when processed first as a depth-1 child).
   const segmentStartKey = computeSegmentStartKeys(
     prep.sortedExtractions,
     ctx.parentJsxKeyCounterValue,
@@ -1295,12 +1287,12 @@ export function generateAllSegmentModules(
       ctx.options.stripCtxName,
       ctx.options.stripEventHandlers,
     );
-    // OSS-389: stripped-segment fallback zeros loc before SegmentAnalysis
-    // emission. Internal-builder cast — see extract.ts `Mutable<T>`.
+    // Stripped-segment fallback zeros loc before SegmentAnalysis emission.
+    // Internal-builder cast — see extract.ts `Mutable<T>`.
     if (stripped) (ext as Mutable<ConsolidatedSegment>).loc = [mkByteOffset(0), mkByteOffset(0)];
 
-    // OSS-426 Sub-B: clear capture metadata for event-handler segments
-    // stripped via `stripEventHandlers`. SWC's reference emits these with
+    // Clear capture metadata for event-handler segments stripped via
+    // `stripEventHandlers`. SWC's reference emits these with
     // `captures: false, captureNames: []` because the body is gone — the
     // runtime never consumes the captures, so the metadata reflects that.
     // `stripCtxName`-stripped segments preserve their captures (different
@@ -1317,8 +1309,8 @@ export function generateAllSegmentModules(
 
     if (ctx.isInlineStrategy) {
       const inlineModule = buildInlineStrategySegment(ext, ctx, prep, stripped);
-      // OSS-425: null result means non-stripped inline — body inlined into
-      // parent, no segment file emitted (matches SWC's reference behavior).
+      // null result means non-stripped inline — body inlined into parent,
+      // no segment file emitted (matches SWC's reference behaviour).
       if (inlineModule !== null) allModules.push(inlineModule);
       continue;
     }

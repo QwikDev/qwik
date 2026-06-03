@@ -98,7 +98,7 @@ export interface ExtractionBase {
   readonly extension: string;
   // `loc` finalises at extraction time. The stripped-segment emission
   // path in segment-generation derives its zeroed loc locally rather
-  // than mutating the consolidated extraction (OSS-389).
+  // than mutating the consolidated extraction.
   readonly loc: readonly [ByteOffset, ByteOffset];
 
   // Imports needed by this segment, finalised during the extraction
@@ -120,12 +120,11 @@ export interface ExtractionBase {
  * Phase 5 parent rewrite, event-capture promotion all mutate in place).
  * The discriminator `phase` narrows the union at consumer sites.
  *
- * See OSS-389's "pragmatic pivot": union types + discriminator ship now;
- * per-field readonly enforcement on phase-spanning fields is the natural
- * follow-up once consumer sites have been narrowed to specific variants
- * and the construct-new pattern is applied at each phase boundary.
  * Truly-immutable fields (identity, position, body text, ctx, etc.) stay
- * readonly on `ExtractionBase` — OSS-387's discipline is preserved there.
+ * readonly on `ExtractionBase`. The fields here are mutable because the
+ * in-place transition pattern is load-bearing for migration mutations
+ * downstream — consumers narrow on `phase` and write to the variant-
+ * appropriate fields.
  */
 interface ExtractionPhaseFields {
   captureNames: string[];
@@ -173,7 +172,7 @@ export interface ConsolidatedSegment extends ExtractionBase, ExtractionPhaseFiel
 
 /**
  * Discriminated union over the three pipeline phases. Consumers narrow
- * on `phase` to access phase-specific fields safely. See OSS-389.
+ * on `phase` to access phase-specific fields safely.
  *
  * Phase transitions construct new objects via spread:
  * - `extractSegments`/post-extract passes → `ExtractedSegment`
@@ -224,9 +223,9 @@ function extensionFromSegmentJsx(hasJsx: boolean, sourceExt: string): string {
 /**
  * `ContextStack` restricted to the push/peek/read methods the enter handler
  * uses. The `.pop()` method is intentionally absent — calling it from enter
- * would corrupt the context-stack-vs-pushedNodes pairing (OSS-397, Phase 2b
- * of OSS-391). Backed by the same `ContextStack` instance the exit handler
- * sees as the full type via `ExtractWalkExitContext.naming`.
+ * would corrupt the context-stack-vs-pushedNodes pairing. Backed by the
+ * same `ContextStack` instance the exit handler sees as the full type via
+ * `ExtractWalkExitContext.naming`.
  */
 type ContextStackForEnter = Pick<
   ContextStack,
@@ -234,8 +233,8 @@ type ContextStackForEnter = Pick<
 >;
 
 /**
- * Enter-phase context for the extraction walker (OSS-397). Holds the 11
- * read-only inputs the walker reads, the five mutable buffers it writes
+ * Enter-phase context for the extraction walker. Holds the read-only
+ * inputs the walker reads, the mutable buffers it writes
  * during enter, and a `naming` field narrowed to push-only operations on
  * the `ContextStack`. The `activeSegmentBodies` field is `readonly` at the
  * array level so enter can read the top frame + mutate per-frame fields
@@ -246,7 +245,12 @@ interface ExtractWalkEnterContext {
   readonly relPath: string;
   readonly scope: string | undefined;
   readonly transpileJsx: boolean | undefined;
-  /** OSS-438: explicit user-set value of `transpileJsx`; defaults to false. */
+  /**
+   * Explicit user-set value of `transpileJsx`; defaults to false. Distinct
+   * from the derived `transpileJsx` parameter above which defaults to TRUE
+   * for `.tsx`/`.jsx` files when the user omits the flag. The ctxKind
+   * classifier needs the strict semantic to mirror SWC's two paths.
+   */
   readonly explicitTranspileJsx: boolean;
   readonly sourceExt: string;
   readonly defaultExtension: string;
@@ -256,18 +260,18 @@ interface ExtractWalkEnterContext {
   readonly customInlined: Map<string, CustomInlinedInfo>;
   readonly hasNonQwikJsxImportSource: boolean;
   /**
-   * OSS-446 Bug 1: Local names that resolve to a Qwik JSX-runtime function
-   * (`jsx` / `jsxs` / `jsxDEV` from `@qwik.dev/core` or anything imported from
-   * `@qwik.dev/core/jsx-runtime` / `@qwik.dev/core/jsx-dev-runtime`). Mirrors
-   * SWC's `handle_jsx` callee detection. Used to push naming context for
-   * peer-tool `jsx('tag', { onProp$: ... })` calls the same way JSX syntax
-   * already does for `<tag onProp$=...>`.
+   * Local names that resolve to a Qwik JSX-runtime function (`jsx` / `jsxs`
+   * / `jsxDEV` from `@qwik.dev/core` or anything imported from
+   * `@qwik.dev/core/jsx-runtime` / `@qwik.dev/core/jsx-dev-runtime`).
+   * Mirrors SWC's `handle_jsx` callee detection. Used to push naming
+   * context for peer-tool `jsx('tag', { onProp$: ... })` calls the same
+   * way JSX syntax already does for `<tag onProp$=...>`.
    */
   readonly jsxFunctions: ReadonlySet<string>;
   /**
-   * OSS-446 Bug 1: tagged ObjectExpressions that are the props-bag (second
-   * arg) of a recognised JSX-runtime call. Tag value records the tag-kind
-   * derived from the first arg — string-literal → `'html'`, identifier →
+   * Tagged ObjectExpressions that are the props-bag (second arg) of a
+   * recognised JSX-runtime call. Tag value records the tag-kind derived
+   * from the first arg — string-literal → `'html'`, identifier →
    * `'component'`. The Property handler reads this on enter to decide
    * between literal-key push and event-handler normalisation.
    */
@@ -311,7 +315,8 @@ type ActiveSegmentBody = {
    * When set, the outer extraction walk accumulates referenced Identifier
    * names here as it descends into the body. On `leave`, the populated
    * `segmentImports` is computed from this set instead of re-walking the
-   * body sub-tree. See OSS-368.
+   * body sub-tree — avoids an O(extractionCount × programSize) cost on
+   * files with many segments.
    */
   bodyIds?: Set<string>;
 };
@@ -326,21 +331,22 @@ function resolveCanonicalCalleeName(
 }
 
 /**
- * OSS-437: when a marker call's single argument is an `Identifier`
- * resolving to an import binding, segments derive their displayName +
- * hash from the import path rather than the surrounding context stack
- * (so e.g. `useStyles$(css3)` with `import css3 from './style.css'`
- * produces `style_css` / hash of `./style.css#default` instead of
- * `App_component_useStyles_1` / counter-based name).
+ * When a marker call's single argument is an `Identifier` resolving to an
+ * import binding, segments derive their displayName + hash from the
+ * import path rather than the surrounding context stack — so e.g.
+ * `useStyles$(css3)` with `import css3 from './style.css'` produces
+ * `style_css` / hash of `./style.css#default` instead of
+ * `App_component_useStyles_1` / counter-based name. This makes the segment
+ * name stable across files importing the same asset under the same name.
  *
  * Mirrors SWC's `get_import_qrl_name` (transform.rs:443-478) +
- * `create_import_display_name` (transform.rs:5260-5267). Returns null
- * for non-Identifier args or Identifiers that don't resolve to an
- * import; callers fall back to the default stack-based naming.
+ * `create_import_display_name` (transform.rs:5260-5267). Returns null for
+ * non-Identifier args or Identifiers that don't resolve to an import;
+ * callers fall back to the default stack-based naming.
  *
  * Scope intentionally narrow: single-Identifier case only. The
  * namespace-member-import variant (`useStyles$(ns.foo)`) from SWC's
- * second arm is unfiled — add when a fixture exercises it.
+ * second arm is currently unsupported — extend when a fixture exercises it.
  */
 function getImportArgNaming(
   arg: AstNode,
@@ -490,11 +496,11 @@ export function extractSegments(
    */
   closureNodesOut?: Map<string, AstFunction>,
   /**
-   * OSS-438: SWC's `transpile_jsx` flag value as the **user explicitly
-   * set it** (defaults to false). Distinct from the derived `transpileJsx`
+   * SWC's `transpile_jsx` flag value as the **user explicitly set it**
+   * (defaults to false). Distinct from the derived `transpileJsx`
    * parameter above which defaults to TRUE for `.tsx`/`.jsx` files when
    * the user omits the flag (TS's "auto-transpile" convention). The
-   * ctxKind classifier needs SWC's strict semantic to mirror SWC's
+   * ctxKind classifier needs the strict semantic to mirror SWC's
    * `parse.rs:259` gate on `transpile_jsx && is_jsx` — that gate selects
    * between the name-prefix `handle_jsx_value` classifier (default) and
    * the element-kind `handle_jsx` classifier (active).
@@ -538,25 +544,26 @@ export function extractSegments(
   const parentMap = new Map<AstNode, AstParentNode>();
 
   // Suppress JSX $-suffixed attribute extraction when a non-Qwik
-  // @jsxImportSource is set (OSS-431). The shared helper also detects the
-  // pragma text for downstream phases (parent rewrite, segment codegen).
+  // @jsxImportSource is set. The shared helper also detects the pragma
+  // text for downstream phases (parent rewrite, segment codegen).
   const hasNonQwikJsxImportSource = detectForeignJsxRuntime(source).hasForeignJsxRuntime;
 
-  // OSS-446 Bug 1: identify local bindings that resolve to a Qwik JSX-runtime
-  // callable. Re-uses the same predicate used in segment codegen for the
-  // `jsx() → _jsxSorted` rewrite. Empty when the file imports no jsx-runtime
-  // names (e.g. pure JSX-syntax sources); the walker short-circuits cheaply.
+  // Identify local bindings that resolve to a Qwik JSX-runtime callable.
+  // Re-uses the same predicate used in segment codegen for the
+  // `jsx() → _jsxSorted` rewrite. Empty when the file imports no
+  // jsx-runtime names (e.g. pure JSX-syntax sources); the walker
+  // short-circuits cheaply.
   const jsxFunctions: ReadonlySet<string> = collectJsxFunctionNamesFromIterable(
     imports.values(),
   );
   const jsxPropObjects = new Map<AstNode, 'html' | 'component'>();
 
-  // Per OSS-397 (OSS-391 Phase 2b): split walk state into Enter and Exit
-  // context views so the type system enforces "enter pushes, leave pops."
-  // Enter sees `naming` as a push-only `ContextStackForEnter`; Exit sees the
-  // full `ContextStack` plus the two act-helpers. Calling
-  // `ctx.naming.pop()` or `ctx.popContextStackForNode(node)` from the enter
-  // handler is a compile error.
+  // Split walk state into Enter and Exit context views so the type system
+  // enforces "enter pushes, leave pops." Enter sees `naming` as a
+  // push-only `ContextStackForEnter`; Exit sees the full `ContextStack`
+  // plus the two act-helpers. Calling `ctx.naming.pop()` or
+  // `ctx.popContextStackForNode(node)` from the enter handler is a
+  // compile error.
   const enterCtx: ExtractWalkEnterContext = {
     source,
     relPath,
@@ -612,18 +619,18 @@ export function extractSegments(
       if (parent) ctx.parentMap.set(node, parent);
 
       // Accumulate Identifier names into each active body's deferred set
-      // (OSS-368). Replaces the per-extraction `collectIdentifiers` sub-walk:
-      // the outer walk is about to visit these nodes anyway, so collecting
-      // here costs O(activeStack.length) per Identifier — usually 1–2.
+      // so `segmentImports` can be computed on leave without a separate
+      // per-extraction body-walk — costs O(activeStack.length) per
+      // Identifier (typically 1–2).
       //
-      // OSS-427: gate on `nodeContainedIn(node, seg.root)` so the surrounding
+      // Gate on `nodeContainedIn(node, seg.root)` so the surrounding
       // marker call's callee (`$`, `client$`, `useTask$`, …) doesn't leak
-      // into the segment's bodyIds — the segment's body is `seg.root` (the
-      // function argument), not the enclosing CallExpression. Without the
-      // gate, extracted segments emit a spurious `import { $ } from
-      // "@qwik.dev/core"` (or `client$` / `useTask$`) for the marker that
-      // wrapped them. Mirrors the same `nodeContainedIn` predicate already
-      // used for the JSX-detection arm just below.
+      // into the segment's bodyIds — the segment's body is `seg.root`
+      // (the function argument), not the enclosing CallExpression.
+      // Without the gate, extracted segments would emit a spurious
+      // `import { $ } from "@qwik.dev/core"` (or `client$` / `useTask$`)
+      // for the marker that wrapped them. Mirrors the same
+      // `nodeContainedIn` predicate used for the JSX-detection arm below.
       if (node.type === 'Identifier' && node.name) {
         for (const seg of ctx.activeSegmentBodies) {
           if (seg.bodyIds && nodeContainedIn(node, seg.root)) {
@@ -653,13 +660,13 @@ export function extractSegments(
       }
 
       if (node.type === 'Property' && node.key?.type === 'Identifier') {
-        // OSS-446 Bug 1: when the surrounding ObjectExpression was tagged
-        // as a peer-tool JSX props bag (see the JSX-runtime CallExpression
-        // arm below), apply the same naming rules JSX syntax already uses
-        // for `<tag onProp$=...>` — `q_e_<event>` for HTML tags,
-        // `<key without $>` for components. Mirrors SWC's `handle_jsx_value`
-        // (transform.rs:1240) sharing the `ctx_name` path between JSX
-        // syntax and peer-tool jsx() calls.
+        // When the surrounding ObjectExpression was tagged as a peer-tool
+        // JSX props bag (see the JSX-runtime CallExpression arm below),
+        // apply the same naming rules JSX syntax already uses for
+        // `<tag onProp$=...>` — `q_e_<event>` for HTML tags, `<key
+        // without $>` for components. Mirrors SWC's `handle_jsx_value`
+        // (transform.rs:1240), which shares the `ctx_name` path between
+        // JSX syntax and peer-tool jsx() calls.
         const jsxKind = parent?.type === 'ObjectExpression'
           ? ctx.jsxPropObjects.get(parent)
           : undefined;
@@ -698,13 +705,13 @@ export function extractSegments(
           ctx.naming.push(calleeName.slice(0, -1)); // "useMemo$" -> "useMemo"
           pushCount++;
         } else if (
-          // OSS-446 Bug 1: peer-tool `jsx('tag', { onProp$: ... })` calls.
-          // SWC's `handle_jsx` (transform.rs:1163-1188) pushes the tag from
-          // arg[0] onto `stack_ctxt` before descending into the props bag,
-          // so any $() segment inside the bag inherits the tag in its
-          // displayName. Matches the existing `JSXElement` branch below,
-          // applied here for the peer-tool form (qwik-react codegen,
-          // hand-crafted `jsx('form', { onSubmit$: $() })`, etc.).
+          // Peer-tool `jsx('tag', { onProp$: ... })` calls. SWC's
+          // `handle_jsx` (transform.rs:1163-1188) pushes the tag from
+          // arg[0] onto `stack_ctxt` before descending into the props
+          // bag, so any $() segment inside the bag inherits the tag in
+          // its displayName. Matches the existing `JSXElement` branch
+          // below, applied here for the peer-tool form (qwik-react
+          // codegen, hand-crafted `jsx('form', { onSubmit$: $() })`).
           ctx.jsxFunctions.has(calleeName) &&
           node.arguments &&
           node.arguments.length >= 2
@@ -884,12 +891,11 @@ export function extractSegments(
             }
           }
 
-          // Initial value; if `arg0` is a function whose body contains JSX, the
-          // leave-handler at line 701 will flip this via `extensionFromSegmentJsx`
-          // (same mechanism OSS-351 introduced for marker calls and JSX attrs).
+          // Initial value; if `arg0` is a function whose body contains JSX,
+          // the leave-handler flips this via `extensionFromSegmentJsx`.
           // Static-value `arg0` (string, identifier, null) bypasses the push
-          // below — extension stays as `sourceExt`, which matches the snapshot
-          // baseline.
+          // below — extension stays as `sourceExt`, which matches the
+          // snapshot baseline.
           const extension = sourceExt;
 
           const extraction: ExtractedSegmentBuilder = {
@@ -919,8 +925,8 @@ export function extractSegments(
             captures: inlinedCaptureNames.length > 0,
             captureNames: inlinedCaptureNames,
             paramNames: [],
-            // Function arg0 defers segmentImports collection into the outer
-            // walk via activeSegmentBodies (OSS-368). Non-function arg0 (rare
+            // Function arg0 defers segmentImports collection into the
+            // outer walk via activeSegmentBodies. Non-function arg0 (rare
             // — peer-tool cold path) falls back to the inline sub-walk.
             segmentImports:
               arg0.type === 'ArrowFunctionExpression' || arg0.type === 'FunctionExpression'
@@ -936,14 +942,14 @@ export function extractSegments(
             arg0.type === 'ArrowFunctionExpression' ||
             arg0.type === 'FunctionExpression'
           ) {
-            // Same JSX-detection treatment OSS-351 added for marker calls and
-            // JSX-attribute extractions: if any JSX node is encountered while
-            // walking arg0's body, the leave-handler flips the extension via
-            // extensionFromSegmentJsx. Defensive against peer codegen tools
-            // that might emit raw JSX inside an inlinedQrl arrow body
-            // (current peer tools — qwik-react etc. — pre-transform JSX, so
-            // none of the 12 inlinedQrl-using snapshots in match-these-snaps/
-            // exercise this path; verified during OSS-352).
+            // Same JSX-detection treatment as marker calls and
+            // JSX-attribute extractions: if any JSX node is encountered
+            // while walking arg0's body, the leave-handler flips the
+            // extension via extensionFromSegmentJsx. Defensive against
+            // peer codegen tools that might emit raw JSX inside an
+            // inlinedQrl arrow body (current peer tools — qwik-react etc.
+            // — pre-transform JSX, so no current snapshot exercises this
+            // path, but the gate must be ready for tools that don't).
             ctx.pushActiveSegmentBody({
               leaveNode: node,
               root: arg0,
@@ -1010,8 +1016,8 @@ export function extractSegments(
             if (jsxAttrName?.endsWith('$')) {
               attrCtx = ctx.naming.peek(1) ?? jsxAttrName;
 
-              // OSS-438: ctxKind classification matches SWC's two paths
-              // (see `swc-reference-only/transform.rs:1240+` and `:2427`).
+              // ctxKind classification matches SWC's two paths (see
+              // `swc-reference-only/transform.rs:1240+` and `:2427`).
               // Whether SWC takes the element-kind or name-prefix path
               // depends on `transpileJsx` — when true, `react::react`
               // pre-transforms JSX to `jsx()` calls (parse.rs:259) so
@@ -1055,10 +1061,11 @@ export function extractSegments(
         const isJsxAttrContext = isEventAttr || isJsxNonEventAttr;
         const ctxName = mkCtxName(getExtractionName(canonicalCallee, isJsxAttrContext, isJsxAttrContext ? attrCtx : undefined));
 
-        // OSS-437: when the marker's first arg is a single Identifier
-        // resolving to an import binding, derive the displayName + hash
-        // from the import path (mirrors SWC's `get_import_qrl_name` +
-        // `register_context_name` `hash_override` path). Falls back to
+        // When the marker's first arg is a single Identifier resolving
+        // to an import binding, derive the displayName + hash from the
+        // import path so the segment name stays stable across files
+        // importing the same asset. Mirrors SWC's `get_import_qrl_name`
+        // + `register_context_name` `hash_override` path. Falls back to
         // the default stack-based naming when the helper returns null.
         const importNaming = !isJsxAttrContext && !isBare
           ? getImportArgNaming(arg, imports, relPath)
@@ -1101,17 +1108,16 @@ export function extractSegments(
           ctxName,
           origin: mkOrigin(relPath),
           extension: defaultExtension,
-          // OSS-386: `loc` is documented as `[byteStart, byteEnd]` in
-          // OPTIMIZER.md and snap fixtures emit byte offsets; this site
-          // previously emitted `[line, col]` (a pre-existing semantic
-          // mismatch, hidden because convergence's strict-compare skips
-          // `loc`). Branding `ByteOffset` makes the contract explicit.
+          // `loc` carries byte offsets, not line/col — per OPTIMIZER.md's
+          // documented `[byteStart, byteEnd]` contract that snap fixtures
+          // also encode. Branding `ByteOffset` makes the contract explicit
+          // at the type level.
           loc: [mkByteOffset(arg.start), mkByteOffset(arg.end)],
           parent: null,
           captures: false,
           captureNames: [],
           paramNames: [],
-          // OSS-368 — deferred; populated on leave from activeSegmentBodies.bodyIds.
+          // Deferred; populated on leave from activeSegmentBodies.bodyIds.
           segmentImports: [],
           isInlinedQrl: false,
           explicitCaptures: null,
@@ -1164,10 +1170,10 @@ export function extractSegments(
 
           const isComponentEvent = parent?.type === 'JSXOpeningElement' && isComponentTag(parent.name);
 
-          // OSS-438: Same two-rule classification as the marker-call
-          // JSXAttr path above. transpileJsx=true uses element-kind rule
-          // (Component → jSXProp); transpileJsx=false uses name-prefix
-          // rule (`on*$` → eventHandler regardless of element kind).
+          // Same two-rule classification as the marker-call JSXAttr path
+          // above. transpileJsx=true uses element-kind rule (Component →
+          // jSXProp); transpileJsx=false uses name-prefix rule (`on*$` →
+          // eventHandler regardless of element kind).
           const isOnEventAttr = /^(?:document:|window:)?on[A-Z-]/.test(attrName);
           let ctxKind: 'function' | 'eventHandler' | 'jSXProp';
           if (explicitTranspileJsx === true) {
@@ -1205,14 +1211,14 @@ export function extractSegments(
             ctxName,
             origin: mkOrigin(relPath),
             extension: defaultExtension,
-            // OSS-386: same pre-existing semantic mismatch as site 1 — `loc` now
-            // carries byte offsets matching OPTIMIZER.md's documented contract.
+            // `loc` carries byte offsets matching OPTIMIZER.md's documented
+            // contract — same as the marker-call extraction path above.
             loc: [mkByteOffset(expr.start), mkByteOffset(expr.end)],
             parent: null,
             captures: false,
             captureNames: [],
             paramNames: [],
-            // OSS-368 — deferred; populated on leave from activeSegmentBodies.bodyIds.
+            // Deferred; populated on leave from activeSegmentBodies.bodyIds.
             segmentImports: [],
             isInlinedQrl: false,
             explicitCaptures: null,
@@ -1265,12 +1271,12 @@ function disambiguateExtractions(
   const prefix = fileStem + '_';
 
   for (const ext of extractions) {
-    // OSS-408 Fix B: peer-tool `inlinedQrl(body, "name", [...])` extractions
-    // carry an explicit name set by the upstream tool (qwik-react codegen,
-    // already-optimised input, etc.). Those names are unique by construction
-    // — appending `_<n>` would rewrite a name the consumer already expects
-    // and that the prod-rename hash math (`s_<hash>`) is computed against
-    // verbatim. Skip them.
+    // Peer-tool `inlinedQrl(body, "name", [...])` extractions carry an
+    // explicit name set by the upstream tool (qwik-react codegen,
+    // already-optimised input, etc.). Those names are unique by
+    // construction — appending `_<n>` would rewrite a name the consumer
+    // already expects and that the prod-rename hash math (`s_<hash>`) is
+    // computed against verbatim. Skip them.
     if (ext.isInlinedQrl) continue;
 
     const contextPortion = ext.displayName.startsWith(prefix)

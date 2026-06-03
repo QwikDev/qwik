@@ -81,8 +81,8 @@ export interface InlineStrategyOptions {
   /** Entry strategy type: 'inline' puts body in .s(), 'hoist' extracts body as const */
   readonly entryType?: 'inline' | 'hoist';
   /**
-   * OSS-421: `mode: 'lib'` reuses the inline pipeline but a post-pass
-   * collapses the `_noopQrl(name)` + `q_X.s(body)` triple into a single
+   * `mode: 'lib'` reuses the inline pipeline but a post-pass collapses
+   * the `_noopQrl(name)` + `q_X.s(body)` triple into a single
    * `inlinedQrl(body, name, [captures])` literal at every `q_X` reference.
    */
   readonly isLibMode?: boolean;
@@ -101,7 +101,7 @@ export interface ParentRewriteResult {
    * All extractions, post-`resolveNesting` (parent references resolved,
    * phase discriminator flipped to `'consolidated'`). Same underlying array
    * as the `extractions` parameter passed to {@link rewriteParentModule} —
-   * mutated in place per the OSS-389 pragmatic-pivot pattern.
+   * mutated in place per the in-place phase-transition pattern.
    */
   extractions: ConsolidatedSegment[];
   /**
@@ -110,7 +110,7 @@ export interface ParentRewriteResult {
    * Consumed by `segment-generation.ts:wireMigration` so the moved decl
    * carries the rewritten JSX (Qwik form) rather than the raw source
    * (which would survive into the segment and get React-transformed by
-   * oxc-transform's TS-strip pass). See OSS-430.
+   * oxc-transform's TS-strip pass).
    */
   movedDeclSnapshots: Map<string, string>;
   /** Final JSX key counter value after parent module transform (for segment continuation). */
@@ -198,18 +198,18 @@ export function rewriteParentModule(
   minify?: string,
   outputExtension?: string,
   existingProgram?: AstProgram,
-  /** Closure AST nodes per extraction; threaded into `RewriteContext.closureNodes`. See OSS-354. */
+  /** Closure AST nodes per extraction; threaded into `RewriteContext.closureNodes`. */
   closureNodes?: Map<string, AstFunction>,
   /**
    * Raw user-supplied dev path from `TransformModuleInput.devPath`,
    * unlike `devFilePath` which always falls back to a composed path.
-   * OSS-428 — needed so JSX dev-info `fileName:` only switches when the
-   * user explicitly overrides.
+   * Needed so JSX dev-info `fileName:` only switches when the user
+   * explicitly overrides.
    */
   userDevPath?: string,
   /**
-   * OSS-431: source carries `/* @jsxImportSource <non-qwik-pkg> *‌/`. When
-   * true, `runJsxTransform` is skipped — see RewriteContext.hasForeignJsxRuntime.
+   * Source carries `/* @jsxImportSource <non-qwik-pkg> *‌/`. When true,
+   * `runJsxTransform` is skipped — see RewriteContext.hasForeignJsxRuntime.
    */
   hasForeignJsxRuntime?: boolean,
 ): ParentRewriteResult {
@@ -250,13 +250,13 @@ export function rewriteParentModule(
   applyModeTransforms(ctx);
   resolveNesting(ctx);
 
-  // OSS-398 (OSS-389 Phase 2): flip the `phase` discriminator from
-  // 'captured' to 'consolidated' now that `resolveNesting` has resolved
-  // each extraction's `parent` reference (the last phase-spanning field
-  // that needed to settle). Remaining helpers in this function and all
-  // Phase 5 consumers downstream see `ConsolidatedSegment` types.
-  // Internal-builder cast (FFI-boundary pattern, same family as the
-  // Mutable<> casts at `rewriteCallSites` / `addCaptureWrapping`).
+  // Flip the `phase` discriminator from 'captured' to 'consolidated' now
+  // that `resolveNesting` has resolved each extraction's `parent`
+  // reference (the last phase-spanning field that needed to settle).
+  // Remaining helpers in this function and all Phase 5 consumers
+  // downstream see `ConsolidatedSegment` types. Internal-builder cast
+  // (FFI-boundary pattern, same family as the Mutable<> casts at
+  // `rewriteCallSites` / `addCaptureWrapping`).
   for (const ext of extractions) {
     (ext as Mutable<ExtractionResult>).phase = 'consolidated';
   }
@@ -272,15 +272,13 @@ export function rewriteParentModule(
   runJsxTransform(ctx);
   runPeerToolJsxCallTransform(ctx);
 
-  // OSS-430: capture post-JSX-rewrite text for each module-level decl
-  // that migration will MOVE into a segment file. The migration site in
-  // `segment-generation.ts:wireMigration` historically used the raw
-  // `decl.declText` source slice, which meant JSX inside the moved decl
-  // (e.g. a non-component$ helper function with `<div {...props}>`)
-  // never received the Qwik JSX rewrite — it fell through to
-  // oxc-transform's default React JSX transform and emitted `_jsx`.
-  // Sliced from MagicString here (post-JSX-rewrite, pre-assembly) so the
-  // moved text carries the rewritten JSX into the segment file.
+  // Capture post-JSX-rewrite text for each module-level decl that
+  // migration will MOVE into a segment file. Without this, JSX inside
+  // the moved decl (e.g. a non-component$ helper function with
+  // `<div {...props}>`) never receives the Qwik JSX rewrite and falls
+  // through to oxc-transform's default React JSX transform, emitting
+  // `_jsx`. Slicing from MagicString here (post-JSX-rewrite,
+  // pre-assembly) carries the rewritten JSX into the segment file.
   const movedDeclSnapshots = new Map<string, string>();
   if (migrationDecisions && moduleLevelDecls) {
     const declsByName = new Map<string, ModuleLevelDecl>();
@@ -294,10 +292,10 @@ export function rewriteParentModule(
   }
 
   collectNeededImports(ctx);
-  // OSS-432 Bug A: rename user-side top-level symbols that collide with
-  // injected runtime names (e.g. user's `const componentQrl = …` when we
-  // need to emit `import { componentQrl } from "@qwik.dev/core"`). Must
-  // run AFTER collectNeededImports (we need the injected-name set) and
+  // Rename user-side top-level symbols that collide with injected
+  // runtime names (e.g. user's `const componentQrl = …` when we need to
+  // emit `import { componentQrl } from "@qwik.dev/core"`). Must run
+  // AFTER collectNeededImports (we need the injected-name set) and
   // BEFORE buildQrlDeclarations (its `qrl(...)` literal text refers to
   // the injected name; user-side `qrl` is now `qrl1`).
   detectAndRenameCollisions(ctx);
@@ -308,7 +306,7 @@ export function rewriteParentModule(
 
   return {
     code: finalCode,
-    // OSS-398: `extractions` is the same array passed in, mutated through
+    // `extractions` is the same array passed in, mutated through
     // resolveNesting + preConsolidateRawPropsCaptures + the phase-flip
     // above. Every element now has `phase: 'consolidated'`.
     extractions: extractions as ConsolidatedSegment[],
@@ -359,12 +357,12 @@ function processImports(ctx: RewriteContext): void {
       if (spec.type !== 'ImportSpecifier') continue;
       const importedName = importedSpecifierName(spec);
       if (isMarkerSpecifier(importedName, extractedCalleeNames)) {
-        // OSS-423: lib mode preserves the user-facing `*$`-suffix markers
+        // lib mode preserves the user-facing `*$`-suffix markers
         // alongside their rewritten `*Qrl` forms — downstream library
         // consumers may re-import `component$`, `useStyle$`, etc. for
         // composition or re-export. The bare `$` marker is still stripped
-        // (it has no marker-function semantics post-extraction; SWC also
-        // strips it from `example_lib_mode`'s expected output).
+        // (no marker-function semantics post-extraction; SWC also strips
+        // it from its lib-mode expected output).
         if (isLibMode && importedName.length > 1 && importedName.endsWith('$')) {
           continue;
         }
@@ -475,9 +473,9 @@ function resolveNesting(ctx: RewriteContext): void {
       }
     }
     if (bestParent) {
-      // OSS-389: resolveNesting transitions captured → consolidated by
-      // setting parent. Internal-builder cast (see extract.ts `Mutable<T>`)
-      // — the caller treats the array as ConsolidatedSegment[] after this.
+      // resolveNesting transitions captured → consolidated by setting
+      // parent. Internal-builder cast (see extract.ts `Mutable<T>`) —
+      // the caller treats the array as ConsolidatedSegment[] after this.
       (sorted[i] as Mutable<ConsolidatedSegment>).parent = bestParent.symbolName;
     }
   }
@@ -500,11 +498,11 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
     const fieldMap = extractDestructuredFieldMap(parentExt.bodyText);
     if (fieldMap.size === 0) continue;
 
-    // OSS-409 bug 2: parallel defaults map so nested-segment field
-    // rewrites can emit `(_rawProps.<key> ?? <default>)` for fields
-    // the parent destructure defaulted (`some = 1+2`, `hey2 = 123`).
-    // Defaults-only — fields without a destructure default get bare
-    // `_rawProps.<key>` from the existing rewrite path.
+    // Parallel defaults map so nested-segment field rewrites can emit
+    // `(_rawProps.<key> ?? <default>)` for fields the parent destructure
+    // defaulted (`some = 1+2`, `hey2 = 123`). Defaults-only — fields
+    // without a destructure default get bare `_rawProps.<key>` from the
+    // existing rewrite path.
     const fieldDefaultsMap = extractDestructuredFieldDefaultsMap(parentExt.bodyText);
 
     const nonPropsCaptures: string[] = [];
@@ -524,7 +522,7 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
       }
     }
     if (hasPropsFields) {
-      // OSS-389: parent-rewrite raw-props consolidation transitions
+      // Parent-rewrite raw-props consolidation transitions
       // captured → consolidated. Internal-builder cast (see extract.ts
       // `Mutable<T>`). After this block, ext is effectively a
       // ConsolidatedSegment from downstream's perspective.
@@ -762,11 +760,12 @@ function addCaptureWrapping(ctx: RewriteContext): void {
 
 function runJsxTransform(ctx: RewriteContext): void {
   if (!ctx.jsxOptions?.enableJsx) return;
-  // OSS-431: foreign `@jsxImportSource` pragma — leave JSX intact so
-  // oxc-transform's default JSX transform handles it (it honors the pragma
-  // and emits `import { jsx as _jsx } from "<pkg>/jsx-runtime"`). The
-  // `<div onClick$>` syntax stays as-is; the foreign runtime treats `onClick$`
-  // as an ordinary attribute name, which is what SWC produces too.
+  // Foreign `@jsxImportSource` pragma — leave JSX intact so
+  // oxc-transform's default JSX transform handles it (it honors the
+  // pragma and emits `import { jsx as _jsx } from "<pkg>/jsx-runtime"`).
+  // The `<div onClick$>` syntax stays as-is; the foreign runtime treats
+  // `onClick$` as an ordinary attribute name, which is what SWC produces
+  // too.
   if (ctx.hasForeignJsxRuntime) return;
 
   const skipRanges = ctx.topLevel.map((ext) => ({
@@ -774,25 +773,22 @@ function runJsxTransform(ctx: RewriteContext): void {
     end: ext.argEnd,
   }));
 
-  // OSS-438 Fix B: propagate captures from stripped event handlers to
-  // their parent JSX element's `q:p` var-prop. Built INSIDE
-  // runJsxTransform (not upstream in `buildElementCaptureMap`) so the
-  // positions stored here match what `injectQpProp` reads during
-  // transformAllJsx's walk — both reads share the same oxc raw-transfer
-  // buffer state. Cross-phase positions are unreliable because every
-  // intervening `parseSync` overwrites the shared buffer (the original
-  // upstream-built map keyed by `<`-walk byte offsets had positions
-  // 524/630 while the walker saw 221/301).
+  // Propagate captures from stripped event handlers to their parent JSX
+  // element's `q:p` var-prop. Built INSIDE runJsxTransform (not upstream
+  // in `buildElementCaptureMap`) so the positions stored here match what
+  // `injectQpProp` reads during transformAllJsx's walk — both reads
+  // share the same oxc raw-transfer buffer state. Cross-phase positions
+  // are unreliable because every intervening `parseSync` overwrites the
+  // shared buffer.
   const strippedQpOverrides = buildStrippedEventQpOverrides(ctx);
 
   ctx.jsxResult = transformAllJsx(
     { source: ctx.source, s: ctx.s, program: ctx.program, importedNames: ctx.jsxOptions.importedNames },
     {
       skipRanges,
-      // OSS-428: JSX dev-info `fileName:` only switches to the user-supplied
-      // dev path when explicitly set. Composed `devFilePath` (srcDir+relPath
-      // fallback) keeps the default `relPath` behavior — matches SWC and
-      // preserves baseline-passing `example_dev_mode` / `example_jsx_keyed_dev`.
+      // JSX dev-info `fileName:` only switches to the user-supplied
+      // dev path when explicitly set. Composed `devFilePath`
+      // (srcDir+relPath fallback) keeps the default `relPath` behaviour.
       devOptions: ctx.isDevMode ? { relPath: ctx.userDevPath ?? ctx.relPath } : undefined,
       enableSignals: ctx.jsxOptions.enableSignals !== false,
       qpOverrides: strippedQpOverrides,
@@ -803,23 +799,23 @@ function runJsxTransform(ctx: RewriteContext): void {
 }
 
 /**
- * OSS-446 Bug 2: rewrite peer-tool `jsx()` / `jsxs()` / `jsxDEV()` calls in
- * the parent body to `_jsxSorted` / `_jsxSplit` form. Previously this only
- * happened inside segment bodies (OSS-379 Phase 5b), but parent bodies can
- * contain plain functions producing `jsx('tag', {...})` (e.g. the
- * qwik_router_client `Form` / `ServiceWorkerRegister` factories) that need
- * the same rewrite — `_jsxSorted` / `_wrapProp` / etc. imports show up
- * automatically alongside whatever `transformAllJsx` already required.
+ * Rewrite peer-tool `jsx()` / `jsxs()` / `jsxDEV()` calls in the parent
+ * body to `_jsxSorted` / `_jsxSplit` form. Parent bodies can contain
+ * plain functions producing `jsx('tag', {...})` (e.g. `Form` /
+ * `ServiceWorkerRegister` factories in router fixtures) that need the
+ * same rewrite segment bodies already get — `_jsxSorted` / `_wrapProp`
+ * / etc. imports show up automatically alongside whatever
+ * `transformAllJsx` already required.
  *
  * Runs as a sibling of `runJsxTransform`, NOT inside it, because the
- * peer-tool form is independent of JSX-syntax handling: this fixture's
- * `.mjs` extension means `ctx.jsxOptions` is undefined (`runJsxTransform`
+ * peer-tool form is independent of JSX-syntax handling: a `.mjs`
+ * extension means `ctx.jsxOptions` is undefined (`runJsxTransform`
  * short-circuits) but peer-tool `jsx()` calls still need rewriting.
  */
 function runPeerToolJsxCallTransform(ctx: RewriteContext): void {
-  // Foreign `@jsxImportSource` (OSS-431) is for JSX syntax, not the peer-tool
-  // form; even with a foreign pragma, a `jsx(...)` call resolving to a Qwik-
-  // runtime import should still be rewritten.
+  // Foreign `@jsxImportSource` is for JSX syntax, not the peer-tool
+  // form; even with a foreign pragma, a `jsx(...)` call resolving to a
+  // Qwik-runtime import should still be rewritten.
   const parentJsxFunctions = collectJsxFunctionNamesFromIterable(
     ctx.originalImports.values(),
   );
@@ -858,10 +854,9 @@ function runPeerToolJsxCallTransform(ctx: RewriteContext): void {
 }
 
 /**
- * OSS-438 Fix B (parent-rewrite path): walk `ctx.program` to map each
- * JSXElement that contains stripped event handlers to the unioned
- * capture names from those handlers. Read by `injectQpProp` via the
- * `qpOverrides` lookup at `node.start`.
+ * Walk `ctx.program` to map each JSXElement that contains stripped
+ * event handlers to the unioned capture names from those handlers.
+ * Read by `injectQpProp` via the `qpOverrides` lookup at `node.start`.
  *
  * Disambiguation uses source-order consumption: a per-calleeName queue
  * of stripped extractions, dequeued as the walk encounters matching

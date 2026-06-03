@@ -10,10 +10,9 @@
  *   - Marker calls (`qwikify$`, `component$`, …) still extract — they're
  *     the Qwik↔foreign-runtime bridge.
  *
- * Pragmas that name Qwik's own runtime (`@qwik.dev/core`, `@builder.io/qwik`)
- * are NOT considered foreign — the file remains under Qwik's optimization.
- *
- * Per OSS-431 (F6 Sub-B).
+ * Pragmas that name Qwik's own runtime (`@qwik.dev/core`,
+ * `@builder.io/qwik`) are NOT considered foreign — the file remains
+ * under Qwik's optimization.
  */
 export function detectForeignJsxRuntime(source: string): {
   hasForeignJsxRuntime: boolean;

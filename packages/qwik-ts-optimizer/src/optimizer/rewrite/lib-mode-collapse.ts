@@ -1,5 +1,5 @@
 /**
- * Lib-mode emission collapse (OSS-421).
+ * Lib-mode emission collapse.
  *
  * Post-pass that runs on the assembled inline-strategy output and collapses
  * the three-statement triple

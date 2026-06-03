@@ -90,8 +90,8 @@ export function isAnyComponentCtx(ctxName: string): boolean {
  * code (see `generateStrippedSegmentCode` in `strip-ctx.ts`) and have
  * `loc` set to `[0, 0]`. Implements MODE-04, MODE-05.
  *
- * Lived in `strip-ctx.ts` until OSS-344 consolidated extraction
- * predicates here; the codegen counterpart stays in `strip-ctx.ts`.
+ * Extraction predicates live here; the codegen counterpart stays in
+ * `strip-ctx.ts`.
  */
 export function isStrippedSegment(
   ctxName: string,

@@ -30,10 +30,9 @@ import {
   type RangeReplacementCollector,
 } from './range-replace.js';
 
-// Re-export `applyReplacements` for the legacy import path (it lived in
-// `simplify.ts` between OSS-415 and OSS-417; relocated to its natural
-// home next to `collectRangeReplacements` in OSS-417). Consumers should
-// import from `range-replace.js` directly going forward.
+// Re-export `applyReplacements` for the legacy import path; the helper
+// lives next to `collectRangeReplacements` in `range-replace.js` —
+// consumers should import from there directly going forward.
 export { applyReplacements };
 
 /**
@@ -223,7 +222,7 @@ export function bodySourceSimplificationsCollector(): RangeReplacementCollector 
 }
 
 /**
- * OSS-415: fold constant-foldable subtrees inside a segment-body source.
+ * Fold constant-foldable subtrees inside a segment-body source.
  *
  * Runs as a post-JSX-transform pass over the body text. By that timing,
  * JSX-prop positions have become `_fnSignal(...)` calls (with `_hf<n>_str`

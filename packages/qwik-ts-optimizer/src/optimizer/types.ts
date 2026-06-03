@@ -203,10 +203,8 @@ export interface TransformOutput {
  * `module.kind === 'segment'` (or via the equivalent `module.isEntry`
  * boolean); the discriminator gates access to variant-specific fields
  * (`segment` on segment modules, `origPath` on parent modules) at compile
- * time. Per OSS-399 (OSS-390 Phase 2), the redundant null-arm fields
- * (`segment: null` on parents, `origPath: null` on segments) that Phase 1
- * retained for migration safety have been dropped now that all consumers
- * narrow via `kind`.
+ * time. The null-arm fields (`segment: null` on parents, `origPath: null`
+ * on segments) were dropped once all consumers narrowed via `kind`.
  */
 export type TransformModule = TransformModuleParent | TransformModuleSegment;
 
@@ -396,8 +394,9 @@ export interface SegmentMetadataInternal extends SegmentAnalysis {
 
 /**
  * Mixin shape for the `EntryStrategy` variants that accept a per-symbol
- * manual override map. Extracted (OSS-392) so the 5 manual-bearing variants
- * declare the relationship once instead of duplicating `manual?:` five times.
+ * manual override map. Extracted so the 5 manual-bearing variants
+ * declare the relationship once instead of duplicating `manual?:` five
+ * times.
  *
  * Consulted by `entry-strategy.ts:resolveEntryField` and unpacked at the
  * use site via the {@link hasManualEntryMap} predicate.
@@ -446,8 +445,8 @@ export type EntryStrategy =
 /**
  * Type predicate narrowing an `EntryStrategy` to the variants that carry a
  * {@link WithManualEntryMap} mixin. Use instead of a `as Exclude<...>` cast
- * at narrowing sites — OSS-392, per the CBP rule "Casts are reserved for
- * two narrow purposes" (brand constructors + validated FFI).
+ * at narrowing sites — per the CBP rule "Casts are reserved for two
+ * narrow purposes" (brand constructors + validated FFI).
  */
 export function hasManualEntryMap(
   s: EntryStrategy,

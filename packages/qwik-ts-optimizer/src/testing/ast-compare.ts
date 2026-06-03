@@ -165,11 +165,11 @@ function normalizeProgram(program: any): void {
   // bindings — if the binding was inlined, the call is dead code)
   stripOrphanedSideEffectCalls(program);
 
-  // OSS-415 sibling: re-sort independent top-level statements (sCalls,
-  // bare-qrl preloads, exports) AFTER `inlineSegmentBodyIntoSCall` +
-  // unused-decl strip. The earlier sort at line 113 ran while the
-  // `const X = body` declarations preceding each `q_X.s(X)` were still
-  // present — those VariableDeclarations are not in the independent set
+  // Re-sort independent top-level statements (sCalls, bare-qrl
+  // preloads, exports) AFTER `inlineSegmentBodyIntoSCall` + unused-decl
+  // strip. The earlier sort above ran while the `const X = body`
+  // declarations preceding each `q_X.s(X)` were still present — those
+  // VariableDeclarations are not in the independent set
   // and broke contiguity, so the sCalls and exports stayed in source
   // (interleaved) order. After the inline+strip removes those decls
   // the block is finally contiguous, but the sort needs to fire again
@@ -720,13 +720,14 @@ function isIndependentTopLevel(stmt: any): boolean {
   // Export declarations: export const X = componentQrl(...)
   if (stmt?.type === 'ExportNamedDeclaration') return true;
   if (stmt?.type === 'ExportDefaultDeclaration') return true;
-  // OSS-423: `const NAME = <Literal>;` declarations have no observable side
+  // `const NAME = <Literal>;` declarations have no observable side
   // effects and no dependencies, so the order vs. surrounding `export` /
-  // `q_*.s(...)` statements is irrelevant for runtime semantics. SWC's lib
-  // emit places these declarations BEFORE the exports that reference them
-  // (e.g. `const STYLES = '.class {}';` before `export const Works = ...`);
-  // TS keeps source order (decl after the export). Including literal-init
-  // const decls in the sortable set normalises both into the same canonical
+  // `q_*.s(...)` statements is irrelevant for runtime semantics. SWC's
+  // lib emit places these declarations BEFORE the exports that
+  // reference them (e.g. `const STYLES = '.class {}';` before
+  // `export const Works = ...`); TS keeps source order (decl after the
+  // export). Including literal-init const decls in the sortable set
+  // normalises both into the same canonical
   // order. Strictly gated: only Literal initialisers — anything more
   // complex (CallExpression, ObjectExpression, etc.) could have side
   // effects whose order matters.

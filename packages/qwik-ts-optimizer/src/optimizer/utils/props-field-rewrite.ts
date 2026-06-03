@@ -28,9 +28,8 @@ interface RewritePropsFieldReferencesOptions {
  * when a default is provided). Handles shorthand `Property` value positions
  * specially by emitting `key: <accessor>` to expand the shorthand.
  *
- * Pre-OSS-417 this was the inline `walkNode` in
- * `rewritePropsFieldReferences`; the predicate matches the historic
- * behaviour via the shared {@link isReplaceableIdentifierPosition} helper.
+ * Predicate runs through the shared {@link isReplaceableIdentifierPosition}
+ * helper.
  */
 function propsFieldIdentifierCollector(
   fieldMap: ReadonlyMap<string, string>,
@@ -58,7 +57,7 @@ function propsFieldIdentifierCollector(
     if (defaultExpr === undefined) {
       accessor = baseAccessor;
     } else {
-      // OSS-418: shorthand expands to Property-value position (precedence-safe).
+      // Shorthand expands to Property-value position (precedence-safe).
       const needsParens = !isShorthandValue &&
         expressionNeedsParens(ctx.parentKey, ctx.parentNode);
       accessor = needsParens

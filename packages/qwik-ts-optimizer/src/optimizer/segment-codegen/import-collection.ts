@@ -35,7 +35,7 @@ const qrlSuffixPattern = createRegExp(
  * Post-walk we either use `getUndeclaredIdentifiersInFunction` against the
  * found function (the common path — bare-expression bodies are rare) or fall
  * back to the bare Identifier set. The bare set is only populated for the
- * fallback path; the common path discards it. See OSS-367.
+ * fallback path; the common path discards it.
  */
 function collectBodyIdentifiers(bodyText: string): Set<string> {
   const ids = new Set<string>();

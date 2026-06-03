@@ -427,10 +427,11 @@ export function removeUnusedImports(
 
     const importSource = spec.node.source?.value ?? '';
 
-    // OSS-423: lib mode preserves `$`-suffix marker imports and the
+    // lib mode preserves `$`-suffix marker imports and the
     // `jsx as _jsx` jsx-runtime import even when unused. These are
-    // public-surface imports for downstream library consumers, intentional
-    // per SWC's lib-emit semantics. Keep them regardless of `transpileJsx`.
+    // public-surface imports for downstream library consumers,
+    // intentional per SWC's lib-emit semantics. Keep them regardless of
+    // `transpileJsx`.
     if (isLibMode) {
       const importedName = spec.specNode.type === 'ImportSpecifier'
         ? (getImportedSpecifierName(spec.specNode) ?? spec.localName)

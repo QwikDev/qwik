@@ -174,12 +174,12 @@ export function rewriteNestedCallSitesInline(
 
   for (const site of sorted) {
     if (site.isJsxAttr && site.attrStart !== undefined && site.attrEnd !== undefined && site.transformedPropName) {
-      // OSS-444: a JSX-attr child segment that captures variables but
-      // isn't subject to the loop-cross hoist path (`hoistedSymbolName`
-      // unset, populated by buildNestedCallSites only for in-loop or
-      // loop-iter-padded handlers) still needs `.w([captures])` wrapping
-      // at the parent's prop call site. Mirrors the inline-strategy path
-      // at `rewrite/inline-body.ts:242-244`.
+      // A JSX-attr child segment that captures variables but isn't
+      // subject to the loop-cross hoist path (`hoistedSymbolName` unset,
+      // populated by `buildNestedCallSites` only for in-loop or
+      // loop-iter-padded handlers) still needs `.w([captures])`
+      // wrapping at the parent's prop call site. Mirrors the
+      // inline-strategy path in `rewrite/inline-body.ts`.
       let propValueRef: string;
       if (site.hoistedSymbolName) {
         propValueRef = site.hoistedSymbolName;
@@ -291,7 +291,7 @@ function injectHoistDeclarations(
  * Find the position of the component-level `return ` keyword in `bodyText` —
  * the return statement at depth-1 relative to the body's outer `{...}`.
  *
- * Required (OSS-400) because a component body may contain nested function
+ * Required because a component body may contain nested function
  * declarations (each with their own `return`), and `componentScopeWDecls`
  * must be injected BEFORE the COMPONENT's return, not the first nested
  * function's return. `indexOf('return ')` would find the wrong one.

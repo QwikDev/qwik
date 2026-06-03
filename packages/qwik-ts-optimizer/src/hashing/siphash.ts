@@ -34,7 +34,7 @@ export function qwikHash(
  * `register_context_name` `hash_override` path
  * (swc-reference-only/transform.rs:413-414) where the seed bytes are
  * fed directly to the hasher without the `scope + relPath + displayName`
- * concat. Used by the OSS-437 import-aware naming path:
+ * concat. Used by the import-aware naming path:
  * `useStyles$(css3)` with `import css3 from './style.css'` hashes the
  * seed `./style.css#default` rather than the stack-derived
  * `App_component_useStyles` context portion. Keeps the segment hash

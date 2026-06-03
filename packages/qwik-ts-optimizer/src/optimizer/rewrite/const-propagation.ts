@@ -69,8 +69,8 @@ export function resolveConstLiterals(parentBody: string, captureNames: string[])
  * source string from which the closure was originally parsed — `init.start` /
  * `init.end` on each AST node are source-absolute offsets into it.
  *
- * Use when the caller has access to the closure node from `extractSegments`'s
- * companion map (see OSS-353).
+ * Use when the caller has access to the closure node from
+ * `extractSegments`'s companion map.
  */
 export function resolveConstLiteralsInClosure(
   closureNode: AstFunction,

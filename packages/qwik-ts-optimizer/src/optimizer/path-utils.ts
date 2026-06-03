@@ -63,14 +63,14 @@ export function normalizePath(filePath: string): string {
  * in `types/brands.ts` so the result can be branded without per-fallback
  * special-casing at consumers.
  *
- * OSS-404: Preserves a leading `./` from the input when present. SWC's
- * hash function uses the user-provided path shape (e.g. `./node_modules/x`
- * stays as `./node_modules/x`), and the JSX dev-info `fileName:` emission
- * also expects that shape. The earlier behavior of stripping `./` via
- * `normalize()` produced TS-vs-SWC hash divergence + dev-info path
- * divergence for `node_modules`-prefixed fixtures. Stripping the `./`
- * for absolute-path concatenation happens at the call site
- * (`buildDevFilePath` per OSS-404).
+ * Preserves a leading `./` from the input when present. SWC's hash
+ * function uses the user-provided path shape (e.g. `./node_modules/x`
+ * stays as `./node_modules/x`), and the JSX dev-info `fileName:`
+ * emission also expects that shape. Stripping `./` via `normalize()`
+ * would produce TS-vs-SWC hash divergence + dev-info path divergence
+ * for `node_modules`-prefixed fixtures. Stripping the `./` for
+ * absolute-path concatenation happens at the call site
+ * (`buildDevFilePath`).
  */
 export function computeRelPath(inputPath: FilePath, srcDir: FilePath): RelativePath {
   const hasLeadingDotSlash = (inputPath as string).startsWith('./');
@@ -91,7 +91,7 @@ export function computeRelPath(inputPath: FilePath, srcDir: FilePath): RelativeP
 
 /** If the original input had a leading `./` prefix, restore it on the
  * normalized output (unless the normalized form already has it or is
- * empty). See OSS-404. */
+ * empty). */
 function restoreDotSlash(normalized: string, hadDotSlashPrefix: boolean): string {
   if (!hadDotSlashPrefix) return normalized;
   if (normalized.startsWith('./')) return normalized;

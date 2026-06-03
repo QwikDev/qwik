@@ -12,11 +12,15 @@ export {
   type Collector,
   type CollectorSubscriber,
   type ComputedSubscriber,
+  type DomEffectRecord,
   type DomSubscriber,
+  type IdleJobRecord,
   type IdleSubscriber,
   type PhaseSubscriber,
   type Subscriber,
+  type TaskRecord,
   type TaskSubscriber,
+  type VisibleTaskRecord,
   type VisibleTaskSubscriber,
 } from './subscriber';
 export { cleanupDeps, disposeSubscriber, disposeSubscribers } from './cleanup';

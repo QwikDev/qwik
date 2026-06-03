@@ -28,8 +28,8 @@ export interface ComputedSubscriber<T = unknown> extends Collector, ComputedSour
   notify(): void;
 }
 
-export interface TaskSubscriber extends Collector, ScheduledSubscriber {
-  readonly kind: SubscriberKind.Task;
+// TODO(vdomless): replace with the real Task runtime type.
+export interface TaskRecord {
   readonly phase: Phase.BlockingTask | Phase.DeferredTask;
   readonly group: TaskGroup;
   readonly index: number;
@@ -37,27 +37,45 @@ export interface TaskSubscriber extends Collector, ScheduledSubscriber {
   run: () => unknown;
 }
 
-export interface VisibleTaskSubscriber extends Collector, ScheduledSubscriber {
-  readonly kind: SubscriberKind.VisibleTask;
-  readonly phase: Phase.VisibleTask;
+// TODO(vdomless): replace with the real VisibleTask runtime type.
+export interface VisibleTaskRecord {
   readonly seq: number;
   run: () => unknown;
 }
 
-export interface DomSubscriber extends Collector, ScheduledSubscriber {
-  readonly kind: SubscriberKind.Dom;
+// TODO(vdomless): replace with the real DomEffect runtime type.
+export interface DomEffectRecord {
   readonly phase: Phase.StructuralDom | Phase.ScalarDom;
   readonly order: number;
   readonly seq: number;
   run: () => unknown;
 }
 
-export interface IdleSubscriber extends ScheduledSubscriber {
-  readonly kind: SubscriberKind.Idle;
-  readonly phase: Phase.Idle;
+// TODO(vdomless): replace with the real IdleJob runtime type.
+export interface IdleJobRecord {
   readonly seq: number;
   run: () => unknown;
   dispose?: () => void;
+}
+
+export interface TaskSubscriber extends Collector, ScheduledSubscriber {
+  readonly kind: SubscriberKind.Task;
+  readonly task: TaskRecord;
+}
+
+export interface VisibleTaskSubscriber extends Collector, ScheduledSubscriber {
+  readonly kind: SubscriberKind.VisibleTask;
+  readonly task: VisibleTaskRecord;
+}
+
+export interface DomSubscriber extends Collector, ScheduledSubscriber {
+  readonly kind: SubscriberKind.Dom;
+  readonly effect: DomEffectRecord;
+}
+
+export interface IdleSubscriber extends ScheduledSubscriber {
+  readonly kind: SubscriberKind.Idle;
+  readonly job: IdleJobRecord;
 }
 
 // Work scheduled into one of the runtime phases.

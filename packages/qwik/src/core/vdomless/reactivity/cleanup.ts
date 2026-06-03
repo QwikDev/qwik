@@ -51,7 +51,7 @@ export function disposeSubscriber(subscriber: Subscriber): void {
       cleanupDeps(subscriber);
       return;
     case SubscriberKind.Idle:
-      subscriber.dispose?.();
+      subscriber.job.dispose?.();
       return;
   }
 }

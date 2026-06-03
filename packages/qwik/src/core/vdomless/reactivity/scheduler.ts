@@ -1,5 +1,6 @@
 import { cleanupDeps } from './cleanup';
 import { ReactiveFlags } from './flags';
+import { SubscriberKind } from './subscriber';
 import { runWithCollector } from './tracking';
 import type {
   DomSubscriber,
@@ -115,7 +116,10 @@ export class Scheduler {
     subscriber.schedulerEpoch++;
     this.pushPhaseQueue(subscriber, subscriber.schedulerEpoch);
 
-    if (subscriber.phase === Phase.DeferredTask || subscriber.phase === Phase.Idle) {
+    if (
+      (subscriber.kind === SubscriberKind.Task && subscriber.task.phase === Phase.DeferredTask) ||
+      subscriber.kind === SubscriberKind.Idle
+    ) {
       this.scheduleDeferredTasks();
     } else {
       this.scheduleFlush();
@@ -123,23 +127,25 @@ export class Scheduler {
   }
 
   private pushPhaseQueue(subscriber: PhaseSubscriber, epoch: number): void {
-    switch (subscriber.phase) {
-      case Phase.BlockingTask:
-        pushSorted(this.blockingTasks, { subscriber, epoch }, compareTaskJob);
+    switch (subscriber.kind) {
+      case SubscriberKind.Task:
+        if (subscriber.task.phase === Phase.BlockingTask) {
+          pushSorted(this.blockingTasks, { subscriber, epoch }, compareTaskJob);
+        } else {
+          pushSorted(this.deferredTasks, { subscriber, epoch }, compareTaskJob);
+        }
         return;
-      case Phase.StructuralDom:
-        pushSorted(this.structuralDom, { subscriber, epoch }, compareDomJob);
-        return;
-      case Phase.ScalarDom:
-        pushSorted(this.scalarDom, { subscriber, epoch }, compareDomJob);
-        return;
-      case Phase.VisibleTask:
+      case SubscriberKind.VisibleTask:
         pushSorted(this.visibleTasks, { subscriber, epoch }, compareSeqJob);
         return;
-      case Phase.DeferredTask:
-        pushSorted(this.deferredTasks, { subscriber, epoch }, compareTaskJob);
+      case SubscriberKind.Dom:
+        if (subscriber.effect.phase === Phase.StructuralDom) {
+          pushSorted(this.structuralDom, { subscriber, epoch }, compareDomJob);
+        } else {
+          pushSorted(this.scalarDom, { subscriber, epoch }, compareDomJob);
+        }
         return;
-      case Phase.Idle:
+      case SubscriberKind.Idle:
         pushSorted(this.idle, { subscriber, epoch }, compareSeqJob);
         return;
     }
@@ -233,7 +239,7 @@ export class Scheduler {
 
     task.flags &= ~ReactiveFlags.Dirty;
     cleanupDeps(task);
-    await runWithCollector(task, runPhaseSubscriber, task);
+    await runWithCollector(task, runTaskRecord, task.task);
   }
 
   private async runVisibleTask(task: VisibleTaskSubscriber): Promise<void> {
@@ -245,14 +251,14 @@ export class Scheduler {
 
     task.flags &= ~ReactiveFlags.Dirty;
     cleanupDeps(task);
-    await runWithCollector(task, runPhaseSubscriber, task);
+    await runWithCollector(task, runVisibleTaskRecord, task.task);
   }
 
   private async runDomEffect(effect: DomSubscriber): Promise<void> {
     effect.flags &= ~ReactiveFlags.Scheduled;
     effect.flags &= ~ReactiveFlags.Dirty;
     cleanupDeps(effect);
-    await runWithCollector(effect, runPhaseSubscriber, effect);
+    await runWithCollector(effect, runDomEffectRecord, effect.effect);
   }
 
   private runScalarDomEffect(effect: DomSubscriber): void {
@@ -260,7 +266,7 @@ export class Scheduler {
     effect.flags &= ~ReactiveFlags.Dirty;
     cleanupDeps(effect);
 
-    const value = runWithCollector(effect, runPhaseSubscriber, effect);
+    const value = runWithCollector(effect, runDomEffectRecord, effect.effect);
     if (isPromiseLike(value)) {
       throw new Error('Scalar DOM effects must be synchronous');
     }
@@ -269,7 +275,7 @@ export class Scheduler {
   private runIdleJob(job: IdleSubscriber): void {
     job.flags &= ~ReactiveFlags.Scheduled;
     job.flags &= ~ReactiveFlags.Dirty;
-    void job.run();
+    void job.job.run();
   }
 
   private readonly flushScheduled = (): void => {
@@ -360,43 +366,47 @@ function popValid<T extends PhaseSubscriber>(queue: SchedulerJob<T>[]): Schedule
 }
 
 function compareTaskJob(a: SchedulerJob<TaskSubscriber>, b: SchedulerJob<TaskSubscriber>): number {
-  const phase = a.subscriber.phase - b.subscriber.phase;
+  const aTask = a.subscriber.task;
+  const bTask = b.subscriber.task;
+  const phase = aTask.phase - bTask.phase;
   if (phase !== 0) {
     return phase;
   }
 
-  const groupPath = comparePath(a.subscriber.group.path, b.subscriber.group.path);
+  const groupPath = comparePath(aTask.group.path, bTask.group.path);
   if (groupPath !== 0) {
     return groupPath;
   }
 
-  const index = a.subscriber.index - b.subscriber.index;
+  const index = aTask.index - bTask.index;
   if (index !== 0) {
     return index;
   }
 
-  return a.subscriber.seq - b.subscriber.seq;
+  return aTask.seq - bTask.seq;
 }
 
 function compareDomJob(a: SchedulerJob<DomSubscriber>, b: SchedulerJob<DomSubscriber>): number {
-  const phase = a.subscriber.phase - b.subscriber.phase;
+  const aEffect = a.subscriber.effect;
+  const bEffect = b.subscriber.effect;
+  const phase = aEffect.phase - bEffect.phase;
   if (phase !== 0) {
     return phase;
   }
 
-  const order = a.subscriber.order - b.subscriber.order;
+  const order = aEffect.order - bEffect.order;
   if (order !== 0) {
     return order;
   }
 
-  return a.subscriber.seq - b.subscriber.seq;
+  return aEffect.seq - bEffect.seq;
 }
 
 function compareSeqJob<T extends VisibleTaskSubscriber | IdleSubscriber>(
   a: SchedulerJob<T>,
   b: SchedulerJob<T>
 ): number {
-  return a.subscriber.seq - b.subscriber.seq;
+  return getSeq(a.subscriber) - getSeq(b.subscriber);
 }
 
 function comparePath(a: readonly number[], b: readonly number[]): number {
@@ -411,8 +421,20 @@ function comparePath(a: readonly number[], b: readonly number[]): number {
   return a.length - b.length;
 }
 
-function runPhaseSubscriber(subscriber: PhaseSubscriber): unknown {
-  return subscriber.run();
+function runTaskRecord(task: TaskSubscriber['task']): unknown {
+  return task.run();
+}
+
+function runVisibleTaskRecord(task: VisibleTaskSubscriber['task']): unknown {
+  return task.run();
+}
+
+function runDomEffectRecord(effect: DomSubscriber['effect']): unknown {
+  return effect.run();
+}
+
+function getSeq(subscriber: VisibleTaskSubscriber | IdleSubscriber): number {
+  return subscriber.kind === SubscriberKind.VisibleTask ? subscriber.task.seq : subscriber.job.seq;
 }
 
 function isPromiseLike(value: unknown): value is Promise<unknown> {

@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { _captures, createQRL } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
+import {
+  BranchState,
+  createBranch,
+  createBranchQrl,
+  createBranchQrlSubscriber,
+  createBranchRange as createMarkerBranchRange,
+  type BranchConditionFn,
+  type BranchRange,
+  type BranchRenderFn,
+} from './branch';
 import { disposeSubscriber } from './cleanup';
 import { Computed, createComputed } from './computed';
 import { createComputedQrl } from './computed-qrl';
@@ -26,6 +36,7 @@ import { Phase, Scheduler } from './scheduler';
 import { createSignal } from './signal';
 import {
   SubscriberKind,
+  type BranchSubscriber,
   type DomSubscriber,
   type IdleSubscriber,
   type TaskSubscriber,
@@ -45,6 +56,177 @@ const noopSchedule = (): void => {};
 
 function createText(data = ''): Text {
   return { data } as Text;
+}
+
+function createNode(label: string): Node {
+  return { label } as unknown as Node;
+}
+
+function getNodeLabel(node: Node): string {
+  return (node as unknown as { label: string }).label;
+}
+
+function createBranchRange(): { range: BranchRange; replacements: Node[][] } {
+  const replacements: Node[][] = [];
+  return {
+    range: {
+      replace(nodes: readonly Node[]) {
+        replacements.push([...nodes]);
+      },
+    },
+    replacements,
+  };
+}
+
+interface TestParentNode extends Node {
+  nodes: TestDomNode[];
+}
+
+interface TestDomNode extends Node {
+  label: string;
+  parent: TestParentNode | null;
+}
+
+interface TestDocumentFragment extends DocumentFragment {
+  isTestFragment: true;
+  nodes: TestDomNode[];
+}
+
+const testDocument = {
+  createRange(): Range {
+    let start: TestDomNode | null = null;
+    let end: TestDomNode | null = null;
+
+    return {
+      setStartAfter(node: Node): void {
+        start = node as TestDomNode;
+      },
+      setEndBefore(node: Node): void {
+        end = node as TestDomNode;
+      },
+      deleteContents(): void {
+        if (start === null || end === null) {
+          throw new Error('Incomplete range');
+        }
+
+        const parent = start.parent;
+        if (parent === null || parent !== end.parent) {
+          throw new Error('Range markers must share parent');
+        }
+
+        let child = start.nextSibling as TestDomNode | null;
+        while (child !== end) {
+          if (child === null) {
+            throw new Error('Range end not found');
+          }
+
+          const next = child.nextSibling as TestDomNode | null;
+          parent.removeChild(child);
+          child = next;
+        }
+      },
+    } as unknown as Range;
+  },
+  createDocumentFragment(): DocumentFragment {
+    return createTestDocumentFragment();
+  },
+} as Document;
+
+function createTestDocumentFragment(): TestDocumentFragment {
+  let fragment!: TestDocumentFragment;
+  fragment = {
+    isTestFragment: true,
+    nodes: [] as TestDomNode[],
+    appendChild(node: Node): Node {
+      const child = node as TestDomNode;
+      const currentParent = child.parent;
+      if (currentParent !== null) {
+        currentParent.removeChild(child);
+      }
+
+      fragment.nodes.push(child);
+      child.parent = null;
+      return node;
+    },
+  } as unknown as TestDocumentFragment;
+
+  return fragment;
+}
+
+function isTestDocumentFragment(node: Node): node is TestDocumentFragment {
+  return (node as Partial<TestDocumentFragment>).isTestFragment === true;
+}
+
+function createTestDomNode(label: string): TestDomNode {
+  return {
+    label,
+    parent: null,
+    get ownerDocument() {
+      return testDocument;
+    },
+    get parentNode() {
+      return this.parent;
+    },
+    get nextSibling() {
+      const parent = this.parent;
+      if (parent === null) {
+        return null;
+      }
+
+      const index = parent.nodes.indexOf(this);
+      return parent.nodes[index + 1] ?? null;
+    },
+  } as TestDomNode;
+}
+
+function createTestParentNode(nodes: TestDomNode[]): TestParentNode {
+  let parent!: TestParentNode;
+  parent = {
+    nodes: [] as TestDomNode[],
+    removeChild(node: Node): Node {
+      const child = node as TestDomNode;
+      const index = parent.nodes.indexOf(child);
+      if (index === -1) {
+        throw new Error('Missing child');
+      }
+
+      parent.nodes.splice(index, 1);
+      child.parent = null;
+      return node;
+    },
+    insertBefore(node: Node, before: Node | null): Node {
+      if (isTestDocumentFragment(node)) {
+        for (let i = 0; i < node.nodes.length; i++) {
+          parent.insertBefore(node.nodes[i], before);
+        }
+        node.nodes.length = 0;
+        return node;
+      }
+
+      const child = node as TestDomNode;
+      const beforeIndex =
+        before === null ? parent.nodes.length : parent.nodes.indexOf(before as TestDomNode);
+      if (beforeIndex === -1) {
+        throw new Error('Missing reference child');
+      }
+
+      const currentParent = child.parent;
+      if (currentParent !== null) {
+        currentParent.removeChild(child);
+      }
+
+      parent.nodes.splice(beforeIndex, 0, child);
+      child.parent = parent;
+      return node;
+    },
+  } as unknown as TestParentNode;
+
+  for (let i = 0; i < nodes.length; i++) {
+    parent.nodes.push(nodes[i]);
+    nodes[i].parent = parent;
+  }
+
+  return parent;
 }
 
 function createAttrTarget(): { element: Element; attrs: Map<string, string> } {
@@ -578,6 +760,150 @@ describe('vdomless reactivity', () => {
     expect(count.subs).toBeNull();
   });
 
+  it('creates branch ranges from comment markers', () => {
+    const start = createTestDomNode('start');
+    const oldA = createTestDomNode('old-a');
+    const oldB = createTestDomNode('old-b');
+    const end = createTestDomNode('end');
+    const nextA = createTestDomNode('next-a');
+    const nextB = createTestDomNode('next-b');
+    const parent = createTestParentNode([start, oldA, oldB, end]);
+    const range = createMarkerBranchRange(start as unknown as Comment, end as unknown as Comment);
+
+    range.replace([nextA, nextB]);
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'next-a', 'next-b', 'end']);
+    expect(oldA.parentNode).toBeNull();
+    expect(oldB.parentNode).toBeNull();
+    expect(start.parentNode).toBe(parent);
+    expect(end.parentNode).toBe(parent);
+
+    range.replace([]);
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'end']);
+    expect(nextA.parentNode).toBeNull();
+    expect(nextB.parentNode).toBeNull();
+  });
+
+  it('runs CSR branches and switches branch owners', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const visible = createSignal(true);
+    const branchText = createSignal('then');
+    const { range, replacements } = createBranchRange();
+    const thenNode = createNode('then');
+    const elseNode = createNode('else');
+    const text = createText();
+    let thenRuns = 0;
+    let elseRuns = 0;
+
+    const branch = createBranch<[typeof visible, typeof branchText, Text]>(
+      range,
+      [visible, branchText, text],
+      (source) => source.value,
+      (_source, textSource, target) => {
+        thenRuns++;
+        const effect = createTextNodeEffect(target, textSource, { scheduler });
+        scheduler.notify(effect);
+        return [thenNode];
+      },
+      () => {
+        elseRuns++;
+        return [elseNode];
+      },
+      { scheduler }
+    ) as BranchSubscriber;
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(replacements).toEqual([[thenNode]]);
+    expect(text.data).toBe('then');
+    expect(visible.subs).toContain(branch);
+    expect(branchText.subs).not.toBeNull();
+    expect(branch.branch.currentOwner).not.toBeNull();
+    expect(thenRuns).toBe(1);
+    expect(elseRuns).toBe(0);
+
+    branchText.value = 'next';
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('next');
+
+    visible.value = false;
+    await scheduler.flushInteraction();
+
+    expect(replacements).toEqual([[thenNode], [elseNode]]);
+    expect(branchText.subs).toBeNull();
+    expect(thenRuns).toBe(1);
+    expect(elseRuns).toBe(1);
+
+    visible.value = true;
+    await scheduler.flushInteraction();
+
+    expect(replacements).toEqual([[thenNode], [elseNode], [thenNode]]);
+    expect(thenRuns).toBe(2);
+    expect(elseRuns).toBe(1);
+  });
+
+  it('does not rerender CSR branches when branch state is unchanged', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const count = createSignal(1);
+    const { range, replacements } = createBranchRange();
+    const node = createNode('positive');
+    let renderRuns = 0;
+    const branch = createBranch<[typeof count]>(
+      range,
+      [count],
+      (source) => source.value > 0,
+      () => {
+        renderRuns++;
+        return [node];
+      },
+      undefined,
+      { scheduler }
+    );
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    count.value = 2;
+    await scheduler.flushInteraction();
+
+    expect(replacements).toEqual([[node]]);
+    expect(renderRuns).toBe(1);
+  });
+
+  it('sorts structural branches with structural DOM effects by order', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const order: string[] = [];
+    const { range } = createBranchRange();
+    const branch = createBranch<[]>(
+      range,
+      [],
+      () => true,
+      () => {
+        order.push('branch');
+      },
+      undefined,
+      { scheduler, order: 0 }
+    );
+    const effect = createTextExpressionEffect(
+      createText(),
+      [],
+      () => {
+        order.push('effect');
+        return 'effect';
+      },
+      { scheduler, phase: Phase.StructuralDom, order: 1 }
+    );
+
+    scheduler.notify(effect);
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(order).toEqual(['branch', 'effect']);
+  });
+
   it('skips disposed tasks that were already scheduled', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const seen: string[] = [];
@@ -604,6 +930,68 @@ describe('vdomless reactivity', () => {
 
     expect(text.data).toBe('');
     expect(effect.flags).toBe(ReactiveFlags.Disposed);
+  });
+
+  it('skips disposed branches that were already scheduled', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const { range, replacements } = createBranchRange();
+    let runs = 0;
+    const branch = createBranch<[]>(
+      range,
+      [],
+      () => true,
+      () => {
+        runs++;
+      },
+      undefined,
+      { scheduler }
+    );
+
+    scheduler.notify(branch);
+    disposeSubscriber(branch);
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(runs).toBe(0);
+    expect(replacements).toEqual([[]]);
+    expect(branch.flags).toBe(ReactiveFlags.Disposed);
+  });
+
+  it('disposes active branch owners and clears branch ranges', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const visible = createSignal(true);
+    const local = createSignal('local');
+    const text = createText();
+    const node = createNode('branch');
+    const { range, replacements } = createBranchRange();
+    const branch = createBranch<[typeof visible, typeof local, Text]>(
+      range,
+      [visible, local, text],
+      (source) => source.value,
+      (_source, localSource, target) => {
+        const effect = createTextNodeEffect(target, localSource, { scheduler });
+        scheduler.notify(effect);
+        return [node];
+      },
+      undefined,
+      { scheduler }
+    ) as BranchSubscriber;
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(replacements).toEqual([[node]]);
+    expect(visible.subs).toContain(branch);
+    expect(local.subs).not.toBeNull();
+    expect(branch.branch.currentOwner).not.toBeNull();
+
+    disposeSubscriber(branch);
+
+    expect(visible.subs).toBeNull();
+    expect(local.subs).toBeNull();
+    expect(branch.branch.currentOwner).toBeNull();
+    expect(branch.branch.currentBranch).toBeNull();
+    expect(replacements).toEqual([[node], []]);
   });
 
   it('registers subscribers with the active owner', async () => {
@@ -937,6 +1325,278 @@ describe('vdomless reactivity', () => {
 
     expect(resolved).toBe(true);
     expect(order).toEqual(['qrl']);
+  });
+
+  it('loads unresolved branch condition QRLs before tracking dependencies', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const visible = createSignal(true);
+    const node = createNode('then');
+    const { range, replacements } = createBranchRange();
+    let resolved = false;
+    const conditionQrl = createQRL<BranchConditionFn<[typeof visible]>>(
+      'chunk',
+      'condition',
+      null,
+      () => {
+        resolved = true;
+        return Promise.resolve({
+          condition: (source: typeof visible) => source.value,
+        });
+      },
+      null
+    );
+    const thenQrl = createQRL<BranchRenderFn<[typeof visible]>>(
+      'chunk',
+      'then',
+      (_source: typeof visible) => [node],
+      null,
+      null
+    );
+    const branchQrl = createBranchQrl<[typeof visible]>(
+      [visible],
+      conditionQrl,
+      thenQrl,
+      undefined
+    );
+    const branch = createBranchQrlSubscriber(range, branchQrl, { scheduler });
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(resolved).toBe(true);
+    expect(replacements).toEqual([[node]]);
+    expect(visible.subs).toContain(branch);
+
+    visible.value = false;
+    await scheduler.flushInteraction();
+
+    expect(replacements).toEqual([[node], []]);
+  });
+
+  it('loads branch render QRLs only when entering their branch', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const visible = createSignal(true);
+    const thenNode = createNode('then');
+    const elseNode = createNode('else');
+    const { range, replacements } = createBranchRange();
+    let thenResolved = false;
+    let elseResolved = false;
+    const thenQrl = createQRL<BranchRenderFn<[typeof visible]>>(
+      'chunk',
+      'renderThen',
+      null,
+      () => {
+        thenResolved = true;
+        return Promise.resolve({
+          renderThen: (_source: typeof visible) => [thenNode],
+        });
+      },
+      null
+    );
+    const elseQrl = createQRL<BranchRenderFn<[typeof visible]>>(
+      'chunk',
+      'renderElse',
+      null,
+      () => {
+        elseResolved = true;
+        return Promise.resolve({
+          renderElse: (_source: typeof visible) => [elseNode],
+        });
+      },
+      null
+    );
+    const branchQrl = createBranchQrl<[typeof visible]>(
+      [visible],
+      createQRL<BranchConditionFn<[typeof visible]>>(
+        'chunk',
+        'condition',
+        (source: typeof visible) => source.value,
+        null,
+        null
+      ),
+      thenQrl,
+      elseQrl
+    );
+    const branch = createBranchQrlSubscriber(range, branchQrl, { scheduler });
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(thenResolved).toBe(true);
+    expect(elseResolved).toBe(false);
+    expect(replacements).toEqual([[thenNode]]);
+
+    visible.value = false;
+    await scheduler.flushInteraction();
+
+    expect(elseResolved).toBe(true);
+    expect(replacements).toEqual([[thenNode], [elseNode]]);
+  });
+
+  it('resumes mounted branch QRLs without loading the matching renderer', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const visible = createSignal(true);
+    const thenNode = createNode('then');
+    const { range, replacements } = createBranchRange();
+    let conditionResolved = false;
+    let thenResolved = false;
+    const conditionQrl = createQRL<BranchConditionFn<[typeof visible]>>(
+      'chunk',
+      'condition',
+      null,
+      () => {
+        conditionResolved = true;
+        return Promise.resolve({
+          condition: (source: typeof visible) => source.value,
+        });
+      },
+      null
+    );
+    const thenQrl = createQRL<BranchRenderFn<[typeof visible]>>(
+      'chunk',
+      'renderThen',
+      null,
+      () => {
+        thenResolved = true;
+        return Promise.resolve({
+          renderThen: (_source: typeof visible) => [thenNode],
+        });
+      },
+      null
+    );
+    const branchQrl = createBranchQrl<[typeof visible]>(
+      [visible],
+      conditionQrl,
+      thenQrl,
+      undefined
+    );
+    const branch = createBranchQrlSubscriber(range, branchQrl, {
+      scheduler,
+      order: 7,
+      mountedBranch: BranchState.Then,
+    });
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect('order' in branchQrl).toBe(false);
+    expect('mountedBranch' in branchQrl).toBe(false);
+    expect(branch.branch.order).toBe(7);
+    expect(conditionResolved).toBe(true);
+    expect(thenResolved).toBe(false);
+    expect(replacements).toEqual([]);
+    expect(visible.subs).toContain(branch);
+    expect(branch.branch.currentBranch).toBe(BranchState.Then);
+    expect(branch.branch.currentOwner).not.toBeNull();
+  });
+
+  it('switches resumed mounted branches and disposes the mounted owner', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const visible = createSignal(true);
+    const local = createSignal('mounted');
+    const text = createText();
+    const elseNode = createNode('else');
+    const { range, replacements } = createBranchRange();
+    let thenResolved = false;
+    let elseResolved = false;
+    let effect!: DomSubscriber;
+    const branchQrl = createBranchQrl<[typeof visible]>(
+      [visible],
+      createQRL<BranchConditionFn<[typeof visible]>>(
+        'chunk',
+        'condition',
+        (source: typeof visible) => source.value,
+        null,
+        null
+      ),
+      createQRL<BranchRenderFn<[typeof visible]>>(
+        'chunk',
+        'renderThen',
+        null,
+        () => {
+          thenResolved = true;
+          return Promise.resolve({
+            renderThen: (_source: typeof visible) => [],
+          });
+        },
+        null
+      ),
+      createQRL<BranchRenderFn<[typeof visible]>>(
+        'chunk',
+        'renderElse',
+        null,
+        () => {
+          elseResolved = true;
+          return Promise.resolve({
+            renderElse: (_source: typeof visible) => [elseNode],
+          });
+        },
+        null
+      )
+    );
+    const branch = createBranchQrlSubscriber(range, branchQrl, {
+      scheduler,
+      mountedBranch: BranchState.Then,
+    });
+    const mountedOwner = branch.branch.currentOwner;
+
+    expect(mountedOwner).not.toBeNull();
+    runWithOwner(mountedOwner, () => {
+      effect = createTextNodeEffect(text, local, { scheduler });
+    });
+
+    scheduler.notify(effect);
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('mounted');
+    expect(local.subs).toContain(effect);
+    expect(thenResolved).toBe(false);
+    expect(elseResolved).toBe(false);
+    expect(replacements).toEqual([]);
+
+    visible.value = false;
+    await scheduler.flushInteraction();
+
+    expect(thenResolved).toBe(false);
+    expect(elseResolved).toBe(true);
+    expect(replacements).toEqual([[elseNode]]);
+    expect(local.subs).toBeNull();
+    expect(effect.flags).toBe(ReactiveFlags.Disposed);
+    expect(branch.branch.currentBranch).toBe(BranchState.Else);
+    expect(branch.branch.currentOwner).not.toBe(mountedOwner);
+  });
+
+  it('restores serialized captures for branch QRLs', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const container = createCaptureContainer({
+      0: 'branch',
+      1: 'capture',
+    });
+    const { range, replacements } = createBranchRange();
+    const branchQrl = createBranchQrl<[]>(
+      [],
+      createQRL<BranchConditionFn<[]>>('chunk', 'condition', () => true, null, null),
+      createQRL<BranchRenderFn<[]>>(
+        'chunk',
+        'renderThen',
+        null,
+        () =>
+          Promise.resolve({
+            renderThen: () => [createNode((_captures as readonly string[]).join(':'))],
+          }),
+        '0 1',
+        container
+      ),
+      undefined,
+      { container }
+    );
+    const branch = createBranchQrlSubscriber(range, branchQrl, { scheduler });
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(getNodeLabel(replacements[0][0])).toBe('branch:capture');
   });
 
   it('runs visible tasks in enqueue order', async () => {

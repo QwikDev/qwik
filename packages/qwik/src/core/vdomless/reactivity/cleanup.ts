@@ -45,7 +45,11 @@ export function disposeSubscriber(subscriber: Subscriber): void {
     case SubscriberKind.Task:
     case SubscriberKind.VisibleTask:
     case SubscriberKind.Dom:
+    case SubscriberKind.Branch:
       cleanupDeps(subscriber);
+      if (subscriber.kind === SubscriberKind.Branch) {
+        subscriber.branch.dispose();
+      }
       return;
     case SubscriberKind.Idle:
       subscriber.job.dispose?.();

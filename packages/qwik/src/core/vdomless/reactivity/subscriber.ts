@@ -1,4 +1,6 @@
 import type { ReactiveFlags } from './flags';
+import type { Branch } from './branch';
+import type { ValueOrPromise } from '../../shared/utils/types';
 import type { DomEffect } from './dom-effect';
 import type { ComputedSource, Dependency } from './source';
 import type { Task, VisibleTask } from './task';
@@ -8,7 +10,8 @@ export const enum SubscriberKind {
   Task = 1,
   VisibleTask = 2,
   Dom = 3,
-  Idle = 4,
+  Branch = 4,
+  Idle = 5,
 }
 
 export interface Collector {
@@ -50,6 +53,12 @@ export interface DomSubscriber extends Collector, ScheduledSubscriber {
   readonly effect: DomEffect;
 }
 
+export interface BranchSubscriber extends Collector, ScheduledSubscriber {
+  readonly kind: SubscriberKind.Branch;
+  readonly branch: Branch<any[]>;
+  run(): ValueOrPromise<void>;
+}
+
 export interface IdleSubscriber extends ScheduledSubscriber {
   readonly kind: SubscriberKind.Idle;
   readonly job: IdleJobRecord;
@@ -60,11 +69,13 @@ export type PhaseSubscriber =
   | TaskSubscriber
   | VisibleTaskSubscriber
   | DomSubscriber
+  | BranchSubscriber
   | IdleSubscriber;
 // Work/value currently allowed to collect dependencies through track().
 export type CollectorSubscriber =
   | ComputedSubscriber
   | TaskSubscriber
   | VisibleTaskSubscriber
-  | DomSubscriber;
+  | DomSubscriber
+  | BranchSubscriber;
 export type Subscriber = ComputedSubscriber | PhaseSubscriber;

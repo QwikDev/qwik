@@ -3,12 +3,15 @@ import { ReactiveFlags } from './flags';
 import { SubscriberKind } from './subscriber';
 import { runWithCollector } from './tracking';
 import type {
+  BranchSubscriber,
   DomSubscriber,
   IdleSubscriber,
   PhaseSubscriber,
   TaskSubscriber,
   VisibleTaskSubscriber,
 } from './subscriber';
+
+type StructuralSubscriber = DomSubscriber | BranchSubscriber;
 
 export const enum Phase {
   BlockingTask = 0,
@@ -28,7 +31,7 @@ interface SchedulerJob<T extends PhaseSubscriber = PhaseSubscriber> {
 
 export class Scheduler {
   private readonly blockingTasks: SchedulerJob<TaskSubscriber>[] = [];
-  private readonly structuralDom: SchedulerJob<DomSubscriber>[] = [];
+  private readonly structuralDom: SchedulerJob<StructuralSubscriber>[] = [];
   private readonly scalarDom: SchedulerJob<DomSubscriber>[] = [];
   private readonly visibleTasks: SchedulerJob<VisibleTaskSubscriber>[] = [];
   private readonly deferredTasks: SchedulerJob<TaskSubscriber>[] = [];
@@ -60,6 +63,10 @@ export class Scheduler {
 
   enqueueDomEffect(effect: DomSubscriber): void {
     this.enqueue(effect);
+  }
+
+  enqueueBranch(branch: BranchSubscriber): void {
+    this.enqueue(branch);
   }
 
   enqueueIdleJob(job: IdleSubscriber): void {
@@ -135,10 +142,13 @@ export class Scheduler {
         return;
       case SubscriberKind.Dom:
         if (subscriber.effect.phase === Phase.StructuralDom) {
-          pushSorted(this.structuralDom, { subscriber, epoch }, compareDomJob);
+          pushSorted(this.structuralDom, { subscriber, epoch }, compareStructuralJob);
         } else {
           pushSorted(this.scalarDom, { subscriber, epoch }, compareDomJob);
         }
+        return;
+      case SubscriberKind.Branch:
+        pushSorted(this.structuralDom, { subscriber, epoch }, compareStructuralJob);
         return;
       case SubscriberKind.Idle:
         this.idle.push({ subscriber, epoch });
@@ -164,7 +174,7 @@ export class Scheduler {
         return;
       }
 
-      await this.runDomEffect(job.subscriber);
+      await this.runStructuralSubscriber(job.subscriber);
     }
   }
 
@@ -256,6 +266,21 @@ export class Scheduler {
     await runWithCollector(effect, runDomEffectRecord, effect.effect);
   }
 
+  private async runBranch(branch: BranchSubscriber): Promise<void> {
+    branch.flags &= ~ReactiveFlags.Scheduled;
+    branch.flags &= ~ReactiveFlags.Dirty;
+    cleanupDeps(branch);
+    await branch.run();
+  }
+
+  private async runStructuralSubscriber(subscriber: StructuralSubscriber): Promise<void> {
+    if (subscriber.kind === SubscriberKind.Branch) {
+      await this.runBranch(subscriber);
+    } else {
+      await this.runDomEffect(subscriber);
+    }
+  }
+
   private runScalarDomEffect(effect: DomSubscriber): void {
     effect.flags &= ~ReactiveFlags.Scheduled;
     effect.flags &= ~ReactiveFlags.Dirty;
@@ -310,6 +335,10 @@ export function enqueueVisibleTask(task: VisibleTaskSubscriber): void {
 
 export function enqueueDomEffect(effect: DomSubscriber): void {
   defaultScheduler.enqueueDomEffect(effect);
+}
+
+export function enqueueBranch(branch: BranchSubscriber): void {
+  defaultScheduler.enqueueBranch(branch);
 }
 
 export function enqueueIdleJob(job: IdleSubscriber): void {
@@ -395,6 +424,24 @@ function compareDomJob(a: SchedulerJob<DomSubscriber>, b: SchedulerJob<DomSubscr
   }
 
   return 0;
+}
+
+function compareStructuralJob(
+  a: SchedulerJob<StructuralSubscriber>,
+  b: SchedulerJob<StructuralSubscriber>
+): number {
+  const order = getStructuralOrder(a.subscriber) - getStructuralOrder(b.subscriber);
+  if (order !== 0) {
+    return order;
+  }
+
+  return 0;
+}
+
+function getStructuralOrder(subscriber: StructuralSubscriber): number {
+  return subscriber.kind === SubscriberKind.Branch
+    ? subscriber.branch.order
+    : subscriber.effect.order;
 }
 
 function comparePath(a: readonly number[], b: readonly number[]): number {

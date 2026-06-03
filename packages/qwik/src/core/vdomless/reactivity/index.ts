@@ -9,6 +9,7 @@ export {
 } from './source';
 export {
   SubscriberKind,
+  type BranchSubscriber,
   type Collector,
   type CollectorSubscriber,
   type ComputedSubscriber,
@@ -35,6 +36,7 @@ export {
   Scheduler,
   createScheduler,
   defaultScheduler,
+  enqueueBranch,
   enqueueDomEffect,
   enqueueIdleJob,
   enqueueTask,
@@ -46,6 +48,25 @@ export {
   scheduleFlush,
   type ScheduleFlush,
 } from './scheduler';
+export {
+  Branch,
+  BranchQrl,
+  BranchRange,
+  BranchState,
+  BranchSubscription,
+  CommentBranchRange,
+  createBranch,
+  createBranchQrl,
+  createBranchQrlSubscriber,
+  createBranchRange,
+  type BranchConditionFn,
+  type BranchMarkerRange,
+  type BranchOptions,
+  type BranchQrlOptions,
+  type BranchQrlRef,
+  type BranchRenderFn,
+  type BranchSubscriberOptions,
+} from './branch';
 export {
   Task,
   TaskSubscription,

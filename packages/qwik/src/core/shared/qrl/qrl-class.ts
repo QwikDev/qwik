@@ -7,7 +7,7 @@ import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { getQFuncs } from '../utils/markers';
-import { isPromise, maybeThen } from '../utils/promises';
+import { isPromise, maybeThen, promiseAll } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
 import { isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
@@ -227,7 +227,7 @@ export class QRLClass<TYPE> {
     // If it is plain value with deserialized or missing captures, resolve it immediately
     // Otherwise we keep using the async path so we can wait for qrls to load
     if ($lazy$.$ref$ != null && typeof this.$captures$ !== 'string' && !isPromise($lazy$.$ref$)) {
-      this.resolved = bindCaptures(this, $lazy$.$ref$ as TYPE);
+      this.resolved = bindCaptures(this.$captures$, $lazy$.$ref$ as TYPE);
     }
   }
 }
@@ -271,7 +271,11 @@ const qrlSetRef = function <TYPE>(
 ) {
   const qrl = getInstance<TYPE>(this);
   qrl.$lazy$.$setRef$(ref);
-  qrl.resolved = bindCaptures(qrl, ref as TYPE);
+  if (typeof qrl.$captures$ !== 'string' && !isPromise(ref)) {
+    qrl.resolved = bindCaptures(qrl.$captures$, ref as TYPE);
+  } else {
+    qrl.resolved = undefined;
+  }
 };
 
 const qrlResolve = async function <TYPE>(
@@ -292,7 +296,7 @@ const qrlGetHash = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>): st
 
 const qrlGetCaptured = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>): unknown[] | null {
   const qrl = getInstance<TYPE>(this);
-  ensureQrlCaptures(qrl);
+  restoreQrlCaptures(qrl);
   return qrl.$captures$ as unknown[] | null;
 };
 
@@ -307,7 +311,7 @@ const qrlGetFn = function <TYPE>(
   const qrl = getInstance<TYPE>(this);
   const bound = (...args: QrlArgs<TYPE>): unknown => {
     if (!qrl.resolved) {
-      return qrlResolve.call(qrl).then((fn) => {
+      return qrlResolve.call(qrl, currentCtx?.$container$).then((fn) => {
         if (qDev && !isFunction(fn)) {
           throw qError(QError.qrlIsNotFunction);
         }
@@ -429,31 +433,50 @@ export const deserializeCaptures = (container: Container, captures: string) => {
   return refs;
 };
 
-/** Puts the qrl captures into `_captures`, and returns a Promise that should be awaited if possible */
-const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
-  // We read the captures once, synchronously, so no need to keep previous
-  _captures = qrl.$captures$ as any;
-  const container = qrl.$container$;
-  if (typeof _captures === 'string') {
-    if (!container) {
-      throw qError(QError.qrlMissingContainer);
-    }
-    const prevLoading = loading;
-    _captures = qrl.$captures$ = deserializeCaptures(container, _captures);
-    if (loading !== prevLoading) {
-      // return the loading promise so callers can await it
-      return loading;
-    }
+const getQrlContainer = (qrl: QRLClass<unknown>, container?: Container | null) => {
+  if (qrl.$container$) {
+    return qrl.$container$;
   }
+  if (container) {
+    return (qrl.$container$ = container);
+  }
+  return (qrl.$container$ = tryGetInvokeContext()?.$container$ as Container);
 };
 
-// Wrap functions to provide their lexical scope
-const bindCaptures = <TYPE>(qrl: QRLClass<unknown>, ref: TYPE): TYPE => {
-  if (typeof ref !== 'function' || !qrl.$captures$) {
+const restoreQrlCaptures = (
+  qrl: QRLClass<unknown>,
+  container?: Container | null
+): ValueOrPromise<Readonly<unknown[]> | null | undefined> => {
+  const captures = qrl.$captures$;
+  if (typeof captures !== 'string') {
+    return captures;
+  }
+
+  const resolvedContainer = getQrlContainer(qrl, container);
+  if (!resolvedContainer) {
+    throw qError(QError.qrlMissingContainer);
+  }
+
+  const prevLoading = loading;
+  const refs = deserializeCaptures(resolvedContainer, captures);
+  qrl.$captures$ = refs;
+  if (loading !== prevLoading) {
+    return loading.then(() => refs);
+  }
+  return refs;
+};
+
+const setQrlCaptures = (captures: Readonly<unknown[]> | null | undefined) => {
+  _captures = captures ?? null;
+};
+
+// Wrap functions to provide their captured scope through `_captures`.
+const bindCaptures = <TYPE>(captures: Readonly<unknown[]> | null | undefined, ref: TYPE): TYPE => {
+  if (typeof ref !== 'function' || !captures) {
     return ref;
   }
   return function boundCaptures(this: unknown, ...args: QrlArgs<TYPE>) {
-    ensureQrlCaptures(qrl);
+    setQrlCaptures(captures);
     return ref.apply(this, args);
   } as TYPE;
 };
@@ -464,16 +487,7 @@ const $resolve$ = <TYPE>(
 ): ValueOrPromise<void> => {
   const lazy = qrl.$lazy$;
 
-  const shouldDeserialize = typeof qrl.$captures$ === 'string';
-  if (shouldDeserialize && !qrl.$container$) {
-    if (container) {
-      qrl.$container$ = container;
-    } else {
-      qrl.$container$ = tryGetInvokeContext()?.$container$ as Container;
-    }
-  }
-
-  if (qrl.resolved) {
+  if (qrl.resolved !== undefined) {
     return;
   }
 
@@ -483,12 +497,15 @@ const $resolve$ = <TYPE>(
 
   // Load raw value via LazyRef - may be sync (e.g. sync QRLs) or async
   const rawOrPromise = lazy.$load$();
+  const capturesOrPromise = restoreQrlCaptures(qrl, container);
+  const maybePromise = maybeThen(
+    promiseAll([rawOrPromise, capturesOrPromise] as const),
+    ([raw, captures]) => {
+      qrl.resolved = bindCaptures(captures, raw);
+    }
+  );
 
-  const maybePromise = maybeThen(rawOrPromise, (raw) => {
-    qrl.resolved = bindCaptures(qrl, raw);
-  });
-
-  if (maybePromise) {
+  if (isPromise(rawOrPromise)) {
     // We're importing; emit symbol usage event
     const symbol = lazy.$symbol$;
     emitUsedSymbol(
@@ -498,11 +515,6 @@ const $resolve$ = <TYPE>(
     );
   }
 
-  const capturedPromise = shouldDeserialize && qrl.$container$ && ensureQrlCaptures(qrl);
-
-  if (capturedPromise) {
-    return capturedPromise.then(() => maybePromise);
-  }
   return maybePromise;
 };
 

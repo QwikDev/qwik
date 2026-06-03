@@ -204,6 +204,26 @@ describe('createQRL', () => {
     assert.notEqual(q.resolved, capFn);
     assert.deepEqual(q.resolved!(), ['hi']);
   });
+
+  test('should restore serialized captures before resolving', async () => {
+    const container = {
+      $getObjectById$: (id: string) => `capture-${id}`,
+    } as any;
+    const q = createQRL<Function>(
+      'chunk',
+      'symbol',
+      null,
+      () => Promise.resolve({ symbol: () => _captures }),
+      '0 1',
+      container
+    );
+
+    const resolved = await q.resolve(container);
+
+    assert.deepEqual(q.$captures$, ['capture-0', 'capture-1']);
+    assert.deepEqual(resolved(), ['capture-0', 'capture-1']);
+    assert.deepEqual(q.resolved!(), ['capture-0', 'capture-1']);
+  });
 });
 
 describe('inlinedQrl', () => {

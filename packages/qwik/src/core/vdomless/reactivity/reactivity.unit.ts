@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { disposeSubscriber } from './cleanup';
 import { Computed, createComputed } from './computed';
 import { ReactiveFlags } from './flags';
-import { Phase, Scheduler, type TaskGroup } from './scheduler';
+import { Phase, Scheduler } from './scheduler';
 import { createSignal } from './signal';
 import {
   SubscriberKind,
@@ -10,6 +10,14 @@ import {
   type IdleSubscriber,
   type TaskSubscriber,
 } from './subscriber';
+import {
+  createTask,
+  createTaskGroup,
+  createTaskQrl,
+  createVisibleTask,
+  createVisibleTaskQrl,
+  type TaskQrlRef,
+} from './task';
 import { runWithCollector } from './tracking';
 
 const noopSchedule = (): void => {};
@@ -191,14 +199,173 @@ describe('vdomless reactivity', () => {
 
     expect(seen).toEqual([0, 1]);
   });
-});
 
-function createTaskGroup(path: readonly number[]): TaskGroup {
-  return {
-    parent: null,
-    path,
-  };
-}
+  it('createTask tracks dependencies and reruns after signal mutation', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const count = createSignal(0);
+    const seen: number[] = [];
+    const task = createTask(
+      () => {
+        seen.push(count.value);
+      },
+      { scheduler }
+    );
+
+    scheduler.notify(task);
+    await scheduler.flushInteraction();
+
+    expect(seen).toEqual([0]);
+    expect(count.subs).toContain(task);
+
+    count.value = 1;
+    await scheduler.flushInteraction();
+
+    expect(seen).toEqual([0, 1]);
+  });
+
+  it('runs deferred tasks only during deferred flush', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const order: string[] = [];
+    const task = createTask(() => order.push('deferred'), {
+      deferUpdates: true,
+      scheduler,
+    });
+
+    scheduler.notify(task);
+    await scheduler.flushInteraction();
+
+    expect(order).toEqual([]);
+
+    await scheduler.flushDeferred();
+
+    expect(order).toEqual(['deferred']);
+  });
+
+  it('loads unresolved task QRLs before running them', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const order: string[] = [];
+    let resolved = false;
+    const qrl: TaskQrlRef = {
+      resolved: undefined,
+      async resolve() {
+        resolved = true;
+        return () => {
+          order.push('qrl');
+        };
+      },
+    };
+    const task = createTaskQrl(qrl, { scheduler });
+
+    scheduler.notify(task);
+    await scheduler.flushInteraction();
+
+    expect(resolved).toBe(true);
+    expect(order).toEqual(['qrl']);
+  });
+
+  it('sorts visible tasks by seq', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const order: string[] = [];
+    const second = createVisibleTask(() => order.push('second'), { scheduler, seq: 1 });
+    const first = createVisibleTaskQrl(
+      {
+        resolved: () => {
+          order.push('first');
+        },
+        resolve: async () => {
+          throw new Error('resolved QRL should not load');
+        },
+      },
+      { scheduler, seq: 0 }
+    );
+
+    scheduler.notify(second);
+    scheduler.notify(first);
+    await scheduler.flushInteraction();
+
+    expect(order).toEqual(['first', 'second']);
+  });
+
+  it('starts visible tasks independently', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const order: string[] = [];
+    let resolveFirst: (() => void) | undefined;
+    const first = createVisibleTask(
+      () => {
+        order.push('first:start');
+        return new Promise<void>((resolve) => {
+          resolveFirst = resolve;
+        });
+      },
+      { scheduler, seq: 0 }
+    );
+    const second = createVisibleTask(
+      () => {
+        order.push('second:start');
+      },
+      { scheduler, seq: 1 }
+    );
+
+    scheduler.notify(first);
+    scheduler.notify(second);
+    await scheduler.flushInteraction();
+    resolveFirst?.();
+
+    expect(order).toEqual(['first:start', 'second:start']);
+  });
+
+  it('cleans up dynamic dependencies for tasks', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const useA = createSignal(true);
+    const a = createSignal('a');
+    const b = createSignal('b');
+    const seen: string[] = [];
+    const task = createTask(() => seen.push(useA.value ? a.value : b.value), { scheduler });
+
+    scheduler.notify(task);
+    await scheduler.flushInteraction();
+
+    useA.value = false;
+    await scheduler.flushInteraction();
+
+    expect(a.subs).toBeNull();
+
+    a.value = 'next-a';
+    await scheduler.flushInteraction();
+
+    b.value = 'next-b';
+    await scheduler.flushInteraction();
+
+    expect(seen).toEqual(['a', 'b', 'next-b']);
+  });
+
+  it('cleans up dynamic dependencies for visible tasks', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const useA = createSignal(true);
+    const a = createSignal('a');
+    const b = createSignal('b');
+    const seen: string[] = [];
+    const task = createVisibleTask(() => seen.push(useA.value ? a.value : b.value), {
+      scheduler,
+    });
+
+    scheduler.notify(task);
+    await scheduler.flushInteraction();
+
+    useA.value = false;
+    await scheduler.flushInteraction();
+
+    expect(a.subs).toBeNull();
+
+    a.value = 'next-a';
+    await scheduler.flushInteraction();
+
+    b.value = 'next-b';
+    await scheduler.flushInteraction();
+
+    expect(seen).toEqual(['a', 'b', 'next-b']);
+  });
+});
 
 function createTaskSubscriber(
   scheduler: Scheduler,
@@ -208,26 +375,12 @@ function createTaskSubscriber(
   index = 0,
   seq = 0
 ): TaskSubscriber {
-  const task: TaskSubscriber = {
-    kind: SubscriberKind.Task,
-    task: {
-      phase: Phase.BlockingTask,
-      group: createTaskGroup(groupPath),
-      index,
-      seq,
-      run() {
-        order.push(label);
-      },
-    },
-    flags: ReactiveFlags.None,
-    schedulerEpoch: 0,
-    deps: null,
-    depVersions: null,
-    notify() {
-      scheduler.notify(task);
-    },
-  };
-  return task;
+  return createTask(() => order.push(label), {
+    scheduler,
+    group: createTaskGroup(groupPath),
+    index,
+    seq,
+  });
 }
 
 function createDomSubscriber(

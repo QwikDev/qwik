@@ -1,6 +1,7 @@
 import type { ReactiveFlags } from './flags';
-import type { Phase, TaskGroup } from './scheduler';
+import type { Phase } from './scheduler';
 import type { ComputedSource, Dependency } from './source';
+import type { Task, VisibleTask } from './task';
 
 export const enum SubscriberKind {
   Computed = 0,
@@ -28,21 +29,6 @@ export interface ComputedSubscriber<T = unknown> extends Collector, ComputedSour
   notify(): void;
 }
 
-// TODO(vdomless): replace with the real Task runtime type.
-export interface TaskRecord {
-  readonly phase: Phase.BlockingTask | Phase.DeferredTask;
-  readonly group: TaskGroup;
-  readonly index: number;
-  readonly seq: number;
-  run: () => unknown;
-}
-
-// TODO(vdomless): replace with the real VisibleTask runtime type.
-export interface VisibleTaskRecord {
-  readonly seq: number;
-  run: () => unknown;
-}
-
 // TODO(vdomless): replace with the real DomEffect runtime type.
 export interface DomEffectRecord {
   readonly phase: Phase.StructuralDom | Phase.ScalarDom;
@@ -60,12 +46,12 @@ export interface IdleJobRecord {
 
 export interface TaskSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Task;
-  readonly task: TaskRecord;
+  readonly task: Task;
 }
 
 export interface VisibleTaskSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.VisibleTask;
-  readonly task: VisibleTaskRecord;
+  readonly task: VisibleTask;
 }
 
 export interface DomSubscriber extends Collector, ScheduledSubscriber {

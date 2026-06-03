@@ -19,11 +19,6 @@ export const enum Phase {
   Idle = 5,
 }
 
-export interface TaskGroup {
-  parent: TaskGroup | null;
-  path: readonly number[];
-}
-
 export type ScheduleFlush = (flush: () => void) => void;
 
 interface SchedulerJob<T extends PhaseSubscriber = PhaseSubscriber> {

@@ -18,9 +18,7 @@ export {
   type IdleSubscriber,
   type PhaseSubscriber,
   type Subscriber,
-  type TaskRecord,
   type TaskSubscriber,
-  type VisibleTaskRecord,
   type VisibleTaskSubscriber,
 } from './subscriber';
 export { cleanupDeps, disposeSubscriber, disposeSubscribers } from './cleanup';
@@ -40,8 +38,24 @@ export {
   notifyPhaseSubscriber,
   scheduleFlush,
   type ScheduleFlush,
-  type TaskGroup,
 } from './scheduler';
+export {
+  Task,
+  TaskSubscription,
+  VisibleTask,
+  VisibleTaskSubscription,
+  createTask,
+  createTaskGroup,
+  createTaskQrl,
+  createVisibleTask,
+  createVisibleTaskQrl,
+  type TaskFn,
+  type TaskGroup,
+  type TaskOptions,
+  type TaskQrlRef,
+  type VisibleTaskOptions,
+  type VisibleTaskStrategy,
+} from './task';
 export { createSignal, Signal } from './signal';
 export {
   Computed,

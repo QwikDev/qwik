@@ -1,5 +1,5 @@
 /**
- * User-symbol collision detection + renaming (OSS-432 Bug A).
+ * User-symbol collision detection + renaming.
  *
  * When the optimizer injects runtime imports (`qrl`, `componentQrl`,
  * `_jsxSorted`, etc.) whose names collide with user-declared top-level
@@ -168,7 +168,7 @@ function pickFreshName(
     if (!taken.has(candidate)) return candidate;
   }
   // Defensive: practically unreachable. A defect, not a recoverable state.
-  throw new Error(`OSS-432: pickFreshName exhausted suffixes for ${base}`);
+  throw new Error(`pickFreshName exhausted suffixes for ${base}`);
 }
 
 function findBindingIdentifierPositions(
@@ -492,9 +492,9 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
     }
     if (ctx.moduleLevelDecls) {
       for (const decl of ctx.moduleLevelDecls) {
-        // ModuleLevelDecl.name is readonly per OSS-387; cast through to
-        // mutate the rename target (FFI-boundary-style pattern, scoped
-        // to this rename pass).
+        // ModuleLevelDecl.name is readonly; cast through to mutate the
+        // rename target (FFI-boundary-style pattern, scoped to this
+        // rename pass).
         if (decl.name === oldName) {
           (decl as { name: string }).name = newName;
         }
@@ -533,9 +533,9 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
     if (ext.segmentImports.length === 0) continue;
     const filtered = ext.segmentImports.filter(imp => !renameMap.has(imp.localName));
     if (filtered.length !== ext.segmentImports.length) {
-      // ExtractionResult.segmentImports is `readonly ImportInfo[]` per
-      // OSS-387; cast through to mutate (FFI-boundary pattern, scoped to
-      // this rename pass).
+      // ExtractionResult.segmentImports is `readonly ImportInfo[]`;
+      // cast through to mutate (FFI-boundary pattern, scoped to this
+      // rename pass).
       (ext as unknown as { segmentImports: ImportInfo[] }).segmentImports = filtered;
     }
   }

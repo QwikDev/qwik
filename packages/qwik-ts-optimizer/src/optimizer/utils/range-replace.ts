@@ -1,18 +1,15 @@
 /**
  * Range-replacement walker primitive.
  *
- * OSS-417 (sub of OSS-416 refactor umbrella). Consolidates five walk-and-collect
- * passes that accumulated during the OSS-409/411/412/413/414/415 series — each
- * one independently walking an AST top-down, testing a predicate, pushing
- * `{start, end, replacement}` records, and applying them disjointly.
- *
- * The duplicated walkers were:
+ * Consolidates walk-and-collect passes that each independently walk an
+ * AST top-down, test a predicate, push `{start, end, replacement}`
+ * records, and apply them disjointly. The known callers:
  *
  * | Pass | Predicate |
  * |---|---|
  * | `signal-analysis.ts:collectReplacements` | root identifier → `pN` (skip property-key / member-prop) |
  * | `utils/simplify.ts:collectSimplifications` | foldable subtree → primitive literal |
- * | `signal-analysis.ts:collectParenStrips` (OSS-414) | `ParenthesizedExpression` with `Property` value parent → strip parens |
+ * | `signal-analysis.ts:collectParenStrips` | `ParenthesizedExpression` with `Property` value parent → strip parens |
  * | `rewrite/raw-props.ts:collectIdentifierReplacements` | identifier matching `fieldLocalToKey` → `_rawProps.X` |
  * | `utils/props-field-rewrite.ts:walkNode` | same as raw-props (near-duplicate) |
  *
@@ -202,7 +199,7 @@ export function isReplaceableIdentifierPosition(
 
 /**
  * Does a `??` LogicalExpression at this position need wrapping parens?
- * OSS-418: drives precedence-aware emission in `raw-props.ts` and
+ * Drives precedence-aware emission in `raw-props.ts` and
  * `props-field-rewrite.ts`. Returns `true` only when the parent operator
  * has precedence ≥ `??` (Binary/Logical/Unary/Update/MemberExpression
  * object / TaggedTemplate tag / Call+New callee). Note that mixing `??`

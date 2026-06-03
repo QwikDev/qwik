@@ -15,8 +15,8 @@
  *
  * **Foundation only.** This module defines brands + constructors. It does
  * *not* propagate them through `SegmentAnalysis`, `ExtractionResult`, or
- * any consumer signature. Propagation lands in OSS-384 / OSS-385 / OSS-386
- * per the OSS-381 rollout plan.
+ * any consumer signature — that propagation lives at the consumer-type
+ * definitions in `types.ts`, `extract.ts`, and downstream callers.
  */
 
 // ---------------------------------------------------------------------------
@@ -86,9 +86,8 @@ const HASH_SHAPE = /^[A-Za-z0-9_]+$/;
  * Context-name shape — one of:
  *
  * - The bare base marker `$` standalone (the `$()` callable's ctxName).
- *   Per the OSS-385 audit, refusing this would block legitimate production
- *   input (`tests/optimizer/extract.test.ts:55` asserts `seg.ctxName === '$'`
- *   for bare-`$()` extractions).
+ *   Refusing this would block legitimate production input (the bare
+ *   `$()` extractions assert `seg.ctxName === '$'`).
  * - A marker callee: `component$`, `useTask$`, `useStyles$`.
  * - A synthesised base form: `component`.
  * - The post-rewrite `Qrl`-suffixed form: `componentQrl`.
@@ -128,10 +127,10 @@ export function mkHash(s: string): Hash {
  * legitimate values from the Qwik test fixtures: `test.tsx_renderHeader1`,
  * `[[...slug]].tsx_slug_component` (Qwik catch-all route), `404.tsx__404_component`
  * (digit-leading filename). Trying to enforce a regex here either rejects
- * real inputs (the case we hit during OSS-384's call-site sweep) or becomes
- * permissive enough to be meaningless. Non-empty is the only invariant we
- * can rely on; the brand still keeps these distinct from `SymbolName`,
- * `Hash`, and arbitrary strings at the type level.
+ * real inputs or becomes permissive enough to be meaningless. Non-empty
+ * is the only invariant we can rely on; the brand still keeps these
+ * distinct from `SymbolName`, `Hash`, and arbitrary strings at the type
+ * level.
  */
 export function mkCanonicalFilename(s: string): CanonicalFilename {
   if (s.length === 0) {

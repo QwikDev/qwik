@@ -28,8 +28,8 @@ type SourceRange = { start: number; end: number };
 /**
  * Construct a `DiagnosticHighlightFlat` from a byte range, computing the
  * line/col pairs and wrapping every position field with its brand.
- * Centralises the OSS-386 brand-construction so each diagnostic emitter
- * doesn't repeat the 6 wraps inline.
+ * Centralises the brand-construction so each diagnostic emitter doesn't
+ * repeat the 6 wraps inline.
  */
 function buildHighlight(source: string, lo: number, hi: number): DiagnosticHighlightFlat {
   const [startLine, startCol] = computeLineColFromOffset(source, lo);
@@ -95,9 +95,9 @@ export function detectC02Diagnostics(
 
     if (classified.length === 0) continue;
 
-    // Single walk of the closure subtree collecting the first reference site
-    // for every name in `fnOrClassNames`. Replaces the per-refName subtree
-    // walk that ran inside the loop below. See OSS-366.
+    // Single walk of the closure subtree collecting the first reference
+    // site for every name in `fnOrClassNames`. A per-refName subtree
+    // walk would be O(target_count × subtreeSize).
     const referenceSites = collectIdentifierReferenceSites(closureNode, fnOrClassNames);
 
     for (const { refName, declType } of classified) {
@@ -133,7 +133,7 @@ export function detectC05Diagnostics(
 
   // Collect the set of `$`-suffixed export names that survive the gates;
   // we walk the program once for all of them rather than once per export.
-  // Pre-OSS-366 this was O(target_count × programSize).
+  // A per-name walk would be O(target_count × programSize).
   const targets = new Set<string>();
   const targetToQrl = new Map<string, string>();
   for (const exportName of moduleExportNames) {
@@ -207,7 +207,8 @@ export function detectPassivePreventdefaultConflicts(
 /**
  * Single-pass collection of `CallExpression` callee sites whose callee is a
  * bare `Identifier` and whose name is in `names`. Returns a map keyed by
- * callee name. Replaces the previous per-name walk pattern (OSS-366).
+ * callee name. Replaces the per-name walk pattern (which was
+ * O(target_count × programSize)).
  */
 function collectCallSitesByName(
   program: AstProgram,
@@ -236,7 +237,7 @@ function collectCallSitesByName(
  * `names` within a closure subtree. "Reference-site" excludes declaring
  * positions and non-computed property keys / member properties — same
  * exclusions the original per-name walker applied. Replaces the previous
- * per-name closure walk (OSS-366).
+ * per-name closure walk (which was O(target_count × subtreeSize)).
  */
 function collectIdentifierReferenceSites(
   closureNode: AstFunction,

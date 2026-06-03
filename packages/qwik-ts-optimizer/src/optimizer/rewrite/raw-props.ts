@@ -80,7 +80,7 @@ export interface InlineSegmentJsxOptions {
   /** Dev mode options for JSX source info */
   devOptions?: DevSuffixOptions;
   /**
-   * OSS-410: original module source string, used to compute source-relative
+   * Original module source string, used to compute source-relative
    * `lineNumber:` / `columnNumber:` on JSX dev-info. Combined with the
    * per-extraction `loc[0]` and the inline-body wrapper-prefix length to
    * build a {@link DevInfoSourcePosition} at the `transformAllJsx` call.
@@ -112,7 +112,7 @@ interface IdentifierReplacement {
   key: string;
   local: string;
   isShorthand?: boolean;
-  /** OSS-418: parent context requires `(<accessor> ?? <default>)` wrap. */
+  /** Parent context requires `(<accessor> ?? <default>)` wrap. */
   needsParens?: boolean;
 }
 
@@ -496,16 +496,15 @@ function isExcludedRange(
 }
 
 /**
- * OSS-417: collector form of the historic `collectIdentifierReplacements`
- * walker. Matches Identifier references to destructured prop locals and
- * emits `IdentifierReplacement` records describing where the
- * `_rawProps.<key>` rewrite should land.
+ * Collector form for matching Identifier references to destructured
+ * prop locals and emitting `IdentifierReplacement` records describing
+ * where the `_rawProps.<key>` rewrite should land.
  *
  * Subtree-skip for excluded ranges (param-list, body-destructure statement)
  * runs at the orchestrator level via `skipSubtree`. The shared
- * {@link isReplaceableIdentifierPosition} predicate matches the
- * historic raw-props parent-context guards (property-key / non-computed
- * member-prop / params / declarator-id excluded).
+ * {@link isReplaceableIdentifierPosition} predicate captures the raw-props
+ * parent-context guards (property-key / non-computed member-prop / params
+ * / declarator-id excluded).
  *
  * The output uses the local `IdentifierReplacement` shape rather than
  * the generic `RangeReplacement` because the apply step ({@link applyIdentifierReplacements})
@@ -524,7 +523,7 @@ function buildIdentifierReplacementsCollector(
     if (hasRange(node) && isExcludedRange(node, excludedRanges as Array<{ start: number; end: number }> | undefined)) {
       return { replacements: [], skipSubtree: true };
     }
-    // OSS-442: JSXIdentifier in a JSX tag-name position is a *reference*
+    // JSXIdentifier in a JSX tag-name position is a *reference*
     // to the same binding the regular Identifier path rewrites — `<Model/>`
     // looks up `Model` in scope just like `console.log(Model)` would. The
     // tag accepts a JSXMemberExpression, so a source-text rewrite to
@@ -618,8 +617,8 @@ function applyIdentifierReplacements(
   for (const replacement of replacements) {
     const baseAccessor = buildPropertyAccessor(baseName, replacement.key);
     const defaultValue = defaultValues?.get(replacement.local);
-    // OSS-418: parens only when parent precedence requires them (captured
-    // at collect time via `expressionNeedsParens` → `replacement.needsParens`).
+    // Parens only when parent precedence requires them (captured at
+    // collect time via `expressionNeedsParens` → `replacement.needsParens`).
     let accessor: string;
     if (defaultValue === undefined) {
       accessor = baseAccessor;

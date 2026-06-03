@@ -24,12 +24,12 @@ import {
 } from './post-process.js';
 
 /**
- * Enter-phase context for the `buildExtractionLoopMap` walker (OSS-396, Phase 2a
- * of OSS-391). Carries the two read-only inputs (`extractions`, `repairedCode`),
- * the three mutable buffers the walk fills (`extractionLoopMap`,
- * `loopBodyVarDecls`, `loopStack`), and a `pushLoop` mutator. Holds NO exit-only
- * act-helpers — calling `ctx.popTopLoopIfMatches` from the enter handler is a
- * compile error because this type has no such field.
+ * Enter-phase context for the `buildExtractionLoopMap` walker. Carries the
+ * two read-only inputs (`extractions`, `repairedCode`), the three mutable
+ * buffers the walk fills (`extractionLoopMap`, `loopBodyVarDecls`,
+ * `loopStack`), and a `pushLoop` mutator. Holds NO exit-only act-helpers —
+ * calling `ctx.popTopLoopIfMatches` from the enter handler is a compile
+ * error because this type has no such field.
  */
 interface BuildExtractionLoopMapEnterContext {
   readonly extractions: ExtractionResult[];
@@ -176,7 +176,7 @@ export interface EventCaptureContext {
    * (downstream `preConsolidateRawPropsCaptures` + `transformInlineSegmentBody`
    * route them through `_captures[N]` unpacking + `_rawProps.X` rewriting).
    * Under the default/segment strategy, captures get promoted to
-   * positional `paramNames` for segment-file emission. See OSS-406.
+   * positional `paramNames` for segment-file emission.
    */
   isInlineStrategy: boolean;
 }
@@ -483,7 +483,7 @@ export function promoteEventHandlerCaptures(
 
     if (!enclosingLoops || enclosingLoops.length === 0) {
       if (isInlineStrategy) {
-        // OSS-406: Under inline/hoist strategy, non-loop captures stay in
+        // Under inline/hoist strategy, non-loop captures stay in
         // `captureNames`. The downstream pipeline
         // (`preConsolidateRawPropsCaptures` → `transformInlineSegmentBody`
         // → `injectCapturesUnpacking` → `replacePropsFieldReferencesInBody`)
@@ -685,15 +685,13 @@ export function unifyParameterSlots(
  * Build the element capture map: for each event handler, store the unified q:ps params
  * for its containing element.
  *
- * OSS-438: an optional `stripCtxName` + `stripEventHandlers` arg pair adds a
- * second pass that picks up stripped event handlers with captures
- * (`example_strip_client_code`). Stripped handlers have null bodies at
- * runtime and can't consume captures positionally, so SWC propagates the
- * captures to the parent JSX element's `q:p` var-prop. The second pass
- * mirrors that for the segment-codegen JSX path (which re-parses + walks
- * a fresh AST so positions align). The parent-rewrite JSX path is also
- * affected but needs separate work to thread the captures through —
- * tracked as a follow-up.
+ * An optional `stripCtxName` + `stripEventHandlers` arg pair adds a
+ * second pass that picks up stripped event handlers with captures.
+ * Stripped handlers have null bodies at runtime and can't consume
+ * captures positionally, so SWC propagates the captures to the parent
+ * JSX element's `q:p` var-prop. The second pass mirrors that for the
+ * segment-codegen JSX path (which re-parses + walks a fresh AST so
+ * positions align).
  */
 export function buildElementCaptureMap(
   ctx: EventCaptureContext,
@@ -768,7 +766,7 @@ export function buildElementCaptureMap(
     }
   }
 
-  // OSS-438 Fix B: second pass for stripped event handlers with captures.
+  // Second pass for stripped event handlers with captures.
   // Stripped bodies (`export const X = null` for `stripCtxName` matches +
   // all `eventHandler`-kind extractions when `stripEventHandlers` is true)
   // can't consume captures via `_captures[N]` at runtime. SWC propagates

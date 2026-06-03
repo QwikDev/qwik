@@ -30,9 +30,9 @@ export interface RewriteContext {
   s: MagicString;
   program: AstProgram;
   /**
-   * Closure AST nodes per extraction (keyed by symbolName), threaded from
-   * `extractSegments` to enable AST-based helpers that would otherwise
-   * re-parse the body. See OSS-353 / OSS-354.
+   * Closure AST nodes per extraction (keyed by symbolName), threaded
+   * from `extractSegments` to enable AST-based helpers that would
+   * otherwise re-parse the body.
    */
   closureNodes?: Map<string, AstFunction>;
   extractions: ExtractionResult[];
@@ -47,7 +47,7 @@ export interface RewriteContext {
    * the composed `devFilePath` (which falls back to `srcDir/relPath`).
    * Used by JSX dev-info `fileName:` emission, which only honors the
    * user's explicit override and otherwise falls back to `relPath`.
-   * (qrlDEV `file:` differs — it always uses `devFilePath`.) OSS-428.
+   * (qrlDEV `file:` differs — it always uses `devFilePath`.)
    */
   userDevPath?: string;
   inlineOptions?: InlineStrategyOptions;
@@ -77,10 +77,10 @@ export interface RewriteContext {
   jsxKeyCounterValue: number;
   isDevMode: boolean;
   isInline: boolean;
-  /** OSS-421: `mode: 'lib'` runs the inline pipeline + a post-pass collapse. */
+  /** `mode: 'lib'` runs the inline pipeline + a post-pass collapse. */
   isLibMode: boolean;
   /**
-   * OSS-431: source carries `/* @jsxImportSource <non-qwik-pkg> *‌/` pragma.
+   * Source carries `/* @jsxImportSource <non-qwik-pkg> *‌/` pragma.
    * When true, skip Qwik's JSX-syntax rewrite (`runJsxTransform`) so
    * oxc-transform's default JSX transform handles the file using the
    * pragma-named runtime. Marker calls (`qwikify$`, `component$`, …) still

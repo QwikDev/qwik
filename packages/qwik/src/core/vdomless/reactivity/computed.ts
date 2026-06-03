@@ -1,5 +1,6 @@
 import { cleanupDeps } from './cleanup';
 import { ReactiveFlags } from './flags';
+import { registerSubscriberToOwner } from './owner';
 import type { Dependency } from './source';
 import { SubscriberKind, type ComputedSubscriber, type Subscriber } from './subscriber';
 import { runWithCollector, track } from './tracking';
@@ -33,7 +34,7 @@ export class Computed<T> implements ComputedSubscriber<T> {
 }
 
 export function createComputed<T>(compute: () => T): Computed<T> {
-  return new Computed(compute);
+  return registerSubscriberToOwner(new Computed(compute));
 }
 
 export function readComputed<T>(computed: ComputedSubscriber<T>): T {

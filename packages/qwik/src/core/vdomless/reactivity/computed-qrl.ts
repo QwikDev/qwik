@@ -1,6 +1,7 @@
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
 import { Computed } from './computed';
+import { registerSubscriberToOwner } from './owner';
 
 export type ComputedQrlFn<T> = () => T;
 export type ComputedQrlRef<T> = QRLInternal<ComputedQrlFn<T>>;
@@ -18,7 +19,7 @@ export function createComputedQrl<T>(
   computeQrl: ComputedQrlRef<T>,
   container?: Container
 ): ComputedQrl<T> {
-  return new ComputedQrl(computeQrl, container);
+  return registerSubscriberToOwner(new ComputedQrl(computeQrl, container));
 }
 
 function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {

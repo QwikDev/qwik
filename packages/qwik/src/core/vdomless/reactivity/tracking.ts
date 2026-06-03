@@ -7,6 +7,9 @@ export function getActiveCollector(): CollectorSubscriber | null {
   return activeCollector;
 }
 
+// A collector is the subscriber currently reading sources. Reads inside this
+// frame create dependency edges (source -> collector), but they do not imply
+// lifetime ownership of subscribers created during the frame.
 export function runWithCollector<T>(collector: CollectorSubscriber | null, run: () => T): T;
 export function runWithCollector<T, A>(
   collector: CollectorSubscriber | null,

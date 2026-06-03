@@ -1,6 +1,7 @@
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
 import { ReactiveFlags } from './flags';
+import { registerSubscriberToOwner } from './owner';
 import { defaultScheduler, Phase, type Scheduler } from './scheduler';
 import {
   SubscriberKind,
@@ -112,20 +113,26 @@ export function createTaskGroup(
 }
 
 export function createTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
-  return new TaskSubscription(createTaskRecord(run, undefined, options), options?.scheduler);
+  return registerSubscriberToOwner(
+    new TaskSubscription(createTaskRecord(run, undefined, options), options?.scheduler)
+  );
 }
 
 export function createTaskQrl(qrl: TaskQrlRef, options?: TaskOptions): TaskSubscriber {
-  return new TaskSubscription(createTaskRecord(undefined, qrl, options), options?.scheduler);
+  return registerSubscriberToOwner(
+    new TaskSubscription(createTaskRecord(undefined, qrl, options), options?.scheduler)
+  );
 }
 
 export function createVisibleTask(
   run: TaskFn,
   options?: VisibleTaskOptions
 ): VisibleTaskSubscriber {
-  return new VisibleTaskSubscription(
-    createVisibleTaskRecord(run, undefined, options),
-    options?.scheduler
+  return registerSubscriberToOwner(
+    new VisibleTaskSubscription(
+      createVisibleTaskRecord(run, undefined, options),
+      options?.scheduler
+    )
   );
 }
 
@@ -133,9 +140,11 @@ export function createVisibleTaskQrl(
   qrl: TaskQrlRef,
   options?: VisibleTaskOptions
 ): VisibleTaskSubscriber {
-  return new VisibleTaskSubscription(
-    createVisibleTaskRecord(undefined, qrl, options),
-    options?.scheduler
+  return registerSubscriberToOwner(
+    new VisibleTaskSubscription(
+      createVisibleTaskRecord(undefined, qrl, options),
+      options?.scheduler
+    )
   );
 }
 

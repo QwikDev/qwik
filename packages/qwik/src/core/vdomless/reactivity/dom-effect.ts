@@ -3,6 +3,7 @@ import type { ClassList } from '../../shared/jsx/types/jsx-qwik-attributes';
 import type { Container } from '../../shared/types';
 import { serializeClass, stringifyStyle } from '../../shared/utils/styles';
 import { ReactiveFlags } from './flags';
+import { registerSubscriberToOwner } from './owner';
 import { defaultScheduler, Phase, type Scheduler } from './scheduler';
 import { SubscriberKind, type DomSubscriber } from './subscriber';
 import { readSourceValue, type Dependency, type Source } from './source';
@@ -139,7 +140,7 @@ export function createTextExpressionEffect<TArgs extends unknown[]>(
   fn: TextExpressionFn<TArgs>,
   options?: TextExpressionOptions
 ): DomSubscriber {
-  return new DomSubscription(
+  return createDomSubscription(
     createTextExpressionRecord(text, args, fn, undefined, false, options),
     options?.scheduler
   );
@@ -151,7 +152,7 @@ export function createTextExpressionEffectQrl<TArgs extends unknown[]>(
   qrl: TextExpressionQrl<TArgs>,
   options?: TextExpressionOptions
 ): DomSubscriber {
-  return new DomSubscription(
+  return createDomSubscription(
     createTextExpressionRecord(text, args, undefined, qrl, true, options),
     options?.scheduler
   );
@@ -162,7 +163,7 @@ export function createTextNodeEffect(
   source: Source,
   options?: DomEffectOptions
 ): DomSubscriber {
-  return new DomSubscription(
+  return createDomSubscription(
     new TextNodeEffect(text, source, options?.phase ?? Phase.ScalarDom, options?.order ?? 0),
     options?.scheduler
   );
@@ -174,7 +175,7 @@ export function createAttrEffect(
   source: Source,
   options?: DomEffectOptions
 ): DomSubscriber {
-  return new DomSubscription(
+  return createDomSubscription(
     new AttrEffect(element, name, source, options?.phase ?? Phase.ScalarDom, options?.order ?? 0),
     options?.scheduler
   );
@@ -185,7 +186,7 @@ export function createClassEffect(
   source: Source,
   options?: DomEffectOptions
 ): DomSubscriber {
-  return new DomSubscription(
+  return createDomSubscription(
     new SerializedAttrEffect(
       element,
       'class',
@@ -203,7 +204,7 @@ export function createStyleEffect(
   source: Source,
   options?: DomEffectOptions
 ): DomSubscriber {
-  return new DomSubscription(
+  return createDomSubscription(
     new SerializedAttrEffect(
       element,
       'style',
@@ -214,6 +215,10 @@ export function createStyleEffect(
     ),
     options?.scheduler
   );
+}
+
+function createDomSubscription(effect: DomEffect, scheduler: Scheduler | undefined): DomSubscriber {
+  return registerSubscriberToOwner(new DomSubscription(effect, scheduler));
 }
 
 function createTextExpressionRecord<TArgs extends unknown[]>(

@@ -21,6 +21,14 @@ export {
   type VisibleTaskSubscriber,
 } from './subscriber';
 export { cleanupDeps, disposeSubscriber, disposeSubscribers } from './cleanup';
+export {
+  createOwner,
+  disposeOwner,
+  getActiveOwner,
+  registerSubscriberToOwner,
+  runWithOwner,
+  type Owner,
+} from './owner';
 export { addDependency, getActiveCollector, runWithCollector, track, untrack } from './tracking';
 export {
   Phase,

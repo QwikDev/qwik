@@ -14,6 +14,14 @@ import {
   type TextExpressionFn,
 } from './dom-effect';
 import { ReactiveFlags } from './flags';
+import {
+  createOwner,
+  disposeOwner,
+  getActiveOwner,
+  registerSubscriberToOwner,
+  runWithOwner,
+  type Owner,
+} from './owner';
 import { Phase, Scheduler } from './scheduler';
 import { createSignal } from './signal';
 import {
@@ -21,6 +29,7 @@ import {
   type DomSubscriber,
   type IdleSubscriber,
   type TaskSubscriber,
+  type VisibleTaskSubscriber,
 } from './subscriber';
 import {
   createTask,
@@ -30,6 +39,7 @@ import {
   createVisibleTaskQrl,
   type TaskFn,
 } from './task';
+import { getActiveCollector, runWithCollector } from './tracking';
 
 const noopSchedule = (): void => {};
 
@@ -512,6 +522,197 @@ describe('vdomless reactivity', () => {
     disposeSubscriber(effect);
 
     expect(count.subs).toBeNull();
+  });
+
+  it('registers subscribers with the active owner', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const owner = createOwner();
+    const count = createSignal(1);
+    const text = createText();
+    let effect!: DomSubscriber;
+
+    expect(getActiveOwner()).toBeNull();
+    runWithOwner(owner, () => {
+      expect(getActiveOwner()).toBe(owner);
+      effect = createTextNodeEffect(text, count, { scheduler });
+      expect(owner.subscribers).toEqual([effect]);
+    });
+    expect(getActiveOwner()).toBeNull();
+    expect(owner.subscribers).toEqual([effect]);
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('1');
+    expect(count.subs).toContain(effect);
+
+    disposeOwner(owner);
+
+    expect(owner.disposed).toBe(true);
+    expect(owner.subscribers).toBeNull();
+    expect(count.subs).toBeNull();
+  });
+
+  it('registers subscribers to an explicit owner without duplication', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const owner = createOwner();
+    const count = createSignal(1);
+    const effect = createTextNodeEffect(createText(), count, { scheduler });
+
+    expect(owner.subscribers).toBeNull();
+    registerSubscriberToOwner(effect, owner);
+    registerSubscriberToOwner(effect, owner);
+    expect(owner.subscribers).toEqual([effect]);
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(count.subs).toContain(effect);
+
+    disposeOwner(owner);
+
+    expect(count.subs).toBeNull();
+  });
+
+  it('leaves subscribers created without an active owner unowned', () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const owner = createOwner();
+    const effect = createTextNodeEffect(createText(), createSignal(1), { scheduler });
+
+    expect(owner.subscribers).toBeNull();
+
+    disposeOwner(owner);
+
+    expect(effect.flags & ReactiveFlags.Disposed).toBe(0);
+  });
+
+  it('disposes child owners with their parent owner', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const parent = createOwner();
+    const outerSource = createSignal('outer');
+    const innerSource = createSignal('inner');
+    let child!: Owner;
+    let outerEffect!: DomSubscriber;
+    let innerEffect!: DomSubscriber;
+
+    runWithOwner(parent, () => {
+      outerEffect = createTextNodeEffect(createText(), outerSource, { scheduler });
+      child = createOwner();
+      runWithOwner(child, () => {
+        innerEffect = createTextNodeEffect(createText(), innerSource, { scheduler });
+      });
+    });
+
+    expect(parent.subscribers).toEqual([outerEffect]);
+    expect(parent.childOwners).toEqual([child]);
+    expect(child.subscribers).toEqual([innerEffect]);
+
+    scheduler.notify(outerEffect);
+    scheduler.notify(innerEffect);
+    await scheduler.flushInteraction();
+
+    expect(outerSource.subs).toContain(outerEffect);
+    expect(innerSource.subs).toContain(innerEffect);
+
+    disposeOwner(parent);
+
+    expect(parent.disposed).toBe(true);
+    expect(child.disposed).toBe(true);
+    expect(outerSource.subs).toBeNull();
+    expect(innerSource.subs).toBeNull();
+  });
+
+  it('registers computed subscribers with the active owner', () => {
+    const owner = createOwner();
+    const count = createSignal(1);
+    const doubled = runWithOwner(owner, () => createComputed(() => count.value * 2));
+
+    expect(owner.subscribers).toEqual([doubled]);
+    expect(doubled.value).toBe(2);
+    expect(count.subs).toContain(doubled);
+
+    disposeOwner(owner);
+
+    expect(count.subs).toBeNull();
+  });
+
+  it('registers task subscribers with the active owner', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const owner = createOwner();
+    const count = createSignal(1);
+    const seen: number[] = [];
+    let task!: TaskSubscriber;
+    let visibleTask!: VisibleTaskSubscriber;
+
+    runWithOwner(owner, () => {
+      task = createTask(() => seen.push(count.value), { scheduler });
+      visibleTask = createVisibleTask(() => seen.push(count.value + 10), {
+        scheduler,
+      });
+    });
+
+    expect(owner.subscribers).toEqual([task, visibleTask]);
+
+    scheduler.notify(task);
+    scheduler.notify(visibleTask);
+    await scheduler.flushInteraction();
+
+    expect(seen).toEqual([1, 11]);
+    expect(count.subs).toContain(task);
+    expect(count.subs).toContain(visibleTask);
+
+    disposeOwner(owner);
+
+    expect(count.subs).toBeNull();
+  });
+
+  it('does not track dependencies through runWithOwner', () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const collector = createTask(() => {}, { scheduler });
+    const owner = createOwner();
+    const tracked = createSignal('tracked');
+    const untracked = createSignal('untracked');
+
+    runWithCollector(collector, () => {
+      expect(getActiveCollector()).toBe(collector);
+
+      tracked.value;
+      runWithOwner(owner, () => {
+        expect(getActiveOwner()).toBe(owner);
+        expect(getActiveCollector()).toBeNull();
+        untracked.value;
+      });
+
+      expect(getActiveCollector()).toBe(collector);
+    });
+
+    expect(tracked.subs).toEqual([collector]);
+    expect(untracked.subs).toBeNull();
+  });
+
+  it('restores owner and collector after runWithOwner throws', () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const parent = createOwner();
+    const child = createOwner();
+    const collector = createTask(() => {}, { scheduler });
+
+    runWithOwner(parent, () => {
+      runWithCollector(collector, () => {
+        expect(() =>
+          runWithOwner(child, () => {
+            expect(getActiveOwner()).toBe(child);
+            expect(getActiveCollector()).toBeNull();
+            throw new Error('boom');
+          })
+        ).toThrow('boom');
+
+        expect(getActiveOwner()).toBe(parent);
+        expect(getActiveCollector()).toBe(collector);
+      });
+    });
+
+    expect(getActiveOwner()).toBeNull();
+    expect(getActiveCollector()).toBeNull();
   });
 
   it('rejects async scalar text expressions', async () => {

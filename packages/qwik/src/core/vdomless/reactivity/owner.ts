@@ -1,3 +1,4 @@
+import { swapRemove } from '../utils/array';
 import { disposeSubscriber } from './cleanup';
 import type { Subscriber } from './subscriber';
 import { runWithCollector } from './tracking';
@@ -7,6 +8,7 @@ import { runWithCollector } from './tracking';
 // Sources such as signals are data; subscribers such as computed values, tasks,
 // and DOM effects are work.
 export interface Owner {
+  parent: Owner | null;
   subscribers: Subscriber[] | null;
   childOwners: Owner[] | null;
   disposed: boolean;
@@ -16,6 +18,7 @@ let activeOwner: Owner | null = null;
 
 export function createOwner(): Owner {
   const owner: Owner = {
+    parent: null,
     subscribers: null,
     childOwners: null,
     disposed: false,
@@ -82,6 +85,7 @@ export function disposeOwner(owner: Owner): void {
   }
 
   owner.disposed = true;
+  detachOwnerFromParent(owner);
 
   const childOwners = owner.childOwners;
   owner.childOwners = null;
@@ -110,10 +114,28 @@ function registerOwnerToOwner(owner: Owner, parent: Owner | null): void {
     return;
   }
 
+  owner.parent = parent;
   const childOwners = parent.childOwners;
   if (childOwners === null) {
     parent.childOwners = [owner];
   } else {
     childOwners.push(owner);
+  }
+}
+
+function detachOwnerFromParent(owner: Owner): void {
+  const parent = owner.parent;
+  owner.parent = null;
+  if (parent === null) {
+    return;
+  }
+
+  const childOwners = parent.childOwners;
+  if (childOwners === null) {
+    return;
+  }
+
+  if (swapRemove(childOwners, owner) && childOwners.length === 0) {
+    parent.childOwners = null;
   }
 }

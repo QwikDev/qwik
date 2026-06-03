@@ -4,4 +4,5 @@ export const enum ReactiveFlags {
   Dirty = 1 << 1,
   Disposed = 1 << 2,
   Computing = 1 << 3,
+  HasValue = 1 << 4,
 }

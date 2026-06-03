@@ -173,6 +173,60 @@ describe('vdomless reactivity', () => {
     expect(count.subs).toBeNull();
   });
 
+  it('reads cached disposed computed values without tracking', () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const count = createSignal(1);
+    const collector = createTask(() => {}, { scheduler });
+    let runs = 0;
+    const doubled = createComputed(() => {
+      runs++;
+      return count.value * 2;
+    });
+
+    expect(doubled.value).toBe(2);
+    expect(runs).toBe(1);
+
+    disposeSubscriber(doubled);
+    count.value = 2;
+
+    runWithCollector(collector, () => {
+      expect(doubled.value).toBe(2);
+    });
+
+    expect(runs).toBe(1);
+    expect(count.subs).toBeNull();
+    expect(doubled.subs).toBeNull();
+    expect(collector.deps).toBeNull();
+  });
+
+  it('throws when reading a disposed computed without a cached value', () => {
+    const doubled = createComputed(() => 2);
+
+    disposeSubscriber(doubled);
+
+    expect(() => doubled.value).toThrow('Cannot read disposed computed without cached value');
+  });
+
+  it('clears computed subscribers when disposed', () => {
+    const count = createSignal(1);
+    let runs = 0;
+    const doubled = createComputed(() => {
+      runs++;
+      return count.value * 2;
+    });
+    const quadrupled = createComputed(() => doubled.value * 2);
+
+    expect(quadrupled.value).toBe(4);
+    expect(doubled.subs).toContain(quadrupled);
+
+    disposeSubscriber(doubled);
+    count.value = 2;
+
+    expect(doubled.subs).toBeNull();
+    expect(doubled.value).toBe(2);
+    expect(runs).toBe(1);
+  });
+
   it('throws on circular computed dependencies', () => {
     const circular: Computed<number> = createComputed(() => circular.value + 1);
 
@@ -524,6 +578,34 @@ describe('vdomless reactivity', () => {
     expect(count.subs).toBeNull();
   });
 
+  it('skips disposed tasks that were already scheduled', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const seen: string[] = [];
+    const task = createTask(() => seen.push('task'), { scheduler });
+
+    scheduler.notify(task);
+    disposeSubscriber(task);
+    scheduler.notify(task);
+    await scheduler.flushInteraction();
+
+    expect(seen).toEqual([]);
+    expect(task.flags).toBe(ReactiveFlags.Disposed);
+  });
+
+  it('skips disposed DOM effects that were already scheduled', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const text = createText();
+    const effect = createTextNodeEffect(text, createSignal('next'), { scheduler });
+
+    scheduler.notify(effect);
+    disposeSubscriber(effect);
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('');
+    expect(effect.flags).toBe(ReactiveFlags.Disposed);
+  });
+
   it('registers subscribers with the active owner', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const owner = createOwner();
@@ -586,6 +668,32 @@ describe('vdomless reactivity', () => {
     expect(effect.flags & ReactiveFlags.Disposed).toBe(0);
   });
 
+  it('detaches disposed child owners from their parent', () => {
+    const parent = createOwner();
+    let first!: Owner;
+    let second!: Owner;
+
+    runWithOwner(parent, () => {
+      first = createOwner();
+      second = createOwner();
+    });
+
+    expect(first.parent).toBe(parent);
+    expect(second.parent).toBe(parent);
+    expect(parent.childOwners).toHaveLength(2);
+
+    disposeOwner(first);
+    disposeOwner(first);
+
+    expect(first.disposed).toBe(true);
+    expect(first.parent).toBeNull();
+    expect(parent.disposed).toBe(false);
+    expect(second.disposed).toBe(false);
+    expect(second.parent).toBe(parent);
+    expect(parent.childOwners).toHaveLength(1);
+    expect(parent.childOwners![0]).toBe(second);
+  });
+
   it('disposes child owners with their parent owner', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const parent = createOwner();
@@ -604,7 +712,9 @@ describe('vdomless reactivity', () => {
     });
 
     expect(parent.subscribers).toEqual([outerEffect]);
-    expect(parent.childOwners).toEqual([child]);
+    expect(parent.childOwners).toHaveLength(1);
+    expect(parent.childOwners![0]).toBe(child);
+    expect(child.parent).toBe(parent);
     expect(child.subscribers).toEqual([innerEffect]);
 
     scheduler.notify(outerEffect);
@@ -618,8 +728,38 @@ describe('vdomless reactivity', () => {
 
     expect(parent.disposed).toBe(true);
     expect(child.disposed).toBe(true);
+    expect(parent.childOwners).toBeNull();
+    expect(parent.subscribers).toBeNull();
+    expect(child.parent).toBeNull();
     expect(outerSource.subs).toBeNull();
     expect(innerSource.subs).toBeNull();
+  });
+
+  it('creates disposed child owners under disposed owners', () => {
+    const parent = createOwner();
+    let child!: Owner;
+
+    disposeOwner(parent);
+
+    runWithOwner(parent, () => {
+      child = createOwner();
+    });
+
+    expect(parent.childOwners).toBeNull();
+    expect(child.disposed).toBe(true);
+    expect(child.parent).toBeNull();
+  });
+
+  it('disposes subscribers registered to disposed owners', () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const owner = createOwner();
+    const effect = createTextNodeEffect(createText(), createSignal(1), { scheduler });
+
+    disposeOwner(owner);
+    registerSubscriberToOwner(effect, owner);
+
+    expect(effect.flags).toBe(ReactiveFlags.Disposed);
+    expect(owner.subscribers).toBeNull();
   });
 
   it('registers computed subscribers with the active owner', () => {

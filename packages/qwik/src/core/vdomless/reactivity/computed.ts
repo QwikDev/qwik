@@ -38,11 +38,19 @@ export function createComputed<T>(compute: () => T): Computed<T> {
 }
 
 export function readComputed<T>(computed: ComputedSubscriber<T>): T {
+  if (computed.flags & ReactiveFlags.Disposed) {
+    return readDisposedComputed(computed);
+  }
+
   track(computed);
   return readComputedUntracked(computed);
 }
 
 export function readComputedUntracked<T>(computed: ComputedSubscriber<T>): T {
+  if (computed.flags & ReactiveFlags.Disposed) {
+    return readDisposedComputed(computed);
+  }
+
   if (computed.flags & ReactiveFlags.Dirty || depsChanged(computed)) {
     recomputeComputed(computed);
   }
@@ -51,7 +59,7 @@ export function readComputedUntracked<T>(computed: ComputedSubscriber<T>): T {
 }
 
 export function markComputedDirty(computed: ComputedSubscriber): void {
-  if (computed.flags & ReactiveFlags.Dirty) {
+  if (computed.flags & (ReactiveFlags.Dirty | ReactiveFlags.Disposed)) {
     return;
   }
 
@@ -80,18 +88,27 @@ function recomputeComputed<T>(computed: ComputedSubscriber<T>): void {
   computed.flags |= ReactiveFlags.Computing;
 
   try {
+    const hadValue = computed.flags & ReactiveFlags.HasValue;
     const oldValue = computed.v;
     const nextValue = runWithCollector(computed, () => computed.compute());
 
-    computed.flags &= ~ReactiveFlags.Dirty;
+    computed.flags = (computed.flags & ~ReactiveFlags.Dirty) | ReactiveFlags.HasValue;
     computed.v = nextValue;
 
-    if (!Object.is(oldValue, nextValue)) {
+    if (!hadValue || !Object.is(oldValue, nextValue)) {
       computed.version++;
     }
   } finally {
     computed.flags &= ~ReactiveFlags.Computing;
   }
+}
+
+function readDisposedComputed<T>(computed: ComputedSubscriber<T>): T {
+  if (computed.flags & ReactiveFlags.HasValue) {
+    return computed.v;
+  }
+
+  throw new Error('Cannot read disposed computed without cached value');
 }
 
 function depsChanged(collector: ComputedSubscriber): boolean {

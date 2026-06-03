@@ -1,3 +1,4 @@
+import { swapRemove } from '../utils/array';
 import { ReactiveFlags } from './flags';
 import type { Source } from './source';
 import { SubscriberKind, type Collector, type Subscriber } from './subscriber';
@@ -22,16 +23,7 @@ function removeSubscriber(source: Source, subscriber: Subscriber): void {
     return;
   }
 
-  const index = subs.indexOf(subscriber);
-  if (index === -1) {
-    return;
-  }
-
-  const lastIndex = subs.length - 1;
-  subs[index] = subs[lastIndex];
-  subs.pop();
-
-  if (subs.length === 0) {
+  if (swapRemove(subs, subscriber) && subs.length === 0) {
     source.subs = null;
   }
 }
@@ -41,10 +33,15 @@ export function disposeSubscriber(subscriber: Subscriber): void {
     return;
   }
 
-  subscriber.flags |= ReactiveFlags.Disposed;
+  subscriber.flags = (subscriber.flags & ReactiveFlags.HasValue) | ReactiveFlags.Disposed;
 
   switch (subscriber.kind) {
     case SubscriberKind.Computed:
+      cleanupDeps(subscriber);
+      // Only computed is both a subscriber and a source, so it can retain
+      // downstream subscribers after its upstream deps are cleaned.
+      subscriber.subs = null;
+      return;
     case SubscriberKind.Task:
     case SubscriberKind.VisibleTask:
     case SubscriberKind.Dom:

@@ -130,8 +130,8 @@ export function transformModule(
       parserModule = flattened.module ?? parserModule;
     }
 
-    // OSS-431: detect foreign `@jsxImportSource` pragma once per source.
-    // Threaded into rewrite + segment generation so both phases skip Qwik's
+    // Detect foreign `@jsxImportSource` pragma once per source. Threaded
+    // into rewrite + segment generation so both phases skip Qwik's
     // JSX-syntax rewrite and let oxc-transform's default JSX transform
     // handle the file using the pragma-named runtime.
     const { hasForeignJsxRuntime, pragmaText: foreignJsxPragmaText } =
@@ -145,12 +145,12 @@ export function transformModule(
     // original parse's nodes here lets us skip the per-extraction body
     // re-parse the receiver used to perform.
     const closureNodes = new Map<string, AstFunction>();
-    // OSS-389: extractSegments returns `readonly ExtractedSegment[]` as
-    // its phase-locked contract. The orchestrator below applies in-place
+    // `extractSegments` returns `readonly ExtractedSegment[]` as its
+    // phase-locked contract. The orchestrator below applies in-place
     // mutations (prod rename, transpile-downgrade, capture analysis,
     // raw-props consolidation) that gradually advance the array elements
     // through `captured` → `consolidated` phases. The cast here is the
-    // single FFI-boundary widening; per-mutation Mutable casts handle
+    // single FFI-boundary widening; per-mutation `Mutable` casts handle
     // field-level readonly enforcement.
     const extractions: ExtractionResult[] = extractSegments(
       repairedCode,
@@ -160,9 +160,9 @@ export function transformModule(
       program,
       parserModule,
       closureNodes,
-      // OSS-438: explicit user-set transpileJsx flag (defaults to false)
-      // for the ctxKind classifier. Distinct from `willTranspileJsx`
-      // which defaults to true on .tsx/.jsx (TS auto-transpile).
+      // Explicit user-set transpileJsx flag (defaults to false) for the
+      // ctxKind classifier. Distinct from `willTranspileJsx` which
+      // defaults to true on .tsx/.jsx (TS auto-transpile).
       options.transpileJsx === true,
     ) as ExtractionResult[];
 
@@ -203,12 +203,12 @@ export function transformModule(
       bodyScopeIds.set(symbolName, bodyIds);
     }
 
-    // OSS-446 Bug 3: lexical scope chain per closure. The prior form used
-    // `enclosingExt`-only or `moduleScopeIds`-only fallbacks, both of which
-    // missed decls from intermediate non-marker enclosing functions (e.g.
-    // a module-level arrow wrapping a `useVisibleTask$(...)` call). The new
-    // map is the union of every enclosing function/arrow scope plus module
-    // scope at the closure's location.
+    // Lexical scope chain per closure. Module-scope-only and
+    // enclosing-extraction-only fallbacks both miss decls from
+    // intermediate non-marker enclosing functions (e.g. a module-level
+    // arrow wrapping a `useVisibleTask$(...)` call). The map produced
+    // here is the union of every enclosing function/arrow scope plus
+    // module scope at the closure's location.
     const closureLexicalScopes = buildClosureLexicalScopes(program, closureNodes);
 
     // Run capture analysis with the correct parent scope for each extraction.
@@ -305,21 +305,22 @@ export function transformModule(
     const globalDeclPositions = new Map<string, number>();
     const { extractionLoopMap, loopBodyVarDecls } = buildExtractionLoopMap(program, extractions, repairedCode);
     const allScopeEntries = collectAllScopeEntries(program);
-    // OSS-421: `mode: 'lib'` produces a single-module library output (segment
-    // bodies inlined as `inlinedQrl(body, name, [captures])` literals). Re-uses
-    // the inline pipeline for body emission + capture wiring; a post-pass in
-    // `output-assembly.ts` collapses the inline output (`const q_X = _noopQrl
-    // (...); q_X.s(body);`) into the lib shape (`inlinedQrl(body, name, [caps])`).
+    // `mode: 'lib'` produces a single-module library output (segment
+    // bodies inlined as `inlinedQrl(body, name, [captures])` literals).
+    // Re-uses the inline pipeline for body emission + capture wiring; a
+    // post-pass in `output-assembly.ts` collapses the inline output
+    // (`const q_X = _noopQrl(...); q_X.s(body);`) into the lib shape
+    // (`inlinedQrl(body, name, [caps])`).
     const userEntryStrategy = options.entryStrategy ?? { type: "smart" as const };
     const earlyEntryStrategy = options.mode === 'lib'
       ? { type: 'inline' as const }
       : userEntryStrategy;
-    // OSS-406: ONLY `inline` (not `hoist`) skips the captures→paramNames
-    // promotion. `hoist` emits `(_, _1, capture) => body` const declarations
-    // (per `example_issue_33443`), so it still needs the param-padding form.
-    // Only `inline` emits `q_X.s((origArg) => { const _rawProps = _captures[0]; ... })`,
-    // which requires keeping captures in `captureNames` for the downstream
-    // `_captures[N]` unpacking pipeline.
+    // Only `inline` (not `hoist`) skips the captures→paramNames
+    // promotion. `hoist` emits `(_, _1, capture) => body` const
+    // declarations, so it still needs the param-padding form. `inline`
+    // emits `q_X.s((origArg) => { const _rawProps = _captures[0]; ... })`,
+    // which requires keeping captures in `captureNames` for the
+    // downstream `_captures[N]` unpacking pipeline.
     const earlyIsInlineStrategy = earlyEntryStrategy.type === "inline";
     const eventCaptureCtx: EventCaptureContext = {
       extractions,
@@ -340,13 +341,10 @@ export function transformModule(
     // Unify parameter slots for multiple event handlers on the same element
     unifyParameterSlots(eventCaptureCtx, globalDeclPositions);
 
-    // Build elementQpParams map. OSS-438 Fix B (segment-codegen path):
-    // thread strip-config so stripped event handlers' captures populate
-    // `elementQpParamsMap` for segment-body JSX (`buildQpOverrides` in
-    // segment-codegen looks up by handler symbolName via
-    // `nestedCallSite.elementQpParams`). The parent-rewrite JSX path
-    // also needs this propagation but currently can't consume it — see
-    // the follow-up note below.
+    // Build elementQpParams map. Threads strip-config so stripped event
+    // handlers' captures populate `elementQpParamsMap` for segment-body
+    // JSX (`buildQpOverrides` in segment-codegen looks up by handler
+    // symbolName via `nestedCallSite.elementQpParams`).
     const elementQpParamsMap = buildElementCaptureMap(
       eventCaptureCtx,
       globalDeclPositions,
@@ -365,13 +363,12 @@ export function transformModule(
       diagnostics,
     );
 
-    // OSS-398 (OSS-389 Phase 2): flip the `phase` discriminator from
-    // 'extracted' to 'captured' now that Phase 2 capture analysis has
-    // populated `captureNames` / `paramNames`. Internal-builder cast
-    // (FFI-boundary pattern, matching the prod-rename + transpile-downgrade
-    // sites above) — the alternative is a full pass-through `.map()` to
-    // construct new objects, deferred to OSS-389's Phase 3 alongside the
-    // per-variant field-presence + construct-new work.
+    // Flip the `phase` discriminator from 'extracted' to 'captured' now
+    // that Phase 2 capture analysis has populated `captureNames` /
+    // `paramNames`. Internal-builder cast (FFI-boundary pattern,
+    // matching the prod-rename + transpile-downgrade sites above) — the
+    // alternative is a full pass-through `.map()` to construct new
+    // objects.
     for (const extraction of extractions) {
       (extraction as Mutable<ExtractionResult>).phase = 'captured';
     }
@@ -462,7 +459,7 @@ export function transformModule(
       options.transpileJsx,
     );
 
-    // OSS-421: same override as the `earlyEntryStrategy` resolution above.
+    // Same override as the `earlyEntryStrategy` resolution above.
     // `mode: 'lib'` forces inline-pipeline emission; the lib-specific
     // collapse happens as a post-pass.
     const entryStrategy = options.mode === 'lib'
@@ -471,11 +468,11 @@ export function transformModule(
     const isInlineStrategy =
       entryStrategy.type === "inline" || entryStrategy.type === "hoist";
     const isLibMode = options.mode === 'lib';
-    // OSS-405: under inline strategy, segment bodies stay in the parent module
-    // (inside `q_X.s(body)`), so a `move` decision would delete a decl that the
-    // body still references — broken. Run migration and keep only `reexport`
-    // decisions; SWC emits these too, presumably for API stability across the
-    // segment-file ↔ inline output forms.
+    // Under inline strategy, segment bodies stay in the parent module
+    // (inside `q_X.s(body)`), so a `move` decision would delete a decl
+    // that the body still references — broken. Run migration and keep
+    // only `reexport` decisions; SWC emits these too, presumably for
+    // API stability across the segment-file ↔ inline output forms.
     const migrationDecisions = isInlineStrategy
       ? analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage)
           .filter((d) => d.action === 'reexport')
@@ -491,17 +488,15 @@ export function transformModule(
     const emitMode = options.mode ?? "prod";
     if (emitMode === "prod") {
       for (const ext of extractions) {
-        // OSS-408 Fix A: previously skipped `inlinedQrl` extractions on the
-        // grounds that "the name was set explicitly by the upstream tool";
-        // but SWC ALSO renames them under prod (e.g.
-        // `App_component_Fh88JClhbC0` → `s_Fh88JClhbC0`), preserving the
-        // hash suffix so runtime QRL resolution still matches. Skipping the
-        // rename was a parity gap; the runtime uses hash-keyed lookup, not
-        // the symbolic name.
+        // `inlinedQrl` extractions get renamed under prod too. SWC
+        // renames them (e.g. `App_component_Fh88JClhbC0` →
+        // `s_Fh88JClhbC0`), preserving the hash suffix so runtime QRL
+        // resolution still matches. The runtime uses hash-keyed lookup,
+        // not the symbolic name, so the rename is safe even for
+        // peer-tool-supplied names.
         const original = ext.symbolName;
-        // OSS-389: prod rename mutates identity post-extraction. Internal-
-        // builder cast — the alternative is a full pass-through array.map()
-        // which the OSS-389 pragmatic-pivot deferred.
+        // Prod rename mutates identity post-extraction. Internal-builder
+        // cast — the alternative is a full pass-through `array.map()`.
         (ext as Mutable<ExtractionResult>).symbolName = mkSymbolName("s_" + ext.hash);
         preRenameSymbolName.set(ext.symbolName, original);
         // Mirror the rename in `closureNodes` so post-rename lookups (Phase 4
@@ -533,8 +528,8 @@ export function transformModule(
     }
 
     // When JSX will be transpiled, downgrade extensions on extraction
-    // results. OSS-389: in-place mutation via internal-builder cast — see
-    // the prod-rename comment above; same pragmatic-pivot rationale.
+    // results. In-place mutation via internal-builder cast — see the
+    // prod-rename comment above.
     if (shouldTranspileJsx || shouldTranspileTs) {
       for (const extraction of extractions) {
         const wip = extraction as Mutable<ExtractionResult>;
@@ -635,7 +630,7 @@ export function transformModule(
 
     // Phase 5: Generate segment modules. `parentResult.extractions` is
     // already typed as `ConsolidatedSegment[]` — `rewriteParentModule`
-    // flips the phase discriminator after `resolveNesting` (OSS-398).
+    // flips the phase discriminator after `resolveNesting`.
     const updatedExtractions = parentResult.extractions;
 
     // Pre-pass: resolve const literal captures for child segments (default strategy only).
@@ -672,7 +667,7 @@ export function transformModule(
     }
 
     const segmentCtx: SegmentGenerationContext = {
-      // OSS-398: same array as `updatedExtractions` (rewriteParentModule
+      // Same array as `updatedExtractions` (`rewriteParentModule`
       // mutates in place); cast to the narrow variant for Phase 5 typing.
       extractions: extractions as ConsolidatedSegment[],
       updatedExtractions,
@@ -695,9 +690,9 @@ export function transformModule(
       preRenameSymbolName,
       qrlOutputExt,
       sourceExtensions,
-      // OSS-443: the parent input file's extension drives oxc-transform's
-      // parser-dialect selection in `postProcessSegmentCode`. Falls back to
-      // `.tsx` (parses TS + JSX, covers both) when extension is missing.
+      // The parent input file's extension drives oxc-transform's
+      // parser-dialect selection in `postProcessSegmentCode`. Falls back
+      // to `.tsx` (parses TS + JSX, covers both) when extension is missing.
       parentSourceExt: ext || '.tsx',
       shouldTranspileJsx,
       shouldTranspileTs,
@@ -713,10 +708,10 @@ export function transformModule(
     };
 
     const segmentModules = generateAllSegmentModules(segmentCtx);
-    // OSS-421: lib mode produces a single-module library output. The
-    // segment-file modules are still generated (extraction + capture
-    // analysis runs) but the bodies are inlined into the parent module
-    // via `collapseToLibInlinedQrl`. Skip emitting the segment modules.
+    // lib mode produces a single-module library output. The segment-file
+    // modules are still generated (extraction + capture analysis runs)
+    // but the bodies are inlined into the parent module via
+    // `collapseToLibInlinedQrl`. Skip emitting the segment modules.
     if (!isLibMode) {
       allModules.push(...segmentModules);
     }

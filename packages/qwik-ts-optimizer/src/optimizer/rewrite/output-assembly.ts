@@ -146,11 +146,11 @@ export function collectNeededImports(ctx: RewriteContext): void {
     }
   }
 
-  // OSS-423: lib mode emits an additional `import { jsx as _jsx } from
+  // lib mode emits an additional `import { jsx as _jsx } from
   // "@qwik.dev/core/jsx-runtime"` alongside the rewritten `_jsxSorted`
-  // form. SWC includes it in lib emit even when not directly referenced —
-  // the JSX runtime export surface stays available for downstream library
-  // consumers. Mirrors SWC's `example_lib_mode` snap.
+  // form. SWC includes it in lib emit even when not directly referenced
+  // — the JSX runtime export surface stays available for downstream
+  // library consumers.
   if (ctx.isLibMode && jsxResult && !alreadyImported.has('jsx')) {
     neededImports.set('jsx as _jsx', '@qwik.dev/core/jsx-runtime');
   }
@@ -307,12 +307,12 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     ? {
         enableJsx: true,
         importedNames: jsxOptions.importedNames,
-        // OSS-428: JSX dev-info `fileName:` only switches to the user-supplied
-        // dev path when explicitly set on the input (via `devPath`). The
-        // composed `devFilePath` (srcDir+relPath fallback) keeps the default
-        // `relPath` behavior — preserves `example_dev_mode_inlined` etc.
+        // JSX dev-info `fileName:` only switches to the user-supplied
+        // dev path when explicitly set on the input (via `devPath`).
+        // The composed `devFilePath` (srcDir+relPath fallback) keeps
+        // the default `relPath` behaviour.
         devOptions: isDevMode ? { relPath: ctx.userDevPath ?? relPath } : undefined,
-        // OSS-410: needed to convert wrapped-body offsets to source-relative
+        // Needed to convert wrapped-body offsets to source-relative
         // dev-info positions inside `transformInlineSegmentBody`.
         source: isDevMode ? ctx.source : undefined,
         keyCounterStart: isHoist ? ctx.jsxKeyCounterValue : undefined,
@@ -361,7 +361,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       ext, extractions, qrlVarNames, inlineSegmentJsxOptions, inlineOptions?.regCtxName, sharedHoister,
       ctx.closureNodes, ctx.source, ctx.originalImports, ctx.relPath, ctx.jsxKeyCounterValue,
       migratedNames,
-      // OSS-426 Sub-B: suppress `.w([])` on stripped child QRLs.
+      // Suppress `.w([])` on stripped child QRLs.
       inlineOptions?.stripCtxName,
       inlineOptions?.stripEventHandlers,
     );
@@ -382,9 +382,9 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       ctx.jsxKeyCounterValue = keyCounterValue;
       inlineSegmentJsxOptions = { ...inlineSegmentJsxOptions, keyCounterStart: ctx.jsxKeyCounterValue };
     } else if (keyCounterValue !== undefined) {
-      // OSS-405: under inline strategy, jsx-call rewrites in `.s(body)` blocks
-      // advance the JSX key counter shared across all `.s(body)` calls in the
-      // module. Without this, body2's keys would restart at 0.
+      // Under inline strategy, jsx-call rewrites in `.s(body)` blocks
+      // advance the JSX key counter shared across all `.s(body)` calls in
+      // the module. Without this, body2's keys would restart at 0.
       ctx.jsxKeyCounterValue = keyCounterValue;
     }
     ctx.inlineHoistedDeclarations.push(...hoistedDeclarations);
@@ -396,13 +396,13 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
 
     const forceInlineForRegCtx = isRegCtxMatch && inlineOptions?.entryType === 'inline';
     if (isHoist && !forceInlineForRegCtx) {
-      // OSS-407 Fix A: when body is a bare identifier referring to a
-      // module-level decl (`useStyle$(STYLES)` shape — body slice = "STYLES"),
-      // the const-decl wrapping that Hoist normally emits is redundant. SWC
-      // emits `q_X.s(STYLES)` directly. Route to `ctx.sCalls` so `placeSCalls`
-      // can place it relative to the referenced decl (which may be declared
-      // AFTER the extraction's containing statement — TDZ otherwise; see
-      // OSS-407 Fix C in placeSCalls).
+      // When body is a bare identifier referring to a module-level decl
+      // (`useStyle$(STYLES)` shape — body slice = "STYLES"), the const-decl
+      // wrapping that Hoist normally emits is redundant. SWC emits
+      // `q_X.s(STYLES)` directly. Route to `ctx.sCalls` so `placeSCalls`
+      // can place it relative to the referenced decl (which may be
+      // declared AFTER the extraction's containing statement — TDZ
+      // otherwise; see the forward-dep handling in `placeSCalls`).
       const moduleDeclNames = ctx.moduleLevelDecls
         ? new Set(ctx.moduleLevelDecls.map((d) => d.name))
         : undefined;
@@ -477,9 +477,9 @@ export function filterUnusedImports(ctx: RewriteContext): void {
 
     const usedNamed: { local: string; imported: string }[] = [];
     for (const np of info.namedParts) {
-      // OSS-423: lib-mode `$`-suffix markers (e.g. `component$`, `useStyle$`)
-      // stay in the import even when not referenced in the parent body —
-      // they were rewritten to their `*Qrl` forms but downstream library
+      // lib-mode `$`-suffix markers (e.g. `component$`, `useStyle$`) stay
+      // in the import even when not referenced in the parent body — they
+      // were rewritten to their `*Qrl` forms but downstream library
       // consumers may still need the original markers for composition or
       // re-export. The bare `$` is excluded (no marker-function semantics).
       if (isLibMode && np.imported.length > 1 && np.imported.endsWith('$')) {
@@ -531,8 +531,8 @@ export function filterUnusedImports(ctx: RewriteContext): void {
 /**
  * `export const X = component$(...)` pre-rewrite or `export const X = componentQrl(...)`
  * post-rewrite. Either suffix identifies an export whose init is being QRL-wrapped —
- * the OSS-404 F1c anchor for sCall placement (self-referencing sCalls must go after
- * such exports to avoid TDZ at module load).
+ * the anchor for sCall placement (self-referencing sCalls must go after such
+ * exports to avoid TDZ at module load).
  */
 function isMarkerLikeCall(init: AstNode | null | undefined): boolean {
   if (!init || init.type !== 'CallExpression' || init.callee?.type !== 'Identifier') return false;
@@ -621,24 +621,23 @@ function partitionSCallsBySelfRef(
  * references against the anchors below.
  *
  * Anchor priority:
- *   1. Forward decl dependency (OSS-407, per-sCall): when a marker-export
- *      anchor exists AND the sCall references a module-level decl declared
+ *   1. Forward decl dependency (per-sCall): when a marker-export anchor
+ *      exists AND the sCall references a module-level decl declared
  *      *after* the anchor. Place AFTER that decl to avoid TDZ at module
  *      load (e.g. `q_useStyle.s(STYLES)` where `const STYLES` follows
- *      `export const Works = component$(...)`). Per-sCall because the same
- *      module may mix forward-dep sCalls with anchor-relative ones.
- *   2. Marker-call export anchor (OSS-404 F1c port, group): remaining
- *      sCalls partition by self-ref to any exported marker name. Self-
- *      referencing sCalls go AFTER the export to avoid TDZ on the
- *      reference; non-referencing go BEFORE.
- *   3. No marker anchor (OSS-405, group): last module-decl any remaining
- *      sCall body references — peer-tool `inlinedQrl` input uses plain
+ *      `export const Works = component$(...)`). Per-sCall because the
+ *      same module may mix forward-dep sCalls with anchor-relative ones.
+ *   2. Marker-call export anchor (group): remaining sCalls partition by
+ *      self-ref to any exported marker name. Self-referencing sCalls go
+ *      AFTER the export to avoid TDZ on the reference; non-referencing
+ *      go BEFORE.
+ *   3. No marker anchor (group): last module-decl any remaining sCall
+ *      body references — peer-tool `inlinedQrl` input uses plain
  *      `export { name }`, no marker init to anchor against.
  *   4. No anchor at all → append at end of file.
  *
- * The "group" placements preserve OSS-404/OSS-405's behaviour of keeping
- * adjacent sCalls together. Only the TDZ-sensitive forward-dep case splits
- * out of the group.
+ * The "group" placements keep adjacent sCalls together. Only the
+ * TDZ-sensitive forward-dep case splits out of the group.
  */
 function placeSCalls(
   s: MagicString,
@@ -651,7 +650,7 @@ function placeSCalls(
   const markerAnchor = findLastMarkerExportAnchor(program);
   const decls = moduleLevelDecls ?? [];
 
-  // Pull out OSS-407 forward-dep sCalls per-sCall; the rest stays grouped.
+  // Pull out forward-dep sCalls per-sCall; the rest stays grouped.
   const groupedSCalls: string[] = [];
   for (const sCall of sCalls) {
     const forwardDeclEnd = markerAnchor && decls.length > 0
@@ -716,10 +715,10 @@ export function assembleOutput(ctx: RewriteContext): string {
   s.prepend(preamble.join('\n') + '\n');
 
   if (migrationDecisions && !ctx.isLibMode) {
-    // OSS-421: `_auto_X` re-exports exist to make module-level decls
-    // available to segment-file imports. Lib mode emits a single-module
-    // output (no segment files), so the re-exports are unnecessary and
-    // diverge from SWC's lib emit which omits them.
+    // `_auto_X` re-exports exist to make module-level decls available to
+    // segment-file imports. Lib mode emits a single-module output (no
+    // segment files), so the re-exports are unnecessary and diverge
+    // from SWC's lib emit which omits them.
     for (const decision of migrationDecisions) {
       if (decision.action === 'reexport') {
         const decl = moduleLevelDecls?.find(d => d.name === decision.varName);
@@ -748,19 +747,20 @@ export function assembleOutput(ctx: RewriteContext): string {
 
   let finalCode = s.toString();
 
-  // OSS-421: lib-mode collapse runs on the assembled inline-strategy
-  // output. Transforms `_noopQrl(name) + q_X.s(body)` triples into inline
-  // `inlinedQrl(body, name, [captures])` literals at every reference site.
-  // Re-uses the inline pipeline's body emission + capture wiring; only the
-  // final emission shape differs.
+  // lib-mode collapse runs on the assembled inline-strategy output.
+  // Transforms `_noopQrl(name) + q_X.s(body)` triples into inline
+  // `inlinedQrl(body, name, [captures])` literals at every reference
+  // site. Re-uses the inline pipeline's body emission + capture wiring;
+  // only the final emission shape differs.
   if (ctx.isLibMode) {
     finalCode = collapseToLibInlinedQrl(finalCode);
   }
 
-  // OSS-423: capture lib-mode-preserved imports BEFORE TS-strip. oxc-transform's
-  // strip eliminates unused value imports (the `*$` markers + `jsx as _jsx`
-  // have no in-body references after rewrites). We re-prepend them after
-  // strip to honor lib mode's "preserve user-facing surface" contract.
+  // Capture lib-mode-preserved imports BEFORE TS-strip. oxc-transform's
+  // strip eliminates unused value imports (the `*$` markers + `jsx as
+  // _jsx` have no in-body references after rewrites). We re-prepend them
+  // after strip to honor lib mode's "preserve user-facing surface"
+  // contract.
   const libModeReservedImports: string[] = [];
   if (ctx.isLibMode && transpileTs) {
     libModeReservedImports.push(...extractLibModeReservedImports(finalCode));
@@ -777,9 +777,9 @@ export function assembleOutput(ctx: RewriteContext): string {
     }
   }
 
-  // OSS-423: re-prepend lib-mode-preserved imports that oxc-transform's
-  // strip eliminated as "unused." These are intentional public-surface
-  // imports for downstream library consumers (the `*$` markers + the
+  // Re-prepend lib-mode-preserved imports that oxc-transform's strip
+  // eliminated as "unused." These are intentional public-surface imports
+  // for downstream library consumers (the `*$` markers + the
   // `jsx as _jsx` runtime export).
   if (libModeReservedImports.length > 0) {
     finalCode = libModeReservedImports.join('\n') + '\n' + finalCode;

@@ -140,15 +140,16 @@ export function transformInlineSegmentBody(
   /**
    * Closure AST nodes per extraction (keyed by symbolName). When supplied
    * together with `source`, lets the const-literal resolver skip its body
-   * re-parse. See OSS-354.
+   * re-parse.
    */
   closureNodes?: Map<string, AstFunction>,
   /** Source string the closures were parsed from — required when `closureNodes` is supplied. */
   source?: string,
   /**
-   * Parent module imports — used to derive the jsx-runtime callable set for
-   * the OSS-405 `jsx(...) → _jsxSorted(...)` rewrite in inline-strategy bodies.
-   * When omitted (or empty for the module), the rewrite is skipped.
+   * Parent module imports — used to derive the jsx-runtime callable set
+   * for the `jsx(...) → _jsxSorted(...)` rewrite in inline-strategy
+   * bodies. When omitted (or empty for the module), the rewrite is
+   * skipped.
    */
   originalImports?: Map<string, ImportInfo>,
   /** Parent module's relative path — used for JSX key prefix derivation. */
@@ -164,18 +165,18 @@ export function transformInlineSegmentBody(
    * `_captures[N]` indirection needed). Without the filter, the body gets
    * `const X = _captures[0]` injected on top of a `.w([])` call site that
    * was already filtered by `addCaptureWrapping` — phantom unpacking with
-   * undefined values. See OSS-407.
+   * undefined values.
    */
   migratedNames?: ReadonlySet<string>,
   /**
-   * OSS-426 Sub-B — strip-config gates suppression of `.w([captures])`
-   * wrapping on stripped child QRLs in JSX prop position. When a child
-   * is stripped, its body is `export const X = null` and cannot consume
-   * captures; SWC's reference emits the bare QRL ref (`q_X`) instead of
+   * Strip-config gates suppression of `.w([captures])` wrapping on
+   * stripped child QRLs in JSX prop position. When a child is stripped,
+   * its body is `export const X = null` and cannot consume captures;
+   * SWC's reference emits the bare QRL ref (`q_X`) instead of
    * `q_X.w([…])`. Only the event-handler JSX-prop path is gated —
    * marker-call (`qrlCallee`) and inlinedQrl paths preserve their
    * existing emission shape because stripped extractions don't appear
-   * in those positions for the F5 fixtures.
+   * in those positions for the strip-mode fixtures.
    */
   stripCtxName?: readonly string[],
   stripEventHandlers?: boolean,
@@ -224,11 +225,11 @@ export function transformInlineSegmentBody(
             child.captureNames.length > 0 &&
             hasUnderscorePlaceholderParams(child.paramNames);
 
-          // OSS-426 Sub-B: stripped child segments emit `= null` bodies
-          // that cannot consume captures at runtime. SWC's reference
-          // suppresses the `.w([…])` wrapper at the JSX-prop call site
-          // and emits the bare `q_X` ref. Skip the wrap regardless of
-          // capture count when the child is stripped.
+          // Stripped child segments emit `= null` bodies that cannot
+          // consume captures at runtime. SWC's reference suppresses the
+          // `.w([…])` wrapper at the JSX-prop call site and emits the
+          // bare `q_X` ref. Skip the wrap regardless of capture count
+          // when the child is stripped.
           const childIsStripped = isStrippedSegment(
             child.ctxName, child.ctxKind, stripCtxName, stripEventHandlers,
           );
@@ -257,11 +258,11 @@ export function transformInlineSegmentBody(
 
           additionalImports.set(child.qrlCallee, getQrlImportSource(child.qrlCallee, child.importSource));
         } else {
-          // OSS-405: inlinedQrl children have empty `qrlCallee` (`extract.ts:696`)
-          // — they're peer-tool-emitted spec args, not marker calls. Replacement
-          // is just the `q_X.w([captures])` ref; wrapping it in `(`...`)` would
-          // produce `useTaskQrl((q_X.w([...])))` (double parens) instead of
-          // `useTaskQrl(q_X.w([...]))`.
+          // inlinedQrl children have empty `qrlCallee` — they're
+          // peer-tool-emitted spec args, not marker calls. Replacement
+          // is just the `q_X.w([captures])` ref; wrapping it in
+          // `(`...`)` would produce `useTaskQrl((q_X.w([...])))` (double
+          // parens) instead of `useTaskQrl(q_X.w([...]))`.
           let replacement = childVarName;
           if (child.captureNames.length > 0) {
             replacement += '.w([\n        ' + child.captureNames.join(',\n        ') + '\n    ])';
@@ -286,9 +287,9 @@ export function transformInlineSegmentBody(
         : resolveConstLiterals(parentExt.bodyText, ext.captureNames);
       if (constValues.size > 0) {
         body = inlineConstCaptures(body, constValues);
-        // OSS-389: const-literal inlining drops folded names from
-        // captureNames + accumulates into constLiterals. Internal-builder
-        // cast — ext is effectively transitioning toward consolidated.
+        // Const-literal inlining drops folded names from `captureNames`
+        // + accumulates into `constLiterals`. Internal-builder cast —
+        // `ext` is effectively transitioning toward consolidated.
         const wip = ext as Mutable<ExtractionResult>;
         wip.captureNames = wip.captureNames.filter(n => !constValues.has(n));
         wip.captures = wip.captureNames.length > 0;
@@ -304,19 +305,20 @@ export function transformInlineSegmentBody(
   if (isRegCtx) {
     // regCtxName extractions don't use _captures
   } else if (ext.isInlinedQrl) {
-    // OSS-405: peer-tool `inlinedQrl(body, name, [captures])` bodies are
-    // self-contained — they already destructure captures themselves (e.g.
-    // via `useLexicalScope()` in qwik-react codegen). Injecting `_captures`
-    // unpacking on top would produce duplicate destructuring. Mirrors the
-    // `resolveCaptureInfo` skip path used by the segment-file codegen.
+    // Peer-tool `inlinedQrl(body, name, [captures])` bodies are
+    // self-contained — they already destructure captures themselves
+    // (e.g. via `useLexicalScope()` in qwik-react codegen). Injecting
+    // `_captures` unpacking on top would produce duplicate destructuring.
+    // Mirrors the `resolveCaptureInfo` skip path used by the segment-file
+    // codegen.
   } else if (ext.captureNames.length > 0) {
-    // OSS-407: filter migrated names — they're accessible via module scope
-    // under inline/hoist (body stays in parent) so no `_captures[N]`
+    // Filter migrated names — they're accessible via module scope under
+    // inline/hoist (body stays in parent) so no `_captures[N]`
     // indirection is needed. Mirrors the symmetric filter in
-    // `addCaptureWrapping` (`rewrite/index.ts:657`) that already skips
-    // emitting `.w([X])` for migrated `X`. Without this body-side filter,
-    // `const X = _captures[0]` got injected on top of an empty `.w()` call
-    // site — phantom unpacking with undefined values.
+    // `addCaptureWrapping` that already skips emitting `.w([X])` for
+    // migrated `X`. Without this body-side filter, `const X =
+    // _captures[0]` got injected on top of an empty `.w()` call site —
+    // phantom unpacking with undefined values.
     const effectiveCaptures = migratedNames && migratedNames.size > 0
       ? ext.captureNames.filter(n => !migratedNames.has(n))
       : ext.captureNames;
@@ -338,7 +340,7 @@ export function transformInlineSegmentBody(
   }
 
   if (ext.propsFieldCaptures && ext.propsFieldCaptures.size > 0) {
-    // OSS-409 bug 2: pass propsFieldDefaults so defaulted fields emit
+    // Pass `propsFieldDefaults` so defaulted fields emit
     // `(_rawProps.<key> ?? <default>)` (mirrors SWC's NullishCoalescing).
     body = replacePropsFieldReferencesInBody(
       body,
@@ -351,11 +353,11 @@ export function transformInlineSegmentBody(
 
   let finalKeyCounterValue: number | undefined;
 
-  // OSS-405: rewrite peer-tool `jsx(Tag, propsObj, ...)` calls (e.g. from
-  // qwik-react codegen embedded inside `inlinedQrl(...)` bodies) into the
-  // `_jsxSorted(tag, varProps, constProps, children, flags, key)` form. Mirrors
-  // the Phase 5b path in segment-codegen (`transformSegmentJsxCalls`) — under
-  // inline strategy, the body stays in the parent module rather than going
+  // Rewrite peer-tool `jsx(Tag, propsObj, ...)` calls (e.g. from
+  // qwik-react codegen embedded inside `inlinedQrl(...)` bodies) into
+  // the `_jsxSorted(tag, varProps, constProps, children, flags, key)`
+  // form. Mirrors the segment-codegen jsx-call rewrite — under inline
+  // strategy, the body stays in the parent module rather than going
   // into a segment file, so this pass has to run here instead.
   if (originalImports && originalImports.size > 0) {
     const jsxFunctions = collectJsxFunctionNamesFromIterable(originalImports.values());
@@ -399,9 +401,9 @@ export function transformInlineSegmentBody(
   if (jsxBodyOptions?.enableJsx) {
     const wrapperPrefix = 'const __body__ = ';
     const wrappedSource = wrapperPrefix + body;
-    // OSS-410: JSX dev-info needs source-relative line/col. Inside this
-    // function, `wrappedSource` is the JSX parser's input; without the
-    // sourcePosition, dev-info positions would be wrappedSource-relative
+    // JSX dev-info needs source-relative line/col. Inside this function,
+    // `wrappedSource` is the JSX parser's input; without the
+    // `sourcePosition`, dev-info positions would be wrappedSource-relative
     // (i.e. body-relative, off by the body's source-line offset).
     let devOptionsForCall = jsxBodyOptions.devOptions;
     if (devOptionsForCall && jsxBodyOptions.source != null) {
@@ -443,13 +445,12 @@ export function transformInlineSegmentBody(
           qrlParamMap.set(child.symbolName, captureParams);
         }
 
-        // OSS-438 Fix B: stripped event handlers' bodies emit `= null`,
-        // so their captures can't reach the runtime via `_captures[N]`.
-        // SWC propagates those captures to the parent JSX element's
-        // `q:p` var-prop instead (`example_strip_client_code`). Mirror
-        // by adding stripped extractions' captureNames into qrlParamMap
-        // keyed by the post-rewrite QRL var name (e.g. `q_qrl_4294…`)
-        // that the body now references.
+        // Stripped event handlers' bodies emit `= null`, so their
+        // captures can't reach the runtime via `_captures[N]`. SWC
+        // propagates those captures to the parent JSX element's `q:p`
+        // var-prop instead. Mirror by adding stripped extractions'
+        // captureNames into `qrlParamMap` keyed by the post-rewrite QRL
+        // var name (e.g. `q_qrl_4294…`) that the body now references.
         if (stripCtxName || stripEventHandlers) {
           for (const child of nested) {
             if (child.ctxKind !== 'eventHandler') continue;
@@ -514,12 +515,13 @@ export function transformInlineSegmentBody(
     body = removeDeadConstLiterals(body);
   }
 
-  // OSS-415: fold constant-foldable subtrees that survived earlier passes
-  // (typically the `?? <default>` RHS injected by `replacePropsFieldReferencesInBody`
-  // in non-JSX positions like `console.log(_rawProps.X ?? 1+2)`). Runs
-  // AFTER JSX transform so `_hf<n>_str` has already been generated from
-  // source-form positions and stays source-preserving; JSX-prop positions
-  // are now `_fnSignal(...)` calls with no `?? <default>` left to fold.
+  // Fold constant-foldable subtrees that survived earlier passes —
+  // typically the `?? <default>` RHS injected by
+  // `replacePropsFieldReferencesInBody` in non-JSX positions like
+  // `console.log(_rawProps.X ?? 1+2)`. Runs AFTER JSX transform so
+  // `_hf<n>_str` has already been generated from source-form positions
+  // and stays source-preserving; JSX-prop positions are now
+  // `_fnSignal(...)` calls with no `?? <default>` left to fold.
   body = foldBodySimplifiableExpressions(body);
 
   return { transformedBody: body, additionalImports, hoistedDeclarations, keyCounterValue: finalKeyCounterValue };

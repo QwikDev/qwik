@@ -17,6 +17,7 @@ import {
   component$,
   getDomContainer,
   type JSXOutput,
+  useAsync$,
   useErrorBoundary,
   Slot,
   useTask$,
@@ -1945,6 +1946,117 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
       resolveSlow(<span id="ooos-unit-resume-after-qo-ready">Resume after qO ready</span>);
       await renderPromise;
       delete (globalThis as any).__ooosUnitResumeAfterQOValue;
+    }
+  });
+
+  it('should keep hoisted loop event params on their own buttons in resolved segments', async () => {
+    (globalThis as any).__ooosUnitLoopNavValue = 0;
+    (globalThis as any).__ooosUnitLoopItemValue = '';
+    (globalThis as any).__ooosUnitLoopRequests = [];
+    (globalThis as any).__ooosUnitLoopResolvers = [];
+
+    type Story = { id: string; label: string };
+    const storiesForPage = (page: number): Story[] =>
+      Array.from({ length: 30 }, (_, index) => ({
+        id: `${page}-${index}`,
+        label: `Story ${page}-${index}`,
+      }));
+    const resolveNextPage = async (page: number) => {
+      await vi.waitFor(() =>
+        expect((globalThis as any).__ooosUnitLoopResolvers.length).toBeGreaterThan(0)
+      );
+      const resolve = (globalThis as any).__ooosUnitLoopResolvers.shift() as (
+        value: Story[]
+      ) => void;
+      resolve(storiesForPage(page));
+    };
+
+    const Stories = component$(
+      ({ stories, 'bind:page': page }: { stories?: Story[]; 'bind:page': { value: number } }) => (
+        <>
+          <button
+            id="ooos-unit-loop-next"
+            onClick$={() => {
+              page.value += 1;
+              (globalThis as any).__ooosUnitLoopNavValue = page.value;
+            }}
+          >
+            Next
+          </button>
+          <ul>
+            {stories?.map((story) => (
+              <button
+                id={`ooos-unit-loop-item-${story.id}`}
+                onClick$={() => {
+                  (globalThis as any).__ooosUnitLoopItemValue = story.id;
+                }}
+              >
+                {story.label}
+              </button>
+            ))}
+          </ul>
+        </>
+      )
+    );
+    const App = component$(() => {
+      const page = useSignal(0);
+      const stories = useAsync$<Story[]>(async ({ track }) => {
+        const pageNum = track(page);
+        (globalThis as any).__ooosUnitLoopRequests.push(pageNum);
+        return new Promise<Story[]>((resolve) => {
+          (globalThis as any).__ooosUnitLoopResolvers.push(resolve);
+        });
+      });
+      return (
+        <main>
+          <span id="ooos-unit-loop-page">{page.value}</span>
+          <Suspense fallback={<p>Waiting loop params</p>}>
+            <Stories stories={stories.value} bind:page={page} />
+          </Suspense>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderSuspenseStream(<App />, chunks, { debug });
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting loop params'));
+      await resolveNextPage(0);
+      const { document, container } = await renderPromise;
+
+      expect(chunks.join('')).toContain('type="qwik/vnode" q:patch');
+      const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:patch]');
+      const [rootStart, segmentRoots] = JSON.parse(segmentStateScript!.textContent!) as [
+        number,
+        unknown[],
+      ];
+      for (let i = 0; i < segmentRoots.length; i += 2) {
+        expect([segmentRoots[i], segmentRoots[i + 1]]).not.toEqual([
+          TypeIds.RootRef,
+          rootStart + i / 2,
+        ]);
+      }
+
+      await trigger(container.element, '#ooos-unit-loop-item-0-1', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitLoopItemValue).toBe('0-1');
+
+      await trigger(container.element, '#ooos-unit-loop-next', 'click');
+      await waitForDrain(container);
+      expect((globalThis as any).__ooosUnitLoopNavValue).toBe(1);
+      await vi.waitFor(() => expect((globalThis as any).__ooosUnitLoopRequests).toEqual([0, 1]));
+      expect(document.querySelector('#ooos-unit-loop-page')?.textContent).toBe('1');
+    } finally {
+      const resolvers = (globalThis as any).__ooosUnitLoopResolvers;
+      for (let i = 0; i < resolvers.length; i++) {
+        resolvers[i](storiesForPage(-1));
+      }
+      await renderPromise;
+      delete (globalThis as any).__ooosUnitLoopNavValue;
+      delete (globalThis as any).__ooosUnitLoopItemValue;
+      delete (globalThis as any).__ooosUnitLoopRequests;
+      delete (globalThis as any).__ooosUnitLoopResolvers;
     }
   });
 

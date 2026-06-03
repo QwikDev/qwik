@@ -13,6 +13,7 @@ import {
   executeComponentChore,
   executeCompute,
   executeErrorWrap,
+  executeInlineComponentChore,
   executeNodeDiff,
   executeNodeProps,
   executeReconcile,
@@ -175,6 +176,8 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
         result = executeNodeDiff(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
         result = executeComponentChore(currentVNode, container, journal, cursor);
+      } else if (currentVNode.dirty & ChoreBits.INLINE_COMPONENT) {
+        result = executeInlineComponentChore(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.RECONCILE) {
         result = executeReconcile(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.NODE_PROPS) {

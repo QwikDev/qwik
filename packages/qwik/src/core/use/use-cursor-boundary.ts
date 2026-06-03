@@ -2,7 +2,7 @@ import { vnode_getProp, vnode_setProp } from '../client/vnode-utils';
 import { createSignal, type Signal } from '../reactive-primitives/signal.public';
 import type { CursorData } from '../shared/cursor/cursor-props';
 import type { Container } from '../shared/types';
-import { QCursorBoundary, QNearestCursorBoundary } from '../shared/utils/markers';
+import { QCursorBoundary, NEAREST_CURSOR_BOUNDARY } from '../shared/utils/markers';
 import type { VNode } from '../shared/vnode/vnode';
 import { useConstant } from './use-signal';
 
@@ -72,7 +72,7 @@ export function getNearestCursorBoundaryProp(vNode: VNode): CursorBoundary | nul
     return null;
   }
   return (
-    (vnode_getProp(vNode, QNearestCursorBoundary, null) as CursorBoundary | null | undefined) ||
+    (vnode_getProp(vNode, NEAREST_CURSOR_BOUNDARY, null) as CursorBoundary | null | undefined) ||
     null
   );
 }
@@ -81,7 +81,7 @@ export function clearNearestCursorBoundary(vNode: VNode): void {
   if (!__EXPERIMENTAL__.suspense) {
     return;
   }
-  vnode_setProp(vNode, QNearestCursorBoundary, null);
+  vnode_setProp(vNode, NEAREST_CURSOR_BOUNDARY, null);
 }
 
 export function getNearestCursorBoundary(
@@ -95,7 +95,7 @@ export function getNearestCursorBoundary(
 }
 
 export function setNearestCursorBoundary(vNode: VNode, boundary: CursorBoundary | null): void {
-  __EXPERIMENTAL__.suspense && vnode_setProp(vNode, QNearestCursorBoundary, boundary);
+  __EXPERIMENTAL__.suspense && vnode_setProp(vNode, NEAREST_CURSOR_BOUNDARY, boundary);
 }
 
 /** Updates the nearest cursor boundary cache on a vnode and any already-dirty descendants. */

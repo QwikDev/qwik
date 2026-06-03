@@ -65,7 +65,7 @@ export const executeComponent = (
 ): ValueOrPromise<JSXOutput> => {
   const iCtx = newRenderInvokeContext(
     container.$locale$,
-    subscriptionHost || renderHost,
+    renderHost,
     container
   ) as RenderInvokeContext;
   if (subscriptionHost) {

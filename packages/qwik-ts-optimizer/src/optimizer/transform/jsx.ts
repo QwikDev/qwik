@@ -51,8 +51,7 @@ export interface JsxTransformOutput {
  * dev-info is requested, JSX positions reported by the AST are offsets in
  * that wrapped body — not in the original module source. Without conversion,
  * `lineNumber:` ends up body-relative, but SWC reports source-relative
- * positions for both fixtures using these paths (`example_dev_mode_inlined`,
- * `example_dev_mode`, `root_level_self_referential_qrl_inline`). OSS-410.
+ * positions.
  *
  * Callers that already pass the original module source as `transformAllJsx`'s
  * `source` arg (parent rewrite at `rewrite/index.ts`) leave this undefined.
@@ -94,8 +93,8 @@ export interface JsxTransformContext {
   /** Scope-aware binding lookup. Use `bindings.classify(name, atPosition)`
    * to resolve a reference to its innermost enclosing scope's binding kind;
    * shadowed names (e.g. arrow param shadowing a for-of binding) resolve
-   * correctly. Replaces the prior flat `constIdents: Set<string>` per
-   * OSS-401. */
+   * correctly. A flat `constIdents: Set<string>` cannot disambiguate
+   * shadowing — necessary for correct classification under nested scopes. */
   bindings?: ScopeAwareBindings;
   allDeclaredNames?: Set<string>;
   paramNames?: Set<string>;
@@ -103,7 +102,7 @@ export interface JsxTransformContext {
 }
 
 /**
- * Enter-phase context for the JSX walker (OSS-391). Carries the read-only
+ * Enter-phase context for the JSX walker. Carries the read-only
  * source text plus the two enter-phase accumulators: the loop stack (pushed
  * on loop enter) and the sole-child JSX marker WeakSet (filled when a parent
  * JSX node first sees its children). Holds NO MagicString — calling
@@ -117,7 +116,7 @@ export interface JsxWalkEnterContext {
 }
 
 /**
- * Exit-phase context for the JSX walker (OSS-391). Extends EnterContext with
+ * Exit-phase context for the JSX walker. Extends EnterContext with
  * the MagicString accumulator, the per-element transform inputs (`jsxCtx`,
  * `enableSignals`, `qpOverrides`, `ranges`), and the act-helpers needed
  * during leave: `neededImports` (write target), `getDevSourceSuffix` (dev
@@ -211,7 +210,7 @@ function isReturnStatic(init: Expression | null | undefined): boolean {
 }
 
 /**
- * Scope-aware binding classification (OSS-401).
+ * Scope-aware binding classification.
  *
  * Replaces the prior flat `constBindings: Set<string>` with a position-indexed
  * lookup. A reference to `item` at position P resolves to the innermost
@@ -505,10 +504,10 @@ export function collectScopeAwareBindings(program: AstProgram): ScopeAwareCollec
 
 /**
  * Determine if an expression is immutable (const) or mutable (var).
- * Mirrors SWC's `is_const_expr`. Per OSS-401, takes the expression's AST
- * position so identifier references resolve through scope-aware lookup;
- * shadowed names (e.g. an arrow param shadowing an outer for-of binding)
- * classify correctly.
+ * Mirrors SWC's `is_const_expr`. Takes the expression's AST position so
+ * identifier references resolve through scope-aware lookup; shadowed
+ * names (e.g. an arrow param shadowing an outer for-of binding) classify
+ * correctly.
  */
 export function classifyConstness(
   exprNode: AstNode | null | undefined,
@@ -565,12 +564,11 @@ export function classifyConstness(
       ) {
         return 'const';
       }
-      // OSS-438: `q_<sym>.w([captures])` on a hoisted QRL binding is a
+      // `q_<sym>.w([captures])` on a hoisted QRL binding is a
       // capture-wrapping invocation that produces a stable QRL reference
       // — the underlying `q_<sym>` const is immutable, and `.w()` only
       // attaches captures for runtime re-inflation. SWC classifies these
-      // as const on component-prop position (`example_strip_client_code`
-      // shows `render$: q_X.w([state])` in the const-props bag).
+      // as const on component-prop position.
       if (
         exprNode.callee.type === 'MemberExpression' &&
         exprNode.callee.object.type === 'Identifier' &&
@@ -806,10 +804,8 @@ export interface TransformAllJsxInput {
 
 /**
  * Per-call configuration for `transformAllJsx`. All fields optional; defaults
- * mirror the previous positional signature (OSS-374/375/376/377 lineage).
- *
- * Closes the OSS-374/375/376/377 parameter-reduction arc: the JSX orchestrator
- * is now context+options shaped like its inner callees (`transformJsxElement`,
+ * mirror the previous positional signature. The JSX orchestrator is
+ * context+options shaped like its inner callees (`transformJsxElement`,
  * `transformJsxFragment`, `processChildren`, `processProps`).
  */
 export interface TransformAllJsxOptions {
@@ -872,16 +868,17 @@ export function transformAllJsx(
     qrlsWithCaptures,
   };
 
-  // OSS-410: when the JSX walk runs over a *wrapped body* (Inline strategy
-  // via `inline-body.ts` and default-strategy segment files via
+  // When the JSX walk runs over a *wrapped body* (Inline strategy via
+  // `inline-body.ts` and default-strategy segment files via
   // `segment-codegen.ts`), `source` here is the wrapped body — not the
-  // original module source. Naively computing `lineStarts` from this `source`
-  // produces body-relative line/column for JSX dev-info, but SWC reports
-  // source-relative positions. `devOptions.sourcePosition` lets callers
-  // declare "compute lineStarts from this other string and convert nodeStart
-  // via `bodyOriginOffset + (nodeStart - wrapperPrefixLen)` before lookup."
-  // Module-level callers (parent rewrite) omit it; their `source` already
-  // IS the original module source.
+  // original module source. Naively computing `lineStarts` from this
+  // `source` produces body-relative line/column for JSX dev-info, but
+  // SWC reports source-relative positions. `devOptions.sourcePosition`
+  // lets callers declare "compute lineStarts from this other string and
+  // convert nodeStart via `bodyOriginOffset + (nodeStart -
+  // wrapperPrefixLen)` before lookup." Module-level callers (parent
+  // rewrite) omit it; their `source` already IS the original module
+  // source.
   let lineStarts: number[] | null = null;
   if (devOptions) {
     const linesSource = devOptions.sourcePosition?.source ?? source;
@@ -911,7 +908,7 @@ export function transformAllJsx(
   const loopStack: LoopContext[] = [];
   const childJsxNodes = new WeakSet<object>();
 
-  // Per OSS-391: split walk state into Enter and Exit context views so the
+  // Split walk state into Enter and Exit context views so the
   // type system enforces "enter gathers, exit acts." Enter sees only what's
   // needed to record loop context and pre-mark sole-child JSX nodes; Exit
   // adds the MagicString, the dev-suffix helper, and the act-helpers that

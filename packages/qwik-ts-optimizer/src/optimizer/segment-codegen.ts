@@ -65,8 +65,8 @@ export interface SegmentCaptureInfo {
    */
   propsFieldCaptures?: Map<string, string>;
   /**
-   * OSS-409 bug 2: map from prop-field local name to destructure-time
-   * default expression source text. When set alongside {@link propsFieldCaptures},
+   * Map from prop-field local name to destructure-time default
+   * expression source text. When set alongside {@link propsFieldCaptures},
    * defaulted fields emit `(_rawProps.<key> ?? <default>)`.
    */
   propsFieldDefaults?: Map<string, string>;
@@ -98,15 +98,15 @@ export interface SegmentJsxOptions {
   keyCounterStart?: number;
   devOptions?: DevSuffixOptions;
   /**
-   * OSS-410: original module source string. Used together with
-   * {@link bodyOriginOffset} to compute source-relative dev-info positions
-   * (default-strategy segments wrap the body as `(${bodyText})` before
-   * parsing; without this, dev-info `lineNumber:` lands body-relative).
-   * Only honored when `devOptions` is set.
+   * Original module source string. Used together with
+   * {@link bodyOriginOffset} to compute source-relative dev-info
+   * positions (default-strategy segments wrap the body as `(${bodyText})`
+   * before parsing; without this, dev-info `lineNumber:` lands
+   * body-relative). Only honored when `devOptions` is set.
    */
   source?: string;
   /**
-   * OSS-410: byte offset of the extraction's body in the original source
+   * Byte offset of the extraction's body in the original source
    * (`ext.loc[0]`). Used together with {@link source}.
    */
   bodyOriginOffset?: number;
@@ -399,9 +399,9 @@ function transformSegmentJsx(
       for (const name of captureInfo.captureNames) segScopeBindings.bindings.addProgramScopeConst(name);
     }
 
-    // OSS-410: `wrappedBody` adds a single `(` prefix; without sourcePosition
-    // dev-info `lineNumber:` would be body-relative. Source-relative requires
-    // the original module source + body's byte offset.
+    // `wrappedBody` adds a single `(` prefix; without `sourcePosition`
+    // dev-info `lineNumber:` would be body-relative. Source-relative
+    // requires the original module source + body's byte offset.
     let devOptionsForCall = jsxOptions.devOptions;
     if (
       devOptionsForCall &&
@@ -476,11 +476,10 @@ function buildQpOverrides(
   nestedCallSites: NestedCallSiteInfo[] | undefined,
   program: AstProgram,
 ): Map<number, string[]> | undefined {
-  // OSS-438 Fix B: also fire when any nestedCallSite carries
-  // `elementQpParams` from `buildElementCaptureMap` (covers the
-  // stripped-event-with-captures case where there's no
-  // `loopLocalParamNames`, since stripped handlers aren't required to be
-  // in a loop — `example_strip_client_code`).
+  // Also fire when any nestedCallSite carries `elementQpParams` from
+  // `buildElementCaptureMap` (covers the stripped-event-with-captures
+  // case where there's no `loopLocalParamNames`, since stripped handlers
+  // aren't required to be in a loop).
   if (
     !nestedCallSites ||
     !nestedCallSites.some(
@@ -628,7 +627,7 @@ function applyBodyTransforms(
   // every step (that pattern was repeated three times in the original).
   const propsFieldCaptures = captureInfo?.propsFieldCaptures;
   if (propsFieldCaptures && propsFieldCaptures.size > 0) {
-    // OSS-409 bug 2: pass propsFieldDefaults so defaulted fields emit
+    // Pass `propsFieldDefaults` so defaulted fields emit
     // `(_rawProps.<key> ?? <default>)` matching SWC's NullishCoalescing.
     bodyText = replacePropsFieldReferences(
       bodyText,
@@ -715,24 +714,20 @@ export function generateSegmentCode(
     }
   }
 
-  // OSS-415: fold constant-foldable subtrees that survived earlier passes
+  // Fold constant-foldable subtrees that survived earlier passes
   // (typically `?? <default>` RHS injected by raw-props in non-JSX
   // positions). Runs AFTER Phase 5/5b so `_hf<n>_str` has been generated
-  // source-preserving and JSX-prop positions are now `_fnSignal(...)` calls
-  // with no `?? <default>` left to fold. Mirrors the same post-pass added
-  // to the inline-strategy path (`rewrite/inline-body.ts`).
+  // source-preserving and JSX-prop positions are now `_fnSignal(...)`
+  // calls with no `?? <default>` left to fold. Mirrors the same
+  // post-pass in the inline-strategy path (`rewrite/inline-body.ts`).
   bodyText = foldBodySimplifiableExpressions(bodyText);
 
   // Phase 6: core-symbol imports + sync$ call rewriting.
-  // OSS-430: include moved-decl text (already in `parts`) when scanning
-  // for core helpers — a moved helper function with rewritten JSX may
-  // reference `_jsxSplit` / `_getVarProps` / `_getConstProps` etc. that
-  // the segment's main body doesn't.
-  // OSS-430: include moved-decl text (already in `parts`) when scanning
-  // for core helpers — a moved helper function with rewritten JSX may
-  // reference `_jsxSplit` / `_getVarProps` / `_getConstProps` etc. that
-  // the segment's main body doesn't. The `//` separator may not yet be
-  // present when ensureCoreImports runs (it's added later by
+  // Include moved-decl text (already in `parts`) when scanning for core
+  // helpers — a moved helper function with rewritten JSX may reference
+  // `_jsxSplit` / `_getVarProps` / `_getConstProps` etc. that the
+  // segment's main body doesn't. The `//` separator may not yet be
+  // present when `ensureCoreImports` runs (it's added later by
   // `normalizeSeparators`), so explicitly include a separator before
   // calling so the early-return path doesn't bail out.
   const scanText = bodyText + '\n' + parts

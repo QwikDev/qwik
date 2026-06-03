@@ -25,7 +25,7 @@ import { simplifyExpression, formatSimplifiedLiteral } from '../utils/simplify.j
  * (happens when the range's start byte is inside a previously-replaced range,
  * making the slice anchor ambiguous — e.g. when an upstream rewrite has
  * already overwritten the entire attribute value before the JSX walker
- * reaches the outer element). See OSS-435.
+ * reaches the outer element).
  */
 function sliceWithFallback(
   s: MagicString,
@@ -42,7 +42,7 @@ function sliceWithFallback(
 
 /**
  * Slot entry — one element per JSX attribute in source order. Captures
- * enough information for `buildJsxSplitCall` (OSS-434) to assemble var/
+ * enough information for `buildJsxSplitCall` to assemble var/
  * const bags while preserving SWC's emit ordering rules:
  *
  *   - top-level: attributes appear in source order;
@@ -77,14 +77,13 @@ function isConstValueNode(valueNode: AstMaybeNode): boolean {
     case 'Literal':
       return true;
     case 'CallExpression': {
-      // OSS-438: `q_<sym>.w([captures])` on a hoisted QRL binding is a
+      // `q_<sym>.w([captures])` on a hoisted QRL binding is a
       // capture-wrapping invocation that produces a stable QRL reference
       // for the lifetime of the parent element. SWC classifies these as
-      // const on component-prop position
-      // (`example_strip_client_code`: `render$: q_X.w([state])` lands
-      // in the const-bag because `q_X` is a module-scope const and
-      // `.w(…)` only attaches captures — the call's identity is stable).
-      // Mirrors the same arm in `classifyConstness` (transform/jsx.ts).
+      // const on component-prop position: `q_X` is a module-scope const
+      // and `.w(…)` only attaches captures — the call's identity is
+      // stable. Mirrors the same arm in `classifyConstness`
+      // (transform/jsx.ts).
       const callee = valueNode.callee;
       return (
         callee?.type === 'MemberExpression' &&
@@ -167,10 +166,10 @@ export function processProps(
     return { varEntries, constEntries, beforeSpreadEntries, key, hasVarProps: false, hasVarEventHandler: false, hasSpread, additionalSpreads: [], slotOrder, neededImports };
   }
 
-  // OSS-434 helpers: keep the legacy buckets in sync with `slotOrder` at
-  // every push site. The dual write costs little and avoids ripple to the
-  // many existing readers of the buckets (event-handler movement,
-  // `buildJsxSplitCall` legacy paths, `_jsxSorted` no-spread emit, etc.).
+  // Keep the legacy buckets in sync with `slotOrder` at every push site.
+  // The dual write costs little and avoids ripple to the many existing
+  // readers of the buckets (event-handler movement, `buildJsxSplitCall`
+  // legacy paths, `_jsxSorted` no-spread emit, etc.).
   const pushNamed = (
     bucket: string[],
     entry: string,
@@ -247,16 +246,16 @@ export function processProps(
       valueNode = null;
     } else if (attr.value.type === 'JSXExpressionContainer') {
       valueNode = attr.value.expression;
-      // OSS-435: prefer MagicString (post-rewrite) over the raw source.
-      // By the time processProps is called for an outer JSXElement's
-      // leave handler, any JSX nested inside this attribute value's
-      // arrow body has already been visited and overwritten in `s` (DFS
+      // Prefer MagicString (post-rewrite) over the raw source. By the
+      // time `processProps` is called for an outer JSXElement's leave
+      // handler, any JSX nested inside this attribute value's arrow
+      // body has already been visited and overwritten in `s` (DFS
       // leaves children before parent). Slicing from `source` would
       // re-emit the original raw JSX into the outer call's attribute
       // bag, and the surrounding `s.overwrite(node.start, node.end,
       // callStr)` for the outer element would clobber the inner
-      // rewrites. `s.slice` reflects the post-rewrite text so the inner
-      // `_jsxSorted(...)` survives. The fallback to `source.slice`
+      // rewrites. `s.slice` reflects the post-rewrite text so the
+      // inner `_jsxSorted(...)` survives. The fallback to `source.slice`
       // covers the case where the value bytes are themselves inside a
       // replaced range (an upstream rewrite that overwrote the entire
       // attribute, e.g. event-handler QRL replacement) — MagicString
@@ -324,12 +323,11 @@ export function processProps(
         pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
       } else {
         pushNamed(varEntries, `${formattedName}: ${valueText}`, 'var', attr.start);
-        // OSS-444: SWC clears `static_listeners` whenever any prop's
-        // value is non-const (`swc-reference-only/transform.rs:2514-2516`,
-        // mirroring :2441-2443). TS's flag math reads `hasVarEventHandler`
-        // for bit 0; setting it here brings Component-prop `*$` attrs
-        // with non-const values into parity (e.g. `<Div onClick$={props.onClick$}>`
-        // where the value is a non-const MemberExpression → flag=2 not 3).
+        // SWC clears `static_listeners` whenever any prop's value is
+        // non-const (`swc-reference-only/transform.rs:2514-2516`,
+        // mirroring :2441-2443). TS's flag math reads
+        // `hasVarEventHandler` for bit 0; setting it here brings
+        // Component-prop `*$` attrs with non-const values into parity.
         hasVarEventHandler = true;
       }
       continue;
@@ -351,8 +349,8 @@ export function processProps(
           hasVarEventHandler = true;
         }
       } else {
-        // OSS-434: capture the slot entry at the prop's source position
-        // so the source-order var-bag emission path in `buildJsxSplitCall`
+        // Capture the slot entry at the prop's source position so the
+        // source-order var-bag emission path in `buildJsxSplitCall`
         // sees the rewritten event handler in its lexical order. The
         // `bindHandlers` map below still drives the legacy bucket
         // injection — both paths stay in sync.
@@ -399,17 +397,17 @@ export function processProps(
         if (signalResult.isObjectExpr && (propName === 'class' || propName === 'className')) {
           // fall through to classifyConstness
         } else if (
-          // OSS-435 Bug C: SWC's `create_synthetic_qqsegment`
-          // (swc-reference-only/transform.rs:805) explicitly skips
+          // SWC's `create_synthetic_qqsegment`
+          // (`swc-reference-only/transform.rs:805`) explicitly skips
           // `_fnSignal` hoist for `TemplateLiteral` and `CallExpression`
           // when `is_const` is false — i.e. at least one scoped
           // identifier is non-const. Function parameters of the
           // segment's own closure on an HTML element are non-const
           // (their values come from re-renders), so
-          // `<img src={`${props.src}`}/>` inside `(props) => ...`
-          // stays as a raw template literal. ArrayExpression /
-          // ObjectExpression / BinaryExpression / etc. still hoist
-          // regardless — only Tpl + Call are excluded.
+          // `<img src={`${props.src}`}/>` inside `(props) => ...` stays
+          // as a raw template literal. ArrayExpression / ObjectExpression
+          // / BinaryExpression / etc. still hoist regardless — only Tpl
+          // + Call are excluded.
           (valueNode?.type === 'TemplateLiteral' ||
             valueNode?.type === 'CallExpression') &&
           !signalResult.deps.every((dep) =>

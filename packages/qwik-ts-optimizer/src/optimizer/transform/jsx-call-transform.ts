@@ -80,17 +80,17 @@ interface JsxCallTransformOptions {
   jsxFunctions: Set<string>;
   keyCounter: JsxKeyCounter;
   neededImports: Set<string>;
-  /** OSS-408: reactive bindings (`useStore`/`useSignal`/...) that drive the
+  /** Reactive bindings (`useStore`/`useSignal`/...) that drive the
    * `_wrapProp(...)` rewrite + `isStaticChildren` classification. Empty/absent
-   * means no signal analysis (legacy behaviour). */
+   * means no signal analysis. */
   reactiveBindings?: ReadonlySet<string>;
   /**
-   * OSS-446 Bug 2: byte ranges to skip during the walk. Used by the
-   * parent-rewrite path so jsx() calls already inside a marker extraction's
-   * argument tree (where the parent emits `q_<sym>` and segment-codegen
-   * handles the jsx-call rewrite separately) are not double-transformed.
-   * Each range is `[start, end)`; calls whose start byte lies inside any
-   * range are left alone.
+   * Byte ranges to skip during the walk. Used by the parent-rewrite path
+   * so jsx() calls already inside a marker extraction's argument tree
+   * (where the parent emits `q_<sym>` and segment-codegen handles the
+   * jsx-call rewrite separately) are not double-transformed. Each range
+   * is `[start, end)`; calls whose start byte lies inside any range are
+   * left alone.
    */
   skipRanges?: ReadonlyArray<{ readonly start: number; readonly end: number }>;
 }
@@ -115,19 +115,19 @@ export function transformJsxCalls(
 ): void {
   if (opts.jsxFunctions.size === 0) return;
 
-  // OSS-408 Fix D: SWC's `handle_jsx` only auto-keys the OUTERMOST jsx()
-  // call in a body; nested calls (those that appear inside another jsx()
-  // call's argument tree) get `null` as the key. Pre-walk top-down to mark
-  // every jsx() call that's a descendant of another jsx() call.
+  // SWC's `handle_jsx` only auto-keys the OUTERMOST jsx() call in a body;
+  // nested calls (those that appear inside another jsx() call's argument
+  // tree) get `null` as the key. Pre-walk top-down to mark every jsx()
+  // call that's a descendant of another jsx() call.
   const nestedJsxStarts = new Set<number>();
   collectNestedJsxStarts(program, opts.jsxFunctions, nestedJsxStarts);
 
-  // OSS-408 Fix C: collect reactive bindings (`const X = useStore(...)` /
-  // `useSignal(...)` / `useComputed(...)` etc.) and rewrite `X.prop`
-  // accesses inside jsx() call argument trees to `_wrapProp(X, "prop")`.
-  // SWC does this signal analysis on JSX prop values + children. Limited
-  // to the immediate jsx() call's argument tree — function bodies (arrow,
-  // inlinedQrl callbacks) are separate scopes and aren't wrapped.
+  // Collect reactive bindings (`const X = useStore(...)` / `useSignal(...)`
+  // / `useComputed(...)` etc.) and rewrite `X.prop` accesses inside jsx()
+  // call argument trees to `_wrapProp(X, "prop")`. SWC does this signal
+  // analysis on JSX prop values + children. Limited to the immediate
+  // jsx() call's argument tree — function bodies (arrow, inlinedQrl
+  // callbacks) are separate scopes and aren't wrapped.
   const skipRanges = opts.skipRanges ?? [];
   const isInSkipRange = (start: number): boolean => {
     for (const r of skipRanges) {
@@ -163,8 +163,8 @@ export function transformJsxCalls(
         node.arguments[1]?.type !== 'ObjectExpression'
       ) return;
 
-      // OSS-446 Bug 2: skip ranges occupied by another transform (e.g. parent
-      // rewrite for $() / inlinedQrl arguments — segment-side codegen handles
+      // Skip ranges occupied by another transform (e.g. parent rewrite
+      // for $() / inlinedQrl arguments — segment-side codegen handles
       // those jsx() calls separately).
       if (isInSkipRange(node.start)) return;
 
@@ -233,8 +233,8 @@ function wrapReactiveAccessesInJsxCalls(
       // `isJsxCall` already narrowed: this is a CallExpression with
       // arguments.length >= 2 and arguments[1] an ObjectExpression.
       if (node.type !== 'CallExpression') return;
-      // OSS-446 Bug 2: skip calls inside another transform's range — same
-      // gate as the main `_jsxSorted` rewrite below.
+      // Skip calls inside another transform's range — same gate as the
+      // main `_jsxSorted` rewrite below.
       if (isInSkipRange(node.start)) return;
       const propsArg = node.arguments?.[1];
       if (!propsArg || propsArg.type !== 'ObjectExpression') return;
@@ -307,10 +307,6 @@ function staticPropName(member: AstNode): string | null {
  * (only the outermost call keys); nested calls under COMPONENT parents
  * (identifier tag arg) keep auto-keys all the way down.
  *
- * Targets fixtures like OSS-408's `example_parsed_inlined_qrls`
- * (all-HTML; only outer div gets a key) vs OSS-405's
- * `example_qwik_react_inline` (all-component Host/SkipRerender/Fragment;
- * every call keys regardless of nesting).
  */
 function collectNestedJsxStarts(
   program: AstProgram,
@@ -416,16 +412,16 @@ function buildJsxSortedCall(
       childrenIsDynamic = !isStaticChildren(value, opts.reactiveBindings ?? new Set());
       continue;
     }
-    // OSS-408 Fix (cascade of D): rewrite event-handler prop keys on HTML
-    // tags from the marker form (`onClick$`) to the runtime form
-    // (`"q-e:click"`). Mirrors what `transformAllJsx` does for JSX syntax.
+    // Rewrite event-handler prop keys on HTML tags from the marker form
+    // (`onClick$`) to the runtime form (`"q-e:click"`). Mirrors what
+    // `transformAllJsx` does for JSX syntax.
     if (isHtmlTag && keyName !== null) {
       const transformed = transformEventPropName(keyName, new Set());
       if (transformed !== null) {
         const valueText = s.slice(prop.value.start, prop.value.end);
         varEntries.push(`"${transformed}": ${valueText}`);
-        // OSS-408 Fix E: a dynamic event-handler prop value (anything that
-        // isn't a static identifier-only reference) makes this a "var event
+        // A dynamic event-handler prop value (anything that isn't a
+        // static identifier-only reference) makes this a "var event
         // handler" — drops the `static_listeners` flag bit. The peer-tool
         // input typically passes `q_X.w([...])` here (CallExpression), so
         // detect any non-Identifier value as dynamic.
@@ -474,13 +470,13 @@ function propertyKeyName(prop: AstNode): string | null {
   return null;
 }
 
-/** Classify a children expression as static. OSS-408 Fix E: extends to
- * MemberExpressions on reactive bindings (which become `_wrapProp(...)` —
- * compile-time-resolved signal access) and arrays whose elements are all
- * themselves static. Nested `_jsxSorted(...)` calls (the rewritten form of
- * inner jsx() calls) classify as dynamic. The reactive-binding check is
- * done against the SOURCE AST (pre-wrap) since `isStaticChildren` runs
- * before the source-string `_wrapProp` overwrite via `buildJsxSortedCall`. */
+/** Classify a children expression as static. Extends to MemberExpressions
+ * on reactive bindings (which become `_wrapProp(...)` — compile-time-
+ * resolved signal access) and arrays whose elements are all themselves
+ * static. Nested `_jsxSorted(...)` calls (the rewritten form of inner
+ * jsx() calls) classify as dynamic. The reactive-binding check is done
+ * against the SOURCE AST (pre-wrap) since `isStaticChildren` runs before
+ * the source-string `_wrapProp` overwrite via `buildJsxSortedCall`. */
 function isStaticChildren(value: AstNode, reactive: ReadonlySet<string>): boolean {
   if (value.type === 'Literal') return true;
   if (value.type === 'TemplateLiteral' && (value.expressions ?? []).length === 0) return true;

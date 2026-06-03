@@ -39,7 +39,7 @@ type AstNodeList = ReadonlyArray<AstMaybeNode>;
 /**
  * Peel TS type-assertion wrappers (`as`, `!`, `<T>`, `satisfies`,
  * instantiation) and `ParenthesizedExpression` layers off a node.
- * OSS-418: shared by `analyzeSignalExpression` (top-of-dispatch) and
+ * Shared by `analyzeSignalExpression` (top-of-dispatch) and
  * `analyzeMemberExpression` (member-chain object position). Returns
  * `null` only when input is nullish.
  */
@@ -249,23 +249,19 @@ function collectIdentifiersFromExpr(
 /**
  * Unified single-walk collector for signal-analysis dependencies.
  *
- * Returns both `roots` (reactive roots in order of first appearance — what
- * `collectReactiveRoots` used to produce) AND `allDeps` (reactive roots
- * plus bare locally-bound Identifiers, sorted alphabetically — what
- * `collectAllDeps` used to produce). Walking once eliminates the
- * back-to-back duplicate tree traversal at the 3 call sites in
- * `analyzeSignalExpression` / `tryBuildFnSignal`. See OSS-369.
+ * Returns both `roots` (reactive roots in order of first appearance) AND
+ * `allDeps` (reactive roots plus bare locally-bound Identifiers, sorted
+ * alphabetically). Walking once eliminates duplicate tree traversal at
+ * the 3 call sites in `analyzeSignalExpression` / `tryBuildFnSignal`.
  *
- * Three semantic divergences from the pre-OSS-369 split:
- * - `localNames` is now applied consistently. Where the old `collectAllDeps`
- *   didn't gate store-checks, roots that aren't in `localNames` now flow
- *   through bare-ident collection (via the leftmost-Identifier visit) and
- *   appear in `allDeps` after the alphabetical sort — same final output.
+ * Three semantic invariants this collector enforces:
+ * - `localNames` is applied consistently. Roots that aren't in
+ *   `localNames` flow through bare-ident collection (via the leftmost-
+ *   Identifier visit) and appear in `allDeps` after the alphabetical sort.
  * - Complex `.value` objects (e.g. `(a || b).value`) use the
- *   `collectIdentifiersFromExpr` fallback for BOTH outputs. Old
- *   `collectAllDeps` silently produced empty output here.
- * - The Property.key / non-computed MemberExpression.property exclusion is
- *   applied for both outputs. Safe for roots because signal/store
+ *   `collectIdentifiersFromExpr` fallback for BOTH outputs.
+ * - The Property.key / non-computed MemberExpression.property exclusion
+ *   is applied for both outputs. Safe for roots because signal/store
  *   detection happens at the MemberExpression level, not the property
  *   Identifier.
  */
@@ -364,8 +360,8 @@ function collectSignalDeps(
 }
 
 /**
- * Thin wrapper preserving the pre-OSS-369 call shape for the 2 sites in
- * `analyzeMemberExpression` that need only reactive roots (not bare deps).
+ * Thin wrapper for the 2 sites in `analyzeMemberExpression` that need
+ * only reactive roots (not bare deps).
  */
 function collectReactiveRoots(
   node: AstNode,
@@ -395,18 +391,17 @@ function generateFnSignal(
   const exprText = source.slice(exprNode.start, exprNode.end);
   const exprStart = exprNode.start;
 
-  // OSS-417: root-identifier substitution and constant-subtree simplification
-  // share the orchestrator. OSS-418 dropped the OSS-414 paren-strip pass —
-  // raw-props no longer emits defensive parens at Property-value positions
-  // (precedence-aware emission via `expressionNeedsParens` in `raw-props.ts`
-  // and `props-field-rewrite.ts`), so the source slice the `_hf<n>_str`
-  // generator inherits is paren-free to begin with. Organic source parens
-  // in Property-value position would now flow through verbatim; the
-  // convergence baseline confirms no fixture exercises that case.
+  // Root-identifier substitution and constant-subtree simplification
+  // share the orchestrator. raw-props doesn't emit defensive parens at
+  // Property-value positions — precedence-aware emission via
+  // `expressionNeedsParens` in `raw-props.ts` and `props-field-rewrite.ts`
+  // means the source slice the `_hf<n>_str` generator inherits is
+  // paren-free to begin with. Organic source parens in Property-value
+  // position would flow through verbatim.
   //
   // Disjoint-by-construction: roots target Identifiers; simplifications
-  // target Binary/Unary/Logical/Conditional with primitive operands.
-  // No node type overlaps with another.
+  // target Binary/Unary/Logical/Conditional with primitive operands. No
+  // node type overlaps with another.
   const rootCollector = rootReplacementsCollector(rootToParam);
   const replacements = collectRangeReplacements(
     exprNode, exprStart, exprText,
@@ -444,8 +439,8 @@ function generateFnSignal(
 }
 
 /**
- * OSS-417: factory for the root-identifier-substitution collector used
- * by {@link generateFnSignal}. Three matched shapes, each replacing the
+ * Factory for the root-identifier-substitution collector used by
+ * {@link generateFnSignal}. Three matched shapes, each replacing the
  * root identifier of a chain with its `pN` parameter:
  *
  * 1. `signal.value` or deep `store.X.Y` access → replace the chain root
@@ -458,12 +453,9 @@ function generateFnSignal(
  * `findRootIdentifier` returns null), recursion is allowed so arm 3
  * catches the inner identifiers naturally.
  *
- * Pre-OSS-417 this was the inline `collectReplacements` walker in
- * `generateFnSignal`; the only behavioural change is that arm 3 now uses
- * the shared {@link isReplaceableIdentifierPosition} predicate, which
- * additionally excludes function-parameter and declarator-id positions
- * (a conservative tightening — those positions wouldn't carry reactive
- * root references in practice).
+ * Arm 3 uses the shared {@link isReplaceableIdentifierPosition} predicate,
+ * which excludes function-parameter and declarator-id positions (those
+ * positions don't carry reactive root references in practice).
  */
 function rootReplacementsCollector(
   rootToParam: ReadonlyMap<string, string>,
@@ -487,7 +479,7 @@ function rootReplacementsCollector(
         return null;
       }
       // Matched shape but rootId not a tracked dep — mirror the
-      // pre-OSS-417 behaviour of returning without recursing.
+      // behaviour of returning without recursing.
       return { replacements: [], skipSubtree: true };
     }
 
@@ -783,8 +775,8 @@ export function analyzeSignalExpression(
   importedNames: Set<string>,
   localNames?: Set<string>,
 ): SignalExprResult {
-  // OSS-412/418: peel TS-assertion + Paren wrappers (organic source
-  // wrappers like `<div title={(a || b).value}/>` still flow through).
+  // Peel TS-assertion + Paren wrappers (organic source wrappers like
+  // `<div title={(a || b).value}/>` still flow through).
   const peeled = peelExpressionWrappers(exprNode);
   if (peeled == null) return { type: 'none' };
   if (peeled !== exprNode) {
@@ -935,7 +927,7 @@ function analyzeMemberExpression(
     };
   }
 
-  // OSS-402: MemberExpression with computed non-literal property
+  // MemberExpression with computed non-literal property
   // (e.g. results[i] in a for-i loop, obj[key] in a for-in loop, obj[42]).
   // SWC's convert_inlined_fn path emits _fnSignal((p0,p1) => p1[p0], deps, str).
   // The branches above cover:

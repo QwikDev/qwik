@@ -131,7 +131,7 @@ export class Scheduler {
         }
         return;
       case SubscriberKind.VisibleTask:
-        pushSorted(this.visibleTasks, { subscriber, epoch }, compareSeqJob);
+        this.visibleTasks.push({ subscriber, epoch });
         return;
       case SubscriberKind.Dom:
         if (subscriber.effect.phase === Phase.StructuralDom) {
@@ -141,7 +141,7 @@ export class Scheduler {
         }
         return;
       case SubscriberKind.Idle:
-        pushSorted(this.idle, { subscriber, epoch }, compareSeqJob);
+        this.idle.push({ subscriber, epoch });
         return;
     }
   }
@@ -378,7 +378,7 @@ function compareTaskJob(a: SchedulerJob<TaskSubscriber>, b: SchedulerJob<TaskSub
     return index;
   }
 
-  return aTask.seq - bTask.seq;
+  return 0;
 }
 
 function compareDomJob(a: SchedulerJob<DomSubscriber>, b: SchedulerJob<DomSubscriber>): number {
@@ -394,14 +394,7 @@ function compareDomJob(a: SchedulerJob<DomSubscriber>, b: SchedulerJob<DomSubscr
     return order;
   }
 
-  return aEffect.seq - bEffect.seq;
-}
-
-function compareSeqJob<T extends VisibleTaskSubscriber | IdleSubscriber>(
-  a: SchedulerJob<T>,
-  b: SchedulerJob<T>
-): number {
-  return getSeq(a.subscriber) - getSeq(b.subscriber);
+  return 0;
 }
 
 function comparePath(a: readonly number[], b: readonly number[]): number {
@@ -426,10 +419,6 @@ function runVisibleTaskRecord(task: VisibleTaskSubscriber['task']): unknown {
 
 function runDomEffectRecord(effect: DomSubscriber['effect']): unknown {
   return effect.run();
-}
-
-function getSeq(subscriber: VisibleTaskSubscriber | IdleSubscriber): number {
-  return subscriber.kind === SubscriberKind.VisibleTask ? subscriber.task.seq : subscriber.job.seq;
 }
 
 function isPromiseLike(value: unknown): value is Promise<unknown> {

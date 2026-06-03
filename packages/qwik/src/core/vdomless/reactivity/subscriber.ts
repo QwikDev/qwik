@@ -1,5 +1,5 @@
 import type { ReactiveFlags } from './flags';
-import type { Phase } from './scheduler';
+import type { DomEffect } from './dom-effect';
 import type { ComputedSource, Dependency } from './source';
 import type { Task, VisibleTask } from './task';
 
@@ -29,17 +29,8 @@ export interface ComputedSubscriber<T = unknown> extends Collector, ComputedSour
   notify(): void;
 }
 
-// TODO(vdomless): replace with the real DomEffect runtime type.
-export interface DomEffectRecord {
-  readonly phase: Phase.StructuralDom | Phase.ScalarDom;
-  readonly order: number;
-  readonly seq: number;
-  run: () => unknown;
-}
-
 // TODO(vdomless): replace with the real IdleJob runtime type.
 export interface IdleJobRecord {
-  readonly seq: number;
   run: () => unknown;
   dispose?: () => void;
 }
@@ -56,7 +47,7 @@ export interface VisibleTaskSubscriber extends Collector, ScheduledSubscriber {
 
 export interface DomSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Dom;
-  readonly effect: DomEffectRecord;
+  readonly effect: DomEffect;
 }
 
 export interface IdleSubscriber extends ScheduledSubscriber {

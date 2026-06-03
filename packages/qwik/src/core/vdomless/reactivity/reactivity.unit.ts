@@ -4,6 +4,11 @@ import type { Container } from '../../shared/types';
 import { disposeSubscriber } from './cleanup';
 import { Computed, createComputed } from './computed';
 import { createComputedQrl } from './computed-qrl';
+import {
+  createTextExpressionEffect,
+  createTextExpressionEffectQrl,
+  type TextExpressionFn,
+} from './dom-effect';
 import { ReactiveFlags } from './flags';
 import { Phase, Scheduler } from './scheduler';
 import { createSignal } from './signal';
@@ -21,9 +26,12 @@ import {
   createVisibleTaskQrl,
   type TaskFn,
 } from './task';
-import { runWithCollector } from './tracking';
 
 const noopSchedule = (): void => {};
+
+function createText(data = ''): Text {
+  return { data } as Text;
+}
 
 function createCaptureContainer(captures: Record<string, unknown>): Container {
   return {
@@ -207,8 +215,13 @@ describe('vdomless reactivity', () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
     const task = createTaskSubscriber(scheduler, 'task', order);
-    const structural = createDomSubscriber(scheduler, Phase.StructuralDom, 'structural', order);
-    const scalar = createDomSubscriber(scheduler, Phase.ScalarDom, 'scalar', order);
+    const structural = createOrderTextExpressionEffect(
+      scheduler,
+      Phase.StructuralDom,
+      'structural',
+      order
+    );
+    const scalar = createOrderTextExpressionEffect(scheduler, Phase.ScalarDom, 'scalar', order);
 
     scheduler.notify(scalar);
     scheduler.notify(structural);
@@ -222,9 +235,9 @@ describe('vdomless reactivity', () => {
   it('sorts blocking tasks by group path and task index', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
-    const parent0 = createTaskSubscriber(scheduler, 'parent-0', order, [0], 0, 2);
-    const parent1 = createTaskSubscriber(scheduler, 'parent-1', order, [0], 1, 1);
-    const child0 = createTaskSubscriber(scheduler, 'child-0', order, [0, 0], 0, 0);
+    const parent0 = createTaskSubscriber(scheduler, 'parent-0', order, [0], 0);
+    const parent1 = createTaskSubscriber(scheduler, 'parent-1', order, [0], 1);
+    const child0 = createTaskSubscriber(scheduler, 'child-0', order, [0, 0], 0);
 
     scheduler.notify(child0);
     scheduler.notify(parent1);
@@ -235,10 +248,24 @@ describe('vdomless reactivity', () => {
     expect(order).toEqual(['parent-0', 'parent-1', 'child-0']);
   });
 
+  it('keeps enqueue order for tasks with the same group path and index', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const order: string[] = [];
+    const first = createTaskSubscriber(scheduler, 'first', order, [0], 0);
+    const second = createTaskSubscriber(scheduler, 'second', order, [0], 0);
+
+    scheduler.notify(first);
+    scheduler.notify(second);
+
+    await scheduler.flushInteraction();
+
+    expect(order).toEqual(['first', 'second']);
+  });
+
   it('dedupes scheduled subscribers in one batch', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
-    const scalar = createDomSubscriber(scheduler, Phase.ScalarDom, 'scalar', order);
+    const scalar = createOrderTextExpressionEffect(scheduler, Phase.ScalarDom, 'scalar', order);
 
     scheduler.notify(scalar);
     scheduler.notify(scalar);
@@ -248,23 +275,98 @@ describe('vdomless reactivity', () => {
     expect(order).toEqual(['scalar']);
   });
 
-  it('tracks dependencies for scheduled DOM subscribers', async () => {
+  it('patches text expression data', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const count = createSignal(7);
+    const text = createText();
+    const effect = createTextExpressionEffect(text, [count], (source) => source.value, {
+      scheduler,
+    });
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('7');
+  });
+
+  it('tracks dependencies for text expression DOM subscribers', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const count = createSignal(0);
     const seen: number[] = [];
-    const scalar = createDomSubscriber(scheduler, Phase.ScalarDom, 'scalar', [], () => {
-      seen.push(count.value);
-    });
+    const text = createText();
+    const scalar = createTextExpressionEffect(
+      text,
+      [count],
+      (source) => {
+        const value = source.value;
+        seen.push(value);
+        return value;
+      },
+      { scheduler }
+    );
 
-    runWithCollector(scalar, () => scalar.effect.run());
+    expect(seen).toEqual([]);
+    scheduler.notify(scalar);
+    await scheduler.flushInteraction();
 
     expect(seen).toEqual([0]);
     expect(count.subs).toContain(scalar);
+    expect(text.data).toBe('0');
 
     count.value = 1;
     await scheduler.flushInteraction();
 
     expect(seen).toEqual([0, 1]);
+    expect(text.data).toBe('1');
+  });
+
+  it('sorts DOM effects by order and keeps enqueue order for ties', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const order: string[] = [];
+    const firstTie = createOrderTextExpressionEffect(
+      scheduler,
+      Phase.ScalarDom,
+      'first-tie',
+      order,
+      0
+    );
+    const nextOrder = createOrderTextExpressionEffect(
+      scheduler,
+      Phase.ScalarDom,
+      'next-order',
+      order,
+      1
+    );
+    const secondTie = createOrderTextExpressionEffect(
+      scheduler,
+      Phase.ScalarDom,
+      'second-tie',
+      order,
+      0
+    );
+
+    scheduler.notify(nextOrder);
+    scheduler.notify(firstTie);
+    scheduler.notify(secondTie);
+    await scheduler.flushInteraction();
+
+    expect(order).toEqual(['first-tie', 'second-tie', 'next-order']);
+  });
+
+  it('rejects async scalar text expressions', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const asyncText = createTextExpressionEffect(
+      createText(),
+      [],
+      (() => Promise.resolve('async')) as unknown as TextExpressionFn<[]>,
+      { scheduler, phase: Phase.ScalarDom }
+    );
+
+    scheduler.notify(asyncText);
+
+    await expect(scheduler.flushInteraction()).rejects.toThrow(
+      'Scalar DOM effects must be synchronous'
+    );
   });
 
   it('createTask tracks dependencies and reruns after signal mutation', async () => {
@@ -335,10 +437,10 @@ describe('vdomless reactivity', () => {
     expect(order).toEqual(['qrl']);
   });
 
-  it('sorts visible tasks by seq', async () => {
+  it('runs visible tasks in enqueue order', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
-    const second = createVisibleTask(() => order.push('second'), { scheduler, seq: 1 });
+    const second = createVisibleTask(() => order.push('second'), { scheduler });
     const first = createVisibleTaskQrl(
       createQRL<TaskFn>(
         'chunk',
@@ -349,14 +451,14 @@ describe('vdomless reactivity', () => {
         null,
         null
       ),
-      { scheduler, seq: 0 }
+      { scheduler }
     );
 
     scheduler.notify(second);
     scheduler.notify(first);
     await scheduler.flushInteraction();
 
-    expect(order).toEqual(['first', 'second']);
+    expect(order).toEqual(['second', 'first']);
   });
 
   it('starts visible tasks independently', async () => {
@@ -370,13 +472,13 @@ describe('vdomless reactivity', () => {
           resolveFirst = resolve;
         });
       },
-      { scheduler, seq: 0 }
+      { scheduler }
     );
     const second = createVisibleTask(
       () => {
         order.push('second:start');
       },
-      { scheduler, seq: 1 }
+      { scheduler }
     );
 
     scheduler.notify(first);
@@ -413,6 +515,96 @@ describe('vdomless reactivity', () => {
     await scheduler.flushInteraction();
 
     expect(seen).toEqual(['task:capture']);
+  });
+
+  it('loads text expression QRLs with args before patching text', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const text = createText();
+    const prefix = createSignal('hello');
+    let resolved = false;
+    const qrl = createQRL<TextExpressionFn<[string]>>(
+      'chunk',
+      'symbol',
+      null,
+      () => {
+        resolved = true;
+        return Promise.resolve({
+          symbol: (suffix: string) => `${prefix.value}:${suffix}`,
+        });
+      },
+      null
+    );
+    const effect = createTextExpressionEffectQrl(text, ['world'], qrl, { scheduler });
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(resolved).toBe(true);
+    expect(text.data).toBe('hello:world');
+  });
+
+  it('restores serialized captures for text expression QRLs', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const text = createText();
+    const container = createCaptureContainer({
+      0: 'text',
+      1: 'capture',
+    });
+    const qrl = createQRL<TextExpressionFn<[string]>>(
+      'chunk',
+      'symbol',
+      null,
+      () =>
+        Promise.resolve({
+          symbol: (suffix: string) => `${(_captures as readonly string[]).join(':')}:${suffix}`,
+        }),
+      '0 1',
+      container
+    );
+    const effect = createTextExpressionEffectQrl(text, ['qrl'], qrl, {
+      scheduler,
+      container,
+    });
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('text:capture:qrl');
+  });
+
+  it('cleans up dynamic dependencies for text expressions', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const useA = createSignal(true);
+    const a = createSignal('a');
+    const b = createSignal('b');
+    const text = createText();
+    const effect = createTextExpressionEffect(
+      text,
+      [useA, a, b],
+      (selected, left, right) => (selected.value ? left.value : right.value),
+      { scheduler }
+    );
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('a');
+
+    useA.value = false;
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('b');
+    expect(a.subs).toBeNull();
+
+    a.value = 'next-a';
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('b');
+
+    b.value = 'next-b';
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('next-b');
   });
 
   it('cleans up dynamic dependencies for tasks', async () => {
@@ -473,53 +665,41 @@ function createTaskSubscriber(
   label: string,
   order: string[],
   groupPath: readonly number[] = [0],
-  index = 0,
-  seq = 0
+  index = 0
 ): TaskSubscriber {
   return createTask(() => order.push(label), {
     scheduler,
     group: createTaskGroup(groupPath),
     index,
-    seq,
   });
 }
 
-function createDomSubscriber(
+function createOrderTextExpressionEffect(
   scheduler: Scheduler,
   phase: Phase.StructuralDom | Phase.ScalarDom,
   label: string,
   order: string[],
-  run?: () => void,
-  orderIndex = 0,
-  seq = 0
+  orderIndex = 0
 ): DomSubscriber {
-  const effect: DomSubscriber = {
-    kind: SubscriberKind.Dom,
-    effect: {
+  return createTextExpressionEffect(
+    createText(),
+    [],
+    () => {
+      order.push(label);
+      return label;
+    },
+    {
+      scheduler,
       phase,
       order: orderIndex,
-      seq,
-      run() {
-        order.push(label);
-        run?.();
-      },
-    },
-    flags: ReactiveFlags.None,
-    schedulerEpoch: 0,
-    deps: null,
-    depVersions: null,
-    notify() {
-      scheduler.notify(effect);
-    },
-  };
-  return effect;
+    }
+  );
 }
 
 function createIdleSubscriber(notify: () => void): IdleSubscriber {
   return {
     kind: SubscriberKind.Idle,
     job: {
-      seq: 0,
       run() {},
     },
     flags: ReactiveFlags.None,

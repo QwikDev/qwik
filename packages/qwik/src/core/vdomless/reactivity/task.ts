@@ -24,20 +24,15 @@ export interface TaskOptions {
   deferUpdates?: boolean;
   group?: TaskGroup;
   index?: number;
-  seq?: number;
   scheduler?: Scheduler;
   container?: Container;
 }
 
 export interface VisibleTaskOptions {
   strategy?: VisibleTaskStrategy;
-  seq?: number;
   scheduler?: Scheduler;
   container?: Container;
 }
-
-let nextTaskSeq = 0;
-let nextVisibleTaskSeq = 0;
 
 export class Task {
   constructor(
@@ -45,7 +40,6 @@ export class Task {
     readonly phase: Phase.BlockingTask | Phase.DeferredTask,
     readonly group: TaskGroup,
     readonly index: number,
-    readonly seq: number,
     readonly qrl?: TaskQrlRef,
     readonly container?: Container
   ) {}
@@ -59,7 +53,6 @@ export class VisibleTask {
   constructor(
     readonly runFn: TaskFn | undefined,
     readonly strategy: VisibleTaskStrategy,
-    readonly seq: number,
     readonly qrl?: TaskQrlRef,
     readonly container?: Container
   ) {}
@@ -156,7 +149,6 @@ function createTaskRecord(
     options?.deferUpdates === true ? Phase.DeferredTask : Phase.BlockingTask,
     options?.group ?? createTaskGroup([0]),
     options?.index ?? 0,
-    options?.seq ?? nextTaskSeq++,
     qrl,
     options?.container
   );
@@ -167,13 +159,7 @@ function createVisibleTaskRecord(
   qrl: TaskQrlRef | undefined,
   options: VisibleTaskOptions | undefined
 ): VisibleTask {
-  return new VisibleTask(
-    run,
-    options?.strategy ?? 'document-ready',
-    options?.seq ?? nextVisibleTaskSeq++,
-    qrl,
-    options?.container
-  );
+  return new VisibleTask(run, options?.strategy ?? 'document-ready', qrl, options?.container);
 }
 
 function runResolvedTask(run: TaskFn): unknown {

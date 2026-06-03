@@ -12,7 +12,6 @@ export {
   type Collector,
   type CollectorSubscriber,
   type ComputedSubscriber,
-  type DomEffectRecord,
   type DomSubscriber,
   type IdleJobRecord,
   type IdleSubscriber,
@@ -56,6 +55,18 @@ export {
   type VisibleTaskOptions,
   type VisibleTaskStrategy,
 } from './task';
+export {
+  DomEffectKind,
+  DomSubscription,
+  TextExpressionEffect,
+  createTextExpressionEffect,
+  createTextExpressionEffectQrl,
+  type DomEffect,
+  type TextExpressionFn,
+  type TextExpressionOptions,
+  type TextExpressionQrl,
+  type TextExpressionValue,
+} from './dom-effect';
 export { createSignal, Signal } from './signal';
 export {
   Computed,

@@ -1,8 +1,18 @@
-import type { Container } from '../shared/types';
+import { createDocument } from '../../testing/document';
+import { QContainerValue, type Container } from '../shared/types';
+import { escapeHTML } from '../shared/utils/character-escaping';
+import { QContainerAttr } from '../shared/utils/markers';
+import { createComponent } from './component/component';
 import type { BranchRange } from './dom/branch/branch';
-import { createTextExpressionEffect } from './dom/effect/effect';
+import {
+  createTextExpressionEffect,
+  type TextExpressionFn,
+  type TextExpressionValue,
+} from './dom/effect/effect';
 import { ReactiveFlags } from './reactive/flags';
-import { Phase, type Scheduler } from './runtime/scheduler';
+import { createOwner, disposeOwner } from './runtime/owner';
+import { newInvokeContext } from './runtime/invoke-context';
+import { Phase, Scheduler } from './runtime/scheduler';
 import {
   SubscriberKind,
   type DomSubscriber,
@@ -12,6 +22,58 @@ import {
 import { createTask, createTaskGroup } from './runtime/task';
 
 export const noopSchedule = (): void => {};
+
+export type RenderMode = 'csr' | 'ssr';
+
+export type SsrTextExpression = <TArgs extends unknown[]>(
+  args: TArgs,
+  fn: TextExpressionFn<TArgs>
+) => string;
+
+export interface BaseRenderContext<TMode extends RenderMode> {
+  document: Document;
+  scheduler: Scheduler;
+  mode: TMode;
+  qContainer: Container;
+}
+
+export interface CsrRenderContext extends BaseRenderContext<'csr'> {}
+
+export interface SsrRenderContext extends BaseRenderContext<'ssr'> {
+  textExpression: SsrTextExpression;
+}
+
+export type RenderContext<TMode extends RenderMode = RenderMode> = TMode extends 'csr'
+  ? CsrRenderContext
+  : TMode extends 'ssr'
+    ? SsrRenderContext
+    : CsrRenderContext | SsrRenderContext;
+
+export type CsrRenderComponent<TProps = undefined> = (
+  props: TProps,
+  ctx: RenderContext<'csr'>
+) => readonly Node[] | void;
+
+export type SsrRenderComponent<TProps = undefined> = (
+  props: TProps,
+  ctx: RenderContext<'ssr'>
+) => string;
+
+export interface RenderOptions {
+  qContainer?: Container;
+  captures?: Record<string, unknown>;
+  scheduler?: Scheduler;
+}
+
+export interface RenderResult {
+  document: Document;
+  container: HTMLElement;
+  html: string;
+  nodes: readonly Node[];
+  scheduler: Scheduler;
+  flush: () => Promise<void>;
+  cleanup: () => void;
+}
 
 export function createText(data = ''): Text {
   return { data } as Text;
@@ -250,4 +312,205 @@ export function createIdleSubscriber(notify: () => void): IdleSubscriber {
     schedulerEpoch: 0,
     notify,
   };
+}
+
+export async function csrRender<TProps = undefined>(
+  component: CsrRenderComponent<TProps>,
+  props?: TProps,
+  options?: RenderOptions
+): Promise<RenderResult> {
+  const document = createDocument();
+  const container = document.createElement('div');
+  container.setAttribute(QContainerAttr, QContainerValue.RESUMED);
+  document.body.appendChild(container);
+
+  const state = runCsrComponent(component, props as TProps, document, options);
+  const nodes = [...state.output];
+  for (let i = 0; i < nodes.length; i++) {
+    container.appendChild(nodes[i]);
+  }
+
+  const cleanup = createRenderCleanup(state.cleanup, container);
+  const result = createRenderResult(document, container, nodes, state.scheduler, cleanup);
+  await result.flush();
+
+  return {
+    ...result,
+    html: container.innerHTML,
+  };
+}
+
+export async function ssrRender<TProps = undefined>(
+  component: SsrRenderComponent<TProps>,
+  props?: TProps,
+  options?: RenderOptions
+): Promise<RenderResult> {
+  const renderDocument = createDocument();
+  const state = runSsrComponent(component, props as TProps, renderDocument, options);
+  await flushScheduler(state.scheduler);
+
+  const { document, container } = createContainerDocument(state.output, QContainerValue.PAUSED);
+  const nodes = Array.from(container.childNodes) as Node[];
+  const cleanup = createRenderCleanup(state.cleanup, container);
+
+  return {
+    ...createRenderResult(document, container, nodes, state.scheduler, cleanup),
+    html: container.innerHTML,
+  };
+}
+
+interface CsrRenderState {
+  output: readonly Node[];
+  scheduler: Scheduler;
+  cleanup: () => void;
+}
+
+interface SsrRenderState {
+  output: string;
+  scheduler: Scheduler;
+  cleanup: () => void;
+}
+
+function runCsrComponent<TProps>(
+  component: CsrRenderComponent<TProps>,
+  props: TProps,
+  document: Document,
+  options: RenderOptions | undefined
+): CsrRenderState {
+  const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
+  const qContainer = options?.qContainer ?? createCaptureContainer(options?.captures ?? {});
+  const rootOwner = createOwner();
+  const invokeContext = newInvokeContext({
+    owner: rootOwner,
+    container: qContainer,
+  });
+  const ctx: RenderContext<'csr'> = {
+    document,
+    scheduler,
+    mode: 'csr',
+    qContainer,
+  };
+
+  let output: readonly Node[];
+  try {
+    output = createComponent(props, (componentProps) => component(componentProps, ctx), {
+      container: qContainer,
+      invokeContext,
+    });
+  } catch (error) {
+    disposeOwner(rootOwner);
+    throw error;
+  }
+
+  return {
+    output,
+    scheduler,
+    cleanup() {
+      disposeOwner(rootOwner);
+    },
+  };
+}
+
+function runSsrComponent<TProps>(
+  component: SsrRenderComponent<TProps>,
+  props: TProps,
+  document: Document,
+  options: RenderOptions | undefined
+): SsrRenderState {
+  const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
+  const qContainer = options?.qContainer ?? createCaptureContainer(options?.captures ?? {});
+  const rootOwner = createOwner();
+  const invokeContext = newInvokeContext({
+    owner: rootOwner,
+    container: qContainer,
+  });
+  const ctx: RenderContext<'ssr'> = {
+    document,
+    scheduler,
+    mode: 'ssr',
+    qContainer,
+    textExpression: ssrTextExpression,
+  };
+
+  let output: string;
+  try {
+    output = createComponent(props, (componentProps) => component(componentProps, ctx), {
+      container: qContainer,
+      invokeContext,
+    });
+  } catch (error) {
+    disposeOwner(rootOwner);
+    throw error;
+  }
+
+  return {
+    output,
+    scheduler,
+    cleanup() {
+      disposeOwner(rootOwner);
+    },
+  };
+}
+
+function createRenderResult(
+  document: Document,
+  container: HTMLElement,
+  nodes: readonly Node[],
+  scheduler: Scheduler,
+  cleanup: () => void
+): RenderResult {
+  return {
+    document,
+    container,
+    html: container.innerHTML,
+    nodes,
+    scheduler,
+    flush: () => flushScheduler(scheduler),
+    cleanup,
+  };
+}
+
+function createRenderCleanup(dispose: () => void, container: HTMLElement): () => void {
+  let cleaned = false;
+  return () => {
+    if (cleaned) {
+      return;
+    }
+    cleaned = true;
+    dispose();
+    while (container.firstChild !== null) {
+      container.removeChild(container.firstChild);
+    }
+  };
+}
+
+async function flushScheduler(scheduler: Scheduler): Promise<void> {
+  await scheduler.flushInteraction();
+  await scheduler.flushDeferred();
+}
+
+function createContainerDocument(
+  html: string,
+  containerState: QContainerValue
+): { document: Document; container: HTMLElement } {
+  const document = createDocument({
+    html: `<html><body><div ${QContainerAttr}="${containerState}">${html}</div></body></html>`,
+  });
+  const container = document.body.firstElementChild as HTMLElement | null;
+  if (container === null) {
+    throw new Error('Missing render container');
+  }
+
+  return { document, container };
+}
+
+function ssrTextExpression<TArgs extends unknown[]>(
+  args: TArgs,
+  fn: TextExpressionFn<TArgs>
+): string {
+  return stringifySsrTextExpressionValue(fn(...args));
+}
+
+function stringifySsrTextExpressionValue(value: TextExpressionValue): string {
+  return escapeHTML(String(value));
 }

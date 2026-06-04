@@ -4,6 +4,8 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 const fromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url));
+const normalizePath = (path: string) => path.replaceAll('\\', '/');
+const vdomlessTestsDir = normalizePath(fromRoot('./packages/qwik/src/core/vdomless/tests/'));
 
 export default defineConfig({
   // temporary fix to allow tests to run without the kit package, remove this once we have a proper kit package
@@ -18,6 +20,9 @@ export default defineConfig({
       srcDir: fromRoot('./packages/qwik/src'),
       devTools: { hmr: false },
       experimental: ['each', 'suspense'],
+      fileFilter(id) {
+        return !normalizePath(id).startsWith(vdomlessTestsDir);
+      },
     }),
     tsconfigPaths({ ignoreConfigErrors: true }),
   ],

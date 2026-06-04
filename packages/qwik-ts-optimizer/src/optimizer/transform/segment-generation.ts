@@ -27,6 +27,8 @@ import {
   type NestedCallSiteInfo,
   type SegmentImportData,
 } from "../segment-codegen.js";
+import { join } from "pathe";
+import { getDirectory } from "../path-utils.js";
 import { resolveEntryField } from "../entry-strategy.js";
 import { buildQrlDeclaration } from "../rewrite-calls.js";
 import { getQrlCalleeName } from "../utils/qrl-naming.js";
@@ -217,6 +219,14 @@ export interface SegmentGenerationContext {
   options: TransformModulesOptions;
   repairedCode: string;
   relPath: string;
+  /**
+   * The original `input.path` (whatever the consumer supplied — absolute
+   * or relative). Distinct from `relPath`, which has been made
+   * srcDir-relative. Segment `module.path` derives its directory portion
+   * from this so output paths live in the same namespace as inputs,
+   * matching SWC's behavior.
+   */
+  inputPath: string;
   emitMode: string;
   devFile: string | undefined;
   /**
@@ -541,7 +551,7 @@ export function buildInlineStrategySegment(
 
   return {
     kind: 'segment',
-    path: mkRelativePath(ext.canonicalFilename + ext.extension),
+    path: mkRelativePath(join(getDirectory(ctx.inputPath), ext.canonicalFilename + ext.extension)),
     isEntry: true,
     code: generateStrippedSegmentCode(ext.symbolName),
     map: null,
@@ -1238,7 +1248,7 @@ export function buildDefaultStrategySegment(
   return {
     module: {
       kind: 'segment',
-      path: mkRelativePath(ext.canonicalFilename + ext.extension),
+      path: mkRelativePath(join(getDirectory(ctx.inputPath), ext.canonicalFilename + ext.extension)),
       isEntry: true,
       code: segmentCode,
       map: null,

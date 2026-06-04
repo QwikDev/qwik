@@ -164,12 +164,16 @@ export function mkOrigin(s: string): Origin {
   return s as Origin;
 }
 
+// The brand was originally named `RelativePath` because most call sites
+// produce srcDir-relative paths (the optimizer normalises with `computeRelPath`).
+// `TransformModule.path`, however, must follow the consumer's `input.path`
+// namespace so a bundler-supplied absolute path round-trips as an absolute
+// output path — the SWC optimizer behaves this way and the bundler's
+// `resolveId` hook depends on it. Empty-string is the only invariant we
+// can reliably enforce here.
 export function mkRelativePath(s: string): RelativePath {
   if (s.length === 0) {
     throw new Error('mkRelativePath: empty string');
-  }
-  if (s.startsWith('/')) {
-    throw new Error(`mkRelativePath: leading slash forbidden: ${JSON.stringify(s)}`);
   }
   return s as RelativePath;
 }

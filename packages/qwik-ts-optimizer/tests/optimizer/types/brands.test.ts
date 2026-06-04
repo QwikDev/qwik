@@ -194,9 +194,14 @@ describe('mkRelativePath', () => {
     expect(mkRelativePath('foo.ts')).toBe('foo.ts');
   });
 
-  it('rejects empty and absolute paths', () => {
+  it('rejects only empty strings (absolute paths legitimate for module.path)', () => {
+    // Absolute paths are accepted because `TransformModule.path` follows
+    // the consumer's `input.path` namespace — a bundler supplying absolute
+    // paths gets absolute output paths back, matching SWC's behavior. The
+    // brand still distinguishes from `FilePath` and other path types at
+    // the type level; only the runtime shape constraint relaxed.
     expect(() => mkRelativePath('')).toThrow();
-    expect(() => mkRelativePath('/abs/foo.ts')).toThrow();
+    expect(mkRelativePath('/abs/foo.ts')).toBe('/abs/foo.ts');
   });
 });
 

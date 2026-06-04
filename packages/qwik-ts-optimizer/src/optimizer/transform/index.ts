@@ -684,6 +684,12 @@ export function transformModule(
       options,
       repairedCode,
       relPath,
+      // Original consumer-supplied `input.path` (vs `relPath`, which is
+      // `input.path` made srcDir-relative). Segment `module.path` derives
+      // its directory portion from this so output paths live in the same
+      // namespace as inputs — when a bundler passes absolute paths, the
+      // emitted segment paths are absolute too, matching SWC's behavior.
+      inputPath: input.path,
       emitMode,
       devFile,
       userDevPath: input.devPath,

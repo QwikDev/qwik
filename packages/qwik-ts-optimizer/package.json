@@ -31,15 +31,15 @@
     "@oxc-project/types": "0.124.0",
     "magic-regexp": "^0.11.0",
     "magic-string": "^0.30.21",
+    "oxc-parser": "^0.124.0",
+    "oxc-transform": "^0.124.0",
+    "oxc-walker": "^0.7.0",
     "pathe": "^2.0.3",
     "siphash": "^1.1.0"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "fast-deep-equal": "^3.1.3",
-    "oxc-parser": "^0.124.0",
-    "oxc-transform": "^0.124.0",
-    "oxc-walker": "^0.7.0",
     "typescript": "^5.7.0",
     "vitest": "^4.1.4"
   }

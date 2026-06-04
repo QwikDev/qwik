@@ -21,7 +21,17 @@ import { parseWithRawTransfer } from './utils/parse.js';
 export function repairInput(
   source: string,
   filename: string,
+  preParsedProgram?: AstProgram,
+  preParsedModule?: AstEcmaScriptModule,
 ): { source: string; program?: AstProgram; module?: AstEcmaScriptModule } {
+  // Caller (typically a bundler like Rolldown) already parsed this source
+  // and is handing us the Program — trust it and skip the internal parse.
+  // OSS-453: eliminates the double-parse when integrating with a bundler
+  // that already has the AST in hand via meta.ast.
+  if (preParsedProgram) {
+    return { source, program: preParsedProgram, module: preParsedModule };
+  }
+
   const initial = parseWithRawTransfer(filename, source);
 
   if (initial.program.body.length > 0) {

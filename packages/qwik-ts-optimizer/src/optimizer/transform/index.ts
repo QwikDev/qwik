@@ -107,8 +107,16 @@ export function transformModule(
     if (ext === ".ts" || ext === ".tsx") isTypeScript = true;
     if (ext === ".tsx" || ext === ".jsx") isJsx = true;
 
-    // Phase 0: Repair input for SWC-recoverable parse errors
-    const repairResult = repairInput(input.code, relPath);
+    // Phase 0: Repair input for SWC-recoverable parse errors.
+    // When the caller supplies a pre-parsed Program (OSS-453, typically
+    // from a bundler's `meta.ast`), `repairInput` uses it directly and
+    // skips its internal parse.
+    const repairResult = repairInput(
+      input.code,
+      relPath,
+      input.program,
+      input.module,
+    );
     let repairedCode = repairResult.source;
     // Single module AST for extraction and the rest of the pipeline. When
     // repair already produced a program, reuse it; otherwise parse once here

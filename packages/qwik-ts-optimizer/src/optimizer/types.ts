@@ -8,6 +8,8 @@
  * Source: Qwik optimizer types.ts (verified from GitHub + research)
  */
 
+import type { AstEcmaScriptModule, AstProgram } from '../ast-types.js';
+
 import type {
   ByteOffset,
   CanonicalFilename,
@@ -153,6 +155,37 @@ export interface TransformModuleInput {
    * dev or HMR builds. Falls back to a derived path when omitted.
    */
   readonly devPath?: string;
+
+  /**
+   * Optional pre-parsed Program for this input. When supplied, the
+   * optimizer skips its internal parse and uses this AST directly —
+   * meaningful perf for bundler integrations where the host already
+   * parsed the source (e.g. Rolldown's `meta.ast` from the `transform`
+   * hook).
+   *
+   * The contract is structural: any ESTree/TS-ESTree-compatible Program
+   * that satisfies the type at runtime works. The type alias originates
+   * from `@oxc-project/types` because OXC is the optimizer's internal
+   * parser; ESTree-compatible parsers like Yuku that produce
+   * structurally-matching ASTs satisfy the same shape.
+   *
+   * Skipping the parse is opt-in: omit this field and the optimizer
+   * parses internally as before. Caller is responsible for ensuring the
+   * AST matches `code` — the optimizer trusts the input without
+   * re-validating.
+   */
+  readonly program?: AstProgram;
+
+  /**
+   * Optional ESM-module metadata sibling to `program`. Some optimizer
+   * passes (export tracking, import classification) read module-level
+   * info that OXC exposes alongside the Program. When `program` is
+   * supplied with a matching `module`, both flow through; when `module`
+   * is omitted but `program` is supplied, downstream passes either
+   * derive what they need from the Program directly or fall back to
+   * `undefined` where the field is optional.
+   */
+  readonly module?: AstEcmaScriptModule;
 }
 
 // ---------------------------------------------------------------------------

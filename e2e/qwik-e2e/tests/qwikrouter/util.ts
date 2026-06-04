@@ -104,15 +104,14 @@ export async function linkNavigate(ctx: TestContext, linkSelector: string, respo
   console.log(`   nav>    ${href}`);
 
   if (ctx.javaScriptEnabled) {
+    const expectedUrl = href && (href.endsWith('/') ? href : href + '/');
     const promise =
-      href &&
-      page.waitForURL(href.endsWith('/') ? href : href + '/', {
+      expectedUrl &&
+      page.waitForURL(expectedUrl, {
         timeout: 5000,
         waitUntil: 'networkidle',
       });
     await link.click();
-    // give time for the head to update
-    await new Promise((resolve) => setTimeout(resolve, 100));
     await promise;
   } else {
     // if we didn't get a href, just wait for the next request
@@ -153,7 +152,7 @@ export async function scrollDebounceDetector(page: Page) {
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
       const checkInterval = setInterval(() => {
-        if (!window['_qRouterScrollDebounce']) {
+        if (!(window as any)._qRouterScrollDebounce) {
           clearInterval(checkInterval);
           resolve();
         }

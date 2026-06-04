@@ -719,13 +719,13 @@ export const routeLoaderQrl = ((
  *
  * ## Options
  *
- * - `search: string[]` — Allowlist of URL search params the loader depends on. Only listed params are
+ * - `search: string[]`: Allowlist of URL search params the loader depends on. Only listed params are
  *   sent in the request and changes to other params are ignored. `search: []` means no search
  *   params are sent and only route path changes trigger a re-fetch.
- * - `allowStale: false` — Clears the previous value when re-fetching, so components see a loading
+ * - `allowStale: false`: Clears the previous value when re-fetching, so components see a loading
  *   state instead of stale data during navigation. Useful when old data would be confusing.
- * - `eTag` — Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function.
- * - `expires` / `poll` — Control client-side caching and polling behavior.
+ * - `eTag`: Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function.
+ * - `expires` / `poll`: Control client-side caching and polling behavior.
  *
  * The `strictLoaders` Vite plugin option applies `search: []` globally for all loaders that don't
  * specify an explicit `search` option.

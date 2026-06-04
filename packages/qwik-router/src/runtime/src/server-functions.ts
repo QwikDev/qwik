@@ -174,9 +174,9 @@ export const globalActionQrl = ((
  * By default, after an action completes, ALL current route loaders are invalidated on the client
  * and re-fetched as needed (so that the browser cache is correct). This can be controlled with:
  *
- * - `invalidate: [loader1, loader2]` — Only invalidate specific loaders. The client re-fetches them
+ * - `invalidate: [loader1, loader2]`: Only invalidate specific loaders. The client re-fetches them
  *   individually. Other loaders keep their current data.
- * - `invalidate: []` — No loaders are invalidated. The action response only contains the action
+ * - `invalidate: []`: No loaders are invalidated. The action response only contains the action
  *   result. Use this when the action doesn't affect any loader data.
  *
  * The `strictLoaders` Vite plugin option applies `invalidate: []` globally for all actions that

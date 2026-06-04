@@ -228,7 +228,7 @@ export function executeComponentChore(
   container: Container,
   journal: VNodeJournal,
   cursor: Cursor
-): ValueOrPromise<void> {
+): ValueOrPromise<unknown> {
   const host = vNode as HostElement;
   const componentQRL = container.getHostProp<QRLInternal<OnRenderFn<unknown>> | null>(
     host,
@@ -241,7 +241,7 @@ export function executeComponentChore(
      * it. We just return the promise and we'll be called again, possibly with updated props, which
      * is why we don't clear the dirty bit yet.
      */
-    return componentQRL.resolve() as any as Promise<void>;
+    return componentQRL.resolve();
   }
   vNode.dirty &= ~ChoreBits.COMPONENT;
   if (!componentQRL) {

@@ -12,7 +12,7 @@ test.describe('loaders', () => {
   });
 
   function tests() {
-    test('should run loaders', async ({ page, javaScriptEnabled }) => {
+    test('should run loaders', async ({ page }) => {
       await page.goto('/qwikrouter-test/loaders/hola');
 
       const date = page.locator('#date');
@@ -65,22 +65,12 @@ test.describe('loaders', () => {
       await page.locator('#link-welcome').click();
       // Wait for URL to change first, then verify content
       await page.waitForURL('**/loaders/welcome/**');
-      if (!javaScriptEnabled) {
-        // MPA: server handles the redirect, so the welcome page renders directly.
-        await expect(nestedName).toHaveText('name: welcome');
-        await expect(title).toHaveText('Loaders - Qwik', { useInnerText: true });
-        await expect(date).toHaveText('date: 2021-01-01T00:00:00.000Z');
-        await expect(slow).toHaveText('slow: 123');
-        await expect(nestedDate).toHaveText('date: 2021-01-01T00:00:00.000Z');
-        await expect(nestedDep).toHaveText('dep: 84');
-      }
-      // SPA: a loader-driven redirect doesn't await the previous nav's loaders,
-      // so the router commits the pre-redirect route and the goto() for the
-      // redirect target kicks off a second nav that overlaps the commit. The
-      // Resource bound to the composed loader does not reliably re-resolve
-      // against the redirect-target data in that race. We accept the flash of
-      // stale content here; if a page needs guaranteed fresh data on redirect,
-      // do the redirect server-side via middleware.
+      await expect(nestedName).toHaveText('name: welcome');
+      await expect(title).toHaveText('Loaders - Qwik', { useInnerText: true });
+      await expect(date).toHaveText('date: 2021-01-01T00:00:00.000Z');
+      await expect(slow).toHaveText('slow: 123');
+      await expect(nestedDate).toHaveText('date: 2021-01-01T00:00:00.000Z');
+      await expect(nestedDep).toHaveText('dep: 84');
     });
 
     test('should pass reactivity issue', async ({ page }) => {

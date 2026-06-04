@@ -504,7 +504,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should execute component and diff result', () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const props = { id: 'test' } as Props;
     const jsx = { type: 'div', props: {}, children: [] };
 
@@ -521,7 +521,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should apply scoped style prefix if present', () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const jsx = { type: 'div', props: {}, children: [] };
     const scopedStyleId = 'scope-123';
 
@@ -539,7 +539,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should handle component execution error', () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const error = new Error('Component error');
 
     container.setHostProp(vNode, OnRenderProp, componentQRL);
@@ -558,7 +558,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should return promise if execution is async', async () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const jsx = { type: 'div', props: {}, children: [] };
 
     container.setHostProp(vNode, OnRenderProp, componentQRL);

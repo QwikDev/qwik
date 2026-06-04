@@ -218,7 +218,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   const routeLoaderCtx = useStore(env.routeLoaderCtx);
   // Create AsyncSignals whose QRL closures capture the store proxy for client-side reactivity.
   // Then set .value from middleware-computed loader values (inert, non-reactive data).
-  const loaderState = useStore<Record<string, AsyncSignal<unknown>>>({}, { deep: false });
+  const loaderState = {} as Record<string, AsyncSignal<LoaderInternal>>;
   const contentModulesForInit = env.loadedRoute.$mods$ as ContentModule[];
   const loaders = ensureRouteLoaderSignals(contentModulesForInit, loaderState, routeLoaderCtx);
   for (const loader of loaders) {

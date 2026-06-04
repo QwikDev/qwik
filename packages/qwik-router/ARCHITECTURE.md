@@ -223,10 +223,10 @@ method.
    - POST to `{pathname}/?qaction={id}` with `Accept: application/json`.
    - Body is FormData or JSON.
 4. Response body: `{ result, loaderHashes? }`.
-5. If redirect (`r`): navigate via `goto`.
-6. If hashes are present: `signal.invalidate(true)` for those loaders.
-7. If hashes are absent: invalidate all current route loaders.
-8. Resolves the `action.submit()` promise with `{ status, data, error }`.
+5. If hashes are present: `signal.invalidate(true)` for those loaders.
+6. If hashes are absent: invalidate all current route loaders.
+7. Resolves the `action.submit()` promise with `result`, which updates `actionDataSignal` and triggers any
+   subscribers.
 
 ### Server-Side Action Execution
 

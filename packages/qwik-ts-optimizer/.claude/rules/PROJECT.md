@@ -32,6 +32,11 @@ wrapup:
     path: .claude/rules/OPTIMIZER.md
     trigger_checklist_section: "Trigger checklist for pipeline refactors"
     structural_criteria_section: "When to update"
+
+# Rules-sync script consumed by ~/.claude/skills/agent-sync
+# (mirrors .claude/rules/*.md → .cursor/rules/*.mdc).
+agent_sync:
+  script: scripts/agent-sync.sh
 ---
 
 # Project bindings — TS-Optimizer
@@ -72,6 +77,12 @@ Verdict guidance for the audit:
 - **Update folded in** when a structural-change criterion fires: phase added/removed, new tool-surface convention (e.g. `_<helper>` import), MIG-XX rule added/removed/changed, new entry strategy, ExtractionResult field added/removed/repurposed (branding alone is type-internal — does not count), file:line refs drifted >50 lines, worked example replaced.
 - **Cumulative drift** under 50 lines per cited section, accumulated across many small merges, is not caught by this audit by design — the "drift below ~30 lines" rule in OPTIMIZER.md's own Maintenance section ratifies that. When the cumulative drift bites (as in OSS-393), it's a separate doc-only PR, not a wrap-up audit failure.
 
+## Agent sync — rules mirroring
+
+Authority: the header comment of `scripts/agent-sync.sh`.
+
+The script mirrors `.claude/rules/*.md` into `.cursor/rules/*.mdc` with Cursor-appropriate YAML frontmatter; `.claude/rules/` is the source of truth and the generated `.mdc` files are never hand-edited. The portable `agent-sync` skill consumes the `agent_sync.script` binding above to run it (`sync` / `check` / `clean` / `watch`); per-file activation overrides live as magic comments on the first line of each source rule file — see the script header for the directive forms.
+
 ## See also
 
 - `CLAUDE.md` (repo root) — the authority-by-topic map.
@@ -81,3 +92,4 @@ Verdict guidance for the audit:
 - `.claude/rules/OPTIMIZER.md` — pipeline walkthrough + audit trigger checklist + structural-change criteria.
 - `~/.claude/skills/daily-stand-up/SKILL.md` — portable stand-up skill (consumes this file).
 - `~/.claude/skills/wrap-up/SKILL.md` — portable post-merge skill (consumes this file).
+- `~/.claude/skills/agent-sync/SKILL.md` — portable rules-sync skill (consumes the `agent_sync` binding).

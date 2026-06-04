@@ -1,5 +1,6 @@
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
+import { isPromise } from '../../shared/utils/promises';
 import { Computed } from './computed';
 import { registerSubscriberToOwner } from './owner';
 
@@ -22,10 +23,6 @@ export function createComputedQrl<T>(
   return registerSubscriberToOwner(new ComputedQrl(computeQrl, container));
 }
 
-function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
-  return typeof (value as Promise<T>)?.then === 'function';
-}
-
 function computeQrlValue<T>(this: ComputedQrl<T>): T {
   const compute = this.computeQrl.resolved;
 
@@ -34,7 +31,7 @@ function computeQrlValue<T>(this: ComputedQrl<T>): T {
   }
 
   const value = compute();
-  if (isPromiseLike(value)) {
+  if (isPromise(value)) {
     throw new Error('Computed QRL must be synchronous');
   }
 

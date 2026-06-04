@@ -1,3 +1,4 @@
+import { isPromise } from '../../shared/utils/promises';
 import { cleanupDeps } from './cleanup';
 import { ReactiveFlags } from './flags';
 import { SubscriberKind } from './subscriber';
@@ -287,7 +288,7 @@ export class Scheduler {
     cleanupDeps(effect);
 
     const value = runWithCollector(effect, runDomEffectRecord, effect.effect);
-    if (isPromiseLike(value)) {
+    if (isPromise(value)) {
       throw new Error('Scalar DOM effects must be synchronous');
     }
   }
@@ -466,10 +467,6 @@ function runVisibleTaskRecord(task: VisibleTaskSubscriber['task']): unknown {
 
 function runDomEffectRecord(effect: DomSubscriber['effect']): unknown {
   return effect.run();
-}
-
-function isPromiseLike(value: unknown): value is Promise<unknown> {
-  return typeof (value as Promise<unknown>)?.then === 'function';
 }
 
 function scheduleMicrotask(flush: () => void): void {

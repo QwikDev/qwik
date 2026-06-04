@@ -1,6 +1,7 @@
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { ClassList } from '../../shared/jsx/types/jsx-qwik-attributes';
 import type { Container } from '../../shared/types';
+import { isPromise } from '../../shared/utils/promises';
 import { serializeClass, stringifyStyle } from '../../shared/utils/styles';
 import { ReactiveFlags } from './flags';
 import { registerSubscriberToOwner } from './owner';
@@ -259,7 +260,7 @@ function runTextExpressionEffect<TArgs extends unknown[]>(
 }
 
 function patchTextValue(text: Text, value: TextExpressionValue | Promise<TextExpressionValue>) {
-  if (isPromiseLike(value)) {
+  if (isPromise(value)) {
     return value.then((resolved) => {
       text.data = String(resolved);
     });
@@ -271,8 +272,4 @@ function patchTextValue(text: Text, value: TextExpressionValue | Promise<TextExp
 function readTrackedSourceValue<T>(source: Source<T>): T {
   track(source);
   return readSourceValue(source);
-}
-
-function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
-  return typeof (value as Promise<T>)?.then === 'function';
 }

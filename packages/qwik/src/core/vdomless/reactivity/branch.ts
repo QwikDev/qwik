@@ -1,5 +1,6 @@
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
+import { isPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { ReactiveFlags } from './flags';
 import {
@@ -14,6 +15,11 @@ import { defaultScheduler, type Scheduler } from './scheduler';
 import { SubscriberKind, type BranchSubscriber } from './subscriber';
 import type { Dependency } from './source';
 import { runWithCollector } from './tracking';
+import {
+  getActiveRenderContextOrNull,
+  runWithRenderContext,
+  type RenderContext,
+} from './render-context';
 
 export type BranchConditionFn<TArgs extends unknown[] = unknown[]> = (...args: TArgs) => boolean;
 export type BranchRenderFn<TArgs extends unknown[] = unknown[]> = (
@@ -70,6 +76,16 @@ interface BranchRenderCall<TArgs extends unknown[]> {
   args: TArgs;
 }
 
+interface BranchConditionRun<TArgs extends unknown[]> {
+  subscription: BranchSubscription<TArgs>;
+  condition: BranchConditionFn<TArgs>;
+}
+
+interface BranchMountRun<TArgs extends unknown[]> {
+  branch: Branch<TArgs>;
+  renderer: BranchRenderFn<TArgs>;
+}
+
 export class Branch<TArgs extends unknown[] = unknown[]> {
   currentOwner: Owner | null;
   currentBranch: BranchState | null;
@@ -82,6 +98,7 @@ export class Branch<TArgs extends unknown[] = unknown[]> {
     readonly otherwise: BranchRenderer<TArgs> | undefined,
     readonly order: number,
     readonly parentOwner: Owner | null,
+    readonly renderContext: RenderContext | null,
     mountedBranch: BranchState | undefined,
     readonly container?: Container
   ) {
@@ -195,6 +212,7 @@ export function createBranch<TArgs extends unknown[]>(
       otherwise,
       options?.order ?? 0,
       getActiveOwner(),
+      getActiveRenderContextOrNull(),
       options?.mountedBranch,
       options?.container
     ),
@@ -230,6 +248,7 @@ export function createBranchQrlSubscriber<TArgs extends unknown[]>(
       branchQrl.elseQrl,
       options?.order ?? 0,
       getActiveOwner(),
+      getActiveRenderContextOrNull(),
       options?.mountedBranch,
       branchQrl.container
     ),
@@ -259,7 +278,7 @@ function runBranchSubscription<TArgs extends unknown[]>(
   const branch = subscription.branch;
   const condition = resolveBranchHandler(branch.condition, branch.container);
 
-  if (isPromiseLike(condition)) {
+  if (isPromise(condition)) {
     return condition.then((fn) => {
       return runBranchCondition(subscription, fn);
     });
@@ -272,12 +291,12 @@ function runBranchCondition<TArgs extends unknown[]>(
   subscription: BranchSubscription<TArgs>,
   condition: BranchConditionFn<TArgs>
 ): ValueOrPromise<void> {
-  const value = runWithCollector(subscription, callBranchCondition, {
-    fn: condition,
-    args: subscription.branch.args,
+  const value = runWithRenderContext(subscription.branch.renderContext, runTrackedBranchCondition, {
+    subscription,
+    condition,
   });
 
-  if (isPromiseLike(value)) {
+  if (isPromise(value)) {
     throw new Error('Branch condition must be synchronous');
   }
 
@@ -310,7 +329,7 @@ function setBranchState<TArgs extends unknown[]>(
     return;
   }
 
-  if (isPromiseLike(renderer)) {
+  if (isPromise(renderer)) {
     return renderer.then((fn) => {
       mountBranch(branch, fn);
     });
@@ -326,16 +345,34 @@ function mountBranch<TArgs extends unknown[]>(
   const owner = runWithOwner(branch.parentOwner, createOwner);
   branch.currentOwner = owner;
 
-  const nodes = runWithOwner(owner, callBranchRenderer, {
-    fn: renderer,
-    args: branch.args,
+  const nodes = runWithOwner(owner, runBranchRendererWithContext, {
+    branch,
+    renderer,
   });
 
-  if (isPromiseLike(nodes)) {
+  if (isPromise(nodes)) {
     throw new Error('Branch renderer must be synchronous');
   }
 
   branch.range.replace(nodes ?? EMPTY_NODES);
+}
+
+function runTrackedBranchCondition<TArgs extends unknown[]>(
+  run: BranchConditionRun<TArgs>
+): boolean {
+  return runWithCollector(run.subscription, callBranchCondition, {
+    fn: run.condition,
+    args: run.subscription.branch.args,
+  });
+}
+
+function runBranchRendererWithContext<TArgs extends unknown[]>(
+  run: BranchMountRun<TArgs>
+): readonly Node[] | void {
+  return runWithRenderContext(run.branch.renderContext, callBranchRenderer, {
+    fn: run.renderer,
+    args: run.branch.args,
+  });
 }
 
 function resolveBranchHandler<TFn>(
@@ -377,8 +414,4 @@ function getBranchState(condition: boolean): BranchState {
 
 function isBranchQrlRef<TFn>(handler: TFn | BranchQrlRef<TFn>): handler is BranchQrlRef<TFn> {
   return typeof (handler as BranchQrlRef<TFn>).resolve === 'function';
-}
-
-function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
-  return typeof (value as Promise<T>)?.then === 'function';
 }

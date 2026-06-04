@@ -11,6 +11,7 @@ import {
   type BranchRange,
   type BranchRenderFn,
 } from './branch';
+import { createComponent, type ComponentRenderFn } from './component';
 import { disposeSubscriber } from './cleanup';
 import { Computed, createComputed } from './computed';
 import { createComputedQrl } from './computed-qrl';
@@ -32,6 +33,15 @@ import {
   runWithOwner,
   type Owner,
 } from './owner';
+import {
+  createChildRenderContext,
+  getActiveRenderContext,
+  getActiveRenderContextOrNull,
+  runWithRenderContext,
+  type ContextScope,
+  type RenderContext,
+  type SlotScope,
+} from './render-context';
 import { Phase, Scheduler } from './scheduler';
 import { createSignal } from './signal';
 import {
@@ -133,8 +143,7 @@ const testDocument = {
 } as Document;
 
 function createTestDocumentFragment(): TestDocumentFragment {
-  let fragment!: TestDocumentFragment;
-  fragment = {
+  const fragment = {
     isTestFragment: true,
     nodes: [] as TestDomNode[],
     appendChild(node: Node): Node {
@@ -180,8 +189,7 @@ function createTestDomNode(label: string): TestDomNode {
 }
 
 function createTestParentNode(nodes: TestDomNode[]): TestParentNode {
-  let parent!: TestParentNode;
-  parent = {
+  const parent = {
     nodes: [] as TestDomNode[],
     removeChild(node: Node): Node {
       const child = node as TestDomNode;
@@ -783,6 +791,199 @@ describe('vdomless reactivity', () => {
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'end']);
     expect(nextA.parentNode).toBeNull();
     expect(nextB.parentNode).toBeNull();
+  });
+
+  it('mounts components without collecting direct signal reads', () => {
+    const count = createSignal(1);
+    const node = createNode('component');
+
+    const nodes = createComponent(count, (source) => {
+      expect(getActiveCollector()).toBeNull();
+      source.value;
+      return [node];
+    });
+
+    expect(nodes).toEqual([node]);
+    expect(count.subs).toBeNull();
+  });
+
+  it('does not collect direct component reads from an outer collector', () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const collector = createTask(() => {}, { scheduler });
+    const count = createSignal(1);
+    const node = createNode('component');
+
+    runWithCollector(collector, () => {
+      const nodes = createComponent(count, (source) => {
+        source.value;
+        return [node];
+      });
+
+      expect(nodes).toEqual([node]);
+    });
+
+    expect(count.subs).toBeNull();
+    expect(collector.deps).toBeNull();
+  });
+
+  it('registers component render work with the active owner', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const owner = createOwner();
+    const source = createSignal('mounted');
+    const text = createText();
+    const node = createNode('component');
+    let nodes!: readonly Node[];
+
+    runWithOwner(owner, () => {
+      nodes = createComponent({ source, text }, (props) => {
+        const effect = createTextNodeEffect(props.text, props.source, { scheduler });
+        scheduler.notify(effect);
+        return [node];
+      });
+    });
+    await scheduler.flushInteraction();
+
+    expect(nodes).toEqual([node]);
+    expect(text.data).toBe('mounted');
+    expect(owner.subscribers).not.toBeNull();
+    expect(source.subs).not.toBeNull();
+
+    disposeOwner(owner);
+
+    expect(source.subs).toBeNull();
+  });
+
+  it('rejects async component renderers', () => {
+    const render = (() => Promise.resolve([])) as unknown as ComponentRenderFn<null>;
+
+    expect(() => createComponent(null, render)).toThrow('Component renderer must be synchronous');
+  });
+
+  it('returns component strings for server renderers', () => {
+    const html = createComponent({ name: 'Qwik' }, (props) => `<span>${props.name}</span>`);
+
+    expect(html).toBe('<span>Qwik</span>');
+  });
+
+  it('disposes component work when render throws', () => {
+    const source = createSignal('value');
+    const text = createText();
+    const owner = createOwner();
+    let effect!: DomSubscriber;
+
+    expect(() => {
+      runWithOwner(owner, () => {
+        createComponent(null, () => {
+          effect = createTextNodeEffect(text, source);
+          throw new Error('render failed');
+        });
+      });
+    }).toThrow('render failed');
+
+    expect(effect.flags).toBe(ReactiveFlags.None);
+
+    disposeOwner(owner);
+
+    expect(effect.flags).toBe(ReactiveFlags.Disposed);
+  });
+
+  it('creates child render contexts for component renderers', () => {
+    const contextScope: ContextScope = {
+      id: 'context',
+      parent: null,
+      values: new Map(),
+    };
+    const parentContext: RenderContext = {
+      parent: null,
+      idPrefix: 'parent-',
+      contextScope,
+      localContextScope: null,
+      slotScope: null,
+    };
+    const slotScope: SlotScope = {
+      id: 'slot',
+      slots: new Map(),
+    };
+    let activeContext!: RenderContext;
+
+    const nodes = runWithRenderContext(parentContext, () =>
+      createComponent(
+        null,
+        () => {
+          activeContext = getActiveRenderContext();
+        },
+        {
+          idPrefix: 'child-',
+          slotScope,
+        }
+      )
+    );
+
+    expect(nodes).toEqual([]);
+    expect(activeContext.parent).toBe(parentContext);
+    expect(activeContext.idPrefix).toBe('child-');
+    expect(activeContext.contextScope).toBe(contextScope);
+    expect(activeContext.localContextScope).toBeNull();
+    expect(activeContext.slotScope).toBe(slotScope);
+  });
+
+  it('restores render context after throw', () => {
+    const outerContext = createChildRenderContext(null, { idPrefix: 'outer-' });
+    const innerContext = createChildRenderContext(outerContext, { idPrefix: 'inner-' });
+
+    runWithRenderContext(outerContext, () => {
+      expect(getActiveRenderContext()).toBe(outerContext);
+
+      expect(() => {
+        runWithRenderContext(innerContext, () => {
+          expect(getActiveRenderContext()).toBe(innerContext);
+          throw new Error('boom');
+        });
+      }).toThrow('boom');
+
+      expect(getActiveRenderContext()).toBe(outerContext);
+    });
+
+    expect(getActiveRenderContextOrNull()).toBeNull();
+  });
+
+  it('restores branch render contexts before creating components', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const branchContext = createChildRenderContext(null, { idPrefix: 'branch-' });
+    const visible = createSignal(true);
+    const branchNode = createNode('branch');
+    const componentNode = createNode('component');
+    const { range, replacements } = createBranchRange();
+    let conditionContext: RenderContext | null = null;
+    let componentContext!: RenderContext;
+
+    const branch = runWithRenderContext(branchContext, () =>
+      createBranch<[typeof visible]>(
+        range,
+        [visible],
+        (source) => {
+          conditionContext = getActiveRenderContextOrNull();
+          return source.value;
+        },
+        () => {
+          const nodes = createComponent(null, () => {
+            componentContext = getActiveRenderContext();
+            return [componentNode];
+          });
+          return nodes.length === 0 ? [branchNode] : nodes;
+        },
+        undefined,
+        { scheduler }
+      )
+    );
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(conditionContext).toBe(branchContext);
+    expect(componentContext.parent).toBe(branchContext);
+    expect(componentContext.idPrefix).toBe('branch-');
+    expect(replacements).toEqual([[componentNode]]);
   });
 
   it('runs CSR branches and switches branch owners', async () => {

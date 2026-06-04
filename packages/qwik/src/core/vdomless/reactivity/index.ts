@@ -68,6 +68,23 @@ export {
   type BranchSubscriberOptions,
 } from './branch';
 export {
+  createComponent,
+  type ComponentOutput,
+  type ComponentOptions,
+  type ComponentRenderFn,
+  type ComponentRenderOutput,
+} from './component';
+export {
+  createChildRenderContext,
+  getActiveRenderContext,
+  getActiveRenderContextOrNull,
+  runWithRenderContext,
+  type ChildRenderContextOptions,
+  type ContextScope,
+  type RenderContext,
+  type SlotScope,
+} from './render-context';
+export {
   Task,
   TaskSubscription,
   VisibleTask,

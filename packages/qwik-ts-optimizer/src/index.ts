@@ -8,8 +8,8 @@ export { transformModule } from './optimizer/transform/index.js';
 
 export { createOptimizer } from './create-optimizer.js';
 
-// Pre-parsed AST input types (OSS-453). Consumers passing a Program from a
-// host parser (e.g. Rolldown's `meta.ast`) via `TransformModuleInput.program`
+// Pre-parsed AST input types. Consumers passing a Program from a host
+// parser (e.g. Rolldown's `meta.ast`) via `TransformModuleInput.program`
 // can type their input against these. The contract is structural — any
 // ESTree/TS-ESTree-compatible Program at runtime satisfies the type.
 export type {

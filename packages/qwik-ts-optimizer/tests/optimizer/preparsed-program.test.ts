@@ -42,7 +42,7 @@ function callTransform(includeProgram: boolean) {
   });
 }
 
-describe('OSS-453 — preParsedProgram thread-through', () => {
+describe('preParsedProgram thread-through', () => {
   it('accepts an externally-parsed Program without throwing', () => {
     const result = callTransform(true);
     expect(result.modules.length).toBeGreaterThan(0);

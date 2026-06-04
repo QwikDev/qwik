@@ -1,16 +1,13 @@
 // SWC-shape `createOptimizer` factory.
 //
-// Sub-B of OSS-450 qwik-bundler integration. The bundler's call site
-// (qwik-bundler/src/rolldown.ts:354) does:
+// Mirrors `@qwik.dev/optimizer`'s public surface so a bundler call site like
 //
 //   const result = await (await getOptimizer()).transformModules(opts);
 //
-// where `getOptimizer()` returns `createOptimizer(options)`. SWC's
+// reads through unchanged when the optimizer provider is swapped. SWC's
 // signature is `createOptimizer(opts?: OptimizerOptions): Promise<Optimizer>`,
 // and the Optimizer instance exposes `transformModules(opts): Promise<TransformOutput>`
-// plus a `sys: OptimizerSystem` field. This module mirrors that shape so
-// the bundler's call site reads through unchanged when the optimizer
-// provider is swapped.
+// plus a `sys: OptimizerSystem` field — this module reproduces that shape.
 //
 // Internally everything wraps the synchronous `transformModule`. The Promise
 // returns satisfy the contract without introducing real async — there's no

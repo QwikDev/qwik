@@ -1,0 +1,47 @@
+==INPUT==
+
+const name = 'Qwik';
+export function App() {
+  return <p>Hello {name}</p>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+
+null
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "vdomless-unsupported",
+    "file": "src/component.tsx",
+    "message": "Dynamic JSX children are not supported yet.",
+    "highlights": null,
+    "suggestions": null
+  }
+]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+
+null
+== CSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "vdomless-unsupported",
+    "file": "src/component.tsx",
+    "message": "Dynamic JSX children are not supported yet.",
+    "highlights": null,
+    "suggestions": null
+  }
+]

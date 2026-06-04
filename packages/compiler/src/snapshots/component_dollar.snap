@@ -1,0 +1,44 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export const App = component$(() => <div>Hello</div>);
+export default component$(function Home() {
+  return <section>Default wrapped</section>;
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+export const App = (_props, _ctx) => "<div>Hello</div>";
+export default function Home(_props, _ctx) {
+  return "<section>Default wrapped</section>";
+}
+
+
+null
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+export const App = (_props, ctx) => {
+  const el0 = ctx.document.createElement("div");
+  const text1 = ctx.document.createTextNode("Hello");
+  el0.appendChild(text1);
+  return [el0];
+};
+export default function Home(_props, ctx) {
+  const el0 = ctx.document.createElement("section");
+  const text1 = ctx.document.createTextNode("Default wrapped");
+  el0.appendChild(text1);
+  return [el0];
+}
+
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

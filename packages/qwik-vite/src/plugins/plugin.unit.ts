@@ -451,8 +451,9 @@ test('transform uses compiler for core test path', async () => {
       addWatchFile: () => undefined,
       emitFile: () => undefined,
     } as any,
-    `type Props = { name: string };
-export const view = (props: Props) => <p>Hello {props.name}</p>;
+    `export function view() {
+  return <p>Hello Qwik</p>;
+}
 `,
     '/root/packages/qwik/src/core/vdomless/tests/component.spec.tsx'
   );
@@ -463,9 +464,12 @@ export const view = (props: Props) => <p>Hello {props.name}</p>;
     meta: result!.meta,
   }).toMatchInlineSnapshot(`
     {
-      "code": "const __qwikJsx = () => "hello world";
-    const __qwikFragment = Symbol.for("qwik.fragment");
-    export const view = (props) => __qwikJsx("p", null, "Hello ", props.name);
+      "code": "export function view(_props, ctx) {
+      const el0 = ctx.document.createElement("p");
+      const text1 = ctx.document.createTextNode("Hello Qwik");
+      el0.appendChild(text1);
+      return [el0];
+    }
     ",
       "map": null,
       "meta": {

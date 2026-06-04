@@ -5,6 +5,7 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@qwik.dev/optimizer": "workspace:*",
+    "oxc-parser": "^0.120.0",
     "oxc-transform": "0.115.0"
   },
   "engines": {

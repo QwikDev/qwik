@@ -1,22 +1,34 @@
-import { transform } from 'oxc-transform';
 import type {
-  TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
 } from '@qwik.dev/optimizer';
+import { createModule, isJsxPath, isTypeScriptPath, transformWithOxc } from './module-utils';
+import type { CompilerContext, CompilerResult, PipelineStage } from './types';
+import { collectModuleFacts, discoverExportedComponents } from './stages/discover';
+import { emitModules } from './stages/emit';
+import { lowerStaticJsxToIr } from './stages/lower-jsx';
+import { normalizeProps } from './stages/props';
+import { parseModule } from './stages/parse';
+import { rejectUnsupportedV1 } from './stages/validate';
 
-const JSX_FACTORY = '__qwikJsx';
-const JSX_FRAGMENT = '__qwikFragment';
-const JSX_MOCK = `const ${JSX_FACTORY} = () => "hello world";\nconst ${JSX_FRAGMENT} = Symbol.for("qwik.fragment");\n`;
+const PIPELINE: readonly PipelineStage[] = [
+  parseModule,
+  collectModuleFacts,
+  discoverExportedComponents,
+  lowerStaticJsxToIr,
+  normalizeProps,
+  rejectUnsupportedV1,
+  emitModules,
+];
 
 /** @public */
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
-  const modules = await Promise.all(options.input.map((input) => transformModule(input, options)));
+  const results = await Promise.all(options.input.map((input) => transformModule(input, options)));
 
   return {
-    modules,
-    diagnostics: [],
+    modules: results.map((result) => result.module),
+    diagnostics: results.flatMap((result) => result.diagnostics),
     isTypeScript: options.input.some((input) => isTypeScriptPath(input.path)),
     isJsx: options.input.some((input) => isJsxPath(input.path)),
   };
@@ -25,51 +37,38 @@ export async function transformModules(options: TransformModulesOptions): Promis
 async function transformModule(
   input: TransformModuleInput,
   options: TransformModulesOptions
-): Promise<TransformModule> {
-  const result = await transform(input.path, input.code, {
-    lang: getLang(input.path),
-    sourceType: 'module',
-    cwd: options.rootDir,
-    sourcemap: !!options.sourceMaps,
-    typescript: {
-      jsxPragma: JSX_FACTORY,
-      jsxPragmaFrag: JSX_FRAGMENT,
+): Promise<CompilerResult> {
+  const ctx: CompilerContext = {
+    input,
+    options,
+    program: null,
+    manifest: {
+      components: [],
+      diagnostics: [],
     },
-    jsx: {
-      runtime: 'classic',
-      pragma: JSX_FACTORY,
-      pragmaFrag: JSX_FRAGMENT,
-      pure: false,
-    },
-  });
+    outputCode: null,
+  };
+
+  for (const stage of PIPELINE) {
+    await stage(ctx);
+  }
+
+  if (ctx.outputCode === null) {
+    if (ctx.manifest.diagnostics.length > 0) {
+      return {
+        module: createModule(input.path, ''),
+        diagnostics: ctx.manifest.diagnostics,
+      };
+    }
+    const fallback = await transformWithOxc(input, options);
+    return {
+      module: fallback,
+      diagnostics: ctx.manifest.diagnostics,
+    };
+  }
 
   return {
-    path: input.path,
-    isEntry: false,
-    code: result.code.includes(JSX_FACTORY) ? JSX_MOCK + result.code : result.code,
-    map: options.sourceMaps && result.map ? JSON.stringify(result.map) : null,
-    segment: null,
-    origPath: null,
+    module: createModule(input.path, ctx.outputCode),
+    diagnostics: ctx.manifest.diagnostics,
   };
-}
-
-function getLang(path: string): 'js' | 'jsx' | 'ts' | 'tsx' {
-  if (path.endsWith('.tsx')) {
-    return 'tsx';
-  }
-  if (path.endsWith('.ts')) {
-    return 'ts';
-  }
-  if (path.endsWith('.jsx')) {
-    return 'jsx';
-  }
-  return 'js';
-}
-
-function isTypeScriptPath(path: string) {
-  return path.endsWith('.ts') || path.endsWith('.tsx');
-}
-
-function isJsxPath(path: string) {
-  return path.endsWith('.jsx') || path.endsWith('.tsx');
 }

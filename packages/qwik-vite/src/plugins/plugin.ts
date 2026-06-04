@@ -1,4 +1,5 @@
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
+import { transformModules as transformCompilerModules } from '@qwik.dev/compiler';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import type {
@@ -868,7 +869,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
 
       const now = Date.now();
-      const newOutput = await optimizer.transformModules(transformOpts);
+      const newOutput = isCompilerTestPath(normalizePath(pathId))
+        ? await transformCompilerModules(transformOpts)
+        : await optimizer.transformModules(transformOpts);
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       if (devPath) {
         const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(devPath);
@@ -1286,6 +1289,13 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
 
 function isAdditionalFile(mod: TransformModule) {
   return mod.isEntry || mod.segment;
+}
+
+function isCompilerTestPath(id: string) {
+  return (
+    id.includes('/packages/qwik/src/core/vdomless/tests/') ||
+    id.startsWith('packages/qwik/src/core/vdomless/tests/')
+  );
 }
 
 const isPublicVirtualId = (id: string) => id.startsWith('virtual:');

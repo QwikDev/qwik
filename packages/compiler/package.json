@@ -1,0 +1,39 @@
+{
+  "name": "@qwik.dev/compiler",
+  "description": "Qwik compiler package.",
+  "version": "2.1.0-beta.5",
+  "bugs": "https://github.com/QwikDev/qwik/issues",
+  "dependencies": {
+    "@qwik.dev/optimizer": "workspace:*",
+    "oxc-transform": "0.115.0"
+  },
+  "engines": {
+    "node": "^20.3.0 || >=21.0.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "dist"
+  ],
+  "homepage": "https://qwik.dev/",
+  "license": "MIT",
+  "main": "./dist/index.mjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/compiler"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}

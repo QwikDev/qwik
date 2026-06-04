@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@qwik.dev/optimizer": ["packages/optimizer/dist/index.d.ts"]
+    }
+  },
+  "include": ["src"],
+  "exclude": [
+    "dist",
+    "src/**/*.unit.ts",
+    "src/**/*.unit.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx"
+  ]
+}

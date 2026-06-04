@@ -19,6 +19,7 @@ import {
 } from './release.ts';
 import { submoduleBuild } from './submodule-build.ts';
 import { submoduleCli } from './submodule-cli.ts';
+import { submoduleCompiler } from './submodule-compiler.ts';
 import { submoduleCore } from './submodule-core.ts';
 import { submoduleInsights } from './submodule-insights.ts';
 import { submoduleOptimizer } from './submodule-optimizer.ts';
@@ -73,8 +74,11 @@ export async function build(config: BuildConfig) {
       await submoduleQwikLoader(config);
     }
 
-    if (config.optimizer) {
+    if (config.optimizer || config.compiler) {
       await submoduleOptimizer(config);
+    }
+    if (config.compiler || config.optimizer) {
+      await submoduleCompiler(config);
     }
     if (config.platformBinding) {
       await buildPlatformBinding(config);
@@ -184,6 +188,7 @@ export async function build(config: BuildConfig) {
         },
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
         [join(config.srcQwikDir, 'web-worker')]: () => submoduleWorker(config),
+        [config.compilerDir]: () => submoduleCompiler(config),
         [config.optimizerDir]: () => submoduleOptimizer(config),
         [config.qwikViteDir]: () => submoduleOptimizer(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),

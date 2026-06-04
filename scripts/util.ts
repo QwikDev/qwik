@@ -26,6 +26,7 @@ const booleanOptions = [
   'api',
   'browserExtension',
   'cli',
+  'compiler',
   'commit',
   'dev',
   'devtools',
@@ -67,6 +68,8 @@ export type BuildConfig = { [key in (typeof stringOptions)[number]]: string } & 
   distQwikPkgDir: string;
   devtoolsPkgDir: string;
   dtsDir: string;
+  compilerDir: string;
+  compilerPkgDir: string;
   optimizerPkgDir: string;
   optimizerVersion: string;
   optimizerRustPkgDir: string;
@@ -95,12 +98,14 @@ export function loadConfig(args: string[] = []): BuildConfig {
   const __dirname = fileURLToPath(new URL('.', import.meta.url));
   const rootDir = join(__dirname, '..');
   const packagesDir = join(rootDir, 'packages');
+  const compilerPkgDir = join(packagesDir, 'compiler');
   const srcQwikDir = join(packagesDir, 'qwik', 'src');
   const optimizerPkgDir = join(packagesDir, 'optimizer');
   const devtoolsPkgDir = join(packagesDir, 'devtools');
   const browserExtensionPkgDir = join(packagesDir, 'browser-extension');
   const optimizerRustPkgDir = join(packagesDir, 'optimizer');
   const qwikVitePkgDir = join(packagesDir, 'qwik-vite');
+  const compilerDir = join(compilerPkgDir, 'src');
   const optimizerDir = join(optimizerPkgDir, 'src');
   const qwikViteDir = join(qwikVitePkgDir, 'src');
   const distQwikPkgDir = join(packagesDir, 'qwik', 'dist');
@@ -145,6 +150,8 @@ export function loadConfig(args: string[] = []): BuildConfig {
     ...config,
     rootDir,
     packagesDir,
+    compilerDir,
+    compilerPkgDir,
     optimizerDir,
     optimizerPkgDir,
     optimizerVersion,

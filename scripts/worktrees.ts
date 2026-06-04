@@ -121,6 +121,7 @@ function printWorktreeInfo(worktreePath: string) {
 const dirsToSync = [
   'dist-dev',
   'node_modules',
+  'packages/compiler/dist',
   'packages/create-qwik/dist',
   'packages/create-qwik/lib',
   'packages/eslint-plugin-qwik/dist',

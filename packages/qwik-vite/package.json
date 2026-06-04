@@ -1,5 +1,8 @@
 {
   "name": "@qwik.dev/qwik-vite",
+  "dependencies": {
+    "@qwik.dev/compiler": "workspace:*"
+  },
   "devDependencies": {
     "image-size": "1.2.1",
     "magic-string": "0.30.21"

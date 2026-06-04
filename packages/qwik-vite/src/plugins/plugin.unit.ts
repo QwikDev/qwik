@@ -438,6 +438,44 @@ test('transform omits sourcemaps for public virtual modules', async () => {
   expect(result!.map).toBeNull();
 });
 
+test('transform uses compiler for core test path', async () => {
+  const plugin = await mockPlugin(process.platform, false);
+  await plugin.normalizeOptions({
+    rootDir: '/root',
+    srcDir: '/root/packages/qwik/src',
+    buildMode: 'production',
+  });
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+    } as any,
+    `type Props = { name: string };
+export const view = (props: Props) => <p>Hello {props.name}</p>;
+`,
+    '/root/packages/qwik/src/core/vdomless/tests/component.spec.tsx'
+  );
+
+  expect({
+    code: result!.code,
+    map: result!.map,
+    meta: result!.meta,
+  }).toMatchInlineSnapshot(`
+    {
+      "code": "const __qwikJsx = () => "hello world";
+    const __qwikFragment = Symbol.for("qwik.fragment");
+    export const view = (props) => __qwikJsx("p", null, "Hello ", props.name);
+    ",
+      "map": null,
+      "meta": {
+        "qwikdeps": [],
+        "segment": null,
+      },
+    }
+  `);
+});
+
 async function mockPlugin(os = process.platform, useMockBinding = true) {
   const plugin = createQwikPlugin({
     sys: {

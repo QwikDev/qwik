@@ -22,8 +22,9 @@
           "pinVersion": ">=6 <9"
         },
         {
-          "label": "optimizer needs exact workspace version",
+          "label": "compiler and optimizer need exact workspace versions",
           "dependencies": [
+            "@qwik.dev/compiler",
             "@qwik.dev/optimizer"
           ],
           "dependencyTypes": [
@@ -115,6 +116,7 @@
     "@node-rs/helper": "1.6.0",
     "@octokit/action": "6.1.0",
     "@playwright/test": "1.57.0",
+    "@qwik.dev/compiler": "workspace:*",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/optimizer": "workspace:*",
     "@qwik.dev/partytown": "0.13.2",
@@ -194,6 +196,7 @@
     "build.clean": "node ./scripts/build-clean.ts",
     "build.cli": "node --require ./scripts/runBefore.ts scripts/index.ts --cli --dev",
     "build.cli.prod": "node --require ./scripts/runBefore.ts scripts/index.ts --cli",
+    "build.compiler": "node --require ./scripts/runBefore.ts scripts/index.ts --compiler --dev",
     "build.core": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --qwik --qwikworker --optimizer --insights --qwikrouter --api --platform-binding",
     "build.core.dev": "node --require ./scripts/runBefore.ts scripts/index.ts --qwik --qwikworker --optimizer --insights --qwikrouter --platform-binding --dev",
     "build.devtools": "node --require ./scripts/runBefore.ts scripts/index.ts --devtools --browser-extension",
@@ -241,7 +244,7 @@
     "qwik-push-build-repos": "node --require ./scripts/runBefore.ts ./scripts/qwik-push-build-repos.ts",
     "release": "changeset publish",
     "release.fixup-package-json": "syncpack fix-mismatches --config syncpack-release-conf.json",
-    "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --pnpm ./packages/qwik ./packages/qwik-router ./packages/eslint-plugin-qwik ./packages/create-qwik ./packages/optimizer",
+    "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --pnpm ./packages/qwik ./packages/qwik-router ./packages/eslint-plugin-qwik ./packages/create-qwik ./packages/optimizer ./packages/compiler",
     "release.prepare": "pnpm build --prepare-release",
     "serve": "node --require ./scripts/runBefore.ts --inspect --conditions=development e2e/qwik-e2e/dev-server.ts 3300",
     "serve.debug": "node --require ./scripts/runBefore.ts --inspect-brk --conditions=development e2e/qwik-e2e/dev-server.ts 3300",

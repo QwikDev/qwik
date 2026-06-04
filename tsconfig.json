@@ -17,6 +17,7 @@
     "assumeChangesOnlyAffectDirectDependencies": true,
     "noUnusedLocals": true,
     "paths": {
+      "@qwik.dev/compiler": ["packages/compiler/src"],
       "@qwik.dev/optimizer": ["packages/optimizer/src"],
       "@qwik-router-ssg-worker/*": ["packages/qwik-router/src/*"],
       "@qwik-router-config": ["packages/qwik-router/src/runtime/src/qwik-router-config.ts"],

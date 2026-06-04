@@ -8,6 +8,7 @@
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
+    "@qwik.dev/compiler": "workspace:*",
     "@qwik.dev/optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.12.0",

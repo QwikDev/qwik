@@ -12,23 +12,25 @@ import { delay } from '../../actions/login';
 
 export const useDateLoader = routeLoader$(() => new Date('2021-01-01T00:00:00.000Z'));
 
-export const useDependencyLoader = routeLoader$(
-  async ({ params, redirect, json, resolveValue }) => {
-    const formData = await resolveValue(useForm);
-    await delay(100);
-    if (params.id === 'redirect') {
-      throw redirect(302, '/qwikrouter-test/');
-    } else if (params.id === 'redirect-welcome') {
-      throw redirect(302, '/qwikrouter-test/loaders/welcome/');
-    } else if (params.id === 'json') {
-      throw json(200, { nu: 42 });
-    }
-    return {
-      nu: 42,
-      name: formData?.name ?? params.id,
-    };
+// Note: a loader cannot read action state via `resolveValue(useForm)`. After an action
+// submission, the client invalidates loaders and refetches them as standalone GET
+// requests, which carry no action context — so `resolveValue(actionQrl)` returns
+// undefined. Read action state directly from the action signal (e.g. in the head, or
+// from `useForm.value` in components), not via a loader.
+export const useDependencyLoader = routeLoader$(async ({ params, redirect, json }) => {
+  await delay(100);
+  if (params.id === 'redirect') {
+    throw redirect(302, '/qwikrouter-test/');
+  } else if (params.id === 'redirect-welcome') {
+    throw redirect(302, '/qwikrouter-test/loaders/welcome/');
+  } else if (params.id === 'json') {
+    throw json(200, { nu: 42 });
   }
-);
+  return {
+    nu: 42,
+    name: params.id,
+  };
+});
 
 const useLoader = routeLoader$(() => {
   return [

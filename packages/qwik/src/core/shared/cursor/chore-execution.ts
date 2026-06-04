@@ -228,14 +228,22 @@ export function executeComponentChore(
   container: Container,
   journal: VNodeJournal,
   cursor: Cursor
-): ValueOrPromise<void> {
-  vNode.dirty &= ~ChoreBits.COMPONENT;
+): ValueOrPromise<unknown> {
   const host = vNode as HostElement;
   const componentQRL = container.getHostProp<QRLInternal<OnRenderFn<unknown>> | null>(
     host,
     OnRenderProp
   );
 
+  if (componentQRL && !componentQRL.resolved) {
+    /**
+     * If the component QRL is not resolved, we need to wait for it to resolve before we can execute
+     * it. We just return the promise and we'll be called again, possibly with updated props, which
+     * is why we don't clear the dirty bit yet.
+     */
+    return componentQRL.resolve();
+  }
+  vNode.dirty &= ~ChoreBits.COMPONENT;
   if (!componentQRL) {
     return;
   }

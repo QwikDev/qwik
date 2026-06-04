@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { getErrorHtml } from '../../../middleware/request-handler/error-handler';
+import { LOADER_REGEX } from '../../../middleware/request-handler/request-path';
+import { ensureSlash } from '../../../utils/pathname';
 
 /** Cleans the client output SSG results if needed and injects the SSG metadata into the build output */
 export async function postBuild(
@@ -11,25 +13,26 @@ export async function postBuild(
   cleanStatic: boolean
 ) {
   if (pathName && !pathName.endsWith('/')) {
-    pathName += '/';
+    pathName = ensureSlash(pathName);
   }
+  const pathNameBase = pathName || '/';
   const ignorePathnames = new Set([
-    pathName + '/' + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/',
-    pathName + '/' + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/',
+    pathNameBase + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/',
+    pathNameBase + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/',
   ]);
 
-  const staticPaths = new Set(userStaticPaths.map(normalizeTrailingSlash));
+  const staticPaths = new Set(userStaticPaths.map(ensureSlash));
   const notFounds: string[][] = [];
 
   const loadItem = async (fsDir: string, fsName: string, pathname: string) => {
-    pathname = normalizeTrailingSlash(pathname);
+    pathname = ensureSlash(pathname);
     if (ignorePathnames.has(pathname)) {
       return;
     }
 
     const fsPath = join(fsDir, fsName);
 
-    if (fsName === 'index.html' || fsName === 'q-data.json') {
+    if (fsName === 'index.html' || LOADER_REGEX.test('/' + fsName)) {
       // static index.html file
       if (!staticPaths.has(pathname) && cleanStatic) {
         await fs.promises.unlink(fsPath);
@@ -46,7 +49,7 @@ export async function postBuild(
 
     const stat = await fs.promises.stat(fsPath);
     if (stat.isDirectory()) {
-      await loadDir(fsPath, pathname + fsName + '/');
+      await loadDir(fsPath, ensureSlash(pathname + fsName));
     } else if (stat.isFile()) {
       staticPaths.add(pathname + fsName);
     }
@@ -65,13 +68,6 @@ export async function postBuild(
   const staticPathsCode = createStaticPathsCode(staticPaths);
 
   await injectStatics(staticPathsCode, notFoundPathsCode, serverOutDir);
-}
-
-function normalizeTrailingSlash(pathname: string) {
-  if (!pathname.endsWith('/')) {
-    return pathname + '/';
-  }
-  return pathname;
 }
 
 function createNotFoundPathsCode(basePathname: string, notFounds: string[][]) {

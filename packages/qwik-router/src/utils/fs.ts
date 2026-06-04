@@ -1,7 +1,7 @@
 import { basename, dirname, normalize, relative } from 'node:path';
 import type { NormalizedPluginOptions } from '../buildtime/types';
 import { toTitleCase } from './format';
-import { normalizePathname } from './pathname';
+import { ensureSlash, normalizePathname } from './pathname';
 
 export function parseRouteIndexName(extlessName: string) {
   let layoutName = '';
@@ -42,11 +42,8 @@ export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: s
 export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {
   let pathname = normalizePath(relative(opts.routesDir, filePath));
   pathname = `/` + normalizePath(dirname(pathname));
-  let result = normalizePathname(pathname, opts.basePathname)!;
-  if (!result.endsWith('/')) {
-    result += '/';
-  }
-  return result;
+  const result = normalizePathname(pathname, opts.basePathname)!;
+  return ensureSlash(result);
 }
 
 export function getExtension(fileName: string) {

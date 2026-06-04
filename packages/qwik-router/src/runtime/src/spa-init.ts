@@ -197,16 +197,14 @@ export default event$((_: Event, el: Element) => {
 
     window._qRouterScrollEnabled = true;
 
-    setTimeout(() => {
-      window.addEventListener('popstate', window._qRouterInitPopstate!);
-      window.addEventListener('scroll', window._qRouterInitScroll!, { passive: true });
-      document.addEventListener('click', window._qRouterInitAnchors!);
+    window.addEventListener('popstate', window._qRouterInitPopstate!);
+    window.addEventListener('scroll', window._qRouterInitScroll!, { passive: true });
+    document.addEventListener('click', window._qRouterInitAnchors!);
 
-      if (!(window as any).navigation) {
-        document.addEventListener('visibilitychange', window._qRouterInitVisibility!, {
-          passive: true,
-        });
-      }
-    }, 0);
+    if (!(window as any).navigation) {
+      document.addEventListener('visibilitychange', window._qRouterInitVisibility!, {
+        passive: true,
+      });
+    }
   }
 });

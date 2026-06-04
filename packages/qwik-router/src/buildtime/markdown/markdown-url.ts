@@ -3,7 +3,7 @@ import { getSourceFile } from '../routing/source-file';
 import type { NormalizedPluginOptions } from '../types';
 import { getExtension, getPathnameFromDirPath, isMarkdownExt, normalizePath } from '../../utils/fs';
 import { existsSync } from 'node:fs';
-import { isSameOriginUrl } from '../../utils/pathname';
+import { ensureSlash, isSameOriginUrl } from '../../utils/pathname';
 
 export function getMarkdownRelativeUrl(
   opts: NormalizedPluginOptions,
@@ -53,7 +53,7 @@ export function getMarkdownRelativeUrl(
         url = url.slice(0, -1);
       }
     } else if (!globalThis.__NO_TRAILING_SLASH__) {
-      url += '/';
+      url = ensureSlash(url);
     }
   }
 

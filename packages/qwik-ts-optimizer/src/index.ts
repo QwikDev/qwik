@@ -6,6 +6,16 @@
 
 export { transformModule } from './optimizer/transform/index.js';
 
+export { createOptimizer } from './create-optimizer.js';
+
+export type {
+  OptimizerOptions,
+  OptimizerSystem,
+  Path,
+  QwikOptimizer,
+  SystemEnvironment,
+} from './create-optimizer.js';
+
 export type {
   Diagnostic,
   DiagnosticHighlightFlat,

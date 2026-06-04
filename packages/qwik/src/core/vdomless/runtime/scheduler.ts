@@ -54,26 +54,6 @@ export class Scheduler {
     this.enqueue(subscriber);
   }
 
-  enqueueTask(task: TaskSubscriber): void {
-    this.enqueue(task);
-  }
-
-  enqueueVisibleTask(task: VisibleTaskSubscriber): void {
-    this.enqueue(task);
-  }
-
-  enqueueDomEffect(effect: DomSubscriber): void {
-    this.enqueue(effect);
-  }
-
-  enqueueBranch(branch: BranchSubscriber): void {
-    this.enqueue(branch);
-  }
-
-  enqueueIdleJob(job: IdleSubscriber): void {
-    this.enqueue(job);
-  }
-
   scheduleFlush(): void {
     if (this.flushing || this.flushPending) {
       return;
@@ -324,26 +304,6 @@ export function notify(subscriber: PhaseSubscriber): void {
 
 export function notifyPhaseSubscriber(this: PhaseSubscriber): void {
   defaultScheduler.notify(this);
-}
-
-export function enqueueTask(task: TaskSubscriber): void {
-  defaultScheduler.enqueueTask(task);
-}
-
-export function enqueueVisibleTask(task: VisibleTaskSubscriber): void {
-  defaultScheduler.enqueueVisibleTask(task);
-}
-
-export function enqueueDomEffect(effect: DomSubscriber): void {
-  defaultScheduler.enqueueDomEffect(effect);
-}
-
-export function enqueueBranch(branch: BranchSubscriber): void {
-  defaultScheduler.enqueueBranch(branch);
-}
-
-export function enqueueIdleJob(job: IdleSubscriber): void {
-  defaultScheduler.enqueueIdleJob(job);
 }
 
 export function scheduleFlush(): void {

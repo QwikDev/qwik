@@ -1,4 +1,4 @@
-import { SubscriberKind, type Subscriber } from './subscriber';
+import { SubscriberKind, type Subscriber } from '../runtime/subscriber';
 
 export interface Source<T = unknown> {
   v: T;

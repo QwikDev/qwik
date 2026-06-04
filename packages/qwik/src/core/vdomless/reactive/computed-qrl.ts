@@ -2,7 +2,7 @@ import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
 import { isPromise } from '../../shared/utils/promises';
 import { Computed } from './computed';
-import { registerSubscriberToOwner } from './owner';
+import { registerSubscriberToOwner } from '../runtime/owner';
 
 export type ComputedQrlFn<T> = () => T;
 export type ComputedQrlRef<T> = QRLInternal<ComputedQrlFn<T>>;

@@ -1,8 +1,8 @@
 import { isPromise } from '../../shared/utils/promises';
-import { cleanupDeps } from './cleanup';
-import { ReactiveFlags } from './flags';
+import { cleanupDeps } from '../reactive/cleanup';
+import { ReactiveFlags } from '../reactive/flags';
 import { SubscriberKind } from './subscriber';
-import { runWithCollector } from './tracking';
+import { runWithCollector } from '../reactive/tracking';
 import type {
   BranchSubscriber,
   DomSubscriber,

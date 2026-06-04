@@ -1,5 +1,5 @@
 import type { Source } from './source';
-import type { Subscriber } from './subscriber';
+import type { Subscriber } from '../runtime/subscriber';
 import { track } from './tracking';
 
 export class Signal<T> implements Source<T> {

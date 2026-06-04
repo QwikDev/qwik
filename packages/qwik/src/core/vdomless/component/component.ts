@@ -7,9 +7,9 @@ import {
   type ChildInvokeContextOptions,
   type RuntimeInvokeContext,
   type SlotScope,
-} from './invoke-context';
-import { disposeOwner } from './owner';
-import { runWithCollector } from './tracking';
+} from '../runtime/invoke-context';
+import { disposeOwner } from '../runtime/owner';
+import { runWithCollector } from '../reactive/tracking';
 
 export type ComponentOutput = readonly Node[] | string;
 export type ComponentRenderOutput = ComponentOutput | void;

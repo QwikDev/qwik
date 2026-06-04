@@ -1,19 +1,19 @@
-import type { QRLInternal } from '../../shared/qrl/qrl-class';
-import type { Container } from '../../shared/types';
-import { isPromise } from '../../shared/utils/promises';
-import type { ValueOrPromise } from '../../shared/utils/types';
-import { ReactiveFlags } from './flags';
-import { disposeOwner, registerSubscriberToOwner, type Owner } from './owner';
+import type { QRLInternal } from '../../../shared/qrl/qrl-class';
+import type { Container } from '../../../shared/types';
+import { isPromise } from '../../../shared/utils/promises';
+import type { ValueOrPromise } from '../../../shared/utils/types';
+import { ReactiveFlags } from '../../reactive/flags';
+import { disposeOwner, registerSubscriberToOwner, type Owner } from '../../runtime/owner';
 import {
   getActiveInvokeContextOrNull,
   invoke,
   newChildInvokeContext,
   type RuntimeInvokeContext,
-} from './invoke-context';
-import { defaultScheduler, type Scheduler } from './scheduler';
-import { SubscriberKind, type BranchSubscriber } from './subscriber';
-import type { Dependency } from './source';
-import { runWithCollector } from './tracking';
+} from '../../runtime/invoke-context';
+import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
+import { SubscriberKind, type BranchSubscriber } from '../../runtime/subscriber';
+import type { Dependency } from '../../reactive/source';
+import { runWithCollector } from '../../reactive/tracking';
 
 export type BranchConditionFn<TArgs extends unknown[] = unknown[]> = (...args: TArgs) => boolean;
 export type BranchRenderFn<TArgs extends unknown[] = unknown[]> = (

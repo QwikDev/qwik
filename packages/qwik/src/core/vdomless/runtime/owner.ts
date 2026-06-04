@@ -1,8 +1,8 @@
 import { swapRemove } from '../utils/array';
-import { disposeSubscriber } from './cleanup';
+import { disposeSubscriber } from '../reactive/cleanup';
 import { getActiveInvokeContextOrNull, invoke, newInvokeContext } from './invoke-context';
 import type { Subscriber } from './subscriber';
-import { runWithCollector } from './tracking';
+import { runWithCollector } from '../reactive/tracking';
 
 // Owners are lifetime scopes for reactive work. Anything that can become a
 // subscriber should be owned so it can be disposed and removed from sources.

@@ -1,8 +1,8 @@
-import type { ReactiveFlags } from './flags';
-import type { Branch } from './branch';
+import type { ReactiveFlags } from '../reactive/flags';
+import type { Branch } from '../dom/branch/branch';
 import type { ValueOrPromise } from '../../shared/utils/types';
-import type { DomEffect } from './dom-effect';
-import type { ComputedSource, Dependency } from './source';
+import type { DomEffect } from '../dom/effect/effect';
+import type { ComputedSource, Dependency } from '../reactive/source';
 import type { Task, VisibleTask } from './task';
 
 export const enum SubscriberKind {

@@ -1,5 +1,5 @@
 import type { Dependency } from './source';
-import type { CollectorSubscriber } from './subscriber';
+import type { CollectorSubscriber } from '../runtime/subscriber';
 
 let activeCollector: CollectorSubscriber | null = null;
 

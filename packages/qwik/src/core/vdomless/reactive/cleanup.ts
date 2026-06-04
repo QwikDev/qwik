@@ -1,7 +1,7 @@
 import { swapRemove } from '../utils/array';
 import { ReactiveFlags } from './flags';
 import type { Source } from './source';
-import { SubscriberKind, type Collector, type Subscriber } from './subscriber';
+import { SubscriberKind, type Collector, type Subscriber } from '../runtime/subscriber';
 
 export function cleanupDeps(collector: Collector): void {
   const deps = collector.deps;

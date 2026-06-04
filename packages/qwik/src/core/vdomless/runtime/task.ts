@@ -1,6 +1,6 @@
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
-import { ReactiveFlags } from './flags';
+import { ReactiveFlags } from '../reactive/flags';
 import { registerSubscriberToOwner } from './owner';
 import { defaultScheduler, Phase, type Scheduler } from './scheduler';
 import {
@@ -10,7 +10,7 @@ import {
   type TaskSubscriber,
   type VisibleTaskSubscriber,
 } from './subscriber';
-import type { Dependency } from './source';
+import type { Dependency } from '../reactive/source';
 
 export type TaskFn = () => unknown;
 export type TaskQrlRef<T extends TaskFn = TaskFn> = QRLInternal<T>;

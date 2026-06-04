@@ -338,40 +338,60 @@ What is split out: distinct *operations*. The 9-phase sequencer in
 `generateSegmentCode` is the model — each phase is its own named
 function because each phase is its own concern.
 
-### No nested ternaries.
+### Ternaries fit on one line, or they don't exist.
 
-A single ternary is fine: `const x = cond ? a : b`. Stacking them is
-not: `const x = cond1 ? cond2 ? a : b : c` forces the reader to unwind
-operator precedence to figure out which branch produces which value,
-and that effort scales worse than line count.
+A ternary is allowed only when the **entire `cond ? a : b` expression
+fits on one physical line** (including the leading `const/let X =` if
+present). The moment the expression has to wrap — whether because of
+nesting, large operand expressions, embedded object/array literals,
+multi-line function calls, or just length — refactor to `let` +
+procedural `if`.
 
-Rule: at most one `?:` per expression. For two-or-more conditions,
-write a `let` + procedural `if` block. Each guard then reads top-to-
-bottom as its own statement, and the path through the code is visible
-without precedence reasoning:
+The value of a ternary as a short conditional expression depends
+entirely on fitting in a glance. Once it wraps, the reader has to
+follow `?` and `:` across line boundaries and mentally reconstruct
+which line corresponds to which branch — at which point `if/else`
+reads strictly better.
 
 ```typescript
-// Not this:
-const devOptionsForCall = jsxBodyOptions.devOptions
+// Fine — fits on one line, simple operands:
+const mode = isDev ? 'development' : 'production';
+const next = list.length > 0 ? list[0] : null;
+
+// Not this — nested, requires precedence unwinding:
+const devOptions = jsxBodyOptions.devOptions
   ? jsxBodyOptions.source != null
     ? { ...jsxBodyOptions.devOptions, sourcePosition: {...} }
     : jsxBodyOptions.devOptions
   : undefined;
 
-// This:
-let devOptionsForCall = jsxBodyOptions.devOptions;
-if (devOptionsForCall && jsxBodyOptions.source != null) {
-  devOptionsForCall = {
-    ...devOptionsForCall,
-    sourcePosition: { ... },
-  };
+// Not this — one-level but multi-line operands:
+const optimizer = useTs
+  ? import('qwik-optimizer-ts').then(
+      (mod) => mod.createOptimizer(opts),
+      (err) => { throw new Error('install qwik-optimizer-ts'); },
+    )
+  : createSwcOptimizer(opts);
+
+// This — `let` + procedural `if`. Each branch is its own statement:
+let optimizer: Promise<OptimizerInstance>;
+if (useTs) {
+  optimizer = import('qwik-optimizer-ts').then(
+    (mod) => mod.createOptimizer(opts),
+    (err) => { throw new Error('install qwik-optimizer-ts'); },
+  );
+} else {
+  optimizer = createSwcOptimizer(opts);
 }
 ```
 
-The same applies when a single-level ternary's branches contain large
-inline object literals — even one level deep, if either operand is a
-multi-line expression, prefer the procedural form. Inline ternaries are
-for single-line, single-condition selection.
+The rule is symmetric for nullish-coalescing chains that wrap
+(`x = a ?? b ?? c ?? d` across lines) and logical-OR chains used as
+conditionals — same refactor target.
+
+Losing `const` at the variable level is the trade-off. If `const` is
+structurally important, extract a helper function and `return` from
+each branch — the helper's return value is `const` at the call site.
 
 ## What this codebase does not do
 

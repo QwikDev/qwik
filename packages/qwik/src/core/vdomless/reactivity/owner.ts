@@ -1,5 +1,6 @@
 import { swapRemove } from '../utils/array';
 import { disposeSubscriber } from './cleanup';
+import { getActiveInvokeContextOrNull, invoke, newInvokeContext } from './invoke-context';
 import type { Subscriber } from './subscriber';
 import { runWithCollector } from './tracking';
 
@@ -14,9 +15,7 @@ export interface Owner {
   disposed: boolean;
 }
 
-let activeOwner: Owner | null = null;
-
-export function createOwner(): Owner {
+export function createOwner(parent: Owner | null = getActiveOwner()): Owner {
   const owner: Owner = {
     parent: null,
     subscribers: null,
@@ -24,41 +23,37 @@ export function createOwner(): Owner {
     disposed: false,
   };
 
-  registerOwnerToOwner(owner, activeOwner);
+  registerOwnerToOwner(owner, parent);
   return owner;
 }
 
 export function getActiveOwner(): Owner | null {
-  return activeOwner;
+  return getActiveInvokeContextOrNull()?.owner ?? null;
 }
 
 // Runs creation code under a lifetime owner. This intentionally clears the
 // active collector: owner scope decides what gets disposed together, while the
 // collector decides which source reads become dependencies.
-export function runWithOwner<T>(owner: Owner | null, run: () => T): T;
-export function runWithOwner<T, A>(owner: Owner | null, run: (arg: A) => T, arg: A): T;
-export function runWithOwner<T, A>(
+export function runWithOwner<T, TArgs extends unknown[]>(
   owner: Owner | null,
-  run: (() => T) | ((arg: A) => T),
-  arg?: A
+  run: (...args: TArgs) => T,
+  ...args: TArgs
 ): T {
-  const previous = activeOwner;
-  activeOwner = owner;
-
-  try {
-    if (arguments.length === 3) {
-      return runWithCollector(null, run as (arg: A) => T, arg as A);
-    }
-
-    return runWithCollector(null, run as () => T);
-  } finally {
-    activeOwner = previous;
-  }
+  const activeContext = getActiveInvokeContextOrNull();
+  const context = newInvokeContext({
+    owner,
+    container: activeContext?.container,
+    idPrefix: activeContext?.idPrefix,
+    contextScope: activeContext?.contextScope,
+    localContextScope: activeContext?.localContextScope,
+    slotScope: activeContext?.slotScope,
+  });
+  return runWithCollector(null, invoke, context, run, ...args);
 }
 
 export function registerSubscriberToOwner<T extends Subscriber>(
   subscriber: T,
-  owner: Owner | null = activeOwner
+  owner: Owner | null = getActiveOwner()
 ): T {
   if (owner === null) {
     return subscriber;

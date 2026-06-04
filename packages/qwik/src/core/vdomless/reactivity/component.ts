@@ -1,11 +1,14 @@
+import type { Container } from '../../shared/types';
 import { isPromise } from '../../shared/utils/promises';
 import {
-  createChildRenderContext,
-  getActiveRenderContextOrNull,
-  runWithRenderContext,
-  type RenderContext,
+  getActiveInvokeContextOrNull,
+  invoke,
+  newChildInvokeContext,
+  type ChildInvokeContextOptions,
+  type RuntimeInvokeContext,
   type SlotScope,
-} from './render-context';
+} from './invoke-context';
+import { disposeOwner } from './owner';
 import { runWithCollector } from './tracking';
 
 export type ComponentOutput = readonly Node[] | string;
@@ -13,8 +16,9 @@ export type ComponentRenderOutput = ComponentOutput | void;
 export type ComponentRenderFn<TProps = unknown> = (props: TProps) => ComponentRenderOutput;
 
 export interface ComponentOptions {
+  container?: Container;
   idPrefix?: string;
-  renderContext?: RenderContext | null;
+  invokeContext?: RuntimeInvokeContext | null;
   slotScope?: SlotScope | null;
 }
 
@@ -48,25 +52,44 @@ function runComponent<TProps>(
   render: ComponentRenderFn<TProps>,
   options: ComponentOptions | undefined
 ): ComponentOutput {
-  const parentRenderContext =
-    options?.renderContext === undefined ? getActiveRenderContextOrNull() : options.renderContext;
-  const renderContext = createChildRenderContext(parentRenderContext, {
-    idPrefix: options?.idPrefix,
-    slotScope: options?.slotScope,
-  });
+  const parentInvokeContext =
+    options !== undefined && 'invokeContext' in options
+      ? (options.invokeContext ?? null)
+      : getActiveInvokeContextOrNull();
+  const invokeContext = newChildInvokeContext(
+    parentInvokeContext,
+    createComponentInvokeOptions(options)
+  );
 
-  const nodes = runWithCollector(null, runComponentRenderer, renderContext, render, props);
+  let nodes: ComponentRenderOutput;
+  try {
+    nodes = runWithCollector(null, invoke, invokeContext, render, props);
+  } catch (error) {
+    disposeOwner(invokeContext.owner!);
+    throw error;
+  }
   if (isPromise(nodes)) {
+    disposeOwner(invokeContext.owner!);
     throw new Error('Component renderer must be synchronous');
   }
 
   return nodes ?? EMPTY_NODES;
 }
 
-function runComponentRenderer<TProps>(
-  renderContext: RenderContext,
-  render: ComponentRenderFn<TProps>,
-  props: TProps
-): ComponentRenderOutput {
-  return runWithRenderContext(renderContext, render, props);
+function createComponentInvokeOptions(
+  options: ComponentOptions | undefined
+): ChildInvokeContextOptions {
+  const invokeOptions: ChildInvokeContextOptions = {};
+
+  if (options !== undefined && 'container' in options) {
+    invokeOptions.container = options.container;
+  }
+  if (options !== undefined && 'idPrefix' in options) {
+    invokeOptions.idPrefix = options.idPrefix;
+  }
+  if (options !== undefined && 'slotScope' in options) {
+    invokeOptions.slotScope = options.slotScope;
+  }
+
+  return invokeOptions;
 }

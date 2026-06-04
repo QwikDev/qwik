@@ -3,23 +3,17 @@ import type { Container } from '../../shared/types';
 import { isPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { ReactiveFlags } from './flags';
+import { disposeOwner, registerSubscriberToOwner, type Owner } from './owner';
 import {
-  createOwner,
-  disposeOwner,
-  getActiveOwner,
-  registerSubscriberToOwner,
-  runWithOwner,
-  type Owner,
-} from './owner';
+  getActiveInvokeContextOrNull,
+  invoke,
+  newChildInvokeContext,
+  type RuntimeInvokeContext,
+} from './invoke-context';
 import { defaultScheduler, type Scheduler } from './scheduler';
 import { SubscriberKind, type BranchSubscriber } from './subscriber';
 import type { Dependency } from './source';
 import { runWithCollector } from './tracking';
-import {
-  getActiveRenderContextOrNull,
-  runWithRenderContext,
-  type RenderContext,
-} from './render-context';
 
 export type BranchConditionFn<TArgs extends unknown[] = unknown[]> = (...args: TArgs) => boolean;
 export type BranchRenderFn<TArgs extends unknown[] = unknown[]> = (
@@ -76,14 +70,13 @@ interface BranchRenderCall<TArgs extends unknown[]> {
   args: TArgs;
 }
 
+interface BranchRenderRun<TArgs extends unknown[]> extends BranchRenderCall<TArgs> {
+  invokeContext: RuntimeInvokeContext | null;
+}
+
 interface BranchConditionRun<TArgs extends unknown[]> {
   subscription: BranchSubscription<TArgs>;
   condition: BranchConditionFn<TArgs>;
-}
-
-interface BranchMountRun<TArgs extends unknown[]> {
-  branch: Branch<TArgs>;
-  renderer: BranchRenderFn<TArgs>;
 }
 
 export class Branch<TArgs extends unknown[] = unknown[]> {
@@ -97,15 +90,15 @@ export class Branch<TArgs extends unknown[] = unknown[]> {
     readonly then: BranchRenderer<TArgs>,
     readonly otherwise: BranchRenderer<TArgs> | undefined,
     readonly order: number,
-    readonly parentOwner: Owner | null,
-    readonly renderContext: RenderContext | null,
+    readonly invokeContext: RuntimeInvokeContext | null,
     mountedBranch: BranchState | undefined,
     readonly container?: Container
   ) {
     this.currentBranch = mountedBranch ?? null;
     // Resumed branch DOM already exists; create its child owner now so a later
     // branch switch can dispose subscriptions restored under that mounted branch.
-    this.currentOwner = mountedBranch === undefined ? null : runWithOwner(parentOwner, createOwner);
+    this.currentOwner =
+      mountedBranch === undefined ? null : newChildInvokeContext(invokeContext).owner;
   }
 
   dispose(): void {
@@ -211,8 +204,7 @@ export function createBranch<TArgs extends unknown[]>(
       then,
       otherwise,
       options?.order ?? 0,
-      getActiveOwner(),
-      getActiveRenderContextOrNull(),
+      getActiveInvokeContextOrNull(),
       options?.mountedBranch,
       options?.container
     ),
@@ -247,8 +239,7 @@ export function createBranchQrlSubscriber<TArgs extends unknown[]>(
       branchQrl.thenQrl,
       branchQrl.elseQrl,
       options?.order ?? 0,
-      getActiveOwner(),
-      getActiveRenderContextOrNull(),
+      getActiveInvokeContextOrNull(),
       options?.mountedBranch,
       branchQrl.container
     ),
@@ -276,7 +267,7 @@ function runBranchSubscription<TArgs extends unknown[]>(
   subscription: BranchSubscription<TArgs>
 ): ValueOrPromise<void> {
   const branch = subscription.branch;
-  const condition = resolveBranchHandler(branch.condition, branch.container);
+  const condition = resolveBranchHandler(branch.condition, getBranchContainer(branch));
 
   if (isPromise(condition)) {
     return condition.then((fn) => {
@@ -291,7 +282,7 @@ function runBranchCondition<TArgs extends unknown[]>(
   subscription: BranchSubscription<TArgs>,
   condition: BranchConditionFn<TArgs>
 ): ValueOrPromise<void> {
-  const value = runWithRenderContext(subscription.branch.renderContext, runTrackedBranchCondition, {
+  const value = invoke(subscription.branch.invokeContext, runTrackedBranchCondition, {
     subscription,
     condition,
   });
@@ -321,8 +312,8 @@ function setBranchState<TArgs extends unknown[]>(
 
   const renderer =
     nextBranch === BranchState.Then
-      ? resolveBranchHandler(branch.then, branch.container)
-      : resolveOptionalBranchHandler(branch.otherwise, branch.container);
+      ? resolveBranchHandler(branch.then, getBranchContainer(branch))
+      : resolveOptionalBranchHandler(branch.otherwise, getBranchContainer(branch));
 
   if (renderer === undefined) {
     branch.range.replace(EMPTY_NODES);
@@ -342,12 +333,13 @@ function mountBranch<TArgs extends unknown[]>(
   branch: Branch<TArgs>,
   renderer: BranchRenderFn<TArgs>
 ): void {
-  const owner = runWithOwner(branch.parentOwner, createOwner);
-  branch.currentOwner = owner;
+  const invokeContext = newChildInvokeContext(branch.invokeContext);
+  branch.currentOwner = invokeContext.owner;
 
-  const nodes = runWithOwner(owner, runBranchRendererWithContext, {
-    branch,
-    renderer,
+  const nodes = runWithCollector(null, runBranchRenderer, {
+    invokeContext,
+    fn: renderer,
+    args: branch.args,
   });
 
   if (isPromise(nodes)) {
@@ -366,12 +358,12 @@ function runTrackedBranchCondition<TArgs extends unknown[]>(
   });
 }
 
-function runBranchRendererWithContext<TArgs extends unknown[]>(
-  run: BranchMountRun<TArgs>
+function runBranchRenderer<TArgs extends unknown[]>(
+  run: BranchRenderRun<TArgs>
 ): readonly Node[] | void {
-  return runWithRenderContext(run.branch.renderContext, callBranchRenderer, {
-    fn: run.renderer,
-    args: run.branch.args,
+  return invoke(run.invokeContext, callBranchRenderer, {
+    fn: run.fn,
+    args: run.args,
   });
 }
 
@@ -396,6 +388,10 @@ function resolveOptionalBranchHandler<TFn>(
   }
 
   return resolveBranchHandler(handler, container);
+}
+
+function getBranchContainer<TArgs extends unknown[]>(branch: Branch<TArgs>): Container | undefined {
+  return branch.container ?? branch.invokeContext?.container;
 }
 
 function callBranchCondition<TArgs extends unknown[]>(call: BranchConditionCall<TArgs>): boolean {

@@ -75,15 +75,18 @@ export {
   type ComponentRenderOutput,
 } from './component';
 export {
-  createChildRenderContext,
-  getActiveRenderContext,
-  getActiveRenderContextOrNull,
-  runWithRenderContext,
-  type ChildRenderContextOptions,
+  getActiveInvokeContext,
+  getActiveInvokeContextOrNull,
+  invoke,
+  invokeApply,
+  newChildInvokeContext,
+  newInvokeContext,
+  type ChildInvokeContextOptions,
   type ContextScope,
-  type RenderContext,
+  type NewInvokeContextOptions,
+  type RuntimeInvokeContext,
   type SlotScope,
-} from './render-context';
+} from './invoke-context';
 export {
   Task,
   TaskSubscription,

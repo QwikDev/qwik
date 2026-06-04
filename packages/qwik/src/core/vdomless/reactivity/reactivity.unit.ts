@@ -34,14 +34,15 @@ import {
   type Owner,
 } from './owner';
 import {
-  createChildRenderContext,
-  getActiveRenderContext,
-  getActiveRenderContextOrNull,
-  runWithRenderContext,
+  getActiveInvokeContext,
+  getActiveInvokeContextOrNull,
+  invoke,
+  newChildInvokeContext,
+  newInvokeContext,
   type ContextScope,
-  type RenderContext,
+  type RuntimeInvokeContext,
   type SlotScope,
-} from './render-context';
+} from './invoke-context';
 import { Phase, Scheduler } from './scheduler';
 import { createSignal } from './signal';
 import {
@@ -833,10 +834,11 @@ describe('vdomless reactivity', () => {
     const text = createText();
     const node = createNode('component');
     let nodes!: readonly Node[];
+    let effect!: DomSubscriber;
 
     runWithOwner(owner, () => {
       nodes = createComponent({ source, text }, (props) => {
-        const effect = createTextNodeEffect(props.text, props.source, { scheduler });
+        effect = createTextNodeEffect(props.text, props.source, { scheduler });
         scheduler.notify(effect);
         return [node];
       });
@@ -845,7 +847,8 @@ describe('vdomless reactivity', () => {
 
     expect(nodes).toEqual([node]);
     expect(text.data).toBe('mounted');
-    expect(owner.subscribers).not.toBeNull();
+    expect(owner.childOwners).toHaveLength(1);
+    expect(owner.childOwners![0].subscribers).toEqual([effect]);
     expect(source.subs).not.toBeNull();
 
     disposeOwner(owner);
@@ -880,94 +883,145 @@ describe('vdomless reactivity', () => {
       });
     }).toThrow('render failed');
 
-    expect(effect.flags).toBe(ReactiveFlags.None);
-
-    disposeOwner(owner);
-
     expect(effect.flags).toBe(ReactiveFlags.Disposed);
+    expect(owner.childOwners).toBeNull();
   });
 
-  it('creates child render contexts for component renderers', () => {
+  it('creates child invoke contexts for component renderers', () => {
     const contextScope: ContextScope = {
       id: 'context',
       parent: null,
       values: new Map(),
     };
-    const parentContext: RenderContext = {
-      parent: null,
-      idPrefix: 'parent-',
-      contextScope,
-      localContextScope: null,
-      slotScope: null,
-    };
+    const parentOwner = createOwner();
+    const container = {} as Container;
     const slotScope: SlotScope = {
       id: 'slot',
       slots: new Map(),
     };
-    let activeContext!: RenderContext;
+    const parentContext = newInvokeContext({
+      owner: parentOwner,
+      container,
+      idPrefix: 'parent-',
+      contextScope,
+      slotScope,
+    });
+    let activeContext!: RuntimeInvokeContext;
 
-    const nodes = runWithRenderContext(parentContext, () =>
+    const nodes = invoke(parentContext, () =>
       createComponent(
         null,
         () => {
-          activeContext = getActiveRenderContext();
+          activeContext = getActiveInvokeContext();
         },
         {
           idPrefix: 'child-',
-          slotScope,
         }
       )
     );
 
     expect(nodes).toEqual([]);
-    expect(activeContext.parent).toBe(parentContext);
+    expect(activeContext.owner).not.toBe(parentOwner);
+    expect(activeContext.owner!.parent).toBe(parentOwner);
+    expect(activeContext.container).toBe(container);
     expect(activeContext.idPrefix).toBe('child-');
     expect(activeContext.contextScope).toBe(contextScope);
     expect(activeContext.localContextScope).toBeNull();
     expect(activeContext.slotScope).toBe(slotScope);
   });
 
-  it('restores render context after throw', () => {
-    const outerContext = createChildRenderContext(null, { idPrefix: 'outer-' });
-    const innerContext = createChildRenderContext(outerContext, { idPrefix: 'inner-' });
+  it('creates child invoke contexts with inherited fields and a new owner', () => {
+    const parentOwner = createOwner();
+    const contextScope: ContextScope = {
+      id: 'context',
+      parent: null,
+      values: new Map(),
+    };
+    const localContextScope: ContextScope = {
+      id: 'local',
+      parent: contextScope,
+      values: new Map(),
+    };
+    const slotScope: SlotScope = {
+      id: 'slot',
+      slots: new Map(),
+    };
+    const container = {} as Container;
+    const parentContext = newInvokeContext({
+      owner: parentOwner,
+      container,
+      idPrefix: 'parent-',
+      contextScope,
+      localContextScope,
+      slotScope,
+    });
 
-    runWithRenderContext(outerContext, () => {
-      expect(getActiveRenderContext()).toBe(outerContext);
+    const childContext = newChildInvokeContext(parentContext);
+
+    expect(childContext.owner!.parent).toBe(parentOwner);
+    expect(childContext.container).toBe(container);
+    expect(childContext.idPrefix).toBe('parent-');
+    expect(childContext.contextScope).toBe(contextScope);
+    expect(childContext.localContextScope).toBeNull();
+    expect(childContext.slotScope).toBe(slotScope);
+  });
+
+  it('restores invoke context after throw', () => {
+    const outerContext = newInvokeContext({ idPrefix: 'outer-' });
+    const innerContext = newInvokeContext({ idPrefix: 'inner-' });
+
+    invoke(outerContext, () => {
+      expect(getActiveInvokeContext()).toBe(outerContext);
 
       expect(() => {
-        runWithRenderContext(innerContext, () => {
-          expect(getActiveRenderContext()).toBe(innerContext);
+        invoke(innerContext, () => {
+          expect(getActiveInvokeContext()).toBe(innerContext);
           throw new Error('boom');
         });
       }).toThrow('boom');
 
-      expect(getActiveRenderContext()).toBe(outerContext);
+      expect(getActiveInvokeContext()).toBe(outerContext);
     });
 
-    expect(getActiveRenderContextOrNull()).toBeNull();
+    expect(getActiveInvokeContextOrNull()).toBeNull();
   });
 
-  it('restores branch render contexts before creating components', async () => {
+  it('restores branch invoke contexts before creating components', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
-    const branchContext = createChildRenderContext(null, { idPrefix: 'branch-' });
+    const rootOwner = createOwner();
+    const contextScope: ContextScope = {
+      id: 'branch-context',
+      parent: null,
+      values: new Map(),
+    };
+    const slotScope: SlotScope = {
+      id: 'branch-slot',
+      slots: new Map(),
+    };
+    const branchContext = newInvokeContext({
+      owner: rootOwner,
+      idPrefix: 'branch-',
+      contextScope,
+      slotScope,
+    });
     const visible = createSignal(true);
     const branchNode = createNode('branch');
     const componentNode = createNode('component');
     const { range, replacements } = createBranchRange();
-    let conditionContext: RenderContext | null = null;
-    let componentContext!: RenderContext;
+    let conditionContext: RuntimeInvokeContext | null = null;
+    let componentContext!: RuntimeInvokeContext;
 
-    const branch = runWithRenderContext(branchContext, () =>
+    const branch = invoke(branchContext, () =>
       createBranch<[typeof visible]>(
         range,
         [visible],
         (source) => {
-          conditionContext = getActiveRenderContextOrNull();
+          conditionContext = getActiveInvokeContextOrNull();
           return source.value;
         },
         () => {
           const nodes = createComponent(null, () => {
-            componentContext = getActiveRenderContext();
+            componentContext = getActiveInvokeContext();
             return [componentNode];
           });
           return nodes.length === 0 ? [branchNode] : nodes;
@@ -981,8 +1035,10 @@ describe('vdomless reactivity', () => {
     await scheduler.flushInteraction();
 
     expect(conditionContext).toBe(branchContext);
-    expect(componentContext.parent).toBe(branchContext);
+    expect(componentContext.owner!.parent).toBe(branch.branch.currentOwner);
     expect(componentContext.idPrefix).toBe('branch-');
+    expect(componentContext.contextScope).toBe(contextScope);
+    expect(componentContext.slotScope).toBe(slotScope);
     expect(replacements).toEqual([[componentNode]]);
   });
 

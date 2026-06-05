@@ -25,6 +25,7 @@ import type { RequestEventInternal } from './request-event-core';
 import { loaderHandler } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
 import { actionHandler } from './handlers/action-handler';
+import { IsQLoader, QLoaderId } from './request-path';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
 
 interface ResolveRequestHandlersDeps {
@@ -96,7 +97,8 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       requestHandlers,
       routeModules,
       isPageRoute,
-      method
+      method,
+      isPageRoute
     );
     const routeName = route.$routeName$;
     if (
@@ -143,52 +145,19 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     requestHandlers: RequestHandler[],
     routeModules: RouteModule[],
     collectActions: boolean,
-    method: string
+    method: string,
+    guardPageHandlersForLoader = false
   ) {
-    for (const routeModule of routeModules) {
-      if (typeof routeModule.onRequest === 'function') {
-        requestHandlers.push(routeModule.onRequest);
-      } else if (Array.isArray(routeModule.onRequest)) {
-        requestHandlers.push(...routeModule.onRequest);
-      }
-
-      let methodReqHandler: RequestHandler | RequestHandler[] | undefined;
-      switch (method) {
-        case 'GET': {
-          methodReqHandler = routeModule.onGet;
-          break;
-        }
-        case 'POST': {
-          methodReqHandler = routeModule.onPost;
-          break;
-        }
-        case 'PUT': {
-          methodReqHandler = routeModule.onPut;
-          break;
-        }
-        case 'PATCH': {
-          methodReqHandler = routeModule.onPatch;
-          break;
-        }
-        case 'DELETE': {
-          methodReqHandler = routeModule.onDelete;
-          break;
-        }
-        case 'OPTIONS': {
-          methodReqHandler = routeModule.onOptions;
-          break;
-        }
-        case 'HEAD': {
-          methodReqHandler = routeModule.onHead;
-          break;
-        }
-      }
-
-      if (typeof methodReqHandler === 'function') {
-        requestHandlers.push(methodReqHandler);
-      } else if (Array.isArray(methodReqHandler)) {
-        requestHandlers.push(...methodReqHandler);
-      }
+    for (let i = 0; i < routeModules.length; i++) {
+      const routeModule = routeModules[i];
+      const moduleHandlers = getModuleRequestHandlers(routeModule, method);
+      // In a page route, the last route module is the exact page/index module.
+      const shouldGuardPageHandlers = guardPageHandlersForLoader && i === routeModules.length - 1;
+      requestHandlers.push(
+        ...(shouldGuardPageHandlers
+          ? moduleHandlers.map((handler) => guardPageHandlerForLoader(routeModule, handler))
+          : moduleHandlers)
+      );
 
       if (collectActions) {
         for (const module of Object.values(routeModule)) {
@@ -202,6 +171,85 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         }
       }
     }
+  }
+
+  function getModuleRequestHandlers(routeModule: RouteModule, method: string): RequestHandler[] {
+    const handlers: RequestHandler[] = [];
+    addRequestHandlers(handlers, routeModule.onRequest);
+
+    let methodReqHandler: RequestHandler | RequestHandler[] | undefined;
+    switch (method) {
+      case 'GET': {
+        methodReqHandler = routeModule.onGet;
+        break;
+      }
+      case 'POST': {
+        methodReqHandler = routeModule.onPost;
+        break;
+      }
+      case 'PUT': {
+        methodReqHandler = routeModule.onPut;
+        break;
+      }
+      case 'PATCH': {
+        methodReqHandler = routeModule.onPatch;
+        break;
+      }
+      case 'DELETE': {
+        methodReqHandler = routeModule.onDelete;
+        break;
+      }
+      case 'OPTIONS': {
+        methodReqHandler = routeModule.onOptions;
+        break;
+      }
+      case 'HEAD': {
+        methodReqHandler = routeModule.onHead;
+        break;
+      }
+    }
+
+    addRequestHandlers(handlers, methodReqHandler);
+
+    return handlers;
+  }
+
+  function addRequestHandlers(
+    handlers: RequestHandler[],
+    handler: RequestHandler | RequestHandler[] | undefined
+  ) {
+    if (typeof handler === 'function') {
+      handlers.push(handler);
+    } else if (Array.isArray(handler)) {
+      handlers.push(...handler);
+    }
+  }
+
+  function guardPageHandlerForLoader(
+    routeModule: RouteModule,
+    handler: RequestHandler
+  ): RequestHandler {
+    return (requestEv) => {
+      if (requestEv.sharedMap.has(IsQLoader)) {
+        const loaderId = requestEv.sharedMap.get(QLoaderId);
+        if (!moduleHasLoader(routeModule, loaderId)) {
+          return;
+        }
+      }
+      return handler(requestEv);
+    };
+  }
+
+  function moduleHasLoader(routeModule: RouteModule, loaderId: unknown): boolean {
+    if (typeof loaderId !== 'string') {
+      return false;
+    }
+    for (const value of Object.values(routeModule)) {
+      if (checkBrand(value, 'server_loader') && (value as LoaderInternal).__id === loaderId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   const checkBrand = (obj: any, brand: string) => {

@@ -64,7 +64,7 @@ const ssrRenderSuspenseStream = (
   };
   return ssrRenderToDom(jsx, {
     raw: opts.raw,
-    debug: opts.debug,
+    debug: opts.debug ?? debug,
     stream,
     streaming,
     resume: opts.resume,

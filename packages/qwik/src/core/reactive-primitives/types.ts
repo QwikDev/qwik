@@ -212,6 +212,7 @@ export class EffectSubscription {
 
 export type EffectBackRef = SignalImpl | StoreTarget | PropsProxy;
 
+/** @internal */
 export const enum EffectProperty {
   COMPONENT = ':',
   VNODE = '.',
@@ -281,6 +282,7 @@ export const STORE_ALL_PROPS = Symbol('store.all');
 
 export type StoreTarget = Record<string | symbol, any>;
 
+/** @internal */
 export const enum StoreFlags {
   NONE = 0,
   RECURSIVE = 1,

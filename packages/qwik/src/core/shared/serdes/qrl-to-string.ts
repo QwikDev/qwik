@@ -11,6 +11,7 @@ import {
 import { isSyncQrl } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
 import type { Container } from '../types';
+import type { SSRWriteChunk } from '../../ssr/ssr-types';
 
 /** @internal */
 export function qrlToString(
@@ -95,6 +96,37 @@ export function qrlToString(
     qrlStringInline += `#${captureDeltas}`;
   }
   return qrlStringInline;
+}
+
+/** @internal */
+export function qrlToChunks(
+  serializationContext: SerializationContext,
+  qrl: QRLInternal | SyncQRLInternal
+): string | SSRWriteChunk[] {
+  const [chunk, symbol, captures] = qrlToString(serializationContext, qrl, true);
+  const prefix = `${chunk}#${symbol}`;
+  if (!captures) {
+    return prefix;
+  }
+  const chunks: SSRWriteChunk[] = [prefix, '#'];
+  let previousCaptureId = 0;
+  let start = 0;
+  for (let i = 0; i <= captures.length; i++) {
+    if (i === captures.length || captures[i] === ' ') {
+      if (i > start) {
+        const captureId = previousCaptureId + Number(captures.slice(start, i));
+        if (start > 0) {
+          chunks.push(' ');
+          chunks.push({ id: captureId, base: previousCaptureId });
+        } else {
+          chunks.push(captureId);
+        }
+        previousCaptureId = captureId;
+      }
+      start = i + 1;
+    }
+  }
+  return chunks;
 }
 
 export function createQRLWithBackChannel(

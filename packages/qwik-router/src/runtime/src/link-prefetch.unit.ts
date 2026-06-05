@@ -2,13 +2,13 @@ import { createDocument } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createLinkPrefetchObserver, resetLinkPrefetchState } from './link-prefetch';
 
-const { loadClientDataMock, preloadRouteBundlesMock } = vi.hoisted(() => ({
-  loadClientDataMock: vi.fn(),
+const { prefetchRouteMock, preloadRouteBundlesMock } = vi.hoisted(() => ({
+  prefetchRouteMock: vi.fn(),
   preloadRouteBundlesMock: vi.fn(),
 }));
 
-vi.mock('./use-endpoint', () => ({
-  loadClientData: loadClientDataMock,
+vi.mock('./prefetch-route', () => ({
+  prefetchRoute: prefetchRouteMock,
 }));
 
 vi.mock('./client-navigate', () => ({
@@ -54,6 +54,21 @@ const createAnchor = (href: string, mode: string) => {
   return anchor;
 };
 
+const manifestHash = 'test-manifest';
+
+const createObserver = () => createLinkPrefetchObserver(manifestHash);
+
+const expectPrefetchRouteCall = (
+  callIndex: number,
+  pathname: string,
+  ...expectedArgs: unknown[]
+) => {
+  const [url, ...args] = prefetchRouteMock.mock.calls[callIndex];
+  expect(url).toBeInstanceOf(URL);
+  expect((url as URL).pathname).toBe(pathname);
+  expect(args).toEqual(expectedArgs);
+};
+
 describe('link prefetch observer', () => {
   beforeEach(() => {
     const document = createDocument();
@@ -63,7 +78,7 @@ describe('link prefetch observer', () => {
     vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
     MockIntersectionObserver.instances = [];
     resetLinkPrefetchState();
-    loadClientDataMock.mockClear();
+    prefetchRouteMock.mockClear();
     preloadRouteBundlesMock.mockClear();
   });
 
@@ -74,25 +89,21 @@ describe('link prefetch observer', () => {
   it('prefetches route bundles and visible route data according to the mode', () => {
     const anchor = createAnchor('http://localhost/next/', 'bd');
 
-    const cleanup = createLinkPrefetchObserver();
+    const cleanup = createObserver();
     const observer = MockIntersectionObserver.instances[0];
     observer.trigger(anchor);
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
     expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next/');
-    expect(loadClientDataMock).toHaveBeenCalledTimes(1);
-    expect(loadClientDataMock).toHaveBeenCalledWith(expect.any(URL), {
-      preloadRouteBundles: false,
-      isPrefetch: true,
-    });
-    expect(loadClientDataMock.mock.calls[0][0].pathname).toBe('/next/');
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false);
     cleanup();
   });
 
   it('does not prefetch the same anchor twice before reset', () => {
     const anchor = createAnchor('http://localhost/next/', 'b');
 
-    const cleanup = createLinkPrefetchObserver();
+    const cleanup = createObserver();
     const observer = MockIntersectionObserver.instances[0];
     observer.trigger(anchor);
     observer.trigger(anchor);
@@ -105,12 +116,12 @@ describe('link prefetch observer', () => {
   it('allows the same anchor to prefetch again after reset', () => {
     const anchor = createAnchor('http://localhost/next/', 'b');
 
-    const cleanup = createLinkPrefetchObserver();
+    const cleanup = createObserver();
     MockIntersectionObserver.instances[0].trigger(anchor);
     cleanup();
 
     resetLinkPrefetchState();
-    const cleanupAfterReset = createLinkPrefetchObserver();
+    const cleanupAfterReset = createObserver();
     MockIntersectionObserver.instances[1].trigger(anchor);
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(2);
@@ -120,7 +131,7 @@ describe('link prefetch observer', () => {
   it('disconnects the observer on cleanup', () => {
     createAnchor('http://localhost/next/', 'b');
 
-    const cleanup = createLinkPrefetchObserver();
+    const cleanup = createObserver();
     const observer = MockIntersectionObserver.instances[0];
     cleanup();
 
@@ -131,18 +142,18 @@ describe('link prefetch observer', () => {
     const current = createAnchor('http://localhost/current/?q=1', 'bd');
     const crossOrigin = createAnchor('https://example.com/next/', 'bd');
 
-    const cleanup = createLinkPrefetchObserver();
+    const cleanup = createObserver();
     const observer = MockIntersectionObserver.instances[0];
     observer.trigger(current);
     observer.trigger(crossOrigin);
 
     vi.stubGlobal('navigator', { connection: { saveData: true } });
     const saveData = createAnchor('http://localhost/save-data/', 'bd');
-    const cleanupSaveData = createLinkPrefetchObserver();
+    const cleanupSaveData = createObserver();
     MockIntersectionObserver.instances[1].trigger(saveData);
 
     expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
-    expect(loadClientDataMock).not.toHaveBeenCalled();
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
     cleanup();
     cleanupSaveData();
   });

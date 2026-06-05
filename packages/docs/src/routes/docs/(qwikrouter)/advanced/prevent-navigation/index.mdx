@@ -1,5 +1,5 @@
 ---
-title: "\U0001F9EA usePreventNavigate | Experimental"
+title: "usePreventNavigate"
 description: Prevent navigation when your application has unsaved data.
 contributors:
   - wmertens
@@ -7,13 +7,9 @@ updated_at: '2024-09-17T00:00:00Z'
 created_at: '2024-09-17T00:00:00Z'
 ---
 
-This feature is **EXPERIMENTAL**. We invite you to try it out and provide feedback via the [RFC issue](https://github.com/QwikDev/qwik-evolution/issues/15).
-
-To use it, you must add `experimental: ['preventNavigate']` to your `qwikVite` plugin options.
-
 # Preventing navigation
 
-If the user can lose state by navigating away from the page, you can use `usePreventNavigate(callback)` to conditionally prevent the navigation.
+If the user can lose state by navigating away from the page, you can use `usePreventNavigate$()` to conditionally prevent the navigation.
 
 The callback will be called with the URL that the user is trying to navigate to. If the callback returns `true`, the navigation will be prevented.
 

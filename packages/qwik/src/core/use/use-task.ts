@@ -21,6 +21,7 @@ import { useSequentialScope } from './use-sequential-scope';
 import { cleanupAsyncDestroyable } from './utils/destroyable';
 import { cleanupFn, trackFn } from './utils/tracker';
 
+/** @internal */
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
   TASK = 1 << 1,
@@ -225,6 +226,7 @@ export const runTask = (
   return result;
 };
 
+/** @internal */
 export class Task<T = unknown, B = T> extends BackRef {
   $destroyPromise$: Promise<void> | undefined;
   $taskPromise$: Promise<void> | null = null;

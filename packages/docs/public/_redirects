@@ -72,6 +72,8 @@
 /docs/components/projection/ /docs/core/slots/ 308
 /docs/components/resource/ /docs/core/state/ 308
 /docs/cookbook/re-exporting-loaders/ /docs/re-exporting-loaders/ 308
+/docs/labs/usePreventNavigate /docs/advanced/prevent-navigation/ 308
+/docs/labs/usePreventNavigate/ /docs/advanced/prevent-navigation/ 308
 
 /docs/advanced/i18n/ /docs/integrations/i18n/ 308
 /docs/components/inline-components/ /docs/components/overview/ 308

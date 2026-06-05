@@ -190,6 +190,28 @@ describe('serializer v2', () => {
     });
   });
 
+  describe('state scripts', () => {
+    it('should only deserialize state owned by the current container', () => {
+      const document = createDocument();
+      document.body.innerHTML = `
+        <div q:container="paused" q:locale="" q:base="" q:manifest-hash="" q:instance="root" :>
+          <section :>
+            <container q:container="paused" q:locale="" q:base="" q:manifest-hash="" q:instance="nested" :>
+              <script type="qwik/state" q:instance="nested" :>[0,"nested"]</script>
+            </container>
+          </section>
+          <script type="qwik/state" q:instance="root" :>[0,"root"]</script>
+        </div>
+      `;
+
+      const rootContainer = getDomContainer(document.body.firstElementChild!);
+      const nestedContainer = getDomContainer(document.querySelector('container')!);
+
+      expect(rootContainer.$getObjectById$(0)).toBe('root');
+      expect(nestedContainer.$getObjectById$(0)).toBe('nested');
+    });
+  });
+
   describe('object serialization', () => {
     it('should serialize object', async () => {
       const container = await withContainer((ssrContainer) => {
@@ -535,15 +557,15 @@ describe('serializer v2', () => {
       ).rejects.toThrowError(
         [
           `Code(Q12): SsrError(tag): Error found in file: ${filePath}`,
-          `HTML rules do not allow &#39;&lt;div&gt;&#39; at this location.`,
+          `HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
-          `  Offending tag: &lt;div&gt;`,
+          `  Offending tag: <div>`,
           `  Existing tag context:`,
-          `    &lt;html&gt; [html content] -&gt; &lt;head&gt;, &lt;body&gt;`,
-          `     &lt;body&gt; [body content] -&gt; all tags allowed here`,
-          `      &lt;p&gt; [phrasing content] -&gt; &lt;a&gt;, &lt;b&gt;, &lt;img&gt;, &lt;input&gt; ... (no &lt;div&gt;, &lt;p&gt; ...)`,
-          `       &lt;b&gt;`,
-          `        &lt;div&gt; &lt;= is not allowed as a child of phrasing content.`,
+          `    <html> [html content] -> <head>, <body>`,
+          `     <body> [body content] -> all tags allowed here`,
+          `      <p> [phrasing content] -> <a>, <b>, <img>, <input> ... (no <div>, <p> ...)`,
+          `       <b>`,
+          `        <div> <= is not allowed as a child of phrasing content.`,
         ].join('\n')
       );
     });
@@ -558,13 +580,13 @@ describe('serializer v2', () => {
       ).rejects.toThrowError(
         [
           `Code(Q12): SsrError(tag): Error found in file: ${filePath}`,
-          `HTML rules do not allow &#39;&lt;div&gt;&#39; at this location.`,
+          `HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
-          `  Offending tag: &lt;div&gt;`,
+          `  Offending tag: <div>`,
           `  Existing tag context:`,
-          `    &lt;div&gt; [any content]`,
-          `     &lt;img&gt; [no-content element]`,
-          `      &lt;div&gt; &lt;= is not allowed as a child of no-content element.`,
+          `    <div> [any content]`,
+          `     <img> [no-content element]`,
+          `      <div> <= is not allowed as a child of no-content element.`,
         ].join('\n')
       );
     });

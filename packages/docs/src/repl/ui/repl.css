@@ -185,6 +185,21 @@
   background: #ffffff;
 }
 
+.repl-output-section-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 16px;
+}
+
+.repl-output-section-loading-title {
+  color: var(--color-foreground-muted);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
 .output-panel-section-body .relative {
   background: transparent;
 }

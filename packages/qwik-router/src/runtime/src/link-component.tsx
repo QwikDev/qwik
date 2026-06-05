@@ -1,13 +1,13 @@
 import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
-import { preloadRouteBundles } from './client-navigate';
-import { loadClientData } from './use-endpoint';
-import { useLocation, useNavigate } from './use-functions';
+import { prefetchRoute } from './prefetch-route';
+import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
+  const head = useDocumentHead();
   const originalHref = props.href;
   const {
     onClick$,
@@ -54,10 +54,7 @@ export const Link = component$<LinkProps>((props) => {
 
         if (elm && elm.href) {
           const url = new URL(elm.href);
-          loadClientData(url, {
-            preloadRouteBundles: false,
-            isPrefetch: true,
-          });
+          prefetchRoute(url, true, 0.8, head.manifestHash, false);
         }
       })
     : null;
@@ -96,7 +93,7 @@ export const Link = component$<LinkProps>((props) => {
 
   const handlePreload = $((_: any, elm: HTMLAnchorElement) => {
     const url = new URL(elm.href);
-    preloadRouteBundles(url.pathname, 1);
+    prefetchRoute(url, false, 1);
   });
 
   return (

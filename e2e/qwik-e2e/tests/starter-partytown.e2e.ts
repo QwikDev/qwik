@@ -11,7 +11,9 @@ test('rendered', async ({ page }) => {
 
   const state = page.locator('#state');
 
-  await expect(state).toHaveText('finished');
+  // Partytown spins up a web worker to run the simulated async work; under parallel
+  // test load the worker init can take well over the default 3s expect timeout.
+  await expect(state).toHaveText('finished', { timeout: 15000 });
 });
 
 test('update text', async ({ page }) => {

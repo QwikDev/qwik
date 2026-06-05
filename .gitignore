@@ -18,11 +18,11 @@ node_modules
 # Artifacts
 tsc-out
 dist
-dist-dev
+/dist-dev
 external
 lib
 tsdoc-metadata.json
-target
+/target
 
 # IDE and local environment
 .idea

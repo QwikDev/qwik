@@ -13,6 +13,7 @@ export const NODE_PROPS_DATA_KEY = ':nodeProps';
 export const NODE_DIFF_DATA_KEY = ':nodeDiff';
 export const ERROR_DATA_KEY = ':errorData';
 export const HOST_SIGNAL = ':signal';
+export const INLINE_COMPONENT_DATA_KEY = ':inlineComponentData';
 
 export interface CursorData {
   afterFlushTasks: Task[] | null;
@@ -47,6 +48,10 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
   removeCursorFromQueue(oldCursor, container);
   const oldCursorData = getCursorData(oldCursor)!;
 
+  mergeCursorData(newCursorData, oldCursorData);
+}
+
+export function mergeCursorData(newCursorData: CursorData, oldCursorData: CursorData): void {
   if (oldCursorData === newCursorData) {
     // same cursor data, no need to merge
     return;
@@ -72,6 +77,17 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
       newCursorData.extraPromises = oldExtraPromises;
     }
   }
+  mergeCursorJournalAndBoundaries(newCursorData, oldCursorData);
+}
+
+export function mergeCursorJournalAndBoundaries(
+  newCursorData: CursorData,
+  oldCursorData: CursorData
+): void {
+  if (oldCursorData === newCursorData) {
+    return;
+  }
+
   // merge journal
   const oldJournal = oldCursorData.journal;
   if (oldJournal && oldJournal.length > 0) {

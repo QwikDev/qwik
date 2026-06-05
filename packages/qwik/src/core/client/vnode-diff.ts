@@ -10,9 +10,10 @@ import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
-import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
-import type { Cursor } from '../shared/cursor/cursor';
+import { isCursor, type Cursor } from '../shared/cursor/cursor';
+import { abandonCursor } from '../shared/cursor/cursor-queue';
+import { getCursorData } from '../shared/cursor/cursor-props';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
@@ -28,7 +29,7 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { HostElement, QElement, qWindow } from '../shared/types';
+import type { QElement, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
@@ -51,7 +52,7 @@ import {
   debugStyleScopeIdPrefixAttr,
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
-import { isSlotProp } from '../shared/utils/prop';
+import { isSlotProp, resolveSlotName } from '../shared/utils/prop';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isArray, isObject, type ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
@@ -100,6 +101,7 @@ import {
   type VNodeJournal,
 } from './vnode-utils';
 import { isObjectEmpty } from '../shared/utils/objects';
+import { setInlineComponentData } from '../shared/cursor/chore-execution';
 
 export interface DiffContext {
   $container$: ClientContainer;
@@ -733,7 +735,7 @@ function expectSlot(diffContext: DiffContext) {
   const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
   const vHost = vnode_getProjectionParentComponent(diffContext.$vParent$);
 
-  const slotNameKey = getSlotNameKey(diffContext, vHost);
+  const slotNameKey = resolveSlotName(vHost, jsxNode, diffContext.$container$);
   const cursorBoundary =
     directGetPropsProxyProp<CursorBoundary | null, any>(jsxNode, QCursorBoundary) || null;
 
@@ -809,23 +811,6 @@ function expectSlot(diffContext: DiffContext) {
     }
   }
   return true;
-}
-
-function getSlotNameKey(diffContext: DiffContext, vHost: VNode | null) {
-  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
-  const constProps = jsxNode.constProps;
-  if (constProps && typeof constProps == 'object' && _hasOwnProperty.call(constProps, 'name')) {
-    const constValue = constProps.name;
-    if (vHost && constValue instanceof WrappedSignalImpl) {
-      return trackSignalAndAssignHost(
-        constValue,
-        vHost,
-        EffectProperty.COMPONENT,
-        diffContext.$container$
-      );
-    }
-  }
-  return directGetPropsProxyProp(jsxNode, 'name') || QDefaultSlot;
 }
 
 function cleanupSideBuffer(diffContext: DiffContext) {
@@ -1669,7 +1654,6 @@ function expectComponent(diffContext: DiffContext, component: Function) {
       // delete the key from the side buffer if it is the same component
       deleteFromSideBuffer(diffContext, null, lookupKey);
     }
-
     if (host) {
       let componentHost: VNode | null = host;
       // Find the closest component host which has `OnRender` prop. This is need for subscriptions context.
@@ -1686,15 +1670,13 @@ function expectComponent(diffContext: DiffContext, component: Function) {
         componentHost = componentHost.parent || vnode_getProjectionParentComponent(componentHost);
       }
 
-      const jsxOutput = executeComponent(
+      setInlineComponentData(host, component, componentHost, jsxNode.props as Props | null);
+      markVNodeDirty(
         diffContext.$container$,
         host,
-        (componentHost || diffContext.$container$.rootVNode) as HostElement,
-        component as OnRenderFn<unknown>,
-        jsxNode.props
+        ChoreBits.INLINE_COMPONENT,
+        diffContext.$cursor$
       );
-
-      diffContext.$asyncQueue$.push(jsxOutput, host);
     }
   }
 }
@@ -1938,6 +1920,7 @@ export function cleanup(
   cursorRoot: VNode | null = null
 ) {
   let vCursor: VNode | null = vNode;
+  const cursorRootData = cursorRoot && isCursor(cursorRoot) ? getCursorData(cursorRoot) : null;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
     markVNodeAsDeleted(vCursor);
@@ -1946,6 +1929,9 @@ export function cleanup(
   }
   let vParent: VNode | null = null;
   do {
+    if (cursorRootData && vCursor !== cursorRoot && isCursor(vCursor)) {
+      abandonCursor(container, cursorRootData, vCursor);
+    }
     const type = vCursor.flags;
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
       clearAllEffects(container, vCursor);
@@ -1999,7 +1985,7 @@ export function cleanup(
                   projectionChild = projectionChild.nextSibling as VNode | null;
                 }
 
-                cleanupStaleUnclaimedProjection(journal, projection);
+                cleanupStaleUnclaimedProjection(container, journal, projection);
               }
             }
           }
@@ -2025,18 +2011,10 @@ export function cleanup(
          */
         const vFirstChild = vnode_getFirstChild(vCursor);
         if (vFirstChild) {
-          vnode_walkVNode(vFirstChild, (vNode) => {
-            /**
-             * Instead of an ID, we store a direct reference to the VNode. This is necessary to
-             * locate the slot's parent in a detached subtree, as the ID would become invalid.
-             */
-            if (vNode.flags & VNodeFlags.Virtual) {
-              // The QSlotParent is used to find the slot parent during scheduling
-              vNode.slotParent;
-            }
-          });
+          vnode_walkVNode(vFirstChild);
           return;
         }
+        clearProjectionFromSlotParent(container, vCursor);
       }
     } else if (type & VNodeFlags.Text) {
       markVNodeAsDeleted(vCursor);
@@ -2074,7 +2052,21 @@ export function cleanup(
   } while (true as boolean);
 }
 
-function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNode) {
+function clearProjectionFromSlotParent(container: ClientContainer, vNode: VNode) {
+  if (!vNode.slotParent) {
+    return;
+  }
+  const slotName = container.getHostProp<string>(vNode, QSlot);
+  if (slotName != null && container.getHostProp(vNode.slotParent, slotName) === vNode) {
+    vnode_setProp(vNode.slotParent, slotName, null);
+  }
+}
+
+function cleanupStaleUnclaimedProjection(
+  container: ClientContainer,
+  journal: VNodeJournal,
+  projection: VNode
+) {
   // we are removing a node where the projection would go after slot render.
   // This is not needed, so we need to cleanup still unclaimed projection
   const projectionParent = projection.parent;
@@ -2085,6 +2077,7 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
       vnode_getElementName(projectionParent as ElementVNode) === QTemplate
     ) {
       // if parent is the q:template element then projection is still unclaimed - remove it
+      clearProjectionFromSlotParent(container, projection);
       vnode_remove(journal, projectionParent as ElementVNode | VirtualVNode, projection, true);
     }
   }

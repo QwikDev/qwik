@@ -96,9 +96,7 @@ export const preloaderPre = (
     if (nonce) {
       scriptAttrs['nonce'] = nonce;
     }
-    container.openElement('script', null, scriptAttrs, null, null, null);
-    container.write(script);
-    container.closeElement();
+    container.writeScript(scriptAttrs, script);
   }
 
   const corePath = simplifyPath(base, resolvedManifest?.manifest.core);
@@ -184,9 +182,7 @@ export const includePreloader = (
     if (nonce) {
       attrs['nonce'] = nonce;
     }
-    container.openElement('script', null, attrs, null, null, null);
-    container.write(script);
-    container.closeElement();
+    container.writeScript(attrs, script);
   }
 
   return null;

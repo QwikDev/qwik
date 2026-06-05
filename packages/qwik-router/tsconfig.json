@@ -2,7 +2,6 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "@qwik.dev/optimizer": ["packages/optimizer/src"],
       "@qwik.dev/router": ["packages/qwik-router/src/runtime/src/index.ts"],
       "@qwik.dev/router/service-worker": [
         "packages/qwik-router/src/runtime/src/service-worker/index.ts"

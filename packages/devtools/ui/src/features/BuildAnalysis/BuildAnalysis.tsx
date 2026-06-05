@@ -1,7 +1,18 @@
-import { getViteClientRpc } from '@qwik.dev/devtools/kit';
-import { $, component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+import { $, component$, isBrowser, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+import { getDevtoolsRpc } from '../../devtools/rpc';
 
 const BUILD_ANALYSIS_VIEW_PATH = '/__qwik_devtools/build-analysis/report';
+
+export function getBuildAnalysisIframeSrc(version: number, origin?: string): string {
+  const baseOrigin = origin ?? (isBrowser ? location.origin : '');
+  if (!baseOrigin) {
+    return '';
+  }
+
+  const url = new URL(BUILD_ANALYSIS_VIEW_PATH, baseOrigin);
+  url.searchParams.set('v', String(version));
+  return url.href;
+}
 
 export const BuildAnalysis = component$(() => {
   const iframeVersion = useSignal(0);
@@ -19,7 +30,7 @@ export const BuildAnalysis = component$(() => {
     errorMessage.value = '';
 
     try {
-      const rpc = getViteClientRpc();
+      const rpc = await getDevtoolsRpc();
       const status = await rpc.getBuildAnalysisStatus();
 
       hasReport.value = status.exists;
@@ -65,7 +76,7 @@ export const BuildAnalysis = component$(() => {
     errorMessage.value = '';
 
     try {
-      const rpc = getViteClientRpc();
+      const rpc = await getDevtoolsRpc();
       const result = await rpc.buildBuildAnalysisReport();
 
       if (!result.success) {
@@ -140,8 +151,8 @@ export const BuildAnalysis = component$(() => {
 
           <div class="border-glass-border bg-card-item-bg min-h-0 flex-1 overflow-hidden rounded-2xl border">
             <iframe
-              key={String(iframeVersion.value)}
-              src={`${BUILD_ANALYSIS_VIEW_PATH}?v=${iframeVersion.value}`}
+              key={getBuildAnalysisIframeSrc(iframeVersion.value)}
+              src={getBuildAnalysisIframeSrc(iframeVersion.value)}
               title="Build Analysis Report"
               class="h-full min-h-[680px] w-full border-0 bg-white"
             />

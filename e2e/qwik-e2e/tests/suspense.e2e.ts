@@ -1,5 +1,14 @@
 import { test, expect, type Page } from '@playwright/test';
 
+const assertNoBrowserErrors = (page: Page) => {
+  page.on('pageerror', (err) => expect(err).toEqual(undefined));
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') {
+      expect(msg.text()).toEqual(undefined);
+    }
+  });
+};
+
 const resolveSuspense = async (page: Page, id: string, resolveName: string) => {
   await page.waitForFunction(
     (name) => typeof (globalThis as any)[name] === 'function',
@@ -10,13 +19,8 @@ const resolveSuspense = async (page: Page, id: string, resolveName: string) => {
 
 test.describe('suspense', () => {
   test.beforeEach(async ({ page }) => {
+    assertNoBrowserErrors(page);
     await page.goto('/e2e/suspense');
-    page.on('pageerror', (err) => expect(err).toEqual(undefined));
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        expect(msg.text()).toEqual(undefined);
-      }
-    });
   });
 
   function tests() {
@@ -119,11 +123,24 @@ test.describe('suspense', () => {
 
   tests();
 
-  test.describe('client rerender', () => {
+  test.describe('csr rendering', () => {
     test.beforeEach(async ({ page }) => {
       const toggleRender = page.locator('#force-rerender');
       await toggleRender.click();
       await expect(page.locator('#render-count')).toHaveText('1');
+    });
+
+    tests();
+  });
+
+  test.describe('pure csr rendering', () => {
+    test.beforeEach(async ({ page }) => {
+      const response = await page.goto('/e2e/suspense?csr=1');
+      expect(response).not.toBeNull();
+      const html = await response!.text();
+      expect(html).toContain('/e2e/build/entry.dev.js');
+      expect(html).not.toContain('single-value');
+      await expect(page.locator('#single-value')).toHaveText('value=0');
     });
 
     tests();

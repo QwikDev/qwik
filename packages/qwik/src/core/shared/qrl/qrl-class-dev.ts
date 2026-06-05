@@ -74,7 +74,7 @@ export const setupHmr = (
     return `${path}?${params.join('&')}`;
   };
 
-  document.addEventListener('qHmr' as any, (ev: CustomEvent<{ files: string[]; t: number }>) => {
+  const hmrHandler = (ev: CustomEvent<{ files: string[]; t: number }>) => {
     const files = ev.detail.files;
     const t = ev.detail.t || (document as any).__hmrT || Date.now();
     let didReload = false;
@@ -113,7 +113,6 @@ export const setupHmr = (
       }
       if (didReload) {
         lazy.$ref$ = undefined;
-        (document as any).__hmrDone = (document as any).__hmrT;
         if (lazy.qrls) {
           for (const qrlRef of lazy.qrls) {
             const qrl = qrlRef.deref();
@@ -128,5 +127,6 @@ export const setupHmr = (
         }
       }
     }
-  });
+  };
+  document.addEventListener('qHmr' as any, hmrHandler, true);
 };

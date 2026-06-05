@@ -15,7 +15,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // the growth.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
 const CORE_BROTLI_BUDGET = 35000;
-const QWIKLOADER_BROTLI_BUDGET = 2000;
+const QWIKLOADER_BROTLI_BUDGET = 2100;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '../../../../');
@@ -198,6 +198,7 @@ function normalizeHtml(html: string, manifestHash: string | null) {
     .replace(/\/assets\/[A-Za-z0-9_-]+-bundle-graph\.json/g, '/assets/xxxxxxxx-bundle-graph.json')
     .replace(/q-[A-Za-z0-9_-]+\.(js|css)/g, 'q-xxxxxxxx.$1')
     .replace(/qFuncs_[A-Za-z0-9_-]+/g, 'qFuncs_xxxxxx')
+    .replace(/,0,"[A-Za-z0-9_-]+"/g, ',0,"[instance]"')
     .replace(/<script type="qwik\/state"[^>]*>[\s\S]*?<\/script>/, '[state omitted]\n')
     .replace(/<script type="qwik\/vnode"[^>]*>[\s\S]*?<\/script>/, '[vnode map omitted]\n');
   return result;

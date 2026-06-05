@@ -2,13 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { _res, _chk, _val } from './bind-handlers';
 import { createSignal } from '../../reactive-primitives/signal.public';
 import { createDocument } from '@qwik.dev/core/testing';
-import { QContainerAttr } from '../../shared/utils/markers';
+import { QContainerAttr, QInstanceAttr } from '../../shared/utils/markers';
 import { setCaptures } from '../qrl/qrl-class';
 import { TypeIds } from '../serdes/constants';
+
+const instanceId = 'bind-handlers-unit';
+
+const createContainerDocument = () => {
+  const document = createDocument();
+  document.body.setAttribute(QContainerAttr, 'paused');
+  document.body.setAttribute(QInstanceAttr, instanceId);
+  return document;
+};
 
 const addStateRoots = (document: Document, ...roots: unknown[]) => {
   const state = document.createElement('script');
   state.setAttribute('type', 'qwik/state');
+  state.setAttribute(QInstanceAttr, instanceId);
   state.textContent = JSON.stringify(roots.flatMap((root) => [TypeIds.Plain, root]));
   document.body.appendChild(state);
 };
@@ -16,8 +26,7 @@ const addStateRoots = (document: Document, ...roots: unknown[]) => {
 describe('bind handlers', () => {
   describe('_res', () => {
     it('should handle being called with capture string without errors', () => {
-      const document = createDocument();
-      document.body.setAttribute(QContainerAttr, 'paused');
+      const document = createContainerDocument();
       const element = document.createElement('div');
       document.body.appendChild(element);
       addStateRoots(document, {}, {});
@@ -30,8 +39,7 @@ describe('bind handlers', () => {
     });
 
     it('should handle being called without capture string (as QRL)', () => {
-      const document = createDocument();
-      document.body.setAttribute(QContainerAttr, 'paused');
+      const document = createContainerDocument();
       const element = document.createElement('div');
       document.body.appendChild(element);
 
@@ -40,8 +48,7 @@ describe('bind handlers', () => {
     });
 
     it('should be a true no-op (no side effects)', () => {
-      const document = createDocument();
-      document.body.setAttribute(QContainerAttr, 'paused');
+      const document = createContainerDocument();
       const element = document.createElement('div');
       document.body.appendChild(element);
       addStateRoots(document, {});
@@ -58,8 +65,7 @@ describe('bind handlers', () => {
 
   describe('_chk', () => {
     it('should update signal with checkbox checked state', () => {
-      const document = createDocument();
-      document.body.setAttribute(QContainerAttr, 'paused');
+      const document = createContainerDocument();
       const element = document.createElement('input') as HTMLInputElement;
       element.type = 'checkbox';
       element.checked = true;
@@ -80,8 +86,7 @@ describe('bind handlers', () => {
 
   describe('_val', () => {
     it('should update signal with input value', () => {
-      const document = createDocument();
-      document.body.setAttribute(QContainerAttr, 'paused');
+      const document = createContainerDocument();
       const element = document.createElement('input') as HTMLInputElement;
       element.value = 'test value';
       document.body.appendChild(element);

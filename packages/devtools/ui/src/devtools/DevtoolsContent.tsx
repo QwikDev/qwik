@@ -1,6 +1,6 @@
 import { component$ } from '@qwik.dev/core';
 import type { AssetInfo } from '@qwik.dev/devtools/kit';
-import { IconMonitor } from '../components/Icons/Icons';
+import { IconMonitor, QwikLogo } from '../components/Icons/Icons';
 import { TabContent } from '../components/TabContent/TabContent';
 import { TabTitle } from '../components/TabTitle/TabTitle';
 import { Assets } from '../features/Assets/Assets';
@@ -56,13 +56,7 @@ export const DevtoolsContent = component$<DevtoolsContentProps>(({ state }) => {
       return (
         <TabContent>
           <div class="flex items-center gap-3" q:slot="title">
-            <img
-              width={32}
-              height={32}
-              src="https://qwik.dev/logos/qwik-logo.svg"
-              alt="Qwik Logo"
-              class="h-8 w-8"
-            />
+            <QwikLogo title="Qwik Logo" class="h-8 w-8" />
             <h1 class="text-2xl font-semibold">Qwik DevTools</h1>
           </div>
           <Overview state={state} q:slot="content" />
@@ -75,13 +69,13 @@ export const DevtoolsContent = component$<DevtoolsContentProps>(({ state }) => {
           {isExtensionMode ? (
             <ViteOnlyPlaceholder feature="Assets" q:slot="content" />
           ) : (
-            <>
+            <div class="flex flex-col gap-4" q:slot="content">
               <div class="text-muted-foreground flex gap-4 text-sm">
                 <span>Total Size: {assetSummary.totalSizeInKb} KB</span>
                 <span>Count: {assetSummary.count}</span>
               </div>
-              <Assets state={state} q:slot="content" />
-            </>
+              <Assets state={state} />
+            </div>
           )}
         </TabContent>
       );

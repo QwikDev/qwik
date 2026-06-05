@@ -44,6 +44,7 @@ import { qrlToString } from './qrl-to-string';
 import { _createDeserializeContainer } from './serdes.public';
 import { createSerializationContext } from './serialization-context';
 import { _serializationWeakRef } from './serialize';
+import { SubscriptionPatch } from './subscription-patch';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 
 const DEBUG = false;
@@ -1265,6 +1266,36 @@ describe('shared-serialization', () => {
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: true, $scopedStyleIdPrefix$: null });
     });
+    it(title(TypeIds.SubscriptionPatch), async () => {
+      const qrl = inlinedQrl(0, 's_zero') as any;
+      const signalTask = new Task(TaskFlags.TASK, 0, {} as any, qrl, null);
+      const storeTask = new Task(TaskFlags.TASK, 0, {} as any, qrl, null);
+      const signalEffect = new EffectSubscription(signalTask, EffectProperty.COMPONENT, null, null);
+      const storeEffect = new EffectSubscription(storeTask, EffectProperty.COMPONENT, null, null);
+      const objs = await serialize([
+        new SubscriptionPatch(7, new Set([signalEffect])),
+        new SubscriptionPatch(8, new Map([['count', new Set([storeEffect])]])),
+      ]);
+      const [signalPatch, storePatch] = deserialize(objs)[0] as SubscriptionPatch[];
+
+      expect(signalPatch).toBeInstanceOf(SubscriptionPatch);
+      expect(signalPatch.rootId).toBe(7);
+      expect(signalPatch.subscriptions).toBeInstanceOf(Set);
+      const restoredSignalEffect = [...(signalPatch.subscriptions as Set<EffectSubscription>)][0];
+      expect(restoredSignalEffect.consumer).toBeInstanceOf(Task);
+      expect(
+        (restoredSignalEffect.consumer as Task)[_EFFECT_BACK_REF]!.get(EffectProperty.COMPONENT)
+      ).toBe(restoredSignalEffect);
+
+      expect(storePatch).toBeInstanceOf(SubscriptionPatch);
+      expect(storePatch.rootId).toBe(8);
+      expect(storePatch.subscriptions).toBeInstanceOf(Map);
+      const restoredStoreEffects = (
+        storePatch.subscriptions as Map<string, Set<EffectSubscription>>
+      ).get('count')!;
+      expect(restoredStoreEffects.size).toBe(1);
+      expect([...restoredStoreEffects][0].consumer).toBeInstanceOf(Task);
+    });
     it(title(TypeIds.SubscriptionData) + ' const false', async () => {
       const objs = await serialize(
         new SubscriptionData({ $isConst$: false, $scopedStyleIdPrefix$: null })
@@ -1861,6 +1892,20 @@ describe('shared-serialization', () => {
     });
   });
 
+  describe('malformed JSON guards', () => {
+    it('should reject unsupported roots after writing a previous root', async () => {
+      await expect(serializeRaw('ok', Symbol('unsupported'))).rejects.toThrow(
+        'Q' + QError.serializeErrorUnknownType
+      );
+    });
+
+    it('should reject unsupported selected patch roots after writing a previous root', async () => {
+      await expect(serializePatchRaw([0, 1], 'ok', Symbol('unsupported'))).rejects.toThrow(
+        'Q' + QError.serializeErrorUnknownType
+      );
+    });
+  });
+
   describe('custom serialization', () => {
     it('should ignore noSerialize', async () => {
       const obj = { hi: true };
@@ -2061,7 +2106,33 @@ describe('serializer - internal', () => {
   });
 });
 
+async function serializeRaw(...roots: any[]): Promise<string> {
+  const sCtx = createTestSerializationContext();
+  for (let i = 0; i < roots.length; i++) {
+    sCtx.$addRoot$(roots[i]);
+  }
+  await sCtx.$serialize$();
+  return sCtx.$writer$.toString();
+}
+
+async function serializePatchRaw(rootIds: number[], ...roots: any[]): Promise<string> {
+  const sCtx = createTestSerializationContext();
+  for (let i = 0; i < roots.length; i++) {
+    sCtx.$addRoot$(roots[i]);
+  }
+  await sCtx.$serializePatch$(0, rootIds);
+  return sCtx.$writer$.toString();
+}
+
 async function serialize(...roots: any[]): Promise<any[]> {
+  const raw = await serializeRaw(...roots);
+  const objs = JSON.parse(raw);
+  // eslint-disable-next-line no-console
+  DEBUG && console.log(objs);
+  return objs;
+}
+
+function createTestSerializationContext() {
   const sCtx = createSerializationContext(
     null,
     null,
@@ -2070,14 +2141,7 @@ async function serialize(...roots: any[]): Promise<any[]> {
     new WeakMap<any, any>(),
     null!
   );
-  for (let i = 0; i < roots.length; i++) {
-    sCtx.$addRoot$(roots[i]);
-  }
-  await sCtx.$serialize$();
-  const objs = JSON.parse(sCtx.$writer$.toString());
-  // eslint-disable-next-line no-console
-  DEBUG && console.log(objs);
-  return objs;
+  return sCtx;
 }
 
 class MyCustomSerializable {

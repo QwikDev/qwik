@@ -1647,6 +1647,19 @@ LoadedRoute
 </td></tr>
 <tr><td>
 
+loaderValues
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, unknown&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 params
 
 </td><td>
@@ -1667,6 +1680,19 @@ response
 </td><td>
 
 EndpointResponse
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+routeLoaderCtx
+
+</td><td>
+
+</td><td>
+
+RouteLoaderCtx
 
 </td><td>
 
@@ -1991,7 +2017,7 @@ QwikRouterProvider: import("@qwik.dev/core").Component<QwikRouterProps>;
 <h2 id="rendereroptions">RendererOptions</h2>
 
 ```typescript
-export type RendererOptions = Omit<RenderOptions, "serverData"> & {
+export type RendererOptions = Omit<RenderToStreamOptions, "serverData"> & {
   serverData: ServerData;
 };
 ```
@@ -2003,7 +2029,10 @@ export type RendererOptions = Omit<RenderOptions, "serverData"> & {
 <h2 id="rendereroutputoptions">RendererOutputOptions</h2>
 
 ```typescript
-export type RendererOutputOptions = Omit<RenderOptions, "serverData"> & {
+export type RendererOutputOptions = Omit<
+  RenderToStreamOptions,
+  "serverData"
+> & {
   serverData: ServerData & {
     documentHead?: DocumentHeadValue;
   } & Record<string, unknown>;
@@ -2029,6 +2058,16 @@ export type ResolvedDocumentHead<
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="routeaction_">routeAction$</h2>
+
+Define a route action that handles form submissions or programmatic invocations.
+
+Actions run on the server when submitted from the client. The result is returned as an `ActionStore` with `.value` for success data and `.error` for errors (including validation errors from `zod$`/`valibot$` where `.fieldErrors` etc. are accessible directly on `.error`).
+
+By default, after an action completes, ALL current route loaders are invalidated on the client and re-fetched as needed (so that the browser cache is correct). This can be controlled with:
+
+- `invalidate: [loader1, loader2]`: Only invalidate specific loaders. The client re-fetches them individually. Other loaders keep their current data. - `invalidate: []`: No loaders are invalidated. The action response only contains the action result. Use this when the action doesn't affect any loader data.
+
+The `strictLoaders` Vite plugin option applies `invalidate: []` globally for all actions that don't specify an explicit `invalidate` option.
 
 ```typescript
 routeAction$: ActionConstructor;
@@ -2328,17 +2367,44 @@ string
 _(Optional)_ The parameter name when this node is reached via `_W` or `_A` from the parent
 
 </td></tr>
+<tr><td>
+
+\_R?
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ Array of routeLoader$ hashes for this node's loaders
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="routeloader_">routeLoader$</h2>
 
+Define a route loader that fetches data before the route renders.
+
+Route loaders run on the server during SSR and return data as an `AsyncSignal`. On the client, loaders automatically re-fetch when the route changes (SPA navigation). Each loader gets its own JSON endpoint (`q-loader-{id}.{hash}.json`), so only the loaders present on the target route are fetched.
+
+\*\*Important:\*\* Route loader data uses Qwik's custom serialization format, not standard JSON. This means the data supports features like circular references, Dates, and other non-JSON types, but it cannot be consumed by external clients expecting plain JSON.
+
+\#\# Options
+
+- `search: string[]`: Allowlist of URL search params the loader depends on. Only listed params are sent in the request and changes to other params are ignored. `search: []` means no search params are sent and only route path changes trigger a re-fetch. - `allowStale: false`: Clears the previous value when re-fetching, so components see a loading state instead of stale data during navigation. Useful when old data would be confusing. - `eTag`: Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function. - `expires` / `poll`: Control client-side caching and polling behavior.
+
+The `strictLoaders` Vite plugin option applies `search: []` globally for all loaders that don't specify an explicit `search` option.
+
 ```typescript
 routeLoader$: LoaderConstructor;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/route-loaders.ts)
 
 <h2 id="routelocation">RouteLocation</h2>
 
@@ -2519,6 +2585,7 @@ The server data that is provided by Qwik Router during SSR rendering. It can be 
 export type ServerData = {
   url: string;
   requestHeaders: Record<string, string>;
+  renderMode: "static" | "server";
   locale: string | undefined;
   nonce: string | undefined;
   containerAttributes: Record<string, string> & {

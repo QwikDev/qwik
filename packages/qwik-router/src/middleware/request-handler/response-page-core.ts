@@ -1,4 +1,5 @@
 import type { QwikRouterEnvData } from '../../runtime/src/types';
+import { getRouteLoaderCtx, getRouteLoaderValues } from '../../runtime/src/route-loaders';
 import type { RequestEvent } from './types';
 
 interface ResponsePageDeps {
@@ -8,9 +9,8 @@ interface ResponsePageDeps {
   RequestEvSharedActionId: string;
   RequestEvSharedNonce: string;
   RequestRouteName: string;
-  getRequestLoaders: typeof import('./request-event-core').getRequestLoaders;
-  getRequestLoaderSerializationStrategyMap: typeof import('./request-event-core').getRequestLoaderSerializationStrategyMap;
   getRequestRoute: typeof import('./request-event-core').getRequestRoute;
+  getRequestMode: typeof import('./request-event-core').getRequestMode;
 }
 
 export function getQwikRouterServerDataWithDeps(deps: ResponsePageDeps, requestEv: RequestEvent) {
@@ -19,6 +19,7 @@ export function getQwikRouterServerDataWithDeps(deps: ResponsePageDeps, requestE
   request.headers.forEach((value, key) => (requestHeaders[key] = value));
 
   const action = requestEv.sharedMap.get(deps.RequestEvSharedActionId) as string;
+  const actionResult = requestEv.sharedMap.get('@actionResult');
   const formData = requestEv.sharedMap.get(deps.RequestEvSharedActionFormData);
   const routeName = requestEv.sharedMap.get(deps.RequestRouteName) as string;
   const nonce = requestEv.sharedMap.get(deps.RequestEvSharedNonce);
@@ -34,12 +35,13 @@ export function getQwikRouterServerDataWithDeps(deps: ResponsePageDeps, requestE
     reconstructedUrl.protocol = protocol;
   }
 
-  const loaders = deps.getRequestLoaders(requestEv);
-  const loadersSerializationStrategy = deps.getRequestLoaderSerializationStrategyMap(requestEv);
+  const routeLoaderCtx = getRouteLoaderCtx(requestEv);
+  const loaderValues = getRouteLoaderValues(requestEv);
 
   return {
     url: reconstructedUrl.href,
     requestHeaders,
+    renderMode: deps.getRequestMode(requestEv),
     locale: locale(),
     nonce,
     containerAttributes: {
@@ -50,14 +52,15 @@ export function getQwikRouterServerDataWithDeps(deps: ResponsePageDeps, requestE
       ev: requestEv,
       params: { ...params },
       loadedRoute: deps.getRequestRoute(requestEv),
+      routeLoaderCtx,
+      loaderValues,
       response: {
         status: status(),
         statusMessage: requestEv.sharedMap.get(deps.RequestEvHttpStatusMessage) as
           | string
           | undefined,
-        loaders,
-        loadersSerializationStrategy,
         action,
+        actionResult,
         formData,
       },
     } satisfies QwikRouterEnvData,

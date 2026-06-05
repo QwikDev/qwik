@@ -13,6 +13,7 @@ import type {
   Optimizer,
   OptimizerOptions,
   QwikManifest,
+  SegmentAnalysis,
   TransformModule,
 } from '../types';
 import { type BundleGraphAdder } from './bundle-graph';
@@ -145,6 +146,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getClientPublicOutDir: () => clientPublicOutDir,
     getAssetsDir: () => viteAssetsDir,
     registerBundleGraphAdder: (adder: BundleGraphAdder) => bundleGraphAdders.add(adder),
+    onSegment: (callback: SegmentCallback) => {
+      qwikPlugin.segmentCallbacks.add(callback);
+    },
     _oldDevSsrServer: () => qwikViteOpts.devSsrServer,
   };
 
@@ -431,6 +435,26 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       } else {
         qwikPlugin.normalizeOptions(qwikViteOpts);
       }
+
+      // Vite's import-analysis-build plugin rewrites every dynamic import to go
+      // through `__vitePreload`, producing an extra `preload-helper.js` chunk
+      // and adding an import + wrapper to every QRL bundle. Qwik has its own
+      // preloader, so the helper is pure overhead. `build.modulePreload: false`
+      // does NOT disable this — see https://github.com/vitejs/vite/issues/18551.
+      if (
+        viteCommand === 'build' &&
+        !qwikViteOpts.csr &&
+        qwikPlugin.getOptions().target === 'client'
+      ) {
+        const names = ['vite:build-import-analysis'];
+        const plugins = config.plugins as VitePlugin[];
+        for (const name of names) {
+          const i = plugins.findIndex((p) => p?.name === name);
+          if (i >= 0) {
+            plugins.splice(i, 1);
+          }
+        }
+      }
     },
 
     async buildStart() {
@@ -685,7 +709,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // Source files live in the SSR module graph. When they change, notify the
           // client's loaded QRL segments via the client environment's HMR channel.
           // Some non-source imports (e.g. .css?inline) are type 'js' but their URL
-          // isn't a JS/TS file. For those, emit their JS importers instead, since
+          // is not a JS/TS file. For those, emit their JS importers instead, since
           // the component that needs to re-render is the importer.
           const files = new Set<string>();
           const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
@@ -1124,6 +1148,9 @@ export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSR
 export { ExperimentalFeatures } from './plugin';
 
 /** @public */
+export type SegmentCallback = (parentId: string, segment: SegmentAnalysis) => void;
+
+/** @public */
 export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
   getOptions: () => NormalizedQwikPluginOptions;
@@ -1133,6 +1160,8 @@ export interface QwikVitePluginApi {
   getClientPublicOutDir: () => string | null;
   getAssetsDir: () => string | undefined;
   registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
+  /** Register a callback that fires for each segment emitted during transform. */
+  onSegment: (callback: SegmentCallback) => void;
   /** @internal */
   _oldDevSsrServer: () => boolean | undefined;
 }

@@ -11,6 +11,14 @@ export { domRender, ssrRenderToDom, emulateExecutionOfQwikFuncs } from './render
 export { walkJSX, vnode_fromJSX } from './vdom-diff.unit-util';
 export { trigger, ElementFixture } from './element-fixture';
 export { waitForDrain } from './util';
+export type {
+  InOrderAuto,
+  InOrderDisabled,
+  InOrderDirect,
+  InOrderStreaming,
+  OutOfOrderStreaming,
+  StreamingOptions,
+} from '../server/types';
 
 // TODO get api-extractor to export this too
 interface CustomMatchers<R = unknown> {

@@ -72,14 +72,10 @@ export enum ExperimentalFeatures {
   each = 'each',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
-  /** Enable the usePreventNavigate hook */
-  preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
-  /** Enable request.rewrite() */
-  enableRequestRewrite = 'enableRequestRewrite',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
   insights = 'insights',
 }
@@ -97,6 +93,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
+  const segmentCallbacks = new Set<(parentId: string, segment: SegmentAnalysis) => void>();
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
@@ -920,6 +917,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
               preserveSignature: 'allow-extension',
             });
           }
+          // Notify segment callbacks
+          if (mod.segment && segmentCallbacks.size > 0) {
+            for (const cb of segmentCallbacks) {
+              cb(id, mod.segment);
+            }
+          }
         }
       }
 
@@ -952,6 +955,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     if (shouldReturn) {
+      if (isPublicVirtualId(id)) {
+        map = null;
+      }
       return { code, map, meta };
     }
     debug(`transform(${count})`, 'Not transforming', id);
@@ -1146,10 +1152,8 @@ export const isDev = ${JSON.stringify(isDev)};
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
-        // the vite preload helper must be included or to prevent breaking circular dependencies
         id.endsWith('@qwik.dev/core/build') ||
-        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id) ||
-        id === '\0vite/preload-helper.js'
+        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id)
       ) {
         return 'qwik-preloader';
       } else if (
@@ -1255,6 +1259,7 @@ export const isDev = ${JSON.stringify(isDev)};
     normalizePath,
     onDiagnostics,
     resolveId,
+    segmentCallbacks,
     transform,
     validateSource,
     setSourceMapSupport,
@@ -1290,6 +1295,8 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
 function isAdditionalFile(mod: TransformModule) {
   return mod.isEntry || mod.segment;
 }
+
+const isPublicVirtualId = (id: string) => id.startsWith('virtual:');
 
 const TRANSFORM_EXTS = {
   '.jsx': true,

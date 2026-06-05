@@ -27,6 +27,7 @@ export type {
   CookieOptions,
   CookieValue,
   DeferReturn,
+  InternalRequest,
   RequestEvent,
   RequestEventAction,
   RequestEventBase,

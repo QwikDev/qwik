@@ -355,6 +355,7 @@ Each request handler, such as `onRequest`, `onGet`, `onPost`, etc., are passed i
 - `getWritableStream`: Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called, the status and headers can no longer be modified and will be sent over the network.
 - `headers`: HTTP [response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header).
 - `html`: Convenience method to send an HTML body response. The response will be automatically set the `Content-Type` header to`text/html; charset=utf-8`. An `html()` response can only be called once.
+- `internalRequest`: Identifies Qwik Router internal JSON requests as `'loader'` or `'action'`. Returns `false` for normal page requests. Check this before applying broad rewrite rules.
 - `json`: Convenience method to JSON stringify the data and send it in the response. The response will be automatically set the `Content-Type` header to`application/json; charset=utf-8`. A `json()` response can only be called once.
 - `locale`: Which locale the content is in. The locale value can be retrieved from selected methods using `getLocale()`.
 - `method`: HTTP request [method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) value.

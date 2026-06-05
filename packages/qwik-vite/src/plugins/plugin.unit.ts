@@ -360,6 +360,40 @@ describe('resolveId', () => {
       plugin.resolveId({} as any, `${srcDir}/routes/admin/server/session.ts`, importer)
     ).rejects.toThrow(/Server-only module cannot be imported by client code/);
   });
+  test('allows server-only imports stripped by isServer guards in client transforms', async () => {
+    const plugin = await mockPlugin(process.platform, true);
+    await plugin.normalizeOptions({
+      target: 'client',
+      rootDir: cwd,
+      srcDir: resolve(cwd, 'src'),
+    });
+    const srcDir = normalizePath(resolve(cwd, 'src'));
+    const importer = `${srcDir}/routes/index.ts`;
+    const code = `
+      import { isServer } from '@qwik.dev/core';
+
+      export const secret = async () => {
+        if (isServer) {
+          const { readSecret } = await import('../server/db');
+          return readSecret();
+        }
+        return undefined;
+      };
+    `;
+    const ctx = {
+      addWatchFile: () => {},
+      parse: () => {
+        throw new Error('client output still contains the server-only import');
+      },
+      resolve: async (id: string) => {
+        throw new Error(`client output resolved unexpected import ${id}`);
+      },
+    };
+
+    await expect(plugin.transform(ctx as any, code, importer)).resolves.toMatchObject({
+      code: expect.not.stringContaining('../server/db'),
+    });
+  });
   test('allows non-server-only paths that contain server in the filename', async () => {
     const plugin = await mockPlugin();
     await plugin.normalizeOptions({
@@ -491,7 +525,7 @@ describe('resolveId', () => {
 });
 
 test('load skips HMR wrapper for worker$ segments', async () => {
-  const plugin = await mockPlugin(process.platform, false);
+  const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root' });
   plugin.configureServer({
     hot: {},
@@ -524,7 +558,7 @@ export const runInWorker = worker$(() => 'hello');
 });
 
 test('load preserves worker chunk markers inside event segments', async () => {
-  const plugin = await mockPlugin(process.platform, false);
+  const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root' });
   plugin.configureServer({
     hot: {},
@@ -564,7 +598,7 @@ export default component$(() => {
   const deps = result?.meta?.qwikdeps;
   expect(deps?.length).toBeGreaterThan(0);
 
-  const eventSegmentId = deps!.find((dep) => dep.includes('_q_e_click_'));
+  const eventSegmentId = deps!.find((dep: any) => dep.includes('_q_e_click_'));
   expect(eventSegmentId).toBeTruthy();
 
   const loaded = await plugin.load({} as any, eventSegmentId!);
@@ -575,7 +609,7 @@ export default component$(() => {
 });
 
 test('load wraps non-worker QRL segment HMR with a runtime document guard', async () => {
-  const plugin = await mockPlugin(process.platform, false);
+  const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root' });
   plugin.configureServer({
     hot: {},
@@ -599,7 +633,7 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
   const deps = result?.meta?.qwikdeps;
   expect(deps?.length).toBeGreaterThan(0);
 
-  const eventSegmentId = deps!.find((dep) => dep.includes('_q_e_click_'));
+  const eventSegmentId = deps!.find((dep: any) => dep.includes('_q_e_click_'));
   expect(eventSegmentId).toBeTruthy();
 
   const loaded = await plugin.load({} as any, eventSegmentId!);
@@ -609,7 +643,7 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
 });
 
 test('transform omits sourcemaps for public virtual modules', async () => {
-  const plugin = await mockPlugin(process.platform, false);
+  const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root', srcDir: '/root/src' });
 
   const result = await plugin.transform(
@@ -626,7 +660,7 @@ test('transform omits sourcemaps for public virtual modules', async () => {
   expect(result!.map).toBeNull();
 });
 
-async function mockPlugin(os = process.platform, useMockBinding = true) {
+async function mockPlugin(os = process.platform, useRealOptimizer = false) {
   const plugin = createQwikPlugin({
     sys: {
       cwd: () => process.cwd(),
@@ -636,7 +670,7 @@ async function mockPlugin(os = process.platform, useMockBinding = true) {
       strictDynamicImport: async (path) => import(path),
       path: path as any,
     },
-    ...(useMockBinding ? { binding: { mockBinding: true } } : {}),
+    ...(useRealOptimizer ? {} : { binding: { mockBinding: true } }),
   });
   await plugin.init();
   return plugin;

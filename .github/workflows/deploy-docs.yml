@@ -19,7 +19,8 @@ jobs:
   deploy:
     name: Cloudflare Pages Deployment
     if: >
-      github.repository == 'QwikDev/qwik'
+      github.repository == 'QwikDev/qwik' &&
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Check for docs artifact
@@ -64,16 +65,14 @@ jobs:
             cp -r packages/docs/* packages/docs/dist/ || true
           fi
 
-      # not the official version, so be careful when updating
       - name: Deploy to Cloudflare Pages
         if: ${{ steps.check-artifact.outputs.has-docs == 'true' }}
-        uses: AdrianGonz97/refined-cf-pages-action@6c0d47ff7c97c48fa702b6d9f71f7e3a7c30c7d8
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: 'qwik-docs'
-          directory: packages/docs/dist
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy packages/docs/dist --project-name=qwik-docs
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Skip message when no docs artifact
         if: ${{ steps.check-artifact.outputs.has-docs != 'true' }}

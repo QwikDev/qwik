@@ -8,6 +8,7 @@ import type { ServerRequestEvent } from './types';
 import { checkCSRF } from './resolve-request-handlers';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
+import { IsQLoader, QLoaderId } from './request-path';
 
 function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
@@ -87,6 +88,60 @@ describe('resolve-request-handler', () => {
         'content-type': 'application/x-www-form-urlencoded, bypass',
       });
       expect(isContentType(headers, 'application/x-www-form-urlencoded')).toBe(true);
+    });
+  });
+
+  describe('page middleware for q-loader requests', () => {
+    it('does not run root index middleware for a root layout loader request', async () => {
+      const layoutLoader = vi.fn() as any;
+      layoutLoader.__brand = 'server_loader';
+      layoutLoader.__id = 'layout-loader';
+      const pageOnRequest = vi.fn();
+      const route: LoadedRoute = {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [
+          { useLayoutData: layoutLoader },
+          { default: vi.fn(), onRequest: pageOnRequest },
+        ] as any,
+      };
+
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', false, vi.fn());
+
+      await handlers[2]({
+        sharedMap: new Map([
+          [IsQLoader, true],
+          [QLoaderId, 'layout-loader'],
+        ] as any),
+      } as any);
+
+      expect(pageOnRequest).not.toHaveBeenCalled();
+    });
+
+    it('runs page middleware for a loader exported by that page module', async () => {
+      const pageLoader = vi.fn() as any;
+      pageLoader.__brand = 'server_loader';
+      pageLoader.__id = 'page-loader';
+      const pageOnRequest = vi.fn();
+      const route: LoadedRoute = {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [
+          {},
+          { default: vi.fn(), onRequest: pageOnRequest, usePageData: pageLoader },
+        ] as any,
+      };
+
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', false, vi.fn());
+
+      await handlers[2]({
+        sharedMap: new Map([
+          [IsQLoader, true],
+          [QLoaderId, 'page-loader'],
+        ] as any),
+      } as any);
+
+      expect(pageOnRequest).toHaveBeenCalledTimes(1);
     });
   });
 

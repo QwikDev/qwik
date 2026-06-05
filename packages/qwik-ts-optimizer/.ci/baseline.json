@@ -933,6 +933,11 @@
       "tests/optimizer/rewrite-parent.test.ts :: rewriteParentModule Test 7: PURE annotation on componentQrl but NOT on useTaskQrl",
       "tests/optimizer/rewrite-parent.test.ts :: rewriteParentModule Test 8: sync$ call rewritten inline without QRL declaration",
       "tests/optimizer/rewrite-parent.test.ts :: rewriteParentModule Test 9: nested $() calls produce parent-child relationship",
+      "tests/optimizer/router-integration-bugs.test.ts :: C02 only fires for enclosing-closure-scoped fn/class refs fn declared INSIDE an enclosing component$ body, referenced from a nested $(), still emits C02",
+      "tests/optimizer/router-integration-bugs.test.ts :: C02 only fires for enclosing-closure-scoped fn/class refs module-level class referenced from a top-level useTask$ does not emit C02",
+      "tests/optimizer/router-integration-bugs.test.ts :: C02 only fires for enclosing-closure-scoped fn/class refs module-level fn referenced from a top-level useTask$ does not emit C02",
+      "tests/optimizer/router-integration-bugs.test.ts :: routes/<name>/index.tsx symbol-name disambiguation deeply-nested routes/<a>/<b>/index.tsx also disambiguates correctly",
+      "tests/optimizer/router-integration-bugs.test.ts :: routes/<name>/index.tsx symbol-name disambiguation two sibling onClick$ handlers in routes/<dir>/index.tsx do not produce invalid symbol names",
       "tests/optimizer/segment-only-debug.test.ts :: segment-only convergence debug analyzes all 210 snapshot tests for segment-only failures",
       "tests/optimizer/signal-analysis.test.ts :: signal-analysis SignalHoister generates _hf0, _hf1, _hf2 names sequentially",
       "tests/optimizer/signal-analysis.test.ts :: signal-analysis SignalHoister generates correct _hfN and _hfN_str declarations",
@@ -1186,6 +1191,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1002
+    "total": 1007
   }
 }

@@ -1,0 +1,182 @@
+// Regression tests for two bugs Jack reported while running qwik-bundler's
+// `experimental: ['tsOptimizer']` integration against a real Qwik Router app
+// (2026-06-05). Both surfaced when the optimizer processed router-shape code:
+// nested-route filenames (`routes/foo/index.tsx`) and module-level helpers
+// referenced from `useTask$`-style closures.
+
+import { describe, expect, test } from 'vitest';
+
+import { transformModule } from '../../src/index.js';
+import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
+
+describe('routes/<name>/index.tsx symbol-name disambiguation', () => {
+	// Bug: For `routes/foo/index.tsx`, `extract.ts:522-524` derives the
+	// context-stack file stem from the parent directory (Qwik routing
+	// convention — `foo` not `index`), but the displayName prefix stays
+	// `index.tsx_`. `disambiguateExtractions` was passed `fileStem`
+	// (`foo`) as the strip prefix — it doesn't match the displayName's
+	// actual prefix (`index.tsx_`), so the strip silently no-ops. The
+	// disambiguated symbol then contains `index.tsx_` literally, and
+	// `mkSymbolName` rejects the `.` at the brand-validation boundary.
+	test('two sibling onClick$ handlers in routes/<dir>/index.tsx do not produce invalid symbol names', () => {
+		const code = `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+    const count = useSignal(0);
+    return (
+        <main>
+            <button onClick$={() => count.value++}>{count.value}</button>
+            <button onClick$={() => console.log('two')}>two</button>
+        </main>
+    );
+});
+`;
+		expect(() =>
+			transformModule({
+				srcDir: mkFilePath('/src'),
+				input: [
+					{
+						path: mkFilePath('src/routes/index.tsx'),
+						code: mkSourceText(code),
+					},
+				],
+				transpileTs: true,
+				transpileJsx: true,
+			}),
+		).not.toThrow();
+	});
+
+	test('deeply-nested routes/<a>/<b>/index.tsx also disambiguates correctly', () => {
+		const code = `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+    const count = useSignal(0);
+    return (
+        <button onClick$={() => count.value++}>{count.value}</button>
+    );
+});
+`;
+		const result = transformModule({
+			srcDir: mkFilePath('/workspace/app'),
+			input: [
+				{
+					path: mkFilePath('src/routes/admin/dashboard/index.tsx'),
+					code: mkSourceText(code),
+				},
+			],
+			transpileTs: true,
+			transpileJsx: true,
+		});
+		expect(result.diagnostics).toEqual([]);
+		expect(result.modules.length).toBeGreaterThan(0);
+		// No segment's name should contain a literal `.` (which would be
+		// a brand-validation failure waiting to happen at the next
+		// surface that calls `mkSymbolName` against the field).
+		for (const mod of result.modules) {
+			if (mod.kind === 'segment') {
+				expect(mod.segment.name).not.toMatch(/\./);
+			}
+		}
+	});
+});
+
+describe('C02 only fires for enclosing-closure-scoped fn/class refs', () => {
+	// Bug: `detectC02Diagnostics` was firing C02 for any closure that
+	// referenced a module-level fn/class — but those are handled by
+	// `variable-migration` (MIG-01 MOVE for single-segment use,
+	// MIG-02/03/04 REEXPORT for multi-use). The segment either inlines
+	// the decl or imports it as `_auto_*`. Pre-fix, qwik-router's
+	// `lib/index.qwik.mjs` choked on module-level helpers like
+	// `callRestoreScrollOnDocument` referenced from a `useTask$`
+	// closure — a legitimate pattern that SWC handles.
+	//
+	// Real C02 cases (fn/class declared INSIDE an enclosing extraction's
+	// body, referenced from a nested extraction) still fire — see the
+	// `example_capturing_fn_class` convergence snapshot.
+	test('module-level fn referenced from a top-level useTask$ does not emit C02', () => {
+		const code = `import { component$, useTask$ } from '@qwik.dev/core';
+
+function helperFn() {
+    return 42;
+}
+
+export default component$(() => {
+    useTask$(() => {
+        return helperFn();
+    });
+    return <div />;
+});
+`;
+		const result = transformModule({
+			srcDir: mkFilePath('/src'),
+			input: [
+				{
+					path: mkFilePath('test.tsx'),
+					code: mkSourceText(code),
+				},
+			],
+			transpileTs: true,
+			transpileJsx: true,
+		});
+		const c02s = result.diagnostics.filter((d) => d.code === 'C02');
+		expect(c02s).toEqual([]);
+	});
+
+	test('module-level class referenced from a top-level useTask$ does not emit C02', () => {
+		const code = `import { component$, useTask$ } from '@qwik.dev/core';
+
+class Helper {
+    static answer() { return 42; }
+}
+
+export default component$(() => {
+    useTask$(() => {
+        return Helper.answer();
+    });
+    return <div />;
+});
+`;
+		const result = transformModule({
+			srcDir: mkFilePath('/src'),
+			input: [
+				{
+					path: mkFilePath('test.tsx'),
+					code: mkSourceText(code),
+				},
+			],
+			transpileTs: true,
+			transpileJsx: true,
+		});
+		const c02s = result.diagnostics.filter((d) => d.code === 'C02');
+		expect(c02s).toEqual([]);
+	});
+
+	test('fn declared INSIDE an enclosing component$ body, referenced from a nested $(), still emits C02', () => {
+		// This is the `example_capturing_fn_class` convergence snap pattern.
+		// `hola` lives inside `component$`'s closure body, not at module
+		// scope — migration can't reach it.
+		const code = `import { $, component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+    function hola() {
+        console.log('hola');
+    }
+    return $(() => {
+        hola();
+        return <div />;
+    });
+});
+`;
+		const result = transformModule({
+			srcDir: mkFilePath('/src'),
+			input: [
+				{
+					path: mkFilePath('test.tsx'),
+					code: mkSourceText(code),
+				},
+			],
+			transpileTs: true,
+			transpileJsx: true,
+		});
+		const c02s = result.diagnostics.filter((d) => d.code === 'C02');
+		expect(c02s.length).toBeGreaterThan(0);
+		expect(c02s[0]!.message).toContain("'hola'");
+	});
+});

@@ -1242,7 +1242,12 @@ export function extractSegments(
     },
   });
 
-  disambiguateExtractions(results, fileStem, relPath, scope);
+  // Pass `fileName` (e.g. "index.tsx") — that's what `buildDisplayName`
+  // prepends as the strip-prefix. `fileStem` may differ from the filename
+  // for routing files (e.g. `routes/foo/index.tsx` → fileStem "foo"), in
+  // which case the prefix-strip silently no-ops and the contextPortion
+  // ends up with `.tsx` literally embedded — mkSymbolName then rejects it.
+  disambiguateExtractions(results, fileName, relPath, scope);
 
   if (closureNodesOut) {
     for (const { extraction, node } of pendingClosures) {

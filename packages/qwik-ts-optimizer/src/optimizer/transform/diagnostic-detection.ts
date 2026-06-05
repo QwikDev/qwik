@@ -8,7 +8,6 @@ import type {
 } from '../../ast-types.js';
 import type { ExtractionResult } from '../extract.js';
 import {
-  classifyDeclarationType,
   classifyDeclarationTypeInClosure,
   emitC02,
   emitC05,
@@ -71,6 +70,16 @@ export function detectC02Diagnostics(
       ? closureNodes.get(enclosingExt.symbolName)
       : undefined;
 
+    // C02 fires only for fn/class refs declared inside an enclosing
+    // extraction's closure — those decls live in a parent segment file
+    // the current segment can't reach. Module-level fn/class refs are
+    // handled by variable-migration (MIG-01 MOVE for single-segment use,
+    // MIG-02/03/04 REEXPORT for multi-use), so the segment either inlines
+    // the decl or imports it as `_auto_*`. Flagging those as C02 produces
+    // false positives on legitimate code — e.g. `@qwik.dev/router`'s
+    // module-level helpers consumed by useTask$ closures.
+    if (!enclosingClosure) continue;
+
     // First pass: classify each undeclared id and collect the set of fn/class
     // names that need a reference-site lookup. We use the set both as the
     // walker's filter and to gate the second pass.
@@ -81,9 +90,7 @@ export function detectC02Diagnostics(
       if (importedNames.has(refName)) continue;
       let declType: 'var' | 'fn' | 'class';
       try {
-        declType = enclosingClosure
-          ? classifyDeclarationTypeInClosure(enclosingClosure, refName)
-          : classifyDeclarationType(program, refName);
+        declType = classifyDeclarationTypeInClosure(enclosingClosure, refName);
       } catch {
         declType = 'var';
       }

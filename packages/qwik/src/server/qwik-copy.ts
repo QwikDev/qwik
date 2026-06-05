@@ -53,6 +53,7 @@ export {
   QSuspenseResultParent,
   QTemplate,
   QVersionAttr,
+  QwikEvContainerReady,
   Q_PROPS_SEPARATOR,
   ELEMENT_BACKPATCH_DATA,
   dangerouslySetInnerHTML,

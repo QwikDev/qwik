@@ -81,10 +81,12 @@ export type qWindow = Window & {
     events: Set<string>;
     /** The known root nodes (document, shadow roots) */
     roots: Set<Node>;
-    /** Add new root nodes, or scoped kebabcase eventnames to listen to. */
-    push: (...e: (string | (EventTarget & ParentNode))[]) => void;
+    /** Add loader commands, new root nodes, or scoped kebabcase eventnames to listen to. */
+    push: (...e: (string | (EventTarget & ParentNode) | QwikEvContainerReadyCommand)[]) => void;
   };
 };
+
+export type QwikEvContainerReadyCommand = 0;
 
 export type QwikLoaderEventScope = 'd' | 'dp' | 'w' | 'wp' | 'e' | 'ep';
 

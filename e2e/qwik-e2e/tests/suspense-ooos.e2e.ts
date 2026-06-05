@@ -1,5 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
+const QWIK_EV_CONTAINER_READY = 0;
+
 const assertNoBrowserErrors = (page: Page) => {
   page.on('pageerror', (err) => expect(err).toEqual(undefined));
   page.on('console', (msg) => {
@@ -476,43 +478,44 @@ test.describe('out-of-order suspense streaming', () => {
     expect(hashes.second).toBeTruthy();
     expect(hashes.first).not.toBe(hashes.second);
 
-    await page.waitForFunction(({ first, second }) => {
-      const documentWithQwik = document as any;
-      return documentWithQwik.qready?.[first!] && documentWithQwik.qready?.[second!];
-    }, hashes);
+    await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
 
-    await page.evaluate(({ first, second }) => {
+    const blockedSecondHash = await page.evaluate(({ second }) => {
       const documentWithQwik = document as any;
       const secondButton = document.querySelector('#ooos-container-second-fallback-button') as any;
-      const qFuncsName = 'qFuncs_' + second;
+      const secondContainer = secondButton.closest('[q\\:container]') as Element;
+      const blockedSecond = `${second}-blocked`;
+      secondContainer.setAttribute('q:instance', blockedSecond);
+      const qFuncsName = 'qFuncs_' + blockedSecond;
       const qFuncs = (documentWithQwik[qFuncsName] ||= []);
       const qFuncIndex = qFuncs.length;
       secondButton._qDispatch = undefined;
       secondButton.setAttribute('q-e:click', `#${qFuncIndex}#`);
       (window as any).__ooosSecondQFuncIndex = qFuncIndex;
-      documentWithQwik.qready ||= {};
-      documentWithQwik.qready[first!] = 1;
-      delete documentWithQwik.qready[second!];
+      return blockedSecond;
     }, hashes);
 
     await page.locator('#ooos-container-first-resolved-button').click();
     await expect(page.locator('#ooos-container-first-resolved-count')).toHaveText('1');
 
     await page.locator('#ooos-container-second-fallback-button').click();
-    await page.evaluate((first) => {
-      document.dispatchEvent(new CustomEvent('qready', { detail: first }));
-    }, hashes.first);
+    await page.evaluate(({ ready, first }) => (window as any)._qwikEv.push(ready, first), {
+      ready: QWIK_EV_CONTAINER_READY,
+      first: hashes.first,
+    });
     await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
     await expect(page.locator('#ooos-container-second-fallback-count')).toHaveText('0');
 
-    await page.evaluate((second) => {
-      const documentWithQwik = document as any;
-      documentWithQwik['qFuncs_' + second][(window as any).__ooosSecondQFuncIndex] = () => {
-        document.querySelector('#ooos-container-second-fallback-count')!.textContent = '1';
-      };
-      documentWithQwik.qready[second!] = 1;
-      document.dispatchEvent(new CustomEvent('qready', { detail: second }));
-    }, hashes.second);
+    await page.evaluate(
+      ({ ready, second }) => {
+        const documentWithQwik = document as any;
+        documentWithQwik['qFuncs_' + second][(window as any).__ooosSecondQFuncIndex] = () => {
+          document.querySelector('#ooos-container-second-fallback-count')!.textContent = '1';
+        };
+        (window as any)._qwikEv.push(ready, second);
+      },
+      { ready: QWIK_EV_CONTAINER_READY, second: blockedSecondHash }
+    );
     await expect(page.locator('#ooos-container-second-fallback-count')).toHaveText('1');
 
     await releaseOutOfOrderSuspense(page, '#ooos-container-second-release');

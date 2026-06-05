@@ -25,5 +25,15 @@ declare var __NO_TRAILING_SLASH__: boolean;
 /** Maximum number of SSR-rendered pages to keep in the in-memory cache. */
 declare var __SSR_CACHE_SIZE__: number;
 
+/**
+ * When true, route loaders and actions use strict mode by default:
+ *
+ * - Loaders without explicit `search` act as if `search: []` — they only re-fetch on route path
+ *   changes and ignore all URL search params.
+ * - Actions without explicit `invalidate` act as if `invalidate: []` — they don't re-run any loaders
+ *   after completion.
+ */
+declare var __STRICT_LOADERS__: boolean;
+
 declare var __QWIK_BUILD_DIR__: string;
 declare var __QWIK_ASSETS_DIR__: string;

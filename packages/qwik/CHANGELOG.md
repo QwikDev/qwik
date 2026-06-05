@@ -1,5 +1,44 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.36
+
+### Minor Changes
+
+- ✨ make `usePreventNavigate$` and `request.rewrite()` stable by removing their experimental feature flags. (by [@Varixo](https://github.com/Varixo) in [#8631](https://github.com/QwikDev/qwik/pull/8631))
+
+### Patch Changes
+
+- ✨ add experimental out-of-order Suspense streaming (by [@Varixo](https://github.com/Varixo) in [#8611](https://github.com/QwikDev/qwik/pull/8611))
+
+- 🐞🩹 prevent Qwik Vite virtual JSX modules from emitting sourcemaps that point to missing files. (by [@Varixo](https://github.com/Varixo) in [#8629](https://github.com/QwikDev/qwik/pull/8629))
+
+- 🐞🩹 release paused cursors that are abandoned before they resume (by [@Varixo](https://github.com/Varixo) in [#8670](https://github.com/QwikDev/qwik/pull/8670))
+
+- 🐞🩹 correctly handle interactivty during html streaming (by [@Varixo](https://github.com/Varixo) in [#8581](https://github.com/QwikDev/qwik/pull/8581))
+
+- 🐞🩹 expose `getClientManifest` from the `@qwik.dev/core` root package types. (by [@Varixo](https://github.com/Varixo) in [#8630](https://github.com/QwikDev/qwik/pull/8630))
+
+- 🐞🩹 inline components projected into a slot now resolve context from the component they are projected into, fixing the MDX provider pattern (`useMDXComponents`). (by [@maiieul](https://github.com/maiieul) in [#8684](https://github.com/QwikDev/qwik/pull/8684))
+
+- 🐞🩹 stale DOM remaining after replacing content during a pending async render (by [@wmertens](https://github.com/wmertens) in [#8649](https://github.com/QwikDev/qwik/pull/8649))
+
+- 🐞🩹 `render()` no longer waits for `useVisibleTask$` to complete. Visible tasks are post-flush side effects and run independently. (by [@maiieul](https://github.com/maiieul) in [#8622](https://github.com/QwikDev/qwik/pull/8622))
+
+- 🐞🩹 we removed the vite preload helper from the built bundles. This reduces total bundle size of all bundles by about 3%. (by [@maiieul](https://github.com/maiieul) in [#8617](https://github.com/QwikDev/qwik/pull/8617))
+
+- 🐞🩹 escape URI-reserved vnode directive chars in serialized keys (by [@Varixo](https://github.com/Varixo) in [#8626](https://github.com/QwikDev/qwik/pull/8626))
+
+- fix(core): SSR no longer crashes with `Code(Q12): SsrError(tag)` when `<head>`/`<body>` are projected through a headless component (e.g. a Provider that renders only `<Slot/>`). (by [@maiieul](https://github.com/maiieul) in [#8668](https://github.com/QwikDev/qwik/pull/8668))
+
+- 🐞🩹 don't HTML-escape SSR tag nesting errors so they're readable when logged (by [@maiieul](https://github.com/maiieul) in [#8667](https://github.com/QwikDev/qwik/pull/8667))
+
+- 🐞🩹 event handlers in out-of-order Suspense content so they resume correctly after streamed state patches (by [@Varixo](https://github.com/Varixo) in [#8685](https://github.com/QwikDev/qwik/pull/8685))
+
+- 🐞🩹 ssr `q:template` projection handling so hidden slotted content can be restored correctly after component rerenders. (by [@Varixo](https://github.com/Varixo) in [#8661](https://github.com/QwikDev/qwik/pull/8661))
+
+- Updated dependencies [[`d124a92`](https://github.com/QwikDev/qwik/commit/d124a9207c45d1ce6cdb980d07d8ee6118083416)]:
+  - @qwik.dev/optimizer@2.1.0-beta.5
+
 ## 2.0.0-beta.35
 
 ### Minor Changes

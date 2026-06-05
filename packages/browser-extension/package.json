@@ -1,7 +1,7 @@
 {
   "name": "@devtools/browser-extension",
   "description": "Qwik DevTools browser extension for Chrome and Firefox",
-  "version": "0.1.0",
+  "version": "0.1.1-beta.0",
   "dependencies": {
     "@qwik.dev/devtools": "workspace:^",
     "lit": "^3.3.2",

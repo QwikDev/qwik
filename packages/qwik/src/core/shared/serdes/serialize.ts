@@ -90,10 +90,11 @@ export class Serializer {
   async serializePatch(
     rootStart: number,
     rootIds: number[],
-    extraRootId?: number | string | number[]
+    extraRootId?: number | string | number[],
+    streamedRootLimit = rootStart
   ): Promise<void> {
     const previousStreamedRootLimit = this.$streamedRootLimit$;
-    this.$streamedRootLimit$ = rootStart;
+    this.$streamedRootLimit$ = streamedRootLimit;
     this.$writer$.write(BRACKET_OPEN);
     this.$serializationContext$.$serializedForwardRefCount$ = 0;
     try {
@@ -382,6 +383,8 @@ export class Serializer {
             this.output(TypeIds.Constant, Constants.UNINITIALIZED);
           } else if (value === explicitUndefined) {
             this.output(TypeIds.Constant, Constants.Undefined);
+          } else {
+            throw qError(QError.serializeErrorUnknownType, [typeof value]);
           }
           break;
         case 'function':

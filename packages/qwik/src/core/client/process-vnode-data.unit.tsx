@@ -715,6 +715,21 @@ describe('processVnodeData', () => {
         </Fragment>
       </div>
     );
+
+    const directSegmentSectionVNode = container.vNodeLocate(section);
+    expect(directSegmentSectionVNode.parent).not.toBeNull();
+
+    const segmentSectionVNode = container.vNodeLocate(`${getSegmentVNodeRefId('1', 1)}`);
+    let parent = segmentSectionVNode.parent;
+    let foundRootHost = false;
+    while (parent) {
+      if (parent === rootHostVNode) {
+        foundRootHost = true;
+        break;
+      }
+      parent = parent.parent;
+    }
+    expect(foundRootHost).toBe(true);
   });
   it('should not cache empty children for a suspense placeholder-only result parent', async () => {
     const [container] = await process(`

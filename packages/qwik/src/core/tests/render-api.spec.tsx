@@ -37,7 +37,7 @@ import { whenContainerDataReady } from '../client/dom-container';
 import { vnode_getFirstChild } from '../client/vnode-utils';
 import { _fnSignal, type _ContainerElement } from '../internal';
 import { QContainerValue } from '../shared/types';
-import { QContainerAttr, QStatePrewarmAttr } from '../shared/utils/markers';
+import { QContainerAttr, QwikEvContainerReady, QStatePrewarmAttr } from '../shared/utils/markers';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -521,9 +521,10 @@ describe('render api', () => {
           containerTagName: 'div',
           qwikLoader: 'module',
         });
-        expect(result.html).toContain(
-          '(window._qwikEv||(window._qwikEv=[])).push(' +
-            '"e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click")'
+        expect(result.html).toMatch(
+          new RegExp(
+            `\\(window\\._qwikEv\\|\\|\\(window\\._qwikEv=\\[\\]\\)\\)\\.push\\("e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click",${QwikEvContainerReady},"[^"]+"\\)`
+          )
         );
       });
     });

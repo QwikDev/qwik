@@ -2,7 +2,7 @@ import { component$ } from '@qwik.dev/core';
 import { Link, useDocumentHead } from '@qwik.dev/router';
 import { Image } from 'qwik-image';
 
-type Props = { image: string; authorLinks: string[] };
+type Props = { image: string; authorLinks: string[] | undefined };
 
 export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
   const { title, frontmatter } = useDocumentHead();
@@ -50,7 +50,7 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
               {frontmatter.authors.length > 1 && 'Co-'}Written by{' '}
               {frontmatter.authors.map((author: string, index: number) => (
                 <span key={author}>
-                  <a target="_blank" rel="noopener" href={authorLinks[index]}>
+                  <a target="_blank" rel="noopener" href={authorLinks?.[index]}>
                     {author}
                   </a>
                   {index < frontmatter.authors.length - 1 &&

@@ -10,7 +10,6 @@ import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
-import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { isCursor, type Cursor } from '../shared/cursor/cursor';
 import { abandonCursor } from '../shared/cursor/cursor-queue';
@@ -30,7 +29,7 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { HostElement, QElement, qWindow } from '../shared/types';
+import type { QElement, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
@@ -102,6 +101,7 @@ import {
   type VNodeJournal,
 } from './vnode-utils';
 import { isObjectEmpty } from '../shared/utils/objects';
+import { setInlineComponentData } from '../shared/cursor/chore-execution';
 
 export interface DiffContext {
   $container$: ClientContainer;
@@ -1654,7 +1654,6 @@ function expectComponent(diffContext: DiffContext, component: Function) {
       // delete the key from the side buffer if it is the same component
       deleteFromSideBuffer(diffContext, null, lookupKey);
     }
-
     if (host) {
       let componentHost: VNode | null = host;
       // Find the closest component host which has `OnRender` prop. This is need for subscriptions context.
@@ -1671,15 +1670,13 @@ function expectComponent(diffContext: DiffContext, component: Function) {
         componentHost = componentHost.parent || vnode_getProjectionParentComponent(componentHost);
       }
 
-      const jsxOutput = executeComponent(
+      setInlineComponentData(host, component, componentHost, jsxNode.props as Props | null);
+      markVNodeDirty(
         diffContext.$container$,
         host,
-        (componentHost || diffContext.$container$.rootVNode) as HostElement,
-        component as OnRenderFn<unknown>,
-        jsxNode.props
+        ChoreBits.INLINE_COMPONENT,
+        diffContext.$cursor$
       );
-
-      diffContext.$asyncQueue$.push(jsxOutput, host);
     }
   }
 }

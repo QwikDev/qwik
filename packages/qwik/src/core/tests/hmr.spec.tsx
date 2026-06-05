@@ -8,6 +8,7 @@ import {
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { _useHmr } from '../internal';
+import { VNodeFlags } from '../client/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -19,8 +20,10 @@ Error.stackTraceLimit = 100;
  * set by `useOnDocument('qHmr', …)`.
  */
 async function triggerHmr(container: any, files: string[]) {
+  const t = Date.now();
+  container.document.__hmrT = t;
   await trigger(container.element, null, 'd:q-hmr', {
-    detail: { files, t: Date.now() },
+    detail: { files, t },
   });
   // markVNodeDirty schedules cursor work as a microtask. Ensure it runs.
   await true;
@@ -187,6 +190,88 @@ describe('domRender: HMR', () => {
 
     // No additional render
     expect(log.length).toBe(rendersBeforeHmr);
+  });
+
+  it('should re-render after HMR removes and restores a stateful component', async () => {
+    const log: string[] = [];
+    const state: {
+      phase: 'initial' | 'removed' | 'restored' | 'removed-again' | 'restored-again';
+    } = { phase: 'initial' };
+
+    const StatefulChild = component$(() => {
+      const store = useStore({ label: 'qwik-state' });
+      return (
+        <section data-testid={state.phase.startsWith('restored') ? 'hmr-restored' : 'hmr-initial'}>
+          {store.label}:{state.phase}
+        </section>
+      );
+    });
+
+    const Parent = component$(() => {
+      log.push(state.phase);
+      _useHmr('parent.tsx');
+      return (
+        <div data-qwik-inspector="parent.tsx:1:1">
+          {state.phase !== 'removed' && state.phase !== 'removed-again' && <StatefulChild />}
+        </div>
+      );
+    });
+
+    const { container } = await render(<Parent />, { debug });
+    expect(container.element.querySelector('[data-testid="hmr-initial"]')).toBeTruthy();
+
+    state.phase = 'removed';
+    await triggerHmr(container, ['parent.tsx']);
+
+    expect(log[log.length - 1]).toBe('removed');
+    expect(container.element.querySelector('[data-testid="hmr-initial"]')).toBeFalsy();
+    container.element.querySelector('[q-d\\:q-hmr]')?.removeAttribute('data-qwik-inspector');
+
+    state.phase = 'restored';
+    const rendersBeforeRestore = log.length;
+
+    await triggerHmr(container, ['parent.tsx']);
+
+    expect(log.length).toBeGreaterThan(rendersBeforeRestore);
+    expect(container.element.querySelector('[data-testid="hmr-restored"]')?.textContent).toBe(
+      'qwik-state:restored'
+    );
+
+    state.phase = 'removed-again';
+    const rendersBeforeSecondRemove = log.length;
+
+    await triggerHmr(container, ['parent.tsx']);
+
+    expect(log.length).toBeGreaterThan(rendersBeforeSecondRemove);
+    expect(log[log.length - 1]).toBe('removed-again');
+    expect(container.element.querySelector('[data-testid="hmr-restored"]')).toBeFalsy();
+
+    state.phase = 'restored-again';
+    const rendersBeforeSecondRestore = log.length;
+
+    await triggerHmr(container, ['parent.tsx']);
+
+    expect(log.length).toBeGreaterThan(rendersBeforeSecondRestore);
+    expect(container.element.querySelector('[data-testid="hmr-restored"]')?.textContent).toBe(
+      'qwik-state:restored-again'
+    );
+  });
+
+  it('should not ack HMR when the captured host has been deleted', async () => {
+    const Counter = component$(() => {
+      _useHmr('deleted-host.tsx');
+      return <div data-qwik-inspector="deleted-host.tsx:1:1">current</div>;
+    });
+
+    const { container, vNode } = await render(<Counter />, { debug });
+    if (!vNode) {
+      throw new Error('Expected rendered VNode');
+    }
+    vNode.flags |= VNodeFlags.Deleted;
+
+    await triggerHmr(container, ['deleted-host.tsx']);
+
+    expect((container.document as any).__hmrDone).not.toBe((container.document as any).__hmrT);
   });
 });
 

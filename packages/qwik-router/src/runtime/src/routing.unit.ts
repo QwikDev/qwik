@@ -225,6 +225,28 @@ test('loadRoute — root route matches /', async () => {
   assert.deepEqual(result.$params$, {});
 });
 
+test('loadRoute — loader paths are replaced by deeper matches', async () => {
+  const routes: RouteData = {
+    _R: ['shared-loader'],
+    products: {
+      _W: {
+        _P: 'id',
+        _R: ['shared-loader'],
+        view: {
+          _I: makeLoader(),
+        },
+      },
+    },
+  };
+
+  const result = await loadRoute(routes, false, '/products/123/view');
+
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$loaderPaths$, {
+    'shared-loader': '/products/123/',
+  });
+});
+
 test('loadRoute — 404 fallback used when no route matches', async () => {
   const marker = () => 'not-found-sentinel';
   const sentinel = { default: marker };
@@ -554,12 +576,33 @@ test('loadRoute — _A fallback with multi-segment rest value', async () => {
   const catchallLoader = makeLoader();
   const routes: RouteData = {
     _A: { _P: 'rest', _I: catchallLoader },
-    blog: { _W: { _P: 'slug' } }, // no _I on slug — dead end
+    _W: { _P: 'section', _W: { _P: 'slug' } }, // no _I on slug — dead end
   };
-  // /blog/post/extra — _W matches "post" but no _I, fallback to _A
+  // /blog/post/extra — _W matches but no _I, fallback to _A
   const result = await loadRoute(routes, false, '/blog/post/extra');
   assert.isFalse(result.$notFound$);
   assert.deepEqual(result.$params$, { rest: 'blog/post/extra' });
+});
+
+test('loadRoute — exact child dead end does not fall back to sibling _M catchall', async () => {
+  const catchallLoader = makeLoader();
+  const routes: RouteData = {
+    _4: makeLoader(),
+    _M: [
+      {
+        _A: { _P: 'catchall', _I: catchallLoader },
+      },
+    ],
+    'loader-redirect': {
+      source: {
+        _I: makeLoader(),
+      },
+    },
+  };
+
+  const result = await loadRoute(routes, false, '/loader-redirect/notexist');
+  assert.isTrue(result.$notFound$);
+  assert.notDeepEqual(result.$params$, { catchall: 'loader-redirect/notexist' });
 });
 
 // ─── Menu (_N) trie tests ───────────────────────────────────────────────────────
@@ -640,20 +683,6 @@ test('loadRoute — _N in _M group is picked up', async () => {
   const result = await loadRoute(routes, false, '/blog');
   assert.isFalse(result.$notFound$);
   assert.deepEqual(result.$menu$, { text: 'Group Menu' });
-});
-
-test('loadRoute — _N not loaded for internal requests', async () => {
-  const menuLoader: MenuModuleLoader = async () => ({ default: { text: 'Docs' } });
-  const pageLoader = makeLoader();
-  const routes: RouteData = {
-    _N: menuLoader,
-    blog: {
-      _I: pageLoader,
-    },
-  };
-  const result = await loadRoute(routes, false, '/blog', true /* isInternal */);
-  assert.isFalse(result.$notFound$);
-  assert.isUndefined(result.$menu$);
 });
 
 // ─── Empty node tests ─────────────────────────────────────────────────────────

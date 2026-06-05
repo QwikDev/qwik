@@ -48,17 +48,41 @@ const mockQwikPlugin = {
 } as any;
 
 /** Extract the `routes = ...` expression from generated code */
-function getRoutesExpr(trie: BuildTrieNode, routes: BuiltRoute[] = []): string {
+function getRoutesExpr(
+  trie: BuildTrieNode,
+  routes: BuiltRoute[] = [],
+  loadersByFile?: Map<string, string[]>
+): string {
   const c: string[] = [];
   const esmImports: string[] = [];
   const ctx = {
-    opts: { basePathname: '/', routesDir: '/routes' },
+    opts: {
+      basePathname: '/',
+      routesDir: '/routes',
+      platform: null!,
+      mdx: null!,
+      serverPluginsDir: '/routes',
+      mdxPlugins: null!,
+      rewriteRoutes: null!,
+      defaultLoadersSerializationStrategy: 'never',
+      strictLoaders: true,
+    },
     routeTrie: trie,
     routes,
     layouts: [],
+    serverPlugins: [],
     dynamicImports: true,
-  } as any;
-  createRoutes(ctx, mockQwikPlugin, c, esmImports, false);
+    rootDir: '/',
+    entries: [],
+    serviceWorkers: [],
+    menus: [],
+    frontmatter: new Map(),
+    diagnostics: [],
+    target: 'ssr',
+    isDirty: false,
+    activeBuild: null,
+  } satisfies Parameters<typeof createRoutes>[0];
+  createRoutes(ctx, mockQwikPlugin, c, esmImports, false, loadersByFile);
   const routesLine = c.find((line) => line.startsWith('export const routes'));
   assert.ok(routesLine, 'should have a routes export');
   return routesLine;
@@ -109,5 +133,55 @@ describe('generate-routes: empty node pruning', () => {
     const routes = [makeBuiltRoute(routeFile.filePath)];
     const expr = getRoutesExpr(root, routes);
     assert.include(expr, '_M', 'non-empty group should produce _M');
+  });
+});
+
+describe('generate-routes: loadersByFile propagation', () => {
+  test('loadersByFile emits _R hashes for regular child nodes in dev mode', () => {
+    const root = makeNode();
+    const child = makeNode({ _dirPath: '/test/dashboard' });
+    const routeFile = makeRouteFile('/test/dashboard');
+    child._files = [routeFile];
+    root.children.set('dashboard', child);
+
+    const routes = [makeBuiltRoute(routeFile.filePath)];
+    const loadersByFile = new Map([[routeFile.filePath, ['loader-hash-abc']]]);
+    const expr = getRoutesExpr(root, routes, loadersByFile);
+
+    assert.include(expr, '_R', 'regular child should emit _R when loadersByFile is provided');
+    assert.include(expr, 'loader-hash-abc', 'loader hash should appear in the output');
+    assert.notInclude(expr, '__LOADERS:', 'should not emit placeholder in dev mode');
+  });
+
+  test('loadersByFile emits _R hashes for group child nodes in dev mode', () => {
+    const root = makeNode();
+    const group = makeNode({ _dirPath: '/test/(common)' });
+    const routeFile = makeRouteFile('/test/(common)');
+    group._files = [routeFile];
+    root.children.set('(common)', group);
+
+    const routes = [makeBuiltRoute(routeFile.filePath)];
+    const loadersByFile = new Map([[routeFile.filePath, ['group-loader-hash']]]);
+    const expr = getRoutesExpr(root, routes, loadersByFile);
+
+    assert.include(expr, 'group-loader-hash', 'group child should emit its loader hash');
+  });
+
+  test('without loadersByFile regular children emit a build placeholder', () => {
+    const root = makeNode();
+    const child = makeNode({ _dirPath: '/test/dashboard' });
+    const routeFile = makeRouteFile('/test/dashboard');
+    child._files = [routeFile];
+    root.children.set('dashboard', child);
+
+    const routes = [makeBuiltRoute(routeFile.filePath)];
+    const expr = getRoutesExpr(root, routes);
+
+    assert.include(
+      expr,
+      '__LOADERS:',
+      'regular child should emit build placeholder without loadersByFile'
+    );
+    assert.notInclude(expr, 'loader-hash', 'no concrete hash expected in build mode');
   });
 });

@@ -37,6 +37,7 @@ import {
   OnRenderProp,
   QContainerSelector,
   QScopedStyle,
+  QStatePatchAttrSelector,
   QStyle,
 } from '../core/shared/utils/markers';
 import { useContextProvider } from '@qwik.dev/core';
@@ -203,12 +204,9 @@ export async function ssrRenderToDom(
     console.log('--------------------------------------------------------');
     console.log(_vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
     console.log('------------------- SERIALIZED STATE -------------------');
-    // We use the original state so we don't get deserialized data
-    const origState = JSON.parse(
-      container.element.querySelector('script[type="qwik/state"]')?.textContent || '[]'
-    );
-    preprocessState(origState, container);
-    console.log(origState ? _dumpState(origState, true, '', null) : 'No state found', '\n');
+    // We use the serialized state so we don't get deserialized data.
+    const debugState = getDebugSerializedState(container);
+    console.log(debugState ? _dumpState(debugState, true, '', null) : 'No state found', '\n');
     const funcs = container.$qFuncs$;
     console.log('------------------- SERIALIZED QFUNCS -------------------');
     for (let i = 0; i < funcs.length; i++) {
@@ -273,6 +271,56 @@ export async function ssrRenderToDom(
   }
 
   return { container, document, vNode, getStyles };
+}
+
+function getDebugSerializedState(container: _DomContainer) {
+  const stateScriptSelector = `script[type="qwik/state"][q\\:instance="${container.$instanceHash$}"]`;
+  const rootStateScript = container.element.querySelector(
+    `${stateScriptSelector}:not(${QStatePatchAttrSelector})`
+  );
+  const patchStateScripts = container.element.querySelectorAll(
+    `${stateScriptSelector}${QStatePatchAttrSelector}`
+  );
+
+  if (!rootStateScript && patchStateScripts.length === 0) {
+    return null;
+  }
+
+  const state = JSON.parse(rootStateScript?.textContent || '[]') as unknown[];
+  const patchForwardRefs: Array<Array<number | string>> = [];
+  for (let i = 0; i < patchStateScripts.length; i++) {
+    const patchStateText = patchStateScripts[i].textContent;
+    if (!patchStateText) {
+      continue;
+    }
+    const [rootStart, rawStateData, forwardRefs] = JSON.parse(patchStateText) as [
+      number,
+      unknown[],
+      Array<number | string> | 0 | undefined,
+    ];
+    for (let j = 0; j < rawStateData.length; j++) {
+      state[rootStart * 2 + j] = rawStateData[j];
+    }
+    if (forwardRefs) {
+      patchForwardRefs.push(forwardRefs);
+    }
+  }
+
+  // Preprocess a copy without mutating the live container's forward-ref bookkeeping.
+  const debugContainer = { $forwardRefs$: null } as _DomContainer;
+  preprocessState(state, debugContainer);
+  for (let i = 0; i < patchForwardRefs.length; i++) {
+    const rootForwardRefs = (debugContainer.$forwardRefs$ ||= []);
+    const forwardRefs = patchForwardRefs[i];
+    for (let j = 0; j < forwardRefs.length; j++) {
+      const ref = forwardRefs[j];
+      if (ref !== undefined) {
+        rootForwardRefs.push(ref);
+      }
+    }
+  }
+
+  return state;
 }
 
 function isQwikScript(node: ElementVNode): boolean {

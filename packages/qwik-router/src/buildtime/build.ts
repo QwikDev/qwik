@@ -1,5 +1,6 @@
 import { addError, addWarning } from '../utils/format';
 import { createFileId, getPathnameFromDirPath } from '../utils/fs';
+import { ensureSlash } from '../utils/pathname';
 import { resolveMenu } from './markdown/menu';
 import { resolveLayout, resolveRoute } from './routing/resolve-source-file';
 import { routeSortCompare } from './routing/sort-routes';
@@ -219,7 +220,7 @@ function translateRoute(
   const replacePath = (part: string) => (config.paths || {})[part] ?? part;
 
   const pathnamePrefix = config.prefix ? '/' + config.prefix : '';
-  const routeNamePrefix = config.prefix ? config.prefix + '/' : '';
+  const routeNamePrefix = config.prefix ? ensureSlash(config.prefix) : '';
   const idSuffix = config.prefix?.toUpperCase().replace(/-/g, '');
   const patternInfix = config.prefix ? [config.prefix] : [];
 

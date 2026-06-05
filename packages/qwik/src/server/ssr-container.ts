@@ -54,6 +54,7 @@ import {
   QTemplate,
   QUOTE,
   QVersionAttr,
+  QwikEvContainerReady,
   Q_PROPS_SEPARATOR,
   SPACE,
   VNodeDataChar,
@@ -1062,7 +1063,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.emitPatchDataIfNeeded();
     this.emitExecutorIfNeeded();
     this.emitQwikLoaderAtBottomIfNeeded();
-    this.emitContainerReadyEventIfNeeded();
   }
 
   private emitDelayedOutOfOrderSegmentVNodeData(): void {
@@ -1442,15 +1442,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.writeScript(scriptAttrs, script);
   }
 
-  private emitContainerReadyEventIfNeeded(): void {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || !this.outOfOrderUsed) {
-      return;
-    }
-    this.emitInlineScript(
-      `document.qready||(document.qready={});document.qready["${this.$instanceHash$}"]=1;try{document.dispatchEvent(new CustomEvent("qready",{detail:"${this.$instanceHash$}"}))}catch(e){}`
-    );
-  }
-
   writeScript(attrs: Props, body?: string): void {
     this.openScript(attrs);
     if (body) {
@@ -1529,23 +1520,26 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.emitQwikLoaderInline();
       }
       // emit the used events so the loader can subscribe to them
-      this.emitNewQwikEvents();
+      this.emitNewQwikEvents(true);
     }
   }
 
-  protected emitNewQwikEvents() {
-    const eventNames: string[] = [];
+  protected emitNewQwikEvents(includeContainerReady = false) {
+    const qwikEventItems: string[] = [];
     for (const eventName of this.serializationCtx.$eventNames$) {
       if (!this.emittedQwikEventNames.has(eventName)) {
         this.emittedQwikEventNames.add(eventName);
-        eventNames.push(JSON.stringify(eventName));
+        qwikEventItems.push(JSON.stringify(eventName));
       }
     }
-    this.emitQwikEvents(eventNames);
+    if (includeContainerReady) {
+      qwikEventItems.push(`${QwikEvContainerReady}`, JSON.stringify(this.$instanceHash$));
+    }
+    this.emitQwikEvents(qwikEventItems);
   }
 
-  private emitQwikEvents(eventNames: string[]) {
-    if (eventNames.length > 0) {
+  private emitQwikEvents(qwikEventItems: string[]) {
+    if (qwikEventItems.length > 0) {
       // TODO fix qwikloader so it handles qvisible added after init
       // const scriptAttrs = ['async', true, 'type', 'module'];
       const scriptAttrs: Record<string, string> = {};
@@ -1555,7 +1549,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
       this.openScript(scriptAttrs);
       this.write(`(window._qwikEv||(window._qwikEv=[])).push(`);
-      this.writeArray(eventNames, COMMA);
+      this.writeArray(qwikEventItems, COMMA);
       this.write(PAREN_CLOSE);
       this.closeScript();
     }
@@ -2171,7 +2165,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     this.serializationCtx.$markSsrNodeForSerialization$ =
       this.markVNodeDataForSerialization.bind(this);
     return maybeThen(
-      this.serializationCtx.$serializePatch$(rootStart, rootIds, subscriptionPatchRootId),
+      this.serializationCtx.$serializePatch$(rootStart, rootIds, subscriptionPatchRootId, 0),
       () => {
         this.closeScript();
       }

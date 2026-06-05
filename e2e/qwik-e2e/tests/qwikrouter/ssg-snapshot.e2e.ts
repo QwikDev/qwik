@@ -198,6 +198,7 @@ function normalizeHtml(html: string, manifestHash: string | null) {
     .replace(/\/assets\/[A-Za-z0-9_-]+-bundle-graph\.json/g, '/assets/xxxxxxxx-bundle-graph.json')
     .replace(/q-[A-Za-z0-9_-]+\.(js|css)/g, 'q-xxxxxxxx.$1')
     .replace(/qFuncs_[A-Za-z0-9_-]+/g, 'qFuncs_xxxxxx')
+    .replace(/,0,"[A-Za-z0-9_-]+"/g, ',0,"[instance]"')
     .replace(/<script type="qwik\/state"[^>]*>[\s\S]*?<\/script>/, '[state omitted]\n')
     .replace(/<script type="qwik\/vnode"[^>]*>[\s\S]*?<\/script>/, '[vnode map omitted]\n');
   return result;

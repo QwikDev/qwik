@@ -37,7 +37,8 @@ export interface SerializationContext {
   $serializePatch$: (
     rootStart: number,
     rootIds: number[],
-    extraRootId?: number | string | number[]
+    extraRootId?: number | string | number[],
+    streamedRootLimit?: number
   ) => ValueOrPromise<void>;
 
   $symbolToChunkResolver$: SymbolToChunkResolver;
@@ -153,9 +154,10 @@ class SerializationContextImpl implements SerializationContext {
   async $serializePatch$(
     rootStart: number,
     rootIds: number[],
-    extraRootId?: number | string | number[]
+    extraRootId?: number | string | number[],
+    streamedRootLimit?: number
   ): Promise<void> {
-    await this.$serializer$.serializePatch(rootStart, rootIds, extraRootId);
+    await this.$serializer$.serializePatch(rootStart, rootIds, extraRootId, streamedRootLimit);
   }
 
   $setWriter$(writer: SSRInternalStreamWriter): void {

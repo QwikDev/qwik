@@ -129,6 +129,26 @@ describe('fetchRouteLoaderData', () => {
     );
   });
 
+  it('converts unfollowed HTTP redirects into loader redirects', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response('', {
+          status: 302,
+          headers: {
+            Location: '/login/',
+          },
+        })
+      )
+    );
+
+    await expect(
+      fetchRouteLoaderData('loader-hash', '/products/123/', 'manifest-hash', {
+        pageUrl: new URL('http://localhost/products/123/?view=full'),
+      })
+    ).resolves.toEqual({ r: '/login/' });
+  });
+
   it('dedupes concurrent loader fetches for the same request', async () => {
     const body = await _serialize({ d: 'prefetched' });
     let resolveFetch: (() => void) | undefined;

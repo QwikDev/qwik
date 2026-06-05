@@ -1,9 +1,8 @@
 import { isDev } from '@qwik.dev/core';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
-import { ensureSlash } from '../../../utils/pathname';
 import { RedirectMessage } from '../redirect-handler';
 import type { RequestEventInternal } from '../request-event-core';
-import { IsQLoader, IsQAction } from '../request-path';
+import { IsQLoader, IsQAction, resolveValidInternalFullPathname } from '../request-path';
 import { ServerError } from '../server-error';
 import type { RequestHandler, RequestEvent } from '../types';
 import { addVaryHeader, sendJsonResponse, sendActionResponse } from './loader-handler';
@@ -36,7 +35,7 @@ export function jsonRequestWrapper(): RequestHandler {
     if (isLoader) {
       addVaryHeader(requestEv, FULLPATH_HEADER);
       const pagePath = requestEv.request.headers.get(FULLPATH_HEADER);
-      const pagePathname = resolveValidFullPath(requestEv, pagePath);
+      const pagePathname = resolveValidInternalFullPathname(requestEv.url.pathname, pagePath);
       if (pagePathname) {
         requestEv.url.pathname = pagePathname;
       }
@@ -81,26 +80,4 @@ export function jsonRequestWrapper(): RequestHandler {
       }
     }
   };
-}
-
-function resolveValidFullPath(requestEv: RequestEventInternal, pagePath: string | null) {
-  if (!pagePath || !pagePath.startsWith('/') || pagePath.startsWith('//')) {
-    return undefined;
-  }
-  try {
-    // Protect against malicious X-Qwik-fullpath values that could cause SSRF or cache poisoning. Only allow if it's a relative path below the loader pathname.
-    const pageUrl = new URL(pagePath, requestEv.url.origin);
-    if (pageUrl.origin !== requestEv.url.origin) {
-      return undefined;
-    }
-    const pagePathname = pageUrl.pathname;
-    const loaderPathname = requestEv.url.pathname;
-    if (pagePathname === loaderPathname) {
-      return undefined;
-    }
-    const loaderPrefix = ensureSlash(loaderPathname);
-    return pagePathname.startsWith(loaderPrefix) ? pagePathname : undefined;
-  } catch {
-    return undefined;
-  }
 }

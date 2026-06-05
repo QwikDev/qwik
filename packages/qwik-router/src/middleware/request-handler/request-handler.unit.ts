@@ -1,9 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { requestHandler } from './request-handler';
+import { FULLPATH_HEADER } from '../../runtime/src/route-loaders';
+import { getLoaderName } from './request-path';
+import { getRequestHandlerPathname, requestHandler } from './request-handler';
 import type { ServerRequestEvent } from './types';
 
-function createMockServerRequestEvent(url = 'http://localhost/.well-known') {
-  const mockRequest = new Request(url);
+function createMockServerRequestEvent(url = 'http://localhost/.well-known', init?: RequestInit) {
+  const mockRequest = new Request(url, init);
 
   return {
     mode: 'server',
@@ -44,5 +46,43 @@ describe('requestHandler .well-known ignore', () => {
       render: (async () => ({ html: '' })) as any,
     });
     expect(result).toBeNull();
+  });
+});
+
+describe('getRequestHandlerPathname', () => {
+  it('uses the validated full pathname for q-loader requests', () => {
+    const ev = createMockServerRequestEvent(
+      `http://localhost/products/${getLoaderName('loader-id', 'manifest')}`,
+      {
+        headers: {
+          [FULLPATH_HEADER]: '/products/123/',
+        },
+      }
+    );
+
+    expect(getRequestHandlerPathname(ev)).toBe('/products/123/');
+  });
+
+  it('uses the loader pathname when X-Qwik-fullpath is outside the loader pathname', () => {
+    const ev = createMockServerRequestEvent(
+      `http://localhost/products/${getLoaderName('loader-id', 'manifest')}`,
+      {
+        headers: {
+          [FULLPATH_HEADER]: '/admin/',
+        },
+      }
+    );
+
+    expect(getRequestHandlerPathname(ev)).toBe('/products/');
+  });
+
+  it('ignores X-Qwik-fullpath for normal page requests', () => {
+    const ev = createMockServerRequestEvent('http://localhost/products/', {
+      headers: {
+        [FULLPATH_HEADER]: '/products/123/',
+      },
+    });
+
+    expect(getRequestHandlerPathname(ev)).toBe('/products/');
   });
 });

@@ -1,13 +1,20 @@
 import {
   getIdentifierName,
   getParams,
+  getRange,
   isCallExpression,
   isFunctionLike,
   isIdentifierNamed,
   isJsxNode,
   unwrapExpression,
 } from '../ast-utils';
-import type { AnyNode, CompilerContext, ComponentRecord } from '../types';
+import type { ExportDefaultDeclaration, ExportNamedDeclaration } from 'oxc-parser';
+import type { AstFunction, AstJsxNode, CompilerContext, ComponentRecord } from '../types';
+
+interface ComponentFunctionInfo {
+  fn: AstFunction;
+  qrlBoundary: string | null;
+}
 
 export function collectModuleFacts(_ctx: CompilerContext) {
   // Reserved for module-level facts that are independent from component discovery.
@@ -19,7 +26,7 @@ export function discoverExportedComponents(ctx: CompilerContext) {
     return;
   }
 
-  for (const statement of program.body as AnyNode[]) {
+  for (const statement of program.body) {
     if (statement.type === 'ExportNamedDeclaration') {
       discoverNamedExport(ctx, statement);
     } else if (statement.type === 'ExportDefaultDeclaration') {
@@ -28,8 +35,8 @@ export function discoverExportedComponents(ctx: CompilerContext) {
   }
 }
 
-function discoverNamedExport(ctx: CompilerContext, statement: AnyNode) {
-  const declaration = statement.declaration as AnyNode | null | undefined;
+function discoverNamedExport(ctx: CompilerContext, statement: ExportNamedDeclaration) {
+  const declaration = statement.declaration;
   if (!declaration) {
     return;
   }
@@ -45,18 +52,15 @@ function discoverNamedExport(ctx: CompilerContext, statement: AnyNode) {
   }
   for (const declarator of declaration.declarations ?? []) {
     const name = getIdentifierName(declarator.id);
-    const fn = getComponentFunction(declarator.init);
-    if (name && fn) {
-      addFunctionComponent(ctx, fn, name, name, 'const');
+    const component = getComponentFunction(declarator.init);
+    if (name && component) {
+      addFunctionComponent(ctx, component.fn, name, name, 'const', component.qrlBoundary);
     }
   }
 }
 
-function discoverDefaultExport(ctx: CompilerContext, statement: AnyNode) {
-  const declaration = statement.declaration as AnyNode | null | undefined;
-  if (!declaration) {
-    return;
-  }
+function discoverDefaultExport(ctx: CompilerContext, statement: ExportDefaultDeclaration) {
+  const declaration = statement.declaration;
   if (declaration.type === 'FunctionDeclaration') {
     addFunctionComponent(
       ctx,
@@ -68,28 +72,40 @@ function discoverDefaultExport(ctx: CompilerContext, statement: AnyNode) {
     return;
   }
 
-  const fn = getComponentFunction(declaration);
-  if (!fn) {
+  const component = getComponentFunction(declaration);
+  if (!component) {
     return;
   }
+  const fn = component.fn;
   if (fn.type === 'ArrowFunctionExpression') {
-    addFunctionComponent(ctx, fn, 'default', null, 'defaultArrow');
+    addFunctionComponent(ctx, fn, 'default', null, 'defaultArrow', component.qrlBoundary);
   } else {
-    addFunctionComponent(ctx, fn, 'default', getIdentifierName(fn.id), 'defaultFunction');
+    addFunctionComponent(
+      ctx,
+      fn,
+      'default',
+      getIdentifierName(fn.id),
+      'defaultFunction',
+      component.qrlBoundary
+    );
   }
 }
 
 function addFunctionComponent(
   ctx: CompilerContext,
-  fn: AnyNode,
+  fn: AstFunction,
   exportName: string | 'default',
   localName: string | null,
-  declarationKind: ComponentRecord['declarationKind']
+  declarationKind: ComponentRecord['declarationKind'],
+  qrlBoundary: string | null = null
 ) {
   const component: ComponentRecord = {
     exportName,
     localName,
     declarationKind,
+    functionRange: getRange(fn),
+    qrlBoundary,
+    segmentId: null,
     params: getParams(fn),
     jsx: getReturnedJsx(fn),
     root: null,
@@ -98,20 +114,20 @@ function addFunctionComponent(
   ctx.manifest.components.push(component);
 }
 
-function getComponentFunction(node: AnyNode | null | undefined): AnyNode | null {
+function getComponentFunction(node: unknown): ComponentFunctionInfo | null {
   const unwrapped = unwrapExpression(node);
   if (isFunctionLike(unwrapped)) {
-    return unwrapped ?? null;
+    return unwrapped ? { fn: unwrapped, qrlBoundary: null } : null;
   }
   if (!isCallExpression(unwrapped) || !isIdentifierNamed(unwrapped.callee, 'component$')) {
     return null;
   }
   const [firstArg] = unwrapped.arguments ?? [];
   const fn = unwrapExpression(firstArg);
-  return isFunctionLike(fn) ? (fn ?? null) : null;
+  return isFunctionLike(fn) && fn ? { fn, qrlBoundary: 'component$' } : null;
 }
 
-function getReturnedJsx(fn: AnyNode): AnyNode | null {
+function getReturnedJsx(fn: AstFunction): AstJsxNode | null {
   const body = unwrapExpression(fn.body);
   if (!body) {
     return null;
@@ -123,8 +139,11 @@ function getReturnedJsx(fn: AnyNode): AnyNode | null {
     return null;
   }
   for (const statement of body.body ?? []) {
+    if (statement.type !== 'ReturnStatement') {
+      continue;
+    }
     const argument = unwrapExpression(statement.argument);
-    if (statement.type === 'ReturnStatement' && isJsxNode(argument)) {
+    if (isJsxNode(argument)) {
       return argument;
     }
   }

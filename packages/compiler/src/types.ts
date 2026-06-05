@@ -4,8 +4,19 @@ import type {
   TransformModuleInput,
   TransformModulesOptions,
 } from '@qwik.dev/optimizer';
+import type {
+  ArrowFunctionExpression,
+  Function as OxcFunction,
+  JSXElement,
+  JSXFragment,
+  Node,
+  Program,
+} from 'oxc-parser';
 
-export type AnyNode = Record<string, any>;
+export type AstNode = Node;
+export type AstFunction = OxcFunction | ArrowFunctionExpression;
+export type AstJsxNode = JSXElement | JSXFragment;
+export type SourceRange = [number, number];
 
 export interface CompilerResult {
   module: TransformModule;
@@ -15,13 +26,14 @@ export interface CompilerResult {
 export interface CompilerContext {
   input: TransformModuleInput;
   options: TransformModulesOptions;
-  program: AnyNode | null;
+  program: Program | null;
   manifest: RenderManifest;
   outputCode: string | null;
 }
 
 export interface RenderManifest {
   components: ComponentRecord[];
+  segments: SegmentRecord[];
   diagnostics: Diagnostic[];
 }
 
@@ -29,10 +41,39 @@ export interface ComponentRecord {
   exportName: string | 'default';
   localName: string | null;
   declarationKind: 'function' | 'const' | 'defaultFunction' | 'defaultArrow';
+  functionRange: SourceRange | null;
+  qrlBoundary: string | null;
+  segmentId: string | null;
   params: ParamRecord[];
-  jsx: AnyNode | null;
+  jsx: AstJsxNode | null;
   root: RenderNode | null;
   supported: boolean;
+}
+
+export interface SegmentRecord {
+  id: string;
+  kind: 'function' | 'eventHandler' | 'jsxProp';
+  ctxName: string;
+  range: SourceRange | null;
+  parentId: string | null;
+  params: ParamRecord[];
+  captures: CaptureRecord[];
+  captureMode: 'auto' | 'explicit';
+  targetFunctionOwnerId: number;
+  specialReferences: SpecialReferenceRecord[];
+}
+
+export interface CaptureRecord {
+  name: string;
+  symbolId: number;
+  declRange: SourceRange | null;
+  source: 'local' | 'param' | 'loop';
+  readonlyConst?: boolean;
+}
+
+export interface SpecialReferenceRecord {
+  kind: 'this' | 'arguments' | 'super' | 'new.target';
+  range: SourceRange | null;
 }
 
 export interface ParamRecord {

@@ -1,6 +1,13 @@
-import type { AnyNode, ParamRecord, PropRecord } from './types';
+import type {
+  AstFunction,
+  AstJsxNode,
+  AstNode,
+  ParamRecord,
+  PropRecord,
+  SourceRange,
+} from './types';
 
-export function visit(node: unknown, visitor: (node: AnyNode) => void) {
+export function visit(node: unknown, visitor: (node: AstNode) => void) {
   if (!isObjectNode(node)) {
     return;
   }
@@ -16,27 +23,17 @@ export function visit(node: unknown, visitor: (node: AnyNode) => void) {
   }
 }
 
-export function getParams(fn: AnyNode): ParamRecord[] {
-  return (fn.params ?? []).map((param: AnyNode) => ({
+export function getParams(fn: AstFunction): ParamRecord[] {
+  return fn.params.map((param) => ({
     name: getIdentifierName(param),
   }));
 }
 
 export function getStaticExpressionValue(
-  expr: AnyNode | null | undefined
+  expr: unknown
 ): { supported: true; value: PropRecord['value'] } | { supported: false } {
-  if (!expr) {
+  if (!isObjectNode(expr)) {
     return { supported: false };
-  }
-  if (
-    expr.type === 'StringLiteral' ||
-    expr.type === 'NumericLiteral' ||
-    expr.type === 'BooleanLiteral'
-  ) {
-    return { supported: true, value: expr.value };
-  }
-  if (expr.type === 'NullLiteral') {
-    return { supported: true, value: null };
   }
   if (expr.type === 'Literal') {
     if (
@@ -51,8 +48,8 @@ export function getStaticExpressionValue(
   return { supported: false };
 }
 
-export function getJsxName(name: AnyNode | null | undefined): string | null {
-  if (!name) {
+export function getJsxName(name: unknown): string | null {
+  if (!isObjectNode(name)) {
     return null;
   }
   if (name.type === 'JSXIdentifier' || name.type === 'Identifier') {
@@ -61,43 +58,60 @@ export function getJsxName(name: AnyNode | null | undefined): string | null {
   return null;
 }
 
-export function getIdentifierName(node: AnyNode | null | undefined): string | null {
-  if (!node) {
+export function getIdentifierName(node: unknown): string | null {
+  if (!isObjectNode(node)) {
     return null;
   }
-  if (node.type === 'Identifier' || node.type === 'BindingIdentifier') {
+  if (node.type === 'Identifier') {
     return node.name;
   }
   return null;
 }
 
-export function isFunctionLike(node: AnyNode | null | undefined) {
+export function getRange(node: unknown): SourceRange | null {
+  if (!hasSourceRange(node)) {
+    return null;
+  }
+  if (Array.isArray(node.range) && node.range.length === 2) {
+    return [node.range[0], node.range[1]];
+  }
+  if (typeof node.start === 'number' && typeof node.end === 'number') {
+    return [node.start, node.end];
+  }
+  return null;
+}
+
+export function isFunctionLike(node: unknown): node is AstFunction {
+  if (!isObjectNode(node)) {
+    return false;
+  }
   return (
-    !!node &&
-    (node.type === 'ArrowFunctionExpression' ||
-      node.type === 'FunctionExpression' ||
-      node.type === 'FunctionDeclaration')
+    node.type === 'ArrowFunctionExpression' ||
+    node.type === 'FunctionExpression' ||
+    node.type === 'FunctionDeclaration'
   );
 }
 
-export function isCallExpression(node: AnyNode | null | undefined): node is AnyNode {
-  return !!node && node.type === 'CallExpression';
+export function isCallExpression(
+  node: unknown
+): node is Extract<AstNode, { type: 'CallExpression' }> {
+  return isObjectNode(node) && node.type === 'CallExpression';
 }
 
-export function isIdentifierNamed(node: AnyNode | null | undefined, name: string) {
-  return !!node && node.type === 'Identifier' && node.name === name;
+export function isIdentifierNamed(node: unknown, name: string) {
+  return isObjectNode(node) && node.type === 'Identifier' && node.name === name;
 }
 
-export function isJsxNode(node: AnyNode | null | undefined): node is AnyNode {
-  return !!node && (node.type === 'JSXElement' || node.type === 'JSXFragment');
+export function isJsxNode(node: unknown): node is AstJsxNode {
+  return isObjectNode(node) && (node.type === 'JSXElement' || node.type === 'JSXFragment');
 }
 
-export function unwrapExpression(node: AnyNode | null | undefined): AnyNode | null | undefined {
+export function unwrapExpression(node: unknown): AstNode | null | undefined {
   let current = node;
-  while (current?.type === 'ParenthesizedExpression') {
+  while (isObjectNode(current) && current.type === 'ParenthesizedExpression') {
     current = current.expression;
   }
-  return current;
+  return isObjectNode(current) ? current : null;
 }
 
 export function isNativeTag(name: string) {
@@ -120,6 +134,12 @@ export function normalizeJsxText(value: string) {
     .join(' ');
 }
 
-function isObjectNode(node: unknown): node is AnyNode {
-  return !!node && typeof node === 'object' && typeof (node as AnyNode).type === 'string';
+function isObjectNode(node: unknown): node is AstNode {
+  return !!node && typeof node === 'object' && 'type' in node && typeof node.type === 'string';
+}
+
+function hasSourceRange(
+  node: unknown
+): node is { start?: number; end?: number; range?: [number, number] } {
+  return !!node && typeof node === 'object';
 }

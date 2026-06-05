@@ -6,7 +6,14 @@ import {
   normalizeJsxText,
 } from '../ast-utils';
 import { createDiagnostic } from '../diagnostics';
-import type { AnyNode, CompilerContext, FragmentNode, PropRecord, RenderNode } from '../types';
+import type {
+  JSXAttributeItem,
+  JSXAttributeValue,
+  JSXChild,
+  JSXElement,
+  JSXFragment,
+} from 'oxc-parser';
+import type { AstJsxNode, CompilerContext, FragmentNode, PropRecord, RenderNode } from '../types';
 
 export function lowerStaticJsxToIr(ctx: CompilerContext) {
   for (const component of ctx.manifest.components) {
@@ -34,30 +41,23 @@ export function lowerStaticJsxToIr(ctx: CompilerContext) {
   }
 }
 
-function lowerJsxNode(ctx: CompilerContext, node: AnyNode): RenderNode {
+function lowerJsxNode(ctx: CompilerContext, node: AstJsxNode): RenderNode {
   if (node.type === 'JSXElement') {
     return lowerJsxElement(ctx, node);
   }
-  if (node.type === 'JSXFragment') {
-    return lowerJsxFragment(ctx, node);
-  }
-  return {
-    kind: 'expr',
-    role: 'child',
-    reason: `Unsupported JSX node: ${node.type}.`,
-  };
+  return lowerJsxFragment(ctx, node);
 }
 
-function lowerJsxFragment(ctx: CompilerContext, node: AnyNode): FragmentNode {
+function lowerJsxFragment(ctx: CompilerContext, node: JSXFragment): FragmentNode {
   return {
     kind: 'fragment',
-    children: lowerJsxChildren(ctx, node.children ?? []),
+    children: lowerJsxChildren(ctx, node.children),
   };
 }
 
-function lowerJsxElement(ctx: CompilerContext, node: AnyNode): RenderNode {
-  const opening = node.openingElement ?? node.opening;
-  const name = getJsxName(opening?.name);
+function lowerJsxElement(ctx: CompilerContext, node: JSXElement): RenderNode {
+  const opening = node.openingElement;
+  const name = getJsxName(opening.name);
   if (!name) {
     return {
       kind: 'expr',
@@ -76,12 +76,12 @@ function lowerJsxElement(ctx: CompilerContext, node: AnyNode): RenderNode {
   return {
     kind: 'element',
     tag: name,
-    props: lowerJsxAttributes(ctx, opening?.attributes ?? []),
-    children: lowerJsxChildren(ctx, node.children ?? []),
+    props: lowerJsxAttributes(ctx, opening.attributes),
+    children: lowerJsxChildren(ctx, node.children),
   };
 }
 
-function lowerJsxAttributes(ctx: CompilerContext, attributes: AnyNode[]): PropRecord[] {
+function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]): PropRecord[] {
   const props: PropRecord[] = [];
   for (const attr of attributes) {
     if (attr.type === 'JSXSpreadAttribute') {
@@ -128,13 +128,13 @@ function lowerJsxAttributes(ctx: CompilerContext, attributes: AnyNode[]): PropRe
 
 function lowerStaticAttributeValue(
   ctx: CompilerContext,
-  valueNode: AnyNode | null | undefined,
+  valueNode: JSXAttributeValue | null,
   name: string
 ): { supported: true; value: PropRecord['value'] } | { supported: false } {
   if (!valueNode) {
     return { supported: true, value: true };
   }
-  if (valueNode.type === 'StringLiteral' || valueNode.type === 'Literal') {
+  if (valueNode.type === 'Literal') {
     return { supported: true, value: valueNode.value };
   }
   if (valueNode.type === 'JSXExpressionContainer') {
@@ -151,7 +151,7 @@ function lowerStaticAttributeValue(
   return { supported: false };
 }
 
-function lowerJsxChildren(ctx: CompilerContext, children: AnyNode[]): RenderNode[] {
+function lowerJsxChildren(ctx: CompilerContext, children: JSXChild[]): RenderNode[] {
   const nodes: RenderNode[] = [];
   for (const child of children) {
     if (child.type === 'JSXText') {

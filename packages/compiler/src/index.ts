@@ -5,6 +5,7 @@ import type {
 } from '@qwik.dev/optimizer';
 import { createModule, isJsxPath, isTypeScriptPath, transformWithOxc } from './module-utils';
 import type { CompilerContext, CompilerResult, PipelineStage } from './types';
+import { analyzeCaptures } from './stages/analyze-captures';
 import { collectModuleFacts, discoverExportedComponents } from './stages/discover';
 import { emitModules } from './stages/emit';
 import { lowerStaticJsxToIr } from './stages/lower-jsx';
@@ -16,6 +17,7 @@ const PIPELINE: readonly PipelineStage[] = [
   parseModule,
   collectModuleFacts,
   discoverExportedComponents,
+  analyzeCaptures,
   lowerStaticJsxToIr,
   normalizeProps,
   rejectUnsupportedV1,
@@ -44,6 +46,7 @@ async function transformModule(
     program: null,
     manifest: {
       components: [],
+      segments: [],
       diagnostics: [],
     },
     outputCode: null,

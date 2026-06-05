@@ -1,7 +1,7 @@
 import { parseSync } from 'oxc-parser';
 import { createDiagnostic, getErrorMessage } from '../diagnostics';
 import { getLang } from '../module-utils';
-import type { AnyNode, CompilerContext } from '../types';
+import type { CompilerContext } from '../types';
 
 export function parseModule(ctx: CompilerContext) {
   try {
@@ -11,8 +11,8 @@ export function parseModule(ctx: CompilerContext) {
       astType: 'ts',
       range: true,
     });
-    ctx.program = parsed.program as AnyNode;
-    const errors = (parsed as AnyNode).errors as unknown[] | undefined;
+    ctx.program = parsed.program;
+    const errors = parsed.errors;
     if (errors && errors.length > 0) {
       for (const error of errors) {
         ctx.manifest.diagnostics.push(

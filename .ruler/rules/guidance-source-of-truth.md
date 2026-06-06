@@ -24,12 +24,19 @@ outputs, not source.
 
 For this repo, Ruler handles Codex output:
 
-- Codex repo rules are generated to root `AGENTS.md`.
+- Codex repo rules are generated into root `AGENTS.md`, including `.ruler/rules/*.md` content marked
+  with `<!-- Source: .ruler/rules/... -->` comments.
 - Codex skills are generated to `.codex/skills/`.
 - Codex project config and MCP settings are generated to `.codex/config.toml` when configured.
 
-Do not add a separate Codex `.rules` conversion file or conversion skill unless current Ruler or
-OpenAI Codex documentation changes to require it.
+Codex does not receive a separate `.codex/rules/` directory from Ruler. Verify Codex rules with:
+
+```bash
+rg -n 'Source: .ruler/rules' AGENTS.md
+```
+
+Do not add a separate Codex `.rules` conversion file, `.codex/rules/` output, or conversion skill
+unless current Ruler or OpenAI Codex documentation changes to require it.
 
 ## Rule Versus Skill
 

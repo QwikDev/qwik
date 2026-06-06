@@ -38,9 +38,28 @@ outside the `.ruler/` tree.
 
 Generated assistant files such as `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.codex/`, and `.cursor/` are local outputs from Ruler and should not be edited directly or committed. Update the files in `.ruler/`, then regenerate the local assistant files you need.
 
-For Codex specifically, Ruler generates repo rules into root `AGENTS.md` and skills into
-`.codex/skills/`. Do not add or maintain a separate Codex `.rules` file unless Ruler or Codex
-officially changes the expected output format.
+## Assistant Translation
+
+Ruler is the source layer. Each assistant has its own output shape.
+
+| Ruler source | Meaning | Codex output | Verify after `ruler apply --agents codex` |
+| --- | --- | --- | --- |
+| `.ruler/AGENTS.md` | Short repo-wide context and rule index | Concatenated into generated root `AGENTS.md` | `rg -n 'Source: .ruler/AGENTS.md' AGENTS.md` |
+| `.ruler/rules/*.md` | Dedicated always-on rules | Concatenated into generated root `AGENTS.md` with source comments | `rg -n 'Source: .ruler/rules' AGENTS.md` |
+| `.ruler/skills/*/SKILL.md` | Task-triggered workflows | Copied to `.codex/skills/*/SKILL.md` | `find .codex/skills -name SKILL.md` |
+| `.ruler/ruler.toml` and Ruler MCP config | Agent config and MCP output settings | `.codex/config.toml` when Codex config is generated | `test -f .codex/config.toml` when MCP/config is expected |
+
+Codex project rules are `AGENTS.md`. Ruler does not generate a `.codex/rules/` directory for this
+repo. If Codex adds a separate repo rules format later, update this table and
+`.ruler/rules/guidance-source-of-truth.md` before adding a custom conversion layer.
+
+Expected Codex check:
+
+```bash
+ruler apply --agents codex
+rg -n 'Source: .ruler/rules' AGENTS.md
+find .codex/skills -name SKILL.md
+```
 
 ## Generate Local Assistant Files
 

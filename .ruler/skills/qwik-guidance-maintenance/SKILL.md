@@ -20,6 +20,8 @@ when source inspection proves a loaded skill or reference is stale.
    `.ruler/rules/*.md` for dedicated always-on rules, and `.ruler/skills/**` for task-specific
    workflows.
 5. Verify Ruler behavior with a dry run when the CLI is available.
+6. For Codex, verify that `.ruler/rules/*.md` content appears inside generated root `AGENTS.md` and
+   that `.ruler/skills/**` appears under `.codex/skills/**`.
 
 ## Freshness Workflow
 
@@ -52,6 +54,8 @@ When an agent uses a skill and current source contradicts it:
   rules in `.ruler/AGENTS.md` or `.ruler/rules/**`.
 - For Codex output questions, use the `guidance-source-of-truth` rule unless current Ruler or
   OpenAI Codex docs have changed.
+- Do not expect or document a Codex `.codex/rules/` output unless current Codex docs add that as a
+  repo guidance format. Today Codex repo rules come from generated root `AGENTS.md`.
 
 ## Verification
 
@@ -59,6 +63,8 @@ Use:
 
 ```bash
 npx @intellectronica/ruler apply --agents codex --dry-run --no-mcp --no-gitignore
+rg -n 'Source: .ruler/rules' AGENTS.md
+find .codex/skills -name SKILL.md
 pnpm prettier --check .ruler README.md .gitignore
 git diff --check
 ```

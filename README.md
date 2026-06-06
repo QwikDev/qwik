@@ -72,8 +72,9 @@ Use `.ruler/AGENTS.md` for short repo-wide AI instructions, `.ruler/rules/` for 
 rules, `.ruler/skills/` for reusable prompts or task-specific skills, and `~/.config/ruler/` for
 personal settings such as local MCP servers or workflow preferences.
 
-For Codex, `ruler apply --agents codex` writes rules into generated root `AGENTS.md` and skills into
-`.codex/skills/`. Codex does not get a separate `.codex/rules/` directory from Ruler.
+For Codex, `ruler apply --agents codex` writes AI guidance rules into generated root `AGENTS.md`
+and skills into `.codex/skills/`. Codex `.rules` files are a different command-permission format
+for sandbox/approval policy; do not translate Markdown guidance into `.rules` files.
 
 Do not edit generated files like `AGENTS.md`, `CLAUDE.md`, `.codex/`, `.claude/`, or `.cursor/`
 by hand. Update `.ruler/` and rerun `ruler apply`.

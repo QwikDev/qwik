@@ -54,8 +54,9 @@ When an agent uses a skill and current source contradicts it:
   rules in `.ruler/AGENTS.md` or `.ruler/rules/**`.
 - For Codex output questions, use the `guidance-source-of-truth` rule unless current Ruler or
   OpenAI Codex docs have changed.
-- Do not expect or document a Codex `.codex/rules/` output unless current Codex docs add that as a
-  repo guidance format. Today Codex repo rules come from generated root `AGENTS.md`.
+- Treat Codex `.rules` files as command-permission policy, not AI guidance. Do not translate
+  `.ruler/rules/*.md` into `.codex/rules/*.rules` unless the source rule is already written in the
+  Codex exec-policy format.
 
 ## Verification
 

@@ -49,9 +49,16 @@ Ruler is the source layer. Each assistant has its own output shape.
 | `.ruler/skills/*/SKILL.md` | Task-triggered workflows | Copied to `.codex/skills/*/SKILL.md` | `find .codex/skills -name SKILL.md` |
 | `.ruler/ruler.toml` and Ruler MCP config | Agent config and MCP output settings | `.codex/config.toml` when Codex config is generated | `test -f .codex/config.toml` when MCP/config is expected |
 
-Codex project rules are `AGENTS.md`. Ruler does not generate a `.codex/rules/` directory for this
-repo. If Codex adds a separate repo rules format later, update this table and
-`.ruler/rules/guidance-source-of-truth.md` before adding a custom conversion layer.
+Codex has two rule-like layers with different formats:
+
+- AI guidance rules: natural-language project instructions. Ruler writes these to generated
+  `AGENTS.md` for Codex.
+- Command rules: `.rules` files under `.codex/rules/`, used for sandbox and approval policy such
+  as `prefix_rule(pattern=["git", "switch"], decision="allow")`.
+
+Do not translate `.ruler/rules/*.md` into Codex `.rules` files. If this repo needs shared Codex
+command-permission rules later, add a separate source path for that exec-policy format and document
+the extra generation step here.
 
 Expected Codex check:
 

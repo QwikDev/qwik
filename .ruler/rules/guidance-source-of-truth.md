@@ -24,19 +24,24 @@ outputs, not source.
 
 For this repo, Ruler handles Codex output:
 
-- Codex repo rules are generated into root `AGENTS.md`, including `.ruler/rules/*.md` content marked
-  with `<!-- Source: .ruler/rules/... -->` comments.
+- Codex AI guidance rules are generated into root `AGENTS.md`, including `.ruler/rules/*.md`
+  content marked with `<!-- Source: .ruler/rules/... -->` comments.
 - Codex skills are generated to `.codex/skills/`.
 - Codex project config and MCP settings are generated to `.codex/config.toml` when configured.
+- Codex `.rules` files are command-permission policy, not natural-language project guidance.
 
-Codex does not receive a separate `.codex/rules/` directory from Ruler. Verify Codex rules with:
+Do not translate Markdown guidance from `.ruler/rules/*.md` into Codex `.rules` files. A Codex
+`.rules` file belongs under `.codex/rules/` and contains command policy such as
+`prefix_rule(pattern=["git", "switch"], decision="allow")`.
+
+Verify Codex AI guidance rules with:
 
 ```bash
 rg -n 'Source: .ruler/rules' AGENTS.md
 ```
 
-Do not add a separate Codex `.rules` conversion file, `.codex/rules/` output, or conversion skill
-unless current Ruler or OpenAI Codex documentation changes to require it.
+If this repo needs shared Codex command-permission rules later, keep them in a separate source path
+and document the generation step. Do not infer command permissions from prose guidance.
 
 ## Rule Versus Skill
 

@@ -13,7 +13,7 @@ interface DocumentViewTransition extends Omit<Document, 'startViewTransition'> {
 }
 
 /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/ViewTransition) */
-interface ViewTransition {
+export interface ViewTransition {
   /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/ViewTransition/finished) */
   readonly finished: Promise<undefined>;
   /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/ViewTransition/ready) */
@@ -25,10 +25,10 @@ interface ViewTransition {
   types?: Set<string>;
 }
 
-export const startViewTransition = (params: StartViewTransitionOptions) => {
-  if (!params.update) {
-    return;
-  }
+export const startViewTransition = (params: {
+  types: string[];
+  update: () => Promise<void>;
+}): { ready: Promise<void>; transition?: ViewTransition } => {
   if ('startViewTransition' in document) {
     let transition: ViewTransition;
     try {
@@ -40,8 +40,8 @@ export const startViewTransition = (params: StartViewTransitionOptions) => {
     }
     const event = new CustomEvent('qviewtransition', { detail: transition });
     document.dispatchEvent(event);
-    return transition;
+    return { ready: transition.ready as Promise<void>, transition };
   } else {
-    params.update?.();
+    return { ready: params.update() };
   }
 };

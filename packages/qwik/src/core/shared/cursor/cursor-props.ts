@@ -13,6 +13,7 @@ export const NODE_PROPS_DATA_KEY = ':nodeProps';
 export const NODE_DIFF_DATA_KEY = ':nodeDiff';
 export const ERROR_DATA_KEY = ':errorData';
 export const HOST_SIGNAL = ':signal';
+export const INLINE_COMPONENT_DATA_KEY = ':inlineComponentData';
 
 export interface CursorData {
   afterFlushTasks: Task[] | null;

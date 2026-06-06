@@ -48,6 +48,9 @@ export interface InOrderDisabled {
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 // @public (undocumented)
+export type OutOfOrderStreaming = boolean;
+
+// @public (undocumented)
 export interface PrefetchResource {
     // (undocumented)
     imports: PrefetchResource[];
@@ -165,6 +168,8 @@ export function setServerPlatform(manifest?: Partial<QwikManifest | ResolvedMani
 export interface StreamingOptions {
     // (undocumented)
     inOrder?: InOrderStreaming;
+    // (undocumented)
+    outOfOrder?: OutOfOrderStreaming;
 }
 
 // @public (undocumented)

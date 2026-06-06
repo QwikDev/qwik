@@ -41,6 +41,7 @@ import { AsyncRoot } from './components/use-async/use-async';
 import { Backpatching } from './components/backpatching/backpatching';
 import { EachRoot } from './components/each/each';
 import { SuspenseRoot } from './components/suspense/suspense';
+import { OutOfOrderSuspenseRoot } from './components/suspense/ooos';
 
 const tests: Record<string, FunctionComponent> = {
   '/e2e/two-listeners': () => <TwoListeners />,
@@ -82,6 +83,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/backpatching': () => <Backpatching />,
   '/e2e/each': () => <EachRoot />,
   '/e2e/suspense': () => <SuspenseRoot />,
+  '/e2e/suspense-ooos': () => <OutOfOrderSuspenseRoot />,
   '/e2e/worker': () => <WorkerRoot />,
 };
 

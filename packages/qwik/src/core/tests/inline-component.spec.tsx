@@ -6,7 +6,10 @@ import {
   Fragment as Signal,
   Slot,
   component$,
+  createContextId,
   jsx,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useVisibleTask$,
@@ -38,6 +41,12 @@ const InlineWrapper = () => {
 };
 
 const Id = (props: any) => <div>Id: {props.id}</div>;
+
+const inlineProjectionContext = createContextId<{ value: string }>('inline-projection');
+const InlineReadsContext = () => {
+  const ctx = useContext(inlineProjectionContext, { value: 'default' });
+  return <span>{ctx.value}</span>;
+};
 
 const ChildInline = () => {
   return <div>Child inline</div>;
@@ -831,6 +840,44 @@ describe.each([
               </InlineComponent>
             </Projection>
           </a>
+        </Component>
+      </Component>
+    );
+  });
+
+  it('should resolve context when projected into a context provider', async () => {
+    const Provider = component$(() => {
+      useContextProvider(inlineProjectionContext, { value: 'provided' });
+      return <Slot />;
+    });
+    const Layout = component$(() => {
+      return (
+        <Provider>
+          <Slot />
+        </Provider>
+      );
+    });
+    const App = component$(() => {
+      return (
+        <Layout>
+          <InlineReadsContext />
+        </Layout>
+      );
+    });
+
+    const { vNode } = await render(<App />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <Projection ssr-required>
+                <InlineComponent ssr-required>
+                  <span>provided</span>
+                </InlineComponent>
+              </Projection>
+            </Projection>
+          </Component>
         </Component>
       </Component>
     );

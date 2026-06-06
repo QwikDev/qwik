@@ -449,7 +449,12 @@ describe('executeReconcile', () => {
     const items = [{ id: '1' }];
     const keyOf = vi.fn((item: { id: string }) => item.id);
     const itemFn = vi.fn(
-      (item: { id: string }): JSXOutput => ({ type: 'tr', props: {}, children: [item.id] }) as any
+      (item: { id: string }): JSXOutput =>
+        ({
+          type: 'tr',
+          props: {},
+          children: [item.id],
+        }) as any
     );
 
     container.setHostProp(vNode, ELEMENT_PROPS, {
@@ -499,7 +504,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should execute component and diff result', () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const props = { id: 'test' } as Props;
     const jsx = { type: 'div', props: {}, children: [] };
 
@@ -516,7 +521,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should apply scoped style prefix if present', () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const jsx = { type: 'div', props: {}, children: [] };
     const scopedStyleId = 'scope-123';
 
@@ -534,7 +539,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should handle component execution error', () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const error = new Error('Component error');
 
     container.setHostProp(vNode, OnRenderProp, componentQRL);
@@ -553,7 +558,7 @@ describe('executeComponentChore', () => {
   });
 
   it('should return promise if execution is async', async () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
+    const componentQRL = { getSymbol: () => 'component', resolved: () => {} } as any;
     const jsx = { type: 'div', props: {}, children: [] };
 
     container.setHostProp(vNode, OnRenderProp, componentQRL);
@@ -565,6 +570,41 @@ describe('executeComponentChore', () => {
 
     expect(result).toBeInstanceOf(Promise);
     await result;
+  });
+
+  it('should not mark component execution clean until it has actually started', async () => {
+    let resolveQrl!: () => void;
+    const componentQRL = {
+      getSymbol: () => 'fake_component',
+      resolve: () =>
+        new Promise((resolve) => {
+          resolveQrl = () => {
+            const fn = () => 'hi';
+            componentQRL.resolved = fn;
+            resolve(fn);
+          };
+        }),
+      resolved: undefined,
+    } as any;
+    const theJsx = { type: 'span', props: {}, children: [] };
+
+    container.setHostProp(vNode, OnRenderProp, componentQRL);
+
+    vi.mocked(executeComponent).mockReturnValueOnce(theJsx as any);
+    vi.mocked(vnode_diff).mockReturnValue(undefined);
+
+    const staleResult = executeComponentChore(vNode, container, journal, cursor);
+    expect(vNode.dirty & ChoreBits.COMPONENT).toBeTruthy();
+    expect(executeComponent).toHaveBeenCalledTimes(0);
+    resolveQrl();
+    await 1;
+    expect(executeComponent).toHaveBeenCalledTimes(0);
+    const freshResult = executeComponentChore(vNode, container, journal, cursor);
+    await freshResult;
+    await staleResult;
+
+    expect(executeComponent).toHaveBeenCalledTimes(1);
+    expect(vnode_diff).toHaveBeenCalledTimes(1);
   });
 });
 

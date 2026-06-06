@@ -6,17 +6,20 @@ import type { VNode } from './vnode/vnode';
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
+  $getForwardRef$: (id: number) => number | string | undefined;
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
   $storeProxyMap$: ObjToProxyMap;
-  $forwardRefs$: Array<number> | null;
+  $forwardRefs$: Array<number | string> | null;
 }
 
 /** @internal */
 export interface Container {
   readonly $version$: string;
   readonly $storeProxyMap$: ObjToProxyMap;
+  $rootContainer$: Container | null;
+  $isOutOfOrderSegment$: boolean;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
@@ -58,10 +61,12 @@ export interface Container {
   ): SerializationContext;
 }
 
+/** @internal */
 export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends Element {
   _qDispatch?: Record<string, EventHandler | EventHandler[]>;
+  _qSegment?: string;
   vNode?: VNode;
 }
 
@@ -76,10 +81,12 @@ export type qWindow = Window & {
     events: Set<string>;
     /** The known root nodes (document, shadow roots) */
     roots: Set<Node>;
-    /** Add new root nodes, or scoped kebabcase eventnames to listen to. */
-    push: (...e: (string | (EventTarget & ParentNode))[]) => void;
+    /** Add loader commands, new root nodes, or scoped kebabcase eventnames to listen to. */
+    push: (...e: (string | (EventTarget & ParentNode) | QwikEvContainerReadyCommand)[]) => void;
   };
 };
+
+export type QwikEvContainerReadyCommand = 0;
 
 export type QwikLoaderEventScope = 'd' | 'dp' | 'w' | 'wp' | 'e' | 'ep';
 

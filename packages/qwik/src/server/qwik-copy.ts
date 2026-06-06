@@ -47,9 +47,13 @@ export {
   QScopedStyle,
   QSlot,
   QSlotParent,
+  QStatePatchAttr,
   QStyle,
+  QSuspenseResolved,
+  QSuspenseResultParent,
   QTemplate,
   QVersionAttr,
+  QwikEvContainerReady,
   Q_PROPS_SEPARATOR,
   ELEMENT_BACKPATCH_DATA,
   dangerouslySetInnerHTML,
@@ -61,7 +65,11 @@ export {
   isClassAttr,
 } from '../core/shared/utils/scoped-styles';
 export { serializeAttribute } from '../core/shared/utils/styles';
-export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
+export {
+  VNodeDataChar,
+  VNodeDataSeparator,
+  getSegmentVNodeRefId,
+} from '../core/shared/vnode-data-types';
 export { preload } from '../core/preloader/queue';
 export { initPreloader } from '../core/preloader/bundle-graph';
 export { qTest } from '../core/shared/utils/qdev';
@@ -71,6 +79,16 @@ export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
 export { isHtmlAttributeAnEventName, isPreventDefault } from '../core/shared/utils/event-names';
 export { ITERATION_ITEM_SINGLE, ITERATION_ITEM_MULTI } from '../core/shared/utils/markers';
 export { isObjectEmpty } from '../core/shared/utils/objects';
+export {
+  createStringStreamWriter,
+  stringifyRootRefPath,
+  writeStringRootRef,
+  writeStringRootRefPath,
+} from '../core/ssr/stream-writer';
+export type {
+  OutOfOrderRevealBoundary,
+  OutOfOrderRevealCoordinator,
+} from '../core/control-flow/suspense-utils';
 export {
   LT,
   GT,

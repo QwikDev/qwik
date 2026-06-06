@@ -25,7 +25,11 @@ const deepUpdate = (prev: any, next: any) => {
   }
 };
 
-export const updateReplOutput = async (store: ReplStore, result: ReplResult) => {
+export const updateReplOutput = async (
+  store: ReplStore,
+  result: ReplResult,
+  opts?: { reload?: boolean }
+) => {
   deepUpdate(store.diagnostics, result.diagnostics);
   deepUpdate(store.transformedModules, result.transformedModules);
   deepUpdate(store.clientBundles, result.clientBundles);
@@ -35,7 +39,9 @@ export const updateReplOutput = async (store: ReplStore, result: ReplResult) => 
     if (result.html && store.html !== result.html) {
       store.html = result.html;
       store.events = result.events;
-      store.reload++;
+      if (opts?.reload !== false) {
+        store.reload++;
+      }
     }
   }
 

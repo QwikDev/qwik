@@ -12,12 +12,13 @@ import { CookieValue } from '@qwik.dev/router/middleware/request-handler';
 import { DeferReturn } from '@qwik.dev/router/middleware/request-handler';
 import type { EnvGetter } from '@qwik.dev/router/middleware/request-handler';
 import { JSXOutput } from '@qwik.dev/core';
+import { NoSerialize } from '@qwik.dev/core';
 import { QRL } from '@qwik.dev/core';
 import { QRLEventHandlerMulti } from '@qwik.dev/core';
 import { QwikIntrinsicElements } from '@qwik.dev/core';
 import { QwikJSX } from '@qwik.dev/core';
 import { Render } from '@qwik.dev/core/server';
-import { RenderOptions } from '@qwik.dev/core/server';
+import { RenderToStreamOptions } from '@qwik.dev/core/server';
 import { RequestEvent } from '@qwik.dev/router/middleware/request-handler';
 import { RequestEventAction } from '@qwik.dev/router/middleware/request-handler';
 import { RequestEventBase } from '@qwik.dev/router/middleware/request-handler';
@@ -375,11 +376,17 @@ export interface QwikRouterEnvData {
     // (undocumented)
     loadedRoute: LoadedRoute;
     // (undocumented)
+    loaderValues: Record<string, unknown>;
+    // (undocumented)
     params: PathParams;
     // Warning: (ae-forgotten-export) The symbol "EndpointResponse" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     response: EndpointResponse;
+    // Warning: (ae-forgotten-export) The symbol "RouteLoaderCtx" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    routeLoaderCtx: RouteLoaderCtx;
     // (undocumented)
     routeName: string;
 }
@@ -418,12 +425,12 @@ export interface QwikRouterProps {
 export const QwikRouterProvider: Component<QwikRouterProps>;
 
 // @public (undocumented)
-export type RendererOptions = Omit<RenderOptions, 'serverData'> & {
+export type RendererOptions = Omit<RenderToStreamOptions, 'serverData'> & {
     serverData: ServerData;
 };
 
 // @public (undocumented)
-export type RendererOutputOptions = Omit<RenderOptions, 'serverData'> & {
+export type RendererOutputOptions = Omit<RenderToStreamOptions, 'serverData'> & {
     serverData: ServerData & {
         documentHead?: DocumentHeadValue;
     } & Record<string, unknown>;
@@ -446,7 +453,7 @@ export type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Recor
     readonly manifestHash: string;
 };
 
-// @public (undocumented)
+// @public
 export const routeAction$: ActionConstructor;
 
 // Warning: (ae-internal-missing-underscore) The name "routeActionQrl" should be prefixed with an underscore because the declaration is marked as @internal
@@ -484,11 +491,12 @@ export interface RouteData {
     // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
     _N?: MenuModuleLoader;
     _P?: string;
+    _R?: string[];
 }
 
 // Warning: (ae-forgotten-export) The symbol "LoaderConstructor" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export const routeLoader$: LoaderConstructor;
 
 // Warning: (ae-forgotten-export) The symbol "LoaderConstructorQRL" needs to be exported by the entry point index.d.ts
@@ -529,6 +537,7 @@ export const server$: <T extends ServerFunction>(qrl: T, options?: ServerConfig 
 export type ServerData = {
     url: string;
     requestHeaders: Record<string, string>;
+    renderMode: 'static' | 'server';
     locale: string | undefined;
     nonce: string | undefined;
     containerAttributes: Record<string, string> & {

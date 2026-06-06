@@ -1,7 +1,6 @@
 import { Q_ROUTE } from '../../runtime/src/constants';
 import {
-  getRequestLoaders,
-  getRequestLoaderSerializationStrategyMap,
+  getRequestMode,
   getRequestRoute,
   RequestEvHttpStatusMessage,
   RequestEvSharedActionFormData,
@@ -21,8 +20,7 @@ const responsePageDeps = {
   RequestEvSharedActionId,
   RequestEvSharedNonce,
   RequestRouteName,
-  getRequestLoaders,
-  getRequestLoaderSerializationStrategyMap,
+  getRequestMode,
   getRequestRoute,
 };
 

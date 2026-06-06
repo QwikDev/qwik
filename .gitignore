@@ -18,11 +18,11 @@ node_modules
 # Artifacts
 tsc-out
 dist
-dist-dev
+/dist-dev
 external
 lib
 tsdoc-metadata.json
-target
+/target
 
 # IDE and local environment
 .idea
@@ -59,9 +59,3 @@ sandbox
 packages/coverage/*
 visualizer.html
 **/lib-types/**/*
-
-
-# START Ruler Generated Files
-/.codex/config.toml
-/.codex/config.toml.bak
-# END Ruler Generated Files

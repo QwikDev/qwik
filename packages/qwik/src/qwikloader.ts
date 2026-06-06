@@ -4,8 +4,8 @@
  * Determine all the browser events and set up global listeners for them. If browser triggers event
  * search for the lazy load URL and `import()` it.
  *
- * Events to listen for are stored in the array-like `window._qwikEv`. Events must be in scoped
- * kebab-case, meaning `-` indicates uppercase next letter, and they start with:
+ * Events to listen for and loader commands are stored in the array-like `window._qwikEv`. Events
+ * must be in scoped kebab-case, meaning `-` indicates uppercase next letter, and they start with:
  *
  * - `e:` for element events
  * - `ep:` for passive element events
@@ -13,6 +13,8 @@
  * - `dp:` for passive document events
  * - `w:` for window events
  * - `wp:` for passive window events
+ *
+ * `QwikEvContainerReady, instanceHash` marks a streamed container's serialized state as complete.
  */
 
 import type {
@@ -30,6 +32,8 @@ import type {
 /** Event handlers get the captured ids as a string `this` */
 type Handler = (this: string | undefined, ev: Event, el: Element) => void | Promise<void>;
 type Task = () => void | Promise<void>;
+type QwikEventCommand = typeof QwikEvContainerReady;
+type QwikEventItem = string | (EventTarget & ParentNode) | QwikEventCommand;
 
 const doc = document as Document;
 const win = window as unknown as qWindow;
@@ -42,10 +46,12 @@ const passiveElementPrefix = 'ep';
 const capturePrefix = 'capture:';
 
 const readyStateChange = 'readystatechange';
+const QwikEvContainerReady = 0;
 
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
 const symbols = new Map<string, Handler>();
+const readyContainers: Record<string, 1> = {};
 let observer: IntersectionObserver | undefined;
 let hasInitialized: number | undefined;
 let queuedTasks: Promise<void> | undefined;
@@ -110,17 +116,27 @@ const resolveContainer = (containerEl: QContainerElement) => {
   }
 };
 
-const waitForContainerReady = (container: QContainerElement) =>
-  container.getAttribute('q:container') === 'paused' && doc.readyState === 'loading'
-    ? new Promise<void>((resolve) => {
-        const done = () => {
-          doc.removeEventListener(readyStateChange, done);
-          resolve();
-        };
-        addEventListener(doc, readyStateChange, done);
-      })
-    : undefined;
+const markContainerReady = (hash: string) => {
+  readyContainers[hash] = 1;
+  emitEvent(readyStateChange);
+};
 
+const waitForContainerReady = (container: QContainerElement) => {
+  const hash = container.getAttribute('q:instance')!;
+  return (
+    container.getAttribute('q:container') === 'paused' &&
+    doc.readyState === 'loading' &&
+    !readyContainers[hash] &&
+    new Promise<void>((resolve) => {
+      const ready = () => {
+        if (doc.readyState !== 'loading' || readyContainers[hash]) {
+          resolve();
+        }
+      };
+      addEventListener(doc, readyStateChange, ready);
+    })
+  );
+};
 const createEvent = <T extends CustomEvent = any>(eventName: string, detail?: T['detail']) =>
   new CustomEvent(eventName, { detail }) as T;
 
@@ -164,7 +180,8 @@ const resolveHandler = (
   base: URL,
   chunk: string,
   symbol: string,
-  reqTime: number
+  reqTime: number,
+  reportSyncError = true
 ) => {
   const eventData: QwikSymbolEvent['detail'] = {
     qBase,
@@ -172,10 +189,9 @@ const resolveHandler = (
     element,
     reqTime,
   };
-  if (chunk === '') {
-    const hash = container.getAttribute('q:instance')!;
-    const handler = ((doc as any)['qFuncs_' + hash] || [])[Number.parseInt(symbol)];
-    if (!handler) {
+  if (!chunk) {
+    const handler = ((doc as any)['qFuncs_' + container.getAttribute('q:instance')] || [])[+symbol];
+    if (!handler && reportSyncError) {
       const error = new Error('sym:' + symbol);
       emitEvent<QwikErrorEvent>('qerror', {
         importError: 'sync',
@@ -307,22 +323,9 @@ const dispatch = (
       const qrl = qrls[i];
       const reqTime = performance.now();
       const [chunk, symbol, capturedIds] = qrl.split('#');
-      const run = (handler: Handler | undefined) => {
+      const run = (handler: Handler | undefined): void | Promise<void> => {
         if (handler && element.isConnected) {
-          try {
-            const result = handler.call(capturedIds, ev, element);
-            if (isPromise(result)) {
-              return result.catch((error) => {
-                emitEvent<QwikErrorEvent>('qerror', {
-                  error,
-                  qBase,
-                  symbol,
-                  element,
-                  reqTime,
-                });
-              });
-            }
-          } catch (error) {
+          const onError = (error: any) => {
             emitEvent<QwikErrorEvent>('qerror', {
               error,
               qBase,
@@ -330,25 +333,32 @@ const dispatch = (
               element,
               reqTime,
             });
+          };
+          try {
+            const result = handler.call(capturedIds, ev, element);
+            if (isPromise(result)) {
+              return result.catch(onError);
+            }
+          } catch (error) {
+            return onError(error);
           }
         }
       };
-      const resolve = () => resolveHandler(container, element, qBase, base, chunk, symbol, reqTime);
-      const handler = waitForReady && chunk === '' ? undefined : resolve();
-      if (isPromise(handler)) {
+      const resolve = (reportSyncError = true) =>
+        resolveHandler(container, element, qBase, base, chunk, symbol, reqTime, reportSyncError);
+      const handler = waitForReady ? undefined : resolve();
+      if (waitForReady) {
         defer = true;
         tasks.push(async () => {
-          if (waitForReady) {
-            await waitForReady;
-          }
-          await run(await handler);
+          await waitForReady;
+          await run((await resolve(false)) || (await resolve()));
         });
-      } else if (defer || waitForReady) {
+      } else if (isPromise(handler)) {
+        defer = true;
+        tasks.push(() => handler.then(run));
+      } else if (defer) {
         defer = true;
         tasks.push(async () => {
-          if (waitForReady) {
-            await waitForReady;
-          }
           await run(handler || (await resolve()));
         });
       } else {
@@ -396,8 +406,7 @@ const processElementEvent = (
   for (let i = elements.length - 1; i >= 0; i--) {
     if (captureHandlers[i]) {
       dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
-      const continuePropagation = !ev.cancelBubble;
-      if (!continuePropagation || ev.cancelBubble) {
+      if (ev.cancelBubble) {
         queueTasks(tasks);
         return;
       }
@@ -407,8 +416,7 @@ const processElementEvent = (
   for (let i = 0; i < elements.length; i++) {
     if (!captureHandlers[i]) {
       dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
-      const doBubble = ev.bubbles && !ev.cancelBubble;
-      if (!doBubble || ev.cancelBubble) {
+      if (!ev.bubbles || ev.cancelBubble) {
         queueTasks(tasks);
         return;
       }
@@ -526,10 +534,12 @@ const processReadyStateChange = () => {
 
 // ====== Qwik Loader Initialization ======
 
-const addEventOrRoot = (...eventNames: (string | (EventTarget & ParentNode))[]) => {
+const addEventOrRoot = (...eventNames: QwikEventItem[]) => {
   for (let i = 0; i < eventNames.length; i++) {
     const eventNameOrRoot = eventNames[i];
-    if (typeof eventNameOrRoot === 'string') {
+    if (eventNameOrRoot === QwikEvContainerReady) {
+      markContainerReady(eventNames[++i] as string);
+    } else if (typeof eventNameOrRoot === 'string') {
       // If it is string we just add the event to window and each of our roots.
       if (!events.has(eventNameOrRoot)) {
         events.add(eventNameOrRoot);

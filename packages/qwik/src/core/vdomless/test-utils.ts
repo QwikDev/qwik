@@ -291,6 +291,16 @@ interface CompiledRoot<TRoot> {
   modules: readonly TransformModule[];
 }
 
+interface CompiledInput {
+  code: string;
+  rootExportName: string;
+}
+
+interface ComponentDeclarationSource {
+  name: string;
+  initializer: string;
+}
+
 let compiledModuleId = 0;
 
 export async function csrRender(jsx: JSXOutput, options?: RenderOptions): Promise<RenderResult> {
@@ -388,11 +398,11 @@ async function compileJsxRoot<TRoot extends CsrRenderComponent | SsrRenderCompon
 ): Promise<CompiledRoot<TRoot>> {
   const id = compiledModuleId++;
   const inputPath = `src/render-test-${id}.tsx`;
-  const inputCode = await createCompiledInput(jsx);
-  return importCompiledRoot<TRoot>(target, id, inputPath, inputCode);
+  const input = await createCompiledInput(jsx);
+  return importCompiledRoot<TRoot>(target, id, inputPath, input.code, input.rootExportName);
 }
 
-async function createCompiledInput(jsx: JSXOutput): Promise<string> {
+async function createCompiledInput(jsx: JSXOutput): Promise<CompiledInput> {
   const location = getJsxLocation(jsx);
   const file = resolveSourceFile(location.fileName);
   const source = await readFile(file, 'utf8');
@@ -408,10 +418,19 @@ async function createCompiledInput(jsx: JSXOutput): Promise<string> {
     Math.max(location.columnNumber - 1, 0)
   );
   const componentName = getRenderedComponentName(sourceFile, jsxPosition);
-  const componentSource = getComponentInitializer(sourceFile, componentName, jsxPosition);
+  const components = getScopedComponentDeclarations(sourceFile, jsxPosition);
+  if (!components.some((component) => component.name === componentName)) {
+    components.push(getComponentDeclaration(sourceFile, componentName, jsxPosition));
+  }
   const imports = getQwikCoreImports(sourceFile);
+  const exports = components.map(
+    (component) => `export const ${component.name} = ${component.initializer};`
+  );
 
-  return `${imports.join('\n')}\nexport const App = ${componentSource};\n`;
+  return {
+    code: `${imports.join('\n')}\n${exports.join('\n')}\n`,
+    rootExportName: componentName,
+  };
 }
 
 interface JsxLocation {
@@ -464,24 +483,76 @@ function getRenderedComponentName(sourceFile: ts.SourceFile, position: number): 
   return name;
 }
 
-function getComponentInitializer(
+function getScopedComponentDeclarations(
+  sourceFile: ts.SourceFile,
+  beforePosition: number
+): ComponentDeclarationSource[] {
+  const declarations = new Map<string, ComponentDeclarationSource>();
+  const path = getNodePath(sourceFile, beforePosition);
+
+  for (let i = 0; i < path.length; i++) {
+    const node = path[i];
+    if (ts.isSourceFile(node) || ts.isBlock(node)) {
+      collectComponentDeclarations(sourceFile, node.statements, beforePosition, declarations);
+    }
+  }
+
+  return Array.from(declarations.values());
+}
+
+function getNodePath(sourceFile: ts.SourceFile, position: number): ts.Node[] {
+  const path: ts.Node[] = [];
+
+  const visit = (node: ts.Node): void => {
+    if (position < node.getFullStart() || position > node.end) {
+      return;
+    }
+    path.push(node);
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+  return path;
+}
+
+function collectComponentDeclarations(
+  sourceFile: ts.SourceFile,
+  statements: ts.NodeArray<ts.Statement>,
+  beforePosition: number,
+  declarations: Map<string, ComponentDeclarationSource>
+): void {
+  for (let i = 0; i < statements.length; i++) {
+    const statement = statements[i];
+    if (!ts.isVariableStatement(statement) || statement.getStart(sourceFile) >= beforePosition) {
+      continue;
+    }
+    for (let j = 0; j < statement.declarationList.declarations.length; j++) {
+      const declaration = statement.declarationList.declarations[j];
+      const component = createComponentDeclarationSource(sourceFile, declaration);
+      if (component !== null) {
+        declarations.set(component.name, component);
+      }
+    }
+  }
+}
+
+function getComponentDeclaration(
   sourceFile: ts.SourceFile,
   componentName: string,
   beforePosition: number
-): string {
-  const match: { initializer?: ts.Expression; position: number } = { position: -1 };
+): ComponentDeclarationSource {
+  const match: { component?: ComponentDeclarationSource; position: number } = { position: -1 };
 
   const visit = (node: ts.Node): void => {
     if (
       ts.isVariableDeclaration(node) &&
       ts.isIdentifier(node.name) &&
-      node.name.text === componentName &&
-      node.initializer !== undefined &&
-      isComponentDollarCall(node.initializer)
+      node.name.text === componentName
     ) {
+      const component = createComponentDeclarationSource(sourceFile, node);
       const position = node.getStart(sourceFile);
-      if (position < beforePosition && position > match.position) {
-        match.initializer = node.initializer;
+      if (component !== null && position < beforePosition && position > match.position) {
+        match.component = component;
         match.position = position;
       }
     }
@@ -490,11 +561,28 @@ function getComponentInitializer(
 
   visit(sourceFile);
 
-  const initializer = match.initializer;
-  if (initializer === undefined) {
+  const component = match.component;
+  if (component === undefined) {
     throw new Error(`Unable to locate component$ declaration for ${componentName}.`);
   }
-  return initializer.getText(sourceFile);
+  return component;
+}
+
+function createComponentDeclarationSource(
+  sourceFile: ts.SourceFile,
+  declaration: ts.VariableDeclaration
+): ComponentDeclarationSource | null {
+  if (
+    !ts.isIdentifier(declaration.name) ||
+    declaration.initializer === undefined ||
+    !isComponentDollarCall(declaration.initializer)
+  ) {
+    return null;
+  }
+  return {
+    name: declaration.name.text,
+    initializer: declaration.initializer.getText(sourceFile),
+  };
 }
 
 function isComponentDollarCall(expression: ts.Expression): expression is ts.CallExpression {
@@ -528,7 +616,8 @@ async function importCompiledRoot<TRoot extends CsrRenderComponent | SsrRenderCo
   target: RenderTarget,
   id: number,
   inputPath: string,
-  code: string
+  code: string,
+  rootExportName: string
 ): Promise<CompiledRoot<TRoot>> {
   const result = await transformModules({
     input: [{ path: inputPath, code }],
@@ -563,14 +652,16 @@ async function importCompiledRoot<TRoot extends CsrRenderComponent | SsrRenderCo
     throw new Error('Compiler did not emit a root module.');
   }
 
-  const imported = (await import(`${pathToFileURL(entryPath).href}?t=${Date.now()}`)) as {
-    App?: unknown;
-  };
-  if (typeof imported.App !== 'function') {
-    throw new Error('Compiled test module does not export App.');
+  const imported = (await import(`${pathToFileURL(entryPath).href}?t=${Date.now()}`)) as Record<
+    string,
+    unknown
+  >;
+  const root = imported[rootExportName];
+  if (typeof root !== 'function') {
+    throw new Error(`Compiled test module does not export ${rootExportName}.`);
   }
   return {
-    root: imported.App as TRoot,
+    root: root as TRoot,
     modules: result.modules,
   };
 }

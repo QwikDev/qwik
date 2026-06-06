@@ -74,7 +74,12 @@ personal settings such as local MCP servers or workflow preferences.
 
 For Codex, `ruler apply --agents codex` writes AI guidance rules into generated root `AGENTS.md`
 and skills into `.codex/skills/`. Codex `.rules` files are a different command-permission format
-for sandbox/approval policy; do not translate Markdown guidance into `.rules` files.
+for sandbox/approval policy. Generate them from the committed source with:
+
+```sh
+mkdir -p .codex/rules
+cp .ruler/codex/rules/*.rules .codex/rules/
+```
 
 Do not edit generated files like `AGENTS.md`, `CLAUDE.md`, `.codex/`, `.claude/`, or `.cursor/`
 by hand. Update `.ruler/` and rerun `ruler apply`.

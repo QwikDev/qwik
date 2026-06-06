@@ -7,6 +7,7 @@ This project uses [Ruler](https://github.com/intellectronica/ruler) to keep AI a
 ```
 .ruler/
 ├── AGENTS.md      # Project instructions for AI agents
+├── codex/         # Codex-native command policy source
 ├── rules/         # Always-on source rules propagated by Ruler
 ├── skills/        # Shared source skills propagated by Ruler
 └── ruler.toml     # Ruler agent configuration
@@ -14,7 +15,8 @@ This project uses [Ruler](https://github.com/intellectronica/ruler) to keep AI a
 
 Use `.ruler/AGENTS.md` for short, always-on repository context and source-rule pointers. Use
 `.ruler/rules/` for dedicated always-on rules. Use `.ruler/skills/` for task-specific workflows that
-should be loaded only when relevant.
+should be loaded only when relevant. Use `.ruler/codex/rules/*.rules` for Codex-native command
+permission policy.
 
 Current source rules:
 
@@ -47,6 +49,7 @@ Ruler is the source layer. Each assistant has its own output shape.
 | `.ruler/AGENTS.md` | Short repo-wide context and rule index | Concatenated into generated root `AGENTS.md` | `rg -n 'Source: .ruler/AGENTS.md' AGENTS.md` |
 | `.ruler/rules/*.md` | Dedicated always-on rules | Concatenated into generated root `AGENTS.md` with source comments | `rg -n 'Source: .ruler/rules' AGENTS.md` |
 | `.ruler/skills/*/SKILL.md` | Task-triggered workflows | Copied to `.codex/skills/*/SKILL.md` | `find .codex/skills -name SKILL.md` |
+| `.ruler/codex/rules/*.rules` | Codex command-permission policy | Copied to `.codex/rules/*.rules` by the Codex setup step | `codex execpolicy check --rules .codex/rules/default.rules -- git status` |
 | `.ruler/ruler.toml` and Ruler MCP config | Agent config and MCP output settings | `.codex/config.toml` when Codex config is generated | `test -f .codex/config.toml` when MCP/config is expected |
 
 Codex has two rule-like layers with different formats:
@@ -56,16 +59,19 @@ Codex has two rule-like layers with different formats:
 - Command rules: `.rules` files under `.codex/rules/`, used for sandbox and approval policy such
   as `prefix_rule(pattern=["git", "switch"], decision="allow")`.
 
-Do not translate `.ruler/rules/*.md` into Codex `.rules` files. If this repo needs shared Codex
-command-permission rules later, add a separate source path for that exec-policy format and document
-the extra generation step here.
+Do not translate `.ruler/rules/*.md` into Codex `.rules` files. Shared Codex command-permission
+rules live in `.ruler/codex/rules/*.rules` and are copied into the generated `.codex/rules/`
+directory when setting up Codex locally.
 
 Expected Codex check:
 
 ```bash
 ruler apply --agents codex
+mkdir -p .codex/rules
+cp .ruler/codex/rules/*.rules .codex/rules/
 rg -n 'Source: .ruler/rules' AGENTS.md
 find .codex/skills -name SKILL.md
+codex execpolicy check --rules .codex/rules/default.rules -- git status
 ```
 
 ## Generate Local Assistant Files
@@ -113,7 +119,8 @@ If it helps everyone working in this repo, add it to `.ruler/`. If it only helps
 
 Edit `.ruler/AGENTS.md` for repository-wide guidance. Edit `.ruler/rules/<rule-name>.md` for a
 dedicated always-on rule. Edit the relevant `.ruler/skills/<skill-name>/SKILL.md` file for
-package-specific or workflow-specific guidance.
+package-specific or workflow-specific guidance. Edit `.ruler/codex/rules/*.rules` for Codex
+command-permission policy.
 If a code task proves a skill or reference stale, update that guidance as part of the same task when
 the scope allows it.
 

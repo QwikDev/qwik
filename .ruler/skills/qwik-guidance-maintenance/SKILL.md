@@ -22,6 +22,8 @@ when source inspection proves a loaded skill or reference is stale.
 5. Verify Ruler behavior with a dry run when the CLI is available.
 6. For Codex, verify that `.ruler/rules/*.md` content appears inside generated root `AGENTS.md` and
    that `.ruler/skills/**` appears under `.codex/skills/**`.
+7. For Codex command policy, copy `.ruler/codex/rules/*.rules` to `.codex/rules/` and verify with
+   `codex execpolicy check`.
 
 ## Freshness Workflow
 
@@ -40,6 +42,7 @@ When an agent uses a skill and current source contradicts it:
 - Human setup guide: `.ruler/README.md`
 - Ruler config: `.ruler/ruler.toml`
 - Source skills: `.ruler/skills/**/SKILL.md`
+- Codex command-policy source: `.ruler/codex/rules/*.rules`
 - Generated outputs ignored by Git: root `AGENTS.md`, root `CLAUDE.md`, `.codex/`, `.claude/`,
   `.cursor/`
 
@@ -55,8 +58,7 @@ When an agent uses a skill and current source contradicts it:
 - For Codex output questions, use the `guidance-source-of-truth` rule unless current Ruler or
   OpenAI Codex docs have changed.
 - Treat Codex `.rules` files as command-permission policy, not AI guidance. Do not translate
-  `.ruler/rules/*.md` into `.codex/rules/*.rules` unless the source rule is already written in the
-  Codex exec-policy format.
+  `.ruler/rules/*.md` into `.codex/rules/*.rules`; edit `.ruler/codex/rules/*.rules` instead.
 
 ## Verification
 
@@ -64,8 +66,11 @@ Use:
 
 ```bash
 npx @intellectronica/ruler apply --agents codex --dry-run --no-mcp --no-gitignore
+mkdir -p .codex/rules
+cp .ruler/codex/rules/*.rules .codex/rules/
 rg -n 'Source: .ruler/rules' AGENTS.md
 find .codex/skills -name SKILL.md
+codex execpolicy check --rules .codex/rules/default.rules -- git status
 pnpm prettier --check .ruler README.md .gitignore
 git diff --check
 ```

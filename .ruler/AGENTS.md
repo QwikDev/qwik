@@ -11,8 +11,9 @@
   `.codex/`, `.claude/`, `.cursor/`, or generated skill directories.
 - To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or
   `.ruler/rules/**` / `.ruler/skills/**`, then regenerate with Ruler when needed.
-- Ruler outputs Codex repo rules to `AGENTS.md` and Codex skills to `.codex/skills/`; this repo
-  does not need a separate Codex `.rules` conversion file.
+- Ruler outputs Codex AI guidance rules to `AGENTS.md` and Codex skills to `.codex/skills/`.
+- Codex command-permission policy uses native `.rules` files. Keep the committed source in
+  `.ruler/codex/rules/*.rules` and copy it to `.codex/rules/` during local Codex setup.
 
 ## Project Snapshot
 

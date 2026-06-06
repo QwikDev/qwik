@@ -8,6 +8,7 @@ outputs, not source.
 - Put short repo-wide context in `.ruler/AGENTS.md`.
 - Put dedicated always-on rules in `.ruler/rules/<rule-name>.md`.
 - Put task-specific workflows in `.ruler/skills/<skill-name>/SKILL.md`.
+- Put Codex command-permission policy in `.ruler/codex/rules/<rule-name>.rules`.
 - Put long, conditional notes in a skill `references/` file only when progressive disclosure helps.
 - Keep the `qwik-` prefix on committed Qwik skill names unless Ruler gains repo-scoped skill
   namespacing that makes the prefix redundant.
@@ -33,6 +34,8 @@ For this repo, Ruler handles Codex output:
 Do not translate Markdown guidance from `.ruler/rules/*.md` into Codex `.rules` files. A Codex
 `.rules` file belongs under `.codex/rules/` and contains command policy such as
 `prefix_rule(pattern=["git", "switch"], decision="allow")`.
+Use `.ruler/codex/rules/*.rules` as the committed source and copy it to `.codex/rules/*.rules`
+during local Codex setup.
 
 Verify Codex AI guidance rules with:
 
@@ -40,8 +43,13 @@ Verify Codex AI guidance rules with:
 rg -n 'Source: .ruler/rules' AGENTS.md
 ```
 
-If this repo needs shared Codex command-permission rules later, keep them in a separate source path
-and document the generation step. Do not infer command permissions from prose guidance.
+Verify Codex command-permission rules with:
+
+```bash
+codex execpolicy check --rules .codex/rules/default.rules -- git status
+```
+
+Do not infer command permissions from prose guidance.
 
 ## Rule Versus Skill
 

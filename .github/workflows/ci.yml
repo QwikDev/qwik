@@ -339,6 +339,9 @@ jobs:
       - name: Restore artifacts
         if: needs.changes.outputs.build-rust == 'true'
         uses: actions/download-artifact@v8
+        with:
+          pattern: 'artifact-bindings-*'
+          merge-multiple: false
 
       - name: Move Rust Artifacts
         if: needs.changes.outputs.build-rust == 'true'
@@ -545,11 +548,21 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Download Build Artifacts
+      - name: Download Package Artifacts
         uses: actions/download-artifact@v8
+        with:
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          merge-multiple: false
 
       - name: Move Distribution Artifacts
-        run: pnpm ci.restore-artifacts
+        run: >
+          pnpm ci.restore-artifacts
+          artifact-optimizer
+          artifact-qwik
+          artifact-qwikrouter
+          artifact-qwikreact
+          artifact-create-qwik
+          artifact-eslint-plugin-qwik
 
       - run: pnpm install --frozen-lockfile
       - name: Build Qwik Insights
@@ -592,11 +605,21 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Download Build Artifacts
+      - name: Download Package Artifacts
         uses: actions/download-artifact@v8
+        with:
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          merge-multiple: false
 
       - name: Move Distribution Artifacts
-        run: pnpm ci.restore-artifacts
+        run: >
+          pnpm ci.restore-artifacts
+          artifact-optimizer
+          artifact-qwik
+          artifact-qwikrouter
+          artifact-qwikreact
+          artifact-create-qwik
+          artifact-eslint-plugin-qwik
 
       - run: pnpm install --frozen-lockfile
       - name: Build Qwik Docs
@@ -727,11 +750,28 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Download Build Artifacts
+      - name: Download Package Artifacts
         uses: actions/download-artifact@v8
+        with:
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          merge-multiple: false
+
+      - name: Download Docs Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: artifact-docs
+          path: artifact-docs
 
       - name: Move Distribution Artifacts
-        run: pnpm ci.restore-artifacts
+        run: >
+          pnpm ci.restore-artifacts
+          artifact-optimizer
+          artifact-qwik
+          artifact-qwikrouter
+          artifact-qwikreact
+          artifact-create-qwik
+          artifact-eslint-plugin-qwik
+          artifact-docs
 
       - run: pnpm install --frozen-lockfile
 
@@ -822,11 +862,21 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Download Build Artifacts
+      - name: Download Package Artifacts
         uses: actions/download-artifact@v8
+        with:
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          merge-multiple: false
 
       - name: Move Distribution Artifacts
-        run: pnpm ci.restore-artifacts
+        run: >
+          pnpm ci.restore-artifacts
+          artifact-optimizer
+          artifact-qwik
+          artifact-qwikrouter
+          artifact-qwikreact
+          artifact-create-qwik
+          artifact-eslint-plugin-qwik
 
       - run: pnpm install --frozen-lockfile
 
@@ -867,18 +917,13 @@ jobs:
     needs:
       - changes
       - build-other-packages
-      - build-docs
 
     steps:
       - name: Verify prerequisites
         if: |
           !(
             needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success' &&
-            (
-              needs.build-docs.result == 'success' ||
-              needs.build-docs.result == 'skipped'
-            )
+            needs.build-other-packages.result == 'success'
           )
         run: exit 1
 
@@ -893,11 +938,21 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Download Build Artifacts
+      - name: Download Package Artifacts
         uses: actions/download-artifact@v8
+        with:
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          merge-multiple: false
 
       - name: Move Distribution Artifacts
-        run: pnpm ci.restore-artifacts
+        run: >
+          pnpm ci.restore-artifacts
+          artifact-optimizer
+          artifact-qwik
+          artifact-qwikrouter
+          artifact-qwikreact
+          artifact-create-qwik
+          artifact-eslint-plugin-qwik
 
       - run: pnpm install --frozen-lockfile
 
@@ -979,11 +1034,19 @@ jobs:
           - host: macos-latest
             browser: webkit
             shard: 1
-            shardTotal: 2
+            shardTotal: 4
           - host: macos-latest
             browser: webkit
             shard: 2
-            shardTotal: 2
+            shardTotal: 4
+          - host: macos-latest
+            browser: webkit
+            shard: 3
+            shardTotal: 4
+          - host: macos-latest
+            browser: webkit
+            shard: 4
+            shardTotal: 4
 
     runs-on: ${{ matrix.settings.host }}
     env:
@@ -1010,11 +1073,21 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Download Build Artifacts
+      - name: Download Package Artifacts
         uses: actions/download-artifact@v8
+        with:
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          merge-multiple: false
 
       - name: Move Distribution Artifacts
-        run: pnpm ci.restore-artifacts
+        run: >
+          pnpm ci.restore-artifacts
+          artifact-optimizer
+          artifact-qwik
+          artifact-qwikrouter
+          artifact-qwikreact
+          artifact-create-qwik
+          artifact-eslint-plugin-qwik
 
       - run: pnpm install --frozen-lockfile
 
@@ -1195,11 +1268,21 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Download Build Artifacts
+      - name: Download Package Artifacts
         uses: actions/download-artifact@v8
+        with:
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          merge-multiple: false
 
       - name: Move Distribution Artifacts
-        run: pnpm ci.restore-artifacts
+        run: >
+          pnpm ci.restore-artifacts
+          artifact-optimizer
+          artifact-qwik
+          artifact-qwikrouter
+          artifact-qwikreact
+          artifact-create-qwik
+          artifact-eslint-plugin-qwik
 
       - run: pnpm install --frozen-lockfile
 
@@ -1389,11 +1472,21 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Download Build Artifacts
+      - name: Download Package Artifacts
         uses: actions/download-artifact@v8
+        with:
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          merge-multiple: false
 
       - name: Move Distribution Artifacts
-        run: pnpm ci.restore-artifacts
+        run: >
+          pnpm ci.restore-artifacts
+          artifact-optimizer
+          artifact-qwik
+          artifact-qwikrouter
+          artifact-qwikreact
+          artifact-create-qwik
+          artifact-eslint-plugin-qwik
 
       - run: pnpm install --frozen-lockfile
 
@@ -1462,11 +1555,21 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Download Build Artifacts
+      - name: Download Package Artifacts
         uses: actions/download-artifact@v4
+        with:
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          merge-multiple: false
 
       - name: Move Distribution Artifacts
-        run: pnpm ci.restore-artifacts
+        run: >
+          pnpm ci.restore-artifacts
+          artifact-optimizer
+          artifact-qwik
+          artifact-qwikrouter
+          artifact-qwikreact
+          artifact-create-qwik
+          artifact-eslint-plugin-qwik
 
       - run: pnpm install --frozen-lockfile
 

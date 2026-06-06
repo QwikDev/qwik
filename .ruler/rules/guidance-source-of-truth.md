@@ -8,7 +8,6 @@ outputs, not source.
 - Put short repo-wide context in `.ruler/AGENTS.md`.
 - Put dedicated always-on rules in `.ruler/rules/<rule-name>.md`.
 - Put task-specific workflows in `.ruler/skills/<skill-name>/SKILL.md`.
-- Put Codex command-permission policy in `.ruler/codex/rules/<rule-name>.rules`.
 - Put long, conditional notes in a skill `references/` file only when progressive disclosure helps.
 - Keep the `qwik-` prefix on committed Qwik skill names unless Ruler gains repo-scoped skill
   namespacing that makes the prefix redundant.
@@ -21,35 +20,41 @@ outputs, not source.
   `.ruler/rules/**`, or `.ruler/skills/**`.
 - Regenerate local assistant outputs with Ruler only when needed for verification or local use.
 
-## Codex Output
+## AI Config Builder
 
-For this repo, Ruler handles Codex output:
+When building or debugging native AI tool config, map `.ruler` sources by semantic role:
 
-- Codex AI guidance rules are generated into root `AGENTS.md`, including `.ruler/rules/*.md`
-  content marked with `<!-- Source: .ruler/rules/... -->` comments.
-- Codex skills are generated to `.codex/skills/`.
-- Codex project config and MCP settings are generated to `.codex/config.toml` when configured.
-- Codex `.rules` files are command-permission policy, not natural-language project guidance.
+- Markdown AI guidance: `.ruler/AGENTS.md` and `.ruler/rules/*.md`.
+- Task skills: `.ruler/skills/**/SKILL.md` and any directly referenced local resources.
+- Tool or MCP config: `.ruler/ruler.toml` plus Ruler MCP configuration.
+- Command execution policy: only a separately researched native policy source for the selected
+  assistant, not prose guidance copied from `.ruler/rules/*.md`.
 
-Do not translate Markdown guidance from `.ruler/rules/*.md` into Codex `.rules` files. A Codex
-`.rules` file belongs under `.codex/rules/` and contains command policy such as
-`prefix_rule(pattern=["git", "switch"], decision="allow")`.
-Use `.ruler/codex/rules/*.rules` as the committed source and copy it to `.codex/rules/*.rules`
-during local Codex setup.
+Before adding a target-specific output rule, research the selected tool's current official docs or
+the installed Ruler adapter. Do not infer semantics from filenames alone. Terms like "rules" can
+mean natural-language guidance for one assistant and command permission policy for another.
 
-Verify Codex AI guidance rules with:
+## Worked Example: Codex
+
+For Codex with current Ruler and OpenAI docs:
+
+- Ruler writes `.ruler/AGENTS.md` and `.ruler/rules/*.md` into generated root `AGENTS.md` with
+  source comments such as `<!-- Source: .ruler/rules/... -->`.
+- Ruler writes `.ruler/skills/**` to `.codex/skills/`.
+- Ruler writes MCP settings to `.codex/config.toml` when MCP config is present.
+- Codex `.rules` files are command execution policy, not natural-language project guidance.
+
+Verify Codex AI guidance with:
 
 ```bash
+ruler apply --agents codex
 rg -n 'Source: .ruler/rules' AGENTS.md
+find .codex/skills -name SKILL.md
 ```
 
-Verify Codex command-permission rules with:
-
-```bash
-codex execpolicy check --rules .codex/rules/default.rules -- git status
-```
-
-Do not infer command permissions from prose guidance.
+Do not translate Markdown guidance from `.ruler/rules/*.md` into Codex `.rules` files. Only create
+native command-policy files after researching the current policy format and keeping that policy
+source separate from prose guidance.
 
 ## Rule Versus Skill
 

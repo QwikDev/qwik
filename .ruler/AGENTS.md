@@ -11,9 +11,11 @@
   `.codex/`, `.claude/`, `.cursor/`, or generated skill directories.
 - To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or
   `.ruler/rules/**` / `.ruler/skills/**`, then regenerate with Ruler when needed.
-- Ruler outputs Codex AI guidance rules to `AGENTS.md` and Codex skills to `.codex/skills/`.
-- Codex command-permission policy uses native `.rules` files. Keep the committed source in
-  `.ruler/codex/rules/*.rules` and copy it to `.codex/rules/` during local Codex setup.
+- When building config for a specific AI tool, research that tool's current native guidance, skill,
+  config, and policy surfaces before adding output-specific instructions.
+- Map `.ruler` sources by semantic role: Markdown guidance to native AI guidance, skills to native
+  skills when supported, MCP/config to native config, and command-permission policy only to a
+  separately researched policy format.
 
 ## Project Snapshot
 
@@ -91,7 +93,7 @@ by Ruler.
 - `code-quality`: use understandable names, early returns over avoidable nesting, and focused
   modular helpers.
 - `guidance-source-of-truth`: keep `.ruler` as the canonical guidance source, separate rules from
-  skills, and rely on Ruler for Codex outputs.
+  skills, and map assistant outputs by semantic role.
 - `generated-output-boundaries`: edit owning sources instead of generated artifacts and regenerate
   intentionally.
 

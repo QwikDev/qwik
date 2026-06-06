@@ -1,29 +1,30 @@
 ---
 name: qwik-guidance-maintenance
-description: Use when editing Qwik's .ruler guidance, adding or changing rules or skills, keeping AI guidance from going stale, updating assistant setup docs, or answering how Ruler should generate Codex, Claude, Cursor, or Copilot guidance for this repo.
+description: Use when editing Qwik's .ruler guidance, adding or changing rules or skills, keeping AI guidance from going stale, updating assistant setup docs, or answering how Ruler should generate assistant-native guidance, skills, config, or policy for this repo.
 ---
 
 # Qwik Guidance Maintenance
 
 Use this skill for `.ruler/**`, README AI assistant setup, dedicated rules, generated
-assistant-output boundaries, and rule-vs-skill taxonomy work. Also use it at the end of a code task
-when source inspection proves a loaded skill or reference is stale.
+assistant-output boundaries, rule-vs-skill taxonomy work, and assistant-native config questions.
+Also use it at the end of a code task when source inspection proves a loaded skill or reference is
+stale.
 
 ## Fast Path
 
 1. Follow `.ruler/rules/guidance-source-of-truth.md` for source layout, rule-vs-skill taxonomy,
-   generated assistant outputs, Codex output, skill naming, and stale-guidance policy.
+   generated assistant outputs, AI config builder behavior, skill naming, and stale-guidance policy.
 2. Follow `.ruler/rules/generated-output-boundaries.md` before editing, regenerating, or relying on
    generated output.
 3. Edit committed source files in `.ruler/`, not generated assistant outputs.
 4. Keep new durable policy in the narrowest source: `.ruler/AGENTS.md` for short repo-wide context,
    `.ruler/rules/*.md` for dedicated always-on rules, and `.ruler/skills/**` for task-specific
    workflows.
-5. Verify Ruler behavior with a dry run when the CLI is available.
-6. For Codex, verify that `.ruler/rules/*.md` content appears inside generated root `AGENTS.md` and
-   that `.ruler/skills/**` appears under `.codex/skills/**`.
-7. For Codex command policy, copy `.ruler/codex/rules/*.rules` to `.codex/rules/` and verify with
-   `codex execpolicy check`.
+5. For a target assistant, research the current native guidance, skill, config, and policy formats
+   when the mapping is ambiguous.
+6. Verify Ruler behavior with a dry run when the CLI is available.
+7. Verify generated guidance by checking source markers in the target assistant's native guidance
+   file and generated skills in the target assistant's native skills directory when supported.
 
 ## Freshness Workflow
 
@@ -42,7 +43,6 @@ When an agent uses a skill and current source contradicts it:
 - Human setup guide: `.ruler/README.md`
 - Ruler config: `.ruler/ruler.toml`
 - Source skills: `.ruler/skills/**/SKILL.md`
-- Codex command-policy source: `.ruler/codex/rules/*.rules`
 - Generated outputs ignored by Git: root `AGENTS.md`, root `CLAUDE.md`, `.codex/`, `.claude/`,
   `.cursor/`
 
@@ -55,22 +55,20 @@ When an agent uses a skill and current source contradicts it:
   smaller and clearer.
 - For assistant setup changes, keep human setup steps in `.ruler/README.md` and behavioral agent
   rules in `.ruler/AGENTS.md` or `.ruler/rules/**`.
-- For Codex output questions, use the `guidance-source-of-truth` rule unless current Ruler or
-  OpenAI Codex docs have changed.
-- Treat Codex `.rules` files as command-permission policy, not AI guidance. Do not translate
-  `.ruler/rules/*.md` into `.codex/rules/*.rules`; edit `.ruler/codex/rules/*.rules` instead.
+- For assistant output questions, use the `guidance-source-of-truth` rule unless current Ruler or
+  target-tool docs have changed.
+- Treat command execution policy as a separate native format from prose guidance. Do not translate
+  `.ruler/rules/*.md` into command-policy files just because the target tool calls them "rules".
 
 ## Verification
 
-Use:
+Use the target assistant for the change. For a Codex example:
 
 ```bash
 npx @intellectronica/ruler apply --agents codex --dry-run --no-mcp --no-gitignore
-mkdir -p .codex/rules
-cp .ruler/codex/rules/*.rules .codex/rules/
+ruler apply --agents codex
 rg -n 'Source: .ruler/rules' AGENTS.md
 find .codex/skills -name SKILL.md
-codex execpolicy check --rules .codex/rules/default.rules -- git status
 pnpm prettier --check .ruler README.md .gitignore
 git diff --check
 ```
@@ -82,5 +80,5 @@ record the blocker and still run local formatting/diff checks.
 
 - Stop before editing generated assistant outputs directly.
 - Stop if a proposed rule duplicates detailed skill content instead of summarizing durable policy.
-- Stop if current Ruler/OpenAI docs contradict the Codex output decision in
+- Stop if current Ruler or target-tool docs contradict the output decision in
   `.ruler/rules/guidance-source-of-truth.md`.

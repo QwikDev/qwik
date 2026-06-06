@@ -2,12 +2,11 @@
 
 This project uses [Ruler](https://github.com/intellectronica/ruler) to keep AI assistant instructions in one committed source of truth.
 
-## Source of Truth
+## Source Of Truth
 
 ```
 .ruler/
 ├── AGENTS.md      # Project instructions for AI agents
-├── codex/         # Codex-native command policy source
 ├── rules/         # Always-on source rules propagated by Ruler
 ├── skills/        # Shared source skills propagated by Ruler
 └── ruler.toml     # Ruler agent configuration
@@ -15,8 +14,7 @@ This project uses [Ruler](https://github.com/intellectronica/ruler) to keep AI a
 
 Use `.ruler/AGENTS.md` for short, always-on repository context and source-rule pointers. Use
 `.ruler/rules/` for dedicated always-on rules. Use `.ruler/skills/` for task-specific workflows that
-should be loaded only when relevant. Use `.ruler/codex/rules/*.rules` for Codex-native command
-permission policy.
+should be loaded only when relevant.
 
 Current source rules:
 
@@ -38,40 +36,58 @@ The `qwik-` prefix is intentional. Ruler copies skills into assistant-native dir
 can appear beside personal and plugin skills, so the prefix keeps these repo skills recognizable
 outside the `.ruler/` tree.
 
-Generated assistant files such as `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.codex/`, and `.cursor/` are local outputs from Ruler and should not be edited directly or committed. Update the files in `.ruler/`, then regenerate the local assistant files you need.
+Generated assistant files such as `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.codex/`, and `.cursor/`
+are local outputs from Ruler and should not be edited directly or committed. Update the files in
+`.ruler/`, then regenerate the local assistant files you need.
 
-## Assistant Translation
+## AI Config Builder
 
-Ruler is the source layer. Each assistant has its own output shape.
+Treat Ruler as the source layer and the selected assistant as the output layer.
 
-| Ruler source | Meaning | Codex output | Verify after `ruler apply --agents codex` |
-| --- | --- | --- | --- |
-| `.ruler/AGENTS.md` | Short repo-wide context and rule index | Concatenated into generated root `AGENTS.md` | `rg -n 'Source: .ruler/AGENTS.md' AGENTS.md` |
-| `.ruler/rules/*.md` | Dedicated always-on rules | Concatenated into generated root `AGENTS.md` with source comments | `rg -n 'Source: .ruler/rules' AGENTS.md` |
-| `.ruler/skills/*/SKILL.md` | Task-triggered workflows | Copied to `.codex/skills/*/SKILL.md` | `find .codex/skills -name SKILL.md` |
-| `.ruler/codex/rules/*.rules` | Codex command-permission policy | Copied to `.codex/rules/*.rules` by the Codex setup step | `codex execpolicy check --rules .codex/rules/default.rules -- git status` |
-| `.ruler/ruler.toml` and Ruler MCP config | Agent config and MCP output settings | `.codex/config.toml` when Codex config is generated | `test -f .codex/config.toml` when MCP/config is expected |
+When you are setting up or debugging an assistant-specific config:
 
-Codex has two rule-like layers with different formats:
+1. Identify the target assistant and Ruler agent id.
+2. Read this file and `.ruler/ruler.toml`.
+3. Research the target assistant's current native instruction, rule, skill, config, and policy
+   formats when the mapping is ambiguous.
+4. Map `.ruler` files by semantic role, not by filename.
+5. Run `ruler apply --agents <agent>`.
+6. Verify that the generated files contain the expected source guidance and skills.
 
-- AI guidance rules: natural-language project instructions. Ruler writes these to generated
-  `AGENTS.md` for Codex.
-- Command rules: `.rules` files under `.codex/rules/`, used for sandbox and approval policy such
-  as `prefix_rule(pattern=["git", "switch"], decision="allow")`.
+| Ruler source | Semantic role | Builder action |
+| --- | --- | --- |
+| `.ruler/AGENTS.md` | Short repo-wide AI guidance | Generate into the target assistant's primary native guidance file. |
+| `.ruler/rules/*.md` | Dedicated always-on AI guidance | Generate into the target assistant's native guidance or rules surface with source markers. |
+| `.ruler/skills/*/SKILL.md` | Task-triggered workflows | Copy to the target assistant's native skills directory when supported. |
+| `.ruler/ruler.toml` and Ruler MCP config | Agent selection, output paths, MCP/config | Generate or merge native config only where Ruler and the target assistant support it. |
+| Native execution policy files | Command permission policy | Use only when separately researched for the target assistant; do not derive them from prose guidance. |
 
-Do not translate `.ruler/rules/*.md` into Codex `.rules` files. Shared Codex command-permission
-rules live in `.ruler/codex/rules/*.rules` and are copied into the generated `.codex/rules/`
-directory when setting up Codex locally.
+Different tools use words like "rules" for different things. A native rules file may mean
+natural-language guidance, directory-scoped steering, MCP config, hooks, or command execution
+policy. Check current docs or the installed Ruler adapter before creating or copying a tool-specific
+file.
+
+### Worked Example: Codex
+
+Current Ruler and OpenAI Codex behavior maps this repo's sources as follows:
+
+| Ruler source | Codex-native output | Verify after `ruler apply --agents codex` |
+| --- | --- | --- |
+| `.ruler/AGENTS.md` | Generated root `AGENTS.md` | `rg -n 'Source: .ruler/AGENTS.md' AGENTS.md` |
+| `.ruler/rules/*.md` | Generated root `AGENTS.md` with source comments | `rg -n 'Source: .ruler/rules' AGENTS.md` |
+| `.ruler/skills/*/SKILL.md` | `.codex/skills/*/SKILL.md` | `find .codex/skills -name SKILL.md` |
+| Ruler MCP config | `.codex/config.toml` when MCP config is generated | `test -f .codex/config.toml` when MCP/config is expected |
+
+Codex `.rules` files are command execution policy files that use `prefix_rule(...)`. They are not a
+target for `.ruler/rules/*.md` prose guidance. Only add or generate a Codex `.rules` file after
+researching OpenAI Codex's current execution-policy docs and maintaining a separate policy source.
 
 Expected Codex check:
 
 ```bash
 ruler apply --agents codex
-mkdir -p .codex/rules
-cp .ruler/codex/rules/*.rules .codex/rules/
 rg -n 'Source: .ruler/rules' AGENTS.md
 find .codex/skills -name SKILL.md
-codex execpolicy check --rules .codex/rules/default.rules -- git status
 ```
 
 ## Generate Local Assistant Files
@@ -103,7 +119,7 @@ Generate files for multiple assistants:
 ruler apply --agents claude,cursor
 ```
 
-## Project and Personal Configuration
+## Project And Personal Configuration
 
 Use `.ruler/` for team-shared instructions and project conventions that should travel with the repo.
 
@@ -113,14 +129,15 @@ Use `~/.config/ruler/` for personal preferences, local workflow shortcuts, API k
 ruler init --global
 ```
 
-If it helps everyone working in this repo, add it to `.ruler/`. If it only helps your local setup, keep it in your global Ruler config.
+If it helps everyone working in this repo, add it to `.ruler/`. If it only helps your local setup,
+keep it in your global Ruler config.
 
 ## Updating Instructions
 
 Edit `.ruler/AGENTS.md` for repository-wide guidance. Edit `.ruler/rules/<rule-name>.md` for a
 dedicated always-on rule. Edit the relevant `.ruler/skills/<skill-name>/SKILL.md` file for
-package-specific or workflow-specific guidance. Edit `.ruler/codex/rules/*.rules` for Codex
-command-permission policy.
+package-specific or workflow-specific guidance.
+
 If a code task proves a skill or reference stale, update that guidance as part of the same task when
 the scope allows it.
 
@@ -130,13 +147,17 @@ Then regenerate the local assistant files:
 ruler apply --agents <your-tool>
 ```
 
-Do not update generated files like `CLAUDE.md` or `AGENTS.md` by hand. They will be overwritten the next time Ruler runs.
+Do not update generated files like `CLAUDE.md` or `AGENTS.md` by hand. They will be overwritten the
+next time Ruler runs.
 
 ## Skills
 
-Author shared skills under `.ruler/skills/`. Ruler copies them to each supported agent's generated skill directory, including `.codex/skills/` for Codex, `.claude/skills/` for Claude, and `.cursor/skills/` for Cursor.
+Author shared skills under `.ruler/skills/`. Ruler copies them to each supported agent's generated
+skill directory, including `.codex/skills/` for Codex, `.claude/skills/` for Claude, and
+`.cursor/skills/` for Cursor.
 
-Do not commit generated skill directories such as `.codex/skills/`, `.claude/skills/`, or `.cursor/skills/`.
+Do not commit generated skill directories such as `.codex/skills/`, `.claude/skills/`, or
+`.cursor/skills/`.
 
 Keep each skill focused:
 

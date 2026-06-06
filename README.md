@@ -57,8 +57,8 @@ so shared guidance lives in one place instead of being copied across assistant-s
 
 Some examples of configured assistants are Claude, Codex, Cursor, and GitHub Copilot. Ruler supports many additional harnesses.
 
-Start by reading [.ruler/README.md](./.ruler/README.md). It includes the translation table for how
-Ruler source files become each assistant's native rules and skills.
+Start by reading [.ruler/README.md](./.ruler/README.md). It explains how Ruler source files become
+each assistant's native instruction, rule, skill, and config files.
 
 To generate the local files for your assistant, run one of:
 
@@ -72,14 +72,11 @@ Use `.ruler/AGENTS.md` for short repo-wide AI instructions, `.ruler/rules/` for 
 rules, `.ruler/skills/` for reusable prompts or task-specific skills, and `~/.config/ruler/` for
 personal settings such as local MCP servers or workflow preferences.
 
-For Codex, `ruler apply --agents codex` writes AI guidance rules into generated root `AGENTS.md`
-and skills into `.codex/skills/`. Codex `.rules` files are a different command-permission format
-for sandbox/approval policy. Generate them from the committed source with:
-
-```sh
-mkdir -p .codex/rules
-cp .ruler/codex/rules/*.rules .codex/rules/
-```
+If you are an AI assistant building local config for a target tool, research that tool's current
+native guidance, skill, config, and policy formats before adding any tool-specific output. Map
+`.ruler` files by what they mean, not by filename: Markdown guidance belongs in the assistant's
+native AI guidance surface, skills belong in native skills if supported, and command-permission
+policy belongs only in a separately researched policy format.
 
 Do not edit generated files like `AGENTS.md`, `CLAUDE.md`, `.codex/`, `.claude/`, or `.cursor/`
 by hand. Update `.ruler/` and rerun `ruler apply`.

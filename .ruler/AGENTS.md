@@ -10,13 +10,12 @@
 - Do not hand-edit or commit generated outputs such as root `AGENTS.md`, root `CLAUDE.md`,
   `.codex/`, `.claude/`, `.cursor/`, or generated skill directories.
 - To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or
-  `.ruler/rules/**` / `.ruler/skills/**` / `.ruler/native/**`, then regenerate with Ruler when
-  needed.
+  `.ruler/rules/**` / `.ruler/skills/**`, then regenerate with Ruler when needed.
 - When building config for a specific AI tool, research that tool's current native guidance, skill,
   config, and policy surfaces before adding output-specific instructions.
 - Map `.ruler` sources by semantic role: Markdown guidance to native AI guidance, skills to native
   skills when supported, MCP/config to native config, and command-permission policy only to a
-  separately researched policy format under `.ruler/native/<agent>/`.
+  separately researched native policy format outside the Markdown guidance bundle.
 
 ## Project Snapshot
 

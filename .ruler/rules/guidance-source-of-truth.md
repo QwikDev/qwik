@@ -8,7 +8,6 @@ outputs, not source.
 - Put short repo-wide context in `.ruler/AGENTS.md`.
 - Put dedicated always-on rules in `.ruler/rules/<rule-name>.md`.
 - Put task-specific workflows in `.ruler/skills/<skill-name>/SKILL.md`.
-- Put researched assistant-native files that Ruler does not generate in `.ruler/native/<agent>/`.
 - Put long, conditional notes in a skill `references/` file only when progressive disclosure helps.
 - Keep the `qwik-` prefix on committed Qwik skill names unless Ruler gains repo-scoped skill
   namespacing that makes the prefix redundant.
@@ -18,7 +17,7 @@ outputs, not source.
 - Do not hand-edit or commit generated assistant outputs such as root `AGENTS.md`, root `CLAUDE.md`,
   `.codex/`, `.claude/`, `.cursor/`, or generated skill directories.
 - To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`,
-  `.ruler/rules/**`, `.ruler/skills/**`, or `.ruler/native/**`.
+  `.ruler/rules/**`, or `.ruler/skills/**`.
 - Regenerate local assistant outputs with Ruler only when needed for verification or local use.
 
 ## AI Config Builder
@@ -28,9 +27,8 @@ When building or debugging native AI tool config, map `.ruler` sources by semant
 - Markdown AI guidance: `.ruler/AGENTS.md` and `.ruler/rules/*.md`.
 - Task skills: `.ruler/skills/**/SKILL.md` and any directly referenced local resources.
 - Tool or MCP config: `.ruler/ruler.toml` plus Ruler MCP configuration.
-- Assistant-native extras that Ruler does not generate: `.ruler/native/<agent>/**`.
-- Command execution policy: only a separately researched native policy source under
-  `.ruler/native/<agent>/`, not prose guidance copied from `.ruler/rules/*.md`.
+- Command execution policy: only a separately researched native policy format, not prose guidance
+  copied from `.ruler/rules/*.md`.
 
 Before adding a target-specific output rule, research the selected tool's current official docs or
 the installed Ruler adapter. Do not infer semantics from filenames alone. Terms like "rules" can
@@ -44,23 +42,19 @@ For Codex with current Ruler and OpenAI docs:
   source comments such as `<!-- Source: .ruler/rules/... -->`.
 - Ruler writes `.ruler/skills/**` to `.codex/skills/`.
 - Ruler writes MCP settings to `.codex/config.toml` when MCP config is present.
-- Codex `.rules` files are command execution policy, not natural-language project guidance. Keep
-  the committed source under `.ruler/native/codex/rules/*.rules` and copy it to `.codex/rules/`.
+- Codex `.rules` files are command execution policy, not natural-language project guidance.
 
 Verify Codex AI guidance with:
 
 ```bash
 ruler apply --agents codex
-mkdir -p .codex/rules
-cp .ruler/native/codex/rules/*.rules .codex/rules/
 rg -n 'Source: .ruler/rules' AGENTS.md
 find .codex/skills -name SKILL.md
-test -f .codex/rules/default.rules
 ```
 
 Do not translate Markdown guidance from `.ruler/rules/*.md` into Codex `.rules` files. Codex
-command-policy files are separate native extras, and they should be verified against current OpenAI
-Codex docs before changing their format.
+command-policy files use a separate native format and should be handled separately from Ruler
+Markdown guidance.
 
 ## Rule Versus Skill
 

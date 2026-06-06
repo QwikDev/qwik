@@ -19,14 +19,12 @@ stale.
 3. Edit committed source files in `.ruler/`, not generated assistant outputs.
 4. Keep new durable policy in the narrowest source: `.ruler/AGENTS.md` for short repo-wide context,
    `.ruler/rules/*.md` for dedicated always-on rules, and `.ruler/skills/**` for task-specific
-   workflows. Use `.ruler/native/<agent>/**` for researched native files that Ruler does not
-   generate.
+   workflows.
 5. For a target assistant, research the current native guidance, skill, config, and policy formats
    when the mapping is ambiguous.
 6. Verify Ruler behavior with a dry run when the CLI is available.
 7. Verify generated guidance by checking source markers in the target assistant's native guidance
-   file, generated skills in the target assistant's native skills directory when supported, and any
-   native extras copied from `.ruler/native/<agent>/`.
+   file and generated skills in the target assistant's native skills directory when supported.
 
 ## Freshness Workflow
 
@@ -45,7 +43,6 @@ When an agent uses a skill and current source contradicts it:
 - Human setup guide: `.ruler/README.md`
 - Ruler config: `.ruler/ruler.toml`
 - Source skills: `.ruler/skills/**/SKILL.md`
-- Assistant-native extras: `.ruler/native/<agent>/**`
 - Generated outputs ignored by Git: root `AGENTS.md`, root `CLAUDE.md`, `.codex/`, `.claude/`,
   `.cursor/`
 
@@ -61,8 +58,7 @@ When an agent uses a skill and current source contradicts it:
 - For assistant output questions, use the `guidance-source-of-truth` rule unless current Ruler or
   target-tool docs have changed.
 - Treat command execution policy as a separate native format from prose guidance. Do not translate
-  `.ruler/rules/*.md` into command-policy files just because the target tool calls them "rules";
-  maintain command policy under `.ruler/native/<agent>/`.
+  `.ruler/rules/*.md` into command-policy files just because the target tool calls them "rules".
 
 ## Verification
 
@@ -71,11 +67,8 @@ Use the target assistant for the change. For a Codex example:
 ```bash
 npx @intellectronica/ruler apply --agents codex --dry-run --no-mcp --no-gitignore
 ruler apply --agents codex
-mkdir -p .codex/rules
-cp .ruler/native/codex/rules/*.rules .codex/rules/
 rg -n 'Source: .ruler/rules' AGENTS.md
 find .codex/skills -name SKILL.md
-test -f .codex/rules/default.rules
 pnpm prettier --check .ruler README.md .gitignore
 git diff --check
 ```

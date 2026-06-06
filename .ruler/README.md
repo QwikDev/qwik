@@ -7,7 +7,6 @@ This project uses [Ruler](https://github.com/intellectronica/ruler) to keep AI a
 ```
 .ruler/
 ├── AGENTS.md      # Project instructions for AI agents
-├── native/        # Assistant-native files Ruler does not generate
 ├── rules/         # Always-on source rules propagated by Ruler
 ├── skills/        # Shared source skills propagated by Ruler
 └── ruler.toml     # Ruler agent configuration
@@ -15,8 +14,7 @@ This project uses [Ruler](https://github.com/intellectronica/ruler) to keep AI a
 
 Use `.ruler/AGENTS.md` for short, always-on repository context and source-rule pointers. Use
 `.ruler/rules/` for dedicated always-on rules. Use `.ruler/skills/` for task-specific workflows that
-should be loaded only when relevant. Use `.ruler/native/<agent>/` for researched assistant-native
-files that Ruler does not generate, such as command execution policy.
+should be loaded only when relevant.
 
 Current source rules:
 
@@ -54,8 +52,7 @@ When you are setting up or debugging an assistant-specific config:
    formats when the mapping is ambiguous.
 4. Map `.ruler` files by semantic role, not by filename.
 5. Run `ruler apply --agents <agent>`.
-6. Copy any matching `.ruler/native/<agent>/` files into the assistant's native config directory.
-7. Verify that the generated files contain the expected source guidance, skills, and native extras.
+6. Verify that the generated files contain the expected source guidance and skills.
 
 | Ruler source | Semantic role | Builder action |
 | --- | --- | --- |
@@ -63,13 +60,22 @@ When you are setting up or debugging an assistant-specific config:
 | `.ruler/rules/*.md` | Dedicated always-on AI guidance | Generate into the target assistant's native guidance or rules surface with source markers. |
 | `.ruler/skills/*/SKILL.md` | Task-triggered workflows | Copy to the target assistant's native skills directory when supported. |
 | `.ruler/ruler.toml` and Ruler MCP config | Agent selection, output paths, MCP/config | Generate or merge native config only where Ruler and the target assistant support it. |
-| `.ruler/native/<agent>/**` | Researched assistant-native extras | Copy to the target assistant's native directory after Ruler, preserving the documented native format. |
-| `.ruler/native/<agent>/rules/*.rules` | Command permission policy when that assistant uses `.rules` for execution policy | Copy only after researching the target assistant's current policy format; do not derive it from prose guidance. |
 
 Different tools use words like "rules" for different things. A native rules file may mean
 natural-language guidance, directory-scoped steering, MCP config, hooks, or command execution
 policy. Check current docs or the installed Ruler adapter before creating or copying a tool-specific
 file.
+
+## Markdown Guidance Bundle
+
+The AI-agnostic Markdown guidance bundle is:
+
+- `.ruler/AGENTS.md`
+- every Markdown rule under `.ruler/rules/*.md`
+
+Ruler concatenates that bundle and writes it to each selected assistant's native AI guidance file.
+Use source markers in the generated file to verify inclusion. Do not bypass Ruler by copying these
+Markdown files into a tool-specific directory whose format has not been verified.
 
 ### Worked Example: Codex
 
@@ -81,21 +87,18 @@ Current Ruler and OpenAI Codex behavior maps this repo's sources as follows:
 | `.ruler/rules/*.md` | Generated root `AGENTS.md` with source comments | `rg -n 'Source: .ruler/rules' AGENTS.md` |
 | `.ruler/skills/*/SKILL.md` | `.codex/skills/*/SKILL.md` | `find .codex/skills -name SKILL.md` |
 | Ruler MCP config | `.codex/config.toml` when MCP config is generated | `test -f .codex/config.toml` when MCP/config is expected |
-| `.ruler/native/codex/rules/*.rules` | `.codex/rules/*.rules` | `codex execpolicy check --rules .codex/rules/default.rules -- git status` when the installed Codex supports `execpolicy` |
 
 Codex `.rules` files are command execution policy files that use `prefix_rule(...)`. They are not a
-target for `.ruler/rules/*.md` prose guidance. Maintain Codex policy separately under
-`.ruler/native/codex/rules/`.
+target for `.ruler/rules/*.md` prose guidance. If Codex command policy is needed, maintain it as a
+separate local or team policy using OpenAI Codex's `.rules` format; do not treat it as Ruler
+Markdown guidance.
 
 Expected Codex check:
 
 ```bash
 ruler apply --agents codex
-mkdir -p .codex/rules
-cp .ruler/native/codex/rules/*.rules .codex/rules/
 rg -n 'Source: .ruler/rules' AGENTS.md
 find .codex/skills -name SKILL.md
-test -f .codex/rules/default.rules
 ```
 
 ## Generate Local Assistant Files
@@ -144,8 +147,7 @@ keep it in your global Ruler config.
 
 Edit `.ruler/AGENTS.md` for repository-wide guidance. Edit `.ruler/rules/<rule-name>.md` for a
 dedicated always-on rule. Edit the relevant `.ruler/skills/<skill-name>/SKILL.md` file for
-package-specific or workflow-specific guidance. Edit `.ruler/native/<agent>/**` for researched
-assistant-native files that Ruler does not generate.
+package-specific or workflow-specific guidance.
 
 If a code task proves a skill or reference stale, update that guidance as part of the same task when
 the scope allows it.

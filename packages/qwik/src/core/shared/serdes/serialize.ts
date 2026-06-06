@@ -10,6 +10,7 @@ import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primiti
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  EffectProperty,
   EffectSubscription,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
@@ -24,7 +25,7 @@ import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
 import { isJSXNode } from '../jsx/jsx-node';
 import { Fragment, type Props } from '../jsx/jsx-runtime';
-import { isPropsProxy } from '../jsx/props-proxy';
+import { isPropsProxy, type PropsProxy } from '../jsx/props-proxy';
 import { Slot } from '../jsx/slot.public';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
@@ -38,7 +39,7 @@ import {
 } from '../ssr-const';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
-import { ELEMENT_ID, ELEMENT_PROPS } from '../utils/markers';
+import { ELEMENT_ID, ELEMENT_PROPS, OnRenderProp, QBackRefs } from '../utils/markers';
 import { isObjectEmpty } from '../utils/objects';
 import { isPromise, maybeThen } from '../utils/promises';
 import { Constants, explicitUndefined, TypeIds } from './constants';
@@ -1011,7 +1012,9 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
           attrValue == null ||
           typeof attrValue === 'string' ||
           (typeof attrValue === 'number' && key === ELEMENT_ID) ||
-          (key === ELEMENT_PROPS && isObjectEmpty(attrValue as Record<string, unknown>))
+          (key === ELEMENT_PROPS &&
+            (isObjectEmpty(attrValue as Record<string, unknown>) ||
+              shouldSkipComponentProps(value, attrValue as PropsProxy)))
         ) {
           continue;
         }
@@ -1023,6 +1026,31 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
 
 const isSsrAttrs = (value: number | Props): value is Props =>
   typeof value === 'object' && value !== null && !isObjectEmpty(value);
+
+export const shouldSkipComponentProps = (
+  attrs: Props,
+  value: PropsProxy,
+  isDevMode = isDev
+): boolean => {
+  if (isDevMode || !Object.prototype.hasOwnProperty.call(attrs, OnRenderProp)) {
+    return false;
+  }
+
+  const owner = value[_OWNER];
+  return (
+    isObjectEmpty(owner.varProps) &&
+    !hasPropsEffects(value) &&
+    !hasComponentBackRef(attrs[QBackRefs])
+  );
+};
+
+const hasPropsEffects = (propsProxy: PropsProxy): boolean => {
+  return !!propsProxy[_PROPS_HANDLER].$effects$?.size;
+};
+
+const hasComponentBackRef = (backRefs: unknown): boolean => {
+  return backRefs instanceof Map && backRefs.has(EffectProperty.COMPONENT);
+};
 
 /**
  * When serializing the object we need check if it is URL, RegExp, Map, Set, etc. This is time

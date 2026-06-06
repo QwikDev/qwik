@@ -33,17 +33,18 @@ import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
+import { OnRenderProp, QBackRefs } from '../utils/markers';
 import { retryOnPromise } from '../utils/promises';
 import { Fragment } from '../jsx/jsx-runtime';
 import { JSXNodeImpl } from '../jsx/jsx-node';
-import { createPropsProxy } from '../jsx/props-proxy';
+import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
 import { _OWNER, _PROPS_HANDLER } from '../utils/constants';
 import { _constants, _typeIdNames, TypeIds } from './constants';
 import { _dumpState } from './dump-state';
 import { qrlToString } from './qrl-to-string';
 import { _createDeserializeContainer } from './serdes.public';
 import { createSerializationContext } from './serialization-context';
-import { _serializationWeakRef } from './serialize';
+import { _serializationWeakRef, shouldSkipComponentProps } from './serialize';
 import { SubscriptionPatch } from './subscription-patch';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 
@@ -2104,7 +2105,67 @@ describe('serializer - internal', () => {
       0: 'e',
     });
   });
+
+  it('keeps const-only cold component q:props in dev mode', () => {
+    const owner = new JSXNodeImpl(Fragment, {}, { label: 'static' }, null, 0, null);
+    const propsProxy = createPropsProxy(owner);
+
+    expect(shouldSkipComponentProps({ [OnRenderProp]: {} }, propsProxy as PropsProxy)).toBeFalsy();
+  });
+
+  it('omits const-only cold component q:props in production', () => {
+    expect(
+      shouldSkipComponentProps(
+        componentAttrs(),
+        createComponentProps({}, { label: 'static' }) as PropsProxy,
+        false
+      )
+    ).toBeTruthy();
+  });
+
+  it('keeps dynamic varProps component q:props in production', () => {
+    expect(
+      shouldSkipComponentProps(
+        componentAttrs(),
+        createComponentProps({ label: 'dynamic' }, null) as PropsProxy,
+        false
+      )
+    ).toBeFalsy();
+  });
+
+  it('keeps component q:props with component backref in production', () => {
+    expect(
+      shouldSkipComponentProps(
+        componentAttrs(componentBackRefs()),
+        createComponentProps({}, { label: 'observed by component' }) as PropsProxy,
+        false
+      )
+    ).toBeFalsy();
+  });
+
+  it('keeps component q:props with prop-level effects in production', () => {
+    const propsProxy = createComponentProps({}, { label: 'observed prop' });
+    setPropsEffects(propsProxy);
+
+    expect(shouldSkipComponentProps(componentAttrs(), propsProxy as PropsProxy, false)).toBeFalsy();
+  });
 });
+
+const componentAttrs = (backRefs?: unknown) => ({
+  [OnRenderProp]: {},
+  ...(backRefs === undefined ? {} : { [QBackRefs]: backRefs }),
+});
+
+const componentBackRefs = () => new Map([[EffectProperty.COMPONENT, {}]]);
+
+const createComponentProps = (
+  varProps: Record<string, unknown> | null,
+  constProps: Record<string, unknown> | null
+) => createPropsProxy(new JSXNodeImpl(Fragment, varProps, constProps, null, 0, null));
+
+const setPropsEffects = (propsProxy: any) => {
+  propsProxy[_PROPS_HANDLER].$effects$ = new Map([['label', new Set([{}])]]);
+};
 
 async function serializeRaw(...roots: any[]): Promise<string> {
   const sCtx = createTestSerializationContext();

@@ -32,7 +32,7 @@ export interface ComputedSubscriber<T = unknown> extends Collector, ComputedSour
   notify(): void;
 }
 
-// TODO(vdomless): replace with the real IdleJob runtime type.
+// TODO: replace with the real IdleJob runtime type.
 export interface IdleJobRecord {
   run: () => unknown;
   dispose?: () => void;

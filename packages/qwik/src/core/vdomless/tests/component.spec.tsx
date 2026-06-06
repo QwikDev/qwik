@@ -1,41 +1,35 @@
+import { component$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import {
-  csrRender,
-  ssrRender,
-  type CsrRenderComponent,
-  type SsrRenderComponent,
-} from '../test-utils';
-import { createTextExpressionEffect } from '../dom/effect/effect';
+import { csrRender, ssrRender } from '../test-utils';
 
-const HelloSsr: SsrRenderComponent<{ name: string }> = (props, ctx) => {
-  return `<p>Hello ${ctx.textExpression([props], (props) => props.name)}</p>`;
-};
-
-const HelloCsr: CsrRenderComponent<{ name: string }> = (props, ctx) => {
-  const element = ctx.document.createElement('p');
-  const text = ctx.document.createTextNode('Hello ');
-  element.appendChild(text);
-
-  const text2 = ctx.document.createTextNode('');
-  element.appendChild(text2);
-
-  const effect = createTextExpressionEffect(text2, [props], (props) => props.name, {
-    scheduler: ctx.scheduler,
-  });
-  ctx.scheduler.notify(effect);
-
-  return [element];
-};
+const debug = false;
 
 describe.each([
-  { name: 'ssrRender', render: () => ssrRender(HelloSsr, { name: 'Qwik' }) }, //
-  { name: 'csrRender', render: () => csrRender(HelloCsr, { name: 'Qwik' }) }, //
+  { name: 'ssrRender', render: ssrRender }, //
+  { name: 'csrRender', render: csrRender }, //
 ])('$name: component', ({ render }) => {
-  it('renders a simple component from generated output', async () => {
-    const { container, html, cleanup } = await render();
+  it('should render component', async () => {
+    const MyComp = component$(() => {
+      return <p>Hello Qwik</p>;
+    });
+
+    const { container, html, cleanup } = await render(<MyComp />, { debug });
 
     expect(container.innerHTML).toBe('<p>Hello Qwik</p>');
     expect(html).toBe('<p>Hello Qwik</p>');
+
+    cleanup();
+  });
+
+  it('should render component with fragment', async () => {
+    const MyComp = component$(() => {
+      return <>Hello Qwik</>;
+    });
+
+    const { container, html, cleanup } = await render(<MyComp />, { debug });
+
+    expect(container.innerHTML).toBe('Hello Qwik');
+    expect(html).toBe('Hello Qwik');
 
     cleanup();
   });

@@ -1,17 +1,19 @@
+import { existsSync } from 'node:fs';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { basename, dirname, isAbsolute, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { format as formatCode } from 'prettier';
+import ts from 'typescript';
+import { transformModules } from '../../../../compiler/src/index';
 import { createDocument } from '../../testing/document';
+import { isJSXNode } from '../shared/jsx/jsx-node';
+import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { QContainerValue, type Container } from '../shared/types';
-import { escapeHTML } from '../shared/utils/character-escaping';
 import { QContainerAttr } from '../shared/utils/markers';
-import { createComponent } from './component/component';
+import { render as renderCsr, type CsrRenderRoot } from './csr-render';
 import type { BranchRange } from './dom/branch/branch';
-import {
-  createTextExpressionEffect,
-  type TextExpressionFn,
-  type TextExpressionValue,
-} from './dom/effect/effect';
+import { createTextExpressionEffect } from './dom/effect/effect';
 import { ReactiveFlags } from './reactive/flags';
-import { createOwner, disposeOwner } from './runtime/owner';
-import { newInvokeContext } from './runtime/invoke-context';
 import { Phase, Scheduler } from './runtime/scheduler';
 import {
   SubscriberKind,
@@ -20,48 +22,12 @@ import {
   type TaskSubscriber,
 } from './runtime/subscriber';
 import { createTask, createTaskGroup } from './runtime/task';
+import { renderToString, type SsrRenderRoot } from '../../server/vdomless/ssr-render';
 
 export const noopSchedule = (): void => {};
 
-export type RenderMode = 'csr' | 'ssr';
-
-export type SsrTextExpression = <TArgs extends unknown[]>(
-  args: TArgs,
-  fn: TextExpressionFn<TArgs>
-) => string;
-
-export interface BaseRenderContext<TMode extends RenderMode> {
-  document: Document;
-  scheduler: Scheduler;
-  mode: TMode;
-  qContainer: Container;
-}
-
-export interface CsrRenderContext extends BaseRenderContext<'csr'> {}
-
-export interface SsrRenderContext extends BaseRenderContext<'ssr'> {
-  textExpression: SsrTextExpression;
-}
-
-export type RenderContext<TMode extends RenderMode = RenderMode> = TMode extends 'csr'
-  ? CsrRenderContext
-  : TMode extends 'ssr'
-    ? SsrRenderContext
-    : CsrRenderContext | SsrRenderContext;
-
-export type CsrRenderComponent<TProps = undefined> = (
-  props: TProps,
-  ctx: RenderContext<'csr'>
-) => readonly Node[] | void;
-
-export type SsrRenderComponent<TProps = undefined> = (
-  props: TProps,
-  ctx: RenderContext<'ssr'>
-) => string;
-
 export interface RenderOptions {
-  qContainer?: Container;
-  captures?: Record<string, unknown>;
+  debug?: boolean;
   scheduler?: Scheduler;
 }
 
@@ -314,25 +280,32 @@ export function createIdleSubscriber(notify: () => void): IdleSubscriber {
   };
 }
 
-export async function csrRender<TProps = undefined>(
-  component: CsrRenderComponent<TProps>,
-  props?: TProps,
-  options?: RenderOptions
-): Promise<RenderResult> {
+export type CsrRenderComponent = CsrRenderRoot;
+export type SsrRenderComponent = SsrRenderRoot;
+
+type RenderTarget = 'csr' | 'ssr';
+type TransformModule = Awaited<ReturnType<typeof transformModules>>['modules'][number];
+
+interface CompiledRoot<TRoot> {
+  root: TRoot;
+  modules: readonly TransformModule[];
+}
+
+let compiledModuleId = 0;
+
+export async function csrRender(jsx: JSXOutput, options?: RenderOptions): Promise<RenderResult> {
+  const compiled = await compileJsxRoot<CsrRenderComponent>('csr', jsx);
   const document = createDocument();
   const container = document.createElement('div');
-  container.setAttribute(QContainerAttr, QContainerValue.RESUMED);
   document.body.appendChild(container);
 
-  const state = runCsrComponent(component, props as TProps, document, options);
-  const nodes = [...state.output];
-  for (let i = 0; i < nodes.length; i++) {
-    container.appendChild(nodes[i]);
-  }
-
-  const cleanup = createRenderCleanup(state.cleanup, container);
-  const result = createRenderResult(document, container, nodes, state.scheduler, cleanup);
+  const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
+  const renderResult = await renderCsr(compiled.root, container);
+  const nodes = Array.from(container.childNodes);
+  const cleanup = createRenderCleanup(renderResult.cleanup, container);
+  const result = createRenderResult(document, container, nodes, scheduler, cleanup);
   await result.flush();
+  await debugRender('csr', compiled.modules, container.innerHTML, options);
 
   return {
     ...result,
@@ -340,115 +313,20 @@ export async function csrRender<TProps = undefined>(
   };
 }
 
-export async function ssrRender<TProps = undefined>(
-  component: SsrRenderComponent<TProps>,
-  props?: TProps,
-  options?: RenderOptions
-): Promise<RenderResult> {
-  const renderDocument = createDocument();
-  const state = runSsrComponent(component, props as TProps, renderDocument, options);
-  await flushScheduler(state.scheduler);
+export async function ssrRender(jsx: JSXOutput, options?: RenderOptions): Promise<RenderResult> {
+  const compiled = await compileJsxRoot<SsrRenderComponent>('ssr', jsx);
+  const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
+  const result = await renderToString(compiled.root);
+  await flushScheduler(scheduler);
 
-  const { document, container } = createContainerDocument(state.output, QContainerValue.PAUSED);
+  const { document, container } = createContainerDocument(result.html, QContainerValue.PAUSED);
   const nodes = Array.from(container.childNodes) as Node[];
-  const cleanup = createRenderCleanup(state.cleanup, container);
+  const cleanup = createRenderCleanup(noopSchedule, container);
+  await debugRender('ssr', compiled.modules, container.innerHTML, options);
 
   return {
-    ...createRenderResult(document, container, nodes, state.scheduler, cleanup),
+    ...createRenderResult(document, container, nodes, scheduler, cleanup),
     html: container.innerHTML,
-  };
-}
-
-interface CsrRenderState {
-  output: readonly Node[];
-  scheduler: Scheduler;
-  cleanup: () => void;
-}
-
-interface SsrRenderState {
-  output: string;
-  scheduler: Scheduler;
-  cleanup: () => void;
-}
-
-function runCsrComponent<TProps>(
-  component: CsrRenderComponent<TProps>,
-  props: TProps,
-  document: Document,
-  options: RenderOptions | undefined
-): CsrRenderState {
-  const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
-  const qContainer = options?.qContainer ?? createCaptureContainer(options?.captures ?? {});
-  const rootOwner = createOwner();
-  const invokeContext = newInvokeContext({
-    owner: rootOwner,
-    container: qContainer,
-  });
-  const ctx: RenderContext<'csr'> = {
-    document,
-    scheduler,
-    mode: 'csr',
-    qContainer,
-  };
-
-  let output: readonly Node[];
-  try {
-    output = createComponent(props, (componentProps) => component(componentProps, ctx), {
-      container: qContainer,
-      invokeContext,
-    });
-  } catch (error) {
-    disposeOwner(rootOwner);
-    throw error;
-  }
-
-  return {
-    output,
-    scheduler,
-    cleanup() {
-      disposeOwner(rootOwner);
-    },
-  };
-}
-
-function runSsrComponent<TProps>(
-  component: SsrRenderComponent<TProps>,
-  props: TProps,
-  document: Document,
-  options: RenderOptions | undefined
-): SsrRenderState {
-  const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
-  const qContainer = options?.qContainer ?? createCaptureContainer(options?.captures ?? {});
-  const rootOwner = createOwner();
-  const invokeContext = newInvokeContext({
-    owner: rootOwner,
-    container: qContainer,
-  });
-  const ctx: RenderContext<'ssr'> = {
-    document,
-    scheduler,
-    mode: 'ssr',
-    qContainer,
-    textExpression: ssrTextExpression,
-  };
-
-  let output: string;
-  try {
-    output = createComponent(props, (componentProps) => component(componentProps, ctx), {
-      container: qContainer,
-      invokeContext,
-    });
-  } catch (error) {
-    disposeOwner(rootOwner);
-    throw error;
-  }
-
-  return {
-    output,
-    scheduler,
-    cleanup() {
-      disposeOwner(rootOwner);
-    },
   };
 }
 
@@ -504,13 +382,247 @@ function createContainerDocument(
   return { document, container };
 }
 
-function ssrTextExpression<TArgs extends unknown[]>(
-  args: TArgs,
-  fn: TextExpressionFn<TArgs>
-): string {
-  return stringifySsrTextExpressionValue(fn(...args));
+async function compileJsxRoot<TRoot extends CsrRenderComponent | SsrRenderComponent>(
+  target: RenderTarget,
+  jsx: JSXOutput
+): Promise<CompiledRoot<TRoot>> {
+  const id = compiledModuleId++;
+  const inputPath = `src/render-test-${id}.tsx`;
+  const inputCode = await createCompiledInput(jsx);
+  return importCompiledRoot<TRoot>(target, id, inputPath, inputCode);
 }
 
-function stringifySsrTextExpressionValue(value: TextExpressionValue): string {
-  return escapeHTML(String(value));
+async function createCompiledInput(jsx: JSXOutput): Promise<string> {
+  const location = getJsxLocation(jsx);
+  const file = resolveSourceFile(location.fileName);
+  const source = await readFile(file, 'utf8');
+  const sourceFile = ts.createSourceFile(
+    file,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
+  const jsxPosition = sourceFile.getPositionOfLineAndCharacter(
+    location.lineNumber - 1,
+    Math.max(location.columnNumber - 1, 0)
+  );
+  const componentName = getRenderedComponentName(sourceFile, jsxPosition);
+  const componentSource = getComponentInitializer(sourceFile, componentName, jsxPosition);
+  const imports = getQwikCoreImports(sourceFile);
+
+  return `${imports.join('\n')}\nexport const App = ${componentSource};\n`;
+}
+
+interface JsxLocation {
+  fileName: string;
+  lineNumber: number;
+  columnNumber: number;
+}
+
+function getJsxLocation(jsx: JSXOutput): JsxLocation {
+  if (!isJSXNode(jsx)) {
+    throw new Error('Render helper expects a JSX root.');
+  }
+
+  const dev = (jsx as JSXNodeInternal & { dev?: Partial<JsxLocation> }).dev;
+  if (!dev?.fileName || dev.lineNumber === undefined || dev.columnNumber === undefined) {
+    throw new Error('JSX render helper requires JSX dev metadata.');
+  }
+
+  return {
+    fileName: dev.fileName,
+    lineNumber: dev.lineNumber,
+    columnNumber: dev.columnNumber,
+  };
+}
+
+function getRenderedComponentName(sourceFile: ts.SourceFile, position: number): string {
+  let name: string | null = null;
+  let bestDistance = Number.MAX_SAFE_INTEGER;
+
+  const visit = (node: ts.Node): void => {
+    if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+      const tagName = node.tagName;
+      if (ts.isIdentifier(tagName)) {
+        const start = node.getStart(sourceFile);
+        const distance = position >= start && position <= node.end ? 0 : Math.abs(start - position);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          name = tagName.text;
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+
+  if (name === null) {
+    throw new Error('Unable to locate JSX component at render call.');
+  }
+  return name;
+}
+
+function getComponentInitializer(
+  sourceFile: ts.SourceFile,
+  componentName: string,
+  beforePosition: number
+): string {
+  const match: { initializer?: ts.Expression; position: number } = { position: -1 };
+
+  const visit = (node: ts.Node): void => {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === componentName &&
+      node.initializer !== undefined &&
+      isComponentDollarCall(node.initializer)
+    ) {
+      const position = node.getStart(sourceFile);
+      if (position < beforePosition && position > match.position) {
+        match.initializer = node.initializer;
+        match.position = position;
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+
+  const initializer = match.initializer;
+  if (initializer === undefined) {
+    throw new Error(`Unable to locate component$ declaration for ${componentName}.`);
+  }
+  return initializer.getText(sourceFile);
+}
+
+function isComponentDollarCall(expression: ts.Expression): expression is ts.CallExpression {
+  return ts.isCallExpression(expression) && ts.isIdentifier(expression.expression)
+    ? expression.expression.text === 'component$'
+    : false;
+}
+
+function getQwikCoreImports(sourceFile: ts.SourceFile): string[] {
+  const imports: string[] = [];
+
+  for (let i = 0; i < sourceFile.statements.length; i++) {
+    const statement = sourceFile.statements[i];
+    if (
+      ts.isImportDeclaration(statement) &&
+      ts.isStringLiteral(statement.moduleSpecifier) &&
+      statement.moduleSpecifier.text === '@qwik.dev/core'
+    ) {
+      imports.push(statement.getText(sourceFile));
+    }
+  }
+
+  if (imports.length === 0) {
+    imports.push(`import { component$ } from '@qwik.dev/core';`);
+  }
+
+  return imports;
+}
+
+async function importCompiledRoot<TRoot extends CsrRenderComponent | SsrRenderComponent>(
+  target: RenderTarget,
+  id: number,
+  inputPath: string,
+  code: string
+): Promise<CompiledRoot<TRoot>> {
+  const result = await transformModules({
+    input: [{ path: inputPath, code }],
+    srcDir: 'src',
+    rootDir: findRepoRoot(),
+    sourceMaps: false,
+    transpileTs: true,
+    transpileJsx: true,
+    explicitExtensions: true,
+    isServer: target === 'ssr',
+  });
+
+  if (result.diagnostics.length > 0) {
+    throw new Error(result.diagnostics.map((diagnostic) => diagnostic.message).join('\n'));
+  }
+
+  const dir = join(findRepoRoot(), 'temp', 'render', `${Date.now()}-${target}-${id}`);
+  await mkdir(dir, { recursive: true });
+
+  let entryPath: string | null = null;
+  for (let i = 0; i < result.modules.length; i++) {
+    const module = result.modules[i];
+    const fileName = module.segment || module.isEntry ? basename(module.path) : 'entry.mjs';
+    const filePath = join(dir, fileName);
+    await writeFile(filePath, module.code);
+    if (!module.segment && !module.isEntry) {
+      entryPath = filePath;
+    }
+  }
+
+  if (entryPath === null) {
+    throw new Error('Compiler did not emit a root module.');
+  }
+
+  const imported = (await import(`${pathToFileURL(entryPath).href}?t=${Date.now()}`)) as {
+    App?: unknown;
+  };
+  if (typeof imported.App !== 'function') {
+    throw new Error('Compiled test module does not export App.');
+  }
+  return {
+    root: imported.App as TRoot,
+    modules: result.modules,
+  };
+}
+
+function findRepoRoot() {
+  let dir = process.cwd();
+  while (!existsSync(join(dir, 'pnpm-workspace.yaml'))) {
+    const parent = dirname(dir);
+    if (parent === dir) {
+      throw new Error('Unable to locate repository root.');
+    }
+    dir = parent;
+  }
+  return dir;
+}
+
+function resolveSourceFile(fileName: string): string {
+  return isAbsolute(fileName) ? fileName : join(findRepoRoot(), fileName);
+}
+
+async function debugRender(
+  target: RenderTarget,
+  modules: readonly TransformModule[],
+  html: string,
+  options: RenderOptions | undefined
+): Promise<void> {
+  if (!options?.debug) {
+    return;
+  }
+
+  const lines = [`\n==================== ${target.toUpperCase()} RENDER ====================`];
+  lines.push(`\n-------------------- ${target.toUpperCase()} TRANSFORM --------------------`);
+  for (let i = 0; i < modules.length; i++) {
+    const module = modules[i];
+    lines.push(`\n// ${module.path}`);
+    lines.push(await formatDebugCode(module.code, 'babel'));
+  }
+  lines.push(`\n-------------------- ${target.toUpperCase()} HTML --------------------`);
+  lines.push(await formatDebugCode(html, 'html'));
+  lines.push('============================================================\n');
+  debugLog(lines.join('\n'));
+}
+
+async function formatDebugCode(code: string, parser: 'babel' | 'html'): Promise<string> {
+  try {
+    return (await formatCode(code, { parser })).trimEnd();
+  } catch {
+    return code;
+  }
+}
+
+function debugLog(message: string): void {
+  // eslint-disable-next-line no-console
+  console.log(message);
 }

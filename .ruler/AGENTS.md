@@ -96,6 +96,8 @@ by Ruler.
   skills, and map assistant outputs by semantic role.
 - `generated-output-boundaries`: edit owning sources instead of generated artifacts and regenerate
   intentionally.
+- `security-and-supply-chain`: run focused security reasoning for vulnerable surfaces, dependency
+  changes, and GitHub Actions updates.
 
 ## Engineering Rules
 

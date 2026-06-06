@@ -21,6 +21,7 @@ Current source rules:
 - `code-quality`
 - `generated-output-boundaries`
 - `guidance-source-of-truth`
+- `security-and-supply-chain`
 - `test-driven-development`
 
 Current source skills:

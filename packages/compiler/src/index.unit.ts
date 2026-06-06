@@ -104,6 +104,35 @@ export default component$(function Home() {
     });
   });
 
+  test('extracts event handlers into QRL-style modules', async () => {
+    await testInput('event_handler_qrl', {
+      code: `export function App() {
+  return <button onClick$={(ev) => console.log(ev.type)}>Click</button>;
+}
+`,
+    });
+  });
+
+  test('uses _captures for extracted event lexical scope', async () => {
+    await testInput('event_handler_captures', {
+      code: `import { createSignal } from "@qwik.dev/core";
+export function App() {
+  const count = createSignal(1);
+  return <button onClick$={() => count.value++}>Count</button>;
+}
+`,
+    });
+  });
+
+  test('extracts multiple event names and scopes', async () => {
+    await testInput('event_handler_scopes', {
+      code: `export function App() {
+  return <div onClick$={() => 1} onDblClick$={() => 2} window:onScroll$={() => 3} document:onKeyDown$={() => 4} />;
+}
+`,
+    });
+  });
+
   test('reports dynamic JSX expressions as unsupported', async () => {
     await testInput('unsupported_dynamic_jsx', {
       code: `const name = 'Qwik';

@@ -1,0 +1,274 @@
+==INPUT==
+
+export function App() {
+  return <div onClick$={() => 1} onDblClick$={() => 2} window:onScroll$={() => 3} document:onKeyDown$={() => 4} />;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+
+const q_component_q_e_click_segment_0 = /*#__PURE__*/ qrl(()=>import("./component.tsx_component_q_e_click_segment_0"), "component_q_e_click_segment_0");
+const q_component_q_e_dblclick_segment_1 = /*#__PURE__*/ qrl(()=>import("./component.tsx_component_q_e_dblclick_segment_1"), "component_q_e_dblclick_segment_1");
+const q_component_q_w_scroll_segment_2 = /*#__PURE__*/ qrl(()=>import("./component.tsx_component_q_w_scroll_segment_2"), "component_q_w_scroll_segment_2");
+const q_component_q_d_keydown_segment_3 = /*#__PURE__*/ qrl(()=>import("./component.tsx_component_q_d_keydown_segment_3"), "component_q_d_keydown_segment_3");
+
+export function App(_props, _ctx) {
+  return "<div q-e:click=\"" + q_component_q_e_click_segment_0 + "\" q-e:dblclick=\"" + q_component_q_e_dblclick_segment_1 + "\" q-w:scroll=\"" + q_component_q_w_scroll_segment_2 + "\" q-d:keydown=\"" + q_component_q_d_keydown_segment_3 + "\"></div>";
+}
+
+
+null
+============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_0 = () => {
+	return 1;
+};
+
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    38,
+    56
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_dblclick_segment_1.js (ENTRY POINT)==
+
+export const component_q_e_dblclick_segment_1 = () => {
+	return 2;
+};
+
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_dblclick_segment_1",
+  "entry": null,
+  "displayName": "component_q_e_dblclick_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_q_e_dblclick_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onDblClick$",
+  "captures": false,
+  "loc": [
+    57,
+    78
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_w_scroll_segment_2.js (ENTRY POINT)==
+
+export const component_q_w_scroll_segment_2 = () => {
+	return 3;
+};
+
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_w_scroll_segment_2",
+  "entry": null,
+  "displayName": "component_q_w_scroll_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_q_w_scroll_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "window:onScroll$",
+  "captures": false,
+  "loc": [
+    79,
+    105
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_d_keydown_segment_3.js (ENTRY POINT)==
+
+export const component_q_d_keydown_segment_3 = () => {
+	return 4;
+};
+
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_d_keydown_segment_3",
+  "entry": null,
+  "displayName": "component_q_d_keydown_segment_3",
+  "hash": "segment_3",
+  "canonicalFilename": "component.tsx_component_q_d_keydown_segment_3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "document:onKeyDown$",
+  "captures": false,
+  "loc": [
+    106,
+    135
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { setEvent } from "@qwik.dev/core";
+import { component_q_e_click_segment_0 } from "./component.tsx_component_q_e_click_segment_0";
+import { component_q_e_dblclick_segment_1 } from "./component.tsx_component_q_e_dblclick_segment_1";
+import { component_q_w_scroll_segment_2 } from "./component.tsx_component_q_w_scroll_segment_2";
+import { component_q_d_keydown_segment_3 } from "./component.tsx_component_q_d_keydown_segment_3";
+
+export function App(_props, ctx) {
+  const el0 = ctx.document.createElement("div");
+  setEvent(el0, "q-e:click", component_q_e_click_segment_0);
+  setEvent(el0, "q-e:dblclick", component_q_e_dblclick_segment_1);
+  setEvent(el0, "q-w:scroll", component_q_w_scroll_segment_2);
+  setEvent(el0, "q-d:keydown", component_q_d_keydown_segment_3);
+  return [el0];
+}
+
+
+null
+============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_0 = () => {
+	return 1;
+};
+
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    38,
+    56
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_dblclick_segment_1.js (ENTRY POINT)==
+
+export const component_q_e_dblclick_segment_1 = () => {
+	return 2;
+};
+
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_dblclick_segment_1",
+  "entry": null,
+  "displayName": "component_q_e_dblclick_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_q_e_dblclick_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onDblClick$",
+  "captures": false,
+  "loc": [
+    57,
+    78
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_w_scroll_segment_2.js (ENTRY POINT)==
+
+export const component_q_w_scroll_segment_2 = () => {
+	return 3;
+};
+
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_w_scroll_segment_2",
+  "entry": null,
+  "displayName": "component_q_w_scroll_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_q_w_scroll_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "window:onScroll$",
+  "captures": false,
+  "loc": [
+    79,
+    105
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_d_keydown_segment_3.js (ENTRY POINT)==
+
+export const component_q_d_keydown_segment_3 = () => {
+	return 4;
+};
+
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_d_keydown_segment_3",
+  "entry": null,
+  "displayName": "component_q_d_keydown_segment_3",
+  "hash": "segment_3",
+  "canonicalFilename": "component.tsx_component_q_d_keydown_segment_3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "document:onKeyDown$",
+  "captures": false,
+  "loc": [
+    106,
+    135
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -29,7 +29,7 @@ export async function transformModules(options: TransformModulesOptions): Promis
   const results = await Promise.all(options.input.map((input) => transformModule(input, options)));
 
   return {
-    modules: results.map((result) => result.module),
+    modules: results.flatMap((result) => result.modules),
     diagnostics: results.flatMap((result) => result.diagnostics),
     isTypeScript: options.input.some((input) => isTypeScriptPath(input.path)),
     isJsx: options.input.some((input) => isJsxPath(input.path)),
@@ -47,31 +47,32 @@ async function transformModule(
     manifest: {
       components: [],
       segments: [],
+      importRanges: [],
       diagnostics: [],
     },
-    outputCode: null,
+    outputModules: null,
   };
 
   for (const stage of PIPELINE) {
     await stage(ctx);
   }
 
-  if (ctx.outputCode === null) {
+  if (ctx.outputModules === null) {
     if (ctx.manifest.diagnostics.length > 0) {
       return {
-        module: createModule(input.path, ''),
+        modules: [createModule(input.path, '')],
         diagnostics: ctx.manifest.diagnostics,
       };
     }
     const fallback = await transformWithOxc(input, options);
     return {
-      module: fallback,
+      modules: [fallback],
       diagnostics: ctx.manifest.diagnostics,
     };
   }
 
   return {
-    module: createModule(input.path, ctx.outputCode),
+    modules: ctx.outputModules,
     diagnostics: ctx.manifest.diagnostics,
   };
 }

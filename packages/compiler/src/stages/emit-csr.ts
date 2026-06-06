@@ -1,12 +1,31 @@
-import type { ComponentRecord, RenderNode } from '../types';
+import type { ComponentRecord, QrlSegmentOutput, RenderNode } from '../types';
 import { indent, serializeAttrValue } from './emit-utils';
 
-export function emitCsrModule(components: ComponentRecord[]) {
-  return `${components.map(emitCsrComponent).join('\n')}\n`;
+export function emitCsrModule(
+  components: ComponentRecord[],
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  const prelude = emitPrelude(qrlSegments);
+  return `${prelude}${components
+    .map((component) => emitCsrComponent(component, qrlSegments))
+    .join('\n')}\n`;
 }
 
-function emitCsrComponent(component: ComponentRecord) {
-  const body = emitDomRenderer(component.root!);
+function emitPrelude(qrlSegments: Map<string, QrlSegmentOutput>) {
+  if (qrlSegments.size === 0) {
+    return '';
+  }
+  const imports = ['import { setEvent } from "@qwik.dev/core";'];
+  for (const qrlSegment of qrlSegments.values()) {
+    imports.push(
+      `import { ${qrlSegment.symbolName} } from ${JSON.stringify(qrlSegment.importPath)};`
+    );
+  }
+  return `${imports.join('\n')}\n\n`;
+}
+
+function emitCsrComponent(component: ComponentRecord, qrlSegments: Map<string, QrlSegmentOutput>) {
+  const body = emitDomRenderer(component.root!, qrlSegments);
   if (component.declarationKind === 'function') {
     return `export function ${component.exportName}(_props, ctx) {\n${indent(body, 2)}\n}`;
   }
@@ -20,8 +39,8 @@ function emitCsrComponent(component: ComponentRecord) {
   return `export default (_props, ctx) => {\n${indent(body, 2)}\n};`;
 }
 
-function emitDomRenderer(root: RenderNode) {
-  const emitter = new DomEmitter();
+function emitDomRenderer(root: RenderNode, qrlSegments: Map<string, QrlSegmentOutput>) {
+  const emitter = new DomEmitter(qrlSegments);
   const roots = emitter.emitRoot(root);
   emitter.line(`return [${roots.join(', ')}];`);
   return emitter.toString();
@@ -30,6 +49,8 @@ function emitDomRenderer(root: RenderNode) {
 class DomEmitter {
   private counter = 0;
   private readonly lines: string[] = [];
+
+  constructor(private qrlSegments: Map<string, QrlSegmentOutput>) {}
 
   emitRoot(node: RenderNode): string[] {
     if (node.kind === 'fragment') {
@@ -48,6 +69,13 @@ class DomEmitter {
       const id = this.next('el');
       this.line(`const ${id} = ctx.document.createElement(${JSON.stringify(node.tag)});`);
       for (const prop of node.props) {
+        if (prop.qrlSegmentId) {
+          const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
+          if (qrlSegment) {
+            this.line(`setEvent(${id}, ${JSON.stringify(prop.name)}, ${qrlSegment.symbolName});`);
+          }
+          continue;
+        }
         const attr = serializeAttrValue(prop.value);
         if (attr !== null) {
           this.line(`${id}.setAttribute(${JSON.stringify(prop.name)}, ${JSON.stringify(attr)});`);

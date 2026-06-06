@@ -1,9 +1,14 @@
 import {
+  getJsxAttributeName,
   getJsxName,
+  getRange,
   getStaticExpressionValue,
   isEventProp,
   isNativeTag,
+  isFunctionLike,
+  jsxEventToHtmlAttribute,
   normalizeJsxText,
+  unwrapExpression,
 } from '../ast-utils';
 import { createDiagnostic } from '../diagnostics';
 import type {
@@ -98,10 +103,32 @@ function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]
       continue;
     }
 
-    let name = getJsxName(attr.name);
+    let name = getJsxAttributeName(attr.name);
     if (!name) {
       ctx.manifest.diagnostics.push(
         createDiagnostic(ctx.input.path, 'Only simple JSX attribute names are supported.')
+      );
+      continue;
+    }
+    const eventName = jsxEventToHtmlAttribute(name);
+    if (eventName) {
+      const expr =
+        attr.value?.type === 'JSXExpressionContainer'
+          ? unwrapExpression(attr.value.expression)
+          : null;
+      if (isFunctionLike(expr)) {
+        const segment = findEventSegment(ctx, name, getRange(attr));
+        if (segment) {
+          props.push({
+            name: eventName,
+            value: null,
+            qrlSegmentId: segment.id,
+          });
+        }
+        continue;
+      }
+      ctx.manifest.diagnostics.push(
+        createDiagnostic(ctx.input.path, `Event prop "${name}" must be an inline function.`)
       );
       continue;
     }
@@ -124,6 +151,21 @@ function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]
     }
   }
   return props;
+}
+
+function findEventSegment(ctx: CompilerContext, ctxName: string, range: PropRange) {
+  return ctx.manifest.segments.find(
+    (segment) =>
+      segment.kind === 'eventHandler' &&
+      segment.ctxName === ctxName &&
+      rangesEqual(segment.range, range)
+  );
+}
+
+type PropRange = ReturnType<typeof getRange>;
+
+function rangesEqual(left: PropRange, right: PropRange): boolean {
+  return !!left && !!right && left[0] === right[0] && left[1] === right[1];
 }
 
 function lowerStaticAttributeValue(

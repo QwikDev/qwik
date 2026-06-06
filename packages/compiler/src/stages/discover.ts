@@ -16,8 +16,24 @@ interface ComponentFunctionInfo {
   qrlBoundary: string | null;
 }
 
-export function collectModuleFacts(_ctx: CompilerContext) {
-  // Reserved for module-level facts that are independent from component discovery.
+interface ComponentBodyInfo {
+  jsx: AstJsxNode | null;
+  setupRanges: NonNullable<ComponentRecord['functionRange']>[];
+}
+
+export function collectModuleFacts(ctx: CompilerContext) {
+  const body = ctx.program?.body;
+  if (!Array.isArray(body)) {
+    return;
+  }
+  for (const statement of body) {
+    if (statement.type === 'ImportDeclaration') {
+      const range = getRange(statement);
+      if (range) {
+        ctx.manifest.importRanges.push(range);
+      }
+    }
+  }
 }
 
 export function discoverExportedComponents(ctx: CompilerContext) {
@@ -99,6 +115,7 @@ function addFunctionComponent(
   declarationKind: ComponentRecord['declarationKind'],
   qrlBoundary: string | null = null
 ) {
+  const body = getComponentBody(fn);
   const component: ComponentRecord = {
     exportName,
     localName,
@@ -107,7 +124,8 @@ function addFunctionComponent(
     qrlBoundary,
     segmentId: null,
     params: getParams(fn),
-    jsx: getReturnedJsx(fn),
+    setupRanges: body.setupRanges,
+    jsx: body.jsx,
     root: null,
     supported: true,
   };
@@ -127,25 +145,33 @@ function getComponentFunction(node: unknown): ComponentFunctionInfo | null {
   return isFunctionLike(fn) && fn ? { fn, qrlBoundary: 'component$' } : null;
 }
 
-function getReturnedJsx(fn: AstFunction): AstJsxNode | null {
+function getComponentBody(fn: AstFunction): ComponentBodyInfo {
   const body = unwrapExpression(fn.body);
   if (!body) {
-    return null;
+    return { jsx: null, setupRanges: [] };
   }
   if (body.type === 'JSXElement' || body.type === 'JSXFragment') {
-    return body;
+    return { jsx: body, setupRanges: [] };
   }
   if (body.type !== 'BlockStatement') {
-    return null;
+    return { jsx: null, setupRanges: [] };
   }
+  const setupRanges: ComponentBodyInfo['setupRanges'] = [];
   for (const statement of body.body ?? []) {
+    const statementRange = getRange(statement);
     if (statement.type !== 'ReturnStatement') {
+      if (statementRange) {
+        setupRanges.push(statementRange);
+      }
       continue;
     }
     const argument = unwrapExpression(statement.argument);
     if (isJsxNode(argument)) {
-      return argument;
+      return { jsx: argument, setupRanges };
+    }
+    if (statementRange) {
+      setupRanges.push(statementRange);
     }
   }
-  return null;
+  return { jsx: null, setupRanges: [] };
 }

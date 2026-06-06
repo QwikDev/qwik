@@ -1,5 +1,6 @@
 import { transform } from 'oxc-transform';
 import type {
+  SegmentAnalysis,
   TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
@@ -25,15 +26,20 @@ export async function transformWithOxc(
 export function createModule(
   path: string,
   code: string,
-  map: string | null = null
+  map: string | null = null,
+  options?: {
+    isEntry?: boolean;
+    segment?: SegmentAnalysis | null;
+    origPath?: string | null;
+  }
 ): TransformModule {
   return {
     path,
-    isEntry: false,
+    isEntry: options?.isEntry ?? false,
     code,
     map,
-    segment: null,
-    origPath: null,
+    segment: options?.segment ?? null,
+    origPath: options?.origPath ?? null,
   };
 }
 

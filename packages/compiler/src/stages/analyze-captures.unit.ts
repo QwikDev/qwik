@@ -31,9 +31,10 @@ function analyzeInput(input: TestInput): CompilerContext {
     manifest: {
       components: [],
       segments: [],
+      importRanges: [],
       diagnostics: [],
     },
-    outputCode: null,
+    outputModules: null,
   };
   parseModule(ctx);
   collectModuleFacts(ctx);

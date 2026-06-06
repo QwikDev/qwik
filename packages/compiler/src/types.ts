@@ -19,7 +19,7 @@ export type AstJsxNode = JSXElement | JSXFragment;
 export type SourceRange = [number, number];
 
 export interface CompilerResult {
-  module: TransformModule;
+  modules: TransformModule[];
   diagnostics: Diagnostic[];
 }
 
@@ -28,12 +28,13 @@ export interface CompilerContext {
   options: TransformModulesOptions;
   program: Program | null;
   manifest: RenderManifest;
-  outputCode: string | null;
+  outputModules: TransformModule[] | null;
 }
 
 export interface RenderManifest {
   components: ComponentRecord[];
   segments: SegmentRecord[];
+  importRanges: SourceRange[];
   diagnostics: Diagnostic[];
 }
 
@@ -45,6 +46,7 @@ export interface ComponentRecord {
   qrlBoundary: string | null;
   segmentId: string | null;
   params: ParamRecord[];
+  setupRanges: SourceRange[];
   jsx: AstJsxNode | null;
   root: RenderNode | null;
   supported: boolean;
@@ -55,6 +57,11 @@ export interface SegmentRecord {
   kind: 'function' | 'eventHandler' | 'jsxProp';
   ctxName: string;
   range: SourceRange | null;
+  functionRange: SourceRange | null;
+  paramRanges: SourceRange[];
+  bodyRange: SourceRange | null;
+  bodyKind: 'block' | 'expression';
+  async: boolean;
   parentId: string | null;
   params: ParamRecord[];
   captures: CaptureRecord[];
@@ -108,6 +115,16 @@ export type RenderNode = ElementNode | FragmentNode | TextNode | ExprNode;
 export interface PropRecord {
   name: string;
   value: string | number | boolean | null;
+  qrlSegmentId?: string;
 }
 
 export type PipelineStage = (ctx: CompilerContext) => void | Promise<void>;
+
+export interface QrlSegmentOutput {
+  id: string;
+  symbolName: string;
+  qrlVariableName: string;
+  importPath: string;
+  modulePath: string;
+  segment: SegmentRecord;
+}

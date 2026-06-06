@@ -58,6 +58,19 @@ export function getJsxName(name: unknown): string | null {
   return null;
 }
 
+export function getJsxAttributeName(name: unknown): string | null {
+  const simpleName = getJsxName(name);
+  if (simpleName) {
+    return simpleName;
+  }
+  if (isObjectNode(name) && name.type === 'JSXNamespacedName') {
+    const namespace = getJsxName(name.namespace);
+    const property = getJsxName(name.name);
+    return namespace && property ? `${namespace}:${property}` : null;
+  }
+  return null;
+}
+
 export function getIdentifierName(node: unknown): string | null {
   if (!isObjectNode(node)) {
     return null;
@@ -122,6 +135,18 @@ export function isEventProp(name: string) {
   return name.endsWith('$') || /^on[A-Z]/.test(name) || name.includes(':on');
 }
 
+export function jsxEventToHtmlAttribute(jsxEvent: string, isPassive = false): string | null {
+  if (!jsxEvent.endsWith('$')) {
+    return null;
+  }
+
+  const [prefix, index] = getEventScopeDataFromJsxEvent(jsxEvent, isPassive);
+  if (index === -1) {
+    return null;
+  }
+  return prefix + normalizeJsxEventName(jsxEvent.slice(index, -1));
+}
+
 export function normalizeJsxText(value: string) {
   if (!value.includes('\n') && !value.includes('\r')) {
     return value;
@@ -132,6 +157,30 @@ export function normalizeJsxText(value: string) {
     .map((line) => line.trim())
     .filter(Boolean)
     .join(' ');
+}
+
+function getEventScopeDataFromJsxEvent(jsxEvent: string, isPassive: boolean): [string, number] {
+  if (jsxEvent.startsWith('window:on')) {
+    return [isPassive ? 'q-wp:' : 'q-w:', 9];
+  }
+  if (jsxEvent.startsWith('document:on')) {
+    return [isPassive ? 'q-dp:' : 'q-d:', 11];
+  }
+  if (jsxEvent.startsWith('on')) {
+    return [isPassive ? 'q-ep:' : 'q-e:', 2];
+  }
+  return ['', -1];
+}
+
+function normalizeJsxEventName(name: string): string {
+  if (name === 'DOMContentLoaded') {
+    return '-d-o-m-content-loaded';
+  }
+  return fromCamelToKebabCase(name.charAt(0) === '-' ? name.slice(1) : name.toLowerCase());
+}
+
+function fromCamelToKebabCase(value: string) {
+  return value.replace(/([A-Z-])/g, (part) => '-' + part.toLowerCase());
 }
 
 function isObjectNode(node: unknown): node is AstNode {

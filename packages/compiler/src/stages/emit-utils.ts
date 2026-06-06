@@ -1,4 +1,44 @@
-import type { ComponentRecord, PropRecord, QrlSegmentOutput, RenderNode } from '../types';
+import type {
+  ComponentRecord,
+  ImportRecord,
+  PropRecord,
+  QrlSegmentOutput,
+  RenderNode,
+} from '../types';
+
+export function emitImports(imports: readonly ImportRecord[]) {
+  return imports.map(emitImportDeclaration);
+}
+
+function emitImportDeclaration(importRecord: ImportRecord) {
+  const clauses: string[] = [];
+  const namedSpecifiers: string[] = [];
+  for (const specifier of importRecord.specifiers) {
+    if (specifier.kind === 'default') {
+      clauses.push(specifier.localName);
+    } else if (specifier.kind === 'namespace') {
+      clauses.push(`* as ${specifier.localName}`);
+    } else {
+      namedSpecifiers.push(emitNamedSpecifier(specifier));
+    }
+  }
+  if (namedSpecifiers.length > 0) {
+    clauses.push(`{ ${namedSpecifiers.join(', ')} }`);
+  }
+  if (clauses.length === 0) {
+    return `import ${JSON.stringify(importRecord.source)};`;
+  }
+  return `import ${clauses.join(', ')} from ${JSON.stringify(importRecord.source)};`;
+}
+
+function emitNamedSpecifier(
+  specifier: Extract<ImportRecord['specifiers'][number], { kind: 'named' }>
+) {
+  if (specifier.importedName === specifier.localName) {
+    return specifier.localName;
+  }
+  return `${specifier.importedName} as ${specifier.localName}`;
+}
 
 export function serializeAttrValue(value: PropRecord['value']): string | null {
   if (value === false || value === null) {

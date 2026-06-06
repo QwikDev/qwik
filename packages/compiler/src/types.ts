@@ -34,9 +34,31 @@ export interface CompilerContext {
 export interface RenderManifest {
   components: ComponentRecord[];
   segments: SegmentRecord[];
-  importRanges: SourceRange[];
+  imports: ImportRecord[];
   diagnostics: Diagnostic[];
 }
+
+export interface ImportRecord {
+  source: string;
+  typeOnly: boolean;
+  specifiers: ImportSpecifierRecord[];
+}
+
+export type ImportSpecifierRecord =
+  | {
+      kind: 'default';
+      localName: string;
+    }
+  | {
+      kind: 'namespace';
+      localName: string;
+    }
+  | {
+      kind: 'named';
+      importedName: string;
+      localName: string;
+      typeOnly: boolean;
+    };
 
 export interface ComponentRecord {
   exportName: string | 'default';

@@ -1,8 +1,8 @@
-import type { ComponentRecord, QrlSegmentOutput, RenderNode } from '../types';
-import type { SourceRange } from '../types';
+import type { ComponentRecord, ImportRecord, QrlSegmentOutput, RenderNode } from '../types';
+import { QwikSymbol } from '../words';
 import {
   emitComponentSetup,
-  hasCapturedQrlSegment,
+  emitImports,
   escapeAttr,
   escapeText,
   indent,
@@ -15,32 +15,27 @@ export function emitSsrModule(
   components: ComponentRecord[],
   qrlSegments: Map<string, QrlSegmentOutput>,
   sourceCode: string,
-  importRanges: SourceRange[]
+  imports: ImportRecord[]
 ) {
-  const prelude = emitPrelude(components, qrlSegments, sourceCode, importRanges);
+  const prelude = emitPrelude(qrlSegments, imports);
   return `${prelude}${components
     .map((component) => emitSsrComponent(component, qrlSegments, sourceCode))
     .join('\n')}\n`;
 }
 
-function emitPrelude(
-  components: ComponentRecord[],
-  qrlSegments: Map<string, QrlSegmentOutput>,
-  sourceCode: string,
-  importRanges: SourceRange[]
-) {
-  if (qrlSegments.size === 0) {
+function emitPrelude(qrlSegments: Map<string, QrlSegmentOutput>, imports: ImportRecord[]) {
+  if (imports.length === 0) {
     return '';
   }
-  const lines = components.some((component) => hasCapturedQrlSegment(component.root, qrlSegments))
-    ? importRanges.map(([start, end]) => sourceCode.slice(start, end))
-    : [];
-  lines.push('import { qrl } from "@qwik.dev/core";', '');
+  const lines = emitImports(imports);
+  lines.push('');
   for (const qrlSegment of qrlSegments.values()) {
     lines.push(
-      `const ${qrlSegment.qrlVariableName} = /*#__PURE__*/ qrl(()=>import(${JSON.stringify(
-        qrlSegment.importPath
-      )}), ${JSON.stringify(qrlSegment.symbolName)});`
+      `const ${qrlSegment.qrlVariableName} = /*#__PURE__*/ ${
+        QwikSymbol.Qrl
+      }(()=>import(${JSON.stringify(qrlSegment.importPath)}), ${JSON.stringify(
+        qrlSegment.symbolName
+      )});`
     );
   }
   return `${lines.join('\n')}\n\n`;

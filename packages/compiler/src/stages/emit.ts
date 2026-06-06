@@ -1,11 +1,14 @@
 import type { SegmentAnalysis } from '@qwik.dev/optimizer';
 import { transform } from 'oxc-transform';
 import { jsxEventToHtmlAttribute } from '../ast-utils';
+import { createCsrImports, createQwikCoreImport, createSsrImports } from '../imports';
 import { createModule, getLang } from '../module-utils';
 import type { CompilerContext } from '../types';
 import type { ComponentRecord, QrlSegmentOutput, RenderNode, SegmentRecord } from '../types';
+import { QwikSymbol } from '../words';
 import { emitCsrModule } from './emit-csr';
 import { emitSsrModule } from './emit-ssr';
+import { emitImports } from './emit-utils';
 
 export async function emitModules(ctx: CompilerContext) {
   if (ctx.manifest.diagnostics.length > 0) {
@@ -20,9 +23,12 @@ export async function emitModules(ctx: CompilerContext) {
 
   const isServer = ctx.options.isServer !== false;
   const qrlSegments = collectQrlSegments(ctx, supported);
+  const imports = isServer
+    ? createSsrImports(ctx.manifest.imports, qrlSegments)
+    : createCsrImports(qrlSegments);
   const outputCode = isServer
-    ? emitSsrModule(supported, qrlSegments, ctx.input.code, ctx.manifest.importRanges)
-    : emitCsrModule(supported, qrlSegments);
+    ? emitSsrModule(supported, qrlSegments, ctx.input.code, imports)
+    : emitCsrModule(supported, qrlSegments, imports);
   const modules = [createModule(ctx.input.path, outputCode)];
 
   for (const qrlSegment of qrlSegments.values()) {
@@ -116,10 +122,13 @@ function createQrlSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutp
   const captureLine =
     captures.length > 0
       ? `  const ${captures
-          .map((capture, index) => `${capture.name} = _captures[${index}]`)
+          .map((capture, index) => `${capture.name} = ${QwikSymbol.Captures}[${index}]`)
           .join(', ')};\n`
       : '';
-  const importLine = captures.length > 0 ? 'import { _captures } from "@qwik.dev/core";\n\n' : '';
+  const importLine =
+    captures.length > 0
+      ? `${emitImports([createQwikCoreImport(QwikSymbol.Captures)]).join('\n')}\n\n`
+      : '';
   const params = qrlSegment.segment.paramRanges
     .map(([start, end]) => source.slice(start, end))
     .join(', ');

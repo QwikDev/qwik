@@ -10,8 +10,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createSignal } from "@qwik.dev/core";
-import { qrl } from "@qwik.dev/core";
+import { createSignal, qrl } from "@qwik.dev/core";
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ qrl(()=>import("./component.tsx_component_q_e_click_segment_0"), "component_q_e_click_segment_0");
 

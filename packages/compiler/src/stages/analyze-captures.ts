@@ -31,6 +31,7 @@ import type {
   SegmentRecord,
   SourceRange,
 } from '../types';
+import { QwikSymbol } from '../words';
 
 const MODULE_FUNCTION_OWNER_ID = 0;
 
@@ -394,7 +395,7 @@ class CaptureAnalyzer {
     const firstArg = getArgumentExpression(node.arguments?.[0]);
     const isQrlFunctionCall = !!qrlName && isFunctionLike(unwrapExpression(firstArg));
     const isIterationCall = !isQrlFunctionCall && isIterationMethodCall(node);
-    const isInlinedQrl = qrlName === 'inlinedQrl';
+    const isInlinedQrl = qrlName === QwikSymbol.InlinedQrl;
     const hasExplicitCaptureArray =
       isInlinedQrl &&
       unwrapExpression(getArgumentExpression(node.arguments?.[2]))?.type === 'ArrayExpression';
@@ -848,7 +849,7 @@ class CaptureAnalyzer {
   private linkComponentSegment(segmentId: string, functionRange: SourceRange) {
     const component = this.ctx.manifest.components.find(
       (candidate) =>
-        candidate.qrlBoundary === 'component$' &&
+        candidate.qrlBoundary === QwikSymbol.Component &&
         candidate.segmentId === null &&
         rangesEqual(candidate.functionRange, functionRange)
     );

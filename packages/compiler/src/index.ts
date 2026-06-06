@@ -47,7 +47,7 @@ async function transformModule(
     manifest: {
       components: [],
       segments: [],
-      importRanges: [],
+      imports: [],
       diagnostics: [],
     },
     outputModules: null,

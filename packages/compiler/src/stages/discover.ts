@@ -8,8 +8,21 @@ import {
   isJsxNode,
   unwrapExpression,
 } from '../ast-utils';
-import type { ExportDefaultDeclaration, ExportNamedDeclaration } from 'oxc-parser';
-import type { AstFunction, AstJsxNode, CompilerContext, ComponentRecord } from '../types';
+import type {
+  ExportDefaultDeclaration,
+  ExportNamedDeclaration,
+  ImportDeclaration,
+  ImportDeclarationSpecifier,
+} from 'oxc-parser';
+import type {
+  AstFunction,
+  AstJsxNode,
+  CompilerContext,
+  ComponentRecord,
+  ImportRecord,
+  ImportSpecifierRecord,
+} from '../types';
+import { QwikSymbol } from '../words';
 
 interface ComponentFunctionInfo {
   fn: AstFunction;
@@ -28,12 +41,50 @@ export function collectModuleFacts(ctx: CompilerContext) {
   }
   for (const statement of body) {
     if (statement.type === 'ImportDeclaration') {
-      const range = getRange(statement);
-      if (range) {
-        ctx.manifest.importRanges.push(range);
+      const record = createImportRecord(statement);
+      if (record) {
+        ctx.manifest.imports.push(record);
       }
     }
   }
+}
+
+function createImportRecord(node: ImportDeclaration): ImportRecord | null {
+  if (node.attributes.length > 0 || node.phase !== null) {
+    return null;
+  }
+  return {
+    source: String(node.source.value),
+    typeOnly: node.importKind === 'type',
+    specifiers: node.specifiers.flatMap(createImportSpecifierRecord),
+  };
+}
+
+function createImportSpecifierRecord(
+  specifier: ImportDeclarationSpecifier
+): ImportSpecifierRecord[] {
+  const localName = getIdentifierName(specifier.local);
+  if (!localName) {
+    return [];
+  }
+  if (specifier.type === 'ImportDefaultSpecifier') {
+    return [{ kind: 'default', localName }];
+  }
+  if (specifier.type === 'ImportNamespaceSpecifier') {
+    return [{ kind: 'namespace', localName }];
+  }
+  const importedName = getIdentifierName(specifier.imported);
+  if (!importedName) {
+    return [];
+  }
+  return [
+    {
+      kind: 'named',
+      importedName,
+      localName,
+      typeOnly: specifier.importKind === 'type',
+    },
+  ];
 }
 
 export function discoverExportedComponents(ctx: CompilerContext) {
@@ -137,12 +188,12 @@ function getComponentFunction(node: unknown): ComponentFunctionInfo | null {
   if (isFunctionLike(unwrapped)) {
     return unwrapped ? { fn: unwrapped, qrlBoundary: null } : null;
   }
-  if (!isCallExpression(unwrapped) || !isIdentifierNamed(unwrapped.callee, 'component$')) {
+  if (!isCallExpression(unwrapped) || !isIdentifierNamed(unwrapped.callee, QwikSymbol.Component)) {
     return null;
   }
   const [firstArg] = unwrapped.arguments ?? [];
   const fn = unwrapExpression(firstArg);
-  return isFunctionLike(fn) && fn ? { fn, qrlBoundary: 'component$' } : null;
+  return isFunctionLike(fn) && fn ? { fn, qrlBoundary: QwikSymbol.Component } : null;
 }
 
 function getComponentBody(fn: AstFunction): ComponentBodyInfo {

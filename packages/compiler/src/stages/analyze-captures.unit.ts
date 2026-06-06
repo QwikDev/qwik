@@ -31,7 +31,7 @@ function analyzeInput(input: TestInput): CompilerContext {
     manifest: {
       components: [],
       segments: [],
-      importRanges: [],
+      imports: [],
       diagnostics: [],
     },
     outputModules: null,

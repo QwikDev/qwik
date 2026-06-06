@@ -1,27 +1,23 @@
-import type { ComponentRecord, QrlSegmentOutput, RenderNode } from '../types';
-import { indent, serializeAttrValue } from './emit-utils';
+import type { ComponentRecord, ImportRecord, QrlSegmentOutput, RenderNode } from '../types';
+import { QwikSymbol } from '../words';
+import { emitImports, indent, serializeAttrValue } from './emit-utils';
 
 export function emitCsrModule(
   components: ComponentRecord[],
-  qrlSegments: Map<string, QrlSegmentOutput>
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  imports: ImportRecord[]
 ) {
-  const prelude = emitPrelude(qrlSegments);
+  const prelude = emitPrelude(imports);
   return `${prelude}${components
     .map((component) => emitCsrComponent(component, qrlSegments))
     .join('\n')}\n`;
 }
 
-function emitPrelude(qrlSegments: Map<string, QrlSegmentOutput>) {
-  if (qrlSegments.size === 0) {
+function emitPrelude(imports: ImportRecord[]) {
+  if (imports.length === 0) {
     return '';
   }
-  const imports = ['import { setEvent } from "@qwik.dev/core";'];
-  for (const qrlSegment of qrlSegments.values()) {
-    imports.push(
-      `import { ${qrlSegment.symbolName} } from ${JSON.stringify(qrlSegment.importPath)};`
-    );
-  }
-  return `${imports.join('\n')}\n\n`;
+  return `${emitImports(imports).join('\n')}\n\n`;
 }
 
 function emitCsrComponent(component: ComponentRecord, qrlSegments: Map<string, QrlSegmentOutput>) {
@@ -72,7 +68,11 @@ class DomEmitter {
         if (prop.qrlSegmentId) {
           const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
           if (qrlSegment) {
-            this.line(`setEvent(${id}, ${JSON.stringify(prop.name)}, ${qrlSegment.symbolName});`);
+            this.line(
+              `${QwikSymbol.SetEvent}(${id}, ${JSON.stringify(prop.name)}, ${
+                qrlSegment.symbolName
+              });`
+            );
           }
           continue;
         }

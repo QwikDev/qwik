@@ -1,237 +1,175 @@
-# Qwik v2 — AI Agent Instructions
+# Qwik v2 AI Agent Rules
 
-> Canonical instruction file for AI coding agents working on the Qwik v2 monorepo.
-> For detailed contributor setup, see [CONTRIBUTING.md](./CONTRIBUTING.md).
-> Qwik core package guidance is available as the `qwik-core-development` Ruler skill.
+> Canonical source for repo-wide AI coding agent rules. For contributor setup, see
+> [CONTRIBUTING.md](./CONTRIBUTING.md). For package-specific workflows, load the relevant
+> `.ruler/skills/*/SKILL.md` file.
 
-## Overview
+## Source Of Truth
 
-Qwik is a **resumable** web framework — it serializes application state and framework state into HTML during SSR, then resumes on the client without re-executing component code. This enables it to stream javascript (a.k.a javascript streaming). There’s no waiting for the entire code to be downloaded (a.k.a hydration). The developer can write code very similar to other reactive frameworks; the app is automatically instant, regardless the amount of javascript.
+- Shared AI guidance lives in `.ruler/`; generated assistant outputs are local artifacts.
+- Do not hand-edit or commit generated outputs such as root `AGENTS.md`, root `CLAUDE.md`,
+  `.codex/`, `.claude/`, `.cursor/`, or generated skill directories.
+- To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or
+  `.ruler/rules/**` / `.ruler/skills/**`, then regenerate with Ruler when needed.
+- Ruler outputs Codex repo rules to `AGENTS.md` and Codex skills to `.codex/skills/`; this repo
+  does not need a separate Codex `.rules` conversion file.
 
-**Qwik v2** is a major rewrite featuring a new VNode-based runtime, rewritten reactive primitives, a new serialization mechanism, and new package names under `@qwik.dev/*`.
+## Project Snapshot
 
-**Key concepts:** Resumability, QRLs (lazy-loading primitives), the `$` suffix transform, fine-grained signals, VNodes, the cursor system, and the Rust-based optimizer.
+Qwik is a resumable web framework. SSR serializes application and framework state into HTML, and
+the client resumes without re-running component code. Qwik v2 is a rewrite with VNode-based
+runtime work, rewritten reactive primitives, a new serialization mechanism, and package names under
+`@qwik.dev/*`.
 
-## Monorepo Layout
+Key concepts: resumability, QRLs, `$`-suffixed optimizer boundaries, fine-grained signals, VNodes,
+the cursor system, and the Rust optimizer.
 
-| Package              | Path                          | Description                                    |
-| -------------------- | ----------------------------- | ---------------------------------------------- |
-| `@qwik.dev/core`     | `packages/qwik`               | Core framework (runtime + optimizer)           |
-| `@qwik.dev/router`   | `packages/qwik-router`        | Meta-framework (routing, middleware, adapters) |
-| `@qwik.dev/react`    | `packages/qwik-react`         | React integration layer                        |
-| `@qwik.dev/dom`      | `packages/qwik-dom`           | Server-side DOM implementation                 |
-| `eslint-plugin-qwik` | `packages/eslint-plugin-qwik` | ESLint rules for Qwik                          |
-| `create-qwik`        | `packages/create-qwik`        | Project scaffolding CLI                        |
-| `qwik-docs`          | `packages/docs`               | Documentation site (private)                   |
-| `insights`           | `packages/insights`           | Analytics dashboard (private)                  |
+## Monorepo Map
 
-> **Note:** v2 packages use `@qwik.dev/*` scope (v1 used `@builder.io/*`). The pnpm-workspace.yaml has compatibility overrides for the old names.
+| Package | Path | Notes |
+| --- | --- | --- |
+| `@qwik.dev/core` | `packages/qwik` | Core runtime, SSR, optimizer-facing code |
+| `@qwik.dev/router` | `packages/qwik-router` | Routing, middleware, adapters, SSG |
+| `@qwik.dev/react` | `packages/qwik-react` | React integration |
+| `@qwik.dev/dom` | `packages/qwik-dom` | Server-side DOM implementation |
+| `@qwik.dev/optimizer` | `packages/optimizer` | Rust optimizer, WASM, NAPI bindings |
+| `eslint-plugin-qwik` | `packages/eslint-plugin-qwik` | ESLint rules |
+| `create-qwik` | `packages/create-qwik` | Project scaffolding CLI |
+| `qwik-docs` | `packages/docs` | Docs site, private package |
+| `insights` | `packages/insights` | Analytics dashboard, private package |
 
-## Setup
+Use v2 package names (`@qwik.dev/core`, `@qwik.dev/router`, etc.). Do not introduce v1
+`@builder.io/qwik` or `@builder.io/qwik-city` imports except when working on explicit
+compatibility override code.
 
-**Requirements:** Node ≥22.18.0, pnpm ≥10.14.0
+## Environment
+
+- Node: `>=22.18.0`
+- pnpm: `>=10.14.0`
+- Package manager: pnpm only
+
+Install dependencies with:
 
 ```bash
-pnpm i
+pnpm install
 ```
 
-Use `pnpm build.full` only if you modified Rust/optimizer code.
+## Command Rules
 
-Prefer `pnpm build build.core.dev` to build qwik and qwik-router faster.
+- Prefer focused commands over repo-wide commands.
+- Unit/spec tests: use `pnpm vitest run <path>`.
+- Never use `pnpm test.unit` for agent verification in this repo; it is too broad.
+- Do not run full `pnpm test` unless the user explicitly asks.
+- Use `pnpm build.core.dev` for fast Qwik + Router rebuilds during most framework work.
+- Use `pnpm build.local` for a fresh full local build without rebuilding Rust.
+- Use `pnpm build.full` only when Rust/optimizer changes require it.
+- Run `pnpm api.update` after public API changes.
+- Run `pnpm lint` only when the change scope justifies broad linting; otherwise prefer focused
+  tests and formatting checks.
 
-## Key Commands
-
-- **Install** — `pnpm install`
-- **Build (no Rust)** — `pnpm build.local` — for a fresh start
-- **Build (with Rust)** — `pnpm build.full` — only for optimizer changes
-- **Build core** — `pnpm build.core` — fast, just Qwik + Router + types
-- **Build core only** — `pnpm build.core.dev` — very fast iterative rebuild
-- **Watch mode** — `pnpm build.watch` — rebuilds on change
-- **Unit tests** — `pnpm vitest run` — Vitest, runs `packages/**/*.unit.{ts,tsx}` and `*.spec.{ts,tsx}`, or specify a single file. Add `-u` to update snapshots. **NEVER use `pnpm test.unit`**
-- **E2E tests (Chromium)** — `pnpm test.e2e.chromium` — Playwright, always run the dev rebuild first!
-- **E2E tests (Router)** — `pnpm test.e2e.router` — Router-specific E2E, always run the dev rebuild first!
-- **Lint** — `pnpm lint` — ESLint + Prettier + Rust lint
-- **Lint fix** — `pnpm lint.fix` — auto-fix ESLint issues
-- **Format** — `pnpm fmt` — Prettier + syncpack
-- **Type check** — `pnpm tsc.check` — full TypeScript check
-- **Update API docs** — `pnpm api.update` — regenerates public API `.md` files
-- **Create changeset** — `pnpm change` — interactive, creates `.changeset/*.md`
-- **Dev server** — `pnpm serve` — port 3300
-- **Docs dev** — `pnpm docs.dev` — documentation site
-
-### Running a Single Test File
+Common focused commands:
 
 ```bash
-# Unit/spec test — single file
+pnpm build.core.dev
 pnpm vitest run packages/qwik/src/core/tests/use-task.spec.tsx
-
-# E2E test — single file
 pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
+pnpm tsc.check
+pnpm api.update
 ```
 
-## Architecture Essentials
+For Qwik e2e tests, use `--browser=chromium` with `e2e/qwik-e2e/playwright.config.ts`; do not use
+`--project chromium` with that config.
 
-### Resumability
+## Source Rules
 
-Qwik serializes the full application state into HTML at SSR time. On the client, it **resumes** from that serialized state instead of re-executing components (no hydration). In v2, serialization is moved to the end of HTML for faster content delivery, and deep objects are only flattened when circular references are detected.
+Dedicated source rules live under `.ruler/rules/` and are part of the always-on guidance generated
+by Ruler.
 
-### VNode System (v2)
+- `test-driven-development`: write or update the closest focused test before behavior changes and
+  bug fixes, then make the implementation pass it.
+- `code-quality`: use understandable names, early returns over avoidable nesting, and focused
+  modular helpers.
+- `guidance-source-of-truth`: keep `.ruler` as the canonical guidance source, separate rules from
+  skills, and rely on Ruler for Codex outputs.
+- `generated-output-boundaries`: edit owning sources instead of generated artifacts and regenerate
+  intentionally.
 
-v2 replaces v1's comment-node approach with a **VNode** tree. VNodes are lazy-materialized from the DOM plus `<script type="qwik/vnode">` data. VNodes are represented as arrays for memory efficiency. `VirtualVNode` represents components with serializable properties.
+## Engineering Rules
 
-- Client-side rendering & diffing: `packages/qwik/src/core/client/`
-- VNode implementation: `packages/qwik/src/core/shared/vnode/`
+Recent Qwik v2 work by core maintainers favors small, behavior-shaped changes with regression proof.
+Follow that bias:
 
-### Cursor System (v2)
+- Start from the invariant that is broken, then find the producer and consumer that own it.
+- Prefer local semantic helpers over broad rewrites when they make state, ordering, or ownership
+  clearer.
+- When changing a serialized, streamed, optimizer, loader, or hydration protocol, update both the
+  writer and reader in the same change and add a round-trip or regression test.
+- Preserve compatibility intentionally. If an old API path remains supported, cover it with a test
+  and make the new path explicit.
+- Add tests beside the behavior that changed: unit/spec for pure logic, e2e only for browser,
+  streaming, navigation, or integration behavior.
+- Do not leave debug logging, temporary names, "fixup" code, or unexplained broad fallbacks in the
+  final diff.
 
-A new DOM manipulation architecture that handles efficient updates.
+## Guidance Freshness
 
-- Implementation: `packages/qwik/src/core/shared/cursor/`
+- If a skill or reference you used is stale, incomplete, or contradicted by current source, update
+  the `.ruler` source guidance before finishing the task unless the user explicitly restricted the
+  scope.
+- Keep new durable lessons in the most specific skill or reference that future agents are likely to
+  load. Do not add package-specific details to these always-on rules unless they affect most tasks.
+- When updating guidance, load the `qwik-guidance-maintenance` skill.
 
-### QRL & the `$` Transform
+## Generated Files And Release Gates
 
-A **QRL** (Qwik Resource Locator) is a lazy reference to a closure. Any function ending with `$` (e.g., `component$`, `useTask$`, `$()`) creates a QRL boundary — the optimizer extracts these into separate chunks for lazy loading.
-
-- QRL implementation: `packages/qwik/src/core/shared/qrl/`
-- The Rust optimizer rewrites `$`-suffixed calls at build time
-
-### Reactive Primitives (v2)
-
-Rewritten fine-grained reactivity system. Signals track subscriptions and update only the DOM nodes or tasks that read them — no virtual DOM diffing.
-
-- Implementation: `packages/qwik/src/core/reactive-primitives/`
-
-### Optimizer (Rust)
-
-The optimizer is a Rust-based compiler plugin (SWC transform) that:
-
-1. Extracts `$`-suffixed closures into separate entry points
-2. Captures lexical scope for serialization
-3. Generates manifest metadata for prefetching
-
-- Rust source: `packages/optimizer/core/`
-- WASM build: `packages/optimizer/wasm/`
-- Native bindings: `packages/optimizer/napi/`
-- Vite/Rollup tooling: `packages/qwik-vite/src/`
-
-### Qwik Router (Meta-framework)
-
-Qwik Router (formerly Qwik City in v1) provides file-based routing, data loaders (`routeLoader$`), actions (`routeAction$`), middleware, and server adapters.
-
-- Runtime: `packages/qwik-router/src/runtime/`
-- Build tooling: `packages/qwik-router/src/buildtime/`
-- Adapters: `packages/qwik-router/src/adapters/`
-
-### Core Source Layout
-
-```
-packages/qwik/src/core/
-├── client/              # Client-side rendering, vnode-diff
-├── reactive-primitives/ # Signal implementation (v2 rewrite)
-├── shared/              # Shared code (cursor, serdes, jsx, vnode, qrl)
-├── ssr/                 # Server-side rendering
-├── tests/               # Feature tests for v2
-├── use/                 # Hooks (useSignal, useStore, useTask, etc.)
-└── preloader/           # Preloader utilities
-```
+- Follow the `generated-output-boundaries` rule before editing or relying on generated artifacts.
+- If you change public API, run `pnpm api.update`.
+- If you touch Rust optimizer code under `packages/optimizer/core/`, run the Rust/optimizer
+  verification from the optimizer skill and use `pnpm build.full` when a full JS/WASM rebuild is
+  required.
+- If a change affects published packages, create a changeset with `pnpm change` unless the user or
+  maintainer explicitly says the change is non-release-affecting.
+- Base branch and release branch for v2 PRs: `build/v2`.
 
 ## Code Style
 
-**Config:** Prettier (`.prettierrc.json`) + ESLint 9 flat config (`eslint.config.mjs`)
+Prettier and ESLint define style. Keep semicolons, single quotes, two-space indentation, trailing
+commas where configured, and always use braces for control flow.
 
-| Rule           | Setting                    |
-| -------------- | -------------------------- |
-| Semi           | `true`                     |
-| Quotes         | Single                     |
-| Print width    | 100                        |
-| Tabs           | Spaces (2)                 |
-| Trailing comma | ES5                        |
-| `no-console`   | Error (warn/error allowed) |
-| `curly`        | Always required            |
+Naming conventions:
 
-### Naming Conventions
+| Pattern | Usage |
+| --- | --- |
+| `use*` | Hooks called in component/task scope |
+| `*$` | QRL boundary extracted by the optimizer |
+| `create*` | Factory functions |
+| `*.unit.ts(x)` | Vitest unit files |
+| `*.spec.ts(x)` | Vitest spec files |
+| `*.e2e.ts` | Playwright e2e files |
 
-| Pattern        | Usage                                             | Example                             |
-| -------------- | ------------------------------------------------- | ----------------------------------- |
-| `use*`         | Hooks (must be called in component or task scope) | `useSignal`, `useStore`, `useTask$` |
-| `*$`           | QRL boundary — optimizer extracts the closure     | `component$`, `routeLoader$`        |
-| `create*`      | Factory functions                                 | `createContextId`                   |
-| `*.unit.ts(x)` | Unit test files (Vitest)                          | `qrl.unit.ts`                       |
-| `*.spec.ts(x)` | Spec test files (Vitest)                          | `use-task.spec.tsx`                 |
-| `*.e2e.ts`     | E2E test files (Playwright)                       | `e2e.events.e2e.ts`                 |
+## Skill Selection
 
-## Testing
+Load the relevant skill before non-trivial work in that area:
 
-### Unit & Spec Tests (Vitest)
+| Skill | Use when |
+| --- | --- |
+| `qwik-core-development` | Editing/reviewing `packages/qwik/**` core runtime code |
+| `qwik-router-development` | Editing/reviewing router runtime, buildtime, middleware, adapters, or SSG |
+| `qwik-optimizer-development` | Editing/reviewing Rust optimizer, WASM, NAPI, or optimizer-facing behavior |
+| `qwik-e2e-verification` | Creating, debugging, or running Playwright e2e suites |
+| `qwik-docs-development` | Writing/editing docs content, docs site routes, or docs LLM outputs |
+| `qwik-guidance-maintenance` | Editing `.ruler/**`, generated-output guidance, or stale skill/reference content |
 
-- File patterns: `*.unit.ts` / `*.unit.tsx` / `*.spec.ts` / `*.spec.tsx`
-- Config: `vitest.config.ts` (root) — uses `qwikVite` plugin
-- Run all: `pnpm test.unit`
-- Run one: `pnpm vitest run <path>`
-- Setup: `vitest-setup.ts` configures qTest globals and test platform
+If no skill fits, stay with these repo-wide rules and inspect local source before changing code.
 
-### E2E Tests (Playwright)
+Keep the `qwik-` prefix on committed source skill names. Ruler copies these skills into
+agent-native skill directories where they may coexist with user or plugin skills, so the prefix keeps
+the skill list unambiguous outside the repo-local `.ruler` tree.
 
-- File pattern: `*.e2e.ts` in `e2e/qwik-e2e/tests/`
-- Config: `e2e/qwik-e2e/playwright.config.ts`
-- Test fixture apps: `e2e/qwik-e2e/apps/`
-- Dev server: `e2e/qwik-e2e/dev-server.ts`
-- Run: `pnpm test.e2e.chromium`
-- Run one: `pnpm playwright test <path> --browser=chromium --config e2e/qwik-e2e/playwright.config.ts`
-- Note: this config uses browser selection, not named Playwright projects, so `--project chromium` is incorrect here
-- Browsers: Chromium and WebKit enabled (Firefox disabled)
-- Additional E2E suites: `e2e/adapters-e2e/`, `e2e/qwik-react-e2e/`
+## Boundaries
 
-### Rust Tests
-
-- Run: `pnpm test.rust` (or `make test`)
-- Update snapshots: `pnpm test.rust.update` (or `make test-update`)
-- Benchmark: `pnpm test.rust.bench`
-
-## Git Workflow
-
-### Commit Convention
-
-```
-type(scope): description
-```
-
-Types: `feat`, `fix`, `docs`, `lint`, `refactor`, `perf`, `test`, `chore`
-
-- Use imperative mood ("add feature" not "added feature")
-- No trailing period
-- Scope is optional but encouraged (e.g., `fix(router): ...`)
-
-### Changesets
-
-If your change affects published packages, create a changeset:
-
-```bash
-pnpm change
-```
-
-This creates a `.changeset/*.md` file describing the change. The core packages (`@qwik.dev/core`, `@qwik.dev/router`, `eslint-plugin-qwik`, `create-qwik`, `@qwik.dev/react`) are **fixed-versioned** — they always release together.
-
-### Branch Strategy
-
-- **Base branch for PRs:** `build/v2`
-- **Release base branch:** `build/v2` (used by changesets)
-- Trunk-based development
-
-### Before Pushing a PR
-
-1. `pnpm build.core.dev`
-2. `pnpm test.unit` (run relevant tests)
-3. `pnpm lint`
-4. `pnpm api.update` (if you changed public API)
-5. `pnpm change` (to document patches or new features)
-
-## Boundaries — What NOT to Do
-
-1. **Don't run the full test suite** — Use `pnpm test.unit` or target specific files. The full `pnpm test` runs build + all tests and takes a very long time.
-2. **Don't forget `pnpm api.update`** — If you change any public API, CI will fail without regenerated API docs.
-3. **Don't modify Rust code without rebuilding** — After touching `packages/optimizer/core/`, run `pnpm build.full` (requires Rust toolchain + wasm-pack).
-4. **Don't skip changesets for user-facing changes** — CI checks for changesets on PRs that touch published packages.
-5. **Don't commit `.only` tests** — ESLint rule `no-only-tests` blocks this.
-6. **Don't edit generated files** — Files in `dist/`, `lib/`, and API docs are generated. Edit the source instead.
-7. **Don't use v1 package names** — Use `@qwik.dev/core` and `@qwik.dev/router`, not `@builder.io/qwik` and `@builder.io/qwik-city`.
+- Preserve user work and unrelated changes. Do not reset or revert unrelated files.
+- Keep edits scoped to the package, generated-file boundary, and verification surface implied by the
+  task.
+- Do not commit `.only` tests.
+- Do not skip tests for behavior changes; use the closest focused test first.

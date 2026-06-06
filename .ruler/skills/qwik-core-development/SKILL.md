@@ -11,8 +11,10 @@ Use this skill for `packages/qwik/**` work. Keep the normal repo-wide instructio
 
 1. Identify the touched subsystem before editing: reactive primitives, VNode/client diffing, cursor, QRL/serialization, SSR, hooks, or tests.
 2. Read the smallest relevant source and tests before making changes.
-3. After implementation changes, immediately run the closest focused Vitest file with `pnpm vitest run <path>`.
-4. If touching Rust optimizer code, use the repo-wide optimizer build/test guidance instead of treating this as a TypeScript-only change.
+3. Find the invariant that must stay true across SSR, resume, client render, and serialization when
+   the touched code crosses those boundaries.
+4. After implementation changes, immediately run the closest focused Vitest file with `pnpm vitest run <path>`. Do not use `pnpm test.unit`.
+5. If touching Rust optimizer code, load `qwik-optimizer-development` instead of treating the change as TypeScript-only.
 
 ## When to Load Detailed Notes
 
@@ -29,6 +31,14 @@ Do not load the reference for simple docs, package metadata, formatting, or unre
 ## Core Reminders
 
 - Prefer existing Qwik runtime patterns over new abstractions.
+- Keep state ownership explicit. For serialized or streamed data, update emit and consume paths
+  together and add a round-trip or regression test.
+- Preserve compatibility deliberately. If deprecated input remains accepted, test both deprecated and
+  current behavior.
 - Use `$`-suffixed functions and `$()` in tests when a QRL boundary is expected.
 - Avoid manual QRL construction unless nearby code already does it for the same reason.
-- Keep tests focused; use a single relevant unit/spec file when possible.
+- Keep tests focused and close to the behavior that changed; add e2e coverage only when browser,
+  streaming, navigation, or integration timing is the behavior under test.
+- If the change affects public API, run `pnpm api.update` after the focused tests pass.
+- If this skill or `references/core-notes.md` is stale after your source inspection, update it before
+  finishing or record why guidance edits were out of scope.

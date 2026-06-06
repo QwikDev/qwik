@@ -145,7 +145,8 @@ jobs:
           path: packages/qwik/dist
           # Note that this includes the package.json of qwik
           # qwik-vite source is bundled into packages/qwik/dist/optimizer.mjs by scripts/submodule-optimizer.ts, so its sources must invalidate this cache.
-          key: ${{ hashfiles('.github/workflows/ci.yml', 'pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', 'packages/qwik/**/*', 'packages/qwik-vite/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
+          # CI-only helpers should not invalidate compiled package output caches.
+          key: ${{ hashfiles('pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', '!scripts/ci-restore-artifacts.ts', 'packages/qwik/**/*', 'packages/qwik-vite/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
       - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
       - name: 'check cache: rust'
         id: cache-rust
@@ -153,7 +154,7 @@ jobs:
         with:
           lookup-only: true
           path: packages/optimizer/
-          key: ${{ hashfiles('.github/workflows/ci.yml', 'Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs') }}
+          key: ${{ hashfiles('Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs') }}
       - run: 'echo ${{ steps.cache-rust.outputs.cache-primary-key }} > rust-key.txt'
       - name: 'check cache: others'
         id: cache-others
@@ -197,7 +198,7 @@ jobs:
         with:
           lookup-only: true
           path: bench-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'packages/**/*.bench.*', 'scripts/validate-bench*', 'packages/docs/**/*') }}
+          key: ${{ hashfiles('others-key.txt', 'packages/**/*.bench.*', 'scripts/validate-bench*') }}
       - name: 'check cache: e2e tests'
         id: cache-e2e
         uses: actions/cache/restore@v5

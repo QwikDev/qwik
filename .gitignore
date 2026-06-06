@@ -59,3 +59,9 @@ sandbox
 packages/coverage/*
 visualizer.html
 **/lib-types/**/*
+
+
+# START Ruler Generated Files
+/.codex/config.toml
+/.codex/config.toml.bak
+# END Ruler Generated Files

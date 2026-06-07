@@ -51,6 +51,8 @@ const REQUEST_ROUTE_LOADER_STATE = '@routeLoaderState';
 const REQUEST_LOADER_PATHS_STORE = '@loaderPathsStore';
 const REQUEST_ROUTE_LOADERS = '@routeLoaders';
 const REQUEST_ROUTE_LOADER_PROMISES = '@routeLoaderPromises';
+const REQUEST_ROUTE_LOADER_EVENTS = '@routeLoaderEvents';
+const REQUEST_ROUTE_LOADER_ROOT_EVENT = '@routeLoaderRootEvent';
 const ROUTE_LOADER_VALUE_PREFIX = '__qwik_route_loader_value__';
 
 /** Header name sent by client to tell the server the actual page URL for loader requests. */
@@ -204,8 +206,7 @@ export const fetchRouteLoaderData = async (
   const url = `${pathBase}${getLoaderName(loaderId, manifestHash)}${search}`;
 
   const headers: Record<string, string> = {};
-  if (pageUrl && pageUrl.pathname !== pathBase) {
-    // TODO disable when nocompat
+  if (pageUrl && pageUrl.pathname !== pathBase && !globalThis.__STRICT_LOADERS__) {
     headers[FULLPATH_HEADER] = pageUrl.pathname;
   }
 
@@ -677,8 +678,66 @@ export const loadRouteLoaderByQrl = (
   return promise;
 };
 
+/** @internal */
+export const getLoaderRequestEvent = (
+  loader: LoaderInternal,
+  requestEv: RequestEvent
+): RequestEvent => {
+  let rootRequestEv: RequestEvent = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_ROOT_EVENT);
+  if (!rootRequestEv) {
+    // Store the original request for child loaders
+    rootRequestEv = requestEv;
+    requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_ROOT_EVENT, rootRequestEv);
+  }
+
+  const url = new URL(rootRequestEv.url);
+  const pathname = globalThis.__STRICT_LOADERS__
+    ? getRouteLoaderCtx(rootRequestEv).loaderPaths[loader.__id] || rootRequestEv.url.pathname
+    : rootRequestEv.url.pathname;
+  const filteredSearch = loader.__search
+    ? filterSearchParams(url.searchParams, loader.__search)
+    : rootRequestEv.url.search;
+  if (pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search) {
+    return rootRequestEv;
+  }
+
+  let events: Map<string, RequestEvent> = rootRequestEv.sharedMap.get(REQUEST_ROUTE_LOADER_EVENTS);
+  if (!events) {
+    events = new Map();
+    rootRequestEv.sharedMap.set(REQUEST_ROUTE_LOADER_EVENTS, events);
+  }
+
+  const eventKey = `${pathname}\n${filteredSearch}`;
+  let loaderRequestEv = events.get(eventKey);
+  if (!loaderRequestEv) {
+    url.pathname = pathname;
+    url.search = filteredSearch;
+    loaderRequestEv = Object.create(rootRequestEv, {
+      pathname: {
+        get: () => url.pathname,
+        enumerable: true,
+      },
+      query: {
+        get: () => url.searchParams,
+        enumerable: true,
+      },
+      url: {
+        value: url,
+        enumerable: true,
+      },
+    }) as RequestEvent;
+    events.set(eventKey, loaderRequestEv);
+  }
+  return loaderRequestEv;
+};
+
 export const loadRouteLoader = (loader: LoaderInternal, requestEv: RequestEvent) =>
-  loadRouteLoaderByQrl(loader.__id, loader.__qrl, loader.__validators, requestEv);
+  loadRouteLoaderByQrl(
+    loader.__id,
+    loader.__qrl,
+    loader.__validators,
+    getLoaderRequestEvent(loader, requestEv)
+  );
 
 /** Run a loader and wrap the result in a LoaderResponse envelope. Catches redirects/errors. */
 export const getRouteLoaderResponse = async (
@@ -754,8 +813,9 @@ export const routeLoaderQrl = ((
  * ## Options
  *
  * - `search: string[]`: Allowlist of URL search params the loader depends on. Only listed params are
- *   sent in the request and changes to other params are ignored. `search: []` means no search
- *   params are sent and only route path changes trigger a re-fetch.
+ *   sent in the request and changes to other params are ignored. During SSR and loader JSON
+ *   requests, the loader's request event is filtered to those params too. `search: []` means no
+ *   search params are sent and only route path changes trigger a re-fetch.
  * - `allowStale: false`: Clears the previous value when re-fetching, so components see a loading
  *   state instead of stale data during navigation. Useful when old data would be confusing.
  * - `eTag`: Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function.

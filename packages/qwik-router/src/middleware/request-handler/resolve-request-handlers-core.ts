@@ -119,7 +119,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
 
     if (isPageRoute) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
-      requestHandlers.push(loaderHandler(routeLoaders));
+      requestHandlers.push(loaderHandler(routeLoaders, route.$loaderPaths$));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
       if (method === 'POST' || method === 'GET') {
@@ -323,14 +323,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         return;
       }
       if (routeLoaders.length > 0) {
-        // Set up the RouteLoaderCtx with loader paths from the route
-        const routeLoaderCtx = getRouteLoaderCtx(requestEv);
-        if (route.$loaderPaths$) {
-          Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
-        }
-
-        // Store loader internals so SSG can check __expires
-        setRouteLoaders(requestEv, routeLoaders);
+        setLoaderData(requestEv, routeLoaders, route);
 
         // Run loaders directly and store raw values.
         // Errors/redirects propagate so middleware can catch them (e.g. plugin@errors).
@@ -342,6 +335,25 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         );
       }
     };
+  }
+
+  function setLoaderData(
+    requestEv: RequestEventInternal,
+    routeLoaders: LoaderInternal[],
+    route: LoadedRoute
+  ) {
+    if (routeLoaders.length === 0) {
+      return;
+    }
+
+    // Set up the RouteLoaderCtx with loader paths from the route.
+    const routeLoaderCtx = getRouteLoaderCtx(requestEv);
+    if (route.$loaderPaths$) {
+      Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
+    }
+
+    // Store loader internals so SSG can check __expires.
+    setRouteLoaders(requestEv, routeLoaders);
   }
 
   function eTagMiddleware(route: LoadedRoute): RequestHandler {
@@ -413,8 +425,12 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       if (deps.MAX_CACHE_SIZE <= 0) {
         return;
       }
-      const defaultKey = deps.defaultSsrCacheKey(status, normalizedETag, requestEv.url.pathname);
-      const cacheKey = deps.resolveCacheKey(config.cacheKey, defaultKey, requestEv, normalizedETag);
+      const cacheKey = deps.resolveCacheKey(
+        config.cacheKey,
+        deps.defaultSsrCacheKey,
+        requestEv,
+        normalizedETag
+      );
       if (!cacheKey) {
         return;
       }

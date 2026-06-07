@@ -179,9 +179,9 @@ Cache key function. Used by `routeConfig.cacheKey` (SSR HTML cache) and by `rout
 
 - `true`: use the surface's default key.
 
-- SSR default: `${status}|${eTag}|${pathname}` when an eTag is set, otherwise `${status}|${pathname}`. - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set, otherwise `${pathname}|${filteredSearch}|${loaderId}`. - Function: receives the request event and the normalized, unquoted eTag (or an empty string when none was provided). Return the cache key string, or `null` to skip caching for this request.
+- SSR default: `${status}|${eTag}|${pathname}` when an eTag is set, otherwise `${status}|${pathname}`. - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set, otherwise `${pathname}|${filteredSearch}|${loaderId}`. - Function: receives the request event and the normalized, unquoted eTag (or an empty string when none was provided). Return the cache key string, or `null` or `''` to skip caching for this request. Loader callbacks receive the loader-scoped request event, with `url`, `query`, and `request.url` filtered by the loader's `search` allowlist.
 
-Note: valid cacheKeys are non-empty strings
+Note: valid cacheKeys are non-empty strings.
 
 ```typescript
 export type CacheKeyFn =
@@ -2406,7 +2406,7 @@ Route loaders run on the server during SSR and return data as an `AsyncSignal`. 
 
 \#\# Options
 
-- `search: string[]`: Allowlist of URL search params the loader depends on. Only listed params are sent in the request and changes to other params are ignored. `search: []` means no search params are sent and only route path changes trigger a re-fetch. - `allowStale: false`: Clears the previous value when re-fetching, so components see a loading state instead of stale data during navigation. Useful when old data would be confusing. - `eTag`: Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function. - `expires` / `poll`: Control client-side caching and polling behavior.
+- `search: string[]`: Allowlist of URL search params the loader depends on. Only listed params are sent in the request and changes to other params are ignored. During SSR and loader JSON requests, the loader's request event is filtered to those params too. `search: []` means no search params are sent and only route path changes trigger a re-fetch. - `allowStale: false`: Clears the previous value when re-fetching, so components see a loading state instead of stale data during navigation. Useful when old data would be confusing. - `eTag`: Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function. - `expires` / `poll`: Control client-side caching and polling behavior.
 
 The `strictLoaders` Vite plugin option applies `search: []` globally for all loaders that don't specify an explicit `search` option.
 

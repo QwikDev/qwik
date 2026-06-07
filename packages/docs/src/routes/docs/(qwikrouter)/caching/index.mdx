@@ -274,6 +274,8 @@ export const useProduct = routeLoader$(
 - `eTag` (string | function): explicit validator. Set before the loader runs, so a matching `If-None-Match` short-circuits with `304` and the loader is skipped entirely.
 - `cacheKey` (`true` | function): enables an in-memory cache for the serialized JSON response. Default key: `${pathname}|${filteredSearch}|${loaderId}`, suffixed with `|${eTag}` when an explicit eTag is set.
 
+Loader `cacheKey` callbacks receive the loader-filtered request event. They can read the filtered search string from `ev.url.search`.
+
 On a cache miss the loader runs, the serialized response is stored alongside its eTag (the explicit one if provided, or an auto-hash of the serialized body), then sent. On a cache hit the stored `{ eTag, data }` pair is served directly — `If-None-Match` is checked against the stored eTag and a `304` is returned when it matches. Redirects and errors are never cached.
 
 Clear the loader cache the same way as the SSR cache:

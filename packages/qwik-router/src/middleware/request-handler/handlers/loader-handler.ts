@@ -1,15 +1,17 @@
 import { _serialize } from '@qwik.dev/core/internal';
 import {
   FULLPATH_HEADER,
-  filterSearchParams,
+  getRouteLoaderCtx,
   getRouteLoaderResponse,
   resolveRouteLoaderByHash,
+  setRouteLoaders,
 } from '../../../runtime/src/route-loaders';
 import type { LoaderInternal, RequestEvent, RequestHandler } from '../../../runtime/src/types';
 import { defaultLoaderCacheKey, getCachedLoader, resolveCacheKey, setCachedLoader } from '../etag';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from '../etag-hash';
-import { type RequestEventInternal } from '../request-event-core';
+import type { RequestEventInternal } from '../request-event-core';
 import { IsQLoader, QLoaderId } from '../request-path';
+import { createLoaderRequestEventFactory } from './loader-request-event';
 
 /**
  * Handler that executes the requested loader and returns the result as JSON. Runs AFTER
@@ -17,7 +19,10 @@ import { IsQLoader, QLoaderId } from '../request-path';
  * loader function's own redirects/errors are caught by getRouteLoaderResponse and serialized in the
  * LoaderResponse envelope ({ d, r, e }).
  */
-export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
+export function loaderHandler(
+  routeLoaders: LoaderInternal[],
+  loaderPaths?: Record<string, string>
+): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
 
@@ -37,27 +42,30 @@ export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
       return;
     }
 
+    setLoaderData(requestEv, routeLoaders, loaderPaths);
+
+    const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
+
     // Pre-loader eTag: when an explicit string/function eTag is configured, set the ETag header and
     // short-circuit with 304 if If-None-Match already matches — saves running the loader.
     const normalizedETag =
-      loader.__eTag !== undefined ? resolvePreETag(loader.__eTag, requestEv) : '';
-    if (normalizedETag && performETagMatch(requestEv, normalizedETag)) {
+      loader.__eTag !== undefined ? resolvePreETag(loader.__eTag, loaderRequestEv) : '';
+    if (normalizedETag && performETagMatch(loaderRequestEv, normalizedETag)) {
       return;
     }
 
-    // Resolve cache key (if cacheKey is configured). The eTag slot is filled with the explicit eTag
-    // when set; an auto-computed eTag from the response body never participates in the key (cache
-    // lookup runs before the loader, so the body isn't available yet).
-    const filteredSearch = loader.__search
-      ? filterSearchParams(requestEv.url.searchParams, loader.__search)
-      : requestEv.url.search;
-    const defaultKey = defaultLoaderCacheKey(
-      requestEv.url.pathname,
-      filteredSearch,
-      loader.__id,
-      normalizedETag
-    );
-    const cacheKey = resolveCacheKey(loader.__cacheKey, defaultKey, requestEv, normalizedETag);
+    let cacheKey = '';
+    if (loader.__cacheKey) {
+      // Resolve cache key (if cacheKey is configured). The eTag slot is filled with the explicit
+      // eTag when set; an auto-computed eTag from the response body never participates in the key
+      // (cache lookup runs before the loader, so the body isn't available yet).
+      cacheKey = resolveCacheKey(
+        loader.__cacheKey,
+        defaultLoaderCacheKey,
+        loaderRequestEv,
+        normalizedETag
+      );
+    }
 
     // We don't count falsy cacheKeys as valid
     if (cacheKey) {
@@ -66,18 +74,22 @@ export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
         // On hit, surface the cached eTag (auto-hashed from the original body) so a conditional
         // request can 304. The explicit-eTag path already 304'd above if applicable.
         if (!normalizedETag) {
-          if (performETagMatch(requestEv, cached.eTag)) {
+          if (performETagMatch(loaderRequestEv, cached.eTag)) {
             return;
           }
         } else {
-          setETagHeader(requestEv, cached.eTag);
+          setETagHeader(loaderRequestEv, cached.eTag);
         }
         await sendLoaderResponse(requestEv, cached.body, loader);
         return;
       }
     }
 
-    const responseData = await getRouteLoaderResponse(loader.__qrl, loader.__validators, requestEv);
+    const responseData = await getRouteLoaderResponse(
+      loader.__qrl,
+      loader.__validators,
+      loaderRequestEv
+    );
     const data = await _serialize(responseData);
 
     // Only successful data envelopes are cacheable; never cache redirects or errors.
@@ -93,12 +105,23 @@ export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
     }
 
     // If we auto-hashed, check if the request matches
-    if (!normalizedETag && finalETag && performETagMatch(requestEv, finalETag)) {
+    if (!normalizedETag && finalETag && performETagMatch(loaderRequestEv, finalETag)) {
       return;
     }
 
     await sendLoaderResponse(requestEv, data, loader);
   };
+}
+
+function setLoaderData(
+  requestEv: RequestEventInternal,
+  routeLoaders: LoaderInternal[],
+  loaderPaths: Record<string, string> | undefined
+) {
+  if (loaderPaths) {
+    Object.assign(getRouteLoaderCtx(requestEv).loaderPaths, loaderPaths);
+  }
+  setRouteLoaders(requestEv, routeLoaders);
 }
 
 /** Resolve eTag from a static string or function (before running the loader). */

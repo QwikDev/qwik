@@ -388,9 +388,11 @@ export type ContentModuleETag = string | ((props: DocumentHeadProps) => string |
  *   - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set,
  *       otherwise `${pathname}|${filteredSearch}|${loaderId}`.
  * - Function: receives the request event and the normalized, unquoted eTag (or an empty string when
- *   none was provided). Return the cache key string, or `null` to skip caching for this request.
+ *   none was provided). Return the cache key string, or `null` or `''` to skip caching for this
+ *   request. Loader callbacks receive the loader-scoped request event, with `url`, `query`, and
+ *   `request.url` filtered by the loader's `search` allowlist.
  *
- * Note: valid cacheKeys are non-empty strings
+ * Note: valid cacheKeys are non-empty strings.
  *
  * @public
  */
@@ -841,9 +843,14 @@ export type LoaderOptions = {
    * Allowlist of URL search parameter names that this loader depends on.
    *
    * When set, the loader only re-fetches when the listed search params change — other param changes
-   * are ignored. Only the listed params are sent in the loader JSON request URL.
+   * are ignored. Only the listed params are sent in the loader JSON request URL. During SSR and
+   * loader JSON requests, the loader receives a request event with `url`, `query`, and
+   * `request.url` filtered to the same params.
    *
-   * When not set, all search params are sent and any change triggers a re-fetch.
+   * When not set, the `qwikRouter()` plugin option `strictLoaders` determines the behavior. If
+   * `strictLoaders` is `true` (this is the default), no search params are sent and changes do not
+   * trigger a re-fetch. If `strictLoaders` is `false`, all search params are sent and any change
+   * triggers a re-fetch.
    */
   readonly search?: string[];
   /**

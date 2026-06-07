@@ -12,7 +12,7 @@ describe('loaderHandler', () => {
       ]),
       headers: new Headers(),
       request: new Request(`http://localhost/products/${getLoaderName('loader-id', 'manifest')}`),
-      url: new URL('http://localhost/products/'),
+      url: new URL('http://localhost/products/?q=shoes&page=2&ignored=true'),
       headersSent: false,
       exited: false,
       cacheControl: vi.fn(),
@@ -44,7 +44,7 @@ describe('loaderHandler', () => {
 
   it('passes normalized unquoted eTags to cacheKey callbacks and quotes only response headers', async () => {
     const requestEv = createRequestEv();
-    const cacheKey = vi.fn(() => `loader-cache-${Date.now()}`);
+    const cacheKey = vi.fn((_ev: any, _eTag: string) => `loader-cache-${Date.now()}`);
     const loader = {
       __id: 'loader-id',
       __qrl: {
@@ -59,8 +59,64 @@ describe('loaderHandler', () => {
 
     await loaderHandler([loader as any])(requestEv as any);
 
-    expect(cacheKey).toHaveBeenCalledWith(requestEv, 'abc');
+    const cacheKeyEv = cacheKey.mock.calls[0][0];
+    expect(cacheKeyEv.url.href).toBe(requestEv.url.href);
+    expect(cacheKey).toHaveBeenCalledWith(cacheKeyEv, 'abc');
     expect(requestEv.headers.get('ETag')).toBe('"abc"');
+    expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
+  it('passes filtered request URL to cacheKey callbacks', async () => {
+    const requestEv = createRequestEv();
+    const cacheKey = vi.fn((ev) => `key:${ev.url.search}`);
+    const loader = {
+      __id: 'loader-id',
+      __qrl: {
+        call: vi.fn(async () => 'loader-value'),
+      },
+      __validators: undefined,
+      __expires: undefined,
+      __eTag: undefined,
+      __cacheKey: cacheKey,
+      __search: ['page', 'q'],
+    };
+
+    await loaderHandler([loader as any])(requestEv as any);
+
+    const cacheKeyEv = cacheKey.mock.calls[0][0];
+    expect(cacheKeyEv).not.toBe(requestEv);
+    expect(cacheKeyEv.url.search).toBe('?page=2&q=shoes');
+    expect(cacheKeyEv.request.url).toBe(requestEv.request.url);
+    expect(cacheKey).toHaveBeenCalledWith(cacheKeyEv, '');
+    expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
+  it('runs loader functions with the filtered request URL', async () => {
+    const requestEv = createRequestEv();
+    const loader = {
+      __id: 'loader-id',
+      __qrl: {
+        call: vi.fn(async (_thisArg, ev) => ({
+          requestUrl: ev.request.url,
+          search: ev.url.search,
+          q: ev.query.get('q'),
+          ignored: ev.query.has('ignored'),
+        })),
+      },
+      __validators: undefined,
+      __expires: undefined,
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: ['q'],
+    };
+
+    await loaderHandler([loader as any])(requestEv as any);
+
+    const loaderEv = loader.__qrl.call.mock.calls[0][1];
+    expect(loaderEv.url.search).toBe('?q=shoes');
+    expect(loaderEv.query.get('q')).toBe('shoes');
+    expect(loaderEv.query.has('ignored')).toBe(false);
+    expect(loaderEv.request.url).toBe(requestEv.request.url);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
 
@@ -81,7 +137,7 @@ describe('loaderHandler', () => {
 
     await loaderHandler([loader as any])(requestEv as any);
 
-    expect(cacheKey).toHaveBeenCalledWith(requestEv, '');
+    expect(cacheKey).toHaveBeenCalledWith(expect.any(Object), '');
     expect(requestEv.headers.has('ETag')).toBe(false);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });

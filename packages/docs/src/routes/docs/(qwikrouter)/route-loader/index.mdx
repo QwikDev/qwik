@@ -147,6 +147,7 @@ A loader in `src/routes/product/[productId]/index.tsx` runs when the user naviga
 The `search` option declares which URL search parameters (not the route params) the loader actually depends on:
 
 - **What gets sent.** The loader's JSON request URL only includes the listed params, sorted into a stable order. Other params are stripped, so unrelated query strings don't bust the cache.
+- **What the loader sees.** During SSR and loader JSON requests, the loader's `url` and `query` are filtered to those same params. The original is still visible on `request.url`, but you should not use it.
 - **When it re-fetches.** The signal only re-fetches when a listed search param (or the route path) changes.
 
 ```tsx title="src/routes/products/index.tsx"
@@ -200,6 +201,8 @@ Adds an `ETag` header on the loader response and honors `If-None-Match`. Two mod
 - **`eTag: (requestEvent) => string | null`** — compute the eTag from request context (params, headers, cookies). The loader is skipped entirely on a 304. Return `null` or an empty string to disable for this request.
 
 Qwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars, then sends a strong `ETag` header. Values that normalize to an empty string are treated as "no eTag provided".
+
+When a loader `cacheKey` callback needs the loader-filtered search string, read `ev.url.search`, which always reflects the loader's `search` option.
 
 ```tsx title="src/routes/subscription/index.tsx"
 export const useSubscription = routeLoader$(

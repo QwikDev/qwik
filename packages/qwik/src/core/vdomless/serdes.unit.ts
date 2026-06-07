@@ -3,11 +3,16 @@ import { createQRL } from '../shared/qrl/qrl-class';
 import { createSerializationContext } from '../shared/serdes/serialization-context';
 import { Constants, TypeIds } from '../shared/serdes/constants';
 import { EffectKind } from './dom/effect/effect-kind.enum';
-import { type TextExpressionFn } from './dom/effect/effect';
+import { AttrSerializer, type TextExpressionFn } from './dom/effect/effect';
 import {
+  createSsrElementTarget,
+  createSsrElementTextTarget,
+  createSsrRangeTextTarget,
+  createSsrSerializedAttrEffect,
   createSsrTextExpressionEffect,
   createSsrTextNodeEffect,
   EffectTargetKind,
+  renderSsrTextNode,
 } from './dom/effect/ssr-effect';
 import { ReactiveFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
@@ -27,10 +32,7 @@ describe('vdomless serdes emit-only', () => {
 
   it('serializes a signal with an SSR text node subscriber', async () => {
     const count = createSignal(0);
-    const effect = createSsrTextNodeEffect({
-      kind: EffectTargetKind.ElementText,
-      id: 7,
-    });
+    const effect = createSsrTextNodeEffect(createSsrElementTextTarget(7));
 
     runWithCollector(effect, () => count.value);
 
@@ -58,6 +60,16 @@ describe('vdomless serdes emit-only', () => {
     expect(effectPayload[5]).toEqual([TypeIds.RootRef, 0]);
   });
 
+  it('does not serialize orphan SSR effect targets', async () => {
+    const count = createSignal(0);
+
+    expect(renderSsrTextNode(createSsrElementTextTarget(8), count)).toBe('0');
+
+    const state = await serialize();
+
+    expect(state).toEqual([]);
+  });
+
   it('serializes an SSR text expression subscriber with args and QRL captures', async () => {
     const count = createSignal(1);
     const container = createCaptureContainer({ 0: count });
@@ -69,14 +81,7 @@ describe('vdomless serdes emit-only', () => {
       '0',
       container
     );
-    const effect = createSsrTextExpressionEffect(
-      {
-        kind: EffectTargetKind.RangeText,
-        id: 3,
-      },
-      [count],
-      qrl
-    );
+    const effect = createSsrTextExpressionEffect(createSsrRangeTextTarget(3), [count], qrl);
 
     await qrl.resolve(container);
     runWithCollector(effect, () => qrl.resolved!(count));
@@ -104,6 +109,48 @@ describe('vdomless serdes emit-only', () => {
     expect(state.slice(2)).toEqual([TypeIds.Plain, 'counter.text.js', TypeIds.Plain, 'label']);
   });
 
+  it('serializes SSR class and style subscribers', async () => {
+    const classSource = createSignal('active');
+    const styleSource = createSignal('color:red');
+    const classEffect = createSsrSerializedAttrEffect(
+      createSsrElementTarget(2),
+      AttrSerializer.Class
+    );
+    const styleEffect = createSsrSerializedAttrEffect(
+      createSsrElementTarget(2),
+      AttrSerializer.Style
+    );
+
+    runWithCollector(classEffect, () => classSource.value);
+    runWithCollector(styleEffect, () => styleSource.value);
+
+    const state = await serialize(classSource, styleSource);
+    const classPayload = (state[1] as unknown[])[3] as unknown[];
+    const stylePayload = (state[3] as unknown[])[3] as unknown[];
+
+    expect(classPayload[1]).toBe(EffectKind.SerializedAttr);
+    expect(classPayload[3]).toEqual([
+      TypeIds.Plain,
+      'kind',
+      TypeIds.Plain,
+      EffectTargetKind.Element,
+      TypeIds.Plain,
+      'id',
+      TypeIds.Plain,
+      2,
+    ]);
+    expect(classPayload[7]).toBe(AttrSerializer.Class);
+    expect(stylePayload[1]).toBe(EffectKind.SerializedAttr);
+    expect((stylePayload[3] as unknown[])[3]).toBe(EffectTargetKind.Element);
+    expect((stylePayload[3] as unknown[]).slice(-4)).toEqual([
+      TypeIds.Plain,
+      'id',
+      TypeIds.Plain,
+      2,
+    ]);
+    expect(stylePayload[7]).toBe(AttrSerializer.Style);
+  });
+
   it('serializes a computed QRL with deps, cached value, and DOM subscriber', async () => {
     const count = createSignal(2);
     const container = createCaptureContainer({ 0: count });
@@ -117,10 +164,7 @@ describe('vdomless serdes emit-only', () => {
     );
     await qrl.resolve(container);
     const doubled = createComputedQrl(qrl, container);
-    const effect = createSsrTextNodeEffect({
-      kind: EffectTargetKind.ElementText,
-      id: 4,
-    });
+    const effect = createSsrTextNodeEffect(createSsrElementTextTarget(4));
 
     runWithCollector(effect, () => doubled.value);
 
@@ -138,6 +182,12 @@ describe('vdomless serdes emit-only', () => {
     expect(computedPayload[6]).toBe(TypeIds.EffectSubscription);
     expect(effectPayload[1]).toBe(EffectKind.TextNode);
     expect(effectPayload[5]).toEqual([TypeIds.RootRef, 0]);
+    expect((effectPayload[3] as unknown[]).slice(4)).toEqual([
+      TypeIds.Plain,
+      'id',
+      TypeIds.Plain,
+      4,
+    ]);
     expect(signalPayload[0]).toBe(TypeIds.Plain);
     expect(signalPayload[1]).toBe(2);
     expect(signalPayload[2]).toBe(TypeIds.RootRef);

@@ -1013,16 +1013,17 @@ function serializeTask(taskSubscription: TaskSubscription): unknown[] {
 function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {
   const effect = subscription.effect;
   const deps = serializeDeps(subscription.deps);
+  const target = effect.target;
 
   switch (effect.kind) {
     case EffectKind.TextNode:
-      return [effect.kind, effect.target, deps];
+      return [effect.kind, target, deps];
     case EffectKind.TextExpression:
-      return [effect.kind, effect.target, deps, effect.args, effect.qrl];
+      return [effect.kind, target, deps, effect.args, effect.qrl];
     case EffectKind.Attr:
-      return [effect.kind, effect.target, deps, effect.name];
+      return [effect.kind, target, deps, effect.name];
     case EffectKind.SerializedAttr:
-      return [effect.kind, effect.target, deps, effect.serializer];
+      return [effect.kind, target, deps, effect.serializer];
   }
 
   return assertNeverSsrDomEffect(effect);

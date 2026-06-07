@@ -8696,9 +8696,6 @@ packages:
     resolution: {integrity: sha512-dkEJPVvun4FryqBmZ5KhDo0K9iDXAwn08tMLDinNdRBNPcYEDiWYysLcc6k3mjTMlbP9KyylvRpd4wFtwrT9rw==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  nan@2.26.2:
-    resolution: {integrity: sha512-0tTvBTYkt3tdGw22nrAy50x7gpbGCCFH3AFcyS5WiUu7Eu4vWlri1woE6qHBSfy11vksDqkiwjOnlR7WV8G1Hw==}
-
   nano-spawn@2.1.0:
     resolution: {integrity: sha512-yTW+2okrElHiH4fsiz/+/zc0EDo9BDDoC3iKk8dpv1GeRc9nUWzUZHx6TofMWErchhUQR8hY9/Eu1Uja9x1nqA==}
     engines: {node: '>=20.17'}
@@ -10868,10 +10865,6 @@ packages:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
 
-  unix-dgram@2.0.7:
-    resolution: {integrity: sha512-pWaQorcdxEUBFIKjCqqIlQaOoNVmchyoaNAJ/1LwyyfK2XSxcBhgJNiSE8ZRhR0xkNGyk4xInt1G03QPoKXY5A==}
-    engines: {node: '>=0.10.48'}
-
   unixify@1.0.0:
     resolution: {integrity: sha512-6bc58dPYhCMHHuwxldQxO3RRNZ4eCogZ/st++0+fcC1nr0jiGUtAdBJ2qzmLQWSxbtz42pWt4QQMiZ9HvZf5cg==}
     engines: {node: '>=0.10.0'}
@@ -11521,6 +11514,9 @@ packages:
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+
+ignoredOptionalDependencies:
+  - unix-dgram
 
 snapshots:
 
@@ -18288,9 +18284,7 @@ snapshots:
     dependencies:
       lru-cache: 11.3.3
 
-  hot-shots@11.4.0:
-    optionalDependencies:
-      unix-dgram: 2.0.7
+  hot-shots@11.4.0: {}
 
   html-escaper@2.0.2: {}
 
@@ -20078,9 +20072,6 @@ snapshots:
   mute-stream@0.0.8: {}
 
   mute-stream@3.0.0: {}
-
-  nan@2.26.2:
-    optional: true
 
   nano-spawn@2.1.0: {}
 
@@ -22750,12 +22741,6 @@ snapshots:
   universalify@0.1.2: {}
 
   universalify@2.0.1: {}
-
-  unix-dgram@2.0.7:
-    dependencies:
-      bindings: 1.5.0
-      nan: 2.26.2
-    optional: true
 
   unixify@1.0.0:
     dependencies:

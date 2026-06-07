@@ -11,12 +11,14 @@ export function App() {
 import { qrl } from '@qwik.dev/core';
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ qrl(
-  () => import('./component.tsx_component_q_e_click_segment_0'),
+  './component.tsx_component_q_e_click_segment_0',
   'component_q_e_click_segment_0'
 );
 
-export function App(_props, _ctx) {
-  return '<button q-e:click="' + q_component_q_e_click_segment_0 + '">Click</button>';
+export function App(_props, ctx) {
+  return (
+    '<button' + ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0) + '>Click</button>'
+  );
 }
 
 null

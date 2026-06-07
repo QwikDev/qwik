@@ -16,7 +16,6 @@ const baseOptions = (input: TransformModuleInput): TransformModulesOptions => ({
   sourceMaps: false,
   transpileTs: true,
   transpileJsx: true,
-  isServer: true,
 });
 
 function analyzeInput(input: TestInput): CompilerContext {
@@ -27,6 +26,7 @@ function analyzeInput(input: TestInput): CompilerContext {
   const ctx: CompilerContext = {
     input: moduleInput,
     options: baseOptions(moduleInput),
+    emitTarget: 'ssr',
     program: null,
     manifest: {
       components: [],
@@ -69,10 +69,16 @@ export const App = component$(() => <p>{greeting}</p>);
 `,
     });
 
-    expect(ctx.manifest.segments).toHaveLength(1);
-    expect(ctx.manifest.segments[0].ctxName).toBe('component$');
-    expect(ctx.manifest.segments[0].captures).toEqual([]);
-    expect(ctx.manifest.components[0].segmentId).toBe(ctx.manifest.segments[0].id);
+    const componentSegment = ctx.manifest.segments.find(
+      (segment) => segment.ctxName === 'component$'
+    );
+    const textSegment = ctx.manifest.segments.find((segment) => segment.ctxName === 'text');
+
+    expect(ctx.manifest.segments).toHaveLength(2);
+    expect(componentSegment?.captures).toEqual([]);
+    expect(textSegment?.kind).toBe('jsxText');
+    expect(textSegment?.captures).toEqual([]);
+    expect(ctx.manifest.components[0].segmentId).toBe(componentSegment?.id);
   });
 
   test('captures parent params and locals from inline event handlers', () => {

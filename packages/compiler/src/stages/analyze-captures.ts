@@ -1,4 +1,5 @@
 import {
+  getSignalValueSourceName,
   getIdentifierName,
   getJsxName,
   getParams,
@@ -444,8 +445,33 @@ class CaptureAnalyzer {
       this.visitJsxAttribute(attr);
     }
     for (const child of node.children) {
-      this.visit(child);
+      if (child.type === 'JSXExpressionContainer') {
+        this.visitJsxChildExpression(child.expression);
+      } else {
+        this.visit(child);
+      }
     }
+  }
+
+  private visitJsxChildExpression(expression: unknown) {
+    const expr = unwrapExpression(expression);
+    if (!expr || expr.type === 'JSXEmptyExpression') {
+      return;
+    }
+    if (getSignalValueSourceName(expr) !== null) {
+      this.visit(expr);
+      return;
+    }
+    const range = getRange(expr);
+    if (range === null) {
+      this.visit(expr);
+      return;
+    }
+
+    const segment = this.createSyntheticJsxTextSegment(range);
+    this.segmentStack.push(segment);
+    this.visit(expr);
+    this.segmentStack.pop();
   }
 
   private visitJsxAttribute(node: JSXAttributeItem) {
@@ -843,6 +869,35 @@ class CaptureAnalyzer {
       record,
       functionOwnerId,
       capturedSymbols,
+    };
+  }
+
+  private createSyntheticJsxTextSegment(expressionRange: SourceRange): SegmentState {
+    const functionOwnerId = this.nextFunctionOwnerId++;
+    this.functionOwnerParents[functionOwnerId] = this.currentFunctionOwnerId;
+    const id = `segment_${this.nextSegmentId++}`;
+    const record: SegmentRecord = {
+      id,
+      kind: 'jsxText',
+      ctxName: 'text',
+      range: expressionRange,
+      functionRange: null,
+      paramRanges: [],
+      bodyRange: expressionRange,
+      bodyKind: 'expression',
+      async: false,
+      parentId: this.currentSegment()?.record.id ?? null,
+      params: [],
+      captures: [],
+      captureMode: 'auto',
+      targetFunctionOwnerId: functionOwnerId,
+      specialReferences: [],
+    };
+    this.ctx.manifest.segments.push(record);
+    return {
+      record,
+      functionOwnerId,
+      capturedSymbols: new Set(),
     };
   }
 

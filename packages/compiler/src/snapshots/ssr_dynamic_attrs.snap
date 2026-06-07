@@ -1,0 +1,79 @@
+==INPUT==
+
+import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const title = createSignal('hello');
+  const classes = createSignal('active');
+  const style = createSignal('color:red');
+  return <div title={title.value} className={classes.value} style={style.value}>Attrs</div>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSignal,
+  escapeHTML,
+  createSsrElementTarget,
+  renderSsrAttr,
+  renderSsrClass,
+  renderSsrStyle,
+} from '@qwik.dev/core/spark';
+
+export function App(_props, ctx) {
+  const title = createSignal('hello');
+  const classes = createSignal('active');
+  const style = createSignal('color:red');
+  const id0 = ctx.nextId();
+  ctx.addRoot(title);
+  ctx.addRoot(classes);
+  ctx.addRoot(style);
+  return (
+    '<div q:id="' +
+    id0 +
+    '" title="' +
+    escapeHTML(renderSsrAttr(createSsrElementTarget(id0), 'title', title)) +
+    '" class="' +
+    escapeHTML(renderSsrClass(createSsrElementTarget(id0), classes)) +
+    '" style="' +
+    escapeHTML(renderSsrStyle(createSsrElementTarget(id0), style)) +
+    '">Attrs</div>'
+  );
+}
+
+null
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSignal,
+  createAttrEffect,
+  createClassEffect,
+  createStyleEffect,
+} from '@qwik.dev/core/spark';
+
+export function App(_props, ctx) {
+  const title = createSignal('hello');
+  const classes = createSignal('active');
+  const style = createSignal('color:red');
+  const el0 = ctx.document.createElement('div');
+  const effect1 = createAttrEffect(el0, 'title', title, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect1);
+  const effect2 = createClassEffect(el0, classes, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect2);
+  const effect3 = createStyleEffect(el0, style, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect3);
+  const text4 = ctx.document.createTextNode('Attrs');
+  el0.appendChild(text4);
+  return [el0];
+}
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

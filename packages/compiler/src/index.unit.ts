@@ -156,12 +156,47 @@ export function App() {
     });
   });
 
-  test('supports CSR dynamic text and reports SSR dynamic text as deferred', async () => {
-    await testInput('unsupported_dynamic_jsx', {
+  test('supports SSR and CSR dynamic text', async () => {
+    await testInput('dynamic_signal_text', {
       code: `import { createSignal } from '@qwik.dev/core/spark';
 export function App() {
   const count = createSignal(0);
   return <p>{count.value}</p>;
+}
+`,
+    });
+  });
+
+  test('emits SSR range text for mixed dynamic text', async () => {
+    await testInput('ssr_dynamic_range_text', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(0);
+  return <p>Hello {count.value}</p>;
+}
+`,
+    });
+  });
+
+  test('emits SSR text expression QRLs', async () => {
+    await testInput('ssr_dynamic_text_expression', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(1);
+  return <p>{count.value + 1}</p>;
+}
+`,
+    });
+  });
+
+  test('emits SSR dynamic attrs', async () => {
+    await testInput('ssr_dynamic_attrs', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const title = createSignal('hello');
+  const classes = createSignal('active');
+  const style = createSignal('color:red');
+  return <div title={title.value} className={classes.value} style={style.value}>Attrs</div>;
 }
 `,
     });

@@ -105,3 +105,98 @@ export function hasDynamicText(node: RenderNode | null): boolean {
   }
   return false;
 }
+
+export function hasDynamicBinding(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'dynamicText') {
+    return true;
+  }
+  if (node.kind === 'element') {
+    if (node.props.some((prop) => prop.binding)) {
+      return true;
+    }
+    return node.children.some(hasDynamicBinding);
+  }
+  if (node.kind === 'fragment') {
+    return node.children.some(hasDynamicBinding);
+  }
+  return false;
+}
+
+export function hasTextExpression(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'dynamicText') {
+    return node.binding.kind === 'expression';
+  }
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some(hasTextExpression);
+  }
+  return false;
+}
+
+export function hasSourceTextBinding(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'dynamicText') {
+    return node.binding.kind === 'source';
+  }
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some(hasSourceTextBinding);
+  }
+  return false;
+}
+
+export function hasDynamicAttrBinding(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'element') {
+    if (node.props.some((prop) => prop.binding)) {
+      return true;
+    }
+    return node.children.some(hasDynamicAttrBinding);
+  }
+  if (node.kind === 'fragment') {
+    return node.children.some(hasDynamicAttrBinding);
+  }
+  return false;
+}
+
+export function hasElementTextBinding(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'element') {
+    if (node.children.length === 1 && node.children[0].kind === 'dynamicText') {
+      return true;
+    }
+    return node.children.some(hasElementTextBinding);
+  }
+  if (node.kind === 'fragment') {
+    return node.children.some(hasElementTextBinding);
+  }
+  return false;
+}
+
+export function hasRangeTextBinding(node: RenderNode | null, elementTextOnly = false): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'dynamicText') {
+    return !elementTextOnly;
+  }
+  if (node.kind === 'element') {
+    const childElementTextOnly =
+      node.children.length === 1 && node.children[0].kind === 'dynamicText';
+    return node.children.some((child) => hasRangeTextBinding(child, childElementTextOnly));
+  }
+  if (node.kind === 'fragment') {
+    return node.children.some((child) => hasRangeTextBinding(child, false));
+  }
+  return false;
+}

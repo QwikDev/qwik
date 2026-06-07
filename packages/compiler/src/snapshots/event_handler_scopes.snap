@@ -11,33 +11,30 @@ export function App() {
 import { qrl } from '@qwik.dev/core';
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ qrl(
-  () => import('./component.tsx_component_q_e_click_segment_0'),
+  './component.tsx_component_q_e_click_segment_0',
   'component_q_e_click_segment_0'
 );
 const q_component_q_e_dblclick_segment_1 = /*#__PURE__*/ qrl(
-  () => import('./component.tsx_component_q_e_dblclick_segment_1'),
+  './component.tsx_component_q_e_dblclick_segment_1',
   'component_q_e_dblclick_segment_1'
 );
 const q_component_q_w_scroll_segment_2 = /*#__PURE__*/ qrl(
-  () => import('./component.tsx_component_q_w_scroll_segment_2'),
+  './component.tsx_component_q_w_scroll_segment_2',
   'component_q_w_scroll_segment_2'
 );
 const q_component_q_d_keydown_segment_3 = /*#__PURE__*/ qrl(
-  () => import('./component.tsx_component_q_d_keydown_segment_3'),
+  './component.tsx_component_q_d_keydown_segment_3',
   'component_q_d_keydown_segment_3'
 );
 
-export function App(_props, _ctx) {
+export function App(_props, ctx) {
   return (
-    '<div q-e:click="' +
-    q_component_q_e_click_segment_0 +
-    '" q-e:dblclick="' +
-    q_component_q_e_dblclick_segment_1 +
-    '" q-w:scroll="' +
-    q_component_q_w_scroll_segment_2 +
-    '" q-d:keydown="' +
-    q_component_q_d_keydown_segment_3 +
-    '"></div>'
+    '<div' +
+    ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0) +
+    ctx.eventAttr('q-e:dblclick', q_component_q_e_dblclick_segment_1) +
+    ctx.eventAttr('q-w:scroll', q_component_q_w_scroll_segment_2) +
+    ctx.eventAttr('q-d:keydown', q_component_q_d_keydown_segment_3) +
+    '></div>'
   );
 }
 

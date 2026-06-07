@@ -127,6 +127,22 @@ export function unwrapExpression(node: unknown): AstNode | null | undefined {
   return isObjectNode(current) ? current : null;
 }
 
+export function getSignalValueSourceName(node: unknown): string | null {
+  const expr = unwrapExpression(node);
+  if (!isObjectNode(expr) || expr.type !== 'MemberExpression') {
+    return null;
+  }
+  if (expr.computed) {
+    return null;
+  }
+  const property = expr.property;
+  if (!isObjectNode(property) || property.type !== 'Identifier' || property.name !== 'value') {
+    return null;
+  }
+  const object = expr.object;
+  return isObjectNode(object) && object.type === 'Identifier' ? object.name : null;
+}
+
 export function isNativeTag(name: string) {
   return /^[a-z][a-zA-Z0-9-]*$/.test(name);
 }

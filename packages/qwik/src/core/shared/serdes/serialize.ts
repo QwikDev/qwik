@@ -1017,13 +1017,13 @@ function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {
 
   switch (effect.kind) {
     case EffectKind.TextNode:
-      return [effect.kind, target, deps];
+      return [effect.kind, target.kind, target.id, deps];
     case EffectKind.TextExpression:
-      return [effect.kind, target, deps, effect.args, effect.qrl];
+      return [effect.kind, target.kind, target.id, deps, effect.args, effect.qrl];
     case EffectKind.Attr:
-      return [effect.kind, target, deps, effect.name];
+      return [effect.kind, target.kind, target.id, deps, effect.name];
     case EffectKind.SerializedAttr:
-      return [effect.kind, target, deps, effect.serializer];
+      return [effect.kind, target.kind, target.id, deps, effect.serializer];
   }
 
   return assertNeverSsrDomEffect(effect);

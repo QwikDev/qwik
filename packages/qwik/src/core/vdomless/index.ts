@@ -1,4 +1,5 @@
 export { ReactiveFlags } from './reactive/flags';
+export { escapeHTML } from '../shared/utils/character-escaping';
 export {
   isComputedSource,
   peekSourceValue,

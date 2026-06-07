@@ -8,7 +8,15 @@ import type { ComponentRecord, QrlSegmentOutput, RenderNode, SegmentRecord } fro
 import { QwikSymbol } from '../words';
 import { emitCsrModule } from './emit-csr';
 import { emitSsrModule } from './emit-ssr';
-import { emitImports, hasDynamicText } from './emit-utils';
+import {
+  emitImports,
+  hasDynamicAttrBinding,
+  hasDynamicBinding,
+  hasElementTextBinding,
+  hasRangeTextBinding,
+  hasSourceTextBinding,
+  hasTextExpression,
+} from './emit-utils';
 
 export async function emitModules(ctx: CompilerContext) {
   if (ctx.manifest.diagnostics.length > 0) {
@@ -21,15 +29,26 @@ export async function emitModules(ctx: CompilerContext) {
     return;
   }
 
-  const isServer = ctx.options.isServer !== false;
-  const qrlSegments = collectQrlSegments(ctx, supported);
-  const needsTextExpression = supported.some((component) => hasDynamicText(component.root));
-  const imports = isServer
-    ? createSsrImports(ctx.manifest.imports, qrlSegments)
-    : createCsrImports(ctx.manifest.imports, qrlSegments, needsTextExpression);
-  const outputCode = isServer
-    ? emitSsrModule(supported, qrlSegments, ctx.input.code, imports)
-    : emitCsrModule(supported, qrlSegments, ctx.input.code, imports);
+  const qrlSegments = collectQrlSegments(ctx, supported, ctx.emitTarget === 'ssr');
+  const dynamicUsage = {
+    hasDynamicBinding: supported.some((component) => hasDynamicBinding(component.root)),
+    hasSourceText: supported.some((component) => hasSourceTextBinding(component.root)),
+    hasTextExpression: supported.some((component) => hasTextExpression(component.root)),
+    hasDynamicAttr: supported.some((component) => hasDynamicAttrBinding(component.root)),
+  };
+  const ssrUsage = {
+    ...dynamicUsage,
+    hasElementText: supported.some((component) => hasElementTextBinding(component.root)),
+    hasRangeText: supported.some((component) => hasRangeTextBinding(component.root)),
+  };
+  const imports =
+    ctx.emitTarget === 'ssr'
+      ? createSsrImports(ctx.manifest.imports, qrlSegments, ssrUsage)
+      : createCsrImports(ctx.manifest.imports, qrlSegments, dynamicUsage);
+  const outputCode =
+    ctx.emitTarget === 'ssr'
+      ? emitSsrModule(supported, qrlSegments, ctx.input.code, imports)
+      : emitCsrModule(supported, qrlSegments, ctx.input.code, imports);
   const modules = [createModule(ctx.input.path, outputCode)];
 
   for (const qrlSegment of qrlSegments.values()) {
@@ -41,13 +60,14 @@ export async function emitModules(ctx: CompilerContext) {
 
 function collectQrlSegments(
   ctx: CompilerContext,
-  components: ComponentRecord[]
+  components: ComponentRecord[],
+  includeTextExpressions: boolean
 ): Map<string, QrlSegmentOutput> {
   const segmentById = new Map(ctx.manifest.segments.map((segment) => [segment.id, segment]));
   const qrlSegments = new Map<string, QrlSegmentOutput>();
   for (const component of components) {
     if (component.root) {
-      collectNodeQrlSegments(ctx, component.root, segmentById, qrlSegments);
+      collectNodeQrlSegments(ctx, component.root, segmentById, qrlSegments, includeTextExpressions);
     }
   }
   return qrlSegments;
@@ -57,7 +77,8 @@ function collectNodeQrlSegments(
   ctx: CompilerContext,
   node: RenderNode,
   segmentById: Map<string, SegmentRecord>,
-  qrlSegments: Map<string, QrlSegmentOutput>
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  includeTextExpressions: boolean
 ) {
   if (node.kind === 'element') {
     for (const prop of node.props) {
@@ -69,9 +90,15 @@ function collectNodeQrlSegments(
       }
     }
   }
+  if (includeTextExpressions && node.kind === 'dynamicText' && node.binding.kind === 'expression') {
+    const segment = segmentById.get(node.binding.qrlSegmentId);
+    if (segment && !qrlSegments.has(node.binding.qrlSegmentId)) {
+      qrlSegments.set(node.binding.qrlSegmentId, createQrlSegmentOutput(ctx, segment));
+    }
+  }
   if (node.kind === 'element' || node.kind === 'fragment') {
     for (const child of node.children) {
-      collectNodeQrlSegments(ctx, child, segmentById, qrlSegments);
+      collectNodeQrlSegments(ctx, child, segmentById, qrlSegments, includeTextExpressions);
     }
   }
 }

@@ -1,6 +1,11 @@
 import type { ComponentRecord, ImportRecord, QrlSegmentOutput, RenderNode } from '../types';
 import { QwikSymbol } from '../words';
-import { emitComponentSetup, emitImports, hasDynamicText, serializeAttrValue } from './emit-utils';
+import {
+  emitComponentSetup,
+  emitImports,
+  hasDynamicBinding,
+  serializeAttrValue,
+} from './emit-utils';
 
 export function emitCsrModule(
   components: ComponentRecord[],
@@ -47,7 +52,7 @@ function emitDomRenderer(
 ) {
   const emitter = new DomEmitter(qrlSegments, sourceCode);
   const root = component.root!;
-  if (hasDynamicText(root)) {
+  if (hasDynamicBinding(root)) {
     emitter.raw(emitComponentSetup(component, qrlSegments, sourceCode, true));
   }
   const roots = emitter.emitRoot(root);
@@ -80,11 +85,17 @@ class DomEmitter {
     if (node.kind === 'dynamicText') {
       const id = this.next('text');
       const effectId = this.next('effect');
-      const expression = this.sourceCode.slice(node.expressionRange[0], node.expressionRange[1]);
       this.line(`const ${id} = ctx.document.createTextNode('');`);
-      this.line(
-        `const ${effectId} = ${QwikSymbol.CreateTextExpressionEffect}(${id}, [], () => ${expression}, { scheduler: ctx.scheduler });`
-      );
+      if (node.binding.kind === 'source') {
+        this.line(
+          `const ${effectId} = ${QwikSymbol.CreateTextNodeEffect}(${id}, ${node.binding.sourceName}, { scheduler: ctx.scheduler });`
+        );
+      } else {
+        const expression = this.sourceCode.slice(node.expressionRange[0], node.expressionRange[1]);
+        this.line(
+          `const ${effectId} = ${QwikSymbol.CreateTextExpressionEffect}(${id}, [], () => ${expression}, { scheduler: ctx.scheduler });`
+        );
+      }
       this.line(`ctx.scheduler.notify(${effectId});`);
       return id;
     }
@@ -92,6 +103,12 @@ class DomEmitter {
       const id = this.next('el');
       this.line(`const ${id} = ctx.document.createElement(${JSON.stringify(node.tag)});`);
       for (const prop of node.props) {
+        if (prop.binding) {
+          const effectId = this.next('effect');
+          this.line(emitDynamicAttrEffect(effectId, id, prop));
+          this.line(`ctx.scheduler.notify(${effectId});`);
+          continue;
+        }
         if (prop.qrlSegmentId) {
           const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
           if (qrlSegment) {
@@ -145,4 +162,21 @@ class DomEmitter {
     this.counter++;
     return id;
   }
+}
+
+function emitDynamicAttrEffect(
+  effectId: string,
+  elementId: string,
+  prop: Extract<RenderNode, { kind: 'element' }>['props'][number]
+): string {
+  const sourceName = prop.binding!.sourceName;
+  if (prop.name === 'class') {
+    return `const ${effectId} = ${QwikSymbol.CreateClassEffect}(${elementId}, ${sourceName}, { scheduler: ctx.scheduler });`;
+  }
+  if (prop.name === 'style') {
+    return `const ${effectId} = ${QwikSymbol.CreateStyleEffect}(${elementId}, ${sourceName}, { scheduler: ctx.scheduler });`;
+  }
+  return `const ${effectId} = ${QwikSymbol.CreateAttrEffect}(${elementId}, ${JSON.stringify(
+    prop.name
+  )}, ${sourceName}, { scheduler: ctx.scheduler });`;
 }

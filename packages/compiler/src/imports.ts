@@ -34,25 +34,80 @@ export function createQwikSparkImport(...specifiers: QwikSymbol[]) {
 
 export function createSsrImports(
   imports: readonly ImportRecord[],
-  qrlSegments: Map<string, QrlSegmentOutput>
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  usage: SsrImportUsage
 ) {
-  if (qrlSegments.size === 0) {
+  if (qrlSegments.size === 0 && !usage.hasDynamicBinding) {
     return [];
   }
-  return normalizeImports([...imports, createQwikCoreImport(QwikSymbol.Qrl)]);
+  const records: ImportRecord[] = [...imports];
+  if (qrlSegments.size > 0) {
+    records.push(createQwikCoreImport(QwikSymbol.Qrl));
+  }
+  const sparkSpecifiers: QwikSymbol[] = [];
+  if (usage.hasSourceText || usage.hasTextExpression || usage.hasDynamicAttr) {
+    sparkSpecifiers.push(QwikSymbol.EscapeHTML);
+  }
+  if (usage.hasSourceText) {
+    sparkSpecifiers.push(QwikSymbol.RenderSsrTextNode);
+  }
+  if (usage.hasElementText) {
+    sparkSpecifiers.push(QwikSymbol.CreateSsrElementTextTarget);
+  }
+  if (usage.hasRangeText) {
+    sparkSpecifiers.push(QwikSymbol.CreateSsrRangeTextTarget);
+  }
+  if (usage.hasTextExpression) {
+    sparkSpecifiers.push(QwikSymbol.RenderSsrTextExpression);
+  }
+  if (usage.hasDynamicAttr) {
+    sparkSpecifiers.push(
+      QwikSymbol.CreateSsrElementTarget,
+      QwikSymbol.RenderSsrAttr,
+      QwikSymbol.RenderSsrClass,
+      QwikSymbol.RenderSsrStyle
+    );
+  }
+  if (sparkSpecifiers.length > 0) {
+    records.push(createQwikSparkImport(...sparkSpecifiers));
+  }
+  return normalizeImports(records);
+}
+
+export interface SsrImportUsage {
+  hasDynamicBinding: boolean;
+  hasSourceText: boolean;
+  hasElementText: boolean;
+  hasRangeText: boolean;
+  hasTextExpression: boolean;
+  hasDynamicAttr: boolean;
 }
 
 export function createCsrImports(
   imports: readonly ImportRecord[],
   qrlSegments: Map<string, QrlSegmentOutput>,
-  needsTextExpression: boolean
+  usage: CsrImportUsage
 ) {
-  if (qrlSegments.size === 0 && !needsTextExpression) {
+  if (qrlSegments.size === 0 && !usage.hasDynamicBinding) {
     return [];
   }
   const records: ImportRecord[] = [];
-  if (needsTextExpression) {
-    records.push(...imports, createQwikSparkImport(QwikSymbol.CreateTextExpressionEffect));
+  const sparkSpecifiers: QwikSymbol[] = [];
+  if (usage.hasSourceText) {
+    sparkSpecifiers.push(QwikSymbol.CreateTextNodeEffect);
+  }
+  if (usage.hasTextExpression) {
+    sparkSpecifiers.push(QwikSymbol.CreateTextExpressionEffect);
+  }
+  if (usage.hasDynamicAttr) {
+    sparkSpecifiers.push(
+      QwikSymbol.CreateAttrEffect,
+      QwikSymbol.CreateClassEffect,
+      QwikSymbol.CreateStyleEffect
+    );
+  }
+  if (sparkSpecifiers.length > 0) {
+    records.push(...imports, createQwikSparkImport(...sparkSpecifiers));
   }
   if (qrlSegments.size > 0) {
     records.push(
@@ -63,6 +118,13 @@ export function createCsrImports(
     );
   }
   return normalizeImports(records);
+}
+
+export interface CsrImportUsage {
+  hasDynamicBinding: boolean;
+  hasSourceText: boolean;
+  hasTextExpression: boolean;
+  hasDynamicAttr: boolean;
 }
 
 export function normalizeImports(imports: readonly ImportRecord[]) {

@@ -1,4 +1,8 @@
 import { StringSSRWriter } from '../ssr-stream-writer';
+import { setEvent } from '../../core/ssr/ssr-events';
+import { createSerializationContext } from '../../core/shared/serdes/serialization-context';
+import { escapeHTML } from '../../core/shared/utils/character-escaping';
+import type { SSRWriteChunk } from '../../core/ssr/ssr-types';
 import type {
   RenderToStreamOptions,
   RenderToStreamResult,
@@ -6,7 +10,11 @@ import type {
   RenderToStringResult,
 } from '../types';
 
-export interface SsrRenderContext {}
+export interface SsrRenderContext {
+  nextId(): number;
+  addRoot(value: unknown): number;
+  eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): string;
+}
 
 export type SsrRenderRoot = (_props: undefined, ctx: SsrRenderContext) => string;
 
@@ -30,14 +38,52 @@ export const renderToStream = async (
   root: SsrRenderRoot,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
-  const html = root(undefined, {});
+  const serializationCtx = createSerializationContext(
+    null,
+    null,
+    () => '',
+    () => {},
+    new WeakMap<any, any>()
+  );
+  let nextId = 0;
+  const ctx: SsrRenderContext = {
+    nextId() {
+      return nextId++;
+    },
+    addRoot(value) {
+      return serializationCtx.$addRoot$(value);
+    },
+    eventAttr(name, value, hasMovedCaptures = false) {
+      const serialized = setEvent(serializationCtx, name, value, hasMovedCaptures);
+      return serialized === null ? '' : ` ${name}="${escapeHTML(writeChunks(serialized))}"`;
+    },
+  };
+
+  const html = root(undefined, ctx);
   await opts.stream.write(html);
+  if (serializationCtx.$roots$.length > 0) {
+    await serializationCtx.$serialize$();
+    await opts.stream.write(
+      `<script type="qwik/state">${escapeScript(serializationCtx.$writer$.toString())}</script>`
+    );
+  }
 
   return {
     flushes: 0,
     size: html.length,
-    isStatic: false,
+    isStatic: serializationCtx.$roots$.length === 0,
     manifest: undefined,
+    snapshotResult: {
+      funcs: serializationCtx.$syncFns$,
+      qrls: Array.from(serializationCtx.$eventQrls$),
+      resources: [],
+      mode:
+        serializationCtx.$roots$.length > 0
+          ? 'render'
+          : serializationCtx.$eventQrls$.size > 0
+            ? 'listeners'
+            : 'static',
+    },
     timing: {
       firstFlush: 0,
       render: 0,
@@ -45,3 +91,18 @@ export const renderToStream = async (
     },
   };
 };
+
+function writeChunks(value: string | SSRWriteChunk[]): string {
+  return typeof value === 'string' ? value : value.map(writeChunk).join('');
+}
+
+function writeChunk(chunk: SSRWriteChunk): string {
+  if (typeof chunk === 'string' || typeof chunk === 'number') {
+    return String(chunk);
+  }
+  return chunk.path.join(' ');
+}
+
+function escapeScript(value: string): string {
+  return value.replace(/<\//g, '<\\/');
+}

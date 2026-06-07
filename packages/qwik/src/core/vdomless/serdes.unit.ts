@@ -45,19 +45,12 @@ describe('vdomless serdes emit-only', () => {
     expect(signalPayload[2]).toBe(TypeIds.EffectSubscription);
     expect(effectPayload[0]).toBe(TypeIds.Plain);
     expect(effectPayload[1]).toBe(EffectKind.TextNode);
-    expect(effectPayload[2]).toBe(TypeIds.Object);
-    expect(effectPayload[3]).toEqual([
-      TypeIds.Plain,
-      'kind',
-      TypeIds.Plain,
-      EffectTargetKind.ElementText,
-      TypeIds.Plain,
-      'id',
-      TypeIds.Plain,
-      7,
-    ]);
-    expect(effectPayload[4]).toBe(TypeIds.Array);
-    expect(effectPayload[5]).toEqual([TypeIds.RootRef, 0]);
+    expect(effectPayload[2]).toBe(TypeIds.Plain);
+    expect(effectPayload[3]).toBe(EffectTargetKind.ElementText);
+    expect(effectPayload[4]).toBe(TypeIds.Plain);
+    expect(effectPayload[5]).toBe(7);
+    expect(effectPayload[6]).toBe(TypeIds.Array);
+    expect(effectPayload[7]).toEqual([TypeIds.RootRef, 0]);
   });
 
   it('does not serialize orphan SSR effect targets', async () => {
@@ -91,21 +84,13 @@ describe('vdomless serdes emit-only', () => {
     const effectPayload = signalPayload[3] as unknown[];
 
     expect(effectPayload[1]).toBe(EffectKind.TextExpression);
-    expect(effectPayload[3]).toEqual([
-      TypeIds.Plain,
-      'kind',
-      TypeIds.Plain,
-      EffectTargetKind.RangeText,
-      TypeIds.Plain,
-      'id',
-      TypeIds.Plain,
-      3,
-    ]);
-    expect(effectPayload[5]).toEqual([TypeIds.RootRef, 0]);
-    expect(effectPayload[6]).toBe(TypeIds.Array);
+    expect(effectPayload[3]).toBe(EffectTargetKind.RangeText);
+    expect(effectPayload[5]).toBe(3);
     expect(effectPayload[7]).toEqual([TypeIds.RootRef, 0]);
-    expect(effectPayload[8]).toBe(TypeIds.QRL);
-    expect(effectPayload[9]).toBe('1#2#0');
+    expect(effectPayload[8]).toBe(TypeIds.Array);
+    expect(effectPayload[9]).toEqual([TypeIds.RootRef, 0]);
+    expect(effectPayload[10]).toBe(TypeIds.QRL);
+    expect(effectPayload[11]).toBe('1#2#0');
     expect(state.slice(2)).toEqual([TypeIds.Plain, 'counter.text.js', TypeIds.Plain, 'label']);
   });
 
@@ -129,26 +114,13 @@ describe('vdomless serdes emit-only', () => {
     const stylePayload = (state[3] as unknown[])[3] as unknown[];
 
     expect(classPayload[1]).toBe(EffectKind.SerializedAttr);
-    expect(classPayload[3]).toEqual([
-      TypeIds.Plain,
-      'kind',
-      TypeIds.Plain,
-      EffectTargetKind.Element,
-      TypeIds.Plain,
-      'id',
-      TypeIds.Plain,
-      2,
-    ]);
-    expect(classPayload[7]).toBe(AttrSerializer.Class);
+    expect(classPayload[3]).toBe(EffectTargetKind.Element);
+    expect(classPayload[5]).toBe(2);
+    expect(classPayload[9]).toBe(AttrSerializer.Class);
     expect(stylePayload[1]).toBe(EffectKind.SerializedAttr);
-    expect((stylePayload[3] as unknown[])[3]).toBe(EffectTargetKind.Element);
-    expect((stylePayload[3] as unknown[]).slice(-4)).toEqual([
-      TypeIds.Plain,
-      'id',
-      TypeIds.Plain,
-      2,
-    ]);
-    expect(stylePayload[7]).toBe(AttrSerializer.Style);
+    expect(stylePayload[3]).toBe(EffectTargetKind.Element);
+    expect(stylePayload[5]).toBe(2);
+    expect(stylePayload[9]).toBe(AttrSerializer.Style);
   });
 
   it('serializes a computed QRL with deps, cached value, and DOM subscriber', async () => {
@@ -181,13 +153,9 @@ describe('vdomless serdes emit-only', () => {
     expect(computedPayload[5]).toBe(4);
     expect(computedPayload[6]).toBe(TypeIds.EffectSubscription);
     expect(effectPayload[1]).toBe(EffectKind.TextNode);
-    expect(effectPayload[5]).toEqual([TypeIds.RootRef, 0]);
-    expect((effectPayload[3] as unknown[]).slice(4)).toEqual([
-      TypeIds.Plain,
-      'id',
-      TypeIds.Plain,
-      4,
-    ]);
+    expect(effectPayload[3]).toBe(EffectTargetKind.ElementText);
+    expect(effectPayload[5]).toBe(4);
+    expect(effectPayload[7]).toEqual([TypeIds.RootRef, 0]);
     expect(signalPayload[0]).toBe(TypeIds.Plain);
     expect(signalPayload[1]).toBe(2);
     expect(signalPayload[2]).toBe(TypeIds.RootRef);

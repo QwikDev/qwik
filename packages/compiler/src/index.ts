@@ -43,6 +43,7 @@ async function transformModule(
   const ctx: CompilerContext = {
     input,
     options,
+    emitTarget: options.isServer === false ? 'csr' : 'ssr',
     program: null,
     manifest: {
       components: [],

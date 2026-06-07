@@ -2,6 +2,7 @@ import {
   getJsxAttributeName,
   getJsxName,
   getRange,
+  getSignalValueSourceName,
   getStaticExpressionValue,
   isEventProp,
   isNativeTag,
@@ -18,7 +19,15 @@ import type {
   JSXElement,
   JSXFragment,
 } from 'oxc-parser';
-import type { AstJsxNode, CompilerContext, FragmentNode, PropRecord, RenderNode } from '../types';
+import type {
+  AstJsxNode,
+  CompilerContext,
+  DynamicBinding,
+  FragmentNode,
+  PropRecord,
+  RenderNode,
+  SourceRange,
+} from '../types';
 
 export function lowerStaticJsxToIr(ctx: CompilerContext) {
   for (const component of ctx.manifest.components) {
@@ -142,6 +151,16 @@ function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]
       continue;
     }
 
+    const dynamicValue = lowerDynamicSourceAttributeValue(ctx, attr.value);
+    if (dynamicValue) {
+      props.push({
+        name,
+        value: null,
+        binding: dynamicValue,
+      });
+      continue;
+    }
+
     const value = lowerStaticAttributeValue(ctx, attr.value, name);
     if (value.supported) {
       props.push({
@@ -151,6 +170,26 @@ function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]
     }
   }
   return props;
+}
+
+function lowerDynamicSourceAttributeValue(
+  ctx: CompilerContext,
+  valueNode: JSXAttributeValue | null
+): Extract<DynamicBinding, { kind: 'source' }> | null {
+  if (valueNode?.type !== 'JSXExpressionContainer') {
+    return null;
+  }
+  const expression = unwrapExpression(valueNode.expression);
+  const sourceName = getSignalValueSourceName(expression);
+  const expressionRange = getRange(expression);
+  if (sourceName === null || expressionRange === null) {
+    return null;
+  }
+  return {
+    kind: 'source',
+    sourceName,
+    expressionRange,
+  };
 }
 
 function findEventSegment(ctx: CompilerContext, ctxName: string, range: PropRange) {
@@ -211,12 +250,15 @@ function lowerJsxChildren(ctx: CompilerContext, children: JSXChild[]): RenderNod
       if (child.expression?.type === 'JSXEmptyExpression') {
         continue;
       }
-      if (ctx.options.isServer === false) {
-        const expressionRange = getRange(child.expression);
-        if (expressionRange) {
+      const expression = unwrapExpression(child.expression);
+      const expressionRange = getRange(expression);
+      if (expressionRange) {
+        const binding = createDynamicTextBinding(ctx, expression, expressionRange);
+        if (binding) {
           nodes.push({
             kind: 'dynamicText',
             expressionRange,
+            binding,
           });
           continue;
         }
@@ -235,6 +277,35 @@ function lowerJsxChildren(ctx: CompilerContext, children: JSXChild[]): RenderNod
     });
   }
   return nodes;
+}
+
+function createDynamicTextBinding(
+  ctx: CompilerContext,
+  expression: unknown,
+  expressionRange: SourceRange
+): DynamicBinding | null {
+  const sourceName = getSignalValueSourceName(expression);
+  if (sourceName !== null) {
+    return {
+      kind: 'source',
+      sourceName,
+      expressionRange,
+    };
+  }
+  const segment = findTextSegment(ctx, expressionRange);
+  return segment
+    ? {
+        kind: 'expression',
+        expressionRange,
+        qrlSegmentId: segment.id,
+      }
+    : null;
+}
+
+function findTextSegment(ctx: CompilerContext, range: SourceRange) {
+  return ctx.manifest.segments.find(
+    (segment) => segment.kind === 'jsxText' && rangesEqual(segment.range, range)
+  );
 }
 
 function formatExportName(name: string) {

@@ -26,6 +26,7 @@ export interface CompilerResult {
 export interface CompilerContext {
   input: TransformModuleInput;
   options: TransformModulesOptions;
+  emitTarget: 'ssr' | 'csr';
   program: Program | null;
   manifest: RenderManifest;
   outputModules: TransformModule[] | null;
@@ -76,7 +77,7 @@ export interface ComponentRecord {
 
 export interface SegmentRecord {
   id: string;
-  kind: 'function' | 'eventHandler' | 'jsxProp';
+  kind: 'function' | 'eventHandler' | 'jsxProp' | 'jsxText';
   ctxName: string;
   range: SourceRange | null;
   functionRange: SourceRange | null;
@@ -129,6 +130,7 @@ export interface TextNode {
 export interface DynamicTextNode {
   kind: 'dynamicText';
   expressionRange: SourceRange;
+  binding: DynamicBinding;
 }
 
 export interface ExprNode {
@@ -139,10 +141,23 @@ export interface ExprNode {
 
 export type RenderNode = ElementNode | FragmentNode | TextNode | DynamicTextNode | ExprNode;
 
+export type DynamicBinding =
+  | {
+      kind: 'source';
+      sourceName: string;
+      expressionRange: SourceRange;
+    }
+  | {
+      kind: 'expression';
+      expressionRange: SourceRange;
+      qrlSegmentId: string;
+    };
+
 export interface PropRecord {
   name: string;
   value: string | number | boolean | null;
   qrlSegmentId?: string;
+  binding?: Extract<DynamicBinding, { kind: 'source' }>;
 }
 
 export type PipelineStage = (ctx: CompilerContext) => void | Promise<void>;

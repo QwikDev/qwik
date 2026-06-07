@@ -1,4 +1,4 @@
-import type { UserConfig, ViteDevServer, Plugin as VitePlugin, BuildOptions } from 'vite';
+import type { UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type {
   EntryStrategy,
@@ -318,15 +318,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
-          rollupOptions: {
-            /**
-             * This is a workaround to have predictable chunk hashes between builds. It doesn't seem
-             * to impact the build time.
-             * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
-             */
-            maxParallelFileOps: 1,
-            // temporary fix for rolldown-vite types
-          } as BuildOptions['rollupOptions'],
         },
         define: {
           [qDevKey]: qDev,

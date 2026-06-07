@@ -1,4 +1,4 @@
-import { isDev } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 import { VNodeDataFlag } from '../../../server/types';
 import type { VNodeData } from '../../../server/vnode-data';
 import { vnode_isVNode } from '../../client/vnode-utils';
@@ -19,6 +19,15 @@ import {
 } from '../../reactive-primitives/types';
 import { isSerializerObj } from '../../reactive-primitives/utils';
 import { Task } from '../../use/use-task';
+import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
+import { SsrDomSubscription } from '../../vdomless/dom/effect/ssr-effect';
+import type { SsrDomEffect } from '../../vdomless/dom/effect/ssr-effect';
+import { ReactiveFlags } from '../../vdomless/reactive/flags';
+import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
+import { Signal } from '../../vdomless/reactive/signal';
+import type { Dependency } from '../../vdomless/reactive/source';
+import { TaskSubscription } from '../../vdomless/runtime/task';
+import type { Subscriber } from '../../vdomless/runtime/subscriber';
 import type { SSRInternalStreamWriter, SSRWriteChunk } from '../../ssr/ssr-types';
 import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
@@ -487,6 +496,14 @@ export class Serializer {
       this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
     } else if (value instanceof SubscriptionPatch) {
       this.output(TypeIds.SubscriptionPatch, [value.rootId, value.subscriptions]);
+    } else if (value instanceof Signal) {
+      this.output(TypeIds.Signal, serializeSignal(value));
+    } else if (value instanceof ComputedQrl) {
+      this.output(TypeIds.ComputedSignal, serializeComputed(value));
+    } else if (value instanceof TaskSubscription) {
+      this.output(TypeIds.Task, serializeTask(value));
+    } else if (value instanceof SsrDomSubscription) {
+      this.output(TypeIds.EffectSubscription, serializeDomSubscription(value));
     } else if (isStore(value)) {
       const storeHandler = getStoreHandler(value)!;
       const storeTarget = getStoreTarget(value);
@@ -962,6 +979,66 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
 
 const isSsrAttrs = (value: number | Props): value is Props =>
   typeof value === 'object' && value !== null && !isObjectEmpty(value);
+
+function serializeSignal(signal: Signal<unknown>): unknown[] {
+  return [
+    signal.v === undefined ? explicitUndefined : signal.v,
+    ...serializeSubscribers(signal.subs),
+  ];
+}
+
+function serializeComputed(computed: ComputedQrl<unknown>): unknown[] {
+  const hasCachedValue = !!(computed.flags & ReactiveFlags.HasValue);
+  const needsComputation =
+    !hasCachedValue || !!(computed.flags & ReactiveFlags.Dirty) || fastSkipSerialize(computed.v);
+  const value = needsComputation
+    ? NEEDS_COMPUTATION
+    : computed.v === undefined
+      ? explicitUndefined
+      : computed.v;
+
+  return [
+    computed.computeQrl,
+    serializeDeps(computed.deps),
+    value,
+    ...serializeSubscribers(computed.subs),
+  ];
+}
+
+function serializeTask(taskSubscription: TaskSubscription): unknown[] {
+  const task = taskSubscription.task;
+  return [task.group, task.index, task.phase, task.qrl, serializeDeps(taskSubscription.deps)];
+}
+
+function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {
+  const effect = subscription.effect;
+  const deps = serializeDeps(subscription.deps);
+
+  switch (effect.kind) {
+    case EffectKind.TextNode:
+      return [effect.kind, effect.target, deps];
+    case EffectKind.TextExpression:
+      return [effect.kind, effect.target, deps, effect.args, effect.qrl];
+    case EffectKind.Attr:
+      return [effect.kind, effect.target, deps, effect.name];
+    case EffectKind.SerializedAttr:
+      return [effect.kind, effect.target, deps, effect.serializer];
+  }
+
+  return assertNeverSsrDomEffect(effect);
+}
+
+function serializeDeps(deps: Dependency[] | null): readonly Dependency[] {
+  return deps ?? EMPTY_ARRAY;
+}
+
+function serializeSubscribers(subs: Subscriber[] | null): readonly Subscriber[] {
+  return isServer ? (subs ?? EMPTY_ARRAY) : EMPTY_ARRAY;
+}
+
+function assertNeverSsrDomEffect(effect: never): never {
+  throw qError(QError.serializeErrorUnknownType, [(effect as SsrDomEffect).kind]);
+}
 
 /**
  * When serializing the object we need check if it is URL, RegExp, Map, Set, etc. This is time

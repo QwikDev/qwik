@@ -1,6 +1,6 @@
 /**
  * Devtools hook runtime - injected by the browser extension into the main world. Sets up
- * window.**QWIK_DEVTOOLS_HOOK** with signal tracking, component snapshots, and state editing. Skips
+ * window.**QWIK_DEVTOOLS**.hook with signal tracking, component snapshots, and state editing. Skips
  * if the Vite plugin already installed the hook.
  *
  * NOTE: This duplicates logic from plugin/virtualmodules/hookRuntime.ts. Both must stay in sync.
@@ -11,7 +11,26 @@
  */
 (function () {
   'use strict';
-  if (typeof window === 'undefined' || window.__QWIK_DEVTOOLS_HOOK__) return;
+  if (typeof window === 'undefined') return;
+
+  function getOrCreateRoot() {
+    var root =
+      window.__QWIK_DEVTOOLS__ ||
+      (window.__QWIK_DEVTOOLS__ = {
+        version: 1,
+        componentState: {},
+      });
+    root.version = root.version || 1;
+    root.componentState = root.componentState || {};
+    return root;
+  }
+
+  function getState() {
+    return getOrCreateRoot().componentState;
+  }
+
+  var root = getOrCreateRoot();
+  if (root.hook) return;
 
   var renderListeners = [];
 
@@ -89,7 +108,7 @@
   }
 
   function findComponentKey(componentName, qrlChunk) {
-    var state = window.QWIK_DEVTOOLS_GLOBAL_STATE;
+    var state = getState();
     if (!state) return null;
     var keys = Object.keys(state);
     if (qrlChunk) {
@@ -107,7 +126,7 @@
     return null;
   }
 
-  window.__QWIK_DEVTOOLS_HOOK__ = {
+  root.hook = {
     version: 1,
 
     _emitRender: function (info) {
@@ -124,7 +143,7 @@
     },
 
     getSignalsSnapshot: function () {
-      var state = window.QWIK_DEVTOOLS_GLOBAL_STATE;
+      var state = getState();
       if (!state) return {};
       var snapshot = {};
       var paths = Object.keys(state);
@@ -146,7 +165,7 @@
     },
 
     getComponentTreeSnapshot: function () {
-      var state = window.QWIK_DEVTOOLS_GLOBAL_STATE;
+      var state = getState();
       if (!state) return [];
       return Object.keys(state).map(function (path) {
         var comp = state[path];
@@ -185,7 +204,7 @@
     getComponentDetail: function (componentName, qrlChunk) {
       var key = findComponentKey(componentName, qrlChunk);
       if (!key) return null;
-      var state = window.QWIK_DEVTOOLS_GLOBAL_STATE;
+      var state = getState();
       var comp = state[key];
       if (!comp || !comp.hooks) return null;
       var result = [];
@@ -205,7 +224,7 @@
     setSignalValue: function (componentName, qrlChunk, variableName, newValue) {
       var key = findComponentKey(componentName, qrlChunk);
       if (!key) return false;
-      var state = window.QWIK_DEVTOOLS_GLOBAL_STATE;
+      var state = getState();
       var comp = state[key];
       if (!comp || !comp.hooks) return false;
       for (var i = 0; i < comp.hooks.length; i++) {

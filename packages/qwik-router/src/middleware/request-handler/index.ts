@@ -19,6 +19,7 @@ export type {
   Cookie,
   CookieOptions,
   CookieValue,
+  InternalRequest,
   ResolveValue,
   ResolveSyncValue,
   RequestEvent,

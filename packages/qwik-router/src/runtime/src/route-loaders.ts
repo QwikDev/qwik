@@ -80,6 +80,8 @@ const fetchCache = new Map<string, LoaderFetchCacheEntry>();
 
 const perfNow = () => globalThis.performance?.now() ?? Date.now();
 
+const isRedirectStatus = (status: number) => status >= 300 && status < 400;
+
 const setCache = (key: string, entry: LoaderFetchCacheEntry) => {
   fetchCache.set(key, entry);
   if (fetchCache.size > LOADER_FETCH_CACHE_MAX) {
@@ -224,6 +226,12 @@ export const fetchRouteLoaderData = async (
     // Middleware redirects produce HTTP 3xx — convert to LoaderResponse
     if (response.redirected) {
       return { r: response.url };
+    }
+    if (isRedirectStatus(response.status)) {
+      const location = response.headers.get('Location');
+      if (location) {
+        return { r: location };
+      }
     }
     if (!response.ok) {
       return undefined;

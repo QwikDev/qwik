@@ -1,8 +1,15 @@
 import type { Render } from '@qwik.dev/core/server';
 import { loadRoute } from '../../runtime/src/routing';
+import { FULLPATH_HEADER } from '../../runtime/src/route-loaders';
 import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
 import { _asyncRequestStore } from './async-request-store';
-import { trimInternalPathname } from './request-path';
+import {
+  IsQLoader,
+  recognizeRequest,
+  resolveValidInternalFullPathname,
+  trimInternalPathname,
+  trimRecognizedInternalPathname,
+} from './request-path';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { runQwikRouter, type QwikRouterRun } from './user-response';
@@ -28,7 +35,7 @@ export async function requestHandler<T = unknown>(
   const { render, checkOrigin } = opts;
   const config = await getConfig();
 
-  const pathname = trimInternalPathname(serverRequestEv.url.pathname);
+  const pathname = getRequestHandlerPathname(serverRequestEv);
   // Ignore requests for .well-known so static servers or other middleware can handle them
   if (pathname === '/.well-known' || pathname.startsWith('/.well-known/')) {
     return null;
@@ -64,6 +71,27 @@ export async function requestHandler<T = unknown>(
     requestHandlers,
     rebuildRouteInfo,
     config.basePathname
+  );
+}
+
+export function getRequestHandlerPathname(
+  serverRequestEv: Pick<ServerRequestEvent, 'url' | 'request'>
+) {
+  const recognized = recognizeRequest(serverRequestEv.url.pathname);
+  if (!recognized) {
+    return serverRequestEv.url.pathname;
+  }
+
+  const loaderPathname = trimRecognizedInternalPathname(serverRequestEv.url.pathname, recognized);
+  if (recognized.type !== IsQLoader) {
+    return loaderPathname;
+  }
+
+  return (
+    resolveValidInternalFullPathname(
+      loaderPathname,
+      serverRequestEv.request.headers.get(FULLPATH_HEADER)
+    ) ?? loaderPathname
   );
 }
 

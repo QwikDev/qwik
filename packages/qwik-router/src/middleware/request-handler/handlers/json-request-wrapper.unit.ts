@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
+import { _deserialize } from '@qwik.dev/core/internal';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
+import { RedirectMessage } from '../redirect-handler';
 import { IsQLoader } from '../request-path';
 import { jsonRequestWrapper } from './json-request-wrapper';
 
@@ -30,6 +32,20 @@ describe('jsonRequestWrapper', () => {
 
     expect(requestEv.headers.get('Vary')).toBe(`Accept-Encoding, ${FULLPATH_HEADER}`);
   });
+
+  it('serializes loader middleware redirects as loader responses', async () => {
+    const requestEv = createLoaderRequestEvent('/products/123/', '/products/123/view/');
+    requestEv.next = vi.fn(async () => {
+      requestEv.headers.set('Location', '/login/');
+      throw new RedirectMessage();
+    });
+
+    await jsonRequestWrapper()(requestEv as any);
+
+    const [, body] = requestEv.send.mock.calls[0];
+    expect(requestEv.headers.get('Location')).toBeNull();
+    expect(_deserialize(body)).toEqual({ r: '/login/' });
+  });
 });
 
 function createLoaderRequestEvent(loaderPathname: string, fullPathname: string) {
@@ -44,5 +60,6 @@ function createLoaderRequestEvent(loaderPathname: string, fullPathname: string) 
     headers: new Headers(),
     headersSent: false,
     next: vi.fn(async () => {}),
+    send: vi.fn(),
   };
 }

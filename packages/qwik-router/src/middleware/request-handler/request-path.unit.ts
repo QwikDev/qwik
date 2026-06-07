@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   getLoaderName,
   recognizeRequest,
+  resolveValidInternalFullPathname,
   trimInternalPathname,
   trimRecognizedInternalPathname,
 } from './request-path';
@@ -33,5 +34,19 @@ describe('request path helpers', () => {
 
     expect(recognized).not.toBeNull();
     expect(trimRecognizedInternalPathname(loaderPathname, recognized!)).toBe('/');
+  });
+
+  it('accepts internal full pathnames below the loader pathname', () => {
+    expect(resolveValidInternalFullPathname('/products/123/', '/products/123/view/')).toBe(
+      '/products/123/view/'
+    );
+  });
+
+  it('rejects internal full pathnames outside the loader pathname', () => {
+    expect(resolveValidInternalFullPathname('/products/123/', '/admin/')).toBeUndefined();
+  });
+
+  it('rejects protocol-relative internal full pathnames', () => {
+    expect(resolveValidInternalFullPathname('/products/123/', '//evil.com/')).toBeUndefined();
   });
 });

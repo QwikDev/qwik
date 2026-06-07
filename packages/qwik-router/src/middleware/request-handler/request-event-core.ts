@@ -188,6 +188,19 @@ export function createRequestEventWithDeps(
     },
     request,
     url,
+    get internalRequest() {
+      if (sharedMap.has(deps.IsQLoader)) {
+        return 'loader';
+      }
+      if (
+        sharedMap.has(deps.IsQAction) &&
+        request.method === 'POST' &&
+        request.headers.get('accept')?.includes('application/json')
+      ) {
+        return 'action';
+      }
+      return false;
+    },
     basePathname,
     sharedMap,
     get headersSent() {

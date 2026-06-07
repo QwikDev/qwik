@@ -63,3 +63,26 @@ export function trimInternalPathname(pathname: string): string {
   }
   return pathname;
 }
+
+export function resolveValidInternalFullPathname(
+  loaderPathname: string,
+  fullPath: string | null
+): string | undefined {
+  if (!fullPath || !fullPath.startsWith('/') || fullPath.startsWith('//')) {
+    return undefined;
+  }
+  try {
+    const pageUrl = new URL(fullPath, 'http://qwik.internal');
+    if (pageUrl.origin !== 'http://qwik.internal') {
+      return undefined;
+    }
+    const pagePathname = pageUrl.pathname;
+    if (pagePathname === loaderPathname) {
+      return undefined;
+    }
+    const loaderPrefix = ensureSlash(loaderPathname);
+    return pagePathname.startsWith(loaderPrefix) ? pagePathname : undefined;
+  } catch {
+    return undefined;
+  }
+}

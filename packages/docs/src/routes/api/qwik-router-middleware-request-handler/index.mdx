@@ -718,6 +718,16 @@ headers(): string[];
 
 string[]
 
+<h2 id="internalrequest">InternalRequest</h2>
+
+Internal JSON request kind handled by Qwik Router, or `false` for normal page requests.
+
+```typescript
+export type InternalRequest = false | "loader" | "action";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
+
 <h2 id="mergeheaderscookies">mergeHeadersCookies</h2>
 
 ```typescript
@@ -1053,6 +1063,25 @@ Headers
 HTTP response headers. Notice it will be empty until you first add a header. If you want to read the request headers, use `request.headers` instead.
 
 https://developer.mozilla.org/en-US/docs/Glossary/Response\_header
+
+</td></tr>
+<tr><td>
+
+internalRequest
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[InternalRequest](#internalrequest)
+
+</td><td>
+
+Identifies Qwik Router internal JSON requests, such as route loader fetches and fetch-based action submissions. Returns `false` for normal page requests.
+
+Check this before applying broad rewrite rules so internal JSON requests keep their routing behavior.
 
 </td></tr>
 <tr><td>

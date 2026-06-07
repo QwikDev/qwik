@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { _captures, createQRL } from '../../../shared/qrl/qrl-class';
 import {
   createAttrTarget,
-  createCaptureContainer,
   createOrderTextExpressionEffect,
   createText,
   noopSchedule,
@@ -11,13 +9,12 @@ import { disposeSubscriber } from '../../reactive/cleanup';
 import { createComputed } from '../../reactive/computed';
 import { ReactiveFlags } from '../../reactive/flags';
 import { createSignal } from '../../reactive/signal';
-import { Phase, Scheduler } from '../../runtime/scheduler';
+import { Scheduler } from '../../runtime/scheduler';
 import {
   createAttrEffect,
   createClassEffect,
   createStyleEffect,
   createTextExpressionEffect,
-  createTextExpressionEffectQrl,
   createTextNodeEffect,
   type TextExpressionFn,
 } from './effect';
@@ -166,69 +163,39 @@ describe('DOM effects', () => {
     expect(text.data).toBe('6');
   });
 
-  it('sorts DOM effects by order and keeps enqueue order for ties', async () => {
+  it('keeps enqueue order for DOM effects', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
-    const firstTie = createOrderTextExpressionEffect(
-      scheduler,
-      Phase.ScalarDom,
-      'first-tie',
-      order,
-      0
-    );
-    const nextOrder = createOrderTextExpressionEffect(
-      scheduler,
-      Phase.ScalarDom,
-      'next-order',
-      order,
-      1
-    );
-    const secondTie = createOrderTextExpressionEffect(
-      scheduler,
-      Phase.ScalarDom,
-      'second-tie',
-      order,
-      0
-    );
+    const first = createOrderTextExpressionEffect(scheduler, 'first', order);
+    const second = createOrderTextExpressionEffect(scheduler, 'second', order);
+    const third = createOrderTextExpressionEffect(scheduler, 'third', order);
 
-    scheduler.notify(nextOrder);
-    scheduler.notify(firstTie);
-    scheduler.notify(secondTie);
+    scheduler.notify(second);
+    scheduler.notify(first);
+    scheduler.notify(third);
     await scheduler.flushInteraction();
 
-    expect(order).toEqual(['first-tie', 'second-tie', 'next-order']);
+    expect(order).toEqual(['second', 'first', 'third']);
   });
 
-  it('sorts mixed DOM effects by order and keeps enqueue order for ties', async () => {
+  it('keeps enqueue order for mixed DOM effects', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order = createSignal('');
-    const first = createAttrEffect(createAttrTarget().element, 'data-order', order, {
-      scheduler,
-      order: 0,
-    });
-    const second = createStyleEffect(createAttrTarget().element, order, {
-      scheduler,
-      order: 0,
-    });
-    const third = createTextNodeEffect(createText(), order, { scheduler, order: 1 });
+    const first = createAttrEffect(createAttrTarget().element, 'data-order', order, { scheduler });
+    const second = createStyleEffect(createAttrTarget().element, order, { scheduler });
+    const third = createTextNodeEffect(createText(), order, { scheduler });
     const seen: string[] = [];
 
-    first.effect.run = () => {
-      seen.push('first');
-    };
-    second.effect.run = () => {
-      seen.push('second');
-    };
-    third.effect.run = () => {
-      seen.push('third');
-    };
+    first.effect.run = () => seen.push('first');
+    second.effect.run = () => seen.push('second');
+    third.effect.run = () => seen.push('third');
 
     scheduler.notify(third);
     scheduler.notify(first);
     scheduler.notify(second);
     await scheduler.flushInteraction();
 
-    expect(seen).toEqual(['first', 'second', 'third']);
+    expect(seen).toEqual(['third', 'first', 'second']);
   });
 
   it('removes direct DOM effects from sources when disposed', async () => {
@@ -266,7 +233,7 @@ describe('DOM effects', () => {
       createText(),
       [],
       (() => Promise.resolve('async')) as unknown as TextExpressionFn<[]>,
-      { scheduler, phase: Phase.ScalarDom }
+      { scheduler }
     );
 
     scheduler.notify(asyncText);
@@ -274,61 +241,6 @@ describe('DOM effects', () => {
     await expect(scheduler.flushInteraction()).rejects.toThrow(
       'Scalar DOM effects must be synchronous'
     );
-  });
-
-  it('loads text expression QRLs with args before patching text', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
-    const text = createText();
-    const prefix = createSignal('hello');
-    let resolved = false;
-    const qrl = createQRL<TextExpressionFn<[string]>>(
-      'chunk',
-      'symbol',
-      null,
-      () => {
-        resolved = true;
-        return Promise.resolve({
-          symbol: (suffix: string) => `${prefix.value}:${suffix}`,
-        });
-      },
-      null
-    );
-    const effect = createTextExpressionEffectQrl(text, ['world'], qrl, { scheduler });
-
-    scheduler.notify(effect);
-    await scheduler.flushInteraction();
-
-    expect(resolved).toBe(true);
-    expect(text.data).toBe('hello:world');
-  });
-
-  it('restores serialized captures for text expression QRLs', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
-    const text = createText();
-    const container = createCaptureContainer({
-      0: 'text',
-      1: 'capture',
-    });
-    const qrl = createQRL<TextExpressionFn<[string]>>(
-      'chunk',
-      'symbol',
-      null,
-      () =>
-        Promise.resolve({
-          symbol: (suffix: string) => `${(_captures as readonly string[]).join(':')}:${suffix}`,
-        }),
-      '0 1',
-      container
-    );
-    const effect = createTextExpressionEffectQrl(text, ['qrl'], qrl, {
-      scheduler,
-      container,
-    });
-
-    scheduler.notify(effect);
-    await scheduler.flushInteraction();
-
-    expect(text.data).toBe('text:capture:qrl');
   });
 
   it('cleans up dynamic dependencies for text expressions', async () => {

@@ -14,7 +14,7 @@ import { render as renderCsr, type CsrRenderRoot } from './csr-render';
 import type { BranchRange } from './dom/branch/branch';
 import { createTextExpressionEffect } from './dom/effect/effect';
 import { ReactiveFlags } from './reactive/flags';
-import { Phase, Scheduler } from './runtime/scheduler';
+import { Scheduler } from './runtime/scheduler';
 import {
   SubscriberKind,
   type DomSubscriber,
@@ -248,10 +248,8 @@ export function createTaskSubscriber(
 
 export function createOrderTextExpressionEffect(
   scheduler: Scheduler,
-  phase: Phase.StructuralDom | Phase.ScalarDom,
   label: string,
-  order: string[],
-  orderIndex = 0
+  order: string[]
 ): DomSubscriber {
   return createTextExpressionEffect(
     createText(),
@@ -260,11 +258,7 @@ export function createOrderTextExpressionEffect(
       order.push(label);
       return label;
     },
-    {
-      scheduler,
-      phase,
-      order: orderIndex,
-    }
+    { scheduler }
   );
 }
 

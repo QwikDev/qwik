@@ -12,7 +12,7 @@ import type {
   VisibleTaskSubscriber,
 } from './subscriber';
 
-type StructuralSubscriber = DomSubscriber | BranchSubscriber;
+type StructuralSubscriber = BranchSubscriber;
 
 export const enum Phase {
   BlockingTask = 0,
@@ -122,11 +122,7 @@ export class Scheduler {
         this.visibleTasks.push({ subscriber, epoch });
         return;
       case SubscriberKind.Dom:
-        if (subscriber.effect.phase === Phase.StructuralDom) {
-          pushSorted(this.structuralDom, { subscriber, epoch }, compareStructuralJob);
-        } else {
-          pushSorted(this.scalarDom, { subscriber, epoch }, compareDomJob);
-        }
+        pushSorted(this.scalarDom, { subscriber, epoch }, compareDomJob);
         return;
       case SubscriberKind.Branch:
         pushSorted(this.structuralDom, { subscriber, epoch }, compareStructuralJob);
@@ -240,13 +236,6 @@ export class Scheduler {
     await runWithCollector(task, runVisibleTaskRecord, task.task);
   }
 
-  private async runDomEffect(effect: DomSubscriber): Promise<void> {
-    effect.flags &= ~ReactiveFlags.Scheduled;
-    effect.flags &= ~ReactiveFlags.Dirty;
-    cleanupDeps(effect);
-    await runWithCollector(effect, runDomEffectRecord, effect.effect);
-  }
-
   private async runBranch(branch: BranchSubscriber): Promise<void> {
     branch.flags &= ~ReactiveFlags.Scheduled;
     branch.flags &= ~ReactiveFlags.Dirty;
@@ -255,11 +244,7 @@ export class Scheduler {
   }
 
   private async runStructuralSubscriber(subscriber: StructuralSubscriber): Promise<void> {
-    if (subscriber.kind === SubscriberKind.Branch) {
-      await this.runBranch(subscriber);
-    } else {
-      await this.runDomEffect(subscriber);
-    }
+    await this.runBranch(subscriber);
   }
 
   private runScalarDomEffect(effect: DomSubscriber): void {
@@ -371,19 +356,7 @@ function compareTaskJob(a: SchedulerJob<TaskSubscriber>, b: SchedulerJob<TaskSub
   return 0;
 }
 
-function compareDomJob(a: SchedulerJob<DomSubscriber>, b: SchedulerJob<DomSubscriber>): number {
-  const aEffect = a.subscriber.effect;
-  const bEffect = b.subscriber.effect;
-  const phase = aEffect.phase - bEffect.phase;
-  if (phase !== 0) {
-    return phase;
-  }
-
-  const order = aEffect.order - bEffect.order;
-  if (order !== 0) {
-    return order;
-  }
-
+function compareDomJob(_a: SchedulerJob<DomSubscriber>, _b: SchedulerJob<DomSubscriber>): number {
   return 0;
 }
 
@@ -400,9 +373,7 @@ function compareStructuralJob(
 }
 
 function getStructuralOrder(subscriber: StructuralSubscriber): number {
-  return subscriber.kind === SubscriberKind.Branch
-    ? subscriber.branch.order
-    : subscriber.effect.order;
+  return subscriber.branch.order;
 }
 
 function comparePath(a: readonly number[], b: readonly number[]): number {

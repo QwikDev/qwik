@@ -1,6 +1,4 @@
-import type { QRLInternal } from '../../../shared/qrl/qrl-class';
 import type { ClassList } from '../../../shared/jsx/types/jsx-qwik-attributes';
-import type { Container } from '../../../shared/types';
 import { isPromise } from '../../../shared/utils/promises';
 import { serializeClass, stringifyStyle } from '../../../shared/utils/styles';
 import { ReactiveFlags } from '../../reactive/flags';
@@ -9,13 +7,7 @@ import { defaultScheduler, Phase, type Scheduler } from '../../runtime/scheduler
 import { SubscriberKind, type DomSubscriber } from '../../runtime/subscriber';
 import { readSourceValue, type Dependency, type Source } from '../../reactive/source';
 import { track } from '../../reactive/tracking';
-
-export const enum DomEffectKind {
-  TextExpression = 0,
-  TextNode = 1,
-  Attr = 2,
-  SerializedAttr = 3,
-}
+import { EffectKind } from './effect-kind.enum';
 
 export const enum AttrSerializer {
   Class = 0,
@@ -26,18 +18,9 @@ export type TextExpressionValue = string | number | boolean | bigint | null | un
 export type TextExpressionFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => TextExpressionValue;
-export type TextExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
-  TextExpressionFn<TArgs>
->;
 
 export interface DomEffectOptions {
-  phase?: Phase.StructuralDom | Phase.ScalarDom;
-  order?: number;
   scheduler?: Scheduler;
-}
-
-export interface TextExpressionOptions extends DomEffectOptions {
-  container?: Container;
 }
 
 export type DomEffect =
@@ -47,31 +30,27 @@ export type DomEffect =
   | SerializedAttrEffect;
 
 export class TextExpressionEffect<TArgs extends unknown[] = unknown[]> {
-  readonly kind = DomEffectKind.TextExpression;
+  readonly kind = EffectKind.TextExpression;
+  readonly phase = Phase.ScalarDom;
 
   constructor(
     readonly text: Text,
     readonly args: TArgs,
-    readonly fn: TextExpressionFn<TArgs> | undefined,
-    readonly qrl: TextExpressionQrl<TArgs> | undefined,
-    readonly phase: Phase.StructuralDom | Phase.ScalarDom,
-    readonly order: number,
-    readonly container?: Container
+    readonly fn: TextExpressionFn<TArgs>
   ) {}
 
   run(): unknown {
-    return runTextExpressionEffect(this);
+    return patchTextValue(this.text, this.fn(...this.args));
   }
 }
 
 export class TextNodeEffect {
-  readonly kind = DomEffectKind.TextNode;
+  readonly kind = EffectKind.TextNode;
+  readonly phase = Phase.ScalarDom;
 
   constructor(
     readonly text: Text,
-    readonly source: Source,
-    readonly phase: Phase.StructuralDom | Phase.ScalarDom,
-    readonly order: number
+    readonly source: Source
   ) {}
 
   run(): void {
@@ -80,14 +59,13 @@ export class TextNodeEffect {
 }
 
 export class AttrEffect {
-  readonly kind = DomEffectKind.Attr;
+  readonly kind = EffectKind.Attr;
+  readonly phase = Phase.ScalarDom;
 
   constructor(
     readonly element: Element,
     readonly name: string,
-    readonly source: Source,
-    readonly phase: Phase.StructuralDom | Phase.ScalarDom,
-    readonly order: number
+    readonly source: Source
   ) {}
 
   run(): void {
@@ -96,25 +74,26 @@ export class AttrEffect {
 }
 
 export class SerializedAttrEffect {
-  readonly kind = DomEffectKind.SerializedAttr;
+  readonly kind = EffectKind.SerializedAttr;
+  readonly phase = Phase.ScalarDom;
 
   constructor(
     readonly element: Element,
-    readonly name: 'class' | 'style',
     readonly source: Source,
-    readonly serializer: AttrSerializer,
-    readonly phase: Phase.StructuralDom | Phase.ScalarDom,
-    readonly order: number
+    readonly serializer: AttrSerializer
   ) {}
 
   run(): void {
     const value = readTrackedSourceValue(this.source);
-    const serialized =
-      this.serializer === AttrSerializer.Class
-        ? serializeClass(value as ClassList)
-        : stringifyStyle(value);
+    const isClass = this.serializer === AttrSerializer.Class;
 
-    this.element.setAttribute(this.name, serialized);
+    if (isClass) {
+      const serialized = serializeClass(value as ClassList);
+      this.element.setAttribute('class', serialized);
+    } else {
+      const serialized = stringifyStyle(value);
+      this.element.setAttribute('style', serialized);
+    }
   }
 }
 
@@ -139,24 +118,9 @@ export function createTextExpressionEffect<TArgs extends unknown[]>(
   text: Text,
   args: TArgs,
   fn: TextExpressionFn<TArgs>,
-  options?: TextExpressionOptions
+  options?: DomEffectOptions
 ): DomSubscriber {
-  return createDomSubscription(
-    createTextExpressionRecord(text, args, fn, undefined, false, options),
-    options?.scheduler
-  );
-}
-
-export function createTextExpressionEffectQrl<TArgs extends unknown[]>(
-  text: Text,
-  args: TArgs,
-  qrl: TextExpressionQrl<TArgs>,
-  options?: TextExpressionOptions
-): DomSubscriber {
-  return createDomSubscription(
-    createTextExpressionRecord(text, args, undefined, qrl, true, options),
-    options?.scheduler
-  );
+  return createDomSubscription(createTextExpressionRecord(text, args, fn), options?.scheduler);
 }
 
 export function createTextNodeEffect(
@@ -164,10 +128,7 @@ export function createTextNodeEffect(
   source: Source,
   options?: DomEffectOptions
 ): DomSubscriber {
-  return createDomSubscription(
-    new TextNodeEffect(text, source, options?.phase ?? Phase.ScalarDom, options?.order ?? 0),
-    options?.scheduler
-  );
+  return createDomSubscription(new TextNodeEffect(text, source), options?.scheduler);
 }
 
 export function createAttrEffect(
@@ -176,10 +137,7 @@ export function createAttrEffect(
   source: Source,
   options?: DomEffectOptions
 ): DomSubscriber {
-  return createDomSubscription(
-    new AttrEffect(element, name, source, options?.phase ?? Phase.ScalarDom, options?.order ?? 0),
-    options?.scheduler
-  );
+  return createDomSubscription(new AttrEffect(element, name, source), options?.scheduler);
 }
 
 export function createClassEffect(
@@ -188,14 +146,7 @@ export function createClassEffect(
   options?: DomEffectOptions
 ): DomSubscriber {
   return createDomSubscription(
-    new SerializedAttrEffect(
-      element,
-      'class',
-      source,
-      AttrSerializer.Class,
-      options?.phase ?? Phase.ScalarDom,
-      options?.order ?? 0
-    ),
+    new SerializedAttrEffect(element, source, AttrSerializer.Class),
     options?.scheduler
   );
 }
@@ -206,14 +157,7 @@ export function createStyleEffect(
   options?: DomEffectOptions
 ): DomSubscriber {
   return createDomSubscription(
-    new SerializedAttrEffect(
-      element,
-      'style',
-      source,
-      AttrSerializer.Style,
-      options?.phase ?? Phase.ScalarDom,
-      options?.order ?? 0
-    ),
+    new SerializedAttrEffect(element, source, AttrSerializer.Style),
     options?.scheduler
   );
 }
@@ -225,38 +169,9 @@ function createDomSubscription(effect: DomEffect, scheduler: Scheduler | undefin
 function createTextExpressionRecord<TArgs extends unknown[]>(
   text: Text,
   args: TArgs,
-  fn: TextExpressionFn<TArgs> | undefined,
-  qrl: TextExpressionQrl<TArgs> | undefined,
-  isQrl: boolean,
-  options: TextExpressionOptions | undefined
+  fn: TextExpressionFn<TArgs>
 ): TextExpressionEffect<TArgs> {
-  return new TextExpressionEffect(
-    text,
-    args,
-    fn,
-    qrl,
-    options?.phase ?? (isQrl ? Phase.StructuralDom : Phase.ScalarDom),
-    options?.order ?? 0,
-    options?.container
-  );
-}
-
-function runTextExpressionEffect<TArgs extends unknown[]>(
-  effect: TextExpressionEffect<TArgs>
-): unknown {
-  if (effect.fn !== undefined) {
-    return patchTextValue(effect.text, effect.fn(...effect.args));
-  }
-
-  const qrl = effect.qrl!;
-  const resolved = qrl.resolved;
-  if (resolved !== undefined) {
-    return patchTextValue(effect.text, resolved(...effect.args));
-  }
-
-  return qrl.resolve(effect.container).then((fn) => {
-    return patchTextValue(effect.text, fn(...effect.args));
-  });
+  return new TextExpressionEffect(text, args, fn);
 }
 
 function patchTextValue(text: Text, value: TextExpressionValue | Promise<TextExpressionValue>) {

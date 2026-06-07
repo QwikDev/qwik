@@ -21,7 +21,7 @@ import {
   runWithOwner,
   type Owner,
 } from './owner';
-import { Phase, Scheduler } from './scheduler';
+import { Scheduler } from './scheduler';
 import type { DomSubscriber, TaskSubscriber, VisibleTaskSubscriber } from './subscriber';
 import {
   createTask,
@@ -32,25 +32,20 @@ import {
 } from './task';
 
 describe('runtime scheduler and owner lifecycle', () => {
-  it('flushes scheduled work in phase order', async () => {
+  it('flushes blocking tasks before DOM effects', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
     const task = createTaskSubscriber(scheduler, 'task', order);
-    const structural = createOrderTextExpressionEffect(
-      scheduler,
-      Phase.StructuralDom,
-      'structural',
-      order
-    );
-    const scalar = createOrderTextExpressionEffect(scheduler, Phase.ScalarDom, 'scalar', order);
+    const firstDom = createOrderTextExpressionEffect(scheduler, 'first-dom', order);
+    const secondDom = createOrderTextExpressionEffect(scheduler, 'second-dom', order);
 
-    scheduler.notify(scalar);
-    scheduler.notify(structural);
+    scheduler.notify(secondDom);
+    scheduler.notify(firstDom);
     scheduler.notify(task);
 
     await scheduler.flushInteraction();
 
-    expect(order).toEqual(['task', 'structural', 'scalar']);
+    expect(order).toEqual(['task', 'second-dom', 'first-dom']);
   });
 
   it('sorts blocking tasks by group path and task index', async () => {
@@ -86,7 +81,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   it('dedupes scheduled subscribers in one batch', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
-    const scalar = createOrderTextExpressionEffect(scheduler, Phase.ScalarDom, 'scalar', order);
+    const scalar = createOrderTextExpressionEffect(scheduler, 'scalar', order);
 
     scheduler.notify(scalar);
     scheduler.notify(scalar);

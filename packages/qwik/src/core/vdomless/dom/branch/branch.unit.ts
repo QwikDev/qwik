@@ -25,7 +25,7 @@ import {
   type SlotScope,
 } from '../../runtime/invoke-context';
 import { createOwner, runWithOwner } from '../../runtime/owner';
-import { Phase, Scheduler } from '../../runtime/scheduler';
+import { Scheduler } from '../../runtime/scheduler';
 import type { BranchSubscriber, DomSubscriber } from '../../runtime/subscriber';
 import {
   BranchState,
@@ -207,7 +207,7 @@ describe('branches', () => {
     expect(renderRuns).toBe(1);
   });
 
-  it('sorts structural branches with structural DOM effects by order', async () => {
+  it('flushes branches before scalar DOM effects', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
     const { range } = createBranchRange();
@@ -219,7 +219,7 @@ describe('branches', () => {
         order.push('branch');
       },
       undefined,
-      { scheduler, order: 0 }
+      { scheduler }
     );
     const effect = createTextExpressionEffect(
       createText(),
@@ -228,7 +228,7 @@ describe('branches', () => {
         order.push('effect');
         return 'effect';
       },
-      { scheduler, phase: Phase.StructuralDom, order: 1 }
+      { scheduler }
     );
 
     scheduler.notify(effect);

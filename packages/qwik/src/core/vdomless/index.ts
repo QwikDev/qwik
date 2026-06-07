@@ -126,7 +126,6 @@ export {
 export {
   AttrSerializer,
   AttrEffect,
-  DomEffectKind,
   DomSubscription,
   SerializedAttrEffect,
   TextExpressionEffect,
@@ -135,12 +134,9 @@ export {
   createClassEffect,
   createStyleEffect,
   createTextExpressionEffect,
-  createTextExpressionEffectQrl,
   createTextNodeEffect,
   type DomEffect,
   type DomEffectOptions,
   type TextExpressionFn,
-  type TextExpressionOptions,
-  type TextExpressionQrl,
   type TextExpressionValue,
 } from './dom/effect/effect';

@@ -4,6 +4,7 @@ import type { ValueOrPromise } from '../../shared/utils/types';
 import type { DomEffect } from '../dom/effect/effect';
 import type { ComputedSource, Dependency } from '../reactive/source';
 import type { Task, VisibleTask } from './task';
+import type { SsrDomEffect } from '../dom/effect/ssr-effect';
 
 export const enum SubscriberKind {
   Computed = 0,
@@ -64,6 +65,14 @@ export interface IdleSubscriber extends ScheduledSubscriber {
   readonly job: IdleJobRecord;
 }
 
+// SSR-only
+
+export interface SsrDomSubscriber extends Collector {
+  readonly kind: SubscriberKind.Dom;
+  readonly effect: SsrDomEffect;
+  notify(): void;
+}
+
 // Work scheduled into one of the runtime phases.
 export type PhaseSubscriber =
   | TaskSubscriber
@@ -77,5 +86,7 @@ export type CollectorSubscriber =
   | TaskSubscriber
   | VisibleTaskSubscriber
   | DomSubscriber
-  | BranchSubscriber;
-export type Subscriber = ComputedSubscriber | PhaseSubscriber;
+  | BranchSubscriber
+  | SsrDomSubscriber;
+
+export type Subscriber = ComputedSubscriber | PhaseSubscriber | SsrDomSubscriber;

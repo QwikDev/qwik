@@ -8,7 +8,7 @@ import type { ComponentRecord, QrlSegmentOutput, RenderNode, SegmentRecord } fro
 import { QwikSymbol } from '../words';
 import { emitCsrModule } from './emit-csr';
 import { emitSsrModule } from './emit-ssr';
-import { emitImports } from './emit-utils';
+import { emitImports, hasDynamicText } from './emit-utils';
 
 export async function emitModules(ctx: CompilerContext) {
   if (ctx.manifest.diagnostics.length > 0) {
@@ -23,12 +23,13 @@ export async function emitModules(ctx: CompilerContext) {
 
   const isServer = ctx.options.isServer !== false;
   const qrlSegments = collectQrlSegments(ctx, supported);
+  const needsTextExpression = supported.some((component) => hasDynamicText(component.root));
   const imports = isServer
     ? createSsrImports(ctx.manifest.imports, qrlSegments)
-    : createCsrImports(qrlSegments);
+    : createCsrImports(ctx.manifest.imports, qrlSegments, needsTextExpression);
   const outputCode = isServer
     ? emitSsrModule(supported, qrlSegments, ctx.input.code, imports)
-    : emitCsrModule(supported, qrlSegments, imports);
+    : emitCsrModule(supported, qrlSegments, ctx.input.code, imports);
   const modules = [createModule(ctx.input.path, outputCode)];
 
   for (const qrlSegment of qrlSegments.values()) {

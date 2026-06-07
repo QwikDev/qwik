@@ -11,6 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@qwik.dev/devtools/kit': fromRoot('./packages/devtools/kit/src/index.ts'),
+      '@qwik.dev/core/spark': fromRoot('./packages/qwik/src/spark/index.ts'),
     },
   },
   plugins: [

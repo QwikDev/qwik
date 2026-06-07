@@ -28,6 +28,10 @@ export function createQwikCoreImport(...specifiers: QwikSymbol[]) {
   return createNamedImport(QwikModule.Core, specifiers);
 }
 
+export function createQwikSparkImport(...specifiers: QwikSymbol[]) {
+  return createNamedImport(QwikModule.Spark, specifiers);
+}
+
 export function createSsrImports(
   imports: readonly ImportRecord[],
   qrlSegments: Map<string, QrlSegmentOutput>
@@ -38,16 +42,27 @@ export function createSsrImports(
   return normalizeImports([...imports, createQwikCoreImport(QwikSymbol.Qrl)]);
 }
 
-export function createCsrImports(qrlSegments: Map<string, QrlSegmentOutput>) {
-  if (qrlSegments.size === 0) {
+export function createCsrImports(
+  imports: readonly ImportRecord[],
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  needsTextExpression: boolean
+) {
+  if (qrlSegments.size === 0 && !needsTextExpression) {
     return [];
   }
-  return normalizeImports([
-    createQwikCoreImport(QwikSymbol.SetEvent),
-    ...Array.from(qrlSegments.values(), (qrlSegment) =>
-      createNamedImport(qrlSegment.importPath, [qrlSegment.symbolName])
-    ),
-  ]);
+  const records: ImportRecord[] = [];
+  if (needsTextExpression) {
+    records.push(...imports, createQwikSparkImport(QwikSymbol.CreateTextExpressionEffect));
+  }
+  if (qrlSegments.size > 0) {
+    records.push(
+      createQwikCoreImport(QwikSymbol.SetEvent),
+      ...Array.from(qrlSegments.values(), (qrlSegment) =>
+        createNamedImport(qrlSegment.importPath, [qrlSegment.symbolName])
+      )
+    );
+  }
+  return normalizeImports(records);
 }
 
 export function normalizeImports(imports: readonly ImportRecord[]) {

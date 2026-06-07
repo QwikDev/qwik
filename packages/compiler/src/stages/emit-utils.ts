@@ -58,20 +58,13 @@ export function escapeAttr(value: string) {
   return escapeText(value).replace(/"/g, '&quot;');
 }
 
-export function indent(value: string, spaces: number) {
-  const prefix = ' '.repeat(spaces);
-  return value
-    .split('\n')
-    .map((line) => `${prefix}${line}`)
-    .join('\n');
-}
-
 export function emitComponentSetup(
   component: ComponentRecord,
   qrlSegments: Map<string, QrlSegmentOutput>,
-  sourceCode: string
+  sourceCode: string,
+  force = false
 ) {
-  if (!hasCapturedQrlSegment(component.root, qrlSegments)) {
+  if (!force && !hasCapturedQrlSegment(component.root, qrlSegments)) {
     return '';
   }
   return component.setupRanges.map(([start, end]) => sourceCode.slice(start, end)).join('\n');
@@ -96,6 +89,19 @@ export function hasCapturedQrlSegment(
   }
   if (node.kind === 'element' || node.kind === 'fragment') {
     return node.children.some((child) => hasCapturedQrlSegment(child, qrlSegments));
+  }
+  return false;
+}
+
+export function hasDynamicText(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'dynamicText') {
+    return true;
+  }
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some(hasDynamicText);
   }
   return false;
 }

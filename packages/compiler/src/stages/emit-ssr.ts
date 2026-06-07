@@ -5,7 +5,6 @@ import {
   emitImports,
   escapeAttr,
   escapeText,
-  indent,
   serializeAttrValue,
 } from './emit-utils';
 
@@ -48,21 +47,21 @@ function emitSsrComponent(
 ) {
   const html = emitHtmlExpression(component.root!, qrlSegments);
   const setup = emitComponentSetup(component, qrlSegments, sourceCode);
-  const setupCode = setup ? `${indent(setup, 2)}\n` : '';
+  const body = setup ? `${setup}\nreturn ${html};` : `return ${html};`;
   if (component.declarationKind === 'function') {
-    return `export function ${component.exportName}(_props, _ctx) {\n${setupCode}  return ${html};\n}`;
+    return `export function ${component.exportName}(_props, _ctx) {\n${body}\n}`;
   }
   if (component.declarationKind === 'const') {
     return setup
-      ? `export const ${component.exportName} = (_props, _ctx) => {\n${setupCode}  return ${html};\n};`
+      ? `export const ${component.exportName} = (_props, _ctx) => {\n${body}\n};`
       : `export const ${component.exportName} = (_props, _ctx) => ${html};`;
   }
   if (component.declarationKind === 'defaultFunction') {
     const name = component.localName ? ` ${component.localName}` : '';
-    return `export default function${name}(_props, _ctx) {\n${setupCode}  return ${html};\n}`;
+    return `export default function${name}(_props, _ctx) {\n${body}\n}`;
   }
   return setup
-    ? `export default (_props, _ctx) => {\n${setupCode}  return ${html};\n};`
+    ? `export default (_props, _ctx) => {\n${body}\n};`
     : `export default (_props, _ctx) => ${html};`;
 }
 
@@ -103,6 +102,9 @@ function emitHtmlParts(node: RenderNode, qrlSegments: Map<string, QrlSegmentOutp
     }
     parts.push(`</${node.tag}>`);
     return parts;
+  }
+  if (node.kind === 'dynamicText') {
+    throw new Error('Dynamic JSX children are not supported yet.');
   }
   throw new Error(node.reason);
 }

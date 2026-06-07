@@ -126,13 +126,18 @@ export interface TextNode {
   value: string;
 }
 
+export interface DynamicTextNode {
+  kind: 'dynamicText';
+  expressionRange: SourceRange;
+}
+
 export interface ExprNode {
   kind: 'expr';
   role: 'text' | 'attr' | 'child';
   reason: string;
 }
 
-export type RenderNode = ElementNode | FragmentNode | TextNode | ExprNode;
+export type RenderNode = ElementNode | FragmentNode | TextNode | DynamicTextNode | ExprNode;
 
 export interface PropRecord {
   name: string;

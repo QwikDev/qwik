@@ -310,7 +310,7 @@ export async function csrRender(jsx: JSXOutput, options?: RenderOptions): Promis
   document.body.appendChild(container);
 
   const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
-  const renderResult = await renderCsr(compiled.root, container);
+  const renderResult = await renderCsr(compiled.root, container, { scheduler });
   const nodes = Array.from(container.childNodes);
   const cleanup = createRenderCleanup(renderResult.cleanup, container);
   const result = createRenderResult(document, container, nodes, scheduler, cleanup);
@@ -422,7 +422,7 @@ async function createCompiledInput(jsx: JSXOutput): Promise<CompiledInput> {
   if (!components.some((component) => component.name === componentName)) {
     components.push(getComponentDeclaration(sourceFile, componentName, jsxPosition));
   }
-  const imports = getQwikCoreImports(sourceFile);
+  const imports = getQwikImports(sourceFile);
   const exports = components.map(
     (component) => `export const ${component.name} = ${component.initializer};`
   );
@@ -591,7 +591,7 @@ function isComponentDollarCall(expression: ts.Expression): expression is ts.Call
     : false;
 }
 
-function getQwikCoreImports(sourceFile: ts.SourceFile): string[] {
+function getQwikImports(sourceFile: ts.SourceFile): string[] {
   const imports: string[] = [];
 
   for (let i = 0; i < sourceFile.statements.length; i++) {
@@ -599,7 +599,8 @@ function getQwikCoreImports(sourceFile: ts.SourceFile): string[] {
     if (
       ts.isImportDeclaration(statement) &&
       ts.isStringLiteral(statement.moduleSpecifier) &&
-      statement.moduleSpecifier.text === '@qwik.dev/core'
+      (statement.moduleSpecifier.text === '@qwik.dev/core' ||
+        statement.moduleSpecifier.text === '@qwik.dev/core/spark')
     ) {
       imports.push(statement.getText(sourceFile));
     }

@@ -81,13 +81,13 @@ function createComponentInvokeOptions(
 ): ChildInvokeContextOptions {
   const invokeOptions: ChildInvokeContextOptions = {};
 
-  if (options !== undefined && 'container' in options) {
+  if (options !== undefined) {
     invokeOptions.container = options.container;
   }
-  if (options !== undefined && 'idPrefix' in options) {
+  if (options !== undefined) {
     invokeOptions.idPrefix = options.idPrefix;
   }
-  if (options !== undefined && 'slotScope' in options) {
+  if (options !== undefined) {
     invokeOptions.slotScope = options.slotScope;
   }
 

@@ -44,6 +44,12 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.srcQwikDir, 'spark'),
+    join(config.distQwikPkgDir, 'spark', 'index.d.ts'),
+    '..'
+  );
+  createTypesApi(
+    config,
     join(config.srcQwikDir, 'build'),
     join(config.distQwikPkgDir, 'build', 'index.d.ts'),
     '..'
@@ -236,7 +242,7 @@ function createTypesApi(
     showDiagnostics: true,
     messageCallback(msg) {
       msg.handled = true;
-      if (msg.logLevel === 'verbose') {
+      if (msg.logLevel === 'verbose' || msg.logLevel === 'none') {
         return;
       }
       if (msg.text.includes('Analysis will use')) {

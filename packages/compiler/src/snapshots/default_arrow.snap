@@ -5,8 +5,7 @@ export default () => <section>Default arrow</section>;
 
 ============================= src/component.tsx ==
 
-export default (_props, _ctx) => "<section>Default arrow</section>";
-
+export default (_props, _ctx) => '<section>Default arrow</section>';
 
 null
 == SSR DIAGNOSTICS ==
@@ -17,12 +16,11 @@ null
 ============================= src/component.tsx ==
 
 export default (_props, ctx) => {
-  const el0 = ctx.document.createElement("section");
-  const text1 = ctx.document.createTextNode("Default arrow");
+  const el0 = ctx.document.createElement('section');
+  const text1 = ctx.document.createTextNode('Default arrow');
   el0.appendChild(text1);
   return [el0];
 };
-
 
 null
 == CSR DIAGNOSTICS ==

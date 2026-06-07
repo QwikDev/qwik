@@ -1,8 +1,9 @@
 ==INPUT==
 
-const name = 'Qwik';
+import { createSignal } from '@qwik.dev/core/spark';
 export function App() {
-  return <p>Hello {name}</p>;
+  const count = createSignal(0);
+  return <p>{count.value}</p>;
 }
 
 == SSR OUTPUT ==
@@ -29,19 +30,21 @@ null
 
 ============================= src/component.tsx ==
 
+import { createSignal, createTextExpressionEffect } from '@qwik.dev/core/spark';
 
+export function App(_props, ctx) {
+  const count = createSignal(0);
+  const el0 = ctx.document.createElement('p');
+  const text1 = ctx.document.createTextNode('');
+  const effect2 = createTextExpressionEffect(text1, [], () => count.value, {
+    scheduler: ctx.scheduler,
+  });
+  ctx.scheduler.notify(effect2);
+  el0.appendChild(text1);
+  return [el0];
+}
 
 null
 == CSR DIAGNOSTICS ==
 
-[
-  {
-    "scope": "compiler",
-    "category": "error",
-    "code": "vdomless-unsupported",
-    "file": "src/component.tsx",
-    "message": "Dynamic JSX children are not supported yet.",
-    "highlights": null,
-    "suggestions": null
-  }
-]
+[]

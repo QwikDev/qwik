@@ -9,9 +9,8 @@ export function App() {
 ============================= src/component.tsx ==
 
 export function App(_props, _ctx) {
-  return "<main class=\"shell\" hidden><h1>Hello</h1><p>Qwik</p></main>";
+  return '<main class="shell" hidden><h1>Hello</h1><p>Qwik</p></main>';
 }
-
 
 null
 == SSR DIAGNOSTICS ==
@@ -22,20 +21,19 @@ null
 ============================= src/component.tsx ==
 
 export function App(_props, ctx) {
-  const el0 = ctx.document.createElement("main");
-  el0.setAttribute("class", "shell");
-  el0.setAttribute("hidden", "");
-  const el1 = ctx.document.createElement("h1");
-  const text2 = ctx.document.createTextNode("Hello");
+  const el0 = ctx.document.createElement('main');
+  el0.setAttribute('class', 'shell');
+  el0.setAttribute('hidden', '');
+  const el1 = ctx.document.createElement('h1');
+  const text2 = ctx.document.createTextNode('Hello');
   el1.appendChild(text2);
   el0.appendChild(el1);
-  const el3 = ctx.document.createElement("p");
-  const text4 = ctx.document.createTextNode("Qwik");
+  const el3 = ctx.document.createElement('p');
+  const text4 = ctx.document.createTextNode('Qwik');
   el3.appendChild(text4);
   el0.appendChild(el3);
   return [el0];
 }
-
 
 null
 == CSR DIAGNOSTICS ==

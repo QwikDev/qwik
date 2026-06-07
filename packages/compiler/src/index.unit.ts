@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { transformModules } from './index';
+import { format as formatCode } from 'prettier';
 import type {
   TransformModuleInput,
   TransformModulesOptions,
@@ -27,26 +28,30 @@ async function testInput(snapshotName: string, input: TestInput) {
   };
   const ssr = await transformModules(baseOptions(moduleInput, true));
   const csr = await transformModules(baseOptions(moduleInput, false));
-  await expect(snapshotResult(input.code, { ssr, csr })).toMatchFileSnapshot(
+  await expect(await snapshotResult(input.code, { ssr, csr })).toMatchFileSnapshot(
     `./snapshots/${snapshotName}.snap`
   );
   return { ssr, csr };
 }
 
-function snapshotResult(code: string, result: { ssr: TransformOutput; csr: TransformOutput }) {
+async function snapshotResult(
+  code: string,
+  result: { ssr: TransformOutput; csr: TransformOutput }
+) {
   let output = `==INPUT==\n\n${code}`;
 
-  output += snapshotTransformOutput('SSR', result.ssr);
-  output += snapshotTransformOutput('CSR', result.csr);
+  output += await snapshotTransformOutput('SSR', result.ssr);
+  output += await snapshotTransformOutput('CSR', result.csr);
   return output;
 }
 
-function snapshotTransformOutput(label: string, result: TransformOutput) {
+async function snapshotTransformOutput(label: string, result: TransformOutput) {
   let output = `\n== ${label} OUTPUT ==\n`;
 
   for (const module of result.modules) {
     const isEntry = module.isEntry ? '(ENTRY POINT)' : '';
-    output += `\n============================= ${module.path} ${isEntry}==\n\n${module.code}\n\n${module.map}`;
+    const code = await formatSnapshotCode(module.code);
+    output += `\n============================= ${module.path} ${isEntry}==\n\n${code}\n\n${module.map}`;
     if (module.segment) {
       output += `\n/*\n${JSON.stringify(module.segment, null, 2)}\n*/`;
     }
@@ -54,6 +59,24 @@ function snapshotTransformOutput(label: string, result: TransformOutput) {
 
   output += `\n== ${label} DIAGNOSTICS ==\n\n${JSON.stringify(result.diagnostics, null, 2)}`;
   return output;
+}
+
+async function formatSnapshotCode(code: string) {
+  if (!code.trim()) {
+    return code;
+  }
+  try {
+    return (
+      await formatCode(code, {
+        parser: 'babel',
+        printWidth: 100,
+        singleQuote: true,
+        trailingComma: 'es5',
+      })
+    ).trimEnd();
+  } catch {
+    return code;
+  }
 }
 
 describe('transformModules', () => {
@@ -133,11 +156,12 @@ export function App() {
     });
   });
 
-  test('reports dynamic JSX expressions as unsupported', async () => {
+  test('supports CSR dynamic text and reports SSR dynamic text as deferred', async () => {
     await testInput('unsupported_dynamic_jsx', {
-      code: `const name = 'Qwik';
+      code: `import { createSignal } from '@qwik.dev/core/spark';
 export function App() {
-  return <p>Hello {name}</p>;
+  const count = createSignal(0);
+  return <p>{count.value}</p>;
 }
 `,
     });

@@ -107,6 +107,10 @@
         "default": "./dist/server.prod.mjs"
       }
     },
+    "./spark": {
+      "types": "./dist/spark/index.d.ts",
+      "import": "./dist/spark/index.mjs"
+    },
     "./testing": {
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.mjs"

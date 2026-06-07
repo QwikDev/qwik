@@ -26,6 +26,7 @@ import { submoduleOptimizer } from './submodule-optimizer.ts';
 import { submoduleQwikLoader } from './submodule-qwikloader.ts';
 import { submoduleBackpatch } from './submodule-backpatch.ts';
 import { submoduleServer } from './submodule-server.ts';
+import { submoduleSpark } from './submodule-spark.ts';
 import { submoduleTesting } from './submodule-testing.ts';
 import { submoduleWorker } from './submodule-worker.ts';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers.ts';
@@ -95,6 +96,7 @@ export async function build(config: BuildConfig) {
         submoduleCore(config),
         submoduleBackpatch(config),
         submoduleBuild(config),
+        submoduleSpark(config),
         submoduleTesting(config),
         submoduleCli(config),
         submoduleWorker(config),
@@ -181,11 +183,13 @@ export async function build(config: BuildConfig) {
       await watchDirectories({
         [join(config.srcQwikDir, 'core')]: async () => {
           await submoduleCore({ ...config, dev: true });
+          await submoduleSpark({ ...config, dev: true });
           await copyFile(
             join(config.srcQwikDir, '..', 'dist', 'core.mjs'),
             join(config.srcQwikDir, '..', 'dist', 'core.prod.mjs')
           );
         },
+        [join(config.srcQwikDir, 'spark')]: () => submoduleSpark(config),
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
         [join(config.srcQwikDir, 'web-worker')]: () => submoduleWorker(config),
         [config.compilerDir]: () => submoduleCompiler(config),

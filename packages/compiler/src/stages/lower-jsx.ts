@@ -211,6 +211,16 @@ function lowerJsxChildren(ctx: CompilerContext, children: JSXChild[]): RenderNod
       if (child.expression?.type === 'JSXEmptyExpression') {
         continue;
       }
+      if (ctx.options.isServer === false) {
+        const expressionRange = getRange(child.expression);
+        if (expressionRange) {
+          nodes.push({
+            kind: 'dynamicText',
+            expressionRange,
+          });
+          continue;
+        }
+      }
       nodes.push({
         kind: 'expr',
         role: 'child',

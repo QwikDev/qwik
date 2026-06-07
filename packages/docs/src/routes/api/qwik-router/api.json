@@ -68,7 +68,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR caching.\n\n- `true`<!-- -->: use the default cache key `status|eTag|pathname` - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)\n\n\n```typescript\nexport type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);\n```",
+      "content": "Cache key function. Used by `routeConfig.cacheKey` (SSR HTML cache) and by `routeLoader$`<!-- -->'s `cacheKey` option (per-loader JSON cache).\n\n- `true`<!-- -->: use the surface's default key.\n\n- SSR default: `${status}|${eTag}|${pathname}` when an eTag is set, otherwise `${status}|${pathname}`<!-- -->. - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set, otherwise `${pathname}|${filteredSearch}|${loaderId}`<!-- -->. - Function: receives the request event and the normalized, unquoted eTag (or an empty string when none was provided). Return the cache key string, or `null` to skip caching for this request.\n\nNote: valid cacheKeys are non-empty strings\n\n\n```typescript\nexport type CacheKeyFn = true | ((requestEv: RequestEvent, eTag: string) => string | null);\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.cachekeyfn.md"
     },
@@ -110,7 +110,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "The eTag export type: a static string or a function receiving DocumentHeadProps.\n\n\n```typescript\nexport type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);\n```\n**References:** [DocumentHeadProps](#documentheadprops)",
+      "content": "The eTag export type for routeConfig.\n\n- `string` — static ETag value. - `(props: DocumentHeadProps) => string | null` — compute the ETag from route context (params, URL, loaded data via `resolveValue`<!-- -->, etc.). Return `null` to skip eTag for this request.\n\nQwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars, then sends a strong `ETag` header. Values that normalize to an empty string are treated as absent.\n\nWhen set (and a value is produced), the server includes an `ETag` header and returns `304` if `If-None-Match` matches.\n\n\n```typescript\nexport type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);\n```\n**References:** [DocumentHeadProps](#documentheadprops)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.contentmoduleetag.md"
     },

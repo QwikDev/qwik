@@ -1,6 +1,16 @@
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import { resolveRouteConfig } from '../../runtime/src/head';
-import { resolveETag, resolveCacheKey, getCachedHtml, MAX_CACHE_SIZE, setCachedHtml } from './etag';
+import {
+  defaultLoaderCacheKey,
+  defaultSsrCacheKey,
+  getCachedLoader,
+  getCachedSsr,
+  MAX_CACHE_SIZE,
+  resolveCacheKey,
+  resolveETag,
+  setCachedLoader,
+  setCachedSsr,
+} from './etag';
 import { HttpStatus } from './http-status-codes';
 import {
   RequestEvETagCacheKey,
@@ -29,7 +39,10 @@ const requestHandlers = createResolveRequestHandlers({
   HttpStatus,
   encoder,
   isContentType,
-  getCachedHtml,
+  defaultSsrCacheKey,
+  defaultLoaderCacheKey,
+  getCachedSsr,
+  getCachedLoader,
   getQwikRouterServerData,
   getRequestMode,
   loadHttpError: () => import('../../runtime/src/http-error'),
@@ -37,7 +50,8 @@ const requestHandlers = createResolveRequestHandlers({
   resolveCacheKey,
   resolveETag,
   resolveRouteConfig,
-  setCachedHtml,
+  setCachedSsr,
+  setCachedLoader,
 });
 
 export const {

@@ -98,6 +98,7 @@ function createLoader(
     __expires: 0,
     __poll: false,
     __eTag: undefined,
+    __cacheKey: undefined,
     __search: undefined,
     __allowStale: true,
   } as any;

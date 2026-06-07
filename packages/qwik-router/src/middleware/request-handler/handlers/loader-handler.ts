@@ -1,10 +1,13 @@
 import { _serialize } from '@qwik.dev/core/internal';
 import {
   FULLPATH_HEADER,
+  filterSearchParams,
   getRouteLoaderResponse,
   resolveRouteLoaderByHash,
 } from '../../../runtime/src/route-loaders';
 import type { LoaderInternal, RequestEvent, RequestHandler } from '../../../runtime/src/types';
+import { defaultLoaderCacheKey, getCachedLoader, resolveCacheKey, setCachedLoader } from '../etag';
+import { performETagMatch, hash, normalizeETag, setETagHeader } from '../etag-hash';
 import { type RequestEventInternal } from '../request-event-core';
 import { IsQLoader, QLoaderId } from '../request-path';
 
@@ -34,10 +37,42 @@ export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
       return;
     }
 
-    // ETag support: for string/function eTags, check If-None-Match BEFORE running the loader
-    if (loader.__eTag && loader.__eTag !== true) {
-      const eTag = resolvePreETag(loader.__eTag, requestEv);
-      if (eTag && checkETagMatch(requestEv, eTag)) {
+    // Pre-loader eTag: when an explicit string/function eTag is configured, set the ETag header and
+    // short-circuit with 304 if If-None-Match already matches — saves running the loader.
+    const normalizedETag =
+      loader.__eTag !== undefined ? resolvePreETag(loader.__eTag, requestEv) : '';
+    if (normalizedETag && performETagMatch(requestEv, normalizedETag)) {
+      return;
+    }
+
+    // Resolve cache key (if cacheKey is configured). The eTag slot is filled with the explicit eTag
+    // when set; an auto-computed eTag from the response body never participates in the key (cache
+    // lookup runs before the loader, so the body isn't available yet).
+    const filteredSearch = loader.__search
+      ? filterSearchParams(requestEv.url.searchParams, loader.__search)
+      : requestEv.url.search;
+    const defaultKey = defaultLoaderCacheKey(
+      requestEv.url.pathname,
+      filteredSearch,
+      loader.__id,
+      normalizedETag
+    );
+    const cacheKey = resolveCacheKey(loader.__cacheKey, defaultKey, requestEv, normalizedETag);
+
+    // We don't count falsy cacheKeys as valid
+    if (cacheKey) {
+      const cached = getCachedLoader(cacheKey);
+      if (cached) {
+        // On hit, surface the cached eTag (auto-hashed from the original body) so a conditional
+        // request can 304. The explicit-eTag path already 304'd above if applicable.
+        if (!normalizedETag) {
+          if (performETagMatch(requestEv, cached.eTag)) {
+            return;
+          }
+        } else {
+          setETagHeader(requestEv, cached.eTag);
+        }
+        await sendLoaderResponse(requestEv, cached.body, loader);
         return;
       }
     }
@@ -45,12 +80,21 @@ export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
     const responseData = await getRouteLoaderResponse(loader.__qrl, loader.__validators, requestEv);
     const data = await _serialize(responseData);
 
-    // For eTag: true, compute eTag from serialized data AFTER running the loader
-    if (loader.__eTag === true && responseData.d !== undefined) {
-      const eTag = `"${fnv1aHash(data)}"`;
-      if (checkETagMatch(requestEv, eTag)) {
-        return;
-      }
+    // Only successful data envelopes are cacheable; never cache redirects or errors.
+    const cacheable = cacheKey && !responseData.r && !responseData.e;
+
+    // When caching is enabled but there's no eTag, auto-hash.
+    const finalETag = normalizedETag || (cacheable ? hash(data) : '');
+
+    if (cacheable && finalETag) {
+      // Cache write happens before the optional 304 below so the cache is warmed even on a first
+      // conditional request that happens to match the auto-hashed eTag.
+      setCachedLoader(cacheKey, { eTag: finalETag, body: data });
+    }
+
+    // If we auto-hashed, check if the request matches
+    if (!normalizedETag && finalETag && performETagMatch(requestEv, finalETag)) {
+      return;
     }
 
     await sendLoaderResponse(requestEv, data, loader);
@@ -61,36 +105,12 @@ export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
 function resolvePreETag(
   eTagOption: string | ((ev: RequestEvent) => string | null),
   requestEv: RequestEvent
-): string | null {
+): string {
   if (typeof eTagOption === 'string') {
-    return `"${eTagOption}"`;
+    return normalizeETag(eTagOption);
   }
   const result = eTagOption(requestEv);
-  return result ? `"${result}"` : null;
-}
-
-/** Set the ETag header and check If-None-Match. Returns true if 304 was sent. */
-function checkETagMatch(requestEv: RequestEventInternal, eTag: string): boolean {
-  requestEv.headers.set('ETag', eTag);
-  const ifNoneMatch = requestEv.request.headers.get('If-None-Match');
-  if (
-    ifNoneMatch &&
-    (ifNoneMatch === eTag || ifNoneMatch === `W/${eTag}` || `W/${ifNoneMatch}` === eTag)
-  ) {
-    requestEv.send(304 as any, '' as any);
-    return true;
-  }
-  return false;
-}
-
-/** FNV-1a hash for generating eTags from serialized data. */
-function fnv1aHash(str: string): string {
-  let hash = 0x811c9dc5; // FNV offset basis
-  for (let i = 0; i < str.length; i++) {
-    hash ^= str.charCodeAt(i);
-    hash = (hash * 0x01000193) | 0; // FNV prime, keep 32-bit
-  }
-  return (hash >>> 0).toString(36);
+  return result ? normalizeETag(result) : '';
 }
 
 async function sendLoaderResponse(

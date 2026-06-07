@@ -175,14 +175,18 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 
 <h2 id="cachekeyfn">CacheKeyFn</h2>
 
-The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR caching.
+Cache key function. Used by `routeConfig.cacheKey` (SSR HTML cache) and by `routeLoader$`'s `cacheKey` option (per-loader JSON cache).
 
-- `true`: use the default cache key `status|eTag|pathname` - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)
+- `true`: use the surface's default key.
+
+- SSR default: `${status}|${eTag}|${pathname}` when an eTag is set, otherwise `${status}|${pathname}`. - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set, otherwise `${pathname}|${filteredSearch}|${loaderId}`. - Function: receives the request event and the normalized, unquoted eTag (or an empty string when none was provided). Return the cache key string, or `null` to skip caching for this request.
+
+Note: valid cacheKeys are non-empty strings
 
 ```typescript
 export type CacheKeyFn =
   | true
-  | ((status: number, eTag: string, pathname: string) => string | null);
+  | ((requestEv: RequestEvent, eTag: string) => string | null);
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -337,7 +341,13 @@ string
 
 <h2 id="contentmoduleetag">ContentModuleETag</h2>
 
-The eTag export type: a static string or a function receiving DocumentHeadProps.
+The eTag export type for routeConfig.
+
+- `string` — static ETag value. - `(props: DocumentHeadProps) => string | null` — compute the ETag from route context (params, URL, loaded data via `resolveValue`, etc.). Return `null` to skip eTag for this request.
+
+Qwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars, then sends a strong `ETag` header. Values that normalize to an empty string are treated as absent.
+
+When set (and a value is produced), the server includes an `ETag` header and returns `304` if `If-None-Match` matches.
 
 ```typescript
 export type ContentModuleETag =

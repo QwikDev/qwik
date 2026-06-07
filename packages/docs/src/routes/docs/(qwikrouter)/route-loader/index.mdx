@@ -194,11 +194,12 @@ By default expired data stays readable while a fresh value loads in the backgrou
 
 ### `eTag`
 
-Adds an `ETag` header on the loader response and honors `If-None-Match`. Three modes:
+Adds an `ETag` header on the loader response and honors `If-None-Match`. Two modes:
 
-- **`eTag: true`** — auto-hash the serialized response. The loader still runs; only the response body is suppressed on a 304.
-- **`eTag: 'some-string'`** — static eTag. The loader is skipped entirely on a 304.
-- **`eTag: (requestEvent) => string | null`** — compute the eTag from request context (params, headers, cookies). The loader is skipped entirely on a 304. Return `null` to disable for this request.
+- **`eTag: 'some-string'`** — static eTag.
+- **`eTag: (requestEvent) => string | null`** — compute the eTag from request context (params, headers, cookies). The loader is skipped entirely on a 304. Return `null` or an empty string to disable for this request.
+
+Qwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars, then sends a strong `ETag` header. Values that normalize to an empty string are treated as "no eTag provided".
 
 ```tsx title="src/routes/subscription/index.tsx"
 export const useSubscription = routeLoader$(

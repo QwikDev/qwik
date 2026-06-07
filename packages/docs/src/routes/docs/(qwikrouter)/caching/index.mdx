@@ -156,9 +156,18 @@ Qwik Router includes a built-in in-memory SSR cache that can serve pre-rendered 
 
 ### `eTag`
 
-The `eTag` export defines an [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) for the page. When a browser sends an `If-None-Match` header matching the ETag, the server responds with `304 Not Modified` instead of re-rendering.
+The `eTag` export defines an [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) for the page. When a browser sends an `If-None-Match` header matching the ETag, the server responds with `304 Not Modified` (empty body) instead of sending the HTML.
 
-It can be a static string or a function that receives `DocumentHeadProps`:
+It can be:
+
+- **A static string** -- e.g. a deployment version or content version.
+- **A function** receiving `DocumentHeadProps` -- compute the ETag from route data (loaders, params, etc.). Return `null` to skip the ETag for this request.
+
+Qwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars. Values that normalize to an empty string are treated as absent.
+
+Qwik sends all eTags as "strong", for a simpler API. This only makes a difference with ranged HTTP requests, which are not relevant for SSR or route loader data.
+
+An eTag *must* always change when the content changes, and ideally should not change when the content is the same.
 
 ```tsx title="src/routes/product/[id]/index.tsx"
 import type { RouteConfig } from '@qwik.dev/router';
@@ -183,8 +192,8 @@ export const routeConfig: RouteConfig = ({ resolveValue }) => {
 
 The `cacheKey` export enables in-memory SSR caching. When set, rendered HTML is cached and served on subsequent requests with the same cache key, completely bypassing SSR.
 
-- `true`: uses the default cache key format `status|eTag|pathname`
-- Function: receives `(status, eTag, pathname)` and returns a custom cache key string, or `null` to skip caching
+- `true`: uses the default cache key — `${status}|${eTag}|${pathname}` when an `eTag` is set, otherwise `${status}|${pathname}`.
+- Function `(requestEv, eTag) => string | null`: return a custom key, or `null` to skip caching this request. The second argument is the normalized eTag (or an empty string when none was provided or it normalized to an empty string).
 
 ```tsx title="src/routes/product/[id]/index.tsx"
 import type { RouteConfig } from '@qwik.dev/router';
@@ -193,7 +202,17 @@ export const routeConfig: RouteConfig = {
   eTag: 'v1',
   cacheKey: true, // cache using default key format
 };
+
+// Custom key — vary on a `lang` cookie
+export const routeConfig: RouteConfig = {
+  cacheKey: (ev, eTag) => {
+    const lang = ev.cookie.get('lang')?.value ?? 'en';
+    return `${ev.url.pathname}|${lang}|${eTag ?? '*'}`;
+  },
+};
 ```
+
+`cacheKey` can be set without an `eTag`. In that case the first SSR streams as usual (no ETag header on the first response), and the cache write hashes the rendered HTML so subsequent hits serve the entry with a stable ETag and can answer conditional requests with `304`.
 
 The cache uses LRU eviction with a default capacity of 50 entries. You can configure this in your server entry:
 
@@ -230,3 +249,38 @@ export const routeConfig: RouteConfig = {
 ```
 
 See the [routeConfig documentation](/docs/(qwikrouter)/pages/index.mdx#routeconfig-export) for the full resolution rules.
+
+## Loader caching
+
+`routeLoader$` accepts an `eTag` (string or function) and a `cacheKey` option that mirror the SSR-side ones, but applied to the loader's JSON response.
+
+Qwik normalizes explicit loader eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars, then sends a strong `ETag` header. Values that normalize to an empty string are treated as absent.
+
+```tsx
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useProduct = routeLoader$(
+  async ({ params }) => {
+    return await db.product.find(params.id);
+  },
+  {
+    // Auto-hashed eTag derived from the serialized response on cache miss; stored alongside the
+    // body so future hits serve the same validator and answer `If-None-Match` with `304`.
+    cacheKey: true,
+  }
+);
+```
+
+- `eTag` (string | function): explicit validator. Set before the loader runs, so a matching `If-None-Match` short-circuits with `304` and the loader is skipped entirely.
+- `cacheKey` (`true` | function): enables an in-memory cache for the serialized JSON response. Default key: `${pathname}|${filteredSearch}|${loaderId}`, suffixed with `|${eTag}` when an explicit eTag is set.
+
+On a cache miss the loader runs, the serialized response is stored alongside its eTag (the explicit one if provided, or an auto-hash of the serialized body), then sent. On a cache hit the stored `{ eTag, data }` pair is served directly — `If-None-Match` is checked against the stored eTag and a `304` is returned when it matches. Redirects and errors are never cached.
+
+Clear the loader cache the same way as the SSR cache:
+
+```tsx
+import { clearLoaderCache } from '@qwik.dev/router/middleware/request-handler';
+
+clearLoaderCache(); // clear all
+clearLoaderCache('/products/123||hash'); // clear one entry
+```

@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { loadRouteLoader, routeLoaderQrl } from './route-loaders';
+import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
+import {
+  ensureRouteLoaderSignal,
+  loadRouteLoader,
+  routeLoaderQrl,
+  type RouteLoaderState,
+} from './route-loaders';
 import type { LoaderInternal } from './types';
 
 describe('search filter early-return logic', () => {
@@ -33,6 +39,22 @@ describe('search filter early-return logic', () => {
 });
 
 describe('route loader execution', () => {
+  it('stores an uninitialized resume marker for never loaders', () => {
+    const state = {} as RouteLoaderState;
+    const routeLoaderCtx = { loaderPaths: {} };
+    const neverLoader = createLoader('never-loader', async () => undefined);
+    const alwaysLoader = createLoader('always-loader', async () => undefined, 'always');
+
+    ensureRouteLoaderSignal(neverLoader, state, routeLoaderCtx);
+    ensureRouteLoaderSignal(alwaysLoader, state, routeLoaderCtx);
+
+    expect(state['never-loader']).toBeDefined();
+    expect(state['always-loader']).toBeDefined();
+    expect(
+      Object.entries(state).filter(([key]) => key.startsWith('__qwik_route_loader_value__'))
+    ).toEqual([['__qwik_route_loader_value__never-loader', _UNINITIALIZED]]);
+  });
+
   it('memoizes in-flight loader executions on the request', async () => {
     const requestEv: any = {
       sharedMap: new Map(),
@@ -62,13 +84,17 @@ describe('route loader execution', () => {
   });
 });
 
-function createLoader(id: string, fn: (thisArg: unknown, ev: any) => unknown): LoaderInternal {
+function createLoader(
+  id: string,
+  fn: (thisArg: unknown, ev: any) => unknown,
+  serializationStrategy: SerializationStrategy = 'never'
+): LoaderInternal {
   return {
     __brand: 'server_loader',
     __id: id,
     __qrl: createQrl(id, fn),
     __validators: undefined,
-    __serializationStrategy: 'never',
+    __serializationStrategy: serializationStrategy,
     __expires: 0,
     __poll: false,
     __eTag: undefined,

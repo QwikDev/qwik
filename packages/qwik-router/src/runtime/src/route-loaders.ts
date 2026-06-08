@@ -7,6 +7,7 @@ import {
   _injectAsyncSignalValue,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
+  _UNINITIALIZED,
   createAsync$,
   SerializerSymbol,
   type AsyncSignal,
@@ -50,6 +51,7 @@ const REQUEST_ROUTE_LOADER_STATE = '@routeLoaderState';
 const REQUEST_LOADER_PATHS_STORE = '@loaderPathsStore';
 const REQUEST_ROUTE_LOADERS = '@routeLoaders';
 const REQUEST_ROUTE_LOADER_PROMISES = '@routeLoaderPromises';
+const ROUTE_LOADER_VALUE_PREFIX = '__qwik_route_loader_value__';
 
 /** Header name sent by client to tell the server the actual page URL for loader requests. */
 export const FULLPATH_HEADER = 'X-Qwik-fullpath';
@@ -120,6 +122,10 @@ export type RouteLoaderCtx = {
   /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
   goto?: NoSerialize<RouteNavigate>;
 };
+
+export type RouteLoaderState = Record<string, AsyncSignal<unknown>>;
+
+const getRouteLoaderValueStateKey = (loaderId: string) => `${ROUTE_LOADER_VALUE_PREFIX}${loaderId}`;
 
 class ServerRouteLoaderCapture {
   constructor(
@@ -270,10 +276,17 @@ export const fetchRouteLoaderData = async (
   return promise;
 };
 
-const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLoaderCtx) => {
+const createRouteLoaderSignal = (
+  loader: LoaderInternal,
+  routeLoaderCtx: RouteLoaderCtx,
+  state: RouteLoaderState
+) => {
+  const id = loader.__id;
+  const stateValues = state as Record<string, unknown>;
+  const resumeValueKey = getRouteLoaderValueStateKey(id);
   const capture = isServer
-    ? new ServerRouteLoaderCapture(loader.__id, loader.__qrl, loader.__validators)
-    : loader.__id;
+    ? new ServerRouteLoaderCapture(id, loader.__qrl, loader.__validators)
+    : id;
   const searchFilter = loader.__search;
   let lastFilteredSearch: string | undefined;
   let lastRoutePath: string | undefined;
@@ -287,12 +300,15 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
       // in the client branch only exist to react to route/page-URL changes, which fire
       // a fresh invalidate (without info.__v) when they happen.
       if (info && typeof info === 'object' && '__v' in (info as object)) {
-        return (info as { __v: unknown }).__v;
+        const value = (info as { __v: unknown }).__v;
+        if (!isServer && resumeValueKey in stateValues) {
+          stateValues[resumeValueKey] = value;
+        }
+        return value;
       }
       if (isServer) {
         return (capture as ServerRouteLoaderCapture).load();
       }
-      const id = capture as string;
       // Track reactive dependencies so the signal re-fetches when the route path changes
       const routePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
       // Track the client page path/search. These fields are only assigned on SPA navigation; before
@@ -304,12 +320,14 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
       const pageUrl = new URL(pagePathname + pageSearch, location.href);
       const mHash = getClientManifestHash(ctx);
       const basePath = (qwikRouterConfig as any).basePathname ?? '/';
+      const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
+      const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
       // A loader that's never been on any route we've visited has no fetch path yet —
       // return whatever value it has (undefined on the very first run). In practice
       // this branch only fires on the initial client-side read for a loader that
       // wasn't prefilled by SSR; normal navs leave stale entries in loaderPaths so
       // this compute only runs when there's a fresh path to fetch against.
-      if (!routePath) {
+      if (!fetchRoutePath) {
         return previous;
       }
 
@@ -320,20 +338,20 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
         if (
           previous !== undefined &&
           filteredSearch === lastFilteredSearch &&
-          routePath === lastRoutePath
+          fetchRoutePath === lastRoutePath
         ) {
           // Relevant search params didn't change and path didn't change — return previous value
           return previous;
         }
         lastFilteredSearch = filteredSearch;
-        lastRoutePath = routePath;
+        lastRoutePath = fetchRoutePath;
         // Build a URL with only the allowed search params for the fetch
         fetchUrl = new URL(pageUrl.href);
         fetchUrl.search = filteredSearch;
       }
 
       // Fetch from server
-      const response = await fetchRouteLoaderData(id, routePath, mHash, {
+      const response = await fetchRouteLoaderData(id, fetchRoutePath, mHash, {
         pageUrl: fetchUrl,
         basePath,
         ignoreCache: info === true,
@@ -364,6 +382,9 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
       if (response.e) {
         // Error — throw so AsyncSignal enters error state
         throw response.e;
+      }
+      if (needsResumeFetch) {
+        stateValues[resumeValueKey] = response.d;
       }
       return response.d;
     },
@@ -460,12 +481,8 @@ export const getRequestEvent = (thisArg?: unknown): RequestEvent => {
 
 const REQUEST_ROUTE_LOADER_VALUES = '@routeLoaderValues';
 
-export function getRouteLoaderState(
-  requestEv: RequestEventBase
-): Record<string, AsyncSignal<unknown>> {
-  let state = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_STATE) as
-    | Record<string, AsyncSignal<unknown>>
-    | undefined;
+export function getRouteLoaderState(requestEv: RequestEventBase): RouteLoaderState {
+  let state = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_STATE) as RouteLoaderState | undefined;
   if (!state) {
     state = {};
     requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_STATE, state);
@@ -563,15 +580,18 @@ export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]
 
 export const ensureRouteLoaderSignal = (
   loader: LoaderInternal,
-  state: Record<string, AsyncSignal<unknown>>,
+  state: RouteLoaderState,
   routeLoaderCtx: RouteLoaderCtx
 ) => {
-  return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx));
+  if (isServer && loader.__serializationStrategy === 'never') {
+    (state as Record<string, unknown>)[getRouteLoaderValueStateKey(loader.__id)] = _UNINITIALIZED;
+  }
+  return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx, state));
 };
 
 export const ensureRouteLoaderSignals = (
   mods: readonly (RouteModule | undefined)[],
-  state: Record<string, AsyncSignal<unknown>>,
+  state: RouteLoaderState,
   routeLoaderCtx: RouteLoaderCtx
 ) => {
   const loaders = getModuleRouteLoaders(mods);

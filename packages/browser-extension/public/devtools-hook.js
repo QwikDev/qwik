@@ -1,248 +1,201 @@
 /**
- * Devtools hook runtime - injected by the browser extension into the main world. Sets up
- * window.**QWIK_DEVTOOLS**.hook with signal tracking, component snapshots, and state editing. Skips
- * if the Vite plugin already installed the hook.
+ * Devtools hook runtime - injected by the browser extension into the main world.
+ * Sets up window.__QWIK_DEVTOOLS__.hook with signal tracking, component snapshots,
+ * and state editing. Skips if the Vite plugin already installed the hook.
  *
- * NOTE: This duplicates logic from plugin/virtualmodules/hookRuntime.ts. Both must stay in sync.
- * The duplication is intentional: the plugin injects via SSR middleware, while the extension
- * injects via content script.
- *
- * This is a plain script (no ES module imports needed).
+ * GENERATED FILE - DO NOT EDIT BY HAND.
+ * Source of truth: packages/devtools/plugin/src/runtime/installers.ts
+ *   (__qwik_install_hook_runtime__)
+ * Regenerate: pnpm --filter @devtools/browser-extension generate
  */
 (function () {
-  'use strict';
-  if (typeof window === 'undefined') return;
-
-  function getOrCreateRoot() {
-    var root =
-      window.__QWIK_DEVTOOLS__ ||
-      (window.__QWIK_DEVTOOLS__ = {
-        version: 1,
-        componentState: {},
-      });
-    root.version = root.version || 1;
-    root.componentState = root.componentState || {};
-    return root;
-  }
-
-  function getState() {
-    return getOrCreateRoot().componentState;
-  }
-
-  var root = getOrCreateRoot();
-  if (root.hook) return;
-
-  var renderListeners = [];
-
-  var signalTypes = {
-    useSignal: true,
-    useStore: true,
-    useComputed: true,
-    useAsyncComputed: true,
-    useContext: true,
-  };
-
-  function safeSerialize(val) {
-    if (val === null || val === undefined) return val;
-    var t = typeof val;
-    if (t === 'string' || t === 'number' || t === 'boolean') return val;
-    if (t === 'function') return '[Function]';
-    try {
-      return JSON.parse(JSON.stringify(val));
-    } catch (_) {
-      return '[' + t + ']';
-    }
-  }
-
-  function deepSerialize(val, depth) {
-    if (depth > 6) return '[depth limit]';
-    if (val === null) return null;
-    if (val === undefined) return undefined;
-    var t = typeof val;
-    if (t === 'string' || t === 'number' || t === 'boolean') return val;
-    if (t === 'function') return { __type: 'function', __name: val.name || 'anonymous' };
-    try {
-      if (val && t === 'object' && '$untrackedValue$' in val) {
-        return deepSerialize(val.$untrackedValue$, depth + 1);
-      }
-      if (Array.isArray(val)) {
-        return val.map(function (item) {
-          return deepSerialize(item, depth + 1);
-        });
-      }
-      if (t === 'object') {
-        var className = val.constructor ? val.constructor.name : 'Object';
-        var result = {};
-        if (className !== 'Object') {
-          result.__className = className;
-          try {
-            if (typeof val.toString === 'function' && val.toString !== Object.prototype.toString) {
-              result.__display = val.toString();
-            }
-          } catch (_) {}
-        }
-        var keys = Object.keys(val);
-        for (var i = 0; i < keys.length; i++) {
-          var key = keys[i];
-          if (key.charAt(0) === '$' && key.charAt(key.length - 1) === '$') continue;
-          try {
-            result[key] = deepSerialize(val[key], depth + 1);
-          } catch (_) {
-            result[key] = '[unreadable]';
-          }
-        }
-        return result;
-      }
-    } catch (_) {}
-    return String(val);
-  }
-
-  function readValue(ref) {
-    try {
-      if (ref && typeof ref === 'object' && 'value' in ref) return safeSerialize(ref.value);
-      if (ref && typeof ref === 'object') return safeSerialize(ref);
-      return undefined;
-    } catch (_) {
-      return '[error]';
-    }
-  }
-
-  function findComponentKey(componentName, qrlChunk) {
-    var state = getState();
-    if (!state) return null;
-    var keys = Object.keys(state);
-    if (qrlChunk) {
-      for (var i = 0; i < keys.length; i++) {
-        if (keys[i].endsWith(qrlChunk)) return keys[i];
-      }
-    }
-    var lowerName = componentName.toLowerCase();
-    for (var j = 0; j < keys.length; j++) {
-      var lastSeg = keys[j].split('/').pop() || keys[j];
-      var underIdx = lastSeg.lastIndexOf('_');
-      var name = underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg;
-      if (name.toLowerCase() === lowerName) return keys[j];
-    }
-    return null;
-  }
-
-  root.hook = {
-    version: 1,
-
-    _emitRender: function (info) {
-      for (var i = 0; i < renderListeners.length; i++) {
-        try {
-          renderListeners[i](info);
-        } catch (_) {}
-      }
-    },
-
-    getSignalValue: function (signal) {
-      if (signal && typeof signal === 'object' && 'value' in signal) return signal.value;
-      return undefined;
-    },
-
-    getSignalsSnapshot: function () {
-      var state = getState();
-      if (!state) return {};
-      var snapshot = {};
-      var paths = Object.keys(state);
-      for (var p = 0; p < paths.length; p++) {
-        var hooks = state[paths[p]].hooks || [];
-        var signals = [];
-        for (var h = 0; h < hooks.length; h++) {
-          if (signalTypes[hooks[h].hookType] && hooks[h].data != null) {
-            signals.push({
-              name: hooks[h].variableName || '',
-              hookType: hooks[h].hookType,
-              value: readValue(hooks[h].data),
-            });
-          }
-        }
-        if (signals.length > 0) snapshot[paths[p]] = signals;
-      }
-      return snapshot;
-    },
-
-    getComponentTreeSnapshot: function () {
-      var state = getState();
-      if (!state) return [];
-      return Object.keys(state).map(function (path) {
-        var comp = state[path];
-        var hooks = comp.hooks || [];
-        var lastSeg = path.split('/').pop() || path;
-        var underIdx = lastSeg.lastIndexOf('_');
-        var name = underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg;
-        var signals = [];
-        var hookEntries = [];
-        for (var i = 0; i < hooks.length; i++) {
-          hookEntries.push({
-            variableName: hooks[i].variableName || '',
-            hookType: hooks[i].hookType || '',
-            category: hooks[i].category || '',
-          });
-          if (signalTypes[hooks[i].hookType] && hooks[i].data != null) {
-            signals.push({
-              name: hooks[i].variableName || '',
-              hookType: hooks[i].hookType,
-              value: readValue(hooks[i].data),
-            });
-          }
-        }
-        return { path: path, name: name, signals: signals, hooks: hookEntries };
-      });
-    },
-
-    onRender: function (callback) {
-      renderListeners.push(callback);
-      return function () {
-        var idx = renderListeners.indexOf(callback);
-        if (idx >= 0) renderListeners.splice(idx, 1);
-      };
-    },
-
-    getComponentDetail: function (componentName, qrlChunk) {
-      var key = findComponentKey(componentName, qrlChunk);
-      if (!key) return null;
-      var state = getState();
-      var comp = state[key];
-      if (!comp || !comp.hooks) return null;
-      var result = [];
-      for (var i = 0; i < comp.hooks.length; i++) {
-        var h = comp.hooks[i];
-        if (h.data != null) {
-          result.push({
-            hookType: h.hookType || 'unknown',
-            variableName: h.variableName || h.hookType || 'unknown',
-            data: deepSerialize(h.data, 0),
-          });
-        }
-      }
-      return result;
-    },
-
-    setSignalValue: function (componentName, qrlChunk, variableName, newValue) {
-      var key = findComponentKey(componentName, qrlChunk);
-      if (!key) return false;
-      var state = getState();
-      var comp = state[key];
-      if (!comp || !comp.hooks) return false;
-      for (var i = 0; i < comp.hooks.length; i++) {
-        var h = comp.hooks[i];
-        if (h.variableName === variableName && h.data != null) {
-          try {
-            if (typeof h.data === 'object' && 'value' in h.data) {
-              h.data.value = newValue;
-              return true;
-            }
-          } catch (_) {}
-        }
-      }
-      return false;
-    },
-
-    onSignalUpdate: function () {
-      return function () {};
-    },
-  };
+	'use strict';
+	function __qwik_install_hook_runtime__(options) {
+		const renderListeners = [];
+		const signalTypes = {};
+		for (let i = 0; i < options.signalHookTypes.length; i++) signalTypes[options.signalHookTypes[i]] = true;
+		const safeSerialize = (val) => {
+			if (val === null || val === void 0) return val;
+			const t = typeof val;
+			if (t === "string" || t === "number" || t === "boolean") return val;
+			if (t === "function") return "[Function]";
+			try {
+				return JSON.parse(JSON.stringify(val));
+			} catch (_) {
+				return "[" + t + "]";
+			}
+		};
+		const serializeDeep = (val, depth) => {
+			if (depth > 6) return "[depth limit]";
+			if (val === null) return null;
+			if (val === void 0) return;
+			const t = typeof val;
+			if (t === "string" || t === "number" || t === "boolean") return val;
+			if (t === "function") return {
+				__type: "function",
+				__name: val.name || "anonymous"
+			};
+			try {
+				if (val && t === "object" && "$untrackedValue$" in val) return serializeDeep(val.$untrackedValue$, depth + 1);
+				if (Array.isArray(val)) return val.map((item) => serializeDeep(item, depth + 1));
+				if (t === "object") {
+					const className = val.constructor ? val.constructor.name : "Object";
+					const result = {};
+					if (className !== "Object") {
+						result.__className = className;
+						try {
+							if (typeof val.toString === "function" && val.toString !== Object.prototype.toString) result.__display = val.toString();
+						} catch (_) {}
+					}
+					const keys = Object.keys(val);
+					for (let i = 0; i < keys.length; i++) {
+						const key = keys[i];
+						if (key.startsWith("$") && key.endsWith("$")) continue;
+						try {
+							result[key] = serializeDeep(val[key], depth + 1);
+						} catch (_) {
+							result[key] = "[unreadable]";
+						}
+					}
+					return result;
+				}
+			} catch (_) {}
+			return String(val);
+		};
+		const readValue = (ref) => {
+			try {
+				if (ref && typeof ref === "object" && "value" in ref) return safeSerialize(ref.value);
+				if (ref && typeof ref === "object") return safeSerialize(ref);
+				return;
+			} catch (_) {
+				return "[error]";
+			}
+		};
+		const getOrCreateRoot = () => {
+			if (typeof window === "undefined") return;
+			const win = window;
+			const root = win[options.devtoolsGlobalKey] || (win[options.devtoolsGlobalKey] = { version: options.globalVersion });
+			root.version = root.version || options.globalVersion;
+			root[options.componentStateKey] = root[options.componentStateKey] || {};
+			return root;
+		};
+		const getState = () => {
+			return getOrCreateRoot()?.[options.componentStateKey];
+		};
+		const findComponentKey = (componentName, qrlChunk) => {
+			const state = getState();
+			if (!state) return null;
+			const keys = Object.keys(state);
+			if (qrlChunk) {
+				const byChunk = keys.find((key) => key.endsWith(qrlChunk));
+				if (byChunk) return byChunk;
+			}
+			const lowerName = componentName.toLowerCase();
+			for (const key of keys) {
+				const lastSeg = key.split("/").pop() || key;
+				const underIdx = lastSeg.lastIndexOf("_");
+				if ((underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg).toLowerCase() === lowerName) return key;
+			}
+			return null;
+		};
+		const methods = {
+			_emitRender(info) {
+				for (let i = 0; i < renderListeners.length; i++) try {
+					renderListeners[i](info);
+				} catch (_) {}
+			},
+			getSignalValue(signal) {
+				if (signal && typeof signal === "object" && "value" in signal) return signal.value;
+			},
+			getSignalsSnapshot() {
+				const state = getState();
+				if (!state) return {};
+				const snapshot = {};
+				for (const path of Object.keys(state)) {
+					const hooks = state[path].hooks || [];
+					const signals = [];
+					for (const h of hooks) if (signalTypes[h.hookType] && h.data != null) signals.push({
+						name: h.variableName || "",
+						hookType: h.hookType,
+						value: readValue(h.data)
+					});
+					if (signals.length > 0) snapshot[path] = signals;
+				}
+				return snapshot;
+			},
+			getComponentTreeSnapshot() {
+				const state = getState();
+				if (!state) return [];
+				return Object.keys(state).map((path) => {
+					const hooks = state[path].hooks || [];
+					const lastSeg = path.split("/").pop() || path;
+					const underIdx = lastSeg.lastIndexOf("_");
+					const name = underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg;
+					const signals = [];
+					const hookEntries = [];
+					for (const h of hooks) {
+						hookEntries.push({
+							variableName: h.variableName || "",
+							hookType: h.hookType || "",
+							category: h.category || ""
+						});
+						if (signalTypes[h.hookType] && h.data != null) signals.push({
+							name: h.variableName || "",
+							hookType: h.hookType,
+							value: readValue(h.data)
+						});
+					}
+					return {
+						path,
+						name,
+						signals,
+						hooks: hookEntries
+					};
+				});
+			},
+			onRender(callback) {
+				renderListeners.push(callback);
+				return () => {
+					const idx = renderListeners.indexOf(callback);
+					if (idx >= 0) renderListeners.splice(idx, 1);
+				};
+			},
+			getComponentDetail(componentName, qrlChunk) {
+				const state = getState();
+				const matchingKey = findComponentKey(componentName, qrlChunk);
+				if (!state || !matchingKey) return null;
+				const comp = state[matchingKey];
+				if (!comp || !comp.hooks) return null;
+				return comp.hooks.filter((h) => h.data != null).map((h) => ({
+					hookType: h.hookType || "unknown",
+					variableName: h.variableName || h.hookType || "unknown",
+					data: serializeDeep(h.data, 0)
+				}));
+			},
+			setSignalValue(componentName, qrlChunk, variableName, newValue) {
+				const state = getState();
+				const matchingKey = findComponentKey(componentName, qrlChunk);
+				if (!state || !matchingKey) return false;
+				const comp = state[matchingKey];
+				if (!comp || !comp.hooks) return false;
+				for (const h of comp.hooks) if (h.variableName === variableName && h.data != null) try {
+					if (typeof h.data === "object" && "value" in h.data) {
+						h.data.value = newValue;
+						return true;
+					}
+				} catch (_) {}
+				return false;
+			},
+			onSignalUpdate(_callback) {
+				return () => {};
+			}
+		};
+		const root = getOrCreateRoot();
+		if (!root || root[options.hookKey]) return;
+		root[options.hookKey] = {
+			version: 1,
+			...methods
+		};
+	}
+	__qwik_install_hook_runtime__({ "componentStateKey": "componentState", "devtoolsGlobalKey": "__QWIK_DEVTOOLS__", "globalVersion": 1, "hookKey": "hook", "signalHookTypes": ["useSignal", "useStore", "useComputed", "useAsyncComputed", "useContext"] });
 })();

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { DEVTOOLS_MESSAGES, QWIK_DEVTOOLS_GLOBAL } from '@qwik.dev/devtools/kit';
 import {
   attachSsrPerfInjectorMiddleware,
   collectSsrPreloadEntries,
@@ -95,9 +96,10 @@ describe('ssr preload middleware helpers', () => {
       '/demo'
     );
 
-    expect(nextHtml).toContain('qwik:ssr-perf');
-    expect(nextHtml).toContain('qwik:ssr-preloads');
-    expect(nextHtml).toContain('window.__QWIK_SSR_PRELOADS__');
+    expect(nextHtml).toContain(DEVTOOLS_MESSAGES.events.ssrPerf);
+    expect(nextHtml).toContain(DEVTOOLS_MESSAGES.events.ssrPreloads);
+    expect(nextHtml).toContain(`window[${JSON.stringify(QWIK_DEVTOOLS_GLOBAL.key)}]`);
+    expect(nextHtml).toContain(`[${JSON.stringify(QWIK_DEVTOOLS_GLOBAL.props.ssrPreloads)}]`);
     expect(nextHtml).toContain('/build/q-a.js');
   });
 
@@ -197,7 +199,8 @@ describe('ssr preload middleware helpers', () => {
     expect(writeCallbackCalled).toBe(true);
     expect(endCallbackCalled).toBe(true);
     expect(ended).toBe(true);
-    expect(written).toContain('__QWIK_DEVTOOLS_HOOK__');
+    expect(written).toContain('__QWIK_DEVTOOLS__');
+    expect(written).toContain('"hook"');
     expect(written).not.toContain('endCallbackCalled');
   });
 
@@ -231,6 +234,7 @@ describe('ssr preload middleware helpers', () => {
     res.end(Buffer.from(html));
 
     expect(written).toContain('<html><head>');
-    expect(written).toContain('__QWIK_DEVTOOLS_HOOK__');
+    expect(written).toContain('__QWIK_DEVTOOLS__');
+    expect(written).toContain('"hook"');
   });
 });

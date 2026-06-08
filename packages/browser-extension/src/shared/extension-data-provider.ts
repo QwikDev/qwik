@@ -5,6 +5,7 @@ import type {
   QwikPerfStoreRemembered,
   QwikPreloadStoreRemembered,
 } from '@qwik.dev/devtools/kit';
+import { DEVTOOLS_MESSAGES, QWIK_DEVTOOLS_GLOBAL } from '@qwik.dev/devtools/kit';
 import type { ComponentDetailEntry, ExtensionMessage, RenderEvent, VNodeTreeNode } from './types';
 import { isExtensionMessage } from './types';
 
@@ -22,6 +23,16 @@ interface DevtoolsStateLike {
 }
 
 const SCRIPT_SETTLE_MS = 50;
+const PAGE_DEVTOOLS_ROOT = `window[${JSON.stringify(QWIK_DEVTOOLS_GLOBAL.key)}]`;
+const PAGE_DEVTOOLS_HOOK = `${PAGE_DEVTOOLS_ROOT}?.[${JSON.stringify(
+  QWIK_DEVTOOLS_GLOBAL.props.hook
+)}]`;
+const PAGE_DEVTOOLS_PERF = `${PAGE_DEVTOOLS_ROOT}?.[${JSON.stringify(
+  QWIK_DEVTOOLS_GLOBAL.props.perf
+)}]`;
+const PAGE_DEVTOOLS_PRELOADS = `${PAGE_DEVTOOLS_ROOT}?.[${JSON.stringify(
+  QWIK_DEVTOOLS_GLOBAL.props.preloads
+)}]`;
 
 function getDevtoolsPort(): DevtoolsPort | null {
   const port = (window as unknown as { __devtools_port?: DevtoolsPort }).__devtools_port;
@@ -89,11 +100,8 @@ async function injectPageScript(path: string, readyExpression: string): Promise<
 }
 
 async function ensurePageHooks(): Promise<void> {
-  await injectPageScript('/devtools-hook.js', '!!window.__QWIK_DEVTOOLS_HOOK__');
-  await injectPageScript(
-    '/vnode-bridge.js',
-    '!!(window.__QWIK_DEVTOOLS_HOOK__ && window.__QWIK_DEVTOOLS_HOOK__.getVNodeTree)'
-  );
+  await injectPageScript('/devtools-hook.js', `!!${PAGE_DEVTOOLS_HOOK}`);
+  await injectPageScript('/vnode-bridge.js', `!!${PAGE_DEVTOOLS_HOOK}?.getVNodeTree`);
 }
 
 function requestContentMessage<T extends ExtensionMessage>(
@@ -149,7 +157,7 @@ export function createExtensionDataProvider() {
 
       const [components, vitePluginDetected] = await Promise.all([
         createRemotePageDataSource().readComponentTree(),
-        evalInPage<boolean>('!!window.__QWIK_DEVTOOLS_HOOK__'),
+        evalInPage<boolean>(`!!${PAGE_DEVTOOLS_HOOK}`),
       ]);
 
       state.components = (components ?? []).map(toComponent);
@@ -167,15 +175,15 @@ export function createExtensionDataProvider() {
 export function createRemotePageDataSource() {
   return {
     async readPerfData(): Promise<QwikPerfStoreRemembered | null> {
-      return readJsonFromPage<QwikPerfStoreRemembered>('window.__QWIK_PERF__ ?? null');
+      return readJsonFromPage<QwikPerfStoreRemembered>(`${PAGE_DEVTOOLS_PERF} ?? null`);
     },
 
     async readPreloadStore(): Promise<QwikPreloadStoreRemembered | null> {
-      return readJsonFromPage<QwikPreloadStoreRemembered>('window.__QWIK_PRELOADS__ ?? null');
+      return readJsonFromPage<QwikPreloadStoreRemembered>(`${PAGE_DEVTOOLS_PRELOADS} ?? null`);
     },
 
     async clearPreloadStore(): Promise<void> {
-      await evalInPage<void>('window.__QWIK_PRELOADS__?.clear?.()');
+      await evalInPage<void>(`${PAGE_DEVTOOLS_PRELOADS}?.clear?.()`);
     },
 
     subscribePreloadUpdates(): (() => void) | null {
@@ -185,22 +193,20 @@ export function createRemotePageDataSource() {
     async readComponentTree(): Promise<QwikDevtoolsComponentSnapshot[] | null> {
       await ensurePageHooks();
       return readJsonFromPage<QwikDevtoolsComponentSnapshot[]>(
-        'window.__QWIK_DEVTOOLS_HOOK__?.getComponentTreeSnapshot?.() ?? null'
+        `${PAGE_DEVTOOLS_HOOK}?.getComponentTreeSnapshot?.() ?? null`
       );
     },
 
     async readSignals(): Promise<QwikDevtoolsSignalsSnapshot | null> {
       await ensurePageHooks();
       return readJsonFromPage<QwikDevtoolsSignalsSnapshot>(
-        'window.__QWIK_DEVTOOLS_HOOK__?.getSignalsSnapshot?.() ?? null'
+        `${PAGE_DEVTOOLS_HOOK}?.getSignalsSnapshot?.() ?? null`
       );
     },
 
     async readVNodeTree(): Promise<VNodeTreeNode[] | null> {
       await ensurePageHooks();
-      return readJsonFromPage<VNodeTreeNode[]>(
-        'window.__QWIK_DEVTOOLS_HOOK__?.getVNodeTree?.() ?? null'
-      );
+      return readJsonFromPage<VNodeTreeNode[]>(`${PAGE_DEVTOOLS_HOOK}?.getVNodeTree?.() ?? null`);
     },
 
     subscribeTreeUpdates(cb: (tree: VNodeTreeNode[]) => void): (() => void) | null {
@@ -212,7 +218,7 @@ export function createRemotePageDataSource() {
       const handler = (message: unknown) => {
         if (
           isExtensionMessage(message) &&
-          message.type === 'COMPONENT_TREE_UPDATE' &&
+          message.type === DEVTOOLS_MESSAGES.types.componentTreeUpdate &&
           Array.isArray(message.payload)
         ) {
           cb(message.payload);
@@ -229,7 +235,7 @@ export function createRemotePageDataSource() {
     ): Promise<ComponentDetailEntry[] | null> {
       await ensurePageHooks();
       return readJsonFromPage<ComponentDetailEntry[]>(
-        `window.__QWIK_DEVTOOLS_HOOK__?.getComponentDetail?.(${toLiteral(
+        `${PAGE_DEVTOOLS_HOOK}?.getComponentDetail?.(${toLiteral(
           componentName
         )}, ${toLiteral(qrlChunk)}) ?? null`
       );
@@ -238,7 +244,7 @@ export function createRemotePageDataSource() {
     async readNodeProps(nodeId: string): Promise<Record<string, unknown> | null> {
       await ensurePageHooks();
       return readJsonFromPage<Record<string, unknown>>(
-        `window.__QWIK_DEVTOOLS_HOOK__?.getNodeProps?.(${toLiteral(nodeId)}) ?? null`
+        `${PAGE_DEVTOOLS_HOOK}?.getNodeProps?.(${toLiteral(nodeId)}) ?? null`
       );
     },
 
@@ -251,7 +257,7 @@ export function createRemotePageDataSource() {
       await ensurePageHooks();
       return (
         (await evalInPage<boolean>(
-          `!!window.__QWIK_DEVTOOLS_HOOK__?.setSignalValue?.(${toLiteral(
+          `!!${PAGE_DEVTOOLS_HOOK}?.setSignalValue?.(${toLiteral(
             componentName
           )}, ${toLiteral(qrlChunk)}, ${toLiteral(variableName)}, ${toLiteral(newValue)})`
         )) ?? false
@@ -261,14 +267,12 @@ export function createRemotePageDataSource() {
     async highlightElement(nodeId: string, componentName: string): Promise<void> {
       await ensurePageHooks();
       await evalInPage<void>(
-        `window.__QWIK_DEVTOOLS_HOOK__?.highlightNode?.(${toLiteral(
-          nodeId
-        )}, ${toLiteral(componentName)})`
+        `${PAGE_DEVTOOLS_HOOK}?.highlightNode?.(${toLiteral(nodeId)}, ${toLiteral(componentName)})`
       );
     },
 
     async unhighlightElement(): Promise<void> {
-      await evalInPage<void>('window.__QWIK_DEVTOOLS_HOOK__?.unhighlightNode?.()');
+      await evalInPage<void>(`${PAGE_DEVTOOLS_HOOK}?.unhighlightNode?.()`);
     },
 
     subscribeRenderEvents(cb: (event: RenderEvent) => void): (() => void) | null {
@@ -278,7 +282,7 @@ export function createRemotePageDataSource() {
       }
 
       const handler = (message: unknown) => {
-        if (isExtensionMessage(message) && message.type === 'RENDER_EVENT') {
+        if (isExtensionMessage(message) && message.type === DEVTOOLS_MESSAGES.types.render) {
           cb(message.payload);
         }
       };

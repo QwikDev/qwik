@@ -1,5 +1,7 @@
 import {
-  QWIK_PRELOADS_UPDATE_EVENT,
+  createInPageBridge,
+  getQwikDevtoolsGlobal,
+  QWIK_DEVTOOLS_GLOBAL,
   type QwikPerfStoreRemembered,
   type QwikPreloadStoreRemembered,
   type QwikDevtoolsComponentSnapshot,
@@ -16,7 +18,7 @@ import { isBrowser } from '@qwik.dev/core';
  *
  * Components use {@link getPageDataSource} to obtain the active source, which returns
  * {@link InPageDataSource} by default (overlay mode). The extension entry point replaces it via
- * `window.__QWIK_DEVTOOLS_PAGE_DATA_SOURCE__`.
+ * `window.__QWIK_DEVTOOLS__.pageDataSource`.
  */
 export interface PageDataSource {
   /** Read the performance store snapshot. */
@@ -91,14 +93,6 @@ export interface ComponentDetailEntry {
   data: unknown;
 }
 
-/** Extended hook methods added by the VNode bridge (not in base kit types). */
-interface QwikDevtoolsHookExtended {
-  getVNodeTree?(): VNodeTreeNode[] | null;
-  getNodeProps?(nodeId: string): Record<string, unknown> | null;
-  getComponentDetail?(name: string, chunk?: string): ComponentDetailEntry[] | null;
-  setSignalValue?(name: string, chunk: string | undefined, varName: string, val: unknown): boolean;
-}
-
 /** Serializable VNode tree node (matches overlay's TreeNode shape). */
 export interface VNodeTreeNode {
   name?: string;
@@ -113,91 +107,49 @@ export interface VNodeTreeNode {
  * as an in-app overlay (same document).
  */
 class InPageDataSource implements PageDataSource {
+  private readonly bridge = createInPageBridge({ isBrowser });
+
   async readPerfData(): Promise<QwikPerfStoreRemembered | null> {
-    if (!isBrowser) {
-      return null;
-    }
-    return window.__QWIK_PERF__ ?? null;
+    return this.bridge.readPerfData();
   }
 
   async readPreloadStore(): Promise<QwikPreloadStoreRemembered | null> {
-    if (!isBrowser) {
-      return null;
-    }
-    return window.__QWIK_PRELOADS__ ?? null;
+    return this.bridge.readPreloadStore();
   }
 
   async clearPreloadStore(): Promise<void> {
-    if (!isBrowser) {
-      return;
-    }
-    window.__QWIK_PRELOADS__?.clear();
+    return this.bridge.clearPreloadStore();
   }
 
   subscribePreloadUpdates(cb: () => void): (() => void) | null {
-    if (!isBrowser) {
-      return null;
-    }
-    window.addEventListener(QWIK_PRELOADS_UPDATE_EVENT, cb);
-    return () => window.removeEventListener(QWIK_PRELOADS_UPDATE_EVENT, cb);
+    return this.bridge.subscribePreloadUpdates(cb);
   }
 
   async readComponentTree(): Promise<QwikDevtoolsComponentSnapshot[] | null> {
-    if (!isBrowser) {
-      return null;
-    }
-    return window.__QWIK_DEVTOOLS_HOOK__?.getComponentTreeSnapshot() ?? null;
+    return this.bridge.readComponentTree();
   }
 
   async readSignals(): Promise<QwikDevtoolsSignalsSnapshot | null> {
-    if (!isBrowser) {
-      return null;
-    }
-    return window.__QWIK_DEVTOOLS_HOOK__?.getSignalsSnapshot() ?? null;
+    return this.bridge.readSignals();
   }
 
   async readVNodeTree(): Promise<VNodeTreeNode[] | null> {
-    if (!isBrowser) {
-      return null;
-    }
-    const hook = window.__QWIK_DEVTOOLS_HOOK__ as QwikDevtoolsHookExtended | undefined;
-    return hook?.getVNodeTree?.() ?? null;
+    return this.bridge.readVNodeTree();
   }
 
   subscribeTreeUpdates(cb: (tree: VNodeTreeNode[]) => void): (() => void) | null {
-    if (!isBrowser) {
-      return null;
-    }
-    const handler = (e: MessageEvent) => {
-      if (
-        e.data?.source === 'qwik-devtools' &&
-        e.data?.type === 'COMPONENT_TREE_UPDATE' &&
-        Array.isArray(e.data?.tree)
-      ) {
-        cb(e.data.tree);
-      }
-    };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
+    return this.bridge.subscribeTreeUpdates(cb);
   }
 
   async readNodeProps(nodeId: string): Promise<Record<string, unknown> | null> {
-    if (!isBrowser) {
-      return null;
-    }
-    const hook = window.__QWIK_DEVTOOLS_HOOK__ as QwikDevtoolsHookExtended | undefined;
-    return hook?.getNodeProps?.(nodeId) ?? null;
+    return this.bridge.readNodeProps(nodeId);
   }
 
   async readComponentDetail(
     componentName: string,
     qrlChunk?: string
   ): Promise<ComponentDetailEntry[] | null> {
-    if (!isBrowser) {
-      return null;
-    }
-    const hook = window.__QWIK_DEVTOOLS_HOOK__ as QwikDevtoolsHookExtended | undefined;
-    return hook?.getComponentDetail?.(componentName, qrlChunk) ?? null;
+    return this.bridge.readComponentDetail(componentName, qrlChunk);
   }
 
   async setSignalValue(
@@ -206,11 +158,7 @@ class InPageDataSource implements PageDataSource {
     variableName: string,
     newValue: unknown
   ): Promise<boolean> {
-    if (!isBrowser) {
-      return false;
-    }
-    const hook = window.__QWIK_DEVTOOLS_HOOK__ as QwikDevtoolsHookExtended | undefined;
-    return hook?.setSignalValue?.(componentName, qrlChunk, variableName, newValue) ?? false;
+    return this.bridge.setSignalValue(componentName, qrlChunk, variableName, newValue);
   }
 
   // No-ops in overlay mode (highlight is handled by the extension's eval)
@@ -218,16 +166,7 @@ class InPageDataSource implements PageDataSource {
   async unhighlightElement(): Promise<void> {}
 
   subscribeRenderEvents(cb: (event: RenderEvent) => void): (() => void) | null {
-    if (!isBrowser) {
-      return null;
-    }
-    const handler = (e: MessageEvent) => {
-      if (e.data?.source === 'qwik-devtools' && e.data?.type === 'RENDER_EVENT' && e.data?.event) {
-        cb(e.data.event);
-      }
-    };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
+    return this.bridge.subscribeRenderEvents(cb);
   }
 }
 
@@ -236,22 +175,17 @@ const defaultSource = new InPageDataSource();
 /**
  * Return the active page data source.
  *
- * When `window.__QWIK_DEVTOOLS_PAGE_DATA_SOURCE__` is set (by the browser extension entry point),
- * that source is used. Otherwise the default in-page source is returned.
+ * When the Qwik DevTools root has a `pageDataSource` (by the browser extension entry point), that
+ * source is used. Otherwise the default in-page source is returned.
  */
 export function getPageDataSource(): PageDataSource {
-  if (isBrowser && window.__QWIK_DEVTOOLS_PAGE_DATA_SOURCE__) {
-    return window.__QWIK_DEVTOOLS_PAGE_DATA_SOURCE__;
+  const source = isBrowser
+    ? (getQwikDevtoolsGlobal(window)?.[QWIK_DEVTOOLS_GLOBAL.props.pageDataSource] as
+        | PageDataSource
+        | undefined)
+    : undefined;
+  if (source) {
+    return source;
   }
   return defaultSource;
-}
-
-declare global {
-  interface Window {
-    /**
-     * When set before the UI mounts, components will use this source to read page data instead of
-     * direct `window` access.
-     */
-    __QWIK_DEVTOOLS_PAGE_DATA_SOURCE__?: PageDataSource;
-  }
 }

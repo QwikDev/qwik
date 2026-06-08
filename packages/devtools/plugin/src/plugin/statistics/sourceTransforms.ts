@@ -1,70 +1,44 @@
 import perfLazyWrapperPreamble from '../../virtualmodules/perfLazyWrapperPreamble';
-import { isVirtualId, normalizeId } from '../../virtualmodules/virtualModules';
+import { applySourceEdits } from '../../parse/sourceEdits';
+import type { SourceEdit } from '../../parse/types';
+import { parseProgram, traverseProgram } from '../../parse/traverse';
+import { isVirtualModuleRequest, normalizeVirtualModuleId } from '../../virtualmodules/ids';
 import { PERF_VIRTUAL_ID, log } from './constants';
 
+export { rewriteComponentQrlImport } from '../../transforms/rewrite-component-qrl-import';
+
 export function shouldTransformStatisticsSource(id: string): boolean {
-  const cleanId = normalizeId(id);
+  const cleanId = normalizeVirtualModuleId(id);
   return !isFromNodeModules(cleanId) && !isDevtoolsUiSource(cleanId);
 }
 
 export function isPerfVirtualModuleId(id: string): boolean {
-  return isVirtualId(id, PERF_VIRTUAL_ID);
-}
-
-export function rewriteComponentQrlImport(
-  code: string,
-  id: string
-): { code: string; changed: boolean } {
-  if (!code.includes('@qwik.dev/core') || !code.includes('componentQrl')) {
-    return { code, changed: false };
-  }
-
-  const importRe = /import\s*\{([^}]*)\}\s*from\s*['"]@qwik\.dev\/core['"]/g;
-  let changed = false;
-
-  const nextCode = code.replace(importRe, (match, imports) => {
-    const importList = String(imports)
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-    const hasComponentQrl = importList.some(
-      (item) => item === 'componentQrl' || item.startsWith('componentQrl ')
-    );
-    if (!hasComponentQrl) {
-      return match;
-    }
-
-    changed = true;
-    log('rewrite componentQrl import %O', {
-      id,
-      isVirtual: normalizeId(id).startsWith('\0'),
-    });
-
-    const preservedImports = importList.filter(
-      (item) => item !== 'componentQrl' && !item.startsWith('componentQrl ')
-    );
-
-    if (preservedImports.length === 0) {
-      return `import { componentQrl } from '${PERF_VIRTUAL_ID}'`;
-    }
-
-    return [
-      `import { ${preservedImports.join(', ')} } from '@qwik.dev/core';`,
-      `import { componentQrl } from '${PERF_VIRTUAL_ID}'`,
-    ].join('\n');
-  });
-
-  return { code: nextCode, changed };
+  return isVirtualModuleRequest(id, PERF_VIRTUAL_ID);
 }
 
 export function findQwikLazyComponentExports(code: string): string[] {
-  const exportRe = /export\s+const\s+(\w+_component_\w+)\s*=/g;
   const exports: string[] = [];
-  let match: RegExpExecArray | null;
 
-  while ((match = exportRe.exec(code)) !== null) {
-    exports.push(match[1]);
+  try {
+    const program = parseProgram(code);
+    traverseProgram(program, {
+      ExportNamedDeclaration(path) {
+        const node = path.node as ExportNamedDeclarationNode;
+        const declaration = node.declaration;
+        if (declaration?.type !== 'VariableDeclaration' || declaration.kind !== 'const') {
+          return;
+        }
+
+        for (const declarator of declaration.declarations ?? []) {
+          const name = getIdentifierName(declarator.id);
+          if (name && isQwikLazyComponentExportName(name)) {
+            exports.push(name);
+          }
+        }
+      },
+    });
+  } catch (_) {
+    return [];
   }
 
   return exports;
@@ -82,12 +56,54 @@ export function wrapQwikLazyComponentExports(params: {
 
   log('wrap _component_ exports %O', { id, count: exports.length });
 
-  let modifiedCode = perfLazyWrapperPreamble + code;
-  for (const exportName of exports) {
-    modifiedCode = replaceExportWithOriginal(modifiedCode, exportName);
-    modifiedCode = appendWrappedExport(modifiedCode, exportName, id);
+  const exportSet = new Set(exports);
+  const edits: SourceEdit[] = [];
+  const wrappedExports: string[] = [];
+
+  try {
+    const program = parseProgram(code);
+    traverseProgram(program, {
+      ExportNamedDeclaration(path) {
+        const node = path.node as ExportNamedDeclarationNode;
+        const declaration = node.declaration;
+        if (declaration?.type !== 'VariableDeclaration' || declaration.kind !== 'const') {
+          return;
+        }
+        if ((declaration.declarations?.length ?? 0) !== 1) {
+          return;
+        }
+
+        const declarator = declaration.declarations![0];
+        const exportName = getIdentifierName(declarator.id);
+        if (
+          !exportName ||
+          !exportSet.has(exportName) ||
+          typeof declarator.init?.start !== 'number'
+        ) {
+          return;
+        }
+
+        edits.push({
+          kind: 'replace',
+          start: node.start,
+          end: declarator.init.start,
+          text: `const __original_${exportName}__ = `,
+        });
+        wrappedExports.push(exportName);
+      },
+    });
+  } catch (_) {
+    return { code, changed: false };
   }
 
+  if (edits.length === 0) {
+    return { code, changed: false };
+  }
+
+  let modifiedCode = perfLazyWrapperPreamble + applySourceEdits(code, edits);
+  for (const exportName of wrappedExports) {
+    modifiedCode = appendWrappedExport(modifiedCode, exportName, id);
+  }
   return { code: modifiedCode, changed: true };
 }
 
@@ -104,17 +120,41 @@ function isDevtoolsUiSource(cleanId: string): boolean {
   );
 }
 
-function replaceExportWithOriginal(code: string, exportName: string): string {
-  return code.replace(
-    new RegExp(`export\\s+const\\s+${exportName}\\s*=`),
-    `const __original_${exportName}__ =`
-  );
-}
-
 function appendWrappedExport(code: string, exportName: string, id: string): string {
   const serializedExportName = JSON.stringify(exportName);
   const serializedId = JSON.stringify(id);
   return `${code}
 export const ${exportName} = __qwik_wrap__(__original_${exportName}__, ${serializedExportName}, ${serializedId});
 `;
+}
+
+function isQwikLazyComponentExportName(name: string): boolean {
+  return /^\w+_component_\w+$/.test(name);
+}
+
+function getIdentifierName(node: unknown): string | undefined {
+  if (!node || typeof node !== 'object') {
+    return undefined;
+  }
+  const record = node as { type?: string; name?: string };
+  return record.type === 'Identifier' ? record.name : undefined;
+}
+
+interface ExportNamedDeclarationNode {
+  type: 'ExportNamedDeclaration';
+  start: number;
+  declaration?: VariableDeclarationNode;
+}
+
+interface VariableDeclarationNode {
+  type: 'VariableDeclaration';
+  kind?: string;
+  declarations?: VariableDeclaratorNode[];
+}
+
+interface VariableDeclaratorNode {
+  id?: unknown;
+  init?: {
+    start?: number;
+  };
 }

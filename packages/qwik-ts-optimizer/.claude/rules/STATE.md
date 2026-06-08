@@ -2,13 +2,15 @@
 
 Snapshot of where the active workstream stands. Read at the start of a session to rehydrate context fast. **Update aggressively** as meaningful progress lands — see "Maintenance" at the bottom.
 
-Last updated: 2026-06-08 (post PR #217 merged — OSS-460 Done). Convergence 203/212 unchanged. Next wall: a `useTask$` segment brace-mismatch in the router build (characterized; ticket pending).
+Last updated: 2026-06-08 (post PR #219 merged — OSS-461 Done). **Milestone: the `vite-qwik-router` CLIENT build now builds green end-to-end under `experimental: ['tsOptimizer']`** (49 chunks; SWC: 52). Convergence 203/212 unchanged. Next: verify the SERVER build + the `/* @__PURE__ */`-position warnings.
 
 ## Goal
 
 **Long-term project goal**: 100% snapshot test parity between the TS optimizer (this repo) and the SWC reference (`./swc-reference-only`), verified by `pnpm vitest convergence --run`.
 
-**Active workstream**: [OSS-456](https://linear.app/kunai/issue/OSS-456) qwik-router lib processing parity (FAST-TRACK) — driving the real `vite-qwik-router` build green under `experimental: ['tsOptimizer']`, fixing each TS-optimizer bug the build hits in sequence. Done so far: Sub-A [OSS-457](https://linear.app/kunai/issue/OSS-457), Sub-C [OSS-459](https://linear.app/kunai/issue/OSS-459), Sub-B [OSS-458](https://linear.app/kunai/issue/OSS-458) (origin relativization + segment extension; PR #215), Sub-D [OSS-460](https://linear.app/kunai/issue/OSS-460) (duplicate `@qwik.dev/core` import from `replaceConstants` re-emitting a removed import; PR #217). Umbrella stays open — build still not green.
+**Active workstream**: [OSS-456](https://linear.app/kunai/issue/OSS-456) qwik-router lib processing parity (FAST-TRACK) — driving the real `vite-qwik-router` build green under `experimental: ['tsOptimizer']`, fixing each TS-optimizer bug the build hits in sequence. **CLIENT build now green** (5 sub-bugs fixed): Sub-A [OSS-457](https://linear.app/kunai/issue/OSS-457), Sub-C [OSS-459](https://linear.app/kunai/issue/OSS-459), Sub-B [OSS-458](https://linear.app/kunai/issue/OSS-458) (origin relativization + segment extension; PR #215), Sub-D [OSS-460](https://linear.app/kunai/issue/OSS-460) (duplicate `@qwik.dev/core` import; PR #217), Sub-E [OSS-461](https://linear.app/kunai/issue/OSS-461) (inlinedQrl context-param rawProps over-apply + DCE nested-fold brace drop; PR #219). Umbrella stays open — **server build unverified** + non-fatal `/* @__PURE__ */`-position warnings remain.
+
+**Next**: (1) verify the **server** build (`vite build --ssr`) under TS mode — likely surfaces more bugs, each its own Sub-ticket; (2) the `/* @__PURE__ */`-position warnings (Rolldown `INVALID_ANNOTATION`; cosmetic parity nicety). Repro recipe in project memory `[[reference-router-build-repro]]`.
 
 **Next wall (characterized, ticket pending)**: the `useQwikRouter` `useTask$` segment (`index.qwik.mjs_useQwikRouter_useTask_XpalYii770E.js`) emits with `{`/`}` count off by one (84/83) → `Expected } but found EOF` in Rolldown. Same family as OSS-459 but a different segment, and **config-specific**: only fires under the real client strip config (`stripEventHandlers` unset) — `stripEventHandlers: true` (the OSS-459 test config) masks it. Likely an extraction-boundary computation sensitive to strip config or a body construct (nested closures / optional-call / template literals). Repro recipe in project memory `[[reference-router-build-repro]]`.
 
@@ -22,7 +24,7 @@ For history of prior workstreams: `git log`, Linear, and the per-PR commit messa
 | Convergence passing | **203 / 212** (95.8%) |
 | Full suite failing | 26 / 980 |
 | Full suite passing | 952 / 980 |
-| Last verified | 2026-06-08 on `main` (post PR #217) |
+| Last verified | 2026-06-08 on `main` (post PR #219) |
 
 ## CI infrastructure (live)
 
@@ -43,7 +45,7 @@ Local commands:
 
 | Branch | Head | Pushed | Tests | Notes |
 |---|---|---|---|---|
-| `main` | `1862952` (PR #217) | ✅ | baseline | Active workstream: OSS-456 — next is the `useTask$` segment brace-mismatch (see Goal). Other open backlog: OSS-447 + OSS-448 (block `example_qwik_router_client` flip); OSS-439 (F3 multi-session); OSS-450 Sub-D in qwik-bundler PR #12. |
+| `main` | `b17d6d1` (PR #219) | ✅ | baseline | Active workstream: OSS-456 — client build green; next is the server build (see Goal). Other open backlog: OSS-447 + OSS-448 (block `example_qwik_router_client` flip); OSS-439 (F3 multi-session); OSS-450 Sub-D in qwik-bundler PR #12. |
 | `oxc-port` | `073a11d` | ✅ | n/a (Rust) | Long-lived Rust/OXC port. Subtree-imported `qwik-optimizer` as `oxc/`; oxc 0.129 / napi 3. 31/31 cargo tests passing. Not blocking TS work. |
 | `ast-parity/F2` | `a644c16` (stale) | ❌ local-only | parked | F2 cluster fully closed via OSS-403 siblings on `main` — safe to delete. |
 
@@ -75,6 +77,7 @@ Full feature analysis: `CONVERGENCE_FAILURES.md`.
 
 Most recent first. **Each entry is a one-line pointer — drill into the PR, commit message, or Linear ticket for full detail.** Trim entries past ~10.
 
+- **2026-06-08** — PR #219 ([OSS-461](https://linear.app/kunai/issue/OSS-461), Done): two fixes that flip the **CLIENT `vite-qwik-router` build green** end-to-end. (1) gate `applyRawPropsToSegmentBody` on `!isInlinedQrl` — a `useTask$` inlinedQrl's `({ track })` context param was wrongly normalised to `_rawProps` (SWC skips inlinedQrl first args). (2) DCE braced-if folding now skips folds nested inside an already-collected fold — descending-apply with a stale offset dropped a closing brace → unparseable segment. +`dead-code.test.ts` + client-strip-config tests.
 - **2026-06-08** — PR #217 ([OSS-460](https://linear.app/kunai/issue/OSS-460), Done): removed `replaceConstants`' dead `removeReplacedImports` pass, which overwrote the import range `processImports` had already removed → re-materialised a stale `@qwik.dev/core` import in the body → duplicate `createAsyncQrl` declaration broke Rolldown. Import cleanup is owned by the rewrite pipeline (processImports + usage filter). Real build advances past the duplicate to a `useTask$` segment brace-mismatch (next wall). −82 LOC.
 - **2026-06-08** — PR #215 ([OSS-458](https://linear.app/kunai/issue/OSS-458), Done): root-caused the real `vite-qwik-router` TS-mode build failure. Two fixes — `computeRelPath` now emits `../`-relative `origin` for absolute lib paths outside srcDir (was slash-stripping); segment `module.path`/`extension` now use the output extension (`resolveSegmentFileExtension`) matching QRL import specifiers. Eliminates the `UNRESOLVED_IMPORT` family end-to-end. Mis-framed OSS-458 `test.fails` rewritten into 2 real tests. Next wall filed as [OSS-460](https://linear.app/kunai/issue/OSS-460) (duplicate core-import in lib chunks).
 - **2026-06-08** — PR #213: regression tests for the OSS-456 qwik-router lib processing umbrella. Pins OSS-457 + OSS-459 (inadvertent fixes from PR #211) via tests at `tests/optimizer/router-lib-processing.test.ts` against a full 1703-line `@qwik.dev/router` lib fixture. `test.fails` placeholder for OSS-458. OSS-457 + OSS-459 closed Done.
@@ -84,7 +87,6 @@ Most recent first. **Each entry is a one-line pointer — drill into the PR, com
 - **2026-06-04** — PR #203 ([OSS-452](https://linear.app/kunai/issue/OSS-452)): Sub-B of OSS-450. `createOptimizer` factory matching SWC's stateful-async shape; default `sys` stub satisfies full `OptimizerSystem` interface.
 - **2026-06-04** — PR #200 ([OSS-451](https://linear.app/kunai/issue/OSS-451)): Sub-A of OSS-450. New `src/index.ts` barrel + `tsconfig.build.json` + `package.json.exports`. Public API surface foundation.
 - **2026-06-03** — PRs #192–#196 ([OSS-449](https://linear.app/kunai/issue/OSS-449)): 5-stacked-PR comment cleanup sweep. All 243 Linear ticket refs stripped from `src/` across 36 files; established `feedback_comments_explain_why` memory. 0 behaviour change.
-- **2026-06-01** — PR #190 ([OSS-446](https://linear.app/kunai/issue/OSS-446) foundation): peer-tool `jsx()` extraction context + parent `jsx() → _jsxSorted` rewrite + lexical scope chain for captures (`buildClosureLexicalScopes`). +13 regression tests; baselines unchanged. Convergence flip on `example_qwik_router_client` gated on OSS-447 + OSS-448.
 
 ## What to do next
 

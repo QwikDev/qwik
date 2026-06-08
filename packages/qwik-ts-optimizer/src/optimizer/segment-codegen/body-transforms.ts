@@ -24,6 +24,7 @@ import type { ExtractionResult } from '../extract.js';
 import type { NestedCallSiteInfo } from '../segment-codegen.js';
 import {
   findArrowIndex,
+  pureAwareOverwriteStart,
   scanMatchingParenForward,
 } from '../utils/text-scanning.js';
 
@@ -215,15 +216,24 @@ export function rewriteNestedCallSitesInline(
         }
       }
     } else {
-      const relStart = site.callStart - bodyOffset;
+      let relStart = site.callStart - bodyOffset;
       const relEnd = site.callEnd - bodyOffset;
       let qrlRef = site.qrlVarName;
       if (site.captureNames && site.captureNames.length > 0) {
         qrlRef = formatWCall(site.qrlVarName, site.captureNames, '        ', '    ');
       }
-      const replacement = site.qrlCallee
-        ? `${needsPureAnnotation(site.qrlCallee) ? '/*#__PURE__*/ ' : ''}${site.qrlCallee}(${qrlRef})`
-        : qrlRef;
+      let replacement: string;
+      if (site.qrlCallee) {
+        // Wrapped in a `*Qrl(…)` call — a preceding PURE annotation still
+        // applies to the call, so leave it be (and re-emit our own if needed).
+        replacement = `${needsPureAnnotation(site.qrlCallee) ? '/*#__PURE__*/ ' : ''}${site.qrlCallee}(${qrlRef})`;
+      } else {
+        // Replaced by a bare `q_<symbol>` identifier: consume a leading PURE
+        // annotation so it isn't stranded before the identifier (a fatal
+        // Rolldown INVALID_ANNOTATION once reflowed onto its own line).
+        relStart = pureAwareOverwriteStart(bodyText, relStart);
+        replacement = qrlRef;
+      }
       bodyText = spliceWithinBody(bodyText, relStart, relEnd, replacement);
     }
   }

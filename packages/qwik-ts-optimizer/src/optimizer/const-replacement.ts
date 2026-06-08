@@ -33,7 +33,9 @@ interface ConstReplacementResult {
 /**
  * Replace isServer/isBrowser/isDev identifiers with boolean literals.
  * Only replaces identifiers that trace to actual Qwik package imports.
- * After replacement, removes the corresponding import bindings.
+ * Does NOT touch the import declarations — import cleanup is owned by the
+ * parent rewrite (processImports + the surviving-imports usage filter); see
+ * the note at the end of the function body.
  */
 export function replaceConstants(
   s: MagicString,

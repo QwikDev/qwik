@@ -325,4 +325,21 @@ describe('client strip config (stripEventHandlers unset) — full lib', () => {
 		expect(taskSeg!.code).toContain('({ track })');
 		expect(taskSeg!.code).not.toContain('_rawProps');
 	});
+
+	test('no PURE annotation is stranded before a bare q_<symbol> reference', () => {
+		// A peer tool emits `componentQrl(/* @__PURE__ */ inlinedQrl(…))`. When
+		// the inlinedQrl call is replaced with the bare `q_<symbol>` identifier,
+		// the annotation must be dropped — a PURE annotation before an identifier
+		// (not a call) is meaningless, and once the downstream TS/JSX transform
+		// reflows it onto its own line Rolldown fails the build with a fatal
+		// INVALID_ANNOTATION ("comment ignored due to position").
+		const result = runClient(readFileSync(FIXTURE_PATH, 'utf8'));
+		const strandedPure = /\/\*\s*[#@]__PURE__\s*\*\/\s*q_/;
+		for (const mod of result.modules) {
+			expect(
+				strandedPure.test(mod.code),
+				`Stranded PURE annotation before a q_ reference in ${mod.kind} ${mod.path}`,
+			).toBe(false);
+		}
+	});
 });

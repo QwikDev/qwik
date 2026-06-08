@@ -47,6 +47,30 @@ export function isInsideString(text: string, offset: number): boolean {
   return inSingle || inDouble || (inTemplate && templateDepth === 0);
 }
 
+const PURE_ANNOTATION_AT_END = /\/\*\s*[#@]__PURE__\s*\*\/$/;
+
+/**
+ * Given the start offset of a call expression that is about to be replaced by a
+ * bare identifier (e.g. an `inlinedQrl(…)` becoming its `q_<symbol>` reference),
+ * return the offset to overwrite *from* so that an immediately-preceding PURE
+ * annotation (`/* @__PURE__ *​/` or `/*#__PURE__*​/`) is consumed along with the
+ * call.
+ *
+ * A PURE annotation only applies to a call/new expression; left in front of a
+ * bare identifier it is meaningless, and once a downstream TS/JSX transform
+ * reflows it onto its own line a bundler (Rolldown) fails with a fatal
+ * `INVALID_ANNOTATION` ("comment ignored due to position"). Whitespace *before*
+ * the annotation is preserved, so `foo(a, /* @__PURE__ *​/ bar(…))` collapses to
+ * `foo(a, q_X)` rather than `foo(a,q_X)`. Returns `callStart` unchanged when no
+ * PURE annotation precedes the call.
+ */
+export function pureAwareOverwriteStart(source: string, callStart: number): number {
+  let j = callStart;
+  while (j > 0 && /\s/.test(source[j - 1]!)) j--;
+  const match = PURE_ANNOTATION_AT_END.exec(source.slice(0, j));
+  return match ? match.index : callStart;
+}
+
 /**
  * Find the matching close brace `}` for an open brace at `openPos`.
  * Skips string literals. Returns the index of `}`, or -1 if unmatched.

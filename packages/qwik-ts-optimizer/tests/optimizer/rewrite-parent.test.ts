@@ -60,6 +60,24 @@ const handler = $(() => {
     expect(code).not.toContain('$(');
   });
 
+  it('Test 2b: bare $() with a leading PURE annotation does not strand it before the q_ reference', () => {
+    // A peer tool may emit `/*#__PURE__*/ $(...)`. When the bare $() is replaced
+    // by its `q_<symbol>` identifier, the annotation must be consumed — a PURE
+    // comment before a bare identifier is meaningless and becomes a fatal
+    // bundler error once a downstream transform reflows it onto its own line.
+    // The isInlinedQrl branch of rewriteCallSites handles this; the isBare
+    // branch must match it.
+    const source = `import { $ } from "@qwik.dev/core";
+export const handler = /*#__PURE__*/ $(() => console.log("hi"));`;
+    const code = rewrite(source, 'test.ts');
+
+    expect(
+      /\/\*\s*#?@?__PURE__\s*\*\/\s*q_/.test(code),
+      `Stranded PURE annotation before a q_ reference:\n${code}`,
+    ).toBe(false);
+    expect(code).toContain('export const handler = q_');
+  });
+
   it('Test 3: multiple extractions produce sorted QRL declarations', () => {
     const source = `import { component$, $ } from "@qwik.dev/core";
 export const App = component$(() => {

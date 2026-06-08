@@ -930,6 +930,7 @@
       "tests/optimizer/rewrite-parent.test.ts :: rewriteParentModule Test 12: parent output has // separators between sections",
       "tests/optimizer/rewrite-parent.test.ts :: rewriteParentModule Test 1: single component$ rewrite produces correct parent output",
       "tests/optimizer/rewrite-parent.test.ts :: rewriteParentModule Test 2: bare $() replaced directly with q_symbolName",
+      "tests/optimizer/rewrite-parent.test.ts :: rewriteParentModule Test 2b: bare $() with a leading PURE annotation does not strand it before the q_ reference",
       "tests/optimizer/rewrite-parent.test.ts :: rewriteParentModule Test 3: multiple extractions produce sorted QRL declarations",
       "tests/optimizer/rewrite-parent.test.ts :: rewriteParentModule Test 4: @builder.io/qwik rewritten to @qwik.dev/core",
       "tests/optimizer/rewrite-parent.test.ts :: rewriteParentModule Test 5: optimizer-added imports are separate statements",
@@ -946,6 +947,7 @@
       "tests/optimizer/router-lib-processing.test.ts :: OSS-459 — segment body cut off mid-expression every emitted module parses cleanly",
       "tests/optimizer/router-lib-processing.test.ts :: client strip config (stripEventHandlers unset) — full lib every emitted module parses cleanly",
       "tests/optimizer/router-lib-processing.test.ts :: client strip config (stripEventHandlers unset) — full lib inlinedQrl task body keeps its destructured context param (not _rawProps)",
+      "tests/optimizer/router-lib-processing.test.ts :: client strip config (stripEventHandlers unset) — full lib no PURE annotation is stranded before a bare q_<symbol> reference",
       "tests/optimizer/router-lib-processing.test.ts :: no duplicate @qwik.dev/core import when a replaced const shares an import no @qwik.dev/core specifier is imported more than once per module",
       "tests/optimizer/router-lib-processing.test.ts :: segment origin + file extension resolve under bundler config every module origin is a well-formed relative path, not a slash-stripped absolute",
       "tests/optimizer/router-lib-processing.test.ts :: segment origin + file extension resolve under bundler config every sibling segment import resolves to an emitted segment file",
@@ -1202,6 +1204,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1018
+    "total": 1020
   }
 }

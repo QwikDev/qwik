@@ -175,5 +175,26 @@ test.describe('loaders', () => {
         await expect(page.locator('#prop6')).toHaveText('should not serialize this nested');
       }
     });
+
+    test('imported loaders keep sharedMap data after resume', async ({
+      page,
+      javaScriptEnabled,
+    }) => {
+      await page.goto('/qwikrouter-test/loaders-serialization/');
+
+      await expect(page.locator('#imported-never-ssr')).toHaveText('shared loader value');
+      await expect(page.locator('#imported-always-ssr')).toHaveText('shared loader value');
+
+      if (javaScriptEnabled) {
+        const qLoaderRequest = page.waitForRequest((request) => {
+          const url = request.url();
+          return url.includes('/q-loader-') && url.endsWith('.json');
+        });
+        await page.locator('#toggle-imported-child').click();
+        await qLoaderRequest;
+        await expect(page.locator('#imported-always-child')).toHaveText('shared loader value');
+        await expect(page.locator('#imported-never-child')).toHaveText('shared loader value');
+      }
+    });
   }
 });

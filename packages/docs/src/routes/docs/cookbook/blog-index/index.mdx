@@ -1,0 +1,102 @@
+---
+title: Cookbook | Blog Index
+contributors:
+  - youcefzemmar
+---
+
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+
+# Blog Index
+
+A blog index is a route that lists every post in a folder, with its title, date, and a link to the post itself. The posts are MDX (or plain Markdown) files — no CMS, no database.
+
+Qwik City's MDX pipeline parses YAML frontmatter and re-exports it as a named `frontmatter` export on the compiled module. That makes [`import.meta.glob`](./glob-import/index.mdx) the only primitive you need: glob the post folder, read each module's `frontmatter`, sort, render.
+
+## File layout
+
+```bash
+src/
+└── routes/
+    └── blog/
+        ├── index.tsx                       # the index page (this recipe)
+        └── posts/
+            ├── hello-world/index.mdx       # /blog/posts/hello-world/
+            ├── qwik-is-resumable/index.mdx # /blog/posts/qwik-is-resumable/
+            └── markdown-only/index.md      # /blog/posts/markdown-only/
+```
+
+Each post sits in its own folder so Qwik City's directory-based routing turns it into a real, navigable page.
+
+## A post
+
+The frontmatter is plain YAML. Anything you put there is available on the module's `frontmatter` export.
+
+```markdown title="src/routes/blog/posts/hello-world/index.mdx"
+---
+title: Hello, Qwik
+date: '2024-03-01'
+description: A short MDX post.
+---
+
+# Hello, Qwik
+
+Welcome to the demo blog…
+```
+
+## The index page
+
+The index uses `import.meta.glob` with `eager: true` because we only need metadata at build time — no need to defer-load each post just to read its title.
+
+<CodeSandbox src="/src/routes/demo/cookbook/blog-index/" maxHeight={300}>
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
+
+type PostFrontmatter = {
+  title: string;
+  date: string;
+  description?: string;
+};
+
+type PostModule = {
+  frontmatter: PostFrontmatter;
+};
+
+const postModules = import.meta.glob<PostModule>(
+  './posts/*/index.{md,mdx}',
+  { eager: true }
+);
+
+const posts = Object.entries(postModules)
+  .map(([path, mod]) => {
+    // './posts/hello-world/index.mdx' -> 'hello-world'
+    const slug = path.split('/').slice(-2, -1)[0];
+    return { slug, ...mod.frontmatter };
+  })
+  .sort((a, b) => (a.date < b.date ? 1 : -1));
+
+export default component$(() => {
+  return (
+    <div>
+      <h1>Blog</h1>
+      <ul>
+        {posts.map((post) => (
+          <li key={post.slug}>
+            <Link href={`./posts/${post.slug}/`}>{post.title}</Link>
+            <small> — {post.date}</small>
+            {post.description && <p>{post.description}</p>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+});
+```
+</CodeSandbox>
+
+## Notes
+
+- `eager: true` inlines the matched modules into the index chunk. That's fine for listing metadata. If you also want to render the post body on the index (excerpts, etc.), the modules also expose a `default` component you can drop in directly.
+- The glob is resolved at build time, so adding a new post is a matter of creating the folder — no registration step.
+- The `date` field is a string in `YYYY-MM-DD` form so lexicographic sort matches chronological sort. If you'd rather use real `Date` objects, parse them inside the `.map`.
+- To paginate, slice the sorted array; to filter by tag, narrow the frontmatter type and add a `.filter` step before `.sort`.

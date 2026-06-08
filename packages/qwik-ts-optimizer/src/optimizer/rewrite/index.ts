@@ -449,7 +449,7 @@ function applyModeTransforms(ctx: RewriteContext): void {
     isDev = false;
   }
   if (ctx.isServer !== undefined || isDev !== undefined) {
-    replaceConstants(ctx.source, ctx.s, ctx.program, ctx.originalImports, ctx.isServer, isDev);
+    replaceConstants(ctx.s, ctx.program, ctx.originalImports, ctx.isServer, isDev);
   }
 }
 

@@ -197,3 +197,80 @@ describe('OSS-459 — segment body cut off mid-expression', () => {
 		}
 	});
 });
+
+describe('no duplicate @qwik.dev/core import when a replaced const shares an import', () => {
+	// A lib chunk that imports a const-replacement target (isBrowser/isServer/
+	// isDev) ALONGSIDE surviving specifiers, under prod + the client strip
+	// config, used to emit TWO `@qwik.dev/core` imports: one usage-filtered copy
+	// in the preamble, and a stale copy re-introduced at body start. The cause:
+	// `processImports` removes every original import and rebuilds survivors, then
+	// const-replacement's removal pass overwrote the already-removed original
+	// import range — re-materialising it. The duplicate `createAsyncQrl`
+	// declaration broke Rolldown with "identifier already declared".
+	//
+	// Trigger requires the const target to be actually USED (so replacement
+	// fires) and the original import to carry other surviving specifiers. Source
+	// mirrors the shape of `@qwik.dev/router/lib/chunks/routing.qwik.mjs`.
+	const SOURCE = `import { createAsyncQrl, inlinedQrl, _captures, isBrowser, withLocale } from '@qwik.dev/core';
+const f = () => isBrowser ? 1 : 2;
+const g = (locale) => withLocale(locale, () => 42);
+const h = (a, b, c) => createAsyncQrl(/* @__PURE__ */ inlinedQrl(async () => {
+	const x = _captures[0];
+	return x;
+}, "h_createAsync_CFLMoh8rnzw", [a, b, c]));
+export { f, g, h };
+`;
+
+	function transformChunk() {
+		return transformModule({
+			srcDir: mkFilePath(SRC_DIR),
+			input: [
+				{
+					path: mkFilePath('/workspace/node_modules/@qwik.dev/router/lib/chunks/routing.qwik.mjs'),
+					code: mkSourceText(SOURCE),
+				},
+			],
+			transpileTs: true,
+			transpileJsx: true,
+			explicitExtensions: true,
+			preserveFilenames: true,
+			mode: 'prod',
+			minify: 'simplify',
+			// Real bundler CLIENT strip config — note `stripEventHandlers` is unset
+			// on the client path (distinct from BUNDLER_STRIP_CONFIG above), which
+			// is what exercises the const-replacement interaction.
+			stripCtxName: ['useServer', 'server', 'route', 'zod$', 'validator$', 'globalAction$'],
+			stripExports: [
+				'onGet',
+				'onPost',
+				'onPut',
+				'onRequest',
+				'onDelete',
+				'onHead',
+				'onOptions',
+				'onPatch',
+				'onStaticGenerate',
+			],
+			isServer: false,
+		});
+	}
+
+	test('no @qwik.dev/core specifier is imported more than once per module', () => {
+		const result = transformChunk();
+		const importRe = /import\s*\{([^}]*)\}\s*from\s*["']@qwik\.dev\/core["']/g;
+		for (const mod of result.modules) {
+			const names: string[] = [];
+			for (const m of mod.code.matchAll(importRe)) {
+				for (const part of m[1]!.split(',')) {
+					const name = part.trim().split(/\s+as\s+/).pop()?.trim();
+					if (name) names.push(name);
+				}
+			}
+			const dups = names.filter((n, i) => names.indexOf(n) !== i);
+			expect(
+				dups,
+				`Duplicate @qwik.dev/core import(s) in ${mod.kind} ${mod.path}: ${dups.join(', ')}`,
+			).toEqual([]);
+		}
+	});
+});

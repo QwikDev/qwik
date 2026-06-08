@@ -11,7 +11,6 @@ import type {
   AstNode,
   AstParentNode,
   AstProgram,
-  ImportSpecifier,
 } from '../ast-types.js';
 import type { ImportInfo } from './marker-detection.js';
 
@@ -37,7 +36,6 @@ interface ConstReplacementResult {
  * After replacement, removes the corresponding import bindings.
  */
 export function replaceConstants(
-  source: string,
   s: MagicString,
   program: AstProgram,
   importMap: Map<string, ImportInfo>,
@@ -66,7 +64,6 @@ export function replaceConstants(
   }
 
   let replacedCount = 0;
-  const replacedLocalNames = new Set<string>();
 
   // Collect import specifier positions to skip during walk
   const importRanges = new Set<string>();
@@ -92,80 +89,17 @@ export function replaceConstants(
 
       s.overwrite(node.start, node.end, replacement);
       replacedCount++;
-      replacedLocalNames.add(node.name);
     },
   });
 
-  if (replacedLocalNames.size > 0) {
-    removeReplacedImports(source, s, program, replacedLocalNames);
-  }
-
+  // No import-side cleanup of the replaced const bindings here. This runs only
+  // inside the parent rewrite, *after* `processImports` has already removed
+  // every original import and rebuilt the survivors into the preamble; the
+  // surviving-imports usage filter then drops any binding the literal
+  // substitution above left unreferenced. A removal pass at this point edits
+  // the already-removed original range and re-introduces the import into the
+  // module body — which surfaced as a duplicate `@qwik.dev/core` import (one
+  // trimmed copy in the preamble, one stale copy at body start) that broke
+  // bundlers with "identifier already declared".
   return { replacedCount };
-}
-
-/** Remove import specifiers for replaced constants, or the whole import if all were replaced. */
-function removeReplacedImports(
-  source: string,
-  s: MagicString,
-  program: AstProgram,
-  replacedNames: Set<string>,
-): void {
-  for (const node of program.body) {
-    if (node.type !== 'ImportDeclaration') continue;
-
-    const specifiers = node.specifiers;
-    if (!specifiers || specifiers.length === 0) continue;
-
-    const removedIndices = new Set<number>();
-    for (let i = 0; i < specifiers.length; i++) {
-      if (replacedNames.has(specifiers[i].local.name)) removedIndices.add(i);
-    }
-
-    if (removedIndices.size === 0) continue;
-
-    let end = node.end;
-    if (end < source.length && source[end] === '\n') end++;
-
-    if (removedIndices.size === specifiers.length) {
-      s.overwrite(node.start, end, '');
-      continue;
-    }
-
-    // Partial removal: rebuild the import statement with remaining specifiers
-    let defaultPart = '';
-    const namedParts: string[] = [];
-
-    for (let i = 0; i < specifiers.length; i++) {
-      if (removedIndices.has(i)) continue;
-
-      const spec = specifiers[i];
-      if (spec.type === 'ImportDefaultSpecifier') {
-        defaultPart = spec.local.name;
-      } else if (spec.type === 'ImportNamespaceSpecifier') {
-        defaultPart = `* as ${spec.local.name}`;
-      } else {
-        const localName = spec.local.name;
-        const importedName = getImportSpecifierName(spec) ?? localName;
-        namedParts.push(
-          importedName !== localName ? `${importedName} as ${localName}` : localName,
-        );
-      }
-    }
-
-    const importParts = namedParts.length > 0
-      ? defaultPart
-        ? `${defaultPart}, { ${namedParts.join(', ')} }`
-        : `{ ${namedParts.join(', ')} }`
-      : defaultPart;
-
-    const sourceSlice = source.slice(node.source.start, node.source.end);
-    s.overwrite(node.start, end, `import ${importParts} from ${sourceSlice};\n`);
-  }
-}
-
-function getImportSpecifierName(spec: ImportSpecifier): string | undefined {
-  if (spec.imported.type === 'Identifier') {
-    return spec.imported.name;
-  }
-  return spec.imported.value;
 }

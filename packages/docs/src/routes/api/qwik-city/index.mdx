@@ -40,7 +40,7 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
+      | FailReturn<GetValidatorErrorType<VALIDATOR>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorInputType<VALIDATOR>,
@@ -59,9 +59,7 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR];
     },
   ): Action<
-    StrictUnion<
-      OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-    >,
+    StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
@@ -92,7 +90,7 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
+      | FailReturn<GetValidatorErrorType<VALIDATOR>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorInputType<VALIDATOR>,
@@ -108,9 +106,7 @@ export type ActionConstructor = {
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR,
   ): Action<
-    StrictUnion<
-      OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-    >,
+    StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
@@ -136,7 +132,7 @@ export type ActionConstructor = {
 };
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorOutputType](#getvalidatoroutputtype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [ValidatorErrorType](#validatorerrortype), [GetValidatorInputType](#getvalidatorinputtype), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
+**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorOutputType](#getvalidatoroutputtype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [GetValidatorErrorType](#getvalidatorerrortype), [FailOfRest](#failofrest), [GetValidatorInputType](#getvalidatorinputtype), [JSONObject](#jsonobject)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
@@ -1159,6 +1155,50 @@ export type FailReturn<T> = T & Failed;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
+<h2 id="standardschemav1-failureresult">FailureResult</h2>
+
+The result interface if validation fails.
+
+```typescript
+interface FailureResult
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[issues](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+ReadonlyArray&lt;[Issue](#standardschemav1-issue)&gt;
+
+</td><td>
+
+The issues of failed validation.
+
+</td></tr>
+</tbody></table>
+
 <h2 id="form">Form</h2>
 
 ```typescript
@@ -1397,18 +1437,33 @@ RequestEvent \| undefined
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
 
+<h2 id="getvalidatorerrortype">GetValidatorErrorType</h2>
+
+```typescript
+export type GetValidatorErrorType<VALIDATOR extends TypedDataValidator> =
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaValidatorErrorType<StandardSchemaV1.InferInput<TYPE>>
+    : ValidatorErrorType<GetValidatorInputType<VALIDATOR>>;
+```
+
+**References:** [TypedDataValidator](#typeddatavalidator), [StandardSchemaDataValidator](#standardschemadatavalidator), [StandardSchemaValidatorErrorType](#standardschemavalidatorerrortype), [StandardSchemaV1.InferInput](#standardschemav1-inferinput), [ValidatorErrorType](#validatorerrortype), [GetValidatorInputType](#getvalidatorinputtype)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
 <h2 id="getvalidatorinputtype">GetValidatorInputType</h2>
 
 ```typescript
 export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferInput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.input<TYPE>
-      : never;
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaV1.InferInput<TYPE>
+    : VALIDATOR extends ValibotDataValidator<infer TYPE>
+      ? v.InferInput<TYPE>
+      : VALIDATOR extends ZodDataValidator<infer TYPE>
+        ? z.input<TYPE>
+        : never;
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator)
+**References:** [TypedDataValidator](#typeddatavalidator), [StandardSchemaDataValidator](#standardschemadatavalidator), [StandardSchemaV1.InferInput](#standardschemav1-inferinput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
@@ -1416,14 +1471,16 @@ export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
 
 ```typescript
 export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferOutput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.output<TYPE>
-      : never;
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaV1.InferOutput<TYPE>
+    : VALIDATOR extends ValibotDataValidator<infer TYPE>
+      ? v.InferOutput<TYPE>
+      : VALIDATOR extends ZodDataValidator<infer TYPE>
+        ? z.output<TYPE>
+        : never;
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator)
+**References:** [TypedDataValidator](#typeddatavalidator), [StandardSchemaDataValidator](#standardschemadatavalidator), [StandardSchemaV1.InferOutput](#standardschemav1-inferoutput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
@@ -1453,6 +1510,89 @@ globalActionQrl: ActionConstructorQRL;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+
+<h2 id="standardschemav1-inferinput">InferInput</h2>
+
+Infers the input type of a Standard Schema.
+
+```typescript
+type InferInput<Schema extends StandardTypedV1> =
+  StandardTypedV1.InferInput<Schema>;
+```
+
+**References:** [StandardTypedV1](#standardtypedv1-interface), [StandardTypedV1.InferInput](#)
+
+<h2 id="standardschemav1-inferoutput">InferOutput</h2>
+
+Infers the output type of a Standard Schema.
+
+```typescript
+type InferOutput<Schema extends StandardTypedV1> =
+  StandardTypedV1.InferOutput<Schema>;
+```
+
+**References:** [StandardTypedV1](#standardtypedv1-interface), [StandardTypedV1.InferOutput](#)
+
+<h2 id="standardschemav1-issue">Issue</h2>
+
+The issue interface of the failure output.
+
+```typescript
+interface Issue
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[message](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+The error message of the issue.
+
+</td></tr>
+<tr><td>
+
+[path?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+ReadonlyArray&lt;PropertyKey \| [PathSegment](#standardschemav1-pathsegment)&gt; \| undefined
+
+</td><td>
+
+_(Optional)_ The path of the issue, if any.
+
+</td></tr>
+</tbody></table>
 
 <h2 id="jsonobject">JSONObject</h2>
 
@@ -1630,6 +1770,50 @@ export type NavigationType = "initial" | "form" | "link" | "popstate";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
+<h2 id="standardschemav1-options">Options</h2>
+
+The Standard Schema options interface.
+
+```typescript
+interface Options
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[libraryOptions?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Record&lt;string, unknown&gt; \| undefined
+
+</td><td>
+
+_(Optional)_ Explicit support for additional vendor-specific parameters, if needed.
+
+</td></tr>
+</tbody></table>
+
 <h2 id="pagemodule">PageModule</h2>
 
 ```typescript
@@ -1733,6 +1917,50 @@ export declare type PathParams = Record<string, string>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
+<h2 id="standardschemav1-pathsegment">PathSegment</h2>
+
+The path segment interface of the issue.
+
+```typescript
+interface PathSegment
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[key](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+PropertyKey
+
+</td><td>
+
+The key representing a path segment.
+
+</td></tr>
+</tbody></table>
+
 <h2 id="preventnavigatecallback">PreventNavigateCallback</h2>
 
 ```typescript
@@ -1742,6 +1970,52 @@ export type PreventNavigateCallback = (
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardschemav1-props">Props</h2>
+
+The Standard Schema properties interface.
+
+```typescript
+interface Props<Input = unknown, Output = Input> extends StandardTypedV1.Props<Input, Output>
+```
+
+**Extends:** [StandardTypedV1.Props](#)&lt;Input, Output&gt;
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[validate](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(value: unknown, options?: [Options](#standardschemav1-options) \| undefined) =&gt; [Result](#standardschemav1-result)&lt;Output&gt; \| Promise&lt;[Result](#standardschemav1-result)&lt;Output&gt;&gt;
+
+</td><td>
+
+Validates unknown input values.
+
+</td></tr>
+</tbody></table>
 
 <h2 id="qwik_city_scroller">QWIK_CITY_SCROLLER</h2>
 
@@ -2188,6 +2462,16 @@ export type ResolvedDocumentHead<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
+<h2 id="standardschemav1-result">Result</h2>
+
+The result interface of the validate function.
+
+```typescript
+type Result<Output> = SuccessResult<Output> | FailureResult;
+```
+
+**References:** [SuccessResult](#standardschemav1-successresult), [FailureResult](#standardschemav1-failureresult)
+
 <h2 id="routeaction_">routeAction$</h2>
 
 ```typescript
@@ -2352,6 +2636,22 @@ RouterOutlet: import("@builder.io/qwik").Component<unknown>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/router-outlet-component.tsx)
 
+<h2 id="schema_">schema$</h2>
+
+```typescript
+schema$: StandardSchemaConstructor;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+
+<h2 id="schemaqrl">schemaQrl</h2>
+
+```typescript
+schemaQrl: StandardSchemaConstructorQRL;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+
 <h2 id="server_">server$</h2>
 
 ```typescript
@@ -2489,6 +2789,489 @@ JSXOutput
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/sw-component.tsx)
 
+<h2 id="standardschemaconstructor">StandardSchemaConstructor</h2>
+
+```typescript
+export type StandardSchemaConstructor = {
+  <T extends StandardSchemaV1>(schema: T): StandardSchemaDataValidator<T>;
+  <T extends StandardSchemaV1>(
+    schema: (ev: RequestEvent) => T,
+  ): StandardSchemaDataValidator<T>;
+};
+```
+
+**References:** [StandardSchemaV1](#standardschemav1-interface), [StandardSchemaDataValidator](#standardschemadatavalidator)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardschemaconstructorqrl">StandardSchemaConstructorQRL</h2>
+
+```typescript
+export type StandardSchemaConstructorQRL = {
+  <T extends StandardSchemaV1>(schema: QRL<T>): StandardSchemaDataValidator<T>;
+  <T extends StandardSchemaV1>(
+    schema: QRL<(ev: RequestEvent) => T>,
+  ): StandardSchemaDataValidator<T>;
+};
+```
+
+**References:** [StandardSchemaV1](#standardschemav1-interface), [StandardSchemaDataValidator](#standardschemadatavalidator)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardschemadatavalidator">StandardSchemaDataValidator</h2>
+
+```typescript
+export type StandardSchemaDataValidator<
+  T extends StandardSchemaV1 = StandardSchemaV1,
+> = {
+  readonly __brand: "standard-schema";
+  validate(
+    ev: RequestEvent,
+    data: unknown,
+  ): Promise<
+    ValidatorReturn<
+      StandardSchemaValidatorErrorType<StandardSchemaV1.InferInput<T>>
+    >
+  >;
+};
+```
+
+**References:** [StandardSchemaV1](#standardschemav1-interface), [ValidatorReturn](#validatorreturn), [StandardSchemaValidatorErrorType](#standardschemavalidatorerrortype), [StandardSchemaV1.InferInput](#standardschemav1-inferinput)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardschemav1-interface">StandardSchemaV1</h2>
+
+```typescript
+export declare namespace StandardSchemaV1
+```
+
+<table><thead><tr><th>
+
+Interface
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[FailureResult](#standardschemav1-failureresult)
+
+</td><td>
+
+The result interface if validation fails.
+
+</td></tr>
+<tr><td>
+
+[Issue](#standardschemav1-issue)
+
+</td><td>
+
+The issue interface of the failure output.
+
+</td></tr>
+<tr><td>
+
+[Options](#standardschemav1-options)
+
+</td><td>
+
+The Standard Schema options interface.
+
+</td></tr>
+<tr><td>
+
+[PathSegment](#standardschemav1-pathsegment)
+
+</td><td>
+
+The path segment interface of the issue.
+
+</td></tr>
+<tr><td>
+
+[Props](#standardschemav1-props)
+
+</td><td>
+
+The Standard Schema properties interface.
+
+</td></tr>
+<tr><td>
+
+[SuccessResult](#standardschemav1-successresult)
+
+</td><td>
+
+The result interface if validation succeeds.
+
+</td></tr>
+<tr><td>
+
+[Types](#standardschemav1-types)
+
+</td><td>
+
+The Standard Schema types interface.
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Type Alias
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[InferInput](#standardschemav1-inferinput)
+
+</td><td>
+
+Infers the input type of a Standard Schema.
+
+</td></tr>
+<tr><td>
+
+[InferOutput](#standardschemav1-inferoutput)
+
+</td><td>
+
+Infers the output type of a Standard Schema.
+
+</td></tr>
+<tr><td>
+
+[Result](#standardschemav1-result)
+
+</td><td>
+
+The result interface of the validate function.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardschemav1-namespace">StandardSchemaV1</h2>
+
+```typescript
+export declare namespace StandardSchemaV1
+```
+
+<table><thead><tr><th>
+
+Interface
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[FailureResult](#standardschemav1-failureresult)
+
+</td><td>
+
+The result interface if validation fails.
+
+</td></tr>
+<tr><td>
+
+[Issue](#standardschemav1-issue)
+
+</td><td>
+
+The issue interface of the failure output.
+
+</td></tr>
+<tr><td>
+
+[Options](#standardschemav1-options)
+
+</td><td>
+
+The Standard Schema options interface.
+
+</td></tr>
+<tr><td>
+
+[PathSegment](#standardschemav1-pathsegment)
+
+</td><td>
+
+The path segment interface of the issue.
+
+</td></tr>
+<tr><td>
+
+[Props](#standardschemav1-props)
+
+</td><td>
+
+The Standard Schema properties interface.
+
+</td></tr>
+<tr><td>
+
+[SuccessResult](#standardschemav1-successresult)
+
+</td><td>
+
+The result interface if validation succeeds.
+
+</td></tr>
+<tr><td>
+
+[Types](#standardschemav1-types)
+
+</td><td>
+
+The Standard Schema types interface.
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Type Alias
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[InferInput](#standardschemav1-inferinput)
+
+</td><td>
+
+Infers the input type of a Standard Schema.
+
+</td></tr>
+<tr><td>
+
+[InferOutput](#standardschemav1-inferoutput)
+
+</td><td>
+
+Infers the output type of a Standard Schema.
+
+</td></tr>
+<tr><td>
+
+[Result](#standardschemav1-result)
+
+</td><td>
+
+The result interface of the validate function.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardschemavalidatorerrorkeydotnotation">StandardSchemaValidatorErrorKeyDotNotation</h2>
+
+```typescript
+export type StandardSchemaValidatorErrorKeyDotNotation<
+  T,
+  Prefix extends string = "",
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 5,
+> = T extends unknown
+  ? IsAny<T> extends true
+    ? never
+    : unknown extends T
+      ? Prefix extends ""
+        ? string
+        : never
+      : NonNullable<T> extends readonly (infer U)[]
+        ?
+            | `${Prefix}${number}`
+            | (Depth extends 0
+                ? never
+                : StandardSchemaValidatorErrorKeyDotNotation<
+                    U,
+                    `${Prefix}${number}.`,
+                    [never, 0, 1, 2, 3, 4][Depth]
+                  >)
+        : NonNullable<T> extends object
+          ? {
+              [K in keyof NonNullable<T> & (string | number)]:
+                | `${Prefix}${K}`
+                | (Depth extends 0
+                    ? never
+                    : StandardSchemaValidatorErrorKeyDotNotation<
+                        NonNullable<T>[K],
+                        `${Prefix}${K}.`,
+                        [never, 0, 1, 2, 3, 4][Depth]
+                      >);
+            }[keyof NonNullable<T> & (string | number)]
+          : never
+  : never;
+```
+
+**References:** [StandardSchemaValidatorErrorKeyDotNotation](#standardschemavalidatorerrorkeydotnotation)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardschemavalidatorerrortype">StandardSchemaValidatorErrorType</h2>
+
+```typescript
+export type StandardSchemaValidatorErrorType<T, U = string> = {
+  formErrors: U[];
+  fieldErrors: Partial<
+    Record<StandardSchemaValidatorErrorKeyDotNotation<T>, U[]>
+  >;
+};
+```
+
+**References:** [StandardSchemaValidatorErrorKeyDotNotation](#standardschemavalidatorerrorkeydotnotation)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardtypedv1-interface">StandardTypedV1</h2>
+
+```typescript
+export declare namespace StandardTypedV1
+```
+
+<table><thead><tr><th>
+
+Interface
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[Props](#)
+
+</td><td>
+
+The Standard Typed properties interface.
+
+</td></tr>
+<tr><td>
+
+[Types](#)
+
+</td><td>
+
+The Standard Typed types interface.
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Type Alias
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[InferInput](#)
+
+</td><td>
+
+Infers the input type of a Standard Typed.
+
+</td></tr>
+<tr><td>
+
+[InferOutput](#)
+
+</td><td>
+
+Infers the output type of a Standard Typed.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardtypedv1-namespace">StandardTypedV1</h2>
+
+```typescript
+export declare namespace StandardTypedV1
+```
+
+<table><thead><tr><th>
+
+Interface
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[Props](#)
+
+</td><td>
+
+The Standard Typed properties interface.
+
+</td></tr>
+<tr><td>
+
+[Types](#)
+
+</td><td>
+
+The Standard Typed types interface.
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Type Alias
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[InferInput](#)
+
+</td><td>
+
+Infers the input type of a Standard Typed.
+
+</td></tr>
+<tr><td>
+
+[InferOutput](#)
+
+</td><td>
+
+Infers the output type of a Standard Typed.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
 <h2 id="staticgenerate">StaticGenerate</h2>
 
 ```typescript
@@ -2553,13 +3336,89 @@ export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
+<h2 id="standardschemav1-successresult">SuccessResult</h2>
+
+The result interface if validation succeeds.
+
+```typescript
+interface SuccessResult<Output>
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[issues?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+undefined
+
+</td><td>
+
+_(Optional)_ A falsy value for `issues` indicates success.
+
+</td></tr>
+<tr><td>
+
+[value](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Output
+
+</td><td>
+
+The typed output value.
+
+</td></tr>
+</tbody></table>
+
 <h2 id="typeddatavalidator">TypedDataValidator</h2>
 
 ```typescript
-export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
+export type TypedDataValidator =
+  | StandardSchemaDataValidator
+  | ValibotDataValidator
+  | ZodDataValidator;
 ```
 
+**References:** [StandardSchemaDataValidator](#standardschemadatavalidator)
+
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardschemav1-types">Types</h2>
+
+The Standard Schema types interface.
+
+```typescript
+interface Types<Input = unknown, Output = Input> extends StandardTypedV1.Types<Input, Output>
+```
+
+**Extends:** [StandardTypedV1.Types](#)&lt;Input, Output&gt;
 
 <h2 id="usecontent">useContent</h2>
 

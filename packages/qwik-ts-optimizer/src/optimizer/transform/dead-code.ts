@@ -98,6 +98,17 @@ export function applySegmentDCE(code: string): string {
     let match;
 
     while ((match = ifBracedBoolLiteral.exec(result)) !== null) {
+      // Skip a fold nested inside one already collected this pass. The
+      // replacements are applied descending-by-start against the current
+      // `result`, so an inner edit shifts every offset after it and
+      // invalidates the outer fold's stale `end` — the outer slice then cuts
+      // at the wrong position and drops a brace. The enclosing `while
+      // (changed)` loop re-runs and folds the now-unnested inner block on the
+      // next iteration. (The braceless handler below already guards this way.)
+      if (replacements.some((r) => match!.index >= r.start && match!.index < r.end)) {
+        continue;
+      }
+
       const condValue = match[1] === 'true';
       const braceStart = match.index + match[0].length - 1;
 

@@ -619,7 +619,17 @@ function applyBodyTransforms(
     bodyText = inlineEnumReferences(bodyText, enumValueMap);
   }
 
-  bodyText = applyRawPropsToSegmentBody(bodyText, parts);
+  // `inlinedQrl` bodies are pre-compiled library code: their first arg is a
+  // finished closure whose destructured first param (e.g. a `useTask$`'s
+  // `({ track })` context) is NOT component props and must not be normalised
+  // to `_rawProps`. SWC skips the first arg of `inlinedQrl`/`inlinedQrlDEV`
+  // calls for exactly this reason (props_destructuring.rs — the inlinedQrl
+  // arm of `visit_mut_call_expr`). Applying the rewrite here renamed the param
+  // to `_rawProps` while the body still referenced `track`, and dropped the
+  // closing brace — producing an unbalanced, unparseable segment.
+  if (!extraction.isInlinedQrl) {
+    bodyText = applyRawPropsToSegmentBody(bodyText, parts);
+  }
   bodyText = stripDiagnosticsAndDirectives(bodyText);
 
   // Destructure capture-driven payloads once so the conditional pass list

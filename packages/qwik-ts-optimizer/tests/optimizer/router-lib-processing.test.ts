@@ -274,3 +274,55 @@ export { f, g, h };
 		}
 	});
 });
+
+describe('client strip config (stripEventHandlers unset) — full lib', () => {
+	// The bundler's CLIENT strip config differs from BUNDLER_STRIP_CONFIG above:
+	// `stripEventHandlers` is unset and `useServer`/`server` are stripped. That
+	// path exercised two bugs the `stripEventHandlers: true` config masks:
+	//  - const-replacement of isDev/isServer/isBrowser creates `if (true)` /
+	//    `if (false)` that DCE folds; a fold nested inside another fold corrupted
+	//    braces (applied with a stale offset) → unparseable segment.
+	//  - an `inlinedQrl` task body with a destructured *context* param
+	//    (`({ track })`) was wrongly normalised to `_rawProps`; SWC skips the
+	//    first arg of `inlinedQrl` calls, so the context param must be preserved.
+	const CLIENT_STRIP_CONFIG = {
+		stripCtxName: ['useServer', 'server', 'route', 'zod$', 'validator$', 'globalAction$'],
+		stripExports: BUNDLER_STRIP_CONFIG.stripExports,
+	} as const;
+
+	function runClient(source: string) {
+		return transformModule({
+			srcDir: mkFilePath(SRC_DIR),
+			input: [{ path: mkFilePath(INPUT_PATH), code: mkSourceText(source) }],
+			transpileTs: true,
+			transpileJsx: true,
+			explicitExtensions: true,
+			preserveFilenames: true,
+			mode: 'prod',
+			minify: 'simplify',
+			isServer: false,
+			...CLIENT_STRIP_CONFIG,
+		});
+	}
+
+	test('every emitted module parses cleanly', () => {
+		const result = runClient(readFileSync(FIXTURE_PATH, 'utf8'));
+		for (const mod of result.modules) {
+			const parsed = parseSync(mod.path, mod.code);
+			expect(
+				parsed.errors,
+				`Parse errors in ${mod.kind} ${mod.path}: ${JSON.stringify(parsed.errors)}`,
+			).toEqual([]);
+		}
+	});
+
+	test('inlinedQrl task body keeps its destructured context param (not _rawProps)', () => {
+		const result = runClient(readFileSync(FIXTURE_PATH, 'utf8'));
+		const taskSeg = result.modules.find(
+			(m) => m.kind === 'segment' && m.path.includes('useQwikRouter_useTask'),
+		);
+		expect(taskSeg, 'useQwikRouter useTask segment should be emitted').toBeDefined();
+		expect(taskSeg!.code).toContain('({ track })');
+		expect(taskSeg!.code).not.toContain('_rawProps');
+	});
+});

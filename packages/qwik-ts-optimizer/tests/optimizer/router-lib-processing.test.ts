@@ -14,7 +14,7 @@
 import { parseSync } from 'oxc-parser';
 import { describe, expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 import { transformModule } from '../../src/index.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
@@ -39,12 +39,17 @@ const BUNDLER_STRIP_CONFIG = {
 	stripEventHandlers: true,
 } as const;
 
+// The lib lives in `node_modules` two levels above srcDir and is handed to the
+// optimizer as an absolute path — the shape the Rolldown adapter passes.
+const SRC_DIR = '/workspace/fixtures/vite-qwik-router';
+const INPUT_PATH = '/workspace/node_modules/@qwik.dev/router/lib/index.qwik.mjs';
+
 function runTransform(source: string) {
 	return transformModule({
-		srcDir: mkFilePath('/workspace/fixtures/vite-qwik-router'),
+		srcDir: mkFilePath(SRC_DIR),
 		input: [
 			{
-				path: mkFilePath('/workspace/node_modules/@qwik.dev/router/lib/index.qwik.mjs'),
+				path: mkFilePath(INPUT_PATH),
 				code: mkSourceText(source),
 			},
 		],
@@ -90,31 +95,86 @@ describe('OSS-457 — chopped marker call mid-expression', () => {
 	});
 });
 
-describe('OSS-458 — unresolved `./chunks/*.qwik.mjs` imports in segments (OPEN)', () => {
-	// The bug: when extracting segments from a lib like @qwik.dev/router, the
-	// lib's pre-bundled segment files carry relative imports against the lib's
-	// internal `chunks/` directory (`./chunks/routing.qwik.mjs`). The TS
-	// optimizer preserves these imports in the extracted segment as-is, but
-	// the segment now lives at a `\0qwik:segment:client:...` virtual location
-	// where the relative path doesn't resolve, producing 30+ UNRESOLVED_IMPORT
-	// errors in the bundler's Rolldown pass.
+describe('segment origin + file extension resolve under bundler config', () => {
+	// The original framing of this gap — "segments retain `./chunks/*.qwik.mjs`
+	// imports, so strip them" — was wrong: SWC emits those exact `./chunks/`
+	// imports too (the lib's pre-bundled chunks are real sibling files). The
+	// real bundler-integration blockers were two metadata-shape bugs that only
+	// surface when the optimizer is handed an absolute input path for a lib
+	// living in `node_modules` outside srcDir — exactly what the Rolldown
+	// adapter passes:
 	//
-	// This test is currently FAILING (marked with `.fails`) — Sub-B (OSS-458)
-	// is open work. Flip back to a regular `test` once the fix lands.
-	test.fails(
-		'segment-emitted code from lib does not retain `./chunks/X.qwik.mjs` imports',
-		() => {
-			const source = readFileSync(FIXTURE_PATH, 'utf8');
-			const result = runTransform(source);
-			for (const mod of result.modules) {
-				if (mod.kind !== 'segment') continue;
+	//   1. ORIGIN SHAPE. `origin` must be a well-formed relative path
+	//      (`../../node_modules/…`), not a leading-slash-stripped absolute
+	//      (`workspace/node_modules/…`). The bundler anchors each segment's own
+	//      relative imports (`./chunks/routing.qwik.mjs`) by resolving them
+	//      against `origin`; a slash-stripped absolute resolves to garbage and
+	//      Rolldown reports UNRESOLVED_IMPORT.
+	//
+	//   2. FILE EXTENSION. A segment's emitted-file extension (`module.path`)
+	//      must equal the extension used by sibling QRL `import("./…")`
+	//      specifiers. Under transpileTs the imports use `.js`; if the segment
+	//      registered at `.mjs` the bundler's segment-registry exact-match
+	//      missed and Rolldown reported UNRESOLVED_IMPORT. SWC keeps both `.js`.
+
+	test('every module origin is a well-formed relative path, not a slash-stripped absolute', () => {
+		const source = readFileSync(FIXTURE_PATH, 'utf8');
+		const result = runTransform(source);
+		for (const mod of result.modules) {
+			if (mod.kind !== 'segment') continue;
+			const origin = mod.segment.origin;
+			expect(
+				origin.startsWith('/'),
+				`origin is an unresolved absolute path: ${JSON.stringify(origin)}`,
+			).toBe(false);
+			// srcDir is `/workspace/fixtures/vite-qwik-router`; the lib lives at
+			// `/workspace/node_modules/@qwik.dev/router/lib/…`, two levels up, so
+			// the correct srcDir-relative origin is `../../node_modules/…`.
+			expect(
+				origin.startsWith('../../node_modules/@qwik.dev/router/lib/'),
+				`origin is not the expected srcDir-relative path: ${JSON.stringify(origin)}`,
+			).toBe(true);
+		}
+	});
+
+	test('every sibling segment import resolves to an emitted segment file', () => {
+		const source = readFileSync(FIXTURE_PATH, 'utf8');
+		const result = runTransform(source);
+
+		// Mirror the bundler's segment registry: the set of paths each emitted
+		// segment is registered under (`segmentId(env, module.path)`).
+		const segmentPaths = new Set<string>(
+			result.modules.filter((m) => m.kind === 'segment').map((m) => m.path),
+		);
+		expect(segmentPaths.size, 'fixture should emit segments').toBeGreaterThan(0);
+
+		// Specifiers the optimizer itself emits for sibling segment files carry
+		// the source basename (`index.qwik.mjs_<symbol>`); lib-internal
+		// `./chunks/…` imports are deliberately excluded — those resolve against
+		// `origin` on disk, not against the segment registry.
+		const importRe = /(?:import\(\s*|from\s*)["'](\.[^"']+)["']/g;
+		let checked = 0;
+		for (const mod of result.modules) {
+			// Mirror the bundler's resolveId: a segment importer resolves its
+			// relative imports against its own registered `module.path`; a
+			// non-segment importer (the parent) resolves against its real module
+			// id — i.e. the absolute input path. (The parent's `module.path` is
+			// in the srcDir-relative namespace, distinct from the segment paths,
+			// so resolving against it would be wrong here.)
+			const baseDir = mod.kind === 'segment' ? dirname(mod.path) : dirname(INPUT_PATH);
+			for (const match of mod.code.matchAll(importRe)) {
+				const spec = match[1]!;
+				if (!spec.includes('index.qwik.mjs_')) continue;
+				checked++;
+				const resolved = join(baseDir, spec);
 				expect(
-					mod.code.includes('./chunks/'),
-					`Segment ${mod.path} retains a relative ./chunks/ import that won't resolve from its virtual location`,
-				).toBe(false);
+					segmentPaths.has(resolved),
+					`Sibling segment import ${JSON.stringify(spec)} in ${mod.kind} ${mod.path} resolves to ${resolved}, which is not an emitted segment (file-extension mismatch?)`,
+				).toBe(true);
 			}
-		},
-	);
+		}
+		expect(checked, 'fixture should exercise sibling segment imports').toBeGreaterThan(0);
+	});
 });
 
 describe('OSS-459 — segment body cut off mid-expression', () => {

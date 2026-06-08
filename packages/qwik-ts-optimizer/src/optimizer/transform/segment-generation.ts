@@ -59,6 +59,29 @@ import {
 } from "./post-process.js";
 import type { LoopContext } from "../loop-hoisting.js";
 
+/**
+ * Resolve the on-disk extension for a segment's emitted file (`module.path`
+ * and the `extension` metadata field). This MUST equal the extension used by
+ * QRL import specifiers that target the segment (the `outputExt` resolution
+ * at the nested call-site and parent-rewrite QRL-declaration sites):
+ * the bundler keys its segment registry on `module.path`, so if a sibling
+ * segment imports `./foo.js` while the segment was registered as `./foo.mjs`,
+ * the lookup misses and Rolldown reports UNRESOLVED_IMPORT. SWC keeps them in
+ * sync by applying the output extension (`.js` under `transpileTs`) uniformly
+ * to both the file path and the import specifier; this mirrors that. The
+ * resolution chain is identical to the import sites: parent-derived output
+ * extension wins, then the segment's own JSX-flipped source extension, then
+ * the raw source extension.
+ */
+function resolveSegmentFileExtension(
+  symbolName: string,
+  segmentExtension: string,
+  qrlOutputExt: string | undefined,
+  sourceExtensions: Map<string, string>,
+): string {
+  return qrlOutputExt ?? sourceExtensions.get(symbolName) ?? segmentExtension;
+}
+
 /** Collect TS enum declarations for value inlining in segment bodies. */
 export function collectEnumValueMap(
   program: AstProgram,
@@ -532,6 +555,12 @@ export function buildInlineStrategySegment(
   // the runtime resolver still needs to load.
   if (!stripped) return null;
 
+  const outputExtension = resolveSegmentFileExtension(
+    ext.symbolName,
+    ext.extension,
+    ctx.qrlOutputExt,
+    ctx.sourceExtensions,
+  );
   const segmentAnalysis: SegmentMetadataInternal = {
     origin: ext.origin,
     name: ext.symbolName,
@@ -539,7 +568,7 @@ export function buildInlineStrategySegment(
     displayName: ext.displayName,
     hash: ext.hash,
     canonicalFilename: ext.canonicalFilename,
-    extension: ext.extension.replace(leadingDot, ""),
+    extension: outputExtension.replace(leadingDot, ""),
     parent: ext.parent,
     ctxKind: ext.ctxKind,
     ctxName: ext.ctxName,
@@ -551,7 +580,7 @@ export function buildInlineStrategySegment(
 
   return {
     kind: 'segment',
-    path: mkRelativePath(join(getDirectory(ctx.inputPath), ext.canonicalFilename + ext.extension)),
+    path: mkRelativePath(join(getDirectory(ctx.inputPath), ext.canonicalFilename + outputExtension)),
     isEntry: true,
     code: generateStrippedSegmentCode(ext.symbolName),
     map: null,
@@ -1228,6 +1257,12 @@ export function buildDefaultStrategySegment(
     hasManualEntryMap(entryStrategy) ? entryStrategy.manual : undefined,
   );
 
+  const outputExtension = resolveSegmentFileExtension(
+    ext.symbolName,
+    ext.extension,
+    qrlOutputExt,
+    sourceExtensions,
+  );
   const segmentAnalysis: SegmentMetadataInternal = {
     origin: ext.origin,
     name: ext.symbolName,
@@ -1235,7 +1270,7 @@ export function buildDefaultStrategySegment(
     displayName: ext.displayName,
     hash: ext.hash,
     canonicalFilename: ext.canonicalFilename,
-    extension: ext.extension.replace(leadingDot, ""),
+    extension: outputExtension.replace(leadingDot, ""),
     parent: ext.parent,
     ctxKind: ext.ctxKind,
     ctxName: ext.ctxName,
@@ -1248,7 +1283,7 @@ export function buildDefaultStrategySegment(
   return {
     module: {
       kind: 'segment',
-      path: mkRelativePath(join(getDirectory(ctx.inputPath), ext.canonicalFilename + ext.extension)),
+      path: mkRelativePath(join(getDirectory(ctx.inputPath), ext.canonicalFilename + outputExtension)),
       isEntry: true,
       code: segmentCode,
       map: null,

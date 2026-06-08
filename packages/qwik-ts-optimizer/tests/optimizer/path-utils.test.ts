@@ -36,6 +36,25 @@ describe('path-utils', () => {
     expect(computeRelPath(mkFilePath('relative/path.tsx'), mkFilePath('src'))).toBe('relative/path.tsx');
   });
 
+  it('emits a `../`-relative path when both input and srcDir are absolute and input is outside srcDir', () => {
+    // The bundler hands the optimizer an absolute path for a lib living in
+    // `node_modules` outside srcDir. The origin must come out as a well-formed
+    // relative path (matching SWC) so the bundler can anchor the segment's own
+    // relative imports against it — a slash-stripped absolute would not resolve.
+    expect(
+      computeRelPath(
+        mkFilePath('/proj/node_modules/@qwik.dev/router/lib/index.qwik.mjs'),
+        mkFilePath('/proj/fixtures/app'),
+      ),
+    ).toBe('../../node_modules/@qwik.dev/router/lib/index.qwik.mjs');
+    expect(
+      computeRelPath(mkFilePath('/proj/node_modules/dep/x.mjs'), mkFilePath('/proj')),
+    ).toBe('node_modules/dep/x.mjs');
+    // Mixed operands (relative srcDir) still fall back to slash-stripping, since
+    // `relative()` is only trustworthy when both paths are absolute.
+    expect(computeRelPath(mkFilePath('/abs/foo.tsx'), mkFilePath('src'))).toBe('abs/foo.tsx');
+  });
+
   it('detects whether a relative import stays within the srcDir-relative tree', () => {
     expect(isRelativePathInsideBase('./styles.css', mkRelativePath('routes/app/index.tsx'))).toBe(true);
     expect(isRelativePathInsideBase('../shared/theme.css', mkRelativePath('routes/app/index.tsx'))).toBe(true);

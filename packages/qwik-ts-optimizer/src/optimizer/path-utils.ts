@@ -5,7 +5,7 @@
  * the existing optimizer behavior and keep path handling deterministic across
  * platforms.
  */
-import { basename, dirname, extname, normalize, normalizeString, relative } from 'pathe';
+import { basename, dirname, extname, isAbsolute, normalize, normalizeString, relative } from 'pathe';
 import {
   type FilePath,
   type RelativePath,
@@ -83,6 +83,20 @@ export function computeRelPath(inputPath: FilePath, srcDir: FilePath): RelativeP
 
   const rel = relative(normSrc, normInput);
   if (rel !== '' && rel !== '.' && rel !== '..' && !rel.startsWith('../')) {
+    return mkRelativePath(restoreDotSlash(rel, hasLeadingDotSlash));
+  }
+
+  // Input lives outside srcDir. When both operands are absolute, `relative()`
+  // yields a well-formed `../`-prefixed path — which is exactly what SWC
+  // emits for `origin` (e.g. a `node_modules` lib above the project root:
+  // `../../node_modules/@qwik.dev/router/index.qwik.mjs`). Preserving that
+  // shape matters for the bundler: it anchors a segment's own relative
+  // imports (`./chunks/routing.qwik.mjs`) by resolving them against `origin`,
+  // and a slash-stripped absolute path resolves to garbage. `relative()` is
+  // only trustworthy when both operands are absolute; with a relative operand
+  // its result is cwd-dependent, so those cases fall through to preserving the
+  // input verbatim (the prior behaviour).
+  if (isAbsolute(normInput) && isAbsolute(normSrc) && rel.startsWith('..')) {
     return mkRelativePath(restoreDotSlash(rel, hasLeadingDotSlash));
   }
 

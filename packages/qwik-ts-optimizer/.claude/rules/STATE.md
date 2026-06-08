@@ -2,13 +2,13 @@
 
 Snapshot of where the active workstream stands. Read at the start of a session to rehydrate context fast. **Update aggressively** as meaningful progress lands — see "Maintenance" at the bottom.
 
-Last updated: 2026-06-08 (OSS-458 root-caused + fixed on branch `fix/oss-458-computerelpath-absolute-origin`). Convergence 203/212 unchanged; +2 net regression tests pending baseline absorption.
+Last updated: 2026-06-08 (post PR #215 merged — OSS-458 Done). Convergence 203/212 unchanged; full-suite +2 net tests absorbed into baseline. Active pickup: OSS-460.
 
 ## Goal
 
 **Long-term project goal**: 100% snapshot test parity between the TS optimizer (this repo) and the SWC reference (`./swc-reference-only`), verified by `pnpm vitest convergence --run`.
 
-**Active workstream**: [OSS-456](https://linear.app/kunai/issue/OSS-456) qwik-router lib processing parity (FAST-TRACK) — driving the real `vite-qwik-router` build green under `experimental: ['tsOptimizer']`. Sub-A [OSS-457](https://linear.app/kunai/issue/OSS-457) + Sub-C [OSS-459](https://linear.app/kunai/issue/OSS-459) Done. **Sub-B ([OSS-458](https://linear.app/kunai/issue/OSS-458))** root-caused + fixed (PR open) — the "strip `./chunks/`" framing was a phantom (SWC emits those imports too); real causes were `origin` relativization + segment file-extension divergence. **New Sub-D ([OSS-460](https://linear.app/kunai/issue/OSS-460))** filed for the next wall: duplicate `@qwik.dev/core` import injection in lib chunks. Umbrella stays open — the full build is not yet green; more parity gaps expected behind OSS-460.
+**Active workstream**: [OSS-456](https://linear.app/kunai/issue/OSS-456) qwik-router lib processing parity (FAST-TRACK) — driving the real `vite-qwik-router` build green under `experimental: ['tsOptimizer']`. Sub-A [OSS-457](https://linear.app/kunai/issue/OSS-457) + Sub-C [OSS-459](https://linear.app/kunai/issue/OSS-459) + Sub-B [OSS-458](https://linear.app/kunai/issue/OSS-458) Done (OSS-458 via PR #215). **Now picking up Sub-D ([OSS-460](https://linear.app/kunai/issue/OSS-460))**: duplicate `@qwik.dev/core` import injection in lib chunks (`routing.qwik.mjs`) — the next wall after OSS-458. Umbrella stays open — the full build is not yet green; more parity gaps expected behind OSS-460. Repro recipe in project memory `[[reference-router-build-repro]]`.
 
 **OSS-458 resolution (the corrected diagnosis)**: real `vite-qwik-router` repro under TS mode confirmed two metadata-shape bugs that fire only for an absolute lib path outside `srcDir` (the bundler's input shape): (1) `computeRelPath` slash-stripped the absolute path (`workspace/node_modules/…`) instead of emitting SWC's `../../node_modules/…`, breaking the bundler's `this.resolve('./chunks/…', origin)`; (2) segment files registered at `.mjs` while QRL imports used `.js`, missing the bundler's segment-registry exact-match. Both fixed; the `UNRESOLVED_IMPORT` family is eliminated end-to-end. SWC's `example_qwik_router_client` snap keeping 26 `./chunks/…` refs confirmed the imports themselves are correct parity.
 
@@ -22,7 +22,7 @@ For history of prior workstreams: `git log`, Linear, and the per-PR commit messa
 | Convergence passing | **203 / 212** (95.8%) |
 | Full suite failing | 26 / 980 |
 | Full suite passing | 952 / 980 |
-| Last verified | 2026-06-08 on `main` (post PR #213) |
+| Last verified | 2026-06-08 on `main` (post PR #215) |
 
 ## CI infrastructure (live)
 
@@ -43,8 +43,7 @@ Local commands:
 
 | Branch | Head | Pushed | Tests | Notes |
 |---|---|---|---|---|
-| `main` | `13cd380` | ✅ | baseline | Active workstream: OSS-456 (see Goal). Other open backlog: OSS-447 + OSS-448 (block `example_qwik_router_client` flip); OSS-439 (F3 multi-session); OSS-450 Sub-D in qwik-bundler PR #12. |
-| `fix/oss-458-computerelpath-absolute-origin` | local | (PR open) | conv 203/212; full green +2 | OSS-458 fix: `computeRelPath` absolute-origin + `resolveSegmentFileExtension`. Rewrites the mis-framed OSS-458 `test.fails` into 2 real tests. Expect the name-based gate to flag the removed placeholder id (REGRESSION.md case-2; admin-merge). |
+| `main` | `5251a6a` (PR #215 + baseline) | ✅ | baseline | Active workstream: OSS-456 — now on OSS-460 (see Goal). Other open backlog: OSS-447 + OSS-448 (block `example_qwik_router_client` flip); OSS-439 (F3 multi-session); OSS-450 Sub-D in qwik-bundler PR #12. |
 | `oxc-port` | `073a11d` | ✅ | n/a (Rust) | Long-lived Rust/OXC port. Subtree-imported `qwik-optimizer` as `oxc/`; oxc 0.129 / napi 3. 31/31 cargo tests passing. Not blocking TS work. |
 | `ast-parity/F2` | `a644c16` (stale) | ❌ local-only | parked | F2 cluster fully closed via OSS-403 siblings on `main` — safe to delete. |
 
@@ -76,7 +75,7 @@ Full feature analysis: `CONVERGENCE_FAILURES.md`.
 
 Most recent first. **Each entry is a one-line pointer — drill into the PR, commit message, or Linear ticket for full detail.** Trim entries past ~10.
 
-- **2026-06-08** — branch `fix/oss-458-computerelpath-absolute-origin` ([OSS-458](https://linear.app/kunai/issue/OSS-458), PR open): root-caused the real `vite-qwik-router` TS-mode build failure. Two fixes — `computeRelPath` now emits `../`-relative `origin` for absolute lib paths outside srcDir (was slash-stripping); segment `module.path`/`extension` now use the output extension (`resolveSegmentFileExtension`) matching QRL import specifiers. Eliminates the `UNRESOLVED_IMPORT` family end-to-end. Mis-framed OSS-458 `test.fails` rewritten into 2 real tests. Next wall filed as [OSS-460](https://linear.app/kunai/issue/OSS-460) (duplicate core-import in lib chunks).
+- **2026-06-08** — PR #215 ([OSS-458](https://linear.app/kunai/issue/OSS-458), Done): root-caused the real `vite-qwik-router` TS-mode build failure. Two fixes — `computeRelPath` now emits `../`-relative `origin` for absolute lib paths outside srcDir (was slash-stripping); segment `module.path`/`extension` now use the output extension (`resolveSegmentFileExtension`) matching QRL import specifiers. Eliminates the `UNRESOLVED_IMPORT` family end-to-end. Mis-framed OSS-458 `test.fails` rewritten into 2 real tests. Next wall filed as [OSS-460](https://linear.app/kunai/issue/OSS-460) (duplicate core-import in lib chunks).
 - **2026-06-08** — PR #213: regression tests for the OSS-456 qwik-router lib processing umbrella. Pins OSS-457 + OSS-459 (inadvertent fixes from PR #211) via tests at `tests/optimizer/router-lib-processing.test.ts` against a full 1703-line `@qwik.dev/router` lib fixture. `test.fails` placeholder for OSS-458. OSS-457 + OSS-459 closed Done.
 - **2026-06-05** — PR #211: two TS-optimizer router-integration bugs fixed (`mkSymbolName` brand crash on `routes/<dir>/index.tsx` collisions; spurious C02 narrowed to only fire when an enclosing closure exists). Inadvertently resolved OSS-457 + OSS-459. Caught while reproducing Jack's qwik-bundler smoke failure.
 - **2026-06-04** — PRs #207 + #208: qwik-optimizer-ts packaging fixes — 3 runtime deps (`oxc-parser`/`oxc-walker`/`oxc-transform`) mis-bucketed in `devDependencies`; segment `module.path` namespace divergence (now mirrors SWC via `inputPath` threading). rolldown-h3 demo now runs end-to-end under `experimental: ['tsOptimizer']`.
@@ -86,7 +85,6 @@ Most recent first. **Each entry is a one-line pointer — drill into the PR, com
 - **2026-06-03** — PRs #192–#196 ([OSS-449](https://linear.app/kunai/issue/OSS-449)): 5-stacked-PR comment cleanup sweep. All 243 Linear ticket refs stripped from `src/` across 36 files; established `feedback_comments_explain_why` memory. 0 behaviour change.
 - **2026-06-01** — PR #190 ([OSS-446](https://linear.app/kunai/issue/OSS-446) foundation): peer-tool `jsx()` extraction context + parent `jsx() → _jsxSorted` rewrite + lexical scope chain for captures (`buildClosureLexicalScopes`). +13 regression tests; baselines unchanged. Convergence flip on `example_qwik_router_client` gated on OSS-447 + OSS-448.
 - **2026-06-01** — PR #188 ([OSS-445](https://linear.app/kunai/issue/OSS-445)): `transformAllJsx` 14 args → 2 via `TransformAllJsxInput` + `TransformAllJsxOptions`. Closes the OSS-374/375/376/377 parameter-reduction arc. Baselines unchanged.
-- **2026-06-01** — PR #186 ([OSS-410](https://linear.app/kunai/issue/OSS-410)): JSX dev-info source-relative positions for Inline strategy + default-strategy segment-file paths. Surface-only fix; +6 regression tests. CBP rule "No nested ternaries" added.
 
 ## What to do next
 

@@ -8,22 +8,26 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { qrl } from '@qwik.dev/core';
+import { _qrlWithChunk } from '@qwik.dev/core';
 
-const q_component_q_e_click_segment_0 = /*#__PURE__*/ qrl(
+const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
+  () => import('./component.tsx_component_q_e_click_segment_0'),
   'component_q_e_click_segment_0'
 );
-const q_component_q_e_dblclick_segment_1 = /*#__PURE__*/ qrl(
+const q_component_q_e_dblclick_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_dblclick_segment_1',
+  () => import('./component.tsx_component_q_e_dblclick_segment_1'),
   'component_q_e_dblclick_segment_1'
 );
-const q_component_q_w_scroll_segment_2 = /*#__PURE__*/ qrl(
+const q_component_q_w_scroll_segment_2 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_w_scroll_segment_2',
+  () => import('./component.tsx_component_q_w_scroll_segment_2'),
   'component_q_w_scroll_segment_2'
 );
-const q_component_q_d_keydown_segment_3 = /*#__PURE__*/ qrl(
+const q_component_q_d_keydown_segment_3 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_d_keydown_segment_3',
+  () => import('./component.tsx_component_q_d_keydown_segment_3'),
   'component_q_d_keydown_segment_3'
 );
 

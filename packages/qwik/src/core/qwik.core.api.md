@@ -1079,6 +1079,12 @@ export function _serialize<T>(data: T): Promise<string>;
 // @public
 export const SerializerSymbol: unique symbol;
 
+// Warning: (ae-forgotten-export) The symbol "EventHandler_2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "setEvent" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export function setEvent(element: Element, key: string, handler: EventHandler_2): void;
+
 // Warning: (ae-forgotten-export) The symbol "SSRWriteChunk" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
@@ -2203,6 +2209,9 @@ export const _waitUntilRendered: (container: _Container) => Promise<void>;
 //
 // @internal (undocumented)
 export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
+
+// @internal (undocumented)
+export const _withCaptures: <TYPE>(ref: TYPE, captures: Readonly<unknown[]> | null | undefined) => TYPE;
 
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;

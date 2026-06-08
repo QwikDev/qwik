@@ -79,9 +79,10 @@ export {
 } from './use/use-core';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { isTask as _isTask, scheduleTask as _task } from './use/use-task';
-export { _captures } from './shared/qrl/qrl-class';
+export { _captures, withCaptures as _withCaptures } from './shared/qrl/qrl-class';
 export { _rsc } from './use/use-resource';
 export type { AsyncSignalOptions } from './reactive-primitives/types';
+export { setEvent } from './vdomless/dom/event/event';
 export { setEvent as _setEvent } from './ssr/ssr-events';
 export { _useHmr, _hmr } from './use/use-hmr';
 export {

@@ -3,7 +3,7 @@ import { assert, assertType, describe, expectTypeOf, test } from 'vitest';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 import { _regSymbol, inlinedQrl, qrl } from './qrl';
-import { _captures, createQRL } from './qrl-class';
+import { _captures, createQRL, withCaptures } from './qrl-class';
 import { type QRL } from './qrl.public';
 
 function matchProps(obj: any, properties: Record<string, any>) {
@@ -239,6 +239,14 @@ describe('inlinedQrl', () => {
 
 describe('w (with captures)', () => {
   const capFn = () => _captures;
+
+  test('should wrap a direct function with captures', () => {
+    const fn = (suffix: string) => [_captures, suffix] as const;
+    const wrapped = withCaptures(fn, ['direct']);
+
+    assert.notEqual(wrapped, fn);
+    assert.deepEqual(wrapped('call'), [['direct'], 'call']);
+  });
 
   test('should share the same LazyRef', () => {
     const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);

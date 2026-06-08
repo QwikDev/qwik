@@ -46,8 +46,10 @@ function emitPrelude(qrlSegments: Map<string, QrlSegmentOutput>, imports: Import
   for (const qrlSegment of qrlSegments.values()) {
     lines.push(
       `const ${qrlSegment.qrlVariableName} = /*#__PURE__*/ ${
-        QwikSymbol.Qrl
-      }(${JSON.stringify(qrlSegment.importPath)}, ${JSON.stringify(qrlSegment.symbolName)});`
+        QwikSymbol.QrlWithChunk
+      }(${JSON.stringify(qrlSegment.importPath)}, () => import(${JSON.stringify(
+        qrlSegment.importPath
+      )}), ${JSON.stringify(qrlSegment.symbolName)});`
     );
     if (qrlSegment.segment.kind === 'jsxText') {
       lines.push(`${qrlSegment.qrlVariableName}.s(${qrlSegment.symbolName});`);

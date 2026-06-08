@@ -141,6 +141,7 @@ export {
   type TextExpressionFn,
   type TextExpressionValue,
 } from './dom/effect/effect';
+export { setEvent } from './dom/event/event';
 export {
   EffectTargetKind,
   SsrAttrEffect,

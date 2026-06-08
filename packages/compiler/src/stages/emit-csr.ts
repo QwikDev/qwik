@@ -52,9 +52,7 @@ function emitDomRenderer(
 ) {
   const emitter = new DomEmitter(qrlSegments, sourceCode);
   const root = component.root!;
-  if (hasDynamicBinding(root)) {
-    emitter.raw(emitComponentSetup(component, qrlSegments, sourceCode, true));
-  }
+  emitter.raw(emitComponentSetup(component, qrlSegments, sourceCode, hasDynamicBinding(root)));
   const roots = emitter.emitRoot(root);
   emitter.line(`return [${roots.join(', ')}];`);
   return emitter.toString();
@@ -113,9 +111,9 @@ class DomEmitter {
           const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
           if (qrlSegment) {
             this.line(
-              `${QwikSymbol.SetEvent}(${id}, ${JSON.stringify(prop.name)}, ${
-                qrlSegment.symbolName
-              });`
+              `${QwikSymbol.SetEvent}(${id}, ${JSON.stringify(prop.name)}, ${emitEventHandler(
+                qrlSegment
+              )});`
             );
           }
           continue;
@@ -162,6 +160,15 @@ class DomEmitter {
     this.counter++;
     return id;
   }
+}
+
+function emitEventHandler(qrlSegment: QrlSegmentOutput) {
+  if (qrlSegment.segment.captures.length === 0) {
+    return qrlSegment.symbolName;
+  }
+  return `${QwikSymbol.WithCaptures}(${qrlSegment.symbolName}, [${qrlSegment.segment.captures
+    .map((capture) => capture.name)
+    .join(', ')}])`;
 }
 
 function emitDynamicAttrEffect(

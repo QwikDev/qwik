@@ -16,11 +16,12 @@ export enum QwikSymbol {
   CreateTextNodeEffect = 'createTextNodeEffect',
   EscapeHTML = 'escapeHTML',
   InlinedQrl = 'inlinedQrl',
-  Qrl = 'qrl',
+  QrlWithChunk = '_qrlWithChunk',
   RenderSsrAttr = 'renderSsrAttr',
   RenderSsrClass = 'renderSsrClass',
   RenderSsrStyle = 'renderSsrStyle',
   RenderSsrTextExpression = 'renderSsrTextExpression',
   RenderSsrTextNode = 'renderSsrTextNode',
   SetEvent = 'setEvent',
+  WithCaptures = '_withCaptures',
 }

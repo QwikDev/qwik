@@ -42,7 +42,7 @@ export function createSsrImports(
   }
   const records: ImportRecord[] = [...imports];
   if (qrlSegments.size > 0) {
-    records.push(createQwikCoreImport(QwikSymbol.Qrl));
+    records.push(createQwikCoreImport(QwikSymbol.QrlWithChunk));
   }
   const sparkSpecifiers: QwikSymbol[] = [];
   if (usage.hasSourceText || usage.hasTextExpression || usage.hasDynamicAttr) {
@@ -110,8 +110,13 @@ export function createCsrImports(
     records.push(...imports, createQwikSparkImport(...sparkSpecifiers));
   }
   if (qrlSegments.size > 0) {
+    const coreSpecifiers = [QwikSymbol.SetEvent];
+    if (hasCapturedQrlSegment(qrlSegments)) {
+      coreSpecifiers.push(QwikSymbol.WithCaptures);
+    }
     records.push(
-      createQwikCoreImport(QwikSymbol.SetEvent),
+      ...imports,
+      createQwikCoreImport(...coreSpecifiers),
       ...Array.from(qrlSegments.values(), (qrlSegment) =>
         createNamedImport(qrlSegment.importPath, [qrlSegment.symbolName])
       )
@@ -125,6 +130,15 @@ export interface CsrImportUsage {
   hasSourceText: boolean;
   hasTextExpression: boolean;
   hasDynamicAttr: boolean;
+}
+
+function hasCapturedQrlSegment(qrlSegments: Map<string, QrlSegmentOutput>) {
+  for (const qrlSegment of qrlSegments.values()) {
+    if (qrlSegment.segment.captures.length > 0) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function normalizeImports(imports: readonly ImportRecord[]) {

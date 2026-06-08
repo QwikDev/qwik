@@ -227,7 +227,7 @@ export class QRLClass<TYPE> {
     // If it is plain value with deserialized or missing captures, resolve it immediately
     // Otherwise we keep using the async path so we can wait for qrls to load
     if ($lazy$.$ref$ != null && typeof this.$captures$ !== 'string' && !isPromise($lazy$.$ref$)) {
-      this.resolved = bindCaptures(this.$captures$, $lazy$.$ref$ as TYPE);
+      this.resolved = withCaptures($lazy$.$ref$ as TYPE, this.$captures$);
     }
   }
 }
@@ -272,7 +272,7 @@ const qrlSetRef = function <TYPE>(
   const qrl = getInstance<TYPE>(this);
   qrl.$lazy$.$setRef$(ref);
   if (typeof qrl.$captures$ !== 'string' && !isPromise(ref)) {
-    qrl.resolved = bindCaptures(qrl.$captures$, ref as TYPE);
+    qrl.resolved = withCaptures(ref as TYPE, qrl.$captures$);
   } else {
     qrl.resolved = undefined;
   }
@@ -470,8 +470,11 @@ const setQrlCaptures = (captures: Readonly<unknown[]> | null | undefined) => {
   _captures = captures ?? null;
 };
 
-// Wrap functions to provide their captured scope through `_captures`.
-const bindCaptures = <TYPE>(captures: Readonly<unknown[]> | null | undefined, ref: TYPE): TYPE => {
+/** @internal */
+export const withCaptures = <TYPE>(
+  ref: TYPE,
+  captures: Readonly<unknown[]> | null | undefined
+): TYPE => {
   if (typeof ref !== 'function' || !captures) {
     return ref;
   }
@@ -501,7 +504,7 @@ const $resolve$ = <TYPE>(
   const maybePromise = maybeThen(
     promiseAll([rawOrPromise, capturesOrPromise] as const),
     ([raw, captures]) => {
-      qrl.resolved = bindCaptures(captures, raw);
+      qrl.resolved = withCaptures(raw, captures);
     }
   );
 

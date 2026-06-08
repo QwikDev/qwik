@@ -32,6 +32,10 @@ import type {
   ServerConfig,
   ServerFunction,
   ServerQRL,
+  StandardSchemaConstructor,
+  StandardSchemaConstructorQRL,
+  StandardSchemaDataValidator,
+  StandardSchemaV1,
   ValibotConstructor,
   ValibotConstructorQRL,
   ValibotDataValidator,
@@ -233,6 +237,65 @@ const flattenValibotIssues = (issues: v.GenericIssue[]) => {
     return acc;
   }, {});
 };
+
+const flattenStandardSchemaIssues = (issues: ReadonlyArray<StandardSchemaV1.Issue>) => {
+  const formErrors: string[] = [];
+  const fieldErrors: Partial<Record<string, string[]>> = {};
+
+  for (const issue of issues) {
+    const dotPath = issue.path
+      ?.map((item) => String(typeof item === 'object' ? item.key : item))
+      .join('.');
+    if (dotPath) {
+      const messages = fieldErrors[dotPath];
+      if (messages) {
+        messages.push(issue.message);
+      } else {
+        fieldErrors[dotPath] = [issue.message];
+      }
+    } else {
+      formErrors.push(issue.message);
+    }
+  }
+
+  return { formErrors, fieldErrors };
+};
+
+/** @public */
+export const schemaQrl: StandardSchemaConstructorQRL = (
+  qrl: QRL<StandardSchemaV1 | ((ev: RequestEvent) => StandardSchemaV1)>
+): StandardSchemaDataValidator => {
+  if (isServer) {
+    return {
+      __brand: 'standard-schema',
+      async validate(ev, inputData) {
+        const schema: StandardSchemaV1 = await qrl.resolve().then((obj) => {
+          return '~standard' in obj ? obj : obj(ev);
+        });
+        const data = inputData ?? (await ev.parseBody());
+        const result = await schema['~standard'].validate(data);
+        if (!result.issues) {
+          return {
+            success: true,
+            data: result.value,
+          };
+        }
+        if (isDev) {
+          console.error('ERROR: Standard Schema validation failed', result.issues);
+        }
+        return {
+          success: false,
+          status: 400,
+          error: flattenStandardSchemaIssues(result.issues),
+        };
+      },
+    };
+  }
+  return undefined as never;
+};
+
+/** @public */
+export const schema$: StandardSchemaConstructor = /*#__PURE__*/ implicit$FirstArg(schemaQrl);
 
 /** @internal */
 export const valibotQrl: ValibotConstructorQRL = (

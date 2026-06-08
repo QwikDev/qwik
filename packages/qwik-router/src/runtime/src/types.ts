@@ -22,6 +22,117 @@ import type * as z from 'zod';
 import type { Q_ROUTE } from './constants';
 import type { RouteLoaderCtx } from './route-loaders';
 
+/**
+ * The Standard Typed interface. This is a base type extended by other specs.
+ *
+ * @public
+ */
+export interface StandardTypedV1<Input = unknown, Output = Input> {
+  /** The Standard properties. */
+  readonly '~standard': StandardTypedV1.Props<Input, Output>;
+}
+
+/** @public */
+export declare namespace StandardTypedV1 {
+  /** The Standard Typed properties interface. */
+  export interface Props<Input = unknown, Output = Input> {
+    /** The version number of the standard. */
+    readonly version: 1;
+    /** The vendor name of the schema library. */
+    readonly vendor: string;
+    /** Inferred types associated with the schema. */
+    readonly types?: Types<Input, Output> | undefined;
+  }
+
+  /** The Standard Typed types interface. */
+  export interface Types<Input = unknown, Output = Input> {
+    /** The input type of the schema. */
+    readonly input: Input;
+    /** The output type of the schema. */
+    readonly output: Output;
+  }
+
+  /** Infers the input type of a Standard Typed. */
+  export type InferInput<Schema extends StandardTypedV1> = NonNullable<
+    Schema['~standard']['types']
+  >['input'];
+
+  /** Infers the output type of a Standard Typed. */
+  export type InferOutput<Schema extends StandardTypedV1> = NonNullable<
+    Schema['~standard']['types']
+  >['output'];
+}
+
+/**
+ * The Standard Schema interface.
+ *
+ * @public
+ */
+export interface StandardSchemaV1<Input = unknown, Output = Input> {
+  /** The Standard Schema properties. */
+  readonly '~standard': StandardSchemaV1.Props<Input, Output>;
+}
+
+/** @public */
+export declare namespace StandardSchemaV1 {
+  /** The Standard Schema properties interface. */
+  export interface Props<Input = unknown, Output = Input>
+    extends StandardTypedV1.Props<Input, Output> {
+    /** Validates unknown input values. */
+    readonly validate: (
+      value: unknown,
+      options?: Options | undefined
+    ) => Result<Output> | Promise<Result<Output>>;
+  }
+
+  /** The result interface of the validate function. */
+  export type Result<Output> = SuccessResult<Output> | FailureResult;
+
+  /** The result interface if validation succeeds. */
+  export interface SuccessResult<Output> {
+    /** The typed output value. */
+    readonly value: Output;
+    /** A falsy value for `issues` indicates success. */
+    readonly issues?: undefined;
+  }
+
+  /** The Standard Schema options interface. */
+  export interface Options {
+    /** Explicit support for additional vendor-specific parameters, if needed. */
+    readonly libraryOptions?: Record<string, unknown> | undefined;
+  }
+
+  /** The result interface if validation fails. */
+  export interface FailureResult {
+    /** The issues of failed validation. */
+    readonly issues: ReadonlyArray<Issue>;
+  }
+
+  /** The issue interface of the failure output. */
+  export interface Issue {
+    /** The error message of the issue. */
+    readonly message: string;
+    /** The path of the issue, if any. */
+    readonly path?: ReadonlyArray<PropertyKey | PathSegment> | undefined;
+  }
+
+  /** The path segment interface of the issue. */
+  export interface PathSegment {
+    /** The key representing a path segment. */
+    readonly key: PropertyKey;
+  }
+
+  /** The Standard Schema types interface. */
+  export interface Types<Input = unknown, Output = Input>
+    extends StandardTypedV1.Types<Input, Output> {}
+
+  /** Infers the input type of a Standard Schema. */
+  export type InferInput<Schema extends StandardTypedV1> = StandardTypedV1.InferInput<Schema>;
+
+  /** Infers the output type of a Standard Schema. */
+  export type InferOutput<Schema extends StandardTypedV1> = StandardTypedV1.InferOutput<Schema>;
+}
+
 export type {
   Cookie,
   CookieOptions,
@@ -522,23 +633,33 @@ export type JSONObject = { [x: string]: JSONValue };
 
 /** @public */
 export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferInput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.input<TYPE>
-      : never;
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaV1.InferInput<TYPE>
+    : VALIDATOR extends ValibotDataValidator<infer TYPE>
+      ? v.InferInput<TYPE>
+      : VALIDATOR extends ZodDataValidator<infer TYPE>
+        ? z.input<TYPE>
+        : never;
 
 /** @public */
 export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferOutput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.output<TYPE>
-      : never;
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaV1.InferOutput<TYPE>
+    : VALIDATOR extends ValibotDataValidator<infer TYPE>
+      ? v.InferOutput<TYPE>
+      : VALIDATOR extends ZodDataValidator<infer TYPE>
+        ? z.output<TYPE>
+        : never;
 
 /** @public */
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
   GetValidatorOutputType<VALIDATOR>;
+
+/** @public */
+export type GetValidatorErrorType<VALIDATOR extends TypedDataValidator> =
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaValidatorErrorType<StandardSchemaV1.InferInput<TYPE>>
+    : ValidatorErrorType<GetValidatorInputType<VALIDATOR>>;
 
 /** @public */
 export type ActionOptions = {
@@ -592,6 +713,49 @@ export type ValidatorErrorType<T, U = string> = {
 };
 
 /** @public */
+export type StandardSchemaValidatorErrorKeyDotNotation<
+  T,
+  Prefix extends string = '',
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 5,
+> = T extends unknown
+  ? IsAny<T> extends true
+    ? never
+    : unknown extends T
+      ? Prefix extends ''
+        ? string
+        : never
+      : NonNullable<T> extends readonly (infer U)[]
+        ?
+            | `${Prefix}${number}`
+            | (Depth extends 0
+                ? never
+                : StandardSchemaValidatorErrorKeyDotNotation<
+                    U,
+                    `${Prefix}${number}.`,
+                    [never, 0, 1, 2, 3, 4][Depth]
+                  >)
+        : NonNullable<T> extends object
+          ? {
+              [K in keyof NonNullable<T> & (string | number)]:
+                | `${Prefix}${K}`
+                | (Depth extends 0
+                    ? never
+                    : StandardSchemaValidatorErrorKeyDotNotation<
+                        NonNullable<T>[K],
+                        `${Prefix}${K}.`,
+                        [never, 0, 1, 2, 3, 4][Depth]
+                      >);
+            }[keyof NonNullable<T> & (string | number)]
+          : never
+  : never;
+
+/** @public */
+export type StandardSchemaValidatorErrorType<T, U = string> = {
+  formErrors: U[];
+  fieldErrors: Partial<Record<StandardSchemaValidatorErrorKeyDotNotation<T>, U[]>>;
+};
+
+/** @public */
 export type ActionConstructor = {
   // Use options object, use typed data validator, use data validator
   <
@@ -608,11 +772,7 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
-    StrictUnion<
-      | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-      | FailReturn<FailOfRest<REST>>
-    >,
+    StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>> | FailReturn<FailOfRest<REST>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
@@ -628,7 +788,7 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
@@ -655,11 +815,7 @@ export type ActionConstructor = {
     options: VALIDATOR,
     ...rest: REST
   ): Action<
-    StrictUnion<
-      | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-      | FailReturn<FailOfRest<REST>>
-    >,
+    StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>> | FailReturn<FailOfRest<REST>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
@@ -672,7 +828,7 @@ export type ActionConstructor = {
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
@@ -708,11 +864,7 @@ export type ActionConstructorQRL = {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
-    StrictUnion<
-      | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-      | FailReturn<FailOfRest<REST>>
-    >,
+    StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>> | FailReturn<FailOfRest<REST>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
@@ -727,7 +879,7 @@ export type ActionConstructorQRL = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
@@ -753,11 +905,7 @@ export type ActionConstructorQRL = {
     options: VALIDATOR,
     ...rest: REST
   ): Action<
-    StrictUnion<
-      | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-      | FailReturn<FailOfRest<REST>>
-    >,
+    StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>> | FailReturn<FailOfRest<REST>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
@@ -769,7 +917,7 @@ export type ActionConstructorQRL = {
     >,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
@@ -1074,6 +1222,29 @@ export type ValidatorConstructorQRL = {
   ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
 };
 
+/** @public */
+export type StandardSchemaDataValidator<T extends StandardSchemaV1 = StandardSchemaV1> = {
+  readonly __brand: 'standard-schema';
+  validate(
+    ev: RequestEvent,
+    data: unknown
+  ): Promise<ValidatorReturn<StandardSchemaValidatorErrorType<StandardSchemaV1.InferInput<T>>>>;
+};
+
+/** @public */
+export type StandardSchemaConstructor = {
+  <T extends StandardSchemaV1>(schema: T): StandardSchemaDataValidator<T>;
+  <T extends StandardSchemaV1>(schema: (ev: RequestEvent) => T): StandardSchemaDataValidator<T>;
+};
+
+/** @public */
+export type StandardSchemaConstructorQRL = {
+  <T extends StandardSchemaV1>(schema: QRL<T>): StandardSchemaDataValidator<T>;
+  <T extends StandardSchemaV1>(
+    schema: QRL<(ev: RequestEvent) => T>
+  ): StandardSchemaDataValidator<T>;
+};
+
 /** @beta */
 export type ValibotDataValidator<
   T extends v.GenericSchema | v.GenericSchemaAsync = v.GenericSchema | v.GenericSchemaAsync,
@@ -1131,7 +1302,10 @@ export type ZodConstructorQRL = {
 };
 
 /** @public */
-export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
+export type TypedDataValidator =
+  | StandardSchemaDataValidator
+  | ValibotDataValidator
+  | ZodDataValidator;
 
 /** @public */
 export interface ServerConfig {

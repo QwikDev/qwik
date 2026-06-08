@@ -652,6 +652,20 @@ function removeUnusedBindings(ctx: RewriteContext): void {
 
   const { s, source, program, topLevel, explicitExtensions, outputExtension } = ctx;
 
+  // Bindings migration will re-export (`export { X as _auto_X }`) are consumed
+  // by a segment that imports them — they MUST survive in the parent even
+  // though they look unused here. The re-export statement is appended after
+  // this pass, so it isn't in `program.body` for the usage scan below; without
+  // this guard a `const X = marker$(…)` that's only called inside an extracted
+  // segment (e.g. `const testServer$ = server$(…)` used by an `onClick$`) gets
+  // its binding stripped to a bare `markerQrl(q_X);` statement, and the
+  // re-export then references an undefined name.
+  const reexportedNames = new Set(
+    (ctx.migrationDecisions ?? [])
+      .filter((d) => d.action === 'reexport')
+      .map((d) => d.varName),
+  );
+
   for (const stmt of program.body) {
     if (stmt.type === 'ExportNamedDeclaration') continue;
     if (stmt.type !== 'VariableDeclaration') continue;
@@ -677,6 +691,7 @@ function removeUnusedBindings(ctx: RewriteContext): void {
 
     const varName = declarator.id?.type === 'Identifier' ? declarator.id.name : null;
     if (!varName) continue;
+    if (reexportedNames.has(varName)) continue;
 
     const wordBoundaryRegex = createRegExp(wordBoundary, exactly(varName), wordBoundary);
     let bodyText = '';

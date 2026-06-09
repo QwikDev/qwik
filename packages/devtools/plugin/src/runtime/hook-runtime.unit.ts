@@ -1,9 +1,7 @@
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { runInThisContext } from 'node:vm';
 import { QWIK_DEVTOOLS_GLOBAL, SIGNAL_HOOK_TYPES } from '@qwik.dev/devtools/kit';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { createExtensionHookRuntime } from './create-hook-runtime';
 import { __qwik_install_hook_runtime__, type HookRuntimeOptions } from './installers';
 
 const OPTIONS: HookRuntimeOptions = {
@@ -14,23 +12,16 @@ const OPTIONS: HookRuntimeOptions = {
   signalHookTypes: [...SIGNAL_HOOK_TYPES],
 };
 
-const here = dirname(fileURLToPath(import.meta.url));
-// packages/devtools/plugin/src/runtime -> packages/browser-extension/public/devtools-hook.js
-const generatedSource = readFileSync(
-  resolve(here, '..', '..', '..', '..', 'browser-extension', 'public', 'devtools-hook.js'),
-  'utf8'
-);
-
 type AnyRecord = Record<string, any>;
+
+// The exact script the browser extension ships: scripts/gen-devtools-hook.mjs writes this same
+// string to public/devtools-hook.js (a generated, uncommitted file) on predev/prebuild.
+const generatedSource = createExtensionHookRuntime();
 
 /**
  * Two ways to obtain the running hook. Running the same behavioral contract against both proves the
- * committed `devtools-hook.js` artifact behaves identically to the canonical source: a stale or
- * hand-edited file (forgot to run `pnpm generate`) fails these tests.
- *
- * A byte-for-byte comparison is intentionally NOT used: the committed file is emitted by the
- * bundler (tsdown) and `Function.prototype.toString()` output varies by toolchain, so equality
- * would be unstable. Behavior is the contract that actually matters.
+ * generated browser-extension script behaves identically to the canonical installer, so the two
+ * injection paths (Vite plugin SSR middleware and extension content script) cannot drift.
  */
 const installers: Array<{ name: string; install: () => void }> = [
   {
@@ -38,9 +29,9 @@ const installers: Array<{ name: string; install: () => void }> = [
     install: () => __qwik_install_hook_runtime__(OPTIONS),
   },
   {
-    name: 'generated browser-extension devtools-hook.js',
-    // The file is a self-invoking classic script that reads the global `window`;
-    // run it in the current global context so it installs onto the window stub below.
+    name: 'generated browser-extension script',
+    // A self-invoking classic script that reads the global `window`; run it in the current
+    // global context so it installs onto the window stub below.
     install: () => runInThisContext(generatedSource),
   },
 ];

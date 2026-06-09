@@ -166,8 +166,9 @@ jobs:
             packages/qwik-react/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
+            packages/devtools/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
+          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'packages/devtools/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs
@@ -420,7 +421,7 @@ jobs:
 
       - name: 'build: qwik and packages'
         if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.build-others == 'true'
-        run: pnpm build --qwik --optimizer --insights --tsc --api --qwikrouter --cli --qwikreact --eslint --set-dist-tag="${{ needs.changes.outputs.disttag }}"
+        run: pnpm build --qwik --optimizer --insights --tsc --api --qwikrouter --cli --qwikreact --eslint --devtools --set-dist-tag="${{ needs.changes.outputs.disttag }}"
 
       - name: 'build: qwik'
         if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.build-others != 'true'
@@ -456,7 +457,7 @@ jobs:
 
       - name: 'build: qwik-router & others'
         if: needs.changes.outputs.build-others == 'true' && needs.changes.outputs.build-qwik != 'true'
-        run: pnpm build --tsc --api --qwikrouter --cli --qwikreact --eslint --set-dist-tag="${{ needs.changes.outputs.disttag }}"
+        run: pnpm build --tsc --api --qwikrouter --cli --qwikreact --eslint --devtools --set-dist-tag="${{ needs.changes.outputs.disttag }}"
       - name: Save others cache
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/cache/save@v5
@@ -467,6 +468,7 @@ jobs:
             packages/qwik-react/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
+            packages/devtools/dist
 
       - name: 'restore: qwik-router & others'
         if: needs.changes.outputs.build-others != 'true'
@@ -477,6 +479,7 @@ jobs:
             packages/qwik-react/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
+            packages/devtools/dist
           key: ${{ needs.changes.outputs.hash-others }}
 
       - name: Print QwikRouter Lib Build
@@ -522,6 +525,17 @@ jobs:
           name: artifact-eslint-plugin-qwik
           include-hidden-files: true
           path: packages/eslint-plugin-qwik/dist/
+          if-no-files-found: error
+
+      - name: Print devtools Dist Build
+        run: tree -a packages/devtools/dist/
+
+      - name: Upload devtools Build Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: artifact-devtools
+          include-hidden-files: true
+          path: packages/devtools/dist/
           if-no-files-found: error
 
   ############ BUILD INSIGHTS ############
@@ -1480,7 +1494,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@v8
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik,devtools}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -1492,6 +1506,7 @@ jobs:
           artifact-qwikreact
           artifact-create-qwik
           artifact-eslint-plugin-qwik
+          artifact-devtools
 
       - run: pnpm install --frozen-lockfile
 
@@ -1563,7 +1578,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik,devtools}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -1575,6 +1590,7 @@ jobs:
           artifact-qwikreact
           artifact-create-qwik
           artifact-eslint-plugin-qwik
+          artifact-devtools
 
       - run: pnpm install --frozen-lockfile
 

@@ -43,7 +43,7 @@ import {
   hasUnderscorePlaceholderParams,
   isComponentCtx,
   isEventHandlerOrJsxProp,
-  isStrippedSegment,
+  isStrippedExtraction,
   matchesRegCtxName,
 } from './predicates.js';
 
@@ -231,9 +231,7 @@ export function transformInlineSegmentBody(
           // `.w([…])` wrapper at the JSX-prop call site and emits the
           // bare `q_X` ref. Skip the wrap regardless of capture count
           // when the child is stripped.
-          const childIsStripped = isStrippedSegment(
-            child.ctxName, child.ctxKind, stripCtxName, stripEventHandlers,
-          );
+          const childIsStripped = isStrippedExtraction(child, stripCtxName, stripEventHandlers);
 
           if (hasLoopCrossCaptures && !childIsStripped) {
             const hoistedName = child.symbolName;

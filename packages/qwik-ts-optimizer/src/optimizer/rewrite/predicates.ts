@@ -113,3 +113,26 @@ export function isStrippedSegment(
 
   return false;
 }
+
+/**
+ * Strip decision for a whole extraction — the form used at every call site
+ * that operates on a real segment.
+ *
+ * `inlinedQrl` segments are pre-baked QRLs from an upstream tool and are
+ * **never** stripped, regardless of `stripCtxName`/`stripEventHandlers`. SWC
+ * applies its strip gate (`should_emit_segment`) only in the developer-`$()`
+ * extraction path (`_create_synthetic_qsegment`), never in the inlinedQrl
+ * path (`create_synthetic_qqsegment` — swc-reference-only/transform.rs:1038
+ * vs :756). Stripping an inlinedQrl whose ctxName happens to match a strip
+ * prefix (e.g. the router lib's `serverQrl` dispatcher vs `stripCtxName:
+ * ['server']`) collapses its QRL to a chunkless `_noopQrl`, breaking
+ * `server$` RPC at runtime with Qwik Q14 ("does not have a chunk path").
+ */
+export function isStrippedExtraction(
+  ext: { readonly ctxName: string; readonly ctxKind: string; readonly isInlinedQrl?: boolean },
+  stripCtxName?: readonly string[],
+  stripEventHandlers?: boolean,
+): boolean {
+  if (ext.isInlinedQrl) return false;
+  return isStrippedSegment(ext.ctxName, ext.ctxKind, stripCtxName, stripEventHandlers);
+}

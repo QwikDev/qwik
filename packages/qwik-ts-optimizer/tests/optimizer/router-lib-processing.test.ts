@@ -342,6 +342,32 @@ describe('client strip config (stripEventHandlers unset) — full lib', () => {
 			).toBe(false);
 		}
 	});
+
+	test('inlinedQrl `serverQrl` dispatcher is not stripped under stripCtxName: [server]', () => {
+		// The router's `server$` RPC routes through `serverQrl`, emitted as
+		// `inlinedQrl(asyncFn, "serverQrl_w03grD0Ag68", […])`. Its name starts
+		// with `server`, so a strip keyed on `stripCtxName: ['server']` would
+		// collapse it to a chunkless `_noopQrl` — fatal at runtime (Qwik Q14,
+		// "serverQrl … does not have a chunk path") when a server function is
+		// invoked from the client. inlinedQrl segments are pre-baked and must
+		// never be stripped (SWC gates its strip only on the developer-`$()`
+		// path, never the inlinedQrl path).
+		const result = runClient(readFileSync(FIXTURE_PATH, 'utf8'));
+
+		const serverQrlSeg = result.modules.find(
+			(m) => m.kind === 'segment' && m.path.includes('serverQrl'),
+		);
+		expect(serverQrlSeg, 'serverQrl dispatcher segment should be emitted').toBeDefined();
+		// A stripped segment is `export const … = null;`; the real body is large.
+		expect(serverQrlSeg!.code).not.toMatch(/=\s*null\s*;\s*$/m);
+		expect(serverQrlSeg!.code.length).toBeGreaterThan(200);
+
+		// The parent loads the dispatcher via a real lazy `qrl(() => import(…))`,
+		// not a chunkless `_noopQrl` sentinel.
+		const parent = result.modules.find((m) => m.kind === 'parent') ?? result.modules[0]!;
+		expect(parent.code).toMatch(/qrl\(\(\)\s*=>\s*import\([^)]*serverQrl/);
+		expect(parent.code).not.toMatch(/_noopQrl\("[^"]*serverQrl/);
+	});
 });
 
 describe('inline/hoist strategy keeps the `_captures` import used by inlined bodies', () => {

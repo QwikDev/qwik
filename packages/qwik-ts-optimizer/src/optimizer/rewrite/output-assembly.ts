@@ -34,7 +34,7 @@ import { isRelativePathInsideBase } from '../path-utils.js';
 import { transformInlineSegmentBody } from './inline-body.js';
 import {
   hasUnderscorePlaceholderParams,
-  isStrippedSegment,
+  isStrippedExtraction,
   matchesRegCtxName,
 } from './predicates.js';
 import type { InlineSegmentJsxOptions } from './raw-props.js';
@@ -65,9 +65,7 @@ export function collectNeededImports(ctx: RewriteContext): void {
       }
     }
     const needsCapturesImport = extractions.some(
-      (e) => !e.isSync && e.captureNames.length > 0 && !(inlineOptions && isStrippedSegment(
-        e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-      )),
+      (e) => !e.isSync && e.captureNames.length > 0 && !(inlineOptions && isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers)),
     );
     if (needsCapturesImport && !alreadyImported.has('_captures')) {
       neededImports.set('_captures', '@qwik.dev/core');
@@ -75,14 +73,10 @@ export function collectNeededImports(ctx: RewriteContext): void {
   } else if (inlineOptions && !inlineOptions.inline) {
     if (hasTopLevelNonSync) {
       const hasNonStripped = topLevel.some(
-        (e) => !e.isSync && !isStrippedSegment(
-          e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-        ),
+        (e) => !e.isSync && !isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers),
       );
       const hasStripped = topLevel.some(
-        (e) => !e.isSync && isStrippedSegment(
-          e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-        ),
+        (e) => !e.isSync && isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers),
       );
       if (hasNonStripped) {
         const qrlSymbol = isDevMode ? 'qrlDEV' : 'qrl';
@@ -190,9 +184,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   if (isInline) {
     for (const ext of allNonSync) {
       const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
-      const stripped = !isRegCtx && inlineOptions && isStrippedSegment(
-        ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-      );
+      const stripped = !isRegCtx && inlineOptions && isStrippedExtraction(ext, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers);
 
       if (stripped) {
         const idx = strippedCounter++;
@@ -218,9 +210,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
     }
   } else if (inlineOptions && !inlineOptions.inline) {
     for (const ext of topLevelNonSync) {
-      const stripped = isStrippedSegment(
-        ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-      );
+      const stripped = isStrippedExtraction(ext, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers);
 
       if (stripped) {
         const idx = strippedCounter++;
@@ -328,9 +318,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
 
   for (const ext of allNonSync) {
     const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
-    const isStrippedExt = !isRegCtx && inlineOptions && isStrippedSegment(
-      ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-    );
+    const isStrippedExt = !isRegCtx && inlineOptions && isStrippedExtraction(ext, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers);
     if (isStrippedExt) continue;
 
     if (ext.parent !== null) {

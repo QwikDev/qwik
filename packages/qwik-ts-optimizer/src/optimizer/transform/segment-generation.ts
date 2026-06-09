@@ -34,7 +34,7 @@ import { buildQrlDeclaration } from "../rewrite-calls.js";
 import { getQrlCalleeName } from "../utils/qrl-naming.js";
 import { buildQrlDevDeclaration } from "../dev-mode.js";
 import { generateStrippedSegmentCode } from "../strip-ctx.js";
-import { isStrippedSegment } from "../rewrite/predicates.js";
+import { isStrippedExtraction } from "../rewrite/predicates.js";
 import { mkByteOffset, mkRelativePath } from "../types/brands.js";
 import {
   buildStrippedNoopQrl,
@@ -615,12 +615,7 @@ export function buildNestedQrlDeclarations(
   let strippedIdx = 0;
   const childQrlVarNames = new Map<string, string>();
   const nestedQrlDecls = children.map((child) => {
-    const childStripped = isStrippedSegment(
-      child.ctxName,
-      child.ctxKind,
-      options.stripCtxName,
-      options.stripEventHandlers,
-    );
+    const childStripped = isStrippedExtraction(child, options.stripCtxName, options.stripEventHandlers);
     if (childStripped) {
       const idx = strippedIdx++;
       const counter = getSentinelCounter(idx);
@@ -1349,12 +1344,7 @@ export function generateAllSegmentModules(
   for (const ext of prep.sortedExtractions) {
     if (ext.isSync) continue;
 
-    const stripped = isStrippedSegment(
-      ext.ctxName,
-      ext.ctxKind,
-      ctx.options.stripCtxName,
-      ctx.options.stripEventHandlers,
-    );
+    const stripped = isStrippedExtraction(ext, ctx.options.stripCtxName, ctx.options.stripEventHandlers);
     // Stripped-segment fallback zeros loc before SegmentAnalysis emission.
     // Internal-builder cast — see extract.ts `Mutable<T>`.
     if (stripped) (ext as Mutable<ConsolidatedSegment>).loc = [mkByteOffset(0), mkByteOffset(0)];

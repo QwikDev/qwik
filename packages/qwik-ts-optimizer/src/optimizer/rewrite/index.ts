@@ -27,7 +27,7 @@ import {
   needsPureAnnotation,
   getQrlCalleeName,
 } from '../rewrite-calls.js';
-import { isEventHandlerOrJsxProp, isStrippedSegment, matchesRegCtxName } from './predicates.js';
+import { isEventHandlerOrJsxProp, isStrippedExtraction, matchesRegCtxName } from './predicates.js';
 import { transformEventPropName } from '../transform/event-handlers.js';
 import { transformAllJsx, JsxKeyCounter } from '../transform/jsx.js';
 import { computeKeyPrefix } from '../key-prefix.js';
@@ -555,9 +555,7 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
   let earlyStrippedCounter = 0;
   for (const ext of ctx.extractions) {
     if (ext.isSync) continue;
-    const stripped = isStrippedSegment(
-      ext.ctxName, ext.ctxKind, ctx.inlineOptions.stripCtxName, ctx.inlineOptions.stripEventHandlers,
-    );
+    const stripped = isStrippedExtraction(ext, ctx.inlineOptions.stripCtxName, ctx.inlineOptions.stripEventHandlers);
     if (stripped) {
       const idx = earlyStrippedCounter++;
       const counter = 0xffff0000 + idx * 2;
@@ -928,7 +926,7 @@ function buildStrippedEventQpOverrides(
   for (const ext of ctx.extractions) {
     if (ext.ctxKind !== 'eventHandler') continue;
     if (!ext.captures || ext.captureNames.length === 0) continue;
-    if (!isStrippedSegment(ext.ctxName, ext.ctxKind, stripCtxName, stripEventHandlers)) {
+    if (!isStrippedExtraction(ext, stripCtxName, stripEventHandlers)) {
       continue;
     }
     const name = ext.calleeName;

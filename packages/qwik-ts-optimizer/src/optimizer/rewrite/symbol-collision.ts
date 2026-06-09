@@ -36,7 +36,7 @@ import type { AstNode, AstProgram } from '../../ast-types.js';
 import { forEachAstChild } from '../utils/ast.js';
 import type { RewriteContext } from './rewrite-context.js';
 import type { ImportInfo } from '../marker-detection.js';
-import { isStrippedSegment } from './predicates.js';
+import { isStrippedExtraction } from './predicates.js';
 import { getQrlImportSource } from '../rewrite-calls.js';
 
 /**
@@ -77,22 +77,16 @@ export function computeWouldInjectNames(
   if (isInline) {
     if (hasAnyNonSync) add(isDevMode ? '_noopQrlDEV' : '_noopQrl', '@qwik.dev/core');
     const needsCapturesImport = extractions.some(
-      (e) => !e.isSync && e.captureNames.length > 0 && !(inlineOptions && isStrippedSegment(
-        e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-      )),
+      (e) => !e.isSync && e.captureNames.length > 0 && !(inlineOptions && isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers)),
     );
     if (needsCapturesImport) add('_captures', '@qwik.dev/core');
   } else if (inlineOptions && !inlineOptions.inline) {
     if (hasTopLevelNonSync) {
       const hasNonStripped = topLevel.some(
-        (e) => !e.isSync && !isStrippedSegment(
-          e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-        ),
+        (e) => !e.isSync && !isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers),
       );
       const hasStripped = topLevel.some(
-        (e) => !e.isSync && isStrippedSegment(
-          e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-        ),
+        (e) => !e.isSync && isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers),
       );
       if (hasNonStripped) add(isDevMode ? 'qrlDEV' : 'qrl', '@qwik.dev/core');
       if (hasStripped) add(isDevMode ? '_noopQrlDEV' : '_noopQrl', '@qwik.dev/core');

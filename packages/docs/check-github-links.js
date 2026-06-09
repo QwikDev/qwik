@@ -5,7 +5,7 @@ const https = require('https');
 /**
  * Check all GitHub links in the docs to ensure they are valid.
  * This script scans all .mdx and .md files for GitHub links and verifies them.
- * 
+ *
  * Usage: node check-github-links.js
  * Exit code: 0 if all links are valid, 1 if any links are broken
  */
@@ -13,7 +13,7 @@ const https = require('https');
 // Find all GitHub links in mdx and md files
 function findGitHubLinks(dir) {
   const links = [];
-  
+
   function walkDir(currentDir) {
     const items = fs.readdirSync(currentDir);
     for (const item of items) {
@@ -33,7 +33,7 @@ function findGitHubLinks(dir) {
       }
     }
   }
-  
+
   walkDir(dir);
   return links;
 }
@@ -47,8 +47,8 @@ function checkUrl(url) {
       path: url.replace('https://github.com', ''),
       timeout: 10000,
       headers: {
-        'User-Agent': 'qwik-docs-link-checker'
-      }
+        'User-Agent': 'qwik-docs-link-checker',
+      },
     };
 
     const req = https.request(options, (res) => {
@@ -77,13 +77,13 @@ function checkUrl(url) {
 
 // Delay function
 function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // Check links with rate limiting
 async function checkLinksWithRateLimit(links, delayMs = 500) {
   const results = [];
-  
+
   for (const link of links) {
     const result = await checkUrl(link);
     results.push(result);
@@ -92,30 +92,30 @@ async function checkLinksWithRateLimit(links, delayMs = 500) {
       await delay(delayMs);
     }
   }
-  
+
   return results;
 }
 
 // Main function
 async function main() {
   const links = findGitHubLinks('./src/routes');
-  const uniqueLinks = [...new Set(links.map(l => l.link))];
-  
+  const uniqueLinks = [...new Set(links.map((l) => l.link))];
+
   console.log(`Found ${links.length} GitHub link occurrences (${uniqueLinks.length} unique links)`);
   console.log('Checking links (with rate limiting)...');
-  
+
   const results = await checkLinksWithRateLimit(uniqueLinks, 500);
-  
-  const failed = results.filter(r => !r.ok);
-  const success = results.filter(r => r.ok);
-  
+
+  const failed = results.filter((r) => !r.ok);
+  const success = results.filter((r) => r.ok);
+
   console.log(`\n\nTest complete: ${success.length} successful, ${failed.length} failed`);
-  
+
   if (failed.length > 0) {
     console.log('\nFailed links:');
     for (const result of failed) {
       console.log(`  ❌ ${result.url} (Status: ${result.status}, Error: ${result.error})`);
-      const files = links.filter(l => l.link === result.url).map(l => l.file);
+      const files = links.filter((l) => l.link === result.url).map((l) => l.file);
       console.log(`     Files: ${files.join(', ')}`);
     }
     process.exit(1);

@@ -116,3 +116,80 @@ describe('pre-transformed `_jsxDEV` event-handler extraction', () => {
     }
   });
 });
+
+describe('pre-transformed `_jsxDEV` reactive emit (q:p, const-bag, _wrapProp, flags)', () => {
+	// The buttons rendered but were inert: the `_jsxDEV`→`_jsxSorted` transform
+	// emitted event handlers in the VAR bag while the flags claimed static
+	// listeners (so the runtime, reading the const bag, never wired the event);
+	// it never injected the `q:p` capture prop (so a handler that captures a
+	// signal ran without it); and it left signal `.value` children unwrapped
+	// (so the display never re-rendered). The correct output mirrors SWC.
+	const CODE = `import { jsxDEV as _jsxDEV } from "@qwik.dev/core/jsx-dev-runtime";
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const count = useSignal(0);
+  return _jsxDEV("main", {
+    children: [
+      _jsxDEV("button", {
+        onClick$: () => count.value++,
+        children: count.value
+      }, undefined, false, undefined, this),
+      _jsxDEV("button", {
+        onClick$: () => console.log('hi'),
+        children: "Static"
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, false, undefined, this);
+});
+`;
+
+	function run(entryStrategy: { type: 'smart' | 'hoist' }, isServer: boolean) {
+		return transformModule({
+			srcDir: mkFilePath('/proj/src'),
+			input: [{ path: mkFilePath('/proj/src/routes/index.tsx'), code: mkSourceText(CODE) }],
+			entryStrategy,
+			transpileTs: true,
+			transpileJsx: true,
+			explicitExtensions: true,
+			preserveFilenames: true,
+			mode: 'prod',
+			minify: 'simplify',
+			isServer,
+			...(isServer ? { stripEventHandlers: true, regCtxName: ['server'] } : {}),
+		});
+	}
+
+	function buttonsModule(result: ReturnType<typeof run>): string {
+		const m = result.modules.find((x) => x.code.includes('_jsxSorted') && x.code.includes('button'));
+		expect(m, 'expected a module with the button JSX').toBeDefined();
+		return m!.code;
+	}
+
+	for (const env of [
+		{ label: 'client/smart', strat: { type: 'smart' as const }, isServer: false },
+		{ label: 'server/hoist', strat: { type: 'hoist' as const }, isServer: true },
+	]) {
+		test(`${env.label}: capturing handler gets q:p + const-bag + _wrapProp + flag 7`, () => {
+			const code = buttonsModule(run(env.strat, env.isServer));
+
+			// The capturing button: q:p var prop, const-bag event handler,
+			// _wrapProp reactive children, and the moved_captures flag (bit 4).
+			expect(code, '`q:p`: count capture passed to the handler').toMatch(/"q:p":\s*count/);
+			// The event handler lives in the CONST bag (3rd arg), not the var bag.
+			expect(code, 'event handler in const bag, not inline in var bag')
+				.toMatch(/\{\s*"q:p":\s*count\s*\}\s*,\s*\{\s*"q-e:click":\s*q_/);
+			// Reactive `{count.value}` children wrapped for re-render.
+			expect(code).toMatch(/_wrapProp\(count\)/);
+			// Flag 7 = static_listeners(1) | static_subtree(2) | moved_captures(4).
+			expect(code).toMatch(/_wrapProp\(count\),\s*7,/);
+
+			// The non-capturing handler: const-bag, no q:p, flag 3.
+			expect(code).toMatch(/_jsxSorted\("button",\s*null,\s*\{\s*"q-e:click":\s*q_[^}]*\},\s*"Static",\s*3,/);
+
+			// Never the broken forms: handler in var bag, or unwrapped .value child.
+			expect(code, 'no event handler stranded in the var bag with a static-listeners flag')
+				.not.toMatch(/\{\s*"q-e:click":[^}]*\},\s*null,\s*"Static"/);
+		});
+	}
+});

@@ -320,6 +320,7 @@ function transformSegmentJsxCalls(
   relPath: string,
   importContext: SegmentImportData,
   keyCounterStartOverride: number | undefined,
+  qpByQrl?: ReadonlyMap<string, readonly string[]>,
 ): { bodyText: string; keyCounterValue?: number } {
   // Cheap fast-path: only parse if the body even mentions a candidate
   // jsx-function name. Most segments don't.
@@ -349,6 +350,7 @@ function transformSegmentJsxCalls(
       jsxFunctions,
       keyCounter,
       neededImports,
+      qpByQrl,
     });
 
     const transformedWrapped = bodyS.toString();
@@ -715,8 +717,18 @@ export function generateSegmentCode(
   // imports are present. SWC's reference equivalent: `handle_jsx` at
   // `swc-reference-only/transform.rs:1163` gated by `jsx_functions` membership.
   if (importContext) {
+    // Map each event-handler QRL var (`q_<sym>`) to its `q:p`/`q:ps` capture
+    // params, so the peer-tool JSX-call rewriter can inject the prop onto the
+    // owning element. Built from the nested call sites' `elementQpParams`.
+    const qpByQrl = new Map<string, string[]>();
+    for (const site of nestedCallSites ?? []) {
+      if (site.elementQpParams && site.elementQpParams.length > 0) {
+        qpByQrl.set(site.qrlVarName, site.elementQpParams);
+      }
+    }
     const jsxCallResult = transformSegmentJsxCalls(
       bodyText, parts, extraction.origin, importContext, segmentKeyCounterValue,
+      qpByQrl.size > 0 ? qpByQrl : undefined,
     );
     bodyText = jsxCallResult.bodyText;
     if (jsxCallResult.keyCounterValue !== undefined) {

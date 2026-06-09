@@ -58,6 +58,7 @@ import {
   postProcessSegmentCode,
 } from "./post-process.js";
 import type { LoopContext } from "../loop-hoisting.js";
+import { eventHandlerQpParams } from "../loop-hoisting.js";
 
 /**
  * Resolve the on-disk extension for a segment's emitted file (`module.path`
@@ -1037,6 +1038,21 @@ export function buildNestedCallSites(
         elementQpParams: elementQpParamsMap.get(child.symbolName),
       });
     } else {
+      // An event handler extracted from a pre-transformed `_jsxDEV(...)` props
+      // bag (isJsxObjectProp) flows through this plain call-site branch, but it
+      // still needs its lexical captures delivered to the runtime via the
+      // element's `q:p`/`q:ps` prop. Those captures are the handler's params
+      // after the `_, _1` (event, element) prefix — the same positional
+      // delivery the loop-iter path uses. The peer-tool JSX-call rewriter
+      // (`buildJsxSortedCall`) reads `elementQpParams` to inject the prop.
+      let qpParams: string[] | undefined = elementQpParamsMap.get(child.symbolName);
+      if (
+        qpParams === undefined &&
+        (child.ctxKind === "eventHandler" || child.ctxKind === "jSXProp")
+      ) {
+        const params = eventHandlerQpParams(child.paramNames);
+        if (params.length > 0) qpParams = params;
+      }
       nestedCallSites.push({
         qrlVarName,
         callStart: child.callStart,
@@ -1046,6 +1062,7 @@ export function buildNestedCallSites(
         captureNames:
           child.captureNames.length > 0 ? child.captureNames : undefined,
         importSource: child.importSource || undefined,
+        elementQpParams: qpParams,
       });
     }
   }

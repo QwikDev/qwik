@@ -34,6 +34,7 @@ import {
   type JsxKeyCounter,
 } from './jsx.js';
 import { transformEventPropName } from './event-handlers.js';
+import { buildCaptureProp } from '../loop-hoisting.js';
 import { forEachAstChild } from '../utils/ast.js';
 import type { SegmentImportData } from '../segment-codegen.js';
 
@@ -93,6 +94,15 @@ interface JsxCallTransformOptions {
    * left alone.
    */
   skipRanges?: ReadonlyArray<{ readonly start: number; readonly end: number }>;
+  /**
+   * Maps an event-handler QRL var name (`q_<sym>`) to the lexical-capture
+   * params the runtime must deliver to it positionally — the handler's
+   * params after the `_, _1` (event, element) prefix. When a const event
+   * handler on an element references one of these, `buildJsxSortedCall`
+   * injects the element's `q:p`/`q:ps` prop so the runtime passes the
+   * captures through. Mirrors the raw-JSX path's `injectQpProp`.
+   */
+  qpByQrl?: ReadonlyMap<string, readonly string[]>;
 }
 
 /**
@@ -278,9 +288,15 @@ function walkAndWrap(
     reactiveBindings.has(node.object.name)
   ) {
     const propName = staticPropName(node);
-    if (propName !== null && propName !== 'value') {
+    if (propName !== null) {
       const objText = s.slice(node.object.start, node.object.end);
-      s.overwrite(node.start, node.end, `_wrapProp(${objText}, "${propName}")`);
+      // Signal `.value` reads wrap to the one-arg form `_wrapProp(sig)`;
+      // store field reads (`store.count`) wrap to `_wrapProp(store, "count")`.
+      // Both yield a stable reactive reference the runtime resolves per render.
+      const replacement = propName === 'value'
+        ? `_wrapProp(${objText})`
+        : `_wrapProp(${objText}, "${propName}")`;
+      s.overwrite(node.start, node.end, replacement);
       neededImports.add('_wrapProp');
       return;
     }
@@ -399,6 +415,10 @@ function buildJsxSortedCall(
   let childrenIsDynamic = false;
   let hasVarEventHandler = false;
   const varEntries: string[] = [];
+  const constEntries: string[] = [];
+  // Union of `q:p`/`q:ps` capture params across all const event handlers on
+  // this element (an element with two capturing handlers shares one prop).
+  const qpParams: string[] = [];
   for (const prop of propsArg.properties) {
     if (prop.type === 'SpreadElement') {
       varEntries.push(s.slice(prop.start, prop.end));
@@ -419,13 +439,27 @@ function buildJsxSortedCall(
       const transformed = transformEventPropName(keyName, new Set());
       if (transformed !== null) {
         const valueText = s.slice(prop.value.start, prop.value.end);
-        varEntries.push(`"${transformed}": ${valueText}`);
-        // A dynamic event-handler prop value (anything that isn't a
-        // static identifier-only reference) makes this a "var event
-        // handler" — drops the `static_listeners` flag bit. The peer-tool
-        // input typically passes `q_X.w([...])` here (CallExpression), so
-        // detect any non-Identifier value as dynamic.
-        if (prop.value.type !== 'Identifier') hasVarEventHandler = true;
+        // A const event handler — a bare QRL ref (`q_X`) or `q_X.w([…])` —
+        // belongs in the CONST props bag (3rd `_jsxSorted` arg), matching
+        // SWC and the `static_listeners` flag. Emitting it in the VAR bag
+        // while the flag claims static listeners leaves the runtime looking
+        // in the const bag, finding nothing, and never wiring the event.
+        // Anything else (an inline arrow, a computed value) is a var handler
+        // and drops the flag bit.
+        if (isConstEventHandlerValue(prop.value)) {
+          constEntries.push(`"${transformed}": ${valueText}`);
+          // A const handler delivers its captures positionally; record them
+          // so the element emits one `q:p`/`q:ps` prop below.
+          const handlerQp = opts.qpByQrl?.get(valueText);
+          if (handlerQp) {
+            for (const p of handlerQp) {
+              if (!qpParams.includes(p)) qpParams.push(p);
+            }
+          }
+        } else {
+          varEntries.push(`"${transformed}": ${valueText}`);
+          hasVarEventHandler = true;
+        }
         continue;
       }
     }
@@ -446,18 +480,43 @@ function buildJsxSortedCall(
     keyText = `"${opts.keyCounter.next()}"`;
   }
 
+  // The element's `q:p`/`q:ps` capture prop goes in the VAR bag (the captured
+  // values can change between renders), ahead of any other var props —
+  // matching SWC's emit order. Its presence sets the `moved_captures` flag.
+  if (qpParams.length > 0) {
+    const qp = buildCaptureProp(qpParams, true);
+    if (qp) varEntries.unshift(`"${qp.propName}": ${qp.propValue}`);
+  }
+
   const varPropsText = varEntries.length > 0 ? `{ ${varEntries.join(', ')} }` : 'null';
-  const constPropsText = 'null';
+  const constPropsText = constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : 'null';
   const childrenSlot = childrenText ?? 'null';
   const childrenType: 'none' | 'static' | 'dynamic' = childrenText === null
     ? 'none'
     : childrenIsDynamic ? 'dynamic' : 'static';
   const hasVarProps = varEntries.length > 0;
-  const flags = computeJsxFlags(hasVarProps, childrenType, false, hasVarEventHandler);
+  let flags = computeJsxFlags(hasVarProps, childrenType, false, hasVarEventHandler);
+  if (qpParams.length > 0) flags |= 4;
 
   opts.neededImports.add('_jsxSorted');
 
   return `/*#__PURE__*/ _jsxSorted(${tag}, ${varPropsText}, ${constPropsText}, ${childrenSlot}, ${flags}, ${keyText})`;
+}
+
+/**
+ * A const event-handler value: a bare QRL identifier (`q_<sym>`), whose
+ * lexical captures (if any) are delivered out-of-band via the element's
+ * `q:p`/`q:ps` prop. SWC places these in the const props bag with the
+ * `static_listeners` flag set.
+ *
+ * A `q_<sym>.w([captures])` handler is NOT const — the `.w()` binds the
+ * captures inline, so the QRL reference varies with them. SWC keeps those
+ * in the VAR bag and clears the `static_listeners` bit (see the
+ * `example_parsed_inlined_qrls` snapshot, flags `2`). An inline arrow or
+ * any other expression is likewise a var handler.
+ */
+function isConstEventHandlerValue(value: AstNode): boolean {
+  return value.type === 'Identifier';
 }
 
 /** Extract a static key name from an object property. Returns null for
@@ -490,8 +549,10 @@ function isStaticChildren(value: AstNode, reactive: ReadonlySet<string>): boolea
     value.object?.type === 'Identifier' &&
     reactive.has(value.object.name)
   ) {
+    // A reactive member read (signal `.value` or store `.field`) becomes a
+    // stable `_wrapProp(...)` reference, so it counts as static children.
     const propName = staticPropName(value);
-    if (propName !== null && propName !== 'value') return true;
+    if (propName !== null) return true;
   }
   if (value.type === 'ArrayExpression') {
     return (value.elements ?? []).every((el) => el != null && isStaticChildren(el, reactive));

@@ -31,6 +31,7 @@ import { isEventHandlerOrJsxProp, isStrippedSegment, matchesRegCtxName } from '.
 import { transformEventPropName } from '../transform/event-handlers.js';
 import { transformAllJsx, JsxKeyCounter } from '../transform/jsx.js';
 import { computeKeyPrefix } from '../key-prefix.js';
+import { eventHandlerQpParams } from '../loop-hoisting.js';
 import {
   collectJsxFunctionNamesFromIterable,
   transformJsxCalls,
@@ -872,11 +873,24 @@ function runPeerToolJsxCallTransform(ctx: RewriteContext): void {
     start: e.argStart,
     end: e.argEnd,
   }));
+  // Map each event handler's parent-side QRL var (`q_<sym>`, or the
+  // `q_qrl_<n>` noop name under strip) to its lexical-capture params, so the
+  // peer-tool rewriter can inject the owning element's `q:p`/`q:ps` prop.
+  // Under the inline/hoist strategy the handler body stays in the parent and
+  // the captures are delivered positionally; the prop must still be emitted
+  // (even for stripped handlers) so the client can resume with them.
+  const qpByQrl = new Map<string, string[]>();
+  for (const ext of ctx.extractions) {
+    if (ext.ctxKind !== 'eventHandler' && ext.ctxKind !== 'jSXProp') continue;
+    const params = eventHandlerQpParams(ext.paramNames);
+    if (params.length > 0) qpByQrl.set(getQrlVarName(ctx, ext.symbolName), params);
+  }
   transformJsxCalls(ctx.source, ctx.s, ctx.program, {
     jsxFunctions: parentJsxFunctions,
     keyCounter: parentKeyCounter,
     neededImports: neededParentImports,
     skipRanges,
+    qpByQrl: qpByQrl.size > 0 ? qpByQrl : undefined,
   });
   ctx.jsxKeyCounterValue = parentKeyCounter.current();
 

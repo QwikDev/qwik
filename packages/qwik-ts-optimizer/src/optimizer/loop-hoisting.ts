@@ -17,6 +17,7 @@ import type {
   WhileStatement,
   DoWhileStatement,
 } from '../ast-types.js';
+import { numberedPaddingParam } from './transform/post-process.js';
 
 export interface LoopContext {
   type: 'map' | 'for-i' | 'for-of' | 'for-in' | 'while' | 'do-while';
@@ -115,6 +116,26 @@ function buildLoopContext(
  */
 export function generateParamPadding(loopVarNames: string[]): string[] {
   return ['_', '_1', ...loopVarNames];
+}
+
+/**
+ * The lexical-capture params an event handler receives positionally — its
+ * params after the `_, _1` (event, element) prefix, excluding numbered
+ * padding (`_2`, `_3`, … from loop-iter promotion). These are the names the
+ * owning element delivers via its `q:p`/`q:ps` prop. Returns `[]` when the
+ * handler has no `_, _1` prefix (i.e. no positional capture delivery).
+ */
+export function eventHandlerQpParams(paramNames: readonly string[]): string[] {
+  if (paramNames.length < 2 || paramNames[0] !== '_' || paramNames[1] !== '_1') {
+    return [];
+  }
+  const result: string[] = [];
+  for (let i = 2; i < paramNames.length; i++) {
+    const p = paramNames[i];
+    if (numberedPaddingParam.test(p)) continue;
+    result.push(p);
+  }
+  return result;
 }
 
 /**

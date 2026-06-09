@@ -21,6 +21,7 @@ import type { ImportInfo } from '../marker-detection.js';
 import { transformEventPropName } from '../transform/event-handlers.js';
 import { transformAllJsx, JsxKeyCounter } from '../transform/jsx.js';
 import { transformJsxCalls, collectJsxFunctionNamesFromIterable } from '../transform/jsx-call-transform.js';
+import { eventHandlerQpParams } from '../loop-hoisting.js';
 import { computeKeyPrefix } from '../key-prefix.js';
 import { SignalHoister } from '../signal-analysis.js';
 import { foldBodySimplifiableExpressions } from '../utils/simplify.js';
@@ -386,10 +387,24 @@ export function transformInlineSegmentBody(
             const startAt = sharedKeyCounterStart ?? jsxBodyOptions?.keyCounterStart ?? 0;
             const keyCounter = new JsxKeyCounter(startAt, prefix);
             const callNeededImports = new Set<string>();
+            // Map each child event handler's QRL var to its q:p/q:ps capture
+            // params so the peer-tool rewriter injects the owning element's
+            // capture prop. The handler body stays inline here (hoist/inline
+            // strategy), but the prop is still needed for client resumption —
+            // even for stripped handlers whose body became a noop.
+            const qpByQrl = new Map<string, string[]>();
+            for (const child of nested) {
+              if (child.ctxKind !== 'eventHandler' && child.ctxKind !== 'jSXProp') continue;
+              const params = eventHandlerQpParams(child.paramNames);
+              if (params.length > 0) {
+                qpByQrl.set(qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`, params);
+              }
+            }
             transformJsxCalls(wrappedBody, callS, bodyParse.program, {
               jsxFunctions,
               keyCounter,
               neededImports: callNeededImports,
+              qpByQrl: qpByQrl.size > 0 ? qpByQrl : undefined,
             });
             const rewritten = callS.toString();
             if (rewritten !== wrappedBody) {

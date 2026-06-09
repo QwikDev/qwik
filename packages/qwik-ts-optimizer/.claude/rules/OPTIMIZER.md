@@ -189,7 +189,7 @@ Top-level entry is `transformModule` at `src/optimizer/transform/index.ts:93`. T
 | 5 | `transform/index.ts:605` | Emit one module per non-stripped segment | `generateAllSegmentModules` in `transform/segment-generation.ts` (34-line sequencer over named helpers per OSS-356/357/358 — see SPEC at `.planning/specs/segment-generation-refactor.md`) |
 | 6 | `transform/index.ts:686` | Apply diagnostic suppression directives | (lightweight cleanup) |
 
-The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1127`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
+The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1327`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
 
 Phase 5's per-segment work flows through `generateSegmentCode` (`segment-codegen.ts:595` — refactored in OSS-346 into a 9-phase sequencer with extracted helpers `collectInitialImports` and `applyBodyTransforms`) followed by `postProcessSegmentCode` (`transform/post-process.ts:158`).
 
@@ -253,7 +253,7 @@ For the leaf onClick segment, the same pipeline runs — but the body is just `(
 
 ### Phase 6 — post-process per segment (`transform/post-process.ts:postProcessSegmentCode`)
 
-Each emitted segment string then goes through `postProcessSegmentCode` (called from `transform/segment-generation.ts:1048` inside `buildDefaultStrategySegment`):
+Each emitted segment string then goes through `postProcessSegmentCode` (called from `transform/segment-generation.ts:1257` inside `buildDefaultStrategySegment`):
 
 1. TypeScript strip via `oxc-transform`.
 2. Const replacement (`applySegmentConstReplacement`).
@@ -356,8 +356,8 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 
 Three things happened (all of `_rawProps`, `_captures`, `.w([...])` are tool-surface — see [Two namespaces](#two-namespaces-what-you-write-vs-what-the-optimizer-produces)):
 
-1. **`foo` got consolidated to `_rawProps`.** When a parent's destructured prop is captured, the optimizer rewrites both sides — the parent passes `_rawProps` (the un-destructured object), and the segment reaches into `_rawProps.foo` instead. This is the F3 territory in `CONVERGENCE_FAILURES.md`. After the OSS-356/357/358 split, the consolidation work is delegated to `consolidateRawPropsCaptures` (`segment-generation.ts:290`) which is called from both strategy paths: `buildInlineStrategySegment` at line 419 and `buildDefaultStrategySegment` at line 964.
-2. **`arg0` got inlined as `20`.** Const-literal captures whose values are statically resolvable get folded at codegen time and dropped from `captureNames`. Logic at `segment-generation.ts:974` (wires the pre-computed const-literal map into the default-strategy path) and `inlineConstCaptures` in `rewrite/index.ts`.
+1. **`foo` got consolidated to `_rawProps`.** When a parent's destructured prop is captured, the optimizer rewrites both sides — the parent passes `_rawProps` (the un-destructured object), and the segment reaches into `_rawProps.foo` instead. This is the F3 territory in `CONVERGENCE_FAILURES.md`. After the OSS-356/357/358 split, the consolidation work is delegated to `consolidateRawPropsCaptures` (`segment-generation.ts:372`) which both strategy paths invoke via the shared `tryConsolidateRawProps` wrapper (`segment-generation.ts:431`) — `buildInlineStrategySegment` at line 571, `buildDefaultStrategySegment` at line 1147.
+2. **`arg0` got inlined as `20`.** Const-literal captures whose values are statically resolvable get folded at codegen time and dropped from `captureNames`. Logic at `segment-generation.ts:1159` (wires the pre-computed const-literal map into the default-strategy path) and `inlineConstCaptures` in `rewrite/index.ts`.
 3. **The captureNames metadata is just `["_rawProps"]`.** The unpacking line `const _rawProps = _captures[0]` is injected by `injectCapturesUnpacking` (`segment-codegen/body-transforms.ts:543`) at the start of the segment body.
 
 The parent segment passes the captures via `.w([_rawProps])` (snap line 40):
@@ -506,7 +506,7 @@ Output Other segment (snap lines 32–38) imports `SHARED_CONFIG` the same way b
 Two consumers of the `migrationDecisions` array:
 
 - **Parent rewrite** (`rewrite/output-assembly.ts:655` — `assembleOutput`): for `reexport`, append the `export { x as _auto_x }` line; for `move`, delete the source range.
-- **Segment codegen** (`transform/segment-generation.ts:621` — `wireMigration`): for `reexport`, add to the segment's `autoImports` (becomes `import { _auto_x as x }`); for `move` targeting **this segment**, inline the declaration text + its own import deps.
+- **Segment codegen** (`transform/segment-generation.ts:765` — `wireMigration`): for `reexport`, add to the segment's `autoImports` (becomes `import { _auto_x as x }`); for `move` targeting **this segment**, inline the declaration text + its own import deps.
 
 ---
 
@@ -595,8 +595,8 @@ Every JSX element gets a key string of the form `"<prefix>_<count>"` (e.g., `"u6
 Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `transform/jsx.ts:670–690`, threaded as:
 
 - `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:997) → into `transform/index.ts:623`.
-- `parentJsxKeyCounterValue` → consumed by `segment-generation.ts:1132` and `transformSegmentJsx` (segment-codegen.ts:351–396) as `keyCounterStart`.
-- Each segment's emit returns its updated `keyCounterValue` (`segment-generation.ts:1110` and folded back at :1155–1156) — folded back so the next segment continues counting.
+- `parentJsxKeyCounterValue` → consumed by `segment-generation.ts:1238` and `transformSegmentJsx` (segment-codegen.ts:351–396) as `keyCounterStart`.
+- Each segment's emit returns its updated `keyCounterValue` (`segment-generation.ts:1310`, folded back in the `generateAllSegmentModules` sequencer) — folded back so the next segment continues counting.
 
 ### `_fnSignal` — reactive expression hoisting
 
@@ -748,9 +748,9 @@ Both are populated by capture analysis, but they diverge through the pipeline:
 
 - `captures: boolean` is computed once during analysis as `captureNames.length > 0` (`capture-analysis.ts:51`).
 - `captureNames: string[]` is **mutated** through later phases:
-  - `consolidateRawPropsCaptures` (`segment-generation.ts:290`, called from inline-strategy at :419 and default-strategy at :964) and `preConsolidateRawPropsCaptures` (`rewrite/index.ts:491–540`) — props field consolidation can replace destructured prop names with `_rawProps`.
-  - `segment-generation.ts:974` — const-literal inlining drops names whose values get folded.
-  - `segment-generation.ts:757–773` — migration filtering drops names that became `_auto_` imports.
+  - `consolidateRawPropsCaptures` (`segment-generation.ts:372`, invoked via `tryConsolidateRawProps` from inline-strategy (:571) and default-strategy (:1147)) and `preConsolidateRawPropsCaptures` (`rewrite/index.ts:491–540`) — props field consolidation can replace destructured prop names with `_rawProps`.
+  - `segment-generation.ts:1159` — const-literal inlining drops names whose values get folded.
+  - `segment-generation.ts:907` — migration filtering drops names that became `_auto_` imports.
 
 So they can diverge: `captures: true` might persist while `captureNames` shrinks. They snap back into sync only when `captureNames` becomes empty.
 
@@ -790,14 +790,14 @@ The per-segment `SegmentMetadataInternal` block is assembled by a single helper 
 | Per-segment codegen orchestrator | `src/optimizer/segment-codegen.ts:595` (`generateSegmentCode`) |
 | Per-segment body transforms | `src/optimizer/segment-codegen/body-transforms.ts` |
 | Per-segment import collection | `src/optimizer/segment-codegen/import-collection.ts` |
-| All-segments orchestrator | `src/optimizer/transform/segment-generation.ts:1127` (`generateAllSegmentModules`) — 34-line sequencer |
-| All-segments setup (Prep) | `src/optimizer/transform/segment-generation.ts:321` (`computeSegmentGenerationPrep`) |
-| Inline-strategy segment builder | `src/optimizer/transform/segment-generation.ts:409` (`buildInlineStrategySegment`) |
-| Default-strategy segment builder | `src/optimizer/transform/segment-generation.ts:921` (`buildDefaultStrategySegment`) |
-| Migration wiring (top-level + nested) | `src/optimizer/transform/segment-generation.ts:621` (`wireMigration`) |
-| Nested call-site builder | `src/optimizer/transform/segment-generation.ts:784` (`buildNestedCallSites`) |
-| Nested QRL declarations | `src/optimizer/transform/segment-generation.ts:477` (`buildNestedQrlDeclarations`) |
-| Raw-props consolidation (shared) | `src/optimizer/transform/segment-generation.ts:290` (`consolidateRawPropsCaptures`) |
+| All-segments orchestrator | `src/optimizer/transform/segment-generation.ts:1327` (`generateAllSegmentModules`) — 34-line sequencer |
+| All-segments setup (Prep) | `src/optimizer/transform/segment-generation.ts:480` (`computeSegmentGenerationPrep`) |
+| Inline-strategy segment builder | `src/optimizer/transform/segment-generation.ts:563` (`buildInlineStrategySegment`) |
+| Default-strategy segment builder | `src/optimizer/transform/segment-generation.ts:1107` (`buildDefaultStrategySegment`) |
+| Migration wiring (top-level + nested) | `src/optimizer/transform/segment-generation.ts:765` (`wireMigration`) |
+| Nested call-site builder | `src/optimizer/transform/segment-generation.ts:934` (`buildNestedCallSites`) |
+| Nested QRL declarations | `src/optimizer/transform/segment-generation.ts:626` (`buildNestedQrlDeclarations`) |
+| Raw-props consolidation (shared) | `src/optimizer/transform/segment-generation.ts:372` (`consolidateRawPropsCaptures`) |
 | Post-process per segment | `src/optimizer/transform/post-process.ts:158` (`postProcessSegmentCode`) |
 | Shared extraction predicates | `src/optimizer/rewrite/predicates.ts` |
 | Stripped-segment codegen | `src/optimizer/strip-ctx.ts` |

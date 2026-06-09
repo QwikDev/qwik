@@ -80,7 +80,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 };
 
 // @public
-export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
+export type CacheKeyFn = true | ((requestEv: RequestEvent, eTag: string) => string | null);
 
 // @public (undocumented)
 export interface ContentHeading {

@@ -21,6 +21,7 @@ import {
   setRouteLoaders,
 } from '../../runtime/src/route-loaders';
 import { ensureSlash } from '../../utils/pathname';
+import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
 import type { RequestEventInternal } from './request-event-core';
 import { loaderHandler } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
@@ -44,7 +45,10 @@ interface ResolveRequestHandlersDeps {
   HttpStatus: typeof import('./http-status-codes').HttpStatus;
   encoder: TextEncoder;
   isContentType: typeof import('./request-utils').isContentType;
-  getCachedHtml: typeof import('./etag').getCachedHtml;
+  defaultSsrCacheKey: typeof import('./etag').defaultSsrCacheKey;
+  defaultLoaderCacheKey: typeof import('./etag').defaultLoaderCacheKey;
+  getCachedSsr: typeof import('./etag').getCachedSsr;
+  getCachedLoader: typeof import('./etag').getCachedLoader;
   getQwikRouterServerData: typeof import('./response-page').getQwikRouterServerData;
   getRequestMode: typeof import('./request-event-core').getRequestMode;
   loadHttpError: () => Promise<unknown>;
@@ -52,7 +56,8 @@ interface ResolveRequestHandlersDeps {
   resolveCacheKey: typeof import('./etag').resolveCacheKey;
   resolveETag: typeof import('./etag').resolveETag;
   resolveRouteConfig: typeof import('../../runtime/src/head').resolveRouteConfig;
-  setCachedHtml: typeof import('./etag').setCachedHtml;
+  setCachedSsr: typeof import('./etag').setCachedSsr;
+  setCachedLoader: typeof import('./etag').setCachedLoader;
 }
 
 export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
@@ -114,7 +119,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
 
     if (isPageRoute) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
-      requestHandlers.push(loaderHandler(routeLoaders));
+      requestHandlers.push(loaderHandler(routeLoaders, route.$loaderPaths$));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
       if (method === 'POST' || method === 'GET') {
@@ -318,14 +323,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         return;
       }
       if (routeLoaders.length > 0) {
-        // Set up the RouteLoaderCtx with loader paths from the route
-        const routeLoaderCtx = getRouteLoaderCtx(requestEv);
-        if (route.$loaderPaths$) {
-          Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
-        }
-
-        // Store loader internals so SSG can check __expires
-        setRouteLoaders(requestEv, routeLoaders);
+        setLoaderData(requestEv, routeLoaders, route);
 
         // Run loaders directly and store raw values.
         // Errors/redirects propagate so middleware can catch them (e.g. plugin@errors).
@@ -339,6 +337,25 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
     };
   }
 
+  function setLoaderData(
+    requestEv: RequestEventInternal,
+    routeLoaders: LoaderInternal[],
+    route: LoadedRoute
+  ) {
+    if (routeLoaders.length === 0) {
+      return;
+    }
+
+    // Set up the RouteLoaderCtx with loader paths from the route.
+    const routeLoaderCtx = getRouteLoaderCtx(requestEv);
+    if (route.$loaderPaths$) {
+      Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
+    }
+
+    // Store loader internals so SSG can check __expires.
+    setRouteLoaders(requestEv, routeLoaders);
+  }
+
   function eTagMiddleware(route: LoadedRoute): RequestHandler {
     return (requestEv: RequestEvent) => {
       if (requestEv.headersSent) {
@@ -349,16 +366,21 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       }
 
       const mods = route.$mods$ as ContentModule[];
-      const hasETag = mods.some((m) => {
+      const hasCachingConfig = mods.some((m) => {
         if (!m) {
           return false;
         }
         if (m.routeConfig) {
-          return typeof m.routeConfig === 'function' || m.routeConfig.eTag !== undefined;
+          return (
+            typeof m.routeConfig === 'function' ||
+            m.routeConfig.eTag !== undefined ||
+            m.routeConfig.cacheKey !== undefined
+          );
         }
-        return (m as PageModule).eTag !== undefined;
+        const page = m as PageModule;
+        return page.eTag !== undefined || page.cacheKey !== undefined;
       });
-      if (!hasETag) {
+      if (!hasCachingConfig) {
         return;
       }
 
@@ -394,40 +416,45 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         ...routeLocation,
       };
 
-      const eTag = deps.resolveETag(config.eTag, headProps);
-      if (!eTag) {
-        return;
-      }
-
-      requestEv.headers.set('ETag', eTag);
-
-      const ifNoneMatch = requestEv.request.headers.get('If-None-Match');
-      if (
-        ifNoneMatch &&
-        (ifNoneMatch === eTag || ifNoneMatch === `W/${eTag}` || `W/${ifNoneMatch}` === eTag)
-      ) {
-        requestEv.status(304);
-        requestEv.send(304 as any, '' as any);
+      const resolvedETag = deps.resolveETag(config.eTag, headProps);
+      const normalizedETag = resolvedETag !== null ? normalizeETag(resolvedETag) : '';
+      if (normalizedETag && performETagMatch(requestEv as RequestEventInternal, normalizedETag)) {
         return;
       }
 
       if (deps.MAX_CACHE_SIZE <= 0) {
         return;
       }
-      const cacheKey = deps.resolveCacheKey(config.cacheKey, status, eTag, requestEv.url.pathname);
+      const cacheKey = deps.resolveCacheKey(
+        config.cacheKey,
+        deps.defaultSsrCacheKey,
+        requestEv,
+        normalizedETag
+      );
       if (!cacheKey) {
         return;
       }
 
-      const cachedHtml = deps.getCachedHtml(cacheKey);
-      if (cachedHtml) {
+      const cached = deps.getCachedSsr(cacheKey);
+      if (cached) {
         requestEv.headers.set('Content-Type', 'text/html; charset=utf-8');
         requestEv.headers.set('X-SSR-Cache', 'HIT');
-        requestEv.send(status as any, cachedHtml);
+        // Serve the eTag stored with the cache entry; only check If-None-Match if pre-render
+        // didn't already (a pre-render eTag was checked above; here it's the cached one).
+        if (!normalizedETag) {
+          if (performETagMatch(requestEv as RequestEventInternal, cached.eTag)) {
+            return;
+          }
+        } else {
+          // Pre-render eTag was set; either it differs from the cached one (re-set to match cache)
+          // or they match (idempotent).
+          setETagHeader(requestEv as RequestEventInternal, cached.eTag);
+        }
+        requestEv.send(status as any, cached.body);
         return;
       }
 
-      requestEv.sharedMap.set(deps.RequestEvETagCacheKey, cacheKey);
+      requestEv.sharedMap.set(deps.RequestEvETagCacheKey, { key: cacheKey, eTag: normalizedETag });
     };
   }
 
@@ -667,8 +694,8 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
       }
 
-      const eTagCacheKey = requestEv.sharedMap.get(deps.RequestEvETagCacheKey) as
-        | string
+      const cachePlan = requestEv.sharedMap.get(deps.RequestEvETagCacheKey) as
+        | { key: string; eTag: string }
         | undefined;
 
       const { readable, writable } = new TextEncoderStream();
@@ -676,7 +703,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
 
       let cacheChunks: Uint8Array[] | undefined;
       let pipeSource: ReadableStream<Uint8Array> = readable;
-      if (eTagCacheKey) {
+      if (cachePlan) {
         cacheChunks = [];
         const capture = new TransformStream<Uint8Array, Uint8Array>({
           transform(chunk, controller) {
@@ -721,7 +748,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         throw pipeError;
       }
 
-      if (eTagCacheKey && cacheChunks && cacheChunks.length > 0) {
+      if (cachePlan && cacheChunks && cacheChunks.length > 0) {
         const totalLength = cacheChunks.reduce((sum, chunk) => sum + chunk.length, 0);
         const combined = new Uint8Array(totalLength);
         let offset = 0;
@@ -729,7 +756,11 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
           combined.set(chunk, offset);
           offset += chunk.length;
         }
-        deps.setCachedHtml(eTagCacheKey, new TextDecoder().decode(combined));
+        const html = new TextDecoder().decode(combined);
+        // Use the pre-resolved eTag when set; otherwise auto-hash the rendered HTML so future cache
+        // hits can serve a stable validator and short-circuit with 304.
+        const cachedETag = cachePlan.eTag || hash(html);
+        deps.setCachedSsr(cachePlan.key, { eTag: cachedETag, body: html });
       }
 
       await writableStream.close();

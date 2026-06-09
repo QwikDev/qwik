@@ -2,7 +2,7 @@ import { isDev } from '@qwik.dev/core';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { RedirectMessage } from '../redirect-handler';
 import type { RequestEventInternal } from '../request-event-core';
-import { IsQLoader, IsQAction, resolveValidInternalFullPathname } from '../request-path';
+import { resolveValidInternalFullPathname } from '../request-path';
 import { ServerError } from '../server-error';
 import type { RequestHandler, RequestEvent } from '../types';
 import { addVaryHeader, sendJsonResponse, sendActionResponse } from './loader-handler';
@@ -22,10 +22,8 @@ export function jsonRequestWrapper(): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
 
-    const isLoader = requestEv.sharedMap.has(IsQLoader);
-    const isActionJson =
-      requestEv.sharedMap.has(IsQAction) &&
-      requestEv.request.headers.get('accept')?.includes('application/json');
+    const isLoader = requestEv.internalRequest === 'loader';
+    const isActionJson = requestEv.internalRequest === 'action';
 
     if (!isLoader && !isActionJson) {
       return;
@@ -42,7 +40,7 @@ export function jsonRequestWrapper(): RequestHandler {
     }
 
     // Wrap all downstream handlers in try/catch so middleware redirects/errors
-    // become JSON responses instead of HTTP redirects/error pages
+    // become JSON responses instead of HTTP redirects/error pages.
     try {
       await requestEv.next();
     } catch (err) {

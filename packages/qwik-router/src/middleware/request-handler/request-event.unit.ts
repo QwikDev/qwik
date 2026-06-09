@@ -116,6 +116,18 @@ describe('request-event redirect', () => {
     expect(requestEv.status()).toBe(307);
   });
 
+  it('should not exit internal loader requests on redirect', () => {
+    const requestEv = createMockRequestEvent(
+      'http://localhost:3000/test/q-loader-loader-id.manifest-hash.json'
+    );
+
+    const result = requestEv.redirect(302, '/new-location');
+
+    expect(result).toBeInstanceOf(RedirectMessage);
+    expect(requestEv.internalRequest).toBe('loader');
+    expect(requestEv.exited).toBe(false);
+  });
+
   it('should fix invalid redirect URLs with multiple slashes', () => {
     const requestEv = createMockRequestEvent();
 

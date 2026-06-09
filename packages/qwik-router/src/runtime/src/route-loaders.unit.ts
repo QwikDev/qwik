@@ -58,6 +58,7 @@ describe('route loader execution', () => {
   it('memoizes in-flight loader executions on the request', async () => {
     const requestEv: any = {
       sharedMap: new Map(),
+      url: new URL('http://localhost/products/'),
     };
 
     const parentLoader = createLoader('parent', async () => 'parent-value');
@@ -98,6 +99,7 @@ function createLoader(
     __expires: 0,
     __poll: false,
     __eTag: undefined,
+    __cacheKey: undefined,
     __search: undefined,
     __allowStale: true,
   } as any;

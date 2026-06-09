@@ -51,6 +51,7 @@ describe('jsonRequestWrapper', () => {
 function createLoaderRequestEvent(loaderPathname: string, fullPathname: string) {
   return {
     sharedMap: new Map([[IsQLoader, true]]),
+    internalRequest: 'loader',
     request: new Request(`http://localhost${loaderPathname}`, {
       headers: {
         [FULLPATH_HEADER]: fullPathname,

@@ -360,22 +360,43 @@ export type ContentModule = PageModule | LayoutModule;
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 /**
- * The eTag export type: a static string or a function receiving DocumentHeadProps.
+ * The eTag export type for routeConfig.
+ *
+ * - `string` — static ETag value.
+ * - `(props: DocumentHeadProps) => string | null` — compute the ETag from route context (params, URL,
+ *   loaded data via `resolveValue`, etc.). Return `null` to skip eTag for this request.
+ *
+ * Qwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars,
+ * then sends a strong `ETag` header. Values that normalize to an empty string are treated as
+ * absent.
+ *
+ * When set (and a value is produced), the server includes an `ETag` header and returns `304` if
+ * `If-None-Match` matches.
  *
  * @public
  */
 export type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);
 
 /**
- * The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR
- * caching.
+ * Cache key function. Used by `routeConfig.cacheKey` (SSR HTML cache) and by `routeLoader$`'s
+ * `cacheKey` option (per-loader JSON cache).
  *
- * - `true`: use the default cache key `status|eTag|pathname`
- * - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)
+ * - `true`: use the surface's default key.
+ *
+ *   - SSR default: `${status}|${eTag}|${pathname}` when an eTag is set, otherwise
+ *       `${status}|${pathname}`.
+ *   - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set,
+ *       otherwise `${pathname}|${filteredSearch}|${loaderId}`.
+ * - Function: receives the request event and the normalized, unquoted eTag (or an empty string when
+ *   none was provided). Return the cache key string, or `null` or `''` to skip caching for this
+ *   request. Loader callbacks receive the loader-scoped request event, with `url`, `query`, and
+ *   `request.url` filtered by the loader's `search` allowlist.
+ *
+ * Note: valid cacheKeys are non-empty strings.
  *
  * @public
  */
-export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
+export type CacheKeyFn = true | ((requestEv: RequestEvent, eTag: string) => string | null);
 
 /**
  * The value shape returned by a routeConfig export (object form or function return).
@@ -788,23 +809,48 @@ export type LoaderOptions = {
   /**
    * Enable ETag-based caching for this loader's JSON responses.
    *
-   * - `true` — auto-compute an ETag by hashing the serialized response data (loader still runs)
    * - `string` — static ETag value; if `If-None-Match` matches, the loader is skipped entirely
    * - `(ev: RequestEvent) => string | null` — compute the ETag from the request context (params, URL,
    *   headers, etc.); if `If-None-Match` matches, the loader is skipped entirely. Return null to
    *   skip eTag for this request.
    *
+   * Qwik normalizes eTag values by stripping weak-form `W/` prefixes, quotes, and forbidden chars,
+   * then sends a strong `ETag` header. Values that normalize to an empty string are treated as
+   * absent.
+   *
    * When set, the server includes an `ETag` header on `q-loader-*.json` responses and returns `304`
    * if the client sends a matching `If-None-Match` header.
+   *
+   * For auto-computed eTags, use `cacheKey` instead — on cache write the eTag is hashed from the
+   * serialized response and stored alongside it, so subsequent hits get the same eTag.
    */
-  readonly eTag?: boolean | string | ((ev: RequestEvent) => string | null);
+  readonly eTag?: string | ((ev: RequestEvent) => string | null);
+  /**
+   * Enable in-memory server-side caching of this loader's serialized JSON response.
+   *
+   * - `true` — use the default key `${pathname}|${filteredSearch}|${loaderId}` (suffixed with
+   *   `|${eTag}` when an eTag is set).
+   * - Function `(requestEv, eTag) => string | null` — return a custom key, or `null` to skip caching
+   *   this request.
+   *
+   * On cache miss the loader runs, the serialized response is stored alongside its eTag (computed
+   * from the data when no `eTag` option is set), and the response is sent. On cache hit the stored
+   * `{ eTag, data }` pair is served directly — `If-None-Match` is checked against the stored eTag
+   * and a `304` is returned when it matches.
+   */
+  readonly cacheKey?: CacheKeyFn;
   /**
    * Allowlist of URL search parameter names that this loader depends on.
    *
    * When set, the loader only re-fetches when the listed search params change — other param changes
-   * are ignored. Only the listed params are sent in the loader JSON request URL.
+   * are ignored. Only the listed params are sent in the loader JSON request URL. During SSR and
+   * loader JSON requests, the loader receives a request event with `url`, `query`, and
+   * `request.url` filtered to the same params.
    *
-   * When not set, all search params are sent and any change triggers a re-fetch.
+   * When not set, the `qwikRouter()` plugin option `strictLoaders` determines the behavior. If
+   * `strictLoaders` is `true` (this is the default), no search params are sent and changes do not
+   * trigger a re-fetch. If `strictLoaders` is `false`, all search params are sent and any change
+   * triggers a re-fetch.
    */
   readonly search?: string[];
   /**
@@ -962,7 +1008,8 @@ export interface LoaderInternal extends Loader<any> {
   __serializationStrategy: SerializationStrategy;
   __expires: number;
   __poll: boolean;
-  __eTag: boolean | string | ((ev: RequestEvent) => string | null) | undefined;
+  __eTag: string | ((ev: RequestEvent) => string | null) | undefined;
+  __cacheKey: CacheKeyFn | undefined;
   __search: string[] | undefined;
   __allowStale: boolean;
   (): LoaderSignal<unknown>;

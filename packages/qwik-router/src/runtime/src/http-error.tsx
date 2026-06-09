@@ -3,7 +3,7 @@ import type { CacheKeyFn } from './types';
 import { useHttpStatus } from './use-functions';
 
 /** Cache error pages per status code so all 404s (or 500s) share one cache entry. */
-export const cacheKey: CacheKeyFn = (status) => String(status);
+export const cacheKey: CacheKeyFn = (ev) => String(ev.status);
 
 const COLOR_400 = '#006ce9';
 const COLOR_500 = '#713fc2';

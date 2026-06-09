@@ -306,6 +306,7 @@ There are **two completely separate code paths** for populating `captureNames`, 
 - The captures list is **declared**, not derived. The optimizer doesn't re-analyse — it trusts the upstream tool got it right.
 - The body **already contains** `const x = _captures[0]` lines (the upstream tool wrote them). Phase 5 sets `skipCaptureInjection: true` and doesn't inject a duplicate unpacking.
 - `inlinedQrl`'s captures array can contain non-identifier expressions — `[left, true, right]` is valid (see `should_preserve_non_ident_explicit_captures.snap`). Regular `$()` can't express this; only the explicit form can.
+- `inlinedQrl` segments are **never stripped**, regardless of `stripCtxName` / `stripEventHandlers`. The per-extraction strip gate (`isStrippedExtraction` in `rewrite/predicates.ts`) short-circuits to `false` for any `isInlinedQrl` extraction before consulting the ctxName/ctxKind predicate — mirroring SWC, whose strip check (`should_emit_segment`) runs only in the developer-`$()` path (`_create_synthetic_qsegment`), never the inlinedQrl path (`create_synthetic_qqsegment`). Stripping a pre-baked QRL whose name happens to match a strip prefix (e.g. the router lib's `serverQrl` dispatcher vs `stripCtxName: ['server']`) would collapse it to a chunkless `_noopQrl` and break `server$` RPC at runtime (Qwik Q14, "does not have a chunk path").
 
 **Where you'll actually encounter `inlinedQrl`:**
 

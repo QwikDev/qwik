@@ -396,6 +396,78 @@ export function consolidateRawPropsCaptures(
 }
 
 /**
+ * Build a `parent symbol → (destructured local → field expr)` map for every
+ * parent referenced by an extraction. `extract` is the per-parent-body field
+ * extractor: {@link extractDestructuredFieldMap} for field expressions, or
+ * {@link extractDestructuredFieldDefaultsMap} for the parallel defaults map.
+ */
+function buildParentFieldMap(
+  extractions: readonly ConsolidatedSegment[],
+  extBySymbol: ReadonlyMap<string, ConsolidatedSegment>,
+  extract: (body: string) => Map<string, string>,
+): ReadonlyMap<string, ReadonlyMap<string, string>> {
+  const parentSymbolNames = new Set<string>();
+  for (const ext of extractions) {
+    if (ext.parent !== null) parentSymbolNames.add(ext.parent);
+  }
+  const result = new Map<string, ReadonlyMap<string, string>>();
+  for (const symbolName of parentSymbolNames) {
+    const parentExt = extBySymbol.get(symbolName);
+    if (parentExt !== undefined) {
+      result.set(symbolName, extract(parentExt.bodyText));
+    }
+  }
+  return result;
+}
+
+/**
+ * Look up the parent's destructured-field map and run raw-props
+ * consolidation for `ext`. Returns `null` when consolidation doesn't apply
+ * (no parent, no captures, or the parent has no destructured fields). The
+ * caller applies the result to its own surface — the inline-strategy path
+ * writes `ext`, the default-strategy path writes `captureInfo` — so the
+ * divergent writes stay explicit at the call site.
+ */
+function tryConsolidateRawProps(
+  ext: ConsolidatedSegment,
+  prep: SegmentGenerationPrep,
+): RawPropsConsolidation | null {
+  if (ext.parent === null || ext.captureNames.length === 0) return null;
+  const fieldMap = prep.fieldMaps.get(ext.parent);
+  if (fieldMap === undefined || fieldMap.size === 0) return null;
+  const fieldDefaults = prep.fieldDefaultsMaps.get(ext.parent);
+  return consolidateRawPropsCaptures(ext.captureNames, fieldMap, fieldDefaults);
+}
+
+/**
+ * Assemble the {@link SegmentMetadataInternal} block emitted alongside a
+ * segment file. Both strategy builders produce the identical 15-field shape;
+ * only `entryField` and `outputExtension` are computed differently upstream.
+ */
+function buildSegmentMetadata(
+  ext: ConsolidatedSegment,
+  entryField: string | null,
+  outputExtension: string,
+): SegmentMetadataInternal {
+  return {
+    origin: ext.origin,
+    name: ext.symbolName,
+    entry: entryField,
+    displayName: ext.displayName,
+    hash: ext.hash,
+    canonicalFilename: ext.canonicalFilename,
+    extension: outputExtension.replace(leadingDot, ""),
+    parent: ext.parent,
+    ctxKind: ext.ctxKind,
+    ctxName: ext.ctxName,
+    captures: ext.captures,
+    loc: ext.loc,
+    captureNames: ext.captureNames,
+    paramNames: ext.paramNames,
+  };
+}
+
+/**
  * Compute the {@link SegmentGenerationPrep} record consumed by the per-extraction
  * loop in {@link generateAllSegmentModules}. Folds the eight setup steps
  * (extBySymbol, depth-sort, same-file symbol triple, segmentImportList,
@@ -447,48 +519,17 @@ export function computeSegmentGenerationPrep(
   // Collect TS enum declarations for value inlining.
   const enumValueMap = collectEnumValueMap(ctx.program, ctx.shouldTranspileTs);
 
-  // Pre-compute destructured field maps for every parent that an extraction
-  // references. An immutable lookup keeps the per-extraction loop free of
-  // side-effecting state. ReadonlyMap stays narrower than the rest of Prep
-  // because nothing downstream needs Map-mutating methods on this one.
-  const fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>> = (() => {
-    const parentSymbolNames = new Set<string>();
-    for (const ext of ctx.updatedExtractions) {
-      if (ext.parent !== null) parentSymbolNames.add(ext.parent);
-    }
-    const result = new Map<string, ReadonlyMap<string, string>>();
-    for (const symbolName of parentSymbolNames) {
-      const parentExt = extBySymbol.get(symbolName);
-      if (parentExt !== undefined) {
-        result.set(
-          symbolName,
-          extractDestructuredFieldMap(parentExt.bodyText),
-        );
-      }
-    }
-    return result;
-  })();
-
-  // Parallel defaults map (parent symbol → local → default expr). Used by
-  // raw-props consolidation in inline + default strategies to emit
-  // `(_rawProps.<key> ?? <default>)` for defaulted fields in nested segments.
-  const fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>> = (() => {
-    const parentSymbolNames = new Set<string>();
-    for (const ext of ctx.updatedExtractions) {
-      if (ext.parent !== null) parentSymbolNames.add(ext.parent);
-    }
-    const result = new Map<string, ReadonlyMap<string, string>>();
-    for (const symbolName of parentSymbolNames) {
-      const parentExt = extBySymbol.get(symbolName);
-      if (parentExt !== undefined) {
-        result.set(
-          symbolName,
-          extractDestructuredFieldDefaultsMap(parentExt.bodyText),
-        );
-      }
-    }
-    return result;
-  })();
+  // Pre-compute destructured field maps for every parent an extraction
+  // references — one for field expressions, one for the parallel
+  // destructure-time defaults. Raw-props consolidation (inline + default
+  // strategies) reads both to emit `(_rawProps.<key> ?? <default>)` for
+  // defaulted fields in nested segments.
+  const fieldMaps = buildParentFieldMap(
+    ctx.updatedExtractions, extBySymbol, extractDestructuredFieldMap,
+  );
+  const fieldDefaultsMaps = buildParentFieldMap(
+    ctx.updatedExtractions, extBySymbol, extractDestructuredFieldDefaultsMap,
+  );
 
   return {
     extBySymbol,
@@ -525,21 +566,16 @@ export function buildInlineStrategySegment(
   prep: SegmentGenerationPrep,
   stripped: boolean,
 ): TransformModule | null {
-  // Inline strategy: apply _rawProps consolidation for metadata
-  if (ext.parent !== null && ext.captureNames.length > 0) {
-    const fieldMap = prep.fieldMaps.get(ext.parent);
-    if (fieldMap !== undefined && fieldMap.size > 0) {
-      const fieldDefaults = prep.fieldDefaultsMaps.get(ext.parent);
-      const result = consolidateRawPropsCaptures(ext.captureNames, fieldMap, fieldDefaults);
-      if (result !== null) {
-        ext.propsFieldCaptures = result.propsFieldCaptures;
-        if (result.propsFieldDefaults !== undefined) {
-          ext.propsFieldDefaults = result.propsFieldDefaults;
-        }
-        ext.captureNames = result.newCaptureNames;
-        ext.captures = result.newCaptureNames.length > 0;
-      }
+  // Inline strategy: apply _rawProps consolidation for metadata. Inline path
+  // writes the consolidated fields onto `ext` (no `captureInfo` here).
+  const rawProps = tryConsolidateRawProps(ext, prep);
+  if (rawProps !== null) {
+    ext.propsFieldCaptures = rawProps.propsFieldCaptures;
+    if (rawProps.propsFieldDefaults !== undefined) {
+      ext.propsFieldDefaults = rawProps.propsFieldDefaults;
     }
+    ext.captureNames = rawProps.newCaptureNames;
+    ext.captures = rawProps.newCaptureNames.length > 0;
   }
 
   const entryField = resolveEntryField(
@@ -562,22 +598,7 @@ export function buildInlineStrategySegment(
     ctx.qrlOutputExt,
     ctx.sourceExtensions,
   );
-  const segmentAnalysis: SegmentMetadataInternal = {
-    origin: ext.origin,
-    name: ext.symbolName,
-    entry: entryField,
-    displayName: ext.displayName,
-    hash: ext.hash,
-    canonicalFilename: ext.canonicalFilename,
-    extension: outputExtension.replace(leadingDot, ""),
-    parent: ext.parent,
-    ctxKind: ext.ctxKind,
-    ctxName: ext.ctxName,
-    captures: ext.captures,
-    loc: ext.loc,
-    captureNames: ext.captureNames,
-    paramNames: ext.paramNames,
-  };
+  const segmentAnalysis = buildSegmentMetadata(ext, entryField, outputExtension);
 
   return {
     kind: 'segment',
@@ -1102,7 +1123,7 @@ export function buildDefaultStrategySegment(
   const {
     extBySymbol, sortedExtractions, sameFileSymbols,
     defaultExportedNames, renamedExports, segmentImportList,
-    enumValueMap, fieldMaps,
+    enumValueMap,
   } = prep;
 
   const children = sortedExtractions.filter(
@@ -1120,24 +1141,18 @@ export function buildDefaultStrategySegment(
     movedDeclarations: [],
   };
 
-  // Consolidate destructured prop-field captures into _rawProps.
-  // Default-strategy: writes to captureInfo + ext (vs the inline path which
-  // only writes to ext). Shared helper produces the same partition for both.
-  if (ext.parent !== null && ext.captureNames.length > 0) {
-    const fieldMap = fieldMaps.get(ext.parent);
-    if (fieldMap !== undefined && fieldMap.size > 0) {
-      const fieldDefaults = prep.fieldDefaultsMaps.get(ext.parent);
-      const result = consolidateRawPropsCaptures(ext.captureNames, fieldMap, fieldDefaults);
-      if (result !== null) {
-        captureInfo.captureNames = result.newCaptureNames;
-        captureInfo.propsFieldCaptures = result.propsFieldCaptures;
-        if (result.propsFieldDefaults !== undefined) {
-          captureInfo.propsFieldDefaults = result.propsFieldDefaults;
-        }
-        ext.captureNames = result.newCaptureNames;
-        ext.captures = result.newCaptureNames.length > 0;
-      }
+  // Consolidate destructured prop-field captures into _rawProps. Default
+  // strategy writes the consolidated fields onto `captureInfo` (the inline
+  // path writes `ext`); both also update `ext.captureNames`/`ext.captures`.
+  const rawProps = tryConsolidateRawProps(ext, prep);
+  if (rawProps !== null) {
+    captureInfo.captureNames = rawProps.newCaptureNames;
+    captureInfo.propsFieldCaptures = rawProps.propsFieldCaptures;
+    if (rawProps.propsFieldDefaults !== undefined) {
+      captureInfo.propsFieldDefaults = rawProps.propsFieldDefaults;
     }
+    ext.captureNames = rawProps.newCaptureNames;
+    ext.captures = rawProps.newCaptureNames.length > 0;
   }
 
   // Wire pre-computed const literal inlining info
@@ -1281,22 +1296,7 @@ export function buildDefaultStrategySegment(
     qrlOutputExt,
     sourceExtensions,
   );
-  const segmentAnalysis: SegmentMetadataInternal = {
-    origin: ext.origin,
-    name: ext.symbolName,
-    entry: entryField,
-    displayName: ext.displayName,
-    hash: ext.hash,
-    canonicalFilename: ext.canonicalFilename,
-    extension: outputExtension.replace(leadingDot, ""),
-    parent: ext.parent,
-    ctxKind: ext.ctxKind,
-    ctxName: ext.ctxName,
-    captures: ext.captures,
-    loc: ext.loc,
-    captureNames: ext.captureNames,
-    paramNames: ext.paramNames,
-  };
+  const segmentAnalysis = buildSegmentMetadata(ext, entryField, outputExtension);
 
   return {
     module: {

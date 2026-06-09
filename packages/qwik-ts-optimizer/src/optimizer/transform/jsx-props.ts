@@ -18,6 +18,7 @@ import {
   type ProcessPropsOptions,
 } from './jsx.js';
 import { simplifyExpression, formatSimplifiedLiteral } from '../utils/simplify.js';
+import { startsWithRewrittenEventPrefix } from '../utils/event-attrs.js';
 
 /**
  * Try to read a byte range from MagicString (`s.slice` — reflects accumulated
@@ -98,18 +99,9 @@ function isConstValueNode(valueNode: AstMaybeNode): boolean {
   }
 }
 
-/** True for pre-rewritten event handler prop prefixes (q-e:, q-d:, q-w:, etc.). */
-function isRewrittenEventProp(propName: string): boolean {
-  return propName.startsWith('q-e:') || propName.startsWith('q-d:') ||
-    propName.startsWith('q-w:') || propName.startsWith('q-ep:') ||
-    propName.startsWith('q-dp:') || propName.startsWith('q-wp:');
-}
-
-/** True if entry string starts with a rewritten event handler prefix. */
+/** True if entry string is a quoted prop key whose name has a rewritten event prefix. */
 export function isRewrittenEventEntry(entry: string): boolean {
-  return entry.startsWith('"q-e:') || entry.startsWith('"q-d:') ||
-    entry.startsWith('"q-w:') || entry.startsWith('"q-ep:') ||
-    entry.startsWith('"q-dp:') || entry.startsWith('"q-wp:');
+  return entry.startsWith('"') && startsWithRewrittenEventPrefix(entry.slice(1));
 }
 
 /** Sort var entries alphabetically by prop key (SWC sorts var_props when no spread). */
@@ -317,7 +309,7 @@ export function processProps(
       }
     }
 
-    if (propName.endsWith('$') && !isRewrittenEventProp(propName)) {
+    if (propName.endsWith('$') && !startsWithRewrittenEventPrefix(propName)) {
       const formattedName = formatPropName(propName);
       if (isConstValueNode(valueNode)) {
         pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
@@ -333,7 +325,7 @@ export function processProps(
       continue;
     }
 
-    if (isRewrittenEventProp(propName)) {
+    if (startsWithRewrittenEventPrefix(propName)) {
       const formattedName = `"${propName}"`;
       if (inLoop) {
         if (qrlsWithCaptures) {

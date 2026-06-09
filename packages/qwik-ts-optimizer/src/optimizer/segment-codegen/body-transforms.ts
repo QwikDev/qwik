@@ -19,6 +19,7 @@ import {
   replaceFunctionParams,
 } from '../utils/transform-session.js';
 import { buildSyncTransform, needsPureAnnotation } from '../rewrite-calls.js';
+import { formatWCall } from '../utils/w-call.js';
 import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
 import type { ExtractionResult } from '../extract.js';
 import type { NestedCallSiteInfo } from '../segment-codegen.js';
@@ -132,18 +133,6 @@ function findVarDeclarationEnd(text: string, startPos: number, varName: string):
  * swapping in.
  */
 const OUTERMOST_BODY_THRESHOLD = 20;
-
-/**
- * Format `qrlVar.w([captures])` with symmetric indentation (open and
- * joiner lines share `innerIndent`; the closing bracket uses
- * `closeIndent`). The loop-callback hoist branch in
- * `rewriteNestedCallSitesInline` uses an asymmetric layout
- * (12-space first item, 8-space rest+close) and stays inline — see
- * the comment near that branch for the SWC-compat rationale.
- */
-function formatWCall(qrlVar: string, captures: string[], innerIndent: string, closeIndent: string): string {
-  return `${qrlVar}.w([\n${innerIndent}${captures.join(',\n' + innerIndent)}\n${closeIndent}])`;
-}
 
 /**
  * Replace `bodyText[start, end)` with `replacement`. Returns the body

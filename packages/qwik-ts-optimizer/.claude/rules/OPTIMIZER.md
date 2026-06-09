@@ -773,7 +773,7 @@ actual.captures !== expected.captures
 
 ### Where the metadata is emitted
 
-The per-segment `SegmentMetadataInternal` block is constructed at two sites — `segment-generation.ts:436` (inside `buildInlineStrategySegment`) and `:1083` (inside `buildDefaultStrategySegment`) — both producing the same shape from these fields. That object lands in the `TransformModule.segment` field for non-stripped segments. The runtime uses `name` + `canonicalFilename` to resolve the lazy import; everything else is for tooling and tests. The duplicate-construction shape dates to the OSS-356/357/358 split — both strategy paths assemble the metadata block; only the upstream segment-code generation diverges.
+The per-segment `SegmentMetadataInternal` block is assembled by a single helper — `buildSegmentMetadata` (`segment-generation.ts:447`) — called from both `buildInlineStrategySegment` and `buildDefaultStrategySegment`, each passing its own `entryField` and `outputExtension`. That object lands in the `TransformModule.segment` field for non-stripped segments. The runtime uses `name` + `canonicalFilename` to resolve the lazy import; everything else is for tooling and tests. The two strategy builders date to the OSS-356/357/358 split and still diverge in their upstream segment-code generation; the metadata literal they each once held was consolidated into the shared helper (OSS-474).
 
 ---
 

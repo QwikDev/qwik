@@ -38,6 +38,7 @@ import { isEventProp, transformEventPropName, collectPassiveDirectives } from '.
 import { collectJsxFunctionNamesFromIterable } from './transform/jsx-call-transform.js';
 import { getBasename, getDirectory, getExtension, getFileStem } from './path-utils.js';
 import { detectForeignJsxRuntime } from './utils/jsx-import-source.js';
+import { getJsxAttributeName } from './utils/jsx-attr-name.js';
 import { getQrlCalleeName } from './utils/qrl-naming.js';
 import {
   type BodyText,
@@ -794,37 +795,29 @@ export function extractSegments(
       }
 
       if (node.type === 'JSXAttribute') {
-        let rawAttrName: string | null = null;
-        if (node.name?.type === 'JSXIdentifier') {
-          rawAttrName = node.name.name;
-        } else if (node.name?.type === 'JSXNamespacedName') {
-          rawAttrName = `${node.name.namespace?.name ?? ''}:${node.name.name?.name ?? ''}`;
-        }
-
-        if (rawAttrName) {
-          if (rawAttrName.endsWith('$') && isEventProp(rawAttrName)) {
-            const isComponentElement = parent?.type === 'JSXOpeningElement' && isComponentTag(parent.name);
-            if (isComponentElement) {
-              ctx.naming.push(rawAttrName.slice(0, -1));
-            } else {
-              const jsxOpening = parent?.type === 'JSXOpeningElement' ? parent : null;
-              const siblingAttrs: JSXAttributeItem[] = jsxOpening?.attributes ?? [];
-              const passiveEvents = collectPassiveDirectives(siblingAttrs);
-              const transformed = transformEventPropName(rawAttrName, passiveEvents);
-              if (transformed) {
-                ctx.naming.push(transformed.replace(/[-:]/g, '_'));
-              } else {
-                ctx.naming.push(rawAttrName);
-              }
-            }
-          } else if (rawAttrName.endsWith('$') && rawAttrName.startsWith('host:')) {
-            const stripped = rawAttrName.slice(5, -1);
-            ctx.naming.push('host_' + stripped);
+        const rawAttrName = getJsxAttributeName(node);
+        if (rawAttrName.endsWith('$') && isEventProp(rawAttrName)) {
+          const isComponentElement = parent?.type === 'JSXOpeningElement' && isComponentTag(parent.name);
+          if (isComponentElement) {
+            ctx.naming.push(rawAttrName.slice(0, -1));
           } else {
-            ctx.naming.push(rawAttrName);
+            const jsxOpening = parent?.type === 'JSXOpeningElement' ? parent : null;
+            const siblingAttrs: JSXAttributeItem[] = jsxOpening?.attributes ?? [];
+            const passiveEvents = collectPassiveDirectives(siblingAttrs);
+            const transformed = transformEventPropName(rawAttrName, passiveEvents);
+            if (transformed) {
+              ctx.naming.push(transformed.replace(/[-:]/g, '_'));
+            } else {
+              ctx.naming.push(rawAttrName);
+            }
           }
-          pushCount++;
+        } else if (rawAttrName.endsWith('$') && rawAttrName.startsWith('host:')) {
+          const stripped = rawAttrName.slice(5, -1);
+          ctx.naming.push('host_' + stripped);
+        } else {
+          ctx.naming.push(rawAttrName);
         }
+        pushCount++;
       }
 
       if (node.type === 'ExportDefaultDeclaration') {
@@ -1027,13 +1020,8 @@ export function extractSegments(
         if (parent?.type === 'JSXExpressionContainer') {
           const jsxAttrParent = parentMap.get(parent);
           if (jsxAttrParent?.type === 'JSXAttribute') {
-            let jsxAttrName: string | null = null;
-            if (jsxAttrParent.name?.type === 'JSXIdentifier') {
-              jsxAttrName = jsxAttrParent.name.name;
-            } else if (jsxAttrParent.name?.type === 'JSXNamespacedName') {
-              jsxAttrName = `${jsxAttrParent.name.namespace?.name ?? ''}:${jsxAttrParent.name.name?.name ?? ''}`;
-            }
-            if (jsxAttrName?.endsWith('$')) {
+            const jsxAttrName = getJsxAttributeName(jsxAttrParent);
+            if (jsxAttrName.endsWith('$')) {
               attrCtx = ctx.naming.peek(1) ?? jsxAttrName;
 
               // ctxKind classification matches SWC's two paths (see
@@ -1162,13 +1150,9 @@ export function extractSegments(
         node.value?.type === 'JSXExpressionContainer' &&
         node.value.expression
       ) {
-        if (node.name?.type === 'JSXIdentifier' && node.name.name.endsWith('$')) {
-          jsxAttrName = node.name.name;
-        } else if (node.name?.type === 'JSXNamespacedName') {
-          const full = `${node.name.namespace?.name ?? ''}:${node.name.name?.name ?? ''}`;
-          if (full.endsWith('$')) {
-            jsxAttrName = full;
-          }
+        const full = getJsxAttributeName(node);
+        if (full.endsWith('$')) {
+          jsxAttrName = full;
         }
       }
       if (

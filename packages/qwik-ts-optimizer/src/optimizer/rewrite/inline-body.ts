@@ -10,12 +10,12 @@ import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { forEachAstChild } from '../utils/ast.js';
 import { isEventAttributeName } from '../utils/event-attrs.js';
+import { getJsxAttributeName } from '../utils/jsx-attr-name.js';
 import { wCallSuffix } from '../utils/w-call.js';
 import {
   RAW_TRANSFER_PARSER_OPTIONS,
   type AstFunction,
   type AstNode,
-  type JSXAttribute,
   type JSXAttributeItem,
 } from '../../ast-types.js';
 import type { ExtractionResult, Mutable } from '../extract.js';
@@ -49,14 +49,6 @@ import {
   matchesRegCtxName,
 } from './predicates.js';
 
-function getJsxAttrName(attr: JSXAttribute): string | null {
-  if (attr.name.type === 'JSXIdentifier') return attr.name.name;
-  if (attr.name.type === 'JSXNamespacedName') {
-    return `${attr.name.namespace.name}:${attr.name.name.name}`;
-  }
-  return null;
-}
-
 /**
  * Collect promoted capture params from a JSX element's event handler attributes,
  * adding matched QRL names to `qrlsWithCaptures`.
@@ -72,8 +64,8 @@ function collectQpParamsFromElement(
   for (const attr of attrs) {
     if (attr.type !== 'JSXAttribute') continue;
 
-    const attrName = getJsxAttrName(attr);
-    if (!attrName || !isEventAttributeName(attrName)) continue;
+    const attrName = getJsxAttributeName(attr);
+    if (!isEventAttributeName(attrName)) continue;
     if (attr.value?.type !== 'JSXExpressionContainer') continue;
     if (attr.value.expression.type !== 'Identifier') continue;
 

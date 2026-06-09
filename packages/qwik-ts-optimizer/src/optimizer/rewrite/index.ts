@@ -42,6 +42,7 @@ import type { EmitMode } from '../types.js';
 import { collectBindingNamesFromPattern } from '../utils/binding-pattern.js';
 import type { AstFunction, AstNode, AstProgram, ImportDeclarationSpecifier, ImportSpecifier } from '../../ast-types.js';
 import { forEachAstChild } from '../utils/ast.js';
+import { getJsxAttributeName } from '../utils/jsx-attr-name.js';
 import { wCallSuffix } from '../utils/w-call.js';
 import { pureAwareOverwriteStart } from '../utils/text-scanning.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
@@ -948,13 +949,8 @@ function buildStrippedEventQpOverrides(
       const seen = new Set<string>();
       for (const attr of attrs) {
         if (attr.type !== 'JSXAttribute') continue;
-        let attrName: string | null = null;
-        if (attr.name?.type === 'JSXIdentifier') {
-          attrName = attr.name.name;
-        } else if (attr.name?.type === 'JSXNamespacedName') {
-          attrName = `${attr.name.namespace?.name ?? ''}:${attr.name.name?.name ?? ''}`;
-        }
-        if (!attrName?.endsWith('$')) continue;
+        const attrName = getJsxAttributeName(attr);
+        if (!attrName.endsWith('$')) continue;
         const queue = stripByName.get(attrName);
         if (!queue || queue.length === 0) continue;
         const ext = queue.shift()!;

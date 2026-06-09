@@ -8,12 +8,25 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import type { JSXAttribute } from '../../src/ast-types.js';
 import {
   transformEventPropName,
   isEventProp,
   isPassiveDirective,
   collectPassiveDirectives,
 } from '../../src/optimizer/transform/event-handlers.js';
+
+// Minimal valid JSXAttribute node — collectPassiveDirectives keys only on the
+// attribute name, so value/span are inert filler.
+function jsxAttr(name: string): JSXAttribute {
+  return {
+    type: 'JSXAttribute',
+    name: { type: 'JSXIdentifier', name, start: 0, end: 0 },
+    value: null,
+    start: 0,
+    end: 0,
+  };
+}
 
 describe('event-handler-transform', () => {
   describe('isEventProp', () => {
@@ -172,25 +185,17 @@ describe('event-handler-transform', () => {
 
   describe('collectPassiveDirectives', () => {
     it('collects passive:click from attributes', () => {
-      const attrs = [
-        { type: 'JSXAttribute', name: { type: 'JSXIdentifier', name: 'passive:click' }, value: null },
-        { type: 'JSXAttribute', name: { type: 'JSXIdentifier', name: 'onClick$' }, value: {} },
-      ];
+      const attrs = [jsxAttr('passive:click'), jsxAttr('onClick$')];
       expect(collectPassiveDirectives(attrs)).toEqual(new Set(['click']));
     });
 
     it('collects multiple passive directives', () => {
-      const attrs = [
-        { type: 'JSXAttribute', name: { type: 'JSXIdentifier', name: 'passive:scroll' }, value: null },
-        { type: 'JSXAttribute', name: { type: 'JSXIdentifier', name: 'passive:touchstart' }, value: null },
-      ];
+      const attrs = [jsxAttr('passive:scroll'), jsxAttr('passive:touchstart')];
       expect(collectPassiveDirectives(attrs)).toEqual(new Set(['scroll', 'touchstart']));
     });
 
     it('returns empty set when no passive directives', () => {
-      const attrs = [
-        { type: 'JSXAttribute', name: { type: 'JSXIdentifier', name: 'onClick$' }, value: {} },
-      ];
+      const attrs = [jsxAttr('onClick$')];
       expect(collectPassiveDirectives(attrs)).toEqual(new Set());
     });
   });

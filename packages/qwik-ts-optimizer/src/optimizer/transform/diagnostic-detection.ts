@@ -15,6 +15,7 @@ import {
 } from '../diagnostics.js';
 import { collectExportNames } from '../marker-detection.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from '../types.js';
+import { getJsxAttributeName } from '../utils/jsx-attr-name.js';
 import { computeLineColFromOffset } from '../utils/source-loc.js';
 import {
   mkByteOffset,
@@ -185,13 +186,7 @@ export function detectPassivePreventdefaultConflicts(
       for (const attr of attrs) {
         if (attr.type !== 'JSXAttribute') continue;
 
-        let name: string | null = null;
-        if (attr.name?.type === 'JSXIdentifier') {
-          name = attr.name.name;
-        } else if (attr.name?.type === 'JSXNamespacedName') {
-          name = `${attr.name.namespace.name}:${attr.name.name.name}`;
-        }
-        if (!name) continue;
+        const name = getJsxAttributeName(attr);
 
         if (name.startsWith('passive:')) {
           passiveEvents.add(name.slice('passive:'.length));

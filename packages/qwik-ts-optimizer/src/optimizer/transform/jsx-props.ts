@@ -19,6 +19,7 @@ import {
 } from './jsx.js';
 import { simplifyExpression, formatSimplifiedLiteral } from '../utils/simplify.js';
 import { startsWithRewrittenEventPrefix } from '../utils/event-attrs.js';
+import { getJsxAttributeName } from '../utils/jsx-attr-name.js';
 
 /**
  * Try to read a byte range from MagicString (`s.slice` — reflects accumulated
@@ -197,13 +198,7 @@ export function processProps(
 
     if (attr.type !== 'JSXAttribute') continue;
 
-    let propName: string | undefined;
-    if (attr.name?.type === 'JSXNamespacedName') {
-      propName = `${attr.name.namespace.name}:${attr.name.name.name}`;
-    } else {
-      propName = attr.name?.name;
-    }
-    if (!propName) continue;
+    let propName = getJsxAttributeName(attr);
 
     if (propName === 'className' && tagIsHtml) {
       propName = 'class';

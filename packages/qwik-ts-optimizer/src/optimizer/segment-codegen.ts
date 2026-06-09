@@ -18,6 +18,7 @@ import { transformJsxCalls, collectJsxFunctionNames } from './transform/jsx-call
 import { computeKeyPrefix } from './key-prefix.js';
 import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
 import { isEventAttributeName } from './utils/event-attrs.js';
+import { getJsxAttributeName } from './utils/jsx-attr-name.js';
 import { foldBodySimplifiableExpressions } from './utils/simplify.js';
 import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
 
@@ -511,13 +512,8 @@ function buildQpOverrides(
       for (const attr of attrs) {
         if (attr.type !== 'JSXAttribute') continue;
 
-        let attrName: string | null = null;
-        if (attr.name?.type === 'JSXIdentifier') {
-          attrName = attr.name.name;
-        } else if (attr.name?.type === 'JSXNamespacedName') {
-          attrName = `${attr.name.namespace?.name}:${attr.name.name?.name}`;
-        }
-        if (!attrName || !isEventAttributeName(attrName)) continue;
+        const attrName = getJsxAttributeName(attr);
+        if (!isEventAttributeName(attrName)) continue;
         if (attr.value?.type !== 'JSXExpressionContainer' || attr.value.expression?.type !== 'Identifier') continue;
 
         const qrlName = attr.value.expression.name;

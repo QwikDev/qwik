@@ -10,6 +10,9 @@
  * - passive events use q-ep:/q-wp:/q-dp: prefixes
  */
 
+import type { JSXAttributeItem } from '../../ast-types.js';
+import { getJsxAttributeName } from '../utils/jsx-attr-name.js';
+
 /**
  * Check if a JSX prop name is an event handler that will be transformed.
  *
@@ -88,35 +91,6 @@ function getEventScopeData(
   return null;
 }
 
-type PassiveDirectiveAttributeName =
-  | {
-      type: string;
-      name?: unknown;
-      namespace?: { name: string };
-    };
-
-type PassiveDirectiveAttribute = {
-  type: string;
-  name?: PassiveDirectiveAttributeName;
-};
-
-function getJsxAttributeName(attr: PassiveDirectiveAttribute): string | null {
-  if (attr.name?.type === 'JSXIdentifier' && typeof attr.name.name === 'string') {
-    return attr.name.name;
-  }
-  if (
-    attr.name?.type === 'JSXNamespacedName' &&
-    attr.name.namespace &&
-    typeof attr.name.name === 'object' &&
-    attr.name.name !== null &&
-    'name' in attr.name.name &&
-    typeof attr.name.name.name === 'string'
-  ) {
-    return `${attr.name.namespace.name}:${attr.name.name.name}`;
-  }
-  return null;
-}
-
 /**
  * Transform an event prop name to Qwik's serialized format.
  *
@@ -149,7 +123,7 @@ export function transformEventPropName(
  * Matches Rust's `collect_passive_event_names_from_jsx_attrs`.
  */
 export function collectPassiveDirectives(
-  attributes: PassiveDirectiveAttribute[],
+  attributes: readonly JSXAttributeItem[],
 ): Set<string> {
   const passiveEvents = new Set<string>();
 
@@ -158,7 +132,7 @@ export function collectPassiveDirectives(
 
     const name = getJsxAttributeName(attr);
 
-    if (!name || !isPassiveDirective(name)) continue;
+    if (!isPassiveDirective(name)) continue;
 
     const rawEventName = name.slice('passive:'.length);
     passiveEvents.add(normalizeJsxEventName(rawEventName));

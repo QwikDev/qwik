@@ -31,7 +31,7 @@ const EXTENSION_HOOK_BANNER = [
   ' * GENERATED FILE - DO NOT EDIT BY HAND.',
   ' * Source of truth: packages/devtools/plugin/src/runtime/installers.ts',
   ' *   (__qwik_install_hook_runtime__)',
-  ' * Regenerate: pnpm --filter @devtools/browser-extension generate',
+  ' * Regenerated automatically by the browser-extension build and dev scripts.',
   ' */',
 ].join('\n');
 

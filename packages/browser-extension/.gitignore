@@ -2,5 +2,5 @@
 node_modules/
 
 # Generated from packages/devtools/plugin/src/runtime/installers.ts by
-# scripts/gen-devtools-hook.mjs (runs on predev/prebuild). Not committed.
+# scripts/gen-devtools-hook.mjs (runs as part of build/dev). Not committed.
 public/devtools-hook.js

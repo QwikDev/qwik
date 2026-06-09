@@ -5,8 +5,7 @@
  * (**qwik_install_hook_runtime**) and is shared by the Vite plugin (SSR middleware) and this
  * extension (content script).
  *
- * Run via `pnpm --filter @devtools/browser-extension generate` (also runs automatically before
- * `build` / `dev`).
+ * Runs automatically as the first step of the `build` and `dev` scripts.
  */
 import { existsSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';

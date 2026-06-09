@@ -1,0 +1,28 @@
+# Ruler Configuration File
+# See https://ai.intellectronica.net/ruler for documentation.
+
+# Default agents to enable when running `ruler apply`
+default_agents = ["claude", "codex", "cursor", "copilot"]
+
+# Keep repo guidance centralized in the root .ruler directory.
+nested = false
+
+[agents.claude]
+enabled = true
+output_path = "CLAUDE.md"
+
+[agents.codex]
+enabled = true
+output_path = "AGENTS.md"
+
+[agents.cursor]
+enabled = true
+
+[agents.copilot]
+enabled = true
+
+[skills]
+enabled = true
+
+[gitignore]
+enabled = true

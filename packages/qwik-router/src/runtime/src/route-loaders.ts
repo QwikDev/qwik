@@ -7,6 +7,7 @@ import {
   _injectAsyncSignalValue,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
+  _UNINITIALIZED,
   createAsync$,
   SerializerSymbol,
   type AsyncSignal,
@@ -50,6 +51,9 @@ const REQUEST_ROUTE_LOADER_STATE = '@routeLoaderState';
 const REQUEST_LOADER_PATHS_STORE = '@loaderPathsStore';
 const REQUEST_ROUTE_LOADERS = '@routeLoaders';
 const REQUEST_ROUTE_LOADER_PROMISES = '@routeLoaderPromises';
+const REQUEST_ROUTE_LOADER_EVENTS = '@routeLoaderEvents';
+const REQUEST_ROUTE_LOADER_ROOT_EVENT = '@routeLoaderRootEvent';
+const ROUTE_LOADER_VALUE_PREFIX = '__qwik_route_loader_value__';
 
 /** Header name sent by client to tell the server the actual page URL for loader requests. */
 export const FULLPATH_HEADER = 'X-Qwik-fullpath';
@@ -79,6 +83,8 @@ const LOADER_FETCH_CACHE_MAX = 128;
 const fetchCache = new Map<string, LoaderFetchCacheEntry>();
 
 const perfNow = () => globalThis.performance?.now() ?? Date.now();
+
+const isRedirectStatus = (status: number) => status >= 300 && status < 400;
 
 const setCache = (key: string, entry: LoaderFetchCacheEntry) => {
   fetchCache.set(key, entry);
@@ -118,6 +124,10 @@ export type RouteLoaderCtx = {
   /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
   goto?: NoSerialize<RouteNavigate>;
 };
+
+export type RouteLoaderState = Record<string, AsyncSignal<unknown>>;
+
+const getRouteLoaderValueStateKey = (loaderId: string) => `${ROUTE_LOADER_VALUE_PREFIX}${loaderId}`;
 
 class ServerRouteLoaderCapture {
   constructor(
@@ -196,8 +206,7 @@ export const fetchRouteLoaderData = async (
   const url = `${pathBase}${getLoaderName(loaderId, manifestHash)}${search}`;
 
   const headers: Record<string, string> = {};
-  if (pageUrl && pageUrl.pathname !== pathBase) {
-    // TODO disable when nocompat
+  if (pageUrl && pageUrl.pathname !== pathBase && !globalThis.__STRICT_LOADERS__) {
     headers[FULLPATH_HEADER] = pageUrl.pathname;
   }
 
@@ -224,6 +233,12 @@ export const fetchRouteLoaderData = async (
     // Middleware redirects produce HTTP 3xx — convert to LoaderResponse
     if (response.redirected) {
       return { r: response.url };
+    }
+    if (isRedirectStatus(response.status)) {
+      const location = response.headers.get('Location');
+      if (location) {
+        return { r: location };
+      }
     }
     if (!response.ok) {
       return undefined;
@@ -262,13 +277,22 @@ export const fetchRouteLoaderData = async (
   return promise;
 };
 
-const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLoaderCtx) => {
+const createRouteLoaderSignal = (
+  loader: LoaderInternal,
+  routeLoaderCtx: RouteLoaderCtx,
+  state: RouteLoaderState
+) => {
+  const id = loader.__id;
+  const stateValues = state as Record<string, unknown>;
+  const resumeValueKey = getRouteLoaderValueStateKey(id);
   const capture = isServer
-    ? new ServerRouteLoaderCapture(loader.__id, loader.__qrl, loader.__validators)
-    : loader.__id;
+    ? new ServerRouteLoaderCapture(id, loader.__qrl, loader.__validators)
+    : id;
   const searchFilter = loader.__search;
-  let lastFilteredSearch: string | undefined;
-  let lastRoutePath: string | undefined;
+  const lastFetch: {
+    filteredSearch?: string;
+    routePath?: string;
+  } = {};
   return createAsync$(
     async (ctx) => {
       const { track, info, previous, abortSignal } = ctx;
@@ -279,12 +303,15 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
       // in the client branch only exist to react to route/page-URL changes, which fire
       // a fresh invalidate (without info.__v) when they happen.
       if (info && typeof info === 'object' && '__v' in (info as object)) {
-        return (info as { __v: unknown }).__v;
+        const value = (info as { __v: unknown }).__v;
+        if (!isServer && resumeValueKey in stateValues) {
+          stateValues[resumeValueKey] = value;
+        }
+        return value;
       }
       if (isServer) {
         return (capture as ServerRouteLoaderCapture).load();
       }
-      const id = capture as string;
       // Track reactive dependencies so the signal re-fetches when the route path changes
       const routePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
       // Track the client page path/search. These fields are only assigned on SPA navigation; before
@@ -296,12 +323,14 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
       const pageUrl = new URL(pagePathname + pageSearch, location.href);
       const mHash = getClientManifestHash(ctx);
       const basePath = (qwikRouterConfig as any).basePathname ?? '/';
+      const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
+      const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
       // A loader that's never been on any route we've visited has no fetch path yet —
       // return whatever value it has (undefined on the very first run). In practice
       // this branch only fires on the initial client-side read for a loader that
       // wasn't prefilled by SSR; normal navs leave stale entries in loaderPaths so
       // this compute only runs when there's a fresh path to fetch against.
-      if (!routePath) {
+      if (!fetchRoutePath) {
         return previous;
       }
 
@@ -311,21 +340,21 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
         const filteredSearch = filterSearchParams(pageUrl.searchParams, searchFilter);
         if (
           previous !== undefined &&
-          filteredSearch === lastFilteredSearch &&
-          routePath === lastRoutePath
+          filteredSearch === lastFetch.filteredSearch &&
+          fetchRoutePath === lastFetch.routePath
         ) {
           // Relevant search params didn't change and path didn't change — return previous value
           return previous;
         }
-        lastFilteredSearch = filteredSearch;
-        lastRoutePath = routePath;
+        lastFetch.filteredSearch = filteredSearch;
+        lastFetch.routePath = fetchRoutePath;
         // Build a URL with only the allowed search params for the fetch
         fetchUrl = new URL(pageUrl.href);
         fetchUrl.search = filteredSearch;
       }
 
       // Fetch from server
-      const response = await fetchRouteLoaderData(id, routePath, mHash, {
+      const response = await fetchRouteLoaderData(id, fetchRoutePath, mHash, {
         pageUrl: fetchUrl,
         basePath,
         ignoreCache: info === true,
@@ -357,6 +386,9 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
         // Error — throw so AsyncSignal enters error state
         throw response.e;
       }
+      if (needsResumeFetch) {
+        stateValues[resumeValueKey] = response.d;
+      }
       return response.d;
     },
 
@@ -370,7 +402,7 @@ const createRouteLoaderSignal = (loader: LoaderInternal, routeLoaderCtx: RouteLo
 };
 
 /** Build a sorted, stable search string from only the allowed param names. */
-const filterSearchParams = (params: URLSearchParams, allowed: string[]): string => {
+export const filterSearchParams = (params: URLSearchParams, allowed: string[]): string => {
   const filtered = new URLSearchParams();
   for (let i = 0; i < allowed.length; i++) {
     const name = allowed[i];
@@ -388,6 +420,7 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
   let expires: number | undefined;
   let poll: boolean | undefined;
   let eTag: LoaderOptions['eTag'] | undefined;
+  let cacheKey: LoaderOptions['cacheKey'] | undefined;
   let search: string[] | undefined;
   let allowStale = true;
   const validators: DataValidator[] = [];
@@ -413,6 +446,9 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
         if ('eTag' in options) {
           eTag = options.eTag;
         }
+        if ('cacheKey' in options) {
+          cacheKey = options.cacheKey;
+        }
         if (options.search) {
           search = options.search;
         } else if (globalThis.__STRICT_LOADERS__) {
@@ -433,6 +469,7 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
     expires,
     poll,
     eTag,
+    cacheKey,
     search,
     allowStale,
   };
@@ -452,12 +489,8 @@ export const getRequestEvent = (thisArg?: unknown): RequestEvent => {
 
 const REQUEST_ROUTE_LOADER_VALUES = '@routeLoaderValues';
 
-export function getRouteLoaderState(
-  requestEv: RequestEventBase
-): Record<string, AsyncSignal<unknown>> {
-  let state = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_STATE) as
-    | Record<string, AsyncSignal<unknown>>
-    | undefined;
+export function getRouteLoaderState(requestEv: RequestEventBase): RouteLoaderState {
+  let state = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_STATE) as RouteLoaderState | undefined;
   if (!state) {
     state = {};
     requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_STATE, state);
@@ -555,15 +588,18 @@ export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]
 
 export const ensureRouteLoaderSignal = (
   loader: LoaderInternal,
-  state: Record<string, AsyncSignal<unknown>>,
+  state: RouteLoaderState,
   routeLoaderCtx: RouteLoaderCtx
 ) => {
-  return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx));
+  if (isServer && loader.__serializationStrategy === 'never') {
+    (state as Record<string, unknown>)[getRouteLoaderValueStateKey(loader.__id)] = _UNINITIALIZED;
+  }
+  return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx, state));
 };
 
 export const ensureRouteLoaderSignals = (
   mods: readonly (RouteModule | undefined)[],
-  state: Record<string, AsyncSignal<unknown>>,
+  state: RouteLoaderState,
   routeLoaderCtx: RouteLoaderCtx
 ) => {
   const loaders = getModuleRouteLoaders(mods);
@@ -644,8 +680,66 @@ export const loadRouteLoaderByQrl = (
   return promise;
 };
 
+/** @internal */
+export const getLoaderRequestEvent = (
+  loader: LoaderInternal,
+  requestEv: RequestEvent
+): RequestEvent => {
+  let rootRequestEv: RequestEvent = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_ROOT_EVENT);
+  if (!rootRequestEv) {
+    // Store the original request for child loaders
+    rootRequestEv = requestEv;
+    requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_ROOT_EVENT, rootRequestEv);
+  }
+
+  const url = new URL(rootRequestEv.url);
+  const pathname = globalThis.__STRICT_LOADERS__
+    ? getRouteLoaderCtx(rootRequestEv).loaderPaths[loader.__id] || rootRequestEv.url.pathname
+    : rootRequestEv.url.pathname;
+  const filteredSearch = loader.__search
+    ? filterSearchParams(url.searchParams, loader.__search)
+    : rootRequestEv.url.search;
+  if (pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search) {
+    return rootRequestEv;
+  }
+
+  let events: Map<string, RequestEvent> = rootRequestEv.sharedMap.get(REQUEST_ROUTE_LOADER_EVENTS);
+  if (!events) {
+    events = new Map();
+    rootRequestEv.sharedMap.set(REQUEST_ROUTE_LOADER_EVENTS, events);
+  }
+
+  const eventKey = `${pathname}\n${filteredSearch}`;
+  let loaderRequestEv = events.get(eventKey);
+  if (!loaderRequestEv) {
+    url.pathname = pathname;
+    url.search = filteredSearch;
+    loaderRequestEv = Object.create(rootRequestEv, {
+      pathname: {
+        get: () => url.pathname,
+        enumerable: true,
+      },
+      query: {
+        get: () => url.searchParams,
+        enumerable: true,
+      },
+      url: {
+        value: url,
+        enumerable: true,
+      },
+    }) as RequestEvent;
+    events.set(eventKey, loaderRequestEv);
+  }
+  return loaderRequestEv;
+};
+
 export const loadRouteLoader = (loader: LoaderInternal, requestEv: RequestEvent) =>
-  loadRouteLoaderByQrl(loader.__id, loader.__qrl, loader.__validators, requestEv);
+  loadRouteLoaderByQrl(
+    loader.__id,
+    loader.__qrl,
+    loader.__validators,
+    getLoaderRequestEvent(loader, requestEv)
+  );
 
 /** Run a loader and wrap the result in a LoaderResponse envelope. Catches redirects/errors. */
 export const getRouteLoaderResponse = async (
@@ -677,7 +771,7 @@ export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (LoaderOptions | DataValidator)[]
 ): LoaderInternal => {
-  const { validators, serializationStrategy, expires, poll, eTag, search, allowStale } =
+  const { validators, serializationStrategy, expires, poll, eTag, cacheKey, search, allowStale } =
     getLoaderOptions(rest);
 
   function loader() {
@@ -699,6 +793,7 @@ export const routeLoaderQrl = ((
   loader.__expires = expires ?? 120_000; // 2 minutes
   loader.__poll = poll ?? false;
   loader.__eTag = eTag;
+  loader.__cacheKey = cacheKey;
   loader.__search = search;
   loader.__allowStale = allowStale;
   Object.freeze(loader);
@@ -720,8 +815,9 @@ export const routeLoaderQrl = ((
  * ## Options
  *
  * - `search: string[]`: Allowlist of URL search params the loader depends on. Only listed params are
- *   sent in the request and changes to other params are ignored. `search: []` means no search
- *   params are sent and only route path changes trigger a re-fetch.
+ *   sent in the request and changes to other params are ignored. During SSR and loader JSON
+ *   requests, the loader's request event is filtered to those params too. `search: []` means no
+ *   search params are sent and only route path changes trigger a re-fetch.
  * - `allowStale: false`: Clears the previous value when re-fetching, so components see a loading
  *   state instead of stale data during navigation. Useful when old data would be confusing.
  * - `eTag`: Enable ETag-based caching. Can be `true` (auto-hash), a string, or a function.

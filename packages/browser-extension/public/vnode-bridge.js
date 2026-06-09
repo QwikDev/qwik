@@ -157,7 +157,7 @@ function filterDevtools(nodes) {
 
 function setupBridge() {
   if (typeof window === 'undefined') return;
-  var hook = window.__QWIK_DEVTOOLS_HOOK__;
+  var hook = window.__QWIK_DEVTOOLS__ && window.__QWIK_DEVTOOLS__.hook;
   if (!hook) return;
   // Skip if Vite plugin already set up the bridge
   if (typeof hook.getVNodeTree === 'function') return;

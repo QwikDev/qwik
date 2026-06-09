@@ -68,11 +68,13 @@ export function createRequestEventWithDeps(
   const cookie = new deps.Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
+  let internalRequest: RequestEvent['internalRequest'] = false;
   // Recognize internal request types (q-loader-*.json)
   const recognized = deps.recognizeRequest(url.pathname);
   if (recognized) {
     url.pathname = deps.trimRecognizedInternalPathname(url.pathname, recognized);
     sharedMap.set(recognized.type, true);
+    internalRequest = 'loader';
     if (recognized.data?.loaderId) {
       sharedMap.set(deps.QLoaderId, recognized.data.loaderId);
     }
@@ -83,6 +85,9 @@ export function createRequestEventWithDeps(
   if (actionId) {
     sharedMap.set(deps.IsQAction, true);
     sharedMap.set(deps.QActionId, actionId);
+    if (request.method === 'POST' && request.headers.get('accept')?.includes('application/json')) {
+      internalRequest = 'action';
+    }
   }
 
   let routeModuleIndex = -1;
@@ -188,6 +193,7 @@ export function createRequestEventWithDeps(
     },
     request,
     url,
+    internalRequest,
     basePathname,
     sharedMap,
     get headersSent() {
@@ -272,6 +278,9 @@ export function createRequestEventWithDeps(
       headers.delete('Cache-Control');
       if (statusCode > 301) {
         headers.set('Cache-Control', 'no-store');
+      }
+      if (internalRequest === 'loader') {
+        return new deps.RedirectMessage();
       }
       return exit(new deps.RedirectMessage());
     },

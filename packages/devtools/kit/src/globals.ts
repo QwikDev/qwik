@@ -125,21 +125,24 @@ export interface ComponentDevtoolsState {
   stats: DevtoolsRenderStats;
 }
 
+export interface QwikDevtoolsWindowGlobal {
+  version: number;
+  componentState?: Record<string, ComponentDevtoolsState>;
+  perf?: QwikPerfStoreRemembered;
+  preloads?: QwikPreloadStoreRemembered;
+  ssrPreloads?: QwikSsrPreloadSnapshotRemembered[];
+  hook?: QwikDevtoolsHook;
+  dataProvider?: unknown;
+  pageDataSource?: unknown;
+}
+
 declare global {
   interface Window {
-    QWIK_DEVTOOLS_GLOBAL_STATE?: Record<string, ComponentDevtoolsState>;
     /**
-     * Performance store (CSR + injected SSR snapshot). Written by `@devtools/plugin`
-     * instrumentation.
+     * Single page-scoped Qwik DevTools root. All browser-visible devtools state lives under this
+     * object rather than as independent `window` properties.
      */
-    __QWIK_PERF__?: QwikPerfStoreRemembered;
-    __QWIK_PRELOADS__?: QwikPreloadStoreRemembered;
-    __QWIK_SSR_PRELOADS__?: QwikSsrPreloadSnapshotRemembered[];
-    /**
-     * Runtime devtools hook installed by `@devtools/plugin` in dev mode. Provides structured
-     * signal/component/render inspection for the browser extension and in-app overlay.
-     */
-    __QWIK_DEVTOOLS_HOOK__?: QwikDevtoolsHook;
+    __QWIK_DEVTOOLS__?: QwikDevtoolsWindowGlobal;
   }
 }
 

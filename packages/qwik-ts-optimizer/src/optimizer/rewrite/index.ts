@@ -320,7 +320,17 @@ function collectExtractedCalleeNames(ctx: RewriteContext): void {
   for (const ext of ctx.extractions) {
     ctx.extractedCalleeNames.add(ext.calleeName);
     if (ext.isInlinedQrl) {
-      ctx.extractedCalleeNames.add('_captures');
+      // `_captures` is a runtime helper referenced *inside* inlinedQrl bodies
+      // (`const x = _captures[0]`), not a marker callee. Stripping its import
+      // is only correct when those bodies are extracted into separate segment
+      // files (the segment re-imports `_captures`). Under the inline/hoist
+      // strategy the bodies stay in the parent, so the parent still needs the
+      // import — leave it for `filterUnusedImports` to keep/drop by actual
+      // usage. (`_inlinedQrl`/`inlinedQrl` IS the marker callee and is
+      // rewritten away in both paths, so it's always safe to strip.)
+      if (!ctx.isInline) {
+        ctx.extractedCalleeNames.add('_captures');
+      }
       ctx.extractedCalleeNames.add('_inlinedQrl');
     }
   }

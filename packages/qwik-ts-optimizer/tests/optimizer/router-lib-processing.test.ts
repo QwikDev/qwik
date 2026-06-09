@@ -343,3 +343,62 @@ describe('client strip config (stripEventHandlers unset) — full lib', () => {
 		}
 	});
 });
+
+describe('inline/hoist strategy keeps the `_captures` import used by inlined bodies', () => {
+	// Bug surfaced running the real vite-qwik-router under dev SSR: the router
+	// library's `useQwikRouter` `useTask$` (an `inlinedQrl` whose body reads
+	// `const x = _captures[0]`) threw `_captures is not defined` at runtime.
+	// Under the server entry strategy (`hoist`) the inlinedQrl body stays in the
+	// parent module, so the parent still needs `_captures`. But the import-strip
+	// pass treated `_captures` as an extracted-marker callee and dropped it from
+	// the `@qwik.dev/core` import — leaving the inlined body referencing an
+	// undefined name. SWC keeps the import. Stripping `_captures` is only correct
+	// when the body is extracted into a separate segment file (which re-imports
+	// it); under inline/hoist the import must survive by actual usage.
+	const code = `import { useTaskQrl, inlinedQrl, _captures, useSignal } from '@qwik.dev/core';
+
+export const useThing = () => {
+	const dep = useSignal(0);
+	useTaskQrl(/* @__PURE__ */ inlinedQrl(({ track }) => {
+		const dep2 = _captures[0];
+		track(dep2);
+	}, "useThing_useTask_XpalYii770E", [dep]));
+};
+`;
+
+	function runServerHoist() {
+		return transformModule({
+			srcDir: mkFilePath(SRC_DIR),
+			input: [{ path: mkFilePath(INPUT_PATH), code: mkSourceText(code) }],
+			entryStrategy: { type: 'hoist' },
+			transpileTs: true,
+			transpileJsx: true,
+			explicitExtensions: true,
+			preserveFilenames: true,
+			mode: 'hmr',
+			minify: 'simplify',
+			isServer: true,
+			stripEventHandlers: true,
+			regCtxName: ['server'],
+			stripCtxName: ['useClient', 'useBrowser', 'useVisibleTask', 'client', 'browser'],
+		});
+	}
+
+	test('parent module that inlines a `_captures`-using body still imports `_captures`', () => {
+		const result = runServerHoist();
+		const parent = result.modules.find((m) => m.kind === 'parent') ?? result.modules[0]!;
+
+		// The inlined body stays in the parent and references `_captures`…
+		expect(parent.code).toMatch(/\b_captures\s*\[/);
+		// …so the `_captures` import must survive (was being stripped).
+		expect(parent.code).toMatch(/import\s*\{[^}]*\b_captures\b[^}]*\}\s*from\s*["']@qwik\.dev\/core["']/);
+
+		// And every emitted module parses (a missing import is a runtime, not a
+		// parse, failure — but assert parseability as a general guard).
+		for (const m of result.modules) {
+			const ext = m.path.endsWith('.tsx') || m.path.endsWith('.jsx') ? 'tsx' : 'mjs';
+			const parsed = parseSync(`mod.${ext}`, m.code);
+			expect(parsed.errors, `module ${m.path} should parse`).toHaveLength(0);
+		}
+	});
+});

@@ -3,11 +3,10 @@ const path = require('path');
 const https = require('https');
 
 /**
- * Check all GitHub links in the docs to ensure they are valid.
- * This script scans all .mdx and .md files for GitHub links and verifies them.
+ * Check all GitHub links in the docs to ensure they are valid. This script scans all .mdx and .md
+ * files for GitHub links and verifies them.
  *
- * Usage: node check-github-links.js
- * Exit code: 0 if all links are valid, 1 if any links are broken
+ * Usage: node check-github-links.js Exit code: 0 if all links are valid, 1 if any links are broken
  */
 
 // Find all GitHub links in mdx and md files

@@ -112,6 +112,17 @@ export interface ExtractionBase {
 
   // Component element event handler (uppercase tag like <CustomComponent onClick$={...}>)
   readonly isComponentEvent: boolean;
+
+  // Extracted from a JSX-factory call's object-property handler
+  // (`_jsxDEV("button", { onClick$: () => … })`) rather than a raw JSX
+  // attribute (`<button onClick$={() => …}>`). esbuild pre-transforms JSX
+  // to `_jsxDEV(...)` before the optimizer runs in the bundler pipeline, so
+  // these handlers arrive as object properties. Their call site is a bare
+  // value (replaced in place with the QRL ref), not a `name={value}`
+  // attribute — `buildNestedCallSites` routes them through the plain
+  // call-site path so Phase 5b's `_jsxDEV`→`_jsxSorted` rewrite slices the
+  // already-substituted `q_<symbol>`.
+  readonly isJsxObjectProp: boolean;
 }
 
 /**
@@ -671,26 +682,34 @@ export function extractSegments(
           ? ctx.jsxPropObjects.get(parent)
           : undefined;
         const rawKey = node.key.name;
-        let pushedKey: string;
-        if (jsxKind && rawKey.endsWith('$')) {
-          if (jsxKind === 'component') {
-            pushedKey = rawKey.slice(0, -1);
+        // SWC skips `children` when building the context stack for a JSX
+        // props bag (transform.rs:2358 — `if !is_children { push }`), so a
+        // handler nested under `{ children: _jsxDEV("button", …) }` is named
+        // `…_main_button_…`, not `…_main_children_button_…`. Only applies to
+        // tagged JSX bags — a plain object literal's `children` key still
+        // contributes to naming as before.
+        if (!(jsxKind && rawKey === 'children')) {
+          let pushedKey: string;
+          if (jsxKind && rawKey.endsWith('$')) {
+            if (jsxKind === 'component') {
+              pushedKey = rawKey.slice(0, -1);
+            } else {
+              // HTML tag — match the JSX-attribute event-handler branch.
+              // Passive directives aren't a JSX-prop-bag concept (no
+              // `passive:click$` shorthand inside props objects), so pass
+              // an empty Set; `transformEventPropName` falls back to
+              // raw-name push when the prop isn't event-shaped.
+              const transformed = transformEventPropName(rawKey, new Set());
+              pushedKey = transformed
+                ? transformed.replace(/[-:]/g, '_')
+                : rawKey;
+            }
           } else {
-            // HTML tag — match the JSX-attribute event-handler branch.
-            // Passive directives aren't a JSX-prop-bag concept (no
-            // `passive:click$` shorthand inside props objects), so pass
-            // an empty Set; `transformEventPropName` falls back to
-            // raw-name push when the prop isn't event-shaped.
-            const transformed = transformEventPropName(rawKey, new Set());
-            pushedKey = transformed
-              ? transformed.replace(/[-:]/g, '_')
-              : rawKey;
+            pushedKey = rawKey;
           }
-        } else {
-          pushedKey = rawKey;
+          ctx.naming.push(pushedKey);
+          pushCount++;
         }
-        ctx.naming.push(pushedKey);
-        pushCount++;
       }
 
       if (node.type === 'MethodDefinition' && node.key?.type === 'Identifier') {
@@ -936,6 +955,7 @@ export function extractSegments(
             explicitCaptures: explicitCapturesText,
             inlinedQrlNameArg: nameValue,
             isComponentEvent: false,
+            isJsxObjectProp: false,
           };
           ctx.results.push(extraction);
           if (
@@ -1123,6 +1143,7 @@ export function extractSegments(
           explicitCaptures: null,
           inlinedQrlNameArg: null,
           isComponentEvent: false,
+          isJsxObjectProp: false,
         };
         ctx.results.push(extraction);
         ctx.pushActiveSegmentBody({ leaveNode: node, root: arg, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
@@ -1224,12 +1245,113 @@ export function extractSegments(
             explicitCaptures: null,
             inlinedQrlNameArg: null,
             isComponentEvent,
+            isJsxObjectProp: false,
           };
           ctx.results.push(extraction);
           ctx.pushActiveSegmentBody({ leaveNode: node, root: expr, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
           // The enclosing if-block already gates on `expr.type` being a function expression,
           // so the cast here is safe.
           ctx.pendingClosures.push({ extraction, node: expr as AstFunction });
+        }
+      }
+
+      // Pre-transformed JSX: a `$`-suffixed handler in a JSX-factory call's
+      // props bag (`_jsxDEV("button", { onClick$: () => … })`). esbuild
+      // transpiles `.tsx` to `_jsxDEV(...)` before the optimizer runs in the
+      // bundler pipeline, so these handlers arrive as object properties, not
+      // JSX attributes. Without this branch they stay inline in the parent
+      // body — never lazy-loaded, and any module-level binding they reference
+      // (e.g. `const testServer$ = server$(…)`) gets mis-attributed and
+      // dropped. SWC extracts them into their own segment exactly like a JSX
+      // attribute (`handle_jsx_value` shares the `ctx_name` path); we mirror
+      // that. The marker-call form (`onClick$: $(() => …)`) is already caught
+      // by the CallExpression walker above, so this only handles bare
+      // function values.
+      if (
+        node.type === 'Property' &&
+        !node.computed &&
+        !hasNonQwikJsxImportSource &&
+        parent?.type === 'ObjectExpression' &&
+        ctx.jsxPropObjects.has(parent) &&
+        (node.value?.type === 'ArrowFunctionExpression' ||
+          node.value?.type === 'FunctionExpression')
+      ) {
+        let rawKey: string | null = null;
+        if (node.key?.type === 'Identifier') {
+          rawKey = node.key.name;
+        } else if (node.key?.type === 'Literal' && typeof node.key.value === 'string') {
+          rawKey = node.key.value;
+        }
+
+        if (rawKey !== null && rawKey.endsWith('$')) {
+          const propKey = rawKey;
+          const value = node.value;
+          const bodyText = source.slice(value.start, value.end);
+
+          // HTML-tag props bags get `q-e:click`-style event handlers;
+          // component-tag bags pass the `*$` prop through as a JSX prop.
+          const jsxKind = ctx.jsxPropObjects.get(parent);
+          const isComponentEvent = jsxKind === 'component';
+
+          // Same two-rule classification as the JSX-attribute path above.
+          const isOnEventAttr = /^(?:document:|window:)?on[A-Z-]/.test(propKey);
+          let ctxKind: 'function' | 'eventHandler' | 'jSXProp';
+          if (explicitTranspileJsx === true) {
+            ctxKind = isComponentEvent ? 'jSXProp' : 'eventHandler';
+          } else {
+            ctxKind = isComponentEvent && !isOnEventAttr ? 'jSXProp' : 'eventHandler';
+          }
+          const ctxName = mkCtxName(propKey);
+
+          // The prop key was already pushed onto the naming stack by the
+          // `Property` naming branch above (`q_e_click` for HTML events), so
+          // these reflect the full call-site context.
+          const displayName = ctx.naming.getDisplayName();
+          const symbolName = ctx.naming.getSymbolName();
+
+          const lastUnder = symbolName.lastIndexOf('_');
+          const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
+
+          const extraction: ExtractedSegmentBuilder = {
+            phase: 'extracted',
+            symbolName,
+            displayName,
+            hash,
+            canonicalFilename: mkCanonicalFilename(displayName + '_' + hash),
+            // Call site is the bare value — replacing `[callStart, callEnd]`
+            // with the QRL ref leaves `onClick$: q_<symbol>`, which Phase 5b's
+            // `_jsxDEV`→`_jsxSorted` rewrite then renames + slices.
+            callStart: mkByteOffset(value.start),
+            callEnd: mkByteOffset(value.end),
+            calleeStart: mkByteOffset(node.key.start),
+            calleeEnd: mkByteOffset(node.key.end),
+            argStart: mkByteOffset(value.start),
+            argEnd: mkByteOffset(value.end),
+            bodyText: mkBodyText(bodyText),
+            calleeName: propKey,
+            isBare: false,
+            isSync: false,
+            qrlCallee: '',
+            importSource: '',
+            ctxKind,
+            ctxName,
+            origin: mkOrigin(relPath),
+            extension: defaultExtension,
+            loc: [mkByteOffset(value.start), mkByteOffset(value.end)],
+            parent: null,
+            captures: false,
+            captureNames: [],
+            paramNames: [],
+            segmentImports: [],
+            isInlinedQrl: false,
+            explicitCaptures: null,
+            inlinedQrlNameArg: null,
+            isComponentEvent,
+            isJsxObjectProp: true,
+          };
+          ctx.results.push(extraction);
+          ctx.pushActiveSegmentBody({ leaveNode: node, root: value, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
+          ctx.pendingClosures.push({ extraction, node: value as AstFunction });
         }
       }
 

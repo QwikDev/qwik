@@ -931,7 +931,13 @@ export function buildNestedCallSites(
     const isJsxAttr =
       (child.ctxKind === "eventHandler" || child.ctxKind === "jSXProp") &&
       child.calleeName.endsWith("$") &&
-      child.calleeName !== "$";
+      child.calleeName !== "$" &&
+      // Handlers extracted from a pre-transformed `_jsxDEV(...)` props bag
+      // are object properties, not `name={value}` attributes — their call
+      // site is the bare value. Route them through the plain call-site path
+      // (replace `[callStart, callEnd]` with the QRL ref) so Phase 5b's
+      // `_jsxDEV`→`_jsxSorted` rewrite renames the key and slices the ref.
+      !child.isJsxObjectProp;
     if (isJsxAttr) {
       let propName: string;
       if (child.isComponentEvent) {

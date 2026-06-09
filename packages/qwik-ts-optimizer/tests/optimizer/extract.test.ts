@@ -337,6 +337,7 @@ describe('generateSegmentCode', () => {
       explicitCaptures: null,
       inlinedQrlNameArg: null,
       isComponentEvent: false,
+      isJsxObjectProp: false,
     };
 
     const code = generateSegmentCode(extraction);
@@ -378,6 +379,7 @@ describe('generateSegmentCode', () => {
       explicitCaptures: null,
       inlinedQrlNameArg: null,
       isComponentEvent: false,
+      isJsxObjectProp: false,
     };
 
     const code = generateSegmentCode(extraction);

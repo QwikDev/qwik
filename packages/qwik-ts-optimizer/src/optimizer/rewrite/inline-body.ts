@@ -244,7 +244,16 @@ export function transformInlineSegmentBody(
             qrlRef += '.w([\n        ' + child.captureNames.join(',\n        ') + '\n    ])';
           }
 
-          const replacement = `${propName}={${qrlRef}}`;
+          // A handler extracted from a pre-transformed `_jsxDEV(...)` props
+          // bag is an object property (`onClick$: () => …`), not a raw JSX
+          // attribute. Its call site is the bare value, so replace it with
+          // just the QRL ref — `onClick$: q_X`. Emitting `q-e:click={q_X}`
+          // (the JSX-attribute form) here would splice attribute syntax into
+          // an object literal (`onClick$: q-e:click={q_X}`), which is a
+          // fatal parse error. The runtime handles the author-form
+          // `onClick$` prop on `_jsxDEV` natively (the same shape that was
+          // inline before extraction), so no key rename is needed.
+          const replacement = child.isJsxObjectProp ? qrlRef : `${propName}={${qrlRef}}`;
           body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
         } else if (child.qrlCallee) {
           let replacement = child.qrlCallee + '(' + childVarName;

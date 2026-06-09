@@ -9,19 +9,25 @@ import {
 import type { LoaderInternal } from './types';
 
 describe('search filter early-return logic', () => {
-  // Mirrors the closure variables and condition in createRouteLoaderSignal.
+  // Mirrors the captured lastFetch object and condition in createRouteLoaderSignal.
   // Before the fix, only filteredSearch was checked — path changes were silently suppressed.
   it('does not skip fetch when routePath changes even if filtered search is unchanged', () => {
-    let lastFilteredSearch: string | undefined;
-    let lastRoutePath: string | undefined;
+    const lastFetch: {
+      filteredSearch?: string;
+      routePath?: string;
+    } = {};
 
     const shouldSkipFetch = (routePath: string, filteredSearch: string) => {
-      const hasPrevious = lastFilteredSearch !== undefined;
-      if (hasPrevious && filteredSearch === lastFilteredSearch && routePath === lastRoutePath) {
+      const hasPrevious = lastFetch.filteredSearch !== undefined;
+      if (
+        hasPrevious &&
+        filteredSearch === lastFetch.filteredSearch &&
+        routePath === lastFetch.routePath
+      ) {
         return true;
       }
-      lastFilteredSearch = filteredSearch;
-      lastRoutePath = routePath;
+      lastFetch.filteredSearch = filteredSearch;
+      lastFetch.routePath = routePath;
       return false;
     };
 

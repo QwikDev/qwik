@@ -9,6 +9,52 @@ test.describe('loaders', () => {
   test.describe('spa', () => {
     test.use({ javaScriptEnabled: true });
     tests();
+
+    test('should reuse filtered search loaders only for the same SPA route path', async ({
+      page,
+    }) => {
+      const routePath = page.locator('#search-cache-route-path');
+      const keep = page.locator('#search-cache-keep');
+      const noise = page.locator('#search-cache-noise');
+      const token = page.locator('#search-cache-token');
+
+      await page.goto('/qwikrouter-test/loaders/search-cache/');
+      await page.locator('#link-search-cache-alpha').click();
+      await page.waitForURL(
+        (url) =>
+          url.pathname.endsWith('/loaders/search-cache/alpha/') &&
+          url.searchParams.get('keep') === 'one' &&
+          url.searchParams.get('noise') === 'first'
+      );
+      await expect(routePath).toHaveText('routePath: alpha');
+      await expect(keep).toHaveText('keep: one');
+      await expect(noise).toHaveText('noise: none');
+      const alphaToken = await token.innerText();
+
+      await page.locator('#link-search-cache-alpha-second').click();
+      await page.waitForURL(
+        (url) =>
+          url.pathname.endsWith('/loaders/search-cache/alpha/') &&
+          url.searchParams.get('keep') === 'one' &&
+          url.searchParams.get('noise') === 'second'
+      );
+      await expect(routePath).toHaveText('routePath: alpha');
+      await expect(keep).toHaveText('keep: one');
+      await expect(noise).toHaveText('noise: none');
+      await expect(token).toHaveText(alphaToken);
+
+      await page.locator('#link-search-cache-beta').click();
+      await page.waitForURL(
+        (url) =>
+          url.pathname.endsWith('/loaders/search-cache/beta/') &&
+          url.searchParams.get('keep') === 'one' &&
+          url.searchParams.get('noise') === 'second'
+      );
+      await expect(routePath).toHaveText('routePath: beta');
+      await expect(keep).toHaveText('keep: one');
+      await expect(noise).toHaveText('noise: none');
+      await expect(token).not.toHaveText(alphaToken);
+    });
   });
 
   function tests() {

@@ -289,8 +289,10 @@ const createRouteLoaderSignal = (
     ? new ServerRouteLoaderCapture(id, loader.__qrl, loader.__validators)
     : id;
   const searchFilter = loader.__search;
-  let lastFilteredSearch: string | undefined;
-  let lastRoutePath: string | undefined;
+  const lastFetch: {
+    filteredSearch?: string;
+    routePath?: string;
+  } = {};
   return createAsync$(
     async (ctx) => {
       const { track, info, previous, abortSignal } = ctx;
@@ -338,14 +340,14 @@ const createRouteLoaderSignal = (
         const filteredSearch = filterSearchParams(pageUrl.searchParams, searchFilter);
         if (
           previous !== undefined &&
-          filteredSearch === lastFilteredSearch &&
-          fetchRoutePath === lastRoutePath
+          filteredSearch === lastFetch.filteredSearch &&
+          fetchRoutePath === lastFetch.routePath
         ) {
           // Relevant search params didn't change and path didn't change — return previous value
           return previous;
         }
-        lastFilteredSearch = filteredSearch;
-        lastRoutePath = fetchRoutePath;
+        lastFetch.filteredSearch = filteredSearch;
+        lastFetch.routePath = fetchRoutePath;
         // Build a URL with only the allowed search params for the fetch
         fetchUrl = new URL(pageUrl.href);
         fetchUrl.search = filteredSearch;

@@ -132,6 +132,30 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
     return getOrCreateRoot()?.[options.componentStateKey];
   };
 
+  const findComponentKey = (componentName: string, qrlChunk: string | null): string | null => {
+    const state = getState();
+    if (!state) {
+      return null;
+    }
+    const keys = Object.keys(state);
+    if (qrlChunk) {
+      const byChunk = keys.find((key) => key.endsWith(qrlChunk));
+      if (byChunk) {
+        return byChunk;
+      }
+    }
+    const lowerName = componentName.toLowerCase();
+    for (const key of keys) {
+      const lastSeg = key.split('/').pop() || key;
+      const underIdx = lastSeg.lastIndexOf('_');
+      const name = underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg;
+      if (name.toLowerCase() === lowerName) {
+        return key;
+      }
+    }
+    return null;
+  };
+
   const methods = {
     _emitRender(info: any) {
       for (let i = 0; i < renderListeners.length; i++) {
@@ -221,31 +245,8 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
 
     getComponentDetail(componentName: string, qrlChunk: string | null) {
       const state = getState();
-      if (!state) {
-        return null;
-      }
-
-      let matchingKey = null;
-      const keys = Object.keys(state);
-
-      if (qrlChunk) {
-        matchingKey = keys.find((key) => key.endsWith(qrlChunk)) || null;
-      }
-
-      if (!matchingKey) {
-        const lowerName = componentName.toLowerCase();
-        for (const key of keys) {
-          const lastSeg = key.split('/').pop() || key;
-          const underIdx = lastSeg.lastIndexOf('_');
-          const name = underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg;
-          if (name.toLowerCase() === lowerName) {
-            matchingKey = key;
-            break;
-          }
-        }
-      }
-
-      if (!matchingKey) {
+      const matchingKey = findComponentKey(componentName, qrlChunk);
+      if (!state || !matchingKey) {
         return null;
       }
       const comp = state[matchingKey];
@@ -269,29 +270,8 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
       newValue: any
     ) {
       const state = getState();
-      if (!state) {
-        return false;
-      }
-
-      let matchingKey = null;
-      const keys = Object.keys(state);
-
-      if (qrlChunk) {
-        matchingKey = keys.find((key) => key.endsWith(qrlChunk)) || null;
-      }
-      if (!matchingKey) {
-        const lowerName = componentName.toLowerCase();
-        for (const key of keys) {
-          const lastSeg = key.split('/').pop() || key;
-          const underIdx = lastSeg.lastIndexOf('_');
-          const name = underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg;
-          if (name.toLowerCase() === lowerName) {
-            matchingKey = key;
-            break;
-          }
-        }
-      }
-      if (!matchingKey) {
+      const matchingKey = findComponentKey(componentName, qrlChunk);
+      if (!state || !matchingKey) {
         return false;
       }
 

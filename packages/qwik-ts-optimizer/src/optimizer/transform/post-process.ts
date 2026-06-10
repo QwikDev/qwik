@@ -112,10 +112,6 @@ export const trailingSquareBracket = createRegExp(exactly("]").at.lineEnd());
 
 export const leadingDot = createRegExp(exactly(".").at.lineStart());
 
-export const numberedPaddingParam = createRegExp(
-  exactly("_").and(oneOrMore(digit)).at.lineStart().at.lineEnd(),
-);
-
 export const paddingParam = createRegExp(
   exactly("_").and(digit.times.any()).at.lineStart().at.lineEnd(),
 );

@@ -12,6 +12,7 @@ import {
   detectLoopContext,
   generateParamPadding,
   buildCaptureProp,
+  eventHandlerQpParams,
 } from '../../src/optimizer/loop-hoisting.js';
 
 // ---------------------------------------------------------------------------
@@ -132,6 +133,60 @@ describe('generateParamPadding', () => {
   it('generates padding with multiple loop vars', () => {
     const params = generateParamPadding(['index', 'item']);
     expect(params).toEqual(['_', '_1', 'index', 'item']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// eventHandlerQpParams
+// ---------------------------------------------------------------------------
+
+describe('eventHandlerQpParams', () => {
+  it('returns [] for an empty param list', () => {
+    expect(eventHandlerQpParams([])).toEqual([]);
+  });
+
+  it('returns [] when the `_, _1` prefix is absent', () => {
+    expect(eventHandlerQpParams(['ev'])).toEqual([]);
+    expect(eventHandlerQpParams(['event', 'element', 'item'])).toEqual([]);
+    expect(eventHandlerQpParams(['_'])).toEqual([]);
+    expect(eventHandlerQpParams(['_', 'el', 'item'])).toEqual([]);
+  });
+
+  it('returns [] for a bare `_, _1` prefix with no capture params', () => {
+    expect(eventHandlerQpParams(['_', '_1'])).toEqual([]);
+  });
+
+  it('returns capture params after the prefix in positional order', () => {
+    expect(eventHandlerQpParams(['_', '_1', 'item'])).toEqual(['item']);
+    expect(eventHandlerQpParams(['_', '_1', 'item', 'idx'])).toEqual([
+      'item',
+      'idx',
+    ]);
+  });
+
+  it('skips numbered padding params from unused slots', () => {
+    expect(eventHandlerQpParams(['_', '_1', '_2', 'idx'])).toEqual(['idx']);
+    expect(eventHandlerQpParams(['_', '_1', 'item', '_3', 'key'])).toEqual([
+      'item',
+      'key',
+    ]);
+    expect(eventHandlerQpParams(['_', '_1', '_2', '_3'])).toEqual([]);
+  });
+
+  it('skips a bare `_` param past the prefix', () => {
+    // SWC's placeholder generator emits bare `_` only at slot 0 and builds
+    // q:p from the lifted idents directly, so a bare `_` at index >= 2 is
+    // an author-written placeholder that never reaches q:p.
+    expect(eventHandlerQpParams(['_', '_1', '_'])).toEqual([]);
+    expect(eventHandlerQpParams(['_', '_1', '_', 'item'])).toEqual(['item']);
+    expect(eventHandlerQpParams(['_', '_1', 'item', '_'])).toEqual(['item']);
+  });
+
+  it('keeps underscore-prefixed identifiers that are not padding-shaped', () => {
+    expect(eventHandlerQpParams(['_', '_1', '_foo', '_bar2'])).toEqual([
+      '_foo',
+      '_bar2',
+    ]);
   });
 });
 

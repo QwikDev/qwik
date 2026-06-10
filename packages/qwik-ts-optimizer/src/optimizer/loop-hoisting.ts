@@ -17,7 +17,7 @@ import type {
   WhileStatement,
   DoWhileStatement,
 } from '../ast-types.js';
-import { numberedPaddingParam } from './transform/post-process.js';
+import { paddingParam } from './transform/post-process.js';
 
 export interface LoopContext {
   type: 'map' | 'for-i' | 'for-of' | 'for-in' | 'while' | 'do-while';
@@ -120,10 +120,19 @@ export function generateParamPadding(loopVarNames: string[]): string[] {
 
 /**
  * The lexical-capture params an event handler receives positionally — its
- * params after the `_, _1` (event, element) prefix, excluding numbered
- * padding (`_2`, `_3`, … from loop-iter promotion). These are the names the
- * owning element delivers via its `q:p`/`q:ps` prop. Returns `[]` when the
- * handler has no `_, _1` prefix (i.e. no positional capture delivery).
+ * params after the `_, _1` (event, element) prefix, excluding padding
+ * (`_2`, `_3`, … from loop-iter promotion, and bare `_`). These are the
+ * names the owning element delivers via its `q:p`/`q:ps` prop. Returns
+ * `[]` when the handler has no `_, _1` prefix (i.e. no positional capture
+ * delivery).
+ *
+ * Bare `_` at index ≥2 is never a lifted param: SWC builds q:p from the
+ * lifted iter-vars/captures directly and its placeholder generator emits
+ * bare `_` only at slot 0 (`event_handler_placeholder_pat`,
+ * swc-reference-only/transform.rs) — so a bare `_` past the prefix can
+ * only be an author-written placeholder, which SWC never lifts. (With the
+ * `_, _1` prefix present it is also a duplicate-param SyntaxError in
+ * module code, so the arm is defensive.)
  */
 export function eventHandlerQpParams(paramNames: readonly string[]): string[] {
   if (paramNames.length < 2 || paramNames[0] !== '_' || paramNames[1] !== '_1') {
@@ -132,7 +141,7 @@ export function eventHandlerQpParams(paramNames: readonly string[]): string[] {
   const result: string[] = [];
   for (let i = 2; i < paramNames.length; i++) {
     const p = paramNames[i];
-    if (numberedPaddingParam.test(p)) continue;
+    if (paddingParam.test(p)) continue;
     result.push(p);
   }
   return result;

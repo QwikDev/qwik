@@ -441,13 +441,7 @@ export function transformInlineSegmentBody(
         const qrlParamMap = new Map<string, string[]>();
         for (const child of nested) {
           if (child.ctxKind !== 'eventHandler') continue;
-          if (child.paramNames.length < 2 || child.paramNames[0] !== '_' || child.paramNames[1] !== '_1') continue;
-          const captureParams: string[] = [];
-          for (let pi = 2; pi < child.paramNames.length; pi++) {
-            const p = child.paramNames[pi];
-            if (/^_\d+$/.test(p) || p === '_') continue;
-            captureParams.push(p);
-          }
+          const captureParams = eventHandlerQpParams(child.paramNames);
           if (captureParams.length === 0) continue;
           const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
           qrlParamMap.set(childVarName, captureParams);

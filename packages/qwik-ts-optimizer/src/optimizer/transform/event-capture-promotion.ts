@@ -13,14 +13,12 @@ import type { AstNode, AstFunction, AstProgram } from "../../ast-types.js";
 import type { ExtractionResult } from "../extract.js";
 import {
   detectLoopContext,
+  eventHandlerQpParams,
   generateParamPadding,
   type LoopContext,
 } from "../loop-hoisting.js";
 import { addBindingNamesFromPatternToSet } from '../utils/binding-pattern.js';
-import {
-  getWholeWordPattern,
-  numberedPaddingParam,
-} from './post-process.js';
+import { getWholeWordPattern } from './post-process.js';
 
 /**
  * Enter-phase context for the `buildExtractionLoopMap` walker. Carries the
@@ -771,9 +769,7 @@ export function buildElementCaptureMap(
       const allVars: string[] = [];
       const seen = new Set<string>();
       for (const h of group) {
-        for (let i = 2; i < h.paramNames.length; i++) {
-          const p = h.paramNames[i];
-          if (numberedPaddingParam.test(p) || p === "_") continue;
+        for (const p of eventHandlerQpParams(h.paramNames)) {
           if (!seen.has(p)) {
             seen.add(p);
             allVars.push(p);

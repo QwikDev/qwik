@@ -52,7 +52,6 @@ import { parseWithRawTransfer } from "../utils/parse.js";
 import { forEachAstChild } from "../utils/ast.js";
 import {
   leadingDot,
-  numberedPaddingParam,
   paddingParam,
   resolveCaptureInfo,
   postProcessSegmentCode,
@@ -1012,18 +1011,7 @@ export function buildNestedCallSites(
           childIsInLoop
         );
 
-      const loopLocalParams: string[] = [];
-      if (
-        child.paramNames.length >= 2 &&
-        child.paramNames[0] === "_" &&
-        child.paramNames[1] === "_1"
-      ) {
-        for (let pi = 2; pi < child.paramNames.length; pi++) {
-          const p = child.paramNames[pi];
-          if (numberedPaddingParam.test(p)) continue;
-          loopLocalParams.push(p);
-        }
-      }
+      const loopLocalParams = eventHandlerQpParams(child.paramNames);
 
       nestedCallSites.push({
         qrlVarName,

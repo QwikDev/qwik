@@ -193,3 +193,54 @@ export default component$(() => {
 		});
 	}
 });
+
+describe('pre-padded handler params (idempotent input): q:p excludes padding slots', () => {
+	// A handler that already carries the positional `_, _1` prefix and numbered
+	// padding (`_2`) arrives when the optimizer re-runs over its own output or
+	// consumes peer-tool codegen. The q:p/q:ps prop the element delivers must
+	// contain only the real capture names — padding slots are placeholders the
+	// runtime fills with nothing.
+	const PRE_PADDED = `import { jsxDEV as _jsxDEV } from "@qwik.dev/core/jsx-dev-runtime";
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const count = useSignal(0);
+  return _jsxDEV("button", {
+    onClick$: (_, _1, _2, count) => count.value++,
+    children: "Inc"
+  }, undefined, false, undefined, this);
+});
+`;
+
+	for (const env of [
+		{ label: 'client/smart', strat: { type: 'smart' as const }, isServer: false },
+		{ label: 'server/hoist', strat: { type: 'hoist' as const }, isServer: true },
+	]) {
+		test(`${env.label}: q:p carries the real param, never the numbered padding`, () => {
+			const result = transformModule({
+				srcDir: mkFilePath('/proj/src'),
+				input: [{ path: mkFilePath('/proj/src/routes/index.tsx'), code: mkSourceText(PRE_PADDED) }],
+				entryStrategy: env.strat,
+				transpileTs: true,
+				transpileJsx: true,
+				explicitExtensions: true,
+				preserveFilenames: true,
+				mode: 'prod',
+				minify: 'simplify',
+				isServer: env.isServer,
+				...(env.isServer ? { stripEventHandlers: true, regCtxName: ['server'] } : {}),
+			});
+
+			assertAllModulesParse(result.modules);
+
+			const withJsx = result.modules.find((m) => m.code.includes('_jsxSorted'));
+			expect(withJsx, 'expected a module with the button JSX').toBeDefined();
+			const code = withJsx!.code;
+
+			// The real positional capture is delivered via q:p.
+			expect(code, 'q:p delivers the real capture param').toMatch(/"q:p":\s*count/);
+			// Padding slots never leak into the capture prop.
+			expect(code, 'no padding name in q:p/q:ps').not.toMatch(/"q:ps?":[^,}]*_2/);
+		});
+	}
+});

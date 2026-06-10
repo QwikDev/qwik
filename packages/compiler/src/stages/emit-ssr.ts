@@ -13,6 +13,7 @@ import {
   emitImports,
   escapeAttr,
   escapeText,
+  flattenElementChildren,
   hasDynamicBinding,
   serializeAttrValue,
 } from './emit-utils';
@@ -114,13 +115,16 @@ class SsrEmitter {
       return this.emitElementParts(node);
     }
     if (node.kind === 'dynamicText') {
-      return this.emitRangeTextParts(node);
+      throw new Error('Dynamic text outside an element is not supported for SSR resume yet.');
     }
     throw new Error(node.reason);
   }
 
   private emitElementParts(node: ElementNode): HtmlPart[] {
-    const needsElementTarget = hasDynamicSourceProp(node) || hasElementTextTarget(node);
+    const children = flattenElementChildren(node.children);
+    const hasElementText = hasElementTextTarget(children);
+    const hasRangeText = !hasElementText && hasDirectRangeTextTarget(children);
+    const needsElementTarget = hasDynamicSourceProp(node) || hasElementText || hasRangeText;
     const elementId = needsElementTarget ? this.nextTargetId() : null;
     const parts: HtmlPart[] = [`<${node.tag}`];
 
@@ -155,15 +159,17 @@ class SsrEmitter {
     }
 
     parts.push('>');
-    if (elementId !== null && hasElementTextTarget(node)) {
+    if (elementId !== null && hasElementText) {
       parts.push(
         ...this.emitDynamicTextParts(
-          node.children[0] as DynamicTextNode,
+          children[0] as DynamicTextNode,
           `${QwikSymbol.CreateSsrElementTextTarget}(${elementId})`
         )
       );
+    } else if (elementId !== null && hasRangeText) {
+      parts.push(...this.emitElementChildrenWithRangeTextParts(children, elementId));
     } else {
-      for (const child of node.children) {
+      for (const child of children) {
         parts.push(...this.emitHtmlParts(child));
       }
     }
@@ -186,15 +192,31 @@ class SsrEmitter {
     return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${renderCall})` }, '"'];
   }
 
-  private emitRangeTextParts(node: DynamicTextNode): HtmlPart[] {
-    const id = this.nextTargetId();
-    return [
-      '<!--q:t=',
-      { code: id },
-      '-->',
-      ...this.emitDynamicTextParts(node, `${QwikSymbol.CreateSsrRangeTextTarget}(${id})`),
-      '<!--/q:t-->',
-    ];
+  private emitElementChildrenWithRangeTextParts(
+    children: readonly RenderNode[],
+    elementId: string
+  ): HtmlPart[] {
+    const parts: HtmlPart[] = [];
+    let markerIndex = 0;
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      if (child.kind !== 'dynamicText') {
+        parts.push(...this.emitHtmlParts(child));
+        continue;
+      }
+      parts.push(
+        '<!t>',
+        ...this.emitDynamicTextParts(
+          child,
+          `${QwikSymbol.CreateSsrRangeTextTarget}(${elementId}, ${markerIndex})`
+        )
+      );
+      markerIndex++;
+      if (needsTextBoundary(children[i + 1])) {
+        parts.push('<!/t>');
+      }
+    }
+    return parts;
   }
 
   private emitDynamicTextParts(node: DynamicTextNode, target: string): HtmlPart[] {
@@ -258,8 +280,16 @@ function hasDynamicSourceProp(node: ElementNode) {
   return node.props.some((prop) => prop.binding);
 }
 
-function hasElementTextTarget(node: ElementNode) {
-  return node.children.length === 1 && node.children[0].kind === 'dynamicText';
+function hasElementTextTarget(children: readonly RenderNode[]) {
+  return children.length === 1 && children[0].kind === 'dynamicText';
+}
+
+function hasDirectRangeTextTarget(children: readonly RenderNode[]) {
+  return children.some((child) => child.kind === 'dynamicText');
+}
+
+function needsTextBoundary(node: RenderNode | undefined) {
+  return node !== undefined && node.kind === 'text' && node.value.length > 0;
 }
 
 function partsToExpression(parts: HtmlPart[]) {

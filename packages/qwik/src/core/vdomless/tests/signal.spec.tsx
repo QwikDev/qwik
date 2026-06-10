@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 import { createSignal } from '@qwik.dev/core/spark';
 
-const debug = true;
+const debug = false;
 
 describe.each([
   { name: 'ssrRender', render: ssrRender }, //

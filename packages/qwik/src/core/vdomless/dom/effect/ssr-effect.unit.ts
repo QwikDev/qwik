@@ -19,7 +19,7 @@ import { createSignal, type Signal } from '../../reactive/signal';
 describe('SSR DOM effect helpers', () => {
   it('creates a text node subscriber and collects the source dependency', () => {
     const count = createSignal(1);
-    const target = createSsrRangeTextTarget(0);
+    const target = createSsrRangeTextTarget(0, 0);
 
     const value = renderSsrTextNode(target, count);
     const subscriber = count.subs?.[0] as SsrDomSubscription;
@@ -33,7 +33,7 @@ describe('SSR DOM effect helpers', () => {
 
   it('creates a text expression subscriber and collects dynamic reads from the QRL', () => {
     const count = createSignal(1);
-    const target = createSsrRangeTextTarget(1);
+    const target = createSsrRangeTextTarget(1, 0);
     const qrl = createQRL<TextExpressionFn<[Signal<number>]>>(
       './counter.text.js',
       'label',
@@ -79,6 +79,16 @@ describe('SSR DOM effect helpers', () => {
     expect(target).toEqual({
       kind: EffectTargetKind.ElementText,
       id: 3,
+    });
+  });
+
+  it('creates range text targets with local marker indexes', () => {
+    const target = createSsrRangeTextTarget(3, 2);
+
+    expect(target).toEqual({
+      kind: EffectTargetKind.RangeText,
+      id: 3,
+      markerIndex: 2,
     });
   });
 });

@@ -172,10 +172,11 @@ export function hasElementTextBinding(node: RenderNode | null): boolean {
     return false;
   }
   if (node.kind === 'element') {
-    if (node.children.length === 1 && node.children[0].kind === 'dynamicText') {
+    const children = flattenElementChildren(node.children);
+    if (children.length === 1 && children[0].kind === 'dynamicText') {
       return true;
     }
-    return node.children.some(hasElementTextBinding);
+    return children.some(hasElementTextBinding);
   }
   if (node.kind === 'fragment') {
     return node.children.some(hasElementTextBinding);
@@ -183,20 +184,34 @@ export function hasElementTextBinding(node: RenderNode | null): boolean {
   return false;
 }
 
-export function hasRangeTextBinding(node: RenderNode | null, elementTextOnly = false): boolean {
+export function hasRangeTextBinding(node: RenderNode | null): boolean {
   if (!node) {
     return false;
   }
   if (node.kind === 'dynamicText') {
-    return !elementTextOnly;
+    return true;
   }
   if (node.kind === 'element') {
-    const childElementTextOnly =
-      node.children.length === 1 && node.children[0].kind === 'dynamicText';
-    return node.children.some((child) => hasRangeTextBinding(child, childElementTextOnly));
+    const children = flattenElementChildren(node.children);
+    if (children.length === 1 && children[0].kind === 'dynamicText') {
+      return false;
+    }
+    return children.some(hasRangeTextBinding);
   }
   if (node.kind === 'fragment') {
-    return node.children.some((child) => hasRangeTextBinding(child, false));
+    return node.children.some(hasRangeTextBinding);
   }
   return false;
+}
+
+export function flattenElementChildren(children: readonly RenderNode[]): RenderNode[] {
+  const flattened: RenderNode[] = [];
+  for (const child of children) {
+    if (child.kind === 'fragment') {
+      flattened.push(...flattenElementChildren(child.children));
+    } else {
+      flattened.push(child);
+    }
+  }
+  return flattened;
 }

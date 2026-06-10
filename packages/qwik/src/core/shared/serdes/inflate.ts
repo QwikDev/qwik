@@ -32,6 +32,11 @@ const dangerousObjectKeys = new Set([
   'toJSON',
   'then',
 ]);
+const COMMENT_NODE = 8;
+const TEXT_NODE = 3;
+const RANGE_TEXT_MARKER = 't';
+const ELEMENT_ID_SELECTOR = ELEMENT_ID.replace(':', '\\:');
+
 const isSafeObjectKV = (key: unknown, value: unknown): key is string | number => {
   if (typeof key === 'number') {
     return true;
@@ -171,7 +176,10 @@ export const inflate = (
       const kind = parts[0] as EffectKind;
       const targetKind = parts[1] as EffectTargetKind;
       const targetId = parts[2] as number;
-      const deps = parts[3] as Dependency[];
+      const isRangeText = targetKind === EffectTargetKind.RangeText;
+      const markerIndex = isRangeText ? (parts[3] as number) : undefined;
+      const depsIndex = isRangeText ? 4 : 3;
+      const deps = parts[depsIndex] as Dependency[];
 
       switch (kind) {
         case EffectKind.TextNode: {
@@ -179,60 +187,7 @@ export const inflate = (
             throw new Error('DOM subscription requires a source dependency.');
           }
 
-          let text: Text;
-          if (targetKind === EffectTargetKind.ElementText) {
-            const element = container.element;
-            if (element === null) {
-              throw new Error('Missing Qwik container element.');
-            }
-            const selector = `[${ELEMENT_ID.replace(':', '\\:')}="${String(targetId)}"]`;
-            const targetElement = element.querySelector(selector);
-            if (targetElement === null) {
-              throw new Error(`Missing Qwik element ${targetId}.`);
-            }
-            const node = targetElement.firstChild;
-            if (node === null || node.nodeType !== 3) {
-              throw new Error(`Missing text target ${targetId}.`);
-            }
-            text = node as Text;
-          } else if (targetKind === EffectTargetKind.RangeText) {
-            const element = container.element;
-            if (element === null) {
-              throw new Error('Missing Qwik container element.');
-            }
-            const markerData = `q:t=${targetId}`;
-            const stack: Node[] = [element];
-            let marker: Comment | null = null;
-            while (stack.length > 0 && marker === null) {
-              const node = stack.pop()!;
-              let child = node.firstChild;
-              while (child !== null) {
-                if (child.nodeType === 8 && (child as Comment).data === markerData) {
-                  marker = child as Comment;
-                  break;
-                }
-                if (child.firstChild !== null) {
-                  stack.push(child);
-                }
-                child = child.nextSibling;
-              }
-            }
-            if (marker === null || marker.parentNode === null) {
-              throw new Error(`Missing range text target ${targetId}.`);
-            }
-            const node = marker.nextSibling;
-            if (node !== null && node.nodeType === 3) {
-              text = node as Text;
-            } else {
-              if (container.document === null) {
-                throw new Error('Missing Qwik container document.');
-              }
-              text = container.document.createTextNode('');
-              marker.parentNode.insertBefore(text, node);
-            }
-          } else {
-            throw new Error(`Unsupported text target kind ${targetKind}.`);
-          }
+          const text = resolveTextTarget(container, targetKind, targetId, markerIndex);
 
           (subscription as { effect: DomSubscriber['effect'] }).effect = new TextNodeEffect(
             text,
@@ -241,62 +196,9 @@ export const inflate = (
           break;
         }
         case EffectKind.TextExpression: {
-          let text: Text;
-          if (targetKind === EffectTargetKind.ElementText) {
-            const element = container.element;
-            if (element === null) {
-              throw new Error('Missing Qwik container element.');
-            }
-            const selector = `[${ELEMENT_ID.replace(':', '\\:')}="${String(targetId)}"]`;
-            const targetElement = element.querySelector(selector);
-            if (targetElement === null) {
-              throw new Error(`Missing Qwik element ${targetId}.`);
-            }
-            const node = targetElement.firstChild;
-            if (node === null || node.nodeType !== 3) {
-              throw new Error(`Missing text target ${targetId}.`);
-            }
-            text = node as Text;
-          } else if (targetKind === EffectTargetKind.RangeText) {
-            const element = container.element;
-            if (element === null) {
-              throw new Error('Missing Qwik container element.');
-            }
-            const markerData = `q:t=${targetId}`;
-            const stack: Node[] = [element];
-            let marker: Comment | null = null;
-            while (stack.length > 0 && marker === null) {
-              const node = stack.pop()!;
-              let child = node.firstChild;
-              while (child !== null) {
-                if (child.nodeType === 8 && (child as Comment).data === markerData) {
-                  marker = child as Comment;
-                  break;
-                }
-                if (child.firstChild !== null) {
-                  stack.push(child);
-                }
-                child = child.nextSibling;
-              }
-            }
-            if (marker === null || marker.parentNode === null) {
-              throw new Error(`Missing range text target ${targetId}.`);
-            }
-            const node = marker.nextSibling;
-            if (node !== null && node.nodeType === 3) {
-              text = node as Text;
-            } else {
-              if (container.document === null) {
-                throw new Error('Missing Qwik container document.');
-              }
-              text = container.document.createTextNode('');
-              marker.parentNode.insertBefore(text, node);
-            }
-          } else {
-            throw new Error(`Unsupported text target kind ${targetKind}.`);
-          }
+          const text = resolveTextTarget(container, targetKind, targetId, markerIndex);
 
-          const qrl = parts[5] as QRLInternal<TextExpressionFn>;
+          const qrl = parts[depsIndex + 2] as QRLInternal<TextExpressionFn>;
           if (qrl.resolved === undefined) {
             const p = qrl.resolve().catch(() => {
               // ignore preload errors; the eventual caller will report the real load failure
@@ -306,7 +208,7 @@ export const inflate = (
 
           (subscription as { effect: DomSubscriber['effect'] }).effect = new TextExpressionEffect(
             text,
-            parts[4] as unknown[],
+            parts[depsIndex + 1] as unknown[],
             (...args) => {
               const fn = qrl.resolved;
               if (fn === undefined) {
@@ -324,15 +226,7 @@ export const inflate = (
           if (targetKind !== EffectTargetKind.Element) {
             throw new Error(`Unsupported element target kind ${targetKind}.`);
           }
-          const element = container.element;
-          if (element === null) {
-            throw new Error('Missing Qwik container element.');
-          }
-          const selector = `[${ELEMENT_ID.replace(':', '\\:')}="${String(targetId)}"]`;
-          const targetElement = element.querySelector(selector);
-          if (targetElement === null) {
-            throw new Error(`Missing Qwik element ${targetId}.`);
-          }
+          const targetElement = resolveElementTarget(container, targetId);
           (subscription as { effect: DomSubscriber['effect'] }).effect = new AttrEffect(
             targetElement,
             String(parts[4]),
@@ -347,15 +241,7 @@ export const inflate = (
           if (targetKind !== EffectTargetKind.Element) {
             throw new Error(`Unsupported element target kind ${targetKind}.`);
           }
-          const element = container.element;
-          if (element === null) {
-            throw new Error('Missing Qwik container element.');
-          }
-          const selector = `[${ELEMENT_ID.replace(':', '\\:')}="${String(targetId)}"]`;
-          const targetElement = element.querySelector(selector);
-          if (targetElement === null) {
-            throw new Error(`Missing Qwik element ${targetId}.`);
-          }
+          const targetElement = resolveElementTarget(container, targetId);
           (subscription as { effect: DomSubscriber['effect'] }).effect = new SerializedAttrEffect(
             targetElement,
             deps[0],
@@ -380,6 +266,64 @@ export const inflate = (
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
 };
+
+function resolveTextTarget(
+  container: ContainerContext,
+  targetKind: EffectTargetKind,
+  elementId: number,
+  markerIndex: number | undefined
+): Text {
+  const element = resolveElementTarget(container, elementId);
+  if (targetKind === EffectTargetKind.ElementText) {
+    const node = element.firstChild;
+    if (node === null || node.nodeType !== TEXT_NODE) {
+      throw new Error(`Missing text target ${elementId}.`);
+    }
+    return node as Text;
+  }
+  if (targetKind === EffectTargetKind.RangeText) {
+    if (typeof markerIndex !== 'number') {
+      throw new Error(`Missing range text marker index for element ${elementId}.`);
+    }
+    return resolveRangeTextTarget(element, elementId, markerIndex);
+  }
+  throw new Error(`Unsupported text target kind ${targetKind}.`);
+}
+
+function resolveElementTarget(container: ContainerContext, elementId: number): Element {
+  const element = container.element;
+  if (element === null) {
+    throw new Error('Missing Qwik container element.');
+  }
+  const stringId = String(elementId);
+  if (element.getAttribute(ELEMENT_ID) === stringId) {
+    return element;
+  }
+  const targetElement = element.querySelector(`[${ELEMENT_ID_SELECTOR}="${stringId}"]`);
+  if (targetElement === null) {
+    throw new Error(`Missing Qwik element ${elementId}.`);
+  }
+  return targetElement;
+}
+
+function resolveRangeTextTarget(element: Element, elementId: number, markerIndex: number): Text {
+  let index = 0;
+  let child = element.firstChild;
+  while (child !== null) {
+    if (child.nodeType === COMMENT_NODE && (child as Comment).data === RANGE_TEXT_MARKER) {
+      if (index === markerIndex) {
+        const text = child.nextSibling;
+        if (text === null || text.nodeType !== TEXT_NODE) {
+          throw new Error(`Missing range text target ${elementId}:${markerIndex}.`);
+        }
+        return text as Text;
+      }
+      index++;
+    }
+    child = child.nextSibling;
+  }
+  throw new Error(`Missing range text marker ${elementId}:${markerIndex}.`);
+}
 
 /**
  * Restores an array eagerly. If you need it lazily, use `deserializeData(container, TypeIds.Array,

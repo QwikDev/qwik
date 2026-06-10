@@ -3,7 +3,7 @@
 import { createSignal } from '@qwik.dev/core/spark';
 export function App() {
   const count = createSignal(0);
-  return <p>Hello {count.value}</p>;
+  return <p>Hello {count.value} world</p>;
 }
 
 == SSR OUTPUT ==
@@ -26,7 +26,7 @@ export function App(_props, ctx) {
     id0 +
     '">Hello <!t>' +
     escapeHTML(renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count)) +
-    '</p>'
+    '<!/t> world</p>'
   );
 }
 
@@ -49,6 +49,8 @@ export function App(_props, ctx) {
   const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
+  const text4 = ctx.document.createTextNode(' world');
+  el0.appendChild(text4);
   return [el0];
 }
 

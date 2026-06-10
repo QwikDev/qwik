@@ -1,4 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { createWindow } from '../../../testing/document';
+import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
+import { DomSubscription, TextNodeEffect } from '../../vdomless/dom/effect/effect';
+import { EffectTargetKind } from '../../vdomless/dom/effect/ssr-effect';
+import { createSignal, type Signal } from '../../vdomless/reactive/signal';
+import {
+  createContainerContext,
+  type ContainerContext,
+} from '../../vdomless/runtime/container-context';
 import { TypeIds } from './constants';
 import { inflate } from './inflate';
 
@@ -86,3 +95,63 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
     expect((target as any)[sym]).toBeUndefined();
   });
 });
+
+describe('inflate(TypeIds.EffectSubscription) text targets', () => {
+  it('resolves range text from a local marker index', () => {
+    const context = createContext('<p q:id="10">A<!t>0<!/t> B<!t>1</p>');
+    const count = createSignal(1);
+    const subscription = inflateTextSubscription(context, count, 10, 1);
+
+    expect(subscription.effect).toBeInstanceOf(TextNodeEffect);
+    expect((subscription.effect as TextNodeEffect).text.data).toBe('1');
+    expect(subscription.deps).toEqual([count]);
+    expect(count.subs).toEqual([subscription]);
+  });
+
+  it('does not count range boundary markers as targets', () => {
+    const context = createContext('<p q:id="11"><!t>0<!/t><!t>1</p>');
+    const count = createSignal(1);
+    const subscription = inflateTextSubscription(context, count, 11, 1);
+
+    expect((subscription.effect as TextNodeEffect).text.data).toBe('1');
+  });
+
+  it('throws when a range marker is not followed by a text node', () => {
+    const context = createContext('<p q:id="12"><!t><!/t></p>');
+    const count = createSignal(1);
+
+    expect(() => inflateTextSubscription(context, count, 12, 0)).toThrow(
+      'Missing range text target 12:0.'
+    );
+  });
+});
+
+function createContext(html: string): ContainerContext {
+  const win = createWindow({ html: `<div q:container>${html}</div>` });
+  return createContainerContext(win.document.body.firstElementChild as HTMLElement);
+}
+
+function inflateTextSubscription(
+  context: ContainerContext,
+  source: Signal<number>,
+  elementId: number,
+  markerIndex: number
+): DomSubscription {
+  const data = [
+    TypeIds.Plain,
+    EffectKind.TextNode,
+    TypeIds.Plain,
+    EffectTargetKind.RangeText,
+    TypeIds.Plain,
+    elementId,
+    TypeIds.Plain,
+    markerIndex,
+    TypeIds.Array,
+    [TypeIds.Plain, source],
+  ];
+  const subscription = new DomSubscription(null!, context.scheduler);
+
+  inflate(context, subscription, TypeIds.EffectSubscription, data);
+
+  return subscription;
+}

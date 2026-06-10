@@ -788,12 +788,13 @@ async function importCompiledRoot<TRoot extends CsrRenderComponent | SsrRenderCo
     throw new Error(result.diagnostics.map((diagnostic) => diagnostic.message).join('\n'));
   }
 
+  const modules = prepareCompiledModulesForImport(result.modules);
   const dir = join(findRepoRoot(), 'temp', 'render', `${Date.now()}-${target}-${id}`);
   await mkdir(dir, { recursive: true });
 
   let entryPath: string | null = null;
-  for (let i = 0; i < result.modules.length; i++) {
-    const module = result.modules[i];
+  for (let i = 0; i < modules.length; i++) {
+    const module = modules[i];
     const fileName = module.segment || module.isEntry ? basename(module.path) : 'entry.mjs';
     const filePath = join(dir, fileName);
     await writeFile(filePath, module.code);
@@ -816,9 +817,45 @@ async function importCompiledRoot<TRoot extends CsrRenderComponent | SsrRenderCo
   }
   return {
     root: root as TRoot,
-    modules: result.modules,
+    modules,
     moduleBase: pathToFileURL(`${dir}/`).href,
   };
+}
+
+function prepareCompiledModulesForImport(
+  modules: readonly TransformModule[]
+): readonly TransformModule[] {
+  const replacements: Array<[string, string]> = [];
+  let segmentIndex = 0;
+  for (let i = 0; i < modules.length; i++) {
+    const module = modules[i];
+    if (!module.segment) {
+      continue;
+    }
+    replacements.push([`./${basename(module.path)}`, `./segment-${segmentIndex}.mjs`]);
+    segmentIndex++;
+  }
+
+  if (replacements.length === 0) {
+    return modules;
+  }
+
+  segmentIndex = 0;
+  return modules.map((module) => {
+    let code = module.code;
+    for (let i = 0; i < replacements.length; i++) {
+      const [from, to] = replacements[i];
+      code = code.split(from).join(to);
+    }
+    if (!module.segment) {
+      return { ...module, code };
+    }
+    return {
+      ...module,
+      code,
+      path: `segment-${segmentIndex++}.mjs`,
+    };
+  });
 }
 
 function findRepoRoot() {

@@ -27,8 +27,21 @@ export const enum EffectTargetKind {
   Element = 2,
 }
 
-export interface SsrEffectTarget {
-  readonly kind: EffectTargetKind;
+export type SsrEffectTarget = SsrElementTextTarget | SsrRangeTextTarget | SsrElementTarget;
+
+export interface SsrElementTextTarget {
+  readonly kind: EffectTargetKind.ElementText;
+  readonly id: number;
+}
+
+export interface SsrRangeTextTarget {
+  readonly kind: EffectTargetKind.RangeText;
+  readonly id: number;
+  readonly markerIndex: number;
+}
+
+export interface SsrElementTarget {
+  readonly kind: EffectTargetKind.Element;
   readonly id: number;
 }
 
@@ -120,10 +133,11 @@ export function createSsrElementTarget(id: number): SsrEffectTarget {
   };
 }
 
-export function createSsrRangeTextTarget(id: number): SsrEffectTarget {
+export function createSsrRangeTextTarget(id: number, markerIndex: number): SsrEffectTarget {
   return {
     kind: EffectTargetKind.RangeText,
     id,
+    markerIndex,
   };
 }
 

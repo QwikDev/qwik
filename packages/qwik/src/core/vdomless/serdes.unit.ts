@@ -72,7 +72,7 @@ describe('vdomless serdes emit-only', () => {
       '0',
       container
     );
-    const effect = createSsrTextExpressionEffect(createSsrRangeTextTarget(3), [count], qrl);
+    const effect = createSsrTextExpressionEffect(createSsrRangeTextTarget(3, 2), [count], qrl);
 
     await qrl.resolve(container);
     runWithCollector(effect, () => qrl.resolved!(count));
@@ -84,11 +84,12 @@ describe('vdomless serdes emit-only', () => {
     expect(effectPayload[1]).toBe(EffectKind.TextExpression);
     expect(effectPayload[3]).toBe(EffectTargetKind.RangeText);
     expect(effectPayload[5]).toBe(3);
-    expect(effectPayload[7]).toEqual([TypeIds.RootRef, 0]);
-    expect(effectPayload[8]).toBe(TypeIds.Array);
+    expect(effectPayload[7]).toBe(2);
     expect(effectPayload[9]).toEqual([TypeIds.RootRef, 0]);
-    expect(effectPayload[10]).toBe(TypeIds.QRL);
-    expect(effectPayload[11]).toBe('1#2#0');
+    expect(effectPayload[10]).toBe(TypeIds.Array);
+    expect(effectPayload[11]).toEqual([TypeIds.RootRef, 0]);
+    expect(effectPayload[12]).toBe(TypeIds.QRL);
+    expect(effectPayload[13]).toBe('1#2#0');
     expect(state.slice(2)).toEqual([TypeIds.Plain, 'counter.text.js', TypeIds.Plain, 'label']);
   });
 

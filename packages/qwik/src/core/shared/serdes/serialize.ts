@@ -1,8 +1,11 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
-import { SsrDomSubscription } from '../../vdomless/dom/effect/ssr-effect';
-import type { SsrDomEffect } from '../../vdomless/dom/effect/ssr-effect';
+import {
+  EffectTargetKind,
+  SsrDomSubscription,
+  type SsrDomEffect,
+} from '../../vdomless/dom/effect/ssr-effect';
 import { ReactiveFlags } from '../../vdomless/reactive/flags';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
@@ -710,9 +713,13 @@ function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {
 
   switch (effect.kind) {
     case EffectKind.TextNode:
-      return [effect.kind, target.kind, target.id, deps];
+      return target.kind === EffectTargetKind.RangeText
+        ? [effect.kind, target.kind, target.id, target.markerIndex, deps]
+        : [effect.kind, target.kind, target.id, deps];
     case EffectKind.TextExpression:
-      return [effect.kind, target.kind, target.id, deps, effect.args, effect.qrl];
+      return target.kind === EffectTargetKind.RangeText
+        ? [effect.kind, target.kind, target.id, target.markerIndex, deps, effect.args, effect.qrl]
+        : [effect.kind, target.kind, target.id, deps, effect.args, effect.qrl];
     case EffectKind.Attr:
       return [effect.kind, target.kind, target.id, deps, effect.name];
     case EffectKind.SerializedAttr:

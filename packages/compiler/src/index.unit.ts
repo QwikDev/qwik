@@ -178,6 +178,29 @@ export function App() {
     });
   });
 
+  test('emits SSR range text boundaries before static text', async () => {
+    await testInput('ssr_dynamic_range_text_boundary', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(0);
+  return <p>Hello {count.value} world</p>;
+}
+`,
+    });
+  });
+
+  test('emits local marker indexes for multiple SSR range texts', async () => {
+    await testInput('ssr_dynamic_range_text_multiple', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const first = createSignal(1);
+  const second = createSignal(2);
+  return <p>{first.value}{second.value}</p>;
+}
+`,
+    });
+  });
+
   test('emits SSR text expression QRLs', async () => {
     await testInput('ssr_dynamic_text_expression', {
       code: `import { createSignal } from '@qwik.dev/core/spark';

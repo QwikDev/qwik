@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { extractSegments, type ExtractionResult } from '../../src/optimizer/extract.js';
-import { generateSegmentCode } from '../../src/optimizer/segment-codegen.js';
+import { extractSegments, type ExtractionResult } from '../../src/optimizer/extraction/extract.js';
+import { generateSegmentCode } from '../../src/optimizer/segment/segment-codegen.js';
 import {
   mkBodyText,
   mkByteOffset,

@@ -1,5 +1,5 @@
 /**
- * Unit tests for `src/optimizer/utils/walk-with-protocol.ts` — the
+ * Unit tests for `src/optimizer/ast/walk-with-protocol.ts` — the
  * compile-time-enforced enter/exit protocol wrapper introduced by OSS-391.
  *
  * Three layers of coverage:
@@ -23,8 +23,8 @@
 
 import { describe, it, expect } from 'vitest';
 import MagicString from 'magic-string';
-import { parseWithRawTransfer } from '../../../src/optimizer/utils/parse.js';
-import { walkWithProtocol } from '../../../src/optimizer/utils/walk-with-protocol.js';
+import { parseWithRawTransfer } from '../../../src/optimizer/ast/parse.js';
+import { walkWithProtocol } from '../../../src/optimizer/ast/walk-with-protocol.js';
 import { walk } from 'oxc-walker';
 import type { AstNode, AstProgram } from '../../../src/ast-types.js';
 

@@ -24,7 +24,7 @@ import { transformModule } from '../../src/optimizer/transform/index.js';
 import type {
   TransformModule,
   SegmentMetadataInternal,
-} from '../../src/optimizer/types.js';
+} from '../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 function findSegment(modules: readonly TransformModule[]): TransformModule {

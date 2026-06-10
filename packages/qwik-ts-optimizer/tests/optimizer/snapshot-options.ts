@@ -24,7 +24,7 @@
  * in our TS API. It behaves like 'lib' mode (no prod optimizations, no dev instrumentation).
  */
 
-import type { TransformModulesOptions } from '../../src/optimizer/types.js';
+import type { TransformModulesOptions } from '../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 /**

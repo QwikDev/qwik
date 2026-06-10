@@ -3,7 +3,7 @@ import {
   applySelfRefIndirection,
   injectCapturesUnpacking,
   rewriteFunctionSignature,
-} from '../../src/optimizer/segment-codegen/body-transforms.js';
+} from '../../src/optimizer/segment/body-transforms.js';
 
 describe('body-transforms', () => {
   describe('rewriteFunctionSignature', () => {

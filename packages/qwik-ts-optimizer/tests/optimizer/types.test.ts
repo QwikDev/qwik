@@ -17,7 +17,7 @@ import type {
   Diagnostic,
   DiagnosticHighlightFlat,
   SegmentMetadataInternal,
-} from '../../src/optimizer/types.js';
+} from '../../src/optimizer/types/types.js';
 import {
   mkByteOffset,
   mkCanonicalFilename,

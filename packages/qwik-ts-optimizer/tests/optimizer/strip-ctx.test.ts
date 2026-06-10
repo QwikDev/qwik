@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateStrippedSegmentCode } from '../../src/optimizer/strip-ctx.js';
+import { generateStrippedSegmentCode } from '../../src/optimizer/segment/strip-ctx.js';
 import { isStrippedSegment } from '../../src/optimizer/rewrite/predicates.js';
 
 describe('strip-ctx', () => {

@@ -33,11 +33,11 @@
  */
 
 import type { AstNode, AstProgram } from '../../ast-types.js';
-import { forEachAstChild } from '../utils/ast.js';
+import { forEachAstChild } from '../ast/guards.js';
 import type { RewriteContext } from './rewrite-context.js';
-import type { ImportInfo } from '../marker-detection.js';
+import type { ImportInfo } from '../extraction/marker-detection.js';
 import { isStrippedExtraction } from './predicates.js';
-import { getQrlImportSource } from '../rewrite-calls.js';
+import { getQrlImportSource } from './rewrite-calls.js';
 
 /**
  * Parse the local name from a `neededImports` map key. The map stores

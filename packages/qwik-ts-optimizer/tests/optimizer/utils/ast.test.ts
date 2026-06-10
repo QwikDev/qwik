@@ -1,5 +1,5 @@
 /**
- * Unit tests for `src/optimizer/utils/ast.ts` helpers.
+ * Unit tests for `src/optimizer/ast/guards.ts` helpers.
  *
  * Coverage focus per OSS-382: pin the contract of the new `someAstChild`
  * utility (short-circuit version of `forEachAstChild`). The existing
@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { forEachAstChild, someAstChild } from '../../../src/optimizer/utils/ast.js';
+import { forEachAstChild, someAstChild } from '../../../src/optimizer/ast/guards.js';
 import type { AstCompatNode, AstNode } from '../../../src/ast-types.js';
 
 // Tests use synthetic `type` strings (`'A'`, `'B'`, `'Foo'`, etc.) that

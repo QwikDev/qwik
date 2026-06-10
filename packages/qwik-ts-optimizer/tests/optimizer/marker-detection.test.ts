@@ -10,7 +10,7 @@ import {
   getExtractionName,
   type ImportInfo,
   type CustomInlinedInfo,
-} from '../../src/optimizer/marker-detection.js';
+} from '../../src/optimizer/extraction/marker-detection.js';
 
 /** Helper: parse code and return the AST program node */
 function parse(code: string) {

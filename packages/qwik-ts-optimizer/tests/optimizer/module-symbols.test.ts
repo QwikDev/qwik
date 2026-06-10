@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseSync } from 'oxc-parser';
-import { collectSameFileSymbolInfo } from '../../src/optimizer/utils/module-symbols.js';
+import { collectSameFileSymbolInfo } from '../../src/optimizer/segment/module-symbols.js';
 
 describe('module-symbols', () => {
   it('collects top-level bindings, default exports, and renamed exports', () => {

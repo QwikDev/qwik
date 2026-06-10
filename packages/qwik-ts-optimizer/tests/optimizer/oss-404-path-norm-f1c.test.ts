@@ -25,10 +25,10 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { computeRelPath } from '../../src/optimizer/path-utils.js';
-import { buildDevFilePath } from '../../src/optimizer/dev-mode.js';
+import { computeRelPath } from '../../src/paths.js';
+import { buildDevFilePath } from '../../src/optimizer/segment/dev-mode.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
-import type { TransformModule } from '../../src/optimizer/types.js';
+import type { TransformModule } from '../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 function findParent(result: { modules: readonly TransformModule[] }): TransformModule {

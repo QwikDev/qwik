@@ -11,7 +11,7 @@
  */
 
 import { parseSync } from 'oxc-parser';
-import { forEachAstChild } from '../utils/ast.js';
+import { forEachAstChild } from '../ast/guards.js';
 import {
   RAW_TRANSFER_PARSER_OPTIONS,
   type AstCompatNode,

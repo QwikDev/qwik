@@ -13,7 +13,7 @@ import {
   computeSegmentUsage,
   type MigrationDecision,
   type ModuleLevelDecl,
-} from '../../src/optimizer/variable-migration.js';
+} from '../../src/optimizer/analysis/variable-migration.js';
 
 // ---------------------------------------------------------------------------
 // Helper to make ModuleLevelDecl objects for unit testing analyzeMigration()

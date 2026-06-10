@@ -29,7 +29,7 @@ import type {
   SegmentAnalysis,
   TransformModule,
   TransformModulesOptions,
-} from './optimizer/types.js';
+} from './optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from './optimizer/types/brands.js';
 
 // ---------------------------------------------------------------------------

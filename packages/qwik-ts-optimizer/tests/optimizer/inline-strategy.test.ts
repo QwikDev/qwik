@@ -6,7 +6,7 @@ import {
   buildStrippedNoopQrlDev,
   buildSCall,
   getSentinelCounter,
-} from '../../src/optimizer/inline-strategy.js';
+} from '../../src/optimizer/segment/inline-strategy.js';
 
 describe('inline-strategy', () => {
   // -------------------------------------------------------------------------

@@ -5,7 +5,7 @@
  * to @qwik.dev/* equivalents with sub-path preservation.
  */
 import { describe, it, expect } from 'vitest';
-import { rewriteImportSource } from '../../src/optimizer/rewrite-imports.js';
+import { rewriteImportSource } from '../../src/optimizer/rewrite/rewrite-imports.js';
 
 describe('rewriteImportSource', () => {
   it('@builder.io/qwik -> @qwik.dev/core', () => {

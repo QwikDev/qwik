@@ -8,23 +8,23 @@
 
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
-import { walkAstForQp } from '../utils/qp-walk.js';
-import { formatWCall, wCallSuffix } from '../utils/w-call.js';
+import { walkAstForQp } from '../jsx/qp-walk.js';
+import { formatWCall, wCallSuffix } from '../qwik/w-call.js';
 import {
   RAW_TRANSFER_PARSER_OPTIONS,
   type AstFunction,
 } from '../../ast-types.js';
-import type { ExtractionResult, Mutable } from '../extract.js';
-import type { ImportInfo } from '../marker-detection.js';
-import { eventHandlerPropName } from '../transform/event-handlers.js';
-import { transformAllJsx, JsxKeyCounter } from '../transform/jsx.js';
-import { transformJsxCalls, collectJsxFunctionNamesFromIterable } from '../transform/jsx-call-transform.js';
-import { eventHandlerQpParams } from '../loop-hoisting.js';
-import { computeKeyPrefix } from '../key-prefix.js';
-import { SignalHoister } from '../signal-analysis.js';
-import { foldBodySimplifiableExpressions } from '../utils/simplify.js';
-import { getQrlImportSource } from '../rewrite-calls.js';
-import { injectCapturesUnpacking, removeDeadConstLiterals } from '../segment-codegen.js';
+import type { ExtractionResult, Mutable } from '../extraction/extract.js';
+import type { ImportInfo } from '../extraction/marker-detection.js';
+import { eventHandlerPropName } from '../jsx/event-handlers.js';
+import { transformAllJsx, JsxKeyCounter } from '../jsx/jsx.js';
+import { transformJsxCalls, collectJsxFunctionNamesFromIterable } from '../jsx/jsx-call-transform.js';
+import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
+import { computeKeyPrefix } from '../jsx/key-prefix.js';
+import { SignalHoister } from '../jsx/signal-analysis.js';
+import { foldBodySimplifiableExpressions } from '../jsx/simplify.js';
+import { getQrlImportSource } from './rewrite-calls.js';
+import { injectCapturesUnpacking, removeDeadConstLiterals } from '../segment/segment-codegen.js';
 import {
   resolveConstLiterals,
   resolveConstLiteralsInClosure,

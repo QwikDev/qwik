@@ -19,8 +19,8 @@ import {
   isReplaceableIdentifierPosition,
   type RangeReplacement,
   type RangeReplacementCollector,
-} from '../../../src/optimizer/utils/range-replace.js';
-import { applyReplacements } from '../../../src/optimizer/utils/simplify.js';
+} from '../../../src/optimizer/edit/range-replace.js';
+import { applyReplacements } from '../../../src/optimizer/jsx/simplify.js';
 import type { AstNode, AstParentNode } from '../../../src/ast-types.js';
 
 function parseExpr(src: string): AstNode {

@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { resolveEntryField } from '../../src/optimizer/entry-strategy.js';
+import { resolveEntryField } from '../../src/optimizer/segment/entry-strategy.js';
 
 describe('resolveEntryField', () => {
   // ENT-01: Smart mode segments have entry: null

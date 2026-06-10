@@ -4,10 +4,10 @@
  *
  * After OSS-438's ctxKind harmonisation, Component-prop `$`-suffix attrs
  * are correctly classified as `ctxKind: "jSXProp"`. `buildNestedCallSites`
- * in `transform/segment-generation.ts` was never updated to mirror that —
+ * in `segment/segment-generation.ts` was never updated to mirror that —
  * its `isJsxAttr` predicate only recognised `eventHandler`, sending every
  * `jSXProp` child segment through the bare-identifier `else` branch in
- * `segment-codegen/body-transforms.ts`. Result: the parent body's
+ * `segment/body-transforms.ts`. Result: the parent body's
  * `<Component onProp$={…}>` attribute got replaced with bare
  * `<Component q_App_..._onProp_*>` — invalid JSX attribute syntax — and
  * the downstream JSX walker (silently) no-op'd the segment.

@@ -11,7 +11,7 @@ import {
   isInsideString,
   findMatchingBrace,
   findExpressionEnd,
-} from '../utils/text-scanning.js';
+} from '../edit/text-scanning.js';
 
 const notTrueLiteral = createRegExp(exactly('!true').and(wordBoundary), [global]);
 

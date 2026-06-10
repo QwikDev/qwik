@@ -13,7 +13,7 @@ import {
   analyzeCaptures,
   collectScopeIdentifiers,
   type CaptureAnalysisResult,
-} from '../../src/optimizer/capture-analysis.js';
+} from '../../src/optimizer/analysis/capture-analysis.js';
 
 // ---------------------------------------------------------------------------
 // Helper: find the $() call's argument node in parsed source

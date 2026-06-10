@@ -22,7 +22,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../src/optimizer/transform/index.js';
-import type { TransformModule } from '../../src/optimizer/types.js';
+import type { TransformModule } from '../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 function findSegments(result: { modules: readonly TransformModule[] }): readonly TransformModule[] {

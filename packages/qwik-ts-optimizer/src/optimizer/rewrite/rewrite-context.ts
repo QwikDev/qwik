@@ -5,11 +5,11 @@
  */
 
 import type MagicString from 'magic-string';
-import type { ExtractionResult } from '../extract.js';
-import type { ImportInfo } from '../marker-detection.js';
-import type { MigrationDecision, ModuleLevelDecl } from '../variable-migration.js';
-import type { JsxTransformOutput } from '../transform/jsx.js';
-import type { EmitMode } from '../types.js';
+import type { ExtractionResult } from '../extraction/extract.js';
+import type { ImportInfo } from '../extraction/marker-detection.js';
+import type { MigrationDecision, ModuleLevelDecl } from '../analysis/variable-migration.js';
+import type { JsxTransformOutput } from '../jsx/jsx.js';
+import type { EmitMode } from '../types/types.js';
 import type { AstFunction, AstProgram } from '../../ast-types.js';
 import type { RelativePath } from '../types/brands.js';
 import type { InlineStrategyOptions, JsxRewriteOptions } from './index.js';

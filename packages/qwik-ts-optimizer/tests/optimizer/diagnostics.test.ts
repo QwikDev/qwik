@@ -13,9 +13,9 @@ import {
   emitPassiveConflictWarning,
   parseDisableDirectives,
   filterSuppressedDiagnostics,
-} from '../../src/optimizer/diagnostics.js';
+} from '../../src/optimizer/diagnostics/diagnostics.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
-import type { Diagnostic } from '../../src/optimizer/types.js';
+import type { Diagnostic } from '../../src/optimizer/types/types.js';
 import {
   mkByteOffset,
   mkColumnNumber,

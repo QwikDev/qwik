@@ -1,5 +1,5 @@
 /**
- * Tests for `src/optimizer/utils/flatten-destructures.ts` — the
+ * Tests for `src/optimizer/prepare/flatten-destructures.ts` — the
  * `const { X } = useFooBar()` → `const fooBar = useFooBar()` rewrite
  * introduced in F8c (OSS-363, PR #52).
  *
@@ -14,8 +14,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseWithRawTransfer } from '../../src/optimizer/utils/parse.js';
-import { flattenDestructureUseCalls } from '../../src/optimizer/utils/flatten-destructures.js';
+import { parseWithRawTransfer } from '../../src/optimizer/ast/parse.js';
+import { flattenDestructureUseCalls } from '../../src/optimizer/prepare/flatten-destructures.js';
 
 function flatten(source: string): { source: string; changed: boolean } {
   const { program } = parseWithRawTransfer('test.tsx', source);

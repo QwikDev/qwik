@@ -12,9 +12,9 @@ import type {
   ImportDeclarationSpecifier,
   ImportSpecifier,
 } from '../../ast-types.js';
-import { parseWithRawTransfer } from '../utils/parse.js';
-import type { ExtractionResult } from '../extract.js';
-import type { TransformModule } from '../types.js';
+import { parseWithRawTransfer } from '../ast/parse.js';
+import type { ExtractionResult } from '../extraction/extract.js';
+import type { TransformModule } from '../types/types.js';
 import type { RelativePath } from '../types/brands.js';
 
 const exportConstAssign = createRegExp(

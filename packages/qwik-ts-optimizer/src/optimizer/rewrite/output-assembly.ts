@@ -10,14 +10,14 @@ import type MagicString from 'magic-string';
 import { transformSync as oxcTransformSync, type TransformOptions } from 'oxc-transform';
 import { createRegExp, exactly, wordBoundary } from 'magic-regexp';
 import type { AstNode, AstProgram } from '../../ast-types.js';
-import type { ExtractionResult } from '../extract.js';
-import type { ImportInfo } from '../marker-detection.js';
-import type { ModuleLevelDecl } from '../variable-migration.js';
+import type { ExtractionResult } from '../extraction/extract.js';
+import type { ImportInfo } from '../extraction/marker-detection.js';
+import type { ModuleLevelDecl } from '../analysis/variable-migration.js';
 import {
   buildQrlDeclaration,
   getQrlImportSource,
-} from '../rewrite-calls.js';
-import { buildQrlDevDeclaration, buildDevFilePath } from '../dev-mode.js';
+} from './rewrite-calls.js';
+import { buildQrlDevDeclaration, buildDevFilePath } from '../segment/dev-mode.js';
 import {
   buildNoopQrlDeclaration,
   buildNoopQrlDevDeclaration,
@@ -26,11 +26,11 @@ import {
   buildSCall,
   buildHoistConstDecl,
   buildHoistSCall,
-} from '../inline-strategy.js';
-import { rewriteFunctionSignature } from '../segment-codegen.js';
+} from '../segment/inline-strategy.js';
+import { rewriteFunctionSignature } from '../segment/segment-codegen.js';
 import { collapseToLibInlinedQrl } from './lib-mode-collapse.js';
-import { SignalHoister } from '../signal-analysis.js';
-import { isRelativePathInsideBase } from '../path-utils.js';
+import { SignalHoister } from '../jsx/signal-analysis.js';
+import { isRelativePathInsideBase } from '../../paths.js';
 import { transformInlineSegmentBody } from './inline-body.js';
 import {
   hasUnderscorePlaceholderParams,

@@ -8,8 +8,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { rewriteParentModule } from '../../src/optimizer/rewrite/index.js';
-import { extractSegments, type ExtractionResult } from '../../src/optimizer/extract.js';
-import { collectImports } from '../../src/optimizer/marker-detection.js';
+import { extractSegments, type ExtractionResult } from '../../src/optimizer/extraction/extract.js';
+import { collectImports } from '../../src/optimizer/extraction/marker-detection.js';
 import { parseSync } from 'oxc-parser';
 import { mkRelativePath } from '../../src/optimizer/types/brands.js';
 

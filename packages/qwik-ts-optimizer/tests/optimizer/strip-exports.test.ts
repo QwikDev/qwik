@@ -8,8 +8,8 @@
 import { describe, it, expect } from 'vitest';
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
-import { stripExportDeclarations } from '../../src/optimizer/strip-exports.js';
-import { collectImports } from '../../src/optimizer/marker-detection.js';
+import { stripExportDeclarations } from '../../src/optimizer/rewrite/strip-exports.js';
+import { collectImports } from '../../src/optimizer/extraction/marker-detection.js';
 
 function runStrip(source: string, stripExports: string[]) {
   const { program } = parseSync('test.tsx', source);

@@ -15,8 +15,8 @@ import type {
   AstMaybeNode,
   AstNode,
 } from '../../ast-types.js';
-import { buildPropertyAccessor } from '../utils/identifier-name.js';
-import { rewritePropsFieldReferences } from '../utils/props-field-rewrite.js';
+import { buildPropertyAccessor } from '../ast/identifier-name.js';
+import { rewritePropsFieldReferences } from './props-field-rewrite.js';
 import {
   forEachAstChild,
   someAstChild,
@@ -33,21 +33,21 @@ import {
   isRestElementNode,
   isPropertyNode,
   isVariableDeclaratorNode,
-} from '../utils/ast.js';
+} from '../ast/guards.js';
 import {
   createFunctionTransformSession,
   createTransformSession,
   insertFunctionBodyPrologue,
   type FunctionTransformSession,
   type TransformSession,
-} from '../utils/transform-session.js';
+} from '../edit/transform-session.js';
 import {
   collectRangeReplacements,
   expressionNeedsParens,
   isReplaceableIdentifierPosition,
   type RangeReplacementCollector,
-} from '../utils/range-replace.js';
-import type { DevSuffixOptions } from '../transform/jsx.js';
+} from '../edit/range-replace.js';
+import type { DevSuffixOptions } from '../jsx/jsx.js';
 
 function isRawPropsMemberExpression(node: unknown): node is AstCompatNode & { object: AstIdentifierNode } {
   return (

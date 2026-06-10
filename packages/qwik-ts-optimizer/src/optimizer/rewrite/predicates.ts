@@ -11,7 +11,7 @@
  * surrounding code.
  */
 
-import type { ExtractionResult } from '../extract.js';
+import type { ExtractionResult } from '../extraction/extract.js';
 
 /**
  * Whether `ext.calleeName` matches one of the registered context names

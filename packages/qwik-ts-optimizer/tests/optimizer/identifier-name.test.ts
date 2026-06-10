@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildPropertyAccessor,
   isSimpleIdentifierName,
-} from '../../src/optimizer/utils/identifier-name.js';
+} from '../../src/optimizer/ast/identifier-name.js';
 
 describe('identifier-name', () => {
   it('detects plain identifier property names', () => {

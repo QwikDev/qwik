@@ -13,12 +13,12 @@ import type {
   AstProgram,
   TSEnumDeclaration,
 } from "../../ast-types.js";
-import { parseWithRawTransfer } from "../utils/parse.js";
-import { flattenAndReparse } from "../utils/flatten-destructures.js";
-import { detectForeignJsxRuntime } from "../utils/jsx-import-source.js";
-import { extractSegments } from "../extract.js";
-import type { ConsolidatedSegment, ExtractionResult, Mutable } from "../extract.js";
-import { repairInput } from "../input-repair.js";
+import { parseWithRawTransfer } from "../ast/parse.js";
+import { flattenAndReparse } from "../prepare/flatten-destructures.js";
+import { detectForeignJsxRuntime } from "../jsx/jsx-import-source.js";
+import { extractSegments } from "../extraction/extract.js";
+import type { ConsolidatedSegment, ExtractionResult, Mutable } from "../extraction/extract.js";
+import { repairInput } from "../prepare/input-repair.js";
 import {
   rewriteParentModule,
   resolveConstLiteralsInClosure,
@@ -26,22 +26,22 @@ import {
   type JsxRewriteOptions,
   type ParentRewriteResult,
 } from "../rewrite/index.js";
-import { collectImports, type ImportInfo } from "../marker-detection.js";
-import { buildDevFilePath } from "../dev-mode.js";
-import { isSimpleIdentifierName } from '../utils/identifier-name.js';
+import { collectImports, type ImportInfo } from "../extraction/marker-detection.js";
+import { buildDevFilePath } from "../segment/dev-mode.js";
+import { isSimpleIdentifierName } from '../ast/identifier-name.js';
 import { type SymbolName, mkSymbolName, type RelativePath } from '../types/brands.js';
 import {
   analyzeCaptures,
   buildClosureLexicalScopes,
   collectScopeIdentifiers,
-} from "../capture-analysis.js";
+} from "../analysis/capture-analysis.js";
 import {
   analyzeMigration,
   collectModuleLevelDecls,
   computeSegmentUsage,
   type MigrationDecision,
   type ModuleLevelDecl,
-} from "../variable-migration.js";
+} from "../analysis/variable-migration.js";
 import type {
   Diagnostic,
   EmitMode,
@@ -50,19 +50,19 @@ import type {
   TransformModulesOptions,
   TransformOutput,
   TransformModule,
-} from "../types.js";
+} from "../types/types.js";
 import {
   classifyDeclarationType,
   classifyDeclarationTypeInClosure,
   parseDisableDirectives,
   filterSuppressedDiagnostics,
-} from "../diagnostics.js";
+} from "../diagnostics/diagnostics.js";
 import {
   computeOutputExtension,
   computeParentModulePath,
   computeRelPath,
   getExtension,
-} from "../path-utils.js";
+} from "../../paths.js";
 import {
   buildParentExtractionMap,
   buildPassthroughModule,
@@ -73,12 +73,12 @@ import {
   detectC02Diagnostics,
   detectC05Diagnostics,
   detectPassivePreventdefaultConflicts,
-} from './diagnostic-detection.js';
+} from '../diagnostics/diagnostic-detection.js';
 import {
   leadingSquareBracket,
   trailingSquareBracket,
   paddingParam,
-} from './post-process.js';
+} from '../segment/post-process.js';
 import {
   buildExtractionLoopMap,
   collectAllScopeEntries,
@@ -86,12 +86,12 @@ import {
   unifyParameterSlots,
   buildElementCaptureMap,
   type EventCaptureContext,
-} from './event-capture-promotion.js';
-import type { LoopContext } from '../loop-hoisting.js';
+} from '../jsx/event-capture-promotion.js';
+import type { LoopContext } from '../jsx/loop-hoisting.js';
 import {
   generateAllSegmentModules,
   type SegmentGenerationContext,
-} from './segment-generation.js';
+} from '../segment/segment-generation.js';
 
 // ---------------------------------------------------------------------------
 // Per-file pipeline. `transformOneModule` sequences the phase helpers below;

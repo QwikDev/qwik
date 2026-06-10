@@ -7,7 +7,7 @@ import {
   isRelativePathInsideBase,
   normalizePath,
   stripExtension,
-} from '../../src/optimizer/path-utils.js';
+} from '../../src/paths.js';
 import { mkFilePath, mkRelativePath } from '../../src/optimizer/types/brands.js';
 
 describe('path-utils', () => {

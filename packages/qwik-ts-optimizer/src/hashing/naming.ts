@@ -6,7 +6,7 @@
  */
 
 import { qwikHash } from './siphash.js';
-import { getBasename } from '../optimizer/path-utils.js';
+import { getBasename } from '../paths.js';
 import {
   type DisplayName,
   type SymbolName,

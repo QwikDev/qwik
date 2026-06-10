@@ -46,9 +46,9 @@ export type {
   TransformModulesOptions,
   TransformOutput,
   WithManualEntryMap,
-} from './optimizer/types.js';
+} from './optimizer/types/types.js';
 
-export { hasManualEntryMap } from './optimizer/types.js';
+export { hasManualEntryMap } from './optimizer/types/types.js';
 
 // Brand types + smart constructors. Consumers building `TransformModulesOptions`
 // or `TransformModuleInput` from raw strings need these to satisfy the type

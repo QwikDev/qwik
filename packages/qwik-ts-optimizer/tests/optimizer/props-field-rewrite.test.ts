@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { rewritePropsFieldReferences } from '../../src/optimizer/utils/props-field-rewrite.js';
+import { rewritePropsFieldReferences } from '../../src/optimizer/rewrite/props-field-rewrite.js';
 
 describe('props-field-rewrite', () => {
   it('preserves the segment-codegen behavior for member-expression properties', () => {

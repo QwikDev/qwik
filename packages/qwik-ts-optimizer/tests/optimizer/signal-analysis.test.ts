@@ -10,7 +10,7 @@ import { parseSync } from 'oxc-parser';
 import {
   analyzeSignalExpression,
   SignalHoister,
-} from '../../src/optimizer/signal-analysis.js';
+} from '../../src/optimizer/jsx/signal-analysis.js';
 
 /**
  * Helper: parse an expression string into an AST expression node.

@@ -27,7 +27,7 @@ import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { relative } from 'node:path';
 import { transformModule } from '../../src/optimizer/transform/index.js';
-import type { TransformModuleInput } from '../../src/optimizer/types.js';
+import type { TransformModuleInput } from '../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 import * as process from "node:process";
 

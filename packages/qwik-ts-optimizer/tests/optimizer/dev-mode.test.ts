@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import {
   buildQrlDevDeclaration,
   buildDevFilePath,
-} from '../../src/optimizer/dev-mode.js';
+} from '../../src/optimizer/segment/dev-mode.js';
 import { injectUseHmr } from '../../src/optimizer/transform/module-cleanup.js';
 
 describe('buildQrlDevDeclaration', () => {

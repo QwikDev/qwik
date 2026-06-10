@@ -17,8 +17,8 @@ import {
   processJsxTag,
   transformAllJsx,
   type JsxTransformContext,
-} from '../../src/optimizer/transform/jsx.js';
-import { SignalHoister } from '../../src/optimizer/signal-analysis.js';
+} from '../../src/optimizer/jsx/jsx.js';
+import { SignalHoister } from '../../src/optimizer/jsx/signal-analysis.js';
 import MagicString from 'magic-string';
 
 function makeCtx(

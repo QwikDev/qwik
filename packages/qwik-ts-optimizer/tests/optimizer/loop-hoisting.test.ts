@@ -13,7 +13,7 @@ import {
   generateParamPadding,
   buildCaptureProp,
   eventHandlerQpParams,
-} from '../../src/optimizer/loop-hoisting.js';
+} from '../../src/optimizer/jsx/loop-hoisting.js';
 
 // ---------------------------------------------------------------------------
 // Helper: parse source and find first node of given type

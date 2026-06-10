@@ -8,8 +8,8 @@
 import { describe, it, expect } from 'vitest';
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
-import { replaceConstants } from '../../src/optimizer/const-replacement.js';
-import { collectImports } from '../../src/optimizer/marker-detection.js';
+import { replaceConstants } from '../../src/optimizer/rewrite/const-replacement.js';
+import { collectImports } from '../../src/optimizer/extraction/marker-detection.js';
 import { transformModule } from '../../src/index.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 

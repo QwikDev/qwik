@@ -17,34 +17,34 @@
 import MagicString from 'magic-string';
 import { createRegExp, exactly, wordBoundary } from 'magic-regexp';
 import { parseSync } from 'oxc-parser';
-import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extract.js';
-import type { ImportInfo } from '../marker-detection.js';
-import type { MigrationDecision, ModuleLevelDecl } from '../variable-migration.js';
+import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
+import type { ImportInfo } from '../extraction/marker-detection.js';
+import type { MigrationDecision, ModuleLevelDecl } from '../analysis/variable-migration.js';
 import type { RelativePath } from '../types/brands.js';
-import { rewriteImportSource } from '../rewrite-imports.js';
+import { rewriteImportSource } from './rewrite-imports.js';
 import {
   buildSyncTransform,
   needsPureAnnotation,
   getQrlCalleeName,
-} from '../rewrite-calls.js';
+} from './rewrite-calls.js';
 import { isEventHandlerOrJsxProp, isStrippedExtraction, matchesRegCtxName } from './predicates.js';
-import { transformEventPropName } from '../transform/event-handlers.js';
-import { transformAllJsx, JsxKeyCounter } from '../transform/jsx.js';
-import { computeKeyPrefix } from '../key-prefix.js';
-import { eventHandlerQpParams } from '../loop-hoisting.js';
+import { transformEventPropName } from '../jsx/event-handlers.js';
+import { transformAllJsx, JsxKeyCounter } from '../jsx/jsx.js';
+import { computeKeyPrefix } from '../jsx/key-prefix.js';
+import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
 import {
   collectJsxFunctionNamesFromIterable,
   transformJsxCalls,
-} from '../transform/jsx-call-transform.js';
-import { stripExportDeclarations } from '../strip-exports.js';
-import { replaceConstants } from '../const-replacement.js';
-import type { EmitMode } from '../types.js';
-import { collectBindingNamesFromPattern } from '../utils/binding-pattern.js';
+} from '../jsx/jsx-call-transform.js';
+import { stripExportDeclarations } from './strip-exports.js';
+import { replaceConstants } from './const-replacement.js';
+import type { EmitMode } from '../types/types.js';
+import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import type { AstFunction, AstNode, AstProgram, ImportDeclarationSpecifier, ImportSpecifier } from '../../ast-types.js';
-import { forEachAstChild } from '../utils/ast.js';
-import { getJsxAttributeName } from '../utils/jsx-attr-name.js';
-import { wCallSuffix } from '../utils/w-call.js';
-import { pureAwareOverwriteStart } from '../utils/text-scanning.js';
+import { forEachAstChild } from '../ast/guards.js';
+import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
+import { wCallSuffix } from '../qwik/w-call.js';
+import { pureAwareOverwriteStart } from '../edit/text-scanning.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import type { RewriteContext } from './rewrite-context.js';
 import {

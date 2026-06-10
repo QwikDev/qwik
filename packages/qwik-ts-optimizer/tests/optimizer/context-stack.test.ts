@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ContextStack } from '../../src/optimizer/context-stack.js';
+import { ContextStack } from '../../src/optimizer/extraction/context-stack.js';
 
 describe('ContextStack', () => {
   it('empty stack produces "s_" display name suffix', () => {

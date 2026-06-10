@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeLineColFromOffset } from '../../src/optimizer/utils/source-loc.js';
+import { computeLineColFromOffset } from '../../src/optimizer/diagnostics/source-loc.js';
 
 describe('source-loc', () => {
   it('computes 1-based line and column positions', () => {

@@ -6,7 +6,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
-import { walkAstForQp } from '../../src/optimizer/utils/qp-walk.js';
+import { walkAstForQp } from '../../src/optimizer/jsx/qp-walk.js';
 
 function qpFor(
   source: string,

@@ -15,7 +15,7 @@ import {
   isEventProp,
   isPassiveDirective,
   collectPassiveDirectives,
-} from '../../src/optimizer/transform/event-handlers.js';
+} from '../../src/optimizer/jsx/event-handlers.js';
 
 // Minimal valid JSXAttribute node — collectPassiveDirectives keys only on the
 // attribute name, so value/span are inert filler.

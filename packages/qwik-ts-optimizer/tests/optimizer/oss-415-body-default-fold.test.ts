@@ -39,11 +39,11 @@
 
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../src/optimizer/transform/index.js';
-import type { TransformModule } from '../../src/optimizer/types.js';
+import type { TransformModule } from '../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 import {
   foldBodySimplifiableExpressions,
-} from '../../src/optimizer/utils/simplify.js';
+} from '../../src/optimizer/jsx/simplify.js';
 
 function findParent(result: { modules: readonly TransformModule[] }): TransformModule {
   const parent = result.modules.find((m) => m.kind === 'parent');

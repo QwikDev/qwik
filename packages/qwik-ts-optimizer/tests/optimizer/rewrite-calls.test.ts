@@ -5,7 +5,7 @@ import {
   buildSyncTransform,
   needsPureAnnotation,
   getQrlImportSource,
-} from '../../src/optimizer/rewrite-calls.js';
+} from '../../src/optimizer/rewrite/rewrite-calls.js';
 
 describe('getQrlCalleeName', () => {
   it('component$ returns componentQrl', () => {

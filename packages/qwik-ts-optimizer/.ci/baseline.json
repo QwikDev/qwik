@@ -685,6 +685,8 @@
       "tests/optimizer/jsx-transform.test.ts :: transformJsxElement uses string literal for lowercase (HTML) tags",
       "tests/optimizer/jsx-transform.test.ts :: transformJsxFragment transforms <>child</> to _jsxSorted(_Fragment, ...)",
       "tests/optimizer/jsx-transform.test.ts :: transformJsxFragment transforms fragment with multiple children to array",
+      "tests/optimizer/jsxdev-handler-extraction.test.ts :: pre-padded handler params (idempotent input): q:p excludes padding slots client/smart: q:p carries the real param, never the numbered padding",
+      "tests/optimizer/jsxdev-handler-extraction.test.ts :: pre-padded handler params (idempotent input): q:p excludes padding slots server/hoist: q:p carries the real param, never the numbered padding",
       "tests/optimizer/jsxdev-handler-extraction.test.ts :: pre-transformed `_jsxDEV` event-handler extraction client/default: handler is lifted to its own segment and the server$ binding survives",
       "tests/optimizer/jsxdev-handler-extraction.test.ts :: pre-transformed `_jsxDEV` event-handler extraction server/hoist+stripEventHandlers: no JSX-attribute syntax leaks into the object literal",
       "tests/optimizer/jsxdev-handler-extraction.test.ts :: pre-transformed `_jsxDEV` reactive emit (q:p, const-bag, _wrapProp, flags) client/smart: capturing handler gets q:p + const-bag + _wrapProp + flag 7",
@@ -702,6 +704,13 @@
       "tests/optimizer/loop-hoisting.test.ts :: detectLoopContext detects WhileStatement",
       "tests/optimizer/loop-hoisting.test.ts :: detectLoopContext returns null for non-.map() call expression",
       "tests/optimizer/loop-hoisting.test.ts :: detectLoopContext returns null for non-loop node",
+      "tests/optimizer/loop-hoisting.test.ts :: eventHandlerQpParams keeps underscore-prefixed identifiers that are not padding-shaped",
+      "tests/optimizer/loop-hoisting.test.ts :: eventHandlerQpParams returns [] for a bare `_, _1` prefix with no capture params",
+      "tests/optimizer/loop-hoisting.test.ts :: eventHandlerQpParams returns [] for an empty param list",
+      "tests/optimizer/loop-hoisting.test.ts :: eventHandlerQpParams returns [] when the `_, _1` prefix is absent",
+      "tests/optimizer/loop-hoisting.test.ts :: eventHandlerQpParams returns capture params after the prefix in positional order",
+      "tests/optimizer/loop-hoisting.test.ts :: eventHandlerQpParams skips a bare `_` param past the prefix",
+      "tests/optimizer/loop-hoisting.test.ts :: eventHandlerQpParams skips numbered padding params from unused slots",
       "tests/optimizer/loop-hoisting.test.ts :: generateParamPadding generates base padding with no loop vars",
       "tests/optimizer/loop-hoisting.test.ts :: generateParamPadding generates padding with multiple loop vars",
       "tests/optimizer/loop-hoisting.test.ts :: generateParamPadding generates padding with single loop var",
@@ -1214,6 +1223,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1030
+    "total": 1039
   }
 }

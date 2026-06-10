@@ -35,6 +35,7 @@ import {
   buildClosureLexicalScopes,
   collectScopeIdentifiers,
 } from "../analysis/capture-analysis.js";
+import { computeClosureFreeIdentifiers } from "../analysis/closure-free-identifiers.js";
 import {
   analyzeMigration,
   collectModuleLevelDecls,
@@ -503,6 +504,12 @@ function analyzeModuleCaptures(
   // module scope at the closure's location.
   const closureLexicalScopes = buildClosureLexicalScopes(program, closureNodes);
 
+  // Free identifiers per closure, computed in one pair of program walks
+  // and shared by capture analysis, event-handler capture promotion, and
+  // C02 diagnostics. Keyed by closure node identity so the prod
+  // `s_<hash>` rename can't desynchronize lookups.
+  const closureFreeIdentifiers = computeClosureFreeIdentifiers(program, closureNodes);
+
   // Run capture analysis with the correct parent scope for each extraction.
   for (const extraction of extractions) {
     const closureNode = closureNodes.get(extraction.symbolName);
@@ -539,6 +546,7 @@ function analyzeModuleCaptures(
     const result = analyzeCaptures(
       closureNode,
       parentScopeIds,
+      closureFreeIdentifiers.get(closureNode) ?? [],
     );
     extraction.captureNames = result.captureNames;
     extraction.paramNames = result.paramNames;
@@ -607,6 +615,7 @@ function analyzeModuleCaptures(
   const eventCaptureCtx: EventCaptureContext = {
     extractions,
     closureNodes,
+    closureFreeIdentifiers,
     bodyScopeIds,
     moduleScopeIds,
     importedNames,
@@ -637,6 +646,7 @@ function analyzeModuleCaptures(
   detectC02Diagnostics(
     extractions,
     closureNodes,
+    closureFreeIdentifiers,
     enclosingExtMap,
     importedNames,
     program,

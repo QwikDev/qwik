@@ -7,7 +7,7 @@
  * same element.
  */
 
-import { walk, getUndeclaredIdentifiersInFunction } from "oxc-walker";
+import { walk } from "oxc-walker";
 import { walkWithProtocol } from "../ast/walk-with-protocol.js";
 import type { AstNode, AstFunction, AstProgram } from "../../ast-types.js";
 import type { ExtractionResult } from "../extraction/extract.js";
@@ -159,6 +159,11 @@ export interface ScopeEntry {
 export interface EventCaptureContext {
   extractions: ExtractionResult[];
   closureNodes: Map<string, AstFunction>;
+  /**
+   * Module-wide free-identifier map (`computeClosureFreeIdentifiers`),
+   * keyed by closure node. Replaces per-handler re-derivation.
+   */
+  closureFreeIdentifiers: ReadonlyMap<AstFunction, readonly string[]>;
   bodyScopeIds: Map<string, Set<string>>;
   moduleScopeIds: Set<string>;
   importedNames: Set<string>;
@@ -333,14 +338,13 @@ function collectWhileLoopCounterCandidates(
 }
 
 /**
- * Workaround: oxc-walker's getUndeclaredIdentifiersInFunction does not
- * report for-statement init variables (e.g., `i` in `for(let i=0;...)`)
- * or for-in left variables (e.g., `key` in `for(const key in obj)`) as
- * undeclared, even though they're not declared within the handler
- * function itself. For-of variables ARE reported. Augments the raw list
- * with any enclosing loop's iterVars referenced in the handler body
- * text, plus — for while/do-while loops — counter-variable candidates
- * from intermediate function scopes.
+ * Workaround: the free-identifier walk never visits identifiers in
+ * computed-member-property position, so a handler referencing a loop
+ * variable only as an index (`count[i]++`) does not surface `i` as a
+ * free identifier. Augments the raw list with any enclosing loop's
+ * iterVars referenced in the handler body text, plus — for
+ * while/do-while loops — counter-variable candidates from intermediate
+ * function scopes.
  */
 function augmentUndeclaredIdsForLoops(
   extraction: ExtractionResult,
@@ -535,12 +539,8 @@ export function promoteEventHandlerCaptures(
     // analysis misses because they're intermediate nested functions).
     const closureNode = closureNodes.get(extraction.symbolName);
     if (!closureNode) continue;
-    let rawUndeclaredIds: string[];
-    try {
-      rawUndeclaredIds = getUndeclaredIdentifiersInFunction(closureNode);
-    } catch {
-      continue;
-    }
+    const rawUndeclaredIds = ctx.closureFreeIdentifiers.get(closureNode);
+    if (!rawUndeclaredIds) continue;
     const undeclaredIds = augmentUndeclaredIdsForLoops(
       extraction,
       rawUndeclaredIds,

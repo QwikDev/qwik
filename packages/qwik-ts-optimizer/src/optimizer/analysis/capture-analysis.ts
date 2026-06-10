@@ -6,7 +6,7 @@
  * the `captureNames` array in segment metadata, used for _captures injection.
  */
 
-import { getUndeclaredIdentifiersInFunction, walk } from 'oxc-walker';
+import { walk } from 'oxc-walker';
 import type {
   AstFunction,
   AstMaybeNode,
@@ -34,13 +34,18 @@ export interface CaptureAnalysisResult {
  * serialization boundary. Excludes globals; includes parent-scope
  * bindings even when a same-name top-level import exists (the inner
  * binding shadows the import).
+ *
+ * `freeIdentifiers` is the closure's slice of the module-wide
+ * free-identifier map (`computeClosureFreeIdentifiers`) — the caller
+ * computes that map once per module instead of re-walking per closure.
  */
 export function analyzeCaptures(
   closureNode: AstFunction,
   parentScopeIdentifiers: Set<string>,
+  freeIdentifiers: readonly string[],
 ): CaptureAnalysisResult {
   const paramNames = collectParamNames(closureNode.params ?? []);
-  const undeclared = getUndeclaredIdentifiersInFunction(closureNode);
+  const undeclared = freeIdentifiers;
 
   // Parent-scope membership wins unconditionally. Same-scope import +
   // decl is illegal in JS, so a name appearing in both

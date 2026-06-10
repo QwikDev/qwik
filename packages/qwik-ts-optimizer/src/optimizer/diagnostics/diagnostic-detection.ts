@@ -1,4 +1,4 @@
-import { getUndeclaredIdentifiersInFunction, walk } from 'oxc-walker';
+import { walk } from 'oxc-walker';
 import type {
   AstEcmaScriptModule,
   AstFunction,
@@ -47,6 +47,7 @@ function buildHighlight(source: string, lo: number, hi: number): DiagnosticHighl
 export function detectC02Diagnostics(
   extractions: ExtractionResult[],
   closureNodes: Map<string, AstFunction>,
+  closureFreeIdentifiers: ReadonlyMap<AstFunction, readonly string[]>,
   enclosingExtMap: Map<string, ExtractionResult>,
   importedNames: Set<string>,
   program: AstProgram,
@@ -58,13 +59,8 @@ export function detectC02Diagnostics(
     const closureNode = closureNodes.get(extraction.symbolName);
     if (!closureNode) continue;
 
-    let undeclaredIds: string[];
-    try {
-      undeclaredIds = getUndeclaredIdentifiersInFunction(closureNode);
-    } catch {
-      continue;
-    }
-    if (undeclaredIds.length === 0) continue;
+    const undeclaredIds = closureFreeIdentifiers.get(closureNode);
+    if (!undeclaredIds || undeclaredIds.length === 0) continue;
 
     const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
     const enclosingClosure = enclosingExt

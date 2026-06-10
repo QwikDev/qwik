@@ -14,6 +14,7 @@ import {
   collectScopeIdentifiers,
   type CaptureAnalysisResult,
 } from '../../../src/optimizer/analysis/capture-analysis.js';
+import { computeClosureFreeIdentifiers } from '../../../src/optimizer/analysis/closure-free-identifiers.js';
 
 // ---------------------------------------------------------------------------
 // Helper: find the $() call's argument node in parsed source
@@ -29,6 +30,7 @@ function findDollarArg(source: string): {
   argNode: any;
   parentScopeIds: Set<string>;
   importedNames: Set<string>;
+  freeIds: readonly string[];
 } {
   const { program } = parseSync('test.tsx', source);
 
@@ -90,7 +92,9 @@ function findDollarArg(source: string): {
     },
   });
 
-  return { argNode, parentScopeIds, importedNames };
+  const freeIds =
+    computeClosureFreeIdentifiers(program as any, new Map([['t', argNode]])).get(argNode) ?? [];
+  return { argNode, parentScopeIds, importedNames, freeIds };
 }
 
 /** Recursively collect binding names from a pattern node. */
@@ -134,6 +138,7 @@ function findNthDollarArg(source: string, n: number): {
   argNode: any;
   parentScopeIds: Set<string>;
   importedNames: Set<string>;
+  freeIds: readonly string[];
 } {
   const { program } = parseSync('test.tsx', source);
 
@@ -192,7 +197,9 @@ function findNthDollarArg(source: string, n: number): {
     },
   });
 
-  return { argNode, parentScopeIds, importedNames };
+  const freeIds =
+    computeClosureFreeIdentifiers(program as any, new Map([['t', argNode]])).get(argNode) ?? [];
+  return { argNode, parentScopeIds, importedNames, freeIds };
 }
 
 // ---------------------------------------------------------------------------
@@ -210,8 +217,8 @@ describe('analyzeCaptures', () => {
     `;
 
     // The inner $() is the second $() call (index 1)
-    const { argNode, parentScopeIds, importedNames } = findNthDollarArg(source, 1);
-    const result = analyzeCaptures(argNode, parentScopeIds);
+    const { argNode, parentScopeIds, importedNames, freeIds } = findNthDollarArg(source, 1);
+    const result = analyzeCaptures(argNode, parentScopeIds, freeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['s']);
@@ -228,8 +235,8 @@ describe('analyzeCaptures', () => {
       }
     `;
 
-    const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds);
+    const { argNode, parentScopeIds, importedNames, freeIds } = findDollarArg(source);
+    const result = analyzeCaptures(argNode, parentScopeIds, freeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['alpha', 'mid', 'zebra']);
@@ -244,8 +251,8 @@ describe('analyzeCaptures', () => {
       }
     `;
 
-    const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds);
+    const { argNode, parentScopeIds, importedNames, freeIds } = findDollarArg(source);
+    const result = analyzeCaptures(argNode, parentScopeIds, freeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['x']);
@@ -261,8 +268,8 @@ describe('analyzeCaptures', () => {
       }
     `;
 
-    const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds);
+    const { argNode, parentScopeIds, importedNames, freeIds } = findDollarArg(source);
+    const result = analyzeCaptures(argNode, parentScopeIds, freeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['state']);
@@ -278,8 +285,8 @@ describe('analyzeCaptures', () => {
       }
     `;
 
-    const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds);
+    const { argNode, parentScopeIds, importedNames, freeIds } = findDollarArg(source);
+    const result = analyzeCaptures(argNode, parentScopeIds, freeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['x']);
@@ -293,8 +300,8 @@ describe('analyzeCaptures', () => {
       };
     `;
 
-    const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds);
+    const { argNode, parentScopeIds, importedNames, freeIds } = findDollarArg(source);
+    const result = analyzeCaptures(argNode, parentScopeIds, freeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['count', 'name']);
@@ -306,8 +313,8 @@ describe('analyzeCaptures', () => {
       $((props) => { props.value; });
     `;
 
-    const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds);
+    const { argNode, parentScopeIds, importedNames, freeIds } = findDollarArg(source);
+    const result = analyzeCaptures(argNode, parentScopeIds, freeIds);
 
     expect(result.paramNames).toEqual(['props']);
   });
@@ -321,9 +328,9 @@ describe('analyzeCaptures', () => {
     `;
 
     // For module-level, parentScopeIds is empty (no enclosing function scope)
-    const { argNode } = findDollarArg(source);
+    const { argNode, freeIds } = findDollarArg(source);
     const emptyParentScope = new Set<string>();
-    const result = analyzeCaptures(argNode, emptyParentScope);
+    const result = analyzeCaptures(argNode, emptyParentScope, freeIds);
 
     expect(result.captures).toBe(false);
     expect(result.captureNames).toEqual([]);
@@ -335,8 +342,8 @@ describe('analyzeCaptures', () => {
       $((event) => { event.target; });
     `;
 
-    const { argNode, parentScopeIds, importedNames } = findDollarArg(source);
-    const result = analyzeCaptures(argNode, parentScopeIds);
+    const { argNode, parentScopeIds, importedNames, freeIds } = findDollarArg(source);
+    const result = analyzeCaptures(argNode, parentScopeIds, freeIds);
 
     expect(result.captureNames).not.toContain('event');
     expect(result.captures).toBe(false);
@@ -356,12 +363,12 @@ describe('analyzeCaptures', () => {
     `;
 
     // The $() inside host() is the second $-suffixed call in the source.
-    const { argNode, parentScopeIds, importedNames } = findNthDollarArg(source, 0);
+    const { argNode, parentScopeIds, importedNames, freeIds } = findNthDollarArg(source, 0);
     // Sanity check: the helper records both the import AND the inner binding.
     expect(importedNames.has('qrl')).toBe(true);
     expect(parentScopeIds.has('qrl')).toBe(true);
 
-    const result = analyzeCaptures(argNode, parentScopeIds);
+    const result = analyzeCaptures(argNode, parentScopeIds, freeIds);
 
     expect(result.captures).toBe(true);
     expect(result.captureNames).toEqual(['qrl']);

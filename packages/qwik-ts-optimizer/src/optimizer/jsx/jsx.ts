@@ -105,9 +105,9 @@ export interface JsxTransformContext {
  * Enter-phase context for the JSX walker. Carries the read-only
  * source text plus the two enter-phase accumulators: the loop stack (pushed
  * on loop enter) and the sole-child JSX marker WeakSet (filled when a parent
- * JSX node first sees its children). Holds NO MagicString — calling
- * `ctx.s.overwrite(...)` from the enter handler is a compile error because
- * this type has no `s` field.
+ * JSX node first sees its children). Holds NO write path — calling
+ * `ctx.writeJsxCall(...)` from the enter handler is a compile error because
+ * this type has no such field.
  */
 export interface JsxWalkEnterContext {
   readonly source: string;
@@ -117,14 +117,16 @@ export interface JsxWalkEnterContext {
 
 /**
  * Exit-phase context for the JSX walker. Extends EnterContext with
- * the MagicString accumulator, the per-element transform inputs (`jsxCtx`,
- * `enableSignals`, `qpOverrides`, `ranges`), and the act-helpers needed
- * during leave: `neededImports` (write target), `getDevSourceSuffix` (dev
- * suffix builder), `setNeedsFragment` (flip the outer `needsFragment` flag
- * when a JSXFragment is rewritten).
+ * the per-element transform inputs (`jsxCtx`, `enableSignals`,
+ * `qpOverrides`, `ranges`) and the act-helpers needed during leave:
+ * `neededImports` (write target), `getDevSourceSuffix` (dev suffix
+ * builder), `setNeedsFragment` (flip the outer `needsFragment` flag when
+ * a JSXFragment is rewritten), and `writeJsxCall` (the only MagicString
+ * write path — it records each overwrite so the signal-hoist rename pass
+ * can later rewrite exactly the inserted chunks without disturbing
+ * original-source offsets).
  */
 export interface JsxWalkExitContext extends JsxWalkEnterContext {
-  readonly s: MagicString;
   readonly ranges: ReadonlyArray<{ start: number; end: number }>;
   readonly jsxCtx: JsxTransformContext;
   readonly enableSignals: boolean;
@@ -132,6 +134,7 @@ export interface JsxWalkExitContext extends JsxWalkEnterContext {
   readonly neededImports: Set<string>;
   readonly getDevSourceSuffix: (nodeStart: number) => string;
   readonly setNeedsFragment: () => void;
+  readonly writeJsxCall: (start: number, end: number, content: string) => void;
 }
 
 /** Per-element options for `transformJsxElement`. All fields are optional. */
@@ -747,12 +750,8 @@ function isInSkipRange(
  * Apply two-phase rename (old -> temp -> new) to avoid collisions when
  * renumbering _hf variables to match SWC's top-down source order.
  */
-function applySignalHoistRenames(
-  s: MagicString,
-  renameMap: Map<string, string>,
-): void {
-  const content = s.toString();
-  let renamed = content;
+function renameSignalHoistNames(text: string, renameMap: Map<string, string>): string {
+  let renamed = text;
 
   const tempMap = new Map<string, string>();
   for (const [oldName, newName] of renameMap) {
@@ -767,8 +766,40 @@ function applySignalHoistRenames(
     renamed = renamed.split(temp).join(newName);
   }
 
-  if (renamed !== content) {
-    s.overwrite(0, s.original.length, renamed);
+  return renamed;
+}
+
+/** One JSX overwrite performed during the walk: range + written content. */
+interface RecordedJsxWrite {
+  readonly start: number;
+  readonly end: number;
+  readonly content: string;
+}
+
+/**
+ * Renumber `_hf` occurrences in the buffer. Every `_hf<n>` name lives
+ * inside content the JSX walk itself inserted (`_fnSignal(_hf<n>, ...)`
+ * call sites inside rewritten JSX; the hoisted declarations are renamed
+ * separately by `buildRenameMap` before emission), so renames are applied
+ * by re-overwriting exactly the recorded JSX write ranges with renamed
+ * content. Replaying in recorded (bottom-up) order reproduces the walk's
+ * child-then-enclosing-parent overwrite nesting, so the final buffer
+ * state matches what a buffer-wide rewrite would produce — without
+ * replacing untouched chunks. Original-source offsets outside JSX stay
+ * valid for later passes on the shared MagicString (the peer-tool `jsx()`
+ * rewrite, moved-decl snapshot slices), which read via `s.slice` at
+ * original AST positions and error on replaced anchors.
+ */
+function applySignalHoistRenames(
+  s: MagicString,
+  renameMap: Map<string, string>,
+  writes: ReadonlyArray<RecordedJsxWrite>,
+): void {
+  for (const write of writes) {
+    const renamed = renameSignalHoistNames(write.content, renameMap);
+    if (renamed !== write.content) {
+      s.overwrite(write.start, write.end, renamed);
+    }
   }
 }
 
@@ -911,10 +942,10 @@ export function transformAllJsx(
   // Split walk state into Enter and Exit context views so the
   // type system enforces "enter gathers, exit acts." Enter sees only what's
   // needed to record loop context and pre-mark sole-child JSX nodes; Exit
-  // adds the MagicString, the dev-suffix helper, and the act-helpers that
-  // mutate `s` and `needsFragment`. Calling `ctx.s.overwrite(...)` from
-  // enter would be a compile error because the EnterContext type has no
-  // `s` field.
+  // adds the dev-suffix helper and the act-helpers that mutate `s` and
+  // `needsFragment`. Calling `ctx.writeJsxCall(...)` from enter would be a
+  // compile error because the EnterContext type has no such field.
+  const jsxWrites: RecordedJsxWrite[] = [];
   const enterCtx: JsxWalkEnterContext = {
     source,
     loopStack,
@@ -922,7 +953,6 @@ export function transformAllJsx(
   };
   const exitCtx: JsxWalkExitContext = {
     ...enterCtx,
-    s,
     ranges,
     jsxCtx,
     enableSignals,
@@ -930,6 +960,10 @@ export function transformAllJsx(
     neededImports,
     getDevSourceSuffix,
     setNeedsFragment: () => { needsFragment = true; },
+    writeJsxCall: (start, end, content) => {
+      s.overwrite(start, end, content);
+      jsxWrites.push({ start, end, content });
+    },
   };
 
   walkWithProtocol(program, enterCtx, exitCtx, {
@@ -970,14 +1004,14 @@ export function transformAllJsx(
         });
         if (result) {
           const callStr = appendDevSuffix(result.callString, ctx.getDevSourceSuffix(node.start));
-          ctx.s.overwrite(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
+          ctx.writeJsxCall(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
           for (const imp of result.neededImports) ctx.neededImports.add(imp);
         }
       } else if (node.type === 'JSXFragment') {
         const result = transformJsxFragment(ctx.jsxCtx, node);
         if (result) {
           const callStr = appendDevSuffix(result.callString, ctx.getDevSourceSuffix(node.start));
-          ctx.s.overwrite(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
+          ctx.writeJsxCall(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
           for (const imp of result.neededImports) ctx.neededImports.add(imp);
           ctx.setNeedsFragment();
         }
@@ -987,7 +1021,7 @@ export function transformAllJsx(
 
   const renameMap = signalHoister.buildRenameMap();
   if (renameMap && renameMap.size > 0) {
-    applySignalHoistRenames(s, renameMap);
+    applySignalHoistRenames(s, renameMap, jsxWrites);
   }
 
   const hoistedDeclarations = signalHoister.getDeclarations();

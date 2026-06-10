@@ -602,7 +602,7 @@ Every JSX element gets a key string of the form `"<prefix>_<count>"` (e.g., `"u6
 
 Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `jsx/jsx.ts:670–690`, threaded as:
 
-- `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:997) → into `transform/index.ts:1070` (`generateSegments`).
+- `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:1028) → into `transform/index.ts:1070` (`generateSegments`).
 - `parentJsxKeyCounterValue` → consumed by `segment-generation.ts:1238` and `transformSegmentJsx` (segment/segment-codegen.ts:378) as `keyCounterStart`.
 - Each segment's emit returns its updated `keyCounterValue` (`segment-generation.ts:1310`, folded back in the `generateAllSegmentModules` sequencer) — folded back so the next segment continues counting.
 

@@ -35,6 +35,7 @@ external
 lib
 tsdoc-metadata.json
 packages/qwik/bindings
+e2e/vite-e2e/output
 
 # IDE and local environment
 .idea

@@ -244,6 +244,7 @@
     "test.e2e.firefox": "playwright test starters --browser=firefox --config starters/playwright.config.ts",
     "test.e2e.integrations.chromium": "playwright test e2e/adapters-e2e/tests --project=chromium --config e2e/adapters-e2e/playwright.config.ts",
     "test.e2e.integrations.webkit": "playwright test e2e/adapters-e2e/tests --project=webkit --config e2e/adapters-e2e/playwright.config.ts",
+    "test.e2e.vite": "playwright test e2e/vite-e2e/tests --config e2e/vite-e2e/playwright.config.ts",
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",
     "test.e2e.qwik-react.chromium": "playwright test e2e/qwik-react-e2e/tests --project=chromium --config e2e/qwik-react-e2e/playwright.config.ts",
     "test.e2e.qwik-react.webkit": "playwright test e2e/qwik-react-e2e/tests --project=webkit --config e2e/qwik-react-e2e/playwright.config.ts",

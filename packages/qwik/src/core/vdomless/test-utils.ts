@@ -24,6 +24,9 @@ import {
 import { createTask, createTaskGroup } from './runtime/task';
 import { renderToString, type SsrRenderRoot } from '../../server/vdomless/ssr-render';
 import type { QwikLoaderOptions } from '../../server/types';
+import { bootQwikLoader, type QwikLoaderTestDriver } from './qwikloader-test-driver';
+export { bootQwikLoader };
+export type { QwikLoaderTestDriver };
 
 export const noopSchedule = (): void => {};
 
@@ -39,6 +42,7 @@ export interface RenderResult {
   html: string;
   nodes: readonly Node[];
   scheduler: Scheduler;
+  qwikLoader?: QwikLoaderTestDriver;
   flush: () => Promise<void>;
   cleanup: () => void;
 }
@@ -285,6 +289,7 @@ type TransformModule = Awaited<ReturnType<typeof transformModules>>['modules'][n
 interface CompiledRoot<TRoot> {
   root: TRoot;
   modules: readonly TransformModule[];
+  moduleBase: string;
 }
 
 interface CompiledInput {
@@ -309,7 +314,13 @@ export async function csrRender(jsx: JSXOutput, options?: RenderOptions): Promis
   const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
   const renderResult = await renderCsr(compiled.root, container, { scheduler });
   const nodes = Array.from(container.childNodes);
-  const cleanup = createRenderCleanup(renderResult.cleanup, container);
+  const qwikLoader = shouldBootQwikLoaderFromEvents(document)
+    ? withSchedulerFlush(await bootQwikLoader(document), scheduler)
+    : undefined;
+  const cleanup = createRenderCleanup(() => {
+    qwikLoader?.cleanup();
+    renderResult.cleanup();
+  }, container);
   const result = createRenderResult(document, container, nodes, scheduler, cleanup);
   await result.flush();
   await debugRender('csr', compiled.modules, container.innerHTML, options);
@@ -317,6 +328,7 @@ export async function csrRender(jsx: JSXOutput, options?: RenderOptions): Promis
   return {
     ...result,
     html: container.innerHTML,
+    qwikLoader,
   };
 }
 
@@ -326,14 +338,22 @@ export async function ssrRender(jsx: JSXOutput, options?: RenderOptions): Promis
   const result = await renderToString(compiled.root, options);
   await flushScheduler(scheduler);
 
-  const { document, container } = createContainerDocument(result.html, QContainerValue.PAUSED);
+  const { document, container } = createContainerDocument(
+    result.html,
+    QContainerValue.PAUSED,
+    compiled.moduleBase
+  );
   const nodes = Array.from(container.childNodes) as Node[];
-  const cleanup = createRenderCleanup(noopSchedule, container);
+  const qwikLoader = shouldBootQwikLoader(container)
+    ? withSchedulerFlush(await bootQwikLoader(document), scheduler)
+    : undefined;
+  const cleanup = createRenderCleanup(() => qwikLoader?.cleanup(), container);
   await debugRender('ssr', compiled.modules, container.innerHTML, options);
 
   return {
     ...createRenderResult(document, container, nodes, scheduler, cleanup),
     html: container.innerHTML,
+    qwikLoader,
   };
 }
 
@@ -369,6 +389,21 @@ function createRenderCleanup(dispose: () => void, container: HTMLElement): () =>
   };
 }
 
+function withSchedulerFlush(
+  qwikLoader: QwikLoaderTestDriver,
+  scheduler: Scheduler
+): QwikLoaderTestDriver {
+  return {
+    async dispatch(target, type, payload) {
+      await qwikLoader.dispatch(target, type, payload);
+      await flushScheduler(scheduler);
+    },
+    cleanup() {
+      qwikLoader.cleanup();
+    },
+  };
+}
+
 async function flushScheduler(scheduler: Scheduler): Promise<void> {
   await scheduler.flushInteraction();
   await scheduler.flushDeferred();
@@ -376,10 +411,12 @@ async function flushScheduler(scheduler: Scheduler): Promise<void> {
 
 function createContainerDocument(
   html: string,
-  containerState: QContainerValue
+  containerState: QContainerValue,
+  moduleBase?: string
 ): { document: Document; container: HTMLElement } {
+  const baseAttr = moduleBase ? ` q:base="${escapeHtmlAttr(moduleBase)}"` : '';
   const document = createDocument({
-    html: `<html><body><div ${QContainerAttr}="${containerState}">${html}</div></body></html>`,
+    html: `<html><body><div ${QContainerAttr}="${containerState}"${baseAttr}>${html}</div></body></html>`,
   });
   const container = document.body.firstElementChild as HTMLElement | null;
   if (container === null) {
@@ -387,6 +424,25 @@ function createContainerDocument(
   }
 
   return { document, container };
+}
+
+function escapeHtmlAttr(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+function shouldBootQwikLoader(container: Element): boolean {
+  const scripts = container.querySelectorAll('script');
+  for (let i = 0; i < scripts.length; i++) {
+    if (scripts[i].getAttribute('id') === 'qwikloader') {
+      return true;
+    }
+  }
+  return false;
+}
+
+function shouldBootQwikLoaderFromEvents(document: Document): boolean {
+  const qWindow = document.defaultView as (Window & { _qwikEv?: unknown }) | null;
+  return Array.isArray(qWindow?._qwikEv) && qWindow._qwikEv.length > 0;
 }
 
 async function compileJsxRoot<TRoot extends CsrRenderComponent | SsrRenderComponent>(
@@ -758,6 +814,7 @@ async function importCompiledRoot<TRoot extends CsrRenderComponent | SsrRenderCo
   return {
     root: root as TRoot,
     modules: result.modules,
+    moduleBase: pathToFileURL(`${dir}/`).href,
   };
 }
 

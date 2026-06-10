@@ -10,7 +10,8 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createSignal, _qrlWithChunk } from '@qwik.dev/core';
+import { createSignal } from '@qwik.dev/core';
+import { _qrlWithChunk } from '@qwik.dev/core/spark';
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
@@ -30,7 +31,7 @@ export function App(_props, ctx) {
 null
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _captures } from '@qwik.dev/core/spark';
 export const component_q_e_click_segment_0 = () => {
   const count = _captures[0];
   return count.value++;
@@ -67,7 +68,8 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, setEvent, _withCaptures } from '@qwik.dev/core';
+import { createSignal } from '@qwik.dev/core';
+import { setEvent, _withCaptures } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 
 export function App(_props, ctx) {
@@ -82,7 +84,7 @@ export function App(_props, ctx) {
 null
 ============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _captures } from '@qwik.dev/core/spark';
 export const component_q_e_click_segment_0 = () => {
   const count = _captures[0];
   return count.value++;

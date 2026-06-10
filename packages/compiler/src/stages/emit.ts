@@ -1,7 +1,7 @@
 import type { SegmentAnalysis } from '@qwik.dev/optimizer';
 import { transform } from 'oxc-transform';
 import { jsxEventToHtmlAttribute } from '../ast-utils';
-import { createCsrImports, createQwikCoreImport, createSsrImports } from '../imports';
+import { createCsrImports, createQwikSparkImport, createSsrImports } from '../imports';
 import { createModule, getLang } from '../module-utils';
 import type { CompilerContext } from '../types';
 import type { ComponentRecord, QrlSegmentOutput, RenderNode, SegmentRecord } from '../types';
@@ -155,7 +155,7 @@ function createQrlSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutp
       : '';
   const importLine =
     captures.length > 0
-      ? `${emitImports([createQwikCoreImport(QwikSymbol.Captures)]).join('\n')}\n\n`
+      ? `${emitImports([createQwikSparkImport(QwikSymbol.Captures)]).join('\n')}\n\n`
       : '';
   const params = qrlSegment.segment.paramRanges
     .map(([start, end]) => source.slice(start, end))

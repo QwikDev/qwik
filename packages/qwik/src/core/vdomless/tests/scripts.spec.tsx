@@ -1,16 +1,16 @@
 import { component$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { ssrRender } from '../test-utils';
+import { csrRender, ssrRender } from '../test-utils';
 
 const debug = false;
 
 describe('ssrRender: qwikloader', () => {
   it('should emit qwikloader and event registrations for event handlers', async () => {
-    const MyComp = component$(() => {
+    const ScriptsLoaderAttrs = component$(() => {
       return <button onClick$={() => undefined}>Click</button>;
     });
 
-    const { container, html, cleanup } = await ssrRender(<MyComp />, { debug });
+    const { container, html, cleanup } = await ssrRender(<ScriptsLoaderAttrs />, { debug });
 
     expect(container.querySelector('button')?.getAttribute('q-e:click')).toBeTruthy();
     expect(html).toContain('id="qwikloader"');
@@ -20,15 +20,97 @@ describe('ssrRender: qwikloader', () => {
   });
 
   it('should keep event registrations when qwikloader is disabled', async () => {
-    const MyComp = component$(() => {
+    const ScriptsLoaderDisabled = component$(() => {
       return <button onClick$={() => undefined}>Click</button>;
     });
 
-    const { html, cleanup } = await ssrRender(<MyComp />, { debug, qwikLoader: 'never' });
+    const { html, cleanup, qwikLoader } = await ssrRender(<ScriptsLoaderDisabled />, {
+      debug,
+      qwikLoader: 'never',
+    });
 
     expect(html).not.toContain('id="qwikloader"');
     expect(html).toContain('(window._qwikEv||(window._qwikEv=[])).push("e:click")');
+    expect(qwikLoader).toBeUndefined();
 
     cleanup();
+  });
+
+  it('should run a lazy event handler through qwikloader', async () => {
+    const ScriptsLoaderClick = () => {
+      return (
+        <button
+          onClick$={(event) => {
+            (globalThis as any).__vdomlessQwikLoaderClicks =
+              ((globalThis as any).__vdomlessQwikLoaderClicks ?? 0) + 1;
+            (globalThis as any).__vdomlessQwikLoaderEventType = event.type;
+            (globalThis as any).__vdomlessQwikLoaderClientX = (event as any).clientX;
+          }}
+        >
+          Click
+        </button>
+      );
+    };
+
+    (globalThis as any).__vdomlessQwikLoaderClicks = 0;
+    (globalThis as any).__vdomlessQwikLoaderEventType = undefined;
+    (globalThis as any).__vdomlessQwikLoaderClientX = undefined;
+    const { container, cleanup, qwikLoader } = await ssrRender(<ScriptsLoaderClick />, { debug });
+    const button = container.querySelector('button');
+
+    expect(button).not.toBeNull();
+    expect(qwikLoader).toBeDefined();
+
+    await qwikLoader!.dispatch(button!, 'click', { clientX: 7 });
+
+    expect((globalThis as any).__vdomlessQwikLoaderClicks).toBe(1);
+    expect((globalThis as any).__vdomlessQwikLoaderEventType).toBe('click');
+    expect((globalThis as any).__vdomlessQwikLoaderClientX).toBe(7);
+
+    cleanup();
+    delete (globalThis as any).__vdomlessQwikLoaderClicks;
+    delete (globalThis as any).__vdomlessQwikLoaderEventType;
+    delete (globalThis as any).__vdomlessQwikLoaderClientX;
+  });
+});
+
+describe('csrRender: qwikloader', () => {
+  it('should run a _qDispatch event handler through qwikloader', async () => {
+    const ScriptsCsrLoaderClick = () => {
+      return (
+        <button
+          onClick$={(event) => {
+            (globalThis as any).__vdomlessCsrQwikLoaderClicks =
+              ((globalThis as any).__vdomlessCsrQwikLoaderClicks ?? 0) + 1;
+            (globalThis as any).__vdomlessCsrQwikLoaderEventType = event.type;
+            (globalThis as any).__vdomlessCsrQwikLoaderClientX = (event as any).clientX;
+          }}
+        >
+          Click
+        </button>
+      );
+    };
+
+    (globalThis as any).__vdomlessCsrQwikLoaderClicks = 0;
+    (globalThis as any).__vdomlessCsrQwikLoaderEventType = undefined;
+    (globalThis as any).__vdomlessCsrQwikLoaderClientX = undefined;
+    const { container, cleanup, qwikLoader } = await csrRender(<ScriptsCsrLoaderClick />, {
+      debug,
+    });
+    const button = container.querySelector('button');
+
+    expect(button).not.toBeNull();
+    expect(qwikLoader).toBeDefined();
+
+    await qwikLoader!.dispatch(button!, 'click', { clientX: 11 });
+
+    expect((globalThis as any).__vdomlessCsrQwikLoaderClicks).toBe(1);
+    expect((globalThis as any).__vdomlessCsrQwikLoaderEventType).toBe('click');
+    expect((globalThis as any).__vdomlessCsrQwikLoaderClientX).toBe(11);
+
+    cleanup();
+    delete (globalThis as any).__vdomlessCsrQwikLoaderClicks;
+    delete (globalThis as any).__vdomlessCsrQwikLoaderEventType;
+    delete (globalThis as any).__vdomlessCsrQwikLoaderClientX;
   });
 });

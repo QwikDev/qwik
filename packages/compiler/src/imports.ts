@@ -41,10 +41,10 @@ export function createSsrImports(
     return [];
   }
   const records: ImportRecord[] = [...imports];
-  if (qrlSegments.size > 0) {
-    records.push(createQwikCoreImport(QwikSymbol.QrlWithChunk));
-  }
   const sparkSpecifiers: QwikSymbol[] = [];
+  if (qrlSegments.size > 0) {
+    sparkSpecifiers.push(QwikSymbol.QrlWithChunk);
+  }
   if (usage.hasSourceText || usage.hasTextExpression || usage.hasDynamicAttr) {
     sparkSpecifiers.push(QwikSymbol.EscapeHTML);
   }
@@ -91,8 +91,9 @@ export function createCsrImports(
   if (qrlSegments.size === 0 && !usage.hasDynamicBinding) {
     return [];
   }
-  const records: ImportRecord[] = [];
+  const records: ImportRecord[] = [...imports];
   const sparkSpecifiers: QwikSymbol[] = [];
+  const segmentImports: ImportRecord[] = [];
   if (usage.hasSourceText) {
     sparkSpecifiers.push(QwikSymbol.CreateTextNodeEffect);
   }
@@ -106,22 +107,21 @@ export function createCsrImports(
       QwikSymbol.CreateStyleEffect
     );
   }
-  if (sparkSpecifiers.length > 0) {
-    records.push(...imports, createQwikSparkImport(...sparkSpecifiers));
-  }
   if (qrlSegments.size > 0) {
-    const coreSpecifiers = [QwikSymbol.SetEvent];
+    sparkSpecifiers.push(QwikSymbol.SetEvent);
     if (hasCapturedQrlSegment(qrlSegments)) {
-      coreSpecifiers.push(QwikSymbol.WithCaptures);
+      sparkSpecifiers.push(QwikSymbol.WithCaptures);
     }
-    records.push(
-      ...imports,
-      createQwikCoreImport(...coreSpecifiers),
+    segmentImports.push(
       ...Array.from(qrlSegments.values(), (qrlSegment) =>
         createNamedImport(qrlSegment.importPath, [qrlSegment.symbolName])
       )
     );
   }
+  if (sparkSpecifiers.length > 0) {
+    records.push(createQwikSparkImport(...sparkSpecifiers));
+  }
+  records.push(...segmentImports);
   return normalizeImports(records);
 }
 

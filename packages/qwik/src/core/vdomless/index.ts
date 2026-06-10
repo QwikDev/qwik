@@ -165,3 +165,5 @@ export {
   type SsrEffectTarget,
   type TextExpressionQrl,
 } from './dom/effect/ssr-effect';
+export { _qrlWithChunk } from '../shared/qrl/qrl';
+export { _captures, withCaptures as _withCaptures } from '../shared/qrl/qrl-class';

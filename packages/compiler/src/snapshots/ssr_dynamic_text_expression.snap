@@ -12,11 +12,11 @@ export function App() {
 
 import {
   createSignal,
+  _qrlWithChunk,
   escapeHTML,
   createSsrElementTextTarget,
   renderSsrTextExpression,
 } from '@qwik.dev/core/spark';
-import { _qrlWithChunk } from '@qwik.dev/core';
 import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
 
 const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
@@ -48,7 +48,7 @@ export function App(_props, ctx) {
 null
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _captures } from '@qwik.dev/core/spark';
 export const component_text_segment_0 = () => {
   const count = _captures[0];
   return count.value + 1;

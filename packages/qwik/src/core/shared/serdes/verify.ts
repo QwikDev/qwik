@@ -6,6 +6,8 @@ import { canSerialize } from './index';
 import { isSignal } from '../../reactive-primitives/utils';
 import { unwrapStore } from '../../reactive-primitives/impl/store';
 import { untrack } from '../../use/use-core';
+import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
+import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
 import { VNode } from '../vnode/vnode';
 
 /** @internal */
@@ -31,7 +33,11 @@ const _verifySerializable = <T>(
       }
       seen.add(unwrapped);
     }
-    if (isSignal(unwrapped)) {
+    if (
+      isSignal(unwrapped) ||
+      unwrapped instanceof VdomlessSignal ||
+      unwrapped instanceof ComputedQrl
+    ) {
       return value;
     }
     if (canSerialize(unwrapped)) {

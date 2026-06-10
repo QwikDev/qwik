@@ -8,7 +8,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { _qrlWithChunk } from '@qwik.dev/core/spark';
 
 const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_0',
@@ -158,7 +158,7 @@ null
 
 ============================= src/component.tsx ==
 
-import { setEvent } from '@qwik.dev/core';
+import { setEvent } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 import { component_q_e_dblclick_segment_1 } from './component.tsx_component_q_e_dblclick_segment_1';
 import { component_q_w_scroll_segment_2 } from './component.tsx_component_q_w_scroll_segment_2';

@@ -1,4 +1,3 @@
-import { component$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 import { createSignal } from '@qwik.dev/core/spark';
@@ -10,10 +9,10 @@ describe.each([
   { name: 'csrRender', render: csrRender }, //
 ])('$name: signals', ({ render }) => {
   it('should render signal', async () => {
-    const MyComp = component$(() => {
+    const MyComp = () => {
       const count = createSignal(0);
       return <p>{count.value}</p>;
-    });
+    };
 
     const { container, html, cleanup } = await render(<MyComp />, { debug });
 
@@ -35,10 +34,10 @@ describe.each([
   });
 
   it('should update signal value', async () => {
-    const MyComp = component$(() => {
+    const MyComp = () => {
       const count = createSignal(0);
       return <button onClick$={() => count.value++}>{count.value}</button>;
-    });
+    };
 
     const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
 
@@ -54,10 +53,10 @@ describe.each([
   });
 
   it('should update mixed signal text', async () => {
-    const MyComp = component$(() => {
+    const MyComp = () => {
       const count = createSignal(0);
       return <button onClick$={() => count.value++}>Count {count.value}</button>;
-    });
+    };
 
     const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
 
@@ -73,10 +72,10 @@ describe.each([
   });
 
   it('should update text expression value', async () => {
-    const MyComp = component$(() => {
+    const MyComp = () => {
       const count = createSignal(0);
       return <button onClick$={() => count.value++}>{count.value + 1}</button>;
-    });
+    };
 
     const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
 

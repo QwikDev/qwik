@@ -8,6 +8,7 @@ import { transformModules } from '../../../../compiler/src/index';
 import { createDocument } from '../../testing/document';
 import { isJSXNode } from '../shared/jsx/jsx-node';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
+import { _dumpState } from '../shared/serdes/dump-state';
 import { QContainerValue, type Container } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
 import { render as renderCsr, type CsrRenderRoot } from './csr-render';
@@ -289,6 +290,11 @@ export type SsrRenderComponent = SsrRenderRoot;
 type RenderTarget = 'csr' | 'ssr';
 type TransformModule = Awaited<ReturnType<typeof transformModules>>['modules'][number];
 
+interface DebugStateChunk {
+  label: string;
+  contents: string;
+}
+
 interface CompiledRoot<TRoot> {
   root: TRoot;
   modules: readonly TransformModule[];
@@ -351,7 +357,8 @@ export async function ssrRender(jsx: JSXOutput, options?: RenderOptions): Promis
     ? withSchedulerFlush(await bootQwikLoader(document), scheduler)
     : undefined;
   const cleanup = createRenderCleanup(() => qwikLoader?.cleanup(), container);
-  await debugRender('ssr', compiled.modules, container.innerHTML, options);
+  const state = options?.debug ? collectDebugState(container) : undefined;
+  await debugRender('ssr', compiled.modules, container.innerHTML, options, state);
 
   return {
     ...createRenderResult(document, container, nodes, scheduler, cleanup),
@@ -878,7 +885,8 @@ async function debugRender(
   target: RenderTarget,
   modules: readonly TransformModule[],
   html: string,
-  options: RenderOptions | undefined
+  options: RenderOptions | undefined,
+  state?: readonly DebugStateChunk[]
 ): Promise<void> {
   if (!options?.debug) {
     return;
@@ -893,8 +901,56 @@ async function debugRender(
   }
   lines.push(`\n-------------------- ${target.toUpperCase()} HTML --------------------`);
   lines.push(await formatDebugCode(html, 'html'));
+  if (state !== undefined && state.length > 0) {
+    for (let i = 0; i < state.length; i++) {
+      const chunk = state[i];
+      lines.push(
+        `\n-------------------- ${target.toUpperCase()} STATE ${chunk.label} --------------------`
+      );
+      lines.push(chunk.contents);
+    }
+  }
   lines.push('============================================================\n');
   debugLog(lines.join('\n'));
+}
+
+function collectDebugState(container: Element): DebugStateChunk[] {
+  const scripts = container.querySelectorAll('script[type="qwik/state"]');
+  const state: DebugStateChunk[] = [];
+  for (let i = 0; i < scripts.length; i++) {
+    const script = scripts[i] as HTMLScriptElement;
+    state.push({
+      label: createDebugStateLabel(script, i),
+      contents: formatDebugState(script),
+    });
+  }
+  return state;
+}
+
+function createDebugStateLabel(script: HTMLScriptElement, index: number): string {
+  const attrs: string[] = [];
+  const base = script.getAttribute('q:base');
+  const len = script.getAttribute('q:len');
+  if (base !== null) {
+    attrs.push(`q:base=${base}`);
+  }
+  if (len !== null) {
+    attrs.push(`q:len=${len}`);
+  }
+  return attrs.length > 0 ? `#${index + 1} ${attrs.join(' ')}` : `#${index + 1}`;
+}
+
+function formatDebugState(script: HTMLScriptElement): string {
+  const text = script.textContent ?? '';
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    if (Array.isArray(parsed)) {
+      return _dumpState(parsed).trim();
+    }
+  } catch {
+    // Debug output should not change render behavior.
+  }
+  return text.trim();
 }
 
 async function formatDebugCode(code: string, parser: 'babel' | 'html'): Promise<string> {

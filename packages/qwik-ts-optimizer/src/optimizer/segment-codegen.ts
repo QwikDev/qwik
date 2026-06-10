@@ -7,7 +7,6 @@
 
 import { createRegExp, exactly, oneOrMore, whitespace, charNotIn } from 'magic-regexp';
 import MagicString from 'magic-string';
-import { forEachAstChild, isAstNode } from './utils/ast.js';
 import { parseWithRawTransfer } from './utils/parse.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { inlineConstCaptures } from './rewrite/index.js';
@@ -17,10 +16,9 @@ import { transformAllJsx, collectScopeAwareBindings, JsxKeyCounter, type DevSuff
 import { transformJsxCalls, collectJsxFunctionNames } from './transform/jsx-call-transform.js';
 import { computeKeyPrefix } from './key-prefix.js';
 import { rewritePropsFieldReferences } from './utils/props-field-rewrite.js';
-import { isEventAttributeName } from './utils/event-attrs.js';
-import { getJsxAttributeName } from './utils/jsx-attr-name.js';
+import { walkAstForQp } from './utils/qp-walk.js';
 import { foldBodySimplifiableExpressions } from './utils/simplify.js';
-import type { AstMaybeNode, AstNode, AstProgram } from '../ast-types.js';
+import type { AstProgram } from '../ast-types.js';
 
 // Re-export from body-transforms for backward compatibility
 export {
@@ -503,35 +501,15 @@ function buildQpOverrides(
     if (site.hoistedSymbolName) qrlParamMap.set(site.hoistedSymbolName, site.loopLocalParamNames);
   }
 
-  function walkAst(node: AstMaybeNode): void {
-    if (!node || typeof node !== 'object') return;
-    if (node.type === 'JSXElement' && node.openingElement) {
-      const attrs = node.openingElement.attributes || [];
-      const elementParams: string[] = [];
-      const seen = new Set<string>();
-      for (const attr of attrs) {
-        if (attr.type !== 'JSXAttribute') continue;
+  // Per-attr site lookup (not a pre-merged map) so a site that matches by
+  // name but carries no `elementQpParams` still falls back to the
+  // loop-local params keyed under the same name.
+  const resolveParams = (qrlName: string): readonly string[] | undefined => {
+    const site = nestedCallSites.find(s => s.qrlVarName === qrlName || s.hoistedSymbolName === qrlName);
+    return site?.elementQpParams ?? qrlParamMap.get(qrlName);
+  };
 
-        const attrName = getJsxAttributeName(attr);
-        if (!isEventAttributeName(attrName)) continue;
-        if (attr.value?.type !== 'JSXExpressionContainer' || attr.value.expression?.type !== 'Identifier') continue;
-
-        const qrlName = attr.value.expression.name;
-        const site = nestedCallSites!.find(s => s.qrlVarName === qrlName || s.hoistedSymbolName === qrlName);
-        const params = site?.elementQpParams ?? qrlParamMap.get(qrlName);
-        if (params) {
-          for (const p of params) {
-            if (!seen.has(p)) { seen.add(p); elementParams.push(p); }
-          }
-        }
-      }
-      if (elementParams.length > 0) qpOverrides.set(node.start, elementParams);
-    }
-
-    forEachAstChild(node, (child) => walkAst(child));
-  }
-
-  walkAst(program);
+  walkAstForQp(program, resolveParams, qpOverrides);
   return qpOverrides.size > 0 ? qpOverrides : undefined;
 }
 

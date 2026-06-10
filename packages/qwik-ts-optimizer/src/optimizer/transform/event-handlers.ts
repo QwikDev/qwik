@@ -119,6 +119,27 @@ export function transformEventPropName(
 }
 
 /**
+ * The prop name an extracted event-handler call site is rewritten to.
+ *
+ * Component-element events keep the author-form name — the runtime resolves
+ * component props itself, so no `q-*:` serialization applies. HTML-element
+ * events get the serialized form via `transformEventPropName`, falling back
+ * to the raw name when the transform declines (host: prefix, non-event $
+ * props). `passiveEvents` follows `transformEventPropName`'s contract; the
+ * inline/hoist emit path passes an empty set — passive detection is derived
+ * from displayName markers only on the segment-codegen path (deliberate
+ * delta, see `buildNestedCallSites`).
+ */
+export function eventHandlerPropName(
+  rawName: string,
+  isComponentEvent: boolean,
+  passiveEvents: Set<string>,
+): string {
+  if (isComponentEvent) return rawName;
+  return transformEventPropName(rawName, passiveEvents) ?? rawName;
+}
+
+/**
  * Scan JSX attributes for passive:* directives and collect normalized event names.
  * Matches Rust's `collect_passive_event_names_from_jsx_attrs`.
  */

@@ -8,19 +8,15 @@
 
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
-import { forEachAstChild } from '../utils/ast.js';
-import { isEventAttributeName } from '../utils/event-attrs.js';
-import { getJsxAttributeName } from '../utils/jsx-attr-name.js';
-import { wCallSuffix } from '../utils/w-call.js';
+import { walkAstForQp } from '../utils/qp-walk.js';
+import { formatWCall, wCallSuffix } from '../utils/w-call.js';
 import {
   RAW_TRANSFER_PARSER_OPTIONS,
   type AstFunction,
-  type AstNode,
-  type JSXAttributeItem,
 } from '../../ast-types.js';
 import type { ExtractionResult, Mutable } from '../extract.js';
 import type { ImportInfo } from '../marker-detection.js';
-import { transformEventPropName } from '../transform/event-handlers.js';
+import { eventHandlerPropName } from '../transform/event-handlers.js';
 import { transformAllJsx, JsxKeyCounter } from '../transform/jsx.js';
 import { transformJsxCalls, collectJsxFunctionNamesFromIterable } from '../transform/jsx-call-transform.js';
 import { eventHandlerQpParams } from '../loop-hoisting.js';
@@ -48,61 +44,6 @@ import {
   isStrippedExtraction,
   matchesRegCtxName,
 } from './predicates.js';
-
-/**
- * Collect promoted capture params from a JSX element's event handler attributes,
- * adding matched QRL names to `qrlsWithCaptures`.
- */
-function collectQpParamsFromElement(
-  attrs: JSXAttributeItem[],
-  qrlParamMap: Map<string, string[]>,
-  qrlsWithCaptures: Set<string>,
-): string[] {
-  const elementParams: string[] = [];
-  const seen = new Set<string>();
-
-  for (const attr of attrs) {
-    if (attr.type !== 'JSXAttribute') continue;
-
-    const attrName = getJsxAttributeName(attr);
-    if (!isEventAttributeName(attrName)) continue;
-    if (attr.value?.type !== 'JSXExpressionContainer') continue;
-    if (attr.value.expression.type !== 'Identifier') continue;
-
-    const qrlName = attr.value.expression.name;
-    const params = qrlParamMap.get(qrlName);
-    if (!params) continue;
-
-    qrlsWithCaptures.add(qrlName);
-    for (const p of params) {
-      if (!seen.has(p)) { seen.add(p); elementParams.push(p); }
-    }
-  }
-
-  return elementParams;
-}
-
-/**
- * Recursively walk an AST to find JSX elements with event handler attributes
- * that reference QRLs with promoted captures, populating qpOverrides.
- */
-function walkAstForQp(
-  node: AstNode | null | undefined,
-  qrlParamMap: Map<string, string[]>,
-  qpOverrides: Map<number, string[]>,
-  qrlsWithCaptures: Set<string>,
-): void {
-  if (!node) return;
-
-  if (node.type === 'JSXElement' && node.openingElement) {
-    const elementParams = collectQpParamsFromElement(node.openingElement.attributes, qrlParamMap, qrlsWithCaptures);
-    if (elementParams.length > 0) {
-      qpOverrides.set(node.start, elementParams);
-    }
-  }
-
-  forEachAstChild(node, (child) => walkAstForQp(child, qrlParamMap, qpOverrides, qrlsWithCaptures));
-}
 
 /**
  * Transform an inline segment body through nine sequential phases:
@@ -192,13 +133,9 @@ export function transformInlineSegmentBody(
         if (child.isBare) {
           body = body.slice(0, relCallStart) + childVarName + body.slice(relCallEnd);
         } else if (isEventHandlerOrJsxProp(child.ctxKind) && !child.qrlCallee) {
-          let propName: string;
-          if (child.isComponentEvent) {
-            propName = child.ctxName;
-          } else {
-            const transformedPropName = transformEventPropName(child.ctxName, new Set());
-            propName = transformedPropName ?? child.ctxName;
-          }
+          // Empty passive set: passive detection is segment-codegen-path
+          // only (see eventHandlerPropName's contract).
+          const propName = eventHandlerPropName(child.ctxName, child.isComponentEvent, new Set());
 
           // For regCtxName-matched extractions, wrap the QRL var in serverQrl()
           const isRegCtx = matchesRegCtxName(child, regCtxName);
@@ -222,9 +159,8 @@ export function transformInlineSegmentBody(
 
           if (hasLoopCrossCaptures && !childIsStripped) {
             const hoistedName = child.symbolName;
-            const wCaptures = child.captureNames.join(',\n            ');
-            const hoistDecl = `const ${hoistedName} = ${childVarName}.w([\n            ${wCaptures}\n        ]);`;
-            hoistedDeclarations.push(hoistDecl);
+            const wCall = formatWCall(childVarName, child.captureNames, '            ', '        ');
+            hoistedDeclarations.push(`const ${hoistedName} = ${wCall};`);
             qrlRef = hoistedName;
           } else if (!isRegCtx && !childIsStripped && child.captureNames.length > 0) {
             qrlRef += wCallSuffix(child.captureNames, '        ', '    ');
@@ -472,7 +408,7 @@ export function transformInlineSegmentBody(
         if (qrlParamMap.size > 0) {
           bodyQpOverrides = new Map();
           bodyQrlsWithCaptures = new Set();
-          walkAstForQp(parseResult.program, qrlParamMap, bodyQpOverrides, bodyQrlsWithCaptures);
+          walkAstForQp(parseResult.program, (name) => qrlParamMap.get(name), bodyQpOverrides, bodyQrlsWithCaptures);
           if (bodyQpOverrides.size === 0) {
             bodyQpOverrides = undefined;
             bodyQrlsWithCaptures = undefined;

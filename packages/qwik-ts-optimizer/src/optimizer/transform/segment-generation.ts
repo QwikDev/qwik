@@ -34,14 +34,14 @@ import { buildQrlDeclaration } from "../rewrite-calls.js";
 import { getQrlCalleeName } from "../utils/qrl-naming.js";
 import { buildQrlDevDeclaration } from "../dev-mode.js";
 import { generateStrippedSegmentCode } from "../strip-ctx.js";
-import { isStrippedExtraction } from "../rewrite/predicates.js";
+import { hasUnderscorePlaceholderParams, isStrippedExtraction } from "../rewrite/predicates.js";
 import { mkByteOffset, mkRelativePath } from "../types/brands.js";
 import {
   buildStrippedNoopQrl,
   buildStrippedNoopQrlDev,
   getSentinelCounter,
 } from "../inline-strategy.js";
-import { transformEventPropName } from "./event-handlers.js";
+import { eventHandlerPropName } from "./event-handlers.js";
 import {
   extractDestructuredFieldMap,
   extractDestructuredFieldDefaultsMap,
@@ -923,6 +923,31 @@ export function wireMigration(
 }
 
 /**
+ * Passive-event detection for a JSX-attr child's prop-name transform: the
+ * naming pass encodes the passive variant in the displayName path
+ * (`_q_ep_`/`_q_wp_`/`_q_dp_`), so recover the normalized event name from
+ * the callee and mark it passive when any marker is present.
+ */
+function passiveEventsFromDisplayName(child: ConsolidatedSegment): Set<string> {
+  const passiveSet = new Set<string>();
+  const displayNamePath = child.displayName ?? child.symbolName;
+  let eventName: string = child.calleeName;
+  if (eventName.startsWith("document:")) eventName = eventName.slice(9);
+  else if (eventName.startsWith("window:")) eventName = eventName.slice(7);
+  if (eventName.startsWith("on") && eventName.endsWith("$")) {
+    eventName = eventName.slice(2, -1).toLowerCase();
+  }
+  if (
+    displayNamePath.includes("_q_ep_") ||
+    displayNamePath.includes("_q_wp_") ||
+    displayNamePath.includes("_q_dp_")
+  ) {
+    passiveSet.add(eventName);
+  }
+  return passiveSet;
+}
+
+/**
  * Build the per-child {@link NestedCallSiteInfo} array. Branches per child
  * on whether the call site is a JSX attribute (`eventHandler` ctxKind with
  * a `$`-suffixed callee) — the JSX-attr branch carries event-prop-name
@@ -955,37 +980,11 @@ export function buildNestedCallSites(
       // `_jsxDEV`→`_jsxSorted` rewrite renames the key and slices the ref.
       !child.isJsxObjectProp;
     if (isJsxAttr) {
-      let propName: string;
-      if (child.isComponentEvent) {
-        propName = child.calleeName;
-      } else {
-        const passiveSet = new Set<string>();
-        const displayNamePath = child.displayName ?? child.symbolName;
-        const callee = child.calleeName;
-        let eventNameForPassive = callee;
-        if (eventNameForPassive.startsWith("document:"))
-          eventNameForPassive = eventNameForPassive.slice(9);
-        else if (eventNameForPassive.startsWith("window:"))
-          eventNameForPassive = eventNameForPassive.slice(7);
-        if (
-          eventNameForPassive.startsWith("on") &&
-          eventNameForPassive.endsWith("$")
-        ) {
-          eventNameForPassive = eventNameForPassive
-            .slice(2, -1)
-            .toLowerCase();
-        }
-        if (
-          displayNamePath.includes("_q_ep_") ||
-          displayNamePath.includes("_q_wp_") ||
-          displayNamePath.includes("_q_dp_")
-        ) {
-          passiveSet.add(eventNameForPassive);
-        }
-        propName =
-          transformEventPropName(child.calleeName, passiveSet) ??
-          child.calleeName;
-      }
+      const propName = eventHandlerPropName(
+        child.calleeName,
+        child.isComponentEvent,
+        passiveEventsFromDisplayName(child),
+      );
 
       // Two-armed detection: an event-handler QRL needs `.w([captures])`
       // wiring whenever it captures something the runtime can't deliver
@@ -1004,12 +1003,7 @@ export function buildNestedCallSites(
       const hasLoopCrossCaptures =
         child.captures &&
         child.captureNames.length > 0 &&
-        (
-          (child.paramNames.length >= 2 &&
-            child.paramNames[0] === "_" &&
-            child.paramNames[1] === "_1") ||
-          childIsInLoop
-        );
+        (hasUnderscorePlaceholderParams(child.paramNames) || childIsInLoop);
 
       const loopLocalParams = eventHandlerQpParams(child.paramNames);
 

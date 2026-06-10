@@ -193,7 +193,7 @@ Between Phases 3 and 4 the driver runs two small steps: `applyProdRename` (`tran
 
 The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1327`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
 
-Phase 5's per-segment work flows through `generateSegmentCode` (`segment-codegen.ts:595` — refactored in OSS-346 into a 9-phase sequencer with extracted helpers `collectInitialImports` and `applyBodyTransforms`) followed by `postProcessSegmentCode` (`transform/post-process.ts:158`).
+Phase 5's per-segment work flows through `generateSegmentCode` (`segment-codegen.ts:650` — refactored in OSS-346 into a 9-phase sequencer with extracted helpers `collectInitialImports` and `applyBodyTransforms`) followed by `postProcessSegmentCode` (`transform/post-process.ts:158`).
 
 ---
 
@@ -239,7 +239,7 @@ Now we rewrite `test.tsx`:
 
 ### Phase 5 — segment generation (`segment-generation.ts:generateAllSegmentModules` → `segment-codegen.ts:generateSegmentCode`)
 
-For each segment, `generateSegmentCode` runs the 9-phase sequencer at `segment-codegen.ts:595`. Walking through the renderHeader1 segment:
+For each segment, `generateSegmentCode` runs the 9-phase sequencer at `segment-codegen.ts:650`. Walking through the renderHeader1 segment:
 
 | Sub-phase | Effect on this segment |
 |---|---|
@@ -378,7 +378,7 @@ That `.w(...)` call is the runtime hook that wires `_captures` through to the la
 
 - **Phase 3 (migration)** — `computeSegmentUsage` augments `segmentUsage` with `extraction.captureNames` (`attributeSegmentUsage`, `transform/index.ts:693`) so migration decisions know which module-level decls each segment actually needs.
 - **Phase 4 (parent rewrite)** — emits the `.w([...])` capture array on each `q_<symbol>` reference. The emission lives in two passes: `rewriteCallSites` (`rewrite/index.ts:559`, appended at :585 inline with the QRL declaration) for declarations that already exist at the call site, and `addCaptureWrapping` (`rewrite/index.ts:718–755`) for the after-the-fact `.appendLeft` insertion on already-rewritten markers.
-- **Phase 5 (segment codegen)** — `addCaptureAndMigrationImports` (`segment-codegen.ts:197`) emits the `_captures` import; `injectCapturesUnpacking` injects the unpacking line. The post-Phase-4 filtered `captureNames` is what gates these; in OSS-346's helper structure, `applyBodyTransforms` returns the filtered version explicitly.
+- **Phase 5 (segment codegen)** — `addCaptureAndMigrationImports` (`segment-codegen.ts:222`) emits the `_captures` import; `injectCapturesUnpacking` injects the unpacking line. The post-Phase-4 filtered `captureNames` is what gates these; in OSS-346's helper structure, `applyBodyTransforms` returns the filtered version explicitly.
 
 ---
 
@@ -597,7 +597,7 @@ Every JSX element gets a key string of the form `"<prefix>_<count>"` (e.g., `"u6
 Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `transform/jsx.ts:670–690`, threaded as:
 
 - `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:997) → into `transform/index.ts:1070` (`generateSegments`).
-- `parentJsxKeyCounterValue` → consumed by `segment-generation.ts:1238` and `transformSegmentJsx` (segment-codegen.ts:351–396) as `keyCounterStart`.
+- `parentJsxKeyCounterValue` → consumed by `segment-generation.ts:1238` and `transformSegmentJsx` (segment-codegen.ts:378) as `keyCounterStart`.
 - Each segment's emit returns its updated `keyCounterValue` (`segment-generation.ts:1310`, folded back in the `generateAllSegmentModules` sequencer) — folded back so the next segment continues counting.
 
 ### `_fnSignal` — reactive expression hoisting
@@ -789,7 +789,7 @@ The per-segment `SegmentMetadataInternal` block is assembled by a single helper 
 | Capture analysis | `src/optimizer/capture-analysis.ts` |
 | Migration decisions | `src/optimizer/variable-migration.ts` |
 | Parent rewrite | `src/optimizer/rewrite/index.ts`, `rewrite/output-assembly.ts` |
-| Per-segment codegen orchestrator | `src/optimizer/segment-codegen.ts:595` (`generateSegmentCode`) |
+| Per-segment codegen orchestrator | `src/optimizer/segment-codegen.ts:650` (`generateSegmentCode`) |
 | Per-segment body transforms | `src/optimizer/segment-codegen/body-transforms.ts` |
 | Per-segment import collection | `src/optimizer/segment-codegen/import-collection.ts` |
 | All-segments orchestrator | `src/optimizer/transform/segment-generation.ts:1327` (`generateAllSegmentModules`) — 34-line sequencer |
@@ -797,7 +797,7 @@ The per-segment `SegmentMetadataInternal` block is assembled by a single helper 
 | Inline-strategy segment builder | `src/optimizer/transform/segment-generation.ts:563` (`buildInlineStrategySegment`) |
 | Default-strategy segment builder | `src/optimizer/transform/segment-generation.ts:1107` (`buildDefaultStrategySegment`) |
 | Migration wiring (top-level + nested) | `src/optimizer/transform/segment-generation.ts:765` (`wireMigration`) |
-| Nested call-site builder | `src/optimizer/transform/segment-generation.ts:934` (`buildNestedCallSites`) |
+| Nested call-site builder | `src/optimizer/transform/segment-generation.ts:958` (`buildNestedCallSites`) |
 | Nested QRL declarations | `src/optimizer/transform/segment-generation.ts:626` (`buildNestedQrlDeclarations`) |
 | Raw-props consolidation (shared) | `src/optimizer/transform/segment-generation.ts:372` (`consolidateRawPropsCaptures`) |
 | Post-process per segment | `src/optimizer/transform/post-process.ts:158` (`postProcessSegmentCode`) |

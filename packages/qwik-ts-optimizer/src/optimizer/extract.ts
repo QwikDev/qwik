@@ -493,6 +493,126 @@ function isComponentTag(tagNode: JSXElementName | null | undefined): boolean {
  * an ExtractionResult for each one containing all info needed for
  * segment codegen and parent module rewriting.
  */
+/** `on*$` (incl. `document:on*$` / `window:on*$`) event-attribute name shape. */
+const onEventAttrName = /^(?:document:|window:)?on[A-Z-]/;
+
+/**
+ * The 11-char hash is the suffix after the last underscore of a
+ * stack-composed symbol name (`renderHeader1_jMxQsjbyDss`). Names with no
+ * underscore are used whole — same conservative fallback as the inlinedQrl
+ * name parser.
+ */
+function hashFromSymbolName(symbolName: SymbolName): Hash {
+  const lastUnder = symbolName.lastIndexOf('_');
+  return mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
+}
+
+/**
+ * Two-rule ctxKind classification shared by the JSX-attribute and
+ * pre-transformed JSX object-prop handler paths. transpileJsx=true uses the
+ * element-kind rule (Component → jSXProp); transpileJsx=false uses the
+ * name-prefix rule (`on*$` → eventHandler regardless of element kind).
+ *
+ * The marker-call-inside-JSX-attribute path has its own, *different*
+ * name-prefix rule (non-`on*$` → jSXProp even on HTML tags — see the
+ * `isEventAttr`/`isJsxNonEventAttr` block in the walker) and deliberately
+ * does not share this helper.
+ */
+function classifyJsxHandlerCtxKind(
+  propName: string,
+  isComponentEvent: boolean,
+  explicitTranspileJsx: boolean,
+): 'eventHandler' | 'jSXProp' {
+  if (explicitTranspileJsx) {
+    return isComponentEvent ? 'jSXProp' : 'eventHandler';
+  }
+  const isOnEventAttr = onEventAttrName.test(propName);
+  return isComponentEvent && !isOnEventAttr ? 'jSXProp' : 'eventHandler';
+}
+
+/**
+ * Per-path inputs for `buildExtractedSegment`. Required fields are the ones
+ * that genuinely diverge between the four extraction paths (marker call,
+ * inlinedQrl, JSX attribute, JSX object-prop); the optional fields are
+ * per-path overrides of a shared default. Everything else — derivations
+ * (`canonicalFilename`, `loc`, `origin`, `captures`), empty collections, the
+ * `'extracted'` phase tag — lives in the factory, so adding an
+ * `ExtractionBase` field is a one-site change.
+ */
+interface ExtractedSegmentSpec {
+  readonly symbolName: SymbolName;
+  readonly displayName: DisplayName;
+  readonly hash: Hash;
+  readonly callStart: number;
+  readonly callEnd: number;
+  readonly calleeStart: number;
+  readonly calleeEnd: number;
+  readonly argStart: number;
+  readonly argEnd: number;
+  readonly bodyText: string;
+  readonly calleeName: string;
+  readonly ctxKind: 'function' | 'eventHandler' | 'jSXProp';
+  readonly ctxName: CtxName;
+  readonly relPath: string;
+  readonly extension: string;
+  readonly isBare?: boolean;
+  readonly isSync?: boolean;
+  readonly qrlCallee?: string;
+  readonly importSource?: string;
+  readonly captureNames?: string[];
+  readonly segmentImports?: ImportInfo[];
+  readonly isInlinedQrl?: boolean;
+  readonly explicitCaptures?: string | null;
+  readonly inlinedQrlNameArg?: string | null;
+  readonly isComponentEvent?: boolean;
+  readonly isJsxObjectProp?: boolean;
+}
+
+/** Single construction point for Phase 1 extraction records. */
+function buildExtractedSegment(spec: ExtractedSegmentSpec): ExtractedSegmentBuilder {
+  const captureNames = spec.captureNames ?? [];
+  return {
+    phase: 'extracted',
+    symbolName: spec.symbolName,
+    displayName: spec.displayName,
+    hash: spec.hash,
+    canonicalFilename: mkCanonicalFilename(spec.displayName + '_' + spec.hash),
+    callStart: mkByteOffset(spec.callStart),
+    callEnd: mkByteOffset(spec.callEnd),
+    calleeStart: mkByteOffset(spec.calleeStart),
+    calleeEnd: mkByteOffset(spec.calleeEnd),
+    argStart: mkByteOffset(spec.argStart),
+    argEnd: mkByteOffset(spec.argEnd),
+    bodyText: mkBodyText(spec.bodyText),
+    calleeName: spec.calleeName,
+    isBare: spec.isBare ?? false,
+    isSync: spec.isSync ?? false,
+    qrlCallee: spec.qrlCallee ?? '',
+    importSource: spec.importSource ?? '',
+    ctxKind: spec.ctxKind,
+    ctxName: spec.ctxName,
+    origin: mkOrigin(spec.relPath),
+    extension: spec.extension,
+    // `loc` carries byte offsets, not line/col — per OPTIMIZER.md's
+    // documented `[byteStart, byteEnd]` contract that snap fixtures also
+    // encode. Branding `ByteOffset` makes the contract explicit at the
+    // type level.
+    loc: [mkByteOffset(spec.argStart), mkByteOffset(spec.argEnd)],
+    parent: null,
+    captures: captureNames.length > 0,
+    captureNames,
+    paramNames: [],
+    // Empty unless overridden: collection is deferred to the walker's
+    // leave handler via activeSegmentBodies.bodyIds.
+    segmentImports: spec.segmentImports ?? [],
+    isInlinedQrl: spec.isInlinedQrl ?? false,
+    explicitCaptures: spec.explicitCaptures ?? null,
+    inlinedQrlNameArg: spec.inlinedQrlNameArg ?? null,
+    isComponentEvent: spec.isComponentEvent ?? false,
+    isJsxObjectProp: spec.isJsxObjectProp ?? false,
+  };
+}
+
 export function extractSegments(
   source: string,
   relPath: string,
@@ -874,9 +994,6 @@ export function extractSegments(
           }
 
           const inlinedDisplayName = mkDisplayName(fileStem + '_' + displayNameSuffix);
-          const inlinedCanonicalFilename = mkCanonicalFilename(
-            inlinedDisplayName + '_' + inlinedHash,
-          );
 
           let explicitCapturesText: string | null = null;
           const inlinedCaptureNames: string[] = [];
@@ -910,46 +1027,40 @@ export function extractSegments(
           // snapshot baseline.
           const extension = sourceExt;
 
-          const extraction: ExtractedSegmentBuilder = {
-            phase: 'extracted',
+          // Function arg0 defers segmentImports collection into the
+          // outer walk via activeSegmentBodies. Non-function arg0 (rare
+          // — peer-tool cold path) falls back to the inline sub-walk.
+          let inlinedSegmentImports: ImportInfo[] = [];
+          if (
+            arg0.type !== 'ArrowFunctionExpression' &&
+            arg0.type !== 'FunctionExpression'
+          ) {
+            inlinedSegmentImports = collectSegmentImports(arg0, ctx.imports);
+          }
+
+          const extraction = buildExtractedSegment({
             symbolName: mkSymbolName(nameValue),
             displayName: inlinedDisplayName,
             hash: inlinedHash,
-            canonicalFilename: inlinedCanonicalFilename,
-            callStart: mkByteOffset(node.start),
-            callEnd: mkByteOffset(node.end),
-            calleeStart: mkByteOffset(node.callee.start),
-            calleeEnd: mkByteOffset(node.callee.end),
-            argStart: mkByteOffset(arg0.start),
-            argEnd: mkByteOffset(arg0.end),
-            bodyText: mkBodyText(bodyText),
+            callStart: node.start,
+            callEnd: node.end,
+            calleeStart: node.callee.start,
+            calleeEnd: node.callee.end,
+            argStart: arg0.start,
+            argEnd: arg0.end,
+            bodyText,
             calleeName,
-            isBare: false,
-            isSync: false,
-            qrlCallee: '',
             importSource: imports.get(calleeName)?.source ?? '@qwik.dev/core',
             ctxKind: 'function',
             ctxName: mkCtxName(inlinedCtxName),
-            origin: mkOrigin(relPath),
+            relPath,
             extension,
-            loc: [mkByteOffset(arg0.start), mkByteOffset(arg0.end)],
-            parent: null,
-            captures: inlinedCaptureNames.length > 0,
             captureNames: inlinedCaptureNames,
-            paramNames: [],
-            // Function arg0 defers segmentImports collection into the
-            // outer walk via activeSegmentBodies. Non-function arg0 (rare
-            // — peer-tool cold path) falls back to the inline sub-walk.
-            segmentImports:
-              arg0.type === 'ArrowFunctionExpression' || arg0.type === 'FunctionExpression'
-                ? []
-                : collectSegmentImports(arg0, ctx.imports),
+            segmentImports: inlinedSegmentImports,
             isInlinedQrl: true,
             explicitCaptures: explicitCapturesText,
             inlinedQrlNameArg: nameValue,
-            isComponentEvent: false,
-            isJsxObjectProp: false,
-          };
+          });
           ctx.results.push(extraction);
           if (
             arg0.type === 'ArrowFunctionExpression' ||
@@ -1052,7 +1163,7 @@ export function extractSegments(
                 // Name-prefix rule (matches handle_jsx_value): `on*$`
                 // (incl. `document:on*$`/`window:on*$`) → eventHandler;
                 // anything else → jSXProp.
-                const isOnEventAttr = /^(?:document:|window:)?on[A-Z-]/.test(jsxAttrName);
+                const isOnEventAttr = onEventAttrName.test(jsxAttrName);
                 if (isOnEventAttr) {
                   isEventAttr = true;
                   isJsxNonEventAttr = false;
@@ -1090,23 +1201,20 @@ export function extractSegments(
         } else {
           displayName = ctx.naming.getDisplayName();
           symbolName = ctx.naming.getSymbolName();
-          const lastUnder = symbolName.lastIndexOf('_');
-          hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
+          hash = hashFromSymbolName(symbolName);
         }
 
-        const extraction: ExtractedSegmentBuilder = {
-          phase: 'extracted',
+        const extraction = buildExtractedSegment({
           symbolName,
           displayName,
           hash,
-          canonicalFilename: mkCanonicalFilename(displayName + '_' + hash),
-          callStart: mkByteOffset(node.start),
-          callEnd: mkByteOffset(node.end),
-          calleeStart: mkByteOffset(node.callee.start),
-          calleeEnd: mkByteOffset(node.callee.end),
-          argStart: mkByteOffset(arg.start),
-          argEnd: mkByteOffset(arg.end),
-          bodyText: mkBodyText(bodyText),
+          callStart: node.start,
+          callEnd: node.end,
+          calleeStart: node.callee.start,
+          calleeEnd: node.callee.end,
+          argStart: arg.start,
+          argEnd: arg.end,
+          bodyText,
           calleeName: canonicalCallee,
           isBare,
           isSync,
@@ -1114,25 +1222,9 @@ export function extractSegments(
           importSource: imports.get(calleeName)?.source ?? '',
           ctxKind,
           ctxName,
-          origin: mkOrigin(relPath),
+          relPath,
           extension: defaultExtension,
-          // `loc` carries byte offsets, not line/col — per OPTIMIZER.md's
-          // documented `[byteStart, byteEnd]` contract that snap fixtures
-          // also encode. Branding `ByteOffset` makes the contract explicit
-          // at the type level.
-          loc: [mkByteOffset(arg.start), mkByteOffset(arg.end)],
-          parent: null,
-          captures: false,
-          captureNames: [],
-          paramNames: [],
-          // Deferred; populated on leave from activeSegmentBodies.bodyIds.
-          segmentImports: [],
-          isInlinedQrl: false,
-          explicitCaptures: null,
-          inlinedQrlNameArg: null,
-          isComponentEvent: false,
-          isJsxObjectProp: false,
-        };
+        });
         ctx.results.push(extraction);
         ctx.pushActiveSegmentBody({ leaveNode: node, root: arg, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
         if (
@@ -1175,62 +1267,35 @@ export function extractSegments(
 
           const isComponentEvent = parent?.type === 'JSXOpeningElement' && isComponentTag(parent.name);
 
-          // Same two-rule classification as the marker-call JSXAttr path
-          // above. transpileJsx=true uses element-kind rule (Component →
-          // jSXProp); transpileJsx=false uses name-prefix rule (`on*$` →
-          // eventHandler regardless of element kind).
-          const isOnEventAttr = /^(?:document:|window:)?on[A-Z-]/.test(attrName);
-          let ctxKind: 'function' | 'eventHandler' | 'jSXProp';
-          if (explicitTranspileJsx === true) {
-            ctxKind = isComponentEvent ? 'jSXProp' : 'eventHandler';
-          } else {
-            ctxKind = isComponentEvent && !isOnEventAttr ? 'jSXProp' : 'eventHandler';
-          }
+          const ctxKind = classifyJsxHandlerCtxKind(
+            attrName,
+            isComponentEvent,
+            explicitTranspileJsx === true,
+          );
           const ctxName = mkCtxName(attrName);
 
           const displayName = ctx.naming.getDisplayName();
           const symbolName = ctx.naming.getSymbolName();
+          const hash = hashFromSymbolName(symbolName);
 
-          const lastUnder = symbolName.lastIndexOf('_');
-          const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
-
-          const extraction: ExtractedSegmentBuilder = {
-            phase: 'extracted',
+          const extraction = buildExtractedSegment({
             symbolName,
             displayName,
             hash,
-            canonicalFilename: mkCanonicalFilename(displayName + '_' + hash),
-            callStart: mkByteOffset(node.start),
-            callEnd: mkByteOffset(node.end),
-            calleeStart: mkByteOffset(node.name.start),
-            calleeEnd: mkByteOffset(node.name.end),
-            argStart: mkByteOffset(expr.start),
-            argEnd: mkByteOffset(expr.end),
-            bodyText: mkBodyText(bodyText),
+            callStart: node.start,
+            callEnd: node.end,
+            calleeStart: node.name.start,
+            calleeEnd: node.name.end,
+            argStart: expr.start,
+            argEnd: expr.end,
+            bodyText,
             calleeName: attrName,
-            isBare: false,
-            isSync: false,
-            qrlCallee: '',
-            importSource: '',
             ctxKind,
             ctxName,
-            origin: mkOrigin(relPath),
+            relPath,
             extension: defaultExtension,
-            // `loc` carries byte offsets matching OPTIMIZER.md's documented
-            // contract — same as the marker-call extraction path above.
-            loc: [mkByteOffset(expr.start), mkByteOffset(expr.end)],
-            parent: null,
-            captures: false,
-            captureNames: [],
-            paramNames: [],
-            // Deferred; populated on leave from activeSegmentBodies.bodyIds.
-            segmentImports: [],
-            isInlinedQrl: false,
-            explicitCaptures: null,
-            inlinedQrlNameArg: null,
             isComponentEvent,
-            isJsxObjectProp: false,
-          };
+          });
           ctx.results.push(extraction);
           ctx.pushActiveSegmentBody({ leaveNode: node, root: expr, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
           // The enclosing if-block already gates on `expr.type` being a function expression,
@@ -1277,14 +1342,11 @@ export function extractSegments(
           const jsxKind = ctx.jsxPropObjects.get(parent);
           const isComponentEvent = jsxKind === 'component';
 
-          // Same two-rule classification as the JSX-attribute path above.
-          const isOnEventAttr = /^(?:document:|window:)?on[A-Z-]/.test(propKey);
-          let ctxKind: 'function' | 'eventHandler' | 'jSXProp';
-          if (explicitTranspileJsx === true) {
-            ctxKind = isComponentEvent ? 'jSXProp' : 'eventHandler';
-          } else {
-            ctxKind = isComponentEvent && !isOnEventAttr ? 'jSXProp' : 'eventHandler';
-          }
+          const ctxKind = classifyJsxHandlerCtxKind(
+            propKey,
+            isComponentEvent,
+            explicitTranspileJsx === true,
+          );
           const ctxName = mkCtxName(propKey);
 
           // The prop key was already pushed onto the naming stack by the
@@ -1292,47 +1354,30 @@ export function extractSegments(
           // these reflect the full call-site context.
           const displayName = ctx.naming.getDisplayName();
           const symbolName = ctx.naming.getSymbolName();
+          const hash = hashFromSymbolName(symbolName);
 
-          const lastUnder = symbolName.lastIndexOf('_');
-          const hash = mkHash(lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName);
-
-          const extraction: ExtractedSegmentBuilder = {
-            phase: 'extracted',
+          const extraction = buildExtractedSegment({
             symbolName,
             displayName,
             hash,
-            canonicalFilename: mkCanonicalFilename(displayName + '_' + hash),
             // Call site is the bare value — replacing `[callStart, callEnd]`
             // with the QRL ref leaves `onClick$: q_<symbol>`, which Phase 5b's
             // `_jsxDEV`→`_jsxSorted` rewrite then renames + slices.
-            callStart: mkByteOffset(value.start),
-            callEnd: mkByteOffset(value.end),
-            calleeStart: mkByteOffset(node.key.start),
-            calleeEnd: mkByteOffset(node.key.end),
-            argStart: mkByteOffset(value.start),
-            argEnd: mkByteOffset(value.end),
-            bodyText: mkBodyText(bodyText),
+            callStart: value.start,
+            callEnd: value.end,
+            calleeStart: node.key.start,
+            calleeEnd: node.key.end,
+            argStart: value.start,
+            argEnd: value.end,
+            bodyText,
             calleeName: propKey,
-            isBare: false,
-            isSync: false,
-            qrlCallee: '',
-            importSource: '',
             ctxKind,
             ctxName,
-            origin: mkOrigin(relPath),
+            relPath,
             extension: defaultExtension,
-            loc: [mkByteOffset(value.start), mkByteOffset(value.end)],
-            parent: null,
-            captures: false,
-            captureNames: [],
-            paramNames: [],
-            segmentImports: [],
-            isInlinedQrl: false,
-            explicitCaptures: null,
-            inlinedQrlNameArg: null,
             isComponentEvent,
             isJsxObjectProp: true,
-          };
+          });
           ctx.results.push(extraction);
           ctx.pushActiveSegmentBody({ leaveNode: node, root: value, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
           ctx.pendingClosures.push({ extraction, node: value as AstFunction });

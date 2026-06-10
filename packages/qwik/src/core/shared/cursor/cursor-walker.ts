@@ -175,7 +175,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
       } else if (currentVNode.dirty & ChoreBits.NODE_DIFF) {
         result = executeNodeDiff(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
-        result = executeComponentChore(currentVNode, container, journal, cursor);
+        result = executeComponentChore(currentVNode, container, journal, cursor) as Promise<void>;
       } else if (currentVNode.dirty & ChoreBits.INLINE_COMPONENT) {
         result = executeInlineComponentChore(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.RECONCILE) {

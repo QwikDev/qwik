@@ -1,5 +1,22 @@
 # @qwik.dev/devtools
 
+## 0.3.0-beta.1
+
+### Patch Changes
+
+- refactor(devtools): single canonical devtools hook runtime (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8705](https://github.com/QwikDev/qwik/pull/8705))
+
+  The browser extension's injected hook script (`devtools-hook.js`) is now generated
+  from the same `__qwik_install_hook_runtime__` implementation used by the Vite plugin,
+  instead of being a hand-maintained duplicate. A new build-time `@qwik.dev/devtools/codegen`
+  entry exposes the runtime-string builders so both injection paths stay in sync.
+
+- unify devtools global state access and update hook references (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8702](https://github.com/QwikDev/qwik/pull/8702))
+
+- Updated dependencies [[`d4f40ac`](https://github.com/QwikDev/qwik/commit/d4f40acdcbd437095c34255e878338f1e88f207b), [`48fb84e`](https://github.com/QwikDev/qwik/commit/48fb84ed0eb723ab6c6d32eb2b028e447a76ee0f), [`48fb84e`](https://github.com/QwikDev/qwik/commit/48fb84ed0eb723ab6c6d32eb2b028e447a76ee0f), [`a8509c1`](https://github.com/QwikDev/qwik/commit/a8509c1c312a3c9c9434b4050650970807ca38e0), [`e3cd979`](https://github.com/QwikDev/qwik/commit/e3cd979621d95485c7da29bb6c7322b63529bcfb), [`8e40b1f`](https://github.com/QwikDev/qwik/commit/8e40b1f0b004e65405328398f57033a4441becb1), [`48fb84e`](https://github.com/QwikDev/qwik/commit/48fb84ed0eb723ab6c6d32eb2b028e447a76ee0f), [`3b7f050`](https://github.com/QwikDev/qwik/commit/3b7f0508514c5544d532c53db99c27d3d2128990), [`e3cd979`](https://github.com/QwikDev/qwik/commit/e3cd979621d95485c7da29bb6c7322b63529bcfb), [`48fb84e`](https://github.com/QwikDev/qwik/commit/48fb84ed0eb723ab6c6d32eb2b028e447a76ee0f), [`e959cef`](https://github.com/QwikDev/qwik/commit/e959cefc1d938a44540cf4efd942563eb9c53b07), [`27505d5`](https://github.com/QwikDev/qwik/commit/27505d5081d90950af286521da05a5df9620887a), [`9ff0dd4`](https://github.com/QwikDev/qwik/commit/9ff0dd4351154098ae098358089a510ed2e0d770), [`e3cd979`](https://github.com/QwikDev/qwik/commit/e3cd979621d95485c7da29bb6c7322b63529bcfb), [`1722083`](https://github.com/QwikDev/qwik/commit/17220833f006925023c2dfd043388570c091a32d), [`021b4ce`](https://github.com/QwikDev/qwik/commit/021b4ce37073836527fab3fef324675f89005cc0), [`3dcb29b`](https://github.com/QwikDev/qwik/commit/3dcb29b803acb9de1d124fb1ac685b68d647be6c), [`129a54e`](https://github.com/QwikDev/qwik/commit/129a54ef5c90a82dc50ca05d430995baa3bf4255), [`48fb84e`](https://github.com/QwikDev/qwik/commit/48fb84ed0eb723ab6c6d32eb2b028e447a76ee0f)]:
+  - @qwik.dev/core@2.0.0-beta.37
+  - @qwik.dev/router@2.0.0-beta.37
+
 ## 0.3.0-beta.0
 
 ### Minor Changes

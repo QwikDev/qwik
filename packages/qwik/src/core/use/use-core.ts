@@ -87,7 +87,11 @@ export function useBindInvokeContext<FN extends (...args: any) => any>(
   } as FN;
 }
 
-/** Call a function with the given InvokeContext and given arguments. */
+/**
+ * Call a function with the given InvokeContext and given arguments.
+ *
+ * @internal
+ */
 export function invoke<FN extends (...args: any[]) => any>(
   this: unknown,
   context: InvokeContext | undefined,
@@ -140,6 +144,7 @@ export function newRenderInvokeContext(
   return ctx;
 }
 
+/** @internal */
 // TODO how about putting url and locale (and event/custom?) in to a "static" object
 export function newInvokeContext(
   locale?: string,

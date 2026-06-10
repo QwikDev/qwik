@@ -383,6 +383,8 @@ export class Serializer {
             this.output(TypeIds.Constant, Constants.UNINITIALIZED);
           } else if (value === explicitUndefined) {
             this.output(TypeIds.Constant, Constants.Undefined);
+          } else {
+            throw qError(QError.serializeErrorUnknownType, [typeof value]);
           }
           break;
         case 'function':

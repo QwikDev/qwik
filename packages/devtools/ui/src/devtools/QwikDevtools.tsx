@@ -1,4 +1,5 @@
 import { component$, useSignal, useStore, useVisibleTask$ } from '@qwik.dev/core';
+import { getQwikDevtoolsGlobal, QWIK_DEVTOOLS_GLOBAL } from '@qwik.dev/devtools/kit';
 import { DevtoolsButton } from '../components/DevtoolsButton/DevtoolsButton';
 import { DevtoolsContainer } from '../components/DevtoolsContainer/DevtoolsContainer';
 import { DevtoolsPanel } from '../components/DevtoolsPanel/DevtoolsPanel';
@@ -29,7 +30,7 @@ export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
 
       shouldRender.value = true;
 
-      if (!window.__QWIK_DEVTOOLS_DATA_PROVIDER__) {
+      if (!getQwikDevtoolsGlobal(window)?.[QWIK_DEVTOOLS_GLOBAL.props.dataProvider]) {
         ensurePreloadRuntime();
       }
       await loadDevtoolsData(state);

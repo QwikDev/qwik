@@ -1,6 +1,4 @@
 import {
-  getRequestLoaders,
-  getRequestLoaderSerializationStrategyMap,
   getRequestMode,
   getRequestRoute,
   RequestEvHttpStatusMessage,
@@ -11,7 +9,6 @@ import {
 } from '@qwik-router-ssg-worker/middleware/request-handler/request-event-core';
 import { getQwikRouterServerDataWithDeps } from '@qwik-router-ssg-worker/middleware/request-handler/response-page-core';
 import { Q_ROUTE } from './worker-imports/runtime';
-
 type GetQwikRouterServerDataArgs =
   Parameters<typeof getQwikRouterServerDataWithDeps> extends [any, ...infer Rest] ? Rest : never;
 
@@ -22,8 +19,6 @@ const responsePageDeps = {
   RequestEvSharedActionId,
   RequestEvSharedNonce,
   RequestRouteName,
-  getRequestLoaders,
-  getRequestLoaderSerializationStrategyMap,
   getRequestMode,
   getRequestRoute,
 };

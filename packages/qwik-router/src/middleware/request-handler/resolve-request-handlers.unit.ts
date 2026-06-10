@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getPathname, fixTrailingSlash, resolveRequestHandlers } from './resolve-request-handlers';
-import { RequestEvHttpStatusMessage } from './request-event-core';
+import { RequestEvHttpStatusMessage, RequestEvSharedActionId } from './request-event-core';
 import { createRequestEvent } from './request-event';
 import { RedirectMessage } from './redirect-handler';
 import { isContentType } from './request-utils';
@@ -8,6 +8,7 @@ import type { ServerRequestEvent } from './types';
 import { checkCSRF } from './resolve-request-handlers';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
+import { IsQLoader, QLoaderId } from './request-path';
 
 function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
@@ -46,18 +47,7 @@ function createMockRequestEvent(url = 'http://localhost:3000/test', trailingSlas
 
 describe('resolve-request-handler', () => {
   describe('getPathname', () => {
-    it('should remove q-data.json', () => {
-      globalThis.__NO_TRAILING_SLASH__ = false;
-      expect(getPathname(new URL('http://server/path/q-data.json?foo=bar#hash'))).toBe(
-        '/path/?foo=bar#hash'
-      );
-      globalThis.__NO_TRAILING_SLASH__ = true;
-      expect(getPathname(new URL('http://server/path/q-data.json?foo=bar#hash'))).toBe(
-        '/path?foo=bar#hash'
-      );
-    });
-
-    it('should pass non q-data.json through', () => {
+    it('should handle pathname with trailing slash', () => {
       globalThis.__NO_TRAILING_SLASH__ = false;
       expect(getPathname(new URL('http://server/path?foo=bar#hash'))).toBe('/path/?foo=bar#hash');
       globalThis.__NO_TRAILING_SLASH__ = true;
@@ -98,6 +88,60 @@ describe('resolve-request-handler', () => {
         'content-type': 'application/x-www-form-urlencoded, bypass',
       });
       expect(isContentType(headers, 'application/x-www-form-urlencoded')).toBe(true);
+    });
+  });
+
+  describe('page middleware for q-loader requests', () => {
+    it('does not run root index middleware for a root layout loader request', async () => {
+      const layoutLoader = vi.fn() as any;
+      layoutLoader.__brand = 'server_loader';
+      layoutLoader.__id = 'layout-loader';
+      const pageOnRequest = vi.fn();
+      const route: LoadedRoute = {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [
+          { useLayoutData: layoutLoader },
+          { default: vi.fn(), onRequest: pageOnRequest },
+        ] as any,
+      };
+
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', false, vi.fn());
+
+      await handlers[2]({
+        sharedMap: new Map([
+          [IsQLoader, true],
+          [QLoaderId, 'layout-loader'],
+        ] as any),
+      } as any);
+
+      expect(pageOnRequest).not.toHaveBeenCalled();
+    });
+
+    it('runs page middleware for a loader exported by that page module', async () => {
+      const pageLoader = vi.fn() as any;
+      pageLoader.__brand = 'server_loader';
+      pageLoader.__id = 'page-loader';
+      const pageOnRequest = vi.fn();
+      const route: LoadedRoute = {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [
+          {},
+          { default: vi.fn(), onRequest: pageOnRequest, usePageData: pageLoader },
+        ] as any,
+      };
+
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', false, vi.fn());
+
+      await handlers[2]({
+        sharedMap: new Map([
+          [IsQLoader, true],
+          [QLoaderId, 'page-loader'],
+        ] as any),
+      } as any);
+
+      expect(pageOnRequest).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -304,7 +348,7 @@ describe('resolve-request-handler', () => {
       const renderHandler = vi.fn(async (requestEv: { exit: () => void }) => {
         requestEv.exit();
       });
-      const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler, false);
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler);
       const requestEv = createRequestEvent(
         createMockServerRequestEvent(),
         route,
@@ -318,6 +362,23 @@ describe('resolve-request-handler', () => {
       expect(renderHandler).toHaveBeenCalledOnce();
       expect(requestEv.status()).toBe(418);
       expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('teapot');
+    });
+  });
+
+  describe('action result resolution', () => {
+    it('always returns undefined for actions, even when one was submitted', async () => {
+      // Loaders must be a pure function of the URL — see route-loader docs and the
+      // action-state changeset. resolveValue intentionally hides action state from
+      // loaders so MPA inline-render and SPA JSON refetch produce the same result.
+      const requestEv = createMockRequestEvent('http://localhost:3000/about/', true);
+      const actionA = { __brand: 'server_action', __id: 'action-a' };
+      const actionB = { __brand: 'server_action', __id: 'action-b' };
+
+      requestEv.sharedMap.set(RequestEvSharedActionId, 'action-a');
+      requestEv.sharedMap.set('@actionResult', { ok: true });
+
+      await expect(requestEv.resolveValue(actionA as any)).resolves.toBeUndefined();
+      await expect(requestEv.resolveValue(actionB as any)).resolves.toBeUndefined();
     });
   });
 });

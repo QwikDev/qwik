@@ -38,6 +38,6 @@ export function createNotFoundWrapper(notFoundMod: RouteModule, errorMod: RouteM
   return {
     default: Component,
     head: (notFoundHead ?? errorHead) as ContentModuleHead,
-    cacheKey: ((status: number) => String(status)) as CacheKeyFn,
+    cacheKey: ((requestEv) => String(requestEv.status())) as CacheKeyFn,
   };
 }

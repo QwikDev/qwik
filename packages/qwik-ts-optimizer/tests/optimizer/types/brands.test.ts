@@ -53,17 +53,17 @@ describe('mkHash', () => {
   });
 
   it('rejects non-11-char or non-alphanumeric inputs', () => {
-    // The original OSS-383 brand spec implied an 11-char-strict shape;
-    // OSS-384 loosened the validator to match the peer-tool input class
-    // the inlinedQrl parser accepts at runtime. The strict-rejection
-    // assertions here cover the values that *must still* be rejected.
+    // The validator accepts the peer-tool input class the inlinedQrl
+    // parser accepts at runtime (looser than an 11-char-strict shape).
+    // The strict-rejection assertions here cover the values that *must
+    // still* be rejected.
     expect(() => mkHash('')).toThrow();
     expect(() => mkHash('contains-dash')).toThrow();
     expect(() => mkHash('has space123')).toThrow();
   });
 
   it('accepts peer-tool hash slots loosened to match the inlinedQrl parser', () => {
-    // OSS-384 widened the brand to accept everything the extraction parser
+    // The brand accepts everything the extraction parser
     // pushes through: short alphanumeric names (e.g. "task"), and the
     // fallback case where the whole symbol name (with underscores) becomes
     // the hash slot when no `_<hash>` suffix is parseable.
@@ -88,15 +88,15 @@ describe('mkCanonicalFilename', () => {
   });
 
   it('rejects values with non-identifier characters', () => {
-    // OSS-384 loosened the validator to non-empty-only (production values
+    // The validator accepts any non-empty value (production values
     // include bracket-routes and digit-leading filenames). The strict-
     // rejection cases preserved here are values that must remain rejected:
-    // empty strings. Non-empty arbitrary input is accepted by design now.
+    // empty strings. Non-empty arbitrary input is accepted by design.
     expect(() => mkCanonicalFilename('')).toThrow();
   });
 
   it('accepts real-world dotted, bracket-route, and digit-leading values', () => {
-    // After OSS-384, the brand admits the actual production-emitted shapes.
+    // The brand admits the actual production-emitted shapes.
     expect(mkCanonicalFilename('test.tsx_renderHeader1_jMxQsjbyDss')).toBe(
       'test.tsx_renderHeader1_jMxQsjbyDss',
     );
@@ -118,9 +118,9 @@ describe('mkDisplayName', () => {
   });
 
   it('rejects invalid shapes', () => {
-    // OSS-384 loosened mkDisplayName to non-empty-only (production values
+    // mkDisplayName accepts any non-empty value (production values
     // include bracket-routes and digit-leading filenames). The empty case
-    // is the only one that remains rejected.
+    // is the only one rejected.
     expect(() => mkDisplayName('')).toThrow();
   });
 
@@ -151,14 +151,13 @@ describe('mkCtxName', () => {
     expect(mkCtxName('bind:value$')).toBe('bind:value$');
   });
 
-  it('accepts bare `$` standalone (OSS-385)', () => {
+  it('accepts bare `$` standalone', () => {
     // The bare-`$()` marker's ctxName is literally '$' in production —
-    // see `tests/optimizer/extract.test.ts` for the contract. The
-    // OSS-383 regex was too strict; OSS-385 loosened it.
+    // see `tests/optimizer/extract.test.ts` for the contract.
     expect(mkCtxName('$')).toBe('$');
   });
 
-  it('accepts hyphenated JSX attribute names (OSS-385)', () => {
+  it('accepts hyphenated JSX attribute names', () => {
     // JSX accepts dashed attribute names and convergence fixtures emit
     // them as ctxName values (e.g. `on-cLick$` in `example_jsx_listeners`).
     expect(mkCtxName('on-cLick$')).toBe('on-cLick$');

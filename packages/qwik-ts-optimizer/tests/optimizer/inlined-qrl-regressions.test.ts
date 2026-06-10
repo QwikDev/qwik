@@ -1,6 +1,6 @@
 /**
- * Regression tests for `inlinedQrl` handling bugs surfaced by OSS-378
- * (`example_qwik_react`). These pin the production behavior of two specific
+ * Regression tests for `inlinedQrl` handling bugs surfaced by the
+ * `example_qwik_react` parity work. These pin the production behavior of two specific
  * code paths so the underlying contracts don't silently regress under
  * snap-suite drift:
  *
@@ -14,7 +14,7 @@
  *     parameter named `reactCmpQrl`). Only legitimate Qwik runtime / source-
  *     imported `*Qrl` names should get the auto-import.
  *
- * Companion to convergence's `example_qwik_react`. See OSS-378.
+ * Companion to convergence's `example_qwik_react`.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -26,7 +26,7 @@ function findModule(modules: readonly TransformModule[], pathSubstr: string): Tr
   return modules.find((m) => m.path.includes(pathSubstr));
 }
 
-describe('inlinedQrl migration (OSS-378 Bug 1)', () => {
+describe('inlinedQrl migration', () => {
   it('attributes module-level decl references inside inlinedQrl bodies to the segment', () => {
     // Two inlinedQrl segments reference the same module-level `helper`.
     // Migration should fire MIG-02 (REEXPORT_MULTI_SEGMENT) and emit
@@ -87,7 +87,7 @@ const Foo = componentQrl(inlinedQrl(() => {
   });
 });
 
-describe('inlinedQrl segment imports (OSS-378 Bug 2)', () => {
+describe('inlinedQrl segment imports', () => {
   it('does not emit bogus `import { *Qrl } from "@qwik.dev/core"` for user-named identifiers', () => {
     // A function parameter named `reactCmpQrl` (a real qwik-react peer-tool
     // pattern) is captured by an inner segment. The post-transform regex scan

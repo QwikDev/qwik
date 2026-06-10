@@ -1,4 +1,4 @@
-// Regression tests for the OSS-456 qwik-router lib processing parity umbrella.
+// Regression tests for qwik-router lib processing parity.
 //
 // These exercise processing of `@qwik.dev/router/lib/*.qwik.mjs` pre-bundled
 // library code, which is the territory where the bundler-integration smoke
@@ -63,7 +63,7 @@ function runTransform(source: string) {
 	});
 }
 
-describe('OSS-457 — chopped marker call mid-expression', () => {
+describe('chopped marker call mid-expression', () => {
 	// The bug: with strip config active (zod$/validator$/globalAction$ in
 	// stripCtxName + stripEventHandlers: true), the optimizer was producing
 	// orphan `, qrl) => {` lines mid-output. The corresponding source had a
@@ -71,7 +71,6 @@ describe('OSS-457 — chopped marker call mid-expression', () => {
 	// got chopped to just the trailing `, qrl) => {` and merged with the
 	// previous (now-broken) const declaration.
 	//
-	// Fixed inadvertently by PR #211 (router-integration bugs).
 	// This test pins the fix.
 	test('lib fixture emits no orphan `, X) => {` lines', () => {
 		const source = readFileSync(FIXTURE_PATH, 'utf8');
@@ -177,13 +176,12 @@ describe('segment origin + file extension resolve under bundler config', () => {
 	});
 });
 
-describe('OSS-459 — segment body cut off mid-expression', () => {
+describe('segment body cut off mid-expression', () => {
 	// The bug: a useTask$ segment body was missing its closing brace, producing
 	// "Expected `}` but found `EOF`" parse errors. Likely the same root cause
-	// as OSS-457 (mid-expression extraction boundary).
+	// as the mid-expression extraction boundary bug.
 	//
-	// Fixed inadvertently by PR #211. This test pins the fix — every emitted
-	// module's code must parse cleanly.
+	// This test pins the fix — every emitted module's code must parse cleanly.
 	test('every emitted module parses cleanly', () => {
 		const source = readFileSync(FIXTURE_PATH, 'utf8');
 		const result = runTransform(source);

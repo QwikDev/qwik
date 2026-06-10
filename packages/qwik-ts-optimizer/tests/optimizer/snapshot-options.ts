@@ -66,13 +66,10 @@ export const DEFAULT_OPTIONS: Required<
 > & { entryStrategy: { type: 'segment' } } = {
   transpileTs: false,
   transpileJsx: false,
-  // OSS-421: matches SWC's `TestInput::default()` mode = `EmitMode::Test`
-  // (swc-reference-only/test.rs). The previous TS default was `'lib'` which
-  // worked by accident — TS hadn't implemented `mode: 'lib'`-specific
-  // behavior yet, so it was effectively a no-op. With OSS-421 wiring
-  // `mode: 'lib'` to the actual lib-emit shape, the latent default
-  // would have triggered lib emit for every test. `'test'` is the
-  // no-op variant matching SWC's default.
+  // Matches SWC's `TestInput::default()` mode = `EmitMode::Test`
+  // (swc-reference-only/test.rs). A `'lib'` default would trigger the
+  // lib-emit shape for every test now that `mode: 'lib'` is wired up;
+  // `'test'` is the no-op variant matching SWC's default.
   mode: 'test',
   entryStrategy: { type: 'segment' },
   minify: 'simplify',

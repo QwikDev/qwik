@@ -1,29 +1,112 @@
+/**
+ * Profiling workload driver for the optimizer pipeline.
+ *
+ * Runs a deterministic, repeatable `transformModule` workload (1 warmup +
+ * N measured iterations) so a sampling profiler can be attached to a
+ * known shape:
+ *
+ *   PROFILE_ITERATIONS=30 npx vitest run tests/benchmark/profile-deep.test.ts \
+ *     --no-file-parallelism
+ *
+ * and for a CPU profile, run the same command under `node --cpu-prof`
+ * (or vitest's `--cpu-prof` passthrough) — the BENCHMARKS.md inclusive
+ * on-stack tables were produced this way over the built dist.
+ *
+ * Workload selection: the worst-case real-world file from a Qwik
+ * checkout (`$QWIK_HOME`, same file BENCH-02 uses) when available;
+ * otherwise the largest snapshot fixture input from `match-these-snaps`,
+ * so the harness still runs (and stays a passing test) on machines and
+ * CI runners without a Qwik checkout.
+ */
+
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { relative } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join, dirname, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import * as process from 'node:process';
 import { transformModule } from '../../src/optimizer/transform/index.js';
+import type { TransformModuleInput, TransformOutput } from '../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
+import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 
-const QWIK_PACKAGES_DIR = '/Users/jackshelton/dev/open-source/qwik/packages';
-const WORST_CASE = QWIK_PACKAGES_DIR + '/qwik/src/core/tests/component.spec.tsx';
+const SNAP_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../match-these-snaps');
+const QWIK_HOME = process.env.QWIK_HOME;
+const ITERATIONS = Number(process.env.PROFILE_ITERATIONS ?? '3');
 
-describe('PROFILE', () => {
-  it('deep timing', () => {
-    const code = readFileSync(WORST_CASE, 'utf-8');
-    const filePath = relative(QWIK_PACKAGES_DIR, WORST_CASE);
-    const opts = {
-      input: [{ path: mkFilePath(filePath), code: mkSourceText(code) }],
-      srcDir: mkFilePath(QWIK_PACKAGES_DIR), rootDir: QWIK_PACKAGES_DIR,
-      entryStrategy: { type: 'segment' as const }, minify: 'simplify' as const,
-      transpileTs: true, transpileJsx: true,
-      preserveFilenames: false, explicitExtensions: false, sourceMaps: false,
-    };
-    // Warmup
-    transformModule(opts);
-    // Measured
-    process.env['PERF_TRACE'] = '1';
-    transformModule(opts);
-    process.env['PERF_TRACE'] = '0';
-    expect(true).toBe(true);
-  });
+interface Workload {
+  readonly label: string;
+  readonly input: TransformModuleInput;
+  readonly srcDir: string;
+}
+
+function worstCaseWorkload(qwikHome: string): Workload {
+  const packagesDir = `${qwikHome}/packages`;
+  const file = `${packagesDir}/qwik/src/core/tests/component.spec.tsx`;
+  return {
+    label: `QWIK_HOME worst-case (${relative(packagesDir, file)})`,
+    input: {
+      path: mkFilePath(relative(packagesDir, file)),
+      code: mkSourceText(readFileSync(file, 'utf-8')),
+    },
+    srcDir: packagesDir,
+  };
+}
+
+function largestFixtureWorkload(): Workload {
+  let best: { name: string; input: string } | undefined;
+  for (const snapFile of readdirSync(SNAP_DIR)) {
+    if (!snapFile.endsWith('.snap')) continue;
+    const parsed = parseSnapshot(readFileSync(join(SNAP_DIR, snapFile), 'utf-8'));
+    if (!parsed.input) continue;
+    if (best === undefined || parsed.input.length > best.input.length) {
+      best = { name: snapFile, input: parsed.input };
+    }
+  }
+  if (!best) throw new Error('no snapshot fixture with an input section found');
+  return {
+    label: `largest fixture input (${best.name}, ${best.input.length} bytes)`,
+    input: { path: mkFilePath('test.tsx'), code: mkSourceText(best.input) },
+    srcDir: '/',
+  };
+}
+
+describe('profiling harness', () => {
+  it('drives repeated transformModule iterations over the profiling workload', () => {
+    const workload = QWIK_HOME ? worstCaseWorkload(QWIK_HOME) : largestFixtureWorkload();
+
+    const run = (): TransformOutput =>
+      transformModule({
+        input: [workload.input],
+        srcDir: mkFilePath(workload.srcDir),
+        rootDir: workload.srcDir,
+        entryStrategy: { type: 'segment' },
+        minify: 'simplify',
+        transpileTs: true,
+        transpileJsx: true,
+        preserveFilenames: false,
+        explicitExtensions: false,
+        sourceMaps: false,
+      });
+
+    // Warmup, and the correctness gate: the workload must transform into
+    // a parent module plus at least one extracted segment.
+    const warmup = run();
+    expect(warmup.modules.length).toBeGreaterThan(1);
+
+    const perIteration: number[] = [];
+    for (let i = 0; i < ITERATIONS; i++) {
+      const start = performance.now();
+      run();
+      perIteration.push(performance.now() - start);
+    }
+
+    const total = perIteration.reduce((a, b) => a + b, 0);
+    const min = Math.min(...perIteration);
+    console.log(
+      `PROFILE ${workload.label}: iterations=${ITERATIONS} ` +
+        `total=${total.toFixed(0)}ms min=${min.toFixed(1)}ms ` +
+        `avg=${(total / ITERATIONS).toFixed(1)}ms`,
+    );
+    expect(perIteration.length).toBe(ITERATIONS);
+  }, 300_000);
 });

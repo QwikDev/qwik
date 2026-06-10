@@ -18,9 +18,19 @@ import * as nodePath from 'pathe';
 import { transformModule } from './optimizer/transform/index.js';
 
 import type {
+  AstEcmaScriptModule,
+  AstProgram,
+} from './ast-types.js';
+import type {
+  Diagnostic,
+  EmitMode,
+  EntryStrategy,
+  MinifyMode,
+  SegmentAnalysis,
+  TransformModule,
   TransformModulesOptions,
-  TransformOutput,
 } from './optimizer/types.js';
+import { mkFilePath, mkSourceText } from './optimizer/types/brands.js';
 
 // ---------------------------------------------------------------------------
 // Public types — mirror SWC's `@qwik.dev/optimizer` surface
@@ -118,17 +128,195 @@ export interface OptimizerOptions {
   _optimizer?: unknown;
 }
 
+// ---------------------------------------------------------------------------
+// NAPI-parity transform types — the raw-string boundary
+// ---------------------------------------------------------------------------
+//
+// `createOptimizer` is the SWC parity entry point, and SWC's NAPI binding
+// speaks plain strings: consumers typed against `@qwik.dev/optimizer` hand
+// over unbranded paths and source text, and read back mutable arrays with
+// `segment`/`origPath` null-arms on every module. The types below mirror
+// that declared interface so an SWC call site reads through unchanged —
+// the brands are established internally via the smart constructors (the
+// raw input is the boundary; `mk*` is where the invariant is born).
+//
+// One deliberate deviation from SWC's *declared* interface:
+// `NapiSegmentAnalysis.ctxKind` includes `'jSXProp'`. SWC's published
+// `.d.ts` declares only `'eventHandler' | 'function'`, but the Rust
+// optimizer emits `SegmentKind::JSXProp` (swc-reference-only/transform.rs)
+// and so do we. The published SWC type is stale; this type follows the
+// runtime truth shared by both implementations.
+
+/** One source file for {@link QwikOptimizer.transformModules}. Raw-string mirror of `TransformModuleInput`. */
+export interface NapiTransformModuleInput {
+  path: string;
+  code: string;
+  devPath?: string;
+  /** Optional pre-parsed Program (e.g. Rolldown's `meta.ast`) — skips the internal parse. */
+  program?: AstProgram;
+  /** Optional ESM-module metadata sibling to `program`. */
+  module?: AstEcmaScriptModule;
+}
+
+/** Raw-string mirror of `TransformModulesOptions` for the SWC-parity surface. */
+export interface NapiTransformModulesOptions {
+  input: readonly NapiTransformModuleInput[];
+  srcDir: string;
+  rootDir?: string;
+  entryStrategy?: EntryStrategy;
+  minify?: MinifyMode;
+  sourceMaps?: boolean;
+  transpileTs?: boolean;
+  transpileJsx?: boolean;
+  preserveFilenames?: boolean;
+  explicitExtensions?: boolean;
+  mode?: EmitMode;
+  scope?: string;
+  stripExports?: readonly string[];
+  regCtxName?: readonly string[];
+  stripCtxName?: readonly string[];
+  stripEventHandlers?: boolean;
+  isServer?: boolean;
+}
+
+/** Plain-string mirror of `SegmentAnalysis`, shaped like SWC's NAPI output. */
+export interface NapiSegmentAnalysis {
+  origin: string;
+  name: string;
+  entry: string | null;
+  displayName: string;
+  hash: string;
+  canonicalFilename: string;
+  extension: string;
+  parent: string | null;
+  ctxKind: 'eventHandler' | 'function' | 'jSXProp';
+  ctxName: string;
+  captures: boolean;
+  loc: [number, number];
+  paramNames?: string[];
+  captureNames?: string[];
+}
+
+/**
+ * SWC-shaped module record: no `kind` discriminant; instead the
+ * `segment`/`origPath` null-arms SWC's NAPI binding emits (parents carry
+ * `origPath`, segments carry `segment`).
+ */
+export interface NapiTransformModule {
+  path: string;
+  isEntry: boolean;
+  code: string;
+  map: string | null;
+  segment: NapiSegmentAnalysis | null;
+  origPath: string | null;
+}
+
+/** Plain-number mirror of `DiagnosticHighlightFlat` (SWC's `SourceLocation`). */
+export interface NapiSourceLocation {
+  lo: number;
+  hi: number;
+  startLine: number;
+  startCol: number;
+  endLine: number;
+  endCol: number;
+}
+
+/**
+ * SWC-shaped diagnostic. `category` includes `'sourceError'` because SWC
+ * declares it; this implementation only emits `'error' | 'warning'`.
+ */
+export interface NapiDiagnostic {
+  scope: string;
+  category: 'error' | 'warning' | 'sourceError';
+  code: string | null;
+  file: string;
+  message: string;
+  highlights: NapiSourceLocation[] | null;
+  suggestions: string[] | null;
+}
+
+/** SWC-shaped transform result: fresh mutable arrays, NAPI module records. */
+export interface NapiTransformOutput {
+  modules: NapiTransformModule[];
+  diagnostics: NapiDiagnostic[];
+  isTypeScript: boolean;
+  isJsx: boolean;
+}
+
 /**
  * Optimizer instance. Mirrors SWC's `Optimizer`.
  *
  * `transformModules` wraps the synchronous `transformModule` from
  * `optimizer/transform/index.ts` and returns a Promise so the call site
- * matches SWC's async surface. `sys` is the host-system surface (see
- * {@link OptimizerSystem}).
+ * matches SWC's async surface. It speaks the NAPI-parity raw types: inputs
+ * are branded internally, outputs are mapped to SWC's declared shape.
+ * `sys` is the host-system surface (see {@link OptimizerSystem}).
  */
 export interface QwikOptimizer {
-  transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
+  transformModules(opts: NapiTransformModulesOptions): Promise<NapiTransformOutput>;
   sys: OptimizerSystem;
+}
+
+// ---------------------------------------------------------------------------
+// NAPI boundary mapping
+// ---------------------------------------------------------------------------
+
+/** Brand the raw NAPI options into the native transform input. */
+function brandTransformOptions(
+  opts: NapiTransformModulesOptions,
+): TransformModulesOptions {
+  return {
+    ...opts,
+    srcDir: mkFilePath(opts.srcDir),
+    input: opts.input.map((input) => ({
+      ...input,
+      path: mkFilePath(input.path),
+      code: mkSourceText(input.code),
+    })),
+  };
+}
+
+/** Widen a native segment record to the NAPI shape (brands erase downward). */
+function toNapiSegment(segment: SegmentAnalysis): NapiSegmentAnalysis {
+  return { ...segment, loc: [segment.loc[0], segment.loc[1]] };
+}
+
+/** Map a `kind`-discriminated native module onto SWC's null-arm record shape. */
+function toNapiModule(module: TransformModule): NapiTransformModule {
+  switch (module.kind) {
+    case 'parent':
+      return {
+        path: module.path,
+        isEntry: module.isEntry,
+        code: module.code,
+        map: module.map,
+        segment: null,
+        origPath: module.origPath,
+      };
+    case 'segment':
+      return {
+        path: module.path,
+        isEntry: module.isEntry,
+        code: module.code,
+        map: module.map,
+        segment: toNapiSegment(module.segment),
+        origPath: null,
+      };
+    default: {
+      const _exhaustive: never = module;
+      throw new Error(
+        `unhandled module kind: ${(module as { kind?: string }).kind}`,
+      );
+    }
+  }
+}
+
+function toNapiDiagnostic(diagnostic: Diagnostic): NapiDiagnostic {
+  let highlights: NapiSourceLocation[] | null = null;
+  if (diagnostic.highlights !== null) {
+    highlights = diagnostic.highlights.map((highlight) => ({ ...highlight }));
+  }
+  return { ...diagnostic, highlights };
 }
 
 // ---------------------------------------------------------------------------
@@ -202,7 +390,13 @@ export function createOptimizer(
   const instance: QwikOptimizer = {
     sys,
     transformModules(opts) {
-      return Promise.resolve(transformModule(opts));
+      const output = transformModule(brandTransformOptions(opts));
+      return Promise.resolve({
+        modules: output.modules.map(toNapiModule),
+        diagnostics: output.diagnostics.map(toNapiDiagnostic),
+        isTypeScript: output.isTypeScript,
+        isJsx: output.isJsx,
+      });
     },
   };
   return Promise.resolve(instance);

@@ -18,6 +18,13 @@ export type {
 } from './ast-types.js';
 
 export type {
+  NapiDiagnostic,
+  NapiSegmentAnalysis,
+  NapiSourceLocation,
+  NapiTransformModule,
+  NapiTransformModuleInput,
+  NapiTransformModulesOptions,
+  NapiTransformOutput,
   OptimizerOptions,
   OptimizerSystem,
   Path,

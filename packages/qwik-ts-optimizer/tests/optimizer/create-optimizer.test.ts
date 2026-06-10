@@ -5,10 +5,6 @@ import {
   type OptimizerSystem,
   type SystemEnvironment,
 } from '../../src/index.js';
-import {
-  mkFilePath,
-  mkSourceText,
-} from '../../src/optimizer/types/brands.js';
 
 describe('createOptimizer', () => {
   it('resolves to an instance with transformModules + sys', async () => {
@@ -21,15 +17,15 @@ describe('createOptimizer', () => {
   });
 
   it('round-trips a minimal $() input through transformModules', async () => {
+    // No mk* constructors — the NAPI-parity surface accepts raw strings and
+    // brands internally, matching how an SWC-typed consumer calls it.
     const optimizer = await createOptimizer();
     const result = await optimizer.transformModules({
-      srcDir: mkFilePath('/src'),
+      srcDir: '/src',
       input: [
         {
-          path: mkFilePath('test.tsx'),
-          code: mkSourceText(
-            "import { $ } from '@qwik.dev/core'; export const x = $(() => 1);",
-          ),
+          path: 'test.tsx',
+          code: "import { $ } from '@qwik.dev/core'; export const x = $(() => 1);",
         },
       ],
     });
@@ -39,10 +35,37 @@ describe('createOptimizer', () => {
     expect(result.isTypeScript).toBe(true);
     expect(result.isJsx).toBe(true);
 
-    const parent = result.modules.find((m) => m.kind === 'parent');
-    const segment = result.modules.find((m) => m.kind === 'segment');
+    // SWC's NAPI record shape: no `kind` discriminant; parents carry
+    // `origPath` with `segment: null`, segments carry `segment` with
+    // `origPath: null`.
+    const parent = result.modules.find((m) => m.segment === null);
+    const segment = result.modules.find((m) => m.segment !== null);
     expect(parent).toBeDefined();
+    expect(parent?.origPath).toBe('test.tsx');
+    expect(parent?.isEntry).toBe(false);
     expect(segment).toBeDefined();
+    expect(segment?.origPath).toBeNull();
+    expect(segment?.isEntry).toBe(true);
+    expect(segment?.segment?.name).toBeTruthy();
+  });
+
+  it('emits mutable output arrays (SWC NAPI parity)', async () => {
+    const optimizer = await createOptimizer();
+    const result = await optimizer.transformModules({
+      srcDir: '/src',
+      input: [{ path: 'noop.ts', code: 'export const x = 1;' }],
+    });
+
+    // Consumers typed against SWC's `TransformOutput` see mutable arrays;
+    // pushing must not throw and must not alias internal state.
+    result.modules.push(result.modules[0]!);
+    expect(result.modules.length).toBe(2);
+
+    const second = await optimizer.transformModules({
+      srcDir: '/src',
+      input: [{ path: 'noop.ts', code: 'export const x = 1;' }],
+    });
+    expect(second.modules.length).toBe(1);
   });
 
   it('preserves a custom sys when supplied via OptimizerOptions', async () => {
@@ -110,11 +133,11 @@ describe('createOptimizer', () => {
 
     const optimizer = await factoryResult;
     const transformResult = optimizer.transformModules({
-      srcDir: mkFilePath('/src'),
+      srcDir: '/src',
       input: [
         {
-          path: mkFilePath('noop.ts'),
-          code: mkSourceText('export const x = 1;'),
+          path: 'noop.ts',
+          code: 'export const x = 1;',
         },
       ],
     });

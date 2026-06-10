@@ -124,4 +124,42 @@ describe('preParsedProgram thread-through', () => {
     expect(result.modules.length).toBeGreaterThan(0);
     expect(result.diagnostics.length).toBe(0);
   });
+
+  it('program survives the NAPI parity mapping — identical output with vs without', async () => {
+    // Guards the brandTransformOptions spread in create-optimizer.ts: if the
+    // NAPI boundary ever drops `program`/`module` while re-branding inputs,
+    // the optimizer would silently fall back to its internal parse. Identical
+    // emitted code proves the host AST actually flowed through.
+    const { createOptimizer } = await import('../../src/index.js');
+    const optimizer = await createOptimizer();
+    const parsed = parseSync('test.tsx', FIXTURE_SOURCE, RAW_TRANSFER_PARSER_OPTIONS);
+
+    const withProgram = await optimizer.transformModules({
+      srcDir: '/src',
+      input: [
+        {
+          path: 'test.tsx',
+          code: FIXTURE_SOURCE,
+          program: parsed.program,
+          module: parsed.module,
+        },
+      ],
+    });
+    const withoutProgram = await optimizer.transformModules({
+      srcDir: '/src',
+      input: [{ path: 'test.tsx', code: FIXTURE_SOURCE }],
+    });
+
+    expect(withProgram.modules.length).toBe(withoutProgram.modules.length);
+    expect(withProgram.diagnostics.length).toBe(withoutProgram.diagnostics.length);
+    for (let i = 0; i < withProgram.modules.length; i++) {
+      const a = withProgram.modules[i];
+      const b = withoutProgram.modules[i];
+      expect(a.path).toBe(b.path);
+      expect(a.code).toBe(b.code);
+      expect(a.isEntry).toBe(b.isEntry);
+      expect(a.segment?.name).toBe(b.segment?.name);
+      expect(a.segment?.hash).toBe(b.segment?.hash);
+    }
+  });
 });

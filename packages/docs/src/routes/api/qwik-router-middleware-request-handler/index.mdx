@@ -522,12 +522,6 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 
-<h2 id="servererror-data">data</h2>
-
-```typescript
-data: T;
-```
-
 <h2 id="deferreturn">DeferReturn</h2>
 
 ```typescript
@@ -944,38 +938,6 @@ export interface RequestEventAction<PLATFORM = QwikRouterPlatform> extends Reque
 
 **Extends:** [RequestEventCommon](#requesteventcommon)&lt;PLATFORM&gt;
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-fail
-
-</td><td>
-
-</td><td>
-
-&lt;T extends Record&lt;string, any&gt;&gt;(status: number, returnData: T) =&gt; FailReturn&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 
 <h2 id="requesteventbase">RequestEventBase</h2>
@@ -1368,7 +1330,7 @@ error
 
 </td><td>
 
-&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [ServerError](#servererror)&lt;T&gt;
+&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [ServerError](#servererror-variable)&lt;T&gt;
 
 </td><td>
 
@@ -1703,84 +1665,25 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/rewrite-handler.ts)
 
-<h2 id="servererror">ServerError</h2>
+<h2 id="servererror-type-alias">ServerError</h2>
 
 ```typescript
-export declare class ServerError<T = any> extends Error
+ServerError: {
+    new <T = unknown>(status: number, data: T): ServerError<T>;
+    readonly prototype: ServerErrorImpl;
+}
 ```
 
-**Extends:** Error
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts)
 
-<table><thead><tr><th>
+<h2 id="servererror-variable">ServerError</h2>
 
-Constructor
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-(constructor)(status, data)
-
-</td><td>
-
-</td><td>
-
-Constructs a new instance of the `ServerError` class
-
-</td></tr>
-</tbody></table>
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[data](#servererror-data)
-
-</td><td>
-
-</td><td>
-
-T
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[status](#servererror-status)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+```typescript
+ServerError: {
+    new <T = unknown>(status: number, data: T): ServerError<T>;
+    readonly prototype: ServerErrorImpl;
+}
+```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts)
 
@@ -2065,9 +1968,3 @@ _(Optional)_
 **Returns:**
 
 void
-
-<h2 id="servererror-status">status</h2>
-
-```typescript
-status: number;
-```

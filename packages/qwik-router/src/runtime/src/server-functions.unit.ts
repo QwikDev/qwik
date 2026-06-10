@@ -1,9 +1,25 @@
 import { describe, expectTypeOf, test } from 'vitest';
 import * as z from 'zod';
-import { server$ } from './server-functions';
+import { routeAction$, server$, zod$ } from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';
 
 describe('types', () => {
+  test('action.error is a ServerError with validator fields flattened on', () => () => {
+    const useLogin = routeAction$(
+      () => ({ ok: true }),
+      zod$({ username: z.string(), code: z.number() })
+    );
+    const action = useLogin();
+    expectTypeOf(action.value).toEqualTypeOf<{ ok: boolean } | undefined>();
+    if (action.error) {
+      expectTypeOf(action.error.status).toEqualTypeOf<number>();
+      // Validator errors are typed and read flat (no `.data` hop).
+      expectTypeOf(action.error.fieldErrors.username).toEqualTypeOf<string | undefined>();
+      expectTypeOf(action.error.fieldErrors.code).toEqualTypeOf<string | undefined>();
+      expectTypeOf(action.error.formErrors).toEqualTypeOf<string[]>();
+    }
+  });
+
   test('matching', () => () => {
     const foo = () => server$(() => 'hello');
 

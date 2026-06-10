@@ -65,34 +65,29 @@ export default component$(() => {
   const randomFailed = useRandomFailedLoader();
   const randomFailedWithValidator = useRandomFailedWithValidatorLoader();
 
+  // fail() / validation failures now surface as `loader.error` (a ServerError whose
+  // `.data` carries the payload), not as `loader.value.failed`. Guard on `.error`
+  // before reading `.value` — reading `.value` in error state re-throws.
   return (
     <div>
       <div>{pet.value.pet}</div>
       <div>
-        {petWithValidation.value.pet}
-        {petWithValidation.value.failed}
-        {petWithValidation.value.validationFailReason}
+        {petWithValidation.error ? petWithValidation.error.message : petWithValidation.value.pet}
       </div>
       <div>
         {dynamicPet.value.dog}
         {dynamicPet.value.rat}
       </div>
       <div>
-        {dynamicPetWithValidation.value.dog}
-        {dynamicPetWithValidation.value.rat}
-        {dynamicPetWithValidation.value.failed}
-        {dynamicPetWithValidation.value.validationFailReason}
+        {dynamicPetWithValidation.error
+          ? dynamicPetWithValidation.error.message
+          : `${dynamicPetWithValidation.value.dog ?? ''}${dynamicPetWithValidation.value.rat ?? ''}`}
       </div>
+      <div>{randomFailed.error ? randomFailed.error.message : randomFailed.value.pet}</div>
       <div>
-        {randomFailed.value.pet}
-        {randomFailed.value.failed}
-        {randomFailed.value.loaderFailedReason}
-      </div>
-      <div>
-        {randomFailedWithValidator.value.pet}
-        {randomFailedWithValidator.value.failed}
-        {randomFailedWithValidator.value.loaderFailedReason}
-        {randomFailedWithValidator.value.validationFailReason}
+        {randomFailedWithValidator.error
+          ? randomFailedWithValidator.error.message
+          : randomFailedWithValidator.value.pet}
       </div>
     </div>
   );

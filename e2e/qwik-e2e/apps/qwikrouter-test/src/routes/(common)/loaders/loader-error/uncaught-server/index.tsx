@@ -11,6 +11,10 @@ const useCatchServerErrorInLoader = routeLoader$(async () => {
 });
 
 export default component$(() => {
-  useCatchServerErrorInLoader();
+  const loader = useCatchServerErrorInLoader();
+  // A ServerError thrown inside the loader (here, by a server$ call) enters error state.
+  if (loader.error) {
+    return <div id="loader-error">{loader.error.message}</div>;
+  }
   return <></>;
 });

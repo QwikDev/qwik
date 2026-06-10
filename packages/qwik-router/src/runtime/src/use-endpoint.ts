@@ -1,4 +1,5 @@
 import type { RouteActionValue } from './types';
+import type { ServerError } from '../../middleware/request-handler/server-error';
 import { _deserialize } from '@qwik.dev/core/internal';
 import { ensureSlash } from '../../utils/pathname';
 import { QACTION_KEY } from './constants';
@@ -16,7 +17,8 @@ export async function submitAction(
 ): Promise<
   | {
       status: number;
-      result: unknown;
+      result?: unknown;
+      error?: ServerError;
       redirect?: string;
       loaderHashes?: string[];
     }
@@ -64,13 +66,15 @@ export async function submitAction(
   if ((response.headers.get('content-type') || '').includes('json')) {
     const text = await response.text();
     const data = _deserialize<{
-      result: unknown;
+      result?: unknown;
+      error?: ServerError;
       redirect?: string;
       loaderHashes?: string[];
     }>(text);
     return {
       status: response.status,
       result: data?.result,
+      error: data?.error,
       redirect: data?.redirect,
       loaderHashes: data?.loaderHashes,
     };

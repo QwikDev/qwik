@@ -59,6 +59,7 @@ export const routeActionQrl = ((
       isRunning: false,
       status: undefined,
       value: undefined,
+      error: undefined,
       formData: undefined,
     };
     const state = useStore<Editable<ActionStore<unknown, unknown>>>(() => {
@@ -69,9 +70,13 @@ export const routeActionQrl = ((
           initialState.formData = data;
         }
         if (value.output) {
-          const { status, result } = value.output;
+          const { status, result, error } = value.output;
           initialState.status = status;
-          initialState.value = result;
+          if (error) {
+            initialState.error = error;
+          } else {
+            initialState.value = result;
+          }
         }
       }
       return initialState as ActionStore<unknown, unknown>;
@@ -111,10 +116,16 @@ Action.run() can only be called on the browser, for example when a user clicks a
           id,
           resolve: noSerialize(resolve),
         };
-      }).then(({ result, status }) => {
+      }).then(({ result, status, error }) => {
         state.isRunning = false;
         state.status = status;
-        state.value = result;
+        if (error) {
+          state.error = error;
+          state.value = undefined;
+        } else {
+          state.error = undefined;
+          state.value = result;
+        }
         if (form) {
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();

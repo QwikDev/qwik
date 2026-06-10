@@ -16,6 +16,7 @@ import type {
 } from '../../runtime/src/types';
 import {
   getRouteLoaderCtx,
+  getRouteLoaderErrors,
   getRouteLoaderValues,
   loadRouteLoader,
   setRouteLoaders,
@@ -293,11 +294,13 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
                 `Expected request data for the action id ${selectedActionId} to be an object`
               );
             }
-            const result = await runValidators(requestEv, action.__validators, data);
             let actionResult: unknown;
-            if (!result.success) {
-              actionResult = requestEv.fail(result.status ?? 500, result.error);
-            } else {
+            try {
+              const result = await runValidators(requestEv, action.__validators, data);
+              if (!result.success) {
+                // A failed validator surfaces as the action's error state.
+                throw new deps.ServerError(result.status ?? 500, result.error);
+              }
               const actionResolved = isDev
                 ? await measure(requestEv, action.__qrl.getHash(), () =>
                     action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
@@ -307,6 +310,15 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
                 verifySerializable(actionResolved, action.__qrl);
               }
               actionResult = actionResolved;
+            } catch (err) {
+              // `throw error(...)` / failed validators become `action.error`. Other throws
+              // (redirects, unexpected errors) propagate to the middleware chain as before.
+              if (err instanceof deps.ServerError) {
+                requestEv.status(err.status);
+                actionResult = err;
+              } else {
+                throw err;
+              }
             }
             requestEv.sharedMap.set('@actionResult', actionResult);
           }
@@ -325,12 +337,27 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       if (routeLoaders.length > 0) {
         setLoaderData(requestEv, routeLoaders, route);
 
-        // Run loaders directly and store raw values.
-        // Errors/redirects propagate so middleware can catch them (e.g. plugin@errors).
+        // Run loaders directly and store raw values. A loader that signals failure
+        // (`fail()` / `throw error()`) throws a ServerError — captured per-loader so it
+        // surfaces as that loader's error state (`loader.error`) and the page still renders.
+        // Redirects and unexpected errors still propagate so middleware can catch them.
         const loaderValues = getRouteLoaderValues(requestEv);
+        const loaderErrors = getRouteLoaderErrors(requestEv);
         await Promise.all(
           routeLoaders.map(async (loader) => {
-            loaderValues[loader.__id] = await loadRouteLoader(loader, requestEv);
+            try {
+              loaderValues[loader.__id] = await loadRouteLoader(loader, requestEv);
+            } catch (err) {
+              if (err instanceof deps.ServerError) {
+                // Reflect the failure's status on the response. `throw error(status, ...)`
+                // already set it, but a directly-thrown `new ServerError(status, ...)`
+                // (e.g. from a server$ call) has not.
+                requestEv.status(err.status);
+                loaderErrors[loader.__id] = err;
+              } else {
+                throw err;
+              }
+            }
           })
         );
       }

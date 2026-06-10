@@ -16,6 +16,7 @@ import type {
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
+  ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
@@ -143,7 +144,13 @@ export type RouteNavigate = QRL<
 
 export type RouteAction = Signal<RouteActionValue>;
 
-export type RouteActionResolver = { status: number; result: unknown };
+export type RouteActionResolver = {
+  status: number;
+  /** The action's successful return value. Unset when the action failed (see `error`). */
+  result?: unknown;
+  /** A `ServerError` from `throw error(...)`, a failed validator, or an uncaught server error. */
+  error?: ServerError;
+};
 export type RouteActionValue =
   | {
       id: string;
@@ -507,9 +514,16 @@ type StrictUnionHelper<T, TAll> = T extends any
 /** @public */
 export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
-type Prettify<T> = {} & {
-  [K in keyof T]: T[K];
-};
+// Flatten an intersection for nicer tooltips, but leave primitives untouched.
+// Mapping a primitive (e.g. `string`) by its keys turns it into an object-shaped
+// type that's no longer assignable to the primitive itself — which breaks
+// StrictUnion arms whose value is a primitive (e.g. an action that returns a
+// string and can also `fail()`).
+type Prettify<T> = T extends string | number | boolean | bigint | symbol | null | undefined
+  ? T
+  : {} & {
+      [K in keyof T]: T[K];
+    };
 
 /** @public */
 export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
@@ -549,13 +563,6 @@ export type ActionOptions = {
   readonly invalidate?: Loader<any>[];
 };
 
-/** @public */
-export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
-  infer ERROR
->[]
-  ? ERROR
-  : never;
-
 type IsAny<Type> = 0 extends 1 & Type ? true : false;
 
 /** @public */
@@ -577,6 +584,13 @@ export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> =
                 : `${Prefix}${K}`;
         }[keyof T & string]
       : never;
+
+/** @public */
+export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
+  infer ERROR
+>[]
+  ? ERROR
+  : never;
 
 /** @public */
 export type ValidatorErrorType<T, U = string> = {
@@ -605,13 +619,10 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
-    StrictUnion<
-      | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-      | FailReturn<FailOfRest<REST>>
-    >,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
   >;
 
   // Use options object, use typed data validator
@@ -625,9 +636,10 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
   >;
 
   // Use options object, use data validator
@@ -637,7 +649,7 @@ export type ActionConstructor = {
       readonly id?: string;
       readonly validation: REST;
     }
-  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
 
   // Use typed data validator, use data validator
   <
@@ -652,13 +664,10 @@ export type ActionConstructor = {
     options: VALIDATOR,
     ...rest: REST
   ): Action<
-    StrictUnion<
-      | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-      | FailReturn<FailOfRest<REST>>
-    >,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
   >;
 
   // Use typed data validator
@@ -669,16 +678,17 @@ export type ActionConstructor = {
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
   >;
 
   // Use data validator
   <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
     actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
     ...rest: REST
-  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
 
   // No validators
   <OBJ>(
@@ -686,7 +696,7 @@ export type ActionConstructor = {
     options?: {
       readonly id?: string;
     }
-  ): Action<StrictUnion<OBJ>>;
+  ): Action<OBJ>;
 };
 
 /** @public */
@@ -705,13 +715,10 @@ export type ActionConstructorQRL = {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
-    StrictUnion<
-      | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-      | FailReturn<FailOfRest<REST>>
-    >,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
   >;
 
   // Use options object, use typed data validator
@@ -724,9 +731,10 @@ export type ActionConstructorQRL = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
   >;
 
   // Use options object, use data validator
@@ -736,7 +744,7 @@ export type ActionConstructorQRL = {
       readonly id?: string;
       readonly validation: REST;
     }
-  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
 
   // Use typed data validator, use data validator
   <
@@ -750,13 +758,10 @@ export type ActionConstructorQRL = {
     options: VALIDATOR,
     ...rest: REST
   ): Action<
-    StrictUnion<
-      | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-      | FailReturn<FailOfRest<REST>>
-    >,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
   >;
 
   // Use typed data validator
@@ -766,16 +771,17 @@ export type ActionConstructorQRL = {
     >,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
   >;
 
   // Use data validator
   <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
     actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>>,
     ...rest: REST
-  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
 
   // No validators
   <OBJ>(
@@ -783,7 +789,7 @@ export type ActionConstructorQRL = {
     options?: {
       readonly id?: string;
     }
-  ): Action<StrictUnion<OBJ>>;
+  ): Action<OBJ>;
 };
 
 /** @public */
@@ -869,13 +875,13 @@ export type LoaderConstructor = {
   <OBJ>(
     loaderFn: (event: RequestEventLoader) => ValueOrPromise<OBJ>,
     options?: LoaderOptions
-  ): Loader<[Extract<OBJ, Failed>] extends [never] ? OBJ : StrictUnion<OBJ>>;
+  ): Loader<OBJ>;
 
   // With validation
   <OBJ extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
     loaderFn: (event: RequestEventLoader) => ValueOrPromise<OBJ>,
     ...rest: REST
-  ): Loader<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Loader<OBJ, FailOfRest<REST>>;
 };
 
 /** @public */
@@ -884,13 +890,13 @@ export type LoaderConstructorQRL = {
   <OBJ>(
     loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<OBJ>>,
     options?: LoaderOptions
-  ): Loader<[Extract<OBJ, Failed>] extends [never] ? OBJ : StrictUnion<OBJ>>;
+  ): Loader<OBJ>;
 
   // With validation
   <OBJ extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
     loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<OBJ>>,
     ...rest: REST
-  ): Loader<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Loader<OBJ, FailOfRest<REST>>;
 };
 
 /** @public */
@@ -900,7 +906,7 @@ export type ActionReturn<RETURN> = {
 };
 
 /** @public */
-export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
+export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = unknown> = {
   /**
    * It's the "action" path that a native `<form>` should have in order to call the action.
    *
@@ -960,9 +966,18 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
    * Returned successful data of the action. This reactive property will contain the data returned
    * inside the `action$` function.
    *
-   * It's `undefined` before the action is first called.
+   * It's `undefined` before the action is first called, or when the action failed (see `error`).
    */
   readonly value: RETURN | undefined;
+
+  /**
+   * The `ServerError` thrown by the action's last execution (via `throw error(...)`, a failed
+   * validator, or an uncaught server error). `.status` is the HTTP status and `.data` is the
+   * payload.
+   *
+   * It's `undefined` before the action is first called and when the last execution succeeded.
+   */
+  readonly error: ServerError<ERROR> | undefined;
 
   /**
    * Method to execute the action programmatically from the browser. Ie, instead of using a
@@ -978,26 +993,23 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
   readonly submitted: boolean;
 };
 
-type Failed = {
-  failed: true;
-};
-
 /** @public */
-export type FailReturn<T> = T & Failed;
-
-/** @public */
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
+export type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<
+  infer VALIDATOR
+>
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
-  Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
+  Pick<AsyncSignal, 'promise' | 'loading'> & {
+    error: ServerError<ERROR> | undefined;
+  };
 
 /** @public */
-export type Loader<RETURN> = {
+export type Loader<RETURN, ERROR = unknown> = {
   /**
    * Returns the `Signal` containing the data returned by the `loader$` function. Like all `use-`
    * functions and methods, it can only be invoked within a `component$()`.
    */
-  (): LoaderSignal<RETURN>;
+  (): LoaderSignal<RETURN, ERROR>;
 };
 
 export interface LoaderInternal extends Loader<any> {
@@ -1016,13 +1028,18 @@ export interface LoaderInternal extends Loader<any> {
 }
 
 /** @public */
-export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {
+export type Action<
+  RETURN,
+  INPUT = Record<string, unknown>,
+  OPTIONAL extends boolean = true,
+  ERROR = unknown,
+> = {
   /**
    * Returns the `ActionStore` containing the current action state and methods to invoke it from a
    * component$(). Like all `use-` functions and methods, it can only be invoked within a
    * `component$()`.
    */
-  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+  (): ActionStore<RETURN, INPUT, OPTIONAL, ERROR>;
 };
 
 export interface ActionInternal extends Action<any, any> {

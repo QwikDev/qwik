@@ -28,6 +28,7 @@ import { RequestEventLoader } from '@qwik.dev/router/middleware/request-handler'
 import { RequestHandler } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handler';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
+import type { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import type { Signal } from '@qwik.dev/core';
 import type * as v from 'valibot';
 import type { ValueOrPromise } from '@qwik.dev/core';
@@ -36,8 +37,8 @@ import { z } from 'zod';
 import type * as z_2 from 'zod';
 
 // @public (undocumented)
-export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {
-    (): ActionStore<RETURN, INPUT, OPTIONAL>;
+export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true, ERROR = unknown> = {
+    (): ActionStore<RETURN, INPUT, OPTIONAL, ERROR>;
 };
 
 // @public (undocumented)
@@ -45,21 +46,21 @@ export type ActionConstructor = {
     <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {
         readonly id?: string;
         readonly validation: [VALIDATOR, ...REST];
-    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;
+    }): Action<OBJ, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>>;
     <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {
         readonly id?: string;
         readonly validation: [VALIDATOR];
-    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;
+    }): Action<OBJ, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>;
     <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {
         readonly id?: string;
         readonly validation: REST;
-    }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
-    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;
-    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;
-    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+    }): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
+    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<OBJ, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>>;
+    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<OBJ, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>;
+    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
     <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {
         readonly id?: string;
-    }): Action<StrictUnion<OBJ>>;
+    }): Action<OBJ>;
 };
 
 // @public (undocumented)
@@ -69,12 +70,13 @@ export type ActionReturn<RETURN> = {
 };
 
 // @public (undocumented)
-export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
+export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = unknown> = {
     readonly actionPath: string;
     readonly isRunning: boolean;
     readonly status?: number;
     readonly formData: FormData | undefined;
     readonly value: RETURN | undefined;
+    readonly error: ServerError<ERROR> | undefined;
     readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
     readonly submitted: boolean;
 };
@@ -194,14 +196,6 @@ export type DocumentStyle = Readonly<((Omit<QwikIntrinsicElements['style'], 'dan
 export const ErrorBoundary: Component<ErrorBoundaryProps>;
 
 // @public (undocumented)
-export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
-
-// Warning: (ae-forgotten-export) The symbol "Failed" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type FailReturn<T> = T & Failed;
-
-// @public (undocumented)
 export const Form: <O, I>(input: FormProps<O, I>, key: string | null) => JSXOutput;
 
 // @public (undocumented)
@@ -281,13 +275,15 @@ export interface LinkProps extends AnchorAttributes {
 }
 
 // @public (undocumented)
-type Loader_2<RETURN> = {
-    (): LoaderSignal<RETURN>;
+type Loader_2<RETURN, ERROR = unknown> = {
+    (): LoaderSignal<RETURN, ERROR>;
 };
 export { Loader_2 as Loader }
 
 // @public (undocumented)
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
+export type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {
+    error: ServerError<ERROR> | undefined;
+};
 
 // @public (undocumented)
 type NavigationType_2 = 'initial' | 'form' | 'link' | 'popstate';
@@ -680,6 +676,10 @@ export type ZodConstructor = {
 //
 // @internal (undocumented)
 export const zodQrl: ZodConstructorQRL;
+
+// Warnings were encountered during analysis:
+//
+// /Users/maieul/dev/work/qwik-v2/dist-dev/dts-out/packages/qwik-router/src/runtime/src/types.d.ts:451:5 - (ae-forgotten-export) The symbol "FailOfRest" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

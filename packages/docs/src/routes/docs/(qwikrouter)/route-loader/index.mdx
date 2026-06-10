@@ -66,10 +66,10 @@ Hooks return an `AsyncSignal<T>`. Branch on `.loading` and `.error` before readi
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 
-export const useProductDetails = routeLoader$(async ({ params, fail }) => {
+export const useProductDetails = routeLoader$(async ({ params, error }) => {
   const product = await db.products.findById(params.productId);
   if (!product) {
-    return fail(404, { message: 'Product not found' });
+    throw error(404, { message: 'Product not found' });
   }
   return product;
 });
@@ -81,8 +81,8 @@ export default component$(() => {
     return <div>Loading…</div>;
   }
   if (product.error) {
-    // ServerError — read .status and .data
-    return <div>{product.error.status}: {product.error.data.message}</div>;
+    // ServerError — read .status, .data, and .message
+    return <div>{product.error.status}: {product.error.message}</div>;
   }
   return <div>Product name: {product.value.name}</div>;
 });
@@ -92,10 +92,20 @@ export default component$(() => {
 
 ### Signaling failure from a loader
 
-Loaders signal failure two ways. Both put the signal into error state with `signal.error` set to a `ServerError` carrying `.status` (HTTP status) and `.data` (the payload):
+To signal failure, destructure `error` from the `RequestEvent` and `throw error(status, data)`. This puts the signal into error state, with `signal.error` set to a `ServerError` carrying `.status` (the HTTP status), `.data` (the payload you passed to `error()`), and `.message` (`data.message` when the payload has a string `message`).
 
-- **`return requestEvent.fail(status, data)`** — return a tagged failure. `signal.error.data` is `{ failed: true, ...data }`.
-- **`throw requestEvent.error(status, data)`** — throw a `ServerError` directly. `signal.error.data` is `data`.
+```tsx
+export const useProduct = routeLoader$(async ({ params, error }) => {
+  const product = await db.products.findById(params.productId);
+  if (!product) {
+    // signal.error.status === 404, signal.error.data === { message: 'Product not found' }
+    throw error(404, { message: 'Product not found' });
+  }
+  return product;
+});
+```
+
+Read it back on `signal.error`, never on `signal.value` — `.value` holds the success value only.
 
 ## Multiple `routeLoader$`s
 
@@ -329,7 +339,7 @@ export default component$(() => {
 | Echo the just-submitted form value back to the page | Loader returns the URL-derived value; the component overlays `action.value` on top, e.g. `action.value?.name ?? loader.value.name`.                                                          |
 | Recompute derived data from the submission          | Put the inputs in the URL (search params, or `goto()` after the action) so the loader reads them like any other route input.                                                                |
 | Refresh authoritative data after a mutation         | The action writes to your store (DB, KV, etc.); the loader reads from that store. The action's `invalidate` list re-runs the loader and it picks up the new state — no action result needed. |
-| Show success / error feedback                       | Read the action signal directly: `action.value`, `action.isRunning`, `action.value?.failed`. Ephemeral UI feedback doesn't belong in a loader.                                              |
+| Show success / error feedback                       | Read the action signal directly: `action.value`, `action.isRunning`, `action.error`. Ephemeral UI feedback doesn't belong in a loader.                                              |
 
 ## Options reference
 

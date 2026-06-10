@@ -8,6 +8,7 @@ import type {
   ValidatorReturn,
 } from '../../../runtime/src/types';
 import { RequestEvSharedActionId, type RequestEventInternal } from '../request-event-core';
+import { ServerError } from '../server-error';
 import { IsQAction, QActionId } from '../request-path';
 import type { QRL } from '@qwik.dev/core';
 import type { RequestEventBase } from '../types';
@@ -83,10 +84,13 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
     }
 
     let actionResult: unknown;
-    const result = await runValidators(requestEv, action.__validators, data, devMode);
-    if (!result.success) {
-      actionResult = requestEv.fail(result.status ?? 500, result.error);
-    } else {
+    let actionError: ServerError | undefined;
+    try {
+      const result = await runValidators(requestEv, action.__validators, data, devMode);
+      if (!result.success) {
+        // A failed validator surfaces as the action's error state.
+        throw new ServerError(result.status ?? 500, result.error);
+      }
       const actionResolved = devMode
         ? await measure(requestEv, action.__qrl.getHash(), () =>
             action!.__qrl.call(requestEv, result.data as JSONObject, requestEv)
@@ -96,12 +100,21 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
         verifySerializable(actionResolved, action.__qrl);
       }
       actionResult = actionResolved;
+    } catch (err) {
+      // `throw error(...)` / failed validators surface as `action.error`. Other throws
+      // (redirects, unexpected errors) propagate to the middleware chain as before.
+      if (err instanceof ServerError) {
+        actionError = err;
+        requestEv.status(err.status);
+      } else {
+        throw err;
+      }
     }
-    const responseData: Record<string, unknown> = {
-      result: actionResult,
-    };
+    const responseData: Record<string, unknown> = actionError
+      ? { error: actionError }
+      : { result: actionResult };
     requestEv.sharedMap.set(RequestEvSharedActionId, actionId);
-    requestEv.sharedMap.set('@actionResult', actionResult);
+    requestEv.sharedMap.set('@actionResult', actionError ?? actionResult);
 
     if (action.__invalidate) {
       // Action specifies which loaders to invalidate — send only hashes, client re-fetches

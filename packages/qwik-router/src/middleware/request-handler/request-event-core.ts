@@ -1,7 +1,6 @@
 import { _deserialize, isDev } from '@qwik.dev/core/internal';
 import type {
   ActionInternal,
-  FailReturn,
   JSONValue,
   LoadedRoute,
   LoaderInternal,
@@ -288,10 +287,22 @@ export function createRequestEventWithDeps(
     rewrite: (pathname: string) => {
       check();
       if (pathname.startsWith('http')) {
-        throw new deps.ServerError(
-          400,
-          isDev ? 'Rewrite does not support absolute urls' : 'Bad Request'
-        );
+        // A rewrite is an internal, same-origin re-route. A same-origin absolute URL is just
+        // a path with the origin glued on, so normalize it to its path and treat it like a
+        // relative rewrite. A cross-origin URL can't be rewritten in place — that's a redirect.
+        let target: URL;
+        try {
+          target = new URL(pathname);
+        } catch {
+          throw new deps.ServerError(400, isDev ? 'Invalid rewrite url' : 'Bad Request');
+        }
+        if (target.origin !== url.origin) {
+          throw new deps.ServerError(
+            400,
+            isDev ? 'Rewrite does not support cross-origin urls' : 'Bad Request'
+          );
+        }
+        pathname = target.pathname + target.search + target.hash;
       }
       sharedMap.set(RequestEvIsRewrite, true);
       return exit(new deps.RewriteMessage(pathname.replace(/\/+/g, '/')));
@@ -299,16 +310,6 @@ export function createRequestEventWithDeps(
 
     defer: (returnData) => {
       return typeof returnData === 'function' ? returnData : () => returnData;
-    },
-
-    fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
-      check();
-      status = statusCode;
-      headers.delete('Cache-Control');
-      return {
-        failed: true,
-        ...data,
-      };
     },
 
     text: (statusCode: number, text: string) => {

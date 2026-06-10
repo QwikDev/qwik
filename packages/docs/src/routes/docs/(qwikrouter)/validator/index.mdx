@@ -37,20 +37,23 @@ export const useAction = routeAction$(
 );
 ```
 
-When submitting a request to a `routeAction()`, the request event and data undergo validation against the defined validator. If the validation fails, the action will place the validation error in the `routeAction.value` property.
+When submitting a request to a `routeAction()`, the request event and data undergo validation against the defined validator. If the validation fails, the action surfaces the validation error on the `routeAction.error` property (a `ServerError`), separate from the success value on `routeAction.value`.
 
 ```tsx
 export default component$(() => {
   const action = useAction();
 
-  // action value is undefined before submitting
-  if (action.value) {
-    if (action.value.failed) {
-      // action failed if query string has no secret
-      action.value satisfies { failed: true; message: string };
-    } else {
-      action.value satisfies { searchResult: string };
-    }
+  // both are undefined before submitting; only one is set after
+  if (action.error) {
+    // validation failed if query string has no secret
+    // action.error is a ServerError: .status is the HTTP status, and the
+    // validator error fields are spread directly onto the error, so you read
+    // them flat (e.g. action.error.message). The canonical payload object is
+    // still available as action.error.data.
+    action.error.message satisfies string;
+    action.error.data satisfies { message: string };
+  } else if (action.value) {
+    action.value satisfies { searchResult: string };
   }
 
   return (
@@ -144,21 +147,21 @@ interface Fail {
 }
 ```
 
-Validator behaves like using the `fail()` method in the action or loader when it returns a failed object.
+When a validator returns a failed object, the framework turns it into a `ServerError` — the same outcome as `throw error(status, data)` inside the action or loader. The error surfaces on `action.error`, with `action.error.status` set to the validator's `status`. The validator's `error` object fields are spread directly onto the error, so you read them flat (e.g. `action.error.message`); the canonical payload object is also available as `action.error.data`.
 
-```tsx /status/#a /errorObject/#b
+```tsx /status/#a /errorData/#b
 const status = 500;
-const errorObject = { message: "123" };
+const errorData = { message: "123" };
 
 export const useAction = routeAction$(
-  async (_, { fail }) => {
-    return fail(status, errorObject);
+  async (_, { error }) => {
+    throw error(status, errorData);
   },
   validator$(async () => {
     return {
       success: false,
       status,
-      errorObject,
+      error: errorData,
     };
   }),
 );

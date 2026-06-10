@@ -51,6 +51,7 @@ const REQUEST_ROUTE_LOADER_STATE = '@routeLoaderState';
 const REQUEST_LOADER_PATHS_STORE = '@loaderPathsStore';
 const REQUEST_ROUTE_LOADERS = '@routeLoaders';
 const REQUEST_ROUTE_LOADER_PROMISES = '@routeLoaderPromises';
+const REQUEST_ROUTE_LOADER_ERRORS = '@routeLoaderErrors';
 const REQUEST_ROUTE_LOADER_EVENTS = '@routeLoaderEvents';
 const REQUEST_ROUTE_LOADER_ROOT_EVENT = '@routeLoaderRootEvent';
 const ROUTE_LOADER_VALUE_PREFIX = '__qwik_route_loader_value__';
@@ -138,6 +139,13 @@ class ServerRouteLoaderCapture {
 
   load() {
     const requestEv = getRequestEvent();
+    // A loader that failed during loadersMiddleware (fail() / throw error()) was captured
+    // as a ServerError. Re-throw it so the AsyncSignal enters error state during render
+    // instead of re-running the loader.
+    const errors = getRouteLoaderErrors(requestEv);
+    if (this.hash in errors) {
+      throw errors[this.hash];
+    }
     // Use pre-computed value from loadersMiddleware if available,
     // to avoid re-running the loader after the response stream is open.
     const values = getRouteLoaderValues(requestEv);
@@ -510,6 +518,24 @@ export function getRouteLoaderValues(requestEv: RequestEventBase): Record<string
   return values;
 }
 
+/**
+ * Get/create the record of loader failures (`fail()` / `throw error()`) captured by
+ * loadersMiddleware. Keyed by loader id; values are the `ServerError` to surface as the signal's
+ * error state during render. Request-scoped and server-only.
+ */
+export function getRouteLoaderErrors(
+  requestEv: RequestEventBase
+): Record<string, InstanceType<typeof ServerError>> {
+  let errors = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_ERRORS) as
+    | Record<string, InstanceType<typeof ServerError>>
+    | undefined;
+  if (!errors) {
+    errors = {};
+    requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_ERRORS, errors);
+  }
+  return errors;
+}
+
 function getRouteLoaderPromises(requestEv: RequestEventBase): Record<string, Promise<unknown>> {
   let promises = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_PROMISES) as
     | Record<string, Promise<unknown>>
@@ -638,7 +664,13 @@ export const getRouteLoaderData = async (
 
   const result = await runValidators(requestEv, validators, undefined);
   if (!result.success) {
-    return loaderRequestEv.fail(result.status ?? 500, result.error);
+    // A failed validator surfaces as the loader's error state (a ServerError), the same
+    // as `throw error(...)`. On the client, getRouteLoaderResponse serializes it into the
+    // error envelope and the AsyncSignal re-throws it for the component to read via
+    // `loader.error`.
+    const status = result.status ?? 500;
+    requestEv.status(status);
+    throw new ServerError(status, result.error);
   }
   const resolved = await loaderQrl.call(
     loaderRequestEv as unknown as ServerRequestEventLoader,
@@ -749,9 +781,7 @@ export const getRouteLoaderResponse = async (
 ): Promise<LoaderResponse> => {
   try {
     const value = await getRouteLoaderData(loaderQrl, validators, requestEv);
-    if (value && typeof value === 'object' && (value as any).failed) {
-      return { e: new ServerError(requestEv.status(), value) };
-    }
+    // fail() is thrown as a ServerError by getRouteLoaderData and handled in the catch below.
     return { d: value };
   } catch (err) {
     if (err instanceof RedirectMessage) {
@@ -782,7 +812,9 @@ export const routeLoaderQrl = ((
       signal = ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
     }
     void signal.promise();
-    return signal;
+    // The runtime signal is an AsyncSignal (error: Error); loaders narrow `.error` to
+    // ServerError (failures are always ServerErrors), so assert the loader-facing type here.
+    return signal as unknown as ReturnType<LoaderInternal>;
   }
 
   loader.__brand = 'server_loader' as const;

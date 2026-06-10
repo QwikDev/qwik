@@ -11,8 +11,9 @@ export type Action<
   RETURN,
   INPUT = Record<string, unknown>,
   OPTIONAL extends boolean = true,
+  ERROR = unknown,
 > = {
-  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+  (): ActionStore<RETURN, INPUT, OPTIONAL, ERROR>;
 };
 ```
 
@@ -38,13 +39,10 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR, ...REST];
     },
   ): Action<
-    StrictUnion<
-      | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-      | FailReturn<FailOfRest<REST>>
-    >,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
   >;
   <
     OBJ extends Record<string, any> | void | null,
@@ -59,11 +57,10 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR];
     },
   ): Action<
-    StrictUnion<
-      OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-    >,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
   >;
   <
     OBJ extends Record<string, any> | void | null,
@@ -77,7 +74,7 @@ export type ActionConstructor = {
       readonly id?: string;
       readonly validation: REST;
     },
-  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
   <
     OBJ extends Record<string, any> | void | null,
     VALIDATOR extends TypedDataValidator,
@@ -90,13 +87,10 @@ export type ActionConstructor = {
     options: VALIDATOR,
     ...rest: REST
   ): Action<
-    StrictUnion<
-      | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-      | FailReturn<FailOfRest<REST>>
-    >,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
   >;
   <
     OBJ extends Record<string, any> | void | null,
@@ -108,11 +102,10 @@ export type ActionConstructor = {
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR,
   ): Action<
-    StrictUnion<
-      OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-    >,
+    OBJ,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
   >;
   <
     OBJ extends Record<string, any> | void | null,
@@ -123,7 +116,7 @@ export type ActionConstructor = {
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
     ...rest: REST
-  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
   <OBJ>(
     actionQrl: (
       form: JSONObject,
@@ -132,11 +125,11 @@ export type ActionConstructor = {
     options?: {
       readonly id?: string;
     },
-  ): Action<StrictUnion<OBJ>>;
+  ): Action<OBJ>;
 };
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorOutputType](#getvalidatoroutputtype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [ValidatorErrorType](#validatorerrortype), [GetValidatorInputType](#getvalidatorinputtype), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
+**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorOutputType](#getvalidatoroutputtype), [Action](#action), [GetValidatorInputType](#getvalidatorinputtype), [ValidatorErrorType](#validatorerrortype), [JSONObject](#jsonobject)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -154,12 +147,18 @@ export type ActionReturn<RETURN> = {
 <h2 id="actionstore">ActionStore</h2>
 
 ```typescript
-export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
+export type ActionStore<
+  RETURN,
+  INPUT,
+  OPTIONAL extends boolean = true,
+  ERROR = unknown,
+> = {
   readonly actionPath: string;
   readonly isRunning: boolean;
   readonly status?: number;
   readonly formData: FormData | undefined;
   readonly value: RETURN | undefined;
+  readonly error: ServerError<ERROR> | undefined;
   readonly submit: QRL<
     OPTIONAL extends true
       ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
@@ -783,25 +782,6 @@ ErrorBoundary: import("@qwik.dev/core").Component<ErrorBoundaryProps>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/error-boundary.tsx)
 
-<h2 id="failofrest">FailOfRest</h2>
-
-```typescript
-export type FailOfRest<REST extends readonly DataValidator[]> =
-  REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
-```
-
-**References:** [DataValidator](#datavalidator)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
-
-<h2 id="failreturn">FailReturn</h2>
-
-```typescript
-export type FailReturn<T> = T & Failed;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
-
 <h2 id="form">Form</h2>
 
 ```typescript
@@ -1251,8 +1231,8 @@ _(Optional)_
 <h2 id="loader_2">Loader_2</h2>
 
 ```typescript
-export type Loader<RETURN> = {
-  (): LoaderSignal<RETURN>;
+export type Loader<RETURN, ERROR = unknown> = {
+  (): LoaderSignal<RETURN, ERROR>;
 };
 ```
 
@@ -1263,12 +1243,15 @@ export type Loader<RETURN> = {
 <h2 id="loadersignal">LoaderSignal</h2>
 
 ```typescript
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
-  infer VALIDATOR
->
+export type LoaderSignal<
+  TYPE,
+  ERROR = unknown,
+> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
-  Pick<AsyncSignal, "promise" | "loading" | "error">;
+  Pick<AsyncSignal, "promise" | "loading"> & {
+    error: ServerError<ERROR> | undefined;
+  };
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)

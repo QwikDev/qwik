@@ -9,7 +9,7 @@ export function delay(nu: number) {
 }
 
 export const useSecretAction = globalAction$(
-  async (payload, { fail, redirect }) => {
+  async (payload, { error, redirect }) => {
     if (payload.username === 'admin' && payload.code === 123) {
       await delay(2000);
       return {
@@ -19,7 +19,7 @@ export const useSecretAction = globalAction$(
     } else if (payload.username === 'redirect' && payload.code === 123) {
       throw redirect(302, '/qwikrouter-test/');
     }
-    return fail(400, {
+    throw error(400, {
       message: 'Invalid username or code',
     });
   },
@@ -51,8 +51,8 @@ export const SecretForm = component$(() => {
               placeholder="admin"
               value={action.formData?.get('username')}
             />
-            {action.value?.fieldErrors?.username && (
-              <p class={styles.error}>{action.value.fieldErrors.username}</p>
+            {action.error?.fieldErrors?.username && (
+              <p class={styles.error}>{action.error.fieldErrors.username}</p>
             )}
           </label>
         </div>
@@ -60,14 +60,14 @@ export const SecretForm = component$(() => {
           <label id="label-code">
             Code:
             <input type="text" name="code" placeholder="123" value={action.formData?.get('code')} />
-            {action.value?.fieldErrors?.code && (
-              <p class={styles.error}>{action.value.fieldErrors.code}</p>
+            {action.error?.fieldErrors?.code && (
+              <p class={styles.error}>{action.error.fieldErrors.code}</p>
             )}
           </label>
         </div>
-        {action.value?.message && (
+        {action.error?.message && (
           <p id="form-error" class={styles.error}>
-            {action.value.message}
+            {action.error.message}
           </p>
         )}
         {action.value?.secret && (

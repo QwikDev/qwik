@@ -128,13 +128,15 @@ function tests() {
         searchParams: { search: 'true' },
       });
 
-      /** Products: shirt (rewrite to /products/tshirt) ********** */
-      await linkNavigate(ctx, '[data-test-link="products-shirt-rewrite-absolute-url"]', 400);
+      /** Products: shirt (same-origin absolute rewrite → /products/tshirt) ********** */
+      await linkNavigate(ctx, '[data-test-link="products-shirt-rewrite-absolute-url"]');
       await assertPage(ctx, {
-        title: 'Error 400 - Qwik',
+        pathname: '/qwikrouter-test/products/shirt-rewrite-absolute-url/',
+        title: 'Product tshirt - Qwik',
+        layoutHierarchy: ['root'],
+        h1: 'Product: tshirt',
+        activeHeaderLink: 'Products',
       });
-      // Recover from error
-      await setPage(ctx, '/qwikrouter-test/products/hat/');
 
       /** Products: shirt (rewrite to /products/tshirt) ********** */
       await linkNavigate(ctx, '[data-test-link="products-shirt-rewrite-no-trailing-slash"]', 301);

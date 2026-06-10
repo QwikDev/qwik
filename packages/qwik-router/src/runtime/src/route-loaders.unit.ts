@@ -1,8 +1,13 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
+import { ServerError } from '../../middleware/request-handler/server-error';
+import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import {
   ensureRouteLoaderSignal,
+  getRouteLoaderData,
+  getRouteLoaderResponse,
   loadRouteLoader,
+  routeLoader$,
   routeLoaderQrl,
   type RouteLoaderState,
 } from './route-loaders';
@@ -90,6 +95,157 @@ describe('route loader execution', () => {
     expect(loader.__expires).toBe(60_000);
   });
 });
+
+describe('loader failures surface as error state', () => {
+  // A loader failure (throw error() / failed validator) must surface as the signal's
+  // error state (a ServerError) on the server and the client — never as loader.value.
+  it('propagates the ServerError thrown by the loader', async () => {
+    const ev = makeRequestEv();
+    const qrl = createQrl('error-loader', (_thisArg, e) => {
+      throw e.error(400, { message: 'Product not found' });
+    });
+
+    const promise = getRouteLoaderData(qrl, undefined, ev);
+    await expect(promise).rejects.toBeInstanceOf(ServerError);
+    await promise.catch((err: ServerError) => {
+      expect(err.status).toBe(400);
+      expect(err.data).toEqual({ message: 'Product not found' });
+      // ServerError derives `.message` from object data's `message` field.
+      expect(err.message).toBe('Product not found');
+    });
+  });
+
+  it('propagates a directly-thrown ServerError', async () => {
+    const ev = makeRequestEv();
+    const thrown = new ServerError(404, { message: 'gone' });
+    const qrl = createQrl('error-loader', () => {
+      throw thrown;
+    });
+
+    await expect(getRouteLoaderData(qrl, undefined, ev)).rejects.toBe(thrown);
+  });
+
+  it('returns the raw value on success', async () => {
+    const ev = makeRequestEv();
+    const qrl = createQrl('ok-loader', () => ({ result: 'ok' }));
+
+    await expect(getRouteLoaderData(qrl, undefined, ev)).resolves.toEqual({ result: 'ok' });
+  });
+
+  it('rejects resolveValue when the resolved loader fails', async () => {
+    const requestEv = makeRequestEv();
+    const failing = createLoader('failing', (_thisArg, e) => {
+      throw e.error(400, { message: 'x' });
+    });
+    requestEv.resolveValue = (loader: LoaderInternal) => loadRouteLoader(loader, requestEv);
+
+    await expect(loadRouteLoader(failing, requestEv)).rejects.toBeInstanceOf(ServerError);
+  });
+
+  it('wraps a loader failure as an error envelope in getRouteLoaderResponse', async () => {
+    const ev = makeRequestEv();
+    const qrl = createQrl('fail-resp', (_thisArg, e) => {
+      throw e.error(400, { message: 'x' });
+    });
+
+    const res = await getRouteLoaderResponse(qrl, undefined, ev);
+    expect(res.e).toBeInstanceOf(ServerError);
+    expect(res.e?.data).toEqual({ message: 'x' });
+    expect(res.d).toBeUndefined();
+  });
+
+  it('returns a data envelope on success in getRouteLoaderResponse', async () => {
+    const ev = makeRequestEv();
+    const qrl = createQrl('ok-resp', () => ({ result: 'ok' }));
+
+    const res = await getRouteLoaderResponse(qrl, undefined, ev);
+    expect(res.d).toEqual({ result: 'ok' });
+    expect(res.e).toBeUndefined();
+  });
+
+  it('returns a redirect envelope on redirect', async () => {
+    const ev = makeRequestEv();
+    ev.headers.set('Location', '/login');
+    const qrl = createQrl('redir-resp', () => {
+      throw new RedirectMessage();
+    });
+
+    const res = await getRouteLoaderResponse(qrl, undefined, ev);
+    expect(res.r).toBe('/login');
+    expect(res.e).toBeUndefined();
+    expect(res.d).toBeUndefined();
+  });
+});
+
+describe('types', () => {
+  test('loader.value is the success type (failures surface on .error)', () => () => {
+    const useObj = routeLoader$(({ error, query }) => {
+      if (query.get('fail') === '1') {
+        throw error(400, { message: 'Product not found' });
+      }
+      return { result: 'ok' };
+    });
+    expectTypeOf(useObj().value).toEqualTypeOf<{ result: string }>();
+  });
+
+  test('primitive loader.value stays a primitive', () => () => {
+    const useStr = routeLoader$(({ error, query }) => {
+      if (query.get('fail') === '1') {
+        throw error(400, { message: 'Product not found' });
+      }
+      return 'hello';
+    });
+    expectTypeOf(useStr().value).toEqualTypeOf<string>();
+  });
+
+  test('reading value.failed is not valid', () => () => {
+    const useObj = routeLoader$(({ error, query }) => {
+      if (query.get('fail') === '1') {
+        throw error(400, { message: 'Product not found' });
+      }
+      return { result: 'ok' };
+    });
+    const value = useObj().value;
+    // @ts-expect-error failures surface on loader.error, never loader.value.failed
+    value.failed;
+  });
+
+  test('loader.error is a ServerError with status/data', () => () => {
+    const useObj = routeLoader$(({ error, query }) => {
+      if (query.get('fail') === '1') {
+        throw error(404, { message: 'Product not found' });
+      }
+      return { result: 'ok' };
+    });
+    const loader = useObj();
+    expectTypeOf(loader.error).toEqualTypeOf<ServerError | undefined>();
+    if (loader.error) {
+      expectTypeOf(loader.error.status).toEqualTypeOf<number>();
+      // `.message` is always typed (Error); the thrown payload type can't be inferred, so
+      // `.data` is `unknown` for a loader without validators.
+      expectTypeOf(loader.error.message).toEqualTypeOf<string>();
+    }
+  });
+});
+
+function makeRequestEv(): any {
+  let _status = 200;
+  return {
+    sharedMap: new Map(),
+    headers: new Map<string, string>(),
+    url: new URL('http://localhost/products/'),
+    status: (s?: number) => {
+      if (s !== undefined) {
+        _status = s;
+      }
+      return _status;
+    },
+    error: (status: number, data: unknown) => {
+      _status = status;
+      return new ServerError(status, data);
+    },
+  };
+}
 
 function createLoader(
   id: string,

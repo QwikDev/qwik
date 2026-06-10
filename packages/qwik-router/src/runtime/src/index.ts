@@ -21,7 +21,6 @@ export type {
   DocumentMeta,
   DocumentScript,
   DocumentStyle,
-  FailReturn,
   HttpStatus as HttpErrorProps,
   InternalRequest,
   JSONObject,
@@ -108,7 +107,6 @@ export { omitProps, untypedAppUrl } from './typed-routes';
 export type {
   ActionReturn,
   DataValidator,
-  FailOfRest,
   GetValidatorInputType,
   GetValidatorOutputType,
   GetValidatorType,

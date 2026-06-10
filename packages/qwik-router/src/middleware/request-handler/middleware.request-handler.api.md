@@ -7,7 +7,6 @@
 import type { Action } from '@qwik.dev/router';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 import type { EnvGetter as EnvGetter_2 } from '@qwik.dev/router/middleware/request-handler';
-import type { FailReturn } from '@qwik.dev/router';
 import type { JSXOutput } from '@qwik.dev/core';
 import type { Loader as Loader_2 } from '@qwik.dev/router';
 import type { QwikIntrinsicElements } from '@qwik.dev/core';
@@ -120,8 +119,6 @@ export interface RequestEvent<PLATFORM = QwikRouterPlatform> extends RequestEven
 
 // @public (undocumented)
 export interface RequestEventAction<PLATFORM = QwikRouterPlatform> extends RequestEventCommon<PLATFORM> {
-    // (undocumented)
-    fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
 // @public (undocumented)
@@ -205,14 +202,16 @@ export class RewriteMessage extends AbortMessage {
     readonly pathname: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ServerErrorImpl" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type ServerError<T = unknown> = ServerErrorImpl<T> & (T extends object ? T : unknown);
+
 // @public (undocumented)
-export class ServerError<T = any> extends Error {
-    constructor(status: number, data: T);
-    // (undocumented)
-    data: T;
-    // (undocumented)
-    status: number;
-}
+export const ServerError: {
+    new <T = unknown>(status: number, data: T): ServerError<T>;
+    readonly prototype: ServerErrorImpl;
+};
 
 // @public (undocumented)
 export interface ServerRenderOptions extends RenderOptions {

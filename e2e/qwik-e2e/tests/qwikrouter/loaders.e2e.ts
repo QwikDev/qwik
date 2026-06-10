@@ -177,18 +177,23 @@ test.describe('loaders', () => {
       await expect(page.locator('#prop-unwrapped')).toHaveText('test');
     });
 
-    test('should modify ServerError in middleware', async ({ page }) => {
+    test('surfaces a thrown loader ServerError as loader.error', async ({ page }) => {
       const response = await page.goto('/qwikrouter-test/loaders/loader-error');
       const contentType = await response?.headerValue('Content-Type');
       const status = response?.status();
 
+      // The loader threw error(401, ...): the status propagates and the page renders the
+      // error through loader.error. Loader errors no longer escalate to a page-level error
+      // boundary, so middleware (plugin@errors) can't intercept/rename them.
       expect(status).toEqual(401);
       expect(contentType).toEqual('text/html; charset=utf-8');
       const body = page.locator('body');
-      await expect(body).toContainText('loader-error-caught');
+      await expect(body).toContainText('loader-error-uncaught');
     });
 
-    test('should return html with uncaught ServerErrors thrown in loaders', async ({ page }) => {
+    test('surfaces a ServerError thrown via server$ inside a loader as loader.error', async ({
+      page,
+    }) => {
       const response = await page.goto('/qwikrouter-test/loaders/loader-error/uncaught-server');
       const contentType = await response?.headerValue('Content-Type');
       const status = response?.status();

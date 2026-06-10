@@ -18,14 +18,14 @@ export const onGet: RequestHandler = async ({ redirect, cookie }) => {
 };
 
 export const useSigninAction = globalAction$(
-  async (data, { cookie, redirect, status, fail }) => {
+  async (data, { cookie, redirect, error }) => {
     const result = await signIn(data, cookie);
 
     if (result.status === 'signed-in') {
       throw redirect(302, '/qwikrouter-test/dashboard/');
     }
 
-    return fail(403, {
+    throw error(403, {
       message: ['Invalid username or password'],
     });
   },
@@ -65,26 +65,26 @@ export default component$(() => {
       <h1>Sign In</h1>
 
       <Form action={signIn} spaReset>
-        {signIn.value?.message && <p style="color:red">{signIn.value.message}</p>}
+        {signIn.error?.message && <p style="color:red">{signIn.error.message}</p>}
         <label>
           <span>Username</span>
           <input name="username" type="text" autoComplete="username" required />
-          {signIn.value?.fieldErrors?.username && (
-            <p style="color:red">{signIn.value?.fieldErrors?.username}</p>
+          {signIn.error?.fieldErrors?.username && (
+            <p style="color:red">{signIn.error?.fieldErrors?.username}</p>
           )}
         </label>
         <label>
           <span>Password</span>
           <input name="password" type="password" autoComplete="current-password" required />
-          {signIn.value?.fieldErrors?.password && (
-            <p style="color:red">{signIn.value?.fieldErrors?.password}</p>
+          {signIn.error?.fieldErrors?.password && (
+            <p style="color:red">{signIn.error?.fieldErrors?.password}</p>
           )}
         </label>
         <label>
           <span>Confirm password</span>
           <input name="confirmPassword" type="password" autoComplete="current-password" required />
-          {signIn.value?.fieldErrors?.confirmPassword && (
-            <p style="color:red">{signIn.value?.fieldErrors?.confirmPassword}</p>
+          {signIn.error?.fieldErrors?.confirmPassword && (
+            <p style="color:red">{signIn.error?.fieldErrors?.confirmPassword}</p>
           )}
         </label>
         <button data-test-sign-in>Sign In</button>

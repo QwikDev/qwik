@@ -12,8 +12,9 @@ export default component$(() => {
     <div>
       <h1>Product: {params.id}</h1>
 
-      {product.value == null && <p>Not Found</p>}
-      {product.value != null && (
+      {product.error && <p>Error: {product.error.message}</p>}
+      {!product.error && product.value == null && <p>Not Found</p>}
+      {!product.error && product.value != null && (
         <>
           <p>Price: {product.value.price}</p>
           <p>{product.value.description}</p>
@@ -144,7 +145,8 @@ export const useProductLoader = routeLoader$(
       throw rewrite('/qwikrouter-test/products/tshirt/');
     }
 
-    // Should throw an error
+    // Same-origin absolute URL — rewrite normalizes it to a path and re-routes like a
+    // relative rewrite (renders tshirt while keeping this URL).
     if (id === 'shirt-rewrite-absolute-url') {
       throw rewrite(`${url.origin}/qwikrouter-test/products/tshirt/`);
     }

@@ -156,9 +156,9 @@ export const useForm = routeAction$(
   })
 );
 
-export const useFormWithError = routeAction$(async (stuff, { fail }) => {
+export const useFormWithError = routeAction$(async (stuff, { error }) => {
   if (Math.random() > 2) {
-    return fail(500, {
+    throw error(500, {
       message: 'Random error',
     });
   }
@@ -171,14 +171,15 @@ export const head: DocumentHead = ({ resolveValue }) => {
   const date = resolveValue(useDateLoader);
   const dep = resolveValue(useDependencyLoader);
   const action = resolveValue(useForm);
-  const actionWithError = resolveValue(useFormWithError);
   let title = 'Loaders';
   if (action) {
     title += ` - ACTION: ${action.name}`;
   }
-  if (actionWithError) {
-    title += ` - Error: ${actionWithError.name} ${actionWithError.message}`;
-  }
+  // Note: `useFormWithError` now signals failure via `throw error(500, { message })` instead of
+  // a returned `fail()` value. A thrown action error never surfaces through `resolveValue`
+  // (which only yields the success value), and — as noted above — loaders/head refetched after
+  // an action submission run as standalone GETs without action context anyway. So there is no
+  // error message to read here; the former error branch is dropped.
   return {
     title,
     meta: [

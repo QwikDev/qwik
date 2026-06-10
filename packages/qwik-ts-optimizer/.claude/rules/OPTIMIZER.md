@@ -177,17 +177,19 @@ Each segment is ~1–3 lines of business logic. That granularity is the whole po
 
 ## The pipeline
 
-Top-level entry is `transformModule` at `src/optimizer/transform/index.ts:93`. The header comment names six conceptual phases (`extract → analyze → migrate → rewrite parent → generate segments`), but in code there are 7 numbered phase markers.
+Top-level entry is `transformModule` at `src/optimizer/transform/index.ts:202` — a thin multi-file loop that hands each input to the per-file driver `transformOneModule` (`transform/index.ts:234`), which sequences one named helper per phase. Each helper takes explicit inputs and returns an explicit typed result object (`PreparedModuleInput`, `CaptureAnalysis`, `MigrationAnalysis`, …) so the data flow between phases is visible at the signature level (refactored per OSS-478 from a single ~650-line loop body).
 
-| Phase | Marker | What it does | Key code |
+| Phase | Helper | What it does | Key code |
 |---|---|---|---|
-| 0 | `transform/index.ts:108` | Repair SWC-recoverable parse errors | `repairInput` |
-| 1 | `transform/index.ts:131` | Walk the AST, find every `$(...)` call, record loc + body text + initial metadata | `extractSegments` in `extract.ts` |
-| 2 | `transform/index.ts:171` | Collect imports + run scope analysis on each closure to determine which outer-scope vars are captured. Closure AST nodes are threaded through from Phase 1 (`closureNodes` map populated by `extractSegments` per OSS-353); no per-extraction body re-parse | `collectScopeIdentifiers`, `analyzeCaptures`, `computeSegmentUsage` |
-| 3 | `transform/index.ts:352` | For each module-level binding referenced inside a segment, decide: stay in parent (`keep`), move into segment (`move`), or re-export (`reexport`) | `decideMigration` in `variable-migration.ts` |
-| 4 | `transform/index.ts:490` | Rewrite the parent module — replace each `$(closure)` with a generated `q_<symbol>` `qrl(...)` reference; apply migration decisions | `rewriteOriginalModule` |
-| 5 | `transform/index.ts:605` | Emit one module per non-stripped segment | `generateAllSegmentModules` in `transform/segment-generation.ts` (34-line sequencer over named helpers per OSS-356/357/358 — see SPEC at `.planning/specs/segment-generation-refactor.md`) |
-| 6 | `transform/index.ts:686` | Apply diagnostic suppression directives | (lightweight cleanup) |
+| 0 + 0.5 | `prepareModuleInput` (`transform/index.ts:313`) | Repair SWC-recoverable parse errors; flatten `const {x} = useFoo()` destructures; detect foreign JSX pragma; parse once | `repairInput`, `flattenAndReparse` |
+| 1 | `extractModuleSegments` (`transform/index.ts:371`) | Walk the AST, find every `$(...)` call, record loc + body text + initial metadata; passthrough early-exit when nothing to do | `extractSegments` in `extract.ts` |
+| 2 | `analyzeModuleCaptures` (`transform/index.ts:466`) | Collect imports + run scope analysis on each closure to determine which outer-scope vars are captured. Closure AST nodes are threaded through from Phase 1 (`closureNodes` map populated by `extractSegments` per OSS-353); no per-extraction body re-parse | `collectScopeIdentifiers`, `analyzeCaptures` |
+| 3 | `attributeSegmentUsage` (`transform/index.ts:667`) | For each module-level binding referenced inside a segment, decide: stay in parent (`keep`), move into segment (`move`), or re-export (`reexport`) | `computeSegmentUsage`, `decideMigration` in `variable-migration.ts` |
+| 4 | `rewriteParent` (`transform/index.ts:849`) | Rewrite the parent module — replace each `$(closure)` with a generated `q_<symbol>` `qrl(...)` reference; apply migration decisions | `rewriteParentModule` in `rewrite/index.ts` |
+| 5 | `generateSegments` (`transform/index.ts:972`) | Emit one module per non-stripped segment | `generateAllSegmentModules` in `transform/segment-generation.ts` (34-line sequencer over named helpers per OSS-356/357/358 — see SPEC at `.planning/specs/segment-generation-refactor.md`) |
+| 6 | `applyDiagnosticSuppression` (`transform/index.ts:1087`) | Apply diagnostic suppression directives (cross-file; runs once in `transformModule`) | (lightweight cleanup) |
+
+Between Phases 3 and 4 the driver runs two small steps: `applyProdRename` (`transform/index.ts:780`, the prod `s_<hash>` rename) and `downgradeExtensions` (`transform/index.ts:816`, transpile-target extension downgrade).
 
 The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1327`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
 
@@ -209,7 +211,7 @@ Walks the AST looking for `$(...)` calls. For `example_1` it finds 3:
 
 Each row's `symbolName` is composed in four steps from a context-stack walk during AST traversal: build a `displayName` from the stack, hash it with SipHash-1-3, append the hash. Full mechanics (including disambiguation when contexts collide and the prod-mode `s_<hash>` rename) live in [Symbol naming and hashing](#symbol-naming-and-hashing) under the metadata deep dive.
 
-### Phase 2 — capture analysis (`transform/index.ts:171–323`)
+### Phase 2 — capture analysis (`analyzeModuleCaptures`, `transform/index.ts:466`)
 
 For each closure body, parses it again (`parseWithRawTransfer`), collects identifiers in scope, and walks the body looking for free variables that resolve to outer scope. None of the `example_1` closures actually capture anything — `ctx` is an inner param, `render` is referenced but unbound (not tracked), `console` is global. The metadata block at snap line 40 confirms: `"captures": false`.
 
@@ -285,7 +287,7 @@ Two functions, both in `src/optimizer/capture-analysis.ts`:
 - **`collectScopeIdentifiers`** (`capture-analysis.ts:68`) — recursively walks a container (Program, BlockStatement, FunctionBody, Function). Returns a `Set<string>` of every name that's declared inside it: var/const/let bindings (including destructure patterns), function and class names, function parameters.
 - **`analyzeCaptures`** (`capture-analysis.ts:35`) — for one closure: calls `getUndeclaredIdentifiersInFunction()` (from oxc-walker) to find free variables, intersects with the parent scope's identifiers (so we keep only outer-scope refs, not globals), filters out imports, filters out function/class declaration names. Returns sorted, deduplicated `string[]`.
 
-The orchestration lives in `transform/index.ts:171–323`. For each extraction it:
+The orchestration lives in `analyzeModuleCaptures` (`transform/index.ts:466`). For each extraction it:
 
 1. Looks up the closure AST node from the `closureNodes` map populated by Phase 1's `extractSegments` (OSS-353 — replaced an earlier per-extraction body re-parse with a single canonical AST walk; the closure node carries its own source-absolute positions so diagnostics align with the original file).
 2. Picks the right parent scope: if the closure is nested inside another extraction, the parent is the outer extraction's body scope; otherwise it's the module scope.
@@ -297,12 +299,12 @@ The orchestration lives in `transform/index.ts:171–323`. For each extraction i
 There are **two completely separate code paths** for populating `captureNames`, and which one runs depends entirely on whether a developer or a tool wrote the source:
 
 **Path A: regular `$()` — author-written, optimizer infers everything.**
-- `transform/index.ts:230–290` calls `analyzeCaptures` to walk the closure scope.
+- `transform/index.ts:539` (the per-extraction loop in `analyzeModuleCaptures`) calls `analyzeCaptures` to walk the closure scope.
 - The captures list is **derived** from what variables the closure references.
 - The body does not yet contain `_captures[i]` references; the optimizer injects the unpacking line during Phase 5.
 
 **Path B: `inlinedQrl(fn, "name", [captures])` — tool-written, optimizer trusts the spec.**
-- `transform/index.ts:207–225` parses the explicit `[captures]` array directly from the source.
+- `transform/index.ts:516` (the `isInlinedQrl` branch of the same loop) parses the explicit `[captures]` array directly from the source.
 - The captures list is **declared**, not derived. The optimizer doesn't re-analyse — it trusts the upstream tool got it right.
 - The body **already contains** `const x = _captures[0]` lines (the upstream tool wrote them). Phase 5 sets `skipCaptureInjection: true` and doesn't inject a duplicate unpacking.
 - `inlinedQrl`'s captures array can contain non-identifier expressions — `[left, true, right]` is valid (see `should_preserve_non_ident_explicit_captures.snap`). Regular `$()` can't express this; only the explicit form can.
@@ -374,7 +376,7 @@ That `.w(...)` call is the runtime hook that wires `_captures` through to the la
 
 ### Where capture data flows downstream
 
-- **Phase 3 (migration)** — `computeSegmentUsage` augments `segmentUsage` with `extraction.captureNames` (`transform/index.ts:339–370`) so migration decisions know which module-level decls each segment actually needs.
+- **Phase 3 (migration)** — `computeSegmentUsage` augments `segmentUsage` with `extraction.captureNames` (`attributeSegmentUsage`, `transform/index.ts:693`) so migration decisions know which module-level decls each segment actually needs.
 - **Phase 4 (parent rewrite)** — emits the `.w([...])` capture array on each `q_<symbol>` reference. The emission lives in two passes: `rewriteCallSites` (`rewrite/index.ts:559`, appended at :585 inline with the QRL declaration) for declarations that already exist at the call site, and `addCaptureWrapping` (`rewrite/index.ts:718–755`) for the after-the-fact `.appendLeft` insertion on already-rewritten markers.
 - **Phase 5 (segment codegen)** — `addCaptureAndMigrationImports` (`segment-codegen.ts:197`) emits the `_captures` import; `injectCapturesUnpacking` injects the unpacking line. The post-Phase-4 filtered `captureNames` is what gates these; in OSS-346's helper structure, `applyBodyTransforms` returns the filtered version explicitly.
 
@@ -594,7 +596,7 @@ Every JSX element gets a key string of the form `"<prefix>_<count>"` (e.g., `"u6
 
 Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `transform/jsx.ts:670–690`, threaded as:
 
-- `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:997) → into `transform/index.ts:623`.
+- `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:997) → into `transform/index.ts:1070` (`generateSegments`).
 - `parentJsxKeyCounterValue` → consumed by `segment-generation.ts:1238` and `transformSegmentJsx` (segment-codegen.ts:351–396) as `keyCounterStart`.
 - Each segment's emit returns its updated `keyCounterValue` (`segment-generation.ts:1310`, folded back in the `generateAllSegmentModules` sequencer) — folded back so the next segment continues counting.
 
@@ -704,7 +706,7 @@ When two extractions in one file would collide on `displayName` (e.g., a `$()` n
 
 #### Production rename
 
-In `prod` mode, `transform/index.ts:451–468` rewrites every segment's `symbolName` from `<contextPortion>_<hash>` to a short `s_<hash>` to reduce shipped bytes. Applies to `inlinedQrl` extractions too — SWC also renames them under prod, preserving the hash suffix so runtime QRL resolution (hash-keyed) still matches. The original symbolName is preserved in `preRenameSymbolName` for migration-decision keying. The rename is also mirrored in `closureNodes` so post-rename lookups (Phase 4 const-literal resolution, etc.) still find the threaded AST node. `displayName`, `hash`, and `canonicalFilename` are unchanged — the rename is symbolName-only, and runtime resolution still works because the hash is the lookup key.
+In `prod` mode, `applyProdRename` (`transform/index.ts:780`) rewrites every segment's `symbolName` from `<contextPortion>_<hash>` to a short `s_<hash>` to reduce shipped bytes. Applies to `inlinedQrl` extractions too — SWC also renames them under prod, preserving the hash suffix so runtime QRL resolution (hash-keyed) still matches. The original symbolName is preserved in `preRenameSymbolName` for migration-decision keying. The rename is also mirrored in `closureNodes` so post-rename lookups (Phase 4 const-literal resolution, etc.) still find the threaded AST node. `displayName`, `hash`, and `canonicalFilename` are unchanged — the rename is symbolName-only, and runtime resolution still works because the hash is the lookup key.
 
 For `inlinedQrl` whose peer-tool-supplied name has no recognisable hash suffix (the post-`_` portion isn't 8+ alphanumeric — see `extract.ts:625–640`), the full name is used as the hash; prod-rename then produces `s_<fullName>`. Conservative — better to keep more of the name than to fabricate a hash from a name that doesn't follow the convention.
 
@@ -781,7 +783,7 @@ The per-segment `SegmentMetadataInternal` block is assembled by a single helper 
 
 | Concern | File |
 |---|---|
-| Top-level orchestrator | `src/optimizer/transform/index.ts:93` (`transformModule`) |
+| Top-level orchestrator | `src/optimizer/transform/index.ts:202` (`transformModule`); per-file driver `transformOneModule` at `:234` |
 | Find `$()` calls + initial metadata | `src/optimizer/extract.ts` |
 | Symbol naming + hash computation | `src/optimizer/context-stack.ts`, `src/hashing/naming.ts`, `src/hashing/siphash.ts` |
 | Capture analysis | `src/optimizer/capture-analysis.ts` |

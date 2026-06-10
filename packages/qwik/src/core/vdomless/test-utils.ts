@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { format as formatCode } from 'prettier';
 import ts from 'typescript';
 import { transformModules } from '../../../../compiler/src/index';
@@ -23,11 +23,13 @@ import {
 } from './runtime/subscriber';
 import { createTask, createTaskGroup } from './runtime/task';
 import { renderToString, type SsrRenderRoot } from '../../server/vdomless/ssr-render';
+import type { QwikLoaderOptions } from '../../server/types';
 
 export const noopSchedule = (): void => {};
 
 export interface RenderOptions {
   debug?: boolean;
+  qwikLoader?: QwikLoaderOptions;
   scheduler?: Scheduler;
 }
 
@@ -288,11 +290,12 @@ interface CompiledRoot<TRoot> {
 interface CompiledInput {
   code: string;
   rootExportName: string;
+  sourceFile: string;
 }
 
 interface ComponentDeclarationSource {
   name: string;
-  initializer: string;
+  source: string;
 }
 
 let compiledModuleId = 0;
@@ -320,7 +323,7 @@ export async function csrRender(jsx: JSXOutput, options?: RenderOptions): Promis
 export async function ssrRender(jsx: JSXOutput, options?: RenderOptions): Promise<RenderResult> {
   const compiled = await compileJsxRoot<SsrRenderComponent>('ssr', jsx);
   const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
-  const result = await renderToString(compiled.root);
+  const result = await renderToString(compiled.root, options);
   await flushScheduler(scheduler);
 
   const { document, container } = createContainerDocument(result.html, QContainerValue.PAUSED);
@@ -391,8 +394,8 @@ async function compileJsxRoot<TRoot extends CsrRenderComponent | SsrRenderCompon
   jsx: JSXOutput
 ): Promise<CompiledRoot<TRoot>> {
   const id = compiledModuleId++;
-  const inputPath = `src/render-test-${id}.tsx`;
   const input = await createCompiledInput(jsx);
+  const inputPath = createRenderInputPath(input.sourceFile, id);
   return importCompiledRoot<TRoot>(target, id, inputPath, input.code, input.rootExportName);
 }
 
@@ -417,14 +420,18 @@ async function createCompiledInput(jsx: JSXOutput): Promise<CompiledInput> {
     components.push(getComponentDeclaration(sourceFile, componentName, jsxPosition));
   }
   const imports = getQwikImports(sourceFile);
-  const exports = components.map(
-    (component) => `export const ${component.name} = ${component.initializer};`
-  );
+  const exports = components.map((component) => component.source);
 
   return {
     code: `${imports.join('\n')}\n${exports.join('\n')}\n`,
     rootExportName: componentName,
+    sourceFile: file,
   };
+}
+
+function createRenderInputPath(sourceFile: string, id: number): string {
+  const label = basename(sourceFile).replace(/[^A-Za-z0-9_$]+/g, '_');
+  return `src/render-test-${label}-${id}.tsx`;
 }
 
 interface JsxLocation {
@@ -439,6 +446,10 @@ function getJsxLocation(jsx: JSXOutput): JsxLocation {
   }
 
   const dev = (jsx as JSXNodeInternal & { dev?: Partial<JsxLocation> }).dev;
+  const stackLocation = dev?.stack ? getJsxStackLocation(dev.stack) : null;
+  if (stackLocation !== null) {
+    return stackLocation;
+  }
   if (!dev?.fileName || dev.lineNumber === undefined || dev.columnNumber === undefined) {
     throw new Error('JSX render helper requires JSX dev metadata.');
   }
@@ -448,6 +459,38 @@ function getJsxLocation(jsx: JSXOutput): JsxLocation {
     lineNumber: dev.lineNumber,
     columnNumber: dev.columnNumber,
   };
+}
+
+function getJsxStackLocation(stack: string): JsxLocation | null {
+  const lines = stack.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const match = /\(?([^()\n]+\.tsx):(\d+):(\d+)\)?/.exec(lines[i]);
+    if (match === null) {
+      continue;
+    }
+    const fileName = normalizeStackFileName(match[1]);
+    if (
+      fileName.includes('/core/shared/jsx/') ||
+      fileName.endsWith('/core/vdomless/test-utils.ts') ||
+      !existsSync(resolveSourceFile(fileName))
+    ) {
+      continue;
+    }
+    return {
+      fileName,
+      lineNumber: Number(match[2]),
+      columnNumber: Number(match[3]),
+    };
+  }
+  return null;
+}
+
+function normalizeStackFileName(fileName: string): string {
+  let normalized = fileName.trim();
+  if (normalized.startsWith('at ')) {
+    normalized = normalized.slice(3).trim();
+  }
+  return normalized.startsWith('file://') ? fileURLToPath(normalized) : normalized;
 }
 
 function getRenderedComponentName(sourceFile: ts.SourceFile, position: number): string {
@@ -517,12 +560,19 @@ function collectComponentDeclarations(
 ): void {
   for (let i = 0; i < statements.length; i++) {
     const statement = statements[i];
-    if (!ts.isVariableStatement(statement) || statement.getStart(sourceFile) >= beforePosition) {
+    if (statement.getStart(sourceFile) >= beforePosition) {
       continue;
     }
-    for (let j = 0; j < statement.declarationList.declarations.length; j++) {
-      const declaration = statement.declarationList.declarations[j];
-      const component = createComponentDeclarationSource(sourceFile, declaration);
+    if (ts.isVariableStatement(statement)) {
+      for (let j = 0; j < statement.declarationList.declarations.length; j++) {
+        const declaration = statement.declarationList.declarations[j];
+        const component = createVariableComponentDeclarationSource(sourceFile, declaration);
+        if (component !== null) {
+          declarations.set(component.name, component);
+        }
+      }
+    } else if (ts.isFunctionDeclaration(statement)) {
+      const component = createFunctionComponentDeclarationSource(sourceFile, statement);
       if (component !== null) {
         declarations.set(component.name, component);
       }
@@ -538,14 +588,10 @@ function getComponentDeclaration(
   const match: { component?: ComponentDeclarationSource; position: number } = { position: -1 };
 
   const visit = (node: ts.Node): void => {
-    if (
-      ts.isVariableDeclaration(node) &&
-      ts.isIdentifier(node.name) &&
-      node.name.text === componentName
-    ) {
-      const component = createComponentDeclarationSource(sourceFile, node);
+    const component = createNamedComponentDeclarationSource(sourceFile, node, componentName);
+    if (component !== null) {
       const position = node.getStart(sourceFile);
-      if (component !== null && position < beforePosition && position > match.position) {
+      if (position < beforePosition && position > match.position) {
         match.component = component;
         match.position = position;
       }
@@ -557,32 +603,86 @@ function getComponentDeclaration(
 
   const component = match.component;
   if (component === undefined) {
-    throw new Error(`Unable to locate component$ declaration for ${componentName}.`);
+    throw new Error(`Unable to locate component declaration for ${componentName}.`);
   }
   return component;
 }
 
-function createComponentDeclarationSource(
+function createNamedComponentDeclarationSource(
+  sourceFile: ts.SourceFile,
+  node: ts.Node,
+  componentName: string
+): ComponentDeclarationSource | null {
+  if (
+    ts.isVariableDeclaration(node) &&
+    ts.isIdentifier(node.name) &&
+    node.name.text === componentName
+  ) {
+    return createVariableComponentDeclarationSource(sourceFile, node);
+  }
+  if (ts.isFunctionDeclaration(node) && node.name?.text === componentName) {
+    return createFunctionComponentDeclarationSource(sourceFile, node);
+  }
+  return null;
+}
+
+function createVariableComponentDeclarationSource(
   sourceFile: ts.SourceFile,
   declaration: ts.VariableDeclaration
 ): ComponentDeclarationSource | null {
   if (
     !ts.isIdentifier(declaration.name) ||
     declaration.initializer === undefined ||
-    !isComponentDollarCall(declaration.initializer)
+    !isVariableComponentInitializer(declaration.name.text, declaration.initializer)
   ) {
     return null;
   }
   return {
     name: declaration.name.text,
-    initializer: declaration.initializer.getText(sourceFile),
+    source: `export const ${declaration.getText(sourceFile)};`,
   };
+}
+
+function createFunctionComponentDeclarationSource(
+  sourceFile: ts.SourceFile,
+  declaration: ts.FunctionDeclaration
+): ComponentDeclarationSource | null {
+  const name = declaration.name?.text;
+  if (name === undefined || !isComponentName(name)) {
+    return null;
+  }
+  const source = declaration.getText(sourceFile);
+  return {
+    name,
+    source: hasExportModifier(declaration) ? source : `export ${source}`,
+  };
+}
+
+function isVariableComponentInitializer(name: string, expression: ts.Expression): boolean {
+  return (
+    isComponentDollarCall(expression) ||
+    (isComponentName(name) &&
+      (ts.isArrowFunction(expression) || ts.isFunctionExpression(expression)))
+  );
 }
 
 function isComponentDollarCall(expression: ts.Expression): expression is ts.CallExpression {
   return ts.isCallExpression(expression) && ts.isIdentifier(expression.expression)
     ? expression.expression.text === 'component$'
     : false;
+}
+
+function isComponentName(name: string): boolean {
+  const first = name.charCodeAt(0);
+  return first >= 65 && first <= 90;
+}
+
+function hasExportModifier(node: ts.Node): boolean {
+  return (
+    ts.canHaveModifiers(node) &&
+    ts.getModifiers(node)?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) ===
+      true
+  );
 }
 
 function getQwikImports(sourceFile: ts.SourceFile): string[] {

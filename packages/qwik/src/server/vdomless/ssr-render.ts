@@ -3,6 +3,7 @@ import { setEvent } from '../../core/ssr/ssr-events';
 import { createSerializationContext } from '../../core/shared/serdes/serialization-context';
 import { escapeHTML } from '../../core/shared/utils/character-escaping';
 import type { SSRWriteChunk } from '../../core/ssr/ssr-types';
+import { SsrScriptEmitter } from './ssr-script-emitter';
 import type {
   RenderToStreamOptions,
   RenderToStreamResult,
@@ -45,6 +46,7 @@ export const renderToStream = async (
     () => {},
     new WeakMap<any, any>()
   );
+  const scripts = new SsrScriptEmitter(opts);
   let nextId = 0;
   const ctx: SsrRenderContext = {
     nextId() {
@@ -63,15 +65,17 @@ export const renderToStream = async (
   await opts.stream.write(html);
   if (serializationCtx.$roots$.length > 0) {
     await serializationCtx.$serialize$();
-    await opts.stream.write(
-      `<script type="qwik/state">${escapeScript(serializationCtx.$writer$.toString())}</script>`
-    );
+    await scripts.emitState(serializationCtx.$writer$.toString());
+  }
+  if (serializationCtx.$eventQrls$.size > 0) {
+    await scripts.emitQwikLoader();
+    await scripts.emitQwikEvents(serializationCtx.$eventNames$);
   }
 
   return {
     flushes: 0,
     size: html.length,
-    isStatic: serializationCtx.$roots$.length === 0,
+    isStatic: serializationCtx.$roots$.length === 0 && serializationCtx.$eventQrls$.size === 0,
     manifest: undefined,
     snapshotResult: {
       funcs: serializationCtx.$syncFns$,
@@ -101,8 +105,4 @@ function writeChunk(chunk: SSRWriteChunk): string {
     return String(chunk);
   }
   return chunk.path.join(' ');
-}
-
-function escapeScript(value: string): string {
-  return value.replace(/<\//g, '<\\/');
 }

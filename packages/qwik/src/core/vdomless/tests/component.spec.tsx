@@ -33,4 +33,30 @@ describe.each([
 
     cleanup();
   });
+
+  it('should render plain function component', async () => {
+    function MyComp() {
+      return <p>Hello Function</p>;
+    }
+
+    const { container, html, cleanup } = await render(<MyComp />, { debug });
+
+    expect(container.innerHTML).toBe('<p>Hello Function</p>');
+    expect(html).toBe('<p>Hello Function</p>');
+
+    cleanup();
+  });
+
+  it('should render plain arrow component', async () => {
+    const MyComp = () => {
+      return <p>Hello Arrow</p>;
+    };
+
+    const { container, html, cleanup } = await render(<MyComp />, { debug });
+
+    expect(container.innerHTML).toBe('<p>Hello Arrow</p>');
+    expect(html).toBe('<p>Hello Arrow</p>');
+
+    cleanup();
+  });
 });

@@ -34,7 +34,7 @@ contributors:
   - brkyurun
   - PatrickJS
   - maiieul
-updated_at: '2023-09-15T18:58:36Z'
+updated_at: '2025-06-08T18:58:36Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -46,27 +46,27 @@ import { Note } from '~/components/note/note';
 
 Yes, and I am very funny too! [follow me](https://twitter.com/QwikDev)
 
-## Why is it called Qwik?
-
-Originally it was called _qoot_, but we thought it would be too hard to search for. One community member, [@PatrickJS\_\_](https://twitter.com/PatrickJS__), came up with _Qwik_ and after an internal poll at [builder.io](https://www.builder.io/), we changed it!
-
 ## How is Qwik different from other frameworks?
 
-Qwik is the first framework that has a DX (developer experience) similar to _React_, _Vue_, or _Svelte_ when authoring components. It delivers **Live HTML** that is instantly interactive, Qwik achieves this property by completely removing the need for hydration. Now, Qwik applications immediately execute the event handlers on user interaction, without having to bootstrap all the app states. This technique is called [Resumability](../concepts/resumable/index.mdx).
+Qwik not only has the quickest TTI thanks to javascript streaming, it also introduces an SSR first resumable mental model (with render functions and tasks that can run once only on the server during startup), that is as easy to grasp and use as good old CSR applications.
 
-The outcome is that developers write extremely performant applications by default, without even worrying about it. Applications built with Qwik are fast regardless of the number of components or complexity, they are O(1) (constant time) in terms of JS payload.
+For an in depth comparison, refer to the [think qwik](../concepts/think-qwik/index.mdx) page.
 
 ## Why another framework?
 
-The short answer is that Qwik solves a problem that other frameworks can't solve. Qwik has instant-on startup performance no matter how complex the application is. Qwik apps deliver the same amount of initial JS regardless of the amount of components. [Qwik is the first open-source O(1) framework](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1).
+Javascript streaming would theoretically be achievable with some sort of on-demand hydration, but that would require re-running all side effects on the client, which would force shipping a lot more code to the client and downloading it eagerly on startup, therefore slowing down TTI.
+
+If you’re already familiar with Qwik, this would be the equivalent of doing all your side effects solely in ‘useVisibleTask$’ hooks and downloading eagerly all those chunks on startup, but worse since the bundles would most likely include the rest of the component’s code.
 
 ## Is Qwik hard to learn?
 
-Qwik is designed with React (and other JSX based frameworks) in mind, ensuring it is [effortless to learn](/docs/(qwikrouter)/guides/react-cheat-sheet/index.mdx) and promotes rapid productivity. Developing components is pretty much the same as React, and routing is inspired by Nextjs and others.
+Qwik’s syntax and APIs are pretty similar to other reactive frameworks. It follows JSX, compiles to fine-grained reactivity and warns you about SSR serialization boundaries at authoring time so you can focus on writing components without worrying about runtime gotchas.
 
-However, there are fundamentally [new concepts](../concepts/think-qwik/index.mdx) to learn, such as [Resumability](../concepts/resumable/index.mdx) and fine-grained reactivity, but we think the learning curve is not steep.
+The major authoring difference with the other frameworks is its SSR resumable (‘useTask$’ vs ‘useVisibleTask$’) architecture, which is straightforward to learn and involves far less gotchas than hydration runtime errors.
 
-We also have an interactive [tutorial](../../tutorial/welcome/overview/) to get you started.
+Qwik also comes with Qwik Router which handles file based routing and data fetching through loaders and actions, similar to React Router.
+
+Many resources are at your disposal to learn Qwik: the [getting started](./getting-started) guide, the interactive [tutorial](../../tutorial/welcome/overview/) the documentation itself and online video courses.
 
 ## What are all those `$` signs?
 

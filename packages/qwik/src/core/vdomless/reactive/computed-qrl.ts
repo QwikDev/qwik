@@ -3,6 +3,7 @@ import type { Container } from '../../shared/types';
 import { isPromise } from '../../shared/utils/promises';
 import { Computed } from './computed';
 import { registerSubscriberToOwner } from '../runtime/owner';
+import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
 
 export type ComputedQrlFn<T> = () => T;
 export type ComputedQrlRef<T> = QRLInternal<ComputedQrlFn<T>>;
@@ -22,6 +23,10 @@ export function createComputedQrl<T>(
 ): ComputedQrl<T> {
   return registerSubscriberToOwner(new ComputedQrl(computeQrl, container));
 }
+
+export const createComputed$: <T>(qrl: () => T) => Computed<T> = /*#__PURE__*/ implicit$FirstArg(
+  createComputedQrl as any
+);
 
 function computeQrlValue<T>(this: ComputedQrl<T>): T {
   const compute = this.computeQrl.resolved;

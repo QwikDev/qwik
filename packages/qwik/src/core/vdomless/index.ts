@@ -27,6 +27,7 @@ export {
 export {
   ComputedQrl,
   createComputedQrl,
+  createComputed$,
   type ComputedQrlFn,
   type ComputedQrlRef,
 } from './reactive/computed-qrl';

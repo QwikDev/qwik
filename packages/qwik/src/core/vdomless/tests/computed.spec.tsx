@@ -1,17 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
-import { createSignal } from '@qwik.dev/core/spark';
+import { createSignal, createComputed$ } from '@qwik.dev/core/spark';
 
 const debug = false;
 
 describe.each([
   { name: 'ssrRender', render: ssrRender }, //
   { name: 'csrRender', render: csrRender }, //
-])('$name: signals', ({ render }) => {
-  it('should render signal', async () => {
+])('$name: computed', ({ render }) => {
+  it('should render computed signal', async () => {
     const MyComp = () => {
       const count = createSignal(0);
-      return <p>{count.value}</p>;
+      const double = createComputed$(() => count.value * 2);
+      return <p>{double.value}</p>;
     };
 
     const { container, cleanup } = await render(<MyComp />, { debug });
@@ -24,7 +25,8 @@ describe.each([
   it('should update signal value', async () => {
     const MyComp = () => {
       const count = createSignal(0);
-      return <button onClick$={() => count.value++}>{count.value}</button>;
+      const double = createComputed$(() => count.value * 2);
+      return <button onClick$={() => count.value++}>{double.value}</button>;
     };
 
     const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
@@ -35,7 +37,7 @@ describe.each([
     expect(qwikLoader).toBeDefined();
     await qwikLoader?.dispatch(button!, 'click');
 
-    expect(button?.textContent).toBe('1');
+    expect(button?.textContent).toBe('2');
 
     cleanup();
   });
@@ -43,7 +45,8 @@ describe.each([
   it('should update mixed signal text', async () => {
     const MyComp = () => {
       const count = createSignal(0);
-      return <button onClick$={() => count.value++}>Count {count.value}</button>;
+      const double = createComputed$(() => count.value * 2);
+      return <button onClick$={() => count.value++}>Count {double.value}</button>;
     };
 
     const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
@@ -54,7 +57,7 @@ describe.each([
     expect(qwikLoader).toBeDefined();
     await qwikLoader?.dispatch(button!, 'click');
 
-    expect(button?.textContent).toBe('Count 1');
+    expect(button?.textContent).toBe('Count 2');
 
     cleanup();
   });
@@ -62,7 +65,8 @@ describe.each([
   it('should update text expression value', async () => {
     const MyComp = () => {
       const count = createSignal(0);
-      return <button onClick$={() => count.value++}>{count.value + 1}</button>;
+      const double = createComputed$(() => count.value * 2);
+      return <button onClick$={() => count.value++}>{double.value + 1}</button>;
     };
 
     const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
@@ -73,7 +77,34 @@ describe.each([
     expect(qwikLoader).toBeDefined();
     await qwikLoader?.dispatch(button!, 'click');
 
-    expect(button?.textContent).toBe('2');
+    expect(button?.textContent).toBe('3');
+
+    cleanup();
+  });
+
+  it('should update multiple text expression value', async () => {
+    const MyComp = () => {
+      const count = createSignal(0);
+      const double = createComputed$(() => count.value * 2);
+      const quadruple = createComputed$(() => count.value * 4);
+      return (
+        <button onClick$={() => count.value++}>
+          {count.value}
+          {double.value + 1}
+          {quadruple.value + 3}
+        </button>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
+
+    const button = container.querySelector('button');
+    expect(button?.textContent).toBe('013');
+
+    expect(qwikLoader).toBeDefined();
+    await qwikLoader?.dispatch(button!, 'click');
+
+    expect(button?.textContent).toBe('137');
 
     cleanup();
   });

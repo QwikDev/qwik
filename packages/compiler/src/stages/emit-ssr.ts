@@ -6,6 +6,7 @@ import type {
   PropRecord,
   QrlSegmentOutput,
   RenderNode,
+  SegmentRecord,
 } from '../types';
 import { QwikSymbol } from '../words';
 import {
@@ -17,25 +18,27 @@ import {
   hasDynamicBinding,
   serializeAttrValue,
 } from './emit-utils';
+import { emitQrlReference, isImplicitDollarSegment } from './implicit-dollar';
 
 type HtmlPart = string | { code: string };
 
 export function emitSsrModule(
   components: ComponentRecord[],
   qrlSegments: Map<string, QrlSegmentOutput>,
+  segments: readonly SegmentRecord[],
   sourceCode: string,
   imports: ImportRecord[]
 ) {
   const prelude = emitPrelude(qrlSegments, imports);
   return `${prelude}${components
-    .map((component) => emitSsrComponent(component, qrlSegments, sourceCode))
+    .map((component) => emitSsrComponent(component, qrlSegments, segments, sourceCode))
     .join('\n')}\n`;
 }
 
 function emitPrelude(qrlSegments: Map<string, QrlSegmentOutput>, imports: ImportRecord[]) {
   const lines = emitImports(imports);
   for (const qrlSegment of qrlSegments.values()) {
-    if (qrlSegment.segment.kind === 'jsxText') {
+    if (shouldResolveSsrQrl(qrlSegment)) {
       lines.push(
         `import { ${qrlSegment.symbolName} } from ${JSON.stringify(qrlSegment.importPath)};`
       );
@@ -52,16 +55,21 @@ function emitPrelude(qrlSegments: Map<string, QrlSegmentOutput>, imports: Import
         qrlSegment.importPath
       )}), ${JSON.stringify(qrlSegment.symbolName)});`
     );
-    if (qrlSegment.segment.kind === 'jsxText') {
+    if (shouldResolveSsrQrl(qrlSegment)) {
       lines.push(`${qrlSegment.qrlVariableName}.s(${qrlSegment.symbolName});`);
     }
   }
   return lines.length > 0 ? `${lines.join('\n')}\n\n` : '';
 }
 
+function shouldResolveSsrQrl(qrlSegment: QrlSegmentOutput) {
+  return qrlSegment.segment.kind === 'jsxText' || isImplicitDollarSegment(qrlSegment.segment);
+}
+
 function emitSsrComponent(
   component: ComponentRecord,
   qrlSegments: Map<string, QrlSegmentOutput>,
+  segments: readonly SegmentRecord[],
   sourceCode: string
 ) {
   const emitter = new SsrEmitter(qrlSegments);
@@ -69,7 +77,9 @@ function emitSsrComponent(
   const setup = emitComponentSetup(
     component,
     qrlSegments,
+    segments,
     sourceCode,
+    'ssr',
     hasDynamicBinding(component.root)
   );
   const statements = emitter.toString();
@@ -142,7 +152,7 @@ class SsrEmitter {
         if (qrlSegment) {
           this.usesCtx = true;
           parts.push({
-            code: `ctx.eventAttr(${JSON.stringify(prop.name)}, ${emitQrl(qrlSegment)})`,
+            code: `ctx.eventAttr(${JSON.stringify(prop.name)}, ${emitQrlReference(qrlSegment)})`,
           });
         }
         continue;
@@ -238,7 +248,7 @@ class SsrEmitter {
     }
     return [
       {
-        code: `${QwikSymbol.EscapeHTML}(${QwikSymbol.RenderSsrTextExpression}(${target}, [], ${emitQrl(
+        code: `${QwikSymbol.EscapeHTML}(${QwikSymbol.RenderSsrTextExpression}(${target}, [], ${emitQrlReference(
           qrlSegment
         )}))`,
       },
@@ -265,15 +275,6 @@ class SsrEmitter {
     this.counter++;
     return id;
   }
-}
-
-function emitQrl(qrlSegment: QrlSegmentOutput) {
-  if (qrlSegment.segment.captures.length === 0) {
-    return qrlSegment.qrlVariableName;
-  }
-  return `${qrlSegment.qrlVariableName}.w([${qrlSegment.segment.captures
-    .map((capture) => capture.name)
-    .join(', ')}])`;
 }
 
 function hasDynamicSourceProp(node: ElementNode) {

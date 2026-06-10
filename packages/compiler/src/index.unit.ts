@@ -224,4 +224,16 @@ export function App() {
 `,
     });
   });
+
+  test('transforms implicit dollar calls in component setup', async () => {
+    await testInput('implicit_dollar_setup', {
+      code: `import { createSignal, createComputed$ } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(1);
+  const double = createComputed$(() => count.value * 2);
+  return <p>{double.value}</p>;
+}
+`,
+    });
+  });
 });

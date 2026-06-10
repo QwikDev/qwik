@@ -17,6 +17,12 @@ import {
   hasSourceTextBinding,
   hasTextExpression,
 } from './emit-utils';
+import {
+  isImplicitDollarSegment,
+  isRangeInside,
+  transformDollarImports,
+  transformImplicitDollarCode,
+} from './implicit-dollar';
 
 export async function emitModules(ctx: CompilerContext) {
   if (ctx.manifest.diagnostics.length > 0) {
@@ -29,7 +35,7 @@ export async function emitModules(ctx: CompilerContext) {
     return;
   }
 
-  const qrlSegments = collectQrlSegments(ctx, supported, ctx.emitTarget === 'ssr');
+  const qrlSegments = collectQrlSegments(ctx, supported, ctx.emitTarget);
   const dynamicUsage = {
     hasDynamicBinding: supported.some((component) => hasDynamicBinding(component.root)),
     hasSourceText: supported.some((component) => hasSourceTextBinding(component.root)),
@@ -41,14 +47,15 @@ export async function emitModules(ctx: CompilerContext) {
     hasElementText: supported.some((component) => hasElementTextBinding(component.root)),
     hasRangeText: supported.some((component) => hasRangeTextBinding(component.root)),
   };
+  const transformedImports = transformDollarImports(ctx.manifest.imports, ctx.emitTarget);
   const imports =
     ctx.emitTarget === 'ssr'
-      ? createSsrImports(ctx.manifest.imports, qrlSegments, ssrUsage)
-      : createCsrImports(ctx.manifest.imports, qrlSegments, dynamicUsage);
+      ? createSsrImports(transformedImports, qrlSegments, ssrUsage)
+      : createCsrImports(transformedImports, qrlSegments, dynamicUsage);
   const outputCode =
     ctx.emitTarget === 'ssr'
-      ? emitSsrModule(supported, qrlSegments, ctx.input.code, imports)
-      : emitCsrModule(supported, qrlSegments, ctx.input.code, imports);
+      ? emitSsrModule(supported, qrlSegments, ctx.manifest.segments, ctx.input.code, imports)
+      : emitCsrModule(supported, qrlSegments, ctx.manifest.segments, ctx.input.code, imports);
   const modules = [createModule(ctx.input.path, outputCode)];
 
   for (const qrlSegment of qrlSegments.values()) {
@@ -61,16 +68,48 @@ export async function emitModules(ctx: CompilerContext) {
 function collectQrlSegments(
   ctx: CompilerContext,
   components: ComponentRecord[],
-  includeTextExpressions: boolean
+  emitTarget: CompilerContext['emitTarget']
 ): Map<string, QrlSegmentOutput> {
   const segmentById = new Map(ctx.manifest.segments.map((segment) => [segment.id, segment]));
   const qrlSegments = new Map<string, QrlSegmentOutput>();
   for (const component of components) {
     if (component.root) {
-      collectNodeQrlSegments(ctx, component.root, segmentById, qrlSegments, includeTextExpressions);
+      collectNodeQrlSegments(ctx, component.root, segmentById, qrlSegments, emitTarget === 'ssr');
+    }
+    if (emitTarget === 'ssr') {
+      collectComponentImplicitDollarSegments(ctx, component, qrlSegments);
     }
   }
   return qrlSegments;
+}
+
+function collectComponentImplicitDollarSegments(
+  ctx: CompilerContext,
+  component: ComponentRecord,
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  for (const segment of ctx.manifest.segments) {
+    if (
+      isImplicitDollarSegment(segment) &&
+      component.setupRanges.some((range) => isRangeInside(segment.range, range)) &&
+      !isNestedInImplicitDollarSegment(segment, ctx.manifest.segments) &&
+      !qrlSegments.has(segment.id)
+    ) {
+      qrlSegments.set(segment.id, createQrlSegmentOutput(ctx, segment));
+    }
+  }
+}
+
+function isNestedInImplicitDollarSegment(
+  segment: SegmentRecord,
+  segments: readonly SegmentRecord[]
+) {
+  return segments.some(
+    (candidate) =>
+      candidate !== segment &&
+      isImplicitDollarSegment(candidate) &&
+      isRangeInside(segment.range, candidate.functionRange)
+  );
 }
 
 function collectNodeQrlSegments(
@@ -161,7 +200,13 @@ function createQrlSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutp
     .map(([start, end]) => source.slice(start, end))
     .join(', ');
   const body = qrlSegment.segment.bodyRange
-    ? source.slice(qrlSegment.segment.bodyRange[0], qrlSegment.segment.bodyRange[1])
+    ? transformImplicitDollarCode(
+        source,
+        qrlSegment.segment.bodyRange,
+        ctx.manifest.segments,
+        new Map([[qrlSegment.id, qrlSegment]]),
+        ctx.emitTarget
+      )
     : 'undefined';
   const bodyStatements =
     qrlSegment.segment.bodyKind === 'block' ? body.slice(1, -1).trim() : `return ${body};`;

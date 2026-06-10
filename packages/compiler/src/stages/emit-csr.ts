@@ -1,4 +1,10 @@
-import type { ComponentRecord, ImportRecord, QrlSegmentOutput, RenderNode } from '../types';
+import type {
+  ComponentRecord,
+  ImportRecord,
+  QrlSegmentOutput,
+  RenderNode,
+  SegmentRecord,
+} from '../types';
 import { QwikSymbol } from '../words';
 import {
   emitComponentSetup,
@@ -10,12 +16,13 @@ import {
 export function emitCsrModule(
   components: ComponentRecord[],
   qrlSegments: Map<string, QrlSegmentOutput>,
+  segments: readonly SegmentRecord[],
   sourceCode: string,
   imports: ImportRecord[]
 ) {
   const prelude = emitPrelude(imports);
   return `${prelude}${components
-    .map((component) => emitCsrComponent(component, qrlSegments, sourceCode))
+    .map((component) => emitCsrComponent(component, qrlSegments, segments, sourceCode))
     .join('\n')}\n`;
 }
 
@@ -29,9 +36,10 @@ function emitPrelude(imports: ImportRecord[]) {
 function emitCsrComponent(
   component: ComponentRecord,
   qrlSegments: Map<string, QrlSegmentOutput>,
+  segments: readonly SegmentRecord[],
   sourceCode: string
 ) {
-  const body = emitDomRenderer(component, qrlSegments, sourceCode);
+  const body = emitDomRenderer(component, qrlSegments, segments, sourceCode);
   if (component.declarationKind === 'function') {
     return `export function ${component.exportName}(_props, ctx) {\n${body}\n}`;
   }
@@ -48,11 +56,14 @@ function emitCsrComponent(
 function emitDomRenderer(
   component: ComponentRecord,
   qrlSegments: Map<string, QrlSegmentOutput>,
+  segments: readonly SegmentRecord[],
   sourceCode: string
 ) {
   const emitter = new DomEmitter(qrlSegments, sourceCode);
   const root = component.root!;
-  emitter.raw(emitComponentSetup(component, qrlSegments, sourceCode, hasDynamicBinding(root)));
+  emitter.raw(
+    emitComponentSetup(component, qrlSegments, segments, sourceCode, 'csr', hasDynamicBinding(root))
+  );
   const roots = emitter.emitRoot(root);
   emitter.line(`return [${roots.join(', ')}];`);
   return emitter.toString();

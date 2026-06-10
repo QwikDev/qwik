@@ -75,7 +75,11 @@ interface SegmentSpec {
   kind: SegmentRecord['kind'];
   ctxName: string;
   range: SourceRange | null;
+  calleeRange?: SourceRange | null;
+  calleeNameRange?: SourceRange | null;
+  calleeName?: string | null;
   functionRange: SourceRange | null;
+  argumentRanges?: Array<SourceRange | null>;
   captureMode: SegmentRecord['captureMode'];
   explicitCaptures: CaptureRecord[];
 }
@@ -83,6 +87,12 @@ interface SegmentSpec {
 interface FunctionOptions {
   segment?: SegmentSpec;
   paramKind?: BindingKind;
+}
+
+interface QrlCalleeRecord {
+  ctxName: string;
+  localName: string;
+  nameRange: SourceRange | null;
 }
 
 export function analyzeCaptures(ctx: CompilerContext) {
@@ -392,7 +402,8 @@ class CaptureAnalyzer {
   }
 
   private visitCallExpression(node: CallExpression) {
-    const qrlName = this.getQrlCalleeName(node.callee);
+    const qrlCallee = this.getQrlCallee(node.callee);
+    const qrlName = qrlCallee?.ctxName ?? null;
     const firstArg = getArgumentExpression(node.arguments?.[0]);
     const isQrlFunctionCall = !!qrlName && isFunctionLike(unwrapExpression(firstArg));
     const isIterationCall = !isQrlFunctionCall && isIterationMethodCall(node);
@@ -417,7 +428,11 @@ class CaptureAnalyzer {
               kind: 'function',
               ctxName: qrlName,
               range: getRange(node),
+              calleeRange: getRange(node.callee),
+              calleeNameRange: qrlCallee?.nameRange ?? null,
+              calleeName: qrlCallee?.localName ?? null,
               functionRange: getRange(expr),
+              argumentRanges: (node.arguments ?? []).map(getRange),
               captureMode: hasExplicitCaptureArray ? 'explicit' : 'auto',
               explicitCaptures,
             },
@@ -849,7 +864,11 @@ class CaptureAnalyzer {
       kind: spec.kind,
       ctxName: spec.ctxName,
       range: spec.range,
+      calleeRange: spec.calleeRange ?? null,
+      calleeNameRange: spec.calleeNameRange ?? null,
+      calleeName: spec.calleeName ?? null,
       functionRange: spec.functionRange,
+      argumentRanges: spec.argumentRanges ?? [],
       paramRanges: (fn.params ?? []).map(getRange).filter((range) => range !== null),
       bodyRange: getRange(fn.body),
       bodyKind: unwrapExpression(fn.body)?.type === 'BlockStatement' ? 'block' : 'expression',
@@ -881,7 +900,11 @@ class CaptureAnalyzer {
       kind: 'jsxText',
       ctxName: 'text',
       range: expressionRange,
+      calleeRange: null,
+      calleeNameRange: null,
+      calleeName: null,
       functionRange: null,
+      argumentRanges: [],
       paramRanges: [],
       bodyRange: expressionRange,
       bodyKind: 'expression',
@@ -913,14 +936,20 @@ class CaptureAnalyzer {
     }
   }
 
-  private getQrlCalleeName(callee: unknown): string | null {
-    const localName = getSimpleCalleeName(callee);
-    if (!localName) {
+  private getQrlCallee(callee: unknown): QrlCalleeRecord | null {
+    const local = getSimpleCallee(callee);
+    if (!local) {
       return null;
     }
-    const importedName = this.getImportedSpecifier(localName);
-    const name = importedName ?? localName;
-    return isQrlMarkerName(name) ? name : null;
+    const importedName = this.getImportedSpecifier(local.name);
+    const name = importedName ?? local.name;
+    return isQrlMarkerName(name)
+      ? {
+          ctxName: name,
+          localName: local.name,
+          nameRange: local.nameRange,
+        }
+      : null;
   }
 
   private getImportedSpecifier(localName: string): string | null {
@@ -1004,16 +1033,25 @@ function variableKindToBindingKind(kind: string | null | undefined): BindingKind
   return 'const';
 }
 
-function getSimpleCalleeName(callee: unknown): string | null {
+function getSimpleCallee(callee: unknown): { name: string; nameRange: SourceRange | null } | null {
   const unwrapped = unwrapExpression(callee);
   if (!unwrapped) {
     return null;
   }
   if (unwrapped.type === 'Identifier') {
-    return unwrapped.name;
+    return {
+      name: unwrapped.name,
+      nameRange: getRange(unwrapped),
+    };
   }
   if (unwrapped.type === 'MemberExpression' && !unwrapped.computed) {
-    return getIdentifierName(unwrapped.property);
+    const name = getIdentifierName(unwrapped.property);
+    return name
+      ? {
+          name,
+          nameRange: getRange(unwrapped.property),
+        }
+      : null;
   }
   return null;
 }

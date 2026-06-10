@@ -4,7 +4,9 @@ import type {
   PropRecord,
   QrlSegmentOutput,
   RenderNode,
+  SegmentRecord,
 } from '../types';
+import { transformImplicitDollarCode, type DollarTransformTarget } from './implicit-dollar';
 
 export function emitImports(imports: readonly ImportRecord[]) {
   return imports.map(emitImportDeclaration);
@@ -61,13 +63,17 @@ export function escapeAttr(value: string) {
 export function emitComponentSetup(
   component: ComponentRecord,
   qrlSegments: Map<string, QrlSegmentOutput>,
+  segments: readonly SegmentRecord[],
   sourceCode: string,
+  target: DollarTransformTarget,
   force = false
 ) {
   if (!force && !hasCapturedQrlSegment(component.root, qrlSegments)) {
     return '';
   }
-  return component.setupRanges.map(([start, end]) => sourceCode.slice(start, end)).join('\n');
+  return component.setupRanges
+    .map((range) => transformImplicitDollarCode(sourceCode, range, segments, qrlSegments, target))
+    .join('\n');
 }
 
 export function hasCapturedQrlSegment(

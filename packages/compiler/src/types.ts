@@ -80,7 +80,11 @@ export interface SegmentRecord {
   kind: 'function' | 'eventHandler' | 'jsxProp' | 'jsxText';
   ctxName: string;
   range: SourceRange | null;
+  calleeRange: SourceRange | null;
+  calleeNameRange: SourceRange | null;
+  calleeName: string | null;
   functionRange: SourceRange | null;
+  argumentRanges: Array<SourceRange | null>;
   paramRanges: SourceRange[];
   bodyRange: SourceRange | null;
   bodyKind: 'block' | 'expression';

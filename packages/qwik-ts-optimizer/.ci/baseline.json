@@ -533,6 +533,10 @@
       "tests/optimizer/event-handler-transform.test.ts :: event-handler-transform collectPassiveDirectives collects multiple passive directives",
       "tests/optimizer/event-handler-transform.test.ts :: event-handler-transform collectPassiveDirectives collects passive:click from attributes",
       "tests/optimizer/event-handler-transform.test.ts :: event-handler-transform collectPassiveDirectives returns empty set when no passive directives",
+      "tests/optimizer/event-handler-transform.test.ts :: event-handler-transform eventHandlerPropName applies the passive prefix variant from the passive set",
+      "tests/optimizer/event-handler-transform.test.ts :: event-handler-transform eventHandlerPropName falls back to the raw name when the transform declines",
+      "tests/optimizer/event-handler-transform.test.ts :: event-handler-transform eventHandlerPropName keeps the author-form name for component-element events",
+      "tests/optimizer/event-handler-transform.test.ts :: event-handler-transform eventHandlerPropName serializes HTML-element events to the q-*: form",
       "tests/optimizer/event-handler-transform.test.ts :: event-handler-transform isEventProp returns false for class",
       "tests/optimizer/event-handler-transform.test.ts :: event-handler-transform isEventProp returns false for custom$ (not an on* event handler)",
       "tests/optimizer/event-handler-transform.test.ts :: event-handler-transform isEventProp returns false for regular prop without $",
@@ -908,6 +912,14 @@
       "tests/optimizer/props-field-rewrite.test.ts :: props-field-rewrite preserves the rewrite-parent behavior for computed member-expression properties",
       "tests/optimizer/props-field-rewrite.test.ts :: props-field-rewrite preserves the segment-codegen behavior for member-expression properties",
       "tests/optimizer/props-field-rewrite.test.ts :: props-field-rewrite rewrites shorthand object properties with explicit keys",
+      "tests/optimizer/qp-walk.test.ts :: walkAstForQp collects params for an event-handler attr referencing a known QRL",
+      "tests/optimizer/qp-walk.test.ts :: walkAstForQp dedupes params across multiple handlers on one element",
+      "tests/optimizer/qp-walk.test.ts :: walkAstForQp ignores non-Identifier handler values",
+      "tests/optimizer/qp-walk.test.ts :: walkAstForQp ignores non-event attributes and unknown QRL names",
+      "tests/optimizer/qp-walk.test.ts :: walkAstForQp keys overrides by element start offset, per element",
+      "tests/optimizer/qp-walk.test.ts :: walkAstForQp omits elements whose handlers resolve to no params",
+      "tests/optimizer/qp-walk.test.ts :: walkAstForQp recognises already-rewritten q-*: attribute names",
+      "tests/optimizer/qp-walk.test.ts :: walkAstForQp works without a qrlsWithCaptures sink",
       "tests/optimizer/raw-props.test.ts :: raw-props aborts consolidation for call-expression default (parity gate)",
       "tests/optimizer/raw-props.test.ts :: raw-props aborts consolidation for nested ObjectPattern field (parity gate)",
       "tests/optimizer/raw-props.test.ts :: raw-props consolidates raw props captures after the rewrite",
@@ -1223,6 +1235,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1039
+    "total": 1051
   }
 }

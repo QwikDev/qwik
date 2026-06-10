@@ -26,7 +26,9 @@ standup:
 wrapup:
   docs_pr_branch_prefix: docs/state-post-
   docs_pr_commit_prefix: "docs(state):"
-  auto_merge_carve_out_path: .claude/rules/
+  auto_merge_carve_out_path:
+    - .claude/rules/
+    - .cursor/rules/   # machine-generated mirrors of .claude/rules/ (agent-sync)
   state_refresh_authority: .claude/rules/METHODOLOGIES.md
   audit_doc:
     path: .claude/rules/OPTIMIZER.md
@@ -65,7 +67,7 @@ The METHODOLOGIES rule file owns the post-merge policy; wrap-up encodes it in ex
 
 **Project-specific extra step** (METHODOLOGIES checklist step 2, not in the portable skill's 8 steps): when the merged PR touched `src/`, rebuild the dist and re-sync it into qwik-bundler's pnpm content-addressed copy before moving on — pnpm `file:` deps are snapshots, not symlinks, so qwik-bundler silently runs stale optimizer code otherwise. Commands + verification in METHODOLOGIES.md "After a PR merges" step 2.
 
-**Auto-merge carve-out** covers any combination of files under `.claude/rules/` — typically STATE.md alone, OPTIMIZER.md alone, or STATE + OPTIMIZER together. Any diff touching files outside `.claude/rules/` (source, tests, workflows, README, package.json) goes through normal review. The carve-out was widened from STATE.md-only to `.claude/rules/`-only by PR #93 so the OPTIMIZER.md audit step (introduced in the same PR) could ride the same auto-merge path without a separate gate.
+**Auto-merge carve-out** covers any combination of files under `.claude/rules/` and/or `.cursor/rules/` — typically STATE.md alone, OPTIMIZER.md alone, STATE + OPTIMIZER together, or any of those plus their regenerated `.mdc` mirrors. The `.cursor/rules/` arm exists because those files are machine-generated mirrors of `.claude/rules/` (via `scripts/agent-sync.sh`, never hand-edited) — they carry no review surface the source rules don't already have. Any diff touching files elsewhere (source, tests, workflows, README, package.json, the sync script itself) goes through normal review. The carve-out was widened from STATE.md-only to `.claude/rules/`-only by PR #93 so the OPTIMIZER.md audit step (introduced in the same PR) could ride the same auto-merge path without a separate gate, and widened again to include the generated `.cursor/rules/` mirrors when the agent-sync mirrors became part of the routine.
 
 ## Audit doc — OPTIMIZER.md
 

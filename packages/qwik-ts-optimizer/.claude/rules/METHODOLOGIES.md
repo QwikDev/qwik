@@ -88,7 +88,7 @@ Run this as soon as the PR is merged. **Confirm with the user before the destruc
    - **Update OPTIMIZER.md only when the change is structural:** a phase added/removed/renumbered, a new tool-surface convention name, a migration rule changed, a worked-example snapshot replaced, an `ExtractionResult` field added/removed/repurposed, or file:line refs in OPTIMIZER.md drifted by >50 lines or moved files. See OPTIMIZER.md's "Maintenance" section for the full criteria.
    - **Fold the update into the same branch as the STATE.md refresh.** Both are docs-only edits under `.claude/rules/`; they ride the same auto-merge carve-out (see below).
 
-7. **Auto-merge is fine for docs-only PRs under `.claude/rules/`.** The diff is pure documentation, low-risk, and gate-checked by CI like every other PR. This covers STATE.md (frequent), OPTIMIZER.md (when the audit above folds an update in), and the other rule files when modified in isolation. Queue them with `gh pr merge --auto --squash <pr-number>` (or the GitHub UI's auto-merge button) and let the CI pass trigger the merge — no manual review required. This applies *only* to PRs whose entire diff is under `.claude/rules/` (any combination of files in that directory). PRs that also touch source (`src/`), tests (`tests/`), or workflows (`.github/`) go through normal review. The CI gate runs identically on both.
+7. **Auto-merge is fine for docs-only PRs under `.claude/rules/` (+ their generated `.cursor/rules/` mirrors).** The diff is pure documentation, low-risk, and gate-checked by CI like every other PR. This covers STATE.md (frequent), OPTIMIZER.md (when the audit above folds an update in), and the other rule files when modified in isolation. Queue them with `gh pr merge --auto --squash <pr-number>` (or the GitHub UI's auto-merge button) and let the CI pass trigger the merge — no manual review required. This applies *only* to PRs whose entire diff is under `.claude/rules/` and/or `.cursor/rules/` — the latter because those `.mdc` files are machine-generated mirrors of the former (via `scripts/agent-sync.sh`; never hand-edited), so they carry no review surface the source rules don't already have. PRs that also touch source (`src/`), tests (`tests/`), workflows (`.github/`), or the sync script itself go through normal review. The CI gate runs identically on both.
 
 ### What "merged" means here
 
@@ -101,7 +101,7 @@ This routine fires when the PR's commits are reachable from `origin/main`. It do
 
 - **Don't auto-delete the branch without confirming.** Especially when running unattended; especially with squash-merged PRs where the warning could mask an unintended state.
 - **Don't edit `STATE.md` on `main` directly.** STATE.md's own Maintenance section forbids this. Always go through a feature branch + PR, even for tiny changes.
-- **Don't extend auto-merge beyond `.claude/rules/`.** The exemption is narrow on purpose — source code (`src/`), tests (`tests/`), and workflows (`.github/`) affect runtime behavior and changes deserve a review eye. Rule-file-only PRs are the boundary; anything else goes through standard review.
+- **Don't extend auto-merge beyond `.claude/rules/` + generated `.cursor/rules/` mirrors.** The exemption is narrow on purpose — source code (`src/`), tests (`tests/`), workflows (`.github/`), and `scripts/` (including the sync script that generates the mirrors) affect runtime behavior and changes deserve a review eye. Rule-file + generated-mirror PRs are the boundary; anything else goes through standard review.
 
 ## Refactoring
 

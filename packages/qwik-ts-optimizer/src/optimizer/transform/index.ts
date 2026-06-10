@@ -149,9 +149,9 @@ export function transformModule(
     const willTranspileJsx =
       options.transpileJsx !== false && (ext === ".tsx" || ext === ".jsx");
     // Closure AST nodes (the `arg` of each marker call) are threaded out by
-    // `extractSegments` keyed by post-disambiguation `symbolName`. Reusing the
-    // original parse's nodes here lets us skip the per-extraction body
-    // re-parse the receiver used to perform.
+    // `extractSegments` keyed by post-disambiguation `symbolName`, so
+    // downstream phases reuse the original parse instead of re-parsing each
+    // extraction's body.
     const closureNodes = new Map<string, AstFunction>();
     // `extractSegments` returns `readonly ExtractedSegment[]` as its
     // phase-locked contract. The orchestrator below applies in-place

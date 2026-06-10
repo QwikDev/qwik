@@ -15,12 +15,9 @@ import type { ExtractionResult } from '../extract.js';
 
 /**
  * Whether `ext.calleeName` matches one of the registered context names
- * (e.g., `'server'` matches `server$`). Used to decide regCtxName-specific
- * code paths in inline body transformation, segment output assembly, and
- * top-level rewriting.
- *
- * Previously duplicated byte-for-byte in three modules; this is the
- * canonical version.
+ * (e.g., `'server'` matches `server$`). Canonical home for the check —
+ * used to decide regCtxName-specific code paths in inline body
+ * transformation, segment output assembly, and top-level rewriting.
  */
 export function matchesRegCtxName(ext: ExtractionResult, regCtxName?: readonly string[]): boolean {
   if (!regCtxName || regCtxName.length === 0) return false;

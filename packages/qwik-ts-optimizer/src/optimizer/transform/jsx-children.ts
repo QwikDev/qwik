@@ -243,13 +243,7 @@ function processExpressionChild(
     return { text: exprText, type: 'static' };
   }
 
-  // The signal-analysis branch and the constness-classification branch
-  // were historically gated on `importedNames` being defined — the call
-  // site in `transformJsxElement` passed `undefined` for both
-  // `importedNames` and `signalHoister` whenever `childSignalsEnabled`
-  // was false (text-only tags, components opting out). Now expressed as
-  // a single typed `enableSignalAnalysis` opt; both branches share the
-  // gate because they were always toggled together at the call site.
+  // Without signal analysis, staticness can't be proven — classify dynamic.
   if (!enableSignalAnalysis) {
     return { text: exprText, type: 'dynamic' };
   }

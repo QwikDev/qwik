@@ -132,18 +132,12 @@ function collectDeclarationsFromNode(
  * scopes between the closure and the module root is what
  * `compute_scoped_idents` intersects against to determine captures.
  *
- * Pre-fix, capture analysis in `transform/index.ts` used a fixed pair of
- * sources for `parentScopeIdentifiers`:
- *   - `bodyScopeIds.get(enclosingExt.symbolName)` when a nested extraction
- *     wrapped this one — the enclosing **extraction**'s body scope only.
- *   - `moduleScopeIds` otherwise — module top-level decls only.
- *
- * Both forms miss decls from intermediate **non-marker** enclosing
- * functions. For `(fn) => { const x = …; useVisibleTask$(() => x); }` at
- * module level, the outer arrow is not an extraction, so capture analysis
- * fell back to module scope and dropped both `fn` and `x`. The segment
- * then emitted those as free identifiers (runtime crash). The lexical
- * chain produced here fixes both forms.
+ * The full lexical chain matters: intermediate **non-marker** enclosing
+ * functions contribute decls too. For
+ * `(fn) => { const x = …; useVisibleTask$(() => x); }` at module level,
+ * both `fn` and `x` must be capturable even though the outer arrow is not
+ * itself an extraction — neither the enclosing extraction's body scope nor
+ * the module scope alone would surface them.
  */
 export function buildClosureLexicalScopes(
   program: AstProgram,

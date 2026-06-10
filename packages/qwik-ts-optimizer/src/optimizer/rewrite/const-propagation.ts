@@ -124,9 +124,8 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
     if (!node) return;
 
     if (node.type === 'Identifier' && constValues.has(node.name)) {
-      // Runtime emits 'Property' / 'MemberExpression' — the historic
-      // 'ObjectProperty' / 'StaticMemberExpression' branches were
-      // dead and got pruned when the type tightened (per PR #44).
+      // The parser emits 'Property' / 'MemberExpression' — never the
+      // Babel-style 'ObjectProperty' / 'StaticMemberExpression' shapes.
       const isDeclId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
       const isPropertyKey = parentKey === 'key' && parentNode?.type === 'Property';
       const isMemberProp = parentKey === 'property' &&
@@ -183,9 +182,8 @@ interface IdentRef {
 
 /** Check if a ref is a "real" reference (not a decl id, property key, or non-computed member prop). */
 function isRealRef(parentKey: string | undefined, parentNode: AstNode | undefined): boolean {
-  // Runtime emits 'Property' / 'MemberExpression' — the historic
-  // 'ObjectProperty' / 'StaticMemberExpression' branches were dead
-  // and got pruned when the type tightened (per PR #44).
+  // The parser emits 'Property' / 'MemberExpression' — never the
+  // Babel-style 'ObjectProperty' / 'StaticMemberExpression' shapes.
   if (parentKey === 'id' && parentNode?.type === 'VariableDeclarator') return false;
   if (parentKey === 'key' && parentNode?.type === 'Property') return false;
   if (parentKey === 'property' &&

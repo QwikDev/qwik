@@ -64,16 +64,11 @@ export function buildQrlDeclaration(
 function minifyFunctionText(text: string): string {
   let result = text;
 
-  // Remove block comments
   result = result.replace(blockComment, '');
-  // Remove line comments
   result = result.replace(lineComment, '');
-  // Collapse whitespace
   result = result.replace(collapsedWhitespace, ' ');
-  // Remove spaces around operators and delimiters
   result = result.replace(spacesAroundOperators, '$1');
   result = result.trim();
-  // Strip parentheses around single arrow function parameter: (x)=> -> x=>
   result = result.replace(singleArrowParam, '$1=>');
 
   return result;

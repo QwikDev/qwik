@@ -383,8 +383,8 @@ export function applySelfRefIndirection(bodyText: string): string {
     walk(d.init, {
       enter(node: AstNode) {
         if (node.type !== 'CallExpression') return;
-        // Runtime emits 'MemberExpression'; the historic
-        // 'StaticMemberExpression' branch was dead per PR #44.
+        // The parser emits 'MemberExpression' — never the Babel-style
+        // 'StaticMemberExpression' shape.
         const callee = node.callee;
         if (callee.type !== 'MemberExpression') return;
         if (callee.property.type !== 'Identifier' || callee.property.name !== 'w') return;

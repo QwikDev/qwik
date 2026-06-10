@@ -8,6 +8,7 @@ import type {
   DomSubscriber,
   IdleSubscriber,
   PhaseSubscriber,
+  SsrDomSubscriber,
   TaskSubscriber,
   VisibleTaskSubscriber,
 } from './subscriber';
@@ -287,8 +288,24 @@ export function notify(subscriber: PhaseSubscriber): void {
   defaultScheduler.notify(subscriber);
 }
 
-export function notifyPhaseSubscriber(this: PhaseSubscriber): void {
-  defaultScheduler.notify(this);
+export function notifyPhaseSubscriber(subscriber: PhaseSubscriber | SsrDomSubscriber): void {
+  if (!('schedulerEpoch' in subscriber)) {
+    return;
+  }
+
+  const container = (
+    subscriber as {
+      container?: { notify?: (subscriber: PhaseSubscriber) => void; scheduler?: Scheduler };
+    }
+  ).container;
+  if (container?.notify) {
+    container.notify(subscriber);
+    return;
+  }
+
+  const scheduler =
+    (subscriber as { scheduler?: Scheduler }).scheduler ?? container?.scheduler ?? defaultScheduler;
+  scheduler.notify(subscriber);
 }
 
 export function scheduleFlush(): void {

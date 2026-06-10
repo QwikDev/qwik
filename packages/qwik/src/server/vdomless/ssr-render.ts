@@ -65,7 +65,11 @@ export const renderToStream = async (
   await opts.stream.write(html);
   if (serializationCtx.$roots$.length > 0) {
     await serializationCtx.$serialize$();
-    await scripts.emitState(serializationCtx.$writer$.toString());
+    await scripts.emitState(
+      serializationCtx.$writer$.toString(),
+      0,
+      serializationCtx.$serializedRootCount$
+    );
   }
   if (serializationCtx.$eventQrls$.size > 0) {
     await scripts.emitQwikLoader();

@@ -5,7 +5,6 @@ import { registerSubscriberToOwner } from './owner';
 import { defaultScheduler, Phase, type Scheduler } from './scheduler';
 import {
   SubscriberKind,
-  type PhaseSubscriber,
   type ScheduledSubscriber,
   type TaskSubscriber,
   type VisibleTaskSubscriber,
@@ -71,10 +70,6 @@ abstract class ScheduledSubscription implements ScheduledSubscriber {
   depVersions: number[] | null = null;
 
   constructor(readonly scheduler: Scheduler = defaultScheduler) {}
-
-  notify(): void {
-    this.scheduler.notify(this as unknown as PhaseSubscriber);
-  }
 }
 
 export class TaskSubscription extends ScheduledSubscription implements TaskSubscriber {

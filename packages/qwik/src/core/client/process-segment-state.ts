@@ -1,5 +1,4 @@
 import { applySubscriptionPatches } from '../control-flow/suspense-utils';
-import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { preprocessState } from '../shared/serdes/index';
 import type { SubscriptionPatch } from '../shared/serdes/subscription-patch';
 import { QStatePatchAttrSelector, QSuspenseResolved } from '../shared/utils/markers';
@@ -93,10 +92,7 @@ const appendStatePatchRoots = (
     stateContainer.$rawStateData$[rootStart * 2 + i] = rawStateData[i];
   }
   preprocessState(stateContainer.$rawStateData$, container, undefined, rootStart * 2);
-  stateContainer.$stateData$ = wrapDeserializerProxy(
-    container,
-    stateContainer.$rawStateData$
-  ) as unknown[];
+  stateContainer.$stateData$ = stateContainer.$rawStateData$;
   stateContainer.$stateData$.length = stateContainer.$rawStateData$.length / 2;
   stateContainer.$rootForwardRefs$ = stateContainer.$forwardRefs$;
 };

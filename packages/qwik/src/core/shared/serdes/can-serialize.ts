@@ -1,21 +1,10 @@
-import { getStoreTarget, isStore } from '../../reactive-primitives/impl/store';
-import { SubscriptionData } from '../../reactive-primitives/subscription-data';
-import { NEEDS_COMPUTATION, STORE_ALL_PROPS } from '../../reactive-primitives/types';
-import { untrack } from '../../use/use-core';
-import { isTask } from '../../use/use-task';
-import { isQwikComponent } from '../component.public';
-import { isJSXNode } from '../jsx/jsx-node';
-import { isPropsProxy } from '../jsx/props-proxy';
-import { Slot } from '../jsx/slot.public';
+import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
+import { SsrDomSubscription } from '../../vdomless/dom/effect/ssr-effect';
+import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
+import { Signal } from '../../vdomless/reactive/signal';
 import { isQrl } from '../qrl/qrl-utils';
 import { _UNINITIALIZED } from '../utils/constants';
 import { isPromise } from '../utils/promises';
-import { isDomRef } from './serialization-context';
-// Keep last
-import { Fragment } from '../jsx/jsx-runtime';
-import { isSerializerObj } from '../../reactive-primitives/utils';
-
-const getKeyVal = <T>(value: T, key: keyof T) => value[key];
 
 export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet()): boolean => {
   const hasTemporal = typeof Temporal !== 'undefined';
@@ -33,14 +22,9 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
     }
     seen.add(value);
     const proto = Object.getPrototypeOf(value);
-    if (isStore(value)) {
-      value = getStoreTarget(value);
-    }
     if (proto == Object.prototype) {
       for (const key in value as object) {
-        // if the value is a props proxy, then sometimes we could create a component-level subscription,
-        // so we should call untrack here to avoid tracking the value
-        if (!canSerialize(untrack(getKeyVal, value, key as keyof typeof value), seen)) {
+        if (!canSerialize((value as Record<string, unknown>)[key], seen)) {
           return false;
         }
       }
@@ -56,15 +40,13 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
         }
       }
       return true;
-    } else if (isTask(value)) {
-      return true;
-    } else if (isPropsProxy(value)) {
-      return true;
     } else if (isPromise(value)) {
       return true;
-    } else if (isJSXNode(value)) {
+    } else if (value instanceof Signal) {
       return true;
-    } else if (isSerializerObj(value)) {
+    } else if (value instanceof ComputedQrl) {
+      return true;
+    } else if (value instanceof SsrDomSubscription) {
       return true;
     } else if (value instanceof Error) {
       return true;
@@ -100,16 +82,12 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
       return true;
     } else if (value instanceof Uint8Array) {
       return true;
-    } else if (value instanceof SubscriptionData) {
-      return true;
-    } else if (isDomRef?.(value)) {
-      return true;
     }
   } else if (typeof value === 'function') {
-    if (isQrl(value) || isQwikComponent(value) || value === Slot || value === Fragment) {
+    if (isQrl(value)) {
       return true;
     }
-  } else if (value === _UNINITIALIZED || value === NEEDS_COMPUTATION || value === STORE_ALL_PROPS) {
+  } else if (value === _UNINITIALIZED || value === NEEDS_COMPUTATION) {
     return true;
   }
   return false;

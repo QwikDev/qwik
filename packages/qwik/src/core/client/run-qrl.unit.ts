@@ -4,6 +4,7 @@ import * as qrlClass from '../shared/qrl/qrl-class';
 import * as useCore from '../use/use-core';
 import * as vnodeUtils from './vnode-utils';
 import * as promises from '../shared/utils/promises';
+import * as containerContext from '../vdomless/runtime/container-context';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
 import { VNodeFlags } from './types';
 
@@ -51,6 +52,10 @@ vi.mock('../shared/utils/promises', async () => {
   };
 });
 
+vi.mock('../vdomless/runtime/container-context', () => ({
+  getOrCreateContainerContext: vi.fn(),
+}));
+
 function createMockElement(isConnected = true): Element {
   return {
     isConnected,
@@ -62,39 +67,20 @@ function createMockElement(isConnected = true): Element {
 describe('_run', () => {
   let mockEvent: Event;
   let mockElement: Element;
-  let mockContainer: any;
   let mockContext: any;
   let mockQrl: any;
 
   beforeEach(() => {
-    // Create mock event
     mockEvent = new Event('click');
-
-    // Create mock element
     mockElement = createMockElement();
-
-    // Create mock container
-    mockContainer = {
-      handleError: vi.fn(),
-      $getObjectById$: vi.fn(),
+    mockQrl = {
+      resolve: vi.fn(() => Promise.resolve()),
+      resolved: vi.fn(),
     };
-
-    // Create mock context
     mockContext = {
-      $container$: mockContainer,
-      $hostElement$: {
-        flags: 0,
-      },
+      restoreCaptures: vi.fn(() => [mockQrl]),
     };
-
-    // Create mock QRL
-    mockQrl = vi.fn();
-
-    // Setup default mocks
-    vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
-    vi.mocked(qrlClass.deserializeCaptures).mockReturnValue([mockQrl]);
-
-    // Mock _captures global
+    vi.mocked(containerContext.getOrCreateContainerContext).mockReturnValue(mockContext);
     Object.defineProperty(qrlClass, '_captures', {
       get: () => [mockQrl],
       configurable: true,
@@ -111,102 +97,60 @@ describe('_run', () => {
     const result = _run.call('', mockEvent, disconnectedElement);
 
     expect(result).toBeUndefined();
-    expect(useCore.newInvokeContextFromDOM).not.toHaveBeenCalled();
+    expect(containerContext.getOrCreateContainerContext).not.toHaveBeenCalled();
   });
 
-  it('should create invoke context from DOM', () => {
-    _run.call('', mockEvent, mockElement);
+  it('should get container context from the event element', async () => {
+    await _run.call('', mockEvent, mockElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mockEvent, mockElement);
+    expect(containerContext.getOrCreateContainerContext).toHaveBeenCalledWith(mockElement);
   });
 
-  it('should deserialize captures when this is a string', () => {
+  it('should restore captures when this is a string', async () => {
     const capturesString = 'serialized-captures';
 
-    _run.call(capturesString, mockEvent, mockElement);
+    await _run.call(capturesString, mockEvent, mockElement);
 
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, capturesString);
-    expect(qrlClass.setCaptures).toHaveBeenCalled();
+    expect(mockContext.restoreCaptures).toHaveBeenCalledWith(capturesString);
+    expect(qrlClass.setCaptures).toHaveBeenCalledWith([mockQrl]);
   });
 
-  it('should not deserialize captures when this is not a string', () => {
-    _run.call(undefined as any, mockEvent, mockElement);
+  it('should not restore captures when this is not a string', async () => {
+    await _run.call(undefined as any, mockEvent, mockElement);
 
-    expect(qrlClass.deserializeCaptures).not.toHaveBeenCalled();
+    expect(mockContext.restoreCaptures).not.toHaveBeenCalled();
+    expect(qrlClass.setCaptures).not.toHaveBeenCalled();
   });
 
-  it('should get QRL from first capture', () => {
-    const mockQrlFromCaptures = vi.fn();
+  it('should resolve the QRL from the first capture', async () => {
+    const mockQrlFromCaptures = {
+      resolve: vi.fn(() => Promise.resolve()),
+      resolved: vi.fn(),
+    };
     Object.defineProperty(qrlClass, '_captures', {
       get: () => [mockQrlFromCaptures],
       configurable: true,
     });
 
-    _run.call('captures', mockEvent, mockElement);
+    await _run.call('captures', mockEvent, mockElement);
 
-    // The function should use the QRL from _captures[0]
-    expect(qrlClass._captures![0]).toBe(mockQrlFromCaptures);
+    expect(mockQrlFromCaptures.resolve).toHaveBeenCalledWith(mockContext);
   });
 
-  it('should handle empty captures string', () => {
-    _run.call('', mockEvent, mockElement);
+  it('should handle empty captures string', async () => {
+    await _run.call('', mockEvent, mockElement);
 
-    // Empty string is still a string, so deserializeCaptures will be called
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, '');
+    expect(mockContext.restoreCaptures).toHaveBeenCalledWith('');
   });
 
-  it('should work with connected element and valid captures', () => {
-    const capturesString = 'valid-captures';
-
-    _run.call(capturesString, mockEvent, mockElement);
-
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mockEvent, mockElement);
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, capturesString);
-    expect(qrlClass.setCaptures).toHaveBeenCalled();
-  });
-
-  it('should handle click event on connected element', () => {
+  it('should invoke the resolved QRL with event and element', async () => {
     const clickEvent = new Event('click');
     const buttonElement = createMockElement();
 
-    _run.call('test-captures', clickEvent, buttonElement);
+    await _run.call('test-captures', clickEvent, buttonElement);
 
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(clickEvent, buttonElement);
-  });
-
-  it('should handle element being disconnected during event', () => {
-    const disconnectedElement = createMockElement(false);
-
-    const result = _run.call('captures', mockEvent, disconnectedElement);
-
-    expect(result).toBeUndefined();
-    expect(qrlClass.deserializeCaptures).not.toHaveBeenCalled();
-  });
-
-  it('should handle different event types', () => {
-    const mouseEvent = new Event('mouseover');
-
-    _run.call('mouse-captures', mouseEvent, mockElement);
-
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(mouseEvent, mockElement);
-  });
-
-  it('should handle keyboard events', () => {
-    const keyboardEvent = new Event('keydown');
-
-    _run.call('keyboard-captures', keyboardEvent, mockElement);
-
-    expect(useCore.newInvokeContextFromDOM).toHaveBeenCalledWith(keyboardEvent, mockElement);
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, 'keyboard-captures');
-  });
-
-  it('should handle complex capture strings', () => {
-    const complexCaptures = 'complex|serialized|captures|with|pipes';
-
-    _run.call(complexCaptures, mockEvent, mockElement);
-
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, complexCaptures);
-    expect(qrlClass.setCaptures).toHaveBeenCalled();
+    expect(mockQrl.resolved).toHaveBeenCalledWith(clickEvent, buttonElement);
+    expect(useCore.invokeApply).not.toHaveBeenCalled();
   });
 });
 

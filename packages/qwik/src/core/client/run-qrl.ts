@@ -1,10 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import {
-  _captures,
-  deserializeCaptures,
-  setCaptures,
-  type QRLInternal,
-} from '../shared/qrl/qrl-class';
+import { _captures, setCaptures, type QRLInternal } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
@@ -12,6 +7,7 @@ import { retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { invokeApply, newInvokeContextFromDOM, type InvokeContext } from '../use/use-core';
+import { getOrCreateContainerContext } from '../vdomless/runtime/container-context';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
 
@@ -76,11 +72,11 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
     // ignore events on disconnected elements, this can happen when the event is triggered while the element is being removed
     return;
   }
-  const ctx = newInvokeContextFromDOM(event, element);
+  const context = getOrCreateContainerContext(element);
   if (typeof this === 'string') {
-    setCaptures(deserializeCaptures(ctx.$container$!, this));
+    setCaptures(context.restoreCaptures(this));
   }
   const qrlToRun = _captures![0] as QRLInternal<(...args: any[]) => void>;
   isDev && assertQrl(qrlToRun);
-  return runEventHandlerQRL(qrlToRun, event, element, ctx);
+  return qrlToRun.resolve(context as any).then(() => qrlToRun.resolved!(event, element));
 }

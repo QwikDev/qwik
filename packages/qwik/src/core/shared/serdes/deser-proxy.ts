@@ -1,6 +1,5 @@
 import { TypeIds } from './constants';
-import type { DomContainer } from '../../client/dom-container';
-import { vnode_isVNode } from '../../client/vnode-utils';
+import type { ContainerContext } from '../../vdomless/runtime/container-context';
 import { isObject } from '../utils/types';
 import { allocate } from './allocate';
 import { inflate } from './inflate';
@@ -17,10 +16,9 @@ export const isDeserializerProxy = (value: unknown): value is DeserializerProxy 
 
 export const SERIALIZER_PROXY_UNWRAP = Symbol('UNWRAP');
 /** Call this on the serialized root state */
-export const wrapDeserializerProxy = (container: DomContainer, data: unknown): unknown[] => {
+export const wrapDeserializerProxy = (container: ContainerContext, data: unknown): unknown[] => {
   if (
     !Array.isArray(data) || // must be an array
-    vnode_isVNode(data) || // and not a VNode or Slot
     isDeserializerProxy(data) // and not already wrapped
   ) {
     return data as any;
@@ -35,7 +33,7 @@ export const wrapDeserializerProxy = (container: DomContainer, data: unknown): u
 };
 class DeserializationHandler implements ProxyHandler<object> {
   constructor(
-    public $container$: DomContainer,
+    public $container$: ContainerContext,
     public $data$: unknown[]
   ) {}
 
@@ -62,8 +60,8 @@ class DeserializationHandler implements ProxyHandler<object> {
       return value;
     }
 
-    const container = this.$container$;
-    const propValue = allocate(container, typeId, value);
+    const context = this.$container$;
+    const propValue = allocate(context, typeId, value);
 
     Reflect.set(target, property, propValue);
     this.$data$[idx] = TypeIds.Plain;
@@ -71,7 +69,7 @@ class DeserializationHandler implements ProxyHandler<object> {
 
     /** We stored the reference, so now we can inflate, allowing cycles */
     if (needsInflation(typeId)) {
-      inflate(container, propValue, typeId, value);
+      inflate(context, propValue, typeId, value);
     }
 
     return propValue;

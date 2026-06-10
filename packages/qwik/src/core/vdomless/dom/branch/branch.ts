@@ -136,10 +136,6 @@ export class BranchSubscription<TArgs extends unknown[] = unknown[]> implements 
     readonly scheduler: Scheduler = defaultScheduler
   ) {}
 
-  notify(): void {
-    this.scheduler.notify(this);
-  }
-
   run(): ValueOrPromise<void> {
     return runBranchSubscription(this);
   }

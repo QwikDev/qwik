@@ -1079,11 +1079,8 @@ export function _serialize<T>(data: T): Promise<string>;
 // @public
 export const SerializerSymbol: unique symbol;
 
-// Warning: (ae-forgotten-export) The symbol "EventHandler_2" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "setEvent" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export function setEvent(element: Element, key: string, handler: EventHandler_2): void;
+// @public (undocumented)
+export function setEvent(element: Element, key: string, handler: (event: Event, element: Element) => unknown): void;
 
 // Warning: (ae-forgotten-export) The symbol "SSRWriteChunk" needs to be exported by the entry point index.d.ts
 //

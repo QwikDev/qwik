@@ -268,16 +268,19 @@ export function createOrderTextExpressionEffect(
   );
 }
 
-export function createIdleSubscriber(notify: () => void): IdleSubscriber {
-  return {
+export function createIdleSubscriber(notify: () => void, scheduler?: Scheduler): IdleSubscriber {
+  const subscriber: IdleSubscriber & { scheduler?: Scheduler } = {
     kind: SubscriberKind.Idle,
     job: {
-      run() {},
+      run: notify,
     },
     flags: ReactiveFlags.None,
     schedulerEpoch: 0,
-    notify,
   };
+  if (scheduler) {
+    subscriber.scheduler = scheduler;
+  }
+  return subscriber;
 }
 
 export type CsrRenderComponent = CsrRenderRoot;

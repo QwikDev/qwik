@@ -23,6 +23,9 @@ describe.each([
 
       const script = container.querySelector('script[type="qwik/state"]');
       expect(script).not.toBeNull();
+      expect(script?.getAttribute('q:base')).toBe('0');
+      const payload = JSON.parse(script?.textContent ?? '[]') as unknown[];
+      expect(script?.getAttribute('q:len')).toBe(String(payload.length / 2));
     } else {
       expect(container.innerHTML).toBe('<p>0</p>');
       expect(html).toBe('<p>0</p>');
@@ -46,6 +49,44 @@ describe.each([
     await qwikLoader?.dispatch(button!, 'click');
 
     expect(button?.textContent).toBe('1');
+
+    cleanup();
+  });
+
+  it('should update mixed signal text', async () => {
+    const MyComp = component$(() => {
+      const count = createSignal(0);
+      return <button onClick$={() => count.value++}>Count {count.value}</button>;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
+
+    const button = container.querySelector('button');
+    expect(button?.textContent).toBe('Count 0');
+
+    expect(qwikLoader).toBeDefined();
+    await qwikLoader?.dispatch(button!, 'click');
+
+    expect(button?.textContent).toBe('Count 1');
+
+    cleanup();
+  });
+
+  it('should update text expression value', async () => {
+    const MyComp = component$(() => {
+      const count = createSignal(0);
+      return <button onClick$={() => count.value++}>{count.value + 1}</button>;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
+
+    const button = container.querySelector('button');
+    expect(button?.textContent).toBe('1');
+
+    expect(qwikLoader).toBeDefined();
+    await qwikLoader?.dispatch(button!, 'click');
+
+    expect(button?.textContent).toBe('2');
 
     cleanup();
   });

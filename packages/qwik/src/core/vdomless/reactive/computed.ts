@@ -1,8 +1,14 @@
 import { cleanupDeps } from './cleanup';
 import { ReactiveFlags } from './flags';
 import { registerSubscriberToOwner } from '../runtime/owner';
+import { notifyPhaseSubscriber } from '../runtime/scheduler';
 import type { Dependency } from './source';
-import { SubscriberKind, type ComputedSubscriber, type Subscriber } from '../runtime/subscriber';
+import {
+  SubscriberKind,
+  type ComputedSubscriber,
+  type PhaseSubscriber,
+  type Subscriber,
+} from '../runtime/subscriber';
 import { runWithCollector, track } from './tracking';
 
 export class Computed<T> implements ComputedSubscriber<T> {
@@ -22,10 +28,6 @@ export class Computed<T> implements ComputedSubscriber<T> {
 
   get untrackedValue(): T {
     return readComputedUntracked(this);
-  }
-
-  notify(): void {
-    markComputedDirty(this);
   }
 
   trigger(): void {
@@ -75,7 +77,12 @@ function notifySubscribers(computed: ComputedSubscriber): void {
 
   const snapshot = subs.slice();
   for (let i = 0; i < snapshot.length; i++) {
-    snapshot[i].notify();
+    const subscriber = snapshot[i];
+    if (subscriber.kind === SubscriberKind.Computed) {
+      markComputedDirty(subscriber);
+    } else {
+      notifyPhaseSubscriber(subscriber as PhaseSubscriber);
+    }
   }
 }
 

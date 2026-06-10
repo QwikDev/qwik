@@ -10,12 +10,13 @@ import { Scheduler } from '../runtime/scheduler';
 import { createTask } from '../runtime/task';
 
 describe('reactive primitives', () => {
-  it('notifies signal subscribers and skips Object.is-equal writes', () => {
+  it('notifies signal subscribers and skips Object.is-equal writes', async () => {
     const count = createSignal(0);
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
     let notifications = 0;
     const subscriber = createIdleSubscriber(() => {
       notifications++;
-    });
+    }, scheduler);
 
     count.subs = [subscriber];
     count.value = 0;
@@ -24,6 +25,7 @@ describe('reactive primitives', () => {
     expect(count.version).toBe(0);
 
     count.value = 1;
+    await scheduler.flushDeferred();
 
     expect(notifications).toBe(1);
     expect(count.version).toBe(1);

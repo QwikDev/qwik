@@ -1,48 +1,26 @@
-import { isServer } from '@qwik.dev/core/build';
-import { qTest } from '../utils/qdev';
+import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import {
-  vnode_getFirstChild,
-  vnode_getProp,
-  vnode_getText,
-  vnode_isTextVNode,
-  vnode_isVNode,
-} from '../../client/vnode-utils';
-import { _EFFECT_BACK_REF } from '../../internal';
-import type { BackRef } from '../../reactive-primitives/backref';
-import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
-import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
-import { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
-import { getStoreHandler, unwrapStore } from '../../reactive-primitives/impl/store';
-import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
-import type { SubscriptionData } from '../../reactive-primitives/subscription-data';
-import {
-  AsyncSignalFlags,
-  EffectProperty,
-  NEEDS_COMPUTATION,
-  SignalFlags,
-  type AllSignalFlags,
-  type AsyncQRL,
-  type Consumer,
-  type EffectBackRef,
-  type EffectSubscription,
-  type StoreFlags,
-} from '../../reactive-primitives/types';
-import type { Task } from '../../use/use-task';
-import { SERIALIZABLE_STATE } from '../component.public';
+  AttrEffect,
+  SerializedAttrEffect,
+  TextExpressionEffect,
+  TextNodeEffect,
+  type TextExpressionFn,
+} from '../../vdomless/dom/effect/effect';
+import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
+import { EffectTargetKind } from '../../vdomless/dom/effect/ssr-effect';
+import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
+import { ReactiveFlags as VdomlessReactiveFlags } from '../../vdomless/reactive/flags';
+import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
+import type { Dependency } from '../../vdomless/reactive/source';
+import { addDependency } from '../../vdomless/reactive/tracking';
+import type { ContainerContext } from '../../vdomless/runtime/container-context';
+import type { DomSubscriber } from '../../vdomless/runtime/subscriber';
 import { qError, QError } from '../error/error';
-import { JSXNodeImpl } from '../jsx/jsx-node';
-import { Fragment, Props } from '../jsx/jsx-runtime';
-import { PropsProxy } from '../jsx/props-proxy';
-import { isServerPlatform } from '../platform/platform';
 import type { QRLInternal } from '../qrl/qrl-class';
-import type { DeserializeContainer, HostElement } from '../types';
-import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
-import { isString } from '../utils/types';
-import type { VirtualVNode } from '../vnode/virtual-vnode';
-import { allocate, pendingStoreTargets, resolvers } from './allocate';
+import { ELEMENT_ID } from '../utils/markers';
+import { allocate, resolvers } from './allocate';
 import { TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
-import type { SubscriptionPatch } from './subscription-patch';
 
 export let loading = Promise.resolve();
 
@@ -66,7 +44,7 @@ const isSafeObjectKV = (key: unknown, value: unknown): key is string | number =>
 };
 
 export const inflate = (
-  container: DeserializeContainer,
+  container: ContainerContext,
   target: unknown,
   typeId: TypeIds,
   data: unknown
@@ -98,148 +76,41 @@ export const inflate = (
         (target as Record<string, unknown>)[key] = value;
       }
       break;
-    case TypeIds.Task:
-      const task = target as Task;
-      const v = data as any[];
-      task.$qrl$ = v[0];
-      task.$flags$ = v[1];
-      task.$index$ = v[2];
-      task.$el$ = v[3] as HostElement;
-      task.$state$ = v[4];
-      break;
-    case TypeIds.Component:
-      (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];
-      break;
-    case TypeIds.Store: {
-      // Inflate the store target
-      const store = unwrapStore(target) as object;
-      const storeTarget = pendingStoreTargets.get(store);
-      if (storeTarget) {
-        pendingStoreTargets.delete(store);
-        inflate(container, store, storeTarget.t, storeTarget.v);
-      }
-      /**
-       * Note that we don't do anything with the innerstores we added during serialization, because
-       * they are already inflated in the deserialize of the data, above.
-       */
-      const [, flags, effects] = data as unknown[];
-      const storeHandler = getStoreHandler(target as object)!;
-      storeHandler.$flags$ = flags as StoreFlags;
-      storeHandler.$effects$ = effects as any;
-      restoreEffectBackRefForEffectsMap(storeHandler.$effects$, store);
-      break;
-    }
     case TypeIds.Signal: {
-      const signal = target as SignalImpl<unknown>;
-      const d = data as [unknown, ...EffectSubscription[]];
-      signal.$untrackedValue$ = d[0];
-      signal.$effects$ = new Set(d.slice(1) as EffectSubscription[]);
-      restoreEffectBackRefForEffects(signal.$effects$, signal);
+      const signal = target as VdomlessSignal<unknown>;
+      const d = data as [unknown, ...DomSubscriber[]];
+      signal.v = d[0];
       break;
     }
-    case TypeIds.WrappedSignal: {
-      const signal = target as WrappedSignalImpl<unknown>;
-      const d = data as [number, unknown[], AllSignalFlags, HostElement, ...EffectSubscription[]];
-      signal.$func$ = container.getSyncFn(d[0]);
-      signal.$args$ = d[1];
-      signal.$untrackedValue$ = NEEDS_COMPUTATION;
-      signal.$flags$ = d[2];
-      signal.$flags$ |= SignalFlags.INVALID;
-      signal.$hostElement$ = d[3];
-      signal.$effects$ = new Set(d.slice(4) as EffectSubscription[]);
-      inflateWrappedSignalValue(signal);
-      restoreEffectBackRefForEffects(signal.$effects$, signal);
-      break;
-    }
-    case TypeIds.AsyncSignal: {
-      const asyncSignal = target as AsyncSignalImpl<unknown>;
-      const d = data as [
-        AsyncQRL<unknown>,
-        Array<EffectSubscription> | undefined,
-        Array<EffectSubscription> | undefined,
-        Array<EffectSubscription> | undefined,
-        Error | undefined,
-        number?,
-        unknown?,
-        number?,
-        number?,
-        number?,
-      ];
-      asyncSignal.$computeQrl$ = d[0] as AsyncQRL<unknown>;
-      if (d[1]) {
-        asyncSignal.$effects$ = new Set(d[1] as EffectSubscription[]);
-      }
-      if (d[2]) {
-        asyncSignal.$loadingEffects$ = new Set(d[2] as EffectSubscription[]);
-      }
-      if (d[3]) {
-        asyncSignal.$errorEffects$ = new Set(d[3] as EffectSubscription[]);
-      }
-      if (d[4]) {
-        asyncSignal.$untrackedError$ = d[4];
-      }
-
-      asyncSignal.$flags$ = (d[5] as number) ?? 0;
-
-      if (asyncSignal.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
-        // If it's client only, it was serialized because it pretended to be loading
-        asyncSignal.$untrackedLoading$ = true;
-      }
-
-      const hasValue = d.length > 6;
-      if (hasValue) {
-        asyncSignal.$untrackedValue$ = d[6];
-      }
-      // can happen when never serialize etc
-      if (asyncSignal.$untrackedValue$ === NEEDS_COMPUTATION) {
-        asyncSignal.$flags$ |= SignalFlags.INVALID;
-      }
-
-      // Handle old format (negative = no poll) and new format (always positive, flag in d[5])
-      const rawExpires = (d[7] ?? 0) as number;
-      asyncSignal.expires = Math.abs(rawExpires);
-      if (rawExpires < 0) {
-        asyncSignal.$flags$ |= AsyncSignalFlags.NO_POLL;
-      }
-
-      if (d[8] !== undefined && d[8] !== 1) {
-        asyncSignal.$concurrency$ = (d[8] ?? 1) as number;
-        asyncSignal.$jobs$ = [];
-      }
-      asyncSignal.$timeoutMs$ = (d[9] ?? 0) as number;
-      restoreEffectBackRefForEffects(asyncSignal.$effects$, asyncSignal);
-      restoreEffectBackRefForEffects(asyncSignal.$loadingEffects$, asyncSignal);
-      restoreEffectBackRefForEffects(asyncSignal.$errorEffects$, asyncSignal);
-      break;
-    }
-    // Inflating a SerializerSignal is the same as inflating a ComputedSignal
-    case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
-      const computed = target as ComputedSignalImpl<unknown>;
-      const d = data as [QRLInternal<() => {}>, EffectSubscription[] | undefined, unknown?];
-      computed.$computeQrl$ = d[0];
-      /**
-       * If we try to compute value and the qrl is not resolved, then system throws an error with
-       * the resolve promise. To prevent that we load it now and qrls wait for the loading to
-       * finish.
-       */
-      const p = computed.$computeQrl$.resolve(container as any).catch(() => {
-        // ignore preload errors
-      });
-      loading = loading.finally(() => p);
-      if (d[1]) {
-        computed.$effects$ = new Set(d[1]);
+      const computed = target as ComputedQrl<unknown>;
+      const [qrl, deps, value] = data as [
+        QRLInternal<() => unknown>,
+        Dependency[],
+        unknown,
+        ...DomSubscriber[],
+      ];
+      (computed as { computeQrl: QRLInternal<() => unknown> }).computeQrl = qrl;
+      if (qrl.resolved === undefined) {
+        const p = qrl.resolve().catch(() => {
+          // ignore preload errors; the eventual caller will report the real load failure
+        });
+        loading = loading.finally(() => p);
       }
-      const hasValue = d.length > 2;
-      if (hasValue) {
-        computed.$untrackedValue$ = d[2];
+      if (deps && deps.length > 0) {
+        computed.deps = [];
+        computed.depVersions = [];
+        for (let i = 0; i < deps.length; i++) {
+          addDependency(computed, deps[i]);
+        }
       }
-      if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
-        // If we have a value after SSR, it will always be mean the signal was not invalid
-        // The serialized signal is always left invalid so it can recreate the custom object
-        computed.$flags$ &= ~SignalFlags.INVALID;
+
+      if (value === NEEDS_COMPUTATION) {
+        computed.flags = VdomlessReactiveFlags.Dirty;
+      } else {
+        computed.v = value;
+        computed.flags = VdomlessReactiveFlags.HasValue;
       }
-      restoreEffectBackRefForEffects(computed.$effects$, computed);
       break;
     }
     case TypeIds.Error: {
@@ -256,17 +127,6 @@ export const inflate = (
       for (let i = 0; i < d.length; i++) {
         formData.append(d[i++], d[i]);
       }
-      break;
-    }
-    case TypeIds.JSXNode: {
-      const jsx = target as JSXNodeImpl<unknown>;
-      const [type, key, varProps, constProps, children, toSort] = data as any[];
-      jsx.type = type;
-      jsx.key = key;
-      jsx.varProps = varProps;
-      jsx.constProps = constProps || null;
-      jsx.children = children;
-      jsx.toSort = !!toSort;
       break;
     }
     case TypeIds.Set: {
@@ -305,47 +165,215 @@ export const inflate = (
         bytes[i++] = s.charCodeAt(0);
       }
       break;
-    case TypeIds.PropsProxy:
-      const propsProxy = target as PropsProxy;
-      const d = data as [
-        JSXNodeImpl | typeof _UNINITIALIZED,
-        Props,
-        Props | null,
-        Map<string | symbol, Set<EffectSubscription>> | undefined,
-      ];
-      let owner = d[0];
-      if (owner === _UNINITIALIZED) {
-        owner = new JSXNodeImpl(Fragment, d[1], d[2], null, 0, null);
-        owner._proxy = propsProxy;
-      }
-      propsProxy[_OWNER] = owner;
-      const propsHandler = propsProxy[_PROPS_HANDLER];
-      propsHandler.$effects$ = d[3];
-      restoreEffectBackRefForEffectsMap(propsHandler.$effects$, propsProxy);
-      break;
-    case TypeIds.SubscriptionData: {
-      const effectData = target as SubscriptionData;
-      effectData.data.$scopedStyleIdPrefix$ = (data as any[])[0];
-      effectData.data.$isConst$ = (data as any[])[1];
-      break;
-    }
     case TypeIds.EffectSubscription: {
-      const effectSub = target as EffectSubscription;
-      const d = data as [Consumer, EffectProperty | string, SubscriptionData | null];
-      effectSub.consumer = d[0];
-      effectSub.property = d[1];
-      effectSub.data = d[2];
-      restoreEffectBackRefForConsumer(effectSub);
-      break;
-    }
-    case TypeIds.SubscriptionPatch: {
-      const patch = target as SubscriptionPatch;
-      const d = data as [
-        number,
-        Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>,
-      ];
-      patch.rootId = d[0];
-      patch.subscriptions = d[1];
+      const subscription = target as DomSubscriber;
+      const parts = data as unknown[];
+      const kind = parts[0] as EffectKind;
+      const targetKind = parts[1] as EffectTargetKind;
+      const targetId = parts[2] as number;
+      const deps = parts[3] as Dependency[];
+
+      switch (kind) {
+        case EffectKind.TextNode: {
+          if (!Array.isArray(deps) || deps.length === 0) {
+            throw new Error('DOM subscription requires a source dependency.');
+          }
+
+          let text: Text;
+          if (targetKind === EffectTargetKind.ElementText) {
+            const element = container.element;
+            if (element === null) {
+              throw new Error('Missing Qwik container element.');
+            }
+            const selector = `[${ELEMENT_ID.replace(':', '\\:')}="${String(targetId)}"]`;
+            const targetElement = element.querySelector(selector);
+            if (targetElement === null) {
+              throw new Error(`Missing Qwik element ${targetId}.`);
+            }
+            const node = targetElement.firstChild;
+            if (node === null || node.nodeType !== 3) {
+              throw new Error(`Missing text target ${targetId}.`);
+            }
+            text = node as Text;
+          } else if (targetKind === EffectTargetKind.RangeText) {
+            const element = container.element;
+            if (element === null) {
+              throw new Error('Missing Qwik container element.');
+            }
+            const markerData = `q:t=${targetId}`;
+            const stack: Node[] = [element];
+            let marker: Comment | null = null;
+            while (stack.length > 0 && marker === null) {
+              const node = stack.pop()!;
+              let child = node.firstChild;
+              while (child !== null) {
+                if (child.nodeType === 8 && (child as Comment).data === markerData) {
+                  marker = child as Comment;
+                  break;
+                }
+                if (child.firstChild !== null) {
+                  stack.push(child);
+                }
+                child = child.nextSibling;
+              }
+            }
+            if (marker === null || marker.parentNode === null) {
+              throw new Error(`Missing range text target ${targetId}.`);
+            }
+            const node = marker.nextSibling;
+            if (node !== null && node.nodeType === 3) {
+              text = node as Text;
+            } else {
+              if (container.document === null) {
+                throw new Error('Missing Qwik container document.');
+              }
+              text = container.document.createTextNode('');
+              marker.parentNode.insertBefore(text, node);
+            }
+          } else {
+            throw new Error(`Unsupported text target kind ${targetKind}.`);
+          }
+
+          (subscription as { effect: DomSubscriber['effect'] }).effect = new TextNodeEffect(
+            text,
+            deps[0]
+          );
+          break;
+        }
+        case EffectKind.TextExpression: {
+          let text: Text;
+          if (targetKind === EffectTargetKind.ElementText) {
+            const element = container.element;
+            if (element === null) {
+              throw new Error('Missing Qwik container element.');
+            }
+            const selector = `[${ELEMENT_ID.replace(':', '\\:')}="${String(targetId)}"]`;
+            const targetElement = element.querySelector(selector);
+            if (targetElement === null) {
+              throw new Error(`Missing Qwik element ${targetId}.`);
+            }
+            const node = targetElement.firstChild;
+            if (node === null || node.nodeType !== 3) {
+              throw new Error(`Missing text target ${targetId}.`);
+            }
+            text = node as Text;
+          } else if (targetKind === EffectTargetKind.RangeText) {
+            const element = container.element;
+            if (element === null) {
+              throw new Error('Missing Qwik container element.');
+            }
+            const markerData = `q:t=${targetId}`;
+            const stack: Node[] = [element];
+            let marker: Comment | null = null;
+            while (stack.length > 0 && marker === null) {
+              const node = stack.pop()!;
+              let child = node.firstChild;
+              while (child !== null) {
+                if (child.nodeType === 8 && (child as Comment).data === markerData) {
+                  marker = child as Comment;
+                  break;
+                }
+                if (child.firstChild !== null) {
+                  stack.push(child);
+                }
+                child = child.nextSibling;
+              }
+            }
+            if (marker === null || marker.parentNode === null) {
+              throw new Error(`Missing range text target ${targetId}.`);
+            }
+            const node = marker.nextSibling;
+            if (node !== null && node.nodeType === 3) {
+              text = node as Text;
+            } else {
+              if (container.document === null) {
+                throw new Error('Missing Qwik container document.');
+              }
+              text = container.document.createTextNode('');
+              marker.parentNode.insertBefore(text, node);
+            }
+          } else {
+            throw new Error(`Unsupported text target kind ${targetKind}.`);
+          }
+
+          const qrl = parts[5] as QRLInternal<TextExpressionFn>;
+          if (qrl.resolved === undefined) {
+            const p = qrl.resolve().catch(() => {
+              // ignore preload errors; the eventual caller will report the real load failure
+            });
+            loading = loading.finally(() => p);
+          }
+
+          (subscription as { effect: DomSubscriber['effect'] }).effect = new TextExpressionEffect(
+            text,
+            parts[4] as unknown[],
+            (...args) => {
+              const fn = qrl.resolved;
+              if (fn === undefined) {
+                throw new Error('Text expression QRL was not resolved before DOM update.');
+              }
+              return fn(...args);
+            }
+          );
+          break;
+        }
+        case EffectKind.Attr: {
+          if (!Array.isArray(deps) || deps.length === 0) {
+            throw new Error('DOM subscription requires a source dependency.');
+          }
+          if (targetKind !== EffectTargetKind.Element) {
+            throw new Error(`Unsupported element target kind ${targetKind}.`);
+          }
+          const element = container.element;
+          if (element === null) {
+            throw new Error('Missing Qwik container element.');
+          }
+          const selector = `[${ELEMENT_ID.replace(':', '\\:')}="${String(targetId)}"]`;
+          const targetElement = element.querySelector(selector);
+          if (targetElement === null) {
+            throw new Error(`Missing Qwik element ${targetId}.`);
+          }
+          (subscription as { effect: DomSubscriber['effect'] }).effect = new AttrEffect(
+            targetElement,
+            String(parts[4]),
+            deps[0]
+          );
+          break;
+        }
+        case EffectKind.SerializedAttr: {
+          if (!Array.isArray(deps) || deps.length === 0) {
+            throw new Error('DOM subscription requires a source dependency.');
+          }
+          if (targetKind !== EffectTargetKind.Element) {
+            throw new Error(`Unsupported element target kind ${targetKind}.`);
+          }
+          const element = container.element;
+          if (element === null) {
+            throw new Error('Missing Qwik container element.');
+          }
+          const selector = `[${ELEMENT_ID.replace(':', '\\:')}="${String(targetId)}"]`;
+          const targetElement = element.querySelector(selector);
+          if (targetElement === null) {
+            throw new Error(`Missing Qwik element ${targetId}.`);
+          }
+          (subscription as { effect: DomSubscriber['effect'] }).effect = new SerializedAttrEffect(
+            targetElement,
+            deps[0],
+            parts[4] as any
+          );
+          break;
+        }
+        default:
+          throw qError(QError.serializeErrorNotImplemented, [kind]);
+      }
+
+      if (deps && deps.length > 0) {
+        subscription.deps = [];
+        subscription.depVersions = [];
+        for (let i = 0; i < deps.length; i++) {
+          addDependency(subscription, deps[i]);
+        }
+      }
       break;
     }
     default:
@@ -358,7 +386,7 @@ export const inflate = (
  * array)` instead
  */
 export const _eagerDeserializeArray = (
-  container: DeserializeContainer,
+  container: ContainerContext,
   data: unknown[],
   output: unknown[] = Array(data.length / 2)
 ): unknown[] => {
@@ -368,7 +396,7 @@ export const _eagerDeserializeArray = (
   return output;
 };
 
-export function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
+export function deserializeData(container: ContainerContext, typeId: number, value: unknown) {
   if (typeId === TypeIds.Plain) {
     return value;
   }
@@ -377,73 +405,4 @@ export function deserializeData(container: DeserializeContainer, typeId: number,
     inflate(container, propValue, typeId, value);
   }
   return propValue;
-}
-
-export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
-  if (signal.$hostElement$ !== null && vnode_isVNode(signal.$hostElement$)) {
-    const hostVNode = signal.$hostElement$ as VirtualVNode;
-    const effects = signal.$effects$;
-    let hasAttrValue = false;
-    if (effects) {
-      // Find string keys (attribute names) in the effect back refs
-      for (const effect of effects) {
-        const key = effect.property;
-        if (isString(key)) {
-          // This is an attribute name, try to read its value
-          const attrValue = vnode_getProp(hostVNode, key, null);
-          if (attrValue !== null) {
-            signal.$untrackedValue$ = attrValue;
-            hasAttrValue = true;
-            break; // Take first non-null attribute value
-          }
-        }
-      }
-    }
-
-    if (!hasAttrValue) {
-      // If no attribute value found, check if this is a text content signal
-      const firstChild = vnode_getFirstChild(hostVNode);
-      if (
-        firstChild &&
-        hostVNode.firstChild === hostVNode.lastChild &&
-        vnode_isTextVNode(firstChild)
-      ) {
-        signal.$untrackedValue$ = vnode_getText(firstChild);
-      }
-    }
-  }
-}
-
-function restoreEffectBackRefForConsumer(effect: EffectSubscription): void {
-  const isServerSide = qTest ? isServerPlatform() : isServer;
-  const consumerBackRef = effect.consumer as BackRef;
-  if (isServerSide && !consumerBackRef) {
-    // on browser, we don't serialize for example VNodes, so then on server side we don't have consumer
-    return;
-  }
-  consumerBackRef[_EFFECT_BACK_REF] ||= new Map();
-  consumerBackRef[_EFFECT_BACK_REF].set(effect.property, effect);
-}
-
-function restoreEffectBackRefForEffects(
-  effects: Set<EffectSubscription> | null | undefined,
-  consumer: EffectBackRef
-): void {
-  if (effects) {
-    for (const effect of effects) {
-      effect.backRef ||= new Set();
-      effect.backRef.add(consumer);
-    }
-  }
-}
-
-function restoreEffectBackRefForEffectsMap(
-  effectsMap: Map<string | symbol, Set<EffectSubscription>> | null | undefined,
-  consumer: EffectBackRef
-): void {
-  if (effectsMap) {
-    for (const [, effects] of effectsMap) {
-      restoreEffectBackRefForEffects(effects, consumer);
-    }
-  }
 }

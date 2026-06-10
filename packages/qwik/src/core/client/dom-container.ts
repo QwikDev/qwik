@@ -6,7 +6,6 @@ import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
 import { _SharedContainer } from '../shared/shared-container';
 import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
@@ -187,7 +186,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       this.$rawStateData$ = JSON.parse(rootState.textContent!);
       preprocessState(this.$rawStateData$, this);
       this.$rootForwardRefs$ = this.$forwardRefs$;
-      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+      this.$stateData$ = this.$rawStateData$;
     }
   }
 

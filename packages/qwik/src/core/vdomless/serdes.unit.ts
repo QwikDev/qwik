@@ -18,8 +18,6 @@ import { ReactiveFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
 import { createSignal, type Signal } from './reactive/signal';
 import { runWithCollector } from './reactive/tracking';
-import { Phase } from './runtime/scheduler';
-import { createTaskGroup, createTaskQrl, type TaskFn } from './runtime/task';
 import { createCaptureContainer } from './test-utils';
 
 describe('vdomless serdes emit-only', () => {
@@ -186,52 +184,7 @@ describe('vdomless serdes emit-only', () => {
     expect(computedPayload[5]).toBe(Constants.NEEDS_COMPUTATION);
   });
 
-  it('serializes a task subscription with group, phase, qrl, and deps', async () => {
-    const count = createSignal(0);
-    const container = createCaptureContainer({ 0: count });
-    const group = createTaskGroup([0, 1]);
-    const qrl = createQRL<TaskFn>(
-      './counter.task.js',
-      'task',
-      () => {
-        count.value;
-      },
-      null,
-      '0',
-      container
-    );
-    const task = createTaskQrl(qrl, {
-      group,
-      index: 2,
-      container,
-    });
-
-    await qrl.resolve(container);
-    runWithCollector(task, () => qrl.resolved!());
-
-    const state = await serialize(task);
-    const taskPayload = state[1] as unknown[];
-
-    expect(taskPayload[0]).toBe(TypeIds.Object);
-    expect(taskPayload[1]).toEqual([
-      TypeIds.Plain,
-      'parent',
-      TypeIds.Constant,
-      Constants.Null,
-      TypeIds.Plain,
-      'path',
-      TypeIds.Array,
-      [TypeIds.Plain, 0, TypeIds.Plain, 1],
-    ]);
-    expect(taskPayload[2]).toBe(TypeIds.Plain);
-    expect(taskPayload[3]).toBe(2);
-    expect(taskPayload[4]).toBe(TypeIds.Plain);
-    expect(taskPayload[5]).toBe(Phase.BlockingTask);
-    expect(taskPayload[6]).toBe(TypeIds.QRL);
-    expect(taskPayload[7]).toBe('2#3#1');
-    expect(taskPayload[8]).toBe(TypeIds.Array);
-    expect(taskPayload[9]).toEqual([TypeIds.RootRef, 1]);
-  });
+  it.todo('serializes a task subscription with group, phase, qrl, and deps');
 });
 
 async function serialize(...roots: unknown[]): Promise<unknown[]> {

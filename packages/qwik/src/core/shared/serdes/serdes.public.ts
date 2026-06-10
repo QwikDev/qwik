@@ -1,10 +1,11 @@
 import { createSerializationContext } from './index';
 import { assertTrue } from '../error/assert';
-import type { DeserializeContainer } from '../types';
 import { wrapDeserializerProxy } from './deser-proxy';
 import { deserializeData } from './inflate';
 import { preprocessState } from './preprocess-state';
 import { isDev } from '@qwik.dev/core/build';
+import { defaultScheduler } from '../../vdomless/runtime/scheduler';
+import type { ContainerContext } from '../../vdomless/runtime/container-context';
 
 /**
  * Serialize data to string using SerializationContext.
@@ -56,10 +57,19 @@ export function getObjectById(id: number | string, stateData: unknown[]): unknow
 }
 
 /** @internal */
-export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer {
+export function _createDeserializeContainer(stateData: unknown[]): ContainerContext {
   // eslint-disable-next-line prefer-const
   let state: unknown[];
-  const container: DeserializeContainer = {
+  let container!: ContainerContext;
+  container = {
+    element: null,
+    document: null,
+    scheduler: defaultScheduler,
+    state: {
+      rootToChunk: [],
+      liveRoots: new Map(),
+      pendingPatchesByRoot: new Map(),
+    },
     $getObjectById$: (id: number | string) => getObjectById(id, state),
     $getForwardRef$: (id: number | string) => container.$forwardRefs$?.[Number(id)],
     getSyncFn: (_: number) => {
@@ -67,11 +77,22 @@ export function _createDeserializeContainer(stateData: unknown[]): DeserializeCo
       return fn;
     },
     $storeProxyMap$: new WeakMap(),
-    element: null,
     $forwardRefs$: null,
+    getRoot(id) {
+      return container.$getObjectById$(id);
+    },
+    restoreCaptures(ids) {
+      if (ids.length === 0) {
+        return [];
+      }
+      return ids.split(' ').map((id) => container.getRoot(Number(id)));
+    },
+    notify(subscriber) {
+      defaultScheduler.notify(subscriber);
+    },
   };
   preprocessState(stateData, container);
-  state = wrapDeserializerProxy(container as any, stateData);
+  state = wrapDeserializerProxy(container, stateData);
   container.$state$ = state;
   return container;
 }

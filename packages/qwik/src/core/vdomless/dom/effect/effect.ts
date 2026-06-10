@@ -108,10 +108,6 @@ export class DomSubscription implements DomSubscriber {
     readonly effect: DomEffect,
     readonly scheduler: Scheduler = defaultScheduler
   ) {}
-
-  notify(): void {
-    this.scheduler.notify(this);
-  }
 }
 
 export function createTextExpressionEffect<TArgs extends unknown[]>(

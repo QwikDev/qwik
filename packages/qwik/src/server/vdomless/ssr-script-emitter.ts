@@ -7,8 +7,11 @@ type ScriptAttrValue = string | boolean | undefined;
 export class SsrScriptEmitter {
   constructor(private opts: RenderToStreamOptions) {}
 
-  async emitState(serializedState: string): Promise<void> {
-    await this.writeScript({ type: 'qwik/state' }, escapeScript(serializedState));
+  async emitState(serializedState: string, base: number, len: number): Promise<void> {
+    await this.writeScript(
+      { type: 'qwik/state', 'q:base': String(base), 'q:len': String(len) },
+      escapeScript(serializedState)
+    );
   }
 
   async emitQwikLoader(): Promise<void> {

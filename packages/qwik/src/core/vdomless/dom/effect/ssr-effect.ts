@@ -77,8 +77,6 @@ export class SsrDomSubscription implements SsrDomSubscriber {
   depVersions: number[] | null = null;
 
   constructor(readonly effect: SsrDomEffect) {}
-
-  notify(): void {}
 }
 
 export function createSsrTextNodeEffect(target: SsrEffectTarget): SsrDomSubscriber {

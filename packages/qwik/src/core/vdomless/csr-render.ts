@@ -1,12 +1,10 @@
 import type { RenderOptions, RenderResult } from '../client/types';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
+import { createContainerContext, type ContainerContext } from './runtime/container-context';
 import { defaultScheduler, type Scheduler } from './runtime/scheduler';
 
-export interface CsrRenderContext {
-  document: Document;
-  scheduler: Scheduler;
-}
+export type CsrRenderContext = ContainerContext;
 
 export type CsrRenderRoot = (_props: undefined, ctx: CsrRenderContext) => readonly Node[] | void;
 
@@ -18,8 +16,9 @@ export const render = async (
   const target = getRenderTarget(parent);
   const scheduler = opts.scheduler ?? defaultScheduler;
   target.setAttribute(QContainerAttr, QContainerValue.RESUMED);
+  const context = createContainerContext(target, scheduler);
 
-  const output = root(undefined, { document: target.ownerDocument, scheduler });
+  const output = root(undefined, context);
   const nodes = output ?? [];
   for (let i = 0; i < nodes.length; i++) {
     target.appendChild(nodes[i]);

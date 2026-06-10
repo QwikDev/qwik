@@ -24,13 +24,11 @@ export interface Collector {
 export interface ScheduledSubscriber {
   flags: ReactiveFlags;
   schedulerEpoch: number;
-  notify(): void;
 }
 
 export interface ComputedSubscriber<T = unknown> extends Collector, ComputedSource<T> {
   readonly kind: SubscriberKind.Computed;
   compute: () => T;
-  notify(): void;
 }
 
 // TODO: replace with the real IdleJob runtime type.
@@ -70,7 +68,6 @@ export interface IdleSubscriber extends ScheduledSubscriber {
 export interface SsrDomSubscriber extends Collector {
   readonly kind: SubscriberKind.Dom;
   readonly effect: SsrDomEffect;
-  notify(): void;
 }
 
 // Work scheduled into one of the runtime phases.

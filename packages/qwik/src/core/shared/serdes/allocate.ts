@@ -1,48 +1,27 @@
-import type { DomContainer } from '../../client/dom-container';
-import {
-  ensureMaterialized,
-  vnode_getNode,
-  vnode_isVNode,
-  vnode_locate,
-} from '../../client/vnode-utils';
-import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
-import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
-import { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
-import { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
-import { getOrCreateStore } from '../../reactive-primitives/impl/store';
-import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
-import { SubscriptionData, type NodePropData } from '../../reactive-primitives/subscription-data';
-import { EffectSubscription, StoreFlags } from '../../reactive-primitives/types';
-import { Task } from '../../use/use-task';
-import { componentQrl } from '../component.public';
+import { DomSubscription } from '../../vdomless/dom/effect/effect';
+import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
+import { Signal } from '../../vdomless/reactive/signal';
+import type { ContainerContext } from '../../vdomless/runtime/container-context';
 import { qError, QError } from '../error/error';
-import { JSXNodeImpl } from '../jsx/jsx-node';
-import { createPropsProxy } from '../jsx/props-proxy';
 import type { QRLInternal } from '../qrl/qrl-class';
-import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
-import type { ElementVNode } from '../vnode/element-vnode';
-import type { VNode } from '../vnode/vnode';
 import { _constants, TypeIds, type Constants } from './constants';
-import { needsInflation } from './deser-proxy';
 import { createQRLWithBackChannel } from './qrl-to-string';
-import { SubscriptionPatch } from './subscription-patch';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
-export const pendingStoreTargets = new Map<object, { t: TypeIds; v: unknown }>();
 
-export const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
+export const allocate = (context: ContainerContext, typeId: number, value: unknown): any => {
   switch (typeId) {
     case TypeIds.Plain:
       return value;
     case TypeIds.RootRef:
-      return container.$getObjectById$(value as number);
+      return context.$getObjectById$(value as number);
     case TypeIds.ForwardRef:
-      const rootRef = container.$getForwardRef$(value as number);
+      const rootRef = context.$getForwardRef$(value as number);
       if (rootRef === -1 || rootRef === undefined) {
         return _UNINITIALIZED;
       } else {
-        return container.$getObjectById$(rootRef);
+        return context.$getObjectById$(rootRef);
       }
     case TypeIds.ForwardRefs:
       return value;
@@ -56,22 +35,15 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       let qrl: QRLInternal;
       if (typeof value === 'string') {
         const [chunkId, symbolId, captureIds] = value.split('#');
-        const chunk = container.$getObjectById$(chunkId) as string;
-        const symbol = container.$getObjectById$(symbolId) as string;
-        qrl = createQRLWithBackChannel(
-          chunk,
-          symbol,
-          captureIds || null,
-          container as DomContainer
-        );
+        const chunk = context.$getObjectById$(chunkId) as string;
+        const symbol = context.$getObjectById$(symbolId) as string;
+        qrl = createQRLWithBackChannel(chunk, symbol, captureIds || null, context as any);
       } else {
         // Sync qrl
-        qrl = createQRLWithBackChannel('', String(value), null, container as DomContainer);
+        qrl = createQRLWithBackChannel('', String(value), null, context as any);
       }
       return qrl;
     }
-    case TypeIds.Task:
-      return new Task(-1, -1, null!, null!, null!, null);
     case TypeIds.URL:
       return new URL(value as string);
     case TypeIds.Date:
@@ -97,41 +69,14 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return new RegExp((value as string).slice(1, idx), (value as string).slice(idx + 1));
     case TypeIds.Error:
       return new Error();
-    case TypeIds.Component:
-      return componentQrl(null!);
     case TypeIds.Signal:
-      return new SignalImpl(container as any, 0);
-    case TypeIds.WrappedSignal:
-      return new WrappedSignalImpl(container as any, null!, null!, null!);
+      return new Signal(undefined);
     case TypeIds.ComputedSignal:
-      return new ComputedSignalImpl(container as any, null!);
-    case TypeIds.AsyncSignal:
-      return new AsyncSignalImpl(container as any, null!, undefined, {});
-    case TypeIds.SerializerSignal:
-      return new SerializerSignalImpl(container as any, null!);
-    case TypeIds.Store: {
-      const data = value as [TypeIds, unknown];
-      // We need to allocate the store first, before we inflate its data, because the data can
-      // reference the store itself (circular)
-      // Note: the actual store data will be inflated in inflate()
-      const t = data[0] as TypeIds;
-      const v = data[1];
-      const storeValue = allocate(container, t, v);
-      const store = getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
-      if (needsInflation(t)) {
-        pendingStoreTargets.set(storeValue, { t, v });
-      }
-      // We must store the reference so it doesn't get deserialized again in inflate()
-      data[0] = TypeIds.Plain;
-      data[1] = storeValue;
-      return store;
-    }
+      return new ComputedQrl(null!);
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
     case TypeIds.FormData:
       return new FormData();
-    case TypeIds.JSXNode:
-      return new JSXNodeImpl(null!, null, null, null, 0, null);
     case TypeIds.BigInt:
       return BigInt(value as string);
     case TypeIds.Set:
@@ -155,60 +100,10 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       const rest = encodedLength & 3;
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
-    case TypeIds.PropsProxy:
-      return createPropsProxy(null!);
-    case TypeIds.VNode:
-      return retrieveVNodeOrDocument(container, value);
-    case TypeIds.RefVNode:
-      const vNode = retrieveVNodeOrDocument(container, value);
-      if (vnode_isVNode(vNode)) {
-        /**
-         * If we have a ref, we need to ensure the element is materialized.
-         *
-         * Example:
-         *
-         * ```
-         * const Cmp = component$(() => {
-         *       const element = useSignal<HTMLDivElement>();
-         *
-         *       useVisibleTask$(() => {
-         *         element.value!.innerHTML = 'I am the innerHTML content!';
-         *       });
-         *
-         *       return (
-         *          <div ref={element} />
-         *       );
-         * });
-         * ```
-         *
-         * If we don't materialize early element with ref property, and change element innerHTML it
-         * will be applied to a vnode tree during the lazy materialization, and it is wrong.
-         *
-         * Next if we rerender component it will remove applied innerHTML, because the system thinks
-         * it is a part of the vnode tree.
-         */
-        ensureMaterialized(vNode as ElementVNode);
-        return vnode_getNode(vNode);
-      } else {
-        throw qError(QError.serializeErrorExpectedVNode, [typeof vNode]);
-      }
-    case TypeIds.SubscriptionData:
-      return new SubscriptionData({} as NodePropData);
-    case TypeIds.EffectSubscription:
-      return new EffectSubscription(null!, null!, null, null);
-    case TypeIds.SubscriptionPatch:
-      return new SubscriptionPatch();
+    case TypeIds.EffectSubscription: {
+      return new DomSubscription(null!, context.scheduler);
+    }
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }
 };
-export function retrieveVNodeOrDocument(
-  container: DeserializeContainer,
-  value: unknown | null
-): VNode | Document | undefined {
-  return value
-    ? (container as any).rootVNode
-      ? vnode_locate((container as any).rootVNode, value as string)
-      : undefined
-    : container.element?.ownerDocument;
-}

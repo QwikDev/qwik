@@ -1,5 +1,7 @@
 import type { Source } from './source';
-import type { Subscriber } from '../runtime/subscriber';
+import { SubscriberKind, type PhaseSubscriber, type Subscriber } from '../runtime/subscriber';
+import { notifyPhaseSubscriber } from '../runtime/scheduler';
+import { markComputedDirty } from './computed';
 import { track } from './tracking';
 
 export class Signal<T> implements Source<T> {
@@ -46,7 +48,12 @@ export class Signal<T> implements Source<T> {
 
     const snapshot = subs.slice();
     for (let i = 0; i < snapshot.length; i++) {
-      snapshot[i].notify();
+      const subscriber = snapshot[i];
+      if (subscriber.kind === SubscriberKind.Computed) {
+        markComputedDirty(subscriber);
+      } else {
+        notifyPhaseSubscriber(subscriber as PhaseSubscriber);
+      }
     }
   }
 }

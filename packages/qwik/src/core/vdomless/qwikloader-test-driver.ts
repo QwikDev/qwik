@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { QRL_RUNTIME_CHUNK } from '../shared/serdes/qrl-to-string';
 
 export type QwikLoaderEventPayload = EventInit & Record<string, unknown>;
 
@@ -22,11 +23,45 @@ export async function bootQwikLoader(document: Document): Promise<QwikLoaderTest
   return {
     async dispatch(target, type, init = {}) {
       ensureConnectedTarget(target);
-      target.dispatchEvent(createTestEvent(target.ownerDocument, type, init));
-      await flushQwikLoaderTasks();
+      const errors: unknown[] = [];
+      const onError = (event: Event) => {
+        errors.push((event as CustomEvent).detail);
+      };
+      document.addEventListener('qerror', onError);
+      try {
+        target.dispatchEvent(createTestEvent(target.ownerDocument, type, init));
+        await flushQwikLoaderTasks();
+      } finally {
+        document.removeEventListener('qerror', onError);
+      }
+      if (errors.length > 0) {
+        throw new Error(formatQwikLoaderError(errors[0]));
+      }
     },
     cleanup() {},
   };
+}
+
+function formatQwikLoaderError(detail: unknown): string {
+  if (detail && typeof detail === 'object') {
+    const record = detail as Record<string, unknown>;
+    const error = record.error;
+    const importError = record.importError;
+    const message =
+      error instanceof Error
+        ? error.message
+        : importError instanceof Error
+          ? importError.message
+          : typeof error === 'string'
+            ? error
+            : typeof importError === 'string'
+              ? importError
+              : undefined;
+    const symbol = typeof record.symbol === 'string' ? ` symbol=${record.symbol}` : '';
+    const qbase = typeof record.qBase === 'string' ? ` qBase=${record.qBase}` : '';
+    return `Qwikloader error:${symbol}${qbase}${message ? ` ${message}` : ''}`;
+  }
+  return `Qwikloader error: ${String(detail)}`;
 }
 
 function ensureDocumentReady(document: Document): void {
@@ -96,8 +131,15 @@ function runQwikLoader(source: string, document: Document, win: Window): void {
     DominoCustomEvent,
     createIntersectionObserverStub(),
     { now: () => 1 },
-    (href: string) => import(/* @vite-ignore */ href)
+    (href: string) => importQwikLoaderModule(href)
   );
+}
+
+function importQwikLoaderModule(href: string): Promise<Record<string, unknown>> {
+  if (href.endsWith(`/${QRL_RUNTIME_CHUNK}`) || href === QRL_RUNTIME_CHUNK) {
+    return import('@qwik.dev/core/spark');
+  }
+  return import(/* @vite-ignore */ href);
 }
 
 function createIntersectionObserverStub(): typeof IntersectionObserver {
@@ -126,10 +168,10 @@ function createTestEvent(
 }
 
 async function flushQwikLoaderTasks(): Promise<void> {
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 20; i++) {
     await Promise.resolve();
   }
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 20; i++) {
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
 }

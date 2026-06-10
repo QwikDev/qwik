@@ -6,8 +6,7 @@
  */
 
 import { createRegExp, exactly, oneOrMore, whitespace, charNotIn } from 'magic-regexp';
-import MagicString from 'magic-string';
-import { parseWithRawTransfer } from '../ast/parse.js';
+import { createTransformSession } from '../edit/transform-session.js';
 import { rewriteImportSource } from '../rewrite/rewrite-imports.js';
 import { inlineConstCaptures } from '../rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
@@ -142,9 +141,6 @@ function replacePropsFieldReferences(
   defaultValues?: ReadonlyMap<string, string>,
 ): string {
   return rewritePropsFieldReferences(bodyText, fieldMap, {
-    parseFilename: '__rpf__.tsx',
-    wrapperPrefix: '(',
-    wrapperSuffix: ')',
     memberPropertyMode: 'all',
     defaultValues,
   });
@@ -337,24 +333,22 @@ function transformSegmentJsxCalls(
   if (!anyMatch) return { bodyText };
 
   try {
-    const wrappedBody = `(${bodyText})`;
-    const bodyParse = parseWithRawTransfer('segment.tsx', wrappedBody);
-    const bodyS = new MagicString(wrappedBody);
+    const session = createTransformSession(bodyText, { tolerateErrors: true });
+    if (!session) return { bodyText };
 
     const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
     const startAt = keyCounterStartOverride ?? 0;
     const keyCounter = new JsxKeyCounter(startAt, prefix);
 
     const neededImports = new Set<string>();
-    transformJsxCalls(wrappedBody, bodyS, bodyParse.program, {
+    transformJsxCalls(session.wrappedSource, session.edits, session.program, {
       jsxFunctions,
       keyCounter,
       neededImports,
       qpByQrl,
     });
 
-    const transformedWrapped = bodyS.toString();
-    const newBodyText = transformedWrapped.slice(1, -1);
+    const newBodyText = session.toSource();
 
     if (newBodyText === bodyText) return { bodyText };
 
@@ -385,14 +379,13 @@ function transformSegmentJsx(
   if (!(/(?:<[A-Z_a-z\/]|JSX)/.test(bodyText))) return { bodyText };
 
   try {
-    const wrappedBody = `(${bodyText})`;
-    const bodyParse = parseWithRawTransfer('segment.tsx', wrappedBody);
-    const bodyS = new MagicString(wrappedBody);
+    const session = createTransformSession(bodyText, { tolerateErrors: true });
+    if (!session) return { bodyText };
 
     const qrlsWithCaptures = buildQrlsWithCapturesSet(nestedCallSites);
-    const qpOverrides = buildQpOverrides(nestedCallSites, bodyParse.program);
+    const qpOverrides = buildQpOverrides(nestedCallSites, session.program);
 
-    const segScopeBindings = collectScopeAwareBindings(bodyParse.program);
+    const segScopeBindings = collectScopeAwareBindings(session.program);
     if (captureInfo?.captureNames) {
       // Capture names are injected by `_captures[i]` unpacking at segment
       // body entry; they're runtime-const but have no AST declaration in
@@ -401,7 +394,7 @@ function transformSegmentJsx(
       for (const name of captureInfo.captureNames) segScopeBindings.bindings.addProgramScopeConst(name);
     }
 
-    // `wrappedBody` adds a single `(` prefix; without `sourcePosition`
+    // The session wrapper adds a prefix; without `sourcePosition`
     // dev-info `lineNumber:` would be body-relative. Source-relative
     // requires the original module source + body's byte offset.
     let devOptionsForCall = jsxOptions.devOptions;
@@ -415,13 +408,13 @@ function transformSegmentJsx(
         sourcePosition: {
           source: jsxOptions.source,
           bodyOriginOffset: jsxOptions.bodyOriginOffset,
-          wrapperPrefixLen: 1,
+          wrapperPrefixLen: session.offset,
         },
       };
     }
 
     const jsxResult = transformAllJsx(
-      { source: wrappedBody, s: bodyS, program: bodyParse.program, importedNames: jsxOptions.importedNames },
+      { source: session.wrappedSource, s: session.edits, program: session.program, importedNames: jsxOptions.importedNames },
       {
         devOptions: devOptionsForCall,
         keyCounterStart: jsxOptions.keyCounterStart,
@@ -433,8 +426,7 @@ function transformSegmentJsx(
       },
     );
 
-    const transformedWrapped = bodyS.toString();
-    bodyText = transformedWrapped.slice(1, -1);
+    bodyText = session.toSource();
 
     for (const sym of jsxResult.neededImports) {
       if (!parts.some(p => p.includes(`{ ${sym} }`) || p.includes(`, ${sym}`))) {

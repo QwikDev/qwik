@@ -171,9 +171,7 @@ export function applyRawPropsTransformDetailed(body: string): RawPropsTransformR
  * Given `({foo, "bind:value": bindValue}) => ...`, returns Map { "foo" -> "foo", "bindValue" -> "bind:value" }.
  */
 export function extractDestructuredFieldMap(body: string): Map<string, string> {
-  const session = createFunctionTransformSession('__rpx__.tsx', body, {
-    wrapperPrefix: 'const __rp__ = ',
-  });
+  const session = createFunctionTransformSession(body);
   if (!session) return new Map();
 
   const params = session.fn.params;
@@ -209,9 +207,7 @@ export function extractDestructuredFieldMap(body: string): Map<string, string> {
  * emission in `transform_pat` (`swc-reference-only/props_destructuring.rs:382-388`).
  */
 export function extractDestructuredFieldDefaultsMap(body: string): Map<string, string> {
-  const session = createFunctionTransformSession('__rpd__.tsx', body, {
-    wrapperPrefix: 'const __rp__ = ',
-  });
+  const session = createFunctionTransformSession(body);
   if (!session) return new Map();
 
   const params = session.fn.params;
@@ -704,9 +700,7 @@ function collectRawPropsWCallReplacements(session: TransformSession): Array<{
  * Returns the consolidated body text.
  */
 export function consolidateRawPropsInWCalls(body: string): string {
-  const session = createTransformSession('__rpw__.tsx', body, {
-    wrapperPrefix: 'const __rpw__ = ',
-  });
+  const session = createTransformSession(body);
   if (!session) return body;
 
   const replacements = collectRawPropsWCallReplacements(session);
@@ -720,9 +714,7 @@ export function consolidateRawPropsInWCalls(body: string): string {
 }
 
 export function applyRawPropsTransform(body: string): string {
-  const session = createFunctionTransformSession('__rp__.tsx', body, {
-    wrapperPrefix: 'const __rp__ = ',
-  });
+  const session = createFunctionTransformSession(body);
   if (!session) return body;
 
   const plan = analyzeRawPropsTransform(session, body);
@@ -769,8 +761,6 @@ export function replacePropsFieldReferencesInBody(
   defaultValues?: ReadonlyMap<string, string>,
 ): string {
   return rewritePropsFieldReferences(body, fieldMap, {
-    parseFilename: '__rpfb__.tsx',
-    wrapperPrefix: 'const __rpfb__ = ',
     memberPropertyMode: 'nonComputed',
     defaultValues,
   });

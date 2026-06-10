@@ -9,9 +9,6 @@ import {
 import { createTransformSession } from '../edit/transform-session.js';
 
 interface RewritePropsFieldReferencesOptions {
-  parseFilename: string;
-  wrapperPrefix?: string;
-  wrapperSuffix?: string;
   memberPropertyMode?: 'all' | 'nonComputed';
   /**
    * Optional map of localName → defaultExpressionSource. When provided,
@@ -91,10 +88,7 @@ export function rewritePropsFieldReferences(
 
   let session;
   try {
-    session = createTransformSession(options.parseFilename, bodyText, {
-      wrapperPrefix: options.wrapperPrefix,
-      wrapperSuffix: options.wrapperSuffix,
-    });
+    session = createTransformSession(bodyText);
   } catch {
     return bodyText;
   }
@@ -117,5 +111,5 @@ export function rewritePropsFieldReferences(
   if (replacements.length === 0) return bodyText;
 
   const edited = applyReplacements(wrappedSource, replacements);
-  return edited.slice(offset, edited.length - (options.wrapperSuffix?.length ?? 0));
+  return edited.slice(offset, edited.length - session.wrapperSuffix.length);
 }

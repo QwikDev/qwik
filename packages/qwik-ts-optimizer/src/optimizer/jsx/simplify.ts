@@ -242,9 +242,7 @@ export function bodySourceSimplificationsCollector(): RangeReplacementCollector 
  */
 export function foldBodySimplifiableExpressions(bodyText: string): string {
   if (bodyText.length === 0) return bodyText;
-  const session = createTransformSession('__fold__.tsx', bodyText, {
-    wrapperPrefix: 'const __body__ = ',
-  });
+  const session = createTransformSession(bodyText);
   if (!session) return bodyText;
 
   const simplifications = collectRangeReplacements(

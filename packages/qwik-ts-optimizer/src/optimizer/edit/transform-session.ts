@@ -2,9 +2,43 @@ import MagicString from 'magic-string';
 import type { AstFunction, AstProgram } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 
-interface TransformSessionOptions {
-  wrapperPrefix?: string;
-  wrapperSuffix?: string;
+/**
+ * Canonical wrapper for body-text edit sessions. Every session wraps the
+ * body identically (and parses under one filename) so the parse memo
+ * below can recognize repeated parses: consecutive helpers in a body
+ * pipeline that operate on the same text version share one parse instead
+ * of each paying for its own.
+ */
+const WRAPPER_PREFIX = 'const __seg__ = ';
+const SESSION_FILENAME = '__session__.tsx';
+
+/**
+ * Last-N parse memo, keyed by the exact wrapped source string — a text
+ * change between helpers produces a different key, so staleness is
+ * impossible by construction. Sharing is safe because eager raw-transfer
+ * parses materialize plain JS objects (no buffer aliasing) and session
+ * consumers read the AST without mutating it; each session still gets
+ * its own MagicString. Cap of 4 covers interleaved parent/segment body
+ * pipelines without growing with module count.
+ */
+const PARSE_MEMO_CAP = 4;
+const parseMemo = new Map<string, ReturnType<typeof parseWithRawTransfer>>();
+
+function memoizedParse(wrappedSource: string): ReturnType<typeof parseWithRawTransfer> {
+  const hit = parseMemo.get(wrappedSource);
+  if (hit !== undefined) {
+    // Refresh recency so chains longer than the cap keep their hot entry.
+    parseMemo.delete(wrappedSource);
+    parseMemo.set(wrappedSource, hit);
+    return hit;
+  }
+  const parsed = parseWithRawTransfer(SESSION_FILENAME, wrappedSource);
+  if (parseMemo.size >= PARSE_MEMO_CAP) {
+    const oldest = parseMemo.keys().next().value;
+    if (oldest !== undefined) parseMemo.delete(oldest);
+  }
+  parseMemo.set(wrappedSource, parsed);
+  return parsed;
 }
 
 export interface TransformSession {
@@ -22,26 +56,36 @@ export interface FunctionTransformSession extends TransformSession {
   fn: AstFunction;
 }
 
+interface TransformSessionOptions {
+  /**
+   * Proceed with the recovered AST when the parse reports recoverable
+   * errors (`program` present, `errors` non-empty). Call sites that
+   * historically parsed directly without an error check — and whose
+   * inputs legitimately contain recoverable shapes like `() => await
+   * api()` in non-async position — opt in; edit-applying sites stay
+   * strict and bail to their unchanged-text fallback.
+   */
+  tolerateErrors?: boolean;
+}
+
 export function createTransformSession(
-  filename: string,
   sourceText: string,
   options: TransformSessionOptions = {},
 ): TransformSession | null {
-  const wrapperPrefix = options.wrapperPrefix ?? '';
-  const wrapperSuffix = options.wrapperSuffix ?? '';
-  const wrappedSource = wrapperPrefix + sourceText + wrapperSuffix;
-  const parseResult = parseWithRawTransfer(filename, wrappedSource);
+  const wrappedSource = WRAPPER_PREFIX + sourceText;
+  const parseResult = memoizedParse(wrappedSource);
 
-  if (!parseResult.program || parseResult.errors?.length) {
+  if (!parseResult.program) return null;
+  if (!options.tolerateErrors && parseResult.errors?.length) {
     return null;
   }
 
   return {
     sourceText,
     wrappedSource,
-    wrapperPrefix,
-    wrapperSuffix,
-    offset: wrapperPrefix.length,
+    wrapperPrefix: WRAPPER_PREFIX,
+    wrapperSuffix: '',
+    offset: WRAPPER_PREFIX.length,
     program: parseResult.program,
     edits: new MagicString(wrappedSource),
     toSource() {
@@ -55,11 +99,10 @@ export function createTransformSession(
 }
 
 export function createFunctionTransformSession(
-  filename: string,
   sourceText: string,
   options: TransformSessionOptions = {},
 ): FunctionTransformSession | null {
-  const session = createTransformSession(filename, sourceText, options);
+  const session = createTransformSession(sourceText, options);
   if (!session) return null;
 
   const decl = session.program.body[0];

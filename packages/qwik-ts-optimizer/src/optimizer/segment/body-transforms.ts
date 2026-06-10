@@ -7,16 +7,15 @@
  */
 
 import { createRegExp, exactly, oneOrMore, maybe, anyOf, wordChar, wordBoundary, whitespace, global } from 'magic-regexp';
-import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
+import { walk } from 'oxc-walker';
 import type {
   AstNode,
-  AstParseResult,
 } from '../../ast-types.js';
-import { parseWithRawTransfer } from '../ast/parse.js';
 import {
   createFunctionTransformSession,
   insertFunctionBodyPrologue,
   replaceFunctionParams,
+  type FunctionTransformSession,
 } from '../edit/transform-session.js';
 import { buildSyncTransform, needsPureAnnotation } from '../rewrite/rewrite-calls.js';
 import { formatWCall } from '../qwik/w-call.js';
@@ -368,7 +367,7 @@ export function inlineEnumReferences(bodyText: string, enumValueMap: Map<string,
 export function applySelfRefIndirection(bodyText: string): string {
   if (!bodyText.includes('.w([')) return bodyText;
 
-  const session = createFunctionTransformSession('__sr__.tsx', bodyText, { wrapperPrefix: 'const __sr__ = ' });
+  const session = createFunctionTransformSession(bodyText);
   if (!session) return bodyText;
   const block = session.fn.body;
   if (!block || block.type !== 'BlockStatement') return bodyText;
@@ -507,27 +506,18 @@ export function ensureCoreImports(bodyText: string, parts: string[]): void {
  * no longer referenced anywhere else in the body.
  */
 export function removeDeadConstLiterals(bodyText: string): string {
-  const wrapper = `const __dce__ = ${bodyText}`;
-  let parsed: AstParseResult;
+  let session: FunctionTransformSession | null;
   try {
-    parsed = parseWithRawTransfer('__dce__.tsx', wrapper);
+    session = createFunctionTransformSession(bodyText, { tolerateErrors: true });
   } catch {
     return bodyText;
   }
-  if (!parsed?.program?.body?.[0]) return bodyText;
+  if (!session) return bodyText;
 
-  const decl = parsed.program.body[0];
-  if (decl.type !== 'VariableDeclaration') return bodyText;
-  const init = decl.declarations?.[0]?.init;
-  if (!init) return bodyText;
-
-  let fnBody: AstNode | null = null;
-  if (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') {
-    fnBody = init.body;
-  }
+  const fnBody = session.fn.body;
   if (!fnBody || fnBody.type !== 'BlockStatement') return bodyText;
 
-  const offset = 'const __dce__ = '.length;
+  const offset = session.offset;
   const stmts = fnBody.body;
   if (!stmts || stmts.length === 0) return bodyText;
 
@@ -582,9 +572,7 @@ export function removeDeadConstLiterals(bodyText: string): string {
  * Rewrite a function's parameter list to use the given paramNames.
  */
 export function rewriteFunctionSignature(bodyText: string, paramNames: string[]): string {
-  const session = createFunctionTransformSession('__sig__.tsx', bodyText, {
-    wrapperPrefix: 'const __sig__ = ',
-  });
+  const session = createFunctionTransformSession(bodyText);
   if (!session) return bodyText;
   if (!replaceFunctionParams(session, session.fn, paramNames)) return bodyText;
   return session.toSource();
@@ -599,9 +587,7 @@ export function injectCapturesUnpacking(bodyText: string, captureNames: string[]
   const unpackParts = captureNames.map((name, i) => `${name} = _captures[${i}]`);
   const unpackLine = `const ${unpackParts.join(', ')};`;
 
-  const session = createFunctionTransformSession('__captures__.tsx', bodyText, {
-    wrapperPrefix: 'const __captures__ = ',
-  });
+  const session = createFunctionTransformSession(bodyText);
   if (!session) return bodyText;
 
   insertFunctionBodyPrologue(session, session.fn, unpackLine);

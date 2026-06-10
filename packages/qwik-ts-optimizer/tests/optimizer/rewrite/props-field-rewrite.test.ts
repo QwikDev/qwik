@@ -7,9 +7,6 @@ describe('props-field-rewrite', () => {
       'obj[count] + count',
       new Map([['count', 'count']]),
       {
-        parseFilename: '__segment__.tsx',
-        wrapperPrefix: '(',
-        wrapperSuffix: ')',
         memberPropertyMode: 'all',
       },
     );
@@ -22,8 +19,6 @@ describe('props-field-rewrite', () => {
       'obj[count] + count',
       new Map([['count', 'count']]),
       {
-        parseFilename: '__parent__.tsx',
-        wrapperPrefix: 'const __rpfb__ = ',
         memberPropertyMode: 'nonComputed',
       },
     );
@@ -36,9 +31,6 @@ describe('props-field-rewrite', () => {
       '({ count })',
       new Map([['count', 'count']]),
       {
-        parseFilename: '__segment__.tsx',
-        wrapperPrefix: '(',
-        wrapperSuffix: ')',
         memberPropertyMode: 'all',
       },
     );

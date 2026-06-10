@@ -1040,6 +1040,7 @@ function generateSegments(
     // mutates in place); cast to the narrow variant for Phase 5 typing.
     extractions: extractions as ConsolidatedSegment[],
     updatedExtractions,
+    closureNodes,
     program,
     originalImports: analysis.originalImports,
     options,

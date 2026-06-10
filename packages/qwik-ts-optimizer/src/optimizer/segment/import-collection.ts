@@ -9,7 +9,7 @@
 import { createRegExp, oneOrMore, wordChar, wordBoundary, global } from 'magic-regexp';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import type { AstFunction, AstNode } from '../../ast-types.js';
-import { parseWithRawTransfer } from '../ast/parse.js';
+import { createTransformSession } from '../edit/transform-session.js';
 import { rewriteImportSource } from '../rewrite/rewrite-imports.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import { getQrlImportSource } from '../rewrite/rewrite-calls.js';
@@ -40,12 +40,12 @@ const qrlSuffixPattern = createRegExp(
 function collectBodyIdentifiers(bodyText: string): Set<string> {
   const ids = new Set<string>();
   try {
-    const wrapped = `(${bodyText})`;
-    const parsed = parseWithRawTransfer('segment.tsx', wrapped);
+    const session = createTransformSession(bodyText, { tolerateErrors: true });
+    if (!session) throw new Error('unparseable body');
 
     let funcNode: AstFunction | null = null;
     const bareIds = new Set<string>();
-    walk(parsed.program, {
+    walk(session.program, {
       enter(node: AstNode) {
         if (!funcNode && (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression')) {
           funcNode = node;

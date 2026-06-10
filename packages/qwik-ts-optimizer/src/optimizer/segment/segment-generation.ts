@@ -7,6 +7,7 @@
 
 import { walk } from "oxc-walker";
 import type {
+  AstFunction,
   AstNode,
   AstProgram,
   TSEnumDeclaration,
@@ -237,6 +238,12 @@ export function buildSegmentImportList(
 export interface SegmentGenerationContext {
   extractions: ConsolidatedSegment[];
   updatedExtractions: ConsolidatedSegment[];
+  /**
+   * Closure AST nodes threaded from Phase 1, keyed by (post-rename)
+   * symbolName. Lets the JSX-key pre-count walk the original AST instead
+   * of re-parsing each body text.
+   */
+  closureNodes: ReadonlyMap<string, AstFunction>;
   program: AstProgram;
   originalImports: Map<string, ImportInfo>;
   options: TransformModulesOptions;
@@ -1321,6 +1328,7 @@ export function generateAllSegmentModules(
   const segmentStartKey = computeSegmentStartKeys(
     prep.sortedExtractions,
     ctx.parentJsxKeyCounterValue,
+    ctx.closureNodes,
   );
 
   for (const ext of prep.sortedExtractions) {
@@ -1384,11 +1392,19 @@ export function generateAllSegmentModules(
 function computeSegmentStartKeys(
   sortedExtractions: readonly ConsolidatedSegment[],
   parentJsxKeyCounterValue: number,
+  closureNodes: ReadonlyMap<string, AstFunction>,
 ): Map<string, number> {
-  // 1. Total JSX-element count per extraction (raw body walk).
+  // 1. Total JSX-element count per extraction. The Phase-1 closure node
+  // IS the raw body's AST — walk it directly; fall back to a body-text
+  // parse only when no node was threaded (e.g. inlinedQrl spec paths).
   const totalCount = new Map<string, number>();
   for (const ext of sortedExtractions) {
-    totalCount.set(ext.symbolName, countJsxKeyConsumption(ext.bodyText));
+    const node = closureNodes.get(ext.symbolName);
+    if (node) {
+      totalCount.set(ext.symbolName, countJsxKeysInNode(node));
+    } else {
+      totalCount.set(ext.symbolName, countJsxKeyConsumption(ext.bodyText));
+    }
   }
 
   // 2. Index children by parent for the recursive traversal below.
@@ -1454,32 +1470,37 @@ function countJsxKeyConsumption(bodyText: string): number {
   if (bodyText.indexOf('<') === -1) return 0;
   try {
     const parsed = parseWithRawTransfer('segment-jsx-count.tsx', `(${bodyText})`);
-    let count = 0;
-    function isHtmlElementName(n: AstNode | null | undefined): boolean {
-      if (!n || n.type !== 'JSXElement') return false;
-      const name = n.openingElement?.name;
-      if (!name || name.type !== 'JSXIdentifier') return false;
-      const first = name.name[0];
-      return !!first && first === first.toLowerCase() && first >= 'a' && first <= 'z';
-    }
-    function walk(
-      n: AstNode | null | undefined,
-      parentIsJsxParent: boolean,
-    ): void {
-      if (!n) return;
-      if (n.type === 'JSXElement') {
-        // Skip: HTML element that's a JSX child of another JSXElement /
-        // JSXFragment — receives a null key and doesn't advance counter.
-        if (!(parentIsJsxParent && isHtmlElementName(n))) count++;
-      } else if (n.type === 'JSXFragment') {
-        count++;
-      }
-      const childIsInJsxParent = n.type === 'JSXElement' || n.type === 'JSXFragment';
-      forEachAstChild(n, (child) => walk(child, childIsInJsxParent));
-    }
-    walk(parsed.program, false);
-    return count;
+    return countJsxKeysInNode(parsed.program);
   } catch {
     return 0;
   }
+}
+
+/** Counting walk shared by the node path and the body-text fallback. */
+function countJsxKeysInNode(root: AstNode): number {
+  let count = 0;
+  function isHtmlElementName(n: AstNode | null | undefined): boolean {
+    if (!n || n.type !== 'JSXElement') return false;
+    const name = n.openingElement?.name;
+    if (!name || name.type !== 'JSXIdentifier') return false;
+    const first = name.name[0];
+    return !!first && first === first.toLowerCase() && first >= 'a' && first <= 'z';
+  }
+  function walk(
+    n: AstNode | null | undefined,
+    parentIsJsxParent: boolean,
+  ): void {
+    if (!n) return;
+    if (n.type === 'JSXElement') {
+      // Skip: HTML element that's a JSX child of another JSXElement /
+      // JSXFragment — receives a null key and doesn't advance counter.
+      if (!(parentIsJsxParent && isHtmlElementName(n))) count++;
+    } else if (n.type === 'JSXFragment') {
+      count++;
+    }
+    const childIsInJsxParent = n.type === 'JSXElement' || n.type === 'JSXFragment';
+    forEachAstChild(n, (child) => walk(child, childIsInJsxParent));
+  }
+  walk(root, false);
+  return count;
 }

@@ -32,14 +32,12 @@ import { isSimpleIdentifierName } from '../ast/identifier-name.js';
 import { type SymbolName, mkSymbolName, type RelativePath } from '../types/brands.js';
 import {
   analyzeCaptures,
-  buildClosureLexicalScopes,
   collectScopeIdentifiers,
 } from "../analysis/capture-analysis.js";
-import { computeClosureFreeIdentifiers } from "../analysis/closure-free-identifiers.js";
+import { gatherModuleFacts, type PassiveConflict } from "../analysis/module-gather-walk.js";
 import {
   analyzeMigration,
   collectModuleLevelDecls,
-  computeSegmentUsage,
   type MigrationDecision,
   type ModuleLevelDecl,
 } from "../analysis/variable-migration.js";
@@ -73,7 +71,7 @@ import { applySegmentDCE } from './dead-code.js';
 import {
   detectC02Diagnostics,
   detectC05Diagnostics,
-  detectPassivePreventdefaultConflicts,
+  emitPassiveConflictDiagnostics,
 } from '../diagnostics/diagnostic-detection.js';
 import {
   leadingSquareBracket,
@@ -81,8 +79,6 @@ import {
   paddingParam,
 } from '../segment/post-process.js';
 import {
-  buildExtractionLoopMap,
-  collectAllScopeEntries,
   promoteEventHandlerCaptures,
   unifyParameterSlots,
   buildElementCaptureMap,
@@ -166,6 +162,13 @@ interface CaptureAnalysis {
   readonly enclosingExtMap: Map<string, ExtractionResult>;
   readonly extractionLoopMap: Map<string, LoopContext[]>;
   readonly elementQpParamsMap: Map<string, string[]>;
+  /** Segment/root identifier usage from the canonical gather walk;
+   * consumed by Phase 3 (`attributeSegmentUsage`). */
+  readonly segmentUsage: Map<string, Set<string>>;
+  readonly rootUsage: Set<string>;
+  /** passive:/preventdefault: conflicts gathered during the canonical walk;
+   * emitted as diagnostics in Phase 4 to preserve diagnostic order. */
+  readonly passiveConflicts: readonly PassiveConflict[];
 }
 
 /** Phase 3 result: module-level decl inventory + migration decisions. */
@@ -266,7 +269,7 @@ function transformOneModule(
     mod,
     prepared,
     extractions,
-    analysis.enclosingExtMap,
+    analysis,
     emit.isInlineStrategy,
   );
   const preRenameSymbolName = applyProdRename(
@@ -496,19 +499,31 @@ function analyzeModuleCaptures(
     bodyScopeIds.set(symbolName, bodyIds);
   }
 
-  // Lexical scope chain per closure. Module-scope-only and
-  // enclosing-extraction-only fallbacks both miss decls from
-  // intermediate non-marker enclosing functions (e.g. a module-level
-  // arrow wrapping a `useVisibleTask$(...)` call). The map produced
-  // here is the union of every enclosing function/arrow scope plus
-  // module scope at the closure's location.
-  const closureLexicalScopes = buildClosureLexicalScopes(program, closureNodes);
-
-  // Free identifiers per closure, computed in one pair of program walks
-  // and shared by capture analysis, event-handler capture promotion, and
-  // C02 diagnostics. Keyed by closure node identity so the prod
-  // `s_<hash>` rename can't desynchronize lookups.
-  const closureFreeIdentifiers = computeClosureFreeIdentifiers(program, closureNodes);
+  // The canonical gather walk: every per-module fact that needs a program
+  // traversal, in at most two walks (ScopeTracker build + gather). Free
+  // identifiers and lexical scope chains feed capture analysis below;
+  // loop maps + scope entries feed event-handler capture promotion;
+  // segment usage feeds Phase 3; passive conflicts are emitted in Phase 4.
+  // Keyed by closure node identity / symbolName as each consumer needs —
+  // node-identity keys survive the prod `s_<hash>` rename.
+  const {
+    closureFreeIdentifiers,
+    closureLexicalScopes,
+    extractionLoopMap,
+    loopBodyVarDecls,
+    allScopeEntries,
+    segmentUsage,
+    rootUsage,
+    passiveConflicts,
+  } = gatherModuleFacts({
+    program,
+    closureNodes,
+    usageExtractions: extractions,
+    loopExtractions: extractions,
+    repairedCode,
+    scopeEntries: true,
+    passiveConflicts: true,
+  });
 
   // Run capture analysis with the correct parent scope for each extraction.
   for (const extraction of extractions) {
@@ -603,8 +618,6 @@ function analyzeModuleCaptures(
 
   // Event handler capture-to-param promotion (q:p delivery mechanism)
   const globalDeclPositions = new Map<string, number>();
-  const { extractionLoopMap, loopBodyVarDecls } = buildExtractionLoopMap(program, extractions, repairedCode);
-  const allScopeEntries = collectAllScopeEntries(program);
   // Only `inline` (not `hoist`) skips the captures→paramNames
   // promotion. `hoist` emits `(_, _1, capture) => body` const
   // declarations, so it still needs the param-padding form. `inline`
@@ -670,6 +683,9 @@ function analyzeModuleCaptures(
     enclosingExtMap,
     extractionLoopMap,
     elementQpParamsMap,
+    segmentUsage,
+    rootUsage,
+    passiveConflicts,
   };
 }
 
@@ -678,27 +694,26 @@ function attributeSegmentUsage(
   mod: ModuleContext,
   prepared: PreparedModuleInput,
   extractions: ExtractionResult[],
-  enclosingExtMap: Map<string, ExtractionResult>,
+  analysis: CaptureAnalysis,
   isInlineStrategy: boolean,
 ): MigrationAnalysis {
   const { options } = mod;
   const { repairedCode, program } = prepared;
+  const { enclosingExtMap } = analysis;
 
   const moduleLevelDecls = collectModuleLevelDecls(program, repairedCode);
   const moduleLevelDeclsByName = new Map<string, ModuleLevelDecl>();
   for (const d of moduleLevelDecls) {
     moduleLevelDeclsByName.set(d.name, d);
   }
-  // Include both `$()` and `inlinedQrl(...)` extractions: module-level
+  // Usage covers both `$()` and `inlinedQrl(...)` extractions: module-level
   // references inside a peer-tool-emitted `inlinedQrl` body (e.g. qwik-react
   // codegen) still need migration attribution. The explicit-captures list on
   // `inlinedQrl` only covers closure variables — module-level decls referenced
   // in the body (like a peer-tool's shared `filterProps`) are NOT in the
-  // captures and need usage attribution via the program walk.
-  const { segmentUsage, rootUsage } = computeSegmentUsage(
-    program,
-    extractions,
-  );
+  // captures and need usage attribution via the program walk. The walk itself
+  // happened in Phase 2 (canonical gather walk); the maps arrive pre-built.
+  const { segmentUsage, rootUsage } = analysis;
 
   // Augment segmentUsage with captureNames from scope-aware capture analysis.
   // (For `inlinedQrl` extractions, the explicit captures are already in
@@ -960,8 +975,8 @@ function rewriteParent(
   );
 
   if (ext === ".tsx" || ext === ".jsx") {
-    detectPassivePreventdefaultConflicts(
-      program,
+    emitPassiveConflictDiagnostics(
+      analysis.passiveConflicts,
       relPath,
       repairedCode,
       diagnostics,

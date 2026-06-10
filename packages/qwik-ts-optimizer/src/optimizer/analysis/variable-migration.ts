@@ -227,9 +227,10 @@ export function collectModuleLevelDecls(
 
 /**
  * Extract declared names (params, variable bindings, class/function names,
- * catch params) from a single AST node into the target set.
+ * catch params) from a single AST node into the target set. Shared with the
+ * canonical gather walk's segment-usage projection (`module-gather-walk.ts`).
  */
-function addDeclaredNamesFromNode(node: AstNode, target: Set<string>): void {
+export function addDeclaredNamesFromNode(node: AstNode, target: Set<string>): void {
   const type = node.type;
 
   if (type === 'ArrowFunctionExpression' && node.params) {
@@ -260,7 +261,7 @@ function addDeclaredNamesFromNode(node: AstNode, target: Set<string>): void {
   }
 }
 
-const DECLARATION_TYPES = new Set([
+export const DECLARATION_TYPES = new Set([
   'ArrowFunctionExpression',
   'FunctionExpression',
   'FunctionDeclaration',
@@ -272,8 +273,9 @@ const DECLARATION_TYPES = new Set([
 /**
  * Positions of top-level declaration-site identifiers. SWC's
  * `build_main_module_usage_set` skips these so they don't count as root usage.
+ * Shared with the canonical gather walk's segment-usage projection.
  */
-function collectRootDeclPositions(program: AstProgram): Set<number> {
+export function collectRootDeclPositions(program: AstProgram): Set<number> {
   const positions = new Set<number>();
 
   for (const stmt of program.body ?? []) {
@@ -354,6 +356,10 @@ function collectBindingPositions(
  * equivalence with the two-pass version, identifier visits are buffered
  * during the walk and classified in a post-walk linear pass once the
  * locals map is fully populated.
+ *
+ * Production routes through the canonical gather walk's segment-usage
+ * projection (`module-gather-walk.ts`); this standalone form is retained
+ * as the differential oracle for that projection.
  */
 export function computeSegmentUsage(
   program: AstProgram,

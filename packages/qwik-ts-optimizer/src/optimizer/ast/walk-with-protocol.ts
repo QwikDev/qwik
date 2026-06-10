@@ -20,7 +20,7 @@
  */
 
 import { walk } from 'oxc-walker';
-import type { WalkerThisContextEnter, WalkerThisContextLeave } from 'oxc-walker';
+import type { ScopeTracker, WalkerThisContextEnter, WalkerThisContextLeave } from 'oxc-walker';
 import type { AstNode, AstProgram } from '../../ast-types.js';
 
 export interface ProtocolHandlers<E extends object, X extends E> {
@@ -43,14 +43,18 @@ export interface ProtocolHandlers<E extends object, X extends E> {
  * @param enterCtx The Enter view. Must be a subset of `exitCtx`.
  * @param exitCtx The Exit view. Extends Enter with act-helpers.
  * @param handlers The enter/leave handler pair.
+ * @param opts Optional walker options — a (typically frozen) ScopeTracker
+ *   kept in sync with the traversal so enter handlers can resolve names.
  */
 export function walkWithProtocol<E extends object, X extends E>(
   program: AstProgram,
   enterCtx: E,
   exitCtx: X,
   handlers: ProtocolHandlers<E, X>,
+  opts?: { readonly scopeTracker?: ScopeTracker },
 ): void {
   walk(program, {
+    scopeTracker: opts?.scopeTracker,
     enter(node, parent) {
       handlers.enter.call(this, node as AstNode, parent as AstNode | null, enterCtx);
     },

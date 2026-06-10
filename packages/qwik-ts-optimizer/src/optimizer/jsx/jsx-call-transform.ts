@@ -110,10 +110,24 @@ interface JsxCallTransformOptions {
  * it parseable as an Expression) and rewrite every `jsx(Tag, propsObj, ...)`
  * call whose callee is in `jsxFunctions` into the `_jsxSorted(...)` form.
  *
- * Walk is bottom-up via `leave` — inner calls are rewritten before outer
- * calls, so when the outer's source text is sliced (for tag / children), it
- * contains the already-rewritten inner call text. Same pattern as
- * `transformAllJsx` uses for nested JSX.
+ * Two traversals: a gather walk for reactive bindings (a `const X = use*()`
+ * declaration can appear after the first jsx() call in document order, so
+ * the set must be complete before any wrap decision), then one act walk
+ * whose enter phase wraps reactive accesses (`X.prop` →
+ * `_wrapProp(X, "prop")`, mirroring SWC's signal analysis on JSX prop
+ * values + children) and maintains the nested-call tag stack, and whose
+ * leave phase rewrites calls bottom-up — inner calls are rewritten before
+ * outer calls, so when the outer's source text is sliced (for tag /
+ * children), it contains the already-rewritten inner call text. Same
+ * pattern as `transformAllJsx` uses for nested JSX.
+ *
+ * Nested-call keying follows SWC's `handle_jsx`: only the outermost jsx()
+ * call in a body auto-keys; calls whose NEAREST jsx() ancestor is an
+ * HTML-tag call (string-literal tag arg) take `null`, while calls under
+ * COMPONENT parents (identifier tag arg) keep auto-keys all the way down.
+ * The tag stack tracks every jsx() call regardless of skip ranges —
+ * ancestry doesn't stop being ancestry because the ancestor belongs to
+ * another transform.
  *
  * Mutates `s` (the MagicString of the parsed source) and `opts.neededImports`.
  */
@@ -125,19 +139,6 @@ export function transformJsxCalls(
 ): void {
   if (opts.jsxFunctions.size === 0) return;
 
-  // SWC's `handle_jsx` only auto-keys the OUTERMOST jsx() call in a body;
-  // nested calls (those that appear inside another jsx() call's argument
-  // tree) get `null` as the key. Pre-walk top-down to mark every jsx()
-  // call that's a descendant of another jsx() call.
-  const nestedJsxStarts = new Set<number>();
-  collectNestedJsxStarts(program, opts.jsxFunctions, nestedJsxStarts);
-
-  // Collect reactive bindings (`const X = useStore(...)` / `useSignal(...)`
-  // / `useComputed(...)` etc.) and rewrite `X.prop` accesses inside jsx()
-  // call argument trees to `_wrapProp(X, "prop")`. SWC does this signal
-  // analysis on JSX prop values + children. Limited to the immediate
-  // jsx() call's argument tree — function bodies (arrow, inlinedQrl
-  // callbacks) are separate scopes and aren't wrapped.
   const skipRanges = opts.skipRanges ?? [];
   const isInSkipRange = (start: number): boolean => {
     for (const r of skipRanges) {
@@ -147,31 +148,48 @@ export function transformJsxCalls(
   };
 
   const reactiveBindings = collectReactiveBindings(program);
-  if (reactiveBindings.size > 0) {
-    wrapReactiveAccessesInJsxCalls(
-      s,
-      program,
-      opts.jsxFunctions,
-      reactiveBindings,
-      opts.neededImports,
-      isInSkipRange,
-    );
-  }
   opts.reactiveBindings = reactiveBindings;
 
+  // Tag kinds of the open jsx() ancestors, most-recent last; `'html'` for a
+  // string-literal-tag call, `'component'` for an identifier-tag call.
+  const tagStack: ('html' | 'component')[] = [];
+  // Calls marked nested-under-HTML at enter; consumed at the same node's
+  // leave (the stack has already moved on by then).
+  const nestedJsxStarts = new Set<number>();
+
   walk(program, {
+    enter(node: AstNode) {
+      // The enter gate matches the leave gate below: a
+      // `<jsxFunction>(tag, propsObjLiteral, ...)` call.
+      if (!isJsxCall(node, opts.jsxFunctions) || node.type !== 'CallExpression') return;
+
+      if (tagStack.length > 0 && tagStack[tagStack.length - 1] === 'html') {
+        nestedJsxStarts.add(node.start);
+      }
+      const tagArg = node.arguments?.[0];
+      const kind: 'html' | 'component' =
+        tagArg && tagArg.type === 'Literal' && typeof tagArg.value === 'string'
+          ? 'html'
+          : 'component';
+      tagStack.push(kind);
+
+      // Wrap reactive accesses in this call's props bag. Limited to the
+      // immediate jsx() call's argument tree — function bodies (arrow,
+      // inlinedQrl callbacks) are separate scopes and aren't wrapped;
+      // nested jsx() calls wrap at their own enter.
+      if (reactiveBindings.size === 0) return;
+      if (isInSkipRange(node.start)) return;
+      const propsArg = node.arguments?.[1];
+      if (!propsArg || propsArg.type !== 'ObjectExpression') return;
+      walkAndWrap(propsArg, s, opts.jsxFunctions, reactiveBindings, opts.neededImports);
+    },
     leave(node: AstNode) {
       // Bail unless this is a `<jsxFunction>(tag, propsObjLiteral, ...)`
       // call. Per SWC `transform.rs:1166-1168`, non-ObjectExpression props
       // (e.g. a passed-through variable) leave the call unchanged.
-      if (
-        node.type !== 'CallExpression' ||
-        node.callee?.type !== 'Identifier' ||
-        !opts.jsxFunctions.has(node.callee.name) ||
-        !node.arguments ||
-        node.arguments.length < 2 ||
-        node.arguments[1]?.type !== 'ObjectExpression'
-      ) return;
+      if (!isJsxCall(node, opts.jsxFunctions) || node.type !== 'CallExpression') return;
+
+      tagStack.pop();
 
       // Skip ranges occupied by another transform (e.g. parent rewrite
       // for $() / inlinedQrl arguments — segment-side codegen handles
@@ -212,45 +230,6 @@ function collectReactiveBindings(program: AstProgram): Set<string> {
     },
   });
   return result;
-}
-
-/**
- * For each jsx() call, walk its propsObj (the 2nd arg) and rewrite every
- * MemberExpression `reactiveObj.prop` that appears at a non-nested-function
- * position into `_wrapProp(reactiveObj, "prop")`. Top-down so outer jsx()
- * calls process first; we skip recursing into:
- *
- *   - nested jsx() calls (they'll be visited by their own `enter`)
- *   - function/arrow expressions (separate scope; the callback body is its
- *     own JSX/QRL context)
- *   - `inlinedQrl(...)` peer-tool calls (also a quasi-function expression
- *     whose body has its own lexical scope via `useLexicalScope()`)
- *
- * The MagicString overwrites are safe because the AST positions are read-
- * only once per node visit and we don't recurse into rewritten ranges.
- */
-function wrapReactiveAccessesInJsxCalls(
-  s: MagicString,
-  program: AstProgram,
-  jsxFunctions: ReadonlySet<string>,
-  reactiveBindings: ReadonlySet<string>,
-  neededImports: Set<string>,
-  isInSkipRange: (start: number) => boolean = () => false,
-): void {
-  walk(program, {
-    enter(node: AstNode) {
-      if (!isJsxCall(node, jsxFunctions)) return;
-      // `isJsxCall` already narrowed: this is a CallExpression with
-      // arguments.length >= 2 and arguments[1] an ObjectExpression.
-      if (node.type !== 'CallExpression') return;
-      // Skip calls inside another transform's range — same gate as the
-      // main `_jsxSorted` rewrite below.
-      if (isInSkipRange(node.start)) return;
-      const propsArg = node.arguments?.[1];
-      if (!propsArg || propsArg.type !== 'ObjectExpression') return;
-      walkAndWrap(propsArg, s, jsxFunctions, reactiveBindings, neededImports);
-    },
-  });
 }
 
 function isJsxCall(node: AstNode, jsxFunctions: ReadonlySet<string>): boolean {
@@ -314,58 +293,6 @@ function staticPropName(member: AstNode): string | null {
     typeof member.property.value === 'string'
   ) return member.property.value;
   return null;
-}
-
-/**
- * Walk the program top-down and add every jsx() call whose NEAREST jsx()
- * ancestor is an HTML-tag call (string-literal tag arg) to `out`. SWC's
- * behaviour: nested calls under HTML parents take `null` for the key arg
- * (only the outermost call keys); nested calls under COMPONENT parents
- * (identifier tag arg) keep auto-keys all the way down.
- *
- */
-function collectNestedJsxStarts(
-  program: AstProgram,
-  jsxFunctions: ReadonlySet<string>,
-  out: Set<number>,
-): void {
-  // Stack of "tag kinds" — most-recent first. Each entry is `'html'` for a
-  // string-literal-tag jsx() call, `'component'` for an identifier-tag call.
-  // Used to look up the nearest jsx() ancestor's tag kind when deciding
-  // whether the current call is "nested under HTML".
-  const tagStack: ('html' | 'component')[] = [];
-  walk(program, {
-    enter(node: AstNode) {
-      if (
-        node.type !== 'CallExpression' ||
-        node.callee?.type !== 'Identifier' ||
-        !jsxFunctions.has(node.callee.name) ||
-        !node.arguments ||
-        node.arguments.length < 2 ||
-        node.arguments[1]?.type !== 'ObjectExpression'
-      ) return;
-      if (tagStack.length > 0 && tagStack[tagStack.length - 1] === 'html') {
-        out.add(node.start);
-      }
-      const tagArg = node.arguments[0];
-      const kind: 'html' | 'component' =
-        tagArg && tagArg.type === 'Literal' && typeof tagArg.value === 'string'
-          ? 'html'
-          : 'component';
-      tagStack.push(kind);
-    },
-    leave(node: AstNode) {
-      if (
-        node.type !== 'CallExpression' ||
-        node.callee?.type !== 'Identifier' ||
-        !jsxFunctions.has(node.callee.name) ||
-        !node.arguments ||
-        node.arguments.length < 2 ||
-        node.arguments[1]?.type !== 'ObjectExpression'
-      ) return;
-      tagStack.pop();
-    },
-  });
 }
 
 /**

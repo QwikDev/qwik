@@ -15,6 +15,7 @@ import {
 } from './diagnostics.js';
 import { collectExportNames } from '../extraction/marker-detection.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from '../types/types.js';
+import type { PassiveConflict } from '../analysis/module-gather-walk.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
 import { computeLineColFromOffset } from './source-loc.js';
 import {
@@ -165,6 +166,34 @@ export function detectC05Diagnostics(
   }
 }
 
+/**
+ * Emit the warning diagnostics for passive:/preventdefault: conflicts
+ * gathered by the canonical gather walk (`analysis/module-gather-walk.ts`).
+ * Called at the Phase-4 site where `detectPassivePreventdefaultConflicts`
+ * used to run, so diagnostic order is unchanged.
+ */
+export function emitPassiveConflictDiagnostics(
+  conflicts: ReadonlyArray<PassiveConflict>,
+  file: string,
+  source: string,
+  diagnostics: Diagnostic[],
+): void {
+  for (const conflict of conflicts) {
+    diagnostics.push(
+      emitPassiveConflictWarning(
+        conflict.eventName,
+        file,
+        buildHighlight(source, conflict.start, conflict.end),
+      ),
+    );
+  }
+}
+
+/**
+ * Production routes through the canonical gather walk's passive-conflict
+ * projection plus `emitPassiveConflictDiagnostics`; this standalone form is
+ * retained as the differential oracle for that projection.
+ */
 export function detectPassivePreventdefaultConflicts(
   program: AstProgram,
   file: string,

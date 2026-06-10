@@ -143,6 +143,10 @@ function collectDeclarationsFromNode(
  * both `fn` and `x` must be capturable even though the outer arrow is not
  * itself an extraction — neither the enclosing extraction's body scope nor
  * the module scope alone would surface them.
+ *
+ * Production routes through the canonical gather walk's lexical-scope
+ * projection (`module-gather-walk.ts`); this standalone form is retained
+ * as the differential oracle for that projection.
  */
 export function buildClosureLexicalScopes(
   program: AstProgram,
@@ -219,9 +223,10 @@ function isFunctionLikeNode(node: AstNode): boolean {
 /**
  * Collect declarations introduced by one statement at the same lexical
  * level (no recursion into nested function bodies). Used for both module
- * top-level and function body top-level collection.
+ * top-level and function body top-level collection — here and by the
+ * canonical gather walk's lexical-scope projection.
  */
-function collectShallowDeclarationsFromStatement(
+export function collectShallowDeclarationsFromStatement(
   stmt: AstMaybeNode | Statement,
   ids: Set<string>,
 ): void {
@@ -251,7 +256,7 @@ function collectShallowDeclarationsFromStatement(
   }
 }
 
-function collectShallowDeclarationsFromBody(
+export function collectShallowDeclarationsFromBody(
   body: BlockStatement | FunctionBody | AstNode,
   ids: Set<string>,
 ): void {

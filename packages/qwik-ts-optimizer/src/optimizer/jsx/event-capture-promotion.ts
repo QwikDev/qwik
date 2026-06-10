@@ -51,6 +51,10 @@ interface BuildExtractionLoopMapExitContext
 /**
  * Build a map from extraction symbolName to its loop context stack.
  * Walks the AST once to detect which extractions are inside loops.
+ *
+ * Production routes through the canonical gather walk's loop-map
+ * projection (`analysis/module-gather-walk.ts`); this standalone form is
+ * retained as the differential oracle for that projection.
  */
 export function buildExtractionLoopMap(
   program: AstProgram,
@@ -192,14 +196,96 @@ export interface EventCaptureContext {
  * positional fingerprint. */
 export type LoopBodyVarDeclMap = Map<string, Array<{ name: string; declStart: number }>>;
 
-function loopBodyKey(start: number, end: number): string {
+/** Positional fingerprint key for `LoopBodyVarDeclMap`. Shared with the
+ * canonical gather walk's loop-map projection. */
+export function loopBodyKey(start: number, end: number): string {
   return `${start}-${end}`;
+}
+
+/**
+ * Scope entry for one function-like node: its range plus param and
+ * body-top-level var-decl bindings with positions. Shared between
+ * `collectAllScopeEntries` and the canonical gather walk's scope-entry
+ * projection.
+ */
+export function buildFunctionScopeEntry(node: AstFunction): ScopeEntry {
+  const bindings: Array<{ name: string; pos: number; kind: BindingKind }> = [];
+  for (const param of node.params ?? []) {
+    const names = new Set<string>();
+    addBindingNamesFromPatternToSet(param, names);
+    for (const n of names) {
+      bindings.push({ name: n, pos: param.start ?? 0, kind: 'param' });
+    }
+  }
+  if (node.body?.type === "BlockStatement") {
+    for (const stmt of node.body.body ?? []) {
+      if (stmt.type === "VariableDeclaration") {
+        const stmtKind: BindingKind =
+          stmt.kind === 'const' ? 'const' :
+          stmt.kind === 'let' ? 'let' : 'var';
+        for (const decl of stmt.declarations ?? []) {
+          if (decl.id) {
+            const names = new Set<string>();
+            addBindingNamesFromPatternToSet(decl.id, names);
+            for (const n of names) {
+              bindings.push({
+                name: n,
+                pos: decl.start ?? stmt.start ?? 0,
+                kind: stmtKind,
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+  return { type: "function", start: node.start, end: node.end, bindings };
+}
+
+/**
+ * Scope entry for one for/for-of/for-in node whose left/init clause
+ * declares bindings. Returns undefined when the clause declares nothing
+ * (entries without bindings are never consulted). Shared between
+ * `collectAllScopeEntries` and the canonical gather walk's scope-entry
+ * projection.
+ */
+export function buildForLoopScopeEntry(node: AstNode): ScopeEntry | undefined {
+  if (
+    node.type !== "ForOfStatement" &&
+    node.type !== "ForInStatement" &&
+    node.type !== "ForStatement"
+  ) return undefined;
+  const left = node.type === "ForStatement" ? node.init : node.left;
+  if (left?.type !== "VariableDeclaration") return undefined;
+  const leftKind: BindingKind =
+    left.kind === 'const' ? 'const' :
+    left.kind === 'let' ? 'let' : 'var';
+  const bindings: Array<{ name: string; pos: number; kind: BindingKind }> = [];
+  for (const decl of left.declarations ?? []) {
+    if (decl.id) {
+      const names = new Set<string>();
+      addBindingNamesFromPatternToSet(decl.id, names);
+      for (const n of names) {
+        bindings.push({
+          name: n,
+          pos: decl.start ?? left.start ?? 0,
+          kind: leftKind,
+        });
+      }
+    }
+  }
+  if (bindings.length === 0) return undefined;
+  return { type: "for-loop", start: node.start, end: node.end, bindings };
 }
 
 /**
  * Pre-collect all function scope entries and for-loop scope entries from a SINGLE AST walk.
  * Each entry records the node's range and its param/body-decl bindings with positions.
  * Per-extraction filtering then uses these cached entries instead of re-walking the AST.
+ *
+ * Production routes through the canonical gather walk's scope-entry
+ * projection (`analysis/module-gather-walk.ts`); this standalone form is
+ * retained as the differential oracle for that projection.
  */
 export function collectAllScopeEntries(program: AstProgram): ScopeEntry[] {
   const allScopeEntries: ScopeEntry[] = [];
@@ -213,42 +299,7 @@ export function collectAllScopeEntries(program: AstProgram): ScopeEntry[] {
         node.start !== undefined &&
         node.end !== undefined
       ) {
-        const bindings: Array<{ name: string; pos: number; kind: BindingKind }> = [];
-        for (const param of node.params ?? []) {
-          const names = new Set<string>();
-          addBindingNamesFromPatternToSet(param, names);
-          for (const n of names) {
-            bindings.push({ name: n, pos: param.start ?? 0, kind: 'param' });
-          }
-        }
-        if (node.body?.type === "BlockStatement") {
-          for (const stmt of node.body.body ?? []) {
-            if (stmt.type === "VariableDeclaration") {
-              const stmtKind: BindingKind =
-                stmt.kind === 'const' ? 'const' :
-                stmt.kind === 'let' ? 'let' : 'var';
-              for (const decl of stmt.declarations ?? []) {
-                if (decl.id) {
-                  const names = new Set<string>();
-                  addBindingNamesFromPatternToSet(decl.id, names);
-                  for (const n of names) {
-                    bindings.push({
-                      name: n,
-                      pos: decl.start ?? stmt.start ?? 0,
-                      kind: stmtKind,
-                    });
-                  }
-                }
-              }
-            }
-          }
-        }
-        allScopeEntries.push({
-          type: "function",
-          start: node.start,
-          end: node.end,
-          bindings,
-        });
+        allScopeEntries.push(buildFunctionScopeEntry(node));
       }
       if (
         (node.type === "ForOfStatement" ||
@@ -257,34 +308,8 @@ export function collectAllScopeEntries(program: AstProgram): ScopeEntry[] {
         node.start !== undefined &&
         node.end !== undefined
       ) {
-        const left = node.type === "ForStatement" ? node.init : node.left;
-        if (left?.type === "VariableDeclaration") {
-          const leftKind: BindingKind =
-            left.kind === 'const' ? 'const' :
-            left.kind === 'let' ? 'let' : 'var';
-          const bindings: Array<{ name: string; pos: number; kind: BindingKind }> = [];
-          for (const decl of left.declarations ?? []) {
-            if (decl.id) {
-              const names = new Set<string>();
-              addBindingNamesFromPatternToSet(decl.id, names);
-              for (const n of names) {
-                bindings.push({
-                  name: n,
-                  pos: decl.start ?? left.start ?? 0,
-                  kind: leftKind,
-                });
-              }
-            }
-          }
-          if (bindings.length > 0) {
-            allScopeEntries.push({
-              type: "for-loop",
-              start: node.start,
-              end: node.end,
-              bindings,
-            });
-          }
-        }
+        const entry = buildForLoopScopeEntry(node);
+        if (entry) allScopeEntries.push(entry);
       }
     },
     leave() {},

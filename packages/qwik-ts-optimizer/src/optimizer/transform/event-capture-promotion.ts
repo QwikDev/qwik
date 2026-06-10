@@ -20,7 +20,6 @@ import { addBindingNamesFromPatternToSet } from '../utils/binding-pattern.js';
 import {
   getWholeWordPattern,
   numberedPaddingParam,
-  paddingParam,
 } from './post-process.js';
 
 /**
@@ -292,6 +291,224 @@ export function collectAllScopeEntries(program: AstProgram): ScopeEntry[] {
 }
 
 /**
+ * Counter-variable candidates for while/do-while loops, which carry no
+ * iterVars: `let i = 0` declared in an enclosing function body looks
+ * "declared" to scope analysis even though the handler needs it via q:p
+ * delivery. Scans the pre-collected function-scope entries that strictly
+ * contain both the loop and the extraction call site (replaces a
+ * `walk(program, ...)` that re-scanned the whole AST per-extraction)
+ * and returns the `let`/`var` binding names whole-word-referenced in
+ * the handler body. Returns nothing for loops with explicit iterVars.
+ *
+ * `declMustPrecedeLoop` adds the loop-local partition's extra guard:
+ * only bindings declared before the loop construct count as counters.
+ */
+function collectWhileLoopCounterCandidates(
+  allScopeEntries: readonly ScopeEntry[],
+  loop: LoopContext,
+  extraction: ExtractionResult,
+  declMustPrecedeLoop: boolean,
+): string[] {
+  if (loop.type !== "while" && loop.type !== "do-while") return [];
+  if (loop.iterVars.length > 0) return [];
+
+  const names: string[] = [];
+  const seen = new Set<string>();
+  for (const entry of allScopeEntries) {
+    if (entry.type !== 'function') continue;
+    if (
+      entry.start >= loop.loopNode.start ||
+      entry.end <= loop.loopNode.end ||
+      entry.start >= extraction.callStart ||
+      entry.end <= extraction.callEnd
+    ) continue;
+    for (const b of entry.bindings) {
+      if (b.kind !== 'let' && b.kind !== 'var') continue;
+      if (declMustPrecedeLoop && b.pos >= loop.loopNode.start) continue;
+      if (seen.has(b.name)) continue;
+      if (!getWholeWordPattern(b.name).test(extraction.bodyText)) continue;
+      seen.add(b.name);
+      names.push(b.name);
+    }
+  }
+  return names;
+}
+
+/**
+ * Workaround: oxc-walker's getUndeclaredIdentifiersInFunction does not
+ * report for-statement init variables (e.g., `i` in `for(let i=0;...)`)
+ * or for-in left variables (e.g., `key` in `for(const key in obj)`) as
+ * undeclared, even though they're not declared within the handler
+ * function itself. For-of variables ARE reported. Augments the raw list
+ * with any enclosing loop's iterVars referenced in the handler body
+ * text, plus — for while/do-while loops — counter-variable candidates
+ * from intermediate function scopes.
+ */
+function augmentUndeclaredIdsForLoops(
+  extraction: ExtractionResult,
+  undeclaredIds: readonly string[],
+  extractionLoopMap: ReadonlyMap<string, LoopContext[]>,
+  allScopeEntries: readonly ScopeEntry[],
+): string[] {
+  const result = [...undeclaredIds];
+  const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
+  if (!enclosingLoops || enclosingLoops.length === 0) return result;
+
+  const undeclaredSet = new Set(result);
+  const addMissing = (name: string) => {
+    if (undeclaredSet.has(name)) return;
+    undeclaredSet.add(name);
+    result.push(name);
+  };
+  for (const loop of enclosingLoops) {
+    for (const iterVar of loop.iterVars) {
+      if (getWholeWordPattern(iterVar).test(extraction.bodyText)) {
+        addMissing(iterVar);
+      }
+    }
+    for (const name of collectWhileLoopCounterCandidates(allScopeEntries, loop, extraction, false)) {
+      addMissing(name);
+    }
+  }
+  return result;
+}
+
+/**
+ * Even with no captures, event handlers in a loop context need (_, _1)
+ * padding for the q:p delivery mechanism. Exception: component event
+ * handlers (onClick$ on <MyComponent/>) are just props, not Qwik event
+ * handlers, so they don't need padding.
+ */
+function applyEmptyCaptureLoopPadding(
+  extraction: ExtractionResult,
+  extractionLoopMap: ReadonlyMap<string, LoopContext[]>,
+): void {
+  if (extraction.isComponentEvent) return;
+  const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
+  if (!enclosingLoops || enclosingLoops.length === 0) return;
+  extraction.paramNames = ["_", "_1"];
+  extraction.captureNames = [];
+  extraction.captures = false;
+}
+
+/**
+ * Collect ALL scope-visible identifiers from the handler's enclosing
+ * scopes: the enclosing extraction's body scope (or module scope at top
+ * level) PLUS any intermediate function scopes (like .map() callbacks),
+ * looked up against the pre-collected scope entries. Also records each
+ * intermediate binding's first-seen declaration position for
+ * source-order capture sorting.
+ */
+function collectVisibleScopeBindings(
+  extraction: ExtractionResult,
+  ctx: EventCaptureContext,
+): { allScopeIds: Set<string>; declPositions: Map<string, number> } {
+  const { bodyScopeIds, moduleScopeIds, enclosingExtMap, allScopeEntries, repairedCode } = ctx;
+
+  const allScopeIds = new Set<string>();
+  const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
+  if (enclosingExt) {
+    const parentIds = bodyScopeIds.get(enclosingExt.symbolName);
+    if (parentIds) {
+      for (const id of parentIds) allScopeIds.add(id);
+    }
+  } else {
+    for (const id of moduleScopeIds) allScopeIds.add(id);
+  }
+
+  const declPositions = new Map<string, number>();
+  const enclosingStart = enclosingExt ? enclosingExt.argStart : 0;
+  const enclosingEnd = enclosingExt ? enclosingExt.argEnd : repairedCode.length;
+  for (const entry of allScopeEntries) {
+    if (
+      entry.start >= enclosingStart &&
+      entry.end <= enclosingEnd &&
+      entry.start < extraction.callStart &&
+      entry.end > extraction.callEnd
+    ) {
+      for (const b of entry.bindings) {
+        allScopeIds.add(b.name);
+        if (!declPositions.has(b.name)) declPositions.set(b.name, b.pos);
+      }
+    }
+  }
+  return { allScopeIds, declPositions };
+}
+
+/**
+ * NOT in a loop. Under the default/segment strategy ALL captured vars
+ * become paramNames, sorted ALPHABETICALLY per SWC Rule 7. Under the
+ * inline/hoist strategy, captures stay in `captureNames`: the
+ * downstream pipeline (`preConsolidateRawPropsCaptures` →
+ * `transformInlineSegmentBody` → `injectCapturesUnpacking` →
+ * `replacePropsFieldReferencesInBody`) routes them through
+ * `_captures[N]` unpacking + (when the parent component has
+ * destructured props) `_rawProps.X` rewriting. The segment-file-style
+ * positional-param padding is wrong for `q_X.s(body)` emission — the
+ * body needs its original closure args preserved.
+ */
+function promoteNonLoopCaptures(
+  extraction: ExtractionResult,
+  uniqueCaptures: readonly string[],
+  isInlineStrategy: boolean,
+): void {
+  const sortedCaptures = [...uniqueCaptures].sort();
+  if (isInlineStrategy) {
+    extraction.captureNames = sortedCaptures;
+    extraction.captures = sortedCaptures.length > 0;
+  } else {
+    extraction.paramNames = generateParamPadding(sortedCaptures);
+    extraction.captureNames = [];
+    extraction.captures = false;
+  }
+}
+
+/**
+ * IN a loop: partition captures into loop-local (promoted to positional
+ * params) vs cross-scope (delivered via .w() hoisting). Only the
+ * IMMEDIATE (innermost) loop's variables are loop-local; variables from
+ * outer loops are cross-scope captures.
+ */
+function partitionLoopCaptures(
+  extraction: ExtractionResult,
+  uniqueCaptures: readonly string[],
+  enclosingLoops: readonly LoopContext[],
+  allScopeEntries: readonly ScopeEntry[],
+  loopBodyVarDecls: LoopBodyVarDeclMap,
+): void {
+  const immediateLoop = enclosingLoops[enclosingLoops.length - 1];
+
+  // Loop-local names: the immediate loop's iterVars, plus block-scoped
+  // declarations inside its body (pre-collected during
+  // `buildExtractionLoopMap`), plus — for while/do-while loops —
+  // counter candidates declared before the loop in enclosing functions.
+  const loopLocalSet = new Set<string>(immediateLoop.iterVars);
+  const loopBodyDecls = loopBodyVarDecls.get(loopBodyKey(immediateLoop.loopBodyStart, immediateLoop.loopBodyEnd));
+  if (loopBodyDecls) {
+    for (const d of loopBodyDecls) loopLocalSet.add(d.name);
+  }
+  for (const name of collectWhileLoopCounterCandidates(allScopeEntries, immediateLoop, extraction, true)) {
+    loopLocalSet.add(name);
+  }
+
+  const loopLocalVars: string[] = [];
+  const crossScopeCaptures: string[] = [];
+  for (const name of uniqueCaptures) {
+    if (loopLocalSet.has(name)) {
+      loopLocalVars.push(name);
+    } else {
+      crossScopeCaptures.push(name);
+    }
+  }
+
+  if (loopLocalVars.length > 0) {
+    extraction.paramNames = generateParamPadding(loopLocalVars);
+  }
+  extraction.captureNames = crossScopeCaptures.sort();
+  extraction.captures = crossScopeCaptures.length > 0;
+}
+
+/**
  * Promote event handler captures to function parameters.
  *
  * This implements the q:p delivery mechanism where captured variables
@@ -304,267 +521,151 @@ export function promoteEventHandlerCaptures(
   const {
     extractions,
     closureNodes,
-    bodyScopeIds,
-    moduleScopeIds,
     importedNames,
-    enclosingExtMap,
     extractionLoopMap,
     allScopeEntries,
     loopBodyVarDecls,
-    repairedCode,
     isInlineStrategy,
   } = ctx;
 
   for (const extraction of extractions) {
-    // Only process event handlers
     if (extraction.ctxKind !== "eventHandler") continue;
     if (extraction.isInlinedQrl) continue;
 
-    // Re-detect captures for event handlers by checking undeclared identifiers
-    // against ALL enclosing scopes (including loop callback scopes that
-    // capture analysis misses because they're intermediate nested functions).
+    // Re-detect captures by checking undeclared identifiers against ALL
+    // enclosing scopes (including loop callback scopes that capture
+    // analysis misses because they're intermediate nested functions).
     const closureNode = closureNodes.get(extraction.symbolName);
     if (!closureNode) continue;
-
-    let undeclaredIds: string[];
+    let rawUndeclaredIds: string[];
     try {
-      undeclaredIds = getUndeclaredIdentifiersInFunction(closureNode);
+      rawUndeclaredIds = getUndeclaredIdentifiersInFunction(closureNode);
     } catch {
       continue;
     }
-
-    // Workaround: oxc-walker's getUndeclaredIdentifiersInFunction does not report
-    // for-statement init variables (e.g., `i` in `for(let i=0;...)`) or for-in
-    // left variables (e.g., `key` in `for(const key in obj)`) as undeclared,
-    // even though they're not declared within the handler function itself.
-    // For-of variables ARE reported. To handle the missing cases, check if any
-    // enclosing loop's iterVars are referenced in the handler body text and add
-    // them to undeclaredIds if missing.
-    //
-    // For while/do-while loops (which have empty iterVars), also scan for
-    // variables declared in intermediate function scopes that contain both
-    // the loop and the extraction. These variables (e.g., `let i = 0` before
-    // `while(i < n)`) need to be treated as loop-local for q:p delivery.
-    {
-      const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
-      if (enclosingLoops && enclosingLoops.length > 0) {
-        const bodyText = extraction.bodyText;
-        const undeclaredSet = new Set(undeclaredIds);
-        for (const loop of enclosingLoops) {
-          // Add explicit iterVars that oxc-walker missed
-          for (const iterVar of loop.iterVars) {
-            if (!undeclaredSet.has(iterVar)) {
-              if (getWholeWordPattern(iterVar).test(bodyText)) {
-                undeclaredIds.push(iterVar);
-                undeclaredSet.add(iterVar);
-              }
-            }
-          }
-          // For while/do-while with empty iterVars: scan intermediate function
-          // scopes for let/var declarations that are referenced in the handler body.
-          // These are potential loop counter variables that oxc-walker considers
-          // "declared" (in the parent function scope) but need q:p delivery.
-          if (
-            (loop.type === "while" || loop.type === "do-while") &&
-            loop.iterVars.length === 0
-          ) {
-            // Pre-collected lookup (replaces a `walk(program, ...)` that
-            // re-scanned the whole AST per-extraction): find function-
-            // scope entries containing both the loop and the extraction
-            // call site, then gather their `let`/`var` body-level
-            // declarations that are referenced in the handler body text.
-            for (const entry of allScopeEntries) {
-              if (entry.type !== 'function') continue;
-              if (
-                entry.start >= loop.loopNode.start ||
-                entry.end <= loop.loopNode.end ||
-                entry.start >= extraction.callStart ||
-                entry.end <= extraction.callEnd
-              ) continue;
-              for (const b of entry.bindings) {
-                if (b.kind !== 'let' && b.kind !== 'var') continue;
-                if (undeclaredSet.has(b.name)) continue;
-                if (!getWholeWordPattern(b.name).test(bodyText)) continue;
-                undeclaredIds.push(b.name);
-                undeclaredSet.add(b.name);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Even with no captures, event handlers in a loop context need (_, _1) padding
-    // for the q:p delivery mechanism. Check loop context before skipping.
-    // Exception: component event handlers (onClick$ on <MyComponent/>) are just props,
-    // not Qwik event handlers, so they don't need (_, _1) padding.
+    const undeclaredIds = augmentUndeclaredIdsForLoops(
+      extraction,
+      rawUndeclaredIds,
+      extractionLoopMap,
+      allScopeEntries,
+    );
     if (undeclaredIds.length === 0) {
-      if (!extraction.isComponentEvent) {
-        const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
-        if (enclosingLoops && enclosingLoops.length > 0) {
-          // In a loop: add minimal (_, _1) padding even with no captures
-          extraction.paramNames = ["_", "_1"];
-          extraction.captureNames = [];
-          extraction.captures = false;
-        }
-      }
+      applyEmptyCaptureLoopPadding(extraction, extractionLoopMap);
       continue;
     }
 
-    // Collect ALL scope-visible identifiers from enclosing scopes.
-    // This includes the enclosing extraction's body scope PLUS any
-    // intermediate function scopes (like .map() callbacks).
-    const allScopeIds = new Set<string>();
-
-    // Add enclosing extraction's body scope (using pre-computed map)
-    const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
-
-    if (enclosingExt) {
-      const parentIds = bodyScopeIds.get(enclosingExt.symbolName);
-      if (parentIds) {
-        for (const id of parentIds) allScopeIds.add(id);
-      }
-    } else {
-      for (const id of moduleScopeIds) allScopeIds.add(id);
-    }
-
-    // Collect identifiers from intermediate scopes using pre-collected scope entries.
-    // Filter entries that are within the enclosing range and contain the extraction.
-    const declPositions = new Map<string, number>();
-    const enclosingStart = enclosingExt ? enclosingExt.argStart : 0;
-    const enclosingEnd = enclosingExt
-      ? enclosingExt.argEnd
-      : repairedCode.length;
-    for (const entry of allScopeEntries) {
-      if (
-        entry.start >= enclosingStart &&
-        entry.end <= enclosingEnd &&
-        entry.start < extraction.callStart &&
-        entry.end > extraction.callEnd
-      ) {
-        for (const b of entry.bindings) {
-          allScopeIds.add(b.name);
-          if (!declPositions.has(b.name)) declPositions.set(b.name, b.pos);
-        }
-      }
-    }
-
-    // Copy declaration positions to global map for shared slot allocation
+    const { allScopeIds, declPositions } = collectVisibleScopeBindings(extraction, ctx);
+    // Copy declaration positions to the shared map for cross-handler slot allocation
     for (const [name, pos] of declPositions) {
       if (!globalDeclPositions.has(name))
         globalDeclPositions.set(name, pos);
     }
 
-    // Filter undeclared identifiers against all scope identifiers
-    // Sort by declaration position (source order) to match Rust optimizer behavior
+    // Filter undeclared identifiers against all scope identifiers.
+    // Sort by declaration position (source order) to match Rust optimizer behavior.
     const allCaptures = undeclaredIds.filter(
       (name) => allScopeIds.has(name) && !importedNames.has(name),
     );
     const uniqueCaptures = [...new Set(allCaptures)].sort(
       (a, b) => (declPositions.get(a) ?? 0) - (declPositions.get(b) ?? 0),
     );
-
     if (uniqueCaptures.length === 0) {
-      // Even with no scope captures, event handlers in a loop context need (_, _1)
-      // padding for the q:p delivery mechanism.
-      // Exception: component event handlers are just props, no padding needed.
-      if (!extraction.isComponentEvent) {
-        const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
-        if (enclosingLoops && enclosingLoops.length > 0) {
-          extraction.paramNames = ["_", "_1"];
-          extraction.captureNames = [];
-          extraction.captures = false;
-        }
-      }
+      applyEmptyCaptureLoopPadding(extraction, extractionLoopMap);
       continue;
     }
 
     const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
-
     if (!enclosingLoops || enclosingLoops.length === 0) {
-      if (isInlineStrategy) {
-        // Under inline/hoist strategy, non-loop captures stay in
-        // `captureNames`. The downstream pipeline
-        // (`preConsolidateRawPropsCaptures` → `transformInlineSegmentBody`
-        // → `injectCapturesUnpacking` → `replacePropsFieldReferencesInBody`)
-        // routes them through `_captures[N]` unpacking + (when the parent
-        // component has destructured props) `_rawProps.X` rewriting. The
-        // segment-file-style positional-param padding produced below is
-        // wrong for `q_X.s(body)` emission — the body needs its original
-        // closure args preserved.
-        const sortedCaptures = [...uniqueCaptures].sort();
-        extraction.captureNames = sortedCaptures;
-        extraction.captures = sortedCaptures.length > 0;
-      } else {
-        // NOT in a loop: ALL captured vars become paramNames, sorted ALPHABETICALLY per SWC Rule 7
-        const sortedCaptures = [...uniqueCaptures].sort();
-        extraction.paramNames = generateParamPadding(sortedCaptures);
-        extraction.captureNames = [];
-        extraction.captures = false;
-      }
+      promoteNonLoopCaptures(extraction, uniqueCaptures, isInlineStrategy);
     } else {
-      // IN a loop: partition captures into loop-local vs cross-scope.
-      // Only the IMMEDIATE (innermost) loop's variables are loop-local.
-      // Variables from outer loops are cross-scope captures (delivered via .w() hoisting).
-      const immediateLoop = enclosingLoops[enclosingLoops.length - 1];
-
-      // Collect loop-local variable names:
-      // 1. Immediate loop's iterVars
-      const loopLocalSet = new Set<string>(immediateLoop.iterVars);
-
-      // 2. Block-scoped declarations inside the immediate loop body —
-      //    pre-collected during `buildExtractionLoopMap` (replaces a
-      //    `walk(program, ...)` that re-scanned per-extraction).
-      const loopBodyDecls = loopBodyVarDecls.get(loopBodyKey(immediateLoop.loopBodyStart, immediateLoop.loopBodyEnd));
-      if (loopBodyDecls) {
-        for (const d of loopBodyDecls) loopLocalSet.add(d.name);
-      }
-
-      // 3. For while/do-while loops: also include let/var declarations
-      //    from any enclosing function body that contains both the loop
-      //    and the extraction, where the decl precedes the loop. Looked
-      //    up against `allScopeEntries` (replaces another per-extraction
-      //    walk of the whole program).
-      if (
-        (immediateLoop.type === "while" ||
-          immediateLoop.type === "do-while") &&
-        immediateLoop.iterVars.length === 0
-      ) {
-        const handlerBody = extraction.bodyText;
-        for (const entry of allScopeEntries) {
-          if (entry.type !== 'function') continue;
-          if (
-            entry.start >= immediateLoop.loopNode.start ||
-            entry.end <= immediateLoop.loopNode.end ||
-            entry.start >= extraction.callStart ||
-            entry.end <= extraction.callEnd
-          ) continue;
-          for (const b of entry.bindings) {
-            if (b.kind !== 'let' && b.kind !== 'var') continue;
-            if (b.pos >= immediateLoop.loopNode.start) continue;
-            if (!getWholeWordPattern(b.name).test(handlerBody)) continue;
-            loopLocalSet.add(b.name);
-          }
-        }
-      }
-
-      // Partition captures
-      const loopLocalVars: string[] = [];
-      const crossScopeCaptures: string[] = [];
-      for (const name of uniqueCaptures) {
-        if (loopLocalSet.has(name)) {
-          loopLocalVars.push(name);
-        } else {
-          crossScopeCaptures.push(name);
-        }
-      }
-
-      if (loopLocalVars.length > 0) {
-        extraction.paramNames = generateParamPadding(loopLocalVars);
-      }
-      extraction.captureNames = crossScopeCaptures.sort();
-      extraction.captures = crossScopeCaptures.length > 0;
+      partitionLoopCaptures(
+        extraction,
+        uniqueCaptures,
+        enclosingLoops,
+        allScopeEntries,
+        loopBodyVarDecls,
+      );
     }
+  }
+}
+
+/**
+ * Group promoted event handlers (paramNames starting `_, _1`) by their
+ * enclosing extraction's symbolName. Handlers with no enclosing
+ * extraction don't participate in q:p slot allocation.
+ */
+function groupPromotedHandlersByParent(
+  extractions: readonly ExtractionResult[],
+  enclosingExtMap: ReadonlyMap<string, ExtractionResult>,
+): Map<string, ExtractionResult[]> {
+  const handlersByParent = new Map<string, ExtractionResult[]>();
+  for (const ext of extractions) {
+    if (ext.ctxKind !== "eventHandler") continue;
+    if (
+      ext.paramNames.length < 2 ||
+      ext.paramNames[0] !== "_" ||
+      ext.paramNames[1] !== "_1"
+    )
+      continue;
+    const parentExt = enclosingExtMap.get(ext.symbolName);
+    if (!parentExt) continue;
+    const existing = handlersByParent.get(parentExt.symbolName);
+    if (existing) existing.push(ext);
+    else handlersByParent.set(parentExt.symbolName, [ext]);
+  }
+  return handlersByParent;
+}
+
+/**
+ * Group handlers by their containing JSX element, identified by the
+ * byte offset of the nearest `<` scanning backwards from each handler's
+ * call start.
+ */
+function groupByContainingElement(
+  handlers: readonly ExtractionResult[],
+  repairedCode: string,
+): Map<number, ExtractionResult[]> {
+  const elementGroups = new Map<number, ExtractionResult[]>();
+  for (const h of handlers) {
+    let pos = h.callStart - 1;
+    while (pos > 0 && repairedCode[pos] !== "<") pos--;
+    const existing = elementGroups.get(pos);
+    if (existing) existing.push(h);
+    else elementGroups.set(pos, [h]);
+  }
+  return elementGroups;
+}
+
+/** Source-declaration-order sort, the q:p emit order for loop handlers
+ * (and for stripped-handler capture propagation). */
+function sortByGlobalDeclPosition(
+  names: string[],
+  globalDeclPositions: ReadonlyMap<string, number>,
+): void {
+  names.sort(
+    (a, b) =>
+      (globalDeclPositions.get(a) ?? 0) - (globalDeclPositions.get(b) ?? 0),
+  );
+}
+
+/**
+ * q:p ordering policy for an element group: groups containing a loop
+ * handler sort by declaration position; non-loop groups sort
+ * alphabetically (SWC Rule 7).
+ */
+function sortQpNamesForGroup(
+  names: string[],
+  group: readonly ExtractionResult[],
+  extractionLoopMap: ReadonlyMap<string, LoopContext[]>,
+  globalDeclPositions: ReadonlyMap<string, number>,
+): void {
+  const anyInLoop = group.some(
+    (h) => (extractionLoopMap.get(h.symbolName)?.length ?? 0) > 0,
+  );
+  if (anyInLoop) {
+    sortByGlobalDeclPosition(names, globalDeclPositions);
+  } else {
+    names.sort((a, b) => a.localeCompare(b));
   }
 }
 
@@ -577,47 +678,18 @@ export function unifyParameterSlots(
   globalDeclPositions: Map<string, number>,
 ): void {
   const { extractions, enclosingExtMap, extractionLoopMap, repairedCode } = ctx;
-  // Group event handlers by parent extraction and element position
-  const handlersByParent = new Map<string, typeof extractions>();
-  for (const ext of extractions) {
-    if (ext.ctxKind !== "eventHandler") continue;
-    if (
-      ext.paramNames.length < 2 ||
-      ext.paramNames[0] !== "_" ||
-      ext.paramNames[1] !== "_1"
-    )
-      continue;
-    // Find the parent extraction using pre-computed map
-    const parentExt = enclosingExtMap.get(ext.symbolName);
-    if (!parentExt) continue;
-    const parentName = parentExt.symbolName;
-    if (!handlersByParent.has(parentName))
-      handlersByParent.set(parentName, []);
-    handlersByParent.get(parentName)!.push(ext);
-  }
+  const handlersByParent = groupPromotedHandlersByParent(extractions, enclosingExtMap);
 
   // For each parent, group handlers by their containing JSX element
   for (const [, handlers] of handlersByParent) {
     if (handlers.length < 2) continue;
-
-    // Group by containing element: scan backwards in source from callStart to find '<'
-    const elementGroups = new Map<number, typeof extractions>();
-    for (const h of handlers) {
-      let pos = h.callStart - 1;
-      while (pos > 0 && repairedCode[pos] !== "<") pos--;
-      const existing = elementGroups.get(pos);
-      if (existing) {
-        existing.push(h);
-      } else {
-        elementGroups.set(pos, [h]);
-      }
-    }
+    const elementGroups = groupByContainingElement(handlers, repairedCode);
 
     // For each element group with 2+ handlers, unify their loop-local params
     for (const [, group] of elementGroups) {
       if (group.length < 2) continue;
 
-      // Collect all unique loop-local params across all handlers, sorted by declaration position
+      // Collect all unique loop-local params across all handlers
       const allLoopLocals: string[] = [];
       const seen = new Set<string>();
       for (const h of group) {
@@ -629,21 +701,7 @@ export function unifyParameterSlots(
           }
         }
       }
-      // Determine sort order: non-loop handlers use alphabetical sort (SWC Rule 7),
-      // loop handlers use declaration-position sort.
-      const anyInLoop = group.some((h) => {
-        const loops = extractionLoopMap.get(h.symbolName);
-        return loops && loops.length > 0;
-      });
-      if (anyInLoop) {
-        allLoopLocals.sort(
-          (a, b) =>
-            (globalDeclPositions.get(a) ?? 0) -
-            (globalDeclPositions.get(b) ?? 0),
-        );
-      } else {
-        allLoopLocals.sort((a, b) => a.localeCompare(b));
-      }
+      sortQpNamesForGroup(allLoopLocals, group, extractionLoopMap, globalDeclPositions);
 
       if (allLoopLocals.length === 0) continue;
 
@@ -703,37 +761,13 @@ export function buildElementCaptureMap(
   const elementQpParamsMap = new Map<string, string[]>();
 
   // Group event handlers by parent and element (same logic as slot unification)
-  const handlersByParent2 = new Map<string, typeof extractions>();
-  for (const ext of extractions) {
-    if (ext.ctxKind !== "eventHandler") continue;
-    if (
-      ext.paramNames.length < 2 ||
-      ext.paramNames[0] !== "_" ||
-      ext.paramNames[1] !== "_1"
-    )
-      continue;
-    // Find the parent extraction using pre-computed map
-    const parentExt2 = enclosingExtMap.get(ext.symbolName);
-    if (!parentExt2) continue;
-    const parentName = parentExt2.symbolName;
-    if (!handlersByParent2.has(parentName))
-      handlersByParent2.set(parentName, []);
-    handlersByParent2.get(parentName)!.push(ext);
-  }
+  const handlersByParent = groupPromotedHandlersByParent(extractions, enclosingExtMap);
 
-  for (const [, handlers] of handlersByParent2) {
-    // Group by element
-    const elementGroups2 = new Map<number, typeof extractions>();
-    for (const h of handlers) {
-      let pos = h.callStart - 1;
-      while (pos > 0 && repairedCode[pos] !== "<") pos--;
-      const existing = elementGroups2.get(pos);
-      if (existing) existing.push(h);
-      else elementGroups2.set(pos, [h]);
-    }
+  for (const [, handlers] of handlersByParent) {
+    const elementGroups = groupByContainingElement(handlers, repairedCode);
 
-    for (const [, group] of elementGroups2) {
-      // Collect actual (non-padding) loop-local vars in declaration order
+    for (const [, group] of elementGroups) {
+      // Collect actual (non-padding) loop-local vars
       const allVars: string[] = [];
       const seen = new Set<string>();
       for (const h of group) {
@@ -746,20 +780,7 @@ export function buildElementCaptureMap(
           }
         }
       }
-      // Non-loop handlers use alphabetical sort; loop handlers use declaration order
-      const anyInLoop2 = group.some((h) => {
-        const loops = extractionLoopMap.get(h.symbolName);
-        return loops && loops.length > 0;
-      });
-      if (anyInLoop2) {
-        allVars.sort(
-          (a, b) =>
-            (globalDeclPositions.get(a) ?? 0) -
-            (globalDeclPositions.get(b) ?? 0),
-        );
-      } else {
-        allVars.sort((a, b) => a.localeCompare(b));
-      }
+      sortQpNamesForGroup(allVars, group, extractionLoopMap, globalDeclPositions);
       for (const h of group) {
         elementQpParamsMap.set(h.symbolName, allVars);
       }
@@ -775,7 +796,7 @@ export function buildElementCaptureMap(
   // stripped handlers by element (same byte-offset-walk as the loop pass)
   // and union their `captureNames` into the element's qpParams.
   if (stripCtxName || stripEventHandlers) {
-    const strippedByElement = new Map<number, ExtractionResult[]>();
+    const strippedHandlers: ExtractionResult[] = [];
     for (const ext of extractions) {
       if (ext.ctxKind !== 'eventHandler') continue;
       if (!ext.captures || ext.captureNames.length === 0) continue;
@@ -783,14 +804,10 @@ export function buildElementCaptureMap(
         (stripCtxName && stripCtxName.some(v => ext.ctxName.startsWith(v))) ||
         (stripEventHandlers === true);
       if (!isStripped) continue;
-
-      let pos = ext.callStart - 1;
-      while (pos > 0 && repairedCode[pos] !== '<') pos--;
-      const existing = strippedByElement.get(pos);
-      if (existing) existing.push(ext);
-      else strippedByElement.set(pos, [ext]);
+      strippedHandlers.push(ext);
     }
 
+    const strippedByElement = groupByContainingElement(strippedHandlers, repairedCode);
     for (const [, group] of strippedByElement) {
       const allCaps: string[] = [];
       const seen = new Set<string>();
@@ -803,12 +820,8 @@ export function buildElementCaptureMap(
         }
       }
       // SWC's stripped-event q:p emit uses source-declaration order
-      // (matches the existing loop-handler `anyInLoop2 === true` arm).
-      allCaps.sort(
-        (a, b) =>
-          (globalDeclPositions.get(a) ?? 0) -
-          (globalDeclPositions.get(b) ?? 0),
-      );
+      // (matches the loop arm of the q:p ordering policy).
+      sortByGlobalDeclPosition(allCaps, globalDeclPositions);
       for (const h of group) {
         // Don't overwrite an entry already populated by the loop pass.
         if (!elementQpParamsMap.has(h.symbolName)) {

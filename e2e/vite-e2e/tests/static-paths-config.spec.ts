@@ -81,6 +81,7 @@ function toCanonicalAssetPathname(
 }
 
 test.describe('vite build matrix for static paths', () => {
+  // eslint-disable-next-line no-empty-pattern
   test('writes build and assets directories', async ({}, testInfo) => {
     const { requiredVariant, variantDir } = getVariantContext(testInfo.project.name);
 
@@ -88,6 +89,7 @@ test.describe('vite build matrix for static paths', () => {
     await assertDirectoryHasFiles(toAssetsOutputDir(variantDir, requiredVariant));
   });
 
+  // eslint-disable-next-line no-empty-pattern
   test('writes expected robots.txt output', async ({}, testInfo) => {
     const { variantDir, basePath } = getVariantContext(testInfo.project.name);
 
@@ -95,6 +97,7 @@ test.describe('vite build matrix for static paths', () => {
     await expect(readFile(robotsOutputPath, 'utf-8')).resolves.toBe(expectedRobotsTxt);
   });
 
+  // eslint-disable-next-line no-empty-pattern
   test('generates correct static path guards and entries', async ({}, testInfo) => {
     const { requiredVariant, variantDir, pathPrefix } = getVariantContext(testInfo.project.name);
 

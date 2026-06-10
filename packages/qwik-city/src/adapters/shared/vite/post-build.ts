@@ -12,9 +12,10 @@ export async function postBuild(
   if (pathName && !pathName.endsWith('/')) {
     pathName += '/';
   }
+  const pathSegment = pathName.split('/').filter(Boolean).pop();
   const ignorePathnames = new Set([pathName + 'build/', pathName + 'assets/']);
 
-  const staticPaths = new Set(userStaticPaths.map(normalizeTrailingSlash));
+  const staticPaths = new Set(userStaticPaths.map((p) => normalizeStaticPath(p, pathName)));
   const notFounds: string[][] = [];
 
   const loadItem = async (fsDir: string, fsName: string, pathname: string) => {
@@ -42,7 +43,10 @@ export async function postBuild(
 
     const stat = await fs.promises.stat(fsPath);
     if (stat.isDirectory()) {
-      await loadDir(fsPath, pathname + fsName + '/');
+      const shouldAvoidDuplicateSegment =
+        !!pathSegment && fsName === pathSegment && pathname.endsWith(`${pathSegment}/`);
+      const nextPathname = shouldAvoidDuplicateSegment ? pathname : pathname + fsName + '/';
+      await loadDir(fsPath, nextPathname);
     } else if (stat.isFile()) {
       staticPaths.add(pathname + fsName);
     }
@@ -71,6 +75,22 @@ function normalizeTrailingSlash(pathname: string) {
     return pathname + '/';
   }
   return pathname;
+}
+
+function normalizeStaticPath(pathname: string, pathName: string) {
+  const normalizedPathname = normalizeTrailingSlash(pathname);
+  const segment = pathName.split('/').filter(Boolean).pop();
+
+  if (!segment) {
+    return normalizedPathname;
+  }
+
+  const doubledSegmentPrefix = `${pathName}${segment}/`;
+  if (normalizedPathname.startsWith(doubledSegmentPrefix)) {
+    return pathName + normalizedPathname.slice(doubledSegmentPrefix.length);
+  }
+
+  return normalizedPathname;
 }
 
 function createNotFoundPathsModule(basePathname: string, notFounds: string[][], format: string) {

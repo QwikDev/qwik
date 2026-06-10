@@ -67,6 +67,27 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           );
         }
 
+        const resolvedAssetsDir = qwikVitePlugin.api.getAssetsDir();
+        if (resolvedAssetsDir) {
+          const assetFileNames = `${resolvedAssetsDir}/assets/[hash]-[name][extname]`;
+          const output = config.build.rollupOptions?.output;
+
+          if (Array.isArray(output)) {
+            config.build.rollupOptions.output = output.map((out) => ({
+              ...out,
+              assetFileNames,
+            }));
+          } else {
+            config.build.rollupOptions = {
+              ...config.build.rollupOptions,
+              output: {
+                ...(output || {}),
+                assetFileNames,
+              },
+            };
+          }
+        }
+
         // @ts-ignore `format` removed in Vite 5
         if (config.ssr?.format === 'cjs') {
           format = 'cjs';

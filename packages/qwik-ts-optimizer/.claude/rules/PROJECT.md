@@ -63,6 +63,8 @@ Authority: `.claude/rules/METHODOLOGIES.md` "After a PR merges" section.
 
 The METHODOLOGIES rule file owns the post-merge policy; wrap-up encodes it in executable form. If the two drift, METHODOLOGIES wins.
 
+**Project-specific extra step** (METHODOLOGIES checklist step 2, not in the portable skill's 8 steps): when the merged PR touched `src/`, rebuild the dist and re-sync it into qwik-bundler's pnpm content-addressed copy before moving on — pnpm `file:` deps are snapshots, not symlinks, so qwik-bundler silently runs stale optimizer code otherwise. Commands + verification in METHODOLOGIES.md "After a PR merges" step 2.
+
 **Auto-merge carve-out** covers any combination of files under `.claude/rules/` — typically STATE.md alone, OPTIMIZER.md alone, or STATE + OPTIMIZER together. Any diff touching files outside `.claude/rules/` (source, tests, workflows, README, package.json) goes through normal review. The carve-out was widened from STATE.md-only to `.claude/rules/`-only by PR #93 so the OPTIMIZER.md audit step (introduced in the same PR) could ride the same auto-merge path without a separate gate.
 
 ## Audit doc — OPTIMIZER.md

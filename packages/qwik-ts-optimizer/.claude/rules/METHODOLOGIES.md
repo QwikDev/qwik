@@ -59,28 +59,36 @@ Run this as soon as the PR is merged. **Confirm with the user before the destruc
    ```
    Grounds the rest of the cleanup against the post-merge tip.
 
-2. **Delete the merged branch — local and remote.**
+2. **Rebuild + re-sync qwik-bundler's dist when the merge touched `src/`.** The TS optimizer ships into [qwik-bundler](https://github.com/thejackshelton/qwik-bundler) as a pnpm `file:../TS-Optimizer` devDep, which pnpm snapshots as a **content-addressed copy at install time — not a live symlink**. After any merge that changes optimizer behavior, the bundler keeps silently running stale optimizer code under `experimental: ['tsOptimizer']` until the copy is refreshed:
+   ```
+   pnpm build
+   rsync -a --delete dist/ \
+     ../qwik-bundler/node_modules/.pnpm/qwik-optimizer-ts@file+..+TS-Optimizer_*/node_modules/qwik-optimizer-ts/dist/
+   ```
+   Verify by `grep`-ing the synced output for a string introduced by the merged change. If the store glob matches more than one directory (stale installs), don't rsync into a glob — run `pnpm install --force` in qwik-bundler instead. Skip this step for docs/tests-only merges. The same rule applies mid-development: **any** verification against the real bundler (dev SSR, `build.client`, Playwright) must be preceded by a fresh build + re-sync, or the result is meaningless.
+
+3. **Delete the merged branch — local and remote.**
    ```
    git branch -d <branch-name>
    git push origin --delete <branch-name>
    ```
    Use `-d`, not `-D`. If `-d` refuses, the branch isn't actually merged — investigate before forcing. Squash-merged PRs may produce a warning like *"deleting branch ... merged to refs/remotes/origin/... but not yet merged to HEAD"* — that's expected and the deletion still proceeds.
 
-3. **Verify the Linear ticket is Done.** The GitHub→Linear integration *usually* auto-flips a ticket from In Review → Done when its referenced PR merges, but it can miss (most often when the PR description's ticket reference uses a non-canonical format). Confirm by opening `linear.app/kunai/issue/OSS-XXX` or via the API. If it's still In Review or In Progress, flip it manually using the `issueUpdate` recipe in `LINEAR.md`.
+4. **Verify the Linear ticket is Done.** The GitHub→Linear integration *usually* auto-flips a ticket from In Review → Done when its referenced PR merges, but it can miss (most often when the PR description's ticket reference uses a non-canonical format). Confirm by opening `linear.app/kunai/issue/OSS-XXX` or via the API. If it's still In Review or In Progress, flip it manually using the `issueUpdate` recipe in `LINEAR.md`.
 
-4. **Refresh `STATE.md`** when the merge moves project state meaningfully.
+5. **Refresh `STATE.md`** when the merge moves project state meaningfully.
    - **Always:** bump "Last updated"; update `main`'s head SHA in "Branches in flight" + "Current measurements"; remove the merged branch from "Branches in flight"; prepend an entry to "Most recent meaningful progress".
    - **As applicable:** update the "Active workstream" paragraph; trim the progress log if it exceeds ~10 entries; update "Refactor track" or "Parity feature status" tables if the PR moved one.
    - **Where to commit:** STATE.md edits go on a feature branch — never directly to `main` (per STATE.md's own Maintenance rules). Two valid patterns:
      - **Refresh-only PR** — preferred when several merges have batched up or the merge is significant (see PRs #19, #21, #25).
      - **Inline with the next active workstream branch's first commit** if a successor branch is already starting.
 
-5. **Audit `OPTIMIZER.md` for pipeline-touching merges.** If the merged PR touched any file listed in OPTIMIZER.md's "Trigger checklist for pipeline refactors", and the PR did not already update OPTIMIZER.md, audit the doc against the change before continuing.
+6. **Audit `OPTIMIZER.md` for pipeline-touching merges.** If the merged PR touched any file listed in OPTIMIZER.md's "Trigger checklist for pipeline refactors", and the PR did not already update OPTIMIZER.md, audit the doc against the change before continuing.
    - Most pipeline-touching changes are **type-internal** (renames, signature widening, brand propagation, helper extraction) and don't require a doc update — the conceptual contract OPTIMIZER.md describes is unchanged.
    - **Update OPTIMIZER.md only when the change is structural:** a phase added/removed/renumbered, a new tool-surface convention name, a migration rule changed, a worked-example snapshot replaced, an `ExtractionResult` field added/removed/repurposed, or file:line refs in OPTIMIZER.md drifted by >50 lines or moved files. See OPTIMIZER.md's "Maintenance" section for the full criteria.
    - **Fold the update into the same branch as the STATE.md refresh.** Both are docs-only edits under `.claude/rules/`; they ride the same auto-merge carve-out (see below).
 
-6. **Auto-merge is fine for docs-only PRs under `.claude/rules/`.** The diff is pure documentation, low-risk, and gate-checked by CI like every other PR. This covers STATE.md (frequent), OPTIMIZER.md (when the audit above folds an update in), and the other rule files when modified in isolation. Queue them with `gh pr merge --auto --squash <pr-number>` (or the GitHub UI's auto-merge button) and let the CI pass trigger the merge — no manual review required. This applies *only* to PRs whose entire diff is under `.claude/rules/` (any combination of files in that directory). PRs that also touch source (`src/`), tests (`tests/`), or workflows (`.github/`) go through normal review. The CI gate runs identically on both.
+7. **Auto-merge is fine for docs-only PRs under `.claude/rules/`.** The diff is pure documentation, low-risk, and gate-checked by CI like every other PR. This covers STATE.md (frequent), OPTIMIZER.md (when the audit above folds an update in), and the other rule files when modified in isolation. Queue them with `gh pr merge --auto --squash <pr-number>` (or the GitHub UI's auto-merge button) and let the CI pass trigger the merge — no manual review required. This applies *only* to PRs whose entire diff is under `.claude/rules/` (any combination of files in that directory). PRs that also touch source (`src/`), tests (`tests/`), or workflows (`.github/`) go through normal review. The CI gate runs identically on both.
 
 ### What "merged" means here
 

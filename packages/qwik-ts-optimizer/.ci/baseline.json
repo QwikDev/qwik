@@ -209,6 +209,7 @@
   },
   "full": {
     "passing": [
+      "tests/benchmark/profile-deep.test.ts :: profiling harness drives repeated transformModule iterations over the profiling workload",
       "tests/create-optimizer.test.ts :: createOptimizer default sys.path delegates to pathe (Node-compatible)",
       "tests/create-optimizer.test.ts :: createOptimizer emits mutable output arrays (SWC NAPI parity)",
       "tests/create-optimizer.test.ts :: createOptimizer exposes a Promise-shaped surface that the bundler `await`s through",

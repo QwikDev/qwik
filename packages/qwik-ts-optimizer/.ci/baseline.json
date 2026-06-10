@@ -245,6 +245,8 @@
       "tests/optimizer/analysis/capture-analysis.test.ts :: analyzeCaptures Test 7: paramNames extraction - arrow with single param",
       "tests/optimizer/analysis/capture-analysis.test.ts :: analyzeCaptures Test 8: no captures for module-level refs - returns empty",
       "tests/optimizer/analysis/capture-analysis.test.ts :: analyzeCaptures Test 9: function own parameters are NOT captured",
+      "tests/optimizer/analysis/closure-free-identifiers.test.ts :: computeClosureFreeIdentifiers parity with per-closure analysis matches across the full snapshot fixture corpus",
+      "tests/optimizer/analysis/closure-free-identifiers.test.ts :: computeClosureFreeIdentifiers parity with per-closure analysis matches on handcrafted scope shapes",
       "tests/optimizer/analysis/destructure-inlining.test.ts :: JSX tag-name rewrite for const {X} = props destructures Negative scope: no body destructure → no rewrite `<X/>` without a `const {X} = props` decl → tag stays as `X` (untouched)",
       "tests/optimizer/analysis/destructure-inlining.test.ts :: JSX tag-name rewrite for const {X} = props destructures Negative scope: non-reference JSXIdentifier positions are not rewritten JSX attribute name is NOT a reference — preserved literally",
       "tests/optimizer/analysis/destructure-inlining.test.ts :: JSX tag-name rewrite for const {X} = props destructures Positive: JSXIdentifier in tag position rewrites to props.X mixed: regular Identifier ref + JSX tag ref + decl removal in same body",
@@ -1237,6 +1239,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1053
+    "total": 1055
   }
 }

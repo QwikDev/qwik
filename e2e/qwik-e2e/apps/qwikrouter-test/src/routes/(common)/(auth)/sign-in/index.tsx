@@ -60,9 +60,6 @@ export default component$(() => {
   const signIn = useSigninAction();
   const resetPassword = useResetPasswordAction();
 
-  const fieldErrors =
-    signIn.error && 'fieldErrors' in signIn.error ? signIn.error.fieldErrors : undefined;
-
   return (
     <div>
       <h1>Sign In</h1>
@@ -72,12 +69,16 @@ export default component$(() => {
         <label>
           <span>Username</span>
           <input name="username" type="text" autoComplete="username" required />
-          {fieldErrors?.username && <p style="color:red">{fieldErrors.username}</p>}
+          {signIn.error?.fieldErrors?.username && (
+            <p style="color:red">{signIn.error.fieldErrors.username}</p>
+          )}
         </label>
         <label>
           <span>Password</span>
           <input name="password" type="password" autoComplete="current-password" required />
-          {fieldErrors?.password && <p style="color:red">{fieldErrors.password}</p>}
+          {signIn.error?.fieldErrors?.password && (
+            <p style="color:red">{signIn.error.fieldErrors.password}</p>
+          )}
         </label>
         <label>
           <span>Confirm password</span>

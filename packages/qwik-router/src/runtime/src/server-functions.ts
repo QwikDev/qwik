@@ -53,7 +53,7 @@ export const routeActionQrl = ((
   function action() {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
-    const initialState: Editable<Partial<ActionStore<unknown, unknown>>> = {
+    const initialState: Editable<Partial<ActionStore<unknown, unknown, true, any>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
       submitted: false,
       isRunning: false,
@@ -62,7 +62,7 @@ export const routeActionQrl = ((
       error: undefined,
       formData: undefined,
     };
-    const state = useStore<Editable<ActionStore<unknown, unknown>>>(() => {
+    const state = useStore<Editable<ActionStore<unknown, unknown, true, any>>>(() => {
       const value = currentAction.value;
       if (value && value?.id === id) {
         const data = value.data;
@@ -79,7 +79,7 @@ export const routeActionQrl = ((
           }
         }
       }
-      return initialState as ActionStore<unknown, unknown>;
+      return initialState as ActionStore<unknown, unknown, true, any>;
     });
 
     const submit = $((input: unknown | FormData | SubmitEvent = {}) => {

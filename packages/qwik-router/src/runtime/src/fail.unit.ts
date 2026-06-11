@@ -43,7 +43,10 @@ describe('fail() types — actions', () => {
     const action = useAction();
     expectTypeOf(action.value).toEqualTypeOf<{ ok: boolean } | undefined>();
     if (action.error) {
-      expectTypeOf(action.error.data).toEqualTypeOf<{ notFound: boolean } | { denied: string }>();
+      expectTypeOf(action.error.data).toMatchTypeOf<{ notFound: boolean } | { denied: string }>();
+      // StrictUnion: flat access works across the union without narrowing.
+      expectTypeOf(action.error.notFound).toEqualTypeOf<boolean | undefined>();
+      expectTypeOf(action.error.denied).toEqualTypeOf<string | undefined>();
     }
   });
 
@@ -119,9 +122,11 @@ describe('fail() types — actions', () => {
     expectTypeOf(action.value).toEqualTypeOf<{ ok: boolean } | undefined>();
     if (action.error) {
       expectTypeOf(action.error.status).toEqualTypeOf<number>();
-      expectTypeOf(action.error.data).toEqualTypeOf<
+      expectTypeOf(action.error.data).toMatchTypeOf<
         ValidatorErrorType<{ username: string }> | { taken: boolean }
       >();
+      expectTypeOf(action.error.fieldErrors?.username).toEqualTypeOf<string | undefined>();
+      expectTypeOf(action.error.taken).toEqualTypeOf<boolean | undefined>();
     }
   });
 });
@@ -162,9 +167,10 @@ describe('fail() types — loaders', () => {
     const loader = useLoader();
     expectTypeOf(loader.value).toEqualTypeOf<{ product: string }>();
     if (isServerError(loader.error)) {
-      expectTypeOf(loader.error.data).toEqualTypeOf<
+      expectTypeOf(loader.error.data).toMatchTypeOf<
         { notFound: boolean } | { forbidden: boolean }
       >();
+      expectTypeOf(loader.error.forbidden).toEqualTypeOf<boolean | undefined>();
     }
   });
 });

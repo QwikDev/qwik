@@ -907,7 +907,7 @@ export type ActionReturn<RETURN, ERROR = unknown> = {
   /** The action's successful return value. `undefined` when the action failed (see `error`). */
   readonly value: RETURN | undefined;
   /** The `ServerError` from a returned `fail()` or a failed validator. */
-  readonly error: ServerError<ERROR> | undefined;
+  readonly error: ServerError<StrictUnion<ERROR>> | undefined;
 };
 
 /** @public */
@@ -980,7 +980,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
    * validator. It's `undefined` before the action is first called and when the last execution
    * succeeded.
    */
-  readonly error: ServerError<ERROR> | undefined;
+  readonly error: ServerError<StrictUnion<ERROR>> | undefined;
 
   /**
    * Method to execute the action programmatically from the browser. Ie, instead of using a
@@ -1008,7 +1008,7 @@ export type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPro
      * problem (network failure) can also land here as a plain `Error` — narrow with
      * `isServerError()`.
      */
-    error: ServerError<ERROR> | Error | undefined;
+    error: ServerError<StrictUnion<ERROR>> | Error | undefined;
   };
 
 /** @public */

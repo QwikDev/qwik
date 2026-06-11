@@ -153,9 +153,11 @@ export type ActionConstructor = {
 export type ActionReturn<RETURN, ERROR = unknown> = {
   readonly status?: number;
   readonly value: RETURN | undefined;
-  readonly error: ServerError<ERROR> | undefined;
+  readonly error: ServerError<StrictUnion<ERROR>> | undefined;
 };
 ```
+
+**References:** [StrictUnion](#strictunion)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -173,7 +175,7 @@ export type ActionStore<
   readonly status?: number;
   readonly formData: FormData | undefined;
   readonly value: RETURN | undefined;
-  readonly error: ServerError<ERROR> | undefined;
+  readonly error: ServerError<StrictUnion<ERROR>> | undefined;
   readonly submit: QRL<
     OPTIONAL extends true
       ? (
@@ -187,7 +189,7 @@ export type ActionStore<
 };
 ```
 
-**References:** [ActionReturn](#actionreturn)
+**References:** [StrictUnion](#strictunion), [ActionReturn](#actionreturn)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -1354,9 +1356,11 @@ export type LoaderSignal<
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
   Pick<AsyncSignal, "promise" | "loading"> & {
-    error: ServerError<ERROR> | Error | undefined;
+    error: ServerError<StrictUnion<ERROR>> | Error | undefined;
   };
 ```
+
+**References:** [StrictUnion](#strictunion)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 

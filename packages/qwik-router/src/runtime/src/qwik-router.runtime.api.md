@@ -70,7 +70,7 @@ export type ActionConstructor = {
 export type ActionReturn<RETURN, ERROR = unknown> = {
     readonly status?: number;
     readonly value: RETURN | undefined;
-    readonly error: ServerError_2<ERROR> | undefined;
+    readonly error: ServerError_2<StrictUnion<ERROR>> | undefined;
 };
 
 // @public (undocumented)
@@ -80,7 +80,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
     readonly status?: number;
     readonly formData: FormData | undefined;
     readonly value: RETURN | undefined;
-    readonly error: ServerError_2<ERROR> | undefined;
+    readonly error: ServerError_2<StrictUnion<ERROR>> | undefined;
     readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>>>;
     readonly submitted: boolean;
 };
@@ -302,7 +302,7 @@ export { Loader_2 as Loader }
 
 // @public (undocumented)
 export type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {
-    error: ServerError_2<ERROR> | Error | undefined;
+    error: ServerError_2<StrictUnion<ERROR>> | Error | undefined;
 };
 
 // @public (undocumented)

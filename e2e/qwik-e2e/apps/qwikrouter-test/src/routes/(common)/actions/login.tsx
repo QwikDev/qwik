@@ -34,9 +34,6 @@ export const SecretForm = component$(() => {
   const action = useSecretAction();
   const message = useSignal('');
 
-  const fieldErrors =
-    action.error && 'fieldErrors' in action.error ? action.error.fieldErrors : undefined;
-
   return (
     <>
       <Form action={action} id="secret-form">
@@ -54,14 +51,18 @@ export const SecretForm = component$(() => {
               placeholder="admin"
               value={action.formData?.get('username')}
             />
-            {fieldErrors?.username && <p class={styles.error}>{fieldErrors.username}</p>}
+            {action.error?.fieldErrors?.username && (
+              <p class={styles.error}>{action.error.fieldErrors.username}</p>
+            )}
           </label>
         </div>
         <div>
           <label id="label-code">
             Code:
             <input type="text" name="code" placeholder="123" value={action.formData?.get('code')} />
-            {fieldErrors?.code && <p class={styles.error}>{fieldErrors.code}</p>}
+            {action.error?.fieldErrors?.code && (
+              <p class={styles.error}>{action.error.fieldErrors.code}</p>
+            )}
           </label>
         </div>
         {action.error?.message && (

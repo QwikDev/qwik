@@ -16,7 +16,6 @@ import type {
 import { parseWithRawTransfer } from "../ast/parse.js";
 import { flattenAndReparse } from "../prepare/flatten-destructures.js";
 import { detectForeignJsxRuntime } from "../jsx/jsx-import-source.js";
-import { extractSegments } from "../extraction/extract.js";
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from "../extraction/extract.js";
 import { repairInput } from "../prepare/input-repair.js";
 import {
@@ -26,7 +25,11 @@ import {
   type JsxRewriteOptions,
   type ParentRewriteResult,
 } from "../rewrite/index.js";
-import { collectImports, type ImportInfo } from "../extraction/marker-detection.js";
+import {
+  collectImports,
+  sourceMayContainMarkers,
+  type ImportInfo,
+} from "../extraction/marker-detection.js";
 import { buildDevFilePath } from "../segment/dev-mode.js";
 import { isSimpleIdentifierName } from '../ast/identifier-name.js';
 import { type SymbolName, mkSymbolName, type RelativePath } from '../types/brands.js';
@@ -34,7 +37,11 @@ import {
   analyzeCaptures,
   collectScopeIdentifiers,
 } from "../analysis/capture-analysis.js";
-import { gatherModuleFacts, type PassiveConflict } from "../analysis/module-gather-walk.js";
+import {
+  gatherModuleFacts,
+  type ModuleGatherFacts,
+  type PassiveConflict,
+} from "../analysis/module-gather-walk.js";
 import type { ScopeAwareCollectResult } from "../jsx/jsx.js";
 import {
   analyzeMigration,
@@ -127,17 +134,25 @@ interface PreparedModuleInput {
 }
 
 /**
+ * Phase 1+2 walk result: the extraction set plus every gathered
+ * per-module fact, all from the single fused program traversal.
+ */
+interface ExtractedModule {
+  readonly kind: 'extracted';
+  readonly extractions: ExtractionResult[];
+  readonly closureNodes: Map<string, AstFunction>;
+  /** Facts from the fused gather walk; consumed by Phase 2. */
+  readonly facts: ModuleGatherFacts;
+}
+
+/**
  * Phase 1 result. `passthrough` is the early exit for inputs with no
  * marker calls and no JSX to transpile — the module is emitted verbatim
  * and no further phase runs.
  */
 type SegmentExtraction =
   | { readonly kind: 'passthrough'; readonly module: TransformModule }
-  | {
-      readonly kind: 'extracted';
-      readonly extractions: ExtractionResult[];
-      readonly closureNodes: Map<string, AstFunction>;
-    };
+  | ExtractedModule;
 
 /** Emit configuration derived purely from options + input extension. */
 interface EmitConfig {
@@ -265,8 +280,7 @@ function transformOneModule(
   const analysis = analyzeModuleCaptures(
     mod,
     prepared,
-    extractions,
-    closureNodes,
+    extracted,
     emit.entryStrategy,
     diagnostics,
   );
@@ -376,7 +390,8 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
   };
 }
 
-/** Phase 1: extract `$()` segments, or emit the module verbatim. */
+/** Phase 1+2 walk: extract `$()` segments and gather every per-module
+ * fact in one fused program traversal, or emit the module verbatim. */
 function extractModuleSegments(
   mod: ModuleContext,
   prepared: PreparedModuleInput,
@@ -386,31 +401,66 @@ function extractModuleSegments(
 
   const willTranspileJsx =
     options.transpileJsx !== false && (ext === ".tsx" || ext === ".jsx");
+
+  // Sound textual prefilter (the Phase-0.5 flatten-prefilter pattern):
+  // a module whose text cannot contain an extraction trigger — see
+  // `sourceMayContainMarkers` for the soundness argument — and that has
+  // no JSX to transpile is a passthrough by construction. Skipping the
+  // gather walk for it cannot change behavior; it only avoids paying the
+  // tracker build and projection buffers on marker-less modules.
+  if (!willTranspileJsx && !sourceMayContainMarkers(repairedCode)) {
+    return {
+      kind: 'passthrough',
+      module: buildPassthroughModule(
+        repairedCode,
+        relPath,
+        input.path,
+        program,
+      ),
+    };
+  }
+
   // Closure AST nodes (the `arg` of each marker call) are threaded out by
-  // `extractSegments` keyed by post-disambiguation `symbolName`, so
+  // the extraction collector keyed by post-disambiguation `symbolName`, so
   // downstream phases reuse the original parse instead of re-parsing each
   // extraction's body.
   const closureNodes = new Map<string, AstFunction>();
-  // `extractSegments` returns `readonly ExtractedSegment[]` as its
+  // The canonical gather walk, hosting the Phase-1 extraction collector:
+  // one program traversal produces the extraction set AND every per-module
+  // fact that previously required its own walk. Projections that depend on
+  // extraction identity (free identifiers, lexical scopes, loop map,
+  // segment usage) key off the closures the collector discovers mid-walk;
+  // symbolName-keyed maps are derived post-walk, after disambiguation.
+  const facts = gatherModuleFacts({
+    program,
+    repairedCode,
+    scopeEntries: true,
+    passiveConflicts: true,
+    // Same predicate Phase 4 uses to decide whether the JSX transform runs
+    // (`rewriteParent` builds `jsxOptions` under this condition) — gather
+    // the bindings only when that transform will consume them.
+    scopeBindings: willTranspileJsx,
+    extraction: {
+      source: repairedCode,
+      relPath,
+      scope: options.scope,
+      transpileJsx: willTranspileJsx,
+      // Explicit user-set transpileJsx flag (defaults to false) for the
+      // ctxKind classifier. Distinct from `willTranspileJsx` which
+      // defaults to true on .tsx/.jsx (TS auto-transpile).
+      explicitTranspileJsx: options.transpileJsx === true,
+      parserModule,
+      closureNodesOut: closureNodes,
+    },
+  });
+  // The collector returns `readonly ExtractedSegment[]` as its
   // phase-locked contract. The orchestrator applies in-place mutations
   // (prod rename, transpile-downgrade, capture analysis, raw-props
   // consolidation) that gradually advance the array elements through
   // `captured` → `consolidated` phases. The cast here is the single
   // FFI-boundary widening; per-mutation `Mutable` casts handle
   // field-level readonly enforcement.
-  const extractions: ExtractionResult[] = extractSegments(
-    repairedCode,
-    relPath,
-    options.scope,
-    willTranspileJsx,
-    program,
-    parserModule,
-    closureNodes,
-    // Explicit user-set transpileJsx flag (defaults to false) for the
-    // ctxKind classifier. Distinct from `willTranspileJsx` which
-    // defaults to true on .tsx/.jsx (TS auto-transpile).
-    options.transpileJsx === true,
-  ) as ExtractionResult[];
+  const extractions = facts.extractions as ExtractionResult[];
 
   // Early exit: no segments and no JSX to transpile
   if (extractions.length === 0 && !willTranspileJsx) {
@@ -425,7 +475,7 @@ function extractModuleSegments(
     };
   }
 
-  return { kind: 'extracted', extractions, closureNodes };
+  return { kind: 'extracted', extractions, closureNodes, facts };
 }
 
 /** Resolve the emit configuration (pure derivation from options + ext). */
@@ -475,13 +525,13 @@ function resolveEmitConfig(mod: ModuleContext): EmitConfig {
 function analyzeModuleCaptures(
   mod: ModuleContext,
   prepared: PreparedModuleInput,
-  extractions: ExtractionResult[],
-  closureNodes: Map<string, AstFunction>,
+  extracted: ExtractedModule,
   entryStrategy: EntryStrategy,
   diagnostics: Diagnostic[],
 ): CaptureAnalysis {
   const { options, relPath } = mod;
   const { repairedCode, program } = prepared;
+  const { extractions, closureNodes } = extracted;
 
   const originalImports = collectImports(program, prepared.parserModule);
   const importedNames = new Set<string>(originalImports.keys());
@@ -504,13 +554,13 @@ function analyzeModuleCaptures(
     bodyScopeIds.set(symbolName, bodyIds);
   }
 
-  // The canonical gather walk: every per-module fact that needs a program
-  // traversal, in at most two walks (ScopeTracker build + gather). Free
-  // identifiers and lexical scope chains feed capture analysis below;
-  // loop maps + scope entries feed event-handler capture promotion;
-  // segment usage feeds Phase 3; passive conflicts are emitted in Phase 4.
-  // Keyed by closure node identity / symbolName as each consumer needs —
-  // node-identity keys survive the prod `s_<hash>` rename.
+  // Facts from the canonical gather walk — the single fused traversal that
+  // also ran Phase-1 extraction (`extractModuleSegments`). Free identifiers
+  // and lexical scope chains feed capture analysis below; loop maps + scope
+  // entries feed event-handler capture promotion; segment usage feeds
+  // Phase 3; passive conflicts are emitted in Phase 4. Keyed by closure
+  // node identity / symbolName as each consumer needs — node-identity keys
+  // survive the prod `s_<hash>` rename.
   const {
     closureFreeIdentifiers,
     closureLexicalScopes,
@@ -521,21 +571,7 @@ function analyzeModuleCaptures(
     rootUsage,
     passiveConflicts,
     scopeAwareBindings,
-  } = gatherModuleFacts({
-    program,
-    closureNodes,
-    usageExtractions: extractions,
-    loopExtractions: extractions,
-    repairedCode,
-    scopeEntries: true,
-    passiveConflicts: true,
-    // Same predicate Phase 4 uses to decide whether the JSX transform runs
-    // (`rewriteParent` builds `jsxOptions` under this condition) — gather
-    // the bindings only when that transform will consume them.
-    scopeBindings:
-      options.transpileJsx !== false &&
-      (mod.ext === ".tsx" || mod.ext === ".jsx"),
-  });
+  } = extracted.facts;
 
   // Run capture analysis with the correct parent scope for each extraction.
   for (const extraction of extractions) {
@@ -544,7 +580,7 @@ function analyzeModuleCaptures(
 
     const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
 
-    const lexicalScope = closureLexicalScopes.get(extraction.symbolName);
+    const lexicalScope = closureLexicalScopes.get(closureNode);
     const parentScopeIds: Set<string> = lexicalScope ?? moduleScopeIds;
 
     // For inlinedQrl extractions, populate captureNames from explicit captures

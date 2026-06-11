@@ -240,3 +240,39 @@ export function getExtractionName(
 ): string {
   return (isJsxEventAttr && jsxAttrName) ? jsxAttrName : calleeName;
 }
+
+/**
+ * Sound textual prefilter: can this source possibly contain an extraction
+ * trigger? Every trigger requires one of:
+ *
+ *   - a `$`-final identifier / JSX-attribute / property-key token visible
+ *     verbatim in source — at the call site, in the import statement
+ *     (`isMarkerCall` resolves renamed imports through the import text),
+ *     in the `export const X$ = wrap(XQrl)` customInlined declaration, as
+ *     `name$={...}`, or as `name$:` / `"name$":`. In valid JS/TS syntax a
+ *     token-final `$` is never immediately followed by `{` — that exact
+ *     shape (`${`) is exclusively template-literal interpolation;
+ *   - an `inlinedQrl` / `_inlinedQrl` callee (no `$` required); or
+ *   - a unicode-escaped `$` in an identifier (`\u0024` / `\u{24}`).
+ *
+ * A module whose text has none of these cannot extract, so the caller may
+ * skip the extraction walk entirely. Over-inclusion (a `$` inside a string,
+ * comment, or non-marker name) just falls through to the walk, which
+ * decides for real.
+ */
+export function sourceMayContainMarkers(source: string): boolean {
+  for (
+    let idx = source.indexOf('$');
+    idx !== -1;
+    idx = source.indexOf('$', idx + 1)
+  ) {
+    // charCodeAt past the end yields NaN, which !== '{' — a trailing `$`
+    // safely over-includes.
+    if (source.charCodeAt(idx + 1) !== 0x7b /* '{' */) return true;
+  }
+  return (
+    source.includes('inlinedQrl') ||
+    source.includes('\\u0024') ||
+    source.includes('\\u{24}')
+  );
+}

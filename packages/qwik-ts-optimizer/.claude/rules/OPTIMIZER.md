@@ -177,19 +177,19 @@ Each segment is ~1–3 lines of business logic. That granularity is the whole po
 
 ## The pipeline
 
-Top-level entry is `transformModule` at `src/optimizer/transform/index.ts:202` — a thin multi-file loop that hands each input to the per-file driver `transformOneModule` (`transform/index.ts:234`), which sequences one named helper per phase. Each helper takes explicit inputs and returns an explicit typed result object (`PreparedModuleInput`, `CaptureAnalysis`, `MigrationAnalysis`, …) so the data flow between phases is visible at the signature level (refactored per OSS-478 from a single ~650-line loop body).
+Top-level entry is `transformModule` at `src/optimizer/transform/index.ts:226` — a thin multi-file loop that hands each input to the per-file driver `transformOneModule` (`transform/index.ts:258`), which sequences one named helper per phase. Each helper takes explicit inputs and returns an explicit typed result object (`PreparedModuleInput`, `CaptureAnalysis`, `MigrationAnalysis`, …) so the data flow between phases is visible at the signature level (refactored per OSS-478 from a single ~650-line loop body).
 
 | Phase | Helper | What it does | Key code |
 |---|---|---|---|
-| 0 + 0.5 | `prepareModuleInput` (`transform/index.ts:313`) | Repair SWC-recoverable parse errors; flatten `const {x} = useFoo()` destructures; detect foreign JSX pragma; parse once | `repairInput`, `flattenAndReparse` |
-| 1 | `extractModuleSegments` (`transform/index.ts:371`) | Walk the AST, find every `$(...)` call, record loc + body text + initial metadata; passthrough early-exit when nothing to do | `extractSegments` in `extract.ts` |
-| 2 | `analyzeModuleCaptures` (`transform/index.ts:470`) | Collect imports + run scope analysis on each closure to determine which outer-scope vars are captured. Closure AST nodes are threaded through from Phase 1 (`closureNodes` map populated by `extractSegments` per OSS-353). All per-module program facts (free identifiers, lexical scope chains, loop maps, scope entries, segment usage, passive conflicts, JSX scope bindings) come from one **canonical gather walk** (`gatherModuleFacts` in `analysis/module-gather-walk.ts`, per OSS-486) — a single traversal that also builds the `ScopeTracker` as it goes (per OSS-495), instead of one walk per fact | `gatherModuleFacts`, `collectScopeIdentifiers`, `analyzeCaptures` |
-| 3 | `attributeSegmentUsage` (`transform/index.ts:693`) | For each module-level binding referenced inside a segment, decide: stay in parent (`keep`), move into segment (`move`), or re-export (`reexport`). The usage maps arrive pre-built from the Phase-2 gather walk; this phase only augments and decides | `decideMigration` in `variable-migration.ts` |
-| 4 | `rewriteParent` (`transform/index.ts:849`) | Rewrite the parent module — replace each `$(closure)` with a generated `q_<symbol>` `qrl(...)` reference; apply migration decisions | `rewriteParentModule` in `rewrite/index.ts` |
-| 5 | `generateSegments` (`transform/index.ts:972`) | Emit one module per non-stripped segment | `generateAllSegmentModules` in `segment/segment-generation.ts` (34-line sequencer over named helpers per OSS-356/357/358 — see SPEC at `.planning/specs/segment-generation-refactor.md`) |
-| 6 | `applyDiagnosticSuppression` (`transform/index.ts:1087`) | Apply diagnostic suppression directives (cross-file; runs once in `transformModule`) | (lightweight cleanup) |
+| 0 + 0.5 | `prepareModuleInput` (`transform/index.ts:336`) | Repair SWC-recoverable parse errors; flatten `const {x} = useFoo()` destructures; detect foreign JSX pragma; parse once | `repairInput`, `flattenAndReparse` |
+| 1 | `extractModuleSegments` (`transform/index.ts:395`) | **The fused per-module walk** (per OSS-496): one program traversal — the canonical gather walk hosting the Phase-1 extraction collector — finds every `$(...)` call (loc + body text + initial metadata) AND gathers every per-module fact Phase 2 consumes. Two passthrough early-exits: a sound marker prefilter (`sourceMayContainMarkers` — no `$`-final token, no `inlinedQrl`, no unicode-escaped `$`) skips the walk entirely on marker-less non-JSX modules; otherwise zero extractions + no JSX to transpile exits after the walk | `gatherModuleFacts` in `analysis/module-gather-walk.ts` hosting `createExtractionCollector` in `extract.ts` (standalone `extractSegments` retained as differential oracle) |
+| 2 | `analyzeModuleCaptures` (`transform/index.ts:525`) | Collect imports + run scope analysis on each closure to determine which outer-scope vars are captured. Closure AST nodes are threaded through from Phase 1 (`closureNodes` map populated by the extraction collector per OSS-353). All per-module program facts (free identifiers, lexical scope chains, loop maps, scope entries, segment usage, passive conflicts, JSX scope bindings) arrive pre-built from the Phase-1 fused walk — a single traversal that also builds the `ScopeTracker` as it goes (per OSS-495) and hosts extraction itself (per OSS-496); Phase 2 runs no program walk of its own | `analyzeCaptures`, `collectScopeIdentifiers` |
+| 3 | `attributeSegmentUsage` (`transform/index.ts:742`) | For each module-level binding referenced inside a segment, decide: stay in parent (`keep`), move into segment (`move`), or re-export (`reexport`). The usage maps arrive pre-built from the Phase-1 fused walk; this phase only augments and decides | `decideMigration` in `variable-migration.ts` |
+| 4 | `rewriteParent` (`transform/index.ts:923`) | Rewrite the parent module — replace each `$(closure)` with a generated `q_<symbol>` `qrl(...)` reference; apply migration decisions | `rewriteParentModule` in `rewrite/index.ts` |
+| 5 | `generateSegments` (`transform/index.ts:1051`) | Emit one module per non-stripped segment | `generateAllSegmentModules` in `segment/segment-generation.ts` (34-line sequencer over named helpers per OSS-356/357/358 — see SPEC at `.planning/specs/segment-generation-refactor.md`) |
+| 6 | `applyDiagnosticSuppression` (`transform/index.ts:1167`) | Apply diagnostic suppression directives (cross-file; runs once in `transformModule`) | (lightweight cleanup) |
 
-Between Phases 3 and 4 the driver runs two small steps: `applyProdRename` (`transform/index.ts:780`, the prod `s_<hash>` rename) and `downgradeExtensions` (`transform/index.ts:816`, transpile-target extension downgrade).
+Between Phases 3 and 4 the driver runs two small steps: `applyProdRename` (`transform/index.ts:854`, the prod `s_<hash>` rename) and `downgradeExtensions` (`transform/index.ts:890`, transpile-target extension downgrade).
 
 The all-segments orchestrator `generateAllSegmentModules` (`segment-generation.ts:1327`) is a 34-line sequencer over six named helpers: `computeSegmentGenerationPrep` (per-call setup), `buildInlineStrategySegment` (inline/hoist branch), `buildDefaultStrategySegment` (default branch sequencer), and three sub-helpers `buildNestedQrlDeclarations` / `wireMigration` / `buildNestedCallSites` plus a shared `consolidateRawPropsCaptures`. Refactor track v2 (OSS-356/357/358) extracted these from a 580-line monolith; full design rationale at [`.planning/specs/segment-generation-refactor.md`](../../.planning/specs/segment-generation-refactor.md).
 
@@ -201,7 +201,7 @@ Phase 5's per-segment work flows through `generateSegmentCode` (`segment/segment
 
 ### Phase 1 — extraction (`src/optimizer/extraction/extract.ts`)
 
-Walks the AST looking for `$(...)` calls. For `example_1` it finds 3:
+Walks the AST looking for `$(...)` calls — since OSS-496 the per-node handlers live in `createExtractionCollector` and run inside the canonical gather walk's single traversal (the standalone `extractSegments` walk survives as the differential oracle). For `example_1` it finds 3:
 
 | symbolName (initial) | bodyText (closure source) | parent | location |
 |---|---|---|---|
@@ -211,7 +211,7 @@ Walks the AST looking for `$(...)` calls. For `example_1` it finds 3:
 
 Each row's `symbolName` is composed in four steps from a context-stack walk during AST traversal: build a `displayName` from the stack, hash it with SipHash-1-3, append the hash. Full mechanics (including disambiguation when contexts collide and the prod-mode `s_<hash>` rename) live in [Symbol naming and hashing](#symbol-naming-and-hashing) under the metadata deep dive.
 
-### Phase 2 — capture analysis (`analyzeModuleCaptures`, `transform/index.ts:467`)
+### Phase 2 — capture analysis (`analyzeModuleCaptures`, `transform/index.ts:525`)
 
 For each closure body, parses it again (`parseWithRawTransfer`), collects identifiers in scope, and walks the body looking for free variables that resolve to outer scope. None of the `example_1` closures actually capture anything — `ctx` is an inner param, `render` is referenced but unbound (not tracked), `console` is global. The metadata block at snap line 40 confirms: `"captures": false`.
 
@@ -284,13 +284,13 @@ Globals (`console`, `Math`, `window`) are not captured because they aren't decla
 
 Three functions across two modules:
 
-- **`gatherModuleFacts`** (`analysis/module-gather-walk.ts`) — the canonical per-module gather walk. One walk over the whole program — building the `ScopeTracker` scope tree as it traverses while carrying the open-closure, lexical-scope, and loop stacks (the tracker is frozen post-walk, then buffered free identifiers resolve via `ScopeQueryTracker.getDeclarationFromScope`, per OSS-494/495) — produces every per-module fact at once: the free-identifier map (for **every** extraction closure — the identifiers referenced inside it that don't resolve within its own subtree, keyed by closure node identity, stable across the prod `s_<hash>` rename), lexical scope chains, the extraction loop map, scope entries, segment/root usage, passive-conflict sites, and (for JSX modules) the scope-aware bindings the Phase-4 JSX transform consumes via `precomputedScopeBindings` (per OSS-488). The free-identifier projection replaced the per-closure `getUndeclaredIdentifiersInFunction` calls (two walks *per closure per consumer*, OSS-486 group 1); the remaining per-fact walks folded in as projections (group 3). The map also feeds event-handler capture promotion (`EventCaptureContext.closureFreeIdentifiers`) and C02 diagnostics; `computeClosureFreeIdentifiers` (`analysis/closure-free-identifiers.ts`) survives as a single-projection wrapper. The replaced standalone walk functions are retained as differential oracles, pinned by per-projection corpus parity tests.
+- **`gatherModuleFacts`** (`analysis/module-gather-walk.ts`) — the canonical per-module gather walk, and since OSS-496 **the host of Phase-1 extraction itself**: in production it runs once per module from `extractModuleSegments`, in fused-extraction mode (`extraction` input), driving the extraction collector's enter/leave handlers alongside its projections. One walk over the whole program — building the `ScopeTracker` scope tree as it traverses while carrying the open-closure, lexical-scope, and loop stacks (the tracker is frozen post-walk, then buffered free identifiers resolve via `ScopeQueryTracker.getDeclarationFromScope`, per OSS-494/495) — produces the extraction set plus every per-module fact at once: the free-identifier map (for **every** extraction closure — the identifiers referenced inside it that don't resolve within its own subtree, keyed by closure node identity, stable across the prod `s_<hash>` rename), lexical scope chains (also keyed by closure-node identity), the extraction loop map, scope entries, segment/root usage, passive-conflict sites, and (for JSX modules) the scope-aware bindings the Phase-4 JSX transform consumes via `precomputedScopeBindings` (per OSS-488). Mid-walk recording keys by node/object identity only — closures register for the free-identifier and lexical-scope projections at their creation node's enter (always before the walker descends into the closure), and loop stacks snapshot at the extraction's own creation node; the symbolName-keyed maps (`extractionLoopMap`, `segmentUsage`) are derived post-walk, after `disambiguateExtractions` finalises names. Segment-usage classification and scope-entry building are skipped when a fused walk finds zero extractions (their consumers iterate extractions). The free-identifier projection replaced the per-closure `getUndeclaredIdentifiersInFunction` calls (two walks *per closure per consumer*, OSS-486 group 1); the remaining per-fact walks folded in as projections (group 3); the standalone extraction walk folded in per OSS-496, with a sound marker prefilter (`sourceMayContainMarkers` in `marker-detection.ts`) letting marker-less non-JSX modules skip the walk entirely. The map also feeds event-handler capture promotion (`EventCaptureContext.closureFreeIdentifiers`) and C02 diagnostics; `computeClosureFreeIdentifiers` (`analysis/closure-free-identifiers.ts`) survives as a single-projection wrapper. The replaced standalone walk functions — including `extractSegments`, which still drives the shared collector with its own walk — are retained as differential oracles, pinned by per-projection corpus parity tests (`module-gather-walk.test.ts`, `fused-extraction-parity.test.ts`).
 - **`collectScopeIdentifiers`** (`capture-analysis.ts:81`) — recursively walks a container (Program, BlockStatement, FunctionBody, Function). Returns a `Set<string>` of every name that's declared inside it: var/const/let bindings (including destructure patterns), function and class names, function parameters.
 - **`analyzeCaptures`** (`capture-analysis.ts:42`) — for one closure: takes its slice of the free-identifier map, intersects with the parent scope's identifiers (so we keep only outer-scope refs, not globals or imports). Returns sorted, deduplicated `string[]`; function/class declaration names are filtered by the caller.
 
-The orchestration lives in `analyzeModuleCaptures` (`transform/index.ts:467`). It computes the free-identifier map once, then for each extraction:
+The orchestration lives in `analyzeModuleCaptures` (`transform/index.ts:525`). It receives the free-identifier map from the Phase-1 fused walk, then for each extraction:
 
-1. Looks up the closure AST node from the `closureNodes` map populated by Phase 1's `extractSegments` (OSS-353 — replaced an earlier per-extraction body re-parse with a single canonical AST walk; the closure node carries its own source-absolute positions so diagnostics align with the original file).
+1. Looks up the closure AST node from the `closureNodes` map populated by the Phase-1 extraction collector (OSS-353 — replaced an earlier per-extraction body re-parse with a single canonical AST walk; the closure node carries its own source-absolute positions so diagnostics align with the original file).
 2. Picks the right parent scope: if the closure is nested inside another extraction, the parent is the outer extraction's body scope; otherwise it's the module scope.
 3. Calls `analyzeCaptures` to populate `extraction.captureNames`.
 4. Sets `extraction.captures = captureNames.length > 0`.
@@ -300,12 +300,12 @@ The orchestration lives in `analyzeModuleCaptures` (`transform/index.ts:467`). I
 There are **two completely separate code paths** for populating `captureNames`, and which one runs depends entirely on whether a developer or a tool wrote the source:
 
 **Path A: regular `$()` — author-written, optimizer infers everything.**
-- `transform/index.ts:539` (the per-extraction loop in `analyzeModuleCaptures`) calls `analyzeCaptures` to walk the closure scope.
+- `transform/index.ts:577` (the per-extraction loop in `analyzeModuleCaptures`) calls `analyzeCaptures` to walk the closure scope.
 - The captures list is **derived** from what variables the closure references.
 - The body does not yet contain `_captures[i]` references; the optimizer injects the unpacking line during Phase 5.
 
 **Path B: `inlinedQrl(fn, "name", [captures])` — tool-written, optimizer trusts the spec.**
-- `transform/index.ts:516` (the `isInlinedQrl` branch of the same loop) parses the explicit `[captures]` array directly from the source.
+- `transform/index.ts:587` (the `isInlinedQrl` branch of the same loop) parses the explicit `[captures]` array directly from the source.
 - The captures list is **declared**, not derived. The optimizer doesn't re-analyse — it trusts the upstream tool got it right.
 - The body **already contains** `const x = _captures[0]` lines (the upstream tool wrote them). Phase 5 sets `skipCaptureInjection: true` and doesn't inject a duplicate unpacking.
 - `inlinedQrl`'s captures array can contain non-identifier expressions — `[left, true, right]` is valid (see `should_preserve_non_ident_explicit_captures.snap`). Regular `$()` can't express this; only the explicit form can.
@@ -377,7 +377,7 @@ That `.w(...)` call is the runtime hook that wires `_captures` through to the la
 
 ### Where capture data flows downstream
 
-- **Phase 3 (migration)** — `attributeSegmentUsage` (`transform/index.ts:693`) augments the gather walk's `segmentUsage` with `extraction.captureNames` so migration decisions know which module-level decls each segment actually needs.
+- **Phase 3 (migration)** — `attributeSegmentUsage` (`transform/index.ts:742`) augments the gather walk's `segmentUsage` with `extraction.captureNames` so migration decisions know which module-level decls each segment actually needs.
 - **Phase 4 (parent rewrite)** — emits the `.w([...])` capture array on each `q_<symbol>` reference. The emission lives in two passes: `rewriteCallSites` (`rewrite/index.ts:559`, appended at :585 inline with the QRL declaration) for declarations that already exist at the call site, and `addCaptureWrapping` (`rewrite/index.ts:718–755`) for the after-the-fact `.appendLeft` insertion on already-rewritten markers.
 - **Phase 5 (segment codegen)** — `addCaptureAndMigrationImports` (`segment/segment-codegen.ts:222`) emits the `_captures` import; `injectCapturesUnpacking` injects the unpacking line. The post-Phase-4 filtered `captureNames` is what gates these; in OSS-346's helper structure, `applyBodyTransforms` returns the filtered version explicitly.
 
@@ -597,7 +597,7 @@ Every JSX element gets a key string of the form `"<prefix>_<count>"` (e.g., `"u6
 
 Why threaded across phases: parent rewrite assigns keys to its own JSX, then segment codegen has to keep counting from where the parent left off so the same key never appears twice. The counter implementation is `JsxKeyCounter` at `jsx/jsx.ts:723–743`, threaded as:
 
-- `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:1124) → into `transform/index.ts:1070` (`generateSegments`).
+- `parentResult.jsxKeyCounterValue` from `transformAllJsx` (returned at jsx.ts:1124) → into `transform/index.ts:1150` (`generateSegments`).
 - `parentJsxKeyCounterValue` → consumed by `segment-generation.ts:1238` and `transformSegmentJsx` (segment/segment-codegen.ts:378) as `keyCounterStart`.
 - Each segment's emit returns its updated `keyCounterValue` (`segment-generation.ts:1310`, folded back in the `generateAllSegmentModules` sequencer) — folded back so the next segment continues counting.
 
@@ -703,11 +703,11 @@ This keeps the segment hash stable across files importing the same asset under t
 
 #### Disambiguation
 
-When two extractions in one file would collide on `displayName` (e.g., a `$()` nested inside a `component$` whose stack already ends at `Foo_component`), `disambiguateExtractions` (`extract.ts:1416`) appends `_1`, `_2`, ... to the second-onwards occurrences and **recomputes the hash** for each renamed entry. This is why `example_multi_capture` shows both `Foo_component_HTDRsvUbLiE` (the outer) and `Foo_component_1_DvU6FitWglY` (the nested one) — the inner `$()` originally shared context with its parent, so it got the `_1` suffix and a fresh hash with `_1` folded into the input. **`inlinedQrl` extractions skip disambiguation** (per OSS-408): peer-tool-supplied names already encode uniqueness via their hash suffix, and appending `_<n>` would rewrite a name the upstream consumer expects.
+When two extractions in one file would collide on `displayName` (e.g., a `$()` nested inside a `component$` whose stack already ends at `Foo_component`), `disambiguateExtractions` (`extract.ts:1518`) appends `_1`, `_2`, ... to the second-onwards occurrences and **recomputes the hash** for each renamed entry. This is why `example_multi_capture` shows both `Foo_component_HTDRsvUbLiE` (the outer) and `Foo_component_1_DvU6FitWglY` (the nested one) — the inner `$()` originally shared context with its parent, so it got the `_1` suffix and a fresh hash with `_1` folded into the input. **`inlinedQrl` extractions skip disambiguation** (per OSS-408): peer-tool-supplied names already encode uniqueness via their hash suffix, and appending `_<n>` would rewrite a name the upstream consumer expects.
 
 #### Production rename
 
-In `prod` mode, `applyProdRename` (`transform/index.ts:780`) rewrites every segment's `symbolName` from `<contextPortion>_<hash>` to a short `s_<hash>` to reduce shipped bytes. Applies to `inlinedQrl` extractions too — SWC also renames them under prod, preserving the hash suffix so runtime QRL resolution (hash-keyed) still matches. The original symbolName is preserved in `preRenameSymbolName` for migration-decision keying. The rename is also mirrored in `closureNodes` so post-rename lookups (Phase 4 const-literal resolution, etc.) still find the threaded AST node. `displayName`, `hash`, and `canonicalFilename` are unchanged — the rename is symbolName-only, and runtime resolution still works because the hash is the lookup key.
+In `prod` mode, `applyProdRename` (`transform/index.ts:854`) rewrites every segment's `symbolName` from `<contextPortion>_<hash>` to a short `s_<hash>` to reduce shipped bytes. Applies to `inlinedQrl` extractions too — SWC also renames them under prod, preserving the hash suffix so runtime QRL resolution (hash-keyed) still matches. The original symbolName is preserved in `preRenameSymbolName` for migration-decision keying. The rename is also mirrored in `closureNodes` so post-rename lookups (Phase 4 const-literal resolution, etc.) still find the threaded AST node. `displayName`, `hash`, and `canonicalFilename` are unchanged — the rename is symbolName-only, and runtime resolution still works because the hash is the lookup key.
 
 For `inlinedQrl` whose peer-tool-supplied name has no recognisable hash suffix (the post-`_` portion isn't 8+ alphanumeric — see `extract.ts:977–991`), the full name is used as the hash; prod-rename then produces `s_<fullName>`. Conservative — better to keep more of the name than to fabricate a hash from a name that doesn't follow the convention.
 
@@ -786,10 +786,10 @@ Directory layout under `src/optimizer/` mirrors the pipeline: `prepare/` (Phase 
 
 | Concern | File |
 |---|---|
-| Top-level orchestrator | `src/optimizer/transform/index.ts:206` (`transformModule`); per-file driver `transformOneModule` at `:238` |
-| Find `$()` calls + initial metadata | `src/optimizer/extraction/extract.ts` |
+| Top-level orchestrator | `src/optimizer/transform/index.ts:226` (`transformModule`); per-file driver `transformOneModule` at `:258` |
+| Find `$()` calls + initial metadata | `src/optimizer/extraction/extract.ts` — `createExtractionCollector` (per-node handlers, hosted in the gather walk per OSS-496); standalone `extractSegments` retained as differential oracle |
 | Symbol naming + hash computation | `src/optimizer/extraction/context-stack.ts`, `src/hashing/naming.ts`, `src/hashing/siphash.ts` |
-| Canonical per-module gather walk | `src/optimizer/analysis/module-gather-walk.ts` (`gatherModuleFacts`) |
+| Canonical per-module gather walk (hosts Phase-1 extraction) | `src/optimizer/analysis/module-gather-walk.ts` (`gatherModuleFacts`) |
 | Capture analysis | `src/optimizer/analysis/capture-analysis.ts`, `analysis/closure-free-identifiers.ts` |
 | Migration decisions | `src/optimizer/analysis/variable-migration.ts` |
 | Parent rewrite | `src/optimizer/rewrite/index.ts`, `rewrite/output-assembly.ts` |

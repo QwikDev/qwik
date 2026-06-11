@@ -8,7 +8,6 @@
  */
 
 import { walk } from 'oxc-walker';
-import { walkWithProtocol } from '../ast/walk-with-protocol.js';
 import type {
   AstEcmaScriptModule,
   AstFunction,
@@ -257,6 +256,18 @@ interface ExtractWalkEnterContext {
   readonly relPath: string;
   readonly scope: string | undefined;
   readonly transpileJsx: boolean | undefined;
+  /**
+   * Host hook fired once per discovered extraction, at the creation node's
+   * enter — before the walker descends into the closure body. The fused
+   * gather walk uses it to register the closure node for the free-identifier
+   * and lexical-scope projections and to snapshot the enclosing loop stack,
+   * keyed by extraction object identity (symbolName is not final until
+   * `disambiguateExtractions` runs post-walk).
+   */
+  readonly onExtraction?: (
+    extraction: ExtractedSegment,
+    closureNode: AstFunction | null,
+  ) => void;
   /**
    * Explicit user-set value of `transpileJsx`; defaults to false. Distinct
    * from the derived `transpileJsx` parameter above which defaults to TRUE
@@ -613,41 +624,63 @@ function buildExtractedSegment(spec: ExtractedSegmentSpec): ExtractedSegmentBuil
   };
 }
 
-export function extractSegments(
-  source: string,
-  relPath: string,
-  scope?: string,
-  transpileJsx?: boolean,
-  preParsedProgram?: AstProgram,
-  /** When `preParsedProgram` is set, optional module metadata from the same parse. */
-  preParsedModule?: AstEcmaScriptModule,
-  /**
-   * Optional out-map. When provided, populated with the closure AST node
-   * (`ArrowFunctionExpression` | `FunctionExpression`) for each extraction whose body is a function,
-   * keyed by the post-disambiguation `symbolName`. Lets callers skip a redundant per-extraction body re-parse.
-   */
-  closureNodesOut?: Map<string, AstFunction>,
-  /**
-   * SWC's `transpile_jsx` flag value as the **user explicitly set it**
-   * (defaults to false). Distinct from the derived `transpileJsx`
-   * parameter above which defaults to TRUE for `.tsx`/`.jsx` files when
-   * the user omits the flag (TS's "auto-transpile" convention). The
-   * ctxKind classifier needs the strict semantic to mirror SWC's
-   * `parse.rs:259` gate on `transpile_jsx && is_jsx` — that gate selects
-   * between the name-prefix `handle_jsx_value` classifier (default) and
-   * the element-kind `handle_jsx` classifier (active).
-   */
-  explicitTranspileJsx?: boolean,
-): readonly ExtractedSegment[] {
-  const parseResult: AstParseResult | null = preParsedProgram
-    ? null
-    : parseWithRawTransfer(relPath, source);
-  const program = preParsedProgram ?? parseResult!.program;
+/** Per-host options for {@link createExtractionCollector}. */
+export interface ExtractionCollectorOptions {
+  /** Repaired source text backing `program`. */
+  readonly source: string;
+  readonly relPath: string;
+  /** The already-parsed program the host walk traverses. */
+  readonly program: AstProgram;
+  /** Optional module metadata from the same parse (import resolution). */
+  readonly parserModule?: AstEcmaScriptModule;
+  readonly scope?: string;
+  readonly transpileJsx?: boolean;
+  /** See the `explicitTranspileJsx` parameter of {@link extractSegments}. */
+  readonly explicitTranspileJsx?: boolean;
+  /** See the `closureNodesOut` parameter of {@link extractSegments}. */
+  readonly closureNodesOut?: Map<string, AstFunction>;
+  /** See {@link ExtractWalkEnterContext.onExtraction}. */
+  readonly onExtraction?: (
+    extraction: ExtractedSegment,
+    closureNode: AstFunction | null,
+  ) => void;
+}
 
-  const imports = collectImports(
-    program,
-    preParsedProgram ? preParsedModule : parseResult?.module,
-  );
+/**
+ * The Phase-1 extraction walk as a composable collector: per-node
+ * enter/leave handlers plus a post-walk `finish`. Two hosts drive it:
+ *
+ *   - `extractSegments` — the standalone walk, retained as the
+ *     differential oracle for the fused path, and
+ *   - `gatherModuleFacts` — the canonical gather walk, which hosts these
+ *     handlers alongside its projections so extraction shares the single
+ *     program traversal.
+ *
+ * The enter/exit protocol ("enter pushes, leave pops") is enforced inside
+ * the collector: `enter` binds the push-only `ExtractWalkEnterContext`
+ * view and `leave` binds the full exit view — host walks cannot cross the
+ * phases.
+ */
+export interface ExtractionCollector {
+  enter(node: AstNode, parent: AstNode | null): void;
+  leave(node: AstNode): void;
+  /**
+   * Post-walk act: disambiguate colliding display names, populate
+   * `closureNodesOut`, and expose the WIP builders as the readonly
+   * `ExtractedSegment` variant. Call exactly once, after the host walk
+   * completes.
+   */
+  finish(): readonly ExtractedSegment[];
+}
+
+export function createExtractionCollector(
+  options: ExtractionCollectorOptions,
+): ExtractionCollector {
+  const { source, relPath, scope, transpileJsx, program } = options;
+  const explicitTranspileJsx = options.explicitTranspileJsx;
+  const closureNodesOut = options.closureNodesOut;
+
+  const imports = collectImports(program, options.parserModule);
   const customInlined = collectCustomInlined(program);
 
   const relDir = getDirectory(relPath);
@@ -702,6 +735,7 @@ export function extractSegments(
     scope,
     transpileJsx,
     explicitTranspileJsx: explicitTranspileJsx === true,
+    onExtraction: options.onExtraction,
     sourceExt,
     defaultExtension,
     fileStem,
@@ -746,8 +780,8 @@ export function extractSegments(
     },
   };
 
-  walkWithProtocol(program, enterCtx, exitCtx, {
-    enter(node: AstNode, parent: AstParentNode, ctx) {
+  const handlers = {
+    enter(node: AstNode, parent: AstParentNode, ctx: ExtractWalkEnterContext): void {
       if (parent) ctx.parentMap.set(node, parent);
 
       // Accumulate Identifier names into each active body's deferred set
@@ -1082,6 +1116,9 @@ export function extractSegments(
               bodyIds: new Set<string>(),
             });
             ctx.pendingClosures.push({ extraction, node: arg0 });
+            ctx.onExtraction?.(extraction, arg0);
+          } else {
+            ctx.onExtraction?.(extraction, null);
           }
         }
 
@@ -1232,6 +1269,9 @@ export function extractSegments(
           arg.type === 'FunctionExpression'
         ) {
           ctx.pendingClosures.push({ extraction, node: arg });
+          ctx.onExtraction?.(extraction, arg);
+        } else {
+          ctx.onExtraction?.(extraction, null);
         }
       }
 
@@ -1301,6 +1341,7 @@ export function extractSegments(
           // The enclosing if-block already gates on `expr.type` being a function expression,
           // so the cast here is safe.
           ctx.pendingClosures.push({ extraction, node: expr as AstFunction });
+          ctx.onExtraction?.(extraction, expr as AstFunction);
         }
       }
 
@@ -1381,32 +1422,93 @@ export function extractSegments(
           ctx.results.push(extraction);
           ctx.pushActiveSegmentBody({ leaveNode: node, root: value, result: extraction, hasJsx: false, bodyIds: new Set<string>() });
           ctx.pendingClosures.push({ extraction, node: value as AstFunction });
+          ctx.onExtraction?.(extraction, value as AstFunction);
         }
       }
 
       if (pushCount > 0) ctx.pushedNodes.set(node, pushCount);
     },
 
-    leave(node: AstNode, _parent, ctx) {
+    leave(node: AstNode, ctx: ExtractWalkExitContext): void {
       ctx.finaliseTopFrameIfMatches(node);
       ctx.popContextStackForNode(node);
     },
+  };
+
+  return {
+    enter: (node, parent) => handlers.enter(node, parent, enterCtx),
+    leave: (node) => handlers.leave(node, exitCtx),
+    finish: () => {
+      // Pass `fileName` (e.g. "index.tsx") — that's what `buildDisplayName`
+      // prepends as the strip-prefix. `fileStem` may differ from the filename
+      // for routing files (e.g. `routes/foo/index.tsx` → fileStem "foo"), in
+      // which case the prefix-strip silently no-ops and the contextPortion
+      // ends up with `.tsx` literally embedded — mkSymbolName then rejects it.
+      disambiguateExtractions(results, fileName, relPath, scope);
+
+      if (closureNodesOut) {
+        for (const { extraction, node } of pendingClosures) {
+          closureNodesOut.set(extraction.symbolName, node);
+        }
+      }
+
+      return results;
+    },
+  };
+}
+
+export function extractSegments(
+  source: string,
+  relPath: string,
+  scope?: string,
+  transpileJsx?: boolean,
+  preParsedProgram?: AstProgram,
+  /** When `preParsedProgram` is set, optional module metadata from the same parse. */
+  preParsedModule?: AstEcmaScriptModule,
+  /**
+   * Optional out-map. When provided, populated with the closure AST node
+   * (`ArrowFunctionExpression` | `FunctionExpression`) for each extraction whose body is a function,
+   * keyed by the post-disambiguation `symbolName`. Lets callers skip a redundant per-extraction body re-parse.
+   */
+  closureNodesOut?: Map<string, AstFunction>,
+  /**
+   * SWC's `transpile_jsx` flag value as the **user explicitly set it**
+   * (defaults to false). Distinct from the derived `transpileJsx`
+   * parameter above which defaults to TRUE for `.tsx`/`.jsx` files when
+   * the user omits the flag (TS's "auto-transpile" convention). The
+   * ctxKind classifier needs the strict semantic to mirror SWC's
+   * `parse.rs:259` gate on `transpile_jsx && is_jsx` — that gate selects
+   * between the name-prefix `handle_jsx_value` classifier (default) and
+   * the element-kind `handle_jsx` classifier (active).
+   */
+  explicitTranspileJsx?: boolean,
+): readonly ExtractedSegment[] {
+  const parseResult: AstParseResult | null = preParsedProgram
+    ? null
+    : parseWithRawTransfer(relPath, source);
+  const program = preParsedProgram ?? parseResult!.program;
+
+  const collector = createExtractionCollector({
+    source,
+    relPath,
+    program,
+    parserModule: preParsedProgram ? preParsedModule : parseResult?.module,
+    scope,
+    transpileJsx,
+    explicitTranspileJsx,
+    closureNodesOut,
   });
 
-  // Pass `fileName` (e.g. "index.tsx") — that's what `buildDisplayName`
-  // prepends as the strip-prefix. `fileStem` may differ from the filename
-  // for routing files (e.g. `routes/foo/index.tsx` → fileStem "foo"), in
-  // which case the prefix-strip silently no-ops and the contextPortion
-  // ends up with `.tsx` literally embedded — mkSymbolName then rejects it.
-  disambiguateExtractions(results, fileName, relPath, scope);
+  walk(program, {
+    enter(node, parent) {
+      collector.enter(node as AstNode, parent as AstNode | null);
+    },
+    leave(node) {
+      collector.leave(node as AstNode);
+    },
+  });
 
-  if (closureNodesOut) {
-    for (const { extraction, node } of pendingClosures) {
-      closureNodesOut.set(extraction.symbolName, node);
-    }
-  }
-
-  return results;
+  return collector.finish();
 }
 
 /**

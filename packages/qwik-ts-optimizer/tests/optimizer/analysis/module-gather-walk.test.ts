@@ -136,9 +136,17 @@ function diffFixture(source: string, filename: string): string[] {
     if (a !== b) mismatches.push(`${label}: fused=${a} oracle=${b}`);
   };
 
-  // Lexical scopes
+  // Lexical scopes. The fused walk keys by closure-node identity (names
+  // are not final until disambiguation in fused-extraction mode); re-key
+  // by the synthetic symbol names to compare with the symbolName-keyed
+  // oracle.
   const oracleLex = buildClosureLexicalScopes(program, nodes);
-  check('lexicalScopes', mapOfSetsToPlain(facts.closureLexicalScopes), mapOfSetsToPlain(oracleLex));
+  const fusedLex = new Map<string, Set<string>>();
+  for (const [sym, fn] of nodes) {
+    const union = facts.closureLexicalScopes.get(fn);
+    if (union) fusedLex.set(sym, union);
+  }
+  check('lexicalScopes', mapOfSetsToPlain(fusedLex), mapOfSetsToPlain(oracleLex));
 
   // Loop map + loop body var decls. The oracle only reads symbolName /
   // callStart / callEnd off ExtractionResult; the synthetic records carry

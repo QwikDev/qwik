@@ -937,9 +937,13 @@
       "tests/optimizer/rewrite/props-field-rewrite.test.ts :: props-field-rewrite rewrites shorthand object properties with explicit keys",
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props aborts consolidation for call-expression default (parity gate)",
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props aborts consolidation for nested ObjectPattern field (parity gate)",
+      "tests/optimizer/rewrite/raw-props.test.ts :: raw-props combined extractor honors the all-or-nothing unsafe gate for both maps",
+      "tests/optimizer/rewrite/raw-props.test.ts :: raw-props consolidates computed-member-only captures (prefilter must not gate them out)",
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props consolidates raw props captures after the rewrite",
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props consolidates raw props captures without splitting nested comma expressions",
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props extracts destructured field names for the shared session path",
+      "tests/optimizer/rewrite/raw-props.test.ts :: raw-props extracts field map and defaults map from one parse (combined extractor)",
+      "tests/optimizer/rewrite/raw-props.test.ts :: raw-props returns bodies the consolidation cannot touch verbatim (prefilter paths)",
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props rewrites body-level destructuring and keeps the original param name",
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props rewrites destructured params without reparsing the edited body",
       "tests/optimizer/rewrite/raw-props.test.ts :: raw-props rewrites rest-only destructuring in expression bodies",
@@ -1250,6 +1254,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1065
+    "total": 1069
   }
 }

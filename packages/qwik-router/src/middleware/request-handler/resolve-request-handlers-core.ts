@@ -298,13 +298,10 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
             let actionResult: unknown;
             const result = await runValidators(requestEv, action.__validators, data);
             if (!result.success) {
-              // A failed validator becomes the action's `.error` state.
               const actionError = new deps.ServerError(result.status ?? 500, result.error);
               applyFailureResponse(requestEv, actionError);
               actionResult = actionError;
             } else {
-              // Thrown errors (`throw error(...)`, redirects, unexpected) propagate to the
-              // middleware chain — only a returned fail() becomes `action.error`.
               const actionResolved = isDev
                 ? await measure(requestEv, action.__qrl.getHash(), () =>
                     action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
@@ -338,11 +335,8 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       if (routeLoaders.length > 0) {
         setLoaderData(requestEv, routeLoaders, route);
 
-        // Run loaders directly and store raw values. A loader that signals an expected
-        // failure (a returned `fail()` or a failed validator) is converted per-loader into
-        // its `.error` state (`loader.error`) and the page still renders. Redirects and
-        // thrown errors (`throw error(...)`, unexpected) propagate so middleware can catch
-        // them — throwing aborts, returning fail() stays on the page.
+        // Run loaders directly and store raw values.
+        // Errors/redirects propagate so middleware can catch them (e.g. plugin@errors).
         const loaderValues = getRouteLoaderValues(requestEv);
         const loaderErrors = getRouteLoaderErrors(requestEv);
         await Promise.all(
@@ -350,15 +344,13 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
             const value = await loadRouteLoader(loader, requestEv);
             if (isFailReturn(value)) {
               loaderErrors[loader.__id] = failToServerError(value);
-              // Keep the values map successes-only (loadRouteLoaderByQrl cached it).
               delete loaderValues[loader.__id];
             } else {
               loaderValues[loader.__id] = value;
             }
           })
         );
-        // Deterministic response status when several loaders fail concurrently: the first
-        // failed loader in registration order wins.
+        // The first failed loader in registration order wins the response status.
         for (const loader of routeLoaders) {
           const err = loaderErrors[loader.__id];
           if (err) {

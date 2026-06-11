@@ -1,9 +1,6 @@
 import { component$ } from '@qwik.dev/core';
 import { Link, isServerError, routeLoader$ } from '@qwik.dev/router';
 
-// A deterministic expected failure: `return fail()` surfaces as `loader.error`
-// (a ServerError with the payload flat and on `.data`), the page still renders
-// inline error UI, and the response carries the fail() status.
 export const useFailingLoader = routeLoader$((ev) => {
   if (ev.query.get('ok') === '1') {
     return { product: 'tshirt' };
@@ -27,8 +24,7 @@ export default component$(() => {
   return (
     <div>
       <div id="loader-fail-value">{loader.value.product}</div>
-      {/* Used by the SPA spec: navigating to a route whose loader throws error()
-          must fall back to a full-page load that renders the error page. */}
+      {/* Used by the SPA abort fallback spec */}
       <Link id="link-loader-error" href="/qwikrouter-test/loaders/loader-error/">
         To loader-error
       </Link>

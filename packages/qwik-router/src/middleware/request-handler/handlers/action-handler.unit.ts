@@ -154,7 +154,6 @@ describe('actionHandler', () => {
       __invalidate: undefined,
       __qrl: {
         getHash: () => 'action-a',
-        // First arg is requestEv; the action returns fail() to signal failure.
         call: vi.fn(async (ev: any) => {
           return ev.fail(500, { msg: 'something went wrong' });
         }),

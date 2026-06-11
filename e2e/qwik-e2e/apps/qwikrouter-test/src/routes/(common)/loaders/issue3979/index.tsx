@@ -35,8 +35,6 @@ const dynamicPetLoaderQrl = () => {
 
 const randomFailedLoaderQrl = (ev: RequestEventLoader) => {
   if (Math.random() > 0.5) {
-    // An expected failure: returned (not thrown), so it surfaces as `loader.error`
-    // while the page still renders.
     return ev.fail(500, {
       loaderFailedReason: 'Reach Limit',
     });
@@ -67,9 +65,6 @@ export default component$(() => {
   const randomFailed = useRandomFailedLoader();
   const randomFailedWithValidator = useRandomFailedWithValidatorLoader();
 
-  // Returned fail() results and validation failures surface as `loader.error` (a
-  // ServerError carrying the payload); `.value` is the success type only. Guard on
-  // `.error` before reading `.value`.
   return (
     <div>
       <div>{pet.value.pet}</div>

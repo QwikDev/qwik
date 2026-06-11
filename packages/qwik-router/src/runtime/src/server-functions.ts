@@ -120,10 +120,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
         state.isRunning = false;
         state.status = status;
         if (aborted) {
-          // Thrown error() / unexpected server error: the submission aborted, no action
-          // state is recorded. Programmatic callers get a rejected promise; <Form>
-          // submissions surface it via the submitcompleted detail instead (rejecting
-          // would be an unhandled rejection inside the event handler).
+          // <Form> surfaces aborts via its submitcompleted event instead of rejecting.
           if (form) {
             const detail = {
               status,

@@ -2,7 +2,6 @@ class ServerErrorImpl<T = unknown> extends Error {
   status: number;
   data: T;
   constructor(status: number, data: T) {
-    // The error message is the string payload, or the payload's `message` field if it has one.
     super(
       typeof data === 'string'
         ? data
@@ -12,9 +11,6 @@ class ServerErrorImpl<T = unknown> extends Error {
           ? ((data as { message?: unknown }).message as string)
           : undefined
     );
-    // Expose object-payload fields directly on the error (`error.fieldErrors`) so callers don't
-    // have to reach through `.data`. `.data` remains the canonical payload (the exact value passed
-    // to `error()`, including string payloads) used for serializing error responses and re-throwing.
     if (data && typeof data === 'object') {
       Object.assign(this, data);
     }

@@ -226,8 +226,6 @@ export function createRequestEventWithDeps(
             ? loaderValues[loaderOrAction.__id]
             : await loadRouteLoader(loaderOrAction, requestEv);
         if (isFailReturn(value)) {
-          // Depending on a failed loader rejects with its ServerError. Catch it to
-          // translate the failure into the dependent loader's own fail()/value.
           throw failToServerError(value);
         }
         return value;
@@ -266,8 +264,6 @@ export function createRequestEventWithDeps(
     },
 
     fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
-      // Pure: status/header hygiene is applied when the framework converts the returned
-      // result into the loader/action `.error` state, so an unreturned fail() is a no-op.
       return failReturn(statusCode, data);
     },
 

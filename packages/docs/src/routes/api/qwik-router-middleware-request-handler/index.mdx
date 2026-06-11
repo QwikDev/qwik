@@ -621,7 +621,7 @@ export type ExcludeFail<T> = T extends Failed ? never : T;
 
 <h2 id="failbrand">FailBrand</h2>
 
-Brand for values produced by `requestEv.fail()`. A symbol stored non-enumerably so that user data can never accidentally (or maliciously, via JSON) look like a failed result — unlike v1's `failed: true` structural check. `Symbol.for` so the brand survives this module being bundled into multiple chunks (core vs middleware builds).
+Brand for values produced by `requestEv.fail()`. Non-enumerable and `Symbol.for` so JSON/user data can't spoof a failure and the brand survives duplicate bundling.
 
 ```typescript
 FailBrand: unique symbol
@@ -687,7 +687,7 @@ number
 
 <h2 id="failpayload">FailPayload</h2>
 
-Extracts the payload types of the fail branches of a loader/action return union. These flow into the ERROR type parameter so `.error` is fully typed.
+Extracts the payload types of the fail branches of a loader/action return union.
 
 ```typescript
 export type FailPayload<T> = T extends Failed
@@ -703,7 +703,7 @@ export type FailPayload<T> = T extends Failed
 
 <h2 id="failreturn">FailReturn</h2>
 
-A typed failure result returned from a loader/action via `requestEv.fail(status, data)`. The framework converts it into the loader/action `.error` state (a `ServerError`) and excludes it from the `.value` type.
+A typed failure result returned from a loader/action via `requestEv.fail(status, data)`. It surfaces as the loader/action `.error` state and is excluded from the `.value` type.
 
 ```typescript
 export type FailReturn<T> = T & Failed;
@@ -874,7 +874,7 @@ export type InternalRequest = false | "loader" | "action";
 
 <h2 id="isservererror">isServerError</h2>
 
-Checks whether an error is a `ServerError` (carries `status` and `data`). Structural rather than `instanceof` so it also matches ServerErrors that crossed a serialization boundary (the client deserializes them as plain `Error`s with the same own properties).
+Checks whether an error is a `ServerError`. Structural rather than `instanceof` so it also matches ServerErrors that crossed a serialization boundary.
 
 ```typescript
 export declare function isServerError<E>(
@@ -1514,9 +1514,7 @@ fail
 
 </td><td>
 
-Returns a typed failure result to `return` from a loader or action. It surfaces as the loader's/action's `.error` state (a `ServerError` with the given status and `data` exposed flat and on `.data`), while `.value` stays the success type only and the page keeps rendering.
-
-Unlike `error()`, which is thrown and aborts the request to the nearest error handler, `fail()` is for expected failures that the page should display inline (form validation, domain rules). The call itself has no side effects — the status is applied to the response only when the result is returned from the loader/action.
+Returns a typed failure result to `return` from a loader or action. It surfaces as the loader's/action's `.error` state (a `ServerError`) while `.value` stays the success type and the page keeps rendering. Unlike `error()`, which is thrown and aborts the request, `fail()` is for expected failures the page should display inline.
 
 </td></tr>
 <tr><td>

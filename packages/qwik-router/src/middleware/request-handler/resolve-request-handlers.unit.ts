@@ -392,7 +392,6 @@ describe('resolve-request-handler', () => {
       }) as any;
 
     const slowFail = createLoader('slow-fail', async (_thisArg, ev) => {
-      // Resolves last, but is registered first — its status must win.
       await new Promise((resolve) => setTimeout(resolve, 20));
       return ev.fail(503, { reason: 'slow loader failed' });
     });
@@ -407,9 +406,7 @@ describe('resolve-request-handler', () => {
 
       await loadersMiddleware([slowFail, fastFail, okLoader], mockRoute)(requestEv);
 
-      // fast-fail (429) completed first, but slow-fail (503) is first in registration order.
       expect(requestEv.status()).toBe(503);
-      // Failure responses are never cached.
       expect(requestEv.headers.get('Cache-Control')).toBeNull();
 
       const errors = getRouteLoaderErrors(requestEv);
@@ -418,7 +415,6 @@ describe('resolve-request-handler', () => {
       expect(errors['fast-fail']).toBeInstanceOf(ServerError);
       expect(errors['fast-fail'].status).toBe(429);
 
-      // The values map stays successes-only.
       const values = getRouteLoaderValues(requestEv);
       expect('slow-fail' in values).toBe(false);
       expect('fast-fail' in values).toBe(false);

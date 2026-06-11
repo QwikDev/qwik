@@ -25,8 +25,6 @@ export const useSigninAction = globalAction$(
       throw redirect(302, '/qwikrouter-test/dashboard/');
     }
 
-    // Expected failure: returned (not thrown) so it surfaces as `action.error` and the
-    // form can render it inline with a 403 status.
     return fail(403, {
       message: ['Invalid username or password'],
     });
@@ -62,8 +60,6 @@ export default component$(() => {
   const signIn = useSigninAction();
   const resetPassword = useResetPasswordAction();
 
-  // `signIn.error` carries either the zod validation failure (with `fieldErrors`) or the
-  // returned fail() payload (with only `message`) — narrow before reading `fieldErrors`.
   const fieldErrors =
     signIn.error && 'fieldErrors' in signIn.error ? signIn.error.fieldErrors : undefined;
 

@@ -98,8 +98,6 @@ describe('route loader execution', () => {
 });
 
 describe('loader failures surface as error state', () => {
-  // A loader failure (throw error() / failed validator) must surface as the signal's
-  // error state (a ServerError) on the server and the client — never as loader.value.
   it('propagates the ServerError thrown by the loader', async () => {
     const ev = makeRequestEv();
     const qrl = createQrl('error-loader', (_thisArg, e) => {
@@ -111,7 +109,6 @@ describe('loader failures surface as error state', () => {
     await promise.catch((err: ServerError) => {
       expect(err.status).toBe(400);
       expect(err.data).toEqual({ message: 'Product not found' });
-      // ServerError derives `.message` from object data's `message` field.
       expect(err.message).toBe('Product not found');
     });
   });
@@ -244,7 +241,6 @@ describe('types', () => {
       return { result: 'ok' };
     });
     const loader = useObj();
-    // No fail() and no validator: only a client transport problem can land on `.error`.
     expectTypeOf(loader.error).toEqualTypeOf<Error | undefined>();
   });
 });

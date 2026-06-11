@@ -277,8 +277,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       ? {
           id: currentActionId!,
           data: env.response.formData,
-          // Runs during SSR where `currentAction` is the real value/instance, so a failed
-          // action (a `ServerError`) is routed to `output.error` and the rest to `output.result`.
           output:
             currentAction instanceof ServerError
               ? { error: currentAction, status: env.response.status }
@@ -586,7 +584,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           }
 
           if (result.aborted) {
-            // Aborted submissions record no action state and invalidate nothing.
             routeInternal.untrackedValue = { type: navType, dest: trackUrl };
             return;
           }

@@ -1126,7 +1126,7 @@ export type HttpStatus = {
 
 <h2 id="isservererror">isServerError</h2>
 
-Checks whether an error is a `ServerError` (carries `status` and `data`). Structural rather than `instanceof` so it also matches ServerErrors that crossed a serialization boundary (the client deserializes them as plain `Error`s with the same own properties).
+Checks whether an error is a `ServerError`. Structural rather than `instanceof` so it also matches ServerErrors that crossed a serialization boundary.
 
 ```typescript
 export declare function isServerError<E>(

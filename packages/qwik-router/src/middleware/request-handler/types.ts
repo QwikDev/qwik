@@ -227,13 +227,9 @@ export interface RequestEventCommon<
 
   /**
    * Returns a typed failure result to `return` from a loader or action. It surfaces as the
-   * loader's/action's `.error` state (a `ServerError` with the given status and `data` exposed flat
-   * and on `.data`), while `.value` stays the success type only and the page keeps rendering.
-   *
-   * Unlike `error()`, which is thrown and aborts the request to the nearest error handler, `fail()`
-   * is for expected failures that the page should display inline (form validation, domain rules).
-   * The call itself has no side effects — the status is applied to the response only when the
-   * result is returned from the loader/action.
+   * loader's/action's `.error` state (a `ServerError`) while `.value` stays the success type and
+   * the page keeps rendering. Unlike `error()`, which is thrown and aborts the request, `fail()` is
+   * for expected failures the page should display inline.
    */
   readonly fail: <T extends Record<string, any>>(statusCode: ErrorCodes, data: T) => FailReturn<T>;
 

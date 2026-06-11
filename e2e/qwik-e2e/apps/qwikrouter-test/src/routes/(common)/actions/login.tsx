@@ -19,8 +19,6 @@ export const useSecretAction = globalAction$(
     } else if (payload.username === 'redirect' && payload.code === 123) {
       throw redirect(302, '/qwikrouter-test/');
     }
-    // Expected failure: returned (not thrown) so it surfaces as `action.error` and the
-    // form can render it inline. A thrown error() would abort the submission instead.
     return fail(400, {
       message: 'Invalid username or code',
     });
@@ -36,8 +34,6 @@ export const SecretForm = component$(() => {
   const action = useSecretAction();
   const message = useSignal('');
 
-  // `action.error` carries either the zod validation failure (with `fieldErrors`) or the
-  // returned fail() payload (with only `message`) — narrow before reading `fieldErrors`.
   const fieldErrors =
     action.error && 'fieldErrors' in action.error ? action.error.fieldErrors : undefined;
 

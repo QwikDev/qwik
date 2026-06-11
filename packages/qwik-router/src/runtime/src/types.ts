@@ -151,14 +151,10 @@ export type RouteAction = Signal<RouteActionValue>;
 
 export type RouteActionResolver = {
   status: number;
-  /** The action's successful return value. Unset when the action failed (see `error`). */
   result?: unknown;
   /** A `ServerError` from a returned `fail()` or a failed validator. */
   error?: ServerError;
-  /**
-   * Set when the submission aborted (a thrown `error()` or an unexpected server error). The action
-   * records no state; `run()`/`submit()` reject with this error.
-   */
+  /** Set when the submission aborted (a thrown `error()` or an unexpected server error). */
   aborted?: ServerError;
 };
 export type RouteActionValue =
@@ -524,11 +520,7 @@ type StrictUnionHelper<T, TAll> = T extends any
 /** @public */
 export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
-// Flatten an intersection for nicer tooltips, but leave primitives untouched.
-// Mapping a primitive (e.g. `string`) by its keys turns it into an object-shaped
-// type that's no longer assignable to the primitive itself — which breaks
-// StrictUnion arms whose value is a primitive (e.g. an action that returns a
-// string and can also `fail()`).
+// Flatten an intersection for nicer tooltips; mapping a primitive by its keys would break it.
 type Prettify<T> = T extends string | number | boolean | bigint | symbol | null | undefined
   ? T
   : {} & {
@@ -984,11 +976,9 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
   readonly value: RETURN | undefined;
 
   /**
-   * The `ServerError` thrown by the action's last execution (via `throw error(...)`, a failed
-   * validator, or an uncaught server error). `.status` is the HTTP status and `.data` is the
-   * payload.
-   *
-   * It's `undefined` before the action is first called and when the last execution succeeded.
+   * The `ServerError` from the action's last failed execution — a returned `fail()` or a failed
+   * validator. It's `undefined` before the action is first called and when the last execution
+   * succeeded.
    */
   readonly error: ServerError<ERROR> | undefined;
 

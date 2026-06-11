@@ -6,8 +6,7 @@ const useError = routeLoader$(async function ({ error }): Promise<string> {
 });
 
 export default component$(() => {
-  // A thrown error() aborts the request: it propagates to middleware (plugin@errors
-  // rewrites the payload) and the error page renders — this component never does.
+  // The thrown error() aborts the request — the error page renders, never this component.
   useError();
   return <></>;
 });

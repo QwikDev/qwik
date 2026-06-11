@@ -88,11 +88,8 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
     let actionError: ServerError | undefined;
     const result = await runValidators(requestEv, action.__validators, data, devMode);
     if (!result.success) {
-      // A failed validator becomes the action's `.error` state.
       actionError = new ServerError(result.status ?? 500, result.error);
     } else {
-      // Thrown errors (`throw error(...)`, redirects, unexpected) propagate to the
-      // middleware chain — only a returned fail() becomes `action.error`.
       const actionResolved = devMode
         ? await measure(requestEv, action.__qrl.getHash(), () =>
             action!.__qrl.call(requestEv, result.data as JSONObject, requestEv)

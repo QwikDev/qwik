@@ -66,8 +66,7 @@ export const FULLPATH_HEADER = 'X-Qwik-fullpath';
  * - `d` — data: the loader's successful return value
  * - `r` — redirect: URL to navigate to (from `throw redirect()`)
  * - `e` — error: a ServerError (from `fail()` or a failed validator)
- * - `a` — abort marker on `e`: the request aborted (`throw error()` / unexpected error); the client
- *   falls back to a full-page load instead of surfacing `loader.error`
+ * - `a` — abort marker on `e`: the request aborted; the client falls back to a full-page load
  */
 export type LoaderResponse = {
   d?: unknown;
@@ -143,9 +142,6 @@ class ServerRouteLoaderCapture {
 
   load() {
     const requestEv = getRequestEvent();
-    // A loader that failed during loadersMiddleware (a returned fail() or a failed
-    // validator) was converted into a ServerError. Re-throw it so the AsyncSignal enters
-    // error state during render instead of re-running the loader.
     const errors = getRouteLoaderErrors(requestEv);
     if (this.hash in errors) {
       throw errors[this.hash];
@@ -158,8 +154,6 @@ class ServerRouteLoaderCapture {
     }
     return loadRouteLoaderByQrl(this.hash, this.qrl, this.validators, requestEv).then((value) => {
       if (isFailReturn(value)) {
-        // Late-running loader (after the response stream is open): surface the failure on
-        // the signal only — the response status is already on the wire.
         throw failToServerError(value);
       }
       return value;
@@ -403,14 +397,10 @@ const createRouteLoaderSignal = (
       }
       if (response.e) {
         if (response.a) {
-          // Abort (thrown error() or unexpected server error): fall back to a full-page
-          // load so the server renders the real error page. Loader fetches are GETs, so
-          // replaying is safe. Return stale data meanwhile (same rationale as redirects).
           location.href = pageUrl.href;
           return previous;
         }
-        // Expected failure (fail() / failed validator) — throw so the AsyncSignal enters
-        // error state and the component reads it via `loader.error`.
+        // Error — throw so AsyncSignal enters error state
         throw response.e;
       }
       if (needsResumeFetch) {
@@ -537,11 +527,7 @@ export function getRouteLoaderValues(requestEv: RequestEventBase): Record<string
   return values;
 }
 
-/**
- * Get/create the record of loader failures (`fail()` / `throw error()`) captured by
- * loadersMiddleware. Keyed by loader id; values are the `ServerError` to surface as the signal's
- * error state during render. Request-scoped and server-only.
- */
+/** Get/create the record of loader failures captured by loadersMiddleware, keyed by loader id. */
 export function getRouteLoaderErrors(
   requestEv: RequestEventBase
 ): Record<string, InstanceType<typeof ServerError>> {
@@ -683,9 +669,6 @@ export const getRouteLoaderData = async (
 
   const result = await runValidators(requestEv, validators, undefined);
   if (!result.success) {
-    // A failed validator surfaces as the loader's error state, exactly like a returned
-    // fail(). Response effects (status, Cache-Control) are applied where the fail result
-    // is converted, never here.
     return failReturn(result.status ?? 500, result.error ?? {});
   }
   const resolved = await loaderQrl.call(
@@ -798,8 +781,7 @@ export const getRouteLoaderResponse = async (
   try {
     const value = await getRouteLoaderData(loaderQrl, validators, requestEv);
     if (isFailReturn(value)) {
-      // Keep the HTTP 200 envelope (the client distinguishes failures via `e`, and
-      // `!response.ok` must keep meaning "transport problem"), but never cache a failure.
+      // Keep the HTTP 200 envelope — `!response.ok` must keep meaning transport failure.
       requestEv.headers.delete('Cache-Control');
       return { e: failToServerError(value) };
     }
@@ -810,8 +792,6 @@ export const getRouteLoaderResponse = async (
       requestEv.headers.delete('Location');
       return { r: location };
     }
-    // Thrown errors (`throw error(...)`, unexpected) abort the request and propagate to
-    // the middleware chain — they never become a loader's `.error` state.
     throw err;
   }
 };
@@ -832,8 +812,6 @@ export const routeLoaderQrl = ((
       signal = ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
     }
     void signal.promise();
-    // The runtime signal is an AsyncSignal (error: Error); loaders narrow `.error` to
-    // ServerError (failures are always ServerErrors), so assert the loader-facing type here.
     return signal as unknown as ReturnType<LoaderInternal>;
   }
 

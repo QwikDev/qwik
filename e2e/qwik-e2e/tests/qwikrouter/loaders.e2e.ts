@@ -16,9 +16,6 @@ test.describe('loaders', () => {
       await page.goto('/qwikrouter-test/loaders/loader-fail/?ok=1');
       await expect(page.locator('#loader-fail-value')).toHaveText('tshirt');
 
-      // SPA-navigating to a route whose loader throws error() must not surface the error
-      // on loader.error — the client falls back to a full-page (document) load and the
-      // server renders the error page (middleware sees the abort and renames the payload).
       const documentRequest = page.waitForRequest(
         (request) =>
           request.isNavigationRequest() && request.url().includes('/loaders/loader-error')
@@ -202,8 +199,6 @@ test.describe('loaders', () => {
       const contentType = await response?.headerValue('Content-Type');
       const status = response?.status();
 
-      // A returned fail() is an expected failure: the page still renders (inline error UI
-      // read from loader.error) with the fail() status, and is never cached.
       expect(status).toEqual(429);
       expect(contentType).toEqual('text/html; charset=utf-8');
       expect(await response?.headerValue('Cache-Control')).toBeNull();
@@ -215,8 +210,6 @@ test.describe('loaders', () => {
       const contentType = await response?.headerValue('Content-Type');
       const status = response?.status();
 
-      // The loader threw error(401, ...): the request aborts, the ServerError propagates
-      // to middleware (plugin@errors renames the payload) and the error page renders.
       expect(status).toEqual(401);
       expect(contentType).toEqual('text/html; charset=utf-8');
       const body = page.locator('body');

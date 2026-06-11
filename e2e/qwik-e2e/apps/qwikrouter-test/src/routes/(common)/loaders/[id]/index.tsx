@@ -158,7 +158,6 @@ export const useForm = routeAction$(
 
 export const useFormWithError = routeAction$(async (stuff, { fail }) => {
   if (Math.random() > 2) {
-    // Expected failure: returned (not thrown) so it would surface as `action.error`.
     return fail(500, {
       message: 'Random error',
     });
@@ -176,11 +175,7 @@ export const head: DocumentHead = ({ resolveValue }) => {
   if (action) {
     title += ` - ACTION: ${action.name}`;
   }
-  // Note: `useFormWithError` signals failure via a returned `fail(500, { message })`, which
-  // surfaces on the action's `.error` — never through `resolveValue` (success values only).
-  // Loaders/head refetched after an action submission run as standalone GETs without action
-  // context anyway, so there is no action error to read here; read it from the action signal
-  // in components instead.
+  // `resolveValue` returns success values only — action failures are read from the action store.
   return {
     title,
     meta: [

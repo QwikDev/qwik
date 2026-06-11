@@ -57,9 +57,6 @@ export function jsonRequestWrapper(): RequestHandler {
           throw err;
         }
       } else if (err instanceof ServerError) {
-        // A thrown error() aborts the request — it never becomes `.error` state. The
-        // envelope is marked as an abort so the client falls back accordingly (loaders:
-        // full-page load; actions: rejected run()/submit() promise).
         if (isLoader) {
           await sendJsonResponse(requestEv, { e: err, a: 1 });
         } else {

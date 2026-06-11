@@ -43,7 +43,6 @@ interface ActionFailedObject {
 
 const actionQrl = (data: JSONObject, { fail }: RequestEventAction) => {
   if (Math.random() > 0.5) {
-    // An expected failure: returned (not thrown), so it surfaces as `action.error`.
     return fail(500, {
       actionFail: 'secret',
     } satisfies ActionFailedObject);

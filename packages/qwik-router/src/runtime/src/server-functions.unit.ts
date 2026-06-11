@@ -13,7 +13,6 @@ describe('types', () => {
     expectTypeOf(action.value).toEqualTypeOf<{ ok: boolean } | undefined>();
     if (action.error) {
       expectTypeOf(action.error.status).toEqualTypeOf<number>();
-      // Validator errors are typed and read flat (no `.data` hop).
       expectTypeOf(action.error.fieldErrors.username).toEqualTypeOf<string | undefined>();
       expectTypeOf(action.error.fieldErrors.code).toEqualTypeOf<string | undefined>();
       expectTypeOf(action.error.formErrors).toEqualTypeOf<string[]>();

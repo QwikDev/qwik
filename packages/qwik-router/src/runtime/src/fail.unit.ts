@@ -26,7 +26,6 @@ describe('fail() types — actions', () => {
     if (action.error) {
       expectTypeOf(action.error.status).toEqualTypeOf<number>();
       expectTypeOf(action.error.data).toEqualTypeOf<{ reason: string }>();
-      // Payload fields read flat off the error.
       expectTypeOf(action.error.reason).toEqualTypeOf<string>();
     }
   });
@@ -140,8 +139,6 @@ describe('fail() types — loaders', () => {
     expectTypeOf(loader.error).toEqualTypeOf<
       ServerError<{ notFound: boolean }> | Error | undefined
     >();
-    // A client-side transport problem can land a plain Error on `.error`; isServerError()
-    // narrows to the typed failure.
     if (isServerError(loader.error)) {
       expectTypeOf(loader.error.notFound).toEqualTypeOf<boolean>();
     }

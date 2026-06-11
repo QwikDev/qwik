@@ -19,7 +19,6 @@ export async function submitAction(
       status: number;
       result?: unknown;
       error?: ServerError;
-      /** Set when the submission aborted (thrown error() or unexpected server error). */
       aborted?: ServerError;
       redirect?: string;
       loaderHashes?: string[];

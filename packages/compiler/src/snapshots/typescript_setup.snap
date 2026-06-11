@@ -1,0 +1,67 @@
+==INPUT==
+
+import { createContextId } from '@qwik.dev/core';
+import { createContextProvider, createSignal, type Signal } from '@qwik.dev/core/spark';
+
+export const App = () => {
+  const contextId = createContextId<Signal<string>>('context');
+  const source: Signal<string> = createSignal('hello');
+  createContextProvider(contextId, source);
+  return <p>{source.value}</p>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createContextId } from '@qwik.dev/core';
+import {
+  createContextProvider,
+  createSignal,
+  escapeHTML,
+  renderSsrTextNode,
+  createSsrElementTextTarget,
+} from '@qwik.dev/core/spark';
+
+export const App = (_props, ctx) => {
+  const contextId = createContextId('context');
+  const source = createSignal('hello');
+  createContextProvider(contextId, source);
+  const id0 = ctx.nextId();
+  ctx.addRoot(source);
+  return (
+    '<p q:id="' +
+    id0 +
+    '">' +
+    escapeHTML(renderSsrTextNode(createSsrElementTextTarget(id0), source)) +
+    '</p>'
+  );
+};
+
+null
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createContextId } from '@qwik.dev/core';
+import { createContextProvider, createSignal, createTextNodeEffect } from '@qwik.dev/core/spark';
+
+export const App = (_props, ctx) => {
+  const contextId = createContextId('context');
+  const source = createSignal('hello');
+  createContextProvider(contextId, source);
+  const el0 = ctx.document.createElement('p');
+  const text1 = ctx.document.createTextNode('');
+  const effect2 = createTextNodeEffect(text1, source, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect2);
+  el0.appendChild(text1);
+  return [el0];
+};
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

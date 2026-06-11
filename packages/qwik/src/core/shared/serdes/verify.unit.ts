@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   verifySerializable,
   noSerialize,
@@ -6,7 +6,8 @@ import {
   NoSerializeSymbol,
   SerializerSymbol,
 } from './verify';
-import * as useCore from '../../use/use-core';
+import { createComputed } from '../../vdomless/reactive/computed';
+import { createSignal } from '../../vdomless/reactive/signal';
 
 describe('verifySerializable', () => {
   describe('serializable values', () => {
@@ -40,6 +41,14 @@ describe('verifySerializable', () => {
     it('should allow nested arrays', () => {
       const arr = [1, [2, [3, [4]]]];
       expect(verifySerializable(arr)).toEqual(arr);
+    });
+
+    it('should allow reactive sources by instance', () => {
+      const count = createSignal(1);
+      const doubled = createComputed(() => count.value * 2);
+
+      expect(verifySerializable(count)).toBe(count);
+      expect(verifySerializable(doubled)).toBe(doubled);
     });
   });
 
@@ -97,6 +106,16 @@ describe('verifySerializable', () => {
       delete value[1];
       expect(() => verifySerializable(value)).toThrow();
     });
+
+    it('should throw for class instances shaped like reactive sources', () => {
+      class SourceLike {
+        v = 1;
+        version = 0;
+        subs = null;
+      }
+
+      expect(() => verifySerializable(new SourceLike())).toThrow(/SourceLike/);
+    });
   });
 
   describe('framework-internal branded values', () => {
@@ -136,35 +155,6 @@ describe('verifySerializable', () => {
       (useFooLoader as any).__id = 'l_foo';
       const loaders = [{ loader: useFooLoader, data: { foo: 1 } }];
       expect(() => verifySerializable(loaders)).not.toThrow();
-    });
-  });
-
-  describe('untrack integration', () => {
-    it('should call untrack when verifying', () => {
-      const untrackSpy = vi.spyOn(useCore, 'untrack');
-      const value = { a: 1 };
-
-      verifySerializable(value);
-
-      expect(untrackSpy).toHaveBeenCalled();
-      untrackSpy.mockRestore();
-    });
-
-    it('should verify value inside untrack callback', () => {
-      let capturedCallback: any;
-      const untrackMock = vi.spyOn(useCore, 'untrack').mockImplementation((fn, ...args: any[]) => {
-        capturedCallback = fn;
-        return (fn as any)(...args);
-      });
-
-      const value = { test: 'value' };
-      const result = verifySerializable(value);
-
-      expect(untrackMock).toHaveBeenCalled();
-      expect(capturedCallback).toBeDefined();
-      expect(result).toBe(value);
-
-      untrackMock.mockRestore();
     });
   });
 });

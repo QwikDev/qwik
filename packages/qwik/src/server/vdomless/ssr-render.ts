@@ -3,6 +3,7 @@ import { setEvent } from '../../core/ssr/ssr-events';
 import { createSerializationContext } from '../../core/shared/serdes/serialization-context';
 import { escapeHTML } from '../../core/shared/utils/character-escaping';
 import type { SSRWriteChunk } from '../../core/ssr/ssr-types';
+import { invoke, newInvokeContext } from '../../core/vdomless/runtime/invoke-context';
 import { SsrScriptEmitter } from './ssr-script-emitter';
 import type {
   RenderToStreamOptions,
@@ -61,7 +62,7 @@ export const renderToStream = async (
     },
   };
 
-  const html = root(undefined, ctx);
+  const html = invoke(newInvokeContext(), root, undefined, ctx);
   await opts.stream.write(html);
   if (serializationCtx.$roots$.length > 0) {
     await serializationCtx.$serialize$();

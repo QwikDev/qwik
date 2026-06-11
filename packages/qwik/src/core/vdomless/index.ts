@@ -69,6 +69,13 @@ export {
   type SlotScope,
 } from './runtime/invoke-context';
 export {
+  createContext,
+  createContextProvider,
+  createContextScope,
+  type ContextId,
+  type CreateContext,
+} from './runtime/context';
+export {
   Phase,
   Scheduler,
   createScheduler,

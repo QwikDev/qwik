@@ -2,18 +2,14 @@ import { QError, qError } from '../error/error';
 import { isNode } from '../utils/element';
 import { isPromise } from '../utils/promises';
 import { isArray, isFunction, isObject, isSerializableObject } from '../utils/types';
-import { canSerialize } from './index';
-import { isSignal } from '../../reactive-primitives/utils';
-import { unwrapStore } from '../../reactive-primitives/impl/store';
-import { untrack } from '../../use/use-core';
-import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
-import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
-import { VNode } from '../vnode/vnode';
+import { isQrl } from '../qrl/qrl-utils';
+import { Computed } from '../../vdomless/reactive/computed';
+import { Signal } from '../../vdomless/reactive/signal';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new WeakSet();
-  return untrack(_verifySerializable, value, seen, '_', preMessage) as T;
+  return _verifySerializable(value, seen, '_', preMessage) as T;
 };
 
 const _verifySerializable = <T>(
@@ -22,25 +18,20 @@ const _verifySerializable = <T>(
   ctx: string,
   preMessage?: string
 ): T => {
-  const unwrapped = unwrapStore(value);
-  if (unwrapped == null) {
+  if (value == null) {
     return value;
   }
-  if (shouldSerialize(unwrapped)) {
-    if (typeof unwrapped === 'object') {
-      if (seen.has(unwrapped)) {
+  if (shouldSerialize(value)) {
+    if (typeof value === 'object') {
+      if (seen.has(value)) {
         return value;
       }
-      seen.add(unwrapped);
+      seen.add(value);
     }
-    if (
-      isSignal(unwrapped) ||
-      unwrapped instanceof VdomlessSignal ||
-      unwrapped instanceof ComputedQrl
-    ) {
+    if (isReactiveSource(value)) {
       return value;
     }
-    if (canSerialize(unwrapped)) {
+    if (isKnownSerializableValue(value)) {
       return value;
     }
     // Framework-internal branded values (e.g. route loaders/actions, validators)
@@ -48,40 +39,36 @@ const _verifySerializable = <T>(
     // serializer walking their internals. Honor that for both objects and
     // functions — loader/action refs are functions with __brand = 'server_loader'
     // / 'server_action' and should not be rejected as unserializable.
-    if ((unwrapped as any).__brand || (unwrapped as any).__brand__) {
+    if ((value as any).__brand || (value as any).__brand__) {
       return value;
     }
-    const typeObj = typeof unwrapped;
+    const typeObj = typeof value;
     switch (typeObj) {
       case 'object':
-        if (isPromise(unwrapped)) {
+        if (isPromise(value)) {
           return value;
         }
-        if (isNode(unwrapped)) {
+        if (isNode(value)) {
           return value;
         }
-        if (isArray(unwrapped)) {
+        if (isArray(value)) {
           let expectIndex = 0;
           // Make sure the array has no holes
-          for (let i = 0; i < unwrapped.length; i++) {
-            if (!(i in unwrapped)) {
-              throw qError(QError.verifySerializable, [unwrapped]);
+          for (let i = 0; i < value.length; i++) {
+            if (!(i in value)) {
+              throw qError(QError.verifySerializable, [value]);
             }
-            const v = unwrapped[i];
+            const v = value[i];
             if (i !== expectIndex) {
-              throw qError(QError.verifySerializable, [unwrapped]);
+              throw qError(QError.verifySerializable, [value]);
             }
             _verifySerializable(v, seen, ctx + '[' + i + ']');
             expectIndex = i + 1;
           }
           return value;
         }
-        // We don't want to walk internal framework objects
-        if (unwrapped instanceof VNode) {
-          return value;
-        }
-        if (isSerializableObject(unwrapped)) {
-          for (const [key, item] of Object.entries(unwrapped)) {
+        if (isSerializableObject(value)) {
+          for (const [key, item] of Object.entries(value)) {
             _verifySerializable(item, seen, ctx + '.' + key);
           }
           return value;
@@ -100,7 +87,7 @@ const _verifySerializable = <T>(
     if (typeObj === 'object') {
       message += ` because it's an instance of "${value?.constructor.name}". You might need to use 'noSerialize()' or use an object literal instead. Check out https://qwik.dev/docs/advanced/dollar/`;
     } else if (typeObj === 'function') {
-      const fnName = (value as Function).name;
+      const fnName = (value as unknown as Function).name;
       message += ` because it's a function named "${fnName}". You might need to convert it to a QRL using $(fn):\n\nconst ${fnName} = $(${String(
         value
       )});\n\nPlease check out https://qwik.dev/docs/advanced/qrl/ for more information.`;
@@ -108,6 +95,49 @@ const _verifySerializable = <T>(
     throw qError(QError.verifySerializable, [message]);
   }
   return value;
+};
+
+const isReactiveSource = (value: unknown): boolean => {
+  return value instanceof Signal || value instanceof Computed;
+};
+
+const isKnownSerializableValue = (value: unknown): boolean => {
+  if (value == null) {
+    return true;
+  }
+
+  const type = typeof value;
+  if (type === 'string' || type === 'number' || type === 'boolean' || type === 'bigint') {
+    return true;
+  }
+  if (type === 'function') {
+    return isQrl(value);
+  }
+  if (!isObject(value)) {
+    return false;
+  }
+
+  const hasTemporal = typeof Temporal !== 'undefined';
+  return (
+    isPromise(value) ||
+    value instanceof Error ||
+    value instanceof URL ||
+    value instanceof Date ||
+    value instanceof RegExp ||
+    value instanceof URLSearchParams ||
+    value instanceof FormData ||
+    value instanceof Set ||
+    value instanceof Map ||
+    value instanceof Uint8Array ||
+    (hasTemporal && value instanceof Temporal.Duration) ||
+    (hasTemporal && value instanceof Temporal.Instant) ||
+    (hasTemporal && value instanceof Temporal.PlainDate) ||
+    (hasTemporal && value instanceof Temporal.PlainDateTime) ||
+    (hasTemporal && value instanceof Temporal.PlainMonthDay) ||
+    (hasTemporal && value instanceof Temporal.PlainTime) ||
+    (hasTemporal && value instanceof Temporal.PlainYearMonth) ||
+    (hasTemporal && value instanceof Temporal.ZonedDateTime)
+  );
 };
 
 const noSerializeSet = /*#__PURE__*/ new WeakSet<object>();

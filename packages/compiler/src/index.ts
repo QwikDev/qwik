@@ -3,7 +3,14 @@ import type {
   TransformModulesOptions,
   TransformOutput,
 } from '@qwik.dev/optimizer';
-import { createModule, isJsxPath, isTypeScriptPath, transformWithOxc } from './module-utils';
+import { transform } from 'oxc-transform';
+import {
+  createModule,
+  getLang,
+  isJsxPath,
+  isTypeScriptPath,
+  transformWithOxc,
+} from './module-utils';
 import type { CompilerContext, CompilerResult, PipelineStage } from './types';
 import { analyzeCaptures } from './stages/analyze-captures';
 import { collectModuleFacts, discoverExportedComponents } from './stages/discover';
@@ -40,8 +47,9 @@ async function transformModule(
   input: TransformModuleInput,
   options: TransformModulesOptions
 ): Promise<CompilerResult> {
+  const normalizedInput = await normalizeTransformInput(input, options);
   const ctx: CompilerContext = {
-    input,
+    input: normalizedInput,
     options,
     emitTarget: options.isServer === false ? 'csr' : 'ssr',
     program: null,
@@ -75,5 +83,27 @@ async function transformModule(
   return {
     modules: ctx.outputModules,
     diagnostics: ctx.manifest.diagnostics,
+  };
+}
+
+async function normalizeTransformInput(
+  input: TransformModuleInput,
+  options: TransformModulesOptions
+): Promise<TransformModuleInput> {
+  if (options.transpileTs !== true || !isTypeScriptPath(input.path)) {
+    return input;
+  }
+
+  const transformed = await transform(input.path, input.code, {
+    lang: getLang(input.path),
+    sourceType: 'module',
+    cwd: options.rootDir,
+    sourcemap: false,
+    jsx: isJsxPath(input.path) ? 'preserve' : undefined,
+  });
+
+  return {
+    ...input,
+    code: transformed.code,
   };
 }

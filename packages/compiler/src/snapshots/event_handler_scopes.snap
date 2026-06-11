@@ -64,8 +64,8 @@ null
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    38,
-    56
+    37,
+    55
   ],
   "paramNames": []
 }
@@ -91,8 +91,8 @@ null
   "ctxName": "onDblClick$",
   "captures": false,
   "loc": [
-    57,
-    78
+    56,
+    77
   ],
   "paramNames": []
 }
@@ -118,8 +118,8 @@ null
   "ctxName": "window:onScroll$",
   "captures": false,
   "loc": [
-    79,
-    105
+    78,
+    104
   ],
   "paramNames": []
 }
@@ -145,8 +145,8 @@ null
   "ctxName": "document:onKeyDown$",
   "captures": false,
   "loc": [
-    106,
-    135
+    105,
+    134
   ],
   "paramNames": []
 }
@@ -195,8 +195,8 @@ null
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    38,
-    56
+    37,
+    55
   ],
   "paramNames": []
 }
@@ -222,8 +222,8 @@ null
   "ctxName": "onDblClick$",
   "captures": false,
   "loc": [
-    57,
-    78
+    56,
+    77
   ],
   "paramNames": []
 }
@@ -249,8 +249,8 @@ null
   "ctxName": "window:onScroll$",
   "captures": false,
   "loc": [
-    79,
-    105
+    78,
+    104
   ],
   "paramNames": []
 }
@@ -276,8 +276,8 @@ null
   "ctxName": "document:onKeyDown$",
   "captures": false,
   "loc": [
-    106,
-    135
+    105,
+    134
   ],
   "paramNames": []
 }

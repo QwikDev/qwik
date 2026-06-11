@@ -101,6 +101,21 @@ describe('transformModules', () => {
     });
   });
 
+  test('strips TypeScript syntax from generated component setup', async () => {
+    await testInput('typescript_setup', {
+      code: `import { createContextId } from '@qwik.dev/core';
+import { createContextProvider, createSignal, type Signal } from '@qwik.dev/core/spark';
+
+export const App = () => {
+  const contextId = createContextId<Signal<string>>('context');
+  const source: Signal<string> = createSignal('hello');
+  createContextProvider(contextId, source);
+  return <p>{source.value}</p>;
+};
+`,
+    });
+  });
+
   test('discovers default function components', async () => {
     await testInput('default_function', {
       code: `export default function App() {

@@ -23,41 +23,79 @@
           pkgs = import nixpkgs {
             inherit system overlays;
           };
+          rustToolchain = (pkgs.rust-bin.fromRustupToolchainFile
+            ./rust-toolchain).override {
+            # For rust-analyzer
+            extensions = [ "rust-src" ];
+            # For building wasm
+            targets = [ "wasm32-unknown-unknown" ];
+          };
+          localNodeEnv = ''
+            export PATH=$PWD/node_modules/.bin:$PATH
+            unset PLAYWRIGHT_BROWSERS_PATH
+            unset PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS
+          '';
+          playwrightEnv = localNodeEnv + ''
+            export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+            export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+            pwNixVersion=${pkgs.playwright-driver.version}
+            pwNpmVersion=$(${pkgs.jq}/bin/jq -r .version node_modules/@playwright/test/package.json 2>/dev/null)
+            if [ -n "$pwNpmVersion" ] && [ "$pwNpmVersion" != "$pwNixVersion" ]; then
+              echo "!!! Playwright version mismatch: $pwNpmVersion (nodejs) != $pwNixVersion (nix). Please fix." >&2
+            fi
+          '';
+          mkNodeShell = { nodejs, corepack, withPlaywright ? false, extraInputs ? [ ] }:
+            pkgs.mkShell {
+              nativeBuildInputs = with pkgs; [
+                bashInteractive
+                gitMinimal
+                jq
+                tree
+
+                nodejs
+                corepack
+              ] ++ pkgs.lib.optionals withPlaywright [
+                # Playwright for the end-to-end tests
+                pkgs.playwright-driver.browsers
+              ] ++ extraInputs;
+              shellHook = if withPlaywright then playwrightEnv else localNodeEnv;
+            };
         in
         {
-          default = pkgs.mkShell {
-            nativeBuildInputs = with pkgs; [
-              bashInteractive
-              gitMinimal
-
-              nodejs_24
-              corepack_24
-
-              # Playwright for the end-to-end tests
-              playwright-driver.browsers
-
+          default = mkNodeShell {
+            nodejs = pkgs.nodejs_24;
+            corepack = pkgs.corepack_24;
+            withPlaywright = true;
+            extraInputs = with pkgs; [
               # Qwik optimizer deps
               wasm-pack
               # Provides rustc and cargo
-              ((rust-bin.fromRustupToolchainFile
-                ./rust-toolchain).override {
-                # For rust-analyzer
-                extensions = [ "rust-src" ];
-                # For building wasm
-                targets = [ "wasm32-unknown-unknown" ];
-              })
+              rustToolchain
             ];
-            # https://github.com/microsoft/playwright/issues/5501
-            shellHook = ''
-              export PATH=$PWD/node_modules/.bin:$PATH
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
-              export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
-              pwNixVersion=${pkgs.playwright-driver.version}
-              pwNpmVersion=$(${pkgs.jq}/bin/jq -r .version node_modules/@playwright/test/package.json 2>/dev/null)
-              if [ -n "$pwNpmVersion" ] && [ "$pwNpmVersion" != "$pwNixVersion" ]; then
-                echo "!!! Playwright version mismatch: $pwNpmVersion (nodejs) != $pwNixVersion (nix). Please fix." >&2
-              fi
-            '';
+          };
+          ci-node24 = mkNodeShell {
+            nodejs = pkgs.nodejs_24;
+            corepack = pkgs.corepack_24;
+          };
+          ci-node24-e2e = mkNodeShell {
+            nodejs = pkgs.nodejs_24;
+            corepack = pkgs.corepack_24;
+            withPlaywright = true;
+          };
+          ci-node22-e2e = mkNodeShell {
+            nodejs = pkgs.nodejs_22;
+            corepack = pkgs.corepack_22;
+            withPlaywright = true;
+          };
+          ci-rust = mkNodeShell {
+            nodejs = pkgs.nodejs_24;
+            corepack = pkgs.corepack_24;
+            extraInputs = with pkgs; [
+              # Qwik optimizer deps
+              wasm-pack
+              # Provides rustc and cargo
+              rustToolchain
+            ];
           };
         };
     in

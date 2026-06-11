@@ -245,8 +245,6 @@ describe('request-event rewrite', () => {
 
     expect(result).toBeInstanceOf(RewriteMessage);
     expect(result.pathname).toBe('/x');
-    // No explicit query on the target: search stays undefined so the
-    // request's original query is kept by the rewrite handler.
     expect(result.search).toBeUndefined();
   });
 

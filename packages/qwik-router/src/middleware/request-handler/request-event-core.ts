@@ -287,13 +287,8 @@ export function createRequestEventWithDeps(
 
     rewrite: (pathname: string) => {
       check();
-      // When the rewrite target carries an explicit query it replaces the request's query;
-      // otherwise the original query is kept. Fragments never reach the server — dropped.
       let search: string | undefined;
       if (/^https?:\/\//.test(pathname)) {
-        // A rewrite is an internal, same-origin re-route. A same-origin absolute URL is just
-        // a path with the origin glued on, so normalize it to its path and treat it like a
-        // relative rewrite. A cross-origin URL can't be rewritten in place — that's a redirect.
         let target: URL;
         try {
           target = new URL(pathname);

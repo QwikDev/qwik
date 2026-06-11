@@ -6,7 +6,7 @@ import type {
   LoaderInternal,
 } from '../../runtime/src/types';
 import { getRouteLoaderValues, loadRouteLoader } from '../../runtime/src/route-loaders';
-import { failReturn } from './fail';
+import { failReturn, failToServerError, isFailReturn } from './fail';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RewriteMessage } from './rewrite-handler';
 import type { ServerError } from './server-error';
@@ -221,10 +221,16 @@ export function createRequestEventWithDeps(
       if (loaderOrAction.__brand === 'server_loader') {
         // Check if the loader was already run by the middleware
         const loaderValues = getRouteLoaderValues(requestEv);
-        if (loaderOrAction.__id in loaderValues) {
-          return loaderValues[loaderOrAction.__id];
+        const value =
+          loaderOrAction.__id in loaderValues
+            ? loaderValues[loaderOrAction.__id]
+            : await loadRouteLoader(loaderOrAction, requestEv);
+        if (isFailReturn(value)) {
+          // Depending on a failed loader rejects with its ServerError. Catch it to
+          // translate the failure into the dependent loader's own fail()/value.
+          throw failToServerError(value);
         }
-        return loadRouteLoader(loaderOrAction, requestEv);
+        return value;
       }
 
       // Actions are transient (one-shot per request). After action submission,

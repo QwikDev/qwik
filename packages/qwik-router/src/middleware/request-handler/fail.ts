@@ -1,11 +1,14 @@
+import { ServerError } from './server-error';
+
 /**
- * Brand for values produced by `requestEv.fail()`. A unique symbol stored non-enumerably so that
- * user data can never accidentally (or maliciously, via JSON) look like a failed result — unlike
- * v1's `failed: true` structural check.
+ * Brand for values produced by `requestEv.fail()`. A symbol stored non-enumerably so that user data
+ * can never accidentally (or maliciously, via JSON) look like a failed result — unlike v1's
+ * `failed: true` structural check. `Symbol.for` so the brand survives this module being bundled
+ * into multiple chunks (core vs middleware builds).
  *
  * @public
  */
-export const FailBrand: unique symbol = Symbol('qwik.fail');
+export const FailBrand: unique symbol = Symbol.for('qwik.fail') as never;
 
 /** Metadata carried by a fail result, hidden under the {@link FailBrand} symbol. */
 export interface FailMeta {
@@ -67,4 +70,27 @@ export function isFailReturn(value: unknown): value is FailReturn<Record<string,
 /** Reads the status carried by a fail result. */
 export function getFailMeta(value: Failed): FailMeta {
   return value[FailBrand];
+}
+
+/**
+ * Converts a returned fail result into the `ServerError` that surfaces as the loader/action
+ * `.error` state. The single conversion point for all fail producers.
+ */
+export function failToServerError(value: FailReturn<Record<string, any>>): ServerError {
+  // Enumerable own props only — drops the non-enumerable brand.
+  const { ...payload } = value;
+  return new ServerError(getFailMeta(value).status, payload);
+}
+
+/**
+ * Applies a failure's response effects: the HTTP status and the Cache-Control hygiene that v1's
+ * `fail()` guaranteed (failure responses must never be cached). Callers that must keep a 200
+ * envelope (the q-loader endpoint) delete Cache-Control themselves instead.
+ */
+export function applyFailureResponse(
+  requestEv: { status: (statusCode?: number) => number; headers: Headers },
+  err: ServerError
+): void {
+  requestEv.status(err.status);
+  requestEv.headers.delete('Cache-Control');
 }

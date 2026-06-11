@@ -22,6 +22,7 @@ import {
   setRouteLoaders,
 } from '../../runtime/src/route-loaders';
 import { ensureSlash } from '../../utils/pathname';
+import { applyFailureResponse, failToServerError, isFailReturn } from './fail';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
 import type { RequestEventInternal } from './request-event-core';
 import { loaderHandler } from './handlers/loader-handler';
@@ -295,29 +296,29 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
               );
             }
             let actionResult: unknown;
-            try {
-              const result = await runValidators(requestEv, action.__validators, data);
-              if (!result.success) {
-                // A failed validator surfaces as the action's error state.
-                throw new deps.ServerError(result.status ?? 500, result.error);
-              }
+            const result = await runValidators(requestEv, action.__validators, data);
+            if (!result.success) {
+              // A failed validator becomes the action's `.error` state.
+              const actionError = new deps.ServerError(result.status ?? 500, result.error);
+              applyFailureResponse(requestEv, actionError);
+              actionResult = actionError;
+            } else {
+              // Thrown errors (`throw error(...)`, redirects, unexpected) propagate to the
+              // middleware chain — only a returned fail() becomes `action.error`.
               const actionResolved = isDev
                 ? await measure(requestEv, action.__qrl.getHash(), () =>
                     action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
                   )
                 : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
-              if (isDev) {
-                verifySerializable(actionResolved, action.__qrl);
-              }
-              actionResult = actionResolved;
-            } catch (err) {
-              // `throw error(...)` / failed validators become `action.error`. Other throws
-              // (redirects, unexpected errors) propagate to the middleware chain as before.
-              if (err instanceof deps.ServerError) {
-                requestEv.status(err.status);
-                actionResult = err;
+              if (isFailReturn(actionResolved)) {
+                const actionError = failToServerError(actionResolved);
+                applyFailureResponse(requestEv, actionError);
+                actionResult = actionError;
               } else {
-                throw err;
+                if (isDev) {
+                  verifySerializable(actionResolved, action.__qrl);
+                }
+                actionResult = actionResolved;
               }
             }
             requestEv.sharedMap.set('@actionResult', actionResult);
@@ -337,29 +338,34 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       if (routeLoaders.length > 0) {
         setLoaderData(requestEv, routeLoaders, route);
 
-        // Run loaders directly and store raw values. A loader that signals failure
-        // (`fail()` / `throw error()`) throws a ServerError — captured per-loader so it
-        // surfaces as that loader's error state (`loader.error`) and the page still renders.
-        // Redirects and unexpected errors still propagate so middleware can catch them.
+        // Run loaders directly and store raw values. A loader that signals an expected
+        // failure (a returned `fail()` or a failed validator) is converted per-loader into
+        // its `.error` state (`loader.error`) and the page still renders. Redirects and
+        // thrown errors (`throw error(...)`, unexpected) propagate so middleware can catch
+        // them — throwing aborts, returning fail() stays on the page.
         const loaderValues = getRouteLoaderValues(requestEv);
         const loaderErrors = getRouteLoaderErrors(requestEv);
         await Promise.all(
           routeLoaders.map(async (loader) => {
-            try {
-              loaderValues[loader.__id] = await loadRouteLoader(loader, requestEv);
-            } catch (err) {
-              if (err instanceof deps.ServerError) {
-                // Reflect the failure's status on the response. `throw error(status, ...)`
-                // already set it, but a directly-thrown `new ServerError(status, ...)`
-                // (e.g. from a server$ call) has not.
-                requestEv.status(err.status);
-                loaderErrors[loader.__id] = err;
-              } else {
-                throw err;
-              }
+            const value = await loadRouteLoader(loader, requestEv);
+            if (isFailReturn(value)) {
+              loaderErrors[loader.__id] = failToServerError(value);
+              // Keep the values map successes-only (loadRouteLoaderByQrl cached it).
+              delete loaderValues[loader.__id];
+            } else {
+              loaderValues[loader.__id] = value;
             }
           })
         );
+        // Deterministic response status when several loaders fail concurrently: the first
+        // failed loader in registration order wins.
+        for (const loader of routeLoaders) {
+          const err = loaderErrors[loader.__id];
+          if (err) {
+            applyFailureResponse(requestEv, err);
+            break;
+          }
+        }
       }
     };
   }

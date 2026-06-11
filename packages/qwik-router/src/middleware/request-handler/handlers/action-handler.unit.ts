@@ -1,5 +1,6 @@
 import { _deserialize } from '@qwik.dev/core/internal';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { failReturn } from '../fail';
 import { RequestEvSharedActionId } from '../request-event-core';
 import { IsQAction, QActionId } from '../request-path';
 import { ServerError } from '../server-error';
@@ -51,6 +52,7 @@ const createActionRequest = () => {
       currentStatus = statusCode;
       return new ServerError(statusCode, data);
     }),
+    fail: vi.fn((statusCode: number, data: Record<string, any>) => failReturn(statusCode, data)),
     status: vi.fn((statusCode?: number) => {
       if (typeof statusCode === 'number') {
         currentStatus = statusCode;
@@ -141,7 +143,7 @@ describe('actionHandler', () => {
     });
   });
 
-  it('reflects thrown error() status from action QRL in HTTP response', async () => {
+  it('reflects a returned fail() status in the HTTP response and error envelope', async () => {
     globalThis.__STRICT_LOADERS__ = false;
     const { requestEv, sent } = createActionRequest();
 
@@ -152,9 +154,9 @@ describe('actionHandler', () => {
       __invalidate: undefined,
       __qrl: {
         getHash: () => 'action-a',
-        // First arg is requestEv; the action throws error() to signal failure.
+        // First arg is requestEv; the action returns fail() to signal failure.
         call: vi.fn(async (ev: any) => {
-          throw ev.error(500, { msg: 'something went wrong' });
+          return ev.fail(500, { msg: 'something went wrong' });
         }),
       },
     } as any;
@@ -165,5 +167,27 @@ describe('actionHandler', () => {
     const response = _deserialize<{ result?: unknown; error?: any }>(sent.body!);
     expect(response.result).toBeUndefined();
     expect(response.error).toMatchObject({ status: 500, data: { msg: 'something went wrong' } });
+  });
+
+  it('propagates thrown error() out of the action handler (abort semantics)', async () => {
+    globalThis.__STRICT_LOADERS__ = false;
+    const { requestEv } = createActionRequest();
+
+    const action = {
+      __brand: 'server_action',
+      __id: 'action-a',
+      __validators: undefined,
+      __invalidate: undefined,
+      __qrl: {
+        getHash: () => 'action-a',
+        call: vi.fn(async (ev: any) => {
+          throw ev.error(403, { msg: 'denied' });
+        }),
+      },
+    } as any;
+
+    await expect(actionHandler([action])(requestEv as any)).rejects.toMatchObject({
+      status: 403,
+    });
   });
 });

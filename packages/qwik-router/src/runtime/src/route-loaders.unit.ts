@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
+import { failReturn } from '../../middleware/request-handler/fail';
 import { ServerError } from '../../middleware/request-handler/server-error';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import {
@@ -142,16 +143,26 @@ describe('loader failures surface as error state', () => {
     await expect(loadRouteLoader(failing, requestEv)).rejects.toBeInstanceOf(ServerError);
   });
 
-  it('wraps a loader failure as an error envelope in getRouteLoaderResponse', async () => {
+  it('wraps a returned fail() as an error envelope in getRouteLoaderResponse', async () => {
     const ev = makeRequestEv();
     const qrl = createQrl('fail-resp', (_thisArg, e) => {
-      throw e.error(400, { message: 'x' });
+      return e.fail(400, { message: 'x' });
     });
 
     const res = await getRouteLoaderResponse(qrl, undefined, ev);
     expect(res.e).toBeInstanceOf(ServerError);
+    expect(res.e?.status).toBe(400);
     expect(res.e?.data).toEqual({ message: 'x' });
     expect(res.d).toBeUndefined();
+  });
+
+  it('propagates thrown error() out of getRouteLoaderResponse (abort semantics)', async () => {
+    const ev = makeRequestEv();
+    const qrl = createQrl('throw-resp', (_thisArg, e) => {
+      throw e.error(404, { message: 'gone' });
+    });
+
+    await expect(getRouteLoaderResponse(qrl, undefined, ev)).rejects.toBeInstanceOf(ServerError);
   });
 
   it('returns a data envelope on success in getRouteLoaderResponse', async () => {
@@ -254,6 +265,7 @@ function makeRequestEv(): any {
       _status = status;
       return new ServerError(status, data);
     },
+    fail: (status: number, data: Record<string, any>) => failReturn(status, data),
   };
 }
 

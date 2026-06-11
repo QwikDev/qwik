@@ -21,6 +21,7 @@ import type {
 // route-loaders.ts → middleware barrel → runtime/src/ (same module group)
 import { _asyncRequestStore } from '../../middleware/request-handler/async-request-store';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
+import { failReturn, failToServerError, isFailReturn } from '../../middleware/request-handler/fail';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import { ServerError } from '../../middleware/request-handler/server-error';
 import { ensureSlash } from '../../utils/pathname';
@@ -139,9 +140,9 @@ class ServerRouteLoaderCapture {
 
   load() {
     const requestEv = getRequestEvent();
-    // A loader that failed during loadersMiddleware (fail() / throw error()) was captured
-    // as a ServerError. Re-throw it so the AsyncSignal enters error state during render
-    // instead of re-running the loader.
+    // A loader that failed during loadersMiddleware (a returned fail() or a failed
+    // validator) was converted into a ServerError. Re-throw it so the AsyncSignal enters
+    // error state during render instead of re-running the loader.
     const errors = getRouteLoaderErrors(requestEv);
     if (this.hash in errors) {
       throw errors[this.hash];
@@ -152,7 +153,14 @@ class ServerRouteLoaderCapture {
     if (this.hash in values) {
       return values[this.hash];
     }
-    return loadRouteLoaderByQrl(this.hash, this.qrl, this.validators, requestEv);
+    return loadRouteLoaderByQrl(this.hash, this.qrl, this.validators, requestEv).then((value) => {
+      if (isFailReturn(value)) {
+        // Late-running loader (after the response stream is open): surface the failure on
+        // the signal only — the response status is already on the wire.
+        throw failToServerError(value);
+      }
+      return value;
+    });
   }
 
   [SerializerSymbol]() {
@@ -664,13 +672,10 @@ export const getRouteLoaderData = async (
 
   const result = await runValidators(requestEv, validators, undefined);
   if (!result.success) {
-    // A failed validator surfaces as the loader's error state (a ServerError), the same
-    // as `throw error(...)`. On the client, getRouteLoaderResponse serializes it into the
-    // error envelope and the AsyncSignal re-throws it for the component to read via
-    // `loader.error`.
-    const status = result.status ?? 500;
-    requestEv.status(status);
-    throw new ServerError(status, result.error);
+    // A failed validator surfaces as the loader's error state, exactly like a returned
+    // fail(). Response effects (status, Cache-Control) are applied where the fail result
+    // is converted, never here.
+    return failReturn(result.status ?? 500, result.error ?? {});
   }
   const resolved = await loaderQrl.call(
     loaderRequestEv as unknown as ServerRequestEventLoader,
@@ -781,7 +786,12 @@ export const getRouteLoaderResponse = async (
 ): Promise<LoaderResponse> => {
   try {
     const value = await getRouteLoaderData(loaderQrl, validators, requestEv);
-    // fail() is thrown as a ServerError by getRouteLoaderData and handled in the catch below.
+    if (isFailReturn(value)) {
+      // Keep the HTTP 200 envelope (the client distinguishes failures via `e`, and
+      // `!response.ok` must keep meaning "transport problem"), but never cache a failure.
+      requestEv.headers.delete('Cache-Control');
+      return { e: failToServerError(value) };
+    }
     return { d: value };
   } catch (err) {
     if (err instanceof RedirectMessage) {
@@ -789,9 +799,8 @@ export const getRouteLoaderResponse = async (
       requestEv.headers.delete('Location');
       return { r: location };
     }
-    if (err instanceof ServerError) {
-      return { e: err };
-    }
+    // Thrown errors (`throw error(...)`, unexpected) abort the request and propagate to
+    // the middleware chain — they never become a loader's `.error` state.
     throw err;
   }
 };

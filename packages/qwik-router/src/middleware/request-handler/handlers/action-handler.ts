@@ -7,6 +7,7 @@ import type {
   RequestHandler,
   ValidatorReturn,
 } from '../../../runtime/src/types';
+import { applyFailureResponse, failToServerError, isFailReturn } from '../fail';
 import { RequestEvSharedActionId, type RequestEventInternal } from '../request-event-core';
 import { ServerError } from '../server-error';
 import { IsQAction, QActionId } from '../request-path';
@@ -85,30 +86,29 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
 
     let actionResult: unknown;
     let actionError: ServerError | undefined;
-    try {
-      const result = await runValidators(requestEv, action.__validators, data, devMode);
-      if (!result.success) {
-        // A failed validator surfaces as the action's error state.
-        throw new ServerError(result.status ?? 500, result.error);
-      }
+    const result = await runValidators(requestEv, action.__validators, data, devMode);
+    if (!result.success) {
+      // A failed validator becomes the action's `.error` state.
+      actionError = new ServerError(result.status ?? 500, result.error);
+    } else {
+      // Thrown errors (`throw error(...)`, redirects, unexpected) propagate to the
+      // middleware chain — only a returned fail() becomes `action.error`.
       const actionResolved = devMode
         ? await measure(requestEv, action.__qrl.getHash(), () =>
             action!.__qrl.call(requestEv, result.data as JSONObject, requestEv)
           )
         : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
-      if (devMode) {
-        verifySerializable(actionResolved, action.__qrl);
-      }
-      actionResult = actionResolved;
-    } catch (err) {
-      // `throw error(...)` / failed validators surface as `action.error`. Other throws
-      // (redirects, unexpected errors) propagate to the middleware chain as before.
-      if (err instanceof ServerError) {
-        actionError = err;
-        requestEv.status(err.status);
+      if (isFailReturn(actionResolved)) {
+        actionError = failToServerError(actionResolved);
       } else {
-        throw err;
+        if (devMode) {
+          verifySerializable(actionResolved, action.__qrl);
+        }
+        actionResult = actionResolved;
       }
+    }
+    if (actionError) {
+      applyFailureResponse(requestEv, actionError);
     }
     const responseData: Record<string, unknown> = actionError
       ? { error: actionError }

@@ -176,8 +176,8 @@ export const head: DocumentHead = ({ resolveValue }) => {
   if (action) {
     title += ` - ACTION: ${action.name}`;
   }
-  if (actionWithError?.data) {
-    title += ` - Error: ${actionWithError.data.message}`;
+  if (actionWithError?.message) {
+    title += ` - Error: ${actionWithError.message}`;
   }
   return {
     title,

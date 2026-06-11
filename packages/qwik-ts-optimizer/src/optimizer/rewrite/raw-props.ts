@@ -166,32 +166,58 @@ export function applyRawPropsTransformDetailed(body: string): RawPropsTransformR
   return { body: result, transformed: true, destructuredFieldLocals: fieldLocals };
 }
 
+/** Both destructured-first-param projections, computed from one parse. */
+export interface DestructuredFieldInfo {
+  /** local binding name → property key name (`bindValue` → `"bind:value"`). */
+  readonly fieldMap: Map<string, string>;
+  /** local binding name → destructure-default source text (`some` → `1+2`). */
+  readonly fieldDefaults: Map<string, string>;
+}
+
+/**
+ * Extract the field-key map AND the defaults map from a destructured first
+ * parameter in a single session/parse. The consumers always want both (or
+ * are indifferent to computing both): keeping the projections separate
+ * meant two back-to-back full-extraction loops parsing every parent body
+ * twice — the single largest avoidable-parse population in the session
+ * churn census (see BENCHMARKS.md).
+ */
+export function extractDestructuredFieldInfo(body: string): DestructuredFieldInfo {
+  const fieldMap = new Map<string, string>();
+  const fieldDefaults = new Map<string, string>();
+  const result: DestructuredFieldInfo = { fieldMap, fieldDefaults };
+
+  const session = createFunctionTransformSession(body);
+  if (!session) return result;
+
+  const params = session.fn.params;
+  if (params.length === 0) return result;
+
+  const firstParam = params[0];
+  if (firstParam.type !== 'ObjectPattern') return result;
+
+  const bindings = collectPatternBindings(firstParam, body, session.offset);
+  // Aborted destructure — return empty maps so downstream consolidation
+  // (`preConsolidateRawPropsCaptures`, nested-segment field propagation)
+  // skips this parent entirely instead of partially consolidating only
+  // the safe-shaped fields. Matches SWC's all-or-nothing gate.
+  if (bindings.unsafe) return result;
+
+  for (const field of bindings.fields) {
+    fieldMap.set(field.local, field.key);
+    if (field.defaultValue !== undefined) {
+      fieldDefaults.set(field.local, field.defaultValue);
+    }
+  }
+  return result;
+}
+
 /**
  * Extract a map from local binding name to property key name from a destructured first parameter.
  * Given `({foo, "bind:value": bindValue}) => ...`, returns Map { "foo" -> "foo", "bindValue" -> "bind:value" }.
  */
 export function extractDestructuredFieldMap(body: string): Map<string, string> {
-  const session = createFunctionTransformSession(body);
-  if (!session) return new Map();
-
-  const params = session.fn.params;
-  if (params.length === 0) return new Map();
-
-  const firstParam = params[0];
-  if (firstParam.type !== 'ObjectPattern') return new Map();
-
-  const bindings = collectPatternBindings(firstParam);
-  // Aborted destructure — return an empty map so downstream consolidation
-  // (`preConsolidateRawPropsCaptures`, nested-segment field propagation)
-  // skips this parent entirely instead of partially consolidating only
-  // the safe-shaped fields. Matches SWC's all-or-nothing gate.
-  if (bindings.unsafe) return new Map();
-
-  const fieldMap = new Map<string, string>();
-  for (const field of bindings.fields) {
-    fieldMap.set(field.local, field.key);
-  }
-  return fieldMap;
+  return extractDestructuredFieldInfo(body).fieldMap;
 }
 
 /**
@@ -207,25 +233,7 @@ export function extractDestructuredFieldMap(body: string): Map<string, string> {
  * emission in `transform_pat` (`swc-reference-only/props_destructuring.rs:382-388`).
  */
 export function extractDestructuredFieldDefaultsMap(body: string): Map<string, string> {
-  const session = createFunctionTransformSession(body);
-  if (!session) return new Map();
-
-  const params = session.fn.params;
-  if (params.length === 0) return new Map();
-
-  const firstParam = params[0];
-  if (firstParam.type !== 'ObjectPattern') return new Map();
-
-  const bindings = collectPatternBindings(firstParam, body, session.offset);
-  if (bindings.unsafe) return new Map();
-
-  const defaults = new Map<string, string>();
-  for (const field of bindings.fields) {
-    if (field.defaultValue !== undefined) {
-      defaults.set(field.local, field.defaultValue);
-    }
-  }
-  return defaults;
+  return extractDestructuredFieldInfo(body).fieldDefaults;
 }
 
 function collectPatternBindings(
@@ -700,6 +708,14 @@ function collectRawPropsWCallReplacements(session: TransformSession): Array<{
  * Returns the consolidated body text.
  */
 export function consolidateRawPropsInWCalls(body: string): string {
+  // Sound textual prefilter: a consolidation site is a `.w([...])` array
+  // containing a `_rawProps` member expression (dotted OR computed —
+  // `_rawProps[key]` consolidates too, so the bare token is the widest
+  // sound gate). Both substrings necessarily appear in any body this pass
+  // could change; most segment bodies have neither — skip the parse. This
+  // was the largest per-segment one-shot parse population in the session
+  // churn census (see BENCHMARKS.md).
+  if (!body.includes('_rawProps') || !body.includes('.w(')) return body;
   const session = createTransformSession(body);
   if (!session) return body;
 

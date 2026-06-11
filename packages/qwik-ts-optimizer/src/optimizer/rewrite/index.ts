@@ -67,8 +67,10 @@ export {
   applyRawPropsTransformDetailed,
   extractDestructuredFieldMap,
   extractDestructuredFieldDefaultsMap,
+  extractDestructuredFieldInfo,
   consolidateRawPropsInWCalls,
   applyRawPropsTransform,
+  type DestructuredFieldInfo,
   type RawPropsTransformResult,
 } from './raw-props.js';
 export { transformInlineSegmentBody } from './inline-body.js';
@@ -77,7 +79,7 @@ export { transformInlineSegmentBody } from './inline-body.js';
 export type { RewriteContext } from './rewrite-context.js';
 
 // Imports used internally
-import { extractDestructuredFieldMap, extractDestructuredFieldDefaultsMap } from './raw-props.js';
+import { extractDestructuredFieldInfo } from './raw-props.js';
 
 export interface InlineStrategyOptions {
   /** Whether to use inline/hoist strategy (_noopQrl + .s()) */
@@ -513,15 +515,14 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
     const parentExt = ctx.extractions.find(e => e.symbolName === ext.parent);
     if (!parentExt) continue;
 
-    const fieldMap = extractDestructuredFieldMap(parentExt.bodyText);
-    if (fieldMap.size === 0) continue;
-
-    // Parallel defaults map so nested-segment field rewrites can emit
-    // `(_rawProps.<key> ?? <default>)` for fields the parent destructure
-    // defaulted (`some = 1+2`, `hey2 = 123`). Defaults-only — fields
+    // Field-key map + parallel defaults map (one parse). Defaults let
+    // nested-segment field rewrites emit `(_rawProps.<key> ?? <default>)`
+    // for fields the parent destructure defaulted (`some = 1+2`); fields
     // without a destructure default get bare `_rawProps.<key>` from the
     // existing rewrite path.
-    const fieldDefaultsMap = extractDestructuredFieldDefaultsMap(parentExt.bodyText);
+    const { fieldMap, fieldDefaults: fieldDefaultsMap } =
+      extractDestructuredFieldInfo(parentExt.bodyText);
+    if (fieldMap.size === 0) continue;
 
     const nonPropsCaptures: string[] = [];
     let hasPropsFields = false;

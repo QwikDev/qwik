@@ -18,10 +18,17 @@ const SESSION_FILENAME = '__session__.tsx';
  * impossible by construction. Sharing is safe because eager raw-transfer
  * parses materialize plain JS objects (no buffer aliasing) and session
  * consumers read the AST without mutating it; each session still gets
- * its own MagicString. Cap of 4 covers interleaved parent/segment body
- * pipelines without growing with module count.
+ * its own MagicString.
+ *
+ * Cap of 16: the session churn census (see BENCHMARKS.md) found a cap of
+ * 4 thrashing under interleaved parent/nested-segment pipelines — ~20
+ * re-parses of already-seen text per worst-case file once the duplicated
+ * field-map extraction was unified. Entries are small segment-body ASTs (the whole
+ * worst-case file's session parse volume is ~0.3 MB of text), so the
+ * extra retention is noise; the cap still keeps the memo from growing
+ * with module count.
  */
-const PARSE_MEMO_CAP = 4;
+const PARSE_MEMO_CAP = 16;
 const parseMemo = new Map<string, ReturnType<typeof parseWithRawTransfer>>();
 
 function memoizedParse(wrappedSource: string): ReturnType<typeof parseWithRawTransfer> {

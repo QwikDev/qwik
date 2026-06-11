@@ -3,6 +3,8 @@ import {
   applyRawPropsTransform,
   consolidateRawPropsInWCalls,
   extractDestructuredFieldMap,
+  extractDestructuredFieldDefaultsMap,
+  extractDestructuredFieldInfo,
 } from '../../../src/optimizer/rewrite/raw-props.js';
 
 describe('raw-props', () => {
@@ -100,5 +102,54 @@ describe('raw-props', () => {
     expect(result).toBe(
       'qrl(() => 1).w([\n        useStore([a, b]),\n        _rawProps,\n        fn(x, y)\n    ])',
     );
+  });
+
+  it('consolidates computed-member-only captures (prefilter must not gate them out)', () => {
+    // `_rawProps[key]` has no `_rawProps.` substring — the textual
+    // prefilter must use the bare token or this regresses silently.
+    const result = consolidateRawPropsInWCalls(
+      'qrl(() => 1).w([a, _rawProps[key]])',
+    );
+
+    expect(result).toBe('qrl(() => 1).w([\n        a,\n        _rawProps\n    ])');
+  });
+
+  it('returns bodies the consolidation cannot touch verbatim (prefilter paths)', () => {
+    // No `_rawProps` at all.
+    const noRawProps = 'qrl(() => 1).w([a, b, c])';
+    expect(consolidateRawPropsInWCalls(noRawProps)).toBe(noRawProps);
+    // `_rawProps` referenced but no `.w(` call.
+    const noWCall = '(x) => _rawProps.count + x';
+    expect(consolidateRawPropsInWCalls(noWCall)).toBe(noWCall);
+  });
+
+  it('extracts field map and defaults map from one parse (combined extractor)', () => {
+    const body =
+      '({ foo, "bind:value": bindValue, bar = 1 + 2, baz }) => foo + bindValue + bar + baz';
+
+    const info = extractDestructuredFieldInfo(body);
+
+    expect(info.fieldMap).toEqual(
+      new Map([
+        ['foo', 'foo'],
+        ['bindValue', 'bind:value'],
+        ['bar', 'bar'],
+        ['baz', 'baz'],
+      ]),
+    );
+    expect(info.fieldDefaults).toEqual(new Map([['bar', '1 + 2']]));
+
+    // The thin wrappers project the same single-parse result.
+    expect(extractDestructuredFieldMap(body)).toEqual(info.fieldMap);
+    expect(extractDestructuredFieldDefaultsMap(body)).toEqual(info.fieldDefaults);
+  });
+
+  it('combined extractor honors the all-or-nothing unsafe gate for both maps', () => {
+    const info = extractDestructuredFieldInfo(
+      '({ count, label = getLabel() }) => count + label',
+    );
+
+    expect(info.fieldMap.size).toBe(0);
+    expect(info.fieldDefaults.size).toBe(0);
   });
 });

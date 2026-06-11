@@ -43,10 +43,7 @@ import {
   getSentinelCounter,
 } from "./inline-strategy.js";
 import { eventHandlerPropName } from "../jsx/event-handlers.js";
-import {
-  extractDestructuredFieldMap,
-  extractDestructuredFieldDefaultsMap,
-} from "../rewrite/index.js";
+import { extractDestructuredFieldInfo } from "../rewrite/index.js";
 import { collectSameFileSymbolInfo } from "./module-symbols.js";
 import { rewriteImportSource } from "../rewrite/rewrite-imports.js";
 import { parseWithRawTransfer } from "../ast/parse.js";
@@ -402,28 +399,33 @@ export function consolidateRawPropsCaptures(
 }
 
 /**
- * Build a `parent symbol → (destructured local → field expr)` map for every
- * parent referenced by an extraction. `extract` is the per-parent-body field
- * extractor: {@link extractDestructuredFieldMap} for field expressions, or
- * {@link extractDestructuredFieldDefaultsMap} for the parallel defaults map.
+ * Build the `parent symbol → (destructured local → field expr)` map and the
+ * parallel defaults map for every parent referenced by an extraction —
+ * both projections from one parse per parent body
+ * ({@link extractDestructuredFieldInfo}).
  */
-function buildParentFieldMap(
+function buildParentFieldMaps(
   extractions: readonly ConsolidatedSegment[],
   extBySymbol: ReadonlyMap<string, ConsolidatedSegment>,
-  extract: (body: string) => Map<string, string>,
-): ReadonlyMap<string, ReadonlyMap<string, string>> {
+): {
+  fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
+  fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
+} {
   const parentSymbolNames = new Set<string>();
   for (const ext of extractions) {
     if (ext.parent !== null) parentSymbolNames.add(ext.parent);
   }
-  const result = new Map<string, ReadonlyMap<string, string>>();
+  const fieldMaps = new Map<string, ReadonlyMap<string, string>>();
+  const fieldDefaultsMaps = new Map<string, ReadonlyMap<string, string>>();
   for (const symbolName of parentSymbolNames) {
     const parentExt = extBySymbol.get(symbolName);
     if (parentExt !== undefined) {
-      result.set(symbolName, extract(parentExt.bodyText));
+      const info = extractDestructuredFieldInfo(parentExt.bodyText);
+      fieldMaps.set(symbolName, info.fieldMap);
+      fieldDefaultsMaps.set(symbolName, info.fieldDefaults);
     }
   }
-  return result;
+  return { fieldMaps, fieldDefaultsMaps };
 }
 
 /**
@@ -530,11 +532,8 @@ export function computeSegmentGenerationPrep(
   // destructure-time defaults. Raw-props consolidation (inline + default
   // strategies) reads both to emit `(_rawProps.<key> ?? <default>)` for
   // defaulted fields in nested segments.
-  const fieldMaps = buildParentFieldMap(
-    ctx.updatedExtractions, extBySymbol, extractDestructuredFieldMap,
-  );
-  const fieldDefaultsMaps = buildParentFieldMap(
-    ctx.updatedExtractions, extBySymbol, extractDestructuredFieldDefaultsMap,
+  const { fieldMaps, fieldDefaultsMaps } = buildParentFieldMaps(
+    ctx.updatedExtractions, extBySymbol,
   );
 
   return {

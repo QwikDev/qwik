@@ -14,6 +14,7 @@ import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
 import type { Dependency } from '../../vdomless/reactive/source';
 import { addDependency } from '../../vdomless/reactive/tracking';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
+import type { ContextScope } from '../../vdomless/runtime/context-scope';
 import type { DomSubscriber } from '../../vdomless/runtime/subscriber';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
@@ -147,6 +148,15 @@ export const inflate = (
       const d = data as any[];
       for (let i = 0; i < d.length; i++) {
         map.set(d[i++], d[i]);
+      }
+      break;
+    }
+    case TypeIds.ContextScope: {
+      const scope = target as ContextScope;
+      const d = data as unknown[];
+      scope.parent = (d[0] as ContextScope | null) ?? null;
+      for (let i = 1; i < d.length; i += 2) {
+        scope.values.set(d[i] as string, d[i + 1]);
       }
       break;
     }

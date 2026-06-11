@@ -3,7 +3,11 @@ import { setEvent } from '../../core/ssr/ssr-events';
 import { createSerializationContext } from '../../core/shared/serdes/serialization-context';
 import { escapeHTML } from '../../core/shared/utils/character-escaping';
 import type { SSRWriteChunk } from '../../core/ssr/ssr-types';
-import { invoke, newInvokeContext } from '../../core/vdomless/runtime/invoke-context';
+import {
+  getActiveInvokeContextOrNull,
+  invoke,
+  newInvokeContext,
+} from '../../core/vdomless/runtime/invoke-context';
 import { SsrScriptEmitter } from './ssr-script-emitter';
 import type {
   RenderToStreamOptions,
@@ -15,6 +19,7 @@ import type {
 export interface SsrRenderContext {
   nextId(): number;
   addRoot(value: unknown): number;
+  contextScopeId(): string;
   eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): string;
 }
 
@@ -55,6 +60,16 @@ export const renderToStream = async (
     },
     addRoot(value) {
       return serializationCtx.$addRoot$(value);
+    },
+    contextScopeId() {
+      const scope = getActiveInvokeContextOrNull()?.localContextScope ?? null;
+      if (scope === null) {
+        throw new Error('Missing context scope for context provider.');
+      }
+      if (scope.id === null) {
+        scope.id = String(serializationCtx.$addRoot$(scope));
+      }
+      return scope.id;
     },
     eventAttr(name, value, hasMovedCaptures = false) {
       const serialized = setEvent(serializationCtx, name, value, hasMovedCaptures);

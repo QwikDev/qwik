@@ -27,15 +27,16 @@ export const App = (_props, ctx) => {
   const contextId = createContextId('context');
   const source = createSignal('hello');
   createContextProvider(contextId, source);
+  const contextScopeId = ctx.contextScopeId();
   const id0 = ctx.nextId();
   ctx.addRoot(source);
-  return (
+  const contextHtml =
     '<p q:id="' +
     id0 +
     '">' +
     escapeHTML(renderSsrTextNode(createSsrElementTextTarget(id0), source)) +
-    '</p>'
-  );
+    '</p>';
+  return '<!c=' + contextScopeId + '>' + contextHtml + '<!/c>';
 };
 
 null

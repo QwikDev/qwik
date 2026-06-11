@@ -10,6 +10,7 @@ import { ReactiveFlags } from '../../vdomless/reactive/flags';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
 import type { Dependency } from '../../vdomless/reactive/source';
+import { isContextScope, type ContextScope } from '../../vdomless/runtime/context-scope';
 import type { Subscriber } from '../../vdomless/runtime/subscriber';
 import type { SSRInternalStreamWriter, SSRWriteChunk } from '../../ssr/ssr-types';
 import { qError, QError } from '../error/error';
@@ -448,6 +449,13 @@ export class Serializer {
       this.output(TypeIds.ComputedSignal, serializeComputed(value));
     } else if (value instanceof SsrDomSubscription) {
       this.output(TypeIds.EffectSubscription, serializeDomSubscription(value));
+    } else if (isContextScope(value)) {
+      const out: unknown[] = [value.parent ?? null];
+      const values = value.values;
+      for (const [key, value] of values) {
+        out.push(key, value === undefined ? explicitUndefined : value);
+      }
+      this.output(TypeIds.ContextScope, out);
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         this.output(TypeIds.Array, value);

@@ -83,9 +83,17 @@ function emitSsrComponent(
     hasDynamicBinding(component.root)
   );
   const statements = emitter.toString();
-  const bodyParts = [setup, statements, `return ${html};`].filter(Boolean);
+  const bodyParts = component.providesContext
+    ? [
+        setup,
+        'const contextScopeId = ctx.contextScopeId();',
+        statements,
+        `const contextHtml = ${html};`,
+        "return '<!c=' + contextScopeId + '>' + contextHtml + '<!/c>';",
+      ].filter(Boolean)
+    : [setup, statements, `return ${html};`].filter(Boolean);
   const body = bodyParts.join('\n');
-  const ctxParam = emitter.usesCtx ? 'ctx' : '_ctx';
+  const ctxParam = emitter.usesCtx || component.providesContext ? 'ctx' : '_ctx';
   if (component.declarationKind === 'function') {
     return `export function ${component.exportName}(_props, ${ctxParam}) {\n${body}\n}`;
   }

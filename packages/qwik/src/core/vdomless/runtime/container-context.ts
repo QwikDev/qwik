@@ -4,6 +4,7 @@ import { TypeIds } from '../../shared/serdes/constants';
 import { allocate } from '../../shared/serdes/allocate';
 import { inflate } from '../../shared/serdes/inflate';
 import { needsInflation } from '../../shared/serdes/deser-proxy';
+import { isContextScope } from './context';
 import { defaultScheduler, type Scheduler } from './scheduler';
 import type { PhaseSubscriber } from './subscriber';
 
@@ -144,6 +145,9 @@ function getRoot(context: ContainerContext, id: number): unknown {
   const value = parsed[offset + 1];
 
   const root = allocate(context, type, value);
+  if (isContextScope(root)) {
+    root.id = String(id);
+  }
   context.state.liveRoots.set(id, root);
   parsed[offset] = TypeIds.Plain;
   parsed[offset + 1] = root;

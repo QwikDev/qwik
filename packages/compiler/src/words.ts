@@ -8,6 +8,7 @@ export enum QwikSymbol {
   Component = 'component$',
   CreateAttrEffect = 'createAttrEffect',
   CreateClassEffect = 'createClassEffect',
+  CreateContextProvider = 'createContextProvider',
   CreateSsrElementTarget = 'createSsrElementTarget',
   CreateSsrElementTextTarget = 'createSsrElementTextTarget',
   CreateSsrRangeTextTarget = 'createSsrRangeTextTarget',

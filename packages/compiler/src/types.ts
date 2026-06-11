@@ -67,6 +67,7 @@ export interface ComponentRecord {
   declarationKind: 'function' | 'const' | 'defaultFunction' | 'defaultArrow';
   functionRange: SourceRange | null;
   qrlBoundary: string | null;
+  providesContext: boolean;
   segmentId: string | null;
   params: ParamRecord[];
   setupRanges: SourceRange[];

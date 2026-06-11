@@ -1,14 +1,8 @@
 import type { Container } from '../../shared/types';
+import type { ContextScope } from './context-scope';
 import { createOwner, type Owner } from './owner';
 
-export type ContextKey = string;
 export type SlotName = string;
-
-export interface ContextScope {
-  id: string | null;
-  parent: ContextScope | null;
-  values: Map<ContextKey, unknown>;
-}
 
 export interface SlotScope {
   id: string | null;

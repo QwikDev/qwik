@@ -2,7 +2,8 @@ import { QError, qError } from '../../shared/error/error';
 import { verifySerializable } from '../../shared/serdes/verify';
 import { qDev } from '../../shared/utils/qdev';
 import { isObject } from '../../shared/utils/types';
-import { getActiveInvokeContext, invoke, type ContextScope } from './invoke-context';
+import { createContextScope } from './context-scope';
+import { getActiveInvokeContext, invoke } from './invoke-context';
 
 export interface ContextId<STATE> {
   readonly __brand_context_type__: STATE;
@@ -16,14 +17,6 @@ export interface CreateContext {
 }
 
 const CONTEXT_NOT_FOUND = Symbol();
-
-export const createContextScope = (parent: ContextScope | null): ContextScope => {
-  return {
-    id: null,
-    parent,
-    values: new Map(),
-  };
-};
 
 export const createContextProvider = <STATE>(context: ContextId<STATE>, value: STATE): void => {
   if (qDev) {

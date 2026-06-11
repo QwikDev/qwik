@@ -8,7 +8,8 @@ import {
   createContainerContext,
   type ContainerContext,
 } from '../../vdomless/runtime/container-context';
-import { TypeIds } from './constants';
+import { createContextScope, isContextScope } from '../../vdomless/runtime/context-scope';
+import { Constants, TypeIds } from './constants';
 import { inflate } from './inflate';
 
 const encodeObjectData = (entries: Array<[unknown, unknown]>): unknown[] => {
@@ -123,6 +124,52 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     expect(() => inflateTextSubscription(context, count, 12, 0)).toThrow(
       'Missing range text target 12:0.'
     );
+  });
+});
+
+describe('inflate(TypeIds.ContextScope)', () => {
+  it('restores parent and context values', () => {
+    const parent = createContextScope(null);
+    const target = createContextScope(null);
+    const data = [
+      TypeIds.Plain,
+      parent,
+      TypeIds.Plain,
+      'empty',
+      TypeIds.Constant,
+      Constants.EmptyString,
+      TypeIds.Plain,
+      'false',
+      TypeIds.Constant,
+      Constants.False,
+      TypeIds.Plain,
+      'undefined',
+      TypeIds.Constant,
+      Constants.Undefined,
+    ];
+
+    inflate({} as ContainerContext, target, TypeIds.ContextScope, data);
+
+    expect(target.parent).toBe(parent);
+    expect(target.values.get('empty')).toBe('');
+    expect(target.values.get('false')).toBe(false);
+    expect(target.values.has('undefined')).toBe(true);
+    expect(target.values.get('undefined')).toBeUndefined();
+  });
+
+  it('assigns context scope id from the root state index', () => {
+    const state = JSON.stringify([TypeIds.ContextScope, [TypeIds.Constant, Constants.Null]]);
+    const context = createContext(
+      `<script type="qwik/state" q:base="7" q:len="1">${state}</script>`
+    );
+
+    const scope = context.getRoot(7);
+
+    expect(isContextScope(scope)).toBe(true);
+    if (!isContextScope(scope)) {
+      throw new Error('Expected a context scope.');
+    }
+    expect(scope.id).toBe('7');
   });
 });
 

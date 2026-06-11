@@ -2,6 +2,7 @@ import { DomSubscription } from '../../vdomless/dom/effect/effect';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
+import { createContextScope } from '../../vdomless/runtime/context-scope';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { _UNINITIALIZED } from '../utils/constants';
@@ -103,6 +104,8 @@ export const allocate = (context: ContainerContext, typeId: number, value: unkno
     case TypeIds.EffectSubscription: {
       return new DomSubscription(null!, context.scheduler);
     }
+    case TypeIds.ContextScope:
+      return createContextScope(null);
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }

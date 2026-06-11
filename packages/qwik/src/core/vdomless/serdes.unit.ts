@@ -17,6 +17,7 @@ import {
 import { ReactiveFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
 import { createSignal, type Signal } from './reactive/signal';
+import { createContextScope } from './runtime/context-scope';
 import { runWithCollector } from './reactive/tracking';
 import { createCaptureContainer } from './test-utils';
 
@@ -183,6 +184,70 @@ describe('vdomless serdes emit-only', () => {
 
     expect(computedPayload[4]).toBe(TypeIds.Constant);
     expect(computedPayload[5]).toBe(Constants.NEEDS_COMPUTATION);
+  });
+
+  it('serializes a context scope with falsy values and explicit undefined', async () => {
+    const scope = createContextScope(null);
+    scope.values.set('empty', '');
+    scope.values.set('false', false);
+    scope.values.set('null', null);
+    scope.values.set('undefined', undefined);
+
+    const state = await serialize(scope);
+
+    expect(state[0]).toBe(TypeIds.ContextScope);
+    expect(state[1]).toEqual([
+      TypeIds.Constant,
+      Constants.Null,
+      TypeIds.Plain,
+      'empty',
+      TypeIds.Constant,
+      Constants.EmptyString,
+      TypeIds.Plain,
+      'false',
+      TypeIds.Constant,
+      Constants.False,
+      TypeIds.Plain,
+      'null',
+      TypeIds.Constant,
+      Constants.Null,
+      TypeIds.Plain,
+      'undefined',
+      TypeIds.Constant,
+      Constants.Undefined,
+    ]);
+  });
+
+  it('serializes context parent scopes and reactive values as root references', async () => {
+    const parent = createContextScope(null);
+    const child = createContextScope(parent);
+    const source = createSignal('value');
+    const container = createCaptureContainer({});
+    const computed = createComputedQrl(
+      createQRL('./context.computed.js', 'computedValue', () => 'computed'),
+      container
+    );
+
+    parent.values.set('parent', 'outer');
+    child.values.set('source', source);
+    child.values.set('computed', computed);
+
+    const state = await serialize(parent, child, source, computed);
+
+    expect(state[0]).toBe(TypeIds.ContextScope);
+    expect(state[2]).toBe(TypeIds.ContextScope);
+    expect(state[3]).toEqual([
+      TypeIds.RootRef,
+      0,
+      TypeIds.Plain,
+      'source',
+      TypeIds.RootRef,
+      2,
+      TypeIds.Plain,
+      'computed',
+      TypeIds.RootRef,
+      3,
+    ]);
   });
 
   it.todo('serializes a task subscription with group, phase, qrl, and deps');

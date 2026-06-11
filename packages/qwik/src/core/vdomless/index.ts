@@ -71,7 +71,6 @@ export {
 export {
   createContext,
   createContextProvider,
-  createContextScope,
   type ContextId,
   type CreateContext,
 } from './runtime/context';

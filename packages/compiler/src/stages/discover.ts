@@ -7,6 +7,7 @@ import {
   isIdentifierNamed,
   isJsxNode,
   unwrapExpression,
+  visit,
 } from '../ast-utils';
 import type {
   ExportDefaultDeclaration,
@@ -22,7 +23,7 @@ import type {
   ImportRecord,
   ImportSpecifierRecord,
 } from '../types';
-import { QwikSymbol } from '../words';
+import { QwikModule, QwikSymbol } from '../words';
 
 interface ComponentFunctionInfo {
   fn: AstFunction;
@@ -32,6 +33,12 @@ interface ComponentFunctionInfo {
 interface ComponentBodyInfo {
   jsx: AstJsxNode | null;
   setupRanges: NonNullable<ComponentRecord['functionRange']>[];
+  providesContext: boolean;
+}
+
+interface ContextProviderImports {
+  named: Set<string>;
+  namespaces: Set<string>;
 }
 
 export function collectModuleFacts(ctx: CompilerContext) {
@@ -166,13 +173,14 @@ function addFunctionComponent(
   declarationKind: ComponentRecord['declarationKind'],
   qrlBoundary: string | null = null
 ) {
-  const body = getComponentBody(fn);
+  const body = getComponentBody(fn, getContextProviderImports(ctx));
   const component: ComponentRecord = {
     exportName,
     localName,
     declarationKind,
     functionRange: getRange(fn),
     qrlBoundary,
+    providesContext: body.providesContext,
     segmentId: null,
     params: getParams(fn),
     setupRanges: body.setupRanges,
@@ -196,33 +204,103 @@ function getComponentFunction(node: unknown): ComponentFunctionInfo | null {
   return isFunctionLike(fn) && fn ? { fn, qrlBoundary: QwikSymbol.Component } : null;
 }
 
-function getComponentBody(fn: AstFunction): ComponentBodyInfo {
+function getComponentBody(
+  fn: AstFunction,
+  contextProviderImports: ContextProviderImports
+): ComponentBodyInfo {
   const body = unwrapExpression(fn.body);
   if (!body) {
-    return { jsx: null, setupRanges: [] };
+    return { jsx: null, setupRanges: [], providesContext: false };
   }
   if (body.type === 'JSXElement' || body.type === 'JSXFragment') {
-    return { jsx: body, setupRanges: [] };
+    return { jsx: body, setupRanges: [], providesContext: false };
   }
   if (body.type !== 'BlockStatement') {
-    return { jsx: null, setupRanges: [] };
+    return { jsx: null, setupRanges: [], providesContext: false };
   }
   const setupRanges: ComponentBodyInfo['setupRanges'] = [];
+  let providesContext = false;
   for (const statement of body.body ?? []) {
     const statementRange = getRange(statement);
     if (statement.type !== 'ReturnStatement') {
       if (statementRange) {
         setupRanges.push(statementRange);
       }
+      providesContext ||= containsContextProviderCall(statement, contextProviderImports);
       continue;
     }
     const argument = unwrapExpression(statement.argument);
     if (isJsxNode(argument)) {
-      return { jsx: argument, setupRanges };
+      return { jsx: argument, setupRanges, providesContext };
     }
     if (statementRange) {
       setupRanges.push(statementRange);
     }
+    providesContext ||= containsContextProviderCall(statement, contextProviderImports);
   }
-  return { jsx: null, setupRanges: [] };
+  return { jsx: null, setupRanges: [], providesContext: false };
+}
+
+function getContextProviderImports(ctx: CompilerContext): ContextProviderImports {
+  const named = new Set<string>();
+  const namespaces = new Set<string>();
+  for (const importRecord of ctx.manifest.imports) {
+    if (importRecord.typeOnly || importRecord.source !== QwikModule.Spark) {
+      continue;
+    }
+    for (const specifier of importRecord.specifiers) {
+      if (specifier.kind === 'namespace') {
+        namespaces.add(specifier.localName);
+      } else if (
+        specifier.kind === 'named' &&
+        !specifier.typeOnly &&
+        specifier.importedName === QwikSymbol.CreateContextProvider
+      ) {
+        named.add(specifier.localName);
+      }
+    }
+  }
+  return { named, namespaces };
+}
+
+function containsContextProviderCall(
+  statement: unknown,
+  contextProviderImports: ContextProviderImports
+): boolean {
+  if (contextProviderImports.named.size === 0 && contextProviderImports.namespaces.size === 0) {
+    return false;
+  }
+
+  let found = false;
+  visit(statement, (node) => {
+    if (
+      !found &&
+      isCallExpression(node) &&
+      isContextProviderCallee(node.callee, contextProviderImports)
+    ) {
+      found = true;
+    }
+  });
+  return found;
+}
+
+function isContextProviderCallee(
+  callee: unknown,
+  contextProviderImports: ContextProviderImports
+): boolean {
+  const unwrapped = unwrapExpression(callee);
+  const localName = getIdentifierName(unwrapped);
+  if (localName && contextProviderImports.named.has(localName)) {
+    return true;
+  }
+  if (!unwrapped || unwrapped.type !== 'MemberExpression' || unwrapped.computed) {
+    return false;
+  }
+  const propertyName = getIdentifierName(unwrapped.property);
+  const objectName = getIdentifierName(unwrapped.object);
+  return (
+    propertyName === QwikSymbol.CreateContextProvider &&
+    objectName !== null &&
+    contextProviderImports.namespaces.has(objectName)
+  );
 }

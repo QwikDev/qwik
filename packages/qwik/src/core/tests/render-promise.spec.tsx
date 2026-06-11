@@ -53,13 +53,10 @@ describe.each([
     const Title = component$(() => <header>title</header>);
     const Footer = component$(() => <footer>footer</footer>);
     const Cmp = component$(() => {
-      // The signal is read before the throw, so the component subscribes to it.
-      // The thrown promise sets the signal, which marks the component dirty again
-      // and triggers a second diff pass before <Wrapper> has rendered its <Slot>.
-      // The second pass used to inherit creation mode (the host has no children
-      // yet) and blindly re-create the projected element children. The trailing
-      // <Footer /> is required: matching it by component hash jumps the cursor
-      // past the stale <div>, so expectNoMore() would not clean it up.
+      // The thrown promise writes a tracked signal, scheduling a second diff
+      // pass before <Wrapper> has rendered its <Slot>. The trailing <Footer />
+      // is required: matching it moves the cursor past the stale <div>, so
+      // expectNoMore() would not clean it up.
       const store = useSignal<string>();
       if (!store.value) {
         throw Promise.resolve().then(() => {

@@ -139,6 +139,44 @@ describe('flattenDestructureUseCalls', () => {
     expect(out).toContain('const bar = useBar(foo.url)');
   });
 
+  // ── Prefilter soundness ─────────────────────────────────────────
+  //
+  // The textual `component$` prefilter is sound because the walk's own
+  // trigger is `callee.name === 'component$'` exactly: a renamed import
+  // (`component$ as cmp`) never flattened before the prefilter existed,
+  // and its source lacks no behavior for the prefilter to change. These
+  // two tests pin both halves of that coupling.
+
+  it('leaves a renamed-import component module unchanged (never flattened; prefilter must not matter)', () => {
+    const source = [
+      `import { component$ as cmp } from '@qwik.dev/core';`,
+      `export default cmp(() => {`,
+      `  const { value } = useStore();`,
+      `  return <div>{value}</div>;`,
+      `});`,
+    ].join('\n');
+
+    const { source: out, changed } = flatten(source);
+    expect(changed).toBe(false);
+    expect(out).toBe(source);
+  });
+
+  it('still flattens when the `component$` token also appears in unrelated text', () => {
+    const source = [
+      `import { component$ } from '@qwik.dev/core';`,
+      `// component$ mentioned in a comment too`,
+      `export default component$(() => {`,
+      `  const { value } = useStore();`,
+      `  return <div>{value}</div>;`,
+      `});`,
+    ].join('\n');
+
+    const { source: out, changed } = flatten(source);
+    expect(changed).toBe(true);
+    expect(out).toContain('const store = useStore()');
+    expect(out).toContain('store.value');
+  });
+
   it('skips marker-suffixed callees ($-ending) so use*$ extraction isn\'t disturbed', () => {
     const source = [
       `import { component$, useTask$ } from '@qwik.dev/core';`,

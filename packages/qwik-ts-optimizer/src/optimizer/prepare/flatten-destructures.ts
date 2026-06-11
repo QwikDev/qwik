@@ -51,7 +51,23 @@ export function flattenDestructureUseCalls(
   relPath: string,
   program: AstProgram,
 ): { source: string; changed: boolean } {
-  const s = new MagicString(source);
+  // Sound textual prefilter: the walk below only acts on CallExpressions
+  // whose callee Identifier is *literally* named `component$` (see the
+  // name check in the enter handler — renamed imports never flatten).
+  // An Identifier's name appears verbatim at its source position, so a
+  // module whose text lacks the token cannot contain a trigger call;
+  // skipping the walk entirely cannot change behavior. Over-inclusion
+  // (the token inside a string or longer name) just falls through to
+  // the walk, which decides for real.
+  if (!source.includes('component$')) {
+    return { source, changed: false };
+  }
+
+  // Lazy: even prefiltered modules usually have no flattenable decls,
+  // and MagicString construction walks the whole source. Materialize on
+  // the first overwrite.
+  let s: MagicString | undefined;
+  const edits = (): MagicString => (s ??= new MagicString(source));
   const decls: FlattenableDecl[] = [];
   const subsByScope = new Map<number, Substitution[]>();
 
@@ -69,7 +85,7 @@ export function flattenDestructureUseCalls(
         node.callee?.type === 'Identifier' &&
         node.callee.name === 'component$'
       ) {
-        collectAndApplyDeclsForComponentCall(node, s, decls, subsByScope);
+        collectAndApplyDeclsForComponentCall(node, edits, decls, subsByScope);
         return;
       }
 
@@ -95,13 +111,13 @@ export function flattenDestructureUseCalls(
         if (!subs) continue;
         const hit = subs.find(sub => sub.from === node.name);
         if (!hit) continue;
-        s.overwrite(node.start, node.end, hit.to);
+        edits().overwrite(node.start, node.end, hit.to);
         return;
       }
     },
   });
 
-  if (!s.hasChanged()) return { source, changed: false };
+  if (s === undefined || !s.hasChanged()) return { source, changed: false };
   return { source: s.toString(), changed: true };
 }
 
@@ -169,7 +185,7 @@ interface FlattenableDecl {
  */
 function collectAndApplyDeclsForComponentCall(
   callNode: CallExpression,
-  s: MagicString,
+  edits: () => MagicString,
   decls: FlattenableDecl[],
   subsByScope: Map<number, Substitution[]>,
 ): void {
@@ -217,7 +233,7 @@ function collectAndApplyDeclsForComponentCall(
       fields,
     };
     decls.push(decl);
-    s.overwrite(decl.idStart, decl.idEnd, decl.newBinding);
+    edits().overwrite(decl.idStart, decl.idEnd, decl.newBinding);
     const subs: Substitution[] = decl.fields.map(field => ({
       from: field.localName,
       to: `${decl.newBinding}.${field.keyName}`,

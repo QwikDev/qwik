@@ -413,6 +413,10 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       const getData = ((loaderOrAction: any) => {
         const id = loaderOrAction.__id;
         if (loaderOrAction.__brand === 'server_loader') {
+          const loaderErrors = getRouteLoaderErrors(requestEv);
+          if (id in loaderErrors) {
+            return loaderErrors[id];
+          }
           if (!(id in loaderValues)) {
             throw new Error('Loader not executed for this request.');
           }

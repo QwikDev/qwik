@@ -15,6 +15,7 @@ import type { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent as RequestEvent_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { RequestHandler as RequestHandler_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue as ResolveSyncValue_2 } from '@qwik.dev/router/middleware/request-handler';
+import type { StrictUnion } from '@qwik.dev/router';
 import type { ValueOrPromise } from '@qwik.dev/core';
 
 // @public (undocumented)
@@ -214,9 +215,9 @@ export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<
 // @public (undocumented)
 export interface ResolveSyncValue {
     // (undocumented)
-    <T, INPUT, OPTIONAL extends boolean>(action: Action<T, INPUT, OPTIONAL>): Awaited<T> | undefined;
+    <T, INPUT, OPTIONAL extends boolean, ERROR>(action: Action<T, INPUT, OPTIONAL, ERROR>): Awaited<T> | ServerError<StrictUnion<ERROR>> | undefined;
     // (undocumented)
-    <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+    <T, ERROR>(loader: Loader_2<T, ERROR>): Awaited<T> extends () => any ? never : Awaited<T> | ServerError<StrictUnion<ERROR>>;
 }
 
 // @public (undocumented)

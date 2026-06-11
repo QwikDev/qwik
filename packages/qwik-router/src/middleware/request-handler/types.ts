@@ -1,6 +1,6 @@
 import type { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import type { Render, RenderOptions } from '@qwik.dev/core/server';
-import type { Action, Loader } from '@qwik.dev/router';
+import type { Action, Loader, StrictUnion } from '@qwik.dev/router';
 import type { FailReturn } from './fail';
 import type { ServerError } from './server-error';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
@@ -527,8 +527,12 @@ export interface ResolveValue {
 
 /** @public */
 export interface ResolveSyncValue {
-  <T, INPUT, OPTIONAL extends boolean>(action: Action<T, INPUT, OPTIONAL>): Awaited<T> | undefined;
-  <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+  <T, INPUT, OPTIONAL extends boolean, ERROR>(
+    action: Action<T, INPUT, OPTIONAL, ERROR>
+  ): Awaited<T> | ServerError<StrictUnion<ERROR>> | undefined;
+  <T, ERROR>(
+    loader: Loader<T, ERROR>
+  ): Awaited<T> extends () => any ? never : Awaited<T> | ServerError<StrictUnion<ERROR>>;
 }
 
 /** @public */

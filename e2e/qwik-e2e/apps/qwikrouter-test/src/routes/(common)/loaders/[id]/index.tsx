@@ -2,6 +2,7 @@ import { component$, Resource } from '@qwik.dev/core';
 import {
   type DocumentHead,
   Form,
+  isServerError,
   Link,
   routeAction$,
   routeLoader$,
@@ -171,11 +172,14 @@ export const head: DocumentHead = ({ resolveValue }) => {
   const date = resolveValue(useDateLoader);
   const dep = resolveValue(useDependencyLoader);
   const action = resolveValue(useForm);
+  const actionWithError = resolveValue(useFormWithError);
   let title = 'Loaders';
   if (action) {
     title += ` - ACTION: ${action.name}`;
   }
-  // `resolveValue` returns success values only — action failures are read from the action store.
+  if (isServerError(actionWithError)) {
+    title += ` - Error: ${actionWithError.data.message}`;
+  }
   return {
     title,
     meta: [

@@ -2,7 +2,7 @@ import type { TransformModuleInput } from '@qwik.dev/core/optimizer';
 import MagicString from 'magic-string';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
-import type { PluginContext } from 'rollup';
+import type { PluginContext } from 'rolldown';
 import type { Plugin } from 'vite';
 import type { ReplModuleInput } from './src/repl/types';
 import type { ExampleSection } from './src/routes/examples/apps/examples-data';

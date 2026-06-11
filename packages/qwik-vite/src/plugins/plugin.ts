@@ -1,3 +1,4 @@
+import type { ChunkingContext, CodeSplittingOptions } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
@@ -100,6 +101,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const clientResults = new Map<string, TransformOutput>();
   const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
+  // Maintaing our own map of segments because Rolldown doesn't retain module.meta information (https://github.com/rolldown/rolldown/issues/8924)
+  const clientSegments = new Map<string, SegmentAnalysis>();
+  const clientChunkNames = new Map<string, string>();
 
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
@@ -439,8 +443,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     debug(`transformedOutputs.clear()`);
+    clientResults.clear();
     clientTransformedOutputs.clear();
+    clientSegments.clear();
+    clientChunkNames.clear();
     serverTransformedOutputs.clear();
+    parentIds.clear();
 
     if (opts.target === 'client' && !devServer) {
       // emitFile() is only supported during build, not in Vite serve mode
@@ -570,6 +578,55 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
+  const normalizeId = (id: string) => normalizePath(parseId(id).pathId);
+
+  const setCachedSegment = (id: string, segment: SegmentAnalysis | null) => {
+    if (!segment) {
+      return;
+    }
+    clientSegments.set(normalizeId(id), segment);
+  };
+
+  /** Rolldown drops module.meta.segment during codeSplitting, so we cache it ourselves. */
+  const getCachedSegment = (id: string): SegmentAnalysis | undefined => {
+    return clientSegments.get(normalizeId(id));
+  };
+
+  const sanitizeChunkGroupName = (name: string | null | undefined) => {
+    if (!name) {
+      return null;
+    }
+    if (!/^(\.\.?([/\\]|$)|[/\\]|[A-Za-z]:[/\\])/.test(name)) {
+      return name;
+    }
+
+    const normalizedName = name
+      .replace(/^[A-Za-z]:/, '')
+      .replace(/^(\.\.[/\\])+/, '')
+      .replace(/^\.[/\\]/, '')
+      .replace(/^[/\\]+/, '')
+      .replace(/[/\\]+/g, '-');
+
+    return normalizedName || null;
+  };
+
+  const normalizeChunkGroupName = (entry: string | null | undefined, srcDir: string) => {
+    if (!entry) {
+      return null;
+    }
+    const path = getPath();
+    const normalizedEntry = normalizePath(entry);
+    const absoluteEntry = path.isAbsolute(normalizedEntry)
+      ? normalizedEntry
+      : normalizePath(path.resolve(srcDir, normalizedEntry));
+    const rootRelativeEntry = normalizePath(path.relative(opts.rootDir, absoluteEntry));
+    const preferredName =
+      !rootRelativeEntry.startsWith('../') && !path.isAbsolute(rootRelativeEntry)
+        ? rootRelativeEntry
+        : absoluteEntry;
+    return sanitizeChunkGroupName(preferredName);
+  };
+
   let resolveIdCount = 0;
   let doNotEdit = false;
   /**
@@ -603,7 +660,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         // Find the actual file on disk by asking vite to resolve it
         const resolved = await ctx.resolve(origId, importerId);
         if (resolved) {
-          const devEnv = ctx.environment as DevEnvironment;
+          const devEnv = ctx.environment as unknown as DevEnvironment;
           const file = devEnv.moduleGraph.getModuleById(resolved.id)?.file;
           if (file) {
             const path = `${file}${location}`;
@@ -949,7 +1006,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
       const moduleGraph =
-        (ctx.environment as DevEnvironment | undefined)?.moduleGraph ?? devServer?.moduleGraph;
+        (ctx.environment as unknown as DevEnvironment | undefined)?.moduleGraph ??
+        devServer?.moduleGraph;
       if (moduleGraph) {
         devPath = moduleGraph.getModuleById(pathId)?.url;
         // Fallback: if the module isn't in the graph yet (first transform),
@@ -1029,7 +1087,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           true
         );
       }
-
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
@@ -1043,12 +1100,22 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
+        if (mod.segment) {
+          mod.segment.entry = normalizeChunkGroupName(mod.segment.entry, srcDir);
+        }
+        if (!isServer && mod.segment) {
+          const chunkName = mod.segment.entry;
+          if (chunkName) {
+            clientChunkNames.set(mod.segment.hash, chunkName);
+          }
+        }
         // TODO handle noop modules
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
           debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
+          setCachedSegment(key, mod.segment);
           deps.add(key);
           if (devServer) {
             const mod = devServer.moduleGraph.getModuleById(key);
@@ -1282,9 +1349,14 @@ export const isDev = ${JSON.stringify(isDev)};
       if (id) {
         debug('hotUpdate()', `invalidate ${id}`);
         clientResults.delete(id);
+        clientChunkNames.clear();
+        clientSegments.delete(id);
+        clientSegments.delete(normalizePath(parseId(id).pathId));
         for (const [key, [_, parentId]] of outputs) {
           if (parentId === id) {
             debug('hotUpdate()', `invalidate ${id} segment ${key}`);
+            clientSegments.delete(key);
+            clientSegments.delete(normalizePath(parseId(key).pathId));
             outputs.delete(key);
             const segMod = environment.moduleGraph.getModuleById(key);
             if (segMod) {
@@ -1296,7 +1368,7 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  const manualChunks: Rollup.ManualChunksOption = (id: string, { getModuleInfo }) => {
+  const manualChunks = (id: string, ctx: ChunkingContext) => {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
@@ -1313,10 +1385,38 @@ export const isDev = ${JSON.stringify(isDev)};
         return 'qwik-loader';
       }
     }
+    return mergeRelatedSegments(id, ctx);
+  };
 
-    const module = getModuleInfo(id);
+  const codeSplitting: CodeSplittingOptions = {
+    includeDependenciesRecursively: false,
+    groups: [
+      {
+        name: 'qwik-core',
+        test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
+      },
+      {
+        name: 'qwik-loader',
+        test: /[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/,
+      },
+      {
+        name: 'qwik-preloader',
+        test: (id: string) =>
+          id.endsWith('@qwik.dev/core/build') ||
+          /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id),
+      },
+      {
+        name: (id: string, ctx: ChunkingContext) => {
+          return mergeRelatedSegments(id, ctx);
+        },
+      },
+    ],
+  };
+
+  const mergeRelatedSegments = (id: string, ctx: ChunkingContext) => {
+    const module = ctx?.getModuleInfo(id);
     if (module) {
-      const segment = module.meta.segment as SegmentAnalysis | undefined;
+      const segment = (module.meta.segment as SegmentAnalysis | undefined) ?? getCachedSegment(id);
       if (segment) {
         // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
         if (['qwikify$', 'useVisibleTask$', 'useComputed$'].includes(segment.ctxName)) {
@@ -1335,7 +1435,6 @@ export const isDev = ${JSON.stringify(isDev)};
       }
     }
 
-    // The rest is non-qwik code. We let rollup handle it.
     return null;
   };
 
@@ -1414,6 +1513,7 @@ export const isDev = ${JSON.stringify(isDev)};
     configureServer,
     hotUpdate,
     manualChunks,
+    codeSplitting,
     generateManifest,
   };
 }

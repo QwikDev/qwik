@@ -13,7 +13,7 @@ export default defineConfig((config) => {
         formats: ['es'],
         fileName: () => `index.qwik.mjs`,
       },
-      rollupOptions: {
+      rolldownOptions: {
         external: [
           '@qwik.dev/core',
           '@qwik.dev/router',

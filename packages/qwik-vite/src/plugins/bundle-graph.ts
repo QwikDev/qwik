@@ -115,22 +115,6 @@ export function convertManifestToBundleGraph(
 
   const names = Object.keys(graph);
   const map = new Map<string, { index: number; deps: Set<string> }>();
-  const clearTransitiveDeps = (
-    parentDeps: Set<string>,
-    bundleName: string,
-    seen: Set<string> = new Set()
-  ) => {
-    const bundle = graph[bundleName];
-    for (const dep of bundle.imports!) {
-      if (parentDeps.has(dep)) {
-        parentDeps.delete(dep);
-      }
-      if (!seen.has(dep)) {
-        seen.add(dep);
-        clearTransitiveDeps(parentDeps, dep, seen);
-      }
-    }
-  };
 
   /**
    * First pass to collect minimal dependency lists and allocate space for dependencies. Minimal
@@ -141,13 +125,9 @@ export function convertManifestToBundleGraph(
     const bundle = graph[bundleName];
     // external dependencies are not included in `graph`
     const deps = new Set(bundle.imports!);
-    for (const depName of deps) {
-      clearTransitiveDeps(deps, depName);
-    }
     const dynDeps = new Set(bundle.dynamicImports!);
     const depProbability = new Map<string, number>();
     for (const depName of dynDeps) {
-      clearTransitiveDeps(dynDeps, depName);
       const dep = graph[depName];
 
       // Calculate the probability of the dependency

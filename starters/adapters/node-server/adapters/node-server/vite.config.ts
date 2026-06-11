@@ -6,7 +6,7 @@ export default extendConfig(baseConfig, () => {
   return {
     build: {
       ssr: true,
-      rollupOptions: {
+      rolldownOptions: {
         input: ["src/entry.node-server.tsx"],
       },
     },

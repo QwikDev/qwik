@@ -585,7 +585,16 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
       if (!ctx) {
         return;
       }
-      const moduleIds = await collectServerFnModuleIds(ctx, RESOLVED_ID, this);
+      // Skip the virtual module and the router config during the crawl: the config
+      // statically imports VIRTUAL_SERVER_FNS, so `this.load`-ing it here would re-enter
+      // this `resolveId` handler and deadlock. The config holds no user
+      // `serverQrl(`, and its children (routes, layouts, server plugins) are already
+      // seeded into the crawl — so skipping it loses nothing.
+      const moduleIds = await collectServerFnModuleIds(
+        ctx,
+        new Set([RESOLVED_ID, QWIK_ROUTER_CONFIG_ID]),
+        this
+      );
       for (let i = 0; i < moduleIds.length; i++) {
         serverFnModules.add(moduleIds[i]);
       }
@@ -601,23 +610,25 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
       reset();
     },
 
-    resolveId(id) {
-      if (id === VIRTUAL_SERVER_FNS) {
-        return { id: RESOLVED_ID, moduleSideEffects: 'no-treeshake' };
-      }
+    resolveId: {
+      async handler(id) {
+        if (id === VIRTUAL_SERVER_FNS) {
+          const isServerBuild =
+            this.environment.config.consumer === 'server' && this.environment.mode === 'build';
+          // Crawl the module graph here rather than in `load` because of deadlocks under rolldown
+          if (isServerBuild) {
+            await collectServerFnModules.call(this);
+          }
+          return { id: RESOLVED_ID, moduleSideEffects: 'no-treeshake' };
+        }
+      },
     },
 
     load: {
       order: 'pre',
-      async handler(id) {
-        const isServerBuild =
-          this.environment.config.consumer === 'server' && this.environment.mode === 'build';
-
+      handler(id) {
         if (id === RESOLVED_ID) {
-          if (isServerBuild) {
-            await collectServerFnModules.call(this);
-          }
-          if (!isServerBuild || serverFnModules.size === 0) {
+          if (serverFnModules.size === 0) {
             return '// No server$ functions';
           }
           return [...serverFnModules].map((mod) => `import ${JSON.stringify(mod)};`).join('\n');

@@ -27,7 +27,7 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
         },
         build: {
           ssr: true,
-          rollupOptions: {
+          rolldownOptions: {
             output: {
               format: 'es',
               hoistTransitiveImports: false,

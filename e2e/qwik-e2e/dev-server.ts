@@ -282,7 +282,7 @@ function csrApp(res: Response, appName: string) {
   <head>
     <meta charset="utf-8">
     <title>Qwik CSR E2E</title>
-    <script type="module" src="/${appName}/build/qwikloader.js"></script>
+    <script type="module" src="/${appName}/build/qwik-loader.js"></script>
     <script type="module" src="/${appName}/build/entry.dev.js"></script>
   </head>
   <body></body>

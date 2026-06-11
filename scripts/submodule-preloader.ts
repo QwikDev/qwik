@@ -18,26 +18,14 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
         formats: ['es'],
         fileName: () => 'preloader.mjs',
       },
-      rollupOptions: {
+      rolldownOptions: {
         external: ['@qwik.dev/core/build'],
-      },
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          defaults: false,
-          module: true,
-          hoist_props: true,
-          unused: true,
-          booleans_as_integers: true,
+        output: {
+          comments: false,
         },
-        mangle: {
-          toplevel: false,
-          properties: {
-            // use short attribute names for internal properties
-            regex: MANGLE_PROPS_REGEX,
-          },
-        },
+        experimental: { attachDebugInfo: 'none' },
       },
+      minify: true,
       outDir: config.distQwikPkgDir,
     },
     define: { 'globalThis.qTest': 'false' }, // In vitest environments, `qTest` is `true` which allows test-only code to run, but in production builds it should be `false` to allow dead code elimination.

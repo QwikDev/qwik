@@ -27,7 +27,7 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
         build: {
           ssr: true,
           outDir,
-          rollupOptions: {
+          rolldownOptions: {
             output: {
               format: 'es',
               hoistTransitiveImports: false,

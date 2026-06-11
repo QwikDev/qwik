@@ -21,8 +21,28 @@
     Object [
       {string} "loaderPaths"
       Object [
-        {string} "qO14f4pG8tQ"
+        {number} 2
         {string} "/"
+        {string} "_"
+        {string} "/"
+        {string} "L"
+        {string} "/"
+        {string} "O"
+        {string} "/"
+        {string} "A"
+        {string} "/"
+        {string} "D"
+        {string} "/"
+        {string} "E"
+        {string} "/"
+        {string} "R"
+        {string} "/"
+        {string} "S"
+        {string} "/"
+        {string} ":"
+        {string} "/"
+        {string} "/"
+        ...
       ]
     ]
     {number} 1
@@ -344,7 +364,7 @@
 48 Object [
   {string} "__qwik_route_loader_value__qO14f4pG8tQ"
   Constant _UNINITIALIZED
-  RootRef [omitted]
+  {string} "qO14f4pG8tQ"
   AsyncSignal [
     QRL "[omitted]"
     Set [

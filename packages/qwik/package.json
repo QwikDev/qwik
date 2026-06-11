@@ -11,10 +11,10 @@
     "@qwik.dev/optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.12.0",
-    "magic-string": "0.30.21",
-    "rollup": "^4.59.0"
+    "magic-string": "0.30.21"
   },
   "devDependencies": {
+    "rolldown": "1.0.2",
     "@croct/json5-parser": "0.2.2",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
@@ -161,8 +161,8 @@
   "main": "./src/index.ts",
   "peerDependencies": {
     "prettier": "*",
-    "vite": ">=6 <9",
-    "vitest": ">=2 <4"
+    "vite": ">=6 < 9",
+    "vitest": ">=2 <5"
   },
   "peerDependenciesMeta": {
     "vitest": {

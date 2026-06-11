@@ -2,11 +2,11 @@ import { denoServerAdapter } from '@qwik.dev/router/adapters/deno-server/vite';
 import { extendConfig } from '@qwik.dev/router/vite';
 import baseConfig from '../../vite.config';
 
-export default extendConfig(baseConfig, () => {
+export default extendConfig(baseConfig as any, () => {
   return {
     build: {
       ssr: true,
-      rollupOptions: {
+      rolldownOptions: {
         input: ['src/entry.deno.tsx'],
       },
     },

@@ -10,8 +10,8 @@
     ]
   },
   "devDependencies": {
-    "@vitest/ui": "^0.34.6",
-    "vitest": "^0.34.6"
+    "@vitest/ui": "^4.0.18",
+    "vitest": "^4.0.18"
   },
   "scripts": {
     "test.unit": "vitest components",

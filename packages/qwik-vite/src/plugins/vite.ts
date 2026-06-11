@@ -1,6 +1,4 @@
-import type { ResolvedId } from 'rollup';
 import type {
-  BuildOptions,
   ConfigEnv,
   EnvironmentOptions,
   UserConfig,
@@ -36,8 +34,14 @@ import {
   type QwikPluginDevTools,
   type QwikPluginOptions,
 } from './plugin';
-import { createRollupError, normalizeRollupOutputOptions } from './rollup';
+import {
+  createBundlerError,
+  normalizeRolldownOutputOptions,
+  normalizeRollupOutputOptions,
+} from './rollup';
 import { isVirtualId } from './vite-utils';
+import type { BuildOptions, ResolvedId } from 'rolldown';
+import type { RollupOptions } from 'rollup';
 import {
   createBuildWorkerQrlChunkResolver,
   rewriteWorkerQrlChunkPlaceholders,
@@ -120,7 +124,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let viteAssetsDir: string | undefined;
   let srcDir: string | null = null;
   let rootDir: string | null = null;
-
   let ssrOutDir: string | null = null;
   let buildMode: QwikBuildMode = 'development';
   let viteServer: ViteDevServer | undefined;
@@ -163,6 +166,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     async config(viteConfig, viteEnv) {
       await qwikPlugin.init();
+
+      const bundlerOptionsKey = this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions';
 
       let target: QwikBuildTarget;
       if (viteEnv.mode === 'lib') {
@@ -208,7 +213,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             : qwikViteOpts.ssr?.input
           : undefined;
       const clientInput = target === 'client' ? qwikViteOpts.client?.input : undefined;
-      let input = viteConfig.build?.rollupOptions?.input || clientInput || ssrInput;
+      let input = viteConfig.build?.[bundlerOptionsKey]?.input || clientInput || ssrInput;
       if (input && typeof input === 'string') {
         input = [input];
       }
@@ -269,6 +274,26 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
       const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
 
+      const sharedBuildOptions: BuildOptions & RollupOptions = {
+        external: ['node:async_hooks'],
+        input,
+      };
+      const rolldownBuildOptions: BuildOptions = {
+        ...sharedBuildOptions,
+        experimental: {
+          attachDebugInfo:
+            viteConfig.build?.rolldownOptions?.experimental?.attachDebugInfo ?? 'none',
+        },
+      };
+      const rollupBuildOptions: RollupOptions = {
+        ...sharedBuildOptions,
+        /**
+         * This is a workaround to have predictable chunk hashes between builds. It doesn't seem to
+         * impact the build time.
+         * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
+         */
+        maxParallelFileOps: 1,
+      };
       const updatedViteConfig: UserConfig = {
         // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
         ssr: {
@@ -318,12 +343,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
-          rollupOptions: {
-            external: ['node:async_hooks'],
-            // This will amend the existing input
-            input,
-            // temporary fix for rolldown-vite types
-          } as BuildOptions['rollupOptions'],
+          [bundlerOptionsKey]: this.meta.rolldownVersion
+            ? rolldownBuildOptions
+            : rollupBuildOptions,
         },
         worker: getQwikWorkerConfig(viteConfig.worker, target, viteCommand),
         define: {
@@ -333,21 +355,39 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         },
       };
 
+      if (this.meta.rolldownVersion) {
+        updatedViteConfig.oxc =
+          viteCommand === 'serve'
+            ? false
+            : {
+                jsx: {
+                  runtime: 'automatic',
+                },
+              };
+      } else {
+        updatedViteConfig.esbuild =
+          viteCommand === 'serve'
+            ? false
+            : {
+                logLevel: 'error',
+                jsx: 'automatic',
+              };
+      }
+
       if (!qwikViteOpts.csr) {
         updatedViteConfig.build!.cssCodeSplit = false;
         if (opts.outDir) {
           updatedViteConfig.build!.outDir = opts.outDir;
         }
-        const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
-        updatedViteConfig.build!.rollupOptions = {
-          ...updatedViteConfig.build!.rollupOptions,
-          output: await normalizeRollupOutputOptions(
-            qwikPlugin,
-            viteConfig.build?.rollupOptions?.output,
-            useAssetsDir,
-            opts.outDir
-          ),
-          preserveEntrySignatures: 'exports-only',
+        const origOnwarn = updatedViteConfig.build![bundlerOptionsKey]?.onwarn;
+        updatedViteConfig.build![bundlerOptionsKey] = {
+          ...updatedViteConfig.build![bundlerOptionsKey],
+          output: await (
+            this.meta.rolldownVersion
+              ? normalizeRolldownOutputOptions
+              : normalizeRollupOutputOptions
+          )(qwikPlugin, viteConfig.build?.[bundlerOptionsKey]?.output, useAssetsDir, opts.outDir),
+          preserveEntrySignatures: 'allow-extension',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
               return;
@@ -370,7 +410,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else if (opts.target === 'lib') {
           // Library Build
           updatedViteConfig.build!.minify = false;
-          updatedViteConfig.build!.rollupOptions.external = [
+          updatedViteConfig.build![bundlerOptionsKey]!.external = [
             QWIK_CORE_ID,
             QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
@@ -441,12 +481,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       // and adding an import + wrapper to every QRL bundle. Qwik has its own
       // preloader, so the helper is pure overhead. `build.modulePreload: false`
       // does NOT disable this — see https://github.com/vitejs/vite/issues/18551.
+      // Also ignores native:import-analysis-build for rolldown.
+
       if (
         viteCommand === 'build' &&
         !qwikViteOpts.csr &&
         qwikPlugin.getOptions().target === 'client'
       ) {
-        const names = ['vite:build-import-analysis'];
+        const names = ['vite:build-import-analysis', 'native:import-analysis-build'];
         const plugins = config.plugins as VitePlugin[];
         for (const name of names) {
           const i = plugins.findIndex((p) => p?.name === name);
@@ -469,9 +511,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         diagnostics.forEach((d) => {
           const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
           if (d.category === 'error') {
-            this.error(createRollupError(id, d));
+            this.error(createBundlerError(id, d));
           } else {
-            this.warn(createRollupError(id, d));
+            this.warn(createBundlerError(id, d));
           }
         });
       });

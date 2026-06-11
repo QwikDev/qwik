@@ -27,6 +27,19 @@ test.describe('loaders', () => {
       await expect(page.locator('body')).toContainText('loader-error-caught');
     });
 
+    test('a transport failure lands a plain Error on loader.error', async ({ page }) => {
+      await page.goto('/qwikrouter-test/loaders/loader-fail/?ok=1');
+      await expect(page.locator('#loader-fail-value')).toHaveText('tshirt');
+
+      await page.route('**/q-loader-*', (route) => route.abort());
+      await page.locator('#link-loader-fail-retry').click();
+
+      const err = page.locator('#loader-fail-error');
+      await expect(err).toBeVisible();
+      // No `status`: the network Error branch rendered, not the ServerError one.
+      await expect(err).not.toContainText('429');
+    });
+
     test('should reuse filtered search loaders only for the same SPA route path', async ({
       page,
     }) => {

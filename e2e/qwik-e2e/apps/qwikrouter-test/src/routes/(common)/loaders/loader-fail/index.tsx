@@ -24,6 +24,10 @@ export default component$(() => {
   return (
     <div>
       <div id="loader-fail-value">{loader.value.product}</div>
+      {/* Same route, new search param: SPA nav refetches the loader (transport-failure spec) */}
+      <Link id="link-loader-fail-retry" href="/qwikrouter-test/loaders/loader-fail/?retry=1">
+        retry
+      </Link>
       {/* Used by the SPA abort fallback spec */}
       <Link id="link-loader-error" href="/qwikrouter-test/loaders/loader-error/">
         To loader-error

@@ -236,9 +236,10 @@ export class RewriteMessage extends AbortMessage {
 }
 
 // Warning: (ae-forgotten-export) The symbol "ServerErrorImpl" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ReservedServerErrorKeys" needs to be exported by the entry point index.d.ts
 //
 // @public
-export type ServerError<T = unknown> = ServerErrorImpl<T> & (T extends object ? T : unknown);
+export type ServerError<T = unknown> = ServerErrorImpl<T> & (T extends object ? Omit<T, ReservedServerErrorKeys> : unknown);
 
 // @public (undocumented)
 export const ServerError: {

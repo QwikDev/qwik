@@ -65,7 +65,7 @@ export const SecretForm = component$(() => {
             )}
           </label>
         </div>
-        {action.error?.message && (
+        {action.error && !('fieldErrors' in action.error) && (
           <p id="form-error" class={styles.error}>
             {action.error.message}
           </p>

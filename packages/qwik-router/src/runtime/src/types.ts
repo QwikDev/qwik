@@ -986,6 +986,10 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
    * Method to execute the action programmatically from the browser. Ie, instead of using a
    * `<form>`, a 'click' handle can call the `run()` method of the action in order to execute the
    * action in the server.
+   *
+   * Resolves with `{ status, value, error }`; rejects when the submission aborts (a thrown
+   * `error()` or an unexpected server error) — narrow with `isServerError()`. `<Form>` handles the
+   * rejection internally and surfaces aborts via the `submitcompleted` event's `detail.aborted`.
    */
   readonly submit: QRL<
     OPTIONAL extends true

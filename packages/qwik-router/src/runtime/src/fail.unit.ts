@@ -141,9 +141,10 @@ describe('fail() types — loaders', () => {
     });
     const loader = useLoader();
     expectTypeOf(loader.value).toEqualTypeOf<{ product: string }>();
-    expectTypeOf(loader.error).toEqualTypeOf<
-      ServerError<{ notFound: boolean }> | Error | undefined
-    >();
+    expectTypeOf(loader.error).toMatchTypeOf<Error | undefined>();
+    // Direct access across the strict union — no guard needed.
+    expectTypeOf(loader.error?.notFound).toEqualTypeOf<boolean | undefined>();
+    expectTypeOf(loader.error?.status).toEqualTypeOf<number | undefined>();
     if (isServerError(loader.error)) {
       expectTypeOf(loader.error.notFound).toEqualTypeOf<boolean>();
     }

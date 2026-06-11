@@ -502,7 +502,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {\n    error: ServerError<StrictUnion<ERROR>> | Error | undefined;\n};\n```\n**References:** [StrictUnion](#strictunion)",
+      "content": "```typescript\nexport type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {\n    error: ServerError<StrictUnion<ERROR>> | TransportError<ERROR> | undefined;\n};\n```\n**References:** [StrictUnion](#strictunion)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loadersignal.md"
     },

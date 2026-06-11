@@ -1005,11 +1005,18 @@ export type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPro
   Pick<AsyncSignal, 'promise' | 'loading'> & {
     /**
      * A `ServerError` from a returned `fail()` or a failed validator. On the client a transport
-     * problem (network failure) can also land here as a plain `Error` — narrow with
-     * `isServerError()`.
+     * problem (network failure) can also land here as a plain `Error` — its `status`/payload fields
+     * are typed optional, so a truthy check narrows to the server failure.
      */
-    error: ServerError<StrictUnion<ERROR>> | Error | undefined;
+    error: ServerError<StrictUnion<ERROR>> | TransportError<ERROR> | undefined;
   };
+
+// A client-side transport failure on the same `.error` slot as ServerError. The server
+// failure's fields exist as `?: never` so plain property checks discriminate the union.
+type TransportError<ERROR> = Error & { [K in keyof StrictUnion<ERROR>]?: never } & {
+  status?: never;
+  data?: never;
+};
 
 /** @public */
 export type Loader<RETURN, ERROR = unknown> = {

@@ -1356,7 +1356,7 @@ export type LoaderSignal<
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
   Pick<AsyncSignal, "promise" | "loading"> & {
-    error: ServerError<StrictUnion<ERROR>> | Error | undefined;
+    error: ServerError<StrictUnion<ERROR>> | TransportError<ERROR> | undefined;
   };
 ```
 

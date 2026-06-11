@@ -302,7 +302,7 @@ export { Loader_2 as Loader }
 
 // @public (undocumented)
 export type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {
-    error: ServerError_2<StrictUnion<ERROR>> | Error | undefined;
+    error: ServerError_2<StrictUnion<ERROR>> | TransportError<ERROR> | undefined;
 };
 
 // @public (undocumented)
@@ -717,6 +717,10 @@ export type ZodConstructor = {
 //
 // @internal (undocumented)
 export const zodQrl: ZodConstructorQRL;
+
+// Warnings were encountered during analysis:
+//
+// /Users/maieul/dev/work/qwik-v2/.claude/worktrees/awesome-merkle-b3a719/dist-dev/dts-out/packages/qwik-router/src/runtime/src/types.d.ts:668:5 - (ae-forgotten-export) The symbol "TransportError" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

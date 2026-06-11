@@ -64,7 +64,7 @@ Hooks return an `AsyncSignal<T>`. Branch on `.loading` and `.error` before readi
 
 ```tsx /product.loading/ /product.error/ /product.value/#a title="src/routes/product/[productId]/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeLoader$, isServerError } from '@qwik.dev/router';
+import { routeLoader$ } from '@qwik.dev/router';
 
 export const useProductDetails = routeLoader$(async ({ params, fail }) => {
   const product = await db.products.findById(params.productId);
@@ -81,12 +81,7 @@ export default component$(() => {
     return <div>Loading…</div>;
   }
   if (product.error) {
-    // ServerError (from fail()) or plain Error (client network failure)
-    return isServerError(product.error) ? (
-      <div>{product.error.status}: {product.error.message}</div>
-    ) : (
-      <div>Network error</div>
-    );
+    return <div>{product.error.message}</div>;
   }
   return <div>Product name: {product.value.name}</div>;
 });
@@ -111,14 +106,12 @@ export const useProduct = routeLoader$(async ({ params, fail }) => {
 
 Read it back on `signal.error`, never on `signal.value` — `.value` holds the success type only and is `undefined` on failure; they are never both set at once. The data you pass to `fail()` is fully type-inferred into `signal.error`, so failure payloads are as strongly typed as success values.
 
-On the client, `signal.error` can also hold a plain `Error` when the loader's JSON fetch itself failed (a network problem). Narrow with the `isServerError()` guard exported from `@qwik.dev/router`:
+On the client, `signal.error` can also hold a plain `Error` when the loader's JSON fetch itself failed (a network problem). Its `status` and payload fields are typed optional across that union, so a plain property check tells the two apart:
 
 ```tsx
-import { isServerError } from '@qwik.dev/router';
-
 if (product.error) {
-  if (isServerError(product.error)) {
-    // typed: .status, .data, and your fail() payload fields
+  if (product.error.status) {
+    // server failure — typed: .status, .data, and your fail() payload fields
     console.warn(product.error.status, product.error.data);
   } else {
     // plain Error: the fetch itself failed
@@ -126,7 +119,7 @@ if (product.error) {
 }
 ```
 
-<Note>Prefer `isServerError()` over `instanceof ServerError` — after crossing the serialization boundary, the client deserializes the error as a plain `Error` with the same own properties, so `instanceof` is `false` there while the guard still matches.</Note>
+<Note>When an error reaches you as `unknown` (a `catch` block around `submit()` or `resolveValue()`), narrow it with the `isServerError()` guard exported from `@qwik.dev/router`. Prefer it over `instanceof ServerError`, which is `false` on the client after deserialization.</Note>
 
 ### Aborting to the error page
 

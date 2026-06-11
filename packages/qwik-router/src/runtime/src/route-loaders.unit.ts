@@ -241,7 +241,8 @@ describe('types', () => {
       return { result: 'ok' };
     });
     const loader = useObj();
-    expectTypeOf(loader.error).toEqualTypeOf<Error | undefined>();
+    expectTypeOf(loader.error).toMatchTypeOf<Error | undefined>();
+    expectTypeOf(loader.error?.status).toEqualTypeOf<undefined>();
   });
 });
 

@@ -1,5 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import { Link, isServerError, routeLoader$ } from '@qwik.dev/router';
+import { Link, routeLoader$ } from '@qwik.dev/router';
 
 export const useFailingLoader = routeLoader$((ev) => {
   if (ev.query.get('ok') === '1') {
@@ -14,7 +14,7 @@ export default component$(() => {
   if (loader.error) {
     return (
       <div id="loader-fail-error">
-        {isServerError(loader.error)
+        {loader.error.status
           ? `${loader.error.status} ${loader.error.reason}`
           : loader.error.message}
       </div>

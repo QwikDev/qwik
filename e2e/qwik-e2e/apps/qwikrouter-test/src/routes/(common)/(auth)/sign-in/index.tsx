@@ -83,7 +83,9 @@ export default component$(() => {
         <label>
           <span>Confirm password</span>
           <input name="confirmPassword" type="password" autoComplete="current-password" required />
-          {fieldErrors?.confirmPassword && <p style="color:red">{fieldErrors.confirmPassword}</p>}
+          {signIn.error?.fieldErrors?.confirmPassword && (
+            <p style="color:red">{signIn.error.fieldErrors.confirmPassword}</p>
+          )}
         </label>
         <button data-test-sign-in>Sign In</button>
         <p>(Username: qwik, Password: dev)</p>

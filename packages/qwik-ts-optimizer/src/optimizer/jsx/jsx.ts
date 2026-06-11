@@ -99,6 +99,34 @@ export interface JsxTransformContext {
   allDeclaredNames?: Set<string>;
   paramNames?: Set<string>;
   qrlsWithCaptures?: Set<string>;
+  /** Exact-range log of every `writeJsxCall` overwrite, keyed by range
+   * start. Lets readers recover an already-rewritten subtree's text
+   * without the chunk-list walk `MagicString.slice` pays on a heavily
+   * edited buffer — see `sliceTransformed` for the soundness argument. */
+  jsxWriteMemo?: ReadonlyMap<number, { end: number; content: string }>;
+}
+
+/**
+ * Read a byte range from the in-progress transform buffer, preferring an
+ * exact-range hit in the JSX write memo over `MagicString.slice`.
+ *
+ * Why an exact-range hit is final-in-walk: the JSX walk rewrites
+ * bottom-up and `writeJsxCall` is its only MagicString write path, so by
+ * the time an enclosing element reads a child's range, the child's
+ * recorded write is the last edit landing inside that range — any later
+ * write targets a strictly-enclosing ancestor range and is recorded
+ * under its own start. `s.slice(start, end)` would therefore return
+ * exactly the recorded content. The one pass that revisits recorded
+ * ranges (the post-walk signal-hoist rename) runs after all reads.
+ */
+export function sliceTransformed(
+  ctx: JsxTransformContext,
+  start: number,
+  end: number,
+): string {
+  const hit = ctx.jsxWriteMemo?.get(start);
+  if (hit !== undefined && hit.end === end) return hit.content;
+  return ctx.s.slice(start, end);
 }
 
 /**
@@ -759,15 +787,56 @@ export function processJsxTag(nameNode: JSXElementName | null | undefined): stri
   }
 }
 
-function isInSkipRange(
+/**
+ * Build a binary-searchable index over skip ranges: sort by start
+ * (descending end as tie-break) and drop ranges contained in an
+ * already-kept range. Dropping is lossless — a node inside a dropped
+ * range is also inside its container. The kept ranges have strictly
+ * increasing starts AND strictly increasing ends (a later range with a
+ * smaller end would be contained), which is what makes the single-probe
+ * query in `isInSkipRange` sound.
+ */
+export function buildSkipRangeIndex(
+  skipRanges: ReadonlyArray<{ start: number; end: number }>,
+): ReadonlyArray<{ start: number; end: number }> {
+  if (skipRanges.length <= 1) return skipRanges;
+  const sorted = [...skipRanges].sort((a, b) => a.start - b.start || b.end - a.end);
+  const kept: { start: number; end: number }[] = [];
+  let maxEnd = -1;
+  for (const range of sorted) {
+    if (range.end <= maxEnd) continue;
+    kept.push(range);
+    maxEnd = range.end;
+  }
+  return kept;
+}
+
+/**
+ * Probing only the rightmost kept range with `start <= nodeStart` is
+ * sound: suppose the node is contained in some kept range A but the
+ * probe picked B (so B.start >= A.start). B kept means B is not
+ * contained in A, hence B.end > A.end >= nodeEnd — and nodeStart >=
+ * B.start by the probe — so the node is contained in B too and the
+ * check still succeeds.
+ */
+export function isInSkipRange(
   nodeStart: number,
   nodeEnd: number,
-  skipRanges: ReadonlyArray<{ start: number; end: number }>,
+  index: ReadonlyArray<{ start: number; end: number }>,
 ): boolean {
-  for (const range of skipRanges) {
-    if (nodeStart >= range.start && nodeEnd <= range.end) return true;
+  let lo = 0;
+  let hi = index.length - 1;
+  let found = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (index[mid].start <= nodeStart) {
+      found = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
   }
-  return false;
+  return found >= 0 && nodeEnd <= index[found].end;
 }
 
 /**
@@ -910,7 +979,8 @@ export function transformAllJsx(
   const signalHoister = sharedSignalHoister ?? new SignalHoister();
   const neededImports = new Set<string>();
   let needsFragment = false;
-  const ranges = skipRanges ?? [];
+  const ranges = buildSkipRangeIndex(skipRanges ?? []);
+  const jsxWriteMemo = new Map<number, { end: number; content: string }>();
   const jsxCtx: JsxTransformContext = {
     source,
     s,
@@ -921,6 +991,7 @@ export function transformAllJsx(
     allDeclaredNames,
     paramNames,
     qrlsWithCaptures,
+    jsxWriteMemo,
   };
 
   // When the JSX walk runs over a *wrapped body* (Inline strategy via
@@ -987,6 +1058,7 @@ export function transformAllJsx(
     writeJsxCall: (start, end, content) => {
       s.overwrite(start, end, content);
       jsxWrites.push({ start, end, content });
+      jsxWriteMemo.set(start, { end, content });
     },
   };
 

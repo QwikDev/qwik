@@ -87,6 +87,10 @@ export function createTransformSession(
     return null;
   }
 
+  // MagicString construction walks the whole wrapped source; read-only
+  // sessions (analysis helpers that never edit) shouldn't pay for it, so
+  // the instance materializes on first `edits` access.
+  let edits: MagicString | undefined;
   return {
     sourceText,
     wrappedSource,
@@ -94,9 +98,13 @@ export function createTransformSession(
     wrapperSuffix: '',
     offset: WRAPPER_PREFIX.length,
     program: parseResult.program,
-    edits: new MagicString(wrappedSource),
+    get edits(): MagicString {
+      if (edits === undefined) edits = new MagicString(wrappedSource);
+      return edits;
+    },
     toSource() {
-      const transformed = this.edits.toString();
+      if (edits === undefined) return this.sourceText;
+      const transformed = edits.toString();
       return transformed.slice(
         this.wrapperPrefix.length,
         transformed.length - this.wrapperSuffix.length,
@@ -121,10 +129,9 @@ export function createFunctionTransformSession(
   }
   if (!init.body) return null;
 
-  return {
-    ...session,
-    fn: init,
-  };
+  // Object.assign (not spread): spreading would invoke the lazy `edits`
+  // getter, forcing the MagicString and freezing it as a data property.
+  return Object.assign(session, { fn: init });
 }
 
 export function insertFunctionBodyPrologue(

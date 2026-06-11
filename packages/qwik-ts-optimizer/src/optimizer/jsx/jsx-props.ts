@@ -6,7 +6,6 @@
  * signal analysis for prop values.
  */
 
-import type MagicString from 'magic-string';
 import type { AstMaybeNode, JSXAttributeItem } from '../../ast-types.js';
 import { analyzeSignalExpression } from './signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective } from './event-handlers.js';
@@ -14,6 +13,7 @@ import { isBindProp, transformBindProp, mergeEventHandlers } from './bind.js';
 import {
   classifyConstness,
   isConstBindingName,
+  sliceTransformed,
   type JsxTransformContext,
   type ProcessPropsOptions,
 } from './jsx.js';
@@ -22,23 +22,23 @@ import { startsWithRewrittenEventPrefix } from '../qwik/event-attrs.js';
 import { getJsxAttributeName } from './jsx-attr-name.js';
 
 /**
- * Try to read a byte range from MagicString (`s.slice` — reflects accumulated
- * edits). Fall back to the original `source` text when MagicString throws
- * (happens when the range's start byte is inside a previously-replaced range,
- * making the slice anchor ambiguous — e.g. when an upstream rewrite has
- * already overwritten the entire attribute value before the JSX walker
- * reaches the outer element).
+ * Try to read a byte range from the transform buffer (`sliceTransformed` —
+ * an exact-range JSX write-memo hit, else `s.slice`, both reflecting
+ * accumulated edits). Fall back to the original `source` text when
+ * MagicString throws (happens when the range's start byte is inside a
+ * previously-replaced range, making the slice anchor ambiguous — e.g.
+ * when an upstream rewrite has already overwritten the entire attribute
+ * value before the JSX walker reaches the outer element).
  */
 function sliceWithFallback(
-  s: MagicString,
-  source: string,
+  ctx: JsxTransformContext,
   start: number,
   end: number,
 ): string {
   try {
-    return s.slice(start, end);
+    return sliceTransformed(ctx, start, end);
   } catch {
-    return source.slice(start, end);
+    return ctx.source.slice(start, end);
   }
 }
 
@@ -143,7 +143,7 @@ export function processProps(
   slotOrder: SlotEntry[];
   neededImports: Set<string>;
 } {
-  const { source, s, importedNames, signalHoister, qrlsWithCaptures, paramNames, bindings, allDeclaredNames } = ctx;
+  const { source, importedNames, signalHoister, qrlsWithCaptures, paramNames, bindings, allDeclaredNames } = ctx;
   const { tagIsHtml, passiveEvents, inLoop, skipSignalAnalysis } = opts;
   const varEntries: string[] = [];
   const constEntries: string[] = [];
@@ -248,7 +248,7 @@ export function processProps(
       // attribute, e.g. event-handler QRL replacement) — MagicString
       // throws "Cannot use replaced character N as slice start anchor"
       // in that case; the raw source matches what's expected then.
-      valueText = sliceWithFallback(s, source, valueNode.start, valueNode.end);
+      valueText = sliceWithFallback(ctx, valueNode.start, valueNode.end);
       // Match SWC's `simplify::simplifier` (explicitly invoked from
       // swc-reference-only/parse.rs:360) by simplifying compile-time-
       // constant prop expressions to their literal result. Without
@@ -260,7 +260,7 @@ export function processProps(
       }
     } else {
       valueNode = attr.value;
-      valueText = sliceWithFallback(s, source, attr.value.start, attr.value.end);
+      valueText = sliceWithFallback(ctx, attr.value.start, attr.value.end);
     }
 
     if (isBindProp(propName) && !tagIsHtml) {

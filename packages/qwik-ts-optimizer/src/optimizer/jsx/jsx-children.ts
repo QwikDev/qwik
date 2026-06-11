@@ -9,6 +9,7 @@ import { createRegExp, exactly, oneOrMore, anyOf, digit, whitespace, charNotIn }
 import { analyzeSignalExpression } from './signal-analysis.js';
 import {
   classifyConstness,
+  sliceTransformed,
   type JsxTransformContext,
   type ProcessChildrenOptions,
 } from './jsx.js';
@@ -209,7 +210,7 @@ function processOneChild(
   }
 
   if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
-    const childText = ctx.s.slice(child.start, child.end);
+    const childText = sliceTransformed(ctx, child.start, child.end);
     const type = classifyNestedJsxChild(child, childText);
     return { text: childText, type };
   }
@@ -228,9 +229,9 @@ function processExpressionChild(
     return { text: null, type: 'none' };
   }
 
-  const { source, s, importedNames, signalHoister, bindings, allDeclaredNames } = ctx;
+  const { source, importedNames, signalHoister, bindings, allDeclaredNames } = ctx;
   const { neededImports, enableSignalAnalysis = true } = opts;
-  const exprText = s.slice(expr.start, expr.end);
+  const exprText = sliceTransformed(ctx, expr.start, expr.end);
 
   // Runtime emits all four literal interfaces (String/Numeric/Boolean/Null)
   // under one `'Literal'` discriminant; narrow on `.value`'s primitive type.

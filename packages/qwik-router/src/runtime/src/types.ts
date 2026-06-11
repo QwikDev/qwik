@@ -10,6 +10,8 @@ import type {
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
   EnvGetter,
+  ExcludeFail,
+  FailPayload,
   RequestEvent,
   RequestEventAction,
   RequestEventBase,
@@ -28,6 +30,9 @@ export type {
   CookieOptions,
   CookieValue,
   DeferReturn,
+  ExcludeFail,
+  FailPayload,
+  FailReturn,
   InternalRequest,
   RequestEvent,
   RequestEventAction,
@@ -619,10 +624,10 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
-    OBJ,
+    ExcludeFail<OBJ>,
     GetValidatorInputType<VALIDATOR>,
     false,
-    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST> | FailPayload<OBJ>
   >;
 
   // Use options object, use typed data validator
@@ -636,10 +641,10 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    OBJ,
+    ExcludeFail<OBJ>,
     GetValidatorInputType<VALIDATOR>,
     false,
-    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailPayload<OBJ>
   >;
 
   // Use options object, use data validator
@@ -649,7 +654,7 @@ export type ActionConstructor = {
       readonly id?: string;
       readonly validation: REST;
     }
-  ): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
+  ): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailOfRest<REST> | FailPayload<OBJ>>;
 
   // Use typed data validator, use data validator
   <
@@ -664,10 +669,10 @@ export type ActionConstructor = {
     options: VALIDATOR,
     ...rest: REST
   ): Action<
-    OBJ,
+    ExcludeFail<OBJ>,
     GetValidatorInputType<VALIDATOR>,
     false,
-    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST> | FailPayload<OBJ>
   >;
 
   // Use typed data validator
@@ -678,17 +683,17 @@ export type ActionConstructor = {
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR
   ): Action<
-    OBJ,
+    ExcludeFail<OBJ>,
     GetValidatorInputType<VALIDATOR>,
     false,
-    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailPayload<OBJ>
   >;
 
   // Use data validator
   <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
     actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
     ...rest: REST
-  ): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
+  ): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailOfRest<REST> | FailPayload<OBJ>>;
 
   // No validators
   <OBJ>(
@@ -696,7 +701,7 @@ export type ActionConstructor = {
     options?: {
       readonly id?: string;
     }
-  ): Action<OBJ>;
+  ): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailPayload<OBJ>>;
 };
 
 /** @public */
@@ -715,10 +720,10 @@ export type ActionConstructorQRL = {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
-    OBJ,
+    ExcludeFail<OBJ>,
     GetValidatorInputType<VALIDATOR>,
     false,
-    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST> | FailPayload<OBJ>
   >;
 
   // Use options object, use typed data validator
@@ -731,10 +736,10 @@ export type ActionConstructorQRL = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    OBJ,
+    ExcludeFail<OBJ>,
     GetValidatorInputType<VALIDATOR>,
     false,
-    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailPayload<OBJ>
   >;
 
   // Use options object, use data validator
@@ -744,7 +749,7 @@ export type ActionConstructorQRL = {
       readonly id?: string;
       readonly validation: REST;
     }
-  ): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
+  ): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailOfRest<REST> | FailPayload<OBJ>>;
 
   // Use typed data validator, use data validator
   <
@@ -758,10 +763,10 @@ export type ActionConstructorQRL = {
     options: VALIDATOR,
     ...rest: REST
   ): Action<
-    OBJ,
+    ExcludeFail<OBJ>,
     GetValidatorInputType<VALIDATOR>,
     false,
-    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST> | FailPayload<OBJ>
   >;
 
   // Use typed data validator
@@ -771,17 +776,17 @@ export type ActionConstructorQRL = {
     >,
     options: VALIDATOR
   ): Action<
-    OBJ,
+    ExcludeFail<OBJ>,
     GetValidatorInputType<VALIDATOR>,
     false,
-    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailPayload<OBJ>
   >;
 
   // Use data validator
   <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
     actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>>,
     ...rest: REST
-  ): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;
+  ): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailOfRest<REST> | FailPayload<OBJ>>;
 
   // No validators
   <OBJ>(
@@ -789,7 +794,7 @@ export type ActionConstructorQRL = {
     options?: {
       readonly id?: string;
     }
-  ): Action<OBJ>;
+  ): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailPayload<OBJ>>;
 };
 
 /** @public */
@@ -875,13 +880,13 @@ export type LoaderConstructor = {
   <OBJ>(
     loaderFn: (event: RequestEventLoader) => ValueOrPromise<OBJ>,
     options?: LoaderOptions
-  ): Loader<OBJ>;
+  ): Loader<ExcludeFail<OBJ>, FailPayload<OBJ>>;
 
   // With validation
   <OBJ extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
     loaderFn: (event: RequestEventLoader) => ValueOrPromise<OBJ>,
     ...rest: REST
-  ): Loader<OBJ, FailOfRest<REST>>;
+  ): Loader<ExcludeFail<OBJ>, FailPayload<OBJ> | FailOfRest<REST>>;
 };
 
 /** @public */
@@ -890,13 +895,13 @@ export type LoaderConstructorQRL = {
   <OBJ>(
     loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<OBJ>>,
     options?: LoaderOptions
-  ): Loader<OBJ>;
+  ): Loader<ExcludeFail<OBJ>, FailPayload<OBJ>>;
 
   // With validation
   <OBJ extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
     loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<OBJ>>,
     ...rest: REST
-  ): Loader<OBJ, FailOfRest<REST>>;
+  ): Loader<ExcludeFail<OBJ>, FailPayload<OBJ> | FailOfRest<REST>>;
 };
 
 /** @public */

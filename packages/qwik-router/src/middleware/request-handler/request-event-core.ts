@@ -6,6 +6,7 @@ import type {
   LoaderInternal,
 } from '../../runtime/src/types';
 import { getRouteLoaderValues, loadRouteLoader } from '../../runtime/src/route-loaders';
+import { failReturn } from './fail';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RewriteMessage } from './rewrite-handler';
 import type { ServerError } from './server-error';
@@ -256,6 +257,12 @@ export function createRequestEventWithDeps(
       status = statusCode;
       headers.delete('Cache-Control');
       return new deps.ServerError(statusCode, message);
+    },
+
+    fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
+      // Pure: status/header hygiene is applied when the framework converts the returned
+      // result into the loader/action `.error` state, so an unreturned fail() is a no-op.
+      return failReturn(statusCode, data);
     },
 
     redirect: (statusCode: number, url: string) => {

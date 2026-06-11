@@ -173,7 +173,7 @@ export const globalActionQrl = ((
     globalThis._qwikActionsMap!.set((action as ActionInternal).__id, action as ActionInternal);
   }
   return action;
-}) as ActionConstructorQRL;
+}) as unknown as ActionConstructorQRL;
 
 /**
  * Define a route action that handles form submissions or programmatic invocations.
@@ -196,12 +196,12 @@ export const globalActionQrl = ((
  * @public
  */
 export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
-  routeActionQrl
+  routeActionQrl as any
 ) as any;
 
 /** @public */
 export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
-  globalActionQrl
+  globalActionQrl as any
 ) as any;
 
 /** @internal */

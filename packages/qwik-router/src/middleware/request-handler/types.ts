@@ -1,6 +1,7 @@
 import type { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import type { Render, RenderOptions } from '@qwik.dev/core/server';
 import type { Action, Loader } from '@qwik.dev/router';
+import type { FailReturn } from './fail';
 import type { ServerError } from './server-error';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RewriteMessage } from './rewrite-handler';
@@ -223,6 +224,18 @@ export interface RequestEventCommon<
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.
    */
   readonly error: <T = any>(statusCode: ErrorCodes, message: T) => ServerError<T>;
+
+  /**
+   * Returns a typed failure result to `return` from a loader or action. It surfaces as the
+   * loader's/action's `.error` state (a `ServerError` with the given status and `data` exposed flat
+   * and on `.data`), while `.value` stays the success type only and the page keeps rendering.
+   *
+   * Unlike `error()`, which is thrown and aborts the request to the nearest error handler, `fail()`
+   * is for expected failures that the page should display inline (form validation, domain rules).
+   * The call itself has no side effects — the status is applied to the response only when the
+   * result is returned from the loader/action.
+   */
+  readonly fail: <T extends Record<string, any>>(statusCode: ErrorCodes, data: T) => FailReturn<T>;
 
   /**
    * Convenience method to send an text body response. The response will be automatically set the

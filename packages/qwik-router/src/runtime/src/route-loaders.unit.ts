@@ -210,7 +210,22 @@ describe('types', () => {
     value.failed;
   });
 
-  test('loader.error is a ServerError with status/data', () => () => {
+  test('loader.error is a typed ServerError for fail() results', () => () => {
+    const useObj = routeLoader$((ev) => {
+      if (ev.query.get('fail') === '1') {
+        return ev.fail(404, { message: 'Product not found' });
+      }
+      return { result: 'ok' };
+    });
+    const loader = useObj();
+    expectTypeOf(loader.value).toEqualTypeOf<{ result: string }>();
+    if (loader.error) {
+      expectTypeOf(loader.error.status).toEqualTypeOf<number>();
+      expectTypeOf(loader.error.data).toEqualTypeOf<{ message: string }>();
+    }
+  });
+
+  test('thrown error() aborts the request and never lands on loader.error', () => () => {
     const useObj = routeLoader$(({ error, query }) => {
       if (query.get('fail') === '1') {
         throw error(404, { message: 'Product not found' });
@@ -218,13 +233,8 @@ describe('types', () => {
       return { result: 'ok' };
     });
     const loader = useObj();
-    expectTypeOf(loader.error).toEqualTypeOf<ServerError | undefined>();
-    if (loader.error) {
-      expectTypeOf(loader.error.status).toEqualTypeOf<number>();
-      // `.message` is always typed (Error); the thrown payload type can't be inferred, so
-      // `.data` is `unknown` for a loader without validators.
-      expectTypeOf(loader.error.message).toEqualTypeOf<string>();
-    }
+    // No fail() and no validator: the loader can never produce an inline error state.
+    expectTypeOf(loader.error).toEqualTypeOf<undefined>();
   });
 });
 

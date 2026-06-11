@@ -2,7 +2,6 @@ import { component$, Resource } from '@qwik.dev/core';
 import {
   type DocumentHead,
   Form,
-  isServerError,
   Link,
   routeAction$,
   routeLoader$,
@@ -177,7 +176,7 @@ export const head: DocumentHead = ({ resolveValue }) => {
   if (action) {
     title += ` - ACTION: ${action.name}`;
   }
-  if (isServerError(actionWithError)) {
+  if (actionWithError?.data) {
     title += ` - Error: ${actionWithError.data.message}`;
   }
   return {

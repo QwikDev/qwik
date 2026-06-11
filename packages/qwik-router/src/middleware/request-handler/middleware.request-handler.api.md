@@ -215,7 +215,7 @@ export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<
 // @public (undocumented)
 export interface ResolveSyncValue {
     // (undocumented)
-    <T, INPUT, OPTIONAL extends boolean, ERROR>(action: Action<T, INPUT, OPTIONAL, ERROR>): Awaited<T> | ServerError<StrictUnion<ERROR>> | undefined;
+    <T, INPUT, OPTIONAL extends boolean, ERROR>(action: Action<T, INPUT, OPTIONAL, ERROR>): StrictUnion<Awaited<T> | ServerError<StrictUnion<ERROR>>> | undefined;
     // (undocumented)
     <T, ERROR>(loader: Loader_2<T, ERROR>): Awaited<T> extends () => any ? never : Awaited<T> | ServerError<StrictUnion<ERROR>>;
 }

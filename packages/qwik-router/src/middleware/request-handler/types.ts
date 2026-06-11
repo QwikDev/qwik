@@ -529,7 +529,7 @@ export interface ResolveValue {
 export interface ResolveSyncValue {
   <T, INPUT, OPTIONAL extends boolean, ERROR>(
     action: Action<T, INPUT, OPTIONAL, ERROR>
-  ): Awaited<T> | ServerError<StrictUnion<ERROR>> | undefined;
+  ): StrictUnion<Awaited<T> | ServerError<StrictUnion<ERROR>>> | undefined;
   <T, ERROR>(
     loader: Loader<T, ERROR>
   ): Awaited<T> extends () => any ? never : Awaited<T> | ServerError<StrictUnion<ERROR>>;

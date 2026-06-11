@@ -551,26 +551,9 @@
         }
       ],
       "kind": "Class",
-      "content": "```typescript\nexport declare class RewriteMessage extends AbortMessage \n```\n**Extends:** [AbortMessage](#abortmessage)\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n(constructor)(pathname, search)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `RewriteMessage` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[pathname](#rewritemessage-pathname)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[search?](#rewritemessage-search)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring \\| undefined\n\n\n</td><td>\n\n_(Optional)_ When set, replaces the request's query string; otherwise the original query is kept.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport declare class RewriteMessage extends AbortMessage \n```\n**Extends:** [AbortMessage](#abortmessage)\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n(constructor)(pathname)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `RewriteMessage` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[pathname](#rewritemessage-pathname)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/rewrite-handler.ts",
       "mdFile": "router.rewritemessage.md"
-    },
-    {
-      "name": "search",
-      "id": "rewritemessage-search",
-      "hierarchy": [
-        {
-          "name": "RewriteMessage",
-          "id": "rewritemessage-search"
-        },
-        {
-          "name": "search",
-          "id": "rewritemessage-search"
-        }
-      ],
-      "kind": "Property",
-      "content": "When set, replaces the request's query string; otherwise the original query is kept.\n\n\n```typescript\nreadonly search?: string | undefined;\n```",
-      "mdFile": "router.rewritemessage.search.md"
     },
     {
       "name": "ServerError",

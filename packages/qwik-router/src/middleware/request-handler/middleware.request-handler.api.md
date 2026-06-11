@@ -229,11 +229,9 @@ export interface ResolveValue {
 
 // @public (undocumented)
 export class RewriteMessage extends AbortMessage {
-    constructor(pathname: string,
-    search?: string | undefined);
+    constructor(pathname: string);
     // (undocumented)
     readonly pathname: string;
-    readonly search?: string | undefined;
 }
 
 // Warning: (ae-forgotten-export) The symbol "ServerErrorImpl" needs to be exported by the entry point index.d.ts

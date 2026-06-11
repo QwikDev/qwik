@@ -30,7 +30,7 @@ interface RequestEventDeps {
   Cookie: new (cookie?: string | null) => RequestCookie;
   AbortMessage: new () => AbortMessage;
   RedirectMessage: new () => RedirectMessage;
-  RewriteMessage: new (pathname: string, search?: string) => RewriteMessage;
+  RewriteMessage: new (pathname: string) => RewriteMessage;
   ServerError: new <T = any>(status: number, data: T) => ServerError<T>;
   recognizeRequest: typeof import('./request-path').recognizeRequest;
   trimRecognizedInternalPathname: typeof import('./request-path').trimRecognizedInternalPathname;
@@ -299,42 +299,14 @@ export function createRequestEventWithDeps(
 
     rewrite: (pathname: string) => {
       check();
-      // When the rewrite target carries an explicit query it replaces the request's query;
-      // otherwise the original query is kept. Fragments never reach the server — dropped.
-      let search: string | undefined;
-      if (/^https?:\/\//.test(pathname)) {
-        // A rewrite is an internal, same-origin re-route. A same-origin absolute URL is just
-        // a path with the origin glued on, so normalize it to its path and treat it like a
-        // relative rewrite. A cross-origin URL can't be rewritten in place — that's a redirect.
-        let target: URL;
-        try {
-          target = new URL(pathname);
-        } catch {
-          throw new deps.ServerError(400, isDev ? 'Invalid rewrite url' : 'Bad Request');
-        }
-        if (target.origin !== url.origin) {
-          throw new deps.ServerError(
-            400,
-            isDev ? 'Rewrite does not support cross-origin urls' : 'Bad Request'
-          );
-        }
-        pathname = target.pathname;
-        if (target.search) {
-          search = target.search;
-        }
-      } else {
-        const hashStart = pathname.indexOf('#');
-        if (hashStart !== -1) {
-          pathname = pathname.slice(0, hashStart);
-        }
-        const searchStart = pathname.indexOf('?');
-        if (searchStart !== -1) {
-          search = pathname.slice(searchStart);
-          pathname = pathname.slice(0, searchStart);
-        }
+      if (pathname.startsWith('http')) {
+        throw new deps.ServerError(
+          400,
+          isDev ? 'Rewrite does not support absolute urls' : 'Bad Request'
+        );
       }
       sharedMap.set(RequestEvIsRewrite, true);
-      return exit(new deps.RewriteMessage(pathname.replace(/\/+/g, '/'), search));
+      return exit(new deps.RewriteMessage(pathname.replace(/\/+/g, '/')));
     },
 
     defer: (returnData) => {

@@ -86,6 +86,31 @@ export interface EnvGetter {
     get(key: string): string | undefined;
 }
 
+// @public
+export type ExcludeFail<T> = T extends Failed ? never : T;
+
+// @public
+export const FailBrand: unique symbol;
+
+// @public
+export type Failed = {
+    readonly [FailBrand]: FailMeta;
+};
+
+// @public
+export interface FailMeta {
+    // (undocumented)
+    status: number;
+}
+
+// @public
+export type FailPayload<T> = T extends Failed ? {
+    [K in keyof T as K extends typeof FailBrand ? never : K]: T[K];
+} : never;
+
+// @public
+export type FailReturn<T> = T & Failed;
+
 // @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;
 
@@ -96,6 +121,12 @@ export function getNotFound(prefix: string): string;
 
 // @public
 export type InternalRequest = false | 'loader' | 'action';
+
+// @public
+export function isServerError<E>(err: ServerError<E> | Error | undefined): err is ServerError<E>;
+
+// @public (undocumented)
+export function isServerError<T = unknown>(err: unknown): err is ServerError<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "isStaticPath" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -150,6 +181,7 @@ export interface RequestEventCommon<PLATFORM = QwikRouterPlatform> extends Reque
     readonly error: <T = any>(statusCode: ErrorCodes, message: T) => ServerError<T>;
     // (undocumented)
     readonly exit: () => AbortMessage;
+    readonly fail: <T extends Record<string, any>>(statusCode: ErrorCodes, data: T) => FailReturn<T>;
     readonly html: (statusCode: StatusCodes, html: string) => AbortMessage;
     readonly json: (statusCode: StatusCodes, data: any) => AbortMessage;
     readonly locale: (local?: string) => string;
@@ -197,9 +229,11 @@ export interface ResolveValue {
 
 // @public (undocumented)
 export class RewriteMessage extends AbortMessage {
-    constructor(pathname: string);
+    constructor(pathname: string,
+    search?: string | undefined);
     // (undocumented)
     readonly pathname: string;
+    readonly search?: string | undefined;
 }
 
 // Warning: (ae-forgotten-export) The symbol "ServerErrorImpl" needs to be exported by the entry point index.d.ts

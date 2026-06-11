@@ -1075,11 +1075,13 @@ export type ValidatorReturn<T extends Record<string, any> = {}> =
   | ValidatorReturnSuccess
   | ValidatorReturnFail<T>;
 
+/** @public */
 export type ValidatorReturnSuccess = {
   readonly success: true;
   readonly data?: unknown;
 };
 
+/** @public */
 export type ValidatorReturnFail<T extends Record<string, any> = {}> = {
   readonly success: false;
   readonly error: T;

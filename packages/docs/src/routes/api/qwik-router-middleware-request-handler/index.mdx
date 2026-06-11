@@ -607,6 +607,112 @@ get(key)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 
+<h2 id="excludefail">ExcludeFail</h2>
+
+Removes fail branches from a loader/action return union — `.value` is the success type only.
+
+```typescript
+export type ExcludeFail<T> = T extends Failed ? never : T;
+```
+
+**References:** [Failed](#failed)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
+<h2 id="failbrand">FailBrand</h2>
+
+Brand for values produced by `requestEv.fail()`. A symbol stored non-enumerably so that user data can never accidentally (or maliciously, via JSON) look like a failed result — unlike v1's `failed: true` structural check. `Symbol.for` so the brand survives this module being bundled into multiple chunks (core vs middleware builds).
+
+```typescript
+FailBrand: unique symbol
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
+<h2 id="failed">Failed</h2>
+
+Marker for results produced by `requestEv.fail()`.
+
+```typescript
+export type Failed = {
+  readonly [FailBrand]: FailMeta;
+};
+```
+
+**References:** [FailBrand](#failbrand), [FailMeta](#failmeta)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
+<h2 id="failmeta">FailMeta</h2>
+
+Metadata carried by a fail result, hidden under the [FailBrand](#failbrand) symbol.
+
+```typescript
+export interface FailMeta
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+status
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
+<h2 id="failpayload">FailPayload</h2>
+
+Extracts the payload types of the fail branches of a loader/action return union. These flow into the ERROR type parameter so `.error` is fully typed.
+
+```typescript
+export type FailPayload<T> = T extends Failed
+  ? {
+      [K in keyof T as K extends typeof FailBrand ? never : K]: T[K];
+    }
+  : never;
+```
+
+**References:** [Failed](#failed), [FailBrand](#failbrand)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
+<h2 id="failreturn">FailReturn</h2>
+
+A typed failure result returned from a loader/action via `requestEv.fail(status, data)`. The framework converts it into the loader/action `.error` state (a `ServerError`) and excludes it from the `.value` type.
+
+```typescript
+export type FailReturn<T> = T & Failed;
+```
+
+**References:** [Failed](#failed)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
 <h2 id="cookie-get">get</h2>
 
 Gets a `Request` cookie header value by name.
@@ -765,6 +871,48 @@ export type InternalRequest = false | "loader" | "action";
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
+
+<h2 id="isservererror">isServerError</h2>
+
+Checks whether an error is a `ServerError` (carries `status` and `data`). Structural rather than `instanceof` so it also matches ServerErrors that crossed a serialization boundary (the client deserializes them as plain `Error`s with the same own properties).
+
+```typescript
+export declare function isServerError<E>(
+  err: ServerError<E> | Error | undefined,
+): err is ServerError<E>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+err
+
+</td><td>
+
+[ServerError](#servererror-variable)&lt;E&gt; \| Error \| undefined
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+err is [ServerError](#servererror-variable)&lt;E&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
 
 <h2 id="mergeheaderscookies">mergeHeadersCookies</h2>
 
@@ -1354,6 +1502,25 @@ exit
 </td></tr>
 <tr><td>
 
+fail
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+&lt;T extends Record&lt;string, any&gt;&gt;(statusCode: ErrorCodes, data: T) =&gt; [FailReturn](#failreturn)&lt;T&gt;
+
+</td><td>
+
+Returns a typed failure result to `return` from a loader or action. It surfaces as the loader's/action's `.error` state (a `ServerError` with the given status and `data` exposed flat and on `.data`), while `.value` stays the success type only and the page keeps rendering.
+
+Unlike `error()`, which is thrown and aborts the request to the nearest error handler, `fail()` is for expected failures that the page should display inline (form validation, domain rules). The call itself has no side effects — the status is applied to the response only when the result is returned from the loader/action.
+
+</td></tr>
+<tr><td>
+
 html
 
 </td><td>
@@ -1618,7 +1785,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-(constructor)(pathname)
+(constructor)(pathname, search)
 
 </td><td>
 
@@ -1661,9 +1828,34 @@ string
 </td><td>
 
 </td></tr>
+<tr><td>
+
+[search?](#rewritemessage-search)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string \| undefined
+
+</td><td>
+
+_(Optional)_ When set, replaces the request's query string; otherwise the original query is kept.
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/rewrite-handler.ts)
+
+<h2 id="rewritemessage-search">search</h2>
+
+When set, replaces the request's query string; otherwise the original query is kept.
+
+```typescript
+readonly search?: string | undefined;
+```
 
 <h2 id="servererror-type-alias">ServerError</h2>
 

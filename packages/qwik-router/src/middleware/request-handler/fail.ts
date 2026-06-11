@@ -10,7 +10,11 @@ import { ServerError } from './server-error';
  */
 export const FailBrand: unique symbol = Symbol.for('qwik.fail') as never;
 
-/** Metadata carried by a fail result, hidden under the {@link FailBrand} symbol. */
+/**
+ * Metadata carried by a fail result, hidden under the {@link FailBrand} symbol.
+ *
+ * @public
+ */
 export interface FailMeta {
   status: number;
 }
@@ -82,6 +86,7 @@ export function getFailMeta(value: Failed): FailMeta {
  * @public
  */
 export function isServerError<E>(err: ServerError<E> | Error | undefined): err is ServerError<E>;
+/** @public */
 export function isServerError<T = unknown>(err: unknown): err is ServerError<T>;
 export function isServerError(err: unknown): boolean {
   return (

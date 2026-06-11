@@ -64,12 +64,12 @@ Hooks return an `AsyncSignal<T>`. Branch on `.loading` and `.error` before readi
 
 ```tsx /product.loading/ /product.error/ /product.value/#a title="src/routes/product/[productId]/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeLoader$ } from '@qwik.dev/router';
+import { routeLoader$, isServerError } from '@qwik.dev/router';
 
-export const useProductDetails = routeLoader$(async ({ params, error }) => {
+export const useProductDetails = routeLoader$(async ({ params, fail }) => {
   const product = await db.products.findById(params.productId);
   if (!product) {
-    throw error(404, { message: 'Product not found' });
+    return fail(404, { message: 'Product not found' });
   }
   return product;
 });
@@ -81,8 +81,12 @@ export default component$(() => {
     return <div>Loading…</div>;
   }
   if (product.error) {
-    // ServerError — read .status, .data, and .message
-    return <div>{product.error.status}: {product.error.message}</div>;
+    // ServerError (from fail()) or plain Error (client network failure)
+    return isServerError(product.error) ? (
+      <div>{product.error.status}: {product.error.message}</div>
+    ) : (
+      <div>Network error</div>
+    );
   }
   return <div>Product name: {product.value.name}</div>;
 });
@@ -92,20 +96,54 @@ export default component$(() => {
 
 ### Signaling failure from a loader
 
-To signal failure, destructure `error` from the `RequestEvent` and `throw error(status, data)`. This puts the signal into error state, with `signal.error` set to a `ServerError` carrying `.status` (the HTTP status), `.data` (the payload you passed to `error()`), and `.message` (`data.message` when the payload has a string `message`).
+To signal an expected failure — a result the page should render inline — destructure `fail` from the `RequestEvent` and `return fail(status, data)`. This puts the signal into error state, with `signal.error` set to a `ServerError` carrying `.status` (the HTTP status) and `.data` (the canonical payload object you passed to `fail()`), with the payload's fields also exposed flat on the error (e.g. `.message`). The page still renders — the response just carries the failure's HTTP status (and is never cached).
 
 ```tsx
-export const useProduct = routeLoader$(async ({ params, error }) => {
+export const useProduct = routeLoader$(async ({ params, fail }) => {
   const product = await db.products.findById(params.productId);
   if (!product) {
     // signal.error.status === 404, signal.error.data === { message: 'Product not found' }
-    throw error(404, { message: 'Product not found' });
+    return fail(404, { message: 'Product not found' });
   }
   return product;
 });
 ```
 
-Read it back on `signal.error`, never on `signal.value` — `.value` holds the success value only.
+Read it back on `signal.error`, never on `signal.value` — `.value` holds the success type only and is `undefined` on failure; they are never both set at once. The data you pass to `fail()` is fully type-inferred into `signal.error`, so failure payloads are as strongly typed as success values.
+
+On the client, `signal.error` can also hold a plain `Error` when the loader's JSON fetch itself failed (a network problem). Narrow with the `isServerError()` guard exported from `@qwik.dev/router`:
+
+```tsx
+import { isServerError } from '@qwik.dev/router';
+
+if (product.error) {
+  if (isServerError(product.error)) {
+    // typed: .status, .data, and your fail() payload fields
+    console.warn(product.error.status, product.error.data);
+  } else {
+    // plain Error: the fetch itself failed
+  }
+}
+```
+
+<Note>Prefer `isServerError()` over `instanceof ServerError` — after crossing the serialization boundary, the client deserializes the error as a plain `Error` with the same own properties, so `instanceof` is `false` there while the guard still matches.</Note>
+
+### Aborting to the error page
+
+`fail()` is for failures your page renders inline. When the right response is the error page itself — a 404 for a missing product, say — destructure `error` from the `RequestEvent` and `throw error(status, data)` instead:
+
+```tsx
+export const useProduct = routeLoader$(async ({ params, error }) => {
+  const product = await db.products.findById(params.productId);
+  if (!product) {
+    // Aborts the request — the nearest error page renders with a 404 status.
+    throw error(404, 'Product not found');
+  }
+  return product;
+});
+```
+
+A thrown `error()` never lands on `signal.error`: it aborts the request to the nearest error handler (the route's error page, or a middleware `catch`). During SPA navigation the client falls back to a full-page load so the server can render the real error page. Plain (non-`error()`) throws behave like unexpected errors and result in a sanitized 500.
 
 ## Multiple `routeLoader$`s
 

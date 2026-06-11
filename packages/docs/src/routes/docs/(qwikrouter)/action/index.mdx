@@ -366,17 +366,17 @@ export const useProductRecommendations = routeAction$(
 
 ## Action Failures
 
-To signal a failure from an action, destructure `error` from the `RequestEvent` and `throw error(status, data)`. `error()` returns a `ServerError`, so throwing it puts the action into its error state.
+To signal an expected failure from an action — invalid input, a domain rule that didn't pass — destructure `fail` from the `RequestEvent` and `return fail(status, data)`:
 
-```tsx /error/
+```tsx /fail/
 import { routeAction$, zod$, z } from '@qwik.dev/router';
 
 export const useAddUser = routeAction$(
-  async (user, { error }) => {
+  async (user, { fail }) => {
     // `user` is typed { name: string }
     const userID = await db.users.add(user);
     if (!userID) {
-      throw error(500, {
+      return fail(500, {
         message: 'User could not be added',
       });
     }
@@ -390,9 +390,11 @@ export const useAddUser = routeAction$(
 );
 ```
 
-Failures surface on the `action.error` property (a `ServerError`), separate from the success value on `action.value`. The `ServerError` carries `error.status` (the HTTP status) and `error.message` (the payload's string `message` when present). When you pass an object to `error()`, its fields are spread directly onto the error, so you read them flat: `error.<field>`. The original payload is also available as `error.data` (the canonical payload object).
+Failures surface on the reactive `action.error` property as a `ServerError`, separate from the success value on `action.value`. The error carries `error.status` (the HTTP status) and `error.data` (the canonical payload object), and the payload's fields are also exposed flat on the error, so you can read them directly: `error.message`, `error.fieldErrors`, and so on. The page keeps rendering normally — the response just carries the failure's HTTP status (and is never cached).
 
-For validators, the validator error fields are exposed flat on the error: failure messages live in `action.error.fieldErrors` according to the properties defined in your Zod schema.
+The data you pass to `fail()` is fully type-inferred into `action.error` (unioned with any `zod$()`/`valibot$()`/`validator$()` error types), while `action.value` stays the success type only — it is `undefined` whenever the action failed.
+
+For validators, the validator error fields are exposed flat on the error the same way: failure messages live in `action.error.fieldErrors` according to the properties defined in your Zod schema.
 
 The `fieldErrors` become a dot notation object. See [Complex forms](/docs/advanced/complex-forms) for more information.
 
@@ -406,7 +408,8 @@ export default component$(() => {
     <Form action={action}>
       <input name="name" />
       <button type="submit">Add user</button>
-      {action.error && <p>{action.error.fieldErrors?.name}</p>}
+      {/* fieldErrors comes from a zod$ failure, message from the fail() payload */}
+      {action.error && <p>{action.error.fieldErrors?.name ?? action.error.message}</p>}
       {action.value?.userID && <p>User added successfully</p>}
     </Form>
   );
@@ -414,6 +417,29 @@ export default component$(() => {
 ```
 
 Branch on `action.error` to render failure UI, and on `action.value` for the success result — they are never both set at once.
+
+### Aborting to the error page
+
+`fail()` is for failures the page should display inline. To abort the request entirely and render the nearest error page instead — for example a 404 for a missing record — destructure `error` from the `RequestEvent` and `throw error(status, data)`:
+
+```tsx /error/
+import { routeAction$, zod$, z } from '@qwik.dev/router';
+
+export const useDeletePost = routeAction$(
+  async (data, { error }) => {
+    const post = await db.posts.get(data.id);
+    if (!post) {
+      // Aborts the request — the error page renders with a 404 status.
+      throw error(404, 'Post not found');
+    }
+    await db.posts.delete(post.id);
+    return { success: true };
+  },
+  zod$({ id: z.string() })
+);
+```
+
+A thrown `error()` never lands on `action.error`: the action records no state, a programmatic `action.submit()` rejects with the error, and a `<Form>` fires `submitcompleted` with `detail.aborted` set. Plain (non-`error()`) throws behave like unexpected errors and result in a sanitized 500.
 
 ## Previous form state
 

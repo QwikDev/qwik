@@ -147,15 +147,15 @@ interface Fail {
 }
 ```
 
-When a validator returns a failed object, the framework turns it into a `ServerError` — the same outcome as `throw error(status, data)` inside the action or loader. The error surfaces on `action.error`, with `action.error.status` set to the validator's `status`. The validator's `error` object fields are spread directly onto the error, so you read them flat (e.g. `action.error.message`); the canonical payload object is also available as `action.error.data`.
+When a validator returns a failed object, the framework turns it into a `ServerError` — the same outcome as `return fail(status, data)` inside the action or loader. The error surfaces on `action.error`, with `action.error.status` set to the validator's `status`, and the page keeps rendering (the failure is meant to be displayed inline; `action.value` stays `undefined`). The validator's `error` object fields are spread directly onto the error, so you read them flat (e.g. `action.error.message`); the canonical payload object is also available as `action.error.data`.
 
 ```tsx /status/#a /errorData/#b
 const status = 500;
 const errorData = { message: "123" };
 
 export const useAction = routeAction$(
-  async (_, { error }) => {
-    throw error(status, errorData);
+  async (_, { fail }) => {
+    return fail(status, errorData);
   },
   validator$(async () => {
     return {
@@ -166,6 +166,8 @@ export const useAction = routeAction$(
   }),
 );
 ```
+
+To abort the request and render the error page instead of surfacing an inline failure, `throw error(status, data)` from the action or loader body — a thrown `error()` never lands on `action.error`.
 
 ## Use `validator$()` with `zod$()` together in actions
 

@@ -26,7 +26,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionConstructor = {\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR, ...REST];\n    }): Action<OBJ, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR];\n    }): Action<OBJ, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: REST;\n    }): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<OBJ, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<OBJ, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<OBJ, Record<string, unknown>, true, FailOfRest<REST>>;\n    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {\n        readonly id?: string;\n    }): Action<OBJ>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [DataValidator](#datavalidator)<!-- -->, [GetValidatorOutputType](#getvalidatoroutputtype)<!-- -->, [Action](#action)<!-- -->, [GetValidatorInputType](#getvalidatorinputtype)<!-- -->, [ValidatorErrorType](#validatorerrortype)<!-- -->, [JSONObject](#jsonobject)",
+      "content": "```typescript\nexport type ActionConstructor = {\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR, ...REST];\n    }): Action<ExcludeFail<OBJ>, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST> | FailPayload<OBJ>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR];\n    }): Action<ExcludeFail<OBJ>, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailPayload<OBJ>>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: REST;\n    }): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailOfRest<REST> | FailPayload<OBJ>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<ExcludeFail<OBJ>, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST> | FailPayload<OBJ>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<ExcludeFail<OBJ>, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailPayload<OBJ>>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailOfRest<REST> | FailPayload<OBJ>>;\n    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {\n        readonly id?: string;\n    }): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailPayload<OBJ>>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [DataValidator](#datavalidator)<!-- -->, [GetValidatorOutputType](#getvalidatoroutputtype)<!-- -->, [Action](#action)<!-- -->, [GetValidatorInputType](#getvalidatorinputtype)<!-- -->, [ValidatorErrorType](#validatorerrortype)<!-- -->, [FailOfRest](#failofrest)<!-- -->, [JSONObject](#jsonobject)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionconstructor.md"
     },
@@ -40,7 +40,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionReturn<RETURN> = {\n    readonly status?: number;\n    readonly value: RETURN;\n};\n```",
+      "content": "```typescript\nexport type ActionReturn<RETURN, ERROR = unknown> = {\n    readonly status?: number;\n    readonly value: RETURN | undefined;\n    readonly error: ServerError<ERROR> | undefined;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionreturn.md"
     },
@@ -54,7 +54,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = unknown> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: RETURN | undefined;\n    readonly error: ServerError<ERROR> | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;\n    readonly submitted: boolean;\n};\n```\n**References:** [ActionReturn](#actionreturn)",
+      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = unknown> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: RETURN | undefined;\n    readonly error: ServerError<ERROR> | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>>>;\n    readonly submitted: boolean;\n};\n```\n**References:** [ActionReturn](#actionreturn)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionstore.md"
     },
@@ -283,6 +283,20 @@
       "mdFile": "router.errorboundary.md"
     },
     {
+      "name": "FailOfRest",
+      "id": "failofrest",
+      "hierarchy": [
+        {
+          "name": "FailOfRest",
+          "id": "failofrest"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;\n```\n**References:** [DataValidator](#datavalidator)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.failofrest.md"
+    },
+    {
       "name": "Form",
       "id": "form",
       "hierarchy": [
@@ -320,7 +334,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface FormSubmitCompletedDetail<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstatus\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface FormSubmitCompletedDetail<T, ERROR = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\naborted?\n\n\n</td><td>\n\n\n</td><td>\n\n[ServerError](#servererror-variable)\n\n\n</td><td>\n\n_(Optional)_ Set when the submission aborted (a thrown `error()` or an unexpected server error).\n\n\n</td></tr>\n<tr><td>\n\nerror\n\n\n</td><td>\n\n\n</td><td>\n\n[ServerError](#servererror-variable)<!-- -->&lt;ERROR&gt; \\| undefined\n\n\n</td><td>\n\nThe `ServerError` from a returned `fail()` or a failed validator.\n\n\n</td></tr>\n<tr><td>\n\nstatus\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n\n</td><td>\n\nT \\| undefined\n\n\n</td><td>\n\nThe action's successful return value. `undefined` when the action failed or aborted.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx",
       "mdFile": "router.formsubmitsuccessdetail.md"
     },
@@ -393,6 +407,20 @@
       "content": "```typescript\nexport type HttpStatus = {\n    status: number;\n    message: string;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.httperrorprops.md"
+    },
+    {
+      "name": "isServerError",
+      "id": "isservererror",
+      "hierarchy": [
+        {
+          "name": "isServerError",
+          "id": "isservererror"
+        }
+      ],
+      "kind": "Function",
+      "content": "Checks whether an error is a `ServerError` (carries `status` and `data`<!-- -->). Structural rather than `instanceof` so it also matches ServerErrors that crossed a serialization boundary (the client deserializes them as plain `Error`<!-- -->s with the same own properties).\n\n\n```typescript\nexport declare function isServerError<E>(err: ServerError<E> | Error | undefined): err is ServerError<E>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerr\n\n\n</td><td>\n\n[ServerError](#servererror-variable)<!-- -->&lt;E&gt; \\| Error \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nerr is [ServerError](#servererror-variable)<!-- -->&lt;E&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts",
+      "mdFile": "router.isservererror.md"
     },
     {
       "name": "JSONObject",
@@ -474,7 +502,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {\n    error: ServerError<ERROR> | undefined;\n};\n```",
+      "content": "```typescript\nexport type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {\n    error: ServerError<ERROR> | Error | undefined;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loadersignal.md"
     },
@@ -955,6 +983,34 @@
       "mdFile": "router.serverdata.md"
     },
     {
+      "name": "ServerError",
+      "id": "servererror",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nServerError: {\n    new <T = unknown>(status: number, data: T): ServerError<T>;\n    readonly prototype: ServerErrorImpl;\n}\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts",
+      "mdFile": "router.servererror.md"
+    },
+    {
+      "name": "ServerError",
+      "id": "servererror",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nServerError: {\n    new <T = unknown>(status: number, data: T): ServerError<T>;\n    readonly prototype: ServerErrorImpl;\n}\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts",
+      "mdFile": "router.servererror.md"
+    },
+    {
       "name": "ServerFunction",
       "id": "serverfunction",
       "hierarchy": [
@@ -1230,9 +1286,37 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ValidatorReturn<T extends Record<string, any> = {}> = ValidatorReturnSuccess | ValidatorReturnFail<T>;\n```",
+      "content": "```typescript\nexport type ValidatorReturn<T extends Record<string, any> = {}> = ValidatorReturnSuccess | ValidatorReturnFail<T>;\n```\n**References:** [ValidatorReturnSuccess](#validatorreturnsuccess)<!-- -->, [ValidatorReturnFail](#validatorreturnfail)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.validatorreturn.md"
+    },
+    {
+      "name": "ValidatorReturnFail",
+      "id": "validatorreturnfail",
+      "hierarchy": [
+        {
+          "name": "ValidatorReturnFail",
+          "id": "validatorreturnfail"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ValidatorReturnFail<T extends Record<string, any> = {}> = {\n    readonly success: false;\n    readonly error: T;\n    readonly status?: number;\n};\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.validatorreturnfail.md"
+    },
+    {
+      "name": "ValidatorReturnSuccess",
+      "id": "validatorreturnsuccess",
+      "hierarchy": [
+        {
+          "name": "ValidatorReturnSuccess",
+          "id": "validatorreturnsuccess"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ValidatorReturnSuccess = {\n    readonly success: true;\n    readonly data?: unknown;\n};\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.validatorreturnsuccess.md"
     },
     {
       "name": "zod$",

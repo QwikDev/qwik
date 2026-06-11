@@ -201,6 +201,9 @@ export const ErrorBoundary: Component<ErrorBoundaryProps>;
 
 export { ExcludeFail }
 
+// @public (undocumented)
+export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
+
 export { FailPayload }
 
 export { FailReturn }
@@ -221,7 +224,6 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
 // @public (undocumented)
 export interface FormSubmitSuccessDetail<T, ERROR = unknown> {
     aborted?: ServerError;
-    // Warning: (ae-forgotten-export) The symbol "ServerError" needs to be exported by the entry point index.d.ts
     error: ServerError<ERROR> | undefined;
     // (undocumented)
     status: number;
@@ -563,6 +565,17 @@ export type ServerData = {
     qwikrouter: QwikRouterEnvData;
 };
 
+// Warning: (ae-forgotten-export) The symbol "ServerErrorImpl" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type ServerError<T = unknown> = ServerErrorImpl<T> & (T extends object ? T : unknown);
+
+// @public (undocumented)
+export const ServerError: {
+    new <T = unknown>(status: number, data: T): ServerError<T>;
+    readonly prototype: ServerErrorImpl;
+};
+
 // @public (undocumented)
 export type ServerFunction = {
     (this: RequestEventBase, ...args: any[]): any;
@@ -670,11 +683,21 @@ export type ValidatorErrorType<T, U = string> = {
 // @internal (undocumented)
 export const validatorQrl: ValidatorConstructorQRL;
 
-// Warning: (ae-forgotten-export) The symbol "ValidatorReturnSuccess" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ValidatorReturnFail" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type ValidatorReturn<T extends Record<string, any> = {}> = ValidatorReturnSuccess | ValidatorReturnFail<T>;
+
+// @public (undocumented)
+export type ValidatorReturnFail<T extends Record<string, any> = {}> = {
+    readonly success: false;
+    readonly error: T;
+    readonly status?: number;
+};
+
+// @public (undocumented)
+export type ValidatorReturnSuccess = {
+    readonly success: true;
+    readonly data?: unknown;
+};
 
 export { z }
 
@@ -694,10 +717,6 @@ export type ZodConstructor = {
 //
 // @internal (undocumented)
 export const zodQrl: ZodConstructorQRL;
-
-// Warnings were encountered during analysis:
-//
-// /Users/maieul/dev/work/qwik-v2/.claude/worktrees/awesome-merkle-b3a719/dist-dev/dts-out/packages/qwik-router/src/runtime/src/types.d.ts:456:5 - (ae-forgotten-export) The symbol "FailOfRest" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

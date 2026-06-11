@@ -251,6 +251,26 @@ export default component$(() => {
 
 <Note>If your root component is reactive (reads signals), use `<QwikRouterProvider>` instead. `useQwikRouter()` only runs once during SSR.</Note>
 
+### Action and loader failures: `value.failed` → `error`
+
+The producer side is **unchanged**: keep using `return requestEvent.fail(status, data)` for expected failures (form validation, domain rules), and `throw requestEvent.error(status, data)` still aborts to the nearest error page, exactly like v1.
+
+What moved is the consumer side. In v1, `fail()` results landed on `action.value` with a `failed: true` marker, so `.value` was a union of the success and failure shapes. In v2, failures surface on the reactive `action.error` / `loader.error` as a `ServerError` — `.status` is the HTTP status, `.data` is the canonical payload, and the payload's fields are also exposed flat (e.g. `error.fieldErrors`). `.value` is now the success type only and is `undefined` on failure; `.value` and `.error` are never both set.
+
+```tsx
+// v1
+{action.value?.failed && <p>{action.value.fieldErrors?.name}</p>}
+{action.value?.success && <p>Done!</p>}
+
+// v2
+{action.error && <p>{action.error.fieldErrors?.name}</p>}
+{action.value?.success && <p>Done!</p>}
+```
+
+- The `StrictUnion` success/failure value unions are gone — no more `action.value?.failed` narrowing. `FailReturn<T>` still exists but is symbol-branded; it no longer has a `failed: true` property and never appears in `.value`'s type. `fail()` payloads are type-inferred into `.error` instead.
+- Loaders that used `throw error(status, data)` to render error pages **keep that behavior** — thrown `error()`s abort to the error page and never land on `.error`.
+- On loaders, `.error` is typed `ServerError<ERROR> | Error | undefined` — a plain `Error` means the client-side fetch itself failed. Narrow with the `isServerError()` guard exported from `@qwik.dev/router` (`instanceof ServerError` is `false` on the client after deserialization).
+
 ### Serialization
 
 v1 serialized state into `<script type="qwik/json">` tags. v2 uses `<script type="qwik/vnode">` and `<script type="qwik/state">` at the end of the document. No code change needed, but tooling that parses the old tags will need updating.

@@ -552,6 +552,24 @@ function findLastMarkerExportAnchor(program: AstProgram): { start: number; end: 
   return null;
 }
 
+/**
+ * `\b<name>\b` testers for sCall-body reference checks, cached because the
+ * placement helpers below probe the same decl/export names repeatedly
+ * (per sCall × per name). The raw concatenation is kept as-is — names are
+ * JS identifiers, whose only regex-significant character is `$`, and the
+ * existing (mis)behavior on `$`-containing names must not silently change.
+ */
+const wordBoundaryTesterCache = new Map<string, RegExp>();
+
+function wordBoundaryTester(name: string): RegExp {
+  let tester = wordBoundaryTesterCache.get(name);
+  if (!tester) {
+    tester = new RegExp('\\b' + name + '\\b');
+    wordBoundaryTesterCache.set(name, tester);
+  }
+  return tester;
+}
+
 function findLastReferencedDeclEnd(
   sCalls: readonly string[],
   decls: readonly ModuleLevelDecl[],
@@ -559,7 +577,7 @@ function findLastReferencedDeclEnd(
   let maxEnd = -1;
   for (const decl of decls) {
     if (decl.declEnd <= maxEnd) continue;
-    const wb = new RegExp('\\b' + decl.name + '\\b');
+    const wb = wordBoundaryTester(decl.name);
     if (sCalls.some((sc) => wb.test(sc))) maxEnd = decl.declEnd;
   }
   return maxEnd >= 0 ? maxEnd : null;
@@ -585,7 +603,7 @@ function findForwardReferencedDeclEnd(
   for (const decl of decls) {
     if (decl.declStart <= threshold) continue;
     if (decl.declEnd <= maxEnd) continue;
-    if (new RegExp('\\b' + decl.name + '\\b').test(sCall)) maxEnd = decl.declEnd;
+    if (wordBoundaryTester(decl.name).test(sCall)) maxEnd = decl.declEnd;
   }
   return maxEnd >= 0 ? maxEnd : null;
 }
@@ -597,7 +615,7 @@ function partitionSCallsBySelfRef(
   const beforeExport: string[] = [];
   const afterExport: string[] = [];
   for (const sCall of sCalls) {
-    const refsExport = [...exportedNames].some((n) => new RegExp('\\b' + n + '\\b').test(sCall));
+    const refsExport = [...exportedNames].some((n) => wordBoundaryTester(n).test(sCall));
     (refsExport ? afterExport : beforeExport).push(sCall);
   }
   return { beforeExport, afterExport };

@@ -177,6 +177,18 @@ function diffFixture(source: string, filename: string): string[] {
   return mismatches;
 }
 
+/** A flat module with `count` extractions, each referencing one local, one
+ * unique free identifier, and one shared module-level binding. */
+function syntheticManyExtractionSource(count: number): string {
+  const lines: string[] = ['const shared = 1;'];
+  for (let i = 0; i < count; i++) {
+    lines.push(
+      `export const c${i} = $(() => { const l${i} = ${i}; return g${i} + l${i} + shared; });`,
+    );
+  }
+  return lines.join('\n');
+}
+
 describe('gatherModuleFacts parity with the per-fact walks', () => {
   it('matches on a handcrafted kitchen-sink module', () => {
     const source = `
@@ -236,6 +248,10 @@ const laterDecl = 7;
     expect([...facts.closureFreeIdentifiers.values()].some((names) => names.length > 0)).toBe(true);
   });
 
+  it('matches the oracle on a synthetic many-extraction module', () => {
+    expect(diffFixture(syntheticManyExtractionSource(200), 'test.tsx')).toEqual([]);
+  });
+
   it('matches across the full snapshot fixture corpus', () => {
     const snapFiles = readdirSync(SNAP_DIR).filter((f) => f.endsWith('.snap'));
     expect(snapFiles.length).toBeGreaterThan(100);
@@ -254,5 +270,41 @@ const laterDecl = 7;
     }
     expect(checkedFixtures).toBeGreaterThan(100);
     expect(failures).toEqual([]);
+  });
+});
+
+describe('segment-usage projection bounded behavior', () => {
+  it('does work proportional to visits + extractions, not visits × extractions', () => {
+    const source = syntheticManyExtractionSource(200);
+    const parsed = parseSync('test.tsx', source, RAW_TRANSFER_PARSER_OPTIONS);
+    const program = parsed.program as AstProgram;
+    const nodes = collectFunctionNodes(program);
+
+    // Count every property read against an extraction record. Containment
+    // tests read `argStart` / `argEnd`, so the read count is a deterministic
+    // proxy for how many range comparisons the projection performs.
+    let reads = 0;
+    const counted = syntheticExtractions(nodes).map(
+      (ext) =>
+        new Proxy(ext, {
+          get(target, prop, receiver) {
+            reads++;
+            return Reflect.get(target, prop, receiver);
+          },
+        }),
+    );
+    const facts = gatherModuleFacts({ program, usageExtractions: counted });
+
+    // Sanity: the projection actually classified this input.
+    expect(facts.segmentUsage.size).toBe(counted.length);
+    const perSegment = [...facts.segmentUsage.values()];
+    expect(perSegment.every((used) => used.has('shared'))).toBe(true);
+    expect(perSegment.some((used) => used.has('l0'))).toBe(false);
+    expect(facts.rootUsage.has('shared')).toBe(false);
+
+    // ~2,400 identifier visits × 200 extractions × 2 range reads ≈ 600k+
+    // for a per-visit scan over every extraction. The range-stack sweep
+    // stays around two orders of magnitude below that.
+    expect(reads).toBeLessThan(100_000);
   });
 });

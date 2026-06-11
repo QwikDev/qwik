@@ -50,6 +50,17 @@ const elseClause = createRegExp(
   whitespace.times.any().and('else').and(whitespace.times.any()).and('{').at.lineStart(),
 );
 
+// Matches `if (true) ` or `if (false) ` NOT followed by `{` (braceless if)
+const ifBracelessPattern = createRegExp(
+  wordBoundary.and(exactly('if')).and(whitespace.times.any()).and(exactly('('))
+    .and(whitespace.times.any())
+    .and(anyOf('true', 'false').grouped())
+    .and(whitespace.times.any()).and(exactly(')'))
+    .and(oneOrMore(whitespace))
+    .notBefore(exactly('{')),
+  [global],
+);
+
 const dceGuard = createRegExp(
   wordBoundary.and(
     anyOf(
@@ -137,16 +148,7 @@ export function applySegmentDCE(code: string): string {
       });
     }
 
-    // Matches `if (true) ` or `if (false) ` NOT followed by `{` (braceless if)
-    const ifBracelessPattern = createRegExp(
-      wordBoundary.and(exactly('if')).and(whitespace.times.any()).and(exactly('('))
-        .and(whitespace.times.any())
-        .and(anyOf('true', 'false').grouped())
-        .and(whitespace.times.any()).and(exactly(')'))
-        .and(oneOrMore(whitespace))
-        .notBefore(exactly('{')),
-      [global],
-    );
+    ifBracelessPattern.lastIndex = 0;
     while ((match = ifBracelessPattern.exec(result)) !== null) {
       const matchStart = match.index;
       if (replacements.some((r) => matchStart >= r.start && matchStart < r.end)) {

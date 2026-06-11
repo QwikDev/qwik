@@ -823,8 +823,15 @@ export function wireMigration(
           importedName: string;
           source: string;
         }> = [];
+        // Module-level decls always sit inside one top-level statement —
+        // walk just that subtree rather than the whole program. The range
+        // filter stays because the decl range can be narrower than the
+        // statement (one declarator of a multi-declarator declaration).
         const declIdentifiers = new Set<string>();
-        walk(program, {
+        const enclosingStmt = (program.body ?? []).find(
+          (stmt) => stmt.start <= decl.declStart && stmt.end >= decl.declEnd,
+        );
+        walk(enclosingStmt ?? program, {
           enter(node: AstNode) {
             if (
               node.type === "Identifier" &&

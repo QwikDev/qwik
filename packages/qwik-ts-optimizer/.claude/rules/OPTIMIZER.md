@@ -321,7 +321,7 @@ There are **two completely separate code paths** for populating `captureNames`, 
 
 This pairs with the broader author-vs-tool boundary documented in [Two namespaces](#two-namespaces-what-you-write-vs-what-the-optimizer-produces).
 
-Segment usage — a map of `segmentName → Set<moduleName>` plus a `rootUsage` set — is the gather walk's usage projection (identifier visits buffered during the walk, classified after it so hoisted declarations are seen first). It drives migration (Phase 3, which consumes the pre-built maps); it overlaps conceptually with `captureNames` but operates at module-decl granularity, not closure-scope granularity. The standalone `computeSegmentUsage` (`variable-migration.ts:364`) is the projection's differential oracle.
+Segment usage — a map of `segmentName → Set<moduleName>` plus a `rootUsage` set — is the gather walk's usage projection (declaration and identifier visits buffered during the walk, classified after it by a sorted range-stack sweep — hoisted declarations are seen first, and the work is linear in visits + extractions rather than visits × extractions per OSS-487). It drives migration (Phase 3, which consumes the pre-built maps); it overlaps conceptually with `captureNames` but operates at module-decl granularity, not closure-scope granularity. The standalone `computeSegmentUsage` (`variable-migration.ts:364`) is the projection's differential oracle.
 
 ### Worked example — `example_multi_capture`
 

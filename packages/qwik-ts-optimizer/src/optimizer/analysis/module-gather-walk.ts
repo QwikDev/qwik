@@ -169,6 +169,7 @@ interface GatherEnterContext {
   readonly usageExtractions: ReadonlyArray<UsageExtractionRange>;
   readonly extractionLocals: ReadonlyMap<string, Set<string>>;
   readonly identifierVisits: Array<{ pos: number; name: string }>;
+  readonly declVisits: AstNode[];
   // Passive-conflict projection
   readonly passiveEnabled: boolean;
   readonly passiveConflicts: PassiveConflict[];
@@ -250,6 +251,7 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   }
   const rootDeclPositions = usageEnabled ? collectRootDeclPositions(program) : new Set<number>();
   const identifierVisits: Array<{ pos: number; name: string }> = [];
+  const declVisits: AstNode[] = [];
 
   // --- Passive-conflict projection setup ---
   const passiveEnabled = inputs.passiveConflicts === true;
@@ -279,6 +281,7 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
     usageExtractions,
     extractionLocals,
     identifierVisits,
+    declVisits,
     passiveEnabled,
     passiveConflicts,
   };
@@ -324,7 +327,8 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   // wait until the locals map has seen hoisted declarations (an identifier
   // reference can be visited before its `function g() {}` declaration).
   if (usageEnabled) {
-    classifyIdentifierVisits(
+    classifySegmentUsage(
+      declVisits,
       identifierVisits,
       usageExtractions,
       extractionLocals,
@@ -512,17 +516,13 @@ function enterScopeEntries(node: AstNode, ctx: GatherEnterContext): void {
   }
 }
 
-/** Segment-usage projection — `computeSegmentUsage`'s gather half. */
+/** Segment-usage projection — `computeSegmentUsage`'s gather half. Pure
+ * buffering; all attribution happens in {@link classifySegmentUsage}. */
 function enterSegmentUsage(node: AstNode, ctx: GatherEnterContext): void {
   if (!ctx.usageEnabled) return;
 
   if (DECLARATION_TYPES.has(node.type) && ctx.usageExtractions.length > 0) {
-    const nodeStart = node.start;
-    const nodeEnd = node.end;
-    for (const ext of ctx.usageExtractions) {
-      if (nodeStart < ext.argStart || nodeEnd > ext.argEnd) continue;
-      addDeclaredNamesFromNode(node, ctx.extractionLocals.get(ext.symbolName)!);
-    }
+    ctx.declVisits.push(node);
   }
   // JSXIdentifier matters too: <Component> references module-level bindings
   if (node.type === 'Identifier' || node.type === 'JSXIdentifier') {
@@ -560,12 +560,56 @@ function enterPassiveConflicts(node: AstNode, ctx: GatherEnterContext): void {
 }
 
 /**
- * Post-walk classification of buffered identifier visits — the second half
- * of `computeSegmentUsage`. Attribution waits for the full locals map; in
- * DFS order an identifier reference can be visited before its hoisted
- * declaration (`function f() { g(); function g() {} }`).
+ * A sweep cursor over extraction arg ranges: feed it positions in ascending
+ * order and it maintains the stack of ranges containing the current
+ * position. Arg ranges are AST node ranges, so they nest properly or are
+ * disjoint — the stack top is always the innermost containing range, which
+ * is what the pre-sweep implementation found by scanning every extraction
+ * per visit (the O(identifiers × extractions) shape this replaces).
  */
-function classifyIdentifierVisits(
+class ExtractionRangeSweep {
+  private readonly sorted: UsageExtractionRange[];
+  private next = 0;
+  readonly stack: UsageExtractionRange[] = [];
+
+  constructor(extractions: ReadonlyArray<UsageExtractionRange>) {
+    // Ascending argStart; ties open the wider (outer) range first so the
+    // stack stays outer-below-inner.
+    this.sorted = [...extractions].sort(
+      (a, b) => a.argStart - b.argStart || b.argEnd - a.argEnd,
+    );
+  }
+
+  /** Advance to `pos`; afterwards `stack` holds exactly the ranges with
+   * `argStart <= pos < argEnd`, innermost on top. */
+  advanceTo(pos: number): void {
+    const { sorted, stack } = this;
+    while (stack.length > 0 && stack[stack.length - 1].argEnd <= pos) {
+      stack.pop();
+    }
+    while (this.next < sorted.length && sorted[this.next].argStart <= pos) {
+      const ext = sorted[this.next];
+      this.next++;
+      if (ext.argEnd > pos) stack.push(ext);
+    }
+  }
+}
+
+/**
+ * Post-walk classification of buffered declaration and identifier visits —
+ * the attribution half of `computeSegmentUsage`. Attribution waits for the
+ * full locals map; in DFS order an identifier reference can be visited
+ * before its hoisted declaration (`function f() { g(); function g() {} }`).
+ *
+ * Both buffers are classified by a sorted range-stack sweep instead of a
+ * per-visit scan over every extraction, bounding the work at
+ * O((visits + extractions) · nesting-depth) rather than
+ * O(visits × extractions). The buffers arrive in DFS-enter order, which is
+ * ascending by position for source-ordered AST properties; the sorts make
+ * the sweep independent of that walker detail.
+ */
+function classifySegmentUsage(
+  declVisits: readonly AstNode[],
   identifierVisits: ReadonlyArray<{ pos: number; name: string }>,
   extractions: ReadonlyArray<UsageExtractionRange>,
   extractionLocals: ReadonlyMap<string, Set<string>>,
@@ -573,31 +617,34 @@ function classifyIdentifierVisits(
   segmentUsage: Map<string, Set<string>>,
   rootUsage: Set<string>,
 ): void {
-  for (const { pos, name } of identifierVisits) {
-    // When nested extractions overlap (e.g., $() inside component$()),
-    // attribute to the innermost (smallest) range.
-    let inSegment = false;
-    let innermostExt: UsageExtractionRange | null = null;
-    let smallestSize = Infinity;
-    for (const ext of extractions) {
-      if (pos >= ext.argStart && pos < ext.argEnd) {
-        const size = ext.argEnd - ext.argStart;
-        if (size < smallestSize) {
-          smallestSize = size;
-          innermostExt = ext;
-        }
-        inSegment = true;
-      }
+  // 1. Locals first — every containing extraction collects the decl's
+  //    names, exactly as the oracle's per-extraction containment test did.
+  const declSweep = new ExtractionRangeSweep(extractions);
+  const sortedDecls = [...declVisits].sort((a, b) => a.start - b.start);
+  for (const node of sortedDecls) {
+    declSweep.advanceTo(node.start);
+    for (const ext of declSweep.stack) {
+      if (node.end > ext.argEnd) continue;
+      addDeclaredNamesFromNode(node, extractionLocals.get(ext.symbolName)!);
     }
+  }
 
+  // 2. Identifier attribution against the now-complete locals map.
+  const identSweep = new ExtractionRangeSweep(extractions);
+  const sortedVisits = [...identifierVisits].sort((a, b) => a.pos - b.pos);
+  for (const { pos, name } of sortedVisits) {
+    identSweep.advanceTo(pos);
+    const { stack } = identSweep;
+
+    // When nested extractions overlap (e.g., $() inside component$()),
+    // attribute to the innermost range — the stack top.
+    const innermostExt = stack.length > 0 ? stack[stack.length - 1] : null;
     if (innermostExt) {
       const locals = extractionLocals.get(innermostExt.symbolName)!;
       if (!locals.has(name)) {
         segmentUsage.get(innermostExt.symbolName)!.add(name);
       }
-    }
-
-    if (!inSegment && !rootDeclPositions.has(pos)) {
+    } else if (!rootDeclPositions.has(pos)) {
       rootUsage.add(name);
     }
   }

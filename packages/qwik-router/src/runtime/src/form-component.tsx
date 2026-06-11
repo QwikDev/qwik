@@ -1,11 +1,17 @@
 import { jsx, component$, Slot, $, type QRLEventHandlerMulti, type QwikJSX } from '@qwik.dev/core';
+import type { ServerError } from '../../middleware/request-handler/server-error';
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 
 /** @public */
-export interface FormSubmitCompletedDetail<T> {
+export interface FormSubmitCompletedDetail<T, ERROR = unknown> {
   status: number;
-  value: T;
+  /** The action's successful return value. `undefined` when the action failed or aborted. */
+  value: T | undefined;
+  /** The `ServerError` from a returned `fail()` or a failed validator. */
+  error: ServerError<ERROR> | undefined;
+  /** Set when the submission aborted (a thrown `error()` or an unexpected server error). */
+  aborted?: ServerError;
 }
 
 /** @public */

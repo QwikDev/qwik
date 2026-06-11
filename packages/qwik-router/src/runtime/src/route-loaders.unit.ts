@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
-import { failReturn } from '../../middleware/request-handler/fail';
+import { failReturn, isServerError } from '../../middleware/request-handler/fail';
 import { ServerError } from '../../middleware/request-handler/server-error';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import {
@@ -230,7 +230,7 @@ describe('types', () => {
     });
     const loader = useObj();
     expectTypeOf(loader.value).toEqualTypeOf<{ result: string }>();
-    if (loader.error) {
+    if (isServerError(loader.error)) {
       expectTypeOf(loader.error.status).toEqualTypeOf<number>();
       expectTypeOf(loader.error.data).toEqualTypeOf<{ message: string }>();
     }
@@ -244,8 +244,8 @@ describe('types', () => {
       return { result: 'ok' };
     });
     const loader = useObj();
-    // No fail() and no validator: the loader can never produce an inline error state.
-    expectTypeOf(loader.error).toEqualTypeOf<undefined>();
+    // No fail() and no validator: only a client transport problem can land on `.error`.
+    expectTypeOf(loader.error).toEqualTypeOf<Error | undefined>();
   });
 });
 

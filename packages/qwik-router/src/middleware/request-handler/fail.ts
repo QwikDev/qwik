@@ -44,7 +44,9 @@ export type ExcludeFail<T> = T extends Failed ? never : T;
  *
  * @public
  */
-export type FailPayload<T> = T extends Failed ? Omit<T, typeof FailBrand> : never;
+export type FailPayload<T> = T extends Failed
+  ? { [K in keyof T as K extends typeof FailBrand ? never : K]: T[K] }
+  : never;
 
 /**
  * Creates a fail result. Pure: the HTTP status is carried on the brand and only applied to the
@@ -70,6 +72,23 @@ export function isFailReturn(value: unknown): value is FailReturn<Record<string,
 /** Reads the status carried by a fail result. */
 export function getFailMeta(value: Failed): FailMeta {
   return value[FailBrand];
+}
+
+/**
+ * Checks whether an error is a `ServerError` (carries `status` and `data`). Structural rather than
+ * `instanceof` so it also matches ServerErrors that crossed a serialization boundary (the client
+ * deserializes them as plain `Error`s with the same own properties).
+ *
+ * @public
+ */
+export function isServerError<E>(err: ServerError<E> | Error | undefined): err is ServerError<E>;
+export function isServerError<T = unknown>(err: unknown): err is ServerError<T>;
+export function isServerError(err: unknown): boolean {
+  return (
+    err instanceof Error &&
+    typeof (err as { status?: unknown }).status === 'number' &&
+    'data' in err
+  );
 }
 
 /**

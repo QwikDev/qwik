@@ -153,8 +153,13 @@ export type RouteActionResolver = {
   status: number;
   /** The action's successful return value. Unset when the action failed (see `error`). */
   result?: unknown;
-  /** A `ServerError` from `throw error(...)`, a failed validator, or an uncaught server error. */
+  /** A `ServerError` from a returned `fail()` or a failed validator. */
   error?: ServerError;
+  /**
+   * Set when the submission aborted (a thrown `error()` or an unexpected server error). The action
+   * records no state; `run()`/`submit()` reject with this error.
+   */
+  aborted?: ServerError;
 };
 export type RouteActionValue =
   | {
@@ -905,9 +910,12 @@ export type LoaderConstructorQRL = {
 };
 
 /** @public */
-export type ActionReturn<RETURN> = {
+export type ActionReturn<RETURN, ERROR = unknown> = {
   readonly status?: number;
-  readonly value: RETURN;
+  /** The action's successful return value. `undefined` when the action failed (see `error`). */
+  readonly value: RETURN | undefined;
+  /** The `ServerError` from a returned `fail()` or a failed validator. */
+  readonly error: ServerError<ERROR> | undefined;
 };
 
 /** @public */
@@ -991,8 +999,8 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
    */
   readonly submit: QRL<
     OPTIONAL extends true
-      ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
-      : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+      ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>>
+      : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>>
   >;
   /** Is action.submit was submitted */
   readonly submitted: boolean;
@@ -1005,7 +1013,12 @@ export type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPro
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
   Pick<AsyncSignal, 'promise' | 'loading'> & {
-    error: ServerError<ERROR> | undefined;
+    /**
+     * A `ServerError` from a returned `fail()` or a failed validator. On the client a transport
+     * problem (network failure) can also land here as a plain `Error` — narrow with
+     * `isServerError()`.
+     */
+    error: ServerError<ERROR> | Error | undefined;
   };
 
 /** @public */

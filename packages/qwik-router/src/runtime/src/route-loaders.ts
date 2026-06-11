@@ -65,12 +65,15 @@ export const FULLPATH_HEADER = 'X-Qwik-fullpath';
  *
  * - `d` — data: the loader's successful return value
  * - `r` — redirect: URL to navigate to (from `throw redirect()`)
- * - `e` — error: a ServerError (from `fail()` or `throw serverError()`)
+ * - `e` — error: a ServerError (from `fail()` or a failed validator)
+ * - `a` — abort marker on `e`: the request aborted (`throw error()` / unexpected error); the client
+ *   falls back to a full-page load instead of surfacing `loader.error`
  */
 export type LoaderResponse = {
   d?: unknown;
   r?: string;
   e?: InstanceType<typeof ServerError>;
+  a?: 1;
 };
 
 type LoaderFetchCacheEntry = {
@@ -399,7 +402,15 @@ const createRouteLoaderSignal = (
         return previous;
       }
       if (response.e) {
-        // Error — throw so AsyncSignal enters error state
+        if (response.a) {
+          // Abort (thrown error() or unexpected server error): fall back to a full-page
+          // load so the server renders the real error page. Loader fetches are GETs, so
+          // replaying is safe. Return stale data meanwhile (same rationale as redirects).
+          location.href = pageUrl.href;
+          return previous;
+        }
+        // Expected failure (fail() / failed validator) — throw so the AsyncSignal enters
+        // error state and the component reads it via `loader.error`.
         throw response.e;
       }
       if (needsResumeFetch) {

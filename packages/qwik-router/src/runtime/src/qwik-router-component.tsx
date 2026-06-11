@@ -566,11 +566,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             return;
           }
 
-          actionData = {
-            status: result.status,
-            action: action.id,
-            actionResult: result.error ?? result.result,
-          };
+          if (!result.aborted) {
+            actionData = {
+              status: result.status,
+              action: action.id,
+              actionResult: result.error ?? result.result,
+            };
+          }
 
           // Resolve the action promise and free the closure
           if (action.resolve) {
@@ -578,8 +580,15 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               status: result.status,
               result: result.result,
               error: result.error,
+              aborted: result.aborted,
             });
             action.resolve = undefined;
+          }
+
+          if (result.aborted) {
+            // Aborted submissions record no action state and invalidate nothing.
+            routeInternal.untrackedValue = { type: navType, dest: trackUrl };
+            return;
           }
 
           actionLoaderHashes = result.loaderHashes;

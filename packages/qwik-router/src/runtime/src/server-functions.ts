@@ -116,9 +116,33 @@ Action.run() can only be called on the browser, for example when a user clicks a
           id,
           resolve: noSerialize(resolve),
         };
-      }).then(({ result, status, error }) => {
+      }).then(({ result, status, error, aborted }) => {
         state.isRunning = false;
         state.status = status;
+        if (aborted) {
+          // Thrown error() / unexpected server error: the submission aborted, no action
+          // state is recorded. Programmatic callers get a rejected promise; <Form>
+          // submissions surface it via the submitcompleted detail instead (rejecting
+          // would be an unhandled rejection inside the event handler).
+          if (form) {
+            const detail = {
+              status,
+              value: undefined,
+              error: undefined,
+              aborted,
+            } satisfies FormSubmitCompletedDetail<unknown>;
+            form.dispatchEvent(
+              new CustomEvent('submitcompleted', {
+                bubbles: false,
+                cancelable: false,
+                composed: false,
+                detail: detail,
+              })
+            );
+            return { status, value: undefined, error: undefined };
+          }
+          throw aborted;
+        }
         if (error) {
           state.error = error;
           state.value = undefined;
@@ -130,7 +154,11 @@ Action.run() can only be called on the browser, for example when a user clicks a
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
           }
-          const detail = { status, value: result } satisfies FormSubmitCompletedDetail<unknown>;
+          const detail = {
+            status,
+            value: result,
+            error,
+          } satisfies FormSubmitCompletedDetail<unknown>;
           form.dispatchEvent(
             new CustomEvent('submitcompleted', {
               bubbles: false,
@@ -143,6 +171,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
         return {
           status: status,
           value: result,
+          error,
         };
       });
     });
@@ -170,7 +199,10 @@ export const globalActionQrl = ((
     if (typeof globalThis._qwikActionsMap === 'undefined') {
       globalThis._qwikActionsMap = new Map();
     }
-    globalThis._qwikActionsMap!.set((action as ActionInternal).__id, action as ActionInternal);
+    globalThis._qwikActionsMap!.set(
+      (action as unknown as ActionInternal).__id,
+      action as unknown as ActionInternal
+    );
   }
   return action;
 }) as unknown as ActionConstructorQRL;

@@ -89,6 +89,7 @@ export {
   zodQrl,
 } from './server-functions';
 export { routeLoader$, routeLoaderQrl } from './route-loaders';
+export { isServerError } from '../../middleware/request-handler/fail';
 export { ServiceWorkerRegister } from './sw-component';
 export {
   useContent,

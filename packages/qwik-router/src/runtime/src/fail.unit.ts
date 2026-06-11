@@ -5,6 +5,7 @@ import {
   failReturn,
   getFailMeta,
   isFailReturn,
+  isServerError,
 } from '../../middleware/request-handler/fail';
 import type { ServerError } from '../../middleware/request-handler/server-error';
 import { routeLoader$ } from './route-loaders';
@@ -136,8 +137,12 @@ describe('fail() types — loaders', () => {
     });
     const loader = useLoader();
     expectTypeOf(loader.value).toEqualTypeOf<{ product: string }>();
-    expectTypeOf(loader.error).toEqualTypeOf<ServerError<{ notFound: boolean }> | undefined>();
-    if (loader.error) {
+    expectTypeOf(loader.error).toEqualTypeOf<
+      ServerError<{ notFound: boolean }> | Error | undefined
+    >();
+    // A client-side transport problem can land a plain Error on `.error`; isServerError()
+    // narrows to the typed failure.
+    if (isServerError(loader.error)) {
       expectTypeOf(loader.error.notFound).toEqualTypeOf<boolean>();
     }
   });
@@ -159,7 +164,7 @@ describe('fail() types — loaders', () => {
     );
     const loader = useLoader();
     expectTypeOf(loader.value).toEqualTypeOf<{ product: string }>();
-    if (loader.error) {
+    if (isServerError(loader.error)) {
       expectTypeOf(loader.error.data).toEqualTypeOf<
         { notFound: boolean } | { forbidden: boolean }
       >();

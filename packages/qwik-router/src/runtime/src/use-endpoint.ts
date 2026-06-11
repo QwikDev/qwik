@@ -19,6 +19,8 @@ export async function submitAction(
       status: number;
       result?: unknown;
       error?: ServerError;
+      /** Set when the submission aborted (thrown error() or unexpected server error). */
+      aborted?: ServerError;
       redirect?: string;
       loaderHashes?: string[];
     }
@@ -68,6 +70,7 @@ export async function submitAction(
     const data = _deserialize<{
       result?: unknown;
       error?: ServerError;
+      aborted?: ServerError;
       redirect?: string;
       loaderHashes?: string[];
     }>(text);
@@ -75,6 +78,7 @@ export async function submitAction(
       status: response.status,
       result: data?.result,
       error: data?.error,
+      aborted: data?.aborted,
       redirect: data?.redirect,
       loaderHashes: data?.loaderHashes,
     };

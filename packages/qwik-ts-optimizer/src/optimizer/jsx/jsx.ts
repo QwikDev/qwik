@@ -324,7 +324,17 @@ export interface ScopeAwareCollectResult {
  * false-positive shadow detection, which classifies the reference as `var`
  * (the safer direction — fewer false-const classifications).
  */
-export function collectScopeAwareBindings(program: AstProgram): ScopeAwareCollectResult {
+/** Enter/leave view of the bindings collection, so the canonical gather
+ * walk (`analysis/module-gather-walk.ts`) can drive it as a projection of
+ * the shared traversal. `collectScopeAwareBindings` below remains the
+ * standalone walk — and the projection's differential oracle. */
+export interface ScopeBindingsCollector {
+  readonly enter: (node: AstNode) => void;
+  readonly leave: (node: AstNode) => void;
+  readonly result: () => ScopeAwareCollectResult;
+}
+
+export function createScopeBindingsCollector(program: AstProgram): ScopeBindingsCollector {
   const bindings = new ScopeAwareBindingsImpl();
   const allLocalNames = new Set<string>();
 
@@ -432,9 +442,7 @@ export function collectScopeAwareBindings(program: AstProgram): ScopeAwareCollec
     );
   }
 
-  function visit(node: AstNode | null | undefined): void {
-    if (!node) return;
-
+  function enter(node: AstNode): void {
     const pushed = isScopeIntroducing(node);
     if (pushed) {
       scopeStack.push({ start: node.start, end: node.end });
@@ -489,20 +497,36 @@ export function collectScopeAwareBindings(program: AstProgram): ScopeAwareCollec
       }
     }
 
-    forEachAstChild(node, (child) => visit(child));
+  }
 
-    if (pushed) {
+  function leave(node: AstNode): void {
+    if (isScopeIntroducing(node)) {
       scopeStack.pop();
     }
   }
 
   // Push the program-level scope frame so top-level bindings have somewhere
-  // to land. Range covers the whole program.
+  // to land. Range covers the whole program; it is never popped, so
+  // `result` can be read at any point after the traversal.
   scopeStack.push({ start: program.start ?? 0, end: program.end ?? Number.MAX_SAFE_INTEGER });
-  visit(program);
-  scopeStack.pop();
 
-  return { bindings, allLocalNames };
+  return {
+    enter,
+    leave,
+    result: () => ({ bindings, allLocalNames }),
+  };
+}
+
+export function collectScopeAwareBindings(program: AstProgram): ScopeAwareCollectResult {
+  const collector = createScopeBindingsCollector(program);
+  function visit(node: AstNode | null | undefined): void {
+    if (!node) return;
+    collector.enter(node);
+    forEachAstChild(node, (child) => visit(child));
+    collector.leave(node);
+  }
+  visit(program);
+  return collector.result();
 }
 
 /**

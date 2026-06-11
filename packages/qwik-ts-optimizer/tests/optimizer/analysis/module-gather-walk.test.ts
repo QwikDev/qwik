@@ -24,6 +24,7 @@ import { fileURLToPath } from 'node:url';
 import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import { gatherModuleFacts } from '../../../src/optimizer/analysis/module-gather-walk.js';
+import { collectScopeAwareBindings } from '../../../src/optimizer/jsx/jsx.js';
 import { buildClosureLexicalScopes } from '../../../src/optimizer/analysis/capture-analysis.js';
 import { computeSegmentUsage } from '../../../src/optimizer/analysis/variable-migration.js';
 import {
@@ -125,6 +126,7 @@ function diffFixture(source: string, filename: string): string[] {
     repairedCode: source,
     scopeEntries: true,
     passiveConflicts: true,
+    scopeBindings: true,
   });
 
   const mismatches: string[] = [];
@@ -165,6 +167,36 @@ function diffFixture(source: string, filename: string): string[] {
   const oracleUsage = computeSegmentUsage(program, extractions);
   check('segmentUsage', mapOfSetsToPlain(facts.segmentUsage), mapOfSetsToPlain(oracleUsage.segmentUsage));
   check('rootUsage', [...facts.rootUsage].sort(), [...oracleUsage.rootUsage].sort());
+
+  // Scope-aware bindings, compared on the consumer contract: `classify()`
+  // at every identifier position (the surface `classifyConstness` /
+  // `isConstBindingName` read) plus the flat local-name set. Internal
+  // scope-range layout is free to differ as long as every lookup agrees.
+  const oracleBindings = collectScopeAwareBindings(program);
+  const fusedBindings = facts.scopeAwareBindings;
+  if (!fusedBindings) {
+    mismatches.push('scopeBindings: projection enabled but no result returned');
+  } else {
+    check(
+      'allLocalNames',
+      [...fusedBindings.allLocalNames].sort(),
+      [...oracleBindings.allLocalNames].sort(),
+    );
+    const classifyDiffs: string[] = [];
+    walk(program, {
+      enter(node) {
+        const n = node as AstNode;
+        if (n.type === 'Identifier' || n.type === 'JSXIdentifier') {
+          const fused = fusedBindings.bindings.classify(n.name, n.start);
+          const oracle = oracleBindings.bindings.classify(n.name, n.start);
+          if (fused !== oracle) {
+            classifyDiffs.push(`${n.name}@${n.start}: fused=${fused} oracle=${oracle}`);
+          }
+        }
+      },
+    });
+    check('scopeBindings.classify', classifyDiffs, []);
+  }
 
   // Passive conflicts, compared at the diagnostic level so the gather+emit
   // split proves order-identical to the oracle's walk-and-emit.
@@ -237,6 +269,7 @@ const laterDecl = 7;
       repairedCode: source,
       scopeEntries: true,
       passiveConflicts: true,
+      scopeBindings: true,
     });
     expect(facts.passiveConflicts.length).toBe(1);
     expect(facts.passiveConflicts[0].eventName).toBe('scroll');
@@ -246,6 +279,14 @@ const laterDecl = 7;
     expect(facts.closureLexicalScopes.size).toBe(nodes.size);
     expect(facts.rootUsage.size).toBeGreaterThan(0);
     expect([...facts.closureFreeIdentifiers.values()].some((names) => names.length > 0)).toBe(true);
+    // Scope-bindings projection: both binding kinds exercised — the for-of
+    // binding classifies const at a position inside the loop body; the
+    // mutable `let` classifies var.
+    const sb = facts.scopeAwareBindings;
+    expect(sb).toBeDefined();
+    expect(sb!.allLocalNames.has('moduleVar')).toBe(true);
+    expect(sb!.bindings.classify('item', source.indexOf('inner + item') + 'inner + '.length)).toBe('const');
+    expect(sb!.bindings.classify('counter', source.indexOf('counter++'))).toBe('var');
   });
 
   it('matches the oracle on a synthetic many-extraction module', () => {

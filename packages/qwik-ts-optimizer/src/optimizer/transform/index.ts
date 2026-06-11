@@ -35,6 +35,7 @@ import {
   collectScopeIdentifiers,
 } from "../analysis/capture-analysis.js";
 import { gatherModuleFacts, type PassiveConflict } from "../analysis/module-gather-walk.js";
+import type { ScopeAwareCollectResult } from "../jsx/jsx.js";
 import {
   analyzeMigration,
   collectModuleLevelDecls,
@@ -169,6 +170,10 @@ interface CaptureAnalysis {
   /** passive:/preventdefault: conflicts gathered during the canonical walk;
    * emitted as diagnostics in Phase 4 to preserve diagnostic order. */
   readonly passiveConflicts: readonly PassiveConflict[];
+  /** Scope-aware JSX bindings from the canonical gather walk; present iff
+   * this module will run the Phase-4 JSX transform. Threaded into
+   * `transformAllJsx` so it skips its own bindings walk. */
+  readonly scopeAwareBindings: ScopeAwareCollectResult | undefined;
 }
 
 /** Phase 3 result: module-level decl inventory + migration decisions. */
@@ -515,6 +520,7 @@ function analyzeModuleCaptures(
     segmentUsage,
     rootUsage,
     passiveConflicts,
+    scopeAwareBindings,
   } = gatherModuleFacts({
     program,
     closureNodes,
@@ -523,6 +529,12 @@ function analyzeModuleCaptures(
     repairedCode,
     scopeEntries: true,
     passiveConflicts: true,
+    // Same predicate Phase 4 uses to decide whether the JSX transform runs
+    // (`rewriteParent` builds `jsxOptions` under this condition) — gather
+    // the bindings only when that transform will consume them.
+    scopeBindings:
+      options.transpileJsx !== false &&
+      (mod.ext === ".tsx" || mod.ext === ".jsx"),
   });
 
   // Run capture analysis with the correct parent scope for each extraction.
@@ -686,6 +698,7 @@ function analyzeModuleCaptures(
     segmentUsage,
     rootUsage,
     passiveConflicts,
+    scopeAwareBindings,
   };
 }
 
@@ -898,6 +911,11 @@ function rewriteParent(
       enableJsx: true,
       importedNames: analysis.importedNames,
       enableSignals: true,
+      // Phase-2 gather-walk projection of the same program object; saves
+      // transformAllJsx its own full-program bindings walk. Positions are
+      // plain numbers extracted at gather time, so intervening parses
+      // can't invalidate them.
+      precomputedScopeBindings: analysis.scopeAwareBindings,
     };
   }
 

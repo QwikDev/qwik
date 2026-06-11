@@ -14,6 +14,9 @@
  *   - passive:/preventdefault: JSX attribute conflicts (was the walk inside
  *     `detectPassivePreventdefaultConflicts`; emission stays at the Phase-4
  *     call site so diagnostic order is unchanged)
+ *   - scope-aware JSX bindings (was the standalone `collectScopeAwareBindings`
+ *     walk that `transformAllJsx` ran on the parent program; threaded to the
+ *     Phase-4 JSX transform via `precomputedScopeBindings`)
  *
  * Parity contract: each projection keeps the exact per-node logic of the
  * function it replaces — shared node-level helpers are imported from the
@@ -50,6 +53,11 @@ import {
   addDeclaredNamesFromNode,
   collectRootDeclPositions,
 } from './variable-migration.js';
+import {
+  createScopeBindingsCollector,
+  type ScopeAwareCollectResult,
+  type ScopeBindingsCollector,
+} from '../jsx/jsx.js';
 
 /** Inputs for the segment-usage projection. */
 export interface UsageExtractionRange {
@@ -92,6 +100,9 @@ export interface ModuleGatherInputs {
   readonly scopeEntries?: boolean;
   /** Enables the passive-conflict projection. */
   readonly passiveConflicts?: boolean;
+  /** Enables the scope-aware-bindings projection (the gather half of the
+   * JSX transform's `collectScopeAwareBindings`). */
+  readonly scopeBindings?: boolean;
 }
 
 /** Every gathered fact. Fields for disabled projections are empty. */
@@ -104,6 +115,8 @@ export interface ModuleGatherFacts {
   readonly segmentUsage: Map<string, Set<string>>;
   readonly rootUsage: Set<string>;
   readonly passiveConflicts: PassiveConflict[];
+  /** Present iff the scope-bindings projection was enabled. */
+  readonly scopeAwareBindings: ScopeAwareCollectResult | undefined;
 }
 
 /**
@@ -173,6 +186,8 @@ interface GatherEnterContext {
   // Passive-conflict projection
   readonly passiveEnabled: boolean;
   readonly passiveConflicts: PassiveConflict[];
+  // Scope-bindings projection
+  readonly scopeBindingsCollector: ScopeBindingsCollector | undefined;
 }
 
 /** Exit view: adds the stack-pop act-helpers. */
@@ -257,6 +272,12 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   const passiveEnabled = inputs.passiveConflicts === true;
   const passiveConflicts: PassiveConflict[] = [];
 
+  // --- Scope-bindings projection setup (collectScopeAwareBindings) ---
+  let scopeBindingsCollector: ScopeBindingsCollector | undefined;
+  if (inputs.scopeBindings === true) {
+    scopeBindingsCollector = createScopeBindingsCollector(program);
+  }
+
   const enterCtx: GatherEnterContext = {
     tracker,
     freeIdentNames,
@@ -284,6 +305,7 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
     declVisits,
     passiveEnabled,
     passiveConflicts,
+    scopeBindingsCollector,
   };
 
   const exitCtx: GatherExitContext = {
@@ -313,11 +335,13 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
         enterScopeEntries(node, ctx);
         enterSegmentUsage(node, ctx);
         enterPassiveConflicts(node, ctx);
+        ctx.scopeBindingsCollector?.enter(node);
       },
       leave(node, _parent, ctx) {
         ctx.popOpenClosureIfMatches(node);
         if (ctx.lexicalEnabled) ctx.popScopeIfFunction(node);
         if (ctx.loopEnabled) ctx.popLoopIfMatches(node);
+        ctx.scopeBindingsCollector?.leave(node);
       },
     },
     tracker ? { scopeTracker: tracker } : undefined,
@@ -347,6 +371,7 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
     segmentUsage,
     rootUsage,
     passiveConflicts,
+    scopeAwareBindings: scopeBindingsCollector?.result(),
   };
 }
 

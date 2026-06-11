@@ -1,9 +1,9 @@
 /**
  * Canonical per-module gather walk.
  *
- * One ScopeTracker build walk plus one gather walk over the original parsed
- * program produce every per-module fact that previously required its own
- * full-program walk:
+ * One traversal over the original parsed program — building the
+ * ScopeTracker as it goes — produces every per-module fact that previously
+ * required its own full-program walk:
  *
  *   - free identifiers per extraction closure (was `computeClosureFreeIdentifiers`,
  *     itself the group-1 fusion of per-closure `getUndeclaredIdentifiersInFunction`)
@@ -31,11 +31,12 @@
  * single-pass stack model. The free-identifier projection follows the same
  * shape: identifier visits buffer `(name, scopeKey)` per open closure and
  * resolve after the walk via `ScopeQueryTracker.getDeclarationFromScope`,
- * so resolution no longer depends on the walk cursor — the precondition for
- * building the tracker *during* the gather walk instead of before it.
+ * so resolution does not depend on the walk cursor — which is what allows
+ * the tracker to build *during* the gather walk: by resolution time the
+ * scope tree is complete, hoisted declarations included.
  */
 
-import { isBindingIdentifier, walk } from 'oxc-walker';
+import { isBindingIdentifier } from 'oxc-walker';
 import type { ScopeTrackerNode } from 'oxc-walker';
 import { ScopeQueryTracker } from './scope-query-tracker.js';
 import type { AstFunction, AstNode, AstProgram } from '../../ast-types.js';
@@ -174,7 +175,7 @@ interface PendingResolution {
 
 /** Shared mutable walk state — the gather buffers every projection fills. */
 interface GatherEnterContext {
-  readonly tracker: ScopeQueryTracker | undefined;
+  readonly tracker: ScopeQueryTracker;
   // Free-identifier projection
   readonly freeIdentNames: ReadonlyMap<AstFunction, string[]>;
   readonly freeIdentDedupes: ReadonlyMap<AstFunction, Set<string>>;
@@ -219,9 +220,9 @@ interface GatherExitContext extends GatherEnterContext {
 }
 
 /**
- * Run the canonical gather walk. At most two program traversals: the
- * ScopeTracker build walk (only when the free-identifier projection is on
- * and has closures to track) and the gather walk itself.
+ * Run the canonical gather walk — one program traversal. The ScopeTracker
+ * builds during the walk itself (attached unfrozen, frozen on return before
+ * free-identifier resolution); there is no standalone build walk.
  */
 export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts {
   const { program } = inputs;
@@ -235,12 +236,15 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
       freeIdentDedupes.set(fn, new Set());
     }
   }
-  let tracker: ScopeQueryTracker | undefined;
-  if (freeIdentNames.size > 0) {
-    tracker = new ScopeQueryTracker({ preserveExitedScopes: true });
-    walk(program, { scopeTracker: tracker });
-    tracker.freeze();
-  }
+  // The tracker builds DURING the gather walk (it is attached unfrozen and
+  // collects declarations as the walk traverses) — possible because
+  // free-identifier resolution is post-walk and the only mid-walk reads are
+  // `getCurrentScope()` cursor lookups, which the walker keeps current
+  // before each enter callback in build mode exactly as in replay mode.
+  // Built unconditionally: closure-bearing modules need it, and the fusion
+  // of Phase-1 extraction into this walk will discover closures mid-walk,
+  // after the build-or-not decision would have to be made.
+  const tracker = new ScopeQueryTracker({ preserveExitedScopes: true });
   const openClosures: OpenClosure[] = [];
   const pendingResolutions: PendingResolution[] = [];
 
@@ -367,15 +371,15 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
         ctx.scopeBindingsCollector?.leave(node);
       },
     },
-    tracker ? { scopeTracker: tracker } : undefined,
+    { scopeTracker: tracker },
   );
 
-  // Program-exit act for the free-identifier projection: resolve the
-  // buffered identifier visits against the frozen tracker, in occurrence
-  // order so each closure's name list keeps first-free-occurrence order.
-  if (tracker !== undefined) {
-    resolveFreeIdentifiers(pendingResolutions, tracker);
-  }
+  // Program-exit act for the free-identifier projection: the walk has
+  // populated the full scope tree (hoisted declarations included), so
+  // freeze and resolve the buffered identifier visits, in occurrence order
+  // so each closure's name list keeps first-free-occurrence order.
+  tracker.freeze();
+  resolveFreeIdentifiers(pendingResolutions, tracker);
 
   // Program-exit act for the segment-usage projection: classification must
   // wait until the locals map has seen hoisted declarations (an identifier
@@ -416,7 +420,6 @@ function enterFreeIdentifiers(
   ctx: GatherEnterContext,
 ): void {
   const { tracker, openClosures } = ctx;
-  if (tracker === undefined) return;
 
   if (isFunctionLike(node) && ctx.freeIdentNames.has(node)) {
     // The tracker has already pushed this node's scope(s) — its

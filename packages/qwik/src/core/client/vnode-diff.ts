@@ -405,6 +405,15 @@ function diff(
                 }
               } else if (type === Projection) {
                 expectProjection(diffContext);
+                if (diffContext.$vNewNode$ === null) {
+                  // An existing projection keeps its children across re-renders, so they
+                  // must be diffed against, never blindly re-created. Creation mode can be
+                  // inherited from the component host level when the host was re-diffed
+                  // before its own render populated any children (e.g. a component that
+                  // threw a promise on first render and was re-executed), which would
+                  // otherwise duplicate the projected element children.
+                  diffContext.$isCreationMode$ = false;
+                }
                 descend(
                   diffContext,
                   diffContext.$jsxValue$.children,

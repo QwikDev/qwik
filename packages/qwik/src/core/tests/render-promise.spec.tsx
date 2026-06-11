@@ -1,4 +1,4 @@
-import { Fragment as Component, Fragment, component$, useSignal } from '@qwik.dev/core';
+import { Fragment as Component, Fragment, Slot, component$, useSignal } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
@@ -42,5 +42,77 @@ describe.each([
     });
     const { document } = await render(<Cmp />, { debug });
     expect(document.querySelector('div')).toHaveProperty('textContent', 'child');
+  });
+
+  it('should not duplicate projected element children when component throws a promise on first render', async () => {
+    const Wrapper = component$(() => (
+      <form>
+        <Slot />
+      </form>
+    ));
+    const Title = component$(() => <header>title</header>);
+    const Footer = component$(() => <footer>footer</footer>);
+    const Cmp = component$(() => {
+      // The signal is read before the throw, so the component subscribes to it.
+      // The thrown promise sets the signal, which marks the component dirty again
+      // and triggers a second diff pass before <Wrapper> has rendered its <Slot>.
+      // The second pass used to inherit creation mode (the host has no children
+      // yet) and blindly re-create the projected element children. The trailing
+      // <Footer /> is required: matching it by component hash jumps the cursor
+      // past the stale <div>, so expectNoMore() would not clean it up.
+      const store = useSignal<string>();
+      if (!store.value) {
+        throw Promise.resolve().then(() => {
+          store.value = 'resolved';
+        });
+      }
+      return (
+        <Wrapper>
+          <Title />
+          <div class="fields">{store.value}</div>
+          <Footer />
+        </Wrapper>
+      );
+    });
+    const { document } = await render(<Cmp />, { debug });
+    expect(document.querySelectorAll('div.fields')).toHaveLength(1);
+    expect(document.querySelectorAll('header')).toHaveLength(1);
+    expect(document.querySelectorAll('footer')).toHaveLength(1);
+  });
+
+  it('should not duplicate named slot content when component throws a promise on first render', async () => {
+    const Wrapper = component$(() => (
+      <form>
+        <section>
+          <Slot name="top" />
+        </section>
+        <Slot />
+      </form>
+    ));
+    const Title = component$(() => <header>title</header>);
+    const Footer = component$(() => <footer>footer</footer>);
+    const Cmp = component$(() => {
+      const store = useSignal<string>();
+      if (!store.value) {
+        throw Promise.resolve().then(() => {
+          store.value = 'resolved';
+        });
+      }
+      return (
+        <Wrapper>
+          <div q:slot="top" class="banner">
+            banner
+          </div>
+          <Title />
+          <div class="fields">{store.value}</div>
+          <Footer />
+        </Wrapper>
+      );
+    });
+    const { document } = await render(<Cmp />, { debug });
+    expect(document.querySelectorAll('div.banner')).toHaveLength(1);
+    expect(document.querySelectorAll('div.fields')).toHaveLength(1);
+    expect(document.querySelectorAll('header')).toHaveLength(1);
+    expect(document.querySelectorAll('footer')).toHaveLength(1);
   });
 });

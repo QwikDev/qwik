@@ -1,4 +1,4 @@
-import { routeLoader$, validator$, type RequestEventAction } from '@qwik.dev/router';
+import { routeLoader$, validator$, type RequestEventLoader } from '@qwik.dev/router';
 import { component$ } from '@qwik.dev/core';
 
 const dataValidator = validator$((ev) => {
@@ -33,9 +33,11 @@ const dynamicPetLoaderQrl = () => {
   };
 };
 
-const randomFailedLoaderQrl = ({ fail }: RequestEventAction) => {
+const randomFailedLoaderQrl = (ev: RequestEventLoader) => {
   if (Math.random() > 0.5) {
-    return fail(500, {
+    // An expected failure: returned (not thrown), so it surfaces as `loader.error`
+    // while the page still renders.
+    return ev.fail(500, {
       loaderFailedReason: 'Reach Limit',
     });
   }
@@ -65,9 +67,9 @@ export default component$(() => {
   const randomFailed = useRandomFailedLoader();
   const randomFailedWithValidator = useRandomFailedWithValidatorLoader();
 
-  // fail() / validation failures now surface as `loader.error` (a ServerError whose
-  // `.data` carries the payload), not as `loader.value.failed`. Guard on `.error`
-  // before reading `.value` — reading `.value` in error state re-throws.
+  // Returned fail() results and validation failures surface as `loader.error` (a
+  // ServerError carrying the payload); `.value` is the success type only. Guard on
+  // `.error` before reading `.value`.
   return (
     <div>
       <div>{pet.value.pet}</div>

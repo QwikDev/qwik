@@ -1,12 +1,18 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getPathname, fixTrailingSlash, resolveRequestHandlers } from './resolve-request-handlers';
+import {
+  getPathname,
+  fixTrailingSlash,
+  loadersMiddleware,
+  resolveRequestHandlers,
+} from './resolve-request-handlers';
 import { RequestEvHttpStatusMessage, RequestEvSharedActionId } from './request-event-core';
 import { createRequestEvent } from './request-event';
 import { RedirectMessage } from './redirect-handler';
 import { isContentType } from './request-utils';
 import type { ServerRequestEvent } from './types';
 import { checkCSRF } from './resolve-request-handlers';
-import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
+import type { LoadedRoute, LoaderInternal, RouteModule } from '../../runtime/src/types';
+import { getRouteLoaderErrors, getRouteLoaderValues } from '../../runtime/src/route-loaders';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import { IsQLoader, QLoaderId } from './request-path';
 
@@ -362,6 +368,69 @@ describe('resolve-request-handler', () => {
       expect(renderHandler).toHaveBeenCalledOnce();
       expect(requestEv.status()).toBe(418);
       expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('teapot');
+    });
+  });
+
+  describe('loadersMiddleware multi-loader failure determinism', () => {
+    const createLoader = (id: string, fn: (thisArg: unknown, ev: any) => unknown): LoaderInternal =>
+      ({
+        __brand: 'server_loader',
+        __id: id,
+        __qrl: {
+          call: vi.fn(fn),
+          getHash: () => id,
+          getSymbol: () => id,
+        },
+        __validators: undefined,
+        __serializationStrategy: 'never',
+        __expires: 0,
+        __poll: false,
+        __eTag: undefined,
+        __cacheKey: undefined,
+        __search: undefined,
+        __allowStale: true,
+      }) as any;
+
+    const slowFail = createLoader('slow-fail', async (_thisArg, ev) => {
+      // Resolves last, but is registered first — its status must win.
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return ev.fail(503, { reason: 'slow loader failed' });
+    });
+    const fastFail = createLoader('fast-fail', (_thisArg, ev) =>
+      ev.fail(429, { reason: 'fast loader failed' })
+    );
+    const okLoader = createLoader('ok-loader', () => ({ result: 'ok' }));
+
+    it('uses the first failed loader in registration order for the response status', async () => {
+      const requestEv = createMockRequestEvent('http://localhost:3000/test/', true);
+      requestEv.headers.set('Cache-Control', 'max-age=3600');
+
+      await loadersMiddleware([slowFail, fastFail, okLoader], mockRoute)(requestEv);
+
+      // fast-fail (429) completed first, but slow-fail (503) is first in registration order.
+      expect(requestEv.status()).toBe(503);
+      // Failure responses are never cached.
+      expect(requestEv.headers.get('Cache-Control')).toBeNull();
+
+      const errors = getRouteLoaderErrors(requestEv);
+      expect(errors['slow-fail']).toBeInstanceOf(ServerError);
+      expect(errors['slow-fail'].status).toBe(503);
+      expect(errors['fast-fail']).toBeInstanceOf(ServerError);
+      expect(errors['fast-fail'].status).toBe(429);
+
+      // The values map stays successes-only.
+      const values = getRouteLoaderValues(requestEv);
+      expect('slow-fail' in values).toBe(false);
+      expect('fast-fail' in values).toBe(false);
+      expect(values['ok-loader']).toEqual({ result: 'ok' });
+    });
+
+    it('uses the other status when the registration order is reversed', async () => {
+      const requestEv = createMockRequestEvent('http://localhost:3000/test/', true);
+
+      await loadersMiddleware([fastFail, slowFail], mockRoute)(requestEv);
+
+      expect(requestEv.status()).toBe(429);
     });
   });
 

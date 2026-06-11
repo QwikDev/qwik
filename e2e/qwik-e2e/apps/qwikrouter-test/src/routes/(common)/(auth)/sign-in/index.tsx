@@ -18,14 +18,16 @@ export const onGet: RequestHandler = async ({ redirect, cookie }) => {
 };
 
 export const useSigninAction = globalAction$(
-  async (data, { cookie, redirect, error }) => {
+  async (data, { cookie, redirect, fail }) => {
     const result = await signIn(data, cookie);
 
     if (result.status === 'signed-in') {
       throw redirect(302, '/qwikrouter-test/dashboard/');
     }
 
-    throw error(403, {
+    // Expected failure: returned (not thrown) so it surfaces as `action.error` and the
+    // form can render it inline with a 403 status.
+    return fail(403, {
       message: ['Invalid username or password'],
     });
   },
@@ -60,6 +62,11 @@ export default component$(() => {
   const signIn = useSigninAction();
   const resetPassword = useResetPasswordAction();
 
+  // `signIn.error` carries either the zod validation failure (with `fieldErrors`) or the
+  // returned fail() payload (with only `message`) — narrow before reading `fieldErrors`.
+  const fieldErrors =
+    signIn.error && 'fieldErrors' in signIn.error ? signIn.error.fieldErrors : undefined;
+
   return (
     <div>
       <h1>Sign In</h1>
@@ -69,23 +76,17 @@ export default component$(() => {
         <label>
           <span>Username</span>
           <input name="username" type="text" autoComplete="username" required />
-          {signIn.error?.fieldErrors?.username && (
-            <p style="color:red">{signIn.error?.fieldErrors?.username}</p>
-          )}
+          {fieldErrors?.username && <p style="color:red">{fieldErrors.username}</p>}
         </label>
         <label>
           <span>Password</span>
           <input name="password" type="password" autoComplete="current-password" required />
-          {signIn.error?.fieldErrors?.password && (
-            <p style="color:red">{signIn.error?.fieldErrors?.password}</p>
-          )}
+          {fieldErrors?.password && <p style="color:red">{fieldErrors.password}</p>}
         </label>
         <label>
           <span>Confirm password</span>
           <input name="confirmPassword" type="password" autoComplete="current-password" required />
-          {signIn.error?.fieldErrors?.confirmPassword && (
-            <p style="color:red">{signIn.error?.fieldErrors?.confirmPassword}</p>
-          )}
+          {fieldErrors?.confirmPassword && <p style="color:red">{fieldErrors.confirmPassword}</p>}
         </label>
         <button data-test-sign-in>Sign In</button>
         <p>(Username: qwik, Password: dev)</p>

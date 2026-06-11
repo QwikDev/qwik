@@ -6,10 +6,8 @@ const useError = routeLoader$(async function ({ error }): Promise<string> {
 });
 
 export default component$(() => {
-  const loader = useError();
-  // A loader that throws `error()` enters error state — read it via `loader.error`.
-  if (loader.error) {
-    return <div id="loader-error">{loader.error.message}</div>;
-  }
+  // A thrown error() aborts the request: it propagates to middleware (plugin@errors
+  // rewrites the payload) and the error page renders — this component never does.
+  useError();
   return <></>;
 });

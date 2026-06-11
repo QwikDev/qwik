@@ -9,7 +9,7 @@ export function delay(nu: number) {
 }
 
 export const useSecretAction = globalAction$(
-  async (payload, { error, redirect }) => {
+  async (payload, { fail, redirect }) => {
     if (payload.username === 'admin' && payload.code === 123) {
       await delay(2000);
       return {
@@ -19,7 +19,9 @@ export const useSecretAction = globalAction$(
     } else if (payload.username === 'redirect' && payload.code === 123) {
       throw redirect(302, '/qwikrouter-test/');
     }
-    throw error(400, {
+    // Expected failure: returned (not thrown) so it surfaces as `action.error` and the
+    // form can render it inline. A thrown error() would abort the submission instead.
+    return fail(400, {
       message: 'Invalid username or code',
     });
   },
@@ -33,6 +35,11 @@ export const useSecretAction = globalAction$(
 export const SecretForm = component$(() => {
   const action = useSecretAction();
   const message = useSignal('');
+
+  // `action.error` carries either the zod validation failure (with `fieldErrors`) or the
+  // returned fail() payload (with only `message`) — narrow before reading `fieldErrors`.
+  const fieldErrors =
+    action.error && 'fieldErrors' in action.error ? action.error.fieldErrors : undefined;
 
   return (
     <>
@@ -51,18 +58,14 @@ export const SecretForm = component$(() => {
               placeholder="admin"
               value={action.formData?.get('username')}
             />
-            {action.error?.fieldErrors?.username && (
-              <p class={styles.error}>{action.error.fieldErrors.username}</p>
-            )}
+            {fieldErrors?.username && <p class={styles.error}>{fieldErrors.username}</p>}
           </label>
         </div>
         <div>
           <label id="label-code">
             Code:
             <input type="text" name="code" placeholder="123" value={action.formData?.get('code')} />
-            {action.error?.fieldErrors?.code && (
-              <p class={styles.error}>{action.error.fieldErrors.code}</p>
-            )}
+            {fieldErrors?.code && <p class={styles.error}>{fieldErrors.code}</p>}
           </label>
         </div>
         {action.error?.message && (

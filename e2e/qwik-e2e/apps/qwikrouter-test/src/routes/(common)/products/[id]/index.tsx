@@ -12,9 +12,10 @@ export default component$(() => {
     <div>
       <h1>Product: {params.id}</h1>
 
-      {product.error && <p>Error: {product.error.message}</p>}
-      {!product.error && product.value == null && <p>Not Found</p>}
-      {!product.error && product.value != null && (
+      {/* The loader throws error(500) for the "error" id — that aborts the request and
+          renders the error page, so this component only ever sees null (404) or data. */}
+      {product.value == null && <p>Not Found</p>}
+      {product.value != null && (
         <>
           <p>Price: {product.value.price}</p>
           <p>{product.value.description}</p>

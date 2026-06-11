@@ -7,12 +7,17 @@ export const onRequest: RequestHandler = async ({ next }) => {
     return await next();
   } catch (err) {
     // Intercept and update ServerErrors to test middleware.
-    // Note: loader failures (fail() / throw error()) no longer propagate here — they are
-    // captured per-loader and surfaced as `loader.error`, so middleware can't intercept them.
+    // Thrown error() aborts the request and propagates here (v1 semantics). A returned
+    // fail() never does — it becomes the loader/action `.error` state instead.
     if (err instanceof ServerError) {
       // Update for (common)/server-func/server-error
       if (isErrorReason(err.data)) {
         err.data.middleware = 'server-error-caught';
+      }
+
+      // Update for (common)/loaders/loader-error
+      if (err.data === 'loader-error-uncaught') {
+        err.data = 'loader-error-caught';
       }
     }
 

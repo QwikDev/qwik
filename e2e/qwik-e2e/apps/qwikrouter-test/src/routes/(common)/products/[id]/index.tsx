@@ -144,7 +144,8 @@ export const useProductLoader = routeLoader$(
       throw rewrite('/qwikrouter-test/products/tshirt/');
     }
 
-    // Should throw an error
+    // Same-origin absolute URL — rewrite normalizes it to a path and re-routes like a
+    // relative rewrite (renders tshirt while keeping this URL).
     if (id === 'shirt-rewrite-absolute-url') {
       throw rewrite(`${url.origin}/qwikrouter-test/products/tshirt/`);
     }

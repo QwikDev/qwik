@@ -99,6 +99,32 @@ const laterDeclared = 5;
     expect(diffAgainstLegacy(source, 'handcrafted.tsx')).toEqual([]);
   });
 
+  it('keeps first-free-occurrence order when a name resolves internal at one scope and free at another', () => {
+    // Inside the closure, `dual` first resolves to the block-scoped `let`
+    // (internal), then to the module-level binding (free). The free
+    // occurrence must land in the name list between `firstFree` and
+    // `secondFree` — exactly where the per-closure form records it.
+    const source = `
+export const B = $(() => {
+  use(firstFree);
+  {
+    let dual = 1;
+    touch(dual);
+  }
+  return dual + secondFree;
+});
+const dual = 9;
+`;
+    expect(diffAgainstLegacy(source, 'handcrafted.tsx')).toEqual([]);
+
+    const parsed = parseSync('handcrafted.tsx', source, RAW_TRANSFER_PARSER_OPTIONS);
+    const program = parsed.program as AstProgram;
+    const nodes = collectFunctionNodes(program);
+    const fused = computeClosureFreeIdentifiers(program, nodes);
+    const closure = [...nodes.values()][0];
+    expect(fused.get(closure)).toEqual(['use', 'firstFree', 'touch', 'dual', 'secondFree']);
+  });
+
   it('matches across the full snapshot fixture corpus', () => {
     const snapFiles = readdirSync(SNAP_DIR).filter((f) => f.endsWith('.snap'));
     expect(snapFiles.length).toBeGreaterThan(100);

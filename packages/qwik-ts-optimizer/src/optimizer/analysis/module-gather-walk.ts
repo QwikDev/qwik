@@ -28,10 +28,16 @@
  * Projections that need whole-program knowledge before they can act
  * (segment-usage classification must see hoisted declarations) buffer during
  * enter and act after the walk returns — the Program-exit act of the
- * single-pass stack model.
+ * single-pass stack model. The free-identifier projection follows the same
+ * shape: identifier visits buffer `(name, scopeKey)` per open closure and
+ * resolve after the walk via `ScopeQueryTracker.getDeclarationFromScope`,
+ * so resolution no longer depends on the walk cursor — the precondition for
+ * building the tracker *during* the gather walk instead of before it.
  */
 
-import { ScopeTracker, isBindingIdentifier, walk } from 'oxc-walker';
+import { isBindingIdentifier, walk } from 'oxc-walker';
+import type { ScopeTrackerNode } from 'oxc-walker';
+import { ScopeQueryTracker } from './scope-query-tracker.js';
 import type { AstFunction, AstNode, AstProgram } from '../../ast-types.js';
 import { walkWithProtocol } from '../ast/walk-with-protocol.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
@@ -150,16 +156,31 @@ interface OpenClosure {
    * lands inside the walked subtree.
    */
   readonly ownScope: string;
+  /**
+   * `(scopeKey, name)` pairs already buffered for this closure. Identical
+   * pairs resolve identically, so dropping repeats keeps the buffer bounded
+   * without changing which visit is the first free occurrence — the
+   * property that fixes each closure's `names` order.
+   */
+  readonly seen: Set<string>;
+}
+
+/** One buffered identifier visit awaiting post-walk resolution. */
+interface PendingResolution {
+  readonly oc: OpenClosure;
+  readonly name: string;
+  readonly scopeKey: string;
 }
 
 /** Shared mutable walk state — the gather buffers every projection fills. */
 interface GatherEnterContext {
-  readonly tracker: ScopeTracker | undefined;
+  readonly tracker: ScopeQueryTracker | undefined;
   // Free-identifier projection
   readonly freeIdentNames: ReadonlyMap<AstFunction, string[]>;
   readonly freeIdentDedupes: ReadonlyMap<AstFunction, Set<string>>;
   readonly openClosures: readonly OpenClosure[];
   readonly pushOpenClosure: (oc: OpenClosure) => void;
+  readonly pendingResolutions: PendingResolution[];
   // Lexical-scope projection
   readonly lexicalEnabled: boolean;
   readonly nodeToSymbol: ReadonlyMap<AstFunction, string>;
@@ -214,13 +235,14 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
       freeIdentDedupes.set(fn, new Set());
     }
   }
-  let tracker: ScopeTracker | undefined;
+  let tracker: ScopeQueryTracker | undefined;
   if (freeIdentNames.size > 0) {
-    tracker = new ScopeTracker({ preserveExitedScopes: true });
+    tracker = new ScopeQueryTracker({ preserveExitedScopes: true });
     walk(program, { scopeTracker: tracker });
     tracker.freeze();
   }
   const openClosures: OpenClosure[] = [];
+  const pendingResolutions: PendingResolution[] = [];
 
   // --- Lexical-scope projection setup (buildClosureLexicalScopes) ---
   const lexicalEnabled = inputs.closureNodes !== undefined;
@@ -284,6 +306,7 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
     freeIdentDedupes,
     openClosures,
     pushOpenClosure: (oc) => { openClosures.push(oc); },
+    pendingResolutions,
     lexicalEnabled,
     nodeToSymbol,
     scopeStack,
@@ -347,6 +370,13 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
     tracker ? { scopeTracker: tracker } : undefined,
   );
 
+  // Program-exit act for the free-identifier projection: resolve the
+  // buffered identifier visits against the frozen tracker, in occurrence
+  // order so each closure's name list keeps first-free-occurrence order.
+  if (tracker !== undefined) {
+    resolveFreeIdentifiers(pendingResolutions, tracker);
+  }
+
   // Program-exit act for the segment-usage projection: classification must
   // wait until the locals map has seen hoisted declarations (an identifier
   // reference can be visited before its `function g() {}` declaration).
@@ -375,7 +405,11 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   };
 }
 
-/** Free-identifier projection — `computeClosureFreeIdentifiers`'s resolution walk. */
+/** Free-identifier projection — `computeClosureFreeIdentifiers`'s gather
+ * half. Pure buffering of `(name, scopeKey)` per open closure; resolution
+ * happens post-walk in {@link resolveFreeIdentifiers}. The same name can
+ * resolve free at one reference site and internal at another (shadowing),
+ * which is why the buffer keys on the scope key, not the name alone. */
 function enterFreeIdentifiers(
   node: AstNode,
   parent: AstNode | null,
@@ -400,6 +434,7 @@ function enterFreeIdentifiers(
       names: ctx.freeIdentNames.get(node)!,
       dedupe: ctx.freeIdentDedupes.get(node)!,
       ownScope,
+      seen: new Set(),
     });
   }
 
@@ -408,23 +443,34 @@ function enterFreeIdentifiers(
   if (isBindingIdentifier(node, parent)) return;
 
   const name = node.name;
-  // Resolution is the expensive step (per-ancestor map lookups in the
-  // tracker); skip it when every open closure already recorded this
-  // name as free. Names not yet recorded must re-resolve at each
-  // occurrence — shadowing can make the same name free at one
-  // reference site and internal at another.
-  let unresolvedRemains = false;
+  const scopeKey = tracker.getCurrentScope();
+  const seenKey = `${scopeKey} ${name}`;
   for (const oc of openClosures) {
-    if (!oc.dedupe.has(name)) {
-      unresolvedRemains = true;
-      break;
-    }
+    if (oc.seen.has(seenKey)) continue;
+    oc.seen.add(seenKey);
+    ctx.pendingResolutions.push({ oc, name, scopeKey });
   }
-  if (!unresolvedRemains) return;
+}
 
-  const decl = tracker.getDeclaration(name);
-  for (const oc of openClosures) {
+/** Post-walk act for the free-identifier projection: resolve the buffered
+ * visits in occurrence order against the frozen tracker. Resolution is
+ * memoized per `(name, scopeKey)` — the chain-walk is the expensive step
+ * and identical pairs resolve identically. */
+function resolveFreeIdentifiers(
+  pending: readonly PendingResolution[],
+  tracker: ScopeQueryTracker,
+): void {
+  const memo = new Map<string, ScopeTrackerNode | null>();
+  for (const { oc, name, scopeKey } of pending) {
     if (oc.dedupe.has(name)) continue;
+    const memoKey = `${scopeKey} ${name}`;
+    let decl: ScopeTrackerNode | null;
+    if (memo.has(memoKey)) {
+      decl = memo.get(memoKey)!;
+    } else {
+      decl = tracker.getDeclarationFromScope(name, scopeKey);
+      memo.set(memoKey, decl);
+    }
     let free: boolean;
     if (decl === null) {
       // No declaration anywhere on the chain — global or unresolved.

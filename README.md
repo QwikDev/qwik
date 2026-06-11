@@ -72,14 +72,6 @@ Use `.ruler/AGENTS.md` for short repo-wide AI instructions, `.ruler/rules/` for 
 rules, `.ruler/skills/` for reusable prompts or task-specific skills, and `~/.config/ruler/` for
 personal settings such as local MCP servers or workflow preferences.
 
-If you are an AI assistant building local config for a target tool, research that tool's current
-native guidance, skill, config, and policy formats before adding any tool-specific output. Map
-`.ruler` files by what they mean, not by filename: Markdown guidance belongs in the assistant's
-native AI guidance surface, skills belong in native skills if supported, and command-permission
-policy belongs only in a separately researched policy format. For Codex, Ruler includes all
-`.ruler` Markdown guidance in generated `AGENTS.md`; `.codex/rules/*.rules` is command policy, not
-Markdown guidance.
-
 Do not edit generated files like `AGENTS.md`, `CLAUDE.md`, `.codex/`, `.claude/`, or `.cursor/`
 by hand. Update `.ruler/` and rerun `ruler apply`.
 

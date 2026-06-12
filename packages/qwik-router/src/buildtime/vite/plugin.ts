@@ -42,7 +42,11 @@ import type {
   QwikRouterVitePluginOptions,
 } from './types';
 import { validatePlugin } from './validate-plugin';
-import { getRouterIndexTags, makeRouterDevMiddleware } from './dev-middleware';
+import {
+  getRouterIndexTags,
+  makeRouterDevMiddleware,
+  sendRouterCssHotUpdate,
+} from './dev-middleware';
 
 export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 /**
@@ -373,7 +377,11 @@ function qwikRouterPlugin(
       }
     },
 
-    handleHotUpdate({ file, modules, server }: HmrContext) {
+    handleHotUpdate({ file, modules, server, timestamp }: HmrContext) {
+      // Route CSS is injected as a <link>; swap it in place rather than forcing a restart.
+      if (sendRouterCssHotUpdate(server, file, timestamp)) {
+        return [];
+      }
       if (!ctx || !isRouterSourceFileForContext(file, ctx)) {
         return;
       }

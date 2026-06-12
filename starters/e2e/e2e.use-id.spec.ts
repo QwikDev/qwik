@@ -15,7 +15,7 @@ test.describe("use-id", () => {
 
   test("Creates unique ids and ensure no collisions", async ({ page }) => {
     const totalIdsLocator = page.locator("#totalIds");
-    await totalIdsLocator.isVisible();
+    await expect(totalIdsLocator).toBeVisible();
     const totalIdsText = await totalIdsLocator.textContent();
     const totalIds = parseInt(totalIdsText || "-1");
     await expect(totalIds).toBeGreaterThan(0); // MAKE SURE WE HAVE SOME IDS

@@ -11,10 +11,10 @@ test('navbar on mobile', async ({ page }) => {
   const navToolKit = page.locator('.menu-toolkit');
   const body = page.locator('body');
 
-  expect(body).not.toHaveClass('header-open');
+  await expect(body).not.toHaveClass('header-open');
   await expect(openIcon).toBeVisible();
   await openIcon.click();
-  expect(body).toHaveClass('header-open');
+  await expect(body).toHaveClass('header-open');
   await expect(closeIcon).toBeVisible();
 
   await expect(navToolKit).toBeVisible();
@@ -33,7 +33,7 @@ test('navbar on mobile', async ({ page }) => {
   expect(menuItems).toStrictEqual(expectedMenuLinks);
 
   await closeIcon.click();
-  expect(body).not.toHaveClass('header-open');
+  await expect(body).not.toHaveClass('header-open');
   await expect(closeIcon).not.toBeVisible();
   await expect(openIcon).toBeVisible();
   await expect(navToolKit).not.toBeVisible();

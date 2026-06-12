@@ -1,5 +1,5 @@
 import type { Plugin } from 'vite';
-import { normalizeId } from '../virtualmodules/virtualModules';
+import { normalizeVirtualModuleId } from '../virtualmodules/ids';
 import { attachSsrPerfInjectorMiddleware } from './statistics/ssrPerfMiddleware';
 import {
   findQwikLazyComponentExports,
@@ -7,7 +7,7 @@ import {
   rewriteComponentQrlImport,
   shouldTransformStatisticsSource,
   wrapQwikLazyComponentExports,
-} from './statistics/sourceTransforms';
+} from '../transforms/perf-transform';
 
 /**
  * Statistics plugin: collect Qwik render performance.
@@ -38,7 +38,7 @@ export function statisticsPlugin(): Plugin {
       modifiedCode = rewritten.code;
       hasChanges = hasChanges || rewritten.changed;
 
-      const cleanId = normalizeId(id);
+      const cleanId = normalizeVirtualModuleId(id);
       if (cleanId.includes('_component_')) {
         const exports = findQwikLazyComponentExports(code);
         const wrapped = wrapQwikLazyComponentExports({

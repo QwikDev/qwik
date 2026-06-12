@@ -506,6 +506,8 @@
 58 RootRef [omitted]
 59 RootRef [omitted]
 60 Object [
+  {string} "__qwik_route_loader_value__qO14f4pG8tQ"
+  Constant _UNINITIALIZED
   RootRef [omitted]
   RootRef [omitted]
 ]
@@ -644,19 +646,21 @@
 118 RootRef [omitted]
 119 RootRef [omitted]
 120 RootRef [omitted]
-121 Array []
-122 {string} "q-xxxxxxxx.js"
-123 {string} "s_0vpftJHSMyo"
-124 RootRef [omitted]
-125 Map [
+121 Object 0
+122 RootRef [omitted]
+123 Array []
+124 {string} "q-xxxxxxxx.js"
+125 {string} "s_0vpftJHSMyo"
+126 RootRef [omitted]
+127 Map [
   Constant '.'
   RootRef [omitted]
 ]
-126 RootRef [omitted]
-127 Promise [
+128 RootRef [omitted]
+129 Promise [
   Constant true
   RootRef [omitted]
 ]
-128 ForwardRefs [
-  127
+130 ForwardRefs [
+  129
 ]

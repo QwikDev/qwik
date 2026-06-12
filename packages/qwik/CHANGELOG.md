@@ -1,5 +1,19 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.37
+
+### Minor Changes
+
+- ✨ reject server-only modules from client builds (by [@Varixo](https://github.com/Varixo) in [#8605](https://github.com/QwikDev/qwik/pull/8605))
+
+### Patch Changes
+
+- 🐞🩹 prevent streamed event handlers from resuming before container state is ready (by [@Varixo](https://github.com/Varixo) in [#8689](https://github.com/QwikDev/qwik/pull/8689))
+
+- 🐞🩹 When a component$ wasn't loaded yet, it would use stale props by the time it resolved and executed. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+- 🐞🩹 make repeated HMR JSX remove and restore updates reload QRLs before rerendering (by [@thejackshelton-kunaico](https://github.com/thejackshelton-kunaico) in [#8695](https://github.com/QwikDev/qwik/pull/8695))
+
 ## 2.0.0-beta.36
 
 ### Minor Changes

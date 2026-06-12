@@ -31,7 +31,6 @@ import { ELEMENT_SEQ } from '../../server/qwik-copy';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { vnode_getProp } from '../client/vnode-utils';
 import { USE_ON_LOCAL } from '../shared/utils/markers';
-import { delay } from '../shared/utils/promises';
 import { Task, TaskFlags } from '../use/use-task';
 
 const debug = false; //true;
@@ -130,7 +129,6 @@ describe.each([
 
       useVisibleTask$(async () => {
         (globalThis as any).log.push('task');
-        await delay(10);
         (globalThis as any).log.push('resolved');
         state.value = 'CSR';
       });
@@ -138,21 +136,20 @@ describe.each([
       (globalThis as any).log.push('render');
       return <span>{state.value}</span>;
     });
-    const { vNode, document, container } = await render(<VisibleCmp />, { debug });
+    const { vNode, document } = await render(<VisibleCmp />, { debug });
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'span', 'qvisible');
     }
-    // wait for the async tail explicitly.
-    await delay(20);
-    await waitForDrain(container);
-    expect((globalThis as any).log).toEqual(['VisibleCmp', 'render', 'task', 'resolved']);
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <span>
-          <Signal ssr-required>CSR</Signal>
-        </span>
-      </Component>
-    );
+    await vi.waitFor(() => {
+      expect((globalThis as any).log).toEqual(['VisibleCmp', 'render', 'task', 'resolved']);
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <span>
+            <Signal ssr-required>CSR</Signal>
+          </span>
+        </Component>
+      );
+    });
     (globalThis as any).log = undefined;
   });
 
@@ -182,7 +179,6 @@ describe.each([
     const VisibleCmp = component$(() => {
       const state = useSignal('SSR');
       useVisibleTask$(async () => {
-        await delay(1);
         throw error;
       });
       return <span>{state.value}</span>;
@@ -196,10 +192,11 @@ describe.each([
     );
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'span', 'qvisible');
+      expect(ErrorProvider.error).toBe(null);
+      return;
     }
-    // wait for the async throw.
-    await delay(10);
-    expect(ErrorProvider.error).toBe(render === domRender ? error : null);
+
+    await vi.waitFor(() => expect(ErrorProvider.error).toBe(error));
   });
 
   it('should run visible tasks in parallel', async () => {
@@ -781,7 +778,7 @@ describe.each([
         const promise = useSignal<Promise<number>>(Promise.resolve(0));
 
         useVisibleTask$(() => {
-          promise.value = promise.value.then(() => delay(10)).then(() => 1);
+          promise.value = promise.value.then(() => Promise.resolve()).then(() => 1);
         });
 
         useVisibleTask$(() => {
@@ -1144,7 +1141,6 @@ describe.each([
     vi.useFakeTimers();
     try {
       (globalThis as any).log = [] as string[];
-      const isSsr = render === ssrRenderToDom;
       const Counter = component$(() => {
         const count = useSignal(0);
         useVisibleTask$(({ track }) => {
@@ -1152,7 +1148,7 @@ describe.each([
           (globalThis as any).log.push(`task:${current}`);
           return async () => {
             (globalThis as any).log.push(`cleanup:${current}:start`);
-            await delay(10);
+            await new Promise((resolve) => setTimeout(resolve, 10));
             (globalThis as any).log.push(`cleanup:${current}:end`);
           };
         });
@@ -1167,21 +1163,21 @@ describe.each([
       expect((globalThis as any).log).toEqual(['task:0']);
 
       const triggerPromise = trigger(document.body, 'button', 'click');
-      vi.advanceTimersByTime(1);
-      expect((globalThis as any).log).toEqual(isSsr ? ['task:0'] : ['task:0']);
+      await vi.advanceTimersByTimeAsync(9);
+      expect((globalThis as any).log).toEqual(['task:0', 'cleanup:0:start']);
+      expect((globalThis as any).log).not.toContain('task:1');
 
-      vi.useRealTimers();
+      await vi.advanceTimersByTimeAsync(1);
       await triggerPromise;
       await waitForDrain(container);
-      // render() no longer waits for visible tasks — wait for async cleanup + rerun.
-      await delay(20);
-      await waitForDrain(container);
-      expect((globalThis as any).log).toEqual([
-        'task:0',
-        'cleanup:0:start',
-        'cleanup:0:end',
-        'task:1',
-      ]);
+      await vi.waitFor(() =>
+        expect((globalThis as any).log).toEqual([
+          'task:0',
+          'cleanup:0:start',
+          'cleanup:0:end',
+          'task:1',
+        ])
+      );
     } finally {
       vi.useRealTimers();
     }
@@ -1190,43 +1186,49 @@ describe.each([
 
 describe('render() does not wait for visible tasks', () => {
   it('should resolve render() before a slow visible task completes', async () => {
-    (globalThis as any).log = [] as string[];
-    const Cmp = component$(() => {
-      const state = useSignal('initial');
-      useVisibleTask$(async () => {
-        (globalThis as any).log.push('task-start');
-        await delay(100);
-        state.value = 'after-task';
-        (globalThis as any).log.push('task-done');
-      });
-      return <span>{state.value}</span>;
+    let resolveVisibleTask!: () => void;
+    const visibleTaskDone = new Promise<void>((resolve) => {
+      resolveVisibleTask = resolve;
     });
+    (globalThis as any).log = [] as string[];
+    try {
+      const Cmp = component$(() => {
+        const state = useSignal('initial');
+        useVisibleTask$(async () => {
+          (globalThis as any).log.push('task-start');
+          await visibleTaskDone;
+          state.value = 'after-task';
+          (globalThis as any).log.push('task-done');
+        });
+        return <span>{state.value}</span>;
+      });
 
-    const start = Date.now();
-    const { vNode, container } = await domRender(<Cmp />);
-    const renderDuration = Date.now() - start;
+      const { vNode } = await domRender(<Cmp />);
 
-    expect(renderDuration).toBeLessThan(80);
-    expect((globalThis as any).log).not.toContain('task-done');
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <span>
-          <Signal ssr-required>initial</Signal>
-        </span>
-      </Component>
-    );
+      expect((globalThis as any).log).toEqual(['task-start']);
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <span>
+            <Signal ssr-required>initial</Signal>
+          </span>
+        </Component>
+      );
 
-    await delay(110);
-    await waitForDrain(container);
-    expect((globalThis as any).log).toContain('task-done');
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <span>
-          <Signal ssr-required>after-task</Signal>
-        </span>
-      </Component>
-    );
-    (globalThis as any).log = undefined;
+      resolveVisibleTask();
+      await vi.waitFor(() => {
+        expect((globalThis as any).log).toContain('task-done');
+        expect(vNode).toMatchVDOM(
+          <Component ssr-required>
+            <span>
+              <Signal ssr-required>after-task</Signal>
+            </span>
+          </Component>
+        );
+      });
+    } finally {
+      resolveVisibleTask();
+      (globalThis as any).log = undefined;
+    }
   });
 
   it('cleanup() should still tear down a pending visible task', async () => {

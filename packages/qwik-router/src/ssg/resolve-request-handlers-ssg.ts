@@ -1,10 +1,14 @@
 import { QACTION_KEY, QFN_KEY, resolveRouteConfig } from './worker-imports/runtime';
 import {
-  resolveETag,
-  resolveCacheKey,
-  getCachedHtml,
+  defaultLoaderCacheKey,
+  defaultSsrCacheKey,
+  getCachedLoader,
+  getCachedSsr,
   MAX_CACHE_SIZE,
-  setCachedHtml,
+  resolveCacheKey,
+  resolveETag,
+  setCachedLoader,
+  setCachedSsr,
 } from '@qwik-router-ssg-worker/middleware/request-handler/etag';
 import { HttpStatus } from '@qwik-router-ssg-worker/middleware/request-handler/http-status-codes';
 import {
@@ -37,7 +41,10 @@ const requestHandlers = createResolveRequestHandlers({
   HttpStatus,
   encoder,
   isContentType,
-  getCachedHtml,
+  defaultSsrCacheKey,
+  defaultLoaderCacheKey,
+  getCachedSsr,
+  getCachedLoader,
   getQwikRouterServerData,
   getRequestMode,
   loadHttpError: () => import('../runtime/src/http-error'),
@@ -45,7 +52,8 @@ const requestHandlers = createResolveRequestHandlers({
   resolveCacheKey,
   resolveETag,
   resolveRouteConfig,
-  setCachedHtml,
+  setCachedSsr,
+  setCachedLoader,
 });
 
 export const {

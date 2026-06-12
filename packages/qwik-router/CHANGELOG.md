@@ -1,5 +1,58 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.37
+
+### Major Changes
+
+- BREAKING: Route loaders are now AsyncSignals. This means that `value.failed` is no longer used to indicate a loader failure. Instead, if a loader fails, the error will be stored in `error`, and reading `value` will throw that error. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+  This also means that you can now pass `expires`, `poll`, and `allowStale` options to route loaders. See the documentation for more details on these options and how to use them.
+
+- BREAKING: `routeLoader$` cannot read action state any more, so that they are cacheable and predictable. All use cases can be achieved in other ways, like reading the action signal directly in the component or having the loader read from URL-derived state that the action updates. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+- BREAKING: Qwik Router no longer retrieves `q-data.json` files on every SPA navigation. You can remove any caching rules for these. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+  Instead, Qwik Router now retrieves `q-loader-${hash}.${manifestHash}.json` for RouteLoader data. You can specify expiry for each RouteLoader individually, and it is automatically used to set browser caching headers. The `manifestHash` ensures that when you build a new version of your app, the old cached data will be invalidated and the new data will be fetched.
+
+  The default expiry for RouteLoader data is 2 minutes, so that prefetching and caching of RouteLoader data is useful. You control this with the `expiry` option on each RouteLoader, and you can set it to `0` to disable caching.
+
+  Furthermore, any RouteLoader that has `expiry: 0` will be generated as a file during SSG, which allows SPA navigation to work even without a server.
+
+  Note: Be careful with caching for RouteLoaders that return user-specific data, especially regarding logout and CDN caching. Use low expiry times for these and use `eTag` to still allow caching benefits.
+
+- BREAKING: `cacheKey` functions now get `(requestEv: RequestEvent, eTag: string)` as arguments, instead of `(status: number, eTag: string, pathname: string)` (by [@wmertens](https://github.com/wmertens) in [#8699](https://github.com/QwikDev/qwik/pull/8699))
+
+### Minor Changes
+
+- 🐞🩹 Route loaders now redirect in their JSON response instead of using HTTP redirect (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+- ✨ route loaders now accept `eTag` to shortcut data retrieval when the data has not changed. See the documentation for more details on this option and how to use it. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+- ✨ Routeloaders now support a `cacheKey` and `eTag` property, similar to SSR `pageConfig`. The only difference is that the full value is known before sending, so cached entries generate an ETag before returning the initial request instead of after rendering as with SSR. (by [@wmertens](https://github.com/wmertens) in [#8699](https://github.com/QwikDev/qwik/pull/8699))
+
+- ✨ When `routeConfig` provides a `cacheKey` but no `eTag`, SSR will determine an ETag value by hashing the rendered output. When the cache entry is later retrieved, the ETag is provided to the client and later requests can use the ETag for conditional requests. (by [@wmertens](https://github.com/wmertens) in [#8699](https://github.com/QwikDev/qwik/pull/8699))
+
+- ✨ route loaders now accept `search` to only allow certain query parameters to trigger the loader. This means that random search parameters won't cause the loader to re-run. If you do not pass `search`, then all search parameters will be passed to the loader and will trigger it when they change. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+  However, `qwikRouter` now has the option `strictLoaders` which is `true` by default, which means that if you do not specify `search` for a loader, then it will not receive any search parameters and will not re-run when the search parameters change.
+
+### Patch Changes
+
+- fix(router): Update route loader metadata in the dev route trie when route source files change. (by [@wmertens](https://github.com/wmertens) in [#8501](https://github.com/QwikDev/qwik/pull/8501))
+
+- ✨ expose `RequestEvent.internalRequest` for framework-internal JSON requests. (by [@wmertens](https://github.com/wmertens) in [#8698](https://github.com/QwikDev/qwik/pull/8698))
+
+- fix(router): run q-loader requests through the full page middleware chain and handle unfollowed HTTP redirects. (by [@wmertens](https://github.com/wmertens) in [#8698](https://github.com/QwikDev/qwik/pull/8698))
+
+- fix(router): fetch non-serialized route loader data after resume (by [@Varixo](https://github.com/Varixo) in [#8706](https://github.com/QwikDev/qwik/pull/8706))
+
+- 🐞🩹 don't run middleware defined in index.\* for a routeloader on the same path, unless the routeloader is defined in index (by [@wmertens](https://github.com/wmertens) in [#8697](https://github.com/QwikDev/qwik/pull/8697))
+
+- 🐞🩹 fix "assignment to constant variable" errors when route loaders cache filtered search state across SPA navigations (by [@Varixo](https://github.com/Varixo) in [#8709](https://github.com/QwikDev/qwik/pull/8709))
+
+- Updated dependencies [[`d4f40ac`](https://github.com/QwikDev/qwik/commit/d4f40acdcbd437095c34255e878338f1e88f207b), [`a8509c1`](https://github.com/QwikDev/qwik/commit/a8509c1c312a3c9c9434b4050650970807ca38e0), [`9ff0dd4`](https://github.com/QwikDev/qwik/commit/9ff0dd4351154098ae098358089a510ed2e0d770), [`3dcb29b`](https://github.com/QwikDev/qwik/commit/3dcb29b803acb9de1d124fb1ac685b68d647be6c)]:
+  - @qwik.dev/core@2.0.0-beta.37
+
 ## 2.0.0-beta.36
 
 ### Minor Changes

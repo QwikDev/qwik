@@ -409,9 +409,7 @@ function diff(
                   diffContext,
                   diffContext.$jsxValue$.children,
                   true,
-                  // special case for projection, we don't want to expect no children
-                  // because the projection's children are not removed
-                  false
+                  /* isProjection */ true
                 );
               } else if (type === SSRComment) {
                 expectNoMore(diffContext);
@@ -538,15 +536,17 @@ function advance(diffContext: DiffContext) {
  *
  *   In the above example all nodes are on same level so we don't `descendVNode` even thought there is
  *   an array produced by the `map` function.
+ * @param isProjection - True when descending into a Projection, whose children survive re-renders:
+ *   they are diffed against (never re-created) and kept when the new JSX has no children.
  */
 function descend(
   diffContext: DiffContext,
   children: JSXChildren,
   descendVNode: boolean,
-  shouldExpectNoChildren: boolean = true
+  isProjection: boolean = false
 ) {
   if (
-    shouldExpectNoChildren &&
+    !isProjection &&
     (children == null || (descendVNode && isArray(children) && children.length === 0))
   ) {
     expectNoChildren(diffContext);
@@ -560,7 +560,9 @@ function descend(
         'Expecting vCurrent to be defined.'
       );
     const creationMode =
-      diffContext.$isCreationMode$ ||
+      // a projection keeps its children across re-renders, so it never inherits
+      // creation mode from a not-yet-rendered host; create only if new or empty
+      (!isProjection && diffContext.$isCreationMode$) ||
       !!diffContext.$vNewNode$ ||
       !vnode_getFirstChild(diffContext.$vCurrent$!);
 

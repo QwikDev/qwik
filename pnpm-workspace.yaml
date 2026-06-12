@@ -15,8 +15,10 @@ onlyBuiltDependencies:
   - puppeteer
   - sharp
   - simple-git-hooks
-  - unix-dgram
   - workerd
+
+ignoredOptionalDependencies:
+  - unix-dgram
 
 overrides:
   '@builder.io/qwik': link:./packages/qwik

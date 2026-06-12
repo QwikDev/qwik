@@ -11,6 +11,7 @@ import { CookieOptions } from '@qwik.dev/router/middleware/request-handler';
 import { CookieValue } from '@qwik.dev/router/middleware/request-handler';
 import { DeferReturn } from '@qwik.dev/router/middleware/request-handler';
 import type { EnvGetter } from '@qwik.dev/router/middleware/request-handler';
+import { InternalRequest } from '@qwik.dev/router/middleware/request-handler';
 import { JSXOutput } from '@qwik.dev/core';
 import { NoSerialize } from '@qwik.dev/core';
 import { QRL } from '@qwik.dev/core';
@@ -79,7 +80,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 };
 
 // @public
-export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
+export type CacheKeyFn = true | ((requestEv: RequestEvent, eTag: string) => string | null);
 
 // @public (undocumented)
 export interface ContentHeading {
@@ -247,6 +248,8 @@ export type HttpErrorProps = {
     status: number;
     message: string;
 };
+
+export { InternalRequest }
 
 // @public (undocumented)
 export type JSONObject = {

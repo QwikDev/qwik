@@ -23,6 +23,7 @@ export type {
   DocumentStyle,
   FailReturn,
   HttpStatus as HttpErrorProps,
+  InternalRequest,
   JSONObject,
   JSONValue,
   Loader,

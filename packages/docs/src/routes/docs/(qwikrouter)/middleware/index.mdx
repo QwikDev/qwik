@@ -280,6 +280,14 @@ export const onRequest: RequestHandler = async ({ method, json }) => {
 ```
 </CodeSandbox>
 
+### `internalRequest`
+
+Returns `false` for normal page requests. Returns `'loader'` for route loader JSON requests and
+`'action'` for fetch-based action submissions.
+
+Check `internalRequest` before applying broad middleware rewrites so Qwik Router's internal JSON
+requests keep their routing behavior.
+
 ### `url`
 
 

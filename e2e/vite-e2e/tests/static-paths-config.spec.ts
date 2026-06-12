@@ -30,9 +30,13 @@ async function searchServerFiles(variantDir: string, needle: string): Promise<bo
   const serverDir = join(variantDir, 'server');
   const files = await readdir(serverDir);
   for (const file of files) {
-    if (!file.endsWith('.js')) continue;
+    if (!file.endsWith('.js')) {
+      continue;
+    }
     const content = await readFile(join(serverDir, file), 'utf-8');
-    if (content.includes(needle)) return true;
+    if (content.includes(needle)) {
+      return true;
+    }
   }
   return false;
 }

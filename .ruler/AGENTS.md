@@ -106,6 +106,8 @@ by Ruler.
   intentionally.
 - `security-and-supply-chain`: run focused security reasoning for vulnerable surfaces, dependency
   changes, and GitHub Actions updates.
+- `changeset-conventions`: pick the bump level by change kind (patch/minor/major), write one
+  changeset per change, and keep each summary near 150 and under 300 characters.
 
 ## Engineering Rules
 
@@ -141,7 +143,8 @@ Follow that bias:
   verification from the optimizer skill and use `pnpm build.full` when a full JS/WASM rebuild is
   required.
 - If a change affects published packages, create a changeset with `pnpm change` unless the user or
-  maintainer explicitly says the change is non-release-affecting.
+  maintainer explicitly says the change is non-release-affecting. Follow the `changeset-conventions`
+  rule for bump level, one changeset per change, and summary length.
 - Base branch and release branch for v2 PRs: `build/v2`.
 
 ## Code Style

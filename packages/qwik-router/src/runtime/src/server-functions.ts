@@ -118,7 +118,6 @@ Action.run() can only be called on the browser, for example when a user clicks a
         };
       }).then(({ result, status, error, aborted }) => {
         state.isRunning = false;
-        state.status = status;
         if (aborted) {
           // <Form> surfaces aborts via its submitcompleted event instead of rejecting.
           if (form) {
@@ -140,6 +139,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
           }
           throw aborted;
         }
+        state.status = status;
         if (error) {
           state.error = error;
           state.value = undefined;

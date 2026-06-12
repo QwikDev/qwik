@@ -57,6 +57,7 @@ export function jsonRequestWrapper(): RequestHandler {
           throw err;
         }
       } else if (err instanceof ServerError) {
+        requestEv.headers.delete('Cache-Control');
         if (isLoader) {
           await sendJsonResponse(requestEv, { e: err, a: 1 });
         } else {
@@ -64,6 +65,7 @@ export function jsonRequestWrapper(): RequestHandler {
         }
       } else if (err instanceof Error) {
         console.error('JSON request error:', err);
+        requestEv.headers.delete('Cache-Control');
         const message = isDev
           ? `${err.message}\n(this is only visible in dev mode)`
           : 'Internal Server Error';

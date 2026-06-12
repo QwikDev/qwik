@@ -69,7 +69,7 @@ export type ActionConstructor = {
 // @public (undocumented)
 export type ActionReturn<RETURN, ERROR = unknown> = {
     readonly status?: number;
-    readonly value: RETURN | undefined;
+    readonly value: (unknown extends RETURN ? RETURN : StrictUnion<RETURN>) | undefined;
     readonly error: ServerError_2<StrictUnion<ERROR>> | undefined;
 };
 
@@ -79,7 +79,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
     readonly isRunning: boolean;
     readonly status?: number;
     readonly formData: FormData | undefined;
-    readonly value: RETURN | undefined;
+    readonly value: (unknown extends RETURN ? RETURN : StrictUnion<RETURN>) | undefined;
     readonly error: ServerError_2<StrictUnion<ERROR>> | undefined;
     readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>>>;
     readonly submitted: boolean;
@@ -301,7 +301,9 @@ type Loader_2<RETURN, ERROR = unknown> = {
 export { Loader_2 as Loader }
 
 // @public (undocumented)
-export type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {
+export type LoaderSignal<TYPE, ERROR = unknown> = ([TYPE] extends [
+() => ValueOrPromise<infer VALIDATOR>
+] ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {
     error: ServerError_2<StrictUnion<ERROR>> | TransportError<ERROR> | undefined;
 };
 
@@ -612,6 +614,14 @@ export type StaticGenerateHandler = (input: {
 // @public (undocumented)
 export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
+// @public
+export type TransportError<ERROR> = Error & {
+    [K in keyof StrictUnion<ERROR>]?: never;
+} & {
+    status?: never;
+    data?: never;
+};
+
 // @public (undocumented)
 export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
 
@@ -717,10 +727,6 @@ export type ZodConstructor = {
 //
 // @internal (undocumented)
 export const zodQrl: ZodConstructorQRL;
-
-// Warnings were encountered during analysis:
-//
-// /Users/maieul/dev/work/qwik-v2/.claude/worktrees/awesome-merkle-b3a719/dist-dev/dts-out/packages/qwik-router/src/runtime/src/types.d.ts:668:5 - (ae-forgotten-export) The symbol "TransportError" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

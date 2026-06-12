@@ -905,7 +905,7 @@ export type LoaderConstructorQRL = {
 export type ActionReturn<RETURN, ERROR = unknown> = {
   readonly status?: number;
   /** The action's successful return value. `undefined` when the action failed (see `error`). */
-  readonly value: RETURN | undefined;
+  readonly value: (unknown extends RETURN ? RETURN : StrictUnion<RETURN>) | undefined;
   /** The `ServerError` from a returned `fail()` or a failed validator. */
   readonly error: ServerError<StrictUnion<ERROR>> | undefined;
 };
@@ -973,7 +973,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
    *
    * It's `undefined` before the action is first called, or when the action failed (see `error`).
    */
-  readonly value: RETURN | undefined;
+  readonly value: (unknown extends RETURN ? RETURN : StrictUnion<RETURN>) | undefined;
 
   /**
    * The `ServerError` from the action's last failed execution — a returned `fail()` or a failed
@@ -997,9 +997,9 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
 };
 
 /** @public */
-export type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<
-  infer VALIDATOR
->
+export type LoaderSignal<TYPE, ERROR = unknown> = ([TYPE] extends [
+  () => ValueOrPromise<infer VALIDATOR>,
+]
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
   Pick<AsyncSignal, 'promise' | 'loading'> & {
@@ -1011,9 +1011,13 @@ export type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPro
     error: ServerError<StrictUnion<ERROR>> | TransportError<ERROR> | undefined;
   };
 
-// A client-side transport failure on the same `.error` slot as ServerError. The server
-// failure's fields exist as `?: never` so plain property checks discriminate the union.
-type TransportError<ERROR> = Error & { [K in keyof StrictUnion<ERROR>]?: never } & {
+/**
+ * A client-side transport failure on the same `.error` slot as ServerError. The server failure's
+ * fields exist as `?: never` so plain property checks discriminate the union.
+ *
+ * @public
+ */
+export type TransportError<ERROR> = Error & { [K in keyof StrictUnion<ERROR>]?: never } & {
   status?: never;
   data?: never;
 };

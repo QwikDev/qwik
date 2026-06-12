@@ -40,7 +40,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionReturn<RETURN, ERROR = unknown> = {\n    readonly status?: number;\n    readonly value: RETURN | undefined;\n    readonly error: ServerError<StrictUnion<ERROR>> | undefined;\n};\n```\n**References:** [StrictUnion](#strictunion)",
+      "content": "```typescript\nexport type ActionReturn<RETURN, ERROR = unknown> = {\n    readonly status?: number;\n    readonly value: (unknown extends RETURN ? RETURN : StrictUnion<RETURN>) | undefined;\n    readonly error: ServerError<StrictUnion<ERROR>> | undefined;\n};\n```\n**References:** [StrictUnion](#strictunion)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionreturn.md"
     },
@@ -54,7 +54,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = unknown> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: RETURN | undefined;\n    readonly error: ServerError<StrictUnion<ERROR>> | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>>>;\n    readonly submitted: boolean;\n};\n```\n**References:** [StrictUnion](#strictunion)<!-- -->, [ActionReturn](#actionreturn)",
+      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = unknown> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: (unknown extends RETURN ? RETURN : StrictUnion<RETURN>) | undefined;\n    readonly error: ServerError<StrictUnion<ERROR>> | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>>>;\n    readonly submitted: boolean;\n};\n```\n**References:** [StrictUnion](#strictunion)<!-- -->, [ActionReturn](#actionreturn)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionstore.md"
     },
@@ -502,7 +502,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type LoaderSignal<TYPE, ERROR = unknown> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {\n    error: ServerError<StrictUnion<ERROR>> | TransportError<ERROR> | undefined;\n};\n```\n**References:** [StrictUnion](#strictunion)",
+      "content": "```typescript\nexport type LoaderSignal<TYPE, ERROR = unknown> = ([TYPE] extends [\n    () => ValueOrPromise<infer VALIDATOR>\n] ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {\n    error: ServerError<StrictUnion<ERROR>> | TransportError<ERROR> | undefined;\n};\n```\n**References:** [StrictUnion](#strictunion)<!-- -->, [TransportError](#transporterror)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loadersignal.md"
     },
@@ -1093,6 +1093,20 @@
       "content": "```typescript\nexport type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.strictunion.md"
+    },
+    {
+      "name": "TransportError",
+      "id": "transporterror",
+      "hierarchy": [
+        {
+          "name": "TransportError",
+          "id": "transporterror"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "A client-side transport failure on the same `.error` slot as ServerError. The server failure's fields exist as `?: never` so plain property checks discriminate the union.\n\n\n```typescript\nexport type TransportError<ERROR> = Error & {\n    [K in keyof StrictUnion<ERROR>]?: never;\n} & {\n    status?: never;\n    data?: never;\n};\n```\n**References:** [StrictUnion](#strictunion)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.transporterror.md"
     },
     {
       "name": "TypedDataValidator",

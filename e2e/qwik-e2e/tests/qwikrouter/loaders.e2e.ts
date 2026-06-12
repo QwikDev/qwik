@@ -27,6 +27,21 @@ test.describe('loaders', () => {
       await expect(page.locator('body')).toContainText('loader-error-caught');
     });
 
+    test('fail() lands reactively on loader.error after SPA navigation', async ({ page }) => {
+      await page.goto('/qwikrouter-test/loaders/loader-fail/?ok=1');
+      await expect(page.locator('#loader-fail-value')).toHaveText('tshirt');
+
+      const loaderResponse = page.waitForResponse(
+        (r) => r.url().includes('/loaders/loader-fail/') && r.url().includes('q-loader')
+      );
+      await page.locator('#link-loader-fail-retry').click();
+      // Failure envelopes ship HTTP 200 and are never cacheable.
+      const response = await loaderResponse;
+      expect(response.status()).toBe(200);
+      expect(response.headers()['cache-control']).toBeUndefined();
+      await expect(page.locator('#loader-fail-error')).toHaveText('429 Rate limited');
+    });
+
     test('a transport failure lands a plain Error on loader.error', async ({ page }) => {
       await page.goto('/qwikrouter-test/loaders/loader-fail/?ok=1');
       await expect(page.locator('#loader-fail-value')).toHaveText('tshirt');
@@ -36,8 +51,9 @@ test.describe('loaders', () => {
 
       const err = page.locator('#loader-fail-error');
       await expect(err).toBeVisible();
-      // No `status`: the network Error branch rendered, not the ServerError one.
+      // The network Error branch rendered (message, no status), not the ServerError one.
       await expect(err).not.toContainText('429');
+      await expect(err).not.toBeEmpty();
     });
 
     test('should reuse filtered search loaders only for the same SPA route path', async ({

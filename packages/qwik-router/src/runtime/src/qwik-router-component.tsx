@@ -560,6 +560,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           const result = await submitAction(action, trackUrl.pathname);
           if (!result) {
             // HTTP redirect happened — bail
+            routeLocation.isNavigating = false;
             routeInternal.untrackedValue = { type: navType, dest: trackUrl };
             return;
           }
@@ -584,6 +585,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           }
 
           if (result.aborted) {
+            routeLocation.isNavigating = false;
             routeInternal.untrackedValue = { type: navType, dest: trackUrl };
             return;
           }

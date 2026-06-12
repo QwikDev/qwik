@@ -6,6 +6,7 @@ import {
   resolveRequestHandlers,
 } from './resolve-request-handlers';
 import { RequestEvHttpStatusMessage, RequestEvSharedActionId } from './request-event-core';
+import { isServerError } from './fail';
 import { createRequestEvent } from './request-event';
 import { RedirectMessage } from './redirect-handler';
 import { isContentType } from './request-utils';
@@ -419,6 +420,31 @@ describe('resolve-request-handler', () => {
       expect('slow-fail' in values).toBe(false);
       expect('fast-fail' in values).toBe(false);
       expect(values['ok-loader']).toEqual({ result: 'ok' });
+    });
+
+    it('resolveValue rejects with the converted ServerError when the loader failed', async () => {
+      const requestEv = createMockRequestEvent('http://localhost:3000/test/', true);
+      const dependent = createLoader('dependent', async (_thisArg, ev) => {
+        try {
+          await ev.resolveValue(fastFail);
+          return { reached: true };
+        } catch (err) {
+          return {
+            caught: isServerError(err),
+            status: (err as any).status,
+            data: (err as any).data,
+          };
+        }
+      });
+
+      await loadersMiddleware([fastFail, dependent], mockRoute)(requestEv);
+
+      const values = getRouteLoaderValues(requestEv);
+      expect(values['dependent']).toEqual({
+        caught: true,
+        status: 429,
+        data: { reason: 'fast loader failed' },
+      });
     });
 
     it('uses the other status when the registration order is reversed', async () => {

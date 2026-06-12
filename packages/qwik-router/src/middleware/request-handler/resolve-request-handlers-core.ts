@@ -350,11 +350,18 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
             }
           })
         );
-        // The first failed loader in registration order wins the response status.
+        // The first failed loader in registration order wins the response status — unless a
+        // failed action already set it (progressive-enhancement POST renders take the
+        // action's status).
+        const actionFailed = requestEv.sharedMap.get('@actionResult') instanceof deps.ServerError;
         for (const loader of routeLoaders) {
           const err = loaderErrors[loader.__id];
           if (err) {
-            applyFailureResponse(requestEv, err);
+            if (actionFailed) {
+              requestEv.headers.delete('Cache-Control');
+            } else {
+              applyFailureResponse(requestEv, err);
+            }
             break;
           }
         }

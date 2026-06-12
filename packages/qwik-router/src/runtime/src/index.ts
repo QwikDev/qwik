@@ -91,7 +91,7 @@ export {
 } from './server-functions';
 export { routeLoader$, routeLoaderQrl } from './route-loaders';
 export { isServerError } from '../../middleware/request-handler/fail';
-export type { ServerError } from '../../middleware/request-handler/server-error';
+export { ServerError } from '../../middleware/request-handler/server-error';
 export { ServiceWorkerRegister } from './sw-component';
 export {
   useContent,
@@ -119,6 +119,7 @@ export type {
   ServerFunction,
   ServerQRL,
   StrictUnion,
+  TransportError,
   TypedDataValidator,
   ValidatorReturn,
   ValidatorReturnFail,

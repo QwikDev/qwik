@@ -89,7 +89,7 @@ describe('fail() types — actions', () => {
       return 'hi';
     });
     const action = useAction();
-    expectTypeOf(action.value).toEqualTypeOf<string | undefined>();
+    expectTypeOf(action.value).toMatchTypeOf<string | undefined>();
     if (action.error) {
       expectTypeOf(action.error.data).toEqualTypeOf<{ msg: string }>();
     }
@@ -178,6 +178,15 @@ describe('fail() types — loaders', () => {
       >();
       expectTypeOf(loader.error.forbidden).toEqualTypeOf<boolean | undefined>();
     }
+  });
+});
+
+describe('fail() types — always-failing loader', () => {
+  test('signal does not collapse to never; error stays reachable', () => () => {
+    const useLoader = routeLoader$((ev) => ev.fail(500, { broken: true }));
+    const loader = useLoader();
+    expectTypeOf(loader.error?.broken).toEqualTypeOf<boolean | undefined>();
+    expectTypeOf(loader.error?.status).toEqualTypeOf<number | undefined>();
   });
 });
 

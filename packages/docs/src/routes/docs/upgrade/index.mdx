@@ -269,7 +269,7 @@ What moved is the consumer side. In v1, `fail()` results landed on `action.value
 
 - The `StrictUnion` success/failure value unions are gone — no more `action.value?.failed` narrowing. `FailReturn<T>` still exists but is symbol-branded; it no longer has a `failed: true` property and never appears in `.value`'s type. `fail()` payloads are type-inferred into `.error` instead.
 - Loaders that used `throw error(status, data)` to render error pages **keep that behavior** — thrown `error()`s abort to the error page and never land on `.error`.
-- On loaders, `.error` is typed `ServerError<ERROR> | Error | undefined` — a plain `Error` means the client-side fetch itself failed. Narrow with the `isServerError()` guard exported from `@qwik.dev/router` (`instanceof ServerError` is `false` on the client after deserialization).
+- On loaders, `.error` can also hold a plain `Error` on the client (the loader's fetch itself failed). Its `status` and payload fields are typed optional across the union, so a plain property check discriminates (`if (loader.error?.status)`). Reading `loader.value` while the signal is in error state throws — check `.error` first. In `catch` blocks (around `submit()` or `resolveValue()`), narrow with the `isServerError()` guard (`instanceof ServerError` is `false` on the client after deserialization).
 
 ### Serialization
 

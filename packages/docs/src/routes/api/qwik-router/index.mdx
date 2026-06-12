@@ -152,7 +152,9 @@ export type ActionConstructor = {
 ```typescript
 export type ActionReturn<RETURN, ERROR = unknown> = {
   readonly status?: number;
-  readonly value: RETURN | undefined;
+  readonly value:
+    | (unknown extends RETURN ? RETURN : StrictUnion<RETURN>)
+    | undefined;
   readonly error: ServerError<StrictUnion<ERROR>> | undefined;
 };
 ```
@@ -174,7 +176,9 @@ export type ActionStore<
   readonly isRunning: boolean;
   readonly status?: number;
   readonly formData: FormData | undefined;
-  readonly value: RETURN | undefined;
+  readonly value:
+    | (unknown extends RETURN ? RETURN : StrictUnion<RETURN>)
+    | undefined;
   readonly error: ServerError<StrictUnion<ERROR>> | undefined;
   readonly submit: QRL<
     OPTIONAL extends true
@@ -1349,10 +1353,9 @@ export type Loader<RETURN, ERROR = unknown> = {
 <h2 id="loadersignal">LoaderSignal</h2>
 
 ```typescript
-export type LoaderSignal<
-  TYPE,
-  ERROR = unknown,
-> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
+export type LoaderSignal<TYPE, ERROR = unknown> = ([TYPE] extends [
+  () => ValueOrPromise<infer VALIDATOR>,
+]
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
   Pick<AsyncSignal, "promise" | "loading"> & {
@@ -1360,7 +1363,7 @@ export type LoaderSignal<
   };
 ```
 
-**References:** [StrictUnion](#strictunion)
+**References:** [StrictUnion](#strictunion), [TransportError](#transporterror)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -2851,6 +2854,23 @@ export type StaticGenerateHandler = ({
 ```typescript
 export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 ```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="transporterror">TransportError</h2>
+
+A client-side transport failure on the same `.error` slot as ServerError. The server failure's fields exist as `?: never` so plain property checks discriminate the union.
+
+```typescript
+export type TransportError<ERROR> = Error & {
+  [K in keyof StrictUnion<ERROR>]?: never;
+} & {
+  status?: never;
+  data?: never;
+};
+```
+
+**References:** [StrictUnion](#strictunion)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 

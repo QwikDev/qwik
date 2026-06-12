@@ -459,6 +459,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       historyUpdated = true;
     }
 
+    actionState.value = undefined;
+
     routeInternal.value = {
       type,
       dest,
@@ -473,7 +475,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       prefetchRoute(dest, true, 0.8, manifestHash);
     }
 
-    actionState.value = undefined;
     routeLocation.isNavigating = true;
 
     navResolver.p = new Promise<void>((resolve) => {

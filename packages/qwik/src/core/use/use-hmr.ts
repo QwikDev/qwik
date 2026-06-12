@@ -1,4 +1,4 @@
-import { getDomContainer } from '../client/dom-container';
+import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import {
   _captures,
   deserializeCaptures,
@@ -30,22 +30,24 @@ export const _hmr = function (
 ) {
   // Deserialize captures from `this` when called via qwikloader/attribute dispatch
   const container = getDomContainer(element);
-  if (typeof this === 'string') {
-    setCaptures(deserializeCaptures(container, this));
-  }
-  const devPath = _captures?.[1] as string | undefined;
-  const hmrPath = devPath ?? element.getAttribute('data-qwik-inspector');
-  if (!hmrPath || !event.detail.files.some((file) => hmrPath.startsWith(file))) {
-    return;
-  }
-  const host = _captures?.[0] as VNode | undefined;
-  if (!host || host.flags & VNodeFlags.Deleted) {
-    return;
-  }
-  markVNodeDirty(container, host, ChoreBits.COMPONENT);
-  // Mark HMR as handled
-  const doc: any = element.ownerDocument;
-  doc.__hmrDone = doc.__hmrT;
+  return whenContainerDataReady(container, () => {
+    if (typeof this === 'string') {
+      setCaptures(deserializeCaptures(container, this));
+    }
+    const devPath = _captures?.[1] as string | undefined;
+    const hmrPath = devPath ?? element.getAttribute('data-qwik-inspector');
+    if (!hmrPath || !event.detail.files.some((file) => hmrPath.startsWith(file))) {
+      return;
+    }
+    const host = _captures?.[0] as VNode | undefined;
+    if (!host || host.flags & VNodeFlags.Deleted) {
+      return;
+    }
+    markVNodeDirty(container, host, ChoreBits.COMPONENT);
+    // Mark HMR as handled
+    const doc: any = element.ownerDocument;
+    doc.__hmrDone = doc.__hmrT;
+  });
 };
 
 let hmrQrl: QRL<(event: CustomEvent, element: Element) => void>;

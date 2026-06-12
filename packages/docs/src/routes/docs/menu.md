@@ -31,6 +31,7 @@
 
 - [The $ dollar sign](</docs/(qwik)/advanced/dollar/index.mdx>)
 - [Containers](</docs/(qwik)/advanced/containers/index.mdx>)
+- [State Prewarm](</docs/(qwik)/advanced/state-prewarm/index.mdx>)
 - [QRL](</docs/(qwik)/advanced/qrl/index.mdx>)
 - [Library mode](</docs/(qwik)/advanced/library/index.mdx>)
 - [Qwikloader](</docs/(qwik)/advanced/qwikloader/index.mdx>)

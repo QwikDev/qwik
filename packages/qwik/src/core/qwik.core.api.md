@@ -135,7 +135,7 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
 export let _captures: Readonly<unknown[]> | null;
 
 // @internal
-export function _chk(this: string | undefined, _: any, element: HTMLInputElement): void;
+export function _chk(this: string | undefined, _: any, element: HTMLInputElement): void | Promise<void>;
 
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
@@ -279,6 +279,8 @@ export interface _Container {
 export interface _ContainerElement extends HTMLElement {
     // (undocumented)
     qContainer?: ClientContainer;
+    // (undocumented)
+    qDestroy?: () => void;
     qSegmentVnodeData?: Map<string, string>;
     qVnodeData?: string;
     qVNodeRefs?: Map<number, Element | _ElementVNode>;
@@ -367,7 +369,7 @@ export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.
 export const _delay: (timeout: number) => Promise<unknown>;
 
 // @internal
-export function _deserialize<T>(rawStateData: string): T;
+export function _deserialize<T>(rawStateData: string): Promise<T>;
 
 // @public (undocumented)
 export interface DevJSX {
@@ -394,6 +396,14 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
 class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
+    // Warning: (ae-forgotten-export) The symbol "ContainerDataProcessState" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $containerDataProcessState$: ContainerDataProcessState;
+    // (undocumented)
+    $containerStateDataState$: unknown;
+    // (undocumented)
+    $containerStateReadyCallbacks$: Array<() => void> | undefined;
     $destroy$(): void;
     // (undocumented)
     $forwardRefs$: Array<number | string> | null;
@@ -404,6 +414,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $hoistStyles$(): void;
     // (undocumented)
     $instanceHash$: string;
+    // (undocumented)
+    $processContainerData$(): Generator<void, void, void>;
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
     // (undocumented)
@@ -595,7 +607,7 @@ export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => 
 export const _hmr: (this: string | undefined, event: CustomEvent<{
     files: string[];
     t: number;
-}>, element: Element) => void;
+}>, element: Element) => void | Promise<void>;
 
 // @internal (undocumented)
 export type _HostElement = _VNode | ISsrNode;
@@ -868,7 +880,11 @@ export interface _QDocument extends Document {
     qProcessVNodeDataPatch?: (script: Element | null) => void;
     // (undocumented)
     qVNodeData: WeakMap<Element, string>;
+    qVNodeDataCallbacks?: Array<() => void>;
     qVNodeDataProcessed?: boolean;
+    qVNodeDataReady?: boolean;
+    qVNodeDataStarted?: boolean;
+    qVNodeDataState?: unknown;
 }
 
 // Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts
@@ -1105,7 +1121,7 @@ export interface RenderSSROptions {
 export const _reR: () => boolean;
 
 // @internal
-export function _res(this: string | undefined, _: any, element: Element): void;
+export function _res(this: string | undefined, _: any, element: Element): void | Promise<void>;
 
 // @internal (undocumented)
 export const _resolveContextWithoutSequentialScope: <STATE>(context: ContextId<STATE>) => STATE | undefined;
@@ -1999,7 +2015,7 @@ export class _Task<T = unknown, B = T> extends BackRef implements DescriptorBase
 }
 
 // @internal
-export function _task(this: string, _event: Event, element: Element): void;
+export function _task(this: string, _event: Event, element: Element): void | Promise<void>;
 
 // @public (undocumented)
 export interface TaskCtx {
@@ -2191,7 +2207,7 @@ export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @internal
-export function _val(this: string | undefined, _: any, element: HTMLInputElement): void;
+export function _val(this: string | undefined, _: any, element: HTMLInputElement): void | Promise<void>;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

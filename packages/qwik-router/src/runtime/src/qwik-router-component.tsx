@@ -560,18 +560,15 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           const result = await submitAction(action, trackUrl.pathname);
           if (!result) {
             // HTTP redirect happened — bail
-            routeLocation.isNavigating = false;
             routeInternal.untrackedValue = { type: navType, dest: trackUrl };
             return;
           }
 
-          if (!result.aborted) {
-            actionData = {
-              status: result.status,
-              action: action.id,
-              actionResult: result.error ?? result.result,
-            };
-          }
+          actionData = {
+            status: result.status,
+            action: action.id,
+            actionResult: result.error ?? result.result,
+          };
 
           // Resolve the action promise and free the closure
           if (action.resolve) {
@@ -579,15 +576,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               status: result.status,
               result: result.result,
               error: result.error,
-              aborted: result.aborted,
             });
             action.resolve = undefined;
-          }
-
-          if (result.aborted) {
-            routeLocation.isNavigating = false;
-            routeInternal.untrackedValue = { type: navType, dest: trackUrl };
-            return;
           }
 
           actionLoaderHashes = result.loaderHashes;

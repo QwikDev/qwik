@@ -57,15 +57,13 @@ export function jsonRequestWrapper(): RequestHandler {
           throw err;
         }
       } else if (err instanceof ServerError) {
-        requestEv.headers.delete('Cache-Control');
         if (isLoader) {
           await sendJsonResponse(requestEv, { e: err, a: 1 });
         } else {
-          await sendActionResponse(requestEv, { aborted: err, s: err.status });
+          await sendActionResponse(requestEv, { e: err, s: err.status });
         }
       } else if (err instanceof Error) {
         console.error('JSON request error:', err);
-        requestEv.headers.delete('Cache-Control');
         const message = isDev
           ? `${err.message}\n(this is only visible in dev mode)`
           : 'Internal Server Error';
@@ -73,7 +71,7 @@ export function jsonRequestWrapper(): RequestHandler {
         if (isLoader) {
           await sendJsonResponse(requestEv, { e: se, a: 1 });
         } else {
-          await sendActionResponse(requestEv, { aborted: se, s: 500 });
+          await sendActionResponse(requestEv, { e: se, s: 500 });
         }
       } else {
         throw err; // AbortMessage etc.

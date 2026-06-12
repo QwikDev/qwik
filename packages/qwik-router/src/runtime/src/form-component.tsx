@@ -6,7 +6,7 @@ import { useNavigate } from './use-functions';
 /** @public */
 export interface FormSubmitCompletedDetail<T, ERROR = unknown> {
   status: number;
-  /** The action's successful return value. `undefined` when the action failed or aborted. */
+  /** The action's successful return value. `undefined` when the action failed. */
   value: T | undefined;
   /** The `ServerError` from a returned `fail()` or a failed validator. */
   error: ServerError<ERROR> | undefined;

@@ -90,7 +90,7 @@ export {
   zodQrl,
 } from './server-functions';
 export { routeLoader$, routeLoaderQrl } from './route-loaders';
-export { ServerError } from '../../middleware/request-handler/server-error';
+export type { ServerError } from '../../middleware/request-handler/server-error';
 export { ServiceWorkerRegister } from './sw-component';
 export {
   useContent,

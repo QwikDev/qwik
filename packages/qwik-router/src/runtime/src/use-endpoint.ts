@@ -1,8 +1,5 @@
 import type { RouteActionValue } from './types';
-import {
-  ServerError as ServerErrorImpl,
-  type ServerError,
-} from '../../middleware/request-handler/server-error';
+import type { ServerError } from '../../middleware/request-handler/server-error';
 import { _deserialize } from '@qwik.dev/core/internal';
 import { ensureSlash } from '../../utils/pathname';
 import { QACTION_KEY } from './constants';
@@ -22,7 +19,6 @@ export async function submitAction(
       status: number;
       result?: unknown;
       error?: ServerError;
-      aborted?: ServerError;
       redirect?: string;
       loaderHashes?: string[];
     }
@@ -72,7 +68,6 @@ export async function submitAction(
     const data = _deserialize<{
       result?: unknown;
       error?: ServerError;
-      aborted?: ServerError;
       redirect?: string;
       loaderHashes?: string[];
     }>(text);
@@ -80,16 +75,10 @@ export async function submitAction(
       status: response.status,
       result: data?.result,
       error: data?.error,
-      aborted: data?.aborted,
       redirect: data?.redirect,
       loaderHashes: data?.loaderHashes,
     };
   }
 
-  // Non-JSON, non-redirect response (e.g. a proxy error page): treat as an abort so the
-  // submission settles instead of hanging forever.
-  return {
-    status: response.status,
-    aborted: new ServerErrorImpl(response.status || 0, 'Invalid action response'),
-  };
+  return undefined;
 }

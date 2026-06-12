@@ -154,8 +154,6 @@ export type RouteActionResolver = {
   result?: unknown;
   /** A `ServerError` from a returned `fail()` or a failed validator. */
   error?: ServerError;
-  /** Set when the submission aborted (a thrown `error()` or an unexpected server error). */
-  aborted?: ServerError;
 };
 export type RouteActionValue =
   | {
@@ -988,9 +986,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
    * action in the server.
    *
    * Resolves with `{ status, value, error }` — expected failures (a returned `fail()` or a failed
-   * validator) come back on `error`. A programmatic invocation rejects when the submission aborts
-   * (a thrown `error()` or an unexpected server error); `<Form>` submissions reset without firing
-   * `submitcompleted`.
+   * validator) come back on `error`.
    */
   readonly submit: QRL<
     OPTIONAL extends true

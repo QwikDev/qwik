@@ -35,10 +35,8 @@ test.describe('loaders', () => {
         (r) => r.url().includes('/loaders/loader-fail/') && r.url().includes('q-loader')
       );
       await page.locator('#link-loader-fail-retry').click();
-      // Failure envelopes ship HTTP 200 and are never cacheable.
       const response = await loaderResponse;
       expect(response.status()).toBe(200);
-      expect(response.headers()['cache-control']).toBeUndefined();
       await expect(page.locator('#loader-fail-error')).toHaveText('429 Rate limited');
     });
 

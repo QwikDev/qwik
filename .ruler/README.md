@@ -18,6 +18,7 @@ should be loaded only when relevant.
 
 Current source rules:
 
+- `changeset-conventions`
 - `code-quality`
 - `generated-output-boundaries`
 - `guidance-source-of-truth`

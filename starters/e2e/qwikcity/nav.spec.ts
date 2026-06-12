@@ -55,7 +55,7 @@ test.describe("actions", () => {
       });
       test("should scroll on hash change", async ({ page }) => {
         await page.goto("/qwikcity-test/scroll-restoration/hash/");
-        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/hash/");
+        await expect(page).toHaveURL("/qwikcity-test/scroll-restoration/hash/");
 
         const link = page.locator("#hash-1");
         await link.click();
@@ -112,7 +112,7 @@ test.describe("actions", () => {
 
         await scrollDetector1;
         await expect(page.locator("h1")).toHaveText("Page Short");
-        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-short/");
+        await expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-short/");
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
 
         const scrollHeightShort = await getScrollHeight(page);
@@ -129,7 +129,7 @@ test.describe("actions", () => {
 
         await scrollDetector2;
         await expect(page.locator("h1")).toHaveText("Page Long");
-        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-long/");
+        await expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-long/");
         expect(await getWindowScrollXY(page)).toStrictEqual([
           0,
           scrollHeightLong,
@@ -140,7 +140,7 @@ test.describe("actions", () => {
 
         await scrollDetector3;
         await expect(page.locator("h1")).toHaveText("Page Short");
-        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-short/");
+        await expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-short/");
         expect(await getWindowScrollXY(page)).toStrictEqual([
           0,
           scrollHeightShort,

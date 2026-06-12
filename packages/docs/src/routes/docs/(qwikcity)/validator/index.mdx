@@ -3,7 +3,7 @@ title: Validators | QwikCity
 contributors:
   - wtlin1228
   - harishkrishnan24
-updated_at: '2023-09-15T18:19:48Z'
+updated_at: '2026-06-08T00:00:00Z'
 created_at: '2023-09-15T18:19:48Z'
 ---
 
@@ -163,6 +163,48 @@ export const useAction = routeAction$(
   }),
 );
 ```
+
+## Standard Schema validators
+
+Use `schema$()` to validate actions with any schema library that implements [Standard Schema](https://standardschema.dev/), such as Zod, Valibot, or ArkType. The validator infers the submitted input type, passes the validated output type to the action callback, and returns failed field errors as arrays of messages.
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { Form, routeAction$, schema$ } from '@builder.io/qwik-city';
+import { z } from 'zod';
+
+const userSchema = z.object({
+  name: z.string().min(1),
+  contacts: z.array(
+    z.object({
+      email: z.string().email(),
+    })
+  ),
+});
+
+export const useUserAction = routeAction$(
+  async (user) => {
+    user satisfies z.output<typeof userSchema>;
+    return { saved: true };
+  },
+  schema$(userSchema)
+);
+
+export default component$(() => {
+  const action = useUserAction();
+
+  return (
+    <Form action={action}>
+      <input name="name" />
+      <input name="contacts.0.email" />
+      {action.value?.failed && action.value.fieldErrors['contacts.0.email']?.[0]}
+      <button type="submit">Save</button>
+    </Form>
+  );
+});
+```
+
+Standard Schema issue paths use numeric dot notation for arrays, for example `contacts.0.email`. Root-level issues are returned in `formErrors`.
 
 ## Use `validator$()` with `zod$()` together in actions
 

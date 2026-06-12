@@ -987,9 +987,10 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
    * `<form>`, a 'click' handle can call the `run()` method of the action in order to execute the
    * action in the server.
    *
-   * Resolves with `{ status, value, error }`; rejects when the submission aborts (a thrown
-   * `error()` or an unexpected server error) — narrow with `isServerError()`. `<Form>` handles the
-   * rejection internally and surfaces aborts via the `submitcompleted` event's `detail.aborted`.
+   * Resolves with `{ status, value, error }` — expected failures (a returned `fail()` or a failed
+   * validator) come back on `error`. A programmatic invocation rejects when the submission aborts
+   * (a thrown `error()` or an unexpected server error); `<Form>` submissions surface aborts via the
+   * `submitcompleted` event's `detail.aborted` instead.
    */
   readonly submit: QRL<
     OPTIONAL extends true

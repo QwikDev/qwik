@@ -65,23 +65,6 @@ export function getFailMeta(value: Failed): FailMeta {
   return value[FailBrand];
 }
 
-/**
- * Checks whether an error is a `ServerError`. Structural rather than `instanceof` so it also
- * matches ServerErrors that crossed a serialization boundary.
- *
- * @public
- */
-export function isServerError<E>(err: ServerError<E> | Error | undefined): err is ServerError<E>;
-/** @public */
-export function isServerError<T = unknown>(err: unknown): err is ServerError<T>;
-export function isServerError(err: unknown): boolean {
-  return (
-    err instanceof Error &&
-    typeof (err as { status?: unknown }).status === 'number' &&
-    'data' in err
-  );
-}
-
 export function failToServerError(value: FailReturn<Record<string, any>>): ServerError {
   const { ...payload } = value;
   return new ServerError(getFailMeta(value).status, payload);

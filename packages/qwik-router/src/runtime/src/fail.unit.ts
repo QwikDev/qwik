@@ -5,7 +5,6 @@ import {
   failReturn,
   getFailMeta,
   isFailReturn,
-  isServerError,
 } from '../../middleware/request-handler/fail';
 import type { ServerError } from '../../middleware/request-handler/server-error';
 import { routeLoader$ } from './route-loaders';
@@ -150,9 +149,6 @@ describe('fail() types — loaders', () => {
       expectTypeOf(err.status).toEqualTypeOf<number>();
       expectTypeOf(err.notFound).toEqualTypeOf<boolean>();
     }
-    if (isServerError(loader.error)) {
-      expectTypeOf(loader.error.notFound).toEqualTypeOf<boolean>();
-    }
   });
 
   test('validator$ failure type (FailOfRest) unions with body fail payloads', () => () => {
@@ -172,12 +168,10 @@ describe('fail() types — loaders', () => {
     );
     const loader = useLoader();
     expectTypeOf(loader.value).toEqualTypeOf<{ product: string }>();
-    if (isServerError(loader.error)) {
-      expectTypeOf(loader.error.data).toMatchTypeOf<
-        { notFound: boolean } | { forbidden: boolean }
-      >();
-      expectTypeOf(loader.error.forbidden).toEqualTypeOf<boolean | undefined>();
-    }
+    expectTypeOf(loader.error?.data).toMatchTypeOf<
+      { notFound: boolean } | { forbidden: boolean } | undefined
+    >();
+    expectTypeOf(loader.error?.forbidden).toEqualTypeOf<boolean | undefined>();
   });
 });
 

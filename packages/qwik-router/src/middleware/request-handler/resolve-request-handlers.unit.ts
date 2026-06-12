@@ -6,7 +6,6 @@ import {
   resolveRequestHandlers,
 } from './resolve-request-handlers';
 import { RequestEvHttpStatusMessage, RequestEvSharedActionId } from './request-event-core';
-import { isServerError } from './fail';
 import { createRequestEvent } from './request-event';
 import { RedirectMessage } from './redirect-handler';
 import { isContentType } from './request-utils';
@@ -429,8 +428,9 @@ describe('resolve-request-handler', () => {
           await ev.resolveValue(fastFail);
           return { reached: true };
         } catch (err) {
+          const caught = err instanceof Error && typeof (err as any).status === 'number';
           return {
-            caught: isServerError(err),
+            caught,
             status: (err as any).status,
             data: (err as any).data,
           };

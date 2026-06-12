@@ -134,6 +134,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
                 detail: detail,
               })
             );
+            return { status, value: undefined, error: undefined };
           }
           throw aborted;
         }

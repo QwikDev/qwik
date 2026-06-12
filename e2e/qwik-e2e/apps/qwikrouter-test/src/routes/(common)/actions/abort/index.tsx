@@ -1,5 +1,5 @@
 import { component$, useSignal } from '@qwik.dev/core';
-import { Form, isServerError, routeAction$, useLocation } from '@qwik.dev/router';
+import { Form, routeAction$, useLocation } from '@qwik.dev/router';
 
 export const useAbortAction = routeAction$((form, ev) => {
   if (form.boom) {
@@ -22,7 +22,8 @@ export default component$(() => {
             await action.submit({ boom: true });
             caught.value = 'resolved';
           } catch (err) {
-            caught.value = isServerError(err) ? `caught:${err.status}` : 'caught:unknown';
+            const status = err instanceof Error ? (err as { status?: number }).status : undefined;
+            caught.value = status ? `caught:${status}` : 'caught:unknown';
           }
         }}
       >

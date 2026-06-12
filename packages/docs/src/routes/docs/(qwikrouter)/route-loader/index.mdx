@@ -119,7 +119,7 @@ if (product.error) {
 }
 ```
 
-<Note>When an error reaches you as `unknown` (a `catch` block around `submit()` or `resolveValue()`), narrow it with the `isServerError()` guard exported from `@qwik.dev/router`. Prefer it over `instanceof ServerError`, which is `false` on the client after deserialization.</Note>
+<Note>When an error reaches you as `unknown` (a `catch` block around `resolveValue()`), check it structurally — `err instanceof Error && typeof err.status === 'number'` — since `instanceof ServerError` is `false` on the client after deserialization.</Note>
 
 ### Aborting to the error page
 

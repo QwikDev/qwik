@@ -8,7 +8,7 @@ export { isStaticPath } from './static-paths';
 export { mergeHeadersCookies } from './cookie';
 
 export { ServerError } from './server-error';
-export { FailBrand, isServerError } from './fail';
+export { FailBrand } from './fail';
 export type { Failed, FailMeta, FailReturn, ExcludeFail, FailPayload } from './fail';
 export { AbortMessage, RedirectMessage } from './redirect-handler';
 export { RewriteMessage } from './rewrite-handler';

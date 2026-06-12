@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
-import { failReturn, isServerError } from '../../middleware/request-handler/fail';
+import { failReturn } from '../../middleware/request-handler/fail';
 import { ServerError } from '../../middleware/request-handler/server-error';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import {
@@ -227,10 +227,8 @@ describe('types', () => {
     });
     const loader = useObj();
     expectTypeOf(loader.value).toEqualTypeOf<{ result: string }>();
-    if (isServerError(loader.error)) {
-      expectTypeOf(loader.error.status).toEqualTypeOf<number>();
-      expectTypeOf(loader.error.data).toEqualTypeOf<{ message: string }>();
-    }
+    expectTypeOf(loader.error?.status).toEqualTypeOf<number | undefined>();
+    expectTypeOf(loader.error?.data).toMatchTypeOf<{ message: string } | undefined>();
   });
 
   test('thrown error() aborts the request and never lands on loader.error', () => () => {

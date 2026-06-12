@@ -65,8 +65,7 @@ export const Form = <O, I>(
             !reloadDocument
               ? $((evt: SubmitEvent) => {
                   if (!action.submitted) {
-                    // Swallow our own rejection — submitcompleted is the form's abort channel.
-                    return action.submit(evt).catch(() => {});
+                    return action.submit(evt);
                   }
                 })
               : undefined,
@@ -87,7 +86,7 @@ export const Form = <O, I>(
           // Since v2, this fires before the action is executed so it can be prevented
           onSubmit$,
           // action.submit "submitcompleted" event for onSubmitCompleted$ events
-          !reloadDocument ? $((evt: SubmitEvent) => action.submit(evt).catch(() => {})) : undefined,
+          !reloadDocument ? action.submit : undefined,
         ],
         method: 'post',
         ['data-spa-reset']: spaReset ? 'true' : undefined,

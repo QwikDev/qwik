@@ -123,12 +123,6 @@ export function getNotFound(prefix: string): string;
 // @public
 export type InternalRequest = false | 'loader' | 'action';
 
-// @public
-export function isServerError<E>(err: ServerError<E> | Error | undefined): err is ServerError<E>;
-
-// @public (undocumented)
-export function isServerError<T = unknown>(err: unknown): err is ServerError<T>;
-
 // Warning: (ae-internal-missing-underscore) The name "isStaticPath" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal

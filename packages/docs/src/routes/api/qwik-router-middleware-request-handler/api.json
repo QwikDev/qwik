@@ -357,20 +357,6 @@
       "mdFile": "router.internalrequest.md"
     },
     {
-      "name": "isServerError",
-      "id": "isservererror",
-      "hierarchy": [
-        {
-          "name": "isServerError",
-          "id": "isservererror"
-        }
-      ],
-      "kind": "Function",
-      "content": "Checks whether an error is a `ServerError`<!-- -->. Structural rather than `instanceof` so it also matches ServerErrors that crossed a serialization boundary.\n\n\n```typescript\nexport declare function isServerError<E>(err: ServerError<E> | Error | undefined): err is ServerError<E>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerr\n\n\n</td><td>\n\n[ServerError](#servererror-variable)<!-- -->&lt;E&gt; \\| Error \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nerr is [ServerError](#servererror-variable)<!-- -->&lt;E&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts",
-      "mdFile": "router.isservererror.md"
-    },
-    {
       "name": "mergeHeadersCookies",
       "id": "mergeheaderscookies",
       "hierarchy": [

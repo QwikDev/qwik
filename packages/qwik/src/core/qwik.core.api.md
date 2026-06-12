@@ -1266,6 +1266,28 @@ export abstract class _SharedContainer implements _Container {
     trackSignalValue<T>(signal: Signal, subscriber: _HostElement, property: string, data: _SubscriptionData): T;
 }
 
+// @internal (undocumented)
+export const _shC: (props: ShowProps<any>) => JSXNode<unknown>;
+
+// @public (undocumented)
+export const Show: ShowComponent;
+
+// @public (undocumented)
+export type ShowComponent = <WHEN = unknown, THEN extends JSXOutput = JSXOutput, ELSE extends JSXOutput = JSXOutput>(props: PublicProps<ShowProps<WHEN, THEN, ELSE>>, key: string | null, flags: number, dev?: DevJSX) => JSXOutput;
+
+// @public (undocumented)
+export interface ShowProps<WHEN = unknown, THEN extends JSXOutput = JSXOutput, ELSE extends JSXOutput = JSXOutput> {
+    // (undocumented)
+    else$?: QRL<(when: WHEN) => ELSE>;
+    // (undocumented)
+    then$: QRL<(when: WHEN) => THEN>;
+    // (undocumented)
+    when$: QRL<() => WHEN>;
+}
+
+// @internal (undocumented)
+export const _shT: (input: TaskCtx) => ValueOrPromise<void | undefined>;
+
 // @public
 export interface Signal<T = any> {
     trigger(): void;

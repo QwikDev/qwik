@@ -49,6 +49,7 @@
           pnpmDependencySourceId = b.substring 0 12 (b.hashString "sha256" (toString pnpmDependencySource));
           # CI prints the replacement hash when a platform hash is missing or stale.
           pnpmDepsHash = {
+            aarch64-darwin = "sha256-kpjBxC8qiyv+ozqXqixTgRc14lijAhKf2PpovSrUUx8=";
             x86_64-linux = "sha256-kpjBxC8qiyv+ozqXqixTgRc14lijAhKf2PpovSrUUx8=";
           }.${system} or lib.fakeHash;
           pnpmDeps = pkgs.fetchPnpmDeps {

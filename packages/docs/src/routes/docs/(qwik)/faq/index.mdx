@@ -54,9 +54,9 @@ For an in depth comparison, refer to the [think qwik](../concepts/think-qwik/ind
 
 ## Why another framework?
 
-Javascript streaming would theoretically be achievable with some sort of on-demand hydration, but that would require re-running all side effects on the client, which would force shipping a lot more code to the client and downloading it eagerly on startup, therefore slowing down TTI.
+Javascript streaming would theoretically be achievable with some sort of on-demand hydration, but all side effects would still run on the client, which would force shipping a lot more code to the client and downloading it eagerly on startup, slowing down TTI significantly.
 
-If you’re already familiar with Qwik, this would be the equivalent of doing all your side effects solely in ‘useVisibleTask$’ hooks and downloading eagerly all those chunks on startup, but worse since the bundles would most likely include the rest of the component’s code.
+If you’re already familiar with Qwik, this would be the equivalent of doing all your side effects solely in ‘useVisibleTask$’ hooks and downloading eagerly all those chunks on startup, but worse since the bundles would also include the rest of the component’s code.
 
 ## Is Qwik hard to learn?
 
@@ -70,7 +70,7 @@ Many resources are at your disposal to learn Qwik: the [getting started](./getti
 
 ## What are all those `$` signs?
 
-You might have noticed there are more [`$`](../advanced/dollar/index.mdx) signs than usual in Qwik apps, such as: [`component$()`](/docs/(qwik)/core/overview/index.mdx#component), [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask), and `<div onClick$={() => console.log('click')} />`. It serves as a marker for a lazy-load boundary. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, etc. The `$` signals to both the [optimizer](../advanced/optimizer/index.mdx) and the developer when it's happening.
+You might have noticed there are more [`$`](../advanced/dollar/index.mdx) signs than usual in Qwik apps, such as: [`component$()`](/docs/(qwik)/core/overview/index.mdx#component), [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask), and `<div onClick$={() => console.log('click')} />`. It serves as a marker to split your code into smaller segmented chunks and enable JIT preloading.
 
 **Example:**
 
@@ -116,50 +116,21 @@ export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 
 <Note>The `$` is not related to `jQuery`, Svelte or any other framework.</Note>
 
-## Isn't requesting JS on user interaction slow?
+## Isn't lazy-loading on user interaction bad for the user experience?
 
-Only if you _download_ it on user interaction. Instead, Qwik _prefetches_ the current page's JS modules in a background thread through the [service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers) and _retrieves_ those modules from the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) when the user interacts with the application.
+A common misconception is that since Qwik relies on lazy-loading, it downloads the javascript modules on user interaction. Qwik **preloads** the javascript modules on startup so that in most cases they are already preloaded and can execute right away on user interaction. It is only when the code for a given user interaction has **not** been preloaded **yet** that Qwik will JIT preload the corresponding chunks to execute them as soon as possible.
 
-This strategy is called [Speculative Module Fetching](../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx), and it is enabled by Resumability. Hydration frameworks must eagerly download and execute the code on page load to retrieve the event handlers, and therefore can't take advantage of speculative module fetching.
+In order to improve the likelihood of the code being preloaded for a given user interaction, Qwik uses code metadata to speculatively preload the code that is most likely to be requested. In addition, [Qwik insights](../../labs/insights/index.mdx) can be used to gather user data and know which modules are most likely to be requested by users and therefore know how to prioritize them and in which order.
 
-## How does Qwik know what to prefetch, and in which order?
+What is bad for the user experience, is having to eagerly execute and therefore download a lot of code on startup, slowing down TTI proportionally to the amount of code. This is what the other reactive frameworks do, and prevents them from being able to take advantage of speculative and JIT preloading.
 
-In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start pre-populating the cache as soon as possible, with only the bits of interactivity available on the current page. This way, when the user clicks or interacts, the JS is already in the cache.
+## Does Qwik generate too many javascript chunks?
 
-In addition, [Qwik insights](../../labs/insights/index.mdx) can be used to prioritize the important parts of interactivity before the less important parts.
-
-For example, the "*Buy Now*" button is more important than the "*Add to Cart*" button, so Qwik will prefetch the "*Buy Now*" button first, and then the "*Add to Cart*" button.
-
-## Are Qwik apps slow on slow networks?
-
-Quite the opposite.
-
-Qwik does not need to prefetch everything to start running, while other frameworks do need to download the whole critical path to become interactive because of [hydration](https://www.builder.io/blog/hydration-is-pure-overhead).
-
-In fact, thanks to Qwik's ability to [reduce network waterfalls](../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx#reducing-network-waterfalls), it is likely that the requested modules have already been downloaded and stored in the browser's cache at the time of interaction. And even if they haven't yet been cached, Qwik can [avoid duplicating the requests](../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx#avoiding-duplicate-requests) and can instead keep fetching the modules that are being requested to start executing them as soon as possible. 
-
-As a result, Qwik apps get to be responsive much faster, especially on slow networks.
-
-## Does Qwik generate too many small files?
-
-In dev mode, Qwik generates a lot of small files because it uses the Dev [Vite.js](https://vitejs.dev/) server, but in production mode, Qwik bundles files more efficiently.
-
-## Why does Qwik use JSX? Is it React under the hood?
-
-Nope, React is not used at all. Qwik uses JSX as the template syntax.
-
-Notice that JSX is not React. In fact, JSX is only syntax without semantics. We chose JSX for several reasons:
-
-- **Familiar syntax:** It does not reinvent the wheel but leverages existing JS for loops, conditions, etc. [JSX spec is a surprisingly short read](https://facebook.github.io/jsx/)
-- **Ecosystem**: Well supported by IDEs, linters, security auditing tools, debugging tools, and highlighters.
-- **Similar to HTML**: JSX is visually and conceptually similar to HTML, a tree. Other template systems like _html templates_ (lit-html) are not trees but arrays of tokens, making it harder to build on top and transform.
-- **Popular**: By any margin, JSX is the most widely used template syntax in the world.
+In dev mode, Qwik splits your code into the smallest possible chunks. In production, it bundles related chunks back together to avoid making too many requests. It is also possible to not bundle related chunks together, which reduces cache invalidation and therefore improves cache hit rates but can be slightly more expensive if your deployment provider charges on a per-request basis. 
 
 ## Does Qwik use a vDOM (Virtual DOM)?
 
-Qwik uses vDOM only sometimes, and other times it does what SolidJS does (direct DOM update.)
-
-The way to think about it is as follows:
+Not in the traditional sense. In most cases, Qwik relies on serialized state and direct fine-grained reactivity DOM updates using signals. There is no component re-render mechanisms to know and think about.
 
 If the change in state does not have a structural change then Qwik will most likely not use vDOM. For example: 
 ```ts title="No DOM structure change, only update value"
@@ -176,7 +147,7 @@ export const NoStructuralChange = component$(() => {
 });
 ```
 
-When there is a structural change, Qwik utilizes the virtual DOM (vDOM). In the following example, the DOM structure needs to be updated (replace `<h1>` with `<button>`), so vDOM will be used for rendering:
+When there is a structural change, Qwik relies on a what we call a vNode tree. In the following example, the DOM structure needs to be updated (replace `<h1>` with `<button>`), so the vNode tree will be used for rendering:
 ```ts title="DOM structure change"
 export const StructuralChange = component$(() => {
   const isLoggedIn = useSignal(false);
@@ -186,42 +157,13 @@ export const StructuralChange = component$(() => {
     </div>
   )
 });
-
 ```
 
-The important thing to understand is that vDOM doesn't cause performance issues in Qwik. In React, however, invalidating a root component results in vDOM for the whole tree getting created. In Qwik, the decision is made on a per-component basis.  And only for components that have structural change AND are changing their structure. If a component is structural (vDOM) but no change in structure is detected, then Qwik skips the component. You can think of it as auto-memoization of all components, this means that vDOM is only employed when the view is changing structurally. This is rare because in most cases the view only changes its values. 
+<Note>Unlike with React's vDOM, re-rendering the vNode tree does not mean re-running hooks. In Qwik, it is purely a question of how much DOM needs to be updated.</Note>
 
-<Note>In short, Qwik uses vDOM, but significantly less than React in comparable situations.</Note>
+## How does Qwik compare to other frameworks in terms of reactivity performance?
 
-### Why use a vDOM despite its negative reputation?
-
-The question of whether or not to use a vDOM can be seen as a spectrum:
-- On one extreme is React which uses vDOM for everything all the time. (Good argument can be made that [vDOM is slow](https://svelte.dev/blog/virtual-dom-is-pure-overhead).)
-- On the other extreme is SolidJS which does not use vDOM at all. (Resulting in a very impressive performance.)
-
-Qwik on the other hand uses a vDOM sparingly for two reasons:
-1. Because non-vDOM solution would require executing code at least once on startup to learn about the component structure. (Something which Qwik explicitly avoids.)
-2. Because vDOM has attractive DX properties, especially when you need dynamic components. 
-
-For example:
-
-```ts title="Dynamic components"
-const DynamicList = [ CompA, CompB, ...];
-export const DynamicExample = component$(() => {
-  const idx = Math.floor(Math.random() * DynamicList.length);
-  const Component = DynamicList[idx];
-  {/* Dynamically chose which component to render */}
-  return <Component/>; 
-})
-```
-The above code `<Component/>` is super easy to understand. We are dynamically choosing a component to place there. But in [Solid](https://www.solidjs.com/docs/latest/api#dynamic), [Svelte](https://svelte.dev/tutorial/svelte-component), [Vue](https://v2.vuejs.org/v2/guide/components-dynamic-async.html), and [Angular](https://angular.io/api/common/NgTemplateOutlet), this gets complex (see links).
-
-We have the best of both worlds by using a vDOM sparingly. During creation, we employ SSR, and most client updates are non-structural. When structural updates are necessary, they are localized to the specific component without affecting its children, thus containing any potential slowdown caused by vDOM.
-
-
-## Is there a Router for Qwik?
-
-Yes! [Qwik Router](../../(qwikrouter)/qwikrouter/index.mdx) includes a directory-based router, inspired by Next.js and others.
+In terms of reactivity, Qwik is on par with Vue and a little faster than React. You can have a look at the [krausest benchmark](https://krausest.github.io/js-framework-benchmark/current.html#eyJmcmFtZXdvcmtzIjpbImtleWVkL2FuZ3VsYXItY2Ytbm96b25lIiwia2V5ZWQvYW5ndWxhci1jZi1zaWduYWxzLW5vem9uZSIsImtleWVkL3F3aWsiLCJrZXllZC9yZWFjdC1jb21waWxlci1ob29rcyIsImtleWVkL3NvbGlkIiwia2V5ZWQvc3ZlbHRlIiwia2V5ZWQvdnVlIiwia2V5ZWQvdnVlLXZhcG9yIl0sImJlbmNobWFya3MiOlsiMDFfcnVuMWsiLCIwMl9yZXBsYWNlMWsiLCIwM191cGRhdGUxMHRoMWtfeDE2IiwiMDRfc2VsZWN0MWsiLCIwNV9zd2FwMWsiLCIwNl9yZW1vdmUtb25lLTFrIiwiMDdfY3JlYXRlMTBrIiwiMDhfY3JlYXRlMWstYWZ0ZXIxa194MiIsIjA5X2NsZWFyMWtfeDgiLCIyMV9yZWFkeS1tZW1vcnkiLCIyMl9ydW4tbWVtb3J5IiwiMjVfcnVuLWNsZWFyLW1lbW9yeSIsIjQxX3NpemUtdW5jb21wcmVzc2VkIiwiNDJfc2l6ZS1jb21wcmVzc2VkIiwiNDNfZmlyc3QtcGFpbnQiXSwiaXNzdWVzIjpbNjM0LDc3Miw3OTYsODAwLDgwMSwxMTM5LDEyNjFdLCJkaXNwbGF5TW9kZSI6MX0=), for an up to date comparison. Because of the vNode tree it is not yet as fast as Solid, Svelte 5 or Vue vapor in terms of pure CPU and memory usage. 
 
 ## Do I need a server to deploy Qwik apps?
 

@@ -16,12 +16,13 @@ export async function postBuild(
     pathName = ensureSlash(pathName);
   }
   const pathNameBase = pathName || '/';
+  const pathSegment = pathNameBase.split('/').filter(Boolean).pop();
   const ignorePathnames = new Set([
     pathNameBase + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/',
     pathNameBase + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/',
   ]);
 
-  const staticPaths = new Set(userStaticPaths.map(ensureSlash));
+  const staticPaths = new Set(userStaticPaths.map((p) => normalizeStaticPath(p, pathNameBase)));
   const notFounds: string[][] = [];
 
   const loadItem = async (fsDir: string, fsName: string, pathname: string) => {
@@ -49,7 +50,10 @@ export async function postBuild(
 
     const stat = await fs.promises.stat(fsPath);
     if (stat.isDirectory()) {
-      await loadDir(fsPath, ensureSlash(pathname + fsName));
+      const shouldAvoidDuplicateSegment =
+        !!pathSegment && fsName === pathSegment && pathname.endsWith(`${pathSegment}/`);
+      const nextPathname = shouldAvoidDuplicateSegment ? pathname : ensureSlash(pathname + fsName);
+      await loadDir(fsPath, nextPathname);
     } else if (stat.isFile()) {
       staticPaths.add(pathname + fsName);
     }
@@ -68,6 +72,22 @@ export async function postBuild(
   const staticPathsCode = createStaticPathsCode(staticPaths);
 
   await injectStatics(staticPathsCode, notFoundPathsCode, serverOutDir);
+}
+
+function normalizeStaticPath(pathname: string, pathNameBase: string) {
+  const normalized = ensureSlash(pathname);
+  const segment = pathNameBase.split('/').filter(Boolean).pop();
+
+  if (!segment) {
+    return normalized;
+  }
+
+  const doubledSegmentPrefix = `${pathNameBase}${segment}/`;
+  if (normalized.startsWith(doubledSegmentPrefix)) {
+    return pathNameBase + normalized.slice(doubledSegmentPrefix.length);
+  }
+
+  return normalized;
 }
 
 function createNotFoundPathsCode(basePathname: string, notFounds: string[][]) {

@@ -78,6 +78,14 @@ Ruler concatenates that bundle and writes it to each selected assistant's native
 Use source markers in the generated file to verify inclusion. Do not bypass Ruler by copying these
 Markdown files into a tool-specific directory whose format has not been verified.
 
+If you are an AI assistant building local config for a target tool, research that tool's current
+native guidance, skill, config, and policy formats before adding any tool-specific output. Map
+`.ruler` files by what they mean, not by filename: Markdown guidance belongs in the assistant's
+native AI guidance surface, skills belong in native skills if supported, and command-permission
+policy belongs only in a separately researched policy format. For Codex, Ruler includes all
+`.ruler` Markdown guidance in generated `AGENTS.md`; `.codex/rules/*.rules` is command policy, not
+Markdown guidance.
+
 ### Worked Example: Codex
 
 Current Ruler and OpenAI Codex behavior maps this repo's sources as follows:

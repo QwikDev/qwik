@@ -161,6 +161,10 @@ Furthermore, to build the optimizer you optionally need Rust.
 > On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/). You can also select _Desktop development with C++_
 > while installing Visual Studio.
 
+### AI assistants
+
+If you contribute with an AI assistant, read the [AI setup guide](./README.md#ai-assistant-setup) first.
+
 ---
 
 ## Development

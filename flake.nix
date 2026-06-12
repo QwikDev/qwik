@@ -47,9 +47,10 @@
               || lib.hasPrefix "patches/" rel;
           };
           pnpmDependencySourceId = b.substring 0 12 (b.hashString "sha256" (toString pnpmDependencySource));
+          # CI prints the replacement hash when a platform hash is missing or stale.
           pnpmDepsHash = {
             x86_64-linux = "sha256-kpjBxC8qiyv+ozqXqixTgRc14lijAhKf2PpovSrUUx8=";
-          }.${system} or "";
+          }.${system} or lib.fakeHash;
           pnpmDeps = pkgs.fetchPnpmDeps {
             pname = "qwik-${pnpmDependencySourceId}";
             version = "0.0.0";

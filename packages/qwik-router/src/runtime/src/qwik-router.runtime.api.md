@@ -258,6 +258,12 @@ export type HttpErrorProps = {
 
 export { InternalRequest }
 
+// @public
+export function isServerError<E>(err: ServerError<E> | Error | undefined): err is ServerError<E>;
+
+// @public (undocumented)
+export function isServerError<T = unknown>(err: unknown): err is ServerError<T>;
+
 // @public (undocumented)
 export type JSONObject = {
     [x: string]: JSONValue;

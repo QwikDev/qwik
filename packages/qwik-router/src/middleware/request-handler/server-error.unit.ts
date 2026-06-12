@@ -1,4 +1,5 @@
 import { describe, expect, expectTypeOf, test } from 'vitest';
+import { isServerError } from './fail';
 import { ServerError } from './server-error';
 
 describe('ServerError payload flattening', () => {
@@ -54,5 +55,16 @@ describe('ServerError payload flattening', () => {
     expectTypeOf(err.message).toEqualTypeOf<string>();
     expectTypeOf(err.custom).toEqualTypeOf<number>();
     expectTypeOf(err.data.message).toEqualTypeOf<string[]>();
+  });
+});
+
+describe('isServerError', () => {
+  test('matches real instances and serialization-shaped plain Errors', () => {
+    expect(isServerError(new ServerError(404, { reason: 'x' }))).toBe(true);
+    const wireShaped = Object.assign(new Error('x'), { status: 404, data: { reason: 'x' } });
+    expect(isServerError(wireShaped)).toBe(true);
+    expect(isServerError(new Error('network'))).toBe(false);
+    expect(isServerError(undefined)).toBe(false);
+    expect(isServerError({ status: 404, data: {} })).toBe(false);
   });
 });

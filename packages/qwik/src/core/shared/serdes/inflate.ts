@@ -105,7 +105,6 @@ export const inflate = (
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
-      task.$state$ = v[4];
       break;
     case TypeIds.Component:
       (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];
@@ -329,6 +328,9 @@ export const inflate = (
       effectData.data.$isConst$ = (data as any[])[1];
       break;
     }
+    case TypeIds.SubscriptionDataConstTrue:
+    case TypeIds.SubscriptionDataConstFalse:
+      break;
     case TypeIds.EffectSubscription: {
       const effectSub = target as EffectSubscription;
       const d = data as [Consumer, EffectProperty | string, SubscriptionData | null];
@@ -346,6 +348,15 @@ export const inflate = (
       ];
       patch.rootId = d[0];
       patch.subscriptions = d[1];
+      break;
+    }
+    case TypeIds.EffectSubscriptionNoData: {
+      const effectSub = target as EffectSubscription;
+      const d = data as [Consumer, EffectProperty | string];
+      effectSub.consumer = d[0];
+      effectSub.property = d[1];
+      effectSub.data = null;
+      restoreEffectBackRefForConsumer(effectSub);
       break;
     }
     default:

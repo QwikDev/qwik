@@ -330,8 +330,10 @@ export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE
 // @internal (undocumented)
 export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer;
 
+// Warning: (ae-forgotten-export) The symbol "QrlCaptures" needs to be exported by the entry point index.d.ts
+//
 // @internal
-export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: Readonly<unknown[]> | string | null, container?: _Container) => _QRLInternal<TYPE>;
+export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: QrlCaptures, container?: _Container) => _QRLInternal<TYPE>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializerArg" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SerializerSignal" needs to be exported by the entry point index.d.ts
@@ -1975,27 +1977,25 @@ export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
     dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
-// Warning: (ae-forgotten-export) The symbol "DescriptorBase" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
-export class _Task<T = unknown, B = T> extends BackRef implements DescriptorBase<unknown, Signal<B>> {
+export class _Task<T = unknown, B = T> extends BackRef {
     // (undocumented)
     $destroy$: (() => void) | null;
     // (undocumented)
     $destroyPromise$: Promise<void> | undefined;
     // (undocumented)
     $el$: _HostElement;
+    // Warning: (ae-forgotten-export) The symbol "TaskFlags" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    $flags$: number;
+    $flags$: TaskFlags;
     // (undocumented)
     $index$: number;
     // (undocumented)
     $qrl$: _QRLInternal<T>;
     // (undocumented)
-    $state$: Signal<B> | undefined;
-    // (undocumented)
     $taskPromise$: Promise<void> | null;
-    constructor($flags$: number, $index$: number, $el$: _HostElement, $qrl$: _QRLInternal<T>, $state$: Signal<B> | undefined, $destroy$: (() => void) | null);
+    constructor($flags$: TaskFlags, $index$: number, $el$: _HostElement, $qrl$: _QRLInternal<T>, $destroy$: (() => void) | null);
 }
 
 // @internal

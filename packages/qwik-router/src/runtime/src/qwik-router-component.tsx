@@ -76,6 +76,7 @@ import {
   RouteStateContext,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
+import { refreshLinkPrefetchObserver } from './link-prefetch';
 import transitionCss from './qwik-view-transition.css?inline';
 import { loadRoute } from './routing';
 import {
@@ -860,6 +861,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         window._qRouterScrollEnabled = true;
         callRestoreScrollOnDocument();
 
+        refreshLinkPrefetchObserver(manifestHash);
         if (nav.shouldForcePrevUrl) {
           forceStoreEffects(routeLocation, 'prevUrl');
         }

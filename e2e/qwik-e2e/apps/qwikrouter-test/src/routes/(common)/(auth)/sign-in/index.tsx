@@ -26,7 +26,7 @@ export const useSigninAction = globalAction$(
     }
 
     return fail(403, {
-      message: ['Invalid username or password'],
+      message: 'Invalid username or password',
     });
   },
   zod$(

@@ -163,38 +163,27 @@ export const StructuralChange = component$(() => {
 
 ## How does Qwik compare to other frameworks in terms of reactivity performance?
 
-In terms of reactivity, Qwik is on par with Vue and a little faster than React. You can have a look at the [krausest benchmark](https://krausest.github.io/js-framework-benchmark/current.html#eyJmcmFtZXdvcmtzIjpbImtleWVkL2FuZ3VsYXItY2Ytbm96b25lIiwia2V5ZWQvYW5ndWxhci1jZi1zaWduYWxzLW5vem9uZSIsImtleWVkL3F3aWsiLCJrZXllZC9yZWFjdC1jb21waWxlci1ob29rcyIsImtleWVkL3NvbGlkIiwia2V5ZWQvc3ZlbHRlIiwia2V5ZWQvdnVlIiwia2V5ZWQvdnVlLXZhcG9yIl0sImJlbmNobWFya3MiOlsiMDFfcnVuMWsiLCIwMl9yZXBsYWNlMWsiLCIwM191cGRhdGUxMHRoMWtfeDE2IiwiMDRfc2VsZWN0MWsiLCIwNV9zd2FwMWsiLCIwNl9yZW1vdmUtb25lLTFrIiwiMDdfY3JlYXRlMTBrIiwiMDhfY3JlYXRlMWstYWZ0ZXIxa194MiIsIjA5X2NsZWFyMWtfeDgiLCIyMV9yZWFkeS1tZW1vcnkiLCIyMl9ydW4tbWVtb3J5IiwiMjVfcnVuLWNsZWFyLW1lbW9yeSIsIjQxX3NpemUtdW5jb21wcmVzc2VkIiwiNDJfc2l6ZS1jb21wcmVzc2VkIiwiNDNfZmlyc3QtcGFpbnQiXSwiaXNzdWVzIjpbNjM0LDc3Miw3OTYsODAwLDgwMSwxMTM5LDEyNjFdLCJkaXNwbGF5TW9kZSI6MX0=), for an up to date comparison. Because of the vNode tree it is not yet as fast as Solid, Svelte 5 or Vue vapor in terms of pure CPU and memory usage. 
+In terms of reactivity, Qwik is on par with Vue and a little faster than React. You can have a look at the [krausest benchmark](https://krausest.github.io/js-framework-benchmark/current.html#eyJmcmFtZXdvcmtzIjpbImtleWVkL2FuZ3VsYXItY2Ytbm96b25lIiwia2V5ZWQvYW5ndWxhci1jZi1zaWduYWxzLW5vem9uZSIsImtleWVkL3F3aWsiLCJrZXllZC9yZWFjdC1jb21waWxlci1ob29rcyIsImtleWVkL3NvbGlkIiwia2V5ZWQvc3ZlbHRlIiwia2V5ZWQvdnVlIiwia2V5ZWQvdnVlLXZhcG9yIl0sImJlbmNobWFya3MiOlsiMDFfcnVuMWsiLCIwMl9yZXBsYWNlMWsiLCIwM191cGRhdGUxMHRoMWtfeDE2IiwiMDRfc2VsZWN0MWsiLCIwNV9zd2FwMWsiLCIwNl9yZW1vdmUtb25lLTFrIiwiMDdfY3JlYXRlMTBrIiwiMDhfY3JlYXRlMWstYWZ0ZXIxa194MiIsIjA5X2NsZWFyMWtfeDgiLCIyMV9yZWFkeS1tZW1vcnkiLCIyMl9ydW4tbWVtb3J5IiwiMjVfcnVuLWNsZWFyLW1lbW9yeSIsIjQxX3NpemUtdW5jb21wcmVzc2VkIiwiNDJfc2l6ZS1jb21wcmVzc2VkIiwiNDNfZmlyc3QtcGFpbnQiXSwiaXNzdWVzIjpbNjM0LDc3Miw3OTYsODAwLDgwMSwxMTM5LDEyNjFdLCJkaXNwbGF5TW9kZSI6MX0=), for an up to date comparison. Because of the vNode tree it is not yet as fast as Solid, Svelte 5 or Vue vapor in terms of pure CPU and memory usage.
 
-## Do I need a server to deploy Qwik apps?
+## Can Qwik Router do SPA?
 
-You can easily deploy a Qwik app in any [serverless environment thanks to our adapters](/docs/deployments/index.mdx). We also support a [vanilla-node adapter](/docs/deployments/node/index.mdx) for Node.js-based servers, such as Express.
-
-If there is no need for SSR, you can deploy your Qwik app as a static site thanks to our [SSG (Static Site Generation) adapter](/docs/(qwikrouter)/guides/static-site-generation/index.mdx).
-
-## Which is faster: SPAs (Single-Page Application) or MPAs (Multi-Page Application)?
-
-It depends. For SPAs, most of the cost is paid upfront by downloading everything at the beginning of the session. So when a user interacts with the app, the cost is minimal.
-
-MPAs are extremely fast to load as they don't need to download as much JS as their SPA counterparts. However, when the user navigates, it usually requires a full page reload. A full-page reload is typically super fast because browsers are extremely fast at downloading and parsing HTML. But, since sometimes, it's ideal to keep state between navigation, the MPA approach is not ideal for every project. In this case, SPA does that very well.
-
-Qwik is a unique framework that is both an MPA and an SPA at the same time.
-
-## Can Qwik do SPA?
-
-Of course! [Qwik Router](/docs/(qwikrouter)/qwikrouter/index.mdx) includes the `<Link>` component which triggers an SPA navigation.
-With Qwik, developers don't need to choose between an SPA or an MPA, every app is both at the same time.
+Yes, and you can even choose between  MPA and SPA on a `<Link>` vs `<a>` basis. Using the `<Link>` component triggers an SPA navigation while `<a>` naturally triggers a standard browser MPA navigation.
 
 MPA vs SPA is no longer an architectural decision taken at the beginning of the project, but a decision made for every link.
-
-## Can Qwik do Static Site Generation (SSG)?
-
-Yes! It's part of all Qwik Router starters. Learn how to do [Static Site Generation here](/docs/(qwikrouter)/guides/static-site-generation/index.mdx).
 
 ## Can't I create an MPA or SPA with other frameworks?
 
 Not quite, other frameworks suggest removing all the `<Scripts>` at the root to generate an MPA, effectively removing all the interactivity along with the SPA navigation.
 
 And if scripts are _not_ removed, then each full-page reload becomes very expensive, because every page reload means that the framework needs to hydrate the entire page. Qwik, however, does not have a [hydration cost](https://www.builder.io/blog/hydration-is-pure-overhead) for each page load.
+
+## Which is faster: SPAs (Single-Page Application) or MPAs (Multi-Page Application)?
+
+It depends. For SPAs, most of the cost is paid upfront by downloading everything at the beginning of the session. So when a user interacts with the app, the cost is minimal.
+
+MPAs are extremely fast to load as they don’t need to download as much JS as their SPA counterparts. However, when the user navigates, it usually requires a full page reload. A full-page reload is typically super fast because browsers are extremely fast at downloading and parsing HTML. But, since sometimes, it’s ideal to keep state between navigation, the MPA approach is not ideal for every project. In this case, SPA does that very well.
+
+Qwik is a unique framework that is both an MPA and an SPA at the same time.
 
 ## Will migrating to Qwik require a lot of effort?
 

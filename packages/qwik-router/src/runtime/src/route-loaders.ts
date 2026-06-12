@@ -296,13 +296,19 @@ const createRouteLoaderSignal = (
   return createAsync$(
     async (ctx) => {
       const { track, info, previous, abortSignal } = ctx;
+      const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
+      let trackedRoutePath: string | undefined;
+      let trackedPagePathname: string | undefined;
+      let trackedPageSearch: string | undefined;
+      if (!isServer || hasInjectedValue) {
+        trackedRoutePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
+        trackedPagePathname = track(routeLoaderCtx, 'pagePathname') as string | undefined;
+        trackedPageSearch = track(routeLoaderCtx, 'pageSearch') as string | undefined;
+      }
       // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
-      // an action response). Skipping the track() calls below is safe: route loader
-      // functions run on the server and have no access to client-side reactive state,
-      // so their compute never registers subscriptions of its own. The track() calls
-      // in the client branch only exist to react to route/page-URL changes, which fire
-      // a fresh invalidate (without info.__v) when they happen.
-      if (info && typeof info === 'object' && '__v' in (info as object)) {
+      // an action response). Client-side route dependencies must already be tracked
+      // here so a resumed loader can re-fetch on the first SPA navigation.
+      if (hasInjectedValue) {
         const value = (info as { __v: unknown }).__v;
         if (!isServer && resumeValueKey in stateValues) {
           stateValues[resumeValueKey] = value;
@@ -313,13 +319,11 @@ const createRouteLoaderSignal = (
         return (capture as ServerRouteLoaderCapture).load();
       }
       // Track reactive dependencies so the signal re-fetches when the route path changes
-      const routePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
+      const routePath = trackedRoutePath;
       // Track the client page path/search. These fields are only assigned on SPA navigation; before
       // that, `location` is the source of truth and avoids serializing a duplicate URL in SSR state.
-      const pagePathname =
-        (track(routeLoaderCtx, 'pagePathname') as string | undefined) || location.pathname;
-      const pageSearch =
-        (track(routeLoaderCtx, 'pageSearch') as string | undefined) || location.search;
+      const pagePathname = trackedPagePathname || location.pathname;
+      const pageSearch = trackedPageSearch || location.search;
       const pageUrl = new URL(pagePathname + pageSearch, location.href);
       const mHash = getClientManifestHash(ctx);
       const basePath = (qwikRouterConfig as any).basePathname ?? '/';

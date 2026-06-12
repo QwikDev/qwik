@@ -69,7 +69,7 @@
           "dependencyTypes": [
             "dev"
           ],
-          "pinVersion": "1.57.0"
+          "pinVersion": "1.59.1"
         }
       ],
       "semverGroups": [
@@ -114,7 +114,7 @@
     "@napi-rs/triples": "1.2.0",
     "@node-rs/helper": "1.6.0",
     "@octokit/action": "6.1.0",
-    "@playwright/test": "1.57.0",
+    "@playwright/test": "1.59.1",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/optimizer": "workspace:*",
     "@qwik.dev/partytown": "0.13.2",

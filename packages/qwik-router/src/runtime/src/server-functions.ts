@@ -120,20 +120,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
         state.isRunning = false;
         if (aborted) {
           if (form) {
-            const detail = {
-              status,
-              value: undefined,
-              error: undefined,
-              aborted,
-            } satisfies FormSubmitCompletedDetail<unknown>;
-            form.dispatchEvent(
-              new CustomEvent('submitcompleted', {
-                bubbles: false,
-                cancelable: false,
-                composed: false,
-                detail: detail,
-              })
-            );
+            // The submission aborted — submitcompleted does not fire.
             return { status, value: undefined, error: undefined };
           }
           throw aborted;

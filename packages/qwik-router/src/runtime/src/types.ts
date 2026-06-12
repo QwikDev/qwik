@@ -989,8 +989,8 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
    *
    * Resolves with `{ status, value, error }` — expected failures (a returned `fail()` or a failed
    * validator) come back on `error`. A programmatic invocation rejects when the submission aborts
-   * (a thrown `error()` or an unexpected server error); `<Form>` submissions surface aborts via the
-   * `submitcompleted` event's `detail.aborted` instead.
+   * (a thrown `error()` or an unexpected server error); `<Form>` submissions reset without firing
+   * `submitcompleted`.
    */
   readonly submit: QRL<
     OPTIONAL extends true

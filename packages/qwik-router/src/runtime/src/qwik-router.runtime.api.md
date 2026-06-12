@@ -223,7 +223,6 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
 
 // @public (undocumented)
 export interface FormSubmitSuccessDetail<T, ERROR = unknown> {
-    aborted?: ServerError;
     error: ServerError<ERROR> | undefined;
     // (undocumented)
     status: number;

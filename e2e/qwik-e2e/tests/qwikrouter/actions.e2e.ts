@@ -190,9 +190,9 @@ test.describe('action abort semantics (spa)', () => {
     await expect(page.locator('#abort-state')).toHaveText('false:undefined:undefined:false');
   });
 
-  test('<Form> surfaces aborts via the submitcompleted detail', async ({ page }) => {
+  test('submitcompleted does not fire when the submission aborts', async ({ page }) => {
     await page.locator('#abort-form-submit').click();
-    await expect(page.locator('#abort-form-detail')).toHaveText('aborted:418');
     await expect(page.locator('#abort-state')).toHaveText('false:undefined:undefined:false');
+    await expect(page.locator('#abort-form-detail')).toHaveText('none');
   });
 });

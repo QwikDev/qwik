@@ -10,8 +10,6 @@ export interface FormSubmitCompletedDetail<T, ERROR = unknown> {
   value: T | undefined;
   /** The `ServerError` from a returned `fail()` or a failed validator. */
   error: ServerError<ERROR> | undefined;
-  /** Set when the submission aborted (a thrown `error()` or an unexpected server error). */
-  aborted?: ServerError;
 }
 
 /** @public */

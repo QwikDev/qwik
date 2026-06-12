@@ -12,7 +12,7 @@ export default component$(() => {
   const action = useAbortAction();
   const loc = useLocation();
   const caught = useSignal('');
-  const formDetail = useSignal('');
+  const formDetail = useSignal('none');
   return (
     <div>
       <button
@@ -34,9 +34,7 @@ export default component$(() => {
       <Form
         action={action}
         onSubmitCompleted$={(ev) => {
-          formDetail.value = ev.detail.aborted
-            ? `aborted:${ev.detail.aborted.status}`
-            : 'completed';
+          formDetail.value = `completed:${ev.detail.status}`;
         }}
       >
         <input type="hidden" name="boom" value="1" />

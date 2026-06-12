@@ -75,19 +75,24 @@ export async function postBuild(
 }
 
 function normalizeStaticPath(pathname: string, pathNameBase: string) {
-  const normalized = ensureSlash(pathname);
-  const segment = pathNameBase.split('/').filter(Boolean).pop();
+  const normalized = ensureLeadingSlash(ensureSlash(pathname));
+  const normalizedPathNameBase = ensureLeadingSlash(ensureSlash(pathNameBase));
+  const segment = normalizedPathNameBase.split('/').filter(Boolean).pop();
 
   if (!segment) {
     return normalized;
   }
 
-  const doubledSegmentPrefix = `${pathNameBase}${segment}/`;
+  const doubledSegmentPrefix = `${normalizedPathNameBase}${segment}/`;
   if (normalized.startsWith(doubledSegmentPrefix)) {
-    return pathNameBase + normalized.slice(doubledSegmentPrefix.length);
+    return normalizedPathNameBase + normalized.slice(doubledSegmentPrefix.length);
   }
 
   return normalized;
+}
+
+function ensureLeadingSlash(pathname: string) {
+  return pathname.startsWith('/') ? pathname : `/${pathname}`;
 }
 
 function createStaticPathsCode(staticPaths: Set<string>) {

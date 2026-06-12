@@ -6,6 +6,7 @@ import { readFile, rm, unlink } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
 import { type Plugin, type UserConfig, type ViteBuilder } from 'vite';
 import type { BuiltRoute } from '../../../buildtime/types';
+import { ensureSlash } from '../../../utils/pathname';
 import { postBuild } from './post-build';
 
 /**
@@ -299,10 +300,20 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         }
       }
 
+      // Avoid doubling the assetsDir when basePathname already ends with it.
+      const normalizedBasePathname = ensureSlash(basePathname);
+      const normalizedAssetsSegment = assetsDir ? `/${assetsDir}/` : null;
+      const postBuildPathName =
+        normalizedAssetsSegment && normalizedBasePathname.endsWith(normalizedAssetsSegment)
+          ? normalizedBasePathname
+          : assetsDir
+            ? join(basePathname, assetsDir)
+            : basePathname;
+
       await postBuild(
         clientPublicOutDir,
         serverOutDir,
-        assetsDir ? join(basePathname, assetsDir) : basePathname,
+        postBuildPathName,
         staticPaths,
         !!opts.cleanStaticGenerated
       );

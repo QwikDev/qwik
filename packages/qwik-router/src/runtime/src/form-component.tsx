@@ -6,10 +6,12 @@ import { useNavigate } from './use-functions';
 /** @public */
 export interface FormSubmitCompletedDetail<T, ERROR = unknown> {
   status: number;
-  /** The action's successful return value. `undefined` when the action failed. */
+  /** The action's successful return value. `undefined` when the action failed or aborted. */
   value: T | undefined;
   /** The `ServerError` from a returned `fail()` or a failed validator. */
   error: ServerError<ERROR> | undefined;
+  /** Set when the submission aborted (a thrown `error()` or an unexpected server error). */
+  aborted?: ServerError;
 }
 
 /** @public */
@@ -63,7 +65,8 @@ export const Form = <O, I>(
             !reloadDocument
               ? $((evt: SubmitEvent) => {
                   if (!action.submitted) {
-                    return action.submit(evt);
+                    // Swallow our own rejection — submitcompleted is the form's abort channel.
+                    return action.submit(evt).catch(() => {});
                   }
                 })
               : undefined,
@@ -84,7 +87,7 @@ export const Form = <O, I>(
           // Since v2, this fires before the action is executed so it can be prevented
           onSubmit$,
           // action.submit "submitcompleted" event for onSubmitCompleted$ events
-          !reloadDocument ? action.submit : undefined,
+          !reloadDocument ? $((evt: SubmitEvent) => action.submit(evt).catch(() => {})) : undefined,
         ],
         method: 'post',
         ['data-spa-reset']: spaReset ? 'true' : undefined,

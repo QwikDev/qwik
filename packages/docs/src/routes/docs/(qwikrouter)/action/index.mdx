@@ -439,7 +439,7 @@ export const useDeletePost = routeAction$(
 );
 ```
 
-A thrown `error()` never lands on `action.error` — use `fail()` for anything the UI should display. Plain (non-`error()`) throws behave like unexpected errors and result in a sanitized 500.
+A thrown `error()` never lands on `action.error`: the action records no state and `action.submit()` rejects with the error. `<Form>` handles the rejection internally and fires `submitcompleted` with `detail.aborted` set — use `fail()` for anything the UI should display. Plain (non-`error()`) throws behave like unexpected errors and result in a sanitized 500.
 
 ## Previous form state
 

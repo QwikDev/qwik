@@ -177,3 +177,22 @@ test.describe('actions', () => {
     });
   }
 });
+
+test.describe('action abort semantics (spa)', () => {
+  test.use({ javaScriptEnabled: true });
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/qwikrouter-test/actions/abort/');
+  });
+
+  test('programmatic submit() rejects on thrown error() and records no state', async ({ page }) => {
+    await page.locator('#abort-run').click();
+    await expect(page.locator('#abort-caught')).toHaveText('caught:418');
+    await expect(page.locator('#abort-state')).toHaveText('false:undefined:undefined:false');
+  });
+
+  test('submitcompleted fires with detail.aborted when the submission aborts', async ({ page }) => {
+    await page.locator('#abort-form-submit').click();
+    await expect(page.locator('#abort-form-detail')).toHaveText('aborted:418');
+    await expect(page.locator('#abort-state')).toHaveText('false:undefined:undefined:false');
+  });
+});

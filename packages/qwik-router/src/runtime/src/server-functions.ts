@@ -116,8 +116,27 @@ Action.run() can only be called on the browser, for example when a user clicks a
           id,
           resolve: noSerialize(resolve),
         };
-      }).then(({ result, status, error }) => {
+      }).then(({ result, status, error, aborted }) => {
         state.isRunning = false;
+        if (aborted) {
+          if (form) {
+            const detail = {
+              status,
+              value: undefined,
+              error: undefined,
+              aborted,
+            } satisfies FormSubmitCompletedDetail<unknown>;
+            form.dispatchEvent(
+              new CustomEvent('submitcompleted', {
+                bubbles: false,
+                cancelable: false,
+                composed: false,
+                detail: detail,
+              })
+            );
+          }
+          throw aborted;
+        }
         state.status = status;
         if (error) {
           state.error = error;

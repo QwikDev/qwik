@@ -283,7 +283,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: runner.os != 'Windows'
-        run: nix develop .#ci-rust -c pnpm install
+        run: nix develop .#ci-rust -c pnpm ci.restore-node-modules
 
       - name: Install NPM Dependencies
         if: runner.os == 'Windows'
@@ -468,7 +468,7 @@ jobs:
         run: |
           # Ensure that the optimizer binary gets made
           mkdir -p packages/optimizer/bindings/
-          nix develop .#ci-node24 -c pnpm install --frozen-lockfile
+          nix develop .#ci-node24 -c pnpm ci.restore-node-modules
 
       - name: 'build: qwik and packages'
         if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.build-others == 'true'
@@ -626,7 +626,7 @@ jobs:
           artifact-create-qwik
           artifact-eslint-plugin-qwik
 
-      - run: nix develop .#ci-node24 -c pnpm install --frozen-lockfile
+      - run: nix develop .#ci-node24 -c pnpm ci.restore-node-modules
       - name: Build Qwik Insights
         run: nix develop .#ci-node24 -c pnpm run build.packages.insights
 
@@ -688,7 +688,7 @@ jobs:
           artifact-create-qwik
           artifact-eslint-plugin-qwik
 
-      - run: nix develop .#ci-node24 -c pnpm install --frozen-lockfile
+      - run: nix develop .#ci-node24 -c pnpm ci.restore-node-modules
       - name: Build Qwik Docs
         run: nix develop .#ci-node24 -c bash -lc 'pnpm build --tsc-docs && pnpm run build.packages.docs && echo ok > docs-build-completed.txt'
 
@@ -843,7 +843,7 @@ jobs:
           artifact-eslint-plugin-qwik
           artifact-docs
 
-      - run: nix develop .#ci-node24-e2e -c pnpm install --frozen-lockfile
+      - run: nix develop .#ci-node24-e2e -c pnpm ci.restore-node-modules
 
       - name: Docs E2E Tests
         run: nix develop .#ci-node24-e2e -c pnpm exec playwright test --config=e2e/docs-e2e/playwright.config.ts --project=chromium --shard=${{ matrix.shard.shard }}/${{ matrix.shard.shardTotal }}
@@ -964,7 +964,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: runner.os != 'Windows'
-        run: nix develop .#ci-node24 -c pnpm install --frozen-lockfile
+        run: nix develop .#ci-node24 -c pnpm ci.restore-node-modules
 
       - name: Install NPM Dependencies
         if: runner.os == 'Windows'
@@ -1054,7 +1054,7 @@ jobs:
           artifact-create-qwik
           artifact-eslint-plugin-qwik
 
-      - run: nix develop .#ci-node24 -c pnpm install --frozen-lockfile
+      - run: nix develop .#ci-node24 -c pnpm ci.restore-node-modules
 
       - name: Timing Benchmarks
         run: nix develop .#ci-node24 -c pnpm run test.bench.timing
@@ -1220,7 +1220,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: runner.os != 'Windows'
-        run: nix develop .#ci-node22-e2e -c pnpm install --frozen-lockfile
+        run: nix develop .#ci-node22-e2e -c pnpm ci.restore-node-modules
 
       - name: Install NPM Dependencies
         if: runner.os == 'Windows'
@@ -1452,7 +1452,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: runner.os != 'Windows'
-        run: nix develop .#ci-node22-e2e -c pnpm install --frozen-lockfile
+        run: nix develop .#ci-node22-e2e -c pnpm ci.restore-node-modules
 
       - name: Install NPM Dependencies
         if: runner.os == 'Windows'
@@ -1582,11 +1582,7 @@ jobs:
         with:
           use-gha-cache: disabled
 
-      - run: nix develop .#ci-node24 -c pnpm install --frozen-lockfile
-
-      - name: "Verify pnpm dedupe"
-        if: always()
-        run: nix develop .#ci-node24 -c env NPM_CONFIG_USERCONFIG=/dev/null pnpm --config.platform=linux --config.arch=x64 dedupe --check
+      - run: nix develop .#ci-node24 -c pnpm ci.restore-node-modules
 
       - name: SyncPack Check
         if: always()

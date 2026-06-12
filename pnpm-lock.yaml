@@ -311,7 +311,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.1.0
-        version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@24.10.0)(vite@8.0.11(@types/node@24.10.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@24.10.0)(vite@7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/create-qwik:
     dependencies:
@@ -798,7 +798,7 @@ importers:
         version: 3.7.4
       vitest:
         specifier: 4.1.0
-        version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@24.10.0)(vite@8.0.11(@types/node@24.10.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@24.10.0)(vite@7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/qwik-dom: {}
 
@@ -15569,14 +15569,6 @@ snapshots:
     optionalDependencies:
       vite: 7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3)
 
-  '@vitest/mocker@4.1.0(vite@8.0.11(@types/node@24.10.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3))':
-    dependencies:
-      '@vitest/spy': 4.1.0
-      estree-walker: 3.0.3
-      magic-string: 0.30.21
-    optionalDependencies:
-      vite: 8.0.11(@types/node@24.10.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3)
-
   '@vitest/pretty-format@4.0.18':
     dependencies:
       tinyrainbow: 3.1.0
@@ -23004,22 +22996,6 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.8.3
 
-  vite@8.0.11(@types/node@24.10.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3):
-    dependencies:
-      lightningcss: 1.32.0
-      picomatch: 4.0.4
-      postcss: 8.5.14
-      rolldown: 1.0.0-rc.18
-      tinyglobby: 0.2.16
-    optionalDependencies:
-      '@types/node': 24.10.0
-      esbuild: 0.27.3
-      fsevents: 2.3.3
-      jiti: 2.6.1
-      terser: 5.46.0
-      tsx: 4.21.0
-      yaml: 2.8.3
-
   vitest@4.1.0(@opentelemetry/api@1.9.0)(@types/node@24.10.0)(vite@7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3)):
     dependencies:
       '@vitest/expect': 4.1.0
@@ -23041,34 +23017,6 @@ snapshots:
       tinyglobby: 0.2.16
       tinyrainbow: 3.1.0
       vite: 7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@opentelemetry/api': 1.9.0
-      '@types/node': 24.10.0
-    transitivePeerDependencies:
-      - msw
-
-  vitest@4.1.0(@opentelemetry/api@1.9.0)(@types/node@24.10.0)(vite@8.0.11(@types/node@24.10.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3)):
-    dependencies:
-      '@vitest/expect': 4.1.0
-      '@vitest/mocker': 4.1.0(vite@8.0.11(@types/node@24.10.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3))
-      '@vitest/pretty-format': 4.1.0
-      '@vitest/runner': 4.1.0
-      '@vitest/snapshot': 4.1.0
-      '@vitest/spy': 4.1.0
-      '@vitest/utils': 4.1.0
-      es-module-lexer: 2.1.0
-      expect-type: 1.3.0
-      magic-string: 0.30.21
-      obug: 2.1.1
-      pathe: 2.0.3
-      picomatch: 4.0.4
-      std-env: 4.0.0
-      tinybench: 2.9.0
-      tinyexec: 1.1.2
-      tinyglobby: 0.2.16
-      tinyrainbow: 3.1.0
-      vite: 8.0.11(@types/node@24.10.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@opentelemetry/api': 1.9.0

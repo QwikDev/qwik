@@ -140,6 +140,37 @@ describe('route loader store + async signal tracking', () => {
     });
   });
 
+  it('should track route changes when the first value is injected', async () => {
+    await withContainer(async () => {
+      const ctx = createStore(container, { pageUrl: '/initial' }, 1 /* StoreFlags.RECURSIVE */);
+
+      const computeLog: string[] = [];
+      const signal = createAsync$(async ({ track, info }) => {
+        const url = track(ctx, 'pageUrl') as string;
+        if (info && typeof info === 'object' && '__v' in (info as object)) {
+          computeLog.push('__v');
+          return (info as { __v: string }).__v;
+        }
+        computeLog.push(`fetch:${url}`);
+        return `fetched:${url}`;
+      }) as AsyncSignalImpl<string>;
+
+      setLoaderSignalValue(signal, 'ssr-value');
+      await retryOnPromise(() => {
+        effect$(() => signal.value);
+      });
+
+      expect(signal.value).toBe('ssr-value');
+      expect(computeLog).toEqual(['__v']);
+
+      ctx.pageUrl = '/after-nav';
+      await signal.promise();
+
+      expect(signal.value).toBe('fetched:/after-nav');
+      expect(computeLog).toEqual(['__v', 'fetch:/after-nav']);
+    });
+  });
+
   it('should re-compute for TWO sequential store changes after __v', async () => {
     await withContainer(async () => {
       const ctx = createStore(container, { pageUrl: '/initial' }, 1 /* StoreFlags.RECURSIVE */);
@@ -242,7 +273,7 @@ describe('route loader store + async signal tracking', () => {
   function effectQrl(fnQrl: QRL<() => void>) {
     const qrl = fnQrl as QRLInternal<() => void>;
     const element: HostElement = vnode_newVirtual();
-    task = task || new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    task = task || new Task(0 as any, 0, element, fnQrl as QRLInternal, undefined, null);
     vnode_setProp(element, 'q:seq', [task]);
     if (!qrl.resolved) {
       throw qrl.resolve();

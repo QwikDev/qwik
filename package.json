@@ -282,6 +282,7 @@
     "test.unit": "vitest packages",
     "test.unit.debug": "vitest --inspect-brk packages",
     "test.vite": "playwright test e2e/qwik-e2e/tests/qwikrouter --browser=chromium --config e2e/qwik-e2e/playwright.config.ts",
+    "test.e2e.vite": "playwright test e2e/vite-e2e/tests --config e2e/vite-e2e/playwright.config.ts",
     "tsc.check": "tsc --noEmit",
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",

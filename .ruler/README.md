@@ -111,6 +111,14 @@ rg -n 'Source: .ruler/rules' AGENTS.md
 find .codex/skills -name SKILL.md
 ```
 
+## Stale Guidance Reminder
+
+A `post-merge` git hook (`scripts/ruler-postmerge-check.mjs`, wired through `simple-git-hooks`)
+prints a reminder whenever a pull changes anything under `.ruler/`. It only notifies — it never
+writes files — so generated assistant outputs are never scaffolded behind your back. When you see
+it, re-run `ruler apply --agents <your-tool>` to refresh your local files. The hook installs on
+`pnpm install` via the `prepare` script.
+
 ## Generate Local Assistant Files
 
 Install Ruler if you do not already have it:

@@ -113,7 +113,7 @@ export const action = routeAction$(
 
 ### Field errors also in dot notation (almost)
 
-If you use dot notation, the error messages are also returned in dot notation in the `fieldErrors` property. This has the advantage that the input name and fieldError key match.
+If you use dot notation, the error messages are also returned in dot notation in the `fieldErrors` property of the action's error state (`action.error.fieldErrors`). This has the advantage that the input name and fieldError key match.
 
 For the this action:
 ```tsx
@@ -202,19 +202,19 @@ export default component$(() => {
   return (
     <Form action={testAction}>
       <input type="email" name="person.email" placeholder="Email" />
-      {renderError(testAction.value?.fieldErrors?.["person.email"])}
+      {renderError(testAction.error?.fieldErrors?.["person.email"])}
       <input type="text" name="person.name" placeholder="Name" />
-      {renderError(testAction.value?.fieldErrors?.["person.name"])}
+      {renderError(testAction.error?.fieldErrors?.["person.name"])}
       <input type="text" name="person.address.street" placeholder="Street" />
-      {renderError(testAction.value?.fieldErrors?.["person.address.street"])}
+      {renderError(testAction.error?.fieldErrors?.["person.address.street"])}
       <input type="text" name="person.address.city" placeholder="City" />
-      {renderError(testAction.value?.fieldErrors?.["person.address.city"])}
+      {renderError(testAction.error?.fieldErrors?.["person.address.city"])}
       <input type="text" name="person.address.state" placeholder="State" />
-      {renderError(testAction.value?.fieldErrors?.["person.address.state"])}
+      {renderError(testAction.error?.fieldErrors?.["person.address.state"])}
       <input type="text" name="person.address.zip" placeholder="Zip" />
-      {renderError(testAction.value?.fieldErrors?.["person.address.zip"])}
+      {renderError(testAction.error?.fieldErrors?.["person.address.zip"])}
       <input type="text" name="person.pets.0" placeholder="Pet 1" />
-      {renderError(testAction.value?.fieldErrors?.["person.pets[]"]?.[0])}
+      {renderError(testAction.error?.fieldErrors?.["person.pets[]"]?.[0])}
       <button>Send</button>
     </Form>
   );

@@ -152,7 +152,7 @@ export const resolveHead = (
     // retryOnPromise so head resolution re-runs once the loader settles.
     const signal = loaderState?.[id];
     if (signal) {
-      return signal.value;
+      return signal.error ?? signal.value;
     }
     // Check action result
     if (actionData?.action === id) {

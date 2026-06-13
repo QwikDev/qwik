@@ -11,6 +11,7 @@ const useCatchServerErrorInLoader = routeLoader$(async () => {
 });
 
 export default component$(() => {
+  // The thrown ServerError aborts the request — the error page renders, never this component.
   useCatchServerErrorInLoader();
   return <></>;
 });

@@ -115,6 +115,7 @@ import type {
   ScrollState,
 } from './types';
 import { submitAction } from './use-endpoint';
+import { ServerError } from '../../middleware/request-handler/server-error';
 import { useQwikRouterEnv } from './use-functions';
 import { isSameOrigin, isSamePath, toPath, toUrl } from './utils';
 import { startViewTransition, type ViewTransition } from './view-transition';
@@ -276,10 +277,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       ? {
           id: currentActionId!,
           data: env.response.formData,
-          output: {
-            result: currentAction,
-            status: env.response.status,
-          },
+          output:
+            currentAction instanceof ServerError
+              ? { error: currentAction, status: env.response.status }
+              : { result: currentAction, status: env.response.status },
         }
       : undefined
   );
@@ -566,7 +567,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           actionData = {
             status: result.status,
             action: action.id,
-            actionResult: result.result,
+            actionResult: result.error ?? result.result,
           };
 
           // Resolve the action promise and free the closure
@@ -574,6 +575,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             action.resolve({
               status: result.status,
               result: result.result,
+              error: result.error,
             });
             action.resolve = undefined;
           }

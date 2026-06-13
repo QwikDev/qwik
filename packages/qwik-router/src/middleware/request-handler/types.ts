@@ -1,6 +1,7 @@
 import type { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import type { Render, RenderOptions } from '@qwik.dev/core/server';
-import type { Action, FailReturn, Loader } from '@qwik.dev/router';
+import type { Action, Loader, StrictUnion } from '@qwik.dev/router';
+import type { FailReturn } from './fail';
 import type { ServerError } from './server-error';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RewriteMessage } from './rewrite-handler';
@@ -223,6 +224,14 @@ export interface RequestEventCommon<
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.
    */
   readonly error: <T = any>(statusCode: ErrorCodes, message: T) => ServerError<T>;
+
+  /**
+   * Returns a typed failure result to `return` from a loader or action. It surfaces as the
+   * loader's/action's `.error` state (a `ServerError`) while `.value` stays the success type and
+   * the page keeps rendering. Unlike `error()`, which is thrown and aborts the request, `fail()` is
+   * for expected failures the page should display inline.
+   */
+  readonly fail: <T extends Record<string, any>>(statusCode: ErrorCodes, data: T) => FailReturn<T>;
 
   /**
    * Convenience method to send an text body response. The response will be automatically set the
@@ -497,9 +506,7 @@ declare global {
 /** @public */
 export interface RequestEventAction<
   PLATFORM = QwikRouterPlatform,
-> extends RequestEventCommon<PLATFORM> {
-  fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
-}
+> extends RequestEventCommon<PLATFORM> {}
 
 /** @public */
 export type DeferReturn<T> = () => Promise<T>;
@@ -520,8 +527,12 @@ export interface ResolveValue {
 
 /** @public */
 export interface ResolveSyncValue {
-  <T, INPUT, OPTIONAL extends boolean>(action: Action<T, INPUT, OPTIONAL>): Awaited<T> | undefined;
-  <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+  <T, INPUT, OPTIONAL extends boolean, ERROR>(
+    action: Action<T, INPUT, OPTIONAL, ERROR>
+  ): StrictUnion<Awaited<T> | ServerError<StrictUnion<ERROR>>> | undefined;
+  <T, ERROR>(
+    loader: Loader<T, ERROR>
+  ): Awaited<T> extends () => any ? never : Awaited<T> | ServerError<StrictUnion<ERROR>>;
 }
 
 /** @public */

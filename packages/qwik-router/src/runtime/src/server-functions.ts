@@ -53,15 +53,16 @@ export const routeActionQrl = ((
   function action() {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
-    const initialState: Editable<Partial<ActionStore<unknown, unknown>>> = {
+    const initialState: Editable<Partial<ActionStore<unknown, unknown, true, any>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
       submitted: false,
       isRunning: false,
       status: undefined,
       value: undefined,
+      error: undefined,
       formData: undefined,
     };
-    const state = useStore<Editable<ActionStore<unknown, unknown>>>(() => {
+    const state = useStore<Editable<ActionStore<unknown, unknown, true, any>>>(() => {
       const value = currentAction.value;
       if (value && value?.id === id) {
         const data = value.data;
@@ -69,12 +70,16 @@ export const routeActionQrl = ((
           initialState.formData = data;
         }
         if (value.output) {
-          const { status, result } = value.output;
+          const { status, result, error } = value.output;
           initialState.status = status;
-          initialState.value = result;
+          if (error) {
+            initialState.error = error;
+          } else {
+            initialState.value = result;
+          }
         }
       }
-      return initialState as ActionStore<unknown, unknown>;
+      return initialState as ActionStore<unknown, unknown, true, any>;
     });
 
     const submit = $((input: unknown | FormData | SubmitEvent = {}) => {
@@ -111,15 +116,25 @@ Action.run() can only be called on the browser, for example when a user clicks a
           id,
           resolve: noSerialize(resolve),
         };
-      }).then(({ result, status }) => {
+      }).then(({ result, status, error }) => {
         state.isRunning = false;
         state.status = status;
-        state.value = result;
+        if (error) {
+          state.error = error;
+          state.value = undefined;
+        } else {
+          state.error = undefined;
+          state.value = result;
+        }
         if (form) {
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
           }
-          const detail = { status, value: result } satisfies FormSubmitCompletedDetail<unknown>;
+          const detail = {
+            status,
+            value: result,
+            error,
+          } satisfies FormSubmitCompletedDetail<unknown>;
           form.dispatchEvent(
             new CustomEvent('submitcompleted', {
               bubbles: false,
@@ -132,6 +147,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
         return {
           status: status,
           value: result,
+          error,
         };
       });
     });
@@ -159,10 +175,13 @@ export const globalActionQrl = ((
     if (typeof globalThis._qwikActionsMap === 'undefined') {
       globalThis._qwikActionsMap = new Map();
     }
-    globalThis._qwikActionsMap!.set((action as ActionInternal).__id, action as ActionInternal);
+    globalThis._qwikActionsMap!.set(
+      (action as unknown as ActionInternal).__id,
+      action as unknown as ActionInternal
+    );
   }
   return action;
-}) as ActionConstructorQRL;
+}) as unknown as ActionConstructorQRL;
 
 /**
  * Define a route action that handles form submissions or programmatic invocations.
@@ -185,12 +204,12 @@ export const globalActionQrl = ((
  * @public
  */
 export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
-  routeActionQrl
+  routeActionQrl as any
 ) as any;
 
 /** @public */
 export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
-  globalActionQrl
+  globalActionQrl as any
 ) as any;
 
 /** @internal */

@@ -109,6 +109,10 @@ function findAndPropagateToBlockingCursor(container: Container, vNode: VNode): b
       // remember that cursor's nearest boundary for async/suspense bookkeeping.
       setNearestCursorBoundary(vNode, cursorBoundary);
       propagatePath(current);
+      const cursorData: CursorData = getCursorData(current)!;
+      if (cursorData.position !== current) {
+        cursorData.position = vNode;
+      }
       reusablePath.length = 0;
       return true;
     }

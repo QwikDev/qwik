@@ -30,7 +30,7 @@ interface RequestEventDeps {
   Cookie: new (cookie?: string | null) => RequestCookie;
   AbortMessage: new () => AbortMessage;
   RedirectMessage: new () => RedirectMessage;
-  RewriteMessage: new (pathname: string) => RewriteMessage;
+  RewriteMessage: new (pathname: string, search?: string) => RewriteMessage;
   ServerError: new <T = any>(status: number, data: T) => ServerError<T>;
   recognizeRequest: typeof import('./request-path').recognizeRequest;
   trimRecognizedInternalPathname: typeof import('./request-path').trimRecognizedInternalPathname;
@@ -287,14 +287,37 @@ export function createRequestEventWithDeps(
 
     rewrite: (pathname: string) => {
       check();
-      if (pathname.startsWith('http')) {
-        throw new deps.ServerError(
-          400,
-          isDev ? 'Rewrite does not support absolute urls' : 'Bad Request'
-        );
+      let search: string | undefined;
+      if (/^https?:\/\//.test(pathname)) {
+        let target: URL;
+        try {
+          target = new URL(pathname);
+        } catch {
+          throw new deps.ServerError(400, isDev ? 'Invalid rewrite url' : 'Bad Request');
+        }
+        if (target.origin !== url.origin) {
+          throw new deps.ServerError(
+            400,
+            isDev ? 'Rewrite does not support cross-origin urls' : 'Bad Request'
+          );
+        }
+        pathname = target.pathname;
+        if (target.search) {
+          search = target.search;
+        }
+      } else {
+        const hashStart = pathname.indexOf('#');
+        if (hashStart !== -1) {
+          pathname = pathname.slice(0, hashStart);
+        }
+        const searchStart = pathname.indexOf('?');
+        if (searchStart !== -1) {
+          search = pathname.slice(searchStart);
+          pathname = pathname.slice(0, searchStart);
+        }
       }
       sharedMap.set(RequestEvIsRewrite, true);
-      return exit(new deps.RewriteMessage(pathname.replace(/\/+/g, '/')));
+      return exit(new deps.RewriteMessage(pathname.replace(/\/+/g, '/'), search));
     },
 
     defer: (returnData) => {

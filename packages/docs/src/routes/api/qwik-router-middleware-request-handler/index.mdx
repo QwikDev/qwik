@@ -1656,7 +1656,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-(constructor)(pathname)
+(constructor)(pathname, search)
 
 </td><td>
 
@@ -1699,9 +1699,34 @@ string
 </td><td>
 
 </td></tr>
+<tr><td>
+
+[search?](#rewritemessage-search)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string \| undefined
+
+</td><td>
+
+_(Optional)_ When set, replaces the request's query string; otherwise the original query is kept.
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/rewrite-handler.ts)
+
+<h2 id="rewritemessage-search">search</h2>
+
+When set, replaces the request's query string; otherwise the original query is kept.
+
+```typescript
+readonly search?: string | undefined;
+```
 
 <h2 id="servererror">ServerError</h2>
 

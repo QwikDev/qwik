@@ -1,8 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createRequestEvent } from './request-event';
+import { RequestEvIsRewrite } from './request-event-core';
 import type { ServerRequestEvent } from './types';
 import type { LoadedRoute } from '../../runtime/src/types';
-import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';
+import {
+  RedirectMessage,
+  RewriteMessage,
+  ServerError,
+} from '@qwik.dev/router/middleware/request-handler';
 
 function createMockServerRequestEvent(
   url = 'http://localhost:3000/test',
@@ -217,5 +222,96 @@ describe('request-event redirect', () => {
     expect(error).toBeInstanceOf(ServerError);
     expect(error.status).toBe(418);
     expect(error.data).toBe('teapot');
+  });
+});
+
+describe('request-event rewrite', () => {
+  it('splits an explicit query off a relative path and drops the fragment', () => {
+    const requestEv = createMockRequestEvent('http://localhost:3000/test?original=1');
+
+    const result = requestEv.rewrite('/x?q=1#h');
+
+    expect(result).toBeInstanceOf(RewriteMessage);
+    expect(result.pathname).toBe('/x');
+    expect(result.search).toBe('?q=1');
+    expect(requestEv.sharedMap.get(RequestEvIsRewrite)).toBe(true);
+    expect(requestEv.exited).toBe(true);
+  });
+
+  it('keeps the original query when the relative target has none', () => {
+    const requestEv = createMockRequestEvent('http://localhost:3000/test?original=1');
+
+    const result = requestEv.rewrite('/x');
+
+    expect(result).toBeInstanceOf(RewriteMessage);
+    expect(result.pathname).toBe('/x');
+    expect(result.search).toBeUndefined();
+  });
+
+  it('drops a fragment-only suffix from a relative path', () => {
+    const requestEv = createMockRequestEvent();
+
+    const result = requestEv.rewrite('/x#h');
+
+    expect(result.pathname).toBe('/x');
+    expect(result.search).toBeUndefined();
+  });
+
+  it('normalizes a same-origin absolute URL to its path and query, dropping the fragment', () => {
+    const requestEv = createMockRequestEvent('http://localhost:3000/test');
+
+    const result = requestEv.rewrite('http://localhost:3000/x?q=1#h');
+
+    expect(result).toBeInstanceOf(RewriteMessage);
+    expect(result.pathname).toBe('/x');
+    expect(result.search).toBe('?q=1');
+  });
+
+  it('leaves search undefined for a same-origin absolute URL without a query', () => {
+    const requestEv = createMockRequestEvent('http://localhost:3000/test');
+
+    const result = requestEv.rewrite('http://localhost:3000/x');
+
+    expect(result.pathname).toBe('/x');
+    expect(result.search).toBeUndefined();
+  });
+
+  it('throws a 400 ServerError for cross-origin absolute URLs', () => {
+    const requestEv = createMockRequestEvent('http://localhost:3000/test');
+
+    let thrown: unknown;
+    try {
+      requestEv.rewrite('http://other-origin.com/x');
+    } catch (err) {
+      thrown = err;
+    }
+
+    expect(thrown).toBeInstanceOf(ServerError);
+    expect((thrown as InstanceType<typeof ServerError>).status).toBe(400);
+    expect(requestEv.sharedMap.get(RequestEvIsRewrite)).toBeUndefined();
+  });
+
+  it('throws a 400 ServerError when the URL is invalid after the protocol', () => {
+    const requestEv = createMockRequestEvent('http://localhost:3000/test');
+
+    let thrown: unknown;
+    try {
+      requestEv.rewrite('http://');
+    } catch (err) {
+      thrown = err;
+    }
+
+    expect(thrown).toBeInstanceOf(ServerError);
+    expect((thrown as InstanceType<typeof ServerError>).status).toBe(400);
+  });
+
+  it('does not treat a relative path starting with "http" as an absolute URL', () => {
+    const requestEv = createMockRequestEvent('http://localhost:3000/test');
+
+    const result = requestEv.rewrite('/http-docs/x');
+
+    expect(result).toBeInstanceOf(RewriteMessage);
+    expect(result.pathname).toBe('/http-docs/x');
+    expect(result.search).toBeUndefined();
   });
 });

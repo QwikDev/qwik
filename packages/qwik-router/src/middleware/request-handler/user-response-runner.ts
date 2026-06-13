@@ -18,7 +18,7 @@ export interface QwikRouterRun<T> {
 
 type RedirectMessageConstructor = new (...args: any[]) => object;
 type AbortMessageConstructor = new (...args: any[]) => object;
-type RewriteMessageConstructor = new (...args: any[]) => { pathname: string };
+type RewriteMessageConstructor = new (...args: any[]) => { pathname: string; search?: string };
 type ServerErrorConstructor = new (...args: any[]) => { status: StatusCodes; data: unknown };
 
 interface RequestEventInternalLike extends Readonly<RequestEvent> {
@@ -123,6 +123,9 @@ async function runNextWithDeps<TRequestEventInternal extends RequestEventInterna
         rewriteAttempt += 1;
         const url = new URL(requestEv.url);
         url.pathname = e.pathname;
+        if (e.search !== undefined) {
+          url.search = e.search;
+        }
         const { loadedRoute, requestHandlers } = await rebuildRouteInfo(url);
         requestEv.resetRoute(loadedRoute, requestHandlers, url);
         return await runOnce();

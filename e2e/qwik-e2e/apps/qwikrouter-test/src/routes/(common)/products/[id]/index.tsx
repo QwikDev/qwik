@@ -144,7 +144,6 @@ export const useProductLoader = routeLoader$(
       throw rewrite('/qwikrouter-test/products/tshirt/');
     }
 
-    // Should throw an error
     if (id === 'shirt-rewrite-absolute-url') {
       throw rewrite(`${url.origin}/qwikrouter-test/products/tshirt/`);
     }

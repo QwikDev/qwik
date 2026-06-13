@@ -176,6 +176,12 @@ export const processData = (
     return node.then((node) => processData(node, invocationContext));
   } else if (node === SkipRender) {
     return new ProcessedJSXNodeImpl(SKIP_RENDER_TYPE, EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
+  } else if (isFunction(node)) {
+    throw new Error(
+      `Functions are not valid JSX children. ` +
+        `You might have passed a function instead of calling it: use {fn()} instead of {fn}. ` +
+        `If this is a component, wrap it with component$().`
+    );
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
     return undefined;

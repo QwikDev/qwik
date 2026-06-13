@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.38
+
+### Patch Changes
+
+- 🐞🩹 duplicate projected element children when a component throws a promise on first render (by [@maiieul](https://github.com/maiieul) in [#8715](https://github.com/QwikDev/qwik/pull/8715))
+
 ## 2.0.0-beta.37
 
 ### Minor Changes

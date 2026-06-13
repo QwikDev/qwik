@@ -1,5 +1,14 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.38
+
+### Patch Changes
+
+- 🐞🩹 `routeLoader$` not re-running during SPA navigation between URLs that match the same catchall route (by [@Varixo](https://github.com/Varixo) in [#8730](https://github.com/QwikDev/qwik/pull/8730))
+
+- Updated dependencies [[`12387da`](https://github.com/QwikDev/qwik/commit/12387daadac9e4500d3ecd30337cfe6efa1d2958)]:
+  - @qwik.dev/core@2.0.0-beta.38
+
 ## 2.0.0-beta.37
 
 ### Major Changes

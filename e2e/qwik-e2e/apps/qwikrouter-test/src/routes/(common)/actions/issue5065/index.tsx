@@ -22,12 +22,12 @@ export default component$(() => {
   fooValue satisfies MyObject;
 
   const zodAction = useZodObjectAction();
-  const zodValue = zodAction.value!;
-  if (zodValue.failed) {
-    zodValue satisfies { failed: true } & ValidatorErrorType<{
+  if (zodAction.error) {
+    zodAction.error.data satisfies ValidatorErrorType<{
       name: string;
     }>;
   } else {
+    const zodValue = zodAction.value!;
     zodValue satisfies MyObject;
   }
   return <>TEST</>;

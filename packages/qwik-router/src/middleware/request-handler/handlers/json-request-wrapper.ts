@@ -58,7 +58,7 @@ export function jsonRequestWrapper(): RequestHandler {
         }
       } else if (err instanceof ServerError) {
         if (isLoader) {
-          await sendJsonResponse(requestEv, { e: err });
+          await sendJsonResponse(requestEv, { e: err, a: 1 });
         } else {
           await sendActionResponse(requestEv, { e: err, s: err.status });
         }
@@ -69,7 +69,7 @@ export function jsonRequestWrapper(): RequestHandler {
           : 'Internal Server Error';
         const se = new ServerError(500, message);
         if (isLoader) {
-          await sendJsonResponse(requestEv, { e: se });
+          await sendJsonResponse(requestEv, { e: se, a: 1 });
         } else {
           await sendActionResponse(requestEv, { e: se, s: 500 });
         }

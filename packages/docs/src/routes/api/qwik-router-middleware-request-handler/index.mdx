@@ -522,12 +522,6 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 
-<h2 id="servererror-data">data</h2>
-
-```typescript
-data: T;
-```
-
 <h2 id="deferreturn">DeferReturn</h2>
 
 ```typescript
@@ -612,6 +606,112 @@ get(key)
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
+
+<h2 id="excludefail">ExcludeFail</h2>
+
+Removes fail branches from a loader/action return union — `.value` is the success type only.
+
+```typescript
+export type ExcludeFail<T> = T extends Failed ? never : T;
+```
+
+**References:** [Failed](#failed)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
+<h2 id="failbrand">FailBrand</h2>
+
+Brand for values produced by `requestEv.fail()`. Non-enumerable and `Symbol.for` so JSON/user data can't spoof a failure and the brand survives duplicate bundling.
+
+```typescript
+FailBrand: unique symbol
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
+<h2 id="failed">Failed</h2>
+
+Marker for results produced by `requestEv.fail()`.
+
+```typescript
+export type Failed = {
+  readonly [FailBrand]: FailMeta;
+};
+```
+
+**References:** [FailBrand](#failbrand), [FailMeta](#failmeta)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
+<h2 id="failmeta">FailMeta</h2>
+
+Metadata carried by a fail result, hidden under the [FailBrand](#failbrand) symbol.
+
+```typescript
+export interface FailMeta
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+status
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
+<h2 id="failpayload">FailPayload</h2>
+
+Extracts the payload types of the fail branches of a loader/action return union.
+
+```typescript
+export type FailPayload<T> = T extends Failed
+  ? {
+      [K in keyof T as K extends typeof FailBrand ? never : K]: T[K];
+    }
+  : never;
+```
+
+**References:** [Failed](#failed), [FailBrand](#failbrand)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
+
+<h2 id="failreturn">FailReturn</h2>
+
+A typed failure result returned from a loader/action via `requestEv.fail(status, data)`. It surfaces as the loader/action `.error` state and is excluded from the `.value` type.
+
+```typescript
+export type FailReturn<T> = T & Failed;
+```
+
+**References:** [Failed](#failed)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
 
 <h2 id="cookie-get">get</h2>
 
@@ -771,6 +871,48 @@ export type InternalRequest = false | "loader" | "action";
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
+
+<h2 id="isservererror">isServerError</h2>
+
+Checks whether an error is a `ServerError` (carries `status` and `data`). Structural rather than `instanceof` so it also matches ServerErrors that crossed a serialization boundary.
+
+```typescript
+export declare function isServerError<E>(
+  err: ServerError<E> | Error | undefined,
+): err is ServerError<E>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+err
+
+</td><td>
+
+[ServerError](#servererror-variable)&lt;E&gt; \| Error \| undefined
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+err is [ServerError](#servererror-variable)&lt;E&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts)
 
 <h2 id="mergeheaderscookies">mergeHeadersCookies</h2>
 
@@ -943,38 +1085,6 @@ export interface RequestEventAction<PLATFORM = QwikRouterPlatform> extends Reque
 ```
 
 **Extends:** [RequestEventCommon](#requesteventcommon)&lt;PLATFORM&gt;
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-fail
-
-</td><td>
-
-</td><td>
-
-&lt;T extends Record&lt;string, any&gt;&gt;(status: number, returnData: T) =&gt; FailReturn&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 
@@ -1368,7 +1478,7 @@ error
 
 </td><td>
 
-&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [ServerError](#servererror)&lt;T&gt;
+&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [ServerError](#servererror-variable)&lt;T&gt;
 
 </td><td>
 
@@ -1388,6 +1498,23 @@ exit
 () =&gt; [AbortMessage](#abortmessage)
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+fail
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+&lt;T extends Record&lt;string, any&gt;&gt;(statusCode: ErrorCodes, data: T) =&gt; [FailReturn](#failreturn)&lt;T&gt;
+
+</td><td>
+
+Returns a typed failure result to `return` from a loader or action. It surfaces as the loader's/action's `.error` state (a `ServerError`) while `.value` stays the success type and the page keeps rendering. Unlike `error()`, which is thrown and aborts the request, `fail()` is for expected failures the page should display inline.
 
 </td></tr>
 <tr><td>
@@ -1703,84 +1830,25 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/rewrite-handler.ts)
 
-<h2 id="servererror">ServerError</h2>
+<h2 id="servererror-type-alias">ServerError</h2>
 
 ```typescript
-export declare class ServerError<T = any> extends Error
+ServerError: {
+    new <T = unknown>(status: number, data: T): ServerError<T>;
+    readonly prototype: ServerErrorImpl;
+}
 ```
 
-**Extends:** Error
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts)
 
-<table><thead><tr><th>
+<h2 id="servererror-variable">ServerError</h2>
 
-Constructor
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-(constructor)(status, data)
-
-</td><td>
-
-</td><td>
-
-Constructs a new instance of the `ServerError` class
-
-</td></tr>
-</tbody></table>
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[data](#servererror-data)
-
-</td><td>
-
-</td><td>
-
-T
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[status](#servererror-status)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+```typescript
+ServerError: {
+    new <T = unknown>(status: number, data: T): ServerError<T>;
+    readonly prototype: ServerErrorImpl;
+}
+```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts)
 
@@ -2065,9 +2133,3 @@ _(Optional)_
 **Returns:**
 
 void
-
-<h2 id="servererror-status">status</h2>
-
-```typescript
-status: number;
-```

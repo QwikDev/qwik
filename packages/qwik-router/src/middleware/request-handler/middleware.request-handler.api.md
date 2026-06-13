@@ -7,7 +7,6 @@
 import type { Action } from '@qwik.dev/router';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 import type { EnvGetter as EnvGetter_2 } from '@qwik.dev/router/middleware/request-handler';
-import type { FailReturn } from '@qwik.dev/router';
 import type { JSXOutput } from '@qwik.dev/core';
 import type { Loader as Loader_2 } from '@qwik.dev/router';
 import type { QwikIntrinsicElements } from '@qwik.dev/core';
@@ -16,6 +15,7 @@ import type { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent as RequestEvent_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { RequestHandler as RequestHandler_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue as ResolveSyncValue_2 } from '@qwik.dev/router/middleware/request-handler';
+import type { StrictUnion } from '@qwik.dev/router';
 import type { ValueOrPromise } from '@qwik.dev/core';
 
 // @public (undocumented)
@@ -87,6 +87,31 @@ export interface EnvGetter {
     get(key: string): string | undefined;
 }
 
+// @public
+export type ExcludeFail<T> = T extends Failed ? never : T;
+
+// @public
+export const FailBrand: unique symbol;
+
+// @public
+export type Failed = {
+    readonly [FailBrand]: FailMeta;
+};
+
+// @public
+export interface FailMeta {
+    // (undocumented)
+    status: number;
+}
+
+// @public
+export type FailPayload<T> = T extends Failed ? {
+    [K in keyof T as K extends typeof FailBrand ? never : K]: T[K];
+} : never;
+
+// @public
+export type FailReturn<T> = T & Failed;
+
 // @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;
 
@@ -97,6 +122,12 @@ export function getNotFound(prefix: string): string;
 
 // @public
 export type InternalRequest = false | 'loader' | 'action';
+
+// @public
+export function isServerError<E>(err: ServerError<E> | Error | undefined): err is ServerError<E>;
+
+// @public (undocumented)
+export function isServerError<T = unknown>(err: unknown): err is ServerError<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "isStaticPath" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -120,8 +151,6 @@ export interface RequestEvent<PLATFORM = QwikRouterPlatform> extends RequestEven
 
 // @public (undocumented)
 export interface RequestEventAction<PLATFORM = QwikRouterPlatform> extends RequestEventCommon<PLATFORM> {
-    // (undocumented)
-    fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
 // @public (undocumented)
@@ -153,6 +182,7 @@ export interface RequestEventCommon<PLATFORM = QwikRouterPlatform> extends Reque
     readonly error: <T = any>(statusCode: ErrorCodes, message: T) => ServerError<T>;
     // (undocumented)
     readonly exit: () => AbortMessage;
+    readonly fail: <T extends Record<string, any>>(statusCode: ErrorCodes, data: T) => FailReturn<T>;
     readonly html: (statusCode: StatusCodes, html: string) => AbortMessage;
     readonly json: (statusCode: StatusCodes, data: any) => AbortMessage;
     readonly locale: (local?: string) => string;
@@ -185,9 +215,9 @@ export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<
 // @public (undocumented)
 export interface ResolveSyncValue {
     // (undocumented)
-    <T, INPUT, OPTIONAL extends boolean>(action: Action<T, INPUT, OPTIONAL>): Awaited<T> | undefined;
+    <T, INPUT, OPTIONAL extends boolean, ERROR>(action: Action<T, INPUT, OPTIONAL, ERROR>): StrictUnion<Awaited<T> | ServerError<StrictUnion<ERROR>>> | undefined;
     // (undocumented)
-    <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+    <T, ERROR>(loader: Loader_2<T, ERROR>): Awaited<T> extends () => any ? never : Awaited<T> | ServerError<StrictUnion<ERROR>>;
 }
 
 // @public (undocumented)
@@ -205,14 +235,17 @@ export class RewriteMessage extends AbortMessage {
     readonly pathname: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ServerErrorImpl" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ReservedServerErrorKeys" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type ServerError<T = unknown> = ServerErrorImpl<T> & (T extends object ? Omit<T, ReservedServerErrorKeys> : unknown);
+
 // @public (undocumented)
-export class ServerError<T = any> extends Error {
-    constructor(status: number, data: T);
-    // (undocumented)
-    data: T;
-    // (undocumented)
-    status: number;
-}
+export const ServerError: {
+    new <T = unknown>(status: number, data: T): ServerError<T>;
+    readonly prototype: ServerErrorImpl;
+};
 
 // @public (undocumented)
 export interface ServerRenderOptions extends RenderOptions {

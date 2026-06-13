@@ -21,6 +21,9 @@ export type {
   DocumentMeta,
   DocumentScript,
   DocumentStyle,
+  ExcludeFail,
+  FailOfRest,
+  FailPayload,
   FailReturn,
   HttpStatus as HttpErrorProps,
   InternalRequest,
@@ -87,6 +90,8 @@ export {
   zodQrl,
 } from './server-functions';
 export { routeLoader$, routeLoaderQrl } from './route-loaders';
+export { isServerError } from '../../middleware/request-handler/fail';
+export { ServerError } from '../../middleware/request-handler/server-error';
 export { ServiceWorkerRegister } from './sw-component';
 export {
   useContent,
@@ -108,15 +113,17 @@ export { omitProps, untypedAppUrl } from './typed-routes';
 export type {
   ActionReturn,
   DataValidator,
-  FailOfRest,
   GetValidatorInputType,
   GetValidatorOutputType,
   GetValidatorType,
   ServerFunction,
   ServerQRL,
   StrictUnion,
+  TransportError,
   TypedDataValidator,
   ValidatorReturn,
+  ValidatorReturnFail,
+  ValidatorReturnSuccess,
 } from './types';
 
 export {

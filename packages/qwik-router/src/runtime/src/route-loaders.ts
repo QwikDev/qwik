@@ -21,6 +21,7 @@ import type {
 // route-loaders.ts → middleware barrel → runtime/src/ (same module group)
 import { _asyncRequestStore } from '../../middleware/request-handler/async-request-store';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
+import { failReturn, failToServerError, isFailReturn } from '../../middleware/request-handler/fail';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import { ServerError } from '../../middleware/request-handler/server-error';
 import { ensureSlash } from '../../utils/pathname';
@@ -51,6 +52,7 @@ const REQUEST_ROUTE_LOADER_STATE = '@routeLoaderState';
 const REQUEST_LOADER_PATHS_STORE = '@loaderPathsStore';
 const REQUEST_ROUTE_LOADERS = '@routeLoaders';
 const REQUEST_ROUTE_LOADER_PROMISES = '@routeLoaderPromises';
+const REQUEST_ROUTE_LOADER_ERRORS = '@routeLoaderErrors';
 const REQUEST_ROUTE_LOADER_EVENTS = '@routeLoaderEvents';
 const REQUEST_ROUTE_LOADER_ROOT_EVENT = '@routeLoaderRootEvent';
 const ROUTE_LOADER_VALUE_PREFIX = '__qwik_route_loader_value__';
@@ -63,12 +65,14 @@ export const FULLPATH_HEADER = 'X-Qwik-fullpath';
  *
  * - `d` — data: the loader's successful return value
  * - `r` — redirect: URL to navigate to (from `throw redirect()`)
- * - `e` — error: a ServerError (from `fail()` or `throw serverError()`)
+ * - `e` — error: a ServerError (from `fail()` or a failed validator)
+ * - `a` — abort marker on `e`: the request aborted; the client falls back to a full-page load
  */
 export type LoaderResponse = {
   d?: unknown;
   r?: string;
   e?: InstanceType<typeof ServerError>;
+  a?: 1;
 };
 
 type LoaderFetchCacheEntry = {
@@ -138,13 +142,22 @@ class ServerRouteLoaderCapture {
 
   load() {
     const requestEv = getRequestEvent();
+    const errors = getRouteLoaderErrors(requestEv);
+    if (this.hash in errors) {
+      throw errors[this.hash];
+    }
     // Use pre-computed value from loadersMiddleware if available,
     // to avoid re-running the loader after the response stream is open.
     const values = getRouteLoaderValues(requestEv);
     if (this.hash in values) {
       return values[this.hash];
     }
-    return loadRouteLoaderByQrl(this.hash, this.qrl, this.validators, requestEv);
+    return loadRouteLoaderByQrl(this.hash, this.qrl, this.validators, requestEv).then((value) => {
+      if (isFailReturn(value)) {
+        throw failToServerError(value);
+      }
+      return value;
+    });
   }
 
   [SerializerSymbol]() {
@@ -387,6 +400,10 @@ const createRouteLoaderSignal = (
         return previous;
       }
       if (response.e) {
+        if (response.a) {
+          location.href = pageUrl.href;
+          return previous;
+        }
         // Error — throw so AsyncSignal enters error state
         throw response.e;
       }
@@ -512,6 +529,20 @@ export function getRouteLoaderValues(requestEv: RequestEventBase): Record<string
     requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_VALUES, values);
   }
   return values;
+}
+
+/** Get/create the record of loader failures captured by loadersMiddleware, keyed by loader id. */
+export function getRouteLoaderErrors(
+  requestEv: RequestEventBase
+): Record<string, InstanceType<typeof ServerError>> {
+  let errors = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_ERRORS) as
+    | Record<string, InstanceType<typeof ServerError>>
+    | undefined;
+  if (!errors) {
+    errors = {};
+    requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_ERRORS, errors);
+  }
+  return errors;
 }
 
 function getRouteLoaderPromises(requestEv: RequestEventBase): Record<string, Promise<unknown>> {
@@ -642,7 +673,7 @@ export const getRouteLoaderData = async (
 
   const result = await runValidators(requestEv, validators, undefined);
   if (!result.success) {
-    return loaderRequestEv.fail(result.status ?? 500, result.error);
+    return failReturn(result.status ?? 500, result.error ?? {});
   }
   const resolved = await loaderQrl.call(
     loaderRequestEv as unknown as ServerRequestEventLoader,
@@ -753,8 +784,10 @@ export const getRouteLoaderResponse = async (
 ): Promise<LoaderResponse> => {
   try {
     const value = await getRouteLoaderData(loaderQrl, validators, requestEv);
-    if (value && typeof value === 'object' && (value as any).failed) {
-      return { e: new ServerError(requestEv.status(), value) };
+    if (isFailReturn(value)) {
+      // Keep the HTTP 200 envelope — `!response.ok` must keep meaning transport failure.
+      requestEv.headers.delete('Cache-Control');
+      return { e: failToServerError(value) };
     }
     return { d: value };
   } catch (err) {
@@ -762,9 +795,6 @@ export const getRouteLoaderResponse = async (
       const location = requestEv.headers.get('Location') || '/';
       requestEv.headers.delete('Location');
       return { r: location };
-    }
-    if (err instanceof ServerError) {
-      return { e: err };
     }
     throw err;
   }
@@ -786,7 +816,7 @@ export const routeLoaderQrl = ((
       signal = ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
     }
     void signal.promise();
-    return signal;
+    return signal as unknown as ReturnType<LoaderInternal>;
   }
 
   loader.__brand = 'server_loader' as const;

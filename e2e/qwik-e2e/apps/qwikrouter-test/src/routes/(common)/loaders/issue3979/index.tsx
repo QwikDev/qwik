@@ -1,4 +1,4 @@
-import { routeLoader$, validator$, type RequestEventAction } from '@qwik.dev/router';
+import { routeLoader$, validator$, type RequestEventLoader } from '@qwik.dev/router';
 import { component$ } from '@qwik.dev/core';
 
 const dataValidator = validator$((ev) => {
@@ -33,9 +33,9 @@ const dynamicPetLoaderQrl = () => {
   };
 };
 
-const randomFailedLoaderQrl = ({ fail }: RequestEventAction) => {
+const randomFailedLoaderQrl = (ev: RequestEventLoader) => {
   if (Math.random() > 0.5) {
-    return fail(500, {
+    return ev.fail(500, {
       loaderFailedReason: 'Reach Limit',
     });
   }
@@ -69,30 +69,22 @@ export default component$(() => {
     <div>
       <div>{pet.value.pet}</div>
       <div>
-        {petWithValidation.value.pet}
-        {petWithValidation.value.failed}
-        {petWithValidation.value.validationFailReason}
+        {petWithValidation.error ? petWithValidation.error.message : petWithValidation.value.pet}
       </div>
       <div>
         {dynamicPet.value.dog}
         {dynamicPet.value.rat}
       </div>
       <div>
-        {dynamicPetWithValidation.value.dog}
-        {dynamicPetWithValidation.value.rat}
-        {dynamicPetWithValidation.value.failed}
-        {dynamicPetWithValidation.value.validationFailReason}
+        {dynamicPetWithValidation.error
+          ? dynamicPetWithValidation.error.message
+          : `${dynamicPetWithValidation.value.dog ?? ''}${dynamicPetWithValidation.value.rat ?? ''}`}
       </div>
+      <div>{randomFailed.error ? randomFailed.error.message : randomFailed.value.pet}</div>
       <div>
-        {randomFailed.value.pet}
-        {randomFailed.value.failed}
-        {randomFailed.value.loaderFailedReason}
-      </div>
-      <div>
-        {randomFailedWithValidator.value.pet}
-        {randomFailedWithValidator.value.failed}
-        {randomFailedWithValidator.value.loaderFailedReason}
-        {randomFailedWithValidator.value.validationFailReason}
+        {randomFailedWithValidator.error
+          ? randomFailedWithValidator.error.message
+          : randomFailedWithValidator.value.pet}
       </div>
     </div>
   );

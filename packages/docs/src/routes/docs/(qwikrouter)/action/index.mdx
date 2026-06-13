@@ -290,7 +290,7 @@ export default component$(() => {
         <input name="firstName" />
         <input name="lastName" />
 
-        {action.value?.failed && <p>{action.value.fieldErrors?.firstName}</p>}
+        {action.error && <p>{action.error.fieldErrors?.firstName}</p>}
         <button type="submit">Add user</button>
       </Form>
       {action.value?.success && (
@@ -301,7 +301,7 @@ export default component$(() => {
 });
 ```
 
-When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.value` property.
+When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action fails: the validation error surfaces on `action.error` (a `ServerError`), and the field-level messages are exposed directly on the error as `action.error.fieldErrors` (the validator error fields are spread onto the `ServerError`).
 
 Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
 
@@ -366,7 +366,7 @@ export const useProductRecommendations = routeAction$(
 
 ## Action Failures
 
-In order to return non-success values, the action must use the `fail()` method.
+To signal an expected failure from an action — invalid input, a domain rule that didn't pass — destructure `fail` from the `RequestEvent` and `return fail(status, data)`:
 
 ```tsx /fail/
 import { routeAction$, zod$, z } from '@qwik.dev/router';
@@ -390,7 +390,11 @@ export const useAddUser = routeAction$(
 );
 ```
 
-Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails. Futhermore, failure messages can be found in the `fieldErrors` object according to properties defined in your Zod schema.
+Failures surface on the reactive `action.error` property as a `ServerError`, separate from the success value on `action.value`. The error carries `error.status` (the HTTP status) and `error.data` (the canonical payload object), and the payload's fields are also exposed flat on the error, so you can read them directly: `error.message`, `error.fieldErrors`, and so on. The page keeps rendering normally — the response just carries the failure's HTTP status (and is never cached).
+
+The data you pass to `fail()` is fully type-inferred into `action.error` (unioned with any `zod$()`/`valibot$()`/`validator$()` error types), while `action.value` stays the success type only — it is `undefined` whenever the action failed.
+
+For validators, the validator error fields are exposed flat on the error the same way: failure messages live in `action.error.fieldErrors` according to the properties defined in your Zod schema.
 
 The `fieldErrors` become a dot notation object. See [Complex forms](/docs/advanced/complex-forms) for more information.
 
@@ -404,14 +408,38 @@ export default component$(() => {
     <Form action={action}>
       <input name="name" />
       <button type="submit">Add user</button>
-      {action.value?.failed && <p>{action.value.fieldErrors.name}</p>}
+      {/* fieldErrors comes from a zod$ failure, message from the fail() payload */}
+      {action.error && <p>{action.error.fieldErrors?.name ?? action.error.message}</p>}
       {action.value?.userID && <p>User added successfully</p>}
     </Form>
   );
 });
 ```
 
-Thanks to Typescript type discrimination, you can use the `action.value.failed` property to discriminate between success and failure.
+Branch on `action.error` to render failure UI, and on `action.value` for the success result — they are never both set at once.
+
+### Aborting to the error page
+
+`fail()` is for failures the page should display inline. To abort the request entirely and render the nearest error page instead — for example a 404 for a missing record — destructure `error` from the `RequestEvent` and `throw error(status, data)`:
+
+```tsx /error/
+import { routeAction$, zod$, z } from '@qwik.dev/router';
+
+export const useDeletePost = routeAction$(
+  async (data, { error }) => {
+    const post = await db.posts.get(data.id);
+    if (!post) {
+      // Aborts the request — the error page renders with a 404 status.
+      throw error(404, 'Post not found');
+    }
+    await db.posts.delete(post.id);
+    return { success: true };
+  },
+  zod$({ id: z.string() })
+);
+```
+
+A thrown `error()` never lands on `action.error`: the action records no state and `action.submit()` rejects with the error. `<Form>` handles the rejection internally and fires `submitcompleted` with `detail.aborted` set — use `fail()` for anything the UI should display. Plain (non-`error()`) throws behave like unexpected errors and result in a sanitized 500.
 
 ## Previous form state
 

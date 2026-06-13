@@ -10,19 +10,19 @@ import { Note } from '~/components/note/note';
 
 # Error handling
 
-When an error is thrown in a loader or `server$` function, a 500 error is returned to the client along with the error. This is useful during development but isn't always desirable for production systems. Qwik provides the tools necessary to customise how errors are handled.
+When a plain error is thrown in a loader, action, or `server$` function, the request aborts and a sanitized 500 error is returned to the client. The full error is visible during development, but the details are hidden in production. Qwik provides the tools necessary to customise how errors are handled.
 
-Throwing a `ServerError` instance allows you to return custom errors to the browser with a different status code and serialised data.
+Throwing a `ServerError` instance (or the `requestEvent.error()` helper, which creates one) allows you to abort the request on purpose with a different status code and serialised data — the nearest error page renders with that status.
 
-<Note>Loaders also provide a helper function on the event object to easily create new ServerErrors.</Note>
+<Note>Throwing is for **aborting** to the error page. For expected failures that the page should display inline (form validation, domain rules), `return requestEvent.fail(status, data)` instead — the failure surfaces on the reactive `loader.error` / `action.error` and the page keeps rendering. See [routeLoader$](/docs/route-loader/#signaling-failure-from-a-loader) and [routeAction$](/docs/action/#action-failures).</Note>
 
 ```tsx
-// Throw ServerErrors from a routerLoader$
+// Throw ServerErrors from a routeLoader$
 const useProduct = routeLoader$(async (ev) => {
   const product = await fetch('api/product/1')
 
   if (!product) {
-    // Throw a 404 with a custom payload
+    // Throw a 404 with a custom payload — the error page renders with a 404 status
     throw new ServerError(404, 'Product not found')
 
     // Or use the existing helper function
@@ -44,7 +44,7 @@ const getPrices = server$(() => {
 export default component$(() => {
   const product = useProduct()
 
-  useVisibleTask(() => {
+  useVisibleTask$(() => {
     getPrices()
       .then()
       .catch(err => {
@@ -64,6 +64,8 @@ export default component$(() => {
 ## Error interceptor
 
 Intercepting errors with middleware has a few usecases: you might want to hide error details in production systems, add structured error logging, or map the error status codes from RPC API calls to HTTP status codes. This is all achieveable with middleware in a `plugin` file.
+
+Thrown errors — `throw error(...)`, thrown `ServerError`s, and unexpected errors — propagate up through `next()`, so middleware can catch them. Note that a returned `fail(...)` is **not** an exception: it becomes the loader/action `.error` state and never passes through the interceptor.
 
 ```tsx
 // src/routes/plugin@errors.ts

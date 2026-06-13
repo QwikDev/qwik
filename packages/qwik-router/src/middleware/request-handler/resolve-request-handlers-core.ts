@@ -16,11 +16,13 @@ import type {
 } from '../../runtime/src/types';
 import {
   getRouteLoaderCtx,
+  getRouteLoaderErrors,
   getRouteLoaderValues,
   loadRouteLoader,
   setRouteLoaders,
 } from '../../runtime/src/route-loaders';
 import { ensureSlash } from '../../utils/pathname';
+import { applyFailureResponse, failToServerError, isFailReturn } from './fail';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
 import type { RequestEventInternal } from './request-event-core';
 import { loaderHandler } from './handlers/loader-handler';
@@ -293,20 +295,28 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
                 `Expected request data for the action id ${selectedActionId} to be an object`
               );
             }
-            const result = await runValidators(requestEv, action.__validators, data);
             let actionResult: unknown;
+            const result = await runValidators(requestEv, action.__validators, data);
             if (!result.success) {
-              actionResult = requestEv.fail(result.status ?? 500, result.error);
+              const actionError = new deps.ServerError(result.status ?? 500, result.error);
+              applyFailureResponse(requestEv, actionError);
+              actionResult = actionError;
             } else {
               const actionResolved = isDev
                 ? await measure(requestEv, action.__qrl.getHash(), () =>
                     action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
                   )
                 : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
-              if (isDev) {
-                verifySerializable(actionResolved, action.__qrl);
+              if (isFailReturn(actionResolved)) {
+                const actionError = failToServerError(actionResolved);
+                applyFailureResponse(requestEv, actionError);
+                actionResult = actionError;
+              } else {
+                if (isDev) {
+                  verifySerializable(actionResolved, action.__qrl);
+                }
+                actionResult = actionResolved;
               }
-              actionResult = actionResolved;
             }
             requestEv.sharedMap.set('@actionResult', actionResult);
           }
@@ -328,11 +338,33 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         // Run loaders directly and store raw values.
         // Errors/redirects propagate so middleware can catch them (e.g. plugin@errors).
         const loaderValues = getRouteLoaderValues(requestEv);
+        const loaderErrors = getRouteLoaderErrors(requestEv);
         await Promise.all(
           routeLoaders.map(async (loader) => {
-            loaderValues[loader.__id] = await loadRouteLoader(loader, requestEv);
+            const value = await loadRouteLoader(loader, requestEv);
+            if (isFailReturn(value)) {
+              loaderErrors[loader.__id] = failToServerError(value);
+              delete loaderValues[loader.__id];
+            } else {
+              loaderValues[loader.__id] = value;
+            }
           })
         );
+        // The first failed loader in registration order wins the response status — unless a
+        // failed action already set it (progressive-enhancement POST renders take the
+        // action's status).
+        const actionFailed = requestEv.sharedMap.get('@actionResult') instanceof deps.ServerError;
+        for (const loader of routeLoaders) {
+          const err = loaderErrors[loader.__id];
+          if (err) {
+            if (actionFailed) {
+              requestEv.headers.delete('Cache-Control');
+            } else {
+              applyFailureResponse(requestEv, err);
+            }
+            break;
+          }
+        }
       }
     };
   }
@@ -388,6 +420,10 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       const getData = ((loaderOrAction: any) => {
         const id = loaderOrAction.__id;
         if (loaderOrAction.__brand === 'server_loader') {
+          const loaderErrors = getRouteLoaderErrors(requestEv);
+          if (id in loaderErrors) {
+            return loaderErrors[id];
+          }
           if (!(id in loaderValues)) {
             throw new Error('Loader not executed for this request.');
           }

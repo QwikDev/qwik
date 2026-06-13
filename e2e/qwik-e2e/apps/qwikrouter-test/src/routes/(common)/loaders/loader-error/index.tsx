@@ -6,6 +6,7 @@ const useError = routeLoader$(async function ({ error }): Promise<string> {
 });
 
 export default component$(() => {
+  // The thrown error() aborts the request — the error page renders, never this component.
   useError();
   return <></>;
 });

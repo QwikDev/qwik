@@ -81,8 +81,7 @@ export default component$(() => {
     return <div>Loading…</div>;
   }
   if (product.error) {
-    // ServerError — read .status and .data
-    return <div>{product.error.status}: {product.error.data.message}</div>;
+    return <div>{product.error.message}</div>;
   }
   return <div>Product name: {product.value.name}</div>;
 });
@@ -92,10 +91,52 @@ export default component$(() => {
 
 ### Signaling failure from a loader
 
-Loaders signal failure two ways. Both put the signal into error state with `signal.error` set to a `ServerError` carrying `.status` (HTTP status) and `.data` (the payload):
+To signal an expected failure — a result the page should render inline — destructure `fail` from the `RequestEvent` and `return fail(status, data)`. This puts the signal into error state, with `signal.error` set to a `ServerError` carrying `.status` (the HTTP status) and `.data` (the canonical payload object you passed to `fail()`), with the payload's fields also exposed flat on the error (e.g. `.message`). The page still renders — the response just carries the failure's HTTP status (and is never cached).
 
-- **`return requestEvent.fail(status, data)`** — return a tagged failure. `signal.error.data` is `{ failed: true, ...data }`.
-- **`throw requestEvent.error(status, data)`** — throw a `ServerError` directly. `signal.error.data` is `data`.
+```tsx
+export const useProduct = routeLoader$(async ({ params, fail }) => {
+  const product = await db.products.findById(params.productId);
+  if (!product) {
+    // signal.error.status === 404, signal.error.data === { message: 'Product not found' }
+    return fail(404, { message: 'Product not found' });
+  }
+  return product;
+});
+```
+
+Read it back on `signal.error`, never on `signal.value` — `.value` holds the success type only and is `undefined` on failure; they are never both set at once. The data you pass to `fail()` is fully type-inferred into `signal.error`, so failure payloads are as strongly typed as success values.
+
+On the client, `signal.error` can also hold a plain `Error` when the loader's JSON fetch itself failed (a network problem). Its `status` and payload fields are typed optional across that union, so a plain property check tells the two apart:
+
+```tsx
+if (product.error) {
+  if (product.error.status) {
+    // server failure — typed: .status, .data, and your fail() payload fields
+    console.warn(product.error.status, product.error.data);
+  } else {
+    // plain Error: the fetch itself failed
+  }
+}
+```
+
+<Note>When an error reaches you as `unknown` (a `catch` block around `resolveValue()`), check it structurally — `err instanceof Error && typeof err.status === 'number'` — since `instanceof ServerError` is `false` on the client after deserialization.</Note>
+
+### Aborting to the error page
+
+`fail()` is for failures your page renders inline. When the right response is the error page itself — a 404 for a missing product, say — destructure `error` from the `RequestEvent` and `throw error(status, data)` instead:
+
+```tsx
+export const useProduct = routeLoader$(async ({ params, error }) => {
+  const product = await db.products.findById(params.productId);
+  if (!product) {
+    // Aborts the request — the nearest error page renders with a 404 status.
+    throw error(404, 'Product not found');
+  }
+  return product;
+});
+```
+
+A thrown `error()` never lands on `signal.error`: it aborts the request to the nearest error handler (the route's error page, or a middleware `catch`). During SPA navigation the client falls back to a full-page load so the server can render the real error page. Plain (non-`error()`) throws behave like unexpected errors and result in a sanitized 500.
 
 ## Multiple `routeLoader$`s
 
@@ -329,7 +370,7 @@ export default component$(() => {
 | Echo the just-submitted form value back to the page | Loader returns the URL-derived value; the component overlays `action.value` on top, e.g. `action.value?.name ?? loader.value.name`.                                                          |
 | Recompute derived data from the submission          | Put the inputs in the URL (search params, or `goto()` after the action) so the loader reads them like any other route input.                                                                |
 | Refresh authoritative data after a mutation         | The action writes to your store (DB, KV, etc.); the loader reads from that store. The action's `invalidate` list re-runs the loader and it picks up the new state — no action result needed. |
-| Show success / error feedback                       | Read the action signal directly: `action.value`, `action.isRunning`, `action.value?.failed`. Ephemeral UI feedback doesn't belong in a loader.                                              |
+| Show success / error feedback                       | Read the action signal directly: `action.value`, `action.isRunning`, `action.error`. Ephemeral UI feedback doesn't belong in a loader.                                              |
 
 ## Options reference
 

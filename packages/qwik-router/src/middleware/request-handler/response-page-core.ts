@@ -1,10 +1,15 @@
 import type { QwikRouterEnvData } from '../../runtime/src/types';
-import { getRouteLoaderCtx, getRouteLoaderValues } from '../../runtime/src/route-loaders';
+import {
+  getRouteLoaderCtx,
+  getRouteLoaderErrors,
+  getRouteLoaderValues,
+} from '../../runtime/src/route-loaders';
 import type { RequestEvent } from './types';
 
 interface ResponsePageDeps {
   Q_ROUTE: string;
   RequestEvHttpStatusMessage: string;
+  RequestEvSharedActionError: string;
   RequestEvSharedActionFormData: string;
   RequestEvSharedActionId: string;
   RequestEvSharedNonce: string;
@@ -20,6 +25,7 @@ export function getQwikRouterServerDataWithDeps(deps: ResponsePageDeps, requestE
 
   const action = requestEv.sharedMap.get(deps.RequestEvSharedActionId) as string;
   const actionResult = requestEv.sharedMap.get('@actionResult');
+  const actionError = requestEv.sharedMap.get(deps.RequestEvSharedActionError);
   const formData = requestEv.sharedMap.get(deps.RequestEvSharedActionFormData);
   const routeName = requestEv.sharedMap.get(deps.RequestRouteName) as string;
   const nonce = requestEv.sharedMap.get(deps.RequestEvSharedNonce);
@@ -37,6 +43,7 @@ export function getQwikRouterServerDataWithDeps(deps: ResponsePageDeps, requestE
 
   const routeLoaderCtx = getRouteLoaderCtx(requestEv);
   const loaderValues = getRouteLoaderValues(requestEv);
+  const loaderErrors = getRouteLoaderErrors(requestEv);
 
   return {
     url: reconstructedUrl.href,
@@ -54,6 +61,7 @@ export function getQwikRouterServerDataWithDeps(deps: ResponsePageDeps, requestE
       loadedRoute: deps.getRequestRoute(requestEv),
       routeLoaderCtx,
       loaderValues,
+      loaderErrors,
       response: {
         status: status(),
         statusMessage: requestEv.sharedMap.get(deps.RequestEvHttpStatusMessage) as
@@ -61,6 +69,7 @@ export function getQwikRouterServerDataWithDeps(deps: ResponsePageDeps, requestE
           | undefined,
         action,
         actionResult,
+        actionError,
         formData,
       },
     } satisfies QwikRouterEnvData,

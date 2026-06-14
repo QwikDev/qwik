@@ -1,7 +1,8 @@
 import { _deserialize } from '@qwik.dev/core/internal';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { RequestEvSharedActionId } from '../request-event-core';
+import { RequestEvSharedActionError, RequestEvSharedActionId } from '../request-event-core';
 import { IsQAction, QActionId } from '../request-path';
+import { ServerError } from '../server-error';
 import { actionHandler } from './action-handler';
 
 const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
@@ -49,6 +50,10 @@ const createActionRequest = () => {
     fail: vi.fn((statusCode: number, data: Record<string, unknown>) => {
       currentStatus = statusCode;
       return { failed: true, status: statusCode, ...data };
+    }),
+    error: vi.fn((statusCode: number, data: unknown) => {
+      currentStatus = statusCode;
+      return new ServerError(statusCode, data);
     }),
     status: vi.fn((statusCode?: number) => {
       if (typeof statusCode === 'number') {
@@ -157,5 +162,78 @@ describe('actionHandler', () => {
     expect(sent.status).toBe(500);
     const response = _deserialize<Record<string, unknown>>(sent.body!);
     expect(response.result).toMatchObject({ failed: true, msg: 'something went wrong' });
+  });
+
+  it('routes a returned error() to the .error channel (result undefined)', async () => {
+    globalThis.__STRICT_LOADERS__ = false;
+    const { requestEv, sent } = createActionRequest();
+
+    const action = {
+      __brand: 'server_action',
+      __id: 'action-a',
+      __validators: undefined,
+      __invalidate: undefined,
+      __qrl: {
+        getHash: () => 'action-a',
+        call: vi.fn(async (ev: any) => ev.error(403, { reason: 'forbidden' })),
+      },
+    } as any;
+
+    await actionHandler([action])(requestEv as any);
+
+    expect(sent.status).toBe(403);
+    // The shared map holds the real ServerError; over the wire it round-trips to a structural
+    // Error carrying `status`/`data` (qwik serializer rebuilds custom Errors as plain Errors).
+    expect(requestEv.sharedMap.get(RequestEvSharedActionError)).toBeInstanceOf(ServerError);
+    const response = _deserialize<{ result: unknown; error: ServerError }>(sent.body!);
+    expect(response.result).toBeUndefined();
+    expect(response.error.status).toBe(403);
+    expect(response.error.data).toEqual({ reason: 'forbidden' });
+  });
+
+  it('populates BOTH channels on validator failure', async () => {
+    globalThis.__STRICT_LOADERS__ = false;
+    const { requestEv, sent } = createActionRequest();
+
+    const action = {
+      ...createAction(),
+      __validators: [
+        {
+          validate: vi.fn(async () => ({
+            success: false,
+            status: 422,
+            error: { formErrors: [], fieldErrors: { name: 'required' } },
+          })),
+        },
+      ],
+    } as any;
+
+    await actionHandler([action])(requestEv as any);
+
+    expect(sent.status).toBe(422);
+    const response = _deserialize<{ result: any; error: ServerError }>(sent.body!);
+    expect(response.result).toMatchObject({ failed: true, fieldErrors: { name: 'required' } });
+    expect(response.error.status).toBe(422);
+    expect(response.error.data).toMatchObject({ fieldErrors: { name: 'required' } });
+  });
+
+  it('propagates a thrown error() (abort) instead of returning a channel', async () => {
+    globalThis.__STRICT_LOADERS__ = false;
+    const { requestEv } = createActionRequest();
+
+    const action = {
+      __brand: 'server_action',
+      __id: 'action-a',
+      __validators: undefined,
+      __invalidate: undefined,
+      __qrl: {
+        getHash: () => 'action-a',
+        call: vi.fn(async (ev: any) => {
+          throw ev.error(500, 'boom');
+        }),
+      },
+    } as any;
+
+    await expect(actionHandler([action])(requestEv as any)).rejects.toBeInstanceOf(ServerError);
   });
 });

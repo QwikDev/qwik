@@ -42,6 +42,12 @@ export const SecretForm = component$(() => {
             Running...
           </p>
         )}
+        {/* loading mirrors the deprecated isRunning */}
+        {action.loading && (
+          <p id="loading" class={styles.processing}>
+            Loading...
+          </p>
+        )}
         <div>
           <label id="label-username">
             Username:

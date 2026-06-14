@@ -176,7 +176,9 @@ export type ActionStore<
   ERROR = unknown,
 > = {
   readonly actionPath: string;
+  readonly loading: boolean;
   readonly isRunning: boolean;
+  readonly promise: () => Promise<void>;
   readonly status?: number;
   readonly formData: FormData | undefined;
   readonly value: RETURN | undefined;

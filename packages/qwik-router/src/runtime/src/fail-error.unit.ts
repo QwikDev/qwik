@@ -57,6 +57,16 @@ describe('error channel types', () => {
     expectTypeOf<Sig['value']>().toMatchTypeOf<{ failed?: true } | { id: number }>();
   });
 
+  test('action exposes the AsyncSignal surface: loading, promise, and deprecated isRunning', () => {
+    const useAction = routeAction$(() => ({ ok: true }));
+    type Store = ReturnType<typeof useAction>;
+
+    expectTypeOf<Store['loading']>().toEqualTypeOf<boolean>();
+    expectTypeOf<Store['promise']>().toEqualTypeOf<() => Promise<void>>();
+    // isRunning is kept as a deprecated alias of loading
+    expectTypeOf<Store['isRunning']>().toEqualTypeOf<boolean>();
+  });
+
   test('ActionStore/LoaderSignal default ERROR generic is unknown', () => {
     expectTypeOf<ActionStore<{ ok: true }, unknown>['error']>().toEqualTypeOf<
       ServerError<unknown> | undefined

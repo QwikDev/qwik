@@ -38,7 +38,20 @@ export const useAction = routeAction$(
 );
 ```
 
-When submitting a request to a `routeAction()`, the request event and data undergo validation against the defined validator. If the validation fails, the action will place the validation error in the `action.error` property.
+When submitting a request to a `routeAction()`, the request event and data undergo validation against the defined validator. If the validation fails, the action places the typed validation error on the `action.error` property:
+
+```tsx
+export default component$(() => {
+  const action = useAction();
+  return (
+    <Form action={action}>
+      <input name="search" />
+      {action.error?.fieldErrors?.search && <p>{action.error.fieldErrors.search}</p>}
+      <button>Submit</button>
+    </Form>
+  );
+});
+```
 
 ## Multiple validators
 

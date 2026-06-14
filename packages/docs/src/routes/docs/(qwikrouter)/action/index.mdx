@@ -294,7 +294,7 @@ export default component$(() => {
         {action.error?.fieldErrors && <p>{action.error.fieldErrors.firstName}</p>}
         <button type="submit">Add user</button>
       </Form>
-      {action.value && (
+      {!action.error && action.value && (
         <p>User {action.value.userID} added successfully</p>
       )}
     </>
@@ -367,9 +367,9 @@ export const useProductRecommendations = routeAction$(
 
 ## Action Failures
 
-In order to return non-success values, the action must return the `error()` method.
+In order to return non-success values, the action can `return error(...)`.
 
-```tsx /fail/
+```tsx /error/
 import { routeAction$, zod$, z } from '@qwik.dev/router';
 
 export const useAddUser = routeAction$(
@@ -391,7 +391,7 @@ export const useAddUser = routeAction$(
 );
 ```
 
-Failures are stored in the `action.error` property. Futhermore, failure messages can be found in the `action.error.fieldErrors` object according to properties defined in your Zod schema.
+Failures are stored in the `action.error` property. For `zod$`/`valibot$` validation failures, the per-field messages are typed under `action.error.fieldErrors` according to the properties defined in your schema.
 
 The `fieldErrors` becomes a dot notation object. See [Complex forms](/docs/advanced/complex-forms) for more information.
 

@@ -72,7 +72,9 @@ export type ActionReturn<RETURN> = {
 // @public (undocumented)
 export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = unknown> = {
     readonly actionPath: string;
+    readonly loading: boolean;
     readonly isRunning: boolean;
+    readonly promise: () => Promise<void>;
     readonly status?: number;
     readonly formData: FormData | undefined;
     readonly value: RETURN | undefined;

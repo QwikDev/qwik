@@ -962,18 +962,30 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
   readonly actionPath: string;
 
   /**
-   * Reactive property that becomes `true` only in the browser, when a form is submitted and
-   * switched back to false when the action finish, ie, it describes if the action is actively
-   * running.
+   * Reactive property that becomes `true` only in the browser while a submission is in flight, and
+   * switches back to `false` once the action settles. Mirrors `AsyncSignal.loading`.
    *
-   * This property is specially useful to disable the submit button while the action is processing,
-   * to prevent multiple submissions, and to inform visually to the user that the action is actively
-   * running.
+   * Useful to disable the submit button while the action is processing, to prevent multiple
+   * submissions, and to visually inform the user that the action is actively running.
    *
-   * It will be always `false` in the server, and only becomes `true` briefly while the action is
-   * running.
+   * It is always `false` on the server, and only becomes `true` briefly while the action runs.
+   */
+  readonly loading: boolean;
+
+  /**
+   * @deprecated Use `loading` instead. Kept as an alias for backwards compatibility.
+   *
+   *   Reactive property that becomes `true` only in the browser, when a form is submitted and
+   *   switched back to false when the action finish, ie, it describes if the action is actively
+   *   running.
    */
   readonly isRunning: boolean;
+
+  /**
+   * Returns a promise that resolves when the in-flight submission settles. Mirrors
+   * `AsyncSignal.promise`. If no submission is running, it resolves immediately.
+   */
+  readonly promise: () => Promise<void>;
 
   /**
    * Returned HTTP status code of the action after its last execution.

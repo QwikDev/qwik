@@ -335,6 +335,8 @@
     Constant undefined
     {string} "actionResult"
     Constant undefined
+    {string} "actionError"
+    Constant undefined
     {string} "formData"
   ]
   RootRef [omitted]

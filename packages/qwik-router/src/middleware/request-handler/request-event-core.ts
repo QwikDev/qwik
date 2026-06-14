@@ -47,6 +47,7 @@ const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
+export const RequestEvSharedActionError = '@actionError';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';

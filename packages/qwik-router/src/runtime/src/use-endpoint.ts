@@ -2,6 +2,7 @@ import type { RouteActionValue } from './types';
 import { _deserialize } from '@qwik.dev/core/internal';
 import { ensureSlash } from '../../utils/pathname';
 import { QACTION_KEY } from './constants';
+import type { ServerError } from '../../middleware/request-handler/server-error';
 
 /**
  * Submit an action to the server and get the result.
@@ -17,6 +18,7 @@ export async function submitAction(
   | {
       status: number;
       result: unknown;
+      error?: ServerError;
       redirect?: string;
       loaderHashes?: string[];
     }
@@ -65,12 +67,14 @@ export async function submitAction(
     const text = await response.text();
     const data = _deserialize<{
       result: unknown;
+      error?: ServerError;
       redirect?: string;
       loaderHashes?: string[];
     }>(text);
     return {
       status: response.status,
       result: data?.result,
+      error: data?.error,
       redirect: data?.redirect,
       loaderHashes: data?.loaderHashes,
     };

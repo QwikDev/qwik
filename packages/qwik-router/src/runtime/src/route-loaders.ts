@@ -59,11 +59,14 @@ const ROUTE_LOADER_VALUE_PREFIX = '__qwik_route_loader_value__';
 export const FULLPATH_HEADER = 'X-Qwik-fullpath';
 
 /**
- * Response envelope for loader.json requests. Exactly one of `d`, `r`, or `e` is set.
+ * Response envelope for loader.json requests.
  *
- * - `d` — data: the loader's successful return value
- * - `r` — redirect: URL to navigate to (from `throw redirect()`)
- * - `e` — error: a ServerError (from `fail()` or `throw serverError()`)
+ * - `d` — data: the value placed on the signal's `.value` (success, or a deprecated `fail()` union).
+ * - `r` — redirect: URL to navigate to (from `throw redirect()`). Exclusive.
+ * - `e` — error: a `ServerError` placed on the signal's `.error` (from `return error()`).
+ *
+ * Normally exactly one of `d`/`r`/`e` is set. A validator failure is the one case that sets BOTH
+ * `d` (the deprecated `.value.failed` union) AND `e` (the typed `.error` `ServerError`).
  */
 export type LoaderResponse = {
   d?: unknown;
@@ -382,9 +385,21 @@ const createRouteLoaderSignal = (
         // the redirect-target fetch from updating the UI once it arrives.
         return previous;
       }
-      if (response.e) {
-        // Error — throw so AsyncSignal enters error state
+      if (response.e && response.d === undefined) {
+        // `return error()` — throw so AsyncSignal stores it as the (.error) untrackedError; with
+        // the no-throw value getter, `.value` keeps the prior/initial value.
         throw response.e;
+      }
+      if (response.e) {
+        // Validator failure — set BOTH channels: value (the deprecated `.value.failed` union) plus
+        // `.error`. The compute clears error on success, so set it after the value commits.
+        const error = response.e;
+        const signal = (ctx as { $signal$?: AsyncSignal }).$signal$;
+        if (signal) {
+          queueMicrotask(() => {
+            signal.untrackedError = error;
+          });
+        }
       }
       if (needsResumeFetch) {
         stateValues[resumeValueKey] = response.d;
@@ -488,6 +503,7 @@ export const getRequestEvent = (thisArg?: unknown): RequestEvent => {
 };
 
 const REQUEST_ROUTE_LOADER_VALUES = '@routeLoaderValues';
+const REQUEST_ROUTE_LOADER_ERRORS = '@routeLoaderErrors';
 
 export function getRouteLoaderState(requestEv: RequestEventBase): RouteLoaderState {
   let state = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_STATE) as RouteLoaderState | undefined;
@@ -508,6 +524,23 @@ export function getRouteLoaderValues(requestEv: RequestEventBase): Record<string
     requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_VALUES, values);
   }
   return values;
+}
+
+/**
+ * Get/create the record of pre-loaded loader errors. Populated when a loader does `return error()`
+ * (a returned `ServerError`) or when a validator fails. Surfaced on the loader signal's `.error`.
+ */
+export function getRouteLoaderErrors(
+  requestEv: RequestEventBase
+): Record<string, InstanceType<typeof ServerError>> {
+  let errors = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_ERRORS) as
+    | Record<string, InstanceType<typeof ServerError>>
+    | undefined;
+  if (!errors) {
+    errors = {};
+    requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_ERRORS, errors);
+  }
+  return errors;
 }
 
 function getRouteLoaderPromises(requestEv: RequestEventBase): Record<string, Promise<unknown>> {
@@ -617,8 +650,21 @@ export const ensureRouteLoaderSignals = (
  * fetching. Must go through the core helper because $computeIfNeeded$ is mangled in core builds and
  * not directly callable from this package.
  */
-export const setLoaderSignalValue = (signal: AsyncSignal<unknown>, value: unknown) => {
+export const setLoaderSignalValue = (
+  signal: AsyncSignal<unknown>,
+  value: unknown,
+  error?: InstanceType<typeof ServerError>
+) => {
   _injectAsyncSignalValue(signal, value);
+  if (error) {
+    // Surface `return error()` / validator failures on `.error`. `.value` keeps the injected
+    // (stale/initial for `return error()`, fail-union for validators) value and does not throw.
+    // The injection runs an async compute whose success path clears `.error`, so set it only once
+    // that compute settles, otherwise it would be wiped.
+    void signal.promise().finally(() => {
+      signal.untrackedError = error;
+    });
+  }
 };
 
 export const resolveRouteLoaderByHash = (
@@ -628,27 +674,45 @@ export const resolveRouteLoaderByHash = (
   return routeLoaders.find((loader) => loader.__id === loaderId);
 };
 
-/** Run a loader and return its raw value. Errors/redirects propagate as exceptions. */
+/**
+ * Run a loader and return its outcome. Redirects/thrown errors propagate as exceptions.
+ *
+ * - `value` — the value placed on the signal's `.value` (success, or a deprecated `fail()` union).
+ * - `error` — a `ServerError` for the signal's `.error`: set when the loader does `return error()`
+ *   (returned `ServerError`) or when a validator fails (the deprecated `fail()` union is also
+ *   returned as `value` in the validator case so `.value.failed` keeps working).
+ */
 export const getRouteLoaderData = async (
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   validators: DataValidator[] | undefined,
   requestEv: RequestEvent
-) => {
+): Promise<{ value: unknown; error?: InstanceType<typeof ServerError> }> => {
   const loaderRequestEv = requestEv as unknown as RequestEventLoader;
 
   const result = await runValidators(requestEv, validators, undefined);
   if (!result.success) {
-    return loaderRequestEv.fail(result.status ?? 500, result.error);
+    // Validator failure populates BOTH channels: the deprecated `.value.failed` union and the
+    // typed `.error` ServerError.
+    const status = result.status ?? 500;
+    return {
+      value: loaderRequestEv.fail(status, result.error as Record<string, any>),
+      error: new ServerError(status, result.error),
+    };
   }
   const resolved = await loaderQrl.call(
     loaderRequestEv as unknown as ServerRequestEventLoader,
     loaderRequestEv
   );
   const value = typeof resolved === 'function' ? resolved() : resolved;
+  // A RETURNED ServerError (from `return error()`) goes to the `.error` channel. A THROWN one
+  // aborts and is handled by getRouteLoaderResponse's catch.
+  if (value instanceof ServerError) {
+    return { value: undefined, error: value };
+  }
   if (isDev) {
     verifySerializable(value, loaderQrl);
   }
-  return value;
+  return { value };
 };
 
 export const loadRouteLoaderByQrl = (
@@ -666,8 +730,11 @@ export const loadRouteLoaderByQrl = (
   let promise = promises[loaderId];
   if (!promise) {
     promise = getRouteLoaderData(loaderQrl, validators, requestEv).then(
-      (value) => {
+      ({ value, error }) => {
         values[loaderId] = value;
+        if (error) {
+          getRouteLoaderErrors(requestEv)[loaderId] = error;
+        }
         return value;
       },
       (err) => {
@@ -748,9 +815,11 @@ export const getRouteLoaderResponse = async (
   requestEv: RequestEvent
 ): Promise<LoaderResponse> => {
   try {
-    const value = await getRouteLoaderData(loaderQrl, validators, requestEv);
-    if (value && typeof value === 'object' && (value as any).failed) {
-      return { e: new ServerError(requestEv.status(), value) };
+    const { value, error } = await getRouteLoaderData(loaderQrl, validators, requestEv);
+    if (error) {
+      // `return error()` → only `.error`. Validator failure → both `.value.failed` (the fail-union
+      // returned as `value`) and `.error`.
+      return value === undefined ? { e: error } : { d: value, e: error };
     }
     return { d: value };
   } catch (err) {
@@ -759,9 +828,7 @@ export const getRouteLoaderResponse = async (
       requestEv.headers.delete('Location');
       return { r: location };
     }
-    if (err instanceof ServerError) {
-      return { e: err };
-    }
+    // A THROWN ServerError aborts: propagate to middleware / the error page.
     throw err;
   }
 };

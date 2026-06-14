@@ -1,5 +1,4 @@
 import type { QRLInternal } from '../../../shared/qrl/qrl-class';
-import type { Container } from '../../../shared/types';
 import { isPromise } from '../../../shared/utils/promises';
 import type { ValueOrPromise } from '../../../shared/utils/types';
 import { ReactiveFlags } from '../../reactive/flags';
@@ -10,6 +9,7 @@ import {
   newChildInvokeContext,
   type RuntimeInvokeContext,
 } from '../../runtime/invoke-context';
+import type { ContainerContext } from '../../runtime/container-context';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import { SubscriberKind, type BranchSubscriber } from '../../runtime/subscriber';
 import type { Dependency } from '../../reactive/source';
@@ -44,12 +44,12 @@ export type BranchMarkerRange = readonly [Comment, Comment];
 export interface BranchOptions {
   scheduler?: Scheduler;
   order?: number;
-  container?: Container;
+  container?: ContainerContext;
   mountedBranch?: BranchState;
 }
 
 export interface BranchQrlOptions {
-  container?: Container;
+  container?: ContainerContext;
 }
 
 export interface BranchSubscriberOptions {
@@ -92,7 +92,7 @@ export class Branch<TArgs extends unknown[] = unknown[]> {
     readonly order: number,
     readonly invokeContext: RuntimeInvokeContext | null,
     mountedBranch: BranchState | undefined,
-    readonly container?: Container
+    readonly container?: ContainerContext
   ) {
     this.currentBranch = mountedBranch ?? null;
     // Resumed branch DOM already exists; create its child owner now so a later
@@ -120,7 +120,7 @@ export class BranchQrl<TArgs extends unknown[] = unknown[]> {
     readonly conditionQrl: BranchQrlRef<BranchConditionFn<TArgs>>,
     readonly thenQrl: BranchQrlRef<BranchRenderFn<TArgs>>,
     readonly elseQrl: BranchQrlRef<BranchRenderFn<TArgs>> | undefined,
-    readonly container?: Container
+    readonly container?: ContainerContext
   ) {}
 }
 
@@ -365,7 +365,7 @@ function runBranchRenderer<TArgs extends unknown[]>(
 
 function resolveBranchHandler<TFn>(
   handler: TFn | BranchQrlRef<TFn>,
-  container: Container | undefined
+  container: ContainerContext | undefined
 ): ValueOrPromise<TFn> {
   if (isBranchQrlRef(handler)) {
     const resolved = handler.resolved;
@@ -377,7 +377,7 @@ function resolveBranchHandler<TFn>(
 
 function resolveOptionalBranchHandler<TFn>(
   handler: TFn | BranchQrlRef<TFn> | undefined,
-  container: Container | undefined
+  container: ContainerContext | undefined
 ): ValueOrPromise<TFn> | undefined {
   if (handler === undefined) {
     return undefined;
@@ -386,7 +386,9 @@ function resolveOptionalBranchHandler<TFn>(
   return resolveBranchHandler(handler, container);
 }
 
-function getBranchContainer<TArgs extends unknown[]>(branch: Branch<TArgs>): Container | undefined {
+function getBranchContainer<TArgs extends unknown[]>(
+  branch: Branch<TArgs>
+): ContainerContext | undefined {
   return branch.container ?? branch.invokeContext?.container;
 }
 

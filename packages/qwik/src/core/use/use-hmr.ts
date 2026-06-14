@@ -12,6 +12,7 @@ import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { tryGetInvokeContext } from './use-core';
 import { useOnDocument } from './use-on';
 import type { QRL } from '../shared/qrl/qrl.public';
+import { getOrCreateContainerContext } from '../vdomless/runtime/container-context';
 
 /**
  * HMR event handler. The host VNode is captured at registration time via QRL captures.
@@ -34,17 +35,23 @@ export const _hmr = function (
   ) {
     return;
   }
+  const run = () => {
+    const host = _captures![0] as VNode;
+    const container = getDomContainer(element);
+    markVNodeDirty(container, host, ChoreBits.COMPONENT);
+    // Mark HMR as handled
+    const doc: any = element.ownerDocument;
+    doc.__hmrDone = doc.__hmrT;
+  };
   // Deserialize captures from `this` when called via qwikloader/attribute dispatch
   if (typeof this === 'string') {
-    const container = getDomContainer(element);
-    setCaptures(deserializeCaptures(container, this));
+    const context = getOrCreateContainerContext(element);
+    return deserializeCaptures(context, this).then((captures) => {
+      setCaptures(captures);
+      run();
+    });
   }
-  const host = _captures![0] as VNode;
-  const container = getDomContainer(element);
-  markVNodeDirty(container, host, ChoreBits.COMPONENT);
-  // Mark HMR as handled
-  const doc: any = element.ownerDocument;
-  doc.__hmrDone = doc.__hmrT;
+  return run();
 };
 
 let hmrQrl: QRL<(event: CustomEvent, element: Element) => void>;

@@ -11,18 +11,22 @@ import { createQRLWithBackChannel } from './qrl-to-string';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 
-export const allocate = (context: ContainerContext, typeId: number, value: unknown): any => {
+export const allocate = async (
+  context: ContainerContext,
+  typeId: number,
+  value: unknown
+): Promise<any> => {
   switch (typeId) {
     case TypeIds.Plain:
       return value;
     case TypeIds.RootRef:
-      return context.$getObjectById$(value as number);
+      return context.getRoot(value as number);
     case TypeIds.ForwardRef:
-      const rootRef = context.$getForwardRef$(value as number);
+      const rootRef = context.forwardRefs?.[value as number];
       if (rootRef === -1 || rootRef === undefined) {
         return _UNINITIALIZED;
       } else {
-        return context.$getObjectById$(rootRef);
+        return context.getRoot(rootRef);
       }
     case TypeIds.ForwardRefs:
       return value;
@@ -36,12 +40,12 @@ export const allocate = (context: ContainerContext, typeId: number, value: unkno
       let qrl: QRLInternal;
       if (typeof value === 'string') {
         const [chunkId, symbolId, captureIds] = value.split('#');
-        const chunk = context.$getObjectById$(chunkId) as string;
-        const symbol = context.$getObjectById$(symbolId) as string;
-        qrl = createQRLWithBackChannel(chunk, symbol, captureIds || null, context as any);
+        const chunk = (await context.getRoot(chunkId)) as string;
+        const symbol = (await context.getRoot(symbolId)) as string;
+        qrl = createQRLWithBackChannel(chunk, symbol, captureIds || null, context);
       } else {
         // Sync qrl
-        qrl = createQRLWithBackChannel('', String(value), null, context as any);
+        qrl = createQRLWithBackChannel('', String(value), null, context);
       }
       return qrl;
     }

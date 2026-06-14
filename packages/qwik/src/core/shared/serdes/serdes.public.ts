@@ -42,8 +42,10 @@ export function _deserialize<T>(rawStateData: string): T {
     throw new Error('Invalid state data');
   }
 
-  const container = _createDeserializeContainer(stateData);
-  return deserializeData(container, stateData[0], stateData[1]);
+  // TODO
+  // const container = _createDeserializeContainer(stateData);
+  // return deserializeData(container, stateData[0], stateData[1]);
+  return null as T;
 }
 
 export function getObjectById(id: number | string, stateData: unknown[]): unknown {
@@ -54,45 +56,4 @@ export function getObjectById(id: number | string, stateData: unknown[]): unknow
   }
   isDev && assertTrue(id < stateData.length, `Invalid reference ${id} >= ${stateData.length}`);
   return stateData[id];
-}
-
-/** @internal */
-export function _createDeserializeContainer(stateData: unknown[]): ContainerContext {
-  // eslint-disable-next-line prefer-const
-  let state: unknown[];
-  let container!: ContainerContext;
-  container = {
-    element: null,
-    document: null,
-    scheduler: defaultScheduler,
-    state: {
-      rootToChunk: [],
-      liveRoots: new Map(),
-      pendingPatchesByRoot: new Map(),
-    },
-    $getObjectById$: (id: number | string) => getObjectById(id, state),
-    $getForwardRef$: (id: number | string) => container.$forwardRefs$?.[Number(id)],
-    getSyncFn: (_: number) => {
-      const fn = () => {};
-      return fn;
-    },
-    $storeProxyMap$: new WeakMap(),
-    $forwardRefs$: null,
-    getRoot(id) {
-      return container.$getObjectById$(id);
-    },
-    restoreCaptures(ids) {
-      if (ids.length === 0) {
-        return [];
-      }
-      return ids.split(' ').map((id) => container.getRoot(Number(id)));
-    },
-    notify(subscriber) {
-      defaultScheduler.notify(subscriber);
-    },
-  };
-  preprocessState(stateData, container);
-  state = wrapDeserializerProxy(container, stateData);
-  container.$state$ = state;
-  return container;
 }

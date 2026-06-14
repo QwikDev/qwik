@@ -205,6 +205,7 @@ import { isQrl } from '../shared/qrl/qrl-utils';
 import { parseQRL } from '../shared/serdes/index';
 import { runEventHandlerQRL } from './run-qrl';
 import type { QRL } from '../shared/qrl/qrl.public';
+import { getOrCreateContainerContext } from '../vdomless/runtime/container-context';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -527,13 +528,14 @@ const unwrapEventHandlerQrl = (
   return handler as QRL<(...args: any[]) => void>;
 };
 
-function registerQrlHandlers(attr: Attr, key: string, container: Container, element: QElement) {
+function registerQrlHandlers(attr: Attr, key: string, _container: Container, element: QElement) {
   const value = attr.value;
   const scopedKebabName = key.slice(2);
   const qrls = value.split('|');
   const handlers: EventHandler[] = [];
+  const context = getOrCreateContainerContext(element);
   for (let i = 0; i < qrls.length; i++) {
-    const handler = unwrapEventHandlerQrl(parseQRL(qrls[i], container));
+    const handler = unwrapEventHandlerQrl(parseQRL(qrls[i], context));
     // These QRLs are mostly _run and _task and don't need wrapping with retryOnPromise
     handlers.push(runEventHandlerQRL.bind(null, handler));
   }

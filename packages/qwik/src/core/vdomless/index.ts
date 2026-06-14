@@ -63,11 +63,11 @@ export {
   newChildInvokeContext,
   newInvokeContext,
   type ChildInvokeContextOptions,
-  type ContextScope,
   type NewInvokeContextOptions,
   type RuntimeInvokeContext,
   type SlotScope,
 } from './runtime/invoke-context';
+export { ContextScope, createContextScope, isContextScope } from './runtime/context-scope';
 export {
   createContext,
   createContextProvider,

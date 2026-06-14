@@ -1,4 +1,3 @@
-import type { Container } from '../../shared/types';
 import { isPromise } from '../../shared/utils/promises';
 import {
   getActiveInvokeContextOrNull,
@@ -8,6 +7,7 @@ import {
   type RuntimeInvokeContext,
   type SlotScope,
 } from '../runtime/invoke-context';
+import type { ContainerContext } from '../runtime/container-context';
 import { disposeOwner } from '../runtime/owner';
 import { runWithCollector } from '../reactive/tracking';
 
@@ -16,7 +16,7 @@ export type ComponentRenderOutput = ComponentOutput | void;
 export type ComponentRenderFn<TProps = unknown> = (props: TProps) => ComponentRenderOutput;
 
 export interface ComponentOptions {
-  container?: Container;
+  container?: ContainerContext;
   idPrefix?: string;
   invokeContext?: RuntimeInvokeContext | null;
   slotScope?: SlotScope | null;

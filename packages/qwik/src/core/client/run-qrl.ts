@@ -74,7 +74,12 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
   }
   const context = getOrCreateContainerContext(element);
   if (typeof this === 'string') {
-    setCaptures(context.restoreCaptures(this));
+    return context.restoreCaptures(this).then((captures) => {
+      setCaptures(captures);
+      const qrlToRun = captures[0] as QRLInternal<(...args: any[]) => void>;
+      isDev && assertQrl(qrlToRun);
+      return qrlToRun.resolve(context as any).then(() => qrlToRun.resolved!(event, element));
+    });
   }
   const qrlToRun = _captures![0] as QRLInternal<(...args: any[]) => void>;
   isDev && assertQrl(qrlToRun);

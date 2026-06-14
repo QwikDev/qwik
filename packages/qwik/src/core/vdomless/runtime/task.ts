@@ -1,5 +1,4 @@
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
-import type { Container } from '../../shared/types';
 import { ReactiveFlags } from '../reactive/flags';
 import { registerSubscriberToOwner } from './owner';
 import { defaultScheduler, Phase, type Scheduler } from './scheduler';
@@ -10,6 +9,7 @@ import {
   type VisibleTaskSubscriber,
 } from './subscriber';
 import type { Dependency } from '../reactive/source';
+import type { ContainerContext } from './container-context';
 
 export type TaskFn = () => unknown;
 export type TaskQrlRef<T extends TaskFn = TaskFn> = QRLInternal<T>;
@@ -25,13 +25,13 @@ export interface TaskOptions {
   group?: TaskGroup;
   index?: number;
   scheduler?: Scheduler;
-  container?: Container;
+  container?: ContainerContext;
 }
 
 export interface VisibleTaskOptions {
   strategy?: VisibleTaskStrategy;
   scheduler?: Scheduler;
-  container?: Container;
+  container?: ContainerContext;
 }
 
 export class Task {
@@ -41,7 +41,7 @@ export class Task {
     readonly group: TaskGroup,
     readonly index: number,
     readonly qrl?: TaskQrlRef,
-    readonly container?: Container
+    readonly container?: ContainerContext
   ) {}
 
   run(): unknown {
@@ -54,7 +54,7 @@ export class VisibleTask {
     readonly runFn: TaskFn | undefined,
     readonly strategy: VisibleTaskStrategy,
     readonly qrl?: TaskQrlRef,
-    readonly container?: Container
+    readonly container?: ContainerContext
   ) {}
 
   run(): unknown {
@@ -173,7 +173,7 @@ function runResolvedTask(run: TaskFn): unknown {
 function runTaskBody(
   run: TaskFn | undefined,
   qrl: TaskQrlRef | undefined,
-  container: Container | undefined
+  container: ContainerContext | undefined
 ): unknown {
   if (run !== undefined) {
     return run();

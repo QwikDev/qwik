@@ -62,6 +62,7 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode-utils';
+import { getOrCreateContainerContext } from '../vdomless/runtime/container-context';
 
 /** @public */
 export function getDomContainer(element: Element): IClientContainer {
@@ -221,7 +222,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   parseQRL<T = unknown>(qrlStr: string): QRL<T> {
-    const qrl = parseQRL(qrlStr, this) as QRLInternal<T>;
+    const qrl = parseQRL(qrlStr, getOrCreateContainerContext(this.element)) as QRLInternal<T>;
     return qrl;
   }
 

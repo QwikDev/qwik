@@ -192,10 +192,6 @@ function createQrlSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutp
           .map((capture, index) => `${capture.name} = ${QwikSymbol.Captures}[${index}]`)
           .join(', ')};\n`
       : '';
-  const importLine =
-    captures.length > 0
-      ? `${emitImports([createQwikSparkImport(QwikSymbol.Captures)]).join('\n')}\n\n`
-      : '';
   const params = qrlSegment.segment.paramRanges
     .map(([start, end]) => source.slice(start, end))
     .join(', ');
@@ -210,6 +206,17 @@ function createQrlSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutp
     : 'undefined';
   const bodyStatements =
     qrlSegment.segment.bodyKind === 'block' ? body.slice(1, -1).trim() : `return ${body};`;
+  const sparkImports: QwikSymbol[] = [];
+  if (captures.length > 0) {
+    sparkImports.push(QwikSymbol.Captures);
+  }
+  if (usesIdentifier(bodyStatements, QwikSymbol.CreateContext)) {
+    sparkImports.push(QwikSymbol.CreateContext);
+  }
+  const importLine =
+    sparkImports.length > 0
+      ? `${emitImports([createQwikSparkImport(...sparkImports)]).join('\n')}\n\n`
+      : '';
 
   return `${importLine}export const ${qrlSegment.symbolName} = ${
     qrlSegment.segment.async ? 'async ' : ''
@@ -227,6 +234,11 @@ function indentBody(body: string) {
     .split('\n')
     .map((line) => `  ${line}`)
     .join('\n');
+}
+
+function usesIdentifier(source: string, name: string) {
+  const pattern = new RegExp(`\\b${name}\\b`);
+  return pattern.test(source);
 }
 
 function createQrlSegmentAnalysis(

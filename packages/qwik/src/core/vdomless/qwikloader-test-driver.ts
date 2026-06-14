@@ -30,7 +30,7 @@ export async function bootQwikLoader(document: Document): Promise<QwikLoaderTest
       document.addEventListener('qerror', onError);
       try {
         target.dispatchEvent(createTestEvent(target.ownerDocument, type, init));
-        await flushQwikLoaderTasks();
+        await flushQwikLoaderTasks(win);
       } finally {
         document.removeEventListener('qerror', onError);
       }
@@ -106,7 +106,12 @@ async function getQwikLoaderSource(document: Document): Promise<string> {
 }
 
 function runQwikLoader(source: string, document: Document, win: Window): void {
-  const testSource = source.replace(/\bimport\s*\(/g, '__import(');
+  const testSource = source
+    .replace(
+      'queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run();',
+      'queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run(); window.__qwikTestQueuedTasks = queuedTasks;'
+    )
+    .replace(/\bimport\s*\(/g, '__import(');
   const DominoCustomEvent = function <T = unknown>(type: string, init?: CustomEventInit<T>) {
     // Qwikloader emits qsymbol/qerror via document.dispatchEvent(new CustomEvent(...)).
     // The mock window CustomEvent is a plain object, so create a domino Event with detail.
@@ -167,12 +172,21 @@ function createTestEvent(
   return event;
 }
 
-async function flushQwikLoaderTasks(): Promise<void> {
+async function flushQwikLoaderTasks(win: Window): Promise<void> {
+  const testWindow = win as Window & { __qwikTestQueuedTasks?: Promise<void> };
+  let previous: Promise<void> | undefined;
   for (let i = 0; i < 20; i++) {
+    const pending = testWindow.__qwikTestQueuedTasks;
+    if (pending && pending !== previous) {
+      previous = pending;
+      await pending;
+      continue;
+    }
     await Promise.resolve();
-  }
-  for (let i = 0; i < 20; i++) {
     await new Promise((resolve) => setTimeout(resolve, 0));
+    if (testWindow.__qwikTestQueuedTasks === pending) {
+      return;
+    }
   }
 }
 

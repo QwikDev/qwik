@@ -20,6 +20,7 @@ import { newInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 import { cleanupAsyncDestroyable } from './utils/destroyable';
 import { cleanupFn, trackFn } from './utils/tracker';
+import { getOrCreateContainerContext } from '../vdomless/runtime/container-context';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
@@ -266,10 +267,17 @@ export const isTask = (value: any): value is Task => {
  */
 export function scheduleTask(this: string, _event: Event, element: Element) {
   const container = getDomContainer(element);
+  const run = () => {
+    const task = _captures![0] as Task;
+    task.$flags$ |= TaskFlags.DIRTY;
+    markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
+  };
   if (typeof this === 'string') {
-    setCaptures(deserializeCaptures(container, this));
+    const context = getOrCreateContainerContext(element);
+    return deserializeCaptures(context, this).then((captures) => {
+      setCaptures(captures);
+      run();
+    });
   }
-  const task = _captures![0] as Task;
-  task.$flags$ |= TaskFlags.DIRTY;
-  markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
+  return run();
 }

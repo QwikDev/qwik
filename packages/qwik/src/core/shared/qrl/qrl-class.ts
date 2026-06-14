@@ -6,7 +6,7 @@ import { isBrowser, isDev } from '@qwik.dev/core/build';
 import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
-import { getQFuncs } from '../utils/markers';
+import { getQFuncs, QInstanceAttr } from '../utils/markers';
 import { isPromise, maybeThen, promiseAll } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
 import { isFunction, type ValueOrPromise } from '../utils/types';
@@ -16,10 +16,8 @@ import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
-import { DomContainer } from '../../client/dom-container';
-import { loading } from '../serdes/inflate';
-import type { Container } from '../types';
 import { ElementVNode } from '../vnode/element-vnode';
+import type { ContainerContext } from '../../vdomless';
 
 interface SyncQRLSymbol {
   $symbol$: typeof SYNC_QRL;
@@ -38,7 +36,7 @@ export type QRLInternalMethods<TYPE> = {
   readonly $captures$?: Readonly<unknown[]> | string | null;
   dev?: QRLDev | null;
 
-  resolve(container?: Container): Promise<TYPE>;
+  resolve(container?: ContainerContext): Promise<TYPE>;
   resolved: undefined | TYPE;
 
   getSymbol(): string;
@@ -73,7 +71,7 @@ export type QRLInternalMethods<TYPE> = {
    * Needed for deserialization and importing. We don't always have the container while creating
    * qrls in async sections of code
    */
-  readonly $container$?: Container | null;
+  readonly $container$?: ContainerContext | null;
 
   /** The shared lazy-loading reference */
   readonly $lazy$: LazyRef<TYPE>;
@@ -84,7 +82,7 @@ let getLazyRef: <TYPE>(
   symbol: string,
   symbolFn: null | (() => Promise<Record<string, TYPE>>),
   ref: ValueOrPromise<TYPE> | undefined,
-  container: Container | undefined
+  container: ContainerContext | undefined
 ) => LazyRef<TYPE> = (chunk, symbol, symbolFn, ref, container) => {
   return new LazyRef(chunk, symbol, symbolFn, ref, container);
 };
@@ -94,7 +92,7 @@ let getLazyRef: <TYPE>(
  * same chunk+symbol can share a single LazyRef, differing only in their captured scope.
  */
 export class LazyRef<TYPE = unknown> {
-  $container$: Container | undefined;
+  $container$: ContainerContext | undefined;
   // Don't allocate dev property immediately so that in prod we don't have this property
   declare dev?: QRLDev | null | undefined;
   // documenter fails on WeakRef
@@ -105,7 +103,7 @@ export class LazyRef<TYPE = unknown> {
     readonly $symbol$: string,
     readonly $symbolFn$: undefined | null | (() => Promise<Record<string, TYPE>>),
     public $ref$?: null | ValueOrPromise<TYPE>,
-    container?: Container | null
+    container?: ContainerContext | null
   ) {
     if ($ref$) {
       this.$setRef$($ref$);
@@ -151,8 +149,9 @@ export class LazyRef<TYPE = unknown> {
     if (this.$chunk$ === '') {
       // Sync QRL
       isDev && assertDefined(this.$container$, 'Sync QRL must have container element');
-      const hash = (this.$container$ as DomContainer).$instanceHash$;
-      const doc = (this.$container$ as DomContainer).element?.ownerDocument || document;
+      const element = (this.$container$ as ContainerContext).element;
+      const hash = element.getAttribute(QInstanceAttr)!;
+      const doc = element.ownerDocument || document;
       const qFuncs = getQFuncs(doc, hash);
       return (this.$ref$ = qFuncs[Number(this.$symbol$)] as TYPE);
     }
@@ -166,7 +165,7 @@ export class LazyRef<TYPE = unknown> {
     const importP: Promise<TYPE> = this.$symbolFn$
       ? this.$symbolFn$().then((module) => module[symbol] as TYPE)
       : (getPlatform().importSymbol(
-          (this.$container$ as DomContainer | null)?.element,
+          (this.$container$ as ContainerContext | null)?.element,
           this.$chunk$,
           symbol
         ) as Promise<TYPE>);
@@ -206,12 +205,12 @@ export class QRLClass<TYPE> {
   resolved: undefined | TYPE = undefined;
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
   $captures$?: Readonly<unknown[]> | string | null;
-  $container$?: Container | null;
+  $container$?: ContainerContext | null;
 
   constructor(
     readonly $lazy$: LazyRef<TYPE>,
     $captures$?: Readonly<unknown[]> | string | null,
-    container?: Container | null
+    container?: ContainerContext | null
   ) {
     if (qDev) {
       initQrlClassDev($lazy$, $captures$, this);
@@ -248,7 +247,7 @@ const qrlCallFn = function <TYPE>(
   const ctx = tryGetInvokeContext();
 
   return qrlResolve
-    .call(qrl, ctx?.$container$)
+    .call(qrl)
     .then(() => invokeApply.call(withThis, ctx, qrl.resolved as any, args));
 };
 
@@ -280,7 +279,7 @@ const qrlSetRef = function <TYPE>(
 
 const qrlResolve = async function <TYPE>(
   this: QRLClass<TYPE> | QRLCallable<TYPE>,
-  container?: Container
+  container?: ContainerContext
 ): Promise<TYPE> {
   const qrl = getInstance<TYPE>(this);
   return maybeThen($resolve$(qrl, container), () => qrl.resolved!);
@@ -296,6 +295,7 @@ const qrlGetHash = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>): st
 
 const qrlGetCaptured = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>): unknown[] | null {
   const qrl = getInstance<TYPE>(this);
+  // TODO: handle promise
   restoreQrlCaptures(qrl);
   return qrl.$captures$ as unknown[] | null;
 };
@@ -311,7 +311,7 @@ const qrlGetFn = function <TYPE>(
   const qrl = getInstance<TYPE>(this);
   const bound = (...args: QrlArgs<TYPE>): unknown => {
     if (!qrl.resolved) {
-      return qrlResolve.call(qrl, currentCtx?.$container$).then((fn) => {
+      return qrlResolve.call(qrl).then((fn) => {
         if (qDev && !isFunction(fn)) {
           throw qError(QError.qrlIsNotFunction);
         }
@@ -347,7 +347,7 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
     get(this: QRLCallable<any>) {
       return this[QRL_STATE].$container$;
     },
-    set(this: QRLCallable<any>, value: Container | null | undefined) {
+    set(this: QRLCallable<any>, value: ContainerContext | null | undefined) {
       this[QRL_STATE].$container$ = value;
     },
   },
@@ -423,29 +423,22 @@ export const setCaptures = (captures: Readonly<unknown[]> | null) => {
   _captures = captures;
 };
 
-export const deserializeCaptures = (container: Container, captures: string) => {
-  const refs = [];
-  const captureIds = captures.split(' ');
-  for (let i = 0; i < captureIds.length; i++) {
-    const id = captureIds[i];
-    refs.push(container.$getObjectById$(id));
-  }
-  return refs;
-};
+export const deserializeCaptures = (container: ContainerContext, captures: string) =>
+  container.restoreCaptures(captures);
 
-const getQrlContainer = (qrl: QRLClass<unknown>, container?: Container | null) => {
+const getQrlContainer = (qrl: QRLClass<unknown>, container?: ContainerContext | null) => {
   if (qrl.$container$) {
     return qrl.$container$;
   }
   if (container) {
     return (qrl.$container$ = container);
   }
-  return (qrl.$container$ = tryGetInvokeContext()?.$container$ as Container);
+  return undefined;
 };
 
 const restoreQrlCaptures = (
   qrl: QRLClass<unknown>,
-  container?: Container | null
+  container?: ContainerContext | null
 ): ValueOrPromise<Readonly<unknown[]> | null | undefined> => {
   const captures = qrl.$captures$;
   if (typeof captures !== 'string') {
@@ -457,13 +450,10 @@ const restoreQrlCaptures = (
     throw qError(QError.qrlMissingContainer);
   }
 
-  const prevLoading = loading;
-  const refs = deserializeCaptures(resolvedContainer, captures);
-  qrl.$captures$ = refs;
-  if (loading !== prevLoading) {
-    return loading.then(() => refs);
-  }
-  return refs;
+  return deserializeCaptures(resolvedContainer, captures).then((refs) => {
+    qrl.$captures$ = refs;
+    return refs;
+  });
 };
 
 const setQrlCaptures = (captures: Readonly<unknown[]> | null | undefined) => {
@@ -486,7 +476,7 @@ export const withCaptures = <TYPE>(
 
 const $resolve$ = <TYPE>(
   qrl: QRLClass<TYPE>,
-  container?: Container | null
+  container?: ContainerContext | null
 ): ValueOrPromise<void> => {
   const lazy = qrl.$lazy$;
 
@@ -540,7 +530,7 @@ export const createQRL = <TYPE>(
   symbolRef?: null | ValueOrPromise<TYPE>,
   symbolFn?: null | (() => Promise<Record<string, TYPE>>),
   captures?: Readonly<unknown[]> | string | null,
-  container?: Container
+  container?: ContainerContext
 ): QRLInternal<TYPE> => {
   const lazy = getLazyRef<TYPE>(chunk, symbol, symbolFn!, symbolRef!, container);
   const qrl = new QRLClass<TYPE>(lazy, captures!, container);

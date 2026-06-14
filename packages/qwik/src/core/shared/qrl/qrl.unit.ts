@@ -207,7 +207,7 @@ describe('createQRL', () => {
 
   test('should restore serialized captures before resolving', async () => {
     const container = {
-      $getObjectById$: (id: string) => `capture-${id}`,
+      restoreCaptures: async (ids: string) => ids.split(' ').map((id) => `capture-${id}`),
     } as any;
     const q = createQRL<Function>(
       'chunk',

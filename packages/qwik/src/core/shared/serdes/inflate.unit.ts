@@ -22,7 +22,7 @@ const encodeObjectData = (entries: Array<[unknown, unknown]>): unknown[] => {
 };
 
 describe('inflate(TypeIds.Object) unsafe key handling', () => {
-  it('should skip "__proto__" to prevent prototype pollution', () => {
+  it('should skip "__proto__" to prevent prototype pollution', async () => {
     const container = {} as any;
     const target: Record<string, unknown> = {};
     const data = encodeObjectData([
@@ -30,14 +30,14 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
       ['ok', 1],
     ]);
 
-    inflate(container, target, TypeIds.Object, data);
+    await inflate(container, target, TypeIds.Object, data);
 
     expect(target.ok).toBe(1);
     expect((target as any).polluted).toBeUndefined();
     expect(Object.getPrototypeOf(target)).toBe(Object.prototype);
   });
 
-  it('should skip dangerous keys when value is a function', () => {
+  it('should skip dangerous keys when value is a function', async () => {
     const container = {} as any;
     const target: Record<string, unknown> = {};
     const fn = () => 'x';
@@ -51,7 +51,7 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
       ['safeFn', fn],
     ]);
 
-    inflate(container, target, TypeIds.Object, data);
+    await inflate(container, target, TypeIds.Object, data);
 
     const keys = ['constructor', 'prototype', 'toString', 'valueOf', 'toJSON', 'then'];
     for (let i = 0; i < keys.length; i++) {
@@ -61,7 +61,7 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
     expect(target.safeFn).toBe(fn);
   });
 
-  it('should allow dangerous-looking keys when value is not a function', () => {
+  it('should allow dangerous-looking keys when value is not a function', async () => {
     const container = {} as any;
     const target: Record<string, unknown> = {};
     const data = encodeObjectData([
@@ -71,7 +71,7 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
       ['regular', 'value'],
     ]);
 
-    inflate(container, target, TypeIds.Object, data);
+    await inflate(container, target, TypeIds.Object, data);
 
     expect(target.constructor).toBe(123);
     expect(target.toString).toBe('ok');
@@ -79,7 +79,7 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
     expect(target.regular).toBe('value');
   });
 
-  it('should allow numeric keys and skip other non-string keys', () => {
+  it('should allow numeric keys and skip other non-string keys', async () => {
     const container = {} as any;
     const target: Record<string, unknown> = {};
     const sym = Symbol('k');
@@ -89,7 +89,7 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
       ['valid', 2],
     ]);
 
-    inflate(container, target, TypeIds.Object, data);
+    await inflate(container, target, TypeIds.Object, data);
 
     expect(target[1]).toBe('one');
     expect(target.valid).toBe(2);
@@ -98,10 +98,10 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
 });
 
 describe('inflate(TypeIds.EffectSubscription) text targets', () => {
-  it('resolves range text from a local marker index', () => {
+  it('resolves range text from a local marker index', async () => {
     const context = createContext('<p q:id="10">A<!t>0<!/t> B<!t>1</p>');
     const count = createSignal(1);
-    const subscription = inflateTextSubscription(context, count, 10, 1);
+    const subscription = await inflateTextSubscription(context, count, 10, 1);
 
     expect(subscription.effect).toBeInstanceOf(TextNodeEffect);
     expect((subscription.effect as TextNodeEffect).text.data).toBe('1');
@@ -109,26 +109,26 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     expect(count.subs).toEqual([subscription]);
   });
 
-  it('does not count range boundary markers as targets', () => {
+  it('does not count range boundary markers as targets', async () => {
     const context = createContext('<p q:id="11"><!t>0<!/t><!t>1</p>');
     const count = createSignal(1);
-    const subscription = inflateTextSubscription(context, count, 11, 1);
+    const subscription = await inflateTextSubscription(context, count, 11, 1);
 
     expect((subscription.effect as TextNodeEffect).text.data).toBe('1');
   });
 
-  it('throws when a range marker is not followed by a text node', () => {
+  it('throws when a range marker is not followed by a text node', async () => {
     const context = createContext('<p q:id="12"><!t><!/t></p>');
     const count = createSignal(1);
 
-    expect(() => inflateTextSubscription(context, count, 12, 0)).toThrow(
+    await expect(inflateTextSubscription(context, count, 12, 0)).rejects.toThrow(
       'Missing range text target 12:0.'
     );
   });
 });
 
 describe('inflate(TypeIds.ContextScope)', () => {
-  it('restores parent and context values', () => {
+  it('restores parent and context values', async () => {
     const parent = createContextScope(null);
     const target = createContextScope(null);
     const data = [
@@ -148,7 +148,7 @@ describe('inflate(TypeIds.ContextScope)', () => {
       Constants.Undefined,
     ];
 
-    inflate({} as ContainerContext, target, TypeIds.ContextScope, data);
+    await inflate({} as ContainerContext, target, TypeIds.ContextScope, data);
 
     expect(target.parent).toBe(parent);
     expect(target.values.get('empty')).toBe('');
@@ -157,13 +157,13 @@ describe('inflate(TypeIds.ContextScope)', () => {
     expect(target.values.get('undefined')).toBeUndefined();
   });
 
-  it('assigns context scope id from the root state index', () => {
+  it('assigns context scope id from the root state index', async () => {
     const state = JSON.stringify([TypeIds.ContextScope, [TypeIds.Constant, Constants.Null]]);
     const context = createContext(
       `<script type="qwik/state" q:base="7" q:len="1">${state}</script>`
     );
 
-    const scope = context.getRoot(7);
+    const scope = await context.getRoot(7);
 
     expect(isContextScope(scope)).toBe(true);
     if (!isContextScope(scope)) {
@@ -178,12 +178,12 @@ function createContext(html: string): ContainerContext {
   return createContainerContext(win.document.body.firstElementChild as HTMLElement);
 }
 
-function inflateTextSubscription(
+async function inflateTextSubscription(
   context: ContainerContext,
   source: Signal<number>,
   elementId: number,
   markerIndex: number
-): DomSubscription {
+): Promise<DomSubscription> {
   const data = [
     TypeIds.Plain,
     EffectKind.TextNode,
@@ -198,7 +198,7 @@ function inflateTextSubscription(
   ];
   const subscription = new DomSubscription(null!, context.scheduler);
 
-  inflate(context, subscription, TypeIds.EffectSubscription, data);
+  await inflate(context, subscription, TypeIds.EffectSubscription, data);
 
   return subscription;
 }

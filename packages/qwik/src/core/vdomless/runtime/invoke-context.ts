@@ -1,4 +1,4 @@
-import type { Container } from '../../shared/types';
+import type { ContainerContext } from './container-context';
 import type { ContextScope } from './context-scope';
 import { createOwner, type Owner } from './owner';
 
@@ -11,7 +11,7 @@ export interface SlotScope {
 
 export interface RuntimeInvokeContext {
   owner: Owner | null;
-  container: Container | undefined;
+  container: ContainerContext | undefined;
   idPrefix: string;
   contextScope: ContextScope | null;
   localContextScope: ContextScope | null;
@@ -20,7 +20,7 @@ export interface RuntimeInvokeContext {
 
 export interface NewInvokeContextOptions {
   owner?: Owner | null;
-  container?: Container;
+  container?: ContainerContext;
   idPrefix?: string;
   contextScope?: ContextScope | null;
   localContextScope?: ContextScope | null;
@@ -28,7 +28,7 @@ export interface NewInvokeContextOptions {
 }
 
 export interface ChildInvokeContextOptions {
-  container?: Container;
+  container?: ContainerContext;
   idPrefix?: string;
   contextScope?: ContextScope | null;
   slotScope?: SlotScope | null;

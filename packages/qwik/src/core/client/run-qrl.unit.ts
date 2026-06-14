@@ -78,7 +78,7 @@ describe('_run', () => {
       resolved: vi.fn(),
     };
     mockContext = {
-      restoreCaptures: vi.fn(() => [mockQrl]),
+      restoreCaptures: vi.fn(() => Promise.resolve([mockQrl])),
     };
     vi.mocked(containerContext.getOrCreateContainerContext).mockReturnValue(mockContext);
     Object.defineProperty(qrlClass, '_captures', {
@@ -107,7 +107,7 @@ describe('_run', () => {
   });
 
   it('should restore captures when this is a string', async () => {
-    const capturesString = 'serialized-captures';
+    const capturesString = '1 2';
 
     await _run.call(capturesString, mockEvent, mockElement);
 
@@ -127,12 +127,9 @@ describe('_run', () => {
       resolve: vi.fn(() => Promise.resolve()),
       resolved: vi.fn(),
     };
-    Object.defineProperty(qrlClass, '_captures', {
-      get: () => [mockQrlFromCaptures],
-      configurable: true,
-    });
+    mockContext.restoreCaptures.mockResolvedValue([mockQrlFromCaptures]);
 
-    await _run.call('captures', mockEvent, mockElement);
+    await _run.call('0', mockEvent, mockElement);
 
     expect(mockQrlFromCaptures.resolve).toHaveBeenCalledWith(mockContext);
   });
@@ -147,7 +144,7 @@ describe('_run', () => {
     const clickEvent = new Event('click');
     const buttonElement = createMockElement();
 
-    await _run.call('test-captures', clickEvent, buttonElement);
+    await _run.call('0', clickEvent, buttonElement);
 
     expect(mockQrl.resolved).toHaveBeenCalledWith(clickEvent, buttonElement);
     expect(useCore.invokeApply).not.toHaveBeenCalled();

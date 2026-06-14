@@ -11,10 +11,10 @@ import {
   invoke,
   newChildInvokeContext,
   newInvokeContext,
-  type ContextScope,
   type RuntimeInvokeContext,
   type SlotScope,
 } from '../runtime/invoke-context';
+import type { ContextScope } from '../runtime/context-scope';
 import { createOwner, disposeOwner, runWithOwner } from '../runtime/owner';
 import { Scheduler } from '../runtime/scheduler';
 import type { DomSubscriber } from '../runtime/subscriber';

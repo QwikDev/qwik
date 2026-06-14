@@ -6,6 +6,7 @@
 import { isBrowser } from '@qwik.dev/core/build';
 import { verifySerializable } from '../serdes/verify';
 import type { LazyRef, QRLClass } from './qrl-class';
+import type { ContainerContext } from '../../vdomless/runtime/container-context';
 
 /** Initialize dev properties on a LazyRef instance. */
 export const initLazyRefDev = (lazy: LazyRef): void => {
@@ -41,7 +42,7 @@ export const setupHmr = (
       symbol: string,
       symbolFn: null | (() => Promise<Record<string, TYPE>>),
       ref: import('../utils/types').ValueOrPromise<TYPE> | undefined,
-      container: import('../types').Container | undefined
+      container: ContainerContext | undefined
     ) => LazyRef<TYPE>
   ) => void
 ): void => {

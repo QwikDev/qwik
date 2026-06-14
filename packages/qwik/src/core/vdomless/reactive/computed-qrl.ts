@@ -1,9 +1,9 @@
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
-import type { Container } from '../../shared/types';
 import { isPromise } from '../../shared/utils/promises';
 import { Computed } from './computed';
 import { registerSubscriberToOwner } from '../runtime/owner';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
+import type { ContainerContext } from '../runtime/container-context';
 
 export type ComputedQrlFn<T> = () => T;
 export type ComputedQrlRef<T> = QRLInternal<ComputedQrlFn<T>>;
@@ -11,7 +11,7 @@ export type ComputedQrlRef<T> = QRLInternal<ComputedQrlFn<T>>;
 export class ComputedQrl<T> extends Computed<T> {
   constructor(
     readonly computeQrl: ComputedQrlRef<T>,
-    readonly container?: Container
+    readonly container?: ContainerContext
   ) {
     super(computeQrlValue);
   }
@@ -19,7 +19,7 @@ export class ComputedQrl<T> extends Computed<T> {
 
 export function createComputedQrl<T>(
   computeQrl: ComputedQrlRef<T>,
-  container?: Container
+  container?: ContainerContext
 ): ComputedQrl<T> {
   return registerSubscriberToOwner(new ComputedQrl(computeQrl, container));
 }

@@ -5,8 +5,8 @@ import { createSignal } from '@qwik.dev/core/spark';
 const debug = false;
 
 describe.each([
-  { name: 'ssrRender', render: ssrRender }, //
-  { name: 'csrRender', render: csrRender }, //
+  { render: ssrRender }, //
+  { render: csrRender }, //
 ])('$name: signals', ({ render }) => {
   it('should render signal', async () => {
     const MyComp = () => {

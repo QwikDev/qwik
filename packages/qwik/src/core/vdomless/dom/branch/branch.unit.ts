@@ -20,10 +20,10 @@ import {
   getActiveInvokeContextOrNull,
   invoke,
   newInvokeContext,
-  type ContextScope,
   type RuntimeInvokeContext,
   type SlotScope,
 } from '../../runtime/invoke-context';
+import type { ContextScope } from '../../runtime/context-scope';
 import { createOwner, runWithOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import type { BranchSubscriber, DomSubscriber } from '../../runtime/subscriber';

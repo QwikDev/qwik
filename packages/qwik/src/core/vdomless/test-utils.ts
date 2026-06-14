@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { format as formatCode } from 'prettier';
@@ -9,12 +9,13 @@ import { createDocument } from '../../testing/document';
 import { isJSXNode } from '../shared/jsx/jsx-node';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { _dumpState } from '../shared/serdes/dump-state';
-import { QContainerValue, type Container } from '../shared/types';
+import { QContainerValue } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
 import { render as renderCsr, type CsrRenderRoot } from './csr-render';
 import type { BranchRange } from './dom/branch/branch';
 import { createTextExpressionEffect } from './dom/effect/effect';
 import { ReactiveFlags } from './reactive/flags';
+import { createContainerContext, type ContainerContext } from './runtime/container-context';
 import { Scheduler } from './runtime/scheduler';
 import {
   SubscriberKind,
@@ -233,10 +234,38 @@ export function createAttrTarget(): { element: Element; attrs: Map<string, strin
   };
 }
 
-export function createCaptureContainer(captures: Record<string, unknown>): Container {
-  return {
-    $getObjectById$: (id: number | string) => captures[String(id)],
-  } as Container;
+export function createCaptureContainer(captures: Record<string, unknown>): ContainerContext {
+  const scheduler = new Scheduler(noopSchedule, noopSchedule);
+  const container: ContainerContext = {
+    element: {} as HTMLElement,
+    document: null,
+    scheduler,
+    state: {
+      rootToChunk: [],
+      liveRoots: new Map(),
+      pendingPatchesByRoot: new Map(),
+    },
+    forwardRefs: null,
+    getRoot(id) {
+      return Promise.resolve(captures[String(id)]);
+    },
+    async restoreCaptures(ids) {
+      const normalized = ids.trim();
+      if (normalized.length === 0) {
+        return [];
+      }
+      const parts = normalized.split(' ');
+      const results: unknown[] = new Array(parts.length);
+      for (let i = 0; i < parts.length; i++) {
+        results[i] = await container.getRoot(parts[i]);
+      }
+      return results;
+    },
+    notify(subscriber) {
+      scheduler.notify(subscriber);
+    },
+  };
+  return container;
 }
 
 export function createTaskSubscriber(
@@ -352,6 +381,7 @@ export async function ssrRender(jsx: JSXOutput, options?: RenderOptions): Promis
     QContainerValue.PAUSED,
     compiled.moduleBase
   );
+  createContainerContext(container, scheduler);
   const nodes = Array.from(container.childNodes) as Node[];
   const qwikLoader = shouldBootQwikLoader(container)
     ? withSchedulerFlush(await bootQwikLoader(document), scheduler)
@@ -796,8 +826,9 @@ async function importCompiledRoot<TRoot extends CsrRenderComponent | SsrRenderCo
   }
 
   const modules = prepareCompiledModulesForImport(result.modules);
-  const dir = join(findRepoRoot(), 'temp', 'render', `${Date.now()}-${target}-${id}`);
-  await mkdir(dir, { recursive: true });
+  const renderDir = join(findRepoRoot(), 'temp', 'render');
+  await mkdir(renderDir, { recursive: true });
+  const dir = await mkdtemp(join(renderDir, `${target}-${id}-`));
 
   let entryPath: string | null = null;
   for (let i = 0; i < modules.length; i++) {

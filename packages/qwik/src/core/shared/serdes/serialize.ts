@@ -10,7 +10,7 @@ import { ReactiveFlags } from '../../vdomless/reactive/flags';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
 import type { Dependency } from '../../vdomless/reactive/source';
-import { isContextScope, type ContextScope } from '../../vdomless/runtime/context-scope';
+import { isContextScope } from '../../vdomless/runtime/context-scope';
 import type { Subscriber } from '../../vdomless/runtime/subscriber';
 import type { SSRInternalStreamWriter, SSRWriteChunk } from '../../ssr/ssr-types';
 import { qError, QError } from '../error/error';

@@ -193,6 +193,21 @@ export function App() {
     });
   });
 
+  test('preserves multiline text spacing before dynamic text', async () => {
+    await testInput('ssr_dynamic_range_text_multiline_spacing', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(0);
+  return (
+    <p>
+      Count: {count.value}
+    </p>
+  );
+}
+`,
+    });
+  });
+
   test('emits SSR range text boundaries before static text', async () => {
     await testInput('ssr_dynamic_range_text_boundary', {
       code: `import { createSignal } from '@qwik.dev/core/spark';

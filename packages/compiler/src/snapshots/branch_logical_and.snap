@@ -150,6 +150,7 @@ null
 ============================= src/component.tsx ==
 
 import { createSignal, _withCaptures, createBranch, createBranchRange } from '@qwik.dev/core/spark';
+import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
 
 export function App(_props, ctx) {
@@ -164,7 +165,7 @@ export function App(_props, ctx) {
   const branch4 = createBranch(
     createBranchRange(comment2, comment3),
     [],
-    () => visible.value,
+    _withCaptures(component_branch_condition_segment_0, [visible]),
     _withCaptures(component_branch_then_segment_1, [label]),
     undefined,
     { scheduler: ctx.scheduler, container: ctx }
@@ -175,6 +176,38 @@ export function App(_props, ctx) {
 }
 
 null
+============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_branch_condition_segment_0 = () => {
+  const visible = _captures[0];
+  return visible.value;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_0",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    166,
+    179
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "visible"
+  ]
+}
+*/
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
 import { createAttrEffect, createTextNodeEffect, _captures } from '@qwik.dev/core/spark';

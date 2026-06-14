@@ -13,6 +13,7 @@
       "@qwik.dev/core/preloader": ["packages/qwik/src/preloader"],
       "@qwik.dev/core/server": ["packages/qwik/src/server"],
       "@qwik.dev/core/spark": ["packages/qwik/src/spark"],
+      "@qwik.dev/core/spark/handlers": ["packages/qwik/src/spark/handlers"],
       "@qwik.dev/core/testing": ["packages/qwik/src/testing"],
       "@qwik.dev/core/worker": ["packages/qwik/src/web-worker"],
       "@qwik.dev/core/devtools": ["packages/qwik/src/devtools"],

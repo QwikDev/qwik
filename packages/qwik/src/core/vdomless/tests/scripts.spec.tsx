@@ -1,4 +1,5 @@
 import { component$ } from '@qwik.dev/core';
+import { createSignal } from '@qwik.dev/core/spark';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender } from '../test-utils';
 
@@ -71,6 +72,28 @@ describe('ssrRender: qwikloader', () => {
     delete (globalThis as any).__vdomlessQwikLoaderClicks;
     delete (globalThis as any).__vdomlessQwikLoaderEventType;
     delete (globalThis as any).__vdomlessQwikLoaderClientX;
+  });
+
+  it('should run a lazy event handler with captured state through qwikloader', async () => {
+    const ScriptsLoaderCapturedClick = () => {
+      const count = createSignal(0);
+      return <button onClick$={() => count.value++}>{count.value}</button>;
+    };
+
+    const { container, cleanup, qwikLoader } = await ssrRender(<ScriptsLoaderCapturedClick />, {
+      debug,
+    });
+    const button = container.querySelector('button');
+
+    expect(button).not.toBeNull();
+    expect(qwikLoader).toBeDefined();
+    expect(button!.textContent).toBe('0');
+
+    await qwikLoader!.dispatch(button!, 'click');
+
+    expect(button!.textContent).toBe('1');
+
+    cleanup();
   });
 });
 

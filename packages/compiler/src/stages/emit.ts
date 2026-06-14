@@ -153,6 +153,7 @@ function collectCsrRootNodeQrlSegments(
     return;
   }
   if (node.kind === 'branch') {
+    collectExistingQrlSegment(node.conditionSegmentId, qrlSegments, rootSegments);
     collectExistingQrlSegment(node.thenSegmentId, qrlSegments, rootSegments);
     if (node.elseSegmentId) {
       collectExistingQrlSegment(node.elseSegmentId, qrlSegments, rootSegments);
@@ -320,9 +321,7 @@ function collectNodeQrlSegments(
     }
   }
   if (node.kind === 'branch') {
-    if (includeTextExpressions) {
-      collectSegmentById(ctx, node.conditionSegmentId, segmentById, qrlSegments);
-    }
+    collectSegmentById(ctx, node.conditionSegmentId, segmentById, qrlSegments);
     collectSegmentById(ctx, node.thenSegmentId, segmentById, qrlSegments);
     if (node.elseSegmentId) {
       collectSegmentById(ctx, node.elseSegmentId, segmentById, qrlSegments);

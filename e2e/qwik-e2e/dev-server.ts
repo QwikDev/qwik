@@ -52,6 +52,10 @@ const repoRoot = resolve(__dirname, '..', '..');
 const appsDir = join(e2eDir, 'apps');
 const appNames = readdirSync(appsDir).filter((p) => statSync(join(appsDir, p)).isDirectory());
 
+type E2EQwikPackageConfig = PackageJSON['__qwik__'] & {
+  vdomless?: boolean;
+};
+
 type OOOSReleaseStore = {
   resolved: Set<string>;
   resolvers: Map<string, Set<() => void>>;
@@ -73,6 +77,25 @@ let ooosRequestCounter = 0;
 const qwikRouterVirtualEntry = '@router-ssr-entry';
 const entryDevFileName = 'entry.dev.tsx';
 const entrySsrFileName = 'entry.ssr.tsx';
+
+const isVdomlessApp = (pkgJson: PackageJSON) => {
+  return !!(pkgJson.__qwik__ as E2EQwikPackageConfig | undefined)?.vdomless;
+};
+
+const ensureQwikLoaderGlobals = () => {
+  const global = globalThis as typeof globalThis & {
+    QWIK_LOADER_DEFAULT_MINIFIED?: string;
+    QWIK_LOADER_DEFAULT_DEBUG?: string;
+  };
+  global.QWIK_LOADER_DEFAULT_MINIFIED ??= readFileSync(
+    join(repoRoot, 'packages', 'qwik', 'dist', 'qwikloader.js'),
+    'utf-8'
+  );
+  global.QWIK_LOADER_DEFAULT_DEBUG ??= readFileSync(
+    join(repoRoot, 'packages', 'qwik', 'dist', 'qwikloader.debug.js'),
+    'utf-8'
+  );
+};
 
 Error.stackTraceLimit = 1000;
 
@@ -106,10 +129,11 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     const pkgPath = join(appDir, 'package.json');
     const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
+    const enableVdomless = isVdomlessApp(pkgJson);
 
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
-      clientManifest = buildApp(appDir, appName, enableRouterServer);
+      clientManifest = buildApp(appDir, appName, enableRouterServer, enableVdomless);
       cache.set(appDir, clientManifest);
     }
 
@@ -136,15 +160,23 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function buildApp(appDir: string, appName: string, enableRouterServer: boolean) {
+async function buildApp(
+  appDir: string,
+  appName: string,
+  enableRouterServer: boolean,
+  enableVdomless: boolean
+) {
   const optimizer = await import('@qwik.dev/core/optimizer');
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
   const entryDevPath = join(appSrcDir, entryDevFileName);
+  const sparkSourcePath = join(repoRoot, 'packages', 'qwik', 'src', 'spark', 'index.ts');
+  const sparkHandlersSourcePath = join(repoRoot, 'packages', 'qwik', 'src', 'spark', 'handlers.ts');
   const basePath = `/${appName}/`;
   const isProd = appName.includes('.prod');
-  const clientInput = appName === 'e2e' && existsSync(entryDevPath) ? entryDevPath : undefined;
+  const clientInput =
+    (appName === 'e2e' || enableVdomless) && existsSync(entryDevPath) ? entryDevPath : undefined;
 
   // always clean the build directory
   removeDir(appDistDir);
@@ -207,6 +239,18 @@ export { router }
     resolve: {
       conditions: [isProd ? 'production' : 'development'],
       mainFields: [],
+      alias: enableVdomless
+        ? [
+            {
+              find: '@qwik.dev/core/spark/handlers',
+              replacement: sparkHandlersSourcePath,
+            },
+            {
+              find: '@qwik.dev/core/spark',
+              replacement: sparkSourcePath,
+            },
+          ]
+        : [],
     },
   });
 
@@ -233,6 +277,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          compiler: enableVdomless ? 'vdomless' : 'optimizer',
           entryStrategy: { type: 'segment' },
           client: {
             outDir: join(appDistDir, appName),
@@ -256,6 +301,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          compiler: enableVdomless ? 'vdomless' : 'optimizer',
           experimental: ['each', 'suspense'],
           ssr: {
             manifestInput: clientManifest,
@@ -323,6 +369,7 @@ async function ssrApp(
   const ssrPath = join(appDir, 'server', 'entry.ssr.js');
   // it's ok in the devserver to import core multiple times
   (globalThis as any).__qwik = null;
+  ensureQwikLoaderGlobals();
   const mod = await import(file(ssrPath));
   const render: Render = mod.default ?? mod.render;
 
@@ -415,8 +462,9 @@ async function main() {
       const pkgPath = join(appDir, 'package.json');
       const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
       const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
+      const enableVdomless = isVdomlessApp(pkgJson);
 
-      await buildApp(appDir, buildTarget, enableRouterServer);
+      await buildApp(appDir, buildTarget, enableRouterServer, enableVdomless);
       console.log(`\n✅ Successfully built ${buildTarget}\n`);
       process.exit(0);
     } catch (error: any) {

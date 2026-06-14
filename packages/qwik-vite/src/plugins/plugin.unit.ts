@@ -29,6 +29,7 @@ test('defaults', async () => {
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
+  assert.deepEqual(opts.compiler, 'optimizer');
 });
 
 test('defaults (buildMode: production)', async () => {
@@ -99,6 +100,12 @@ test('csr', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ csr: true });
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
+});
+
+test('compiler option', async () => {
+  const plugin = await mockPlugin();
+  const opts = await plugin.normalizeOptions({ compiler: 'vdomless' });
+  assert.deepEqual(opts.compiler, 'vdomless');
 });
 
 test('override entryStrategy', async () => {

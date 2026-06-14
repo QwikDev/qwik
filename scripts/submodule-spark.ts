@@ -9,7 +9,10 @@ export async function submoduleSpark(config: BuildConfig) {
   const distDir = join(config.distQwikPkgDir, submodule);
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
+    entryPoints: [
+      join(config.srcQwikDir, submodule, 'index.ts'),
+      join(config.srcQwikDir, submodule, 'handlers.ts'),
+    ],
     outdir: distDir,
     sourcemap: config.dev,
     bundle: true,

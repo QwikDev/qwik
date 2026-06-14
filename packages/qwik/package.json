@@ -111,6 +111,10 @@
       "types": "./dist/spark/index.d.ts",
       "import": "./dist/spark/index.mjs"
     },
+    "./spark/handlers": {
+      "types": "./dist/spark/index.d.ts",
+      "import": "./dist/spark/handlers.mjs"
+    },
     "./testing": {
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.mjs"

@@ -205,7 +205,7 @@ export function createBranchRange(start: Comment, end: Comment): BranchRange {
 export function createBranch<TArgs extends unknown[]>(
   range: BranchRange,
   args: TArgs,
-  condition: BranchConditionFn<TArgs>,
+  condition: BranchCondition<TArgs>,
   then: BranchRenderFn<TArgs>,
   otherwise?: BranchRenderFn<TArgs>,
   options?: BranchOptions

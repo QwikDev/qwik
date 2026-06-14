@@ -244,6 +244,7 @@ null
 ============================= src/component.tsx ==
 
 import { createSignal, _withCaptures, createBranch, createBranchRange } from '@qwik.dev/core/spark';
+import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
 import { component_branch_else_segment_2 } from './component.tsx_component_branch_else_segment_2';
 
@@ -258,7 +259,7 @@ export function App(_props, ctx) {
   const branch4 = createBranch(
     createBranchRange(comment2, comment3),
     [],
-    () => count.value % 2 === 0,
+    _withCaptures(component_branch_condition_segment_0, [count]),
     _withCaptures(component_branch_then_segment_1, [count]),
     _withCaptures(component_branch_else_segment_2, [count]),
     { scheduler: ctx.scheduler, container: ctx }
@@ -269,6 +270,38 @@ export function App(_props, ctx) {
 }
 
 null
+============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_branch_condition_segment_0 = () => {
+  const count = _captures[0];
+  return count.value % 2 === 0;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_0",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    134,
+    155
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
 import { createTextNodeEffect, _captures } from '@qwik.dev/core/spark';

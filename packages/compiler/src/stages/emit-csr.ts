@@ -215,7 +215,7 @@ class DomEmitter {
     const startId = this.next('comment');
     const endId = this.next('comment');
     const branchId = this.next('branch');
-    const condition = this.sourceCode.slice(node.conditionRange[0], node.conditionRange[1]);
+    const condition = this.emitBranchCondition(node.conditionSegmentId);
     const thenRenderer = this.emitBranchRenderer(node.thenSegmentId);
     const elseRenderer = node.elseSegmentId
       ? this.emitBranchRenderer(node.elseSegmentId)
@@ -227,10 +227,18 @@ class DomEmitter {
     this.line(`${fragmentId}.appendChild(${startId});`);
     this.line(`${fragmentId}.appendChild(${endId});`);
     this.line(
-      `const ${branchId} = ${QwikSymbol.CreateBranch}(${QwikSymbol.CreateBranchRange}(${startId}, ${endId}), [], () => ${condition}, ${thenRenderer}, ${elseRenderer}, { scheduler: ctx.scheduler, container: ctx });`
+      `const ${branchId} = ${QwikSymbol.CreateBranch}(${QwikSymbol.CreateBranchRange}(${startId}, ${endId}), [], ${condition}, ${thenRenderer}, ${elseRenderer}, { scheduler: ctx.scheduler, container: ctx });`
     );
     this.line(`ctx.scheduler.notify(${branchId});`);
     return { id: fragmentId, kind: 'node' };
+  }
+
+  private emitBranchCondition(segmentId: string): string {
+    const qrlSegment = this.qrlSegments.get(segmentId);
+    if (!qrlSegment) {
+      throw new Error(`Missing branch condition segment ${segmentId}.`);
+    }
+    return emitCapturedFunction(qrlSegment);
   }
 
   private emitBranchRenderer(segmentId: string): string {

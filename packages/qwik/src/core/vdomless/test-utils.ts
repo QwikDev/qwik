@@ -9,8 +9,7 @@ import { createDocument } from '../../testing/document';
 import { isJSXNode } from '../shared/jsx/jsx-node';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { _dumpState } from '../shared/serdes/dump-state';
-import { QContainerValue } from '../shared/types';
-import { QContainerAttr } from '../shared/utils/markers';
+import { QContainerSelector } from '../shared/utils/markers';
 import { render as renderCsr, type CsrRenderRoot } from './csr-render';
 import type { BranchRange } from './dom/branch/branch';
 import { createTextExpressionEffect } from './dom/effect/effect';
@@ -36,6 +35,7 @@ export interface RenderOptions {
   debug?: boolean;
   qwikLoader?: QwikLoaderOptions;
   scheduler?: Scheduler;
+  base?: string;
 }
 
 export interface RenderResult {
@@ -373,21 +373,20 @@ export async function csrRender(jsx: JSXOutput, options?: RenderOptions): Promis
 export async function ssrRender(jsx: JSXOutput, options?: RenderOptions): Promise<RenderResult> {
   const compiled = await compileJsxRoot<SsrRenderComponent>('ssr', jsx);
   const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
-  const result = await renderToString(compiled.root, options);
+  const result = await renderToString(compiled.root, {
+    ...options,
+    base: options?.base ?? compiled.moduleBase,
+  });
   await flushScheduler(scheduler);
 
-  const { document, container } = createContainerDocument(
-    result.html,
-    QContainerValue.PAUSED,
-    compiled.moduleBase
-  );
-  createContainerContext(container, scheduler);
+  const { document, container, qwikContainer } = createContainerDocument(result.html);
+  createContainerContext(qwikContainer, scheduler);
   const nodes = Array.from(container.childNodes) as Node[];
-  const qwikLoader = shouldBootQwikLoader(container)
+  const qwikLoader = shouldBootQwikLoader(qwikContainer)
     ? withSchedulerFlush(await bootQwikLoader(document), scheduler)
     : undefined;
   const cleanup = createRenderCleanup(() => qwikLoader?.cleanup(), container);
-  const state = options?.debug ? collectDebugState(container) : undefined;
+  const state = options?.debug ? collectDebugState(qwikContainer) : undefined;
   await debugRender('ssr', compiled.modules, container.innerHTML, options, state);
 
   return {
@@ -449,25 +448,24 @@ async function flushScheduler(scheduler: Scheduler): Promise<void> {
   await scheduler.flushDeferred();
 }
 
-function createContainerDocument(
-  html: string,
-  containerState: QContainerValue,
-  moduleBase?: string
-): { document: Document; container: HTMLElement } {
-  const baseAttr = moduleBase ? ` q:base="${escapeHtmlAttr(moduleBase)}"` : '';
+function createContainerDocument(html: string): {
+  document: Document;
+  container: HTMLElement;
+  qwikContainer: HTMLElement;
+} {
   const document = createDocument({
-    html: `<html><body><div ${QContainerAttr}="${containerState}"${baseAttr}>${html}</div></body></html>`,
+    html,
   });
-  const container = document.body.firstElementChild as HTMLElement | null;
-  if (container === null) {
-    throw new Error('Missing render container');
+  const qwikContainer = document.querySelector(QContainerSelector) as HTMLElement | null;
+  if (qwikContainer === null) {
+    throw new Error('Missing Qwik container');
   }
 
-  return { document, container };
-}
-
-function escapeHtmlAttr(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  const container =
+    qwikContainer === document.documentElement && document.body !== null
+      ? document.body
+      : qwikContainer;
+  return { document, container, qwikContainer };
 }
 
 function shouldBootQwikLoader(container: Element): boolean {

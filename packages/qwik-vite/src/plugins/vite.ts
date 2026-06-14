@@ -232,6 +232,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
+        compiler: qwikViteOpts.compiler,
         experimental: qwikViteOpts.experimental,
         input,
         manifestInput: qwikViteOpts.ssr?.manifestInput,
@@ -1052,6 +1053,11 @@ interface QwikVitePluginCommonOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  /**
+   * Selects the transform/runtime pipeline. `optimizer` keeps the current Qwik optimizer path;
+   * `vdomless` uses the new compiler and vdomless runtime.
+   */
+  compiler?: 'optimizer' | 'vdomless';
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases

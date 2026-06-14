@@ -131,6 +131,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     },
     inlineStylesUpToBytes: 20000,
     lint: false,
+    compiler: 'optimizer',
     experimental: undefined,
   };
 
@@ -226,6 +227,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     opts.csr = !!updatedOpts.csr;
+    opts.compiler = updatedOpts.compiler === 'vdomless' ? 'vdomless' : 'optimizer';
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
@@ -588,18 +590,21 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     } else {
       // If qwik core is loaded, also add the handlers
-      if (!isServer && shouldAddHandlers && id.endsWith('@qwik.dev/core')) {
+      if (!isServer && shouldAddHandlers && shouldAutoAddHandlers(pathId, opts)) {
         shouldAddHandlers = false;
-        const key = await ctx.resolve('@qwik.dev/core/handlers.mjs', importerId, {
+        const handlersId =
+          opts.compiler === 'vdomless' ? QWIK_SPARK_HANDLERS_ID : '@qwik.dev/core/handlers.mjs';
+        const key = await ctx.resolve(handlersId, importerId, {
           skipSelf: true,
         });
         if (!key) {
-          throw new Error('Failed to resolve @qwik.dev/core/handlers.mjs');
+          throw new Error(`Failed to resolve ${handlersId}`);
         }
         ctx.emitFile({
           id: key.id,
           type: 'chunk',
           preserveSignature: 'allow-extension',
+          ...(opts.compiler === 'vdomless' ? { name: 'handlers' } : undefined),
         });
       }
 
@@ -869,7 +874,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
 
       const now = Date.now();
-      const newOutput = isCompilerTestPath(normalizePath(pathId))
+      const newOutput = shouldUseVdomlessCompiler(normalizePath(pathId), opts)
         ? await transformCompilerModules(transformOpts)
         : await optimizer.transformModules(transformOpts);
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
@@ -1291,6 +1296,38 @@ function isAdditionalFile(mod: TransformModule) {
   return mod.isEntry || mod.segment;
 }
 
+function shouldAutoAddHandlers(id: string, opts: NormalizedQwikPluginOptions) {
+  if (id.endsWith('@qwik.dev/core')) {
+    return true;
+  }
+  if (opts.compiler !== 'vdomless') {
+    return false;
+  }
+  const normalizedId = id.replace(/\\/g, '/');
+  return (
+    normalizedId.endsWith('@qwik.dev/core/spark') ||
+    normalizedId.endsWith('@qwik.dev/core/spark/handlers') ||
+    normalizedId.endsWith('/packages/qwik/src/spark/handlers.ts') ||
+    normalizedId.endsWith('/packages/qwik/src/spark/index.ts')
+  );
+}
+
+function shouldUseVdomlessCompiler(id: string, opts: NormalizedQwikPluginOptions) {
+  if (isCompilerTestPath(id)) {
+    return true;
+  }
+  if (opts.compiler !== 'vdomless' || !opts.srcDir) {
+    return false;
+  }
+  return isInSourceDir(id, opts.srcDir);
+}
+
+function isInSourceDir(id: string, srcDir: string) {
+  const normalizedId = id.replace(/\\/g, '/');
+  const normalizedSrcDir = srcDir.replace(/\\/g, '/').replace(/\/$/, '');
+  return normalizedId === normalizedSrcDir || normalizedId.startsWith(`${normalizedSrcDir}/`);
+}
+
 function isCompilerTestPath(id: string) {
   return (
     id.includes('/packages/qwik/src/core/vdomless/tests/') ||
@@ -1332,6 +1369,7 @@ export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 export const QWIK_PRELOADER_ID = '@qwik.dev/core/preloader';
 /** @internal virtual import to ensure the _run etc handlers are exported as-is */
 export const QWIK_HANDLERS_ID = '@qwik-handlers';
+export const QWIK_SPARK_HANDLERS_ID = '@qwik.dev/core/spark/handlers';
 
 export const SRC_DIR_DEFAULT = 'src';
 
@@ -1411,6 +1449,11 @@ export interface QwikPluginOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  /**
+   * Selects the transform pipeline. `optimizer` keeps the current Qwik optimizer path; `vdomless`
+   * uses the new compiler/runtime pipeline.
+   */
+  compiler?: 'optimizer' | 'vdomless';
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases.

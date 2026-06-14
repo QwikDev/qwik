@@ -167,12 +167,37 @@ export function normalizeJsxText(value: string) {
   if (!value.includes('\n') && !value.includes('\r')) {
     return value;
   }
-  return value
-    .replace(/\r\n?/g, '\n')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .join(' ');
+  const lines = value.replace(/\r\n?/g, '\n').split('\n');
+  let lastNonEmptyLine = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/[^ \t]/.test(lines[i])) {
+      lastNonEmptyLine = i;
+    }
+  }
+  if (lastNonEmptyLine === -1) {
+    return '';
+  }
+
+  let text = '';
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].replace(/\t/g, ' ');
+    const isFirstLine = i === 0;
+    const isLastLine = i === lines.length - 1;
+    const isLastNonEmptyLine = i === lastNonEmptyLine;
+    if (!isFirstLine) {
+      line = line.replace(/^ +/, '');
+    }
+    if (!isLastLine) {
+      line = line.replace(/ +$/, '');
+    }
+    if (line) {
+      text += line;
+      if (!isLastNonEmptyLine) {
+        text += ' ';
+      }
+    }
+  }
+  return text;
 }
 
 function getEventScopeDataFromJsxEvent(jsxEvent: string, isPassive: boolean): [string, number] {

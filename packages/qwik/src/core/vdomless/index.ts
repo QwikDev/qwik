@@ -177,9 +177,8 @@ export {
   type SsrEffectTarget,
   type TextExpressionQrl,
 } from './dom/effect/ssr-effect';
-export { _run } from '../client/run-qrl';
 export { _qrlWithChunk } from '../shared/qrl/qrl';
-export { _captures, withCaptures as _withCaptures } from '../shared/qrl/qrl-class';
+export { _captures, _run, _withCaptures } from '../../spark/handlers';
 export {
   createContainerContext,
   getOrCreateContainerContext,

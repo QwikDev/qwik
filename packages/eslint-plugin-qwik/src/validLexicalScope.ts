@@ -414,6 +414,11 @@ function _isTypeCapturable(
     if (symbolName in ALLOWED_CLASSES) {
       return;
     }
+    // Error subclasses serialize as plain Errors (qwik serializes `instanceof Error`), so they
+    // are capturable just like `Error` itself.
+    if (isErrorSubclass(type)) {
+      return;
+    }
     if (type.isClass()) {
       return {
         type,
@@ -508,6 +513,25 @@ function isTypeQRL(type: ts.Type): boolean {
   return (
     !!(type.flags & ts.TypeFlags.Any) || !!type.getNonNullableType().getProperty('__brand__QRL__')
   );
+}
+
+/** A class type whose ancestry includes `Error` — serializable as a plain Error by qwik. */
+function isErrorSubclass(type: ts.Type, seen = new Set<ts.Type>()): boolean {
+  if (seen.has(type)) {
+    return false;
+  }
+  seen.add(type);
+  if (type.symbol?.name === 'Error') {
+    return true;
+  }
+  // A generic instantiation (e.g. `ServerError<T>`) is a TypeReference; resolve to its class
+  // definition before walking the heritage, since getBaseTypes()/isClass() don't apply to it.
+  const target = (type as ts.TypeReference).target;
+  if (target && target !== type && isErrorSubclass(target, seen)) {
+    return true;
+  }
+  const bases = (type as ts.InterfaceType).getBaseTypes?.() ?? [];
+  return bases.some((base) => isErrorSubclass(base, seen));
 }
 
 function getContent(symbol: ts.Symbol, sourceCode: string) {

@@ -6,6 +6,7 @@ import {
   noSerialize,
   useStore,
   withLocale,
+  type NoSerialize,
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
@@ -44,6 +45,11 @@ import type {
 } from './types';
 import { useAction, useLocation } from './use-functions';
 
+/** Internal store shape: adds the non-serializable in-flight submission promise. */
+type ActionStoreInternal = Editable<ActionStore<unknown, unknown>> & {
+  _inFlight?: NoSerialize<Promise<void>>;
+};
+
 /** @internal */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
@@ -56,9 +62,11 @@ export const routeActionQrl = ((
     const initialState: Editable<Partial<ActionStore<unknown, unknown>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
       submitted: false,
+      loading: false,
       isRunning: false,
       status: undefined,
       value: undefined,
+      error: undefined,
       formData: undefined,
     };
     const state = useStore<Editable<ActionStore<unknown, unknown>>>(() => {
@@ -69,9 +77,10 @@ export const routeActionQrl = ((
           initialState.formData = data;
         }
         if (value.output) {
-          const { status, result } = value.output;
+          const { status, result, error } = value.output;
           initialState.status = status;
           initialState.value = result;
+          initialState.error = error;
         }
       }
       return initialState as ActionStore<unknown, unknown>;
@@ -99,11 +108,12 @@ Action.run() can only be called on the browser, for example when a user clicks a
       } else {
         data = input;
       }
-      return new Promise<RouteActionResolver>((resolve) => {
+      const run = new Promise<RouteActionResolver>((resolve) => {
         if (data instanceof FormData) {
           state.formData = data;
         }
         state.submitted = true;
+        state.loading = true;
         state.isRunning = true;
         loc.isNavigating = true;
         currentAction.value = {
@@ -111,10 +121,12 @@ Action.run() can only be called on the browser, for example when a user clicks a
           id,
           resolve: noSerialize(resolve),
         };
-      }).then(({ result, status }) => {
+      }).then(({ result, status, error }) => {
+        state.loading = false;
         state.isRunning = false;
         state.status = status;
         state.value = result;
+        state.error = error;
         if (form) {
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
@@ -134,8 +146,19 @@ Action.run() can only be called on the browser, for example when a user clicks a
           value: result,
         };
       });
+      // Tracks the in-flight submission so `state.promise()` resolves when it settles. Stored on the
+      // store (not a closure) so the sibling `promise` QRL sees the same value after resumption; not
+      // serializable, hence noSerialize.
+      (state as ActionStoreInternal)._inFlight = noSerialize(
+        run.then(
+          () => undefined,
+          () => undefined
+        )
+      );
+      return run;
     });
     initialState.submit = submit;
+    initialState.promise = $(() => (state as ActionStoreInternal)._inFlight ?? Promise.resolve());
 
     return state;
   }

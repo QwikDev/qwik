@@ -146,6 +146,7 @@ export const enum AsyncSignalFlags {
   CLIENT_ONLY = 64,
   CLEAR_ON_INVALIDATE = 128,
   NO_POLL = 256,
+  THROW_ON_ERROR = 512,
 }
 
 export type AllSignalFlags =

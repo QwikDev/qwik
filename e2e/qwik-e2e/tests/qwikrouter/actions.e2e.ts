@@ -53,6 +53,22 @@ test.describe('actions', () => {
         }
       });
 
+      test('action.promise() resolves after the submission settles', async ({
+        page,
+        javaScriptEnabled,
+      }) => {
+        if (javaScriptEnabled) {
+          const settled = page.locator('#other-promise-settled');
+          const success = page.locator('#other-success');
+          const btn = page.locator('#other-promise-button');
+
+          await expect(settled).toBeHidden();
+          await btn.click();
+          await expect(settled).toHaveText('Settled');
+          await expect(success).toHaveText('Success');
+        }
+      });
+
       test('should run actions', async ({ page, javaScriptEnabled }) => {
         const other = page.locator('#other-store');
         const running = page.locator('#running');
@@ -105,8 +121,11 @@ test.describe('actions', () => {
         await submit.click();
         if (javaScriptEnabled) {
           await expect(running).toHaveText('Running...');
+          // loading mirrors the deprecated isRunning while the submission is in flight
+          await expect(page.locator('#loading')).toHaveText('Loading...');
         }
         await expect(running).toBeHidden();
+        await expect(page.locator('#loading')).toBeHidden();
         await expect(errorMessage).toBeHidden();
         await expect(successMessage).toHaveText('this is the secret');
         await expect(other).toHaveText('false:::');

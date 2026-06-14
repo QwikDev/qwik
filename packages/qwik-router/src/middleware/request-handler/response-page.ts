@@ -3,6 +3,7 @@ import {
   getRequestMode,
   getRequestRoute,
   RequestEvHttpStatusMessage,
+  RequestEvSharedActionError,
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
   RequestEvSharedNonce,
@@ -16,6 +17,7 @@ type GetQwikRouterServerDataArgs =
 const responsePageDeps = {
   Q_ROUTE,
   RequestEvHttpStatusMessage,
+  RequestEvSharedActionError,
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
   RequestEvSharedNonce,

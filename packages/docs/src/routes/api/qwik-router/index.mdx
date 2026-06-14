@@ -11,8 +11,9 @@ export type Action<
   RETURN,
   INPUT = Record<string, unknown>,
   OPTIONAL extends boolean = true,
+  ERROR = unknown,
 > = {
-  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+  (): ActionStore<RETURN, INPUT, OPTIONAL, ERROR>;
 };
 ```
 
@@ -44,7 +45,8 @@ export type ActionConstructor = {
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
   >;
   <
     OBJ extends Record<string, any> | void | null,
@@ -63,7 +65,8 @@ export type ActionConstructor = {
       OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
     >,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
   >;
   <
     OBJ extends Record<string, any> | void | null,
@@ -77,7 +80,12 @@ export type ActionConstructor = {
       readonly id?: string;
       readonly validation: REST;
     },
-  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Action<
+    StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>,
+    Record<string, unknown>,
+    true,
+    FailOfRest<REST>
+  >;
   <
     OBJ extends Record<string, any> | void | null,
     VALIDATOR extends TypedDataValidator,
@@ -96,7 +104,8 @@ export type ActionConstructor = {
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST>
   >;
   <
     OBJ extends Record<string, any> | void | null,
@@ -112,7 +121,8 @@ export type ActionConstructor = {
       OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
     >,
     GetValidatorInputType<VALIDATOR>,
-    false
+    false,
+    ValidatorErrorType<GetValidatorInputType<VALIDATOR>>
   >;
   <
     OBJ extends Record<string, any> | void | null,
@@ -123,7 +133,12 @@ export type ActionConstructor = {
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
     ...rest: REST
-  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Action<
+    StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>,
+    Record<string, unknown>,
+    true,
+    FailOfRest<REST>
+  >;
   <OBJ>(
     actionQrl: (
       form: JSONObject,
@@ -154,12 +169,20 @@ export type ActionReturn<RETURN> = {
 <h2 id="actionstore">ActionStore</h2>
 
 ```typescript
-export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
+export type ActionStore<
+  RETURN,
+  INPUT,
+  OPTIONAL extends boolean = true,
+  ERROR = unknown,
+> = {
   readonly actionPath: string;
+  readonly loading: boolean;
   readonly isRunning: boolean;
+  readonly promise: QRL<() => Promise<void>>;
   readonly status?: number;
   readonly formData: FormData | undefined;
   readonly value: RETURN | undefined;
+  readonly error: ServerError<ERROR> | undefined;
   readonly submit: QRL<
     OPTIONAL extends true
       ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
@@ -796,6 +819,10 @@ export type FailOfRest<REST extends readonly DataValidator[]> =
 
 <h2 id="failreturn">FailReturn</h2>
 
+> Warning: This API is now obsolete.
+>
+> Use `return error(status, data)` and read the typed `.error` (`ServerError`) channel instead. `return fail()` still works but the `.value.failed` branch it produces is deprecated.
+
 ```typescript
 export type FailReturn<T> = T & Failed;
 ```
@@ -1251,8 +1278,8 @@ _(Optional)_
 <h2 id="loader_2">Loader_2</h2>
 
 ```typescript
-export type Loader<RETURN> = {
-  (): LoaderSignal<RETURN>;
+export type Loader<RETURN, ERROR = unknown> = {
+  (): LoaderSignal<RETURN, ERROR>;
 };
 ```
 
@@ -1263,12 +1290,15 @@ export type Loader<RETURN> = {
 <h2 id="loadersignal">LoaderSignal</h2>
 
 ```typescript
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
-  infer VALIDATOR
->
+export type LoaderSignal<
+  TYPE,
+  ERROR = unknown,
+> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
-  Pick<AsyncSignal, "promise" | "loading" | "error">;
+  Pick<AsyncSignal, "promise" | "loading"> & {
+    readonly error: ServerError<ERROR> | undefined;
+  };
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -1653,6 +1683,21 @@ loadedRoute
 LoadedRoute
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+loaderErrors
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, ServerError&gt;
+
+</td><td>
+
+Per-loader `ServerError`s (from `return error()` or validator failures), keyed by loader id.
 
 </td></tr>
 <tr><td>

@@ -224,7 +224,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   for (const loader of loaders) {
     if (loader.__id in env.loaderValues) {
       const value = env.loaderValues[loader.__id];
-      setLoaderSignalValue(loaderState[loader.__id], value);
+      setLoaderSignalValue(loaderState[loader.__id], value, env.loaderErrors?.[loader.__id]);
     }
   }
 
@@ -271,25 +271,28 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   const currentActionId = env.response.action;
   const currentAction = currentActionId ? env.response.actionResult : undefined;
+  const currentActionError = currentActionId ? env.response.actionError : undefined;
   const actionState = useSignal<RouteActionValue>(
-    currentAction
+    currentActionId
       ? {
-          id: currentActionId!,
+          id: currentActionId,
           data: env.response.formData,
           output: {
             result: currentAction,
+            error: currentActionError,
             status: env.response.status,
           },
         }
       : undefined
   );
   const actionDataSignal = useSignal<
-    { action?: string; actionResult?: unknown; status: number } | undefined
+    { action?: string; actionResult?: unknown; actionError?: unknown; status: number } | undefined
   >(
     currentActionId
       ? {
           action: currentActionId,
           actionResult: currentAction,
+          actionError: currentActionError,
           status: env.response.status,
         }
       : undefined
@@ -515,7 +518,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const navCountBefore = internalState.navCount;
       let trackUrl: URL;
       let endpointResponse: EndpointResponse | undefined;
-      let actionData: { action?: string; actionResult?: unknown; status: number } | undefined;
+      let actionData:
+        | { action?: string; actionResult?: unknown; actionError?: unknown; status: number }
+        | undefined;
       let actionLoaderHashes: string[] | undefined;
       let shouldInvalidateActionLoaders = false;
       let loadedRoute: LoadedRoute;
@@ -567,6 +572,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             status: result.status,
             action: action.id,
             actionResult: result.result,
+            actionError: result.error,
           };
 
           // Resolve the action promise and free the closure
@@ -574,6 +580,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             action.resolve({
               status: result.status,
               result: result.result,
+              error: result.error,
             });
             action.resolve = undefined;
           }

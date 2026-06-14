@@ -218,9 +218,16 @@ export interface RequestEventCommon<
   readonly rewrite: (pathname: string) => RewriteMessage;
 
   /**
-   * When called, the response will immediately end with the given status code. This could be useful
-   * to end a response with `404`, and use the 404 handler in the routes directory. See
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.
+   * Creates a `ServerError` with the given status and data. Its effect depends on whether you
+   * `return` or `throw` it from a loader/action:
+   *
+   * - `return error(status, data)` — inline failure: surfaces on the loader/action `.error` channel
+   *   (a typed `ServerError`). `.value` keeps its prior/initial value and reading it does not
+   *   throw.
+   * - `throw error(status, data)` — aborts the request: propagates to middleware / the error page,
+   *   ending with the given status (e.g. the global 404/500 page).
+   *
+   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code to use.
    */
   readonly error: <T = any>(statusCode: ErrorCodes, message: T) => ServerError<T>;
 
@@ -498,6 +505,11 @@ declare global {
 export interface RequestEventAction<
   PLATFORM = QwikRouterPlatform,
 > extends RequestEventCommon<PLATFORM> {
+  /**
+   * @deprecated Use `return error(status, data)` instead. `return fail()` still works but lands on
+   *   the deprecated `.value.failed` branch; `error()` lands on the typed `.error` (`ServerError`)
+   *   channel.
+   */
   fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 

@@ -7,8 +7,13 @@ import type {
   RequestHandler,
   ValidatorReturn,
 } from '../../../runtime/src/types';
-import { RequestEvSharedActionId, type RequestEventInternal } from '../request-event-core';
+import {
+  RequestEvSharedActionError,
+  RequestEvSharedActionId,
+  type RequestEventInternal,
+} from '../request-event-core';
 import { IsQAction, QActionId } from '../request-path';
+import { ServerError } from '../server-error';
 import type { QRL } from '@qwik.dev/core';
 import type { RequestEventBase } from '../types';
 
@@ -82,26 +87,21 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
       throw new Error(`Expected request data for the action id ${actionId} to be an object`);
     }
 
-    let actionResult: unknown;
-    const result = await runValidators(requestEv, action.__validators, data, devMode);
-    if (!result.success) {
-      actionResult = requestEv.fail(result.status ?? 500, result.error);
-    } else {
-      const actionResolved = devMode
-        ? await measure(requestEv, action.__qrl.getHash(), () =>
-            action!.__qrl.call(requestEv, result.data as JSONObject, requestEv)
-          )
-        : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
-      if (devMode) {
-        verifySerializable(actionResolved, action.__qrl);
-      }
-      actionResult = actionResolved;
-    }
+    const { result: actionResult, error: actionError } = await executeAction(
+      action,
+      data,
+      requestEv,
+      devMode
+    );
     const responseData: Record<string, unknown> = {
       result: actionResult,
+      error: actionError,
     };
     requestEv.sharedMap.set(RequestEvSharedActionId, actionId);
     requestEv.sharedMap.set('@actionResult', actionResult);
+    if (actionError) {
+      requestEv.sharedMap.set(RequestEvSharedActionError, actionError);
+    }
 
     if (action.__invalidate) {
       // Action specifies which loaders to invalidate — send only hashes, client re-fetches
@@ -115,6 +115,45 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
     requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
     requestEv.send(requestEv.status(), serialized);
   };
+}
+
+/**
+ * Run an action's validators and QRL, routing the outcome to the two channels:
+ *
+ * - `result` — value placed on the action store's `.value` (success, or a deprecated `fail()` union).
+ * - `error` — a `ServerError` placed on the action store's `.error`: set when the action does `return
+ *   error()` (a returned `ServerError`) or when a validator fails (the deprecated `fail()` union is
+ *   also returned as `result` in the validator case so `.value.failed` keeps working).
+ *
+ * A THROWN error (e.g. `throw error()`) propagates out and aborts the request.
+ */
+export async function executeAction(
+  action: ActionInternal,
+  data: unknown,
+  requestEv: RequestEventInternal,
+  devMode: boolean
+): Promise<{ result: unknown; error?: ServerError }> {
+  const result = await runValidators(requestEv, action.__validators, data, devMode);
+  if (!result.success) {
+    const status = result.status ?? 500;
+    return {
+      result: requestEv.fail(status, result.error as Record<string, any>),
+      error: new ServerError(status, result.error),
+    };
+  }
+  const actionResolved = devMode
+    ? await measure(requestEv, action.__qrl.getHash(), () =>
+        action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
+      )
+    : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
+  if (devMode) {
+    verifySerializable(actionResolved, action.__qrl);
+  }
+  // A RETURNED ServerError (from `return error()`) goes to the `.error` channel.
+  if (actionResolved instanceof ServerError) {
+    return { result: undefined, error: actionResolved };
+  }
+  return { result: actionResolved };
 }
 
 async function runValidators(

@@ -26,7 +26,8 @@ contributors:
   - jemsco
   - tzdesign
   - shairez
-updated_at: '2023-12-15T11:00:00Z'
+  - maiieul
+updated_at: '2026-06-14T11:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -290,10 +291,10 @@ export default component$(() => {
         <input name="firstName" />
         <input name="lastName" />
 
-        {action.value?.failed && <p>{action.value.fieldErrors?.firstName}</p>}
+        {action.error?.fieldErrors && <p>{action.error.fieldErrors.firstName}</p>}
         <button type="submit">Add user</button>
       </Form>
-      {action.value?.success && (
+      {!action.error && action.value && (
         <p>User {action.value.userID} added successfully</p>
       )}
     </>
@@ -301,7 +302,7 @@ export default component$(() => {
 });
 ```
 
-When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.value` property.
+When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `action.error` property.
 
 Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
 
@@ -366,17 +367,17 @@ export const useProductRecommendations = routeAction$(
 
 ## Action Failures
 
-In order to return non-success values, the action must use the `fail()` method.
+In order to return non-success values, the action can `return error(...)`.
 
-```tsx /fail/
+```tsx /error/
 import { routeAction$, zod$, z } from '@qwik.dev/router';
 
 export const useAddUser = routeAction$(
-  async (user, { fail }) => {
+  async (user, { error }) => {
     // `user` is typed { name: string }
     const userID = await db.users.add(user);
     if (!userID) {
-      return fail(500, {
+      return error(500, {
         message: 'User could not be added',
       });
     }
@@ -390,9 +391,9 @@ export const useAddUser = routeAction$(
 );
 ```
 
-Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails. Futhermore, failure messages can be found in the `fieldErrors` object according to properties defined in your Zod schema.
+Failures are stored in the `action.error` property. For `zod$`/`valibot$` validation failures, the per-field messages are typed under `action.error.fieldErrors` according to the properties defined in your schema.
 
-The `fieldErrors` become a dot notation object. See [Complex forms](/docs/advanced/complex-forms) for more information.
+The `fieldErrors` becomes a dot notation object. See [Complex forms](/docs/advanced/complex-forms) for more information.
 
 ```tsx
 import { component$ } from '@qwik.dev/core';
@@ -410,8 +411,6 @@ export default component$(() => {
   );
 });
 ```
-
-Thanks to Typescript type discrimination, you can use the `action.value.failed` property to discriminate between success and failure.
 
 ## Previous form state
 

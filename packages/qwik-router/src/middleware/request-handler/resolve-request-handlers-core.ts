@@ -4,15 +4,12 @@ import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import type {
   ActionInternal,
   ContentModule,
-  DataValidator,
   DocumentHeadProps,
-  JSONObject,
   LoadedRoute,
   LoaderInternal,
   PageModule,
   ResolveSyncValue,
   RouteModule,
-  ValidatorReturn,
 } from '../../runtime/src/types';
 import {
   getRouteLoaderCtx,
@@ -25,7 +22,8 @@ import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-has
 import type { RequestEventInternal } from './request-event-core';
 import { loaderHandler } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
-import { actionHandler } from './handlers/action-handler';
+import { actionHandler, executeAction } from './handlers/action-handler';
+import { RequestEvSharedActionError } from './request-event-core';
 import { IsQLoader, QLoaderId } from './request-path';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
 
@@ -293,22 +291,16 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
                 `Expected request data for the action id ${selectedActionId} to be an object`
               );
             }
-            const result = await runValidators(requestEv, action.__validators, data);
-            let actionResult: unknown;
-            if (!result.success) {
-              actionResult = requestEv.fail(result.status ?? 500, result.error);
-            } else {
-              const actionResolved = isDev
-                ? await measure(requestEv, action.__qrl.getHash(), () =>
-                    action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
-                  )
-                : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
-              if (isDev) {
-                verifySerializable(actionResolved, action.__qrl);
-              }
-              actionResult = actionResolved;
-            }
+            const { result: actionResult, error: actionError } = await executeAction(
+              action,
+              data,
+              requestEv,
+              isDev
+            );
             requestEv.sharedMap.set('@actionResult', actionResult);
+            if (actionError) {
+              requestEv.sharedMap.set(RequestEvSharedActionError, actionError);
+            }
           }
         }
       }
@@ -491,34 +483,6 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
         await renderHandler(requestEv);
       }
     };
-  }
-
-  async function runValidators(
-    requestEv: RequestEvent,
-    validators: DataValidator[] | undefined,
-    data: unknown
-  ) {
-    let lastResult: ValidatorReturn = {
-      success: true,
-      data,
-    };
-    if (validators) {
-      for (const validator of validators) {
-        if (isDev) {
-          lastResult = await measure(requestEv, `validator$`, () =>
-            validator.validate(requestEv, data)
-          );
-        } else {
-          lastResult = await validator.validate(requestEv, data);
-        }
-        if (!lastResult.success) {
-          return lastResult;
-        } else {
-          data = lastResult.data;
-        }
-      }
-    }
-    return lastResult;
   }
 
   function isAsyncIterator(obj: unknown): obj is AsyncIterable<unknown> {

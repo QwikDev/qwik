@@ -2,11 +2,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
 import {
   ensureRouteLoaderSignal,
+  getRouteLoaderResponse,
   loadRouteLoader,
   routeLoaderQrl,
   type RouteLoaderState,
 } from './route-loaders';
-import type { LoaderInternal } from './types';
+import { ServerError } from '../../middleware/request-handler/server-error';
+import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
+import type { DataValidator, LoaderInternal } from './types';
 
 describe('search filter early-return logic', () => {
   // Mirrors the captured lastFetch object and condition in createRouteLoaderSignal.
@@ -88,6 +91,100 @@ describe('route loader execution', () => {
     const loader = routeLoaderQrl(createQrl('timed-loader'), { expires: 60_000 }) as LoaderInternal;
 
     expect(loader.__expires).toBe(60_000);
+  });
+});
+
+describe('getRouteLoaderResponse error channel', () => {
+  const createRequestEv = () => {
+    let currentStatus = 200;
+    const headers = new Headers();
+    return {
+      sharedMap: new Map(),
+      headers,
+      status: vi.fn((statusCode?: number) => {
+        if (typeof statusCode === 'number') {
+          currentStatus = statusCode;
+          return statusCode;
+        }
+        return currentStatus;
+      }),
+      fail: vi.fn((statusCode: number, data: Record<string, unknown>) => {
+        currentStatus = statusCode;
+        return { failed: true, ...data };
+      }),
+      error: vi.fn((statusCode: number, data: unknown) => {
+        currentStatus = statusCode;
+        return new ServerError(statusCode, data);
+      }),
+    } as any;
+  };
+
+  it('returned fail() lands on .value (d) only', async () => {
+    const requestEv = createRequestEv();
+    const qrl = { call: vi.fn((ev: any) => ev.fail(400, { msg: 'bad' })) } as any;
+
+    const response = await getRouteLoaderResponse(qrl, undefined, requestEv);
+
+    expect(response.d).toMatchObject({ failed: true, msg: 'bad' });
+    expect(response.e).toBeUndefined();
+  });
+
+  it('returned error() lands on .error (e) only', async () => {
+    const requestEv = createRequestEv();
+    const qrl = { call: vi.fn((ev: any) => ev.error(403, { reason: 'nope' })) } as any;
+
+    const response = await getRouteLoaderResponse(qrl, undefined, requestEv);
+
+    expect(response.d).toBeUndefined();
+    expect(response.e).toBeInstanceOf(ServerError);
+    expect(response.e!.status).toBe(403);
+    expect(response.e!.data).toEqual({ reason: 'nope' });
+  });
+
+  it('thrown error() rejects (aborts) instead of landing on a channel', async () => {
+    const requestEv = createRequestEv();
+    const qrl = {
+      call: vi.fn(() => {
+        throw new ServerError(500, 'boom');
+      }),
+    } as any;
+
+    await expect(getRouteLoaderResponse(qrl, undefined, requestEv)).rejects.toBeInstanceOf(
+      ServerError
+    );
+  });
+
+  it('thrown redirect() becomes a redirect (r) envelope', async () => {
+    const requestEv = createRequestEv();
+    requestEv.headers.set('Location', '/login');
+    const qrl = {
+      call: vi.fn(() => {
+        throw new RedirectMessage();
+      }),
+    } as any;
+
+    const response = await getRouteLoaderResponse(qrl, undefined, requestEv);
+
+    expect(response.r).toBe('/login');
+  });
+
+  it('validator failure populates BOTH .value (d) and .error (e)', async () => {
+    const requestEv = createRequestEv();
+    const validator: DataValidator = {
+      validate: vi.fn(async () => ({
+        success: false,
+        status: 422,
+        error: { formErrors: ['too short'], fieldErrors: { name: 'required' } },
+      })),
+    };
+    const qrl = { call: vi.fn(() => ({ ok: true })) } as any;
+
+    const response = await getRouteLoaderResponse(qrl, [validator], requestEv);
+
+    expect(response.d).toMatchObject({ failed: true, fieldErrors: { name: 'required' } });
+    expect(response.e).toBeInstanceOf(ServerError);
+    expect(response.e!.status).toBe(422);
+    expect(qrl.call).not.toHaveBeenCalled();
   });
 });
 

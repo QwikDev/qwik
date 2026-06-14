@@ -3,7 +3,8 @@ title: Validators | Qwik Router
 contributors:
   - wtlin1228
   - harishkrishnan24
-updated_at: '2023-09-15T18:19:48Z'
+  - maiieul
+updated_at: '2026-06-14T18:19:48Z'
 created_at: '2023-09-15T18:19:48Z'
 ---
 
@@ -37,24 +38,17 @@ export const useAction = routeAction$(
 );
 ```
 
-When submitting a request to a `routeAction()`, the request event and data undergo validation against the defined validator. If the validation fails, the action will place the validation error in the `routeAction.value` property.
+When submitting a request to a `routeAction()`, the request event and data undergo validation against the defined validator. If the validation fails, the action places the typed validation error on the `action.error` property:
 
 ```tsx
 export default component$(() => {
   const action = useAction();
-
-  // action value is undefined before submitting
-  if (action.value) {
-    if (action.value.failed) {
-      // action failed if query string has no secret
-      action.value satisfies { failed: true; message: string };
-    } else {
-      action.value satisfies { searchResult: string };
-    }
-  }
-
   return (
-    <button onClick$={() => action.submit({ search: "foo" })}>Submit</button>
+    <Form action={action}>
+      <input name="search" />
+      {action.error?.fieldErrors?.search && <p>{action.error.fieldErrors.search}</p>}
+      <button>Submit</button>
+    </Form>
   );
 });
 ```

@@ -120,7 +120,7 @@ export interface RequestEvent<PLATFORM = QwikRouterPlatform> extends RequestEven
 
 // @public (undocumented)
 export interface RequestEventAction<PLATFORM = QwikRouterPlatform> extends RequestEventCommon<PLATFORM> {
-    // (undocumented)
+    // @deprecated (undocumented)
     fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 

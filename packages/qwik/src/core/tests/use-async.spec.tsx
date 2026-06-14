@@ -129,7 +129,7 @@ describe.each([
     );
   });
 
-  it('should throw error on value if promise is rejected', async () => {
+  it('does not throw on value when the promise rejects; error is read via .error', async () => {
     (globalThis as any).log = [];
     const ErrorBoundary = component$(() => {
       const store = useErrorBoundary();
@@ -139,7 +139,13 @@ describe.each([
     const Counter = component$(() => {
       (globalThis as any).log.push('rendering counter');
       const doubleCount = useAsync$(() => Promise.reject(new Error('test')));
-      return <div>{doubleCount.value}</div>;
+      // Reading .value does not throw (default throwOnError off); the error is on .error.
+      return (
+        <div>
+          {doubleCount.value}
+          {doubleCount.error ? `err:${doubleCount.error.message}` : 'no-err'}
+        </div>
+      );
     });
     let threw = false;
     try {
@@ -152,20 +158,12 @@ describe.each([
     } catch (e) {
       threw = true;
     }
-    if (render === ssrRenderToDom) {
-      expect((globalThis as any).log).toEqual([
-        'rendering error boundary, no error',
-        'rendering counter',
-      ]);
-      expect(threw).toBe(true);
-    } else {
-      expect((globalThis as any).log).toEqual([
-        'rendering error boundary, no error',
-        'rendering counter',
-        'rendering error boundary, Error: test',
-      ]);
-      expect(threw).toBe(false);
-    }
+    // No throw, so the ErrorBoundary never catches — only the initial "no error" render.
+    expect(threw).toBe(false);
+    expect((globalThis as any).log).toEqual([
+      'rendering error boundary, no error',
+      'rendering counter',
+    ]);
   });
 
   it('should handle undefined as promise result', async () => {

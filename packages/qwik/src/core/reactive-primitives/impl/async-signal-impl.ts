@@ -170,6 +170,8 @@ export class AsyncSignalImpl<T>
     if (options.poll === false || (options.interval !== undefined && options.interval < 0)) {
       this.$flags$ |= AsyncSignalFlags.NO_POLL;
     }
+    // THROW_ON_ERROR is intentionally not wired to a public option yet — the value getter
+    // defaults to non-throwing. A future `throwOnError` option (RFC) will set this flag.
   }
 
   get untrackedValue() {
@@ -184,8 +186,13 @@ export class AsyncSignalImpl<T>
       return this.$untrackedValue$;
     }
     if (this.$untrackedError$) {
-      DEBUG && log('Throwing error while reading value', this);
-      throw this.$untrackedError$;
+      // Only re-throw when opted in (THROW_ON_ERROR); otherwise the error is read via `.error`
+      // and `.value` returns the stale/initial value.
+      if (this.$flags$ & AsyncSignalFlags.THROW_ON_ERROR) {
+        DEBUG && log('Throwing error while reading value', this);
+        throw this.$untrackedError$;
+      }
+      return this.$untrackedValue$;
     }
     // For clientOnly signals without initial value during SSR, throw if trying to read value
     // During SSR, clientOnly signals are skipped, so there's no computed value available

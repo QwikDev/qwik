@@ -91,11 +91,12 @@ export default component$(() => {
 
 ### Signaling failure from a loader
 
-Loaders signal failure three ways:
+Loaders signal failure two ways:
 
-- **`return requestEvent.error(status, data)`** — surfaces an inline `ServerError` on `signal.error` (carrying `.status` and `.data`). The page still renders; read `signal.error` alongside `signal.value`.
-- **`return requestEvent.fail(status, data)`** _(deprecated)_ — surfaces `{ failed: true, ...data }` on `signal.value` (read via `signal.value.failed`). Prefer `return error()`.
-- **`throw requestEvent.error(status, data)`** — aborts the request and renders the global error page (404/500). Use it when the route cannot render at all.
+- **`return requestEvent.error(status, data)`** — surfaces an inline `ServerError` on `signal.error` (carrying `.status` and `.data`).
+- **`throw requestEvent.error(status, data)`** — aborts the request and renders the global error page (404/500).
+
+Prefer `return requestEvent.error(...)` for expected failures that the page should display inline (form validation, domain rules). Use `throw requestEvent.error(...)` when the route cannot render at all.
 
 ## Multiple `routeLoader$`s
 

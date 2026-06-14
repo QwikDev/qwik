@@ -5,6 +5,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import type { Plugin, UserConfig } from 'vite';
 import type { BuiltRoute } from '../../../buildtime/types';
 import { ssgWorkerImportPlugin } from '../../../buildtime/vite/ssg-worker-imports';
+import { ensureSlash } from '../../../utils/pathname';
 import { postBuild } from './post-build';
 
 /**
@@ -225,10 +226,19 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             }
           }
 
+          const normalizedBasePathname = ensureSlash(basePathname);
+          const normalizedAssetsSegment = assetsDir ? `/${assetsDir}/` : null;
+          const postBuildPathName =
+            normalizedAssetsSegment && normalizedBasePathname.endsWith(normalizedAssetsSegment)
+              ? normalizedBasePathname
+              : assetsDir
+                ? join(basePathname, assetsDir)
+                : basePathname;
+
           await postBuild(
             clientPublicOutDir,
             serverOutDir,
-            assetsDir ? join(basePathname, assetsDir) : basePathname,
+            postBuildPathName,
             staticPaths,
             !!opts.cleanStaticGenerated
           );

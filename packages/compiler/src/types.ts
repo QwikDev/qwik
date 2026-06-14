@@ -78,7 +78,7 @@ export interface ComponentRecord {
 
 export interface SegmentRecord {
   id: string;
-  kind: 'function' | 'eventHandler' | 'jsxProp' | 'jsxText';
+  kind: 'function' | 'eventHandler' | 'jsxProp' | 'jsxText' | 'branchCondition' | 'branchRender';
   ctxName: string;
   range: SourceRange | null;
   calleeRange: SourceRange | null;
@@ -138,13 +138,30 @@ export interface DynamicTextNode {
   binding: DynamicBinding;
 }
 
+export interface BranchNode {
+  kind: 'branch';
+  expressionRange: SourceRange;
+  conditionRange: SourceRange;
+  conditionSegmentId: string;
+  thenSegmentId: string;
+  elseSegmentId?: string;
+  thenChildren: RenderNode[];
+  elseChildren: RenderNode[];
+}
+
 export interface ExprNode {
   kind: 'expr';
   role: 'text' | 'attr' | 'child';
   reason: string;
 }
 
-export type RenderNode = ElementNode | FragmentNode | TextNode | DynamicTextNode | ExprNode;
+export type RenderNode =
+  | ElementNode
+  | FragmentNode
+  | TextNode
+  | DynamicTextNode
+  | BranchNode
+  | ExprNode;
 
 export type DynamicBinding =
   | {

@@ -174,7 +174,7 @@ describe('context runtime', () => {
         range,
         [visible],
         (source) => source.value,
-        (_source) => {
+        (_ctx, _source) => {
           createComponent(null, () => {
             branchContext = getActiveInvokeContext();
             branchValue = createContext(contextId);

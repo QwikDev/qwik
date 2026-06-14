@@ -1,10 +1,22 @@
 import type { SegmentAnalysis } from '@qwik.dev/optimizer';
 import { transform } from 'oxc-transform';
 import { jsxEventToHtmlAttribute } from '../ast-utils';
-import { createCsrImports, createQwikSparkImport, createSsrImports } from '../imports';
+import {
+  createCsrImports,
+  createNamedImport,
+  createQwikSparkImport,
+  createSsrImports,
+} from '../imports';
 import { createModule, getLang } from '../module-utils';
 import type { CompilerContext } from '../types';
-import type { ComponentRecord, QrlSegmentOutput, RenderNode, SegmentRecord } from '../types';
+import type {
+  BranchNode,
+  ComponentRecord,
+  PropRecord,
+  QrlSegmentOutput,
+  RenderNode,
+  SegmentRecord,
+} from '../types';
 import { QwikSymbol } from '../words';
 import { emitCsrModule } from './emit-csr';
 import { emitSsrModule } from './emit-ssr';
@@ -13,9 +25,11 @@ import {
   hasDynamicAttrBinding,
   hasDynamicBinding,
   hasElementTextBinding,
+  hasBranch,
   hasRangeTextBinding,
   hasSourceTextBinding,
   hasTextExpression,
+  serializeAttrValue,
 } from './emit-utils';
 import {
   isImplicitDollarSegment,
@@ -41,6 +55,7 @@ export async function emitModules(ctx: CompilerContext) {
     hasSourceText: supported.some((component) => hasSourceTextBinding(component.root)),
     hasTextExpression: supported.some((component) => hasTextExpression(component.root)),
     hasDynamicAttr: supported.some((component) => hasDynamicAttrBinding(component.root)),
+    hasBranch: supported.some((component) => hasBranch(component.root)),
   };
   const ssrUsage = {
     ...dynamicUsage,
@@ -48,10 +63,13 @@ export async function emitModules(ctx: CompilerContext) {
     hasRangeText: supported.some((component) => hasRangeTextBinding(component.root)),
   };
   const transformedImports = transformDollarImports(ctx.manifest.imports, ctx.emitTarget);
+  const csrRootQrlSegments =
+    ctx.emitTarget === 'csr' ? collectCsrRootQrlSegments(supported, qrlSegments) : qrlSegments;
+  const csrRootUsage = ctx.emitTarget === 'csr' ? collectCsrRootImportUsage(supported) : null;
   const imports =
     ctx.emitTarget === 'ssr'
       ? createSsrImports(transformedImports, qrlSegments, ssrUsage)
-      : createCsrImports(transformedImports, qrlSegments, dynamicUsage);
+      : createCsrImports(transformedImports, csrRootQrlSegments, csrRootUsage!);
   const outputCode =
     ctx.emitTarget === 'ssr'
       ? emitSsrModule(supported, qrlSegments, ctx.manifest.segments, ctx.input.code, imports)
@@ -59,7 +77,7 @@ export async function emitModules(ctx: CompilerContext) {
   const modules = [createModule(ctx.input.path, outputCode)];
 
   for (const qrlSegment of qrlSegments.values()) {
-    modules.push(await createQrlSegmentModule(ctx, qrlSegment));
+    modules.push(await createQrlSegmentModule(ctx, qrlSegment, qrlSegments));
   }
 
   ctx.outputModules = modules;
@@ -81,6 +99,140 @@ function collectQrlSegments(
     }
   }
   return qrlSegments;
+}
+
+function collectCsrRootQrlSegments(
+  components: readonly ComponentRecord[],
+  qrlSegments: Map<string, QrlSegmentOutput>
+): Map<string, QrlSegmentOutput> {
+  const rootSegments = new Map<string, QrlSegmentOutput>();
+  for (const component of components) {
+    if (component.root) {
+      collectCsrRootNodeQrlSegments(component.root, qrlSegments, rootSegments);
+    }
+  }
+  return rootSegments;
+}
+
+function collectCsrRootNodeQrlSegments(
+  node: RenderNode,
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  rootSegments: Map<string, QrlSegmentOutput>
+): void {
+  if (node.kind === 'element') {
+    for (const prop of node.props) {
+      if (prop.qrlSegmentId) {
+        collectExistingQrlSegment(prop.qrlSegmentId, qrlSegments, rootSegments);
+      }
+    }
+    for (const child of node.children) {
+      collectCsrRootNodeQrlSegments(child, qrlSegments, rootSegments);
+    }
+    return;
+  }
+  if (node.kind === 'fragment') {
+    for (const child of node.children) {
+      collectCsrRootNodeQrlSegments(child, qrlSegments, rootSegments);
+    }
+    return;
+  }
+  if (node.kind === 'branch') {
+    collectExistingQrlSegment(node.thenSegmentId, qrlSegments, rootSegments);
+    if (node.elseSegmentId) {
+      collectExistingQrlSegment(node.elseSegmentId, qrlSegments, rootSegments);
+    }
+  }
+}
+
+function collectExistingQrlSegment(
+  id: string,
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  output: Map<string, QrlSegmentOutput>
+): void {
+  const qrlSegment = qrlSegments.get(id);
+  if (qrlSegment) {
+    output.set(id, qrlSegment);
+  }
+}
+
+function collectCsrRootImportUsage(components: readonly ComponentRecord[]) {
+  return {
+    hasDynamicBinding: components.some((component) => hasCsrRootDynamicBinding(component.root)),
+    hasSourceText: components.some((component) => hasCsrRootSourceTextBinding(component.root)),
+    hasTextExpression: components.some((component) => hasCsrRootTextExpression(component.root)),
+    hasDynamicAttr: components.some((component) => hasCsrRootDynamicAttrBinding(component.root)),
+    hasBranch: components.some((component) => hasCsrRootBranch(component.root)),
+  };
+}
+
+function hasCsrRootDynamicBinding(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'dynamicText' || node.kind === 'branch') {
+    return true;
+  }
+  if (node.kind === 'element') {
+    return node.props.some((prop) => prop.binding) || node.children.some(hasCsrRootDynamicBinding);
+  }
+  if (node.kind === 'fragment') {
+    return node.children.some(hasCsrRootDynamicBinding);
+  }
+  return false;
+}
+
+function hasCsrRootSourceTextBinding(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'dynamicText') {
+    return node.binding.kind === 'source';
+  }
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some(hasCsrRootSourceTextBinding);
+  }
+  return false;
+}
+
+function hasCsrRootTextExpression(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'dynamicText') {
+    return node.binding.kind === 'expression';
+  }
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some(hasCsrRootTextExpression);
+  }
+  return false;
+}
+
+function hasCsrRootDynamicAttrBinding(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'element') {
+    return (
+      node.props.some((prop) => prop.binding) || node.children.some(hasCsrRootDynamicAttrBinding)
+    );
+  }
+  if (node.kind === 'fragment') {
+    return node.children.some(hasCsrRootDynamicAttrBinding);
+  }
+  return false;
+}
+
+function hasCsrRootBranch(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'branch') {
+    return true;
+  }
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some(hasCsrRootBranch);
+  }
+  return false;
 }
 
 function collectComponentImplicitDollarSegments(
@@ -129,16 +281,40 @@ function collectNodeQrlSegments(
       }
     }
   }
-  if (includeTextExpressions && node.kind === 'dynamicText' && node.binding.kind === 'expression') {
-    const segment = segmentById.get(node.binding.qrlSegmentId);
-    if (segment && !qrlSegments.has(node.binding.qrlSegmentId)) {
-      qrlSegments.set(node.binding.qrlSegmentId, createQrlSegmentOutput(ctx, segment));
+  if (node.kind === 'branch') {
+    if (includeTextExpressions) {
+      collectSegmentById(ctx, node.conditionSegmentId, segmentById, qrlSegments);
     }
+    collectSegmentById(ctx, node.thenSegmentId, segmentById, qrlSegments);
+    if (node.elseSegmentId) {
+      collectSegmentById(ctx, node.elseSegmentId, segmentById, qrlSegments);
+    }
+    for (const child of node.thenChildren) {
+      collectNodeQrlSegments(ctx, child, segmentById, qrlSegments, includeTextExpressions);
+    }
+    for (const child of node.elseChildren) {
+      collectNodeQrlSegments(ctx, child, segmentById, qrlSegments, includeTextExpressions);
+    }
+  }
+  if (includeTextExpressions && node.kind === 'dynamicText' && node.binding.kind === 'expression') {
+    collectSegmentById(ctx, node.binding.qrlSegmentId, segmentById, qrlSegments);
   }
   if (node.kind === 'element' || node.kind === 'fragment') {
     for (const child of node.children) {
       collectNodeQrlSegments(ctx, child, segmentById, qrlSegments, includeTextExpressions);
     }
+  }
+}
+
+function collectSegmentById(
+  ctx: CompilerContext,
+  id: string,
+  segmentById: Map<string, SegmentRecord>,
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  const segment = segmentById.get(id);
+  if (segment && !qrlSegments.has(id)) {
+    qrlSegments.set(id, createQrlSegmentOutput(ctx, segment));
   }
 }
 
@@ -167,8 +343,12 @@ function createQrlVariableName(symbolName: string) {
   return `q_${symbolName}`;
 }
 
-async function createQrlSegmentModule(ctx: CompilerContext, qrlSegment: QrlSegmentOutput) {
-  const source = createQrlSegmentSource(ctx, qrlSegment);
+async function createQrlSegmentModule(
+  ctx: CompilerContext,
+  qrlSegment: QrlSegmentOutput,
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  const source = createQrlSegmentSource(ctx, qrlSegment, qrlSegments);
   const transformed = await transform(qrlSegment.modulePath, source, {
     lang: getLang(ctx.input.path),
     sourceType: 'module',
@@ -183,7 +363,15 @@ async function createQrlSegmentModule(ctx: CompilerContext, qrlSegment: QrlSegme
   });
 }
 
-function createQrlSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutput) {
+function createQrlSegmentSource(
+  ctx: CompilerContext,
+  qrlSegment: QrlSegmentOutput,
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  if (qrlSegment.segment.kind === 'branchRender') {
+    return createBranchRenderSegmentSource(ctx, qrlSegment, qrlSegments);
+  }
+
   const source = ctx.input.code;
   const captures = qrlSegment.segment.captures;
   const captureLine =
@@ -224,6 +412,285 @@ function createQrlSegmentSource(ctx: CompilerContext, qrlSegment: QrlSegmentOutp
 ${captureLine}${indentBody(bodyStatements)}
 };
 `;
+}
+
+interface BranchRenderUsage {
+  sparkImports: Set<QwikSymbol>;
+  segmentImports: Map<string, QrlSegmentOutput>;
+}
+
+function createBranchRenderSegmentSource(
+  ctx: CompilerContext,
+  qrlSegment: QrlSegmentOutput,
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  const children = findBranchRenderChildren(ctx, qrlSegment.id);
+  if (children === null) {
+    throw new Error(`Missing branch render IR for ${qrlSegment.id}.`);
+  }
+
+  const usage: BranchRenderUsage = {
+    sparkImports: new Set(),
+    segmentImports: new Map(),
+  };
+  const captures = qrlSegment.segment.captures;
+  const emitter = new BranchRenderDomEmitter(qrlSegments, ctx.input.code, usage);
+  const roots = children.flatMap((child) => emitter.emitRoot(child));
+  const captureLine =
+    captures.length > 0
+      ? `const ${captures
+          .map((capture, index) => `${capture.name} = ${QwikSymbol.Captures}[${index}]`)
+          .join(', ')};`
+      : '';
+  const bodyStatements = [captureLine, emitter.toString(), `return [${roots.join(', ')}];`]
+    .filter(Boolean)
+    .join('\n');
+  const imports = [];
+
+  if (captures.length > 0) {
+    usage.sparkImports.add(QwikSymbol.Captures);
+  }
+  if (usage.sparkImports.size > 0) {
+    imports.push(createQwikSparkImport(...usage.sparkImports));
+  }
+  for (const segment of usage.segmentImports.values()) {
+    imports.push(createNamedImport(segment.importPath, [segment.symbolName]));
+  }
+
+  const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
+  return `${importLine}export const ${qrlSegment.symbolName} = (ctx) => {
+${indentBody(bodyStatements)}
+};
+`;
+}
+
+class BranchRenderDomEmitter {
+  private counter = 0;
+  private readonly lines: string[] = [];
+
+  constructor(
+    private qrlSegments: Map<string, QrlSegmentOutput>,
+    private sourceCode: string,
+    private usage: BranchRenderUsage
+  ) {}
+
+  emitRoot(node: RenderNode): string[] {
+    if (node.kind === 'fragment') {
+      return node.children.flatMap((child) => this.emitRoot(child));
+    }
+    return [this.emitNode(node)];
+  }
+
+  private emitNode(node: RenderNode): string {
+    if (node.kind === 'text') {
+      const id = this.next('text');
+      this.line(`const ${id} = ctx.document.createTextNode(${JSON.stringify(node.value)});`);
+      return id;
+    }
+    if (node.kind === 'dynamicText') {
+      const id = this.next('text');
+      const effectId = this.next('effect');
+      this.line(`const ${id} = ctx.document.createTextNode('');`);
+      if (node.binding.kind === 'source') {
+        this.use(QwikSymbol.CreateTextNodeEffect);
+        this.line(
+          `const ${effectId} = ${QwikSymbol.CreateTextNodeEffect}(${id}, ${node.binding.sourceName}, { scheduler: ctx.scheduler });`
+        );
+      } else {
+        const expression = this.sourceCode.slice(node.expressionRange[0], node.expressionRange[1]);
+        this.use(QwikSymbol.CreateTextExpressionEffect);
+        this.line(
+          `const ${effectId} = ${QwikSymbol.CreateTextExpressionEffect}(${id}, [], () => ${expression}, { scheduler: ctx.scheduler });`
+        );
+      }
+      this.line(`ctx.scheduler.notify(${effectId});`);
+      return id;
+    }
+    if (node.kind === 'element') {
+      const id = this.next('el');
+      this.line(`const ${id} = ctx.document.createElement(${JSON.stringify(node.tag)});`);
+      for (const prop of node.props) {
+        if (prop.binding) {
+          const effectId = this.next('effect');
+          this.line(this.emitDynamicAttrEffect(effectId, id, prop));
+          this.line(`ctx.scheduler.notify(${effectId});`);
+          continue;
+        }
+        if (prop.qrlSegmentId) {
+          const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
+          if (qrlSegment) {
+            this.use(QwikSymbol.SetEvent);
+            this.importSegment(qrlSegment);
+            this.line(
+              `${QwikSymbol.SetEvent}(${id}, ${JSON.stringify(prop.name)}, ${this.emitEventHandler(
+                qrlSegment
+              )});`
+            );
+          }
+          continue;
+        }
+        const attr = serializeAttrValue(prop.value);
+        if (attr !== null) {
+          this.line(`${id}.setAttribute(${JSON.stringify(prop.name)}, ${JSON.stringify(attr)});`);
+        }
+      }
+      for (const child of node.children) {
+        const childId = this.emitNode(child);
+        this.line(`${id}.appendChild(${childId});`);
+      }
+      return id;
+    }
+    if (node.kind === 'branch') {
+      return this.emitBranch(node);
+    }
+    if (node.kind === 'fragment') {
+      const id = this.next('fragment');
+      this.line(`const ${id} = ctx.document.createDocumentFragment();`);
+      for (const child of node.children) {
+        const childId = this.emitNode(child);
+        this.line(`${id}.appendChild(${childId});`);
+      }
+      return id;
+    }
+    throw new Error(node.reason);
+  }
+
+  private emitBranch(node: BranchNode): string {
+    const fragmentId = this.next('fragment');
+    const startId = this.next('comment');
+    const endId = this.next('comment');
+    const branchId = this.next('branch');
+    const condition = this.sourceCode.slice(node.conditionRange[0], node.conditionRange[1]);
+    const thenRenderer = this.emitBranchRenderer(node.thenSegmentId);
+    const elseRenderer = node.elseSegmentId
+      ? this.emitBranchRenderer(node.elseSegmentId)
+      : 'undefined';
+
+    this.use(QwikSymbol.CreateBranch);
+    this.use(QwikSymbol.CreateBranchRange);
+    this.line(`const ${fragmentId} = ctx.document.createDocumentFragment();`);
+    this.line(`const ${startId} = ctx.document.createComment('b');`);
+    this.line(`const ${endId} = ctx.document.createComment('/b');`);
+    this.line(`${fragmentId}.appendChild(${startId});`);
+    this.line(`${fragmentId}.appendChild(${endId});`);
+    this.line(
+      `const ${branchId} = ${QwikSymbol.CreateBranch}(${QwikSymbol.CreateBranchRange}(${startId}, ${endId}), [], () => ${condition}, ${thenRenderer}, ${elseRenderer}, { scheduler: ctx.scheduler, container: ctx });`
+    );
+    this.line(`ctx.scheduler.notify(${branchId});`);
+    return fragmentId;
+  }
+
+  private emitBranchRenderer(segmentId: string): string {
+    const qrlSegment = this.qrlSegments.get(segmentId);
+    if (!qrlSegment) {
+      throw new Error(`Missing branch render segment ${segmentId}.`);
+    }
+    this.importSegment(qrlSegment);
+    return this.emitCapturedFunction(qrlSegment);
+  }
+
+  private emitDynamicAttrEffect(effectId: string, elementId: string, prop: PropRecord): string {
+    const sourceName = prop.binding!.sourceName;
+    if (prop.name === 'class') {
+      this.use(QwikSymbol.CreateClassEffect);
+      return `const ${effectId} = ${QwikSymbol.CreateClassEffect}(${elementId}, ${sourceName}, { scheduler: ctx.scheduler });`;
+    }
+    if (prop.name === 'style') {
+      this.use(QwikSymbol.CreateStyleEffect);
+      return `const ${effectId} = ${QwikSymbol.CreateStyleEffect}(${elementId}, ${sourceName}, { scheduler: ctx.scheduler });`;
+    }
+    this.use(QwikSymbol.CreateAttrEffect);
+    return `const ${effectId} = ${QwikSymbol.CreateAttrEffect}(${elementId}, ${JSON.stringify(
+      prop.name
+    )}, ${sourceName}, { scheduler: ctx.scheduler });`;
+  }
+
+  private emitEventHandler(qrlSegment: QrlSegmentOutput) {
+    return this.emitCapturedFunction(qrlSegment);
+  }
+
+  private emitCapturedFunction(qrlSegment: QrlSegmentOutput) {
+    if (qrlSegment.segment.captures.length === 0) {
+      return qrlSegment.symbolName;
+    }
+    this.use(QwikSymbol.WithCaptures);
+    return `${QwikSymbol.WithCaptures}(${qrlSegment.symbolName}, [${qrlSegment.segment.captures
+      .map((capture) => capture.name)
+      .join(', ')}])`;
+  }
+
+  private use(symbol: QwikSymbol): void {
+    this.usage.sparkImports.add(symbol);
+  }
+
+  private importSegment(qrlSegment: QrlSegmentOutput): void {
+    this.usage.segmentImports.set(qrlSegment.id, qrlSegment);
+  }
+
+  private line(code: string): void {
+    this.lines.push(code);
+  }
+
+  toString() {
+    return this.lines.join('\n');
+  }
+
+  private next(prefix: string) {
+    const id = `${prefix}${this.counter}`;
+    this.counter++;
+    return id;
+  }
+}
+
+function findBranchRenderChildren(
+  ctx: CompilerContext,
+  segmentId: string
+): readonly RenderNode[] | null {
+  for (const component of ctx.manifest.components) {
+    if (component.root === null) {
+      continue;
+    }
+    const children = findBranchRenderChildrenInNode(component.root, segmentId);
+    if (children !== null) {
+      return children;
+    }
+  }
+  return null;
+}
+
+function findBranchRenderChildrenInNode(
+  node: RenderNode,
+  segmentId: string
+): readonly RenderNode[] | null {
+  if (node.kind === 'branch') {
+    if (node.thenSegmentId === segmentId) {
+      return node.thenChildren;
+    }
+    if (node.elseSegmentId === segmentId) {
+      return node.elseChildren;
+    }
+    for (const child of node.thenChildren) {
+      const children = findBranchRenderChildrenInNode(child, segmentId);
+      if (children !== null) {
+        return children;
+      }
+    }
+    for (const child of node.elseChildren) {
+      const children = findBranchRenderChildrenInNode(child, segmentId);
+      if (children !== null) {
+        return children;
+      }
+    }
+  }
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    for (const child of node.children) {
+      const children = findBranchRenderChildrenInNode(child, segmentId);
+      if (children !== null) {
+        return children;
+      }
+    }
+  }
+  return null;
 }
 
 function indentBody(body: string) {

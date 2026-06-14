@@ -7,6 +7,7 @@ import { defaultScheduler, Phase, type Scheduler } from '../../runtime/scheduler
 import { SubscriberKind, type DomSubscriber } from '../../runtime/subscriber';
 import { readSourceValue, type Dependency, type Source } from '../../reactive/source';
 import { track } from '../../reactive/tracking';
+import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
 import { EffectKind } from './effect-kind.enum';
 
 export const enum AttrSerializer {
@@ -159,7 +160,7 @@ export function createStyleEffect(
 }
 
 function createDomSubscription(effect: DomEffect, scheduler: Scheduler | undefined): DomSubscriber {
-  return registerSubscriberToOwner(new DomSubscription(effect, scheduler));
+  return registerSubscriberToOwner(new DomSubscription(effect, scheduler ?? getActiveScheduler()));
 }
 
 function createTextExpressionRecord<TArgs extends unknown[]>(
@@ -183,4 +184,8 @@ function patchTextValue(text: Text, value: TextExpressionValue | Promise<TextExp
 function readTrackedSourceValue<T>(source: Source<T>): T {
   track(source);
   return readSourceValue(source);
+}
+
+function getActiveScheduler(): Scheduler {
+  return getActiveInvokeContextOrNull()?.container?.scheduler ?? defaultScheduler;
 }

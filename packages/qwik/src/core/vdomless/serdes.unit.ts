@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { createQRL } from '../shared/qrl/qrl-class';
+import { inflate } from '../shared/serdes/inflate';
 import { createSerializationContext } from '../shared/serdes/serialization-context';
 import { Constants, TypeIds } from '../shared/serdes/constants';
 import { EffectKind } from './dom/effect/effect-kind.enum';
-import { AttrSerializer, type TextExpressionFn } from './dom/effect/effect';
+import { createTextNodeEffect, AttrSerializer, type TextExpressionFn } from './dom/effect/effect';
+import {
+  BranchState,
+  BranchSubscription,
+  renderSsrBranch,
+  type BranchConditionFn,
+  type BranchRenderFn,
+} from './dom/branch/branch';
 import {
   createSsrElementTarget,
   createSsrElementTextTarget,
@@ -17,9 +25,11 @@ import {
 import { ReactiveFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
 import { createSignal, type Signal } from './reactive/signal';
+import { createWindow } from '../../testing/document';
+import { createContainerContext } from './runtime/container-context';
 import { createContextScope } from './runtime/context-scope';
 import { runWithCollector } from './reactive/tracking';
-import { createCaptureContainer } from './test-utils';
+import { createCaptureContainer, createText } from './test-utils';
 
 describe('vdomless serdes emit-only', () => {
   it('serializes a vdomless signal without subscribers', async () => {
@@ -121,6 +131,106 @@ describe('vdomless serdes emit-only', () => {
     expect(stylePayload[3]).toBe(EffectTargetKind.Element);
     expect(stylePayload[5]).toBe(2);
     expect(stylePayload[9]).toBe(AttrSerializer.Style);
+  });
+
+  it('serializes branch subscriptions as effect subscriptions with owned subscribers', async () => {
+    const visible = createSignal(true);
+    const child = createSignal('then');
+    const conditionQrl = createQRL<BranchConditionFn<[]>>(
+      './branch.condition.js',
+      'condition',
+      () => visible.value,
+      null,
+      null
+    );
+    const thenQrl = createQRL<BranchRenderFn<[]>>(
+      './branch.then.js',
+      'renderThen',
+      () => [],
+      null,
+      null
+    );
+
+    const html = renderSsrBranch(3, 7, [], conditionQrl, thenQrl, undefined, () =>
+      renderSsrTextNode(createSsrElementTextTarget(11), child)
+    );
+    const state = await serialize(visible, child);
+    const signalPayload = state[1] as unknown[];
+    const branchPayload = signalPayload[3] as unknown[];
+    const ownedPayload = branchPayload[19] as unknown[];
+    const ownedEffectPayload = ownedPayload[1] as unknown[];
+
+    expect(html).toBe('then');
+    expect(signalPayload[2]).toBe(TypeIds.EffectSubscription);
+    expect(branchPayload[1]).toBe(EffectKind.Branch);
+    expect(branchPayload[3]).toBe(3);
+    expect(branchPayload[5]).toBe(7);
+    expect(branchPayload[7]).toBe(BranchState.Then);
+    expect(branchPayload[9]).toEqual([TypeIds.RootRef, 0]);
+    expect(branchPayload[10]).toBe(TypeIds.Array);
+    expect(branchPayload[11]).toEqual([]);
+    expect(branchPayload[12]).toBe(TypeIds.QRL);
+    expect(branchPayload[14]).toBe(TypeIds.QRL);
+    expect(branchPayload[16]).toBe(TypeIds.Constant);
+    expect(branchPayload[17]).toBe(Constants.Null);
+    expect(ownedPayload[0]).toBe(TypeIds.EffectSubscription);
+    expect(ownedEffectPayload[1]).toBe(EffectKind.TextNode);
+  });
+
+  it('inflates branch deps, mounted branch state, and mounted owner subscribers', async () => {
+    const win = createWindow({
+      html: '<div q:container><!b=4><span>then</span><!/b></div>',
+    });
+    const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
+    const visible = createSignal(true);
+    const local = createSignal('mounted');
+    const ownedEffect = createTextNodeEffect(createText(), local, {
+      scheduler: container.scheduler,
+    });
+    const branch = new BranchSubscription(null!, container.scheduler);
+
+    runWithCollector(ownedEffect, () => local.value);
+    await inflate(container, branch, TypeIds.EffectSubscription, [
+      TypeIds.Plain,
+      EffectKind.Branch,
+      TypeIds.Plain,
+      4,
+      TypeIds.Plain,
+      2,
+      TypeIds.Plain,
+      BranchState.Then,
+      TypeIds.Array,
+      [TypeIds.Plain, visible],
+      TypeIds.Array,
+      [],
+      TypeIds.Plain,
+      createQRL<BranchConditionFn<[]>>(
+        './branch.condition.js',
+        'condition',
+        () => visible.value,
+        null,
+        null
+      ),
+      TypeIds.Plain,
+      createQRL<BranchRenderFn<[]>>('./branch.then.js', 'renderThen', () => [], null, null),
+      TypeIds.Constant,
+      Constants.Null,
+      TypeIds.Array,
+      [TypeIds.Plain, ownedEffect],
+    ]);
+
+    expect(branch.branch.order).toBe(2);
+    expect(branch.branch.currentBranch).toBe(BranchState.Then);
+    expect(visible.subs).toContain(branch);
+    expect(branch.branch.currentOwner?.subscribers).toContain(ownedEffect);
+    expect(local.subs).toContain(ownedEffect);
+
+    visible.value = false;
+    await container.scheduler.flushInteraction();
+
+    expect(local.subs).toBeNull();
+    expect(ownedEffect.flags & ReactiveFlags.Disposed).not.toBe(0);
+    expect(container.element.innerHTML).toBe('<!--b=4--><!--/b-->');
   });
 
   it('serializes a computed QRL with deps, cached value, and DOM subscriber', async () => {

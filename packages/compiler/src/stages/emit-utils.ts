@@ -96,6 +96,17 @@ export function hasCapturedQrlSegment(
   if (node.kind === 'element' || node.kind === 'fragment') {
     return node.children.some((child) => hasCapturedQrlSegment(child, qrlSegments));
   }
+  if (node.kind === 'branch') {
+    return (
+      (qrlSegments.get(node.conditionSegmentId)?.segment.captures.length ?? 0) > 0 ||
+      (qrlSegments.get(node.thenSegmentId)?.segment.captures.length ?? 0) > 0 ||
+      (node.elseSegmentId
+        ? (qrlSegments.get(node.elseSegmentId)?.segment.captures.length ?? 0) > 0
+        : false) ||
+      node.thenChildren.some((child) => hasCapturedQrlSegment(child, qrlSegments)) ||
+      node.elseChildren.some((child) => hasCapturedQrlSegment(child, qrlSegments))
+    );
+  }
   return false;
 }
 
@@ -109,6 +120,9 @@ export function hasDynamicText(node: RenderNode | null): boolean {
   if (node.kind === 'element' || node.kind === 'fragment') {
     return node.children.some(hasDynamicText);
   }
+  if (node.kind === 'branch') {
+    return node.thenChildren.some(hasDynamicText) || node.elseChildren.some(hasDynamicText);
+  }
   return false;
 }
 
@@ -117,6 +131,9 @@ export function hasDynamicBinding(node: RenderNode | null): boolean {
     return false;
   }
   if (node.kind === 'dynamicText') {
+    return true;
+  }
+  if (node.kind === 'branch') {
     return true;
   }
   if (node.kind === 'element') {
@@ -131,6 +148,19 @@ export function hasDynamicBinding(node: RenderNode | null): boolean {
   return false;
 }
 
+export function hasBranch(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'branch') {
+    return true;
+  }
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some(hasBranch);
+  }
+  return false;
+}
+
 export function hasTextExpression(node: RenderNode | null): boolean {
   if (!node) {
     return false;
@@ -140,6 +170,9 @@ export function hasTextExpression(node: RenderNode | null): boolean {
   }
   if (node.kind === 'element' || node.kind === 'fragment') {
     return node.children.some(hasTextExpression);
+  }
+  if (node.kind === 'branch') {
+    return node.thenChildren.some(hasTextExpression) || node.elseChildren.some(hasTextExpression);
   }
   return false;
 }
@@ -153,6 +186,11 @@ export function hasSourceTextBinding(node: RenderNode | null): boolean {
   }
   if (node.kind === 'element' || node.kind === 'fragment') {
     return node.children.some(hasSourceTextBinding);
+  }
+  if (node.kind === 'branch') {
+    return (
+      node.thenChildren.some(hasSourceTextBinding) || node.elseChildren.some(hasSourceTextBinding)
+    );
   }
   return false;
 }
@@ -170,6 +208,11 @@ export function hasDynamicAttrBinding(node: RenderNode | null): boolean {
   if (node.kind === 'fragment') {
     return node.children.some(hasDynamicAttrBinding);
   }
+  if (node.kind === 'branch') {
+    return (
+      node.thenChildren.some(hasDynamicAttrBinding) || node.elseChildren.some(hasDynamicAttrBinding)
+    );
+  }
   return false;
 }
 
@@ -186,6 +229,11 @@ export function hasElementTextBinding(node: RenderNode | null): boolean {
   }
   if (node.kind === 'fragment') {
     return node.children.some(hasElementTextBinding);
+  }
+  if (node.kind === 'branch') {
+    return (
+      node.thenChildren.some(hasElementTextBinding) || node.elseChildren.some(hasElementTextBinding)
+    );
   }
   return false;
 }
@@ -206,6 +254,11 @@ export function hasRangeTextBinding(node: RenderNode | null): boolean {
   }
   if (node.kind === 'fragment') {
     return node.children.some(hasRangeTextBinding);
+  }
+  if (node.kind === 'branch') {
+    return (
+      node.thenChildren.some(hasRangeTextBinding) || node.elseChildren.some(hasRangeTextBinding)
+    );
   }
   return false;
 }

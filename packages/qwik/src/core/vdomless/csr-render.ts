@@ -19,7 +19,7 @@ export const render = async (
   target.setAttribute(QContainerAttr, QContainerValue.RESUMED);
   const context = createContainerContext(target, scheduler);
 
-  const output = invoke(newInvokeContext(), root, undefined, context);
+  const output = invoke(newInvokeContext({ container: context }), root, undefined, context);
   const nodes = output ?? [];
   for (let i = 0; i < nodes.length; i++) {
     target.appendChild(nodes[i]);

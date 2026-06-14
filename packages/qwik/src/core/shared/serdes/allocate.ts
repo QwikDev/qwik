@@ -1,4 +1,6 @@
 import { DomSubscription } from '../../vdomless/dom/effect/effect';
+import { BranchSubscription } from '../../vdomless/dom/branch/branch';
+import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
@@ -106,6 +108,9 @@ export const allocate = async (
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
     case TypeIds.EffectSubscription: {
+      if (Array.isArray(value) && value[1] === EffectKind.Branch) {
+        return new BranchSubscription(null!, context.scheduler);
+      }
       return new DomSubscription(null!, context.scheduler);
     }
     case TypeIds.ContextScope:

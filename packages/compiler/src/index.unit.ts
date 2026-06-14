@@ -240,6 +240,37 @@ export function App() {
     });
   });
 
+  test('emits SSR and CSR ternary branch renderers', async () => {
+    await testInput('branch_ternary', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(0);
+  return (
+    <section>
+      {count.value % 2 === 0 ? (
+        <p className="even">Even {count.value}</p>
+      ) : (
+        <button onClick$={() => count.value++}>Odd {count.value}</button>
+      )}
+    </section>
+  );
+}
+`,
+    });
+  });
+
+  test('emits SSR and CSR logical branch renderers', async () => {
+    await testInput('branch_logical_and', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const visible = createSignal(true);
+  const label = createSignal('ready');
+  return <div>{visible.value && <span title={label.value}>{label.value}</span>}</div>;
+}
+`,
+    });
+  });
+
   test('transforms implicit dollar calls in component setup', async () => {
     await testInput('implicit_dollar_setup', {
       code: `import { createSignal, createComputed$ } from '@qwik.dev/core/spark';

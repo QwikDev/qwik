@@ -33,6 +33,7 @@ import {
   createBranchQrl,
   createBranchQrlSubscriber,
   createBranchRange as createMarkerBranchRange,
+  renderSsrBranch,
   type BranchConditionFn,
   type BranchRenderFn,
 } from './branch';
@@ -134,7 +135,7 @@ describe('branches', () => {
       range,
       [visible, branchText, text],
       (source) => source.value,
-      (_source, textSource, target) => {
+      (_ctx, _source, textSource, target) => {
         thenRuns++;
         const effect = createTextNodeEffect(target, textSource, { scheduler });
         scheduler.notify(effect);
@@ -207,6 +208,46 @@ describe('branches', () => {
     expect(renderRuns).toBe(1);
   });
 
+  it('runs branch renderers only when counter changes branch state', async () => {
+    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const count = createSignal(0);
+    const zeroNode = createNode('zero');
+    const positiveNode = createNode('positive');
+    const { range, replacements } = createBranchRange();
+    let zeroRuns = 0;
+    let positiveRuns = 0;
+    const branch = createBranch<[typeof count]>(
+      range,
+      [count],
+      (source) => source.value > 0,
+      () => {
+        positiveRuns++;
+        return [positiveNode];
+      },
+      () => {
+        zeroRuns++;
+        return [zeroNode];
+      },
+      { scheduler }
+    );
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    count.value = 1;
+    await scheduler.flushInteraction();
+
+    count.value = 2;
+    await scheduler.flushInteraction();
+
+    count.value = 0;
+    await scheduler.flushInteraction();
+
+    expect(replacements).toEqual([[zeroNode], [positiveNode], [zeroNode]]);
+    expect(zeroRuns).toBe(2);
+    expect(positiveRuns).toBe(1);
+  });
+
   it('flushes branches before scalar DOM effects', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const order: string[] = [];
@@ -274,7 +315,7 @@ describe('branches', () => {
       range,
       [visible, local, text],
       (source) => source.value,
-      (_source, localSource, target) => {
+      (_ctx, _source, localSource, target) => {
         const effect = createTextNodeEffect(target, localSource, { scheduler });
         scheduler.notify(effect);
         return [node];
@@ -321,7 +362,7 @@ describe('branches', () => {
     const thenQrl = createQRL<BranchRenderFn<[typeof visible]>>(
       'chunk',
       'then',
-      (_source: typeof visible) => [node],
+      (_ctx, _source: typeof visible) => [node],
       null,
       null
     );
@@ -361,7 +402,7 @@ describe('branches', () => {
       () => {
         thenResolved = true;
         return Promise.resolve({
-          renderThen: (_source: typeof visible) => [thenNode],
+          renderThen: (_ctx, _source: typeof visible) => [thenNode],
         });
       },
       null
@@ -373,7 +414,7 @@ describe('branches', () => {
       () => {
         elseResolved = true;
         return Promise.resolve({
-          renderElse: (_source: typeof visible) => [elseNode],
+          renderElse: (_ctx, _source: typeof visible) => [elseNode],
         });
       },
       null
@@ -406,6 +447,31 @@ describe('branches', () => {
     expect(replacements).toEqual([[thenNode], [elseNode]]);
   });
 
+  it('requires SSR branch condition QRLs to be pre-resolved', () => {
+    const conditionQrl = createQRL<BranchConditionFn<[]>>(
+      'chunk',
+      'condition',
+      null,
+      () =>
+        Promise.resolve({
+          condition: () => true,
+        }),
+      null
+    );
+
+    expect(() =>
+      renderSsrBranch(
+        0,
+        0,
+        [],
+        conditionQrl,
+        createQRL<BranchRenderFn<[]>>('chunk', 'renderThen', () => [], null, null),
+        undefined,
+        () => ''
+      )
+    ).toThrow('SSR branch condition QRL must be resolved before renderSsrBranch().');
+  });
+
   it('resumes mounted branch QRLs without loading the matching renderer', async () => {
     const scheduler = new Scheduler(noopSchedule, noopSchedule);
     const visible = createSignal(true);
@@ -432,7 +498,7 @@ describe('branches', () => {
       () => {
         thenResolved = true;
         return Promise.resolve({
-          renderThen: (_source: typeof visible) => [thenNode],
+          renderThen: (_ctx, _source: typeof visible) => [thenNode],
         });
       },
       null
@@ -489,7 +555,7 @@ describe('branches', () => {
         () => {
           thenResolved = true;
           return Promise.resolve({
-            renderThen: (_source: typeof visible) => [],
+            renderThen: (_ctx, _source: typeof visible) => [],
           });
         },
         null
@@ -501,7 +567,7 @@ describe('branches', () => {
         () => {
           elseResolved = true;
           return Promise.resolve({
-            renderElse: (_source: typeof visible) => [elseNode],
+            renderElse: (_ctx, _source: typeof visible) => [elseNode],
           });
         },
         null

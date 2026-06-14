@@ -352,7 +352,7 @@ class CaptureAnalyzer {
     }
   }
 
-  private visitFunction(node: AstFunction, options: FunctionOptions = {}) {
+  private visitFunction(node: AstFunction, options: FunctionOptions = {}): SegmentState | null {
     const previousScopeId = this.currentScopeId;
     const previousFunctionOwnerId = this.currentFunctionOwnerId;
     const functionOwnerId = this.nextFunctionOwnerId++;
@@ -399,6 +399,7 @@ class CaptureAnalyzer {
     }
     this.currentScopeId = previousScopeId;
     this.currentFunctionOwnerId = previousFunctionOwnerId;
+    return segment;
   }
 
   private visitCallExpression(node: CallExpression) {
@@ -473,6 +474,9 @@ class CaptureAnalyzer {
     if (!expr || expr.type === 'JSXEmptyExpression') {
       return;
     }
+    if (this.visitJsxBranchExpression(expr)) {
+      return;
+    }
     if (getSignalValueSourceName(expr) !== null) {
       this.visit(expr);
       return;
@@ -483,10 +487,12 @@ class CaptureAnalyzer {
       return;
     }
 
+    const parentSegment = this.currentSegment();
     const segment = this.createSyntheticJsxTextSegment(range);
     this.segmentStack.push(segment);
     this.visit(expr);
     this.segmentStack.pop();
+    this.propagateCapturesToBranchRender(parentSegment, segment);
   }
 
   private visitJsxAttribute(node: JSXAttributeItem) {
@@ -503,7 +509,8 @@ class CaptureAnalyzer {
         ? unwrapExpression(node.value.expression)
         : null;
     if (name && isFunctionLike(expr) && name.endsWith('$')) {
-      this.visitFunction(expr!, {
+      const parentSegment = this.currentSegment();
+      const segment = this.visitFunction(expr!, {
         segment: {
           kind: isJsxEventName(name) ? 'eventHandler' : 'jsxProp',
           ctxName: name,
@@ -513,9 +520,57 @@ class CaptureAnalyzer {
           explicitCaptures: [],
         },
       });
+      if (segment) {
+        this.propagateCapturesToBranchRender(parentSegment, segment);
+      }
       return;
     }
     this.visit(node.value);
+  }
+
+  private visitJsxBranchExpression(expr: AstNode): boolean {
+    if (expr.type === 'ConditionalExpression') {
+      this.visitBranchCondition(expr.test);
+      this.visitBranchRenderer(expr.consequent, 'branch:then');
+      if (!isEmptyBranchExpression(expr.alternate)) {
+        this.visitBranchRenderer(expr.alternate, 'branch:else');
+      }
+      return true;
+    }
+    if (expr.type === 'LogicalExpression' && expr.operator === '&&') {
+      this.visitBranchCondition(expr.left);
+      this.visitBranchRenderer(expr.right, 'branch:then');
+      return true;
+    }
+    return false;
+  }
+
+  private visitBranchCondition(expr: unknown) {
+    const range = getRange(expr);
+    if (range === null) {
+      this.visit(expr);
+      return;
+    }
+    const parentSegment = this.currentSegment();
+    const segment = this.createSyntheticSegment('branchCondition', 'branch:condition', range);
+    this.segmentStack.push(segment);
+    this.visit(expr);
+    this.segmentStack.pop();
+    this.propagateCapturesToBranchRender(parentSegment, segment);
+  }
+
+  private visitBranchRenderer(expr: unknown, ctxName: string) {
+    const range = getRange(expr);
+    if (range === null) {
+      this.visit(expr);
+      return;
+    }
+    const parentSegment = this.currentSegment();
+    const segment = this.createSyntheticSegment('branchRender', ctxName, range);
+    this.segmentStack.push(segment);
+    this.visit(expr);
+    this.segmentStack.pop();
+    this.propagateCapturesToBranchRender(parentSegment, segment);
   }
 
   private visitObjectProperty(
@@ -846,6 +901,26 @@ class CaptureAnalyzer {
     segment.record.captures.push(this.createCaptureRecord(binding));
   }
 
+  private addCaptureRecord(segment: SegmentState, capture: CaptureRecord) {
+    if (segment.capturedSymbols.has(capture.symbolId)) {
+      return;
+    }
+    segment.capturedSymbols.add(capture.symbolId);
+    segment.record.captures.push(capture);
+  }
+
+  private propagateCapturesToBranchRender(
+    parentSegment: SegmentState | null,
+    childSegment: SegmentState
+  ) {
+    if (parentSegment?.record.kind !== 'branchRender') {
+      return;
+    }
+    for (const capture of childSegment.record.captures) {
+      this.addCaptureRecord(parentSegment, capture);
+    }
+  }
+
   private createCaptureRecord(binding: BindingRecord): CaptureRecord {
     return {
       name: binding.name,
@@ -892,13 +967,21 @@ class CaptureAnalyzer {
   }
 
   private createSyntheticJsxTextSegment(expressionRange: SourceRange): SegmentState {
+    return this.createSyntheticSegment('jsxText', 'text', expressionRange);
+  }
+
+  private createSyntheticSegment(
+    kind: SegmentRecord['kind'],
+    ctxName: string,
+    expressionRange: SourceRange
+  ): SegmentState {
     const functionOwnerId = this.nextFunctionOwnerId++;
     this.functionOwnerParents[functionOwnerId] = this.currentFunctionOwnerId;
     const id = `segment_${this.nextSegmentId++}`;
     const record: SegmentRecord = {
       id,
-      kind: 'jsxText',
-      ctxName: 'text',
+      kind,
+      ctxName,
       range: expressionRange,
       calleeRange: null,
       calleeNameRange: null,
@@ -1122,6 +1205,17 @@ function isJsxEventName(name: string): boolean {
       name.startsWith('host:on') ||
       name.includes(':on'))
   );
+}
+
+function isEmptyBranchExpression(node: unknown): boolean {
+  const expr = unwrapExpression(node);
+  if (!expr) {
+    return true;
+  }
+  if (expr.type === 'Literal') {
+    return expr.value === null || expr.value === false;
+  }
+  return false;
 }
 
 function rangesEqual(left: SourceRange | null, right: SourceRange | null): boolean {

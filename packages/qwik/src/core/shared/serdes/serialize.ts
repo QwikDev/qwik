@@ -2,6 +2,10 @@ import { isDev, isServer } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import {
+  SsrBranchSubscription,
+  getSsrBranchOwnedSubscribers,
+} from '../../vdomless/dom/branch/branch';
+import {
   EffectTargetKind,
   SsrDomSubscription,
   type SsrDomEffect,
@@ -447,8 +451,8 @@ export class Serializer {
       this.output(TypeIds.Signal, serializeSignal(value));
     } else if (value instanceof ComputedQrl) {
       this.output(TypeIds.ComputedSignal, serializeComputed(value));
-    } else if (value instanceof SsrDomSubscription) {
-      this.output(TypeIds.EffectSubscription, serializeDomSubscription(value));
+    } else if (value instanceof SsrDomSubscription || value instanceof SsrBranchSubscription) {
+      this.output(TypeIds.EffectSubscription, serializeEffectSubscription(value));
     } else if (isContextScope(value)) {
       const out: unknown[] = [value.parent ?? null];
       const values = value.values;
@@ -711,6 +715,33 @@ function serializeComputed(computed: ComputedQrl<unknown>): unknown[] {
     serializeDeps(computed.deps),
     value,
     ...serializeSubscribers(computed.subs),
+  ];
+}
+
+function serializeEffectSubscription(
+  subscription: SsrDomSubscription | SsrBranchSubscription
+): unknown[] {
+  if (subscription instanceof SsrBranchSubscription) {
+    return serializeBranchSubscription(subscription);
+  }
+
+  return serializeDomSubscription(subscription);
+}
+
+function serializeBranchSubscription(subscription: SsrBranchSubscription): unknown[] {
+  const effect = subscription.effect;
+
+  return [
+    effect.kind,
+    effect.rangeId,
+    effect.order,
+    effect.mountedBranch,
+    serializeDeps(subscription.deps),
+    effect.args,
+    effect.conditionQrl,
+    effect.thenQrl,
+    effect.elseQrl ?? null,
+    getSsrBranchOwnedSubscribers(subscription),
   ];
 }
 

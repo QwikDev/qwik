@@ -5,7 +5,7 @@ export const fastNextSibling = (node: Node): Node | null => {
   if (!_fastNextSibling) {
     _fastNextSibling = fastGetter<typeof _fastNextSibling>(node, 'nextSibling')!;
   }
-  return _fastNextSibling.call(node);
+  return _fastNextSibling.call(node) ?? null;
 };
 
 let _fastFirstChild: ((this: Node) => Node | null) | null = null;
@@ -13,7 +13,7 @@ export const fastFirstChild = (node: Node): Node | null => {
   if (!_fastFirstChild) {
     _fastFirstChild = fastGetter<typeof _fastFirstChild>(node, 'firstChild')!;
   }
-  return _fastFirstChild.call(node);
+  return _fastFirstChild.call(node) ?? null;
 };
 
 let _fastGetAttribute: ((this: Element, name: string) => string | null) | null = null;

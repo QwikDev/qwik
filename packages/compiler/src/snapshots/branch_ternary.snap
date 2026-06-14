@@ -1,0 +1,387 @@
+==INPUT==
+
+import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(0);
+  return (
+    <section>
+      {count.value % 2 === 0 ? (
+        <p className="even">Even {count.value}</p>
+      ) : (
+        <button onClick$={() => count.value++}>Odd {count.value}</button>
+      )}
+    </section>
+  );
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSignal,
+  _qrlWithChunk,
+  escapeHTML,
+  renderSsrTextNode,
+  createSsrRangeTextTarget,
+  renderSsrBranch,
+} from '@qwik.dev/core/spark';
+import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
+
+const q_component_branch_condition_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_condition_segment_0',
+  () => import('./component.tsx_component_branch_condition_segment_0'),
+  'component_branch_condition_segment_0'
+);
+q_component_branch_condition_segment_0.s(component_branch_condition_segment_0);
+const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_1',
+  () => import('./component.tsx_component_branch_then_segment_1'),
+  'component_branch_then_segment_1'
+);
+const q_component_branch_else_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_else_segment_2',
+  () => import('./component.tsx_component_branch_else_segment_2'),
+  'component_branch_else_segment_2'
+);
+const q_component_q_e_click_segment_3 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_3',
+  () => import('./component.tsx_component_q_e_click_segment_3'),
+  'component_q_e_click_segment_3'
+);
+
+export function App(_props, ctx) {
+  const count = createSignal(0);
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  ctx.addRoot(count);
+  ctx.addRoot(count);
+  const id1 = ctx.nextId();
+  ctx.addRoot(count);
+  const id2 = ctx.nextId();
+  ctx.addRoot(count);
+  return (
+    '<section><!b=' +
+    id0 +
+    '>' +
+    renderSsrBranch(
+      id0,
+      id0,
+      [],
+      q_component_branch_condition_segment_0.w([count]),
+      q_component_branch_then_segment_1.w([count]),
+      q_component_branch_else_segment_2.w([count]),
+      () =>
+        '<p q:id="' +
+        id1 +
+        '" class="even">Even <!t>' +
+        escapeHTML(renderSsrTextNode(createSsrRangeTextTarget(id1, 0), count)) +
+        '</p>',
+      () =>
+        '<button q:id="' +
+        id2 +
+        '"' +
+        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_3.w([count])) +
+        '>Odd <!t>' +
+        escapeHTML(renderSsrTextNode(createSsrRangeTextTarget(id2, 0), count)) +
+        '</button>'
+    ) +
+    '<!/b></section>'
+  );
+}
+
+null
+============================= src/component.tsx_component_branch_condition_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_branch_condition_segment_0 = () => {
+  const count = _captures[0];
+  return count.value % 2 === 0;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_0",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    134,
+    155
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
+
+import { createTextNodeEffect, _captures } from '@qwik.dev/core/spark';
+export const component_branch_then_segment_1 = (ctx) => {
+  const count = _captures[0];
+  const el0 = ctx.document.createElement('p');
+  el0.setAttribute('class', 'even');
+  const text1 = ctx.document.createTextNode('Even ');
+  el0.appendChild(text1);
+  const text2 = ctx.document.createTextNode('');
+  const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect3);
+  el0.appendChild(text2);
+  return [el0];
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_1",
+  "entry": null,
+  "displayName": "component_branch_then_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": true,
+  "loc": [
+    158,
+    200
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_else_segment_2.js (ENTRY POINT)==
+
+import { setEvent, _withCaptures, createTextNodeEffect, _captures } from '@qwik.dev/core/spark';
+import { component_q_e_click_segment_3 } from './component.tsx_component_q_e_click_segment_3';
+export const component_branch_else_segment_2 = (ctx) => {
+  const count = _captures[0];
+  const el0 = ctx.document.createElement('button');
+  setEvent(el0, 'q-e:click', _withCaptures(component_q_e_click_segment_3, [count]));
+  const text1 = ctx.document.createTextNode('Odd ');
+  el0.appendChild(text1);
+  const text2 = ctx.document.createTextNode('');
+  const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect3);
+  el0.appendChild(text2);
+  return [el0];
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_else_segment_2",
+  "entry": null,
+  "displayName": "component_branch_else_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": true,
+  "loc": [
+    203,
+    268
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_3.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_q_e_click_segment_3 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_3",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_3",
+  "hash": "segment_3",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    211,
+    241
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createSignal, _withCaptures, createBranch, createBranchRange } from '@qwik.dev/core/spark';
+import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
+import { component_branch_else_segment_2 } from './component.tsx_component_branch_else_segment_2';
+
+export function App(_props, ctx) {
+  const count = createSignal(0);
+  const el0 = ctx.document.createElement('section');
+  const fragment1 = ctx.document.createDocumentFragment();
+  const comment2 = ctx.document.createComment('b');
+  const comment3 = ctx.document.createComment('/b');
+  fragment1.appendChild(comment2);
+  fragment1.appendChild(comment3);
+  const branch4 = createBranch(
+    createBranchRange(comment2, comment3),
+    [],
+    () => count.value % 2 === 0,
+    _withCaptures(component_branch_then_segment_1, [count]),
+    _withCaptures(component_branch_else_segment_2, [count]),
+    { scheduler: ctx.scheduler, container: ctx }
+  );
+  ctx.scheduler.notify(branch4);
+  el0.appendChild(fragment1);
+  return [el0];
+}
+
+null
+============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
+
+import { createTextNodeEffect, _captures } from '@qwik.dev/core/spark';
+export const component_branch_then_segment_1 = (ctx) => {
+  const count = _captures[0];
+  const el0 = ctx.document.createElement('p');
+  el0.setAttribute('class', 'even');
+  const text1 = ctx.document.createTextNode('Even ');
+  el0.appendChild(text1);
+  const text2 = ctx.document.createTextNode('');
+  const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect3);
+  el0.appendChild(text2);
+  return [el0];
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_1",
+  "entry": null,
+  "displayName": "component_branch_then_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": true,
+  "loc": [
+    158,
+    200
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_else_segment_2.js (ENTRY POINT)==
+
+import { setEvent, _withCaptures, createTextNodeEffect, _captures } from '@qwik.dev/core/spark';
+import { component_q_e_click_segment_3 } from './component.tsx_component_q_e_click_segment_3';
+export const component_branch_else_segment_2 = (ctx) => {
+  const count = _captures[0];
+  const el0 = ctx.document.createElement('button');
+  setEvent(el0, 'q-e:click', _withCaptures(component_q_e_click_segment_3, [count]));
+  const text1 = ctx.document.createTextNode('Odd ');
+  el0.appendChild(text1);
+  const text2 = ctx.document.createTextNode('');
+  const effect3 = createTextNodeEffect(text2, count, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect3);
+  el0.appendChild(text2);
+  return [el0];
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_else_segment_2",
+  "entry": null,
+  "displayName": "component_branch_else_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": true,
+  "loc": [
+    203,
+    268
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_3.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_q_e_click_segment_3 = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_3",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_3",
+  "hash": "segment_3",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    211,
+    241
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

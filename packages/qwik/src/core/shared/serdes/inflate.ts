@@ -2,6 +2,13 @@ import { isDev } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import type { Computed } from '../../vdomless';
 import {
+  Branch,
+  BranchSubscription,
+  createBranchRange,
+  type BranchConditionFn,
+  type BranchRenderFn,
+} from '../../vdomless/dom/branch/branch';
+import {
   AttrEffect,
   SerializedAttrEffect,
   TextExpressionEffect,
@@ -17,8 +24,9 @@ import type { Dependency } from '../../vdomless/reactive/source';
 import { addDependency } from '../../vdomless/reactive/tracking';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
 import type { ContextScope } from '../../vdomless/runtime/context-scope';
+import { registerSubscriberToOwner } from '../../vdomless/runtime/owner';
 import { NodeWalker } from '../../vdomless/runtime/node-walker';
-import type { DomSubscriber } from '../../vdomless/runtime/subscriber';
+import type { DomSubscriber, Subscriber } from '../../vdomless/runtime/subscriber';
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
@@ -174,71 +182,35 @@ export const inflate = async (
       }
       break;
     case TypeIds.EffectSubscription: {
-      const subscription = target as Writeable<DomSubscriber>;
       const parts = data as unknown[];
       const kind = parts[0] as EffectKind;
-      const targetKind = parts[1] as EffectTargetKind;
-      const targetId = parts[2] as number;
-      const isRangeText = targetKind === EffectTargetKind.RangeText;
-      const markerIndex = isRangeText ? (parts[3] as number) : undefined;
-      const depsIndex = isRangeText ? 4 : 3;
-      const deps = parts[depsIndex] as Dependency[];
-
       switch (kind) {
+        case EffectKind.Branch: {
+          restoreBranchSubscription(container, target as Writeable<BranchSubscription>, parts);
+          break;
+        }
         case EffectKind.TextNode: {
-          const text = resolveTextTarget(container, targetKind, targetId, markerIndex);
-
-          subscription.effect = new TextNodeEffect(text, deps[0]);
+          restoreTextNodeSubscription(container, target as Writeable<DomSubscriber>, parts);
           break;
         }
         case EffectKind.TextExpression: {
-          const text = resolveTextTarget(container, targetKind, targetId, markerIndex);
-
-          const qrl = parts[depsIndex + 2] as QRLInternal<TextExpressionFn>;
-          const fn = await qrl.resolve();
-          subscription.effect = new TextExpressionEffect(
-            text,
-            parts[depsIndex + 1] as unknown[],
-            (...args) => {
-              return fn(...args);
-            }
+          await restoreTextExpressionSubscription(
+            container,
+            target as Writeable<DomSubscriber>,
+            parts
           );
           break;
         }
         case EffectKind.Attr: {
-          if (!Array.isArray(deps) || deps.length === 0) {
-            throw new Error('DOM subscription requires a source dependency.');
-          }
-          if (targetKind !== EffectTargetKind.Element) {
-            throw new Error(`Unsupported element target kind ${targetKind}.`);
-          }
-          const targetElement = NodeWalker.instance.findQwikElement(container.element, targetId);
-          isDev && assertDefined(targetElement, `Missing Qwik element ${targetId}.`);
-          subscription.effect = new AttrEffect(targetElement, String(parts[4]), deps[0]);
+          restoreAttrSubscription(container, target as Writeable<DomSubscriber>, parts);
           break;
         }
         case EffectKind.SerializedAttr: {
-          if (!Array.isArray(deps) || deps.length === 0) {
-            throw new Error('DOM subscription requires a source dependency.');
-          }
-          if (targetKind !== EffectTargetKind.Element) {
-            throw new Error(`Unsupported element target kind ${targetKind}.`);
-          }
-          const targetElement = NodeWalker.instance.findQwikElement(container.element, targetId);
-          isDev && assertDefined(targetElement, `Missing Qwik element ${targetId}.`);
-          subscription.effect = new SerializedAttrEffect(targetElement, deps[0], parts[4] as any);
+          restoreSerializedAttrSubscription(container, target as Writeable<DomSubscriber>, parts);
           break;
         }
         default:
           throw qError(QError.serializeErrorNotImplemented, [kind]);
-      }
-
-      if (deps && deps.length > 0) {
-        subscription.deps = [];
-        subscription.depVersions = [];
-        for (let i = 0; i < deps.length; i++) {
-          addDependency(subscription, deps[i]);
-        }
       }
       break;
     }
@@ -246,6 +218,144 @@ export const inflate = async (
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
 };
+
+function restoreBranchSubscription(
+  container: ContainerContext,
+  subscription: Writeable<BranchSubscription>,
+  parts: unknown[]
+): void {
+  const rangeId = parts[1] as number;
+  const order = parts[2] as number;
+  const mountedBranch = parts[3] == null ? undefined : (parts[3] as 0 | 1);
+  const deps = parts[4] as Dependency[];
+  const args = parts[5] as unknown[];
+  const conditionQrl = parts[6] as QRLInternal<BranchConditionFn>;
+  const thenQrl = parts[7] as QRLInternal<BranchRenderFn>;
+  const elseQrl = (parts[8] as QRLInternal<BranchRenderFn> | null) ?? undefined;
+  const ownedSubscribers = parts[9] as Subscriber[] | undefined;
+  const markerRange = NodeWalker.instance.findBranchRange(container.element, rangeId);
+  isDev && assertDefined(markerRange, `Missing branch range ${rangeId}.`);
+  if (markerRange === null) {
+    throw new Error(`Missing branch range ${rangeId}.`);
+  }
+
+  subscription.branch = new Branch(
+    createBranchRange(markerRange[0], markerRange[1]),
+    args,
+    conditionQrl,
+    thenQrl,
+    elseQrl,
+    order,
+    null,
+    mountedBranch,
+    container
+  );
+  restoreDependencies(subscription, deps);
+
+  const owner = subscription.branch.currentOwner;
+  if (owner !== null && Array.isArray(ownedSubscribers)) {
+    for (let i = 0; i < ownedSubscribers.length; i++) {
+      registerSubscriberToOwner(ownedSubscribers[i], owner);
+    }
+  }
+}
+
+function restoreTextNodeSubscription(
+  container: ContainerContext,
+  subscription: Writeable<DomSubscriber>,
+  parts: unknown[]
+): void {
+  const target = readDomSubscriptionTarget(parts);
+  const text = resolveTextTarget(container, target.targetKind, target.targetId, target.markerIndex);
+
+  subscription.effect = new TextNodeEffect(text, target.deps[0]);
+  restoreDependencies(subscription, target.deps);
+}
+
+async function restoreTextExpressionSubscription(
+  container: ContainerContext,
+  subscription: Writeable<DomSubscriber>,
+  parts: unknown[]
+): Promise<void> {
+  const target = readDomSubscriptionTarget(parts);
+  const text = resolveTextTarget(container, target.targetKind, target.targetId, target.markerIndex);
+  const qrl = parts[target.depsIndex + 2] as QRLInternal<TextExpressionFn>;
+  const fn = await qrl.resolve();
+
+  subscription.effect = new TextExpressionEffect(
+    text,
+    parts[target.depsIndex + 1] as unknown[],
+    (...args) => {
+      return fn(...args);
+    }
+  );
+  restoreDependencies(subscription, target.deps);
+}
+
+function restoreAttrSubscription(
+  container: ContainerContext,
+  subscription: Writeable<DomSubscriber>,
+  parts: unknown[]
+): void {
+  const target = readDomSubscriptionTarget(parts);
+  const source = readRequiredDomSource(target.deps, target.targetKind);
+  const element = resolveElementTarget(container, target.targetKind, target.targetId);
+
+  subscription.effect = new AttrEffect(element, String(parts[4]), source);
+  restoreDependencies(subscription, target.deps);
+}
+
+function restoreSerializedAttrSubscription(
+  container: ContainerContext,
+  subscription: Writeable<DomSubscriber>,
+  parts: unknown[]
+): void {
+  const target = readDomSubscriptionTarget(parts);
+  const source = readRequiredDomSource(target.deps, target.targetKind);
+  const element = resolveElementTarget(container, target.targetKind, target.targetId);
+
+  subscription.effect = new SerializedAttrEffect(element, source, parts[4] as any);
+  restoreDependencies(subscription, target.deps);
+}
+
+function readDomSubscriptionTarget(parts: unknown[]): {
+  targetKind: EffectTargetKind;
+  targetId: number;
+  markerIndex: number | undefined;
+  depsIndex: number;
+  deps: Dependency[];
+} {
+  const targetKind = parts[1] as EffectTargetKind;
+  const targetId = parts[2] as number;
+  const isRangeText = targetKind === EffectTargetKind.RangeText;
+  const markerIndex = isRangeText ? (parts[3] as number) : undefined;
+  const depsIndex = isRangeText ? 4 : 3;
+  const deps = parts[depsIndex] as Dependency[];
+  return { targetKind, targetId, markerIndex, depsIndex, deps };
+}
+
+function readRequiredDomSource(deps: Dependency[], targetKind: EffectTargetKind): Dependency {
+  if (!Array.isArray(deps) || deps.length === 0) {
+    throw new Error('DOM subscription requires a source dependency.');
+  }
+  if (targetKind !== EffectTargetKind.Element) {
+    throw new Error(`Unsupported element target kind ${targetKind}.`);
+  }
+  return deps[0];
+}
+
+function resolveElementTarget(
+  container: ContainerContext,
+  targetKind: EffectTargetKind,
+  elementId: number
+): Element {
+  if (targetKind !== EffectTargetKind.Element) {
+    throw new Error(`Unsupported element target kind ${targetKind}.`);
+  }
+  const element = NodeWalker.instance.findQwikElement(container.element, elementId);
+  isDev && assertDefined(element, `Missing Qwik element ${elementId}.`);
+  return element!;
+}
 
 function resolveTextTarget(
   container: ContainerContext,
@@ -267,6 +377,16 @@ function resolveTextTarget(
     return text!;
   }
   throw new Error(`Unsupported text target kind ${targetKind}.`);
+}
+
+function restoreDependencies(collector: DomSubscriber | BranchSubscription, deps: Dependency[]) {
+  if (deps && deps.length > 0) {
+    collector.deps = [];
+    collector.depVersions = [];
+    for (let i = 0; i < deps.length; i++) {
+      addDependency(collector, deps[i]);
+    }
+  }
 }
 
 /**

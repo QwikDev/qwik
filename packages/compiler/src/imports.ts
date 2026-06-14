@@ -68,6 +68,9 @@ export function createSsrImports(
       QwikSymbol.RenderSsrStyle
     );
   }
+  if (usage.hasBranch) {
+    sparkSpecifiers.push(QwikSymbol.RenderSsrBranch);
+  }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
   }
@@ -81,6 +84,7 @@ export interface SsrImportUsage {
   hasRangeText: boolean;
   hasTextExpression: boolean;
   hasDynamicAttr: boolean;
+  hasBranch: boolean;
 }
 
 export function createCsrImports(
@@ -108,7 +112,9 @@ export function createCsrImports(
     );
   }
   if (qrlSegments.size > 0) {
-    sparkSpecifiers.push(QwikSymbol.SetEvent);
+    if (hasEventQrlSegment(qrlSegments)) {
+      sparkSpecifiers.push(QwikSymbol.SetEvent);
+    }
     if (hasCapturedQrlSegment(qrlSegments)) {
       sparkSpecifiers.push(QwikSymbol.WithCaptures);
     }
@@ -117,6 +123,9 @@ export function createCsrImports(
         createNamedImport(qrlSegment.importPath, [qrlSegment.symbolName])
       )
     );
+  }
+  if (usage.hasBranch) {
+    sparkSpecifiers.push(QwikSymbol.CreateBranch, QwikSymbol.CreateBranchRange);
   }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
@@ -130,11 +139,21 @@ export interface CsrImportUsage {
   hasSourceText: boolean;
   hasTextExpression: boolean;
   hasDynamicAttr: boolean;
+  hasBranch: boolean;
 }
 
 function hasCapturedQrlSegment(qrlSegments: Map<string, QrlSegmentOutput>) {
   for (const qrlSegment of qrlSegments.values()) {
     if (qrlSegment.segment.captures.length > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function hasEventQrlSegment(qrlSegments: Map<string, QrlSegmentOutput>) {
+  for (const qrlSegment of qrlSegments.values()) {
+    if (qrlSegment.segment.kind === 'eventHandler') {
       return true;
     }
   }

@@ -27,6 +27,7 @@ import type {
   PropRecord,
   RenderNode,
   SourceRange,
+  BranchNode,
 } from '../types';
 
 export function lowerStaticJsxToIr(ctx: CompilerContext) {
@@ -253,6 +254,11 @@ function lowerJsxChildren(ctx: CompilerContext, children: JSXChild[]): RenderNod
       const expression = unwrapExpression(child.expression);
       const expressionRange = getRange(expression);
       if (expressionRange) {
+        const branch = lowerBranchExpression(ctx, expression, expressionRange);
+        if (branch) {
+          nodes.push(branch);
+          continue;
+        }
         const binding = createDynamicTextBinding(ctx, expression, expressionRange);
         if (binding) {
           nodes.push({
@@ -279,6 +285,110 @@ function lowerJsxChildren(ctx: CompilerContext, children: JSXChild[]): RenderNod
   return nodes;
 }
 
+function lowerBranchExpression(
+  ctx: CompilerContext,
+  expression: unknown,
+  expressionRange: SourceRange
+): BranchNode | null {
+  const expr = unwrapExpression(expression);
+  if (!isAstNode(expr)) {
+    return null;
+  }
+  if (expr.type === 'ConditionalExpression') {
+    const conditionRange = getRange(expr.test);
+    const consequentRange = getRange(expr.consequent);
+    const alternateRange = getRange(expr.alternate);
+    if (conditionRange === null || consequentRange === null || alternateRange === null) {
+      return null;
+    }
+    const conditionSegment = findBranchSegment(ctx, 'branchCondition', conditionRange);
+    const thenSegment = findBranchSegment(ctx, 'branchRender', consequentRange);
+    const elseSegment = isEmptyBranchExpression(expr.alternate)
+      ? null
+      : findBranchSegment(ctx, 'branchRender', alternateRange);
+    if (
+      !conditionSegment ||
+      !thenSegment ||
+      (!isEmptyBranchExpression(expr.alternate) && !elseSegment)
+    ) {
+      return null;
+    }
+    return {
+      kind: 'branch',
+      expressionRange,
+      conditionRange,
+      conditionSegmentId: conditionSegment.id,
+      thenSegmentId: thenSegment.id,
+      elseSegmentId: elseSegment?.id,
+      thenChildren: lowerExpressionChildren(ctx, expr.consequent),
+      elseChildren: lowerExpressionChildren(ctx, expr.alternate),
+    };
+  }
+  if (expr.type === 'LogicalExpression' && expr.operator === '&&') {
+    const conditionRange = getRange(expr.left);
+    const consequentRange = getRange(expr.right);
+    if (conditionRange === null || consequentRange === null) {
+      return null;
+    }
+    const conditionSegment = findBranchSegment(ctx, 'branchCondition', conditionRange);
+    const thenSegment = findBranchSegment(ctx, 'branchRender', consequentRange);
+    if (!conditionSegment || !thenSegment) {
+      return null;
+    }
+    return {
+      kind: 'branch',
+      expressionRange,
+      conditionRange,
+      conditionSegmentId: conditionSegment.id,
+      thenSegmentId: thenSegment.id,
+      thenChildren: lowerExpressionChildren(ctx, expr.right),
+      elseChildren: [],
+    };
+  }
+  return null;
+}
+
+function lowerExpressionChildren(ctx: CompilerContext, expression: unknown): RenderNode[] {
+  const expr = unwrapExpression(expression);
+  if (!isAstNode(expr) || isEmptyBranchExpression(expr)) {
+    return [];
+  }
+  if (expr.type === 'JSXElement' || expr.type === 'JSXFragment') {
+    return [lowerJsxNode(ctx, expr)];
+  }
+  const range = getRange(expr);
+  if (range !== null) {
+    const branch = lowerBranchExpression(ctx, expr, range);
+    if (branch) {
+      return [branch];
+    }
+    const binding = createDynamicTextBinding(ctx, expr, range);
+    if (binding) {
+      return [
+        {
+          kind: 'dynamicText',
+          expressionRange: range,
+          binding,
+        },
+      ];
+    }
+  }
+  if (expr.type === 'Literal') {
+    const value = expr.value;
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'bigint') {
+      return [{ kind: 'text', value: String(value) }];
+    }
+    return [];
+  }
+  return [
+    {
+      kind: 'expr',
+      role: 'child',
+      reason: 'Dynamic JSX branch children are not supported yet.',
+    },
+  ];
+}
+
 function createDynamicTextBinding(
   ctx: CompilerContext,
   expression: unknown,
@@ -302,9 +412,36 @@ function createDynamicTextBinding(
     : null;
 }
 
+function findBranchSegment(
+  ctx: CompilerContext,
+  kind: 'branchCondition' | 'branchRender',
+  range: SourceRange
+) {
+  return ctx.manifest.segments.find(
+    (segment) => segment.kind === kind && rangesEqual(segment.range, range)
+  );
+}
+
 function findTextSegment(ctx: CompilerContext, range: SourceRange) {
   return ctx.manifest.segments.find(
     (segment) => segment.kind === 'jsxText' && rangesEqual(segment.range, range)
+  );
+}
+
+function isEmptyBranchExpression(node: unknown): boolean {
+  const expr = unwrapExpression(node);
+  if (!isAstNode(expr)) {
+    return true;
+  }
+  if (expr.type === 'Literal') {
+    return expr.value === null || expr.value === false || expr.value === true;
+  }
+  return false;
+}
+
+function isAstNode(node: unknown): node is { type: string; [key: string]: any } {
+  return (
+    !!node && typeof node === 'object' && 'type' in node && typeof (node as any).type === 'string'
   );
 }
 

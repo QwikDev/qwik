@@ -1,5 +1,6 @@
 import type {
   ComponentRecord,
+  BranchNode,
   DynamicTextNode,
   ElementNode,
   ImportRecord,
@@ -63,7 +64,11 @@ function emitPrelude(qrlSegments: Map<string, QrlSegmentOutput>, imports: Import
 }
 
 function shouldResolveSsrQrl(qrlSegment: QrlSegmentOutput) {
-  return qrlSegment.segment.kind === 'jsxText' || isImplicitDollarSegment(qrlSegment.segment);
+  return (
+    qrlSegment.segment.kind === 'jsxText' ||
+    qrlSegment.segment.kind === 'branchCondition' ||
+    isImplicitDollarSegment(qrlSegment.segment)
+  );
 }
 
 function emitSsrComponent(
@@ -129,6 +134,9 @@ class SsrEmitter {
     if (node.kind === 'fragment') {
       return node.children.flatMap((child) => this.emitHtmlParts(child));
     }
+    if (node.kind === 'branch') {
+      return this.emitBranchParts(node);
+    }
     if (node.kind === 'element') {
       return this.emitElementParts(node);
     }
@@ -193,6 +201,48 @@ class SsrEmitter {
     }
     parts.push(`</${node.tag}>`);
     return parts;
+  }
+
+  private emitBranchParts(node: BranchNode): HtmlPart[] {
+    const rangeId = this.nextTargetId();
+    const conditionQrl = this.requireQrlSegment(node.conditionSegmentId);
+    const thenQrl = this.requireQrlSegment(node.thenSegmentId);
+    const elseQrl = node.elseSegmentId ? this.requireQrlSegment(node.elseSegmentId) : null;
+
+    this.emitCaptureRoots(conditionQrl);
+    this.emitCaptureRoots(thenQrl);
+    if (elseQrl) {
+      this.emitCaptureRoots(elseQrl);
+    }
+
+    const thenHtml = partsToExpression(
+      node.thenChildren.flatMap((child) => this.emitHtmlParts(child))
+    );
+    const elseHtml = partsToExpression(
+      node.elseChildren.flatMap((child) => this.emitHtmlParts(child))
+    );
+    const args = [
+      rangeId,
+      rangeId,
+      '[]',
+      emitQrlReference(conditionQrl),
+      emitQrlReference(thenQrl),
+      elseQrl ? emitQrlReference(elseQrl) : 'undefined',
+      `() => ${thenHtml}`,
+    ];
+    if (elseQrl || node.elseChildren.length > 0) {
+      args.push(`() => ${elseHtml}`);
+    }
+
+    return [
+      '<!b=',
+      { code: rangeId },
+      '>',
+      {
+        code: `${QwikSymbol.RenderSsrBranch}(${args.join(', ')})`,
+      },
+      '<!/b>',
+    ];
   }
 
   private emitDynamicAttrParts(prop: PropRecord, elementId: string): HtmlPart[] {
@@ -268,6 +318,20 @@ class SsrEmitter {
     this.usesCtx = true;
     this.line(`const ${id} = ctx.nextId();`);
     return id;
+  }
+
+  private requireQrlSegment(id: string) {
+    const qrlSegment = this.qrlSegments.get(id);
+    if (!qrlSegment) {
+      throw new Error(`Missing QRL segment for ${id}.`);
+    }
+    return qrlSegment;
+  }
+
+  private emitCaptureRoots(qrlSegment: QrlSegmentOutput) {
+    for (const capture of qrlSegment.segment.captures) {
+      this.line(`ctx.addRoot(${capture.name});`);
+    }
   }
 
   private line(code: string) {

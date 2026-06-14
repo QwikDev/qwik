@@ -7,6 +7,10 @@ const CONTEXT_CLOSE = '/c';
 const COMMENT_NODE = 8;
 const TEXT_NODE = 3;
 const RANGE_TEXT_MARKER = 't';
+const BRANCH_OPEN = 'b=';
+const BRANCH_CLOSE = '/b';
+
+export type BranchMarkerRange = readonly [Comment, Comment];
 
 export class NodeWalker {
   static #instance: NodeWalker;
@@ -52,6 +56,93 @@ export class NodeWalker {
         index++;
       }
       currentNode = fastNextSibling(currentNode);
+    }
+    return null;
+  }
+
+  findBranchRange(element: Element, rangeId: string | number): BranchMarkerRange | null {
+    const start = this.findComment(element, BRANCH_OPEN + String(rangeId));
+    if (start === null) {
+      return null;
+    }
+    const end = this.findBranchEnd(start);
+    return end === null ? null : [start, end];
+  }
+
+  replaceBranchRange(range: BranchMarkerRange, nodes: readonly Node[]): void {
+    const [start, end] = range;
+    const parent = this.getBranchRangeParent(start, end);
+    const ownerDocument = start.ownerDocument;
+    if (ownerDocument === null) {
+      throw new Error('Branch range start marker must have an owner document');
+    }
+
+    let child = fastNextSibling(start);
+    while (child !== null && child !== end) {
+      const next = fastNextSibling(child);
+      parent.removeChild(child);
+      child = next;
+    }
+    if (child !== end) {
+      throw new Error('Branch range end marker not found');
+    }
+
+    if (nodes.length === 0) {
+      return;
+    }
+
+    if (nodes.length === 1) {
+      parent.insertBefore(nodes[0], end);
+      return;
+    }
+
+    const fragment = ownerDocument.createDocumentFragment();
+    for (let i = 0; i < nodes.length; i++) {
+      fragment.appendChild(nodes[i]);
+    }
+    parent.insertBefore(fragment, end);
+  }
+
+  private getBranchRangeParent(start: Comment, end: Comment): Node {
+    const parent = start.parentNode as Node | null;
+    if (parent === null || parent !== end.parentNode) {
+      throw new Error('Branch range markers must share a parent');
+    }
+
+    return parent;
+  }
+
+  private findComment(node: Node, data: string): Comment | null {
+    let child = fastFirstChild(node);
+    while (child !== null) {
+      if (child.nodeType === COMMENT_NODE && (child as Comment).data === data) {
+        return child as Comment;
+      }
+      const nested = this.findComment(child, data);
+      if (nested !== null) {
+        return nested;
+      }
+      child = fastNextSibling(child);
+    }
+    return null;
+  }
+
+  private findBranchEnd(start: Comment): Comment | null {
+    let depth = 0;
+    let sibling = fastNextSibling(start);
+    while (sibling !== null) {
+      if (sibling.nodeType === COMMENT_NODE) {
+        const data = (sibling as Comment).data;
+        if (data.startsWith(BRANCH_OPEN)) {
+          depth++;
+        } else if (data === BRANCH_CLOSE) {
+          if (depth === 0) {
+            return sibling as Comment;
+          }
+          depth--;
+        }
+      }
+      sibling = fastNextSibling(sibling);
     }
     return null;
   }

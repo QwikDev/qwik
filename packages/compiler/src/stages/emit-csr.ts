@@ -1,5 +1,6 @@
 import type {
   ComponentRecord,
+  BranchNode,
   ImportRecord,
   QrlSegmentOutput,
   RenderNode,
@@ -140,6 +141,9 @@ class DomEmitter {
       }
       return id;
     }
+    if (node.kind === 'branch') {
+      return this.emitBranch(node);
+    }
     if (node.kind === 'fragment') {
       const id = this.next('fragment');
       this.line(`const ${id} = ctx.document.createDocumentFragment();`);
@@ -150,6 +154,37 @@ class DomEmitter {
       return id;
     }
     throw new Error(node.reason);
+  }
+
+  private emitBranch(node: BranchNode): string {
+    const fragmentId = this.next('fragment');
+    const startId = this.next('comment');
+    const endId = this.next('comment');
+    const branchId = this.next('branch');
+    const condition = this.sourceCode.slice(node.conditionRange[0], node.conditionRange[1]);
+    const thenRenderer = this.emitBranchRenderer(node.thenSegmentId);
+    const elseRenderer = node.elseSegmentId
+      ? this.emitBranchRenderer(node.elseSegmentId)
+      : 'undefined';
+
+    this.line(`const ${fragmentId} = ctx.document.createDocumentFragment();`);
+    this.line(`const ${startId} = ctx.document.createComment('b');`);
+    this.line(`const ${endId} = ctx.document.createComment('/b');`);
+    this.line(`${fragmentId}.appendChild(${startId});`);
+    this.line(`${fragmentId}.appendChild(${endId});`);
+    this.line(
+      `const ${branchId} = ${QwikSymbol.CreateBranch}(${QwikSymbol.CreateBranchRange}(${startId}, ${endId}), [], () => ${condition}, ${thenRenderer}, ${elseRenderer}, { scheduler: ctx.scheduler, container: ctx });`
+    );
+    this.line(`ctx.scheduler.notify(${branchId});`);
+    return fragmentId;
+  }
+
+  private emitBranchRenderer(segmentId: string): string {
+    const qrlSegment = this.qrlSegments.get(segmentId);
+    if (!qrlSegment) {
+      throw new Error(`Missing branch render segment ${segmentId}.`);
+    }
+    return emitCapturedFunction(qrlSegment);
   }
 
   line(code: string) {
@@ -174,6 +209,10 @@ class DomEmitter {
 }
 
 function emitEventHandler(qrlSegment: QrlSegmentOutput) {
+  return emitCapturedFunction(qrlSegment);
+}
+
+function emitCapturedFunction(qrlSegment: QrlSegmentOutput) {
   if (qrlSegment.segment.captures.length === 0) {
     return qrlSegment.symbolName;
   }

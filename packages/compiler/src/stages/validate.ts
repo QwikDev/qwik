@@ -17,8 +17,15 @@ export function rejectUnsupportedV1(ctx: CompilerContext) {
 
 function visitRenderNode(node: RenderNode, visitor: (node: RenderNode) => void) {
   visitor(node);
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     for (const child of node.children) {
+      visitRenderNode(child, visitor);
+    }
+  } else if (node.kind === 'branch') {
+    for (const child of node.thenChildren) {
+      visitRenderNode(child, visitor);
+    }
+    for (const child of node.elseChildren) {
       visitRenderNode(child, visitor);
     }
   }

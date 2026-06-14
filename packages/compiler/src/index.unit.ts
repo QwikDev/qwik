@@ -282,4 +282,65 @@ export function App() {
 `,
     });
   });
+
+  test('emits nested child component renderers', async () => {
+    await testInput('component_child_nested', {
+      code: `export function Child() {
+  return <span>Child</span>;
+}
+
+export function Parent() {
+  return <section><Child /></section>;
+}
+`,
+    });
+  });
+
+  test('passes literal and expression props to child components', async () => {
+    await testInput('component_child_props', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+
+export function Child(props: { label: string; count: number }) {
+  return <p>{props.label}: {props.count}</p>;
+}
+
+export function Parent() {
+  const count = createSignal(1);
+  return <Child label="Hi" count={count.value} />;
+}
+`,
+    });
+  });
+
+  test('passes child component children through props.children', async () => {
+    await testInput('component_child_props_children', {
+      code: `export function Wrapper(props: { children?: unknown }) {
+  return <section>{props.children}</section>;
+}
+
+export function Parent() {
+  return <Wrapper><p>Projected</p></Wrapper>;
+}
+`,
+    });
+  });
+
+  test('inherits context across child component renderers', async () => {
+    await testInput('component_child_context', {
+      code: `import { createContext, createContextProvider, createSignal } from '@qwik.dev/core/spark';
+import { Context } from './context';
+
+export function Child() {
+  const value = createContext(Context);
+  return <p>{value.value}</p>;
+}
+
+export function Parent() {
+  const value = createSignal('provided');
+  createContextProvider(Context, value);
+  return <section><Child /></section>;
+}
+`,
+    });
+  });
 });

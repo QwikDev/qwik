@@ -10,8 +10,15 @@ export function normalizeProps(ctx: CompilerContext) {
 
 function normalizeNodeProps(node: RenderNode) {
   if (node.kind !== 'element') {
-    if (node.kind === 'fragment') {
+    if (node.kind === 'fragment' || node.kind === 'component') {
       for (const child of node.children) {
+        normalizeNodeProps(child);
+      }
+    } else if (node.kind === 'branch') {
+      for (const child of node.thenChildren) {
+        normalizeNodeProps(child);
+      }
+      for (const child of node.elseChildren) {
         normalizeNodeProps(child);
       }
     }

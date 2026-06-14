@@ -1,0 +1,191 @@
+==INPUT==
+
+import { createSignal } from '@qwik.dev/core/spark';
+
+export function Child(props: { label: string; count: number }) {
+  return <p>{props.label}: {props.count}</p>;
+}
+
+export function Parent() {
+  const count = createSignal(1);
+  return <Child label="Hi" count={count.value} />;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSignal,
+  createComponent,
+  _qrlWithChunk,
+  escapeHTML,
+  createSsrRangeTextTarget,
+  renderSsrTextExpression,
+} from '@qwik.dev/core/spark';
+import { component_text_segment_0 } from './component.tsx_component_text_segment_0';
+import { component_text_segment_1 } from './component.tsx_component_text_segment_1';
+
+const q_component_text_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0',
+  () => import('./component.tsx_component_text_segment_0'),
+  'component_text_segment_0'
+);
+q_component_text_segment_0.s(component_text_segment_0);
+const q_component_text_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_1',
+  () => import('./component.tsx_component_text_segment_1'),
+  'component_text_segment_1'
+);
+q_component_text_segment_1.s(component_text_segment_1);
+
+export function Child(props, ctx) {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  ctx.addRoot(props);
+  return (
+    '<p q:id="' +
+    id0 +
+    '"><!t>' +
+    escapeHTML(
+      renderSsrTextExpression(
+        createSsrRangeTextTarget(id0, 0),
+        [],
+        q_component_text_segment_0.w([props])
+      )
+    ) +
+    '<!/t>: <!t>' +
+    escapeHTML(
+      renderSsrTextExpression(
+        createSsrRangeTextTarget(id0, 1),
+        [],
+        q_component_text_segment_1.w([props])
+      )
+    ) +
+    '</p>'
+  );
+}
+export function Parent(_props, ctx) {
+  const count = createSignal(1);
+  return createComponent(
+    {
+      label: 'Hi',
+      get count() {
+        return count.value;
+      },
+    },
+    (props) => Child(props, ctx)
+  );
+}
+
+null
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_text_segment_0 = () => {
+  const props = _captures[0];
+  return props.label;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    96,
+    107
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_text_segment_1 = () => {
+  const props = _captures[0];
+  return props.count;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_text_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    111,
+    122
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createSignal, createComponent, createTextExpressionEffect } from '@qwik.dev/core/spark';
+
+export function Child(props, ctx) {
+  const el0 = ctx.document.createElement('p');
+  const text1 = ctx.document.createTextNode('');
+  const effect2 = createTextExpressionEffect(text1, [], () => props.label, {
+    scheduler: ctx.scheduler,
+  });
+  ctx.scheduler.notify(effect2);
+  el0.appendChild(text1);
+  const text3 = ctx.document.createTextNode(': ');
+  el0.appendChild(text3);
+  const text4 = ctx.document.createTextNode('');
+  const effect5 = createTextExpressionEffect(text4, [], () => props.count, {
+    scheduler: ctx.scheduler,
+  });
+  ctx.scheduler.notify(effect5);
+  el0.appendChild(text4);
+  return [el0];
+}
+export function Parent(_props, ctx) {
+  const count = createSignal(1);
+  const cmp0 = createComponent(
+    {
+      label: 'Hi',
+      get count() {
+        return count.value;
+      },
+    },
+    (props) => Child(props, ctx),
+    { container: ctx }
+  );
+  return [...cmp0];
+}
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

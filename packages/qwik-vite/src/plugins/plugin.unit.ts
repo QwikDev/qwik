@@ -465,10 +465,10 @@ test('transform uses compiler for core test path', async () => {
   }).toMatchInlineSnapshot(`
     {
       "code": "export function view(_props, ctx) {
-      const el0 = ctx.document.createElement("p");
-      const text1 = ctx.document.createTextNode("Hello Qwik");
-      el0.appendChild(text1);
-      return [el0];
+    const el0 = ctx.document.createElement("p");
+    const text1 = ctx.document.createTextNode("Hello Qwik");
+    el0.appendChild(text1);
+    return [el0];
     }
     ",
       "map": null,

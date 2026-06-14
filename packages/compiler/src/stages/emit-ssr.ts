@@ -1,4 +1,5 @@
 import type {
+  ComponentPropRecord,
   ComponentRecord,
   BranchNode,
   DynamicTextNode,
@@ -77,7 +78,7 @@ function emitSsrComponent(
   segments: readonly SegmentRecord[],
   sourceCode: string
 ) {
-  const emitter = new SsrEmitter(qrlSegments);
+  const emitter = new SsrEmitter(qrlSegments, sourceCode);
   const html = emitter.emitHtmlExpression(component.root!);
   const setup = emitComponentSetup(
     component,
@@ -85,7 +86,7 @@ function emitSsrComponent(
     segments,
     sourceCode,
     'ssr',
-    hasDynamicBinding(component.root)
+    hasDynamicBinding(component.root) || component.providesContext
   );
   const statements = emitter.toString();
   const bodyParts = component.providesContext
@@ -99,21 +100,26 @@ function emitSsrComponent(
     : [setup, statements, `return ${html};`].filter(Boolean);
   const body = bodyParts.join('\n');
   const ctxParam = emitter.usesCtx || component.providesContext ? 'ctx' : '_ctx';
+  const propsParam = getComponentPropsParam(component);
   if (component.declarationKind === 'function') {
-    return `export function ${component.exportName}(_props, ${ctxParam}) {\n${body}\n}`;
+    return `export function ${component.exportName}(${propsParam}, ${ctxParam}) {\n${body}\n}`;
   }
   if (component.declarationKind === 'const') {
     return bodyParts.length > 1
-      ? `export const ${component.exportName} = (_props, ${ctxParam}) => {\n${body}\n};`
-      : `export const ${component.exportName} = (_props, ${ctxParam}) => ${html};`;
+      ? `export const ${component.exportName} = (${propsParam}, ${ctxParam}) => {\n${body}\n};`
+      : `export const ${component.exportName} = (${propsParam}, ${ctxParam}) => ${html};`;
   }
   if (component.declarationKind === 'defaultFunction') {
     const name = component.localName ? ` ${component.localName}` : '';
-    return `export default function${name}(_props, ${ctxParam}) {\n${body}\n}`;
+    return `export default function${name}(${propsParam}, ${ctxParam}) {\n${body}\n}`;
   }
   return bodyParts.length > 1
-    ? `export default (_props, ${ctxParam}) => {\n${body}\n};`
-    : `export default (_props, ${ctxParam}) => ${html};`;
+    ? `export default (${propsParam}, ${ctxParam}) => {\n${body}\n};`
+    : `export default (${propsParam}, ${ctxParam}) => ${html};`;
+}
+
+function getComponentPropsParam(component: ComponentRecord): string {
+  return component.params[0]?.name ?? '_props';
 }
 
 class SsrEmitter {
@@ -121,7 +127,10 @@ class SsrEmitter {
   private readonly lines: string[] = [];
   usesCtx = false;
 
-  constructor(private qrlSegments: Map<string, QrlSegmentOutput>) {}
+  constructor(
+    private qrlSegments: Map<string, QrlSegmentOutput>,
+    private sourceCode: string
+  ) {}
 
   emitHtmlExpression(node: RenderNode) {
     return partsToExpression(this.emitHtmlParts(node));
@@ -131,8 +140,14 @@ class SsrEmitter {
     if (node.kind === 'text') {
       return [escapeText(node.value)];
     }
+    if (node.kind === 'children') {
+      return [{ code: `(${node.propsName}.children ?? '')` }];
+    }
     if (node.kind === 'fragment') {
       return node.children.flatMap((child) => this.emitHtmlParts(child));
+    }
+    if (node.kind === 'component') {
+      return this.emitComponentParts(node);
     }
     if (node.kind === 'branch') {
       return this.emitBranchParts(node);
@@ -144,6 +159,39 @@ class SsrEmitter {
       throw new Error('Dynamic text outside an element is not supported for SSR resume yet.');
     }
     throw new Error(node.reason);
+  }
+
+  private emitComponentParts(node: Extract<RenderNode, { kind: 'component' }>): HtmlPart[] {
+    this.usesCtx = true;
+    return [
+      {
+        code: `${QwikSymbol.CreateComponent}(${this.emitComponentProps(
+          node.props,
+          node.children
+        )}, (props) => ${node.name}(props, ctx))`,
+      },
+    ];
+  }
+
+  private emitComponentProps(
+    props: ComponentPropRecord[],
+    children: readonly RenderNode[]
+  ): string {
+    const entries = props.map((prop) => {
+      if (prop.expressionRange !== undefined) {
+        const value = this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
+        return `get ${JSON.stringify(prop.name)}() { return ${value}; }`;
+      }
+      return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
+    });
+    if (children.length > 0) {
+      entries.push(
+        `${JSON.stringify('children')}: ${partsToExpression(
+          children.flatMap((child) => this.emitHtmlParts(child))
+        )}`
+      );
+    }
+    return entries.length === 0 ? '{}' : `{ ${entries.join(', ')} }`;
   }
 
   private emitElementParts(node: ElementNode): HtmlPart[] {

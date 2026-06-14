@@ -21,6 +21,7 @@ import type {
 } from 'oxc-parser';
 import type {
   AstJsxNode,
+  ComponentPropRecord,
   CompilerContext,
   DynamicBinding,
   FragmentNode,
@@ -32,14 +33,9 @@ import type {
 
 export function lowerStaticJsxToIr(ctx: CompilerContext) {
   for (const component of ctx.manifest.components) {
-    if (component.params.length > 0) {
+    const propsName = getPropsParamName(ctx, component.params, component.exportName);
+    if (propsName === false) {
       component.supported = false;
-      ctx.manifest.diagnostics.push(
-        createDiagnostic(
-          ctx.input.path,
-          `Props are not supported yet in vdomless static components (${formatExportName(component.exportName)}).`
-        )
-      );
       continue;
     }
     if (component.jsx === null) {
@@ -52,25 +48,57 @@ export function lowerStaticJsxToIr(ctx: CompilerContext) {
       );
       continue;
     }
-    component.root = lowerJsxNode(ctx, component.jsx);
+    component.root = lowerJsxNode(ctx, component.jsx, propsName);
   }
 }
 
-function lowerJsxNode(ctx: CompilerContext, node: AstJsxNode): RenderNode {
+function getPropsParamName(
+  ctx: CompilerContext,
+  params: Array<{ name: string | null }>,
+  exportName: string
+): string | null | false {
+  if (params.length === 0) {
+    return null;
+  }
+  if (params.length === 1 && params[0].name !== null) {
+    return params[0].name;
+  }
+  ctx.manifest.diagnostics.push(
+    createDiagnostic(
+      ctx.input.path,
+      `Only one simple props parameter is supported in vdomless static components (${formatExportName(exportName)}).`
+    )
+  );
+  return false;
+}
+
+function lowerJsxNode(
+  ctx: CompilerContext,
+  node: AstJsxNode,
+  propsName: string | null
+): RenderNode {
   if (node.type === 'JSXElement') {
-    return lowerJsxElement(ctx, node);
+    return lowerJsxElement(ctx, node, propsName);
   }
-  return lowerJsxFragment(ctx, node);
+  return lowerJsxFragment(ctx, node, propsName);
 }
 
-function lowerJsxFragment(ctx: CompilerContext, node: JSXFragment): FragmentNode {
+function lowerJsxFragment(
+  ctx: CompilerContext,
+  node: JSXFragment,
+  propsName: string | null
+): FragmentNode {
   return {
     kind: 'fragment',
-    children: lowerJsxChildren(ctx, node.children),
+    children: lowerJsxChildren(ctx, node.children, propsName),
   };
 }
 
-function lowerJsxElement(ctx: CompilerContext, node: JSXElement): RenderNode {
+function lowerJsxElement(
+  ctx: CompilerContext,
+  node: JSXElement,
+  propsName: string | null
+): RenderNode {
   const opening = node.openingElement;
   const name = getJsxName(opening.name);
   if (!name) {
@@ -81,10 +109,18 @@ function lowerJsxElement(ctx: CompilerContext, node: JSXElement): RenderNode {
     };
   }
   if (!isNativeTag(name)) {
+    if (isComponentTagName(name)) {
+      return {
+        kind: 'component',
+        name,
+        props: lowerComponentAttributes(ctx, opening.attributes),
+        children: lowerJsxChildren(ctx, node.children, propsName),
+      };
+    }
     return {
       kind: 'expr',
       role: 'child',
-      reason: `Component JSX <${name} /> is not supported yet in vdomless static components.`,
+      reason: `Only PascalCase component JSX names are supported in vdomless static components (${name}).`,
     };
   }
 
@@ -92,8 +128,12 @@ function lowerJsxElement(ctx: CompilerContext, node: JSXElement): RenderNode {
     kind: 'element',
     tag: name,
     props: lowerJsxAttributes(ctx, opening.attributes),
-    children: lowerJsxChildren(ctx, node.children),
+    children: lowerJsxChildren(ctx, node.children, propsName),
   };
+}
+
+function isComponentTagName(name: string): boolean {
+  return /^[A-Z][A-Za-z0-9_$]*$/.test(name);
 }
 
 function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]): PropRecord[] {
@@ -173,6 +213,72 @@ function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]
   return props;
 }
 
+function lowerComponentAttributes(
+  ctx: CompilerContext,
+  attributes: JSXAttributeItem[]
+): ComponentPropRecord[] {
+  const props: ComponentPropRecord[] = [];
+  for (const attr of attributes) {
+    if (attr.type === 'JSXSpreadAttribute') {
+      ctx.manifest.diagnostics.push(
+        createDiagnostic(ctx.input.path, 'JSX spread props are not supported yet.')
+      );
+      continue;
+    }
+    if (attr.type !== 'JSXAttribute') {
+      continue;
+    }
+
+    const name = getJsxAttributeName(attr.name);
+    if (!name) {
+      ctx.manifest.diagnostics.push(
+        createDiagnostic(ctx.input.path, 'Only simple JSX attribute names are supported.')
+      );
+      continue;
+    }
+    const value = lowerComponentAttributeValue(ctx, attr.value, name);
+    if (value !== null) {
+      props.push({ name, ...value });
+    }
+  }
+  return props;
+}
+
+function lowerComponentAttributeValue(
+  ctx: CompilerContext,
+  valueNode: JSXAttributeValue | null,
+  name: string
+): Pick<ComponentPropRecord, 'value' | 'expressionRange'> | null {
+  if (!valueNode) {
+    return { value: true };
+  }
+  if (valueNode.type === 'Literal') {
+    return { value: valueNode.value };
+  }
+  if (valueNode.type === 'JSXExpressionContainer') {
+    if (valueNode.expression?.type === 'JSXEmptyExpression') {
+      ctx.manifest.diagnostics.push(
+        createDiagnostic(ctx.input.path, `Empty JSX attribute "${name}" is not supported yet.`)
+      );
+      return null;
+    }
+    const expr = unwrapExpression(valueNode.expression);
+    const staticValue = getStaticExpressionValue(expr);
+    if (staticValue.supported) {
+      return { value: staticValue.value };
+    }
+    const expressionRange = getRange(expr);
+    if (expressionRange !== null) {
+      return { expressionRange };
+    }
+  }
+
+  ctx.manifest.diagnostics.push(
+    createDiagnostic(ctx.input.path, `Dynamic JSX attribute "${name}" is not supported yet.`)
+  );
+  return null;
+}
+
 function lowerDynamicSourceAttributeValue(
   ctx: CompilerContext,
   valueNode: JSXAttributeValue | null
@@ -233,7 +339,11 @@ function lowerStaticAttributeValue(
   return { supported: false };
 }
 
-function lowerJsxChildren(ctx: CompilerContext, children: JSXChild[]): RenderNode[] {
+function lowerJsxChildren(
+  ctx: CompilerContext,
+  children: JSXChild[],
+  propsName: string | null
+): RenderNode[] {
   const nodes: RenderNode[] = [];
   for (const child of children) {
     if (child.type === 'JSXText') {
@@ -244,7 +354,7 @@ function lowerJsxChildren(ctx: CompilerContext, children: JSXChild[]): RenderNod
       continue;
     }
     if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
-      nodes.push(lowerJsxNode(ctx, child));
+      nodes.push(lowerJsxNode(ctx, child, propsName));
       continue;
     }
     if (child.type === 'JSXExpressionContainer') {
@@ -252,9 +362,13 @@ function lowerJsxChildren(ctx: CompilerContext, children: JSXChild[]): RenderNod
         continue;
       }
       const expression = unwrapExpression(child.expression);
+      if (isPropsChildrenExpression(expression, propsName)) {
+        nodes.push({ kind: 'children', propsName: propsName! });
+        continue;
+      }
       const expressionRange = getRange(expression);
       if (expressionRange) {
-        const branch = lowerBranchExpression(ctx, expression, expressionRange);
+        const branch = lowerBranchExpression(ctx, expression, expressionRange, propsName);
         if (branch) {
           nodes.push(branch);
           continue;
@@ -288,7 +402,8 @@ function lowerJsxChildren(ctx: CompilerContext, children: JSXChild[]): RenderNod
 function lowerBranchExpression(
   ctx: CompilerContext,
   expression: unknown,
-  expressionRange: SourceRange
+  expressionRange: SourceRange,
+  propsName: string | null
 ): BranchNode | null {
   const expr = unwrapExpression(expression);
   if (!isAstNode(expr)) {
@@ -320,8 +435,8 @@ function lowerBranchExpression(
       conditionSegmentId: conditionSegment.id,
       thenSegmentId: thenSegment.id,
       elseSegmentId: elseSegment?.id,
-      thenChildren: lowerExpressionChildren(ctx, expr.consequent),
-      elseChildren: lowerExpressionChildren(ctx, expr.alternate),
+      thenChildren: lowerExpressionChildren(ctx, expr.consequent, propsName),
+      elseChildren: lowerExpressionChildren(ctx, expr.alternate, propsName),
     };
   }
   if (expr.type === 'LogicalExpression' && expr.operator === '&&') {
@@ -341,24 +456,31 @@ function lowerBranchExpression(
       conditionRange,
       conditionSegmentId: conditionSegment.id,
       thenSegmentId: thenSegment.id,
-      thenChildren: lowerExpressionChildren(ctx, expr.right),
+      thenChildren: lowerExpressionChildren(ctx, expr.right, propsName),
       elseChildren: [],
     };
   }
   return null;
 }
 
-function lowerExpressionChildren(ctx: CompilerContext, expression: unknown): RenderNode[] {
+function lowerExpressionChildren(
+  ctx: CompilerContext,
+  expression: unknown,
+  propsName: string | null
+): RenderNode[] {
   const expr = unwrapExpression(expression);
   if (!isAstNode(expr) || isEmptyBranchExpression(expr)) {
     return [];
   }
+  if (isPropsChildrenExpression(expr, propsName)) {
+    return [{ kind: 'children', propsName: propsName! }];
+  }
   if (expr.type === 'JSXElement' || expr.type === 'JSXFragment') {
-    return [lowerJsxNode(ctx, expr)];
+    return [lowerJsxNode(ctx, expr, propsName)];
   }
   const range = getRange(expr);
   if (range !== null) {
-    const branch = lowerBranchExpression(ctx, expr, range);
+    const branch = lowerBranchExpression(ctx, expr, range, propsName);
     if (branch) {
       return [branch];
     }
@@ -387,6 +509,26 @@ function lowerExpressionChildren(ctx: CompilerContext, expression: unknown): Ren
       reason: 'Dynamic JSX branch children are not supported yet.',
     },
   ];
+}
+
+function isPropsChildrenExpression(expression: unknown, propsName: string | null): boolean {
+  const expr = unwrapExpression(expression);
+  if (propsName === null || !isAstNode(expr) || expr.type !== 'MemberExpression') {
+    return false;
+  }
+  if (expr.computed) {
+    return false;
+  }
+  const object = expr.object;
+  const property = expr.property;
+  return (
+    isAstNode(object) &&
+    object.type === 'Identifier' &&
+    object.name === propsName &&
+    isAstNode(property) &&
+    property.type === 'Identifier' &&
+    property.name === 'children'
+  );
 }
 
 function createDynamicTextBinding(

@@ -122,9 +122,21 @@ export interface ElementNode {
   children: RenderNode[];
 }
 
+export interface ComponentNode {
+  kind: 'component';
+  name: string;
+  props: ComponentPropRecord[];
+  children: RenderNode[];
+}
+
 export interface FragmentNode {
   kind: 'fragment';
   children: RenderNode[];
+}
+
+export interface ChildrenNode {
+  kind: 'children';
+  propsName: string;
 }
 
 export interface TextNode {
@@ -157,7 +169,9 @@ export interface ExprNode {
 
 export type RenderNode =
   | ElementNode
+  | ComponentNode
   | FragmentNode
+  | ChildrenNode
   | TextNode
   | DynamicTextNode
   | BranchNode
@@ -180,6 +194,12 @@ export interface PropRecord {
   value: string | number | boolean | null;
   qrlSegmentId?: string;
   binding?: Extract<DynamicBinding, { kind: 'source' }>;
+}
+
+export interface ComponentPropRecord {
+  name: string;
+  value?: string | number | boolean | null;
+  expressionRange?: SourceRange;
 }
 
 export type PipelineStage = (ctx: CompilerContext) => void | Promise<void>;

@@ -10,6 +10,7 @@ export enum QwikSymbol {
   CreateBranch = 'createBranch',
   CreateBranchRange = 'createBranchRange',
   CreateClassEffect = 'createClassEffect',
+  CreateComponent = 'createComponent',
   CreateContext = 'createContext',
   CreateContextProvider = 'createContextProvider',
   CreateSsrElementTarget = 'createSsrElementTarget',

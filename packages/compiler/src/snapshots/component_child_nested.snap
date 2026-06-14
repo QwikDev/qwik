@@ -1,0 +1,50 @@
+==INPUT==
+
+export function Child() {
+  return <span>Child</span>;
+}
+
+export function Parent() {
+  return <section><Child /></section>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createComponent } from '@qwik.dev/core/spark';
+
+export function Child(_props, _ctx) {
+  return '<span>Child</span>';
+}
+export function Parent(_props, ctx) {
+  return '<section>' + createComponent({}, (props) => Child(props, ctx)) + '</section>';
+}
+
+null
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createComponent } from '@qwik.dev/core/spark';
+
+export function Child(_props, ctx) {
+  const el0 = ctx.document.createElement('span');
+  const text1 = ctx.document.createTextNode('Child');
+  el0.appendChild(text1);
+  return [el0];
+}
+export function Parent(_props, ctx) {
+  const el0 = ctx.document.createElement('section');
+  const cmp1 = createComponent({}, (props) => Child(props, ctx), { container: ctx });
+  for (const child of cmp1) el0.appendChild(child);
+  return [el0];
+}
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

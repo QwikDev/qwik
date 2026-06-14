@@ -11,6 +11,7 @@ import { createModule, getLang } from '../module-utils';
 import type { CompilerContext } from '../types';
 import type {
   BranchNode,
+  ComponentPropRecord,
   ComponentRecord,
   PropRecord,
   QrlSegmentOutput,
@@ -26,6 +27,7 @@ import {
   hasDynamicBinding,
   hasElementTextBinding,
   hasBranch,
+  hasComponent,
   hasRangeTextBinding,
   hasSourceTextBinding,
   hasTextExpression,
@@ -37,6 +39,11 @@ import {
   transformDollarImports,
   transformImplicitDollarCode,
 } from './implicit-dollar';
+
+interface DomOutput {
+  id: string;
+  kind: 'node' | 'nodes';
+}
 
 export async function emitModules(ctx: CompilerContext) {
   if (ctx.manifest.diagnostics.length > 0) {
@@ -51,11 +58,14 @@ export async function emitModules(ctx: CompilerContext) {
 
   const qrlSegments = collectQrlSegments(ctx, supported, ctx.emitTarget);
   const dynamicUsage = {
-    hasDynamicBinding: supported.some((component) => hasDynamicBinding(component.root)),
+    hasDynamicBinding: supported.some(
+      (component) => hasDynamicBinding(component.root) || component.providesContext
+    ),
     hasSourceText: supported.some((component) => hasSourceTextBinding(component.root)),
     hasTextExpression: supported.some((component) => hasTextExpression(component.root)),
     hasDynamicAttr: supported.some((component) => hasDynamicAttrBinding(component.root)),
     hasBranch: supported.some((component) => hasBranch(component.root)),
+    hasComponent: supported.some((component) => hasComponent(component.root)),
   };
   const ssrUsage = {
     ...dynamicUsage,
@@ -136,6 +146,12 @@ function collectCsrRootNodeQrlSegments(
     }
     return;
   }
+  if (node.kind === 'component') {
+    for (const child of node.children) {
+      collectCsrRootNodeQrlSegments(child, qrlSegments, rootSegments);
+    }
+    return;
+  }
   if (node.kind === 'branch') {
     collectExistingQrlSegment(node.thenSegmentId, qrlSegments, rootSegments);
     if (node.elseSegmentId) {
@@ -157,11 +173,14 @@ function collectExistingQrlSegment(
 
 function collectCsrRootImportUsage(components: readonly ComponentRecord[]) {
   return {
-    hasDynamicBinding: components.some((component) => hasCsrRootDynamicBinding(component.root)),
+    hasDynamicBinding: components.some(
+      (component) => hasCsrRootDynamicBinding(component.root) || component.providesContext
+    ),
     hasSourceText: components.some((component) => hasCsrRootSourceTextBinding(component.root)),
     hasTextExpression: components.some((component) => hasCsrRootTextExpression(component.root)),
     hasDynamicAttr: components.some((component) => hasCsrRootDynamicAttrBinding(component.root)),
     hasBranch: components.some((component) => hasCsrRootBranch(component.root)),
+    hasComponent: components.some((component) => hasCsrRootComponent(component.root)),
   };
 }
 
@@ -174,6 +193,12 @@ function hasCsrRootDynamicBinding(node: RenderNode | null): boolean {
   }
   if (node.kind === 'element') {
     return node.props.some((prop) => prop.binding) || node.children.some(hasCsrRootDynamicBinding);
+  }
+  if (node.kind === 'component') {
+    return (
+      node.props.some((prop) => prop.expressionRange !== undefined) ||
+      node.children.some(hasCsrRootDynamicBinding)
+    );
   }
   if (node.kind === 'fragment') {
     return node.children.some(hasCsrRootDynamicBinding);
@@ -188,7 +213,7 @@ function hasCsrRootSourceTextBinding(node: RenderNode | null): boolean {
   if (node.kind === 'dynamicText') {
     return node.binding.kind === 'source';
   }
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasCsrRootSourceTextBinding);
   }
   return false;
@@ -201,7 +226,7 @@ function hasCsrRootTextExpression(node: RenderNode | null): boolean {
   if (node.kind === 'dynamicText') {
     return node.binding.kind === 'expression';
   }
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasCsrRootTextExpression);
   }
   return false;
@@ -216,7 +241,7 @@ function hasCsrRootDynamicAttrBinding(node: RenderNode | null): boolean {
       node.props.some((prop) => prop.binding) || node.children.some(hasCsrRootDynamicAttrBinding)
     );
   }
-  if (node.kind === 'fragment') {
+  if (node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasCsrRootDynamicAttrBinding);
   }
   return false;
@@ -229,8 +254,21 @@ function hasCsrRootBranch(node: RenderNode | null): boolean {
   if (node.kind === 'branch') {
     return true;
   }
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasCsrRootBranch);
+  }
+  return false;
+}
+
+function hasCsrRootComponent(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'component') {
+    return true;
+  }
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some(hasCsrRootComponent);
   }
   return false;
 }
@@ -299,7 +337,7 @@ function collectNodeQrlSegments(
   if (includeTextExpressions && node.kind === 'dynamicText' && node.binding.kind === 'expression') {
     collectSegmentById(ctx, node.binding.qrlSegmentId, segmentById, qrlSegments);
   }
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     for (const child of node.children) {
       collectNodeQrlSegments(ctx, child, segmentById, qrlSegments, includeTextExpressions);
     }
@@ -442,7 +480,11 @@ function createBranchRenderSegmentSource(
           .map((capture, index) => `${capture.name} = ${QwikSymbol.Captures}[${index}]`)
           .join(', ')};`
       : '';
-  const bodyStatements = [captureLine, emitter.toString(), `return [${roots.join(', ')}];`]
+  const bodyStatements = [
+    captureLine,
+    emitter.toString(),
+    `return [${emitReturnItems(roots).join(', ')}];`,
+  ]
     .filter(Boolean)
     .join('\n');
   const imports = [];
@@ -474,18 +516,21 @@ class BranchRenderDomEmitter {
     private usage: BranchRenderUsage
   ) {}
 
-  emitRoot(node: RenderNode): string[] {
+  emitRoot(node: RenderNode): DomOutput[] {
     if (node.kind === 'fragment') {
       return node.children.flatMap((child) => this.emitRoot(child));
     }
     return [this.emitNode(node)];
   }
 
-  private emitNode(node: RenderNode): string {
+  private emitNode(node: RenderNode): DomOutput {
+    if (node.kind === 'children') {
+      return { id: `(${node.propsName}.children ?? [])`, kind: 'nodes' };
+    }
     if (node.kind === 'text') {
       const id = this.next('text');
       this.line(`const ${id} = ctx.document.createTextNode(${JSON.stringify(node.value)});`);
-      return id;
+      return { id, kind: 'node' };
     }
     if (node.kind === 'dynamicText') {
       const id = this.next('text');
@@ -504,7 +549,7 @@ class BranchRenderDomEmitter {
         );
       }
       this.line(`ctx.scheduler.notify(${effectId});`);
-      return id;
+      return { id, kind: 'node' };
     }
     if (node.kind === 'element') {
       const id = this.next('el');
@@ -535,10 +580,18 @@ class BranchRenderDomEmitter {
         }
       }
       for (const child of node.children) {
-        const childId = this.emitNode(child);
-        this.line(`${id}.appendChild(${childId});`);
+        this.appendChild(id, this.emitNode(child));
       }
-      return id;
+      return { id, kind: 'node' };
+    }
+    if (node.kind === 'component') {
+      const id = this.next('cmp');
+      const props = this.emitComponentProps(node.props, node.children);
+      this.use(QwikSymbol.CreateComponent);
+      this.line(
+        `const ${id} = ${QwikSymbol.CreateComponent}(${props}, (props) => ${node.name}(props, ctx), { container: ctx });`
+      );
+      return { id, kind: 'nodes' };
     }
     if (node.kind === 'branch') {
       return this.emitBranch(node);
@@ -547,15 +600,43 @@ class BranchRenderDomEmitter {
       const id = this.next('fragment');
       this.line(`const ${id} = ctx.document.createDocumentFragment();`);
       for (const child of node.children) {
-        const childId = this.emitNode(child);
-        this.line(`${id}.appendChild(${childId});`);
+        this.appendChild(id, this.emitNode(child));
       }
-      return id;
+      return { id, kind: 'node' };
     }
     throw new Error(node.reason);
   }
 
-  private emitBranch(node: BranchNode): string {
+  private emitComponentProps(
+    props: ComponentPropRecord[],
+    children: readonly RenderNode[]
+  ): string {
+    const entries = props.map((prop) => {
+      if (prop.expressionRange !== undefined) {
+        const value = this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
+        return `get ${JSON.stringify(prop.name)}() { return ${value}; }`;
+      }
+      return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
+    });
+    if (children.length > 0) {
+      entries.push(
+        `${JSON.stringify('children')}: [${emitReturnItems(
+          children.flatMap((child) => this.emitRoot(child))
+        ).join(', ')}]`
+      );
+    }
+    return entries.length === 0 ? '{}' : `{ ${entries.join(', ')} }`;
+  }
+
+  private appendChild(parent: string, child: DomOutput): void {
+    if (child.kind === 'nodes') {
+      this.line(`for (const child of ${child.id}) ${parent}.appendChild(child);`);
+    } else {
+      this.line(`${parent}.appendChild(${child.id});`);
+    }
+  }
+
+  private emitBranch(node: BranchNode): DomOutput {
     const fragmentId = this.next('fragment');
     const startId = this.next('comment');
     const endId = this.next('comment');
@@ -577,7 +658,7 @@ class BranchRenderDomEmitter {
       `const ${branchId} = ${QwikSymbol.CreateBranch}(${QwikSymbol.CreateBranchRange}(${startId}, ${endId}), [], () => ${condition}, ${thenRenderer}, ${elseRenderer}, { scheduler: ctx.scheduler, container: ctx });`
     );
     this.line(`ctx.scheduler.notify(${branchId});`);
-    return fragmentId;
+    return { id: fragmentId, kind: 'node' };
   }
 
   private emitBranchRenderer(segmentId: string): string {
@@ -682,7 +763,7 @@ function findBranchRenderChildrenInNode(
       }
     }
   }
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     for (const child of node.children) {
       const children = findBranchRenderChildrenInNode(child, segmentId);
       if (children !== null) {
@@ -691,6 +772,10 @@ function findBranchRenderChildrenInNode(
     }
   }
   return null;
+}
+
+function emitReturnItems(outputs: readonly DomOutput[]): string[] {
+  return outputs.map((output) => (output.kind === 'nodes' ? `...${output.id}` : output.id));
 }
 
 function indentBody(body: string) {

@@ -37,11 +37,14 @@ export function createSsrImports(
   qrlSegments: Map<string, QrlSegmentOutput>,
   usage: SsrImportUsage
 ) {
-  if (qrlSegments.size === 0 && !usage.hasDynamicBinding) {
+  if (qrlSegments.size === 0 && !usage.hasDynamicBinding && !usage.hasComponent) {
     return [];
   }
   const records: ImportRecord[] = [...imports];
   const sparkSpecifiers: QwikSymbol[] = [];
+  if (usage.hasComponent) {
+    sparkSpecifiers.push(QwikSymbol.CreateComponent);
+  }
   if (qrlSegments.size > 0) {
     sparkSpecifiers.push(QwikSymbol.QrlWithChunk);
   }
@@ -85,6 +88,7 @@ export interface SsrImportUsage {
   hasTextExpression: boolean;
   hasDynamicAttr: boolean;
   hasBranch: boolean;
+  hasComponent: boolean;
 }
 
 export function createCsrImports(
@@ -92,12 +96,15 @@ export function createCsrImports(
   qrlSegments: Map<string, QrlSegmentOutput>,
   usage: CsrImportUsage
 ) {
-  if (qrlSegments.size === 0 && !usage.hasDynamicBinding) {
+  if (qrlSegments.size === 0 && !usage.hasDynamicBinding && !usage.hasComponent) {
     return [];
   }
   const records: ImportRecord[] = [...imports];
   const sparkSpecifiers: QwikSymbol[] = [];
   const segmentImports: ImportRecord[] = [];
+  if (usage.hasComponent) {
+    sparkSpecifiers.push(QwikSymbol.CreateComponent);
+  }
   if (usage.hasSourceText) {
     sparkSpecifiers.push(QwikSymbol.CreateTextNodeEffect);
   }
@@ -140,6 +147,7 @@ export interface CsrImportUsage {
   hasTextExpression: boolean;
   hasDynamicAttr: boolean;
   hasBranch: boolean;
+  hasComponent: boolean;
 }
 
 function hasCapturedQrlSegment(qrlSegments: Map<string, QrlSegmentOutput>) {

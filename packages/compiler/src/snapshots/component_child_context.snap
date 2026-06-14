@@ -1,0 +1,91 @@
+==INPUT==
+
+import { createContext, createContextProvider, createSignal } from '@qwik.dev/core/spark';
+import { Context } from './context';
+
+export function Child() {
+  const value = createContext(Context);
+  return <p>{value.value}</p>;
+}
+
+export function Parent() {
+  const value = createSignal('provided');
+  createContextProvider(Context, value);
+  return <section><Child /></section>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createContext,
+  createContextProvider,
+  createSignal,
+  createComponent,
+  escapeHTML,
+  renderSsrTextNode,
+  createSsrElementTextTarget,
+} from '@qwik.dev/core/spark';
+import { Context } from './context';
+
+export function Child(_props, ctx) {
+  const value = createContext(Context);
+  const id0 = ctx.nextId();
+  ctx.addRoot(value);
+  return (
+    '<p q:id="' +
+    id0 +
+    '">' +
+    escapeHTML(renderSsrTextNode(createSsrElementTextTarget(id0), value)) +
+    '</p>'
+  );
+}
+export function Parent(_props, ctx) {
+  const value = createSignal('provided');
+  createContextProvider(Context, value);
+  const contextScopeId = ctx.contextScopeId();
+  const contextHtml =
+    '<section>' + createComponent({}, (props) => Child(props, ctx)) + '</section>';
+  return '<!c=' + contextScopeId + '>' + contextHtml + '<!/c>';
+}
+
+null
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createContext,
+  createContextProvider,
+  createSignal,
+  createComponent,
+  createTextNodeEffect,
+} from '@qwik.dev/core/spark';
+import { Context } from './context';
+
+export function Child(_props, ctx) {
+  const value = createContext(Context);
+  const el0 = ctx.document.createElement('p');
+  const text1 = ctx.document.createTextNode('');
+  const effect2 = createTextNodeEffect(text1, value, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect2);
+  el0.appendChild(text1);
+  return [el0];
+}
+export function Parent(_props, ctx) {
+  const value = createSignal('provided');
+  createContextProvider(Context, value);
+  const el0 = ctx.document.createElement('section');
+  const cmp1 = createComponent({}, (props) => Child(props, ctx), { container: ctx });
+  for (const child of cmp1) el0.appendChild(child);
+  return [el0];
+}
+
+null
+== CSR DIAGNOSTICS ==
+
+[]

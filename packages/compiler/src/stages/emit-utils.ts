@@ -93,7 +93,7 @@ export function hasCapturedQrlSegment(
       }
     }
   }
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some((child) => hasCapturedQrlSegment(child, qrlSegments));
   }
   if (node.kind === 'branch') {
@@ -117,7 +117,7 @@ export function hasDynamicText(node: RenderNode | null): boolean {
   if (node.kind === 'dynamicText') {
     return true;
   }
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasDynamicText);
   }
   if (node.kind === 'branch') {
@@ -135,6 +135,12 @@ export function hasDynamicBinding(node: RenderNode | null): boolean {
   }
   if (node.kind === 'branch') {
     return true;
+  }
+  if (node.kind === 'component') {
+    return (
+      node.props.some((prop) => prop.expressionRange !== undefined) ||
+      node.children.some(hasDynamicBinding)
+    );
   }
   if (node.kind === 'element') {
     if (node.props.some((prop) => prop.binding)) {
@@ -155,8 +161,24 @@ export function hasBranch(node: RenderNode | null): boolean {
   if (node.kind === 'branch') {
     return true;
   }
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasBranch);
+  }
+  return false;
+}
+
+export function hasComponent(node: RenderNode | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (node.kind === 'component') {
+    return true;
+  }
+  if (node.kind === 'element' || node.kind === 'fragment') {
+    return node.children.some(hasComponent);
+  }
+  if (node.kind === 'branch') {
+    return node.thenChildren.some(hasComponent) || node.elseChildren.some(hasComponent);
   }
   return false;
 }
@@ -168,7 +190,7 @@ export function hasTextExpression(node: RenderNode | null): boolean {
   if (node.kind === 'dynamicText') {
     return node.binding.kind === 'expression';
   }
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasTextExpression);
   }
   if (node.kind === 'branch') {
@@ -184,7 +206,7 @@ export function hasSourceTextBinding(node: RenderNode | null): boolean {
   if (node.kind === 'dynamicText') {
     return node.binding.kind === 'source';
   }
-  if (node.kind === 'element' || node.kind === 'fragment') {
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasSourceTextBinding);
   }
   if (node.kind === 'branch') {
@@ -205,7 +227,7 @@ export function hasDynamicAttrBinding(node: RenderNode | null): boolean {
     }
     return node.children.some(hasDynamicAttrBinding);
   }
-  if (node.kind === 'fragment') {
+  if (node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasDynamicAttrBinding);
   }
   if (node.kind === 'branch') {
@@ -227,7 +249,7 @@ export function hasElementTextBinding(node: RenderNode | null): boolean {
     }
     return children.some(hasElementTextBinding);
   }
-  if (node.kind === 'fragment') {
+  if (node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasElementTextBinding);
   }
   if (node.kind === 'branch') {
@@ -252,7 +274,7 @@ export function hasRangeTextBinding(node: RenderNode | null): boolean {
     }
     return children.some(hasRangeTextBinding);
   }
-  if (node.kind === 'fragment') {
+  if (node.kind === 'fragment' || node.kind === 'component') {
     return node.children.some(hasRangeTextBinding);
   }
   if (node.kind === 'branch') {

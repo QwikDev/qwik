@@ -74,7 +74,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
     readonly actionPath: string;
     readonly loading: boolean;
     readonly isRunning: boolean;
-    readonly promise: () => Promise<void>;
+    readonly promise: QRL<() => Promise<void>>;
     readonly status?: number;
     readonly formData: FormData | undefined;
     readonly value: RETURN | undefined;

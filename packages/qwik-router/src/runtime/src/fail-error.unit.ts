@@ -1,4 +1,5 @@
 import { describe, expectTypeOf, test } from 'vitest';
+import type { QRL } from '@qwik.dev/core';
 import * as z from 'zod';
 import { routeAction$, zod$ } from './server-functions';
 import { routeLoader$ } from './route-loaders';
@@ -62,7 +63,8 @@ describe('error channel types', () => {
     type Store = ReturnType<typeof useAction>;
 
     expectTypeOf<Store['loading']>().toEqualTypeOf<boolean>();
-    expectTypeOf<Store['promise']>().toEqualTypeOf<() => Promise<void>>();
+    // promise is a QRL (like submit) so the action store stays serializable across $ scopes.
+    expectTypeOf<Store['promise']>().toEqualTypeOf<QRL<() => Promise<void>>>();
     // isRunning is kept as a deprecated alias of loading
     expectTypeOf<Store['isRunning']>().toEqualTypeOf<boolean>();
   });

@@ -983,9 +983,10 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = 
 
   /**
    * Returns a promise that resolves when the in-flight submission settles. Mirrors
-   * `AsyncSignal.promise`. If no submission is running, it resolves immediately.
+   * `AsyncSignal.promise`. If no submission is running, it resolves immediately. Typed as a `QRL`
+   * (like `submit`) so the action store stays serializable when captured in a `$` scope.
    */
-  readonly promise: () => Promise<void>;
+  readonly promise: QRL<() => Promise<void>>;
 
   /**
    * Returned HTTP status code of the action after its last execution.

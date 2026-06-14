@@ -16,7 +16,8 @@ contributors:
   - gioboa
   - Varixo
   - wmertens
-updated_at: '2026-05-10T00:00:00Z'
+  - maiieul
+updated_at: '2026-06-14T00:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -66,10 +67,10 @@ Hooks return an `AsyncSignal<T>`. Branch on `.loading` and `.error` before readi
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 
-export const useProductDetails = routeLoader$(async ({ params, fail }) => {
+export const useProductDetails = routeLoader$(async ({ params, error }) => {
   const product = await db.products.findById(params.productId);
   if (!product) {
-    return fail(404, { message: 'Product not found' });
+    return error(404, { message: 'Product not found' });
   }
   return product;
 });
@@ -87,8 +88,6 @@ export default component$(() => {
   return <div>Product name: {product.value.name}</div>;
 });
 ```
-
-<Note>Don't read `signal.value` before checking `signal.error`. While the signal is in error state, accessing `.value` re-throws the error.</Note>
 
 ### Signaling failure from a loader
 
@@ -223,7 +222,7 @@ export const useSubscription = routeLoader$(
 
 ### `serializationStrategy`
 
-By default the HTML response does **not** embed loader data. On hydration, the loader signal is empty until the browser fetches the JSON endpoint — meaning fast first paint, but a brief loading state for code that reads `.value` immediately.
+By default the HTML response does **not** embed loader data. This means that the loader signal is empty until the browser fetches the JSON endpoint — meaning fast first paint, but a brief loading state for code that reads `.value` immediately.
 
 | Value      | Behavior                                                                |
 | ---------- | ----------------------------------------------------------------------- |
@@ -321,15 +320,6 @@ export default component$(() => {
   );
 });
 ```
-
-### What did people use action-state-in-loaders for?
-
-| Use case                                            | Workaround                                                                                                                                                                                  |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Echo the just-submitted form value back to the page | Loader returns the URL-derived value; the component overlays `action.value` on top, e.g. `action.value?.name ?? loader.value.name`.                                                          |
-| Recompute derived data from the submission          | Put the inputs in the URL (search params, or `goto()` after the action) so the loader reads them like any other route input.                                                                |
-| Refresh authoritative data after a mutation         | The action writes to your store (DB, KV, etc.); the loader reads from that store. The action's `invalidate` list re-runs the loader and it picks up the new state — no action result needed. |
-| Show success / error feedback                       | Read the action signal directly: `action.value`, `action.isRunning`, `action.value?.failed`. Ephemeral UI feedback doesn't belong in a loader.                                              |
 
 ## Options reference
 

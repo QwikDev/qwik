@@ -51,11 +51,31 @@ compatibility override code.
 - pnpm: `>=10.14.0`
 - Package manager: pnpm only
 
-Install dependencies with:
+## Setup And Iteration Loop
+
+This is the canonical loop for nearly all framework work. Default to it; do not substitute broader
+commands:
 
 ```bash
+# 1. Setup — once per checkout, and again after dependency changes
 pnpm install
+
+# 2. Fast dev build — required once before any tests can run, and again after framework
+#    source changes when the verification consumes build output (all e2e suites do)
+pnpm build.core.dev
+
+# 3. Closest focused unit/spec test
+pnpm vitest run packages/qwik/src/core/tests/use-task.spec.tsx
+
+# 4. Focused e2e test
+pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
 ```
+
+`pnpm build.core.dev` is not optional: the Vitest config itself loads the built optimizer, and e2e
+apps run against build output, so tests are only as fresh as the last build.
+
+For Qwik e2e tests, use `--browser=chromium` with `e2e/qwik-e2e/playwright.config.ts`; do not use
+`--project chromium` with that config.
 
 ## Command Rules
 
@@ -66,22 +86,10 @@ pnpm install
 - Use `pnpm build.core.dev` for fast Qwik + Router rebuilds during most framework work.
 - Use `pnpm build.local` for a fresh full local build without rebuilding Rust.
 - Use `pnpm build.full` only when Rust/optimizer changes require it.
+- Run `pnpm tsc.check` for type-level verification when no focused test covers the change.
 - Run `pnpm api.update` after public API changes.
 - Run `pnpm lint` only when the change scope justifies broad linting; otherwise prefer focused
   tests and formatting checks.
-
-Common focused commands:
-
-```bash
-pnpm build.core.dev
-pnpm vitest run packages/qwik/src/core/tests/use-task.spec.tsx
-pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
-pnpm tsc.check
-pnpm api.update
-```
-
-For Qwik e2e tests, use `--browser=chromium` with `e2e/qwik-e2e/playwright.config.ts`; do not use
-`--project chromium` with that config.
 
 ## Source Rules
 
@@ -98,6 +106,8 @@ by Ruler.
   intentionally.
 - `security-and-supply-chain`: run focused security reasoning for vulnerable surfaces, dependency
   changes, and GitHub Actions updates.
+- `changeset-conventions`: pick the bump level by change kind (patch/minor/major), write one
+  changeset per change, and keep each summary near 150 and under 300 characters.
 
 ## Engineering Rules
 
@@ -133,7 +143,8 @@ Follow that bias:
   verification from the optimizer skill and use `pnpm build.full` when a full JS/WASM rebuild is
   required.
 - If a change affects published packages, create a changeset with `pnpm change` unless the user or
-  maintainer explicitly says the change is non-release-affecting.
+  maintainer explicitly says the change is non-release-affecting. Follow the `changeset-conventions`
+  rule for bump level, one changeset per change, and summary length.
 - Base branch and release branch for v2 PRs: `build/v2`.
 
 ## Code Style

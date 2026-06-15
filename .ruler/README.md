@@ -18,6 +18,7 @@ should be loaded only when relevant.
 
 Current source rules:
 
+- `changeset-conventions`
 - `code-quality`
 - `generated-output-boundaries`
 - `guidance-source-of-truth`
@@ -78,6 +79,14 @@ Ruler concatenates that bundle and writes it to each selected assistant's native
 Use source markers in the generated file to verify inclusion. Do not bypass Ruler by copying these
 Markdown files into a tool-specific directory whose format has not been verified.
 
+If you are an AI assistant building local config for a target tool, research that tool's current
+native guidance, skill, config, and policy formats before adding any tool-specific output. Map
+`.ruler` files by what they mean, not by filename: Markdown guidance belongs in the assistant's
+native AI guidance surface, skills belong in native skills if supported, and command-permission
+policy belongs only in a separately researched policy format. For Codex, Ruler includes all
+`.ruler` Markdown guidance in generated `AGENTS.md`; `.codex/rules/*.rules` is command policy, not
+Markdown guidance.
+
 ### Worked Example: Codex
 
 Current Ruler and OpenAI Codex behavior maps this repo's sources as follows:
@@ -101,6 +110,14 @@ ruler apply --agents codex
 rg -n 'Source: .ruler/rules' AGENTS.md
 find .codex/skills -name SKILL.md
 ```
+
+## Stale Guidance Reminder
+
+A `post-merge` git hook (`scripts/ruler-postmerge-check.mjs`, wired through `simple-git-hooks`)
+prints a reminder whenever a pull changes anything under `.ruler/`. It only notifies — it never
+writes files — so generated assistant outputs are never scaffolded behind your back. When you see
+it, re-run `ruler apply --agents <your-tool>` to refresh your local files. The hook installs on
+`pnpm install` via the `prepare` script.
 
 ## Generate Local Assistant Files
 

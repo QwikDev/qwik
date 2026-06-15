@@ -53,6 +53,8 @@ import { eagerDeserializeStateIterator } from './inflate';
 const DEBUG = false;
 
 const title = (typeId: TypeIds) => `${typeId} ${_typeIdNames[typeId]}`;
+const normalizeQrlHashes = (value: string) =>
+  value.replace(/(create(?:Computed|Serializer)_)[\w-]+/g, '$1HASH');
 
 // Keep the tests in typeId order so it's easy to see if we missed one
 describe('shared-serialization', () => {
@@ -598,7 +600,7 @@ describe('shared-serialization', () => {
       expect(never.value).toBe(3);
       expect(always.value).toBe(4);
       const objs = await serialize(dirty, clean, never, always, noSer);
-      expect(_dumpState(objs)).toMatchInlineSnapshot(`
+      expect(normalizeQrlHashes(_dumpState(objs))).toMatchInlineSnapshot(`
         "
         0 ComputedSignal [
           QRL "6#7#5"
@@ -623,11 +625,11 @@ describe('shared-serialization', () => {
           {number} 0
         ]
         6 {string} "mock-chunk"
-        7 {string} "describe_describe_it_dirty_createComputed_ahnh0V4rf6g"
-        8 {string} "describe_describe_it_clean_createComputed_0ZTfN4iJ0tg"
-        9 {string} "describe_describe_it_never_createComputed_1HbLed7JXyo"
-        10 {string} "describe_describe_it_always_createComputed_4nMmgHlUOog"
-        11 {string} "describe_describe_it_noSer_createComputed_pXwl00hYYQQ"
+        7 {string} "describe_describe_it_dirty_createComputed_HASH"
+        8 {string} "describe_describe_it_clean_createComputed_HASH"
+        9 {string} "describe_describe_it_never_createComputed_HASH"
+        10 {string} "describe_describe_it_always_createComputed_HASH"
+        11 {string} "describe_describe_it_noSer_createComputed_HASH"
         (409 chars)"
       `);
     });
@@ -663,7 +665,7 @@ describe('shared-serialization', () => {
       unreadPromise.$computeQrl$.resolved = Promise.resolve(promised.$computeQrl$.resolved) as any;
 
       const objs = await serialize([plain, unread, thunked, promised, unreadPromise]);
-      expect(_dumpState(objs)).toMatchInlineSnapshot(`
+      expect(normalizeQrlHashes(_dumpState(objs))).toMatchInlineSnapshot(`
         "
         0 Array [
           SerializerSignal [
@@ -689,16 +691,16 @@ describe('shared-serialization', () => {
           ]
         ]
         1 {string} "mock-chunk"
-        2 {string} "describe_describe_it_plain_createSerializer_IrZN04alftE"
-        3 {string} "describe_describe_it_unread_createSerializer_oYdaCRjw9Q0"
-        4 {string} "describe_describe_it_thunked_createSerializer_ufw7hr9vFDo"
-        5 {string} "describe_describe_it_unreadPromise_createSerializer_8vLYtMSnQio"
+        2 {string} "describe_describe_it_plain_createSerializer_HASH"
+        3 {string} "describe_describe_it_unread_createSerializer_HASH"
+        4 {string} "describe_describe_it_thunked_createSerializer_HASH"
+        5 {string} "describe_describe_it_unreadPromise_createSerializer_HASH"
         6 SerializerSignal [
           QRL "1#7"
           Constant undefined
           {number} 4
         ]
-        7 {string} "describe_describe_it_promised_createSerializer_YCkDOYPyCO0"
+        7 {string} "describe_describe_it_promised_createSerializer_HASH"
         8 ForwardRefs [
           6
         ]

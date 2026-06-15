@@ -23,8 +23,8 @@ import {
   type AllSignalFlags,
   type AsyncQRL,
   type Consumer,
+  EffectSubscription,
   type EffectBackRef,
-  type EffectSubscription,
   type StoreFlags,
 } from '../../reactive-primitives/types';
 import type { Task } from '../../use/use-task';
@@ -41,7 +41,7 @@ import { isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
 import { TypeIds } from './constants';
-import { needsInflation } from './deser-proxy';
+import { needsInflation, wrapDeserializerProxy } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
 
 export let loading = Promise.resolve();
@@ -148,6 +148,150 @@ function* deserializeDataIterator(
   return propValue;
 }
 
+const createLazyEffects = (
+  container: DeserializeContainer,
+  data: unknown[],
+  start: number,
+  producer?: EffectBackRef
+) => {
+  const effects = new Set<EffectSubscription>();
+  const d = wrapDeserializerProxy(container as any, data) as EffectSubscription[];
+  let materialized = false;
+  const materialize = () => {
+    if (!materialized) {
+      materialized = true;
+      for (let i = start; i < data.length / 2; i++) {
+        const effect = d[i];
+        if (producer) {
+          (effect.backRef ||= new Set()).add(producer);
+        }
+        restoreEffectBackRefForConsumer(effect);
+        effects.add(effect);
+      }
+    }
+  };
+  return new Proxy(effects, {
+    get(target, prop, receiver) {
+      if (prop === 'add') {
+        return (value: EffectSubscription) => (target.add(value), receiver);
+      }
+      if (prop === 'clear') {
+        return () => {
+          materialized = true;
+          target.clear();
+        };
+      }
+      materialize();
+      if (prop === 'size') {
+        return target.size;
+      }
+      const value = (target as any)[prop];
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+};
+
+const createLazyEffectsField = (
+  container: DeserializeContainer,
+  data: unknown[],
+  index: number,
+  producer?: EffectBackRef
+) => {
+  if (index * 2 >= data.length) {
+    return undefined;
+  }
+  if (data[index * 2] === TypeIds.Set) {
+    return createLazyEffects(container, data[index * 2 + 1] as unknown[], 0, producer);
+  }
+  const effects = (wrapDeserializerProxy(container as any, data) as any[])[index] as
+    | Set<EffectSubscription>
+    | undefined;
+  if (producer) {
+    restoreEffectBackRefForEffects(effects, producer);
+  }
+  return effects;
+};
+
+const createLazyEffectsMapField = (
+  container: DeserializeContainer,
+  data: unknown[],
+  index: number,
+  producer?: EffectBackRef
+) => {
+  if (index * 2 >= data.length) {
+    return undefined;
+  }
+  if (data[index * 2] !== TypeIds.Map) {
+    const effectsMap = (wrapDeserializerProxy(container as any, data) as any[])[index] as
+      | Map<string | symbol, Set<EffectSubscription>>
+      | undefined;
+    if (producer) {
+      restoreEffectBackRefForEffectsMap(effectsMap, producer);
+    }
+    return effectsMap;
+  }
+  const mapData = data[index * 2 + 1] as unknown[];
+  const d = wrapDeserializerProxy(container as any, mapData) as unknown[];
+  const map = new Map<string | symbol, Set<EffectSubscription>>();
+  let materialized = false;
+  const materialize = () => {
+    if (!materialized) {
+      materialized = true;
+      for (let i = 0; i < mapData.length / 2; i += 2) {
+        map.set(
+          d[i] as string | symbol,
+          createLazyEffectsField(container, mapData, i + 1, producer)!
+        );
+      }
+    }
+  };
+  return new Proxy(map, {
+    get(target, prop, receiver) {
+      if (prop === 'set') {
+        return (key: string | symbol, value: Set<EffectSubscription>) => (
+          target.set(key, value),
+          receiver
+        );
+      }
+      if (prop === 'clear') {
+        return () => {
+          materialized = true;
+          target.clear();
+        };
+      }
+      materialize();
+      if (prop === 'size') {
+        return target.size;
+      }
+      const value = (target as any)[prop];
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+};
+
+const createLazySubscriptionsField = (
+  container: DeserializeContainer,
+  data: unknown[],
+  index: number
+) => {
+  if (data[index * 2] === TypeIds.Set) {
+    return createLazyEffectsField(container, data, index)!;
+  }
+  if (data[index * 2] === TypeIds.Map) {
+    return createLazyEffectsMapField(container, data, index)!;
+  }
+  return (wrapDeserializerProxy(container as any, data) as any[])[index] as
+    | Set<EffectSubscription>
+    | Map<string | symbol, Set<EffectSubscription>>;
+};
+
+const hasLazyEffects = (typeId: TypeIds) =>
+  typeId === TypeIds.WrappedSignal ||
+  typeId === TypeIds.AsyncSignal ||
+  typeId === TypeIds.ComputedSignal ||
+  typeId === TypeIds.SerializerSignal ||
+  typeId === TypeIds.SubscriptionPatch;
+
 function* inflateIterator(
   container: DeserializeContainer,
   target: unknown,
@@ -157,7 +301,7 @@ function* inflateIterator(
   if (typeId === TypeIds.Plain) {
     return;
   }
-  if (typeId !== TypeIds.Array && Array.isArray(data)) {
+  if (typeId !== TypeIds.Array && !hasLazyEffects(typeId) && Array.isArray(data)) {
     data = yield* eagerDeserializeArrayIterator(container, data);
   }
   switch (typeId) {
@@ -238,21 +382,26 @@ function* inflateIterator(
     }
     case TypeIds.WrappedSignal: {
       const signal = target as WrappedSignalImpl<unknown>;
-      const d = data as [number, unknown[], AllSignalFlags, HostElement, ...EffectSubscription[]];
+      const d = wrapDeserializerProxy(container as any, data) as [
+        number,
+        unknown[],
+        AllSignalFlags,
+        HostElement,
+        ...EffectSubscription[],
+      ];
       signal.$func$ = container.getSyncFn(d[0]);
       signal.$args$ = d[1];
       signal.$untrackedValue$ = NEEDS_COMPUTATION;
       signal.$flags$ = d[2];
       signal.$flags$ |= SignalFlags.INVALID;
       signal.$hostElement$ = d[3];
-      signal.$effects$ = new Set(d.slice(4) as EffectSubscription[]);
+      signal.$effects$ = createLazyEffects(container, data as unknown[], 4, signal);
       inflateWrappedSignalValue(signal);
-      restoreEffectBackRefForEffects(signal.$effects$, signal);
       break;
     }
     case TypeIds.AsyncSignal: {
       const asyncSignal = target as AsyncSignalImpl<unknown>;
-      const d = data as [
+      const d = wrapDeserializerProxy(container as any, data) as [
         AsyncQRL<unknown>,
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
@@ -265,15 +414,19 @@ function* inflateIterator(
         number?,
       ];
       asyncSignal.$computeQrl$ = d[0] as AsyncQRL<unknown>;
-      if (d[1]) {
-        asyncSignal.$effects$ = new Set(d[1] as EffectSubscription[]);
-      }
-      if (d[2]) {
-        asyncSignal.$loadingEffects$ = new Set(d[2] as EffectSubscription[]);
-      }
-      if (d[3]) {
-        asyncSignal.$errorEffects$ = new Set(d[3] as EffectSubscription[]);
-      }
+      asyncSignal.$effects$ = createLazyEffectsField(container, data as unknown[], 1, asyncSignal);
+      asyncSignal.$loadingEffects$ = createLazyEffectsField(
+        container,
+        data as unknown[],
+        2,
+        asyncSignal
+      );
+      asyncSignal.$errorEffects$ = createLazyEffectsField(
+        container,
+        data as unknown[],
+        3,
+        asyncSignal
+      );
       if (d[4]) {
         asyncSignal.$untrackedError$ = d[4];
       }
@@ -303,23 +456,22 @@ function* inflateIterator(
         asyncSignal.$jobs$ = [];
       }
       asyncSignal.$timeoutMs$ = (d[9] ?? 0) as number;
-      restoreEffectBackRefForEffects(asyncSignal.$effects$, asyncSignal);
-      restoreEffectBackRefForEffects(asyncSignal.$loadingEffects$, asyncSignal);
-      restoreEffectBackRefForEffects(asyncSignal.$errorEffects$, asyncSignal);
       break;
     }
     case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
       const computed = target as ComputedSignalImpl<unknown>;
-      const d = data as [QRLInternal<() => {}>, EffectSubscription[] | undefined, unknown?];
+      const d = wrapDeserializerProxy(container as any, data) as [
+        QRLInternal<() => {}>,
+        EffectSubscription[] | undefined,
+        unknown?,
+      ];
       computed.$computeQrl$ = d[0];
       const p = computed.$computeQrl$.resolve(container as any).catch(() => {
         // ignore preload errors
       });
       loading = loading.finally(() => p);
-      if (d[1]) {
-        computed.$effects$ = new Set(d[1]);
-      }
+      computed.$effects$ = createLazyEffectsField(container, data as unknown[], 1, computed);
       const hasValue = d.length > 2;
       if (hasValue) {
         computed.$untrackedValue$ = d[2];
@@ -327,7 +479,6 @@ function* inflateIterator(
       if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
         computed.$flags$ &= ~SignalFlags.INVALID;
       }
-      restoreEffectBackRefForEffects(computed.$effects$, computed);
       break;
     }
     case TypeIds.FormData: {
@@ -386,12 +537,12 @@ function* inflateIterator(
     }
     case TypeIds.SubscriptionPatch: {
       const patch = target as SubscriptionPatch;
-      const d = data as [
+      const d = wrapDeserializerProxy(container as any, data) as [
         number,
         Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>,
       ];
       patch.rootId = d[0];
-      patch.subscriptions = d[1];
+      patch.subscriptions = createLazySubscriptionsField(container, data as unknown[], 1);
       break;
     }
     case TypeIds.Uint8Array: {

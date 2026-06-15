@@ -1056,7 +1056,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private emitRestStateData(): void {
     this.emitVNodeData();
     this.emitDelayedOutOfOrderSegmentVNodeData();
-    if (!isDev) {
+    if (!isDev && this.renderOptions.preloader && this.renderOptions.preloader.ssrPreloads) {
       preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
     }
     this.emitSyncFnsData();
@@ -1461,7 +1461,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitPreloaderPre() {
-    if (!isDev) {
+    if (!isDev && this.renderOptions.preloader && this.renderOptions.preloader.ssrPreloads) {
       preloaderPre(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
     }
   }

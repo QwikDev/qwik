@@ -37,7 +37,12 @@ export function createRoutes(
   c: string[],
   esmImports: string[],
   isSSR: boolean,
-  loadersByFile?: Map<string, string[]>
+  loadersByFile?: Map<string, string[]>,
+  /**
+   * Route file paths to drop from the production server plan (prerendered + server-free; see
+   * server-exclude.ts). Empty/undefined for the SSG full plan, the client build, and dev.
+   */
+  serverExcludePaths?: ReadonlySet<string>
 ) {
   const includeEndpoints = isSSR;
   const dynamicImports = ctx.dynamicImports;
@@ -107,6 +112,10 @@ export function createRoutes(
   c.push(`\n/** Qwik Router Routes (${routeCount}) */`);
   for (const route of ctx.routes) {
     if (isPageExt(route.ext)) {
+      // Skip the loader so the trie node prunes and the chunk tree-shakes out of the server bundle.
+      if (serverExcludePaths?.has(route.filePath)) {
+        continue;
+      }
       const importPath = getImportPath(route.filePath);
       let loaderExpr: string;
       if (dynamicImports) {
@@ -322,7 +331,9 @@ function serializeBuildTrie(
   // In build mode, emit placeholder string for renderChunk replacement.
   {
     const routeFiles = node._files
-      .filter((f) => f.type === 'route' || f.type === 'layout')
+      // Mirror the _I pass: only count route files still in the plan, so a server-excluded route
+      // adds no _R and its emptied node prunes. Layouts always count.
+      .filter((f) => f.type === 'layout' || (f.type === 'route' && routeIdMap.has(f.filePath)))
       .map((f) => f.filePath);
     // Include server plugin files at the root trie node (they apply to all routes)
     if (node === ctx.routeTrie) {

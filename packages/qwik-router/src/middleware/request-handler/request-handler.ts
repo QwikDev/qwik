@@ -18,7 +18,8 @@ let qwikRouterConfig: QwikRouterConfig;
 
 async function getConfig(): Promise<QwikRouterConfig> {
   if (!qwikRouterConfig) {
-    qwikRouterConfig = (await import('@qwik-router-config')) as any as QwikRouterConfig;
+    // The SSR runtime uses the pruned `?ssr` plan (full plan when nothing is excluded).
+    qwikRouterConfig = (await import('@qwik-router-config?ssr')) as any as QwikRouterConfig;
   }
   return qwikRouterConfig;
 }

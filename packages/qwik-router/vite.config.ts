@@ -56,7 +56,8 @@ export default defineConfig(() => {
           'fsevents',
           'zod',
           '@qwik-router-sw-register',
-          '@qwik-router-config',
+          // The bare id and its `?ssr` variant are virtual modules resolved at the app build.
+          /^@qwik-router-config(\?.*)?$/,
           /@qwik\.dev\/core/,
           /@qwik\.dev\/router\//,
           ...Object.keys(pkg.dependencies || {}),

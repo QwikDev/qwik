@@ -17,9 +17,21 @@ export const useErrorAction = routeAction$((data, { error }) => {
   return { ok: 'action-ok' };
 });
 
+/** Action that does `return fail()` — the deprecated `.value.failed` union PLUS the new `.error`. */
+export const useFailAction = routeAction$((_data, { fail }) => {
+  return fail(400, { reason: 'soft fail' });
+});
+
+/** Action whose `error()` is intentionally never read via `.error` — triggers the dev-only warning. */
+export const useUnhandledAction = routeAction$((_data, { error }) => {
+  return error(409, { reason: 'unhandled' });
+});
+
 export default component$(() => {
   const loader = useErrorLoader();
   const action = useErrorAction();
+  const failAction = useFailAction();
+  const unhandledAction = useUnhandledAction();
 
   return (
     <div>
@@ -38,6 +50,28 @@ export default component$(() => {
       <p id="action-value">{action.value ? JSON.stringify(action.value) : 'no-value'}</p>
       <p id="action-error">
         {action.error ? `${action.error.status}:${JSON.stringify(action.error.data)}` : 'no-error'}
+      </p>
+
+      <Form action={failAction}>
+        <button id="submit-soft-fail" type="submit">
+          Submit soft fail
+        </button>
+      </Form>
+      <p id="fail-value">{failAction.value ? JSON.stringify(failAction.value) : 'no-value'}</p>
+      <p id="fail-error">
+        {failAction.error
+          ? `${failAction.error.status}:${JSON.stringify(failAction.error.data)}`
+          : 'no-error'}
+      </p>
+
+      <Form action={unhandledAction}>
+        <button id="submit-unhandled" type="submit">
+          Submit unhandled
+        </button>
+      </Form>
+      {/* unhandledAction.error is intentionally NOT read — submitting it should log the dev warning. */}
+      <p id="unhandled-value">
+        {unhandledAction.value ? JSON.stringify(unhandledAction.value) : 'no-value'}
       </p>
     </div>
   );

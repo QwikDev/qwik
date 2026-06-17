@@ -56,11 +56,11 @@ type ActionStoreInternal = Editable<ActionStore<unknown, unknown>> & {
  * `.value` never throws, so warn if `.error` is never read. "Read" is detected via the store's
  * reactive subscribers — a render that reads `.error` subscribes to it. `fail()`/validator results
  * carry a value union and stay soft (no warning). Defaults to dev only; the `qwikVite`
- * `unhandledErrorWarning` option (or `globalThis.qWarnUnhandledErrors`) can force it on/off in
+ * `unhandledErrorWarning` option (or `globalThis.qUnhandledErrorWarning`) can force it on/off in
  * prod.
  */
 const warnIfUnhandledActionError = (state: Editable<ActionStore<unknown, unknown>>) => {
-  if (!((globalThis as { qWarnUnhandledErrors?: boolean }).qWarnUnhandledErrors ?? isDev)) {
+  if (!((globalThis as { qUnhandledErrorWarning?: boolean }).qUnhandledErrorWarning ?? isDev)) {
     return;
   }
   // A macrotask runs after the render flush that would read `.error`, so a handled error never warns.

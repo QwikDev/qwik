@@ -268,7 +268,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qInspectorKey = 'globalThis.qInspector';
       const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
       const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
-      // Default 'dev': leave `globalThis.qWarnUnhandledErrors` undefined so the runtime gate falls
+      // Default 'dev': leave `globalThis.qUnhandledErrorWarning` undefined so the runtime gate falls
       // back to qDev (warn in dev only). 'all'/'off' bake an explicit boolean into the bundle.
       const unhandledErrorWarning = qwikViteOpts.unhandledErrorWarning ?? 'dev';
 
@@ -334,7 +334,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           [qInspectorKey]: qInspector,
           [qTestKey]: JSON.stringify(process.env.NODE_ENV === 'test'),
           ...(unhandledErrorWarning !== 'dev'
-            ? { 'globalThis.qWarnUnhandledErrors': unhandledErrorWarning === 'all' }
+            ? { 'globalThis.qUnhandledErrorWarning': unhandledErrorWarning === 'all' }
             : {}),
         },
       };
@@ -1086,7 +1086,7 @@ interface QwikVitePluginCommonOptions {
    * - `'all'` — warn in development and production.
    * - `'off'` — never warn.
    *
-   * Can also be toggled at runtime via `globalThis.qWarnUnhandledErrors`.
+   * Can also be toggled at runtime via `globalThis.qUnhandledErrorWarning`.
    */
   unhandledErrorWarning?: 'off' | 'dev' | 'all';
 }

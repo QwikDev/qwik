@@ -935,16 +935,16 @@ describe('unhandledErrorWarning', () => {
 
   test('default (dev) does not define the global, so the runtime falls back to qDev', async () => {
     const define = await getDefine({});
-    assert.equal('globalThis.qWarnUnhandledErrors' in define, false);
+    assert.equal('globalThis.qUnhandledErrorWarning' in define, false);
   });
 
-  test("'all' defines globalThis.qWarnUnhandledErrors = true", async () => {
+  test("'all' defines globalThis.qUnhandledErrorWarning = true", async () => {
     const define = await getDefine({ unhandledErrorWarning: 'all' });
-    assert.equal(define['globalThis.qWarnUnhandledErrors'], true);
+    assert.equal(define['globalThis.qUnhandledErrorWarning'], true);
   });
 
-  test("'off' defines globalThis.qWarnUnhandledErrors = false", async () => {
+  test("'off' defines globalThis.qUnhandledErrorWarning = false", async () => {
     const define = await getDefine({ unhandledErrorWarning: 'off' });
-    assert.equal(define['globalThis.qWarnUnhandledErrors'], false);
+    assert.equal(define['globalThis.qUnhandledErrorWarning'], false);
   });
 });

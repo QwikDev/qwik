@@ -585,10 +585,10 @@ export class AsyncSignalImpl<T>
    * `.error` but never throw from `.value`, so an error that's never read would be silently
    * swallowed. Warn about that. Soft failures (`fail()`/validators) resolve with a value and never
    * call this. Defaults to dev only; the `qwikVite` `unhandledErrorWarning` option (or
-   * `globalThis.qWarnUnhandledErrors`) can force it on/off in production.
+   * `globalThis.qUnhandledErrorWarning`) can force it on/off in production.
    */
   $warnIfUnhandledError$(): void {
-    if (!((globalThis as { qWarnUnhandledErrors?: boolean }).qWarnUnhandledErrors ?? qDev)) {
+    if (!((globalThis as { qUnhandledErrorWarning?: boolean }).qUnhandledErrorWarning ?? qDev)) {
       return;
     }
     // A macrotask runs after the render flush that would read `.error`, so a handled error never warns.

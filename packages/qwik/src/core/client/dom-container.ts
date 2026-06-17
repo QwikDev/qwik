@@ -114,6 +114,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   private $stateData$: unknown[];
   private $rootForwardRefs$: Array<number | string> | null = null;
   private $styleIds$: Set<string> | null = null;
+  private $qErrorHandler$: ((e: Event) => void) | null = null;
 
   constructor(element: ContainerElement) {
     super({}, element.getAttribute(QLocaleAttr)!);
@@ -146,6 +147,20 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       processSegmentStateScripts(this);
     }
     this.$hoistStyles$();
+    // Route async errors (a failed QRL import/handler emits a `qerror` event) to the CLOSEST
+    // ErrorBoundary, matching the synchronous render-throw path. Previously each ErrorBoundary
+    // listened to the global event and every one of them caught every error regardless of source.
+    this.$qErrorHandler$ = (e: Event) => {
+      const detail = (e as CustomEvent<{ error: unknown; element?: Element }>).detail;
+      const source = detail?.element;
+      if (source && this.element.contains(source)) {
+        const host = this.vNodeLocate(source);
+        if (host) {
+          this.handleError(detail.error, host);
+        }
+      }
+    };
+    document.addEventListener?.('qerror', this.$qErrorHandler$);
     if (!qTest && element.isConnected) {
       element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
     }
@@ -153,6 +168,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   /** Tear down this container so stale references fail gracefully. */
   $destroy$(): void {
+    if (this.$qErrorHandler$) {
+      this.document.removeEventListener?.('qerror', this.$qErrorHandler$);
+      this.$qErrorHandler$ = null;
+    }
     this.vNodeLocate = () => null as any;
     this.$rawStateData$.length = 0;
     this.$stateData$.length = 0;

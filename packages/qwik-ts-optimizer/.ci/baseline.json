@@ -273,6 +273,10 @@
       "tests/optimizer/analysis/scope-query-tracker.test.ts :: ScopeQueryTracker.getDeclarationFromScope equivalence matches for catch params and for-loop head bindings",
       "tests/optimizer/analysis/scope-query-tracker.test.ts :: ScopeQueryTracker.getDeclarationFromScope equivalence matches for hoisted function declarations referenced before their decl",
       "tests/optimizer/analysis/scope-query-tracker.test.ts :: ScopeQueryTracker.getDeclarationFromScope equivalence matches replay-time getDeclaration under shadowing",
+      "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration MIG-06 (moved-decl dependencies) demotes a dependency moving to a different segment to reexport",
+      "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration MIG-06 (moved-decl dependencies) does not flip dependencies of decls that stay in the parent",
+      "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration MIG-06 (moved-decl dependencies) flips an un-exported keep dependency of a moved decl to reexport",
+      "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration MIG-06 (moved-decl dependencies) leaves exported dependencies alone (plain import path handles them)",
       "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration Test 10: function call as initializer => has side effects, not eligible for move",
       "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration Test 1: single-use safe variable => move",
       "tests/optimizer/analysis/variable-migration.test.ts :: analyzeMigration Test 2: shared variable used by two segments => reexport",
@@ -299,6 +303,7 @@
       "tests/optimizer/analysis/variable-migration.test.ts :: collectModuleLevelDecls treats object/array literals with only safe values as safe",
       "tests/optimizer/analysis/variable-migration.test.ts :: computeSegmentUsage attributes identifiers inside extraction range to segments",
       "tests/optimizer/analysis/variable-migration.test.ts :: computeSegmentUsage attributes identifiers outside all ranges to root",
+      "tests/optimizer/analysis/variable-migration.test.ts :: computeSegmentUsage does not count property-position identifiers as usage",
       "tests/optimizer/ast/guards.test.ts :: forEachAstChild skips non-object values",
       "tests/optimizer/ast/guards.test.ts :: forEachAstChild visits all AST-node children",
       "tests/optimizer/ast/guards.test.ts :: forEachAstChild visits array elements when they are AST nodes",
@@ -1118,6 +1123,9 @@
       "tests/optimizer/segment/marker-callee-leak.test.ts :: marker callee no longer leaks into extracted segment imports identifiers genuinely referenced inside the body ARE still imported (negative scope)",
       "tests/optimizer/segment/marker-callee-leak.test.ts :: marker callee no longer leaks into extracted segment imports inner $() segment does not re-import the bare $ marker",
       "tests/optimizer/segment/module-symbols.test.ts :: module-symbols collects top-level bindings, default exports, and renamed exports",
+      "tests/optimizer/segment/moved-helper-qrl-ownership.test.ts :: moved-helper QRL binding ownership consuming segment owns the QRL declarations and their imports",
+      "tests/optimizer/segment/moved-helper-qrl-ownership.test.ts :: moved-helper QRL binding ownership moved-decl dependency reexports via _auto_ on both sides (MIG-06)",
+      "tests/optimizer/segment/moved-helper-qrl-ownership.test.ts :: moved-helper QRL binding ownership parent demotes every moved-helper QRL binding to a bare qrl() statement",
       "tests/optimizer/segment/path-norm-inline-emit.test.ts :: F1c emit ordering for self-referential components emits export const Tree BEFORE q_Tree.s(body) for self-ref under Inline",
       "tests/optimizer/segment/path-norm-inline-emit.test.ts :: F1c emit ordering for self-referential components non-self-ref components keep .s() BEFORE the export (original ordering preserved)",
       "tests/optimizer/segment/path-norm-inline-emit.test.ts :: path normalization preserves leading ./ buildDevFilePath strips leading ./ from inputPath before concat",
@@ -1275,6 +1283,6 @@
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) has null input",
       "tests/testing/snapshot-parser.test.ts :: parseSnapshot relative_paths.snap (no INPUT section) parses without error"
     ],
-    "total": 1090
+    "total": 1098
   }
 }

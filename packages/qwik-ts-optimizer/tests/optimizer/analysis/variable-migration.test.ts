@@ -394,4 +394,119 @@ describe('computeSegmentUsage', () => {
 
     expect(rootUsage.has('foo')).toBe(true);
   });
+
+  it('does not count property-position identifiers as usage', () => {
+    // A root helper whose name collides with property names in unrelated
+    // expressions: `document.startVT` (member prop) and `{ startVT: 1 }`
+    // (object key) must not register as root usage of the binding — the
+    // pre-fix behavior demoted a single-segment MOVE to a dual-use
+    // REEXPORT exactly this way.
+    const code = [
+      "const startVT = (p) => { if ('x' in document) document.startVT(p); };",
+      'const cfg = { startVT: 1 };',
+      'component$(() => { startVT(cfg); });',
+    ].join('\n');
+    const program = parse(code);
+
+    const arrowStart = code.indexOf('() => { startVT');
+    const arrowEnd = code.length - 2;
+
+    const { segmentUsage, rootUsage } = computeSegmentUsage(program, [
+      { symbolName: 'seg1', argStart: arrowStart, argEnd: arrowEnd },
+    ]);
+
+    expect(segmentUsage.get('seg1')?.has('startVT')).toBe(true);
+    expect(rootUsage.has('startVT')).toBe(false);
+    // Shorthand `{ cfg }` style references still count — only the
+    // non-shorthand key position is excluded.
+    expect(segmentUsage.get('seg1')?.has('cfg')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// MIG-06: reexport dependencies of moved declarations
+// ---------------------------------------------------------------------------
+
+describe('analyzeMigration MIG-06 (moved-decl dependencies)', () => {
+  function declsFor(code: string): { program: ReturnType<typeof parseSync>['program']; decls: ModuleLevelDecl[] } {
+    const program = parseSync('test.tsx', code).program;
+    const decls = collectModuleLevelDecls(program, code);
+    return { program, decls };
+  }
+
+  it('flips an un-exported keep dependency of a moved decl to reexport', () => {
+    const code = [
+      "const SETTINGS = { mode: 'mock' };",
+      'const useHelper = (props) => { return SETTINGS.mode + props.x; };',
+    ].join('\n');
+    const { program, decls } = declsFor(code);
+
+    // `useHelper` used by exactly one segment; SETTINGS referenced only
+    // from inside useHelper's body (root usage).
+    const segmentUsage = new Map([['segA', new Set(['useHelper'])]]);
+    const rootUsage = new Set(['SETTINGS']);
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage, program);
+
+    const byName = new Map(decisions.map((d) => [d.varName, d]));
+    expect(byName.get('useHelper')?.action).toBe('move');
+    expect(byName.get('SETTINGS')?.action).toBe('reexport');
+    expect(byName.get('SETTINGS')?.reason).toContain('MIG-06');
+  });
+
+  it('leaves exported dependencies alone (plain import path handles them)', () => {
+    const code = [
+      'export const API = { url: 1 };',
+      'const useHelper = (props) => { return API.url + props.x; };',
+    ].join('\n');
+    const { program, decls } = declsFor(code);
+
+    const segmentUsage = new Map([['segA', new Set(['useHelper'])]]);
+    const rootUsage = new Set(['API']);
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage, program);
+
+    const byName = new Map(decisions.map((d) => [d.varName, d]));
+    expect(byName.get('useHelper')?.action).toBe('move');
+    expect(byName.get('API')?.action).toBe('keep');
+  });
+
+  it('demotes a dependency moving to a different segment to reexport', () => {
+    const code = [
+      'const shared = () => 1;',
+      'const helperA = () => shared();',
+    ].join('\n');
+    const { program, decls } = declsFor(code);
+
+    // `shared` is single-segment-used by segB; `helperA` (which references
+    // `shared` from its body) moves to segA. shared cannot leave the
+    // parent — helperA's moved body still imports it from there.
+    const segmentUsage = new Map([
+      ['segA', new Set(['helperA'])],
+      ['segB', new Set(['shared'])],
+    ]);
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage, program);
+
+    const byName = new Map(decisions.map((d) => [d.varName, d]));
+    expect(byName.get('helperA')?.action).toBe('move');
+    expect(byName.get('shared')?.action).toBe('reexport');
+    expect(byName.get('shared')?.reason).toContain('MIG-06');
+  });
+
+  it('does not flip dependencies of decls that stay in the parent', () => {
+    const code = [
+      'const SETTINGS = { mode: 1 };',
+      'const stays = () => SETTINGS.mode;',
+    ].join('\n');
+    const { program, decls } = declsFor(code);
+
+    // `stays` is unused by any segment -> keep; SETTINGS keeps too.
+    const decisions = analyzeMigration(decls, new Map(), new Set(['SETTINGS', 'stays']), program);
+
+    const byName = new Map(decisions.map((d) => [d.varName, d]));
+    expect(byName.get('stays')?.action).toBe('keep');
+    expect(byName.get('SETTINGS')?.action).toBe('keep');
+  });
 });

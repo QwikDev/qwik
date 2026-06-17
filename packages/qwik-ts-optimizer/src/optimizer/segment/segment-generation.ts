@@ -14,7 +14,7 @@ import type {
 } from "../../ast-types.js";
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from "../extraction/extract.js";
 import type { ImportInfo } from "../extraction/marker-detection.js";
-import type { MigrationDecision, ModuleLevelDecl } from "../analysis/variable-migration.js";
+import { collectDeclIdentifiers, type MigrationDecision, type ModuleLevelDecl } from "../analysis/variable-migration.js";
 import type {
   TransformModule,
   SegmentMetadataInternal,
@@ -739,6 +739,67 @@ function tryBuildMarkerDeclMove(
 }
 
 /**
+ * QRL support code for a moved non-marker declaration: the
+ * `const q_<symbol> = qrl(...)` declarations for every top-level extraction
+ * the moved text references, plus the import deps those declarations and
+ * the text's marker-Qrl wrappers (`useTaskQrl`, …) need. The parent keeps
+ * only bare `qrl(...)` registration statements for these symbols (see
+ * `movedMarkerSymbols` in rewrite/output-assembly.ts), so the consuming
+ * segment becomes the binding owner. `declared` dedupes across multiple
+ * moved declarations landing in the same segment.
+ */
+function buildMovedQrlSupport(
+  movedText: string,
+  ctx: SegmentGenerationContext,
+  declared: Set<string>,
+): {
+  qrlDecls: string[];
+  importDeps: Array<{ localName: string; importedName: string; source: string }>;
+} {
+  const qrlDecls: string[] = [];
+  const importDeps: Array<{ localName: string; importedName: string; source: string }> = [];
+
+  const matched: ConsolidatedSegment[] = [];
+  for (const e of ctx.extractions) {
+    if (e.parent !== null || e.isSync || e.isInlinedQrl) continue;
+    if (declared.has(e.symbolName)) continue;
+    if (!movedText.includes(`q_${e.symbolName}`)) continue;
+    matched.push(e);
+  }
+  if (matched.length === 0) return { qrlDecls, importDeps };
+
+  // `qrl` first: the codegen-side import dedupe is substring-based, and a
+  // marker-Qrl specifier (`useTaskQrl`) inserted earlier would swallow the
+  // bare `qrl` one.
+  importDeps.push({ localName: "qrl", importedName: "qrl", source: "@qwik.dev/core" });
+
+  matched.sort((a, b) => a.symbolName.localeCompare(b.symbolName));
+  for (const e of matched) {
+    declared.add(e.symbolName);
+    const outputExt =
+      ctx.qrlOutputExt ?? ctx.sourceExtensions.get(e.symbolName) ?? e.extension;
+    qrlDecls.push(
+      buildQrlDeclaration(
+        e.symbolName,
+        e.canonicalFilename,
+        ctx.options.explicitExtensions,
+        e.extension,
+        outputExt,
+      ),
+    );
+    const callee = getQrlCalleeName(e.ctxName);
+    if (
+      callee &&
+      movedText.includes(`${callee}(`) &&
+      !importDeps.some((d) => d.localName === callee)
+    ) {
+      importDeps.push({ localName: callee, importedName: callee, source: "@qwik.dev/core" });
+    }
+  }
+  return { qrlDecls, importDeps };
+}
+
+/**
  * Wire migration data (auto-imports, moved declarations, capture filtering,
  * capture/param reconciliation) into `captureInfo` and `ext`.
  *
@@ -807,6 +868,19 @@ export function wireMigration(
   }
 
   const movedDeclRanges = new Set<string>();
+  const movedQrlSymbols = new Set<string>();
+  // Reexported non-exported decls — reachable from segments only via their
+  // `_auto_` alias. User-exported decls keep plain imports even when a
+  // reexport decision also fires for them (SWC's emit shape).
+  const reexportedNames = new Set<string>();
+  for (const d of migrationDecisions) {
+    if (
+      d.action === "reexport" &&
+      !moduleLevelDeclsByName.get(d.varName)?.isExported
+    ) {
+      reexportedNames.add(d.varName);
+    }
+  }
   for (const decision of migrationDecisions) {
     if (
       decision.action === "move" &&
@@ -822,25 +896,7 @@ export function wireMigration(
           importedName: string;
           source: string;
         }> = [];
-        // Module-level decls always sit inside one top-level statement —
-        // walk just that subtree rather than the whole program. The range
-        // filter stays because the decl range can be narrower than the
-        // statement (one declarator of a multi-declarator declaration).
-        const declIdentifiers = new Set<string>();
-        const enclosingStmt = (program.body ?? []).find(
-          (stmt) => stmt.start <= decl.declStart && stmt.end >= decl.declEnd,
-        );
-        walk(enclosingStmt ?? program, {
-          enter(node: AstNode) {
-            if (
-              node.type === "Identifier" &&
-              node.start >= decl.declStart &&
-              node.end <= decl.declEnd
-            ) {
-              declIdentifiers.add(node.name);
-            }
-          },
-        });
+        const declIdentifiers = collectDeclIdentifiers(program, decl);
         for (const idName of declIdentifiers) {
           const imp = originalImports.get(idName);
           if (imp) {
@@ -860,6 +916,19 @@ export function wireMigration(
             importDeps.push({
               localName: idName,
               importedName: 'default',
+              source: parentModulePath,
+            });
+            continue;
+          }
+
+          // A migration-reexported dependency is only reachable through its
+          // `_auto_` alias — the parent emits `export { X as _auto_X }`, not
+          // a plain export. `renamedExports` can't know about it (it reads
+          // user export statements off the source program).
+          if (reexportedNames.has(idName)) {
+            importDeps.push({
+              localName: idName,
+              importedName: `_auto_${idName}`,
               source: parentModulePath,
             });
             continue;
@@ -900,9 +969,27 @@ export function wireMigration(
           // helper — without it, raw JSX falls through to oxc-transform's
           // React `_jsx` default.
           const rewrittenText = ctx.movedDeclSnapshots.get(decision.varName);
+          const movedText = rewrittenText ?? decl.declText;
+          // The rewritten body can reference `q_<symbol>` QRLs whose
+          // extractions stayed top-level (e.g. a `useTask$` call inside the
+          // helper). The parent demotes those bindings to bare `qrl(...)`
+          // registration statements (`movedMarkerSymbols` in
+          // rewrite/output-assembly.ts), so this segment must own the
+          // `const q_<symbol> = qrl(...)` declarations — plus the `qrl` and
+          // marker-Qrl (`useTaskQrl`, …) imports the text calls.
+          const support = buildMovedQrlSupport(movedText, ctx, movedQrlSymbols);
+          for (const qrlDecl of support.qrlDecls) {
+            captureInfo.movedDeclarations.push({
+              text: qrlDecl,
+              importDeps: support.importDeps,
+            });
+          }
           captureInfo.movedDeclarations.push({
-            text: rewrittenText ?? decl.declText,
-            importDeps,
+            text: movedText,
+            importDeps:
+              support.qrlDecls.length > 0
+                ? [...importDeps, ...support.importDeps]
+                : importDeps,
           });
         }
       }

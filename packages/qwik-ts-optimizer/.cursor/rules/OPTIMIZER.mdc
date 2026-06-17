@@ -391,7 +391,7 @@ That `.w(...)` call is the runtime hook that wires `_captures` through to the la
 
 ## Deep dive: migration policy
 
-When a module-level binding (`const X = ...`, `function fn() {}`, etc.) is referenced from a segment, the optimizer has to decide where the binding lives in the output: in the parent (re-exported so segments can import it), moved into a segment, or just left untouched. That decision is `decideMigration` in `src/optimizer/analysis/variable-migration.ts:477`.
+When a module-level binding (`const X = ...`, `function fn() {}`, etc.) is referenced from a segment, the optimizer has to decide where the binding lives in the output: in the parent (re-exported so segments can import it), moved into a segment, or just left untouched. That decision is `decideMigration` in `src/optimizer/analysis/variable-migration.ts:633`.
 
 ### The three actions
 
@@ -405,7 +405,7 @@ The `_auto_` prefix is the convention for compiler-generated re-exports — dist
 
 ### Decision rules
 
-`decideMigration` evaluates rules in order at `variable-migration.ts:477–508`. First matching rule wins. After the main loop, the `promoteSharedDestructureGroups` post-pass (call at line 473, body at lines 525–554) refines specific shared-destructure cases.
+`decideMigration` evaluates rules in order at `variable-migration.ts:633–664`. First matching rule wins. After the main loop, two post-passes run (`analyzeMigration` at :549 sequences them): `promoteSharedDestructureGroups` refines specific shared-destructure cases, then `reexportMovedDeclDependencies` (MIG-06, below) reconciles the dependencies of `move`d declarations.
 
 | Rule | Predicate | Action | Reason code |
 |---|---|---|---|
@@ -417,6 +417,7 @@ The `_auto_` prefix is the convention for compiler-generated re-exports — dist
 | MIG-05 | `isPartOfSharedDestructuring && usedByAnySegment` | `reexport` | `REEXPORT_SHARED_DESTRUCTURE` |
 | MIG-01 | `usingSegments.length === 1` | `move` | `MOVE_SINGLE_SEGMENT` |
 | (implicit) | none match | `keep` | `KEEP_UNUSED` |
+| MIG-06 (post-pass) | dependency of a `move`d decl that would stay un-exported, or that `move`s to a *different* segment | `reexport` | `REEXPORT_MOVED_DECL_DEP` |
 
 The intuition: re-export is the safe default whenever **anyone else** still needs the binding (root code, multiple segments, side-effect chain, sibling destructure binding). Move only fires when exactly one segment is the consumer.
 
@@ -424,13 +425,21 @@ The intuition: re-export is the safe default whenever **anyone else** still need
 
 MIG-05's blanket re-export rule for shared destructures is correct in cases like `should_keep_non_migrated_binding_from_shared_destructuring_declarator` (some bindings go to root, others to one segment — must re-export so root's binding survives). But when **all bindings** of a shared destructure go to **exactly one segment**, with no root use, no export, no side effects, the entire destructure should `move`.
 
-The `promoteSharedDestructureGroups` post-pass (`variable-migration.ts:525–554`) walks each shared-destructure group, validates the unanimous-target condition via `unifiedSingleSegmentTarget` (function at line 560), and rewrites the per-binding decisions in place from `reexport` → `move` (with reason `MOVE_SHARED_DESTRUCTURE_UNIFIED`).
+The `promoteSharedDestructureGroups` post-pass (`variable-migration.ts:681`) walks each shared-destructure group, validates the unanimous-target condition via `unifiedSingleSegmentTarget` (function at line 716), and rewrites the per-binding decisions in place from `reexport` → `move` (with reason `MOVE_SHARED_DESTRUCTURE_UNIFIED`).
 
 This is still incomplete for nested-segment cases — the F4 convergence failure (`example_invalid_references`) is exactly this: parent passes, but segment-level migration fails because the post-pass doesn't yet handle nested-segment unification.
 
+### MIG-06 post-pass (added in OSS-447)
+
+A `move`d declaration's body can still reference other module-level declarations after it leaves the parent (qwik-router's `useQwikMockRouter` references seven context objects this way — names whose only other appearances are inside sibling root helpers, so they land in `rootUsage` and would otherwise `keep`). The `reexportMovedDeclDependencies` post-pass (`variable-migration.ts:573`) mirrors SWC's `precompute_and_declare_auto_exports` plus the `used_by_incompatible_root` arm of its migratable-vars safety filter, in the same order: first demote to fixpoint any `move` whose decl is referenced by another `move` targeting a different segment, then flip every surviving mover's un-exported `keep` dependencies to `reexport`. Segment-side import wiring resolves these through their `_auto_` alias (the `reexportedNames` set in `wireMigration`).
+
+Two related ownership rules ride the same shape (also OSS-447): when a moved helper's body references top-level `q_<symbol>` QRLs, the parent demotes every such binding to a bare `qrl(...)` registration statement (`movedMarkerSymbols` in `rewrite/output-assembly.ts`) and the consuming segment declares them itself plus the `qrl`/marker-Qrl imports (`buildMovedQrlSupport` in `segment-generation.ts`). And the segment-usage projection skips property-position identifiers (`isNonReferenceIdentifier`, shared by `computeSegmentUsage` and the gather walk) so a decl whose name collides with a property name (`document.startViewTransition`) isn't falsely demoted from MOVE to dual-use REEXPORT.
+
+Still unimplemented vs SWC: transitive dependency *migration* (`collect_transitive_dependencies` — moving a dep along with its sole consumer) and topological ordering of migrated decls (`sort_migrated_vars_topologically`); MIG-06 only re-exports. The `useQwikRouter_useTask` segment of `example_qwik_router_client` is the open fixture surface for both.
+
 ### The `usingSegmentsOf` helper (added in OSS-338)
 
-`variable-migration.ts:443–449`:
+`variable-migration.ts:517–523`:
 
 ```ts
 function usingSegmentsOf(name, segmentUsage) {

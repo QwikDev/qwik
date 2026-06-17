@@ -168,12 +168,14 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
       if (decision.action !== 'move') continue;
       const exact = `${fileStem}_${decision.varName}`;
       const prefix = `${exact}_`;
+      // No early exit: a moved helper can own several extractions (e.g. a
+      // goto fallback AND a useTask body) — every one of them loses its
+      // parent-side `q_<sym>` binding when the helper's decl moves out.
       for (const e of extractions) {
         if (e.parent !== null) continue;
         if (e.isInlinedQrl) continue;
         if (e.displayName === exact || e.displayName.startsWith(prefix)) {
           movedMarkerSymbols.add(e.symbolName);
-          break;
         }
       }
     }

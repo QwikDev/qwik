@@ -1,5 +1,5 @@
-import { component$, Slot, useErrorBoundary } from '@qwik.dev/core';
-import { domRender, waitForDrain } from '@qwik.dev/core/testing';
+import { component$, noSerialize, Slot, useErrorBoundary } from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
 const debug = false;
@@ -7,6 +7,8 @@ const debug = false;
 /** Minimal boundary: provides ERROR_CONTEXT and renders a marker when its store gets an error. */
 const Boundary = component$<{ name: string }>((props) => {
   const store = useErrorBoundary();
+  // Expose the fallback so SSR can render it in place when a child throws (mirrors <ErrorBoundary>).
+  store.$fallback$ = noSerialize(() => <div id={`caught-${props.name}`}>caught</div>);
   if (store.error) {
     return <div id={`caught-${props.name}`}>caught</div>;
   }
@@ -54,6 +56,40 @@ describe('ErrorBoundary closest-parent resolution', () => {
 
     expect(el.querySelector('#caught-inner')).toBeTruthy();
     expect(el.querySelector('#caught-outer')).toBeFalsy();
+  });
+
+  it('SSR: a child throw inside the inner boundary renders the inner fallback, not a 500', async () => {
+    const Page = component$(() => (
+      <Boundary name="outer">
+        <h1>Hi 👋</h1>
+        <Boundary name="inner">
+          <Thrower />
+        </Boundary>
+      </Boundary>
+    ));
+    const { container } = await ssrRenderToDom(<Page />, { debug });
+    expect(container.element.querySelector('#caught-inner')).toBeTruthy();
+    expect(container.element.querySelector('#caught-outer')).toBeFalsy();
+  });
+
+  it('repro shape: a child component (Thrower) inside the inner boundary is caught by the inner one', async () => {
+    const Page = component$(() => (
+      <>
+        <Boundary name="outer">
+          <h1>Hi 👋</h1>
+          <div>
+            text
+            <br />
+            <Boundary name="inner">
+              <Thrower />
+            </Boundary>
+          </div>
+        </Boundary>
+      </>
+    ));
+    const { container } = await domRender(<Page />, { debug });
+    expect(container.element.querySelector('#caught-inner')).toBeTruthy();
+    expect(container.element.querySelector('#caught-outer')).toBeFalsy();
   });
 
   it('an async qerror walks up to the outer boundary when there is no inner one', async () => {

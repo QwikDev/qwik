@@ -495,6 +495,7 @@ export const _EMPTY_OBJ: Record<string, any>;
 
 // @public (undocumented)
 export interface ErrorBoundaryStore {
+    $fallback$?: (error: any) => unknown;
     // (undocumented)
     error: any | undefined;
 }

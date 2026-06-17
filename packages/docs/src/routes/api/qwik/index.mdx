@@ -1645,6 +1645,21 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+$fallback$?
+
+</td><td>
+
+</td><td>
+
+(error: any) =&gt; unknown
+
+</td><td>
+
+_(Optional)_ The boundary's fallback renderer. Set by `<ErrorBoundary>` so SSR can render the fallback in place of a subtree that throws during server render (on the client the boundary re-renders instead). Internal — not meant to be set by application code.
+
+</td></tr>
+<tr><td>
+
 error
 
 </td><td>

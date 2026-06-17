@@ -918,3 +918,33 @@ describe('worker core chunk rewrites', () => {
     );
   });
 });
+
+describe('unhandledErrorWarning', () => {
+  const getDefine = async (opts: Partial<QwikVitePluginOptions>) => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions(), ...opts } as any);
+    const c = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      {
+        command: 'build',
+        mode: 'production',
+      }
+    ))!;
+    return c.define as Record<string, unknown>;
+  };
+
+  test('default (dev) does not define the global, so the runtime falls back to qDev', async () => {
+    const define = await getDefine({});
+    assert.equal('globalThis.qWarnUnhandledErrors' in define, false);
+  });
+
+  test("'all' defines globalThis.qWarnUnhandledErrors = true", async () => {
+    const define = await getDefine({ unhandledErrorWarning: 'all' });
+    assert.equal(define['globalThis.qWarnUnhandledErrors'], true);
+  });
+
+  test("'off' defines globalThis.qWarnUnhandledErrors = false", async () => {
+    const define = await getDefine({ unhandledErrorWarning: 'off' });
+    assert.equal(define['globalThis.qWarnUnhandledErrors'], false);
+  });
+});

@@ -98,7 +98,7 @@ Loaders signal failure two ways:
 
 Prefer `return requestEvent.error(...)` for expected failures that the page should display inline (form validation, domain rules). Use `throw requestEvent.error(...)` when the route cannot render at all.
 
-Because `.value` never throws, an ignored `error()` won't crash the page — so Qwik logs a dev-only warning if a loader/action errors and its `.error` is never read. Enable it in production with `globalThis.qWarnUnhandledErrors = true`.
+Because `.value` never throws, an ignored `error()` won't crash the page — so Qwik logs a dev-only warning if a loader/action errors and its `.error` is never read. Control this with the `qwikVite` `unhandledErrorWarning` option (`'dev'` default, `'all'` to warn in production too, or `'off'`); it can also be toggled at runtime with `globalThis.qWarnUnhandledErrors`.
 
 ## Multiple `routeLoader$`s
 

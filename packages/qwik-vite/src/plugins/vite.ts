@@ -268,6 +268,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qInspectorKey = 'globalThis.qInspector';
       const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
       const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
+      // Default 'dev': leave `globalThis.qWarnUnhandledErrors` undefined so the runtime gate falls
+      // back to qDev (warn in dev only). 'all'/'off' bake an explicit boolean into the bundle.
+      const unhandledErrorWarning = qwikViteOpts.unhandledErrorWarning ?? 'dev';
 
       const updatedViteConfig: UserConfig = {
         // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
@@ -330,6 +333,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           [qDevKey]: qDev,
           [qInspectorKey]: qInspector,
           [qTestKey]: JSON.stringify(process.env.NODE_ENV === 'test'),
+          ...(unhandledErrorWarning !== 'dev'
+            ? { 'globalThis.qWarnUnhandledErrors': unhandledErrorWarning === 'all' }
+            : {}),
         },
       };
 
@@ -1070,6 +1076,19 @@ interface QwikVitePluginCommonOptions {
    * Disabling may impact Cumulative Layout Shift (CLS) metrics.
    */
   disableFontPreload?: boolean;
+
+  /**
+   * Controls the warning logged when an async value (`useAsync$`, a route loader, or an action)
+   * enters an error state but its `.error` is never read. Because `.value` never throws, such a
+   * failure would otherwise be silently ignored.
+   *
+   * - `'dev'` (default) — warn during development only.
+   * - `'all'` — warn in development and production.
+   * - `'off'` — never warn.
+   *
+   * Can also be toggled at runtime via `globalThis.qWarnUnhandledErrors`.
+   */
+  unhandledErrorWarning?: 'off' | 'dev' | 'all';
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {

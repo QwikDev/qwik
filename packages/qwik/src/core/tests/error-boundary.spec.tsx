@@ -235,4 +235,30 @@ describe('ErrorBoundary buffer-and-swap (experimental)', () => {
     );
     expect(document.querySelector('#fb')?.textContent).toContain('caught: async boom');
   });
+
+  it('boundary inside a <Suspense>: an async throw rolls back the WHOLE content (skeleton → fallback)', async () => {
+    // Here the entire boundary subtree is deferred behind the Suspense skeleton, so the user only
+    // ever sees the skeleton — never the broken/partial content. The async throw rolls the whole
+    // subtree back within the segment (siblings included), and the segment resolves to the fallback,
+    // which is injected in place of the skeleton: a clean skeleton → fallback swap, no leaked
+    // siblings, no broken-content flash (and no CLS if skeleton/fallback/content share a box).
+    const document = await ssrRenderResumed(
+      <main>
+        <Suspense fallback={<span id="loading">loading</span>}>
+          <ErrorBoundary
+            fallback$={$((e: any) => (
+              <p id="fb">caught: {String(e?.message ?? e)}</p>
+            ))}
+          >
+            <div id="before">before</div>
+            <AsyncThrower />
+            <div id="after">after</div>
+          </ErrorBoundary>
+        </Suspense>
+      </main>
+    );
+    expect(document.querySelector('#fb')?.textContent).toContain('caught: async boom');
+    expect(document.querySelector('#before')).toBeFalsy();
+    expect(document.querySelector('#after')).toBeFalsy();
+  });
 });

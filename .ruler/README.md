@@ -6,22 +6,22 @@ This project uses [Ruler](https://github.com/intellectronica/ruler) to keep AI a
 
 ```
 .ruler/
-├── AGENTS.md      # Project instructions for AI agents
-├── rules/         # Always-on source rules propagated by Ruler
+├── AGENTS.md      # Repo-wide guidance + always-on rules (appended at the end)
 ├── skills/        # Shared source skills propagated by Ruler
 └── ruler.toml     # Ruler agent configuration
 ```
 
-Use `.ruler/AGENTS.md` for short, always-on repository context and source-rule pointers. Use
-`.ruler/rules/` for dedicated always-on rules. Use `.ruler/skills/` for task-specific workflows that
-should be loaded only when relevant.
+Use `.ruler/AGENTS.md` for always-on repository context and rules (the rules live as sections at the
+end of that file). Use `.ruler/skills/` for task-specific workflows that should be loaded only when
+relevant.
 
-Current source rules:
+Always-on rules currently in `.ruler/AGENTS.md`:
 
 - `changeset-conventions`
 - `code-quality`
 - `generated-output-boundaries`
 - `guidance-source-of-truth`
+- `no-hydration-terminology`
 - `security-and-supply-chain`
 - `test-driven-development`
 
@@ -58,8 +58,7 @@ When you are setting up or debugging an assistant-specific config:
 
 | Ruler source | Semantic role | Builder action |
 | --- | --- | --- |
-| `.ruler/AGENTS.md` | Short repo-wide AI guidance | Generate into the target assistant's primary native guidance file. |
-| `.ruler/rules/*.md` | Dedicated always-on AI guidance | Generate into the target assistant's native guidance or rules surface with source markers. |
+| `.ruler/AGENTS.md` | Repo-wide AI guidance + always-on rules | Generate into the target assistant's primary native guidance file. |
 | `.ruler/skills/*/SKILL.md` | Task-triggered workflows | Copy to the target assistant's native skills directory when supported. |
 | `.ruler/ruler.toml` and Ruler MCP config | Agent selection, output paths, MCP/config | Generate or merge native config only where Ruler and the target assistant support it. |
 
@@ -70,10 +69,8 @@ file.
 
 ## Markdown Guidance Bundle
 
-The AI-agnostic Markdown guidance bundle is:
-
-- `.ruler/AGENTS.md`
-- every Markdown rule under `.ruler/rules/*.md`
+The AI-agnostic Markdown guidance bundle is `.ruler/AGENTS.md` (repo-wide context plus the always-on
+rules appended at its end) together with this `.ruler/README.md`.
 
 Ruler concatenates that bundle and writes it to each selected assistant's native AI guidance file.
 Use source markers in the generated file to verify inclusion. Do not bypass Ruler by copying these
@@ -94,12 +91,11 @@ Current Ruler and OpenAI Codex behavior maps this repo's sources as follows:
 | Ruler source | Codex-native output | Verify after `ruler apply --agents codex` |
 | --- | --- | --- |
 | `.ruler/AGENTS.md` | Generated root `AGENTS.md` | `rg -n 'Source: .ruler/AGENTS.md' AGENTS.md` |
-| `.ruler/rules/*.md` | Generated root `AGENTS.md` with source comments | `rg -n 'Source: .ruler/rules' AGENTS.md` |
 | `.ruler/skills/*/SKILL.md` | `.codex/skills/*/SKILL.md` | `find .codex/skills -name SKILL.md` |
 | Ruler MCP config | `.codex/config.toml` when MCP config is generated | `test -f .codex/config.toml` when MCP/config is expected |
 
 Codex `.rules` files are command execution policy files that use `prefix_rule(...)`. They are not a
-target for `.ruler/rules/*.md` prose guidance. If Codex command policy is needed, maintain it as a
+target for `.ruler/AGENTS.md` prose guidance. If Codex command policy is needed, maintain it as a
 separate local or team policy using OpenAI Codex's `.rules` format; do not treat it as Ruler
 Markdown guidance.
 
@@ -107,7 +103,7 @@ Expected Codex check:
 
 ```bash
 ruler apply --agents codex
-rg -n 'Source: .ruler/rules' AGENTS.md
+rg -n 'Source: .ruler/AGENTS.md' AGENTS.md
 find .codex/skills -name SKILL.md
 ```
 
@@ -164,8 +160,8 @@ keep it in your global Ruler config.
 
 ## Updating Instructions
 
-Edit `.ruler/AGENTS.md` for repository-wide guidance. Edit `.ruler/rules/<rule-name>.md` for a
-dedicated always-on rule. Edit the relevant `.ruler/skills/<skill-name>/SKILL.md` file for
+Edit `.ruler/AGENTS.md` for repository-wide guidance and always-on rules (the rules are sections at
+the end of that file). Edit the relevant `.ruler/skills/<skill-name>/SKILL.md` file for
 package-specific or workflow-specific guidance.
 
 If a code task proves a skill or reference stale, update that guidance as part of the same task when

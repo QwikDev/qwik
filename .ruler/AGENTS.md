@@ -10,8 +10,8 @@
   directories are committed so a fresh clone or worktree has guidance immediately.
 - Never hand-edit a generated output — edit `.ruler/` and regenerate with `ruler apply`. A CI check
   re-runs it and fails on drift.
-- To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or
-  `.ruler/rules/**` / `.ruler/skills/**`, then regenerate with Ruler when needed.
+- To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or `.ruler/skills/**`,
+  then regenerate with Ruler when needed.
 - When building config for a specific AI tool, research that tool's current native guidance, skill,
   config, and policy surfaces before adding output-specific instructions.
 - Map `.ruler` sources by semantic role: Markdown guidance to native AI guidance, skills to native
@@ -313,8 +313,8 @@ outputs, not source.
 
 ## Source Layout
 
-- Put short repo-wide context in `.ruler/AGENTS.md`.
-- Put dedicated always-on rules in `.ruler/rules/<rule-name>.md`.
+- Put repo-wide context and the always-on rules in `.ruler/AGENTS.md`. The rules live as sections
+  appended at the end of that file — they are not separate files.
 - Put task-specific workflows in `.ruler/skills/<skill-name>/SKILL.md`.
 - Put long, conditional notes in a skill `references/` file only when progressive disclosure helps.
 - Keep the `qwik-` prefix on committed Qwik skill names unless Ruler gains repo-scoped skill
@@ -324,19 +324,20 @@ outputs, not source.
 
 - The generated `AGENTS.md`, `CLAUDE.md`, and skill directories are committed so a fresh clone or
   worktree has guidance immediately. Never hand-edit them — edit `.ruler/` and regenerate.
-- To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`,
-  `.ruler/rules/**`, or `.ruler/skills/**`, then run `ruler apply` and commit the regenerated output.
+- To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or `.ruler/skills/**`,
+  then run `ruler apply` and commit the regenerated output.
 - A CI check re-runs `ruler apply` and fails if the committed outputs drift from `.ruler/`.
 
 ## AI Config Builder
 
 When building or debugging native AI tool config, map `.ruler` sources by semantic role:
 
-- Markdown AI guidance: `.ruler/AGENTS.md` and `.ruler/rules/*.md`.
+- Markdown AI guidance: `.ruler/AGENTS.md` (repo-wide context plus the always-on rules) and
+  `.ruler/README.md`.
 - Task skills: `.ruler/skills/**/SKILL.md` and any directly referenced local resources.
 - Tool or MCP config: `.ruler/ruler.toml` plus Ruler MCP configuration.
 - Command execution policy: only a separately researched native policy format, not prose guidance
-  copied from `.ruler/rules/*.md`.
+  copied from `.ruler/AGENTS.md`.
 
 Before adding a target-specific output rule, research the selected tool's current official docs or
 the installed Ruler adapter. Do not infer semantics from filenames alone. Terms like "rules" can
@@ -346,8 +347,8 @@ mean natural-language guidance for one assistant and command permission policy f
 
 For Codex with current Ruler and OpenAI docs:
 
-- Ruler writes `.ruler/AGENTS.md` and `.ruler/rules/*.md` into generated root `AGENTS.md` with
-  source comments such as `<!-- Source: .ruler/rules/... -->`.
+- Ruler concatenates the Markdown guidance (`.ruler/AGENTS.md` and `.ruler/README.md`) into the
+  generated root `AGENTS.md`, with `<!-- Source: .ruler/... -->` markers.
 - Ruler writes `.ruler/skills/**` to `.codex/skills/`.
 - Ruler writes MCP settings to `.codex/config.toml` when MCP config is present.
 - Codex `.rules` files are command execution policy, not natural-language project guidance.
@@ -356,17 +357,18 @@ Verify Codex AI guidance with:
 
 ```bash
 ruler apply --agents codex
-rg -n 'Source: .ruler/rules' AGENTS.md
+rg -n 'Source: .ruler/AGENTS.md' AGENTS.md
 find .codex/skills -name SKILL.md
 ```
 
-Do not translate Markdown guidance from `.ruler/rules/*.md` into Codex `.rules` files. Codex
+Do not translate Markdown guidance from `.ruler/AGENTS.md` into Codex `.rules` files. Codex
 command-policy files use a separate native format and should be handled separately from Ruler
 Markdown guidance.
 
 ## Rule Versus Skill
 
-Use `.ruler/rules/*.md` for durable policy that should be available without loading a task skill:
+Use the always-on rules in `.ruler/AGENTS.md` for durable policy that should be available without
+loading a task skill:
 
 - source-of-truth and generated-output boundaries
 - rule-vs-skill taxonomy

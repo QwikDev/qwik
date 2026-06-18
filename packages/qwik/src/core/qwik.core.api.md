@@ -1059,10 +1059,10 @@ export interface ReadonlySignal<T = unknown> {
 // Warning: (ae-forgotten-export) The symbol "SSRRevealSlotProps" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _reC: (props: RevealProps) => JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>> | JSXNodeInternal<FunctionComponent<    {
+export const _reC: (props: RevealProps) => JSXNodeInternal<FunctionComponent<    {
 name?: string;
 children?: JSXChildren;
-}>>;
+}>> | JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>>;
 
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;

@@ -24,6 +24,7 @@ import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
+  QCtxAttr,
   QCursorBoundary,
   QDefaultSlot,
   QScopedStyle,
@@ -31,6 +32,7 @@ import {
   QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
+import { mapArray_get, mapArray_has } from '../client/util-mapArray';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
@@ -43,7 +45,7 @@ import {
   isInternalServerComponent,
 } from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import { deferredBoundaryError, ERROR_CONTEXT } from '../shared/error/error-handling';
+import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
 import type { ISsrComponentFrame, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 
@@ -128,14 +130,33 @@ function renderErrorBoundaryFallback(
   if (!errorStore || !errorStore.$fallback$) {
     throw err;
   }
-  // Experimental: a boundary that deferred its subtree into an out-of-order segment handles the
-  // throw via the segment swap (emitOutOfOrderErrorFallback), not in place. Carry the resolved store
-  // on the throw so the segment rejects and the swap can render a clean `boundary > fallback`.
-  if (__EXPERIMENTAL__.errorBoundary && errorStore.$deferred$) {
-    throw deferredBoundaryError(errorStore, err);
+  // Experimental: a buffering boundary handles the throw in its own nested render — it rolls back to
+  // its checkpoint and renders the fallback there. Propagate so the throw unwinds to that boundary
+  // instead of rendering in place here (which would leave the partially-streamed subtree behind).
+  if (__EXPERIMENTAL__.errorBoundary && errorStore.$checkpoint$) {
+    throw err;
   }
   errorStore.error = err;
   return errorStore.$fallback$(err) as ValueOrPromise<JSXOutput>;
+}
+
+/**
+ * Experimental: if `host` is itself an `<ErrorBoundary>` (it provided `ERROR_CONTEXT` with a
+ * fallback), return its store so the renderer can buffer the boundary's subtree and swap in the
+ * fallback on a throw. Reads the host's OWN context (not an ancestor's) so children don't match.
+ */
+function getBufferingErrorBoundaryStore(
+  host: ReturnType<SSRContainer['getOrCreateLastNode']>
+): ErrorBoundaryStore | null {
+  if (!__EXPERIMENTAL__.errorBoundary) {
+    return null;
+  }
+  const ctx = host.getProp(QCtxAttr) as Array<string | unknown> | null;
+  if (!ctx || !mapArray_has(ctx, ERROR_CONTEXT.id, 0)) {
+    return null;
+  }
+  const store = mapArray_get(ctx, ERROR_CONTEXT.id, 0) as ErrorBoundaryStore | null;
+  return store && store.$fallback$ ? store : null;
 }
 
 function processJSXNode(
@@ -340,11 +361,39 @@ function processJSXNode(
           } catch (err) {
             jsxOutput = renderErrorBoundaryFallback(ssr, host, err);
           }
+          const bufferingErrorStore = getBufferingErrorBoundaryStore(host);
           enqueue(
             setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
           );
           enqueue(() => ssr.closeComponent());
-          if (isPromise(jsxOutput)) {
+          if (bufferingErrorStore && !isPromise(jsxOutput)) {
+            // Experimental buffering ErrorBoundary: render the subtree in a nested pass so a throw
+            // unwinds here, where we roll back the partially-rendered output and render the fallback
+            // in its place — yielding a clean `boundary > fallback` instead of a half-streamed
+            // subtree. The stream block keeps the buffered HTML discardable (a no-op inside a
+            // segment, which is already buffered).
+            const content = jsxOutput as JSXOutput;
+            enqueue(async () => {
+              ssr.streamHandler.streamBlockStart();
+              const checkpoint = (bufferingErrorStore.$checkpoint$ = ssr.checkpoint());
+              const savedStyle = options.currentStyleScoped;
+              const savedFrame = options.parentComponentFrame;
+              try {
+                await ssr.renderJSX(content, options);
+              } catch (err) {
+                ssr.rollback(checkpoint);
+                options.currentStyleScoped = savedStyle;
+                options.parentComponentFrame = savedFrame;
+                bufferingErrorStore.error = err;
+                await ssr.renderJSX(bufferingErrorStore.$fallback$!(err) as JSXOutput, options);
+              } finally {
+                bufferingErrorStore.$checkpoint$ = undefined;
+                await ssr.streamHandler.streamBlockEnd();
+              }
+            });
+            const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
+            enqueue(setParentOptions(options, compStyleComponentId, componentFrame));
+          } else if (isPromise(jsxOutput)) {
             // Defer reading QScopedStyle until after the promise resolves
             enqueue(async () => {
               const resolvedOutput = await jsxOutput;

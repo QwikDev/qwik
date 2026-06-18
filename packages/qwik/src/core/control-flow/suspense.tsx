@@ -20,7 +20,6 @@ import {
 import { resolveSlotName } from '../shared/utils/prop';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
-import { isDeferredBoundaryError } from '../shared/error/error-handling';
 import { useComputedQrl } from '../use/use-computed';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { useSignal } from '../use/use-signal';
@@ -262,31 +261,17 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       writeOutOfOrderPlaceholder(ssr, boundaryId);
       ssr.emitOutOfOrderExecutorIfNeeded();
       ssr.queueOutOfOrderSegment(
-        content
-          .then((rendered) =>
-            emitRenderedOutOfOrderSegment(
-              ssr,
-              boundaryId,
-              contentSegment,
-              rendered,
-              contentStyle,
-              revealBoundary,
-              boundaryState
-            )
+        content.then((rendered) =>
+          emitRenderedOutOfOrderSegment(
+            ssr,
+            boundaryId,
+            contentSegment,
+            rendered,
+            contentStyle,
+            revealBoundary,
+            boundaryState
           )
-          // A throw from an enclosing <ErrorBoundary> that deferred its subtree arrives here as a
-          // DeferredBoundaryError; swap that boundary's fallback into this same placeholder.
-          .catch((error) =>
-            emitOutOfOrderErrorFallback(
-              ssr,
-              boundaryId,
-              error,
-              options,
-              contentStyle,
-              revealBoundary,
-              boundaryState
-            )
-          )
+        )
       );
     })
   : null!;
@@ -346,47 +331,6 @@ async function emitRenderedOutOfOrderSegment(
     // qO() is the browser-visible handoff for this segment, so flush it immediately.
     await ssr.streamHandler.flush();
   });
-}
-
-/**
- * A deferred (out-of-order) segment rejected. If the throw came from an `<ErrorBoundary>` that
- * deferred its subtree (a DeferredBoundaryError carrying the boundary store), render that
- * boundary's fallback into a fresh segment and inject it into the same placeholder — the partial
- * (failed) segment was already discarded by `ssr.segment`. Anything else rethrows, aborting as
- * before.
- */
-async function emitOutOfOrderErrorFallback(
-  ssr: SSRContainer,
-  boundaryId: number,
-  thrown: unknown,
-  options: SSRRenderJSXOptions,
-  contentStyle: Signal<{ display: string }>,
-  revealBoundary: OutOfOrderRevealBoundary | null,
-  boundaryState: SSROutOfOrderBoundaryState | null
-): Promise<void> {
-  if (!__EXPERIMENTAL__.errorBoundary || !isDeferredBoundaryError(thrown)) {
-    throw thrown;
-  }
-  const { store, error } = thrown;
-  if (!store.$fallback$) {
-    throw error;
-  }
-  store.error = error;
-  const fallbackSegment = `${ssr.nextOutOfOrderId()}`;
-  const rendered = await ssr.segment(
-    fallbackSegment,
-    store.$fallback$(error) as JSXOutput,
-    options
-  );
-  return emitRenderedOutOfOrderSegment(
-    ssr,
-    boundaryId,
-    fallbackSegment,
-    rendered,
-    contentStyle,
-    revealBoundary,
-    boundaryState
-  );
 }
 
 function markOutOfOrderContentResolved(boundaryState: SSROutOfOrderBoundaryState | null): void {

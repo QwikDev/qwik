@@ -1,5 +1,3 @@
-import { Suspense } from '../../control-flow/suspense';
-import { isOutOfOrderStreaming } from '../../control-flow/suspense-utils';
 import { useErrorBoundaryStore } from '../../use/use-error-boundary-store';
 import { componentQrl, type Component } from '../component.public';
 import { _jsxSorted } from '../jsx/jsx-internal';
@@ -32,11 +30,11 @@ export interface ErrorBoundaryProps {
  * events go through it. During SSR the fallback is rendered in place via `store.$fallback$`. So this
  * component only reads its store and renders — there is no per-boundary `qerror` listener.
  *
- * Experimental (`errorBoundary` feature, server + out-of-order streaming): instead of streaming the
- * subtree in place, defer it through a fallback-less `<Suspense>` so it renders into an out-of-order
- * segment. A throw there swaps the boundary's fallback into the same slot (see
- * `emitOutOfOrderErrorFallback`), so SSR matches the client's clean `boundary > fallback` without
- * blocking the shell's stream.
+ * Experimental (`errorBoundary` feature): during SSR the container renders this boundary's subtree
+ * into a discardable buffer (see the buffering ErrorBoundary path in `ssr-render-jsx`). On a throw it
+ * rolls back the buffer and renders `fallback$` in place, so SSR matches the client's clean
+ * `boundary > fallback` instead of leaving the partially-streamed subtree behind. This component
+ * itself stays unaware of streaming — it only provides the store and renders.
  */
 
 /** @internal */
@@ -48,22 +46,6 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
 
   if (store.error) {
     return /*#__PURE__*/ _jsxSorted(Fragment, null, null, props.fallback$(store.error), 0, null);
-  }
-
-  // `isOutOfOrderStreaming()` is only true during an SSR out-of-order render (and false inside a
-  // segment), so this branch never runs on the client or re-nests.
-  if (__EXPERIMENTAL__.errorBoundary && isOutOfOrderStreaming()) {
-    // Mark this boundary as OOOS-deferred so the in-place SSR catch lets throws propagate to the
-    // segment swap (see renderErrorBoundaryFallback). noSerialize keeps the marker off the wire.
-    store.$deferred$ = noSerialize({});
-    return /*#__PURE__*/ _jsxSorted(
-      Suspense,
-      null,
-      null,
-      /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null),
-      0,
-      null
-    );
   }
 
   return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);

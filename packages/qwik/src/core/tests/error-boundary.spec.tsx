@@ -1,4 +1,4 @@
-import { $, component$, ErrorBoundary, type JSXOutput } from '@qwik.dev/core';
+import { $, component$, ErrorBoundary, Suspense, type JSXOutput } from '@qwik.dev/core';
 import { createDocument, domRender, ssrRenderToDom, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { processOutOfOrderSegmentVNodeData } from '../client/process-vnode-data';
@@ -93,10 +93,10 @@ describe('ErrorBoundary', () => {
   });
 });
 
-describe('ErrorBoundary out-of-order streaming (experimental)', () => {
-  // Render with OOOS streaming, then run the emitted scripts to simulate the client injecting each
-  // resolved segment into its placeholder (mirrors the Suspense OOOS specs).
-  const renderOOOS = async (jsx: JSXOutput) => {
+describe('ErrorBoundary buffer-and-swap (experimental)', () => {
+  // Render with streaming, then run the emitted scripts to resume on the client (and inject any
+  // out-of-order Suspense segments into their placeholders, mirroring the Suspense OOOS specs).
+  const ssrRenderResumed = async (jsx: JSXOutput) => {
     const chunks: string[] = [];
     await ssrRenderToDom(jsx, {
       stream: {
@@ -119,8 +119,8 @@ describe('ErrorBoundary out-of-order streaming (experimental)', () => {
     return document;
   };
 
-  it('swaps in the fallback with no leftover siblings when a descendant throws', async () => {
-    const document = await renderOOOS(
+  it('discards leftover siblings and swaps in the fallback when a descendant throws', async () => {
+    const document = await ssrRenderResumed(
       <main>
         <ErrorBoundary
           fallback$={$((e: any) => (
@@ -133,26 +133,79 @@ describe('ErrorBoundary out-of-order streaming (experimental)', () => {
         </ErrorBoundary>
       </main>
     );
-    // Unlike the in-place SSR path, the streamed `before`/`after` siblings are gone — the boundary
-    // rendered as a clean `boundary > fallback`, matching the client.
+    // The partially-streamed `before`/`after` siblings are rolled back — the boundary renders as a
+    // clean `boundary > fallback`, matching the client (instead of the in-place divergence).
     expect(document.querySelector('#fb')?.textContent).toContain('caught: boom');
     expect(document.querySelector('#before')).toBeFalsy();
     expect(document.querySelector('#after')).toBeFalsy();
   });
 
-  it('streams the content (no fallback) when nothing throws', async () => {
-    const document = await renderOOOS(
+  it('renders the content unchanged when nothing throws', async () => {
+    const document = await ssrRenderResumed(
       <main>
         <ErrorBoundary
           fallback$={$(() => (
             <p id="fb">fallback</p>
           ))}
         >
+          <div id="before">before</div>
           <div id="content">all good</div>
+          <div id="after">after</div>
         </ErrorBoundary>
       </main>
     );
     expect(document.querySelector('#content')?.textContent).toBe('all good');
+    expect(document.querySelector('#before')).toBeTruthy();
+    expect(document.querySelector('#after')).toBeTruthy();
     expect(document.querySelector('#fb')).toBeFalsy();
+  });
+
+  it('works when the boundary is inside a <Suspense> (swaps within the segment)', async () => {
+    const document = await ssrRenderResumed(
+      <main>
+        <Suspense fallback={<span id="loading">loading</span>}>
+          <ErrorBoundary
+            fallback$={$((e: any) => (
+              <p id="fb">caught: {e.message}</p>
+            ))}
+          >
+            <div id="before">before</div>
+            <Thrower />
+            <div id="after">after</div>
+          </ErrorBoundary>
+        </Suspense>
+      </main>
+    );
+    expect(document.querySelector('#fb')?.textContent).toContain('caught: boom');
+    expect(document.querySelector('#before')).toBeFalsy();
+    expect(document.querySelector('#after')).toBeFalsy();
+  });
+
+  it('nested boundaries: the inner one catches, the outer subtree is untouched', async () => {
+    const document = await ssrRenderResumed(
+      <main>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb-outer">outer</p>
+          ))}
+        >
+          <div id="outer-sibling">outer-sibling</div>
+          <ErrorBoundary
+            fallback$={$(() => (
+              <p id="fb-inner">inner</p>
+            ))}
+          >
+            <div id="before">before</div>
+            <Thrower />
+            <div id="after">after</div>
+          </ErrorBoundary>
+        </ErrorBoundary>
+      </main>
+    );
+    expect(document.querySelector('#fb-inner')).toBeTruthy();
+    expect(document.querySelector('#outer-sibling')).toBeTruthy();
+    expect(document.querySelector('#fb-outer')).toBeFalsy();
+    expect(document.querySelector('#before')).toBeFalsy();
+    expect(document.querySelector('#after')).toBeFalsy();
   });
 });

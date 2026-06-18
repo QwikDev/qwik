@@ -9,4 +9,4 @@
 - The `useErrorBoundary()` hook is **removed** — `<ErrorBoundary>` is the single error-boundary surface.
 - It catches errors only from **its own subtree**: the **closest** boundary handles an error, instead of every boundary on the page reacting to the global `qerror` event.
 - It now catches render throws during **SSR** (rendering `fallback$` in place), not just on the client.
-- **Experimental** (opt-in `errorBoundary` feature + out-of-order streaming): on SSR the boundary defers its subtree into an out-of-order segment and swaps the fallback in on error, so the result matches the client's clean `boundary > fallback` without leftover streamed siblings.
+- **Experimental** (opt-in `errorBoundary` feature): on SSR the boundary buffers its subtree and, if a descendant throws, rolls it back and renders `fallback$` in its place — so SSR matches the client's clean `boundary > fallback` instead of leaving the partially-streamed subtree behind. Works with in-order streaming and inside `<Suspense>`, and nests.

@@ -11,10 +11,10 @@
 // outputs are missing (fresh clone/worktree) or the source moved (a pull or local edit). The marker
 // lives under node_modules/ (gitignored, per-worktree), so a clean install regenerates. It only
 // writes the gitignored outputs, never blocks the install on failure, and skips CI.
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { applyRuler } from './ruler-lib.mjs';
 
 if (process.env.CI || !existsSync('.ruler/ruler.toml')) {
   process.exit(0);
@@ -46,16 +46,11 @@ if (existsSync(OUTPUT) && appliedHash === sourceHash) {
   process.exit(0);
 }
 
-try {
-  process.stdout.write(
-    '[ruler] .ruler changed or outputs missing — generating assistant guidance...\n'
-  );
-  const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-  const args = ['exec', 'ruler', 'apply', '--no-gitignore', '--no-mcp'];
-  execFileSync(pnpm, args, { stdio: 'inherit' });
+process.stdout.write(
+  '[ruler] .ruler changed or outputs missing — generating assistant guidance...\n'
+);
+if (applyRuler()) {
+  // Record the applied source hash only on success, so a failed run retries on the next install.
   mkdirSync(dirname(MARKER), { recursive: true });
   writeFileSync(MARKER, sourceHash);
-} catch (err) {
-  // Never block the install on guidance generation.
-  process.stderr.write(`[ruler] skipped: ${err?.message ?? err}\n`);
 }

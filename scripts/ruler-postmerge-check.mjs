@@ -6,7 +6,8 @@
 // so no network — it works inside AI-agent command sandboxes) whenever a pull touched `.ruler/`,
 // keeping generated guidance fresh without a manual step. It only rewrites the gitignored generated
 // outputs, never blocks the merge on failure, and skips CI, where these files are not expected.
-import { execFileSync, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
+import { applyRuler } from './ruler-lib.mjs';
 
 if (process.env.CI) {
   process.exit(0);
@@ -32,14 +33,7 @@ if (changed.length === 0) {
   process.exit(0);
 }
 
-try {
-  process.stdout.write(
-    `[ruler] .ruler guidance changed in this pull (${changed.length} file(s)) — regenerating...\n`
-  );
-  const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-  const args = ['exec', 'ruler', 'apply', '--no-gitignore', '--no-mcp'];
-  execFileSync(pnpm, args, { stdio: 'inherit' });
-} catch (err) {
-  // Never block a merge on guidance generation; a manual `ruler apply` still works.
-  process.stderr.write(`[ruler] skipped: ${err?.message ?? err}\n`);
-}
+process.stdout.write(
+  `[ruler] .ruler guidance changed in this pull (${changed.length} file(s)) — regenerating...\n`
+);
+applyRuler();

@@ -16,6 +16,12 @@ test.describe('server-only modules', () => {
 
   test.skip(({ browserName }) => browserName !== 'chromium', 'Runs once in Chromium e2e.');
 
+  test.beforeEach(() => {
+    // Core's duplicate-import guard (Q30) lives on globalThis and survives
+    // server.close(); reset it so each in-process Vite server can re-evaluate core.
+    (globalThis as any).__qwik = undefined;
+  });
+
   test('allows .server imports used only by routeLoader$', async () => {
     try {
       await cleanBuildOutput(allowedAppDir);

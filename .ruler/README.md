@@ -129,11 +129,13 @@ postinstall — once `node_modules` exists — lets it invoke the pinned local `
 rather than fetching it, so no network access is required and generation keeps working inside the
 command sandboxes some AI coding agents run.
 
-It re-applies on every install so the generated files track the current `.ruler/` source — covering
-fresh clones, new worktrees, and `.ruler/` edits picked up on the next install. It only rewrites the
-gitignored generated outputs, never tracked files, is best-effort (a failure skips silently rather
-than breaking the install), and skips CI. A plain `git worktree add` with no install step still has
-nothing generated; run `pnpm install` (or `ruler apply`) in that worktree to get the files.
+It regenerates when the generated outputs are missing (fresh clones, new worktrees) or when the
+`.ruler/` source changed since the last apply — tracked by hashing `.ruler/` and recording it under
+`node_modules/`. When nothing changed it skips, so ordinary reinstalls stay fast. It only rewrites
+the gitignored generated outputs, never tracked files, is best-effort (a failure skips silently
+rather than breaking the install), and skips CI. A plain `git worktree add` with no install step
+still has nothing generated; run `pnpm install` (or `ruler apply`) in that worktree to get the
+files.
 
 ## Generate Local Assistant Files
 

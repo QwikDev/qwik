@@ -28,5 +28,4 @@ export {
   _reT,
   // ErrorBoundary
   _ebC,
-  _ebL,
 } from '@qwik.dev/core/internal';

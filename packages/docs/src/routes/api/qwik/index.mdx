@@ -1653,7 +1653,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-fallback$?
+fallback$
 
 </td><td>
 
@@ -1663,7 +1663,7 @@ fallback$?
 
 </td><td>
 
-_(Optional)_
+Rendered in place of the subtree when a descendant throws during render. Lazily loaded — only fetched once the subtree errors — and receives the caught error.
 
 </td></tr>
 </tbody></table>
@@ -1694,6 +1694,21 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+$fallback$?
+
+</td><td>
+
+</td><td>
+
+(error: any) =&gt; unknown
+
+</td><td>
+
+_(Optional)_ The boundary's fallback renderer. Set by `<ErrorBoundary>` so SSR can render the fallback in place of a subtree that throws during server render (on the client the boundary re-renders instead). Internal — not meant to be set by application code.
+
+</td></tr>
+<tr><td>
 
 error
 

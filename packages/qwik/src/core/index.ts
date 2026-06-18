@@ -160,11 +160,7 @@ export type { AsyncFn } from './use/use-async';
 export { useAsyncQrl, useAsync$ } from './use/use-async';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
-export {
-  ErrorBoundary,
-  errorBoundaryCmp as _ebC,
-  errorBoundaryQrl as _ebL,
-} from './shared/error/error-boundary';
+export { ErrorBoundary, errorBoundaryCmp as _ebC } from './shared/error/error-boundary';
 export type { ErrorBoundaryProps } from './shared/error/error-boundary';
 export {
   type ReadonlySignal,

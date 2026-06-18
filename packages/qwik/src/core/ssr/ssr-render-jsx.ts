@@ -43,6 +43,7 @@ import {
   isInternalServerComponent,
 } from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
+import { ERROR_CONTEXT } from '../shared/error/error-handling';
 import type { ISsrComponentFrame, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 
@@ -108,6 +109,27 @@ export async function _walkJSX(
     }
   };
   await drain();
+}
+
+/**
+ * A component threw during SSR render. Route it to the CLOSEST ErrorBoundary (matching the client's
+ * handleError): set the boundary's error and render its fallback in place of the failed subtree.
+ * With no boundary above, rethrow so the request aborts to the error page.
+ */
+function renderErrorBoundaryFallback(
+  ssr: SSRContainer,
+  host: ReturnType<SSRContainer['getOrCreateLastNode']>,
+  err: unknown
+): ValueOrPromise<JSXOutput> {
+  const errorStore = ssr.resolveContext(host, ERROR_CONTEXT);
+  // Only catch when the closest boundary exposes a fallback to render in place (SSR can't re-render
+  // the boundary). Boundaries without one — or no boundary at all — propagate, aborting to the error
+  // page, exactly as before.
+  if (!errorStore || !errorStore.$fallback$) {
+    throw err;
+  }
+  errorStore.error = err;
+  return errorStore.$fallback$(err) as ValueOrPromise<JSXOutput>;
 }
 
 function processJSXNode(
@@ -306,7 +328,12 @@ function processJSXNode(
             options.parentComponentFrame
           );
 
-          const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
+          let jsxOutput: ValueOrPromise<JSXOutput>;
+          try {
+            jsxOutput = applyQwikComponentBody(ssr, jsx, type);
+          } catch (err) {
+            jsxOutput = renderErrorBoundaryFallback(ssr, host, err);
+          }
           enqueue(
             setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
           );
@@ -333,12 +360,12 @@ function processJSXNode(
           ssr.openFragment(inlineComponentProps);
           enqueue(ssr.closeFragment);
           const component = ssr.getParentComponentFrame();
-          const jsxOutput = applyInlineComponent(
-            ssr,
-            component && component.componentNode,
-            type,
-            jsx
-          );
+          let jsxOutput: ValueOrPromise<JSXOutput>;
+          try {
+            jsxOutput = applyInlineComponent(ssr, component && component.componentNode, type, jsx);
+          } catch (err) {
+            jsxOutput = renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
+          }
           enqueue(jsxOutput);
           isPromise(jsxOutput) && enqueue(Promise);
         }

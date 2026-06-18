@@ -1,62 +1,93 @@
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { $, component$, ErrorBoundary } from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { $, ErrorBoundary } from '@qwik.dev/core';
 
 const debug = false;
 
-describe.each([
-  { render: ssrRenderToDom }, //
-  { render: domRender }, //
-])('$render.name: ErrorBoundary', ({ render }) => {
-  it('should project children when there is no error', async () => {
-    const { document } = await render(
+const Thrower = component$(() => {
+  throw new Error('boom');
+});
+
+describe('ErrorBoundary', () => {
+  it('projects children when there is no error', async () => {
+    const { container } = await domRender(
       <ErrorBoundary
-        fallback$={$((error: any) => (
-          <p>Caught: {error.message}</p>
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
         ))}
       >
-        <div>All good</div>
+        <div id="content">All good</div>
       </ErrorBoundary>,
       { debug }
     );
-
-    expect(document.body.textContent).toContain('All good');
-    expect(document.body.textContent).not.toContain('Caught');
+    expect(container.element.querySelector('#content')).toBeTruthy();
+    expect(container.element.querySelector('#fb')).toBeFalsy();
   });
 
-  it('should render the fallback when a qerror window event fires', async () => {
-    const { container, document } = await render(
+  it('SSR: renders the fallback in place when a child throws during render', async () => {
+    const { container } = await ssrRenderToDom(
       <ErrorBoundary
-        fallback$={$((error: any) => (
-          <p>Caught: {error.message}</p>
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
         ))}
       >
-        <div>All good</div>
+        <Thrower />
       </ErrorBoundary>,
       { debug }
     );
-
-    await trigger(container.element, null, 'w:qerror', {
-      detail: { error: new Error('Boom!') },
-    });
-
-    expect(document.body.querySelector('p')?.textContent).toContain('Caught: Boom!');
-    expect(document.body.textContent).not.toContain('All good');
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
   });
 
-  it('should keep projecting children when no fallback is provided', async () => {
-    const { container, document } = await render(
-      <ErrorBoundary>
-        <div>All good</div>
+  it('client: a render throw is caught by the NEAREST boundary', async () => {
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$(() => (
+          <p id="fb-outer">outer</p>
+        ))}
+      >
+        <div id="content">ok</div>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb-inner">inner</p>
+          ))}
+        >
+          <Thrower />
+        </ErrorBoundary>
       </ErrorBoundary>,
       { debug }
     );
+    const el = container.element;
+    expect(el.querySelector('#fb-inner')).toBeTruthy();
+    expect(el.querySelector('#fb-outer')).toBeFalsy();
+    expect(el.querySelector('#content')).toBeTruthy();
+  });
 
-    // Without a fallback the error is recorded but children keep rendering.
-    await trigger(container.element, null, 'w:qerror', {
-      detail: { error: new Error('Boom!') },
-    });
+  it('client: an async qerror is routed to the NEAREST boundary', async () => {
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$(() => (
+          <p id="fb-outer">outer</p>
+        ))}
+      >
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb-inner">inner</p>
+          ))}
+        >
+          <button id="target">x</button>
+        </ErrorBoundary>
+      </ErrorBoundary>,
+      { debug }
+    );
+    const el = container.element;
+    const target = el.querySelector('#target')!;
+    const ev = el.ownerDocument.createEvent('Event');
+    ev.initEvent('qerror', false, false);
+    (ev as any).detail = { error: new Error('async boom'), element: target };
+    el.ownerDocument.dispatchEvent(ev);
+    await waitForDrain(container);
 
-    expect(document.body.textContent).toContain('All good');
+    expect(el.querySelector('#fb-inner')).toBeTruthy();
+    expect(el.querySelector('#fb-outer')).toBeFalsy();
   });
 });

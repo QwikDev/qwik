@@ -467,9 +467,6 @@ export const _eaT: (input: TaskCtx) => Promise<void>;
 export const _ebC: (props: ErrorBoundaryProps) => JSXOutput;
 
 // @internal (undocumented)
-export const _ebL: (e: CustomEvent) => void;
-
-// @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
@@ -504,12 +501,12 @@ export const ErrorBoundary: Component<ErrorBoundaryProps>;
 
 // @public (undocumented)
 export interface ErrorBoundaryProps {
-    // (undocumented)
-    fallback$?: QRL<(error: any) => any>;
+    fallback$: QRL<(error: any) => any>;
 }
 
 // @public (undocumented)
 export interface ErrorBoundaryStore {
+    $fallback$?: (error: any) => unknown;
     // (undocumented)
     error: any | undefined;
 }

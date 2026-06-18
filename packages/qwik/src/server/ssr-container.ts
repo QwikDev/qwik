@@ -469,11 +469,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.rootContainerReadyPromise = null;
   }
 
-  nextOutOfOrderId(): number {
+  nextOutOfOrderId(markUsed = true): number {
     if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
       return 0;
     }
-    this.outOfOrderUsed = true;
+    // `<ErrorBoundary>` reserves an id without arming the executor (markUsed=false): it only needs
+    // OOOS if it actually throws, at which point creating the fallback `segment()` marks it used.
+    if (markUsed) {
+      this.outOfOrderUsed = true;
+    }
     return ++this.outOfOrderId;
   }
 
@@ -499,6 +503,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         'Out-of-order Suspense streaming requires `streaming.outOfOrder` to be `true`.'
       );
     }
+    // Creating a segment means OOOS is genuinely used, so arm the executor. (For Suspense this is
+    // already set by `nextOutOfOrderId`; for a throwing `<ErrorBoundary>` this is what arms it.)
+    this.outOfOrderUsed = true;
     this.markVNodeRefForSerialization(options.parentComponentFrame?.componentNode);
     const writer = new StringBufferSegmentWriter();
     const segmentContainer = this.createSegmentContainer(segmentId, writer);
@@ -1886,8 +1893,8 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     super(opts);
   }
 
-  override nextOutOfOrderId(): number {
-    return this.$rootContainer$.nextOutOfOrderId();
+  override nextOutOfOrderId(markUsed = true): number {
+    return this.$rootContainer$.nextOutOfOrderId(markUsed);
   }
 
   override $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {

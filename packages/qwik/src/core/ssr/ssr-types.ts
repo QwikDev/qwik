@@ -171,7 +171,12 @@ export interface SSRContainer extends Container {
   render(jsx: JSXOutput): Promise<void>;
   renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
   $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T>;
-  nextOutOfOrderId(): number;
+  /**
+   * Allocate the next out-of-order boundary id. Pass `markUsed: false` to reserve an id without
+   * arming the OOOS executor — used by `<ErrorBoundary>`, which only needs the executor if it
+   * actually throws (creating the fallback `segment()` then marks OOOS used).
+   */
+  nextOutOfOrderId(markUsed?: boolean): number;
   emitOutOfOrderSegmentScripts(scripts: string): void;
   segment(
     segmentId: string,

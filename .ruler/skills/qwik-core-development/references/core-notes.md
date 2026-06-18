@@ -195,6 +195,12 @@ Key invariants:
   emission promise, awaited in the drain), so the swap lands right after the boundary — NOT via
   `queueOutOfOrderSegment`, which would defer it to end-of-stream and leave the broken content
   visible the whole time. A test asserts the `qO(` position precedes trailing content; keep it.
+- An **error-free** boundary ships NO swap JS (no `qO` executor, no `qO(id)` call). The boundary
+  reserves its id with `nextErrorBoundaryId()` → `container.nextOutOfOrderId(false)`, which does NOT
+  set `outOfOrderUsed`; the executor is armed only when a throw creates the fallback `segment()`
+  (which sets `outOfOrderUsed`) and `emitErrorBoundaryFallback` emits the executor right before the
+  first `qO(id)`. Per throwing boundary it's one shared executor + one tiny `qO(id)` call (same unit
+  cost as a resolved Suspense segment). A test asserts the error-free HTML has no `qO(`/`qInstallOOOS`.
 - A deferred child `<Suspense>` that throws routes to the enclosing boundary's `store.$emitFallback$`
   (set by `SSRErrorFallback`), tearing the whole boundary down — not into the Suspense sub-slot.
 - A boundary *inside* a `<Suspense>` segment is the one case that still buffers (the segment is

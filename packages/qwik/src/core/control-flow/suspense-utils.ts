@@ -116,6 +116,25 @@ export const nextOutOfOrderSuspenseId = (): number => {
   return container?.nextOutOfOrderId?.() ?? 0;
 };
 
+/**
+ * Reserve an out-of-order id for a streaming `<ErrorBoundary>` WITHOUT arming the OOOS executor.
+ * The boundary needs an id up front (for its `q:rp` fallback host), but it only needs the executor
+ * if it actually throws — at which point streaming the fallback `segment()` arms it. So an
+ * error-free boundary ships neither the executor nor any `qO(id)` call.
+ *
+ * @internal
+ */
+export const nextErrorBoundaryId = (): number => {
+  if (!__EXPERIMENTAL__.errorBoundary) {
+    return 0;
+  }
+  const container = tryGetInvokeContext()?.$container$ as SSRContainer | undefined;
+  if (container?.outOfOrderStreaming !== true) {
+    return 0;
+  }
+  return container?.nextOutOfOrderId?.(false) ?? 0;
+};
+
 /** @internal */
 export const applySubscriptionPatches = (
   container: Container,

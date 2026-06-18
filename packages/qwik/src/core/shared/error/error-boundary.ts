@@ -1,5 +1,5 @@
 import { isBrowser } from '@qwik.dev/core/build';
-import { isOutOfOrderStreaming, nextOutOfOrderSuspenseId } from '../../control-flow/suspense-utils';
+import { isOutOfOrderStreaming, nextErrorBoundaryId } from '../../control-flow/suspense-utils';
 import { SSRErrorFallback } from '../../control-flow/suspense';
 import { useErrorBoundaryStore } from '../../use/use-error-boundary-store';
 import { componentQrl, type Component } from '../component.public';
@@ -63,7 +63,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
-    const boundaryId = nextOutOfOrderSuspenseId();
+    const boundaryId = nextErrorBoundaryId();
     return [
       /*#__PURE__*/ _jsxSorted(
         'div',

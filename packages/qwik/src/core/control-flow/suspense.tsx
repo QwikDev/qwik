@@ -383,8 +383,9 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
             .then((segment) => emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment));
         };
         store.$emitFallback$ = noSerialize(streamFallback);
-        // Install the shared `qO` executor up front (before any swap call) and write the placeholder.
-        ssr.emitOutOfOrderExecutorIfNeeded();
+        // Just reserve the injection point. The shared `qO` executor is emitted lazily (in
+        // `emitErrorBoundaryFallback`, only when a boundary actually throws), so an error-free page
+        // ships neither the executor nor any `qO(id)` call.
         writeOutOfOrderPlaceholder(ssr, boundaryId);
         // A throw during the content render already set `store.error` before this host renders (the
         // content host is our previous sibling). Returning the promise awaits the swap inline.
@@ -406,6 +407,9 @@ async function emitErrorBoundaryFallback(
     const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
     writeOutOfOrderResolvedTemplate(ssr, boundaryId, result.html, null);
     ssr.emitOutOfOrderSegmentScripts(result.scripts);
+    // Install the shared executor (idempotent) right before its first call, so error-free pages
+    // never ship it.
+    ssr.emitOutOfOrderExecutorIfNeeded();
     ssr.emitInlineScript(`qO(${boundaryId})`);
     // qO() is the browser-visible swap (hide content host, reveal fallback host), so flush now.
     await ssr.streamHandler.flush();

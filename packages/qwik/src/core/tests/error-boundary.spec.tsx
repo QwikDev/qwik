@@ -161,8 +161,8 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
     expect(displayOf(document.querySelector('#before')?.closest('div[style]'))).toBe('none');
   });
 
-  it('renders the content unchanged when nothing throws', async () => {
-    const { document } = await streamAndResume(
+  it('renders the content unchanged when nothing throws (ships no swap JS)', async () => {
+    const { html, document } = await streamAndResume(
       <main>
         <ErrorBoundary
           fallback$={$(() => (
@@ -178,6 +178,8 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
     expect(document.querySelector('#content')?.textContent).toBe('all good');
     expect(displayOf(document.querySelector('#content')?.closest('div[style]'))).toBe('contents');
     expect(document.querySelector('#fb')).toBeFalsy();
+    // An error-free boundary arms nothing: neither the shared qO executor nor any qO(id) call.
+    expect(html).not.toMatch(/qO\(|qInstallOOOS/);
   });
 
   it('a deferred (async) throw inside a child <Suspense> tears down the WHOLE boundary', async () => {

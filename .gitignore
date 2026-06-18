@@ -41,8 +41,6 @@ sandbox
 
 # AI tools
 .planning
-# Ruler-generated assistant files are committed (.ruler/ruler.toml [gitignore] enabled = false);
-# a CI freshness check guards them. Ignore only per-tool config; keep skills + AGENTS.md/CLAUDE.md.
 /.claude/*
 !/.claude/skills/
 /.codex/*

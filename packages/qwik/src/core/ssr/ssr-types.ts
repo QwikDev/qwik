@@ -43,6 +43,13 @@ export interface SSRInternalStreamWriter extends StreamWriter {
   writeRootRef(id: number): ValueOrPromise<void>;
   writeRootRefPath(path: number[]): ValueOrPromise<void>;
   toString(remap?: number[]): string;
+  /** Mark the current write position so a later `truncate` can discard everything written after it. */
+  checkpoint(): number;
+  /**
+   * Discard everything written since `checkpoint`. Only valid while the output is still buffered
+   * (no flush has happened in between) — e.g. inside a stream block or a segment writer.
+   */
+  truncate(checkpoint: number): void;
 }
 
 export interface ISsrNode {

@@ -39,6 +39,12 @@ export class StringSSRWriter implements SSRInternalStreamWriter {
   writeRootRefPath(path: number[]): void {
     writeStringRootRefPath(this, path);
   }
+  checkpoint(): number {
+    return this.buffer.length;
+  }
+  truncate(checkpoint: number): void {
+    this.buffer.length = checkpoint;
+  }
   clear() {
     this.buffer.length = 0;
   }
@@ -57,6 +63,12 @@ export class StringBufferSegmentWriter implements SSRInternalStreamWriter {
   }
   writeRootRefPath(path: number[]): void {
     this.chunks.push({ type: 'root-ref-path', localPath: path });
+  }
+  checkpoint(): number {
+    return this.chunks.length;
+  }
+  truncate(checkpoint: number): void {
+    this.chunks.length = checkpoint;
   }
   clear() {
     this.chunks.length = 0;

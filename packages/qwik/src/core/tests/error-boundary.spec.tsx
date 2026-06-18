@@ -100,10 +100,12 @@ describe('ErrorBoundary', () => {
   });
 });
 
-describe('ErrorBoundary buffer-and-swap (experimental)', () => {
-  // Render with streaming, then run the emitted scripts to resume on the client (and inject any
-  // out-of-order Suspense segments into their placeholders, mirroring the Suspense OOOS specs).
-  const ssrRenderResumed = async (jsx: JSXOutput) => {
+describe('ErrorBoundary streaming swap (experimental)', () => {
+  // Render with out-of-order streaming, then run the emitted `qO` scripts to perform the inline swap
+  // (hide the content host, reveal the fallback host) and wire `qProcessOOOS` for resume, mirroring
+  // the Suspense OOOS specs. Returns the streamed HTML (to assert the boundary did NOT block) plus
+  // the resumed document (to assert the post-swap DOM).
+  const streamAndResume = async (jsx: JSXOutput) => {
     const chunks: string[] = [];
     await ssrRenderToDom(jsx, {
       stream: {
@@ -114,20 +116,24 @@ describe('ErrorBoundary buffer-and-swap (experimental)', () => {
       streaming: { inOrder: { strategy: 'disabled' }, outOfOrder: true },
       debug,
     });
-    const document = createDocument({ html: chunks.join('') });
+    const html = chunks.join('');
+    const document = createDocument({ html });
     (document as any).qProcessOOOS = (boundaryId: number, content: Element | null) =>
       processOutOfOrderSegmentVNodeData(document, String(boundaryId), content);
     const scripts = Array.from(
       document.querySelectorAll('script[type="text/javascript"]'),
       (s) => s.textContent || ''
-    );
+    ).filter((code) => code.includes('qO') || code.includes('qInstallOOOS'));
     // eslint-disable-next-line no-new-func
     new Function('document', scripts.join('\n'))(document);
-    return document;
+    return { html, document };
   };
 
-  it('discards leftover siblings and swaps in the fallback when a descendant throws', async () => {
-    const document = await ssrRenderResumed(
+  const displayOf = (el: Element | null | undefined) =>
+    (el as HTMLElement | null | undefined)?.style?.display;
+
+  it('streams the content, then hides it and reveals the fallback when a descendant throws', async () => {
+    const { html, document } = await streamAndResume(
       <main>
         <ErrorBoundary
           fallback$={$((e: any) => (
@@ -140,15 +146,18 @@ describe('ErrorBoundary buffer-and-swap (experimental)', () => {
         </ErrorBoundary>
       </main>
     );
-    // The partially-streamed `before`/`after` siblings are rolled back — the boundary renders as a
-    // clean `boundary > fallback`, matching the client (instead of the in-place divergence).
+    // The boundary never blocks: its content streams as usual.
+    expect(html).toContain('id="before"');
+    // On the throw the content host is hidden and the fallback host revealed (inline `qO` swap). The
+    // content stays in the DOM (hidden), so no-JS clients still see something and the swap has no
+    // re-render dependency.
     expect(document.querySelector('#fb')?.textContent).toContain('caught: boom');
-    expect(document.querySelector('#before')).toBeFalsy();
-    expect(document.querySelector('#after')).toBeFalsy();
+    expect(displayOf(document.querySelector('#fb')?.closest('[q\\:rp]'))).toBe('contents');
+    expect(displayOf(document.querySelector('#before')?.closest('div[style]'))).toBe('none');
   });
 
   it('renders the content unchanged when nothing throws', async () => {
-    const document = await ssrRenderResumed(
+    const { document } = await streamAndResume(
       <main>
         <ErrorBoundary
           fallback$={$(() => (
@@ -162,34 +171,37 @@ describe('ErrorBoundary buffer-and-swap (experimental)', () => {
       </main>
     );
     expect(document.querySelector('#content')?.textContent).toBe('all good');
-    expect(document.querySelector('#before')).toBeTruthy();
-    expect(document.querySelector('#after')).toBeTruthy();
+    expect(displayOf(document.querySelector('#content')?.closest('div[style]'))).toBe('contents');
     expect(document.querySelector('#fb')).toBeFalsy();
   });
 
-  it('works when the boundary is inside a <Suspense> (swaps within the segment)', async () => {
-    const document = await ssrRenderResumed(
+  it('a deferred (async) throw inside a child <Suspense> tears down the WHOLE boundary', async () => {
+    // The boundary committed once the Suspense placeholder streamed, so it can't catch the later
+    // async throw in place. Instead the whole boundary — the streamed sibling and the Suspense — is
+    // hidden and the boundary fallback revealed (the dev's `fallback$` replaces the boundary, not a
+    // sub-slot of it).
+    const { html, document } = await streamAndResume(
       <main>
-        <Suspense fallback={<span id="loading">loading</span>}>
-          <ErrorBoundary
-            fallback$={$((e: any) => (
-              <p id="fb">caught: {e.message}</p>
-            ))}
-          >
-            <div id="before">before</div>
-            <Thrower />
-            <div id="after">after</div>
-          </ErrorBoundary>
-        </Suspense>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {String(e?.message ?? e)}</p>
+          ))}
+        >
+          <div id="sibling">sibling</div>
+          <Suspense fallback={<span id="skel">loading</span>}>
+            <AsyncThrower />
+          </Suspense>
+        </ErrorBoundary>
       </main>
     );
-    expect(document.querySelector('#fb')?.textContent).toContain('caught: boom');
-    expect(document.querySelector('#before')).toBeFalsy();
-    expect(document.querySelector('#after')).toBeFalsy();
+    expect(html).toContain('id="sibling"');
+    expect(document.querySelector('#fb')?.textContent).toContain('caught: async boom');
+    expect(displayOf(document.querySelector('#fb')?.closest('[q\\:rp]'))).toBe('contents');
+    expect(displayOf(document.querySelector('#sibling')?.closest('div[style]'))).toBe('none');
   });
 
-  it('nested boundaries: the inner one catches, the outer subtree is untouched', async () => {
-    const document = await ssrRenderResumed(
+  it('nested boundaries: the inner one tears down, the outer subtree stays visible', async () => {
+    const { document } = await streamAndResume(
       <main>
         <ErrorBoundary
           fallback$={$(() => (
@@ -209,40 +221,43 @@ describe('ErrorBoundary buffer-and-swap (experimental)', () => {
         </ErrorBoundary>
       </main>
     );
+    // The inner boundary catches: its content host hides, its fallback shows.
     expect(document.querySelector('#fb-inner')).toBeTruthy();
-    expect(document.querySelector('#outer-sibling')).toBeTruthy();
     expect(document.querySelector('#fb-outer')).toBeFalsy();
+    expect(displayOf(document.querySelector('#before')?.closest('div[style]'))).toBe('none');
+    // The outer subtree is untouched and stays visible.
+    expect(document.querySelector('#outer-sibling')).toBeTruthy();
+    expect(displayOf(document.querySelector('#outer-sibling')?.closest('div[style]'))).toBe(
+      'contents'
+    );
+  });
+
+  it('boundary inside a <Suspense> buffers within the segment (skeleton → fallback)', async () => {
+    // When the boundary sits inside a <Suspense> its subtree is already deferred into a buffered
+    // segment, so the boundary buffers there and discards the partial content — a clean
+    // skeleton → fallback swap rather than the stream-and-hide path used by a live boundary.
+    const { document } = await streamAndResume(
+      <main>
+        <Suspense fallback={<span id="loading">loading</span>}>
+          <ErrorBoundary
+            fallback$={$((e: any) => (
+              <p id="fb">caught: {e.message}</p>
+            ))}
+          >
+            <div id="before">before</div>
+            <Thrower />
+            <div id="after">after</div>
+          </ErrorBoundary>
+        </Suspense>
+      </main>
+    );
+    expect(document.querySelector('#fb')?.textContent).toContain('caught: boom');
     expect(document.querySelector('#before')).toBeFalsy();
     expect(document.querySelector('#after')).toBeFalsy();
   });
 
-  it('routes a deferred (async) throw inside a child <Suspense> to the boundary fallback', async () => {
-    // The boundary commits once the Suspense placeholder streams, so its own buffer can't catch the
-    // later async throw; the rejected segment is instead routed to the boundary's fallback, injected
-    // into the Suspense slot — no aborted render.
-    const document = await ssrRenderResumed(
-      <main>
-        <ErrorBoundary
-          fallback$={$((e: any) => (
-            <p id="fb">caught: {String(e?.message ?? e)}</p>
-          ))}
-        >
-          <Suspense fallback={<span id="loading">loading</span>}>
-            <AsyncThrower />
-          </Suspense>
-        </ErrorBoundary>
-      </main>
-    );
-    expect(document.querySelector('#fb')?.textContent).toContain('caught: async boom');
-  });
-
-  it('boundary inside a <Suspense>: an async throw rolls back the WHOLE content (skeleton → fallback)', async () => {
-    // Here the entire boundary subtree is deferred behind the Suspense skeleton, so the user only
-    // ever sees the skeleton — never the broken/partial content. The async throw rolls the whole
-    // subtree back within the segment (siblings included), and the segment resolves to the fallback,
-    // which is injected in place of the skeleton: a clean skeleton → fallback swap, no leaked
-    // siblings, no broken-content flash (and no CLS if skeleton/fallback/content share a box).
-    const document = await ssrRenderResumed(
+  it('boundary inside a <Suspense>: an async throw rolls back the WHOLE content', async () => {
+    const { document } = await streamAndResume(
       <main>
         <Suspense fallback={<span id="loading">loading</span>}>
           <ErrorBoundary

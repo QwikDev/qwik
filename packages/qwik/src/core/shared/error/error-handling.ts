@@ -11,12 +11,21 @@ export interface ErrorBoundaryStore {
    */
   $fallback$?: (error: any) => unknown;
   /**
-   * Server-only. When the boundary buffers its subtree (experimental `errorBoundary` feature), this
-   * holds the render checkpoint taken at the start of its content. Its presence tells the in-place
-   * SSR catch to let the throw propagate to the boundary's nested render, which rolls back to this
-   * checkpoint and renders the fallback in place.
+   * Server-only. When the boundary buffers its subtree (experimental `errorBoundary` feature) —
+   * only inside a `<Suspense>` segment, which is already buffered — this holds the render
+   * checkpoint taken at the start of its content. Its presence tells the in-place SSR catch to let
+   * the throw propagate to the boundary's nested render, which rolls back to this checkpoint and
+   * renders the fallback.
    */
   $checkpoint$?: SSRBufferCheckpoint;
+  /**
+   * Server-only, streaming `<ErrorBoundary>`. Set by the boundary's SSR fallback host: streams the
+   * boundary's `fallback$(error)` as an out-of-order segment and injects it (via the shared `qO`
+   * executor) into the fallback host, hiding the content host. Called either synchronously — when a
+   * descendant threw during the content render — or later, when a deferred child `<Suspense>`
+   * throws.
+   */
+  $emitFallback$?: (error: unknown) => void | Promise<void>;
 }
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');

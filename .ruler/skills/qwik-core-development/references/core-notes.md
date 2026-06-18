@@ -168,6 +168,39 @@ streaming, navigation, or integration with fixture apps. For Qwik e2e, load
 
 Never use `pnpm test.unit` for agent verification in this repo.
 
+## ErrorBoundary Streaming (experimental `errorBoundary`)
+
+`<ErrorBoundary>` must NEVER block streaming — people nest it freely, so a buffering boundary would
+silently kill a page's streaming. On SSR with out-of-order streaming the boundary (`errorBoundaryCmp`
+in `shared/error/error-boundary.ts`) renders two display-toggled hosts modeled on Suspense:
+
+- a visible content host (`<div style=display:contents>` wrapping `<Slot>`), and
+- a hidden fallback host (`<div q:rp={id} style=display:none>` containing `SSRErrorFallback`).
+
+On a throw, `renderErrorBoundaryFallback` (in `ssr/ssr-render-jsx.ts`) just sets `store.error` and
+renders nothing in place. The fallback host (rendered after the content) streams `fallback$(error)`
+as an out-of-order **segment** and reuses the Suspense pipeline verbatim:
+`writeOutOfOrderResolvedTemplate` + `emitInlineScript('qO(id)')`. The shared `qO` executor
+(`out-of-order-executor-shared.ts`) reveals the `q:rp` host and hides its previous sibling — which is
+exactly content-host-hidden + fallback-host-shown, no executor change. Resume consistency comes for
+free via `qProcessOOOS` / `processOutOfOrderSegmentVNodeData`. Display is driven by `_fnSignal`
+reading `store.error`, so the resumed/re-rendered boundary stays consistent with the inline swap.
+
+Key invariants:
+
+- The swap is an inline script (fires as its chunk parses) — it does NOT depend on the client
+  re-rendering, so it works before the framework resumes. Client-time errors still use the reactive
+  re-render path (`handleError` → `store.error`).
+- A deferred child `<Suspense>` that throws routes to the enclosing boundary's `store.$emitFallback$`
+  (set by `SSRErrorFallback`), tearing the whole boundary down — not into the Suspense sub-slot.
+- A boundary *inside* a `<Suspense>` segment is the one case that still buffers (the segment is
+  already buffered, so it doesn't block the shell): `getBufferingErrorBoundaryStore` gates buffering
+  on `isOutOfOrderSegmentContainer`.
+- Tests must assert BOTH the streamed HTML (content was not blocked) and the post-`qO` DOM
+  (content host `display:none`, fallback host `display:contents`). Resume helpers must filter the
+  emitted scripts to `qO`/`qInstallOOOS` (running every `text/javascript` script hits debug-build
+  refs). See `core/tests/error-boundary.spec.tsx`.
+
 ## Keep This Reference Fresh
 
 Before finishing a core task, ask:

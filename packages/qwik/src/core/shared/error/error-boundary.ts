@@ -1,12 +1,20 @@
+import { isBrowser } from '@qwik.dev/core/build';
+import { isOutOfOrderStreaming, nextOutOfOrderSuspenseId } from '../../control-flow/suspense-utils';
+import { SSRErrorFallback } from '../../control-flow/suspense';
 import { useErrorBoundaryStore } from '../../use/use-error-boundary-store';
 import { componentQrl, type Component } from '../component.public';
 import { _jsxSorted } from '../jsx/jsx-internal';
 import { Fragment } from '../jsx/jsx-runtime';
 import { Slot } from '../jsx/slot.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
+import { isServerPlatform } from '../platform/platform';
+import { _fnSignal } from '../qrl/inlined-fn';
 import { inlinedQrl } from '../qrl/qrl';
 import type { QRL } from '../qrl/qrl.public';
 import { noSerialize } from '../serdes/verify';
+import { QSuspenseResultParent } from '../utils/markers';
+import { qTest } from '../utils/qdev';
+import type { ErrorBoundaryStore } from './error-handling';
 
 /** @public */
 export interface ErrorBoundaryProps {
@@ -25,24 +33,59 @@ export interface ErrorBoundaryProps {
  *
  * The store is created and provided on `ERROR_CONTEXT` by the internal `useErrorBoundaryStore` hook
  * (the old public `useErrorBoundary` was removed). Errors are routed to the CLOSEST boundary by the
- * container's `handleError` (it resolves
- * `ERROR_CONTEXT` and sets this store's `.error`); both synchronous render throws and async `qerror`
- * events go through it. During SSR the fallback is rendered in place via `store.$fallback$`. So this
- * component only reads its store and renders — there is no per-boundary `qerror` listener.
+ * container's `handleError` (it resolves `ERROR_CONTEXT` and sets this store's `.error`); both
+ * synchronous render throws and async `qerror` events go through it.
  *
- * Experimental (`errorBoundary` feature): during SSR the container renders this boundary's subtree
- * into a discardable buffer (see the buffering ErrorBoundary path in `ssr-render-jsx`). On a throw it
- * rolls back the buffer and renders `fallback$` in place, so SSR matches the client's clean
- * `boundary > fallback` instead of leaving the partially-streamed subtree behind. This component
- * itself stays unaware of streaming — it only provides the store and renders.
+ * Streaming (experimental `errorBoundary` feature): the boundary NEVER blocks streaming. On SSR with
+ * out-of-order streaming it renders its subtree inside a visible content host plus a hidden fallback
+ * host. The content streams as usual; if the subtree throws, the boundary's `fallback$` is streamed
+ * as an out-of-order segment and the shared `qO` executor hides the content host and reveals the
+ * fallback host (an inline script, so the swap happens before the framework resumes). On the client
+ * — a fresh render, or a re-render after a post-resume error — the boundary just swaps `<Slot>` for
+ * the fallback reactively (see `store.error` below).
  */
+
+const _ebContentStyle = (store: ErrorBoundaryStore) => ({
+  display: store.error ? 'none' : 'contents',
+});
+const _ebContentStyle_str = '{display:p0.error?"none":"contents"}';
+const _ebFallbackStyle = (store: ErrorBoundaryStore) => ({
+  display: store.error ? 'contents' : 'none',
+});
+const _ebFallbackStyle_str = '{display:p0.error?"contents":"none"}';
 
 /** @internal */
 export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const store = useErrorBoundaryStore();
-  // Expose the fallback so SSR can render it in place when a child throws (the client re-renders this
+  // Expose the fallback so SSR can stream it when a child throws (the client re-renders this
   // component instead, which reads `store.error` below). Server-render-only, hence noSerialize.
   store.$fallback$ = noSerialize(props.fallback$);
+
+  const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
+  if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
+    const boundaryId = nextOutOfOrderSuspenseId();
+    return [
+      /*#__PURE__*/ _jsxSorted(
+        'div',
+        { style: /*#__PURE__*/ _fnSignal(_ebContentStyle, [store], _ebContentStyle_str) },
+        null,
+        /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null),
+        1,
+        null
+      ),
+      /*#__PURE__*/ _jsxSorted(
+        'div',
+        {
+          [QSuspenseResultParent]: String(boundaryId),
+          style: /*#__PURE__*/ _fnSignal(_ebFallbackStyle, [store], _ebFallbackStyle_str),
+        },
+        null,
+        /*#__PURE__*/ _jsxSorted(SSRErrorFallback, { boundaryId, store }, null, null, 1, null),
+        1,
+        null
+      ),
+    ] as unknown as JSXOutput;
+  }
 
   if (store.error) {
     return /*#__PURE__*/ _jsxSorted(Fragment, null, null, props.fallback$(store.error), 0, null);

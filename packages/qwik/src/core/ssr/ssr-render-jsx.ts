@@ -36,7 +36,7 @@ import { mapArray_get, mapArray_has } from '../client/util-mapArray';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
-import type { InnerContainer } from '../shared/utils/container';
+import { isOutOfOrderSegmentContainer, type InnerContainer } from '../shared/utils/container';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import type { CursorBoundary } from '../use/use-cursor-boundary';
@@ -130,11 +130,23 @@ function renderErrorBoundaryFallback(
   if (!errorStore || !errorStore.$fallback$) {
     throw err;
   }
-  // Experimental: a buffering boundary handles the throw in its own nested render — it rolls back to
-  // its checkpoint and renders the fallback there. Propagate so the throw unwinds to that boundary
-  // instead of rendering in place here (which would leave the partially-streamed subtree behind).
+  // Experimental: a buffering boundary (only inside a `<Suspense>` segment, which is already
+  // buffered) handles the throw in its own nested render — it rolls back to its checkpoint and
+  // renders the fallback there. Propagate so the throw unwinds to that boundary.
   if (__EXPERIMENTAL__.errorBoundary && errorStore.$checkpoint$) {
     throw err;
+  }
+  // Experimental: a live streaming boundary never blocks streaming and never renders in place. Just
+  // mark the error — the boundary's fallback host (rendered after the content) streams `fallback$`
+  // as an out-of-order segment and the shared `qO` executor hides the content and reveals it. The
+  // throwing subtree renders nothing here.
+  if (
+    __EXPERIMENTAL__.errorBoundary &&
+    ssr.outOfOrderStreaming &&
+    !isOutOfOrderSegmentContainer(ssr)
+  ) {
+    errorStore.error = err;
+    return null;
   }
   errorStore.error = err;
   return errorStore.$fallback$(err) as ValueOrPromise<JSXOutput>;
@@ -146,9 +158,12 @@ function renderErrorBoundaryFallback(
  * fallback on a throw. Reads the host's OWN context (not an ancestor's) so children don't match.
  */
 function getBufferingErrorBoundaryStore(
+  ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>
 ): ErrorBoundaryStore | null {
-  if (!__EXPERIMENTAL__.errorBoundary) {
+  // Only buffer inside a `<Suspense>` segment, which is already buffered — a live boundary must
+  // never block streaming, so it streams its subtree and swaps in the fallback via `qO` instead.
+  if (!__EXPERIMENTAL__.errorBoundary || !isOutOfOrderSegmentContainer(ssr)) {
     return null;
   }
   const ctx = host.getProp(QCtxAttr) as Array<string | unknown> | null;
@@ -361,7 +376,7 @@ function processJSXNode(
           } catch (err) {
             jsxOutput = renderErrorBoundaryFallback(ssr, host, err);
           }
-          const bufferingErrorStore = getBufferingErrorBoundaryStore(host);
+          const bufferingErrorStore = getBufferingErrorBoundaryStore(ssr, host);
           enqueue(
             setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
           );

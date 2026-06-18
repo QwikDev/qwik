@@ -29,11 +29,9 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
 
-      - run: pnpm install
-
       - name: Verify committed agent files match .ruler/
         run: |
-          pnpm exec ruler apply --no-gitignore --no-mcp
+          pnpm dlx @intellectronica/ruler@0.3.42 apply --no-gitignore --no-mcp
           DRIFT="$(git status --porcelain -- AGENTS.md CLAUDE.md .claude/skills .codex/skills)"
           if [ -n "$DRIFT" ]; then
             echo "::error::Committed agent files are out of sync with .ruler/. Run 'pnpm exec ruler apply' and commit the result."

@@ -107,7 +107,6 @@
     "@changesets/types": "6.1.0",
     "@clack/prompts": "0.11.0",
     "@eslint/js": "9.39.2",
-    "@intellectronica/ruler": "0.3.42",
     "@mdx-js/mdx": "3.1.1",
     "@microsoft/api-documenter": "7.29.6",
     "@microsoft/api-extractor": "7.57.6",

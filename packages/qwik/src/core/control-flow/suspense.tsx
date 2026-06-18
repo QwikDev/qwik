@@ -371,22 +371,25 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
         const boundaryId = jsx.varProps.boundaryId as number;
         const store = jsx.varProps.store as ErrorBoundaryStore;
         const segmentId = `${boundaryId}`;
-        const emitFallback = (error: unknown): Promise<void> => {
+        // Render `fallback$` as an out-of-order segment and inject it (template + inline `qO(id)`)
+        // into this fallback host. Returns the emission promise so the caller can await it in stream
+        // order — a synchronous throw awaits it inline (below) so the swap script follows the content
+        // immediately instead of landing at end-of-stream; a later async throw awaits it through the
+        // rejected Suspense segment's promise chain.
+        const streamFallback = (error: unknown): Promise<void> => {
           store.error = error;
-          ssr.emitOutOfOrderExecutorIfNeeded();
-          const rendered = ssr.segment(segmentId, store.$fallback$!(error) as JSXOutput, options);
-          const emission = rendered.then((segment) =>
-            emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment)
-          );
-          ssr.queueOutOfOrderSegment(emission);
-          return emission;
+          return ssr
+            .segment(segmentId, store.$fallback$!(error) as JSXOutput, options)
+            .then((segment) => emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment));
         };
-        store.$emitFallback$ = noSerialize(emitFallback);
+        store.$emitFallback$ = noSerialize(streamFallback);
+        // Install the shared `qO` executor up front (before any swap call) and write the placeholder.
+        ssr.emitOutOfOrderExecutorIfNeeded();
         writeOutOfOrderPlaceholder(ssr, boundaryId);
-        // A throw during the content render already set `store.error` before this host renders
-        // (the content host is our previous sibling), so stream the fallback now.
+        // A throw during the content render already set `store.error` before this host renders (the
+        // content host is our previous sibling). Returning the promise awaits the swap inline.
         if (store.error != null && store.$fallback$) {
-          emitFallback(store.error);
+          return streamFallback(store.error);
         }
       }
     )

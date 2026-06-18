@@ -191,6 +191,10 @@ Key invariants:
 - The swap is an inline script (fires as its chunk parses) — it does NOT depend on the client
   re-rendering, so it works before the framework resumes. Client-time errors still use the reactive
   re-render path (`handleError` → `store.error`).
+- A SYNC throw emits the fallback segment + `qO(id)` **inline** (`SSRErrorFallback` returns the
+  emission promise, awaited in the drain), so the swap lands right after the boundary — NOT via
+  `queueOutOfOrderSegment`, which would defer it to end-of-stream and leave the broken content
+  visible the whole time. A test asserts the `qO(` position precedes trailing content; keep it.
 - A deferred child `<Suspense>` that throws routes to the enclosing boundary's `store.$emitFallback$`
   (set by `SSRErrorFallback`), tearing the whole boundary down — not into the Suspense sub-slot.
 - A boundary *inside* a `<Suspense>` segment is the one case that still buffers (the segment is

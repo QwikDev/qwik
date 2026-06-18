@@ -144,13 +144,18 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
           <Thrower />
           <div id="after">after</div>
         </ErrorBoundary>
+        <footer id="eb-tail">tail</footer>
       </main>
     );
     // The boundary never blocks: its content streams as usual.
     expect(html).toContain('id="before"');
-    // On the throw the content host is hidden and the fallback host revealed (inline `qO` swap). The
-    // content stays in the DOM (hidden), so no-JS clients still see something and the swap has no
-    // re-render dependency.
+    // The inline `qO` swap script lands right after the boundary — BEFORE trailing content — so the
+    // broken content is not left visible until end-of-stream. The swap is a plain inline script, so
+    // it runs as the chunk parses, with no dependency on the framework having resumed.
+    const swapPos = html.search(/qO\(\d/);
+    expect(swapPos).toBeGreaterThan(html.indexOf('id="before"'));
+    expect(swapPos).toBeLessThan(html.indexOf('id="eb-tail"'));
+    // After the swap the content host is hidden and the fallback host revealed.
     expect(document.querySelector('#fb')?.textContent).toContain('caught: boom');
     expect(displayOf(document.querySelector('#fb')?.closest('[q\\:rp]'))).toBe('contents');
     expect(displayOf(document.querySelector('#before')?.closest('div[style]'))).toBe('none');

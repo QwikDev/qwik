@@ -111,13 +111,14 @@ rg -n 'Source: .ruler/rules' AGENTS.md
 find .codex/skills -name SKILL.md
 ```
 
-## Stale Guidance Reminder
+## Stale Guidance Refresh
 
 A `post-merge` git hook (`scripts/ruler-postmerge-check.mjs`, wired through `simple-git-hooks`)
-prints a reminder whenever a pull changes anything under `.ruler/`. It only notifies — it never
-writes files — so generated assistant outputs are never scaffolded behind your back. When you see
-it, re-run `ruler apply --agents <your-tool>` to refresh your local files. The hook installs on
-`pnpm install` via the `prepare` script.
+re-applies Ruler whenever a pull changes anything under `.ruler/`, so your generated assistant files
+do not go stale. It runs the pinned local `ruler` via `pnpm exec` — no network — and only rewrites
+the gitignored generated outputs, never tracked files. It is best-effort and never blocks the merge;
+if it cannot run, a manual `ruler apply --agents <your-tool>` still refreshes them. The hook installs
+on `pnpm install` via the `prepare` script.
 
 ## Missing Assistant Files (Fresh Clones And Worktrees)
 

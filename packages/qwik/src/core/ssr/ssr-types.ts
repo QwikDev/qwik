@@ -87,6 +87,15 @@ export interface ISsrComponentFrame {
 
 export type SymbolToChunkResolver = (symbol: string) => string;
 
+/**
+ * Opaque snapshot of the container's render state, taken by `checkpoint()` and restored by
+ * `rollback()`. Used to discard a partially-rendered subtree (e.g. an `<ErrorBoundary>` whose child
+ * threw) so the fallback can be rendered in its place. The shape is internal to the container.
+ */
+export interface SSRBufferCheckpoint {
+  readonly __brand: 'SSRBufferCheckpoint';
+}
+
 export interface SSRRenderJSXOptions {
   currentStyleScoped: string | null;
   parentComponentFrame: ISsrComponentFrame | null;
@@ -153,6 +162,10 @@ export interface SSRContainer extends Container {
   commentNode(text: string): void;
   addRoot(obj: any): number | string | undefined;
   getOrCreateLastNode(): ISsrNode;
+  /** Snapshot render state so a later `rollback` can discard everything rendered since. */
+  checkpoint(): SSRBufferCheckpoint;
+  /** Restore render state to a `checkpoint`, discarding HTML, vnode-data, nodes and roots since. */
+  rollback(checkpoint: SSRBufferCheckpoint): void;
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;

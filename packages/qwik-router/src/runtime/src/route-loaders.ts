@@ -5,6 +5,7 @@ import {
   _getContextEvent,
   _getContextContainer,
   _injectAsyncSignalValue,
+  _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
   _UNINITIALIZED,
@@ -293,18 +294,13 @@ const createRouteLoaderSignal = (
     filteredSearch?: string;
     routePath?: string;
   } = {};
-  return createAsync$(
+  const signal = createAsync$(
     async (ctx) => {
       const { track, info, previous, abortSignal } = ctx;
       const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
-      let trackedRoutePath: string | undefined;
-      let trackedPagePathname: string | undefined;
-      let trackedPageSearch: string | undefined;
-      if (!isServer || hasInjectedValue) {
-        trackedRoutePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
-        trackedPagePathname = track(routeLoaderCtx, 'pagePathname') as string | undefined;
-        trackedPageSearch = track(routeLoaderCtx, 'pageSearch') as string | undefined;
-      }
+      const trackedRoutePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
+      const trackedPagePathname = track(routeLoaderCtx, 'pagePathname') as string | undefined;
+      const trackedPageSearch = track(routeLoaderCtx, 'pageSearch') as string | undefined;
       // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
       // an action response). Client-side route dependencies must already be tracked
       // here so a resumed loader can re-fetch on the first SPA navigation.
@@ -403,6 +399,8 @@ const createRouteLoaderSignal = (
       allowStale: loader.__allowStale,
     }
   );
+  _markSignalAsExternallyOwned(signal);
+  return signal;
 };
 
 /** Build a sorted, stable search string from only the allowed param names. */

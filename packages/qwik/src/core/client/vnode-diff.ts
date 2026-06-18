@@ -3,12 +3,10 @@ import { qTest } from '../shared/utils/qdev';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
 import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
-import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import { isStore } from '../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { EffectProperty, type Consumer } from '../reactive-primitives/types';
+import { ComputedSignalFlags, EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { isCursor, type Cursor } from '../shared/cursor/cursor';
@@ -102,6 +100,7 @@ import {
 } from './vnode-utils';
 import { isObjectEmpty } from '../shared/utils/objects';
 import { setInlineComponentData } from '../shared/cursor/chore-execution';
+import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 
 export interface DiffContext {
   $container$: ClientContainer;
@@ -1963,8 +1962,13 @@ export function cleanup(
 
                 // don't call cleanupDestroyable yet, do it by the scheduler
                 continue;
-              } else if (obj instanceof SignalImpl || isStore(obj)) {
-                clearAllEffects(container, obj as Consumer);
+              }
+              // Stores and plain signals are only producers; their subscriptions are removed
+              // when cleaning the consumers that read them. They don't own reactive backrefs.
+              else if (obj instanceof ComputedSignalImpl || obj instanceof WrappedSignalImpl) {
+                if (!(obj.$flags$ & ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP)) {
+                  clearAllEffects(container, obj as Consumer);
+                }
               }
 
               if (objIsTask || obj instanceof AsyncSignalImpl) {

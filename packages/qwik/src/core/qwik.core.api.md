@@ -87,9 +87,9 @@ export class _AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> impl
     $untrackedLoading$: boolean;
     // (undocumented)
     [_EFFECT_BACK_REF]: Map<_EffectProperty | string, EffectSubscription> | undefined;
-    // Warning: (ae-forgotten-export) The symbol "SignalFlags" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "ComputedSignalFlags" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "SerializationSignalFlags" needs to be exported by the entry point index.d.ts
-    constructor(container: _Container | null, fn: AsyncQRL<T>, flags?: SignalFlags | SerializationSignalFlags, options?: AsyncSignalOptions<T>);
+    constructor(container: _Container | null, fn: AsyncQRL<T>, flags?: ComputedSignalFlags | SerializationSignalFlags, options?: AsyncSignalOptions<T>);
     abort(reason?: any): void;
     get error(): Error | undefined;
     // (undocumented)
@@ -758,6 +758,9 @@ export const _mapArray_get: <T>(array: (T | null)[], key: string, start: number)
 
 // @internal (undocumented)
 export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | null, start: number, allowNullValue?: boolean) => void;
+
+// @internal
+export const _markSignalAsExternallyOwned: (signal: ComputedSignal<unknown>) => void;
 
 // @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;

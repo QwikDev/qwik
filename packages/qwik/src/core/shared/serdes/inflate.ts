@@ -19,7 +19,7 @@ import {
   AsyncSignalFlags,
   EffectProperty,
   NEEDS_COMPUTATION,
-  SignalFlags,
+  ComputedSignalFlags,
   type AllSignalFlags,
   type AsyncQRL,
   type Consumer,
@@ -144,7 +144,7 @@ export const inflate = (
       signal.$args$ = d[1];
       signal.$untrackedValue$ = NEEDS_COMPUTATION;
       signal.$flags$ = d[2];
-      signal.$flags$ |= SignalFlags.INVALID;
+      signal.$flags$ |= ComputedSignalFlags.INVALID;
       signal.$hostElement$ = d[3];
       signal.$effects$ = new Set(d.slice(4) as EffectSubscription[]);
       inflateWrappedSignalValue(signal);
@@ -192,7 +192,7 @@ export const inflate = (
       }
       // can happen when never serialize etc
       if (asyncSignal.$untrackedValue$ === NEEDS_COMPUTATION) {
-        asyncSignal.$flags$ |= SignalFlags.INVALID;
+        asyncSignal.$flags$ |= ComputedSignalFlags.INVALID;
       }
 
       // Handle old format (negative = no poll) and new format (always positive, flag in d[5])
@@ -237,7 +237,7 @@ export const inflate = (
       if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
         // If we have a value after SSR, it will always be mean the signal was not invalid
         // The serialized signal is always left invalid so it can recreate the custom object
-        computed.$flags$ &= ~SignalFlags.INVALID;
+        computed.$flags$ &= ~ComputedSignalFlags.INVALID;
       }
       restoreEffectBackRefForEffects(computed.$effects$, computed);
       break;

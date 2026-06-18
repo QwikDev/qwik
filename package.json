@@ -107,6 +107,7 @@
     "@changesets/types": "6.1.0",
     "@clack/prompts": "0.11.0",
     "@eslint/js": "9.39.2",
+    "@intellectronica/ruler": "0.3.42",
     "@mdx-js/mdx": "3.1.1",
     "@microsoft/api-documenter": "7.29.6",
     "@microsoft/api-extractor": "7.57.6",
@@ -235,6 +236,7 @@
     "lint.rust": "make lint",
     "lint.syncpack": "syncpack list-mismatches",
     "preinstall": "npx only-allow pnpm",
+    "postinstall": "node ./scripts/ruler-apply-if-missing.mjs",
     "prepare": "simple-git-hooks",
     "pack.core": "node --require ./scripts/runBefore.ts scripts/pack-local-qwik-core.ts",
     "prettier.fix": "prettier --cache --write .",
@@ -290,8 +292,7 @@
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm pretty-quick --staged",
-    "post-merge": "node ./scripts/ruler-postmerge-check.mjs",
-    "post-checkout": "node ./scripts/ruler-apply-if-missing.mjs"
+    "post-merge": "node ./scripts/ruler-postmerge-check.mjs"
   },
   "type": "module"
 }

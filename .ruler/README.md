@@ -119,17 +119,20 @@ writes files — so generated assistant outputs are never scaffolded behind your
 it, re-run `ruler apply --agents <your-tool>` to refresh your local files. The hook installs on
 `pnpm install` via the `prepare` script.
 
-## Fresh Worktrees
+## Missing Assistant Files (Fresh Clones And Worktrees)
 
-Because the generated files are gitignored, a new git worktree starts without them, so AI assistants
-working in it miss the shared `.ruler/` guidance. A `post-checkout` git hook
-(`scripts/ruler-apply-if-missing.mjs`, wired through `simple-git-hooks`) runs
-`pnpm dlx @intellectronica/ruler apply` once when a worktree has none — covering both
-`pnpm worktree add` and an editor/agent's built-in worktree feature.
+Because the generated files are gitignored, a fresh clone or new git worktree starts without them,
+so AI assistants working in it miss the shared `.ruler/` guidance. A `postinstall` script
+(`scripts/ruler-apply-if-missing.mjs`) runs `pnpm exec ruler apply` once when the outputs are
+absent. It runs at postinstall — after `pnpm install` has populated `node_modules` — so it invokes
+the pinned local `ruler` devDependency rather than fetching it. That means no network access is
+required, so generation keeps working inside the command sandboxes some AI coding agents run.
 
-Unlike the post-merge reminder, this hook does write files, but only when they are entirely absent,
-so it never overwrites an existing checkout: it is a no-op on ordinary branch switches and in CI. If
-it cannot run it skips silently rather than blocking the checkout — run `ruler apply` by hand then.
+Unlike the post-merge reminder, this script does write files, but only when they are entirely
+absent, so it never overwrites an existing checkout: it is a no-op once `CLAUDE.md` exists and in
+CI. It is best-effort — if it fails it skips silently rather than breaking the install. A plain
+`git worktree add` with no install step still has nothing generated; run `pnpm install` (or
+`ruler apply`) in that worktree to get the files.
 
 ## Generate Local Assistant Files
 

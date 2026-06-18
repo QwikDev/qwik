@@ -7,7 +7,6 @@ import {
   component$,
   useAsync$,
   useConstant,
-  useErrorBoundary,
   useSignal,
   useTask$,
   useVisibleTask$,
@@ -18,6 +17,7 @@ import { describe, expect, it } from 'vitest';
 import type { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import { NEEDS_COMPUTATION } from '../reactive-primitives/types';
 import { delay } from '../shared/utils/promises';
+import { useErrorBoundaryStore } from '../use/use-error-boundary-store';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -132,7 +132,7 @@ describe.each([
   it('should throw error on value if promise is rejected', async () => {
     (globalThis as any).log = [];
     const ErrorBoundary = component$(() => {
-      const store = useErrorBoundary();
+      const store = useErrorBoundaryStore();
       (globalThis as any).log.push(`rendering error boundary, ${store.error || 'no error'}`);
       return store.error ? <div>{JSON.stringify(store.error)}</div> : <Slot />;
     });

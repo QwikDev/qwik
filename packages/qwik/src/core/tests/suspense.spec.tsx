@@ -18,7 +18,6 @@ import {
   getDomContainer,
   type JSXOutput,
   useAsync$,
-  useErrorBoundary,
   Slot,
   useTask$,
   useSignal,
@@ -27,6 +26,7 @@ import {
   Fragment as Signal,
 } from '@qwik.dev/core';
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
+import { useErrorBoundaryStore } from '../use/use-error-boundary-store';
 import { delay } from '../shared/utils/promises';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { TypeIds } from '../shared/serdes/constants';
@@ -279,7 +279,7 @@ describe.each([
 
   it('should bubble descendant throws to the nearest regular error boundary on the client', async () => {
     const ErrorBoundary = component$(() => {
-      const boundary = useErrorBoundary();
+      const boundary = useErrorBoundaryStore();
       return boundary.error ? <p>Error: {(boundary.error as Error).message}</p> : <Slot />;
     });
     const BadChild = component$(() => {

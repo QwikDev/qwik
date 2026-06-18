@@ -77,7 +77,6 @@ export {
   useConstant,
   useContext,
   useContextProvider,
-  useErrorBoundary,
   useId,
   useOn,
   useOnDocument,

@@ -505,13 +505,6 @@ export interface ErrorBoundaryProps {
 }
 
 // @public (undocumented)
-export interface ErrorBoundaryStore {
-    $fallback$?: (error: any) => unknown;
-    // (undocumented)
-    error: any | undefined;
-}
-
-// @public (undocumented)
 export const event$: <T>(qrl: T) => QRL<T>;
 
 // @public
@@ -2108,9 +2101,6 @@ export const useContext: UseContext;
 
 // @public
 export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void;
-
-// @public (undocumented)
-export const useErrorBoundary: () => ErrorBoundaryStore;
 
 // @internal
 export function _useHmr(devPath: string): void;

@@ -1,6 +1,6 @@
 import { createContextId } from '../../use/use-context';
 
-/** @public */
+/** @internal */
 export interface ErrorBoundaryStore {
   error: any | undefined;
   /**

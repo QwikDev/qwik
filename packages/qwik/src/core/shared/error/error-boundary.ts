@@ -1,4 +1,4 @@
-import { useErrorBoundary } from '../../use/use-error-boundary';
+import { useErrorBoundaryStore } from '../../use/use-error-boundary-store';
 import { componentQrl, type Component } from '../component.public';
 import { _jsxSorted } from '../jsx/jsx-internal';
 import { Fragment } from '../jsx/jsx-runtime';
@@ -23,7 +23,9 @@ export interface ErrorBoundaryProps {
  * into the runtime and throw. Instead we build the component QRL by hand with `inlinedQrl` and export
  * its symbol from the core bundle (see `handlers.mjs` and qwik-vite's `manifest.ts`).
  *
- * Errors are routed to the CLOSEST boundary by the container's `handleError` (it resolves
+ * The store is created and provided on `ERROR_CONTEXT` by the internal `useErrorBoundaryStore` hook
+ * (the old public `useErrorBoundary` was removed). Errors are routed to the CLOSEST boundary by the
+ * container's `handleError` (it resolves
  * `ERROR_CONTEXT` and sets this store's `.error`); both synchronous render throws and async `qerror`
  * events go through it. During SSR the fallback is rendered in place via `store.$fallback$`. So this
  * component only reads its store and renders — there is no per-boundary `qerror` listener.
@@ -31,7 +33,7 @@ export interface ErrorBoundaryProps {
 
 /** @internal */
 export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
-  const store = useErrorBoundary();
+  const store = useErrorBoundaryStore();
   // Expose the fallback so SSR can render it in place when a child throws (the client re-renders this
   // component instead, which reads `store.error` below). Server-render-only, hence noSerialize.
   store.$fallback$ = noSerialize(props.fallback$);

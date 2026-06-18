@@ -1670,61 +1670,6 @@ Rendered in place of the subtree when a descendant throws during render. Lazily 
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts)
 
-<h2 id="errorboundarystore">ErrorBoundaryStore</h2>
-
-```typescript
-export interface ErrorBoundaryStore
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-$fallback$?
-
-</td><td>
-
-</td><td>
-
-(error: any) =&gt; unknown
-
-</td><td>
-
-_(Optional)_ The boundary's fallback renderer. Set by `<ErrorBoundary>` so SSR can render the fallback in place of a subtree that throws during server render (on the client the boundary re-renders instead). Internal — not meant to be set by application code.
-
-</td></tr>
-<tr><td>
-
-error
-
-</td><td>
-
-</td><td>
-
-any \| undefined
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-handling.ts)
-
 <h2 id="event_">event$</h2>
 
 ```typescript
@@ -9802,18 +9747,6 @@ STATE
 void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
-
-<h2 id="useerrorboundary">useErrorBoundary</h2>
-
-```typescript
-useErrorBoundary: () => ErrorBoundaryStore;
-```
-
-**Returns:**
-
-[ErrorBoundaryStore](#errorboundarystore)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts)
 
 <h2 id="useid">useId</h2>
 

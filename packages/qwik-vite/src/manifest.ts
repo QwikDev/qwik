@@ -14,6 +14,9 @@ const extraSymbols = new Set([
   // Each
   '_eaC',
   '_eaT',
+  // Show
+  '_shC',
+  '_shT',
   // Suspense
   '_suC',
   '_suT',

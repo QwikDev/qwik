@@ -1,16 +1,4 @@
-// postinstall hook: (re)generate Ruler's assistant files from the committed `.ruler/` source,
-// but only when something actually changed.
-//
-// Generated assistant files (CLAUDE.md, AGENTS.md, .claude/, ...) are local, gitignored Ruler
-// outputs. Running at postinstall — after `pnpm install` has populated `node_modules` — lets us
-// invoke the pinned local `ruler` via `pnpm exec` rather than fetching it, so no network is needed
-// and generation keeps working inside AI-agent command sandboxes.
-//
-// To keep ordinary reinstalls fast, we hash the `.ruler/` source and record it after each apply,
-// then skip when the generated outputs exist and that hash is unchanged. We regenerate when the
-// outputs are missing (fresh clone/worktree) or the source moved (a pull or local edit). The marker
-// lives under node_modules/ (gitignored, per-worktree), so a clean install regenerates. It only
-// writes the gitignored outputs, never blocks the install on failure, and skips CI.
+// postinstall: regenerate gitignored .ruler/ assistant files (offline `pnpm exec ruler`) when the source hash changed or outputs are missing.
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -20,8 +8,7 @@ if (process.env.CI || !existsSync('.ruler/ruler.toml')) {
   process.exit(0);
 }
 
-// A representative generated output; its absence (fresh clone/worktree, or a manual delete) forces a
-// regenerate regardless of the source hash.
+// Representative output; if missing (fresh clone/worktree or manual delete), regenerate regardless of hash.
 const OUTPUT = 'CLAUDE.md';
 // Records the `.ruler/` hash last applied, so an unchanged source is a no-op on the next install.
 const MARKER = 'node_modules/.cache/ruler-applied';

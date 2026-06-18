@@ -1,11 +1,4 @@
-// post-merge git hook: regenerate AI guidance when shared `.ruler/` source changed in a pull.
-//
-// Generated assistant files (`.claude/`, `.codex/`, `.cursor/`, ...) are local, gitignored Ruler
-// outputs. When `.ruler/` source changes upstream, a developer's generated files go stale until
-// Ruler runs again. This hook re-applies Ruler from the pinned local devDependency (`pnpm exec`,
-// so no network — it works inside AI-agent command sandboxes) whenever a pull touched `.ruler/`,
-// keeping generated guidance fresh without a manual step. It only rewrites the gitignored generated
-// outputs, never blocks the merge on failure, and skips CI, where these files are not expected.
+// post-merge: regenerate .ruler/ assistant files (offline `pnpm exec ruler`) when a pull changed anything under .ruler/; skips CI.
 import { execSync } from 'node:child_process';
 import { applyRuler } from './ruler-lib.mjs';
 

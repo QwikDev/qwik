@@ -120,20 +120,20 @@ the gitignored generated outputs, never tracked files. It is best-effort and nev
 if it cannot run, a manual `ruler apply --agents <your-tool>` still refreshes them. The hook installs
 on `pnpm install` via the `prepare` script.
 
-## Missing Assistant Files (Fresh Clones And Worktrees)
+## Generating Assistant Files (postinstall)
 
 Because the generated files are gitignored, a fresh clone or new git worktree starts without them,
 so AI assistants working in it miss the shared `.ruler/` guidance. A `postinstall` script
-(`scripts/ruler-apply-if-missing.mjs`) runs `pnpm exec ruler apply` once when the outputs are
-absent. It runs at postinstall — after `pnpm install` has populated `node_modules` — so it invokes
-the pinned local `ruler` devDependency rather than fetching it. That means no network access is
-required, so generation keeps working inside the command sandboxes some AI coding agents run.
+(`scripts/ruler-apply.mjs`) runs `pnpm exec ruler apply` after every `pnpm install`. Running at
+postinstall — once `node_modules` exists — lets it invoke the pinned local `ruler` devDependency
+rather than fetching it, so no network access is required and generation keeps working inside the
+command sandboxes some AI coding agents run.
 
-Unlike the post-merge reminder, this script does write files, but only when they are entirely
-absent, so it never overwrites an existing checkout: it is a no-op once `CLAUDE.md` exists and in
-CI. It is best-effort — if it fails it skips silently rather than breaking the install. A plain
-`git worktree add` with no install step still has nothing generated; run `pnpm install` (or
-`ruler apply`) in that worktree to get the files.
+It re-applies on every install so the generated files track the current `.ruler/` source — covering
+fresh clones, new worktrees, and `.ruler/` edits picked up on the next install. It only rewrites the
+gitignored generated outputs, never tracked files, is best-effort (a failure skips silently rather
+than breaking the install), and skips CI. A plain `git worktree add` with no install step still has
+nothing generated; run `pnpm install` (or `ruler apply`) in that worktree to get the files.
 
 ## Generate Local Assistant Files
 

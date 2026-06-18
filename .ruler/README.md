@@ -119,6 +119,18 @@ writes files — so generated assistant outputs are never scaffolded behind your
 it, re-run `ruler apply --agents <your-tool>` to refresh your local files. The hook installs on
 `pnpm install` via the `prepare` script.
 
+## Fresh Worktrees
+
+Because the generated files are gitignored, a new git worktree starts without them, so AI assistants
+working in it miss the shared `.ruler/` guidance. A `post-checkout` git hook
+(`scripts/ruler-apply-if-missing.mjs`, wired through `simple-git-hooks`) runs
+`pnpm dlx @intellectronica/ruler apply` once when a worktree has none — covering both
+`pnpm worktree add` and an editor/agent's built-in worktree feature.
+
+Unlike the post-merge reminder, this hook does write files, but only when they are entirely absent,
+so it never overwrites an existing checkout: it is a no-op on ordinary branch switches and in CI. If
+it cannot run it skips silently rather than blocking the checkout — run `ruler apply` by hand then.
+
 ## Generate Local Assistant Files
 
 Install Ruler if you do not already have it:

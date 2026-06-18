@@ -9,6 +9,13 @@ const Thrower = component$(() => {
   throw new Error('boom');
 });
 
+// Throws *asynchronously*: a rejected promise child resolves after the Suspense placeholder has
+// already streamed, so the throw surfaces as the deferred segment's rejection.
+const AsyncThrower = component$(() => {
+  const pending = new Promise<JSXOutput>((_resolve, reject) => reject(new Error('async boom')));
+  return <>{pending}</>;
+});
+
 describe('ErrorBoundary', () => {
   it('projects children when there is no error', async () => {
     const { container } = await domRender(
@@ -207,5 +214,25 @@ describe('ErrorBoundary buffer-and-swap (experimental)', () => {
     expect(document.querySelector('#fb-outer')).toBeFalsy();
     expect(document.querySelector('#before')).toBeFalsy();
     expect(document.querySelector('#after')).toBeFalsy();
+  });
+
+  it('routes a deferred (async) throw inside a child <Suspense> to the boundary fallback', async () => {
+    // The boundary commits once the Suspense placeholder streams, so its own buffer can't catch the
+    // later async throw; the rejected segment is instead routed to the boundary's fallback, injected
+    // into the Suspense slot — no aborted render.
+    const document = await ssrRenderResumed(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {String(e?.message ?? e)}</p>
+          ))}
+        >
+          <Suspense fallback={<span id="loading">loading</span>}>
+            <AsyncThrower />
+          </Suspense>
+        </ErrorBoundary>
+      </main>
+    );
+    expect(document.querySelector('#fb')?.textContent).toContain('caught: async boom');
   });
 });

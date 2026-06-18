@@ -20,6 +20,7 @@ import {
 import { resolveSlotName } from '../shared/utils/prop';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
+import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
 import { useComputedQrl } from '../use/use-computed';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { useSignal } from '../use/use-signal';
@@ -252,6 +253,17 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
+      // Capture the nearest enclosing <ErrorBoundary> up front. If this deferred segment later
+      // rejects (e.g. an async child threw after the placeholder was already streamed), route that
+      // boundary's fallback into this same placeholder instead of aborting the whole render. The
+      // boundary's own buffer-and-swap can't catch this because it already committed once the
+      // Suspense placeholder rendered. Gated by the experimental errorBoundary feature.
+      const errorBoundaryStore =
+        __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
+          ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
+              | ErrorBoundaryStore
+              | undefined)
+          : undefined;
       const content = ssr.segment(
         contentSegment,
         createClaimedDeferredSlot(ssr, jsx, options),
@@ -261,17 +273,33 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       writeOutOfOrderPlaceholder(ssr, boundaryId);
       ssr.emitOutOfOrderExecutorIfNeeded();
       ssr.queueOutOfOrderSegment(
-        content.then((rendered) =>
-          emitRenderedOutOfOrderSegment(
-            ssr,
-            boundaryId,
-            contentSegment,
-            rendered,
-            contentStyle,
-            revealBoundary,
-            boundaryState
+        content
+          .then((rendered) =>
+            emitRenderedOutOfOrderSegment(
+              ssr,
+              boundaryId,
+              contentSegment,
+              rendered,
+              contentStyle,
+              revealBoundary,
+              boundaryState
+            )
           )
-        )
+          .catch((error) => {
+            if (errorBoundaryStore && errorBoundaryStore.$fallback$) {
+              return emitOutOfOrderErrorFallback(
+                ssr,
+                boundaryId,
+                errorBoundaryStore,
+                error,
+                options,
+                contentStyle,
+                revealBoundary,
+                boundaryState
+              );
+            }
+            throw error;
+          })
       );
     })
   : null!;
@@ -331,6 +359,39 @@ async function emitRenderedOutOfOrderSegment(
     // qO() is the browser-visible handoff for this segment, so flush it immediately.
     await ssr.streamHandler.flush();
   });
+}
+
+/**
+ * A deferred segment rejected inside an enclosing <ErrorBoundary>. Render that boundary's fallback
+ * into a fresh segment and inject it into the same placeholder — the failed content segment was
+ * already discarded by `ssr.segment`, so this is a clean swap of content for fallback.
+ */
+async function emitOutOfOrderErrorFallback(
+  ssr: SSRContainer,
+  boundaryId: number,
+  store: ErrorBoundaryStore,
+  error: unknown,
+  options: SSRRenderJSXOptions,
+  contentStyle: Signal<{ display: string }>,
+  revealBoundary: OutOfOrderRevealBoundary | null,
+  boundaryState: SSROutOfOrderBoundaryState | null
+): Promise<void> {
+  store.error = error;
+  const fallbackSegment = `${ssr.nextOutOfOrderId()}`;
+  const rendered = await ssr.segment(
+    fallbackSegment,
+    store.$fallback$!(error) as JSXOutput,
+    options
+  );
+  return emitRenderedOutOfOrderSegment(
+    ssr,
+    boundaryId,
+    fallbackSegment,
+    rendered,
+    contentStyle,
+    revealBoundary,
+    boundaryState
+  );
 }
 
 function markOutOfOrderContentResolved(boundaryState: SSROutOfOrderBoundaryState | null): void {

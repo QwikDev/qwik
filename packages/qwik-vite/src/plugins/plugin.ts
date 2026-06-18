@@ -84,6 +84,11 @@ export enum ExperimentalFeatures {
   show = 'show',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
+  /**
+   * Enable out-of-order streaming swap for `<ErrorBoundary>` (SSR renders a clean `boundary >
+   * fallback`)
+   */
+  errorBoundary = 'errorBoundary',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */

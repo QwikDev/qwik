@@ -43,7 +43,7 @@ import {
   isInternalServerComponent,
 } from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import { ERROR_CONTEXT } from '../shared/error/error-handling';
+import { deferredBoundaryError, ERROR_CONTEXT } from '../shared/error/error-handling';
 import type { ISsrComponentFrame, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 
@@ -127,6 +127,12 @@ function renderErrorBoundaryFallback(
   // page, exactly as before.
   if (!errorStore || !errorStore.$fallback$) {
     throw err;
+  }
+  // Experimental: a boundary that deferred its subtree into an out-of-order segment handles the
+  // throw via the segment swap (emitOutOfOrderErrorFallback), not in place. Carry the resolved store
+  // on the throw so the segment rejects and the swap can render a clean `boundary > fallback`.
+  if (__EXPERIMENTAL__.errorBoundary && errorStore.$deferred$) {
+    throw deferredBoundaryError(errorStore, err);
   }
   errorStore.error = err;
   return errorStore.$fallback$(err) as ValueOrPromise<JSXOutput>;

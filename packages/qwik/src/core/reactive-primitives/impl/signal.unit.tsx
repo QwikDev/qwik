@@ -24,7 +24,7 @@ import {
   type Signal,
 } from '../signal.public';
 import { getSubscriber } from '../subscriber';
-import { EffectProperty, SignalFlags } from '../types';
+import { EffectProperty, ComputedSignalFlags } from '../types';
 import type { ComputedSignalImpl } from './computed-signal-impl';
 
 class Foo {
@@ -255,7 +255,7 @@ describe('signal', () => {
         expect(log).toEqual([1]);
         expect(obj.count).toBe(1);
         // mark dirty but value remains shallow same after calc
-        (computed as ComputedSignalImpl<typeof obj>).$flags$ |= SignalFlags.INVALID;
+        (computed as ComputedSignalImpl<typeof obj>).$flags$ |= ComputedSignalFlags.INVALID;
         computed.value.count;
         await flushSignals();
         expect(log).toEqual([1]);

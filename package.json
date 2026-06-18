@@ -289,9 +289,7 @@
     "worktree": "node --require ./scripts/runBefore.ts scripts/worktrees.ts"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm pretty-quick --staged",
-    "post-merge": "node ./scripts/ruler-postmerge-check.mjs",
-    "post-checkout": "node ./scripts/ruler-apply-if-missing.mjs"
+    "pre-commit": "pnpm pretty-quick --staged"
   },
   "type": "module"
 }

@@ -87,12 +87,34 @@ export async function _walkJSX(
         // Reference equality first (no prototype walk), then typeof
         if (value === MaybeAsyncSignal) {
           const trackFn = stack.pop() as () => StackValue;
-          await retryOnPromise(() => stack.push(trackFn()));
+          try {
+            await retryOnPromise(() => stack.push(trackFn()));
+          } catch (err) {
+            // An async signal (e.g. a rejecting computed) threw on read — route it to the closest
+            // ErrorBoundary like a render throw instead of aborting the stream.
+            let fallback = renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
+            if (isPromise(fallback)) {
+              fallback = await fallback;
+            }
+            stack.push(fallback);
+          }
           continue;
         }
         if (typeof value === 'function') {
           if (value === Promise) {
-            stack.push(await (stack.pop() as Promise<JSXOutput>));
+            const pending = stack.pop() as Promise<JSXOutput>;
+            try {
+              stack.push(await pending);
+            } catch (err) {
+              // An awaited child (async component, promise child, resource) rejected. Route it to
+              // the closest ErrorBoundary just like a synchronous render throw — otherwise the
+              // rejection would abort the whole stream. With no boundary above, this rethrows.
+              let fallback = renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
+              if (isPromise(fallback)) {
+                fallback = await fallback;
+              }
+              stack.push(fallback);
+            }
           } else {
             const result = (value as StackFn).apply(ssr);
             if (isPromise(result)) {
@@ -136,15 +158,18 @@ function renderErrorBoundaryFallback(
   if (__EXPERIMENTAL__.errorBoundary && errorStore.$checkpoint$) {
     throw err;
   }
+  // Experimental: inside an out-of-order segment, the resolved boundary is OUTSIDE this segment (a
+  // boundary inside it would be buffering, handled above). Propagate so the segment rejects and the
+  // boundary's `$emitFallback$` tears the whole boundary down — rather than rendering the fallback
+  // in place inside this segment's slot.
+  if (__EXPERIMENTAL__.errorBoundary && isOutOfOrderSegmentContainer(ssr)) {
+    throw err;
+  }
   // Experimental: a live streaming boundary never blocks streaming and never renders in place. Just
   // mark the error — the boundary's fallback host (rendered after the content) streams `fallback$`
   // as an out-of-order segment and the shared `qO` executor hides the content and reveals it. The
   // throwing subtree renders nothing here.
-  if (
-    __EXPERIMENTAL__.errorBoundary &&
-    ssr.outOfOrderStreaming &&
-    !isOutOfOrderSegmentContainer(ssr)
-  ) {
+  if (__EXPERIMENTAL__.errorBoundary && ssr.outOfOrderStreaming) {
     errorStore.error = err;
     return null;
   }
@@ -411,7 +436,17 @@ function processJSXNode(
           } else if (isPromise(jsxOutput)) {
             // Defer reading QScopedStyle until after the promise resolves
             enqueue(async () => {
-              const resolvedOutput = await jsxOutput;
+              let resolvedOutput: JSXOutput;
+              try {
+                resolvedOutput = await jsxOutput;
+              } catch (err) {
+                // An async component's render rejected — route it to the closest ErrorBoundary
+                // (matching the sync throw path) instead of aborting the stream.
+                resolvedOutput = renderErrorBoundaryFallback(ssr, host, err) as JSXOutput;
+                if (isPromise(resolvedOutput)) {
+                  resolvedOutput = await resolvedOutput;
+                }
+              }
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 
               enqueue(resolvedOutput);

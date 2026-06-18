@@ -1,4 +1,11 @@
-import { $, component$, ErrorBoundary, Suspense, type JSXOutput } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  createAsync$,
+  ErrorBoundary,
+  Suspense,
+  type JSXOutput,
+} from '@qwik.dev/core';
 import { createDocument, domRender, ssrRenderToDom, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { processOutOfOrderSegmentVNodeData } from '../client/process-vnode-data';
@@ -14,6 +21,24 @@ const Thrower = component$(() => {
 const AsyncThrower = component$(() => {
   const pending = new Promise<JSXOutput>((_resolve, reject) => reject(new Error('async boom')));
   return <>{pending}</>;
+});
+
+// An async component whose render itself rejects (returns a rejecting promise, not a promise child) —
+// exercises the async-component drain path rather than the promise-child path.
+const AsyncRejector = component$(
+  () => new Promise<JSXOutput>((_resolve, reject) => reject(new Error('async boom'))) as any
+);
+
+// A fallback whose own render throws — must not deadlock the stream.
+const FallbackBoomer = component$(() => {
+  throw new Error('fallback boom');
+});
+
+// Reads an async signal (the signal object, not its value) whose computation rejects — exercises the
+// async-signal drain path.
+const AsyncSignalThrower = component$(() => {
+  const sig = createAsync$(() => Promise.reject(new Error('async signal boom')));
+  return <>{sig}</>;
 });
 
 describe('ErrorBoundary', () => {
@@ -283,4 +308,110 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
     expect(document.querySelector('#before')).toBeFalsy();
     expect(document.querySelector('#after')).toBeFalsy();
   });
+
+  it('catches an async component whose render rejects (no <Suspense>)', async () => {
+    // The async component is not wrapped in a <Suspense>; its rejection is routed to the boundary
+    // (async-component drain path) instead of aborting the stream.
+    const { document } = await streamAndResume(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {String(e?.message ?? e)}</p>
+          ))}
+        >
+          <div id="before">before</div>
+          <AsyncRejector />
+        </ErrorBoundary>
+      </main>
+    );
+    expect(document.querySelector('#fb')?.textContent).toContain('caught: async boom');
+    expect(displayOf(document.querySelector('#fb')?.closest('[q\\:rp]'))).toBe('contents');
+    expect(displayOf(document.querySelector('#before')?.closest('div[style]'))).toBe('none');
+  });
+
+  it('catches a rejected promise child (no <Suspense>)', async () => {
+    // A rejected promise child (not wrapped in a <Suspense>) is routed to the boundary
+    // (promise-child drain path) instead of aborting the stream.
+    const { document } = await streamAndResume(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {String(e?.message ?? e)}</p>
+          ))}
+        >
+          <AsyncThrower />
+        </ErrorBoundary>
+      </main>
+    );
+    expect(document.querySelector('#fb')?.textContent).toContain('caught: async boom');
+  });
+
+  it('a fallback whose own render throws aborts the stream instead of deadlocking', async () => {
+    // A throwing fallback must not re-render itself forever. With its own `$fallback$` detached
+    // while rendering, the throw propagates (here: aborts to the error page) rather than hanging.
+    await expect(
+      streamAndResume(
+        <main>
+          <ErrorBoundary
+            fallback$={$(() => (
+              <FallbackBoomer />
+            ))}
+          >
+            <Thrower />
+          </ErrorBoundary>
+        </main>
+      )
+    ).rejects.toThrow('fallback boom');
+  });
+
+  it('catches an async signal that rejects (no <Suspense>)', async () => {
+    const { document } = await streamAndResume(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {String(e?.message ?? e)}</p>
+          ))}
+        >
+          <div id="before">before</div>
+          <AsyncSignalThrower />
+        </ErrorBoundary>
+      </main>
+    );
+    expect(document.querySelector('#fb')?.textContent).toContain('caught: async signal boom');
+    expect(displayOf(document.querySelector('#before')?.closest('div[style]'))).toBe('none');
+  });
+
+  it('sibling boundaries swap independently', async () => {
+    const { document } = await streamAndResume(
+      <main>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb-a">A failed</p>
+          ))}
+        >
+          <Thrower />
+        </ErrorBoundary>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb-b">B failed</p>
+          ))}
+        >
+          <div id="ok-b">b ok</div>
+        </ErrorBoundary>
+      </main>
+    );
+    // The first boundary errored → its fallback shows; the second is fine → its content shows. The
+    // boundaries use distinct ids, so the swaps don't interfere.
+    expect(document.querySelector('#fb-a')).toBeTruthy();
+    expect(document.querySelector('#ok-b')?.textContent).toBe('b ok');
+    expect(document.querySelector('#fb-b')).toBeFalsy();
+    expect(displayOf(document.querySelector('#fb-a')?.closest('[q\\:rp]'))).toBe('contents');
+    expect(displayOf(document.querySelector('#ok-b')?.closest('div[style]'))).toBe('contents');
+  });
+
+  // NOTE: a client-time error after a streamed (out-of-order) resume is covered by the e2e
+  // (`scenario=client` in error-boundary-streaming.e2e.ts) rather than here: re-rendering a resumed
+  // streamed boundary to its fallback needs the `fallback$` QRL to resolve, which the unit resume
+  // harness (createDocument + emulated scripts) cannot do, so it would hang. The reactive re-render
+  // path itself is unit-tested via `domRender` in the first describe block above.
 });

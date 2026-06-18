@@ -64,6 +64,10 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
     const boundaryId = nextErrorBoundaryId();
+    // KNOWN LIMITATION: a CLIENT-time error on a boundary that streamed without erroring during SSR
+    // does not yet render the fallback — the content host hides (display signal) but the fallback
+    // host stays empty. The SSR error path (sync/async) works; the client-error path needs the
+    // fallback host to render `fallback$` client-reactively (see core-notes). SSR errors only here.
     return [
       /*#__PURE__*/ _jsxSorted(
         'div',

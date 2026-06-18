@@ -108,6 +108,19 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             releaseParam="release"
           />
         </>
+      ) : scenario === 'client' ? (
+        // Streams fine (no SSR error); a later client-time throw must re-render to the fallback.
+        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+          <button
+            id="eb-client-throw"
+            onClick$={() => {
+              throw new Error('client click boom');
+            }}
+          >
+            throw on click
+          </button>
+          <div id="eb-content">content ok</div>
+        </ErrorBoundary>
       ) : (
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <EbContent />

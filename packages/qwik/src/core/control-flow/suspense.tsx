@@ -376,11 +376,19 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
         // order — a synchronous throw awaits it inline (below) so the swap script follows the content
         // immediately instead of landing at end-of-stream; a later async throw awaits it through the
         // rejected Suspense segment's promise chain.
-        const streamFallback = (error: unknown): Promise<void> => {
+        const streamFallback = async (error: unknown): Promise<void> => {
           store.error = error;
-          return ssr
-            .segment(segmentId, store.$fallback$!(error) as JSXOutput, options)
-            .then((segment) => emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment));
+          // Detach the fallback while it renders: if the fallback itself throws and resolves back to
+          // THIS boundary, it must not re-render the fallback (infinite loop / deadlock). With no
+          // `$fallback$`, that throw takes the "no boundary handles it" path and propagates up.
+          const fallback = store.$fallback$!;
+          store.$fallback$ = undefined;
+          try {
+            const segment = await ssr.segment(segmentId, fallback(error) as JSXOutput, options);
+            await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
+          } finally {
+            store.$fallback$ = fallback;
+          }
         };
         store.$emitFallback$ = noSerialize(streamFallback);
         // Just reserve the injection point. The shared `qO` executor is emitted lazily (in

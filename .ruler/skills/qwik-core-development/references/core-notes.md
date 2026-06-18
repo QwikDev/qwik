@@ -201,6 +201,27 @@ Key invariants:
   (which sets `outOfOrderUsed`) and `emitErrorBoundaryFallback` emits the executor right before the
   first `qO(id)`. Per throwing boundary it's one shared executor + one tiny `qO(id)` call (same unit
   cost as a resolved Suspense segment). A test asserts the error-free HTML has no `qO(`/`qInstallOOOS`.
+- **Async throws must be routed in the drain.** The SSR drain (`_walkJSX`) awaits children at three
+  points — the `Promise` marker (promise children), the async-component thunk (`await jsxOutput`),
+  and `MaybeAsyncSignal` (`retryOnPromise`). All three now catch and call `renderErrorBoundaryFallback`;
+  without that, a rejected promise child / async component / async signal aborts the whole stream
+  instead of hitting the boundary (the old buffer-and-swap caught these via `await renderJSX`). Keep
+  all three wrapped. Covered by `catches an async … (no <Suspense>)` specs.
+- **`renderErrorBoundaryFallback` rethrows inside an OOOS segment** (when the boundary has no
+  `$checkpoint$`, i.e. it is OUTSIDE the segment): this propagates so the segment rejects and
+  `SSRDeferredSlot`'s `.catch` routes to the boundary's `$emitFallback$` (whole-boundary teardown).
+  Do not render the fallback in place inside a segment — it breaks the case-3 teardown.
+- **A throwing `fallback$` must not loop.** `streamFallback` detaches `store.$fallback$` while
+  rendering the fallback, so a re-throw that resolves back to the same boundary takes the
+  "no fallback → propagate" path (aborts) instead of re-rendering the fallback forever (deadlock).
+- **KNOWN LIMITATION (regression, tracked):** a CLIENT-time error on a boundary that streamed
+  *without* erroring during SSR does not render the fallback — the content host hides (display
+  signal) but the empty fallback host can't be filled, because the boundary can't cleanly re-render
+  its two-host structure to `[fallback]` on the client. The SSR error path (sync + async) works. The
+  fix is a client-reactive fallback host (render `fallback$` reactively in the fallback host when
+  `store.error` is set, instead of relying on the component re-render). Tracked by the `test.fixme`
+  `scenario=client` e2e in `error-boundary-streaming.e2e.ts`. Client errors on NON-streamed
+  boundaries (no OOOS) still work via the normal reactive re-render.
 - A deferred child `<Suspense>` that throws routes to the enclosing boundary's `store.$emitFallback$`
   (set by `SSRErrorFallback`), tearing the whole boundary down — not into the Suspense sub-slot.
 - A boundary *inside* a `<Suspense>` segment is the one case that still buffers (the segment is

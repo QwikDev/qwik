@@ -34,7 +34,7 @@ jobs:
           pnpm dlx @intellectronica/ruler@0.3.42 apply --no-gitignore --no-mcp
           DRIFT="$(git status --porcelain -- AGENTS.md CLAUDE.md .claude/skills .codex/skills)"
           if [ -n "$DRIFT" ]; then
-            echo "::error::Committed agent files are out of sync with .ruler/. Run 'pnpm exec ruler apply' and commit the result."
+            echo "::error::Committed agent files are out of sync with .ruler/. Run 'pnpm dlx @intellectronica/ruler apply --no-gitignore --no-mcp' and commit the result."
             echo "$DRIFT"
             git --no-pager diff -- AGENTS.md CLAUDE.md .claude/skills .codex/skills
             exit 1

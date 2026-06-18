@@ -6,9 +6,10 @@
 
 ## Source Of Truth
 
-- Shared AI guidance lives in `.ruler/`; generated assistant outputs are local artifacts.
-- Do not hand-edit or commit generated outputs such as root `AGENTS.md`, root `CLAUDE.md`,
-  `.codex/`, `.claude/`, `.cursor/`, or generated skill directories.
+- Shared AI guidance lives in `.ruler/`. The generated `AGENTS.md`, `CLAUDE.md`, and skill
+  directories are committed so a fresh clone or worktree has guidance immediately.
+- Never hand-edit a generated output — edit `.ruler/` and regenerate with `ruler apply`. A CI check
+  re-runs it and fails on drift.
 - To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`, or
   `.ruler/rules/**` / `.ruler/skills/**`, then regenerate with Ruler when needed.
 - When building config for a specific AI tool, research that tool's current native guidance, skill,

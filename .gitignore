@@ -41,15 +41,14 @@ sandbox
 
 # AI tools
 .planning
-/.claude
-/.claude/skills
-/.codex
-/.codex/skills
+# Ruler-generated assistant files are committed (.ruler/ruler.toml [gitignore] enabled = false);
+# a CI freshness check guards them. Ignore only per-tool config; keep skills + AGENTS.md/CLAUDE.md.
+/.claude/*
+!/.claude/skills/
+/.codex/*
+!/.codex/skills/
 /.cursor
-/.cursor/skills
-/AGENTS.md
 /AGENTS.md.bak
-/CLAUDE.md
 /CLAUDE.md.bak
 
 # We need to ignore this because "changesets" will try to replace it

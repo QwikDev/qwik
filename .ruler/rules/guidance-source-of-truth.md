@@ -14,11 +14,11 @@ outputs, not source.
 
 ## Generated Assistant Outputs
 
-- Do not hand-edit or commit generated assistant outputs such as root `AGENTS.md`, root `CLAUDE.md`,
-  `.codex/`, `.claude/`, `.cursor/`, or generated skill directories.
+- The generated `AGENTS.md`, `CLAUDE.md`, and skill directories are committed so a fresh clone or
+  worktree has guidance immediately. Never hand-edit them — edit `.ruler/` and regenerate.
 - To change assistant behavior, edit `.ruler/AGENTS.md`, `.ruler/README.md`,
-  `.ruler/rules/**`, or `.ruler/skills/**`.
-- Regenerate local assistant outputs with Ruler only when needed for verification or local use.
+  `.ruler/rules/**`, or `.ruler/skills/**`, then run `ruler apply` and commit the regenerated output.
+- A CI check re-runs `ruler apply` and fails if the committed outputs drift from `.ruler/`.
 
 ## AI Config Builder
 

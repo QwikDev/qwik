@@ -1,0 +1,44 @@
+# Verifies the committed agent files (AGENTS.md, CLAUDE.md, skills) match the .ruler/ source.
+# They are committed so a fresh clone/worktree has guidance immediately; this guards against drift.
+name: Ruler guidance in sync
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'build/**'
+
+permissions:
+  contents: read
+
+env:
+  CI_NODE_VERSION: 24.15.0
+
+jobs:
+  ruler-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v5
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - name: Verify committed agent files match .ruler/
+        run: |
+          pnpm exec ruler apply --no-gitignore --no-mcp
+          DRIFT="$(git status --porcelain -- AGENTS.md CLAUDE.md .claude/skills .codex/skills)"
+          if [ -n "$DRIFT" ]; then
+            echo "::error::Committed agent files are out of sync with .ruler/. Run 'pnpm exec ruler apply' and commit the result."
+            echo "$DRIFT"
+            git --no-pager diff -- AGENTS.md CLAUDE.md .claude/skills .codex/skills
+            exit 1
+          fi
+          echo "Agent files are in sync with .ruler/."

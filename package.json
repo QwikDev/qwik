@@ -236,7 +236,6 @@
     "lint.rust": "make lint",
     "lint.syncpack": "syncpack list-mismatches",
     "preinstall": "npx only-allow pnpm",
-    "postinstall": "node ./scripts/ruler-apply.mjs",
     "prepare": "simple-git-hooks",
     "pack.core": "node --require ./scripts/runBefore.ts scripts/pack-local-qwik-core.ts",
     "prettier.fix": "prettier --cache --write .",
@@ -291,8 +290,7 @@
     "worktree": "node --require ./scripts/runBefore.ts scripts/worktrees.ts"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm pretty-quick --staged",
-    "post-merge": "node ./scripts/ruler-postmerge-check.mjs"
+    "pre-commit": "pnpm pretty-quick --staged"
   },
   "type": "module"
 }

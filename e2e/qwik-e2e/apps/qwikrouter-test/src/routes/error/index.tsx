@@ -1,5 +1,4 @@
-import { component$, $ } from '@qwik.dev/core';
-import { ErrorBoundary } from '@qwik.dev/router';
+import { component$, $, ErrorBoundary } from '@qwik.dev/core';
 
 export default component$(() => {
   return <UseErrorBoundaryNoEffectIssue7227 />;

@@ -13,6 +13,8 @@ export {
   createSignal,
   CSSProperties,
   Each,
+  ErrorBoundary,
+  ErrorBoundaryProps,
   // TODO remove this
   event$,
   EventHandler,

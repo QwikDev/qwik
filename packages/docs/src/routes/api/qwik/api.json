@@ -645,6 +645,34 @@
       "mdFile": "core.qwikjsx.elementtype.md"
     },
     {
+      "name": "ErrorBoundary",
+      "id": "errorboundary",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundary",
+          "id": "errorboundary"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nErrorBoundary: Component<ErrorBoundaryProps>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts",
+      "mdFile": "core.errorboundary.md"
+    },
+    {
+      "name": "ErrorBoundaryProps",
+      "id": "errorboundaryprops",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundaryProps",
+          "id": "errorboundaryprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ErrorBoundaryProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$?\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: any) =&gt; any&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts",
+      "mdFile": "core.errorboundaryprops.md"
+    },
+    {
       "name": "ErrorBoundaryStore",
       "id": "errorboundarystore",
       "hierarchy": [

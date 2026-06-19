@@ -152,12 +152,27 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     // ErrorBoundary, matching the synchronous render-throw path. Previously each ErrorBoundary
     // listened to the global event and every one of them caught every error regardless of source.
     this.$qErrorHandler$ = (e: Event) => {
-      const detail = (e as CustomEvent<{ error: unknown; element?: Element }>).detail;
+      const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
+        .detail;
+      // QRL chunk-import / missing-symbol failures are already `console.error`-ed by qwikloader and
+      // must only log so the app keeps running — never route them through boundary handling.
+      if (detail?.importError) {
+        logError(detail.error);
+        return;
+      }
       const source = detail?.element;
       if (source && this.element.contains(source)) {
         const host = this.vNodeLocate(source);
         if (host) {
-          this.handleError(detail.error, host);
+          // `handleError` re-throws when no boundary encloses `host`. In a listener that throw has no
+          // owner (qwik-dom `dispatchEvent` has no per-listener try/catch; a browser reports it as an
+          // uncaught window error), so contain it here and log instead. The synchronous render-throw
+          // path calls `handleError` directly and is intentionally left to propagate.
+          try {
+            this.handleError(detail.error, host);
+          } catch (handlerError) {
+            logError(handlerError);
+          }
         }
       }
     };

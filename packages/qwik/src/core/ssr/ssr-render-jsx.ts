@@ -17,7 +17,7 @@ import {
   SSRStreamBlock,
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
-import { type SerializationContext } from '../shared/serdes/index';
+import { canSerialize, type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
@@ -124,6 +124,21 @@ export async function _walkJSX(
 }
 
 /**
+ * `errorStore.error` is serialized into the page, so a non-serializable throw (a class instance
+ * with methods, a function, a DOM node) would fail `verifySerializable` at state emit and abort the
+ * whole page with a confusing serializer error — masking the real throw. Keep `Error` instances and
+ * any already-serializable value as-is; project anything else to an `Error` carrying a safe message
+ * so the fallback still gets a readable `.message`.
+ */
+function toSerializableBoundaryError(err: unknown): unknown {
+  if (err instanceof Error || canSerialize(err)) {
+    return err;
+  }
+  const rawMessage = (err as { message?: unknown })?.message;
+  return new Error(typeof rawMessage === 'string' ? rawMessage : String(err));
+}
+
+/**
  * Route an SSR render throw to the closest `<ErrorBoundary>`; rethrow (aborting to the error page)
  * when there's no boundary above.
  */
@@ -148,10 +163,10 @@ function renderErrorBoundaryFallback(
   // A live streaming boundary just marks the error; its fallback host streams `fallback$` and `qO`
   // swaps it in (no in-place render, so streaming is never blocked).
   if (__EXPERIMENTAL__.errorBoundary && ssr.outOfOrderStreaming) {
-    errorStore.error = err;
+    errorStore.error = toSerializableBoundaryError(err);
     return null;
   }
-  errorStore.error = err;
+  errorStore.error = toSerializableBoundaryError(err);
   return errorStore.$fallback$(err) as ValueOrPromise<JSXOutput>;
 }
 
@@ -225,12 +240,24 @@ function processJSXNode(
       enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
-        for await (const chunk of value) {
-          await _walkJSX(ssr, chunk as JSXOutput, {
+        try {
+          for await (const chunk of value) {
+            await _walkJSX(ssr, chunk as JSXOutput, {
+              currentStyleScoped: options.currentStyleScoped,
+              parentComponentFrame: options.parentComponentFrame,
+            });
+            await ssr.streamHandler.flush();
+          }
+        } catch (err) {
+          // Route a mid-stream throw (the async-generator child or the `SSRStream` write loop, which
+          // funnels through here) to the closest boundary and render its fallback in place — the same
+          // drain site the chunks use. With no boundary above, `resolveErrorBoundaryFallback`
+          // rethrows and SSR still aborts (matching framework-closure throws).
+          const fallback = await resolveErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
+          await _walkJSX(ssr, fallback, {
             currentStyleScoped: options.currentStyleScoped,
             parentComponentFrame: options.parentComponentFrame,
           });
-          await ssr.streamHandler.flush();
         }
       });
     } else {

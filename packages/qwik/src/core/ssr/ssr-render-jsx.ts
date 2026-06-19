@@ -34,7 +34,7 @@ import {
 } from '../shared/utils/markers';
 import { mapArray_get, mapArray_has } from '../client/util-mapArray';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
-import { qInspector } from '../shared/utils/qdev';
+import { qDev, qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
 import { isOutOfOrderSegmentContainer, type InnerContainer } from '../shared/utils/container';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
@@ -45,7 +45,11 @@ import {
   isInternalServerComponent,
 } from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
+import {
+  ERROR_CONTEXT,
+  isRecoverable,
+  type ErrorBoundaryStore,
+} from '../shared/error/error-handling';
 import type { ISsrComponentFrame, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 
@@ -149,6 +153,11 @@ function renderErrorBoundaryFallback(
 ): ValueOrPromise<JSXOutput> {
   const errorStore = ssr.resolveContext(host, ERROR_CONTEXT);
   if (!errorStore || !errorStore.$fallback$) {
+    throw err;
+  }
+  // A non-recoverable build/plugin error (e.g. a dev Vite transform error) must surface, not hide in
+  // the fallback — mirrors the client `handleError`. Dev-only, so prod SSR still degrades gracefully.
+  if (qDev && !isRecoverable(err)) {
     throw err;
   }
   // A buffering boundary (inside a `<Suspense>` segment) handles the throw in its own nested render.

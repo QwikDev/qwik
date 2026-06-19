@@ -418,6 +418,7 @@ export const filterSearchParams = (params: URLSearchParams, allowed: string[]): 
 };
 
 const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
+  let id: string | undefined;
   let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY;
   let expires: number | undefined;
   let poll: boolean | undefined;
@@ -433,6 +434,9 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
       if ('validate' in options) {
         validators.push(options);
       } else {
+        if (options.id) {
+          id = options.id;
+        }
         if (options.serializationStrategy) {
           serializationStrategy = options.serializationStrategy;
         }
@@ -466,6 +470,7 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
   }
 
   return {
+    id,
     validators: validators.reverse(),
     serializationStrategy,
     expires,
@@ -571,7 +576,7 @@ export const updateRouteLoaderPaths = (
 
 export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]) => {
   const routeLoaders: LoaderInternal[] = [];
-  const seen = new Set<string>();
+  const seen = new Map<string, LoaderInternal>();
   for (let i = 0; i < mods.length; i++) {
     const mod = mods[i];
     if (!mod) {
@@ -579,8 +584,19 @@ export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]
     }
     for (const key in mod) {
       const value = mod[key as keyof typeof mod];
-      if (isLoaderInternal(value) && !seen.has(value.__id)) {
-        seen.add(value.__id);
+      if (isLoaderInternal(value)) {
+        const existing = seen.get(value.__id);
+        if (existing) {
+          if (isDev && existing !== value) {
+            console.warn(
+              `Two route loaders share the same id "${value.__id}". Only the first will run; ` +
+                `the others are ignored. If they are created by a shared wrapper around ` +
+                `routeLoader$, give each loader a distinct \`id\` option.`
+            );
+          }
+          continue;
+        }
+        seen.set(value.__id, value);
         routeLoaders.push(value);
       }
     }
@@ -773,8 +789,17 @@ export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (LoaderOptions | DataValidator)[]
 ): LoaderInternal => {
-  const { validators, serializationStrategy, expires, poll, eTag, cacheKey, search, allowStale } =
-    getLoaderOptions(rest);
+  const {
+    id,
+    validators,
+    serializationStrategy,
+    expires,
+    poll,
+    eTag,
+    cacheKey,
+    search,
+    allowStale,
+  } = getLoaderOptions(rest);
 
   function loader() {
     const state = _resolveContextWithoutSequentialScope(RouteStateContext)!;
@@ -790,7 +815,7 @@ export const routeLoaderQrl = ((
   loader.__brand = 'server_loader' as const;
   loader.__qrl = loaderQrl;
   loader.__validators = validators;
-  loader.__id = loaderQrl.getHash();
+  loader.__id = id ?? loaderQrl.getHash();
   loader.__serializationStrategy = serializationStrategy;
   loader.__expires = expires ?? 120_000; // 2 minutes
   loader.__poll = poll ?? false;

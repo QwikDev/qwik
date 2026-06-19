@@ -7,10 +7,11 @@
 // This file should be moved to packages/qwik/src/core/tests/ if it needs the rendering infra.
 // For now, test the mechanism at the unit level using the signal test infrastructure.
 
-import { createAsync$, implicit$FirstArg, type QRL } from '@qwik.dev/core';
+import { createAsync$, implicit$FirstArg, isDev, type QRL } from '@qwik.dev/core';
 import {
   _AsyncSignalImpl as AsyncSignalImpl,
   _Container as Container,
+  _createQRL as createQRL,
   _createStore as createStore,
   _delay as delay,
   _getDomContainer as getDomContainer,
@@ -26,8 +27,9 @@ import {
   _vnode_setProp as vnode_setProp,
 } from '@qwik.dev/core/internal';
 import { createDocument } from '@qwik.dev/core/testing';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { setLoaderSignalValue } from './route-loaders';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getModuleRouteLoaders, routeLoaderQrl, setLoaderSignalValue } from './route-loaders';
+import type { LoaderInternal, RouteModule } from './types';
 
 describe('route loader store + async signal tracking', () => {
   let container: Container = null!;
@@ -286,4 +288,69 @@ describe('route loader store + async signal tracking', () => {
   }
 
   const effect$ = /*#__PURE__*/ implicit$FirstArg(effectQrl);
+});
+
+describe('getModuleRouteLoaders', () => {
+  const mkLoader = (id: string): LoaderInternal =>
+    Object.assign(() => {}, { __brand: 'server_loader', __id: id }) as unknown as LoaderInternal;
+  const asModule = (mod: Record<string, unknown>): RouteModule => mod as unknown as RouteModule;
+
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('dedups two distinct loaders that share an id, keeping the first', () => {
+    const first = mkLoader('shared');
+    const second = mkLoader('shared');
+    const loaders = getModuleRouteLoaders([asModule({ useFirst: first, useSecond: second })]);
+    expect(loaders).toHaveLength(1);
+    expect(loaders[0]).toBe(first);
+  });
+
+  it('keeps loaders with distinct ids', () => {
+    const a = mkLoader('a');
+    const b = mkLoader('b');
+    const loaders = getModuleRouteLoaders([asModule({ useA: a, useB: b })]);
+    expect(loaders).toEqual([a, b]);
+  });
+
+  it('returns the same loader object once across modules, with no warning', () => {
+    const shared = mkLoader('shared');
+    const loaders = getModuleRouteLoaders([
+      asModule({ useShared: shared }),
+      asModule({ useShared: shared }),
+    ]);
+    expect(loaders).toHaveLength(1);
+    expect(loaders[0]).toBe(shared);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('warns when two distinct loaders collide on an id', () => {
+    getModuleRouteLoaders([asModule({ useA: mkLoader('dup'), useB: mkLoader('dup') })]);
+    if (isDev) {
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain('dup');
+    } else {
+      expect(warnSpy).not.toHaveBeenCalled();
+    }
+  });
+});
+
+describe('routeLoaderQrl id option', () => {
+  const mkQrl = () =>
+    createQRL(null, 'useLoader_hashAAA', () => 'data') as unknown as QRL<() => unknown>;
+
+  it('derives __id from the QRL hash by default', () => {
+    const loader = routeLoaderQrl(mkQrl() as any) as LoaderInternal;
+    expect(loader.__id).toBe('hashAAA');
+  });
+
+  it('honors an explicit id option, overriding the QRL hash', () => {
+    const loader = routeLoaderQrl(mkQrl() as any, { id: 'explicit-id' }) as LoaderInternal;
+    expect(loader.__id).toBe('explicit-id');
+  });
 });

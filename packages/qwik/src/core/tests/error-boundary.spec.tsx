@@ -436,9 +436,43 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
     expect(displayOf(document.querySelector('#ok-b')?.closest('div[style]'))).toBe('contents');
   });
 
-  // NOTE: a client-time error after a streamed (out-of-order) resume is covered by the e2e
-  // (`scenario=client` in error-boundary-streaming.e2e.ts) rather than here: re-rendering a resumed
-  // streamed boundary to its fallback needs the `fallback$` QRL to resolve, which the unit resume
-  // harness (createDocument + emulated scripts) cannot do, so it would hang. The reactive re-render
-  // path itself is unit-tested via `domRender` in the first describe block above.
+  // A client-time error after an out-of-order streamed resume must re-render the boundary to its
+  // fallback. The fallback host only holds the empty `qO` `<template q:r>` placeholder (no fallback
+  // was streamed, since there was no SSR error), so revealing it reactively shows nothing — the
+  // boundary has to re-render to `fallback$` and drop the two-host structure. Regression for the
+  // subscription gap: the OOOS branch returned early without reading `store.error`, so the component
+  // never re-rendered on a client error. (The full browser round-trip is also covered by
+  // `scenario=client` in error-boundary-streaming.e2e.ts.)
+  it('client: a post-resume error on an out-of-order streamed boundary re-renders to its fallback', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {e.message}</p>
+          ))}
+        >
+          <button id="target">x</button>
+          <div id="content">content ok</div>
+        </ErrorBoundary>
+      </main>,
+      { streaming: { inOrder: { strategy: 'disabled' }, outOfOrder: true }, debug }
+    );
+    const el = container.element;
+    // Streamed fine: the content is present and no fallback was streamed.
+    expect(el.querySelector('#content')?.textContent).toBe('content ok');
+    expect(el.querySelector('#fb')).toBeFalsy();
+
+    // Route a client-time error to the boundary, mirroring a resumed `qerror`.
+    const target = el.querySelector('#target')!;
+    const ev = el.ownerDocument.createEvent('Event');
+    ev.initEvent('qerror', false, false);
+    (ev as any).detail = { error: new Error('client boom'), element: target };
+    el.ownerDocument.dispatchEvent(ev);
+    await waitForDrain(container);
+
+    // The boundary re-rendered to its fallback; the two-host structure (incl. the placeholder host)
+    // is gone.
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: client boom');
+    expect(el.querySelector('#content')).toBeFalsy();
+  });
 });

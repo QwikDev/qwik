@@ -274,7 +274,23 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!errorStore) {
       throw err;
     }
+    // Distinguish a re-rendering `<ErrorBoundary>` from a generic ERROR_CONTEXT consumer that only
+    // captures the error: a boundary's store starts `error: undefined`, the generic path uses `null`
+    // (the same init sentinel the re-entrancy guard above relies on). Only the boundary re-renders.
+    const isErrorBoundary = errorStore.error === undefined;
     errorStore.error = err;
+    // Re-render the boundary so it swaps to its fallback. An in-order boundary already re-renders from
+    // the reactive write above (it read `store.error` during render, so it subscribed), but a boundary
+    // streamed via out-of-order streaming returned its two-host structure early without reading
+    // `store.error`, so the write alone only flips the inline style swap — revealing the still-empty
+    // streamed fallback host. Marking the boundary host re-renders it to `fallback$` (a no-op when the
+    // reactive write already marked it).
+    if (isErrorBoundary && host) {
+      const boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
+      if (boundaryHost) {
+        markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
+      }
+    }
   }
 
   setContext<T>(host: VNode, context: ContextId<T>, value: T): void {
@@ -294,6 +310,18 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       host = this.getParentHost(host)!;
     }
     return undefined;
+  }
+
+  /** Like {@link resolveContext}, but returns the host that provides the context, not its value. */
+  resolveContextHost(host: VNode, contextId: ContextId<unknown>): VNode | null {
+    while (host) {
+      const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
+      if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
+        return host;
+      }
+      host = this.getParentHost(host)!;
+    }
+    return null;
   }
 
   getParentHost(host: VNode): VNode | null {

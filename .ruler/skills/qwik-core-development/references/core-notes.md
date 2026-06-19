@@ -189,8 +189,9 @@ reading `store.error`, so the resumed/re-rendered boundary stays consistent with
 Key invariants:
 
 - The swap is an inline script (fires as its chunk parses) — it does NOT depend on the client
-  re-rendering, so it works before the framework resumes. Client-time errors still use the reactive
-  re-render path (`handleError` → `store.error`).
+  re-rendering, so it works before the framework resumes. Client-time errors instead go through
+  `handleError`, which sets `store.error` and explicitly re-renders the boundary (see the OOOS
+  client-error note below).
 - A SYNC throw emits the fallback segment + `qO(id)` **inline** (`SSRErrorFallback` returns the
   emission promise, awaited in the drain), so the swap lands right after the boundary — NOT via
   `queueOutOfOrderSegment`, which would defer it to end-of-stream and leave the broken content
@@ -228,15 +229,25 @@ Key invariants:
   so it can't catch the taint — only the loop guard; the e2e catches the taint).
   GENERAL GOTCHA: never `noSerialize` a value you also need serialized elsewhere — `noSerialize`
   marks the object identity, so wrap a fresh object/closure.
-- **OPEN (secondary, OOOS two-host only):** a client error on a boundary that streamed via OOOS
-  can't fill the fallback host — it holds the raw `qO` `<template q:r>` placeholder (written via
-  `ssr.write`, no vnode), so any client-side re-render of its contents trips the vnode diff
-  (`"Missing child"`). The `qO` placeholder (great for the instant SSR swap) and client-side vnode
-  re-render don't compose. Fix direction: inject the client fallback the SAME way the server does
-  (render `fallback$` to a `<template>` + imperative `qO` swap, bypassing the diff), or make
-  `writeOutOfOrderPlaceholder` emit a vnode-backed placeholder. Also note a qerror only ROUTES if the
-  throwing handler resumed the container first (touching a signal does; a bare `() => { throw }`
-  doesn't, so `$qErrorHandler$` isn't attached yet).
+- **FIXED (OOOS two-host + client error).** A client-time error on a boundary that streamed via OOOS
+  used to never show its fallback. The real cause was a SUBSCRIPTION GAP, not a vnode diff: the OOOS
+  branch of `errorBoundaryCmp` returns the two-host structure early WITHOUT reading `store.error`, so
+  the boundary never subscribed to it. A client error then only flipped the inline `_fnSignal` style
+  swap — revealing the still-empty `q:rp` fallback host (it holds just the `qO` `<template q:r>`
+  placeholder) — and the component never re-rendered to `fallback$`. It was NOT a `"Missing child"`
+  diff: the existing `hasOnlySuspensePlaceholder` guard in `vnode_getFirstChild` already removes the
+  placeholder host cleanly once the boundary re-renders. Fix: `DomContainer.handleError` (client-only)
+  now explicitly re-renders the boundary — `markVNodeDirty(boundaryHost, ChoreBits.COMPONENT)` after
+  setting `store.error` — so an OOOS boundary (never subscribed) swaps to its fallback like an in-order
+  one (still re-renders via its `store.error` subscription; the mark is a no-op when that already
+  scheduled it). Scoped to real boundaries via the `store.error === undefined` init sentinel — a
+  generic ERROR_CONTEXT/`ErrorProvider` consumer uses `null` and only captures, never re-renders.
+  Deliberately NOT fixed by subscribing the OOOS component to `store.error`: a deferred (async) throw
+  sets `store.error` mid-stream, which would schedule a re-render chore on the already-streamed host
+  (the dev `"chore scheduled on a host that was already streamed"` warning). Covered by the OOOS
+  `scenario=client` e2e + a `ssrRenderToDom` + `outOfOrder` + `qerror` unit test. Note a qerror only
+  ROUTES if the throwing handler resumed the container first (touching a signal does; a bare
+  `() => { throw }` doesn't, so `$qErrorHandler$` isn't attached yet).
 - A deferred child `<Suspense>` that throws routes to the enclosing boundary's `store.$emitFallback$`
   (set by `SSRErrorFallback`), tearing the whole boundary down — not into the Suspense sub-slot.
 - A boundary *inside* a `<Suspense>` segment is the one case that still buffers (the segment is

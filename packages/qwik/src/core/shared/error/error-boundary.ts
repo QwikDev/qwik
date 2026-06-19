@@ -68,10 +68,16 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
     const boundaryId = nextErrorBoundaryId();
-    // OPEN (OOOS-only): a CLIENT-time error on a boundary that streamed via OOOS can't fill this
-    // fallback host on the client — it holds the `qO` `<template q:r>` placeholder (no vnode), so a
-    // client re-render of its contents trips the vnode diff ("Missing child"). The SSR error path
-    // and IN-ORDER client errors work (see core-notes for the fix direction). SSR errors only here.
+    // SSR with out-of-order streaming: render the subtree inside a visible content host plus a hidden
+    // fallback host. The content streams as usual; an SSR throw streams `fallback$` into the fallback
+    // host and the `qO` executor swaps the two via inline style. This branch deliberately does NOT
+    // read `store.error`, so the component is not subscribed to it on the server (a late deferred
+    // throw sets `store.error` mid-stream, and re-rendering an already-streamed host is unsupported).
+    // A CLIENT-time error instead re-renders this component into the `if (store.error)` branch below —
+    // the container's `handleError` marks this host dirty (see DomContainer.handleError) since the
+    // OOOS boundary never subscribed to `store.error`. The diff then drops the two-host structure (the
+    // empty `q:r` placeholder host removes cleanly, see `hasOnlySuspensePlaceholder`) and renders
+    // `fallback$` fresh.
     return [
       /*#__PURE__*/ _jsxSorted(
         'div',

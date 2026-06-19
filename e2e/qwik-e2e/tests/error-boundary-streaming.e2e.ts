@@ -90,4 +90,29 @@ test.describe('ErrorBoundary streaming swap', () => {
     await page.locator('#eb-fallback-button').click();
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });
+
+  // Same client-time throw, but on a boundary that streamed via out-of-order streaming (OOOS). The
+  // fallback host holds the `qO` `<template q:r>` placeholder (no vnode), so the client re-render
+  // must still tear the two-host structure down and render the fallback fresh.
+  test('client-time throw after resume re-renders the boundary to its fallback (out-of-order)', async ({
+    page,
+  }) => {
+    await page.goto('/e2e/error-boundary-streaming?scenario=client', {
+      waitUntil: 'commit',
+    });
+
+    // The boundary streamed fine (no SSR error) — content is shown, no fallback yet.
+    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+
+    // A click handler that touches state then throws routes to the boundary. The boundary streamed
+    // via OOOS (its fallback host holds only the empty `qO` placeholder), so it must re-render to the
+    // fallback rather than just revealing the empty host.
+    await page.locator('#eb-client-throw').click();
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+
+    // The recovered fallback is interactive.
+    await page.locator('#eb-fallback-button').click();
+    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+  });
 });

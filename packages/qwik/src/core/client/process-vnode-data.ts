@@ -64,12 +64,13 @@ type VNodeDataScope = Document | ShadowRoot;
 export function processOutOfOrderSegmentVNodeData(
   document: Document,
   segmentId: string,
-  contentNode: Element | null
+  // The `q:rp` host the executor revealed: a boundary's fallback host, or Suspense's content host.
+  revealNode: Element | null
 ) {
-  if (!__EXPERIMENTAL__.suspense || !contentNode) {
+  if (!__EXPERIMENTAL__.suspense || !revealNode) {
     return;
   }
-  const qContainerElement = contentNode.closest('[q\\:container]') as ContainerElement | null;
+  const qContainerElement = revealNode.closest('[q\\:container]') as ContainerElement | null;
   const script = qContainerElement?.querySelector(
     `script[type="qwik/vnode"][q\\:r="${segmentId}"]:not([q\\:patch])`
   );
@@ -77,7 +78,7 @@ export function processOutOfOrderSegmentVNodeData(
     document,
     segmentId,
     qContainerElement,
-    contentNode,
+    revealNode,
     script?.textContent || undefined
   );
   const patches = qContainerElement?.querySelectorAll(

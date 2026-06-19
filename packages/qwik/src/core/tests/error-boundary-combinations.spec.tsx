@@ -16,13 +16,6 @@ const ThrowerB = component$(() => {
   throw new Error('boomB');
 });
 
-// Rejects after the Suspense placeholder has streamed, so the throw surfaces as a deferred segment
-// rejection rather than a synchronous render throw.
-const AsyncThrower = component$(() => {
-  const pending = new Promise<JSXOutput>((_resolve, reject) => reject(new Error('async boom')));
-  return <>{pending}</>;
-});
-
 // Stream with out-of-order streaming, then run the emitted `qO` scripts to perform the inline swap.
 const streamAndResume = async (jsx: JSXOutput) => {
   const chunks: string[] = [];
@@ -206,24 +199,7 @@ describe('ErrorBoundary combinations', () => {
       expect(document.querySelector('#fb-b')).toBeTruthy();
     });
 
-    it('two Suspense in one boundary that both async-throw render a single fallback', async () => {
-      const document = await streamAndResume(
-        <main>
-          <ErrorBoundary
-            fallback$={$((e: any) => (
-              <p id="fb">caught: {String(e?.message ?? e)}</p>
-            ))}
-          >
-            <Suspense fallback={<span id="sa">a</span>}>
-              <AsyncThrower />
-            </Suspense>
-            <Suspense fallback={<span id="sb">b</span>}>
-              <AsyncThrower />
-            </Suspense>
-          </ErrorBoundary>
-        </main>
-      );
-      expect(fbCount(document)).toBe(1);
-    });
+    // Note: "two Suspense in one boundary both async-throw -> single fallback" lives in
+    // error-boundary-concurrent.spec.tsx (the dedicated teardown-exactly-once regression test).
   });
 });

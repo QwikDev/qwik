@@ -27,7 +27,11 @@ const AsyncThrower = component$(() => {
 const streamAndResume = async (jsx: JSXOutput) => {
   const chunks: string[] = [];
   await ssrRenderToDom(jsx, {
-    stream: { write: (c: string) => chunks.push(c) },
+    stream: {
+      write: (c: string) => {
+        chunks.push(c);
+      },
+    },
     streaming: { inOrder: { strategy: 'disabled' }, outOfOrder: true },
     debug,
   });

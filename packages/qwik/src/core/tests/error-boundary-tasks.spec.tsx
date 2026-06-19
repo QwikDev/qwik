@@ -1,5 +1,5 @@
 import { $, component$, ErrorBoundary, useSignal, useTask$, useVisibleTask$ } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
+import { domRender, ssrRenderToDom, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { delay } from '../shared/utils/promises';
 

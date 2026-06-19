@@ -88,9 +88,8 @@ export interface ISsrComponentFrame {
 export type SymbolToChunkResolver = (symbol: string) => string;
 
 /**
- * Opaque snapshot of the container's render state, taken by `checkpoint()` and restored by
- * `rollback()`. Used to discard a partially-rendered subtree (e.g. an `<ErrorBoundary>` whose child
- * threw) so the fallback can be rendered in its place. The shape is internal to the container.
+ * Opaque snapshot of the container's render state for `checkpoint()`/`rollback()`, used to discard
+ * a partially-rendered subtree. The shape is internal to the container.
  */
 export interface SSRBufferCheckpoint {
   readonly __brand: 'SSRBufferCheckpoint';

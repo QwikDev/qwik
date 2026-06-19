@@ -148,14 +148,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       processSegmentStateScripts(this);
     }
     this.$hoistStyles$();
-    // Route async errors (a failed QRL import/handler emits a `qerror` event) to the CLOSEST
-    // ErrorBoundary, matching the synchronous render-throw path. Previously each ErrorBoundary
-    // listened to the global event and every one of them caught every error regardless of source.
+    // Route an async `qerror` to the closest ErrorBoundary (previously every boundary caught it).
     this.$qErrorHandler$ = (e: Event) => {
       const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
         .detail;
-      // QRL chunk-import / missing-symbol failures are already `console.error`-ed by qwikloader and
-      // must only log so the app keeps running — never route them through boundary handling.
+      // Import/symbol failures are already logged by qwikloader; don't route them to a boundary.
       if (detail?.importError) {
         logError(detail.error);
         return;
@@ -164,10 +161,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       if (source && this.element.contains(source)) {
         const host = this.vNodeLocate(source);
         if (host) {
-          // `handleError` re-throws when no boundary encloses `host`. In a listener that throw has no
-          // owner (qwik-dom `dispatchEvent` has no per-listener try/catch; a browser reports it as an
-          // uncaught window error), so contain it here and log instead. The synchronous render-throw
-          // path calls `handleError` directly and is intentionally left to propagate.
+          // A no-boundary error makes `handleError` re-throw, which in a listener becomes an uncaught
+          // error; log it instead.
           try {
             this.handleError(detail.error, host);
           } catch (handlerError) {
@@ -263,10 +258,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   handleError(err: any, host: VNode | null): void {
     const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
-    // Re-entrancy guard: if the closest boundary already errored (e.g. its own fallback throws),
-    // report and stop instead of re-triggering — re-throwing would loop and escape the re-render
-    // chore as an unhandled rejection. `!= null` covers both store inits: boundary `undefined`,
-    // generic ERROR_CONTEXT `null`.
+    // If the closest boundary already errored (e.g. its own fallback throws), report and stop —
+    // re-triggering would loop.
     if (errorStore && errorStore.error != null) {
       logError(err);
       return;
@@ -289,13 +282,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!errorStore) {
       throw err;
     }
-    // Only a real boundary re-renders (store inits `undefined`); a generic ERROR_CONTEXT consumer
-    // inits `null` and only captures.
+    // A real boundary inits `error: undefined`; a generic ERROR_CONTEXT consumer inits `null` and
+    // only captures (never re-renders).
     const isErrorBoundary = errorStore.error === undefined;
     errorStore.error = err;
-    // An OOOS boundary never read `store.error` (its two-host branch returns early), so the reactive
-    // write alone won't re-render it to the fallback — mark it explicitly (a no-op when an in-order
-    // boundary's write already scheduled it).
+    // An OOOS boundary never subscribed to `store.error`, so the write alone won't re-render it to
+    // the fallback — mark it explicitly.
     if (isErrorBoundary && host) {
       const boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
       if (boundaryHost) {

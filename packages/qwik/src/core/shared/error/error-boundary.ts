@@ -18,21 +18,15 @@ import type { ErrorBoundaryStore } from './error-handling';
 
 /** @public */
 export interface ErrorBoundaryProps {
-  /**
-   * Rendered in place of the subtree when a descendant throws during render. Lazily loaded — only
-   * fetched once the subtree errors — and receives the caught error.
-   */
+  /** Rendered in place of the subtree when a descendant throws; lazily loaded, receives the error. */
   fallback$: QRL<(error: any) => any>;
 }
 
-/*
- * ErrorBoundary lives in core (ships with the framework) but core isn't run through the optimizer, so
- * it's hand-built with `inlinedQrl` (symbol `_ebC`) rather than `component$`. Errors route to the
- * closest boundary via the container's `handleError`.
- */
+// Core isn't run through the optimizer, so ErrorBoundary is hand-built with `inlinedQrl` (symbol
+// `_ebC`) rather than `component$`.
 
-// "has errored" is `error !== undefined` (the store inits `error: undefined`), not truthiness — a
-// thrown falsy value (`0`, `''`, `false`, `null`) is still a caught error and must show the fallback.
+// "has errored" is `error !== undefined`, not truthiness, so a thrown falsy value (`0`, `null`, …)
+// still shows the fallback.
 const _ebContentStyle = (store: ErrorBoundaryStore) => ({
   display: store.error !== undefined ? 'none' : 'contents',
 });
@@ -45,17 +39,16 @@ const _ebFallbackStyle_str = '{display:p0.error!==undefined?"contents":"none"}';
 /** @internal */
 export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const store = useErrorBoundaryStore();
-  // Wrap in a fresh closure before `noSerialize`: it taints the value's identity, and `props.fallback$`
-  // is the same QRL object, so noSerializing it directly would drop the serialized prop too.
+  // `noSerialize` taints identity; wrap in a fresh closure so it doesn't taint the shared `fallback$`
+  // QRL and drop its serialized prop.
   const fallbackQrl = props.fallback$;
   store.$fallback$ = noSerialize((error: any) => fallbackQrl(error));
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
     const boundaryId = nextErrorBoundaryId();
-    // A visible content host + a hidden fallback host that streams `fallback$` on a throw. This branch
-    // deliberately does NOT read `store.error`: subscribing would schedule a re-render on an
-    // already-streamed host for a late deferred throw. A client error re-renders it via `handleError`.
+    // Two display-toggled hosts. This branch deliberately does NOT read `store.error`: subscribing
+    // would re-render an already-streamed host on a late deferred throw.
     return [
       /*#__PURE__*/ _jsxSorted(
         'div',

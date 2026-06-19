@@ -128,11 +128,8 @@ export async function _walkJSX(
 }
 
 /**
- * `errorStore.error` is serialized into the page, so a non-serializable throw (a class instance
- * with methods, a function, a DOM node) would fail `verifySerializable` at state emit and abort the
- * whole page with a confusing serializer error — masking the real throw. Keep `Error` instances and
- * any already-serializable value as-is; project anything else to an `Error` carrying a safe message
- * so the fallback still gets a readable `.message`.
+ * A non-serializable thrown value would fail `verifySerializable` and abort the whole page when the
+ * error store is serialized. Project it to an `Error` so the stored value stays serializable.
  */
 function toSerializableBoundaryError(err: unknown): unknown {
   if (err instanceof Error || canSerialize(err)) {
@@ -156,7 +153,7 @@ function renderErrorBoundaryFallback(
     throw err;
   }
   // A non-recoverable build/plugin error (e.g. a dev Vite transform error) must surface, not hide in
-  // the fallback — mirrors the client `handleError`. Dev-only, so prod SSR still degrades gracefully.
+  // the fallback.
   if (qDev && !isRecoverable(err)) {
     throw err;
   }
@@ -164,13 +161,13 @@ function renderErrorBoundaryFallback(
   if (__EXPERIMENTAL__.errorBoundary && errorStore.$checkpoint$) {
     throw err;
   }
-  // Inside an out-of-order segment the boundary is outside it: propagate so the segment rejects and
-  // `$emitFallback$` tears the whole boundary down, rather than rendering the fallback in this slot.
+  // Inside an OOOS segment the boundary is outside it: propagate so the segment rejects and
+  // `$emitFallback$` tears it down.
   if (__EXPERIMENTAL__.errorBoundary && isOutOfOrderSegmentContainer(ssr)) {
     throw err;
   }
-  // A live streaming boundary just marks the error; its fallback host streams `fallback$` and `qO`
-  // swaps it in (no in-place render, so streaming is never blocked).
+  // A live streaming boundary just marks the error; the fallback host streams it, so streaming is
+  // never blocked.
   if (__EXPERIMENTAL__.errorBoundary && ssr.outOfOrderStreaming) {
     errorStore.error = toSerializableBoundaryError(err);
     return null;
@@ -193,8 +190,8 @@ async function resolveErrorBoundaryFallback(
 }
 
 /**
- * If `host` is itself a buffering `<ErrorBoundary>` — inside a `<Suspense>` segment — return its
- * store. Reads the host's own context (not an ancestor's) so children don't match.
+ * If `host` is itself a buffering `<ErrorBoundary>` (inside a `<Suspense>` segment), return its
+ * store.
  */
 function getBufferingErrorBoundaryStore(
   ssr: SSRContainer,
@@ -258,10 +255,8 @@ function processJSXNode(
             await ssr.streamHandler.flush();
           }
         } catch (err) {
-          // Route a mid-stream throw (the async-generator child or the `SSRStream` write loop, which
-          // funnels through here) to the closest boundary and render its fallback in place — the same
-          // drain site the chunks use. With no boundary above, `resolveErrorBoundaryFallback`
-          // rethrows and SSR still aborts (matching framework-closure throws).
+          // Route a mid-stream async-generator/SSRStream throw to the closest boundary (with none, it
+          // rethrows and aborts SSR).
           const fallback = await resolveErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
           await _walkJSX(ssr, fallback, {
             currentStyleScoped: options.currentStyleScoped,
@@ -431,8 +426,8 @@ function processJSXNode(
           );
           enqueue(() => ssr.closeComponent());
           if (bufferingErrorStore && !isPromise(jsxOutput)) {
-            // Buffering ErrorBoundary: render the subtree in a nested pass so a throw rolls back the
-            // partial output and renders the fallback in its place (a clean `boundary > fallback`).
+            // Render the subtree in a nested pass so a throw can roll back the partial output and
+            // render the fallback in its place.
             const content = jsxOutput as JSXOutput;
             enqueue(async () => {
               ssr.streamHandler.streamBlockStart();

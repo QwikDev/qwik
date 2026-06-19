@@ -254,9 +254,8 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
-      // Capture the enclosing `<ErrorBoundary>` up front: if this deferred segment later rejects, the
-      // boundary already committed (when the placeholder streamed) and can't catch it in place, so we
-      // route to its `$emitFallback$` below.
+      // Capture the enclosing boundary up front: once its placeholder streamed it can't catch a later
+      // rejection in place, so route to `$emitFallback$`.
       const errorBoundaryStore =
         __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
           ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
@@ -331,11 +330,8 @@ function createClaimedDeferredSlot(
 }
 
 /**
- * Finalize a streamed out-of-order segment and swap it into its placeholder host: write the
- * resolved template, emit the segment's scripts, then call `qO(id)` to perform the inline swap and
- * flush. Shared by Suspense's deferred-slot reveal and the ErrorBoundary fallback stream.
- * `emitExecutor` emits the shared `qO` executor here (the ErrorBoundary path); Suspense emits it up
- * front instead.
+ * Finalize a streamed out-of-order segment and swap it into its host via `qO(id)`. Shared by the
+ * Suspense deferred-slot reveal and the ErrorBoundary fallback stream.
  */
 async function finalizeAndSwapOutOfOrderSegment(
   ssr: SSRContainer,
@@ -349,11 +345,10 @@ async function finalizeAndSwapOutOfOrderSegment(
   writeOutOfOrderResolvedTemplate(ssr, boundaryId, result.html, revealBoundary);
   ssr.emitOutOfOrderSegmentScripts(result.scripts);
   if (emitExecutor) {
-    // Emit the shared executor right before its first call (idempotent), so error-free pages ship none.
+    // Emit the executor lazily so error-free pages ship none.
     ssr.emitOutOfOrderExecutorIfNeeded();
   }
   ssr.emitInlineScript(`qO(${boundaryId})`);
-  // qO() is the browser-visible handoff for this segment, so flush it immediately.
   await ssr.streamHandler.flush();
 }
 
@@ -393,26 +388,22 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
         const store = jsx.varProps.store as ErrorBoundaryStore;
         const segmentId = `${boundaryId}`;
         const streamFallback = async (error: unknown): Promise<void> => {
-          // Tear a boundary down exactly once: `$emitFallback$` is shared by every deferred child, so
-          // sibling rejections all land here. A detached `$fallback$` means teardown already started (or
-          // finished) — the first error wins, later siblings no-op instead of double-swapping the host.
+          // `$emitFallback$` is shared by every deferred child, so a detached `$fallback$` means
+          // teardown already started — first error wins, later siblings no-op.
           const fallback = store.$fallback$;
           if (!fallback) {
             return;
           }
           store.error = error;
-          // Keep `$fallback$` detached for the rest of the render: if the fallback itself throws back to
-          // this boundary, it must not re-render the fallback (infinite loop) — with none set, that throw
-          // propagates. It stays detached afterwards too, so the boundary never tears down a second time.
+          // Stay detached so a throw from the fallback itself propagates instead of re-rendering it.
           store.$fallback$ = undefined;
           const segment = await ssr.segment(segmentId, fallback(error) as JSXOutput, options);
           await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
         };
         store.$emitFallback$ = noSerialize(streamFallback);
         writeOutOfOrderPlaceholder(ssr, boundaryId);
-        // A sync throw during the content render already set `store.error` (the content host renders
-        // before this); returning the promise awaits the swap inline, right after the content.
-        // `!== undefined` (not truthiness) so a thrown falsy value still streams the fallback.
+        // A sync content-render throw already set `store.error`; stream the swap inline. `!== undefined`
+        // (not truthiness) so a falsy thrown value still streams.
         if (store.error !== undefined && store.$fallback$) {
           return streamFallback(store.error);
         }
@@ -427,15 +418,9 @@ async function emitErrorBoundaryFallback(
   segmentId: string,
   rendered: SSROutOfOrderSegment
 ): Promise<void> {
-  await ssr.$runQueuedRender$(async () => {
-    const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
-    writeOutOfOrderResolvedTemplate(ssr, boundaryId, result.html, null);
-    ssr.emitOutOfOrderSegmentScripts(result.scripts);
-    // Emit the shared executor right before its first call (idempotent), so error-free pages ship none.
-    ssr.emitOutOfOrderExecutorIfNeeded();
-    ssr.emitInlineScript(`qO(${boundaryId})`);
-    await ssr.streamHandler.flush();
-  });
+  await ssr.$runQueuedRender$(() =>
+    finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, segmentId, rendered, null, true)
+  );
 }
 
 function markOutOfOrderContentResolved(boundaryState: SSROutOfOrderBoundaryState | null): void {

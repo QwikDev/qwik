@@ -501,8 +501,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         'Out-of-order Suspense streaming requires `streaming.outOfOrder` to be `true`.'
       );
     }
-    // Creating a segment means OOOS is used — arm the executor (for a throwing `<ErrorBoundary>`,
-    // this is what arms it).
+    // Creating a segment means OOOS is used — arm the executor.
     this.outOfOrderUsed = true;
     this.markVNodeRefForSerialization(options.parentComponentFrame?.componentNode);
     const writer = new StringBufferSegmentWriter();
@@ -993,9 +992,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   rollback(checkpoint: SSRBufferCheckpoint): void {
     const cp = checkpoint as unknown as ContainerCheckpoint;
-    // Discard buffered HTML, vnode-data, nodes and roots since the checkpoint and restore the cursor,
-    // so rendering continues as if the subtree never ran. Styles already in <head> are left as
-    // harmless orphans; the serialization roots and their dedup-map entries are fully restored.
+    // Discard everything buffered since the checkpoint and restore the cursor, so rendering continues
+    // as if the subtree never ran (styles already in <head> are left as harmless orphans).
     this.writer.truncate(cp.writer);
     this.vNodeDatas.length = cp.vNodeDatasLength;
     this.currentElementFrame = cp.frame;

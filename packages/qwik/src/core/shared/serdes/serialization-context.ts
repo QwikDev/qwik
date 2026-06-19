@@ -84,8 +84,8 @@ export interface SerializationContext {
   $promoteToRoot$: (ref: SeenRef, obj: unknown, index?: number) => void;
 
   /**
-   * Truncate `$roots$` and `$rootObjs$` back to `length` and drop the dedup-map entries created
-   * since that point. Used by the SSR container to discard roots from a rolled-back subtree.
+   * Truncate `$roots$`/`$rootObjs$` to `length` and drop dedup entries added since, for SSR
+   * rollback.
    */
   $rollbackRoots$: (length: number) => void;
 
@@ -216,10 +216,8 @@ class SerializationContextImpl implements SerializationContext {
   }
 
   $rollbackRoots$(length: number): void {
-    // `$roots$` and `$rootObjs$` grow in lockstep, so any index >= `length` was added after the
-    // checkpoint. Drop its dedup entry, but only when the entry still points at a discarded index:
-    // an object that also lives at a surviving root index (re-referenced/promoted) must keep its
-    // entry so later dedup stays correct.
+    // Drop the dedup entry for each discarded root, but only when it still points at a discarded
+    // index — an object also re-referenced at a surviving index must keep its entry.
     for (let i = length; i < this.$rootObjs$.length; i++) {
       const seen = this.$seenObjsMap$.get(this.$rootObjs$[i]);
       if (seen && seen.$index$ >= length) {

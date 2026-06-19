@@ -668,7 +668,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ErrorBoundaryProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: any) =&gt; any&gt;\n\n\n</td><td>\n\nRendered in place of the subtree when a descendant throws during render. Lazily loaded — only fetched once the subtree errors — and receives the caught error.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ErrorBoundaryProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: any) =&gt; any&gt;\n\n\n</td><td>\n\nRendered in place of the subtree when a descendant throws; lazily loaded, receives the error.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts",
       "mdFile": "core.errorboundaryprops.md"
     },

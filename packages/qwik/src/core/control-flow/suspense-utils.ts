@@ -117,9 +117,8 @@ export const nextOutOfOrderSuspenseId = (): number => {
 };
 
 /**
- * Reserve an out-of-order id for a streaming `<ErrorBoundary>` without arming the OOOS executor —
- * it only needs the executor if it actually throws (streaming the fallback `segment()` arms it
- * then).
+ * Reserve an out-of-order id for a streaming `<ErrorBoundary>` without arming the executor — it
+ * only needs the executor if it throws.
  *
  * @internal
  */

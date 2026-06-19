@@ -587,10 +587,6 @@ export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]
       if (isLoaderInternal(value)) {
         const existing = seen.get(value.__id);
         if (existing) {
-          // Two distinct loaders sharing one __id collide here: the second is dropped and never
-          // runs. The usual cause is defining loaders through a shared wrapper that passes an
-          // inline QRL to routeLoader$ — the optimizer gives that inline QRL a single hash for all
-          // instances. Pass a distinct `id` option (e.g. the wrapped fn's getHash()) to fix it.
           if (isDev && existing !== value) {
             console.warn(
               `Two route loaders share the same id "${value.__id}". Only the first will run; ` +
@@ -819,11 +815,6 @@ export const routeLoaderQrl = ((
   loader.__brand = 'server_loader' as const;
   loader.__qrl = loaderQrl;
   loader.__validators = validators;
-  // Allow an explicit `id` to override the QRL hash. This is essential when a loader
-  // is created through a shared wrapper (e.g. a helper that calls routeLoader$ with an
-  // inline QRL): the optimizer gives that inline QRL a single hash for all instances, so
-  // without an override every wrapped loader would collide on the same __id and all but
-  // one would be deduped away in getModuleRouteLoaders.
   loader.__id = id ?? loaderQrl.getHash();
   loader.__serializationStrategy = serializationStrategy;
   loader.__expires = expires ?? 120_000; // 2 minutes

@@ -303,6 +303,62 @@ describe('qwikloader behavior', () => {
     expect(logs).toEqual(['child bubble']);
   });
 
+  test('a deferred (importing) handler that stops propagation skips a later deferred ancestor', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
+    // Both handlers load via QRL import, so neither runs during the synchronous bubbling walk — they
+    // run only when their per-element task group flushes. The child stops propagation after its
+    // import resolves; the fix's `cancelBubble` re-check between groups must then skip the ancestor.
+    const childModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      'export const handler = (ev) => { ev.stopPropagation(); globalThis.__qwikLoaderStopLogs.push("child stop"); };'
+    )}`;
+    const parentModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      'export const handler = () => globalThis.__qwikLoaderStopLogs.push("parent bubble");'
+    )}`;
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const parent = createMockElement(container, { 'q-e:click': `${parentModule}#handler#` });
+    const child = createMockElement(parent, { 'q-e:click': `${childModule}#handler#` });
+
+    (globalThis as any).__qwikLoaderStopLogs = logs;
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(child));
+      await vi.waitFor(() => {
+        expect(logs).toContain('child stop');
+      });
+      await flushQueuedTasks();
+      // Pre-fix the ancestor's group flushed unconditionally and 'parent bubble' was logged.
+      expect(logs).toEqual(['child stop']);
+    } finally {
+      (globalThis as any).__qwikLoaderStopLogs = previousLogs;
+    }
+  });
+
+  test('a deferred (importing) handler that does not stop still runs the deferred ancestor', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
+    const childModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      'export const handler = () => globalThis.__qwikLoaderStopLogs.push("child run");'
+    )}`;
+    const parentModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      'export const handler = () => globalThis.__qwikLoaderStopLogs.push("parent bubble");'
+    )}`;
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const parent = createMockElement(container, { 'q-e:click': `${parentModule}#handler#` });
+    const child = createMockElement(parent, { 'q-e:click': `${childModule}#handler#` });
+
+    (globalThis as any).__qwikLoaderStopLogs = logs;
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(child));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['child run', 'parent bubble']);
+      });
+    } finally {
+      (globalThis as any).__qwikLoaderStopLogs = previousLogs;
+    }
+  });
+
   test('applies parent preventdefault synchronously before async child bubbling completes', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];

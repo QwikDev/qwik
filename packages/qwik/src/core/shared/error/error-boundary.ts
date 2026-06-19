@@ -26,23 +26,9 @@ export interface ErrorBoundaryProps {
 }
 
 /*
- * ErrorBoundary lives in core (not the router) so it ships with the framework. Core is not run
- * through the Qwik optimizer, so we can't use `component$`/`$` here — the `$()` marker would survive
- * into the runtime and throw. Instead we build the component QRL by hand with `inlinedQrl` and export
- * its symbol from the core bundle (see `handlers.mjs` and qwik-vite's `manifest.ts`).
- *
- * The store is created and provided on `ERROR_CONTEXT` by the internal `useErrorBoundaryStore` hook
- * (the old public `useErrorBoundary` was removed). Errors are routed to the CLOSEST boundary by the
- * container's `handleError` (it resolves `ERROR_CONTEXT` and sets this store's `.error`); both
- * synchronous render throws and async `qerror` events go through it.
- *
- * Streaming (experimental `errorBoundary` feature): the boundary NEVER blocks streaming. On SSR with
- * out-of-order streaming it renders its subtree inside a visible content host plus a hidden fallback
- * host. The content streams as usual; if the subtree throws, the boundary's `fallback$` is streamed
- * as an out-of-order segment and the shared `qO` executor hides the content host and reveals the
- * fallback host (an inline script, so the swap happens before the framework resumes). On the client
- * — a fresh render, or a re-render after a post-resume error — the boundary just swaps `<Slot>` for
- * the fallback reactively (see `store.error` below).
+ * ErrorBoundary lives in core (ships with the framework) but core isn't run through the optimizer, so
+ * it's hand-built with `inlinedQrl` (symbol `_ebC`) rather than `component$`. Errors route to the
+ * closest boundary via the container's `handleError`.
  */
 
 const _ebContentStyle = (store: ErrorBoundaryStore) => ({
@@ -57,27 +43,17 @@ const _ebFallbackStyle_str = '{display:p0.error?"contents":"none"}';
 /** @internal */
 export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const store = useErrorBoundaryStore();
-  // Expose the fallback so SSR can stream it when a child throws (the client re-renders this
-  // component instead, which reads `store.error` below). Wrap in a fresh closure before
-  // `noSerialize` — `noSerialize` taints the value's identity, and `props.fallback$` is the SAME QRL
-  // object, so noSerializing it directly would also drop the serialized prop (it would resume as
-  // `undefined`, and the client re-render would call `undefined(error)`).
+  // Wrap in a fresh closure before `noSerialize`: it taints the value's identity, and `props.fallback$`
+  // is the same QRL object, so noSerializing it directly would drop the serialized prop too.
   const fallbackQrl = props.fallback$;
   store.$fallback$ = noSerialize((error: any) => fallbackQrl(error));
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
     const boundaryId = nextErrorBoundaryId();
-    // SSR with out-of-order streaming: render the subtree inside a visible content host plus a hidden
-    // fallback host. The content streams as usual; an SSR throw streams `fallback$` into the fallback
-    // host and the `qO` executor swaps the two via inline style. This branch deliberately does NOT
-    // read `store.error`, so the component is not subscribed to it on the server (a late deferred
-    // throw sets `store.error` mid-stream, and re-rendering an already-streamed host is unsupported).
-    // A CLIENT-time error instead re-renders this component into the `if (store.error)` branch below —
-    // the container's `handleError` marks this host dirty (see DomContainer.handleError) since the
-    // OOOS boundary never subscribed to `store.error`. The diff then drops the two-host structure (the
-    // empty `q:r` placeholder host removes cleanly, see `hasOnlySuspensePlaceholder`) and renders
-    // `fallback$` fresh.
+    // A visible content host + a hidden fallback host that streams `fallback$` on a throw. This branch
+    // deliberately does NOT read `store.error`: subscribing would schedule a re-render on an
+    // already-streamed host for a late deferred throw. A client error re-renders it via `handleError`.
     return [
       /*#__PURE__*/ _jsxSorted(
         'div',
@@ -102,8 +78,6 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   }
 
   if (store.error) {
-    // `fallback$` is a lazy QRL after resume; invoking it returns the JSX (or a promise the renderer
-    // awaits). It is now serialized (see the closure note above), so it is defined here.
     return /*#__PURE__*/ _jsxSorted(Fragment, null, null, props.fallback$(store.error), 0, null);
   }
 

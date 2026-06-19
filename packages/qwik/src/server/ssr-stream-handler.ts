@@ -162,11 +162,7 @@ export class StreamHandler implements IStreamHandler {
     return this.pendingFlush;
   }
 
-  /**
-   * Mark the current stream-block buffer position. Only meaningful while a stream block is open
-   * (`streamBlockDepth > 0`); the caller is responsible for suppressing flushes over the region it
-   * intends to be able to discard.
-   */
+  /** Mark the current stream-block buffer position (only meaningful while a stream block is open). */
   streamCheckpoint(): number {
     return this.streamBlockBuffer.length;
   }

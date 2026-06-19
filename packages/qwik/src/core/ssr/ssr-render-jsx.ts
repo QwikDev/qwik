@@ -90,8 +90,6 @@ export async function _walkJSX(
           try {
             await retryOnPromise(() => stack.push(trackFn()));
           } catch (err) {
-            // An async signal (e.g. a rejecting computed) threw on read — route it to the closest
-            // ErrorBoundary like a render throw instead of aborting the stream.
             let fallback = renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
             if (isPromise(fallback)) {
               fallback = await fallback;
@@ -106,9 +104,7 @@ export async function _walkJSX(
             try {
               stack.push(await pending);
             } catch (err) {
-              // An awaited child (async component, promise child, resource) rejected. Route it to
-              // the closest ErrorBoundary just like a synchronous render throw — otherwise the
-              // rejection would abort the whole stream. With no boundary above, this rethrows.
+              // Route an awaited child's rejection to the closest boundary, else it aborts the stream.
               let fallback = renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
               if (isPromise(fallback)) {
                 fallback = await fallback;
@@ -136,9 +132,8 @@ export async function _walkJSX(
 }
 
 /**
- * A component threw during SSR render. Route it to the CLOSEST ErrorBoundary (matching the client's
- * handleError): set the boundary's error and render its fallback in place of the failed subtree.
- * With no boundary above, rethrow so the request aborts to the error page.
+ * Route an SSR render throw to the closest `<ErrorBoundary>`; rethrow (aborting to the error page)
+ * when there's no boundary above.
  */
 function renderErrorBoundaryFallback(
   ssr: SSRContainer,
@@ -146,29 +141,20 @@ function renderErrorBoundaryFallback(
   err: unknown
 ): ValueOrPromise<JSXOutput> {
   const errorStore = ssr.resolveContext(host, ERROR_CONTEXT);
-  // Only catch when the closest boundary exposes a fallback to render in place (SSR can't re-render
-  // the boundary). Boundaries without one — or no boundary at all — propagate, aborting to the error
-  // page, exactly as before.
   if (!errorStore || !errorStore.$fallback$) {
     throw err;
   }
-  // Experimental: a buffering boundary (only inside a `<Suspense>` segment, which is already
-  // buffered) handles the throw in its own nested render — it rolls back to its checkpoint and
-  // renders the fallback there. Propagate so the throw unwinds to that boundary.
+  // A buffering boundary (inside a `<Suspense>` segment) handles the throw in its own nested render.
   if (__EXPERIMENTAL__.errorBoundary && errorStore.$checkpoint$) {
     throw err;
   }
-  // Experimental: inside an out-of-order segment, the resolved boundary is OUTSIDE this segment (a
-  // boundary inside it would be buffering, handled above). Propagate so the segment rejects and the
-  // boundary's `$emitFallback$` tears the whole boundary down — rather than rendering the fallback
-  // in place inside this segment's slot.
+  // Inside an out-of-order segment the boundary is outside it: propagate so the segment rejects and
+  // `$emitFallback$` tears the whole boundary down, rather than rendering the fallback in this slot.
   if (__EXPERIMENTAL__.errorBoundary && isOutOfOrderSegmentContainer(ssr)) {
     throw err;
   }
-  // Experimental: a live streaming boundary never blocks streaming and never renders in place. Just
-  // mark the error — the boundary's fallback host (rendered after the content) streams `fallback$`
-  // as an out-of-order segment and the shared `qO` executor hides the content and reveals it. The
-  // throwing subtree renders nothing here.
+  // A live streaming boundary just marks the error; its fallback host streams `fallback$` and `qO`
+  // swaps it in (no in-place render, so streaming is never blocked).
   if (__EXPERIMENTAL__.errorBoundary && ssr.outOfOrderStreaming) {
     errorStore.error = err;
     return null;
@@ -178,16 +164,13 @@ function renderErrorBoundaryFallback(
 }
 
 /**
- * Experimental: if `host` is itself an `<ErrorBoundary>` (it provided `ERROR_CONTEXT` with a
- * fallback), return its store so the renderer can buffer the boundary's subtree and swap in the
- * fallback on a throw. Reads the host's OWN context (not an ancestor's) so children don't match.
+ * If `host` is itself a buffering `<ErrorBoundary>` — inside a `<Suspense>` segment — return its
+ * store. Reads the host's own context (not an ancestor's) so children don't match.
  */
 function getBufferingErrorBoundaryStore(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>
 ): ErrorBoundaryStore | null {
-  // Only buffer inside a `<Suspense>` segment, which is already buffered — a live boundary must
-  // never block streaming, so it streams its subtree and swaps in the fallback via `qO` instead.
   if (!__EXPERIMENTAL__.errorBoundary || !isOutOfOrderSegmentContainer(ssr)) {
     return null;
   }
@@ -407,11 +390,8 @@ function processJSXNode(
           );
           enqueue(() => ssr.closeComponent());
           if (bufferingErrorStore && !isPromise(jsxOutput)) {
-            // Experimental buffering ErrorBoundary: render the subtree in a nested pass so a throw
-            // unwinds here, where we roll back the partially-rendered output and render the fallback
-            // in its place — yielding a clean `boundary > fallback` instead of a half-streamed
-            // subtree. The stream block keeps the buffered HTML discardable (a no-op inside a
-            // segment, which is already buffered).
+            // Buffering ErrorBoundary: render the subtree in a nested pass so a throw rolls back the
+            // partial output and renders the fallback in its place (a clean `boundary > fallback`).
             const content = jsxOutput as JSXOutput;
             enqueue(async () => {
               ssr.streamHandler.streamBlockStart();
@@ -440,8 +420,6 @@ function processJSXNode(
               try {
                 resolvedOutput = await jsxOutput;
               } catch (err) {
-                // An async component's render rejected — route it to the closest ErrorBoundary
-                // (matching the sync throw path) instead of aborting the stream.
                 const fallback = renderErrorBoundaryFallback(ssr, host, err);
                 resolvedOutput = isPromise(fallback) ? await fallback : fallback;
               }

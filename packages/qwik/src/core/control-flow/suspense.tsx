@@ -254,11 +254,9 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
-      // Capture the nearest enclosing <ErrorBoundary> up front. If this deferred segment later
-      // rejects (e.g. an async child threw after the placeholder was already streamed), route that
-      // boundary's fallback into this same placeholder instead of aborting the whole render. The
-      // boundary's own buffer-and-swap can't catch this because it already committed once the
-      // Suspense placeholder rendered. Gated by the experimental errorBoundary feature.
+      // Capture the enclosing `<ErrorBoundary>` up front: if this deferred segment later rejects, the
+      // boundary already committed (when the placeholder streamed) and can't catch it in place, so we
+      // route to its `$emitFallback$` below.
       const errorBoundaryStore =
         __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
           ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
@@ -287,10 +285,7 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
             )
           )
           .catch((error) => {
-            // A deferred child threw after its placeholder streamed, so the enclosing boundary
-            // already committed and can't catch it in place. Route it to that boundary's fallback
-            // host instead: the whole boundary (this Suspense included) is torn down to `fallback$`,
-            // matching the boundary's intent rather than wedging the fallback into this slot.
+            // Tear the whole enclosing boundary down to its fallback, rather than wedging it here.
             if (errorBoundaryStore && errorBoundaryStore.$emitFallback$) {
               return errorBoundaryStore.$emitFallback$(error);
             }
@@ -358,12 +353,9 @@ async function emitRenderedOutOfOrderSegment(
 }
 
 /**
- * SSR host for a streaming `<ErrorBoundary>`'s fallback. Lives inside the boundary's hidden
- * fallback host (`q:rp={boundaryId}`) and writes the out-of-order placeholder. When the boundary's
- * subtree throws — synchronously during the content render, or later from a deferred child
- * `<Suspense>` — `store.$emitFallback$` streams `fallback$(error)` as an out-of-order segment and
- * the shared `qO` executor injects it here while hiding the content host. The boundary never blocks
- * streaming: its content streams first, then the fallback swaps in if (and only if) it errors.
+ * SSR host for a streaming `<ErrorBoundary>`'s fallback. On a throw, `store.$emitFallback$` streams
+ * `fallback$(error)` as an out-of-order segment and the shared `qO` executor swaps it in here while
+ * hiding the content host.
  */
 export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
   ? /*#__PURE__*/ createInternalServerComponent<{ boundaryId: number; store: ErrorBoundaryStore }>(
@@ -371,16 +363,10 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
         const boundaryId = jsx.varProps.boundaryId as number;
         const store = jsx.varProps.store as ErrorBoundaryStore;
         const segmentId = `${boundaryId}`;
-        // Render `fallback$` as an out-of-order segment and inject it (template + inline `qO(id)`)
-        // into this fallback host. Returns the emission promise so the caller can await it in stream
-        // order — a synchronous throw awaits it inline (below) so the swap script follows the content
-        // immediately instead of landing at end-of-stream; a later async throw awaits it through the
-        // rejected Suspense segment's promise chain.
         const streamFallback = async (error: unknown): Promise<void> => {
           store.error = error;
-          // Detach the fallback while it renders: if the fallback itself throws and resolves back to
-          // THIS boundary, it must not re-render the fallback (infinite loop / deadlock). With no
-          // `$fallback$`, that throw takes the "no boundary handles it" path and propagates up.
+          // Detach `$fallback$` while it renders: if the fallback itself throws back to this boundary,
+          // it must not re-render the fallback (infinite loop) — with none set, that throw propagates.
           const fallback = store.$fallback$!;
           store.$fallback$ = undefined;
           try {
@@ -391,12 +377,9 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           }
         };
         store.$emitFallback$ = noSerialize(streamFallback);
-        // Just reserve the injection point. The shared `qO` executor is emitted lazily (in
-        // `emitErrorBoundaryFallback`, only when a boundary actually throws), so an error-free page
-        // ships neither the executor nor any `qO(id)` call.
         writeOutOfOrderPlaceholder(ssr, boundaryId);
-        // A throw during the content render already set `store.error` before this host renders (the
-        // content host is our previous sibling). Returning the promise awaits the swap inline.
+        // A sync throw during the content render already set `store.error` (the content host renders
+        // before this); returning the promise awaits the swap inline, right after the content.
         if (store.error != null && store.$fallback$) {
           return streamFallback(store.error);
         }
@@ -415,11 +398,9 @@ async function emitErrorBoundaryFallback(
     const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
     writeOutOfOrderResolvedTemplate(ssr, boundaryId, result.html, null);
     ssr.emitOutOfOrderSegmentScripts(result.scripts);
-    // Install the shared executor (idempotent) right before its first call, so error-free pages
-    // never ship it.
+    // Emit the shared executor right before its first call (idempotent), so error-free pages ship none.
     ssr.emitOutOfOrderExecutorIfNeeded();
     ssr.emitInlineScript(`qO(${boundaryId})`);
-    // qO() is the browser-visible swap (hide content host, reveal fallback host), so flush now.
     await ssr.streamHandler.flush();
   });
 }

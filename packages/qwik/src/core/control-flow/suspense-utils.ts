@@ -117,10 +117,9 @@ export const nextOutOfOrderSuspenseId = (): number => {
 };
 
 /**
- * Reserve an out-of-order id for a streaming `<ErrorBoundary>` WITHOUT arming the OOOS executor.
- * The boundary needs an id up front (for its `q:rp` fallback host), but it only needs the executor
- * if it actually throws — at which point streaming the fallback `segment()` arms it. So an
- * error-free boundary ships neither the executor nor any `qO(id)` call.
+ * Reserve an out-of-order id for a streaming `<ErrorBoundary>` without arming the OOOS executor —
+ * it only needs the executor if it actually throws (streaming the fallback `segment()` arms it
+ * then).
  *
  * @internal
  */

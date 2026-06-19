@@ -153,10 +153,8 @@ describe('ErrorBoundary', () => {
 });
 
 describe('ErrorBoundary streaming swap (experimental)', () => {
-  // Render with out-of-order streaming, then run the emitted `qO` scripts to perform the inline swap
-  // (hide the content host, reveal the fallback host) and wire `qProcessOOOS` for resume, mirroring
-  // the Suspense OOOS specs. Returns the streamed HTML (to assert the boundary did NOT block) plus
-  // the resumed document (to assert the post-swap DOM).
+  // Render with out-of-order streaming, then run the emitted `qO` scripts to perform the inline swap.
+  // Returns the streamed HTML (to assert the boundary didn't block) and the resumed document.
   const streamAndResume = async (jsx: JSXOutput) => {
     const chunks: string[] = [];
     await ssrRenderToDom(jsx, {
@@ -201,9 +199,7 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
     );
     // The boundary never blocks: its content streams as usual.
     expect(html).toContain('id="before"');
-    // The inline `qO` swap script lands right after the boundary — BEFORE trailing content — so the
-    // broken content is not left visible until end-of-stream. The swap is a plain inline script, so
-    // it runs as the chunk parses, with no dependency on the framework having resumed.
+    // The swap script lands right after the boundary, before trailing content (not at end-of-stream).
     const swapPos = html.search(/qO\(\d/);
     expect(swapPos).toBeGreaterThan(html.indexOf('id="before"'));
     expect(swapPos).toBeLessThan(html.indexOf('id="eb-tail"'));
@@ -235,10 +231,8 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
   });
 
   it('a deferred (async) throw inside a child <Suspense> tears down the WHOLE boundary', async () => {
-    // The boundary committed once the Suspense placeholder streamed, so it can't catch the later
-    // async throw in place. Instead the whole boundary — the streamed sibling and the Suspense — is
-    // hidden and the boundary fallback revealed (the dev's `fallback$` replaces the boundary, not a
-    // sub-slot of it).
+    // The whole boundary (the streamed sibling and the Suspense) is torn down to the fallback, not
+    // wedged into the Suspense slot.
     const { html, document } = await streamAndResume(
       <main>
         <ErrorBoundary
@@ -292,9 +286,8 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
   });
 
   it('boundary inside a <Suspense> buffers within the segment (skeleton → fallback)', async () => {
-    // When the boundary sits inside a <Suspense> its subtree is already deferred into a buffered
-    // segment, so the boundary buffers there and discards the partial content — a clean
-    // skeleton → fallback swap rather than the stream-and-hide path used by a live boundary.
+    // Inside a <Suspense> the subtree is already buffered, so the boundary buffers there and discards
+    // the partial content rather than using the live stream-and-hide path.
     const { document } = await streamAndResume(
       <main>
         <Suspense fallback={<span id="loading">loading</span>}>
@@ -436,13 +429,8 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
     expect(displayOf(document.querySelector('#ok-b')?.closest('div[style]'))).toBe('contents');
   });
 
-  // A client-time error after an out-of-order streamed resume must re-render the boundary to its
-  // fallback. The fallback host only holds the empty `qO` `<template q:r>` placeholder (no fallback
-  // was streamed, since there was no SSR error), so revealing it reactively shows nothing — the
-  // boundary has to re-render to `fallback$` and drop the two-host structure. Regression for the
-  // subscription gap: the OOOS branch returned early without reading `store.error`, so the component
-  // never re-rendered on a client error. (The full browser round-trip is also covered by
-  // `scenario=client` in error-boundary-streaming.e2e.ts.)
+  // The OOOS branch never read `store.error`, so a client-time error relies on `handleError`'s
+  // explicit re-render to swap in the fallback (also covered by the `scenario=client` e2e).
   it('client: a post-resume error on an out-of-order streamed boundary re-renders to its fallback', async () => {
     const { container } = await ssrRenderToDom(
       <main>

@@ -170,93 +170,17 @@ Never use `pnpm test.unit` for agent verification in this repo.
 
 ## ErrorBoundary Streaming (experimental `errorBoundary`)
 
-`<ErrorBoundary>` must NEVER block streaming — people nest it freely, so a buffering boundary would
-silently kill a page's streaming. On SSR with out-of-order streaming the boundary (`errorBoundaryCmp`
-in `shared/error/error-boundary.ts`) renders two display-toggled hosts modeled on Suspense:
+`<ErrorBoundary>` must never block streaming. On SSR with out-of-order streaming the boundary
+(`errorBoundaryCmp`, `shared/error/error-boundary.ts`) renders two display-toggled hosts modeled on
+Suspense — a visible content host wrapping `<Slot>`, and a hidden fallback host (`q:rp={id}`). On a
+throw, the fallback host streams `fallback$(error)` as an out-of-order segment and the shared `qO`
+executor reveals it while hiding the content host via an inline script, so the swap happens as the
+chunk parses, before the framework resumes; resume consistency comes via `qProcessOOOS`.
 
-- a visible content host (`<div style=display:contents>` wrapping `<Slot>`), and
-- a hidden fallback host (`<div q:rp={id} style=display:none>` containing `SSRErrorFallback`).
-
-On a throw, `renderErrorBoundaryFallback` (in `ssr/ssr-render-jsx.ts`) just sets `store.error` and
-renders nothing in place. The fallback host (rendered after the content) streams `fallback$(error)`
-as an out-of-order **segment** and reuses the Suspense pipeline verbatim:
-`writeOutOfOrderResolvedTemplate` + `emitInlineScript('qO(id)')`. The shared `qO` executor
-(`out-of-order-executor-shared.ts`) reveals the `q:rp` host and hides its previous sibling — which is
-exactly content-host-hidden + fallback-host-shown, no executor change. Resume consistency comes for
-free via `qProcessOOOS` / `processOutOfOrderSegmentVNodeData`. Display is driven by `_fnSignal`
-reading `store.error`, so the resumed/re-rendered boundary stays consistent with the inline swap.
-
-Key invariants:
-
-- The swap is an inline script (fires as its chunk parses) — it does NOT depend on the client
-  re-rendering, so it works before the framework resumes. Client-time errors instead go through
-  `handleError`, which sets `store.error` and explicitly re-renders the boundary (see the OOOS
-  client-error note below).
-- A SYNC throw emits the fallback segment + `qO(id)` **inline** (`SSRErrorFallback` returns the
-  emission promise, awaited in the drain), so the swap lands right after the boundary — NOT via
-  `queueOutOfOrderSegment`, which would defer it to end-of-stream and leave the broken content
-  visible the whole time. A test asserts the `qO(` position precedes trailing content; keep it.
-- An **error-free** boundary ships NO swap JS (no `qO` executor, no `qO(id)` call). The boundary
-  reserves its id with `nextErrorBoundaryId()` → `container.nextOutOfOrderId(false)`, which does NOT
-  set `outOfOrderUsed`; the executor is armed only when a throw creates the fallback `segment()`
-  (which sets `outOfOrderUsed`) and `emitErrorBoundaryFallback` emits the executor right before the
-  first `qO(id)`. Per throwing boundary it's one shared executor + one tiny `qO(id)` call (same unit
-  cost as a resolved Suspense segment). A test asserts the error-free HTML has no `qO(`/`qInstallOOOS`.
-- **Async throws must be routed in the drain.** The SSR drain (`_walkJSX`) awaits children at three
-  points — the `Promise` marker (promise children), the async-component thunk (`await jsxOutput`),
-  and `MaybeAsyncSignal` (`retryOnPromise`). All three now catch and call `renderErrorBoundaryFallback`;
-  without that, a rejected promise child / async component / async signal aborts the whole stream
-  instead of hitting the boundary (the old buffer-and-swap caught these via `await renderJSX`). Keep
-  all three wrapped. Covered by `catches an async … (no <Suspense>)` specs.
-- **`renderErrorBoundaryFallback` rethrows inside an OOOS segment** (when the boundary has no
-  `$checkpoint$`, i.e. it is OUTSIDE the segment): this propagates so the segment rejects and
-  `SSRDeferredSlot`'s `.catch` routes to the boundary's `$emitFallback$` (whole-boundary teardown).
-  Do not render the fallback in place inside a segment — it breaks the case-3 teardown.
-- **A throwing `fallback$` must not loop.** `streamFallback` detaches `store.$fallback$` while
-  rendering the fallback, so a re-throw that resolves back to the same boundary takes the
-  "no fallback → propagate" path (aborts) instead of re-rendering the fallback forever (deadlock).
-- **FIXED — the critical client-error loop.** A client-time error on ANY SSR'd `<ErrorBoundary>`
-  (in-order or OOOS) used to infinite-loop `handleError` (~50k calls) and never show the fallback.
-  Root cause was NOT a lazy QRL — it was `noSerialize`: `store.$fallback$ = noSerialize(props.fallback$)`
-  taints the value's IDENTITY, and `props.fallback$` is the SAME QRL object, so the serialized prop
-  was dropped and resumed as `undefined`; the client re-render's `props.fallback$(error)` threw
-  `undefined is not a function`, which re-entered `handleError` with no guard. Fixed by (a)
-  `noSerialize`-ing a FRESH closure (`(e) => fallbackQrl(e)`) so the prop stays serializable, and
-  (b) a re-entrancy guard in `handleError` (`dom-container.ts`) that propagates when the boundary
-  already holds an error (`errorStore.error != null` — covers the `undefined` ErrorBoundary init AND
-  the `null` generic-ERROR_CONTEXT/`ErrorProvider` init) instead of looping. Covered by the in-order
-  `scenario=client` e2e + a `domRender` throwing-fallback unit test (the unit harness inlines QRLs,
-  so it can't catch the taint — only the loop guard; the e2e catches the taint).
-  GENERAL GOTCHA: never `noSerialize` a value you also need serialized elsewhere — `noSerialize`
-  marks the object identity, so wrap a fresh object/closure.
-- **FIXED (OOOS two-host + client error).** A client-time error on a boundary that streamed via OOOS
-  used to never show its fallback. The real cause was a SUBSCRIPTION GAP, not a vnode diff: the OOOS
-  branch of `errorBoundaryCmp` returns the two-host structure early WITHOUT reading `store.error`, so
-  the boundary never subscribed to it. A client error then only flipped the inline `_fnSignal` style
-  swap — revealing the still-empty `q:rp` fallback host (it holds just the `qO` `<template q:r>`
-  placeholder) — and the component never re-rendered to `fallback$`. It was NOT a `"Missing child"`
-  diff: the existing `hasOnlySuspensePlaceholder` guard in `vnode_getFirstChild` already removes the
-  placeholder host cleanly once the boundary re-renders. Fix: `DomContainer.handleError` (client-only)
-  now explicitly re-renders the boundary — `markVNodeDirty(boundaryHost, ChoreBits.COMPONENT)` after
-  setting `store.error` — so an OOOS boundary (never subscribed) swaps to its fallback like an in-order
-  one (still re-renders via its `store.error` subscription; the mark is a no-op when that already
-  scheduled it). Scoped to real boundaries via the `store.error === undefined` init sentinel — a
-  generic ERROR_CONTEXT/`ErrorProvider` consumer uses `null` and only captures, never re-renders.
-  Deliberately NOT fixed by subscribing the OOOS component to `store.error`: a deferred (async) throw
-  sets `store.error` mid-stream, which would schedule a re-render chore on the already-streamed host
-  (the dev `"chore scheduled on a host that was already streamed"` warning). Covered by the OOOS
-  `scenario=client` e2e + a `ssrRenderToDom` + `outOfOrder` + `qerror` unit test. Note a qerror only
-  ROUTES if the throwing handler resumed the container first (touching a signal does; a bare
-  `() => { throw }` doesn't, so `$qErrorHandler$` isn't attached yet).
-- A deferred child `<Suspense>` that throws routes to the enclosing boundary's `store.$emitFallback$`
-  (set by `SSRErrorFallback`), tearing the whole boundary down — not into the Suspense sub-slot.
-- A boundary *inside* a `<Suspense>` segment is the one case that still buffers (the segment is
-  already buffered, so it doesn't block the shell): `getBufferingErrorBoundaryStore` gates buffering
-  on `isOutOfOrderSegmentContainer`.
-- Tests must assert BOTH the streamed HTML (content was not blocked) and the post-`qO` DOM
-  (content host `display:none`, fallback host `display:contents`). Resume helpers must filter the
-  emitted scripts to `qO`/`qInstallOOOS` (running every `text/javascript` script hits debug-build
-  refs). See `core/tests/error-boundary.spec.tsx`.
+A deferred child `<Suspense>` that throws tears the whole boundary down via `store.$emitFallback$`. A
+boundary placed *inside* a `<Suspense>` segment instead buffers within that already-deferred segment
+(`getBufferingErrorBoundaryStore` gates on `isOutOfOrderSegmentContainer`). Client-time errors
+re-render the boundary through the container's `handleError`.
 
 ## Keep This Reference Fresh
 

@@ -101,10 +101,9 @@ const queueTasks = (tasks: Task[]) => {
 };
 
 /**
- * Run the deferred element handlers grouped per element, in propagation order. Once a handler calls
- * `stopPropagation()` — including asynchronously, after its QRL finished importing — handlers on
- * elements further along the path are skipped. A synchronous `stopPropagation()` already truncated
- * the walk (so `stoppedSynchronously` is set), and every group it collected must still run.
+ * Run deferred handlers grouped per element, re-checking `ev.cancelBubble` between groups so an
+ * async `stopPropagation()` (from a handler whose QRL was still importing) still skips later
+ * elements. A synchronous stop already truncated the walk, so its collected groups all run.
  */
 const runEventTasks = (ev: Event, taskGroups: Task[][], stoppedSynchronously: boolean) => {
   if (taskGroups.length) {
@@ -410,9 +409,8 @@ const processElementEvent = (
   const captureAttribute = capturePrefix + kebabName;
   const elements: Element[] = [];
   const captureHandlers: boolean[] = [];
-  // One task list per element, kept in propagation order. Deferred handlers (QRLs still importing)
-  // can call `stopPropagation()` only after this synchronous walk has moved on, so the walk can't
-  // truncate itself; `runEventTasks` re-checks `ev.cancelBubble` between elements instead.
+  // One task list per element so `runEventTasks` can re-check `cancelBubble` between them — a deferred
+  // handler can only `stopPropagation()` after this synchronous walk has already moved on.
   const taskGroups: Task[][] = [];
   let stoppedSynchronously = false;
   let current = ev.target as Node | null;

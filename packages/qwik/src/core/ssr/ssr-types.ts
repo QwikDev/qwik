@@ -173,8 +173,7 @@ export interface SSRContainer extends Container {
   $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T>;
   /**
    * Allocate the next out-of-order boundary id. Pass `markUsed: false` to reserve an id without
-   * arming the OOOS executor — used by `<ErrorBoundary>`, which only needs the executor if it
-   * actually throws (creating the fallback `segment()` then marks OOOS used).
+   * arming the OOOS executor (used by `<ErrorBoundary>`, which only needs it if it throws).
    */
   nextOutOfOrderId(markUsed?: boolean): number;
   emitOutOfOrderSegmentScripts(scripts: string): void;

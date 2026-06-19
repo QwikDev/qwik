@@ -473,8 +473,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
       return 0;
     }
-    // `<ErrorBoundary>` reserves an id without arming the executor (markUsed=false): it only needs
-    // OOOS if it actually throws, at which point creating the fallback `segment()` marks it used.
     if (markUsed) {
       this.outOfOrderUsed = true;
     }
@@ -503,8 +501,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         'Out-of-order Suspense streaming requires `streaming.outOfOrder` to be `true`.'
       );
     }
-    // Creating a segment means OOOS is genuinely used, so arm the executor. (For Suspense this is
-    // already set by `nextOutOfOrderId`; for a throwing `<ErrorBoundary>` this is what arms it.)
+    // Creating a segment means OOOS is used — arm the executor (for a throwing `<ErrorBoundary>`,
+    // this is what arms it).
     this.outOfOrderUsed = true;
     this.markVNodeRefForSerialization(options.parentComponentFrame?.componentNode);
     const writer = new StringBufferSegmentWriter();
@@ -995,10 +993,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   rollback(checkpoint: SSRBufferCheckpoint): void {
     const cp = checkpoint as unknown as ContainerCheckpoint;
-    // Discard buffered HTML, vnode-data, nodes and roots produced since the checkpoint, then restore
-    // the cursor state so rendering can continue (e.g. with a fallback) as if the subtree never ran.
-    // Styles already emitted to <head> and entries in the root dedup map are left as harmless
-    // orphans (the discarded objects are never referenced again).
+    // Discard buffered HTML, vnode-data, nodes and roots since the checkpoint and restore the cursor,
+    // so rendering continues as if the subtree never ran. Styles already in <head> and root dedup-map
+    // entries are left as harmless orphans.
     this.writer.truncate(cp.writer);
     this.vNodeDatas.length = cp.vNodeDatasLength;
     this.currentElementFrame = cp.frame;

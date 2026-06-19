@@ -248,14 +248,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   handleError(err: any, host: VNode | null): void {
     const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
-    // Re-entrancy guard: if the closest boundary already holds an error, a further throw — e.g. the
-    // boundary's own fallback render failing — must NOT re-trigger it. Otherwise handleError loops
-    // forever (set error → re-render → fallback throws → handleError → ...). Report it and stop:
-    // re-throwing here would escape the re-render chore as an unhandled rejection (the chore's
-    // `rejectFn` calls handleError), so a throwing fallback surfaces in the console instead of
-    // hanging the tab or failing the test runner. `!= null` covers both store init sentinels:
-    // `<ErrorBoundary>` uses `undefined`, the generic ERROR_CONTEXT path uses `null` — neither
-    // counts as "already errored".
+    // Re-entrancy guard: if the closest boundary already errored (e.g. its own fallback throws),
+    // report and stop instead of re-triggering — re-throwing would loop and escape the re-render
+    // chore as an unhandled rejection. `!= null` covers both store inits: boundary `undefined`,
+    // generic ERROR_CONTEXT `null`.
     if (errorStore && errorStore.error != null) {
       logError(err);
       return;
@@ -278,17 +274,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!errorStore) {
       throw err;
     }
-    // Distinguish a re-rendering `<ErrorBoundary>` from a generic ERROR_CONTEXT consumer that only
-    // captures the error: a boundary's store starts `error: undefined`, the generic path uses `null`
-    // (the same init sentinel the re-entrancy guard above relies on). Only the boundary re-renders.
+    // Only a real boundary re-renders (store inits `undefined`); a generic ERROR_CONTEXT consumer
+    // inits `null` and only captures.
     const isErrorBoundary = errorStore.error === undefined;
     errorStore.error = err;
-    // Re-render the boundary so it swaps to its fallback. An in-order boundary already re-renders from
-    // the reactive write above (it read `store.error` during render, so it subscribed), but a boundary
-    // streamed via out-of-order streaming returned its two-host structure early without reading
-    // `store.error`, so the write alone only flips the inline style swap — revealing the still-empty
-    // streamed fallback host. Marking the boundary host re-renders it to `fallback$` (a no-op when the
-    // reactive write already marked it).
+    // An OOOS boundary never read `store.error` (its two-host branch returns early), so the reactive
+    // write alone won't re-render it to the fallback — mark it explicitly (a no-op when an in-order
+    // boundary's write already scheduled it).
     if (isErrorBoundary && host) {
       const boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
       if (boundaryHost) {

@@ -215,13 +215,24 @@ Key invariants:
   rendering the fallback, so a re-throw that resolves back to the same boundary takes the
   "no fallback → propagate" path (aborts) instead of re-rendering the fallback forever (deadlock).
 - **KNOWN LIMITATION (regression, tracked):** a CLIENT-time error on a boundary that streamed
-  *without* erroring during SSR does not render the fallback — the content host hides (display
-  signal) but the empty fallback host can't be filled, because the boundary can't cleanly re-render
-  its two-host structure to `[fallback]` on the client. The SSR error path (sync + async) works. The
-  fix is a client-reactive fallback host (render `fallback$` reactively in the fallback host when
-  `store.error` is set, instead of relying on the component re-render). Tracked by the `test.fixme`
-  `scenario=client` e2e in `error-boundary-streaming.e2e.ts`. Client errors on NON-streamed
-  boundaries (no OOOS) still work via the normal reactive re-render.
+  *without* erroring during SSR does not render the fallback. The SSR error path (sync + async)
+  works; client errors on NON-streamed boundaries (no OOOS) work via the normal reactive re-render.
+  Investigated in depth — two cascading causes:
+  1. The error only ROUTES to the boundary if the throwing handler resumed the container first (a
+     handler that touches a signal does; a pure `() => { throw }` doesn't, so `$qErrorHandler$`
+     isn't attached yet and the `qerror` is dropped). This is a general qerror/resume-timing point,
+     not boundary-specific.
+  2. Even once it routes (`handleError` sets `store.error`), filling the fallback host on the client
+     asserts `"Missing child"`: the fallback host contains the raw `qO` `<template q:r>` placeholder
+     (written via `ssr.write`, no vnode), and any client-side re-render of that host's contents
+     (whether the boundary re-renders to `[fallback]`, or a sibling client-reactive component
+     renders into the host) trips the vnode diff on the vnode-less template. The `qO` placeholder
+     mechanism (great for the instant SSR swap) and client-side vnode re-rendering don't compose.
+  Fix direction (a real change, not done): inject the fallback on the client the SAME way the server
+  does — render `fallback$` to a `<template>` and run the `qO` injection client-side (imperative DOM
+  swap, bypassing the vnode diff) — or make `writeOutOfOrderPlaceholder` emit a vnode-backed
+  placeholder (touches Suspense too). A naive "client-reactive fallback host" does NOT work (hits
+  cause 2). Tracked by the `test.fixme` `scenario=client` e2e in `error-boundary-streaming.e2e.ts`.
 - A deferred child `<Suspense>` that throws routes to the enclosing boundary's `store.$emitFallback$`
   (set by `SSRErrorFallback`), tearing the whole boundary down — not into the Suspense sub-slot.
 - A boundary *inside* a `<Suspense>` segment is the one case that still buffers (the segment is

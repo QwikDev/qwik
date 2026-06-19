@@ -994,8 +994,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   rollback(checkpoint: SSRBufferCheckpoint): void {
     const cp = checkpoint as unknown as ContainerCheckpoint;
     // Discard buffered HTML, vnode-data, nodes and roots since the checkpoint and restore the cursor,
-    // so rendering continues as if the subtree never ran. Styles already in <head> and root dedup-map
-    // entries are left as harmless orphans.
+    // so rendering continues as if the subtree never ran. Styles already in <head> are left as
+    // harmless orphans; the serialization roots and their dedup-map entries are fully restored.
     this.writer.truncate(cp.writer);
     this.vNodeDatas.length = cp.vNodeDatasLength;
     this.currentElementFrame = cp.frame;
@@ -1013,7 +1013,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.depthFirstElementCount = cp.depthFirstElementCount;
     this.componentStack.length = cp.componentStackLength;
-    this.serializationCtx.$roots$.length = cp.rootsLength;
+    this.serializationCtx.$rollbackRoots$(cp.rootsLength);
   }
 
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void {

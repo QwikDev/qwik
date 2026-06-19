@@ -90,11 +90,7 @@ export async function _walkJSX(
           try {
             await retryOnPromise(() => stack.push(trackFn()));
           } catch (err) {
-            let fallback = renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
-            if (isPromise(fallback)) {
-              fallback = await fallback;
-            }
-            stack.push(fallback);
+            stack.push(await resolveErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err));
           }
           continue;
         }
@@ -105,11 +101,7 @@ export async function _walkJSX(
               stack.push(await pending);
             } catch (err) {
               // Route an awaited child's rejection to the closest boundary, else it aborts the stream.
-              let fallback = renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
-              if (isPromise(fallback)) {
-                fallback = await fallback;
-              }
-              stack.push(fallback);
+              stack.push(await resolveErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err));
             }
           } else {
             const result = (value as StackFn).apply(ssr);
@@ -161,6 +153,19 @@ function renderErrorBoundaryFallback(
   }
   errorStore.error = err;
   return errorStore.$fallback$(err) as ValueOrPromise<JSXOutput>;
+}
+
+/**
+ * {@link renderErrorBoundaryFallback}, awaiting an async fallback so async drain sites get a plain
+ * value.
+ */
+async function resolveErrorBoundaryFallback(
+  ssr: SSRContainer,
+  host: ReturnType<SSRContainer['getOrCreateLastNode']>,
+  err: unknown
+): Promise<JSXOutput> {
+  const fallback = renderErrorBoundaryFallback(ssr, host, err);
+  return isPromise(fallback) ? await fallback : fallback;
 }
 
 /**
@@ -420,8 +425,7 @@ function processJSXNode(
               try {
                 resolvedOutput = await jsxOutput;
               } catch (err) {
-                const fallback = renderErrorBoundaryFallback(ssr, host, err);
-                resolvedOutput = isPromise(fallback) ? await fallback : fallback;
+                resolvedOutput = await resolveErrorBoundaryFallback(ssr, host, err);
               }
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 

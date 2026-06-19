@@ -330,6 +330,33 @@ function createClaimedDeferredSlot(
   );
 }
 
+/**
+ * Finalize a streamed out-of-order segment and swap it into its placeholder host: write the
+ * resolved template, emit the segment's scripts, then call `qO(id)` to perform the inline swap and
+ * flush. Shared by Suspense's deferred-slot reveal and the ErrorBoundary fallback stream.
+ * `emitExecutor` emits the shared `qO` executor here (the ErrorBoundary path); Suspense emits it up
+ * front instead.
+ */
+async function finalizeAndSwapOutOfOrderSegment(
+  ssr: SSRContainer,
+  boundaryId: number,
+  segmentId: string,
+  rendered: SSROutOfOrderSegment,
+  revealBoundary: OutOfOrderRevealBoundary | null,
+  emitExecutor: boolean
+): Promise<void> {
+  const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
+  writeOutOfOrderResolvedTemplate(ssr, boundaryId, result.html, revealBoundary);
+  ssr.emitOutOfOrderSegmentScripts(result.scripts);
+  if (emitExecutor) {
+    // Emit the shared executor right before its first call (idempotent), so error-free pages ship none.
+    ssr.emitOutOfOrderExecutorIfNeeded();
+  }
+  ssr.emitInlineScript(`qO(${boundaryId})`);
+  // qO() is the browser-visible handoff for this segment, so flush it immediately.
+  await ssr.streamHandler.flush();
+}
+
 async function emitRenderedOutOfOrderSegment(
   ssr: SSRContainer,
   boundaryId: number,
@@ -343,12 +370,14 @@ async function emitRenderedOutOfOrderSegment(
   revealBoundary?.resolve();
   await ssr.$runQueuedRender$(async () => {
     ssr.addRoot(contentStyle);
-    const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
-    writeOutOfOrderResolvedTemplate(ssr, boundaryId, result.html, revealBoundary);
-    ssr.emitOutOfOrderSegmentScripts(result.scripts);
-    ssr.emitInlineScript(`qO(${boundaryId})`);
-    // qO() is the browser-visible handoff for this segment, so flush it immediately.
-    await ssr.streamHandler.flush();
+    await finalizeAndSwapOutOfOrderSegment(
+      ssr,
+      boundaryId,
+      segmentId,
+      rendered,
+      revealBoundary,
+      false
+    );
   });
 }
 

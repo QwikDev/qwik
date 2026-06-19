@@ -393,17 +393,20 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
         const store = jsx.varProps.store as ErrorBoundaryStore;
         const segmentId = `${boundaryId}`;
         const streamFallback = async (error: unknown): Promise<void> => {
-          store.error = error;
-          // Detach `$fallback$` while it renders: if the fallback itself throws back to this boundary,
-          // it must not re-render the fallback (infinite loop) — with none set, that throw propagates.
-          const fallback = store.$fallback$!;
-          store.$fallback$ = undefined;
-          try {
-            const segment = await ssr.segment(segmentId, fallback(error) as JSXOutput, options);
-            await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
-          } finally {
-            store.$fallback$ = fallback;
+          // Tear a boundary down exactly once: `$emitFallback$` is shared by every deferred child, so
+          // sibling rejections all land here. A detached `$fallback$` means teardown already started (or
+          // finished) — the first error wins, later siblings no-op instead of double-swapping the host.
+          const fallback = store.$fallback$;
+          if (!fallback) {
+            return;
           }
+          store.error = error;
+          // Keep `$fallback$` detached for the rest of the render: if the fallback itself throws back to
+          // this boundary, it must not re-render the fallback (infinite loop) — with none set, that throw
+          // propagates. It stays detached afterwards too, so the boundary never tears down a second time.
+          store.$fallback$ = undefined;
+          const segment = await ssr.segment(segmentId, fallback(error) as JSXOutput, options);
+          await emitErrorBoundaryFallback(ssr, boundaryId, segmentId, segment);
         };
         store.$emitFallback$ = noSerialize(streamFallback);
         writeOutOfOrderPlaceholder(ssr, boundaryId);

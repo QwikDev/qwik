@@ -21,6 +21,6 @@ output_path = "AGENTS.md"
 enabled = true
 
 # Generated outputs are committed, not ignored, so a fresh clone/worktree has guidance immediately.
-# A CI check re-runs `ruler apply` and fails on drift; never hand-edit the outputs, edit .ruler/.
+# Never hand-edit the outputs, edit .ruler/. A CI check re-runs `ruler apply` and fails on drift in case of manual edits.
 [gitignore]
 enabled = false

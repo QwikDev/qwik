@@ -318,7 +318,7 @@ describe('getModuleRouteLoaders', () => {
     expect(loaders).toEqual([a, b]);
   });
 
-  it('returns the same loader object once across modules, with no warning', () => {
+  it('a loader shared across modules is deduped without a false-positive warning', () => {
     const shared = mkLoader('shared');
     const loaders = getModuleRouteLoaders([
       asModule({ useShared: shared }),

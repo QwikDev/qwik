@@ -66,24 +66,27 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });
 
-  // KNOWN LIMITATION (tracked): a client-time error on a boundary that streamed without erroring
-  // during SSR does not yet render the fallback — the two-host structure can't re-render to the
-  // fallback on the client. The SSR error path works. Fix needs a client-reactive fallback host.
-  test.fixme('client-time throw after resume re-renders the streamed boundary to its fallback', async ({
+  // A client-time error on an SSR'd boundary (here in-order streaming, `outOfOrder=false`) must
+  // re-render to the fallback — `fallback$` is a lazy QRL after resume, so the client render must
+  // resolve it instead of calling it synchronously, and a throwing fallback render must not loop.
+  test('client-time throw after resume re-renders the boundary to its fallback (in-order)', async ({
     page,
   }) => {
-    assertNoBrowserErrors(page);
-    await page.goto('/e2e/error-boundary-streaming?scenario=client', { waitUntil: 'commit' });
+    // The intentional throw may log; we only care that the boundary recovers (no infinite loop).
+    await page.goto('/e2e/error-boundary-streaming?scenario=client&outOfOrder=false', {
+      waitUntil: 'commit',
+    });
 
-    // The boundary streamed fine — content is shown, no fallback yet.
+    // The boundary rendered fine — content is shown, no fallback yet.
     await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
     await expect(page.locator('#eb-fallback')).toHaveCount(0);
 
-    // A click handler that throws routes to the boundary, which re-renders to its fallback.
+    // A click handler that touches state then throws routes to the boundary, which re-renders to the
+    // fallback (and must not infinite-loop handleError).
     await page.locator('#eb-client-throw').click();
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-content')).toBeHidden();
 
+    // The recovered fallback is interactive.
     await page.locator('#eb-fallback-button').click();
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });

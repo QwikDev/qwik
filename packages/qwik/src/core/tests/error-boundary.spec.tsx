@@ -123,6 +123,33 @@ describe('ErrorBoundary', () => {
     expect(el.querySelector('#fb-inner')).toBeTruthy();
     expect(el.querySelector('#fb-outer')).toBeFalsy();
   });
+
+  it('client: a throwing fallback does not infinite-loop handleError', async () => {
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$(() => {
+          throw new Error('fallback boom');
+        })}
+      >
+        <button id="target">x</button>
+      </ErrorBoundary>,
+      { debug }
+    );
+    const el = container.element;
+    const target = el.querySelector('#target')!;
+    const ev = el.ownerDocument.createEvent('Event');
+    ev.initEvent('qerror', false, false);
+    (ev as any).detail = { error: new Error('client boom'), element: target };
+    el.ownerDocument.dispatchEvent(ev);
+    // The re-entrancy guard breaks the loop; without it this hangs (~infinite handleError calls).
+    // A throwing fallback may surface as a drain rejection — that's fine; the point is it terminates.
+    try {
+      await waitForDrain(container);
+    } catch {
+      /* throwing fallback propagated — acceptable, as long as we didn't loop */
+    }
+    expect(el.querySelector('#fb')).toBeFalsy();
+  });
 });
 
 describe('ErrorBoundary streaming swap (experimental)', () => {

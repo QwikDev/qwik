@@ -246,6 +246,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   handleError(err: any, host: VNode | null): void {
+    const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
+    // Re-entrancy guard: if the closest boundary already holds an error, a further throw — e.g. the
+    // boundary's own fallback render failing — must NOT re-trigger it. Otherwise handleError loops
+    // forever (set error → re-render → fallback throws → handleError → ...). Propagate instead, so a
+    // throwing fallback surfaces (or reaches a parent boundary) rather than hanging the tab.
+    // `!= null` covers both store init sentinels: `<ErrorBoundary>` uses `undefined`, the generic
+    // ERROR_CONTEXT path uses `null` — neither counts as "already errored".
+    if (errorStore && errorStore.error != null) {
+      throw err;
+    }
     if (qDev && host) {
       if (typeof document !== 'undefined') {
         setErrorPayload(host, err);
@@ -261,7 +271,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         throw err;
       }
     }
-    const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
     if (!errorStore) {
       throw err;
     }

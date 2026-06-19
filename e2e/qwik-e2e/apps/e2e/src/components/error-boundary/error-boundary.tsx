@@ -90,6 +90,7 @@ const EbAsyncThrower = component$(() => {
 export const ErrorBoundaryStreamingRoot = component$(() => {
   const url = useServerData<string>('url');
   const scenario = getSearchParam(url, 'scenario');
+  const touched = useSignal(0);
 
   return (
     <main>
@@ -110,15 +111,18 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
         </>
       ) : scenario === 'client' ? (
         // Streams fine (no SSR error); a later client-time throw must re-render to the fallback.
+        // The handler touches a signal first so the container resumes and the qerror actually routes.
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <button
             id="eb-client-throw"
             onClick$={() => {
+              touched.value++;
               throw new Error('client click boom');
             }}
           >
             throw on click
           </button>
+          <span id="eb-client-touched">{touched.value}</span>
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
       ) : (

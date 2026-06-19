@@ -58,16 +58,20 @@ const _ebFallbackStyle_str = '{display:p0.error?"contents":"none"}';
 export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const store = useErrorBoundaryStore();
   // Expose the fallback so SSR can stream it when a child throws (the client re-renders this
-  // component instead, which reads `store.error` below). Server-render-only, hence noSerialize.
-  store.$fallback$ = noSerialize(props.fallback$);
+  // component instead, which reads `store.error` below). Wrap in a fresh closure before
+  // `noSerialize` — `noSerialize` taints the value's identity, and `props.fallback$` is the SAME QRL
+  // object, so noSerializing it directly would also drop the serialized prop (it would resume as
+  // `undefined`, and the client re-render would call `undefined(error)`).
+  const fallbackQrl = props.fallback$;
+  store.$fallback$ = noSerialize((error: any) => fallbackQrl(error));
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
     const boundaryId = nextErrorBoundaryId();
-    // KNOWN LIMITATION: a CLIENT-time error on a boundary that streamed without erroring during SSR
-    // does not yet render the fallback — the content host hides (display signal) but the fallback
-    // host stays empty. The SSR error path (sync/async) works; the client-error path needs the
-    // fallback host to render `fallback$` client-reactively (see core-notes). SSR errors only here.
+    // OPEN (OOOS-only): a CLIENT-time error on a boundary that streamed via OOOS can't fill this
+    // fallback host on the client — it holds the `qO` `<template q:r>` placeholder (no vnode), so a
+    // client re-render of its contents trips the vnode diff ("Missing child"). The SSR error path
+    // and IN-ORDER client errors work (see core-notes for the fix direction). SSR errors only here.
     return [
       /*#__PURE__*/ _jsxSorted(
         'div',
@@ -92,6 +96,8 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   }
 
   if (store.error) {
+    // `fallback$` is a lazy QRL after resume; invoking it returns the JSX (or a promise the renderer
+    // awaits). It is now serialized (see the closure note above), so it is defined here.
     return /*#__PURE__*/ _jsxSorted(Fragment, null, null, props.fallback$(store.error), 0, null);
   }
 

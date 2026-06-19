@@ -214,25 +214,29 @@ Key invariants:
 - **A throwing `fallback$` must not loop.** `streamFallback` detaches `store.$fallback$` while
   rendering the fallback, so a re-throw that resolves back to the same boundary takes the
   "no fallback → propagate" path (aborts) instead of re-rendering the fallback forever (deadlock).
-- **KNOWN LIMITATION (regression, tracked):** a CLIENT-time error on a boundary that streamed
-  *without* erroring during SSR does not render the fallback. The SSR error path (sync + async)
-  works; client errors on NON-streamed boundaries (no OOOS) work via the normal reactive re-render.
-  Investigated in depth — two cascading causes:
-  1. The error only ROUTES to the boundary if the throwing handler resumed the container first (a
-     handler that touches a signal does; a pure `() => { throw }` doesn't, so `$qErrorHandler$`
-     isn't attached yet and the `qerror` is dropped). This is a general qerror/resume-timing point,
-     not boundary-specific.
-  2. Even once it routes (`handleError` sets `store.error`), filling the fallback host on the client
-     asserts `"Missing child"`: the fallback host contains the raw `qO` `<template q:r>` placeholder
-     (written via `ssr.write`, no vnode), and any client-side re-render of that host's contents
-     (whether the boundary re-renders to `[fallback]`, or a sibling client-reactive component
-     renders into the host) trips the vnode diff on the vnode-less template. The `qO` placeholder
-     mechanism (great for the instant SSR swap) and client-side vnode re-rendering don't compose.
-  Fix direction (a real change, not done): inject the fallback on the client the SAME way the server
-  does — render `fallback$` to a `<template>` and run the `qO` injection client-side (imperative DOM
-  swap, bypassing the vnode diff) — or make `writeOutOfOrderPlaceholder` emit a vnode-backed
-  placeholder (touches Suspense too). A naive "client-reactive fallback host" does NOT work (hits
-  cause 2). Tracked by the `test.fixme` `scenario=client` e2e in `error-boundary-streaming.e2e.ts`.
+- **FIXED — the critical client-error loop.** A client-time error on ANY SSR'd `<ErrorBoundary>`
+  (in-order or OOOS) used to infinite-loop `handleError` (~50k calls) and never show the fallback.
+  Root cause was NOT a lazy QRL — it was `noSerialize`: `store.$fallback$ = noSerialize(props.fallback$)`
+  taints the value's IDENTITY, and `props.fallback$` is the SAME QRL object, so the serialized prop
+  was dropped and resumed as `undefined`; the client re-render's `props.fallback$(error)` threw
+  `undefined is not a function`, which re-entered `handleError` with no guard. Fixed by (a)
+  `noSerialize`-ing a FRESH closure (`(e) => fallbackQrl(e)`) so the prop stays serializable, and
+  (b) a re-entrancy guard in `handleError` (`dom-container.ts`) that propagates when the boundary
+  already holds an error (`errorStore.error != null` — covers the `undefined` ErrorBoundary init AND
+  the `null` generic-ERROR_CONTEXT/`ErrorProvider` init) instead of looping. Covered by the in-order
+  `scenario=client` e2e + a `domRender` throwing-fallback unit test (the unit harness inlines QRLs,
+  so it can't catch the taint — only the loop guard; the e2e catches the taint).
+  GENERAL GOTCHA: never `noSerialize` a value you also need serialized elsewhere — `noSerialize`
+  marks the object identity, so wrap a fresh object/closure.
+- **OPEN (secondary, OOOS two-host only):** a client error on a boundary that streamed via OOOS
+  can't fill the fallback host — it holds the raw `qO` `<template q:r>` placeholder (written via
+  `ssr.write`, no vnode), so any client-side re-render of its contents trips the vnode diff
+  (`"Missing child"`). The `qO` placeholder (great for the instant SSR swap) and client-side vnode
+  re-render don't compose. Fix direction: inject the client fallback the SAME way the server does
+  (render `fallback$` to a `<template>` + imperative `qO` swap, bypassing the diff), or make
+  `writeOutOfOrderPlaceholder` emit a vnode-backed placeholder. Also note a qerror only ROUTES if the
+  throwing handler resumed the container first (touching a signal does; a bare `() => { throw }`
+  doesn't, so `$qErrorHandler$` isn't attached yet).
 - A deferred child `<Suspense>` that throws routes to the enclosing boundary's `store.$emitFallback$`
   (set by `SSRErrorFallback`), tearing the whole boundary down — not into the Suspense sub-slot.
 - A boundary *inside* a `<Suspense>` segment is the one case that still buffers (the segment is

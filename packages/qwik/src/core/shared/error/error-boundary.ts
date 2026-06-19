@@ -31,14 +31,16 @@ export interface ErrorBoundaryProps {
  * closest boundary via the container's `handleError`.
  */
 
+// "has errored" is `error !== undefined` (the store inits `error: undefined`), not truthiness — a
+// thrown falsy value (`0`, `''`, `false`, `null`) is still a caught error and must show the fallback.
 const _ebContentStyle = (store: ErrorBoundaryStore) => ({
-  display: store.error ? 'none' : 'contents',
+  display: store.error !== undefined ? 'none' : 'contents',
 });
-const _ebContentStyle_str = '{display:p0.error?"none":"contents"}';
+const _ebContentStyle_str = '{display:p0.error!==undefined?"none":"contents"}';
 const _ebFallbackStyle = (store: ErrorBoundaryStore) => ({
-  display: store.error ? 'contents' : 'none',
+  display: store.error !== undefined ? 'contents' : 'none',
 });
-const _ebFallbackStyle_str = '{display:p0.error?"contents":"none"}';
+const _ebFallbackStyle_str = '{display:p0.error!==undefined?"contents":"none"}';
 
 /** @internal */
 export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
@@ -77,7 +79,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     ] as unknown as JSXOutput;
   }
 
-  if (store.error) {
+  if (store.error !== undefined) {
     return /*#__PURE__*/ _jsxSorted(Fragment, null, null, props.fallback$(store.error), 0, null);
   }
 

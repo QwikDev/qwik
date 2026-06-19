@@ -412,7 +412,8 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
         writeOutOfOrderPlaceholder(ssr, boundaryId);
         // A sync throw during the content render already set `store.error` (the content host renders
         // before this); returning the promise awaits the swap inline, right after the content.
-        if (store.error != null && store.$fallback$) {
+        // `!== undefined` (not truthiness) so a thrown falsy value still streams the fallback.
+        if (store.error !== undefined && store.$fallback$) {
           return streamFallback(store.error);
         }
       }

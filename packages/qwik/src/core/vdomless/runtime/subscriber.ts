@@ -1,6 +1,5 @@
 import type { ReactiveFlags } from '../reactive/flags';
-import type { Branch } from '../dom/branch/branch';
-import type { SsrBranchEffect } from '../dom/branch/branch';
+import type { Branch, SSRBranch } from '../dom/branch/branch2';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { DomEffect } from '../dom/effect/effect';
 import type { ComputedSource, Dependency } from '../reactive/source';
@@ -55,7 +54,7 @@ export interface DomSubscriber extends Collector, ScheduledSubscriber {
 
 export interface BranchSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Branch;
-  readonly branch: Branch<any[]>;
+  readonly branch: Branch;
   run(): ValueOrPromise<void>;
 }
 
@@ -71,9 +70,9 @@ export interface SsrDomSubscriber extends Collector {
   readonly effect: SsrDomEffect;
 }
 
-export interface SsrBranchSubscriber<TArgs extends unknown[] = any[]> extends Collector {
+export interface SsrBranchSubscriber extends Collector {
   readonly kind: SubscriberKind.Branch;
-  readonly effect: SsrBranchEffect<TArgs>;
+  readonly branch: SSRBranch;
 }
 
 // Work scheduled into one of the runtime phases.

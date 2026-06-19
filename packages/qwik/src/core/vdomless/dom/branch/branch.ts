@@ -44,8 +44,6 @@ export const enum BranchState {
   Else = 1,
 }
 
-// Client/resume mutation target for an existing DOM range. SSR renders the
-// active branch to HTML and serializes branch metadata instead of creating this.
 export abstract class BranchRange {
   abstract replace(nodes: readonly Node[]): void;
 }

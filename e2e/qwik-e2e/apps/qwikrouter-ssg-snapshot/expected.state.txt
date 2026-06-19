@@ -374,9 +374,9 @@
 23 RootRef [omitted]
 24 RootRef [omitted]
 25 RootRef [omitted]
-26 RootRef [omitted]
+26 {string} "ssg-snapshot-loader"
 27 Object 0
-28 {string} "__qwik_route_loader_value__qO14f4pG8tQ"
+28 {string} "__qwik_route_loader_value__ssg-snapshot-loader"
 29 RootRef [omitted]
 30 Array []
 31 Object [

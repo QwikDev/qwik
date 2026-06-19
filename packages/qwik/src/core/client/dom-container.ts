@@ -36,6 +36,7 @@ import {
 } from '../shared/utils/markers';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev, qTest } from '../shared/utils/qdev';
+import { logError } from '../shared/utils/log';
 import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
@@ -249,12 +250,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
     // Re-entrancy guard: if the closest boundary already holds an error, a further throw — e.g. the
     // boundary's own fallback render failing — must NOT re-trigger it. Otherwise handleError loops
-    // forever (set error → re-render → fallback throws → handleError → ...). Propagate instead, so a
-    // throwing fallback surfaces (or reaches a parent boundary) rather than hanging the tab.
-    // `!= null` covers both store init sentinels: `<ErrorBoundary>` uses `undefined`, the generic
-    // ERROR_CONTEXT path uses `null` — neither counts as "already errored".
+    // forever (set error → re-render → fallback throws → handleError → ...). Report it and stop:
+    // re-throwing here would escape the re-render chore as an unhandled rejection (the chore's
+    // `rejectFn` calls handleError), so a throwing fallback surfaces in the console instead of
+    // hanging the tab or failing the test runner. `!= null` covers both store init sentinels:
+    // `<ErrorBoundary>` uses `undefined`, the generic ERROR_CONTEXT path uses `null` — neither
+    // counts as "already errored".
     if (errorStore && errorStore.error != null) {
-      throw err;
+      logError(err);
+      return;
     }
     if (qDev && host) {
       if (typeof document !== 'undefined') {

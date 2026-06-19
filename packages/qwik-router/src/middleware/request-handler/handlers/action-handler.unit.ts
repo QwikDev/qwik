@@ -141,7 +141,7 @@ describe('actionHandler', () => {
     expect(response.result).toMatchObject({ failed: true, status: 422 });
   });
 
-  it('reflects fail() status called from action QRL in HTTP response', async () => {
+  it('reflects fail() status and populates BOTH channels in HTTP response', async () => {
     globalThis.__STRICT_LOADERS__ = false;
     const { requestEv, sent } = createActionRequest();
 
@@ -160,8 +160,12 @@ describe('actionHandler', () => {
     await actionHandler([action])(requestEv as any);
 
     expect(sent.status).toBe(500);
-    const response = _deserialize<Record<string, unknown>>(sent.body!);
+    const response = _deserialize<{ result: any; error: ServerError }>(sent.body!);
+    // Deprecated `.value.failed` union still works...
     expect(response.result).toMatchObject({ failed: true, msg: 'something went wrong' });
+    // ...and `.error` is now populated too (the one failure channel).
+    expect(response.error.status).toBe(500);
+    expect(response.error.data).toMatchObject({ msg: 'something went wrong' });
   });
 
   it('routes a returned error() to the .error channel (result undefined)', async () => {

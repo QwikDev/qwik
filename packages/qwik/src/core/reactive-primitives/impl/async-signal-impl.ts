@@ -1,5 +1,5 @@
 import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
-import { qTest } from '../../shared/utils/qdev';
+import { qDev, qTest } from '../../shared/utils/qdev';
 import { qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
@@ -103,6 +103,11 @@ export class AsyncSignalImpl<T>
 {
   $untrackedLoading$: boolean = false;
   $untrackedError$: Error | undefined = undefined;
+  /**
+   * Whether `.error` has been read since the current error was set. Drives the unhandled-error
+   * warning.
+   */
+  $errorObserved$: boolean = false;
   $current$: AsyncJob<T> | null = null;
 
   // Only declare these less common properties, to save some memory
@@ -186,13 +191,16 @@ export class AsyncSignalImpl<T>
       return this.$untrackedValue$;
     }
     if (this.$untrackedError$) {
-      // Only re-throw when opted in (THROW_ON_ERROR); otherwise the error is read via `.error`
-      // and `.value` returns the stale/initial value.
+      // Only re-throw when opted in (THROW_ON_ERROR); otherwise the error is read via `.error` and
+      // `.value` stays readable. A `fail()`/validator union is a real value and is returned as-is, so
+      // `.value.failed` keeps working. A `return error()` / rejection leaves the internal
+      // NEEDS_COMPUTATION sentinel — report `undefined` instead of leaking it, so `{signal.value && …}`
+      // is falsy and never renders a failed result.
       if (this.$flags$ & AsyncSignalFlags.THROW_ON_ERROR) {
         DEBUG && log('Throwing error while reading value', this);
         throw this.$untrackedError$;
       }
-      return this.$untrackedValue$;
+      return this.$untrackedValue$ === NEEDS_COMPUTATION ? (undefined as T) : this.$untrackedValue$;
     }
     // For clientOnly signals without initial value during SSR, throw if trying to read value
     // During SSR, clientOnly signals are skipped, so there's no computed value available
@@ -290,6 +298,8 @@ export class AsyncSignalImpl<T>
   /** The error that occurred when the signal was resolved. */
   get error(): Error | undefined {
     const val = this.untrackedError;
+    // Reading `.error` (tracked or not) counts as handling it, so the unhandled-error warning won't fire.
+    this.$errorObserved$ = true;
     const ctx = tryGetInvokeContext();
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
@@ -310,6 +320,8 @@ export class AsyncSignalImpl<T>
   set untrackedError(value: Error | undefined) {
     if (value !== this.$untrackedError$) {
       this.$untrackedError$ = value;
+      // A fresh error starts unobserved so each new error gets its own unhandled check.
+      this.$errorObserved$ = false;
       scheduleEffects(this.$container$, this, this.$errorEffects$);
     }
   }
@@ -565,6 +577,33 @@ export class AsyncSignalImpl<T>
     this.untrackedError = error;
     // Job failures should be rare and require retrying
     this.untrackedValue = NEEDS_COMPUTATION;
+    this.$warnIfUnhandledError$();
+  }
+
+  /**
+   * Errors set via a throw (`return error()`, an uncaught rejection, a timeout…) are surfaced on
+   * `.error` but never throw from `.value`, so an error that's never read would be silently
+   * swallowed. Warn about that in dev. Soft failures (`fail()`/validators) resolve with a value and
+   * never call this. Opt into the warning in production with `globalThis.qWarnUnhandledErrors =
+   * true`.
+   */
+  $warnIfUnhandledError$(): void {
+    if (
+      !(qDev || (globalThis as { qWarnUnhandledErrors?: boolean }).qWarnUnhandledErrors === true)
+    ) {
+      return;
+    }
+    // A macrotask runs after the render flush that would read `.error`, so a handled error never warns.
+    setTimeout(() => {
+      if (this.$untrackedError$ && !this.$errorObserved$) {
+        console.error(
+          'Qwik: an async value (loader / action / useAsync$) errored, but its `.error` was never read — ' +
+            'the failure was silently ignored (`.value` does not throw). Read `.error` to handle it, ' +
+            'or `throw error()` to abort to the error page.',
+          this.$untrackedError$
+        );
+      }
+    }, 0);
   }
 
   /** Called after SSR/unmount */
@@ -684,4 +723,15 @@ export const _injectAsyncSignalValue = (signal: AsyncSignal<unknown>, value: unk
   const impl = signal as AsyncSignalImpl<unknown>;
   impl.invalidate({ __v: value });
   impl.$computeIfNeeded$();
+};
+
+/**
+ * Schedule the unhandled-error warning for a signal whose error was injected (not thrown) — e.g. a
+ * `return error()` resolved during SSR and replayed on the client. Callers from other packages must
+ * go through this helper because `$warnIfUnhandledError$` is mangled in core builds.
+ *
+ * @internal
+ */
+export const _warnIfUnhandledAsyncError = (signal: AsyncSignal<unknown>) => {
+  (signal as AsyncSignalImpl<unknown>).$warnIfUnhandledError$();
 };

@@ -119,14 +119,18 @@ describe('getRouteLoaderResponse error channel', () => {
     } as any;
   };
 
-  it('returned fail() lands on .value (d) only', async () => {
+  it('returned fail() populates BOTH .value (d) and .error (e)', async () => {
     const requestEv = createRequestEv();
     const qrl = { call: vi.fn((ev: any) => ev.fail(400, { msg: 'bad' })) } as any;
 
     const response = await getRouteLoaderResponse(qrl, undefined, requestEv);
 
+    // Deprecated `.value.failed` union still works...
     expect(response.d).toMatchObject({ failed: true, msg: 'bad' });
-    expect(response.e).toBeUndefined();
+    // ...and `.error` is now populated too (the one failure channel), with `failed` stripped.
+    expect(response.e).toBeInstanceOf(ServerError);
+    expect(response.e!.status).toBe(400);
+    expect(response.e!.data).toEqual({ msg: 'bad' });
   });
 
   it('returned error() lands on .error (e) only', async () => {

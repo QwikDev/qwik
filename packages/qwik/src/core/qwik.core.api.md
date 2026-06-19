@@ -56,6 +56,7 @@ export class _AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> impl
     $destroy$(): Promise<void>;
     // (undocumented)
     $errorEffects$: undefined | Set<EffectSubscription>;
+    $errorObserved$: boolean;
     // (undocumented)
     $expires$: number | undefined;
     // (undocumented)
@@ -85,6 +86,7 @@ export class _AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> impl
     $untrackedError$: Error | undefined;
     // (undocumented)
     $untrackedLoading$: boolean;
+    $warnIfUnhandledError$(): void;
     // (undocumented)
     [_EFFECT_BACK_REF]: Map<_EffectProperty | string, EffectSubscription> | undefined;
     // Warning: (ae-forgotten-export) The symbol "ComputedSignalFlags" needs to be exported by the entry point index.d.ts
@@ -2372,6 +2374,9 @@ export const _waitUntilRendered: (container: _Container) => Promise<void>;
 //
 // @internal (undocumented)
 export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
+
+// @internal
+export const _warnIfUnhandledAsyncError: (signal: AsyncSignal<unknown>) => void;
 
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;

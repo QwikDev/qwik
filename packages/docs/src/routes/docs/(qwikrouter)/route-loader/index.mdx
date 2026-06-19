@@ -54,7 +54,7 @@ A few properties of route loaders:
 
 - **Server-only.** The loader function only runs on the server; the browser never sees the closure body.
 - **Keyed by route, not by call site.** Two visits to the same URL share one logical "result" per "route + url params + search params" set, not one per `useProductDetails()` call.
-- **Result is an `AsyncSignal`.** Components read `.value`, watch `.loading`, and check `.error`. Reading `.value` while the signal is in error state re-throws the error.
+- **Result is an `AsyncSignal`.** Components read `.value`, watch `.loading`, and check `.error`. Reading `.value` in an error state returns `undefined` (it never throws) — read the failure from `.error`.
 - **Each loader has its own JSON endpoint.** The client fetches `q-loader-{id}.{hash}.json` for navigation, polling, and post-action invalidation. Browser HTTP cache, ETags, and the `expires` option all apply.
 
 This means a `routeLoader$()` should be a **pure function of the URL**: same `params` and `search` → same response. Mixing in any other input (action state, request bodies, one-shot tokens) makes the cached responses inconsistent — see [Loaders cannot read action state](#loaders-cannot-read-action-state).
@@ -97,6 +97,8 @@ Loaders signal failure two ways:
 - **`throw requestEvent.error(status, data)`** — aborts the request and renders the global error page (404/500).
 
 Prefer `return requestEvent.error(...)` for expected failures that the page should display inline (form validation, domain rules). Use `throw requestEvent.error(...)` when the route cannot render at all.
+
+Because `.value` never throws, an ignored `error()` won't crash the page — so Qwik logs a dev-only warning if a loader/action errors and its `.error` is never read. Enable it in production with `globalThis.qWarnUnhandledErrors = true`.
 
 ## Multiple `routeLoader$`s
 

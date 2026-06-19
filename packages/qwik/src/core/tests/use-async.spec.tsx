@@ -14,7 +14,7 @@ import {
   type AsyncSignal,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import { NEEDS_COMPUTATION } from '../reactive-primitives/types';
 import { delay } from '../shared/utils/promises';
@@ -362,6 +362,35 @@ describe.each([
           </button>
         </>
       );
+    });
+  });
+
+  describe('unhandled error warning', () => {
+    const unhandled = (calls: unknown[][]) =>
+      calls.some((c) => typeof c[0] === 'string' && c[0].includes('never read'));
+
+    it('warns after the render flush when an errored async value never reads .error', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const Counter = component$(() => {
+        const doubleCount = useAsync$(() => Promise.reject(new Error('boom')));
+        return <div>{doubleCount.value}</div>;
+      });
+      await render(<Counter />, { debug });
+      await delay(10);
+      expect(unhandled(errorSpy.mock.calls)).toBe(true);
+      errorSpy.mockRestore();
+    });
+
+    it('does not warn when the component reads .error', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const Counter = component$(() => {
+        const doubleCount = useAsync$(() => Promise.reject(new Error('boom')));
+        return <div>{doubleCount.error ? 'err' : doubleCount.value}</div>;
+      });
+      await render(<Counter />, { debug });
+      await delay(10);
+      expect(unhandled(errorSpy.mock.calls)).toBe(false);
+      errorSpy.mockRestore();
     });
   });
 

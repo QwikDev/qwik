@@ -8,6 +8,7 @@ import {
   _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
+  _warnIfUnhandledAsyncError,
   _UNINITIALIZED,
   createAsync$,
   SerializerSymbol,
@@ -675,12 +676,17 @@ export const setLoaderSignalValue = (
 ) => {
   _injectAsyncSignalValue(signal, value);
   if (error) {
-    // Surface `return error()` / validator failures on `.error`. `.value` keeps the injected
-    // (stale/initial for `return error()`, fail-union for validators) value and does not throw.
+    // Surface `return error()` / validator / fail() failures on `.error`. `.value` keeps the injected
+    // (stale/initial for `return error()`, fail-union for validators/fail) value and does not throw.
     // The injection runs an async compute whose success path clears `.error`, so set it only once
     // that compute settles, otherwise it would be wiped.
     void signal.promise().finally(() => {
       signal.untrackedError = error;
+      if (value === undefined) {
+        // `return error()` carries no value — escalate so an unread `.error` warns in dev. Validator
+        // and `fail()` injections carry a value union and stay soft (no warning).
+        _warnIfUnhandledAsyncError(signal);
+      }
     });
   }
 };
@@ -729,6 +735,13 @@ export const getRouteLoaderData = async (
   }
   if (isDev) {
     verifySerializable(value, loaderQrl);
+  }
+  if (value && typeof value === 'object' && (value as { failed?: unknown }).failed === true) {
+    // `return fail()` — deprecated. Populate `.error` too (like validators), so `.error` is the one
+    // failure channel while `.value.failed` keeps working. Soft: it never warns about being unread.
+    const data = { ...(value as Record<string, unknown>) };
+    delete data.failed;
+    return { value, error: new ServerError(loaderRequestEv.status(), data) };
   }
   return { value };
 };

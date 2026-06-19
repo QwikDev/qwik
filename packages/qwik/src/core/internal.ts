@@ -92,7 +92,10 @@ export { isTask as _isTask, scheduleTask as _task, Task as _Task } from './use/u
 export { _captures } from './shared/qrl/qrl-class';
 export { _rsc } from './use/use-resource';
 export type { AsyncSignalImpl as _AsyncSignalImpl } from './reactive-primitives/impl/async-signal-impl';
-export { _injectAsyncSignalValue } from './reactive-primitives/impl/async-signal-impl';
+export {
+  _injectAsyncSignalValue,
+  _warnIfUnhandledAsyncError,
+} from './reactive-primitives/impl/async-signal-impl';
 export {
   EffectProperty as _EffectProperty,
   StoreFlags as _StoreFlags,

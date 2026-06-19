@@ -27,7 +27,8 @@ import {
   _vnode_setProp as vnode_setProp,
 } from '@qwik.dev/core/internal';
 import { createDocument } from '@qwik.dev/core/testing';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, vi } from 'vitest';
+import { ServerError } from '../../middleware/request-handler/server-error';
 import { getModuleRouteLoaders, routeLoaderQrl, setLoaderSignalValue } from './route-loaders';
 import type { LoaderInternal, RouteModule } from './types';
 
@@ -265,6 +266,71 @@ describe('route loader store + async signal tracking', () => {
   });
 
   ////////////////////////////////////////
+
+  describe('error channel injection (setLoaderSignalValue)', () => {
+    const unhandled = (calls: unknown[][]) =>
+      calls.some((c) => typeof c[0] === 'string' && c[0].includes('never read'));
+
+    const vInjectingSignal = () =>
+      createAsync$(async ({ info }) => {
+        if (info && typeof info === 'object' && '__v' in (info as object)) {
+          return (info as { __v: unknown }).__v;
+        }
+        return undefined;
+      }) as AsyncSignalImpl<unknown>;
+
+    it('return error(): .error set, .value undefined, no warning when .error is read', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      await withContainer(async () => {
+        const signal = vInjectingSignal();
+        await retryOnPromise(() => {
+          effect$(() => signal.value);
+        });
+        const err = new ServerError(404, { msg: 'nope' });
+        setLoaderSignalValue(signal, undefined, err);
+        // Wait for the inject compute to settle (the error is set in its `.finally`), then read
+        // `.error` synchronously — marks it observed before the warning's macrotask fires.
+        await signal.promise();
+        expect(signal.value).toBeUndefined();
+        expect(signal.error).toBe(err);
+        await delay(10);
+        expect(unhandled(errorSpy.mock.calls)).toBe(false);
+      });
+      errorSpy.mockRestore();
+    });
+
+    it('return error(): warns when .error is never read', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      await withContainer(async () => {
+        const signal = vInjectingSignal();
+        await retryOnPromise(() => {
+          effect$(() => signal.value);
+        });
+        setLoaderSignalValue(signal, undefined, new ServerError(500, 'boom'));
+        await delay(10);
+        expect(unhandled(errorSpy.mock.calls)).toBe(true);
+      });
+      errorSpy.mockRestore();
+    });
+
+    it('fail()/validator: .value keeps the union, .error set, never warns', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      await withContainer(async () => {
+        const signal = vInjectingSignal();
+        await retryOnPromise(() => {
+          effect$(() => signal.value);
+        });
+        const failUnion = { failed: true, fieldErrors: { name: 'required' } };
+        const err = new ServerError(400, { fieldErrors: { name: 'required' } });
+        setLoaderSignalValue(signal, failUnion, err);
+        await delay(10);
+        expect(signal.value).toEqual(failUnion);
+        expect(signal.error).toBe(err);
+        expect(unhandled(errorSpy.mock.calls)).toBe(false);
+      });
+      errorSpy.mockRestore();
+    });
+  });
 
   function withContainer<T>(fn: () => T): T {
     const ctx = newInvokeContext();

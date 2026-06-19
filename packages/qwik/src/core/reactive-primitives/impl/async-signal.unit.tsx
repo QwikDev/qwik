@@ -1,6 +1,6 @@
 import { $ } from '@qwik.dev/core';
 import { createDocument } from '@qwik.dev/core/testing';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDomContainer } from '../../client/dom-container';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
@@ -1302,6 +1302,90 @@ describe('async signal', () => {
 
         // Value should be NEEDS_COMPUTATION
         expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
+      });
+    });
+  });
+
+  describe('unhandled error warning', () => {
+    let errorSpy: ReturnType<typeof vi.spyOn>;
+    beforeEach(() => {
+      errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+    afterEach(() => {
+      errorSpy.mockRestore();
+    });
+
+    it('does not throw reading .value after a rejected compute; returns undefined, error on .error', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(
+          async () => {
+            throw new Error('boom');
+          },
+          { initial: 0 }
+        ) as AsyncSignalImpl<number>;
+        effect$(() => signal.value);
+        await delay(10);
+        expect(() => signal.value).not.toThrow();
+        expect(signal.value).toBeUndefined();
+        expect(signal.error).toBeInstanceOf(Error);
+        expect(signal.error?.message).toBe('boom');
+      });
+    });
+
+    it('warns when a rejected compute is never read via .error, passing the error', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(
+          async () => {
+            throw new Error('boom');
+          },
+          { initial: 0 }
+        ) as AsyncSignalImpl<number>;
+        effect$(() => signal.value);
+        await delay(10);
+        expect(errorSpy).toHaveBeenCalledTimes(1);
+        expect(errorSpy.mock.calls[0][1]).toBeInstanceOf(Error);
+        expect((errorSpy.mock.calls[0][1] as Error).message).toBe('boom');
+      });
+    });
+
+    it('does not warn when .error is observed in a tracked scope', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(
+          async () => {
+            throw new Error('boom');
+          },
+          { initial: 0 }
+        ) as AsyncSignalImpl<number>;
+        // Reading .error re-runs the effect (microtask) before the warning macrotask fires.
+        effect$(() => {
+          signal.error;
+          signal.value;
+        });
+        await delay(10);
+        expect(errorSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not warn when the compute succeeds', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 42, { initial: 0 }) as AsyncSignalImpl<number>;
+        effect$(() => signal.value);
+        await delay(10);
+        expect(errorSpy).not.toHaveBeenCalled();
+        expect(signal.value).toBe(42);
+      });
+    });
+
+    it('re-arms the check when a new error replaces a handled one', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 1, { initial: 0 }) as AsyncSignalImpl<number>;
+        effect$(() => signal.value);
+        await delay(10);
+        signal.untrackedError = new Error('first');
+        signal.error; // observed
+        expect(signal.$errorObserved$).toBe(true);
+        signal.untrackedError = new Error('second');
+        expect(signal.$errorObserved$).toBe(false);
       });
     });
   });

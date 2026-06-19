@@ -153,6 +153,17 @@ export async function executeAction(
   if (actionResolved instanceof ServerError) {
     return { result: undefined, error: actionResolved };
   }
+  if (
+    actionResolved &&
+    typeof actionResolved === 'object' &&
+    (actionResolved as { failed?: unknown }).failed === true
+  ) {
+    // `return fail()` — deprecated. Populate `.error` too (like validators), so `.error` is the one
+    // failure channel while `.value.failed` keeps working.
+    const data = { ...(actionResolved as Record<string, unknown>) };
+    delete data.failed;
+    return { result: actionResolved, error: new ServerError(requestEv.status(), data) };
+  }
   return { result: actionResolved };
 }
 

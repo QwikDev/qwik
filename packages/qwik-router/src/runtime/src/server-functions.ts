@@ -43,11 +43,37 @@ import type {
   ZodConstructorQRL,
   ZodDataValidator,
 } from './types';
+import { _hasStoreEffects } from '@qwik.dev/core/internal';
 import { useAction, useLocation } from './use-functions';
 
 /** Internal store shape: adds the non-serializable in-flight submission promise. */
 type ActionStoreInternal = Editable<ActionStore<unknown, unknown>> & {
   _inFlight?: NoSerialize<Promise<void>>;
+};
+
+/**
+ * Mirror the loader/AsyncSignal behavior for actions: `return error()` surfaces on `.error` and
+ * `.value` never throws, so warn in dev if `.error` is never read. "Read" is detected via the
+ * store's reactive subscribers — a render that reads `.error` subscribes to it. `fail()`/validator
+ * results carry a value union and stay soft (no warning). Opt in for production with
+ * `globalThis.qWarnUnhandledErrors = true`.
+ */
+const warnIfUnhandledActionError = (state: Editable<ActionStore<unknown, unknown>>) => {
+  if (
+    !(isDev || (globalThis as { qWarnUnhandledErrors?: boolean }).qWarnUnhandledErrors === true)
+  ) {
+    return;
+  }
+  // A macrotask runs after the render flush that would read `.error`, so a handled error never warns.
+  setTimeout(() => {
+    if (state.error && !(_hasStoreEffects as (v: unknown, p: string) => boolean)(state, 'error')) {
+      console.error(
+        'Qwik: an action returned error() but its `.error` was never read — the failure was silently ' +
+          'ignored (`.value` does not throw). Read `.error` to handle it.',
+        state.error
+      );
+    }
+  }, 0);
 };
 
 /** @internal */
@@ -127,6 +153,11 @@ Action.run() can only be called on the browser, for example when a user clicks a
         state.status = status;
         state.value = result;
         state.error = error;
+        if (error && result === undefined) {
+          // `return error()` (no value) — warn in dev if `.error` is never read. fail()/validator
+          // results carry a value union and stay soft.
+          warnIfUnhandledActionError(state);
+        }
         if (form) {
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();

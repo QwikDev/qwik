@@ -788,7 +788,15 @@ export type ActionConstructorQRL = {
 
 /** @public */
 export type LoaderOptions = {
-  /** @deprecated Unused */
+  /**
+   * Explicit loader id, overriding the default (the loader QRL's hash).
+   *
+   * Required when defining a loader through a shared wrapper that passes an inline QRL to
+   * `routeLoader$` (e.g. a `withErrorHandling(fn)` helper). The optimizer assigns that inline QRL a
+   * single hash shared by every instance, so without a distinct `id` all wrapped loaders collide on
+   * the same id and all but the first are deduped away. Pass a stable, unique value such as the
+   * wrapped function's `fn.getHash()`.
+   */
   readonly id?: string;
   readonly validation?: DataValidator[];
   readonly serializationStrategy?: SerializationStrategy;

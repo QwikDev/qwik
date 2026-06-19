@@ -442,10 +442,8 @@ function processJSXNode(
               } catch (err) {
                 // An async component's render rejected — route it to the closest ErrorBoundary
                 // (matching the sync throw path) instead of aborting the stream.
-                resolvedOutput = renderErrorBoundaryFallback(ssr, host, err) as JSXOutput;
-                if (isPromise(resolvedOutput)) {
-                  resolvedOutput = await resolvedOutput;
-                }
+                const fallback = renderErrorBoundaryFallback(ssr, host, err);
+                resolvedOutput = isPromise(fallback) ? await fallback : fallback;
               }
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 

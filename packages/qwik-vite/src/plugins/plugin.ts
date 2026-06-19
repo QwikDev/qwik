@@ -84,10 +84,7 @@ export enum ExperimentalFeatures {
   show = 'show',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
-  /**
-   * Enable out-of-order streaming swap for `<ErrorBoundary>` (SSR renders a clean `boundary >
-   * fallback`)
-   */
+  /** Enable out-of-order streaming swap for the ErrorBoundary fallback */
   errorBoundary = 'errorBoundary',
   /** Enable the Valibot form validation */
   valibot = 'valibot',

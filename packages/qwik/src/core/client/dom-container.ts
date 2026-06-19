@@ -312,7 +312,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return undefined;
   }
 
-  /** Like {@link resolveContext}, but returns the host that provides the context, not its value. */
+  /** Like `resolveContext`, but returns the host that provides the context, not its value. */
   resolveContextHost(host: VNode, contextId: ContextId<unknown>): VNode | null {
     while (host) {
       const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);

@@ -165,8 +165,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       if (source && this.element.contains(source)) {
         const host = this.vNodeLocate(source);
         if (host) {
-          // A no-boundary error makes `handleError` re-throw, which in a listener becomes an uncaught
-          // error; log it instead.
+          // `handleError` can still re-throw (e.g. a dev non-recoverable error); in a listener that
+          // becomes an uncaught error, so log it instead.
           try {
             this.handleError(detail.error, host);
           } catch (handlerError) {

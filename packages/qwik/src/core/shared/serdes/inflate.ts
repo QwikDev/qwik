@@ -155,26 +155,30 @@ function* inflateIterator(
   data: unknown
 ): Generator<void, void, void> {
   if (typeId === TypeIds.Plain) {
+    // Already processed
     return;
   }
+  // Restore the complex data, special case for Array
   if (typeId !== TypeIds.Array && Array.isArray(data)) {
     data = yield* eagerDeserializeArrayIterator(container, data);
   }
   switch (typeId) {
     case TypeIds.Array:
+      // Arrays are special, we need to fill the array in place
       yield* eagerDeserializeArrayIterator(container, data as unknown[], target as unknown[]);
       break;
     case TypeIds.Object:
       if (data === 0) {
+        // Special case, was an empty object
         break;
       }
       for (let i = 0; i < (data as any[]).length; i += 2) {
         const key = (data as unknown[])[i];
         const value = (data as unknown[])[i + 1];
-        if (isSafeObjectKV(key, value)) {
-          (target as Record<string, unknown>)[key] = value;
+        if (!isSafeObjectKV(key, value)) {
+          continue;
         }
-        yield;
+        (target as Record<string, unknown>)[key] = value;
       }
       break;
     case TypeIds.Set: {
@@ -281,6 +285,7 @@ function* inflateIterator(
       asyncSignal.$flags$ = (d[5] as number) ?? 0;
 
       if (asyncSignal.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
+        // If it's client only, it was serialized because it pretended to be loading
         asyncSignal.$untrackedLoading$ = true;
       }
 
@@ -288,10 +293,12 @@ function* inflateIterator(
       if (hasValue) {
         asyncSignal.$untrackedValue$ = d[6];
       }
+      // can happen when never serialize etc
       if (asyncSignal.$untrackedValue$ === NEEDS_COMPUTATION) {
         asyncSignal.$flags$ |= ComputedSignalFlags.INVALID;
       }
 
+      // Handle old format (negative = no poll) and new format (always positive, flag in d[5])
       const rawExpires = (d[7] ?? 0) as number;
       asyncSignal.expires = Math.abs(rawExpires);
       if (rawExpires < 0) {
@@ -308,11 +315,17 @@ function* inflateIterator(
       restoreEffectBackRefForEffects(asyncSignal.$errorEffects$, asyncSignal);
       break;
     }
+    // Inflating a SerializerSignal is the same as inflating a ComputedSignal
     case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
       const computed = target as ComputedSignalImpl<unknown>;
       const d = data as [QRLInternal<() => {}>, EffectSubscription[] | undefined, unknown?];
       computed.$computeQrl$ = d[0];
+      /**
+       * If we try to compute value and the qrl is not resolved, then system throws an error with
+       * the resolve promise. To prevent that we load it now and qrls wait for the loading to
+       * finish.
+       */
       const p = computed.$computeQrl$.resolve(container as any).catch(() => {
         // ignore preload errors
       });
@@ -325,6 +338,8 @@ function* inflateIterator(
         computed.$untrackedValue$ = d[2];
       }
       if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
+        // If we have a value after SSR, it will always be mean the signal was not invalid
+        // The serialized signal is always left invalid so it can recreate the custom object
         computed.$flags$ &= ~ComputedSignalFlags.INVALID;
       }
       restoreEffectBackRefForEffects(computed.$effects$, computed);

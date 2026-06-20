@@ -17,7 +17,7 @@ import {
   SSRStreamBlock,
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
-import { canSerialize, type SerializationContext } from '../shared/serdes/index';
+import { type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
@@ -48,6 +48,7 @@ import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-compo
 import {
   ERROR_CONTEXT,
   isRecoverable,
+  toSerializableBoundaryError,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
 import type { ISsrComponentFrame, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
@@ -125,18 +126,6 @@ export async function _walkJSX(
     }
   };
   await drain();
-}
-
-/**
- * A non-serializable thrown value would fail `verifySerializable` and abort the whole page when the
- * error store is serialized. Project it to an `Error` so the stored value stays serializable.
- */
-function toSerializableBoundaryError(err: unknown): unknown {
-  if (err instanceof Error || canSerialize(err)) {
-    return err;
-  }
-  const rawMessage = (err as { message?: unknown })?.message;
-  return new Error(typeof rawMessage === 'string' ? rawMessage : String(err));
 }
 
 /**

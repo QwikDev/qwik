@@ -21,7 +21,11 @@ import { resolveSlotName } from '../shared/utils/prop';
 import { noSerialize } from '../shared/serdes/verify';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
-import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
+import {
+  ERROR_CONTEXT,
+  toSerializableBoundaryError,
+  type ErrorBoundaryStore,
+} from '../shared/error/error-handling';
 import { useComputedQrl } from '../use/use-computed';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { useSignal } from '../use/use-signal';
@@ -394,7 +398,8 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           if (!fallback) {
             return;
           }
-          store.error = error;
+          // Project to a serializable error so a non-serializable throw can't abort page serialization.
+          store.error = toSerializableBoundaryError(error);
           // Stay detached so a throw from the fallback itself propagates instead of re-rendering it.
           store.$fallback$ = undefined;
           const segment = await ssr.segment(segmentId, fallback(error) as JSXOutput, options);

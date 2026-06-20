@@ -1,4 +1,5 @@
 import type { SSRBufferCheckpoint } from '../../ssr/ssr-types';
+import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
 
 /** @internal */
@@ -27,4 +28,17 @@ export const isRecoverable = (err: any) => {
     }
   }
   return true;
+};
+
+/**
+ * A non-serializable thrown value would fail `verifySerializable` and abort the whole page when the
+ * boundary's `store.error` is serialized. Project it to an `Error` so the stored value stays
+ * serializable (and resumes truthy via `TypeIds.Error`).
+ */
+export const toSerializableBoundaryError = (err: unknown): unknown => {
+  if (err instanceof Error || canSerialize(err)) {
+    return err;
+  }
+  const rawMessage = (err as { message?: unknown })?.message;
+  return new Error(typeof rawMessage === 'string' ? rawMessage : String(err));
 };

@@ -1,8 +1,14 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
+import { failReturn } from '../../middleware/request-handler/fail';
+import { ServerError } from '../../middleware/request-handler/server-error';
+import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import {
   ensureRouteLoaderSignal,
+  getRouteLoaderData,
+  getRouteLoaderResponse,
   loadRouteLoader,
+  routeLoader$,
   routeLoaderQrl,
   type RouteLoaderState,
 } from './route-loaders';
@@ -90,6 +96,173 @@ describe('route loader execution', () => {
     expect(loader.__expires).toBe(60_000);
   });
 });
+
+describe('loader failures surface as error state', () => {
+  it('propagates the ServerError thrown by the loader', async () => {
+    const ev = makeRequestEv();
+    const qrl = createQrl('error-loader', (_thisArg, e) => {
+      throw e.error(400, { message: 'Product not found' });
+    });
+
+    const promise = getRouteLoaderData(qrl, undefined, ev);
+    await expect(promise).rejects.toBeInstanceOf(ServerError);
+    await promise.catch((err: ServerError) => {
+      expect(err.status).toBe(400);
+      expect(err.data).toEqual({ message: 'Product not found' });
+      expect(err.message).toBe('Product not found');
+    });
+  });
+
+  it('propagates a directly-thrown ServerError', async () => {
+    const ev = makeRequestEv();
+    const thrown = new ServerError(404, { message: 'gone' });
+    const qrl = createQrl('error-loader', () => {
+      throw thrown;
+    });
+
+    await expect(getRouteLoaderData(qrl, undefined, ev)).rejects.toBe(thrown);
+  });
+
+  it('returns the raw value on success', async () => {
+    const ev = makeRequestEv();
+    const qrl = createQrl('ok-loader', () => ({ result: 'ok' }));
+
+    await expect(getRouteLoaderData(qrl, undefined, ev)).resolves.toEqual({ result: 'ok' });
+  });
+
+  it('rejects resolveValue when the resolved loader fails', async () => {
+    const requestEv = makeRequestEv();
+    const failing = createLoader('failing', (_thisArg, e) => {
+      throw e.error(400, { message: 'x' });
+    });
+    requestEv.resolveValue = (loader: LoaderInternal) => loadRouteLoader(loader, requestEv);
+
+    await expect(loadRouteLoader(failing, requestEv)).rejects.toBeInstanceOf(ServerError);
+  });
+
+  it('wraps a returned fail() as an error envelope in getRouteLoaderResponse', async () => {
+    const ev = makeRequestEv();
+    const qrl = createQrl('fail-resp', (_thisArg, e) => {
+      return e.fail(400, { message: 'x' });
+    });
+
+    const res = await getRouteLoaderResponse(qrl, undefined, ev);
+    expect(res.e).toBeInstanceOf(ServerError);
+    expect(res.e?.status).toBe(400);
+    expect(res.e?.data).toEqual({ message: 'x' });
+    expect(res.d).toBeUndefined();
+  });
+
+  it('propagates thrown error() out of getRouteLoaderResponse (abort semantics)', async () => {
+    const ev = makeRequestEv();
+    const qrl = createQrl('throw-resp', (_thisArg, e) => {
+      throw e.error(404, { message: 'gone' });
+    });
+
+    await expect(getRouteLoaderResponse(qrl, undefined, ev)).rejects.toBeInstanceOf(ServerError);
+  });
+
+  it('returns a data envelope on success in getRouteLoaderResponse', async () => {
+    const ev = makeRequestEv();
+    const qrl = createQrl('ok-resp', () => ({ result: 'ok' }));
+
+    const res = await getRouteLoaderResponse(qrl, undefined, ev);
+    expect(res.d).toEqual({ result: 'ok' });
+    expect(res.e).toBeUndefined();
+  });
+
+  it('returns a redirect envelope on redirect', async () => {
+    const ev = makeRequestEv();
+    ev.headers.set('Location', '/login');
+    const qrl = createQrl('redir-resp', () => {
+      throw new RedirectMessage();
+    });
+
+    const res = await getRouteLoaderResponse(qrl, undefined, ev);
+    expect(res.r).toBe('/login');
+    expect(res.e).toBeUndefined();
+    expect(res.d).toBeUndefined();
+  });
+});
+
+describe('types', () => {
+  test('loader.value is the success type (failures surface on .error)', () => () => {
+    const useObj = routeLoader$(({ error, query }) => {
+      if (query.get('fail') === '1') {
+        throw error(400, { message: 'Product not found' });
+      }
+      return { result: 'ok' };
+    });
+    expectTypeOf(useObj().value).toEqualTypeOf<{ result: string }>();
+  });
+
+  test('primitive loader.value stays a primitive', () => () => {
+    const useStr = routeLoader$(({ error, query }) => {
+      if (query.get('fail') === '1') {
+        throw error(400, { message: 'Product not found' });
+      }
+      return 'hello';
+    });
+    expectTypeOf(useStr().value).toEqualTypeOf<string>();
+  });
+
+  test('reading value.failed is not valid', () => () => {
+    const useObj = routeLoader$(({ error, query }) => {
+      if (query.get('fail') === '1') {
+        throw error(400, { message: 'Product not found' });
+      }
+      return { result: 'ok' };
+    });
+    const value = useObj().value;
+    // @ts-expect-error failures surface on loader.error, never loader.value.failed
+    value.failed;
+  });
+
+  test('loader.error is a typed ServerError for fail() results', () => () => {
+    const useObj = routeLoader$((ev) => {
+      if (ev.query.get('fail') === '1') {
+        return ev.fail(404, { message: 'Product not found' });
+      }
+      return { result: 'ok' };
+    });
+    const loader = useObj();
+    expectTypeOf(loader.value).toEqualTypeOf<{ result: string }>();
+    expectTypeOf(loader.error?.status).toEqualTypeOf<number | undefined>();
+    expectTypeOf(loader.error?.data).toMatchTypeOf<{ message: string } | undefined>();
+  });
+
+  test('thrown error() aborts the request and never lands on loader.error', () => () => {
+    const useObj = routeLoader$(({ error, query }) => {
+      if (query.get('fail') === '1') {
+        throw error(404, { message: 'Product not found' });
+      }
+      return { result: 'ok' };
+    });
+    const loader = useObj();
+    expectTypeOf(loader.error).toMatchTypeOf<Error | undefined>();
+    expectTypeOf(loader.error?.status).toEqualTypeOf<undefined>();
+  });
+});
+
+function makeRequestEv(): any {
+  let _status = 200;
+  return {
+    sharedMap: new Map(),
+    headers: new Map<string, string>(),
+    url: new URL('http://localhost/products/'),
+    status: (s?: number) => {
+      if (s !== undefined) {
+        _status = s;
+      }
+      return _status;
+    },
+    error: (status: number, data: unknown) => {
+      _status = status;
+      return new ServerError(status, data);
+    },
+    fail: (status: number, data: Record<string, any>) => failReturn(status, data),
+  };
+}
 
 function createLoader(
   id: string,

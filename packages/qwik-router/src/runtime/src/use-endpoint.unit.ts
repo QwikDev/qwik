@@ -57,20 +57,21 @@ describe('submitAction', () => {
     });
   });
 
-  it('reflects non-200 status from action response (fail/validator)', async () => {
+  it('reflects non-200 status and error envelope from a failed action response', async () => {
     vi.stubGlobal(
       'fetch',
       vi
         .fn()
         .mockResolvedValue(
-          await makeJsonResponse({ result: { failed: true, message: 'bad' } }, 422)
+          await makeJsonResponse({ error: { status: 422, data: { message: 'bad' } } }, 422)
         )
     );
 
     const result = await submitAction({ id: 'act-a', data: {} } as any, '/test/');
 
     expect(result?.status).toBe(422);
-    expect(result?.result).toMatchObject({ failed: true });
+    expect(result?.result).toBeUndefined();
+    expect(result?.error).toMatchObject({ status: 422, data: { message: 'bad' } });
   });
 });
 

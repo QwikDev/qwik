@@ -34,7 +34,7 @@ export default component$(() => {
     >
   >;
 
-  const errors = dotNotation.value?.fieldErrors satisfies ConfirmType | undefined;
+  const errors = dotNotation.error?.fieldErrors satisfies ConfirmType | undefined;
 
   return (
     <>
@@ -45,7 +45,7 @@ export default component$(() => {
           name="credentials.username"
           value="user"
           class={{
-            error: dotNotation.value?.fieldErrors?.['credentials.username'],
+            error: dotNotation.error?.fieldErrors?.['credentials.username'],
           }}
         />
         <input
@@ -53,7 +53,7 @@ export default component$(() => {
           name="credentials.password"
           value="pass"
           class={{
-            error: dotNotation.value?.fieldErrors?.['credentials.password'],
+            error: dotNotation.error?.fieldErrors?.['credentials.password'],
           }}
         />
         <input
@@ -61,7 +61,7 @@ export default component$(() => {
           name="credentials.password"
           value="pass"
           class={{
-            error: dotNotation.value?.fieldErrors?.['evenMoreComplex.deep.firstName'],
+            error: dotNotation.error?.fieldErrors?.['evenMoreComplex.deep.firstName'],
           }}
         />
         {errors?.['credentials.password'] ?? 'no error'}
@@ -71,7 +71,7 @@ export default component$(() => {
           name="evenMoreComplex.deep.firstName"
           value="John"
           class={{
-            error: dotNotation.value?.fieldErrors?.['evenMoreComplex.deep.firstName'],
+            error: dotNotation.error?.fieldErrors?.['evenMoreComplex.deep.firstName'],
           }}
         />
 
@@ -80,7 +80,7 @@ export default component$(() => {
           name="persons.0.name"
           value="John"
           class={{
-            error: dotNotation.value?.fieldErrors?.['persons[].name']?.[0],
+            error: dotNotation.error?.fieldErrors?.['persons[].name']?.[0],
           }}
         />
 

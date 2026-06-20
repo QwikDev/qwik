@@ -132,23 +132,6 @@
       "mdFile": "router.cookievalue.md"
     },
     {
-      "name": "data",
-      "id": "servererror-data",
-      "hierarchy": [
-        {
-          "name": "ServerError",
-          "id": "servererror-data"
-        },
-        {
-          "name": "data",
-          "id": "servererror-data"
-        }
-      ],
-      "kind": "Property",
-      "content": "```typescript\ndata: T;\n```",
-      "mdFile": "router.servererror.data.md"
-    },
-    {
       "name": "DeferReturn",
       "id": "deferreturn",
       "hierarchy": [
@@ -192,6 +175,90 @@
       "content": "```typescript\nexport interface EnvGetter \n```\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nget(key)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
       "mdFile": "router.envgetter.md"
+    },
+    {
+      "name": "ExcludeFail",
+      "id": "excludefail",
+      "hierarchy": [
+        {
+          "name": "ExcludeFail",
+          "id": "excludefail"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Removes fail branches from a loader/action return union — `.value` is the success type only.\n\n\n```typescript\nexport type ExcludeFail<T> = T extends Failed ? never : T;\n```\n**References:** [Failed](#failed)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts",
+      "mdFile": "router.excludefail.md"
+    },
+    {
+      "name": "FailBrand",
+      "id": "failbrand",
+      "hierarchy": [
+        {
+          "name": "FailBrand",
+          "id": "failbrand"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Brand for values produced by `requestEv.fail()`<!-- -->. Non-enumerable and `Symbol.for` so JSON/user data can't spoof a failure and the brand survives duplicate bundling.\n\n\n```typescript\nFailBrand: unique symbol\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts",
+      "mdFile": "router.failbrand.md"
+    },
+    {
+      "name": "Failed",
+      "id": "failed",
+      "hierarchy": [
+        {
+          "name": "Failed",
+          "id": "failed"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Marker for results produced by `requestEv.fail()`<!-- -->.\n\n\n```typescript\nexport type Failed = {\n    readonly [FailBrand]: FailMeta;\n};\n```\n**References:** [FailBrand](#failbrand)<!-- -->, [FailMeta](#failmeta)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts",
+      "mdFile": "router.failed.md"
+    },
+    {
+      "name": "FailMeta",
+      "id": "failmeta",
+      "hierarchy": [
+        {
+          "name": "FailMeta",
+          "id": "failmeta"
+        }
+      ],
+      "kind": "Interface",
+      "content": "Metadata carried by a fail result, hidden under the [FailBrand](#failbrand) symbol.\n\n\n```typescript\nexport interface FailMeta \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstatus\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts",
+      "mdFile": "router.failmeta.md"
+    },
+    {
+      "name": "FailPayload",
+      "id": "failpayload",
+      "hierarchy": [
+        {
+          "name": "FailPayload",
+          "id": "failpayload"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Extracts the payload types of the fail branches of a loader/action return union.\n\n\n```typescript\nexport type FailPayload<T> = T extends Failed ? {\n    [K in keyof T as K extends typeof FailBrand ? never : K]: T[K];\n} : never;\n```\n**References:** [Failed](#failed)<!-- -->, [FailBrand](#failbrand)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts",
+      "mdFile": "router.failpayload.md"
+    },
+    {
+      "name": "FailReturn",
+      "id": "failreturn",
+      "hierarchy": [
+        {
+          "name": "FailReturn",
+          "id": "failreturn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "A typed failure result returned from a loader/action via `requestEv.fail(status, data)`<!-- -->. It surfaces as the loader/action `.error` state and is excluded from the `.value` type.\n\n\n```typescript\nexport type FailReturn<T> = T & Failed;\n```\n**References:** [Failed](#failed)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/fail.ts",
+      "mdFile": "router.failreturn.md"
     },
     {
       "name": "get",
@@ -358,7 +425,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RequestEventAction<PLATFORM = QwikRouterPlatform> extends RequestEventCommon<PLATFORM> \n```\n**Extends:** [RequestEventCommon](#requesteventcommon)<!-- -->&lt;PLATFORM&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfail\n\n\n</td><td>\n\n\n</td><td>\n\n&lt;T extends Record&lt;string, any&gt;&gt;(status: number, returnData: T) =&gt; FailReturn&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RequestEventAction<PLATFORM = QwikRouterPlatform> extends RequestEventCommon<PLATFORM> \n```\n**Extends:** [RequestEventCommon](#requesteventcommon)<!-- -->&lt;PLATFORM&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
       "mdFile": "router.requesteventaction.md"
     },
@@ -386,7 +453,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RequestEventCommon<PLATFORM = QwikRouterPlatform> extends RequestEventBase<PLATFORM> \n```\n**Extends:** [RequestEventBase](#requesteventbase)<!-- -->&lt;PLATFORM&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [ServerError](#servererror)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\nWhen called, the response will immediately end with the given status code. This could be useful to end a response with `404`<!-- -->, and use the 404 handler in the routes directory. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.\n\n\n</td></tr>\n<tr><td>\n\nexit\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n() =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nhtml\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: StatusCodes, html: string) =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\nConvenience method to send an HTML body response. The response will be automatically set the `Content-Type` header to`text/html; charset=utf-8`<!-- -->. An `html()` response can only be called once.\n\n\n</td></tr>\n<tr><td>\n\njson\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: StatusCodes, data: any) =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\nConvenience method to JSON stringify the data and send it in the response. The response will be automatically set the `Content-Type` header to `application/json; charset=utf-8`<!-- -->. A `json()` response can only be called once.\n\n\n</td></tr>\n<tr><td>\n\nlocale\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(local?: string) =&gt; string\n\n\n</td><td>\n\nWhich locale the content is in.\n\nThe locale value can be retrieved from selected methods using `getLocale()`<!-- -->:\n\n\n</td></tr>\n<tr><td>\n\nredirect\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: RedirectCode, url: string) =&gt; [RedirectMessage](#redirectmessage)\n\n\n</td><td>\n\nURL to redirect to. When called, the response will immediately end with the correct redirect status and headers.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections\n\n\n</td></tr>\n<tr><td>\n\nrewrite\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(pathname: string) =&gt; [RewriteMessage](#rewritemessage)\n\n\n</td><td>\n\nWhen called, qwik-router will execute the path's matching route flow.\n\nThe url in the browser will remain unchanged.\n\n\n</td></tr>\n<tr><td>\n\nsend\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nSendMethod\n\n\n</td><td>\n\nSend a body response. The `Content-Type` response header is not automatically set when using `send()` and must be set manually. A `send()` response can only be called once.\n\n\n</td></tr>\n<tr><td>\n\nstatus\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode?: StatusCodes) =&gt; number\n\n\n</td><td>\n\nHTTP response status code. Sets the status code when called with an argument. Always returns the status code, so calling `status()` without an argument will can be used to return the current status code.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Status\n\n\n</td></tr>\n<tr><td>\n\ntext\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: StatusCodes, text: string) =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\nConvenience method to send an text body response. The response will be automatically set the `Content-Type` header to`text/plain; charset=utf-8`<!-- -->. An `text()` response can only be called once.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RequestEventCommon<PLATFORM = QwikRouterPlatform> extends RequestEventBase<PLATFORM> \n```\n**Extends:** [RequestEventBase](#requesteventbase)<!-- -->&lt;PLATFORM&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [ServerError](#servererror-variable)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\nWhen called, the response will immediately end with the given status code. This could be useful to end a response with `404`<!-- -->, and use the 404 handler in the routes directory. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.\n\n\n</td></tr>\n<tr><td>\n\nexit\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n() =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nfail\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n&lt;T extends Record&lt;string, any&gt;&gt;(statusCode: ErrorCodes, data: T) =&gt; [FailReturn](#failreturn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\nReturns a typed failure result to `return` from a loader or action. It surfaces as the loader's/action's `.error` state (a `ServerError`<!-- -->) while `.value` stays the success type and the page keeps rendering. Unlike `error()`<!-- -->, which is thrown and aborts the request, `fail()` is for expected failures the page should display inline.\n\n\n</td></tr>\n<tr><td>\n\nhtml\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: StatusCodes, html: string) =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\nConvenience method to send an HTML body response. The response will be automatically set the `Content-Type` header to`text/html; charset=utf-8`<!-- -->. An `html()` response can only be called once.\n\n\n</td></tr>\n<tr><td>\n\njson\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: StatusCodes, data: any) =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\nConvenience method to JSON stringify the data and send it in the response. The response will be automatically set the `Content-Type` header to `application/json; charset=utf-8`<!-- -->. A `json()` response can only be called once.\n\n\n</td></tr>\n<tr><td>\n\nlocale\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(local?: string) =&gt; string\n\n\n</td><td>\n\nWhich locale the content is in.\n\nThe locale value can be retrieved from selected methods using `getLocale()`<!-- -->:\n\n\n</td></tr>\n<tr><td>\n\nredirect\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: RedirectCode, url: string) =&gt; [RedirectMessage](#redirectmessage)\n\n\n</td><td>\n\nURL to redirect to. When called, the response will immediately end with the correct redirect status and headers.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections\n\n\n</td></tr>\n<tr><td>\n\nrewrite\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(pathname: string) =&gt; [RewriteMessage](#rewritemessage)\n\n\n</td><td>\n\nWhen called, qwik-router will execute the path's matching route flow.\n\nThe url in the browser will remain unchanged.\n\n\n</td></tr>\n<tr><td>\n\nsend\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nSendMethod\n\n\n</td><td>\n\nSend a body response. The `Content-Type` response header is not automatically set when using `send()` and must be set manually. A `send()` response can only be called once.\n\n\n</td></tr>\n<tr><td>\n\nstatus\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode?: StatusCodes) =&gt; number\n\n\n</td><td>\n\nHTTP response status code. Sets the status code when called with an argument. Always returns the status code, so calling `status()` without an argument will can be used to return the current status code.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Status\n\n\n</td></tr>\n<tr><td>\n\ntext\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: StatusCodes, text: string) =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\nConvenience method to send an text body response. The response will be automatically set the `Content-Type` header to`text/plain; charset=utf-8`<!-- -->. An `text()` response can only be called once.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
       "mdFile": "router.requesteventcommon.md"
     },
@@ -483,8 +550,22 @@
           "id": "servererror"
         }
       ],
-      "kind": "Class",
-      "content": "```typescript\nexport declare class ServerError<T = any> extends Error \n```\n**Extends:** Error\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n(constructor)(status, data)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `ServerError` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[data](#servererror-data)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[status](#servererror-status)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "```typescript\nServerError: {\n    new <T = unknown>(status: number, data: T): ServerError<T>;\n    readonly prototype: ServerErrorImpl;\n}\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts",
+      "mdFile": "router.servererror.md"
+    },
+    {
+      "name": "ServerError",
+      "id": "servererror",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nServerError: {\n    new <T = unknown>(status: number, data: T): ServerError<T>;\n    readonly prototype: ServerErrorImpl;\n}\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts",
       "mdFile": "router.servererror.md"
     },
@@ -560,23 +641,6 @@
       "kind": "MethodSignature",
       "content": "Sets a `Response` cookie header using the `Set-Cookie` header.\n\n\n```typescript\nset(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\nstring \\| number \\| Record&lt;string, any&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[CookieOptions](#cookieoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
       "mdFile": "router.cookie.set.md"
-    },
-    {
-      "name": "status",
-      "id": "servererror-status",
-      "hierarchy": [
-        {
-          "name": "ServerError",
-          "id": "servererror-status"
-        },
-        {
-          "name": "status",
-          "id": "servererror-status"
-        }
-      ],
-      "kind": "Property",
-      "content": "```typescript\nstatus: number;\n```",
-      "mdFile": "router.servererror.status.md"
     }
   ]
 }

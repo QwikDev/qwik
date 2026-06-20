@@ -10,6 +10,50 @@ test.describe('loaders', () => {
     test.use({ javaScriptEnabled: true });
     tests();
 
+    test('falls back to a full-page load when an SPA-navigated loader throws error()', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test/loaders/loader-fail/?ok=1');
+      await expect(page.locator('#loader-fail-value')).toHaveText('tshirt');
+
+      const documentRequest = page.waitForRequest(
+        (request) =>
+          request.isNavigationRequest() && request.url().includes('/loaders/loader-error')
+      );
+      await page.locator('#link-loader-error').click();
+      const request = await documentRequest;
+      const response = await request.response();
+      expect(response?.status()).toBe(401);
+      await expect(page.locator('body')).toContainText('loader-error-caught');
+    });
+
+    test('fail() lands reactively on loader.error after SPA navigation', async ({ page }) => {
+      await page.goto('/qwikrouter-test/loaders/loader-fail/?ok=1');
+      await expect(page.locator('#loader-fail-value')).toHaveText('tshirt');
+
+      const loaderResponse = page.waitForResponse(
+        (r) => r.url().includes('/loaders/loader-fail/') && r.url().includes('q-loader')
+      );
+      await page.locator('#link-loader-fail-retry').click();
+      const response = await loaderResponse;
+      expect(response.status()).toBe(200);
+      await expect(page.locator('#loader-fail-error')).toHaveText('429 Rate limited');
+    });
+
+    test('a transport failure lands a plain Error on loader.error', async ({ page }) => {
+      await page.goto('/qwikrouter-test/loaders/loader-fail/?ok=1');
+      await expect(page.locator('#loader-fail-value')).toHaveText('tshirt');
+
+      await page.route('**/q-loader-*', (route) => route.abort());
+      await page.locator('#link-loader-fail-retry').click();
+
+      const err = page.locator('#loader-fail-error');
+      await expect(err).toBeVisible();
+      // The network Error branch rendered (message, no status), not the ServerError one.
+      await expect(err).not.toContainText('429');
+      await expect(err).not.toBeEmpty();
+    });
+
     test('should reuse filtered search loaders only for the same SPA route path', async ({
       page,
     }) => {
@@ -175,6 +219,17 @@ test.describe('loaders', () => {
       await page.goto('/qwikrouter-test/loaders/prop');
       await expect(page.locator('#prop')).toHaveText('test');
       await expect(page.locator('#prop-unwrapped')).toHaveText('test');
+    });
+
+    test('renders inline error UI with the fail() status', async ({ page }) => {
+      const response = await page.goto('/qwikrouter-test/loaders/loader-fail/');
+      const contentType = await response?.headerValue('Content-Type');
+      const status = response?.status();
+
+      expect(status).toEqual(429);
+      expect(contentType).toEqual('text/html; charset=utf-8');
+      expect(await response?.headerValue('Cache-Control')).toBeNull();
+      await expect(page.locator('#loader-fail-error')).toHaveText('429 Rate limited');
     });
 
     test('should modify ServerError in middleware', async ({ page }) => {

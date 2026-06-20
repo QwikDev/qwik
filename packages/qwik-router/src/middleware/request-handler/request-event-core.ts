@@ -1,12 +1,12 @@
 import { _deserialize, isDev } from '@qwik.dev/core/internal';
 import type {
   ActionInternal,
-  FailReturn,
   JSONValue,
   LoadedRoute,
   LoaderInternal,
 } from '../../runtime/src/types';
 import { getRouteLoaderValues, loadRouteLoader } from '../../runtime/src/route-loaders';
+import { failReturn, failToServerError, isFailReturn } from './fail';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RewriteMessage } from './rewrite-handler';
 import type { ServerError } from './server-error';
@@ -221,10 +221,14 @@ export function createRequestEventWithDeps(
       if (loaderOrAction.__brand === 'server_loader') {
         // Check if the loader was already run by the middleware
         const loaderValues = getRouteLoaderValues(requestEv);
-        if (loaderOrAction.__id in loaderValues) {
-          return loaderValues[loaderOrAction.__id];
+        const value =
+          loaderOrAction.__id in loaderValues
+            ? loaderValues[loaderOrAction.__id]
+            : await loadRouteLoader(loaderOrAction, requestEv);
+        if (isFailReturn(value)) {
+          throw failToServerError(value);
         }
-        return loadRouteLoader(loaderOrAction, requestEv);
+        return value;
       }
 
       // Actions are transient (one-shot per request). After action submission,
@@ -257,6 +261,10 @@ export function createRequestEventWithDeps(
       status = statusCode;
       headers.delete('Cache-Control');
       return new deps.ServerError(statusCode, message);
+    },
+
+    fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
+      return failReturn(statusCode, data);
     },
 
     redirect: (statusCode: number, url: string) => {
@@ -299,16 +307,6 @@ export function createRequestEventWithDeps(
 
     defer: (returnData) => {
       return typeof returnData === 'function' ? returnData : () => returnData;
-    },
-
-    fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
-      check();
-      status = statusCode;
-      headers.delete('Cache-Control');
-      return {
-        failed: true,
-        ...data,
-      };
     },
 
     text: (statusCode: number, text: string) => {

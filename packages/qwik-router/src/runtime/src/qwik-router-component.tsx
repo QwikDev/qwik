@@ -116,6 +116,7 @@ import type {
   ScrollState,
 } from './types';
 import { submitAction } from './use-endpoint';
+import { ServerError } from '../../middleware/request-handler/server-error';
 import { useQwikRouterEnv } from './use-functions';
 import { isSameOrigin, isSamePath, toPath, toUrl } from './utils';
 import { startViewTransition, type ViewTransition } from './view-transition';
@@ -277,10 +278,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       ? {
           id: currentActionId!,
           data: env.response.formData,
-          output: {
-            result: currentAction,
-            status: env.response.status,
-          },
+          output:
+            currentAction instanceof ServerError
+              ? { error: currentAction, status: env.response.status }
+              : { result: currentAction, status: env.response.status },
         }
       : undefined
   );
@@ -560,23 +561,34 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           const result = await submitAction(action, trackUrl.pathname);
           if (!result) {
             // HTTP redirect happened — bail
+            routeLocation.isNavigating = false;
             routeInternal.untrackedValue = { type: navType, dest: trackUrl };
             return;
           }
 
-          actionData = {
-            status: result.status,
-            action: action.id,
-            actionResult: result.result,
-          };
+          if (!result.aborted) {
+            actionData = {
+              status: result.status,
+              action: action.id,
+              actionResult: result.error ?? result.result,
+            };
+          }
 
           // Resolve the action promise and free the closure
           if (action.resolve) {
             action.resolve({
               status: result.status,
               result: result.result,
+              error: result.error,
+              aborted: result.aborted,
             });
             action.resolve = undefined;
+          }
+
+          if (result.aborted) {
+            routeLocation.isNavigating = false;
+            routeInternal.untrackedValue = { type: navType, dest: trackUrl };
+            return;
           }
 
           actionLoaderHashes = result.loaderHashes;

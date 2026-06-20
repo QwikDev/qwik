@@ -12,7 +12,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {\n    (): ActionStore<RETURN, INPUT, OPTIONAL>;\n};\n```\n**References:** [ActionStore](#actionstore)",
+      "content": "```typescript\nexport type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true, ERROR = unknown> = {\n    (): ActionStore<RETURN, INPUT, OPTIONAL, ERROR>;\n};\n```\n**References:** [ActionStore](#actionstore)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.action.md"
     },
@@ -26,7 +26,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionConstructor = {\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR, ...REST];\n    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR];\n    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: REST;\n    }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {\n        readonly id?: string;\n    }): Action<StrictUnion<OBJ>>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [DataValidator](#datavalidator)<!-- -->, [GetValidatorOutputType](#getvalidatoroutputtype)<!-- -->, [Action](#action)<!-- -->, [StrictUnion](#strictunion)<!-- -->, [FailReturn](#failreturn)<!-- -->, [ValidatorErrorType](#validatorerrortype)<!-- -->, [GetValidatorInputType](#getvalidatorinputtype)<!-- -->, [FailOfRest](#failofrest)<!-- -->, [JSONObject](#jsonobject)",
+      "content": "```typescript\nexport type ActionConstructor = {\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR, ...REST];\n    }): Action<ExcludeFail<OBJ>, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST> | FailPayload<OBJ>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR];\n    }): Action<ExcludeFail<OBJ>, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailPayload<OBJ>>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: REST;\n    }): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailOfRest<REST> | FailPayload<OBJ>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<ExcludeFail<OBJ>, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailOfRest<REST> | FailPayload<OBJ>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<ExcludeFail<OBJ>, GetValidatorInputType<VALIDATOR>, false, ValidatorErrorType<GetValidatorInputType<VALIDATOR>> | FailPayload<OBJ>>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailOfRest<REST> | FailPayload<OBJ>>;\n    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {\n        readonly id?: string;\n    }): Action<ExcludeFail<OBJ>, Record<string, unknown>, true, FailPayload<OBJ>>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [DataValidator](#datavalidator)<!-- -->, [GetValidatorOutputType](#getvalidatoroutputtype)<!-- -->, [Action](#action)<!-- -->, [GetValidatorInputType](#getvalidatorinputtype)<!-- -->, [ValidatorErrorType](#validatorerrortype)<!-- -->, [FailOfRest](#failofrest)<!-- -->, [JSONObject](#jsonobject)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionconstructor.md"
     },
@@ -40,7 +40,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionReturn<RETURN> = {\n    readonly status?: number;\n    readonly value: RETURN;\n};\n```",
+      "content": "```typescript\nexport type ActionReturn<RETURN, ERROR = unknown> = {\n    readonly status?: number;\n    readonly value: (unknown extends RETURN ? RETURN : StrictUnion<RETURN>) | undefined;\n    readonly error: ServerError<StrictUnion<ERROR>> | undefined;\n};\n```\n**References:** [StrictUnion](#strictunion)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionreturn.md"
     },
@@ -54,7 +54,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: RETURN | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;\n    readonly submitted: boolean;\n};\n```\n**References:** [ActionReturn](#actionreturn)",
+      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true, ERROR = unknown> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: (unknown extends RETURN ? RETURN : StrictUnion<RETURN>) | undefined;\n    readonly error: ServerError<StrictUnion<ERROR>> | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN, ERROR>>>;\n    readonly submitted: boolean;\n};\n```\n**References:** [StrictUnion](#strictunion)<!-- -->, [ActionReturn](#actionreturn)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.actionstore.md"
     },
@@ -297,20 +297,6 @@
       "mdFile": "router.failofrest.md"
     },
     {
-      "name": "FailReturn",
-      "id": "failreturn",
-      "hierarchy": [
-        {
-          "name": "FailReturn",
-          "id": "failreturn"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type FailReturn<T> = T & Failed;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
-      "mdFile": "router.failreturn.md"
-    },
-    {
       "name": "Form",
       "id": "form",
       "hierarchy": [
@@ -348,7 +334,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface FormSubmitCompletedDetail<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstatus\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface FormSubmitCompletedDetail<T, ERROR = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\naborted?\n\n\n</td><td>\n\n\n</td><td>\n\n[ServerError](#servererror-variable)\n\n\n</td><td>\n\n_(Optional)_ Set when the submission aborted (a thrown `error()` or an unexpected server error).\n\n\n</td></tr>\n<tr><td>\n\nerror\n\n\n</td><td>\n\n\n</td><td>\n\n[ServerError](#servererror-variable)<!-- -->&lt;ERROR&gt; \\| undefined\n\n\n</td><td>\n\nThe `ServerError` from a returned `fail()` or a failed validator.\n\n\n</td></tr>\n<tr><td>\n\nstatus\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\n\n</td><td>\n\nT \\| undefined\n\n\n</td><td>\n\nThe action's successful return value. `undefined` when the action failed or aborted.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx",
       "mdFile": "router.formsubmitsuccessdetail.md"
     },
@@ -488,7 +474,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type Loader<RETURN> = {\n    (): LoaderSignal<RETURN>;\n};\n```\n**References:** [LoaderSignal](#loadersignal)",
+      "content": "```typescript\nexport type Loader<RETURN, ERROR = unknown> = {\n    (): LoaderSignal<RETURN, ERROR>;\n};\n```\n**References:** [LoaderSignal](#loadersignal)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loader_2.md"
     },
@@ -502,7 +488,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;\n```",
+      "content": "```typescript\nexport type LoaderSignal<TYPE, ERROR = unknown> = ([TYPE] extends [\n    () => ValueOrPromise<infer VALIDATOR>\n] ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading'> & {\n    error: ServerError<StrictUnion<ERROR>> | TransportError<ERROR> | undefined;\n};\n```\n**References:** [StrictUnion](#strictunion)<!-- -->, [TransportError](#transporterror)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loadersignal.md"
     },
@@ -983,6 +969,34 @@
       "mdFile": "router.serverdata.md"
     },
     {
+      "name": "ServerError",
+      "id": "servererror",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nServerError: {\n    new <T = unknown>(status: number, data: T): ServerError<T>;\n    readonly prototype: ServerErrorImpl;\n}\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts",
+      "mdFile": "router.servererror.md"
+    },
+    {
+      "name": "ServerError",
+      "id": "servererror",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nServerError: {\n    new <T = unknown>(status: number, data: T): ServerError<T>;\n    readonly prototype: ServerErrorImpl;\n}\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts",
+      "mdFile": "router.servererror.md"
+    },
+    {
       "name": "ServerFunction",
       "id": "serverfunction",
       "hierarchy": [
@@ -1065,6 +1079,20 @@
       "content": "```typescript\nexport type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.strictunion.md"
+    },
+    {
+      "name": "TransportError",
+      "id": "transporterror",
+      "hierarchy": [
+        {
+          "name": "TransportError",
+          "id": "transporterror"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "A client-side transport failure on the same `.error` slot as ServerError. The server failure's fields exist as `?: never` so plain property checks discriminate the union.\n\n\n```typescript\nexport type TransportError<ERROR> = Error & {\n    [K in keyof StrictUnion<ERROR>]?: never;\n} & {\n    status?: never;\n    data?: never;\n};\n```\n**References:** [StrictUnion](#strictunion)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.transporterror.md"
     },
     {
       "name": "TypedDataValidator",
@@ -1258,9 +1286,37 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ValidatorReturn<T extends Record<string, any> = {}> = ValidatorReturnSuccess | ValidatorReturnFail<T>;\n```",
+      "content": "```typescript\nexport type ValidatorReturn<T extends Record<string, any> = {}> = ValidatorReturnSuccess | ValidatorReturnFail<T>;\n```\n**References:** [ValidatorReturnSuccess](#validatorreturnsuccess)<!-- -->, [ValidatorReturnFail](#validatorreturnfail)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.validatorreturn.md"
+    },
+    {
+      "name": "ValidatorReturnFail",
+      "id": "validatorreturnfail",
+      "hierarchy": [
+        {
+          "name": "ValidatorReturnFail",
+          "id": "validatorreturnfail"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ValidatorReturnFail<T extends Record<string, any> = {}> = {\n    readonly success: false;\n    readonly error: T;\n    readonly status?: number;\n};\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.validatorreturnfail.md"
+    },
+    {
+      "name": "ValidatorReturnSuccess",
+      "id": "validatorreturnsuccess",
+      "hierarchy": [
+        {
+          "name": "ValidatorReturnSuccess",
+          "id": "validatorreturnsuccess"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ValidatorReturnSuccess = {\n    readonly success: true;\n    readonly data?: unknown;\n};\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.validatorreturnsuccess.md"
     },
     {
       "name": "zod$",

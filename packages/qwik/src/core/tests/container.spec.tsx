@@ -426,13 +426,13 @@ describe('serializer v2', () => {
         const container = await withContainer((ssr) => ssr.addRoot(obj));
         const [qrl0, qrl1, qrl2] = container.$getObjectById$(0) as QRLInternal[];
         expect(qrl0.$hash$).toEqual(obj[0].$hash$);
-        expect(qrl0.$captures$).toEqual('1 2');
+        expect(qrl0.$captures$).toEqual('3#1#-3 1');
         expect(qrl0.resolved).toEqual((obj[0] as any).resolved);
         expect(qrl1.$hash$).toEqual(obj[1].$hash$);
-        expect(qrl1.$captures$).toEqual('1 2');
+        expect(qrl1.$captures$).toEqual('3#1#-3 1');
         expect(qrl1.resolved).toEqual((obj[1] as any).resolved);
         expect(qrl2.$hash$).toEqual(obj[2].$hash$);
-        expect(qrl2.$captures$).toEqual('1');
+        expect(qrl2.$captures$).toEqual('6#1#-6');
         await qrl2.resolve();
         expect((qrl2.resolved as any).toString()).toEqual((obj[2] as any).resolved.toString());
       });

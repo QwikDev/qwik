@@ -31,6 +31,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getModuleRouteLoaders, routeLoaderQrl, setLoaderSignalValue } from './route-loaders';
 import type { LoaderInternal, RouteModule } from './types';
 
+const taskFlag = 1 << 1; // TaskFlags.TASK
+
 describe('route loader store + async signal tracking', () => {
   let container: Container = null!;
   let task: Task | null = null;
@@ -275,7 +277,7 @@ describe('route loader store + async signal tracking', () => {
   function effectQrl(fnQrl: QRL<() => void>) {
     const qrl = fnQrl as QRLInternal<() => void>;
     const element: HostElement = vnode_newVirtual();
-    task = task || new Task(0 as any, 0, element, fnQrl as QRLInternal, undefined, null);
+    task = task || new Task(taskFlag, 0, element, fnQrl as QRLInternal, null);
     vnode_setProp(element, 'q:seq', [task]);
     if (!qrl.resolved) {
       throw qrl.resolve();

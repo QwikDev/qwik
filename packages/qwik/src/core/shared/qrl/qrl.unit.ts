@@ -3,13 +3,17 @@ import { assert, assertType, describe, expectTypeOf, test } from 'vitest';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 import { _regSymbol, inlinedQrl, qrl } from './qrl';
-import { _captures, createQRL } from './qrl-class';
+import { _captures, createQRL, deserializeCaptureDeltas } from './qrl-class';
 import { type QRL } from './qrl.public';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
     assert.deepEqual(obj[key], value, `${obj[key]} !== ${value}`);
   }
+}
+
+function matchDeltaCaptures(obj: any, qrlString: string) {
+  assert.deepEqual(obj.$captures$, qrlString);
 }
 
 describe('types', () => {
@@ -66,17 +70,17 @@ describe('serialization', () => {
     matchProps(parseQRL('./chunk#s1#1 2'), {
       $chunk$: './chunk',
       $symbol$: 's1',
-      $captures$: '1 2',
     });
+    matchDeltaCaptures(parseQRL('./chunk#s1#1 2'), '1 2');
     matchProps(parseQRL('./chunk##1 2'), {
       $chunk$: './chunk',
-      $captures$: '1 2',
     });
+    matchDeltaCaptures(parseQRL('./chunk##1 2'), '1 2');
     matchProps(parseQRL('./path#symbol#2'), {
       $chunk$: './path',
       $symbol$: 'symbol',
-      $captures$: '2',
     });
+    matchDeltaCaptures(parseQRL('./path#symbol#2'), '2');
     matchProps(
       parseQRL(
         '/src/path%2d/foo_symbol.js?_qrl_parent=/home/user/project/src/path/foo.js#symbol#2'
@@ -84,8 +88,13 @@ describe('serialization', () => {
       {
         $chunk$: '/src/path%2d/foo_symbol.js?_qrl_parent=/home/user/project/src/path/foo.js',
         $symbol$: 'symbol',
-        $captures$: '2',
       }
+    );
+    matchDeltaCaptures(
+      parseQRL(
+        '/src/path%2d/foo_symbol.js?_qrl_parent=/home/user/project/src/path/foo.js#symbol#2'
+      ),
+      '2'
     );
   });
 
@@ -115,8 +124,17 @@ describe('serialization', () => {
         serializationContext,
         createQRL('src/routes/[...index]/a+b/c?foo', 's1', null, null, [{}, {}])
       ),
-      'src/routes/[...index]/a+b/c?foo#s1#2 3'
+      'src/routes/[...index]/a+b/c?foo#s1#2 1'
     );
+  });
+
+  test('deserialize delta capture strings', () => {
+    const roots = ['first', 'second', 'third'];
+    const container = {
+      $getObjectById$: (id: number) => roots[id],
+    } as any;
+
+    assert.deepEqual(deserializeCaptureDeltas(container, '1 1'), ['second', 'third']);
   });
 
   test('should store resolved value', async () => {

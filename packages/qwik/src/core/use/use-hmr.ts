@@ -1,7 +1,7 @@
 import { getDomContainer } from '../client/dom-container';
 import {
   _captures,
-  deserializeCaptures,
+  deserializeCaptureDeltas,
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
@@ -31,7 +31,7 @@ export const _hmr = function (
   // Deserialize captures from `this` when called via qwikloader/attribute dispatch
   const container = getDomContainer(element);
   if (typeof this === 'string') {
-    setCaptures(deserializeCaptures(container, this));
+    setCaptures(deserializeCaptureDeltas(container, this));
   }
   const devPath = _captures?.[1] as string | undefined;
   const hmrPath = devPath ?? element.getAttribute('data-qwik-inspector');

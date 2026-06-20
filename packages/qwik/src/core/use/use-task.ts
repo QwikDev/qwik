@@ -4,7 +4,7 @@ import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import {
   _captures,
-  deserializeCaptures,
+  deserializeCaptureDeltas,
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
@@ -21,6 +21,7 @@ import { useSequentialScope } from './use-sequential-scope';
 import { cleanupAsyncDestroyable } from './utils/destroyable';
 import { cleanupFn, trackFn } from './utils/tracker';
 
+/** @internal */
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
   TASK = 1 << 1,
@@ -132,15 +133,6 @@ export interface TaskCtx {
 /** @public */
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => ValueOrPromise<void>)>;
 
-export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
-  $flags$: number;
-  $index$: number;
-  $el$: HostElement;
-  $qrl$: QRLInternal<T>;
-  $state$: B | undefined;
-  $destroy$: (() => void) | null;
-}
-
 /** @public */
 export interface TaskOptions {
   /** Block the rendering of the component until the task completes. Default is `true` */
@@ -165,7 +157,6 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
     i,
     iCtx.$hostElement$,
     qrl,
-    undefined,
     null
   );
   // In V2 we add the task to the sequential scope. We need to do this
@@ -236,19 +227,15 @@ export const runTask = (
 };
 
 /** @internal */
-export class Task<T = unknown, B = T>
-  extends BackRef
-  implements DescriptorBase<unknown, Signal<B>>
-{
+export class Task<T = unknown, B = T> extends BackRef {
   $destroyPromise$: Promise<void> | undefined;
   $taskPromise$: Promise<void> | null = null;
 
   constructor(
-    public $flags$: number,
+    public $flags$: TaskFlags,
     public $index$: number,
     public $el$: HostElement,
     public $qrl$: QRLInternal<T>,
-    public $state$: Signal<B> | undefined,
     public $destroy$: (() => void) | null
   ) {
     super();
@@ -268,7 +255,7 @@ export const isTask = (value: any): value is Task => {
 export function scheduleTask(this: string, _event: Event, element: Element) {
   const container = getDomContainer(element);
   if (typeof this === 'string') {
-    setCaptures(deserializeCaptures(container, this));
+    setCaptures(deserializeCaptureDeltas(container, this));
   }
   const task = _captures![0] as Task;
   task.$flags$ |= TaskFlags.DIRTY;

@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
 import {
   ensureRouteLoaderSignal,
+  getRouteLoaderResponse,
   loadRouteLoader,
   routeLoaderQrl,
   type RouteLoaderState,
 } from './route-loaders';
+import { ServerError } from '../../middleware/request-handler/server-error';
 import type { LoaderInternal } from './types';
 
 describe('search filter early-return logic', () => {
@@ -88,6 +90,31 @@ describe('route loader execution', () => {
     const loader = routeLoaderQrl(createQrl('timed-loader'), { expires: 60_000 }) as LoaderInternal;
 
     expect(loader.__expires).toBe(60_000);
+  });
+});
+
+describe('getRouteLoaderResponse envelope', () => {
+  const requestEv = {} as any;
+
+  it('keeps a fail() result as the loader value, not an error', async () => {
+    const qrl = createQrl('fail-loader', async () => ({ failed: true, msg: 'nope' }));
+
+    const response = await getRouteLoaderResponse(qrl, undefined, requestEv);
+
+    expect(response).toEqual({ d: { failed: true, msg: 'nope' } });
+    expect(response.e).toBeUndefined();
+  });
+
+  it('routes a thrown ServerError to the error channel', async () => {
+    const qrl = createQrl('error-loader', async () => {
+      throw new ServerError(500, 'boom');
+    });
+
+    const response = await getRouteLoaderResponse(qrl, undefined, requestEv);
+
+    expect(response.d).toBeUndefined();
+    expect(response.e).toBeInstanceOf(ServerError);
+    expect(response.e?.status).toBe(500);
   });
 });
 

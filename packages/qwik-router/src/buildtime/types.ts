@@ -135,6 +135,7 @@ export interface ParsedMenuItem {
 export interface RewriteRouteOption {
   prefix?: string;
   paths: Record<string, string>;
+  exclude?: string[];
 }
 
 /** @public */

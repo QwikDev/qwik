@@ -210,8 +210,8 @@ describe('ErrorBoundary', () => {
     ev.initEvent('qerror', false, false);
     (ev as any).detail = { error: new Error('client boom'), element: target };
     el.ownerDocument.dispatchEvent(ev);
-    // The re-entrancy guard breaks the loop; without it this hangs. A throwing fallback may surface
-    // as a drain rejection — that's fine; the point is it terminates.
+    // With no ancestor boundary the throwing fallback escalates to the generic handler (logged), which
+    // terminates the loop. It may surface as a drain rejection — fine; the point is it terminates.
     try {
       await waitForDrain(container);
     } catch {
@@ -570,6 +570,30 @@ describe('ErrorBoundary combinations', () => {
         { debug }
       );
       expect(container.element.querySelector('#fb-outer')).toBeTruthy();
+      expect(container.element.querySelector('#fb-inner')).toBeFalsy();
+    });
+
+    it('a throwing inner fallback escalates to the outer boundary', async () => {
+      // The inner fallback itself throws, so the inner boundary can't show it; the throw escalates to
+      // the nearest ancestor boundary, which shows its fallback (never loops on the inner boundary).
+      const { container } = await domRender(
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb-outer">outer</p>
+          ))}
+        >
+          <ErrorBoundary
+            fallback$={$(() => {
+              throw new Error('inner fallback boom');
+            })}
+          >
+            <Thrower />
+          </ErrorBoundary>
+        </ErrorBoundary>,
+        { debug }
+      );
+      await waitForDrain(container).catch(() => {});
+      expect(container.element.querySelector('#fb-outer')?.textContent).toBe('outer');
       expect(container.element.querySelector('#fb-inner')).toBeFalsy();
     });
   });

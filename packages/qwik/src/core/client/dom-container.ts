@@ -4,7 +4,11 @@ import { isDev } from '@qwik.dev/core/build';
 import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
-import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
+import {
+  ERROR_CONTEXT,
+  isRecoverable,
+  type ErrorBoundaryStore,
+} from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
@@ -257,43 +261,53 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   handleError(err: any, host: VNode | null): void {
-    const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
-    // If the closest boundary already errored (e.g. its own fallback throws), report and stop —
-    // re-triggering would loop.
-    if (errorStore && errorStore.error != null) {
-      logError(err);
-      return;
-    }
     if (qDev && host) {
       if (typeof document !== 'undefined') {
         setErrorPayload(host, err);
         markVNodeDirty(this, host, ChoreBits.ERROR_WRAP);
       }
-
-      if (err && err instanceof Error) {
-        if (!('hostElement' in err)) {
-          (err as any)['hostElement'] = String(host);
-        }
+      if (err && err instanceof Error && !('hostElement' in err)) {
+        (err as any)['hostElement'] = String(host);
       }
       if (!isRecoverable(err)) {
         throw err;
       }
     }
-    if (!errorStore) {
-      throw err;
-    }
-    // A real boundary inits `error: undefined`; a generic ERROR_CONTEXT consumer inits `null` and
-    // only captures (never re-renders).
-    const isErrorBoundary = errorStore.error === undefined;
-    errorStore.error = err;
-    // An OOOS boundary never subscribed to `store.error`, so the write alone won't re-render it to
-    // the fallback — mark it explicitly.
-    if (isErrorBoundary && host) {
-      const boundaryHost = this.resolveContextHost(host, ERROR_CONTEXT);
-      if (boundaryHost) {
-        markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
+    // Walk up to the closest ERROR_CONTEXT provider that can still handle this error. A boundary
+    // already showing its fallback (`error !== undefined`) is skipped, so a 2nd throw escalates to its
+    // ancestor instead of looping on itself; a generic consumer (inits `null`) only captures.
+    let current: VNode | null = host;
+    while (current) {
+      const boundaryHost = this.resolveContextHost(current, ERROR_CONTEXT);
+      if (!boundaryHost) {
+        break;
       }
+      const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
+      if (store && store.error === undefined) {
+        // A real boundary, not yet errored: show its fallback. An OOOS/resumed boundary never
+        // subscribed to `store.error`, so the write alone won't re-render it — mark it explicitly.
+        store.error = err;
+        markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
+        return;
+      }
+      if (store && store.error === null) {
+        // A generic ERROR_CONTEXT consumer: capture only (never re-renders).
+        store.error = err;
+        return;
+      }
+      if (boundaryHost.dirty & ChoreBits.COMPONENT) {
+        // Errored but its fallback re-render is still pending: this is a concurrent 2nd throw from the
+        // same content pass — first error wins, so absorb it instead of escalating.
+        logError(err);
+        return;
+      }
+      // The boundary already shows its fallback (e.g. the fallback itself threw): escalate to the
+      // nearest ancestor boundary so a throwing fallback doesn't loop on its own boundary.
+      current = this.getParentHost(boundaryHost);
     }
+    // No boundary above can handle it: log it (the loop terminator). Re-throwing here would surface as
+    // an uncaught chore rejection.
+    logError(err);
   }
 
   setContext<T>(host: VNode, context: ContextId<T>, value: T): void {

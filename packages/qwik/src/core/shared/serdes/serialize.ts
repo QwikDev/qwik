@@ -10,7 +10,7 @@ import {
   SsrDomSubscription,
   type SsrDomEffect,
 } from '../../vdomless/dom/effect/ssr-effect';
-import { ReactiveFlags } from '../../vdomless/reactive/flags';
+import { ComputedFlags } from '../../vdomless/reactive/flags';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
 import type { Dependency } from '../../vdomless/reactive/source';
@@ -701,9 +701,9 @@ function serializeSignal(signal: Signal<unknown>): unknown[] {
 }
 
 function serializeComputed(computed: ComputedQrl<unknown>): unknown[] {
-  const hasCachedValue = !!(computed.flags & ReactiveFlags.HasValue);
+  const hasCachedValue = !!(computed.flags & ComputedFlags.HasValue);
   const needsComputation =
-    !hasCachedValue || !!(computed.flags & ReactiveFlags.Dirty) || fastSkipSerialize(computed.v);
+    !hasCachedValue || !!(computed.flags & ComputedFlags.Dirty) || fastSkipSerialize(computed.v);
   const value = needsComputation
     ? NEEDS_COMPUTATION
     : computed.v === undefined
@@ -734,7 +734,6 @@ function serializeBranchSubscription(subscription: SsrBranchSubscription): unkno
   return [
     effect.kind,
     effect.rangeId,
-    effect.order,
     effect.mountedBranch,
     serializeDeps(subscription.deps),
     effect.args,

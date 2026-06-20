@@ -9,7 +9,7 @@ import {
 } from '../test-utils';
 import { disposeSubscriber } from '../reactive/cleanup';
 import { createComputed } from '../reactive/computed';
-import { ReactiveFlags } from '../reactive/flags';
+import { OwnerFlags } from '../reactive/flags';
 import { createSignal } from '../reactive/signal';
 import { getActiveCollector, runWithCollector } from '../reactive/tracking';
 import { createTextNodeEffect } from '../dom/effect/effect';
@@ -33,11 +33,18 @@ import {
 
 describe('runtime scheduler and owner lifecycle', () => {
   it('flushes blocking tasks before DOM effects', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
+    const owner = createOwner();
     const order: string[] = [];
-    const task = createTaskSubscriber(scheduler, 'task', order);
-    const firstDom = createOrderTextExpressionEffect(scheduler, 'first-dom', order);
-    const secondDom = createOrderTextExpressionEffect(scheduler, 'second-dom', order);
+    let task!: TaskSubscriber;
+    let firstDom!: DomSubscriber;
+    let secondDom!: DomSubscriber;
+
+    runWithOwner(owner, () => {
+      task = createTaskSubscriber(scheduler, 'task', order);
+      firstDom = createOrderTextExpressionEffect(scheduler, 'first-dom', order);
+      secondDom = createOrderTextExpressionEffect(scheduler, 'second-dom', order);
+    });
 
     scheduler.notify(secondDom);
     scheduler.notify(firstDom);
@@ -45,27 +52,67 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     await scheduler.flushInteraction();
 
-    expect(order).toEqual(['task', 'second-dom', 'first-dom']);
+    expect(order).toEqual(['task', 'first-dom', 'second-dom']);
   });
 
-  it('sorts blocking tasks by group path and task index', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+  it('runs parent owner work before child owner work', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const parent = createOwner();
     const order: string[] = [];
-    const parent0 = createTaskSubscriber(scheduler, 'parent-0', order, [0], 0);
-    const parent1 = createTaskSubscriber(scheduler, 'parent-1', order, [0], 1);
-    const child0 = createTaskSubscriber(scheduler, 'child-0', order, [0, 0], 0);
+    let parentTask!: TaskSubscriber;
+    let childTask!: TaskSubscriber;
 
-    scheduler.notify(child0);
-    scheduler.notify(parent1);
-    scheduler.notify(parent0);
+    runWithOwner(parent, () => {
+      parentTask = createTaskSubscriber(scheduler, 'parent', order);
+      const child = createOwner();
+      runWithOwner(child, () => {
+        childTask = createTaskSubscriber(scheduler, 'child', order);
+      });
+    });
+
+    scheduler.notify(childTask);
+    scheduler.notify(parentTask);
 
     await scheduler.flushInteraction();
 
-    expect(order).toEqual(['parent-0', 'parent-1', 'child-0']);
+    expect(order).toEqual(['parent', 'child']);
+  });
+
+  it('runs all parent owner phases before descending into child owners', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const parent = createOwner();
+    const order: string[] = [];
+    let parentDeferred!: TaskSubscriber;
+    let childBlocking!: TaskSubscriber;
+
+    runWithOwner(parent, () => {
+      parentDeferred = createTask(
+        () => {
+          order.push('parent:deferred');
+        },
+        { deferUpdates: true, scheduler }
+      );
+      const child = createOwner();
+      runWithOwner(child, () => {
+        childBlocking = createTask(
+          () => {
+            order.push('child:blocking');
+          },
+          { scheduler }
+        );
+      });
+    });
+
+    scheduler.notify(childBlocking);
+    scheduler.notify(parentDeferred);
+
+    await scheduler.flushInteraction();
+
+    expect(order).toEqual(['parent:deferred', 'child:blocking']);
   });
 
   it('keeps enqueue order for tasks with the same group path and index', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
     const first = createTaskSubscriber(scheduler, 'first', order, [0], 0);
     const second = createTaskSubscriber(scheduler, 'second', order, [0], 0);
@@ -79,7 +126,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('dedupes scheduled subscribers in one batch', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
     const scalar = createOrderTextExpressionEffect(scheduler, 'scalar', order);
 
@@ -92,9 +139,9 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('skips disposed tasks that were already scheduled', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const seen: string[] = [];
-    const task = createTask(() => seen.push('task'), { scheduler });
+    const task = createOwned(() => createTask(() => seen.push('task'), { scheduler }));
 
     scheduler.notify(task);
     disposeSubscriber(task);
@@ -102,11 +149,11 @@ describe('runtime scheduler and owner lifecycle', () => {
     await scheduler.flushInteraction();
 
     expect(seen).toEqual([]);
-    expect(task.flags).toBe(ReactiveFlags.Disposed);
+    expect(task.owner).toBeNull();
   });
 
   it('registers subscribers with the active owner', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();
     const count = createSignal(1);
     const text = createText();
@@ -116,10 +163,10 @@ describe('runtime scheduler and owner lifecycle', () => {
     runWithOwner(owner, () => {
       expect(getActiveOwner()).toBe(owner);
       effect = createTextNodeEffect(text, count, { scheduler });
-      expect(owner.subscribers).toEqual([effect]);
+      expect(owner.items).toEqual([effect]);
     });
     expect(getActiveOwner()).toBeNull();
-    expect(owner.subscribers).toEqual([effect]);
+    expect(owner.items).toEqual([effect]);
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -129,21 +176,25 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     disposeOwner(owner);
 
-    expect(owner.disposed).toBe(true);
-    expect(owner.subscribers).toBeNull();
+    expect(owner.flags & OwnerFlags.Disposed).not.toBe(0);
+    expect(owner.items).toBeNull();
     expect(count.subs).toBeNull();
   });
 
   it('registers subscribers to an explicit owner without duplication', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();
+    const sourceOwner = createOwner();
     const count = createSignal(1);
-    const effect = createTextNodeEffect(createText(), count, { scheduler });
+    const effect = runWithOwner(sourceOwner, () =>
+      createTextNodeEffect(createText(), count, { scheduler })
+    );
 
-    expect(owner.subscribers).toBeNull();
+    expect(owner.items).toBeNull();
     registerSubscriberToOwner(effect, owner);
     registerSubscriberToOwner(effect, owner);
-    expect(owner.subscribers).toEqual([effect]);
+    expect(owner.items).toEqual([effect]);
+    expect(sourceOwner.items).toBeNull();
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -155,16 +206,11 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(count.subs).toBeNull();
   });
 
-  it('leaves subscribers created without an active owner unowned', () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
-    const owner = createOwner();
-    const effect = createTextNodeEffect(createText(), createSignal(1), { scheduler });
-
-    expect(owner.subscribers).toBeNull();
-
-    disposeOwner(owner);
-
-    expect(effect.flags & ReactiveFlags.Disposed).toBe(0);
+  it('throws when creating subscribers without an active owner', () => {
+    const scheduler = new Scheduler(noopSchedule);
+    expect(() => createTextNodeEffect(createText(), createSignal(1), { scheduler })).toThrow(
+      'Missing active owner context for vdomless subscriber'
+    );
   });
 
   it('detaches disposed child owners from their parent', () => {
@@ -179,22 +225,21 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     expect(first.parent).toBe(parent);
     expect(second.parent).toBe(parent);
-    expect(parent.childOwners).toHaveLength(2);
+    expect(parent.items).toHaveLength(2);
 
     disposeOwner(first);
     disposeOwner(first);
 
-    expect(first.disposed).toBe(true);
+    expect(first.flags & OwnerFlags.Disposed).not.toBe(0);
     expect(first.parent).toBeNull();
-    expect(parent.disposed).toBe(false);
-    expect(second.disposed).toBe(false);
+    expect(parent.flags & OwnerFlags.Disposed).toBe(0);
+    expect(second.flags & OwnerFlags.Disposed).toBe(0);
     expect(second.parent).toBe(parent);
-    expect(parent.childOwners).toHaveLength(1);
-    expect(parent.childOwners![0]).toBe(second);
+    expect(parent.items).toEqual([second]);
   });
 
   it('disposes child owners with their parent owner', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const parent = createOwner();
     const outerSource = createSignal('outer');
     const innerSource = createSignal('inner');
@@ -210,11 +255,9 @@ describe('runtime scheduler and owner lifecycle', () => {
       });
     });
 
-    expect(parent.subscribers).toEqual([outerEffect]);
-    expect(parent.childOwners).toHaveLength(1);
-    expect(parent.childOwners![0]).toBe(child);
+    expect(parent.items).toEqual([outerEffect, child]);
     expect(child.parent).toBe(parent);
-    expect(child.subscribers).toEqual([innerEffect]);
+    expect(child.items).toEqual([innerEffect]);
 
     scheduler.notify(outerEffect);
     scheduler.notify(innerEffect);
@@ -225,10 +268,9 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     disposeOwner(parent);
 
-    expect(parent.disposed).toBe(true);
-    expect(child.disposed).toBe(true);
-    expect(parent.childOwners).toBeNull();
-    expect(parent.subscribers).toBeNull();
+    expect(parent.flags & OwnerFlags.Disposed).not.toBe(0);
+    expect(child.flags & OwnerFlags.Disposed).not.toBe(0);
+    expect(parent.items).toBeNull();
     expect(child.parent).toBeNull();
     expect(outerSource.subs).toBeNull();
     expect(innerSource.subs).toBeNull();
@@ -244,21 +286,25 @@ describe('runtime scheduler and owner lifecycle', () => {
       child = createOwner();
     });
 
-    expect(parent.childOwners).toBeNull();
-    expect(child.disposed).toBe(true);
+    expect(parent.items).toBeNull();
+    expect(child.flags & OwnerFlags.Disposed).not.toBe(0);
     expect(child.parent).toBeNull();
   });
 
   it('disposes subscribers registered to disposed owners', () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();
-    const effect = createTextNodeEffect(createText(), createSignal(1), { scheduler });
+    const sourceOwner = createOwner();
+    const effect = runWithOwner(sourceOwner, () =>
+      createTextNodeEffect(createText(), createSignal(1), { scheduler })
+    );
 
     disposeOwner(owner);
     registerSubscriberToOwner(effect, owner);
 
-    expect(effect.flags).toBe(ReactiveFlags.Disposed);
-    expect(owner.subscribers).toBeNull();
+    expect(effect.owner).toBeNull();
+    expect(sourceOwner.items).toBeNull();
+    expect(owner.items).toBeNull();
   });
 
   it('registers computed subscribers with the active owner', () => {
@@ -266,7 +312,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     const count = createSignal(1);
     const doubled = runWithOwner(owner, () => createComputed(() => count.value * 2));
 
-    expect(owner.subscribers).toEqual([doubled]);
+    expect(owner.items).toEqual([doubled]);
     expect(doubled.value).toBe(2);
     expect(count.subs).toContain(doubled);
 
@@ -276,7 +322,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('registers task subscribers with the active owner', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();
     const count = createSignal(1);
     const seen: number[] = [];
@@ -290,7 +336,7 @@ describe('runtime scheduler and owner lifecycle', () => {
       });
     });
 
-    expect(owner.subscribers).toEqual([task, visibleTask]);
+    expect(owner.items).toEqual([task, visibleTask]);
 
     scheduler.notify(task);
     scheduler.notify(visibleTask);
@@ -306,8 +352,8 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('does not track dependencies through runWithOwner', () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
-    const collector = createTask(() => {}, { scheduler });
+    const scheduler = new Scheduler(noopSchedule);
+    const collector = createOwned(() => createTask(() => {}, { scheduler }));
     const owner = createOwner();
     const tracked = createSignal('tracked');
     const untracked = createSignal('untracked');
@@ -330,10 +376,10 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('restores owner and collector after runWithOwner throws', () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const parent = createOwner();
     const child = createOwner();
-    const collector = createTask(() => {}, { scheduler });
+    const collector = createOwned(() => createTask(() => {}, { scheduler }));
 
     runWithOwner(parent, () => {
       runWithCollector(collector, () => {
@@ -355,14 +401,16 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('createTask tracks dependencies and reruns after signal mutation', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(0);
     const seen: number[] = [];
-    const task = createTask(
-      () => {
-        seen.push(count.value);
-      },
-      { scheduler }
+    const task = createOwned(() =>
+      createTask(
+        () => {
+          seen.push(count.value);
+        },
+        { scheduler }
+      )
     );
 
     scheduler.notify(task);
@@ -377,26 +425,24 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(seen).toEqual([0, 1]);
   });
 
-  it('runs deferred tasks only during deferred flush', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+  it('runs deferred tasks without blocking on a deferred queue', async () => {
+    const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
-    const task = createTask(() => order.push('deferred'), {
-      deferUpdates: true,
-      scheduler,
-    });
+    const task = createOwned(() =>
+      createTask(() => order.push('deferred'), {
+        deferUpdates: true,
+        scheduler,
+      })
+    );
 
     scheduler.notify(task);
     await scheduler.flushInteraction();
-
-    expect(order).toEqual([]);
-
-    await scheduler.flushDeferred();
 
     expect(order).toEqual(['deferred']);
   });
 
   it('loads unresolved task QRLs before running them', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
     let resolved = false;
     const qrl = createQRL<TaskFn>(
@@ -413,7 +459,7 @@ describe('runtime scheduler and owner lifecycle', () => {
       },
       null
     );
-    const task = createTaskQrl(qrl, { scheduler });
+    const task = createOwned(() => createTaskQrl(qrl, { scheduler }));
 
     scheduler.notify(task);
     await scheduler.flushInteraction();
@@ -423,20 +469,22 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('runs visible tasks in enqueue order', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
-    const second = createVisibleTask(() => order.push('second'), { scheduler });
-    const first = createVisibleTaskQrl(
-      createQRL<TaskFn>(
-        'chunk',
-        'symbol',
-        () => {
-          order.push('first');
-        },
-        null,
-        null
-      ),
-      { scheduler }
+    const second = createOwned(() => createVisibleTask(() => order.push('second'), { scheduler }));
+    const first = createOwned(() =>
+      createVisibleTaskQrl(
+        createQRL<TaskFn>(
+          'chunk',
+          'symbol',
+          () => {
+            order.push('first');
+          },
+          null,
+          null
+        ),
+        { scheduler }
+      )
     );
 
     scheduler.notify(second);
@@ -447,23 +495,27 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('starts visible tasks independently', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
     let resolveFirst: (() => void) | undefined;
-    const first = createVisibleTask(
-      () => {
-        order.push('first:start');
-        return new Promise<void>((resolve) => {
-          resolveFirst = resolve;
-        });
-      },
-      { scheduler }
+    const first = createOwned(() =>
+      createVisibleTask(
+        () => {
+          order.push('first:start');
+          return new Promise<void>((resolve) => {
+            resolveFirst = resolve;
+          });
+        },
+        { scheduler }
+      )
     );
-    const second = createVisibleTask(
-      () => {
-        order.push('second:start');
-      },
-      { scheduler }
+    const second = createOwned(() =>
+      createVisibleTask(
+        () => {
+          order.push('second:start');
+        },
+        { scheduler }
+      )
     );
 
     scheduler.notify(first);
@@ -475,7 +527,7 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('restores serialized captures for task QRLs', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const seen: string[] = [];
     const container = createCaptureContainer({
       0: 'task',
@@ -494,7 +546,7 @@ describe('runtime scheduler and owner lifecycle', () => {
       '0 1',
       container
     );
-    const task = createTaskQrl(qrl, { scheduler, container });
+    const task = createOwned(() => createTaskQrl(qrl, { scheduler, container }));
 
     scheduler.notify(task);
     await scheduler.flushInteraction();
@@ -503,12 +555,14 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('cleans up dynamic dependencies for tasks', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const useA = createSignal(true);
     const a = createSignal('a');
     const b = createSignal('b');
     const seen: string[] = [];
-    const task = createTask(() => seen.push(useA.value ? a.value : b.value), { scheduler });
+    const task = createOwned(() =>
+      createTask(() => seen.push(useA.value ? a.value : b.value), { scheduler })
+    );
 
     scheduler.notify(task);
     await scheduler.flushInteraction();
@@ -528,14 +582,16 @@ describe('runtime scheduler and owner lifecycle', () => {
   });
 
   it('cleans up dynamic dependencies for visible tasks', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const useA = createSignal(true);
     const a = createSignal('a');
     const b = createSignal('b');
     const seen: string[] = [];
-    const task = createVisibleTask(() => seen.push(useA.value ? a.value : b.value), {
-      scheduler,
-    });
+    const task = createOwned(() =>
+      createVisibleTask(() => seen.push(useA.value ? a.value : b.value), {
+        scheduler,
+      })
+    );
 
     scheduler.notify(task);
     await scheduler.flushInteraction();
@@ -554,3 +610,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(seen).toEqual(['a', 'b', 'next-b']);
   });
 });
+
+function createOwned<T>(run: () => T): T {
+  return runWithOwner(createOwner(null), run);
+}

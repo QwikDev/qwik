@@ -1,8 +1,8 @@
 import type { QRLInternal } from '../../../shared/qrl/qrl-class';
 import { isPromise } from '../../../shared/utils/promises';
 import type { ValueOrPromise } from '../../../shared/utils/types';
-import { ReactiveFlags } from '../../reactive/flags';
-import { disposeOwner, registerSubscriberToOwner, type Owner } from '../../runtime/owner';
+import { SubscriberFlags } from '../../reactive/flags';
+import { Owner, disposeOwner, registerSubscriberToOwner } from '../../runtime/owner';
 import {
   getActiveInvokeContextOrNull,
   invoke,
@@ -50,7 +50,6 @@ export abstract class BranchRange {
 
 export interface BranchOptions {
   scheduler?: Scheduler;
-  order?: number;
   container?: ContainerContext;
   mountedBranch?: BranchState;
 }
@@ -61,7 +60,6 @@ export interface BranchQrlOptions {
 
 export interface BranchSubscriberOptions {
   scheduler?: Scheduler;
-  order?: number;
   mountedBranch?: BranchState;
 }
 
@@ -103,18 +101,12 @@ export class Branch<TArgs extends unknown[] = unknown[]> {
     readonly condition: BranchCondition<TArgs>,
     readonly then: BranchRenderer<TArgs>,
     readonly otherwise: BranchRenderer<TArgs> | undefined,
-    readonly order: number,
     readonly invokeContext: RuntimeInvokeContext | null,
     mountedBranch: BranchState | undefined,
     readonly container?: ContainerContext
   ) {
     this.currentBranch = mountedBranch ?? null;
-    // Resumed branch DOM already exists; create its child owner now so a later
-    // branch switch can dispose subscriptions restored under that mounted branch.
-    this.currentOwner =
-      mountedBranch === undefined
-        ? null
-        : newChildInvokeContext(invokeContext, { container }).owner;
+    this.currentOwner = null;
   }
 
   dispose(): void {
@@ -142,8 +134,8 @@ export class BranchQrl<TArgs extends unknown[] = unknown[]> {
 
 export class BranchSubscription<TArgs extends unknown[] = unknown[]> implements BranchSubscriber {
   readonly kind = SubscriberKind.Branch;
-  flags = ReactiveFlags.None;
-  schedulerEpoch = 0;
+  owner: Owner | null = null;
+  flags = SubscriberFlags.None;
   deps: Dependency[] | null = null;
   depVersions: number[] | null = null;
 
@@ -164,7 +156,6 @@ export class SsrBranchEffect<TArgs extends unknown[] = unknown[]> {
 
   constructor(
     readonly rangeId: number,
-    readonly order: number,
     readonly args: TArgs,
     readonly conditionQrl: BranchQrlRef<BranchConditionFn<TArgs>>,
     readonly thenQrl: BranchQrlRef<BranchRenderFn<TArgs>>,
@@ -176,7 +167,7 @@ export class SsrBranchSubscription<
   TArgs extends unknown[] = unknown[],
 > implements SsrBranchSubscriber<TArgs> {
   readonly kind = SubscriberKind.Branch;
-  flags = ReactiveFlags.None;
+  owner: Owner | null = null;
   deps: Dependency[] | null = null;
   depVersions: number[] | null = null;
 
@@ -215,7 +206,6 @@ export function createBranch<TArgs extends unknown[]>(
       condition,
       then,
       otherwise,
-      options?.order ?? 0,
       getActiveInvokeContextOrNull(),
       options?.mountedBranch,
       options?.container
@@ -250,7 +240,6 @@ export function createBranchQrlSubscriber<TArgs extends unknown[]>(
       branchQrl.conditionQrl,
       branchQrl.thenQrl,
       branchQrl.elseQrl,
-      options?.order ?? 0,
       getActiveInvokeContextOrNull(),
       options?.mountedBranch,
       branchQrl.container
@@ -261,7 +250,6 @@ export function createBranchQrlSubscriber<TArgs extends unknown[]>(
 
 export function renderSsrBranch<TArgs extends unknown[]>(
   rangeId: number,
-  order: number,
   args: TArgs,
   conditionQrl: BranchQrlRef<BranchConditionFn<TArgs>>,
   thenQrl: BranchQrlRef<BranchRenderFn<TArgs>>,
@@ -270,7 +258,7 @@ export function renderSsrBranch<TArgs extends unknown[]>(
   renderElse?: () => string
 ): string {
   const subscription = createSsrBranchSubscription(
-    new SsrBranchEffect(rangeId, order, args, conditionQrl, thenQrl, elseQrl)
+    new SsrBranchEffect(rangeId, args, conditionQrl, thenQrl, elseQrl)
   );
   const condition = resolveBranchHandler(conditionQrl, getSsrBranchContainer());
 
@@ -287,18 +275,30 @@ export function renderSsrBranch<TArgs extends unknown[]>(
   subscription.effect.mountedBranch = state;
 
   const invokeContext = newChildInvokeContext(getActiveInvokeContextOrNull());
-  subscription.effect.currentOwner = invokeContext.owner;
-
-  return invoke(
+  const html = invoke(
     invokeContext,
     state === BranchState.Then ? renderThen : (renderElse ?? renderEmpty)
   );
+  subscription.effect.currentOwner = invokeContext.owner;
+  return html;
 }
 
 export function getSsrBranchOwnedSubscribers(
   subscription: SsrBranchSubscription
 ): readonly Subscriber[] {
-  return subscription.effect.currentOwner?.subscribers ?? EMPTY_SUBSCRIBERS;
+  const items = subscription.effect.currentOwner?.items;
+  if (items === null || items === undefined) {
+    return EMPTY_SUBSCRIBERS;
+  }
+
+  const subscribers: Subscriber[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (!(item instanceof Owner)) {
+      subscribers.push(item);
+    }
+  }
+  return subscribers;
 }
 
 function createBranchSubscription<TArgs extends unknown[]>(
@@ -389,19 +389,30 @@ function mountBranch<TArgs extends unknown[]>(
   const invokeContext = newChildInvokeContext(branch.invokeContext, {
     container: branch.container,
   });
-  branch.currentOwner = invokeContext.owner;
 
-  const nodes = runWithCollector(null, runBranchRenderer, {
-    invokeContext,
-    fn: renderer,
-    ctx: invokeContext.container ?? getBranchContainer(branch),
-    args: branch.args,
-  });
+  let nodes: readonly Node[] | void;
+  try {
+    nodes = runWithCollector(null, runBranchRenderer, {
+      invokeContext,
+      fn: renderer,
+      ctx: invokeContext.container ?? getBranchContainer(branch),
+      args: branch.args,
+    });
+  } catch (error) {
+    if (invokeContext.owner !== null) {
+      disposeOwner(invokeContext.owner);
+    }
+    throw error;
+  }
 
   if (isPromise(nodes)) {
+    if (invokeContext.owner !== null) {
+      disposeOwner(invokeContext.owner);
+    }
     throw new Error('Branch renderer must be synchronous');
   }
 
+  branch.currentOwner = invokeContext.owner;
   branch.range.replace(nodes ?? EMPTY_NODES);
 }
 

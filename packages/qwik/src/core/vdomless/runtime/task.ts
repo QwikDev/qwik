@@ -1,5 +1,5 @@
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
-import { ReactiveFlags } from '../reactive/flags';
+import { SubscriberFlags } from '../reactive/flags';
 import { registerSubscriberToOwner } from './owner';
 import { defaultScheduler, Phase, type Scheduler } from './scheduler';
 import {
@@ -10,20 +10,14 @@ import {
 } from './subscriber';
 import type { Dependency } from '../reactive/source';
 import type { ContainerContext } from './container-context';
+import type { Owner } from './owner';
 
 export type TaskFn = () => unknown;
 export type TaskQrlRef<T extends TaskFn = TaskFn> = QRLInternal<T>;
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
-export interface TaskGroup {
-  parent: TaskGroup | null;
-  path: readonly number[];
-}
-
 export interface TaskOptions {
   deferUpdates?: boolean;
-  group?: TaskGroup;
-  index?: number;
   scheduler?: Scheduler;
   container?: ContainerContext;
 }
@@ -38,8 +32,6 @@ export class Task {
   constructor(
     readonly runFn: TaskFn | undefined,
     readonly phase: Phase.BlockingTask | Phase.DeferredTask,
-    readonly group: TaskGroup,
-    readonly index: number,
     readonly qrl?: TaskQrlRef,
     readonly container?: ContainerContext
   ) {}
@@ -64,8 +56,8 @@ export class VisibleTask {
 
 abstract class ScheduledSubscription implements ScheduledSubscriber {
   abstract readonly kind: SubscriberKind;
-  flags = ReactiveFlags.None;
-  schedulerEpoch = 0;
+  owner: Owner | null = null;
+  flags = SubscriberFlags.None;
   deps: Dependency[] | null = null;
   depVersions: number[] | null = null;
 
@@ -95,16 +87,6 @@ export class VisibleTaskSubscription
   ) {
     super(scheduler);
   }
-}
-
-export function createTaskGroup(
-  path: readonly number[],
-  parent: TaskGroup | null = null
-): TaskGroup {
-  return {
-    parent,
-    path,
-  };
 }
 
 export function createTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
@@ -151,8 +133,6 @@ function createTaskRecord(
   return new Task(
     run,
     options?.deferUpdates === true ? Phase.DeferredTask : Phase.BlockingTask,
-    options?.group ?? createTaskGroup([0]),
-    options?.index ?? 0,
     qrl,
     options?.container
   );

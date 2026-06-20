@@ -13,8 +13,14 @@ import { QContainerSelector } from '../shared/utils/markers';
 import { render as renderCsr, type CsrRenderRoot } from './csr-render';
 import type { BranchRange } from './dom/branch/branch';
 import { createTextExpressionEffect } from './dom/effect/effect';
-import { ReactiveFlags } from './reactive/flags';
+import { SubscriberFlags } from './reactive/flags';
 import { createContainerContext, type ContainerContext } from './runtime/container-context';
+import {
+  createOwner,
+  getActiveOwner,
+  registerSubscriberToOwner,
+  runWithOwner,
+} from './runtime/owner';
 import { Scheduler } from './runtime/scheduler';
 import {
   SubscriberKind,
@@ -22,7 +28,7 @@ import {
   type IdleSubscriber,
   type TaskSubscriber,
 } from './runtime/subscriber';
-import { createTask, createTaskGroup } from './runtime/task';
+import { createTask } from './runtime/task';
 import { renderToString, type SsrRenderRoot } from '../../server/vdomless/ssr-render';
 import type { QwikLoaderOptions } from '../../server/types';
 import { bootQwikLoader, type QwikLoaderTestDriver } from './qwikloader-test-driver';
@@ -235,7 +241,7 @@ export function createAttrTarget(): { element: Element; attrs: Map<string, strin
 }
 
 export function createCaptureContainer(captures: Record<string, unknown>): ContainerContext {
-  const scheduler = new Scheduler(noopSchedule, noopSchedule);
+  const scheduler = new Scheduler(noopSchedule);
   const container: ContainerContext = {
     element: {} as HTMLElement,
     document: null,
@@ -272,14 +278,11 @@ export function createTaskSubscriber(
   scheduler: Scheduler,
   label: string,
   order: string[],
-  groupPath: readonly number[] = [0],
-  index = 0
+  _groupPath: readonly number[] = [0],
+  _index = 0
 ): TaskSubscriber {
-  return createTask(() => order.push(label), {
-    scheduler,
-    group: createTaskGroup(groupPath),
-    index,
-  });
+  const create = () => createTask(() => order.push(label), { scheduler });
+  return getActiveOwner() === null ? runWithOwner(createOwner(null), create) : create();
 }
 
 export function createOrderTextExpressionEffect(
@@ -287,30 +290,32 @@ export function createOrderTextExpressionEffect(
   label: string,
   order: string[]
 ): DomSubscriber {
-  return createTextExpressionEffect(
-    createText(),
-    [],
-    () => {
-      order.push(label);
-      return label;
-    },
-    { scheduler }
-  );
+  const create = () =>
+    createTextExpressionEffect(
+      createText(),
+      [],
+      () => {
+        order.push(label);
+        return label;
+      },
+      { scheduler }
+    );
+  return getActiveOwner() === null ? runWithOwner(createOwner(null), create) : create();
 }
 
 export function createIdleSubscriber(notify: () => void, scheduler?: Scheduler): IdleSubscriber {
   const subscriber: IdleSubscriber & { scheduler?: Scheduler } = {
     kind: SubscriberKind.Idle,
+    owner: null,
     job: {
       run: notify,
     },
-    flags: ReactiveFlags.None,
-    schedulerEpoch: 0,
+    flags: SubscriberFlags.None,
   };
   if (scheduler) {
     subscriber.scheduler = scheduler;
   }
-  return subscriber;
+  return registerSubscriberToOwner(subscriber, createOwner(null));
 }
 
 export type CsrRenderComponent = CsrRenderRoot;
@@ -349,7 +354,7 @@ export async function csrRender(jsx: JSXOutput, options?: RenderOptions): Promis
   const container = document.createElement('div');
   document.body.appendChild(container);
 
-  const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
+  const scheduler = options?.scheduler ?? new Scheduler(noopSchedule);
   const renderResult = await renderCsr(compiled.root, container, { scheduler });
   const nodes = Array.from(container.childNodes);
   const qwikLoader = shouldBootQwikLoaderFromEvents(document)
@@ -372,7 +377,7 @@ export async function csrRender(jsx: JSXOutput, options?: RenderOptions): Promis
 
 export async function ssrRender(jsx: JSXOutput, options?: RenderOptions): Promise<RenderResult> {
   const compiled = await compileJsxRoot<SsrRenderComponent>('ssr', jsx);
-  const scheduler = options?.scheduler ?? new Scheduler(noopSchedule, noopSchedule);
+  const scheduler = options?.scheduler ?? new Scheduler(noopSchedule);
   const result = await renderToString(compiled.root, {
     ...options,
     base: options?.base ?? compiled.moduleBase,
@@ -445,7 +450,6 @@ function withSchedulerFlush(
 
 async function flushScheduler(scheduler: Scheduler): Promise<void> {
   await scheduler.flushInteraction();
-  await scheduler.flushDeferred();
 }
 
 function createContainerDocument(html: string): {

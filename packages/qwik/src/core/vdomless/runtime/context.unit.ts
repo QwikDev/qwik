@@ -159,7 +159,7 @@ describe('context runtime', () => {
   });
 
   it('inherits context into branch renderers and branch components', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const contextId = createTestContextId<string>('context-branch');
     const visible = createSignal(true);
     const branchNode = createNode('branch');

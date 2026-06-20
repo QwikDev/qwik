@@ -8,11 +8,12 @@ import { createSignal } from './signal';
 import { runWithCollector } from './tracking';
 import { Scheduler } from '../runtime/scheduler';
 import { createTask } from '../runtime/task';
+import { createOwner, runWithOwner } from '../runtime/owner';
 
 describe('reactive primitives', () => {
   it('notifies signal subscribers and skips Object.is-equal writes', async () => {
     const count = createSignal(0);
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     let notifications = 0;
     const subscriber = createIdleSubscriber(() => {
       notifications++;
@@ -25,7 +26,7 @@ describe('reactive primitives', () => {
     expect(count.version).toBe(0);
 
     count.value = 1;
-    await scheduler.flushDeferred();
+    await scheduler.flushInteraction();
 
     expect(notifications).toBe(1);
     expect(count.version).toBe(1);
@@ -34,10 +35,12 @@ describe('reactive primitives', () => {
   it('keeps computed values lazy and cached until a dependency changes', () => {
     const count = createSignal(1);
     let runs = 0;
-    const doubled = createComputed(() => {
-      runs++;
-      return count.value * 2;
-    });
+    const doubled = createOwned(() =>
+      createComputed(() => {
+        runs++;
+        return count.value * 2;
+      })
+    );
 
     expect(runs).toBe(0);
     expect(doubled.value).toBe(2);
@@ -58,13 +61,16 @@ describe('reactive primitives', () => {
     const count = createSignal(1);
     let doubledRuns = 0;
     let quadrupledRuns = 0;
-    const doubled = createComputed(() => {
-      doubledRuns++;
-      return count.value * 2;
-    });
-    const quadrupled = createComputed(() => {
-      quadrupledRuns++;
-      return doubled.value * 2;
+    const [doubled, quadrupled] = createOwned(() => {
+      const doubled = createComputed(() => {
+        doubledRuns++;
+        return count.value * 2;
+      });
+      const quadrupled = createComputed(() => {
+        quadrupledRuns++;
+        return doubled.value * 2;
+      });
+      return [doubled, quadrupled] as const;
     });
 
     expect(quadrupled.value).toBe(4);
@@ -85,10 +91,12 @@ describe('reactive primitives', () => {
     const a = createSignal('a');
     const b = createSignal('b');
     let runs = 0;
-    const selected = createComputed(() => {
-      runs++;
-      return useA.value ? a.value : b.value;
-    });
+    const selected = createOwned(() =>
+      createComputed(() => {
+        runs++;
+        return useA.value ? a.value : b.value;
+      })
+    );
 
     expect(selected.value).toBe('a');
     expect(runs).toBe(1);
@@ -109,7 +117,7 @@ describe('reactive primitives', () => {
 
   it('removes source subscriptions when a collector is disposed', () => {
     const count = createSignal(1);
-    const doubled = createComputed(() => count.value * 2);
+    const doubled = createOwned(() => createComputed(() => count.value * 2));
 
     expect(doubled.value).toBe(2);
     expect(count.subs).toContain(doubled);
@@ -120,14 +128,16 @@ describe('reactive primitives', () => {
   });
 
   it('reads cached disposed computed values without tracking', () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(1);
-    const collector = createTask(() => {}, { scheduler });
+    const collector = createOwned(() => createTask(() => {}, { scheduler }));
     let runs = 0;
-    const doubled = createComputed(() => {
-      runs++;
-      return count.value * 2;
-    });
+    const doubled = createOwned(() =>
+      createComputed(() => {
+        runs++;
+        return count.value * 2;
+      })
+    );
 
     expect(doubled.value).toBe(2);
     expect(runs).toBe(1);
@@ -146,7 +156,7 @@ describe('reactive primitives', () => {
   });
 
   it('throws when reading a disposed computed without a cached value', () => {
-    const doubled = createComputed(() => 2);
+    const doubled = createOwned(() => createComputed(() => 2));
 
     disposeSubscriber(doubled);
 
@@ -156,11 +166,14 @@ describe('reactive primitives', () => {
   it('clears computed subscribers when disposed', () => {
     const count = createSignal(1);
     let runs = 0;
-    const doubled = createComputed(() => {
-      runs++;
-      return count.value * 2;
+    const [doubled, quadrupled] = createOwned(() => {
+      const doubled = createComputed(() => {
+        runs++;
+        return count.value * 2;
+      });
+      const quadrupled = createComputed(() => doubled.value * 2);
+      return [doubled, quadrupled] as const;
     });
-    const quadrupled = createComputed(() => doubled.value * 2);
 
     expect(quadrupled.value).toBe(4);
     expect(doubled.subs).toContain(quadrupled);
@@ -174,13 +187,18 @@ describe('reactive primitives', () => {
   });
 
   it('throws on circular computed dependencies', () => {
-    const circular: Computed<number> = createComputed(() => circular.value + 1);
+    let circular!: Computed<number>;
+    createOwned(() => {
+      circular = createComputed(() => circular.value + 1);
+    });
 
     expect(() => circular.value).toThrow('Circular computed dependency');
   });
 
   it('runs resolved computed QRLs synchronously', () => {
-    const computed = createComputedQrl(createQRL('chunk', 'symbol', () => 'computed', null, null));
+    const computed = createOwned(() =>
+      createComputedQrl(createQRL('chunk', 'symbol', () => 'computed', null, null))
+    );
 
     expect(computed.value).toBe('computed');
   });
@@ -193,7 +211,7 @@ describe('reactive primitives', () => {
       () => Promise.resolve({ symbol: () => 'resolved-computed' }),
       null
     );
-    const computed = createComputedQrl(qrl);
+    const computed = createOwned(() => createComputedQrl(qrl));
     let pending: unknown;
 
     try {
@@ -223,7 +241,7 @@ describe('reactive primitives', () => {
       '0 1',
       container
     );
-    const computed = createComputedQrl(qrl, container);
+    const computed = createOwned(() => createComputedQrl(qrl, container));
     let pending: unknown;
 
     try {
@@ -237,3 +255,7 @@ describe('reactive primitives', () => {
     expect(computed.value).toBe('left:right');
   });
 });
+
+function createOwned<T>(run: () => T): T {
+  return runWithOwner(createOwner(null), run);
+}

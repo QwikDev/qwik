@@ -1,4 +1,4 @@
-export { ReactiveFlags } from './reactive/flags';
+export { ComputedFlags, OwnerFlags, SubscriberFlags } from './reactive/flags';
 export { escapeHTML } from '../shared/utils/character-escaping';
 export {
   isComputedSource,
@@ -79,9 +79,6 @@ export {
   Scheduler,
   createScheduler,
   defaultScheduler,
-  flush,
-  flushInteraction,
-  notify,
   notifyPhaseSubscriber,
   scheduleFlush,
   type ScheduleFlush,
@@ -92,12 +89,10 @@ export {
   VisibleTask,
   VisibleTaskSubscription,
   createTask,
-  createTaskGroup,
   createTaskQrl,
   createVisibleTask,
   createVisibleTaskQrl,
   type TaskFn,
-  type TaskGroup,
   type TaskOptions,
   type TaskQrlRef,
   type VisibleTaskOptions,

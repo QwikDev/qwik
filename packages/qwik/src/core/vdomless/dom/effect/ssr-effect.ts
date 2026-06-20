@@ -3,11 +3,11 @@ import { Phase } from '../../runtime/scheduler';
 import { AttrSerializer, type TextExpressionFn } from './effect';
 import type { SsrDomSubscriber } from '../../runtime/subscriber';
 import { SubscriberKind } from '../../runtime/subscriber';
-import { ReactiveFlags } from '../../reactive/flags';
 import { readSourceValue, type Dependency, type Source } from '../../reactive/source';
 import { runWithCollector, track } from '../../reactive/tracking';
 import type { QRLInternal } from '../../../shared/qrl/qrl-class';
 import { registerSubscriberToOwner } from '../../runtime/owner';
+import type { Owner } from '../../runtime/owner';
 import type { ClassList } from '../../../shared/jsx/types/jsx-qwik-attributes';
 import { serializeClass, stringifyStyle } from '../../../shared/utils/styles';
 
@@ -85,7 +85,7 @@ export class SsrSerializedAttrEffect {
 
 export class SsrDomSubscription implements SsrDomSubscriber {
   readonly kind = SubscriberKind.Dom;
-  flags = ReactiveFlags.None;
+  owner: Owner | null = null;
   deps: Dependency[] | null = null;
   depVersions: number[] | null = null;
 

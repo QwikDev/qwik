@@ -15,13 +15,14 @@ import {
   renderSsrTextNode,
 } from './ssr-effect';
 import { createSignal, type Signal } from '../../reactive/signal';
+import { createOwner, runWithOwner } from '../../runtime/owner';
 
 describe('SSR DOM effect helpers', () => {
   it('creates a text node subscriber and collects the source dependency', () => {
     const count = createSignal(1);
     const target = createSsrRangeTextTarget(0, 0);
 
-    const value = renderSsrTextNode(target, count);
+    const value = createOwned(() => renderSsrTextNode(target, count));
     const subscriber = count.subs?.[0] as SsrDomSubscription;
 
     expect(value).toBe('1');
@@ -42,7 +43,7 @@ describe('SSR DOM effect helpers', () => {
       null
     );
 
-    const value = renderSsrTextExpression(target, [count], qrl);
+    const value = createOwned(() => renderSsrTextExpression(target, [count], qrl));
     const subscriber = count.subs?.[0] as SsrDomSubscription;
 
     expect(value).toBe('one');
@@ -58,9 +59,9 @@ describe('SSR DOM effect helpers', () => {
     const style = createSignal('color:red');
     const target = createSsrElementTarget(2);
 
-    expect(renderSsrAttr(target, 'title', title)).toBe('hello');
-    expect(renderSsrClass(target, className)).toBe('active');
-    expect(renderSsrStyle(target, style)).toBe('color:red');
+    expect(createOwned(() => renderSsrAttr(target, 'title', title))).toBe('hello');
+    expect(createOwned(() => renderSsrClass(target, className))).toBe('active');
+    expect(createOwned(() => renderSsrStyle(target, style))).toBe('color:red');
 
     const attrSubscriber = title.subs?.[0] as SsrDomSubscription;
     const classSubscriber = className.subs?.[0] as SsrDomSubscription;
@@ -92,3 +93,7 @@ describe('SSR DOM effect helpers', () => {
     });
   });
 });
+
+function createOwned<T>(run: () => T): T {
+  return runWithOwner(createOwner(null), run);
+}

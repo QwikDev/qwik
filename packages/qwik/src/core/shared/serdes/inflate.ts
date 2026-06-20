@@ -1,6 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
-import type { Computed } from '../../vdomless';
 import {
   Branch,
   BranchSubscription,
@@ -17,16 +16,19 @@ import {
 } from '../../vdomless/dom/effect/effect';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import { EffectTargetKind } from '../../vdomless/dom/effect/ssr-effect';
-import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
-import { ReactiveFlags } from '../../vdomless/reactive/flags';
+import { ComputedFlags } from '../../vdomless/reactive/flags';
 import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
 import type { Dependency } from '../../vdomless/reactive/source';
 import { addDependency } from '../../vdomless/reactive/tracking';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
 import type { ContextScope } from '../../vdomless/runtime/context-scope';
-import { registerSubscriberToOwner } from '../../vdomless/runtime/owner';
+import { createOwner, registerSubscriberToOwner } from '../../vdomless/runtime/owner';
 import { NodeWalker } from '../../vdomless/runtime/node-walker';
-import type { DomSubscriber, Subscriber } from '../../vdomless/runtime/subscriber';
+import type {
+  ComputedSubscriber,
+  DomSubscriber,
+  Subscriber,
+} from '../../vdomless/runtime/subscriber';
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
@@ -96,7 +98,8 @@ export const inflate = async (
       break;
     }
     case TypeIds.ComputedSignal: {
-      const computed = target as Writeable<Computed<unknown>>;
+      const computed = target as Writeable<ComputedSubscriber<unknown>>;
+      ensureDeserializedOwner(computed);
       const [qrl, deps, value] = data as [
         QRLInternal<() => unknown>,
         Dependency[],
@@ -113,10 +116,10 @@ export const inflate = async (
       }
 
       if (value === NEEDS_COMPUTATION) {
-        computed.flags = ReactiveFlags.Dirty;
+        computed.flags = ComputedFlags.Dirty;
       } else {
         computed.v = value;
-        computed.flags = ReactiveFlags.HasValue;
+        computed.flags = ComputedFlags.HasValue;
       }
       break;
     }
@@ -182,6 +185,7 @@ export const inflate = async (
       }
       break;
     case TypeIds.EffectSubscription: {
+      ensureDeserializedOwner(target as Subscriber);
       const parts = data as unknown[];
       const kind = parts[0] as EffectKind;
       switch (kind) {
@@ -225,14 +229,13 @@ function restoreBranchSubscription(
   parts: unknown[]
 ): void {
   const rangeId = parts[1] as number;
-  const order = parts[2] as number;
-  const mountedBranch = parts[3] == null ? undefined : (parts[3] as 0 | 1);
-  const deps = parts[4] as Dependency[];
-  const args = parts[5] as unknown[];
-  const conditionQrl = parts[6] as QRLInternal<BranchConditionFn>;
-  const thenQrl = parts[7] as QRLInternal<BranchRenderFn>;
-  const elseQrl = (parts[8] as QRLInternal<BranchRenderFn> | null) ?? undefined;
-  const ownedSubscribers = parts[9] as Subscriber[] | undefined;
+  const mountedBranch = parts[2] == null ? undefined : (parts[2] as 0 | 1);
+  const deps = parts[3] as Dependency[];
+  const args = parts[4] as unknown[];
+  const conditionQrl = parts[5] as QRLInternal<BranchConditionFn>;
+  const thenQrl = parts[6] as QRLInternal<BranchRenderFn>;
+  const elseQrl = (parts[7] as QRLInternal<BranchRenderFn> | null) ?? undefined;
+  const ownedSubscribers = parts[8] as Subscriber[] | undefined;
   const markerRange = NodeWalker.instance.findBranchRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing branch range ${rangeId}.`);
   if (markerRange === null) {
@@ -245,18 +248,24 @@ function restoreBranchSubscription(
     conditionQrl,
     thenQrl,
     elseQrl,
-    order,
     null,
     mountedBranch,
     container
   );
   restoreDependencies(subscription, deps);
 
-  const owner = subscription.branch.currentOwner;
-  if (owner !== null && Array.isArray(ownedSubscribers)) {
+  if (Array.isArray(ownedSubscribers) && ownedSubscribers.length > 0) {
+    const owner = createOwner(subscription.owner);
+    subscription.branch.currentOwner = owner;
     for (let i = 0; i < ownedSubscribers.length; i++) {
       registerSubscriberToOwner(ownedSubscribers[i], owner);
     }
+  }
+}
+
+function ensureDeserializedOwner(subscriber: Subscriber): void {
+  if (subscriber.owner === null) {
+    registerSubscriberToOwner(subscriber, createOwner(null));
   }
 }
 

@@ -65,11 +65,15 @@ function runComponent<TProps>(
   try {
     nodes = runWithCollector(null, invoke, invokeContext, render, props);
   } catch (error) {
-    disposeOwner(invokeContext.owner!);
+    if (invokeContext.owner !== null) {
+      disposeOwner(invokeContext.owner);
+    }
     throw error;
   }
   if (isPromise(nodes)) {
-    disposeOwner(invokeContext.owner!);
+    if (invokeContext.owner !== null) {
+      disposeOwner(invokeContext.owner);
+    }
     throw new Error('Component renderer must be synchronous');
   }
 

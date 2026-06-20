@@ -1,10 +1,11 @@
-import type { ReactiveFlags } from '../reactive/flags';
-import type { Branch, SSRBranch } from '../dom/branch/branch2';
+import type { ComputedFlags, SubscriberFlags } from '../reactive/flags';
+import type { Branch, SsrBranchEffect } from '../dom/branch/branch';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { DomEffect } from '../dom/effect/effect';
 import type { ComputedSource, Dependency } from '../reactive/source';
 import type { Task, VisibleTask } from './task';
 import type { SsrDomEffect } from '../dom/effect/ssr-effect';
+import type { Owner } from './owner';
 
 export const enum SubscriberKind {
   Computed = 0,
@@ -18,16 +19,20 @@ export const enum SubscriberKind {
 export interface Collector {
   deps: Dependency[] | null;
   depVersions: number[] | null;
-  flags: ReactiveFlags;
 }
 
-export interface ScheduledSubscriber {
-  flags: ReactiveFlags;
-  schedulerEpoch: number;
+export interface OwnedSubscriber {
+  owner: Owner | null;
 }
 
-export interface ComputedSubscriber<T = unknown> extends Collector, ComputedSource<T> {
+export interface ScheduledSubscriber extends OwnedSubscriber {
+  flags: SubscriberFlags;
+}
+
+export interface ComputedSubscriber<T = unknown>
+  extends Collector, ComputedSource<T>, OwnedSubscriber {
   readonly kind: SubscriberKind.Computed;
+  flags: ComputedFlags;
   compute: () => T;
 }
 
@@ -67,12 +72,14 @@ export interface IdleSubscriber extends ScheduledSubscriber {
 
 export interface SsrDomSubscriber extends Collector {
   readonly kind: SubscriberKind.Dom;
+  owner: Owner | null;
   readonly effect: SsrDomEffect;
 }
 
 export interface SsrBranchSubscriber extends Collector {
   readonly kind: SubscriberKind.Branch;
-  readonly branch: SSRBranch;
+  owner: Owner | null;
+  readonly effect: SsrBranchEffect;
 }
 
 // Work scheduled into one of the runtime phases.

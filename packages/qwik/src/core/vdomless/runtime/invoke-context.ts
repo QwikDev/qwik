@@ -1,6 +1,6 @@
 import type { ContainerContext } from './container-context';
 import type { ContextScope } from './context-scope';
-import { createOwner, type Owner } from './owner';
+import type { Owner } from './owner';
 
 export type SlotName = string;
 
@@ -35,6 +35,7 @@ export interface ChildInvokeContextOptions {
 }
 
 let activeInvokeContext: RuntimeInvokeContext | null = null;
+let activeOwner: Owner | null = null;
 
 export function getActiveInvokeContext(): RuntimeInvokeContext {
   const context = activeInvokeContext;
@@ -47,6 +48,18 @@ export function getActiveInvokeContext(): RuntimeInvokeContext {
 
 export function getActiveInvokeContextOrNull(): RuntimeInvokeContext | null {
   return activeInvokeContext;
+}
+
+export function getActiveOwnerScope(): Owner | null {
+  return activeOwner;
+}
+
+export function setActiveInvokeContextOwner(owner: Owner): void {
+  const context = activeInvokeContext;
+  if (context !== null) {
+    context.owner = owner;
+  }
+  activeOwner = owner;
 }
 
 export function newInvokeContext(options?: NewInvokeContextOptions): RuntimeInvokeContext {
@@ -64,9 +77,8 @@ export function newChildInvokeContext(
   base: RuntimeInvokeContext | null = activeInvokeContext,
   options?: ChildInvokeContextOptions
 ): RuntimeInvokeContext {
-  const owner = createOwner(base?.owner ?? null);
   return newInvokeContext({
-    owner,
+    owner: null,
     container: options?.container ?? base?.container,
     idPrefix: options?.idPrefix ?? base?.idPrefix,
     contextScope: options?.contextScope ?? base?.contextScope ?? null,
@@ -89,11 +101,14 @@ export function invokeApply<T, TArgs extends unknown[]>(
   args?: TArgs
 ): T {
   const previous = activeInvokeContext;
+  const previousOwner = activeOwner;
   activeInvokeContext = context;
+  activeOwner = context === null ? null : (context.owner ?? previousOwner);
 
   try {
     return run.apply(undefined, args ?? ([] as unknown as TArgs));
   } finally {
     activeInvokeContext = previous;
+    activeOwner = previousOwner;
   }
 }

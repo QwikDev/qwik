@@ -1,5 +1,5 @@
 import { cleanupDeps } from './cleanup';
-import { ReactiveFlags } from './flags';
+import { ComputedFlags } from './flags';
 import { registerSubscriberToOwner } from '../runtime/owner';
 import { notifyPhaseSubscriber } from '../runtime/scheduler';
 import type { Dependency } from './source';
@@ -10,15 +10,17 @@ import {
   type Subscriber,
 } from '../runtime/subscriber';
 import { runWithCollector, track } from './tracking';
+import type { Owner } from '../runtime/owner';
 
 export class Computed<T> implements ComputedSubscriber<T> {
   readonly kind = SubscriberKind.Computed;
+  owner: Owner | null = null;
   v!: T;
   version = 0;
   subs: Subscriber[] | null = null;
   deps: Dependency[] | null = null;
   depVersions: number[] | null = null;
-  flags = ReactiveFlags.Dirty;
+  flags = ComputedFlags.Dirty;
 
   constructor(readonly compute: () => T) {}
 
@@ -40,7 +42,7 @@ export function createComputed<T>(compute: () => T): Computed<T> {
 }
 
 export function readComputed<T>(computed: ComputedSubscriber<T>): T {
-  if (computed.flags & ReactiveFlags.Disposed) {
+  if (computed.owner === null) {
     return readDisposedComputed(computed);
   }
 
@@ -49,11 +51,11 @@ export function readComputed<T>(computed: ComputedSubscriber<T>): T {
 }
 
 export function readComputedUntracked<T>(computed: ComputedSubscriber<T>): T {
-  if (computed.flags & ReactiveFlags.Disposed) {
+  if (computed.owner === null) {
     return readDisposedComputed(computed);
   }
 
-  if (computed.flags & ReactiveFlags.Dirty || depsChanged(computed)) {
+  if (computed.flags & ComputedFlags.Dirty || depsChanged(computed)) {
     recomputeComputed(computed);
   }
 
@@ -61,11 +63,11 @@ export function readComputedUntracked<T>(computed: ComputedSubscriber<T>): T {
 }
 
 export function markComputedDirty(computed: ComputedSubscriber): void {
-  if (computed.flags & (ReactiveFlags.Dirty | ReactiveFlags.Disposed)) {
+  if (computed.owner === null || computed.flags & ComputedFlags.Dirty) {
     return;
   }
 
-  computed.flags |= ReactiveFlags.Dirty;
+  computed.flags |= ComputedFlags.Dirty;
   notifySubscribers(computed);
 }
 
@@ -87,31 +89,31 @@ function notifySubscribers(computed: ComputedSubscriber): void {
 }
 
 function recomputeComputed<T>(computed: ComputedSubscriber<T>): void {
-  if (computed.flags & ReactiveFlags.Computing) {
+  if (computed.flags & ComputedFlags.Computing) {
     throw new Error('Circular computed dependency');
   }
 
   cleanupDeps(computed);
-  computed.flags |= ReactiveFlags.Computing;
+  computed.flags |= ComputedFlags.Computing;
 
   try {
-    const hadValue = computed.flags & ReactiveFlags.HasValue;
+    const hadValue = computed.flags & ComputedFlags.HasValue;
     const oldValue = computed.v;
     const nextValue = runWithCollector(computed, () => computed.compute());
 
-    computed.flags = (computed.flags & ~ReactiveFlags.Dirty) | ReactiveFlags.HasValue;
+    computed.flags = (computed.flags & ~ComputedFlags.Dirty) | ComputedFlags.HasValue;
     computed.v = nextValue;
 
     if (!hadValue || !Object.is(oldValue, nextValue)) {
       computed.version++;
     }
   } finally {
-    computed.flags &= ~ReactiveFlags.Computing;
+    computed.flags &= ~ComputedFlags.Computing;
   }
 }
 
 function readDisposedComputed<T>(computed: ComputedSubscriber<T>): T {
-  if (computed.flags & ReactiveFlags.HasValue) {
+  if (computed.flags & ComputedFlags.HasValue) {
     return computed.v;
   }
 

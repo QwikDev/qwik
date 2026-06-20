@@ -22,12 +22,13 @@ import {
   EffectTargetKind,
   renderSsrTextNode,
 } from './dom/effect/ssr-effect';
-import { ReactiveFlags } from './reactive/flags';
+import { ComputedFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
 import { createSignal, type Signal } from './reactive/signal';
 import { createWindow } from '../../testing/document';
 import { createContainerContext } from './runtime/container-context';
 import { createContextScope } from './runtime/context-scope';
+import { createOwner, registerSubscriberToOwner, runWithOwner } from './runtime/owner';
 import { runWithCollector } from './reactive/tracking';
 import { createCaptureContainer, createText } from './test-utils';
 
@@ -41,7 +42,7 @@ describe('vdomless serdes emit-only', () => {
 
   it('serializes a signal with an SSR text node subscriber', async () => {
     const count = createSignal(0);
-    const effect = createSsrTextNodeEffect(createSsrElementTextTarget(7));
+    const effect = createOwned(() => createSsrTextNodeEffect(createSsrElementTextTarget(7)));
 
     runWithCollector(effect, () => count.value);
 
@@ -65,7 +66,7 @@ describe('vdomless serdes emit-only', () => {
   it('does not serialize orphan SSR effect targets', async () => {
     const count = createSignal(0);
 
-    expect(renderSsrTextNode(createSsrElementTextTarget(8), count)).toBe('0');
+    expect(createOwned(() => renderSsrTextNode(createSsrElementTextTarget(8), count))).toBe('0');
 
     const state = await serialize();
 
@@ -83,7 +84,9 @@ describe('vdomless serdes emit-only', () => {
       '0',
       container
     );
-    const effect = createSsrTextExpressionEffect(createSsrRangeTextTarget(3, 2), [count], qrl);
+    const effect = createOwned(() =>
+      createSsrTextExpressionEffect(createSsrRangeTextTarget(3, 2), [count], qrl)
+    );
 
     await qrl.resolve(container);
     runWithCollector(effect, () => qrl.resolved!(count));
@@ -107,13 +110,12 @@ describe('vdomless serdes emit-only', () => {
   it('serializes SSR class and style subscribers', async () => {
     const classSource = createSignal('active');
     const styleSource = createSignal('color:red');
-    const classEffect = createSsrSerializedAttrEffect(
-      createSsrElementTarget(2),
-      AttrSerializer.Class
-    );
-    const styleEffect = createSsrSerializedAttrEffect(
-      createSsrElementTarget(2),
-      AttrSerializer.Style
+    const [classEffect, styleEffect] = createOwned(
+      () =>
+        [
+          createSsrSerializedAttrEffect(createSsrElementTarget(2), AttrSerializer.Class),
+          createSsrSerializedAttrEffect(createSsrElementTarget(2), AttrSerializer.Style),
+        ] as const
     );
 
     runWithCollector(classEffect, () => classSource.value);
@@ -151,28 +153,29 @@ describe('vdomless serdes emit-only', () => {
       null
     );
 
-    const html = renderSsrBranch(3, 7, [], conditionQrl, thenQrl, undefined, () =>
-      renderSsrTextNode(createSsrElementTextTarget(11), child)
+    const html = createOwned(() =>
+      renderSsrBranch(3, [], conditionQrl, thenQrl, undefined, () =>
+        renderSsrTextNode(createSsrElementTextTarget(11), child)
+      )
     );
     const state = await serialize(visible, child);
     const signalPayload = state[1] as unknown[];
     const branchPayload = signalPayload[3] as unknown[];
-    const ownedPayload = branchPayload[19] as unknown[];
+    const ownedPayload = branchPayload[17] as unknown[];
     const ownedEffectPayload = ownedPayload[1] as unknown[];
 
     expect(html).toBe('then');
     expect(signalPayload[2]).toBe(TypeIds.EffectSubscription);
     expect(branchPayload[1]).toBe(EffectKind.Branch);
     expect(branchPayload[3]).toBe(3);
-    expect(branchPayload[5]).toBe(7);
-    expect(branchPayload[7]).toBe(BranchState.Then);
-    expect(branchPayload[9]).toEqual([TypeIds.RootRef, 0]);
-    expect(branchPayload[10]).toBe(TypeIds.Array);
-    expect(branchPayload[11]).toEqual([]);
+    expect(branchPayload[5]).toBe(BranchState.Then);
+    expect(branchPayload[7]).toEqual([TypeIds.RootRef, 0]);
+    expect(branchPayload[8]).toBe(TypeIds.Array);
+    expect(branchPayload[9]).toEqual([]);
+    expect(branchPayload[10]).toBe(TypeIds.QRL);
     expect(branchPayload[12]).toBe(TypeIds.QRL);
-    expect(branchPayload[14]).toBe(TypeIds.QRL);
-    expect(branchPayload[16]).toBe(TypeIds.Constant);
-    expect(branchPayload[17]).toBe(Constants.Null);
+    expect(branchPayload[14]).toBe(TypeIds.Constant);
+    expect(branchPayload[15]).toBe(Constants.Null);
     expect(ownedPayload[0]).toBe(TypeIds.EffectSubscription);
     expect(ownedEffectPayload[1]).toBe(EffectKind.TextNode);
   });
@@ -184,10 +187,16 @@ describe('vdomless serdes emit-only', () => {
     const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
     const visible = createSignal(true);
     const local = createSignal('mounted');
-    const ownedEffect = createTextNodeEffect(createText(), local, {
-      scheduler: container.scheduler,
-    });
-    const branch = new BranchSubscription(null!, container.scheduler);
+    const rootOwner = createOwner(null);
+    const ownedEffect = runWithOwner(rootOwner, () =>
+      createTextNodeEffect(createText(), local, {
+        scheduler: container.scheduler,
+      })
+    );
+    const branch = registerSubscriberToOwner(
+      new BranchSubscription(null!, container.scheduler),
+      rootOwner
+    );
 
     runWithCollector(ownedEffect, () => local.value);
     await inflate(container, branch, TypeIds.EffectSubscription, [
@@ -195,8 +204,6 @@ describe('vdomless serdes emit-only', () => {
       EffectKind.Branch,
       TypeIds.Plain,
       4,
-      TypeIds.Plain,
-      2,
       TypeIds.Plain,
       BranchState.Then,
       TypeIds.Array,
@@ -219,17 +226,16 @@ describe('vdomless serdes emit-only', () => {
       [TypeIds.Plain, ownedEffect],
     ]);
 
-    expect(branch.branch.order).toBe(2);
     expect(branch.branch.currentBranch).toBe(BranchState.Then);
     expect(visible.subs).toContain(branch);
-    expect(branch.branch.currentOwner?.subscribers).toContain(ownedEffect);
+    expect(branch.branch.currentOwner?.items).toContain(ownedEffect);
     expect(local.subs).toContain(ownedEffect);
 
     visible.value = false;
     await container.scheduler.flushInteraction();
 
     expect(local.subs).toBeNull();
-    expect(ownedEffect.flags & ReactiveFlags.Disposed).not.toBe(0);
+    expect(ownedEffect.owner).toBeNull();
     expect(container.element.innerHTML).toBe('<!--b=4--><!--/b-->');
   });
 
@@ -245,8 +251,13 @@ describe('vdomless serdes emit-only', () => {
       container
     );
     await qrl.resolve(container);
-    const doubled = createComputedQrl(qrl, container);
-    const effect = createSsrTextNodeEffect(createSsrElementTextTarget(4));
+    const [doubled, effect] = createOwned(
+      () =>
+        [
+          createComputedQrl(qrl, container),
+          createSsrTextNodeEffect(createSsrElementTextTarget(4)),
+        ] as const
+    );
 
     runWithCollector(effect, () => doubled.value);
 
@@ -284,10 +295,10 @@ describe('vdomless serdes emit-only', () => {
       container
     );
     await qrl.resolve(container);
-    const doubled = createComputedQrl(qrl, container);
+    const doubled = createOwned(() => createComputedQrl(qrl, container));
 
     doubled.value;
-    doubled.flags |= ReactiveFlags.Dirty;
+    doubled.flags |= ComputedFlags.Dirty;
 
     const state = await serialize(doubled);
     const computedPayload = state[1] as unknown[];
@@ -333,9 +344,11 @@ describe('vdomless serdes emit-only', () => {
     const child = createContextScope(parent);
     const source = createSignal('value');
     const container = createCaptureContainer({});
-    const computed = createComputedQrl(
-      createQRL('./context.computed.js', 'computedValue', () => 'computed'),
-      container
+    const computed = createOwned(() =>
+      createComputedQrl(
+        createQRL('./context.computed.js', 'computedValue', () => 'computed'),
+        container
+      )
     );
 
     parent.values.set('parent', 'outer');
@@ -376,4 +389,8 @@ async function serialize(...roots: unknown[]): Promise<unknown[]> {
   }
   await sCtx.$serialize$();
   return JSON.parse(sCtx.$writer$.toString());
+}
+
+function createOwned<T>(run: () => T): T {
+  return runWithOwner(createOwner(null), run);
 }

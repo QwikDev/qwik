@@ -2,7 +2,7 @@ import { isQrl } from '../../../shared/qrl/qrl-utils';
 import type { QRL } from '../../../shared/qrl/qrl.public';
 import { isPromise, maybeThen } from '../../../shared/utils/promises';
 import type { ValueOrPromise } from '../../../shared/utils/types';
-import { ReactiveFlags } from '../../reactive/flags';
+import { SubscriberFlags } from '../../reactive/flags';
 import type { Dependency } from '../../reactive/source';
 import { runWithCollector } from '../../reactive/tracking';
 import type { ContainerContext } from '../../runtime/container-context';
@@ -56,10 +56,7 @@ export class Branch {
     readonly invokeContext: RuntimeInvokeContext | null,
     readonly container?: ContainerContext
   ) {
-    this.currentOwner =
-      this.currentBranch === null
-        ? null
-        : newChildInvokeContext(invokeContext, { container }).owner;
+    this.currentOwner = null;
   }
 
   dispose(): void {
@@ -77,8 +74,8 @@ export class Branch {
 
 export class BranchSubscription implements BranchSubscriber {
   readonly kind = SubscriberKind.Branch;
-  flags = ReactiveFlags.None;
-  schedulerEpoch = 0;
+  owner: Owner | null = null;
+  flags = SubscriberFlags.None;
   deps: Dependency[] | null = null;
   depVersions: number[] | null = null;
 
@@ -119,12 +116,12 @@ export class BranchSubscription implements BranchSubscriber {
         const newInvokeContext = newChildInvokeContext(this.branch.invokeContext, {
           container: this.branch.container,
         });
-        this.branch.currentOwner = newInvokeContext.owner;
 
         const nodes: readonly Node[] = runWithCollector(null, () =>
           invoke(newInvokeContext, () => renderer(newInvokeContext.container!))
         );
 
+        this.branch.currentOwner = newInvokeContext.owner;
         this.branch.range.replace(nodes ?? EMPTY_NODES);
       });
     });
@@ -188,11 +185,12 @@ export class SSRBranch {
             subscription.branch.currentBranch = nextBranch;
 
             const invokeContext = newChildInvokeContext(getActiveInvokeContextOrNull());
-            subscription.branch.currentOwner = invokeContext.owner;
 
-            return runWithCollector(null, () =>
+            const html = runWithCollector(null, () =>
               invoke(invokeContext, () => renderer(invokeContext.container!))
             );
+            subscription.branch.currentOwner = invokeContext.owner;
+            return html;
           }
         );
       });
@@ -202,14 +200,15 @@ export class SSRBranch {
 
 export class SSRBranchSubscription implements SsrBranchSubscriber {
   readonly kind = SubscriberKind.Branch;
-  flags = ReactiveFlags.None;
+  owner: Owner | null = null;
   deps: Dependency[] | null = null;
   depVersions: number[] | null = null;
 
-  constructor(
-    readonly branch: SSRBranch,
-    readonly scheduler: Scheduler = defaultScheduler
-  ) {}
+  constructor(readonly branch: SSRBranch) {}
+
+  get effect(): any {
+    return this.branch;
+  }
 }
 
 export function renderSsrBranch(

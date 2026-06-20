@@ -1,34 +1,36 @@
 import { swapRemove } from '../utils/array';
 import { disposeSubscriber } from '../reactive/cleanup';
-import { getActiveInvokeContextOrNull, invoke, newInvokeContext } from './invoke-context';
+import { OwnerFlags } from '../reactive/flags';
+import {
+  getActiveOwnerScope,
+  getActiveInvokeContextOrNull,
+  invoke,
+  newInvokeContext,
+  setActiveInvokeContextOwner,
+} from './invoke-context';
 import type { Subscriber } from './subscriber';
 import { runWithCollector } from '../reactive/tracking';
 
+export type OwnerItem = Owner | Subscriber;
+
 // Owners are lifetime scopes for reactive work. Anything that can become a
 // subscriber should be owned so it can be disposed and removed from sources.
-// Sources such as signals are data; subscribers such as computed values, tasks,
-// and DOM effects are work.
-export interface Owner {
-  parent: Owner | null;
-  subscribers: Subscriber[] | null;
-  childOwners: Owner[] | null;
-  disposed: boolean;
+export class Owner {
+  parent: Owner | null = null;
+  items: OwnerItem[] | null = null;
+  flags = OwnerFlags.None;
 }
 
-export function createOwner(parent: Owner | null = getActiveOwner()): Owner {
-  const owner: Owner = {
-    parent: null,
-    subscribers: null,
-    childOwners: null,
-    disposed: false,
-  };
+export function createOwner(parent?: Owner | null): Owner {
+  const owner = new Owner();
+  const resolvedParent = arguments.length === 0 ? getOrCreateActiveOwnerOrNull() : (parent ?? null);
 
-  registerOwnerToOwner(owner, parent);
+  registerOwnerToOwner(owner, resolvedParent);
   return owner;
 }
 
 export function getActiveOwner(): Owner | null {
-  return getActiveInvokeContextOrNull()?.owner ?? null;
+  return getActiveOwnerScope();
 }
 
 // Runs creation code under a lifetime owner. This intentionally clears the
@@ -53,50 +55,85 @@ export function runWithOwner<T, TArgs extends unknown[]>(
 
 export function registerSubscriberToOwner<T extends Subscriber>(
   subscriber: T,
-  owner: Owner | null = getActiveOwner()
+  owner?: Owner | null
 ): T {
-  if (owner === null) {
-    return subscriber;
+  const resolvedOwner = arguments.length === 1 ? getOrCreateActiveOwnerOrThrow() : (owner ?? null);
+
+  if (resolvedOwner === null) {
+    throw new Error('Missing owner for vdomless subscriber');
   }
 
-  if (owner.disposed) {
+  if (resolvedOwner.flags & OwnerFlags.Disposed) {
     disposeSubscriber(subscriber);
     return subscriber;
   }
 
-  const subscribers = owner.subscribers;
-  if (subscribers === null) {
-    owner.subscribers = [subscriber];
-  } else if (!subscribers.includes(subscriber)) {
-    subscribers.push(subscriber);
+  const currentOwner = subscriber.owner;
+  if (currentOwner === resolvedOwner) {
+    return subscriber;
+  }
+  if (currentOwner !== null) {
+    detachSubscriberFromOwner(subscriber, currentOwner);
+  }
+
+  subscriber.owner = resolvedOwner;
+  const items = resolvedOwner.items;
+  if (items === null) {
+    resolvedOwner.items = [subscriber];
+  } else if (!items.includes(subscriber)) {
+    items.push(subscriber);
   }
 
   return subscriber;
 }
 
 export function disposeOwner(owner: Owner): void {
-  if (owner.disposed) {
+  if (owner.flags & OwnerFlags.Disposed) {
     return;
   }
 
-  owner.disposed = true;
+  owner.flags = (owner.flags | OwnerFlags.Disposed) & ~OwnerFlags.Queued & ~OwnerFlags.DirtyMask;
   detachOwnerFromParent(owner);
 
-  const childOwners = owner.childOwners;
-  owner.childOwners = null;
-  if (childOwners !== null) {
-    for (let i = 0; i < childOwners.length; i++) {
-      disposeOwner(childOwners[i]);
+  const items = owner.items;
+  owner.items = null;
+  if (items !== null) {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item instanceof Owner) {
+        disposeOwner(item);
+      } else {
+        disposeSubscriber(item);
+      }
     }
+  }
+}
+
+function getOrCreateActiveOwnerOrNull(): Owner | null {
+  const context = getActiveInvokeContextOrNull();
+  return context === null ? null : materializeContextOwner();
+}
+
+function getOrCreateActiveOwnerOrThrow(): Owner {
+  const owner = getOrCreateActiveOwnerOrNull();
+  if (owner === null) {
+    throw new Error('Missing active owner context for vdomless subscriber');
+  }
+  return owner;
+}
+
+function materializeContextOwner(): Owner {
+  const context = getActiveInvokeContextOrNull()!;
+  const owner = context.owner;
+  if (owner !== null) {
+    return owner;
   }
 
-  const subscribers = owner.subscribers;
-  owner.subscribers = null;
-  if (subscribers !== null) {
-    for (let i = 0; i < subscribers.length; i++) {
-      disposeSubscriber(subscribers[i]);
-    }
-  }
+  const parentOwner = getActiveOwnerScope();
+  const nextOwner = new Owner();
+  registerOwnerToOwner(nextOwner, parentOwner);
+  setActiveInvokeContextOwner(nextOwner);
+  return nextOwner;
 }
 
 function registerOwnerToOwner(owner: Owner, parent: Owner | null): void {
@@ -104,17 +141,17 @@ function registerOwnerToOwner(owner: Owner, parent: Owner | null): void {
     return;
   }
 
-  if (parent.disposed) {
+  if (parent.flags & OwnerFlags.Disposed) {
     disposeOwner(owner);
     return;
   }
 
   owner.parent = parent;
-  const childOwners = parent.childOwners;
-  if (childOwners === null) {
-    parent.childOwners = [owner];
+  const items = parent.items;
+  if (items === null) {
+    parent.items = [owner];
   } else {
-    childOwners.push(owner);
+    items.push(owner);
   }
 }
 
@@ -125,12 +162,25 @@ function detachOwnerFromParent(owner: Owner): void {
     return;
   }
 
-  const childOwners = parent.childOwners;
-  if (childOwners === null) {
+  const items = parent.items;
+  if (items === null) {
     return;
   }
 
-  if (swapRemove(childOwners, owner) && childOwners.length === 0) {
-    parent.childOwners = null;
+  if (swapRemove(items, owner) && items.length === 0) {
+    parent.items = null;
+  }
+}
+
+function detachSubscriberFromOwner(subscriber: Subscriber, owner: Owner): void {
+  subscriber.owner = null;
+
+  const items = owner.items;
+  if (items === null) {
+    return;
+  }
+
+  if (swapRemove(items, subscriber) && items.length === 0) {
+    owner.items = null;
   }
 }

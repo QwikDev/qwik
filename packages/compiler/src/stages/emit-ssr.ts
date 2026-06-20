@@ -271,7 +271,6 @@ class SsrEmitter {
     );
     const args = [
       rangeId,
-      rangeId,
       '[]',
       emitQrlReference(conditionQrl),
       emitQrlReference(thenQrl),

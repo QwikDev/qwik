@@ -1,7 +1,7 @@
 import type { ClassList } from '../../../shared/jsx/types/jsx-qwik-attributes';
 import { isPromise } from '../../../shared/utils/promises';
 import { serializeClass, stringifyStyle } from '../../../shared/utils/styles';
-import { ReactiveFlags } from '../../reactive/flags';
+import { SubscriberFlags } from '../../reactive/flags';
 import { registerSubscriberToOwner } from '../../runtime/owner';
 import { defaultScheduler, Phase, type Scheduler } from '../../runtime/scheduler';
 import { SubscriberKind, type DomSubscriber } from '../../runtime/subscriber';
@@ -9,6 +9,7 @@ import { readSourceValue, type Dependency, type Source } from '../../reactive/so
 import { track } from '../../reactive/tracking';
 import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
 import { EffectKind } from './effect-kind.enum';
+import type { Owner } from '../../runtime/owner';
 
 export const enum AttrSerializer {
   Class = 0,
@@ -100,8 +101,8 @@ export class SerializedAttrEffect {
 
 export class DomSubscription implements DomSubscriber {
   readonly kind = SubscriberKind.Dom;
-  flags = ReactiveFlags.None;
-  schedulerEpoch = 0;
+  owner: Owner | null = null;
+  flags = SubscriberFlags.None;
   deps: Dependency[] | null = null;
   depVersions: number[] | null = null;
 

@@ -52,7 +52,6 @@ export function App(_props, ctx) {
     '>' +
     renderSsrBranch(
       id0,
-      id0,
       [],
       q_component_branch_condition_segment_0.w([visible]),
       q_component_branch_then_segment_1.w([label]),

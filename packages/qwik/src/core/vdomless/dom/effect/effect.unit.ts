@@ -7,8 +7,8 @@ import {
 } from '../../test-utils';
 import { disposeSubscriber } from '../../reactive/cleanup';
 import { createComputed } from '../../reactive/computed';
-import { ReactiveFlags } from '../../reactive/flags';
 import { createSignal } from '../../reactive/signal';
+import { createOwner, runWithOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import {
   createAttrEffect,
@@ -21,12 +21,14 @@ import {
 
 describe('DOM effects', () => {
   it('patches text expression data', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(7);
     const text = createText();
-    const effect = createTextExpressionEffect(text, [count], (source) => source.value, {
-      scheduler,
-    });
+    const effect = createOwned(() =>
+      createTextExpressionEffect(text, [count], (source) => source.value, {
+        scheduler,
+      })
+    );
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -35,19 +37,21 @@ describe('DOM effects', () => {
   });
 
   it('tracks dependencies for text expression DOM subscribers', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(0);
     const seen: number[] = [];
     const text = createText();
-    const scalar = createTextExpressionEffect(
-      text,
-      [count],
-      (source) => {
-        const value = source.value;
-        seen.push(value);
-        return value;
-      },
-      { scheduler }
+    const scalar = createOwned(() =>
+      createTextExpressionEffect(
+        text,
+        [count],
+        (source) => {
+          const value = source.value;
+          seen.push(value);
+          return value;
+        },
+        { scheduler }
+      )
     );
 
     expect(seen).toEqual([]);
@@ -66,10 +70,10 @@ describe('DOM effects', () => {
   });
 
   it('patches text nodes from direct sources', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(7);
     const text = createText();
-    const effect = createTextNodeEffect(text, count, { scheduler });
+    const effect = createOwned(() => createTextNodeEffect(text, count, { scheduler }));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -84,10 +88,10 @@ describe('DOM effects', () => {
   });
 
   it('patches attributes from direct sources', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const title = createSignal('hello');
     const { element, attrs } = createAttrTarget();
-    const effect = createAttrEffect(element, 'title', title, { scheduler });
+    const effect = createOwned(() => createAttrEffect(element, 'title', title, { scheduler }));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -101,13 +105,13 @@ describe('DOM effects', () => {
   });
 
   it('patches serialized styles from direct sources', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const style = createSignal({
       opacity: 0.5,
       display: 'grid',
     });
     const { element, attrs } = createAttrTarget();
-    const effect = createStyleEffect(element, style, { scheduler });
+    const effect = createOwned(() => createStyleEffect(element, style, { scheduler }));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -124,14 +128,14 @@ describe('DOM effects', () => {
   });
 
   it('patches serialized classes from direct sources', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const classes = createSignal<unknown>({
       active: true,
       hidden: false,
       selected: 1,
     });
     const { element, attrs } = createAttrTarget();
-    const effect = createClassEffect(element, classes, { scheduler });
+    const effect = createOwned(() => createClassEffect(element, classes, { scheduler }));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -145,11 +149,11 @@ describe('DOM effects', () => {
   });
 
   it('patches direct DOM effects from computed sources', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(2);
-    const doubled = createComputed(() => count.value * 2);
+    const doubled = createOwned(() => createComputed(() => count.value * 2));
     const text = createText();
-    const effect = createTextNodeEffect(text, doubled, { scheduler });
+    const effect = createOwned(() => createTextNodeEffect(text, doubled, { scheduler }));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -164,7 +168,7 @@ describe('DOM effects', () => {
   });
 
   it('keeps enqueue order for DOM effects', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
     const first = createOrderTextExpressionEffect(scheduler, 'first', order);
     const second = createOrderTextExpressionEffect(scheduler, 'second', order);
@@ -179,11 +183,15 @@ describe('DOM effects', () => {
   });
 
   it('keeps enqueue order for mixed DOM effects', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const order = createSignal('');
-    const first = createAttrEffect(createAttrTarget().element, 'data-order', order, { scheduler });
-    const second = createStyleEffect(createAttrTarget().element, order, { scheduler });
-    const third = createTextNodeEffect(createText(), order, { scheduler });
+    const first = createOwned(() =>
+      createAttrEffect(createAttrTarget().element, 'data-order', order, { scheduler })
+    );
+    const second = createOwned(() =>
+      createStyleEffect(createAttrTarget().element, order, { scheduler })
+    );
+    const third = createOwned(() => createTextNodeEffect(createText(), order, { scheduler }));
     const seen: string[] = [];
 
     first.effect.run = () => seen.push('first');
@@ -199,9 +207,9 @@ describe('DOM effects', () => {
   });
 
   it('removes direct DOM effects from sources when disposed', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const count = createSignal(1);
-    const effect = createTextNodeEffect(createText(), count, { scheduler });
+    const effect = createOwned(() => createTextNodeEffect(createText(), count, { scheduler }));
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
@@ -214,9 +222,11 @@ describe('DOM effects', () => {
   });
 
   it('skips disposed DOM effects that were already scheduled', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const text = createText();
-    const effect = createTextNodeEffect(text, createSignal('next'), { scheduler });
+    const effect = createOwned(() =>
+      createTextNodeEffect(text, createSignal('next'), { scheduler })
+    );
 
     scheduler.notify(effect);
     disposeSubscriber(effect);
@@ -224,16 +234,18 @@ describe('DOM effects', () => {
     await scheduler.flushInteraction();
 
     expect(text.data).toBe('');
-    expect(effect.flags).toBe(ReactiveFlags.Disposed);
+    expect(effect.owner).toBeNull();
   });
 
   it('rejects async scalar text expressions', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
-    const asyncText = createTextExpressionEffect(
-      createText(),
-      [],
-      (() => Promise.resolve('async')) as unknown as TextExpressionFn<[]>,
-      { scheduler }
+    const scheduler = new Scheduler(noopSchedule);
+    const asyncText = createOwned(() =>
+      createTextExpressionEffect(
+        createText(),
+        [],
+        (() => Promise.resolve('async')) as unknown as TextExpressionFn<[]>,
+        { scheduler }
+      )
     );
 
     scheduler.notify(asyncText);
@@ -244,16 +256,18 @@ describe('DOM effects', () => {
   });
 
   it('cleans up dynamic dependencies for text expressions', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const useA = createSignal(true);
     const a = createSignal('a');
     const b = createSignal('b');
     const text = createText();
-    const effect = createTextExpressionEffect(
-      text,
-      [useA, a, b],
-      (selected, left, right) => (selected.value ? left.value : right.value),
-      { scheduler }
+    const effect = createOwned(() =>
+      createTextExpressionEffect(
+        text,
+        [useA, a, b],
+        (selected, left, right) => (selected.value ? left.value : right.value),
+        { scheduler }
+      )
     );
 
     scheduler.notify(effect);
@@ -278,3 +292,7 @@ describe('DOM effects', () => {
     expect(text.data).toBe('next-b');
   });
 });
+
+function createOwned<T>(run: () => T): T {
+  return runWithOwner(createOwner(null), run);
+}

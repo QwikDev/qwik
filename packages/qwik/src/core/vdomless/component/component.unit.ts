@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import type { Container } from '../../shared/types';
 import { createNode, createText, noopSchedule } from '../test-utils';
 import { createTextNodeEffect } from '../dom/effect/effect';
-import { ReactiveFlags } from '../reactive/flags';
 import { createSignal } from '../reactive/signal';
 import { getActiveCollector, runWithCollector } from '../reactive/tracking';
 import {
@@ -37,8 +36,8 @@ describe('components and invoke contexts', () => {
   });
 
   it('does not collect direct component reads from an outer collector', () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
-    const collector = createTask(() => {}, { scheduler });
+    const scheduler = new Scheduler(noopSchedule);
+    const collector = runWithOwner(createOwner(null), () => createTask(() => {}, { scheduler }));
     const count = createSignal(1);
     const node = createNode('component');
 
@@ -56,7 +55,7 @@ describe('components and invoke contexts', () => {
   });
 
   it('registers component render work with the active owner', async () => {
-    const scheduler = new Scheduler(noopSchedule, noopSchedule);
+    const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();
     const source = createSignal('mounted');
     const text = createText();
@@ -75,8 +74,10 @@ describe('components and invoke contexts', () => {
 
     expect(nodes).toEqual([node]);
     expect(text.data).toBe('mounted');
-    expect(owner.childOwners).toHaveLength(1);
-    expect(owner.childOwners![0].subscribers).toEqual([effect]);
+    expect(owner.items).toHaveLength(1);
+    expect(owner.items![0]).not.toBe(effect);
+    expect(effect.owner?.parent).toBe(owner);
+    expect(effect.owner?.items).toEqual([effect]);
     expect(source.subs).not.toBeNull();
 
     disposeOwner(owner);
@@ -111,8 +112,8 @@ describe('components and invoke contexts', () => {
       });
     }).toThrow('render failed');
 
-    expect(effect.flags).toBe(ReactiveFlags.Disposed);
-    expect(owner.childOwners).toBeNull();
+    expect(effect.owner).toBeNull();
+    expect(owner.items).toBeNull();
   });
 
   it('creates child invoke contexts for component renderers', () => {
@@ -150,7 +151,7 @@ describe('components and invoke contexts', () => {
 
     expect(nodes).toEqual([]);
     expect(activeContext.owner).not.toBe(parentOwner);
-    expect(activeContext.owner!.parent).toBe(parentOwner);
+    expect(activeContext.owner).toBeNull();
     expect(activeContext.container).toBe(container);
     expect(activeContext.idPrefix).toBe('child-');
     expect(activeContext.contextScope).toBe(contextScope);
@@ -158,7 +159,7 @@ describe('components and invoke contexts', () => {
     expect(activeContext.slotScope).toBe(slotScope);
   });
 
-  it('creates child invoke contexts with inherited fields and a new owner', () => {
+  it('creates child invoke contexts with inherited fields and lazy owner', () => {
     const parentOwner = createOwner();
     const contextScope: ContextScope = {
       id: 'context',
@@ -186,7 +187,7 @@ describe('components and invoke contexts', () => {
 
     const childContext = newChildInvokeContext(parentContext);
 
-    expect(childContext.owner!.parent).toBe(parentOwner);
+    expect(childContext.owner).toBeNull();
     expect(childContext.container).toBe(container);
     expect(childContext.idPrefix).toBe('parent-');
     expect(childContext.contextScope).toBe(contextScope);

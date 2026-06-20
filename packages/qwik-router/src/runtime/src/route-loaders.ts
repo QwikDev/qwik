@@ -5,6 +5,7 @@ import {
   _getContextEvent,
   _getContextContainer,
   _injectAsyncSignalValue,
+  _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
   _UNINITIALIZED,
@@ -293,16 +294,17 @@ const createRouteLoaderSignal = (
     filteredSearch?: string;
     routePath?: string;
   } = {};
-  return createAsync$(
+  const signal = createAsync$(
     async (ctx) => {
       const { track, info, previous, abortSignal } = ctx;
+      const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
+      const trackedRoutePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
+      const trackedPagePathname = track(routeLoaderCtx, 'pagePathname') as string | undefined;
+      const trackedPageSearch = track(routeLoaderCtx, 'pageSearch') as string | undefined;
       // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
-      // an action response). Skipping the track() calls below is safe: route loader
-      // functions run on the server and have no access to client-side reactive state,
-      // so their compute never registers subscriptions of its own. The track() calls
-      // in the client branch only exist to react to route/page-URL changes, which fire
-      // a fresh invalidate (without info.__v) when they happen.
-      if (info && typeof info === 'object' && '__v' in (info as object)) {
+      // an action response). Client-side route dependencies must already be tracked
+      // here so a resumed loader can re-fetch on the first SPA navigation.
+      if (hasInjectedValue) {
         const value = (info as { __v: unknown }).__v;
         if (!isServer && resumeValueKey in stateValues) {
           stateValues[resumeValueKey] = value;
@@ -313,13 +315,11 @@ const createRouteLoaderSignal = (
         return (capture as ServerRouteLoaderCapture).load();
       }
       // Track reactive dependencies so the signal re-fetches when the route path changes
-      const routePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
+      const routePath = trackedRoutePath;
       // Track the client page path/search. These fields are only assigned on SPA navigation; before
       // that, `location` is the source of truth and avoids serializing a duplicate URL in SSR state.
-      const pagePathname =
-        (track(routeLoaderCtx, 'pagePathname') as string | undefined) || location.pathname;
-      const pageSearch =
-        (track(routeLoaderCtx, 'pageSearch') as string | undefined) || location.search;
+      const pagePathname = trackedPagePathname || location.pathname;
+      const pageSearch = trackedPageSearch || location.search;
       const pageUrl = new URL(pagePathname + pageSearch, location.href);
       const mHash = getClientManifestHash(ctx);
       const basePath = (qwikRouterConfig as any).basePathname ?? '/';
@@ -399,6 +399,8 @@ const createRouteLoaderSignal = (
       allowStale: loader.__allowStale,
     }
   );
+  _markSignalAsExternallyOwned(signal);
+  return signal;
 };
 
 /** Build a sorted, stable search string from only the allowed param names. */
@@ -416,6 +418,7 @@ export const filterSearchParams = (params: URLSearchParams, allowed: string[]): 
 };
 
 const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
+  let id: string | undefined;
   let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY;
   let expires: number | undefined;
   let poll: boolean | undefined;
@@ -431,6 +434,9 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
       if ('validate' in options) {
         validators.push(options);
       } else {
+        if (options.id) {
+          id = options.id;
+        }
         if (options.serializationStrategy) {
           serializationStrategy = options.serializationStrategy;
         }
@@ -464,6 +470,7 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
   }
 
   return {
+    id,
     validators: validators.reverse(),
     serializationStrategy,
     expires,
@@ -569,7 +576,7 @@ export const updateRouteLoaderPaths = (
 
 export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]) => {
   const routeLoaders: LoaderInternal[] = [];
-  const seen = new Set<string>();
+  const seen = new Map<string, LoaderInternal>();
   for (let i = 0; i < mods.length; i++) {
     const mod = mods[i];
     if (!mod) {
@@ -577,8 +584,19 @@ export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]
     }
     for (const key in mod) {
       const value = mod[key as keyof typeof mod];
-      if (isLoaderInternal(value) && !seen.has(value.__id)) {
-        seen.add(value.__id);
+      if (isLoaderInternal(value)) {
+        const existing = seen.get(value.__id);
+        if (existing) {
+          if (isDev && existing !== value) {
+            console.warn(
+              `Two route loaders share the same id "${value.__id}". Only the first will run; ` +
+                `the others are ignored. If they are created by a shared wrapper around ` +
+                `routeLoader$, give each loader a distinct \`id\` option.`
+            );
+          }
+          continue;
+        }
+        seen.set(value.__id, value);
         routeLoaders.push(value);
       }
     }
@@ -771,8 +789,17 @@ export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (LoaderOptions | DataValidator)[]
 ): LoaderInternal => {
-  const { validators, serializationStrategy, expires, poll, eTag, cacheKey, search, allowStale } =
-    getLoaderOptions(rest);
+  const {
+    id,
+    validators,
+    serializationStrategy,
+    expires,
+    poll,
+    eTag,
+    cacheKey,
+    search,
+    allowStale,
+  } = getLoaderOptions(rest);
 
   function loader() {
     const state = _resolveContextWithoutSequentialScope(RouteStateContext)!;
@@ -788,7 +815,7 @@ export const routeLoaderQrl = ((
   loader.__brand = 'server_loader' as const;
   loader.__qrl = loaderQrl;
   loader.__validators = validators;
-  loader.__id = loaderQrl.getHash();
+  loader.__id = id ?? loaderQrl.getHash();
   loader.__serializationStrategy = serializationStrategy;
   loader.__expires = expires ?? 120_000; // 2 minutes
   loader.__poll = poll ?? false;

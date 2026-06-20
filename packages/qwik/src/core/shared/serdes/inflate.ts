@@ -19,7 +19,7 @@ import {
   AsyncSignalFlags,
   EffectProperty,
   NEEDS_COMPUTATION,
-  SignalFlags,
+  ComputedSignalFlags,
   type AllSignalFlags,
   type AsyncQRL,
   type Consumer,
@@ -243,7 +243,7 @@ function* inflateIterator(
       signal.$args$ = d[1];
       signal.$untrackedValue$ = NEEDS_COMPUTATION;
       signal.$flags$ = d[2];
-      signal.$flags$ |= SignalFlags.INVALID;
+      signal.$flags$ |= ComputedSignalFlags.INVALID;
       signal.$hostElement$ = d[3];
       signal.$effects$ = new Set(d.slice(4) as EffectSubscription[]);
       inflateWrappedSignalValue(signal);
@@ -289,7 +289,7 @@ function* inflateIterator(
         asyncSignal.$untrackedValue$ = d[6];
       }
       if (asyncSignal.$untrackedValue$ === NEEDS_COMPUTATION) {
-        asyncSignal.$flags$ |= SignalFlags.INVALID;
+        asyncSignal.$flags$ |= ComputedSignalFlags.INVALID;
       }
 
       const rawExpires = (d[7] ?? 0) as number;
@@ -325,7 +325,7 @@ function* inflateIterator(
         computed.$untrackedValue$ = d[2];
       }
       if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
-        computed.$flags$ &= ~SignalFlags.INVALID;
+        computed.$flags$ &= ~ComputedSignalFlags.INVALID;
       }
       restoreEffectBackRefForEffects(computed.$effects$, computed);
       break;

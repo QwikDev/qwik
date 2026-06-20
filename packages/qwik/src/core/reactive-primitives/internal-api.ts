@@ -8,7 +8,6 @@ import type { SignalImpl } from './impl/signal-impl';
 import { getStoreTarget, isStore } from './impl/store';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import { isSignal, type Signal } from './signal.public';
-import { WrappedSignalFlags } from './types';
 
 // Keep these properties named like this so they're the same as from wrapSignal
 export const getValueProp = <T>(p0: { value: T }) => p0.value;
@@ -65,7 +64,7 @@ export const _wrapProp = <T extends object, P extends keyof T>(
     if (!(obj instanceof AsyncSignalImpl)) {
       isDev && assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     }
-    if (obj instanceof WrappedSignalImpl && obj.$flags$ & WrappedSignalFlags.UNWRAP) {
+    if (obj instanceof WrappedSignalImpl) {
       return obj as WrappedProp<T, P>;
     }
     return getWrapped(args) as WrappedProp<T, P>;

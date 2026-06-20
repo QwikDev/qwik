@@ -50,39 +50,6 @@ bun create qwik@latest
 
 - See [Contributing.md](https://github.com/QwikDev/qwik/blob/main/CONTRIBUTING.md) for more information on how to build Qwik from the source and contribute!
 
-### AI Assistant Setup
-
-AI assistant instructions are managed with [Ruler](https://github.com/intellectronica/ruler)
-so shared guidance lives in one place instead of being copied across assistant-specific files.
-
-Some examples of configured assistants are Claude, Codex, Cursor, and GitHub Copilot. Ruler supports many additional harnesses.
-
-Start by reading [.ruler/README.md](./.ruler/README.md). It explains how Ruler source files become
-each assistant's native instruction, rule, skill, and config files.
-
-To generate the local files for your assistant, run one of:
-
-```sh
-ruler apply
-ruler apply --agents codex
-ruler apply --agents claude,cursor
-```
-
-Use `.ruler/AGENTS.md` for short repo-wide AI instructions, `.ruler/rules/` for dedicated always-on
-rules, `.ruler/skills/` for reusable prompts or task-specific skills, and `~/.config/ruler/` for
-personal settings such as local MCP servers or workflow preferences.
-
-If you are an AI assistant building local config for a target tool, research that tool's current
-native guidance, skill, config, and policy formats before adding any tool-specific output. Map
-`.ruler` files by what they mean, not by filename: Markdown guidance belongs in the assistant's
-native AI guidance surface, skills belong in native skills if supported, and command-permission
-policy belongs only in a separately researched policy format. For Codex, Ruler includes all
-`.ruler` Markdown guidance in generated `AGENTS.md`; `.codex/rules/*.rules` is command policy, not
-Markdown guidance.
-
-Do not edit generated files like `AGENTS.md`, `CLAUDE.md`, `.codex/`, `.claude/`, or `.cursor/`
-by hand. Update `.ruler/` and rerun `ruler apply`.
-
 ## Related
 
 - [Partytown](https://partytown.qwik.dev/): Relocate resource intensive third-party scripts off of the main thread and into a web worker 🎉.

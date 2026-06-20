@@ -788,7 +788,10 @@ export type ActionConstructorQRL = {
 
 /** @public */
 export type LoaderOptions = {
-  /** @deprecated Unused */
+  /**
+   * Explicit loader id, overriding the QRL hash. Pass a distinct value (e.g. `fn.getHash()`) when
+   * loaders share a wrapper QRL.
+   */
   readonly id?: string;
   readonly validation?: DataValidator[];
   readonly serializationStrategy?: SerializationStrategy;

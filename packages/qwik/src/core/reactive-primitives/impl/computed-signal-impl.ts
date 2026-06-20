@@ -15,7 +15,7 @@ import {
   EffectSubscription,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
-  SignalFlags,
+  ComputedSignalFlags,
 } from '../types';
 import { throwIfQRLNotResolved } from '../utils';
 import { SignalImpl } from './signal-impl';
@@ -40,7 +40,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * resolve the QRL during the mark dirty phase so that any call to it will be synchronous). )
    */
   $computeQrl$: S;
-  $flags$: SignalFlags | SerializationSignalFlags;
+  $flags$: ComputedSignalFlags | SerializationSignalFlags;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
   constructor(
@@ -48,7 +48,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     fn: S,
     // We need a separate flag to know when the computation needs running because
     // we need the old value to know if effects need running after computation
-    flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID |
+    flags: ComputedSignalFlags | SerializationSignalFlags = ComputedSignalFlags.INVALID |
       SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
   ) {
     // The value is used for comparison when signals trigger, which can only happen
@@ -59,7 +59,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   invalidate() {
-    this.$flags$ |= SignalFlags.INVALID;
+    this.$flags$ |= ComputedSignalFlags.INVALID;
     const ctx = newInvokeContext();
     ctx.$container$ = this.$container$ || undefined;
     // @ts-expect-error it's confused about args any[] vs []
@@ -85,7 +85,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   $computeIfNeeded$() {
-    if (!(this.$flags$ & SignalFlags.INVALID)) {
+    if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
     const computeQrl = this.$computeQrl$;
@@ -108,7 +108,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       }
       DEBUG && log('Signal.$compute$', untrackedValue);
 
-      this.$flags$ &= ~SignalFlags.INVALID;
+      this.$flags$ &= ~ComputedSignalFlags.INVALID;
       super.value = untrackedValue;
     } finally {
       if (ctx) {

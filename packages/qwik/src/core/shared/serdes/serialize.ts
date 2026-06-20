@@ -14,7 +14,7 @@ import {
   EffectSubscription,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
-  SignalFlags,
+  ComputedSignalFlags,
   STORE_ALL_PROPS,
   type SerializerArg,
 } from '../../reactive-primitives/types';
@@ -643,7 +643,7 @@ export class Serializer {
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
         const shouldNeverSerialize =
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
-        const isInvalid = value.$flags$ & SignalFlags.INVALID;
+        const isInvalid = value.$flags$ & ComputedSignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
         const isAsync = value instanceof AsyncSignalImpl;
         const expires = isAsync && value.$expires$ !== 0 ? value.$expires$ : undefined;

@@ -3,12 +3,10 @@ import { qTest } from '../shared/utils/qdev';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
 import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
-import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import { isStore } from '../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { EffectProperty, type Consumer } from '../reactive-primitives/types';
+import { ComputedSignalFlags, EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { isCursor, type Cursor } from '../shared/cursor/cursor';
@@ -53,7 +51,7 @@ import {
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { isSlotProp, resolveSlotName } from '../shared/utils/prop';
-import { serializeAttribute } from '../shared/utils/styles';
+import { serializeAttribute, serializeClass, stringifyStyle } from '../shared/utils/styles';
 import { isArray, isObject, type ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
@@ -63,7 +61,7 @@ import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { updateDirtySubtreeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
-import { trackSignalAndAssignHost } from '../use/use-core';
+import { trackSignalAndAssignHost, untrack } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';
 import { runEventHandlerQRL } from '../client/run-qrl';
@@ -102,6 +100,7 @@ import {
 } from './vnode-utils';
 import { isObjectEmpty } from '../shared/utils/objects';
 import { setInlineComponentData } from '../shared/cursor/chore-execution';
+import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 
 export interface DiffContext {
   $container$: ClientContainer;
@@ -1186,14 +1185,7 @@ function diffProps(
 
     if (oldAttrs && _hasOwnProperty.call(oldAttrs, key)) {
       const oldValue = oldAttrs[key];
-      if (newValue !== oldValue) {
-        if (
-          newValue instanceof WrappedSignalImpl &&
-          oldValue instanceof WrappedSignalImpl &&
-          areWrappedSignalsEqual(newValue, oldValue)
-        ) {
-          continue;
-        }
+      if (!areDiffValuesEqual(newValue, oldValue)) {
         patchProperty(diffContext, vnode, key, newValue, currentFile);
       }
     } else if (newValue != null) {
@@ -1853,13 +1845,27 @@ function handleChangedProps(
       if (key === 'children' || key === QBackRefs) {
         continue;
       }
-      if (!dst || src[key] !== dst[key]) {
+      const newValue = src[key];
+      const oldValue = dst?.[key];
+      if (
+        !dst ||
+        !(areDiffValuesEqual(newValue, oldValue) || areSignalValuesEqual(newValue, oldValue))
+      ) {
+        if (key === 'class') {
+          if (areClassValuesEqual(newValue, oldValue)) {
+            continue;
+          }
+        } else if (key === 'style') {
+          if (areStyleValuesEqual(newValue, oldValue)) {
+            continue;
+          }
+        }
         if (triggerEffects) {
           if (dst) {
             // Update the value in dst BEFORE triggering effects
             // so effects see the new value
             // Note: Value is not triggering effects, because we are modyfing direct VAR_PROPS object
-            dst[key] = src[key];
+            dst[key] = newValue;
           }
           const didTigger = triggerPropsProxyEffect(propsHandler, key);
           if (!didTigger) {
@@ -1956,8 +1962,13 @@ export function cleanup(
 
                 // don't call cleanupDestroyable yet, do it by the scheduler
                 continue;
-              } else if (obj instanceof SignalImpl || isStore(obj)) {
-                clearAllEffects(container, obj as Consumer);
+              }
+              // Stores and plain signals are only producers; their subscriptions are removed
+              // when cleaning the consumers that read them. They don't own reactive backrefs.
+              else if (obj instanceof ComputedSignalImpl || obj instanceof WrappedSignalImpl) {
+                if (!(obj.$flags$ & ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP)) {
+                  clearAllEffects(container, obj as Consumer);
+                }
               }
 
               if (objIsTask || obj instanceof AsyncSignalImpl) {
@@ -2092,6 +2103,45 @@ function markVNodeAsDeleted(vCursor: VNode) {
    */
 
   vCursor.flags |= VNodeFlags.Deleted;
+}
+
+function areDiffValuesEqual(newValue: any, oldValue: any): boolean {
+  if (newValue === oldValue) {
+    return true;
+  }
+  return (
+    newValue instanceof WrappedSignalImpl &&
+    oldValue instanceof WrappedSignalImpl &&
+    areWrappedSignalsEqual(oldValue, newValue)
+  );
+}
+
+function areSignalValuesEqual(newValue: any, oldValue: any): boolean {
+  if (newValue === oldValue) {
+    return true;
+  }
+  if (isSignal(newValue) && isSignal(oldValue)) {
+    const unwrappedNew =
+      newValue instanceof WrappedSignalImpl ? newValue.$unwrapIfSignal$() : newValue;
+    const unwrappedOld =
+      oldValue instanceof WrappedSignalImpl ? oldValue.$unwrapIfSignal$() : oldValue;
+    return untrack(() => unwrappedNew.value === unwrappedOld.value);
+  }
+  return false;
+}
+
+function areStyleValuesEqual(newValue: any, oldValue: any): boolean {
+  if (newValue === oldValue) {
+    return true;
+  }
+  return stringifyStyle(newValue) === stringifyStyle(oldValue);
+}
+
+function areClassValuesEqual(newValue: any, oldValue: any): boolean {
+  if (newValue === oldValue) {
+    return true;
+  }
+  return serializeClass(newValue) === serializeClass(oldValue);
 }
 
 function areWrappedSignalsEqual(

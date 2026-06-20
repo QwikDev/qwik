@@ -64,7 +64,7 @@
                   Array [
                     RootRef [omitted]
                   ]
-                  {number} 7
+                  {number} 3
                   VNode "14A"
                   EffectSubscriptionNoData [
                     RootRef [omitted]
@@ -77,7 +77,7 @@
             Constant undefined
             Constant undefined
             Constant undefined
-            {number} 256
+            {number} 260
             Constant NEEDS_COMPUTATION
             {number} 120000
           ]
@@ -343,7 +343,7 @@
           Array [
             RootRef [omitted]
           ]
-          {number} 7
+          {number} 3
           VNode "8"
           EffectSubscription [
             RootRef [omitted]
@@ -363,9 +363,9 @@
 26 RootRef [omitted]
 27 RootRef [omitted]
 28 RootRef [omitted]
-29 RootRef [omitted]
+29 {string} "ssg-snapshot-loader"
 30 Object 0
-31 {string} "__qwik_route_loader_value__qO14f4pG8tQ"
+31 {string} "__qwik_route_loader_value__ssg-snapshot-loader"
 32 RootRef [omitted]
 33 Array []
 34 Object [
@@ -375,7 +375,7 @@
   RootRef [omitted]
 ]
 35 {string} "q-xxxxxxxx.js"
-36 {string} "s_0vpftJHSMyo"
+36 {string} "s_QL05LKnhMSo"
 37 RootRef [omitted]
 38 QRL "[omitted]"
 39 Map [

@@ -20,7 +20,7 @@ import type { CursorData } from './cursor-props';
 import type { Cursor } from './cursor';
 import { ELEMENT_SEQ, ELEMENT_PROPS, OnRenderProp, QScopedStyle } from '../utils/markers';
 import type { Props } from '../jsx/jsx-runtime';
-import { SignalFlags } from '../../reactive-primitives/types';
+import { ComputedSignalFlags } from '../../reactive-primitives/types';
 import type { ElementVNode } from '../vnode/element-vnode';
 import { runTask } from '../../use/use-task';
 import { vnode_diff } from '../../client/vnode-diff';
@@ -861,7 +861,7 @@ describe('executeCompute', () => {
   it('should schedule effects if RUN_EFFECTS flag is set', async () => {
     const effects = [vi.fn()];
     const signal = {
-      $flags$: SignalFlags.RUN_EFFECTS,
+      $flags$: ComputedSignalFlags.RUN_EFFECTS,
       $effects$: effects,
       $computeIfNeeded$: vi.fn(),
     };
@@ -871,7 +871,7 @@ describe('executeCompute', () => {
     await executeCompute(vNode, container);
 
     expect(scheduleEffects).toHaveBeenCalledWith(container, signal, effects);
-    expect(signal.$flags$ & SignalFlags.RUN_EFFECTS).toBe(0);
+    expect(signal.$flags$ & ComputedSignalFlags.RUN_EFFECTS).toBe(0);
   });
 
   it('should not schedule effects if flag is not set', async () => {
@@ -908,7 +908,7 @@ describe('executeCompute', () => {
   it('should handle computation that returns a promise', async () => {
     const effects = [vi.fn()];
     const signal = {
-      $flags$: SignalFlags.RUN_EFFECTS,
+      $flags$: ComputedSignalFlags.RUN_EFFECTS,
       $effects$: effects,
       $computeIfNeeded$: vi.fn(),
     };

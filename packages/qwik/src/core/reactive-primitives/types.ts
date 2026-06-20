@@ -123,14 +123,10 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
   timeout?: number;
 }
 
-export const enum SignalFlags {
+export const enum ComputedSignalFlags {
   INVALID = 1,
   RUN_EFFECTS = 2,
-}
-
-export const enum WrappedSignalFlags {
-  // should subscribe to value and be unwrapped for PropsProxy
-  UNWRAP = 4,
+  PRESERVE_ON_SEQ_CLEANUP = 4,
 }
 
 export const enum SerializationSignalFlags {
@@ -148,11 +144,7 @@ export const enum AsyncSignalFlags {
   NO_POLL = 256,
 }
 
-export type AllSignalFlags =
-  | SignalFlags
-  | WrappedSignalFlags
-  | SerializationSignalFlags
-  | AsyncSignalFlags;
+export type AllSignalFlags = ComputedSignalFlags | SerializationSignalFlags | AsyncSignalFlags;
 
 /**
  * Effect is something which needs to happen (side-effect) due to signal value change.

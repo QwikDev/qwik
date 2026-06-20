@@ -53,3 +53,8 @@ packages/docs/public/builder
 # Generated from packages/devtools/plugin/src/runtime/installers.ts by the
 # browser-extension build/dev scripts. Do not format or edit by hand.
 packages/browser-extension/public/devtools-hook.js
+
+# Ruler-generated and committed; must stay byte-identical to `ruler apply` output (guarded by the
+# ruler-check CI). Edit .ruler/ and regenerate instead of letting Prettier reformat these.
+/AGENTS.md
+/CLAUDE.md

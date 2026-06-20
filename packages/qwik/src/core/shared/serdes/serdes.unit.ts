@@ -24,7 +24,7 @@ import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
   EffectProperty,
   EffectSubscription,
-  SignalFlags,
+  ComputedSignalFlags,
   StoreFlags,
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
@@ -579,7 +579,7 @@ describe('shared-serialization', () => {
           Array [
             {number} 3
           ]
-          {number} 5
+          {number} 1
         ]
         1 WrappedSignal [
           {number} 1
@@ -593,7 +593,7 @@ describe('shared-serialization', () => {
             ]
             {string} "value"
           ]
-          {number} 7
+          {number} 3
         ]
         (72 chars)"
       `);
@@ -1211,14 +1211,18 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.SerializerSignal));
     it(`${title(TypeIds.AsyncSignal)} valid`, async () => {
       const asyncSignal = createAsync$(async () => 123);
-      expect((asyncSignal as AsyncSignalImpl<number>).$flags$ & SignalFlags.INVALID).toBeTruthy();
+      expect(
+        (asyncSignal as AsyncSignalImpl<number>).$flags$ & ComputedSignalFlags.INVALID
+      ).toBeTruthy();
       await asyncSignal.promise();
       expect((asyncSignal as AsyncSignalImpl<number>).$untrackedValue$).toBe(123);
       const objs = await serialize(asyncSignal);
       const restored = deserialize(objs)[0] as AsyncSignal<number>;
       expect(isSignal(restored)).toBeTruthy();
       expect((restored as AsyncSignalImpl<number>).$untrackedValue$).toBe(123);
-      expect((restored as AsyncSignalImpl<number>).$flags$ & SignalFlags.INVALID).toBeFalsy();
+      expect(
+        (restored as AsyncSignalImpl<number>).$flags$ & ComputedSignalFlags.INVALID
+      ).toBeFalsy();
     });
     it(`${title(TypeIds.AsyncSignal)} invalid`, async () => {
       const asyncSignal = createAsync$(async () => 123, {
@@ -1230,7 +1234,9 @@ describe('shared-serialization', () => {
       const restored = deserialize(objs)[0] as AsyncSignal<number>;
       expect(isSignal(restored)).toBeTruthy();
       expect((restored as AsyncSignalImpl<number>).$expires$).toBe(50);
-      expect((restored as AsyncSignalImpl<number>).$flags$ & SignalFlags.INVALID).toBeTruthy();
+      expect(
+        (restored as AsyncSignalImpl<number>).$flags$ & ComputedSignalFlags.INVALID
+      ).toBeTruthy();
       await restored.promise();
       expect((restored as AsyncSignalImpl<number>).$untrackedValue$).toBe(123);
       expect((restored as AsyncSignalImpl<number>).$concurrency$).toBe(3);

@@ -22,6 +22,7 @@ import {
 } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { processOutOfOrderSegmentVNodeData } from '../client/process-vnode-data';
+import { rerenderComponent } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 
 const debug = false;
@@ -883,6 +884,71 @@ describe('ErrorBoundary SSR→CSR cross-phase (experimental)', () => {
     expect(el.querySelector('#content')).toBeFalsy();
     expect(el.querySelector('[q\\:ebc]')).toBeFalsy();
     expect(el.querySelector('[q\\:ebf]')).toBeFalsy();
+  });
+});
+
+// An SSR-errored boundary leaves its swapped-out content INERT + hidden, not deleted. It is removed for
+// FREE whenever the boundary re-renders (e.g. `reset()` in Phase 2): the re-render collapses the SSR
+// two-host down to the fallback Fragment and the vnode diff drops the inert content cleanly (no "Missing
+// child"). This is why no dedicated content-deletion mechanism is needed. (Drive the re-render directly
+// with `rerenderComponent` — an SSR-errored boundary has no self re-render trigger: a 2nd error escalates
+// past it.)
+describe('ErrorBoundary: a re-render deletes the inert swapped-out content', () => {
+  it('in-order: re-rendering an SSR-errored boundary drops the inert content-host, fallback stays', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {e.message}</p>
+          ))}
+        >
+          <div id="content">content</div>
+          <Thrower />
+        </ErrorBoundary>
+      </main>,
+      { debug, streaming: { outOfOrder: false } }
+    );
+    const el = container.element;
+    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+    // SSR: the fallback shows; the inert content sits hidden inside the content-host.
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
+    expect(contentHost.style.display).toBe('none');
+    expect(contentHost.contains(el.querySelector('#content'))).toBe(true);
+
+    // A re-render (what `reset()` does) collapses the two-host to the fallback Fragment.
+    await rerenderComponent(contentHost);
+    await waitForDrain(container);
+
+    // The inert content-host + content are gone; the fallback remains — cleanly, no desync.
+    expect(el.querySelector('[q\\:ebc]')).toBeFalsy();
+    expect(el.querySelector('#content')).toBeFalsy();
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
+  });
+
+  it('out-of-order: re-rendering an SSR-errored boundary drops the inert content, fallback stays', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {e.message}</p>
+          ))}
+        >
+          <div id="content">content</div>
+          <Thrower />
+        </ErrorBoundary>
+      </main>,
+      { streaming: { inOrder: { strategy: 'disabled' }, outOfOrder: true }, debug }
+    );
+    const el = container.element;
+    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
+    expect(contentHost.contains(el.querySelector('#content'))).toBe(true);
+
+    await rerenderComponent(contentHost);
+    await waitForDrain(container);
+
+    expect(el.querySelector('#content')).toBeFalsy();
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
   });
 });
 

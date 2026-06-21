@@ -104,23 +104,6 @@ export const isOutOfOrderStreaming = (): boolean => {
   return container?.outOfOrderStreaming === true && !isOutOfOrderSegmentContainer(container);
 };
 
-/**
- * Like {@link isOutOfOrderStreaming} but ALSO true inside a `<Suspense>` segment. An
- * `<ErrorBoundary>` uses it to decide whether a deferred throw is even possible (out-of-order
- * delivery is available), so it can set up the late-fallback path.
- *
- * @internal
- */
-export const isOutOfOrderActive = (): boolean => {
-  if (!__EXPERIMENTAL__.suspense) {
-    return false;
-  }
-  const container = tryGetInvokeContext()?.$container$ as
-    | ({ readonly outOfOrderStreaming?: boolean } & Container)
-    | undefined;
-  return container?.outOfOrderStreaming === true;
-};
-
 /** @internal */
 export const nextOutOfOrderSuspenseId = (): number => {
   if (!__EXPERIMENTAL__.suspense) {

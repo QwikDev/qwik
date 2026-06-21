@@ -245,15 +245,14 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
     );
     // The boundary never blocks: its content streams as usual.
     expect(html).toContain('id="before"');
-    // The fallback is known in place (sync throw), so the swap is `qErr`, landing right after the
-    // boundary, before trailing content (not at end-of-stream) — no out-of-order segment needed.
-    const swapPos = html.search(/qErr\(\d/);
+    // The swap script lands right after the boundary, before trailing content (not at end-of-stream).
+    const swapPos = html.search(/qO\(\d/);
     expect(swapPos).toBeGreaterThan(html.indexOf('id="before"'));
     expect(swapPos).toBeLessThan(html.indexOf('id="eb-tail"'));
     // After the swap the content host is hidden and the fallback host revealed.
     expect(document.querySelector('#fb')?.textContent).toContain('caught: boom');
-    expect(displayOf(document.querySelector('#fb')?.closest('[q\\:ebf]'))).toBe('contents');
-    expect(displayOf(document.querySelector('#before')?.closest('[q\\:ebc]'))).toBe('none');
+    expect(displayOf(document.querySelector('#fb')?.closest('[q\\:rp]'))).toBe('contents');
+    expect(displayOf(document.querySelector('#before')?.closest('div[style]'))).toBe('none');
   });
 
   it('renders the content unchanged when nothing throws (ships no swap JS)', async () => {

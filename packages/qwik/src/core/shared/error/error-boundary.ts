@@ -1,6 +1,6 @@
 import { isBrowser } from '@qwik.dev/core/build';
-import { isOutOfOrderActive, nextErrorBoundaryId } from '../../control-flow/suspense-utils';
-import { SSRErrorFallback } from '../../control-flow/suspense';
+import { isOutOfOrderStreaming, nextErrorBoundaryId } from '../../control-flow/suspense-utils';
+import { SSRErrorFallback, SSRErrorFallbackInline } from '../../control-flow/suspense';
 import { useErrorBoundaryStore } from '../../use/use-error-boundary-store';
 import { componentQrl, type Component } from '../component.public';
 import { _jsxSorted } from '../jsx/jsx-internal';
@@ -45,20 +45,38 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   store.$fallback$ = noSerialize((error: any) => fallbackQrl(error));
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
-  // SSR: ONE never-buffer two-host swap for every mode. Content streams live into the content-host
-  // (`q:ebc`); the sibling fallback-host (`q:ebf`) delivers the fallback. The swap is `qErr(id)` when
-  // the fallback is in place (sync / in-order / buffered), or `qO` when it's delivered late (a
-  // deferred `<Suspense>` throw) — so the fallback-host is also a `q:rp` delivery target when
-  // out-of-order streaming is available.
+  if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
+    const boundaryId = nextErrorBoundaryId();
+    // Two display-toggled hosts. This branch deliberately does NOT read `store.error`: subscribing
+    // would re-render an already-streamed host on a late deferred throw.
+    return [
+      /*#__PURE__*/ _jsxSorted(
+        'div',
+        { style: /*#__PURE__*/ _fnSignal(_ebContentStyle, [store], _ebContentStyle_str) },
+        null,
+        /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null),
+        1,
+        null
+      ),
+      /*#__PURE__*/ _jsxSorted(
+        'div',
+        {
+          [QSuspenseResultParent]: String(boundaryId),
+          style: /*#__PURE__*/ _fnSignal(_ebFallbackStyle, [store], _ebFallbackStyle_str),
+        },
+        null,
+        /*#__PURE__*/ _jsxSorted(SSRErrorFallback, { boundaryId, store }, null, null, 1, null),
+        1,
+        null
+      ),
+    ] as unknown as JSXOutput;
+  }
+
+  // In-order SSR: the same never-buffer two-host swap, delivered in document order. The content-host
+  // streams live; on a throw `renderErrorBoundaryFallback` just marks `store.error`, and the sibling
+  // fallback-host (rendered right after) emits the fallback inline + `qErr(id)` to swap it in.
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
     const boundaryId = nextErrorBoundaryId();
-    const fallbackHostProps: Record<string, unknown> = {
-      [QErrorFallbackHost]: String(boundaryId),
-      style: /*#__PURE__*/ _fnSignal(_ebFallbackStyle, [store], _ebFallbackStyle_str),
-    };
-    if (isOutOfOrderActive()) {
-      fallbackHostProps[QSuspenseResultParent] = String(boundaryId);
-    }
     return [
       /*#__PURE__*/ _jsxSorted(
         'div',
@@ -73,9 +91,19 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
       ),
       /*#__PURE__*/ _jsxSorted(
         'div',
-        fallbackHostProps,
+        {
+          [QErrorFallbackHost]: String(boundaryId),
+          style: /*#__PURE__*/ _fnSignal(_ebFallbackStyle, [store], _ebFallbackStyle_str),
+        },
         null,
-        /*#__PURE__*/ _jsxSorted(SSRErrorFallback, { boundaryId, store }, null, null, 1, null),
+        /*#__PURE__*/ _jsxSorted(
+          SSRErrorFallbackInline,
+          { boundaryId, store },
+          null,
+          null,
+          1,
+          null
+        ),
         1,
         null
       ),

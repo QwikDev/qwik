@@ -4,7 +4,6 @@ import {
   getActiveInvokeContextOrNull,
   invoke,
   newChildInvokeContext,
-  type ChildInvokeContextOptions,
   type RuntimeInvokeContext,
   type SlotScope,
 } from '../runtime/invoke-context';
@@ -57,10 +56,7 @@ function runComponent<TProps>(
     options !== undefined && 'invokeContext' in options
       ? (options.invokeContext ?? null)
       : getActiveInvokeContextOrNull();
-  const invokeContext = newChildInvokeContext(
-    parentInvokeContext,
-    createComponentInvokeOptions(options)
-  );
+  const invokeContext = newChildInvokeContext(parentInvokeContext, options);
 
   let nodes: ComponentRenderOutput;
   try {
@@ -84,22 +80,4 @@ function runComponent<TProps>(
   }
 
   return nodes ?? EMPTY_NODES;
-}
-
-function createComponentInvokeOptions(
-  options: ComponentOptions | undefined
-): ChildInvokeContextOptions {
-  const invokeOptions: ChildInvokeContextOptions = {};
-
-  if (options !== undefined) {
-    invokeOptions.container = options.container;
-  }
-  if (options !== undefined) {
-    invokeOptions.idPrefix = options.idPrefix;
-  }
-  if (options !== undefined) {
-    invokeOptions.slotScope = options.slotScope;
-  }
-
-  return invokeOptions;
 }

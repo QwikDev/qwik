@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createComponent } from '../component/component';
 import { createSignal } from '../reactive/signal';
-import type { BranchRange } from '../dom/branch/branch';
 import { BranchSubscription, createBranch } from '../dom/branch/branch';
+import { createBranchRange, createNode, noopSchedule } from '../test-utils';
 import type { ContainerContext } from './container-context';
 import {
   getActiveInvokeContext,
@@ -197,22 +197,4 @@ describe('context runtime', () => {
 
 const createTestContextId = <STATE>(id: string): ContextId<STATE> => {
   return { id } as ContextId<STATE>;
-};
-
-const noopSchedule = (): void => {};
-
-const createNode = (label: string): Node => {
-  return { label } as unknown as Node;
-};
-
-const createBranchRange = (): { range: BranchRange; replacements: Node[][] } => {
-  const replacements: Node[][] = [];
-  return {
-    range: {
-      replace(nodes: readonly Node[]) {
-        replacements.push([...nodes]);
-      },
-    } as unknown as BranchRange,
-    replacements,
-  };
 };

@@ -31,7 +31,7 @@ export {
   type ComputedQrlFn,
   type ComputedQrlRef,
 } from './reactive/computed-qrl';
-export { createStore, type Store, type StoreOptions } from './reactive/store';
+export { createStore, type Store } from './reactive/store';
 
 export {
   SubscriberKind,
@@ -96,7 +96,6 @@ export {
   type TaskOptions,
   type TaskQrlRef,
   type VisibleTaskOptions,
-  type VisibleTaskStrategy,
 } from './runtime/task';
 
 export {

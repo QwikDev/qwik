@@ -111,11 +111,11 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(order).toEqual(['parent:deferred', 'child:blocking']);
   });
 
-  it('keeps enqueue order for tasks with the same group path and index', async () => {
+  it('keeps enqueue order for tasks', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
-    const first = createTaskSubscriber(scheduler, 'first', order, [0], 0);
-    const second = createTaskSubscriber(scheduler, 'second', order, [0], 0);
+    const first = createTaskSubscriber(scheduler, 'first', order);
+    const second = createTaskSubscriber(scheduler, 'second', order);
 
     scheduler.notify(first);
     scheduler.notify(second);

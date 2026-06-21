@@ -14,8 +14,6 @@ import type {
   VisibleTaskSubscriber,
 } from './subscriber';
 
-type StructuralSubscriber = BranchSubscriber;
-
 export const enum Phase {
   BlockingTask = 0,
   StructuralDom = 1,
@@ -197,7 +195,7 @@ export class Scheduler {
     for (let i = 0; i < end && i < items.length; i++) {
       const item = items[i];
       if (!(item instanceof Owner) && item.kind === SubscriberKind.Branch && 'flags' in item) {
-        await this.runStructuralSubscriber(item);
+        await this.runBranch(item);
       }
     }
   }
@@ -237,7 +235,7 @@ export class Scheduler {
     for (let i = 0; i < end && i < items.length; i++) {
       const item = items[i];
       if (!(item instanceof Owner) && item.kind === SubscriberKind.VisibleTask) {
-        void this.runVisibleTask(item);
+        void this.runTask(item);
       }
     }
   }
@@ -267,17 +265,7 @@ export class Scheduler {
     }
   }
 
-  private async runTask(task: TaskSubscriber): Promise<void> {
-    if (task.owner === null || !(task.flags & SubscriberFlags.Dirty)) {
-      return;
-    }
-
-    task.flags &= ~SubscriberFlags.Dirty;
-    cleanupDeps(task);
-    await runWithCollector(task, () => task.task.run());
-  }
-
-  private async runVisibleTask(task: VisibleTaskSubscriber): Promise<void> {
+  private async runTask(task: TaskSubscriber | VisibleTaskSubscriber): Promise<void> {
     if (task.owner === null || !(task.flags & SubscriberFlags.Dirty)) {
       return;
     }
@@ -295,10 +283,6 @@ export class Scheduler {
     branch.flags &= ~SubscriberFlags.Dirty;
     cleanupDeps(branch);
     await branch.run();
-  }
-
-  private async runStructuralSubscriber(subscriber: StructuralSubscriber): Promise<void> {
-    await this.runBranch(subscriber);
   }
 
   private runScalarDomEffect(effect: DomSubscriber): void {

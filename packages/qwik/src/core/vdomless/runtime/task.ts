@@ -14,7 +14,6 @@ import type { Owner } from './owner';
 
 export type TaskFn = () => unknown;
 export type TaskQrlRef<T extends TaskFn = TaskFn> = QRLInternal<T>;
-export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
 export interface TaskOptions {
   deferUpdates?: boolean;
@@ -23,7 +22,6 @@ export interface TaskOptions {
 }
 
 export interface VisibleTaskOptions {
-  strategy?: VisibleTaskStrategy;
   scheduler?: Scheduler;
   container?: ContainerContext;
 }
@@ -44,7 +42,6 @@ export class Task {
 export class VisibleTask {
   constructor(
     readonly runFn: TaskFn | undefined,
-    readonly strategy: VisibleTaskStrategy,
     readonly qrl?: TaskQrlRef,
     readonly container?: ContainerContext
   ) {}
@@ -143,7 +140,7 @@ function createVisibleTaskRecord(
   qrl: TaskQrlRef | undefined,
   options: VisibleTaskOptions | undefined
 ): VisibleTask {
-  return new VisibleTask(run, options?.strategy ?? 'document-ready', qrl, options?.container);
+  return new VisibleTask(run, qrl, options?.container);
 }
 
 function runResolvedTask(run: TaskFn): unknown {

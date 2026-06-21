@@ -94,40 +94,6 @@ export interface TestDocumentFragment extends DocumentFragment {
 }
 
 const testDocument = {
-  createRange(): Range {
-    let start: TestDomNode | null = null;
-    let end: TestDomNode | null = null;
-
-    return {
-      setStartAfter(node: Node): void {
-        start = node as TestDomNode;
-      },
-      setEndBefore(node: Node): void {
-        end = node as TestDomNode;
-      },
-      deleteContents(): void {
-        if (start === null || end === null) {
-          throw new Error('Incomplete range');
-        }
-
-        const parent = start.parent;
-        if (parent === null || parent !== end.parent) {
-          throw new Error('Range markers must share parent');
-        }
-
-        let child = start.nextSibling as TestDomNode | null;
-        while (child !== end) {
-          if (child === null) {
-            throw new Error('Range end not found');
-          }
-
-          const next = child.nextSibling as TestDomNode | null;
-          parent.removeChild(child);
-          child = next;
-        }
-      },
-    } as unknown as Range;
-  },
   createDocumentFragment(): DocumentFragment {
     return createTestDocumentFragment();
   },
@@ -249,7 +215,6 @@ export function createCaptureContainer(captures: Record<string, unknown>): Conta
     state: {
       rootToChunk: [],
       liveRoots: new Map(),
-      pendingPatchesByRoot: new Map(),
     },
     forwardRefs: null,
     getRoot(id) {
@@ -277,9 +242,7 @@ export function createCaptureContainer(captures: Record<string, unknown>): Conta
 export function createTaskSubscriber(
   scheduler: Scheduler,
   label: string,
-  order: string[],
-  _groupPath: readonly number[] = [0],
-  _index = 0
+  order: string[]
 ): TaskSubscriber {
   const create = () => createTask(() => order.push(label), { scheduler });
   return getActiveOwner() === null ? runWithOwner(createOwner(null), create) : create();

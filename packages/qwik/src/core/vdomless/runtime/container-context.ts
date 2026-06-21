@@ -7,7 +7,7 @@ import { isContextScope } from './context-scope';
 import { defaultScheduler, type Scheduler } from './scheduler';
 import type { PhaseSubscriber } from './subscriber';
 import { fastGetAttribute } from './fast-getters';
-import { NodeWalker } from './node-walker';
+import { findContextScopeId } from './node-walker';
 
 const STATE_SCRIPT_TYPE = 'qwik/state';
 const CTX_PROP = '_ctx';
@@ -22,7 +22,6 @@ export interface StateChunk {
 export interface ContainerState {
   rootToChunk: StateChunk[];
   liveRoots: Map<number, unknown>;
-  pendingPatchesByRoot: Map<number, unknown[]>;
 }
 
 export interface ContainerContext {
@@ -62,7 +61,7 @@ export async function getContextScopeForNode(
   context: ContainerContext,
   node: Node
 ): Promise<unknown> {
-  const id = NodeWalker.instance.findContextScopeId(node);
+  const id = findContextScopeId(node);
   return id === null ? null : context.getRoot(id);
 }
 
@@ -73,7 +72,6 @@ function createContainerContextRecord(
   const state: ContainerState = {
     rootToChunk: [],
     liveRoots: new Map(),
-    pendingPatchesByRoot: new Map(),
   };
   const context: ContainerContext = {
     element,
@@ -114,9 +112,6 @@ function findContainerElement(element: Element): Element {
 }
 
 function registerStateScripts(context: ContainerContext): void {
-  if (context.element === null) {
-    return;
-  }
   const scripts = context.element.querySelectorAll(`script[type="${STATE_SCRIPT_TYPE}"]`);
   for (let i = 0; i < scripts.length; i++) {
     const script = scripts[i] as HTMLScriptElement;

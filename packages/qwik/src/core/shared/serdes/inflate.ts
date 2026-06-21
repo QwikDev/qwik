@@ -17,7 +17,13 @@ import { addDependency } from '../../vdomless/reactive/tracking';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
 import type { ContextScope } from '../../vdomless/runtime/context-scope';
 import { createOwner, registerSubscriberToOwner } from '../../vdomless/runtime/owner';
-import { NodeWalker } from '../../vdomless/runtime/node-walker';
+import {
+  findBranchRange,
+  findBranchTextNode,
+  findElementText,
+  findQwikElement,
+  findTextNode,
+} from '../../vdomless/runtime/node-walker';
 import type {
   ComputedSubscriber,
   DomSubscriber,
@@ -230,7 +236,7 @@ function restoreBranchSubscription(
   const elseQrl =
     (parts[6] as QRLInternal<(ctx: ContainerContext) => readonly Node[]> | null) ?? undefined;
   const ownedSubscribers = parts[7] as Subscriber[] | undefined;
-  const markerRange = NodeWalker.instance.findBranchRange(container.element, rangeId);
+  const markerRange = findBranchRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing branch range ${rangeId}.`);
   if (markerRange === null) {
     throw new Error(`Missing branch range ${rangeId}.`);
@@ -354,7 +360,7 @@ function resolveElementTarget(
   if (targetKind !== EffectTargetKind.Element) {
     throw new Error(`Unsupported element target kind ${targetKind}.`);
   }
-  const element = NodeWalker.instance.findQwikElement(container.element, elementId);
+  const element = findQwikElement(container.element, elementId);
   isDev && assertDefined(element, `Missing Qwik element ${elementId}.`);
   return element!;
 }
@@ -365,11 +371,11 @@ function resolveTextTarget(
   elementId: number,
   markerIndex: number | undefined
 ): Text {
-  const element = NodeWalker.instance.findQwikElement(container.element, elementId);
+  const element = findQwikElement(container.element, elementId);
 
   if (targetKind === EffectTargetKind.ElementText) {
     isDev && assertDefined(element, `Missing Qwik element ${elementId}.`);
-    const text = NodeWalker.instance.findElementText(element!);
+    const text = findElementText(element!);
     isDev && assertDefined(text, `Missing text target ${elementId}.`);
     return text!;
   }
@@ -378,7 +384,7 @@ function resolveTextTarget(
     const text =
       element == null
         ? resolveBranchTextTarget(container, elementId, markerIndex!)
-        : NodeWalker.instance.findTextNode(element, markerIndex!);
+        : findTextNode(element, markerIndex!);
     isDev && assertDefined(text, `Missing range text target ${elementId}:${markerIndex}.`);
     return text!;
   }
@@ -390,8 +396,8 @@ function resolveBranchTextTarget(
   rangeId: number,
   markerIndex: number
 ): Text | null {
-  const range = NodeWalker.instance.findBranchRange(container.element, rangeId);
-  return range === null ? null : NodeWalker.instance.findBranchTextNode(range, markerIndex);
+  const range = findBranchRange(container.element, rangeId);
+  return range === null ? null : findBranchTextNode(range, markerIndex);
 }
 
 function restoreDependencies(collector: DomSubscriber | BranchSubscription, deps: Dependency[]) {

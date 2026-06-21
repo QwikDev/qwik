@@ -118,7 +118,7 @@ export function createTextExpressionEffect<TArgs extends unknown[]>(
   fn: TextExpressionFn<TArgs>,
   options?: DomEffectOptions
 ): DomSubscriber {
-  return createDomSubscription(createTextExpressionRecord(text, args, fn), options?.scheduler);
+  return createDomSubscription(new TextExpressionEffect(text, args, fn), options?.scheduler);
 }
 
 export function createTextNodeEffect(
@@ -162,14 +162,6 @@ export function createStyleEffect(
 
 function createDomSubscription(effect: DomEffect, scheduler: Scheduler | undefined): DomSubscriber {
   return registerSubscriberToOwner(new DomSubscription(effect, scheduler ?? getActiveScheduler()));
-}
-
-function createTextExpressionRecord<TArgs extends unknown[]>(
-  text: Text,
-  args: TArgs,
-  fn: TextExpressionFn<TArgs>
-): TextExpressionEffect<TArgs> {
-  return new TextExpressionEffect(text, args, fn);
 }
 
 function patchTextValue(text: Text, value: TextExpressionValue | Promise<TextExpressionValue>) {

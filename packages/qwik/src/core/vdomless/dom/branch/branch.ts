@@ -13,7 +13,7 @@ import {
   newChildInvokeContext,
   type RuntimeInvokeContext,
 } from '../../runtime/invoke-context';
-import { NodeWalker } from '../../runtime/node-walker';
+import { replaceBranchRange } from '../../runtime/node-walker';
 import { disposeOwner, registerSubscriberToOwner, type Owner } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import {
@@ -34,7 +34,7 @@ export class BranchRange {
   ) {}
 
   replace(nodes: readonly Node[]): void {
-    NodeWalker.instance.replaceBranchRange([this.start, this.end], nodes);
+    replaceBranchRange([this.start, this.end], nodes);
   }
 }
 

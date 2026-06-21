@@ -1145,8 +1145,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataSeparator.REFERENCE_CH);
         }
         if (
-          flag &
-          (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
+          !(flag & VNodeDataFlag.INERT) &&
+          flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
         ) {
           let fragmentAttrs: Props | null = null;
           /**

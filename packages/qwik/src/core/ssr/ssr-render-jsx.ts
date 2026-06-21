@@ -35,6 +35,7 @@ import {
 } from '../shared/utils/markers';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { isTask } from '../use/use-task';
+import { VNodeDataFlag } from '../../server/types';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { qDev, qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
@@ -185,24 +186,58 @@ function captureErrorBoundaryContentHost(ssr: SSRContainer): void {
 }
 
 /**
- * Make a swapped-out boundary's content inert: unsubscribe each content task from its signals so
- * the dead, hidden subtree is never resumed/re-run on the client.
+ * Make a swapped-out boundary's content inert so the dead, hidden subtree is never resumed/re-run
+ * on the client. Three things, per dead node:
+ *
+ * 1. Tag it `INERT` — its vnode-data keeps its `REFERENCE` marker but drops the structural/component
+ *    block, so it materializes as plain, non-resumable DOM.
+ * 2. `clearAllEffects` on its tasks — unsubscribe them from their signals.
+ * 3. Cut the projection ref into it: a live `<Slot>` owner (the boundary, or a live ancestor whose
+ *    slot projects through it) holds `owner[slotName] = projectionId` (`consumeChildrenForSlot`,
+ *    ssr-node.ts), which client resume's `ensureProjectionResolved` would index-walk into the inert
+ *    subtree and crash ("Missing child"). We remove that prop on the owner.
  *
  * The content is PROJECTED through the boundary's `<Slot>`, so its SSR nodes are NOT under the
  * `content-host` element — they hang off the boundary COMPONENT node (the content-host's
- * `parentComponent`). We traverse from there. This runs only on a caught throw, at which point the
+ * `parentComponent`). We traverse from there. Runs only on a caught throw, at which point the
  * sibling fallback-host has not rendered yet (a deferred case-c throw rethrows earlier), so the
- * boundary node's subtree is content-only and there is no live fallback task to clear by mistake.
+ * boundary node's subtree is content-only.
  */
 function markErrorBoundaryContentInert(
   ssr: SSRContainer,
   contentHost: ReturnType<SSRContainer['getOrCreateLastNode']>
 ): void {
   const boundaryNode = contentHost.parentComponent ?? contentHost;
-  clearSubtreeTaskEffects(ssr, boundaryNode);
+  // The only LIVE projection owners that can point into the dead content are the boundary itself and
+  // its ancestors (owners INSIDE the content are inert, so their slot props are skipped on emit).
+  const liveOwners = new Map<string, ISsrNode>();
+  for (let n: ISsrNode | null = boundaryNode; n; n = n.parentComponent) {
+    if (n.id) {
+      liveOwners.set(n.id, n);
+    }
+  }
+  const children = boundaryNode.children;
+  if (children) {
+    for (let i = 0; i < children.length; i++) {
+      markSubtreeInert(ssr, children[i], liveOwners);
+    }
+  }
 }
 
-function clearSubtreeTaskEffects(ssr: SSRContainer, node: ISsrNode): void {
+function markSubtreeInert(
+  ssr: SSRContainer,
+  node: ISsrNode,
+  liveOwners: Map<string, ISsrNode>
+): void {
+  node.vnodeData[0] |= VNodeDataFlag.INERT;
+  // If this is a projection node, cut its live owner's slot ref into the dead content.
+  const ownerId = node.getProp(QSlotParent) as string | null;
+  if (ownerId) {
+    const owner = liveOwners.get(ownerId);
+    if (owner) {
+      owner.removeProp((node.getProp(QSlot) as string | null) ?? QDefaultSlot);
+    }
+  }
   const seq = node.getProp(ELEMENT_SEQ) as unknown[] | null;
   if (seq) {
     for (let i = 0; i < seq.length; i++) {
@@ -215,7 +250,7 @@ function clearSubtreeTaskEffects(ssr: SSRContainer, node: ISsrNode): void {
   const children = node.children;
   if (children) {
     for (let i = 0; i < children.length; i++) {
-      clearSubtreeTaskEffects(ssr, children[i]);
+      markSubtreeInert(ssr, children[i], liveOwners);
     }
   }
 }

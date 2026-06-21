@@ -116,7 +116,7 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });
 
-  test('A7 inert: a swapped-out content task does not re-run when an outside signal changes', async ({
+  test('E2E-6 inert: a swapped-out content task does not re-run when an outside signal changes', async ({
     page,
   }) => {
     assertNoBrowserErrors(page);

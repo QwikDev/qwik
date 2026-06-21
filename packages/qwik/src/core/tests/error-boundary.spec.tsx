@@ -704,6 +704,68 @@ describe('ErrorBoundary combinations', () => {
   });
 });
 
+// Routing through Suspense: the CLOSEST enclosing boundary catches, and any boundary that encloses the
+// catching one stays untouched. (Settled routing table, §5 of the design.)
+describe('ErrorBoundary routing through Suspense (experimental)', () => {
+  it('B4 EB-outer › Suspense › EB-inner › throw → EB-inner catches, EB-outer untouched', async () => {
+    const { document } = await streamAndResume(
+      <main>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb-outer">outer</p>
+          ))}
+        >
+          <div id="outer-ok">outer-ok</div>
+          <Suspense fallback={<span id="skel">loading</span>}>
+            <ErrorBoundary
+              fallback$={$((e: any) => (
+                <p id="fb-inner">caught: {e.message}</p>
+              ))}
+            >
+              <Thrower />
+            </ErrorBoundary>
+          </Suspense>
+        </ErrorBoundary>
+      </main>
+    );
+    // The inner boundary (inside the Suspense segment) catches.
+    expect(document.querySelector('#fb-inner')?.textContent).toContain('caught: boom');
+    // The outer boundary never errored: no outer fallback, its content stays visible.
+    expect(document.querySelector('#fb-outer')).toBeFalsy();
+    expect(document.querySelector('#outer-ok')?.textContent).toBe('outer-ok');
+  });
+
+  it('B6 EB-outer › Suspense-A › EB-mid › Suspense-B › throw → EB-mid catches, EB-outer untouched', async () => {
+    const { document } = await streamAndResume(
+      <main>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb-outer">outer</p>
+          ))}
+        >
+          <div id="outer-ok">outer-ok</div>
+          <Suspense fallback={<span id="skel-a">a</span>}>
+            <ErrorBoundary
+              fallback$={$((e: any) => (
+                <p id="fb-mid">caught: {e.message}</p>
+              ))}
+            >
+              <div id="mid-ok">mid-ok</div>
+              <Suspense fallback={<span id="skel-b">b</span>}>
+                <Thrower />
+              </Suspense>
+            </ErrorBoundary>
+          </Suspense>
+        </ErrorBoundary>
+      </main>
+    );
+    // The middle boundary (closest to the throw) catches; the outer boundary stays untouched.
+    expect(document.querySelector('#fb-mid')?.textContent).toContain('caught: boom');
+    expect(document.querySelector('#fb-outer')).toBeFalsy();
+    expect(document.querySelector('#outer-ok')?.textContent).toBe('outer-ok');
+  });
+});
+
 describe('ErrorBoundary concurrent fallback teardown (experimental)', () => {
   it('two sibling <Suspense> that both reject tear the boundary down exactly once', async () => {
     // Both deferred children reject into the shared `$emitFallback$`; the second must no-op, not crash

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { createComponent } from '../component/component';
 import { createSignal } from '../reactive/signal';
 import type { BranchRange } from '../dom/branch/branch';
-import { BranchState, BranchSubscription, createBranch } from '../dom/branch/branch';
+import { BranchSubscription, createBranch } from '../dom/branch/branch';
+import type { ContainerContext } from './container-context';
 import {
   getActiveInvokeContext,
   invoke,
@@ -170,28 +171,24 @@ describe('context runtime', () => {
 
     const branch = invoke(invokeContext, () => {
       createContextProvider(contextId, 'branch-value');
-      return createBranch<[typeof visible]>(
+      return createBranch(
+        { scheduler } as ContainerContext,
         range,
-        [visible],
-        (source) => source.value,
-        (_ctx, _source) => {
+        () => visible.value,
+        () => {
           createComponent(null, () => {
             branchContext = getActiveInvokeContext();
             branchValue = createContext(contextId);
           });
           return [branchNode];
-        },
-        undefined,
-        { scheduler }
+        }
       );
     });
 
     scheduler.notify(branch);
     await scheduler.flushInteraction();
 
-    expect((branch as BranchSubscription<[typeof visible]>).branch.currentBranch).toBe(
-      BranchState.Then
-    );
+    expect((branch as BranchSubscription).branch.currentBranch).toBe(0);
     expect(branchContext.contextScope?.values.get(contextId.id)).toBe('branch-value');
     expect(branchValue).toBe('branch-value');
     expect(replacements).toEqual([[branchNode]]);
@@ -215,7 +212,7 @@ const createBranchRange = (): { range: BranchRange; replacements: Node[][] } => 
       replace(nodes: readonly Node[]) {
         replacements.push([...nodes]);
       },
-    },
+    } as unknown as BranchRange,
     replacements,
   };
 };

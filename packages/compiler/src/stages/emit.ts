@@ -13,6 +13,7 @@ import type {
   BranchNode,
   ComponentPropRecord,
   ComponentRecord,
+  ImportRecord,
   PropRecord,
   QrlSegmentOutput,
   RenderNode,
@@ -20,7 +21,7 @@ import type {
 } from '../types';
 import { QwikSymbol } from '../words';
 import { emitCsrModule } from './emit-csr';
-import { emitSsrModule } from './emit-ssr';
+import { emitSsrModule, SsrEmitter } from './emit-ssr';
 import {
   emitImports,
   hasDynamicAttrBinding,
@@ -406,6 +407,9 @@ function createQrlSegmentSource(
   qrlSegments: Map<string, QrlSegmentOutput>
 ) {
   if (qrlSegment.segment.kind === 'branchRender') {
+    if (ctx.emitTarget === 'ssr') {
+      return createSsrBranchRenderSegmentSource(ctx, qrlSegment, qrlSegments);
+    }
     return createBranchRenderSegmentSource(ctx, qrlSegment, qrlSegments);
   }
 
@@ -454,6 +458,92 @@ ${captureLine}${indentBody(bodyStatements)}
 interface BranchRenderUsage {
   sparkImports: Set<QwikSymbol>;
   segmentImports: Map<string, QrlSegmentOutput>;
+}
+
+function createSsrBranchRenderSegmentSource(
+  ctx: CompilerContext,
+  qrlSegment: QrlSegmentOutput,
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  const children = findBranchRenderChildren(ctx, qrlSegment.id);
+  if (children === null) {
+    throw new Error(`Missing branch render IR for ${qrlSegment.id}.`);
+  }
+
+  const fragment: RenderNode = { kind: 'fragment', children: [...children] };
+  const captures = qrlSegment.segment.captures;
+  const emitter = new SsrEmitter(qrlSegments, ctx.input.code);
+  const html = emitter.emitHtmlExpression(fragment);
+  const isAsync = hasBranch(fragment) || hasComponent(fragment);
+  const captureLine =
+    captures.length > 0
+      ? `const ${captures
+          .map((capture, index) => `${capture.name} = ${QwikSymbol.Captures}[${index}]`)
+          .join(', ')};`
+      : '';
+  const bodyStatements = [captureLine, emitter.toString(), `return ${html};`]
+    .filter(Boolean)
+    .join('\n');
+  const importRecords = createSsrResolvedSegmentImports(qrlSegments);
+  if (captures.length > 0) {
+    importRecords.push(createQwikSparkImport(QwikSymbol.Captures));
+  }
+  const imports = createSsrImports(importRecords, qrlSegments, {
+    hasDynamicBinding: hasDynamicBinding(fragment),
+    hasSourceText: hasSourceTextBinding(fragment),
+    hasElementText: hasElementTextBinding(fragment),
+    hasRangeText: hasRangeTextBinding(fragment),
+    hasTextExpression: hasTextExpression(fragment),
+    hasDynamicAttr: hasDynamicAttrBinding(fragment),
+    hasBranch: hasBranch(fragment),
+    hasComponent: hasComponent(fragment),
+  });
+  const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
+  const qrlPrelude = createSsrQrlPrelude(qrlSegments);
+
+  return `${importLine}${qrlPrelude}export const ${qrlSegment.symbolName} = ${
+    isAsync ? 'async ' : ''
+  }(ctx) => {
+${indentBody(bodyStatements)}
+};
+`;
+}
+
+function createSsrResolvedSegmentImports(
+  qrlSegments: Map<string, QrlSegmentOutput>
+): ImportRecord[] {
+  const imports: ImportRecord[] = [];
+  for (const qrlSegment of qrlSegments.values()) {
+    if (shouldResolveSsrQrl(qrlSegment)) {
+      imports.push(createNamedImport(qrlSegment.importPath, [qrlSegment.symbolName]));
+    }
+  }
+  return imports;
+}
+
+function createSsrQrlPrelude(qrlSegments: Map<string, QrlSegmentOutput>): string {
+  const lines: string[] = [];
+  for (const qrlSegment of qrlSegments.values()) {
+    lines.push(
+      `const ${qrlSegment.qrlVariableName} = /*#__PURE__*/ ${
+        QwikSymbol.QrlWithChunk
+      }(${JSON.stringify(qrlSegment.importPath)}, () => import(${JSON.stringify(
+        qrlSegment.importPath
+      )}), ${JSON.stringify(qrlSegment.symbolName)});`
+    );
+    if (shouldResolveSsrQrl(qrlSegment)) {
+      lines.push(`${qrlSegment.qrlVariableName}.s(${qrlSegment.symbolName});`);
+    }
+  }
+  return lines.length > 0 ? `${lines.join('\n')}\n\n` : '';
+}
+
+function shouldResolveSsrQrl(qrlSegment: QrlSegmentOutput) {
+  return (
+    qrlSegment.segment.kind === 'jsxText' ||
+    qrlSegment.segment.kind === 'branchCondition' ||
+    isImplicitDollarSegment(qrlSegment.segment)
+  );
 }
 
 function createBranchRenderSegmentSource(
@@ -646,15 +736,15 @@ class BranchRenderDomEmitter {
       ? this.emitBranchRenderer(node.elseSegmentId)
       : 'undefined';
 
+    this.use(QwikSymbol.BranchRange);
     this.use(QwikSymbol.CreateBranch);
-    this.use(QwikSymbol.CreateBranchRange);
     this.line(`const ${fragmentId} = ctx.document.createDocumentFragment();`);
     this.line(`const ${startId} = ctx.document.createComment('b');`);
     this.line(`const ${endId} = ctx.document.createComment('/b');`);
     this.line(`${fragmentId}.appendChild(${startId});`);
     this.line(`${fragmentId}.appendChild(${endId});`);
     this.line(
-      `const ${branchId} = ${QwikSymbol.CreateBranch}(${QwikSymbol.CreateBranchRange}(${startId}, ${endId}), [], () => ${condition}, ${thenRenderer}, ${elseRenderer}, { scheduler: ctx.scheduler, container: ctx });`
+      `const ${branchId} = ${QwikSymbol.CreateBranch}(ctx, new ${QwikSymbol.BranchRange}(${startId}, ${endId}), () => ${condition}, ${thenRenderer}, ${elseRenderer});`
     );
     this.line(`ctx.scheduler.notify(${branchId});`);
     return { id: fragmentId, kind: 'node' };

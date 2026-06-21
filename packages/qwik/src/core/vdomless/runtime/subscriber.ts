@@ -1,5 +1,5 @@
 import type { ComputedFlags, SubscriberFlags } from '../reactive/flags';
-import type { Branch, SsrBranchEffect } from '../dom/branch/branch';
+import type { Branch, SSRBranch } from '../dom/branch/branch';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { DomEffect } from '../dom/effect/effect';
 import type { ComputedSource, Dependency } from '../reactive/source';
@@ -79,7 +79,7 @@ export interface SsrDomSubscriber extends Collector {
 export interface SsrBranchSubscriber extends Collector {
   readonly kind: SubscriberKind.Branch;
   owner: Owner | null;
-  readonly effect: SsrBranchEffect;
+  readonly effect: SSRBranch;
 }
 
 // Work scheduled into one of the runtime phases.

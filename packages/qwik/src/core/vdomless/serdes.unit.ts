@@ -5,13 +5,7 @@ import { createSerializationContext } from '../shared/serdes/serialization-conte
 import { Constants, TypeIds } from '../shared/serdes/constants';
 import { EffectKind } from './dom/effect/effect-kind.enum';
 import { createTextNodeEffect, AttrSerializer, type TextExpressionFn } from './dom/effect/effect';
-import {
-  BranchState,
-  BranchSubscription,
-  renderSsrBranch,
-  type BranchConditionFn,
-  type BranchRenderFn,
-} from './dom/branch/branch';
+import { BranchSubscription, renderSsrBranch } from './dom/branch/branch';
 import {
   createSsrElementTarget,
   createSsrElementTextTarget,
@@ -26,11 +20,16 @@ import { ComputedFlags } from './reactive/flags';
 import { createComputedQrl } from './reactive/computed-qrl';
 import { createSignal, type Signal } from './reactive/signal';
 import { createWindow } from '../../testing/document';
-import { createContainerContext } from './runtime/container-context';
+import { createContainerContext, type ContainerContext } from './runtime/container-context';
 import { createContextScope } from './runtime/context-scope';
 import { createOwner, registerSubscriberToOwner, runWithOwner } from './runtime/owner';
 import { runWithCollector } from './reactive/tracking';
 import { createCaptureContainer, createText } from './test-utils';
+
+type BranchConditionFn = () => boolean;
+type BranchRenderFn = (ctx: ContainerContext) => string;
+
+const BRANCH_THEN = 0;
 
 describe('vdomless serdes emit-only', () => {
   it('serializes a vdomless signal without subscribers', async () => {
@@ -138,44 +137,41 @@ describe('vdomless serdes emit-only', () => {
   it('serializes branch subscriptions as effect subscriptions with owned subscribers', async () => {
     const visible = createSignal(true);
     const child = createSignal('then');
-    const conditionQrl = createQRL<BranchConditionFn<[]>>(
+    const conditionQrl = createQRL<BranchConditionFn>(
       './branch.condition.js',
       'condition',
       () => visible.value,
       null,
       null
     );
-    const thenQrl = createQRL<BranchRenderFn<[]>>(
+    const thenQrl = createQRL<BranchRenderFn>(
       './branch.then.js',
       'renderThen',
-      () => [],
+      () => renderSsrTextNode(createSsrElementTextTarget(11), child),
       null,
       null
     );
+    const container = createCaptureContainer({});
 
-    const html = createOwned(() =>
-      renderSsrBranch(3, [], conditionQrl, thenQrl, undefined, () =>
-        renderSsrTextNode(createSsrElementTextTarget(11), child)
-      )
+    const html = await createOwned(() =>
+      renderSsrBranch(container, 3, conditionQrl, thenQrl, undefined)
     );
     const state = await serialize(visible, child);
     const signalPayload = state[1] as unknown[];
     const branchPayload = signalPayload[3] as unknown[];
-    const ownedPayload = branchPayload[17] as unknown[];
+    const ownedPayload = branchPayload[15] as unknown[];
     const ownedEffectPayload = ownedPayload[1] as unknown[];
 
     expect(html).toBe('then');
     expect(signalPayload[2]).toBe(TypeIds.EffectSubscription);
     expect(branchPayload[1]).toBe(EffectKind.Branch);
     expect(branchPayload[3]).toBe(3);
-    expect(branchPayload[5]).toBe(BranchState.Then);
+    expect(branchPayload[5]).toBe(BRANCH_THEN);
     expect(branchPayload[7]).toEqual([TypeIds.RootRef, 0]);
-    expect(branchPayload[8]).toBe(TypeIds.Array);
-    expect(branchPayload[9]).toEqual([]);
+    expect(branchPayload[8]).toBe(TypeIds.QRL);
     expect(branchPayload[10]).toBe(TypeIds.QRL);
-    expect(branchPayload[12]).toBe(TypeIds.QRL);
-    expect(branchPayload[14]).toBe(TypeIds.Constant);
-    expect(branchPayload[15]).toBe(Constants.Null);
+    expect(branchPayload[12]).toBe(TypeIds.Constant);
+    expect(branchPayload[13]).toBe(Constants.Null);
     expect(ownedPayload[0]).toBe(TypeIds.EffectSubscription);
     expect(ownedEffectPayload[1]).toBe(EffectKind.TextNode);
   });
@@ -205,13 +201,11 @@ describe('vdomless serdes emit-only', () => {
       TypeIds.Plain,
       4,
       TypeIds.Plain,
-      BranchState.Then,
+      BRANCH_THEN,
       TypeIds.Array,
       [TypeIds.Plain, visible],
-      TypeIds.Array,
-      [],
       TypeIds.Plain,
-      createQRL<BranchConditionFn<[]>>(
+      createQRL<BranchConditionFn>(
         './branch.condition.js',
         'condition',
         () => visible.value,
@@ -219,14 +213,14 @@ describe('vdomless serdes emit-only', () => {
         null
       ),
       TypeIds.Plain,
-      createQRL<BranchRenderFn<[]>>('./branch.then.js', 'renderThen', () => [], null, null),
+      createQRL<BranchRenderFn>('./branch.then.js', 'renderThen', () => '', null, null),
       TypeIds.Constant,
       Constants.Null,
       TypeIds.Array,
       [TypeIds.Plain, ownedEffect],
     ]);
 
-    expect(branch.branch.currentBranch).toBe(BranchState.Then);
+    expect(branch.branch.currentBranch).toBe(BRANCH_THEN);
     expect(visible.subs).toContain(branch);
     expect(branch.branch.currentOwner?.items).toContain(ownedEffect);
     expect(local.subs).toContain(ownedEffect);

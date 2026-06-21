@@ -1,4 +1,5 @@
 import { isPromise } from '../../shared/utils/promises';
+import type { ValueOrPromise } from '../../shared/utils/types';
 import {
   getActiveInvokeContextOrNull,
   invoke,
@@ -12,7 +13,7 @@ import { disposeOwner } from '../runtime/owner';
 import { runWithCollector } from '../reactive/tracking';
 
 export type ComponentOutput = readonly Node[] | string;
-export type ComponentRenderOutput = ComponentOutput | void;
+export type ComponentRenderOutput = ValueOrPromise<ComponentOutput | void>;
 export type ComponentRenderFn<TProps = unknown> = (props: TProps) => ComponentRenderOutput;
 
 export interface ComponentOptions {
@@ -26,9 +27,9 @@ const EMPTY_NODES: readonly Node[] = [];
 
 export function createComponent<TProps>(
   props: TProps,
-  render: (props: TProps) => string,
+  render: (props: TProps) => ValueOrPromise<string>,
   options?: ComponentOptions
-): string;
+): ValueOrPromise<string>;
 export function createComponent<TProps>(
   props: TProps,
   render: (props: TProps) => readonly Node[] | void,
@@ -38,12 +39,12 @@ export function createComponent<TProps>(
   props: TProps,
   render: ComponentRenderFn<TProps>,
   options?: ComponentOptions
-): ComponentOutput;
+): ComponentRenderOutput;
 export function createComponent<TProps>(
   props: TProps,
   render: ComponentRenderFn<TProps>,
   options?: ComponentOptions
-): ComponentOutput {
+): ComponentRenderOutput {
   return runComponent(props, render, options);
 }
 
@@ -51,7 +52,7 @@ function runComponent<TProps>(
   props: TProps,
   render: ComponentRenderFn<TProps>,
   options: ComponentOptions | undefined
-): ComponentOutput {
+): ComponentRenderOutput {
   const parentInvokeContext =
     options !== undefined && 'invokeContext' in options
       ? (options.invokeContext ?? null)
@@ -71,10 +72,15 @@ function runComponent<TProps>(
     throw error;
   }
   if (isPromise(nodes)) {
-    if (invokeContext.owner !== null) {
-      disposeOwner(invokeContext.owner);
-    }
-    throw new Error('Component renderer must be synchronous');
+    return nodes.then(
+      (nodes) => nodes ?? EMPTY_NODES,
+      (error) => {
+        if (invokeContext.owner !== null) {
+          disposeOwner(invokeContext.owner);
+        }
+        throw error;
+      }
+    );
   }
 
   return nodes ?? EMPTY_NODES;

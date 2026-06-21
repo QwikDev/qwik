@@ -17,6 +17,8 @@ import {
   escapeAttr,
   escapeText,
   flattenElementChildren,
+  hasBranch,
+  hasComponent,
   hasDynamicBinding,
   serializeAttrValue,
 } from './emit-utils';
@@ -80,6 +82,7 @@ function emitSsrComponent(
 ) {
   const emitter = new SsrEmitter(qrlSegments, sourceCode);
   const html = emitter.emitHtmlExpression(component.root!);
+  const isAsync = hasBranch(component.root) || hasComponent(component.root);
   const setup = emitComponentSetup(
     component,
     qrlSegments,
@@ -102,29 +105,30 @@ function emitSsrComponent(
   const ctxParam = emitter.usesCtx || component.providesContext ? 'ctx' : '_ctx';
   const propsParam = getComponentPropsParam(component);
   if (component.declarationKind === 'function') {
-    return `export function ${component.exportName}(${propsParam}, ${ctxParam}) {\n${body}\n}`;
+    return `export ${isAsync ? 'async ' : ''}function ${component.exportName}(${propsParam}, ${ctxParam}) {\n${body}\n}`;
   }
   if (component.declarationKind === 'const') {
     return bodyParts.length > 1
-      ? `export const ${component.exportName} = (${propsParam}, ${ctxParam}) => {\n${body}\n};`
-      : `export const ${component.exportName} = (${propsParam}, ${ctxParam}) => ${html};`;
+      ? `export const ${component.exportName} = ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => {\n${body}\n};`
+      : `export const ${component.exportName} = ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => ${html};`;
   }
   if (component.declarationKind === 'defaultFunction') {
     const name = component.localName ? ` ${component.localName}` : '';
-    return `export default function${name}(${propsParam}, ${ctxParam}) {\n${body}\n}`;
+    return `export default ${isAsync ? 'async ' : ''}function${name}(${propsParam}, ${ctxParam}) {\n${body}\n}`;
   }
   return bodyParts.length > 1
-    ? `export default (${propsParam}, ${ctxParam}) => {\n${body}\n};`
-    : `export default (${propsParam}, ${ctxParam}) => ${html};`;
+    ? `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => {\n${body}\n};`
+    : `export default ${isAsync ? 'async ' : ''}(${propsParam}, ${ctxParam}) => ${html};`;
 }
 
 function getComponentPropsParam(component: ComponentRecord): string {
   return component.params[0]?.name ?? '_props';
 }
 
-class SsrEmitter {
+export class SsrEmitter {
   private counter = 0;
   private readonly lines: string[] = [];
+  private readonly roots = new Set<string>();
   usesCtx = false;
 
   constructor(
@@ -163,12 +167,16 @@ class SsrEmitter {
 
   private emitComponentParts(node: Extract<RenderNode, { kind: 'component' }>): HtmlPart[] {
     this.usesCtx = true;
+    const componentId = this.next('component');
+    this.line(
+      `const ${componentId} = ${QwikSymbol.CreateComponent}(${this.emitComponentProps(
+        node.props,
+        node.children
+      )}, (props) => ${node.name}(props, ctx));`
+    );
     return [
       {
-        code: `${QwikSymbol.CreateComponent}(${this.emitComponentProps(
-          node.props,
-          node.children
-        )}, (props) => ${node.name}(props, ctx))`,
+        code: `(await ${componentId})`,
       },
     ];
   }
@@ -263,30 +271,22 @@ class SsrEmitter {
       this.emitCaptureRoots(elseQrl);
     }
 
-    const thenHtml = partsToExpression(
-      node.thenChildren.flatMap((child) => this.emitHtmlParts(child))
-    );
-    const elseHtml = partsToExpression(
-      node.elseChildren.flatMap((child) => this.emitHtmlParts(child))
-    );
     const args = [
+      'ctx',
       rangeId,
-      '[]',
       emitQrlReference(conditionQrl),
       emitQrlReference(thenQrl),
       elseQrl ? emitQrlReference(elseQrl) : 'undefined',
-      `() => ${thenHtml}`,
     ];
-    if (elseQrl || node.elseChildren.length > 0) {
-      args.push(`() => ${elseHtml}`);
-    }
+    const branchId = this.next('branch');
+    this.line(`const ${branchId} = ${QwikSymbol.RenderSsrBranch}(${args.join(', ')});`);
 
     return [
       '<!b=',
       { code: rangeId },
       '>',
       {
-        code: `${QwikSymbol.RenderSsrBranch}(${args.join(', ')})`,
+        code: `(await ${branchId})`,
       },
       '<!/b>',
     ];
@@ -294,7 +294,7 @@ class SsrEmitter {
 
   private emitDynamicAttrParts(prop: PropRecord, elementId: string): HtmlPart[] {
     const binding = prop.binding!;
-    this.line(`ctx.addRoot(${binding.sourceName});`);
+    this.emitRoot(binding.sourceName);
     const target = `${QwikSymbol.CreateSsrElementTarget}(${elementId})`;
     const renderCall =
       prop.name === 'class'
@@ -336,7 +336,7 @@ class SsrEmitter {
 
   private emitDynamicTextParts(node: DynamicTextNode, target: string): HtmlPart[] {
     if (node.binding.kind === 'source') {
-      this.line(`ctx.addRoot(${node.binding.sourceName});`);
+      this.emitRoot(node.binding.sourceName);
       return [
         {
           code: `${QwikSymbol.EscapeHTML}(${QwikSymbol.RenderSsrTextNode}(${target}, ${node.binding.sourceName}))`,
@@ -348,9 +348,7 @@ class SsrEmitter {
     if (!qrlSegment) {
       throw new Error(`Missing QRL segment for ${node.binding.qrlSegmentId}.`);
     }
-    for (const capture of qrlSegment.segment.captures) {
-      this.line(`ctx.addRoot(${capture.name});`);
-    }
+    this.emitCaptureRoots(qrlSegment);
     return [
       {
         code: `${QwikSymbol.EscapeHTML}(${QwikSymbol.RenderSsrTextExpression}(${target}, [], ${emitQrlReference(
@@ -377,8 +375,16 @@ class SsrEmitter {
 
   private emitCaptureRoots(qrlSegment: QrlSegmentOutput) {
     for (const capture of qrlSegment.segment.captures) {
-      this.line(`ctx.addRoot(${capture.name});`);
+      this.emitRoot(capture.name);
     }
+  }
+
+  private emitRoot(name: string) {
+    if (this.roots.has(name)) {
+      return;
+    }
+    this.roots.add(name);
+    this.line(`ctx.addRoot(${name});`);
   }
 
   private line(code: string) {
@@ -412,7 +418,7 @@ function needsTextBoundary(node: RenderNode | undefined) {
   return node !== undefined && node.kind === 'text' && node.value.length > 0;
 }
 
-function partsToExpression(parts: HtmlPart[]) {
+export function partsToExpression(parts: HtmlPart[]) {
   const merged: HtmlPart[] = [];
   for (const part of parts) {
     if (typeof part === 'string' && typeof merged[merged.length - 1] === 'string') {

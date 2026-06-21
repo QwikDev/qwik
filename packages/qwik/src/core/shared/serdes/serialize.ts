@@ -1,10 +1,7 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
-import {
-  SsrBranchSubscription,
-  getSsrBranchOwnedSubscribers,
-} from '../../vdomless/dom/branch/branch';
+import { SSRBranchSubscription as SsrBranchSubscription } from '../../vdomless/dom/branch/branch';
 import {
   EffectTargetKind,
   SsrDomSubscription,
@@ -15,6 +12,7 @@ import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
 import type { Dependency } from '../../vdomless/reactive/source';
 import { isContextScope } from '../../vdomless/runtime/context-scope';
+import { Owner } from '../../vdomless/runtime/owner';
 import type { Subscriber } from '../../vdomless/runtime/subscriber';
 import type { SSRInternalStreamWriter, SSRWriteChunk } from '../../ssr/ssr-types';
 import { qError, QError } from '../error/error';
@@ -732,16 +730,31 @@ function serializeBranchSubscription(subscription: SsrBranchSubscription): unkno
   const effect = subscription.effect;
 
   return [
-    effect.kind,
+    EffectKind.Branch,
     effect.rangeId,
-    effect.mountedBranch,
+    effect.currentBranch,
     serializeDeps(subscription.deps),
-    effect.args,
     effect.conditionQrl,
     effect.thenQrl,
     effect.elseQrl ?? null,
     getSsrBranchOwnedSubscribers(subscription),
   ];
+}
+
+function getSsrBranchOwnedSubscribers(subscription: SsrBranchSubscription): readonly Subscriber[] {
+  const items = subscription.effect.currentOwner?.items;
+  if (items === null || items === undefined) {
+    return EMPTY_ARRAY;
+  }
+
+  const subscribers: Subscriber[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (!(item instanceof Owner)) {
+      subscribers.push(item);
+    }
+  }
+  return subscribers;
 }
 
 function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {

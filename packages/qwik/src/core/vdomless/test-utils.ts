@@ -74,7 +74,7 @@ export function createBranchRange(): { range: BranchRange; replacements: Node[][
       replace(nodes: readonly Node[]) {
         replacements.push([...nodes]);
       },
-    },
+    } as unknown as BranchRange,
     replacements,
   };
 }
@@ -376,11 +376,11 @@ export async function csrRender(jsx: JSXOutput, options?: RenderOptions): Promis
 }
 
 export async function ssrRender(jsx: JSXOutput, options?: RenderOptions): Promise<RenderResult> {
-  const compiled = await compileJsxRoot<SsrRenderComponent>('ssr', jsx);
+  const compiled = await compileJsxRootPair(jsx);
   const scheduler = options?.scheduler ?? new Scheduler(noopSchedule);
-  const result = await renderToString(compiled.root, {
+  const result = await renderToString(compiled.server.root, {
     ...options,
-    base: options?.base ?? compiled.moduleBase,
+    base: options?.base ?? compiled.client.moduleBase,
   });
   await flushScheduler(scheduler);
 
@@ -392,7 +392,7 @@ export async function ssrRender(jsx: JSXOutput, options?: RenderOptions): Promis
     : undefined;
   const cleanup = createRenderCleanup(() => qwikLoader?.cleanup(), container);
   const state = options?.debug ? collectDebugState(qwikContainer) : undefined;
-  await debugRender('ssr', compiled.modules, container.innerHTML, options, state);
+  await debugRender('ssr', compiled.server.modules, container.innerHTML, options, state);
 
   return {
     ...createRenderResult(document, container, nodes, scheduler, cleanup),
@@ -495,6 +495,20 @@ async function compileJsxRoot<TRoot extends CsrRenderComponent | SsrRenderCompon
   const input = await createCompiledInput(jsx);
   const inputPath = createRenderInputPath(input.sourceFile, id);
   return importCompiledRoot<TRoot>(target, id, inputPath, input.code, input.rootExportName);
+}
+
+async function compileJsxRootPair(jsx: JSXOutput): Promise<{
+  server: CompiledRoot<SsrRenderComponent>;
+  client: CompiledRoot<CsrRenderComponent>;
+}> {
+  const id = compiledModuleId++;
+  const input = await createCompiledInput(jsx);
+  const inputPath = createRenderInputPath(input.sourceFile, id);
+  const [server, client] = await Promise.all([
+    importCompiledRoot<SsrRenderComponent>('ssr', id, inputPath, input.code, input.rootExportName),
+    importCompiledRoot<CsrRenderComponent>('csr', id, inputPath, input.code, input.rootExportName),
+  ]);
+  return { server, client };
 }
 
 async function createCompiledInput(jsx: JSXOutput): Promise<CompiledInput> {
@@ -866,21 +880,18 @@ function prepareCompiledModulesForImport(
   modules: readonly TransformModule[]
 ): readonly TransformModule[] {
   const replacements: Array<[string, string]> = [];
-  let segmentIndex = 0;
   for (let i = 0; i < modules.length; i++) {
     const module = modules[i];
     if (!module.segment) {
       continue;
     }
-    replacements.push([`./${basename(module.path)}`, `./segment-${segmentIndex}.mjs`]);
-    segmentIndex++;
+    replacements.push([`./${basename(module.path)}`, `./${createSegmentImportFileName(module)}`]);
   }
 
   if (replacements.length === 0) {
     return modules;
   }
 
-  segmentIndex = 0;
   return modules.map((module) => {
     let code = module.code;
     for (let i = 0; i < replacements.length; i++) {
@@ -893,9 +904,14 @@ function prepareCompiledModulesForImport(
     return {
       ...module,
       code,
-      path: `segment-${segmentIndex++}.mjs`,
+      path: createSegmentImportFileName(module),
     };
   });
+}
+
+function createSegmentImportFileName(module: TransformModule): string {
+  const fileName = basename(module.path);
+  return fileName.endsWith('.js') ? `${fileName.slice(0, -3)}.mjs` : `${fileName}.mjs`;
 }
 
 function findRepoRoot() {

@@ -41,12 +41,12 @@ export function Child(_props, ctx) {
     '</p>'
   );
 }
-export function Parent(_props, ctx) {
+export async function Parent(_props, ctx) {
   const value = createSignal('provided');
   createContextProvider(Context, value);
   const contextScopeId = ctx.contextScopeId();
-  const contextHtml =
-    '<section>' + createComponent({}, (props) => Child(props, ctx)) + '</section>';
+  const component0 = createComponent({}, (props) => Child(props, ctx));
+  const contextHtml = '<section>' + (await component0) + '</section>';
   return '<!c=' + contextScopeId + '>' + contextHtml + '<!/c>';
 }
 

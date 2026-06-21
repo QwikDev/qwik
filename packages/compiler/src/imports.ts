@@ -132,7 +132,7 @@ export function createCsrImports(
     );
   }
   if (usage.hasBranch) {
-    sparkSpecifiers.push(QwikSymbol.CreateBranch, QwikSymbol.CreateBranchRange);
+    sparkSpecifiers.push(QwikSymbol.BranchRange, QwikSymbol.CreateBranch);
   }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));

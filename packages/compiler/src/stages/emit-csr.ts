@@ -227,7 +227,7 @@ class DomEmitter {
     this.line(`${fragmentId}.appendChild(${startId});`);
     this.line(`${fragmentId}.appendChild(${endId});`);
     this.line(
-      `const ${branchId} = ${QwikSymbol.CreateBranch}(${QwikSymbol.CreateBranchRange}(${startId}, ${endId}), [], ${condition}, ${thenRenderer}, ${elseRenderer}, { scheduler: ctx.scheduler, container: ctx });`
+      `const ${branchId} = ${QwikSymbol.CreateBranch}(ctx, new ${QwikSymbol.BranchRange}(${startId}, ${endId}), ${condition}, ${thenRenderer}, ${elseRenderer});`
     );
     this.line(`ctx.scheduler.notify(${branchId});`);
     return { id: fragmentId, kind: 'node' };

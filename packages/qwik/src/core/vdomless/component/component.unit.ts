@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { Container } from '../../shared/types';
 import { createNode, createText, noopSchedule } from '../test-utils';
 import { createTextNodeEffect } from '../dom/effect/effect';
 import { createSignal } from '../reactive/signal';
+import type { ContainerContext } from '../runtime/container-context';
 import { getActiveCollector, runWithCollector } from '../reactive/tracking';
 import {
   getActiveInvokeContext,
@@ -85,10 +85,10 @@ describe('components and invoke contexts', () => {
     expect(source.subs).toBeNull();
   });
 
-  it('rejects async component renderers', () => {
+  it('allows async component renderers to propagate through SSR', async () => {
     const render = (() => Promise.resolve([])) as unknown as ComponentRenderFn<null>;
 
-    expect(() => createComponent(null, render)).toThrow('Component renderer must be synchronous');
+    await expect(createComponent(null, render)).resolves.toEqual([]);
   });
 
   it('returns component strings for server renderers', () => {
@@ -123,7 +123,7 @@ describe('components and invoke contexts', () => {
       values: new Map(),
     };
     const parentOwner = createOwner();
-    const container = {} as Container;
+    const container = {} as ContainerContext;
     const slotScope: SlotScope = {
       id: 'slot',
       slots: new Map(),
@@ -175,7 +175,7 @@ describe('components and invoke contexts', () => {
       id: 'slot',
       slots: new Map(),
     };
-    const container = {} as Container;
+    const container = {} as ContainerContext;
     const parentContext = newInvokeContext({
       owner: parentOwner,
       container,

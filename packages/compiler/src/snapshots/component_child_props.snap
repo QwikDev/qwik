@@ -42,7 +42,6 @@ q_component_text_segment_1.s(component_text_segment_1);
 export function Child(props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
-  ctx.addRoot(props);
   return (
     '<p q:id="' +
     id0 +
@@ -65,9 +64,9 @@ export function Child(props, ctx) {
     '</p>'
   );
 }
-export function Parent(_props, ctx) {
+export async function Parent(_props, ctx) {
   const count = createSignal(1);
-  return createComponent(
+  const component0 = createComponent(
     {
       label: 'Hi',
       get count() {
@@ -76,6 +75,7 @@ export function Parent(_props, ctx) {
     },
     (props) => Child(props, ctx)
   );
+  return await component0;
 }
 
 null

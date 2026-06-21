@@ -5,10 +5,10 @@ export enum QwikModule {
 
 export enum QwikSymbol {
   Captures = '_captures',
+  BranchRange = 'BranchRange',
   Component = 'component$',
   CreateAttrEffect = 'createAttrEffect',
   CreateBranch = 'createBranch',
-  CreateBranchRange = 'createBranchRange',
   CreateClassEffect = 'createClassEffect',
   CreateComponent = 'createComponent',
   CreateContext = 'createContext',

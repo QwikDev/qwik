@@ -1,12 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
-import {
-  Branch,
-  BranchSubscription,
-  createBranchRange,
-  type BranchConditionFn,
-  type BranchRenderFn,
-} from '../../vdomless/dom/branch/branch';
+import { Branch, BranchRange, BranchSubscription } from '../../vdomless/dom/branch/branch';
 import {
   AttrEffect,
   SerializedAttrEffect,
@@ -231,11 +225,11 @@ function restoreBranchSubscription(
   const rangeId = parts[1] as number;
   const mountedBranch = parts[2] == null ? undefined : (parts[2] as 0 | 1);
   const deps = parts[3] as Dependency[];
-  const args = parts[4] as unknown[];
-  const conditionQrl = parts[5] as QRLInternal<BranchConditionFn>;
-  const thenQrl = parts[6] as QRLInternal<BranchRenderFn>;
-  const elseQrl = (parts[7] as QRLInternal<BranchRenderFn> | null) ?? undefined;
-  const ownedSubscribers = parts[8] as Subscriber[] | undefined;
+  const conditionQrl = parts[4] as QRLInternal<() => boolean>;
+  const thenQrl = parts[5] as QRLInternal<(ctx: ContainerContext) => readonly Node[]>;
+  const elseQrl =
+    (parts[6] as QRLInternal<(ctx: ContainerContext) => readonly Node[]> | null) ?? undefined;
+  const ownedSubscribers = parts[7] as Subscriber[] | undefined;
   const markerRange = NodeWalker.instance.findBranchRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing branch range ${rangeId}.`);
   if (markerRange === null) {
@@ -243,13 +237,12 @@ function restoreBranchSubscription(
   }
 
   subscription.branch = new Branch(
-    createBranchRange(markerRange[0], markerRange[1]),
-    args,
+    new BranchRange(markerRange[0], markerRange[1]),
     conditionQrl,
     thenQrl,
     elseQrl,
+    mountedBranch ?? null,
     null,
-    mountedBranch,
     container
   );
   restoreDependencies(subscription, deps);

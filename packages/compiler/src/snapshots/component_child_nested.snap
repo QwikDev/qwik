@@ -17,8 +17,9 @@ import { createComponent } from '@qwik.dev/core/spark';
 export function Child(_props, _ctx) {
   return '<span>Child</span>';
 }
-export function Parent(_props, ctx) {
-  return '<section>' + createComponent({}, (props) => Child(props, ctx)) + '</section>';
+export async function Parent(_props, ctx) {
+  const component0 = createComponent({}, (props) => Child(props, ctx));
+  return '<section>' + (await component0) + '</section>';
 }
 
 null

@@ -37,36 +37,20 @@ const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
   'component_branch_then_segment_1'
 );
 
-export function App(_props, ctx) {
+export async function App(_props, ctx) {
   const visible = createSignal(true);
   const label = createSignal('ready');
   const id0 = ctx.nextId();
   ctx.addRoot(visible);
   ctx.addRoot(label);
-  const id1 = ctx.nextId();
-  ctx.addRoot(label);
-  ctx.addRoot(label);
-  return (
-    '<div><!b=' +
-    id0 +
-    '>' +
-    renderSsrBranch(
-      id0,
-      [],
-      q_component_branch_condition_segment_0.w([visible]),
-      q_component_branch_then_segment_1.w([label]),
-      undefined,
-      () =>
-        '<span q:id="' +
-        id1 +
-        '" title="' +
-        escapeHTML(renderSsrAttr(createSsrElementTarget(id1), 'title', label)) +
-        '">' +
-        escapeHTML(renderSsrTextNode(createSsrElementTextTarget(id1), label)) +
-        '</span>'
-    ) +
-    '<!/b></div>'
+  const branch1 = renderSsrBranch(
+    ctx,
+    id0,
+    q_component_branch_condition_segment_0.w([visible]),
+    q_component_branch_then_segment_1.w([label]),
+    undefined
   );
+  return '<div><!b=' + id0 + '>' + (await branch1) + '<!/b></div>';
 }
 
 null
@@ -104,17 +88,40 @@ null
 */
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
-import { createAttrEffect, createTextNodeEffect, _captures } from '@qwik.dev/core/spark';
+import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
+import {
+  _captures,
+  _qrlWithChunk,
+  escapeHTML,
+  renderSsrTextNode,
+  createSsrElementTextTarget,
+  createSsrElementTarget,
+  renderSsrAttr,
+} from '@qwik.dev/core/spark';
+const q_component_branch_condition_segment_0 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_branch_condition_segment_0',
+  () => import('./component.tsx_component_branch_condition_segment_0'),
+  'component_branch_condition_segment_0'
+);
+q_component_branch_condition_segment_0.s(component_branch_condition_segment_0);
+const q_component_branch_then_segment_1 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_1',
+  () => import('./component.tsx_component_branch_then_segment_1'),
+  'component_branch_then_segment_1'
+);
 export const component_branch_then_segment_1 = (ctx) => {
   const label = _captures[0];
-  const el0 = ctx.document.createElement('span');
-  const effect1 = createAttrEffect(el0, 'title', label, { scheduler: ctx.scheduler });
-  ctx.scheduler.notify(effect1);
-  const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextNodeEffect(text2, label, { scheduler: ctx.scheduler });
-  ctx.scheduler.notify(effect3);
-  el0.appendChild(text2);
-  return [el0];
+  const id0 = ctx.nextId();
+  ctx.addRoot(label);
+  return (
+    '<span q:id="' +
+    id0 +
+    '" title="' +
+    escapeHTML(renderSsrAttr(createSsrElementTarget(id0), 'title', label)) +
+    '">' +
+    escapeHTML(renderSsrTextNode(createSsrElementTextTarget(id0), label)) +
+    '</span>'
+  );
 };
 
 null
@@ -148,7 +155,7 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, _withCaptures, createBranch, createBranchRange } from '@qwik.dev/core/spark';
+import { createSignal, _withCaptures, BranchRange, createBranch } from '@qwik.dev/core/spark';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 import { component_branch_then_segment_1 } from './component.tsx_component_branch_then_segment_1';
 
@@ -162,12 +169,11 @@ export function App(_props, ctx) {
   fragment1.appendChild(comment2);
   fragment1.appendChild(comment3);
   const branch4 = createBranch(
-    createBranchRange(comment2, comment3),
-    [],
+    ctx,
+    new BranchRange(comment2, comment3),
     _withCaptures(component_branch_condition_segment_0, [visible]),
     _withCaptures(component_branch_then_segment_1, [label]),
-    undefined,
-    { scheduler: ctx.scheduler, container: ctx }
+    undefined
   );
   ctx.scheduler.notify(branch4);
   el0.appendChild(fragment1);

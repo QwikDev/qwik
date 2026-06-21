@@ -5,6 +5,7 @@ import { getClientManifest } from '../../core/shared/get-client-manifest';
 import { getPlatform, setPlatform } from '../../core/shared/platform/platform';
 import { createSerializationContext } from '../../core/shared/serdes/serialization-context';
 import { escapeHTML } from '../../core/shared/utils/character-escaping';
+import type { ValueOrPromise } from '../../core/shared/utils/types';
 import { QContainerValue } from '../../core/shared/types';
 import {
   QBaseAttr,
@@ -41,7 +42,7 @@ export interface SsrRenderContext {
   eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): string;
 }
 
-export type SsrRenderRoot = (_props: undefined, ctx: SsrRenderContext) => string;
+export type SsrRenderRoot = (_props: undefined, ctx: SsrRenderContext) => ValueOrPromise<string>;
 
 export const renderToString = async (
   root: SsrRenderRoot,
@@ -115,7 +116,7 @@ export const renderToStream = async (
       },
     };
 
-    const html = invoke(newInvokeContext(), root, undefined, ctx);
+    const html = await invoke(newInvokeContext(), root, undefined, ctx);
     const [containerOpen, containerClose] = createContainerTags(
       containerTagName,
       containerAttributes,

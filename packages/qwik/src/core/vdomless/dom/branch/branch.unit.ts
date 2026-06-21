@@ -14,6 +14,7 @@ import { createComponent } from '../../component/component';
 import { disposeSubscriber } from '../../reactive/cleanup';
 import { createSignal } from '../../reactive/signal';
 import { createTextExpressionEffect, createTextNodeEffect } from '../effect/effect';
+import { createSsrElementTextTarget, renderSsrTextNode } from '../effect/ssr-effect';
 import {
   getActiveInvokeContext,
   getActiveInvokeContextOrNull,
@@ -23,19 +24,24 @@ import {
   type SlotScope,
 } from '../../runtime/invoke-context';
 import type { ContextScope } from '../../runtime/context-scope';
-import { createOwner, runWithOwner } from '../../runtime/owner';
+import { createOwner, registerSubscriberToOwner, runWithOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import type { BranchSubscriber, DomSubscriber } from '../../runtime/subscriber';
+import type { ContainerContext } from '../../runtime/container-context';
 import {
-  BranchState,
+  BranchRange,
+  BranchSubscription,
+  SSRBranchSubscription,
   createBranch,
-  createBranchQrl,
-  createBranchQrlSubscriber,
-  createBranchRange as createMarkerBranchRange,
   renderSsrBranch,
-  type BranchConditionFn,
-  type BranchRenderFn,
 } from './branch';
+
+type BranchConditionFn = () => boolean;
+type BranchRenderFn = (ctx: ContainerContext) => readonly Node[];
+type SsrBranchRenderFn = (ctx: ContainerContext) => string;
+
+const BRANCH_THEN = 0;
+const BRANCH_ELSE = 1;
 
 describe('branches', () => {
   it('creates branch ranges from comment markers', () => {
@@ -46,7 +52,7 @@ describe('branches', () => {
     const nextA = createTestDomNode('next-a');
     const nextB = createTestDomNode('next-b');
     const parent = createTestParentNode([start, oldA, oldB, end]);
-    const range = createMarkerBranchRange(start as unknown as Comment, end as unknown as Comment);
+    const range = new BranchRange(start as unknown as Comment, end as unknown as Comment);
 
     range.replace([nextA, nextB]);
 
@@ -89,12 +95,12 @@ describe('branches', () => {
     let componentContext!: RuntimeInvokeContext;
 
     const branch = invoke(branchContext, () =>
-      createBranch<[typeof visible]>(
+      createBranch(
+        { scheduler } as ContainerContext,
         range,
-        [visible],
-        (source) => {
+        () => {
           conditionContext = getActiveInvokeContextOrNull();
-          return source.value;
+          return visible.value;
         },
         () => {
           const nodes = createComponent(null, () => {
@@ -102,9 +108,7 @@ describe('branches', () => {
             return [componentNode];
           });
           return nodes.length === 0 ? [branchNode] : nodes;
-        },
-        undefined,
-        { scheduler }
+        }
       )
     );
 
@@ -131,21 +135,20 @@ describe('branches', () => {
     let elseRuns = 0;
 
     const branch = createOwned(() =>
-      createBranch<[typeof visible, typeof branchText, Text]>(
+      createBranch(
+        { scheduler } as ContainerContext,
         range,
-        [visible, branchText, text],
-        (source) => source.value,
-        (_ctx, _source, textSource, target) => {
+        () => visible.value,
+        () => {
           thenRuns++;
-          const effect = createTextNodeEffect(target, textSource, { scheduler });
+          const effect = createTextNodeEffect(text, branchText, { scheduler });
           scheduler.notify(effect);
           return [thenNode];
         },
         () => {
           elseRuns++;
           return [elseNode];
-        },
-        { scheduler }
+        }
       )
     ) as BranchSubscriber;
 
@@ -188,16 +191,14 @@ describe('branches', () => {
     const node = createNode('positive');
     let renderRuns = 0;
     const branch = createOwned(() =>
-      createBranch<[typeof count]>(
+      createBranch(
+        { scheduler } as ContainerContext,
         range,
-        [count],
-        (source) => source.value > 0,
+        () => count.value > 0,
         () => {
           renderRuns++;
           return [node];
-        },
-        undefined,
-        { scheduler }
+        }
       )
     );
 
@@ -220,10 +221,10 @@ describe('branches', () => {
     let zeroRuns = 0;
     let positiveRuns = 0;
     const branch = createOwned(() =>
-      createBranch<[typeof count]>(
+      createBranch(
+        { scheduler } as ContainerContext,
         range,
-        [count],
-        (source) => source.value > 0,
+        () => count.value > 0,
         () => {
           positiveRuns++;
           return [positiveNode];
@@ -231,8 +232,7 @@ describe('branches', () => {
         () => {
           zeroRuns++;
           return [zeroNode];
-        },
-        { scheduler }
+        }
       )
     );
 
@@ -260,15 +260,14 @@ describe('branches', () => {
     let branch!: BranchSubscriber;
     let effect!: DomSubscriber;
     runWithOwner(createOwner(null), () => {
-      branch = createBranch<[]>(
+      branch = createBranch(
+        { scheduler } as ContainerContext,
         range,
-        [],
         () => true,
         () => {
           order.push('branch');
-        },
-        undefined,
-        { scheduler }
+          return [];
+        }
       );
       effect = createTextExpressionEffect(
         createText(),
@@ -293,15 +292,14 @@ describe('branches', () => {
     const { range, replacements } = createBranchRange();
     let runs = 0;
     const branch = createOwned(() =>
-      createBranch<[]>(
+      createBranch(
+        { scheduler } as ContainerContext,
         range,
-        [],
         () => true,
         () => {
           runs++;
-        },
-        undefined,
-        { scheduler }
+          return [];
+        }
       )
     );
 
@@ -323,17 +321,15 @@ describe('branches', () => {
     const node = createNode('branch');
     const { range, replacements } = createBranchRange();
     const branch = createOwned(() =>
-      createBranch<[typeof visible, typeof local, Text]>(
+      createBranch(
+        { scheduler } as ContainerContext,
         range,
-        [visible, local, text],
-        (source) => source.value,
-        (_ctx, _source, localSource, target) => {
-          const effect = createTextNodeEffect(target, localSource, { scheduler });
+        () => visible.value,
+        () => {
+          const effect = createTextNodeEffect(text, local, { scheduler });
           scheduler.notify(effect);
           return [node];
-        },
-        undefined,
-        { scheduler }
+        }
       )
     ) as BranchSubscriber;
 
@@ -360,32 +356,16 @@ describe('branches', () => {
     const node = createNode('then');
     const { range, replacements } = createBranchRange();
     let resolved = false;
-    const conditionQrl = createQRL<BranchConditionFn<[typeof visible]>>(
-      'chunk',
-      'condition',
-      null,
-      () => {
-        resolved = true;
-        return Promise.resolve({
-          condition: (source: typeof visible) => source.value,
-        });
-      },
-      null
+    const conditionQrl = createQRL<BranchConditionFn>('chunk', 'condition', null, () => {
+      resolved = true;
+      return Promise.resolve({
+        condition: () => visible.value,
+      });
+    });
+    const thenQrl = createQRL<BranchRenderFn>('chunk', 'then', () => [node]);
+    const branch = createOwned(() =>
+      createBranch({ scheduler } as ContainerContext, range, conditionQrl, thenQrl)
     );
-    const thenQrl = createQRL<BranchRenderFn<[typeof visible]>>(
-      'chunk',
-      'then',
-      (_ctx, _source: typeof visible) => [node],
-      null,
-      null
-    );
-    const branchQrl = createBranchQrl<[typeof visible]>(
-      [visible],
-      conditionQrl,
-      thenQrl,
-      undefined
-    );
-    const branch = createOwned(() => createBranchQrlSubscriber(range, branchQrl, { scheduler }));
 
     scheduler.notify(branch);
     await scheduler.flushInteraction();
@@ -408,43 +388,21 @@ describe('branches', () => {
     const { range, replacements } = createBranchRange();
     let thenResolved = false;
     let elseResolved = false;
-    const thenQrl = createQRL<BranchRenderFn<[typeof visible]>>(
-      'chunk',
-      'renderThen',
-      null,
-      () => {
-        thenResolved = true;
-        return Promise.resolve({
-          renderThen: (_ctx, _source: typeof visible) => [thenNode],
-        });
-      },
-      null
+    const thenQrl = createQRL<BranchRenderFn>('chunk', 'renderThen', null, () => {
+      thenResolved = true;
+      return Promise.resolve({
+        renderThen: () => [thenNode],
+      });
+    });
+    const elseQrl = createQRL<BranchRenderFn>('chunk', 'renderElse', null, () => {
+      elseResolved = true;
+      return Promise.resolve({
+        renderElse: () => [elseNode],
+      });
+    });
+    const branch = createOwned(() =>
+      createBranch({ scheduler } as ContainerContext, range, () => visible.value, thenQrl, elseQrl)
     );
-    const elseQrl = createQRL<BranchRenderFn<[typeof visible]>>(
-      'chunk',
-      'renderElse',
-      null,
-      () => {
-        elseResolved = true;
-        return Promise.resolve({
-          renderElse: (_ctx, _source: typeof visible) => [elseNode],
-        });
-      },
-      null
-    );
-    const branchQrl = createBranchQrl<[typeof visible]>(
-      [visible],
-      createQRL<BranchConditionFn<[typeof visible]>>(
-        'chunk',
-        'condition',
-        (source: typeof visible) => source.value,
-        null,
-        null
-      ),
-      thenQrl,
-      elseQrl
-    );
-    const branch = createOwned(() => createBranchQrlSubscriber(range, branchQrl, { scheduler }));
 
     scheduler.notify(branch);
     await scheduler.flushInteraction();
@@ -460,86 +418,47 @@ describe('branches', () => {
     expect(replacements).toEqual([[thenNode], [elseNode]]);
   });
 
-  it('requires SSR branch condition QRLs to be pre-resolved', () => {
-    const conditionQrl = createQRL<BranchConditionFn<[]>>(
-      'chunk',
-      'condition',
-      null,
-      () =>
-        Promise.resolve({
-          condition: () => true,
-        }),
-      null
-    );
-
-    expect(() =>
-      createOwned(() =>
-        renderSsrBranch(
-          0,
-          [],
-          conditionQrl,
-          createQRL<BranchRenderFn<[]>>('chunk', 'renderThen', () => [], null, null),
-          undefined,
-          () => ''
-        )
-      )
-    ).toThrow('SSR branch condition QRL must be resolved before renderSsrBranch().');
-  });
-
-  it('resumes mounted branch QRLs without loading the matching renderer', async () => {
+  it('resumes mounted branches without loading the matching renderer', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const visible = createSignal(true);
     const thenNode = createNode('then');
     const { range, replacements } = createBranchRange();
-    let conditionResolved = false;
     let thenResolved = false;
-    const conditionQrl = createQRL<BranchConditionFn<[typeof visible]>>(
-      'chunk',
-      'condition',
-      null,
-      () => {
-        conditionResolved = true;
-        return Promise.resolve({
-          condition: (source: typeof visible) => source.value,
-        });
-      },
-      null
-    );
-    const thenQrl = createQRL<BranchRenderFn<[typeof visible]>>(
-      'chunk',
-      'renderThen',
-      null,
-      () => {
-        thenResolved = true;
-        return Promise.resolve({
-          renderThen: (_ctx, _source: typeof visible) => [thenNode],
-        });
-      },
-      null
-    );
-    const branchQrl = createBranchQrl<[typeof visible]>(
-      [visible],
-      conditionQrl,
-      thenQrl,
-      undefined
-    );
+    const thenQrl = createQRL<BranchRenderFn>('chunk', 'renderThen', null, () => {
+      thenResolved = true;
+      return Promise.resolve({
+        renderThen: () => [thenNode],
+      });
+    });
     const branch = createOwned(() =>
-      createBranchQrlSubscriber(range, branchQrl, {
-        scheduler,
-        mountedBranch: BranchState.Then,
-      })
-    );
+      registerSubscriberToOwner(
+        new BranchSubscription(
+          {
+            range,
+            conditionFn: () => visible.value,
+            thenFn: thenQrl,
+            elseFn: undefined,
+            currentBranch: BRANCH_THEN,
+            currentOwner: null,
+            invokeContext: getActiveInvokeContextOrNull(),
+            container: { scheduler } as ContainerContext,
+            dispose() {
+              this.currentBranch = null;
+              this.range.replace([]);
+            },
+          },
+          scheduler
+        )
+      )
+    ) as BranchSubscriber;
 
     scheduler.notify(branch);
     await scheduler.flushInteraction();
 
-    expect('order' in branchQrl).toBe(false);
-    expect('mountedBranch' in branchQrl).toBe(false);
-    expect(conditionResolved).toBe(true);
     expect(thenResolved).toBe(false);
     expect(replacements).toEqual([]);
     expect(visible.subs).toContain(branch);
-    expect(branch.branch.currentBranch).toBe(BranchState.Then);
+    expect(branch.branch.currentBranch).toBe(BRANCH_THEN);
     expect(branch.branch.currentOwner).toBeNull();
   });
 
@@ -553,46 +472,38 @@ describe('branches', () => {
     let thenResolved = false;
     let elseResolved = false;
     let effect!: DomSubscriber;
-    const branchQrl = createBranchQrl<[typeof visible]>(
-      [visible],
-      createQRL<BranchConditionFn<[typeof visible]>>(
-        'chunk',
-        'condition',
-        (source: typeof visible) => source.value,
-        null,
-        null
-      ),
-      createQRL<BranchRenderFn<[typeof visible]>>(
-        'chunk',
-        'renderThen',
-        null,
-        () => {
-          thenResolved = true;
-          return Promise.resolve({
-            renderThen: (_ctx, _source: typeof visible) => [],
-          });
-        },
-        null
-      ),
-      createQRL<BranchRenderFn<[typeof visible]>>(
-        'chunk',
-        'renderElse',
-        null,
-        () => {
-          elseResolved = true;
-          return Promise.resolve({
-            renderElse: (_ctx, _source: typeof visible) => [elseNode],
-          });
-        },
-        null
-      )
-    );
     const branch = createOwned(() =>
-      createBranchQrlSubscriber(range, branchQrl, {
-        scheduler,
-        mountedBranch: BranchState.Then,
-      })
-    );
+      registerSubscriberToOwner(
+        new BranchSubscription(
+          {
+            range,
+            conditionFn: () => visible.value,
+            thenFn: createQRL<BranchRenderFn>('chunk', 'renderThen', null, () => {
+              thenResolved = true;
+              return Promise.resolve({
+                renderThen: () => [],
+              });
+            }),
+            elseFn: createQRL<BranchRenderFn>('chunk', 'renderElse', null, () => {
+              elseResolved = true;
+              return Promise.resolve({
+                renderElse: () => [elseNode],
+              });
+            }),
+            currentBranch: BRANCH_THEN,
+            currentOwner: null,
+            invokeContext: getActiveInvokeContextOrNull(),
+            container: { scheduler } as ContainerContext,
+            dispose() {
+              this.currentBranch = null;
+              this.currentOwner = null;
+              this.range.replace([]);
+            },
+          },
+          scheduler
+        )
+      )
+    ) as BranchSubscriber;
     const mountedOwner = createOwner(branch.owner);
     branch.branch.currentOwner = mountedOwner;
 
@@ -618,7 +529,7 @@ describe('branches', () => {
     expect(replacements).toEqual([[elseNode]]);
     expect(local.subs).toBeNull();
     expect(effect.owner).toBeNull();
-    expect(branch.branch.currentBranch).toBe(BranchState.Else);
+    expect(branch.branch.currentBranch).toBe(BRANCH_ELSE);
     expect(branch.branch.currentOwner).not.toBe(mountedOwner);
   });
 
@@ -629,29 +540,73 @@ describe('branches', () => {
       1: 'capture',
     });
     const { range, replacements } = createBranchRange();
-    const branchQrl = createBranchQrl<[]>(
-      [],
-      createQRL<BranchConditionFn<[]>>('chunk', 'condition', () => true, null, null),
-      createQRL<BranchRenderFn<[]>>(
-        'chunk',
-        'renderThen',
-        null,
-        () =>
-          Promise.resolve({
-            renderThen: () => [createNode((_captures as readonly string[]).join(':'))],
-          }),
-        '0 1',
-        container
-      ),
-      undefined,
-      { container }
+    const thenQrl = createQRL<BranchRenderFn>(
+      'chunk',
+      'renderThen',
+      null,
+      () =>
+        Promise.resolve({
+          renderThen: () => [createNode((_captures as readonly string[]).join(':'))],
+        }),
+      '0 1',
+      container
     );
-    const branch = createOwned(() => createBranchQrlSubscriber(range, branchQrl, { scheduler }));
+    const branch = createOwned(() =>
+      createBranch({ scheduler } as ContainerContext, range, () => true, thenQrl)
+    );
 
     scheduler.notify(branch);
     await scheduler.flushInteraction();
 
     expect(getNodeLabel(replacements[0][0])).toBe('branch:capture');
+  });
+
+  it('renders SSR branches from QRLs and registers reactive work', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const visible = createSignal(true);
+    const child = createSignal('then');
+    const ctx = { scheduler } as ContainerContext;
+    const conditionQrl = createQRL<BranchConditionFn>('chunk', 'condition', () => visible.value);
+    const thenQrl = createQRL<SsrBranchRenderFn>('chunk', 'renderThen', () => {
+      return renderSsrTextNode(createSsrElementTextTarget(11), child);
+    });
+
+    const html = await createOwned(() => renderSsrBranch(ctx, 0, conditionQrl, thenQrl, undefined));
+    const branch = visible.subs?.[0] as SSRBranchSubscription | undefined;
+
+    expect(html).toBe('then');
+    expect(branch).toBeDefined();
+    expect(branch!.deps).not.toBeNull();
+    expect(branch!.branch.currentBranch).toBe(BRANCH_THEN);
+    expect(branch!.branch.currentOwner).not.toBeNull();
+    expect(child.subs).not.toBeNull();
+  });
+
+  it('resolves async SSR branch QRLs', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const visible = createSignal(false);
+    const ctx = { scheduler } as ContainerContext;
+    let conditionResolved = false;
+    let elseResolved = false;
+    const conditionQrl = createQRL<BranchConditionFn>('chunk', 'condition', null, () => {
+      conditionResolved = true;
+      return Promise.resolve({
+        condition: () => visible.value,
+      });
+    });
+    const thenQrl = createQRL<SsrBranchRenderFn>('chunk', 'renderThen', () => 'then');
+    const elseQrl = createQRL<SsrBranchRenderFn>('chunk', 'renderElse', null, () => {
+      elseResolved = true;
+      return Promise.resolve({
+        renderElse: () => 'else',
+      });
+    });
+
+    const html = await createOwned(() => renderSsrBranch(ctx, 1, conditionQrl, thenQrl, elseQrl));
+
+    expect(html).toBe('else');
+    expect(conditionResolved).toBe(true);
+    expect(elseResolved).toBe(true);
   });
 });
 

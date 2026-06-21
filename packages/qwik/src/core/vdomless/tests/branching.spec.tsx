@@ -79,4 +79,22 @@ describe.each([
 
     cleanup();
   });
+
+  it('renders multiple SSR branches from one async root', async () => {
+    const MyComp = () => {
+      const count = createSignal(0);
+      return (
+        <section>
+          <p>Parity: {count.value % 2 === 0 ? 'even' : 'odd'}</p>
+          <p>{count.value > 5 && 'large'}</p>
+        </section>
+      );
+    };
+
+    const { container, cleanup } = await render(<MyComp />, { debug });
+
+    expect(container.textContent).toContain('Parity: even');
+    expect(container.textContent).not.toContain('large');
+    cleanup();
+  });
 });

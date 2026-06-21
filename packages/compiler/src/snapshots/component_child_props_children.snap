@@ -17,8 +17,11 @@ import { createComponent } from '@qwik.dev/core/spark';
 export function Wrapper(props, _ctx) {
   return '<section>' + (props.children ?? '') + '</section>';
 }
-export function Parent(_props, ctx) {
-  return createComponent({ children: '<p>Projected</p>' }, (props) => Wrapper(props, ctx));
+export async function Parent(_props, ctx) {
+  const component0 = createComponent({ children: '<p>Projected</p>' }, (props) =>
+    Wrapper(props, ctx)
+  );
+  return await component0;
 }
 
 null

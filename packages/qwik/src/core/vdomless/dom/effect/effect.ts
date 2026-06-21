@@ -10,6 +10,7 @@ import { track } from '../../reactive/tracking';
 import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
 import { EffectKind } from './effect-kind.enum';
 import type { Owner } from '../../runtime/owner';
+import { applyDomProps } from './dom-props';
 
 export const enum AttrSerializer {
   Class = 0,
@@ -20,6 +21,9 @@ export type TextExpressionValue = string | number | boolean | bigint | null | un
 export type TextExpressionFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => TextExpressionValue;
+type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
+  ...args: TArgs
+) => Record<string, unknown> | null | undefined;
 
 export interface DomEffectOptions {
   scheduler?: Scheduler;
@@ -29,7 +33,8 @@ export type DomEffect =
   | TextExpressionEffect<any[]>
   | TextNodeEffect
   | AttrEffect
-  | SerializedAttrEffect;
+  | SerializedAttrEffect
+  | PropsEffect<any[]>;
 
 export class TextExpressionEffect<TArgs extends unknown[] = unknown[]> {
   readonly kind = EffectKind.TextExpression;
@@ -99,6 +104,22 @@ export class SerializedAttrEffect {
   }
 }
 
+export class PropsEffect<TArgs extends unknown[] = unknown[]> {
+  readonly kind = EffectKind.Props;
+  readonly phase = Phase.ScalarDom;
+  private prevProps: Record<string, unknown> | null = null;
+
+  constructor(
+    readonly element: Element,
+    readonly args: TArgs,
+    readonly fn: DomPropsFn<TArgs>
+  ) {}
+
+  run(): void {
+    this.prevProps = applyDomProps(this.element, this.fn(...this.args), this.prevProps);
+  }
+}
+
 export class DomSubscription implements DomSubscriber {
   readonly kind = SubscriberKind.Dom;
   owner: Owner | null = null;
@@ -158,6 +179,15 @@ export function createStyleEffect(
     new SerializedAttrEffect(element, source, AttrSerializer.Style),
     options?.scheduler
   );
+}
+
+export function createPropsEffect<TArgs extends unknown[]>(
+  element: Element,
+  args: TArgs,
+  fn: DomPropsFn<TArgs>,
+  options?: DomEffectOptions
+): DomSubscriber {
+  return createDomSubscription(new PropsEffect(element, args, fn), options?.scheduler);
 }
 
 function createDomSubscription(effect: DomEffect, scheduler: Scheduler | undefined): DomSubscriber {

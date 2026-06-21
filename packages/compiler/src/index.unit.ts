@@ -255,6 +255,36 @@ export function App() {
     });
   });
 
+  test('emits DOM spread props with override order', async () => {
+    await testInput('dom_spread_props', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const attrs = createSignal({
+    title: 'from-spread',
+    children: 'ignored',
+    className: { active: true },
+  });
+  const title = createSignal('final');
+  return <div {...attrs.value} title={title.value} data-id="static">Child</div>;
+}
+`,
+    });
+  });
+
+  test('emits component spread rest props and event pass-through', async () => {
+    await testInput('component_spread_rest_props', {
+      code: `export function Button({ kind, ...rest }: { kind: string; title: string; onClick$?: unknown }) {
+  return <button {...rest} data-kind={kind}>Click</button>;
+}
+
+export function Parent() {
+  const attrs = { title: 'Save' };
+  return <Button {...attrs} kind="primary" onClick$={() => 'clicked'} />;
+}
+`,
+    });
+  });
+
   test('emits SSR and CSR ternary branch renderers', async () => {
     await testInput('branch_ternary', {
       code: `import { createSignal } from '@qwik.dev/core/spark';

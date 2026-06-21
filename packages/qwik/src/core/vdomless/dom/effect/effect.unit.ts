@@ -13,6 +13,7 @@ import { Scheduler } from '../../runtime/scheduler';
 import {
   createAttrEffect,
   createClassEffect,
+  createPropsEffect,
   createStyleEffect,
   createTextExpressionEffect,
   createTextNodeEffect,
@@ -146,6 +147,80 @@ describe('DOM effects', () => {
     await scheduler.flushInteraction();
 
     expect(attrs.get('class')).toBe('base next');
+  });
+
+  it('patches spread DOM props and removes stale attributes', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const props = createSignal<unknown>({
+      title: 'hello',
+      className: { active: true, hidden: false },
+      style: { opacity: 0.5 },
+      children: 'ignored',
+      dangerouslySetInnerHTML: '<b>safe</b>',
+    });
+    const { element, attrs } = createPropsTarget();
+    const effect = createOwned(() =>
+      createPropsEffect(element, [], () => props.value as Record<string, unknown>, { scheduler })
+    );
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(attrs.get('title')).toBe('hello');
+    expect(attrs.get('class')).toBe('active');
+    expect(attrs.get('style')).toBe('opacity:0.5');
+    expect(attrs.has('children')).toBe(false);
+    expect(element.innerHTML).toBe('<b>safe</b>');
+
+    props.value = { id: 'next' };
+    await scheduler.flushInteraction();
+
+    expect(attrs.has('title')).toBe(false);
+    expect(attrs.has('class')).toBe(false);
+    expect(attrs.has('style')).toBe(false);
+    expect(attrs.get('id')).toBe('next');
+    expect(element.innerHTML).toBe('');
+  });
+
+  it('patches spread DOM events and modifiers', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const first = () => 1;
+    const second = () => 2;
+    const props = createSignal<unknown>({
+      onClick$: first,
+      'window:onScroll$': first,
+      'passive:click': true,
+      'passive:scroll': true,
+      'preventdefault:click': true,
+      'stoppropagation:click': true,
+    });
+    const { element, attrs } = createPropsTarget();
+    const effect = createOwned(() =>
+      createPropsEffect(element, [], () => props.value as Record<string, unknown>, { scheduler })
+    );
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect((element as any)._qDispatch['ep:click']).toBe(first);
+    expect((element as any)._qDispatch['wp:scroll']).toBe(first);
+    expect(attrs.get('q-wp:scroll')).toBe('');
+    expect(attrs.has('preventdefault:click')).toBe(false);
+    expect(attrs.get('stoppropagation:click')).toBe('');
+
+    props.value = {
+      onClick$: second,
+      'preventdefault:click': true,
+      'stoppropagation:click': true,
+    };
+    await scheduler.flushInteraction();
+
+    expect((element as any)._qDispatch['ep:click']).toBeUndefined();
+    expect((element as any)._qDispatch['wp:scroll']).toBeUndefined();
+    expect((element as any)._qDispatch['e:click']).toBe(second);
+    expect(attrs.has('q-wp:scroll')).toBe(false);
+    expect(attrs.get('preventdefault:click')).toBe('');
+    expect(attrs.get('stoppropagation:click')).toBe('');
   });
 
   it('patches direct DOM effects from computed sources', async () => {
@@ -295,4 +370,24 @@ describe('DOM effects', () => {
 
 function createOwned<T>(run: () => T): T {
   return runWithOwner(createOwner(null), run);
+}
+
+function createPropsTarget(): {
+  element: Element & { innerHTML: string };
+  attrs: Map<string, string>;
+} {
+  const attrs = new Map<string, string>();
+  const element = {
+    innerHTML: '',
+    ownerDocument: {
+      defaultView: {},
+    },
+    setAttribute(name: string, value: string) {
+      attrs.set(name, value);
+    },
+    removeAttribute(name: string) {
+      attrs.delete(name);
+    },
+  } as unknown as Element & { innerHTML: string };
+  return { element, attrs };
 }

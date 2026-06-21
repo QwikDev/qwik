@@ -2,8 +2,8 @@ import type {
   AstFunction,
   AstJsxNode,
   AstNode,
+  NamedPropRecord,
   ParamRecord,
-  PropRecord,
   SourceRange,
 } from './types';
 
@@ -28,14 +28,26 @@ export function visit(node: unknown, visitor: (node: AstNode) => void) {
 }
 
 export function getParams(fn: AstFunction): ParamRecord[] {
-  return fn.params.map((param) => ({
-    name: getIdentifierName(param),
-  }));
+  return fn.params.map((param) => {
+    const expr = unwrapExpression(param);
+    if (isObjectNode(expr) && expr.type === 'AssignmentPattern') {
+      return {
+        name: getIdentifierName(expr.left),
+        bindingRange: getRange(expr.left),
+        defaultRange: getRange(expr.right),
+      };
+    }
+    return {
+      name: getIdentifierName(param),
+      bindingRange: getRange(param),
+      defaultRange: null,
+    };
+  });
 }
 
 export function getStaticExpressionValue(
   expr: unknown
-): { supported: true; value: PropRecord['value'] } | { supported: false } {
+): { supported: true; value: NamedPropRecord['value'] } | { supported: false } {
   if (!isObjectNode(expr)) {
     return { supported: false };
   }

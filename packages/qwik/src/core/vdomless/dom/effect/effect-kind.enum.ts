@@ -4,4 +4,5 @@ export const enum EffectKind {
   Attr = 2,
   SerializedAttr = 3,
   Branch = 4,
+  Props = 5,
 }

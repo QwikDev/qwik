@@ -12,8 +12,10 @@ import type {
 } from '../types';
 import { QwikSymbol } from '../words';
 import {
+  emitComponentParamSetup,
   emitComponentSetup,
   emitImports,
+  emitObjectGetterName,
   emitSsrQrlPrelude,
   escapeAttr,
   escapeText,
@@ -74,16 +76,18 @@ function emitSsrComponent(
     'ssr',
     hasDynamicBinding(component.root) || component.providesContext
   );
+  const paramSetup = emitComponentParamSetup(component, sourceCode);
   const statements = emitter.toString();
   const bodyParts = component.providesContext
     ? [
+        paramSetup,
         setup,
         'const contextScopeId = ctx.contextScopeId();',
         statements,
         `const contextHtml = ${html};`,
         "return '<!c=' + contextScopeId + '>' + contextHtml + '<!/c>';",
       ].filter(Boolean)
-    : [setup, statements, `return ${html};`].filter(Boolean);
+    : [paramSetup, setup, statements, `return ${html};`].filter(Boolean);
   const body = bodyParts.join('\n');
   const ctxParam = emitter.usesCtx || component.providesContext ? 'ctx' : '_ctx';
   const propsParam = getComponentPropsParam(component);
@@ -200,13 +204,7 @@ export class SsrEmitter {
     props: ComponentPropRecord[],
     children: readonly RenderNode[]
   ): string {
-    const entries = props.map((prop) => {
-      if (prop.expressionRange !== undefined) {
-        const value = this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
-        return `get ${JSON.stringify(prop.name)}() { return ${value}; }`;
-      }
-      return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
-    });
+    const entries: string[] = [];
     if (children.length > 0) {
       entries.push(
         `${JSON.stringify('children')}: ${partsToExpression(
@@ -214,64 +212,147 @@ export class SsrEmitter {
         )}`
       );
     }
-    return entries.length === 0 ? '{}' : `{ ${entries.join(', ')} }`;
+    if (!props.some((prop) => prop.kind === 'spread')) {
+      const propEntries = props.map((prop) => this.emitComponentPropEntry(prop));
+      return [...propEntries, ...entries].length === 0
+        ? '{}'
+        : `{ ${[...propEntries, ...entries].join(', ')} }`;
+    }
+
+    const sources: string[] = [];
+    let currentEntries: string[] = [];
+    const flushEntries = () => {
+      if (currentEntries.length > 0) {
+        sources.push(`{ ${currentEntries.join(', ')} }`);
+        currentEntries = [];
+      }
+    };
+
+    for (const prop of props) {
+      if (prop.kind === 'spread') {
+        flushEntries();
+        sources.push(
+          `(${this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1])})`
+        );
+      } else {
+        currentEntries.push(this.emitComponentPropEntry(prop));
+      }
+    }
+    currentEntries.push(...entries);
+    flushEntries();
+    return sources.length === 0 ? '{}' : `${QwikSymbol.MergeProps}(${sources.join(', ')})`;
+  }
+
+  private emitComponentPropEntry(prop: ComponentPropRecord): string {
+    if (prop.kind === 'spread') {
+      throw new Error('Component spread props are emitted as mergeProps sources.');
+    }
+    if (prop.qrlSegmentId) {
+      const qrlSegment = this.requireQrlSegment(prop.qrlSegmentId);
+      return `${JSON.stringify(prop.name)}: ${emitQrlReference(qrlSegment)}`;
+    }
+    if (prop.expressionRange !== undefined) {
+      const value = this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
+      return `get ${emitObjectGetterName(prop.name)}() { return ${value}; }`;
+    }
+    return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
   }
 
   private emitElementParts(node: ElementNode): HtmlPart[] {
     const children = flattenElementChildren(node.children);
     const hasElementText = hasElementTextTarget(children);
     const hasRangeText = !hasElementText && hasDirectRangeTextTarget(children);
-    const needsElementTarget = hasDynamicSourceProp(node) || hasElementText || hasRangeText;
+    const hasProps = hasDomProps(node);
+    const needsElementTarget =
+      hasDynamicSourceProp(node) || hasProps || hasElementText || hasRangeText;
     const elementId = needsElementTarget ? this.nextTargetId() : null;
+    let propsRenderId: string | null = null;
     const parts: HtmlPart[] = [`<${node.tag}`];
 
     if (elementId !== null) {
       parts.push(' q:id="', { code: elementId }, '"');
     }
 
-    for (const prop of node.props) {
-      if (prop.binding) {
-        parts.push(...this.emitDynamicAttrParts(prop, elementId!));
-        continue;
-      }
-      if (prop.qrlSegmentId) {
-        const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
-        if (qrlSegment) {
-          this.usesCtx = true;
-          parts.push({
-            code: `ctx.eventAttr(${JSON.stringify(prop.name)}, ${emitQrlReference(qrlSegment)})`,
-          });
+    if (hasProps) {
+      propsRenderId = this.emitSsrDomProps(node, elementId!);
+      parts.push({ code: `${propsRenderId}.attrs` });
+    } else {
+      for (const prop of node.props) {
+        if (prop.kind !== 'named') {
+          continue;
         }
-        continue;
+        if (prop.binding) {
+          parts.push(...this.emitDynamicAttrParts(prop, elementId!));
+          continue;
+        }
+        if (prop.qrlSegmentId) {
+          const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
+          if (qrlSegment) {
+            this.usesCtx = true;
+            parts.push({
+              code: `ctx.eventAttr(${JSON.stringify(prop.name)}, ${emitQrlReference(qrlSegment)})`,
+            });
+          }
+          continue;
+        }
+        const value = serializeAttrValue(prop.value);
+        if (value === null) {
+          continue;
+        }
+        if (value === '') {
+          parts.push(` ${prop.name}`);
+          continue;
+        }
+        parts.push(` ${prop.name}="${escapeAttr(value)}"`);
       }
-      const value = serializeAttrValue(prop.value);
-      if (value === null) {
-        continue;
-      }
-      if (value === '') {
-        parts.push(` ${prop.name}`);
-        continue;
-      }
-      parts.push(` ${prop.name}="${escapeAttr(value)}"`);
     }
 
     parts.push('>');
-    if (elementId !== null && hasElementText) {
-      parts.push(
-        ...this.emitDynamicTextParts(
-          children[0] as DynamicTextNode,
-          `${QwikSymbol.CreateSsrElementTextTarget}(${elementId})`
-        )
-      );
-    } else if (elementId !== null && hasRangeText) {
-      parts.push(...this.emitElementChildrenWithRangeTextParts(children, elementId));
+    if (propsRenderId !== null) {
+      parts.push({
+        code: `(${propsRenderId}.innerHTML ?? ${partsToExpression(
+          this.emitElementBodyParts(children, elementId, hasElementText, hasRangeText)
+        )})`,
+      });
     } else {
-      for (const child of children) {
-        parts.push(...this.emitHtmlParts(child));
-      }
+      parts.push(...this.emitElementBodyParts(children, elementId, hasElementText, hasRangeText));
     }
     parts.push(`</${node.tag}>`);
     return parts;
+  }
+
+  private emitElementBodyParts(
+    children: readonly RenderNode[],
+    elementId: string | null,
+    hasElementText: boolean,
+    hasRangeText: boolean
+  ): HtmlPart[] {
+    if (elementId !== null && hasElementText) {
+      return this.emitDynamicTextParts(
+        children[0] as DynamicTextNode,
+        `${QwikSymbol.CreateSsrElementTextTarget}(${elementId})`
+      );
+    }
+    if (elementId !== null && hasRangeText) {
+      return this.emitElementChildrenWithRangeTextParts(children, elementId);
+    }
+    return children.flatMap((child) => this.emitHtmlParts(child));
+  }
+
+  private emitSsrDomProps(node: ElementNode, elementId: string): string {
+    if (!node.propsSegmentId) {
+      throw new Error('Missing DOM props segment.');
+    }
+    const qrlSegment = this.requireQrlSegment(node.propsSegmentId);
+    this.emitCaptureRoots(qrlSegment);
+    this.usesCtx = true;
+    const id = this.next('props');
+    this.line(
+      `const ${id} = ${QwikSymbol.RenderSsrProps}(${QwikSymbol.CreateSsrElementTarget}(${elementId}), [], ${emitQrlReference(
+        qrlSegment
+      )}, ctx.eventAttr);`
+    );
+    return id;
   }
 
   private emitBranchParts(node: BranchNode): HtmlPart[] {
@@ -308,6 +389,9 @@ export class SsrEmitter {
   }
 
   private emitDynamicAttrParts(prop: PropRecord, elementId: string): HtmlPart[] {
+    if (prop.kind !== 'named') {
+      throw new Error('Dynamic attribute effects require named props.');
+    }
     const binding = prop.binding!;
     this.emitRoot(binding.sourceName);
     const target = `${QwikSymbol.CreateSsrElementTarget}(${elementId})`;
@@ -418,7 +502,11 @@ export class SsrEmitter {
 }
 
 function hasDynamicSourceProp(node: ElementNode) {
-  return node.props.some((prop) => prop.binding);
+  return node.props.some((prop) => prop.kind === 'named' && prop.binding);
+}
+
+function hasDomProps(node: ElementNode) {
+  return node.props.some((prop) => prop.kind === 'spread');
 }
 
 function hasElementTextTarget(children: readonly RenderNode[]) {
@@ -456,4 +544,36 @@ export function partsToExpression(parts: HtmlPart[]) {
   return merged
     .map((part) => (typeof part === 'string' ? JSON.stringify(part) : part.code))
     .join(' + ');
+}
+
+export function emitSsrDomPropsExpression(
+  props: readonly PropRecord[],
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  sourceCode: string
+): string {
+  const entries = props.map((prop) => {
+    if (prop.kind === 'spread') {
+      return `...(${sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1])})`;
+    }
+    return emitSsrDomPropEntry(prop, qrlSegments, sourceCode);
+  });
+  return entries.length === 0 ? '{}' : `{ ${entries.join(', ')} }`;
+}
+
+function emitSsrDomPropEntry(
+  prop: Extract<PropRecord, { kind: 'named' }>,
+  qrlSegments: Map<string, QrlSegmentOutput>,
+  sourceCode: string
+): string {
+  if (prop.qrlSegmentId) {
+    const qrlSegment = qrlSegments.get(prop.qrlSegmentId);
+    if (qrlSegment) {
+      return `${JSON.stringify(prop.name)}: ${emitQrlReference(qrlSegment)}`;
+    }
+  }
+  if (prop.expressionRange !== undefined) {
+    const value = sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
+    return `get ${emitObjectGetterName(prop.name)}() { return ${value}; }`;
+  }
+  return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
 }

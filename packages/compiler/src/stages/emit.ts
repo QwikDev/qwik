@@ -1,5 +1,4 @@
 import type { SegmentAnalysis } from '@qwik.dev/optimizer';
-import { win32 as path } from 'node:path';
 import { transform } from 'oxc-transform';
 import { jsxEventToHtmlAttribute } from '../ast-utils';
 import {
@@ -12,6 +11,7 @@ import { createModule, getLang } from '../module-utils';
 import type { CompilerContext } from '../types';
 import type {
   ComponentRecord,
+  ElementNode,
   ImportRecord,
   QrlSegmentOutput,
   RenderNode,
@@ -19,10 +19,13 @@ import type {
 } from '../types';
 import { QwikSymbol } from '../words';
 import { DomEmitter, emitCsrModule, emitReturnItems } from './emit-csr';
-import { emitSsrModule, SsrEmitter } from './emit-ssr';
+import { emitSsrDomPropsExpression, emitSsrModule, SsrEmitter } from './emit-ssr';
 import {
   emitImports,
   emitSsrQrlPrelude,
+  hasComponentPropsSpread,
+  hasDirectDomEvent,
+  hasDomPropsBinding,
   hasDynamicAttrBinding,
   hasDynamicBinding,
   hasElementTextBinding,
@@ -59,8 +62,11 @@ export async function emitModules(ctx: CompilerContext) {
     hasSourceText: supported.some((component) => hasSourceTextBinding(component.root)),
     hasTextExpression: supported.some((component) => hasTextExpression(component.root)),
     hasDynamicAttr: supported.some((component) => hasDynamicAttrBinding(component.root)),
+    hasDomProps: supported.some((component) => hasDomPropsBinding(component.root)),
+    hasDirectEvent: supported.some((component) => hasDirectDomEvent(component.root)),
     hasBranch: supported.some((component) => hasBranch(component.root)),
     hasComponent: supported.some((component) => hasComponent(component.root)),
+    hasComponentPropsSpread: supported.some((component) => hasComponentPropsSpread(component.root)),
   };
   const ssrUsage = {
     ...dynamicUsage,
@@ -97,7 +103,7 @@ function collectQrlSegments(
   const qrlSegments = new Map<string, QrlSegmentOutput>();
   for (const component of components) {
     if (component.root) {
-      collectNodeQrlSegments(ctx, component.root, segmentById, qrlSegments, true);
+      collectNodeQrlSegments(ctx, component.root, segmentById, qrlSegments, true, emitTarget);
     }
     if (emitTarget === 'ssr') {
       collectComponentImplicitDollarSegments(ctx, component, qrlSegments);
@@ -126,7 +132,7 @@ function collectCsrRootNodeQrlSegments(
 ): void {
   if (node.kind === 'element') {
     for (const prop of node.props) {
-      if (prop.qrlSegmentId) {
+      if (prop.kind === 'named' && prop.qrlSegmentId) {
         collectExistingQrlSegment(prop.qrlSegmentId, qrlSegments, rootSegments);
       }
     }
@@ -142,6 +148,11 @@ function collectCsrRootNodeQrlSegments(
     return;
   }
   if (node.kind === 'component') {
+    for (const prop of node.props) {
+      if (prop.kind === 'named' && prop.qrlSegmentId) {
+        collectExistingQrlSegment(prop.qrlSegmentId, qrlSegments, rootSegments);
+      }
+    }
     for (const child of node.children) {
       collectCsrRootNodeQrlSegments(child, qrlSegments, rootSegments);
     }
@@ -175,8 +186,13 @@ function collectCsrRootImportUsage(components: readonly ComponentRecord[]) {
     hasSourceText: components.some((component) => hasCsrRootSourceTextBinding(component.root)),
     hasTextExpression: components.some((component) => hasCsrRootTextExpression(component.root)),
     hasDynamicAttr: components.some((component) => hasCsrRootDynamicAttrBinding(component.root)),
+    hasDomProps: components.some((component) => hasCsrRootDomPropsBinding(component.root)),
+    hasDirectEvent: components.some((component) => hasCsrRootDirectDomEvent(component.root)),
     hasBranch: components.some((component) => hasCsrRootBranch(component.root)),
     hasComponent: components.some((component) => hasCsrRootComponent(component.root)),
+    hasComponentPropsSpread: components.some((component) =>
+      hasCsrRootComponentPropsSpread(component.root)
+    ),
   };
 }
 
@@ -187,8 +203,18 @@ function hasCsrRootDynamicBinding(node: RenderNode | null): boolean {
       current.kind === 'dynamicText' ||
       current.kind === 'branch' ||
       (current.kind === 'component' &&
-        current.props.some((prop) => prop.expressionRange !== undefined)) ||
-      (current.kind === 'element' && current.props.some((prop) => prop.binding))
+        current.props.some(
+          (prop) =>
+            prop.kind === 'spread' ||
+            prop.expressionRange !== undefined ||
+            prop.qrlSegmentId !== undefined
+        )) ||
+      (current.kind === 'element' &&
+        current.props.some(
+          (prop) =>
+            prop.kind === 'spread' ||
+            (prop.kind === 'named' && (prop.binding || prop.expressionRange !== undefined))
+        ))
   );
 }
 
@@ -209,7 +235,34 @@ function hasCsrRootTextExpression(node: RenderNode | null): boolean {
 function hasCsrRootDynamicAttrBinding(node: RenderNode | null): boolean {
   return someCsrRootNode(
     node,
-    (current) => current.kind === 'element' && current.props.some((prop) => prop.binding)
+    (current) =>
+      current.kind === 'element' &&
+      current.props.some((prop) => prop.kind === 'named' && prop.binding)
+  );
+}
+
+function hasCsrRootDomPropsBinding(node: RenderNode | null): boolean {
+  return someCsrRootNode(
+    node,
+    (current) => current.kind === 'element' && current.props.some((prop) => prop.kind === 'spread')
+  );
+}
+
+function hasCsrRootDirectDomEvent(node: RenderNode | null): boolean {
+  return someCsrRootNode(
+    node,
+    (current) =>
+      current.kind === 'element' &&
+      !current.props.some((prop) => prop.kind === 'spread') &&
+      current.props.some((prop) => prop.kind === 'named' && prop.qrlSegmentId)
+  );
+}
+
+function hasCsrRootComponentPropsSpread(node: RenderNode | null): boolean {
+  return someCsrRootNode(
+    node,
+    (current) =>
+      current.kind === 'component' && current.props.some((prop) => prop.kind === 'spread')
   );
 }
 
@@ -271,15 +324,23 @@ function collectNodeQrlSegments(
   node: RenderNode,
   segmentById: Map<string, SegmentRecord>,
   qrlSegments: Map<string, QrlSegmentOutput>,
-  includeTextExpressions: boolean
+  includeTextExpressions: boolean,
+  emitTarget: CompilerContext['emitTarget']
 ) {
   if (node.kind === 'element') {
+    if (emitTarget === 'ssr' && node.propsSegmentId) {
+      collectSegmentById(ctx, node.propsSegmentId, segmentById, qrlSegments);
+    }
     for (const prop of node.props) {
-      if (prop.qrlSegmentId && !qrlSegments.has(prop.qrlSegmentId)) {
-        const segment = segmentById.get(prop.qrlSegmentId);
-        if (segment) {
-          qrlSegments.set(prop.qrlSegmentId, createQrlSegmentOutput(ctx, segment));
-        }
+      if (prop.kind === 'named' && prop.qrlSegmentId) {
+        collectSegmentById(ctx, prop.qrlSegmentId, segmentById, qrlSegments);
+      }
+    }
+  }
+  if (node.kind === 'component') {
+    for (const prop of node.props) {
+      if (prop.kind === 'named' && prop.qrlSegmentId) {
+        collectSegmentById(ctx, prop.qrlSegmentId, segmentById, qrlSegments);
       }
     }
   }
@@ -290,10 +351,24 @@ function collectNodeQrlSegments(
       collectSegmentById(ctx, node.elseSegmentId, segmentById, qrlSegments);
     }
     for (const child of node.thenChildren) {
-      collectNodeQrlSegments(ctx, child, segmentById, qrlSegments, includeTextExpressions);
+      collectNodeQrlSegments(
+        ctx,
+        child,
+        segmentById,
+        qrlSegments,
+        includeTextExpressions,
+        emitTarget
+      );
     }
     for (const child of node.elseChildren) {
-      collectNodeQrlSegments(ctx, child, segmentById, qrlSegments, includeTextExpressions);
+      collectNodeQrlSegments(
+        ctx,
+        child,
+        segmentById,
+        qrlSegments,
+        includeTextExpressions,
+        emitTarget
+      );
     }
   }
   if (includeTextExpressions && node.kind === 'dynamicText' && node.binding.kind === 'expression') {
@@ -301,7 +376,14 @@ function collectNodeQrlSegments(
   }
   if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
     for (const child of node.children) {
-      collectNodeQrlSegments(ctx, child, segmentById, qrlSegments, includeTextExpressions);
+      collectNodeQrlSegments(
+        ctx,
+        child,
+        segmentById,
+        qrlSegments,
+        includeTextExpressions,
+        emitTarget
+      );
     }
   }
 }
@@ -336,9 +418,7 @@ function createSegmentModulePath(ctx: CompilerContext, symbolName: string) {
 }
 
 function createSegmentImportPath(ctx: CompilerContext, modulePath: string) {
-  return `./${path.basename(modulePath).slice(0, -3)}${
-    ctx.options.explicitExtensions ? '.js' : ''
-  }`;
+  return `./${basename(modulePath).slice(0, -3)}${ctx.options.explicitExtensions ? '.js' : ''}`;
 }
 
 function createQrlVariableName(symbolName: string) {
@@ -370,6 +450,10 @@ function createQrlSegmentSource(
   qrlSegment: QrlSegmentOutput,
   qrlSegments: Map<string, QrlSegmentOutput>
 ) {
+  if (qrlSegment.segment.kind === 'jsxSpreadProps') {
+    return createSsrPropsSegmentSource(ctx, qrlSegment, qrlSegments);
+  }
+
   if (qrlSegment.segment.kind === 'branchRender') {
     if (ctx.emitTarget === 'ssr') {
       return createSsrBranchRenderSegmentSource(ctx, qrlSegment, qrlSegments);
@@ -419,6 +503,59 @@ ${captureLine}${indentBody(bodyStatements)}
 `;
 }
 
+function createSsrPropsSegmentSource(
+  ctx: CompilerContext,
+  qrlSegment: QrlSegmentOutput,
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  const element = findPropsSegmentElement(ctx, qrlSegment.id);
+  if (element === null) {
+    throw new Error(`Missing props IR for ${qrlSegment.id}.`);
+  }
+
+  const segmentQrlSegments = new Map<string, QrlSegmentOutput>();
+  for (const prop of element.props) {
+    if (prop.kind === 'named' && prop.qrlSegmentId) {
+      collectExistingQrlSegment(prop.qrlSegmentId, qrlSegments, segmentQrlSegments);
+    }
+  }
+  const captures = qrlSegment.segment.captures;
+  const captureLine =
+    captures.length > 0
+      ? `const ${captures
+          .map((capture, index) => `${capture.name} = ${QwikSymbol.Captures}[${index}]`)
+          .join(', ')};`
+      : '';
+  const objectExpression = emitSsrDomPropsExpression(element.props, qrlSegments, ctx.input.code);
+  const bodyStatements = [captureLine, `return ${objectExpression};`].filter(Boolean).join('\n');
+  const importRecords = createSsrResolvedSegmentImports(segmentQrlSegments);
+  if (captures.length > 0) {
+    importRecords.push(createQwikSparkImport(QwikSymbol.Captures));
+  }
+  const imports =
+    segmentQrlSegments.size === 0
+      ? importRecords
+      : createSsrImports(importRecords, segmentQrlSegments, {
+          hasDynamicBinding: false,
+          hasSourceText: false,
+          hasElementText: false,
+          hasRangeText: false,
+          hasTextExpression: false,
+          hasDynamicAttr: false,
+          hasDomProps: false,
+          hasBranch: false,
+          hasComponent: false,
+          hasComponentPropsSpread: false,
+        });
+  const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
+  const qrlPrelude = emitSsrQrlPrelude(segmentQrlSegments);
+
+  return `${importLine}${qrlPrelude}export const ${qrlSegment.symbolName} = () => {
+${indentBody(bodyStatements)}
+};
+`;
+}
+
 interface BranchRenderUsage {
   sparkImports: Set<QwikSymbol>;
   segmentImports: Map<string, QrlSegmentOutput>;
@@ -462,8 +599,10 @@ function createSsrBranchRenderSegmentSource(
     hasRangeText: hasRangeTextBinding(fragment),
     hasTextExpression: hasTextExpression(fragment),
     hasDynamicAttr: hasDynamicAttrBinding(fragment),
+    hasDomProps: hasDomPropsBinding(fragment),
     hasBranch: hasBranch(fragment),
     hasComponent: hasComponent(fragment),
+    hasComponentPropsSpread: hasComponentPropsSpread(fragment),
   });
   const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
   const qrlPrelude = emitSsrQrlPrelude(qrlSegments);
@@ -568,6 +707,58 @@ function findBranchRenderChildren(
   return null;
 }
 
+function findPropsSegmentElement(ctx: CompilerContext, segmentId: string): ElementNode | null {
+  for (const component of ctx.manifest.components) {
+    if (component.root === null) {
+      continue;
+    }
+    const element = findPropsSegmentElementInNode(component.root, segmentId);
+    if (element !== null) {
+      return element;
+    }
+  }
+  return null;
+}
+
+function findPropsSegmentElementInNode(node: RenderNode, segmentId: string): ElementNode | null {
+  if (node.kind === 'element') {
+    if (node.propsSegmentId === segmentId) {
+      return node;
+    }
+    for (const child of node.children) {
+      const element = findPropsSegmentElementInNode(child, segmentId);
+      if (element !== null) {
+        return element;
+      }
+    }
+    return null;
+  }
+  if (node.kind === 'fragment' || node.kind === 'component') {
+    for (const child of node.children) {
+      const element = findPropsSegmentElementInNode(child, segmentId);
+      if (element !== null) {
+        return element;
+      }
+    }
+    return null;
+  }
+  if (node.kind === 'branch') {
+    for (const child of node.thenChildren) {
+      const element = findPropsSegmentElementInNode(child, segmentId);
+      if (element !== null) {
+        return element;
+      }
+    }
+    for (const child of node.elseChildren) {
+      const element = findPropsSegmentElementInNode(child, segmentId);
+      if (element !== null) {
+        return element;
+      }
+    }
+  }
+  return null;
+}
+
 function findBranchRenderChildrenInNode(
   node: RenderNode,
   segmentId: string
@@ -624,13 +815,14 @@ function createQrlSegmentAnalysis(
 ): SegmentAnalysis {
   const segment = qrlSegment.segment;
   const loc = segment.range ?? segment.functionRange ?? [0, 0];
+  const inputName = basename(ctx.input.path);
   return {
-    origin: path.basename(ctx.input.path),
+    origin: inputName,
     name: qrlSegment.symbolName,
     entry: null,
     displayName: qrlSegment.symbolName,
     hash: segment.id,
-    canonicalFilename: `${path.basename(ctx.input.path)}_${qrlSegment.symbolName}`,
+    canonicalFilename: `${inputName}_${qrlSegment.symbolName}`,
     extension: 'js',
     parent: null,
     ctxKind: segment.kind === 'eventHandler' ? 'eventHandler' : 'function',
@@ -644,7 +836,7 @@ function createQrlSegmentAnalysis(
 }
 
 function createSegmentSymbol(ctx: CompilerContext, segment: SegmentRecord) {
-  const sourceName = path.basename(ctx.input.path).replace(/\.[cm]?[jt]sx?$/, '');
+  const sourceName = basename(ctx.input.path).replace(/\.[cm]?[jt]sx?$/, '');
   return sanitizeIdentifier(`${sourceName}_${formatSegmentContextName(segment)}_${segment.id}`);
 }
 
@@ -658,4 +850,9 @@ function formatSegmentContextName(segment: SegmentRecord) {
 function sanitizeIdentifier(value: string) {
   const sanitized = value.replace(/[^A-Za-z0-9_$]/g, '_');
   return /^[A-Za-z_$]/.test(sanitized) ? sanitized : `_${sanitized}`;
+}
+
+function basename(path: string) {
+  const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+  return slash === -1 ? path : path.slice(slash + 1);
 }

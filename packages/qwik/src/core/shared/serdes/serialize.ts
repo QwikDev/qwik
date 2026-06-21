@@ -775,6 +775,8 @@ function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {
       return [effect.kind, target.kind, target.id, deps, effect.name];
     case EffectKind.SerializedAttr:
       return [effect.kind, target.kind, target.id, deps, effect.serializer];
+    case EffectKind.Props:
+      return [effect.kind, target.kind, target.id, deps, effect.args, effect.qrl];
   }
 
   return assertNeverSsrDomEffect(effect);

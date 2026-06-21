@@ -457,8 +457,26 @@ class CaptureAnalyzer {
   }
 
   private visitJsxElement(node: JSXElement) {
-    for (const attr of node.openingElement.attributes) {
-      this.visitJsxAttribute(attr);
+    if (node.openingElement.attributes.some((attr) => attr.type === 'JSXSpreadAttribute')) {
+      const range = getRange(node.openingElement);
+      if (range !== null) {
+        const parentSegment = this.currentSegment();
+        const segment = this.createSyntheticSegment('jsxSpreadProps', 'props', range);
+        this.segmentStack.push(segment);
+        for (const attr of node.openingElement.attributes) {
+          this.visitJsxAttribute(attr);
+        }
+        this.segmentStack.pop();
+        this.propagateCapturesToBranchRender(parentSegment, segment);
+      } else {
+        for (const attr of node.openingElement.attributes) {
+          this.visitJsxAttribute(attr);
+        }
+      }
+    } else {
+      for (const attr of node.openingElement.attributes) {
+        this.visitJsxAttribute(attr);
+      }
     }
     for (const child of node.children) {
       if (child.type === 'JSXExpressionContainer') {

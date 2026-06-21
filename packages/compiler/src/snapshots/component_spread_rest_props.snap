@@ -1,0 +1,197 @@
+==INPUT==
+
+export function Button({ kind, ...rest }: { kind: string; title: string; onClick$?: unknown }) {
+  return <button {...rest} data-kind={kind}>Click</button>;
+}
+
+export function Parent() {
+  const attrs = { title: 'Save' };
+  return <Button {...attrs} kind="primary" onClick$={() => 'clicked'} />;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createComponent,
+  mergeProps,
+  _qrlWithChunk,
+  createSsrElementTarget,
+  renderSsrProps,
+} from '@qwik.dev/core/spark';
+import { component_props_segment_0 } from './component.tsx_component_props_segment_0';
+
+const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0',
+  () => import('./component.tsx_component_props_segment_0'),
+  'component_props_segment_0'
+);
+q_component_props_segment_0.s(component_props_segment_0);
+const q_component_q_e_click_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_2',
+  () => import('./component.tsx_component_q_e_click_segment_2'),
+  'component_q_e_click_segment_2'
+);
+
+export function Button(_props, ctx) {
+  const { kind, ...rest } = _props;
+  const id0 = ctx.nextId();
+  ctx.addRoot(rest);
+  ctx.addRoot(kind);
+  const props1 = renderSsrProps(
+    createSsrElementTarget(id0),
+    [],
+    q_component_props_segment_0.w([rest, kind]),
+    ctx.eventAttr
+  );
+  return (
+    '<button q:id="' + id0 + '"' + props1.attrs + '>' + (props1.innerHTML ?? 'Click') + '</button>'
+  );
+}
+export async function Parent(_props, ctx) {
+  const attrs = { title: 'Save' };
+  const component0 = createComponent(
+    mergeProps(attrs, { kind: 'primary', onClick$: q_component_q_e_click_segment_2 }),
+    (props) => Button(props, ctx)
+  );
+  return await component0;
+}
+
+null
+============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_props_segment_0 = () => {
+  const rest = _captures[0],
+    kind = _captures[1];
+  return {
+    ...rest,
+    get ['data-kind']() {
+      return kind;
+    },
+  };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    52,
+    87
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "kind"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_2 = () => {
+  return 'clicked';
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    208,
+    234
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createComponent, mergeProps, createPropsEffect } from '@qwik.dev/core/spark';
+import { component_q_e_click_segment_2 } from './component.tsx_component_q_e_click_segment_2';
+
+export function Button(_props, ctx) {
+  const { kind, ...rest } = _props;
+  const el0 = ctx.document.createElement('button');
+  const effect1 = createPropsEffect(
+    el0,
+    [],
+    () => ({
+      ...rest,
+      get ['data-kind']() {
+        return kind;
+      },
+    }),
+    { scheduler: ctx.scheduler }
+  );
+  ctx.scheduler.notify(effect1);
+  const text2 = ctx.document.createTextNode('Click');
+  el0.appendChild(text2);
+  return [el0];
+}
+export function Parent(_props, ctx) {
+  const attrs = { title: 'Save' };
+  const cmp0 = createComponent(
+    mergeProps(attrs, { kind: 'primary', onClick$: component_q_e_click_segment_2 }),
+    (props) => Button(props, ctx),
+    { container: ctx }
+  );
+  return [...cmp0];
+}
+
+null
+============================= src/component.tsx_component_q_e_click_segment_2.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_2 = () => {
+  return 'clicked';
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    208,
+    234
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

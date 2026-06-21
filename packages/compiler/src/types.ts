@@ -78,7 +78,14 @@ export interface ComponentRecord {
 
 export interface SegmentRecord {
   id: string;
-  kind: 'function' | 'eventHandler' | 'jsxProp' | 'jsxText' | 'branchCondition' | 'branchRender';
+  kind:
+    | 'function'
+    | 'eventHandler'
+    | 'jsxProp'
+    | 'jsxSpreadProps'
+    | 'jsxText'
+    | 'branchCondition'
+    | 'branchRender';
   ctxName: string;
   range: SourceRange | null;
   calleeRange: SourceRange | null;
@@ -113,11 +120,14 @@ export interface SpecialReferenceRecord {
 
 export interface ParamRecord {
   name: string | null;
+  bindingRange: SourceRange | null;
+  defaultRange: SourceRange | null;
 }
 
 export interface ElementNode {
   kind: 'element';
   tag: string;
+  propsSegmentId: string | null;
   props: PropRecord[];
   children: RenderNode[];
 }
@@ -182,17 +192,35 @@ export type DynamicBinding =
       qrlSegmentId: string;
     };
 
-export interface PropRecord {
+export type PropRecord = NamedPropRecord | SpreadPropRecord;
+
+export interface NamedPropRecord {
+  kind: 'named';
   name: string;
   value: string | number | boolean | null;
+  expressionRange?: SourceRange;
   qrlSegmentId?: string;
   binding?: Extract<DynamicBinding, { kind: 'source' }>;
 }
 
-export interface ComponentPropRecord {
+export interface SpreadPropRecord {
+  kind: 'spread';
+  expressionRange: SourceRange;
+}
+
+export type ComponentPropRecord = ComponentNamedPropRecord | ComponentSpreadPropRecord;
+
+export interface ComponentNamedPropRecord {
+  kind: 'named';
   name: string;
   value?: string | number | boolean | null;
   expressionRange?: SourceRange;
+  qrlSegmentId?: string;
+}
+
+export interface ComponentSpreadPropRecord {
+  kind: 'spread';
+  expressionRange: SourceRange;
 }
 
 export type PipelineStage = (ctx: CompilerContext) => void | Promise<void>;

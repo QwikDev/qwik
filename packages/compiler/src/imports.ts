@@ -33,13 +33,22 @@ export function createSsrImports(
   qrlSegments: Map<string, QrlSegmentOutput>,
   usage: SsrImportUsage
 ) {
-  if (qrlSegments.size === 0 && !usage.hasDynamicBinding && !usage.hasComponent) {
+  if (
+    qrlSegments.size === 0 &&
+    !usage.hasDynamicBinding &&
+    !usage.hasComponent &&
+    !usage.hasDomProps &&
+    !usage.hasComponentPropsSpread
+  ) {
     return [];
   }
   const records: ImportRecord[] = [...imports];
   const sparkSpecifiers: QwikSymbol[] = [];
   if (usage.hasComponent) {
     sparkSpecifiers.push(QwikSymbol.CreateComponent);
+  }
+  if (usage.hasComponentPropsSpread) {
+    sparkSpecifiers.push(QwikSymbol.MergeProps);
   }
   if (qrlSegments.size > 0) {
     sparkSpecifiers.push(QwikSymbol.QrlWithChunk);
@@ -67,6 +76,9 @@ export function createSsrImports(
       QwikSymbol.RenderSsrStyle
     );
   }
+  if (usage.hasDomProps) {
+    sparkSpecifiers.push(QwikSymbol.CreateSsrElementTarget, QwikSymbol.RenderSsrProps);
+  }
   if (usage.hasBranch) {
     sparkSpecifiers.push(QwikSymbol.RenderSsrBranch);
   }
@@ -83,8 +95,10 @@ export interface SsrImportUsage {
   hasRangeText: boolean;
   hasTextExpression: boolean;
   hasDynamicAttr: boolean;
+  hasDomProps: boolean;
   hasBranch: boolean;
   hasComponent: boolean;
+  hasComponentPropsSpread: boolean;
 }
 
 export function createCsrImports(
@@ -92,7 +106,13 @@ export function createCsrImports(
   qrlSegments: Map<string, QrlSegmentOutput>,
   usage: CsrImportUsage
 ) {
-  if (qrlSegments.size === 0 && !usage.hasDynamicBinding && !usage.hasComponent) {
+  if (
+    qrlSegments.size === 0 &&
+    !usage.hasDynamicBinding &&
+    !usage.hasComponent &&
+    !usage.hasDomProps &&
+    !usage.hasComponentPropsSpread
+  ) {
     return [];
   }
   const records: ImportRecord[] = [...imports];
@@ -100,6 +120,9 @@ export function createCsrImports(
   const segmentImports: ImportRecord[] = [];
   if (usage.hasComponent) {
     sparkSpecifiers.push(QwikSymbol.CreateComponent);
+  }
+  if (usage.hasComponentPropsSpread) {
+    sparkSpecifiers.push(QwikSymbol.MergeProps);
   }
   if (usage.hasSourceText) {
     sparkSpecifiers.push(QwikSymbol.CreateTextNodeEffect);
@@ -114,8 +137,11 @@ export function createCsrImports(
       QwikSymbol.CreateStyleEffect
     );
   }
+  if (usage.hasDomProps) {
+    sparkSpecifiers.push(QwikSymbol.CreatePropsEffect);
+  }
   if (qrlSegments.size > 0) {
-    if (hasEventQrlSegment(qrlSegments)) {
+    if (usage.hasDirectEvent) {
       sparkSpecifiers.push(QwikSymbol.SetEvent);
     }
     if (hasCapturedQrlSegment(qrlSegments)) {
@@ -142,22 +168,16 @@ export interface CsrImportUsage {
   hasSourceText: boolean;
   hasTextExpression: boolean;
   hasDynamicAttr: boolean;
+  hasDomProps: boolean;
+  hasDirectEvent: boolean;
   hasBranch: boolean;
   hasComponent: boolean;
+  hasComponentPropsSpread: boolean;
 }
 
 function hasCapturedQrlSegment(qrlSegments: Map<string, QrlSegmentOutput>) {
   for (const qrlSegment of qrlSegments.values()) {
     if (qrlSegment.segment.captures.length > 0) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function hasEventQrlSegment(qrlSegments: Map<string, QrlSegmentOutput>) {
-  for (const qrlSegment of qrlSegments.values()) {
-    if (qrlSegment.segment.kind === 'eventHandler') {
       return true;
     }
   }

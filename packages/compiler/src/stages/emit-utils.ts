@@ -1,7 +1,7 @@
 import type {
   ComponentRecord,
   ImportRecord,
-  PropRecord,
+  NamedPropRecord,
   QrlSegmentOutput,
   RenderNode,
   SegmentRecord,
@@ -47,7 +47,7 @@ function emitNamedSpecifier(
   return `${specifier.importedName} as ${specifier.localName}`;
 }
 
-export function serializeAttrValue(value: PropRecord['value']): string | null {
+export function serializeAttrValue(value: NamedPropRecord['value']): string | null {
   if (value === false || value === null) {
     return null;
   }
@@ -81,6 +81,19 @@ export function emitComponentSetup(
     .join('\n');
 }
 
+export function emitComponentParamSetup(component: ComponentRecord, sourceCode: string): string {
+  const param = component.params[0];
+  if (!param || param.name !== null || param.bindingRange === null) {
+    return '';
+  }
+  const binding = sourceCode.slice(param.bindingRange[0], param.bindingRange[1]);
+  const fallback =
+    param.defaultRange !== null
+      ? ` ?? ${sourceCode.slice(param.defaultRange[0], param.defaultRange[1])}`
+      : '';
+  return `const ${binding} = _props${fallback};`;
+}
+
 export function emitSsrQrlPrelude(qrlSegments: Map<string, QrlSegmentOutput>): string {
   const lines: string[] = [];
   for (const qrlSegment of qrlSegments.values()) {
@@ -101,6 +114,7 @@ export function emitSsrQrlPrelude(qrlSegments: Map<string, QrlSegmentOutput>): s
 export function shouldResolveSsrQrl(qrlSegment: QrlSegmentOutput) {
   return (
     qrlSegment.segment.kind === 'jsxText' ||
+    qrlSegment.segment.kind === 'jsxSpreadProps' ||
     qrlSegment.segment.kind === 'branchCondition' ||
     isImplicitDollarSegment(qrlSegment.segment)
   );
@@ -114,6 +128,15 @@ export function hasCapturedQrlSegment(
     if (current.kind === 'element') {
       return current.props.some(
         (prop) =>
+          prop.kind === 'named' &&
+          prop.qrlSegmentId &&
+          (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
+      );
+    }
+    if (current.kind === 'component') {
+      return current.props.some(
+        (prop) =>
+          prop.kind === 'named' &&
           prop.qrlSegmentId &&
           (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
       );
@@ -138,8 +161,18 @@ export function hasDynamicBinding(node: RenderNode | null): boolean {
       current.kind === 'dynamicText' ||
       current.kind === 'branch' ||
       (current.kind === 'component' &&
-        current.props.some((prop) => prop.expressionRange !== undefined)) ||
-      (current.kind === 'element' && current.props.some((prop) => prop.binding))
+        current.props.some(
+          (prop) =>
+            prop.kind === 'spread' ||
+            prop.expressionRange !== undefined ||
+            prop.qrlSegmentId !== undefined
+        )) ||
+      (current.kind === 'element' &&
+        current.props.some(
+          (prop) =>
+            prop.kind === 'spread' ||
+            (prop.kind === 'named' && (prop.binding || prop.expressionRange !== undefined))
+        ))
   );
 }
 
@@ -168,8 +201,39 @@ export function hasSourceTextBinding(node: RenderNode | null): boolean {
 export function hasDynamicAttrBinding(node: RenderNode | null): boolean {
   return someRenderNode(
     node,
-    (current) => current.kind === 'element' && current.props.some((prop) => prop.binding)
+    (current) =>
+      current.kind === 'element' &&
+      current.props.some((prop) => prop.kind === 'named' && prop.binding)
   );
+}
+
+export function hasDomPropsBinding(node: RenderNode | null): boolean {
+  return someRenderNode(
+    node,
+    (current) => current.kind === 'element' && current.props.some((prop) => prop.kind === 'spread')
+  );
+}
+
+export function hasComponentPropsSpread(node: RenderNode | null): boolean {
+  return someRenderNode(
+    node,
+    (current) =>
+      current.kind === 'component' && current.props.some((prop) => prop.kind === 'spread')
+  );
+}
+
+export function hasDirectDomEvent(node: RenderNode | null): boolean {
+  return someRenderNode(
+    node,
+    (current) =>
+      current.kind === 'element' &&
+      !current.props.some((prop) => prop.kind === 'spread') &&
+      current.props.some((prop) => prop.kind === 'named' && prop.qrlSegmentId)
+  );
+}
+
+export function emitObjectGetterName(name: string): string {
+  return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) ? name : `[${JSON.stringify(name)}]`;
 }
 
 export function hasElementTextBinding(node: RenderNode | null): boolean {

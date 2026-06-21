@@ -15,16 +15,20 @@ describe('setEvent', () => {
     expect(element.setAttribute).not.toHaveBeenCalled();
   });
 
-  test('marks scoped event carriers for qwikloader', () => {
+  test('adds attrs for window and document event carriers', () => {
     const element = createElementTarget();
     const handler = vi.fn();
 
     setEvent(element, 'q-wp:scroll', handler);
+    setEvent(element, 'q-d:visibilitychange', handler);
 
     expect((element as QElement)._qDispatch?.['wp:scroll']).toBe(handler);
+    expect((element as QElement)._qDispatch?.['d:visibilitychange']).toBe(handler);
     expect(element.setAttribute).toHaveBeenCalledWith('q-wp:scroll', '');
+    expect(element.setAttribute).toHaveBeenCalledWith('q-d:visibilitychange', '');
     expect((element.ownerDocument.defaultView as unknown as qWindow)._qwikEv).toEqual([
       'wp:scroll',
+      'd:visibilitychange',
     ]);
   });
 });

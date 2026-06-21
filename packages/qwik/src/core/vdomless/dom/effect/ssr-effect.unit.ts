@@ -10,6 +10,7 @@ import {
   createSsrRangeTextTarget,
   renderSsrAttr,
   renderSsrClass,
+  renderSsrProps,
   renderSsrStyle,
   renderSsrTextExpression,
   renderSsrTextNode,
@@ -74,6 +75,36 @@ describe('SSR DOM effect helpers', () => {
     expect((styleSubscriber.effect as any).serializer).toBe(AttrSerializer.Style);
   });
 
+  it('renders spread DOM props without children and collects getter dependencies', () => {
+    const title = createSignal('hello');
+    const target = createSsrElementTarget(4);
+    const qrl = createQRL<DomPropsFn<[]>>(
+      './props.js',
+      'props',
+      () => ({
+        get title() {
+          return title.value;
+        },
+        className: { active: true },
+        children: '<span>ignored</span>',
+        dangerouslySetInnerHTML: '<b>html</b>',
+      }),
+      null,
+      null
+    );
+
+    const rendered = createOwned(() => renderSsrProps(target, [], qrl));
+    const subscriber = title.subs?.[0] as SsrDomSubscription;
+
+    expect(rendered).toEqual({
+      attrs: ' title="hello" class="active"',
+      innerHTML: '<b>html</b>',
+    });
+    expect(subscriber).toBeInstanceOf(SsrDomSubscription);
+    expect(subscriber.deps).toEqual([title]);
+    expect(subscriber.effect.kind).toBe(EffectKind.Props);
+  });
+
   it('creates element text targets with ids', () => {
     const target = createSsrElementTextTarget(3);
 
@@ -93,6 +124,10 @@ describe('SSR DOM effect helpers', () => {
     });
   });
 });
+
+type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
+  ...args: TArgs
+) => Record<string, unknown> | null | undefined;
 
 function createOwned<T>(run: () => T): T {
   return runWithOwner(createOwner(null), run);

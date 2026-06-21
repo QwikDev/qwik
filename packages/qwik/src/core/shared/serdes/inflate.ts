@@ -3,6 +3,7 @@ import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import { Branch, BranchRange, BranchSubscription } from '../../vdomless/dom/branch/branch';
 import {
   AttrEffect,
+  PropsEffect,
   SerializedAttrEffect,
   TextExpressionEffect,
   TextNodeEffect,
@@ -213,6 +214,10 @@ export const inflate = async (
           restoreSerializedAttrSubscription(container, target as Writeable<DomSubscriber>, parts);
           break;
         }
+        case EffectKind.Props: {
+          await restorePropsSubscription(container, target as Writeable<DomSubscriber>, parts);
+          break;
+        }
         default:
           throw qError(QError.serializeErrorNotImplemented, [kind]);
       }
@@ -323,6 +328,22 @@ function restoreSerializedAttrSubscription(
   const element = resolveElementTarget(container, target.targetKind, target.targetId);
 
   subscription.effect = new SerializedAttrEffect(element, source, parts[4] as any);
+  restoreDependencies(subscription, target.deps);
+}
+
+async function restorePropsSubscription(
+  container: ContainerContext,
+  subscription: Writeable<DomSubscriber>,
+  parts: unknown[]
+): Promise<void> {
+  const target = readDomSubscriptionTarget(parts);
+  const element = resolveElementTarget(container, target.targetKind, target.targetId);
+  const qrl = parts[target.depsIndex + 2] as QRLInternal<
+    (...args: unknown[]) => Record<string, unknown> | null | undefined
+  >;
+  const fn = await qrl.resolve();
+
+  subscription.effect = new PropsEffect(element, parts[target.depsIndex + 1] as unknown[], fn);
   restoreDependencies(subscription, target.deps);
 }
 

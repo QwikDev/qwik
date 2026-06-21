@@ -10,16 +10,22 @@ import { registerSubscriberToOwner } from '../../runtime/owner';
 import type { Owner } from '../../runtime/owner';
 import type { ClassList } from '../../../shared/jsx/types/jsx-qwik-attributes';
 import { serializeClass, stringifyStyle } from '../../../shared/utils/styles';
+import { renderDomPropsToString } from './dom-props';
 
 export type TextExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
   TextExpressionFn<TArgs>
 >;
+type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
+  ...args: TArgs
+) => Record<string, unknown> | null | undefined;
+export type DomPropsQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<DomPropsFn<TArgs>>;
 
 export type SsrDomEffect =
   | SsrTextExpressionEffect<any[]>
   | SsrTextNodeEffect
   | SsrAttrEffect
-  | SsrSerializedAttrEffect;
+  | SsrSerializedAttrEffect
+  | SsrPropsEffect<any[]>;
 
 export const enum EffectTargetKind {
   ElementText = 0,
@@ -83,6 +89,17 @@ export class SsrSerializedAttrEffect {
   ) {}
 }
 
+export class SsrPropsEffect<TArgs extends unknown[] = unknown[]> {
+  readonly kind = EffectKind.Props;
+  readonly phase = Phase.ScalarDom;
+
+  constructor(
+    readonly target: SsrEffectTarget,
+    readonly args: TArgs,
+    readonly qrl: DomPropsQrl<TArgs>
+  ) {}
+}
+
 export class SsrDomSubscription implements SsrDomSubscriber {
   readonly kind = SubscriberKind.Dom;
   owner: Owner | null = null;
@@ -117,6 +134,14 @@ export function createSsrSerializedAttrEffect(
   return registerSubscriberToOwner(
     new SsrDomSubscription(new SsrSerializedAttrEffect(target, serializer))
   );
+}
+
+export function createSsrPropsEffect<TArgs extends unknown[]>(
+  target: SsrEffectTarget,
+  args: TArgs,
+  qrl: DomPropsQrl<TArgs>
+): SsrDomSubscriber {
+  return registerSubscriberToOwner(new SsrDomSubscription(new SsrPropsEffect(target, args, qrl)));
 }
 
 export function createSsrElementTextTarget(id: number): SsrEffectTarget {
@@ -176,6 +201,22 @@ export function renderSsrStyle(target: SsrEffectTarget, source: Source): string 
   const subscriber = createSsrSerializedAttrEffect(target, AttrSerializer.Style);
   const value = runWithCollector(subscriber, readTrackedSourceValue, source);
   return stringifyStyle(value);
+}
+
+export function renderSsrProps<TArgs extends unknown[]>(
+  target: SsrEffectTarget,
+  args: TArgs,
+  qrl: DomPropsQrl<TArgs>,
+  eventAttr?: (name: string, value: unknown) => string
+) {
+  const subscriber = createSsrPropsEffect(target, args, qrl);
+  const fn = qrl.resolved;
+
+  if (fn === undefined) {
+    throw qrl.resolve();
+  }
+
+  return runWithCollector(subscriber, () => renderDomPropsToString(fn(...args), eventAttr));
 }
 
 function readTrackedSourceValue<T>(source: Source<T>): T {

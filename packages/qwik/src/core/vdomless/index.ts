@@ -105,6 +105,7 @@ export {
   type ComponentRenderFn,
   type ComponentRenderOutput,
 } from './component/component';
+export { mergeProps } from './component/props';
 
 export {
   Branch,
@@ -119,11 +120,13 @@ export {
   AttrSerializer,
   AttrEffect,
   DomSubscription,
+  PropsEffect,
   SerializedAttrEffect,
   TextExpressionEffect,
   TextNodeEffect,
   createAttrEffect,
   createClassEffect,
+  createPropsEffect,
   createStyleEffect,
   createTextExpressionEffect,
   createTextNodeEffect,
@@ -132,11 +135,13 @@ export {
   type TextExpressionFn,
   type TextExpressionValue,
 } from './dom/effect/effect';
+export { applyDomProps, normalizeDomProps, renderDomPropsToString } from './dom/effect/dom-props';
 export { setEvent } from './dom/event/event';
 export {
   EffectTargetKind,
   SsrAttrEffect,
   SsrDomSubscription,
+  SsrPropsEffect,
   SsrSerializedAttrEffect,
   SsrTextExpressionEffect,
   SsrTextNodeEffect,
@@ -144,14 +149,17 @@ export {
   createSsrElementTarget,
   createSsrElementTextTarget,
   createSsrRangeTextTarget,
+  createSsrPropsEffect,
   createSsrSerializedAttrEffect,
   createSsrTextExpressionEffect,
   createSsrTextNodeEffect,
   renderSsrAttr,
   renderSsrClass,
+  renderSsrProps,
   renderSsrStyle,
   renderSsrTextExpression,
   renderSsrTextNode,
+  type DomPropsQrl,
   type SsrDomEffect,
   type SsrEffectTarget,
   type TextExpressionQrl,

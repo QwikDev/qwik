@@ -10,8 +10,10 @@ import type {
 } from '../types';
 import { QwikSymbol } from '../words';
 import {
+  emitComponentParamSetup,
   emitComponentSetup,
   emitImports,
+  emitObjectGetterName,
   hasDynamicBinding,
   serializeAttrValue,
 } from './emit-utils';
@@ -80,6 +82,7 @@ function emitDomRenderer(
 ) {
   const emitter = new DomEmitter(qrlSegments, sourceCode);
   const root = component.root!;
+  emitter.raw(emitComponentParamSetup(component, sourceCode));
   emitter.raw(
     emitComponentSetup(
       component,
@@ -143,29 +146,42 @@ export class DomEmitter {
     if (node.kind === 'element') {
       const id = this.next('el');
       this.line(`const ${id} = ctx.document.createElement(${JSON.stringify(node.tag)});`);
-      for (const prop of node.props) {
-        if (prop.binding) {
-          const effectId = this.next('effect');
-          this.line(this.emitDynamicAttrEffect(effectId, id, prop));
-          this.line(`ctx.scheduler.notify(${effectId});`);
-          continue;
-        }
-        if (prop.qrlSegmentId) {
-          const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
-          if (qrlSegment) {
-            this.use(QwikSymbol.SetEvent);
-            this.importSegment(qrlSegment);
-            this.line(
-              `${QwikSymbol.SetEvent}(${id}, ${JSON.stringify(prop.name)}, ${this.emitEventHandler(
-                qrlSegment
-              )});`
-            );
+      if (hasDomProps(node.props)) {
+        const effectId = this.next('effect');
+        this.use(QwikSymbol.CreatePropsEffect);
+        const propsExpression = this.emitDomPropsExpression(node.props);
+        this.line(
+          `const ${effectId} = ${QwikSymbol.CreatePropsEffect}(${id}, [], () => (${propsExpression}), { scheduler: ctx.scheduler });`
+        );
+        this.line(`ctx.scheduler.notify(${effectId});`);
+      } else {
+        for (const prop of node.props) {
+          if (prop.kind !== 'named') {
+            continue;
           }
-          continue;
-        }
-        const attr = serializeAttrValue(prop.value);
-        if (attr !== null) {
-          this.line(`${id}.setAttribute(${JSON.stringify(prop.name)}, ${JSON.stringify(attr)});`);
+          if (prop.binding) {
+            const effectId = this.next('effect');
+            this.line(this.emitDynamicAttrEffect(effectId, id, prop));
+            this.line(`ctx.scheduler.notify(${effectId});`);
+            continue;
+          }
+          if (prop.qrlSegmentId) {
+            const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
+            if (qrlSegment) {
+              this.use(QwikSymbol.SetEvent);
+              this.importSegment(qrlSegment);
+              this.line(
+                `${QwikSymbol.SetEvent}(${id}, ${JSON.stringify(prop.name)}, ${this.emitEventHandler(
+                  qrlSegment
+                )});`
+              );
+            }
+            continue;
+          }
+          const attr = serializeAttrValue(prop.value);
+          if (attr !== null) {
+            this.line(`${id}.setAttribute(${JSON.stringify(prop.name)}, ${JSON.stringify(attr)});`);
+          }
         }
       }
       for (const child of node.children) {
@@ -200,19 +216,85 @@ export class DomEmitter {
     props: ComponentPropRecord[],
     children: readonly RenderNode[]
   ): string {
-    const entries = props.map((prop) => {
-      if (prop.expressionRange !== undefined) {
-        const value = this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
-        return `get ${JSON.stringify(prop.name)}() { return ${value}; }`;
-      }
-      return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
-    });
+    const entries: string[] = [];
     if (children.length > 0) {
       entries.push(
         `${JSON.stringify('children')}: [${emitReturnItems(children.flatMap((child) => this.emitRoot(child))).join(', ')}]`
       );
     }
+    if (!props.some((prop) => prop.kind === 'spread')) {
+      const propEntries = props.map((prop) => this.emitComponentPropEntry(prop));
+      return [...propEntries, ...entries].length === 0
+        ? '{}'
+        : `{ ${[...propEntries, ...entries].join(', ')} }`;
+    }
+
+    const sources: string[] = [];
+    let currentEntries: string[] = [];
+    const flushEntries = () => {
+      if (currentEntries.length > 0) {
+        sources.push(`{ ${currentEntries.join(', ')} }`);
+        currentEntries = [];
+      }
+    };
+
+    for (const prop of props) {
+      if (prop.kind === 'spread') {
+        flushEntries();
+        sources.push(
+          `(${this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1])})`
+        );
+      } else {
+        currentEntries.push(this.emitComponentPropEntry(prop));
+      }
+    }
+    currentEntries.push(...entries);
+    flushEntries();
+    this.use(QwikSymbol.MergeProps);
+    return sources.length === 0 ? '{}' : `${QwikSymbol.MergeProps}(${sources.join(', ')})`;
+  }
+
+  private emitComponentPropEntry(prop: ComponentPropRecord): string {
+    if (prop.kind === 'spread') {
+      throw new Error('Component spread props are emitted as mergeProps sources.');
+    }
+    if (prop.qrlSegmentId) {
+      const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
+      if (qrlSegment) {
+        this.importSegment(qrlSegment);
+        return `${JSON.stringify(prop.name)}: ${this.emitEventHandler(qrlSegment)}`;
+      }
+    }
+    if (prop.expressionRange !== undefined) {
+      const value = this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
+      return `get ${emitObjectGetterName(prop.name)}() { return ${value}; }`;
+    }
+    return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
+  }
+
+  private emitDomPropsExpression(props: PropRecord[]): string {
+    const entries = props.map((prop) => {
+      if (prop.kind === 'spread') {
+        return `...(${this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1])})`;
+      }
+      return this.emitDomPropEntry(prop);
+    });
     return entries.length === 0 ? '{}' : `{ ${entries.join(', ')} }`;
+  }
+
+  private emitDomPropEntry(prop: Extract<PropRecord, { kind: 'named' }>): string {
+    if (prop.qrlSegmentId) {
+      const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
+      if (qrlSegment) {
+        this.importSegment(qrlSegment);
+        return `${JSON.stringify(prop.name)}: ${this.emitEventHandler(qrlSegment)}`;
+      }
+    }
+    if (prop.expressionRange !== undefined) {
+      const value = this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
+      return `get ${emitObjectGetterName(prop.name)}() { return ${value}; }`;
+    }
+    return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
   }
 
   private appendChild(parent: string, child: DomOutput): void {
@@ -287,6 +369,9 @@ export class DomEmitter {
   }
 
   private emitDynamicAttrEffect(effectId: string, elementId: string, prop: PropRecord): string {
+    if (prop.kind !== 'named') {
+      throw new Error('Dynamic attribute effects require named props.');
+    }
     const sourceName = prop.binding!.sourceName;
     if (prop.name === 'class') {
       this.use(QwikSymbol.CreateClassEffect);
@@ -333,4 +418,8 @@ export class DomEmitter {
 
 export function emitReturnItems(outputs: readonly DomOutput[]): string[] {
   return outputs.map((output) => (output.kind === 'nodes' ? `...${output.id}` : output.id));
+}
+
+function hasDomProps(props: readonly PropRecord[]): boolean {
+  return props.some((prop) => prop.kind === 'spread');
 }

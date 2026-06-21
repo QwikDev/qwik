@@ -798,6 +798,86 @@ describe('ErrorBoundary concurrent fallback teardown (experimental)', () => {
   });
 });
 
+// SSR error in one phase meeting a client re-render in the next. `store.error` is the bridge; the
+// SSR two-host structure must reconcile cleanly when the boundary re-renders on the client.
+describe('ErrorBoundary SSR→CSR cross-phase (experimental)', () => {
+  it('D2 SSR inner error, then a client throw to the OUTER boundary replaces the whole subtree', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb-outer">outer: {e.message}</p>
+          ))}
+        >
+          <button id="outer-btn">x</button>
+          <ErrorBoundary
+            fallback$={$((e: any) => (
+              <p id="fb-inner">inner: {e.message}</p>
+            ))}
+          >
+            <Thrower />
+          </ErrorBoundary>
+        </ErrorBoundary>
+      </main>,
+      { streaming: { inOrder: { strategy: 'disabled' }, outOfOrder: true }, debug }
+    );
+    const el = container.element;
+    // SSR: the inner boundary caught; its fallback shows, the outer subtree is intact.
+    expect(el.querySelector('#fb-inner')?.textContent).toContain('inner: boom');
+    expect(el.querySelector('#fb-outer')).toBeFalsy();
+    expect(el.querySelector('#outer-btn')).toBeTruthy();
+
+    // Client: a throw attributed to an element in the OUTER subtree (outside the inner boundary) →
+    // routes to the outer boundary (distinct store), which re-renders to its own fallback.
+    const target = el.querySelector('#outer-btn')!;
+    dispatchQError(target, { error: new Error('outer boom'), element: target });
+    await waitForDrain(container);
+
+    // The outer fallback replaced the whole subtree, including the inner boundary's fallback.
+    expect(el.querySelector('#fb-outer')?.textContent).toContain('outer: outer boom');
+    expect(el.querySelector('#fb-inner')).toBeFalsy();
+    expect(el.querySelector('#outer-btn')).toBeFalsy();
+  });
+
+  it('D3(in-order) an in-order two-host collapses cleanly when a client-first error re-renders the boundary (no Missing child)', async () => {
+    // The in-order analog of the OOOS post-resume collapse test above: the SSR `q:ebc`/`q:ebf`
+    // two-host must reconcile down to the single client fallback Fragment without a "Missing
+    // child"/key mismatch. (Strict D3 — an *already SSR-errored* boundary collapsing on a later
+    // BENIGN re-render — isn't reachable in Phase 1: a pre-errored boundary has no re-render trigger
+    // and a 2nd error escalates past it; that benign-collapse path arrives with `reset()` in Phase 2.)
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {String(e?.message ?? e)}</p>
+          ))}
+        >
+          <button id="content-btn">x</button>
+          <div id="content">content ok</div>
+        </ErrorBoundary>
+      </main>,
+      { streaming: { outOfOrder: false }, debug }
+    );
+    const el = container.element;
+    // SSR in-order happy path: content visible in the content-host, no fallback yet.
+    expect(el.querySelector('#content')?.textContent).toBe('content ok');
+    expect(el.querySelector('#fb')).toBeFalsy();
+    expect((el.querySelector('[q\\:ebc]') as HTMLElement).style.display).toBe('contents');
+
+    // A client-time error re-renders the boundary to its keyless fallback Fragment.
+    const target = el.querySelector('#content-btn')!;
+    dispatchQError(target, { error: new Error('client boom'), element: target });
+    await waitForDrain(container);
+
+    // The in-order two-host (q:ebc/q:ebf) collapsed to a single clean fallback — no leftover hosts.
+    expect(el.querySelectorAll('#fb').length).toBe(1);
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: client boom');
+    expect(el.querySelector('#content')).toBeFalsy();
+    expect(el.querySelector('[q\\:ebc]')).toBeFalsy();
+    expect(el.querySelector('[q\\:ebf]')).toBeFalsy();
+  });
+});
+
 describe('ErrorBoundary across multiple containers on one document', () => {
   // Two resumed containers share one document; each `qerror` listener is guarded by
   // `element.contains(source)`, so only the owning container reacts.

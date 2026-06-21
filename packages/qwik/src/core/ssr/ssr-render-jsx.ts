@@ -169,7 +169,7 @@ function renderErrorBoundaryFallback(
   errorStore.error = toSerializableBoundaryError(err);
   if (isFirstCatch) {
     // onError$ gets the ORIGINAL error, once, at the catch point (before any serializable projection).
-    fireOnError(errorStore, err);
+    fireOnError(errorStore.$onError$, err);
   }
   // The swapped-out content is dead: make it inert so the client doesn't resume its tasks/signals.
   if (__EXPERIMENTAL__.errorBoundary && errorStore.$contentHostNode$) {

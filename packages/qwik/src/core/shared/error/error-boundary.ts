@@ -45,7 +45,8 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   // QRL and drop its serialized prop.
   const fallbackQrl = props.fallback$;
   store.$fallback$ = noSerialize((error: any) => fallbackQrl(error));
-  // Serialized (not `noSerialize`d) so a post-resume client throw can still fire it via `handleError`.
+  // Server-only: fires onError$ from the SSR catch. `$`-store fields aren't serialized, so the
+  // client reads `props.onError$` (serialized) in `handleError` for a post-resume throw.
   store.$onError$ = props.onError$;
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;

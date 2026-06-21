@@ -10,8 +10,9 @@ export interface ErrorBoundaryStore {
   /** Server-only fallback renderer; the client re-renders with `props.fallback$` instead. Internal. */
   $fallback$?: (error: any) => unknown;
   /**
-   * The boundary's optional `onError$` side-effect. Serialized (unlike `$fallback$`) so the client
-   * `handleError` path can fire it for a post-resume throw, not just the SSR catch.
+   * Server-only `onError$` side-effect for the SSR catch path. `$`-prefixed store fields are NOT
+   * serialized, so the client cannot read this after resume — `handleError` fires `props.onError$`
+   * (which IS serialized) from the boundary host instead.
    */
   $onError$?: QRL<(error: unknown) => void>;
   /**
@@ -51,13 +52,15 @@ export const toSerializableBoundaryError = (err: unknown): unknown => {
 };
 
 /**
- * Fire the boundary's `onError$` side-effect with the ORIGINAL error (not the serialized
- * projection). Pure side-effect: it must never affect rendering, so it is fire-and-forget and its
- * own failure is logged rather than propagated. Call only at the catch point, guarded so it fires
- * once per error.
+ * Fire a boundary's `onError$` side-effect with the ORIGINAL error (not the serialized projection).
+ * `onError` is the server-only `store.$onError$` (SSR catch) or the resumed `props.onError$` QRL
+ * (client catch). Pure side-effect: fire-and-forget, its own failure is logged not propagated;
+ * never affects rendering. Call only at the catch point, guarded so it fires once per error.
  */
-export const fireOnError = (store: ErrorBoundaryStore, error: unknown): void => {
-  const onError = store.$onError$;
+export const fireOnError = (
+  onError: ((error: unknown) => unknown) | undefined | null,
+  error: unknown
+): void => {
   if (!onError) {
     return;
   }

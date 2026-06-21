@@ -414,7 +414,7 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           store.error = toSerializableBoundaryError(error);
           if (isFirstCatch) {
             // Case c (deferred throw): this is the catch point — fire onError$ once, original error.
-            fireOnError(store, error);
+            fireOnError(store.$onError$, error);
           }
           // Stay detached so a throw from the fallback itself propagates instead of re-rendering it.
           store.$fallback$ = undefined;

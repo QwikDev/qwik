@@ -112,6 +112,7 @@ import { preloaderPost, preloaderPre } from './preload-impl';
 import {
   getQwikBackpatchExecutorScript,
   getQwikLoaderScript,
+  getQwikErrorSwapExecutorScript,
   getQwikOutOfOrderExecutorScript,
 } from './scripts';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
@@ -297,6 +298,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private styleIds = new Set<string>();
   private isBackpatchExecutorEmitted = false;
   private isOutOfOrderExecutorEmitted = false;
+  private isErrorSwapExecutorEmitted = false;
   private backpatchMap = new Map<number | string, BackpatchEntry[]>();
 
   private currentElementFrame: ElementFrame | null = null;
@@ -1487,6 +1489,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     );
   }
 
+  emitErrorSwapExecutorIfNeeded(): void {
+    // Gated on `errorBoundary` only (NOT `outOfOrderUsed`): a plain in-order SSR error must swap
+    // even on a page with no Suspense/OOOS. Install once, just before the first `qErr(id)` parses.
+    if (!__EXPERIMENTAL__.errorBoundary || this.isErrorSwapExecutorEmitted) {
+      return;
+    }
+    this.isErrorSwapExecutorEmitted = true;
+    this.writeScript(
+      { type: 'text/javascript', nonce: this.renderOptions.serverData?.nonce },
+      getQwikErrorSwapExecutorScript({ debug: isDev })
+    );
+  }
+
   emitInlineScript(script: string): void {
     const scriptAttrs: Record<string, string> = { type: 'text/javascript' };
     if (this.renderOptions.serverData?.nonce) {
@@ -1906,6 +1921,11 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
 
   override emitOutOfOrderExecutorIfNeeded(): void {
     this.$rootContainer$.emitOutOfOrderExecutorIfNeeded();
+  }
+
+  override emitErrorSwapExecutorIfNeeded(): void {
+    // A boundary buffered inside a Suspense segment installs the swap executor once, at the root.
+    this.$rootContainer$.emitErrorSwapExecutorIfNeeded();
   }
 
   $recordExternalRootEffect$(

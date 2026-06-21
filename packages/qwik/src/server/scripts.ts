@@ -8,6 +8,9 @@ const QWIK_OUT_OF_ORDER_EXECUTOR_MINIFIED: string = (globalThis as any)
   .QWIK_OUT_OF_ORDER_EXECUTOR_MINIFIED;
 const QWIK_OUT_OF_ORDER_EXECUTOR_DEBUG: string = (globalThis as any)
   .QWIK_OUT_OF_ORDER_EXECUTOR_DEBUG;
+const QWIK_ERROR_SWAP_EXECUTOR_MINIFIED: string = (globalThis as any)
+  .QWIK_ERROR_SWAP_EXECUTOR_MINIFIED;
+const QWIK_ERROR_SWAP_EXECUTOR_DEBUG: string = (globalThis as any).QWIK_ERROR_SWAP_EXECUTOR_DEBUG;
 
 /**
  * Provides the `qwikloader.js` file as a string. Useful for tooling to inline the qwikloader script
@@ -53,4 +56,18 @@ export function getQwikOutOfOrderExecutorScript(opts: { debug?: boolean } = {}) 
   // whole executor so multiple streamed containers can include it without redeclaring
   // top-level consts; the first installed executor services every container.
   return `if(!globalThis.qO||globalThis.qO.d!==document){${script}}`;
+}
+
+/**
+ * The ErrorBoundary swap executor. Unlike {@link getQwikOutOfOrderExecutorScript} this is gated on
+ * `errorBoundary` (NOT `suspense`): a plain in-order SSR error must swap even with no
+ * Suspense/OOOS.
+ */
+export function getQwikErrorSwapExecutorScript(opts: { debug?: boolean } = {}) {
+  if (!__EXPERIMENTAL__.errorBoundary) {
+    return '';
+  }
+  const script = opts.debug ? QWIK_ERROR_SWAP_EXECUTOR_DEBUG : QWIK_ERROR_SWAP_EXECUTOR_MINIFIED;
+  // Wrapped like the OOOS executor so multiple containers can include it without redeclaring consts.
+  return `if(!globalThis.qErr||globalThis.qErr.d!==document){${script}}`;
 }

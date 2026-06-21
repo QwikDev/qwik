@@ -183,6 +183,7 @@ export interface SSRContainer extends Container {
   ): Promise<SSROutOfOrderSegment>;
   queueOutOfOrderSegment(segment: Promise<void>): void;
   emitOutOfOrderExecutorIfNeeded(): void;
+  emitErrorSwapExecutorIfNeeded(): void;
   emitInlineScript(script: string): void;
   writeScript(attrs: Props, body?: string): void;
 

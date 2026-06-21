@@ -20,6 +20,13 @@ export async function submoduleBackpatch(config: BuildConfig) {
     label: 'out-of-order-executor',
   });
 
+  await buildExecutor(config, {
+    entry: 'error-swap-executor.ts',
+    debugFile: 'error-swap-executor.debug.js',
+    minifiedFile: 'error-swap-executor.js',
+    label: 'error-swap-executor',
+  });
+
   await generateBackpatchSubmodule(config);
 }
 
@@ -78,6 +85,14 @@ export async function inlineBackpatchScriptsEsBuild(config: BuildConfig) {
   define['globalThis.QWIK_OUT_OF_ORDER_EXECUTOR_DEBUG'] = await getLoaderJsonString(
     config,
     'out-of-order-executor.debug.js'
+  );
+  define['globalThis.QWIK_ERROR_SWAP_EXECUTOR_MINIFIED'] = await getLoaderJsonString(
+    config,
+    'error-swap-executor.js'
+  );
+  define['globalThis.QWIK_ERROR_SWAP_EXECUTOR_DEBUG'] = await getLoaderJsonString(
+    config,
+    'error-swap-executor.debug.js'
   );
 
   return define;

@@ -132,18 +132,26 @@ describe('ErrorBoundary', () => {
     expect(container.element.querySelector('#fb')).toBeFalsy();
   });
 
-  it('SSR: renders the fallback in place when a child throws during render', async () => {
+  it('SSR: shows the fallback and swaps the content out when a child throws during render', async () => {
+    // The redesign never leaves the errored content visible: it streams the fallback into the sibling
+    // host and hides the content-host (a swap, not "rendered in place").
     const { container } = await ssrRenderToDom(
       <ErrorBoundary
         fallback$={$((e: any) => (
           <p id="fb">caught: {e.message}</p>
         ))}
       >
+        <div id="content">content</div>
         <Thrower />
       </ErrorBoundary>,
-      { debug }
+      { debug, streaming: { outOfOrder: false } }
     );
-    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+    const el = container.element;
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
+    // The partial content sits (closed, well-formed) inside the hidden content-host — swapped out.
+    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+    expect(contentHost.style.display).toBe('none');
+    expect(contentHost.contains(el.querySelector('#content'))).toBe(true);
   });
 
   it('client: a render throw is caught by the NEAREST boundary', async () => {
@@ -1583,8 +1591,8 @@ describe('ErrorBoundary catches task throws', () => {
   });
 
   describe('in-order SSR (ssrRenderToDom)', () => {
-    // Intuitive-correct expectation: an eager useTask$ throw during SSR is caught by the enclosing
-    // boundary and the fallback rendered in place, mirroring the synchronous render-throw path.
+    // An eager useTask$ throw during SSR is caught by the enclosing boundary and swaps in the fallback
+    // (content-host hidden), mirroring the synchronous render-throw path.
     it('a useTask$ throw is caught by the nearest <ErrorBoundary>', async () => {
       const ThrowingTask = component$(() => {
         useTask$(() => {

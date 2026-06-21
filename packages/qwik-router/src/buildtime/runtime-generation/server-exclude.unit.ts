@@ -1,16 +1,11 @@
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { init } from 'es-module-lexer';
 import { assert, beforeAll, describe, test } from 'vitest';
 import type { BuiltRoute, RoutingContext } from '../types';
 import { getServerExcludedRoutes, isServerFreeSource } from './server-exclude';
 
 describe('server-exclude: isServerFreeSource', () => {
-  beforeAll(async () => {
-    await init;
-  });
-
   test('a plain component module is server-free', () => {
     assert.isTrue(isServerFreeSource(`export default () => null;\nexport const head = {};`));
   });
@@ -82,7 +77,6 @@ describe('server-exclude: getServerExcludedRoutes', () => {
   };
 
   beforeAll(async () => {
-    await init;
     dir = await mkdtemp(join(tmpdir(), 'qwik-server-exclude-'));
     for (const rel of Object.values(routeNames)) {
       await mkdir(join(dir, rel, '..'), { recursive: true });

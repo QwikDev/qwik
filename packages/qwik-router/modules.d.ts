@@ -17,7 +17,7 @@ declare module '@qwik-router-config' {
   export default defaultExport;
 }
 
-declare module '@qwik-router-config?ssr' {
+declare module '@qwik-router-config-ssr' {
   export * from '@qwik-router-config';
   export { default } from '@qwik-router-config';
 }

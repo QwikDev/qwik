@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { init, parse } from 'es-module-lexer';
+import { findExports, findStaticImports } from 'mlly';
 import { createRouteTester } from '../../ssg/routes';
 import { isMarkdownExt, isPageExt } from '../../utils/fs';
 import type { RouteModule } from '../../runtime/src/types';
@@ -30,22 +30,21 @@ const SERVER_QRL = /\b(?:routeLoader|routeAction|globalAction|server)(?:\$|Qrl)/
 
 /**
  * True when the module exports no non-GET handler and imports no loader/action/server$ from the
- * router. Pure (no I/O) for direct unit testing; caller must `await init` first.
+ * router. Pure (no I/O) for direct unit testing.
  */
 export function isServerFreeSource(code: string): boolean {
-  const [imports, exports] = parse(code);
-  for (const e of exports) {
-    if (NON_GET_HANDLERS.has(e.n)) {
+  for (const e of findExports(code)) {
+    // Re-exports could surface a loader/action/handler from elsewhere — keep the route (fail-safe).
+    if (e.specifier) {
+      return false;
+    }
+    const names = [...(e.name ? [e.name] : []), ...(e.names ?? [])];
+    if (names.some((n) => NON_GET_HANDLERS.has(n))) {
       return false;
     }
   }
-  for (const imp of imports) {
-    const statement = code.slice(imp.ss, imp.se);
-    // Re-exports could surface a loader/action/handler from elsewhere — keep the route (fail-safe).
-    if (/^\s*export\b/.test(statement)) {
-      return false;
-    }
-    if (imp.n === ROUTER_MODULE && SERVER_QRL.test(statement)) {
+  for (const imp of findStaticImports(code)) {
+    if (imp.specifier === ROUTER_MODULE && SERVER_QRL.test(imp.code)) {
       return false;
     }
   }
@@ -68,7 +67,6 @@ export async function getServerExcludedRoutes(
     return excluded;
   }
   const isPrerendered = createRouteTester(ctx.opts.basePathname, ssg.include, ssg.exclude);
-  await init;
   // Layouts are shared across routes, so memoize per file. Caching the in-flight promise (sync
   // get/set) dedupes concurrent checks of the same layout to one read+lex.
   const serverFreeByFile = new Map<string, Promise<boolean>>();

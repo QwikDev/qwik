@@ -1,5 +1,7 @@
 import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
+import { logError } from '../utils/log';
+import type { QRL } from '../qrl/qrl.public';
 import type { ISsrNode } from '../../ssr/ssr-types';
 
 /** @internal */
@@ -7,6 +9,11 @@ export interface ErrorBoundaryStore {
   error: any | undefined;
   /** Server-only fallback renderer; the client re-renders with `props.fallback$` instead. Internal. */
   $fallback$?: (error: any) => unknown;
+  /**
+   * The boundary's optional `onError$` side-effect. Serialized (unlike `$fallback$`) so the client
+   * `handleError` path can fire it for a post-resume throw, not just the SSR catch.
+   */
+  $onError$?: QRL<(error: unknown) => void>;
   /**
    * Server-only; streams `fallback$` as an out-of-order segment and swaps it into the fallback
    * host.
@@ -41,4 +48,22 @@ export const toSerializableBoundaryError = (err: unknown): unknown => {
   }
   const rawMessage = (err as { message?: unknown })?.message;
   return new Error(typeof rawMessage === 'string' ? rawMessage : String(err));
+};
+
+/**
+ * Fire the boundary's `onError$` side-effect with the ORIGINAL error (not the serialized
+ * projection). Pure side-effect: it must never affect rendering, so it is fire-and-forget and its
+ * own failure is logged rather than propagated. Call only at the catch point, guarded so it fires
+ * once per error.
+ */
+export const fireOnError = (store: ErrorBoundaryStore, error: unknown): void => {
+  const onError = store.$onError$;
+  if (!onError) {
+    return;
+  }
+  try {
+    Promise.resolve(onError(error)).catch(logError);
+  } catch (e) {
+    logError(e);
+  }
 };

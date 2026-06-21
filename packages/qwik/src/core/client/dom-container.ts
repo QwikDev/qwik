@@ -6,6 +6,7 @@ import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import {
   ERROR_CONTEXT,
+  fireOnError,
   isRecoverable,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
@@ -287,6 +288,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         // A real boundary, not yet errored: show its fallback. An OOOS/resumed boundary never
         // subscribed to `store.error`, so the write alone won't re-render it — mark it explicitly.
         store.error = err;
+        // Fire onError$ once, at the catch point (post-resume client throw).
+        fireOnError(store, err);
         markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
         return;
       }

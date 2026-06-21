@@ -223,6 +223,28 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <span id="eb-client-touched">{touched.value}</span>
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
+      ) : scenario === 'onerror' ? (
+        // No SSR error; a client-time throw is caught AND the optional `onError$` side-effect fires
+        // once (recorded on `window` so the test can assert it ran exactly once).
+        <ErrorBoundary
+          fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}
+          onError$={(e) => {
+            (window as any).__ebOnErrorRuns = ((window as any).__ebOnErrorRuns ?? 0) + 1;
+            (window as any).__ebOnErrorMsg = (e as any)?.message ?? String(e);
+          }}
+        >
+          <button
+            id="eb-onerror-throw"
+            onClick$={() => {
+              touched.value++;
+              throw new Error('onerror boom');
+            }}
+          >
+            throw on click
+          </button>
+          <span id="eb-onerror-touched">{touched.value}</span>
+          <div id="eb-content">content ok</div>
+        </ErrorBoundary>
       ) : (
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <EbContent />

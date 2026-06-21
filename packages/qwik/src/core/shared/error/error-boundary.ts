@@ -20,6 +20,8 @@ import type { ErrorBoundaryStore } from './error-handling';
 export interface ErrorBoundaryProps {
   /** Rendered in place of the subtree when a descendant throws; lazily loaded, receives the error. */
   fallback$: QRL<(error: any) => any>;
+  /** Optional side-effect (logging/telemetry) fired once per caught error; never affects rendering. */
+  onError$?: QRL<(error: unknown) => void>;
 }
 
 // Core isn't run through the optimizer, so ErrorBoundary is hand-built with `inlinedQrl` (symbol
@@ -43,6 +45,8 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   // QRL and drop its serialized prop.
   const fallbackQrl = props.fallback$;
   store.$fallback$ = noSerialize((error: any) => fallbackQrl(error));
+  // Serialized (not `noSerialize`d) so a post-resume client throw can still fire it via `handleError`.
+  store.$onError$ = props.onError$;
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {

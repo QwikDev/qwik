@@ -503,6 +503,7 @@ export const ErrorBoundary: Component<ErrorBoundaryProps>;
 // @public (undocumented)
 export interface ErrorBoundaryProps {
     fallback$: QRL<(error: any) => any>;
+    onError$?: QRL<(error: unknown) => void>;
 }
 
 // @public (undocumented)

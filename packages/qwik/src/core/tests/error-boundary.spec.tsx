@@ -1773,3 +1773,68 @@ describe('ErrorBoundary: falsy thrown values', () => {
     expect(fallbackHost?.style?.display).toBe('contents');
   });
 });
+
+describe('ErrorBoundary onError$', () => {
+  // Captured by the `onError$` QRL below; an object ref survives `$()` capture (a primitive `let`
+  // would be frozen to its initial value).
+  const onErrorLog: { errors: unknown[] } = { errors: [] };
+
+  it('fires once with the caught error and does not affect rendering (CSR)', async () => {
+    onErrorLog.errors = [];
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+        onError$={$((e: any) => {
+          onErrorLog.errors.push(e instanceof Error ? e.message : e);
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await waitForDrain(container);
+    await getTestPlatform().flush();
+
+    // Rendering is unaffected: the fallback still shows.
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+    // Side-effect fired exactly once, with the caught error.
+    expect(onErrorLog.errors).toEqual(['boom']);
+  });
+
+  it('is optional: a boundary without onError$ still catches', async () => {
+    const { container } = await domRender(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+      >
+        <Thrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await waitForDrain(container);
+    expect(container.element.querySelector('#fb')?.textContent).toContain('caught: boom');
+  });
+
+  it('fires once for an SSR-caught throw (server side)', async () => {
+    onErrorLog.errors = [];
+    await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+        onError$={$((e: any) => {
+          onErrorLog.errors.push(e instanceof Error ? e.message : e);
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>,
+      { debug }
+    );
+    await getTestPlatform().flush();
+    await delay(0);
+    expect(onErrorLog.errors).toEqual(['boom']);
+  });
+});

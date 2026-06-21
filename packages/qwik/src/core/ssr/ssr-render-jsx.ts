@@ -50,6 +50,7 @@ import {
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import {
   ERROR_CONTEXT,
+  fireOnError,
   isRecoverable,
   toSerializableBoundaryError,
   type ErrorBoundaryStore,
@@ -164,7 +165,12 @@ function renderErrorBoundaryFallback(
   // The boundary never blocks streaming: just mark the error and render nothing in place. Its sibling
   // fallback-host delivers the fallback (in-order inline + `qErr`, or out-of-order via segment + `qO`)
   // and swaps the content-host out.
+  const isFirstCatch = errorStore.error === undefined;
   errorStore.error = toSerializableBoundaryError(err);
+  if (isFirstCatch) {
+    // onError$ gets the ORIGINAL error, once, at the catch point (before any serializable projection).
+    fireOnError(errorStore, err);
+  }
   // The swapped-out content is dead: make it inert so the client doesn't resume its tasks/signals.
   if (__EXPERIMENTAL__.errorBoundary && errorStore.$contentHostNode$) {
     markErrorBoundaryContentInert(ssr, errorStore.$contentHostNode$);

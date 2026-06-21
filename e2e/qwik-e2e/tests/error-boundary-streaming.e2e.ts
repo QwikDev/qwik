@@ -210,6 +210,22 @@ test.describe('ErrorBoundary streaming swap', () => {
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });
 
+  // onError$ side-effect: a client-time throw is caught AND `onError$` fires exactly once with the
+  // error, without affecting the rendered fallback.
+  test('onError$ fires once with the error on a client-time throw', async ({ page }) => {
+    // The intentional throw may log; we only assert the boundary recovers and onError$ ran.
+    await page.goto('/e2e/error-boundary-streaming?scenario=onerror', { waitUntil: 'commit' });
+
+    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
+    await page.locator('#eb-onerror-throw').click();
+
+    // The boundary catches and shows its fallback...
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    // ...and onError$ ran exactly once with the caught error.
+    await page.waitForFunction(() => (window as any).__ebOnErrorRuns === 1);
+    expect(await page.evaluate(() => (window as any).__ebOnErrorMsg)).toBe('onerror boom');
+  });
+
   // D2 cross-phase: the inner boundary errors on SSR (its fallback resumes). A later client throw
   // from a sibling of the inner boundary routes to the OUTER boundary, whose fallback replaces the
   // whole subtree — including the inner fallback — and stays interactive.

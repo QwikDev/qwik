@@ -92,10 +92,12 @@ export default component$(() => {
 
 ### Signaling failure from a loader
 
-Loaders signal failure two ways. Both put the signal into error state with `signal.error` set to a `ServerError` carrying `.status` (HTTP status) and `.data` (the payload):
+Loaders signal failure two ways:
 
-- **`return requestEvent.fail(status, data)`** — return a tagged failure. `signal.error.data` is `{ failed: true, ...data }`.
-- **`throw requestEvent.error(status, data)`** — throw a `ServerError` directly. `signal.error.data` is `data`.
+- **`throw requestEvent.error(status, data)`** — throw a `ServerError` directly. `signal.error` is `ServerError {status, data}`. Reading `signal.value` re-throws the error, so you should branch on `signal.error` first. This is the recommended way to signal failure from a loader.
+- **`return requestEvent.fail(status, data)`** — returns an inline failure. `signal.value.failed` is `true` and `signal.value` contains the rest of the data.
+
+In both cases, the HTTP response status is set to `status`, and the result is not cacheable.
 
 ## Multiple `routeLoader$`s
 

@@ -31,6 +31,7 @@ import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
+import { getServerExcludedRoutes } from '../runtime-generation/server-exclude';
 import type { RoutingContext } from '../types';
 import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
@@ -44,6 +45,12 @@ import { validatePlugin } from './validate-plugin';
 import { getRouterIndexTags, makeRouterDevMiddleware } from './dev-middleware';
 
 export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
+/**
+ * Pruned variant of `@qwik-router-config` for the production SSR server, which omits prerendered,
+ * server-free routes from the route plan so their chunks tree-shake out of the server bundle. The
+ * default config keeps every route — the client (SPA), SSG, and dev all need the full trie.
+ */
+const QWIK_ROUTER_CONFIG_SSR_ID = QWIK_ROUTER_CONFIG_ID + '?ssr';
 /**
  * This virtual module is used to generate dynamic entries for user route files, which are added as
  * dynamic imports to the qwik-router-config as a way to create new entry points for the build.
@@ -163,10 +170,14 @@ export function invalidateRouterConfigModules(server: ViteDevServer) {
   }
 
   for (const graph of moduleGraphs) {
-    const mod = graph.getModuleById(QWIK_ROUTER_CONFIG_ID);
-    if (mod) {
-      graph.invalidateModule(mod);
-      modules.push(mod);
+    // Invalidate both the default plan and the SSR plan (`?ssr`, imported by the SSR runtime) so
+    // dev re-emits loader info for whichever the request path uses.
+    for (const id of [QWIK_ROUTER_CONFIG_ID, QWIK_ROUTER_CONFIG_SSR_ID]) {
+      const mod = graph.getModuleById(id);
+      if (mod) {
+        graph.invalidateModule(mod);
+        modules.push(mod);
+      }
     }
   }
 
@@ -190,6 +201,8 @@ function qwikRouterPlugin(
   const serverPluginsDir = userOpts?.serverPluginsDir ?? routesDir;
   /** Map from source file path to array of routeLoader$ hashes found in that file */
   const loadersByFile = new Map<string, string[]>();
+  /** SSG include/exclude from the adapter (see `_setSsgRoutes`); drives the server-route prune. */
+  let ssgRoutePatterns: { include?: string[]; exclude?: string[] } | undefined;
 
   const api: QwikRouterPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -198,6 +211,9 @@ function qwikRouterPlugin(
     },
     getServiceWorkers: () => {
       return ctx?.serviceWorkers.slice() ?? [];
+    },
+    _setSsgRoutes: (include, exclude) => {
+      ssgRoutePatterns = include?.length ? { include, exclude } : undefined;
     },
   };
 
@@ -243,6 +259,7 @@ function qwikRouterPlugin(
           exclude: [
             QWIK_ROUTER,
             QWIK_ROUTER_CONFIG_ID,
+            QWIK_ROUTER_CONFIG_SSR_ID,
             QWIK_ROUTER_ENTRIES_ID,
             QWIK_ROUTER_SW_REGISTER,
           ],
@@ -253,6 +270,7 @@ function qwikRouterPlugin(
           noExternal: [
             QWIK_ROUTER,
             QWIK_ROUTER_CONFIG_ID,
+            QWIK_ROUTER_CONFIG_SSR_ID,
             QWIK_ROUTER_ENTRIES_ID,
             QWIK_ROUTER_SW_REGISTER,
             // We've had reports of bundling issues with zod
@@ -279,6 +297,7 @@ function qwikRouterPlugin(
             noExternal: [
               QWIK_ROUTER,
               QWIK_ROUTER_CONFIG_ID,
+              QWIK_ROUTER_CONFIG_SSR_ID,
               QWIK_ROUTER_ENTRIES_ID,
               QWIK_ROUTER_SW_REGISTER,
               'zod',
@@ -388,7 +407,11 @@ function qwikRouterPlugin(
     },
 
     resolveId(id) {
-      if (id === QWIK_ROUTER_CONFIG_ID || id === QWIK_ROUTER_ENTRIES_ID) {
+      if (
+        id === QWIK_ROUTER_CONFIG_ID ||
+        id === QWIK_ROUTER_CONFIG_SSR_ID ||
+        id === QWIK_ROUTER_ENTRIES_ID
+      ) {
         return {
           id,
           // user entries added in the routes, like src/routes/service-worker.ts
@@ -409,7 +432,8 @@ function qwikRouterPlugin(
           // @qwik-router-entries
           return generateQwikRouterEntries(ctx);
         }
-        const isRouterConfig = id.endsWith(QWIK_ROUTER_CONFIG_ID);
+        const isSsrConfig = id.endsWith(QWIK_ROUTER_CONFIG_SSR_ID);
+        const isRouterConfig = isSsrConfig || id.endsWith(QWIK_ROUTER_CONFIG_ID);
         const isSwRegister = id.endsWith(QWIK_ROUTER_SW_REGISTER);
         if (isRouterConfig || isSwRegister) {
           if (ctx.isDirty) {
@@ -427,11 +451,18 @@ function qwikRouterPlugin(
             // invalidation, so pass it directly. In build mode the config is loaded before
             // route files are optimized, so loadersByFile is empty here; pass undefined to
             // emit __LOADERS:...__ placeholders that generateBundle replaces after optimization.
+            const isServerConsumer = this.environment.config.consumer === 'server';
+            // Prune only the production SSR plan (`?ssr`); every other consumer gets the full plan.
+            const serverExcludePaths =
+              isSsrConfig && !devServer
+                ? await getServerExcludedRoutes(ctx, ssgRoutePatterns)
+                : undefined;
             return generateQwikRouterConfig(
               ctx,
               qwikPlugin!,
-              this.environment.config.consumer === 'server',
-              devServer ? loadersByFile : undefined
+              isServerConsumer,
+              devServer ? loadersByFile : undefined,
+              serverExcludePaths
             );
           }
 

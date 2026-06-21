@@ -8,6 +8,7 @@
     "@mdx-js/mdx": "^3.1.1",
     "@netlify/edge-functions": "^3.0.6",
     "@types/mdx": "^2.0.13",
+    "es-module-lexer": "^1.7.0",
     "estree-util-value-to-estree": "^3.5.0",
     "github-slugger": "^2.0.0",
     "hast-util-heading-rank": "^2.1.1",

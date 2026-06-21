@@ -840,6 +840,9 @@ importers:
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13
+      es-module-lexer:
+        specifier: ^1.7.0
+        version: 1.7.0
       estree-util-value-to-estree:
         specifier: ^3.5.0
         version: 3.5.0

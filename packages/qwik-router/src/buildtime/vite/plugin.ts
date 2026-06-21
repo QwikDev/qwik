@@ -50,7 +50,7 @@ export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
  * server-free routes from the route plan so their chunks tree-shake out of the server bundle. The
  * default config keeps every route — the client (SPA), SSG, and dev all need the full trie.
  */
-const QWIK_ROUTER_CONFIG_SSR_ID = QWIK_ROUTER_CONFIG_ID + '?ssr';
+const QWIK_ROUTER_CONFIG_SSR_ID = QWIK_ROUTER_CONFIG_ID + '-ssr';
 /**
  * This virtual module is used to generate dynamic entries for user route files, which are added as
  * dynamic imports to the qwik-router-config as a way to create new entry points for the build.

@@ -208,7 +208,7 @@ export interface NamedPropRecord {
   value: string | number | boolean | null;
   expressionRange?: SourceRange;
   qrlSegmentId?: string;
-  binding?: Extract<DynamicBinding, { kind: 'source' }>;
+  binding?: DynamicBinding;
 }
 
 export interface SpreadPropRecord {

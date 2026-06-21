@@ -165,6 +165,45 @@ export function Parent(_props, ctx) {
 }
 
 null
+============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_props_segment_0 = () => {
+  const rest = _captures[0],
+    kind = _captures[1];
+  return {
+    ...rest,
+    get ['data-kind']() {
+      return kind;
+    },
+  };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_props_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    52,
+    87
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "kind"
+  ]
+}
+*/
 ============================= src/component.tsx_component_q_e_click_segment_2.js (ENTRY POINT)==
 
 export const component_q_e_click_segment_2 = () => {

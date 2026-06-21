@@ -255,6 +255,45 @@ export function App() {
     });
   });
 
+  test('emits dynamic DOM attrs through attr expression QRLs', async () => {
+    await testInput('dynamic_dom_attrs_props_qrl', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(0);
+  return (
+    <div
+      title={\`count \${count.value}\`}
+      className={{ active: count.value > 0 }}
+      style={{ color: count.value % 2 === 0 ? 'green' : 'blue' }}
+      data-kind="counter"
+    >
+      Attrs
+    </div>
+  );
+}
+`,
+    });
+  });
+
+  test('hoists SSR dynamic attrs before async child output', async () => {
+    await testInput('dynamic_dom_attrs_after_component', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+function Child() {
+  return <span>Child</span>;
+}
+export function App() {
+  const count = createSignal(0);
+  return (
+    <main>
+      <Child />
+      <p style={{ color: count.value > 5 ? 'red' : 'blue' }}>After</p>
+    </main>
+  );
+}
+`,
+    });
+  });
+
   test('emits DOM spread props with override order', async () => {
     await testInput('dom_spread_props', {
       code: `import { createSignal } from '@qwik.dev/core/spark';

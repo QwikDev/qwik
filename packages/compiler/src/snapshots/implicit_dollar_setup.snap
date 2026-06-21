@@ -33,13 +33,8 @@ export function App(_props, ctx) {
   const double = createComputedQrl(q_component_createComputed$_segment_0.w([count]));
   const id0 = ctx.nextId();
   ctx.addRoot(double);
-  return (
-    '<p q:id="' +
-    id0 +
-    '">' +
-    escapeHTML(renderSsrTextNode(createSsrElementTextTarget(id0), double)) +
-    '</p>'
-  );
+  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), double);
+  return '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>';
 }
 
 null

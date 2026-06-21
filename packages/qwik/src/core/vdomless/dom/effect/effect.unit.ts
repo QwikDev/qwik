@@ -12,6 +12,7 @@ import { createOwner, runWithOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import {
   createAttrEffect,
+  createAttrExpressionEffect,
   createClassEffect,
   createPropsEffect,
   createStyleEffect,
@@ -103,6 +104,31 @@ describe('DOM effects', () => {
     await scheduler.flushInteraction();
 
     expect(attrs.get('title')).toBe('world');
+  });
+
+  it('patches attributes from expressions', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const count = createSignal(0);
+    const { element, attrs } = createAttrTarget();
+    const effect = createOwned(() =>
+      createAttrExpressionEffect(
+        element,
+        'style',
+        [],
+        () => ({ color: count.value > 0 ? 'red' : 'blue' }),
+        { scheduler }
+      )
+    );
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    expect(attrs.get('style')).toBe('color:blue');
+
+    count.value = 1;
+    await scheduler.flushInteraction();
+
+    expect(attrs.get('style')).toBe('color:red');
   });
 
   it('patches serialized styles from direct sources', async () => {

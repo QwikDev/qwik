@@ -1,6 +1,11 @@
 import { EffectKind } from './effect-kind.enum';
 import { Phase } from '../../runtime/scheduler';
-import { AttrSerializer, type TextExpressionFn } from './effect';
+import {
+  AttrSerializer,
+  serializeAttrExpressionValue,
+  type AttrExpressionFn,
+  type TextExpressionFn,
+} from './effect';
 import type { SsrDomSubscriber } from '../../runtime/subscriber';
 import { SubscriberKind } from '../../runtime/subscriber';
 import { readSourceValue, type Dependency, type Source } from '../../reactive/source';
@@ -15,6 +20,9 @@ import { renderDomPropsToString } from './dom-props';
 export type TextExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
   TextExpressionFn<TArgs>
 >;
+export type AttrExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
+  AttrExpressionFn<TArgs>
+>;
 type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => Record<string, unknown> | null | undefined;
@@ -24,6 +32,7 @@ export type SsrDomEffect =
   | SsrTextExpressionEffect<any[]>
   | SsrTextNodeEffect
   | SsrAttrEffect
+  | SsrAttrExpressionEffect<any[]>
   | SsrSerializedAttrEffect
   | SsrPropsEffect<any[]>;
 
@@ -79,6 +88,18 @@ export class SsrAttrEffect {
   ) {}
 }
 
+export class SsrAttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
+  readonly kind = EffectKind.AttrExpression;
+  readonly phase = Phase.ScalarDom;
+
+  constructor(
+    readonly target: SsrEffectTarget,
+    readonly name: string,
+    readonly args: TArgs,
+    readonly qrl: AttrExpressionQrl<TArgs>
+  ) {}
+}
+
 export class SsrSerializedAttrEffect {
   readonly kind = EffectKind.SerializedAttr;
   readonly phase = Phase.ScalarDom;
@@ -125,6 +146,17 @@ export function createSsrTextExpressionEffect<TArgs extends unknown[]>(
 
 export function createSsrAttrEffect(target: SsrEffectTarget, name: string): SsrDomSubscriber {
   return registerSubscriberToOwner(new SsrDomSubscription(new SsrAttrEffect(target, name)));
+}
+
+export function createSsrAttrExpressionEffect<TArgs extends unknown[]>(
+  target: SsrEffectTarget,
+  name: string,
+  args: TArgs,
+  qrl: AttrExpressionQrl<TArgs>
+): SsrDomSubscriber {
+  return registerSubscriberToOwner(
+    new SsrDomSubscription(new SsrAttrExpressionEffect(target, name, args, qrl))
+  );
 }
 
 export function createSsrSerializedAttrEffect(
@@ -189,6 +221,22 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
 export function renderSsrAttr(target: SsrEffectTarget, name: string, source: Source): string {
   const subscriber = createSsrAttrEffect(target, name);
   return String(runWithCollector(subscriber, readTrackedSourceValue, source));
+}
+
+export function renderSsrAttrExpression<TArgs extends unknown[]>(
+  target: SsrEffectTarget,
+  name: string,
+  args: TArgs,
+  qrl: AttrExpressionQrl<TArgs>
+): string {
+  const subscriber = createSsrAttrExpressionEffect(target, name, args, qrl);
+  const fn = qrl.resolved;
+
+  if (fn === undefined) {
+    throw qrl.resolve();
+  }
+
+  return serializeAttrExpressionValue(name, runWithCollector(subscriber, fn, ...args));
 }
 
 export function renderSsrClass(target: SsrEffectTarget, source: Source): string {

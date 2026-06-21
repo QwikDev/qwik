@@ -90,10 +90,8 @@ import {
 export const component_branch_then_segment_1 = (ctx, rangeId) => {
   const count = _captures[0];
   ctx.addRoot(count);
-  return (
-    'Count is greater than 2 and equal to <!t>' +
-    escapeHTML(renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count))
-  );
+  const text0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count);
+  return 'Count is greater than 2 and equal to <!t>' + escapeHTML(text0);
 };
 
 null

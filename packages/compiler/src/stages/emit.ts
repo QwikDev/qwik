@@ -24,6 +24,7 @@ import { emitSsrDomPropsExpression, emitSsrModule, SsrEmitter } from './emit-ssr
 import {
   emitImports,
   emitSsrQrlPrelude,
+  hasAttrExpressionBinding,
   hasComponentPropsSpread,
   hasDomPropsBinding,
   hasDynamicAttrBinding,
@@ -108,6 +109,7 @@ function createModuleImports(
       hasRangeText: components.some((component) => hasRangeTextBinding(component.root)),
       hasTextExpression: components.some((component) => hasTextExpression(component.root)),
       hasDynamicAttr: components.some((component) => hasDynamicAttrBinding(component.root)),
+      hasAttrExpression: components.some((component) => hasAttrExpressionBinding(component.root)),
       hasDomProps: components.some((component) => hasDomPropsBinding(component.root)),
       hasBranch: components.some((component) => hasBranch(component.root)),
       hasComponent: components.some((component) => hasComponent(component.root)),
@@ -170,7 +172,6 @@ function collectQrlSegments(
         segmentById,
         qrlSegments,
         true,
-        emitTarget,
         includeBranchChildren
       );
     }
@@ -255,6 +256,7 @@ function collectCsrRootImportUsage(components: readonly ComponentRecord[]) {
     hasSourceText: components.some((component) => hasCsrRootSourceTextBinding(component.root)),
     hasTextExpression: components.some((component) => hasCsrRootTextExpression(component.root)),
     hasDynamicAttr: components.some((component) => hasCsrRootDynamicAttrBinding(component.root)),
+    hasAttrExpression: components.some((component) => hasCsrRootAttrExpression(component.root)),
     hasDomProps: components.some((component) => hasCsrRootDomPropsBinding(component.root)),
     hasDirectEvent: components.some((component) => hasCsrRootDirectDomEvent(component.root)),
     hasBranch: components.some((component) => hasCsrRootBranch(component.root)),
@@ -306,7 +308,16 @@ function hasCsrRootDynamicAttrBinding(node: RenderNode | null): boolean {
     node,
     (current) =>
       current.kind === 'element' &&
-      current.props.some((prop) => prop.kind === 'named' && prop.binding)
+      current.props.some((prop) => prop.kind === 'named' && prop.binding?.kind === 'source')
+  );
+}
+
+function hasCsrRootAttrExpression(node: RenderNode | null): boolean {
+  return someCsrRootNode(
+    node,
+    (current) =>
+      current.kind === 'element' &&
+      current.props.some((prop) => prop.kind === 'named' && prop.binding?.kind === 'expression')
   );
 }
 
@@ -394,16 +405,18 @@ function collectNodeQrlSegments(
   segmentById: Map<string, SegmentRecord>,
   qrlSegments: Map<string, QrlSegmentOutput>,
   includeTextExpressions: boolean,
-  emitTarget: CompilerContext['emitTarget'],
   includeBranchChildren = true
 ) {
   if (node.kind === 'element') {
-    if (emitTarget === 'ssr' && node.propsSegmentId) {
+    if (node.propsSegmentId) {
       collectSegmentById(ctx, node.propsSegmentId, segmentById, qrlSegments);
     }
     for (const prop of node.props) {
       if (prop.kind === 'named' && prop.qrlSegmentId) {
         collectSegmentById(ctx, prop.qrlSegmentId, segmentById, qrlSegments);
+      }
+      if (prop.kind === 'named' && prop.binding?.kind === 'expression') {
+        collectSegmentById(ctx, prop.binding.qrlSegmentId, segmentById, qrlSegments);
       }
     }
   }
@@ -428,7 +441,6 @@ function collectNodeQrlSegments(
           segmentById,
           qrlSegments,
           includeTextExpressions,
-          emitTarget,
           includeBranchChildren
         );
       }
@@ -439,7 +451,6 @@ function collectNodeQrlSegments(
           segmentById,
           qrlSegments,
           includeTextExpressions,
-          emitTarget,
           includeBranchChildren
         );
       }
@@ -456,7 +467,6 @@ function collectNodeQrlSegments(
         segmentById,
         qrlSegments,
         includeTextExpressions,
-        emitTarget,
         includeBranchChildren
       );
     }
@@ -629,6 +639,7 @@ function createSsrPropsSegmentSource(
           hasRangeText: false,
           hasTextExpression: false,
           hasDynamicAttr: false,
+          hasAttrExpression: false,
           hasDomProps: false,
           hasBranch: false,
           hasComponent: false,
@@ -690,6 +701,7 @@ function createSsrBranchRenderSegmentSource(
     hasRangeText: hasRangeTextBinding(fragment),
     hasTextExpression: hasTextExpression(fragment),
     hasDynamicAttr: hasDynamicAttrBinding(fragment),
+    hasAttrExpression: hasAttrExpressionBinding(fragment),
     hasDomProps: hasDomPropsBinding(fragment),
     hasBranch: hasBranch(fragment),
     hasComponent: hasComponent(fragment),
@@ -797,7 +809,7 @@ function collectRenderNodeQrlSegments(
 ): Map<string, QrlSegmentOutput> {
   const segmentById = new Map(ctx.manifest.segments.map((segment) => [segment.id, segment]));
   const qrlSegments = new Map<string, QrlSegmentOutput>();
-  collectNodeQrlSegments(ctx, node, segmentById, qrlSegments, true, ctx.emitTarget, false);
+  collectNodeQrlSegments(ctx, node, segmentById, qrlSegments, true, false);
   if (!existingSegments) {
     return qrlSegments;
   }

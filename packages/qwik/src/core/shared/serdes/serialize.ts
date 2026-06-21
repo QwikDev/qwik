@@ -773,6 +773,8 @@ function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {
         : [effect.kind, target.kind, target.id, deps, effect.args, effect.qrl];
     case EffectKind.Attr:
       return [effect.kind, target.kind, target.id, deps, effect.name];
+    case EffectKind.AttrExpression:
+      return [effect.kind, target.kind, target.id, deps, effect.name, effect.args, effect.qrl];
     case EffectKind.SerializedAttr:
       return [effect.kind, target.kind, target.id, deps, effect.serializer];
     case EffectKind.Props:

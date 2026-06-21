@@ -43,6 +43,10 @@ export function Root() {
           </p>
           <h2>Conditional component rendering</h2>
           <div>{count.value < 2 ? <Hello name="Qwik" /> : <Counter count={count.value} />}</div>
+          <h2>Conditional style render</h2>
+          <p style={{ color: count.value % 2 === 0 ? 'red' : 'blue' }}>
+            This text changes color based on the count value.
+          </p>
         </main>
       </body>
     </>

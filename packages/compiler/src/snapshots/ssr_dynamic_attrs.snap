@@ -27,17 +27,20 @@ export function App(_props, ctx) {
   const style = createSignal('color:red');
   const id0 = ctx.nextId();
   ctx.addRoot(title);
+  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'title', title);
   ctx.addRoot(classes);
+  const attr2 = renderSsrClass(createSsrElementTarget(id0), classes);
   ctx.addRoot(style);
+  const attr3 = renderSsrStyle(createSsrElementTarget(id0), style);
   return (
     '<div q:id="' +
     id0 +
     '" title="' +
-    escapeHTML(renderSsrAttr(createSsrElementTarget(id0), 'title', title)) +
+    escapeHTML(attr1) +
     '" class="' +
-    escapeHTML(renderSsrClass(createSsrElementTarget(id0), classes)) +
+    escapeHTML(attr2) +
     '" style="' +
-    escapeHTML(renderSsrStyle(createSsrElementTarget(id0), style)) +
+    escapeHTML(attr3) +
     '">Attrs</div>'
   );
 }

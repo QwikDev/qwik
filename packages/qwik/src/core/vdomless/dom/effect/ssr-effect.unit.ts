@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createQRL } from '../../../shared/qrl/qrl-class';
-import { AttrSerializer, type TextExpressionFn } from './effect';
+import { AttrSerializer, type AttrExpressionFn, type TextExpressionFn } from './effect';
 import { EffectKind } from './effect-kind.enum';
 import {
   SsrDomSubscription,
@@ -9,6 +9,7 @@ import {
   createSsrElementTextTarget,
   createSsrRangeTextTarget,
   renderSsrAttr,
+  renderSsrAttrExpression,
   renderSsrClass,
   renderSsrProps,
   renderSsrStyle,
@@ -73,6 +74,27 @@ describe('SSR DOM effect helpers', () => {
     expect(styleSubscriber.effect.kind).toBe(EffectKind.SerializedAttr);
     expect((classSubscriber.effect as any).serializer).toBe(AttrSerializer.Class);
     expect((styleSubscriber.effect as any).serializer).toBe(AttrSerializer.Style);
+  });
+
+  it('creates attr expression subscribers', () => {
+    const count = createSignal(1);
+    const target = createSsrElementTarget(3);
+    const qrl = createQRL<AttrExpressionFn<[]>>(
+      './style.attr.js',
+      'style',
+      () => ({ color: count.value > 0 ? 'red' : 'blue' }),
+      null,
+      null
+    );
+
+    const value = createOwned(() => renderSsrAttrExpression(target, 'style', [], qrl));
+    const subscriber = count.subs?.[0] as SsrDomSubscription;
+
+    expect(value).toBe('color:red');
+    expect(subscriber).toBeInstanceOf(SsrDomSubscription);
+    expect(subscriber.deps).toEqual([count]);
+    expect(subscriber.effect.kind).toBe(EffectKind.AttrExpression);
+    expect(subscriber.effect.target).toBe(target);
   });
 
   it('renders spread DOM props without children and collects getter dependencies', () => {

@@ -30,12 +30,8 @@ export const App = (_props, ctx) => {
   const contextScopeId = ctx.contextScopeId();
   const id0 = ctx.nextId();
   ctx.addRoot(source);
-  const contextHtml =
-    '<p q:id="' +
-    id0 +
-    '">' +
-    escapeHTML(renderSsrTextNode(createSsrElementTextTarget(id0), source)) +
-    '</p>';
+  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), source);
+  const contextHtml = '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>';
   return '<!c=' + contextScopeId + '>' + contextHtml + '<!/c>';
 };
 

@@ -1,0 +1,321 @@
+==INPUT==
+
+import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(0);
+  return (
+    <div
+      title={`count ${count.value}`}
+      className={{ active: count.value > 0 }}
+      style={{ color: count.value % 2 === 0 ? 'green' : 'blue' }}
+      data-kind="counter"
+    >
+      Attrs
+    </div>
+  );
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSignal,
+  _qrlWithChunk,
+  escapeHTML,
+  createSsrElementTarget,
+  renderSsrAttrExpression,
+} from '@qwik.dev/core/spark';
+import { component_title_segment_0 } from './component.tsx_component_title_segment_0';
+import { component_className_segment_1 } from './component.tsx_component_className_segment_1';
+import { component_style_segment_2 } from './component.tsx_component_style_segment_2';
+
+const q_component_title_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_title_segment_0',
+  () => import('./component.tsx_component_title_segment_0'),
+  'component_title_segment_0'
+);
+q_component_title_segment_0.s(component_title_segment_0);
+const q_component_className_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_className_segment_1',
+  () => import('./component.tsx_component_className_segment_1'),
+  'component_className_segment_1'
+);
+q_component_className_segment_1.s(component_className_segment_1);
+const q_component_style_segment_2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_style_segment_2',
+  () => import('./component.tsx_component_style_segment_2'),
+  'component_style_segment_2'
+);
+q_component_style_segment_2.s(component_style_segment_2);
+
+export function App(_props, ctx) {
+  const count = createSignal(0);
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const attr1 = renderSsrAttrExpression(
+    createSsrElementTarget(id0),
+    'title',
+    [],
+    q_component_title_segment_0.w([count])
+  );
+  const attr2 = renderSsrAttrExpression(
+    createSsrElementTarget(id0),
+    'class',
+    [],
+    q_component_className_segment_1.w([count])
+  );
+  const attr3 = renderSsrAttrExpression(
+    createSsrElementTarget(id0),
+    'style',
+    [],
+    q_component_style_segment_2.w([count])
+  );
+  return (
+    '<div q:id="' +
+    id0 +
+    '" title="' +
+    escapeHTML(attr1) +
+    '" class="' +
+    escapeHTML(attr2) +
+    '" style="' +
+    escapeHTML(attr3) +
+    '" data-kind="counter">Attrs</div>'
+  );
+}
+
+null
+============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_title_segment_0 = () => {
+  const count = _captures[0];
+  return `count ${count.value}`;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_title_segment_0",
+  "entry": null,
+  "displayName": "component_title_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_title_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "title",
+  "captures": true,
+  "loc": [
+    129,
+    151
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_className_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_className_segment_1 = () => {
+  const count = _captures[0];
+  return { active: count.value > 0 };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_className_segment_1",
+  "entry": null,
+  "displayName": "component_className_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_className_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "className",
+  "captures": true,
+  "loc": [
+    164,
+    191
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_style_segment_2.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_style_segment_2 = () => {
+  const count = _captures[0];
+  return { color: count.value % 2 === 0 ? 'green' : 'blue' };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_style_segment_2",
+  "entry": null,
+  "displayName": "component_style_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_style_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "style",
+  "captures": true,
+  "loc": [
+    200,
+    251
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createSignal, createAttrExpressionEffect } from '@qwik.dev/core/spark';
+
+export function App(_props, ctx) {
+  const count = createSignal(0);
+  const el0 = ctx.document.createElement('div');
+  const effect1 = createAttrExpressionEffect(el0, 'title', [], () => `count ${count.value}`, {
+    scheduler: ctx.scheduler,
+  });
+  ctx.scheduler.notify(effect1);
+  const effect2 = createAttrExpressionEffect(
+    el0,
+    'class',
+    [],
+    () => ({ active: count.value > 0 }),
+    { scheduler: ctx.scheduler }
+  );
+  ctx.scheduler.notify(effect2);
+  const effect3 = createAttrExpressionEffect(
+    el0,
+    'style',
+    [],
+    () => ({ color: count.value % 2 === 0 ? 'green' : 'blue' }),
+    { scheduler: ctx.scheduler }
+  );
+  ctx.scheduler.notify(effect3);
+  el0.setAttribute('data-kind', 'counter');
+  const text4 = ctx.document.createTextNode('Attrs');
+  el0.appendChild(text4);
+  return [el0];
+}
+
+null
+============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_title_segment_0 = () => {
+  const count = _captures[0];
+  return `count ${count.value}`;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_title_segment_0",
+  "entry": null,
+  "displayName": "component_title_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_title_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "title",
+  "captures": true,
+  "loc": [
+    129,
+    151
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_className_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_className_segment_1 = () => {
+  const count = _captures[0];
+  return { active: count.value > 0 };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_className_segment_1",
+  "entry": null,
+  "displayName": "component_className_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_className_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "className",
+  "captures": true,
+  "loc": [
+    164,
+    191
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_style_segment_2.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_style_segment_2 = () => {
+  const count = _captures[0];
+  return { color: count.value % 2 === 0 ? 'green' : 'blue' };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_style_segment_2",
+  "entry": null,
+  "displayName": "component_style_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_style_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "style",
+  "captures": true,
+  "loc": [
+    200,
+    251
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

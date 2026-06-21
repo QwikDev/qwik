@@ -21,13 +21,8 @@ export function App(_props, ctx) {
   const count = createSignal(0);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  return (
-    '<p q:id="' +
-    id0 +
-    '">Hello <!t>' +
-    escapeHTML(renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count)) +
-    '<!/t> world</p>'
-  );
+  const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
+  return '<p q:id="' + id0 + '">Hello <!t>' + escapeHTML(text1) + '<!/t> world</p>';
 }
 
 null

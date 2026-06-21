@@ -125,11 +125,12 @@ function lowerJsxElement(
     );
   }
 
+  const propsSegment = findDomPropsSegment(ctx, getRange(opening));
   return {
     kind: 'element',
     tag: name,
-    propsSegmentId: findDomPropsSegment(ctx, getRange(opening))?.id ?? null,
-    props: lowerJsxAttributes(ctx, opening.attributes),
+    propsSegmentId: propsSegment?.id ?? null,
+    props: lowerJsxAttributes(ctx, opening.attributes, propsSegment !== undefined),
     children: lowerJsxChildren(ctx, node.children, propsName),
   };
 }
@@ -138,8 +139,12 @@ function isComponentTagName(name: string): boolean {
   return /^[A-Z][A-Za-z0-9_$]*$/.test(name);
 }
 
-function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]): PropRecord[] {
-  if (attributes.some((attr) => attr.type === 'JSXSpreadAttribute')) {
+function lowerJsxAttributes(
+  ctx: CompilerContext,
+  attributes: JSXAttributeItem[],
+  forcePropsObject = false
+): PropRecord[] {
+  if (forcePropsObject || attributes.some((attr) => attr.type === 'JSXSpreadAttribute')) {
     return lowerSpreadJsxAttributes(ctx, attributes);
   }
 
@@ -149,13 +154,14 @@ function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]
       continue;
     }
 
-    let name = getJsxAttributeName(attr.name);
-    if (!name) {
+    const originalName = getJsxAttributeName(attr.name);
+    if (!originalName) {
       ctx.manifest.diagnostics.push(
         createDiagnostic(ctx.input.path, 'Only simple JSX attribute names are supported.')
       );
       continue;
     }
+    let name = originalName;
     const eventName = jsxEventToHtmlAttribute(name);
     if (eventName) {
       const expr =
@@ -200,14 +206,28 @@ function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]
       continue;
     }
 
-    const value = lowerStaticAttributeValue(ctx, attr.value, name);
+    const value = lowerStaticAttributeValue(attr.value);
     if (value.supported) {
       props.push({
         kind: 'named',
         name,
         value: value.value,
       });
+      continue;
     }
+    const expressionValue = lowerDynamicExpressionAttributeValue(ctx, originalName, attr.value);
+    if (expressionValue) {
+      props.push({
+        kind: 'named',
+        name,
+        value: null,
+        binding: expressionValue,
+      });
+      continue;
+    }
+    ctx.manifest.diagnostics.push(
+      createDiagnostic(ctx.input.path, `Dynamic JSX attribute "${name}" is not supported yet.`)
+    );
   }
   return props;
 }
@@ -398,6 +418,29 @@ function lowerDynamicSourceAttributeValue(
   };
 }
 
+function lowerDynamicExpressionAttributeValue(
+  ctx: CompilerContext,
+  name: string,
+  valueNode: JSXAttributeValue | null
+): Extract<DynamicBinding, { kind: 'expression' }> | null {
+  if (valueNode?.type !== 'JSXExpressionContainer') {
+    return null;
+  }
+  const expression = unwrapExpression(valueNode.expression);
+  const expressionRange = getRange(expression);
+  if (expressionRange === null) {
+    return null;
+  }
+  const segment = findJsxExpressionPropSegment(ctx, name, expressionRange);
+  return segment
+    ? {
+        kind: 'expression',
+        expressionRange,
+        qrlSegmentId: segment.id,
+      }
+    : null;
+}
+
 function lowerObjectAttributeValue(
   ctx: CompilerContext,
   valueNode: JSXAttributeValue | null,
@@ -465,6 +508,16 @@ function findDomPropsSegment(ctx: CompilerContext, range: PropRange) {
   );
 }
 
+function findJsxExpressionPropSegment(ctx: CompilerContext, ctxName: string, range: SourceRange) {
+  return ctx.manifest.segments.find(
+    (segment) =>
+      segment.kind === 'jsxProp' &&
+      segment.ctxName === ctxName &&
+      segment.functionRange === null &&
+      rangesEqual(segment.range, range)
+  );
+}
+
 type PropRange = ReturnType<typeof getRange>;
 
 function rangesEqual(left: PropRange, right: PropRange): boolean {
@@ -472,9 +525,7 @@ function rangesEqual(left: PropRange, right: PropRange): boolean {
 }
 
 function lowerStaticAttributeValue(
-  ctx: CompilerContext,
-  valueNode: JSXAttributeValue | null,
-  name: string
+  valueNode: JSXAttributeValue | null
 ): { supported: true; value: NamedPropRecord['value'] } | { supported: false } {
   if (!valueNode) {
     return { supported: true, value: true };
@@ -490,9 +541,6 @@ function lowerStaticAttributeValue(
     }
   }
 
-  ctx.manifest.diagnostics.push(
-    createDiagnostic(ctx.input.path, `Dynamic JSX attribute "${name}" is not supported yet.`)
-  );
   return { supported: false };
 }
 

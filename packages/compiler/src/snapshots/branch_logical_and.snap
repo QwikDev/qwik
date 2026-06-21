@@ -100,14 +100,10 @@ export const component_branch_then_segment_1 = (ctx) => {
   const label = _captures[0];
   const id0 = ctx.nextId();
   ctx.addRoot(label);
+  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'title', label);
+  const text2 = renderSsrTextNode(createSsrElementTextTarget(id0), label);
   return (
-    '<span q:id="' +
-    id0 +
-    '" title="' +
-    escapeHTML(renderSsrAttr(createSsrElementTarget(id0), 'title', label)) +
-    '">' +
-    escapeHTML(renderSsrTextNode(createSsrElementTextTarget(id0), label)) +
-    '</span>'
+    '<span q:id="' + id0 + '" title="' + escapeHTML(attr1) + '">' + escapeHTML(text2) + '</span>'
   );
 };
 

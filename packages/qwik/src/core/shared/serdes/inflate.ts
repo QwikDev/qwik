@@ -3,10 +3,12 @@ import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import { Branch, BranchRange, BranchSubscription } from '../../vdomless/dom/branch/branch';
 import {
   AttrEffect,
+  AttrExpressionEffect,
   PropsEffect,
   SerializedAttrEffect,
   TextExpressionEffect,
   TextNodeEffect,
+  type AttrExpressionFn,
   type TextExpressionFn,
 } from '../../vdomless/dom/effect/effect';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
@@ -210,6 +212,14 @@ export const inflate = async (
           restoreAttrSubscription(container, target as Writeable<DomSubscriber>, parts);
           break;
         }
+        case EffectKind.AttrExpression: {
+          await restoreAttrExpressionSubscription(
+            container,
+            target as Writeable<DomSubscriber>,
+            parts
+          );
+          break;
+        }
         case EffectKind.SerializedAttr: {
           restoreSerializedAttrSubscription(container, target as Writeable<DomSubscriber>, parts);
           break;
@@ -315,6 +325,25 @@ function restoreAttrSubscription(
   const element = resolveElementTarget(container, target.targetKind, target.targetId);
 
   subscription.effect = new AttrEffect(element, String(parts[4]), source);
+  restoreDependencies(subscription, target.deps);
+}
+
+async function restoreAttrExpressionSubscription(
+  container: ContainerContext,
+  subscription: Writeable<DomSubscriber>,
+  parts: unknown[]
+): Promise<void> {
+  const target = readDomSubscriptionTarget(parts);
+  const element = resolveElementTarget(container, target.targetKind, target.targetId);
+  const qrl = parts[target.depsIndex + 3] as QRLInternal<AttrExpressionFn>;
+  const fn = await qrl.resolve();
+
+  subscription.effect = new AttrExpressionEffect(
+    element,
+    String(parts[target.depsIndex + 1]),
+    parts[target.depsIndex + 2] as unknown[],
+    fn
+  );
   restoreDependencies(subscription, target.deps);
 }
 

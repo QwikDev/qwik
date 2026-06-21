@@ -393,8 +393,19 @@ export class SsrEmitter {
       throw new Error('Dynamic attribute effects require named props.');
     }
     const binding = prop.binding!;
-    this.emitRoot(binding.sourceName);
     const target = `${QwikSymbol.CreateSsrElementTarget}(${elementId})`;
+    if (binding.kind === 'expression') {
+      const qrlSegment = this.requireQrlSegment(binding.qrlSegmentId);
+      this.emitCaptureRoots(qrlSegment);
+      const id = this.next('attr');
+      this.line(
+        `const ${id} = ${QwikSymbol.RenderSsrAttrExpression}(${target}, ${JSON.stringify(
+          prop.name
+        )}, [], ${emitQrlReference(qrlSegment)});`
+      );
+      return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${id})` }, '"'];
+    }
+    this.emitRoot(binding.sourceName);
     const renderCall =
       prop.name === 'class'
         ? `${QwikSymbol.RenderSsrClass}(${target}, ${binding.sourceName})`
@@ -403,7 +414,9 @@ export class SsrEmitter {
           : `${QwikSymbol.RenderSsrAttr}(${target}, ${JSON.stringify(prop.name)}, ${
               binding.sourceName
             })`;
-    return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${renderCall})` }, '"'];
+    const id = this.next('attr');
+    this.line(`const ${id} = ${renderCall};`);
+    return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${id})` }, '"'];
   }
 
   private emitElementChildrenWithRangeTextParts(
@@ -436,11 +449,11 @@ export class SsrEmitter {
   private emitDynamicTextParts(node: DynamicTextNode, target: string): HtmlPart[] {
     if (node.binding.kind === 'source') {
       this.emitRoot(node.binding.sourceName);
-      return [
-        {
-          code: `${QwikSymbol.EscapeHTML}(${QwikSymbol.RenderSsrTextNode}(${target}, ${node.binding.sourceName}))`,
-        },
-      ];
+      const id = this.next('text');
+      this.line(
+        `const ${id} = ${QwikSymbol.RenderSsrTextNode}(${target}, ${node.binding.sourceName});`
+      );
+      return [{ code: `${QwikSymbol.EscapeHTML}(${id})` }];
     }
 
     const qrlSegment = this.qrlSegments.get(node.binding.qrlSegmentId);
@@ -448,13 +461,13 @@ export class SsrEmitter {
       throw new Error(`Missing QRL segment for ${node.binding.qrlSegmentId}.`);
     }
     this.emitCaptureRoots(qrlSegment);
-    return [
-      {
-        code: `${QwikSymbol.EscapeHTML}(${QwikSymbol.RenderSsrTextExpression}(${target}, [], ${emitQrlReference(
-          qrlSegment
-        )}))`,
-      },
-    ];
+    const id = this.next('text');
+    this.line(
+      `const ${id} = ${QwikSymbol.RenderSsrTextExpression}(${target}, [], ${emitQrlReference(
+        qrlSegment
+      )});`
+    );
+    return [{ code: `${QwikSymbol.EscapeHTML}(${id})` }];
   }
 
   private nextTargetId() {

@@ -33,13 +33,8 @@ export function Child(_props, ctx) {
   const value = createContext(Context);
   const id0 = ctx.nextId();
   ctx.addRoot(value);
-  return (
-    '<p q:id="' +
-    id0 +
-    '">' +
-    escapeHTML(renderSsrTextNode(createSsrElementTextTarget(id0), value)) +
-    '</p>'
-  );
+  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), value);
+  return '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>';
 }
 export async function Parent(_props, ctx) {
   const value = createSignal('provided');

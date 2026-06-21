@@ -2,10 +2,14 @@ import {
   getSignalValueSourceName,
   getIdentifierName,
   getJsxAttributeName,
+  getJsxName,
   getParams,
   getRange,
+  getStaticExpressionValue,
+  isEventProp,
   isStaticSourceTextExpression,
   isFunctionLike,
+  isNativeTag,
   unwrapExpression,
 } from '../ast-utils';
 import type {
@@ -457,26 +461,27 @@ class CaptureAnalyzer {
   }
 
   private visitJsxElement(node: JSXElement) {
+    const tag = getJsxName(node.openingElement.name);
+    const isNativeElement = !!tag && isNativeTag(tag);
+    const visitAttrs = () => {
+      for (const attr of node.openingElement.attributes) {
+        this.visitJsxAttribute(attr, isNativeElement);
+      }
+    };
     if (node.openingElement.attributes.some((attr) => attr.type === 'JSXSpreadAttribute')) {
       const range = getRange(node.openingElement);
       if (range !== null) {
         const parentSegment = this.currentSegment();
         const segment = this.createSyntheticSegment('jsxSpreadProps', 'props', range);
         this.segmentStack.push(segment);
-        for (const attr of node.openingElement.attributes) {
-          this.visitJsxAttribute(attr);
-        }
+        visitAttrs();
         this.segmentStack.pop();
         this.propagateCapturesToBranchRender(parentSegment, segment);
       } else {
-        for (const attr of node.openingElement.attributes) {
-          this.visitJsxAttribute(attr);
-        }
+        visitAttrs();
       }
     } else {
-      for (const attr of node.openingElement.attributes) {
-        this.visitJsxAttribute(attr);
-      }
+      visitAttrs();
     }
     for (const child of node.children) {
       if (child.type === 'JSXExpressionContainer') {
@@ -517,7 +522,7 @@ class CaptureAnalyzer {
     this.propagateCapturesToBranchRender(parentSegment, segment);
   }
 
-  private visitJsxAttribute(node: JSXAttributeItem) {
+  private visitJsxAttribute(node: JSXAttributeItem, isNativeElement: boolean) {
     if (node.type === 'JSXSpreadAttribute') {
       this.visit(node.argument);
       return;
@@ -546,6 +551,23 @@ class CaptureAnalyzer {
         this.propagateCapturesToBranchRender(parentSegment, segment);
       }
       return;
+    }
+    const currentSegment = this.currentSegment();
+    const dynamicAttr =
+      isNativeElement && currentSegment?.record.kind !== 'jsxSpreadProps'
+        ? getDynamicDomAttribute(name, expr)
+        : null;
+    if (dynamicAttr) {
+      const range = getRange(dynamicAttr.expr);
+      if (range !== null) {
+        const parentSegment = currentSegment;
+        const segment = this.createSyntheticSegment('jsxProp', dynamicAttr.name, range);
+        this.segmentStack.push(segment);
+        this.visit(dynamicAttr.expr);
+        this.segmentStack.pop();
+        this.propagateCapturesToBranchRender(parentSegment, segment);
+        return;
+      }
     }
     this.visit(node.value);
   }
@@ -1246,6 +1268,22 @@ function isJsxEventName(name: string): boolean {
       name.startsWith('host:on') ||
       name.includes(':on'))
   );
+}
+
+function getDynamicDomAttribute(name: string | null, expr: AstNode | null | undefined) {
+  if (!name || isEventProp(name)) {
+    return null;
+  }
+  if (!expr || expr.type === 'JSXEmptyExpression') {
+    return null;
+  }
+  if (getSignalValueSourceName(expr) !== null) {
+    return null;
+  }
+  if (getStaticExpressionValue(expr).supported) {
+    return null;
+  }
+  return { name, expr };
 }
 
 function isEmptyBranchExpression(node: unknown): boolean {

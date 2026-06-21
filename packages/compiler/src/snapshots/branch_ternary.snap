@@ -104,13 +104,8 @@ export const component_branch_then_segment_1 = (ctx) => {
   const count = _captures[0];
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  return (
-    '<p q:id="' +
-    id0 +
-    '" class="even">Even <!t>' +
-    escapeHTML(renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count)) +
-    '</p>'
-  );
+  const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
+  return '<p q:id="' + id0 + '" class="even">Even <!t>' + escapeHTML(text1) + '</p>';
 };
 
 null
@@ -155,13 +150,14 @@ export const component_branch_else_segment_2 = (ctx) => {
   const count = _captures[0];
   const id0 = ctx.nextId();
   ctx.addRoot(count);
+  const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count);
   return (
     '<button q:id="' +
     id0 +
     '"' +
     ctx.eventAttr('q-e:click', q_component_q_e_click_segment_3.w([count])) +
     '>Odd <!t>' +
-    escapeHTML(renderSsrTextNode(createSsrRangeTextTarget(id0, 0), count)) +
+    escapeHTML(text1) +
     '</button>'
   );
 };

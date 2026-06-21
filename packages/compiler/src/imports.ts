@@ -53,7 +53,12 @@ export function createSsrImports(
   if (qrlSegments.size > 0) {
     sparkSpecifiers.push(QwikSymbol.QrlWithChunk);
   }
-  if (usage.hasSourceText || usage.hasTextExpression || usage.hasDynamicAttr) {
+  if (
+    usage.hasSourceText ||
+    usage.hasTextExpression ||
+    usage.hasDynamicAttr ||
+    usage.hasAttrExpression
+  ) {
     sparkSpecifiers.push(QwikSymbol.EscapeHTML);
   }
   if (usage.hasSourceText) {
@@ -76,6 +81,9 @@ export function createSsrImports(
       QwikSymbol.RenderSsrStyle
     );
   }
+  if (usage.hasAttrExpression) {
+    sparkSpecifiers.push(QwikSymbol.CreateSsrElementTarget, QwikSymbol.RenderSsrAttrExpression);
+  }
   if (usage.hasDomProps) {
     sparkSpecifiers.push(QwikSymbol.CreateSsrElementTarget, QwikSymbol.RenderSsrProps);
   }
@@ -95,6 +103,7 @@ export interface SsrImportUsage {
   hasRangeText: boolean;
   hasTextExpression: boolean;
   hasDynamicAttr: boolean;
+  hasAttrExpression: boolean;
   hasDomProps: boolean;
   hasBranch: boolean;
   hasComponent: boolean;
@@ -137,6 +146,9 @@ export function createCsrImports(
       QwikSymbol.CreateStyleEffect
     );
   }
+  if (usage.hasAttrExpression) {
+    sparkSpecifiers.push(QwikSymbol.CreateAttrExpressionEffect);
+  }
   if (usage.hasDomProps) {
     sparkSpecifiers.push(QwikSymbol.CreatePropsEffect);
   }
@@ -168,6 +180,7 @@ export interface CsrImportUsage {
   hasSourceText: boolean;
   hasTextExpression: boolean;
   hasDynamicAttr: boolean;
+  hasAttrExpression: boolean;
   hasDomProps: boolean;
   hasDirectEvent: boolean;
   hasBranch: boolean;

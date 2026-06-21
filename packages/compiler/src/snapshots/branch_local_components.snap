@@ -78,19 +78,12 @@ export function Hello(_props, ctx) {
   const { name } = _props;
   const id0 = ctx.nextId();
   ctx.addRoot(name);
-  return (
-    '<p q:id="' +
-    id0 +
-    '">Hello, <!t>' +
-    escapeHTML(
-      renderSsrTextExpression(
-        createSsrRangeTextTarget(id0, 0),
-        [],
-        q_component_text_segment_1.w([name])
-      )
-    ) +
-    '<!/t>!</p>'
+  const text1 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id0, 0),
+    [],
+    q_component_text_segment_1.w([name])
   );
+  return '<p q:id="' + id0 + '">Hello, <!t>' + escapeHTML(text1) + '<!/t>!</p>';
 }
 
 null
@@ -135,19 +128,12 @@ export function Counter(_props, ctx) {
   const { count } = _props;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  return (
-    '<p q:id="' +
-    id0 +
-    '">Count: <!t>' +
-    escapeHTML(
-      renderSsrTextExpression(
-        createSsrRangeTextTarget(id0, 0),
-        [],
-        q_component_text_segment_0.w([count])
-      )
-    ) +
-    '</p>'
+  const text1 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id0, 0),
+    [],
+    q_component_text_segment_0.w([count])
   );
+  return '<p q:id="' + id0 + '">Count: <!t>' + escapeHTML(text1) + '</p>';
 }
 
 null

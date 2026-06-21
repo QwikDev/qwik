@@ -30,19 +30,12 @@ export function App(_props, ctx) {
   const count = createSignal(1);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  return (
-    '<p q:id="' +
-    id0 +
-    '">' +
-    escapeHTML(
-      renderSsrTextExpression(
-        createSsrElementTextTarget(id0),
-        [],
-        q_component_text_segment_0.w([count])
-      )
-    ) +
-    '</p>'
+  const text1 = renderSsrTextExpression(
+    createSsrElementTextTarget(id0),
+    [],
+    q_component_text_segment_0.w([count])
   );
+  return '<p q:id="' + id0 + '">' + escapeHTML(text1) + '</p>';
 }
 
 null

@@ -42,26 +42,18 @@ q_component_text_segment_1.s(component_text_segment_1);
 export function Child(props, ctx) {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
+  const text1 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id0, 0),
+    [],
+    q_component_text_segment_0.w([props])
+  );
+  const text2 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id0, 1),
+    [],
+    q_component_text_segment_1.w([props])
+  );
   return (
-    '<p q:id="' +
-    id0 +
-    '"><!t>' +
-    escapeHTML(
-      renderSsrTextExpression(
-        createSsrRangeTextTarget(id0, 0),
-        [],
-        q_component_text_segment_0.w([props])
-      )
-    ) +
-    '<!/t>: <!t>' +
-    escapeHTML(
-      renderSsrTextExpression(
-        createSsrRangeTextTarget(id0, 1),
-        [],
-        q_component_text_segment_1.w([props])
-      )
-    ) +
-    '</p>'
+    '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!/t>: <!t>' + escapeHTML(text2) + '</p>'
   );
 }
 export async function Parent(_props, ctx) {

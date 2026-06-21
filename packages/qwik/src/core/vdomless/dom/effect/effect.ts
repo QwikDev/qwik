@@ -1,6 +1,5 @@
-import type { ClassList } from '../../../shared/jsx/types/jsx-qwik-attributes';
 import { isPromise } from '../../../shared/utils/promises';
-import { serializeClass, stringifyStyle } from '../../../shared/utils/styles';
+import { serializeAttribute } from '../../../shared/utils/styles';
 import { SubscriberFlags } from '../../reactive/flags';
 import { registerSubscriberToOwner } from '../../runtime/owner';
 import { defaultScheduler, Phase, type Scheduler } from '../../runtime/scheduler';
@@ -21,6 +20,7 @@ export type TextExpressionValue = string | number | boolean | bigint | null | un
 export type TextExpressionFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => TextExpressionValue;
+export type AttrExpressionFn<TArgs extends unknown[] = unknown[]> = (...args: TArgs) => unknown;
 type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => Record<string, unknown> | null | undefined;
@@ -33,6 +33,7 @@ export type DomEffect =
   | TextExpressionEffect<any[]>
   | TextNodeEffect
   | AttrEffect
+  | AttrExpressionEffect<any[]>
   | SerializedAttrEffect
   | PropsEffect<any[]>;
 
@@ -80,6 +81,22 @@ export class AttrEffect {
   }
 }
 
+export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
+  readonly kind = EffectKind.AttrExpression;
+  readonly phase = Phase.ScalarDom;
+
+  constructor(
+    readonly element: Element,
+    readonly name: string,
+    readonly args: TArgs,
+    readonly fn: AttrExpressionFn<TArgs>
+  ) {}
+
+  run(): void {
+    patchAttrValue(this.element, this.name, this.fn(...this.args));
+  }
+}
+
 export class SerializedAttrEffect {
   readonly kind = EffectKind.SerializedAttr;
   readonly phase = Phase.ScalarDom;
@@ -91,16 +108,11 @@ export class SerializedAttrEffect {
   ) {}
 
   run(): void {
-    const value = readTrackedSourceValue(this.source);
-    const isClass = this.serializer === AttrSerializer.Class;
-
-    if (isClass) {
-      const serialized = serializeClass(value as ClassList);
-      this.element.setAttribute('class', serialized);
-    } else {
-      const serialized = stringifyStyle(value);
-      this.element.setAttribute('style', serialized);
-    }
+    const name = this.serializer === AttrSerializer.Class ? 'class' : 'style';
+    this.element.setAttribute(
+      name,
+      serializeAttrExpressionValue(name, readTrackedSourceValue(this.source))
+    );
   }
 }
 
@@ -159,6 +171,19 @@ export function createAttrEffect(
   return createDomSubscription(new AttrEffect(element, name, source), options?.scheduler);
 }
 
+export function createAttrExpressionEffect<TArgs extends unknown[]>(
+  element: Element,
+  name: string,
+  args: TArgs,
+  fn: AttrExpressionFn<TArgs>,
+  options?: DomEffectOptions
+): DomSubscriber {
+  return createDomSubscription(
+    new AttrExpressionEffect(element, name, args, fn),
+    options?.scheduler
+  );
+}
+
 export function createClassEffect(
   element: Element,
   source: Source,
@@ -202,6 +227,17 @@ function patchTextValue(text: Text, value: TextExpressionValue | Promise<TextExp
   }
 
   text.data = String(value);
+}
+
+export function serializeAttrExpressionValue(name: string, value: unknown): string {
+  const serialized = serializeAttribute(name, value);
+  return serialized == null || serialized === false || serialized === true
+    ? ''
+    : String(serialized);
+}
+
+function patchAttrValue(element: Element, name: string, value: unknown): void {
+  element.setAttribute(name, serializeAttrExpressionValue(name, value));
 }
 
 function readTrackedSourceValue<T>(source: Source<T>): T {

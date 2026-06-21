@@ -155,6 +155,7 @@ export function shouldResolveSsrQrl(qrlSegment: QrlSegmentOutput) {
   return (
     qrlSegment.segment.kind === 'jsxText' ||
     qrlSegment.segment.kind === 'jsxSpreadProps' ||
+    (qrlSegment.segment.kind === 'jsxProp' && qrlSegment.segment.functionRange === null) ||
     qrlSegment.segment.kind === 'branchCondition' ||
     isImplicitDollarSegment(qrlSegment.segment)
   );
@@ -243,7 +244,16 @@ export function hasDynamicAttrBinding(node: RenderNode | null): boolean {
     node,
     (current) =>
       current.kind === 'element' &&
-      current.props.some((prop) => prop.kind === 'named' && prop.binding)
+      current.props.some((prop) => prop.kind === 'named' && prop.binding?.kind === 'source')
+  );
+}
+
+export function hasAttrExpressionBinding(node: RenderNode | null): boolean {
+  return someRenderNode(
+    node,
+    (current) =>
+      current.kind === 'element' &&
+      current.props.some((prop) => prop.kind === 'named' && prop.binding?.kind === 'expression')
   );
 }
 

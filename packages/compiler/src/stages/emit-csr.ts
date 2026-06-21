@@ -372,7 +372,14 @@ export class DomEmitter {
     if (prop.kind !== 'named') {
       throw new Error('Dynamic attribute effects require named props.');
     }
-    const sourceName = prop.binding!.sourceName;
+    const binding = prop.binding!;
+    if (binding.kind === 'expression') {
+      this.use(QwikSymbol.CreateAttrExpressionEffect);
+      return `const ${effectId} = ${QwikSymbol.CreateAttrExpressionEffect}(${elementId}, ${JSON.stringify(
+        prop.name
+      )}, [], () => (${this.emitExpression(binding.expressionRange)}), { scheduler: ctx.scheduler });`;
+    }
+    const sourceName = binding.sourceName;
     if (prop.name === 'class') {
       this.use(QwikSymbol.CreateClassEffect);
       return `const ${effectId} = ${QwikSymbol.CreateClassEffect}(${elementId}, ${sourceName}, { scheduler: ctx.scheduler });`;

@@ -137,4 +137,100 @@ test.describe('ErrorBoundary streaming swap', () => {
     // ...but the swapped-out (dead) content's task must NOT re-run on the client.
     expect(await page.evaluate(() => (window as any).__ebDeadTaskClientRuns ?? 0)).toBe(0);
   });
+
+  // Happy path (replaces the legacy Qwik Router ErrorBoundary test): the content streams, stays
+  // interactive after resume, ships no fallback and no swap script — and a later client throw is
+  // still caught by the boundary (the second half of the old router test).
+  test('happy path: content interactive after resume, no fallback or swap script, then catches a client throw', async ({
+    page,
+  }) => {
+    const response = await page.goto('/e2e/error-boundary-streaming?scenario=happy', {
+      waitUntil: 'commit',
+    });
+    const html = await response!.text();
+    // No throw → no swap executor or swap call of either flavor is shipped in the SSR HTML.
+    expect(html).not.toMatch(/qErr\(|qInstallErrorSwap|qO\(|qInstallOOOS/);
+
+    // Content rendered, no fallback.
+    await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+
+    // Content is interactive after resume.
+    await page.locator('#eb-content-button').click();
+    await expect(page.locator('#eb-content-count')).toHaveText('1');
+
+    // A client-time throw from inside the boundary is caught and the fallback is interactive.
+    await page.locator('#eb-content-throw').click();
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-content')).toBeHidden();
+    await page.locator('#eb-fallback-button').click();
+    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+  });
+
+  // In-order SSR sync throw (`outOfOrder=false`): the simplest swap — `qErr` without any OOOS
+  // machinery. The content streams, then the inline `qErr` hides it and reveals the fallback.
+  test('in-order sync throw: qErr swap (no OOOS), fallback interactive', async ({ page }) => {
+    assertNoBrowserErrors(page);
+    await page.goto('/e2e/error-boundary-streaming?outOfOrder=false', { waitUntil: 'commit' });
+
+    // The boundary never blocks: the title and the footer after it both render.
+    await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
+    await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
+
+    // The descendant threw during SSR → fallback shown, content hidden.
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb sync boom');
+    await expect(page.locator('#eb-content')).toBeHidden();
+
+    await page.locator('#eb-fallback-button').click();
+    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+  });
+
+  // Case b: an ErrorBoundary inside a deferred `<Suspense>` segment. The sync throw is caught within
+  // the segment and a hoisted `qErr(id)` (emitted at the root right after the segment's `qO`) swaps
+  // the boundary — the fallback must be interactive after resume.
+  test('boundary inside a deferred <Suspense> (case b): hoisted qErr swap, fallback interactive', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto('/e2e/error-boundary-streaming?scenario=suspense', { waitUntil: 'commit' });
+
+    // The page shell streams immediately; the Suspense defers into a segment.
+    await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
+    await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
+
+    // The deferred segment resolves: the non-throwing sibling renders, the boundary is swapped to its
+    // fallback within the same segment, and its content is hidden.
+    await expect(page.locator('#eb-deferred-ok')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb sync boom');
+    await expect(page.locator('#eb-content')).toBeHidden();
+
+    await page.locator('#eb-fallback-button').click();
+    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+  });
+
+  // D2 cross-phase: the inner boundary errors on SSR (its fallback resumes). A later client throw
+  // from a sibling of the inner boundary routes to the OUTER boundary, whose fallback replaces the
+  // whole subtree — including the inner fallback — and stays interactive.
+  test('D2: SSR inner error, then a client throw makes the outer boundary replace the whole subtree', async ({
+    page,
+  }) => {
+    // The intentional outer throw may log; we only assert the boundary recovers.
+    await page.goto('/e2e/error-boundary-streaming?scenario=nested', { waitUntil: 'commit' });
+
+    // After resume the inner boundary shows its fallback; the outer boundary has not fired.
+    await expect(page.locator('#eb-inner')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-inner-msg')).toHaveText('caught: eb sync boom');
+    await expect(page.locator('#eb-outer')).toHaveCount(0);
+
+    // A click on a sibling of the inner boundary throws and routes to the OUTER boundary.
+    await page.locator('#eb-outer-throw').click();
+
+    // The outer fallback replaces the whole subtree, including the inner fallback, and is interactive.
+    await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-inner')).toHaveCount(0);
+    await page.locator('#eb-outer-button').click();
+    await expect(page.locator('#eb-outer-count')).toHaveText('1');
+  });
 });

@@ -37,17 +37,31 @@ const waitForRelease = (requestId: string, releaseId: string): Promise<void> =>
     resolvers.add(resolve);
   });
 
-const EbFallback = component$((props: { msg: string }) => {
+// `id` prefixes every marker so nested boundaries (the `nested` scenario) can tell their fallbacks
+// apart; it defaults to `eb-fallback` so the single-boundary scenarios keep their existing ids.
+const EbFallback = component$((props: { msg: string; id?: string }) => {
+  const id = props.id ?? 'eb-fallback';
   const count = useSignal(0);
   return (
-    <section id="eb-fallback">
-      <p id="eb-fallback-msg">caught: {props.msg}</p>
-      <button id="eb-fallback-button" onClick$={() => count.value++}>
+    <section id={id}>
+      <p id={`${id}-msg`}>caught: {props.msg}</p>
+      <button id={`${id}-button`} onClick$={() => count.value++}>
         Touch fallback
       </button>
-      <span id="eb-fallback-count">{count.value}</span>
+      <span id={`${id}-count`}>{count.value}</span>
     </section>
   );
+});
+
+// Resolves after a tick so the enclosing `<Suspense>` genuinely defers into an out-of-order segment
+// (used by the `suspense` scenario, where an ErrorBoundary then throws synchronously inside it).
+const EbDeferredOk = component$(() => {
+  if (isServer) {
+    return new Promise<JSXOutput>((resolve) => {
+      setTimeout(() => resolve(<span id="eb-deferred-ok">deferred ok</span>), 50);
+    }) as unknown as JSXOutput;
+  }
+  return <span id="eb-deferred-ok">deferred ok</span>;
 });
 
 const EbContent = component$(() => {
@@ -116,7 +130,58 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
   return (
     <main>
       <h1 id="eb-title">EB Streaming</h1>
-      {scenario === 'inert' ? (
+      {scenario === 'happy' ? (
+        // No SSR throw: the content streams and stays interactive after resume, no fallback, no swap
+        // script. A later client-time throw (touch state first so the container resumes) is then
+        // caught by the boundary — the full behavior the legacy Qwik Router test exercised.
+        <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+          <EbContent />
+          <button
+            id="eb-content-throw"
+            onClick$={() => {
+              touched.value++;
+              throw new Error('happy click boom');
+            }}
+          >
+            throw on click
+          </button>
+          <span id="eb-content-touched">{touched.value}</span>
+        </ErrorBoundary>
+      ) : scenario === 'suspense' ? (
+        // Case b: an ErrorBoundary INSIDE a deferred `<Suspense>` segment. The deferred-ok sibling
+        // forces a real out-of-order segment; the boundary's child throws synchronously inside it, so
+        // the hoisted `qErr(id)` swaps the boundary within the segment.
+        <Suspense fallback={<span id="eb-skel">loading</span>}>
+          <EbDeferredOk />
+          <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+            <EbContent />
+            <EbSyncThrower />
+          </ErrorBoundary>
+        </Suspense>
+      ) : scenario === 'nested' ? (
+        // D2 cross-phase: the inner boundary errors on SSR (shows its fallback). A later client throw
+        // from a sibling of the inner boundary routes to the OUTER boundary, whose fallback then
+        // replaces the whole subtree — including the inner fallback.
+        <ErrorBoundary
+          fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
+        >
+          <button
+            id="eb-outer-throw"
+            onClick$={() => {
+              touched.value++;
+              throw new Error('outer click boom');
+            }}
+          >
+            trigger outer
+          </button>
+          <span id="eb-outer-touched">{touched.value}</span>
+          <ErrorBoundary
+            fallback$={(e) => <EbFallback id="eb-inner" msg={String((e as any)?.message ?? e)} />}
+          >
+            <EbSyncThrower />
+          </ErrorBoundary>
+        </ErrorBoundary>
+      ) : scenario === 'inert' ? (
         // SSR error swaps out content that holds a signal-tracking task; bumping the signal from
         // OUTSIDE the boundary must not re-run the dead task on the client.
         <>

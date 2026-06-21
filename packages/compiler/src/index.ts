@@ -16,9 +16,7 @@ import { analyzeCaptures } from './stages/analyze-captures';
 import { collectModuleFacts, discoverExportedComponents } from './stages/discover';
 import { emitModules } from './stages/emit';
 import { lowerStaticJsxToIr } from './stages/lower-jsx';
-import { normalizeProps } from './stages/props';
 import { parseModule } from './stages/parse';
-import { rejectUnsupportedV1 } from './stages/validate';
 
 const PIPELINE: readonly PipelineStage[] = [
   parseModule,
@@ -26,8 +24,6 @@ const PIPELINE: readonly PipelineStage[] = [
   discoverExportedComponents,
   analyzeCaptures,
   lowerStaticJsxToIr,
-  normalizeProps,
-  rejectUnsupportedV1,
   emitModules,
 ];
 

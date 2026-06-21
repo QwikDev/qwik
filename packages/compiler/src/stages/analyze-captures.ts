@@ -1,7 +1,7 @@
 import {
   getSignalValueSourceName,
   getIdentifierName,
-  getJsxName,
+  getJsxAttributeName,
   getParams,
   getRange,
   isStaticSourceTextExpression,
@@ -18,7 +18,6 @@ import type {
   ImportDeclaration,
   ImportDeclarationSpecifier,
   JSXAttributeItem,
-  JSXAttributeName,
   JSXElement,
   MemberExpression,
   MetaProperty,
@@ -1218,19 +1217,6 @@ function getArgumentExpression(node: Argument | null | undefined): AstNode | nul
     return node.argument;
   }
   return node;
-}
-
-function getJsxAttributeName(name: JSXAttributeName | null | undefined): string | null {
-  const simpleName = getJsxName(name);
-  if (simpleName) {
-    return simpleName;
-  }
-  if (name?.type === 'JSXNamespacedName') {
-    const namespace = getJsxName(name.namespace);
-    const property = getJsxName(name.name);
-    return namespace && property ? `${namespace}:${property}` : null;
-  }
-  return null;
 }
 
 function isJsxEventName(name: string): boolean {

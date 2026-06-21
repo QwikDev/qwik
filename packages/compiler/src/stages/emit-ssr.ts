@@ -14,6 +14,7 @@ import { QwikSymbol } from '../words';
 import {
   emitComponentSetup,
   emitImports,
+  emitSsrQrlPrelude,
   escapeAttr,
   escapeText,
   flattenElementChildren,
@@ -21,8 +22,9 @@ import {
   hasComponent,
   hasDynamicBinding,
   serializeAttrValue,
+  shouldResolveSsrQrl,
 } from './emit-utils';
-import { emitQrlReference, isImplicitDollarSegment } from './implicit-dollar';
+import { emitQrlReference } from './implicit-dollar';
 
 type HtmlPart = string | { code: string };
 
@@ -52,30 +54,7 @@ function emitPrelude(qrlSegments: Map<string, QrlSegmentOutput>, imports: Import
       );
     }
   }
-  if (lines.length > 0) {
-    lines.push('');
-  }
-  for (const qrlSegment of qrlSegments.values()) {
-    lines.push(
-      `const ${qrlSegment.qrlVariableName} = /*#__PURE__*/ ${
-        QwikSymbol.QrlWithChunk
-      }(${JSON.stringify(qrlSegment.importPath)}, () => import(${JSON.stringify(
-        qrlSegment.importPath
-      )}), ${JSON.stringify(qrlSegment.symbolName)});`
-    );
-    if (shouldResolveSsrQrl(qrlSegment)) {
-      lines.push(`${qrlSegment.qrlVariableName}.s(${qrlSegment.symbolName});`);
-    }
-  }
-  return lines.length > 0 ? `${lines.join('\n')}\n\n` : '';
-}
-
-function shouldResolveSsrQrl(qrlSegment: QrlSegmentOutput) {
-  return (
-    qrlSegment.segment.kind === 'jsxText' ||
-    qrlSegment.segment.kind === 'branchCondition' ||
-    isImplicitDollarSegment(qrlSegment.segment)
-  );
+  return `${lines.length > 0 ? `${lines.join('\n')}\n\n` : ''}${emitSsrQrlPrelude(qrlSegments)}`;
 }
 
 function emitSsrComponent(
@@ -167,7 +146,7 @@ export class SsrEmitter {
     if (node.kind === 'dynamicText') {
       throw new Error('Dynamic text outside an element is not supported for SSR resume yet.');
     }
-    throw new Error(node.reason);
+    throw new Error('Unsupported render node.');
   }
 
   private emitFragmentParts(children: readonly RenderNode[]): HtmlPart[] {

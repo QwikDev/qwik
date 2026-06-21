@@ -161,12 +161,6 @@ export interface BranchNode {
   elseChildren: RenderNode[];
 }
 
-export interface ExprNode {
-  kind: 'expr';
-  role: 'text' | 'attr' | 'child';
-  reason: string;
-}
-
 export type RenderNode =
   | ElementNode
   | ComponentNode
@@ -174,8 +168,7 @@ export type RenderNode =
   | ChildrenNode
   | TextNode
   | DynamicTextNode
-  | BranchNode
-  | ExprNode;
+  | BranchNode;
 
 export type DynamicBinding =
   | {

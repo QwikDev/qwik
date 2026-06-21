@@ -24,10 +24,6 @@ export function createNamedImport(source: string, specifiers: readonly string[])
   };
 }
 
-export function createQwikCoreImport(...specifiers: QwikSymbol[]) {
-  return createNamedImport(QwikModule.Core, specifiers);
-}
-
 export function createQwikSparkImport(...specifiers: QwikSymbol[]) {
   return createNamedImport(QwikModule.Spark, specifiers);
 }

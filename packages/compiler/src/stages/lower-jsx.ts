@@ -103,11 +103,10 @@ function lowerJsxElement(
   const opening = node.openingElement;
   const name = getJsxName(opening.name);
   if (!name) {
-    return {
-      kind: 'expr',
-      role: 'child',
-      reason: 'Only simple JSX element names are supported in vdomless static components.',
-    };
+    return unsupportedNode(
+      ctx,
+      'Only simple JSX element names are supported in vdomless static components.'
+    );
   }
   if (!isNativeTag(name)) {
     if (isComponentTagName(name)) {
@@ -118,11 +117,10 @@ function lowerJsxElement(
         children: lowerJsxChildren(ctx, node.children, propsName),
       };
     }
-    return {
-      kind: 'expr',
-      role: 'child',
-      reason: `Only PascalCase component JSX names are supported in vdomless static components (${name}).`,
-    };
+    return unsupportedNode(
+      ctx,
+      `Only PascalCase component JSX names are supported in vdomless static components (${name}).`
+    );
   }
 
   return {
@@ -141,10 +139,6 @@ function lowerJsxAttributes(ctx: CompilerContext, attributes: JSXAttributeItem[]
   const props: PropRecord[] = [];
   for (const attr of attributes) {
     if (attr.type === 'JSXSpreadAttribute') {
-      props.push({
-        name: '__unsupported_spread',
-        value: null,
-      });
       ctx.manifest.diagnostics.push(
         createDiagnostic(ctx.input.path, 'JSX spread props are not supported yet.')
       );
@@ -389,18 +383,14 @@ function lowerJsxChildren(
           continue;
         }
       }
-      nodes.push({
-        kind: 'expr',
-        role: 'child',
-        reason: 'Dynamic JSX children are not supported yet.',
-      });
+      ctx.manifest.diagnostics.push(
+        createDiagnostic(ctx.input.path, 'Dynamic JSX children are not supported yet.')
+      );
       continue;
     }
-    nodes.push({
-      kind: 'expr',
-      role: 'child',
-      reason: `Unsupported JSX child: ${child.type}.`,
-    });
+    ctx.manifest.diagnostics.push(
+      createDiagnostic(ctx.input.path, `Unsupported JSX child: ${child.type}.`)
+    );
   }
   return nodes;
 }
@@ -512,13 +502,10 @@ function lowerExpressionChildren(
     }
     return [];
   }
-  return [
-    {
-      kind: 'expr',
-      role: 'child',
-      reason: 'Dynamic JSX branch children are not supported yet.',
-    },
-  ];
+  ctx.manifest.diagnostics.push(
+    createDiagnostic(ctx.input.path, 'Dynamic JSX branch children are not supported yet.')
+  );
+  return [];
 }
 
 function lowerStaticSourceTextExpression(expression: unknown): RenderNode[] | null {
@@ -631,6 +618,11 @@ function isAstNode(node: unknown): node is { type: string; [key: string]: any } 
   return (
     !!node && typeof node === 'object' && 'type' in node && typeof (node as any).type === 'string'
   );
+}
+
+function unsupportedNode(ctx: CompilerContext, message: string): FragmentNode {
+  ctx.manifest.diagnostics.push(createDiagnostic(ctx.input.path, message));
+  return { kind: 'fragment', children: [] };
 }
 
 function formatExportName(name: string) {

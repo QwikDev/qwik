@@ -6,7 +6,12 @@ import type {
   RenderNode,
   SegmentRecord,
 } from '../types';
-import { transformImplicitDollarCode, type DollarTransformTarget } from './implicit-dollar';
+import {
+  isImplicitDollarSegment,
+  transformImplicitDollarCode,
+  type DollarTransformTarget,
+} from './implicit-dollar';
+import { QwikSymbol } from '../words';
 
 export function emitImports(imports: readonly ImportRecord[]) {
   return imports.map(emitImportDeclaration);
@@ -76,188 +81,105 @@ export function emitComponentSetup(
     .join('\n');
 }
 
+export function emitSsrQrlPrelude(qrlSegments: Map<string, QrlSegmentOutput>): string {
+  const lines: string[] = [];
+  for (const qrlSegment of qrlSegments.values()) {
+    lines.push(
+      `const ${qrlSegment.qrlVariableName} = /*#__PURE__*/ ${
+        QwikSymbol.QrlWithChunk
+      }(${JSON.stringify(qrlSegment.importPath)}, () => import(${JSON.stringify(
+        qrlSegment.importPath
+      )}), ${JSON.stringify(qrlSegment.symbolName)});`
+    );
+    if (shouldResolveSsrQrl(qrlSegment)) {
+      lines.push(`${qrlSegment.qrlVariableName}.s(${qrlSegment.symbolName});`);
+    }
+  }
+  return lines.length > 0 ? `${lines.join('\n')}\n\n` : '';
+}
+
+export function shouldResolveSsrQrl(qrlSegment: QrlSegmentOutput) {
+  return (
+    qrlSegment.segment.kind === 'jsxText' ||
+    qrlSegment.segment.kind === 'branchCondition' ||
+    isImplicitDollarSegment(qrlSegment.segment)
+  );
+}
+
 export function hasCapturedQrlSegment(
   node: RenderNode | null,
   qrlSegments: Map<string, QrlSegmentOutput>
 ): boolean {
-  if (!node) {
-    return false;
-  }
-  if (node.kind === 'element') {
-    for (const prop of node.props) {
-      if (
-        prop.qrlSegmentId &&
-        (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
-      ) {
-        return true;
-      }
+  return someRenderNode(node, (current) => {
+    if (current.kind === 'element') {
+      return current.props.some(
+        (prop) =>
+          prop.qrlSegmentId &&
+          (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
+      );
     }
-  }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
-    return node.children.some((child) => hasCapturedQrlSegment(child, qrlSegments));
-  }
-  if (node.kind === 'branch') {
-    return (
-      (qrlSegments.get(node.conditionSegmentId)?.segment.captures.length ?? 0) > 0 ||
-      (qrlSegments.get(node.thenSegmentId)?.segment.captures.length ?? 0) > 0 ||
-      (node.elseSegmentId
-        ? (qrlSegments.get(node.elseSegmentId)?.segment.captures.length ?? 0) > 0
-        : false) ||
-      node.thenChildren.some((child) => hasCapturedQrlSegment(child, qrlSegments)) ||
-      node.elseChildren.some((child) => hasCapturedQrlSegment(child, qrlSegments))
-    );
-  }
-  return false;
-}
-
-export function hasDynamicText(node: RenderNode | null): boolean {
-  if (!node) {
+    if (current.kind === 'branch') {
+      return (
+        (qrlSegments.get(current.conditionSegmentId)?.segment.captures.length ?? 0) > 0 ||
+        (qrlSegments.get(current.thenSegmentId)?.segment.captures.length ?? 0) > 0 ||
+        (current.elseSegmentId
+          ? (qrlSegments.get(current.elseSegmentId)?.segment.captures.length ?? 0) > 0
+          : false)
+      );
+    }
     return false;
-  }
-  if (node.kind === 'dynamicText') {
-    return true;
-  }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
-    return node.children.some(hasDynamicText);
-  }
-  if (node.kind === 'branch') {
-    return node.thenChildren.some(hasDynamicText) || node.elseChildren.some(hasDynamicText);
-  }
-  return false;
+  });
 }
 
 export function hasDynamicBinding(node: RenderNode | null): boolean {
-  if (!node) {
-    return false;
-  }
-  if (node.kind === 'dynamicText') {
-    return true;
-  }
-  if (node.kind === 'branch') {
-    return true;
-  }
-  if (node.kind === 'component') {
-    return (
-      node.props.some((prop) => prop.expressionRange !== undefined) ||
-      node.children.some(hasDynamicBinding)
-    );
-  }
-  if (node.kind === 'element') {
-    if (node.props.some((prop) => prop.binding)) {
-      return true;
-    }
-    return node.children.some(hasDynamicBinding);
-  }
-  if (node.kind === 'fragment') {
-    return node.children.some(hasDynamicBinding);
-  }
-  return false;
+  return someRenderNode(
+    node,
+    (current) =>
+      current.kind === 'dynamicText' ||
+      current.kind === 'branch' ||
+      (current.kind === 'component' &&
+        current.props.some((prop) => prop.expressionRange !== undefined)) ||
+      (current.kind === 'element' && current.props.some((prop) => prop.binding))
+  );
 }
 
 export function hasBranch(node: RenderNode | null): boolean {
-  if (!node) {
-    return false;
-  }
-  if (node.kind === 'branch') {
-    return true;
-  }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
-    return node.children.some(hasBranch);
-  }
-  return false;
+  return someRenderNode(node, (current) => current.kind === 'branch');
 }
 
 export function hasComponent(node: RenderNode | null): boolean {
-  if (!node) {
-    return false;
-  }
-  if (node.kind === 'component') {
-    return true;
-  }
-  if (node.kind === 'element' || node.kind === 'fragment') {
-    return node.children.some(hasComponent);
-  }
-  if (node.kind === 'branch') {
-    return node.thenChildren.some(hasComponent) || node.elseChildren.some(hasComponent);
-  }
-  return false;
+  return someRenderNode(node, (current) => current.kind === 'component');
 }
 
 export function hasTextExpression(node: RenderNode | null): boolean {
-  if (!node) {
-    return false;
-  }
-  if (node.kind === 'dynamicText') {
-    return node.binding.kind === 'expression';
-  }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
-    return node.children.some(hasTextExpression);
-  }
-  if (node.kind === 'branch') {
-    return node.thenChildren.some(hasTextExpression) || node.elseChildren.some(hasTextExpression);
-  }
-  return false;
+  return someRenderNode(
+    node,
+    (current) => current.kind === 'dynamicText' && current.binding.kind === 'expression'
+  );
 }
 
 export function hasSourceTextBinding(node: RenderNode | null): boolean {
-  if (!node) {
-    return false;
-  }
-  if (node.kind === 'dynamicText') {
-    return node.binding.kind === 'source';
-  }
-  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
-    return node.children.some(hasSourceTextBinding);
-  }
-  if (node.kind === 'branch') {
-    return (
-      node.thenChildren.some(hasSourceTextBinding) || node.elseChildren.some(hasSourceTextBinding)
-    );
-  }
-  return false;
+  return someRenderNode(
+    node,
+    (current) => current.kind === 'dynamicText' && current.binding.kind === 'source'
+  );
 }
 
 export function hasDynamicAttrBinding(node: RenderNode | null): boolean {
-  if (!node) {
-    return false;
-  }
-  if (node.kind === 'element') {
-    if (node.props.some((prop) => prop.binding)) {
-      return true;
-    }
-    return node.children.some(hasDynamicAttrBinding);
-  }
-  if (node.kind === 'fragment' || node.kind === 'component') {
-    return node.children.some(hasDynamicAttrBinding);
-  }
-  if (node.kind === 'branch') {
-    return (
-      node.thenChildren.some(hasDynamicAttrBinding) || node.elseChildren.some(hasDynamicAttrBinding)
-    );
-  }
-  return false;
+  return someRenderNode(
+    node,
+    (current) => current.kind === 'element' && current.props.some((prop) => prop.binding)
+  );
 }
 
 export function hasElementTextBinding(node: RenderNode | null): boolean {
-  if (!node) {
-    return false;
-  }
-  if (node.kind === 'element') {
-    const children = flattenElementChildren(node.children);
-    if (children.length === 1 && children[0].kind === 'dynamicText') {
-      return true;
+  return someRenderNode(node, (current) => {
+    if (current.kind !== 'element') {
+      return false;
     }
-    return children.some(hasElementTextBinding);
-  }
-  if (node.kind === 'fragment' || node.kind === 'component') {
-    return node.children.some(hasElementTextBinding);
-  }
-  if (node.kind === 'branch') {
-    return (
-      node.thenChildren.some(hasElementTextBinding) || node.elseChildren.some(hasElementTextBinding)
-    );
-  }
-  return false;
+    const children = flattenElementChildren(current.children);
+    return children.length === 1 && children[0].kind === 'dynamicText';
+  });
 }
 
 export function hasRangeTextBinding(node: RenderNode | null): boolean {
@@ -295,4 +217,26 @@ export function flattenElementChildren(children: readonly RenderNode[]): RenderN
     }
   }
   return flattened;
+}
+
+function someRenderNode(
+  node: RenderNode | null,
+  predicate: (node: RenderNode) => boolean
+): boolean {
+  if (!node) {
+    return false;
+  }
+  if (predicate(node)) {
+    return true;
+  }
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
+    return node.children.some((child) => someRenderNode(child, predicate));
+  }
+  if (node.kind === 'branch') {
+    return (
+      node.thenChildren.some((child) => someRenderNode(child, predicate)) ||
+      node.elseChildren.some((child) => someRenderNode(child, predicate))
+    );
+  }
+  return false;
 }

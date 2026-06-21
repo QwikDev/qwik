@@ -366,19 +366,32 @@ function resolveTextTarget(
   markerIndex: number | undefined
 ): Text {
   const element = NodeWalker.instance.findQwikElement(container.element, elementId);
-  isDev && assertDefined(element, `Missing Qwik element ${elementId}.`);
+
   if (targetKind === EffectTargetKind.ElementText) {
+    isDev && assertDefined(element, `Missing Qwik element ${elementId}.`);
     const text = NodeWalker.instance.findElementText(element!);
     isDev && assertDefined(text, `Missing text target ${elementId}.`);
     return text!;
   }
   if (targetKind === EffectTargetKind.RangeText) {
     isDev && assertNumber(markerIndex, `Missing range text marker index for element ${elementId}.`);
-    const text = NodeWalker.instance.findTextNode(element!, markerIndex!);
+    const text =
+      element == null
+        ? resolveBranchTextTarget(container, elementId, markerIndex!)
+        : NodeWalker.instance.findTextNode(element, markerIndex!);
     isDev && assertDefined(text, `Missing range text target ${elementId}:${markerIndex}.`);
     return text!;
   }
   throw new Error(`Unsupported text target kind ${targetKind}.`);
+}
+
+function resolveBranchTextTarget(
+  container: ContainerContext,
+  rangeId: number,
+  markerIndex: number
+): Text | null {
+  const range = NodeWalker.instance.findBranchRange(container.element, rangeId);
+  return range === null ? null : NodeWalker.instance.findBranchTextNode(range, markerIndex);
 }
 
 function restoreDependencies(collector: DomSubscriber | BranchSubscription, deps: Dependency[]) {

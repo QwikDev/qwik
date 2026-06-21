@@ -103,7 +103,7 @@ function collectQrlSegments(
   const qrlSegments = new Map<string, QrlSegmentOutput>();
   for (const component of components) {
     if (component.root) {
-      collectNodeQrlSegments(ctx, component.root, segmentById, qrlSegments, emitTarget === 'ssr');
+      collectNodeQrlSegments(ctx, component.root, segmentById, qrlSegments, true);
     }
     if (emitTarget === 'ssr') {
       collectComponentImplicitDollarSegments(ctx, component, qrlSegments);
@@ -471,8 +471,11 @@ function createSsrBranchRenderSegmentSource(
   }
 
   const fragment: RenderNode = { kind: 'fragment', children: [...children] };
+  const hasBranchRootRangeText = hasRootRangeTextBinding(fragment);
   const captures = qrlSegment.segment.captures;
-  const emitter = new SsrEmitter(qrlSegments, ctx.input.code);
+  const emitter = new SsrEmitter(qrlSegments, ctx.input.code, {
+    rootRangeTarget: hasBranchRootRangeText ? 'rangeId' : undefined,
+  });
   const html = emitter.emitHtmlExpression(fragment);
   const isAsync = hasBranch(fragment) || hasComponent(fragment);
   const captureLine =
@@ -501,12 +504,23 @@ function createSsrBranchRenderSegmentSource(
   const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
   const qrlPrelude = createSsrQrlPrelude(qrlSegments);
 
+  const params = hasBranchRootRangeText ? 'ctx, rangeId' : 'ctx';
   return `${importLine}${qrlPrelude}export const ${qrlSegment.symbolName} = ${
     isAsync ? 'async ' : ''
-  }(ctx) => {
+  }(${params}) => {
 ${indentBody(bodyStatements)}
 };
 `;
+}
+
+function hasRootRangeTextBinding(node: RenderNode): boolean {
+  if (node.kind === 'dynamicText') {
+    return true;
+  }
+  if (node.kind === 'fragment') {
+    return node.children.some(hasRootRangeTextBinding);
+  }
+  return false;
 }
 
 function createSsrResolvedSegmentImports(

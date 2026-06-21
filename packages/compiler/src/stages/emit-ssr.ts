@@ -26,6 +26,10 @@ import { emitQrlReference, isImplicitDollarSegment } from './implicit-dollar';
 
 type HtmlPart = string | { code: string };
 
+interface SsrEmitterOptions {
+  rootRangeTarget?: string;
+}
+
 export function emitSsrModule(
   components: ComponentRecord[],
   qrlSegments: Map<string, QrlSegmentOutput>,
@@ -133,7 +137,8 @@ export class SsrEmitter {
 
   constructor(
     private qrlSegments: Map<string, QrlSegmentOutput>,
-    private sourceCode: string
+    private sourceCode: string,
+    private options: SsrEmitterOptions = {}
   ) {}
 
   emitHtmlExpression(node: RenderNode) {
@@ -148,7 +153,7 @@ export class SsrEmitter {
       return [{ code: `(${node.propsName}.children ?? '')` }];
     }
     if (node.kind === 'fragment') {
-      return node.children.flatMap((child) => this.emitHtmlParts(child));
+      return this.emitFragmentParts(node.children);
     }
     if (node.kind === 'component') {
       return this.emitComponentParts(node);
@@ -163,6 +168,37 @@ export class SsrEmitter {
       throw new Error('Dynamic text outside an element is not supported for SSR resume yet.');
     }
     throw new Error(node.reason);
+  }
+
+  private emitFragmentParts(children: readonly RenderNode[]): HtmlPart[] {
+    if (!this.options.rootRangeTarget || !hasRootRangeTextTarget(children)) {
+      return children.flatMap((child) => this.emitHtmlParts(child));
+    }
+    return this.emitRootRangeTextParts(flattenElementChildren(children));
+  }
+
+  private emitRootRangeTextParts(children: readonly RenderNode[]): HtmlPart[] {
+    const parts: HtmlPart[] = [];
+    let markerIndex = 0;
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      if (child.kind !== 'dynamicText') {
+        parts.push(...this.emitHtmlParts(child));
+        continue;
+      }
+      parts.push(
+        '<!t>',
+        ...this.emitDynamicTextParts(
+          child,
+          `${QwikSymbol.CreateSsrRangeTextTarget}(${this.options.rootRangeTarget}, ${markerIndex})`
+        )
+      );
+      markerIndex++;
+      if (needsTextBoundary(children[i + 1])) {
+        parts.push('<!/t>');
+      }
+    }
+    return parts;
   }
 
   private emitComponentParts(node: Extract<RenderNode, { kind: 'component' }>): HtmlPart[] {
@@ -412,6 +448,14 @@ function hasElementTextTarget(children: readonly RenderNode[]) {
 
 function hasDirectRangeTextTarget(children: readonly RenderNode[]) {
   return children.some((child) => child.kind === 'dynamicText');
+}
+
+function hasRootRangeTextTarget(children: readonly RenderNode[]): boolean {
+  return children.some(
+    (child) =>
+      child.kind === 'dynamicText' ||
+      (child.kind === 'fragment' && hasRootRangeTextTarget(child.children))
+  );
 }
 
 function needsTextBoundary(node: RenderNode | undefined) {

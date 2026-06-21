@@ -80,6 +80,29 @@ describe.each([
     cleanup();
   });
 
+  it('updates dynamic text rendered directly by a logical-and branch', async () => {
+    const MyComp = () => {
+      const count = createSignal(3);
+      return (
+        <section>
+          <button onClick$={() => count.value++}>inc</button>
+          <p>{count.value > 2 && 'Count is greater than 2 and equal to ' + count.value}</p>
+        </section>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(<MyComp />, { debug });
+    const inc = container.querySelector('button')!;
+    const text = container.querySelector('p')!;
+
+    expect(text.textContent).toBe('Count is greater than 2 and equal to 3');
+
+    await qwikLoader?.dispatch(inc, 'click');
+
+    expect(text.textContent).toBe('Count is greater than 2 and equal to 4');
+    cleanup();
+  });
+
   it('renders multiple SSR branches from one async root', async () => {
     const MyComp = () => {
       const count = createSignal(0);

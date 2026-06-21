@@ -4,8 +4,11 @@ import { fastFirstChild, fastNextSibling } from './fast-getters';
 const ELEMENT_ID_SELECTOR = ELEMENT_ID.replace(':', '\\:');
 const CONTEXT_OPEN = 'c=';
 const CONTEXT_CLOSE = '/c';
+const ELEMENT_NODE = 1;
 const COMMENT_NODE = 8;
+const DOCUMENT_NODE = 9;
 const TEXT_NODE = 3;
+const DOCUMENT_FRAGMENT_NODE = 11;
 const RANGE_TEXT_MARKER = 't';
 const BRANCH_OPEN = 'b=';
 const BRANCH_CLOSE = '/b';
@@ -33,7 +36,7 @@ export class NodeWalker {
     if (element.getAttribute(ELEMENT_ID) === stringId) {
       return element;
     }
-    return element.querySelector(`[${ELEMENT_ID_SELECTOR}="${stringId}"]`);
+    return element.querySelector(`[${ELEMENT_ID_SELECTOR}="${stringId}"]`) ?? null;
   }
 
   findElementText(parentNode: Node): Text | null {
@@ -52,6 +55,28 @@ export class NodeWalker {
         if (index === markerIndex) {
           const text = fastNextSibling(currentNode);
           return text !== null && text.nodeType === TEXT_NODE ? (text as Text) : null;
+        }
+        index++;
+      }
+      currentNode = fastNextSibling(currentNode);
+    }
+    return null;
+  }
+
+  findBranchTextNode(range: BranchMarkerRange, markerIndex: number): Text | null {
+    const [, end] = range;
+    let index = 0;
+    let currentNode = fastNextSibling(range[0]);
+    while (currentNode && currentNode !== end) {
+      if (
+        currentNode.nodeType === COMMENT_NODE &&
+        (currentNode as Comment).data === RANGE_TEXT_MARKER
+      ) {
+        if (index === markerIndex) {
+          const text = fastNextSibling(currentNode);
+          return text !== null && text !== end && text.nodeType === TEXT_NODE
+            ? (text as Text)
+            : null;
         }
         index++;
       }
@@ -113,6 +138,9 @@ export class NodeWalker {
   }
 
   private findComment(node: Node, data: string): Comment | null {
+    if (!canHaveChildNodes(node)) {
+      return null;
+    }
     let child = fastFirstChild(node);
     while (child !== null) {
       if (child.nodeType === COMMENT_NODE && (child as Comment).data === data) {
@@ -176,4 +204,12 @@ export class NodeWalker {
     }
     return null;
   }
+}
+
+function canHaveChildNodes(node: Node): boolean {
+  return (
+    node.nodeType === ELEMENT_NODE ||
+    node.nodeType === DOCUMENT_NODE ||
+    node.nodeType === DOCUMENT_FRAGMENT_NODE
+  );
 }

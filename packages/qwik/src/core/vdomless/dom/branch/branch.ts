@@ -24,7 +24,7 @@ import {
 
 type BranchConditionFn = () => boolean;
 type BranchHandlerFn = (ctx: ContainerContext) => readonly Node[];
-type SSRBranchHandlerFn = (ctx: ContainerContext) => string;
+type SSRBranchHandlerFn = (ctx: ContainerContext, rangeId: number) => string;
 
 /** BranchRange represents a range of nodes in the DOM that can be replaced with new nodes */
 export class BranchRange {
@@ -195,7 +195,7 @@ export class SSRBranch {
               });
 
               const html = runWithCollector(null, () =>
-                invoke(invokeContext, () => renderer(invokeContext.container!))
+                invoke(invokeContext, () => renderer(invokeContext.container!, this.rangeId))
               );
               subscription.branch.currentOwner = invokeContext.owner;
               return html;

@@ -4,6 +4,7 @@ import {
   getRange,
   getSignalValueSourceName,
   getStaticExpressionValue,
+  getStaticSourceTextExpressionParts,
   isEventProp,
   isNativeTag,
   isFunctionLike,
@@ -373,6 +374,11 @@ function lowerJsxChildren(
           nodes.push(branch);
           continue;
         }
+        const textParts = lowerStaticSourceTextExpression(expression);
+        if (textParts) {
+          nodes.push(...textParts);
+          continue;
+        }
         const binding = createDynamicTextBinding(ctx, expression, expressionRange);
         if (binding) {
           nodes.push({
@@ -484,6 +490,10 @@ function lowerExpressionChildren(
     if (branch) {
       return [branch];
     }
+    const textParts = lowerStaticSourceTextExpression(expr);
+    if (textParts) {
+      return textParts;
+    }
     const binding = createDynamicTextBinding(ctx, expr, range);
     if (binding) {
       return [
@@ -509,6 +519,42 @@ function lowerExpressionChildren(
       reason: 'Dynamic JSX branch children are not supported yet.',
     },
   ];
+}
+
+function lowerStaticSourceTextExpression(expression: unknown): RenderNode[] | null {
+  const parts = getStaticSourceTextExpressionParts(expression);
+  if (!parts) {
+    return null;
+  }
+  return mergeAdjacentTextNodes(
+    parts.map((part): RenderNode => {
+      if (part.kind === 'text') {
+        return { kind: 'text', value: part.value };
+      }
+      return {
+        kind: 'dynamicText',
+        expressionRange: part.expressionRange,
+        binding: {
+          kind: 'source',
+          sourceName: part.sourceName,
+          expressionRange: part.expressionRange,
+        },
+      };
+    })
+  );
+}
+
+function mergeAdjacentTextNodes(nodes: RenderNode[]): RenderNode[] {
+  const merged: RenderNode[] = [];
+  for (const node of nodes) {
+    const previous = merged[merged.length - 1];
+    if (previous?.kind === 'text' && node.kind === 'text') {
+      previous.value += node.value;
+    } else {
+      merged.push(node);
+    }
+  }
+  return merged;
 }
 
 function isPropsChildrenExpression(expression: unknown, propsName: string | null): boolean {

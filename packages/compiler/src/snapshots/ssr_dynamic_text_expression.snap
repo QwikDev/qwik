@@ -100,6 +100,38 @@ export function App(_props, ctx) {
 }
 
 null
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_text_segment_0 = () => {
+  const count = _captures[0];
+  return count.value + 1;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    121,
+    136
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

@@ -7,6 +7,10 @@ import type {
   SourceRange,
 } from './types';
 
+export type StaticSourceTextPart =
+  | { kind: 'text'; value: string }
+  | { kind: 'source'; sourceName: string; expressionRange: SourceRange };
+
 export function visit(node: unknown, visitor: (node: AstNode) => void) {
   if (!isObjectNode(node)) {
     return;
@@ -143,6 +147,15 @@ export function getSignalValueSourceName(node: unknown): string | null {
   return isObjectNode(object) && object.type === 'Identifier' ? object.name : null;
 }
 
+export function isStaticSourceTextExpression(node: unknown): boolean {
+  return getStaticSourceTextExpressionParts(node) !== null;
+}
+
+export function getStaticSourceTextExpressionParts(node: unknown): StaticSourceTextPart[] | null {
+  const analysis = analyzeStaticSourceTextExpression(node);
+  return analysis?.guaranteedString ? analysis.parts : null;
+}
+
 export function isNativeTag(name: string) {
   return /^[a-z][a-zA-Z0-9-]*$/.test(name);
 }
@@ -222,6 +235,45 @@ function normalizeJsxEventName(name: string): string {
 
 function fromCamelToKebabCase(value: string) {
   return value.replace(/([A-Z-])/g, (part) => '-' + part.toLowerCase());
+}
+
+function analyzeStaticSourceTextExpression(
+  node: unknown
+): { parts: StaticSourceTextPart[]; guaranteedString: boolean } | null {
+  const expr = unwrapExpression(node);
+  if (!isObjectNode(expr)) {
+    return null;
+  }
+  if (expr.type === 'Literal') {
+    const value = expr.value;
+    if (typeof value === 'string') {
+      return { parts: [{ kind: 'text', value }], guaranteedString: true };
+    }
+    if (typeof value === 'number' || typeof value === 'bigint') {
+      return { parts: [{ kind: 'text', value: String(value) }], guaranteedString: false };
+    }
+    return null;
+  }
+  const sourceName = getSignalValueSourceName(expr);
+  const expressionRange = getRange(expr);
+  if (sourceName !== null && expressionRange !== null) {
+    return {
+      parts: [{ kind: 'source', sourceName, expressionRange }],
+      guaranteedString: false,
+    };
+  }
+  if (expr.type === 'BinaryExpression' && expr.operator === '+') {
+    const left = analyzeStaticSourceTextExpression(expr.left);
+    const right = analyzeStaticSourceTextExpression(expr.right);
+    if (!left || !right || (!left.guaranteedString && !right.guaranteedString)) {
+      return null;
+    }
+    return {
+      parts: [...left.parts, ...right.parts],
+      guaranteedString: true,
+    };
+  }
+  return null;
 }
 
 function isObjectNode(node: unknown): node is AstNode {

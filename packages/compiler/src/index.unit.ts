@@ -286,6 +286,17 @@ export function App() {
     });
   });
 
+  test('emits dynamic text inside logical branch renderers', async () => {
+    await testInput('branch_logical_and_dynamic_text', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const count = createSignal(0);
+  return <p>{count.value > 2 && 'Count is greater than 2 and equal to ' + count.value}</p>;
+}
+`,
+    });
+  });
+
   test('transforms implicit dollar calls in component setup', async () => {
     await testInput('implicit_dollar_setup', {
       code: `import { createSignal, createComputed$ } from '@qwik.dev/core/spark';

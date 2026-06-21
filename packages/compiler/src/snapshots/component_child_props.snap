@@ -186,6 +186,70 @@ export function Parent(_props, ctx) {
 }
 
 null
+============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_text_segment_0 = () => {
+  const props = _captures[0];
+  return props.label;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_text_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    96,
+    107
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_text_segment_1 = () => {
+  const props = _captures[0];
+  return props.count;
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_text_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    111,
+    122
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

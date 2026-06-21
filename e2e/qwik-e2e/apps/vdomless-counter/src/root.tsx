@@ -28,6 +28,7 @@ export function Root() {
           <p>Count value is {count.value % 2 === 0 ? 'even' : 'odd'}.</p>
           <h2>Conditional rendering</h2>
           <p>{count.value > 5 && 'Count is greater than 5'}</p>
+          <p>{count.value > 2 && 'Count is greater than 2 and equal to ' + count.value}</p>
         </main>
       </body>
     </>

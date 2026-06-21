@@ -4,6 +4,7 @@ import {
   getJsxName,
   getParams,
   getRange,
+  isStaticSourceTextExpression,
   isFunctionLike,
   unwrapExpression,
 } from '../ast-utils';
@@ -481,6 +482,10 @@ class CaptureAnalyzer {
       this.visit(expr);
       return;
     }
+    if (isStaticSourceTextExpression(expr)) {
+      this.visit(expr);
+      return;
+    }
     const range = getRange(expr);
     if (range === null) {
       this.visit(expr);
@@ -568,7 +573,39 @@ class CaptureAnalyzer {
     const parentSegment = this.currentSegment();
     const segment = this.createSyntheticSegment('branchRender', ctxName, range);
     this.segmentStack.push(segment);
-    this.visit(expr);
+    this.visitBranchRendererExpression(expr);
+    this.segmentStack.pop();
+    this.propagateCapturesToBranchRender(parentSegment, segment);
+  }
+
+  private visitBranchRendererExpression(expr: unknown) {
+    const node = unwrapExpression(expr);
+    if (!isNode(node) || isEmptyBranchExpression(node)) {
+      this.visit(expr);
+      return;
+    }
+    if (this.visitJsxBranchExpression(node)) {
+      return;
+    }
+    if (
+      node.type === 'JSXElement' ||
+      node.type === 'JSXFragment' ||
+      isStaticBranchTextExpression(node) ||
+      getSignalValueSourceName(node) !== null ||
+      isStaticSourceTextExpression(node)
+    ) {
+      this.visit(node);
+      return;
+    }
+    const range = getRange(node);
+    if (range === null) {
+      this.visit(node);
+      return;
+    }
+    const parentSegment = this.currentSegment();
+    const segment = this.createSyntheticJsxTextSegment(range);
+    this.segmentStack.push(segment);
+    this.visit(node);
     this.segmentStack.pop();
     this.propagateCapturesToBranchRender(parentSegment, segment);
   }
@@ -1216,6 +1253,17 @@ function isEmptyBranchExpression(node: unknown): boolean {
     return expr.value === null || expr.value === false;
   }
   return false;
+}
+
+function isStaticBranchTextExpression(node: AstNode): boolean {
+  if (node.type !== 'Literal') {
+    return false;
+  }
+  return (
+    typeof node.value === 'string' ||
+    typeof node.value === 'number' ||
+    typeof node.value === 'bigint'
+  );
 }
 
 function rangesEqual(left: SourceRange | null, right: SourceRange | null): boolean {

@@ -716,7 +716,7 @@ describe('ErrorBoundary combinations', () => {
 // Routing through Suspense: the CLOSEST enclosing boundary catches, and any boundary that encloses the
 // catching one stays untouched. (Settled routing table, §5 of the design.)
 describe('ErrorBoundary routing through Suspense (experimental)', () => {
-  it('B4 EB-outer › Suspense › EB-inner › throw → EB-inner catches, EB-outer untouched', async () => {
+  it('EB-outer › Suspense › EB-inner › throw → EB-inner catches, EB-outer untouched', async () => {
     const { document } = await streamAndResume(
       <main>
         <ErrorBoundary
@@ -744,7 +744,7 @@ describe('ErrorBoundary routing through Suspense (experimental)', () => {
     expect(document.querySelector('#outer-ok')?.textContent).toBe('outer-ok');
   });
 
-  it('B6 EB-outer › Suspense-A › EB-mid › Suspense-B › throw → EB-mid catches, EB-outer untouched', async () => {
+  it('EB-outer › Suspense-A › EB-mid › Suspense-B › throw → EB-mid catches, EB-outer untouched', async () => {
     const { document } = await streamAndResume(
       <main>
         <ErrorBoundary
@@ -810,7 +810,7 @@ describe('ErrorBoundary concurrent fallback teardown (experimental)', () => {
 // SSR error in one phase meeting a client re-render in the next. `store.error` is the bridge; the
 // SSR two-host structure must reconcile cleanly when the boundary re-renders on the client.
 describe('ErrorBoundary SSR→CSR cross-phase (experimental)', () => {
-  it('D2 SSR inner error, then a client throw to the OUTER boundary replaces the whole subtree', async () => {
+  it('SSR inner error, then a client throw to the OUTER boundary replaces the whole subtree', async () => {
     const { container } = await ssrRenderToDom(
       <main>
         <ErrorBoundary
@@ -848,12 +848,12 @@ describe('ErrorBoundary SSR→CSR cross-phase (experimental)', () => {
     expect(el.querySelector('#outer-btn')).toBeFalsy();
   });
 
-  it('D3(in-order) an in-order two-host collapses cleanly when a client-first error re-renders the boundary (no Missing child)', async () => {
+  it('an in-order two-host collapses cleanly when a client-first error re-renders the boundary (no Missing child)', async () => {
     // The in-order analog of the OOOS post-resume collapse test above: the SSR `q:ebc`/`q:ebf`
     // two-host must reconcile down to the single client fallback Fragment without a "Missing
-    // child"/key mismatch. (Strict D3 — an *already SSR-errored* boundary collapsing on a later
-    // BENIGN re-render — isn't reachable in Phase 1: a pre-errored boundary has no re-render trigger
-    // and a 2nd error escalates past it; that benign-collapse path arrives with `reset()` in Phase 2.)
+    // child"/key mismatch. (The stricter case — an *already SSR-errored* boundary collapsing on a
+    // later BENIGN re-render — isn't reachable in Phase 1: a pre-errored boundary has no re-render
+    // trigger and a 2nd error escalates past it; that benign-collapse path arrives with `reset()`.)
     const { container } = await ssrRenderToDom(
       <main>
         <ErrorBoundary
@@ -1196,7 +1196,7 @@ describe('ErrorBoundary projection', () => {
 describe('ErrorBoundary in-order swap (no out-of-order streaming)', () => {
   const inOrder = { debug, streaming: { outOfOrder: false } } as const;
 
-  it('A1 happy path: content streams; no fallback content and no qErr swap script', async () => {
+  it('happy path: content streams; no fallback content and no qErr swap script', async () => {
     const { container } = await ssrRenderToDom(
       <main>
         <ErrorBoundary
@@ -1217,7 +1217,7 @@ describe('ErrorBoundary in-order swap (no out-of-order streaming)', () => {
     expect(el.outerHTML).not.toContain('qErr(');
   });
 
-  it('A2 sync throw: content-host hidden, fallback in the sibling host, qErr swap emitted', async () => {
+  it('sync throw: content-host hidden, fallback in the sibling host, qErr swap emitted', async () => {
     const { container } = await ssrRenderToDom(
       <main>
         <ErrorBoundary
@@ -1244,7 +1244,7 @@ describe('ErrorBoundary in-order swap (no out-of-order streaming)', () => {
     expect(el.outerHTML).toContain('qErr(');
   });
 
-  it('A3 siblings OUTSIDE the boundary that streamed before the throw remain visible', async () => {
+  it('siblings OUTSIDE the boundary that streamed before the throw remain visible', async () => {
     const { container } = await ssrRenderToDom(
       <main>
         <div id="outside-before">outside-before</div>
@@ -1271,7 +1271,7 @@ describe('ErrorBoundary in-order swap (no out-of-order streaming)', () => {
     expect(contentHost.contains(outsideAfter)).toBe(false);
   });
 
-  it('A4 awaited-async throw: fallback delivered in document order (sibling host)', async () => {
+  it('awaited-async throw: fallback delivered in document order (sibling host)', async () => {
     // "In-order" is timing, not position: an awaited-async throw still marks `store.error` before the
     // sibling fallback-host renders, so the fallback lands in the sibling host (not at the throw site).
     const { container } = await ssrRenderToDom(
@@ -1301,7 +1301,7 @@ describe('ErrorBoundary in-order swap (no out-of-order streaming)', () => {
     expect(el.outerHTML).toContain('qErr(');
   });
 
-  it('A6 a throw deep inside nested tags yields well-formed HTML (hideable content-host)', async () => {
+  it('a throw deep inside nested tags yields well-formed HTML (hideable content-host)', async () => {
     const { container } = await ssrRenderToDom(
       <main>
         <ErrorBoundary
@@ -1329,7 +1329,7 @@ describe('ErrorBoundary in-order swap (no out-of-order streaming)', () => {
     expect(contentHost.querySelector('#lvl1 #lvl2 #lvl3')).toBeTruthy();
   });
 
-  it('A5 the qErr executor installs independently of OOOS (no qO on the page)', async () => {
+  it('the qErr executor installs independently of OOOS (no qO on the page)', async () => {
     const chunks: string[] = [];
     await ssrRenderToDom(
       <main>
@@ -1491,7 +1491,7 @@ describe('ErrorBoundary SSR async-generator + non-serializable throws (experimen
     throw new Error('normal boom');
   });
 
-  it('S2: routes an async-generator child throw to the enclosing boundary fallback', async () => {
+  it('routes an async-generator child throw to the enclosing boundary fallback', async () => {
     const { container } = await ssrRenderToDom(
       <ErrorBoundary
         fallback$={$((e: any) => (
@@ -1505,7 +1505,7 @@ describe('ErrorBoundary SSR async-generator + non-serializable throws (experimen
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: async gen boom');
   });
 
-  it('S4: a non-serializable throw renders the fallback AND the page still serializes', async () => {
+  it('a non-serializable throw renders the fallback AND the page still serializes', async () => {
     // The key assertion is that ssrRenderToDom RESOLVES (the page serialized) rather than rejecting
     // with a verifySerializable error.
     const { container } = await ssrRenderToDom(
@@ -1523,7 +1523,7 @@ describe('ErrorBoundary SSR async-generator + non-serializable throws (experimen
     );
   });
 
-  it('S4: a normal Error throw is unchanged (still renders its fallback)', async () => {
+  it('a normal Error throw is unchanged (still renders its fallback)', async () => {
     const { container } = await ssrRenderToDom(
       <ErrorBoundary
         fallback$={$((e: any) => (

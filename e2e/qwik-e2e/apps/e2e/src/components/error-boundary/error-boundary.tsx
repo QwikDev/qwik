@@ -71,7 +71,7 @@ const EbSyncThrower = component$(() => {
   return <span id="eb-thrower-client" />;
 });
 
-// A7 inert probe: the swapped-out content holds a useTask$ that tracks a signal and records each
+// Inert probe: the swapped-out content holds a useTask$ that tracks a signal and records each
 // CLIENT run on `window`. The SSR throw (its child EbSyncThrower) swaps this content out; bumping the
 // tracked signal from OUTSIDE the boundary must NOT re-run this dead task on the client.
 const EbInertContent = component$<{ trigger: Signal<number> }>((props) => {
@@ -117,7 +117,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
     <main>
       <h1 id="eb-title">EB Streaming</h1>
       {scenario === 'inert' ? (
-        // A7: SSR error swaps out content that holds a signal-tracking task; bumping the signal from
+        // SSR error swaps out content that holds a signal-tracking task; bumping the signal from
         // OUTSIDE the boundary must not re-run the dead task on the client.
         <>
           <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>

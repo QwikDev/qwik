@@ -117,8 +117,8 @@ export const nextOutOfOrderSuspenseId = (): number => {
 };
 
 /**
- * Reserve an out-of-order id for a streaming `<ErrorBoundary>` without arming the executor — it
- * only needs the executor if it throws.
+ * Reserve a per-container id for an `<ErrorBoundary>`'s two-host swap without arming the OOOS
+ * executor (`markUsed=false`). Works for both in-order (`qErr`) and out-of-order boundaries.
  *
  * @internal
  */
@@ -127,9 +127,6 @@ export const nextErrorBoundaryId = (): number => {
     return 0;
   }
   const container = tryGetInvokeContext()?.$container$ as SSRContainer | undefined;
-  if (container?.outOfOrderStreaming !== true) {
-    return 0;
-  }
   return container?.nextOutOfOrderId?.(false) ?? 0;
 };
 

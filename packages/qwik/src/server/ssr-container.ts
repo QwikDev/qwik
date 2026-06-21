@@ -472,10 +472,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   nextOutOfOrderId(markUsed = true): number {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
+    // An in-order ErrorBoundary also needs a (per-container) id for its `qErr` two-host swap, even
+    // with OOOS off — but it must NOT arm the OOOS executor, so only mark used when OOOS is active.
+    const ooosActive = __EXPERIMENTAL__.suspense && this.outOfOrderStreaming;
+    if (!ooosActive && !__EXPERIMENTAL__.errorBoundary) {
       return 0;
     }
-    if (markUsed) {
+    if (markUsed && ooosActive) {
       this.outOfOrderUsed = true;
     }
     return ++this.outOfOrderId;

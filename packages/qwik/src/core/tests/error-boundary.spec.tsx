@@ -940,21 +940,106 @@ describe('ErrorBoundary projection', () => {
       expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
     });
 
-    it('renders the fallback in place; siblings already streamed before the throw remain', async () => {
-      // In-order SSR renders the fallback in place, so a sibling streamed before the throw stays —
-      // unlike CSR and the out-of-order path, which replace the whole subtree.
+    it('swaps the partial content out (hidden) and shows the fallback instead', async () => {
+      // EB contract is "fallback INSTEAD OF content": even in-order SSR (no out-of-order streaming)
+      // swaps out everything the boundary streamed before the throw — the content-host is hidden and
+      // the sibling fallback-host is revealed, rather than leaving the partial content visible.
       const { container } = await ssrRenderToDom(
         <BoxedWithSibling>
           <Thrower />
           <div id="projected-ok">projected ok</div>
         </BoxedWithSibling>,
-        { debug }
+        { debug, streaming: { outOfOrder: false } }
       );
       const el = container.element;
       expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
-      // The sibling streamed before the throw is retained (in-place fallback).
-      expect(el.querySelector('#sibling')).toBeTruthy();
+      // The sibling is still in the DOM but inside the hidden content-host (swapped out, not visible).
+      const sibling = el.querySelector('#sibling');
+      expect(sibling).toBeTruthy();
+      const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+      expect(contentHost.style.display).toBe('none');
+      expect(contentHost.contains(sibling)).toBe(true);
     });
+  });
+});
+
+// The in-order swap fires when out-of-order streaming is OFF (e.g. a page without Suspense). The
+// boundary still never buffers: content streams live into a `content-host`, and on a throw the
+// sibling `fallback-host` renders the fallback in document order + a `qErr(id)` inline script swaps.
+describe('ErrorBoundary in-order swap (no out-of-order streaming)', () => {
+  const inOrder = { debug, streaming: { outOfOrder: false } } as const;
+
+  it('A1 happy path: content streams; no fallback content and no qErr swap script', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb">fallback</p>
+          ))}
+        >
+          <div id="content">all good</div>
+        </ErrorBoundary>
+      </main>,
+      inOrder
+    );
+    const el = container.element;
+    expect(el.querySelector('#content')?.textContent).toBe('all good');
+    expect(el.querySelector('#fb')).toBeFalsy();
+    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+    expect(contentHost.style.display).toBe('contents');
+    expect(el.outerHTML).not.toContain('qErr(');
+  });
+
+  it('A2 sync throw: content-host hidden, fallback in the sibling host, qErr swap emitted', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {e.message}</p>
+          ))}
+        >
+          <div id="before">before</div>
+          <Thrower />
+          <div id="after">after</div>
+        </ErrorBoundary>
+      </main>,
+      inOrder
+    );
+    const el = container.element;
+    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+    const fallbackHost = el.querySelector('[q\\:ebf]') as HTMLElement;
+    expect(contentHost.style.display).toBe('none');
+    expect(fallbackHost.style.display).toBe('contents');
+    expect(fallbackHost.querySelector('#fb')?.textContent).toContain('caught: boom');
+    // partial content sits (closed, well-formed) inside the hidden content-host, NOT in the fallback
+    expect(contentHost.querySelector('#before')).toBeTruthy();
+    expect(contentHost.contains(fallbackHost)).toBe(false);
+    expect(el.outerHTML).toContain('qErr(');
+  });
+
+  it('A5 the qErr executor installs independently of OOOS (no qO on the page)', async () => {
+    const chunks: string[] = [];
+    await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$(() => (
+            <p id="fb">fallback</p>
+          ))}
+        >
+          <Thrower />
+        </ErrorBoundary>
+      </main>,
+      {
+        debug,
+        stream: { write: (c: string) => void chunks.push(c) },
+        streaming: { outOfOrder: false },
+      }
+    );
+    const html = chunks.join('');
+    expect(html).toContain('qErr(');
+    expect(html).toContain('qInstallErrorSwap');
+    // No out-of-order Suspense executor is installed for a plain in-order error swap.
+    expect(html).not.toMatch(/qInstallOOOS|qO\(/);
   });
 });
 

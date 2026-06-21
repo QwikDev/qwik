@@ -416,6 +416,30 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
     )
   : null!;
 
+/**
+ * SSR host for an IN-ORDER `<ErrorBoundary>`'s fallback. It renders after the content-host in
+ * document order, so by the time it runs an in-order throw has already set `store.error`. It
+ * renders the fallback inline (no segment) and emits `qErr(id)` to swap — hide the content-host,
+ * reveal this fallback-host — installed independently of OOOS.
+ */
+export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
+  ? /*#__PURE__*/ createInternalServerComponent<{ boundaryId: number; store: ErrorBoundaryStore }>(
+      (ssr, jsx, _options, enqueue) => {
+        const boundaryId = jsx.varProps.boundaryId as number;
+        const store = jsx.varProps.store as ErrorBoundaryStore;
+        // `!== undefined` (not truthiness) so a falsy thrown value still swaps.
+        if (store.error !== undefined && store.$fallback$) {
+          // LIFO: enqueue `qErr` first so it runs AFTER the fallback content has rendered.
+          enqueue(() => {
+            ssr.emitErrorSwapExecutorIfNeeded();
+            ssr.emitInlineScript(`qErr(${boundaryId})`);
+          });
+          enqueue(store.$fallback$(store.error) as JSXOutput);
+        }
+      }
+    )
+  : null!;
+
 /** Inject a streamed `<ErrorBoundary>` fallback segment into its fallback host via `qO`. */
 async function emitErrorBoundaryFallback(
   ssr: SSRContainer,

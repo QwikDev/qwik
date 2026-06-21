@@ -155,14 +155,11 @@ function renderErrorBoundaryFallback(
   if (__EXPERIMENTAL__.errorBoundary && isOutOfOrderSegmentContainer(ssr)) {
     throw err;
   }
-  // A live streaming boundary just marks the error; the fallback host streams it, so streaming is
-  // never blocked.
-  if (__EXPERIMENTAL__.errorBoundary && ssr.outOfOrderStreaming) {
-    errorStore.error = toSerializableBoundaryError(err);
-    return null;
-  }
+  // The boundary never blocks streaming: just mark the error and render nothing in place. Its sibling
+  // fallback-host delivers the fallback (in-order inline + `qErr`, or out-of-order via segment + `qO`)
+  // and swaps the content-host out.
   errorStore.error = toSerializableBoundaryError(err);
-  return errorStore.$fallback$(err) as ValueOrPromise<JSXOutput>;
+  return null;
 }
 
 /**

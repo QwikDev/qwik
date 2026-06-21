@@ -184,6 +184,13 @@ export interface SSRContainer extends Container {
   queueOutOfOrderSegment(segment: Promise<void>): void;
   emitOutOfOrderExecutorIfNeeded(): void;
   emitErrorSwapExecutorIfNeeded(): void;
+  /**
+   * Register an ErrorBoundary `qErr(id)` swap to run when this segment reveals. An inline `qErr`
+   * script inside a segment's `<template>` is inert, so a boundary rendered inside a segment defers
+   * its swap to the segment finalization, which emits it at the root right after `qO(segmentId)`.
+   * No-op outside a segment (standalone boundaries emit `qErr` inline).
+   */
+  $registerErrorSwap$(boundaryId: number): void;
   emitInlineScript(script: string): void;
   writeScript(attrs: Props, body?: string): void;
 
@@ -203,6 +210,8 @@ export interface SSRContainer extends Container {
 
 export interface SSRSegmentContainer extends SSRContainer {
   $rootContainer$: SSRContainer;
+  /** Ids of ErrorBoundaries inside this segment that errored; their `qErr` runs after the reveal. */
+  $errorSwapIds$: number[];
   $recordExternalRootEffect$(
     producer: unknown,
     effect: EffectSubscription,

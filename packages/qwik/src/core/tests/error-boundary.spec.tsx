@@ -88,7 +88,13 @@ const streamAndResume = async (jsx: JSXOutput) => {
   const scripts = Array.from(
     document.querySelectorAll('script[type="text/javascript"]'),
     (s) => s.textContent || ''
-  ).filter((code) => code.includes('qO') || code.includes('qInstallOOOS'));
+  ).filter(
+    (code) =>
+      code.includes('qO') ||
+      code.includes('qInstallOOOS') ||
+      code.includes('qErr') ||
+      code.includes('qInstallErrorSwap')
+  );
   // eslint-disable-next-line no-new-func
   new Function('document', scripts.join('\n'))(document);
   return { html, document };
@@ -325,9 +331,11 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
     );
   });
 
-  it('boundary inside a <Suspense> buffers within the segment (skeleton → fallback)', async () => {
-    // Inside a <Suspense> the subtree is already buffered, so the boundary buffers there and discards
-    // the partial content rather than using the live stream-and-hide path.
+  it('boundary inside a <Suspense> swaps within the segment (skeleton → fallback)', async () => {
+    // Inside a <Suspense> the boundary uses the SAME two-host swap as standalone, rendered into the
+    // segment buffer; its `qErr(id)` is emitted at the root after the segment's `qO` reveal (an inline
+    // script inside the segment `<template>` would be inert). The partial content is swapped out
+    // (hidden in the content-host), NOT discarded via a rollback.
     const { document } = await streamAndResume(
       <main>
         <Suspense fallback={<span id="loading">loading</span>}>
@@ -344,11 +352,12 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
       </main>
     );
     expect(document.querySelector('#fb')?.textContent).toContain('caught: boom');
-    expect(document.querySelector('#before')).toBeFalsy();
-    expect(document.querySelector('#after')).toBeFalsy();
+    const contentHost = document.querySelector('[q\\:ebc]');
+    expect(contentHost?.querySelector('#before')).toBeTruthy();
+    expect(displayOf(contentHost)).toBe('none');
   });
 
-  it('boundary inside a <Suspense>: an async throw rolls back the WHOLE content', async () => {
+  it('boundary inside a <Suspense>: an async throw swaps out the WHOLE content', async () => {
     const { document } = await streamAndResume(
       <main>
         <Suspense fallback={<span id="loading">loading</span>}>
@@ -365,8 +374,10 @@ describe('ErrorBoundary streaming swap (experimental)', () => {
       </main>
     );
     expect(document.querySelector('#fb')?.textContent).toContain('caught: async boom');
-    expect(document.querySelector('#before')).toBeFalsy();
-    expect(document.querySelector('#after')).toBeFalsy();
+    // The whole content is swapped out (hidden in the content-host), not discarded.
+    const contentHost = document.querySelector('[q\\:ebc]');
+    expect(contentHost?.querySelector('#before')).toBeTruthy();
+    expect(displayOf(contentHost)).toBe('none');
   });
 
   it('catches an async component whose render rejects (no <Suspense>)', async () => {

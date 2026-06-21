@@ -19,6 +19,7 @@ import {
 } from '../shared/utils/markers';
 import { resolveSlotName } from '../shared/utils/prop';
 import { noSerialize } from '../shared/serdes/verify';
+import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
 import {
@@ -353,6 +354,15 @@ async function finalizeAndSwapOutOfOrderSegment(
     ssr.emitOutOfOrderExecutorIfNeeded();
   }
   ssr.emitInlineScript(`qO(${boundaryId})`);
+  // `qO` injected the segment's hosts into the live DOM; now run any deferred ErrorBoundary swaps at
+  // the root (their inline `qErr` would have been inert inside the segment `<template>`).
+  const errorSwapIds = rendered.container.$errorSwapIds$;
+  if (__EXPERIMENTAL__.errorBoundary && errorSwapIds.length) {
+    ssr.emitErrorSwapExecutorIfNeeded();
+    for (let i = 0; i < errorSwapIds.length; i++) {
+      ssr.emitInlineScript(`qErr(${errorSwapIds[i]})`);
+    }
+  }
   await ssr.streamHandler.flush();
 }
 
@@ -429,12 +439,20 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
         const store = jsx.varProps.store as ErrorBoundaryStore;
         // `!== undefined` (not truthiness) so a falsy thrown value still swaps.
         if (store.error !== undefined && store.$fallback$) {
-          // LIFO: enqueue `qErr` first so it runs AFTER the fallback content has rendered.
-          enqueue(() => {
-            ssr.emitErrorSwapExecutorIfNeeded();
-            ssr.emitInlineScript(`qErr(${boundaryId})`);
-          });
-          enqueue(store.$fallback$(store.error) as JSXOutput);
+          if (isOutOfOrderSegmentContainer(ssr)) {
+            // Inside a `<Suspense>` segment an inline `qErr` is inert in the `<template>`: defer it so
+            // the segment emits `qErr(id)` at the root after its `qO` reveal injects these hosts.
+            ssr.$registerErrorSwap$(boundaryId);
+            enqueue(store.$fallback$(store.error) as JSXOutput);
+          } else {
+            // Standalone in-order: emit the swap inline (LIFO — enqueue `qErr` first so it runs AFTER
+            // the fallback content has rendered).
+            enqueue(() => {
+              ssr.emitErrorSwapExecutorIfNeeded();
+              ssr.emitInlineScript(`qErr(${boundaryId})`);
+            });
+            enqueue(store.$fallback$(store.error) as JSXOutput);
+          }
         }
       }
     )

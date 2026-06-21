@@ -1529,6 +1529,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     );
   }
 
+  $registerErrorSwap$(_boundaryId: number): void {
+    // Standalone boundaries emit `qErr` inline; only a segment defers it (see SSRSegmentContainer).
+  }
+
   emitInlineScript(script: string): void {
     const scriptAttrs: Record<string, string> = { type: 'text/javascript' };
     if (this.renderOptions.serverData?.nonce) {
@@ -1920,6 +1924,7 @@ interface SegmentRootCommit {
 export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentContainer {
   $outOfOrderState$ = OutOfOrderSegmentState.Rendering;
   $outOfOrderRootIdMap$: number[] | null = null;
+  $errorSwapIds$: number[] = [];
   private subscriptionPatchRecords: SubscriptionPatchRecord[] = [];
   private pendingVNodeDataPatches: PendingVNodeDataPatches | null = null;
 
@@ -1932,6 +1937,12 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
 
   override nextOutOfOrderId(markUsed = true): number {
     return this.$rootContainer$.nextOutOfOrderId(markUsed);
+  }
+
+  override $registerErrorSwap$(boundaryId: number): void {
+    // A `qErr` script written into this segment's `<template>` would be inert on reveal, so defer the
+    // swap: `finalizeAndSwapOutOfOrderSegment` emits `qErr(id)` at the root after `qO(segmentId)`.
+    this.$errorSwapIds$.push(boundaryId);
   }
 
   override $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {

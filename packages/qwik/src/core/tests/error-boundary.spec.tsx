@@ -1028,6 +1028,91 @@ describe('ErrorBoundary in-order swap (no out-of-order streaming)', () => {
     expect(el.outerHTML).toContain('qErr(');
   });
 
+  it('A3 siblings OUTSIDE the boundary that streamed before the throw remain visible', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <div id="outside-before">outside-before</div>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {e.message}</p>
+          ))}
+        >
+          <Thrower />
+        </ErrorBoundary>
+        <div id="outside-after">outside-after</div>
+      </main>,
+      inOrder
+    );
+    const el = container.element;
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
+    // Siblings outside the boundary are untouched and NOT inside the hidden content-host.
+    const outsideBefore = el.querySelector('#outside-before');
+    const outsideAfter = el.querySelector('#outside-after');
+    expect(outsideBefore?.textContent).toBe('outside-before');
+    expect(outsideAfter?.textContent).toBe('outside-after');
+    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+    expect(contentHost.contains(outsideBefore)).toBe(false);
+    expect(contentHost.contains(outsideAfter)).toBe(false);
+  });
+
+  it('A4 awaited-async throw: fallback delivered in document order (sibling host)', async () => {
+    // "In-order" is timing, not position: an awaited-async throw still marks `store.error` before the
+    // sibling fallback-host renders, so the fallback lands in the sibling host (not at the throw site).
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {String(e?.message ?? e)}</p>
+          ))}
+        >
+          <div id="before">before</div>
+          <AsyncThrower />
+        </ErrorBoundary>
+      </main>,
+      inOrder
+    );
+    const el = container.element;
+    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+    const fallbackHost = el.querySelector('[q\\:ebf]') as HTMLElement;
+    const fb = el.querySelector('#fb');
+    expect(fb?.textContent).toContain('caught: async boom');
+    expect(contentHost.style.display).toBe('none');
+    expect(fallbackHost.style.display).toBe('contents');
+    // The fallback is in the sibling fallback-host, never nested at the throw site inside the content.
+    // (qwik-dom's element.querySelector is NOT subtree-scoped, so assert placement via `contains`.)
+    expect(fallbackHost.contains(fb)).toBe(true);
+    expect(contentHost.contains(fb)).toBe(false);
+    expect(el.outerHTML).toContain('qErr(');
+  });
+
+  it('A6 a throw deep inside nested tags yields well-formed HTML (hideable content-host)', async () => {
+    const { container } = await ssrRenderToDom(
+      <main>
+        <ErrorBoundary
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {e.message}</p>
+          ))}
+        >
+          <div id="lvl1">
+            <section id="lvl2">
+              <article id="lvl3">
+                <Thrower />
+              </article>
+            </section>
+          </div>
+        </ErrorBoundary>
+      </main>,
+      inOrder
+    );
+    const el = container.element;
+    const contentHost = el.querySelector('[q\\:ebc]') as HTMLElement;
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: boom');
+    expect(contentHost.style.display).toBe('none');
+    // The still-open tags were closed well-formed: the partial nesting stays intact (lvl3 inside lvl2
+    // inside lvl1) under the hidden content-host, rather than flattened or broken.
+    expect(contentHost.querySelector('#lvl1 #lvl2 #lvl3')).toBeTruthy();
+  });
+
   it('A5 the qErr executor installs independently of OOOS (no qO on the page)', async () => {
     const chunks: string[] = [];
     await ssrRenderToDom(

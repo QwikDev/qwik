@@ -1,5 +1,6 @@
 import {
   getIdentifierName,
+  getJsxName,
   getParams,
   getRange,
   isCallExpression,
@@ -107,6 +108,7 @@ export function discoverExportedComponents(ctx: CompilerContext) {
       discoverDefaultExport(ctx, statement);
     }
   }
+  discoverLocalComponents(ctx, program.body);
 }
 
 function discoverNamedExport(ctx: CompilerContext, statement: ExportNamedDeclaration) {
@@ -171,13 +173,15 @@ function addFunctionComponent(
   exportName: string | 'default',
   localName: string | null,
   declarationKind: ComponentRecord['declarationKind'],
-  qrlBoundary: string | null = null
+  qrlBoundary: string | null = null,
+  exported = true
 ) {
   const body = getComponentBody(fn, getContextProviderImports(ctx));
   const component: ComponentRecord = {
     exportName,
     localName,
     declarationKind,
+    exported,
     functionRange: getRange(fn),
     qrlBoundary,
     providesContext: body.providesContext,
@@ -189,6 +193,110 @@ function addFunctionComponent(
     supported: true,
   };
   ctx.manifest.components.push(component);
+  return component;
+}
+
+interface LocalComponentCandidate {
+  name: string;
+  fn: AstFunction;
+  declarationKind: 'function' | 'const';
+  qrlBoundary: string | null;
+}
+
+function discoverLocalComponents(
+  ctx: CompilerContext,
+  body: NonNullable<CompilerContext['program']>['body']
+) {
+  if (ctx.manifest.components.length === 0) {
+    return;
+  }
+  const candidates = collectLocalComponentCandidates(body);
+  const queue = new Set<string>();
+  for (const component of ctx.manifest.components) {
+    if (component.jsx) {
+      collectJsxComponentNames(component.jsx, queue);
+    }
+  }
+
+  for (const name of queue) {
+    if (hasDiscoveredComponent(ctx, name)) {
+      continue;
+    }
+    const candidate = candidates.get(name);
+    if (!candidate) {
+      continue;
+    }
+    const component = addFunctionComponent(
+      ctx,
+      candidate.fn,
+      candidate.name,
+      candidate.name,
+      candidate.declarationKind,
+      candidate.qrlBoundary,
+      false
+    );
+    if (component?.jsx) {
+      collectJsxComponentNames(component.jsx, queue);
+    }
+  }
+}
+
+function collectLocalComponentCandidates(
+  body: NonNullable<CompilerContext['program']>['body']
+): Map<string, LocalComponentCandidate> {
+  const candidates = new Map<string, LocalComponentCandidate>();
+  for (const statement of body) {
+    if (statement.type === 'FunctionDeclaration') {
+      const name = getIdentifierName(statement.id);
+      if (name && isComponentTagName(name)) {
+        candidates.set(name, {
+          name,
+          fn: statement,
+          declarationKind: 'function',
+          qrlBoundary: null,
+        });
+      }
+      continue;
+    }
+    if (statement.type !== 'VariableDeclaration') {
+      continue;
+    }
+    for (const declarator of statement.declarations ?? []) {
+      const name = getIdentifierName(declarator.id);
+      const component = getComponentFunction(declarator.init);
+      if (name && isComponentTagName(name) && component) {
+        candidates.set(name, {
+          name,
+          fn: component.fn,
+          declarationKind: 'const',
+          qrlBoundary: component.qrlBoundary,
+        });
+      }
+    }
+  }
+  return candidates;
+}
+
+function collectJsxComponentNames(node: AstJsxNode, names: Set<string>) {
+  visit(node, (current) => {
+    if (current.type !== 'JSXElement') {
+      return;
+    }
+    const name = getJsxName(current.openingElement.name);
+    if (name && isComponentTagName(name)) {
+      names.add(name);
+    }
+  });
+}
+
+function hasDiscoveredComponent(ctx: CompilerContext, name: string) {
+  return ctx.manifest.components.some(
+    (component) => component.exportName === name || component.localName === name
+  );
+}
+
+function isComponentTagName(name: string): boolean {
+  return /^[A-Z][A-Za-z0-9_$]*$/.test(name);
 }
 
 function getComponentFunction(node: unknown): ComponentFunctionInfo | null {

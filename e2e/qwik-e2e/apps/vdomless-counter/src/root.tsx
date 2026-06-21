@@ -1,5 +1,13 @@
 import { createSignal } from '@qwik.dev/core/spark';
 
+function Counter({ count }: { count: number }) {
+  return <span>Count from component: {count}</span>;
+}
+
+function Hello({ name }: { name: string }) {
+  return <span>Hello, {name}!</span>;
+}
+
 export function Root() {
   const count = createSignal(0);
 
@@ -29,6 +37,12 @@ export function Root() {
           <h2>Conditional rendering</h2>
           <p>{count.value > 5 && 'Count is greater than 5'}</p>
           <p>{count.value > 2 && 'Count is greater than 2 and equal to ' + count.value}</p>
+          <h2>Conditional element rendering</h2>
+          <p>
+            {count.value < 2 ? <span>Count is {count.value}</span> : <b>Count is {count.value}</b>}
+          </p>
+          <h2>Conditional component rendering</h2>
+          <div>{count.value < 2 ? <Hello name="Qwik" /> : <Counter count={count.value} />}</div>
         </main>
       </body>
     </>

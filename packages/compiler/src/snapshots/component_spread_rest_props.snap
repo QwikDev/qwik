@@ -144,7 +144,7 @@ export function Button(_props, ctx) {
     () => ({
       ...rest,
       get ['data-kind']() {
-        return kind;
+        return _props.kind;
       },
     }),
     { scheduler: ctx.scheduler }

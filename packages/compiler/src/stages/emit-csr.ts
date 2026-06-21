@@ -11,6 +11,7 @@ import type {
 import { QwikSymbol } from '../words';
 import {
   emitComponentParamSetup,
+  emitComponentExpression,
   emitComponentSetup,
   emitImports,
   emitObjectGetterName,
@@ -80,9 +81,9 @@ function emitDomRenderer(
   segments: readonly SegmentRecord[],
   sourceCode: string
 ) {
-  const emitter = new DomEmitter(qrlSegments, sourceCode);
+  const emitter = new DomEmitter(qrlSegments, sourceCode, {}, component);
   const root = component.root!;
-  emitter.raw(emitComponentParamSetup(component, sourceCode));
+  emitter.raw(emitComponentParamSetup(component, sourceCode, { omitRewrittenProps: true }));
   emitter.raw(
     emitComponentSetup(
       component,
@@ -105,7 +106,8 @@ export class DomEmitter {
   constructor(
     private qrlSegments: Map<string, QrlSegmentOutput>,
     private sourceCode: string,
-    private options: DomEmitterOptions = {}
+    private options: DomEmitterOptions = {},
+    private component?: ComponentRecord
   ) {}
 
   emitRoot(node: RenderNode): DomOutput[] {
@@ -134,7 +136,7 @@ export class DomEmitter {
           `const ${effectId} = ${QwikSymbol.CreateTextNodeEffect}(${id}, ${node.binding.sourceName}, { scheduler: ctx.scheduler });`
         );
       } else {
-        const expression = this.sourceCode.slice(node.expressionRange[0], node.expressionRange[1]);
+        const expression = this.emitExpression(node.expressionRange);
         this.use(QwikSymbol.CreateTextExpressionEffect);
         this.line(
           `const ${effectId} = ${QwikSymbol.CreateTextExpressionEffect}(${id}, [], () => ${expression}, { scheduler: ctx.scheduler });`
@@ -241,9 +243,7 @@ export class DomEmitter {
     for (const prop of props) {
       if (prop.kind === 'spread') {
         flushEntries();
-        sources.push(
-          `(${this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1])})`
-        );
+        sources.push(`(${this.emitExpression(prop.expressionRange)})`);
       } else {
         currentEntries.push(this.emitComponentPropEntry(prop));
       }
@@ -266,7 +266,7 @@ export class DomEmitter {
       }
     }
     if (prop.expressionRange !== undefined) {
-      const value = this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
+      const value = this.emitExpression(prop.expressionRange);
       return `get ${emitObjectGetterName(prop.name)}() { return ${value}; }`;
     }
     return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
@@ -275,7 +275,7 @@ export class DomEmitter {
   private emitDomPropsExpression(props: PropRecord[]): string {
     const entries = props.map((prop) => {
       if (prop.kind === 'spread') {
-        return `...(${this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1])})`;
+        return `...(${this.emitExpression(prop.expressionRange)})`;
       }
       return this.emitDomPropEntry(prop);
     });
@@ -291,7 +291,7 @@ export class DomEmitter {
       }
     }
     if (prop.expressionRange !== undefined) {
-      const value = this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
+      const value = this.emitExpression(prop.expressionRange);
       return `get ${emitObjectGetterName(prop.name)}() { return ${value}; }`;
     }
     return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
@@ -336,7 +336,7 @@ export class DomEmitter {
       if (!segment?.range) {
         throw new Error(`Missing branch condition segment ${segmentId}.`);
       }
-      return `() => ${this.sourceCode.slice(segment.range[0], segment.range[1])}`;
+      return `() => ${this.emitExpression(segment.range)}`;
     }
     const qrlSegment = this.qrlSegments.get(segmentId);
     if (!qrlSegment) {
@@ -413,6 +413,10 @@ export class DomEmitter {
     const id = `${prefix}${this.counter}`;
     this.counter++;
     return id;
+  }
+
+  private emitExpression(range: [number, number]) {
+    return emitComponentExpression(this.component, this.sourceCode, range);
   }
 }
 

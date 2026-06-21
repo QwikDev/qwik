@@ -44,11 +44,6 @@ const q_component_branch_else_segment_2 = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_branch_else_segment_2'),
   'component_branch_else_segment_2'
 );
-const q_component_q_e_click_segment_3 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_3',
-  () => import('./component.tsx_component_q_e_click_segment_3'),
-  'component_q_e_click_segment_3'
-);
 
 export async function App(_props, ctx) {
   const count = createSignal(0);
@@ -99,35 +94,12 @@ null
 */
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
-import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 import {
   _captures,
-  _qrlWithChunk,
   escapeHTML,
   renderSsrTextNode,
   createSsrRangeTextTarget,
 } from '@qwik.dev/core/spark';
-const q_component_branch_condition_segment_0 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_0',
-  () => import('./component.tsx_component_branch_condition_segment_0'),
-  'component_branch_condition_segment_0'
-);
-q_component_branch_condition_segment_0.s(component_branch_condition_segment_0);
-const q_component_branch_then_segment_1 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1',
-  () => import('./component.tsx_component_branch_then_segment_1'),
-  'component_branch_then_segment_1'
-);
-const q_component_branch_else_segment_2 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_2',
-  () => import('./component.tsx_component_branch_else_segment_2'),
-  'component_branch_else_segment_2'
-);
-const q_component_q_e_click_segment_3 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_3',
-  () => import('./component.tsx_component_q_e_click_segment_3'),
-  'component_q_e_click_segment_3'
-);
 export const component_branch_then_segment_1 = (ctx) => {
   const count = _captures[0];
   const id0 = ctx.nextId();
@@ -167,7 +139,6 @@ null
 */
 ============================= src/component.tsx_component_branch_else_segment_2.js (ENTRY POINT)==
 
-import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 import {
   _captures,
   _qrlWithChunk,
@@ -175,22 +146,6 @@ import {
   renderSsrTextNode,
   createSsrRangeTextTarget,
 } from '@qwik.dev/core/spark';
-const q_component_branch_condition_segment_0 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_0',
-  () => import('./component.tsx_component_branch_condition_segment_0'),
-  'component_branch_condition_segment_0'
-);
-q_component_branch_condition_segment_0.s(component_branch_condition_segment_0);
-const q_component_branch_then_segment_1 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1',
-  () => import('./component.tsx_component_branch_then_segment_1'),
-  'component_branch_then_segment_1'
-);
-const q_component_branch_else_segment_2 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_2',
-  () => import('./component.tsx_component_branch_else_segment_2'),
-  'component_branch_else_segment_2'
-);
 const q_component_q_e_click_segment_3 = /* @__PURE__ */ _qrlWithChunk(
   './component.tsx_component_q_e_click_segment_3',
   () => import('./component.tsx_component_q_e_click_segment_3'),

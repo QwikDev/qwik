@@ -65,6 +65,7 @@ export interface ComponentRecord {
   exportName: string | 'default';
   localName: string | null;
   declarationKind: 'function' | 'const' | 'defaultFunction' | 'defaultArrow';
+  exported: boolean;
   functionRange: SourceRange | null;
   qrlBoundary: string | null;
   providesContext: boolean;
@@ -122,6 +123,13 @@ export interface ParamRecord {
   name: string | null;
   bindingRange: SourceRange | null;
   defaultRange: SourceRange | null;
+  propAliases: ParamPropAliasRecord[];
+  canRewriteProps: boolean;
+}
+
+export interface ParamPropAliasRecord {
+  localName: string;
+  propName: string;
 }
 
 export interface ElementNode {

@@ -31,16 +31,22 @@ export function getParams(fn: AstFunction): ParamRecord[] {
   return fn.params.map((param) => {
     const expr = unwrapExpression(param);
     if (isObjectNode(expr) && expr.type === 'AssignmentPattern') {
+      const props = getParamPropAnalysis(expr.left);
       return {
         name: getIdentifierName(expr.left),
         bindingRange: getRange(expr.left),
         defaultRange: getRange(expr.right),
+        propAliases: props.aliases,
+        canRewriteProps: props.canRewrite,
       };
     }
+    const props = getParamPropAnalysis(param);
     return {
       name: getIdentifierName(param),
       bindingRange: getRange(param),
       defaultRange: null,
+      propAliases: props.aliases,
+      canRewriteProps: props.canRewrite,
     };
   });
 }
@@ -95,6 +101,58 @@ export function getIdentifierName(node: unknown): string | null {
     return node.name;
   }
   return null;
+}
+
+function getParamPropAnalysis(node: unknown): {
+  aliases: ParamRecord['propAliases'];
+  canRewrite: boolean;
+} {
+  const pattern = unwrapAssignmentLeft(node);
+  if (!isObjectNode(pattern) || pattern.type !== 'ObjectPattern') {
+    return { aliases: [], canRewrite: false };
+  }
+  const aliases: ParamRecord['propAliases'] = [];
+  let canRewrite = true;
+  for (const prop of pattern.properties ?? []) {
+    if (!isObjectNode(prop) || prop.type !== 'Property' || prop.computed) {
+      canRewrite = false;
+      continue;
+    }
+    const propName = getStaticPropertyName(prop.key);
+    const localName = getDirectBindingLocalName(prop.value);
+    if (propName !== null && localName !== null) {
+      aliases.push({ localName, propName });
+    } else {
+      canRewrite = false;
+    }
+  }
+  return { aliases, canRewrite };
+}
+
+function unwrapAssignmentLeft(node: unknown): unknown {
+  const expr = unwrapExpression(node);
+  if (isObjectNode(expr) && expr.type === 'AssignmentPattern') {
+    return unwrapAssignmentLeft(expr.left);
+  }
+  return expr;
+}
+
+function getStaticPropertyName(node: unknown): string | null {
+  if (!isObjectNode(node)) {
+    return null;
+  }
+  if (node.type === 'Identifier') {
+    return node.name;
+  }
+  if (node.type === 'Literal' && typeof node.value === 'string') {
+    return node.value;
+  }
+  return null;
+}
+
+function getDirectBindingLocalName(node: unknown): string | null {
+  const expr = unwrapExpression(node);
+  return getIdentifierName(expr);
 }
 
 export function getRange(node: unknown): SourceRange | null {

@@ -81,25 +81,12 @@ null
 */
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
-import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
 import {
   _captures,
-  _qrlWithChunk,
   escapeHTML,
   renderSsrTextNode,
   createSsrRangeTextTarget,
 } from '@qwik.dev/core/spark';
-const q_component_branch_condition_segment_0 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_0',
-  () => import('./component.tsx_component_branch_condition_segment_0'),
-  'component_branch_condition_segment_0'
-);
-q_component_branch_condition_segment_0.s(component_branch_condition_segment_0);
-const q_component_branch_then_segment_1 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1',
-  () => import('./component.tsx_component_branch_then_segment_1'),
-  'component_branch_then_segment_1'
-);
 export const component_branch_then_segment_1 = (ctx, rangeId) => {
   const count = _captures[0];
   ctx.addRoot(count);

@@ -327,6 +327,26 @@ export function App() {
     });
   });
 
+  test('imports local child components inside branch renderers', async () => {
+    await testInput('branch_local_components', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+
+function Counter({ count }: { count: number }) {
+  return <p>Count: {count}</p>;
+}
+
+function Hello({ name }: { name: string }) {
+  return <p>Hello, {name}!</p>;
+}
+
+export function App() {
+  const count = createSignal(0);
+  return <section>{count.value < 2 ? <Hello name="Qwik" /> : <Counter count={count.value} />}</section>;
+}
+`,
+    });
+  });
+
   test('transforms implicit dollar calls in component setup', async () => {
     await testInput('implicit_dollar_setup', {
       code: `import { createSignal, createComputed$ } from '@qwik.dev/core/spark';

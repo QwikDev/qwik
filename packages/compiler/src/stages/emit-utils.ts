@@ -77,13 +77,23 @@ export function emitComponentSetup(
     return '';
   }
   return component.setupRanges
-    .map((range) => transformImplicitDollarCode(sourceCode, range, segments, qrlSegments, target))
+    .map((range) => {
+      const code = transformImplicitDollarCode(sourceCode, range, segments, qrlSegments, target);
+      return target === 'csr' ? rewriteDestructuredProps(component, code) : code;
+    })
     .join('\n');
 }
 
-export function emitComponentParamSetup(component: ComponentRecord, sourceCode: string): string {
+export function emitComponentParamSetup(
+  component: ComponentRecord,
+  sourceCode: string,
+  options: { omitRewrittenProps?: boolean } = {}
+): string {
   const param = component.params[0];
   if (!param || param.name !== null || param.bindingRange === null) {
+    return '';
+  }
+  if (options.omitRewrittenProps && param.canRewriteProps) {
     return '';
   }
   const binding = sourceCode.slice(param.bindingRange[0], param.bindingRange[1]);
@@ -92,6 +102,36 @@ export function emitComponentParamSetup(component: ComponentRecord, sourceCode: 
       ? ` ?? ${sourceCode.slice(param.defaultRange[0], param.defaultRange[1])}`
       : '';
   return `const ${binding} = _props${fallback};`;
+}
+
+export function emitComponentExpression(
+  component: ComponentRecord | null | undefined,
+  sourceCode: string,
+  range: [number, number]
+): string {
+  return rewriteDestructuredProps(component, sourceCode.slice(range[0], range[1]));
+}
+
+export function rewriteDestructuredProps(
+  component: ComponentRecord | null | undefined,
+  expression: string
+) {
+  const aliases = component?.params[0]?.propAliases ?? [];
+  if (aliases.length === 0) {
+    return expression;
+  }
+  let output = expression;
+  for (const { localName, propName } of aliases) {
+    output = output.replace(
+      new RegExp(`(?<![.$])\\b${escapeRegExp(localName)}\\b`, 'g'),
+      `_props.${propName}`
+    );
+  }
+  return output;
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 export function emitSsrQrlPrelude(qrlSegments: Map<string, QrlSegmentOutput>): string {

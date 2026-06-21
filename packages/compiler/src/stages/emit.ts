@@ -6,6 +6,7 @@ import {
   createNamedImport,
   createQwikSparkImport,
   createSsrImports,
+  normalizeImports,
 } from '../imports';
 import { createModule, getLang } from '../module-utils';
 import type { CompilerContext } from '../types';
@@ -24,7 +25,6 @@ import {
   emitImports,
   emitSsrQrlPrelude,
   hasComponentPropsSpread,
-  hasDirectDomEvent,
   hasDomPropsBinding,
   hasDynamicAttrBinding,
   hasDynamicBinding,
@@ -55,37 +55,31 @@ export async function emitModules(ctx: CompilerContext) {
   }
 
   const qrlSegments = collectQrlSegments(ctx, supported, ctx.emitTarget);
-  const dynamicUsage = {
-    hasDynamicBinding: supported.some(
-      (component) => hasDynamicBinding(component.root) || component.providesContext
-    ),
-    hasSourceText: supported.some((component) => hasSourceTextBinding(component.root)),
-    hasTextExpression: supported.some((component) => hasTextExpression(component.root)),
-    hasDynamicAttr: supported.some((component) => hasDynamicAttrBinding(component.root)),
-    hasDomProps: supported.some((component) => hasDomPropsBinding(component.root)),
-    hasDirectEvent: supported.some((component) => hasDirectDomEvent(component.root)),
-    hasBranch: supported.some((component) => hasBranch(component.root)),
-    hasComponent: supported.some((component) => hasComponent(component.root)),
-    hasComponentPropsSpread: supported.some((component) => hasComponentPropsSpread(component.root)),
-  };
-  const ssrUsage = {
-    ...dynamicUsage,
-    hasElementText: supported.some((component) => hasElementTextBinding(component.root)),
-    hasRangeText: supported.some((component) => hasRangeTextBinding(component.root)),
-  };
-  const transformedImports = transformDollarImports(ctx.manifest.imports, ctx.emitTarget);
-  const csrRootQrlSegments =
-    ctx.emitTarget === 'csr' ? collectCsrRootQrlSegments(supported, qrlSegments) : qrlSegments;
-  const csrRootUsage = ctx.emitTarget === 'csr' ? collectCsrRootImportUsage(supported) : null;
-  const imports =
-    ctx.emitTarget === 'ssr'
-      ? createSsrImports(transformedImports, qrlSegments, ssrUsage)
-      : createCsrImports(transformedImports, csrRootQrlSegments, csrRootUsage!);
+  const exportedComponents = supported.filter((component) => component.exported);
+  const localComponents = supported.filter((component) => !component.exported);
+  const mainQrlSegments = collectQrlSegments(ctx, exportedComponents, ctx.emitTarget, false);
+  const imports = createModuleImports(ctx, exportedComponents, mainQrlSegments);
   const outputCode =
     ctx.emitTarget === 'ssr'
-      ? emitSsrModule(supported, qrlSegments, ctx.manifest.segments, ctx.input.code, imports)
-      : emitCsrModule(supported, qrlSegments, ctx.manifest.segments, ctx.input.code, imports);
+      ? emitSsrModule(
+          exportedComponents,
+          mainQrlSegments,
+          ctx.manifest.segments,
+          ctx.input.code,
+          imports
+        )
+      : emitCsrModule(
+          exportedComponents,
+          mainQrlSegments,
+          ctx.manifest.segments,
+          ctx.input.code,
+          imports
+        );
   const modules = [createModule(ctx.input.path, outputCode)];
+
+  for (const component of localComponents) {
+    modules.push(await createComponentModule(ctx, component));
+  }
 
   for (const qrlSegment of qrlSegments.values()) {
     modules.push(await createQrlSegmentModule(ctx, qrlSegment, qrlSegments));
@@ -94,16 +88,91 @@ export async function emitModules(ctx: CompilerContext) {
   ctx.outputModules = modules;
 }
 
+function createModuleImports(
+  ctx: CompilerContext,
+  components: readonly ComponentRecord[],
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  const transformedImports = transformDollarImports(ctx.manifest.imports, ctx.emitTarget);
+  const componentImports = components.flatMap((component) =>
+    createComponentReferenceImports(ctx, component.root!, component)
+  );
+  const baseImports = [...transformedImports, ...componentImports];
+  if (ctx.emitTarget === 'ssr') {
+    return createSsrImports(baseImports, qrlSegments, {
+      hasDynamicBinding: components.some(
+        (component) => hasDynamicBinding(component.root) || component.providesContext
+      ),
+      hasSourceText: components.some((component) => hasSourceTextBinding(component.root)),
+      hasElementText: components.some((component) => hasElementTextBinding(component.root)),
+      hasRangeText: components.some((component) => hasRangeTextBinding(component.root)),
+      hasTextExpression: components.some((component) => hasTextExpression(component.root)),
+      hasDynamicAttr: components.some((component) => hasDynamicAttrBinding(component.root)),
+      hasDomProps: components.some((component) => hasDomPropsBinding(component.root)),
+      hasBranch: components.some((component) => hasBranch(component.root)),
+      hasComponent: components.some((component) => hasComponent(component.root)),
+      hasComponentPropsSpread: components.some((component) =>
+        hasComponentPropsSpread(component.root)
+      ),
+    });
+  }
+
+  return createCsrImports(
+    baseImports,
+    collectCsrRootQrlSegments(components, qrlSegments),
+    collectCsrRootImportUsage(components)
+  );
+}
+
+async function createComponentModule(ctx: CompilerContext, component: ComponentRecord) {
+  const qrlSegments = collectQrlSegments(ctx, [component], ctx.emitTarget, false);
+  const imports = createComponentModuleImports(ctx, component, qrlSegments);
+  const source =
+    ctx.emitTarget === 'ssr'
+      ? emitSsrModule([component], qrlSegments, ctx.manifest.segments, ctx.input.code, imports)
+      : emitCsrModule([component], qrlSegments, ctx.manifest.segments, ctx.input.code, imports);
+  const modulePath = createComponentModulePath(ctx, component);
+  const transformed = await transform(modulePath, source, {
+    lang: getLang(ctx.input.path),
+    sourceType: 'module',
+    cwd: ctx.options.rootDir,
+    sourcemap: false,
+  });
+
+  return createModule(modulePath, transformed.code, null, {
+    isEntry: true,
+    origPath: ctx.input.path,
+    segment: createComponentAnalysis(ctx, component),
+  });
+}
+
+function createComponentModuleImports(
+  ctx: CompilerContext,
+  component: ComponentRecord,
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  return createModuleImports(ctx, [component], qrlSegments);
+}
+
 function collectQrlSegments(
   ctx: CompilerContext,
   components: ComponentRecord[],
-  emitTarget: CompilerContext['emitTarget']
+  emitTarget: CompilerContext['emitTarget'],
+  includeBranchChildren = true
 ): Map<string, QrlSegmentOutput> {
   const segmentById = new Map(ctx.manifest.segments.map((segment) => [segment.id, segment]));
   const qrlSegments = new Map<string, QrlSegmentOutput>();
   for (const component of components) {
     if (component.root) {
-      collectNodeQrlSegments(ctx, component.root, segmentById, qrlSegments, true, emitTarget);
+      collectNodeQrlSegments(
+        ctx,
+        component.root,
+        segmentById,
+        qrlSegments,
+        true,
+        emitTarget,
+        includeBranchChildren
+      );
     }
     if (emitTarget === 'ssr') {
       collectComponentImplicitDollarSegments(ctx, component, qrlSegments);
@@ -325,7 +394,8 @@ function collectNodeQrlSegments(
   segmentById: Map<string, SegmentRecord>,
   qrlSegments: Map<string, QrlSegmentOutput>,
   includeTextExpressions: boolean,
-  emitTarget: CompilerContext['emitTarget']
+  emitTarget: CompilerContext['emitTarget'],
+  includeBranchChildren = true
 ) {
   if (node.kind === 'element') {
     if (emitTarget === 'ssr' && node.propsSegmentId) {
@@ -350,25 +420,29 @@ function collectNodeQrlSegments(
     if (node.elseSegmentId) {
       collectSegmentById(ctx, node.elseSegmentId, segmentById, qrlSegments);
     }
-    for (const child of node.thenChildren) {
-      collectNodeQrlSegments(
-        ctx,
-        child,
-        segmentById,
-        qrlSegments,
-        includeTextExpressions,
-        emitTarget
-      );
-    }
-    for (const child of node.elseChildren) {
-      collectNodeQrlSegments(
-        ctx,
-        child,
-        segmentById,
-        qrlSegments,
-        includeTextExpressions,
-        emitTarget
-      );
+    if (includeBranchChildren) {
+      for (const child of node.thenChildren) {
+        collectNodeQrlSegments(
+          ctx,
+          child,
+          segmentById,
+          qrlSegments,
+          includeTextExpressions,
+          emitTarget,
+          includeBranchChildren
+        );
+      }
+      for (const child of node.elseChildren) {
+        collectNodeQrlSegments(
+          ctx,
+          child,
+          segmentById,
+          qrlSegments,
+          includeTextExpressions,
+          emitTarget,
+          includeBranchChildren
+        );
+      }
     }
   }
   if (includeTextExpressions && node.kind === 'dynamicText' && node.binding.kind === 'expression') {
@@ -382,7 +456,8 @@ function collectNodeQrlSegments(
         segmentById,
         qrlSegments,
         includeTextExpressions,
-        emitTarget
+        emitTarget,
+        includeBranchChildren
       );
     }
   }
@@ -418,6 +493,18 @@ function createSegmentModulePath(ctx: CompilerContext, symbolName: string) {
 }
 
 function createSegmentImportPath(ctx: CompilerContext, modulePath: string) {
+  return createModuleImportPath(ctx, modulePath);
+}
+
+function createComponentModulePath(ctx: CompilerContext, component: ComponentRecord) {
+  return `${ctx.input.path}_${createComponentSymbol(ctx, component)}.js`;
+}
+
+function createComponentImportPath(ctx: CompilerContext, component: ComponentRecord) {
+  return createModuleImportPath(ctx, createComponentModulePath(ctx, component));
+}
+
+function createModuleImportPath(ctx: CompilerContext, modulePath: string) {
   return `./${basename(modulePath).slice(0, -3)}${ctx.options.explicitExtensions ? '.js' : ''}`;
 }
 
@@ -572,9 +659,10 @@ function createSsrBranchRenderSegmentSource(
   }
 
   const fragment: RenderNode = { kind: 'fragment', children: [...children] };
+  const segmentQrlSegments = collectRenderNodeQrlSegments(ctx, fragment, qrlSegments);
   const hasBranchRootRangeText = hasRootRangeTextBinding(fragment);
   const captures = qrlSegment.segment.captures;
-  const emitter = new SsrEmitter(qrlSegments, ctx.input.code, {
+  const emitter = new SsrEmitter(segmentQrlSegments, ctx.input.code, {
     rootRangeTarget: hasBranchRootRangeText ? 'rangeId' : undefined,
   });
   const html = emitter.emitHtmlExpression(fragment);
@@ -588,11 +676,14 @@ function createSsrBranchRenderSegmentSource(
   const bodyStatements = [captureLine, emitter.toString(), `return ${html};`]
     .filter(Boolean)
     .join('\n');
-  const importRecords = createSsrResolvedSegmentImports(qrlSegments);
+  const importRecords = [
+    ...createComponentReferenceImports(ctx, fragment),
+    ...createSsrResolvedSegmentImports(segmentQrlSegments),
+  ];
   if (captures.length > 0) {
     importRecords.push(createQwikSparkImport(QwikSymbol.Captures));
   }
-  const imports = createSsrImports(importRecords, qrlSegments, {
+  const imports = createSsrImports(importRecords, segmentQrlSegments, {
     hasDynamicBinding: hasDynamicBinding(fragment),
     hasSourceText: hasSourceTextBinding(fragment),
     hasElementText: hasElementTextBinding(fragment),
@@ -605,7 +696,7 @@ function createSsrBranchRenderSegmentSource(
     hasComponentPropsSpread: hasComponentPropsSpread(fragment),
   });
   const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
-  const qrlPrelude = emitSsrQrlPrelude(qrlSegments);
+  const qrlPrelude = emitSsrQrlPrelude(segmentQrlSegments);
 
   const params = hasBranchRootRangeText ? 'ctx, rangeId' : 'ctx';
   return `${importLine}${qrlPrelude}export const ${qrlSegment.symbolName} = ${
@@ -652,8 +743,12 @@ function createBranchRenderSegmentSource(
     sparkImports: new Set(),
     segmentImports: new Map(),
   };
+  const segmentQrlSegments = collectRenderNodeQrlSegments(ctx, {
+    kind: 'fragment',
+    children: [...children],
+  });
   const captures = qrlSegment.segment.captures;
-  const emitter = new DomEmitter(qrlSegments, ctx.input.code, {
+  const emitter = new DomEmitter(segmentQrlSegments, ctx.input.code, {
     branchCondition: 'inline',
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),
     use: (symbol) => usage.sparkImports.add(symbol),
@@ -672,7 +767,10 @@ function createBranchRenderSegmentSource(
   ]
     .filter(Boolean)
     .join('\n');
-  const imports = [];
+  const imports = createComponentReferenceImports(ctx, {
+    kind: 'fragment',
+    children: [...children],
+  });
 
   if (captures.length > 0) {
     usage.sparkImports.add(QwikSymbol.Captures);
@@ -684,11 +782,100 @@ function createBranchRenderSegmentSource(
     imports.push(createNamedImport(segment.importPath, [segment.symbolName]));
   }
 
-  const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
+  const importLine =
+    imports.length > 0 ? `${emitImports(normalizeImports(imports)).join('\n')}\n\n` : '';
   return `${importLine}export const ${qrlSegment.symbolName} = (ctx) => {
 ${indentBody(bodyStatements)}
 };
 `;
+}
+
+function collectRenderNodeQrlSegments(
+  ctx: CompilerContext,
+  node: RenderNode,
+  existingSegments?: Map<string, QrlSegmentOutput>
+): Map<string, QrlSegmentOutput> {
+  const segmentById = new Map(ctx.manifest.segments.map((segment) => [segment.id, segment]));
+  const qrlSegments = new Map<string, QrlSegmentOutput>();
+  collectNodeQrlSegments(ctx, node, segmentById, qrlSegments, true, ctx.emitTarget, false);
+  if (!existingSegments) {
+    return qrlSegments;
+  }
+  return new Map(
+    Array.from(qrlSegments.keys()).flatMap((id) => {
+      const qrlSegment = existingSegments.get(id);
+      return qrlSegment ? [[id, qrlSegment] as const] : [];
+    })
+  );
+}
+
+function createComponentReferenceImports(
+  ctx: CompilerContext,
+  node: RenderNode,
+  currentComponent?: ComponentRecord
+): ImportRecord[] {
+  const names = collectComponentReferenceNames(node);
+  if (names.size === 0) {
+    return [];
+  }
+
+  const imports: ImportRecord[] = [];
+  const sameModuleNames = new Set<string>();
+  for (const name of names) {
+    const component = findNamedComponent(ctx, name);
+    if (!component || component.exported || component === currentComponent) {
+      continue;
+    }
+    sameModuleNames.add(name);
+    imports.push(createNamedImport(createComponentImportPath(ctx, component), [name]));
+  }
+
+  const externalNames = new Set(Array.from(names).filter((name) => !sameModuleNames.has(name)));
+  for (const importRecord of ctx.manifest.imports) {
+    if (importRecord.typeOnly) {
+      continue;
+    }
+    const specifiers = importRecord.specifiers.filter((specifier) => {
+      if (specifier.kind === 'named' && specifier.typeOnly) {
+        return false;
+      }
+      if (!externalNames.has(specifier.localName)) {
+        return false;
+      }
+      return true;
+    });
+    if (specifiers.length > 0) {
+      imports.push({
+        source: importRecord.source,
+        typeOnly: false,
+        specifiers,
+      });
+    }
+  }
+  return imports;
+}
+
+function collectComponentReferenceNames(node: RenderNode): Set<string> {
+  const names = new Set<string>();
+  collectComponentReferenceNamesInNode(node, names);
+  return names;
+}
+
+function collectComponentReferenceNamesInNode(node: RenderNode, names: Set<string>) {
+  if (node.kind === 'component') {
+    names.add(node.name);
+  }
+  if (node.kind === 'element' || node.kind === 'fragment' || node.kind === 'component') {
+    for (const child of node.children) {
+      collectComponentReferenceNamesInNode(child, names);
+    }
+  }
+}
+
+function findNamedComponent(ctx: CompilerContext, name: string) {
+  return ctx.manifest.components.find(
+    (component) => component.exportName === name || component.localName === name
+  );
 }
 
 function findBranchRenderChildren(
@@ -809,6 +996,29 @@ function usesIdentifier(source: string, name: string) {
   return pattern.test(source);
 }
 
+function createComponentAnalysis(
+  ctx: CompilerContext,
+  component: ComponentRecord
+): SegmentAnalysis {
+  const inputName = basename(ctx.input.path);
+  const name = createComponentSymbol(ctx, component);
+  return {
+    origin: inputName,
+    name,
+    entry: null,
+    displayName: name,
+    hash: name,
+    canonicalFilename: `${inputName}_${name}`,
+    extension: 'js',
+    parent: null,
+    ctxKind: 'function',
+    ctxName: 'component',
+    captures: false,
+    loc: component.functionRange ?? [0, 0],
+    paramNames: component.params.map((param) => param.name ?? '_'),
+  };
+}
+
 function createQrlSegmentAnalysis(
   ctx: CompilerContext,
   qrlSegment: QrlSegmentOutput
@@ -838,6 +1048,13 @@ function createQrlSegmentAnalysis(
 function createSegmentSymbol(ctx: CompilerContext, segment: SegmentRecord) {
   const sourceName = basename(ctx.input.path).replace(/\.[cm]?[jt]sx?$/, '');
   return sanitizeIdentifier(`${sourceName}_${formatSegmentContextName(segment)}_${segment.id}`);
+}
+
+function createComponentSymbol(ctx: CompilerContext, component: ComponentRecord) {
+  const sourceName = basename(ctx.input.path).replace(/\.[cm]?[jt]sx?$/, '');
+  const componentName =
+    component.exportName === 'default' ? (component.localName ?? 'default') : component.exportName;
+  return sanitizeIdentifier(`${sourceName}_${componentName}`);
 }
 
 function formatSegmentContextName(segment: SegmentRecord) {

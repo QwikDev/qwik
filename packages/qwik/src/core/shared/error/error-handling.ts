@@ -1,7 +1,6 @@
 import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
 import { logError } from '../utils/log';
-import type { QRL } from '../qrl/qrl.public';
 import type { ISsrNode } from '../../ssr/ssr-types';
 
 /** @internal */
@@ -10,11 +9,10 @@ export interface ErrorBoundaryStore {
   /** Server-only fallback renderer; the client re-renders with `props.fallback$` instead. Internal. */
   $fallback$?: (error: any) => unknown;
   /**
-   * Server-only `onError$` side-effect for the SSR catch path. `$`-prefixed store fields are NOT
-   * serialized, so the client cannot read this after resume — `handleError` fires `props.onError$`
-   * (which IS serialized) from the boundary host instead.
+   * Server-only `onError$` mirror, read only by the SSR catch path (`noSerialize`d, like
+   * `$fallback$`). The client fires the serialized `props.onError$` in `handleError` instead.
    */
-  $onError$?: QRL<(error: unknown) => void>;
+  $onError$?: (error: unknown) => void;
   /**
    * Server-only; streams `fallback$` as an out-of-order segment and swaps it into the fallback
    * host.

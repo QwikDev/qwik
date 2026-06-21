@@ -41,13 +41,15 @@ const _ebFallbackStyle_str = '{display:p0.error!==undefined?"contents":"none"}';
 /** @internal */
 export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const store = useErrorBoundaryStore();
-  // `noSerialize` taints identity; wrap in a fresh closure so it doesn't taint the shared `fallback$`
-  // QRL and drop its serialized prop.
+  // `$fallback$`/`$onError$` are store mirrors used only by the server SSR-catch path (which has the
+  // store, not the props). `noSerialize` keeps them off the serialized state — the client re-renders
+  // with `props.fallback$` and `handleError` fires `props.onError$` instead. Each is wrapped in a
+  // fresh closure so `noSerialize` taints the closure, not the shared prop QRL (which must stay
+  // serialized for the client).
   const fallbackQrl = props.fallback$;
   store.$fallback$ = noSerialize((error: any) => fallbackQrl(error));
-  // Server-only: fires onError$ from the SSR catch. `$`-store fields aren't serialized, so the
-  // client reads `props.onError$` (serialized) in `handleError` for a post-resume throw.
-  store.$onError$ = props.onError$;
+  const onErrorQrl = props.onError$;
+  store.$onError$ = onErrorQrl ? noSerialize((error: unknown) => onErrorQrl(error)) : undefined;
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {

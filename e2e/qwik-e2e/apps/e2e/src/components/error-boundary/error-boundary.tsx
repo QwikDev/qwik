@@ -5,7 +5,9 @@ import {
   Suspense,
   useServerData,
   useSignal,
+  useTask$,
   type JSXOutput,
+  type Signal,
 } from '@qwik.dev/core';
 import { ManualOutOfOrderReleaseButton } from '../suspense/ooos';
 
@@ -69,6 +71,24 @@ const EbSyncThrower = component$(() => {
   return <span id="eb-thrower-client" />;
 });
 
+// A7 inert probe: the swapped-out content holds a useTask$ that tracks a signal and records each
+// CLIENT run on `window`. The SSR throw (its child EbSyncThrower) swaps this content out; bumping the
+// tracked signal from OUTSIDE the boundary must NOT re-run this dead task on the client.
+const EbInertContent = component$<{ trigger: Signal<number> }>((props) => {
+  useTask$(({ track }) => {
+    track(() => props.trigger.value);
+    if (!isServer) {
+      (window as any).__ebDeadTaskClientRuns = ((window as any).__ebDeadTaskClientRuns ?? 0) + 1;
+    }
+  });
+  return (
+    <div id="eb-content">
+      <p>streamed content</p>
+      <EbSyncThrower />
+    </div>
+  );
+});
+
 // A deferred child whose async work rejects after its Suspense placeholder has streamed.
 const EbAsyncThrower = component$(() => {
   const url = useServerData<string>('url');
@@ -91,11 +111,24 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
   const url = useServerData<string>('url');
   const scenario = getSearchParam(url, 'scenario');
   const touched = useSignal(0);
+  const inertTrigger = useSignal(0);
 
   return (
     <main>
       <h1 id="eb-title">EB Streaming</h1>
-      {scenario === 'async' ? (
+      {scenario === 'inert' ? (
+        // A7: SSR error swaps out content that holds a signal-tracking task; bumping the signal from
+        // OUTSIDE the boundary must not re-run the dead task on the client.
+        <>
+          <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
+            <EbInertContent trigger={inertTrigger} />
+          </ErrorBoundary>
+          <button id="eb-inert-trigger" onClick$={() => inertTrigger.value++}>
+            bump signal
+          </button>
+          <span id="eb-inert-val">{inertTrigger.value}</span>
+        </>
+      ) : scenario === 'async' ? (
         <>
           <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
             <div id="eb-sibling">sibling</div>

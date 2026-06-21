@@ -24,13 +24,17 @@ import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
+  ELEMENT_SEQ,
   QCursorBoundary,
   QDefaultSlot,
+  QErrorContentHost,
   QScopedStyle,
   QSlot,
   QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
+import { isTask } from '../use/use-task';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { qDev, qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
@@ -47,8 +51,9 @@ import {
   ERROR_CONTEXT,
   isRecoverable,
   toSerializableBoundaryError,
+  type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
-import type { ISsrComponentFrame, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
+import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 
 class MaybeAsyncSignal {}
@@ -159,7 +164,60 @@ function renderErrorBoundaryFallback(
   // fallback-host delivers the fallback (in-order inline + `qErr`, or out-of-order via segment + `qO`)
   // and swaps the content-host out.
   errorStore.error = toSerializableBoundaryError(err);
+  // The swapped-out content is dead: make it inert so the client doesn't resume its tasks/signals.
+  if (__EXPERIMENTAL__.errorBoundary && errorStore.$contentHostNode$) {
+    markErrorBoundaryContentInert(ssr, errorStore.$contentHostNode$);
+  }
   return null;
+}
+
+/**
+ * Stash the just-opened `content-host` SSR node on its boundary's store, so a throw can later mark
+ * the swapped-out subtree inert. Resolves the store from the host's own context chain (the boundary
+ * that provides `ERROR_CONTEXT` is its parent component).
+ */
+function captureErrorBoundaryContentHost(ssr: SSRContainer): void {
+  const contentHost = ssr.getOrCreateLastNode();
+  const errorStore = ssr.resolveContext(contentHost, ERROR_CONTEXT) as ErrorBoundaryStore | null;
+  if (errorStore) {
+    errorStore.$contentHostNode$ = contentHost;
+  }
+}
+
+/**
+ * Make a swapped-out boundary's content inert: unsubscribe each content task from its signals so
+ * the dead, hidden subtree is never resumed/re-run on the client.
+ *
+ * The content is PROJECTED through the boundary's `<Slot>`, so its SSR nodes are NOT under the
+ * `content-host` element — they hang off the boundary COMPONENT node (the content-host's
+ * `parentComponent`). We traverse from there. This runs only on a caught throw, at which point the
+ * sibling fallback-host has not rendered yet (a deferred case-c throw rethrows earlier), so the
+ * boundary node's subtree is content-only and there is no live fallback task to clear by mistake.
+ */
+function markErrorBoundaryContentInert(
+  ssr: SSRContainer,
+  contentHost: ReturnType<SSRContainer['getOrCreateLastNode']>
+): void {
+  const boundaryNode = contentHost.parentComponent ?? contentHost;
+  clearSubtreeTaskEffects(ssr, boundaryNode);
+}
+
+function clearSubtreeTaskEffects(ssr: SSRContainer, node: ISsrNode): void {
+  const seq = node.getProp(ELEMENT_SEQ) as unknown[] | null;
+  if (seq) {
+    for (let i = 0; i < seq.length; i++) {
+      const item = seq[i];
+      if (isTask(item)) {
+        clearAllEffects(ssr, item);
+      }
+    }
+  }
+  const children = node.children;
+  if (children) {
+    for (let i = 0; i < children.length; i++) {
+      clearSubtreeTaskEffects(ssr, children[i]);
+    }
+  }
 }
 
 /**
@@ -256,6 +314,10 @@ function processJSXNode(
         );
         if (innerHTML) {
           ssr.htmlNode(innerHTML);
+        }
+
+        if (__EXPERIMENTAL__.errorBoundary && jsx.varProps && QErrorContentHost in jsx.varProps) {
+          captureErrorBoundaryContentHost(ssr);
         }
 
         enqueue(ssr.closeElement);

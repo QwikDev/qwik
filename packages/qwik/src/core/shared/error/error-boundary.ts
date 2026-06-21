@@ -52,7 +52,10 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     return [
       /*#__PURE__*/ _jsxSorted(
         'div',
-        { style: /*#__PURE__*/ _fnSignal(_ebContentStyle, [store], _ebContentStyle_str) },
+        {
+          [QErrorContentHost]: String(boundaryId),
+          style: /*#__PURE__*/ _fnSignal(_ebContentStyle, [store], _ebContentStyle_str),
+        },
         null,
         /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null),
         1,

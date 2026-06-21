@@ -1,5 +1,6 @@
 import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
+import type { ISsrNode } from '../../ssr/ssr-types';
 
 /** @internal */
 export interface ErrorBoundaryStore {
@@ -11,6 +12,11 @@ export interface ErrorBoundaryStore {
    * host.
    */
   $emitFallback$?: (error: unknown) => void | Promise<void>;
+  /**
+   * Server-only; the boundary's `content-host` SSR node, captured when it renders so a throw can
+   * mark the swapped-out subtree inert (its tasks must not resume on the client).
+   */
+  $contentHostNode$?: ISsrNode;
 }
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');

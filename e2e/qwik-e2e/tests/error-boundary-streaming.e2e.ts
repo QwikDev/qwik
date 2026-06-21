@@ -115,4 +115,26 @@ test.describe('ErrorBoundary streaming swap', () => {
     await page.locator('#eb-fallback-button').click();
     await expect(page.locator('#eb-fallback-count')).toHaveText('1');
   });
+
+  test('A7 inert: a swapped-out content task does not re-run when an outside signal changes', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto('/e2e/error-boundary-streaming?scenario=inert', { waitUntil: 'commit' });
+
+    // SSR threw inside the content → fallback shown, content swapped out (hidden).
+    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-content')).toBeHidden();
+
+    // Baseline after resume: the dead content's task has not run on the client.
+    expect(await page.evaluate(() => (window as any).__ebDeadTaskClientRuns ?? 0)).toBe(0);
+
+    // Bump the tracked signal from OUTSIDE the boundary. The visible outside binding reacts (proving
+    // the click + resume + reactivity are live)...
+    await page.locator('#eb-inert-trigger').click();
+    await expect(page.locator('#eb-inert-val')).toHaveText('1');
+
+    // ...but the swapped-out (dead) content's task must NOT re-run on the client.
+    expect(await page.evaluate(() => (window as any).__ebDeadTaskClientRuns ?? 0)).toBe(0);
+  });
 });

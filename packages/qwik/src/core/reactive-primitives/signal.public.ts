@@ -87,6 +87,10 @@ export interface SerializerSignal<T> extends ComputedSignal<T> {
  * If the async function threw an error, reading the `.value` will throw that same error. Read from
  * `.error` to check if there was an error.
  *
+ * Inside a component render this throw is deferred: reading `.value` does not throw immediately if
+ * the same render also reads `.error`, so you can read both separately. If `.error` is never read,
+ * the error is thrown after the component finishes rendering.
+ *
  * @public
  */
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {

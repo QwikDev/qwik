@@ -292,6 +292,8 @@ Unlike `useComputed$()`, the result can be pending. While the async work is runn
 
 Read `.value` when you need the result. If the result is not ready yet, that part of the UI can wait and a [`<Suspense>`](/docs/labs/suspense/index.mdx) boundary can show fallback UI.
 
+Note: If the function errored, reading from `.value` will throw the error. This is intentional, so you can handle errors with a `<ErrorBoundary>`. To avoid this, check `.error` before reading `.value`.
+
 The async work can run during SSR and in the browser. `useAsync$()` also supports polling for values that need to stay up to date.
 
 #### Example

@@ -113,7 +113,15 @@ export const executeComponent = (
           clearAllEffects(container, renderHost);
         }
 
-        return maybeThen(componentFn(props), (jsx) => maybeThen(iCtx.$waitOn$, () => jsx));
+        // Enable (and reset) error-read deferral so reading an errored async signal's `.value`
+        // does not throw mid-render when the render also reads `.error`.
+        iCtx.$didReadError$ = null;
+        return maybeThen(componentFn(props), (jsx) =>
+          maybeThen(iCtx.$waitOn$, () => {
+            throwUnreadAsyncSignalError(iCtx);
+            return jsx;
+          })
+        );
       },
       (jsx) => {
         // In SSR, check if the component was marked dirty (COMPONENT bit) during execution.
@@ -151,6 +159,23 @@ export const executeComponent = (
     );
   return executeComponentWithPromiseExceptionRetry();
 };
+
+/**
+ * After a component renders, rethrow the error of any async signal whose `.value` surfaced an error
+ * that was never handled by reading `.error`. This lets a render read `.value` and `.error`
+ * separately without `.value` throwing mid-render.
+ */
+function throwUnreadAsyncSignalError(iCtx: RenderInvokeContext): void {
+  const tracker = iCtx.$didReadError$;
+  iCtx.$didReadError$ = undefined;
+  if (tracker) {
+    for (const [signal, didReadError] of tracker) {
+      if (!didReadError && signal.untrackedError) {
+        throw signal.untrackedError;
+      }
+    }
+  }
+}
 
 /**
  * Adds `useOn` events to the JSX output.

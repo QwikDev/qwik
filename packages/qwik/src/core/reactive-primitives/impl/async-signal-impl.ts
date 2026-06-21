@@ -184,6 +184,16 @@ export class AsyncSignalImpl<T>
       return this.$untrackedValue$;
     }
     if (this.$untrackedError$) {
+      // In a component render, defer the throw: the render may also read `.error` to handle it.
+      // Record the unread error; executeComponent rethrows after the render if `.error` is unread.
+      const ctx = tryGetInvokeContext();
+      if (ctx?.$didReadError$ !== undefined) {
+        const errorTrackingMap = (ctx!.$didReadError$ ||= new Map());
+        if (!errorTrackingMap.has(this)) {
+          errorTrackingMap.set(this, false);
+        }
+        return undefined as T;
+      }
       DEBUG && log('Throwing error while reading value', this);
       throw this.$untrackedError$;
     }
@@ -284,6 +294,10 @@ export class AsyncSignalImpl<T>
   get error(): Error | undefined {
     const val = this.untrackedError;
     const ctx = tryGetInvokeContext();
+    if (val !== undefined && ctx?.$didReadError$ !== undefined) {
+      // Reading `.error` handles a deferred error so the matching `.value` read won't rethrow.
+      (ctx!.$didReadError$ ||= new Map()).set(this, true);
+    }
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
         assertTrue(

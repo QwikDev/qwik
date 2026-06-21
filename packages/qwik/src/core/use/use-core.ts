@@ -1,5 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
-import type { SignalImpl } from 'packages/qwik/src/server/qwik-types';
+import type { SignalImpl } from '../../server/qwik-types';
+import type { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import { getDomContainer } from '../client/dom-container';
 import { vnode_locate } from '../client/vnode-utils';
 import { unwrapStore } from '../reactive-primitives/impl/store';
@@ -46,6 +47,13 @@ export interface InvokeContext {
   $effectSubscriber$: EffectSubscription | undefined;
   $locale$: string | undefined;
   $container$: Container | undefined;
+  /**
+   * Render-only. Async signals whose error was surfaced by reading `.value`, mapped to whether
+   * `.error` was also read (`true`). `undefined` means the deferral is off (outside a component
+   * render). After the component runs, any entry still `false` rethrows, so reading `.value` of an
+   * errored signal only throws when `.error` is never read.
+   */
+  $didReadError$: Map<AsyncSignalImpl<unknown>, boolean> | null | undefined;
 }
 
 let _context: InvokeContext | undefined;
@@ -139,6 +147,8 @@ export function newRenderInvokeContext(
     $locale$: locale,
     $container$: container,
     $waitOn$: undefined,
+    // Off by default; executeComponent enables it only while a component renders.
+    $didReadError$: undefined,
   };
   seal(ctx);
   return ctx;
@@ -160,6 +170,7 @@ export function newInvokeContext(
     $effectSubscriber$: undefined,
     $locale$,
     $container$: undefined,
+    $didReadError$: undefined,
   };
   seal(ctx);
   return ctx;

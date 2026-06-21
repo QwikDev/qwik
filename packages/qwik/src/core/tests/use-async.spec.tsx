@@ -365,6 +365,26 @@ describe.each([
         </>
       );
     });
+
+    it('does not throw when .value and .error are read separately in a render', async () => {
+      const Counter = component$(() => {
+        const doubleCount = useAsync$(() => Promise.reject(new Error('boom')));
+        // Reading .value first must not throw, because the render also handles .error.
+        const value = doubleCount.value;
+        const error = doubleCount.error;
+        return <div>{error ? `error: ${error.message}` : value}</div>;
+      });
+      let threw = false;
+      let container;
+      try {
+        ({ container } = await render(<Counter />, { debug }));
+      } catch {
+        threw = true;
+      }
+      // Reading .value of the errored signal did not throw, because .error was also read.
+      expect(threw).toBe(false);
+      expect(container!.element.querySelector('div')?.textContent).toBe('error: boom');
+    });
   });
 
   describe('promise', () => {

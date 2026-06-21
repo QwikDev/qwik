@@ -100,24 +100,6 @@ const queueTasks = (tasks: Task[]) => {
   }
 };
 
-/**
- * Run deferred handlers grouped per element, re-checking `ev.cancelBubble` between groups so an
- * async `stopPropagation()` (from a still-importing handler) still skips later elements.
- */
-const runEventTasks = (ev: Event, taskGroups: Task[][], stoppedSynchronously: boolean) => {
-  if (taskGroups.length) {
-    const run = async () => {
-      for (let i = 0; i < taskGroups.length; i++) {
-        if (!stoppedSynchronously && ev.cancelBubble) {
-          break;
-        }
-        await runTasks(taskGroups[i]);
-      }
-    };
-    queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run();
-  }
-};
-
 const resolveContainer = (containerEl: QContainerElement) => {
   if (containerEl._qwikjson_ === undefined) {
     const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
@@ -408,9 +390,7 @@ const processElementEvent = (
   const captureAttribute = capturePrefix + kebabName;
   const elements: Element[] = [];
   const captureHandlers: boolean[] = [];
-  // One task list per element so `runEventTasks` can re-check `cancelBubble` between them.
-  const taskGroups: Task[][] = [];
-  let stoppedSynchronously = false;
+  const tasks: Task[] = [];
   let current = ev.target as Node | null;
 
   while (current) {
@@ -423,40 +403,26 @@ const processElementEvent = (
     }
   }
 
-  const dispatchElement = (i: number) => {
-    const tasks: Task[] = [];
-    dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
-    if (tasks.length) {
-      taskGroups.push(tasks);
-    }
-  };
-
   for (let i = elements.length - 1; i >= 0; i--) {
     if (captureHandlers[i]) {
-      dispatchElement(i);
+      dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
       if (ev.cancelBubble) {
-        stoppedSynchronously = true;
-        break;
+        queueTasks(tasks);
+        return;
       }
     }
   }
 
-  if (!stoppedSynchronously) {
-    for (let i = 0; i < elements.length; i++) {
-      if (!captureHandlers[i]) {
-        dispatchElement(i);
-        if (ev.cancelBubble) {
-          stoppedSynchronously = true;
-          break;
-        }
-        if (!ev.bubbles) {
-          break;
-        }
+  for (let i = 0; i < elements.length; i++) {
+    if (!captureHandlers[i]) {
+      dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
+      if (!ev.bubbles || ev.cancelBubble) {
+        queueTasks(tasks);
+        return;
       }
     }
   }
-
-  runEventTasks(ev, taskGroups, stoppedSynchronously);
+  queueTasks(tasks);
 };
 
 const processPassiveElementEvent = (ev: Event) =>

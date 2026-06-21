@@ -805,30 +805,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  /** The currently-open element frame, captured when an ErrorBoundary's `content-host` opens. */
-  getCurrentElementFrame(): ElementFrame | null {
-    return this.currentElementFrame;
-  }
-
-  /**
-   * Close every still-open element frame back up to and INCLUDING `hostFrame`, appending
-   * well-formed closing tags. This is the in-order unwind for an ErrorBoundary whose content throws
-   * mid-render: unlike the deleted buffered rollback it NEVER erases streamed bytes — it closes the
-   * partial content into the hideable `content-host` so `qErr` can swap it out. Only element frames
-   * are closed (fragments/components/projections emit no HTML), so the byte stream is well-formed
-   * once the element tags are balanced; the dead subtree is then marked non-updatable so it never
-   * resumes.
-   */
-  closeOpenElementsTo(hostFrame: ElementFrame): void {
-    while (this.currentElementFrame) {
-      const frame = this.currentElementFrame;
-      this._closeElement();
-      if (frame === hostFrame) {
-        break;
-      }
-    }
-  }
-
   /** Writes opening data to vNodeData for fragment boundaries */
   openFragment(attrs: Props) {
     this.lastNode = null;

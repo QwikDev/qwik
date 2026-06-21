@@ -38,12 +38,6 @@ export class StreamHandler implements IStreamHandler {
 
   private setupStreamWriter(): SSRInternalStreamWriter {
     const handler = this;
-    // Checkpoint/truncate operate on the stream-block buffer, so they only rewind output that is
-    // still buffered (i.e. written while a stream block is open and not yet flushed).
-    const bufferOps = {
-      checkpoint: () => handler.streamCheckpoint(),
-      truncate: (checkpoint: number) => handler.streamTruncate(checkpoint),
-    };
     let stream: SSRInternalStreamWriter;
     switch (this.inOrderStreaming.strategy) {
       case 'disabled':
@@ -52,7 +46,7 @@ export class StreamHandler implements IStreamHandler {
             return;
           }
           handler.enqueue(chunk);
-        }, bufferOps);
+        });
         break;
       case 'direct': {
         const originalStream = this.nativeStream;
@@ -65,7 +59,7 @@ export class StreamHandler implements IStreamHandler {
             return handler.trackPendingFlush(queued);
           }
           return handler.trackPendingFlush(originalStream.write(chunk));
-        }, bufferOps);
+        });
         break;
       }
       default:
@@ -87,7 +81,7 @@ export class StreamHandler implements IStreamHandler {
               return handler.flush();
             }
           }
-        }, bufferOps);
+        });
         break;
       }
     }
@@ -160,17 +154,6 @@ export class StreamHandler implements IStreamHandler {
 
   waitForPendingFlush() {
     return this.pendingFlush;
-  }
-
-  /** Mark the current stream-block buffer position (only meaningful while a stream block is open). */
-  streamCheckpoint(): number {
-    return this.streamBlockBuffer.length;
-  }
-
-  /** Discard stream-block buffer content written since `checkpoint`. */
-  streamTruncate(checkpoint: number): void {
-    this.streamBlockBuffer = this.streamBlockBuffer.slice(0, checkpoint);
-    this.streamBlockBufferSize = this.streamBlockBuffer.length;
   }
 
   streamBlockStart() {

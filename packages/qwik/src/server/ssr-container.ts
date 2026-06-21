@@ -82,7 +82,6 @@ import {
   type ContextId,
   type HostElement,
   type InnerContainer,
-  type SSRBufferCheckpoint,
   type SSRContainer as ISSRContainer,
   type ISsrComponentFrame,
   type ISsrNode,
@@ -212,20 +211,6 @@ interface ElementFrame {
   vNodeData: VNodeData;
   currentFile: string | null;
   refBase: number | string | null;
-}
-
-/** Concrete shape behind the opaque {@link SSRBufferCheckpoint}. */
-interface ContainerCheckpoint {
-  writer: number;
-  vNodeDatasLength: number;
-  frame: ElementFrame | null;
-  frameVNodeData: VNodeData | null;
-  lastNode: ISsrNode | null;
-  currentComponentNode: ISsrNode | null;
-  componentNodeChildrenLength: number;
-  depthFirstElementCount: number;
-  componentStackLength: number;
-  rootsLength: number;
 }
 
 const noopStreamHandler: IStreamHandler = {
@@ -1000,47 +985,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       );
     }
     return this.lastNode!;
-  }
-
-  checkpoint(): SSRBufferCheckpoint {
-    const frame = this.currentElementFrame;
-    const cp: ContainerCheckpoint = {
-      writer: this.writer.checkpoint(),
-      vNodeDatasLength: this.vNodeDatas.length,
-      frame,
-      frameVNodeData: frame ? (frame.vNodeData.slice() as VNodeData) : null,
-      lastNode: this.lastNode,
-      currentComponentNode: this.currentComponentNode,
-      componentNodeChildrenLength: this.currentComponentNode?.children?.length ?? 0,
-      depthFirstElementCount: this.depthFirstElementCount,
-      componentStackLength: this.componentStack.length,
-      rootsLength: this.serializationCtx.$roots$.length,
-    };
-    return cp as unknown as SSRBufferCheckpoint;
-  }
-
-  rollback(checkpoint: SSRBufferCheckpoint): void {
-    const cp = checkpoint as unknown as ContainerCheckpoint;
-    // Discard everything buffered since the checkpoint and restore the cursor, so rendering continues
-    // as if the subtree never ran (styles already in <head> are left as harmless orphans).
-    this.writer.truncate(cp.writer);
-    this.vNodeDatas.length = cp.vNodeDatasLength;
-    this.currentElementFrame = cp.frame;
-    if (cp.frame && cp.frameVNodeData) {
-      // `vNodeDatas` holds this same array by reference, so restore its contents in place.
-      cp.frame.vNodeData.length = 0;
-      for (let i = 0; i < cp.frameVNodeData.length; i++) {
-        cp.frame.vNodeData.push(cp.frameVNodeData[i]);
-      }
-    }
-    this.lastNode = cp.lastNode;
-    this.currentComponentNode = cp.currentComponentNode;
-    if (cp.currentComponentNode?.children) {
-      cp.currentComponentNode.children.length = cp.componentNodeChildrenLength;
-    }
-    this.depthFirstElementCount = cp.depthFirstElementCount;
-    this.componentStack.length = cp.componentStackLength;
-    this.serializationCtx.$rollbackRoots$(cp.rootsLength);
   }
 
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void {

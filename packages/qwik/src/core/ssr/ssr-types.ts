@@ -43,13 +43,6 @@ export interface SSRInternalStreamWriter extends StreamWriter {
   writeRootRef(id: number): ValueOrPromise<void>;
   writeRootRefPath(path: number[]): ValueOrPromise<void>;
   toString(remap?: number[]): string;
-  /** Mark the current write position so a later `truncate` can discard everything written after it. */
-  checkpoint(): number;
-  /**
-   * Discard everything written since `checkpoint`. Only valid while the output is still buffered
-   * (no flush has happened in between) — e.g. inside a stream block or a segment writer.
-   */
-  truncate(checkpoint: number): void;
 }
 
 export interface ISsrNode {
@@ -86,14 +79,6 @@ export interface ISsrComponentFrame {
 }
 
 export type SymbolToChunkResolver = (symbol: string) => string;
-
-/**
- * Opaque snapshot of the container's render state for `checkpoint()`/`rollback()`, used to discard
- * a partially-rendered subtree. The shape is internal to the container.
- */
-export interface SSRBufferCheckpoint {
-  readonly __brand: 'SSRBufferCheckpoint';
-}
 
 export interface SSRRenderJSXOptions {
   currentStyleScoped: string | null;
@@ -161,10 +146,6 @@ export interface SSRContainer extends Container {
   commentNode(text: string): void;
   addRoot(obj: any): number | string | undefined;
   getOrCreateLastNode(): ISsrNode;
-  /** Snapshot render state so a later `rollback` can discard everything rendered since. */
-  checkpoint(): SSRBufferCheckpoint;
-  /** Restore render state to a `checkpoint`, discarding HTML, vnode-data, nodes and roots since. */
-  rollback(checkpoint: SSRBufferCheckpoint): void;
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;

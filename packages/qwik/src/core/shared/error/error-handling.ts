@@ -1,4 +1,3 @@
-import type { SSRBufferCheckpoint } from '../../ssr/ssr-types';
 import { canSerialize } from '../serdes/can-serialize';
 import { createContextId } from '../../use/use-context';
 
@@ -7,11 +6,6 @@ export interface ErrorBoundaryStore {
   error: any | undefined;
   /** Server-only fallback renderer; the client re-renders with `props.fallback$` instead. Internal. */
   $fallback$?: (error: any) => unknown;
-  /**
-   * Server-only render checkpoint, present only when a boundary buffers inside a `<Suspense>`
-   * segment.
-   */
-  $checkpoint$?: SSRBufferCheckpoint;
   /**
    * Server-only; streams `fallback$` as an out-of-order segment and swaps it into the fallback
    * host.

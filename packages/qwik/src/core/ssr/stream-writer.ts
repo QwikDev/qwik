@@ -23,12 +23,7 @@ export const writeStringRootRefPath = (
 
 /** @internal */
 export const createStringStreamWriter = (
-  write: StreamWriter['write'],
-  /**
-   * Buffer checkpoint/truncate, supplied by a buffering owner (e.g. the stream handler operating on
-   * its stream-block buffer). When omitted, the writer streams straight through and cannot rewind.
-   */
-  ops?: { checkpoint(): number; truncate(checkpoint: number): void }
+  write: StreamWriter['write']
 ): SSRInternalStreamWriter => ({
   write,
   writeRootRef(id) {
@@ -36,17 +31,5 @@ export const createStringStreamWriter = (
   },
   writeRootRefPath(path) {
     return writeStringRootRefPath(this, path);
-  },
-  checkpoint() {
-    if (!ops) {
-      throw new Error('This stream writer does not support checkpoint/truncate.');
-    }
-    return ops.checkpoint();
-  },
-  truncate(checkpoint) {
-    if (!ops) {
-      throw new Error('This stream writer does not support checkpoint/truncate.');
-    }
-    ops.truncate(checkpoint);
   },
 });

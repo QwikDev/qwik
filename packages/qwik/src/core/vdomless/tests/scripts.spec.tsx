@@ -95,6 +95,29 @@ describe('ssrRender: qwikloader', () => {
 
     cleanup();
   });
+
+  it('should queue quick captured clicks through qwikloader', async () => {
+    const ScriptsLoaderCapturedClick = () => {
+      const count = createSignal(0);
+      return <button onClick$={() => count.value++}>{count.value}</button>;
+    };
+
+    const { container, cleanup, qwikLoader } = await ssrRender(<ScriptsLoaderCapturedClick />, {
+      debug,
+    });
+    const button = container.querySelector('button');
+
+    expect(button).not.toBeNull();
+    expect(qwikLoader).toBeDefined();
+
+    const first = qwikLoader!.dispatch(button!, 'click');
+    const second = qwikLoader!.dispatch(button!, 'click');
+    await Promise.all([first, second]);
+
+    expect(button!.textContent).toBe('2');
+
+    cleanup();
+  });
 });
 
 describe('csrRender: qwikloader', () => {

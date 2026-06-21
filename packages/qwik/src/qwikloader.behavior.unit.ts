@@ -286,6 +286,34 @@ describe('qwikloader behavior', () => {
     expect(logs).toEqual(['child bubble']);
   });
 
+  test('queues later events behind a pending handler', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    let calls = 0;
+    let resolveFirst!: () => void;
+    const button = createMockElement(null, {}, async () => {
+      const call = ++calls;
+      logs.push(`start ${call}`);
+      if (call === 1) {
+        await new Promise<void>((resolve) => {
+          resolveFirst = resolve;
+        });
+      }
+      logs.push(`end ${call}`);
+    });
+    const listener = getSingleListener(doc, 'click').handler;
+
+    listener(createMockEvent(button));
+    listener(createMockEvent(button));
+
+    expect(logs).toEqual(['start 1']);
+
+    resolveFirst();
+    await flushQueuedTasks();
+
+    expect(logs).toEqual(['start 1', 'end 1', 'start 2', 'end 2']);
+  });
+
   test('applies parent preventdefault synchronously before async child bubbling completes', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];

@@ -50,6 +50,7 @@ const symbols = new Map<string, Handler>();
 let observer: IntersectionObserver | undefined;
 let hasInitialized: number | undefined;
 let queuedTasks: Promise<void> | undefined;
+let queuedTaskId = 0;
 
 // ====== Utilities ======
 const nativeQuerySelectorAll = (root: ParentNode, selector: string) =>
@@ -91,7 +92,21 @@ const runTasks = async (tasks: Task[]) => {
 const queueTasks = (tasks: Task[]) => {
   if (tasks.length) {
     const run = () => runTasks(tasks);
-    queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run();
+    const task = queuedTasks ? queuedTasks.then(run, run) : run();
+    const currentTaskId = ++queuedTaskId;
+    queuedTasks = task.then(
+      () => {
+        if (queuedTaskId === currentTaskId) {
+          queuedTasks = undefined;
+        }
+      },
+      (reason) => {
+        if (queuedTaskId === currentTaskId) {
+          queuedTasks = undefined;
+        }
+        throw reason;
+      }
+    );
   }
 };
 
@@ -248,7 +263,7 @@ const dispatch = (
   kebabName?: string,
   allowPreventDefault = true
 ) => {
-  let defer = false;
+  let defer = queuedTasks !== undefined;
   if (kebabName) {
     if (allowPreventDefault && element.hasAttribute('preventdefault:' + kebabName)) {
       ev.preventDefault();

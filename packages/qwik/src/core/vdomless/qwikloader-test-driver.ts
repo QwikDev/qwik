@@ -108,6 +108,10 @@ async function getQwikLoaderSource(document: Document): Promise<string> {
 function runQwikLoader(source: string, document: Document, win: Window): void {
   const testSource = source
     .replace(
+      'const queueTasks = (tasks) => {',
+      'const queueTasks = (tasks) => { window.__qwikTestGetQueuedTasks = () => queuedTasks;'
+    )
+    .replace(
       'queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run();',
       'queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run(); window.__qwikTestQueuedTasks = queuedTasks;'
     )
@@ -173,10 +177,13 @@ function createTestEvent(
 }
 
 async function flushQwikLoaderTasks(win: Window): Promise<void> {
-  const testWindow = win as Window & { __qwikTestQueuedTasks?: Promise<void> };
+  const testWindow = win as Window & {
+    __qwikTestGetQueuedTasks?: () => Promise<void> | undefined;
+    __qwikTestQueuedTasks?: Promise<void>;
+  };
   let previous: Promise<void> | undefined;
   for (let i = 0; i < 20; i++) {
-    const pending = testWindow.__qwikTestQueuedTasks;
+    const pending = testWindow.__qwikTestGetQueuedTasks?.() ?? testWindow.__qwikTestQueuedTasks;
     if (pending && pending !== previous) {
       previous = pending;
       await pending;

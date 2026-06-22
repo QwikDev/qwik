@@ -44,7 +44,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "pnpm build && pnpm test",
+    "verify:publish": "vitest run --reporter=json --outputFile=local.json; node scripts/check-regression.mjs local.json",
+    "prepublishOnly": "pnpm build && pnpm verify:publish",
     "ci:baseline:check": "node scripts/check-regression.mjs",
     "ci:baseline:update": "node scripts/update-baseline.mjs"
   },

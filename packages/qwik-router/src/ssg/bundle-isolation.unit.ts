@@ -1,13 +1,14 @@
-import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build } from 'vite';
+import { build, type Rollup } from 'vite';
 import { describe, expect, it } from 'vitest';
-import { ssgWorkerImportPlugin } from '../buildtime/vite/ssg-worker-imports';
 
+// run-ssg builds as two entries: the worker entry owns the render machinery, the main entry's static
+// graph does not. This guards that isolation.
 describe('SSG worker bundle isolation', () => {
-  it('does not make worker chunks import the run-ssg entry', async () => {
+  it('keeps the render machinery in the worker entry, not the main entry', async () => {
     const tempDir = await mkdtemp(join(tmpdir(), 'qwik-router-ssg-'));
     const appDir = join(tempDir, 'app');
     const outDir = join(tempDir, 'server');
@@ -15,7 +16,6 @@ describe('SSG worker bundle isolation', () => {
 
     try {
       await mkdir(appDir, { recursive: true });
-
       await writeFile(join(appDir, 'entry.ssr.ts'), `export default (() => null) as any;\n`);
       await writeFile(
         join(appDir, 'qwik-router-config.ts'),
@@ -24,88 +24,93 @@ describe('SSG worker bundle isolation', () => {
       await writeFile(
         join(appDir, 'run-ssg.ts'),
         [
-          `import { isMainThread } from 'node:worker_threads';`,
-          `import render from './entry.ssr';`,
           `import qwikRouterConfig from './qwik-router-config';`,
-          ``,
-          `const ssgOpts = {`,
+          `import { runSsg } from '@test-router-ssg';`,
+          `runSsg({`,
+          `  qwikRouterConfig,`,
+          `  workerFilePath: new URL('./run-ssg-worker.js', import.meta.url).href,`,
           `  outDir: './dist',`,
           `  origin: 'https://qwik.dev',`,
           `  include: ['/*'],`,
-          `};`,
+          `}).catch(() => process.exit(1));`,
           ``,
-          `if (isMainThread) {`,
-          `  const { runSsg } = await import('@test-router-ssg');`,
-          `  await runSsg({`,
-          `    render,`,
-          `    qwikRouterConfig,`,
-          `    workerFilePath: new URL(import.meta.url).href,`,
-          `    ...ssgOpts,`,
-          `  });`,
-          `} else {`,
-          `  const { startWorker } = await import('@test-router-ssg');`,
-          `  await startWorker({ render, qwikRouterConfig });`,
-          `}`,
+        ].join('\n')
+      );
+      await writeFile(
+        join(appDir, 'run-ssg-worker.ts'),
+        [
+          `import render from './entry.ssr';`,
+          `import qwikRouterConfig from './qwik-router-config';`,
+          `import { startWorker } from '@test-router-ssg';`,
+          `startWorker({ render, qwikRouterConfig }).catch(() => process.exit(1));`,
           ``,
         ].join('\n')
       );
 
-      await build({
+      const result = await build({
         configFile: false,
         publicDir: false,
         root: appDir,
-        plugins: [ssgWorkerImportPlugin()],
-        resolve: {
-          alias: {
-            '@test-router-ssg': routerSsgEntry,
-          },
-        },
+        logLevel: 'silent',
+        resolve: { alias: { '@test-router-ssg': routerSsgEntry } },
         build: {
           emptyOutDir: true,
           minify: false,
           outDir,
           ssr: true,
           rollupOptions: {
-            input: join(appDir, 'run-ssg.ts'),
+            input: {
+              'run-ssg': join(appDir, 'run-ssg.ts'),
+              'run-ssg-worker': join(appDir, 'run-ssg-worker.ts'),
+            },
             external: ['@qwik-router-config'],
           },
         },
       });
 
-      const jsFiles = await collectJsFiles(outDir);
-      const nonEntryFiles = jsFiles.filter((file) => !/^run-ssg\./.test(basename(file)));
+      const outputs = Array.isArray(result) ? result : [result as Rollup.RollupOutput];
+      const chunks = outputs
+        .flatMap((o) => o.output)
+        .filter((c): c is Rollup.OutputChunk => c.type === 'chunk');
+      const byFile = new Map(chunks.map((c) => [c.fileName, c]));
 
-      expect(nonEntryFiles.length).toBeGreaterThan(0);
+      const mainEntry = chunks.find((c) => c.isEntry && /^run-ssg\./.test(basename(c.fileName)));
+      const workerEntry = chunks.find(
+        (c) => c.isEntry && /^run-ssg-worker\./.test(basename(c.fileName))
+      );
+      expect(mainEntry, 'main entry emitted').toBeTruthy();
+      expect(workerEntry, 'worker entry emitted').toBeTruthy();
 
-      const entryBackrefs: string[] = [];
-      for (const file of nonEntryFiles) {
-        const content = await readFile(file, 'utf-8');
-        if (/from ['"].*run-ssg\.(?:js|mjs)['"]/.test(content)) {
-          entryBackrefs.push(file);
+      // Reachable chunks from an entry: the visited Set doubles as the worklist.
+      const reach = (start: string, includeDynamic: boolean) => {
+        const seen = new Set([start]);
+        for (const fileName of seen) {
+          const chunk = byFile.get(fileName);
+          if (!chunk) {
+            continue;
+          }
+          const edges = includeDynamic
+            ? [...chunk.imports, ...chunk.dynamicImports]
+            : chunk.imports;
+          edges.forEach((edge) => seen.add(edge));
         }
-      }
+        return seen;
+      };
+      const reachesRenderMachinery = (files: Set<string>) =>
+        [...files].some((fileName) =>
+          (byFile.get(fileName)?.moduleIds ?? []).some((id) =>
+            /worker-thread|resolve-request-handlers|request-event-core|user-response-runner/.test(
+              id
+            )
+          )
+        );
 
-      expect(entryBackrefs).toEqual([]);
+      // worker-thread is a dynamic import, so follow dynamic edges from the worker but only static
+      // edges from the main entry.
+      expect(reachesRenderMachinery(reach(workerEntry!.fileName, true))).toBe(true);
+      expect(reachesRenderMachinery(reach(mainEntry!.fileName, false))).toBe(false);
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
   });
 });
-
-async function collectJsFiles(dir: string): Promise<string[]> {
-  const entries = await readdir(dir, { withFileTypes: true });
-  const files = await Promise.all(
-    entries.map(async (entry) => {
-      const fullPath = join(dir, entry.name);
-      if (entry.isDirectory()) {
-        return collectJsFiles(fullPath);
-      }
-      if (/\.(?:m?js)$/.test(entry.name)) {
-        return [fullPath];
-      }
-      return [];
-    })
-  );
-
-  return files.flat();
-}

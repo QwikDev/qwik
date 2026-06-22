@@ -5,36 +5,36 @@ const mocks = vi.hoisted(() => ({
   runQwikRouterWithDeps: vi.fn(),
 }));
 
-vi.mock('./request-event-ssg', () => ({
+vi.mock('./request-event', () => ({
   createRequestEvent: vi.fn(),
 }));
 
-vi.mock('@qwik-router-ssg-worker/middleware/request-handler/async-request-store', () => ({
+vi.mock('./async-request-store', () => ({
   get _asyncRequestStore() {
     return mocks.currentAsyncRequestStore;
   },
 }));
 
-vi.mock('@qwik-router-ssg-worker/middleware/request-handler/error-handler', () => ({
+vi.mock('./error-handler', () => ({
   getErrorHtml: vi.fn(),
 }));
 
-vi.mock('@qwik-router-ssg-worker/middleware/request-handler/request-utils', () => ({
+vi.mock('./request-utils', () => ({
   encoder: new TextEncoder(),
 }));
 
-vi.mock('@qwik-router-ssg-worker/middleware/request-handler/redirect-handler', () => ({
+vi.mock('./redirect-handler', () => ({
   AbortMessage: class AbortMessage {},
   RedirectMessage: class RedirectMessage {},
 }));
 
-vi.mock('@qwik-router-ssg-worker/middleware/request-handler/rewrite-handler', () => ({
+vi.mock('./rewrite-handler', () => ({
   RewriteMessage: class RewriteMessage {
     constructor(public pathname: string) {}
   },
 }));
 
-vi.mock('@qwik-router-ssg-worker/middleware/request-handler/server-error', () => ({
+vi.mock('./server-error', () => ({
   ServerError: class ServerError {
     constructor(
       public status: number,
@@ -43,13 +43,13 @@ vi.mock('@qwik-router-ssg-worker/middleware/request-handler/server-error', () =>
   },
 }));
 
-vi.mock('@qwik-router-ssg-worker/middleware/request-handler/user-response-runner', () => ({
+vi.mock('./user-response-runner', () => ({
   runQwikRouterWithDeps: mocks.runQwikRouterWithDeps,
 }));
 
-import { runQwikRouter } from './user-response-ssg';
+import { runQwikRouter } from './user-response';
 
-describe('runQwikRouter (SSG)', () => {
+describe('runQwikRouter', () => {
   beforeEach(() => {
     mocks.currentAsyncRequestStore = undefined;
     mocks.runQwikRouterWithDeps.mockReset();

@@ -6,7 +6,6 @@ import { readFile, rm, unlink } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
 import { type Plugin, type UserConfig, type ViteBuilder } from 'vite';
 import type { BuiltRoute } from '../../../buildtime/types';
-import { ssgWorkerImportPlugin } from '../../../buildtime/vite/ssg-worker-imports';
 import { postBuild } from './post-build';
 
 /**
@@ -18,12 +17,15 @@ import { postBuild } from './post-build';
  */
 const QWIK_SSG_ENTRY_ID = '@qwik-ssg-entry';
 const QWIK_SSG_ENTRY_RESOLVED = '\0@qwik-ssg-entry';
+const QWIK_SSG_WORKER_ENTRY_ID = '@qwik-ssg-worker-entry';
+const QWIK_SSG_WORKER_ENTRY_RESOLVED = '\0@qwik-ssg-worker-entry';
 
 /** @public */
 export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let qwikRouterPlugin: QwikRouterPlugin | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
   let viteCommand: string | undefined;
+  let buildAppRan = false;
   const outputEntries: string[] = [];
 
   // Throwaway outDir for the `ssg` environment's run-ssg output. Kept inside the build root so Vite
@@ -94,14 +96,32 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       if (id === QWIK_SSG_ENTRY_ID) {
         return QWIK_SSG_ENTRY_RESOLVED;
       }
+      if (id === QWIK_SSG_WORKER_ENTRY_ID) {
+        return QWIK_SSG_WORKER_ENTRY_RESOLVED;
+      }
     },
 
     load(id) {
+      if (id === QWIK_SSG_WORKER_ENTRY_RESOLVED) {
+        // Worker entry: imports `render` + the full route plan.
+        const { srcDir } = qwikVitePlugin!.api!.getOptions()!;
+        return [
+          `import render from '${srcDir}/entry.ssr';`,
+          `import qwikRouterConfig from '@qwik-router-config';`,
+          `import { startWorker } from '@qwik.dev/router/ssg';`,
+          // Fire-and-forget (no top-level await): avoids a Rollup inlined-dynamic-import init-order
+          // bug on the SSR target. See rollup/rollup#4166.
+          `startWorker({ render, qwikRouterConfig }).catch((err) => {`,
+          `  console.error(err);`,
+          `  process.exit(1);`,
+          `});`,
+        ].join('\n');
+      }
+
       if (id !== QWIK_SSG_ENTRY_RESOLVED) {
         return;
       }
 
-      const { srcDir } = qwikVitePlugin!.api!.getOptions()!;
       const clientPublicOutDir = qwikVitePlugin!.api!.getClientPublicOutDir()!;
       const basePathname = qwikRouterPlugin!.api!.getBasePathname();
       const rootDir = qwikVitePlugin!.api!.getRootDir() ?? undefined;
@@ -140,37 +160,24 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         }
       }
 
-      // Virtual module that serves as both main and worker entry.
-      // Vite bundles everything inline (standalone output).
-      // The ssgWorkerImportPlugin keeps the worker bundle graph isolated.
+      // Main entry: enumerates routes and drives the worker pool; no `render` import.
       return [
-        `import { isMainThread } from 'node:worker_threads';`,
-        `import render from '${srcDir}/entry.ssr';`,
-        // run-ssg renders every route → needs the full plan; the `ssg` environment resolves it (the
-        // deployed `ssr` build gets the pruned plan — see the router config `load`).
         `import qwikRouterConfig from '@qwik-router-config';`,
-        `import { runSsg, startWorker } from '@qwik.dev/router/ssg';`,
+        `import { runSsg } from '@qwik.dev/router/ssg';`,
         ``,
         `const ssgOpts = ${JSON.stringify(ssgOpts)};`,
         ``,
         `// Parse --quiet / --debug CLI flags`,
-        `const args = isMainThread ? process.argv.slice(2) : [];`,
+        `const args = process.argv.slice(2);`,
         `if (args.includes('--quiet')) ssgOpts.log = 'quiet';`,
         `if (args.includes('--debug')) ssgOpts.log = 'debug';`,
         ``,
-        // Fire-and-forget instead of top-level await. On the worker/edge SSR target Vite
-        // inlines dynamic imports, and Rollup then reads the inlined `./system` namespace
-        // before it is initialized across a top-level await. See rollup/rollup#4166.
-        // runSsg/startWorker keep the process alive (worker handles) and call process.exit.
-        `const ssgRun = isMainThread`,
-        `  ? runSsg({`,
-        `      render,`,
-        `      qwikRouterConfig,`,
-        `      workerFilePath: new URL(import.meta.url).href,`,
-        `      ...ssgOpts,`,
-        `    })`,
-        `  : startWorker({ render, qwikRouterConfig });`,
-        `ssgRun.catch((err) => {`,
+        // Fire-and-forget; see rollup/rollup#4166 above. The worker entry is a sibling file.
+        `runSsg({`,
+        `  qwikRouterConfig,`,
+        `  workerFilePath: new URL('./run-ssg-worker.js', import.meta.url).href,`,
+        `  ...ssgOpts,`,
+        `}).catch((err) => {`,
         `  console.error(err);`,
         `  process.exit(1);`,
         `});`,
@@ -178,10 +185,16 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     },
 
     buildStart() {
-      // run-ssg is the `ssg` environment's entry — emit it only there, never the deployed `ssr`
-      // build, so its `()=>import()` route loaders can't pin route code in the deployed bundle.
+      // Emit both SSG entries in the `ssg` environment only (never the deployed `ssr` build). The
+      // worker entry renders and owns the render graph; the main entry only orchestrates — two
+      // entries keep the graphs from folding together.
       if (this.environment.name === 'ssg' && viteCommand === 'build') {
         this.emitFile({ id: QWIK_SSG_ENTRY_ID, type: 'chunk', fileName: 'run-ssg.js' });
+        this.emitFile({
+          id: QWIK_SSG_WORKER_ENTRY_ID,
+          type: 'chunk',
+          fileName: 'run-ssg-worker.js',
+        });
       }
     },
 
@@ -195,6 +208,16 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             outputEntries.push(fileName);
           }
         }
+        // SSG runs only from `buildApp` (the multi-environment app build). If the deployed server was
+        // built directly via Vite's programmatic `build()`, buildApp never ran and nothing was
+        // prerendered — warn loudly rather than silently shipping an un-prerendered site.
+        if (opts.ssg !== null && viteCommand === 'build' && !buildAppRan) {
+          this.warn(
+            'Qwik Router SSG was skipped: the `ssr` environment was built directly instead of through ' +
+              'the Vite app builder, so no pages were prerendered. Build with the Qwik CLI or ' +
+              '`createBuilder(config).buildApp()` (a plain `vite build` does this automatically).'
+          );
+        }
       }
     },
 
@@ -202,6 +225,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     // prerendered route code never reaches the `ssr` bundle — then render the pages and post-build.
     // (The client builds in its own `vite build`.)
     async buildApp(builder: ViteBuilder) {
+      buildAppRan = true;
       const ssr = builder.environments.ssr;
       if (ssr) {
         await builder.build(ssr);
@@ -250,7 +274,12 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         } catch {
           // No static paths file — SSG may have produced no pages.
         }
-        await rm(ssgOutDir, { recursive: true, force: true });
+        // Set QWIK_ROUTER_KEEP_SSG_BUILD to keep the throwaway run-ssg build for debugging.
+        if (process.env.QWIK_ROUTER_KEEP_SSG_BUILD) {
+          log.warn(`SSG build kept at ${ssgOutDir}`);
+        } else {
+          await rm(ssgOutDir, { recursive: true, force: true });
+        }
       }
 
       await postBuild(
@@ -286,7 +315,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     },
   };
 
-  return [ssgWorkerImportPlugin(), plugin];
+  return [plugin];
 }
 
 /** @public */

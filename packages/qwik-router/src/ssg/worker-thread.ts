@@ -1,9 +1,14 @@
-import { trimInternalPathname } from '@qwik-router-ssg-worker/middleware/request-handler/request-path';
 import { _serialize as serialize } from '@qwik.dev/core/internal';
 import { parentPort } from 'node:worker_threads';
+import {
+  renderQwikMiddleware,
+  resolveRequestHandlers,
+} from '../middleware/request-handler/resolve-request-handlers';
+import { trimInternalPathname } from '../middleware/request-handler/request-path';
 import type { ServerRequestEvent } from '../middleware/request-handler/types';
+import { runQwikRouter } from '../middleware/request-handler/user-response';
 import { getRouteLoaderValues, getRouteLoaders } from '../runtime/src/route-loaders';
-import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers-ssg';
+import { loadRoute } from '../runtime/src/routing';
 import type {
   SsgHandlerOptions,
   SsgRoute,
@@ -13,8 +18,6 @@ import type {
   WorkerInputMessage,
   WorkerOutputMessage,
 } from './types';
-import { runQwikRouter } from './user-response-ssg';
-import { loadRoute } from './worker-imports/runtime';
 
 interface StaticWorkerThreadDeps {
   loadRoute: typeof loadRoute;
@@ -37,9 +40,6 @@ const staticWorkerThreadDeps: StaticWorkerThreadDeps = {
 };
 
 export async function workerThread(sys: System) {
-  // Special case: we allow importing qwik again in the same process, it's ok because we just needed the serializer
-  // TODO: remove this once we have vite environment API and no longer need the serializer separately
-  delete (globalThis as any).__qwik;
   const opts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
   const deps: WorkerThreadDeps = {

@@ -2,11 +2,7 @@ import { createDocument } from './testing/document';
 import { describe, expect, it } from 'vitest';
 import { installErrorSwapExecutor } from './error-swap-executor-shared';
 
-/**
- * The `qErr(id)` swap hides the content-host (`q:ebc`) and reveals the sibling fallback-host
- * (`q:ebf`), scoped to the nearest container. This is the in-order analog of the `qO` reveal but
- * independent of any Suspense/OOOS machinery.
- */
+/** The `qErr(id)` swap is the in-order error reveal, independent of any Suspense/OOOS machinery. */
 describe('error-swap executor (qErr)', () => {
   const setup = (html: string) => {
     const document = createDocument({ html });
@@ -43,7 +39,7 @@ describe('error-swap executor (qErr)', () => {
     expect(displayOf(document.querySelector('[q\\:ebf="2"]'))).toBe('contents');
   });
 
-  it('marks the document so a second install short-circuits (qErr.d identity)', () => {
+  it('marks the document so a second install short-circuits', () => {
     const document = setup(`<div q:container="resumed"></div>`);
     expect((globalThis as any).qErr.d).toBe(document);
   });

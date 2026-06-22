@@ -58,16 +58,12 @@ export function getQwikOutOfOrderExecutorScript(opts: { debug?: boolean } = {}) 
   return `if(!globalThis.qO||globalThis.qO.d!==document){${script}}`;
 }
 
-/**
- * The ErrorBoundary swap executor. Unlike {@link getQwikOutOfOrderExecutorScript} this is gated on
- * `errorBoundary` (NOT `suspense`): a plain in-order SSR error must swap even with no
- * Suspense/OOOS.
- */
+/** Gated on `errorBoundary`, not `suspense`, so a plain in-order SSR error still swaps. */
 export function getQwikErrorSwapExecutorScript(opts: { debug?: boolean } = {}) {
   if (!__EXPERIMENTAL__.errorBoundary) {
     return '';
   }
   const script = opts.debug ? QWIK_ERROR_SWAP_EXECUTOR_DEBUG : QWIK_ERROR_SWAP_EXECUTOR_MINIFIED;
-  // Wrapped like the OOOS executor so multiple containers can include it without redeclaring consts.
+  // Guard the install so multiple containers can include it without redeclaring consts.
   return `if(!globalThis.qErr||globalThis.qErr.d!==document){${script}}`;
 }

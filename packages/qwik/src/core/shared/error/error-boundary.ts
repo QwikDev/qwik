@@ -18,17 +18,15 @@ import type { ErrorBoundaryStore } from './error-handling';
 
 /** @public */
 export interface ErrorBoundaryProps {
-  /** Rendered in place of the subtree when a descendant throws; lazily loaded, receives the error. */
+  /** Rendered in place of the subtree when a descendant throws. */
   fallback$: QRL<(error: any) => any>;
-  /** Optional side-effect (logging/telemetry) fired once per caught error; never affects rendering. */
+  /** Side-effect fired once per caught error; never affects rendering. */
   onError$?: QRL<(error: unknown) => void>;
 }
 
-// Core isn't run through the optimizer, so ErrorBoundary is hand-built with `inlinedQrl` (symbol
-// `_ebC`) rather than `component$`.
+// Core isn't run through the optimizer, so ErrorBoundary is hand-built with `inlinedQrl`.
 
-// "has errored" is `error !== undefined`, not truthiness, so a thrown falsy value (`0`, `null`, …)
-// still shows the fallback.
+// Test against `undefined`, not truthiness, so a thrown falsy value still shows the fallback.
 const _ebContentStyle = (store: ErrorBoundaryStore) => ({
   display: store.error !== undefined ? 'none' : 'contents',
 });
@@ -41,11 +39,8 @@ const _ebFallbackStyle_str = '{display:p0.error!==undefined?"contents":"none"}';
 /** @internal */
 export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const store = useErrorBoundaryStore();
-  // `$fallback$`/`$onError$` are store mirrors used only by the server SSR-catch path (which has the
-  // store, not the props). `noSerialize` keeps them off the serialized state — the client re-renders
-  // with `props.fallback$` and `handleError` fires `props.onError$` instead. Each is wrapped in a
-  // fresh closure so `noSerialize` taints the closure, not the shared prop QRL (which must stay
-  // serialized for the client).
+  // Store mirrors for the server SSR-catch path; wrapped in fresh closures so `noSerialize` taints
+  // the closure, not the shared prop QRL that must stay serialized for the client.
   const fallbackQrl = props.fallback$;
   store.$fallback$ = noSerialize((error: any) => fallbackQrl(error));
   const onErrorQrl = props.onError$;
@@ -54,8 +49,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv && isOutOfOrderStreaming()) {
     const boundaryId = nextErrorBoundaryId();
-    // Two display-toggled hosts. This branch deliberately does NOT read `store.error`: subscribing
-    // would re-render an already-streamed host on a late deferred throw.
+    // Deliberately does not read `store.error`: subscribing would re-render an already-streamed host on a late deferred throw.
     return [
       /*#__PURE__*/ _jsxSorted(
         'div',
@@ -82,9 +76,7 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     ] as unknown as JSXOutput;
   }
 
-  // In-order SSR: the same never-buffer two-host swap, delivered in document order. The content-host
-  // streams live; on a throw `renderErrorBoundaryFallback` just marks `store.error`, and the sibling
-  // fallback-host (rendered right after) emits the fallback inline + `qErr(id)` to swap it in.
+  // In-order SSR: same two-host swap, but the fallback-host emits inline right after the content-host so the swap needs no buffering.
   if (__EXPERIMENTAL__.errorBoundary && isServerEnv) {
     const boundaryId = nextErrorBoundaryId();
     return [

@@ -145,16 +145,11 @@ function renderErrorBoundaryFallback(
   if (!errorStore || !errorStore.$fallback$) {
     throw err;
   }
-  // A non-recoverable build/plugin error (e.g. a dev Vite transform error) must surface, not hide in
-  // the fallback.
+  // A non-recoverable build/plugin error must surface, not hide in the fallback.
   if (qDev && !isRecoverable(err)) {
     throw err;
   }
-  // Inside an OOOS segment, only an OUT-of-segment boundary (it streamed its fallback host already, so
-  // it set `$emitFallback$`) can't catch in place — rethrow so the segment rejects and `$emitFallback$`
-  // tears it down (case c). An IN-segment boundary (no `$emitFallback$`) catches here: it renders its
-  // fallback into its own fallback-host in the segment buffer, and the segment emits its `qErr` swap on
-  // reveal (case b) — no rollback needed.
+  // A boundary outside the segment already streamed its fallback host, so let the segment reject and tear it down.
   if (
     __EXPERIMENTAL__.errorBoundary &&
     isOutOfOrderSegmentContainer(ssr) &&
@@ -162,16 +157,13 @@ function renderErrorBoundaryFallback(
   ) {
     throw err;
   }
-  // The boundary never blocks streaming: just mark the error and render nothing in place. Its sibling
-  // fallback-host delivers the fallback (in-order inline + `qErr`, or out-of-order via segment + `qO`)
-  // and swaps the content-host out.
+  // Never block streaming: mark the error and render nothing; the sibling fallback-host swaps the content out.
   const isFirstCatch = errorStore.error === undefined;
   errorStore.error = toSerializableBoundaryError(err);
   if (isFirstCatch) {
-    // onError$ gets the ORIGINAL error, once, at the catch point (before any serializable projection).
+    // onError$ gets the original error once, before any serializable projection.
     fireOnError(errorStore.$onError$, err);
   }
-  // The swapped-out content is dead: make it inert so the client doesn't resume its tasks/signals.
   if (__EXPERIMENTAL__.errorBoundary && errorStore.$contentHostNode$) {
     markErrorBoundaryContentInert(ssr, errorStore.$contentHostNode$);
   }
@@ -179,9 +171,8 @@ function renderErrorBoundaryFallback(
 }
 
 /**
- * Stash the just-opened `content-host` SSR node on its boundary's store, so a throw can later mark
- * the swapped-out subtree inert. Resolves the store from the host's own context chain (the boundary
- * that provides `ERROR_CONTEXT` is its parent component).
+ * Stash the just-opened `content-host` SSR node on its boundary's store so a later throw can mark
+ * the swapped-out subtree inert.
  */
 function captureErrorBoundaryContentHost(ssr: SSRContainer): void {
   const contentHost = ssr.getOrCreateLastNode();
@@ -192,30 +183,15 @@ function captureErrorBoundaryContentHost(ssr: SSRContainer): void {
 }
 
 /**
- * Make a swapped-out boundary's content inert so the dead, hidden subtree is never resumed/re-run
- * on the client. Three things, per dead node:
- *
- * 1. Tag it `INERT` — its vnode-data keeps its `REFERENCE` marker but drops the structural/component
- *    block, so it materializes as plain, non-resumable DOM.
- * 2. `clearAllEffects` on its tasks — unsubscribe them from their signals.
- * 3. Cut the projection ref into it: a live `<Slot>` owner (the boundary, or a live ancestor whose
- *    slot projects through it) holds `owner[slotName] = projectionId` (`consumeChildrenForSlot`,
- *    ssr-node.ts), which client resume's `ensureProjectionResolved` would index-walk into the inert
- *    subtree and crash ("Missing child"). We remove that prop on the owner.
- *
- * The content is PROJECTED through the boundary's `<Slot>`, so its SSR nodes are NOT under the
- * `content-host` element — they hang off the boundary COMPONENT node (the content-host's
- * `parentComponent`). We traverse from there. Runs only on a caught throw, at which point the
- * sibling fallback-host has not rendered yet (a deferred case-c throw rethrows earlier), so the
- * boundary node's subtree is content-only.
+ * Make a swapped-out boundary's content inert so the dead, hidden subtree is never resumed on the
+ * client.
  */
 function markErrorBoundaryContentInert(
   ssr: SSRContainer,
   contentHost: ReturnType<SSRContainer['getOrCreateLastNode']>
 ): void {
   const boundaryNode = contentHost.parentComponent ?? contentHost;
-  // The only LIVE projection owners that can point into the dead content are the boundary itself and
-  // its ancestors (owners INSIDE the content are inert, so their slot props are skipped on emit).
+  // Only the boundary and its ancestors can hold a live projection ref into the dead content.
   const liveOwners = new Map<string, ISsrNode>();
   for (let n: ISsrNode | null = boundaryNode; n; n = n.parentComponent) {
     if (n.id) {
@@ -236,7 +212,7 @@ function markSubtreeInert(
   liveOwners: Map<string, ISsrNode>
 ): void {
   node.vnodeData[0] |= VNodeDataFlag.INERT;
-  // If this is a projection node, cut its live owner's slot ref into the dead content.
+  // Cut a live owner's slot ref into the dead content so client resume won't index-walk into it.
   const ownerId = node.getProp(QSlotParent) as string | null;
   if (ownerId) {
     const owner = liveOwners.get(ownerId);
@@ -321,8 +297,7 @@ function processJSXNode(
             await ssr.streamHandler.flush();
           }
         } catch (err) {
-          // Route a mid-stream async-generator/SSRStream throw to the closest boundary (with none, it
-          // rethrows and aborts SSR).
+          // Route a mid-stream async-generator throw to the closest boundary, else it aborts SSR.
           const fallback = await resolveErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
           await _walkJSX(ssr, fallback, {
             currentStyleScoped: options.currentStyleScoped,

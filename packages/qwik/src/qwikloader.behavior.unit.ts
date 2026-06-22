@@ -307,9 +307,7 @@ describe('qwikloader behavior', () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];
     const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
-    // Both handlers load via QRL import, so neither runs during the synchronous bubbling walk — they
-    // run only when their per-element task group flushes. The child stops propagation after its
-    // import resolves; the fix's `cancelBubble` re-check between groups must then skip the ancestor.
+    // Both handlers are deferred, so stopPropagation lands only after the import resolves — the ancestor must still be skipped.
     const childModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
       'export const handler = (ev) => { ev.stopPropagation(); globalThis.__qwikLoaderStopLogs.push("child stop"); };'
     )}`;
@@ -327,7 +325,6 @@ describe('qwikloader behavior', () => {
         expect(logs).toContain('child stop');
       });
       await flushQueuedTasks();
-      // Pre-fix the ancestor's group flushed unconditionally and 'parent bubble' was logged.
       expect(logs).toEqual(['child stop']);
     } finally {
       (globalThis as any).__qwikLoaderStopLogs = previousLogs;
@@ -363,10 +360,7 @@ describe('qwikloader behavior', () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];
     const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
-    // The capture handler and the deeper bubble handler both load via QRL import, so neither sets
-    // `cancelBubble` during the synchronous capture/bubble walk. The capturer stops propagation only
-    // after its import resolves, so the fix's `cancelBubble` re-check between per-element task groups
-    // must skip the later (deferred, importing) bubble handler.
+    // Both handlers are deferred, so the capturer's stopPropagation lands only after its import resolves — the later bubble handler must still be skipped.
     const captureModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
       'export const handler = (ev) => { ev.stopPropagation(); globalThis.__qwikLoaderStopLogs.push("capturer stop"); };'
     )}`;
@@ -387,8 +381,6 @@ describe('qwikloader behavior', () => {
         expect(logs).toContain('capturer stop');
       });
       await flushQueuedTasks();
-      // Without the `cancelBubble` re-check the deeper bubble group flushed unconditionally and
-      // 'target bubble' was logged after 'capturer stop'.
       expect(logs).toEqual(['capturer stop']);
     } finally {
       (globalThis as any).__qwikLoaderStopLogs = previousLogs;

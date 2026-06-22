@@ -153,7 +153,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       processSegmentStateScripts(this);
     }
     this.$hoistStyles$();
-    // Route an async `qerror` to the closest ErrorBoundary (previously every boundary caught it).
+    // Route an async `qerror` to the closest ErrorBoundary, not every boundary.
     this.$qErrorHandler$ = (e: Event) => {
       const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
         .detail;
@@ -166,8 +166,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       if (source && this.element.contains(source)) {
         const host = this.vNodeLocate(source);
         if (host) {
-          // `handleError` can still re-throw (e.g. a dev non-recoverable error); in a listener that
-          // becomes an uncaught error, so log it instead.
+          // A re-throw from `handleError` would become uncaught inside this listener, so log it.
           try {
             this.handleError(detail.error, host);
           } catch (handlerError) {
@@ -274,9 +273,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         throw err;
       }
     }
-    // Walk up to the closest ERROR_CONTEXT provider that can still handle this error. A boundary
-    // already showing its fallback (`error !== undefined`) is skipped, so a 2nd throw escalates to its
-    // ancestor instead of looping on itself; a generic consumer (inits `null`) only captures.
+    // Walk up to the closest ERROR_CONTEXT provider that can still handle this error, so a 2nd throw escalates to an ancestor instead of looping on itself.
     let current: VNode | null = host;
     while (current) {
       const boundaryHost = this.resolveContextHost(current, ERROR_CONTEXT);
@@ -285,12 +282,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
       const store = this.resolveContext<ErrorBoundaryStore>(boundaryHost, ERROR_CONTEXT);
       if (store && store.error === undefined) {
-        // A real boundary, not yet errored: show its fallback. An OOOS/resumed boundary never
-        // subscribed to `store.error`, so the write alone won't re-render it — mark it explicitly.
+        // A resumed boundary never subscribed to `store.error`, so mark it dirty explicitly to render its fallback.
         store.error = err;
-        // Fire onError$ once, at the catch point (post-resume client throw). `store.$onError$` is
-        // server-only ($-store fields aren't serialized), so read the boundary's serialized
-        // `props.onError$` from the host.
+        // `store.$onError$` is server-only ($-store fields aren't serialized), so read serialized `props.onError$` from the host.
         const boundaryProps = this.getHostProp<{ onError$?: (error: unknown) => unknown }>(
           boundaryHost,
           ELEMENT_PROPS
@@ -300,22 +294,19 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         return;
       }
       if (store && store.error === null) {
-        // A generic ERROR_CONTEXT consumer: capture only (never re-renders).
+        // A generic ERROR_CONTEXT consumer captures only, never re-renders.
         store.error = err;
         return;
       }
       if (boundaryHost.dirty & ChoreBits.COMPONENT) {
-        // Errored but its fallback re-render is still pending: this is a concurrent 2nd throw from the
-        // same content pass — first error wins, so absorb it instead of escalating.
+        // Fallback re-render still pending: a concurrent 2nd throw, first error wins, so absorb it.
         logError(err);
         return;
       }
-      // The boundary already shows its fallback (e.g. the fallback itself threw): escalate to the
-      // nearest ancestor boundary so a throwing fallback doesn't loop on its own boundary.
+      // Boundary already shows its fallback (e.g. the fallback itself threw): escalate so it doesn't loop on its own boundary.
       current = this.getParentHost(boundaryHost);
     }
-    // No boundary above can handle it: log it (the loop terminator). Re-throwing here would surface as
-    // an uncaught chore rejection.
+    // No boundary above can handle it; re-throwing here would surface as an uncaught chore rejection.
     logError(err);
   }
 

@@ -151,10 +151,7 @@ export interface SSRContainer extends Container {
   render(jsx: JSXOutput): Promise<void>;
   renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
   $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T>;
-  /**
-   * Allocate the next out-of-order boundary id. Pass `markUsed: false` to reserve an id without
-   * arming the OOOS executor (used by `<ErrorBoundary>`, which only needs it if it throws).
-   */
+  /** Pass `markUsed: false` to reserve an id without arming the OOOS executor. */
   nextOutOfOrderId(markUsed?: boolean): number;
   emitOutOfOrderSegmentScripts(scripts: string): void;
   segment(
@@ -166,10 +163,8 @@ export interface SSRContainer extends Container {
   emitOutOfOrderExecutorIfNeeded(): void;
   emitErrorSwapExecutorIfNeeded(): void;
   /**
-   * Register an ErrorBoundary `qErr(id)` swap to run when this segment reveals. An inline `qErr`
-   * script inside a segment's `<template>` is inert, so a boundary rendered inside a segment defers
-   * its swap to the segment finalization, which emits it at the root right after `qO(segmentId)`.
-   * No-op outside a segment (standalone boundaries emit `qErr` inline).
+   * A `qErr` inside a segment's `<template>` is inert, so defer it to the reveal; no-op outside a
+   * segment.
    */
   $registerErrorSwap$(boundaryId: number): void;
   emitInlineScript(script: string): void;

@@ -100,10 +100,7 @@ const queueTasks = (tasks: Task[]) => {
   }
 };
 
-/**
- * Run deferred handlers grouped per element, re-checking `ev.cancelBubble` between groups so an
- * async `stopPropagation()` (from a still-importing handler) still skips later elements.
- */
+/** Re-check `cancelBubble` between elements so an async `stopPropagation()` still skips later ones. */
 const runEventTasks = (ev: Event, taskGroups: Task[][], stoppedSynchronously: boolean) => {
   if (taskGroups.length) {
     const run = async () => {

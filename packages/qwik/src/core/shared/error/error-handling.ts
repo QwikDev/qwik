@@ -6,22 +6,13 @@ import type { ISsrNode } from '../../ssr/ssr-types';
 /** @internal */
 export interface ErrorBoundaryStore {
   error: any | undefined;
-  /** Server-only fallback renderer; the client re-renders with `props.fallback$` instead. Internal. */
+  /** Server-only; the client re-renders with `props.fallback$` instead. */
   $fallback$?: (error: any) => unknown;
-  /**
-   * Server-only `onError$` mirror, read only by the SSR catch path (`noSerialize`d, like
-   * `$fallback$`). The client fires the serialized `props.onError$` in `handleError` instead.
-   */
+  /** Server-only `onError$` mirror; the client fires the serialized `props.onError$` instead. */
   $onError$?: (error: unknown) => void;
-  /**
-   * Server-only; streams `fallback$` as an out-of-order segment and swaps it into the fallback
-   * host.
-   */
+  /** Server-only; streams `fallback$` as an out-of-order segment. */
   $emitFallback$?: (error: unknown) => void | Promise<void>;
-  /**
-   * Server-only; the boundary's `content-host` SSR node, captured when it renders so a throw can
-   * mark the swapped-out subtree inert (its tasks must not resume on the client).
-   */
+  /** Captured so a throw can mark the swapped-out subtree inert (its tasks must not resume). */
   $contentHostNode$?: ISsrNode;
 }
 
@@ -37,9 +28,8 @@ export const isRecoverable = (err: any) => {
 };
 
 /**
- * A non-serializable thrown value would fail `verifySerializable` and abort the whole page when the
- * boundary's `store.error` is serialized. Project it to an `Error` so the stored value stays
- * serializable (and resumes truthy via `TypeIds.Error`).
+ * A non-serializable thrown value would abort the whole page, so project it to a serializable
+ * `Error`.
  */
 export const toSerializableBoundaryError = (err: unknown): unknown => {
   if (err instanceof Error || canSerialize(err)) {
@@ -50,10 +40,8 @@ export const toSerializableBoundaryError = (err: unknown): unknown => {
 };
 
 /**
- * Fire a boundary's `onError$` side-effect with the ORIGINAL error (not the serialized projection).
- * `onError` is the server-only `store.$onError$` (SSR catch) or the resumed `props.onError$` QRL
- * (client catch). Pure side-effect: fire-and-forget, its own failure is logged not propagated;
- * never affects rendering. Call only at the catch point, guarded so it fires once per error.
+ * Fire a boundary's `onError$` with the original error; fire-and-forget, its own failure never
+ * affects rendering.
  */
 export const fireOnError = (
   onError: ((error: unknown) => unknown) | undefined | null,

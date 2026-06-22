@@ -10,8 +10,7 @@ const Q_CONTAINER_SELECTOR = '[q\\:container]:not([q\\:container=html]):not([q\\
 
 type OutOfOrderTemplate = HTMLTemplateElement | null;
 type OutOfOrderHost = Element | null;
-// [hostToReveal, hostToHide]: the `q:rp` host is revealed (Suspense's content, a boundary's
-// fallback), its previous sibling hidden.
+// [hostToReveal, hostToHide]: hostToHide is hostToReveal's previous sibling.
 type OutOfOrderEntry = [OutOfOrderHost | 0, OutOfOrderHost];
 type OutOfOrderScope = Document | Element;
 
@@ -92,8 +91,6 @@ export const installOutOfOrderExecutor = (doc: Document) => {
     return scope.querySelector(Q_RESULT_PARENT_SELECTOR + boundaryId + '"]');
   };
 
-  // `q:rp` marks the host to reveal (a boundary's fallback, Suspense's content); `hideHost` is its
-  // previous sibling.
   const reveal = (revealHost: OutOfOrderHost, hideHost: OutOfOrderHost) => {
     if (!revealHost) {
       return 0;

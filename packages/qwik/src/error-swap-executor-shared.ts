@@ -1,10 +1,6 @@
 /**
- * Shared ErrorBoundary swap executor logic for the inline script and source tests.
- *
- * `qErr(id)` performs the two-host swap for boundary `id`: it hides the `content-host` (the
- * partial, errored content that already streamed) and reveals the sibling `fallback-host`. It is
- * installed independently of the out-of-order Suspense executor (`qO`) so a plain page with an
- * in-order SSR error still swaps without any Suspense/OOOS machinery present.
+ * Installed independently of the OOOS Suspense executor (`qO`) so an in-order SSR error still swaps
+ * without any Suspense machinery present.
  */
 
 const Q_ERROR_CONTENT_SELECTOR = '[q\\:ebc="';

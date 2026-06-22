@@ -14,8 +14,7 @@ import { ManualOutOfOrderReleaseButton } from '../suspense/ooos';
 const getSearchParam = (url: string | undefined, name: string): string | null =>
   url ? new URL(url).searchParams.get(name) : null;
 
-// Reuse the shared out-of-order release store (same one ooos.tsx and the dev-server release endpoint
-// use) so a test can deterministically trigger a deferred throw.
+// Shared with ooos.tsx and the release endpoint so a test can deterministically trigger a deferred throw.
 type ReleaseStore = { resolved: Set<string>; resolvers: Map<string, Set<() => void>> };
 const getReleaseStore = (): ReleaseStore =>
   ((globalThis as any).__qwikOOOSReleaseStore ||= {
@@ -37,8 +36,7 @@ const waitForRelease = (requestId: string, releaseId: string): Promise<void> =>
     resolvers.add(resolve);
   });
 
-// `id` prefixes every marker so nested boundaries (the `nested` scenario) can tell their fallbacks
-// apart; it defaults to `eb-fallback` so the single-boundary scenarios keep their existing ids.
+// `id` prefixes markers so nested boundaries can tell their fallbacks apart.
 const EbFallback = component$((props: { msg: string; id?: string }) => {
   const id = props.id ?? 'eb-fallback';
   const count = useSignal(0);
@@ -53,8 +51,7 @@ const EbFallback = component$((props: { msg: string; id?: string }) => {
   );
 });
 
-// Resolves after a tick so the enclosing `<Suspense>` genuinely defers into an out-of-order segment
-// (used by the `suspense` scenario, where an ErrorBoundary then throws synchronously inside it).
+// Resolves after a tick so the enclosing `<Suspense>` genuinely defers into an out-of-order segment.
 const EbDeferredOk = component$(() => {
   if (isServer) {
     return new Promise<JSXOutput>((resolve) => {
@@ -77,7 +74,7 @@ const EbContent = component$(() => {
   );
 });
 
-// Throws during SSR (only on the server) — the boundary streams its content first, then swaps.
+// Throws only during SSR so the boundary streams its content first, then swaps.
 const EbSyncThrower = component$(() => {
   if (isServer) {
     throw new Error('eb sync boom');
@@ -85,9 +82,7 @@ const EbSyncThrower = component$(() => {
   return <span id="eb-thrower-client" />;
 });
 
-// Inert probe: the swapped-out content holds a useTask$ that tracks a signal and records each
-// CLIENT run on `window`. The SSR throw (its child EbSyncThrower) swaps this content out; bumping the
-// tracked signal from OUTSIDE the boundary must NOT re-run this dead task on the client.
+// Records client task runs on `window` so a test can assert the swapped-out task never re-runs.
 const EbInertContent = component$<{ trigger: Signal<number> }>((props) => {
   useTask$(({ track }) => {
     track(() => props.trigger.value);
@@ -131,9 +126,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
     <main>
       <h1 id="eb-title">EB Streaming</h1>
       {scenario === 'happy' ? (
-        // No SSR throw: the content streams and stays interactive after resume, no fallback, no swap
-        // script. A later client-time throw (touch state first so the container resumes) is then
-        // caught by the boundary — the full behavior the legacy Qwik Router test exercised.
+        // No SSR throw; touch state first so the container resumes before the client throw routes.
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <EbContent />
           <button
@@ -148,9 +141,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <span id="eb-content-touched">{touched.value}</span>
         </ErrorBoundary>
       ) : scenario === 'suspense' ? (
-        // Case b: an ErrorBoundary INSIDE a deferred `<Suspense>` segment. The deferred-ok sibling
-        // forces a real out-of-order segment; the boundary's child throws synchronously inside it, so
-        // the hoisted `qErr(id)` swaps the boundary within the segment.
+        // The deferred-ok sibling forces a real out-of-order segment so the boundary swaps within it.
         <Suspense fallback={<span id="eb-skel">loading</span>}>
           <EbDeferredOk />
           <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
@@ -159,9 +150,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </ErrorBoundary>
         </Suspense>
       ) : scenario === 'nested' ? (
-        // D2 cross-phase: the inner boundary errors on SSR (shows its fallback). A later client throw
-        // from a sibling of the inner boundary routes to the OUTER boundary, whose fallback then
-        // replaces the whole subtree — including the inner fallback.
+        // An outer-boundary throw replaces the whole subtree, including the inner boundary's fallback.
         <ErrorBoundary
           fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
         >
@@ -182,8 +171,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           </ErrorBoundary>
         </ErrorBoundary>
       ) : scenario === 'inert' ? (
-        // SSR error swaps out content that holds a signal-tracking task; bumping the signal from
-        // OUTSIDE the boundary must not re-run the dead task on the client.
+        // Bumping the signal from outside the boundary must not re-run the swapped-out task.
         <>
           <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
             <EbInertContent trigger={inertTrigger} />
@@ -208,8 +196,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           />
         </>
       ) : scenario === 'client' ? (
-        // Streams fine (no SSR error); a later client-time throw must re-render to the fallback.
-        // The handler touches a signal first so the container resumes and the qerror actually routes.
+        // Touch a signal first so the container resumes before the client throw routes to the fallback.
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <button
             id="eb-client-throw"
@@ -224,8 +211,7 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
       ) : scenario === 'onerror' ? (
-        // No SSR error; a client-time throw is caught AND the optional `onError$` side-effect fires
-        // once (recorded on `window` so the test can assert it ran exactly once).
+        // Records `onError$` runs on `window` so the test can assert it fired exactly once.
         <ErrorBoundary
           fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}
           onError$={(e) => {

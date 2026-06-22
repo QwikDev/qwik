@@ -260,8 +260,7 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
-      // Capture the enclosing boundary up front: once its placeholder streamed it can't catch a later
-      // rejection in place, so route to `$emitFallback$`.
+      // Once its placeholder streamed, the enclosing boundary can't catch in place; route to `$emitFallback$`.
       const errorBoundaryStore =
         __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
           ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
@@ -335,10 +334,7 @@ function createClaimedDeferredSlot(
   );
 }
 
-/**
- * Finalize a streamed out-of-order segment and swap it into its host via `qO(id)`. Shared by the
- * Suspense deferred-slot reveal and the ErrorBoundary fallback stream.
- */
+/** Finalize a streamed out-of-order segment and swap it into its host via `qO(id)`. */
 async function finalizeAndSwapOutOfOrderSegment(
   ssr: SSRContainer,
   boundaryId: number,
@@ -355,8 +351,7 @@ async function finalizeAndSwapOutOfOrderSegment(
     ssr.emitOutOfOrderExecutorIfNeeded();
   }
   ssr.emitInlineScript(`qO(${boundaryId})`);
-  // `qO` injected the segment's hosts into the live DOM; now run any deferred ErrorBoundary swaps at
-  // the root (their inline `qErr` would have been inert inside the segment `<template>`).
+  // Run deferred ErrorBoundary swaps at the root now that `qO` injected the hosts; inline `qErr` was inert in the segment `<template>`.
   const errorSwapIds = rendered.container.$errorSwapIds$;
   if (__EXPERIMENTAL__.errorBoundary && errorSwapIds.length) {
     ssr.emitErrorSwapExecutorIfNeeded();
@@ -391,11 +386,7 @@ async function emitRenderedOutOfOrderSegment(
   });
 }
 
-/**
- * SSR host for a streaming `<ErrorBoundary>`'s fallback. On a throw, `store.$emitFallback$` streams
- * `fallback$(error)` as an out-of-order segment and the shared `qO` executor swaps it in here while
- * hiding the content host.
- */
+/** SSR host for a streaming `<ErrorBoundary>` fallback, swapped in out-of-order on a throw. */
 export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
   ? /*#__PURE__*/ createInternalServerComponent<{ boundaryId: number; store: ErrorBoundaryStore }>(
       (ssr, jsx, options) => {
@@ -403,8 +394,7 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
         const store = jsx.varProps.store as ErrorBoundaryStore;
         const segmentId = `${boundaryId}`;
         const streamFallback = async (error: unknown): Promise<void> => {
-          // `$emitFallback$` is shared by every deferred child, so a detached `$fallback$` means
-          // teardown already started — first error wins, later siblings no-op.
+          // A detached `$fallback$` means teardown already started: first error wins, later siblings no-op.
           const fallback = store.$fallback$;
           if (!fallback) {
             return;
@@ -413,7 +403,7 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           const isFirstCatch = store.error === undefined;
           store.error = toSerializableBoundaryError(error);
           if (isFirstCatch) {
-            // Case c (deferred throw): this is the catch point — fire onError$ once, original error.
+            // The catch point: fire onError$ once with the original error.
             fireOnError(store.$onError$, error);
           }
           // Stay detached so a throw from the fallback itself propagates instead of re-rendering it.
@@ -423,8 +413,7 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
         };
         store.$emitFallback$ = noSerialize(streamFallback);
         writeOutOfOrderPlaceholder(ssr, boundaryId);
-        // A sync content-render throw already set `store.error`; stream the swap inline. `!== undefined`
-        // (not truthiness) so a falsy thrown value still streams.
+        // A sync content-render throw already set `store.error`; stream the swap inline (`!== undefined` so a falsy throw still streams).
         if (store.error !== undefined && store.$fallback$) {
           return streamFallback(store.error);
         }
@@ -432,12 +421,7 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
     )
   : null!;
 
-/**
- * SSR host for an IN-ORDER `<ErrorBoundary>`'s fallback. It renders after the content-host in
- * document order, so by the time it runs an in-order throw has already set `store.error`. It
- * renders the fallback inline (no segment) and emits `qErr(id)` to swap — hide the content-host,
- * reveal this fallback-host — installed independently of OOOS.
- */
+/** SSR host for an in-order `<ErrorBoundary>` fallback, rendered inline and swapped via `qErr(id)`. */
 export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
   ? /*#__PURE__*/ createInternalServerComponent<{ boundaryId: number; store: ErrorBoundaryStore }>(
       (ssr, jsx, _options, enqueue) => {
@@ -446,13 +430,11 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
         // `!== undefined` (not truthiness) so a falsy thrown value still swaps.
         if (store.error !== undefined && store.$fallback$) {
           if (isOutOfOrderSegmentContainer(ssr)) {
-            // Inside a `<Suspense>` segment an inline `qErr` is inert in the `<template>`: defer it so
-            // the segment emits `qErr(id)` at the root after its `qO` reveal injects these hosts.
+            // Inline `qErr` is inert inside the segment `<template>`; defer it to run at the root after the `qO` reveal.
             ssr.$registerErrorSwap$(boundaryId);
             enqueue(store.$fallback$(store.error) as JSXOutput);
           } else {
-            // Standalone in-order: emit the swap inline (LIFO — enqueue `qErr` first so it runs AFTER
-            // the fallback content has rendered).
+            // LIFO: enqueue `qErr` first so the swap runs after the fallback content renders.
             enqueue(() => {
               ssr.emitErrorSwapExecutorIfNeeded();
               ssr.emitInlineScript(`qErr(${boundaryId})`);

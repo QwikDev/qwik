@@ -118,7 +118,7 @@ export const nextOutOfOrderSuspenseId = (): number => {
 
 /**
  * Reserve a per-container id for an `<ErrorBoundary>`'s two-host swap without arming the OOOS
- * executor (`markUsed=false`). Works for both in-order (`qErr`) and out-of-order boundaries.
+ * executor.
  *
  * @internal
  */

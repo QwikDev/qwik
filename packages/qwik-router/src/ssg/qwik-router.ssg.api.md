@@ -32,7 +32,6 @@ export { SsgOptions as StaticGenerateOptions }
 
 // @public (undocumented)
 export interface SsgRenderOptions extends RenderOptions {
-    emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;
     exclude?: string[];

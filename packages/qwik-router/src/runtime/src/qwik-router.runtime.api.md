@@ -481,11 +481,11 @@ export interface RouteConfigValue {
 // @public
 export interface RouteData {
     _0?: string;
-    _4?: ContentModuleLoader;
+    _4?: ContentModuleLoader | ModuleLoader[];
     _9?: string;
     [part: string]: RouteData | RouteData[] | ModuleLoader[] | ContentModuleLoader | MenuModuleLoader | string[] | string | undefined;
     _B?: string[];
-    _E?: ContentModuleLoader;
+    _E?: ContentModuleLoader | ModuleLoader[];
     _G?: string;
     // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
     _I?: ContentModuleLoader | ModuleLoader[];

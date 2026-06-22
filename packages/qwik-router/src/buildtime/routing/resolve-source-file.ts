@@ -2,6 +2,7 @@ import { dirname } from 'node:path';
 import type { BuiltLayout, BuiltRoute, NormalizedPluginOptions, RouteSourceFile } from '../types';
 import {
   createFileId,
+  errorBoundaryName,
   getPathnameFromDirPath,
   parseRouteIndexName,
   normalizePath,
@@ -55,9 +56,10 @@ export function resolveRoute(
   const { layoutName, layoutStop } = parseRouteIndexName(sourceFile.extlessName);
   let pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
 
-  if (sourceFile.extlessName === '404' || sourceFile.extlessName === 'error') {
-    // TODO is this needed, probably was only for 404.html SSG output
-    pathname += sourceFile.extlessName + '.html';
+  const boundary = errorBoundaryName(sourceFile.extlessName);
+  if (boundary) {
+    // Distinct flat pathname (404.html / error.html) regardless of any `@layout`/`!` modifier.
+    pathname += boundary + '.html';
   }
 
   if (!layoutStop) {

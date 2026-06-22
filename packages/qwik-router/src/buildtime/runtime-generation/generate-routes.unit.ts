@@ -305,3 +305,25 @@ describe('generate-routes: serverExcludePaths', () => {
     assert.include(expr, '"b"', 'the kept sibling stays');
   });
 });
+
+describe('generate-routes: error/404 boundaries', () => {
+  test('error.tsx / 404.tsx emit single _E / _4 loaders', () => {
+    const root = makeNode({
+      _files: [makeRouteFile('/test', 'error'), makeRouteFile('/test', '404')],
+    });
+    const routes = [makeBuiltRoute('/test/error.tsx'), makeBuiltRoute('/test/404.tsx')];
+    const expr = getRoutesExpr(root, routes);
+    assert.include(expr, '_E: ()=>import', '_E is a single loader');
+    assert.include(expr, '_4: ()=>import', '_4 is a single loader');
+  });
+
+  test('error! / 404! emit override arrays (layout stop)', () => {
+    const root = makeNode({
+      _files: [makeRouteFile('/test', 'error!'), makeRouteFile('/test', '404!')],
+    });
+    const routes = [makeBuiltRoute('/test/error!.tsx'), makeBuiltRoute('/test/404!.tsx')];
+    const expr = getRoutesExpr(root, routes);
+    assert.include(expr, '_E: [ ()=>import', '_E! is an override array');
+    assert.include(expr, '_4: [ ()=>import', '_4! is an override array');
+  });
+});

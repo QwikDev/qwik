@@ -7,7 +7,7 @@ import compress from 'brotli/compress.js';
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build, type InlineConfig, type PluginOption } from 'vite';
+import { build, createBuilder, type InlineConfig, type PluginOption } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Brotli size budgets for production bundles. These are ceilings, not exact matches: any size
@@ -26,10 +26,9 @@ const expectedHtmlPath = resolve(appDir, 'expected.ssg.html');
 const expectedStatePath = resolve(appDir, 'expected.state.txt');
 
 test.describe('router ssg snapshot', () => {
-  // All tests share one production build via `beforeAll`. Without `serial`, Playwright's
-  // `fullyParallel` config distributes the tests across workers, each re-running the build
-  // against the same `serverDir` — that race wipes `run-ssg.js` mid-build and the SSG adapter
-  // then fails with "Cannot find module .../server/run-ssg.js".
+  // One shared production build via `beforeAll`. `serial` keeps Playwright's `fullyParallel` config
+  // from distributing these tests across workers, which would re-run the build against the same
+  // `serverDir`/`distDir` and race.
   test.describe.configure({ mode: 'serial' });
 
   test.skip(({ browserName }) => browserName !== 'chromium', 'Runs once in Chromium e2e.');
@@ -158,7 +157,7 @@ async function buildFixtureApp() {
     })
   );
 
-  await build(
+  const builder = await createBuilder(
     getConfig({
       build: {
         minify: true,
@@ -179,6 +178,7 @@ async function buildFixtureApp() {
       ],
     })
   );
+  await builder.buildApp();
 }
 
 function extractManifestHash(html: string): string | null {

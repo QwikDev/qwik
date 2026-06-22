@@ -4,9 +4,9 @@
 
 ```ts
 
-import type { Plugin as Plugin_2 } from 'vite';
+import { Plugin as Plugin_2 } from 'vite';
 import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
-import type { UserConfig } from 'vite';
+import { UserConfig } from 'vite';
 
 // @public (undocumented)
 export interface AdapterSSGOptions extends Omit<SsgRenderOptions, 'outDir' | 'origin'> {

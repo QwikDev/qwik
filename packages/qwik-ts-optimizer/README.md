@@ -1,84 +1,170 @@
-# Test Suite
+# qwik-ts-optimizer
 
-## Overview
+A TypeScript implementation of the [Qwik](https://qwik.dev) optimizer.
 
-The optimizer has two types of tests:
+It takes a Qwik source file, finds every `$()` closure, lifts each one into its
+own lazy-loadable module, and rewrites the original file so the closures become
+`qrl(() => import(...))` references — the runtime then loads each chunk only
+when the user actually triggers it.
 
-1. **Unit tests** (`tests/optimizer/*.test.ts`) — test individual functions and behaviors
-2. **Convergence tests** (`tests/optimizer/convergence.test.ts`) — compare our TS output against the SWC (Rust) optimizer's golden snapshots
+> **Status: experimental.** This is a from-scratch TypeScript port of the Rust
+> SWC optimizer that ships with Qwik core, built on [OXC](https://oxc.rs). It
+> currently matches **~96%** of the reference optimizer's snapshot suite. APIs
+> may change before a 1.0.
 
-## Snapshot Directories
+## Why
 
-### `match-these-snaps/` — The Source of Truth
+The optimizer is the heart of Qwik's resumability model: every `$()` boundary
+becomes a separately loadable chunk, so the browser downloads code lazily as
+interaction demands it instead of hydrating the whole app up front. This package
+makes that transform available as a pure-TypeScript, [OXC](https://oxc.rs)-based
+library — no native SWC binding required for the transform logic itself (the
+parser/transformer it builds on, `oxc-parser` / `oxc-transform`, do ship native
+bindings).
 
-209 snapshot files produced by the **Rust SWC optimizer**. These are in Rust's [insta](https://insta.rs/) snapshot format with YAML frontmatter.
+## Install
 
-Each snapshot contains:
-- `==INPUT==` — the original Qwik source code
-- Parent module output — the rewritten source with `$()` calls replaced by QRL references
-- Segment modules — the extracted lazy-loadable closures with metadata (name, hash, origin, captures)
-- `==DIAGNOSTICS==` — any warnings/errors (C02, C05, etc.)
-
-**These are the target.** They come from Qwik's Rust test suite and define what we want our TS optimizer to eventually match.
-
-### `ts-output/` — What We Currently Produce
-
-**Not committed to git** (gitignored). **Automatically regenerated** every time the convergence tests run. Each snapshot with an `==INPUT==` section gets transformed and written here (208 of 209 — `relative_paths` has no input section). The convergence test compares against `match-these-snaps/`, not `ts-output/` — this directory is for human inspection only.
-
-## How Convergence Tests Work
-
-```
-match-these-snaps/*.snap  →  parseSnapshot()  →  extract INPUT
-                                                       ↓
-                                                  transformModule()
-                                                       ↓
-                                              compareAst(expected, actual)
+```sh
+npm install qwik-ts-optimizer
+# or
+pnpm add qwik-ts-optimizer
 ```
 
-1. Read a golden snapshot from `match-these-snaps/`
-2. Parse it to extract the INPUT code and expected outputs
-3. Look up per-snapshot options in `tests/optimizer/snapshot-options.ts`
-4. Run `transformModule()` with those options
-5. Compare actual vs expected using **AST comparison** (ignores formatting, compares structure)
-6. Compare segment metadata (hash, origin, ctxName, captures) as exact matches
+**Requires Node `>=22`** — `oxc-parser`'s raw-transfer path throws on Node 20.
+ESM-only.
 
-### Per-Snapshot Options
+## Usage
 
-Most snapshots use defaults, but ~40 have custom options defined in `snapshot-options.ts`:
+There are two entry points: a synchronous core (`transformModule`) and an
+async, SWC-NAPI-compatible factory (`createOptimizer`) for drop-in use inside a
+bundler.
 
-```typescript
-// Default options
-{
-  transpileTs: false,
-  transpileJsx: false,
-  mode: 'lib',
+### `transformModule` — synchronous core
+
+```ts
+import { transformModule, mkFilePath, mkSourceText } from 'qwik-ts-optimizer';
+
+const result = transformModule({
+  input: [
+    {
+      path: mkFilePath('components/counter.tsx'),
+      code: mkSourceText(`
+        import { component$, useSignal } from '@qwik.dev/core';
+        export const Counter = component$(() => {
+          const count = useSignal(0);
+          return <button onClick$={() => count.value++}>{count.value}</button>;
+        });
+      `),
+    },
+  ],
+  srcDir: mkFilePath('/app/src/'),
   entryStrategy: { type: 'segment' },
   minify: 'simplify',
-  filename: 'test.tsx',
-  srcDir: '/user/qwik/src/',
+});
+
+for (const mod of result.modules) {
+  console.log(mod.path, mod.kind);        // 'parent' | 'segment'
+  // mod.code — emitted source
+  // mod.segment — segment metadata (name, hash, ctxKind, captures, …) on segments
 }
+
+console.log(result.diagnostics);          // [] when clean
 ```
 
-Overrides handle cases like dev mode, inline entry strategy, TypeScript transpilation, custom filenames, etc.
+Each input file is transformed independently into **one parent module** (the
+original file rewritten so its `$()` calls become `qrl(...)` references) plus
+**zero or more segment modules** (each lifted closure body as its own
+lazy-loadable file).
 
-## Running Tests
+### `createOptimizer` — async, bundler-facing
 
-```bash
-# Run convergence tests (main command — also regenerates ts-output/)
-pnpm vitest convergence
+Mirrors the surface of Qwik's SWC optimizer (`@qwik.dev/optimizer`'s
+`createOptimizer().transformModules(...)`), so it can be swapped in by a bundler
+adapter. Takes and returns plain strings (no branded types at the boundary):
 
-# Run all tests
-pnpm vitest run
+```ts
+import { createOptimizer } from 'qwik-ts-optimizer';
 
-# Run a specific snapshot test
-pnpm vitest run -t "example_1"
-
-# Run benchmarks (requires local Qwik repo at ~/dev/open-source/qwik)
-BENCH=1 pnpm vitest run tests/benchmark/optimizer-benchmark.test.ts --no-file-parallelism
+const optimizer = createOptimizer();
+const output = await optimizer.transformModules({
+  srcDir: '/app/src',
+  input: [{ path: 'components/counter.tsx', code: source }],
+  entryStrategy: { type: 'smart' },
+});
 ```
 
-## Current State
+## What it emits — before / after
 
-The convergence tests are a **measurement tool**, not a gate. Not all 209 tests pass yet. The test names track which snapshots match and which diverge, making it easy to see progress over time.
+**Input** (`test.tsx`):
 
-Check the test output for the current pass rate — it's printed as a summary at the end of the convergence test run.
+```tsx
+import { $, component } from '@qwik.dev/core';
+
+export const renderHeader = $(() => {
+  return <div onClick={$((ctx) => console.log(ctx))} />;
+});
+```
+
+**Output** — a rewritten parent plus one segment per `$()` body:
+
+```ts
+// test.tsx  (parent — closures replaced by lazy QRL references)
+import { qrl } from "@qwik.dev/core";
+const q_renderHeader_jMxQsjbyDss = /*#__PURE__*/ qrl(
+  () => import("./test.tsx_renderHeader_jMxQsjbyDss"),
+  "renderHeader_jMxQsjbyDss",
+);
+export const renderHeader = q_renderHeader_jMxQsjbyDss;
+```
+
+```ts
+// test.tsx_renderHeader_jMxQsjbyDss.tsx  (segment — the lifted body)
+export const renderHeader_jMxQsjbyDss = () => {
+  return <div onClick={q_renderHeader_div_onClick_USi8k1jUb40} />;
+};
+```
+
+The nested `onClick` closure is lifted again into its own leaf segment, loaded
+only after the user clicks. That granularity — each `$()` boundary a separate
+chunk — is the whole point.
+
+## How it works
+
+`transformModule` runs each file through a fixed pipeline:
+
+| Phase | Does |
+|---|---|
+| **0 — Prepare** | Repair recoverable parse errors, flatten destructures, parse once with OXC |
+| **1 — Extract** | Walk the AST, find every `$(...)` / marker call, capture each closure body + naming context |
+| **2 — Captures** | Determine which outer-scope variables each closure closes over |
+| **3 — Migrate** | Decide where each module-level binding lives: stay in the parent, move into a segment, or re-export |
+| **4 — Rewrite parent** | Replace each `$(closure)` with a generated `qrl(...)` reference; apply migration |
+| **5 — Generate segments** | Emit one lazy-loadable module per extracted closure |
+| **6 — Post-process** | TypeScript strip, dead-code elimination, unused-import cleanup |
+
+Symbol names are content-addressed: a closure's exported name is composed from
+its call-site context (`renderHeader_div_onClick`) plus an 11-character
+SipHash-1-3 suffix, so the same source always produces the same chunk names the
+runtime will fetch.
+
+The marker family the optimizer recognizes (`component$`, `useTask$`,
+`useStyles$`, `useVisibleTask$`, `server$`, event handlers like `onClick$`, …)
+is detected **structurally** — any call whose callee's imported name ends in `$`
+extracts — so library-defined `name$` functions work automatically.
+
+## Public API
+
+| Export | Kind | Purpose |
+|---|---|---|
+| `transformModule(options)` | function | Synchronous core transform → `TransformOutput` |
+| `createOptimizer()` | function | Async, SWC-NAPI-compatible optimizer instance |
+| `mk*` (e.g. `mkFilePath`, `mkSourceText`) | functions | Smart constructors for the branded string types |
+| `TransformModulesOptions`, `TransformOutput`, `TransformModule`, … | types | Input/output contracts |
+| `SymbolName`, `Hash`, `FilePath`, `SourceText`, … | types | Branded identifier types |
+
+All other modules are internal and not part of the public contract.
+
+## License
+
+[MIT](./LICENSE) — matching [Qwik](https://github.com/QwikDev/qwik) core, of
+which this is a derivative. Copyright © QwikDev and BuilderIO.

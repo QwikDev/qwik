@@ -1,4 +1,4 @@
-// Public API surface for qwik-optimizer-ts.
+// Public API surface for qwik-ts-optimizer.
 //
 // Consumers (e.g. qwik-bundler) import everything they need from here.
 // Internal modules under ./optimizer/** remain private — only the names

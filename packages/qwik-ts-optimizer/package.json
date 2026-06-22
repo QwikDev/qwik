@@ -1,5 +1,5 @@
 {
-  "name": "qwik-optimizer-ts",
+  "name": "qwik-ts-optimizer",
   "version": "0.0.1",
   "type": "module",
   "description": "A TypeScript implementation of the Qwik optimizer.",

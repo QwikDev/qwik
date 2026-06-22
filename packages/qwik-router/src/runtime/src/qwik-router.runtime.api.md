@@ -198,7 +198,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
 
 // Warning: (ae-forgotten-export) The symbol "Failed" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type FailReturn<T> = T & Failed;
 
 // @public (undocumented)

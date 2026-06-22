@@ -301,6 +301,10 @@ export function createRequestEventWithDeps(
       return typeof returnData === 'function' ? returnData : () => returnData;
     },
 
+    /**
+     * @deprecated Return `error(status, data)` instead and read the typed `ServerError` via the
+     *   signal's `.error`. `fail()`/`.value.failed` will be removed in v3.
+     */
     fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
       check();
       status = statusCode;

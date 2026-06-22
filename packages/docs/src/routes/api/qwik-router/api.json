@@ -306,7 +306,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type FailReturn<T> = T & Failed;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Return `error(status, data)` instead and read the typed `ServerError` via the signal's `.error`<!-- -->. `fail()`<!-- -->/`.value.failed` will be removed in v3.\n> \n\n\n```typescript\nexport type FailReturn<T> = T & Failed;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.failreturn.md"
     },

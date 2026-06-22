@@ -796,6 +796,10 @@ export type FailOfRest<REST extends readonly DataValidator[]> =
 
 <h2 id="failreturn">FailReturn</h2>
 
+> Warning: This API is now obsolete.
+>
+> Return `error(status, data)` instead and read the typed `ServerError` via the signal's `.error`. `fail()`/`.value.failed` will be removed in v3.
+
 ```typescript
 export type FailReturn<T> = T & Failed;
 ```

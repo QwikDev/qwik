@@ -982,10 +982,18 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 };
 
 type Failed = {
+  /**
+   * @deprecated Return `error(status, data)` instead and read the typed `ServerError` via the
+   *   signal's `.error`. `fail()`/`.value.failed` will be removed in v3.
+   */
   failed: true;
 };
 
-/** @public */
+/**
+ * @deprecated Return `error(status, data)` instead and read the typed `ServerError` via the
+ *   signal's `.error`. `fail()`/`.value.failed` will be removed in v3.
+ * @public
+ */
 export type FailReturn<T> = T & Failed;
 
 /** @public */

@@ -498,6 +498,10 @@ declare global {
 export interface RequestEventAction<
   PLATFORM = QwikRouterPlatform,
 > extends RequestEventCommon<PLATFORM> {
+  /**
+   * @deprecated Return `error(status, data)` instead and read the typed `ServerError` via the
+   *   signal's `.error`. `fail()`/`.value.failed` will be removed in v3.
+   */
   fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 

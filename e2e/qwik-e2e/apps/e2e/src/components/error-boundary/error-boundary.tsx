@@ -231,6 +231,21 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
           <span id="eb-onerror-touched">{touched.value}</span>
           <div id="eb-content">content ok</div>
         </ErrorBoundary>
+      ) : scenario === 'no-boundary' ? (
+        // No enclosing ErrorBoundary: a throwing client handler must still reach the global error
+        // handler (window.onerror), not be swallowed to the console.
+        <>
+          <button
+            id="eb-no-boundary-throw"
+            onClick$={() => {
+              touched.value++;
+              throw new Error('no-boundary boom');
+            }}
+          >
+            throw on click
+          </button>
+          <span id="eb-no-boundary-touched">{touched.value}</span>
+        </>
       ) : (
         <ErrorBoundary fallback$={(e) => <EbFallback msg={String((e as any)?.message ?? e)} />}>
           <EbContent />

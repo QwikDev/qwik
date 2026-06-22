@@ -207,4 +207,22 @@ test.describe('ErrorBoundary streaming swap', () => {
     await page.locator('#eb-outer-button').click();
     await expect(page.locator('#eb-outer-count')).toHaveText('1');
   });
+
+  // A client error with no enclosing ErrorBoundary must still reach the global error handler
+  // (window.onerror / monitoring), not be silently swallowed to the console.
+  test('no boundary: a client throw still surfaces to the global error handler', async ({
+    page,
+  }) => {
+    const pageErrors: string[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+
+    await page.goto('/e2e/error-boundary-streaming?scenario=no-boundary', { waitUntil: 'commit' });
+    await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
+
+    // Click routes the throw through qwikloader → qerror → handleError; touched proves it resumed.
+    await page.locator('#eb-no-boundary-throw').click();
+    await expect(page.locator('#eb-no-boundary-touched')).toHaveText('1', { timeout: 10000 });
+
+    await expect.poll(() => pageErrors, { timeout: 10000 }).toContain('no-boundary boom');
+  });
 });

@@ -41,7 +41,7 @@ import {
 } from '../shared/utils/markers';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev, qTest } from '../shared/utils/qdev';
-import { logError } from '../shared/utils/log';
+import { logError, logErrorAndThrowAsync } from '../shared/utils/log';
 import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
@@ -306,8 +306,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       // Boundary already shows its fallback (e.g. the fallback itself threw): escalate so it doesn't loop on its own boundary.
       current = this.getParentHost(boundaryHost);
     }
-    // No boundary above can handle it; re-throwing here would surface as an uncaught chore rejection.
-    logError(err);
+    // No boundary above can handle it. Re-throw on a fresh macrotask so the error still reaches the
+    // global error handler (window.onerror / Sentry / Insights) instead of surfacing as an uncaught
+    // chore rejection here.
+    logErrorAndThrowAsync(err);
   }
 
   setContext<T>(host: VNode, context: ContextId<T>, value: T): void {

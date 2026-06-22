@@ -8,6 +8,15 @@ export const logError = (message?: any, ...optionalParams: any[]) => {
   return createAndLogError(false, message, ...optionalParams);
 };
 
+/**
+ * Log and re-throw on a fresh macrotask so an otherwise-unhandled error still reaches the global
+ * error handler (`window.onerror` / Sentry / Insights) without surfacing as an uncaught chore
+ * rejection in the current call stack.
+ */
+export const logErrorAndThrowAsync = (message?: any, ...optionalParams: any[]) => {
+  return createAndLogError(true, message, ...optionalParams);
+};
+
 export const throwErrorAndStop = (message?: any, ...optionalParams: any[]): never => {
   const error = createAndLogError(false, message, ...optionalParams);
   // eslint-disable-next-line no-debugger

@@ -56,6 +56,10 @@ export function ensureGlobals(doc: any, opts?: MockDocumentOptions) {
     set: (url: string) => (loc.href = normalizeUrl(url).href),
   });
 
+  if (typeof doc.createRange !== 'function') {
+    doc.createRange = createMockRange;
+  }
+
   doc.defaultView = {
     get document() {
       return doc;
@@ -90,6 +94,46 @@ export function ensureGlobals(doc: any, opts?: MockDocumentOptions) {
 const noop = () => {};
 
 const QWIK_DOC = Symbol();
+
+function createMockRange(): Range {
+  let start: Node | null = null;
+  let end: Node | null = null;
+
+  return {
+    setStartAfter(node: Node): void {
+      start = node;
+    },
+    setEndBefore(node: Node): void {
+      end = node;
+    },
+    deleteContents(): void {
+      if (start === null || end === null) {
+        throw new Error('Range boundary not set');
+      }
+
+      const parent = start.parentNode;
+      if (parent === null || parent !== end.parentNode) {
+        throw new Error('Range markers must share a parent');
+      }
+
+      let child = start.nextSibling;
+      while (child !== null && child !== end) {
+        const next = child.nextSibling;
+        parent.removeChild(child);
+        child = next;
+      }
+      if (child !== end) {
+        throw new Error('Range end marker not found');
+      }
+    },
+    insertNode(node: Node): void {
+      if (end === null || end.parentNode === null) {
+        throw new Error('Range boundary not set');
+      }
+      end.parentNode.insertBefore(node, end);
+    },
+  } as Range;
+}
 
 class MockShadowRoot extends (domino as any).impl.DocumentFragment {
   nodeType = 11; // DOCUMENT_FRAGMENT_NODE

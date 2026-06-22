@@ -1,9 +1,13 @@
 import { SubscriberKind, type Subscriber } from '../runtime/subscriber';
+import type { LazySerialized } from './lazy-serialized';
+
+export type SourceSub = Subscriber | LazySerialized<Subscriber>;
+export type SourceSubs = SourceSub[] | null;
 
 export interface Source<T = unknown> {
   v: T;
   version: number;
-  subs: Subscriber[] | null;
+  subs: SourceSubs;
 }
 
 export type Dependency<T = unknown> = Source<T>;

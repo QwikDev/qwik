@@ -1,6 +1,8 @@
 import { isDev } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import { Branch, BranchRange, BranchSubscription } from '../../vdomless/dom/branch/branch';
+import { ForBlockSubscription } from '../../vdomless/dom/effect/effect';
+import { ForBlock, ForRange } from '../../vdomless/dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
@@ -14,8 +16,9 @@ import {
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import { EffectTargetKind } from '../../vdomless/dom/effect/ssr-effect';
 import { ComputedFlags } from '../../vdomless/reactive/flags';
+import { createLazySourceSubs, LazySerialized } from '../../vdomless/reactive/lazy-serialized';
 import { Signal as VdomlessSignal } from '../../vdomless/reactive/signal';
-import type { Dependency } from '../../vdomless/reactive/source';
+import { readSourceValue, type Dependency, type SourceSub } from '../../vdomless/reactive/source';
 import { addDependency } from '../../vdomless/reactive/tracking';
 import type { ContainerContext } from '../../vdomless/runtime/container-context';
 import type { ContextScope } from '../../vdomless/runtime/context-scope';
@@ -24,13 +27,16 @@ import {
   findBranchRange,
   findBranchTextNode,
   findElementText,
+  findForRange,
+  findForRowRange,
   findQwikElement,
   findTextNode,
 } from '../../vdomless/runtime/node-walker';
-import type {
-  ComputedSubscriber,
-  DomSubscriber,
-  Subscriber,
+import {
+  SubscriberKind,
+  type ComputedSubscriber,
+  type DomSubscriber,
+  type Subscriber,
 } from '../../vdomless/runtime/subscriber';
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
@@ -72,7 +78,12 @@ export const inflate = async (
     return;
   }
   // Restore the complex data, special case for Array
-  if (typeId !== TypeIds.Array && Array.isArray(data)) {
+  if (
+    typeId !== TypeIds.Array &&
+    typeId !== TypeIds.Signal &&
+    typeId !== TypeIds.ComputedSignal &&
+    Array.isArray(data)
+  ) {
     data = await _eagerDeserializeArray(container, data);
   }
   switch (typeId) {
@@ -96,19 +107,22 @@ export const inflate = async (
       break;
     case TypeIds.Signal: {
       const signal = target as VdomlessSignal<unknown>;
-      const d = data as [unknown, ...DomSubscriber[]];
-      signal.v = d[0];
+      const d = data as unknown[];
+      signal.v = await deserializeData(container, d[0] as TypeIds, d[1]);
+      if (d.length > 2) {
+        signal.subs = createLazySourceSubscribers(signal, container, d, 2);
+      }
       break;
     }
     case TypeIds.ComputedSignal: {
       const computed = target as Writeable<ComputedSubscriber<unknown>>;
       ensureDeserializedOwner(computed);
-      const [qrl, deps, value] = data as [
-        QRLInternal<() => unknown>,
-        Dependency[],
-        unknown,
-        ...DomSubscriber[],
-      ];
+      const d = data as unknown[];
+      const qrl = (await deserializeData(container, d[0] as TypeIds, d[1])) as QRLInternal<
+        () => unknown
+      >;
+      const deps = (await deserializeData(container, d[2] as TypeIds, d[3])) as Dependency[];
+      const value = await deserializeData(container, d[4] as TypeIds, d[5]);
       computed.compute = await qrl.resolve();
       if (deps && deps.length > 0) {
         computed.deps = [];
@@ -123,6 +137,9 @@ export const inflate = async (
       } else {
         computed.v = value;
         computed.flags = ComputedFlags.HasValue;
+      }
+      if (d.length > 6) {
+        computed.subs = createLazySourceSubscribers(computed, container, d, 6);
       }
       break;
     }
@@ -194,6 +211,10 @@ export const inflate = async (
       switch (kind) {
         case EffectKind.Branch: {
           restoreBranchSubscription(container, target as Writeable<BranchSubscription>, parts);
+          break;
+        }
+        case EffectKind.ForBlock: {
+          restoreForBlockSubscription(container, target as Writeable<ForBlockSubscription>, parts);
           break;
         }
         case EffectKind.TextNode: {
@@ -275,6 +296,76 @@ function restoreBranchSubscription(
       registerSubscriberToOwner(ownedSubscribers[i], owner);
     }
   }
+}
+
+function restoreForBlockSubscription(
+  container: ContainerContext,
+  subscription: Writeable<ForBlockSubscription>,
+  parts: unknown[]
+): void {
+  const rangeId = parts[1] as number;
+  const deps = parts[2] as Dependency[];
+  const keyQrl = parts[3] as QRLInternal<(item: unknown, index: number) => string | number>;
+  const renderQrl = parts[4] as QRLInternal<
+    (ctx: ContainerContext, item: unknown, index: unknown) => readonly Node[]
+  >;
+  const usesItemSignal = parts[5] as boolean;
+  const usesIndexSignal = parts[6] as boolean;
+  const markerRange = findForRange(container.element, rangeId);
+  isDev && assertDefined(markerRange, `Missing for range ${rangeId}.`);
+  if (markerRange === null) {
+    throw new Error(`Missing for range ${rangeId}.`);
+  }
+  if (!Array.isArray(deps) || deps.length === 0) {
+    throw new Error('ForBlock subscription requires a source dependency.');
+  }
+
+  const listOwner = createOwner(subscription.owner);
+  const block = new ForBlock(
+    new ForRange(markerRange[0], markerRange[1]),
+    deps[0] as Dependency<readonly unknown[]>,
+    keyQrl,
+    renderQrl,
+    usesItemSignal,
+    usesIndexSignal,
+    listOwner,
+    null,
+    container
+  );
+  block.resumeItems = readSourceValue(deps[0] as Dependency<readonly unknown[]>) ?? [];
+
+  subscription.block = block;
+  restoreDependencies(subscription, deps);
+}
+
+function createLazySourceSubscribers(
+  source: Dependency,
+  container: ContainerContext,
+  data: unknown[],
+  start: number
+): SourceSub[] {
+  const resumeItems = Array.isArray(source.v) ? source.v : null;
+  return createLazySourceSubs((data.length - start) / 2, (index) => {
+    const i = start + index * 2;
+    const typeId = data[i] as TypeIds;
+    const value = data[i + 1];
+    if (typeId === TypeIds.Plain) {
+      return value as Subscriber;
+    }
+    return new LazySerialized<Subscriber>(async () => {
+      const subscriber = (await deserializeData(container, typeId, value)) as Subscriber;
+      if (
+        resumeItems !== null &&
+        subscriber.kind === SubscriberKind.ForBlock &&
+        'block' in subscriber
+      ) {
+        subscriber.block.resumeItems = resumeItems;
+      }
+      data[i] = TypeIds.Plain;
+      data[i + 1] = subscriber;
+      return subscriber;
+    });
+  });
 }
 
 function ensureDeserializedOwner(subscriber: Subscriber): void {
@@ -447,10 +538,17 @@ function resolveBranchTextTarget(
   markerIndex: number
 ): Text | null {
   const range = findBranchRange(container.element, rangeId);
-  return range === null ? null : findBranchTextNode(range, markerIndex);
+  if (range !== null) {
+    return findBranchTextNode(range, markerIndex);
+  }
+  const rowRange = findForRowRange(container.element, rangeId);
+  return rowRange === null ? null : findBranchTextNode(rowRange, markerIndex);
 }
 
-function restoreDependencies(collector: DomSubscriber | BranchSubscription, deps: Dependency[]) {
+function restoreDependencies(
+  collector: DomSubscriber | BranchSubscription | ForBlockSubscription,
+  deps: Dependency[]
+) {
   if (deps && deps.length > 0) {
     collector.deps = [];
     collector.depVersions = [];

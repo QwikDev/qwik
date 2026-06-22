@@ -73,6 +73,7 @@ interface SegmentState {
   record: SegmentRecord;
   functionOwnerId: number;
   capturedSymbols: Set<number>;
+  moduleImportSymbols: Set<number>;
 }
 
 interface SegmentSpec {
@@ -91,6 +92,7 @@ interface SegmentSpec {
 interface FunctionOptions {
   segment?: SegmentSpec;
   paramKind?: BindingKind;
+  forKeyExpression?: unknown;
 }
 
 interface QrlCalleeRecord {
@@ -380,12 +382,23 @@ class CaptureAnalyzer {
     const segment = options.segment
       ? this.createSegment(options.segment, functionOwnerId, node)
       : null;
-    if (segment) {
-      this.segmentStack.push(segment);
-    }
 
     for (const param of node.params ?? []) {
       this.visitPatternExpressions(param);
+    }
+
+    if (options.forKeyExpression !== undefined) {
+      const keyRange = getRange(options.forKeyExpression);
+      if (keyRange !== null) {
+        const keySegment = this.createForKeySegment(node, functionOwnerId, keyRange);
+        this.segmentStack.push(keySegment);
+        this.visit(options.forKeyExpression);
+        this.segmentStack.pop();
+      }
+    }
+
+    if (segment) {
+      this.segmentStack.push(segment);
     }
 
     const body = unwrapExpression(node.body);
@@ -500,6 +513,9 @@ class CaptureAnalyzer {
     if (this.visitJsxBranchExpression(expr)) {
       return;
     }
+    if (this.visitJsxForExpression(expr)) {
+      return;
+    }
     if (getSignalValueSourceName(expr) !== null) {
       this.visit(expr);
       return;
@@ -531,6 +547,9 @@ class CaptureAnalyzer {
       return;
     }
     const name = getJsxAttributeName(node.name);
+    if (name === 'key') {
+      return;
+    }
     const expr =
       node.value?.type === 'JSXExpressionContainer'
         ? unwrapExpression(node.value.expression)
@@ -589,6 +608,35 @@ class CaptureAnalyzer {
     return false;
   }
 
+  private visitJsxForExpression(expr: AstNode): boolean {
+    const call = parseJsxMapCall(expr);
+    if (call === null) {
+      return false;
+    }
+    const rowJsx = getCallbackReturnedJsx(call.callback);
+    const keyExpression = rowJsx === null ? null : findRowKeyExpression(rowJsx);
+    const rowRange = getRange(rowJsx);
+    if (rowJsx === null || keyExpression === null || rowRange === null) {
+      this.visit(expr);
+      return true;
+    }
+
+    this.visit(call.sourceExpression);
+    this.visitFunction(call.callback, {
+      paramKind: 'loop',
+      forKeyExpression: keyExpression,
+      segment: {
+        kind: 'forRender',
+        ctxName: 'for:render',
+        range: rowRange,
+        functionRange: getRange(call.callback),
+        captureMode: 'auto',
+        explicitCaptures: [],
+      },
+    });
+    return true;
+  }
+
   private visitBranchCondition(expr: unknown) {
     const range = getRange(expr);
     if (range === null) {
@@ -624,6 +672,9 @@ class CaptureAnalyzer {
       return;
     }
     if (this.visitJsxBranchExpression(node)) {
+      return;
+    }
+    if (this.visitJsxForExpression(node)) {
       return;
     }
     if (
@@ -920,7 +971,11 @@ class CaptureAnalyzer {
     if (!segment || segment.record.captureMode === 'explicit') {
       return;
     }
-    if (binding.kind === 'import' || binding.moduleLevel) {
+    if (binding.kind === 'import') {
+      return;
+    }
+    if (binding.moduleLevel) {
+      this.addModuleImport(segment, binding);
       return;
     }
     if (this.isOuterFunctionOwner(binding.functionOwnerId, segment.functionOwnerId)) {
@@ -985,14 +1040,32 @@ class CaptureAnalyzer {
     segment.record.captures.push(capture);
   }
 
+  private addModuleImport(segment: SegmentState, binding: BindingRecord) {
+    if (segment.moduleImportSymbols.has(binding.symbolId)) {
+      return;
+    }
+    segment.moduleImportSymbols.add(binding.symbolId);
+    segment.record.moduleImports.push({
+      name: binding.name,
+      symbolId: binding.symbolId,
+      declRange: binding.range,
+    });
+  }
+
   private propagateCapturesToBranchRender(
     parentSegment: SegmentState | null,
     childSegment: SegmentState
   ) {
-    if (parentSegment?.record.kind !== 'branchRender') {
+    if (
+      parentSegment?.record.kind !== 'branchRender' &&
+      parentSegment?.record.kind !== 'forRender'
+    ) {
       return;
     }
     for (const capture of childSegment.record.captures) {
+      if (parentSegment.record.kind === 'forRender' && capture.source === 'loop') {
+        continue;
+      }
       this.addCaptureRecord(parentSegment, capture);
     }
   }
@@ -1027,6 +1100,7 @@ class CaptureAnalyzer {
       parentId: this.currentSegment()?.record.id ?? null,
       params: getParams(fn),
       captures: [...spec.explicitCaptures],
+      moduleImports: [],
       captureMode: spec.captureMode,
       targetFunctionOwnerId: functionOwnerId,
       specialReferences: [],
@@ -1039,11 +1113,49 @@ class CaptureAnalyzer {
       record,
       functionOwnerId,
       capturedSymbols,
+      moduleImportSymbols: new Set(),
     };
   }
 
   private createSyntheticJsxTextSegment(expressionRange: SourceRange): SegmentState {
     return this.createSyntheticSegment('jsxText', 'text', expressionRange);
+  }
+
+  private createForKeySegment(
+    fn: AstFunction,
+    functionOwnerId: number,
+    expressionRange: SourceRange
+  ): SegmentState {
+    const id = `segment_${this.nextSegmentId++}`;
+    const record: SegmentRecord = {
+      id,
+      kind: 'forKey',
+      ctxName: 'for:key',
+      range: expressionRange,
+      calleeRange: null,
+      calleeNameRange: null,
+      calleeName: null,
+      functionRange: getRange(fn),
+      argumentRanges: [],
+      paramRanges: (fn.params ?? []).map(getRange).filter((range) => range !== null),
+      bodyRange: expressionRange,
+      bodyKind: 'expression',
+      async: false,
+      parentId: this.currentSegment()?.record.id ?? null,
+      params: getParams(fn),
+      captures: [],
+      moduleImports: [],
+      captureMode: 'auto',
+      targetFunctionOwnerId: functionOwnerId,
+      specialReferences: [],
+    };
+    this.ctx.manifest.segments.push(record);
+    return {
+      record,
+      functionOwnerId,
+      capturedSymbols: new Set(),
+      moduleImportSymbols: new Set(),
+    };
   }
 
   private createSyntheticSegment(
@@ -1071,6 +1183,7 @@ class CaptureAnalyzer {
       parentId: this.currentSegment()?.record.id ?? null,
       params: [],
       captures: [],
+      moduleImports: [],
       captureMode: 'auto',
       targetFunctionOwnerId: functionOwnerId,
       specialReferences: [],
@@ -1080,6 +1193,7 @@ class CaptureAnalyzer {
       record,
       functionOwnerId,
       capturedSymbols: new Set(),
+      moduleImportSymbols: new Set(),
     };
   }
 
@@ -1257,6 +1371,82 @@ function getArgumentExpression(node: Argument | null | undefined): AstNode | nul
     return node.argument;
   }
   return node;
+}
+
+function parseJsxMapCall(expr: AstNode): {
+  sourceExpression: AstNode;
+  callback: AstFunction;
+} | null {
+  if (expr.type !== 'CallExpression') {
+    return null;
+  }
+  const callee = unwrapExpression(expr.callee);
+  if (!callee || callee.type !== 'MemberExpression' || callee.computed) {
+    return null;
+  }
+  if (getIdentifierName(callee.property) !== 'map') {
+    return null;
+  }
+  if (getSignalValueSourceName(callee.object) === null) {
+    return null;
+  }
+  const callback = unwrapExpression(getArgumentExpression(expr.arguments?.[0]));
+  return callback && isFunctionLike(callback)
+    ? { sourceExpression: callee.object, callback }
+    : null;
+}
+
+function getCallbackReturnedJsx(callback: AstFunction): AstNode | null {
+  const body = unwrapExpression(callback.body);
+  if (!body) {
+    return null;
+  }
+  if (body.type === 'JSXElement' || body.type === 'JSXFragment') {
+    return body;
+  }
+  if (body.type !== 'BlockStatement') {
+    return null;
+  }
+  for (const statement of body.body ?? []) {
+    if (statement.type !== 'ReturnStatement') {
+      continue;
+    }
+    const argument = unwrapExpression(statement.argument);
+    return argument && (argument.type === 'JSXElement' || argument.type === 'JSXFragment')
+      ? argument
+      : null;
+  }
+  return null;
+}
+
+function findRowKeyExpression(rowJsx: AstNode): AstNode | null {
+  if (rowJsx.type === 'JSXElement') {
+    return findKeyExpression(rowJsx.openingElement.attributes);
+  }
+  if (rowJsx.type === 'JSXFragment') {
+    for (const child of rowJsx.children ?? []) {
+      if (child.type === 'JSXElement') {
+        const key = findKeyExpression(child.openingElement.attributes);
+        if (key !== null) {
+          return key;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function findKeyExpression(attributes: JSXAttributeItem[]): AstNode | null {
+  for (const attr of attributes) {
+    if (attr.type !== 'JSXAttribute' || getJsxAttributeName(attr.name) !== 'key') {
+      continue;
+    }
+    if (attr.value?.type !== 'JSXExpressionContainer') {
+      return null;
+    }
+    return unwrapExpression(attr.value.expression) ?? null;
+  }
+  return null;
 }
 
 function isJsxEventName(name: string): boolean {

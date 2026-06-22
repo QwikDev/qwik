@@ -157,6 +157,8 @@ export function shouldResolveSsrQrl(qrlSegment: QrlSegmentOutput) {
     qrlSegment.segment.kind === 'jsxSpreadProps' ||
     (qrlSegment.segment.kind === 'jsxProp' && qrlSegment.segment.functionRange === null) ||
     qrlSegment.segment.kind === 'branchCondition' ||
+    qrlSegment.segment.kind === 'forKey' ||
+    qrlSegment.segment.kind === 'forRender' ||
     isImplicitDollarSegment(qrlSegment.segment)
   );
 }
@@ -191,6 +193,12 @@ export function hasCapturedQrlSegment(
           : false)
       );
     }
+    if (current.kind === 'for') {
+      return (
+        (qrlSegments.get(current.keySegmentId)?.segment.captures.length ?? 0) > 0 ||
+        (qrlSegments.get(current.renderSegmentId)?.segment.captures.length ?? 0) > 0
+      );
+    }
     return false;
   });
 }
@@ -201,6 +209,7 @@ export function hasDynamicBinding(node: RenderNode | null): boolean {
     (current) =>
       current.kind === 'dynamicText' ||
       current.kind === 'branch' ||
+      current.kind === 'for' ||
       (current.kind === 'component' &&
         current.props.some(
           (prop) =>
@@ -219,6 +228,10 @@ export function hasDynamicBinding(node: RenderNode | null): boolean {
 
 export function hasBranch(node: RenderNode | null): boolean {
   return someRenderNode(node, (current) => current.kind === 'branch');
+}
+
+export function hasForBlock(node: RenderNode | null): boolean {
+  return someRenderNode(node, (current) => current.kind === 'for');
 }
 
 export function hasComponent(node: RenderNode | null): boolean {
@@ -318,6 +331,9 @@ export function hasRangeTextBinding(node: RenderNode | null): boolean {
       node.thenChildren.some(hasRangeTextBinding) || node.elseChildren.some(hasRangeTextBinding)
     );
   }
+  if (node.kind === 'for') {
+    return node.children.some(hasRangeTextBinding);
+  }
   return false;
 }
 
@@ -352,5 +368,25 @@ function someRenderNode(
       node.elseChildren.some((child) => someRenderNode(child, predicate))
     );
   }
+  if (node.kind === 'for') {
+    return node.children.some((child) => someRenderNode(child, predicate));
+  }
   return false;
+}
+
+export function rewriteLoopCaptures(
+  expression: string,
+  captures: readonly { name: string; source: string }[]
+): string {
+  let output = expression;
+  for (const capture of captures) {
+    if (capture.source !== 'loop') {
+      continue;
+    }
+    output = output.replace(
+      new RegExp(`(?<![.$])\\b${escapeRegExp(capture.name)}\\b`, 'g'),
+      `${capture.name}.value`
+    );
+  }
+  return output;
 }

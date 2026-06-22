@@ -12,8 +12,16 @@ const DOCUMENT_FRAGMENT_NODE = 11;
 const RANGE_TEXT_MARKER = 't';
 const BRANCH_OPEN = 'b=';
 const BRANCH_CLOSE = '/b';
+const FOR_OPEN = 'f=';
+const FOR_CLOSE = '/f';
+const ROW_OPEN = 'r';
+const ROW_CLOSE = '/r';
+const ROW_ATTR = 'q:row';
 
 export type BranchMarkerRange = readonly [Comment, Comment];
+export type ForMarkerRange = readonly [Comment, Comment];
+export type RowMarkerRange = readonly [Comment, Comment];
+export type ForRowRange = Element | RowMarkerRange;
 
 export function findQwikElement(element: Element, elementId: string | number): Element | null {
   if (elementId == null) {
@@ -83,47 +91,63 @@ export function findBranchRange(
   return end === null ? null : [start, end];
 }
 
-export function replaceBranchRange(range: BranchMarkerRange, nodes: readonly Node[]): void {
-  const [start, end] = range;
-  const parent = getBranchRangeParent(start, end);
-  const ownerDocument = start.ownerDocument;
-  if (ownerDocument === null) {
-    throw new Error('Branch range start marker must have an owner document');
+export function findForRange(element: Element, rangeId: string | number): ForMarkerRange | null {
+  const start = findComment(element, FOR_OPEN + String(rangeId));
+  if (start === null) {
+    return null;
   }
-
-  let child = fastNextSibling(start);
-  while (child !== null && child !== end) {
-    const next = fastNextSibling(child);
-    parent.removeChild(child);
-    child = next;
-  }
-  if (child !== end) {
-    throw new Error('Branch range end marker not found');
-  }
-
-  if (nodes.length === 0) {
-    return;
-  }
-
-  if (nodes.length === 1) {
-    parent.insertBefore(nodes[0], end);
-    return;
-  }
-
-  const fragment = ownerDocument.createDocumentFragment();
-  for (let i = 0; i < nodes.length; i++) {
-    fragment.appendChild(nodes[i]);
-  }
-  parent.insertBefore(fragment, end);
+  const end = findRangeEnd(start, FOR_OPEN, FOR_CLOSE);
+  return end === null ? null : [start, end];
 }
 
-function getBranchRangeParent(start: Comment, end: Comment): Node {
-  const parent = start.parentNode as Node | null;
-  if (parent === null || parent !== end.parentNode) {
-    throw new Error('Branch range markers must share a parent');
+export function findForRowRange(element: Element, rowId: string | number): RowMarkerRange | null {
+  const start = findComment(element, ROW_OPEN + '=' + String(rowId));
+  if (start === null) {
+    return null;
   }
+  const end = findRangeEnd(start, ROW_OPEN, ROW_CLOSE);
+  return end === null ? null : [start, end];
+}
 
-  return parent;
+export function findForRowRanges(start: Comment, end: Comment): ForRowRange[] {
+  const rows: ForRowRange[] = [];
+  let rowStart: Comment | null = null;
+  let forDepth = 0;
+  let sibling = fastNextSibling(start);
+
+  while (sibling !== null && sibling !== end) {
+    if (sibling.nodeType === COMMENT_NODE) {
+      const comment = sibling as Comment;
+      const data = comment.data;
+
+      if (forDepth !== 0) {
+        if (data.startsWith(FOR_OPEN)) {
+          forDepth++;
+        } else if (data === FOR_CLOSE) {
+          forDepth--;
+        }
+      } else if (data.startsWith(FOR_OPEN)) {
+        forDepth = 1;
+      } else if (rowStart === null && isRowOpenMarker(data)) {
+        rowStart = comment;
+      } else if (rowStart !== null && data === ROW_CLOSE) {
+        rows.push([rowStart, comment]);
+        rowStart = null;
+      }
+    } else if (
+      rowStart === null &&
+      sibling.nodeType === ELEMENT_NODE &&
+      (sibling as Element).hasAttribute(ROW_ATTR)
+    ) {
+      rows.push(sibling as Element);
+    }
+    sibling = fastNextSibling(sibling);
+  }
+  return rows;
+}
+
+function isRowOpenMarker(data: string): boolean {
+  return data === ROW_OPEN || data.startsWith(ROW_OPEN + '=');
 }
 
 function findComment(node: Node, data: string): Comment | null {
@@ -145,14 +169,18 @@ function findComment(node: Node, data: string): Comment | null {
 }
 
 function findBranchEnd(start: Comment): Comment | null {
+  return findRangeEnd(start, BRANCH_OPEN, BRANCH_CLOSE);
+}
+
+function findRangeEnd(start: Comment, open: string, close: string): Comment | null {
   let depth = 0;
   let sibling = fastNextSibling(start);
   while (sibling !== null) {
     if (sibling.nodeType === COMMENT_NODE) {
       const data = (sibling as Comment).data;
-      if (data.startsWith(BRANCH_OPEN)) {
+      if (data.startsWith(open)) {
         depth++;
-      } else if (data === BRANCH_CLOSE) {
+      } else if (data === close) {
         if (depth === 0) {
           return sibling as Comment;
         }

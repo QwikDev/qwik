@@ -6,4 +6,5 @@ export const enum EffectKind {
   Branch = 4,
   Props = 5,
   AttrExpression = 6,
+  ForBlock = 7,
 }

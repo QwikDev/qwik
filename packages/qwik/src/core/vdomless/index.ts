@@ -40,9 +40,11 @@ export {
   type CollectorSubscriber,
   type ComputedSubscriber,
   type DomSubscriber,
+  type ForBlockSubscriber,
   type IdleJobRecord,
   type IdleSubscriber,
   type PhaseSubscriber,
+  type SsrForBlockSubscriber,
   type Subscriber,
   type TaskSubscriber,
   type VisibleTaskSubscriber,
@@ -116,11 +118,13 @@ export {
   createBranch,
   renderSsrBranch,
 } from './dom/branch/branch';
+export { ForBlock, ForRange, SSRForBlock, createForBlock, renderSsrForBlock } from './dom/for/for';
 export {
   AttrSerializer,
   AttrEffect,
   AttrExpressionEffect,
   DomSubscription,
+  ForBlockSubscription,
   PropsEffect,
   SerializedAttrEffect,
   TextExpressionEffect,
@@ -145,6 +149,7 @@ export {
   SsrAttrEffect,
   SsrAttrExpressionEffect,
   SsrDomSubscription,
+  SSRForBlockSubscription,
   SsrPropsEffect,
   SsrSerializedAttrEffect,
   SsrTextExpressionEffect,

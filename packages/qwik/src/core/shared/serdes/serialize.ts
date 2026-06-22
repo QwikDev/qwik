@@ -2,6 +2,7 @@ import { isDev, isServer } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import { SSRBranchSubscription as SsrBranchSubscription } from '../../vdomless/dom/branch/branch';
+import { SSRForBlockSubscription as SsrForBlockSubscription } from '../../vdomless/dom/effect/ssr-effect';
 import {
   EffectTargetKind,
   SsrDomSubscription,
@@ -10,7 +11,8 @@ import {
 import { ComputedFlags } from '../../vdomless/reactive/flags';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
 import { Signal } from '../../vdomless/reactive/signal';
-import type { Dependency } from '../../vdomless/reactive/source';
+import { isLazySerialized } from '../../vdomless/reactive/lazy-serialized';
+import type { Dependency, SourceSubs } from '../../vdomless/reactive/source';
 import { isContextScope } from '../../vdomless/runtime/context-scope';
 import { Owner } from '../../vdomless/runtime/owner';
 import type { Subscriber } from '../../vdomless/runtime/subscriber';
@@ -449,7 +451,11 @@ export class Serializer {
       this.output(TypeIds.Signal, serializeSignal(value));
     } else if (value instanceof ComputedQrl) {
       this.output(TypeIds.ComputedSignal, serializeComputed(value));
-    } else if (value instanceof SsrDomSubscription || value instanceof SsrBranchSubscription) {
+    } else if (
+      value instanceof SsrDomSubscription ||
+      value instanceof SsrBranchSubscription ||
+      value instanceof SsrForBlockSubscription
+    ) {
       this.output(TypeIds.EffectSubscription, serializeEffectSubscription(value));
     } else if (isContextScope(value)) {
       const out: unknown[] = [value.parent ?? null];
@@ -717,10 +723,13 @@ function serializeComputed(computed: ComputedQrl<unknown>): unknown[] {
 }
 
 function serializeEffectSubscription(
-  subscription: SsrDomSubscription | SsrBranchSubscription
+  subscription: SsrDomSubscription | SsrBranchSubscription | SsrForBlockSubscription
 ): unknown[] {
   if (subscription instanceof SsrBranchSubscription) {
     return serializeBranchSubscription(subscription);
+  }
+  if (subscription instanceof SsrForBlockSubscription) {
+    return serializeForBlockSubscription(subscription);
   }
 
   return serializeDomSubscription(subscription);
@@ -757,6 +766,20 @@ function getSsrBranchOwnedSubscribers(subscription: SsrBranchSubscription): read
   return subscribers;
 }
 
+function serializeForBlockSubscription(subscription: SsrForBlockSubscription): unknown[] {
+  const effect = subscription.effect;
+
+  return [
+    EffectKind.ForBlock,
+    effect.rangeId,
+    serializeDeps(subscription.deps),
+    effect.keyQrl,
+    effect.renderQrl,
+    effect.usesItemSignal,
+    effect.usesIndexSignal,
+  ];
+}
+
 function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {
   const effect = subscription.effect;
   const deps = serializeDeps(subscription.deps);
@@ -788,8 +811,21 @@ function serializeDeps(deps: Dependency[] | null): readonly Dependency[] {
   return deps ?? EMPTY_ARRAY;
 }
 
-function serializeSubscribers(subs: Subscriber[] | null): readonly Subscriber[] {
-  return isServer ? (subs ?? EMPTY_ARRAY) : EMPTY_ARRAY;
+function serializeSubscribers(subs: SourceSubs): readonly Subscriber[] {
+  if (!isServer || subs === null) {
+    return EMPTY_ARRAY;
+  }
+
+  let subscribers: Subscriber[] | null = null;
+  for (let i = 0; i < subs.length; i++) {
+    const subscriber = subs[i];
+    if (isLazySerialized(subscriber)) {
+      subscribers ??= subs.slice(0, i) as Subscriber[];
+    } else if (subscribers !== null) {
+      subscribers.push(subscriber);
+    }
+  }
+  return subscribers ?? (subs as Subscriber[]);
 }
 
 function assertNeverSsrDomEffect(effect: never): never {

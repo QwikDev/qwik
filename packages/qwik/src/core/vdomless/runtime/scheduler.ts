@@ -1,4 +1,3 @@
-import { isPromise } from '../../shared/utils/promises';
 import { cleanupDeps } from '../reactive/cleanup';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
 import { Owner, type OwnerItem } from './owner';
@@ -7,8 +6,10 @@ import { runWithCollector } from '../reactive/tracking';
 import type {
   BranchSubscriber,
   DomSubscriber,
+  ForBlockSubscriber,
   IdleSubscriber,
   PhaseSubscriber,
+  ScheduledSubscriber,
   SsrDomSubscriber,
   TaskSubscriber,
   VisibleTaskSubscriber,
@@ -60,6 +61,9 @@ export class Scheduler {
         phase = OwnerFlags.DirtyScalarDom;
         break;
       case SubscriberKind.Branch:
+        phase = OwnerFlags.DirtyStructuralDom;
+        break;
+      case SubscriberKind.ForBlock:
         phase = OwnerFlags.DirtyStructuralDom;
         break;
       case SubscriberKind.Idle:
@@ -194,8 +198,12 @@ export class Scheduler {
     const end = items.length;
     for (let i = 0; i < end && i < items.length; i++) {
       const item = items[i];
-      if (!(item instanceof Owner) && item.kind === SubscriberKind.Branch && 'flags' in item) {
-        await this.runBranch(item);
+      if (!(item instanceof Owner) && 'flags' in item) {
+        if (item.kind === SubscriberKind.Branch) {
+          await this.runBranch(item);
+        } else if (item.kind === SubscriberKind.ForBlock) {
+          await this.runForBlock(item);
+        }
       }
     }
   }
@@ -266,45 +274,44 @@ export class Scheduler {
   }
 
   private async runTask(task: TaskSubscriber | VisibleTaskSubscriber): Promise<void> {
-    if (task.owner === null || !(task.flags & SubscriberFlags.Dirty)) {
+    if (!takeDirty(task)) {
       return;
     }
 
-    task.flags &= ~SubscriberFlags.Dirty;
     cleanupDeps(task);
     await runWithCollector(task, () => task.task.run());
   }
 
   private async runBranch(branch: BranchSubscriber): Promise<void> {
-    if (branch.owner === null || !(branch.flags & SubscriberFlags.Dirty)) {
+    if (!takeDirty(branch)) {
       return;
     }
 
-    branch.flags &= ~SubscriberFlags.Dirty;
     cleanupDeps(branch);
     await branch.run();
   }
 
-  private runScalarDomEffect(effect: DomSubscriber): void {
-    if (effect.owner === null || !(effect.flags & SubscriberFlags.Dirty)) {
+  private async runForBlock(block: ForBlockSubscriber): Promise<void> {
+    if (!takeDirty(block)) {
       return;
     }
 
-    effect.flags &= ~SubscriberFlags.Dirty;
-    cleanupDeps(effect);
+    cleanupDeps(block);
+    await block.run();
+  }
 
-    const value = runWithCollector(effect, () => effect.effect.run());
-    if (isPromise(value)) {
-      throw new Error('Scalar DOM effects must be synchronous');
+  private runScalarDomEffect(effect: DomSubscriber): void {
+    if (!takeDirty(effect)) {
+      return;
     }
+    effect.run();
   }
 
   private runIdleJob(job: IdleSubscriber): void {
-    if (job.owner === null || !(job.flags & SubscriberFlags.Dirty)) {
+    if (!takeDirty(job)) {
       return;
     }
 
-    job.flags &= ~SubscriberFlags.Dirty;
     void job.job.run();
   }
 
@@ -337,6 +344,9 @@ export function notifyPhaseSubscriber(subscriber: PhaseSubscriber | SsrDomSubscr
   if (subscriber.kind === SubscriberKind.Branch && !('scheduler' in subscriber)) {
     return;
   }
+  if (subscriber.kind === SubscriberKind.ForBlock && !('scheduler' in subscriber)) {
+    return;
+  }
 
   const container = (
     subscriber as {
@@ -355,6 +365,15 @@ export function notifyPhaseSubscriber(subscriber: PhaseSubscriber | SsrDomSubscr
 
 export function scheduleFlush(): void {
   defaultScheduler.scheduleFlush();
+}
+
+function takeDirty(subscriber: ScheduledSubscriber): boolean {
+  if (subscriber.owner === null || !(subscriber.flags & SubscriberFlags.Dirty)) {
+    return false;
+  }
+
+  subscriber.flags &= ~SubscriberFlags.Dirty;
+  return true;
 }
 
 function markOwnerDirty(owner: Owner, phase: OwnerFlags): void {

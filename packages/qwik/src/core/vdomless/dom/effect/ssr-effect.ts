@@ -6,7 +6,7 @@ import {
   type AttrExpressionFn,
   type TextExpressionFn,
 } from './effect';
-import type { SsrDomSubscriber } from '../../runtime/subscriber';
+import type { SsrDomSubscriber, SsrForBlockSubscriber } from '../../runtime/subscriber';
 import { SubscriberKind } from '../../runtime/subscriber';
 import { readSourceValue, type Dependency, type Source } from '../../reactive/source';
 import { runWithCollector, track } from '../../reactive/tracking';
@@ -15,6 +15,7 @@ import { registerSubscriberToOwner } from '../../runtime/owner';
 import type { Owner } from '../../runtime/owner';
 import type { ClassList } from '../../../shared/jsx/types/jsx-qwik-attributes';
 import { serializeClass, stringifyStyle } from '../../../shared/utils/styles';
+import type { SSRForBlock } from '../for/for';
 import { renderDomPropsToString } from './dom-props';
 
 export type TextExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
@@ -128,6 +129,19 @@ export class SsrDomSubscription implements SsrDomSubscriber {
   depVersions: number[] | null = null;
 
   constructor(readonly effect: SsrDomEffect) {}
+}
+
+export class SSRForBlockSubscription<T = unknown> implements SsrForBlockSubscriber {
+  readonly kind = SubscriberKind.ForBlock;
+  owner: Owner | null = null;
+  deps: Dependency[] | null = null;
+  depVersions: number[] | null = null;
+
+  constructor(readonly block: SSRForBlock<T>) {}
+
+  get effect(): SSRForBlock<T> {
+    return this.block;
+  }
 }
 
 export function createSsrTextNodeEffect(target: SsrEffectTarget): SsrDomSubscriber {

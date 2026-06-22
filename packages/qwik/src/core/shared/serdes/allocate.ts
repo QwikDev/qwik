@@ -1,4 +1,4 @@
-import { DomSubscription } from '../../vdomless/dom/effect/effect';
+import { DomSubscription, ForBlockSubscription } from '../../vdomless/dom/effect/effect';
 import { BranchSubscription } from '../../vdomless/dom/branch/branch';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
@@ -110,6 +110,9 @@ export const allocate = async (
     case TypeIds.EffectSubscription: {
       if (Array.isArray(value) && value[1] === EffectKind.Branch) {
         return new BranchSubscription(null!, context.scheduler);
+      }
+      if (Array.isArray(value) && value[1] === EffectKind.ForBlock) {
+        return new ForBlockSubscription(null!, context.scheduler);
       }
       return new DomSubscription(null!, context.scheduler);
     }

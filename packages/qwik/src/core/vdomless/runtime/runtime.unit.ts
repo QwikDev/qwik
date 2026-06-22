@@ -21,6 +21,7 @@ import {
   runWithOwner,
   type Owner,
 } from './owner';
+import { invoke, newInvokeContext } from './invoke-context';
 import { Scheduler } from './scheduler';
 import type { DomSubscriber, TaskSubscriber, VisibleTaskSubscriber } from './subscriber';
 import {
@@ -179,6 +180,26 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(owner.flags & OwnerFlags.Disposed).not.toBe(0);
     expect(owner.items).toBeNull();
     expect(count.subs).toBeNull();
+  });
+
+  it('materializes lazy context owners under their parent owner', () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const parent = createOwner(null);
+    const parentContext = newInvokeContext({ owner: parent });
+    const context = newInvokeContext({ owner: null });
+    const count = createSignal(1);
+    let effect!: DomSubscriber;
+
+    invoke(parentContext, () => {
+      invoke(context, () => {
+        effect = createTextNodeEffect(createText(), count, { scheduler });
+      });
+    });
+
+    expect(context.owner).not.toBeNull();
+    expect(context.owner!.parent).toBe(parent);
+    expect(parent.items).toEqual([context.owner]);
+    expect(context.owner!.items).toEqual([effect]);
   });
 
   it('registers subscribers to an explicit owner without duplication', async () => {

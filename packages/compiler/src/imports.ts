@@ -38,7 +38,8 @@ export function createSsrImports(
     !usage.hasDynamicBinding &&
     !usage.hasComponent &&
     !usage.hasDomProps &&
-    !usage.hasComponentPropsSpread
+    !usage.hasComponentPropsSpread &&
+    !usage.hasForBlock
   ) {
     return [];
   }
@@ -90,6 +91,9 @@ export function createSsrImports(
   if (usage.hasBranch) {
     sparkSpecifiers.push(QwikSymbol.RenderSsrBranch);
   }
+  if (usage.hasForBlock) {
+    sparkSpecifiers.push(QwikSymbol.RenderSsrForBlock);
+  }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
   }
@@ -106,6 +110,7 @@ export interface SsrImportUsage {
   hasAttrExpression: boolean;
   hasDomProps: boolean;
   hasBranch: boolean;
+  hasForBlock: boolean;
   hasComponent: boolean;
   hasComponentPropsSpread: boolean;
 }
@@ -120,7 +125,8 @@ export function createCsrImports(
     !usage.hasDynamicBinding &&
     !usage.hasComponent &&
     !usage.hasDomProps &&
-    !usage.hasComponentPropsSpread
+    !usage.hasComponentPropsSpread &&
+    !usage.hasForBlock
   ) {
     return [];
   }
@@ -168,6 +174,9 @@ export function createCsrImports(
   if (usage.hasBranch) {
     sparkSpecifiers.push(QwikSymbol.BranchRange, QwikSymbol.CreateBranch);
   }
+  if (usage.hasForBlock) {
+    sparkSpecifiers.push(QwikSymbol.ForRange, QwikSymbol.CreateForBlock);
+  }
   if (sparkSpecifiers.length > 0) {
     records.push(createQwikSparkImport(...sparkSpecifiers));
   }
@@ -184,6 +193,7 @@ export interface CsrImportUsage {
   hasDomProps: boolean;
   hasDirectEvent: boolean;
   hasBranch: boolean;
+  hasForBlock: boolean;
   hasComponent: boolean;
   hasComponentPropsSpread: boolean;
 }

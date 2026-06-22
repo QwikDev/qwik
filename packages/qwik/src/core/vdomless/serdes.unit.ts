@@ -6,6 +6,7 @@ import { Constants, TypeIds } from '../shared/serdes/constants';
 import { EffectKind } from './dom/effect/effect-kind.enum';
 import { createTextNodeEffect, AttrSerializer, type TextExpressionFn } from './dom/effect/effect';
 import { BranchSubscription, renderSsrBranch } from './dom/branch/branch';
+import { renderSsrForBlock } from './dom/for/for';
 import {
   createSsrElementTarget,
   createSsrElementTextTarget,
@@ -174,6 +175,49 @@ describe('vdomless serdes emit-only', () => {
     expect(branchPayload[13]).toBe(Constants.Null);
     expect(ownedPayload[0]).toBe(TypeIds.EffectSubscription);
     expect(ownedEffectPayload[1]).toBe(EffectKind.TextNode);
+  });
+
+  it('serializes for block subscriptions without eager row-local subscribers', async () => {
+    type Row = { id: string; label: Signal<string> };
+    const label = createSignal('alpha');
+    const items = createSignal<Row[]>([{ id: 'alpha', label }]);
+    const keyQrl = createQRL<(item: Row) => string>(
+      './for.key.js',
+      'key',
+      (item) => item.id,
+      null,
+      null
+    );
+    const renderQrl = createQRL<
+      (ctx: ContainerContext, rangeId: number, rowId: number, item: Row | Signal<Row>) => string
+    >(
+      './for.render.js',
+      'render',
+      (_ctx, _rangeId, rowId, item) => {
+        const row = (item as Signal<Row>).value;
+        return `<span q:id="${rowId}" q:row>${renderSsrTextNode(createSsrElementTextTarget(rowId), row.label)}</span>`;
+      },
+      null,
+      null
+    );
+    const container = createCaptureContainer({});
+
+    const html = await createOwned(() =>
+      renderSsrForBlock(container, 9, items, keyQrl, renderQrl, true, false)
+    );
+    const state = await serialize(items, label);
+    const signalPayload = state[1] as unknown[];
+    const forPayload = signalPayload[3] as unknown[];
+
+    expect(html).toBe('<span q:id="0" q:row>alpha</span>');
+    expect(signalPayload[2]).toBe(TypeIds.EffectSubscription);
+    expect(forPayload[1]).toBe(EffectKind.ForBlock);
+    expect(forPayload[3]).toBe(9);
+    expect(forPayload[10]).toBe(TypeIds.Constant);
+    expect(forPayload[11]).toBe(Constants.True);
+    expect(forPayload[12]).toBe(TypeIds.Constant);
+    expect(forPayload[13]).toBe(Constants.False);
+    expect(countSerializedValue(state, TypeIds.EffectSubscription)).toBe(2);
   });
 
   it('inflates branch deps, mounted branch state, and mounted owner subscribers', async () => {
@@ -387,4 +431,15 @@ async function serialize(...roots: unknown[]): Promise<unknown[]> {
 
 function createOwned<T>(run: () => T): T {
   return runWithOwner(createOwner(null), run);
+}
+
+function countSerializedValue(value: unknown, needle: unknown): number {
+  if (!Array.isArray(value)) {
+    return Object.is(value, needle) ? 1 : 0;
+  }
+  let count = 0;
+  for (let i = 0; i < value.length; i++) {
+    count += countSerializedValue(value[i], needle);
+  }
+  return count;
 }

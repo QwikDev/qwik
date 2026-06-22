@@ -49,10 +49,16 @@ export function disposeSubscriber(subscriber: Subscriber): void {
     case SubscriberKind.VisibleTask:
     case SubscriberKind.Dom:
     case SubscriberKind.Branch:
-      subscriber.flags = SubscriberFlags.None;
+    case SubscriberKind.ForBlock:
       cleanupDeps(subscriber);
+      if (!('flags' in subscriber)) {
+        return;
+      }
+      subscriber.flags = SubscriberFlags.None;
       if (subscriber.kind === SubscriberKind.Branch) {
         subscriber.branch.dispose();
+      } else if (subscriber.kind === SubscriberKind.ForBlock) {
+        subscriber.block.dispose();
       }
       return;
     case SubscriberKind.Idle:

@@ -2,7 +2,8 @@ import { cleanupDeps } from './cleanup';
 import { ComputedFlags } from './flags';
 import { registerSubscriberToOwner } from '../runtime/owner';
 import { notifyPhaseSubscriber } from '../runtime/scheduler';
-import type { Dependency } from './source';
+import { resolveLazySubscribers } from './lazy-serialized';
+import type { Dependency, SourceSubs } from './source';
 import {
   SubscriberKind,
   type ComputedSubscriber,
@@ -17,7 +18,7 @@ export class Computed<T> implements ComputedSubscriber<T> {
   owner: Owner | null = null;
   v!: T;
   version = 0;
-  subs: Subscriber[] | null = null;
+  subs: SourceSubs = null;
   deps: Dependency[] | null = null;
   depVersions: number[] | null = null;
   flags = ComputedFlags.Dirty;
@@ -72,12 +73,16 @@ export function markComputedDirty(computed: ComputedSubscriber): void {
 }
 
 function notifySubscribers(computed: ComputedSubscriber): void {
+  if (resolveLazySubscribers(computed, () => notifySubscribers(computed))) {
+    return;
+  }
+
   const subs = computed.subs;
   if (subs === null) {
     return;
   }
 
-  const snapshot = subs.slice();
+  const snapshot = subs.slice() as Subscriber[];
   for (let i = 0; i < snapshot.length; i++) {
     const subscriber = snapshot[i];
     if (subscriber.kind === SubscriberKind.Computed) {

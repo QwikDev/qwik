@@ -86,7 +86,9 @@ export interface SegmentRecord {
     | 'jsxSpreadProps'
     | 'jsxText'
     | 'branchCondition'
-    | 'branchRender';
+    | 'branchRender'
+    | 'forKey'
+    | 'forRender';
   ctxName: string;
   range: SourceRange | null;
   calleeRange: SourceRange | null;
@@ -101,6 +103,7 @@ export interface SegmentRecord {
   parentId: string | null;
   params: ParamRecord[];
   captures: CaptureRecord[];
+  moduleImports: ModuleImportRecord[];
   captureMode: 'auto' | 'explicit';
   targetFunctionOwnerId: number;
   specialReferences: SpecialReferenceRecord[];
@@ -112,6 +115,12 @@ export interface CaptureRecord {
   declRange: SourceRange | null;
   source: 'local' | 'param' | 'loop';
   readonlyConst?: boolean;
+}
+
+export interface ModuleImportRecord {
+  name: string;
+  symbolId: number;
+  declRange: SourceRange | null;
 }
 
 export interface SpecialReferenceRecord {
@@ -179,6 +188,17 @@ export interface BranchNode {
   elseChildren: RenderNode[];
 }
 
+export interface ForNode {
+  kind: 'for';
+  expressionRange: SourceRange;
+  sourceName: string;
+  keySegmentId: string;
+  renderSegmentId: string;
+  children: RenderNode[];
+  usesItemSignal: boolean;
+  usesIndexSignal: boolean;
+}
+
 export type RenderNode =
   | ElementNode
   | ComponentNode
@@ -186,7 +206,8 @@ export type RenderNode =
   | ChildrenNode
   | TextNode
   | DynamicTextNode
-  | BranchNode;
+  | BranchNode
+  | ForNode;
 
 export type DynamicBinding =
   | {

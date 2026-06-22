@@ -1,4 +1,3 @@
-import { isQrl } from '../../../shared/qrl/qrl-utils';
 import type { QRLInternal } from '../../../shared/qrl/qrl-class';
 import type { QRL } from '../../../shared/qrl/qrl.public';
 import { maybeThen } from '../../../shared/utils/promises';
@@ -13,7 +12,6 @@ import {
   newChildInvokeContext,
   type RuntimeInvokeContext,
 } from '../../runtime/invoke-context';
-import { replaceBranchRange } from '../../runtime/node-walker';
 import { disposeOwner, registerSubscriberToOwner, type Owner } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import {
@@ -21,6 +19,8 @@ import {
   type BranchSubscriber,
   type SsrBranchSubscriber,
 } from '../../runtime/subscriber';
+import { getFunctionOrResolve } from '../qrl';
+import { createContentRange, replaceRange } from '../range/range';
 
 type BranchConditionFn = () => boolean;
 type BranchHandlerFn = (ctx: ContainerContext) => readonly Node[];
@@ -28,13 +28,17 @@ type SSRBranchHandlerFn = (ctx: ContainerContext, rangeId: number) => string;
 
 /** BranchRange represents a range of nodes in the DOM that can be replaced with new nodes */
 export class BranchRange {
+  readonly nativeRange: Range;
+
   constructor(
     readonly start: Comment,
     readonly end: Comment
-  ) {}
+  ) {
+    this.nativeRange = createContentRange(start, end);
+  }
 
   replace(nodes: readonly Node[]): void {
-    replaceBranchRange([this.start, this.end], nodes);
+    replaceRange(this.start, this.end, this.nativeRange, nodes);
   }
 }
 
@@ -129,10 +133,6 @@ export class BranchSubscription implements BranchSubscriber {
       });
     });
   }
-}
-
-function getFunctionOrResolve<T>(fn: T | QRL<T>, ctx?: ContainerContext): T | Promise<T> {
-  return isQrl(fn) ? ((fn.resolved ?? fn.resolve(ctx)) as T | Promise<T>) : (fn as T);
 }
 
 export function createBranch(

@@ -41,7 +41,7 @@ export function Child(_props, ctx) {
 export function Parent(_props, ctx) {
   const el0 = ctx.document.createElement('section');
   const cmp1 = createComponent({}, (props) => Child(props, ctx), { container: ctx });
-  for (const child of cmp1) el0.appendChild(child);
+  for (let i = 0; i < cmp1.length; i++) el0.appendChild(cmp1[i]);
   return [el0];
 }
 

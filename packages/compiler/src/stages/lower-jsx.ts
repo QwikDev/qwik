@@ -1,6 +1,7 @@
 import {
   getJsxAttributeName,
   getJsxName,
+  getIdentifierName,
   getRange,
   getSignalValueSourceName,
   getStaticExpressionValue,
@@ -32,6 +33,7 @@ import type {
   RenderNode,
   SourceRange,
   BranchNode,
+  ForNode,
 } from '../types';
 
 export function lowerStaticJsxToIr(ctx: CompilerContext) {
@@ -161,6 +163,9 @@ function lowerJsxAttributes(
       );
       continue;
     }
+    if (originalName === 'key') {
+      continue;
+    }
     let name = originalName;
     const eventName = jsxEventToHtmlAttribute(name);
     if (eventName) {
@@ -259,6 +264,9 @@ function lowerSpreadJsxAttributes(
       );
       continue;
     }
+    if (name === 'key') {
+      continue;
+    }
 
     const eventName = jsxEventToHtmlAttribute(name);
     if (eventName) {
@@ -338,6 +346,9 @@ function lowerComponentAttributes(
       ctx.manifest.diagnostics.push(
         createDiagnostic(ctx.input.path, 'Only simple JSX attribute names are supported.')
       );
+      continue;
+    }
+    if (name === 'key') {
       continue;
     }
     const expr =
@@ -578,6 +589,11 @@ function lowerJsxChildren(
           nodes.push(branch);
           continue;
         }
+        const forNode = lowerForExpression(ctx, expression, expressionRange, propsName);
+        if (forNode) {
+          nodes.push(forNode);
+          continue;
+        }
         const textParts = lowerStaticSourceTextExpression(expression);
         if (textParts) {
           nodes.push(...textParts);
@@ -603,6 +619,201 @@ function lowerJsxChildren(
     );
   }
   return nodes;
+}
+
+function lowerForExpression(
+  ctx: CompilerContext,
+  expression: unknown,
+  expressionRange: SourceRange,
+  propsName: string | null
+): ForNode | null {
+  const call = parseMapCall(ctx, expression);
+  if (call === null) {
+    return null;
+  }
+  const rowJsx = getCallbackReturnedJsx(call.callback);
+  if (rowJsx === null) {
+    ctx.manifest.diagnostics.push(
+      createDiagnostic(ctx.input.path, 'vdomless JSX .map() rows must return JSX.')
+    );
+    return null;
+  }
+
+  const keyExpression = findRowKeyExpression(rowJsx);
+  if (keyExpression === null) {
+    ctx.manifest.diagnostics.push(
+      createDiagnostic(ctx.input.path, 'vdomless JSX .map() rows require an explicit key.')
+    );
+    return null;
+  }
+
+  const keyRange = getRange(keyExpression);
+  const rowRange = getRange(rowJsx);
+  if (keyRange === null || rowRange === null) {
+    return null;
+  }
+
+  const keySegment = findForSegment(ctx, 'forKey', keyRange);
+  const renderSegment = findForSegment(ctx, 'forRender', rowRange);
+  if (!keySegment || !renderSegment) {
+    return null;
+  }
+
+  return {
+    kind: 'for',
+    expressionRange,
+    sourceName: call.sourceName,
+    keySegmentId: keySegment.id,
+    renderSegmentId: renderSegment.id,
+    children: lowerExpressionChildren(ctx, rowJsx, propsName),
+    usesItemSignal: usesIdentifierIgnoringKey(rowJsx, call.itemName),
+    usesIndexSignal:
+      call.indexName === null ? false : usesIdentifierIgnoringKey(rowJsx, call.indexName),
+  };
+}
+
+function parseMapCall(
+  ctx: CompilerContext,
+  expression: unknown
+): { sourceName: string; callback: any; itemName: string; indexName: string | null } | null {
+  const expr = unwrapExpression(expression);
+  if (!isAstNode(expr) || expr.type !== 'CallExpression') {
+    return null;
+  }
+  const callee = unwrapExpression(expr.callee);
+  if (!isAstNode(callee) || callee.type !== 'MemberExpression' || callee.computed) {
+    return null;
+  }
+  const property = callee.property;
+  if (!isAstNode(property) || property.type !== 'Identifier') {
+    return null;
+  }
+  if (property.name === 'forEach' || property.name === 'flatMap') {
+    ctx.manifest.diagnostics.push(
+      createDiagnostic(
+        ctx.input.path,
+        `vdomless JSX loops support .map(), not .${property.name}().`
+      )
+    );
+    return null;
+  }
+  if (property.name !== 'map') {
+    return null;
+  }
+
+  const sourceName = getSignalValueSourceName(callee.object);
+  if (sourceName === null) {
+    ctx.manifest.diagnostics.push(
+      createDiagnostic(ctx.input.path, 'vdomless JSX .map() source must be a signal value.')
+    );
+    return null;
+  }
+
+  const callback = unwrapExpression(getCallArgumentExpression(expr.arguments?.[0]));
+  if (!isFunctionLike(callback)) {
+    ctx.manifest.diagnostics.push(
+      createDiagnostic(ctx.input.path, 'vdomless JSX .map() requires an inline callback.')
+    );
+    return null;
+  }
+
+  const itemName = getIdentifierName(callback.params?.[0]);
+  const indexName =
+    callback.params?.[1] === undefined ? null : getIdentifierName(callback.params[1]);
+  if (itemName === null || (callback.params?.[1] !== undefined && indexName === null)) {
+    ctx.manifest.diagnostics.push(
+      createDiagnostic(
+        ctx.input.path,
+        'vdomless JSX .map() callback parameters must be identifiers.'
+      )
+    );
+    return null;
+  }
+
+  return { sourceName, callback, itemName, indexName };
+}
+
+function getCallArgumentExpression(argument: unknown): unknown {
+  if (isAstNode(argument) && argument.type === 'SpreadElement') {
+    return argument.argument;
+  }
+  return argument;
+}
+
+function getCallbackReturnedJsx(callback: any): AstJsxNode | null {
+  const body = unwrapExpression(callback.body);
+  if (!isAstNode(body)) {
+    return null;
+  }
+  if (body.type === 'JSXElement' || body.type === 'JSXFragment') {
+    return body;
+  }
+  if (body.type !== 'BlockStatement') {
+    return null;
+  }
+  for (const statement of body.body ?? []) {
+    if (isAstNode(statement) && statement.type === 'ReturnStatement') {
+      const argument = unwrapExpression(statement.argument);
+      return isAstNode(argument) &&
+        (argument.type === 'JSXElement' || argument.type === 'JSXFragment')
+        ? argument
+        : null;
+    }
+  }
+  return null;
+}
+
+function findRowKeyExpression(rowJsx: AstJsxNode): unknown | null {
+  if (rowJsx.type === 'JSXElement') {
+    return findKeyExpression(rowJsx.openingElement.attributes);
+  }
+  for (const child of rowJsx.children ?? []) {
+    if (child.type === 'JSXElement') {
+      const key = findKeyExpression(child.openingElement.attributes);
+      if (key !== null) {
+        return key;
+      }
+    }
+  }
+  return null;
+}
+
+function findKeyExpression(attributes: JSXAttributeItem[]): unknown | null {
+  for (const attr of attributes) {
+    if (attr.type !== 'JSXAttribute' || getJsxAttributeName(attr.name) !== 'key') {
+      continue;
+    }
+    if (attr.value?.type !== 'JSXExpressionContainer') {
+      return null;
+    }
+    return unwrapExpression(attr.value.expression);
+  }
+  return null;
+}
+
+function usesIdentifierIgnoringKey(node: unknown, name: string): boolean {
+  const expr = unwrapExpression(node);
+  if (!isAstNode(expr)) {
+    return false;
+  }
+  if (expr.type === 'JSXAttribute' && getJsxAttributeName(expr.name) === 'key') {
+    return false;
+  }
+  if (expr.type === 'Identifier' && expr.name === name) {
+    return true;
+  }
+  for (const value of Object.values(expr)) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (usesIdentifierIgnoringKey(item, name)) {
+          return true;
+        }
+      }
+    } else if (usesIdentifierIgnoringKey(value, name)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function lowerBranchExpression(
@@ -689,6 +900,10 @@ function lowerExpressionChildren(
     const branch = lowerBranchExpression(ctx, expr, range, propsName);
     if (branch) {
       return [branch];
+    }
+    const forNode = lowerForExpression(ctx, expr, range, propsName);
+    if (forNode) {
+      return [forNode];
     }
     const textParts = lowerStaticSourceTextExpression(expr);
     if (textParts) {
@@ -802,6 +1017,12 @@ function findBranchSegment(
   kind: 'branchCondition' | 'branchRender',
   range: SourceRange
 ) {
+  return ctx.manifest.segments.find(
+    (segment) => segment.kind === kind && rangesEqual(segment.range, range)
+  );
+}
+
+function findForSegment(ctx: CompilerContext, kind: 'forKey' | 'forRender', range: SourceRange) {
   return ctx.manifest.segments.find(
     (segment) => segment.kind === kind && rangesEqual(segment.range, range)
   );

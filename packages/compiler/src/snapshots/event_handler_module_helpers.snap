@@ -1,0 +1,132 @@
+==INPUT==
+
+function buildData(count: number) {
+  return Array.from({ length: count }, (_, i) => i);
+}
+
+export function App() {
+  const rows = { value: [] as number[] };
+  return <button onClick$={() => (rows.value = buildData(3))}>Create</button>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _qrlWithChunk } from '@qwik.dev/core/spark';
+
+const q_component_q_e_click_segment_0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_0',
+  () => import('./component.tsx_component_q_e_click_segment_0'),
+  'component_q_e_click_segment_0'
+);
+
+function buildData(count) {
+  return Array.from({ length: count }, (_, i) => i);
+}
+export { buildData };
+
+export function App(_props, ctx) {
+  const rows = { value: [] };
+  return (
+    '<button' +
+    ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0.w([rows])) +
+    '>Create</button>'
+  );
+}
+
+null
+============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+
+import { buildData } from './component';
+import { _captures } from '@qwik.dev/core/spark';
+export const component_q_e_click_segment_0 = () => {
+  const rows = _captures[0];
+  return (rows.value = buildData(3));
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    151,
+    193
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rows"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { setEvent, _withCaptures } from '@qwik.dev/core/spark';
+import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
+
+function buildData(count) {
+  return Array.from({ length: count }, (_, i) => i);
+}
+export { buildData };
+
+export function App(_props, ctx) {
+  const rows = { value: [] };
+  const el0 = ctx.document.createElement('button');
+  setEvent(el0, 'q-e:click', _withCaptures(component_q_e_click_segment_0, [rows]));
+  const text1 = ctx.document.createTextNode('Create');
+  el0.appendChild(text1);
+  return [el0];
+}
+
+null
+============================= src/component.tsx_component_q_e_click_segment_0.js (ENTRY POINT)==
+
+import { buildData } from './component';
+import { _captures } from '@qwik.dev/core/spark';
+export const component_q_e_click_segment_0 = () => {
+  const rows = _captures[0];
+  return (rows.value = buildData(3));
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "segment_0",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    151,
+    193
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rows"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

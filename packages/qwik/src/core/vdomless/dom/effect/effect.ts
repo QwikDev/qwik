@@ -1,15 +1,22 @@
 import { isPromise } from '../../../shared/utils/promises';
 import { serializeAttribute } from '../../../shared/utils/styles';
+import type { ValueOrPromise } from '../../../shared/utils/types';
+import { cleanupDeps } from '../../reactive/cleanup';
 import { SubscriberFlags } from '../../reactive/flags';
 import { registerSubscriberToOwner } from '../../runtime/owner';
-import { defaultScheduler, Phase, type Scheduler } from '../../runtime/scheduler';
-import { SubscriberKind, type DomSubscriber } from '../../runtime/subscriber';
+import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
+import {
+  SubscriberKind,
+  type DomSubscriber,
+  type ForBlockSubscriber,
+} from '../../runtime/subscriber';
 import { readSourceValue, type Dependency, type Source } from '../../reactive/source';
-import { track } from '../../reactive/tracking';
+import { runWithCollector, track } from '../../reactive/tracking';
 import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
-import { EffectKind } from './effect-kind.enum';
 import type { Owner } from '../../runtime/owner';
+import type { ForBlock } from '../for/for';
 import { applyDomProps } from './dom-props';
+import { isDev } from '@qwik.dev/core/build';
 
 export const enum AttrSerializer {
   Class = 0,
@@ -38,9 +45,6 @@ export type DomEffect =
   | PropsEffect<any[]>;
 
 export class TextExpressionEffect<TArgs extends unknown[] = unknown[]> {
-  readonly kind = EffectKind.TextExpression;
-  readonly phase = Phase.ScalarDom;
-
   constructor(
     readonly text: Text,
     readonly args: TArgs,
@@ -53,9 +57,6 @@ export class TextExpressionEffect<TArgs extends unknown[] = unknown[]> {
 }
 
 export class TextNodeEffect {
-  readonly kind = EffectKind.TextNode;
-  readonly phase = Phase.ScalarDom;
-
   constructor(
     readonly text: Text,
     readonly source: Source
@@ -67,9 +68,6 @@ export class TextNodeEffect {
 }
 
 export class AttrEffect {
-  readonly kind = EffectKind.Attr;
-  readonly phase = Phase.ScalarDom;
-
   constructor(
     readonly element: Element,
     readonly name: string,
@@ -82,9 +80,6 @@ export class AttrEffect {
 }
 
 export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
-  readonly kind = EffectKind.AttrExpression;
-  readonly phase = Phase.ScalarDom;
-
   constructor(
     readonly element: Element,
     readonly name: string,
@@ -98,9 +93,6 @@ export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
 }
 
 export class SerializedAttrEffect {
-  readonly kind = EffectKind.SerializedAttr;
-  readonly phase = Phase.ScalarDom;
-
   constructor(
     readonly element: Element,
     readonly source: Source,
@@ -117,8 +109,6 @@ export class SerializedAttrEffect {
 }
 
 export class PropsEffect<TArgs extends unknown[] = unknown[]> {
-  readonly kind = EffectKind.Props;
-  readonly phase = Phase.ScalarDom;
   private prevProps: Record<string, unknown> | null = null;
 
   constructor(
@@ -143,6 +133,32 @@ export class DomSubscription implements DomSubscriber {
     readonly effect: DomEffect,
     readonly scheduler: Scheduler = defaultScheduler
   ) {}
+
+  run(): void {
+    cleanupDeps(this);
+
+    const value = runWithCollector(this, () => this.effect.run());
+    if (isDev && isPromise(value)) {
+      throw new Error('Scalar DOM effects must be synchronous');
+    }
+  }
+}
+
+export class ForBlockSubscription<T = unknown> implements ForBlockSubscriber {
+  readonly kind = SubscriberKind.ForBlock;
+  owner: Owner | null = null;
+  flags = SubscriberFlags.None;
+  deps: Dependency[] | null = null;
+  depVersions: number[] | null = null;
+
+  constructor(
+    readonly block: ForBlock<T>,
+    readonly scheduler: Scheduler = defaultScheduler
+  ) {}
+
+  run(): ValueOrPromise<void> {
+    return this.block.run(this);
+  }
 }
 
 export function createTextExpressionEffect<TArgs extends unknown[]>(

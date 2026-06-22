@@ -1,5 +1,6 @@
 import type { ComputedFlags, SubscriberFlags } from '../reactive/flags';
 import type { Branch, SSRBranch } from '../dom/branch/branch';
+import type { ForBlock, SSRForBlock } from '../dom/for/for';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { DomEffect } from '../dom/effect/effect';
 import type { ComputedSource, Dependency } from '../reactive/source';
@@ -14,6 +15,7 @@ export const enum SubscriberKind {
   Dom = 3,
   Branch = 4,
   Idle = 5,
+  ForBlock = 6,
 }
 
 export interface Collector {
@@ -55,11 +57,18 @@ export interface VisibleTaskSubscriber extends Collector, ScheduledSubscriber {
 export interface DomSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Dom;
   readonly effect: DomEffect;
+  run(): void;
 }
 
 export interface BranchSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Branch;
   readonly branch: Branch;
+  run(): ValueOrPromise<void>;
+}
+
+export interface ForBlockSubscriber extends Collector, ScheduledSubscriber {
+  readonly kind: SubscriberKind.ForBlock;
+  readonly block: ForBlock<any>;
   run(): ValueOrPromise<void>;
 }
 
@@ -82,12 +91,19 @@ export interface SsrBranchSubscriber extends Collector {
   readonly effect: SSRBranch;
 }
 
+export interface SsrForBlockSubscriber extends Collector {
+  readonly kind: SubscriberKind.ForBlock;
+  owner: Owner | null;
+  readonly effect: SSRForBlock<any>;
+}
+
 // Work scheduled into one of the runtime phases.
 export type PhaseSubscriber =
   | TaskSubscriber
   | VisibleTaskSubscriber
   | DomSubscriber
   | BranchSubscriber
+  | ForBlockSubscriber
   | IdleSubscriber;
 // Work/value currently allowed to collect dependencies through track().
 export type CollectorSubscriber =
@@ -96,11 +112,14 @@ export type CollectorSubscriber =
   | VisibleTaskSubscriber
   | DomSubscriber
   | BranchSubscriber
+  | ForBlockSubscriber
   | SsrDomSubscriber
-  | SsrBranchSubscriber;
+  | SsrBranchSubscriber
+  | SsrForBlockSubscriber;
 
 export type Subscriber =
   | ComputedSubscriber
   | PhaseSubscriber
   | SsrDomSubscriber
-  | SsrBranchSubscriber;
+  | SsrBranchSubscriber
+  | SsrForBlockSubscriber;

@@ -162,6 +162,20 @@ export function App() {
     });
   });
 
+  test('imports module-level helpers into extracted events', async () => {
+    await testInput('event_handler_module_helpers', {
+      code: `function buildData(count: number) {
+  return Array.from({ length: count }, (_, i) => i);
+}
+
+export function App() {
+  const rows = { value: [] as number[] };
+  return <button onClick$={() => (rows.value = buildData(3))}>Create</button>;
+}
+`,
+    });
+  });
+
   test('extracts multiple event names and scopes', async () => {
     await testInput('event_handler_scopes', {
       code: `export function App() {
@@ -381,6 +395,25 @@ function Hello({ name }: { name: string }) {
 export function App() {
   const count = createSignal(0);
   return <section>{count.value < 2 ? <Hello name="Qwik" /> : <Counter count={count.value} />}</section>;
+}
+`,
+    });
+  });
+
+  test('supports keyed JSX loops', async () => {
+    await testInput('jsx_loops_keyed', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const items = createSignal([{ id: 'a', label: 'Alpha' }]);
+  return (
+    <ul>
+      {items.value.map((row, index) => (
+        <li key={row.id} data-index={index}>
+          {row.label}
+        </li>
+      ))}
+    </ul>
+  );
 }
 `,
     });

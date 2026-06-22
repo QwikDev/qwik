@@ -97,6 +97,9 @@ const testDocument = {
   createDocumentFragment(): DocumentFragment {
     return createTestDocumentFragment();
   },
+  createRange(): Range {
+    return createTestRange();
+  },
 } as Document;
 
 function createTestDocumentFragment(): TestDocumentFragment {
@@ -104,13 +107,30 @@ function createTestDocumentFragment(): TestDocumentFragment {
     isTestFragment: true,
     nodes: [] as TestDomNode[],
     appendChild(node: Node): Node {
+      return fragment.insertBefore(node, null);
+    },
+    insertBefore(node: Node, before: Node | null): Node {
+      if (isTestDocumentFragment(node)) {
+        for (let i = 0; i < node.nodes.length; i++) {
+          fragment.insertBefore(node.nodes[i], before);
+        }
+        node.nodes.length = 0;
+        return node;
+      }
+
       const child = node as TestDomNode;
+      const beforeIndex =
+        before === null ? fragment.nodes.length : fragment.nodes.indexOf(before as TestDomNode);
+      if (beforeIndex === -1) {
+        throw new Error('Missing reference child');
+      }
+
       const currentParent = child.parent;
       if (currentParent !== null) {
         currentParent.removeChild(child);
       }
 
-      fragment.nodes.push(child);
+      fragment.nodes.splice(beforeIndex, 0, child);
       child.parent = null;
       return node;
     },
@@ -121,6 +141,46 @@ function createTestDocumentFragment(): TestDocumentFragment {
 
 function isTestDocumentFragment(node: Node): node is TestDocumentFragment {
   return (node as Partial<TestDocumentFragment>).isTestFragment === true;
+}
+
+function createTestRange(): Range {
+  let start: TestDomNode | null = null;
+  let end: TestDomNode | null = null;
+
+  return {
+    setStartAfter(node: Node): void {
+      start = node as TestDomNode;
+    },
+    setEndBefore(node: Node): void {
+      end = node as TestDomNode;
+    },
+    deleteContents(): void {
+      if (start === null || end === null) {
+        throw new Error('Range boundary not set');
+      }
+
+      const parent = start.parent;
+      if (parent === null || parent !== end.parent) {
+        throw new Error('Range markers must share a parent');
+      }
+
+      let child = start.nextSibling as TestDomNode | null;
+      while (child !== null && child !== end) {
+        const next = child.nextSibling as TestDomNode | null;
+        parent.removeChild(child);
+        child = next;
+      }
+      if (child !== end) {
+        throw new Error('Range end marker not found');
+      }
+    },
+    insertNode(node: Node): void {
+      if (end === null || end.parent === null) {
+        throw new Error('Range boundary not set');
+      }
+      end.parent.insertBefore(node, end);
+    },
+  } as unknown as Range;
 }
 
 export function createTestDomNode(label: string): TestDomNode {
@@ -206,9 +266,12 @@ export function createAttrTarget(): { element: Element; attrs: Map<string, strin
   };
 }
 
-export function createCaptureContainer(captures: Record<string, unknown>): ContainerContext {
+export function createCaptureContainer(
+  captures: Record<string, unknown>
+): ContainerContext & { nextId(): number } {
   const scheduler = new Scheduler(noopSchedule);
-  const container: ContainerContext = {
+  let nextId = 0;
+  const container: ContainerContext & { nextId(): number } = {
     element: {} as HTMLElement,
     document: null,
     scheduler,
@@ -234,6 +297,9 @@ export function createCaptureContainer(captures: Record<string, unknown>): Conta
     },
     notify(subscriber) {
       scheduler.notify(subscriber);
+    },
+    nextId() {
+      return nextId++;
     },
   };
   return container;

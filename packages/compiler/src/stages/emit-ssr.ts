@@ -4,6 +4,7 @@ import type {
   BranchNode,
   DynamicTextNode,
   ElementNode,
+  ForNode,
   ImportRecord,
   PropRecord,
   QrlSegmentOutput,
@@ -21,8 +22,10 @@ import {
   escapeText,
   flattenElementChildren,
   hasBranch,
+  hasForBlock,
   hasComponent,
   hasDynamicBinding,
+  rewriteLoopCaptures,
   serializeAttrValue,
   shouldResolveSsrQrl,
 } from './emit-utils';
@@ -32,6 +35,8 @@ type HtmlPart = string | { code: string };
 
 interface SsrEmitterOptions {
   rootRangeTarget?: string;
+  rootElementAttr?: string;
+  loopCaptures?: readonly { name: string; source: string }[];
 }
 
 export function emitSsrModule(
@@ -39,10 +44,11 @@ export function emitSsrModule(
   qrlSegments: Map<string, QrlSegmentOutput>,
   segments: readonly SegmentRecord[],
   sourceCode: string,
-  imports: ImportRecord[]
+  imports: ImportRecord[],
+  modulePrelude = ''
 ) {
   const prelude = emitPrelude(qrlSegments, imports);
-  return `${prelude}${components
+  return `${prelude}${modulePrelude}${components
     .map((component) => emitSsrComponent(component, qrlSegments, segments, sourceCode))
     .join('\n')}\n`;
 }
@@ -67,7 +73,8 @@ function emitSsrComponent(
 ) {
   const emitter = new SsrEmitter(qrlSegments, sourceCode);
   const html = emitter.emitHtmlExpression(component.root!);
-  const isAsync = hasBranch(component.root) || hasComponent(component.root);
+  const isAsync =
+    hasBranch(component.root) || hasForBlock(component.root) || hasComponent(component.root);
   const setup = emitComponentSetup(
     component,
     qrlSegments,
@@ -143,6 +150,9 @@ export class SsrEmitter {
     }
     if (node.kind === 'branch') {
       return this.emitBranchParts(node);
+    }
+    if (node.kind === 'for') {
+      return this.emitForParts(node);
     }
     if (node.kind === 'element') {
       return this.emitElementParts(node);
@@ -231,9 +241,7 @@ export class SsrEmitter {
     for (const prop of props) {
       if (prop.kind === 'spread') {
         flushEntries();
-        sources.push(
-          `(${this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1])})`
-        );
+        sources.push(`(${this.emitSourceExpression(prop.expressionRange)})`);
       } else {
         currentEntries.push(this.emitComponentPropEntry(prop));
       }
@@ -252,7 +260,7 @@ export class SsrEmitter {
       return `${JSON.stringify(prop.name)}: ${emitQrlReference(qrlSegment)}`;
     }
     if (prop.expressionRange !== undefined) {
-      const value = this.sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
+      const value = this.emitSourceExpression(prop.expressionRange);
       return `get ${emitObjectGetterName(prop.name)}() { return ${value}; }`;
     }
     return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
@@ -271,6 +279,10 @@ export class SsrEmitter {
 
     if (elementId !== null) {
       parts.push(' q:id="', { code: elementId }, '"');
+    }
+    if (this.options.rootElementAttr !== undefined) {
+      parts.push(` ${this.options.rootElementAttr}`);
+      this.options.rootElementAttr = undefined;
     }
 
     if (hasProps) {
@@ -385,6 +397,33 @@ export class SsrEmitter {
         code: `(await ${branchId})`,
       },
       '<!/b>',
+    ];
+  }
+
+  private emitForParts(node: ForNode): HtmlPart[] {
+    const rangeId = this.nextTargetId();
+    const keyQrl = this.requireQrlSegment(node.keySegmentId);
+    const renderQrl = this.requireQrlSegment(node.renderSegmentId);
+
+    this.emitRoot(node.sourceName);
+    this.emitCaptureRoots(keyQrl);
+    this.emitCaptureRoots(renderQrl);
+
+    const blockId = this.next('forBlock');
+    this.line(
+      `const ${blockId} = ${QwikSymbol.RenderSsrForBlock}(ctx, ${rangeId}, ${node.sourceName}, ${emitQrlReference(
+        keyQrl
+      )}, ${emitQrlReference(renderQrl)}, ${String(node.usesItemSignal)}, ${String(node.usesIndexSignal)});`
+    );
+
+    return [
+      '<!f=',
+      { code: rangeId },
+      '>',
+      {
+        code: `(await ${blockId})`,
+      },
+      '<!/f>',
     ];
   }
 
@@ -512,6 +551,13 @@ export class SsrEmitter {
     this.counter++;
     return id;
   }
+
+  private emitSourceExpression(range: [number, number]): string {
+    return rewriteLoopCaptures(
+      this.sourceCode.slice(range[0], range[1]),
+      this.options.loopCaptures ?? []
+    );
+  }
 }
 
 function hasDynamicSourceProp(node: ElementNode) {
@@ -562,13 +608,17 @@ export function partsToExpression(parts: HtmlPart[]) {
 export function emitSsrDomPropsExpression(
   props: readonly PropRecord[],
   qrlSegments: Map<string, QrlSegmentOutput>,
-  sourceCode: string
+  sourceCode: string,
+  loopCaptures: readonly { name: string; source: string }[] = []
 ): string {
   const entries = props.map((prop) => {
     if (prop.kind === 'spread') {
-      return `...(${sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1])})`;
+      return `...(${rewriteLoopCaptures(
+        sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]),
+        loopCaptures
+      )})`;
     }
-    return emitSsrDomPropEntry(prop, qrlSegments, sourceCode);
+    return emitSsrDomPropEntry(prop, qrlSegments, sourceCode, loopCaptures);
   });
   return entries.length === 0 ? '{}' : `{ ${entries.join(', ')} }`;
 }
@@ -576,7 +626,8 @@ export function emitSsrDomPropsExpression(
 function emitSsrDomPropEntry(
   prop: Extract<PropRecord, { kind: 'named' }>,
   qrlSegments: Map<string, QrlSegmentOutput>,
-  sourceCode: string
+  sourceCode: string,
+  loopCaptures: readonly { name: string; source: string }[]
 ): string {
   if (prop.qrlSegmentId) {
     const qrlSegment = qrlSegments.get(prop.qrlSegmentId);
@@ -585,7 +636,10 @@ function emitSsrDomPropEntry(
     }
   }
   if (prop.expressionRange !== undefined) {
-    const value = sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]);
+    const value = rewriteLoopCaptures(
+      sourceCode.slice(prop.expressionRange[0], prop.expressionRange[1]),
+      loopCaptures
+    );
     return `get ${emitObjectGetterName(prop.name)}() { return ${value}; }`;
   }
   return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;

@@ -2,6 +2,7 @@ import type {
   ComponentPropRecord,
   ComponentRecord,
   BranchNode,
+  ForNode,
   ImportRecord,
   PropRecord,
   QrlSegmentOutput,
@@ -16,6 +17,7 @@ import {
   emitImports,
   emitObjectGetterName,
   hasDynamicBinding,
+  rewriteLoopCaptures,
   serializeAttrValue,
 } from './emit-utils';
 
@@ -26,8 +28,10 @@ export interface DomOutput {
 
 interface DomEmitterOptions {
   branchCondition?: 'qrl' | 'inline';
+  domEffectMode?: 'notify' | 'run';
   importSegment?: (qrlSegment: QrlSegmentOutput) => void;
   use?: (symbol: QwikSymbol) => void;
+  loopCaptures?: readonly { name: string; source: string }[];
 }
 
 export function emitCsrModule(
@@ -35,10 +39,11 @@ export function emitCsrModule(
   qrlSegments: Map<string, QrlSegmentOutput>,
   segments: readonly SegmentRecord[],
   sourceCode: string,
-  imports: ImportRecord[]
+  imports: ImportRecord[],
+  modulePrelude = ''
 ) {
   const prelude = emitPrelude(imports);
-  return `${prelude}${components
+  return `${prelude}${modulePrelude}${components
     .map((component) => emitCsrComponent(component, qrlSegments, segments, sourceCode))
     .join('\n')}\n`;
 }
@@ -142,7 +147,7 @@ export class DomEmitter {
           `const ${effectId} = ${QwikSymbol.CreateTextExpressionEffect}(${id}, [], () => ${expression}, { scheduler: ctx.scheduler });`
         );
       }
-      this.line(`ctx.scheduler.notify(${effectId});`);
+      this.emitInitialDomEffect(effectId);
       return { id, kind: 'node' };
     }
     if (node.kind === 'element') {
@@ -155,7 +160,7 @@ export class DomEmitter {
         this.line(
           `const ${effectId} = ${QwikSymbol.CreatePropsEffect}(${id}, [], () => (${propsExpression}), { scheduler: ctx.scheduler });`
         );
-        this.line(`ctx.scheduler.notify(${effectId});`);
+        this.emitInitialDomEffect(effectId);
       } else {
         for (const prop of node.props) {
           if (prop.kind !== 'named') {
@@ -164,7 +169,7 @@ export class DomEmitter {
           if (prop.binding) {
             const effectId = this.next('effect');
             this.line(this.emitDynamicAttrEffect(effectId, id, prop));
-            this.line(`ctx.scheduler.notify(${effectId});`);
+            this.emitInitialDomEffect(effectId);
             continue;
           }
           if (prop.qrlSegmentId) {
@@ -202,6 +207,9 @@ export class DomEmitter {
     }
     if (node.kind === 'branch') {
       return this.emitBranch(node);
+    }
+    if (node.kind === 'for') {
+      return this.emitFor(node);
     }
     if (node.kind === 'fragment') {
       const id = this.next('fragment');
@@ -299,7 +307,9 @@ export class DomEmitter {
 
   private appendChild(parent: string, child: DomOutput): void {
     if (child.kind === 'nodes') {
-      this.line(`for (const child of ${child.id}) ${parent}.appendChild(child);`);
+      this.line(
+        `for (let i = 0; i < ${child.id}.length; i++) ${parent}.appendChild(${child.id}[i]);`
+      );
     } else {
       this.line(`${parent}.appendChild(${child.id});`);
     }
@@ -354,6 +364,46 @@ export class DomEmitter {
     return this.emitCapturedFunction(qrlSegment);
   }
 
+  private emitFor(node: ForNode): DomOutput {
+    const fragmentId = this.next('fragment');
+    const startId = this.next('comment');
+    const endId = this.next('comment');
+    const blockId = this.next('forBlock');
+    const keyFn = this.emitForKey(node.keySegmentId);
+    const renderer = this.emitForRenderer(node.renderSegmentId);
+
+    this.use(QwikSymbol.ForRange);
+    this.use(QwikSymbol.CreateForBlock);
+    this.line(`const ${fragmentId} = ctx.document.createDocumentFragment();`);
+    this.line(`const ${startId} = ctx.document.createComment('f');`);
+    this.line(`const ${endId} = ctx.document.createComment('/f');`);
+    this.line(`${fragmentId}.appendChild(${startId});`);
+    this.line(`${fragmentId}.appendChild(${endId});`);
+    this.line(
+      `const ${blockId} = ${QwikSymbol.CreateForBlock}(ctx, new ${QwikSymbol.ForRange}(${startId}, ${endId}), ${node.sourceName}, ${keyFn}, ${renderer}, ${String(node.usesItemSignal)}, ${String(node.usesIndexSignal)});`
+    );
+    this.line(`${blockId}.run();`);
+    return { id: fragmentId, kind: 'node' };
+  }
+
+  private emitForKey(segmentId: string): string {
+    const qrlSegment = this.qrlSegments.get(segmentId);
+    if (!qrlSegment) {
+      throw new Error(`Missing for key segment ${segmentId}.`);
+    }
+    this.importSegment(qrlSegment);
+    return this.emitCapturedFunction(qrlSegment);
+  }
+
+  private emitForRenderer(segmentId: string): string {
+    const qrlSegment = this.qrlSegments.get(segmentId);
+    if (!qrlSegment) {
+      throw new Error(`Missing for render segment ${segmentId}.`);
+    }
+    this.importSegment(qrlSegment);
+    return this.emitCapturedFunction(qrlSegment);
+  }
+
   private emitEventHandler(qrlSegment: QrlSegmentOutput) {
     return this.emitCapturedFunction(qrlSegment);
   }
@@ -394,6 +444,14 @@ export class DomEmitter {
     )}, ${sourceName}, { scheduler: ctx.scheduler });`;
   }
 
+  private emitInitialDomEffect(effectId: string): void {
+    if (this.options.domEffectMode === 'run') {
+      this.line(`${effectId}.run();`);
+      return;
+    }
+    this.line(`ctx.scheduler.notify(${effectId});`);
+  }
+
   private use(symbol: QwikSymbol): void {
     this.options.use?.(symbol);
   }
@@ -423,7 +481,10 @@ export class DomEmitter {
   }
 
   private emitExpression(range: [number, number]) {
-    return emitComponentExpression(this.component, this.sourceCode, range);
+    return rewriteLoopCaptures(
+      emitComponentExpression(this.component, this.sourceCode, range),
+      this.options.loopCaptures ?? []
+    );
   }
 }
 

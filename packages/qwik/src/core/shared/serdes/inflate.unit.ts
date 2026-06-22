@@ -3,6 +3,13 @@ import { createWindow } from '../../../testing/document';
 import { EffectKind } from '../../vdomless/dom/effect/effect-kind.enum';
 import { DomSubscription, TextNodeEffect } from '../../vdomless/dom/effect/effect';
 import { EffectTargetKind } from '../../vdomless/dom/effect/ssr-effect';
+import { ComputedQrl } from '../../vdomless/reactive/computed-qrl';
+import { ComputedFlags } from '../../vdomless/reactive/flags';
+import {
+  createLazySourceSubs,
+  isLazySerialized,
+  LazySerialized,
+} from '../../vdomless/reactive/lazy-serialized';
 import { createSignal, type Signal } from '../../vdomless/reactive/signal';
 import {
   createContainerContext,
@@ -98,6 +105,160 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
 });
 
 describe('inflate(TypeIds.EffectSubscription) text targets', () => {
+  it('resolves LazySerialized once', async () => {
+    let calls = 0;
+    const slot = new LazySerialized(async () => {
+      calls++;
+      return 'value';
+    });
+
+    await Promise.all([slot.resolve(), slot.resolve()]);
+
+    expect(calls).toBe(1);
+    expect(slot.peek()).toBe('value');
+  });
+
+  it('creates lazy source subscriber slots on access', () => {
+    let calls = 0;
+    const subs = createLazySourceSubs(2, () => {
+      calls++;
+      return new LazySerialized(
+        async () => new DomSubscription(null!, createContext('').scheduler)
+      );
+    });
+
+    expect(calls).toBe(0);
+    expect(subs).toHaveLength(2);
+    expect(isLazySerialized(subs[1])).toBe(true);
+    expect(calls).toBe(1);
+  });
+
+  it('keeps signal subscribers lazy until the signal updates', async () => {
+    const context = createContext('<p q:id="10">1</p>');
+    const signal = createSignal(1);
+    const data = [
+      TypeIds.Plain,
+      1,
+      TypeIds.EffectSubscription,
+      [
+        TypeIds.Plain,
+        EffectKind.TextNode,
+        TypeIds.Plain,
+        EffectTargetKind.ElementText,
+        TypeIds.Plain,
+        10,
+        TypeIds.Array,
+        [TypeIds.Plain, signal],
+      ],
+    ];
+
+    await inflate(context, signal, TypeIds.Signal, data);
+
+    expect(signal.subs).toHaveLength(1);
+    expect(isLazySerialized(signal.subs?.[0])).toBe(true);
+
+    signal.value = 2;
+    for (let i = 0; i < 10 && signal.subs?.some(isLazySerialized); i++) {
+      await Promise.resolve();
+    }
+    for (let i = 0; i < 10 && context.element.querySelector('p')?.textContent !== '2'; i++) {
+      await Promise.resolve();
+      await context.scheduler.flushInteraction();
+    }
+
+    expect(signal.subs?.some(isLazySerialized)).toBe(false);
+    expect(signal.subs?.[0]).toBeInstanceOf(DomSubscription);
+    expect(context.element.querySelector('p')?.textContent).toBe('2');
+  });
+
+  it('keeps ForBlock and DOM subscribers lazy under a source', async () => {
+    const context = createContext('<!--f=1--><!--/f--><p q:id="10">1</p>');
+    const signal = createSignal([{ id: 1 }]);
+    const data = [
+      TypeIds.Plain,
+      signal.value,
+      TypeIds.EffectSubscription,
+      [
+        TypeIds.Plain,
+        EffectKind.ForBlock,
+        TypeIds.Plain,
+        1,
+        TypeIds.Array,
+        [TypeIds.Plain, signal],
+        TypeIds.Plain,
+        (item: { id: number }) => item.id,
+        TypeIds.Plain,
+        () => [],
+        TypeIds.Plain,
+        false,
+        TypeIds.Plain,
+        false,
+      ],
+      TypeIds.EffectSubscription,
+      [
+        TypeIds.Plain,
+        EffectKind.TextNode,
+        TypeIds.Plain,
+        EffectTargetKind.ElementText,
+        TypeIds.Plain,
+        10,
+        TypeIds.Array,
+        [TypeIds.Plain, signal],
+      ],
+    ];
+
+    await inflate(context, signal, TypeIds.Signal, data);
+
+    expect(signal.subs).toHaveLength(2);
+    expect(signal.subs?.every(isLazySerialized)).toBe(true);
+    expect(signal.subs?.some((sub) => sub instanceof DomSubscription)).toBe(false);
+  });
+
+  it('keeps computed subscribers lazy until the computed notifies', async () => {
+    const context = createContext('<p q:id="10">1</p>');
+    const qrl = { resolve: async () => () => 2 };
+    const computed = new ComputedQrl(qrl as any);
+    const data = [
+      TypeIds.Plain,
+      qrl,
+      TypeIds.Array,
+      [],
+      TypeIds.Plain,
+      1,
+      TypeIds.EffectSubscription,
+      [
+        TypeIds.Plain,
+        EffectKind.TextNode,
+        TypeIds.Plain,
+        EffectTargetKind.ElementText,
+        TypeIds.Plain,
+        10,
+        TypeIds.Array,
+        [TypeIds.Plain, computed],
+      ],
+    ];
+
+    await inflate(context, computed, TypeIds.ComputedSignal, data);
+
+    expect(computed.subs).toHaveLength(1);
+    expect(isLazySerialized(computed.subs?.[0])).toBe(true);
+
+    computed.v = 2;
+    computed.flags = ComputedFlags.HasValue;
+    computed.trigger();
+    for (let i = 0; i < 10 && computed.subs?.some(isLazySerialized); i++) {
+      await Promise.resolve();
+    }
+    for (let i = 0; i < 10 && context.element.querySelector('p')?.textContent !== '2'; i++) {
+      await Promise.resolve();
+      await context.scheduler.flushInteraction();
+    }
+
+    expect(computed.subs?.some(isLazySerialized)).toBe(false);
+    expect(computed.subs?.[0]).toBeInstanceOf(DomSubscription);
+    expect(context.element.querySelector('p')?.textContent).toBe('2');
+  });
+
   it('resolves range text from a local marker index', async () => {
     const context = createContext('<p q:id="10">A<!t>0<!/t> B<!t>1</p>');
     const count = createSignal(1);

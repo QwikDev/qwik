@@ -38,6 +38,12 @@ const _ebFallbackStyle_str = '{display:p0.error!==undefined?"contents":"none"}';
 
 /** @internal */
 export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
+  // The flag is build-time replaced, so when it is off ErrorBoundary can't work: fail loud instead of degrading.
+  if (!__EXPERIMENTAL__.errorBoundary) {
+    throw new Error(
+      '<ErrorBoundary> requires the `errorBoundary` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["errorBoundary"] }).'
+    );
+  }
   const store = useErrorBoundaryStore();
   // Store mirrors for the server SSR-catch path; wrapped in fresh closures so `noSerialize` taints
   // the closure, not the shared prop QRL that must stay serialized for the client.

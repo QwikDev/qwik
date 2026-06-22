@@ -10,4 +10,4 @@
 - The `useErrorBoundary()` hook is removed — `<ErrorBoundary>` is the single error-boundary surface.
 - An error is handled by the closest boundary (its own subtree), instead of every boundary reacting to the global `qerror` event.
 - Render throws are now caught during SSR, not just on the client.
-- Experimental (opt-in `errorBoundary` feature): the boundary never blocks SSR streaming — its content streams, and if a descendant throws an inline script swaps it for `fallback$`.
+- `<ErrorBoundary>` requires enabling the experimental `errorBoundary` feature (`qwikVite({ experimental: ['errorBoundary'] })`); rendering one without it throws. With the flag, a descendant throw swaps the content for `fallback$` via an inline script. Also enabling `suspense` + `streaming.outOfOrder` streams the fallback out-of-order so the boundary never blocks streaming.

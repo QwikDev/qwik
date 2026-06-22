@@ -392,16 +392,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           (opts.experimental ||= {} as any)[feature] = true;
         }
       }
-      // The ErrorBoundary streaming swap reuses the out-of-order Suspense machinery, so it needs
-      // `suspense` enabled here plus `streaming.outOfOrder` at render time. Without `suspense` the
-      // boundary silently degrades to the synchronous in-place fallback instead of streaming the
-      // fallback after a deferred throw. Warn once at config time rather than failing the build,
-      // since the in-place fallback still works.
-      if (opts.experimental?.errorBoundary && !opts.experimental.suspense) {
-        console.warn(
-          'Qwik plugin: the `errorBoundary` experimental feature also requires the `suspense` experimental feature and `streaming.outOfOrder` at render time to stream the fallback. Without them the ErrorBoundary falls back to synchronous in-place rendering.'
-        );
-      }
     }
 
     const out = { ...opts };

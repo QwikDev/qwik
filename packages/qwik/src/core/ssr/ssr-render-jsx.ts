@@ -356,7 +356,11 @@ function processJSXNode(
         const children = jsx.children as JSXOutput;
         children != null && enqueue(children);
       } else if (isFunction(type)) {
-        if (__EXPERIMENTAL__.suspense && isInternalServerComponent(type)) {
+        // `errorBoundary` reuses internal server components (the in-order fallback host) without `suspense`.
+        if (
+          (__EXPERIMENTAL__.suspense || __EXPERIMENTAL__.errorBoundary) &&
+          isInternalServerComponent(type)
+        ) {
           enqueue(() => getInternalServerComponentHandler(type)(ssr, jsx, options, enqueue));
           return;
         } else if (type === Fragment) {

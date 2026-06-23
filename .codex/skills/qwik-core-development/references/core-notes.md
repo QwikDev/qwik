@@ -168,19 +168,40 @@ streaming, navigation, or integration with fixture apps. For Qwik e2e, load
 
 Never use `pnpm test.unit` for agent verification in this repo.
 
-## ErrorBoundary Streaming (experimental `errorBoundary`)
+## ErrorBoundary (experimental `errorBoundary`)
 
-`<ErrorBoundary>` must never block streaming. On SSR with out-of-order streaming the boundary
-(`errorBoundaryCmp`, `shared/error/error-boundary.ts`) renders two display-toggled hosts modeled on
-Suspense — a visible content host wrapping `<Slot>`, and a hidden fallback host (`q:rp={id}`). On a
-throw, the fallback host streams `fallback$(error)` as an out-of-order segment and the shared `qO`
-executor reveals it while hiding the content host via an inline script, so the swap happens as the
-chunk parses, before the framework resumes; resume consistency comes via `qProcessOOOS`.
+`<ErrorBoundary>` (`errorBoundaryCmp`, `shared/error/error-boundary.ts`) ships from core and is gated
+on the `errorBoundary` experimental flag — the component throws an actionable error when the flag is
+off (the flag is build-time replaced, so this is unconditional when disabled). It works without
+`suspense`; `suspense` + `streaming.outOfOrder` only add out-of-order streaming. The internal
+fallback-host server component dispatches when `suspense || errorBoundary` (`ssr-render-jsx.ts`).
 
-A deferred child `<Suspense>` that throws tears the whole boundary down via `store.$emitFallback$`. A
-boundary placed *inside* a `<Suspense>` segment instead buffers within that already-deferred segment
-(`getBufferingErrorBoundaryStore` gates on `isOutOfOrderSegmentContainer`). Client-time errors
-re-render the boundary through the container's `handleError`.
+It never blocks streaming: content streams live into a `content-host`; on a throw
+`renderErrorBoundaryFallback` only sets `store.error = toSerializableBoundaryError(err)` (and fires
+`onError$` once), then renders `null` — it never renders the fallback itself. A sibling
+`fallback-host` delivers the fallback; the content/fallback display toggles are reactive on
+`store.error`, the SSR→CSR bridge (on the client the boundary re-renders to
+`store.error !== undefined ? <Fragment>{fallback}</Fragment> : <Slot/>`).
+
+The swap is a two-branch model chosen by `isOutOfOrderStreaming()`:
+
+- OOOS active (not already in a segment) → the fallback streams as an out-of-order **segment** and the
+  shared `qO` executor delivers + reveals it (`SSRErrorFallback`; fallback-host carries `q:rp`).
+- truly in-order, OR inside a `<Suspense>` segment → the fallback renders **inline** and a `qErr(id)`
+  inline script swaps it (`SSRErrorFallbackInline`; hosts `q:ebc`/`q:ebf`). Inside a segment the inline
+  `qErr` is inert in the `<template>`, so the boundary registers its id (`$registerErrorSwap$`) and the
+  segment emits `qErr(id)` at the root right after `qO(segmentId)`.
+
+The split tracks a real invariant, not style: in OOOS the fallback's vnode-data must travel through a
+segment (reconciled by `qProcessOOOS` on reveal) to stay resume-consistent; inline delivery is only
+safe with no OOOS or already inside a segment. A deferred child `<Suspense>` that throws tears the
+whole boundary down via `store.$emitFallback$`. Client-time errors re-render the boundary through the
+container's `handleError` (closest boundary; a 2nd throw escalates to an ancestor).
+
+Swapped-out content is made inert so it never resumes (`markErrorBoundaryContentInert`:
+`VNodeDataFlag.INERT` + `clearAllEffects` + claimed-`<Slot>`-ref removal). `store.$contentHostNode$`
+is serialized **by design** despite the `$` prefix (it roots the content host so the client diff can
+locate and drop the inert subtree on re-render) — not a leak.
 
 ## Keep This Reference Fresh
 

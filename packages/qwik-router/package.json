@@ -15,6 +15,7 @@
     "kleur": "^4.1.5",
     "marked": "^12.0.2",
     "mdast-util-mdx": "^3.0.0",
+    "mlly": "^1.8.2",
     "refractor": "^4.8.1",
     "rehype-autolink-headings": "^7.1.0",
     "remark-frontmatter": "^5.0.0",

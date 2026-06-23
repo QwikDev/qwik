@@ -14,7 +14,7 @@ vi.mock('../shared/qrl/qrl-class', async () => {
     await vi.importActual<typeof import('../shared/qrl/qrl-class')>('../shared/qrl/qrl-class');
   return {
     ...actual,
-    deserializeCaptures: vi.fn(),
+    deserializeCaptureDeltas: vi.fn(),
     setCaptures: vi.fn(),
     _captures: null,
   };
@@ -107,7 +107,7 @@ describe('_run', () => {
     vi.mocked(domContainer.whenContainerDataReady).mockImplementation((_container, callback) =>
       callback()
     );
-    vi.mocked(qrlClass.deserializeCaptures).mockReturnValue([mockQrl]);
+    vi.mocked(qrlClass.deserializeCaptureDeltas).mockReturnValue([mockQrl]);
 
     // Mock _captures global
     Object.defineProperty(qrlClass, '_captures', {
@@ -144,14 +144,14 @@ describe('_run', () => {
 
     _run.call(capturesString, mockEvent, mockElement);
 
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, capturesString);
+    expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(mockContainer, capturesString);
     expect(qrlClass.setCaptures).toHaveBeenCalled();
   });
 
   it('should not deserialize captures when this is not a string', () => {
     _run.call(undefined as any, mockEvent, mockElement);
 
-    expect(qrlClass.deserializeCaptures).not.toHaveBeenCalled();
+    expect(qrlClass.deserializeCaptureDeltas).not.toHaveBeenCalled();
   });
 
   it('should get QRL from first capture', () => {
@@ -170,8 +170,8 @@ describe('_run', () => {
   it('should handle empty captures string', () => {
     _run.call('', mockEvent, mockElement);
 
-    // Empty string is still a string, so deserializeCaptures will be called
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, '');
+    // Empty string is still a string, so deserializeCaptureDeltas will be called
+    expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(mockContainer, '');
   });
 
   it('should work with connected element and valid captures', () => {
@@ -184,7 +184,7 @@ describe('_run', () => {
       mockElement,
       mockContainer
     );
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, capturesString);
+    expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(mockContainer, capturesString);
     expect(qrlClass.setCaptures).toHaveBeenCalled();
   });
 
@@ -207,7 +207,7 @@ describe('_run', () => {
     const result = _run.call('captures', mockEvent, disconnectedElement);
 
     expect(result).toBeUndefined();
-    expect(qrlClass.deserializeCaptures).not.toHaveBeenCalled();
+    expect(qrlClass.deserializeCaptureDeltas).not.toHaveBeenCalled();
   });
 
   it('should handle different event types', () => {
@@ -232,7 +232,10 @@ describe('_run', () => {
       mockElement,
       mockContainer
     );
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, 'keyboard-captures');
+    expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(
+      mockContainer,
+      'keyboard-captures'
+    );
   });
 
   it('should handle complex capture strings', () => {
@@ -240,7 +243,7 @@ describe('_run', () => {
 
     _run.call(complexCaptures, mockEvent, mockElement);
 
-    expect(qrlClass.deserializeCaptures).toHaveBeenCalledWith(mockContainer, complexCaptures);
+    expect(qrlClass.deserializeCaptureDeltas).toHaveBeenCalledWith(mockContainer, complexCaptures);
     expect(qrlClass.setCaptures).toHaveBeenCalled();
   });
 

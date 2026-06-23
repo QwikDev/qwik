@@ -84,6 +84,7 @@ export {
   createStringStreamWriter,
   stringifyRootRefPath,
   writeStringRootRef,
+  writeStringRootRefDelta,
   writeStringRootRefPath,
 } from '../core/ssr/stream-writer';
 export type {

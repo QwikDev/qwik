@@ -7,7 +7,7 @@ import { EffectProperty, StoreFlags } from '../types';
 import { invoke } from '../../use/use-core';
 import { newInvokeContext } from '../../use/use-core';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
-import { Task } from '../../use/use-task';
+import { Task, TaskFlags } from '../../use/use-task';
 import { getSubscriber } from '../subscriber';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ELEMENT_SEQ } from 'packages/qwik/src/server/qwik-copy';
@@ -68,7 +68,7 @@ describe('v2/store', () => {
   function effectQrl(fnQrl: QRL<() => void>) {
     const qrl = fnQrl as QRLInternal<() => void>;
     const element: HostElement = vnode_newVirtual();
-    const task = new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    const task = new Task(TaskFlags.TASK, 0, element, fnQrl as QRLInternal, null);
     vnode_setProp(element, ELEMENT_SEQ, [task]);
     if (!qrl.resolved) {
       throw qrl.resolve();

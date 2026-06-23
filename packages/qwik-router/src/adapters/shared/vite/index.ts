@@ -50,6 +50,8 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       if (!qwikRouterPlugin) {
         throw new Error('Missing vite-plugin-qwik-router');
       }
+      // Hand the SSG set to the router for the server-route prune (see `_setSsgRoutes`).
+      qwikRouterPlugin.api?._setSsgRoutes?.(opts.ssg?.include, opts.ssg?.exclude);
       // Use double type assertion to avoid TS "Excessive stack depth comparing types" error
       // when comparing QwikVitePlugin with Plugin types
       qwikVitePlugin = config.plugins.find(
@@ -117,6 +119,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       return [
         `import { isMainThread } from 'node:worker_threads';`,
         `import render from '${srcDir}/entry.ssr';`,
+        // SSG needs the full route plan (the default); the `?ssr` variant is the pruned one.
         `import qwikRouterConfig from '@qwik-router-config';`,
         `import { runSsg, startWorker } from '@qwik.dev/router/ssg';`,
         ``,

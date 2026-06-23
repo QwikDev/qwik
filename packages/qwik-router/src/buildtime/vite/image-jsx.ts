@@ -24,8 +24,28 @@ export function createVirtualImageJsxId(pathId: string, params: URLSearchParams)
   }`;
 }
 
-export function createImageJsxImportId(pathId: string, params: URLSearchParams) {
-  const query = new URLSearchParams(params);
+function createImageJsxDirectives(params: URLSearchParams, userOpts?: QwikRouterVitePluginOptions) {
+  const overrides = Object.fromEntries(params.entries());
+  delete overrides[JSX_QUERY_PARAM];
+  delete overrides[INTERNAL_IMAGE_JSX_QUERY_PARAM];
+
+  return new URLSearchParams({
+    format: 'webp',
+    quality: '75',
+    w: '200;400;600;800;1200',
+    withoutEnlargement: '',
+    ...userOpts?.imageOptimization?.jsxDirectives,
+    ...overrides,
+    as: 'jsx',
+  });
+}
+
+export function createImageJsxImportId(
+  pathId: string,
+  params: URLSearchParams,
+  userOpts?: QwikRouterVitePluginOptions
+) {
+  const query = createImageJsxDirectives(params, userOpts);
   query.set(INTERNAL_IMAGE_JSX_QUERY_PARAM, '');
   return `${normalizePath(pathId)}?${query.toString()}`;
 }
@@ -65,10 +85,16 @@ function getToImg() {
   `;
 }
 
-function createImageJsxModule(pathId: string, params: URLSearchParams) {
+function createImageJsxModule(
+  pathId: string,
+  params: URLSearchParams,
+  userOpts?: QwikRouterVitePluginOptions
+) {
+  const importId = createImageJsxImportId(pathId, params, userOpts);
+
   // We get the metadata via the vite-imagetools import
   return `
-  import { srcSet, width, height } from ${JSON.stringify(createImageJsxImportId(pathId, params))};
+  import { srcSet, width, height } from ${JSON.stringify(importId)};
   import toImg from ${JSON.stringify(TO_IMG_ID)};
 
   export default toImg(srcSet, width, height);
@@ -113,18 +139,7 @@ export function imagePlugin(userOpts?: QwikRouterVitePluginOptions): PluginOptio
           },
           defaultDirectives: (url) => {
             if (url.searchParams.has(JSX_QUERY_PARAM)) {
-              const params = Object.fromEntries(url.searchParams.entries());
-              delete params[JSX_QUERY_PARAM];
-              delete params[INTERNAL_IMAGE_JSX_QUERY_PARAM];
-              return new URLSearchParams({
-                format: 'webp',
-                quality: '75',
-                w: '200;400;600;800;1200',
-                withoutEnlargement: '',
-                ...userOpts?.imageOptimization?.jsxDirectives,
-                ...params,
-                as: 'jsx',
-              });
+              return createImageJsxDirectives(url.searchParams, userOpts);
             }
             return new URLSearchParams();
           },
@@ -211,7 +226,7 @@ export function imagePlugin(userOpts?: QwikRouterVitePluginOptions): PluginOptio
 
           if (supportedExtensions.includes(imageId.extension)) {
             return {
-              code: createImageJsxModule(imageId.pathId, imageId.params),
+              code: createImageJsxModule(imageId.pathId, imageId.params, userOpts),
               map: null,
             };
           }

@@ -62,9 +62,9 @@ export const FULLPATH_HEADER = 'X-Qwik-fullpath';
 /**
  * Response envelope for loader.json requests. Exactly one of `d`, `r`, or `e` is set.
  *
- * - `d` — data: the loader's successful return value
+ * - `d` — data: the loader's return value (including a `fail()` result, which is plain data)
  * - `r` — redirect: URL to navigate to (from `throw redirect()`)
- * - `e` — error: a ServerError (from `fail()` or `throw serverError()`)
+ * - `e` — error: a ServerError (from a thrown `ServerError` / `error()`)
  */
 export type LoaderResponse = {
   d?: unknown;
@@ -766,10 +766,8 @@ export const getRouteLoaderResponse = async (
   requestEv: RequestEvent
 ): Promise<LoaderResponse> => {
   try {
+    // A fail() result is plain data ({ failed: true, ... }); only thrown errors use `e`.
     const value = await getRouteLoaderData(loaderQrl, validators, requestEv);
-    if (value && typeof value === 'object' && (value as any).failed) {
-      return { e: new ServerError(requestEv.status(), value) };
-    }
     return { d: value };
   } catch (err) {
     if (err instanceof RedirectMessage) {

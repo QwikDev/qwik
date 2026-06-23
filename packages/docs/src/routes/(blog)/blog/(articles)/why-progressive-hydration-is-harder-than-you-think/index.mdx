@@ -1,0 +1,179 @@
+---
+title: 'Why Progressive Hydration is Harder than You Think'
+authors:
+  - 'Miško Hevery'
+tags: ['Qwik']
+date: 'February 19, 2022'
+canonical: 'https://www.builder.io/blog/why-progressive-hydration-is-harder-than-you-think'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+
+<ArticleBlock>
+
+## Why Progressive Hydration is Harder than You Think
+
+Recently there has been a fury of discussion on Twitter on [progressive hydration](https://twitter.com/ryanflorence/status/1489052911506128898). Let's explore the kinds of problems a framework needs to solve in order to have the best possible progressive [hydration](https://twitter.com/RyanCarniato/status/1489258423199825922) story.
+
+## What is Progressive Hydration?
+
+hy·dra·tion /hīˈdrāSH(ə)n/
+
+noun (software)
+
+the process of attaching behavior to declarative content to make it interactive.
+
+As an industry, we've co-opted the word hydration to mean the act of turning static HTML content into an interactive application.
+
+pro·gres·sive /prəˈɡresiv/
+
+adjective
+
+- happening or developing gradually or in stages; proceeding step by step.
+
+The word "progressive" aims to make it clear that the process is gradual rather than all-or-nothing and driven by user interactions rather than eagerly on bootstrap. We need progressive hydration so that large applications can load instantly even on slow devices and network speeds.
+
+Most frameworks can do SSR and some form of eager hydration. Meaning, as soon as the SSR content loads, hydration begins. Some frameworks can do a form of delayed island hydration, meaning that the page is further broken down to smaller "islands" and the hydration is delayed until some later event.
+
+Now I'm going to make a bold statement: outside of Qwik, no widely adopted framework knows how to do "progressive hydration". And by "progressive" I mean "lazy," "gradual" and in "stages" driven by user interaction.
+
+I understand that the above is a bold statement, so let me break it down into the kind of problems "progressive hydration" presents to the framework authors and, why most frameworks are not in a good position to solve them. Along the way, I'll drop some hints on how Qwik solves these problems.
+
+## Chunking Problem
+
+To get the best possible experience,Javascript needs to be broken down into chunks so as not to force the full download of all the code at once. A user interacting with a shopping cart should trigger the download of code associated with a shopping cart. A user interacting with a review section should trigger the download of code needed for reviews. Bundling both shopping cart and commenting system code together will result in unneeded code being downloaded too early, which adds latency to the user experience.
+
+Breaking up your application into chunks requires cooperation between the developer, build system, and runtime.
+
+The build system must know how to break up the application into related small bundles. This is surprisingly difficult because all applications have a `main()` function which acts as bootstrap. From the `main()` function one can trace symbol references to the rest of the applications. (That is how a tree shaker knows that a particular component is needed by your applications or not.) Today, the only way of breaking large bundles up into smaller chunks is by using dynamic `import()` which comes with lots of complexity beyond the scope of this discussion. But the point is that breaking up applications into multiple bundles in practice is hard and is only done rarely. So one of the first things you need to solve is how to break up applications into chunks that can be lazy-loaded.
+
+Qwik Optimizer's job is specifically to break up your application into as many entry points as possible. Without going into too much detail the developer signals to the Optimizer that a lazy-loaded boundary is needed using the `$` suffix.
+
+```javascript
+const Counter = component$(() => {
+  const state = useState({count: 0};
+  return onRender$(() => (
+    <button on$:click={() => state.count++}>
+      {state.count}
+    </button>
+  ));
+});
+```
+
+In the above example, there are three `$` signs. This means that the application will be broken down into three lazy-loaded chunks as every `$` is a dynamic import boundary.
+
+## Single Bootstrap Problem
+
+All existing applications start with a common `main()` entry point. From that, the application initializes and may load additional lazy chunks.
+
+To be truly progressive the applications must be able to start from many different entry points. Clicking on the "add to shopping" cart button should download a different chunk and hence will have a different entry point than clicking on the "review" button.
+
+Progressively hydrated applications don't really have a `main()` entry point / bootstrap. They must be able to startup from as many different locations as there are chunks.
+
+The current generation of applications side-step this problem as they always start with the bootstrap and then lazy load the chunks for example on route change. But that makes hydration non-progressive as the framework must eagerly load the `main()`.
+
+A progressive framework must understand all of this. It is not just about a build-system producing chunks that can be lazy-loaded but also about a runtime being able to bootstrap the application from many different entry points.
+
+[Qwik's](https://github.com/BuilderIO/qwik) runtime responsibility is to be able to bootstrap the application starting from any of these entry points.
+
+```html
+<div on:q-render="./chunk-a.js#Counter_onRender">
+  <button on:click="./chunk-b.js#Counter_onRender_click">0</button>
+</div>
+```
+
+Every attribute starting with `on:` is a potential entry point, a place where the application can bootstrap and the framework [resumes](https://qwik.builder.io/docs/concepts/resumable/) the execution without forcing the download of the `main()` method.
+
+## Event Listener Problem
+
+The reason why most frameworks do eager hydration is that the hydration is used to attach listeners to the DOM.
+
+How does a framework know "what" and "where" to attach?
+
+Most frameworks download the application code, execute its rendering functions and that tells the framework "where" to attach the listeners and "what" the listeners should do.
+
+Notice that in order to answer "what" and "where" the framework was forced to eagerly:
+
+1.  Download the application code
+2.  Execute it
+
+This goes directly against the notion of progressive hydration.
+
+A progressive hydration framework needs to have a way to serialize the "what" and "where" into HTML so that the hydration is unnecessary. By being able to serialize that information the framework can set up a single (small) global listener that knows "where" to listen for events and "what" to do when the event fires. Here the "what" must be able to execute asynchronously as the framework needs to lazily fetch the listener.
+
+**No mainstream frameworks can do this!**
+
+## Async Events Problem
+
+Solving the above problems gives us the ability to load only the code we need and to do so lazily (only when we need it). The implication of this is that the event processing must be asynchronous. The basic trick is to capture the event and then emulate the bubbling of the event in the framework in an asynchronous fashion. There are many issues, for example, some events must be synchronous or the browsers will ignore them, and those need special workarounds. Nuances of this are outside of the scope of this article.
+
+But the main point here is that the framework needs to be able to deal with events in an async fashion. Most frameworks assume sync events, this greatly reduces the ability to lazy load code and hence to achieve a true progressive hydration story.
+
+This will be a recurring theme. Because most frameworks assume all APIs are synchronous, application lazy loading is severely limited. So partial hydration to a large degree requires a framework runtime that understands that every step of the way a particular code may need to be lazy-loaded in an asynchronous way. Current generations of frameworks with synchronous APIs are not well suited for this problem.
+
+## Understanding the Data Graph Problem
+
+We have successfully broken the application up into lazy loadable chunks and we can load it on user interactions. The lazy-loaded event handler needs an application state to do something useful with the user event. In the counter-example above the click, the handler needs to increment a counter on-click. What is the current value of the count? A lazy-loaded code has amnesia, it has no idea about the state of the application. Worse, there is no single entry point to build the state up.
+
+To solve this a framework needs to be able to serialize and deserialize the state of the application into the HTML in a consistent way no matter which entry point was initialized. Some frameworks can do this, but they assume that the state of the application is directed-acyclic-graph (DAG), whereas in reality the state often is a cyclical graph. Additionally, the state may contain non-serializable things such as functions and promises, discussed later.
+
+## Selective Rendering Problem
+
+We have successfully updated the state of the application, now we need to render. But we need to be selective about it. If we require all of the code for all of the components to be present then we are no longer progressive; we are now delayed full hydration. So the next problem is to figure out which components became invalidated as a result of state change.
+
+**Most frameworks solve this in two ways:**
+
+1.  (change detection frameworks) Rerender the application from root component => Requires all component code to be downloaded on render.
+2.  (reactive frameworks) Keep track of data-component relationships that allows answering which component needs to be re-rendered on state change. However, in order to build up a relationship graph between data and components, most frameworks require that at least once the application is rendered from root to build up the graph => Requires all component code to be downloaded on the first interaction.
+
+As you can see both current approaches result in an eager download of rendering code. What is needed is a reactive framework that can track the data-component relationship, but that can serialize that relationship into HTML so that when the application state changes the framework can answer which components are invalidated, without having all of the code loaded.
+
+[Qwik is a component-level reactive framework](https://qwik.builder.io/docs/concepts/reactivity/) that knows how to serialize subscription information into the DOM so that it can determine which components are invalid after state change, without downloading any code. If a framework does not have this property, the first render will require all components code to download.
+
+## Out of Order Rendering Problem
+
+At this point, the framework can handle user interaction, recover the state, and determine which component needs to be re-rendered. The next challenge is that current approaches can't render components in isolation.
+
+An invalidated component needs its inputs which are provided by the parent. If the parent component is not present, where do you get inputs from? (Similar problem exists for projected children which is a form of input.)
+
+Additionally, we need a framework that will not descend into the children automatically. There are two flavors of this problem:
+
+1.  At compile time, a parent component references a child component which means that the child component will automatically get included in the bundle.
+2.  At runtime the framework must be able to determine if it should descend into a child and if it needs to, it must be able to download the child component in an asynchronous manner.
+
+To have true progressive rendering, a framework must not only determine which components are invalidated on state change, but also it must be able to re-render the invalidated component in isolation, without forcing child or parent components to re-render as well.
+
+## Side-effect Observation Problem
+
+The above constraints will get you most of the way there, but there is one more concept that the framework needs to handle. All frameworks have some form of "observer" => "side-effect" API. (Examples are `$watch()` or `useEffect()` to name a few.) This API is used to run code when the inputs to the code change. Most frameworks solve this problem by constantly checking the "inputs" to see if they have changed.
+
+If you want to have a progressive hydration framework, then the framework needs to be able to answer the question of:
+
+1.  What inputs should I check
+2.  What code should run if the inputs change.
+
+The important part is that for the hydration to remain progressive, the framework must be able to do the above on an as-needed basis. In other words, it needs to notice that inputs have not changed and not download any code until the inputs do change. The implication is that metadata about what to watch and what are the current values must be DOM serializable. Otherwise, the framework is forced to eagerly download the checking code, just in case.
+
+## Non-serializable Data Problem
+
+Progressive hydration frameworks need to deal with the fact that not all data is serializable. Examples of things that can't be serialized are promises, streams, handles, etc… The current generation of frameworks doesn't distinguish between serializable and non-serializable data. Data is data. But progressive frameworks must distinguish between the two kinds of data and have APIs and mental models for the developers to deal with this distinction.
+
+When a clock application is SSRed and then resumed on the client, it must re-register an interval timer so that the UI can periodically update. A stock ticker application must recreate streams to receive updates and so on.
+
+## Developer Experience Problem
+
+The above constraints and their solutions put a large pressure on what kinds of APIs can exist which don't violate any of the above constraints. Having a good DX, while satisfying the above requirements is hard!
+
+Today's frameworks are designed with DX first, and lazy loading and hydration are an afterthought. You can see this because there are no framework level primitives, which talk about: lazy-loading, serialization, hydration, etc... The result is that there is no way to shoe-horn progressive hydration into the existing frameworks' mental models. Doing so would create breaking changes which would render all existing framework ecosystems obsolete.
+
+Qwik is currently in its Alpha [release](https://github.com/BuilderIO/qwik/releases) so there is not as much tooling as the other big players like Angular, React, and Vue. As Qwik matures we will add more CLI support, VSCode extensions and packages. Like those other frameworks, it takes a long time for adoption. The reason we are creating Qwik, is that we believe that focusing on the performance of the web will always take priority. The DX will continue to grow as the framework becomes more popular. We can already see this with [Builder.io's Qwik API](https://www.builder.io/c/docs/qwik-api), allowing for an easy drag and drop visual editor that provides Qwik code without thinking about the implementation.
+
+My prediction is that we need a new set of frameworks that are specifically designed with progressive hydration in mind. These frameworks will come with new mental models for the developers to make building progressively hydrated applications easy.
+
+## Conclusion
+
+Above is a list of reasons why we don't have a truly progressive hydration framework yet. Achieving this is the explicit goal of Qwik. Most of the above problems have already been solved in Qwik, and for a few remaining, we have design docs and are working on their implementations. Qwik will be a fully progressive hydration framework that will have all of the above primitives built-in and have a corresponding mental model and DX to go with it.
+
+Qwik is a first of a new breed of frameworks that will take progressive hydration to heart and allow even the largest applications to load instantly on even the slowest clients.
+
+</ArticleBlock>

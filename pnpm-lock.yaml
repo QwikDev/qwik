@@ -861,6 +861,9 @@ importers:
       mdast-util-mdx:
         specifier: ^3.0.0
         version: 3.0.0
+      mlly:
+        specifier: ^1.8.2
+        version: 1.8.2
       refractor:
         specifier: ^4.8.1
         version: 4.9.0

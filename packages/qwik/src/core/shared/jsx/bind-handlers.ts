@@ -1,4 +1,4 @@
-import { _captures, deserializeCaptures, setCaptures } from '../../shared/qrl/qrl-class';
+import { _captures, deserializeCaptureDeltas, setCaptures } from '../../shared/qrl/qrl-class';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { getDomContainer, whenContainerDataReady } from '../../client/dom-container';
 import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
@@ -10,14 +10,14 @@ import { AsyncSignalFlags } from '../../reactive-primitives/types';
  * are already set.
  */
 const withScopeFromQL = <T>(
-  captureIds: string | undefined,
+  captureDeltas: string | undefined,
   element: Element,
   callback: () => T
 ): T | Promise<T> => {
-  if (typeof captureIds === 'string') {
+  if (typeof captureDeltas === 'string') {
     const container = getDomContainer(element);
     return whenContainerDataReady(container, () => {
-      setCaptures(deserializeCaptures(container, captureIds));
+      setCaptures(deserializeCaptureDeltas(container, captureDeltas));
       return callback();
     });
   }

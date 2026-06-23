@@ -171,8 +171,8 @@ Write code that junior developers and AI agents can understand during review and
   clearer.
 - Do not leave debug logging, temporary names, "fixup" code, or unexplained broad fallbacks in the
   final diff.
-- Only add explanatory comments where absolutely necessary. Keep your comments constrained to 1 or 2 sentences.
-- Write one changeset per patch/minor/major change. Keep the changeset message constrained to 1 or 2 sentences, focused on the bug fix or feature. Don't explain the internals or the implementation.
+- Only add explanatory comments where absolutely necessary, only to warn and crucial information that is not self-explanatory. Write comments for humans: keep your comments constrained to 1 short sentence or 2 maximum; be mindful of character count; focus on explaning the crux of the issue rather than implementation details.  
+- Write one changeset per patch/minor/major change. Keep the changeset message constrained to 1 short sentence or 2 maximum, focused on the bug fix, feature or breaking changes. Don't explain the internals or implementation details.
 
 #### Naming
 

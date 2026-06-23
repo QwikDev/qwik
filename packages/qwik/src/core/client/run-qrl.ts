@@ -1,7 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
 import {
   _captures,
-  deserializeCaptures,
+  deserializeCaptureDeltas,
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
@@ -89,7 +89,7 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
   return whenContainerDataReady(container, () => {
     const ctx = newInvokeContextFromDOM(event, element, container);
     if (typeof this === 'string') {
-      setCaptures(deserializeCaptures(ctx.$container$!, this));
+      setCaptures(deserializeCaptureDeltas(ctx.$container$!, this));
     }
     const qrlToRun = _captures![0] as QRLInternal<(...args: any[]) => void>;
     isDev && assertQrl(qrlToRun);

@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({
   asyncRequestStore: undefined as { getStore: () => unknown } | undefined,
 }));
 
-vi.mock('@qwik.dev/router/middleware/request-handler', () => ({
+vi.mock('../../middleware/request-handler/async-request-store', () => ({
   get _asyncRequestStore() {
     return mocks.asyncRequestStore;
   },

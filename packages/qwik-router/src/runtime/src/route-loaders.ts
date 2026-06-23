@@ -139,6 +139,9 @@ class ServerRouteLoaderCapture {
 
   load() {
     const requestEv = getRequestEvent();
+    if (!requestEv) {
+      throw new Error('Unable to determine the current RequestEvent.');
+    }
     // Use pre-computed value from loadersMiddleware if available,
     // to avoid re-running the loader after the response stream is open.
     const values = getRouteLoaderValues(requestEv);
@@ -482,16 +485,17 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
   };
 };
 
-export const getRequestEvent = (thisArg?: unknown): RequestEvent => {
+/**
+ * Returns the current RequestEvent if possible. Only usable on the server, and only during request
+ * processing.
+ *
+ * @public
+ */
+export const getRequestEvent = (thisArg?: unknown): RequestEvent | undefined => {
   if (!isServer) {
     throw new Error('getRequestEvent() can only be used on the server.');
   }
-  const requestEvent =
-    _asyncRequestStore?.getStore() || [thisArg, _getContextEvent()].find(isRequestEvent);
-  if (!requestEvent) {
-    throw new Error('Unable to determine the current RequestEvent.');
-  }
-  return requestEvent;
+  return _asyncRequestStore?.getStore() || [thisArg, _getContextEvent()].find(isRequestEvent);
 };
 
 const REQUEST_ROUTE_LOADER_VALUES = '@routeLoaderValues';

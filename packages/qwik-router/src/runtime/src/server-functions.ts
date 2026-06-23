@@ -43,11 +43,8 @@ import type {
   ZodDataValidator,
 } from './types';
 import { useAction, useLocation } from './use-functions';
-
-/** @public */
-export const getRequestEvent = (): RequestEvent | undefined => {
-  return _asyncRequestStore?.getStore() as RequestEvent | undefined;
-};
+import { _asyncRequestStore } from '../../middleware/request-handler';
+export { getRequestEvent } from './route-loaders';
 
 /** @public */
 export const routeActionQrl = ((

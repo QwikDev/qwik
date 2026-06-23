@@ -1,4 +1,3 @@
-import type { ResolvedId } from 'rollup';
 import type {
   BuildOptions,
   ConfigEnv,
@@ -19,6 +18,7 @@ import { type BundleGraphAdder } from './bundle-graph';
 import { configurePreviewServer, getViteIndexTags } from './dev';
 import { getImageSizeServer } from './dev/image-size-server';
 import {
+  createQwikPlugin,
   QWIK_BUILD_ID,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_CORE_ID,
@@ -27,7 +27,6 @@ import {
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_JSX_RUNTIME_ID,
   TRANSFORM_REGEX,
-  createQwikPlugin,
   type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
@@ -38,10 +37,6 @@ import {
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { isVirtualId } from './vite-utils';
 import {
-  createBuildWorkerQrlChunkResolver,
-  rewriteWorkerQrlChunkPlaceholders,
-} from './worker-qrl-chunks';
-import {
   emitQwikWorkerCoreChunk,
   getQwikWorkerConfig,
   isQwikWorkerCoreId,
@@ -50,6 +45,10 @@ import {
   rewriteClientWorkerCorePlaceholders,
   rewriteSsrWorkerCorePlaceholders,
 } from './worker-core';
+import {
+  createBuildWorkerQrlChunkResolver,
+  rewriteWorkerQrlChunkPlaceholders,
+} from './worker-qrl-chunks';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -930,7 +929,7 @@ async function checkExternals() {
         // technically we should check for each importer, but this is ok
         seen.add(source);
         seen.add(packageName);
-        let result: ResolvedId | null;
+        let result: Awaited<ReturnType<Extract<VitePlugin['resolveId'], Function>>>;
         try {
           result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
         } catch {

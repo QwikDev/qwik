@@ -460,6 +460,9 @@ const processPassiveElementEvent = (ev: Event) =>
   processElementEvent(ev, passiveElementPrefix, false);
 
 const broadcast = (scope: QwikLoaderEventScope, ev: Event, allowPreventDefault = true) => {
+  // document/window handlers are a flat same-target list, not a bubbling path, so the per-element
+  // `taskGroups` + `cancelBubble` re-check (see `runEventTasks`) deliberately does not apply here:
+  // native `stopPropagation()` never skips same-target listeners. One task list, no re-check.
   const kebabName = camelToKebab(ev.type);
   const scopedKebabName = scope + ':' + kebabName;
   const elements = querySelectorAll('[q-' + scope + '\\:' + kebabName + ']');

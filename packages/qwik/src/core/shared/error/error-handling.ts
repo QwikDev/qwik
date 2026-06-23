@@ -12,7 +12,13 @@ export interface ErrorBoundaryStore {
   $onError$?: (error: unknown) => void;
   /** Server-only; streams `fallback$` as an out-of-order segment. */
   $emitFallback$?: (error: unknown) => void | Promise<void>;
-  /** Captured so a throw can mark the swapped-out subtree inert (its tasks must not resume). */
+  /**
+   * The content-host SSR node, captured so a throw can mark the swapped-out subtree inert (its
+   * tasks must not resume). Unlike the sibling `$`-fields this is intentionally NOT
+   * `noSerialize`'d: serializing it roots the content host in the client VNode graph, which is what
+   * lets a client re-render locate and drop the inert subtree. Wrapping it in `noSerialize` looks
+   * tidier but breaks the inert-teardown re-render tests — leave it serialized.
+   */
   $contentHostNode$?: ISsrNode;
 }
 

@@ -224,6 +224,8 @@ function markErrorBoundaryContentInert(
       liveOwners.set(n.id, n);
     }
   }
+  // Runs at throw time, before the fallback host renders, so the boundary's children here are only
+  // the partial (dead) content — the fallback host isn't a child yet, so it stays resumable.
   const children = boundaryNode.children;
   if (children) {
     for (let i = 0; i < children.length; i++) {

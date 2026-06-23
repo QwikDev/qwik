@@ -225,4 +225,41 @@ test.describe('ErrorBoundary streaming swap', () => {
 
     await expect.poll(() => pageErrors, { timeout: 10000 }).toContain('no-boundary boom');
   });
+
+  // A fallback that itself throws during SSR escalates to the enclosing boundary, whose fallback
+  // must render over the whole subtree AND resume interactive (parity with CSR).
+  test('in-order: a throwing inner fallback escalates to the outer boundary, fallback interactive', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto('/e2e/error-boundary-streaming?scenario=throw-fallback&outOfOrder=false', {
+      waitUntil: 'commit',
+    });
+
+    await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
+    await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-outer-msg')).toHaveText('caught: inner fallback boom');
+    // The whole inner subtree (its content + empty fallback) is swapped out by the outer.
+    await expect(page.locator('#eb-content')).toBeHidden();
+
+    await page.locator('#eb-outer-button').click();
+    await expect(page.locator('#eb-outer-count')).toHaveText('1');
+  });
+
+  test('out-of-order: a throwing inner fallback escalates to the outer boundary, fallback interactive', async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto('/e2e/error-boundary-streaming?scenario=throw-fallback', {
+      waitUntil: 'commit',
+    });
+
+    await expect(page.locator('#eb-title')).toHaveText('EB Streaming', { timeout: 10000 });
+    await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#eb-outer-msg')).toHaveText('caught: inner fallback boom');
+    await expect(page.locator('#eb-content')).toBeHidden();
+
+    await page.locator('#eb-outer-button').click();
+    await expect(page.locator('#eb-outer-count')).toHaveText('1');
+  });
 });

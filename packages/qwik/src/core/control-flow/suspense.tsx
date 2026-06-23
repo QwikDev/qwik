@@ -429,17 +429,21 @@ export const SSRErrorFallbackInline = __EXPERIMENTAL__.errorBoundary
         const store = jsx.varProps.store as ErrorBoundaryStore;
         // `!== undefined` (not truthiness) so a falsy thrown value still swaps.
         if (store.error !== undefined && store.$fallback$) {
+          const fallback = store.$fallback$;
+          // Detach so a throw from the fallback itself escalates to the enclosing boundary instead
+          // of being re-absorbed here (parity with the out-of-order path and with CSR).
+          store.$fallback$ = undefined;
           if (isOutOfOrderSegmentContainer(ssr)) {
             // Inline `qErr` is inert inside the segment `<template>`; defer it to run at the root after the `qO` reveal.
             ssr.$registerErrorSwap$(boundaryId);
-            enqueue(store.$fallback$(store.error) as JSXOutput);
+            enqueue(fallback(store.error) as JSXOutput);
           } else {
             // LIFO: enqueue `qErr` first so the swap runs after the fallback content renders.
             enqueue(() => {
               ssr.emitErrorSwapExecutorIfNeeded();
               ssr.emitInlineScript(`qErr(${boundaryId})`);
             });
-            enqueue(store.$fallback$(store.error) as JSXOutput);
+            enqueue(fallback(store.error) as JSXOutput);
           }
         }
       }

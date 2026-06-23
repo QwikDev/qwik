@@ -690,6 +690,50 @@ describe('ErrorBoundary combinations', () => {
   });
 });
 
+// A fallback that itself throws (e.g. it introspects an error of an unexpected shape) must escalate
+// to the enclosing boundary on SSR, exactly as it does on CSR (see the CSR case above).
+describe('ErrorBoundary throwing-fallback escalation (SSR)', () => {
+  // A fresh tree per test: rendering one JSX object in two containers trips "props across containers".
+  const nested = () => (
+    <ErrorBoundary
+      fallback$={$(() => (
+        <p id="fb-outer">outer</p>
+      ))}
+    >
+      <ErrorBoundary
+        fallback$={$(() => {
+          throw new Error('inner fallback boom');
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>
+    </ErrorBoundary>
+  );
+
+  it('in-order: a throwing inner fallback escalates to the outer boundary', async () => {
+    const { container } = await ssrRenderToDom(nested(), {
+      debug,
+      streaming: { outOfOrder: false },
+    });
+    const el = container.element;
+    // The OUTER fallback rendered: the inner fallback's throw escalated past the inner boundary.
+    // (The outer content-host is hidden in a real browser by `qErr`; the unit harness doesn't run
+    // the swap script for an inert escalated host, so the visible-swap is asserted in the e2e.)
+    expect(el.querySelector('#fb-outer')?.textContent).toBe('outer');
+  });
+
+  it('out-of-order: a throwing inner fallback escalates to the outer boundary', async () => {
+    const { container } = await ssrRenderToDom(nested(), {
+      debug,
+      streaming: { outOfOrder: true },
+    });
+    const el = container.element;
+    expect(el.querySelector('#fb-outer')?.textContent).toBe('outer');
+    // Out-of-order reveals via `qO`, which the harness does drive, so the swap is observable here.
+    expect(displayOf(el.querySelector('[q\\:ebc="1"]'))).toBe('none');
+  });
+});
+
 // Through Suspense, the closest enclosing boundary catches; enclosing boundaries stay untouched.
 describe('ErrorBoundary routing through Suspense (experimental)', () => {
   it('EB-outer › Suspense › EB-inner › throw → EB-inner catches, EB-outer untouched', async () => {
@@ -1764,5 +1808,61 @@ describe('ErrorBoundary onError$', () => {
     await getTestPlatform().flush();
     await delay(0);
     expect(onErrorLog.errors).toEqual(['boom']);
+  });
+
+  it('fires once for an SSR-caught throw (in-order) and not again on resume', async () => {
+    onErrorLog.errors = [];
+    await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+        onError$={$((e: any) => {
+          onErrorLog.errors.push(e instanceof Error ? e.message : e);
+        })}
+      >
+        <Thrower />
+      </ErrorBoundary>,
+      { debug, streaming: { outOfOrder: false } }
+    );
+    await getTestPlatform().flush();
+    await delay(0);
+    // The server's in-order catch fires it once; the simulated resume must not fire it again.
+    expect(onErrorLog.errors).toEqual(['boom']);
+  });
+
+  it('fires once from serialized props.onError$ on a post-resume client error', async () => {
+    // Resume round-trips an inline closure's captures, so a captured `onErrorLog` would be pushed to
+    // a DESERIALIZED copy, not this one. Use a `globalThis` sink the QRL captures nothing of, so the
+    // post-resume fire is observable across the serialization boundary.
+    (globalThis as any).__ebOnErrorLog = [];
+    // SSR is the happy path, so the server never fires onError$; only the serialized
+    // `props.onError$` is available to the client (the `$onError$` store mirror is server-only).
+    const { container } = await ssrRenderToDom(
+      <ErrorBoundary
+        fallback$={$((e: any) => (
+          <p id="fb">caught: {e.message}</p>
+        ))}
+        onError$={$((e: any) => {
+          ((globalThis as any).__ebOnErrorLog ||= []).push(e instanceof Error ? e.message : e);
+        })}
+      >
+        <button id="target">x</button>
+      </ErrorBoundary>,
+      { debug }
+    );
+    expect((globalThis as any).__ebOnErrorLog).toEqual([]);
+
+    const el = container.element;
+    const target = el.querySelector('#target')!;
+    dispatchQError(target, { error: new Error('client boom'), element: target });
+    await waitForDrain(container);
+    await getTestPlatform().flush();
+    await delay(0);
+
+    // The client read the serialized `props.onError$` and fired it exactly once.
+    expect((globalThis as any).__ebOnErrorLog).toEqual(['client boom']);
+    expect(el.querySelector('#fb')?.textContent).toContain('caught: client boom');
+    delete (globalThis as any).__ebOnErrorLog;
   });
 });

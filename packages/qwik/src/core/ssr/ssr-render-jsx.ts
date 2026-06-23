@@ -25,6 +25,7 @@ import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
   ELEMENT_SEQ,
+  QCtxAttr,
   QCursorBoundary,
   QDefaultSlot,
   QErrorContentHost,
@@ -33,6 +34,7 @@ import {
   QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
+import { mapArray_has } from '../client/util-mapArray';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { isTask } from '../use/use-task';
 import { VNodeDataFlag } from '../../server/types';
@@ -132,42 +134,66 @@ export async function _walkJSX(
   await drain();
 }
 
+/** Closest SSR node that provides `ERROR_CONTEXT`, so escalation can resume the walk above it. */
+function findErrorBoundaryNode(host: ISsrNode | null): ISsrNode | null {
+  for (let node = host; node; node = node.parentComponent) {
+    const ctx = node.getProp(QCtxAttr) as Array<string | unknown> | null;
+    if (ctx != null && mapArray_has(ctx, ERROR_CONTEXT.id, 0)) {
+      return node;
+    }
+  }
+  return null;
+}
+
 /**
  * Route an SSR render throw to the closest `<ErrorBoundary>`; rethrow (aborting to the error page)
- * when there's no boundary above.
+ * when there's no boundary above. A boundary whose own fallback already threw has a detached
+ * `$fallback$`, so it is skipped and the error escalates to the enclosing boundary, matching the
+ * client's `handleError`.
  */
 function renderErrorBoundaryFallback(
   ssr: SSRContainer,
   host: ReturnType<SSRContainer['getOrCreateLastNode']>,
   err: unknown
 ): ValueOrPromise<JSXOutput> {
-  const errorStore = ssr.resolveContext(host, ERROR_CONTEXT);
-  if (!errorStore || !errorStore.$fallback$) {
-    throw err;
-  }
-  // A non-recoverable build/plugin error must surface, not hide in the fallback.
+  // A non-recoverable build/plugin error must surface, not hide in any fallback.
   if (qDev && !isRecoverable(err)) {
     throw err;
   }
-  // A boundary outside the segment already streamed its fallback host, so let the segment reject and tear it down.
-  if (
-    __EXPERIMENTAL__.errorBoundary &&
-    isOutOfOrderSegmentContainer(ssr) &&
-    errorStore.$emitFallback$
+  for (
+    let boundaryNode = findErrorBoundaryNode(host);
+    boundaryNode;
+    boundaryNode = findErrorBoundaryNode(boundaryNode.parentComponent)
   ) {
-    throw err;
+    const errorStore = ssr.resolveContext(boundaryNode, ERROR_CONTEXT) as
+      | ErrorBoundaryStore
+      | undefined;
+    if (!errorStore || !errorStore.$fallback$) {
+      // This boundary can't render a fallback (its own fallback already threw) — escalate above it.
+      continue;
+    }
+    // A boundary outside the segment already streamed its fallback host, so let the segment reject and tear it down.
+    if (
+      __EXPERIMENTAL__.errorBoundary &&
+      isOutOfOrderSegmentContainer(ssr) &&
+      errorStore.$emitFallback$
+    ) {
+      throw err;
+    }
+    // Never block streaming: mark the error and render nothing; the sibling fallback-host swaps the content out.
+    const isFirstCatch = errorStore.error === undefined;
+    errorStore.error = toSerializableBoundaryError(err);
+    if (isFirstCatch) {
+      // onError$ gets the original error once, before any serializable projection.
+      fireOnError(errorStore.$onError$, err);
+    }
+    if (__EXPERIMENTAL__.errorBoundary && errorStore.$contentHostNode$) {
+      markErrorBoundaryContentInert(ssr, errorStore.$contentHostNode$);
+    }
+    return null;
   }
-  // Never block streaming: mark the error and render nothing; the sibling fallback-host swaps the content out.
-  const isFirstCatch = errorStore.error === undefined;
-  errorStore.error = toSerializableBoundaryError(err);
-  if (isFirstCatch) {
-    // onError$ gets the original error once, before any serializable projection.
-    fireOnError(errorStore.$onError$, err);
-  }
-  if (__EXPERIMENTAL__.errorBoundary && errorStore.$contentHostNode$) {
-    markErrorBoundaryContentInert(ssr, errorStore.$contentHostNode$);
-  }
-  return null;
+  // No enclosing boundary can render a fallback; rethrow to abort to the error page.
+  throw err;
 }
 
 /**

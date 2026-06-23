@@ -170,6 +170,21 @@ export const ErrorBoundaryStreamingRoot = component$(() => {
             <EbSyncThrower />
           </ErrorBoundary>
         </ErrorBoundary>
+      ) : scenario === 'throw-fallback' ? (
+        // The INNER boundary's own fallback throws during SSR; the error must escalate to the OUTER
+        // boundary, which renders its fallback over the whole subtree.
+        <ErrorBoundary
+          fallback$={(e) => <EbFallback id="eb-outer" msg={String((e as any)?.message ?? e)} />}
+        >
+          <ErrorBoundary
+            fallback$={() => {
+              throw new Error('inner fallback boom');
+            }}
+          >
+            <EbContent />
+            <EbSyncThrower />
+          </ErrorBoundary>
+        </ErrorBoundary>
       ) : scenario === 'inert' ? (
         // Bumping the signal from outside the boundary must not re-run the swapped-out task.
         <>

@@ -93,7 +93,7 @@ export function Root() {
       <div class="jumbotron">
         <div class="row">
           <div class="col-md-6">
-            <h1>Qwik Signal Implementation</h1>
+            <h1>Qwik V3 Implementation</h1>
           </div>
           <div class="col-md-6">
             <div class="row">

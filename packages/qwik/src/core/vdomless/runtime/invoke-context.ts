@@ -11,6 +11,9 @@ export interface SlotScope {
 
 export interface RuntimeInvokeContext {
   owner: Owner | null;
+  // Host for a lazy owner before it exists. Once materialized, Owner.parent is
+  // the source of truth; this only answers where to attach the new owner.
+  ownerHost: Owner | RuntimeInvokeContext | null;
   container: ContainerContext | undefined;
   idPrefix: string;
   contextScope: ContextScope | null;
@@ -20,6 +23,7 @@ export interface RuntimeInvokeContext {
 
 export interface NewInvokeContextOptions {
   owner?: Owner | null;
+  ownerHost?: Owner | RuntimeInvokeContext | null;
   container?: ContainerContext;
   idPrefix?: string;
   contextScope?: ContextScope | null;
@@ -28,6 +32,7 @@ export interface NewInvokeContextOptions {
 }
 
 export interface ChildInvokeContextOptions {
+  ownerHost?: Owner | RuntimeInvokeContext | null;
   container?: ContainerContext;
   idPrefix?: string;
   contextScope?: ContextScope | null;
@@ -35,7 +40,6 @@ export interface ChildInvokeContextOptions {
 }
 
 let activeInvokeContext: RuntimeInvokeContext | null = null;
-let activeOwner: Owner | null = null;
 
 export function getActiveInvokeContext(): RuntimeInvokeContext {
   const context = activeInvokeContext;
@@ -51,20 +55,13 @@ export function getActiveInvokeContextOrNull(): RuntimeInvokeContext | null {
 }
 
 export function getActiveOwnerScope(): Owner | null {
-  return activeOwner;
-}
-
-export function setActiveInvokeContextOwner(owner: Owner): void {
-  const context = activeInvokeContext;
-  if (context !== null) {
-    context.owner = owner;
-  }
-  activeOwner = owner;
+  return activeInvokeContext?.owner ?? null;
 }
 
 export function newInvokeContext(options?: NewInvokeContextOptions): RuntimeInvokeContext {
   return {
     owner: options?.owner ?? null,
+    ownerHost: options?.ownerHost ?? null,
     container: options?.container,
     idPrefix: options?.idPrefix ?? '',
     contextScope: options?.contextScope ?? null,
@@ -79,6 +76,7 @@ export function newChildInvokeContext(
 ): RuntimeInvokeContext {
   return newInvokeContext({
     owner: null,
+    ownerHost: options?.ownerHost ?? base ?? null,
     container: options?.container ?? base?.container,
     idPrefix: options?.idPrefix ?? base?.idPrefix,
     contextScope: options?.contextScope ?? base?.contextScope ?? null,
@@ -101,14 +99,11 @@ export function invokeApply<T, TArgs extends unknown[]>(
   args?: TArgs
 ): T {
   const previous = activeInvokeContext;
-  const previousOwner = activeOwner;
   activeInvokeContext = context;
-  activeOwner = context === null ? null : (context.owner ?? previousOwner);
 
   try {
     return run.apply(undefined, args ?? ([] as unknown as TArgs));
   } finally {
     activeInvokeContext = previous;
-    activeOwner = previousOwner;
   }
 }

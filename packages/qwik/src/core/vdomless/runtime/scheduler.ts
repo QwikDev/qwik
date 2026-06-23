@@ -198,11 +198,11 @@ export class Scheduler {
     const end = items.length;
     for (let i = 0; i < end && i < items.length; i++) {
       const item = items[i];
-      if (!(item instanceof Owner) && 'flags' in item) {
+      if (!(item instanceof Owner)) {
         if (item.kind === SubscriberKind.Branch) {
-          await this.runBranch(item);
+          await this.runBranch(item as BranchSubscriber);
         } else if (item.kind === SubscriberKind.ForBlock) {
-          await this.runForBlock(item);
+          await this.runForBlock(item as ForBlockSubscriber);
         }
       }
     }

@@ -6,7 +6,7 @@ import {
   getActiveInvokeContextOrNull,
   invoke,
   newInvokeContext,
-  setActiveInvokeContextOwner,
+  type RuntimeInvokeContext,
 } from './invoke-context';
 import type { Subscriber } from './subscriber';
 import { runWithCollector } from '../reactive/tracking';
@@ -122,18 +122,24 @@ function getOrCreateActiveOwnerOrThrow(): Owner {
   return owner;
 }
 
-function materializeContextOwner(): Owner {
-  const context = getActiveInvokeContextOrNull()!;
+function materializeContextOwner(context = getActiveInvokeContextOrNull()!): Owner {
   const owner = context.owner;
   if (owner !== null) {
     return owner;
   }
 
-  const parentOwner = getActiveOwnerScope();
+  const parentOwner = materializeOwnerHost(context.ownerHost);
   const nextOwner = new Owner();
   registerOwnerToOwner(nextOwner, parentOwner);
-  setActiveInvokeContextOwner(nextOwner);
+  context.owner = nextOwner;
   return nextOwner;
+}
+
+function materializeOwnerHost(host: Owner | RuntimeInvokeContext | null): Owner | null {
+  if (host === null) {
+    return null;
+  }
+  return host instanceof Owner ? host : materializeContextOwner(host);
 }
 
 function registerOwnerToOwner(owner: Owner, parent: Owner | null): void {

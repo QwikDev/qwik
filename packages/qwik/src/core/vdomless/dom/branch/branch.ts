@@ -122,12 +122,22 @@ export class BranchSubscription implements BranchSubscriber {
         }
 
         const newInvokeContext = newChildInvokeContext(this.branch.invokeContext, {
+          ownerHost: this.owner,
           container: this.branch.container,
         });
 
-        const nodes: readonly Node[] = runWithCollector(null, () =>
-          invoke(newInvokeContext, () => renderer(newInvokeContext.container!))
-        );
+        let nodes: readonly Node[];
+        try {
+          nodes = runWithCollector(null, () =>
+            invoke(newInvokeContext, () => renderer(newInvokeContext.container!))
+          );
+        } catch (error) {
+          if (newInvokeContext.owner !== null) {
+            disposeOwner(newInvokeContext.owner);
+            newInvokeContext.owner = null;
+          }
+          throw error;
+        }
 
         this.branch.currentOwner = newInvokeContext.owner;
         this.branch.range.replace(nodes ?? EMPTY_NODES);
@@ -192,12 +202,22 @@ export class SSRBranch {
               subscription.branch.currentBranch = nextBranch;
 
               const invokeContext = newChildInvokeContext(getActiveInvokeContextOrNull(), {
+                ownerHost: subscription.owner,
                 container: this.container,
               });
 
-              const html = runWithCollector(null, () =>
-                invoke(invokeContext, () => renderer(invokeContext.container!, this.rangeId))
-              );
+              let html: string;
+              try {
+                html = runWithCollector(null, () =>
+                  invoke(invokeContext, () => renderer(invokeContext.container!, this.rangeId))
+                );
+              } catch (error) {
+                if (invokeContext.owner !== null) {
+                  disposeOwner(invokeContext.owner);
+                  invokeContext.owner = null;
+                }
+                throw error;
+              }
               subscription.branch.currentOwner = invokeContext.owner;
               return html;
             }

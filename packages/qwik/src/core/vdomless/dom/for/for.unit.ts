@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { ForBlockSubscription } from '../effect/effect';
+import { createTextNodeEffect, ForBlockSubscription } from '../effect/effect';
 import { createSignal } from '../../reactive/signal';
 import type { ContainerContext } from '../../runtime/container-context';
 import { createOwner } from '../../runtime/owner';
-import { createTestDomNode, createTestParentNode, getNodeLabel } from '../../test-utils';
-import { ElementRowDom, ForBlock, ForRange } from './for';
+import {
+  createTestDomNode,
+  createTestParentNode,
+  createText,
+  getNodeLabel,
+} from '../../test-utils';
+import { ForBlock, ForRange } from './for';
 
 describe('ForBlock reorder', () => {
   const createElementNode = (label: string): Node =>
@@ -49,7 +54,7 @@ describe('ForBlock reorder', () => {
     );
 
     block.keys = [1, 2, 3, 4, 5];
-    block.rows = [a, b, c, d, e].map((element) => new ElementRowDom(element as unknown as Element));
+    block.rows = [a, b, c, d, e] as unknown as Element[];
     block.owners = block.rows.map(() => createOwner(listOwner));
 
     return { block, insertCount: () => insertCount, parent };
@@ -129,6 +134,82 @@ describe('ForBlock reorder', () => {
     );
 
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '1', '2', '3', 'end']);
+    expect(block.owners).toEqual([null, null, null]);
+  });
+
+  it('does not track signals read by key functions', () => {
+    const startNode = createTestDomNode('start');
+    const endNode = createTestDomNode('end');
+    createTestParentNode([startNode, endNode]);
+    const items = createSignal([1, 2, 3]);
+    const keySuffix = createSignal('a');
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      new ForRange(
+        startNode.ownerDocument,
+        startNode as unknown as Comment,
+        endNode as unknown as Comment
+      ),
+      items,
+      (item) => `${item}:${keySuffix.value}`,
+      (_ctx, item) => [createElementNode(String(item))],
+      false,
+      false,
+      listOwner,
+      null,
+      { document: startNode.ownerDocument } as ContainerContext
+    );
+    const subscription = new ForBlockSubscription(block);
+
+    block.reconcile(
+      subscription,
+      (item) => `${item}:${keySuffix.value}`,
+      (_ctx, item) => [createElementNode(String(item))]
+    );
+
+    expect(subscription.deps).toContain(items);
+    expect(subscription.deps).not.toContain(keySuffix);
+  });
+
+  it('creates row-owned subscriptions without an extra owner context', () => {
+    const startNode = createTestDomNode('start');
+    const endNode = createTestDomNode('end');
+    createTestParentNode([startNode, endNode]);
+    const items = createSignal([1]);
+    const text = createSignal('row');
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      new ForRange(
+        startNode.ownerDocument,
+        startNode as unknown as Comment,
+        endNode as unknown as Comment
+      ),
+      items,
+      (item) => item,
+      (_ctx, item) => {
+        createTextNodeEffect(createText(), text);
+        return [createElementNode(String(item))];
+      },
+      false,
+      false,
+      listOwner,
+      null,
+      { document: startNode.ownerDocument } as ContainerContext
+    );
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item,
+      (_ctx, item) => {
+        createTextNodeEffect(createText(), text);
+        return [createElementNode(String(item))];
+      }
+    );
+
+    expect(block.owners[0]).not.toBeNull();
+    expect(block.rowInvokeContext.owner).toBeNull();
+    expect(listOwner.items).toContain(block.owners[0]);
+    expect(block.owners[0]!.items).toHaveLength(1);
   });
 
   it('clears rows on dispose', () => {

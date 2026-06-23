@@ -64,6 +64,7 @@ function runComponent<TProps>(
   } catch (error) {
     if (invokeContext.owner !== null) {
       disposeOwner(invokeContext.owner);
+      invokeContext.owner = null;
     }
     throw error;
   }
@@ -73,6 +74,7 @@ function runComponent<TProps>(
       (error) => {
         if (invokeContext.owner !== null) {
           disposeOwner(invokeContext.owner);
+          invokeContext.owner = null;
         }
         throw error;
       }

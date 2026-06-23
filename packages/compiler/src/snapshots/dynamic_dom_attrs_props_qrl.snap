@@ -56,20 +56,20 @@ export function App(_props, ctx) {
   const attr1 = renderSsrAttrExpression(
     createSsrElementTarget(id0),
     'title',
-    [],
-    q_component_title_segment_0.w([count])
+    [count],
+    q_component_title_segment_0
   );
   const attr2 = renderSsrAttrExpression(
     createSsrElementTarget(id0),
     'class',
-    [],
-    q_component_className_segment_1.w([count])
+    [count],
+    q_component_className_segment_1
   );
   const attr3 = renderSsrAttrExpression(
     createSsrElementTarget(id0),
     'style',
-    [],
-    q_component_style_segment_2.w([count])
+    [count],
+    q_component_style_segment_2
   );
   return (
     '<div q:id="' +
@@ -87,9 +87,7 @@ export function App(_props, ctx) {
 null
 ============================= src/component.tsx_component_title_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_title_segment_0 = () => {
-  const count = _captures[0];
+export const component_title_segment_0 = (count) => {
   return `count ${count.value}`;
 };
 
@@ -119,9 +117,7 @@ null
 */
 ============================= src/component.tsx_component_className_segment_1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_className_segment_1 = () => {
-  const count = _captures[0];
+export const component_className_segment_1 = (count) => {
   return { active: count.value > 0 };
 };
 
@@ -151,9 +147,7 @@ null
 */
 ============================= src/component.tsx_component_style_segment_2.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_style_segment_2 = () => {
-  const count = _captures[0];
+export const component_style_segment_2 = (count) => {
   return { color: count.value % 2 === 0 ? 'green' : 'blue' };
 };
 
@@ -190,28 +184,23 @@ null
 
 import { createSignal, createAttrExpressionEffect } from '@qwik.dev/core/spark';
 
+const dom_App_expr0 = (count) => `count ${count.value}`;
+const dom_App_expr1 = (count) => ({ active: count.value > 0 });
+const dom_App_expr2 = (count) => ({ color: count.value % 2 === 0 ? 'green' : 'blue' });
 export function App(_props, ctx) {
   const count = createSignal(0);
   const el0 = ctx.document.createElement('div');
-  const effect1 = createAttrExpressionEffect(el0, 'title', [], () => `count ${count.value}`, {
+  const effect1 = createAttrExpressionEffect(el0, 'title', [count], dom_App_expr0, {
     scheduler: ctx.scheduler,
   });
   ctx.scheduler.notify(effect1);
-  const effect2 = createAttrExpressionEffect(
-    el0,
-    'class',
-    [],
-    () => ({ active: count.value > 0 }),
-    { scheduler: ctx.scheduler }
-  );
+  const effect2 = createAttrExpressionEffect(el0, 'class', [count], dom_App_expr1, {
+    scheduler: ctx.scheduler,
+  });
   ctx.scheduler.notify(effect2);
-  const effect3 = createAttrExpressionEffect(
-    el0,
-    'style',
-    [],
-    () => ({ color: count.value % 2 === 0 ? 'green' : 'blue' }),
-    { scheduler: ctx.scheduler }
-  );
+  const effect3 = createAttrExpressionEffect(el0, 'style', [count], dom_App_expr2, {
+    scheduler: ctx.scheduler,
+  });
   ctx.scheduler.notify(effect3);
   el0.setAttribute('data-kind', 'counter');
   const text4 = ctx.document.createTextNode('Attrs');

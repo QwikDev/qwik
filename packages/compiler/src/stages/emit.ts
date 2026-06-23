@@ -689,6 +689,10 @@ function createQrlSegmentSource(
     return createSsrPropsSegmentSource(ctx, qrlSegment, qrlSegments);
   }
 
+  if (ctx.emitTarget === 'ssr' && isSsrDomExpressionSegment(qrlSegment.segment)) {
+    return createSsrDomExpressionSegmentSource(ctx, qrlSegment, qrlSegments);
+  }
+
   if (qrlSegment.segment.kind === 'branchRender') {
     if (ctx.emitTarget === 'ssr') {
       return createSsrBranchRenderSegmentSource(ctx, qrlSegment, qrlSegments);
@@ -750,6 +754,48 @@ ${captureLine}${indentBody(bodyStatements)}
 `;
 }
 
+function isSsrDomExpressionSegment(segment: SegmentRecord): boolean {
+  return (
+    segment.kind === 'jsxText' || (segment.kind === 'jsxProp' && segment.functionRange === null)
+  );
+}
+
+function createSsrDomExpressionSegmentSource(
+  ctx: CompilerContext,
+  qrlSegment: QrlSegmentOutput,
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
+  const captures = qrlSegment.segment.captures;
+  const params = captures.map((capture) => capture.name).join(', ');
+  const body = qrlSegment.segment.bodyRange
+    ? transformImplicitDollarCode(
+        ctx.input.code,
+        qrlSegment.segment.bodyRange,
+        ctx.manifest.segments,
+        qrlSegments,
+        ctx.emitTarget
+      )
+    : 'undefined';
+  const bodyStatements = `return ${rewriteLoopCaptures(body, captures)};`;
+  const sparkImports: QwikSymbol[] = [];
+  if (usesIdentifier(bodyStatements, QwikSymbol.CreateContext)) {
+    sparkImports.push(QwikSymbol.CreateContext);
+  }
+  const importRecords = createSegmentModuleImports(ctx, qrlSegment);
+  const importLine =
+    importRecords.length > 0 || sparkImports.length > 0
+      ? `${emitImports([
+          ...importRecords,
+          ...(sparkImports.length > 0 ? [createQwikSparkImport(...sparkImports)] : []),
+        ]).join('\n')}\n\n`
+      : '';
+
+  return `${importLine}export const ${qrlSegment.symbolName} = (${params}) => {
+${indentBody(bodyStatements)}
+};
+`;
+}
+
 function createSsrPropsSegmentSource(
   ctx: CompilerContext,
   qrlSegment: QrlSegmentOutput,
@@ -767,26 +813,17 @@ function createSsrPropsSegmentSource(
     }
   }
   const captures = qrlSegment.segment.captures;
-  const captureLine =
-    captures.length > 0
-      ? `const ${captures
-          .map((capture, index) => `${capture.name} = ${QwikSymbol.Captures}[${index}]`)
-          .join(', ')};`
-      : '';
   const objectExpression = emitSsrDomPropsExpression(
     element.props,
     qrlSegments,
     ctx.input.code,
     captures
   );
-  const bodyStatements = [captureLine, `return ${objectExpression};`].filter(Boolean).join('\n');
+  const bodyStatements = `return ${objectExpression};`;
   const importRecords = [
     ...createSegmentModuleImports(ctx, qrlSegment),
     ...createSsrResolvedSegmentImports(segmentQrlSegments),
   ];
-  if (captures.length > 0) {
-    importRecords.push(createQwikSparkImport(QwikSymbol.Captures));
-  }
   const imports =
     segmentQrlSegments.size === 0
       ? importRecords
@@ -806,8 +843,9 @@ function createSsrPropsSegmentSource(
         });
   const importLine = imports.length > 0 ? `${emitImports(imports).join('\n')}\n\n` : '';
   const qrlPrelude = emitSsrQrlPrelude(segmentQrlSegments);
+  const params = captures.map((capture) => capture.name).join(', ');
 
-  return `${importLine}${qrlPrelude}export const ${qrlSegment.symbolName} = () => {
+  return `${importLine}${qrlPrelude}export const ${qrlSegment.symbolName} = (${params}) => {
 ${indentBody(bodyStatements)}
 };
 `;
@@ -923,6 +961,7 @@ function createBranchRenderSegmentSource(
   const captures = qrlSegment.segment.captures;
   const emitter = new DomEmitter(segmentQrlSegments, ctx.input.code, {
     branchCondition: 'inline',
+    helperPrefix: qrlSegment.symbolName,
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),
     use: (symbol) => usage.sparkImports.add(symbol),
   });
@@ -942,6 +981,7 @@ function createBranchRenderSegmentSource(
     .join('\n');
   const imports = [
     ...createSegmentModuleImports(ctx, qrlSegment),
+    ...createDomEmitterModuleImports(ctx, emitter),
     ...createComponentReferenceImports(ctx, {
       kind: 'fragment',
       children: [...children],
@@ -960,7 +1000,7 @@ function createBranchRenderSegmentSource(
 
   const importLine =
     imports.length > 0 ? `${emitImports(normalizeImports(imports)).join('\n')}\n\n` : '';
-  return `${importLine}export const ${qrlSegment.symbolName} = (ctx) => {
+  return `${importLine}${emitter.emitHoists()}export const ${qrlSegment.symbolName} = (ctx) => {
 ${indentBody(bodyStatements)}
 };
 `;
@@ -1054,6 +1094,7 @@ function createForRenderSegmentSource(
   const emitter = new DomEmitter(segmentQrlSegments, ctx.input.code, {
     branchCondition: 'inline',
     domEffectMode: 'run',
+    helperPrefix: qrlSegment.symbolName,
     loopCaptures: createLoopParamCaptures(qrlSegment.segment),
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),
     use: (symbol) => usage.sparkImports.add(symbol),
@@ -1074,6 +1115,7 @@ function createForRenderSegmentSource(
     .join('\n');
   const imports = [
     ...createSegmentModuleImports(ctx, qrlSegment),
+    ...createDomEmitterModuleImports(ctx, emitter),
     ...createComponentReferenceImports(ctx, {
       kind: 'fragment',
       children: [...children],
@@ -1093,10 +1135,15 @@ function createForRenderSegmentSource(
   const importLine =
     imports.length > 0 ? `${emitImports(normalizeImports(imports)).join('\n')}\n\n` : '';
   const { itemName, indexName } = getForRenderParamNames(qrlSegment.segment);
-  return `${importLine}export const ${qrlSegment.symbolName} = (ctx, ${itemName}, ${indexName}) => {
+  return `${importLine}${emitter.emitHoists()}export const ${qrlSegment.symbolName} = (ctx, ${itemName}, ${indexName}) => {
 ${indentBody(bodyStatements)}
 };
 `;
+}
+
+function createDomEmitterModuleImports(ctx: CompilerContext, emitter: DomEmitter): ImportRecord[] {
+  const names = emitter.getModuleImportNames();
+  return names.length > 0 ? [createNamedImport(createInputModuleImportPath(ctx), names)] : [];
 }
 
 function getForRenderParamNames(segment: SegmentRecord): { itemName: string; indexName: string } {

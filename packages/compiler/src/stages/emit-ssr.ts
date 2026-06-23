@@ -360,9 +360,9 @@ export class SsrEmitter {
     this.usesCtx = true;
     const id = this.next('props');
     this.line(
-      `const ${id} = ${QwikSymbol.RenderSsrProps}(${QwikSymbol.CreateSsrElementTarget}(${elementId}), [], ${emitQrlReference(
+      `const ${id} = ${QwikSymbol.RenderSsrProps}(${QwikSymbol.CreateSsrElementTarget}(${elementId}), ${this.emitCaptureArgs(
         qrlSegment
-      )}, ctx.eventAttr);`
+      )}, ${qrlSegment.qrlVariableName}, ctx.eventAttr);`
     );
     return id;
   }
@@ -440,7 +440,7 @@ export class SsrEmitter {
       this.line(
         `const ${id} = ${QwikSymbol.RenderSsrAttrExpression}(${target}, ${JSON.stringify(
           prop.name
-        )}, [], ${emitQrlReference(qrlSegment)});`
+        )}, ${this.emitCaptureArgs(qrlSegment)}, ${qrlSegment.qrlVariableName});`
       );
       return [` ${prop.name}="`, { code: `${QwikSymbol.EscapeHTML}(${id})` }, '"'];
     }
@@ -502,9 +502,9 @@ export class SsrEmitter {
     this.emitCaptureRoots(qrlSegment);
     const id = this.next('text');
     this.line(
-      `const ${id} = ${QwikSymbol.RenderSsrTextExpression}(${target}, [], ${emitQrlReference(
+      `const ${id} = ${QwikSymbol.RenderSsrTextExpression}(${target}, ${this.emitCaptureArgs(
         qrlSegment
-      )});`
+      )}, ${qrlSegment.qrlVariableName});`
     );
     return [{ code: `${QwikSymbol.EscapeHTML}(${id})` }];
   }
@@ -528,6 +528,10 @@ export class SsrEmitter {
     for (const capture of qrlSegment.segment.captures) {
       this.emitRoot(capture.name);
     }
+  }
+
+  private emitCaptureArgs(qrlSegment: QrlSegmentOutput): string {
+    return `[${qrlSegment.segment.captures.map((capture) => capture.name).join(', ')}]`;
   }
 
   private emitRoot(name: string) {

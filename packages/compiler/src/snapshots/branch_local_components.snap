@@ -80,8 +80,8 @@ export function Hello(_props, ctx) {
   ctx.addRoot(name);
   const text1 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 0),
-    [],
-    q_component_text_segment_1.w([name])
+    [name],
+    q_component_text_segment_1
   );
   return '<p q:id="' + id0 + '">Hello, <!t>' + escapeHTML(text1) + '<!/t>!</p>';
 }
@@ -130,8 +130,8 @@ export function Counter(_props, ctx) {
   ctx.addRoot(count);
   const text1 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 0),
-    [],
-    q_component_text_segment_0.w([count])
+    [count],
+    q_component_text_segment_0
   );
   return '<p q:id="' + id0 + '">Count: <!t>' + escapeHTML(text1) + '</p>';
 }
@@ -264,9 +264,7 @@ null
 */
 ============================= src/component.tsx_component_text_segment_1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_text_segment_1 = () => {
-  const name = _captures[0];
+export const component_text_segment_1 = (name) => {
   return name;
 };
 
@@ -296,9 +294,7 @@ null
 */
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_text_segment_0 = () => {
-  const count = _captures[0];
+export const component_text_segment_0 = (count) => {
   return count;
 };
 
@@ -362,12 +358,13 @@ null
 ============================= src/component.tsx_component_Hello.js (ENTRY POINT)==
 
 import { createTextExpressionEffect } from '@qwik.dev/core/spark';
+const dom_Hello_expr0 = (name) => name;
 export function Hello(_props, ctx) {
   const el0 = ctx.document.createElement('p');
   const text1 = ctx.document.createTextNode('Hello, ');
   el0.appendChild(text1);
   const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextExpressionEffect(text2, [], () => _props.name, {
+  const effect3 = createTextExpressionEffect(text2, [_props.name], dom_Hello_expr0, {
     scheduler: ctx.scheduler,
   });
   ctx.scheduler.notify(effect3);
@@ -403,12 +400,13 @@ null
 ============================= src/component.tsx_component_Counter.js (ENTRY POINT)==
 
 import { createTextExpressionEffect } from '@qwik.dev/core/spark';
+const dom_Counter_expr0 = (count) => count;
 export function Counter(_props, ctx) {
   const el0 = ctx.document.createElement('p');
   const text1 = ctx.document.createTextNode('Count: ');
   el0.appendChild(text1);
   const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextExpressionEffect(text2, [], () => _props.count, {
+  const effect3 = createTextExpressionEffect(text2, [_props.count], dom_Counter_expr0, {
     scheduler: ctx.scheduler,
   });
   ctx.scheduler.notify(effect3);

@@ -44,13 +44,13 @@ export function Child(props, ctx) {
   ctx.addRoot(props);
   const text1 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 0),
-    [],
-    q_component_text_segment_0.w([props])
+    [props],
+    q_component_text_segment_0
   );
   const text2 = renderSsrTextExpression(
     createSsrRangeTextTarget(id0, 1),
-    [],
-    q_component_text_segment_1.w([props])
+    [props],
+    q_component_text_segment_1
   );
   return (
     '<p q:id="' + id0 + '"><!t>' + escapeHTML(text1) + '<!/t>: <!t>' + escapeHTML(text2) + '</p>'
@@ -73,9 +73,7 @@ export async function Parent(_props, ctx) {
 null
 ============================= src/component.tsx_component_text_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_text_segment_0 = () => {
-  const props = _captures[0];
+export const component_text_segment_0 = (props) => {
   return props.label;
 };
 
@@ -105,9 +103,7 @@ null
 */
 ============================= src/component.tsx_component_text_segment_1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_text_segment_1 = () => {
-  const props = _captures[0];
+export const component_text_segment_1 = (props) => {
   return props.count;
 };
 
@@ -144,10 +140,12 @@ null
 
 import { createSignal, createComponent, createTextExpressionEffect } from '@qwik.dev/core/spark';
 
+const dom_Child_expr0 = (props) => props.label;
+const dom_Child_expr1 = (props) => props.count;
 export function Child(props, ctx) {
   const el0 = ctx.document.createElement('p');
   const text1 = ctx.document.createTextNode('');
-  const effect2 = createTextExpressionEffect(text1, [], () => props.label, {
+  const effect2 = createTextExpressionEffect(text1, [props], dom_Child_expr0, {
     scheduler: ctx.scheduler,
   });
   ctx.scheduler.notify(effect2);
@@ -155,7 +153,7 @@ export function Child(props, ctx) {
   const text3 = ctx.document.createTextNode(': ');
   el0.appendChild(text3);
   const text4 = ctx.document.createTextNode('');
-  const effect5 = createTextExpressionEffect(text4, [], () => props.count, {
+  const effect5 = createTextExpressionEffect(text4, [props], dom_Child_expr1, {
     scheduler: ctx.scheduler,
   });
   ctx.scheduler.notify(effect5);

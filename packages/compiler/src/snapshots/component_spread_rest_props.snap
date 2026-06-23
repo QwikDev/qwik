@@ -41,8 +41,8 @@ export function Button(_props, ctx) {
   ctx.addRoot(kind);
   const props1 = renderSsrProps(
     createSsrElementTarget(id0),
-    [],
-    q_component_props_segment_0.w([rest, kind]),
+    [rest, kind],
+    q_component_props_segment_0,
     ctx.eventAttr
   );
   return (
@@ -61,10 +61,7 @@ export async function Parent(_props, ctx) {
 null
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_props_segment_0 = () => {
-  const rest = _captures[0],
-    kind = _captures[1];
+export const component_props_segment_0 = (rest, kind) => {
   return {
     ...rest,
     get ['data-kind']() {
@@ -135,20 +132,18 @@ null
 import { createComponent, mergeProps, createPropsEffect } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_2 } from './component.tsx_component_q_e_click_segment_2';
 
+const dom_Button_expr0 = (rest, kind) => ({
+  ...rest,
+  get ['data-kind']() {
+    return kind;
+  },
+});
 export function Button(_props, ctx) {
   const { kind, ...rest } = _props;
   const el0 = ctx.document.createElement('button');
-  const effect1 = createPropsEffect(
-    el0,
-    [],
-    () => ({
-      ...rest,
-      get ['data-kind']() {
-        return _props.kind;
-      },
-    }),
-    { scheduler: ctx.scheduler }
-  );
+  const effect1 = createPropsEffect(el0, [rest, kind], dom_Button_expr0, {
+    scheduler: ctx.scheduler,
+  });
   ctx.scheduler.notify(effect1);
   const text2 = ctx.document.createTextNode('Click');
   el0.appendChild(text2);
@@ -167,10 +162,7 @@ export function Parent(_props, ctx) {
 null
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_props_segment_0 = () => {
-  const rest = _captures[0],
-    kind = _captures[1];
+export const component_props_segment_0 = (rest, kind) => {
   return {
     ...rest,
     get ['data-kind']() {

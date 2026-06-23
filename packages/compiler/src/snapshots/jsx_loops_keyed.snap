@@ -2,12 +2,14 @@
 
 import { createSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const items = createSignal([{ id: 'a', label: 'Alpha' }]);
+  const items = createSignal([{ id: 'a', label: 'Alpha', selected: true, attrs: { title: 'Alpha' } }]);
   return (
     <ul>
       {items.value.map((row, index) => (
-        <li key={row.id} data-index={index}>
-          {row.label}
+        <li key={row.id} {...row.attrs}>
+          <span data-index={index} className={{ active: row.selected }}>
+            {row.label}
+          </span>
         </li>
       ))}
     </ul>
@@ -26,6 +28,7 @@ import {
   renderSsrTextExpression,
   createSsrElementTarget,
   renderSsrAttrExpression,
+  renderSsrProps,
   renderSsrForBlock,
 } from '@qwik.dev/core/spark';
 import { component_for_key_segment_1 } from './component.tsx_component_for_key_segment_1';
@@ -49,6 +52,8 @@ export async function App(_props, ctx) {
     {
       id: 'a',
       label: 'Alpha',
+      selected: true,
+      attrs: { title: 'Alpha' },
     },
   ]);
   const id0 = ctx.nextId();
@@ -87,8 +92,8 @@ null
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    203,
-    209
+    250,
+    256
   ],
   "paramNames": [
     "row",
@@ -98,8 +103,10 @@ null
 */
 ============================= src/component.tsx_component_for_render_segment_0.js (ENTRY POINT)==
 
-import { component_data_index_segment_2 } from './component.tsx_component_data_index_segment_2';
-import { component_text_segment_3 } from './component.tsx_component_text_segment_3';
+import { component_props_segment_2 } from './component.tsx_component_props_segment_2';
+import { component_data_index_segment_3 } from './component.tsx_component_data_index_segment_3';
+import { component_className_segment_4 } from './component.tsx_component_className_segment_4';
+import { component_text_segment_5 } from './component.tsx_component_text_segment_5';
 import {
   _qrlWithChunk,
   escapeHTML,
@@ -107,41 +114,76 @@ import {
   renderSsrTextExpression,
   createSsrElementTarget,
   renderSsrAttrExpression,
+  renderSsrProps,
 } from '@qwik.dev/core/spark';
-const q_component_data_index_segment_2 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_data_index_segment_2',
-  () => import('./component.tsx_component_data_index_segment_2'),
-  'component_data_index_segment_2'
+const q_component_props_segment_2 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_props_segment_2',
+  () => import('./component.tsx_component_props_segment_2'),
+  'component_props_segment_2'
 );
-q_component_data_index_segment_2.s(component_data_index_segment_2);
-const q_component_text_segment_3 = /* @__PURE__ */ _qrlWithChunk(
-  './component.tsx_component_text_segment_3',
-  () => import('./component.tsx_component_text_segment_3'),
-  'component_text_segment_3'
+q_component_props_segment_2.s(component_props_segment_2);
+const q_component_data_index_segment_3 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_data_index_segment_3',
+  () => import('./component.tsx_component_data_index_segment_3'),
+  'component_data_index_segment_3'
 );
-q_component_text_segment_3.s(component_text_segment_3);
+q_component_data_index_segment_3.s(component_data_index_segment_3);
+const q_component_className_segment_4 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_className_segment_4',
+  () => import('./component.tsx_component_className_segment_4'),
+  'component_className_segment_4'
+);
+q_component_className_segment_4.s(component_className_segment_4);
+const q_component_text_segment_5 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_text_segment_5',
+  () => import('./component.tsx_component_text_segment_5'),
+  'component_text_segment_5'
+);
+q_component_text_segment_5.s(component_text_segment_5);
 export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) => {
   const id0 = ctx.nextId();
-  ctx.addRoot(index);
-  const attr1 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
-    'data-index',
-    [],
-    q_component_data_index_segment_2.w([index])
-  );
   ctx.addRoot(row);
-  const text2 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
-    [],
-    q_component_text_segment_3.w([row])
+  const props1 = renderSsrProps(
+    createSsrElementTarget(id0),
+    [row],
+    q_component_props_segment_2,
+    ctx.eventAttr
+  );
+  const id2 = ctx.nextId();
+  ctx.addRoot(index);
+  const attr3 = renderSsrAttrExpression(
+    createSsrElementTarget(id2),
+    'data-index',
+    [index],
+    q_component_data_index_segment_3
+  );
+  const attr4 = renderSsrAttrExpression(
+    createSsrElementTarget(id2),
+    'class',
+    [row],
+    q_component_className_segment_4
+  );
+  const text5 = renderSsrTextExpression(
+    createSsrElementTextTarget(id2),
+    [row],
+    q_component_text_segment_5
   );
   return (
     '<li q:id="' +
     id0 +
-    '" q:row data-index="' +
-    escapeHTML(attr1) +
-    '">' +
-    escapeHTML(text2) +
+    '" q:row' +
+    props1.attrs +
+    '>' +
+    (props1.innerHTML ??
+      '<span q:id="' +
+        id2 +
+        '" data-index="' +
+        escapeHTML(attr3) +
+        '" class="' +
+        escapeHTML(attr4) +
+        '">' +
+        escapeHTML(text5) +
+        '</span>') +
     '</li>'
   );
 };
@@ -161,8 +203,8 @@ null
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    194,
-    266
+    241,
+    402
   ],
   "paramNames": [
     "row",
@@ -170,11 +212,39 @@ null
   ]
 }
 */
-============================= src/component.tsx_component_data_index_segment_2.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_2.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_data_index_segment_2 = () => {
-  const index = _captures[0];
+export const component_props_segment_2 = (row) => {
+  return { ...row.value.attrs };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_props_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    241,
+    273
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_data_index_segment_3.js (ENTRY POINT)==
+
+export const component_data_index_segment_3 = (index) => {
   return index.value;
 };
 
@@ -182,19 +252,19 @@ null
 /*
 {
   "origin": "component.tsx",
-  "name": "component_data_index_segment_2",
+  "name": "component_data_index_segment_3",
   "entry": null,
-  "displayName": "component_data_index_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_data_index_segment_2",
+  "displayName": "component_data_index_segment_3",
+  "hash": "segment_3",
+  "canonicalFilename": "component.tsx_component_data_index_segment_3",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "data-index",
   "captures": true,
   "loc": [
-    223,
-    228
+    302,
+    307
   ],
   "paramNames": [],
   "captureNames": [
@@ -202,11 +272,39 @@ null
   ]
 }
 */
-============================= src/component.tsx_component_text_segment_3.js (ENTRY POINT)==
+============================= src/component.tsx_component_className_segment_4.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_text_segment_3 = () => {
-  const row = _captures[0];
+export const component_className_segment_4 = (row) => {
+  return { active: row.value.selected };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_className_segment_4",
+  "entry": null,
+  "displayName": "component_className_segment_4",
+  "hash": "segment_4",
+  "canonicalFilename": "component.tsx_component_className_segment_4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "className",
+  "captures": true,
+  "loc": [
+    320,
+    344
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_5.js (ENTRY POINT)==
+
+export const component_text_segment_5 = (row) => {
   return row.value.label;
 };
 
@@ -214,19 +312,19 @@ null
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_3",
+  "name": "component_text_segment_5",
   "entry": null,
-  "displayName": "component_text_segment_3",
-  "hash": "segment_3",
-  "canonicalFilename": "component.tsx_component_text_segment_3",
+  "displayName": "component_text_segment_5",
+  "hash": "segment_5",
+  "canonicalFilename": "component.tsx_component_text_segment_5",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "text",
   "captures": true,
   "loc": [
-    242,
-    251
+    360,
+    369
   ],
   "paramNames": [],
   "captureNames": [
@@ -250,6 +348,8 @@ export function App(_props, ctx) {
     {
       id: 'a',
       label: 'Alpha',
+      selected: true,
+      attrs: { title: 'Alpha' },
     },
   ]);
   const el0 = ctx.document.createElement('ul');
@@ -294,8 +394,8 @@ null
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    203,
-    209
+    250,
+    256
   ],
   "paramNames": [
     "row",
@@ -305,19 +405,45 @@ null
 */
 ============================= src/component.tsx_component_for_render_segment_0.js (ENTRY POINT)==
 
-import { createAttrExpressionEffect, createTextExpressionEffect } from '@qwik.dev/core/spark';
+import {
+  createPropsEffect,
+  createAttrExpressionEffect,
+  createTextExpressionEffect,
+} from '@qwik.dev/core/spark';
+const component_for_render_segment_0_expr0 = (row) => ({ ...row.value.attrs });
+const component_for_render_segment_0_expr1 = (index) => index.value;
+const component_for_render_segment_0_expr2 = (row) => ({ active: row.value.selected });
+const component_for_render_segment_0_expr3 = (row) => row.value.label;
 export const component_for_render_segment_0 = (ctx, row, index) => {
   const el0 = ctx.document.createElement('li');
-  const effect1 = createAttrExpressionEffect(el0, 'data-index', [], () => index.value, {
+  const effect1 = createPropsEffect(el0, [row], component_for_render_segment_0_expr0, {
     scheduler: ctx.scheduler,
   });
   effect1.run();
-  const text2 = ctx.document.createTextNode('');
-  const effect3 = createTextExpressionEffect(text2, [], () => row.value.label, {
+  const el2 = ctx.document.createElement('span');
+  const effect3 = createAttrExpressionEffect(
+    el2,
+    'data-index',
+    [index],
+    component_for_render_segment_0_expr1,
+    { scheduler: ctx.scheduler }
+  );
+  effect3.run();
+  const effect4 = createAttrExpressionEffect(
+    el2,
+    'class',
+    [row],
+    component_for_render_segment_0_expr2,
+    { scheduler: ctx.scheduler }
+  );
+  effect4.run();
+  const text5 = ctx.document.createTextNode('');
+  const effect6 = createTextExpressionEffect(text5, [row], component_for_render_segment_0_expr3, {
     scheduler: ctx.scheduler,
   });
-  effect3.run();
-  el0.appendChild(text2);
+  effect6.run();
+  el2.appendChild(text5);
+  el0.appendChild(el2);
   return [el0];
 };
 
@@ -336,8 +462,8 @@ null
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    194,
-    266
+    241,
+    402
   ],
   "paramNames": [
     "row",
@@ -345,10 +471,40 @@ null
   ]
 }
 */
-============================= src/component.tsx_component_data_index_segment_2.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_2.js (ENTRY POINT)==
+
+export const component_props_segment_2 = (row) => {
+  return { ...row.value.attrs };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_props_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    241,
+    273
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_data_index_segment_3.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';
-export const component_data_index_segment_2 = () => {
+export const component_data_index_segment_3 = () => {
   const index = _captures[0];
   return index.value;
 };
@@ -357,19 +513,19 @@ null
 /*
 {
   "origin": "component.tsx",
-  "name": "component_data_index_segment_2",
+  "name": "component_data_index_segment_3",
   "entry": null,
-  "displayName": "component_data_index_segment_2",
-  "hash": "segment_2",
-  "canonicalFilename": "component.tsx_component_data_index_segment_2",
+  "displayName": "component_data_index_segment_3",
+  "hash": "segment_3",
+  "canonicalFilename": "component.tsx_component_data_index_segment_3",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "data-index",
   "captures": true,
   "loc": [
-    223,
-    228
+    302,
+    307
   ],
   "paramNames": [],
   "captureNames": [
@@ -377,10 +533,42 @@ null
   ]
 }
 */
-============================= src/component.tsx_component_text_segment_3.js (ENTRY POINT)==
+============================= src/component.tsx_component_className_segment_4.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core/spark';
-export const component_text_segment_3 = () => {
+export const component_className_segment_4 = () => {
+  const row = _captures[0];
+  return { active: row.value.selected };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_className_segment_4",
+  "entry": null,
+  "displayName": "component_className_segment_4",
+  "hash": "segment_4",
+  "canonicalFilename": "component.tsx_component_className_segment_4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "className",
+  "captures": true,
+  "loc": [
+    320,
+    344
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_5.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_text_segment_5 = () => {
   const row = _captures[0];
   return row.value.label;
 };
@@ -389,19 +577,19 @@ null
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_3",
+  "name": "component_text_segment_5",
   "entry": null,
-  "displayName": "component_text_segment_3",
-  "hash": "segment_3",
-  "canonicalFilename": "component.tsx_component_text_segment_3",
+  "displayName": "component_text_segment_5",
+  "hash": "segment_5",
+  "canonicalFilename": "component.tsx_component_text_segment_5",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "text",
   "captures": true,
   "loc": [
-    242,
-    251
+    360,
+    369
   ],
   "paramNames": [],
   "captureNames": [

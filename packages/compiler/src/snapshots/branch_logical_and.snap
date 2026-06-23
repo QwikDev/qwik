@@ -4,7 +4,8 @@ import { createSignal } from '@qwik.dev/core/spark';
 export function App() {
   const visible = createSignal(true);
   const label = createSignal('ready');
-  return <div>{visible.value && <span title={label.value}>{label.value}</span>}</div>;
+  const attrs = createSignal({ role: 'status' });
+  return <div>{visible.value && <span {...attrs.value} title={`label ${label.value}`}>{label.value + '!'}</span>}</div>;
 }
 
 == SSR OUTPUT ==
@@ -16,11 +17,9 @@ import {
   _qrlWithChunk,
   escapeHTML,
   renderSsrTextNode,
-  createSsrElementTextTarget,
+  createSsrRangeTextTarget,
   createSsrElementTarget,
-  renderSsrAttr,
-  renderSsrClass,
-  renderSsrStyle,
+  renderSsrProps,
   renderSsrBranch,
 } from '@qwik.dev/core/spark';
 import { component_branch_condition_segment_0 } from './component.tsx_component_branch_condition_segment_0';
@@ -40,14 +39,16 @@ const q_component_branch_then_segment_1 = /*#__PURE__*/ _qrlWithChunk(
 export async function App(_props, ctx) {
   const visible = createSignal(true);
   const label = createSignal('ready');
+  const attrs = createSignal({ role: 'status' });
   const id0 = ctx.nextId();
   ctx.addRoot(visible);
+  ctx.addRoot(attrs);
   ctx.addRoot(label);
   const branch1 = renderSsrBranch(
     ctx,
     id0,
     q_component_branch_condition_segment_0.w([visible]),
-    q_component_branch_then_segment_1.w([label]),
+    q_component_branch_then_segment_1.w([attrs, label]),
     undefined
   );
   return '<div><!b=' + id0 + '>' + (await branch1) + '<!/b></div>';
@@ -77,8 +78,8 @@ null
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    166,
-    179
+    215,
+    228
   ],
   "paramNames": [],
   "captureNames": [
@@ -88,22 +89,43 @@ null
 */
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
+import { component_props_segment_2 } from './component.tsx_component_props_segment_2';
 import {
   _captures,
+  _qrlWithChunk,
   escapeHTML,
   renderSsrTextNode,
-  createSsrElementTextTarget,
+  createSsrRangeTextTarget,
   createSsrElementTarget,
-  renderSsrAttr,
+  renderSsrProps,
 } from '@qwik.dev/core/spark';
+const q_component_props_segment_2 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_props_segment_2',
+  () => import('./component.tsx_component_props_segment_2'),
+  'component_props_segment_2'
+);
+q_component_props_segment_2.s(component_props_segment_2);
 export const component_branch_then_segment_1 = (ctx) => {
-  const label = _captures[0];
+  const attrs = _captures[0],
+    label = _captures[1];
   const id0 = ctx.nextId();
+  ctx.addRoot(attrs);
   ctx.addRoot(label);
-  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'title', label);
-  const text2 = renderSsrTextNode(createSsrElementTextTarget(id0), label);
+  const props1 = renderSsrProps(
+    createSsrElementTarget(id0),
+    [attrs, label],
+    q_component_props_segment_2,
+    ctx.eventAttr
+  );
+  const text2 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), label);
   return (
-    '<span q:id="' + id0 + '" title="' + escapeHTML(attr1) + '">' + escapeHTML(text2) + '</span>'
+    '<span q:id="' +
+    id0 +
+    '"' +
+    props1.attrs +
+    '>' +
+    (props1.innerHTML ?? '<!t>' + escapeHTML(text2) + '<!/t>!') +
+    '</span>'
   );
 };
 
@@ -122,11 +144,48 @@ null
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    183,
-    229
+    232,
+    312
   ],
   "paramNames": [],
   "captureNames": [
+    "attrs",
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_2.js (ENTRY POINT)==
+
+export const component_props_segment_2 = (attrs, label) => {
+  return {
+    ...attrs.value,
+    get title() {
+      return `label ${label.value}`;
+    },
+  };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_props_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    232,
+    286
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "attrs",
     "label"
   ]
 }
@@ -145,6 +204,7 @@ import { component_branch_then_segment_1 } from './component.tsx_component_branc
 export function App(_props, ctx) {
   const visible = createSignal(true);
   const label = createSignal('ready');
+  const attrs = createSignal({ role: 'status' });
   const el0 = ctx.document.createElement('div');
   const fragment1 = ctx.document.createDocumentFragment();
   const comment2 = ctx.document.createComment('b');
@@ -155,7 +215,7 @@ export function App(_props, ctx) {
     ctx,
     new BranchRange(ctx.document, comment2, comment3),
     _withCaptures(component_branch_condition_segment_0, [visible]),
-    _withCaptures(component_branch_then_segment_1, [label]),
+    _withCaptures(component_branch_then_segment_1, [attrs, label]),
     undefined
   );
   ctx.scheduler.notify(branch4);
@@ -187,8 +247,8 @@ null
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    166,
-    179
+    215,
+    228
   ],
   "paramNames": [],
   "captureNames": [
@@ -198,16 +258,27 @@ null
 */
 ============================= src/component.tsx_component_branch_then_segment_1.js (ENTRY POINT)==
 
-import { createAttrEffect, createTextNodeEffect, _captures } from '@qwik.dev/core/spark';
+import { createPropsEffect, createTextNodeEffect, _captures } from '@qwik.dev/core/spark';
+const component_branch_then_segment_1_expr0 = (attrs, label) => ({
+  ...attrs.value,
+  get title() {
+    return `label ${label.value}`;
+  },
+});
 export const component_branch_then_segment_1 = (ctx) => {
-  const label = _captures[0];
+  const attrs = _captures[0],
+    label = _captures[1];
   const el0 = ctx.document.createElement('span');
-  const effect1 = createAttrEffect(el0, 'title', label, { scheduler: ctx.scheduler });
+  const effect1 = createPropsEffect(el0, [attrs, label], component_branch_then_segment_1_expr0, {
+    scheduler: ctx.scheduler,
+  });
   ctx.scheduler.notify(effect1);
   const text2 = ctx.document.createTextNode('');
   const effect3 = createTextNodeEffect(text2, label, { scheduler: ctx.scheduler });
   ctx.scheduler.notify(effect3);
   el0.appendChild(text2);
+  const text4 = ctx.document.createTextNode('!');
+  el0.appendChild(text4);
   return [el0];
 };
 
@@ -226,11 +297,48 @@ null
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    183,
-    229
+    232,
+    312
   ],
   "paramNames": [],
   "captureNames": [
+    "attrs",
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_2.js (ENTRY POINT)==
+
+export const component_props_segment_2 = (attrs, label) => {
+  return {
+    ...attrs.value,
+    get title() {
+      return `label ${label.value}`;
+    },
+  };
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "segment_2",
+  "canonicalFilename": "component.tsx_component_props_segment_2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    232,
+    286
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "attrs",
     "label"
   ]
 }

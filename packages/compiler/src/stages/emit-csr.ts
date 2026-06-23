@@ -2,6 +2,7 @@ import type {
   ComponentPropRecord,
   ComponentRecord,
   BranchNode,
+  CaptureRecord,
   ForNode,
   ImportRecord,
   PropRecord,
@@ -29,6 +30,7 @@ export interface DomOutput {
 interface DomEmitterOptions {
   branchCondition?: 'qrl' | 'inline';
   domEffectMode?: 'notify' | 'run';
+  helperPrefix?: string;
   importSegment?: (qrlSegment: QrlSegmentOutput) => void;
   use?: (symbol: QwikSymbol) => void;
   loopCaptures?: readonly { name: string; source: string }[];
@@ -61,19 +63,19 @@ function emitCsrComponent(
   segments: readonly SegmentRecord[],
   sourceCode: string
 ) {
-  const body = emitDomRenderer(component, qrlSegments, segments, sourceCode);
+  const { body, hoists } = emitDomRenderer(component, qrlSegments, segments, sourceCode);
   const propsParam = getComponentPropsParam(component);
   if (component.declarationKind === 'function') {
-    return `export function ${component.exportName}(${propsParam}, ctx) {\n${body}\n}`;
+    return `${hoists}export function ${component.exportName}(${propsParam}, ctx) {\n${body}\n}`;
   }
   if (component.declarationKind === 'const') {
-    return `export const ${component.exportName} = (${propsParam}, ctx) => {\n${body}\n};`;
+    return `${hoists}export const ${component.exportName} = (${propsParam}, ctx) => {\n${body}\n};`;
   }
   if (component.declarationKind === 'defaultFunction') {
     const name = component.localName ? ` ${component.localName}` : '';
-    return `export default function${name}(${propsParam}, ctx) {\n${body}\n}`;
+    return `${hoists}export default function${name}(${propsParam}, ctx) {\n${body}\n}`;
   }
-  return `export default (${propsParam}, ctx) => {\n${body}\n};`;
+  return `${hoists}export default (${propsParam}, ctx) => {\n${body}\n};`;
 }
 
 function getComponentPropsParam(component: ComponentRecord): string {
@@ -86,7 +88,12 @@ function emitDomRenderer(
   segments: readonly SegmentRecord[],
   sourceCode: string
 ) {
-  const emitter = new DomEmitter(qrlSegments, sourceCode, {}, component);
+  const emitter = new DomEmitter(
+    qrlSegments,
+    sourceCode,
+    { helperPrefix: createHelperPrefix(component.exportName) },
+    component
+  );
   const root = component.root!;
   emitter.raw(emitComponentParamSetup(component, sourceCode, { omitRewrittenProps: true }));
   emitter.raw(
@@ -101,12 +108,16 @@ function emitDomRenderer(
   );
   const roots = emitter.emitRoot(root);
   emitter.line(`return [${emitReturnItems(roots).join(', ')}];`);
-  return emitter.toString();
+  return { body: emitter.toString(), hoists: emitter.emitHoists() };
 }
 
 export class DomEmitter {
   private counter = 0;
+  private helperCounter = 0;
   private readonly lines: string[] = [];
+  private readonly hoists: string[] = [];
+  private readonly helperBySegment = new Map<string, string>();
+  private readonly moduleImportNames = new Set<string>();
 
   constructor(
     private qrlSegments: Map<string, QrlSegmentOutput>,
@@ -141,10 +152,13 @@ export class DomEmitter {
           `const ${effectId} = ${QwikSymbol.CreateTextNodeEffect}(${id}, ${node.binding.sourceName}, { scheduler: ctx.scheduler });`
         );
       } else {
-        const expression = this.emitExpression(node.expressionRange);
+        const callback = this.emitDomExpressionCallback(
+          node.binding.qrlSegmentId,
+          this.emitSourceExpression(node.expressionRange)
+        );
         this.use(QwikSymbol.CreateTextExpressionEffect);
         this.line(
-          `const ${effectId} = ${QwikSymbol.CreateTextExpressionEffect}(${id}, [], () => ${expression}, { scheduler: ctx.scheduler });`
+          `const ${effectId} = ${QwikSymbol.CreateTextExpressionEffect}(${id}, ${callback.args}, ${callback.fn}, { scheduler: ctx.scheduler });`
         );
       }
       this.emitInitialDomEffect(effectId);
@@ -156,9 +170,12 @@ export class DomEmitter {
       if (hasDomProps(node.props)) {
         const effectId = this.next('effect');
         this.use(QwikSymbol.CreatePropsEffect);
-        const propsExpression = this.emitDomPropsExpression(node.props);
+        const propsExpression = this.emitDomPropsExpression(node.props, true);
+        const callback = node.propsSegmentId
+          ? this.emitDomExpressionCallback(node.propsSegmentId, `(${propsExpression})`)
+          : { args: '[]', fn: `() => (${this.emitDomPropsExpression(node.props)})` };
         this.line(
-          `const ${effectId} = ${QwikSymbol.CreatePropsEffect}(${id}, [], () => (${propsExpression}), { scheduler: ctx.scheduler });`
+          `const ${effectId} = ${QwikSymbol.CreatePropsEffect}(${id}, ${callback.args}, ${callback.fn}, { scheduler: ctx.scheduler });`
         );
         this.emitInitialDomEffect(effectId);
       } else {
@@ -280,17 +297,20 @@ export class DomEmitter {
     return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
   }
 
-  private emitDomPropsExpression(props: PropRecord[]): string {
+  private emitDomPropsExpression(props: PropRecord[], useCaptureParams = false): string {
     const entries = props.map((prop) => {
       if (prop.kind === 'spread') {
-        return `...(${this.emitExpression(prop.expressionRange)})`;
+        return `...(${this.emitDomEffectExpression(prop.expressionRange, useCaptureParams)})`;
       }
-      return this.emitDomPropEntry(prop);
+      return this.emitDomPropEntry(prop, useCaptureParams);
     });
     return entries.length === 0 ? '{}' : `{ ${entries.join(', ')} }`;
   }
 
-  private emitDomPropEntry(prop: Extract<PropRecord, { kind: 'named' }>): string {
+  private emitDomPropEntry(
+    prop: Extract<PropRecord, { kind: 'named' }>,
+    useCaptureParams = false
+  ): string {
     if (prop.qrlSegmentId) {
       const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
       if (qrlSegment) {
@@ -299,7 +319,7 @@ export class DomEmitter {
       }
     }
     if (prop.expressionRange !== undefined) {
-      const value = this.emitExpression(prop.expressionRange);
+      const value = this.emitDomEffectExpression(prop.expressionRange, useCaptureParams);
       return `get ${emitObjectGetterName(prop.name)}() { return ${value}; }`;
     }
     return `${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`;
@@ -424,10 +444,14 @@ export class DomEmitter {
     }
     const binding = prop.binding!;
     if (binding.kind === 'expression') {
+      const callback = this.emitDomExpressionCallback(
+        binding.qrlSegmentId,
+        this.emitSourceExpression(binding.expressionRange)
+      );
       this.use(QwikSymbol.CreateAttrExpressionEffect);
       return `const ${effectId} = ${QwikSymbol.CreateAttrExpressionEffect}(${elementId}, ${JSON.stringify(
         prop.name
-      )}, [], () => (${this.emitExpression(binding.expressionRange)}), { scheduler: ctx.scheduler });`;
+      )}, ${callback.args}, ${callback.fn}, { scheduler: ctx.scheduler });`;
     }
     const sourceName = binding.sourceName;
     if (prop.name === 'class') {
@@ -474,10 +498,71 @@ export class DomEmitter {
     return this.lines.join('\n');
   }
 
+  emitHoists() {
+    return this.hoists.length > 0 ? `${this.hoists.join('\n')}\n` : '';
+  }
+
+  getModuleImportNames(): string[] {
+    return [...this.moduleImportNames];
+  }
+
   private next(prefix: string) {
     const id = `${prefix}${this.counter}`;
     this.counter++;
     return id;
+  }
+
+  private nextHelper() {
+    const prefix = this.options.helperPrefix ?? 'dom';
+    const id = `${prefix}_expr${this.helperCounter}`;
+    this.helperCounter++;
+    return id;
+  }
+
+  private emitDomExpressionCallback(
+    segmentId: string,
+    expression: string
+  ): { args: string; fn: string } {
+    const qrlSegment = this.qrlSegments.get(segmentId);
+    if (!qrlSegment) {
+      return { args: '[]', fn: `() => (${expression})` };
+    }
+    let fn = this.helperBySegment.get(segmentId);
+    if (!fn) {
+      fn = this.nextHelper();
+      this.helperBySegment.set(segmentId, fn);
+      for (const moduleImport of qrlSegment.segment.moduleImports) {
+        this.moduleImportNames.add(moduleImport.name);
+      }
+      const params = qrlSegment.segment.captures.map((capture) => capture.name).join(', ');
+      this.hoists.push(`const ${fn} = (${params}) => (${expression});`);
+    }
+    return {
+      args: `[${qrlSegment.segment.captures.map((capture) => this.emitCaptureArg(capture)).join(', ')}]`,
+      fn,
+    };
+  }
+
+  private emitCaptureArg(capture: CaptureRecord): string {
+    const param = this.component?.params[0];
+    if (param?.canRewriteProps) {
+      const alias = param.propAliases.find((prop) => prop.localName === capture.name);
+      if (alias) {
+        return `_props.${alias.propName}`;
+      }
+    }
+    return capture.name;
+  }
+
+  private emitDomEffectExpression(range: [number, number], useCaptureParams: boolean): string {
+    return useCaptureParams ? this.emitSourceExpression(range) : this.emitExpression(range);
+  }
+
+  private emitSourceExpression(range: [number, number]) {
+    return rewriteLoopCaptures(
+      this.sourceCode.slice(range[0], range[1]),
+      this.options.loopCaptures ?? []
+    );
   }
 
   private emitExpression(range: [number, number]) {
@@ -486,6 +571,10 @@ export class DomEmitter {
       this.options.loopCaptures ?? []
     );
   }
+}
+
+function createHelperPrefix(name: string): string {
+  return `dom_${name.replace(/[^A-Za-z0-9_$]/g, '_')}`;
 }
 
 export function emitReturnItems(outputs: readonly DomOutput[]): string[] {

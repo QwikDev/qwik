@@ -363,7 +363,8 @@ export function App() {
 export function App() {
   const visible = createSignal(true);
   const label = createSignal('ready');
-  return <div>{visible.value && <span title={label.value}>{label.value}</span>}</div>;
+  const attrs = createSignal({ role: 'status' });
+  return <div>{visible.value && <span {...attrs.value} title={\`label \${label.value}\`}>{label.value + '!'}</span>}</div>;
 }
 `,
     });
@@ -404,12 +405,14 @@ export function App() {
     await testInput('jsx_loops_keyed', {
       code: `import { createSignal } from '@qwik.dev/core/spark';
 export function App() {
-  const items = createSignal([{ id: 'a', label: 'Alpha' }]);
+  const items = createSignal([{ id: 'a', label: 'Alpha', selected: true, attrs: { title: 'Alpha' } }]);
   return (
     <ul>
       {items.value.map((row, index) => (
-        <li key={row.id} data-index={index}>
-          {row.label}
+        <li key={row.id} {...row.attrs}>
+          <span data-index={index} className={{ active: row.selected }}>
+            {row.label}
+          </span>
         </li>
       ))}
     </ul>

@@ -42,8 +42,8 @@ export function App(_props, ctx) {
   ctx.addRoot(title);
   const props1 = renderSsrProps(
     createSsrElementTarget(id0),
-    [],
-    q_component_props_segment_0.w([attrs, title]),
+    [attrs, title],
+    q_component_props_segment_0,
     ctx.eventAttr
   );
   return '<div q:id="' + id0 + '"' + props1.attrs + '>' + (props1.innerHTML ?? 'Child') + '</div>';
@@ -52,10 +52,7 @@ export function App(_props, ctx) {
 null
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_props_segment_0 = () => {
-  const attrs = _captures[0],
-    title = _captures[1];
+export const component_props_segment_0 = (attrs, title) => {
   return {
     ...attrs.value,
     get title() {
@@ -99,6 +96,13 @@ null
 
 import { createSignal, createPropsEffect } from '@qwik.dev/core/spark';
 
+const dom_App_expr0 = (attrs, title) => ({
+  ...attrs.value,
+  get title() {
+    return title.value;
+  },
+  'data-id': 'static',
+});
 export function App(_props, ctx) {
   const attrs = createSignal({
     title: 'from-spread',
@@ -107,18 +111,9 @@ export function App(_props, ctx) {
   });
   const title = createSignal('final');
   const el0 = ctx.document.createElement('div');
-  const effect1 = createPropsEffect(
-    el0,
-    [],
-    () => ({
-      ...attrs.value,
-      get title() {
-        return title.value;
-      },
-      'data-id': 'static',
-    }),
-    { scheduler: ctx.scheduler }
-  );
+  const effect1 = createPropsEffect(el0, [attrs, title], dom_App_expr0, {
+    scheduler: ctx.scheduler,
+  });
   ctx.scheduler.notify(effect1);
   const text2 = ctx.document.createTextNode('Child');
   el0.appendChild(text2);
@@ -128,10 +123,7 @@ export function App(_props, ctx) {
 null
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core/spark';
-export const component_props_segment_0 = () => {
-  const attrs = _captures[0],
-    title = _captures[1];
+export const component_props_segment_0 = (attrs, title) => {
   return {
     ...attrs.value,
     get title() {

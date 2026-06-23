@@ -220,6 +220,9 @@ export interface FormSubmitSuccessDetail<T> {
     value: T;
 }
 
+// @public (undocumented)
+export const getRequestEvent: () => RequestEvent | undefined;
+
 // Warning: (ae-forgotten-export) The symbol "ValibotDataValidator" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ZodDataValidator" needs to be exported by the entry point index.d.ts
 //

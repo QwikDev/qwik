@@ -63,7 +63,12 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
 
-/** @internal */
+/** @public */
+export const getRequestEvent = (): RequestEvent | undefined => {
+  return _asyncRequestStore?.getStore() as RequestEvent | undefined;
+};
+
+/** @public */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
   ...rest: (ActionOptions | DataValidator)[]

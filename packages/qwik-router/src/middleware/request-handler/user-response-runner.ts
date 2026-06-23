@@ -54,6 +54,9 @@ interface UserResponseDeps<TRequestEventInternal extends RequestEventInternalLik
   getErrorHtml: (status: number, message: unknown) => string;
 }
 
+const ensureError = (e: unknown) =>
+  e instanceof Error || (typeof e === 'object' && e !== null) ? e : new Error(String(e));
+
 export function runQwikRouterWithDeps<T, TRequestEventInternal extends RequestEventInternalLike>(
   serverRequestEv: ServerRequestEvent<T>,
   loadedRoute: LoadedRoute,
@@ -64,28 +67,38 @@ export function runQwikRouterWithDeps<T, TRequestEventInternal extends RequestEv
 ): QwikRouterRun<T> {
   let resolve: (value: T | null) => void;
   const responsePromise = new Promise<T | null>((r) => (resolve = r));
-  const requestEv = deps.createRequestEvent(
-    serverRequestEv,
-    loadedRoute,
-    requestHandlers,
-    basePathname,
-    resolve!
-  );
+  try {
+    const requestEv = deps.createRequestEvent(
+      serverRequestEv,
+      loadedRoute,
+      requestHandlers,
+      basePathname,
+      resolve!
+    );
 
-  return {
-    response: responsePromise,
-    requestEv,
-    completion: deps.asyncRequestStore
-      ? deps.asyncRequestStore.run(
-          requestEv,
-          runNextWithDeps,
-          requestEv,
-          rebuildRouteInfo,
-          resolve!,
-          deps
-        )
-      : runNextWithDeps(requestEv, rebuildRouteInfo, resolve!, deps),
-  };
+    return {
+      response: responsePromise,
+      requestEv,
+      completion: deps.asyncRequestStore
+        ? deps.asyncRequestStore.run(
+            requestEv,
+            runNextWithDeps,
+            requestEv,
+            rebuildRouteInfo,
+            resolve!,
+            deps
+          )
+        : runNextWithDeps(requestEv, rebuildRouteInfo, resolve!, deps),
+    };
+  } catch (e) {
+    // Sync error
+    resolve!(null);
+    return {
+      response: responsePromise,
+      requestEv: { headersSent: false } as RequestEvent,
+      completion: Promise.resolve(ensureError(e)),
+    };
+  }
 }
 
 async function runNextWithDeps<TRequestEventInternal extends RequestEventInternalLike>(

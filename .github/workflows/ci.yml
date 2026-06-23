@@ -82,7 +82,7 @@ jobs:
         run: echo event_name=${{ github.event_name }}
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set Dist Tag
         id: set_dist_tag
@@ -248,13 +248,13 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         if: needs.changes.outputs.build-qwik == 'true'
       - name: Setup Node
         if: needs.changes.outputs.build-qwik == 'true'
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
@@ -274,7 +274,7 @@ jobs:
         if: |
           needs.changes.outputs.build-qwik == 'true' &&
           needs.changes.outputs.build-rust == 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: artifact-optimizer
           path: packages/optimizer/
@@ -311,7 +311,7 @@ jobs:
           path: packages/qwik/dist
 
       - name: Upload Qwik artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: artifact-qwik
           include-hidden-files: true
@@ -342,16 +342,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1
         with:
           components: clippy,rustfmt
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
@@ -389,7 +389,7 @@ jobs:
         run: ls -lR packages/optimizer/bindings/
 
       - name: Upload Platform Binding Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: artifact-bindings-${{ matrix.settings.target }}
           include-hidden-files: true
@@ -413,7 +413,7 @@ jobs:
         run: exit 1
 
       - name: Restore artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 
       - name: Move Rust Artifacts
         if: needs.changes.outputs.build-rust == 'true'
@@ -437,7 +437,7 @@ jobs:
           path: packages/optimizer/
 
       - name: Upload optimizer artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: artifact-optimizer
           include-hidden-files: true
@@ -475,26 +475,26 @@ jobs:
 
       - name: Checkout
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         if: needs.changes.outputs.build-others == 'true'
       - name: Setup Node
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Restore Qwik artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: artifact-qwik
           path: packages/qwik/dist/
 
       - name: Restore Optimizer artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: artifact-optimizer
           path: packages/optimizer/
@@ -532,7 +532,7 @@ jobs:
         run: tree -a packages/qwik-router/lib/
 
       - name: Upload QwikRouter Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: artifact-qwikrouter
           include-hidden-files: true
@@ -543,7 +543,7 @@ jobs:
         run: tree -a packages/qwik-react/lib/
 
       - name: Upload qwik-react Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: artifact-qwikreact
           include-hidden-files: true
@@ -555,7 +555,7 @@ jobs:
         run: tree -a packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: artifact-create-qwik
           include-hidden-files: true
@@ -566,7 +566,7 @@ jobs:
         run: tree -a packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: artifact-eslint-plugin-qwik
           include-hidden-files: true
@@ -592,18 +592,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -639,18 +639,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -660,7 +660,7 @@ jobs:
         run: pnpm build --tsc-docs && pnpm run build.packages.docs && echo ok > docs-build-completed.txt
 
       - name: Save Docs Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: artifact-docs
           include-hidden-files: true
@@ -696,18 +696,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -727,7 +727,7 @@ jobs:
           path: docs-e2e-tests-completed.txt
 
       - name: Upload Playwright Trace
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: docs-playwright-report
@@ -759,18 +759,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -830,18 +830,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -921,18 +921,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.CI_NODE_VERSION_E2E }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -946,7 +946,7 @@ jobs:
         run: pnpm run test.e2e.${{ matrix.settings.browser }}
 
       - name: Upload Playwright Trace
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure() # only when tests fail
         with:
           name: playwright-report
@@ -1016,18 +1016,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.CI_NODE_VERSION_E2E }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -1036,13 +1036,13 @@ jobs:
 
       - name: Setup Bun
         if: matrix.settings.runtime == 'bun'
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: latest
 
       - name: Setup Deno
         if: matrix.settings.runtime == 'deno'
-        uses: denoland/setup-deno@v2
+        uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2
         with:
           deno-version: v2.x
 
@@ -1117,11 +1117,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
@@ -1195,18 +1195,18 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -1218,7 +1218,7 @@ jobs:
       - name: Create Release Pull Request or Publish to npm
         if: github.ref == 'refs/heads/build/v2'
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1
         with:
           publish: pnpm release
           title: V2 Version Packages
@@ -1238,12 +1238,6 @@ jobs:
 
       - name: Fixup package.json files
         run: pnpm run release.fixup-package-json
-
-      - name: Commit Build Artifacts
-        if: github.event_name == 'push'
-        env:
-          QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
-        run: pnpm run qwik-push-build-repos
 
   ############ PKG.PR.NEW (decoupled from tests) ############
   release-pkg-pr-new:
@@ -1271,18 +1265,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 
       - name: Move Distribution Artifacts
         run: pnpm ci.restore-artifacts
@@ -1297,24 +1291,6 @@ jobs:
         run: pnpm release.pkg-pr-new
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  ############ TRIGGER QWIKKROUTER E2E TEST ############
-  trigger-qwikrouter-e2e:
-    name: Trigger Qwik Router E2E
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/upcoming'
-
-    needs:
-      - changes
-      - release
-
-    steps:
-      - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
-          repository: QwikDev/qwik-city-e2e
-          event-type: main-updated
 
   ############ Everything is fine ############
   requirements-passed:

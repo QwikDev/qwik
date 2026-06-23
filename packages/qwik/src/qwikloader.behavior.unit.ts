@@ -303,34 +303,6 @@ describe('qwikloader behavior', () => {
     expect(logs).toEqual(['child bubble']);
   });
 
-  test('a deferred (importing) handler that stops propagation skips a later deferred ancestor', async () => {
-    const { doc } = createLoaderEnvironment(['e:click']);
-    const logs: string[] = [];
-    const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
-    // Both handlers are deferred, so stopPropagation lands only after the import resolves — the ancestor must still be skipped.
-    const childModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
-      'export const handler = (ev) => { ev.stopPropagation(); globalThis.__qwikLoaderStopLogs.push("child stop"); };'
-    )}`;
-    const parentModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
-      'export const handler = () => globalThis.__qwikLoaderStopLogs.push("parent bubble");'
-    )}`;
-    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
-    const parent = createMockElement(container, { 'q-e:click': `${parentModule}#handler#` });
-    const child = createMockElement(parent, { 'q-e:click': `${childModule}#handler#` });
-
-    (globalThis as any).__qwikLoaderStopLogs = logs;
-    try {
-      getSingleListener(doc, 'click').handler(createMockEvent(child));
-      await vi.waitFor(() => {
-        expect(logs).toContain('child stop');
-      });
-      await flushQueuedTasks();
-      expect(logs).toEqual(['child stop']);
-    } finally {
-      (globalThis as any).__qwikLoaderStopLogs = previousLogs;
-    }
-  });
-
   test('a deferred (importing) handler that does not stop still runs the deferred ancestor', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];
@@ -351,37 +323,6 @@ describe('qwikloader behavior', () => {
       await vi.waitFor(() => {
         expect(logs).toEqual(['child run', 'parent bubble']);
       });
-    } finally {
-      (globalThis as any).__qwikLoaderStopLogs = previousLogs;
-    }
-  });
-
-  test('a deferred (importing) capture handler that stops propagation skips a later deferred bubble handler', async () => {
-    const { doc } = createLoaderEnvironment(['e:click']);
-    const logs: string[] = [];
-    const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
-    // Both handlers are deferred, so the capturer's stopPropagation lands only after its import resolves — the later bubble handler must still be skipped.
-    const captureModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
-      'export const handler = (ev) => { ev.stopPropagation(); globalThis.__qwikLoaderStopLogs.push("capturer stop"); };'
-    )}`;
-    const bubbleModule = `data:text/javascript;charset=utf-8,${encodeURIComponent(
-      'export const handler = () => globalThis.__qwikLoaderStopLogs.push("target bubble");'
-    )}`;
-    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
-    const capturer = createMockElement(container, {
-      'capture:click': true,
-      'q-e:click': `${captureModule}#handler#`,
-    });
-    const target = createMockElement(capturer, { 'q-e:click': `${bubbleModule}#handler#` });
-
-    (globalThis as any).__qwikLoaderStopLogs = logs;
-    try {
-      getSingleListener(doc, 'click').handler(createMockEvent(target));
-      await vi.waitFor(() => {
-        expect(logs).toContain('capturer stop');
-      });
-      await flushQueuedTasks();
-      expect(logs).toEqual(['capturer stop']);
     } finally {
       (globalThis as any).__qwikLoaderStopLogs = previousLogs;
     }

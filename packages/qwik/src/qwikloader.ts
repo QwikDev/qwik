@@ -100,21 +100,6 @@ const queueTasks = (tasks: Task[]) => {
   }
 };
 
-/** Re-check `cancelBubble` between elements so an async `stopPropagation()` still skips later ones. */
-const runEventTasks = (ev: Event, taskGroups: Task[][], stoppedSynchronously: boolean) => {
-  if (taskGroups.length) {
-    const run = async () => {
-      for (let i = 0; i < taskGroups.length; i++) {
-        if (!stoppedSynchronously && ev.cancelBubble) {
-          break;
-        }
-        await runTasks(taskGroups[i]);
-      }
-    };
-    queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run();
-  }
-};
-
 const resolveContainer = (containerEl: QContainerElement) => {
   if (containerEl._qwikjson_ === undefined) {
     const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
@@ -405,9 +390,7 @@ const processElementEvent = (
   const captureAttribute = capturePrefix + kebabName;
   const elements: Element[] = [];
   const captureHandlers: boolean[] = [];
-  // One task list per element so `runEventTasks` can re-check `cancelBubble` between them.
-  const taskGroups: Task[][] = [];
-  let stoppedSynchronously = false;
+  const tasks: Task[] = [];
   let current = ev.target as Node | null;
 
   while (current) {
@@ -420,49 +403,32 @@ const processElementEvent = (
     }
   }
 
-  const dispatchElement = (i: number) => {
-    const tasks: Task[] = [];
-    dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
-    if (tasks.length) {
-      taskGroups.push(tasks);
-    }
-  };
-
   for (let i = elements.length - 1; i >= 0; i--) {
     if (captureHandlers[i]) {
-      dispatchElement(i);
+      dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
       if (ev.cancelBubble) {
-        stoppedSynchronously = true;
-        break;
+        queueTasks(tasks);
+        return;
       }
     }
   }
 
-  if (!stoppedSynchronously) {
-    for (let i = 0; i < elements.length; i++) {
-      if (!captureHandlers[i]) {
-        dispatchElement(i);
-        if (ev.cancelBubble) {
-          stoppedSynchronously = true;
-          break;
-        }
-        if (!ev.bubbles) {
-          break;
-        }
+  for (let i = 0; i < elements.length; i++) {
+    if (!captureHandlers[i]) {
+      dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
+      if (!ev.bubbles || ev.cancelBubble) {
+        queueTasks(tasks);
+        return;
       }
     }
   }
-
-  runEventTasks(ev, taskGroups, stoppedSynchronously);
+  queueTasks(tasks);
 };
 
 const processPassiveElementEvent = (ev: Event) =>
   processElementEvent(ev, passiveElementPrefix, false);
 
 const broadcast = (scope: QwikLoaderEventScope, ev: Event, allowPreventDefault = true) => {
-  // document/window handlers are a flat same-target list, not a bubbling path, so the per-element
-  // `taskGroups` + `cancelBubble` re-check (see `runEventTasks`) deliberately does not apply here:
-  // native `stopPropagation()` never skips same-target listeners. One task list, no re-check.
   const kebabName = camelToKebab(ev.type);
   const scopedKebabName = scope + ':' + kebabName;
   const elements = querySelectorAll('[q-' + scope + '\\:' + kebabName + ']');

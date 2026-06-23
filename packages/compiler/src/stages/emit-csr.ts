@@ -334,7 +334,7 @@ export class DomEmitter {
     this.line(`${fragmentId}.appendChild(${startId});`);
     this.line(`${fragmentId}.appendChild(${endId});`);
     this.line(
-      `const ${branchId} = ${QwikSymbol.CreateBranch}(ctx, new ${QwikSymbol.BranchRange}(${startId}, ${endId}), ${condition}, ${thenRenderer}, ${elseRenderer});`
+      `const ${branchId} = ${QwikSymbol.CreateBranch}(ctx, new ${QwikSymbol.BranchRange}(ctx.document, ${startId}, ${endId}), ${condition}, ${thenRenderer}, ${elseRenderer});`
     );
     this.line(`ctx.scheduler.notify(${branchId});`);
     return { id: fragmentId, kind: 'node' };
@@ -380,7 +380,7 @@ export class DomEmitter {
     this.line(`${fragmentId}.appendChild(${startId});`);
     this.line(`${fragmentId}.appendChild(${endId});`);
     this.line(
-      `const ${blockId} = ${QwikSymbol.CreateForBlock}(ctx, new ${QwikSymbol.ForRange}(${startId}, ${endId}), ${node.sourceName}, ${keyFn}, ${renderer}, ${String(node.usesItemSignal)}, ${String(node.usesIndexSignal)});`
+      `const ${blockId} = ${QwikSymbol.CreateForBlock}(ctx, new ${QwikSymbol.ForRange}(ctx.document, ${startId}, ${endId}), ${node.sourceName}, ${keyFn}, ${renderer}, ${String(node.usesItemSignal)}, ${String(node.usesIndexSignal)});`
     );
     this.line(`${blockId}.run();`);
     return { id: fragmentId, kind: 'node' };

@@ -31,14 +31,15 @@ export class BranchRange {
   readonly nativeRange: Range;
 
   constructor(
+    readonly document: Document,
     readonly start: Comment,
     readonly end: Comment
   ) {
-    this.nativeRange = createContentRange(start, end);
+    this.nativeRange = createContentRange(this.document, start, end);
   }
 
   replace(nodes: readonly Node[]): void {
-    replaceRange(this.start, this.end, this.nativeRange, nodes);
+    replaceRange(this.document, this.start, this.end, this.nativeRange, nodes);
   }
 }
 

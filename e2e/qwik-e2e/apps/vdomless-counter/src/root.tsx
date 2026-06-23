@@ -85,7 +85,7 @@ const buildData = (count: number): Row[] => {
 };
 
 export function Root() {
-  const data = createSignal<Row[]>(buildData(10000));
+  const data = createSignal<Row[]>([]);
   const selectedItem = createSignal<Row | null>(null);
 
   return (

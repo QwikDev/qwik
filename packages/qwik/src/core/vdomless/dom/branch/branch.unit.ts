@@ -52,7 +52,11 @@ describe('branches', () => {
     const nextA = createTestDomNode('next-a');
     const nextB = createTestDomNode('next-b');
     const parent = createTestParentNode([start, oldA, oldB, end]);
-    const range = new BranchRange(start as unknown as Comment, end as unknown as Comment);
+    const range = new BranchRange(
+      start.ownerDocument,
+      start as unknown as Comment,
+      end as unknown as Comment
+    );
 
     range.replace([nextA, nextB]);
 

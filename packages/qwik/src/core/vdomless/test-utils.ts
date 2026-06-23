@@ -273,7 +273,7 @@ export function createCaptureContainer(
   let nextId = 0;
   const container: ContainerContext & { nextId(): number } = {
     element: {} as HTMLElement,
-    document: null,
+    document: null!,
     scheduler,
     state: {
       rootToChunk: [],

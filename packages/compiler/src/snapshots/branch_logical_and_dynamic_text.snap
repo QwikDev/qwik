@@ -139,7 +139,7 @@ export function App(_props, ctx) {
   fragment1.appendChild(comment3);
   const branch4 = createBranch(
     ctx,
-    new BranchRange(comment2, comment3),
+    new BranchRange(ctx.document, comment2, comment3),
     _withCaptures(component_branch_condition_segment_0, [count]),
     _withCaptures(component_branch_then_segment_1, [count]),
     undefined

@@ -26,7 +26,7 @@ export interface ContainerState {
 
 export interface ContainerContext {
   element: HTMLElement;
-  document: Document | null;
+  document: Document;
   scheduler: Scheduler;
   state: ContainerState;
   forwardRefs: Array<number | string> | null;

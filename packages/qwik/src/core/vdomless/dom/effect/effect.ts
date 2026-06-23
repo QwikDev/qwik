@@ -238,11 +238,12 @@ function createDomSubscription(effect: DomEffect, scheduler: Scheduler | undefin
 function patchTextValue(text: Text, value: TextExpressionValue | Promise<TextExpressionValue>) {
   if (isPromise(value)) {
     return value.then((resolved) => {
-      text.data = String(resolved);
+      text.data = (resolved as string) ?? '';
     });
   }
 
-  text.data = String(value);
+  // TODO: can we just cast here?
+  text.data = (value as string) ?? '';
 }
 
 export function serializeAttrExpressionValue(name: string, value: unknown): string {

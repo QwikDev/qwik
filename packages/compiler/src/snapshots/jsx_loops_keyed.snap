@@ -260,7 +260,7 @@ export function App(_props, ctx) {
   fragment1.appendChild(comment3);
   const forBlock4 = createForBlock(
     ctx,
-    new ForRange(comment2, comment3),
+    new ForRange(ctx.document, comment2, comment3),
     items,
     component_for_key_segment_1,
     component_for_render_segment_0,

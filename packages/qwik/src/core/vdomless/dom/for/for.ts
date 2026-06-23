@@ -82,10 +82,11 @@ export class ForRange {
   readonly nativeRange: Range;
 
   constructor(
+    readonly document: Document,
     readonly start: Comment,
     readonly end: Comment
   ) {
-    this.nativeRange = createContentRange(start, end);
+    this.nativeRange = createContentRange(this.document, start, end);
   }
 
   clear(): void {
@@ -124,7 +125,7 @@ export class ForBlock<T = unknown> {
     readonly usesIndexSignal: boolean,
     readonly listOwner: Owner,
     readonly invokeContext: RuntimeInvokeContext | null,
-    readonly container?: ContainerContext
+    readonly container: ContainerContext
   ) {
     this.itemSignals = usesItemSignal ? [] : null;
     this.indexSignals = usesIndexSignal ? [] : null;
@@ -169,7 +170,7 @@ export class ForBlock<T = unknown> {
       const key = runWithCollector(subscription, () =>
         invoke(this.invokeContext, keyFn, items[i], i)
       );
-      if (seenKeys !== null) {
+      if (isDev && seenKeys !== null) {
         if (seenKeys.has(key)) {
           throw new Error(`Duplicate vdomless ForBlock key "${String(key)}".`);
         }
@@ -209,6 +210,35 @@ export class ForBlock<T = unknown> {
       ? new Array<Signal<number> | null>(nextLength)
       : null;
 
+    if (oldLength === 0) {
+      const fragment = this.container.document.createDocumentFragment();
+
+      for (let i = 0; i < nextLength; i++) {
+        const row = this.createRow(items[i], i, renderFn);
+        storeRow(
+          nextRows,
+          nextOwners,
+          nextItemSignals,
+          nextIndexSignals,
+          i,
+          row.dom,
+          row.owner,
+          row.itemSignal,
+          row.indexSignal
+        );
+        insertOrMoveRow(this.container.document, fragment, row.dom, null);
+      }
+
+      getRangeParent(this.range.start, this.range.end).insertBefore(fragment, this.range.end);
+
+      this.keys = nextKeys;
+      this.rows = nextRows;
+      this.owners = nextOwners;
+      this.itemSignals = nextItemSignals;
+      this.indexSignals = nextIndexSignals;
+      return;
+    }
+
     let start = 0;
     while (
       start < oldLength &&
@@ -222,18 +252,14 @@ export class ForBlock<T = unknown> {
         start
       )
     ) {
-      retainRow(
+      this.retainRow(
         nextRows,
         nextOwners,
         nextItemSignals,
         nextIndexSignals,
         start,
-        oldRows[start],
-        oldOwners[start],
-        oldItemSignals?.[start] ?? null,
-        oldIndexSignals?.[start] ?? null,
-        items[start],
-        start
+        start,
+        items[start]
       );
       start++;
     }
@@ -252,18 +278,14 @@ export class ForBlock<T = unknown> {
         nextEnd
       )
     ) {
-      retainRow(
+      this.retainRow(
         nextRows,
         nextOwners,
         nextItemSignals,
         nextIndexSignals,
         nextEnd,
-        oldRows[oldEnd],
-        oldOwners[oldEnd],
-        oldItemSignals?.[oldEnd] ?? null,
-        oldIndexSignals?.[oldEnd] ?? null,
-        items[nextEnd],
-        nextEnd
+        oldEnd,
+        items[nextEnd]
       );
       oldEnd--;
       nextEnd--;
@@ -273,12 +295,22 @@ export class ForBlock<T = unknown> {
       const parent = getRangeParent(this.range.start, this.range.end);
       const reference: Node =
         nextEnd + 1 < nextLength ? firstRowNode(nextRows[nextEnd + 1]) : this.range.end;
-      const fragment = this.range.start.ownerDocument.createDocumentFragment();
+      const fragment = this.container.document.createDocumentFragment();
 
       for (let i = start; i <= nextEnd; i++) {
         const row = this.createRow(items[i], i, renderFn);
-        storeCreatedRow(nextRows, nextOwners, nextItemSignals, nextIndexSignals, i, row);
-        insertOrMoveRow(fragment, row.dom, null);
+        storeRow(
+          nextRows,
+          nextOwners,
+          nextItemSignals,
+          nextIndexSignals,
+          i,
+          row.dom,
+          row.owner,
+          row.itemSignal,
+          row.indexSignal
+        );
+        insertOrMoveRow(this.container.document, fragment, row.dom, null);
       }
 
       if (start <= nextEnd) {
@@ -334,25 +366,31 @@ export class ForBlock<T = unknown> {
             nextIndex
           )
         ) {
-          retainRow(
+          this.retainRow(
             nextRows,
             nextOwners,
             nextItemSignals,
             nextIndexSignals,
             nextIndex,
-            oldRows[i],
-            oldOwners[i],
-            oldItemSignals?.[i] ?? null,
-            oldIndexSignals?.[i] ?? null,
-            items[nextIndex],
-            nextIndex
+            i,
+            items[nextIndex]
           );
           oldIndexes[nextIndex - start] = i;
         } else {
           removeRow(oldRows[i]);
           disposeRowOwner(oldOwners[i]);
           const row = this.createRow(items[nextIndex], nextIndex, renderFn);
-          storeCreatedRow(nextRows, nextOwners, nextItemSignals, nextIndexSignals, nextIndex, row);
+          storeRow(
+            nextRows,
+            nextOwners,
+            nextItemSignals,
+            nextIndexSignals,
+            nextIndex,
+            row.dom,
+            row.owner,
+            row.itemSignal,
+            row.indexSignal
+          );
         }
         nextIndexByKey.set(key, nextIndexNext[nextIndex - start]);
       } else {
@@ -364,14 +402,24 @@ export class ForBlock<T = unknown> {
     for (let i = start; i <= nextEnd; i++) {
       if (!(i in nextRows)) {
         const row = this.createRow(items[i], i, renderFn);
-        storeCreatedRow(nextRows, nextOwners, nextItemSignals, nextIndexSignals, i, row);
+        storeRow(
+          nextRows,
+          nextOwners,
+          nextItemSignals,
+          nextIndexSignals,
+          i,
+          row.dom,
+          row.owner,
+          row.itemSignal,
+          row.indexSignal
+        );
       }
     }
 
     const parent = getRangeParent(this.range.start, this.range.end);
     const reference: Node =
       nextEnd + 1 < nextLength ? firstRowNode(nextRows[nextEnd + 1]) : this.range.end;
-    reorderRows(parent, nextRows, start, nextEnd, reference, oldIndexes);
+    reorderRows(this.container.document, parent, nextRows, start, nextEnd, reference, oldIndexes);
 
     this.keys = nextKeys;
     this.rows = nextRows;
@@ -426,8 +474,40 @@ export class ForBlock<T = unknown> {
       owner: invokeContext.owner,
       itemSignal,
       indexSignal,
-      dom: createRowDom(this.range.start.ownerDocument, nodes ?? EMPTY_NODES),
+      dom: createRowDom(this.container.document, nodes ?? EMPTY_NODES),
     };
+  }
+
+  private retainRow(
+    nextRows: RowDom[],
+    nextOwners: Array<Owner | null>,
+    nextItemSignals: Array<Signal<T> | null> | null,
+    nextIndexSignals: Array<Signal<number> | null> | null,
+    nextIndex: number,
+    oldIndex: number,
+    item: T
+  ): void {
+    const itemSignal = this.itemSignals?.[oldIndex] ?? null;
+    const indexSignal = this.indexSignals?.[oldIndex] ?? null;
+
+    storeRow(
+      nextRows,
+      nextOwners,
+      nextItemSignals,
+      nextIndexSignals,
+      nextIndex,
+      this.rows[oldIndex],
+      this.owners[oldIndex],
+      itemSignal,
+      indexSignal
+    );
+
+    if (itemSignal !== null) {
+      itemSignal.value = item;
+    }
+    if (indexSignal !== null) {
+      indexSignal.value = nextIndex;
+    }
   }
 }
 
@@ -455,7 +535,7 @@ export function createForBlock<T>(
   return registerSubscriberToOwner(new ForBlockSubscription(block, ctx.scheduler));
 }
 
-function retainRow<T>(
+function storeRow<T>(
   nextRows: RowDom[],
   nextOwners: Array<Owner | null>,
   nextItemSignals: Array<Signal<T> | null> | null,
@@ -464,41 +544,15 @@ function retainRow<T>(
   row: RowDom,
   owner: Owner | null,
   itemSignal: Signal<T> | null,
-  indexSignal: Signal<number> | null,
-  item: T,
-  index: number
+  indexSignal: Signal<number> | null
 ): void {
   nextRows[nextIndex] = row;
   nextOwners[nextIndex] = owner;
-  if (nextItemSignals !== null) {
-    nextItemSignals[nextIndex] = itemSignal;
-  }
-  if (nextIndexSignals !== null) {
-    nextIndexSignals[nextIndex] = indexSignal;
-  }
   if (itemSignal !== null) {
-    itemSignal.value = item;
+    nextItemSignals![nextIndex] = itemSignal;
   }
   if (indexSignal !== null) {
-    indexSignal.value = index;
-  }
-}
-
-function storeCreatedRow<T>(
-  nextRows: RowDom[],
-  nextOwners: Array<Owner | null>,
-  nextItemSignals: Array<Signal<T> | null> | null,
-  nextIndexSignals: Array<Signal<number> | null> | null,
-  nextIndex: number,
-  row: CreatedRow<T>
-): void {
-  nextRows[nextIndex] = row.dom;
-  nextOwners[nextIndex] = row.owner;
-  if (nextItemSignals !== null) {
-    nextItemSignals[nextIndex] = row.itemSignal;
-  }
-  if (nextIndexSignals !== null) {
-    nextIndexSignals[nextIndex] = row.indexSignal;
+    nextIndexSignals![nextIndex] = indexSignal;
   }
 }
 
@@ -516,7 +570,12 @@ function createRowDom(document: Document, nodes: readonly Node[]): RowDom {
   );
 }
 
-function insertOrMoveRow(parent: Node, row: RowDom, reference: Node | null): void {
+function insertOrMoveRow(
+  document: Document,
+  parent: Node,
+  row: RowDom,
+  reference: Node | null
+): void {
   if (row instanceof ElementRowDom) {
     if (row.element.parentNode === parent && fastNextSibling(row.element) === reference) {
       return;
@@ -526,7 +585,7 @@ function insertOrMoveRow(parent: Node, row: RowDom, reference: Node | null): voi
   }
 
   if (row.pendingNodes !== null) {
-    const fragment = row.start.ownerDocument.createDocumentFragment();
+    const fragment = document.createDocumentFragment();
     fragment.appendChild(row.start);
     for (let i = 0; i < row.pendingNodes.length; i++) {
       fragment.appendChild(row.pendingNodes[i]);
@@ -596,6 +655,7 @@ function firstRowNode(row: RowDom): Node {
 }
 
 function reorderRows(
+  document: Document,
   parent: Node,
   rows: RowDom[],
   start: number,
@@ -626,7 +686,7 @@ function reorderRows(
       anchor = firstRowNode(rows[i]);
       continue;
     }
-    insertOrMoveRow(parent, rows[i], anchor);
+    insertOrMoveRow(document, parent, rows[i], anchor);
     anchor = firstRowNode(rows[i]);
   }
 }

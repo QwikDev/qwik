@@ -279,7 +279,7 @@ function restoreBranchSubscription(
   }
 
   subscription.branch = new Branch(
-    new BranchRange(markerRange[0], markerRange[1]),
+    new BranchRange(container.document, markerRange[0], markerRange[1]),
     conditionQrl,
     thenQrl,
     elseQrl,
@@ -322,7 +322,7 @@ function restoreForBlockSubscription(
 
   const listOwner = createOwner(subscription.owner);
   const block = new ForBlock(
-    new ForRange(markerRange[0], markerRange[1]),
+    new ForRange(container.document, markerRange[0], markerRange[1]),
     deps[0] as Dependency<readonly unknown[]>,
     keyQrl,
     renderQrl,

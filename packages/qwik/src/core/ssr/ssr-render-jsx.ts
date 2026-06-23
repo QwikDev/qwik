@@ -108,12 +108,8 @@ export async function _walkJSX(
         if (typeof value === 'function') {
           if (value === Promise) {
             const pending = stack.pop() as Promise<JSXOutput>;
-            try {
-              stack.push(await pending);
-            } catch (err) {
-              // Route an awaited child's rejection to the closest boundary, else it aborts the stream.
-              stack.push(await resolveErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err));
-            }
+            // Route an awaited child's rejection to the closest boundary, else it aborts the stream.
+            stack.push(await catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () => pending));
           } else {
             const result = (value as StackFn).apply(ssr);
             if (isPromise(result)) {
@@ -276,6 +272,25 @@ async function resolveErrorBoundaryFallback(
 ): Promise<JSXOutput> {
   const fallback = renderErrorBoundaryFallback(ssr, host, err);
   return isPromise(fallback) ? await fallback : fallback;
+}
+
+/**
+ * Run a render-producing call and route any throw — synchronous or from the returned promise — to
+ * the closest `<ErrorBoundary>` via {@link renderErrorBoundaryFallback}, so each drain site can drop
+ * its own try/catch. `host` is captured here so a deferred (async) rejection still resolves against
+ * the node that produced it, not whatever node happens to be current when it rejects later.
+ */
+function catchToErrorBoundary(
+  ssr: SSRContainer,
+  host: ReturnType<SSRContainer['getOrCreateLastNode']>,
+  produce: () => ValueOrPromise<JSXOutput>
+): ValueOrPromise<JSXOutput> {
+  try {
+    const out = produce();
+    return isPromise(out) ? out.catch((err) => renderErrorBoundaryFallback(ssr, host, err)) : out;
+  } catch (err) {
+    return renderErrorBoundaryFallback(ssr, host, err);
+  }
 }
 
 function processJSXNode(
@@ -491,25 +506,18 @@ function processJSXNode(
             options.parentComponentFrame
           );
 
-          let jsxOutput: ValueOrPromise<JSXOutput>;
-          try {
-            jsxOutput = applyQwikComponentBody(ssr, jsx, type);
-          } catch (err) {
-            jsxOutput = renderErrorBoundaryFallback(ssr, host, err);
-          }
+          // A throw (sync or from the async body) routes to the closest boundary via the captured host.
+          const jsxOutput = catchToErrorBoundary(ssr, host, () =>
+            applyQwikComponentBody(ssr, jsx, type)
+          );
           enqueue(
             setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
           );
           enqueue(() => ssr.closeComponent());
           if (isPromise(jsxOutput)) {
-            // Defer reading QScopedStyle until after the promise resolves
+            // Defer reading QScopedStyle until after the promise resolves.
             enqueue(async () => {
-              let resolvedOutput: JSXOutput;
-              try {
-                resolvedOutput = await jsxOutput;
-              } catch (err) {
-                resolvedOutput = await resolveErrorBoundaryFallback(ssr, host, err);
-              }
+              const resolvedOutput = await jsxOutput;
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 
               enqueue(resolvedOutput);
@@ -528,12 +536,9 @@ function processJSXNode(
           ssr.openFragment(inlineComponentProps);
           enqueue(ssr.closeFragment);
           const component = ssr.getParentComponentFrame();
-          let jsxOutput: ValueOrPromise<JSXOutput>;
-          try {
-            jsxOutput = applyInlineComponent(ssr, component && component.componentNode, type, jsx);
-          } catch (err) {
-            jsxOutput = renderErrorBoundaryFallback(ssr, ssr.getOrCreateLastNode(), err);
-          }
+          const jsxOutput = catchToErrorBoundary(ssr, ssr.getOrCreateLastNode(), () =>
+            applyInlineComponent(ssr, component && component.componentNode, type, jsx)
+          );
           enqueue(jsxOutput);
           isPromise(jsxOutput) && enqueue(Promise);
         }

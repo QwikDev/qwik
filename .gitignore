@@ -18,11 +18,11 @@ node_modules
 # Artifacts
 tsc-out
 dist
-dist-dev
+/dist-dev
 external
 lib
 tsdoc-metadata.json
-target
+/target
 
 # IDE and local environment
 .idea
@@ -41,6 +41,13 @@ sandbox
 
 # AI tools
 .planning
+/.claude/*
+!/.claude/skills/
+/.codex/*
+!/.codex/skills/
+/.cursor
+/AGENTS.md.bak
+/CLAUDE.md.bak
 
 # We need to ignore this because "changesets" will try to replace it
 /CHANGELOG.md

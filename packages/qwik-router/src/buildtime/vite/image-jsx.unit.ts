@@ -39,9 +39,35 @@ test('creates internal image metadata ids without re-virtualizing them', () => {
 
   assert.isNull(parsed);
   assert.equal(id.split('?')[0], '/assets/hero.png');
-  assert.isTrue(params.has('jsx'));
+  assert.isFalse(params.has('jsx'));
   assert.isTrue(params.has('qwik-asset-jsx'));
+  assert.equal(params.get('as'), 'jsx');
+  assert.equal(params.get('format'), 'webp');
+  assert.equal(params.get('quality'), '75');
+  assert.isTrue(params.has('withoutEnlargement'));
   assert.equal(params.get('w'), '400');
+});
+
+test('creates image metadata ids for jsx imports with extra query params', () => {
+  const virtualId = createVirtualImageJsxId(
+    '/assets/docs.png',
+    new URLSearchParams('jsx=&format=avif&w=1280%3B1920%3B2560%3B3840')
+  );
+  const parsed = parseVirtualImageJsxId(virtualId);
+
+  assert.isNotNull(parsed);
+
+  const id = createImageJsxImportId(parsed.pathId, parsed.params);
+  const params = new URLSearchParams(id.split('?')[1]);
+
+  assert.isNull(parseVirtualImageJsxId(id));
+  assert.equal(id.split('?')[0], '/assets/docs.png');
+  assert.isFalse(id.includes('.qwik.jsx'));
+  assert.isFalse(params.has('jsx'));
+  assert.isTrue(params.has('qwik-asset-jsx'));
+  assert.equal(params.get('as'), 'jsx');
+  assert.equal(params.get('format'), 'avif');
+  assert.equal(params.get('w'), '1280;1920;2560;3840');
 });
 
 const svgsFilesWithDefsTag = [

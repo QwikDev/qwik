@@ -1,6 +1,6 @@
 import { addStoreEffect } from '../../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
-import { WrappedSignalFlags, type EffectSubscription } from '../../reactive-primitives/types';
+import { type EffectSubscription } from '../../reactive-primitives/types';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { _CONST_PROPS, _VAR_PROPS, _OWNER, _PROPS_HANDLER } from '../utils/constants';
 import { jsxEventToHtmlAttribute } from '../utils/event-names';
@@ -49,9 +49,7 @@ export class PropsProxyHandler implements ProxyHandler<any> {
       }
     }
     // a proxied value that the optimizer made
-    return value instanceof WrappedSignalImpl && value.$flags$ & WrappedSignalFlags.UNWRAP
-      ? value.value
-      : value;
+    return value instanceof WrappedSignalImpl ? value.value : value;
   }
   set(_: any, prop: string | symbol, value: any) {
     if (prop === _OWNER) {

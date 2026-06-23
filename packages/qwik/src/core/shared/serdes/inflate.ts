@@ -19,7 +19,7 @@ import {
   AsyncSignalFlags,
   EffectProperty,
   NEEDS_COMPUTATION,
-  SignalFlags,
+  ComputedSignalFlags,
   type AllSignalFlags,
   type AsyncQRL,
   type Consumer,
@@ -42,6 +42,7 @@ import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
 import { TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
+import type { SubscriptionPatch } from './subscription-patch';
 
 export let loading = Promise.resolve();
 
@@ -104,7 +105,6 @@ export const inflate = (
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
-      task.$state$ = v[4];
       break;
     case TypeIds.Component:
       (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];
@@ -143,7 +143,7 @@ export const inflate = (
       signal.$args$ = d[1];
       signal.$untrackedValue$ = NEEDS_COMPUTATION;
       signal.$flags$ = d[2];
-      signal.$flags$ |= SignalFlags.INVALID;
+      signal.$flags$ |= ComputedSignalFlags.INVALID;
       signal.$hostElement$ = d[3];
       signal.$effects$ = new Set(d.slice(4) as EffectSubscription[]);
       inflateWrappedSignalValue(signal);
@@ -191,7 +191,7 @@ export const inflate = (
       }
       // can happen when never serialize etc
       if (asyncSignal.$untrackedValue$ === NEEDS_COMPUTATION) {
-        asyncSignal.$flags$ |= SignalFlags.INVALID;
+        asyncSignal.$flags$ |= ComputedSignalFlags.INVALID;
       }
 
       // Handle old format (negative = no poll) and new format (always positive, flag in d[5])
@@ -236,7 +236,7 @@ export const inflate = (
       if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
         // If we have a value after SSR, it will always be mean the signal was not invalid
         // The serialized signal is always left invalid so it can recreate the custom object
-        computed.$flags$ &= ~SignalFlags.INVALID;
+        computed.$flags$ &= ~ComputedSignalFlags.INVALID;
       }
       restoreEffectBackRefForEffects(computed.$effects$, computed);
       break;
@@ -328,12 +328,34 @@ export const inflate = (
       effectData.data.$isConst$ = (data as any[])[1];
       break;
     }
+    case TypeIds.SubscriptionDataConstTrue:
+    case TypeIds.SubscriptionDataConstFalse:
+      break;
     case TypeIds.EffectSubscription: {
       const effectSub = target as EffectSubscription;
       const d = data as [Consumer, EffectProperty | string, SubscriptionData | null];
       effectSub.consumer = d[0];
       effectSub.property = d[1];
       effectSub.data = d[2];
+      restoreEffectBackRefForConsumer(effectSub);
+      break;
+    }
+    case TypeIds.SubscriptionPatch: {
+      const patch = target as SubscriptionPatch;
+      const d = data as [
+        number,
+        Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>,
+      ];
+      patch.rootId = d[0];
+      patch.subscriptions = d[1];
+      break;
+    }
+    case TypeIds.EffectSubscriptionNoData: {
+      const effectSub = target as EffectSubscription;
+      const d = data as [Consumer, EffectProperty | string];
+      effectSub.consumer = d[0];
+      effectSub.property = d[1];
+      effectSub.data = null;
       restoreEffectBackRefForConsumer(effectSub);
       break;
     }

@@ -2579,6 +2579,14 @@ describe('vnode', () => {
       expect(vnode_getProp(v1, '', getVNode)).toBe(v2);
       expect(vnode_getProp(v2, ':', getVNode)).toBe(v1);
     });
+
+    it('should decode encoded default slot refs', () => {
+      parent.innerHTML = 'A';
+      document.qVNodeData.set(parent, '{A|||\\-1A|}');
+      qVNodeRefs.set(-1, vParent);
+      const v1 = vnode_getFirstChild(vParent) as VirtualVNode;
+      expect(vnode_getProp(v1, '', getVNode)).toBe(v1);
+    });
   });
   describe('attributes', () => {
     describe('dangerouslySetInnerHTML', () => {

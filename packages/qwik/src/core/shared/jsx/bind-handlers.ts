@@ -1,4 +1,4 @@
-import { _captures, deserializeCaptures, setCaptures } from '../../shared/qrl/qrl-class';
+import { _captures, deserializeCaptureDeltas, setCaptures } from '../../shared/qrl/qrl-class';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { getDomContainer } from '../../client/dom-container';
 import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
@@ -9,10 +9,10 @@ import { AsyncSignalFlags } from '../../reactive-primitives/types';
  * load the QRL captured scope ourselves. Otherwise, we are being called as a QRL and the captures
  * are already set.
  */
-const maybeScopeFromQL = (captureIds: string | undefined, element: Element) => {
-  if (typeof captureIds === 'string') {
+const maybeScopeFromQL = (captureDeltas: string | undefined, element: Element) => {
+  if (typeof captureDeltas === 'string') {
     const container = getDomContainer(element);
-    setCaptures(deserializeCaptures(container, captureIds));
+    setCaptures(deserializeCaptureDeltas(container, captureDeltas));
   }
   return null;
 };

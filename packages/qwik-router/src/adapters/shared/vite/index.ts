@@ -50,6 +50,8 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       if (!qwikRouterPlugin) {
         throw new Error('Missing vite-plugin-qwik-router');
       }
+      // Hand the SSG set to the router for the server-route prune (see `_setSsgRoutes`).
+      qwikRouterPlugin.api?._setSsgRoutes?.(opts.ssg?.include, opts.ssg?.exclude);
       // Use double type assertion to avoid TS "Excessive stack depth comparing types" error
       // when comparing QwikVitePlugin with Plugin types
       qwikVitePlugin = config.plugins.find(
@@ -117,6 +119,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       return [
         `import { isMainThread } from 'node:worker_threads';`,
         `import render from '${srcDir}/entry.ssr';`,
+        // SSG needs the full route plan (the default); the `?ssr` variant is the pruned one.
         `import qwikRouterConfig from '@qwik-router-config';`,
         `import { runSsg, startWorker } from '@qwik.dev/router/ssg';`,
         ``,
@@ -127,16 +130,22 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         `if (args.includes('--quiet')) ssgOpts.log = 'quiet';`,
         `if (args.includes('--debug')) ssgOpts.log = 'debug';`,
         ``,
-        `if (isMainThread) {`,
-        `  await runSsg({`,
-        `    render,`,
-        `    qwikRouterConfig,`,
-        `    workerFilePath: new URL(import.meta.url).href,`,
-        `    ...ssgOpts,`,
-        `  });`,
-        `} else {`,
-        `  await startWorker({ render, qwikRouterConfig });`,
-        `}`,
+        // Fire-and-forget instead of top-level await. On the worker/edge SSR target Vite
+        // inlines dynamic imports, and Rollup then reads the inlined `./system` namespace
+        // before it is initialized across a top-level await. See rollup/rollup#4166.
+        // runSsg/startWorker keep the process alive (worker handles) and call process.exit.
+        `const ssgRun = isMainThread`,
+        `  ? runSsg({`,
+        `      render,`,
+        `      qwikRouterConfig,`,
+        `      workerFilePath: new URL(import.meta.url).href,`,
+        `      ...ssgOpts,`,
+        `    })`,
+        `  : startWorker({ render, qwikRouterConfig });`,
+        `ssgRun.catch((err) => {`,
+        `  console.error(err);`,
+        `  process.exit(1);`,
+        `});`,
       ].join('\n');
     },
 

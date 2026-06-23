@@ -152,6 +152,8 @@ import {
   QScopedStyle,
   QSlot,
   QStyle,
+  QSuspenseResolved,
+  QSuspenseResultParent,
   QTargetElement,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
@@ -784,43 +786,60 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
 
 export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNode => {
   ensureElementVNode(rootVNode);
-  let vNode: VNode | Element = rootVNode;
+  let vNode: VNode = rootVNode;
   const containerElement = rootVNode.node as ContainerElement;
-  const { qVNodeRefs } = containerElement;
+  const qVNodeRefs = containerElement.qVNodeRefs;
   let elementOffset: number = -1;
   let refElement: Element | VNode;
+  const localId = typeof id === 'string' ? id : '';
   if (typeof id === 'string') {
     isDev && assertDefined(qVNodeRefs, 'Missing qVNodeRefs.');
-    elementOffset = parseInt(id);
+    elementOffset = parseInt(localId);
     refElement = qVNodeRefs!.get(elementOffset)!;
   } else {
     refElement = id;
 
-    const vNode = (refElement as QElement).vNode;
-    if (vNode) {
+    const qElement = refElement as QElement;
+    const cachedVNode = qElement.vNode;
+    if (cachedVNode) {
+      return cachedVNode;
+    }
+    if (__EXPERIMENTAL__.suspense && qElement._qSegment) {
+      vNode = vnode_newUnMaterializedElement(refElement);
+      vnode_ensureElementKeyInflated(vNode as ElementVNode);
+      qElement.vNode = vNode;
       return vNode;
     }
   }
-  isDev && assertDefined(refElement, 'Missing refElement.');
+  isDev &&
+    assertDefined(
+      refElement,
+      'Missing refElement ' + (typeof id === 'string' ? `for id ${id}` : '')
+    );
   if (!vnode_isVNode(refElement)) {
     isDev &&
       assertTrue(
         containerElement.contains(refElement),
         `Couldn't find the element inside the container while locating the VNode.`
       );
-    // We need to find the vnode.
-    let parent = refElement;
-    const elementPath: Element[] = [refElement];
-    while (parent && parent !== containerElement && !(parent as QElement).vNode) {
-      parent = parent.parentElement!;
-      elementPath.push(parent);
-    }
-    if ((parent as QElement).vNode) {
-      vNode = (parent as QElement).vNode as ElementVNode;
-    }
-    // Start at rootVNode and follow the `elementPath` to find the vnode.
-    for (let i = elementPath.length - 2; i >= 0; i--) {
-      vNode = vnode_getVNodeForChildNode(vNode as ElementVNode, elementPath[i]);
+    if (__EXPERIMENTAL__.suspense && (refElement as QElement)._qSegment) {
+      vNode = (refElement as QElement).vNode || vnode_newUnMaterializedElement(refElement);
+      vnode_ensureElementKeyInflated(vNode as ElementVNode);
+    } else {
+      // We need to find the vnode.
+      let parent = refElement;
+      const elementPath: Element[] = [refElement];
+      while (parent && parent !== containerElement && !(parent as QElement).vNode) {
+        parent = parent.parentElement!;
+        elementPath.push(parent);
+      }
+      if ((parent as QElement).vNode) {
+        vNode = (parent as QElement).vNode as ElementVNode;
+      }
+      // Start at rootVNode and follow the `elementPath` to find the vnode.
+      for (let i = elementPath.length - 2; i >= 0; i--) {
+        vNode = vnode_getVNodeForChildNode(vNode as ElementVNode, elementPath[i]);
+      }
     }
 
     if (elementOffset != -1) {
@@ -832,11 +851,11 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
   }
   if (typeof id === 'string') {
     // process virtual node search.
-    const idLength = id.length;
-    let idx = indexOfAlphanumeric(id, idLength);
+    const idLength = localId.length;
+    let idx = indexOfAlphanumeric(localId, idLength);
     let childIdx = 0;
     while (idx < idLength) {
-      const ch = id.charCodeAt(idx);
+      const ch = localId.charCodeAt(idx);
       childIdx *= 26 /* a-z */;
       if (ch >= 97 /* a */) {
         // is lowercase
@@ -902,9 +921,10 @@ export const vnode_getVNodeForChildNode = (
 };
 
 const indexOfAlphanumeric = (id: string, length: number): number => {
-  let idx = 0;
+  let idx = id.charCodeAt(0) === 45 /* - */ ? 1 : 0;
   while (idx < length) {
-    if (id.charCodeAt(idx) <= 57 /* 9 */) {
+    const ch = id.charCodeAt(idx);
+    if (ch >= 48 /* 0 */ && ch <= 57 /* 9 */) {
       idx++;
     } else {
       return idx;
@@ -1488,6 +1508,14 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
     return null;
   }
   let vFirstChild = (vnode as ElementVNode | VirtualVNode).firstChild;
+  if (
+    __EXPERIMENTAL__.suspense &&
+    vFirstChild === undefined &&
+    vnode_isElementVNode(vnode) &&
+    hasOnlySuspensePlaceholder(vnode.node)
+  ) {
+    return null;
+  }
   if (vFirstChild === undefined) {
     vFirstChild = ensureMaterialized(vnode as ElementVNode);
   }
@@ -1518,6 +1546,7 @@ const materialize = (
   vNodeData?: string
 ): VNode | null => {
   vnode_ensureElementKeyInflated(vNode);
+  const segmentId = __EXPERIMENTAL__.suspense ? (element as QElement)._qSegment || null : null;
   if (vNodeData) {
     if (
       vNodeData.charCodeAt(0) === VNodeDataChar.SEPARATOR &&
@@ -1537,17 +1566,17 @@ const materialize = (
 
       // Materialize DOM element from HTML. If the `vNodeData` is not empty,
       // then also materialize virtual element from vNodeData
-      const vFirstChild = materializeFromDOM(vNode, firstChild, elementVNodeData);
+      const vFirstChild = materializeFromDOM(vNode, firstChild, elementVNodeData, segmentId);
       if (!vNodeData) {
         //  If it is empty then we don't need to call the `materializeFromVNodeData`.
         return vFirstChild;
       }
     }
     // Materialize virtual element form vNodeData
-    return materializeFromVNodeData(vNode, vNodeData, element, firstChild);
+    return materializeFromVNodeData(vNode, vNodeData, element, firstChild, segmentId);
   } else {
     // Materialize DOM element from HTML only
-    return materializeFromDOM(vNode, firstChild);
+    return materializeFromDOM(vNode, firstChild, undefined, segmentId);
   }
 };
 
@@ -1689,15 +1718,13 @@ const fastFirstChild = (node: Node | null): Node | null => {
   node = node && _fastFirstChild.call(node);
   // Handle q:ignore as first child (e.g. qwikify$ Host with reactify$ projections).
   // Navigate depth-first to the first q:container-island and return its first element.
-  if (
-    node &&
-    fastNodeType(node) === /* Node.COMMENT_NODE */ 8 &&
-    node.nodeValue?.startsWith(QIgnore)
-  ) {
+  if (node && fastNodeType(node) === /* Node.COMMENT_NODE */ 8) {
     if (!_fastNextSibling) {
       _fastNextSibling = fastGetter<typeof _fastNextSibling>(node, 'nextSibling')!;
     }
-    return getNodeAfterCommentNode(node, QContainerIsland, _fastNextSibling, _fastFirstChild);
+    if (node.nodeValue?.startsWith(QIgnore)) {
+      return getNodeAfterCommentNode(node, QContainerIsland, _fastNextSibling, _fastFirstChild);
+    }
   }
   while (node && !fastIsTextOrElement(node)) {
     node = fastNextSibling(node);
@@ -1711,8 +1738,14 @@ export const fastNodeName = createFastGetter<Element, string | null>('nodeName')
 
 const fastOwnerDocument = createFastGetter<Node, Document>('ownerDocument');
 
-const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vData?: string) => {
+const materializeFromDOM = (
+  vParent: ElementVNode,
+  firstChild: Node | null,
+  vData?: string,
+  segmentId?: string | null
+) => {
   let vFirstChild: VNode | null = null;
+  let idx = 0;
 
   const skipElements = () => {
     while (isElement(child) && shouldSkipElement(child)) {
@@ -1733,6 +1766,8 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vDat
       vnode_ensureElementKeyInflated(vNextChild as ElementVNode);
     }
     if (vNextChild) {
+      vNextChild.flags = (vNextChild.flags & VNodeFlagsIndex.mask) | (idx << VNodeFlagsIndex.shift);
+      idx++;
       vNextChild.parent = vParent;
       vChild && (vChild.nextSibling = vNextChild);
       vNextChild.previousSibling = vChild;
@@ -1759,7 +1794,7 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vDat
           container = getDomContainer(vParent.node);
         }
         const id = consumeValue();
-        container.$setRawState$(parseInt(id), vParent);
+        container.$setRawState$(parseInt(id, 10), vParent);
         isDev && vnode_setProp(vParent, ELEMENT_ID, id);
       } else if (peek() === VNodeDataChar.BACK_REFS) {
         if (!container) {
@@ -1951,6 +1986,9 @@ export function vnode_toString(
             attrs.push(' ' + key + '=' + qwikDebugToString(value));
           }
         }
+        if (vnode.slotParent) {
+          attrs.push(' slotParent=(C)');
+        }
       }
       const name =
         (colorize ? NAME_COL_PREFIX : '') +
@@ -2028,12 +2066,27 @@ function shouldSkipElement(element: Element) {
   );
 }
 
+function hasOnlySuspensePlaceholder(element: Element) {
+  const segmentId = element.getAttribute(QSuspenseResultParent);
+  if (segmentId === null) {
+    return false;
+  }
+  const firstChild = fastFirstChild(element);
+  return (
+    isElement(firstChild) &&
+    firstChild.localName === 'template' &&
+    firstChild.getAttribute(QSuspenseResolved) === segmentId &&
+    fastNextSibling(firstChild) === null
+  );
+}
+
 const stack: any[] = [];
 function materializeFromVNodeData(
   vParent: ElementVNode | VirtualVNode,
   vData: string,
   element: Element,
-  child: Node | null
+  child: Node | null,
+  segmentId: string | null
 ): VNode {
   let idx = 0;
   let vFirst: VNode | null = null;
@@ -2106,7 +2159,7 @@ function materializeFromVNodeData(
         container = getDomContainer(element);
       }
       const id = consumeValue();
-      container.$setRawState$(parseInt(id), vParent);
+      container.$setRawState$(parseInt(id, 10), vParent);
       isDev && vnode_setProp(vParent, ELEMENT_ID, id);
     } else if (peek() === VNodeDataChar.PROPS) {
       vnode_setProp(vParent, ELEMENT_PROPS, consumeValue());
@@ -2146,8 +2199,18 @@ function materializeFromVNodeData(
       vFirst = vLast = null;
     } else if (peek() === VNodeDataChar.SEPARATOR) {
       // Custom attribute: |key|value
-      const key = decodeVNodeDataString(consumeValue());
-      const value = decodeVNodeDataString(consumeValue());
+      const keyValue = consumeValue();
+      const key = decodeVNodeDataString(keyValue);
+      const valueSeparatorIdx = nextToConsumeIdx + keyValue.length + 1;
+      const isEscapedValue = getChar(valueSeparatorIdx + 1) === VNodeDataChar.SEPARATOR;
+      let value;
+      if (isEscapedValue) {
+        consume();
+        value = decodeURI(decodeVNodeDataString(consumeValue()));
+        consume();
+      } else {
+        value = decodeVNodeDataString(consumeValue());
+      }
       vnode_setProp(vParent, key, value);
     } else if (peek() === VNodeDataChar.CLOSE) {
       consume();

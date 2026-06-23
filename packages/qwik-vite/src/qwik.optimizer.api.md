@@ -8,6 +8,7 @@ import { EntryStrategy } from '@qwik.dev/optimizer';
 import { Optimizer } from '@qwik.dev/optimizer';
 import { OptimizerOptions } from '@qwik.dev/optimizer';
 import type { Plugin as Plugin_2 } from 'vite';
+import { SegmentAnalysis } from '@qwik.dev/optimizer';
 import { TransformModule } from '@qwik.dev/optimizer';
 import { TransformModuleInput } from '@qwik.dev/optimizer';
 
@@ -22,6 +23,7 @@ export enum ExperimentalFeatures {
     each = "each",
     insights = "insights",
     noSPA = "noSPA",
+    show = "show",
     suspense = "suspense",
     valibot = "valibot"
 }
@@ -174,6 +176,8 @@ export interface QwikVitePluginApi {
     getRootDir: () => string | null;
     // @internal (undocumented)
     _oldDevSsrServer: () => boolean | undefined;
+    // Warning: (ae-forgotten-export) The symbol "SegmentCallback" needs to be exported by the entry point index.d.ts
+    onSegment: (callback: SegmentCallback) => void;
     // (undocumented)
     registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
 }

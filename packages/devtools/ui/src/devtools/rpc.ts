@@ -1,6 +1,8 @@
 import {
   createClientRpc,
+  getQwikDevtoolsGlobal,
   getViteClientRpc,
+  QWIK_DEVTOOLS_GLOBAL,
   setViteClientContext,
   type RoutesInfo,
   RouteType,
@@ -37,7 +39,7 @@ function toDevtoolsRoutes(routes: any): RoutesInfo[] {
 }
 
 async function connectRpc() {
-  const hot = await tryCreateHotContext(undefined, ['/']);
+  const hot = await tryCreateHotContext(undefined, [import.meta.env.BASE_URL ?? '/', '/']);
   if (!hot) {
     throw new Error('Vite Hot Context not connected');
   }
@@ -48,13 +50,20 @@ async function connectRpc() {
   return getViteClientRpc();
 }
 
+let rpcPromise: ReturnType<typeof connectRpc> | undefined;
+
+export function getDevtoolsRpc() {
+  rpcPromise ??= connectRpc();
+  return rpcPromise;
+}
+
 /**
  * Default data provider that loads data via Vite HMR RPC. Used when the devtools UI runs as an
  * in-app overlay.
  */
 const viteDataProvider: DataProvider = {
   async loadData(state: DevtoolsState) {
-    const rpc = await connectRpc();
+    const rpc = await getDevtoolsRpc();
 
     const primaryDataPromise = Promise.allSettled([
       rpc.getAssetsFromPublicDir(),
@@ -109,10 +118,13 @@ const viteDataProvider: DataProvider = {
 /**
  * Load devtools data using the active data provider.
  *
- * When `window.__QWIK_DEVTOOLS_DATA_PROVIDER__` is set (e.g. by the browser extension entry point),
+ * When the Qwik DevTools root has a `dataProvider` (e.g. from the browser extension entry point),
  * that provider is used. Otherwise, falls back to the default Vite HMR RPC provider.
  */
 export async function loadDevtoolsData(state: DevtoolsState) {
-  const provider = window.__QWIK_DEVTOOLS_DATA_PROVIDER__ ?? viteDataProvider;
+  const provider =
+    (getQwikDevtoolsGlobal(window)?.[QWIK_DEVTOOLS_GLOBAL.props.dataProvider] as
+      | DataProvider
+      | undefined) ?? viteDataProvider;
   await provider.loadData(state);
 }

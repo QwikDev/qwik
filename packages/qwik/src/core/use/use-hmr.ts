@@ -1,7 +1,7 @@
 import { getDomContainer } from '../client/dom-container';
 import {
   _captures,
-  deserializeCaptures,
+  deserializeCaptureDeltas,
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
@@ -9,6 +9,7 @@ import { inlinedQrl } from '../shared/qrl/qrl';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VNode } from '../shared/vnode/vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { VNodeFlags } from '../client/types';
 import { tryGetInvokeContext } from './use-core';
 import { useOnDocument } from './use-on';
 import type { QRL } from '../shared/qrl/qrl.public';
@@ -27,20 +28,20 @@ export const _hmr = function (
   event: CustomEvent<{ files: string[]; t: number }>,
   element: Element
 ) {
-  if (
-    !event.detail.files.some((file) =>
-      element.getAttribute('data-qwik-inspector')?.startsWith(file)
-    )
-  ) {
+  // Deserialize captures from `this` when called via qwikloader/attribute dispatch
+  const container = getDomContainer(element);
+  if (typeof this === 'string') {
+    setCaptures(deserializeCaptureDeltas(container, this));
+  }
+  const devPath = _captures?.[1] as string | undefined;
+  const hmrPath = devPath ?? element.getAttribute('data-qwik-inspector');
+  if (!hmrPath || !event.detail.files.some((file) => hmrPath.startsWith(file))) {
     return;
   }
-  // Deserialize captures from `this` when called via qwikloader/attribute dispatch
-  if (typeof this === 'string') {
-    const container = getDomContainer(element);
-    setCaptures(deserializeCaptures(container, this));
+  const host = _captures?.[0] as VNode | undefined;
+  if (!host || host.flags & VNodeFlags.Deleted) {
+    return;
   }
-  const host = _captures![0] as VNode;
-  const container = getDomContainer(element);
   markVNodeDirty(container, host, ChoreBits.COMPONENT);
   // Mark HMR as handled
   const doc: any = element.ownerDocument;
@@ -62,6 +63,6 @@ export function _useHmr(devPath: string): void {
   hmrQrl ||= inlinedQrl(_hmr, '_hmr');
   const hostElement = iCtx.$hostElement$;
   // We must capture the vnode to be able to re-render
-  const qrl = (hmrQrl as QRLInternal).w([hostElement]) as typeof hmrQrl;
+  const qrl = (hmrQrl as QRLInternal).w([hostElement, devPath]) as typeof hmrQrl;
   useOnDocument('qHmr', qrl);
 }

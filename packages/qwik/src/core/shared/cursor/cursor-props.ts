@@ -13,6 +13,7 @@ export const NODE_PROPS_DATA_KEY = ':nodeProps';
 export const NODE_DIFF_DATA_KEY = ':nodeDiff';
 export const ERROR_DATA_KEY = ':errorData';
 export const HOST_SIGNAL = ':signal';
+export const INLINE_COMPONENT_DATA_KEY = ':inlineComponentData';
 
 export interface CursorData {
   afterFlushTasks: Task[] | null;
@@ -42,11 +43,18 @@ export function setCursorPosition(
   }
 }
 
-function mergeCursors(container: Container, newCursorData: CursorData, oldCursor: VNode): void {
+export function mergeCursors(
+  container: Container,
+  newCursorData: CursorData,
+  oldCursor: VNode
+): void {
+  const oldCursorData = getCursorData(oldCursor);
+  if (!oldCursorData || oldCursorData === newCursorData) {
+    return;
+  }
+
   // delete from global cursors queue
   removeCursorFromQueue(oldCursor, container);
-  const oldCursorData = getCursorData(oldCursor)!;
-
   mergeCursorData(newCursorData, oldCursorData);
 }
 

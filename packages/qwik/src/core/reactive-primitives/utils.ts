@@ -4,6 +4,7 @@ import { assertDefined } from '../shared/error/assert';
 import { isServerPlatform } from '../shared/platform/platform';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container, SerializationStrategy } from '../shared/types';
+import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
 import { OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/serdes/verify';
 import { isObject } from '../shared/utils/types';
@@ -12,12 +13,12 @@ import { TaskFlags, isTask } from '../use/use-task';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { SignalImpl } from './impl/signal-impl';
 import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
-import type { Signal } from './signal.public';
+import type { ComputedSignal, Signal } from './signal.public';
 import { SubscriptionData, type NodeProp } from './subscription-data';
 import {
   SerializationSignalFlags,
   EffectProperty,
-  SignalFlags,
+  ComputedSignalFlags,
   type CustomSerializable,
   type EffectSubscription,
   type StoreTarget,
@@ -82,6 +83,21 @@ export const addQrlToSerializationCtx = (
       (container as SSRContainer).serializationCtx.$eventQrls$.add(qrl);
     }
   }
+};
+
+export const getEffectSerializationContainer = (
+  renderContainer: Container | undefined,
+  ownerContainer: Container | null
+): Container | null => {
+  if (
+    renderContainer &&
+    (!ownerContainer ||
+      renderContainer === ownerContainer ||
+      isOutOfOrderSegmentContainer(renderContainer))
+  ) {
+    return renderContainer;
+  }
+  return ownerContainer;
 };
 
 export const scheduleEffects = (
@@ -150,8 +166,8 @@ export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => an
 
 export const getComputedSignalFlags = (
   serializationStrategy: SerializationStrategy
-): SerializationSignalFlags | SignalFlags => {
-  let flags = SignalFlags.INVALID;
+): SerializationSignalFlags | ComputedSignalFlags => {
+  let flags = ComputedSignalFlags.INVALID;
   switch (serializationStrategy) {
     // TODO: implement this in the future
     // case 'auto':
@@ -165,4 +181,17 @@ export const getComputedSignalFlags = (
       break;
   }
   return flags;
+};
+
+/**
+ * Mark this signal as owned outside of the component that read it.
+ *
+ * Externally owned signals are preserved when found in a component's sequential scope during
+ * component cleanup.
+ *
+ * @internal
+ */
+export const _markSignalAsExternallyOwned = (signal: ComputedSignal<unknown>) => {
+  (signal as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).$flags$ |=
+    ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP;
 };

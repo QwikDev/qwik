@@ -31,16 +31,24 @@ import {
   NODE_DIFF_DATA_KEY,
   NODE_PROPS_DATA_KEY,
   type CursorData,
+  INLINE_COMPONENT_DATA_KEY,
 } from './cursor-props';
 import { invoke, newInvokeContext, untrack } from '../../use/use-core';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
-import { SignalFlags } from '../../reactive-primitives/types';
+import { ComputedSignalFlags } from '../../reactive-primitives/types';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import type { ISsrNode } from '../../ssr/ssr-types';
 import type { Cursor } from './cursor';
 import { reconcileKeyedLoopToParent } from '../../client/reconcile-keyed-loop';
 import { _getProps } from '../jsx/props-proxy';
 import type { EachProps } from '../../control-flow/each';
+import type { DomContainer } from '../../client/dom-container';
+
+interface InlineComponentData {
+  componentFn: Function;
+  subscriptionHost: HostElement | null;
+  props: Props | null;
+}
 
 /**
  * Executes tasks for a vNode if the TASKS dirty bit is set. Tasks are stored in the ELEMENT_SEQ
@@ -108,6 +116,29 @@ export function executeTasks(
   }
 
   return taskPromise;
+}
+
+export function setInlineComponentData(
+  vNode: VNode,
+  componentFn: Function,
+  subscriptionHost: VNode | null,
+  jsxProps: Props | null
+): void {
+  const props = (vNode.props ||= {}) as Props;
+  props[INLINE_COMPONENT_DATA_KEY] = {
+    componentFn,
+    subscriptionHost,
+    props: jsxProps,
+  } satisfies InlineComponentData;
+}
+
+function getInlineComponentData(vNode: VNode): InlineComponentData | null {
+  const props = vNode.props as Props;
+  const data = (props?.[INLINE_COMPONENT_DATA_KEY] as InlineComponentData) || null;
+  if (data) {
+    delete props[INLINE_COMPONENT_DATA_KEY];
+  }
+  return data;
 }
 
 function getNodeDiffPayload(vNode: VNode): JSXOutput | null {
@@ -197,22 +228,66 @@ export function executeComponentChore(
   container: Container,
   journal: VNodeJournal,
   cursor: Cursor
-): ValueOrPromise<void> {
-  vNode.dirty &= ~ChoreBits.COMPONENT;
+): ValueOrPromise<unknown> {
   const host = vNode as HostElement;
   const componentQRL = container.getHostProp<QRLInternal<OnRenderFn<unknown>> | null>(
     host,
     OnRenderProp
   );
 
+  if (componentQRL && !componentQRL.resolved) {
+    /**
+     * If the component QRL is not resolved, we need to wait for it to resolve before we can execute
+     * it. We just return the promise and we'll be called again, possibly with updated props, which
+     * is why we don't clear the dirty bit yet.
+     */
+    return componentQRL.resolve();
+  }
+  vNode.dirty &= ~ChoreBits.COMPONENT;
   if (!componentQRL) {
     return;
   }
 
   const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
 
+  return executeComponentFunction(container, host, host, componentQRL, props, journal, cursor);
+}
+
+export function executeInlineComponentChore(
+  vNode: VNode,
+  container: Container,
+  journal: VNodeJournal,
+  cursor: Cursor
+): ValueOrPromise<void> {
+  vNode.dirty &= ~ChoreBits.INLINE_COMPONENT;
+  const host = vNode as HostElement;
+  const inlineComponentData = getInlineComponentData(vNode);
+  if (!inlineComponentData) {
+    return;
+  }
+
+  return executeComponentFunction(
+    container,
+    host,
+    inlineComponentData.subscriptionHost || (container as DomContainer).rootVNode,
+    inlineComponentData.componentFn as OnRenderFn<unknown>,
+    inlineComponentData.props,
+    journal,
+    cursor
+  );
+}
+
+function executeComponentFunction(
+  container: Container,
+  host: HostElement,
+  subscriptionHost: HostElement,
+  componentFn: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>>,
+  props: Props | null,
+  journal: VNodeJournal,
+  cursor: Cursor
+) {
   const result = safeCall(
-    () => executeComponent(container, host, host, componentQRL, props),
+    () => executeComponent(container, host, subscriptionHost, componentFn, props),
     (jsx) => {
       const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
       return retryOnPromise(() =>
@@ -398,8 +473,8 @@ export function executeCompute(
       invoke.call(target, ctx, (target as WrappedSignalImpl<unknown>).$computeIfNeeded$)
     ),
     () => {
-      if ((target as WrappedSignalImpl<unknown>).$flags$ & SignalFlags.RUN_EFFECTS) {
-        (target as WrappedSignalImpl<unknown>).$flags$ &= ~SignalFlags.RUN_EFFECTS;
+      if ((target as WrappedSignalImpl<unknown>).$flags$ & ComputedSignalFlags.RUN_EFFECTS) {
+        (target as WrappedSignalImpl<unknown>).$flags$ &= ~ComputedSignalFlags.RUN_EFFECTS;
         return scheduleEffects(container, target, effects);
       }
     }

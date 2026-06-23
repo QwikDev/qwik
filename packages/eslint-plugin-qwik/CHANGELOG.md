@@ -1,5 +1,13 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.37
+
+## 2.0.0-beta.36
+
+### Patch Changes
+
+- 🛠 refactor(eslint): modernize plugin deps and rule typing (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8621](https://github.com/QwikDev/qwik/pull/8621))
+
 ## 2.0.0-beta.35
 
 ## 2.0.0-beta.34

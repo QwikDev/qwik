@@ -12,6 +12,7 @@ import type {
   Optimizer,
   OptimizerOptions,
   QwikManifest,
+  SegmentAnalysis,
   TransformModule,
 } from '../types';
 import { type BundleGraphAdder } from './bundle-graph';
@@ -144,6 +145,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getClientPublicOutDir: () => clientPublicOutDir,
     getAssetsDir: () => viteAssetsDir,
     registerBundleGraphAdder: (adder: BundleGraphAdder) => bundleGraphAdders.add(adder),
+    onSegment: (callback: SegmentCallback) => {
+      qwikPlugin.segmentCallbacks.add(callback);
+    },
     _oldDevSsrServer: () => qwikViteOpts.devSsrServer,
   };
 
@@ -704,7 +708,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // Source files live in the SSR module graph. When they change, notify the
           // client's loaded QRL segments via the client environment's HMR channel.
           // Some non-source imports (e.g. .css?inline) are type 'js' but their URL
-          // isn't a JS/TS file. For those, emit their JS importers instead, since
+          // is not a JS/TS file. For those, emit their JS importers instead, since
           // the component that needs to re-render is the importer.
           const files = new Set<string>();
           const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
@@ -1143,6 +1147,9 @@ export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSR
 export { ExperimentalFeatures } from './plugin';
 
 /** @public */
+export type SegmentCallback = (parentId: string, segment: SegmentAnalysis) => void;
+
+/** @public */
 export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
   getOptions: () => NormalizedQwikPluginOptions;
@@ -1152,6 +1159,8 @@ export interface QwikVitePluginApi {
   getClientPublicOutDir: () => string | null;
   getAssetsDir: () => string | undefined;
   registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
+  /** Register a callback that fires for each segment emitted during transform. */
+  onSegment: (callback: SegmentCallback) => void;
   /** @internal */
   _oldDevSsrServer: () => boolean | undefined;
 }

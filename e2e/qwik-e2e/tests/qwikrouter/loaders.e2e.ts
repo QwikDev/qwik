@@ -9,6 +9,52 @@ test.describe('loaders', () => {
   test.describe('spa', () => {
     test.use({ javaScriptEnabled: true });
     tests();
+
+    test('should reuse filtered search loaders only for the same SPA route path', async ({
+      page,
+    }) => {
+      const routePath = page.locator('#search-cache-route-path');
+      const keep = page.locator('#search-cache-keep');
+      const noise = page.locator('#search-cache-noise');
+      const token = page.locator('#search-cache-token');
+
+      await page.goto('/qwikrouter-test/loaders/search-cache/');
+      await page.locator('#link-search-cache-alpha').click();
+      await page.waitForURL(
+        (url) =>
+          url.pathname.endsWith('/loaders/search-cache/alpha/') &&
+          url.searchParams.get('keep') === 'one' &&
+          url.searchParams.get('noise') === 'first'
+      );
+      await expect(routePath).toHaveText('routePath: alpha');
+      await expect(keep).toHaveText('keep: one');
+      await expect(noise).toHaveText('noise: none');
+      const alphaToken = await token.innerText();
+
+      await page.locator('#link-search-cache-alpha-second').click();
+      await page.waitForURL(
+        (url) =>
+          url.pathname.endsWith('/loaders/search-cache/alpha/') &&
+          url.searchParams.get('keep') === 'one' &&
+          url.searchParams.get('noise') === 'second'
+      );
+      await expect(routePath).toHaveText('routePath: alpha');
+      await expect(keep).toHaveText('keep: one');
+      await expect(noise).toHaveText('noise: none');
+      await expect(token).toHaveText(alphaToken);
+
+      await page.locator('#link-search-cache-beta').click();
+      await page.waitForURL(
+        (url) =>
+          url.pathname.endsWith('/loaders/search-cache/beta/') &&
+          url.searchParams.get('keep') === 'one' &&
+          url.searchParams.get('noise') === 'second'
+      );
+      await expect(routePath).toHaveText('routePath: beta');
+      await expect(keep).toHaveText('keep: one');
+      await expect(noise).toHaveText('noise: none');
+      await expect(token).not.toHaveText(alphaToken);
+    });
   });
 
   function tests() {
@@ -46,23 +92,31 @@ test.describe('loaders', () => {
       await expect(slow).toHaveText('slow: 123');
       await expect(nestedDate).toHaveText('date: 2021-01-01T00:00:00.000Z');
       await expect(nestedDep).toHaveText('dep: 84');
-      await expect(nestedName).toHaveText('name: Manuel');
+      // The loader-derived name is unchanged after the action: route loaders
+      // refetched after an action submission run as standalone GETs without
+      // action context, so they don't see action state via resolveValue().
+      // Action state is observable directly via the action signal — see the title.
+      await expect(nestedName).toHaveText('name: hola');
 
       await page.locator('#link-stuff').click();
+      // Wait for URL to change first, then verify content
+      await page.waitForURL('**/loaders/stuff/**');
+      await expect(nestedName).toHaveText('name: stuff');
       await expect(title).toHaveText('Loaders - Qwik', { useInnerText: true });
       await expect(date).toHaveText('date: 2021-01-01T00:00:00.000Z');
       await expect(slow).toHaveText('slow: 123');
       await expect(nestedDate).toHaveText('date: 2021-01-01T00:00:00.000Z');
       await expect(nestedDep).toHaveText('dep: 84');
-      await expect(nestedName).toHaveText('name: stuff');
 
       await page.locator('#link-welcome').click();
+      // Wait for URL to change first, then verify content
+      await page.waitForURL('**/loaders/welcome/**');
+      await expect(nestedName).toHaveText('name: welcome');
       await expect(title).toHaveText('Loaders - Qwik', { useInnerText: true });
       await expect(date).toHaveText('date: 2021-01-01T00:00:00.000Z');
       await expect(slow).toHaveText('slow: 123');
       await expect(nestedDate).toHaveText('date: 2021-01-01T00:00:00.000Z');
       await expect(nestedDep).toHaveText('dep: 84');
-      await expect(nestedName).toHaveText('name: welcome');
     });
 
     test('should pass reactivity issue', async ({ page }) => {
@@ -168,37 +222,24 @@ test.describe('loaders', () => {
       }
     });
 
-    test('should retry with all loaders if one fails', async ({ page, javaScriptEnabled }) => {
-      let loadersRequestCount = 0;
-      let allLoadersRequestCount = 0;
-      page.on('request', (request) => {
-        if (request.url().includes('q-data.json?qloaders')) {
-          loadersRequestCount++;
-        }
-        if (request.url().endsWith('q-data.json')) {
-          allLoadersRequestCount++;
-        }
-      });
-
-      await page.route(
-        '*/**/qwikrouter-test/loaders-serialization/q-data.json?qloaders=*',
-        async (route) => {
-          await route.fulfill({ status: 404 });
-        }
-      );
+    test('imported loaders keep sharedMap data after resume', async ({
+      page,
+      javaScriptEnabled,
+    }) => {
       await page.goto('/qwikrouter-test/loaders-serialization/');
 
+      await expect(page.locator('#imported-never-ssr')).toHaveText('shared loader value');
+      await expect(page.locator('#imported-always-ssr')).toHaveText('shared loader value');
+
       if (javaScriptEnabled) {
-        await page.locator('#toggle-child').click();
-        await page.waitForLoadState('networkidle');
-        expect(loadersRequestCount).toBe(2);
-        expect(allLoadersRequestCount).toBe(1);
-        await expect(page.locator('#prop1')).toHaveText('some test value');
-        await expect(page.locator('#prop2')).toHaveText('should not serialize this');
-        await expect(page.locator('#prop3')).toHaveText('some eager test value');
-        await expect(page.locator('#prop4')).toHaveText('should serialize this');
-        await expect(page.locator('#prop5')).toHaveText('some test value nested');
-        await expect(page.locator('#prop6')).toHaveText('should not serialize this nested');
+        const qLoaderRequest = page.waitForRequest((request) => {
+          const url = request.url();
+          return url.includes('/q-loader-') && url.endsWith('.json');
+        });
+        await page.locator('#toggle-imported-child').click();
+        await qLoaderRequest;
+        await expect(page.locator('#imported-always-child')).toHaveText('shared loader value');
+        await expect(page.locator('#imported-never-child')).toHaveText('shared loader value');
       }
     });
   }

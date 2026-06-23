@@ -1,0 +1,121 @@
+---
+title: 'Death by Closure (and how Qwik solves it)'
+authors:
+  - 'Miško Hevery'
+tags: ['Qwik']
+date: 'July 2, 2021'
+canonical: 'https://www.builder.io/blog/death-by-closure'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { Image } from 'qwik-image';
+import img1 from './img-1.webp';
+
+<ArticleBlock>
+
+In our [previous post](https://dev.to/mhevery/a-first-look-at-qwik-the-html-first-framework-af), we introduced Qwik to the world. In that post, we glanced over many details, which we promised to get into later. Before we jump into Qwik and the design decisions behind it, it is important to understand how we (the industry) got to where we are today. What assumptions do the current generation of frameworks have which prevent them from getting good time-to-interactive scores? By understanding the current limitations of the current generation of frameworks we can better understand why Qwik's design decisions may seem surprising, at first.
+
+## Let's talk TTI
+
+TTI (or time-to-interactive) measures the time that passes from navigating to a URL and the page becoming interactive. To create the appearance of a responsive site, SSR (server-side-render) is a must. The thinking goes: Show the user the site quickly, and by the time they figure out what to click on the application will bootstrap itself and install all of the listeners. So, TTI is really a measure of how long it takes the framework to install the DOM listeners.
+
+In the graphic above we are interested in the time from bootstrap to interactive. Let's start at interactive and walk backward to understand everything the framework needs to do to get there.
+
+1. The framework needs to find where the listeners are. But this information is not easily available to the framework. The listeners are described in templates.
+
+2. Actually, I think embedded would be a better word than described. The information is embedded because it is not easily available to the framework. The framework needs to execute the template to get to the listener closure.
+
+3. To execute the template, the template needs to be downloaded. But the downloaded template contains imports that require even more code to be downloaded. A template needs to download its sub-templates.
+
+4. We have the template, but we still haven't gotten to the listeners. Template execution really means merging the template with the state. Without the state, frameworks can't run the template, which means they can't get to the listeners.
+
+5. The state needs to be downloaded and/or computed on the client. The computation oftentimes means that even more code needs to be downloaded in order to compute the state.
+
+Once all of the code is downloaded, the framework can compute the state, feed the state into the template, and finally get the listener's closures and install these closures on the DOM.
+
+That is a lot of work to do to get to an interactive state. Every current generation framework works this way. In the end, this means that most of the application needs to be downloaded and executed for the framework to be able to find the listeners and install them.
+
+## Let's talk about closures
+
+The core problem described above is that it takes a lot of bandwidth to download the code, and a lot of CPU time for the framework to find the listeners so that the page can become interactive. But we are forgetting that the closures close over code and data. This is a very convenient property and why we love closures. But, it also means that all of the closure data and code needs to be available at the time of closure creation, rather than being lazy created at the time of closure execution.
+
+Let's look at a simple JSX template (but other templating systems have the same problem):
+
+```jsx
+import {addToCart} from './cart';
+
+function MyBuyButton(props) {
+  const [cost] = useState(...);
+  return (
+    Price: {cost}
+    <button onclick={() => addToCart()}>
+      Add to cart
+    </button>
+  );
+}
+```
+
+All we need for interactivity is to know where the listeners are. In the example above, that information is entangled with the template in a way that makes it hard to extract, without downloading and executing all of the templates on the page.
+
+A page may easily have hundreds of event listeners, but the vast majority of them will never execute. Why do we spend time downloading code and creating closures for what-could-be, rather than delaying it until it is needed?
+
+## Death by closure
+
+Closures are cheap and are everywhere. But are they cheap? Yes and no. Yes, they are cheap in the sense that they are cheap to create at runtime. But, they are expensive because they close over code, which needs to be downloaded much sooner than it could be done otherwise. And they are expensive in the sense that they prevent tree shaking from happening. And, so we have a situation I call "death by closure." The closures are the listeners, which are placed on the DOM that close over code that will most likely never run.
+
+A buy button on a page is complex and is clicked rarely. Yet the buy button eagerly forces us to download all of the code associated with it, because it is what closures do.
+
+## Qwik makes listeners HTML serializable
+
+Above, I've tried to make the point that closures can have hidden costs. These costs come in the form of eager code download. This makes closures hard to create and hence stand between the user and an interactive website.
+
+Qwik wants to delay listener creation as much as possible. To achieve this, Qwik has these tenants:
+
+1. Listeners need to be HTML serializable.
+
+2. Listeners do not close over code, until after the user interacts with the listener.
+
+Let's have a look at how this is achieved in practice:
+
+```html
+<button on:click="MyComponent_click">Click me!</button>
+```
+
+Then in file: MyComponent_click.ts
+
+```typescript
+export default function () {
+  alert('Clicked');
+}
+```
+
+Take a look at the code above. The SSR discovered the locations of the listeners during the rendering process. Instead of throwing that information away, the SSR serializes the listeners into the HTML in the form of the attributes. Now, the client does not need to replay the execution of the templates to discover where the listeners are. Instead, Qwik takes the following approach:
+
+1. Install qwikloader.js onto the page. It is less than 1KB, and takes less than 1ms to execute. Because it is so small, the best practice is to inline it into the HTML, which saves a server round trip.
+
+2. The qwikloader.js can register one global event handler and take advantage of bubbling to listen to all events at once. Fewer calls to addEventListener => faster time to interactive.
+
+The result is that:
+
+1. No templates need to be downloaded to locate listeners. The listeners are serialized into the HTML in the form of attributes.
+
+2. No template needs to be executed to retrieve the listeners.
+
+3. No state has to be downloaded to execute the templates.
+
+4. All of the code is now lazy and is only downloaded when a user interacts with the listener.
+
+Qwik short-circuits current generation frameworks' bootstrap process and has replaced it with a single global event listener. The best part is that it is independent of the size of the application. No matter how large the app gets, it will always be just a single listener. The bootstrap code to download is constant and size independent of the complexity of the application because all of the information is serialized in the HTML.
+
+To sum up, the basic idea behind Qwik is that it is resumable. It picks up where the server left off, with only 1KB that needs to execute on the client. And this code will stay constant no matter how large and complex your application gets. In the next coming weeks, we will look at how Qwik resumes, manages state, and renders components independently, so stay tuned!
+
+We are very excited about the future of Qwik and the kind of uses cases that it opens up.
+
+- Try it on [StackBlitz](https://stackblitz.com/edit/qwik-todo-demo)
+- Star us on [github.com/builderio/qwik](https://github.com/builderio/qwik)
+- Follow us on [@QwikDev](https://twitter.com/QwikDev) and [@builderio](https://twitter.com/builderio)
+- Chat us on [Discord](https://discord.gg/JHVpZmqSs4)
+
+Originally published on: [https://dev.to/mhevery/death-by-closure-and-how-qwik-solves-it-44jj](https://dev.to/mhevery/death-by-closure-and-how-qwik-solves-it-44jj)
+
+</ArticleBlock>

@@ -1,4 +1,8 @@
-import { COMPUTED_QRL_KEY, INNER_USE_HOOK, QRL_KEY } from '@qwik.dev/devtools/kit';
+import {
+  getQwikDevtoolsComponentState,
+  INNER_USE_HOOK,
+  QWIK_VNODE_PROTOCOL,
+} from '@qwik.dev/devtools/kit';
 import type {
   ParsedStructure,
   ComponentDevtoolsState,
@@ -11,14 +15,14 @@ import type { QRLInternal } from './types';
  * $computeQrl$ (for computed).
  */
 interface QSeqEntry {
-  [QRL_KEY]?: QRLInternal;
-  [COMPUTED_QRL_KEY]?: QRLInternal;
+  [QWIK_VNODE_PROTOCOL.qrl.qrl]?: QRLInternal;
+  [QWIK_VNODE_PROTOCOL.qrl.computed]?: QRLInternal;
 }
 
 /** Check if a sequence entry is a user-defined hook (not internal devtools hook) */
 function isUserDefinedHook(seq: QSeqEntry): boolean {
-  const qrl = seq[QRL_KEY] ?? seq[COMPUTED_QRL_KEY];
-  const chunkPath = qrl?.$chunk$ ?? '';
+  const qrl = seq[QWIK_VNODE_PROTOCOL.qrl.qrl] ?? seq[QWIK_VNODE_PROTOCOL.qrl.computed];
+  const chunkPath = qrl?.[QWIK_VNODE_PROTOCOL.qrl.chunk] ?? '';
   return !chunkPath.includes(INNER_USE_HOOK);
 }
 
@@ -32,7 +36,7 @@ export function filterUserDefinedHooks(allSeq: QSeqEntry[]): QSeqEntry[] {
 
 /** Get parsed structure from global devtools state by QRL chunk name */
 export function getQwikState(qrlChunkName: string): ParsedStructure[] {
-  const globalState = window.QWIK_DEVTOOLS_GLOBAL_STATE ?? {};
+  const globalState = getQwikDevtoolsComponentState(window);
   const matchingKey = Object.keys(globalState).find((key) => key.endsWith(qrlChunkName));
 
   if (!matchingKey) {
@@ -51,7 +55,7 @@ export function getQwikState(qrlChunkName: string): ParsedStructure[] {
 
 /** Get render stats from global devtools state by QRL chunk name */
 export function getRenderStats(qrlChunkName: string): DevtoolsRenderStats | null {
-  const globalState = window.QWIK_DEVTOOLS_GLOBAL_STATE ?? {};
+  const globalState = getQwikDevtoolsComponentState(window);
   const matchingKey = Object.keys(globalState).find((key) => key.endsWith(qrlChunkName));
 
   if (!matchingKey) {
@@ -64,7 +68,7 @@ export function getRenderStats(qrlChunkName: string): DevtoolsRenderStats | null
 
 /** Get all component states from global devtools state */
 export function getAllComponentStates(): Record<string, ComponentDevtoolsState> {
-  return window.QWIK_DEVTOOLS_GLOBAL_STATE ?? {};
+  return getQwikDevtoolsComponentState(window);
 }
 
 /** Determine hook type from QRL chunk path */
@@ -76,10 +80,10 @@ function getHookTypeFromChunk(chunkPath: string): 'useTask' | 'useVisibleTask' {
 export function transformQrlSequenceData(seqs: QSeqEntry[]): ParsedStructure[] {
   return seqs
     .filter(isUserDefinedHook)
-    .filter((item) => item[QRL_KEY])
+    .filter((item) => item[QWIK_VNODE_PROTOCOL.qrl.qrl])
     .map((item) => {
-      const qrl = item[QRL_KEY]!;
-      const chunkPath = qrl.$chunk$ ?? '';
+      const qrl = item[QWIK_VNODE_PROTOCOL.qrl.qrl]!;
+      const chunkPath = qrl[QWIK_VNODE_PROTOCOL.qrl.chunk] ?? '';
       const hookType = getHookTypeFromChunk(chunkPath);
 
       return {

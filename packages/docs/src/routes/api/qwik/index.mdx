@@ -4412,7 +4412,7 @@ Reveal: typeof revealCmp;
 export type RevealOrder = "parallel" | "sequential" | "reverse" | "together";
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/reveal.ts)
 
 <h2 id="revealprops">RevealProps</h2>
 
@@ -4504,6 +4504,101 @@ plt
 [CorePlatform](#coreplatform)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/platform/platform.ts)
+
+<h2 id="show">Show</h2>
+
+```typescript
+Show: ShowComponent;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/show.ts)
+
+<h2 id="showcomponent">ShowComponent</h2>
+
+```typescript
+export type ShowComponent = <
+  WHEN = unknown,
+  THEN extends JSXOutput = JSXOutput,
+  ELSE extends JSXOutput = JSXOutput,
+>(
+  props: PublicProps<ShowProps<WHEN, THEN, ELSE>>,
+  key: string | null,
+  flags: number,
+  dev?: DevJSX,
+) => JSXOutput;
+```
+
+**References:** [JSXOutput](#jsxoutput), [PublicProps](#publicprops), [ShowProps](#showprops), [DevJSX](#devjsx)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/show.ts)
+
+<h2 id="showprops">ShowProps</h2>
+
+```typescript
+export interface ShowProps<WHEN = unknown, THEN extends JSXOutput = JSXOutput, ELSE extends JSXOutput = JSXOutput>
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+else$?
+
+</td><td>
+
+</td><td>
+
+[QRL](#qrl-type-alias)&lt;(when: WHEN) =&gt; ELSE&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+then$
+
+</td><td>
+
+</td><td>
+
+[QRL](#qrl-type-alias)&lt;(when: WHEN) =&gt; THEN&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+when$
+
+</td><td>
+
+</td><td>
+
+[QRL](#qrl-type-alias)&lt;() =&gt; WHEN&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/show.ts)
 
 <h2 id="signal">Signal</h2>
 

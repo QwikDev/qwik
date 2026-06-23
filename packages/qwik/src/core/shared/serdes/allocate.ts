@@ -13,7 +13,7 @@ import { getOrCreateStore } from '../../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData, type NodePropData } from '../../reactive-primitives/subscription-data';
 import { EffectSubscription, StoreFlags } from '../../reactive-primitives/types';
-import { Task } from '../../use/use-task';
+import { Task, TaskFlags } from '../../use/use-task';
 import { componentQrl } from '../component.public';
 import { qError, QError } from '../error/error';
 import { JSXNodeImpl } from '../jsx/jsx-node';
@@ -26,6 +26,7 @@ import type { VNode } from '../vnode/vnode';
 import { _constants, TypeIds, type Constants } from './constants';
 import { needsInflation } from './deser-proxy';
 import { createQRLWithBackChannel } from './qrl-to-string';
+import { SubscriptionPatch } from './subscription-patch';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 export const pendingStoreTargets = new Map<object, { t: TypeIds; v: unknown }>();
@@ -37,10 +38,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.RootRef:
       return container.$getObjectById$(value as number);
     case TypeIds.ForwardRef:
-      if (!container.$forwardRefs$) {
-        return _UNINITIALIZED;
-      }
-      const rootRef = container.$forwardRefs$[value as number];
+      const rootRef = container.$getForwardRef$(value as number);
       if (rootRef === -1 || rootRef === undefined) {
         return _UNINITIALIZED;
       } else {
@@ -57,13 +55,21 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.QRL: {
       let qrl: QRLInternal;
       if (typeof value === 'string') {
-        const [chunkId, symbolId, captureIds] = value.split('#');
-        const chunk = container.$getObjectById$(chunkId) as string;
-        const symbol = container.$getObjectById$(symbolId) as string;
+        const serializedQrl = value;
+        const firstHash = serializedQrl.indexOf('#');
+        const secondHash = serializedQrl.indexOf('#', firstHash + 1);
+        const chunkRootId = Number(serializedQrl.slice(0, firstHash));
+        const symbolDelta =
+          secondHash === -1
+            ? Number(serializedQrl.slice(firstHash + 1))
+            : Number(serializedQrl.slice(firstHash + 1, secondHash));
+        const symbolRootId = chunkRootId + symbolDelta;
+        const chunk = container.$getObjectById$(chunkRootId) as string;
+        const symbol = container.$getObjectById$(symbolRootId) as string;
         qrl = createQRLWithBackChannel(
           chunk,
           symbol,
-          captureIds || null,
+          secondHash !== -1 ? serializedQrl : null,
           container as DomContainer
         );
       } else {
@@ -73,7 +79,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return qrl;
     }
     case TypeIds.Task:
-      return new Task(-1, -1, null!, null!, null!, null);
+      return new Task(-1 as TaskFlags, -1, null!, null!, null);
     case TypeIds.URL:
       return new URL(value as string);
     case TypeIds.Date:
@@ -196,8 +202,15 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       }
     case TypeIds.SubscriptionData:
       return new SubscriptionData({} as NodePropData);
+    case TypeIds.SubscriptionDataConstTrue:
+      return new SubscriptionData({ $scopedStyleIdPrefix$: null, $isConst$: true });
+    case TypeIds.SubscriptionDataConstFalse:
+      return new SubscriptionData({ $scopedStyleIdPrefix$: null, $isConst$: false });
     case TypeIds.EffectSubscription:
+    case TypeIds.EffectSubscriptionNoData:
       return new EffectSubscription(null!, null!, null, null);
+    case TypeIds.SubscriptionPatch:
+      return new SubscriptionPatch();
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }

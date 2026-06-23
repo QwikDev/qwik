@@ -19,6 +19,11 @@ import type {
 } from '../types';
 import { convertManifestToBundleGraph, type BundleGraphAdder } from './bundle-graph';
 import { createLinter, type QwikLinter } from './eslint-plugin';
+import {
+  createServerOnlyImportError,
+  isServerOnlyModule,
+  mightContainServerOnlyImport,
+} from './server-only-modules';
 import { isVirtualId, isWin, parseId } from './vite-utils';
 import MagicString from 'magic-string';
 import {
@@ -59,6 +64,11 @@ const CLIENT_STRIP_CTX_NAME = [
   'event$',
 ];
 
+type ViteResolveIdOptions = NonNullable<Parameters<Extract<Plugin['resolveId'], Function>>[2]>;
+type QwikResolveIdOptions = Partial<ViteResolveIdOptions> & {
+  scan?: boolean;
+};
+
 /**
  * Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or
  * `false` via an exact string replacement.
@@ -70,6 +80,8 @@ const CLIENT_STRIP_CTX_NAME = [
 export enum ExperimentalFeatures {
   /** Enable the Each keyed-list primitive */
   each = 'each',
+  /** Enable the Show conditional primitive */
+  show = 'show',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
   /** Enable the Valibot form validation */
@@ -93,6 +105,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
+  const segmentCallbacks = new Set<(parentId: string, segment: SegmentAnalysis) => void>();
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
@@ -455,6 +468,110 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         : opts.target === 'ssr' || opts.target === 'test';
   };
 
+  const shouldAssertClientImports = (isServer: boolean) => {
+    return !isServer && (opts.target === 'client' || (!!devServer && opts.target === 'ssr'));
+  };
+
+  const shouldValidateDevSsrClientOutput = (isServer: boolean) => {
+    return !!devServer && isServer && (opts.target === 'client' || opts.target === 'ssr');
+  };
+
+  const assertClientCanImport = (pathId: string, importerId?: string | null, isServer = false) => {
+    if (shouldAssertClientImports(isServer) && isServerOnlyModule(pathId, opts)) {
+      throw new Error(createServerOnlyImportError(pathId, importerId));
+    }
+  };
+
+  const isServerOnlyImportCandidate = (importId: string) => {
+    const normalizedImportId = importId.replace(/\\/g, '/');
+    return normalizedImportId.includes('.server') || /(^|\/)server(\/|$)/.test(normalizedImportId);
+  };
+
+  const getImportSpecifiers = (ctx: Rollup.PluginContext, code: string): string[] => {
+    const imports = new Set<string>();
+
+    const addSource = (source: any) => {
+      if (typeof source?.value === 'string') {
+        imports.add(source.value);
+      }
+    };
+
+    const stack = [ctx.parse(code) as any];
+    while (stack.length > 0) {
+      const node = stack.pop();
+      if (!node || typeof node !== 'object' || typeof node.type !== 'string') {
+        continue;
+      }
+
+      if (node.type === 'ImportDeclaration' && node.importKind !== 'type') {
+        addSource(node.source);
+      } else if (
+        (node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') &&
+        node.exportKind !== 'type'
+      ) {
+        addSource(node.source);
+      } else if (node.type === 'ImportExpression') {
+        addSource(node.source);
+      } else if (node.type === 'CallExpression' && node.callee?.type === 'Import') {
+        addSource(node.arguments?.[0]);
+      }
+
+      for (const key of Object.keys(node)) {
+        if (key === 'parent') {
+          continue;
+        }
+        const value = node[key];
+        if (Array.isArray(value)) {
+          for (const child of value) {
+            stack.push(child);
+          }
+        } else {
+          stack.push(value);
+        }
+      }
+    }
+
+    return Array.from(imports);
+  };
+
+  const assertClientTransformCanImport = async (
+    ctx: Rollup.PluginContext,
+    code: string,
+    resolveImporterId: string,
+    importerId = resolveImporterId
+  ) => {
+    if (!mightContainServerOnlyImport(code)) {
+      return;
+    }
+    for (const importId of getImportSpecifiers(ctx, code)) {
+      if (!isServerOnlyImportCandidate(importId)) {
+        continue;
+      }
+      assertClientCanImport(importId, importerId);
+      const resolved = await ctx.resolve(importId, resolveImporterId, { skipSelf: true });
+      if (resolved) {
+        assertClientCanImport(normalizePath(parseId(resolved.id).pathId), importerId);
+      }
+    }
+  };
+
+  const assertClientTransformOutputCanImport = async (
+    ctx: Rollup.PluginContext,
+    output: TransformOutput,
+    srcDir: string,
+    importerId?: string,
+    additionalOnly = false
+  ) => {
+    const path = getPath();
+    for (const mod of output.modules) {
+      if (additionalOnly && !isAdditionalFile(mod)) {
+        continue;
+      }
+      const outputPath = normalizePath(path.join(srcDir, mod.path));
+      await assertClientTransformCanImport(ctx, mod.code, outputPath, importerId ?? outputPath);
+    }
+  };
+
   let resolveIdCount = 0;
   let doNotEdit = false;
   /**
@@ -470,7 +587,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: Rollup.PluginContext,
     id: string,
     importerId: string | undefined,
-    resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
+    resolveOpts?: QwikResolveIdOptions
   ) => {
     if (isVirtualId(id)) {
       return;
@@ -528,6 +645,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     let result: Rollup.ResolveIdResult;
 
     /** At this point, the request has been normalized. */
+    if (!(devServer && resolveOpts?.scan)) {
+      assertClientCanImport(pathId, importerId, isServer);
+    }
 
     if (
       /**
@@ -666,11 +786,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // This doesn't get used, but we need to return something
       return '"opening in editor"';
     }
-    if (isVirtualId(id) || id.startsWith('/@fs/')) {
+    if (isVirtualId(id)) {
       return;
     }
     const count = loadCount++;
     const isServer = getIsServer(ctx, loadOpts);
+
+    const parsedId = parseId(id);
+    const pathId = normalizePath(parsedId.pathId);
+    assertClientCanImport(pathId, undefined, isServer);
+    if (id.startsWith('/@fs/')) {
+      return;
+    }
 
     // Virtual modules
     if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
@@ -701,8 +828,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     // QRL segments
-    const parsedId = parseId(id);
-    id = normalizePath(parsedId.pathId);
+    id = pathId;
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (devServer && !outputs.has(id)) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
@@ -779,6 +905,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
 
     const { pathId } = parseId(id);
+    const normalizedPathId = normalizePath(pathId);
+    assertClientCanImport(normalizedPathId, undefined, isServer);
     const parsedPathId = path.parse(pathId);
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
@@ -881,6 +1009,29 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
 
+      if (shouldAssertClientImports(isServer)) {
+        await assertClientTransformOutputCanImport(ctx, newOutput, srcDir, normalizedPathId);
+      } else if (shouldValidateDevSsrClientOutput(isServer) && mightContainServerOnlyImport(code)) {
+        const clientTransformOpts: TransformModulesOptions = {
+          ...transformOpts,
+          entryStrategy,
+          isServer: false,
+        };
+        if (strip) {
+          clientTransformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
+          clientTransformOpts.stripExports = SERVER_STRIP_EXPORTS;
+          clientTransformOpts.stripEventHandlers = undefined;
+          clientTransformOpts.regCtxName = undefined;
+        }
+        await assertClientTransformOutputCanImport(
+          ctx,
+          await optimizer.transformModules(clientTransformOpts),
+          srcDir,
+          normalizedPathId,
+          true
+        );
+      }
+
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
@@ -915,6 +1066,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
               type: 'chunk',
               preserveSignature: 'allow-extension',
             });
+          }
+          // Notify segment callbacks
+          if (mod.segment && segmentCallbacks.size > 0) {
+            for (const cb of segmentCallbacks) {
+              cb(id, mod.segment);
+            }
           }
         }
       }
@@ -1252,6 +1409,7 @@ export const isDev = ${JSON.stringify(isDev)};
     normalizePath,
     onDiagnostics,
     resolveId,
+    segmentCallbacks,
     transform,
     validateSource,
     setSourceMapSupport,

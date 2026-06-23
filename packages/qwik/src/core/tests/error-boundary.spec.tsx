@@ -1377,7 +1377,7 @@ describe('ErrorBoundary qerror listener', () => {
     expect(container.element.querySelector('#fb')?.textContent).toContain('caught: async boom');
   });
 
-  it('an importError qerror only logs and does NOT reveal the fallback', async () => {
+  it('an importError qerror is not re-logged or routed to a boundary (qwikloader already logged it)', async () => {
     const { container } = await domRender(
       <ErrorBoundary
         fallback$={$((e: any) => (
@@ -1390,7 +1390,7 @@ describe('ErrorBoundary qerror listener', () => {
     );
     const target = container.element.querySelector('#target')!;
 
-    // qwikloader already logs import failures, so they must not be routed to a boundary.
+    // qwikloader already logs import failures, so the listener must neither re-log nor route them.
     expect(() =>
       dispatchQError(target, { error: new Error('sym:0'), element: target, importError: 'sync' })
     ).not.toThrow();

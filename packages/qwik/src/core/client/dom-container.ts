@@ -157,9 +157,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$qErrorHandler$ = (e: Event) => {
       const detail = (e as CustomEvent<{ error: unknown; element?: Element; importError?: string }>)
         .detail;
-      // Import/symbol failures are already logged by qwikloader; don't route them to a boundary.
+      // qwikloader already console.error'd import/symbol failures; don't re-log them (which would
+      // duplicate once per container on the document-level listener) or route them to a boundary.
       if (detail?.importError) {
-        logError(detail.error);
         return;
       }
       const source = detail?.element;

@@ -43,8 +43,10 @@ import type {
   ZodDataValidator,
 } from './types';
 import { useAction, useLocation } from './use-functions';
+import { _asyncRequestStore } from '../../middleware/request-handler';
+export { getRequestEvent } from './route-loaders';
 
-/** @internal */
+/** @public */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
   ...rest: (ActionOptions | DataValidator)[]

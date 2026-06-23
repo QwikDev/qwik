@@ -222,6 +222,9 @@ export interface FormSubmitSuccessDetail<T> {
     value: T;
 }
 
+// @public
+export const getRequestEvent: (thisArg?: unknown) => RequestEvent | undefined;
+
 // Warning: (ae-forgotten-export) The symbol "ValibotDataValidator" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ZodDataValidator" needs to be exported by the entry point index.d.ts
 //
@@ -459,9 +462,7 @@ export type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Recor
 // @public
 export const routeAction$: ActionConstructor;
 
-// Warning: (ae-internal-missing-underscore) The name "routeActionQrl" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
+// @public (undocumented)
 export const routeActionQrl: ActionConstructorQRL;
 
 // @public

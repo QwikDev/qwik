@@ -15,7 +15,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // the growth.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
 const CORE_BROTLI_BUDGET = 35000;
-const QWIKLOADER_BROTLI_BUDGET = 2200;
+const QWIKLOADER_BROTLI_BUDGET = 2100;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '../../../../');

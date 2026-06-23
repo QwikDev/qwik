@@ -17,6 +17,11 @@ declare module '@qwik-router-config' {
   export default defaultExport;
 }
 
+declare module '@qwik-router-config-ssr' {
+  export * from '@qwik-router-config';
+  export { default } from '@qwik-router-config';
+}
+
 declare module '@qwik-city-plan' {
   export * from '@qwik-router-config';
   export { default } from '@qwik-router-config';

@@ -25,6 +25,8 @@ import {
   emitImports,
   emitSsrQrlPrelude,
   hasAttrExpressionBinding,
+  hasCapturedCsrFunction,
+  hasCapturedDomPropsEvent,
   hasComponentPropsSpread,
   hasDomPropsBinding,
   hasDynamicAttrBinding,
@@ -127,7 +129,7 @@ function createModuleImports(
   return createCsrImports(
     baseImports,
     collectCsrRootQrlSegments(components, qrlSegments),
-    collectCsrRootImportUsage(components)
+    collectCsrRootImportUsage(components, qrlSegments)
   );
 }
 
@@ -351,7 +353,10 @@ function collectExistingQrlSegment(
   }
 }
 
-function collectCsrRootImportUsage(components: readonly ComponentRecord[]) {
+function collectCsrRootImportUsage(
+  components: readonly ComponentRecord[],
+  qrlSegments: Map<string, QrlSegmentOutput>
+) {
   return {
     hasDynamicBinding: components.some(
       (component) => hasCsrRootDynamicBinding(component.root) || component.providesContext
@@ -362,6 +367,12 @@ function collectCsrRootImportUsage(components: readonly ComponentRecord[]) {
     hasAttrExpression: components.some((component) => hasCsrRootAttrExpression(component.root)),
     hasDomProps: components.some((component) => hasCsrRootDomPropsBinding(component.root)),
     hasDirectEvent: components.some((component) => hasCsrRootDirectDomEvent(component.root)),
+    hasCapturedDomPropsEvent: components.some((component) =>
+      hasCapturedDomPropsEvent(component.root, qrlSegments)
+    ),
+    hasCapturedFunction: components.some((component) =>
+      hasCapturedCsrFunction(component.root, qrlSegments)
+    ),
     hasBranch: components.some((component) => hasCsrRootBranch(component.root)),
     hasForBlock: components.some((component) => hasCsrRootForBlock(component.root)),
     hasComponent: components.some((component) => hasCsrRootComponent(component.root)),

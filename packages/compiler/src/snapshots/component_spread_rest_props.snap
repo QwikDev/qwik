@@ -6,7 +6,8 @@ export function Button({ kind, ...rest }: { kind: string; title: string; onClick
 
 export function Parent() {
   const attrs = { title: 'Save' };
-  return <Button {...attrs} kind="primary" onClick$={() => 'clicked'} />;
+  const label = 'clicked';
+  return <Button {...attrs} kind="primary" onClick$={() => label} />;
 }
 
 == SSR OUTPUT ==
@@ -51,8 +52,9 @@ export function Button(_props, ctx) {
 }
 export async function Parent(_props, ctx) {
   const attrs = { title: 'Save' };
+  const label = 'clicked';
   const component0 = createComponent(
-    mergeProps(attrs, { kind: 'primary', onClick$: q_component_q_e_click_segment_2 }),
+    mergeProps(attrs, { kind: 'primary', onClick$: q_component_q_e_click_segment_2.w([label]) }),
     (props) => Button(props, ctx)
   );
   return await component0;
@@ -97,8 +99,10 @@ null
 */
 ============================= src/component.tsx_component_q_e_click_segment_2.js (ENTRY POINT)==
 
+import { _captures } from '@qwik.dev/core/spark';
 export const component_q_e_click_segment_2 = () => {
-  return 'clicked';
+  const label = _captures[0];
+  return label;
 };
 
 null
@@ -114,12 +118,15 @@ null
   "parent": null,
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
-  "captures": false,
+  "captures": true,
   "loc": [
-    208,
-    234
+    234,
+    256
   ],
-  "paramNames": []
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
 }
 */
 == SSR DIAGNOSTICS ==
@@ -129,7 +136,12 @@ null
 
 ============================= src/component.tsx ==
 
-import { createComponent, mergeProps, createPropsEffect } from '@qwik.dev/core/spark';
+import {
+  createComponent,
+  mergeProps,
+  createPropsEffect,
+  _withCaptures,
+} from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_2 } from './component.tsx_component_q_e_click_segment_2';
 
 const dom_Button_expr0 = (rest, kind) => ({
@@ -151,8 +163,12 @@ export function Button(_props, ctx) {
 }
 export function Parent(_props, ctx) {
   const attrs = { title: 'Save' };
+  const label = 'clicked';
   const cmp0 = createComponent(
-    mergeProps(attrs, { kind: 'primary', onClick$: component_q_e_click_segment_2 }),
+    mergeProps(attrs, {
+      kind: 'primary',
+      onClick$: _withCaptures(component_q_e_click_segment_2, [label]),
+    }),
     (props) => Button(props, ctx),
     { container: ctx }
   );
@@ -198,8 +214,10 @@ null
 */
 ============================= src/component.tsx_component_q_e_click_segment_2.js (ENTRY POINT)==
 
+import { _captures } from '@qwik.dev/core/spark';
 export const component_q_e_click_segment_2 = () => {
-  return 'clicked';
+  const label = _captures[0];
+  return label;
 };
 
 null
@@ -215,12 +233,15 @@ null
   "parent": null,
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
-  "captures": false,
+  "captures": true,
   "loc": [
-    208,
-    234
+    234,
+    256
   ],
-  "paramNames": []
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
 }
 */
 == CSR DIAGNOSTICS ==

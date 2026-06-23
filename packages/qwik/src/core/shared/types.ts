@@ -64,10 +64,17 @@ export interface Container {
 export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends Element {
-  _qDispatch?: Record<string, EventHandler | EventHandler[]>;
+  _qDispatch?: Record<string, QDispatchHandler | QDispatchHandler[]>;
   _qSegment?: string;
   vNode?: VNode;
 }
+
+export type CapturedEventHandler = unknown[] & {
+  _qHandler: EventHandler;
+  _qRun: (captures: CapturedEventHandler, event: Event, element: Element) => unknown;
+};
+
+export type QDispatchHandler = EventHandler | CapturedEventHandler;
 
 export type qWindow = Window & {
   /**

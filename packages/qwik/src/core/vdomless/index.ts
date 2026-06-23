@@ -143,7 +143,7 @@ export {
   type TextExpressionValue,
 } from './dom/effect/effect';
 export { applyDomProps, normalizeDomProps, renderDomPropsToString } from './dom/effect/dom-props';
-export { setEvent } from './dom/event/event';
+export { createCapturedEvent, setEvent } from './dom/event/event';
 export {
   EffectTargetKind,
   SsrAttrEffect,

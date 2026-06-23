@@ -158,11 +158,14 @@ export function createCsrImports(
   if (usage.hasDomProps) {
     sparkSpecifiers.push(QwikSymbol.CreatePropsEffect);
   }
+  if (usage.hasCapturedDomPropsEvent) {
+    sparkSpecifiers.push(QwikSymbol.CreateCapturedEvent);
+  }
   if (qrlSegments.size > 0) {
     if (usage.hasDirectEvent) {
       sparkSpecifiers.push(QwikSymbol.SetEvent);
     }
-    if (hasCapturedQrlSegment(qrlSegments)) {
+    if (usage.hasCapturedFunction) {
       sparkSpecifiers.push(QwikSymbol.WithCaptures);
     }
     segmentImports.push(
@@ -192,19 +195,12 @@ export interface CsrImportUsage {
   hasAttrExpression: boolean;
   hasDomProps: boolean;
   hasDirectEvent: boolean;
+  hasCapturedDomPropsEvent: boolean;
+  hasCapturedFunction: boolean;
   hasBranch: boolean;
   hasForBlock: boolean;
   hasComponent: boolean;
   hasComponentPropsSpread: boolean;
-}
-
-function hasCapturedQrlSegment(qrlSegments: Map<string, QrlSegmentOutput>) {
-  for (const qrlSegment of qrlSegments.values()) {
-    if (qrlSegment.segment.captures.length > 0) {
-      return true;
-    }
-  }
-  return false;
 }
 
 export function normalizeImports(imports: readonly ImportRecord[]) {

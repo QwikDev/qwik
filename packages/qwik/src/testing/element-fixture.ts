@@ -11,6 +11,10 @@ import { waitForDrain } from './util';
 import type { QRLInternal } from '../server/qwik-types';
 
 type Task = () => void | Promise<void>;
+type CapturedHandler = unknown[] & {
+  _qRun?: (captures: CapturedHandler, event: Event, element: Element) => unknown;
+};
+type DispatchHandler = EventHandler | CapturedHandler;
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -261,8 +265,8 @@ const dispatchOnElement = (
     }
     if ('_qDispatch' in (element as QElement)) {
       if (handlers) {
-        if (typeof handlers === 'function') {
-          const run = () => handlers(event, element);
+        if (typeof handlers === 'function' || isCapturedHandler(handlers)) {
+          const run = () => runDispatchHandler(handlers as DispatchHandler, event, element);
           if (defer) {
             tasks.push(async () => {
               const result = run();
@@ -279,9 +283,9 @@ const dispatchOnElement = (
           }
         } else if (handlers.length) {
           for (let i = 0; i < handlers.length; i++) {
-            const handler = handlers[i];
+            const handler = handlers[i] as DispatchHandler | undefined;
             if (handler) {
-              const run = () => (handler as EventHandler)(event, element);
+              const run = () => runDispatchHandler(handler, event, element);
               if (defer) {
                 tasks.push(async () => {
                   const result = run();
@@ -349,6 +353,12 @@ const dispatchOnElement = (
     }
   }
 };
+
+const isCapturedHandler = (handler: unknown): handler is CapturedHandler =>
+  typeof handler !== 'function' && !!(handler as CapturedHandler)._qRun;
+
+const runDispatchHandler = (handler: DispatchHandler, event: Event, element: Element) =>
+  typeof handler === 'function' ? handler(event, element) : handler._qRun!(handler, event, element);
 
 export async function advanceToNextTimerAndFlush(container: Container) {
   vi.advanceTimersToNextTimer();

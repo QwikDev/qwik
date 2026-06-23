@@ -240,6 +240,39 @@ describe('qwikloader behavior', () => {
     expect(logs).toEqual(['root capture', 'parent capture', 'child bubble']);
   });
 
+  test('dispatches captured qDispatch entries as one handler', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const handler = vi.fn();
+    const button = createMockElement(null, {});
+    const captured = ['row'] as any[];
+    captured._qHandler = handler;
+    captured._qRun = (captures: any[], event: Event, element: Element) => {
+      expect(captures).toBe(captured);
+      return captures._qHandler(event, element);
+    };
+    button._qDispatch = {
+      'e:click': captured,
+    };
+    const event = createMockEvent(button);
+
+    await getSingleListener(doc, 'click').handler(event);
+
+    expect(handler).toHaveBeenCalledWith(event, button);
+  });
+
+  test('dispatches qDispatch handler arrays as multiple handlers', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const button = createMockElement(null, {});
+    button._qDispatch = {
+      'e:click': [() => logs.push('first'), () => logs.push('second')],
+    };
+
+    await getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+    expect(logs).toEqual(['first', 'second']);
+  });
+
   test('stops propagation after a capture handler calls stopPropagation', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];

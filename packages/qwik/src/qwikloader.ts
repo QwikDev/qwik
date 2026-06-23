@@ -29,6 +29,10 @@ import type {
 
 /** Event handlers get the captured ids as a string `this` */
 type Handler = (this: string | undefined, ev: Event, el: Element) => void | Promise<void>;
+type CapturedHandler = unknown[] & {
+  _qRun?: (captures: CapturedHandler, ev: Event, el: Element) => void | Promise<void>;
+};
+type DispatchHandler = Handler | CapturedHandler;
 type Task = () => void | Promise<void>;
 
 const doc = document as Document;
@@ -275,8 +279,8 @@ const dispatch = (
   // The DOM renderer attaches qDispatchEvent to elements, call that if it exists. This bypasses QRL lookups.
   const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
   if (handlers) {
-    if (typeof handlers === 'function') {
-      const run = () => handlers(ev, element);
+    if (typeof handlers === 'function' || isCapturedHandler(handlers)) {
+      const run = () => runDispatchHandler(handlers as DispatchHandler, ev, element);
       if (defer) {
         tasks.push(async () => {
           const result = run();
@@ -293,9 +297,9 @@ const dispatch = (
       }
     } else if (handlers.length) {
       for (let i = 0; i < handlers.length; i++) {
-        const handler = handlers[i];
+        const handler = handlers[i] as DispatchHandler | undefined;
         if (handler) {
-          const run = () => handler(ev, element);
+          const run = () => runDispatchHandler(handler, ev, element);
           if (defer) {
             tasks.push(async () => {
               const result = run();
@@ -381,6 +385,12 @@ const dispatch = (
     }
   }
 };
+
+const isCapturedHandler = (handler: unknown): handler is CapturedHandler =>
+  typeof handler !== 'function' && !!(handler as CapturedHandler)._qRun;
+
+const runDispatchHandler = (handler: DispatchHandler, ev: Event, element: Element) =>
+  typeof handler === 'function' ? handler(ev, element) : handler._qRun!(handler, ev, element);
 
 /**
  * Event handler responsible for processing element events.

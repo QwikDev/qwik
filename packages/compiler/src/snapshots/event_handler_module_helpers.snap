@@ -76,7 +76,7 @@ null
 
 ============================= src/component.tsx ==
 
-import { setEvent, _withCaptures } from '@qwik.dev/core/spark';
+import { setEvent } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 
 function buildData(count) {
@@ -87,7 +87,7 @@ export { buildData };
 export function App(_props, ctx) {
   const rows = { value: [] };
   const el0 = ctx.document.createElement('button');
-  setEvent(el0, 'q-e:click', _withCaptures(component_q_e_click_segment_0, [rows]));
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0, [rows]);
   const text1 = ctx.document.createTextNode('Create');
   el0.appendChild(text1);
   return [el0];

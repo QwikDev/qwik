@@ -10,6 +10,7 @@ export function App() {
           <span data-index={index} className={{ active: row.selected }}>
             {row.label}
           </span>
+          <button onClick$={() => (row.selected = !row.selected)}>Toggle</button>
         </li>
       ))}
     </ul>
@@ -140,6 +141,11 @@ const q_component_text_segment_5 = /* @__PURE__ */ _qrlWithChunk(
   'component_text_segment_5'
 );
 q_component_text_segment_5.s(component_text_segment_5);
+const q_component_q_e_click_segment_6 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_6',
+  () => import('./component.tsx_component_q_e_click_segment_6'),
+  'component_q_e_click_segment_6'
+);
 export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) => {
   const id0 = ctx.nextId();
   ctx.addRoot(row);
@@ -183,7 +189,9 @@ export const component_for_render_segment_0 = (ctx, rangeId, rowId, row, index) 
         escapeHTML(attr4) +
         '">' +
         escapeHTML(text5) +
-        '</span>') +
+        '</span><button' +
+        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_6.w([row])) +
+        '>Toggle</button>') +
     '</li>'
   );
 };
@@ -204,7 +212,7 @@ null
   "captures": false,
   "loc": [
     241,
-    402
+    482
   ],
   "paramNames": [
     "row",
@@ -332,6 +340,38 @@ null
   ]
 }
 */
+============================= src/component.tsx_component_q_e_click_segment_6.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_q_e_click_segment_6 = () => {
+  const row = _captures[0];
+  return (row.value.selected = !row.value.selected);
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_6",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_6",
+  "hash": "segment_6",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    407,
+    452
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []
@@ -409,7 +449,9 @@ import {
   createPropsEffect,
   createAttrExpressionEffect,
   createTextExpressionEffect,
+  setEvent,
 } from '@qwik.dev/core/spark';
+import { component_q_e_click_segment_6 } from './component.tsx_component_q_e_click_segment_6';
 const component_for_render_segment_0_expr0 = (row) => ({ ...row.value.attrs });
 const component_for_render_segment_0_expr1 = (index) => index.value;
 const component_for_render_segment_0_expr2 = (row) => ({ active: row.value.selected });
@@ -444,6 +486,11 @@ export const component_for_render_segment_0 = (ctx, row, index) => {
   effect6.run();
   el2.appendChild(text5);
   el0.appendChild(el2);
+  const el7 = ctx.document.createElement('button');
+  setEvent(el7, 'q-e:click', component_q_e_click_segment_6, [row]);
+  const text8 = ctx.document.createTextNode('Toggle');
+  el7.appendChild(text8);
+  el0.appendChild(el7);
   return [el0];
 };
 
@@ -463,7 +510,7 @@ null
   "captures": false,
   "loc": [
     241,
-    402
+    482
   ],
   "paramNames": [
     "row",
@@ -590,6 +637,38 @@ null
   "loc": [
     360,
     369
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_6.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_q_e_click_segment_6 = () => {
+  const row = _captures[0];
+  return (row.value.selected = !row.value.selected);
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_6",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_6",
+  "hash": "segment_6",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    407,
+    452
   ],
   "paramNames": [],
   "captureNames": [

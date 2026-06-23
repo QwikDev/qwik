@@ -318,7 +318,7 @@ export function App() {
     className: { active: true },
   });
   const title = createSignal('final');
-  return <div {...attrs.value} title={title.value} data-id="static">Child</div>;
+  return <div {...attrs.value} title={title.value} onClick$={() => (title.value = 'clicked')} data-id="static">Child</div>;
 }
 `,
     });
@@ -332,7 +332,8 @@ export function App() {
 
 export function Parent() {
   const attrs = { title: 'Save' };
-  return <Button {...attrs} kind="primary" onClick$={() => 'clicked'} />;
+  const label = 'clicked';
+  return <Button {...attrs} kind="primary" onClick$={() => label} />;
 }
 `,
     });
@@ -413,6 +414,7 @@ export function App() {
           <span data-index={index} className={{ active: row.selected }}>
             {row.label}
           </span>
+          <button onClick$={() => (row.selected = !row.selected)}>Toggle</button>
         </li>
       ))}
     </ul>

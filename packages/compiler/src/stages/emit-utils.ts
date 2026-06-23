@@ -203,6 +203,38 @@ export function hasCapturedQrlSegment(
   });
 }
 
+export function hasCapturedCsrFunction(
+  node: RenderNode | null,
+  qrlSegments: Map<string, QrlSegmentOutput>
+): boolean {
+  return someRenderNode(node, (current) => {
+    if (current.kind === 'component') {
+      return current.props.some(
+        (prop) =>
+          prop.kind === 'named' &&
+          prop.qrlSegmentId &&
+          (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
+      );
+    }
+    if (current.kind === 'branch') {
+      return (
+        (qrlSegments.get(current.conditionSegmentId)?.segment.captures.length ?? 0) > 0 ||
+        (qrlSegments.get(current.thenSegmentId)?.segment.captures.length ?? 0) > 0 ||
+        (current.elseSegmentId
+          ? (qrlSegments.get(current.elseSegmentId)?.segment.captures.length ?? 0) > 0
+          : false)
+      );
+    }
+    if (current.kind === 'for') {
+      return (
+        (qrlSegments.get(current.keySegmentId)?.segment.captures.length ?? 0) > 0 ||
+        (qrlSegments.get(current.renderSegmentId)?.segment.captures.length ?? 0) > 0
+      );
+    }
+    return false;
+  });
+}
+
 export function hasDynamicBinding(node: RenderNode | null): boolean {
   return someRenderNode(
     node,
@@ -274,6 +306,24 @@ export function hasDomPropsBinding(node: RenderNode | null): boolean {
   return someRenderNode(
     node,
     (current) => current.kind === 'element' && current.props.some((prop) => prop.kind === 'spread')
+  );
+}
+
+export function hasCapturedDomPropsEvent(
+  node: RenderNode | null,
+  qrlSegments: Map<string, QrlSegmentOutput>
+): boolean {
+  return someRenderNode(
+    node,
+    (current) =>
+      current.kind === 'element' &&
+      current.props.some((prop) => prop.kind === 'spread') &&
+      current.props.some(
+        (prop) =>
+          prop.kind === 'named' &&
+          prop.qrlSegmentId &&
+          (qrlSegments.get(prop.qrlSegmentId)?.segment.captures.length ?? 0) > 0
+      )
   );
 }
 

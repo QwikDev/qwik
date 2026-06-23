@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
-import type { qWindow, QElement } from '../../../shared/types';
+import { _captures } from '../../../shared/qrl/qrl-captures';
+import type { CapturedEventHandler, qWindow, QElement } from '../../../shared/types';
 import { setEvent } from './event';
 
 describe('setEvent', () => {
@@ -13,6 +14,22 @@ describe('setEvent', () => {
       'e:click': handler,
     });
     expect(element.setAttribute).not.toHaveBeenCalled();
+  });
+
+  test('stores captured event handlers without binding a closure', () => {
+    const element = createElementTarget();
+    const handler = vi.fn();
+    const captures = ['row'];
+    const event = new Event('click');
+
+    setEvent(element, 'q-e:click', handler, captures);
+
+    const stored = (element as QElement)._qDispatch?.['e:click'] as CapturedEventHandler;
+    expect(typeof stored).not.toBe('function');
+    expect(Array.isArray(stored)).toBe(true);
+    stored._qRun(stored, event, element);
+    expect(_captures).toBe(stored);
+    expect(handler).toHaveBeenCalledWith(event, element);
   });
 
   test('adds attrs for window and document event carriers', () => {

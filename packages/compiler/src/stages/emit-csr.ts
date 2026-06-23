@@ -195,9 +195,9 @@ export class DomEmitter {
               this.use(QwikSymbol.SetEvent);
               this.importSegment(qrlSegment);
               this.line(
-                `${QwikSymbol.SetEvent}(${id}, ${JSON.stringify(prop.name)}, ${this.emitEventHandler(
-                  qrlSegment
-                )});`
+                `${QwikSymbol.SetEvent}(${id}, ${JSON.stringify(prop.name)}, ${
+                  qrlSegment.symbolName
+                }${this.emitEventCaptureArgs(qrlSegment)});`
               );
             }
             continue;
@@ -287,7 +287,7 @@ export class DomEmitter {
       const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
       if (qrlSegment) {
         this.importSegment(qrlSegment);
-        return `${JSON.stringify(prop.name)}: ${this.emitEventHandler(qrlSegment)}`;
+        return `${JSON.stringify(prop.name)}: ${this.emitCapturedFunction(qrlSegment)}`;
       }
     }
     if (prop.expressionRange !== undefined) {
@@ -315,7 +315,7 @@ export class DomEmitter {
       const qrlSegment = this.qrlSegments.get(prop.qrlSegmentId);
       if (qrlSegment) {
         this.importSegment(qrlSegment);
-        return `${JSON.stringify(prop.name)}: ${this.emitEventHandler(qrlSegment)}`;
+        return `${JSON.stringify(prop.name)}: ${this.emitDomEventHandler(qrlSegment)}`;
       }
     }
     if (prop.expressionRange !== undefined) {
@@ -424,10 +424,6 @@ export class DomEmitter {
     return this.emitCapturedFunction(qrlSegment);
   }
 
-  private emitEventHandler(qrlSegment: QrlSegmentOutput) {
-    return this.emitCapturedFunction(qrlSegment);
-  }
-
   private emitCapturedFunction(qrlSegment: QrlSegmentOutput) {
     if (qrlSegment.segment.captures.length === 0) {
       return qrlSegment.symbolName;
@@ -436,6 +432,24 @@ export class DomEmitter {
     return `${QwikSymbol.WithCaptures}(${qrlSegment.symbolName}, [${qrlSegment.segment.captures
       .map((capture) => capture.name)
       .join(', ')}])`;
+  }
+
+  private emitDomEventHandler(qrlSegment: QrlSegmentOutput) {
+    if (qrlSegment.segment.captures.length === 0) {
+      return qrlSegment.symbolName;
+    }
+    this.use(QwikSymbol.CreateCapturedEvent);
+    return `${QwikSymbol.CreateCapturedEvent}(${qrlSegment.symbolName}, ${this.emitCaptureArray(
+      qrlSegment
+    )})`;
+  }
+
+  private emitEventCaptureArgs(qrlSegment: QrlSegmentOutput) {
+    return qrlSegment.segment.captures.length === 0 ? '' : `, ${this.emitCaptureArray(qrlSegment)}`;
+  }
+
+  private emitCaptureArray(qrlSegment: QrlSegmentOutput) {
+    return `[${qrlSegment.segment.captures.map((capture) => capture.name).join(', ')}]`;
   }
 
   private emitDynamicAttrEffect(effectId: string, elementId: string, prop: PropRecord): string {

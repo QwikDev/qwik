@@ -14,6 +14,7 @@ export enum QwikSymbol {
   CreateForBlock = 'createForBlock',
   CreateClassEffect = 'createClassEffect',
   CreateComponent = 'createComponent',
+  CreateCapturedEvent = 'createCapturedEvent',
   CreateContext = 'createContext',
   CreateContextProvider = 'createContextProvider',
   CreatePropsEffect = 'createPropsEffect',

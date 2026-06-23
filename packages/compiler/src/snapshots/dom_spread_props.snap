@@ -8,7 +8,7 @@ export function App() {
     className: { active: true },
   });
   const title = createSignal('final');
-  return <div {...attrs.value} title={title.value} data-id="static">Child</div>;
+  return <div {...attrs.value} title={title.value} onClick$={() => (title.value = 'clicked')} data-id="static">Child</div>;
 }
 
 == SSR OUTPUT ==
@@ -29,6 +29,11 @@ const q_component_props_segment_0 = /*#__PURE__*/ _qrlWithChunk(
   'component_props_segment_0'
 );
 q_component_props_segment_0.s(component_props_segment_0);
+const q_component_q_e_click_segment_1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_1',
+  () => import('./component.tsx_component_q_e_click_segment_1'),
+  'component_q_e_click_segment_1'
+);
 
 export function App(_props, ctx) {
   const attrs = createSignal({
@@ -52,12 +57,19 @@ export function App(_props, ctx) {
 null
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
 
+import { _qrlWithChunk } from '@qwik.dev/core/spark';
+const q_component_q_e_click_segment_1 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_1',
+  () => import('./component.tsx_component_q_e_click_segment_1'),
+  'component_q_e_click_segment_1'
+);
 export const component_props_segment_0 = (attrs, title) => {
   return {
     ...attrs.value,
     get title() {
       return title.value;
     },
+    onClick$: q_component_q_e_click_segment_1.w([title]),
     'data-id': 'static',
   };
 };
@@ -78,11 +90,43 @@ null
   "captures": true,
   "loc": [
     235,
-    294
+    335
   ],
   "paramNames": [],
   "captureNames": [
     "attrs",
+    "title"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_q_e_click_segment_1 = () => {
+  const title = _captures[0];
+  return (title.value = 'clicked');
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    277,
+    317
+  ],
+  "paramNames": [],
+  "captureNames": [
     "title"
   ]
 }
@@ -94,13 +138,15 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, createPropsEffect } from '@qwik.dev/core/spark';
+import { createSignal, createPropsEffect, createCapturedEvent } from '@qwik.dev/core/spark';
+import { component_q_e_click_segment_1 } from './component.tsx_component_q_e_click_segment_1';
 
 const dom_App_expr0 = (attrs, title) => ({
   ...attrs.value,
   get title() {
     return title.value;
   },
+  onClick$: createCapturedEvent(component_q_e_click_segment_1, [title]),
   'data-id': 'static',
 });
 export function App(_props, ctx) {
@@ -123,12 +169,19 @@ export function App(_props, ctx) {
 null
 ============================= src/component.tsx_component_props_segment_0.js (ENTRY POINT)==
 
+import { _qrlWithChunk } from '@qwik.dev/core/spark';
+const q_component_q_e_click_segment_1 = /* @__PURE__ */ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_1',
+  () => import('./component.tsx_component_q_e_click_segment_1'),
+  'component_q_e_click_segment_1'
+);
 export const component_props_segment_0 = (attrs, title) => {
   return {
     ...attrs.value,
     get title() {
       return title.value;
     },
+    onClick$: q_component_q_e_click_segment_1.w([title]),
     'data-id': 'static',
   };
 };
@@ -149,11 +202,43 @@ null
   "captures": true,
   "loc": [
     235,
-    294
+    335
   ],
   "paramNames": [],
   "captureNames": [
     "attrs",
+    "title"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core/spark';
+export const component_q_e_click_segment_1 = () => {
+  const title = _captures[0];
+  return (title.value = 'clicked');
+};
+
+null
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "segment_1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    277,
+    317
+  ],
+  "paramNames": [],
+  "captureNames": [
     "title"
   ]
 }

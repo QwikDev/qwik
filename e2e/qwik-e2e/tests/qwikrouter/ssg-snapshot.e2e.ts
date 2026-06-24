@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 import { qwikVite } from '@qwik.dev/core/optimizer';
-import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import { ssgAdapter } from '@qwik.dev/router/adapters/ssg/vite';
 import { qwikRouter } from '@qwik.dev/router/vite';
 import compress from 'brotli/compress.js';
@@ -49,6 +48,12 @@ test.describe('router ssg snapshot', () => {
     const normalizedState = normalizeStateDump(
       _dumpState(JSON.parse(state!) as unknown[], false, '', null),
       manifestHash
+    );
+
+    // Regression guard: loaderPaths must map the root loader to "/", or off-route loaders fetch the
+    // wrong URL and 404. The hash is wildcarded (optimizer-derived); the route path "/" is stable.
+    expect(normalizedState).toMatch(
+      /"loaderPaths"\s+Object \[\s+\{string\} "[^"]+"\s+\{string\} "\/"/
     );
 
     let expectedHtml = (await readFile(expectedHtmlPath, 'utf-8').catch(() => '')).replace(
@@ -126,8 +131,10 @@ async function buildFixtureApp() {
   await rm(distDir, { recursive: true, force: true });
   await rm(serverDir, { recursive: true, force: true });
 
-  let clientManifest: QwikManifest | undefined;
   const plugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
+  // Fresh instance so the server build's loadersByFile starts empty, mirroring apps that run
+  // build.client/build.server as separate processes (exercises the manifest recovery path).
+  const serverPlugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
 
   const getConfig = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
@@ -148,9 +155,6 @@ async function buildFixtureApp() {
         qwikVite({
           client: {
             outDir: distDir,
-            manifestOutput(manifest) {
-              clientManifest = manifest;
-            },
           },
         }),
       ],
@@ -165,12 +169,9 @@ async function buildFixtureApp() {
         outDir: serverDir,
       },
       plugins: [
-        ...plugins,
-        qwikVite({
-          ssr: {
-            manifestInput: clientManifest,
-          },
-        }),
+        ...serverPlugins,
+        // No manifestInput: the server build reads the client manifest from disk, like real apps.
+        qwikVite(),
         ssgAdapter({
           origin: 'https://snapshot.qwik.dev',
           include: ['/*'],

@@ -505,6 +505,16 @@ function qwikRouterPlugin(
     },
 
     generateBundle(_, bundles) {
+      // A separate server build skips onSegment, so recover routeLoader$ hashes from the manifest.
+      const manifest = qwikPlugin!.api.getManifest();
+      if (manifest) {
+        const srcDir = qwikPlugin!.api.getOptions().srcDir!;
+        for (const symbol of Object.values(manifest.symbols)) {
+          if (symbol.ctxName === 'routeLoader$' && symbol.origin) {
+            addRouteLoaderHash(loadersByFile, resolve(srcDir, symbol.origin), symbol.hash);
+          }
+        }
+      }
       // Replace __LOADERS:...__ placeholder strings with actual loader hash arrays.
       // Runs even when no routeLoader$ was found so placeholders collapse to `void 0`
       // (otherwise they remain as raw strings and the client iterates them per-character).

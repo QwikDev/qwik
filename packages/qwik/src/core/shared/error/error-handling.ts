@@ -62,3 +62,15 @@ export const fireOnError = (
     logError(e);
   }
 };
+
+/**
+ * Mark a boundary as errored — projecting a non-serializable throw to a serializable `Error` — and
+ * fire its `onError$` exactly once, with the original (un-projected) error.
+ */
+export const markBoundaryErrored = (store: ErrorBoundaryStore, error: unknown): void => {
+  const isFirstCatch = store.error === undefined;
+  store.error = toSerializableBoundaryError(error);
+  if (isFirstCatch) {
+    fireOnError(store.$onError$, error);
+  }
+};

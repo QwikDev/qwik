@@ -24,8 +24,7 @@ import { createInternalServerComponent } from '../ssr/internal-server-component'
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
 import {
   ERROR_CONTEXT,
-  fireOnError,
-  toSerializableBoundaryError,
+  markBoundaryErrored,
   type ErrorBoundaryStore,
 } from '../shared/error/error-handling';
 import { useComputedQrl } from '../use/use-computed';
@@ -399,13 +398,9 @@ export const SSRErrorFallback = __EXPERIMENTAL__.errorBoundary
           if (!fallback) {
             return;
           }
-          // Project to a serializable error so a non-serializable throw can't abort page serialization.
-          const isFirstCatch = store.error === undefined;
-          store.error = toSerializableBoundaryError(error);
-          if (isFirstCatch) {
-            // The catch point: fire onError$ once with the original error.
-            fireOnError(store.$onError$, error);
-          }
+          // The catch point: mark the boundary errored (projecting to a serializable error so a
+          // non-serializable throw can't abort page serialization) and fire onError$ once.
+          markBoundaryErrored(store, error);
           // Stay detached so a throw from the fallback itself propagates instead of re-rendering it.
           store.$fallback$ = undefined;
           const segment = await ssr.segment(segmentId, fallback(error) as JSXOutput, options);

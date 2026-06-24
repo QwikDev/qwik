@@ -69,16 +69,16 @@ null
 ============================= src/component.tsx ==
 
 import { createSignal } from '@qwik.dev/core';
-import { setEvent } from '@qwik.dev/core/spark';
+import { createTemplate, setEvent } from '@qwik.dev/core/spark';
 import { component_q_e_click_segment_0 } from './component.tsx_component_q_e_click_segment_0';
 
+const dom_App_template0 = createTemplate('<button>Count</button>');
 export function App(_props, ctx) {
   const count = createSignal(1);
-  const el0 = ctx.document.createElement('button');
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_0, [count]);
-  const text1 = ctx.document.createTextNode('Count');
-  el0.appendChild(text1);
-  return [el0];
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  setEvent(el1, 'q-e:click', component_q_e_click_segment_0, [count]);
+  return [el1];
 }
 
 null

@@ -25,6 +25,7 @@ export enum QwikSymbol {
   CreateSsrDomBatchEffect = 'createSsrDomBatchEffect',
   CreateSsrRangeTextTarget = 'createSsrRangeTextTarget',
   CreateStyleEffect = 'createStyleEffect',
+  CreateTemplate = 'createTemplate',
   CreateTextExpressionEffect = 'createTextExpressionEffect',
   CreateTextNodeEffect = 'createTextNodeEffect',
   EscapeHTML = 'escapeHTML',

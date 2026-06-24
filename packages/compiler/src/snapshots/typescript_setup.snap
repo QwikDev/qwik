@@ -44,18 +44,24 @@ null
 ============================= src/component.tsx ==
 
 import { createContextId } from '@qwik.dev/core';
-import { createContextProvider, createSignal, createTextNodeEffect } from '@qwik.dev/core/spark';
+import {
+  createContextProvider,
+  createSignal,
+  createTemplate,
+  createTextNodeEffect,
+} from '@qwik.dev/core/spark';
 
+const dom_App_template0 = createTemplate('<p> </p>');
 export const App = (_props, ctx) => {
   const contextId = createContextId('context');
   const source = createSignal('hello');
   createContextProvider(contextId, source);
-  const el0 = ctx.document.createElement('p');
-  const text1 = ctx.document.createTextNode('');
-  const effect2 = createTextNodeEffect(text1, source, { scheduler: ctx.scheduler });
-  ctx.scheduler.notify(effect2);
-  el0.appendChild(text1);
-  return [el0];
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  const text2 = el1.firstChild;
+  const effect3 = createTextNodeEffect(text2, source, { scheduler: ctx.scheduler });
+  ctx.scheduler.notify(effect3);
+  return [el1];
 };
 
 null

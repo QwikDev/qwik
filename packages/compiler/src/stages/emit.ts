@@ -20,7 +20,7 @@ import type {
   SegmentRecord,
 } from '../types';
 import { QwikSymbol } from '../words';
-import { DomEmitter, emitCsrModule, emitReturnItems } from './emit-csr';
+import { DomEmitter, canEmitTemplateRoot, emitCsrModule, emitReturnItems } from './emit-csr';
 import { emitSsrDomPropsExpression, emitSsrModule, SsrEmitter } from './emit-ssr';
 import {
   countScalarDomEffects,
@@ -410,6 +410,7 @@ function collectCsrRootImportUsage(
     hasDynamicBinding: items.some(
       (item) => hasCsrRootDynamicBinding(item.root) || item.providesContext
     ),
+    hasTemplate: has(canEmitTemplateRoot),
     hasDomBatch: items.some((item) => item.domEffectCount > 1),
     hasDomBatchSourceText: hasBatched(hasCsrRootSourceTextBinding),
     hasDomBatchTextExpression: hasBatched(hasCsrRootTextExpression),
@@ -1006,7 +1007,8 @@ function createBranchRenderSegmentSource(
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),
     use: (symbol) => usage.sparkImports.add(symbol),
   });
-  const roots = children.flatMap((child) => emitter.emitRoot(child));
+  const roots =
+    emitter.emitTemplateRoots(children) ?? children.flatMap((child) => emitter.emitRoot(child));
   emitter.finalizeDomBatchEffects();
   const captureLine =
     captures.length > 0
@@ -1135,7 +1137,8 @@ function createForRenderSegmentSource(
     importSegment: (segment) => usage.segmentImports.set(segment.id, segment),
     use: (symbol) => usage.sparkImports.add(symbol),
   });
-  const roots = children.flatMap((child) => emitter.emitRoot(child));
+  const roots =
+    emitter.emitTemplateRoots(children) ?? children.flatMap((child) => emitter.emitRoot(child));
   emitter.finalizeDomBatchEffects();
   const captureLine =
     captures.length > 0

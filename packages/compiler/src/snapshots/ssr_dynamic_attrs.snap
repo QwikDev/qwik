@@ -57,26 +57,27 @@ null
 
 import {
   createSignal,
+  createTemplate,
   createDomBatchEffect,
   readTrackedSourceValue,
   serializeAttrExpressionValue,
 } from '@qwik.dev/core/spark';
 
+const dom_App_template0 = createTemplate('<div>Attrs</div>');
 export function App(_props, ctx) {
   const title = createSignal('hello');
   const classes = createSignal('active');
   const style = createSignal('color:red');
-  const el0 = ctx.document.createElement('div');
-  const effect1 = createDomBatchEffect(batch2, { scheduler: ctx.scheduler });
-  const text3 = ctx.document.createTextNode('Attrs');
-  el0.appendChild(text3);
-  function batch2() {
-    el0.setAttribute('title', String(readTrackedSourceValue(title)));
-    el0.className = serializeAttrExpressionValue('class', readTrackedSourceValue(classes));
-    el0.setAttribute('style', serializeAttrExpressionValue('style', readTrackedSourceValue(style)));
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
+  function batch3() {
+    el1.setAttribute('title', String(readTrackedSourceValue(title)));
+    el1.className = serializeAttrExpressionValue('class', readTrackedSourceValue(classes));
+    el1.setAttribute('style', serializeAttrExpressionValue('style', readTrackedSourceValue(style)));
   }
-  ctx.scheduler.notify(effect1);
-  return [el0];
+  ctx.scheduler.notify(effect2);
+  return [el1];
 }
 
 null

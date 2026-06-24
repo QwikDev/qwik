@@ -76,19 +76,20 @@ null
 
 ============================= src/component.tsx ==
 
-import { createSignal, createTextExpressionEffect } from '@qwik.dev/core/spark';
+import { createSignal, createTemplate, createTextExpressionEffect } from '@qwik.dev/core/spark';
 
-const dom_App_expr0 = (count) => count.value + 1;
+const dom_App_template0 = createTemplate('<p> </p>');
+const dom_App_expr1 = (count) => count.value + 1;
 export function App(_props, ctx) {
   const count = createSignal(1);
-  const el0 = ctx.document.createElement('p');
-  const text1 = ctx.document.createTextNode('');
-  const effect2 = createTextExpressionEffect(text1, [count], dom_App_expr0, {
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  const text2 = el1.firstChild;
+  const effect3 = createTextExpressionEffect(text2, [count], dom_App_expr1, {
     scheduler: ctx.scheduler,
   });
-  ctx.scheduler.notify(effect2);
-  el0.appendChild(text1);
-  return [el0];
+  ctx.scheduler.notify(effect3);
+  return [el1];
 }
 
 null

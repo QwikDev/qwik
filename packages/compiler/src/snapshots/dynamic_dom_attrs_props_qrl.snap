@@ -189,27 +189,27 @@ null
 
 import {
   createSignal,
+  createTemplate,
   createDomBatchEffect,
   serializeAttrExpressionValue,
 } from '@qwik.dev/core/spark';
 
-const dom_App_expr0 = (count) => `count ${count.value}`;
-const dom_App_expr1 = (count) => ({ active: count.value > 0 });
-const dom_App_expr2 = (count) => ({ color: count.value % 2 === 0 ? 'green' : 'blue' });
+const dom_App_template0 = createTemplate('<div data-kind="counter">Attrs</div>');
+const dom_App_expr1 = (count) => `count ${count.value}`;
+const dom_App_expr2 = (count) => ({ active: count.value > 0 });
+const dom_App_expr3 = (count) => ({ color: count.value % 2 === 0 ? 'green' : 'blue' });
 export function App(_props, ctx) {
   const count = createSignal(0);
-  const el0 = ctx.document.createElement('div');
-  const effect1 = createDomBatchEffect(batch2, { scheduler: ctx.scheduler });
-  el0.setAttribute('data-kind', 'counter');
-  const text3 = ctx.document.createTextNode('Attrs');
-  el0.appendChild(text3);
-  function batch2() {
-    el0.setAttribute('title', serializeAttrExpressionValue('title', dom_App_expr0(count)));
-    el0.setAttribute('class', serializeAttrExpressionValue('class', dom_App_expr1(count)));
-    el0.setAttribute('style', serializeAttrExpressionValue('style', dom_App_expr2(count)));
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  const effect2 = createDomBatchEffect(batch3, { scheduler: ctx.scheduler });
+  function batch3() {
+    el1.setAttribute('title', serializeAttrExpressionValue('title', dom_App_expr1(count)));
+    el1.setAttribute('class', serializeAttrExpressionValue('class', dom_App_expr2(count)));
+    el1.setAttribute('style', serializeAttrExpressionValue('style', dom_App_expr3(count)));
   }
-  ctx.scheduler.notify(effect1);
-  return [el0];
+  ctx.scheduler.notify(effect2);
+  return [el1];
 }
 
 null

@@ -30,13 +30,13 @@ null
 
 ============================= src/component.tsx ==
 
-import { createComponent } from '@qwik.dev/core/spark';
+import { createComponent, createTemplate } from '@qwik.dev/core/spark';
 
+const dom_Child_template0 = createTemplate('<span>Child</span>');
 export function Child(_props, ctx) {
-  const el0 = ctx.document.createElement('span');
-  const text1 = ctx.document.createTextNode('Child');
-  el0.appendChild(text1);
-  return [el0];
+  const fragment0 = dom_Child_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  return [el1];
 }
 export function Parent(_props, ctx) {
   const el0 = ctx.document.createElement('section');

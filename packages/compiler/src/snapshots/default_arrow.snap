@@ -15,11 +15,13 @@ null
 
 ============================= src/component.tsx ==
 
+import { createTemplate } from '@qwik.dev/core/spark';
+
+const dom_default_template0 = createTemplate('<section>Default arrow</section>');
 export default (_props, ctx) => {
-  const el0 = ctx.document.createElement('section');
-  const text1 = ctx.document.createTextNode('Default arrow');
-  el0.appendChild(text1);
-  return [el0];
+  const fragment0 = dom_default_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  return [el1];
 };
 
 null

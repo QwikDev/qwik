@@ -149,6 +149,7 @@ export {
 } from './dom/effect/effect';
 export { applyDomProps, normalizeDomProps, renderDomPropsToString } from './dom/effect/dom-props';
 export { createCapturedEvent, setEvent } from './dom/event/event';
+export { createTemplate, type TemplateFactory } from './dom/template/template';
 export {
   EffectTargetKind,
   SsrAttrEffect,

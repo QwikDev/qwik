@@ -139,6 +139,7 @@ export function createCsrImports(
   if (
     qrlSegments.size === 0 &&
     !usage.hasDynamicBinding &&
+    !usage.hasTemplate &&
     !usage.hasComponent &&
     !usage.hasDomProps &&
     !usage.hasComponentPropsSpread &&
@@ -151,6 +152,9 @@ export function createCsrImports(
   const segmentImports: ImportRecord[] = [];
   if (usage.hasComponent) {
     sparkSpecifiers.push(QwikSymbol.CreateComponent);
+  }
+  if (usage.hasTemplate) {
+    sparkSpecifiers.push(QwikSymbol.CreateTemplate);
   }
   if (usage.hasComponentPropsSpread) {
     sparkSpecifiers.push(QwikSymbol.MergeProps);
@@ -220,6 +224,7 @@ export function createCsrImports(
 
 export interface CsrImportUsage {
   hasDynamicBinding: boolean;
+  hasTemplate: boolean;
   hasDomBatch: boolean;
   hasDomBatchSourceText: boolean;
   hasDomBatchTextExpression: boolean;

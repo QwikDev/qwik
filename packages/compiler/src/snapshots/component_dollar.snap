@@ -23,17 +23,20 @@ null
 
 ============================= src/component.tsx ==
 
+import { component$ } from '@qwik.dev/core';
+import { createTemplate } from '@qwik.dev/core/spark';
+
+const dom_App_template0 = createTemplate('<div>Hello</div>');
 export const App = (_props, ctx) => {
-  const el0 = ctx.document.createElement('div');
-  const text1 = ctx.document.createTextNode('Hello');
-  el0.appendChild(text1);
-  return [el0];
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  return [el1];
 };
+const dom_default_template0 = createTemplate('<section>Default wrapped</section>');
 export default function Home(_props, ctx) {
-  const el0 = ctx.document.createElement('section');
-  const text1 = ctx.document.createTextNode('Default wrapped');
-  el0.appendChild(text1);
-  return [el0];
+  const fragment0 = dom_default_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  return [el1];
 }
 
 null

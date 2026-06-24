@@ -21,15 +21,14 @@ null
 
 ============================= src/component.tsx ==
 
+import { createTemplate } from '@qwik.dev/core/spark';
+
+const dom_App_template0 = createTemplate('<h1>Hello</h1><p class="copy">Qwik</p>');
 export const App = (_props, ctx) => {
-  const el0 = ctx.document.createElement('h1');
-  const text1 = ctx.document.createTextNode('Hello');
-  el0.appendChild(text1);
-  const el2 = ctx.document.createElement('p');
-  el2.className = 'copy';
-  const text3 = ctx.document.createTextNode('Qwik');
-  el2.appendChild(text3);
-  return [el0, el2];
+  const fragment0 = dom_App_template0(ctx.document);
+  const el1 = fragment0.firstChild;
+  const el2 = el1.nextSibling;
+  return [el1, el2];
 };
 
 null

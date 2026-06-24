@@ -424,6 +424,36 @@ export function App() {
     });
   });
 
+  test('emits CSR templates for keyed table row loops', async () => {
+    await testInput('jsx_loop_row_template', {
+      code: `import { createSignal } from '@qwik.dev/core/spark';
+export function App() {
+  const rows = createSignal([{ id: 1, label: 'Alpha', selected: false }]);
+  return (
+    <table>
+      <tbody>
+        {rows.value.map((row) => (
+          <tr key={row.id} className={{ danger: row.selected }}>
+            <td className="col-md-1">{row.id}</td>
+            <td className="col-md-4">
+              <a onClick$={() => (row.selected = true)}>{row.label}</a>
+            </td>
+            <td className="col-md-1">
+              <a>
+                <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
+              </a>
+            </td>
+            <td className="col-md-6"></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+`,
+    });
+  });
+
   test('transforms implicit dollar calls in component setup', async () => {
     await testInput('implicit_dollar_setup', {
       code: `import { createSignal, createComputed$ } from '@qwik.dev/core/spark';

@@ -186,7 +186,11 @@ test.describe('ErrorBoundary streaming swap', () => {
     await page.locator('#eb-onerror-throw').click();
 
     await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await page.waitForFunction(() => (window as any).__ebOnErrorRuns === 1);
+    await page.waitForFunction(() => (window as any).__ebOnErrorRuns >= 1);
+    // `waitForFunction(=== 1)` resolves on first-true and can't see a later double-fire, so settle
+    // then assert the count is exactly 1.
+    await page.waitForTimeout(100);
+    expect(await page.evaluate(() => (window as any).__ebOnErrorRuns)).toBe(1);
     expect(await page.evaluate(() => (window as any).__ebOnErrorMsg)).toBe('onerror boom');
   });
 

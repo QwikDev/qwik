@@ -112,7 +112,6 @@ type P<T> = VitePlugin<T> & { api: T; config: Extract<VitePlugin<T>['config'], F
  */
 export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let viteCommand: 'build' | 'serve' = 'serve';
-  let manifestInput: QwikManifest | null = null;
   let clientOutDir: string | null = null;
   let basePathname: string = '/';
   let clientPublicOutDir: string | null = null;
@@ -139,7 +138,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const api: QwikVitePluginApi = {
     getOptimizer: () => qwikPlugin.getOptimizer(),
     getOptions: () => qwikPlugin.getOptions(),
-    getManifest: () => manifestInput,
+    getManifest: () => qwikPlugin.getOptions().manifestInput,
     getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
@@ -248,7 +247,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       // Cache pluginOpts for use in configResolved()
       cachedPluginOpts = pluginOpts;
 
-      manifestInput = opts.manifestInput;
       srcDir = opts.srcDir;
       rootDir = opts.rootDir;
 
@@ -343,8 +341,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           output: await normalizeRollupOutputOptions(
             qwikPlugin,
             viteConfig.build?.rollupOptions?.output,
-            useAssetsDir,
-            opts.outDir
+            useAssetsDir
           ),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
@@ -397,8 +394,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configEnvironment(name: string, _config: EnvironmentOptions, _env: ConfigEnv) {
       // Use environment name to distinguish server vs client — config.consumer is not yet set
-      // at the time this hook is called.
-      const isServer = name === 'ssr';
+      // at the time this hook is called. Adapters may add their own server environment (e.g. `ssg`
+      // for static generation), which needs the same server treatment as `ssr`.
+      const isServer = name === 'ssr' || name === 'ssg';
       if (isServer) {
         return {
           resolve: {
@@ -616,7 +614,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           }
           rewriteClientWorkerCorePlaceholders(rollupBundle);
         } else if (isSSR) {
-          rewriteSsrWorkerCorePlaceholders(rollupBundle, manifestInput);
+          rewriteSsrWorkerCorePlaceholders(rollupBundle, qwikPlugin.getOptions().manifestInput);
         }
       },
     },

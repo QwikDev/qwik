@@ -32,9 +32,19 @@ export async function postBuild(
 
     const fsPath = join(fsDir, fsName);
 
-    if (fsName === 'index.html' || LOADER_REGEX.test('/' + fsName)) {
-      // static index.html file
+    if (fsName === 'index.html') {
+      // The route pathname already represents this page; clean it if that route is no longer static.
       if (!staticPaths.has(pathname) && cleanStatic) {
+        await fs.promises.unlink(fsPath);
+      }
+      return;
+    }
+
+    if (LOADER_REGEX.test('/' + fsName)) {
+      // List the exact sidecar SSG wrote so isStaticPath only claims loaders with data on disk.
+      if (staticPaths.has(pathname)) {
+        staticPaths.add(pathname + fsName);
+      } else if (cleanStatic) {
         await fs.promises.unlink(fsPath);
       }
       return;

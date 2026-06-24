@@ -217,6 +217,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   // deep: true so that changes to loaderPaths and page path/search properties are tracked by
   // AsyncSignal QRLs.
   const routeLoaderCtx = useStore(env.routeLoaderCtx);
+  routeLoaderCtx.manifestHash = manifestHash;
   // Create AsyncSignals whose QRL closures capture the store proxy for client-side reactivity.
   // Then set .value from middleware-computed loader values (inert, non-reactive data).
   const loaderState = {} as Record<string, AsyncSignal<unknown>>;

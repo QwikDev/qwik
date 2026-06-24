@@ -1,13 +1,5 @@
 import { dirname } from 'node:path';
-import { resolveMenu } from '../markdown/menu';
-import type {
-  BuiltEntry,
-  BuiltLayout,
-  BuiltRoute,
-  BuiltServerPlugin,
-  NormalizedPluginOptions,
-  RouteSourceFile,
-} from '../types';
+import type { BuiltLayout, BuiltRoute, NormalizedPluginOptions, RouteSourceFile } from '../types';
 import {
   createFileId,
   getPathnameFromDirPath,
@@ -15,62 +7,6 @@ import {
   normalizePath,
 } from '../../utils/fs';
 import { parseRoutePathname } from './parse-pathname';
-import { routeSortCompare } from './sort-routes';
-
-export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: RouteSourceFile[]) {
-  const layouts = sourceFiles
-    .filter((s) => s.type === 'layout')
-    .map((s) => resolveLayout(opts, s))
-    .sort((a, b) => {
-      return a.id < b.id ? -1 : 1;
-    });
-
-  const routes = sourceFiles
-    .filter((s) => s.type === 'route')
-    .map((s) => resolveRoute(opts, layouts, s))
-    .sort(routeSortCompare);
-
-  const entries = sourceFiles
-    .filter((s) => s.type === 'entry')
-    .map((s) => resolveEntry(opts, s))
-    .sort((a, b) => {
-      return a.chunkFileName < b.chunkFileName ? -1 : 1;
-    });
-
-  const serviceWorkers = sourceFiles
-    .filter((s) => s.type === 'service-worker')
-    .map((p) => resolveServiceWorkerEntry(opts, p))
-    .sort((a, b) => {
-      return a.chunkFileName < b.chunkFileName ? -1 : 1;
-    });
-
-  const menus = sourceFiles
-    .filter((s) => s.type === 'menu')
-    .map((p) => resolveMenu(opts, p))
-    .sort((a, b) => {
-      return a.pathname < b.pathname ? -1 : 1;
-    });
-
-  let inc = 0;
-  const ids = new Set<string>();
-  const uniqueIds = (b: { id: string }[]) => {
-    for (const r of b) {
-      let id = r.id;
-      while (ids.has(id)) {
-        id = `${r.id}_${inc++}`;
-      }
-      r.id = id;
-      ids.add(id);
-    }
-  };
-
-  uniqueIds(layouts);
-  uniqueIds(routes);
-  uniqueIds(entries);
-  uniqueIds(serviceWorkers);
-
-  return { layouts, routes, entries, menus, serviceWorkers };
-}
 
 export function resolveLayout(opts: NormalizedPluginOptions, layoutSourceFile: RouteSourceFile) {
   let extlessName = layoutSourceFile.extlessName;
@@ -162,46 +98,6 @@ export function resolveRoute(
     pathname,
     layouts: layouts.reverse(),
     ext: sourceFile.ext,
-    ...parseRoutePathname(opts.basePathname, pathname),
-  };
-}
-
-export function resolveServerPlugin(
-  opts: NormalizedPluginOptions,
-  sourceFile: RouteSourceFile
-): BuiltServerPlugin {
-  const filePath = sourceFile.filePath;
-  return {
-    id: createFileId(opts.serverPluginsDir, filePath, 'Plugin'),
-    filePath,
-    ext: sourceFile.ext,
-  };
-}
-
-function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile): BuiltEntry {
-  const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
-  const chunkFileName = pathname.slice(opts.basePathname.length);
-
-  return {
-    id: createFileId(opts.routesDir, sourceFile.filePath, 'Route'),
-    filePath: sourceFile.filePath,
-    chunkFileName,
-    ...parseRoutePathname(opts.basePathname, pathname),
-  };
-}
-
-function resolveServiceWorkerEntry(
-  opts: NormalizedPluginOptions,
-  sourceFile: RouteSourceFile
-): BuiltEntry {
-  const dirPathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
-  const pathname = dirPathname + sourceFile.extlessName + '.js';
-  const chunkFileName = pathname.slice(opts.basePathname.length);
-
-  return {
-    id: createFileId(opts.routesDir, sourceFile.filePath, 'ServiceWorker'),
-    filePath: sourceFile.filePath,
-    chunkFileName,
     ...parseRoutePathname(opts.basePathname, pathname),
   };
 }

@@ -50,8 +50,8 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
     }
   }
 
-  // workerFilePath must be provided - it points to the entry file that handles both
-  // main thread and worker thread modes (detected via isMainThread)
+  // workerFilePath must be provided - it points to the worker entry (run-ssg-worker.js) that each
+  // Worker thread runs to render pages; this main-thread pool spawns and load-balances them.
   if (!opts.workerFilePath) {
     throw new Error('Missing "workerFilePath" option for SSG worker creation');
   }

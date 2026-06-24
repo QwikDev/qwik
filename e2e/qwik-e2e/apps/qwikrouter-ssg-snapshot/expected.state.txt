@@ -24,6 +24,8 @@
         {string} "qO14f4pG8tQ"
         {string} "/"
       ]
+      {string} "manifestHash"
+      RootRef [omitted]
     ]
     {number} 1
     Map [
@@ -122,7 +124,7 @@
       Array []
       {string} "frontmatter"
       Object 0
-      {string} "manifestHash"
+      RootRef [omitted]
       RootRef [omitted]
     ]
     {number} 1
@@ -575,16 +577,16 @@
 54 RootRef [omitted]
 55 RootRef [omitted]
 56 RootRef [omitted]
-57 QRL "[omitted]"
-58 Map [
+57 RootRef [omitted]
+58 QRL "[omitted]"
+59 Map [
   Constant ':'
   RootRef [omitted]
 ]
-59 {number} 1
-60 Array [
+60 {number} 1
+61 Array [
   RootRef [omitted]
 ]
-61 RootRef [omitted]
 62 RootRef [omitted]
 63 RootRef [omitted]
 64 RootRef [omitted]

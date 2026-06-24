@@ -72,8 +72,8 @@ export async function getServerExcludedRoutes(
   const serverFreeByFile = new Map<string, Promise<boolean>>();
   await Promise.all(
     ctx.routes.map(async (route) => {
-      // error.tsx/404.tsx are runtime handlers (the router gives them `…/error.html` / `…/404.html`
-      // pathnames, and `createRouteTester` always reports `404.html` as prerendered) — never drop them.
+      // Never prune 404.tsx/error.tsx: the SSR server renders them from the trie's `_4`/`_E` on a
+      // direct request (SPA nav uses the client bundle, which would mask their absence).
       if (
         !isPageExt(route.ext) ||
         route.paramNames.length > 0 ||

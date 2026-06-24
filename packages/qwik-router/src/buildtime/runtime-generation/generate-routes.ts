@@ -52,10 +52,6 @@ export function createRoutes(
   const routeIdMap = new Map<string, string>(); // filePath → loader expression
   const menuIdMap = new Map<string, string>(); // filePath → varName
 
-  // Track error/404 files per trie path for precedence warnings
-  const errorFiles = new Map<string, string>();
-  const notFoundFiles = new Map<string, string>();
-
   let layoutCount = 0;
   let routeCount = 0;
   let menuCount = 0;
@@ -140,8 +136,6 @@ export function createRoutes(
     layoutIdMap,
     routeIdMap,
     menuIdMap,
-    errorFiles,
-    notFoundFiles,
     [],
     isSSR,
     '',
@@ -188,8 +182,6 @@ function serializeBuildTrie(
   layoutIdMap: Map<string, string>,
   routeIdMap: Map<string, string>,
   menuIdMap: Map<string, string>,
-  errorFiles: Map<string, string>,
-  notFoundFiles: Map<string, string>,
   ancestorLayouts: LayoutInfo[],
   isSSR: boolean,
   indent: string,
@@ -217,7 +209,6 @@ function serializeBuildTrie(
   // Process _files at this node
   let layoutExpr: string | undefined;
   let indexExpr: string | undefined;
-  let indexIsOverride = false;
   let errorExpr: string | undefined;
   let notFoundExpr: string | undefined;
   let menuExpr: string | undefined;
@@ -275,10 +266,8 @@ function serializeBuildTrie(
 
     if (isError) {
       errorExpr = loaderExpr;
-      errorFiles.set(node._dirPath, file.filePath);
     } else if (is404) {
       notFoundExpr = loaderExpr;
-      notFoundFiles.set(node._dirPath, file.filePath);
     } else {
       // Normal route or endpoint — check for layout stop / named layout
       const { layoutName, layoutStop } = parseRouteIndexName(file.extlessName);
@@ -286,14 +275,12 @@ function serializeBuildTrie(
       if (layoutStop) {
         // Layout stop: emit _I as array with just the page loader (no layouts)
         indexExpr = `[ ${loaderExpr} ]`;
-        indexIsOverride = true;
       } else if (layoutName) {
         // Named layout: walk ancestors to build the override chain
         const chain = resolveNamedLayoutChain(ancestorLayouts, nodeLayouts, layoutName);
         const chainExprs = chain.map((l) => l.id);
         chainExprs.push(loaderExpr);
         indexExpr = `[ ${chainExprs.join(', ')} ]`;
-        indexIsOverride = true;
       } else {
         // Normal route: single loader, runtime prepends _L
         indexExpr = loaderExpr;
@@ -311,11 +298,7 @@ function serializeBuildTrie(
 
   // Emit _I (index/page loader)
   if (indexExpr) {
-    if (indexIsOverride) {
-      lines.push(`${nextIndent}_I: ${indexExpr},`);
-    } else {
-      lines.push(`${nextIndent}_I: ${indexExpr},`);
-    }
+    lines.push(`${nextIndent}_I: ${indexExpr},`);
 
     // Emit _B bundle names (SSR only)
     if (isSSR && bundleRoute) {
@@ -404,8 +387,6 @@ function serializeBuildTrie(
         layoutIdMap,
         routeIdMap,
         menuIdMap,
-        errorFiles,
-        notFoundFiles,
         childAncestors,
         isSSR,
         nextIndent,
@@ -429,8 +410,6 @@ function serializeBuildTrie(
       layoutIdMap,
       routeIdMap,
       menuIdMap,
-      errorFiles,
-      notFoundFiles,
       childAncestors,
       isSSR,
       nextIndent,

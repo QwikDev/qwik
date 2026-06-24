@@ -170,38 +170,55 @@ Never use `pnpm test.unit` for agent verification in this repo.
 
 ## ErrorBoundary (experimental `errorBoundary`)
 
-`<ErrorBoundary>` (`errorBoundaryCmp`, `shared/error/error-boundary.ts`) ships from core and is gated
-on the `errorBoundary` experimental flag — the component throws an actionable error when the flag is
-off (the flag is build-time replaced, so this is unconditional when disabled). It works without
-`suspense`; `suspense` + `streaming.outOfOrder` only add out-of-order streaming. The internal
-fallback-host server component dispatches when `suspense || errorBoundary` (`ssr-render-jsx.ts`).
+Prescriptive notes for touching ErrorBoundary code — what not to break, and the traps that cause
+false passes. (Read the source for the full mechanism.)
 
-It never blocks streaming: content streams live into a `content-host`; on a throw
-`renderErrorBoundaryFallback` only sets `store.error = toSerializableBoundaryError(err)` (and fires
-`onError$` once), then renders `null` — it never renders the fallback itself. A sibling
-`fallback-host` delivers the fallback; the content/fallback display toggles are reactive on
-`store.error`, the SSR→CSR bridge (on the client the boundary re-renders to
-`store.error !== undefined ? <Fragment>{fallback}</Fragment> : <Slot/>`).
+Where the pieces live: `errorBoundaryCmp` (`shared/error/error-boundary.ts`); SSR catch + inert
+(`ssr/ssr-render-jsx.ts`: `renderErrorBoundaryFallback`, `catchToErrorBoundary`,
+`markErrorBoundaryContentInert`); the two SSR fallback hosts (`control-flow/suspense.tsx`:
+`SSRErrorFallback` = out-of-order/`qO`, `SSRErrorFallbackInline` = in-order/`qErr`); client routing
+(`client/dom-container.ts`: `handleError`, the `qerror` listener); shared helpers
+(`shared/error/error-handling.ts`: `markBoundaryErrored`, `fireOnError`, `toSerializableBoundaryError`,
+`ErrorBoundaryStore`). Gated on the `errorBoundary` flag (the component throws when it's off).
 
-The swap is a two-branch model chosen by `isOutOfOrderStreaming()`:
+### Keep these invariants
+- **Never let the boundary buffer or block streaming.** Content streams live into the `content-host`;
+  on a throw `renderErrorBoundaryFallback` sets `store.error` + fires `onError$` once + marks content
+  inert + returns `null`. It must NOT render the fallback itself — a sibling `fallback-host` does.
+- **Keep the two-branch swap** (`qErr` inline vs `qO` segment, chosen by `isOutOfOrderStreaming()`).
+  It encodes a resume invariant, not style: an out-of-order fallback's vnode-data must travel through
+  a segment (reconciled by `qProcessOOOS` on reveal); inline-under-OOOS desyncs the refs.
+- **Write the error state only through `markBoundaryErrored(store, error)`** — it sets `store.error`
+  via `toSerializableBoundaryError` and fires `onError$` exactly once with the ORIGINAL error. Don't
+  re-inline that first-catch triple.
+- **`onError$` fires once**: server via the `store.$onError$` mirror, client via the serialized
+  `props.onError$`. The `$`-mirror is server-only — never read it on the client.
+- **Keep `content-host` before `fallback-host`** in DOM/vnode order (the `qO` reveal hides the
+  previous sibling, and a later throw must resolve up through the content-host).
+- **Keep the `qErr` executor independent of `qO`** (gated on `errorBoundary`, not `suspense`) so a
+  plain in-order page still swaps.
+- **Closest boundary catches; a throwing fallback escalates.** Both SSR and client skip a boundary
+  whose `$fallback$` is already detached and walk to the nearest ancestor; the top-level handler
+  terminates the loop.
 
-- OOOS active (not already in a segment) → the fallback streams as an out-of-order **segment** and the
-  shared `qO` executor delivers + reveals it (`SSRErrorFallback`; fallback-host carries `q:rp`).
-- truly in-order, OR inside a `<Suspense>` segment → the fallback renders **inline** and a `qErr(id)`
-  inline script swaps it (`SSRErrorFallbackInline`; hosts `q:ebc`/`q:ebf`). Inside a segment the inline
-  `qErr` is inert in the `<template>`, so the boundary registers its id (`$registerErrorSwap$`) and the
-  segment emits `qErr(id)` at the root right after `qO(segmentId)`.
+### Testing gotchas (they cause false passes)
+- The unit harness (`domRender`/`ssrRenderToDom`/`streamAndResume`) **simulates** resume — it runs the
+  `qO`/`qErr` scripts but not real qwikloader resume/event dispatch, so a spec can pass while a real
+  browser breaks. Back every resume/interactivity claim with `error-boundary-streaming.e2e.ts`.
+- The flags are build-time-replaced and BOTH `errorBoundary` + `suspense` are ON for the whole unit
+  suite, so you cannot toggle them at runtime in a test; the flag-off path needs a separate build.
+- For serialization/resume, verify on **`build.core`** (full tsc) — `build.core.dev` masks SSR→resume
+  bugs. The unit env defaults `outOfOrder: true`, so the in-order branch only runs with explicit
+  `streaming: { outOfOrder: false }` — exercise BOTH branches.
+- `qwik-dom`'s `element.querySelector` is NOT subtree-scoped — use `host.contains(el)` for placement.
+  Rendering one JSX object in two containers trips "props across containers"; build a fresh tree per test.
+- e2e: rebuild, kill the stale `:3301` server (`reuseExistingServer` serves a stale bundle), run `CI=1`:
 
-The split tracks a real invariant, not style: in OOOS the fallback's vnode-data must travel through a
-segment (reconciled by `qProcessOOOS` on reveal) to stay resume-consistent; inline delivery is only
-safe with no OOOS or already inside a segment. A deferred child `<Suspense>` that throws tears the
-whole boundary down via `store.$emitFallback$`. Client-time errors re-render the boundary through the
-container's `handleError` (closest boundary; a 2nd throw escalates to an ancestor).
-
-Swapped-out content is made inert so it never resumes (`markErrorBoundaryContentInert`:
-`VNodeDataFlag.INERT` + `clearAllEffects` + claimed-`<Slot>`-ref removal). `store.$contentHostNode$`
-is serialized **by design** despite the `$` prefix (it roots the content host so the client diff can
-locate and drop the inert subtree on re-render) — not a leak.
+```bash
+pnpm vitest run packages/qwik/src/core/tests/error-boundary.spec.tsx
+pnpm build.core.dev && lsof -nP -iTCP:3301 -sTCP:LISTEN | awk 'NR>1{print $2}' | xargs -r kill
+CI=1 pnpm playwright test e2e/qwik-e2e/tests/error-boundary-streaming.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
+```
 
 ## Keep This Reference Fresh
 
